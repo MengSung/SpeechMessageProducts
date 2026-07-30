@@ -4,6 +4,13 @@
 // ============================================================================
 
 using FluentAssertions;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using ChurchReport.Controllers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Security;
@@ -160,9 +167,117 @@ public sealed class SensitiveDiagnosticOutputSecurityTests
     }
 
     /// <summary>
-    /// 從目前 test output 向上尋找同時含 ChurchReport test project 與兩個 Production controller source 的唯一 worktree。
-    /// 搜尋不接受 caller-controlled path、不跨 workspace 寫入資料，也不保留 DirectoryInfo 或 handle；若 sentinel 不完整即
-    /// fail closed，避免測試誤讀其他 checkout 後產生假綠燈。
+    /// 使用同一個真實 controller action 與同一個 Session 連續送入相同 code/state。第一次 callback 會先消費所有
+    /// OAuth Session material，之後因測試 DI 未提供 LINE 上游設定而在任何外部 HTTP 前安全失敗；第二次 replay
+    /// 必須因 state 已不存在而回到 State 錯誤，不能再次進入 token exchange。Uninitialized controller 只避免啟動
+    /// legacy CRM 依賴，request scope、Session read/remove 與 action 分支皆為 production 程式；測試沒有 socket、timer、
+    /// background task、token、LINE user ID 或跨案例 mutable owner。
+    /// </summary>
+    [Fact]
+    public async Task Line_callback_replay_with_same_session_is_rejected_after_first_consumption()
+    {
+        const string state = "synthetic-line-oauth-state";
+        var session = new ReplaySession("synthetic-line-replay-session");
+        session.SetString("_LineLoginState", state);
+        session.SetString(
+            "_LineLoginStateIssuedAtUtcTicks",
+            DateTimeOffset.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture));
+        session.SetString("_LineLoginCallbackUrl", "https://callback.invalid/Authentication/LineCallback");
+        session.SetString("_LineLoginNonce", "synthetic-line-oauth-nonce");
+        using var services = new ServiceCollection().BuildServiceProvider();
+        var httpContext = new DefaultHttpContext
+        {
+            Session = session,
+            RequestServices = services
+        };
+        var controller = (AuthenticationController)RuntimeHelpers.GetUninitializedObject(
+            typeof(AuthenticationController));
+        controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+        controller.Url = new ReplayUrlHelper();
+
+        var first = await controller.LineCallback("synthetic-code", state, null!, null!);
+        var replay = await controller.LineCallback("synthetic-code", state, null!, null!);
+
+        ReadRedirectError(first).Should().NotContain("State");
+        ReadRedirectError(replay).Should().Contain("State");
+        session.Keys.Should().NotContain(new[]
+        {
+            "_LineLoginState",
+            "_LineLoginStateIssuedAtUtcTicks",
+            "_LineLoginCallbackUrl",
+            "_LineLoginNonce"
+        });
+    }
+
+    /// <summary>讀取固定 Login redirect 的 error category；不序列化或保存其他 route/session 資料。</summary>
+    private static string ReadRedirectError(IActionResult result)
+    {
+        var redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.RouteValues.Should().NotBeNull();
+        return redirect.RouteValues!["error"].Should().BeOfType<string>().Subject;
+    }
+
+    /// <summary>
+    /// 單一測試 request 擁有的 in-memory Session fake；每次 Set 都複製 byte[]，Clear/Remove 立即釋放 dictionary reference，
+    /// 不建立 timer、subscription、distributed connection 或 background cleanup，也不把 Session ID 寫入輸出。
+    /// </summary>
+    private sealed class ReplaySession : ISession
+    {
+        private readonly Dictionary<string, byte[]> _values = new(StringComparer.Ordinal);
+
+        public ReplaySession(string id) => Id = id;
+
+        public bool IsAvailable => true;
+
+        public string Id { get; }
+
+        public IEnumerable<string> Keys => _values.Keys;
+
+        public void Clear() => _values.Clear();
+
+        public Task CommitAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task LoadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public void Remove(string key) => _values.Remove(key);
+
+        public void Set(string key, byte[] value) => _values[key] = value.ToArray();
+
+        public bool TryGetValue(string key, out byte[] value)
+        {
+            if (_values.TryGetValue(key, out var stored))
+            {
+                value = stored.ToArray();
+                return true;
+            }
+
+            value = Array.Empty<byte>();
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 只供 ControllerBase 建立 RedirectToActionResult 的無狀態 URL helper；固定回傳本機 Login path，不解析 request host、
+    /// 不建立 route cache、service scope、timer 或 background work，也不接觸 callback/token/Session material。
+    /// </summary>
+    private sealed class ReplayUrlHelper : IUrlHelper
+    {
+        public ActionContext ActionContext { get; } = new();
+
+        public string? Action(UrlActionContext actionContext) => "/Login";
+
+        public string? Content(string? contentPath) => contentPath;
+
+        public bool IsLocalUrl(string? url) => true;
+
+        public string? Link(string? routeName, object? values) => "/Login";
+
+        public string? RouteUrl(UrlRouteContext routeContext) => "/Login";
+    }
+
+    /// <summary>
+    /// 尋找目前測試 checkout 的 repository root；只走訪父目錄並檢查固定 sentinel，不接受 caller path、不建立 watcher，
+    /// 也不保存 DirectoryInfo、handle、Session 或其他跨測試狀態。
     /// </summary>
     private static string FindRepositoryRoot()
     {

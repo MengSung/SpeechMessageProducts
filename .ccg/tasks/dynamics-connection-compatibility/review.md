@@ -799,3 +799,51 @@ covered every changed or new `.cs` and `.ps1` file. The final sensitive and
 resource scan remained at zero for provider Session markers, local profile
 paths, configured identity/SID values, sensitive configuration values, recent
 Claude shim directories, and the localhost 7244 listener.
+
+---
+
+## 2026-07-30 Diagnostics operator and lifecycle closure
+
+### Dual-model result
+
+The required self-healing retry completed without quota or degraded fallback:
+
+```text
+20260730-140714-dynamics-adfs-operator-lifecycle-retry-reviewer
+ok=true
+degradedFallback=false
+quotaBlocked=false
+completedBackends=gemini,claude
+```
+
+Gemini and Claude both returned zero Critical and zero Warning findings for the diagnostics operator policy, named bounded HTTP client, ADFS owned-handler disposal, real LINE callback replay rejection, credential/output hygiene, and Session/Profile/Memory/Resource leakage boundaries. Generated provider Session markers and local absolute paths were redacted while preserving the findings and runner result.
+
+### Runtime and infrastructure verification
+
+```text
+Gateway health / ready                 200 / 200
+Gateway anonymous catalog             401
+Gateway authenticated catalog         200
+Gateway wrong alias / unauthorized op 403 / 403
+Gateway controlled no-fallback result 400
+ChurchReport root / health             200 / 200
+ChurchReport browser readyState        complete
+ChurchReport browser JS errors         0
+Diagnostics anonymous                 302 -> /Login
+Remaining listeners 7244 / 5080        0 / 0
+Remaining owned PSSessions             0
+```
+
+The browser did not bypass the Gateway development-certificate warning or modify certificate trust. CLI loopback HTTPS evidence remains the bounded Gateway proof; ChurchReport and Diagnostics were verified in the in-app browser.
+
+Both DC/D365 VM DNS names, TCP 5985, and WSMan Identify were reachable. Authenticated administration was not available from the current non-domain, non-elevated workstation token and no approved target credential/session existed, so no remote mutation or password attempt was performed. Basic, unencrypted WinRM, and broad TrustedHosts were not used. The authenticated WinRM configuration gate therefore remains open rather than being misreported as complete.
+
+### Open program gates
+
+Real CE 8.2/9.1 evidence, OData projection, cross-process capacity/fault behavior, soak/performance and shutdown baselines, Phase 5 migration, and Phase 6 removal remain open. `Package01FeeReadsEnabled=false`, Embedded, Data8, and `PowerPlatform.Dataverse.Client` remain retained.
+
+### Final post-SPEC dual-model closure
+
+Run `20260730-144721-dynamics-adfs-runtime-winrm-final-review-reviewer` completed with full Gemini and Claude success (`ok=true`, no quota or degraded fallback). Both models returned zero Critical and zero Warning findings and recommended PASS for the implementation, runtime evidence, WinRM safety gate, lifecycle/isolation boundaries, and honest open-gate wording.
+
+Claude recorded one non-blocking Info for future hardening: the existing DEBUG-only ADFS diagnostic redirect URI helper may fall back to request scheme/host when deployment configuration is absent. The operator allowlist and ADFS registered redirect validation keep this outside the current blocking set, but a future reviewed increment may require an explicit configured RedirectUri and remove the Host-header-derived fallback.

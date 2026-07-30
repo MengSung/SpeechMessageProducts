@@ -27,7 +27,7 @@
     "relatedFiles":  [
 
                      ],
-    "notes":  "2026-07-28 local Phase 4 hardening verified: ADFS/CRM HTTP isolation disables cookies/redirects/proxy/decompression/pre-auth; local admission is atomically bounded; local slots are atomic and expiry-fenced; token bodies are bounded, in-place parsed, and cleared; deterministic lease cleanup has no fire-and-forget/context-capture path. Fresh Dynamics tests pass 62/62 and Release build has 0 errors. Package01 remains false. Full Phase 4 still requires durable coordination, profile generation/drain, workload authentication, soak tests, and authenticated CE 8.2/9.1 evidence; apply the separate IFD correction only with a supported operator-side DWS credential.",
+    "notes":  "2026-07-30 diagnostics operator/lifecycle increment completed local and full Gemini+Claude review with zero Critical/Warning findings. Fresh Dynamics tests pass 252/252 with one opt-in SQL skip, ChurchReport tests pass 374/374, Release and Debug builds have 0 warnings/errors, Local Gateway runtime matrix and ChurchReport browser checks pass, and listeners/PSSessions return to zero. WinRM targets answer DNS/TCP 5985/WSMan Identify, but authenticated VM mutation remains blocked because no approved Kerberos/Negotiate administrative identity or existing session is available; no password, Basic, unencrypted transport, or TrustedHosts broadening was used. Package01 remains false. Real CE 8.2/9.1, OData projection, cross-process capacity/fault, soak/performance, Phase 5, and Phase 6 remain open.",
     "meta":  {
 
              }

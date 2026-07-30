@@ -12,6 +12,7 @@
 // ============================================================================
 
 using System.Net;
+using System.Reflection;
 using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -269,10 +270,33 @@ public sealed class AdfsOAuthTokenProviderTests
 
 
     /// <summary>
-    /// 驗證公開設定模型不再提供可把 token trust boundary 轉移到任意檔案路徑的屬性。
-    /// 反射只檢查公開 instance contract，不建立設定 binder、檔案 watcher 或共享 cache；若 legacy 屬性仍存在即
-    /// fail closed。這同時保護 Gateway runtime 與產品端 Embedded 設定，避免不同 Session、Profile 或程序世代
-    /// 經由同一路徑共享可變 token 狀態；移除屬性也不增加執行期配置或記憶體成本。
+    /// 直接覆蓋未注入 <see cref="IHttpClientFactory"/> 的 production-owned handler 分支。Provider constructor 建立
+    /// generation 唯一擁有的 HttpClient／SocketsHttpHandler；DisposeAsync 必須先 drain active attempt，再關閉 client、
+    /// handler/socket pool 與 CTS。測試只反射取得該 private client 作為 disposal sentinel，不讀取 token、secret、URL、
+    /// Session 或跨測試 mutable state；Dispose 後任何 SendAsync 都必須在網路 I/O 前拋出 ObjectDisposedException。
+    /// </summary>
+    [Fact]
+    public async Task Owned_handler_client_is_disposed_with_profile_generation()
+    {
+        var provider = new AdfsOAuthTokenProvider(
+            Options.Create(CreateRefreshGrantOptionsWithSecret()),
+            new DictionarySecretResolver(CreateRefreshGrantSecrets()),
+            NullLogger<AdfsOAuthTokenProvider>.Instance);
+        var ownedClientField = typeof(AdfsOAuthTokenProvider).GetField(
+            "_ownedHttpClient",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        ownedClientField.Should().NotBeNull();
+        var ownedClient = ownedClientField!.GetValue(provider).Should().BeOfType<HttpClient>().Subject;
+
+        await provider.DisposeAsync();
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://disposed.invalid/");
+        var act = async () => await ownedClient.SendAsync(request);
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    /// <summary>
+    /// 驗證公開設定契約沒有重新暴露本機 token-store 路徑；設定 reflection 不執行 I/O，也不保存 token 或 profile state。
     /// </summary>
     [Fact]
     public void Public_configuration_contract_does_not_expose_local_token_store_path()

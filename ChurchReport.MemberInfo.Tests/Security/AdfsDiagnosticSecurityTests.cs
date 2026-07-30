@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Json;
 using ChurchReport.Controllers;
 using FluentAssertions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -55,13 +56,106 @@ public sealed class AdfsDiagnosticSourceContractTests
             "bodyPreview",
             "whoAmIBody",
             "tokenStorePath",
-            "Trace."
+            "Trace.",
+            "new SocketsHttpHandler"
         };
 
         var violationCount = forbiddenFragments.Count(fragment =>
             source.Contains(fragment, StringComparison.OrdinalIgnoreCase));
 
         violationCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 驗證診斷授權由部署端操作員清單與登入 cookie 內伺服器簽發的聯絡人識別 claim 共同決定。
+    /// 測試以反射載入政策 helper，讓 RED 階段在型別尚不存在時仍可編譯；空清單、未驗證身分、缺少／重複
+    /// <see cref="ClaimTypes.NameIdentifier"/> 或清單外識別皆必須 fail closed，且 helper 不可讀取 Session、建立
+    /// cache、timer、subscription 或保留 request principal。
+    /// </summary>
+    [Fact]
+    public void Diagnostics_operator_authorization_uses_server_issued_contact_claim_and_fails_closed()
+    {
+        var policyType = typeof(global::ChurchReport.Startup).Assembly.GetType(
+            "ChurchReport.Security.DiagnosticsOperatorAuthorization");
+        policyType.Should().NotBeNull("診斷端點必須有獨立且可測試的 fail-closed 操作員政策");
+
+        var createAllowlist = policyType!.GetMethod("CreateAllowedContactIds");
+        var isAuthorized = policyType.GetMethod("IsAuthorized");
+        createAllowlist.Should().NotBeNull();
+        isAuthorized.Should().NotBeNull();
+
+        const string allowedContactId = "7a169533-54c6-4ce7-92b8-c4a28918d436";
+        var configured = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Diagnostics:OperatorContactIds:0"] = allowedContactId
+            })
+            .Build();
+        var empty = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        var configuredAllowlist = createAllowlist!.Invoke(null, new object[] { configured });
+        var emptyAllowlist = createAllowlist.Invoke(null, new object[] { empty });
+
+        static ClaimsPrincipal Principal(params Claim[] claims)
+            => new(new ClaimsIdentity(claims, "synthetic-cookie"));
+
+        bool Invoke(ClaimsPrincipal principal, object? allowlist)
+            => (bool)(isAuthorized!.Invoke(null, new[] { principal, allowlist }) ?? false);
+
+        Invoke(
+                Principal(new Claim(ClaimTypes.NameIdentifier, allowedContactId)),
+                configuredAllowlist)
+            .Should().BeTrue();
+        Invoke(
+                Principal(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString("D"))),
+                configuredAllowlist)
+            .Should().BeFalse();
+        Invoke(Principal(new Claim(ClaimTypes.Name, allowedContactId)), configuredAllowlist)
+            .Should().BeFalse();
+        Invoke(
+                Principal(
+                    new Claim(ClaimTypes.NameIdentifier, allowedContactId),
+                    new Claim(ClaimTypes.NameIdentifier, allowedContactId)),
+                configuredAllowlist)
+            .Should().BeFalse();
+        Invoke(new ClaimsPrincipal(new ClaimsIdentity()), configuredAllowlist).Should().BeFalse();
+        Invoke(
+                Principal(new Claim(ClaimTypes.NameIdentifier, allowedContactId)),
+                emptyAllowlist)
+            .Should().BeFalse();
+    }
+
+    /// <summary>
+    /// 驗證 Startup 使用具名 factory client 擁有診斷 ADFS 的長生命週期 handler/socket pool，並保留 Cookie、Redirect、
+    /// Proxy、解壓縮及連線數的安全界線。此 release-safe source contract 防止後續重構退回每 callback 建立 handler，
+    /// 造成 socket churn、非決定性清理或跨要求 header/cookie 汙染。
+    /// </summary>
+    [Fact]
+    public void Startup_registers_bounded_factory_owned_adfs_diagnostics_client()
+    {
+        var startupSource = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "SpeechMessageProducts.ChurchReport",
+            "Startup.cs"));
+        var authorizationSource = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "SpeechMessageProducts.ChurchReport",
+            "Security",
+            "DiagnosticsOperatorAuthorization.cs"));
+        var registrationContract = startupSource + authorizationSource;
+        var requiredFragments = new[]
+        {
+            "DiagnosticsHttpClientName = \"adfs-diagnostics\"",
+            "AddHttpClient(DiagnosticsOperatorAuthorization.DiagnosticsHttpClientName",
+            "UseCookies = false",
+            "AllowAutoRedirect = false",
+            "UseProxy = false",
+            "AutomaticDecompression = DecompressionMethods.None",
+            "MaxConnectionsPerServer",
+            "SetHandlerLifetime"
+        };
+
+        requiredFragments.Should().OnlyContain(fragment =>
+            registrationContract.Contains(fragment, StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -128,6 +222,38 @@ public sealed class AdfsDiagnosticBehaviorTests
     private const string SessionMarker = "diagnostic-session-marker";
     private const string ResponseBodyMarker = "diagnostic-response-body-marker";
     private const string OAuthState = "synthetic-oauth-state";
+
+    /// <summary>
+    /// 驗證 controller 本身宣告具名操作員政策，不能只以一般 <see cref="AuthorizeAttribute"/> 接受任意已登入使用者。
+    /// MVC 授權會在 action、Session 與上游 HTTP 之前執行，因此政策名稱是避免非操作員觸發 ADFS／CRM 診斷流量的第一道
+    /// fail-closed 邊界；測試不執行網路、Session 寫入或背景工作。
+    /// </summary>
+    [Fact]
+    public void Controller_requires_diagnostics_operator_policy()
+    {
+        var authorize = typeof(DiagnosticsController)
+            .GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true)
+            .Cast<AuthorizeAttribute>()
+            .Single();
+
+        authorize.Policy.Should().Be("diagnostics-operator");
+    }
+
+    /// <summary>
+    /// 驗證診斷 HTTP client 由 DI factory 注入，controller 不再自行建立 handler/socket pool。Constructor 只保存 host-owned
+    /// factory reference，不保存每個要求的 token、Session、request 或 response；實際 wrapper 仍由 action using 決定性釋放。
+    /// </summary>
+    [Fact]
+    public void Controller_constructor_requires_http_client_factory()
+    {
+        var constructorParameterTypes = typeof(DiagnosticsController)
+            .GetConstructors()
+            .Single()
+            .GetParameters()
+            .Select(parameter => parameter.ParameterType);
+
+        constructorParameterTypes.Should().Contain(typeof(IHttpClientFactory));
+    }
 
     /// <summary>
     /// 驗證只做 authorize preview 時不建立 OAuth Session state。preview 是純資訊要求，不是 authorization transaction，
@@ -473,13 +599,40 @@ public sealed class AdfsDiagnosticBehaviorTests
         httpContext.Request.Scheme = "https";
         httpContext.Request.Host = new HostString("request-marker.invalid");
 
-        return new DiagnosticsController(configuration)
+        return new DiagnosticsController(configuration, new TestHttpClientFactory())
         {
             ControllerContext = new ControllerContext
             {
                 HttpContext = httpContext
             }
         };
+    }
+
+    /// <summary>
+    /// 測試用 factory 每次建立由該 HttpClient wrapper 唯一擁有的 handler；controller action 的 using 會同步釋放
+    /// wrapper 與 handler，因此 loopback socket 不會跨測試保留。Production 則由 Startup 的 named client 共用
+    /// Host-owned pool；此 fake 不保存 request、token、Session、timer、background task 或 mutable default header。
+    /// </summary>
+    private sealed class TestHttpClientFactory : IHttpClientFactory
+    {
+        /// <summary>建立有界、安全且只屬於目前測試 callback 的 client。</summary>
+        public HttpClient CreateClient(string name)
+        {
+            name.Should().Be("adfs-diagnostics");
+            return new HttpClient(
+                new SocketsHttpHandler
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false,
+                    UseProxy = false,
+                    AutomaticDecompression = DecompressionMethods.None,
+                    MaxConnectionsPerServer = 1
+                },
+                disposeHandler: true)
+            {
+                Timeout = TimeSpan.FromSeconds(10)
+            };
+        }
     }
 
     /// <summary>

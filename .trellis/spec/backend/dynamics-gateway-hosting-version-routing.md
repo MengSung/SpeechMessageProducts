@@ -658,7 +658,7 @@ await processLifetimeOwner.DisposeSharedLegacyRuntimeAsync().ConfigureAwait(fals
 
 ### 1. Scope / Trigger
 
-This scenario applies when Visual Studio starts `SpeechMessage.Dynamics.Gateway` and ChurchReport under the `Development` environment. It defines the fail-closed Local Gateway configuration, durable single-machine control-plane ownership, product-to-Gateway boundary, browser smoke evidence, and the exact limit of what that evidence proves. It does not authorize real CE traffic or Phase 5 consumer migration.
+This scenario applies when Visual Studio starts `SpeechMessage.Dynamics.Gateway` and ChurchReport under the `Development` environment, when a compiled Host DLL is executed directly for local verification, or when WinRM readiness/administration is attempted against the DC or Dynamics application VM. It defines the fail-closed Local Gateway configuration, durable single-machine control-plane ownership, product-to-Gateway boundary, browser smoke evidence, safe remote-administration gate, and the exact limit of what that evidence proves. It does not authorize real CE traffic or Phase 5 consumer migration.
 
 ### 2. Signatures
 
@@ -684,6 +684,16 @@ SpeechMessageProducts.ChurchReport/appsettings.Development.json
 GET /health
 GET /ready
 POST /v1/{profileAlias}/operations/{operationId}
+
+# Direct DLL verification runs from the owning project content root.
+cd SpeechMessage.Dynamics.Gateway
+dotnet .\bin\Debug\net10.0\SpeechMessage.Dynamics.Gateway.dll --urls https://localhost:7244
+
+cd ..\SpeechMessageProducts.ChurchReport
+dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://localhost:5080
+
+# Remote administration uses DNS plus an already approved Negotiate identity.
+New-PSSession -ComputerName <approved-dns-name> -Authentication Negotiate
 ```
 
 ### 3. Contracts
@@ -700,6 +710,10 @@ POST /v1/{profileAlias}/operations/{operationId}
 - The retired `Invoke-AdfsTokenProbe.ps1` is a fixed fail-closed compatibility entrypoint. It accepts no credential/token/result parameters, reads no appsettings, performs no network or file output, and directs operators to the existing Public Client authorization-code diagnostic flow.
 - Runtime verification artifacts may record HTTP status categories, test counts, readiness state, JavaScript error count, and sanitized policy outcomes. They must not persist credentials, tokens, passwords, Session identifiers, client identifiers, callback values, private VM addresses, complete AD FS/CRM endpoints, or secret-reference values.
 - Raw workload-binding arrays at one shared configuration path are forbidden. .NET configuration merges arrays and nested lists by numeric leaf key; changing index `1` to `0` can still retain base `CapabilityOperationIds:1..N`. Named sets plus one strict selector are the required replacement boundary.
+- A compiled ASP.NET Core DLL resolves `appsettings.json`, `appsettings.{Environment}.json`, content files, and relative configuration from its content root. Local verification must set the process working directory to the owning project directory or pass an explicit reviewed content root. Running the Gateway DLL from the solution root can omit its profile configuration and produce a misleading fail-closed profile-URI startup exception; do not weaken validation or edit deployment JSON to compensate for the wrong content root.
+- WinRM mutation requires an authenticated administrative owner obtained from an already approved Kerberos/Negotiate session or credential store. Every `PSSession` is removed in `finally`, credential/session variables are cleared, and pre-state plus exact rollback are captured before mutation. Basic authentication, `AllowUnencrypted=true`, broad `TrustedHosts`, repeated password attempts, and persisted `PSCredential` or remote object graphs are forbidden.
+- If the caller is not domain joined, is not elevated, has no approved credential/session, or cannot authenticate to the target, verification stops at DNS/TCP/WSMan identify probes. An existing insecure local WinRM client pre-state may be reported as a blocker, but it must not be used as an authorization path or silently changed without the required administrative owner.
+- The in-app browser must not bypass a self-signed HTTPS warning or install/trust a development certificate merely to make a smoke test green. A local CLI probe may explicitly ignore the development certificate only for bounded loopback status verification; browser evidence remains limited to pages reachable through the browser's normal trust policy. Production Gateway evidence requires a deployment-trusted certificate.
 
 ### 4. Validation & Error Matrix
 
@@ -716,6 +730,10 @@ POST /v1/{profileAlias}/operations/{operationId}
 | Retired AD FS probe is invoked | Fail immediately with fixed guidance; allocate no network, file, timer, background, credential, or token resource. |
 | `ActiveWorkloadBindingSet` is missing, blank, contains wildcard text, names no direct child set, names a scalar/empty set, or is otherwise ambiguous | Host startup fails closed; do not start the listener or fall back to another set. |
 | A Central principal authenticates against a Development Host whose selector is `Local` | Return 403 `unmapped-principal`; do not resolve an alias, operation, secret, admission permit, executor request, or outbound connection. |
+| A compiled Gateway/ChurchReport DLL is started from the solution root without an explicit content root | Startup may fail closed because project appsettings are not loaded. Restart from the owning project directory; do not relax profile validation or copy secrets/configuration into the solution root. |
+| WinRM listener responds but no approved authenticated administrative identity is available | Perform only DNS/TCP/WSMan identify probes, remove any temporary session in `finally`, and report the remote mutation gate as blocked. Do not attempt passwords, Basic, unencrypted transport, or `TrustedHosts=*`. |
+| Local WinRM client already has Basic or unencrypted transport enabled | Treat it as pre-existing insecure state. Do not use it for the VM operation; hardening requires an elevated, separately owned change with rollback. |
+| The browser rejects the local Gateway development certificate | Do not bypass the security interstitial or mutate trust. Preserve CLI HTTPS status evidence and require a trusted certificate for full browser proof. |
 
 ### 5. Good / Base / Bad Cases
 
@@ -730,6 +748,11 @@ POST /v1/{profileAlias}/operations/{operationId}
 - Bad: set `Package01FeeReadsEnabled=true` to force preflight evidence before real CE 8.2/9.1 and rollback gates exist.
 - Bad: define Central and Local entries under one `WorkloadBindings` array and assume a later provider replaces the collection; numeric leaf merging can preserve both entire bindings and nested operation entries.
 - Bad: a valid but unmapped SID is allowed to continue into principal-name lookup. Account-name reuse can then grant a different Windows security authority the old account's alias, operation, capacity, and audit identity.
+- Good: direct DLL verification runs from each project's directory, the Gateway and ChurchReport both reach health, and cleanup stops only listener owners whose command lines match the expected DLLs.
+- Good: WinRM readiness proves DNS, TCP 5985, and WSMan identify without printing target addresses; when authentication is unavailable, no remote mutation or password attempt occurs and the final `PSSession` count is zero.
+- Base: the development Gateway certificate is accepted by CLI loopback verification only; the in-app browser validates ChurchReport and the authorization redirect while Gateway browser proof remains gated on certificate trust.
+- Bad: run the Gateway DLL from the solution root, observe a missing-profile exception, and modify profile JSON or weaken fail-closed validation instead of correcting the content root.
+- Bad: use a pre-existing Basic/unencrypted WinRM client or broaden TrustedHosts to work around missing administrative authentication.
 
 ### 6. Tests Required
 
@@ -743,6 +766,9 @@ POST /v1/{profileAlias}/operations/{operationId}
 - Verify the AD FS Public Client/callback/description markers read-only without writing or printing sensitive values.
 - Parse the retired PowerShell entrypoint, assert it has no secret/result parameters or network/file code path, and verify it fails closed.
 - Run Dynamics tests, ChurchReport tests, Release solution build, changed-file format, strict UTF-8/no-BOM/CRLF/final-CRLF, `git diff --check`, and added-line sensitive-literal scans.
+- Start each compiled host from its project content root and assert the 200/200/401/200/403/403/controlled-400 matrix, ChurchReport `readyState=complete`, zero JavaScript errors, and listener count zero after cleanup.
+- Add a negative runtime check that starts the Gateway DLL from the wrong content root and proves it fails closed without opening a listener; the correction is the process content root, not a configuration or validation change.
+- For WinRM work, assert DNS/TCP/WSMan identify results are sanitized, authenticated mutation is skipped when no approved admin identity exists, no password retry occurs, and the final owned `PSSession` count is zero.
 
 ### 7. Wrong vs Correct
 
@@ -841,6 +867,53 @@ if (windowsSid is not null)
 ```
 
 An unmapped SID returns `null`, so authorization fails before alias/operation execution. The name path remains available only for authenticated environments that genuinely provide no usable SID.
+
+#### Wrong: direct DLL execution from the solution root
+
+```powershell
+dotnet .\SpeechMessage.Dynamics.Gateway\bin\Debug\net10.0\SpeechMessage.Dynamics.Gateway.dll
+```
+
+The process content root is the solution directory, so project appsettings may be absent even though the DLL path is correct.
+
+#### Correct: bind the process to the owning project content root
+
+```powershell
+Push-Location .\SpeechMessage.Dynamics.Gateway
+try {
+    dotnet .\bin\Debug\net10.0\SpeechMessage.Dynamics.Gateway.dll --urls https://localhost:7244
+}
+finally {
+    Pop-Location
+}
+```
+
+The Host loads the reviewed project configuration and keeps the same fail-closed validation. The runtime verifier records the listener owner and stops only that exact DLL owner during cleanup.
+
+#### Wrong: compensate for missing WinRM authentication with an unsafe client path
+
+```powershell
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value '*'
+Set-Item WSMan:\localhost\Client\AllowUnencrypted -Value $true
+```
+
+#### Correct: require approved Negotiate authentication and deterministic cleanup
+
+```powershell
+$session = $null
+try {
+    $session = New-PSSession -ComputerName $approvedDnsName -Authentication Negotiate -ErrorAction Stop
+    Invoke-Command -Session $session -ScriptBlock { Get-Service WinRM }
+}
+finally {
+    if ($null -ne $session) {
+        Remove-PSSession -Session $session
+    }
+    $session = $null
+}
+```
+
+If session creation fails, stop at read-only WSMan readiness evidence. Do not prompt repeatedly, persist a credential, enable Basic, allow unencrypted transport, or broaden TrustedHosts.
 
 ## Design Decisions
 

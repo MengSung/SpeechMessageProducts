@@ -16,6 +16,7 @@ using ChurchReport.Tools;
 using ChurchReport.Filters;
 using ChurchReport.Services.Theme;
 using ChurchReport.Payments;
+using ChurchReport.Security;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -187,6 +188,30 @@ namespace ChurchReport
                     PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
                 })
                 .SetHandlerLifetime(TimeSpan.FromMinutes(10));
+
+#if DEBUG
+            // DEBUG ADFS 診斷共用 Host-owned handler/socket pool；controller 每次只建立並 Dispose 短生命週期 wrapper。
+            // 禁用 Cookie、Redirect、Proxy 與自動解壓縮，避免跨要求身分汙染、內網路由繞行及不受控 response 擴張；
+            // 有界 timeout／connection 數提供最大安全持續效能，Host shutdown 由 IHttpClientFactory 決定性回收 handler。
+            services.AddHttpClient(DiagnosticsOperatorAuthorization.DiagnosticsHttpClientName, client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false,
+                    UseProxy = false,
+                    AutomaticDecompression = DecompressionMethods.None,
+                    PreAuthenticate = false,
+                    MaxConnectionsPerServer = 4,
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                })
+                .SetHandlerLifetime(TimeSpan.FromMinutes(10));
+#endif
 
             // ========================================
             // 🔧 修復：MemoryCache 添加過期策略（不限制大小，避免登入卡住）
@@ -661,6 +686,28 @@ namespace ChurchReport
                 });
 
             // 📁 Startup.cs - ConfigureServices 方法
+#if DEBUG
+            // 診斷政策在 Host 啟動時建立不可變部署 allowlist；缺少／空白／非法設定保持空集合並 fail closed。
+            // Policy 僅接受登入 cookie 內由 LoginClaimsFactory 簽發的唯一 NameIdentifier，不讀 Session、query、header，
+            // 也不保留 request principal，避免跨 Session／Profile 狀態滲漏與每 request 設定解析成本。
+            var diagnosticsOperatorContactIds =
+                DiagnosticsOperatorAuthorization.CreateAllowedContactIds(Configuration);
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(
+                    DiagnosticsOperatorAuthorization.PolicyName,
+                    policy =>
+                    {
+                        policy.AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme);
+                        policy.RequireAuthenticatedUser();
+                        policy.RequireAssertion(context =>
+                            DiagnosticsOperatorAuthorization.IsAuthorized(
+                                context.User,
+                                diagnosticsOperatorContactIds));
+                    });
+            });
+#endif
+
             services.AddScoped<ChurchListDataProcessor>();
             services.AddScoped<PersonalInfomatioManager>();
             services.AddScoped<DownloadListManager>();

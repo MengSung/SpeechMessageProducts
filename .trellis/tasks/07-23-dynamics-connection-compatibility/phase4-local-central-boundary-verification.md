@@ -562,3 +562,37 @@ Claude 對其他 legacy Session cache manager 的 Info 已做 root-cause tracing
 再由 Gemini＋Claude 完整 PASS，沒有 quota／degraded fallback；確認本 SPEC、Phase 4 證據與繁體中文
 解釋說明書可作為後續 Phase 4～6 的權威依據；當時 workload-binding Warning 正確保持 open，
 其後續關閉由新的實作、測試與審查 artifact 另行記錄，不能反向改寫歷史審查結果。
+
+---
+
+## 2026-07-30 Diagnostics operator, WinRM readiness, and browser/runtime follow-up
+
+### Security implementation and review
+
+- Diagnostics now requires the dedicated `diagnostics-operator` policy. The policy accepts only an authenticated cookie `NameIdentifier` GUID that appears in deployment-owned `Diagnostics:OperatorContactIds`; empty, missing, duplicate, invalid, or unlisted claims fail closed.
+- Diagnostics outbound HTTP uses the bounded factory-owned `adfs-diagnostics` client. Cookies, redirects, proxy, decompression, and pre-authentication are disabled; connection count and handler/socket lifetimes are bounded.
+- Production-owned ADFS handler/client disposal and the real LINE callback read-and-remove replay path have targeted lifecycle tests.
+- Full self-healing external review run `20260730-140714-dynamics-adfs-operator-lifecycle-retry-reviewer` completed with Gemini and Claude, no quota fallback, and zero Critical/Warning findings. Generated provider Session markers and local absolute paths were redacted without changing the findings.
+
+### Fresh local evidence
+
+- `SpeechMessage.Dynamics.Tests`: 252 passed, 0 failed, 1 opt-in SQL test skipped.
+- `ChurchReport.MemberInfo.Tests`: 374 passed, 0 failed.
+- Release solution build: 0 warnings, 0 errors.
+- Debug Gateway and ChurchReport builds: 0 warnings, 0 errors.
+- Runtime matrix from project content roots: Gateway health/ready 200/200; anonymous catalog 401; authenticated catalog 200; wrong alias 403; unauthorized operation 403; approved operation against the deliberately non-routable target controlled 400; ChurchReport root/health 200/200; Diagnostics anonymous response redirected to the existing login flow without content disclosure.
+- In-app browser: ChurchReport login reached `readyState=complete` with zero JavaScript errors. Diagnostics redirected away from `/diagnostics` to `/Login`, also with zero JavaScript errors. Gateway browser navigation remained gated by the local self-signed development certificate; no interstitial bypass or trust-store mutation was performed. CLI loopback HTTPS evidence remained green.
+- Cleanup stopped only the verified Gateway and ChurchReport DLL listener owners. Ports 7244 and 5080 and owned `PSSession` count returned to zero.
+
+### WinRM/DC/D365 VM result
+
+- Both approved DNS targets resolved, TCP 5985 answered, and WSMan Identify reported a Microsoft WSMan endpoint. TCP 5986 remained closed.
+- The current workstation was not domain joined, the current process was not elevated, no approved target credential entry existed, and the current Negotiate token could not create an administrative `PSSession`.
+- Therefore no remote mutation was authorized or attempted. No password was tried, Basic/unencrypted WinRM was not used, TrustedHosts was not broadened, and every temporary session reference was cleared.
+- The local WinRM client already had Basic and unencrypted transport enabled before this work. That insecure pre-state was not created, used, or silently modified by this task; hardening it requires a separately owned elevated change with rollback.
+
+### Remaining gates
+
+- Authenticated administrative WinRM configuration of the DC and D365 VMs remains blocked until an approved Kerberos/Negotiate administrative identity or existing approved session is available.
+- A deployment-trusted HTTPS certificate remains required for full in-app browser proof of the Gateway page.
+- Real CE 8.2/9.1 operation evidence, OData projection, cross-process capacity/fault behavior, soak/performance and shutdown baselines remain open. Phase 5 and Phase 6 remain open; `Package01FeeReadsEnabled=false`, Embedded, Data8, and `PowerPlatform.Dataverse.Client` remain unchanged.

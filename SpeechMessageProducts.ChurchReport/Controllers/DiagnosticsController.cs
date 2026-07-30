@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using ChurchReport.Security;
 
 namespace ChurchReport.Controllers
 {
@@ -36,7 +37,7 @@ namespace ChurchReport.Controllers
     /// authorization-code callback 與 WhoAmI 是否可達。每個 action 都維持最小回應，禁止以診斷便利性換取
     /// token、Session、部署設定或上游 response 的 retention。Release 編譯不包含這個型別。
     /// </summary>
-    [Authorize]
+    [Authorize(Policy = DiagnosticsOperatorAuthorization.PolicyName)]
     [Route("diagnostics")]
     public sealed class DiagnosticsController : Controller
     {
@@ -46,15 +47,20 @@ namespace ChurchReport.Controllers
         private const int MaxWhoAmIResponseBytes = 32 * 1024;
         private static readonly TimeSpan OAuthStateLifetime = TimeSpan.FromMinutes(5);
         private readonly IConfiguration _configuration;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         /// <summary>
         /// 建立 controller。建構式只保留不可變設定 root，不解析秘密、不建立 HTTP client、socket、timer、
         /// cache 或 Session state；這些資源只會在對應 action 的短生命週期 scope 中建立。
         /// </summary>
         /// <param name="configuration">已由 Host 建立的部署設定；action 不會把其中任何值回傳給 caller。</param>
-        public DiagnosticsController(IConfiguration configuration)
+        /// <param name="httpClientFactory">Host-owned named client factory；擁有 handler/socket pool 並在 Host 停止時統一清理。</param>
+        public DiagnosticsController(
+            IConfiguration configuration,
+            IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         }
 
         /// <summary>
@@ -164,7 +170,10 @@ namespace ChurchReport.Controllers
 
             try
             {
-                using var http = CreateHttpClient();
+                // wrapper 只屬於目前 callback 並由 using 釋放；底層 handler/socket pool 由 IHttpClientFactory/Host 擁有，
+                // 不保存 Session、principal、authorization code 或 token，也避免每 callback 建立新連線池的效能抖動。
+                using var http = _httpClientFactory.CreateClient(
+                    DiagnosticsOperatorAuthorization.DiagnosticsHttpClientName);
                 var token = await ExchangeAuthorizationCodeAsync(http, code).ConfigureAwait(false);
                 try
                 {
@@ -364,25 +373,6 @@ namespace ChurchReport.Controllers
             CryptographicOperations.ZeroMemory(responseBytes);
             return response.IsSuccessStatusCode;
         }
-
-        /// <summary>
-        /// 以不共享的 handler/client 建立一次診斷 HTTP scope。禁用 Cookie、Redirect、Proxy、預先認證與自動解壓縮，
-        /// 讓 callback 不會把 request identity、cookie 或 redirect state 帶到後續 action；caller using 是唯一 Dispose owner。
-        /// </summary>
-        private static HttpClient CreateHttpClient()
-            => new(new SocketsHttpHandler
-            {
-                UseCookies = false,
-                AllowAutoRedirect = false,
-                UseProxy = false,
-                AutomaticDecompression = DecompressionMethods.None,
-                PreAuthenticate = false,
-                MaxConnectionsPerServer = 1,
-                PooledConnectionLifetime = TimeSpan.FromMinutes(1)
-            }, disposeHandler: true)
-            {
-                Timeout = TimeSpan.FromSeconds(30)
-            };
 
         /// <summary>
         /// 從 HTTP content 讀取最多 <paramref name="maximumBytes"/> 個位元組。caller 是回傳陣列的唯一 owner，
