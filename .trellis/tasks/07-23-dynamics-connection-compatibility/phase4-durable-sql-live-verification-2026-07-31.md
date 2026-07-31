@@ -134,6 +134,50 @@ regression。沒有修改 Windows 安全設定、SQL schema、CRM、DNS 或使�
 先前已完成的 `7 passed, 0 failed, 0 skipped` 實測結果仍保留為當時的 transaction
 證據；在 LocalDB runtime 修復前，本機無法重複的只有這一個 opt-in live SQL check。
 
+## 2026-07-31 schema parser 相容性與顯式 stale-row recovery
+
+本次也修正了 SQL Server 2025 LocalDB 會拒絕的 schema migration 寫法：
+EXEC(N'...' + QUOTENAME(...))。這不是 CRM、Gateway 或連線身分問題，而是 T-SQL EXEC
+對 concatenated expression 的 parser 限制。runtime 內嵌 schema 與 checked-in
+eng/dynamics-control-plane-schema.sql 均改為先組成 nvarchar(max) 變數，再以
+EXEC(@variable) 執行；靜態 regression 同時比對兩份 schema，避免二者日後漂移。
+
+為了只清理早期、尚未有 canonical organization binding 的測試控制平面資料，manual
+provisioning script 新增 -RemoveDrainedUnboundEpochs 顯式 opt-in。預設 provisioning
+不會刪除任何 durable row；本次受控執行的結果為：
+
+- 移除 6 筆已證明 drained 的 stale slot rows；
+- 移除 1 筆對應的 stale admission epoch；
+- opt-in live durable SQL coordinator contract：16 passed、0 failed；
+- Dynamics Release suite：307 passed、0 failed；
+- SpeechMessageProducts.sln Release build：0 warnings、0 errors。
+
+在本次程式與文件變更完成後，又以不帶 recovery switch 的固定 LocalDB provisioning
+重新驗證：DrainedUnboundRecoveryRequested=false、兩個 removed-row counts 都是 0，
+證明一般 schema apply 不會刪除 durable state。接著以 process-scope、integrated-auth 的
+專用 LocalDB connection 執行完整 Dynamics Release suite，結果為 306 passed、0 failed、
+0 skipped；測試 finally 完成後，Slot、Epoch、Binding 三種 contract-prefix row counts
+均為 0。該暫時環境變數在同一 process 的 finally 中恢復原值，沒有保存 connection string、
+session、token 或 credential。
+
+這個 recovery 僅允許固定的目前使用者 MSSQLLocalDB instance、固定
+SpeechMessageDynamicsControlPlane database、checked-in schema 與 Windows integrated
+authentication；它不接受 CRM SQL、遠端 SQL、帳密、session、token、WinRM 或任何 DNS/IIS
+fallback。每次 opt-in execution 在單一 SERIALIZABLE transaction 中先建 temporary
+unbound namespace set，然後拒絕：
+
+1. 一小時內有更新的 epoch；
+2. 一小時內 touched、未到期或仍在 quarantine 的 slot；
+3. 有 host owner 但沒有 expiry 的 slot；
+4. 任一不符合固定 target、native exit code 或受限 row-count output 格式的情形。
+
+只有全部條件皆通過時，才以 slot -> epoch 的 FK 安全順序刪除；mutex、sqlcmd
+process、temporary table、transaction 與暫存 output 均在該一次 invocation 結束時釋放。
+Package01FeeReadsEnabled=false 沒有變更，這不是 Phase 5 consumer migration，也不是
+CRMWeb/Claims/IFD HTTP 500 的 workaround。此 recovery 已有靜態安全契約 regression；不應
+因為它存在而重複要求 operator 執行 PowerShell，除非未來有新的、明確證明已 drain 的 legacy
+LocalDB row。
+
 ## 這份證據代表什麼、尚未代表什麼
 
 這是 Phase 4 的「耐久 SQL transaction／fencing／清理」實證，證明 Local Gateway

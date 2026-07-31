@@ -1072,6 +1072,101 @@ every bridge key. The target, authentication mode, and resulting evidence
 remain explicit and traceable, while a real CRM fault remains an external gate
 rather than a reason to weaken the Gateway boundary or retain caller state.
 
+## Scenario: LocalDB legacy epoch 的顯式 drained recovery
+
+### 1. Scope / Trigger
+
+當早期 SqlRuntimeHostSlotCoordinator schema 已留下沒有
+RuntimeHostOrganizationBinding 的 LocalDB epoch/slot row，且 operator 能以 row 的年齡、
+lease、quarantine 與 binding 缺失共同證明它已完成 drain 時，才適用這個 recovery。
+它處理的是單機 Development control-plane 的 legacy state；不是 CRM 資料修復、身份驗證
+修復、真機 CE smoke、或任何 production database/remote administration 工具。
+
+### 2. Signatures
+
+    .\docs\scripts\Provision-DynamicsControlPlaneLocalDb.ps1 -RemoveDrainedUnboundEpochs
+
+輸出只可加入下列有界、非機密欄位：
+
+    DrainedUnboundRecoveryRequested : bool
+    RemovedDrainedUnboundSlotRows   : int
+    RemovedDrainedUnboundEpochRows  : int
+
+schema migration 中，dynamic constraint drop 必須先把完整 command 組入
+nvarchar(max) variable，再使用 EXEC(@variable)；不得寫成
+EXEC(N'...' + QUOTENAME(...))，因 SQL Server 2025 LocalDB 不能解析後者。
+
+### 3. Contracts
+
+- -RemoveDrainedUnboundEpochs 未出現時，provisioning 不得刪除任何 durable epoch、
+  slot 或 canonical binding row。
+- script 只接受 MSSQLLocalDB、(localdb)\MSSQLLocalDB、
+  SpeechMessageDynamicsControlPlane 與 checked-in schema 的 exact path；所有 sqlcmd
+  invocation 均使用 -E integrated authentication。它不得接受 CRM SQL/remote SQL
+  target、-U/-P SQL credential、credential object、token、session 或 WinRM input。
+- opt-in SQL 必須以一個 SERIALIZABLE transaction 建立 connection-owned
+  #UnboundEpoch 集合。它只考慮沒有 canonical binding 的 epoch，且在刪除前拒絕最近
+  一小時更新的 epoch、最近 touched/未到期/quarantine 的 slot，以及有 host owner 但無
+  expiry 的 slot。
+- 成功路徑必須先刪 slot、再刪 epoch，不能刪 canonical binding。temporary table、
+  transaction、sqlcmd process、mutex 與 bounded row-count output 的唯一 owner 是該
+  provisioning invocation；不得保存 connection、credential、token、session、namespace
+  list 或 background work。
+- native exit code、target precondition 或 structured row-count output 任一失敗，script
+  必須 fail closed，且不得以 CRM SQL、in-memory coordinator、DNS/IIS/ADFS、Basic、
+  CredSSP、TrustedHosts 或未加密 remoting 作為 fallback。
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Recovery switch is absent | Do not issue recovery SQL; report both removed-row counts as 0. |
+| Instance, database, or schema path differs from the fixed LocalDB contract | Throw before a native process, SQL connection, or DDL/recovery operation is started. |
+| Epoch was updated in the previous hour | SQL throws 51005; the transaction rolls back and no candidate row is removed. |
+| Slot is recently touched, still leased, quarantined, or owner-assigned without expiry | SQL throws 51006; the transaction rolls back and no candidate row is removed. |
+| sqlcmd returns no exact slotCount|epochCount line | Throw and do not continue to schema apply. |
+| A future migration uses EXEC(N'...' + QUOTENAME(...)) | Static schema regression fails before a LocalDB run; assign the complete SQL to nvarchar(max) and call EXEC(@variable). |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an operator explicitly opts in once after evidence proves an old,
+  unbound LocalDB host has drained; the invocation removes only its stale slot
+  then epoch and returns bounded counts.
+- Base: the script runs without the switch and validates/applies the checked-in
+  schema without deleting any durable row.
+- Bad: a helper infers that every unbound epoch is stale, uses an arbitrary
+  server/database name, or uses SQL/remote credentials to make recovery easier.
+
+### 6. Tests Required
+
+- Localdb_provisioning_script_is_explicit_idempotent_and_least_privilege
+  statically asserts the switch is explicit; fixed LocalDB/integrated-auth
+  targets, serializable transaction, drain predicates, slot-before-epoch order,
+  structured output checks, and the absence of CRM/credential/remoting fallback
+  remain present.
+- Durable_schema_requires_canonical_organization_binding_and_ordinal_string_semantics
+  asserts both runtime and checked-in schema use variable-backed EXEC for
+  dynamic constraint names and remain aligned on the relevant canonical-binding
+  contract.
+- An opt-in live LocalDB contract may prove real deletion only against an
+  explicitly provisioned Development database with test-owned stale rows; it
+  must then prove counts and cleanup without retaining connections or rows.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+    # Default provisioning silently decides old state is safe to remove.
+    DELETE dbo.RuntimeHostAdmissionEpoch;
+
+#### Correct
+
+    if ($RemoveDrainedUnboundEpochs) {
+        # SERIALIZABLE evidence gate; delete only proven-drained, unbound rows.
+        DELETE slotRow;
+        DELETE epochRow;
+    }
+
 ## Scenario: 耐久 SQL 控制平面的整合驗證與帳密拒絕邊界
 
 ### 1. Scope / Trigger

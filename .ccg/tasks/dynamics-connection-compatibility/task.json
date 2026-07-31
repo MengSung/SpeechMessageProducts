@@ -5,8 +5,8 @@
     "complexity":  "L+",
     "risk":  "high",
     "domain":  "integration",
-    "currentPhase":  "review",
-    "nextAction":  "Obtain an existing approved Kerberos/Negotiate administrative identity or session before any DC/D365 VM WinRM mutation; complete real CE 8.2/9.1 evidence; fix product-response OData projection and Cache-Control boundaries; then complete cross-process capacity/fault, soak/performance, Phase 5, and Phase 6 gates. Keep Package01FeeReadsEnabled=false and retain Embedded, Data8, and PowerPlatform.Dataverse.Client.",
+  "currentPhase":  "implementation",
+  "nextAction":  "Commit the verified local Phase 4 LocalDB parser/recovery evidence. Then wait only for an approved D365APP01 Deployment Manager/DWS persistence check of Claims/IFD; if it confirmed an actual one-time settings change, run one connector-owned CE 9.1 WhoAmI smoke. Do not repeat diagnostics or use SQL, DNS, IIS, WinRM, credentials, Basic, CredSSP, or TrustedHosts as substitutes. Keep Package01FeeReadsEnabled=false; CE 8.2/9.1 operation matrix, cross-process capacity/fault, soak/performance, Phase 5, and Phase 6 remain gated.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

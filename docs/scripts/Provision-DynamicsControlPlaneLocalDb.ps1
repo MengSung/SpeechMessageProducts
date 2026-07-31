@@ -6,7 +6,9 @@ param(
     [ValidateSet('SpeechMessageDynamicsControlPlane')]
     [string] $DatabaseName = 'SpeechMessageDynamicsControlPlane',
 
-    [string] $SchemaFile = ''
+    [string] $SchemaFile = '',
+
+    [switch] $RemoveDrainedUnboundEpochs
 )
 
 Set-StrictMode -Version Latest
@@ -127,6 +129,8 @@ $mutex = [Threading.Mutex]::new(
     $false,
     'Local\SpeechMessage.DynamicsControlPlane.LocalDb.Provision')
 $ownsMutex = $false
+$removedDrainedUnboundSlotRows = 0
+$removedDrainedUnboundEpochRows = 0
 
 try {
     $ownsMutex = $mutex.WaitOne([TimeSpan]::FromSeconds(60))
@@ -172,6 +176,130 @@ IF DB_ID(N'$DatabaseName') IS NULL CREATE DATABASE [$DatabaseName];
     if ($createDatabaseExitCode -ne 0) {
         $detail = Get-NativeFailureDetail -Output $createDatabaseOutput
         throw "Failed to create or locate the LocalDB control-plane database (exit code $createDatabaseExitCode).$([Environment]::NewLine)$detail"
+    }
+
+    <#
+    舊版 LocalDB coordinator 尚未保存 canonical organization binding 時，無法從 epoch/slot 回推它原本指向的組織；
+    因此正常 provisioning 一律由 schema fail-closed，絕不在預設路徑刪除任何 durable row。
+
+    此 recovery 僅在 operator 明確帶入 RemoveDrainedUnboundEpochs 時執行，且仍受前方的固定 instance、固定 database、
+    checked-in schema 與本機 named mutex 約束。SQL transaction 以 SERIALIZABLE 隔離，先建立單次 connection-owned
+    temporary namespace 集合，再拒絕一小時內更新的 epoch、近期 touched／未到期／隔離中的 slot，以及沒有 expiry 的已指派 slot。
+    只有所有證據都表示舊 host 已完成 drain 的無 binding row，才依 slot→epoch 順序在同一 transaction 刪除。
+
+    執行後 sqlcmd process、temporary table、transaction 與 output 都在本區塊結束時釋放；PowerShell 只保存有界的計數，
+    不保留 namespace、endpoint、connection string、credential、token、session 或背景工作。任何 precondition、native exit code
+    或輸出格式不符合時立即失敗，不套用 schema，也不嘗試 DROP DATABASE、CRM SQL、遠端 SQL 或其他回退。
+    #>
+    if ($RemoveDrainedUnboundEpochs) {
+        $removeDrainedUnboundEpochsSql = @'
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+IF DB_NAME() <> N'SpeechMessageDynamicsControlPlane'
+    THROW 51001, 'Unexpected Dynamics control-plane database.', 1;
+IF OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U') IS NULL
+   OR OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
+BEGIN
+    SELECT CAST(0 AS int) AS RemovedSlotRows,
+           CAST(0 AS int) AS RemovedEpochRows;
+    RETURN;
+END;
+
+DECLARE @drainedBeforeUtc datetime2(3) = DATEADD(hour, -1, SYSUTCDATETIME());
+BEGIN TRANSACTION;
+CREATE TABLE #UnboundEpoch
+(
+    LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL
+        PRIMARY KEY
+);
+
+IF OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U') IS NULL
+BEGIN
+    INSERT INTO #UnboundEpoch (LeaseNamespaceId)
+    SELECT epochRow.LeaseNamespaceId
+    FROM dbo.RuntimeHostAdmissionEpoch AS epochRow;
+END
+ELSE
+BEGIN
+    INSERT INTO #UnboundEpoch (LeaseNamespaceId)
+    SELECT epochRow.LeaseNamespaceId
+    FROM dbo.RuntimeHostAdmissionEpoch AS epochRow
+    LEFT JOIN dbo.RuntimeHostOrganizationBinding AS bindingRow
+        ON bindingRow.LeaseNamespaceId = epochRow.LeaseNamespaceId
+    WHERE bindingRow.LeaseNamespaceId IS NULL;
+END;
+
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.RuntimeHostAdmissionEpoch AS epochRow
+    INNER JOIN #UnboundEpoch AS unboundEpoch
+        ON unboundEpoch.LeaseNamespaceId = epochRow.LeaseNamespaceId
+    WHERE epochRow.LastUpdatedAtUtc > @drainedBeforeUtc
+)
+    THROW 51005, 'Refusing to remove recently updated unbound admission epochs.', 1;
+
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.RuntimeHostSlotLease AS slotRow
+    INNER JOIN #UnboundEpoch AS unboundEpoch
+        ON unboundEpoch.LeaseNamespaceId = slotRow.LeaseNamespaceId
+    WHERE slotRow.LastTouchedAtUtc > @drainedBeforeUtc
+       OR slotRow.LeaseExpiresAtUtc > @drainedBeforeUtc
+       OR slotRow.QuarantineUntilUtc > @drainedBeforeUtc
+       OR (slotRow.HostInstanceId IS NOT NULL AND slotRow.LeaseExpiresAtUtc IS NULL)
+)
+    THROW 51006, 'Refusing to remove unbound admission epochs with undrained runtime-host slots.', 1;
+
+DELETE slotRow
+FROM dbo.RuntimeHostSlotLease AS slotRow
+INNER JOIN #UnboundEpoch AS unboundEpoch
+    ON unboundEpoch.LeaseNamespaceId = slotRow.LeaseNamespaceId;
+DECLARE @removedSlotRows int = @@ROWCOUNT;
+
+DELETE epochRow
+FROM dbo.RuntimeHostAdmissionEpoch AS epochRow
+INNER JOIN #UnboundEpoch AS unboundEpoch
+    ON unboundEpoch.LeaseNamespaceId = epochRow.LeaseNamespaceId;
+DECLARE @removedEpochRows int = @@ROWCOUNT;
+
+COMMIT TRANSACTION;
+SELECT @removedSlotRows AS RemovedSlotRows,
+       @removedEpochRows AS RemovedEpochRows;
+'@
+        $removeDrainedUnboundEpochsOutput = @(& $sqlCmdPath `
+            -S $allowedServerName `
+            -E `
+            -b `
+            -l 5 `
+            -t 30 `
+            -d $DatabaseName `
+            -Q $removeDrainedUnboundEpochsSql `
+            -h -1 `
+            -s '|' `
+            -W 2>&1)
+        $removeDrainedUnboundEpochsExitCode = $LASTEXITCODE
+        if ($removeDrainedUnboundEpochsExitCode -ne 0) {
+            $detail = Get-NativeFailureDetail -Output $removeDrainedUnboundEpochsOutput
+            throw "Failed to remove only proven-drained unbound LocalDB epochs (exit code $removeDrainedUnboundEpochsExitCode).$([Environment]::NewLine)$detail"
+        }
+
+        $removeDrainedUnboundEpochsLine = $removeDrainedUnboundEpochsOutput |
+            Where-Object { $_ -match '^\d+\|\d+$' } |
+            Select-Object -First 1
+        if ([string]::IsNullOrWhiteSpace($removeDrainedUnboundEpochsLine)) {
+            throw 'Drained LocalDB epoch recovery returned no structured row counts.'
+        }
+        $removeDrainedUnboundEpochsFields = $removeDrainedUnboundEpochsLine.Split('|')
+        if ($removeDrainedUnboundEpochsFields.Count -ne 2 -or
+            $removeDrainedUnboundEpochsFields[0] -notmatch '^\d+$' -or
+            $removeDrainedUnboundEpochsFields[1] -notmatch '^\d+$') {
+            throw 'Drained LocalDB epoch recovery returned invalid row counts.'
+        }
+        $removedDrainedUnboundSlotRows = [int]$removeDrainedUnboundEpochsFields[0]
+        $removedDrainedUnboundEpochRows = [int]$removeDrainedUnboundEpochsFields[1]
     }
 
     <#
@@ -282,6 +410,9 @@ SELECT DB_NAME() AS DatabaseName,
         SchemaSha256 = (Get-FileHash -LiteralPath $resolvedSchemaFile -Algorithm SHA256).Hash
         ProductVersion = $verificationFields[1].Trim()
         ServerUtc = $verificationFields[2].Trim()
+        DrainedUnboundRecoveryRequested = [bool]$RemoveDrainedUnboundEpochs
+        RemovedDrainedUnboundSlotRows = $removedDrainedUnboundSlotRows
+        RemovedDrainedUnboundEpochRows = $removedDrainedUnboundEpochRows
     }
 }
 finally {

@@ -189,6 +189,16 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             schema.Should().Contain("LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL");
             schema.Should().Contain("HostInstanceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NULL");
             schema.Should().Contain("ConfigurationDigest char(64) COLLATE Latin1_General_100_BIN2 NOT NULL");
+            System.Text.RegularExpressions.Regex.IsMatch(
+                    schema,
+                    @"EXEC\s*\(\s*N'[^']*'\s*\+\s*QUOTENAME\s*\(",
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+                .Should().BeFalse(
+                    "T-SQL EXEC cannot parse a concatenated expression; dynamic constraint names must first be assigned to a variable");
+            schema.Should().Contain("DECLARE @epochDropConstraintSql nvarchar(max);");
+            schema.Should().Contain("EXEC(@epochDropConstraintSql);");
+            schema.Should().Contain("DECLARE @slotDropConstraintSql nvarchar(max);");
+            schema.Should().Contain("EXEC(@slotDropConstraintSql);");
         }
 
         var acquireSql = (string?)typeof(SqlRuntimeHostSlotCoordinator)
@@ -312,6 +322,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         script.Should().Contain("$InstanceName");
         script.Should().Contain("$DatabaseName");
         script.Should().Contain("$SchemaFile");
+        script.Should().Contain("[switch] $RemoveDrainedUnboundEpochs");
         script.Should().Contain("MSSQLLocalDB");
         script.Should().Contain("(localdb)\\MSSQLLocalDB");
         script.Should().Contain("SpeechMessageDynamicsControlPlane");
@@ -328,10 +339,51 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         script.Should().Contain("不代表 Central");
         script.Should().Contain("多主機");
 
+        // 舊版 schema 沒有 canonical binding 時，recovery 只能由 operator 顯式啟用；
+        // 此測試只檢查靜態安全契約，不會啟動 LocalDB 或刪除任何 durable row。未來若有人把
+        // recovery 移進預設 provisioning、降低 transaction 隔離，或略過 lease／quarantine
+        // 證據，就必須先讓這個 regression 失敗，避免不同使用者、程序或組織的 state 被誤清除。
+        script.Should().Contain("if ($RemoveDrainedUnboundEpochs)");
+        script.Should().Contain("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;");
+        script.Should().Contain("IF DB_NAME() <> N'SpeechMessageDynamicsControlPlane'");
+        script.Should().Contain("CREATE TABLE #UnboundEpoch");
+        script.Should().Contain("LEFT JOIN dbo.RuntimeHostOrganizationBinding AS bindingRow");
+        script.Should().Contain("epochRow.LastUpdatedAtUtc > @drainedBeforeUtc");
+        script.Should().Contain("slotRow.LastTouchedAtUtc > @drainedBeforeUtc");
+        script.Should().Contain("slotRow.LeaseExpiresAtUtc > @drainedBeforeUtc");
+        script.Should().Contain("slotRow.QuarantineUntilUtc > @drainedBeforeUtc");
+        script.Should().Contain("slotRow.HostInstanceId IS NOT NULL AND slotRow.LeaseExpiresAtUtc IS NULL");
+        script.Should().Contain("DELETE slotRow");
+        script.Should().Contain("DELETE epochRow");
+        script.IndexOf("DELETE slotRow", StringComparison.Ordinal)
+            .Should().BeLessThan(
+                script.IndexOf("DELETE epochRow", StringComparison.Ordinal),
+                "slot leases must be removed before their owning admission epochs");
+        script.Should().Contain("DrainedUnboundRecoveryRequested = [bool]$RemoveDrainedUnboundEpochs");
+        script.Should().Contain("RemovedDrainedUnboundSlotRows = $removedDrainedUnboundSlotRows");
+        script.Should().Contain("RemovedDrainedUnboundEpochRows = $removedDrainedUnboundEpochRows");
+        script.Should().Contain("Drained LocalDB epoch recovery returned no structured row counts.");
+        script.Should().Contain("Drained LocalDB epoch recovery returned invalid row counts.");
+
         System.Text.RegularExpressions.Regex.IsMatch(
                 script,
                 @"(?im)^\s*GRANT\s+|sysadmin|db_owner|GRANT\s+CONTROL")
             .Should().BeFalse("LocalDB 開發驗證不需要也不得擴張登入或資料庫權限");
+
+        // 安全說明本身必須能記錄「不做 DROP DATABASE」這類禁止事項；因此只剔除 PowerShell
+        // block comments，再檢查仍會由 sqlcmd 或 PowerShell 執行的內容。SQL here-string 保留在
+        // 掃描範圍，確保未來即使透過內嵌 SQL 也不能擴張成 CRM、帳密或 remoting fallback。
+        var executableScript = System.Text.RegularExpressions.Regex.Replace(
+            script,
+            @"(?s)<#.*?#>",
+            string.Empty,
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+        System.Text.RegularExpressions.Regex.IsMatch(
+                executableScript,
+                @"(?im)\b(?:DROP\s+DATABASE|MSCRM_CONFIG|OrganizationBase|\s-U\s|\s-P\s|TrustedHosts|CredSSP)\b")
+            .Should().BeFalse(
+                "recovery must remain fixed-target LocalDB integrated-auth maintenance and must never become a CRM, credential, or remoting fallback");
     }
 
     /// <summary>

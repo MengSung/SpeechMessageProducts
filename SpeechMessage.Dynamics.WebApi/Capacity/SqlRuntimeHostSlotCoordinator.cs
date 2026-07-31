@@ -66,6 +66,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         -- 既有 LocalDB 可能在預設大小寫不敏感定序下建立過租約表；provisioning 必須先重建主鍵再改成 BIN2，
         -- 讓資料庫的 namespace／host／digest 相等規則與 C# 的 ordinal 結構化 key 完全一致，避免不同租約互相誤認。
         DECLARE @epochPrimaryKey sysname;
+        DECLARE @epochDropConstraintSql nvarchar(max);
         SELECT @epochPrimaryKey = keyConstraint.name
         FROM sys.key_constraints AS keyConstraint
         WHERE keyConstraint.parent_object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
@@ -81,7 +82,10 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         )
         BEGIN
             IF @epochPrimaryKey IS NOT NULL
-                EXEC(N'ALTER TABLE dbo.RuntimeHostAdmissionEpoch DROP CONSTRAINT ' + QUOTENAME(@epochPrimaryKey) + N';');
+            BEGIN
+                SET @epochDropConstraintSql = N'ALTER TABLE dbo.RuntimeHostAdmissionEpoch DROP CONSTRAINT ' + QUOTENAME(@epochPrimaryKey) + N';';
+                EXEC(@epochDropConstraintSql);
+            END;
 
             ALTER TABLE dbo.RuntimeHostAdmissionEpoch
                 ALTER COLUMN LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL;
@@ -104,6 +108,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
                 ALTER COLUMN ConfigurationDigest char(64) COLLATE Latin1_General_100_BIN2 NOT NULL;
 
         DECLARE @slotPrimaryKey sysname;
+        DECLARE @slotDropConstraintSql nvarchar(max);
         SELECT @slotPrimaryKey = keyConstraint.name
         FROM sys.key_constraints AS keyConstraint
         WHERE keyConstraint.parent_object_id = OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U')
@@ -119,7 +124,10 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         )
         BEGIN
             IF @slotPrimaryKey IS NOT NULL
-                EXEC(N'ALTER TABLE dbo.RuntimeHostSlotLease DROP CONSTRAINT ' + QUOTENAME(@slotPrimaryKey) + N';');
+            BEGIN
+                SET @slotDropConstraintSql = N'ALTER TABLE dbo.RuntimeHostSlotLease DROP CONSTRAINT ' + QUOTENAME(@slotPrimaryKey) + N';';
+                EXEC(@slotDropConstraintSql);
+            END;
 
             ALTER TABLE dbo.RuntimeHostSlotLease
                 ALTER COLUMN LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL;
