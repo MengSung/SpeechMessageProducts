@@ -73,4 +73,16 @@ if ($source -match 'DYNAMICS_JESUS_') {
 }
 Assert-Contains -Actual $source -Expected '[string]$UserNameSecretName' -Context 'SecretReference input must be explicit'
 Assert-Contains -Actual $source -Expected '[string]$PasswordSecretName' -Context 'SecretReference input must be explicit'
+
+# 啟用 live 時，整個測試組件內仍保留兩個「預設必須關閉」的保護測試；若不鎖定
+# connector-owned WhoAmI 測試，即使 CRM 回應成功也會被那些保護測試誤判為失敗。
+# 這個契約不觸碰任何外部服務，僅防止工具日後回退為未篩選的整組 test 執行。
+Assert-Contains -Actual $source -Expected 'FullyQualifiedName~LiveDynamicsWebApiSmokeTests.WhoAmI_live_smoke_when_enabled' -Context 'Live smoke must execute only the explicit connector-owned WhoAmI test'
+
+# 工具必須把為 dotnet 子程序設定的所有 smoke bridge 環境變數還原為呼叫前的 Process
+# 值；互動式 PowerShell 連續驗證不同 profile 時，不能殘留 root、驗證模式或 secret
+# reference 名稱。這個靜態契約要求顯式 snapshot 與 finally 還原，避免 exit/error
+# 路徑繞過清理。
+Assert-Contains -Actual $source -Expected '$originalSmokeEnvironment' -Context 'Live smoke must snapshot its process environment before setting bridge variables'
+Assert-Contains -Actual $source -Expected '[Environment]::SetEnvironmentVariable' -Context 'Live smoke must restore bridge variables through the process environment API'
 Write-Host 'Invoke-DynamicsLiveSmoke script contract passed.'

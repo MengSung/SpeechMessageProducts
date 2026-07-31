@@ -973,6 +973,12 @@ required only when a `-ContactId` enables the fee operation. `UserName`,
 - `HostIdentity` clears all `DYNAMICS_SMOKE_*_SECRET` bridge variables before
   starting `dotnet test`, so an earlier interactive `SecretReference` run cannot
   affect the current identity mode.
+- Before setting any `DYNAMICS_SMOKE_*` bridge variable, the harness snapshots
+  the exact Process-scope value (including absence) of every bridge key. A
+  `finally` block restores every key after `dotnet test` returns or throws, so
+  an interactive shell cannot retain a prior root, CE version, profile alias,
+  contact ID, authentication mode, or secret-reference *name* for the next
+  invocation. The harness never reads or emits a referenced secret value.
 - `SecretReference` requires explicit, conventional environment-variable names
   for username and password, verifies only their presence, and passes their
   names through `DYNAMICS_SMOKE_USERNAME_SECRET`,
@@ -988,6 +994,7 @@ required only when a `-ContactId` enables the fee operation. `UserName`,
 | `SecretReference` lacks username/password reference names | Fail closed before connector creation or CRM traffic. |
 | A supplied reference name is not an environment-variable identifier, or is absent | Fail closed without printing the name's value. |
 | `HostIdentity` follows a prior `SecretReference` invocation in one interactive shell | Remove secret bridge variables before test process creation. |
+| `dotnet test` returns nonzero or bridge setup throws after Process variables changed | Restore every original bridge value in `finally`; do not leave a root, profile, credential mode, contact ID, or secret-reference name in the operator shell. |
 | CRM returns an application 500 | Record it as target-environment evidence; do not change DNS, WinRM, authentication mode, or profile route automatically. |
 
 ### 5. Good / Base / Bad Cases
@@ -996,11 +1003,16 @@ required only when a `-ContactId` enables the fee operation. `UserName`,
   connector's actual `WhoAmI` result.
 - Base: live mode is omitted; the script prints safe usage and exits without
   any network traffic.
+- Base: a live invocation finishes or fails; the caller's Process environment
+  is bit-for-bit equivalent for every `DYNAMICS_SMOKE_*` bridge key after the
+  script's `finally` cleanup.
 - Bad: a script defaults to a historical organization URL and reports a 401
   from an unauthenticated `HEAD` as an IWA/connector failure.
 - Bad: a `SecretReference` branch hardcodes environment-variable names tied to
   one organization, making another approved profile silently use the wrong
   identity source.
+- Bad: a harness writes bridge variables directly into an interactive
+  PowerShell Process and returns on an error path without restoring them.
 
 ### 6. Tests Required
 
@@ -1009,6 +1021,8 @@ required only when a `-ContactId` enables the fee operation. `UserName`,
   and no target-specific secret-reference default.
 - Assert `-EnableLive` without `-WebApiRoot` exits nonzero before external
   activity.
+- Assert the source snapshots all `DYNAMICS_SMOKE_*` bridge variables and uses
+  `finally` with the Process environment API to restore every original value.
 - Parse the script under Windows PowerShell 5.1 and run a no-live explicit-root
   dry run; then run the opt-in .NET smoke project with live mode disabled.
 
@@ -1035,9 +1049,28 @@ if ($EnableLive -and [string]::IsNullOrWhiteSpace($WebApiRoot)) {
 & dotnet test $project --nologo
 ```
 
-The target, authentication mode, and resulting evidence remain explicit and
-traceable, while a real CRM fault remains an external gate rather than a reason
-to weaken the Gateway boundary.
+#### Correct: Process-scope bridge cleanup
+
+```powershell
+$original = [Environment]::GetEnvironmentVariable(
+    'DYNAMICS_SMOKE_WEBAPI_ROOT',
+    [EnvironmentVariableTarget]::Process)
+try {
+    $env:DYNAMICS_SMOKE_WEBAPI_ROOT = $WebApiRoot
+    & dotnet test $project --nologo
+}
+finally {
+    [Environment]::SetEnvironmentVariable(
+        'DYNAMICS_SMOKE_WEBAPI_ROOT',
+        $original,
+        [EnvironmentVariableTarget]::Process)
+}
+```
+
+The production harness applies this same snapshot/restore ownership rule to
+every bridge key. The target, authentication mode, and resulting evidence
+remain explicit and traceable, while a real CRM fault remains an external gate
+rather than a reason to weaken the Gateway boundary or retain caller state.
 
 ## Scenario: 耐久 SQL 控制平面的整合驗證與帳密拒絕邊界
 
