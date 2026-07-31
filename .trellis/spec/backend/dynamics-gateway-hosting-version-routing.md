@@ -932,3 +932,108 @@ CE 8.2 and CE 9.1 share the product-facing API and policy model. They do not hav
 ### Data8 is retained now and removable later
 
 Deleting Data8 now would break `ToolUtility` and the known-working CE 8.2 WS-Trust path. It becomes removable only after every consumer moves behind Gateway and one proven CE 8.2 replacement satisfies real-server, lifecycle, isolation, and rollback gates.
+
+## Scenario: Explicit live-smoke target and credential-reference boundary
+
+### 1. Scope / Trigger
+
+This scenario applies whenever `docs/scripts/Invoke-DynamicsLiveSmoke.ps1` or an
+equivalent operator harness enables a real CE 8.2/9.1 request. A stale default
+host or an authentication-different preflight can produce a convincing but false
+failure before the connector itself executes. The harness is an operator tool,
+not a profile store, secret store, endpoint registry, or alternative transport.
+
+### 2. Signatures
+
+```powershell
+.\docs\scripts\Invoke-DynamicsLiveSmoke.ps1 `
+  -EnableLive `
+  -WebApiRoot '<explicit HTTPS /api/data/v8.2/ or /api/data/v9.1/ root>' `
+  [-CeVersion '8.2'|'9.1'] `
+  [-CredentialSource HostIdentity|SecretReference] `
+  [-ProfileAlias '<explicit alias for fee smoke only>'] `
+  [-UserNameSecretName '<environment-variable name>'] `
+  [-PasswordSecretName '<environment-variable name>'] `
+  [-DomainSecretName '<optional environment-variable name>']
+```
+
+`-WebApiRoot` is optional only when live mode is disabled. `-ProfileAlias` is
+required only when a `-ContactId` enables the fee operation. `UserName`,
+`Password`, and `Domain` values are never command parameters.
+
+### 3. Contracts
+
+- `-EnableLive` without `-WebApiRoot` fails before DNS, HTTPS, CRM, ADFS, or
+  connector activity. The script contains no target-specific CRM hostname or
+  profile-alias default.
+- The harness invokes the connector-owned `WhoAmI` smoke as the authentication
+  authority. It does not issue an anonymous or credential-different HTTP `HEAD`
+  request and reinterpret its 401/302 result as connector reachability.
+- `HostIdentity` clears all `DYNAMICS_SMOKE_*_SECRET` bridge variables before
+  starting `dotnet test`, so an earlier interactive `SecretReference` run cannot
+  affect the current identity mode.
+- `SecretReference` requires explicit, conventional environment-variable names
+  for username and password, verifies only their presence, and passes their
+  names through `DYNAMICS_SMOKE_USERNAME_SECRET`,
+  `DYNAMICS_SMOKE_PASSWORD_SECRET`, and optional
+  `DYNAMICS_SMOKE_DOMAIN_SECRET`. It never reads or prints secret values.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Live mode lacks `-WebApiRoot` | Fail closed before any external request. |
+| Fee smoke has `-ContactId` but lacks `-ProfileAlias` | Fail closed before `dotnet test` or CRM traffic. |
+| `SecretReference` lacks username/password reference names | Fail closed before connector creation or CRM traffic. |
+| A supplied reference name is not an environment-variable identifier, or is absent | Fail closed without printing the name's value. |
+| `HostIdentity` follows a prior `SecretReference` invocation in one interactive shell | Remove secret bridge variables before test process creation. |
+| CRM returns an application 500 | Record it as target-environment evidence; do not change DNS, WinRM, authentication mode, or profile route automatically. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an operator explicitly supplies the reviewed v9.1 root and receives the
+  connector's actual `WhoAmI` result.
+- Base: live mode is omitted; the script prints safe usage and exits without
+  any network traffic.
+- Bad: a script defaults to a historical organization URL and reports a 401
+  from an unauthenticated `HEAD` as an IWA/connector failure.
+- Bad: a `SecretReference` branch hardcodes environment-variable names tied to
+  one organization, making another approved profile silently use the wrong
+  identity source.
+
+### 6. Tests Required
+
+- Execute `docs/scripts/Invoke-DynamicsLiveSmoke.Tests.ps1` and assert dry-run
+  guidance contains an explicit `-WebApiRoot` placeholder, no historical host,
+  and no target-specific secret-reference default.
+- Assert `-EnableLive` without `-WebApiRoot` exits nonzero before external
+  activity.
+- Parse the script under Windows PowerShell 5.1 and run a no-live explicit-root
+  dry run; then run the opt-in .NET smoke project with live mode disabled.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```powershell
+[string]$WebApiRoot = 'https://historical.example/api/data/v9.1/'
+Invoke-WebRequest -Uri $WebApiRoot -Method Head
+```
+
+This selects a deployment the operator did not approve and uses a request whose
+authentication semantics can differ from the connector.
+
+#### Correct
+
+```powershell
+if ($EnableLive -and [string]::IsNullOrWhiteSpace($WebApiRoot)) {
+    throw 'Live mode requires an explicit -WebApiRoot. No CRM request was made.'
+}
+
+# The connector-owned WhoAmI test is the single authentication verdict.
+& dotnet test $project --nologo
+```
+
+The target, authentication mode, and resulting evidence remain explicit and
+traceable, while a real CRM fault remains an external gate rather than a reason
+to weaken the Gateway boundary.
