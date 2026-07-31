@@ -1,13 +1,4 @@
 #Requires -Version 5.1
-<#
-.SYNOPSIS
-  驗證 CRMWeb Claims／IFD 唯讀診斷工具的安全與資源生命週期契約。
-
-.DESCRIPTION
-  本測試只檢查工具的文字契約，並以不啟用 WhoAmI probe 的方式在子程序中驗證
-  非網路路徑。它不會聯絡 Dynamics、AD FS、DNS、WinRM 或任何遠端主機，也不會
-  寫入 CRM、IIS、設定檔、環境變數或輸出檔案。
-#>
 [CmdletBinding()]
 param()
 
@@ -15,14 +6,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Assert-Contains {
-    <#
-    .SYNOPSIS
-      驗證唯讀工具仍保有一個必要的安全或生命週期契約片段。
-
-    .DESCRIPTION
-      集中管理文字斷言可讓每一個失敗案例回報相同格式的可追溯原因，避免測試本身
-      因重複的字串比對邏輯而偏離安全邊界。
-    #>
     param(
         [Parameter(Mandatory)]
         [string]$Actual,
@@ -38,14 +21,6 @@ function Assert-Contains {
 }
 
 function Assert-NotContains {
-    <#
-    .SYNOPSIS
-      驗證工具沒有引入任何會跨出唯讀診斷界線的命令。
-
-    .DESCRIPTION
-      這個斷言只接受正規表示式，讓每一個禁止操作能以精確字界比對，避免字串片段
-      剛好出現在正常說明文字中時造成誤判。
-    #>
     param(
         [Parameter(Mandatory)]
         [string]$Actual,
@@ -93,8 +68,6 @@ Assert-NotContains -Actual $source -ForbiddenPattern '(?im)^\s*ReasonPhrase\s*='
 Assert-NotContains -Actual $source -ForbiddenPattern '(?im)^\s*Message\s*=\s*ConvertTo-SafeDiagnosticText' -Context 'ASP.NET event messages must not be serialized'
 Assert-NotContains -Actual $source -ForbiddenPattern '(?im)^\s*Error\s*=\s*ConvertTo-SafeDiagnosticText' -Context 'Raw exception messages must not be serialized'
 
-# 不帶 -ProbeWhoAmI 的子程序不應產生任何 CRM 網路流量；即使開發工作站沒有 CRM
-# deployment cmdlet 或 IIS 模組，工具也必須以診斷狀態回傳，而不是改用其他設定路徑。
 $global:LASTEXITCODE = 0
 $output = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
     -WebApiRoot 'https://example.invalid/api/data/v9.1/' 2>&1 | Out-String)
@@ -104,9 +77,6 @@ if ($LASTEXITCODE -ne 0) {
 
 Assert-Contains -Actual $output -Expected 'not-requested' -Context 'No-probe execution must not contact CRM'
 
-# 設定形狀分析的暫存值只能存在於函式區域；若 PowerShell pipeline 意外輸出這些中間值，
-# 可能擴散不屬於診斷合約的部署設定文字。無 network probe 的執行必須只回傳一個最終
-# 結構化快照，任何額外 pipeline object 都視為隔離缺陷。
 $escapedScriptPath = $scriptPath.Replace("'", "''")
 $countCommand = "& '$escapedScriptPath' -WebApiRoot 'https://example.invalid/api/data/v9.1/' | Measure-Object | Select-Object -ExpandProperty Count"
 $outputCountText = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $countCommand 2>&1 | Out-String).Trim()
@@ -118,8 +88,6 @@ if ($outputCountText -ne '1') {
     throw "No-probe execution must emit exactly one structured snapshot; actual pipeline object count was '$outputCountText'."
 }
 
-# 以帶有 cookie、Bearer 與 token sentinel 的假 ASP.NET 1309 event 執行真實 script body；輸出只能是固定分類，
-# 而且 EventRecord 由工具唯一持有並在投影後 Dispose。測試不建立 CRM 連線、PSSession、cookie jar 或持久化檔案。
 $fakeEvent = [pscustomobject]@{
     TimeCreated = Get-Date
     ProviderName = 'ASP.NET 4.0.30319.0'
@@ -158,6 +126,46 @@ try {
 finally {
     Remove-Item -LiteralPath Function:\Get-WinEvent -Force -ErrorAction SilentlyContinue
     $fakeEvent = $null
+}
+
+# An empty localized event query is a normal, bounded result. The stable error
+# identity, not the human-localized text, defines this diagnostic contract.
+function Get-WinEvent {
+    [CmdletBinding()]
+    param(
+        [hashtable]$FilterHashtable,
+        [int]$MaxEvents
+    )
+
+    $localizedNoEventMessage = -join [char[]](
+        0x627E, 0x4E0D, 0x5230, 0x7B26, 0x5408, 0x6307, 0x5B9A,
+        0x9078, 0x53D6, 0x6E96, 0x5247, 0x7684, 0x4E8B, 0x4EF6, 0x3002)
+    $exception = [System.Exception]::new($localizedNoEventMessage)
+    $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+        $exception,
+        'NoMatchingEventsFound',
+        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+        $null)
+    $PSCmdlet.ThrowTerminatingError($errorRecord)
+}
+
+try {
+    $emptyEventSnapshot = . $scriptPath -WebApiRoot 'https://example.invalid/api/data/v9.1/'
+
+    if ($emptyEventSnapshot.AspNet1309.Status -ne 'no-matching-events') {
+        throw "A localized empty event query must be classified as no-matching-events; actual status was '$($emptyEventSnapshot.AspNet1309.Status)'."
+    }
+
+    if (@($emptyEventSnapshot.AspNet1309.Events).Count -ne 0) {
+        throw 'A localized empty event query must not project any event records.'
+    }
+
+    if ($emptyEventSnapshot.AspNet1309.PSObject.Properties.Name -contains 'FailureCategory') {
+        throw 'A localized empty event query must not be reported as a diagnostic failure.'
+    }
+}
+finally {
+    Remove-Item -LiteralPath Function:\Get-WinEvent -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host 'Get-DynamicsCrmWebIfdDiagnostics script contract passed.'

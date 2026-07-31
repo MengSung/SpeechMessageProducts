@@ -154,7 +154,7 @@ function Get-CrmWebUriFormatEvents {
     catch {
         # Get-WinEvent 在時間窗內沒有任何 1309 時會回報例外；這代表「未命中」，不是
         # 事件記錄讀取權限或 CRMWeb 診斷工具失敗。其他錯誤仍須明確標示為 unavailable。
-        if ($_.Exception.Message -match '(?i)No events were found|No matching events') {
+        if ($_.FullyQualifiedErrorId -match '^NoMatchingEventsFound(?:,|$)') {
             return [pscustomobject]@{
                 Status = 'no-matching-events'
                 Events = @()
