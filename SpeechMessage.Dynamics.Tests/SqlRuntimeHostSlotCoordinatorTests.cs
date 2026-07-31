@@ -116,6 +116,33 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             .WithMessage("*must not contain*credential*");
     }
 
+    /// <summary>
+    /// Coordinator 建構時必須把已驗證的非機密設定複製為 immutable snapshot；DI 中保留的
+    /// options singleton 若在之後遭到錯誤修改，不能改寫既有 coordinator 的 SQL 路由、
+    /// timeout 或 quarantine 行為。測試以無效關鍵字作為後續 mutation：正確實作仍會使用
+    /// 原本可解析但不可連線的 loopback 設定，因此只會得到受控的 <see cref="SqlException"/>。
+    /// </summary>
+    [Fact]
+    public async Task Coordinator_snapshots_validated_options_before_any_connection_attempt()
+    {
+        var options = new SqlRuntimeHostSlotCoordinatorOptions
+        {
+            ConnectionString = "Server=127.0.0.1,1;Database=SpeechMessageDynamicsControlPlane;Integrated Security=true;Connect Timeout=1;",
+            CommandTimeoutSeconds = 1,
+            QuarantineSeconds = 1
+        };
+        var coordinator = new SqlRuntimeHostSlotCoordinator(
+            options,
+            NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
+
+        options.ConnectionString = "UnsupportedCoordinatorMutation=blocked";
+
+        var act = () => coordinator.VerifySchemaAsync(CancellationToken.None);
+
+        await act.Should().ThrowAsync<SqlException>();
+        coordinator.ActiveDatabaseOperations.Should().Be(0);
+    }
+
     /// <summary>schema 必須位於獨立 control-plane，不得接觸 MSCRM_CONFIG 或 OrganizationBase。</summary>
     [Fact]
     public void Schema_is_scoped_to_the_standalone_control_plane_database()

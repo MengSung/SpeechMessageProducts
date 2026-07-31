@@ -61,6 +61,20 @@ dotnet test .\SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj `
 但 process 與測試資料列的後驗檢查皆為乾淨；因此不以破壞性手段掩蓋清理問題。
 連線變數僅供該測試 process 使用，驗證後不保留為跨工作階段狀態。
 
+## 本次程式設定邊界補強
+
+TDD 已加入並驗證兩類 fail-closed regression：
+
+1. `SqlRuntimeHostSlotCoordinatorOptions.Validate()` 只接受 Windows 整合驗證，且即使
+   `Integrated Security=true` 也拒絕 `User ID`／`Password` 欄位，避免 coordinator 的
+   長生命週期設定字串保留 SQL 帳密。
+2. `SqlRuntimeHostSlotCoordinator` 在建構時將已驗證的 connection string、command timeout
+   與 quarantine 複製為 immutable snapshot；其後原始 options singleton 的 mutation 不能
+   改寫既有 coordinator 的 SQL 路由或 lease 安全界限。
+
+兩個 regression 都先觀察到預期 failure，再以最小修正轉為 pass；它們不需要 CRM、
+使用者 Session 或真實 SQL 帳密。
+
 ## 同日再驗證的 LocalDB runtime 狀態
 
 在加入「只允許整合驗證、拒絕 SQL 帳密欄位」的 regression test 後，嘗試以相同的

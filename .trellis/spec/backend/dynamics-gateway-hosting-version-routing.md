@@ -1069,6 +1069,10 @@ public sealed class SqlRuntimeHostSlotCoordinatorOptions
 - 連線字串必須使用 `Integrated Security=true` 的 Windows host identity。
 - `User ID` 與 `Password` 欄位一律禁止，即使 SqlClient 在整合驗證時可能忽略它們；
   否則字串仍可能被 runtime、例外或診斷路徑長期保留。
+- `SqlRuntimeHostSlotCoordinator` 建構後必須只保留已驗證的 immutable scalar snapshot
+  （connection string、command timeout、quarantine）；不得持有可被 DI 或其他元件
+  後續修改的 options 物件。組態變更必須建立並驗證新的 coordinator/runtime generation，
+  不能原地改寫既有 lease owner。
 - Development 的實際 instance 是已佈建的使用者 LocalDB；Central/production 的
   durable backend 若不同，仍必須遵守同一個整合驗證與「無 SQL 帳密」合約。
 
@@ -1079,6 +1083,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorOptions
 | Connection string is absent or targets another database | Throw before opening a SQL connection. |
 | `Integrated Security` is false | Throw `Windows integrated authentication` validation failure before any pool allocation. |
 | Integrated security is true but `User ID` or `Password` is present | Throw `must not contain SQL credential fields` before any connection, log, retry, or background owner can retain it. |
+| A caller mutates the original options object after coordinator construction | Existing coordinator ignores the mutation and uses only its validated immutable snapshot. |
 | Command timeout or quarantine is outside the bounded range | Throw before coordinator construction succeeds. |
 | Dedicated schema is missing | `VerifySchemaAsync` fails closed; Gateway must not auto-provision or fall back to CRM SQL/in-memory coordination. |
 
@@ -1088,8 +1093,12 @@ public sealed class SqlRuntimeHostSlotCoordinatorOptions
   authentication and validates the schema before readiness.
 - Base: a production durable store uses an approved Windows service/gMSA identity
   and the same no-SQL-credential validation.
+- Good: a DI options singleton is accidentally changed after coordinator creation;
+  the existing lease owner still uses its original validated scalar snapshot.
 - Bad: an otherwise integrated connection string also contains `User ID`; the
   coordinator accepts it because the client library happens to ignore the field.
+- Bad: a coordinator stores the mutable options reference and an after-start
+  configuration mutation redirects an existing runtime to another database.
 
 ### 6. Tests Required
 
@@ -1097,6 +1106,9 @@ public sealed class SqlRuntimeHostSlotCoordinatorOptions
   SQL authentication is rejected without opening a connection.
 - `Options_reject_sql_user_fields_when_integrated_security_is_enabled` proves a
   stray SQL user field cannot survive merely because integrated security is true.
+- `Coordinator_snapshots_validated_options_before_any_connection_attempt` proves
+  that a post-construction options mutation cannot alter the active coordinator's
+  connection path or leave an active database-operation counter retained.
 - Development configuration tests assert the dedicated database, LocalDB target,
   integrated authentication, bounded pool, and bounded connect timeout.
 - The opt-in live SQL contract test continues to prove that an approved,

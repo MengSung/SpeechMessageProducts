@@ -216,16 +216,28 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
           AND FencingToken = @expectedFencingToken;
         """;
 
-    private readonly SqlRuntimeHostSlotCoordinatorOptions _options;
+    // 建構完成後只保留經驗證的 immutable scalar snapshot；DI 註冊的 options 物件可能被其他
+    // 元件取得或錯誤修改，不能讓該 mutation 改寫既有 coordinator 的 SQL 路由或租約安全界限。
+    private readonly string _connectionString;
+    private readonly int _commandTimeoutSeconds;
+    private readonly int _quarantineSeconds;
     private readonly ILogger<SqlRuntimeHostSlotCoordinator> _logger;
     private int _activeDatabaseOperations;
 
+    /// <summary>
+    /// 建立耐久 host-slot coordinator，並在任何 SQL 連線建立以前驗證且快照控制平面設定。
+    /// 快照是此 coordinator 唯一的連線／timeout／quarantine owner，避免可變 options singleton
+    /// 在 runtime 中途改變已核准的資料庫邊界、保留機密欄位或破壞 lease fencing 不變量。
+    /// </summary>
     public SqlRuntimeHostSlotCoordinator(
         SqlRuntimeHostSlotCoordinatorOptions options,
         ILogger<SqlRuntimeHostSlotCoordinator> logger)
     {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _options.Validate();
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
+        _connectionString = options.ConnectionString;
+        _commandTimeoutSeconds = options.CommandTimeoutSeconds;
+        _quarantineSeconds = options.QuarantineSeconds;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -313,9 +325,9 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
                 command.Parameters.Add("@maximumRuntimeHosts", SqlDbType.Int).Value = request.MaximumRuntimeHosts;
                 command.Parameters.Add("@leaseTtlMilliseconds", SqlDbType.Int).Value =
                     checked((int)request.LeaseTtl.TotalMilliseconds);
-                command.Parameters.Add("@quarantineSeconds", SqlDbType.Int).Value = _options.QuarantineSeconds;
+                command.Parameters.Add("@quarantineSeconds", SqlDbType.Int).Value = _quarantineSeconds;
                 command.Parameters.Add("@lockTimeoutMilliseconds", SqlDbType.Int).Value =
-                    checked(_options.CommandTimeoutSeconds * 1000);
+                    checked(_commandTimeoutSeconds * 1000);
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 RuntimeHostSlotLease? lease = null;
@@ -396,7 +408,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
             await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
             await using var command = CreateCommand(connection, ReleaseSql);
             AddLeaseParameters(command, lease);
-            command.Parameters.Add("@quarantineSeconds", SqlDbType.Int).Value = _options.QuarantineSeconds;
+            command.Parameters.Add("@quarantineSeconds", SqlDbType.Int).Value = _quarantineSeconds;
             await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             return true;
         }).ConfigureAwait(false);
@@ -425,7 +437,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
 
     private async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
     {
-        var connection = new SqlConnection(_options.ConnectionString);
+        var connection = new SqlConnection(_connectionString);
         try
         {
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -446,7 +458,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         => new(commandText, connection, transaction)
         {
             CommandType = CommandType.Text,
-            CommandTimeout = _options.CommandTimeoutSeconds
+            CommandTimeout = _commandTimeoutSeconds
         };
 
     private static void AddCommonParameters(
