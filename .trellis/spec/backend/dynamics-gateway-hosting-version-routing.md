@@ -1037,3 +1037,94 @@ if ($EnableLive -and [string]::IsNullOrWhiteSpace($WebApiRoot)) {
 The target, authentication mode, and resulting evidence remain explicit and
 traceable, while a real CRM fault remains an external gate rather than a reason
 to weaken the Gateway boundary.
+
+## Scenario: 耐久 SQL 控制平面的整合驗證與帳密拒絕邊界
+
+### 1. Scope / Trigger
+
+當 Gateway、Local Gateway 或測試建立 `SqlRuntimeHostSlotCoordinator` 時，
+`ConnectionStrings:DynamicsControlPlane` 是跨 host 容量、fencing token、
+AdmissionEpoch 與 quarantine 的控制平面連線，不是 CRM 資料或憑證存放區。
+此規則用來阻止 SQL 帳密因設定漂移被保留在 coordinator 的長生命週期狀態中。
+
+### 2. Signatures
+
+```csharp
+public sealed class SqlRuntimeHostSlotCoordinatorOptions
+{
+    public const string RequiredDatabaseName = "SpeechMessageDynamicsControlPlane";
+
+    public string ConnectionString { get; set; }
+
+    public void Validate();
+}
+```
+
+### 3. Contracts
+
+- `Validate()` 在任何 `SqlConnection`、connection pool、transaction 或背景 SQL
+  作業建立以前執行。
+- `Initial Catalog` 必須精確為 `SpeechMessageDynamicsControlPlane`；不得連接 CRM
+  資料庫。
+- 連線字串必須使用 `Integrated Security=true` 的 Windows host identity。
+- `User ID` 與 `Password` 欄位一律禁止，即使 SqlClient 在整合驗證時可能忽略它們；
+  否則字串仍可能被 runtime、例外或診斷路徑長期保留。
+- Development 的實際 instance 是已佈建的使用者 LocalDB；Central/production 的
+  durable backend 若不同，仍必須遵守同一個整合驗證與「無 SQL 帳密」合約。
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Connection string is absent or targets another database | Throw before opening a SQL connection. |
+| `Integrated Security` is false | Throw `Windows integrated authentication` validation failure before any pool allocation. |
+| Integrated security is true but `User ID` or `Password` is present | Throw `must not contain SQL credential fields` before any connection, log, retry, or background owner can retain it. |
+| Command timeout or quarantine is outside the bounded range | Throw before coordinator construction succeeds. |
+| Dedicated schema is missing | `VerifySchemaAsync` fails closed; Gateway must not auto-provision or fall back to CRM SQL/in-memory coordination. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a Development process uses the dedicated LocalDB database with integrated
+  authentication and validates the schema before readiness.
+- Base: a production durable store uses an approved Windows service/gMSA identity
+  and the same no-SQL-credential validation.
+- Bad: an otherwise integrated connection string also contains `User ID`; the
+  coordinator accepts it because the client library happens to ignore the field.
+
+### 6. Tests Required
+
+- `Options_reject_sql_authentication_connection_strings` proves non-integrated
+  SQL authentication is rejected without opening a connection.
+- `Options_reject_sql_user_fields_when_integrated_security_is_enabled` proves a
+  stray SQL user field cannot survive merely because integrated security is true.
+- Development configuration tests assert the dedicated database, LocalDB target,
+  integrated authentication, bounded pool, and bounded connect timeout.
+- The opt-in live SQL contract test continues to prove that an approved,
+  provisioned LocalDB schema performs lease fencing, quarantine, namespace
+  isolation, and deterministic cleanup.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var options = new SqlRuntimeHostSlotCoordinatorOptions
+{
+    ConnectionString =
+        "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=SpeechMessageDynamicsControlPlane;" +
+        "Integrated Security=True;User ID=unexpected"
+};
+options.Validate(); // A stray SQL identity remains in long-lived configuration.
+```
+
+#### Correct
+
+```csharp
+var options = new SqlRuntimeHostSlotCoordinatorOptions
+{
+    ConnectionString =
+        "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=SpeechMessageDynamicsControlPlane;" +
+        "Integrated Security=True"
+};
+options.Validate(); // Validation rejects every SQL credential field before connection ownership begins.
+```

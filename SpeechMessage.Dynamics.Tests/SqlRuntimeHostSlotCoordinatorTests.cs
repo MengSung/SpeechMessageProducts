@@ -60,6 +60,62 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         act.Should().Throw<InvalidOperationException>();
     }
 
+    /// <summary>
+    /// 耐久控制平面僅能使用 Windows 整合驗證；在建立任何 SQL 連線以前即拒絕 SQL 帳號模式，
+    /// 使 Gateway 不會因設定漂移而保存、傳送或記錄資料庫密碼。這個測試刻意只提供非整合式
+    /// 使用者名稱，不包含任何真實或測試密碼，以驗證邊界不依賴機密字串才會 fail closed。
+    /// </summary>
+    [Fact]
+    public void Options_reject_sql_authentication_connection_strings()
+    {
+        var connectionString = new SqlConnectionStringBuilder
+        {
+            DataSource = @"(localdb)\MSSQLLocalDB",
+            InitialCatalog = SqlRuntimeHostSlotCoordinatorOptions.RequiredDatabaseName,
+            IntegratedSecurity = false,
+            UserID = "non-integrated-test-identity"
+        }.ConnectionString;
+        var options = new SqlRuntimeHostSlotCoordinatorOptions
+        {
+            ConnectionString = connectionString,
+            CommandTimeoutSeconds = 5,
+            QuarantineSeconds = 1
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*integrated*authentication*");
+    }
+
+    /// <summary>
+    /// 即使連線字串宣告整合驗證，SQL 使用者欄位仍會被 coordinator 的長生命週期設定保留；
+    /// 因此必須在開啟連線之前拒絕，避免錯置的帳密欄位跨 profile、log 或診斷路徑殘留。
+    /// 測試只使用無機密的佔位使用者名稱，從行為上驗證不接受任何 SQL 身分欄位。
+    /// </summary>
+    [Fact]
+    public void Options_reject_sql_user_fields_when_integrated_security_is_enabled()
+    {
+        var connectionString = new SqlConnectionStringBuilder
+        {
+            DataSource = @"(localdb)\MSSQLLocalDB",
+            InitialCatalog = SqlRuntimeHostSlotCoordinatorOptions.RequiredDatabaseName,
+            IntegratedSecurity = true,
+            UserID = "unexpected-sql-user-field"
+        }.ConnectionString;
+        var options = new SqlRuntimeHostSlotCoordinatorOptions
+        {
+            ConnectionString = connectionString,
+            CommandTimeoutSeconds = 5,
+            QuarantineSeconds = 1
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*must not contain*credential*");
+    }
+
     /// <summary>schema 必須位於獨立 control-plane，不得接觸 MSCRM_CONFIG 或 OrganizationBase。</summary>
     [Fact]
     public void Schema_is_scoped_to_the_standalone_control_plane_database()
