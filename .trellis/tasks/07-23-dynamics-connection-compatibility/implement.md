@@ -13,11 +13,18 @@
 
 The implementation must follow `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md` and the decision explanation in `docs/dynamics-gateway-central-local-82-91-guide.zh-TW.md`.
 
-## Status
+## Status — updated 2026-07-31
 
-This is an execution plan only. The task remains in planning. No production
-implementation starts until the written SPEC has completed review and the
-implementation task is explicitly activated.
+This plan is actively executing. The local Gateway foundation, runtime/policy
+boundaries, deterministic isolation/lifecycle checks, and opt-in smoke harness
+have implementation and verification evidence. Phase 4 is not complete: the
+real CE 9.1 CRMWeb Claims/IFD gate, CE 8.2/9.1 real-server matrix,
+cross-process capacity/fault proof, and soak/performance baselines remain open.
+No product traffic is enabled while those gates remain open:
+`Package01FeeReadsEnabled=false`, Phase 5 migration, and Phase 6 SDK removal
+remain locked. The current Claims/IFD wizard evidence and the exact once-only
+post-apply verification sequence are recorded in
+`phase4-ifd-wizard-evidence-2026-07-31.md`.
 
 ## Preconditions
 
