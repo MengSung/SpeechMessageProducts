@@ -140,6 +140,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
 
         lease = await _slotCoordinator.TryAcquireAsync(
             new RuntimeHostSlotLeaseRequest(
+                _plan.CanonicalKey,
                 _plan.LeaseNamespace,
                 _hostInstanceId,
                 _plan.MaximumRuntimeHosts,

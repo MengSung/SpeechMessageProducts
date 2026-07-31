@@ -78,6 +78,46 @@ TDD 已加入並驗證兩類 fail-closed regression：
 三個 regression 都先觀察到預期 failure，再以最小修正轉為 pass；它們不需要 CRM、
 使用者 Session 或真實 SQL 帳密。
 
+## 後續 canonical binding hardening（本機契約驗證）
+
+後續檢查發現：舊 schema 雖以 `LeaseNamespaceId` 保護 epoch/slot，但兩個獨立
+process 若錯設成不同 namespace，仍可能分別為同一實體 Dynamics Organization 取得完整
+host-slot 預算。本次已將這個跨程序缺口收斂為下列 fail-closed 契約：
+
+1. `RuntimeHostSlotLeaseRequest` 必須含有已驗證的 canonical Organization GUID 與
+   normalized HTTPS base URI；SQL 的舊 namespace-only acquire overload 在任何 connection、
+   transaction 或 background owner 建立前拒絕。
+2. `RuntimeHostOrganizationBinding` 以 BIN2 string semantics 長期一對一繫結 namespace、
+   GUID 與 URI。slot release 不會刪除 production binding；同一 Organization 以另一個
+   namespace acquire 會回 SQL `51005`。
+3. epoch 對 binding 加上 foreign key。舊 epoch 不能從 configuration digest 自動推回
+   Organization；migration 發現未繫結資料列時回 SQL `51006`，要求先 drain/受控處理，
+   而不是以猜測繼續 rollout。
+4. LocalDB test cleanup 僅刪本次隨機建立的測試資料，並以 `slot lease -> epoch -> binding`
+   的 FK 相依順序清除；這避免 opt-in 驗證自身留下無界 durable rows。
+
+本次本機驗證命令與結果：
+
+```powershell
+dotnet test .\SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj `
+  --filter FullyQualifiedName~SqlRuntimeHostSlotCoordinatorTests `
+  --no-restore --nologo
+# 14 passed, 1 skipped (僅 opt-in LocalDB live contract)
+
+dotnet test .\SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj `
+  --no-restore --nologo
+# 264 passed, 1 skipped (同一個 LocalDB live contract)
+
+dotnet build .\SpeechMessageProducts.sln --configuration Release --no-restore --nologo
+# 0 warnings, 0 errors
+```
+
+兩個 embedded/check-in schema migration block 已逐行比對一致。因目前
+`MSSQLLocalDB` registry configuration 仍無法讀取，這些是完整的本機 unit／release
+證據，但**不是**新 canonical binding schema 的 fresh live SQL transaction 證據；在
+LocalDB 修復後，必須重跑 opt-in live contract，才可把該小項標為已重驗證。此修補沒有
+啟用任何 ChurchReport consumer traffic，`Package01FeeReadsEnabled=false` 保持不變。
+
 ## 同日再驗證的 LocalDB runtime 狀態
 
 在加入「只允許整合驗證、拒絕 SQL 帳密欄位」的 regression test 後，嘗試以相同的

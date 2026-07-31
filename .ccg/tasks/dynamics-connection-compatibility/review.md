@@ -894,3 +894,45 @@ The audit compared the active PRD, design, implementation plan, SPEC, verificati
 ### Next gate
 
 Obtain the approved administrative Kerberos/Negotiate identity or existing session, complete the bounded ADFS/CRM configuration and real CE 8.2/9.1 smoke matrix, then resolve the local product-response blockers (`@odata.*` projection and `Cache-Control`) before enabling a single Phase 5 read workflow. Keep `Package01FeeReadsEnabled=false` and retain Embedded, Data8, and `PowerPlatform.Dataverse.Client` until those gates pass.
+
+## 2026-07-31 CE on-prem service-protection and SQL coordinator assessment
+
+### Dual-model result
+
+Run `20260731-111756-onprem-service-protection-sql-coordinator-reviewer` completed with full Gemini and Claude success:
+
+```text
+ok=true
+degradedFallback=false
+quotaBlocked=false
+completedBackends=gemini,claude
+```
+
+The review was read-only. No product code, runtime configuration, Dynamics environment, SQL schema, WinRM setting, or feature flag was changed.
+
+### Reconciled findings
+
+#### Critical
+
+- Disabling `RequireDurableHostCoordinator` or replacing the Gateway's SQL coordinator with `InMemoryRuntimeHostSlotCoordinator` is not justified by the fact that Dynamics is on-premises. The durable coordinator protects the Gateway's own cross-process host count, AdmissionEpoch, fencing, quarantine, restart, drain, rolling-update, blue/green, and multi-Local-Gateway capacity boundary. This purpose is independent of Microsoft Dataverse online service-protection quotas.
+- The accepted Central Gateway design requires at least two production replicas. An in-memory coordinator protects only one process and would allow independent processes to multiply the configured physical-organization capacity. The current `RequireDurableHostCoordinator=true` and SQL readiness boundary must remain unchanged.
+
+#### Warning
+
+- The Dataverse managed-service defaults of 6,000 requests per 300 seconds, 1,200 seconds combined execution time per 300 seconds, and 52-or-higher concurrent requests must not be treated as authoritative CE 8.2/9.1 on-premises quotas. Microsoft documents those values for Microsoft Dataverse managed service; the CE on-premises Web API documentation does not state that those managed-service values apply. This is medium-high-confidence scope evidence, not an explicit Microsoft statement that every on-premises deployment is exempt from every form of throttling.
+- The stronger claim that an on-premises target cannot return HTTP 429 is unsupported. Reverse proxies, WAFs, custom middleware, or deployment-specific controls may return 429; ordinary IIS/CRM/SQL saturation is more likely to surface as latency, timeout, 503, or other 5xx failures. The connector must retain bounded 429/`Retry-After`, 503, timeout, cancellation, and backpressure handling.
+- Absence of `x-ms-ratelimit-burst-remaining-xrm-requests` and `x-ms-ratelimit-time-remaining-xrm-requests` does not prove that no throttling or overload protection exists. The current Microsoft Dataverse service-protection article documents 429 plus `Retry-After`, not those two headers as a guaranteed detection contract.
+
+#### Info
+
+- Future documentation should replace the misleading phrase `CRM service-protection budget` with a neutral term such as `validated organization capacity budget`. This is a terminology correction only; bounded admission, durable cross-process coordination, backpressure, and failure handling remain required.
+- A deliberately isolated, single-process developer Local Gateway can theoretically use the existing non-durable option only after a separately scoped configuration/ADR decision proves that no second process, restart overlap, or other Local Gateway can target the same physical organization. That narrow exception does not describe the current Central production target or justify changing the current Gateway configuration.
+
+### Evidence still required before changing capacity
+
+- Real CE 8.2 and CE 9.1 gradual-concurrency measurements with HTTP status distribution and p95/p99 latency curves.
+- IIS request-queue and worker saturation, ASP.NET thread-pool, CRM application/plugin, and SQL wait/lock/timeout evidence at the same timestamps.
+- Cross-process Gateway capacity, restart/rolling-overlap, fencing, quarantine, coordinator-outage, and deterministic shutdown proof.
+- Soak evidence showing memory, socket, timer, queue, lease, and SQL operation ownership returns to baseline.
+
+Immediate decision: make no code or configuration change. Keep `AggregateMaxInFlight=24` as an unproven conservative placeholder pending real measurements, keep `MaximumRuntimeHosts=6`, keep `RequireDurableHostCoordinator=true`, keep `Package01FeeReadsEnabled=false`, and retain Embedded, Data8, and `PowerPlatform.Dataverse.Client`.

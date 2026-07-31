@@ -18,6 +18,11 @@ public readonly record struct CanonicalOrganizationCapacityKey(
     Guid ExpectedOrganizationId,
     string NormalizedOrganizationBaseUri)
 {
+    // SQL Server 的 nvarchar unique key 上限是 900 bytes；BIN2 下每個 UTF-16 code unit 仍需兩個 bytes，
+    // 所以 canonical base URI 的 durable-store 表示固定限制為 450 個字元。此界限在設定階段執行，
+    // 避免 runtime 才因資料庫索引失敗而留下半建立的 lease、transaction 或背景資源。
+    internal const int MaximumNormalizedOrganizationBaseUriLength = 450;
+
     /// <summary>
     /// 從已驗證的 Dynamics Web API Root 建立唯一的實體 Organization 容量鍵。
     /// 此方法只移除路徑尾端精確匹配的 <c>/api/data/v8.2|v9.1/</c> 片段，
@@ -87,6 +92,12 @@ public readonly record struct CanonicalOrganizationCapacityKey(
         if (!normalizedBaseUri.EndsWith("/", StringComparison.Ordinal))
         {
             normalizedBaseUri += "/";
+        }
+
+        if (normalizedBaseUri.Length > MaximumNormalizedOrganizationBaseUriLength)
+        {
+            error = $"Normalized organization base URI must not exceed {MaximumNormalizedOrganizationBaseUriLength} characters.";
+            return false;
         }
 
         key = new CanonicalOrganizationCapacityKey(expectedOrganizationId, normalizedBaseUri);

@@ -1075,6 +1075,20 @@ public sealed class SqlRuntimeHostSlotCoordinatorOptions
   不能原地改寫既有 lease owner。
 - Development 的實際 instance 是已佈建的使用者 LocalDB；Central/production 的
   durable backend 若不同，仍必須遵守同一個整合驗證與「無 SQL 帳密」合約。
+- 每次 durable host-slot acquire 都必須攜帶已驗證的
+  `CanonicalOrganizationCapacityKey`；`LeaseNamespaceId` 只是 deployment 的名稱，
+  絕不可由它、主機名、環境名、Session、Token 或 credential 猜測實體 Dynamics
+  Organization。
+- `RuntimeHostOrganizationBinding` 必須以 binary ordinal (`Latin1_General_100_BIN2`)
+  儲存並一對一繫結 `LeaseNamespaceId`、expected Organization GUID 與 normalized
+  HTTPS base URI。binding 在 slot release 後仍保留；否則另一個 process 可以改用
+  不同 namespace 重新建立同一個 Organization 的完整容量預算。
+- admission epoch 必須以外鍵指向 canonical binding。schema migration 若發現舊
+  epoch 沒有可信 binding，必須以 `51006` fail-closed，先由 operator drain 並受控
+  backfill；不得從 configuration digest 或其他不可逆摘要猜測 Organization 對應。
+- Gateway readiness 的 `VerifySchemaAsync` 必須驗證 binding table、兩個 canonical
+  unique constraint、epoch foreign key 與所有 string identity column 的 binary
+  ordinal collation。runtime release 沒有刪除或重綁既有 binding 的權限。
 
 ### 4. Validation & Error Matrix
 
@@ -1086,6 +1100,8 @@ public sealed class SqlRuntimeHostSlotCoordinatorOptions
 | A caller mutates the original options object after coordinator construction | Existing coordinator ignores the mutation and uses only its validated immutable snapshot. |
 | Command timeout or quarantine is outside the bounded range | Throw before coordinator construction succeeds. |
 | Dedicated schema is missing | `VerifySchemaAsync` fails closed; Gateway must not auto-provision or fall back to CRM SQL/in-memory coordination. |
+| A legacy epoch row has no canonical organization binding during schema migration | Throw SQL `51006`; drain and explicitly migrate the legacy control-plane rows before deployment. |
+| A second namespace attempts to bind the same Organization GUID or normalized base URI | Throw SQL `51005`; never split one physical Organization into two host-slot budgets. |
 
 ### 5. Good / Base / Bad Cases
 
@@ -1114,6 +1130,13 @@ public sealed class SqlRuntimeHostSlotCoordinatorOptions
 - The opt-in live SQL contract test continues to prove that an approved,
   provisioned LocalDB schema performs lease fencing, quarantine, namespace
   isolation, and deterministic cleanup.
+- Contract tests prove that a durable request carries the canonical key, a legacy
+  namespace-only SQL acquire fails before opening a connection, and test cleanup
+  deletes slot rows, epoch rows, then its uniquely owned canonical binding rows.
+- A two-coordinator live contract must prove that, after coordinator A releases
+  its slot, coordinator B still cannot bind the same physical Organization to a
+  different namespace. This is a durable-store assertion, not a shared-static
+  or Session-based test.
 
 ### 7. Wrong vs Correct
 

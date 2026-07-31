@@ -10,7 +10,14 @@
 
 namespace SpeechMessage.Dynamics.WebApi.Capacity;
 
+/// <summary>
+/// 跨程序 runtime-host slot 的取得請求。
+/// <see cref="CanonicalOrganizationKey"/> 是由已驗證設定建立的實體 Dynamics Organization 身分，
+/// 耐久協調器必須以它驗證 LeaseNamespaceId 的唯一歸屬，絕不可從環境名稱、主機名稱、使用者、Session、Token 或憑證臨時推導。
+/// 此請求只承載有界、非機密的控制平面資料；租約建立與失敗都不得保留 HTTP Context、認證標頭或任何使用者狀態。
+/// </summary>
 public sealed record RuntimeHostSlotLeaseRequest(
+    CanonicalOrganizationCapacityKey CanonicalOrganizationKey,
     RuntimeHostSlotLeaseNamespace LeaseNamespace,
     string HostInstanceId,
     int MaximumRuntimeHosts,
@@ -109,12 +116,24 @@ public interface IRuntimeHostSlotCoordinator
     Task<RuntimeHostSlotLease?> TryAcquireAsync(
         RuntimeHostSlotLeaseRequest request,
         CancellationToken cancellationToken)
-        => TryAcquireAsync(
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        // 耐久實作若沒有覆寫此入口，便無法把 canonical organization key 寫入/驗證於控制平面資料庫。
+        // 因此不可悄悄降級成舊式 namespace-only 路徑；寧可在任何連線、交易或背景資源建立前 fail-closed。
+        if (IsDurable)
+        {
+            throw new InvalidOperationException(
+                "Durable host-slot coordinators must validate the canonical organization identity.");
+        }
+
+        return TryAcquireAsync(
             request.LeaseNamespace,
             request.HostInstanceId,
             request.MaximumRuntimeHosts,
             request.LeaseTtl,
             cancellationToken);
+    }
 
     /// <summary>
     /// 嘗試取得 host slot。

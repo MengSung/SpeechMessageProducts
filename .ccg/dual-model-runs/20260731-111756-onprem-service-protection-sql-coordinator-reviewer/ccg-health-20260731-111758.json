@@ -1,0 +1,29 @@
+{
+    "generatedAt":  "2026-07-31T11:17:57.1572940+08:00",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "changedUserPath":  false,
+    "environment":  {
+                        "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                        "CODEAGENT_LITE_MODE":  "true",
+                        "PYTHONIOENCODING":  "utf-8",
+                        "CLAUDE_MODEL":  "sonnet",
+                        "CLAUDE_MODEL_SHIM":  "<user-home>\\AppData\\Local\\Temp\\ccg-claude-model-shim-37824-a82d44109921433198971ea943f94b47\\claude.cmd",
+                        "CCG_CLAUDE_MODEL_SHIM_DIR":  "<user-home>\\AppData\\Local\\Temp\\ccg-claude-model-shim-37824-a82d44109921433198971ea943f94b47",
+                        "CLAUDE_REAL_COMMAND":  "<user-home>\\AppData\\Roaming\\npm\\claude.cmd"
+                    },
+    "executables":  {
+                        "wrapper":  "<user-home>\\.claude\\bin\\codeagent-wrapper.exe",
+                        "gemini":  "<user-home>\\AppData\\Roaming\\npm\\gemini.cmd",
+                        "claude":  "<user-home>\\AppData\\Local\\Temp\\ccg-claude-model-shim-37824-a82d44109921433198971ea943f94b47\\claude.cmd",
+                        "python":  "<user-home>\\AppData\\Local\\Programs\\Python\\Python314\\python.exe"
+                    },
+    "smoke":  [
+
+              ],
+    "ok":  true,
+    "repairable":  true,
+    "notes":  [
+
+              ],
+    "wrapperVersion":  "codeagent-wrapper version 5.11.1"
+}

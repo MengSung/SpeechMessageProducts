@@ -23,9 +23,9 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         BEGIN
             CREATE TABLE dbo.RuntimeHostAdmissionEpoch
             (
-                LeaseNamespaceId nvarchar(128) NOT NULL,
+                LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL,
                 AdmissionEpoch bigint NOT NULL,
-                ConfigurationDigest char(64) NOT NULL,
+                ConfigurationDigest char(64) COLLATE Latin1_General_100_BIN2 NOT NULL,
                 MaximumRuntimeHosts int NOT NULL,
                 LastUpdatedAtUtc datetime2(3) NOT NULL
                     CONSTRAINT DF_RuntimeHostAdmissionEpoch_LastUpdated DEFAULT (SYSUTCDATETIME()),
@@ -40,11 +40,11 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         BEGIN
             CREATE TABLE dbo.RuntimeHostSlotLease
             (
-                LeaseNamespaceId nvarchar(128) NOT NULL,
+                LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL,
                 SlotOrdinal int NOT NULL,
                 AdmissionEpoch bigint NOT NULL,
-                ConfigurationDigest char(64) NOT NULL,
-                HostInstanceId nvarchar(128) NULL,
+                ConfigurationDigest char(64) COLLATE Latin1_General_100_BIN2 NOT NULL,
+                HostInstanceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NULL,
                 FencingToken bigint NOT NULL CONSTRAINT DF_RuntimeHostSlotLease_Fencing DEFAULT (0),
                 LeaseExpiresAtUtc datetime2(3) NULL,
                 QuarantineUntilUtc datetime2(3) NULL,
@@ -62,6 +62,140 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         IF COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'ConfigurationDigest') IS NULL
             ALTER TABLE dbo.RuntimeHostSlotLease ADD ConfigurationDigest char(64) NOT NULL
                 CONSTRAINT DF_RuntimeHostSlotLease_ConfigurationDigest DEFAULT (REPLICATE('0', 64)) WITH VALUES;
+
+        -- 既有 LocalDB 可能在預設大小寫不敏感定序下建立過租約表；provisioning 必須先重建主鍵再改成 BIN2，
+        -- 讓資料庫的 namespace／host／digest 相等規則與 C# 的 ordinal 結構化 key 完全一致，避免不同租約互相誤認。
+        DECLARE @epochPrimaryKey sysname;
+        SELECT @epochPrimaryKey = keyConstraint.name
+        FROM sys.key_constraints AS keyConstraint
+        WHERE keyConstraint.parent_object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+          AND keyConstraint.type = N'PK';
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+              AND name = N'LeaseNamespaceId'
+              AND collation_name <> N'Latin1_General_100_BIN2'
+        )
+        BEGIN
+            IF @epochPrimaryKey IS NOT NULL
+                EXEC(N'ALTER TABLE dbo.RuntimeHostAdmissionEpoch DROP CONSTRAINT ' + QUOTENAME(@epochPrimaryKey) + N';');
+
+            ALTER TABLE dbo.RuntimeHostAdmissionEpoch
+                ALTER COLUMN LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL;
+            ALTER TABLE dbo.RuntimeHostAdmissionEpoch
+                ADD CONSTRAINT PK_RuntimeHostAdmissionEpoch PRIMARY KEY (LeaseNamespaceId);
+        END
+        ELSE IF @epochPrimaryKey IS NULL
+            ALTER TABLE dbo.RuntimeHostAdmissionEpoch
+                ADD CONSTRAINT PK_RuntimeHostAdmissionEpoch PRIMARY KEY (LeaseNamespaceId);
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+              AND name = N'ConfigurationDigest'
+              AND collation_name <> N'Latin1_General_100_BIN2'
+        )
+            ALTER TABLE dbo.RuntimeHostAdmissionEpoch
+                ALTER COLUMN ConfigurationDigest char(64) COLLATE Latin1_General_100_BIN2 NOT NULL;
+
+        DECLARE @slotPrimaryKey sysname;
+        SELECT @slotPrimaryKey = keyConstraint.name
+        FROM sys.key_constraints AS keyConstraint
+        WHERE keyConstraint.parent_object_id = OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U')
+          AND keyConstraint.type = N'PK';
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U')
+              AND name = N'LeaseNamespaceId'
+              AND collation_name <> N'Latin1_General_100_BIN2'
+        )
+        BEGIN
+            IF @slotPrimaryKey IS NOT NULL
+                EXEC(N'ALTER TABLE dbo.RuntimeHostSlotLease DROP CONSTRAINT ' + QUOTENAME(@slotPrimaryKey) + N';');
+
+            ALTER TABLE dbo.RuntimeHostSlotLease
+                ALTER COLUMN LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL;
+            ALTER TABLE dbo.RuntimeHostSlotLease
+                ADD CONSTRAINT PK_RuntimeHostSlotLease PRIMARY KEY (LeaseNamespaceId, SlotOrdinal);
+        END
+        ELSE IF @slotPrimaryKey IS NULL
+            ALTER TABLE dbo.RuntimeHostSlotLease
+                ADD CONSTRAINT PK_RuntimeHostSlotLease PRIMARY KEY (LeaseNamespaceId, SlotOrdinal);
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U')
+              AND name = N'ConfigurationDigest'
+              AND collation_name <> N'Latin1_General_100_BIN2'
+        )
+            ALTER TABLE dbo.RuntimeHostSlotLease
+                ALTER COLUMN ConfigurationDigest char(64) COLLATE Latin1_General_100_BIN2 NOT NULL;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U')
+              AND name = N'HostInstanceId'
+              AND collation_name <> N'Latin1_General_100_BIN2'
+        )
+            ALTER TABLE dbo.RuntimeHostSlotLease
+                ALTER COLUMN HostInstanceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NULL;
+
+        -- 此表保留 namespace 到實體 Organization 的長期、非機密繫結；slot 釋放後不可刪除，
+        -- 否則下一個程序可用另一個 namespace 重建同一個組織的容量預算。
+        IF OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U') IS NULL
+        BEGIN
+            CREATE TABLE dbo.RuntimeHostOrganizationBinding
+            (
+                LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL,
+                ExpectedOrganizationId uniqueidentifier NOT NULL,
+                NormalizedOrganizationBaseUri nvarchar(450) COLLATE Latin1_General_100_BIN2 NOT NULL,
+                BoundAtUtc datetime2(3) NOT NULL
+                    CONSTRAINT DF_RuntimeHostOrganizationBinding_BoundAtUtc DEFAULT (SYSUTCDATETIME()),
+                RowVersion rowversion NOT NULL,
+                CONSTRAINT PK_RuntimeHostOrganizationBinding PRIMARY KEY (LeaseNamespaceId),
+                CONSTRAINT UQ_RuntimeHostOrganizationBinding_ExpectedOrganizationId UNIQUE (ExpectedOrganizationId),
+                CONSTRAINT UQ_RuntimeHostOrganizationBinding_NormalizedOrganizationBaseUri UNIQUE (NormalizedOrganizationBaseUri)
+            );
+        END;
+
+        -- 舊版 coordinator 不知道 canonical binding，若還有 epoch row 便不能安全推回它實際指向哪一個 Organization。
+        -- provisioning 在此明確停下來要求先 drain/清理或由受控作業人工建立映射，而不是猜測後繼續 rollout。
+        IF EXISTS
+        (
+            SELECT 1
+            FROM dbo.RuntimeHostAdmissionEpoch AS epochRow
+            LEFT JOIN dbo.RuntimeHostOrganizationBinding AS bindingRow
+                ON bindingRow.LeaseNamespaceId = epochRow.LeaseNamespaceId
+            WHERE bindingRow.LeaseNamespaceId IS NULL
+        )
+            THROW 51006, 'Existing admission epochs are missing canonical organization bindings; drain and migrate them before enabling the durable coordinator.', 1;
+
+        -- FK 讓尚未升級的 binary 無法先寫入沒有 canonical binding 的 epoch；
+        -- 新 acquire transaction 會先插入/驗證 binding，接著才建立 epoch，因此舊新版本混跑只會安全 fail-closed。
+        IF NOT EXISTS
+        (
+            SELECT 1
+            FROM sys.foreign_keys
+            WHERE parent_object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+              AND referenced_object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+              AND name = N'FK_RuntimeHostAdmissionEpoch_OrganizationBinding'
+        )
+            ALTER TABLE dbo.RuntimeHostAdmissionEpoch
+                ADD CONSTRAINT FK_RuntimeHostAdmissionEpoch_OrganizationBinding
+                FOREIGN KEY (LeaseNamespaceId)
+                REFERENCES dbo.RuntimeHostOrganizationBinding (LeaseNamespaceId);
         """;
 
     // 取得槽位必須在同一 serializable transaction 內完成：sp_getapplock 序列化同一 namespace，
@@ -70,15 +204,81 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         SET NOCOUNT ON;
         SET XACT_ABORT ON;
         DECLARE @lockResult int;
-        DECLARE @lockResource nvarchar(255) = CONCAT(N'SpeechMessageDynamicsLease:', @leaseNamespaceId);
+        -- 三把 applock 以固定的 Organization GUID -> base URI hash -> lease namespace 順序取得。
+        -- hash 僅作為 bounded lock resource，不是儲存身分；真正的完整 URI 仍由 BIN2 unique constraint 驗證，
+        -- 所以 hash 碰撞最多只會增加短暫序列化，絕不會讓兩個 Organization 被視為相同。
+        DECLARE @organizationIdLockResource nvarchar(255) =
+            CONCAT(N'SpeechMessageDynamicsOrganizationId:', CONVERT(nvarchar(36), @expectedOrganizationId));
+        DECLARE @baseUriLockResource nvarchar(255) =
+            CONCAT(
+                N'SpeechMessageDynamicsOrganizationBaseUri:',
+                CONVERT(varchar(64), HASHBYTES(N'SHA2_256', CONVERT(varbinary(max), @normalizedOrganizationBaseUri)), 2));
+        DECLARE @leaseNamespaceLockResource nvarchar(255) =
+            CONCAT(N'SpeechMessageDynamicsLease:', @leaseNamespaceId);
         EXEC @lockResult = sys.sp_getapplock
-            @Resource = @lockResource,
+            @Resource = @organizationIdLockResource,
+            @LockMode = N'Exclusive',
+            @LockOwner = N'Transaction',
+            @LockTimeout = @lockTimeoutMilliseconds;
+        IF @lockResult < 0 THROW 51000, 'Unable to acquire the canonical organization ID lock.', 1;
+        EXEC @lockResult = sys.sp_getapplock
+            @Resource = @baseUriLockResource,
+            @LockMode = N'Exclusive',
+            @LockOwner = N'Transaction',
+            @LockTimeout = @lockTimeoutMilliseconds;
+        IF @lockResult < 0 THROW 51000, 'Unable to acquire the canonical organization URI lock.', 1;
+        EXEC @lockResult = sys.sp_getapplock
+            @Resource = @leaseNamespaceLockResource,
             @LockMode = N'Exclusive',
             @LockOwner = N'Transaction',
             @LockTimeout = @lockTimeoutMilliseconds;
         IF @lockResult < 0 THROW 51000, 'Unable to acquire the lease namespace lock.', 1;
 
         DECLARE @now datetime2(3) = SYSUTCDATETIME();
+
+        -- Lease namespace 是 deployment 設定，而不是可自行宣告的容量邊界。
+        -- 在同一個 serializable transaction 內先建立或驗證它與 canonical Dynamics organization 的一對一繫結；
+        -- ExpectedOrganizationId 與 normalized base URI 的 unique index 會為跨程序競爭提供 key-range lock，
+        -- 所以兩個不同 namespace 無法同時把同一個實體 Organization 分裂為兩份 host-slot 預算。
+        IF EXISTS
+        (
+            SELECT 1
+            FROM dbo.RuntimeHostOrganizationBinding WITH (UPDLOCK, HOLDLOCK)
+            WHERE LeaseNamespaceId = @leaseNamespaceId
+              AND
+              (
+                  ExpectedOrganizationId <> @expectedOrganizationId
+                  OR NormalizedOrganizationBaseUri <> @normalizedOrganizationBaseUri
+              )
+        )
+            THROW 51004, 'Lease namespace is already bound to a different canonical Dynamics organization.', 1;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM dbo.RuntimeHostOrganizationBinding WITH (UPDLOCK, HOLDLOCK)
+            WHERE LeaseNamespaceId <> @leaseNamespaceId
+              AND
+              (
+                  ExpectedOrganizationId = @expectedOrganizationId
+                  OR NormalizedOrganizationBaseUri = @normalizedOrganizationBaseUri
+              )
+        )
+            THROW 51005, 'Canonical Dynamics organization is already bound to a different lease namespace.', 1;
+
+        IF NOT EXISTS
+        (
+            SELECT 1
+            FROM dbo.RuntimeHostOrganizationBinding WITH (UPDLOCK, HOLDLOCK)
+            WHERE LeaseNamespaceId = @leaseNamespaceId
+        )
+        BEGIN
+            INSERT dbo.RuntimeHostOrganizationBinding
+                (LeaseNamespaceId, ExpectedOrganizationId, NormalizedOrganizationBaseUri)
+            VALUES
+                (@leaseNamespaceId, @expectedOrganizationId, @normalizedOrganizationBaseUri);
+        END;
+
         IF NOT EXISTS
         (
             SELECT 1 FROM dbo.RuntimeHostAdmissionEpoch WITH (UPDLOCK, HOLDLOCK)
@@ -266,10 +466,65 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
                 THROW 51001, 'Unexpected Dynamics control-plane database.', 1;
             IF OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
                OR OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U') IS NULL
+               OR OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U') IS NULL
                OR OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
                OR COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'AdmissionEpoch') IS NULL
                OR COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'ConfigurationDigest') IS NULL
+               OR COL_LENGTH(N'dbo.RuntimeHostOrganizationBinding', N'ExpectedOrganizationId') IS NULL
+               OR COL_LENGTH(N'dbo.RuntimeHostOrganizationBinding', N'NormalizedOrganizationBaseUri') IS NULL
                 THROW 51002, 'Dynamics control-plane schema is not provisioned.', 1;
+            IF EXISTS
+            (
+                SELECT 1
+                FROM sys.columns
+                WHERE
+                    (
+                        (object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+                         AND name IN (N'LeaseNamespaceId', N'ConfigurationDigest'))
+                        OR (object_id = OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U')
+                            AND name IN (N'LeaseNamespaceId', N'ConfigurationDigest', N'HostInstanceId'))
+                        OR (object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+                            AND name IN (N'LeaseNamespaceId', N'NormalizedOrganizationBaseUri'))
+                    )
+                    AND collation_name <> N'Latin1_General_100_BIN2'
+            )
+                THROW 51002, 'Dynamics control-plane string identity columns must use binary ordinal collation.', 1;
+            IF NOT EXISTS
+            (
+                SELECT 1
+                FROM sys.key_constraints
+                WHERE parent_object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+                  AND name = N'PK_RuntimeHostOrganizationBinding'
+                  AND type = N'PK'
+            )
+                THROW 51002, 'Dynamics control-plane canonical binding primary key is not provisioned.', 1;
+            IF NOT EXISTS
+            (
+                SELECT 1
+                FROM sys.key_constraints
+                WHERE parent_object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+                  AND name = N'UQ_RuntimeHostOrganizationBinding_ExpectedOrganizationId'
+                  AND type = N'UQ'
+            )
+                THROW 51002, 'Dynamics control-plane expected organization uniqueness is not provisioned.', 1;
+            IF NOT EXISTS
+            (
+                SELECT 1
+                FROM sys.key_constraints
+                WHERE parent_object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+                  AND name = N'UQ_RuntimeHostOrganizationBinding_NormalizedOrganizationBaseUri'
+                  AND type = N'UQ'
+            )
+                THROW 51002, 'Dynamics control-plane base URI uniqueness is not provisioned.', 1;
+            IF NOT EXISTS
+            (
+                SELECT 1
+                FROM sys.foreign_keys
+                WHERE parent_object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+                  AND referenced_object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+                  AND name = N'FK_RuntimeHostAdmissionEpoch_OrganizationBinding'
+            )
+                THROW 51002, 'Dynamics control-plane canonical binding foreign key is not provisioned.', 1;
             SELECT 1;
             """;
 
@@ -288,21 +543,15 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         int maximumRuntimeHosts,
         TimeSpan leaseTtl,
         CancellationToken cancellationToken)
-        => await TryAcquireAsync(
-            new RuntimeHostSlotLeaseRequest(
-                leaseNamespace,
-                hostInstanceId,
-                maximumRuntimeHosts,
-                leaseTtl,
-                AdmissionEpoch: 1,
-                ConfigurationDigest: new string('0', 64)),
-            cancellationToken).ConfigureAwait(false);
+        => throw new InvalidOperationException(
+            "A canonical organization identity is required for durable SQL host-slot acquisition.");
 
     public async Task<RuntimeHostSlotLease?> TryAcquireAsync(
         RuntimeHostSlotLeaseRequest request,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
+        ValidateCanonicalOrganizationKey(request.CanonicalOrganizationKey);
         ValidateLeaseArguments(
             request.LeaseNamespace,
             request.HostInstanceId,
@@ -320,6 +569,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
             try
             {
                 await using var command = CreateCommand(connection, AcquireSql, transaction);
+                AddCanonicalOrganizationParameters(command, request.CanonicalOrganizationKey);
                 AddCommonParameters(command, request.LeaseNamespace, request.HostInstanceId);
                 AddEpochParameters(command, request.AdmissionEpoch, request.ConfigurationDigest);
                 command.Parameters.Add("@maximumRuntimeHosts", SqlDbType.Int).Value = request.MaximumRuntimeHosts;
@@ -471,6 +721,24 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         command.Parameters.Add("@hostInstanceId", SqlDbType.NVarChar, 128).Value = hostInstanceId;
     }
 
+    /// <summary>
+    /// 將已驗證的 canonical organization key 以兩個獨立、固定長度的 SQL 參數傳入。
+    /// 不使用字串串接作為 store identity，讓資料表的 unique constraint 與 serializable key-range lock
+    /// 能分別保護 Organization GUID 與標準化 base URI；這些參數不含租約、使用者、Session、Token 或任何憑證。
+    /// </summary>
+    private static void AddCanonicalOrganizationParameters(
+        SqlCommand command,
+        CanonicalOrganizationCapacityKey canonicalOrganizationKey)
+    {
+        command.Parameters.Add("@expectedOrganizationId", SqlDbType.UniqueIdentifier).Value =
+            canonicalOrganizationKey.ExpectedOrganizationId;
+        command.Parameters.Add(
+            "@normalizedOrganizationBaseUri",
+            SqlDbType.NVarChar,
+            CanonicalOrganizationCapacityKey.MaximumNormalizedOrganizationBaseUriLength).Value =
+            canonicalOrganizationKey.NormalizedOrganizationBaseUri;
+    }
+
     private static void AddLeaseParameters(SqlCommand command, RuntimeHostSlotLease lease)
     {
         AddCommonParameters(command, lease.LeaseNamespace, lease.HostInstanceId);
@@ -497,14 +765,24 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         string? configurationDigest = null)
     {
         if (string.IsNullOrWhiteSpace(leaseNamespace.LeaseNamespaceId) ||
-            leaseNamespace.LeaseNamespaceId.Length > 128)
+            leaseNamespace.LeaseNamespaceId.Length > 128 ||
+            !string.Equals(
+                leaseNamespace.LeaseNamespaceId,
+                leaseNamespace.LeaseNamespaceId.Trim(),
+                StringComparison.Ordinal))
         {
-            throw new ArgumentException("Lease namespace must contain 1-128 characters.", nameof(leaseNamespace));
+            throw new ArgumentException(
+                "Lease namespace must contain 1-128 non-padded characters.",
+                nameof(leaseNamespace));
         }
 
-        if (string.IsNullOrWhiteSpace(hostInstanceId) || hostInstanceId.Length > 128)
+        if (string.IsNullOrWhiteSpace(hostInstanceId) ||
+            hostInstanceId.Length > 128 ||
+            !string.Equals(hostInstanceId, hostInstanceId.Trim(), StringComparison.Ordinal))
         {
-            throw new ArgumentException("Host instance ID must contain 1-128 characters.", nameof(hostInstanceId));
+            throw new ArgumentException(
+                "Host instance ID must contain 1-128 non-padded characters.",
+                nameof(hostInstanceId));
         }
 
         if (maximumRuntimeHosts is < 1 or > 1000)
@@ -529,6 +807,38 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
             throw new ArgumentException(
                 "Configuration digest must be exactly 64 hexadecimal characters.",
                 nameof(configurationDigest));
+        }
+    }
+
+    /// <summary>
+    /// 在 SQL 連線與交易建立之前重複檢查 canonical organization key 的資料庫儲存界限。
+    /// 一般呼叫端已由 <see cref="OrganizationAdmissionPlan"/> 驗證此 key；此處仍保留 fail-closed 防線，
+    /// 以避免測試、未來整合或錯誤 DI 呼叫把未標準化 URI、超過唯一索引上限的資料，或空的 Organization GUID 寫進耐久控制平面。
+    /// </summary>
+    private static void ValidateCanonicalOrganizationKey(
+        CanonicalOrganizationCapacityKey canonicalOrganizationKey)
+    {
+        if (canonicalOrganizationKey.ExpectedOrganizationId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Canonical organization identity requires an expected organization ID.",
+                nameof(canonicalOrganizationKey));
+        }
+
+        var normalizedBaseUri = canonicalOrganizationKey.NormalizedOrganizationBaseUri;
+        if (string.IsNullOrWhiteSpace(normalizedBaseUri) ||
+            normalizedBaseUri.Length > CanonicalOrganizationCapacityKey.MaximumNormalizedOrganizationBaseUriLength ||
+            !string.Equals(normalizedBaseUri, normalizedBaseUri.Trim(), StringComparison.Ordinal) ||
+            !Uri.TryCreate(normalizedBaseUri, UriKind.Absolute, out var uri) ||
+            !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            !string.IsNullOrEmpty(uri.UserInfo) ||
+            !string.IsNullOrEmpty(uri.Query) ||
+            !string.IsNullOrEmpty(uri.Fragment) ||
+            !uri.AbsolutePath.EndsWith("/", StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "Canonical organization base URI must be a normalized HTTPS URI of at most 450 characters.",
+                nameof(canonicalOrganizationKey));
         }
     }
 }

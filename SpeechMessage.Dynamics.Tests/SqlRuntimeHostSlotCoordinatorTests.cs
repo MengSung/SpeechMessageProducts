@@ -154,7 +154,140 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("AdmissionEpoch");
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("SYSUTCDATETIME()");
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().NotContain("MSCRM_CONFIG");
-        SqlRuntimeHostSlotCoordinator.SchemaSql.Should().NotContain("OrganizationBase");
+        System.Text.RegularExpressions.Regex.IsMatch(
+                SqlRuntimeHostSlotCoordinator.SchemaSql,
+                @"(?<![A-Za-z0-9_])(?:\[?dbo\]?\.)?\[?OrganizationBase\]?(?![A-Za-z0-9_])",
+                System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+            .Should().BeFalse(
+                "control-plane SQL must never target the CRM OrganizationBase table; " +
+                "NormalizedOrganizationBaseUri is only a local canonical-key column");
+    }
+
+    /// <summary>
+    /// 耐久 SQL 協調器必須把每一個租約命名空間與唯一的實體 Dynamics Organization 綁定，
+    /// 並以 SQL 的二進位字串語意維持與記憶體 <see cref="StringComparer.Ordinal"/> 相同的身分判斷。
+    /// 否則兩個程序只要錯設不同的 LeaseNamespaceId，便可能各自取得同一個 Organization 的完整 host-slot 預算；
+    /// 大小寫不同的命名空間也可能在資料庫預設不區分大小寫定序下互相干擾。
+    /// </summary>
+    [Fact]
+    public void Durable_schema_requires_canonical_organization_binding_and_ordinal_string_semantics()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var provisionedSchema = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "eng",
+            "dynamics-control-plane-schema.sql"));
+
+        foreach (var schema in new[] { SqlRuntimeHostSlotCoordinator.SchemaSql, provisionedSchema })
+        {
+            schema.Should().Contain("RuntimeHostOrganizationBinding");
+            schema.Should().Contain("ExpectedOrganizationId uniqueidentifier NOT NULL");
+            schema.Should().Contain("NormalizedOrganizationBaseUri nvarchar(450) COLLATE Latin1_General_100_BIN2 NOT NULL");
+            schema.Should().Contain("UQ_RuntimeHostOrganizationBinding_ExpectedOrganizationId");
+            schema.Should().Contain("UQ_RuntimeHostOrganizationBinding_NormalizedOrganizationBaseUri");
+            schema.Should().Contain("FK_RuntimeHostAdmissionEpoch_OrganizationBinding");
+            schema.Should().Contain("LeaseNamespaceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NOT NULL");
+            schema.Should().Contain("HostInstanceId nvarchar(128) COLLATE Latin1_General_100_BIN2 NULL");
+            schema.Should().Contain("ConfigurationDigest char(64) COLLATE Latin1_General_100_BIN2 NOT NULL");
+        }
+
+        var acquireSql = (string?)typeof(SqlRuntimeHostSlotCoordinator)
+            .GetField("AcquireSql", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            ?.GetRawConstantValue();
+        acquireSql.Should().NotBeNull();
+        acquireSql!.Should().Contain("RuntimeHostOrganizationBinding");
+        acquireSql.Should().Contain("canonical Dynamics organization");
+    }
+
+    /// <summary>
+    /// live SQL contract 建立的 canonical binding 是耐久測試資料的一部分；在外鍵存在時，cleanup 必須依
+    /// slot lease、admission epoch、organization binding 的相依順序刪除，否則每次 opt-in live run 都會
+    /// 遺留無界測試資料，或因 FK 拒絕而遮蔽真正的 contract 結果。
+    /// </summary>
+    [Fact]
+    public void Live_sql_cleanup_deletes_canonical_binding_after_dependent_rows()
+    {
+        var cleanupSql = (string?)typeof(SqlRuntimeHostSlotCoordinatorTests)
+            .GetField(
+                "OwnedNamespaceCleanupSql",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            ?.GetRawConstantValue();
+
+        cleanupSql.Should().NotBeNull();
+        cleanupSql!.IndexOf("DELETE dbo.RuntimeHostSlotLease", StringComparison.Ordinal)
+            .Should().BeGreaterThanOrEqualTo(0);
+        cleanupSql.IndexOf("DELETE dbo.RuntimeHostAdmissionEpoch", StringComparison.Ordinal)
+            .Should().BeGreaterThan(
+                cleanupSql.IndexOf("DELETE dbo.RuntimeHostSlotLease", StringComparison.Ordinal));
+        cleanupSql.IndexOf("DELETE dbo.RuntimeHostOrganizationBinding", StringComparison.Ordinal)
+            .Should().BeGreaterThan(
+                cleanupSql.IndexOf("DELETE dbo.RuntimeHostAdmissionEpoch", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// SQL durable coordinator 的 acquire 請求必須攜帶已驗證的 canonical organization key。
+    /// 此型別是跨程序資料庫繫結的唯一非機密物理身分；不得由 LeaseNamespaceId、環境名稱或主機名稱臨時推導，
+    /// 以免設定錯誤時把同一個 Dynamics Organization 分裂成多份容量預算。
+    /// </summary>
+    [Fact]
+    public void Durable_lease_request_carries_canonical_organization_identity()
+    {
+        var property = typeof(RuntimeHostSlotLeaseRequest)
+            .GetProperty("CanonicalOrganizationKey");
+
+        property.Should().NotBeNull();
+        property!.PropertyType.Should().Be(typeof(CanonicalOrganizationCapacityKey));
+    }
+
+    /// <summary>
+    /// canonical base URI 是 durable store 的唯一索引鍵之一，因此設定驗證必須在建立 runtime、連線或 SQL transaction 前
+    /// 拒絕超過 SQL Server 900-byte unique-index 邊界的值。這個界限同時讓跨程序 key 的記憶體與資料庫表示維持有界，
+    /// 不會把任意長度的端點資料保留到長期控制平面。
+    /// </summary>
+    [Fact]
+    public void Canonical_organization_key_rejects_base_uri_that_exceeds_durable_store_index_bound()
+    {
+        var oversizedRoot = new Uri(
+            "https://crm.example.local/" + new string('a', 450) + "/api/data/v9.1/");
+
+        var created = CanonicalOrganizationCapacityKey.TryCreate(
+            Guid.NewGuid(),
+            oversizedRoot,
+            "v9.1",
+            out _,
+            out var error);
+
+        created.Should().BeFalse();
+        error.Should().Contain("450");
+    }
+
+    /// <summary>
+    /// 舊式僅提供 LeaseNamespaceId 的 SQL acquire overload 無法安全猜測實體 Organization，
+    /// 所以必須在建立連線、交易、等待或保留任何 SQL 資源之前 fail-closed。
+    /// 這也避免舊呼叫端悄悄繞過 namespace-to-organization 的 durable binding。
+    /// </summary>
+    [Fact]
+    public async Task Durable_coordinator_rejects_legacy_acquire_without_canonical_organization_identity_before_connection_ownership()
+    {
+        var coordinator = new SqlRuntimeHostSlotCoordinator(
+            new SqlRuntimeHostSlotCoordinatorOptions
+            {
+                ConnectionString = "Server=127.0.0.1,1;Database=SpeechMessageDynamicsControlPlane;Integrated Security=true;Encrypt=false;Connect Timeout=1;",
+                CommandTimeoutSeconds = 1,
+                QuarantineSeconds = 1
+            },
+            NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
+
+        var act = async () => await coordinator.TryAcquireAsync(
+            new RuntimeHostSlotLeaseNamespace("legacy-without-canonical"),
+            "host-1",
+            maximumRuntimeHosts: 1,
+            TimeSpan.FromSeconds(5),
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*canonical organization*identity*");
+        coordinator.ActiveDatabaseOperations.Should().Be(0);
     }
 
     /// <summary>
@@ -273,10 +406,12 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
 
         var act = async () => await coordinator.TryAcquireAsync(
-            new RuntimeHostSlotLeaseNamespace("outage-test"),
-            "host-1",
-            1,
-            TimeSpan.FromSeconds(5),
+            CreateLeaseRequest(
+                CreateCanonicalOrganizationKey("outage-test"),
+                new RuntimeHostSlotLeaseNamespace("outage-test"),
+                "host-1",
+                maximumRuntimeHosts: 1,
+                leaseTtl: TimeSpan.FromSeconds(5)),
             CancellationToken.None);
 
         await act.Should().ThrowAsync<SqlException>();
@@ -315,6 +450,9 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         var coordinator = new SqlRuntimeHostSlotCoordinator(
             options,
             NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
+        var secondaryCoordinator = new SqlRuntimeHostSlotCoordinator(
+            options,
+            NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
         // Schema 的唯一建立 owner 是人工 provisioning script；live contract 僅驗證現況，缺物件時必須直接失敗。
         await coordinator.VerifySchemaAsync(CancellationToken.None);
 
@@ -324,9 +462,12 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         {
             var epochNamespace = new RuntimeHostSlotLeaseNamespace(
                 "epoch-contract-" + Guid.NewGuid().ToString("N"));
+            var epochCanonicalKey = CreateCanonicalOrganizationKey(
+                "epoch-contract-" + Guid.NewGuid().ToString("N"));
             ownedNamespaceIds.Add(epochNamespace.LeaseNamespaceId);
             var epochLease = await coordinator.TryAcquireAsync(
                 new RuntimeHostSlotLeaseRequest(
+                    epochCanonicalKey,
                     epochNamespace,
                     "epoch-host",
                     MaximumRuntimeHosts: 1,
@@ -338,6 +479,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
 
             var drift = async () => await coordinator.TryAcquireAsync(
                 new RuntimeHostSlotLeaseRequest(
+                    epochCanonicalKey,
                     epochNamespace,
                     "drift-host",
                     MaximumRuntimeHosts: 1,
@@ -349,19 +491,53 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
                 .Where(exception => exception.Number == 51003);
             await epochLease!.DisposeAsync();
 
+            // 兩個 coordinator instance 沒有共用 registry、static collection 或記憶體 state；
+            // B 仍被 A 已寫入且在 A release 後保留的 binding 拒絕，證明唯一權威來自 SQL durable store。
+            var bindingSuffix = Guid.NewGuid().ToString("N");
+            var bindingCanonicalKey = CreateCanonicalOrganizationKey("binding-contract-" + bindingSuffix);
+            var bindingNamespaceA = new RuntimeHostSlotLeaseNamespace("binding-a-" + bindingSuffix);
+            var bindingNamespaceB = new RuntimeHostSlotLeaseNamespace("binding-b-" + bindingSuffix);
+            ownedNamespaceIds.Add(bindingNamespaceA.LeaseNamespaceId);
+            ownedNamespaceIds.Add(bindingNamespaceB.LeaseNamespaceId);
+            var bindingLease = await coordinator.TryAcquireAsync(
+                CreateLeaseRequest(
+                    bindingCanonicalKey,
+                    bindingNamespaceA,
+                    "binding-host-a",
+                    maximumRuntimeHosts: 1,
+                    leaseTtl: TimeSpan.FromSeconds(3)),
+                CancellationToken.None);
+            bindingLease.Should().NotBeNull();
+            await bindingLease!.DisposeAsync();
+
+            var duplicateCanonicalBinding = async () => await secondaryCoordinator.TryAcquireAsync(
+                CreateLeaseRequest(
+                    bindingCanonicalKey,
+                    bindingNamespaceB,
+                    "binding-host-b",
+                    maximumRuntimeHosts: 1,
+                    leaseTtl: TimeSpan.FromSeconds(3)),
+                CancellationToken.None);
+            await duplicateCanonicalBinding.Should().ThrowAsync<SqlException>()
+                .Where(exception => exception.Number == 51005);
+
             var suffix = Guid.NewGuid().ToString("N");
             var ns = new RuntimeHostSlotLeaseNamespace("contract-" + suffix);
             var otherNs = new RuntimeHostSlotLeaseNamespace("contract-other-" + suffix);
+            var canonicalKey = CreateCanonicalOrganizationKey("contract-" + suffix);
+            var otherCanonicalKey = CreateCanonicalOrganizationKey("contract-other-" + suffix);
             ownedNamespaceIds.Add(ns.LeaseNamespaceId);
             ownedNamespaceIds.Add(otherNs.LeaseNamespaceId);
             var ttl = TimeSpan.FromSeconds(3);
 
             var attempts = Enumerable.Range(0, 32)
                 .Select(index => coordinator.TryAcquireAsync(
-                    ns,
-                    "host-" + index,
-                    maximumRuntimeHosts: 2,
-                    ttl,
+                    CreateLeaseRequest(
+                        canonicalKey,
+                        ns,
+                        "host-" + index,
+                        maximumRuntimeHosts: 2,
+                        leaseTtl: ttl),
                     CancellationToken.None))
                 .ToArray();
             var leases = await Task.WhenAll(attempts);
@@ -385,10 +561,12 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
                 "a stale release must not delete the newer fenced lease");
 
             var other = await coordinator.TryAcquireAsync(
-                otherNs,
-                "other-host",
-                1,
-                ttl,
+                CreateLeaseRequest(
+                    otherCanonicalKey,
+                    otherNs,
+                    "other-host",
+                    maximumRuntimeHosts: 1,
+                    leaseTtl: ttl),
                 CancellationToken.None);
             other.Should().NotBeNull("lease namespaces have independent bounded slots");
 
@@ -399,19 +577,23 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             await other!.DisposeAsync();
 
             var quarantined = await coordinator.TryAcquireAsync(
-                ns,
-                "replacement-before-quarantine",
-                2,
-                ttl,
+                CreateLeaseRequest(
+                    canonicalKey,
+                    ns,
+                    "replacement-before-quarantine",
+                    maximumRuntimeHosts: 2,
+                    leaseTtl: ttl),
                 CancellationToken.None);
             quarantined.Should().BeNull();
             await Task.Delay(TimeSpan.FromMilliseconds(1200));
 
             var replacement = await coordinator.TryAcquireAsync(
-                ns,
-                "replacement-after-quarantine",
-                2,
-                ttl,
+                CreateLeaseRequest(
+                    canonicalKey,
+                    ns,
+                    "replacement-after-quarantine",
+                    maximumRuntimeHosts: 2,
+                    leaseTtl: ttl),
                 CancellationToken.None);
             replacement.Should().NotBeNull();
             replacement!.FencingToken.Should().BeGreaterThan(first.FencingToken);
@@ -444,6 +626,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         try
         {
             coordinator.ActiveDatabaseOperations.Should().Be(0);
+            secondaryCoordinator.ActiveDatabaseOperations.Should().Be(0);
         }
         catch (Exception exception)
         {
@@ -467,10 +650,63 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
 
     /// <summary>
     /// 刪除本次 live contract 唯一擁有的隨機 namespace 資料列；固定 LocalDB/database guard 已在呼叫端完成，
-    /// 每個 namespace 以參數化 transaction 先刪 lease 再刪 epoch，避免把測試字串當 SQL 或留下半套控制面狀態。
+    /// 每個 namespace 以參數化 transaction 依 FK 順序刪 lease、epoch、canonical binding，避免把測試字串當 SQL
+    /// 或留下半套控制面狀態。正式環境的 binding 不由 runtime release 刪除；這裡只清理本測試唯一產生的隨機資料。
     /// Connection、transaction 與 command 都由此方法的 await using 唯一擁有並在成功、取消或例外時確定釋放；
     /// 清理量最多三個 namespace，選擇簡單循序交易以換取可稽核性，而不是引入背景批次或共享 connection。
     /// </summary>
+    private const string OwnedNamespaceCleanupSql = """
+        SET NOCOUNT ON;
+        SET XACT_ABORT ON;
+        BEGIN TRANSACTION;
+        DELETE dbo.RuntimeHostSlotLease WHERE LeaseNamespaceId = @leaseNamespaceId;
+        DELETE dbo.RuntimeHostAdmissionEpoch WHERE LeaseNamespaceId = @leaseNamespaceId;
+        DELETE dbo.RuntimeHostOrganizationBinding WHERE LeaseNamespaceId = @leaseNamespaceId;
+        COMMIT TRANSACTION;
+        """;
+
+    /// <summary>
+    /// 建立只屬於本次測試的 canonical organization key。
+    /// helper 透過正式 <see cref="CanonicalOrganizationCapacityKey.TryCreate"/> 路徑產生標準化 URI，
+    /// 讓 live SQL contract 驗證的正是 production 會寫入 durable binding 的物理身分，而非自行拼湊的測試字串。
+    /// 每次呼叫使用新的 GUID 與 DNS 無效的測試主機名；不會發出網路要求、保留 credential 或共享任何 Session/Token 狀態。
+    /// </summary>
+    private static CanonicalOrganizationCapacityKey CreateCanonicalOrganizationKey(string suffix)
+    {
+        var created = CanonicalOrganizationCapacityKey.TryCreate(
+            Guid.NewGuid(),
+            new Uri($"https://sql-coordinator-{suffix}.invalid/api/data/v9.1/"),
+            "v9.1",
+            out var key,
+            out var error);
+
+        created.Should().BeTrue(error);
+        return key;
+    }
+
+    /// <summary>
+    /// 以完整 canonical identity 建立 SQL acquire request，避免 live contract 或 outage regression
+    /// 意外退回已被耐久 coordinator 拒絕的 namespace-only overload。
+    /// 回傳值是短生命週期 request DTO，不持有連線、transaction、lease、計時器或任何敏感資料；
+    /// 取得成功後的 RuntimeHostSlotLease 仍由呼叫端以 <c>await using</c> 或明確 DisposeAsync 負責釋放。
+    /// </summary>
+    private static RuntimeHostSlotLeaseRequest CreateLeaseRequest(
+        CanonicalOrganizationCapacityKey canonicalOrganizationKey,
+        RuntimeHostSlotLeaseNamespace leaseNamespace,
+        string hostInstanceId,
+        int maximumRuntimeHosts,
+        TimeSpan leaseTtl,
+        long admissionEpoch = 1,
+        string? configurationDigest = null)
+        => new(
+            canonicalOrganizationKey,
+            leaseNamespace,
+            hostInstanceId,
+            maximumRuntimeHosts,
+            leaseTtl,
+            admissionEpoch,
+            configurationDigest ?? new string('0', 64));
+
     private static async Task DeleteOwnedNamespacesAsync(
         string connectionString,
         IEnumerable<string> namespaceIds)
@@ -486,15 +722,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
 
         foreach (var namespaceId in ownedIds)
         {
-            const string cleanupSql = """
-                SET NOCOUNT ON;
-                SET XACT_ABORT ON;
-                BEGIN TRANSACTION;
-                DELETE dbo.RuntimeHostSlotLease WHERE LeaseNamespaceId = @leaseNamespaceId;
-                DELETE dbo.RuntimeHostAdmissionEpoch WHERE LeaseNamespaceId = @leaseNamespaceId;
-                COMMIT TRANSACTION;
-                """;
-            await using var command = new SqlCommand(cleanupSql, connection)
+            await using var command = new SqlCommand(OwnedNamespaceCleanupSql, connection)
             {
                 CommandTimeout = 5
             };

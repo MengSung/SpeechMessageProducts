@@ -71,7 +71,11 @@ USE [$databaseName];
 GO
 IF USER_ID(N'$escapedIdentity') IS NULL CREATE USER [$escapedIdentity] FOR LOGIN [$escapedIdentity];
 IF DATABASE_PRINCIPAL_ID(N'DynamicsCoordinatorRuntime') IS NULL CREATE ROLE DynamicsCoordinatorRuntime;
+-- runtime 只取得 lease／epoch／canonical binding 所需的最小資料權限；
+-- 不授與 DDL、DELETE、CRM 資料庫或任何可讓程序重綁既有 namespace 的廣泛權限。
 GRANT SELECT, INSERT, UPDATE ON dbo.RuntimeHostSlotLease TO DynamicsCoordinatorRuntime;
+GRANT SELECT, INSERT ON dbo.RuntimeHostAdmissionEpoch TO DynamicsCoordinatorRuntime;
+GRANT SELECT, INSERT ON dbo.RuntimeHostOrganizationBinding TO DynamicsCoordinatorRuntime;
 GRANT UPDATE ON OBJECT::dbo.RuntimeHostFencingSequence TO DynamicsCoordinatorRuntime;
 ALTER ROLE DynamicsCoordinatorRuntime ADD MEMBER [$escapedIdentity];
 SELECT DB_NAME() DatabaseName, SYSTEM_USER ProvisionedBy, N'$escapedIdentity' RuntimeIdentity, SYSUTCDATETIME() ServerUtc;

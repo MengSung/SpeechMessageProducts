@@ -202,8 +202,34 @@ IF DB_NAME() <> N'$DatabaseName'
     THROW 51001, 'Unexpected Dynamics control-plane database.', 1;
 IF OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
    OR OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U') IS NULL
+   OR OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U') IS NULL
    OR OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
     THROW 51002, 'Dynamics control-plane schema verification failed.', 1;
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE parent_object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+      AND referenced_object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+      AND name = N'FK_RuntimeHostAdmissionEpoch_OrganizationBinding'
+)
+    THROW 51003, 'Dynamics control-plane canonical binding foreign key is missing.', 1;
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.columns
+    WHERE
+        (
+            (object_id = OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U')
+             AND name IN (N'LeaseNamespaceId', N'ConfigurationDigest'))
+            OR (object_id = OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U')
+                AND name IN (N'LeaseNamespaceId', N'ConfigurationDigest', N'HostInstanceId'))
+            OR (object_id = OBJECT_ID(N'dbo.RuntimeHostOrganizationBinding', N'U')
+                AND name IN (N'LeaseNamespaceId', N'NormalizedOrganizationBaseUri'))
+        )
+        AND collation_name <> N'Latin1_General_100_BIN2'
+)
+    THROW 51004, 'Dynamics control-plane string identity columns must use binary ordinal collation.', 1;
 SELECT DB_NAME() AS DatabaseName,
        CAST(SERVERPROPERTY('ProductVersion') AS nvarchar(128)) AS ProductVersion,
        SYSUTCDATETIME() AS ServerUtc;

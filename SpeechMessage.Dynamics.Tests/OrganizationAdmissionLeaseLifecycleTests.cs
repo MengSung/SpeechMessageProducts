@@ -178,6 +178,22 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
         public int ReleaseCalls => Volatile.Read(ref _releaseCalls);
         public int ActiveRenewOperations => Volatile.Read(ref _activeRenewOperations);
 
+        // 這個 durable test double 必須實作與正式 SQL coordinator 相同的新 request overload；
+        // 不能依賴 interface 的 namespace-only fallback，否則測試會不小心繞過 canonical organization
+        // binding 的 fail-closed 契約。request 只在呼叫期間拆解，不保存 Session、Token 或其他跨測試狀態。
+        public virtual Task<RuntimeHostSlotLease?> TryAcquireAsync(
+            RuntimeHostSlotLeaseRequest request,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            return TryAcquireAsync(
+                request.LeaseNamespace,
+                request.HostInstanceId,
+                request.MaximumRuntimeHosts,
+                request.LeaseTtl,
+                cancellationToken);
+        }
+
         public virtual Task<RuntimeHostSlotLease?> TryAcquireAsync(
             RuntimeHostSlotLeaseNamespace leaseNamespace,
             string hostInstanceId,
