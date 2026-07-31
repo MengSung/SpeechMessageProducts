@@ -145,3 +145,27 @@ CE 9.1 的真機 lane 仍獨立受 D365APP01 CRMWeb 的 server-side
 `UriFormatException`／HTTP 500 阻塞。該狀況不應促使我們改 DNS、hosts、Kerberos、
 WinRM、ADFS、IIS 或 CRM database；待 CRM 管理者以受支援的設定修正後，再重新執行
 connector-owned `WhoAmI` smoke。
+
+## 2026-07-31 Phase 4 封閉回應邊界驗證
+
+本次增量把 Dynamics Web API 上游 OData JSON 的生命週期收回 connector request scope：
+`OperationExecutionResult.Data` 僅能帶出封閉的 `OperationResponseData`，其可見分支只有
+`WhoAmI`、Package 1 fee records 與 stor-lesson records。原始 `JsonElement`、`object` payload、
+CRM host/API root、`@odata` annotation、continuation、credential、token 與 session 不可跨到
+Gateway、ProductClient、queue 或 cache。每一頁的 request、response、stream、ArrayPool buffer、
+timeout CTS、visited continuation set 與 aggregation 都仍由單一 request scope 擁有，失敗、取消、
+retry、跨 root/cycle/limit continuation 都丟棄 partial result 並確定釋放。
+
+新鮮驗證證據（2026-07-31）：
+
+- `dotnet test SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj --filter "FullyQualifiedName~DynamicsWebApiClientTests|FullyQualifiedName~GatewayProductClientTests|FullyQualifiedName~Package01FeeReadClientTests|FullyQualifiedName~Package01OperationRegistryTests|FullyQualifiedName~OperationRegistryAgreementTests|FullyQualifiedName~GatewayKestrelNegotiateTests|FullyQualifiedName~GatewayRequestBodyBoundaryTests|FullyQualifiedName~GatewayWorkloadBoundaryTests|FullyQualifiedName~MultiProfileRuntimeTests|FullyQualifiedName~OperationDispatchPreparerTests|FullyQualifiedName~Phase4IsolationSoakTests" --no-restore --configuration Debug`：171 passed、0 failed、0 skipped。
+- `dotnet build SpeechMessageProducts.sln --configuration Release --no-restore`：0 warnings、0 errors。
+- `dotnet test SpeechMessageProducts.sln --configuration Release --no-restore --no-build`：874 passed、0 failed、1 skipped；唯一 skipped 是明確 opt-in 的 live SQL coordinator contract，並非測試失敗。
+- 已對本次變更的 C# 檔驗證 UTF-8 without BOM、CRLF-only 與 final CRLF；`git diff --check` 無輸出。
+- 生產 response path 掃描沒有殘留 `OperationExecutionResult.Success(new { ... })`、`object? Data` 或以 `JsonElement` 指派 response data；ProductClient 對 `/api/data/` 的唯一命中仍是設定驗證器的拒絕規則。
+- `SpeechMessageProducts.ChurchReport/appsettings.json` 與 `appsettings.Development.json` 的 `Package01FeeReadsEnabled` 仍為 `false`；本次契約強化沒有打開 consumer traffic。
+
+本機 Phase 4 封閉契約、資源釋放、registry agreement 與 Release 回歸已完成；真機 CE 9.1 證據仍只受
+`sunnyvalechback.speechmessage.com.tw` 的 D365APP01 CRMWeb HTTP 500 / `UriFormatException` 獨立阻塞。
+在 CRM 管理端以受支援的 Claims/IFD 設定流程修正前，不能將 HostIdentity、ADFS 或任何 product migration
+標記為已通過，也不能以修改 DNS、hosts、Kerberos、WinRM、IIS 或 CRM database 作為猜測式修復。

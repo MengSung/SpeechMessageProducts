@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speechmessage.local/dynamics/phase0-organization-call-matrix.schema.json",
   "title": "Dynamics Phase 0 Organization Call Coverage Matrix",
+  "description": "本 schema 將 Phase 0 matrix 的 capability、typed parameter、封閉回應 discriminator 與有限 response page/byte 政策固定為可稽核契約。它不保存 CRM endpoint、credential、token、session、OData payload 或 transport 資源；connector 必須在單一 request scope 內驗證、投影並釋放 response/stream/continuation，只有安全純值可跨產品邊界。",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -97,6 +98,9 @@
         "$ref": "#/$defs/normalizedCallSite"
       }
     },
+    "responseBoundaryLifecycleSecurity": {
+      "$ref": "#/$defs/responseBoundaryLifecycleSecurity"
+    },
     "operationRegistryAgreementGate": {
       "type": "object",
       "additionalProperties": false,
@@ -110,7 +114,8 @@
           "enum": [
             "planned",
             "implemented-report-only",
-            "implemented-failing-gate"
+            "implemented-failing-gate",
+            "enforced"
           ]
         },
         "registryArtifact": {
@@ -128,6 +133,39 @@
     }
   },
   "$defs": {
+    "responseBoundaryLifecycleSecurity": {
+      "type": "object",
+      "description": "記錄封閉回應邊界的唯一資源 owner、fail-closed 條件與 feature gate。文字不得包含 CRM host、credential、token、session、完整 upstream payload 或任何可回放的 routing 資料。",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "lifecycleOwner",
+        "securityBoundary",
+        "rollbackAndFeatureGate"
+      ],
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "封閉 response contract 的版本；變更 discriminator 或有限政策時必須伴隨 registry hash/matrix agreement 更新。"
+        },
+        "lifecycleOwner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "說明 connector request scope 如何持有並在成功、取消、timeout、拒絕或 retry 後釋放 page stream、buffer、response 與 continuation 狀態。"
+        },
+        "securityBoundary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "說明產品可見的封閉欄位，以及禁止跨越的 OData、routing、credential、token 與 session 資料。"
+        },
+        "rollbackAndFeatureGate": {
+          "type": "string",
+          "minLength": 1,
+          "description": "說明未知 branch、超限或未投影資料的 fail-closed 行為，並固定 Package01FeeReadsEnabled 尚未開啟。"
+        }
+      }
+    },
     "bannedSdkReferenceFinding": {
       "type": "object",
       "additionalProperties": false,
@@ -327,6 +365,39 @@
           "type": "string",
           "pattern": "^[a-z0-9]+(\\.[a-z0-9]+)+$"
         },
+        "responseKind": {
+          "description": "已登錄作業唯一可序列化的封閉回應 discriminator。Unsupported 表示 metadata/raw OData 必須在 connector request scope 內失敗關閉，不可傳給產品。",
+          "enum": [
+            "Unsupported",
+            "WhoAmI",
+            "Package01FeeRecords",
+            "Package01StorLessonRecords"
+          ]
+        },
+        "maximumPageCount": {
+          "description": "一次 credential-bearing 作業最多可追蹤的 server-driven page 數；connector 必須在下一頁前驗證並在超限時釋放 scope 資源。",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "maximumPageBytes": {
+          "description": "單頁 response 的宣告與串流位元組硬上限；過大 Content-Length 或 chunked body 必須在 JSON/OData 投影前受控失敗。",
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 1048576
+        },
+        "maximumCumulativeResponseBytes": {
+          "description": "單一作業所有 page 的累積位元組硬上限；它限制 aggregate records/buffer 的 request-scope 保留，禁止用無界集合或 continuation 繼續讀取。",
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 4194304
+        },
+        "maximumResultItemCount": {
+          "description": "單一作業可投影的結果列數硬上限；connector 必須在 materialize 下一筆 DTO 前檢查，超限時不可保留 partial records 或繼續追蹤 continuation。",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
         "serverOwnedTemplate": {
           "type": "object",
           "additionalProperties": false,
@@ -424,7 +495,72 @@
             "null"
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "description": "只有目前九個 compiled registry capability 可以宣告 typed response policy；這讓未登錄 matrix row 不能提前聲稱可回傳資料或引入未審查的資源上限。",
+          "if": {
+            "required": [
+              "capabilityOperationId"
+            ],
+            "properties": {
+              "capabilityOperationId": {
+                "enum": [
+                  "runtime.health.whoami",
+                  "runtime.pool.validate.connection",
+                  "metadata.optionset.retrieve.by.attribute",
+                  "fee.dedication.retrieve.by.contact",
+                  "fee.dedication.retrieve.by.contact.date.range",
+                  "fees.retrieve.by.dedication.period",
+                  "fees.editor.load.by.disciplelesson",
+                  "lessons.stor.retrieve.by.contact",
+                  "lessons.stor.retrieve.by.disciplelesson"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "responseKind",
+              "maximumPageCount",
+              "maximumPageBytes",
+              "maximumCumulativeResponseBytes",
+              "maximumResultItemCount"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "responseKind"
+                  ]
+                },
+                {
+                  "required": [
+                    "maximumPageCount"
+                  ]
+                },
+                {
+                  "required": [
+                    "maximumPageBytes"
+                  ]
+                },
+                {
+                  "required": [
+                    "maximumCumulativeResponseBytes"
+                  ]
+                },
+                {
+                  "required": [
+                    "maximumResultItemCount"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "typedParameter": {
       "type": "object",

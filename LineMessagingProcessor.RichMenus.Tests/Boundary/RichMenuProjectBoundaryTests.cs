@@ -58,7 +58,7 @@ public sealed class RichMenuProjectBoundaryTests
     private static string FindProjectRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
         {
             directory = directory.Parent;
         }

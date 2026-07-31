@@ -397,6 +397,8 @@ public sealed class OperationDispatchPreparerTests
     }
 
     /// <summary>建立測試用 immutable operation definition；沒有 runtime、client、token 或 request owner。</summary>
+    // Dispatch 準備器不會送出 HTTP request 或讀取 response，仍固定 Unsupported response kind 與 registry 等值的
+    // 4 page、64 KiB/page、256 KiB cumulative、4096 rows 上限，避免 test definition 成為繞過正式 fail-closed policy 的例外。
     private static OperationDefinition CreateDefinition(params OperationParameterDefinition[] parameters)
         => new()
         {
@@ -405,6 +407,11 @@ public sealed class OperationDispatchPreparerTests
             TemplateKind = "odata-route",
             TemplateId = "t",
             TemplateHash = "h",
+            ResponseKind = OperationResponseKind.Unsupported,
+            MaximumPageCount = 4,
+            MaximumPageBytes = 64 * 1024,
+            MaximumCumulativeResponseBytes = 4 * 64 * 1024,
+            MaximumResultItemCount = 4096,
             DataClassification = "internal",
             AuditRequirement = "none",
             IdempotencyClass = "read-only",

@@ -1010,6 +1010,11 @@ public sealed class MultiProfileRuntimeTests
                     TemplateKind = "odata-function",
                     TemplateId = "WhoAmI",
                     TemplateHash = new string('a', 64),
+                    ResponseKind = OperationResponseKind.WhoAmI,
+                    MaximumPageCount = 4,
+                    MaximumPageBytes = 64 * 1024,
+                    MaximumCumulativeResponseBytes = 4 * 64 * 1024,
+                    MaximumResultItemCount = 4096,
                     DataClassification = "internal-operational",
                     AuditRequirement = "bounded-runtime-health",
                     IdempotencyClass = "read-only",
@@ -1023,6 +1028,10 @@ public sealed class MultiProfileRuntimeTests
         /// 記錄一次已註冊操作並回傳 Alias／Generation；方法只計數，不保存 Parameters、Token、Credential 或 Session。
         /// 取消在計數前被觀察，避免已取消測試留下假的執行紀錄。
         /// </summary>
+        /// <remarks>
+        /// 這個固定 WhoAmI definition 明確採用封閉回應類型與有限 page／byte／row policy，讓 runtime manager 的
+        /// 記憶體 fake 仍遵守正式 registry 的 fail-closed 契約，並且不把 Alias 或 Generation 投影到成功資料。
+        /// </remarks>
         public Task<OperationExecutionResult> ExecuteRegisteredOperationAsync(
             OperationDefinition definition,
             IReadOnlyDictionary<string, object?> parameters,
@@ -1031,7 +1040,10 @@ public sealed class MultiProfileRuntimeTests
             cancellationToken.ThrowIfCancellationRequested();
             Interlocked.Increment(ref _executionCount);
             return Task.FromResult(OperationExecutionResult.Success(
-                new { Key.ProfileAlias, Key.Generation }));
+                OperationResponseData.ForWhoAmI(
+                    definition.CapabilityOperationId,
+                    "9.1",
+                    new WhoAmIResponseData())));
         }
     }
 

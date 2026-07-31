@@ -252,6 +252,7 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - Assert unauthorized/unmapped caller with an invalid Content-Type still returns 403 with zero body reads, proving authorization precedes media-type validation.
 - Assert `application/json` comparison is case-insensitive and accepts either no parameter or exactly one UTF-8 charset parameter.
 - Assert 415 paths do not rent or return pooled body buffers because ownership never begins, and do not dispose the ASP.NET Core-owned request stream.
+- A `WebApplicationFactory` Kestrel boundary fixture configured through `WithWebHostBuilder` must place `http://127.0.0.1:0` on that same `IWebHostBuilder` through `WebHostDefaults.ServerUrlsKey`, then call parameterless `UseKestrel()`. In .NET 10 minimal-host tests, `UseKestrel(0)` on the returned derived factory can leave the original factory's `CreateHost` delegate without the port value and silently bind the default `localhost:5000`. Assert the observed listener is not 5000 and run the fixture once while a test-owned listener reserves 5000.
 
 ### Isolation and capacity
 

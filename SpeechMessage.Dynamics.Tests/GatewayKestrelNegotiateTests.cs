@@ -359,12 +359,20 @@ public sealed class GatewayKestrelNegotiateTests
         /// <summary>
         /// 記錄 request 後立即回傳固定成功結果；不保留 ClaimsPrincipal、HttpContext、stream、credential 或 cancellation registration。
         /// </summary>
+        /// <remarks>
+        /// 這個 fake 的成功資料刻意使用封閉的 WhoAmI envelope；它不會重現舊有的匿名 <c>value</c> payload，
+        /// 因此 Kestrel 邊界測試可同時保證 executor 不把未投影的 OData、身分或連線資料帶出 request scope。
+        /// </remarks>
         public Task<OperationExecutionResult> ExecuteAsync(
             OperationExecutionRequest request,
             CancellationToken cancellationToken = default)
         {
             CallCount++;
-            return Task.FromResult(OperationExecutionResult.Success(new { value = Array.Empty<object>() }));
+            return Task.FromResult(OperationExecutionResult.Success(
+                OperationResponseData.ForWhoAmI(
+                    OperationIds.RuntimeHealthWhoAmI,
+                    "9.1",
+                    new WhoAmIResponseData())));
         }
     }
 

@@ -181,7 +181,10 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
             var payload = JsonSerializer.Serialize(new
             {
                 succeeded = true,
-                data = new { userId = Guid.Empty }
+                data = OperationResponseData.ForWhoAmI(
+                    OperationIds.RuntimeHealthWhoAmI,
+                    "9.1",
+                    new WhoAmIResponseData { UserId = Guid.Empty })
             });
             return new HttpResponseMessage(HttpStatusCode.OK)
             {

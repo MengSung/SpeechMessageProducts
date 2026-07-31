@@ -993,6 +993,10 @@ public sealed class Phase4IsolationSoakTests
         /// 在共享 Canonical Organization 計數器中登記短暫外呼，並於 finally 必定歸還 active count。
         /// 方法不保存 Parameters 或工作負載識別，取消或例外也不能讓併發基準永久升高。
         /// </summary>
+        /// <remarks>
+        /// soak fake 成功時只建立空的封閉 WhoAmI envelope；ProfileAlias、Generation 與計數器只留在受控 runtime，
+        /// 避免跨 profile／request 的測試資料誤被當作可序列化回應保存，並維持 finally 歸還 active count 的斷言意義。
+        /// </remarks>
         public async Task<OperationExecutionResult> ExecuteRegisteredOperationAsync(
             OperationDefinition definition,
             IReadOnlyDictionary<string, object?> parameters,
@@ -1003,7 +1007,10 @@ public sealed class Phase4IsolationSoakTests
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(2), cancellationToken);
                 return OperationExecutionResult.Success(
-                    new { Key.ProfileAlias, Key.Generation });
+                    OperationResponseData.ForWhoAmI(
+                        definition.CapabilityOperationId,
+                        "9.1",
+                        new WhoAmIResponseData()));
             }
             finally
             {

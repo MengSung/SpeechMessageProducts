@@ -862,13 +862,21 @@ public sealed class GatewayWorkloadBoundaryTests
         /// 同步記錄已通過安全邊界的 request 並回傳固定成功結果；不保留 ClaimsPrincipal、HttpContext、Token 或 stream，
         /// 也不啟動可跨測試存活的工作，因此無額外 cleanup owner。
         /// </summary>
+        /// <remarks>
+        /// 此 executor 僅以封閉的 WhoAmI envelope 模擬成功，避免工作負載授權測試透過匿名資料重新引入
+        /// 原始 OData <c>value</c>、profile 或 request 資訊；記錄的 request 仍由單一測試 Factory 擁有。
+        /// </remarks>
         public Task<OperationExecutionResult> ExecuteAsync(
             OperationExecutionRequest request,
             CancellationToken cancellationToken = default)
         {
             CallCount++;
             LastRequest = request;
-            return Task.FromResult(OperationExecutionResult.Success(new { value = Array.Empty<object>() }));
+            return Task.FromResult(OperationExecutionResult.Success(
+                OperationResponseData.ForWhoAmI(
+                    OperationIds.RuntimeHealthWhoAmI,
+                    "9.1",
+                    new WhoAmIResponseData())));
         }
     }
 

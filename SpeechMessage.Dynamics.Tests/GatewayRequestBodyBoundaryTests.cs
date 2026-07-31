@@ -198,7 +198,11 @@ public sealed class GatewayRequestBodyBoundaryTests
             .Get<IServerAddressesFeature>()!
             .Addresses
             .Single();
-        client.BaseAddress = new Uri(address, UriKind.Absolute);
+        var serverUri = new Uri(address, UriKind.Absolute);
+        serverUri.Port.Should().NotBe(
+            5000,
+            "the Kestrel boundary fixture must use an OS-assigned per-case port so another process cannot turn a body-limit assertion into a transport failure");
+        client.BaseAddress = serverUri;
 
         using var declaredContent = new TrackingByteArrayContent(new byte[limit + 1]);
         using (var declaredRequest = CreateHttp11Request(declaredContent))
@@ -449,10 +453,21 @@ public sealed class GatewayRequestBodyBoundaryTests
                 services.RemoveAll<IDynamicsOperationExecutor>();
                 services.AddSingleton<IDynamicsOperationExecutor>(executor);
             });
+
+            if (useKestrel)
+            {
+                // WithWebHostBuilder 會回傳衍生 Factory；其 UseKestrel(int) 的 port 僅存在衍生 instance，
+                // 但 .NET 10 建立 minimal host 時的 CreateHost delegate 仍由原始 instance 執行，因而遺失該 port。
+                // 將 port 0 寫入同一個 IWebHostBuilder 才能跨越 Factory 邊界，交由 OS 配發此測試唯一 listener，
+                // 不保留 socket、client、request 或跨測試可變狀態，所有實體仍由外層 await using Factory 統一釋放。
+                builder.UseSetting(WebHostDefaults.ServerUrlsKey, "http://127.0.0.1:0");
+            }
         });
 
         if (useKestrel)
         {
+            // 啟用 Kestrel；實際 listener URL 已在上方由同一個 builder 固定為 port 0，避免衍生 Factory 的 port 設定
+            // 被原始 CreateHost delegate 遺失。呼叫端只讀取 IServerAddressesFeature 的實際位址，不共享 listener 狀態。
             factory.UseKestrel();
         }
 
@@ -547,12 +562,20 @@ public sealed class GatewayRequestBodyBoundaryTests
         /// <summary>
         /// 同步記錄呼叫並回傳固定成功結果；不保留 request、principal、body、credential、token 或 cancellation registration。
         /// </summary>
+        /// <remarks>
+        /// 成功資料刻意限制為封閉的 WhoAmI envelope，讓 body-limit 測試只觀察已通過邊界的控制流程，
+        /// 不會因匿名 OData-shaped payload 保留 request body、principal 或任何上游延伸欄位。
+        /// </remarks>
         public Task<OperationExecutionResult> ExecuteAsync(
             OperationExecutionRequest request,
             CancellationToken cancellationToken = default)
         {
             CallCount++;
-            return Task.FromResult(OperationExecutionResult.Success(new { value = Array.Empty<object>() }));
+            return Task.FromResult(OperationExecutionResult.Success(
+                OperationResponseData.ForWhoAmI(
+                    OperationIds.RuntimeHealthWhoAmI,
+                    "9.1",
+                    new WhoAmIResponseData())));
         }
     }
 

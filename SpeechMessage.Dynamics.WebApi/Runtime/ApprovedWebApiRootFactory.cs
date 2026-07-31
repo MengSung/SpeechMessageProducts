@@ -109,9 +109,21 @@ public static class ApprovedWebApiRootFactory
         return true;
     }
 
+    /// <summary>
+    /// 驗證既有的絕對 URI 是否仍位於 profile 擁有的精確 Web API root。此方法只接受 HTTPS、相同
+    /// scheme/host/port 與 root path 前綴，並拒絕 user-info 與 fragment；query 僅在已核准 root
+    /// 之下才能存在，供 CRM 的 server-driven paging token 使用。呼叫端仍是唯一持有 request、token
+    /// 與 response lifecycle 的 owner，本方法不快取 candidate 或任何呼叫者狀態，因此不會跨 profile
+    /// 或 session 保留 URI、憑證或 continuation 資料。
+    /// </summary>
     public static bool IsUnderApprovedRoot(Uri candidate, Uri approvedRoot)
     {
         if (!candidate.IsAbsoluteUri || !approvedRoot.IsAbsoluteUri)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(candidate.UserInfo) || !string.IsNullOrEmpty(candidate.Fragment))
         {
             return false;
         }
@@ -131,6 +143,74 @@ public static class ApprovedWebApiRootFactory
         var candidatePath = candidate.AbsolutePath.TrimEnd('/') + "/";
         var rootPath = approvedRoot.AbsolutePath.TrimEnd('/') + "/";
         return candidatePath.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 將上游 OData continuation 解析成下一頁的絕對 URI，並在建立下一個可能帶有 Windows/Kerberos
+    /// 或 Bearer 驗證的 request 前完成 SSRF 與 path traversal 檢查。相對連結只能以目前已核准頁面
+    /// 為基底解析；絕對連結仍必須回到同一個 HTTPS origin 與精確 API-version root。結果只交給目前
+    /// request scope 的 paging loop 使用，呼叫端在完成、取消、逾時或拒絕後釋放其 visited set 與
+    /// response/stream/buffer，故此 helper 不保存任何 token、profile、session 或跨請求 mutable state。
+    /// </summary>
+    public static bool TryResolveContinuation(
+        string rawContinuation,
+        Uri currentPage,
+        Uri approvedRoot,
+        out Uri? continuation)
+    {
+        continuation = null;
+
+        if (string.IsNullOrWhiteSpace(rawContinuation) ||
+            rawContinuation.Length > 8_192 ||
+            !string.Equals(rawContinuation, rawContinuation.Trim(), StringComparison.Ordinal) ||
+            !IsUnderApprovedRoot(currentPage, approvedRoot) ||
+            ContainsUnsafeContinuationPathSyntax(rawContinuation))
+        {
+            return false;
+        }
+
+        if (!Uri.TryCreate(currentPage, rawContinuation, out var candidate) || candidate is null)
+        {
+            return false;
+        }
+
+        if (!IsUnderApprovedRoot(candidate, approvedRoot))
+        {
+            return false;
+        }
+
+        continuation = candidate;
+        return true;
+    }
+
+    /// <summary>
+    /// 在 URI parser 正規化路徑前拒絕可改寫 segment 邊界的原始 continuation 語法。只檢查 query/
+    /// fragment 以前的 path 區段，避免把 CRM skiptoken 的不透明查詢資料當成路徑；任何反斜線、
+    /// 編碼 slash/backslash 或 dot traversal 都不會取得下一頁的 credential-bearing request。
+    /// </summary>
+    private static bool ContainsUnsafeContinuationPathSyntax(string rawContinuation)
+    {
+        var pathEnd = rawContinuation.IndexOfAny(['?', '#']);
+        var path = pathEnd < 0
+            ? rawContinuation.AsSpan()
+            : rawContinuation.AsSpan(0, pathEnd);
+
+        if (path.IndexOf('\\') >= 0 ||
+            path.IndexOf("%2f".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0 ||
+            path.IndexOf("%5c".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
+        foreach (var segment in path.ToString().Split('/', StringSplitOptions.None))
+        {
+            if (segment is "." or "..")
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool TryNormalizeCeVersion(string? ceVersion, out string normalized, out string apiSegment, out string error)

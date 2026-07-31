@@ -14,6 +14,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
@@ -31,7 +32,8 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow
     };
 
     private static readonly Encoding StrictUtf8 = new UTF8Encoding(
@@ -52,7 +54,12 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 將產品已登錄的 capability operation 送往設定的 Gateway，並在同一個 HTTP 回應生命週期中
+    /// 以有限位元組讀取、嚴格 UTF-8 與封閉 JSON 契約處理結果。此方法不接受請求指定 profile
+    /// 路由，也不把工作負載主體、CRM URL、權杖、接續連結或未登錄 JSON 成員帶入回傳值；任何
+    /// 傳輸、大小、格式或 branch 驗證失敗都會轉換為已淨化的 fail-closed 上游失敗。
+    /// </summary>
     public async Task<OperationExecutionResult> ExecuteAsync(
         OperationExecutionRequest request,
         CancellationToken cancellationToken = default)
@@ -184,14 +191,15 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
                 parsed = JsonSerializer.Deserialize<OperationExecutionResultDto>(payload, JsonOptions)
                     ?.ToResult();
             }
-            catch (JsonException)
+            catch (Exception ex) when (ex is JsonException or ArgumentException)
             {
                 _logger.LogWarning(
-                    "Gateway returned non-JSON body for {OperationId}",
-                    request.CapabilityOperationId);
+                    "Gateway returned an invalid response contract for {OperationId}. ExceptionType={ExceptionType}",
+                    request.CapabilityOperationId,
+                    ex.GetType().Name);
                 return OperationExecutionResult.Failure(
                     DynamicsErrorCodes.UpstreamFailure,
-                    "Gateway returned non-JSON body.");
+                    "Gateway returned an invalid response contract.");
             }
 
             if (parsed is null)
@@ -283,17 +291,29 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
     /// </summary>
     private sealed class OperationExecutionResultDto
     {
+        [JsonPropertyName("succeeded")]
         public bool Succeeded { get; set; }
-        public string? ErrorCode { get; set; }
-        public string? ErrorMessage { get; set; }
-        public JsonElement? Data { get; set; }
 
+        [JsonPropertyName("errorCode")]
+        public string? ErrorCode { get; set; }
+
+        [JsonPropertyName("errorMessage")]
+        public string? ErrorMessage { get; set; }
+
+        [JsonPropertyName("data")]
+        public OperationResponseData? Data { get; set; }
+
+        /// <summary>
+        /// 將已完成嚴格 JSON 驗證的線路 DTO 轉為產品共用結果。成功但沒有 data 的情況保留為
+        /// 合法 no-data 成功；非 null data 則已由 <see cref="OperationResponseData"/> 建構式
+        /// 驗證 discriminator 只選擇一個相符 branch。此方法不重新序列化或保存 payload，確保
+        /// response、stream 與 pooled buffer 仍由外層請求 scope 按既有順序釋放。
+        /// </summary>
         public OperationExecutionResult ToResult()
         {
             if (Succeeded)
             {
-                object? data = Data.HasValue ? Data.Value : null;
-                return OperationExecutionResult.Success(data);
+                return OperationExecutionResult.Success(Data);
             }
 
             return OperationExecutionResult.Failure(

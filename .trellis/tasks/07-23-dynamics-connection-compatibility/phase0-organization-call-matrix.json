@@ -1,6 +1,12 @@
 {
     "schemaVersion":  "2026-07-24.phase0.v1",
     "generatedAt":  "2026-07-25T10:42:32+08:00",
+    "responseBoundaryLifecycleSecurity":  {
+                                               "contractVersion":  "phase4.typed-response-boundary.v1",
+                                               "lifecycleOwner":  "Dynamics Web API connector 在單一 request scope 內讀取、驗證、投影與釋放每一頁的 response stream、buffer、HttpResponseMessage、continuation 與取消資源；OperationResponseData 只保存已複製的純值，絕不延長 transport 資源生命週期。",
+                                               "securityBoundary":  "產品邊界只允許 operationId、ceVersion、responseKind 與已登錄的 WhoAmI、feeRecords 或 storLessonRecords；禁止 JsonElement、object、OData annotation、CRM hostname/API root、nextLink、credential、token、session 或 upstream extension data。",
+                                               "rollbackAndFeatureGate":  "任何未知 response kind、錯配 branch、超過 page/byte 政策或未投影 metadata 都必須在下一次 credential-bearing request 前失敗關閉；Package01FeeReadsEnabled 維持 false，契約存在不代表允許產品流量。"
+                                           },
     "solutionTopology":  {
                              "rootSolution":  "SpeechMessageProducts.sln",
                              "mandatorySeparateDynamicsSolution":  false,
@@ -627,10 +633,15 @@
                                     "operationKind":  "function",
                                     "dataClassification":  "internal",
                                     "capabilityOperationId":  "runtime.health.whoami",
+                                    "responseKind":  "WhoAmI",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-function",
                                                                 "templateId":  "WhoAmI",
-                                                                "templateHash":  "e79fed516e778a2fd84dee41f54c02bfdcb63ea991f91285d3c5d447b5abbbba"
+                                                                "templateHash":  "9de3542216ab579be01d2a47599642a0a218576fec94de24043b2c2bd0bed427"
                                                             },
                                     "typedParameters":  [
 
@@ -672,10 +683,15 @@
                                     "operationKind":  "connection-runtime",
                                     "dataClassification":  "internal",
                                     "capabilityOperationId":  "runtime.pool.validate.connection",
+                                    "responseKind":  "WhoAmI",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-function",
                                                                 "templateId":  "WhoAmI",
-                                                                "templateHash":  "40737aea03b4fb2e9bee1b7e03e6affda928379943fafdb62e45d02547e75257"
+                                                                "templateHash":  "f795e1995cb30b28018411affd11f43fe84e3caf1515b5735dc413eb5ecdf40f"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -722,10 +738,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "financial-data",
                                     "capabilityOperationId":  "fee.dedication.retrieve.by.contact",
+                                    "responseKind":  "Package01FeeRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "fee.dedication.bycontact.v1",
-                                                                "templateHash":  "087e2a470f924aa4b9cb312d9348d4d753395e8ea3b829bcbf4ff3f352128567"
+                                                                "templateHash":  "cfdd37668e33f72bf72baed9b36474f9eb53e68673a2af12f1600fd973f2dbce"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -778,10 +799,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "financial-data",
                                     "capabilityOperationId":  "fee.dedication.retrieve.by.contact.date.range",
+                                    "responseKind":  "Package01FeeRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "fee.dedication.bycontactdaterange.v1",
-                                                                "templateHash":  "5f60882ca224223abaa983446d4ec0430f7baebca3f2ce015af1c2a5defdb7d6"
+                                                                "templateHash":  "bc1a869cd97c03a1f9a7e9b6ea4ace8dc1ea10b1bd96d5066cf0ec1e6c88f138"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -2696,10 +2722,15 @@
                                     "operationKind":  "metadata",
                                     "dataClassification":  "internal",
                                     "capabilityOperationId":  "metadata.optionset.retrieve.by.attribute",
+                                    "responseKind":  "Unsupported",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-route",
                                                                 "templateId":  "metadata.optionset.by.attribute.v1",
-                                                                "templateHash":  "cbd6b27c121ac64cef1141be27fcb28772d454a73ed2e33d3520d0c5b55b2624"
+                                                                "templateHash":  "59b947558991910fb8361c3928119392b8976a3d4b2f9a5d95cba215b3cebff2"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -3890,10 +3921,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "lessons.stor.retrieve.by.contact",
+                                    "responseKind":  "Package01StorLessonRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "lessons.stor.by.contact.v1",
-                                                                "templateHash":  "3a4db46cf11aac89c58ca74c5cfc8d581031eba6dbf894c92e95f4e3e7ed2818"
+                                                                "templateHash":  "cd02c21a5fb5ad7c6ed03d3fcea0ab5fe76bd7d67e1f2ecd69bfd4e3b130e2e3"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -3946,10 +3982,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "financial-data",
                                     "capabilityOperationId":  "lessons.stor.retrieve.by.disciplelesson",
+                                    "responseKind":  "Package01StorLessonRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "lessons.stor.by.disciplelesson.v1",
-                                                                "templateHash":  "a95e54e66331cd060639126c48b99bceb4b8ee1ac860dc0b9ac28cb3949db0d4"
+                                                                "templateHash":  "a43c30bf289d3f90f6894145de0ce3cc33059c9241d2df85bdf0b9e137748991"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -4052,10 +4093,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "financial-data",
                                     "capabilityOperationId":  "fees.retrieve.by.dedication.period",
+                                    "responseKind":  "Package01FeeRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "fees.by.dedication.period.v1",
-                                                                "templateHash":  "fccb6b19f0ff725636809d0f486a12a9b332fb46994956ebfb0349e0bd2b7803"
+                                                                "templateHash":  "86fa1a119b2f51ef16cda69ffc5966aee1cf986f787d9f2896642e5e694ea2fa"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -4159,10 +4205,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "financial-data",
                                     "capabilityOperationId":  "fees.editor.load.by.disciplelesson",
+                                    "responseKind":  "Package01StorLessonRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "fees.editor.load.disciplelesson.v1",
-                                                                "templateHash":  "99c27ae10e9d3c2163da7791fd4394e7cd52aeeac8f8c4ae301fa86b1dd4d73d"
+                                                                "templateHash":  "0809ad012a71b98e27f1b08d36a934e72a6747d088fa198f8d5f7ca172a97962"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -4449,6 +4500,11 @@
                                                                     "typedParameters",
                                                                     "encodingContexts",
                                                                     "serverOwnedTemplate.templateHash",
+                                                                    "responseKind",
+                                                                    "maximumPageCount",
+                                                                    "maximumPageBytes",
+                                                                    "maximumCumulativeResponseBytes",
+                                                                    "maximumResultItemCount",
                                                                     "versionEvidence.v8_2",
                                                                     "versionEvidence.v9_1",
                                                                     "auditRequirement",
