@@ -16,6 +16,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -351,7 +352,7 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
                             $"Operation '{operationId}' response exceeded the configured byte limit.");
                     }
 
-                    data = read.Data;
+                    data = ProjectProductResponseData(read.Data);
                 }
                 catch (JsonException)
                 {
@@ -457,6 +458,82 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         return OperationExecutionResult.Failure(
             DynamicsErrorCodes.InvalidConfiguration,
             $"Unsupported AuthMode '{_options.AuthMode}'.");
+    }
+
+    /// <summary>
+    /// 將已通過既有位元組上限與 JSON 解析的上游內容投影為產品可見資料，遞迴移除可能攜帶 CRM 絕對路由的
+    /// <c>@odata.context</c> 與 <c>@odata.nextLink</c>。此方法必須在建立 <see cref="OperationExecutionResult"/>
+    /// 前執行，避免未經投影的 OData annotation 先進入產品 envelope、記錄器或後續序列化邊界。
+    /// 暫存 <see cref="ArrayBufferWriter{T}"/> 只屬於本次同步投影；來源已受 response byte limit 約束，而 relaxed
+    /// encoder 不會因 HTML escaping 擴張資料。無論成功、解析例外或取消，finally 都會 Clear 暫存內容；返回的
+    /// <see cref="JsonElement"/> 是脫離暫存 <see cref="JsonDocument"/> 的 Clone，沒有保留 stream、response、
+    /// token、credential、principal、timer 或跨 request mutable state。
+    /// </summary>
+    private static JsonElement? ProjectProductResponseData(JsonElement? data)
+    {
+        if (data is not JsonElement source)
+        {
+            return null;
+        }
+
+        var buffer = new ArrayBufferWriter<byte>();
+        try
+        {
+            using (var writer = new Utf8JsonWriter(buffer, new JsonWriterOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            }))
+            {
+                WriteProductSafeJson(writer, source);
+            }
+
+            using var document = JsonDocument.Parse(buffer.WrittenMemory);
+            return document.RootElement.Clone();
+        }
+        finally
+        {
+            buffer.Clear();
+        }
+    }
+
+    /// <summary>
+    /// 以深度優先方式寫入產品安全 JSON。object 僅略過兩個精確的 OData routing annotation；其他 property 與 array
+    /// 順序維持上游語意，避免本機安全修正擅自改寫既有產品資料契約。writer、其暫存 buffer 與最終文件皆由呼叫端
+    /// 單次擁有並在同一同步 scope 釋放或清除；此遞迴不配置 static cache，也不接收或保存 HTTP context、session、
+    /// credential、token 或任何可在不同 organization/profile generation 間洩漏的狀態。
+    /// </summary>
+    private static void WriteProductSafeJson(Utf8JsonWriter writer, JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                writer.WriteStartObject();
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (property.NameEquals("@odata.context") || property.NameEquals("@odata.nextLink"))
+                    {
+                        continue;
+                    }
+
+                    writer.WritePropertyName(property.Name);
+                    WriteProductSafeJson(writer, property.Value);
+                }
+
+                writer.WriteEndObject();
+                break;
+            case JsonValueKind.Array:
+                writer.WriteStartArray();
+                foreach (var item in element.EnumerateArray())
+                {
+                    WriteProductSafeJson(writer, item);
+                }
+
+                writer.WriteEndArray();
+                break;
+            default:
+                element.WriteTo(writer);
+                break;
+        }
     }
 
     private static async Task<BoundedJsonReadResult> ReadBoundedJsonAsync(

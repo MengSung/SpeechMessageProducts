@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "review",
-    "nextAction":  "Obtain an existing approved Kerberos/Negotiate administrative identity or session before any DC/D365 VM WinRM mutation, then complete real CE 8.2/9.1, OData projection, cross-process capacity/fault, soak/performance, Phase 5, and Phase 6 gates. Keep Package01FeeReadsEnabled=false and retain Embedded, Data8, and PowerPlatform.Dataverse.Client.",
+    "nextAction":  "Obtain an existing approved Kerberos/Negotiate administrative identity or session before any DC/D365 VM WinRM mutation; complete real CE 8.2/9.1 evidence; fix product-response OData projection and Cache-Control boundaries; then complete cross-process capacity/fault, soak/performance, Phase 5, and Phase 6 gates. Keep Package01FeeReadsEnabled=false and retain Embedded, Data8, and PowerPlatform.Dataverse.Client.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

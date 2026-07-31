@@ -72,6 +72,40 @@ public sealed class DynamicsWebApiClientTests
         document.RootElement.TryGetProperty("data", out _).Should().BeTrue();
     }
 
+    /// <summary>
+    /// 驗證上游 OData 回應進入產品信封前會移除可能暴露 CRM 路由的 <c>@odata.context</c> 與
+    /// <c>@odata.nextLink</c>；遞迴案例確保陣列和巢狀物件不能藉由較深層的 annotation 繞過邊界。
+    /// 測試同時鎖定一般商業欄位完整保留，避免這項安全投影變成刪除產品資料的寬鬆轉換。
+    /// Fake handler、回應內容和 <see cref="JsonDocument"/> 都只由本測試 scope 擁有並以 using 釋放；
+    /// Production client 仍是其 HttpResponseMessage、stream、pooled buffer 清零與歸還路徑的唯一 owner。
+    /// </summary>
+    [Fact]
+    public async Task Successful_result_removes_upstream_odata_routing_annotations()
+    {
+        var client = CreateClient(_ => JsonResponse("""
+            {
+              "@odata.context":"https://crm.example.local/org/api/data/v8.2/$metadata#WhoAmIResponse",
+              "value":[{
+                "name":"保留的商業資料",
+                "@odata.nextLink":"https://crm.example.local/org/api/data/v8.2/accounts?$skiptoken=secret"
+              }],
+              "nested":{"@odata.context":"https://crm.example.local/internal","businessId":"abc-123"}
+            }
+            """));
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeTrue();
+        using var document = JsonDocument.Parse(JsonSerializer.Serialize(result.Data));
+        var data = document.RootElement.GetProperty("data");
+        data.TryGetProperty("@odata.context", out _).Should().BeFalse();
+        data.GetProperty("value")[0].TryGetProperty("@odata.nextLink", out _).Should().BeFalse();
+        data.GetProperty("nested").TryGetProperty("@odata.context", out _).Should().BeFalse();
+        data.GetProperty("value")[0].GetProperty("name").GetString().Should().Be("保留的商業資料");
+        data.GetProperty("nested").GetProperty("businessId").GetString().Should().Be("abc-123");
+        JsonSerializer.Serialize(result.Data).Should().NotContain("crm.example.local");
+    }
+
     [Fact]
     public async Task Fee_dedication_by_contact_uses_server_owned_fetchxml_and_encodes_guid()
     {

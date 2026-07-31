@@ -141,6 +141,16 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    if (IsProductOperationOrCatalogRequest(context.Request))
+    {
+        SetPrivateNoStoreResponseHeaders(context.Response);
+    }
+
+    await next(context).ConfigureAwait(false);
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.Use(async (context, next) =>
@@ -301,6 +311,31 @@ app.MapGet(
         return Results.Ok(operations);
     })
     .RequireAuthorization();
+
+/// <summary>
+/// 判定 request 是否為產品可見的受控操作或操作目錄。比對只依 HTTP method 與固定 REST path 前綴，
+/// 不讀取 body、principal、token 或路由參數，也不建立任何快取、計時器或可釋放資源；因此可在驗證前安全設定
+/// 回應的快取邊界，並讓未驗證或已拒絕的回應同樣受保護。
+/// </summary>
+static bool IsProductOperationOrCatalogRequest(HttpRequest request)
+{
+    var path = request.Path.Value;
+    return (HttpMethods.IsGet(request.Method) &&
+            string.Equals(path, "/v1/operations", StringComparison.Ordinal)) ||
+        (HttpMethods.IsPost(request.Method) &&
+            path is not null &&
+            path.StartsWith("/v1/organizations/", StringComparison.Ordinal));
+}
+
+/// <summary>
+/// 將產品可見的 Gateway 操作回應標示為僅限單次私有傳遞，避免 CRM 業務資料、錯誤狀態或 workload 可見的操作目錄
+/// 被瀏覽器、反向 Proxy 或共享快取重播。此 helper 不保存 HttpContext、principal、body、token 或任何可釋放資源；
+/// response header 的唯一 owner 仍是 ASP.NET Core request scope，request 結束時由框架完成清理。
+/// </summary>
+static void SetPrivateNoStoreResponseHeaders(HttpResponse response)
+{
+    response.Headers.CacheControl = "no-store, private";
+}
 
 /// <summary>
 /// 驗證 Development 受保護端點是否由 HTTPS loopback peer 呼叫。

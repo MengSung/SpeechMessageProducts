@@ -847,3 +847,50 @@ Real CE 8.2/9.1 evidence, OData projection, cross-process capacity/fault behavio
 Run `20260730-144721-dynamics-adfs-runtime-winrm-final-review-reviewer` completed with full Gemini and Claude success (`ok=true`, no quota or degraded fallback). Both models returned zero Critical and zero Warning findings and recommended PASS for the implementation, runtime evidence, WinRM safety gate, lifecycle/isolation boundaries, and honest open-gate wording.
 
 Claude recorded one non-blocking Info for future hardening: the existing DEBUG-only ADFS diagnostic redirect URI helper may fall back to request scheme/host when deployment configuration is absent. The operator allowlist and ADFS registered redirect validation keep this outside the current blocking set, but a future reviewed increment may require an explicit configured RedirectUri and remove the Host-header-derived fallback.
+
+## 2026-07-31 current progress and release-gate audit
+
+### Dual-model result
+
+Run `20260731-083318-dynamics-current-progress-reviewer` completed with full Gemini and Claude success:
+
+```text
+ok=true
+degradedFallback=false
+quotaBlocked=false
+completedBackends=gemini,claude
+```
+
+The audit compared the active PRD, design, implementation plan, SPEC, verification artifacts, current HEAD, project graph, and implementation. The overall task remains **not complete**.
+
+### Reconciled Critical release gates
+
+1. Real CE 8.2 and CE 9.1 authentication, `WhoAmI`, metadata, representative operation, paging, and rollback evidence still do not exist. Local fake-target, loopback, LocalDB, and browser evidence cannot substitute for the real-server gate. The immediate external blocker remains an approved Kerberos/Negotiate administrative identity or existing approved session for the DC/D365 VM configuration path.
+2. Product-facing operation results still carry a generic `object?` payload and the Web API client returns the parsed upstream `JsonElement` without projecting or server-side consuming absolute `@odata.context` / `@odata.nextLink` annotations. This is a production-release blocker before Phase 5 traffic can be enabled.
+3. The Gateway operation endpoint returns authorized CRM operation data without setting the SPEC-required `Cache-Control: no-store, private` response boundary. Health/readiness endpoints set `no-store`, but the operation and catalog routes currently do not. This must be corrected before any product traffic enablement.
+4. `.trellis/tasks/07-23-dynamics-connection-compatibility/implement.md` lines 16-20 still state that the task is planning-only and implementation has not started. That wording is stale and contradicts the active task state, current solution graph, committed implementation, verification artifacts, and review phase. It must not be used as a current progress source until corrected.
+
+### Reconciled Warnings and deferred blockers
+
+- SQL durable coordinator evidence is single-workstation LocalDB evidence only; real cross-process, cross-service-account, outage, fencing, HA/failover, and shutdown-baseline proof remains open.
+- Admission has bounded total and per-workload caps but does not yet implement the plan's deficit/weighted fairness and starvation bound.
+- Durable idempotency ledger and `AuditIntent` state machine are not implemented; they remain mandatory before write-capable migration.
+- `ToolUtilityFactory` remains a process-wide legacy singleton without a proven Production host-shutdown owner. It must be removed behind Gateway or gain exactly one deterministic process owner before Phase 6 completion.
+- The base ChurchReport configuration still contains deferred Embedded routing metadata, CRM Web API location, and secret-reference names. `Package01FeeReadsEnabled=false` prevents the new path from creating client/runtime resources, but the configuration does not yet match the final product-only Gateway binding boundary and must be removed or relocated before migration enablement.
+- Existing repository-wide LINE HTTP lifecycle debt remains a separate zero-tolerance cleanup task and is not closed by this Dynamics audit.
+
+### Evidence-backed phase status
+
+| Phase | Status | Evidence boundary |
+| --- | --- | --- |
+| Phase 0 — baseline and inventory | Locally completed | Normalized call matrix, migration package selection, report-only SDK inventory. Final no-SDK gate intentionally remains later. |
+| Phase 1 — projects and contracts | Locally completed | Dynamics projects, ProductClient boundary, controlled operation contract, local tests. |
+| Phase 2 — profile runtime and connector | Partially completed | Runtime generations, Web API transport, admission, and LocalDB coordinator are locally verified; real multi-process coordinator, fairness, ledger/audit, and real CE proof remain open. |
+| Phase 3 — Gateway/Embedded policy | Partially completed | Local Gateway, Negotiate, named binding sets, SID authority, request limits, and controlled operations are locally verified. Central deployment is not proven; Embedded is retained and deferred. |
+| Phase 4 — pre-migration verification | In progress | Local isolation/lifecycle/runtime matrix is green; real CE 8.2/9.1, OData projection, cross-process fault/capacity, soak/performance, and shutdown baselines are open. |
+| Phase 5 — strangler migration | Not started | No Phase 5 evidence artifact; `Package01FeeReadsEnabled=false`. |
+| Phase 6 — SDK removal | Not started | Embedded, Data8, `PowerPlatform.Dataverse.Client`, SDK/WCF paths, and legacy lifecycle owners remain. |
+
+### Next gate
+
+Obtain the approved administrative Kerberos/Negotiate identity or existing session, complete the bounded ADFS/CRM configuration and real CE 8.2/9.1 smoke matrix, then resolve the local product-response blockers (`@odata.*` projection and `Cache-Control`) before enabling a single Phase 5 read workflow. Keep `Package01FeeReadsEnabled=false` and retain Embedded, Data8, and `PowerPlatform.Dataverse.Client` until those gates pass.

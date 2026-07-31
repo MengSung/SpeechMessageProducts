@@ -111,6 +111,34 @@ public sealed class GatewayWorkloadBoundaryTests
     }
 
     /// <summary>
+    /// 成功的產品操作與已授權操作目錄都可能包含 workload 可見的 CRM 業務資料或 capability 資訊，
+    /// 因此必須宣告 <c>Cache-Control: no-store, private</c>，不可讓瀏覽器、反向 Proxy 或共享快取重播。
+    /// Factory、HttpClient、response 與測試 executor 均由此 test scope 唯一擁有並依 using/await using 順序釋放；
+    /// 測試不建立 CRM socket、token、timer、background task 或跨 request cache。
+    /// </summary>
+    [Fact]
+    public async Task Authorized_operation_and_catalog_responses_are_private_no_store()
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(executor, DefaultPrincipalName, mapped: true);
+        using var client = factory.CreateClient();
+
+        using var operationResponse = await client.PostAsync(
+            $"/v1/organizations/{DefaultProfileAlias}/operations/{DefaultOperationId}",
+            Json("{\"parameters\":{}}"));
+        using var catalogResponse = await client.GetAsync("/v1/operations");
+
+        operationResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        catalogResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        operationResponse.Headers.CacheControl.Should().NotBeNull();
+        operationResponse.Headers.CacheControl!.NoStore.Should().BeTrue();
+        operationResponse.Headers.CacheControl.Private.Should().BeTrue();
+        catalogResponse.Headers.CacheControl.Should().NotBeNull();
+        catalogResponse.Headers.CacheControl!.NoStore.Should().BeTrue();
+        catalogResponse.Headers.CacheControl.Private.Should().BeTrue();
+    }
+
+    /// <summary>
     /// 當 authentication handler 同時提供 Windows SID 與 principal name，SID binding 必須優先；
     /// 這可讓部署在帳號顯示名稱變更時仍綁定穩定 Windows security authority，且不得把 name binding 的 workload 混入稽核／容量 key。
     /// </summary>
@@ -297,6 +325,51 @@ public sealed class GatewayWorkloadBoundaryTests
             .ToArray();
         operationIds.Should().Equal(allowedOperation);
         executor.CallCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 快取邊界必須在 authentication/authorization 之前建立，因為 401 會在 endpoint delegate 執行前返回，
+    /// 而授權後的 403 與 request-body reader 的 415 也都不應留下可被任何快取重播的產品路由結果。
+    /// 每個 Factory 各自持有獨立 Testing Host 與 executor，避免 principal/binding 狀態跨案例共用；所有 client、
+    /// response 與 host 於本測試結束時確定釋放，沒有保留 session、credential、token、stream 或背景資源。
+    /// </summary>
+    [Fact]
+    public async Task Operation_and_catalog_controlled_error_responses_are_private_no_store()
+    {
+        var authorizedExecutor = new RecordingExecutor();
+        await using var authorizedFactory = CreateFactory(
+            authorizedExecutor,
+            DefaultPrincipalName,
+            mapped: true);
+        using var authorizedClient = authorizedFactory.CreateClient();
+        using var unsupportedMediaType = await authorizedClient.PostAsync(
+            $"/v1/organizations/{DefaultProfileAlias}/operations/{DefaultOperationId}",
+            new StringContent("{}", Encoding.UTF8, "text/plain"));
+
+        var unmappedExecutor = new RecordingExecutor();
+        await using var unmappedFactory = CreateFactory(
+            unmappedExecutor,
+            @"SPEECHMESSAGE\UnmappedService$",
+            mapped: false);
+        using var unmappedClient = unmappedFactory.CreateClient();
+        using var forbiddenCatalog = await unmappedClient.GetAsync("/v1/operations");
+
+        await using var anonymousFactory = CreateFactory(
+            new RecordingExecutor(),
+            principalName: null,
+            mapped: true);
+        using var anonymousClient = anonymousFactory.CreateClient();
+        using var unauthorizedCatalog = await anonymousClient.GetAsync("/v1/operations");
+
+        unsupportedMediaType.StatusCode.Should().Be(HttpStatusCode.UnsupportedMediaType);
+        forbiddenCatalog.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        unauthorizedCatalog.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        foreach (var response in new[] { unsupportedMediaType, forbiddenCatalog, unauthorizedCatalog })
+        {
+            response.Headers.CacheControl.Should().NotBeNull();
+            response.Headers.CacheControl!.NoStore.Should().BeTrue();
+            response.Headers.CacheControl.Private.Should().BeTrue();
+        }
     }
 
     /// <summary>
