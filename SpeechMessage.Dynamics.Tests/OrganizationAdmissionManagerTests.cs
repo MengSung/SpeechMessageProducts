@@ -399,6 +399,51 @@ public sealed class OrganizationAdmissionManagerTests
         await l3!.DisposeAsync();
     }
 
+    /// <summary>
+    /// In-memory coordinator 即使只用於 fail-closed fallback 與測試，也不得以分隔符串接
+    /// namespace 與 host 作為 key；否則兩組不同的結構化識別值可互相覆寫 fencing token。
+    /// 這個案例刻意使用會產生相同串接結果的兩組值，要求兩個 lease 都能獨立 renew 與清理。
+    /// </summary>
+    [Fact]
+    public async Task In_memory_coordinator_uses_structural_key_for_delimiter_containing_components()
+    {
+        var coordinator = new InMemoryRuntimeHostSlotCoordinator();
+        var ttl = TimeSpan.FromMinutes(1);
+        var first = await coordinator.TryAcquireAsync(
+            new RuntimeHostSlotLeaseNamespace("namespace-a|namespace-b"),
+            "host-c",
+            maximumRuntimeHosts: 1,
+            ttl,
+            CancellationToken.None);
+        var second = await coordinator.TryAcquireAsync(
+            new RuntimeHostSlotLeaseNamespace("namespace-a"),
+            "namespace-b|host-c",
+            maximumRuntimeHosts: 1,
+            ttl,
+            CancellationToken.None);
+
+        try
+        {
+            first.Should().NotBeNull();
+            second.Should().NotBeNull();
+
+            (await coordinator.TryRenewAsync(first!, ttl, CancellationToken.None)).Should().BeTrue();
+            (await coordinator.TryRenewAsync(second!, ttl, CancellationToken.None)).Should().BeTrue();
+        }
+        finally
+        {
+            if (first is not null)
+            {
+                await first.DisposeAsync();
+            }
+
+            if (second is not null)
+            {
+                await second.DisposeAsync();
+            }
+        }
+    }
+
     [Fact]
     public async Task Concurrent_host_slot_acquire_allows_only_one_lease_and_releases_capacity()
     {

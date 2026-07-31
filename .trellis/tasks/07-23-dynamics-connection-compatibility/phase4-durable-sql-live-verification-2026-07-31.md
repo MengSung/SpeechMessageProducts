@@ -71,8 +71,11 @@ TDD 已加入並驗證兩類 fail-closed regression：
 2. `SqlRuntimeHostSlotCoordinator` 在建構時將已驗證的 connection string、command timeout
    與 quarantine 複製為 immutable snapshot；其後原始 options singleton 的 mutation 不能
    改寫既有 coordinator 的 SQL 路由或 lease 安全界限。
+3. `InMemoryRuntimeHostSlotCoordinator` 改用 typed structural `SlotKey`，不再把 namespace
+   與 host 以分隔字元串接；含 `|` 的兩組不同合法值不會互相更新 fencing token 或釋放對方
+   的容量。
 
-兩個 regression 都先觀察到預期 failure，再以最小修正轉為 pass；它們不需要 CRM、
+三個 regression 都先觀察到預期 failure，再以最小修正轉為 pass；它們不需要 CRM、
 使用者 Session 或真實 SQL 帳密。
 
 ## 同日再驗證的 LocalDB runtime 狀態

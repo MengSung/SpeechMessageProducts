@@ -19,7 +19,9 @@ namespace SpeechMessage.Dynamics.WebApi.Capacity;
 public sealed class InMemoryRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
 {
     private readonly object _sync = new();
-    private readonly ConcurrentDictionary<string, SlotRecord> _slots = new(StringComparer.Ordinal);
+    // 記憶體內的複合 key 必須沿用型別化結構相等性；不可把 namespace 與 host 以分隔字元
+    // 串接，否則合法輸入中的分隔字元會造成不同 lease owner 互相 fencing 或錯誤釋放容量。
+    private readonly ConcurrentDictionary<SlotKey, SlotRecord> _slots = new();
     private long _fencing;
 
     public bool IsDurable => false;
@@ -139,8 +141,19 @@ public sealed class InMemoryRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordin
         }
     }
 
-    private static string BuildKey(RuntimeHostSlotLeaseNamespace leaseNamespace, string hostInstanceId)
-        => leaseNamespace.LeaseNamespaceId + "|" + hostInstanceId;
+    private static SlotKey BuildKey(
+        RuntimeHostSlotLeaseNamespace leaseNamespace,
+        string hostInstanceId)
+        => new(leaseNamespace, hostInstanceId);
+
+    /// <summary>
+    /// 僅供 in-memory coordinator 使用的結構化 slot key。record struct 以 namespace 與 host
+    /// 各自的完整值進行相等性比較，因此不會把字元分隔、Unicode 或未來欄位擴充誤解成相同
+    /// slot；這是 fail-closed fallback 與測試仍需遵守的跨 workload 隔離界限。
+    /// </summary>
+    private readonly record struct SlotKey(
+        RuntimeHostSlotLeaseNamespace LeaseNamespace,
+        string HostInstanceId);
 
     private sealed class SlotRecord
     {
