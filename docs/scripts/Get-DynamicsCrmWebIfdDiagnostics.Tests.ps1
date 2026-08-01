@@ -64,6 +64,8 @@ Assert-Contains -Actual $source -Expected 'UseProxy = $false' -Context 'The opti
 Assert-Contains -Actual $source -Expected 'finally' -Context 'Disposable HTTP resources require deterministic cleanup'
 Assert-Contains -Actual $source -Expected '.Dispose()' -Context 'Disposable HTTP resources must be released'
 Assert-Contains -Actual $source -Expected 'MatchKind' -Context 'ASP.NET evidence must be summarized without serializing its raw message'
+Assert-Contains -Actual $source -Expected 'ComponentCategory' -Context 'ASP.NET evidence must classify the CRMWeb component without serializing its raw stack trace'
+Assert-Contains -Actual $source -Expected 'RequestPathCategory' -Context 'ASP.NET evidence must classify the approved request path without serializing a raw URI'
 Assert-Contains -Actual $source -Expected 'FailureCategory' -Context 'Diagnostic failures must be classified without serializing raw exception text'
 Assert-Contains -Actual $source -Expected '$record.Dispose()' -Context 'Every projected EventRecord must be deterministically released'
 Assert-Contains -Actual $source -Expected '$certificate.Dispose()' -Context 'Every projected certificate object must be deterministically released'
@@ -271,7 +273,9 @@ $fakeEvent = [pscustomobject]@{
     ProviderName = 'ASP.NET 4.0.30319.0'
     Id = 1309
     LevelDisplayName = 'Warning'
-    Message = 'UriFormatException Cookie: cookie-sentinel; Set-Cookie: set-cookie-sentinel; Authorization: Bearer bearer-sentinel; access_token=access-sentinel; refresh_token=refresh-sentinel'
+    # 此 fixture 同時模擬既有 CRMWeb 1309 事件中的安全可分類片段與不可輸出的敏感內容。
+    # 測試只允許 enum 型分類離開事件讀取範圍，避免 stack trace、查詢字串、Cookie 與權杖殘留於快照。
+    Message = 'UriFormatException Microsoft.Crm.Authentication.Claims.CrmFederatedAuthenticationModule.UpdateRedirectingEventArgsNonPathBasedUrl /api/data/v9.1/WhoAmI?request-query-sentinel Cookie: cookie-sentinel; Set-Cookie: set-cookie-sentinel; Authorization: Bearer bearer-sentinel; access_token=access-sentinel; refresh_token=refresh-sentinel'
     Disposed = $false
 }
 $fakeEvent | Add-Member -MemberType ScriptMethod -Name Dispose -Value {
@@ -297,7 +301,17 @@ try {
         throw 'Projected ASP.NET EventRecord was not deterministically disposed.'
     }
 
-    foreach ($sentinel in @('cookie-sentinel', 'set-cookie-sentinel', 'bearer-sentinel', 'access-sentinel', 'refresh-sentinel')) {
+    $projectedEvent = @($safeSnapshot.AspNet1309.Events | Select-Object -First 1)
+    if ($projectedEvent.Count -ne 1 -or
+        $projectedEvent[0].ComponentCategory -ne 'claims-redirect-nonpathbased-url') {
+        throw 'A known CRM claims redirect frame must be emitted as a bounded component category.'
+    }
+
+    if ($projectedEvent[0].RequestPathCategory -ne 'webapi-v9.1-whoami') {
+        throw 'A known v9.1 WhoAmI request path must be emitted as a bounded request-path category.'
+    }
+
+    foreach ($sentinel in @('CrmFederatedAuthenticationModule', 'request-query-sentinel', 'cookie-sentinel', 'set-cookie-sentinel', 'bearer-sentinel', 'access-sentinel', 'refresh-sentinel')) {
         Assert-NotContains -Actual $safeSnapshotText -ForbiddenPattern ([regex]::Escape($sentinel)) -Context 'Diagnostic snapshot must not serialize raw event secrets or session data'
     }
 }

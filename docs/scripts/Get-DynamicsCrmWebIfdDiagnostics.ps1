@@ -133,12 +133,41 @@ function Get-CrmWebUriFormatEvents {
                     continue
                 }
 
+                # 原始 EventRecord.Message 只可在這個迴圈的短暫區域範圍內做 allowlist 判斷，
+                # 不可寫入輸出、快取、例外或背景工作。兩個輸出欄位均為固定分類值；它們讓
+                # Deployment 管理者能以既有事件定位 CRMWeb 邊界，卻不會保留 stack trace、
+                # URI、查詢字串、Cookie、權杖或設定內容。
+                if ($message -match '(?i)CrmFederatedAuthenticationModule\.UpdateRedirectingEventArgsNonPathBasedUrl') {
+                    $componentCategory = 'claims-redirect-nonpathbased-url'
+                }
+                elseif ($message -match '(?i)Microsoft\.Crm\.') {
+                    $componentCategory = 'other-crm-uri-construction'
+                }
+                else {
+                    $componentCategory = 'unclassified-uri-format'
+                }
+
+                if ($message -match '(?i)(?:https?://[^/\s]+)?/api/data/v9\.1/WhoAmI(?:[/?\s]|$)') {
+                    $requestPathCategory = 'webapi-v9.1-whoami'
+                }
+                elseif ($message -match '(?i)(?:https?://[^/\s]+)?/api/data/v8\.2/WhoAmI(?:[/?\s]|$)') {
+                    $requestPathCategory = 'webapi-v8.2-whoami'
+                }
+                elseif ($message -match '(?i)/api/data/v(?:8\.2|9\.1)/') {
+                    $requestPathCategory = 'other-approved-path'
+                }
+                else {
+                    $requestPathCategory = 'not-classified'
+                }
+
                 $events += [pscustomobject]@{
                     TimeCreated = $record.TimeCreated
                     ProviderName = $record.ProviderName
                     Id = $record.Id
                     Level = $record.LevelDisplayName
                     MatchKind = 'uri-format'
+                    ComponentCategory = $componentCategory
+                    RequestPathCategory = $requestPathCategory
                 }
             }
             finally {
@@ -148,6 +177,8 @@ function Get-CrmWebUriFormatEvents {
                     $records[$recordIndex] = $null
                     $record = $null
                 }
+                $componentCategory = $null
+                $requestPathCategory = $null
                 $message = $null
             }
         }

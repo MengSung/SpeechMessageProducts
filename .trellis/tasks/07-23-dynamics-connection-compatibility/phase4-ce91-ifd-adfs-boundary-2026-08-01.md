@@ -90,6 +90,20 @@ That one snapshot distinguishes a CRMWeb redirect-composition defect from a
 different CRMWeb URI construction boundary. No setting change is authorized
 until it supplies a concrete, supported cause.
 
+### Repository diagnostic readiness
+
+`Get-DynamicsCrmWebIfdDiagnostics.ps1` now projects that existing event into
+only two bounded categories: the CRMWeb component category and the approved
+request-path category.  A known Claims redirect frame is reported as
+`claims-redirect-nonpathbased-url`; the previously requested v9.1 `WhoAmI`
+path is reported as `webapi-v9.1-whoami`.  Other cases use fixed fallback
+categories rather than exporting raw stack frames or URIs.
+
+This is a repository-side diagnostic improvement, not new D365APP01 evidence:
+it does not issue a request unless the existing explicit `-ProbeWhoAmI` switch
+is supplied, and it does not authorize a second probe, an IFD wizard change, or
+an infrastructure mutation.
+
 ## Phase gate
 
 Phase 4 CE 9.1 live verification remains **blocked** at CRMWeb URI construction.
