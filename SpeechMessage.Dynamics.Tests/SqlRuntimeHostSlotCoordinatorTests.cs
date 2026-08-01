@@ -715,6 +715,10 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
     [LiveSqlFact]
     public async Task Live_sql_multi_owner_managers_share_durable_capacity_and_drain()
     {
+        // 所有 acquisition 回傳的 permit 必須在任何斷言前立即由測試持有，避免斷言失敗遺失
+        // reservation，並讓 SQL row cleanup 被錯誤地當成 drain 證據。舊 manager Dispose 後，
+        // 本測試會在有界 quarantine 到期後使用全新 owner 重新取得 slot；最後 cleanup 僅刪除
+        // 本次測試 namespace，絕不能用來證明 release 或安全重新接手。
         var connectionString = Environment.GetEnvironmentVariable(
             LiveConnectionStringEnvironmentVariable)
             ?? throw new InvalidOperationException(
@@ -797,7 +801,13 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
 
         IAdmissionPermit? firstPermit = null;
         IAdmissionPermit? secondPermit = null;
+        IAdmissionPermit? excessWorkPermit = null;
         RuntimeHostSlotLease? excessHostLease = null;
+        SqlRuntimeHostSlotCoordinator? replacementFirstCoordinator = null;
+        SqlRuntimeHostSlotCoordinator? replacementSecondCoordinator = null;
+        OrganizationAdmissionManager? replacementFirstManager = null;
+        OrganizationAdmissionManager? replacementSecondManager = null;
+        var replacementSlotsReacquired = false;
         Exception? contractFailure = null;
         try
         {
@@ -825,9 +835,11 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             var acquisitions = await Task.WhenAll(
                 firstManager.AcquireAsync(CreateMultiOwnerEnvelope("multi-owner-a"), CancellationToken.None),
                 secondManager.AcquireAsync(CreateMultiOwnerEnvelope("multi-owner-b"), CancellationToken.None));
-            acquisitions.Should().OnlyContain(result => result.Succeeded);
+            // assertion 前先接管每個可能成功的 permit；即使 capacity assertion 失敗，
+            // 下方仍能對稱釋放全部由此測試取得的 admission reservation。
             firstPermit = acquisitions[0].Permit;
             secondPermit = acquisitions[1].Permit;
+            acquisitions.Should().OnlyContain(result => result.Succeeded);
 
             var firstSnapshot = firstManager.GetSnapshot();
             var secondSnapshot = secondManager.GetSnapshot();
@@ -839,6 +851,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             var excessWork = await firstManager.AcquireAsync(
                 CreateMultiOwnerEnvelope("multi-owner-extra"),
                 CancellationToken.None);
+            excessWorkPermit = excessWork.Permit;
             excessWork.Succeeded.Should().BeFalse();
             excessWork.Error!.ErrorCode.Should().Be(DynamicsErrorCodes.QueueFull);
         }
@@ -853,7 +866,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             failures.Add(contractFailure);
         }
 
-        foreach (var permit in new[] { firstPermit, secondPermit })
+        foreach (var permit in new[] { firstPermit, secondPermit, excessWorkPermit })
         {
             if (permit is null)
             {
@@ -886,6 +899,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             }
         }
 
+        var oldManagersDisposed = true;
         foreach (var manager in new[] { firstManager, secondManager })
         {
             try
@@ -894,27 +908,103 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             }
             catch (Exception exception)
             {
+                oldManagersDisposed = false;
                 failures.Add(new InvalidOperationException(
                     "Live multi-owner contract 無法 drain 並 dispose admission manager。",
                     exception));
             }
         }
 
-        try
+        if (oldManagersDisposed)
         {
-            await DeleteOwnedNamespacesAsync(connectionString, new[] { leaseNamespace.LeaseNamespaceId });
+            try
+            {
+                // DisposeAsync 已完成舊 manager 的 permit drain 與 fenced release；但 durable
+                // coordinator 仍需保留 quarantine。這個等待有明確上限，且發生在 row cleanup 前，
+                // 所以新的兩個 manager 必須靠真正的 SQL slot re-acquisition 才能通過。
+                var quarantineWait = TimeSpan.FromSeconds(coordinatorOptions.QuarantineSeconds) +
+                    TimeSpan.FromMilliseconds(200);
+                await Task.Delay(quarantineWait);
+
+                replacementFirstCoordinator = new SqlRuntimeHostSlotCoordinator(
+                    coordinatorOptions,
+                    NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
+                replacementSecondCoordinator = new SqlRuntimeHostSlotCoordinator(
+                    coordinatorOptions,
+                    NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
+                replacementFirstManager = new OrganizationAdmissionManager(
+                    firstPlan,
+                    replacementFirstCoordinator,
+                    NullLogger<OrganizationAdmissionManager>.Instance);
+                replacementSecondManager = new OrganizationAdmissionManager(
+                    secondPlan,
+                    replacementSecondCoordinator,
+                    NullLogger<OrganizationAdmissionManager>.Instance);
+
+                await Task.WhenAll(
+                    replacementFirstManager.EnsureHostSlotAsync(CancellationToken.None),
+                    replacementSecondManager.EnsureHostSlotAsync(CancellationToken.None));
+
+                replacementFirstManager.GetSnapshot().HostSlotReady.Should().BeTrue(
+                    "a fresh durable owner must reacquire the first quarantined host slot");
+                replacementSecondManager.GetSnapshot().HostSlotReady.Should().BeTrue(
+                    "a second fresh durable owner must reacquire the remaining host slot");
+                replacementSlotsReacquired = true;
+            }
+            catch (Exception exception)
+            {
+                failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract could not reacquire both durable host slots after old managers drained and quarantine elapsed.",
+                    exception));
+            }
         }
-        catch (Exception exception)
+
+        var replacementManagersDisposed = replacementSlotsReacquired;
+        foreach (var manager in new[] { replacementFirstManager, replacementSecondManager })
+        {
+            if (manager is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                await manager.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                replacementManagersDisposed = false;
+                failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract could not release a replacement admission manager before test-row cleanup.",
+                    exception));
+            }
+        }
+
+        if (replacementSlotsReacquired && replacementManagersDisposed)
+        {
+            try
+            {
+                await DeleteOwnedNamespacesAsync(connectionString, new[] { leaseNamespace.LeaseNamespaceId });
+            }
+            catch (Exception exception)
+            {
+                failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract 對其一次性 namespace 的 durable test-row cleanup 失敗。",
+                    exception));
+            }
+        }
+        else
         {
             failures.Add(new InvalidOperationException(
-                    "Live multi-owner contract 對其一次性 namespace 的 durable test-row cleanup 失敗。",
-                exception));
+                "Live multi-owner contract deliberately skipped namespace cleanup because replacement slot reacquisition and disposal did not both succeed; cleanup must not mask a drain failure."));
         }
 
         try
         {
             firstCoordinator.ActiveDatabaseOperations.Should().Be(0);
             secondCoordinator.ActiveDatabaseOperations.Should().Be(0);
+            replacementFirstCoordinator?.ActiveDatabaseOperations.Should().Be(0);
+            replacementSecondCoordinator?.ActiveDatabaseOperations.Should().Be(0);
         }
         catch (Exception exception)
         {
