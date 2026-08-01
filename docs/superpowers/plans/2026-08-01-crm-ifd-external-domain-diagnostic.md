@@ -15,7 +15,7 @@
 **Files:**
 - Modify: `docs/scripts/Get-DynamicsCrmWebIfdDiagnostics.Tests.ps1:110-130,229-265`
 
-- [ ] **Step 1: Change the HTTPS-root fixture to express the required failure**
+- [x] **Step 1: Change the HTTPS-root fixture to express the required failure**
 
 ```powershell
 if (-not $uriExternalDomainEvidence.ContainsScheme -or
@@ -25,7 +25,7 @@ if (-not $uriExternalDomainEvidence.ContainsScheme -or
 }
 ```
 
-- [ ] **Step 2: Run the script contract test and observe the expected RED failure**
+- [x] **Step 2: Run the script contract test and observe the expected RED failure**
 
 Run:
 
@@ -40,7 +40,7 @@ Expected: failure because the current helper calls the representation `absolute-
 **Files:**
 - Modify: `docs/scripts/Get-DynamicsCrmWebIfdDiagnostics.ps1:425-612`
 
-- [ ] **Step 1: Add only shape-safe state**
+- [x] **Step 1: Add only shape-safe state**
 
 ```powershell
 ContainsScheme = $true
@@ -50,13 +50,13 @@ MatchesExpectedContract = $false
 
 Apply those results only to the absolute-URI branch. Preserve normalized-host and unsafe-URI-shape evidence, never serialize the raw DWS value, and do not add a setting writer, network request, cookie, credential, proxy, or remote session.
 
-- [ ] **Step 2: Add `ContainsScheme` to generic host/domain-like projections**
+- [x] **Step 2: Add `ContainsScheme` to generic host/domain-like projections**
 
 ```powershell
 ContainsScheme = $(if (-not $isUriLike) { $rawValue -match '(?i)^[a-z][a-z0-9+.-]*:' } else { $null })
 ```
 
-- [ ] **Step 3: Run the contract test and observe GREEN**
+- [x] **Step 3: Run the contract test and observe GREEN**
 
 Run:
 
@@ -72,11 +72,11 @@ Expected: exit code `0`.
 - Modify: `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md:1116-1178`
 - Modify: `.trellis/tasks/07-23-dynamics-connection-compatibility/phase4-deployment-context-evidence-2026-08-01.md:100-129`
 
-- [ ] **Step 1: Replace the old equivalence statement**
+- [x] **Step 1: Replace the old equivalence statement**
 
 State that Microsoft documents a bare external-domain hostname as the IFD input. A DWS result containing a scheme is a redacted, fail-closed review signal: it is not an automatic configuration failure and it is not an authorization to run `Set-CrmSetting`, `iisreset`, or an infrastructure workaround.
 
-- [ ] **Step 2: Record the evidence boundary**
+- [x] **Step 2: Record the evidence boundary**
 
 State that `[uri]::IsWellFormedUriString(..., Absolute)=True` proves only an absolute URI representation. It does not establish the CRMWeb root cause. A server change needs an independently verified, supported cause.
 
@@ -88,13 +88,13 @@ State that `[uri]::IsWellFormedUriString(..., Absolute)=True` proves only an abs
 - Verify: `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md`
 - Verify: `.trellis/tasks/07-23-dynamics-connection-compatibility/phase4-deployment-context-evidence-2026-08-01.md`
 
-- [ ] **Step 1: Run the focused contract test**
+- [x] **Step 1: Run the focused contract test**
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\docs\scripts\Get-DynamicsCrmWebIfdDiagnostics.Tests.ps1
 ```
 
-- [ ] **Step 2: Run static scope and formatting checks**
+- [x] **Step 2: Run static scope and formatting checks**
 
 ```powershell
 git diff --check

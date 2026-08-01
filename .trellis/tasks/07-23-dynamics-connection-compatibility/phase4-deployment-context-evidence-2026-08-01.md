@@ -37,7 +37,7 @@ PowerShell process.
 The revised `Get-DynamicsCrmWebIfdDiagnostics.ps1` SHA-256 is:
 
 ```text
-1B2CE96F8A98D739105C56F89110D3CE019B97DF187736812BE12D543DB1F196
+5B6F1228F3F9731CF43E106C74392B3483E14CEC52524F0C4320CB3A1DEC63D8
 ```
 
 It reports a sanitized `DeploymentShell` object as well as the existing
@@ -69,11 +69,11 @@ federation redirect. It is not a reason to repeat the probe, change a different
 infrastructure layer, or reapply the same wizard values.
 
 The original no-disclosure comparison used direct string equality for every
-field. That is valid only for the three root-domain strings; it is **not** a
-valid persistence test for `ExternalDomain`. DWS can represent a bare hostname
-entered in Deployment Manager as an HTTPS root URI, so comparing
-`[string]$ifd.ExternalDomain` directly with a bare hostname creates a false
-negative.
+field. That is valid only for the three root-domain strings. For
+`ExternalDomain`, the documented IFD wizard input is a bare hostname, while a
+shape-only DWS result may be represented differently. A direct comparison or a
+valid-URI result alone cannot establish whether the persisted value is correct
+or identify the CRMWeb URI-construction source.
 
 The historical comparison was useful only for the Discovery field. After the
 one supported Discovery correction, the current results are:
@@ -88,16 +88,17 @@ one supported Discovery correction, the current results are:
 
 The operator also directly observed the Deployment Manager IFD wizard's
 External Domain input as the required bare hostname `auth.speechmessage.com.tw`.
-Therefore **do not reopen, reapply, or change the External Domain field merely
-because of the direct string result**. There is currently no proven remaining
-IFD wizard correction target.
+A subsequent read-only check reported that `IfdSettings.ExternalDomain` is a
+well-formed absolute URI. That is a material supported-review signal, but not
+proof that this setting is the CRMWeb exception's source and not an
+authorization to write the entire setting object or restart CRMWeb.
 
 The previous diagnostic revision also projected
 `SessionSecurityTokenLifetimeInHours` as a URI because an unanchored `uri`
 pattern matched the word `Security`. That field is a scalar lifetime, not a
 URI, and the revised script excludes it from URI/domain output.
 
-## Historical semantic confirmation and one-time live probe
+## Reassessed diagnostic interpretation and one-time live probe
 
 The corrected diagnostic accepts an optional expected External Domain and emits
 only safe shape and boolean evidence. It does not print the DWS setting value:
@@ -112,21 +113,23 @@ $evidence.DeploymentSettings |
     Select-Object -ExpandProperty ExternalDomainExpectation
 ```
 
-The following interpretation was the safe one-time decision rule:
+The current safe decision rule is:
 
-- `MatchesExpectedContract=true` accepts either the wizard's bare hostname or
-  DWS's equivalent HTTPS root URI, while rejecting whitespace, non-HTTPS,
-  non-default port, non-root path, user-info, query, and fragment.
-- `MatchesExpectedContract=false` is the only condition that warrants one
-  official Deployment Manager review of the External Domain field. It is not an
-  authorization to use SQL, Registry, IIS, DNS, ADFS, or a remoting workaround.
-- Once the semantic result is `true`, do not edit IFD settings again. Run one
-  `-ProbeWhoAmI` confirmation. The one permitted confirmation has already
-  returned HTTP 500, and the subsequently captured AD FS relying-party evidence
-  confirms the required `auth`, organization, and Discovery identifiers.
-  Therefore no operator should rerun this probe because of the historical
-  direct-string false negative; the remaining work is CRMWeb URI-construction
-  diagnostics using the existing failure evidence.
+- `MatchesExpectedContract=true` requires the documented bare hostname without
+  whitespace or a scheme.
+- `ContainsScheme=true` returns `MatchesExpectedContract=false` even when the
+  redacted normalized host is correct and the URI has a safe HTTPS-root shape.
+  It creates one supported Deployment Manager/servicing review boundary; it is
+  not proof of the CRMWeb root cause and is not an authorization to use SQL,
+  Registry, IIS, DNS, ADFS, a remoting workaround, `Set-CrmSetting`, or
+  `iisreset`.
+- `[uri]::IsWellFormedUriString([string]$ifd.ExternalDomain,
+  [UriKind]::Absolute)=true` proves only that the value is an absolute URI
+  representation. It does not reveal the value or prove why CRMWeb threw.
+- The one permitted `-ProbeWhoAmI` confirmation has already returned HTTP 500.
+  Do not rerun it while a supported cause is still unconfirmed; the remaining
+  work is CRMWeb URI-construction diagnostics using the existing failure
+  evidence.
 
 Phase 5 and Phase 6 remain locked until that CRMWeb gate, the CE matrix,
 capacity/fault evidence, and soak/performance evidence all pass.

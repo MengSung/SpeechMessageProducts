@@ -45,10 +45,12 @@ name. The documented default is `auth.<web-application-domain>`.
 
 Therefore the observed bare `auth.speechmessage.com.tw` value is consistent with
 the documented default and must **not** be changed merely because the external
-organization endpoint is `sunnyvalechback.speechmessage.com.tw`. The old direct
-string comparison is non-authoritative because DWS can represent the same value
-as an HTTPS root URI; the repository diagnostic now compares the normalized host
-and safe URI shape without exposing the persisted value.
+organization endpoint is `sunnyvalechback.speechmessage.com.tw`. A later
+read-only result that `IfdSettings.ExternalDomain` is an absolute URI is a
+supported-review signal, not a reason to substitute the organization host and
+not sufficient by itself to identify the CRMWeb URI-construction source. The
+repository diagnostic reports that scheme-bearing shape fail-closed without
+exposing the persisted value.
 
 ## AD FS relying-party read-only evidence
 
