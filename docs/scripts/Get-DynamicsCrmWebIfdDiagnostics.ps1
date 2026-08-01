@@ -428,13 +428,14 @@ function Get-CrmIfdExternalDomainMatchEvidence {
       以語意化主機名稱比對 IFD ExternalDomain，避免將 DWS 的 URI 表示法誤判為設定不符。
 
     .DESCRIPTION
-      Dynamics Deployment Web Service 可能把 Deployment Manager 中以裸主機名稱輸入的
-      ExternalDomain 回傳為 HTTPS 根 URI。此函式只傳回是否存在、表示法類型、正規化 host
-      是否吻合，以及 URI 是否含不允許的 scheme、連接埠、路徑、使用者資訊、query 或 fragment；
-      不會輸出原始設定值、目標值、cookie、token 或任何認證資訊。
+      Microsoft 的 IFD 精靈將 External Domain 定義為裸主機名稱。若 Deployment Web Service
+      回傳含 scheme 的表示法，本函式保留安全的正規化 host 與 URI shape 證據，但不把它
+      自動判定為符合該輸入契約；它必須經受支援的 Deployment Manager/servicing 流程確認。
+      此函式不會輸出原始設定值、目標值、cookie、token 或任何認證資訊。
 
-      裸主機名稱與 HTTPS 根 URI 都可代表同一個 IFD External Domain。任何空白、非 HTTPS
-      scheme、非預設連接埠、非根路徑、使用者資訊、query 或 fragment 都 fail closed。
+      只有無 scheme 的裸主機名稱可自動符合契約。任何含 scheme、空白、非 HTTPS、非預設
+      連接埠、非根路徑、使用者資訊、query 或 fragment 都 fail closed；這是診斷判定，
+      不是對伺服器設定或 CRMWeb 根因的宣告。
     #>
     [OutputType([pscustomobject])]
     param(
@@ -453,6 +454,7 @@ function Get-CrmIfdExternalDomainMatchEvidence {
             return [pscustomobject]@{
                 Present = $false
                 ContainsWhitespace = $false
+                ContainsScheme = $false
                 Representation = 'missing'
                 NormalizedHostMatches = $false
                 HasUnexpectedUriShape = $false
@@ -471,6 +473,7 @@ function Get-CrmIfdExternalDomainMatchEvidence {
             return [pscustomobject]@{
                 Present = $true
                 ContainsWhitespace = $false
+                ContainsScheme = $false
                 Representation = 'bare-host'
                 NormalizedHostMatches = $true
                 HasUnexpectedUriShape = $false
@@ -483,6 +486,7 @@ function Get-CrmIfdExternalDomainMatchEvidence {
             return [pscustomobject]@{
                 Present = $present
                 ContainsWhitespace = $containsWhitespace
+                ContainsScheme = $trimmedValue -match '(?i)^[a-z][a-z0-9+.-]*:'
                 Representation = 'unrecognized'
                 NormalizedHostMatches = $false
                 HasUnexpectedUriShape = $false
@@ -505,10 +509,11 @@ function Get-CrmIfdExternalDomainMatchEvidence {
         return [pscustomobject]@{
             Present = $true
             ContainsWhitespace = $containsWhitespace
-            Representation = $(if ($hasUnexpectedUriShape) { 'absolute-uri-with-unexpected-shape' } else { 'absolute-https-root-uri' })
+            ContainsScheme = $true
+            Representation = $(if ($hasUnexpectedUriShape) { 'absolute-uri-with-unexpected-shape' } else { 'absolute-uri-requires-supported-review' })
             NormalizedHostMatches = $normalizedHostMatches
             HasUnexpectedUriShape = $hasUnexpectedUriShape
-            MatchesExpectedContract = -not $containsWhitespace -and $normalizedHostMatches -and -not $hasUnexpectedUriShape
+            MatchesExpectedContract = $false
         }
     }
     finally {
@@ -579,11 +584,12 @@ function Get-CrmDeploymentSettingsEvidence {
                         Kind = $(if ($isUriLike) { 'uri-like' } else { 'host-domain-like' })
                         Present = -not [string]::IsNullOrWhiteSpace($rawValue)
                         AbsoluteUriSyntax = $(if ($isUriLike -and -not [string]::IsNullOrWhiteSpace($rawValue)) {
-                            [uri]::TryCreate($rawValue, [UriKind]::Absolute, [ref]$parsedValue)
-                        } else {
-                            $null
-                        })
+                             [uri]::TryCreate($rawValue, [UriKind]::Absolute, [ref]$parsedValue)
+                         } else {
+                             $null
+                         })
                         ContainsWhitespace = $(if (-not $isUriLike) { $rawValue -match '\s' } else { $null })
+                        ContainsScheme = $(if (-not $isUriLike) { $rawValue -match '(?i)^[a-z][a-z0-9+.-]*:' } else { $null })
                     }
                     $parsedValue = $null
                     $rawValue = $null

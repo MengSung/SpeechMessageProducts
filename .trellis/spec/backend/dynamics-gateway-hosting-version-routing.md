@@ -1115,11 +1115,14 @@ opt-in `Probe`. The setting projection reads only `IfdSettings` and
   the letters `uri`.
 - When `-ExpectedIfdExternalDomain` is supplied, `IfdSettings` additionally
   carries `ExternalDomainExpectation` with only `Present`,
-  `ContainsWhitespace`, `Representation`, `NormalizedHostMatches`,
+  `ContainsWhitespace`, `ContainsScheme`, `Representation`, `NormalizedHostMatches`,
   `HasUnexpectedUriShape`, and `MatchesExpectedContract`. It never serializes
-  the configured or persisted value. A bare hostname and an equivalent HTTPS
-  root URI are semantically equal; non-HTTPS, non-default port, non-root path,
-  user-info, query, fragment, or whitespace fails closed.
+  the configured or persisted value. Microsoft documents the IFD External
+  Domain input as a bare hostname. A scheme-bearing value is therefore a
+  fail-closed `absolute-uri-requires-supported-review` result: its normalized
+  host and safe URI shape are supporting evidence only, not an automatic match
+  and not proof that the server is misconfigured. Non-HTTPS, non-default port,
+  non-root path, user-info, query, fragment, or whitespace also fails closed.
 - Default execution sends no CRM request. `-ProbeWhoAmI` creates one disposable,
   no-cookie, no-proxy, no-redirect `UseDefaultCredentials` request using the
   current approved host identity and returns only status-category evidence.
@@ -1137,7 +1140,7 @@ opt-in `Probe`. The setting projection reads only `IfdSettings` and
 | A temporary activation succeeds | Read both setting shapes and remove that snap-in exactly once before returning. |
 | A trusted `Get-CrmSetting` query fails | Report `deployment-setting-query-failed`; do not reinterpret it as an authorization to use another management surface. |
 | A scalar field contains the text `uri` within its name | Exclude it unless the name has a URI/URL/endpoint/address suffix. |
-| DWS represents `ExternalDomain` as an HTTPS root URI instead of the wizard's bare hostname | Compare normalized host plus safe URI shape; do not use direct display-string equality or reopen the wizard solely for that false negative. |
+| DWS returns `ExternalDomain` with a scheme instead of the documented bare hostname | Return `ContainsScheme=true` and `MatchesExpectedContract=false`; preserve normalized-host and shape evidence, then require one supported Deployment Manager/servicing review. Do not rewrite the setting solely from this shape result. |
 | Expected External Domain has a wrong host or an unsafe URI shape | Return `MatchesExpectedContract=false`; permit only one official Deployment Manager review, never SQL/Registry/IIS/DNS/ADFS/remoting substitution. |
 | `-ProbeWhoAmI` returns HTTP 500 | Preserve CRMWeb as an external failed gate; do not change routing, authentication mode, or another infrastructure layer automatically. |
 
@@ -1145,8 +1148,10 @@ opt-in `Probe`. The setting projection reads only `IfdSettings` and
 
 - Good: an already approved Deployment PowerShell console reads both setting
   shapes, compares target-specific expected values without printing them, and
-  treats a DWS HTTPS-root representation of External Domain as equal to the
-  Deployment Manager bare-host input.
+  accepts only the documented bare-host External Domain form automatically.
+- Base: a scheme-bearing External Domain result retains no raw value and blocks
+  automatic green status pending a supported Deployment Manager/servicing
+  review; it does not itself authorize a server mutation.
 - Base: a generic administrative PowerShell has no snap-in; the result reports
   that boundary and allocates no remote connection, credential, or CRM request.
 - Base: a snap-in is loaded by the diagnostic for one invocation, then removed
@@ -1154,9 +1159,9 @@ opt-in `Probe`. The setting projection reads only `IfdSettings` and
 - Bad: use a raw same-named PowerShell function as `Get-CrmSetting`, print
   complete configuration objects, or treat a shape-only result as proof that
   every exact persisted value is correct.
-- Bad: cast `IfdSettings.ExternalDomain` to a string and compare it directly
-  with a bare hostname. That creates a false mismatch when DWS returns the
-  equivalent HTTPS root URI.
+- Bad: treat a scheme-bearing `IfdSettings.ExternalDomain` string as
+  automatically equivalent to the Deployment Manager bare-host contract, or
+  change the setting solely because a redacted shape check returned false.
 - Bad: repeat the same `WhoAmI` probe without a changed persisted setting or
   replace the diagnostic with SQL, Registry, IIS, DNS, ADFS, password, Basic,
   CredSSP, or `TrustedHosts` workarounds.
@@ -1173,9 +1178,10 @@ opt-in `Probe`. The setting projection reads only `IfdSettings` and
 - Include a scalar `SessionSecurityTokenLifetimeInHours` property and assert it
   is not projected as URI/domain evidence.
 - Mock `ExternalDomain` as an HTTPS root URI and assert
-  `ExternalDomainExpectation.MatchesExpectedContract=true` without the raw
-  setting value appearing in serialized evidence; assert a non-root-path URI
-  fails closed.
+  `ExternalDomainExpectation.ContainsScheme=true` plus
+  `MatchesExpectedContract=false` without the raw setting value appearing in
+  serialized evidence; assert a bare hostname remains the only automatic
+  match and a non-root-path URI fails closed.
 
 ### 7. Wrong vs Correct
 
@@ -1187,7 +1193,8 @@ Get-CrmSetting -SettingType IfdSettings | Format-List *
 
 # A missing cmdlet is not permission to inspect CRM native SQL or change IIS.
 
-# DWS can format the same persisted setting as an HTTPS URI.
+# A scheme-bearing value is not an automatic green match for the documented
+# External Domain hostname contract.
 ([string]$ifd.ExternalDomain).Trim() -eq 'expected.example.invalid'
 ```
 
@@ -1207,9 +1214,9 @@ $evidence.DeploymentSettings |
 ```
 
 The correct path preserves command provenance, suppresses raw setting values,
-normalizes only the approved external-domain semantics, and makes shell
-discovery, DWS query access, and CRMWeb live behavior distinct evidence
-boundaries.
+reports a scheme-bearing External Domain as a supported-review boundary rather
+than a proven root cause, and keeps shell discovery, DWS query access, and
+CRMWeb live behavior as distinct evidence boundaries.
 
 ## Scenario: LocalDB legacy epoch 的顯式 drained recovery
 

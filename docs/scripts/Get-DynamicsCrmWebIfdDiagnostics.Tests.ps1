@@ -113,13 +113,24 @@ $uriExternalDomainEvidence = Get-CrmIfdExternalDomainMatchEvidence `
     -ExpectedHost $expectedExternalDomain
 
 if (-not $uriExternalDomainEvidence.NormalizedHostMatches -or
-    -not $uriExternalDomainEvidence.MatchesExpectedContract -or
-    $uriExternalDomainEvidence.Representation -ne 'absolute-https-root-uri') {
-    throw 'An HTTPS root Uri whose normalized host matches the IFD External Domain contract must pass.'
+    -not $uriExternalDomainEvidence.ContainsScheme -or
+    $uriExternalDomainEvidence.MatchesExpectedContract -or
+    $uriExternalDomainEvidence.Representation -ne 'absolute-uri-requires-supported-review') {
+    throw 'A scheme-bearing IFD ExternalDomain value must require supported review, not pass automatically.'
 }
 
 $uriExternalDomainEvidenceText = $uriExternalDomainEvidence | ConvertTo-Json -Depth 4
 Assert-NotContains -Actual $uriExternalDomainEvidenceText -ForbiddenPattern ([regex]::Escape($expectedExternalDomain)) -Context 'External-domain semantic evidence must not serialize the persisted setting value'
+
+$bareExternalDomainEvidence = Get-CrmIfdExternalDomainMatchEvidence `
+    -ExternalDomainValue $expectedExternalDomain `
+    -ExpectedHost $expectedExternalDomain
+
+if ($bareExternalDomainEvidence.ContainsScheme -or
+    -not $bareExternalDomainEvidence.MatchesExpectedContract -or
+    $bareExternalDomainEvidence.Representation -ne 'bare-host') {
+    throw 'The documented bare IFD ExternalDomain hostname must remain the only automatic match.'
+}
 
 $pathExternalDomainEvidence = Get-CrmIfdExternalDomainMatchEvidence `
     -ExternalDomainValue ([uri]'https://auth.speechmessage.com.tw/not-a-root') `
@@ -256,8 +267,16 @@ if ($pathExternalDomainEvidence.MatchesExpectedContract -or
         Where-Object { $_.SettingType -eq 'IfdSettings' } |
         Select-Object -First 1)
     if ($ifdSettingsEvidence.Count -ne 1 -or
-        -not $ifdSettingsEvidence[0].ExternalDomainExpectation.MatchesExpectedContract) {
-        throw 'The IFD settings projection must semantically accept an equivalent HTTPS ExternalDomain URI.'
+        -not $ifdSettingsEvidence[0].ExternalDomainExpectation.ContainsScheme -or
+        $ifdSettingsEvidence[0].ExternalDomainExpectation.MatchesExpectedContract) {
+        throw 'The IFD settings projection must fail closed when ExternalDomain has a scheme.'
+    }
+
+    $externalDomainProperty = @($ifdSettingsEvidence[0].Properties |
+        Where-Object { $_.Name -eq 'ExternalDomain' } |
+        Select-Object -First 1)
+    if ($externalDomainProperty.Count -ne 1 -or -not $externalDomainProperty[0].ContainsScheme) {
+        throw 'Host-domain-like deployment evidence must identify a scheme-bearing value without exporting it.'
     }
 
     $ifdSettingsEvidenceText = $ifdSettingsEvidence[0] | ConvertTo-Json -Depth 8
