@@ -74,21 +74,30 @@ required identifier or an incorrect `auth` metadata host as the explanation for
 the already observed CRMWeb HTTP 500. It does **not** by itself prove that
 CRMWeb can compose the final claims redirect.
 
-## Next supported, read-only discriminating check
+## Completed read-only discriminating check
 
-Do not run another `WhoAmI` probe and do not reopen or apply the IFD wizard.
+The operator ran one read-only bounded classification of the existing ASP.NET
+1309 records on `D365APP01`. It issued no HTTP request and exported no raw event
+message, URI, query string, cookie, token, authorization header, credential,
+configuration value, or stack trace.
 
-The next evidence must come from the existing CRMWeb failure, not from another
-client request: collect a sanitized fingerprint of the correlated ASP.NET 1309
-`UriFormatException` in the D365APP01 Application log. The collection must be
-read-only and disclose only a bounded failure category, component/method
-category, and approved request-path category; it must not export a raw event
-message, cookie, token, authorization header, credential, configuration value,
-or stack trace.
+| Bounded result | Observed value |
+| --- | --- |
+| Matching records | 3 |
+| Component category | `claims-redirect-nonpathbased-url` for all 3 |
+| Request-path category | `webapi-v9.1-whoami` for all 3 |
 
-That one snapshot distinguishes a CRMWeb redirect-composition defect from a
-different CRMWeb URI construction boundary. No setting change is authorized
-until it supplies a concrete, supported cause.
+This closes the evidence-collection substep: the repeated CE 9.1 HTTP 500 is
+inside CRMWeb Claims/IFD non-path-based redirect composition. It is not Gateway
+behavior, a HostIdentity/Kerberos authorization failure, or evidence that an AD
+FS relying-party identifier is missing.
+
+The classification intentionally does **not** expose the malformed value and
+therefore does not identify an operator-correctable deployment setting. Do not
+run another `WhoAmI` probe, reopen the IFD wizard, or mutate IFD, AD FS, DNS,
+IIS, Registry, or SQL settings. A server-side correction is authorized only if
+an official supported cause is independently identified; otherwise this remains
+a CRMWeb product-support / servicing boundary rather than a Gateway change.
 
 ### Repository diagnostic readiness
 

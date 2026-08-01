@@ -2,7 +2,9 @@ using FluentAssertions;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
+using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.WebApi.Capacity;
+using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -701,6 +703,240 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
     }
 
     /// <summary>
+    /// 以兩個彼此獨立建立的 durable coordinator 與 admission manager，共用一次性產生的 LocalDB lease namespace，
+    /// 驗證兩個已 Ready 的 runtime host 合計只能取得 <c>AggregateMaxInFlight</c> 的容量，第三個 host 與額外工作
+    /// 必須 fail-closed。兩個 manager 各自擁有其本機 admission/lease 生命週期，LocalDB 只承載跨 owner 的耐久容量
+    /// 權威；測試不可藉由共用可變 manager、Session、token、credential 或 HTTP client 讓結果看似成功。
+    /// 此案例不連線 Dynamics：<c>.invalid</c> URI 只經正式 canonical-key 驗證路徑建立耐久 organization 身分。
+    /// 不論 assertion、slot acquire 或 permit release 是否失敗，後段都會逐一 await permit、manager 與本測試唯一
+    /// 建立的 namespace cleanup，最後斷言兩個 coordinator 的資料庫 operation 計數皆回到零，防止 connection、task
+    /// 或耐久測試資料無界保留。
+    /// </summary>
+    [LiveSqlFact]
+    public async Task Live_sql_multi_owner_managers_share_durable_capacity_and_drain()
+    {
+        var connectionString = Environment.GetEnvironmentVariable(
+            LiveConnectionStringEnvironmentVariable)
+            ?? throw new InvalidOperationException(
+                $"Test discovery lost {LiveConnectionStringEnvironmentVariable}; refusing to continue without an explicit LocalDB target.");
+
+        var connectionBuilder = new SqlConnectionStringBuilder(connectionString);
+        connectionBuilder.DataSource.Equals(
+                @"(localdb)\MSSQLLocalDB",
+                StringComparison.OrdinalIgnoreCase)
+            .Should().BeTrue("the live multi-owner contract is LocalDB-only");
+        connectionBuilder.InitialCatalog.Should().Be("SpeechMessageDynamicsControlPlane");
+        connectionBuilder.IntegratedSecurity.Should().BeTrue();
+
+        var suffix = Guid.NewGuid().ToString("N");
+        var leaseNamespace = new RuntimeHostSlotLeaseNamespace("multi-owner-contract-" + suffix);
+        var webApiOptions = new DynamicsWebApiOptions
+        {
+            OrganizationBaseUri = $"https://multi-owner-{suffix}.invalid/org/",
+            CeVersion = "9.1",
+            MaxConnectionsPerServer = 1,
+            Admission = new OrganizationAdmissionOptions
+            {
+                ExpectedOrganizationId = Guid.NewGuid(),
+                AggregateMaxInFlight = 2,
+                MaximumRuntimeHosts = 2,
+                LocalQueueCapacity = 0,
+                MaxInFlightAndQueuedPerWorkload = 2,
+                QueueAdmissionTimeoutSeconds = 5,
+                MaxDispatchEnvelopeBytes = 512,
+                AdmissionNamespaceId = "multi-owner-admission-" + suffix,
+                LeaseNamespaceId = leaseNamespace.LeaseNamespaceId,
+                AdmissionEpoch = 1,
+                RuntimeHostSlotLeaseTtlSeconds = 30,
+                RuntimeHostSlotRenewalIntervalSeconds = 10,
+                RuntimeHostSlotExpiryFenceSeconds = 1,
+                MaximumOutboundWorkLifetimeSeconds = 2,
+                ShutdownDrainTimeoutSeconds = 5,
+                RequireDurableHostCoordinator = true
+            }
+        };
+
+        OrganizationAdmissionPlan.TryCreate(
+                webApiOptions,
+                webApiOptions.Admission,
+                out var firstPlan,
+                out var firstPlanError)
+            .Should().BeTrue(firstPlanError?.ErrorMessage);
+        OrganizationAdmissionPlan.TryCreate(
+                webApiOptions,
+                webApiOptions.Admission,
+                out var secondPlan,
+                out var secondPlanError)
+            .Should().BeTrue(secondPlanError?.ErrorMessage);
+        firstPlan.Should().NotBeNull();
+        secondPlan.Should().NotBeNull();
+        firstPlan.Should().NotBeSameAs(secondPlan);
+        firstPlan!.LeaseNamespace.LeaseNamespaceId.Should().Be(leaseNamespace.LeaseNamespaceId);
+        secondPlan!.LeaseNamespace.LeaseNamespaceId.Should().Be(leaseNamespace.LeaseNamespaceId);
+
+        var coordinatorOptions = new SqlRuntimeHostSlotCoordinatorOptions
+        {
+            ConnectionString = connectionString,
+            CommandTimeoutSeconds = 5,
+            QuarantineSeconds = 1
+        };
+        var firstCoordinator = new SqlRuntimeHostSlotCoordinator(
+            coordinatorOptions,
+            NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
+        var secondCoordinator = new SqlRuntimeHostSlotCoordinator(
+            coordinatorOptions,
+            NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
+        var firstManager = new OrganizationAdmissionManager(
+            firstPlan,
+            firstCoordinator,
+            NullLogger<OrganizationAdmissionManager>.Instance);
+        var secondManager = new OrganizationAdmissionManager(
+            secondPlan,
+            secondCoordinator,
+            NullLogger<OrganizationAdmissionManager>.Instance);
+
+        IAdmissionPermit? firstPermit = null;
+        IAdmissionPermit? secondPermit = null;
+        RuntimeHostSlotLease? excessHostLease = null;
+        Exception? contractFailure = null;
+        try
+        {
+            await firstCoordinator.VerifySchemaAsync(CancellationToken.None);
+            await Task.WhenAll(
+                firstManager.EnsureHostSlotAsync(CancellationToken.None),
+                secondManager.EnsureHostSlotAsync(CancellationToken.None));
+
+            firstManager.GetSnapshot().HostSlotReady.Should().BeTrue();
+            secondManager.GetSnapshot().HostSlotReady.Should().BeTrue();
+
+            excessHostLease = await secondCoordinator.TryAcquireAsync(
+                CreateLeaseRequest(
+                    firstPlan.CanonicalKey,
+                    firstPlan.LeaseNamespace,
+                    "multi-owner-extra-host-" + suffix,
+                    firstPlan.MaximumRuntimeHosts,
+                    firstPlan.RuntimeHostSlotLeaseTtl,
+                    firstPlan.AdmissionEpoch,
+                    firstPlan.ConfigurationDigest),
+                CancellationToken.None);
+            excessHostLease.Should().BeNull(
+                "the two independently owned managers already hold the durable namespace's two host slots");
+
+            var acquisitions = await Task.WhenAll(
+                firstManager.AcquireAsync(CreateMultiOwnerEnvelope("multi-owner-a"), CancellationToken.None),
+                secondManager.AcquireAsync(CreateMultiOwnerEnvelope("multi-owner-b"), CancellationToken.None));
+            acquisitions.Should().OnlyContain(result => result.Succeeded);
+            firstPermit = acquisitions[0].Permit;
+            secondPermit = acquisitions[1].Permit;
+
+            var firstSnapshot = firstManager.GetSnapshot();
+            var secondSnapshot = secondManager.GetSnapshot();
+            (firstSnapshot.InFlight + secondSnapshot.InFlight)
+                .Should().Be(firstPlan.AggregateMaxInFlight);
+            (firstSnapshot.InFlight + secondSnapshot.InFlight)
+                .Should().BeLessOrEqualTo(firstPlan.AggregateMaxInFlight);
+
+            var excessWork = await firstManager.AcquireAsync(
+                CreateMultiOwnerEnvelope("multi-owner-extra"),
+                CancellationToken.None);
+            excessWork.Succeeded.Should().BeFalse();
+            excessWork.Error!.ErrorCode.Should().Be(DynamicsErrorCodes.QueueFull);
+        }
+        catch (Exception exception)
+        {
+            contractFailure = exception;
+        }
+
+        var failures = new List<Exception>(capacity: 7);
+        if (contractFailure is not null)
+        {
+            failures.Add(contractFailure);
+        }
+
+        foreach (var permit in new[] { firstPermit, secondPermit })
+        {
+            if (permit is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                await permit.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract 無法確定釋放已取得的工作 permit。",
+                    exception));
+            }
+        }
+
+        if (excessHostLease is not null)
+        {
+            try
+            {
+                await excessHostLease.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract 無法確定釋放意外取得的 excess host lease。",
+                    exception));
+            }
+        }
+
+        foreach (var manager in new[] { firstManager, secondManager })
+        {
+            try
+            {
+                await manager.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract 無法 drain 並 dispose admission manager。",
+                    exception));
+            }
+        }
+
+        try
+        {
+            await DeleteOwnedNamespacesAsync(connectionString, new[] { leaseNamespace.LeaseNamespaceId });
+        }
+        catch (Exception exception)
+        {
+            failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract 對其一次性 namespace 的 durable test-row cleanup 失敗。",
+                exception));
+        }
+
+        try
+        {
+            firstCoordinator.ActiveDatabaseOperations.Should().Be(0);
+            secondCoordinator.ActiveDatabaseOperations.Should().Be(0);
+        }
+        catch (Exception exception)
+        {
+            failures.Add(new InvalidOperationException(
+                    "Live multi-owner contract 在 drain 與 cleanup 後仍保留 SQL coordinator operation。",
+                exception));
+        }
+
+        if (failures.Count == 1)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
+        }
+
+        if (failures.Count > 1)
+        {
+            throw new AggregateException(
+                "Live multi-owner durable SQL contract、drain、cleanup 或 lifecycle sentinel 發生多重失敗。",
+                failures);
+        }
+    }
+
+    /// <summary>
     /// 刪除本次 live contract 唯一擁有的隨機 namespace 資料列；固定 LocalDB/database guard 已在呼叫端完成，
     /// 每個 namespace 以參數化 transaction 依 FK 順序刪 lease、epoch、canonical binding，避免把測試字串當 SQL
     /// 或留下半套控制面狀態。正式環境的 binding 不由 runtime release 刪除；這裡只清理本測試唯一產生的隨機資料。
@@ -735,6 +971,24 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         created.Should().BeTrue(error);
         return key;
     }
+
+    /// <summary>
+    /// 建立只供本 live multi-owner 容量案例使用的 bounded dispatch envelope。每次呼叫只帶入固定、非敏感的
+    /// workload subject 標記；不保留使用者、Session、token、credential、endpoint 或 SQL connection。封包的期限與
+    /// 大小受 admission plan 約束，且只在 <see cref="OrganizationAdmissionManager.AcquireAsync"/> 的呼叫期間由
+    /// 取得成功後的 permit owner 使用；測試 finally 區塊會 await 該 permit 的釋放。
+    /// </summary>
+    private static DispatchEnvelope CreateMultiOwnerEnvelope(string workloadSubjectId)
+        => new()
+        {
+            ProfileAlias = "multi-owner-localdb",
+            CapabilityOperationId = "multi-owner-localdb-capacity",
+            WorkloadSubjectId = workloadSubjectId,
+            TemplateId = "MultiOwnerLocalDbCapacity",
+            TemplateHash = new string('a', 64),
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(10),
+            EstimatedEnvelopeBytes = 512
+        };
 
     /// <summary>
     /// 以完整 canonical identity 建立 SQL acquire request，避免 live contract 或 outage regression

@@ -13,7 +13,7 @@
 
 The implementation must follow `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md` and the decision explanation in `docs/dynamics-gateway-central-local-82-91-guide.zh-TW.md`.
 
-## Status — updated 2026-07-31
+## Status — updated 2026-08-01
 
 This plan is actively executing. The local Gateway foundation, runtime/policy
 boundaries, deterministic isolation/lifecycle checks, and opt-in smoke harness
@@ -25,6 +25,19 @@ No product traffic is enabled while those gates remain open:
 remain locked. The current Claims/IFD wizard evidence and the exact once-only
 post-apply verification sequence are recorded in
 `phase4-ifd-wizard-evidence-2026-07-31.md`.
+
+The one permitted, read-only CRMWeb event classification is now complete: all
+three matching CE 9.1 failures identify the CRMWeb Claims non-path-based
+redirect-composition boundary. It does not expose a malformed value and does not
+authorize another probe or any deployment mutation; see
+`phase4-ce91-ifd-adfs-boundary-2026-08-01.md`.
+
+The fixed LocalDB durable-coordinator suite now also proves two separately
+constructed manager/coordinator owners share one namespace, reject excess host
+and work capacity, and drain their database operations to zero. This advances
+the local capacity gate but is deliberately not represented as true Gateway plus
+Embedded multi-process proof; see
+`phase4-localdb-multi-owner-verification-2026-08-01.md`.
 
 ## Preconditions
 
