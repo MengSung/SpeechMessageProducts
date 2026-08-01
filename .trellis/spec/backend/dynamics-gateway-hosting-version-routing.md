@@ -714,6 +714,7 @@ New-PSSession -ComputerName <approved-dns-name> -Authentication Negotiate
 - A compiled ASP.NET Core DLL resolves `appsettings.json`, `appsettings.{Environment}.json`, content files, and relative configuration from its content root. Local verification must set the process working directory to the owning project directory or pass an explicit reviewed content root. Running the Gateway DLL from the solution root can omit its profile configuration and produce a misleading fail-closed profile-URI startup exception; do not weaken validation or edit deployment JSON to compensate for the wrong content root.
 - WinRM mutation requires an authenticated administrative owner obtained from an already approved Kerberos/Negotiate session or credential store. Every `PSSession` is removed in `finally`, credential/session variables are cleared, and pre-state plus exact rollback are captured before mutation. Basic authentication, `AllowUnencrypted=true`, broad `TrustedHosts`, repeated password attempts, and persisted `PSCredential` or remote object graphs are forbidden.
 - If the caller is not domain joined, is not elevated, has no approved credential/session, or cannot authenticate to the target, verification stops at DNS/TCP/WSMan identify probes. An existing insecure local WinRM client pre-state may be reported as a blocker, but it must not be used as an authorization path or silently changed without the required administrative owner.
+- A Claims/IFD persistence diagnostic accepts only the official `Microsoft.Crm.PowerShell` `Get-CrmSetting` cmdlet. It may temporarily load a registered snap-in only in Windows PowerShell 5.1 Desktop and removes only the snap-in it loaded in `finally`; a same-named function, alias, or another snap-in is rejected. `not-registered` or `desktop-powershell-required` means no supported Deployment shell is available, while a trusted command followed by a setting-query failure is a separate Deployment Web Service context boundary. Neither result authorizes a SQL, Registry, IIS, DNS, ADFS, credential, or remoting fallback.
 - The in-app browser must not bypass a self-signed HTTPS warning or install/trust a development certificate merely to make a smoke test green. A local CLI probe may explicitly ignore the development certificate only for bounded loopback status verification; browser evidence remains limited to pages reachable through the browser's normal trust policy. Production Gateway evidence requires a deployment-trusted certificate.
 
 ### 4. Validation & Error Matrix
@@ -1071,6 +1072,118 @@ The production harness applies this same snapshot/restore ownership rule to
 every bridge key. The target, authentication mode, and resulting evidence
 remain explicit and traceable, while a real CRM fault remains an external gate
 rather than a reason to weaken the Gateway boundary or retain caller state.
+
+## Scenario: Dynamics Deployment PowerShell Claims/IFD persistence diagnostic
+
+### 1. Scope / Trigger
+
+This scenario applies when a real CE 8.2/9.1 CRMWeb request reaches CRM but
+fails before an authentication verdict, and an approved D365 application-server
+operator must distinguish persisted Claims/IFD configuration from Gateway,
+WinRM, DNS, SQL, IIS, or ADFS alternatives. It is a read-only diagnostic
+boundary, not a Deployment Manager replacement or a configuration writer.
+
+### 2. Signatures
+
+```powershell
+Get-DynamicsCrmWebIfdDiagnostics.ps1 `
+  -WebApiRoot '<explicit HTTPS /api/data/v8.2/ or /api/data/v9.1/ root>' `
+  [-LookbackMinutes 1..1440] `
+  [-MaxEvents 1..50] `
+  [-ProbeWhoAmI]
+```
+
+The output contains one sanitized snapshot with `DeploymentShell`,
+`DeploymentSettings`, bounded ASP.NET event evidence, IIS evidence, and an
+opt-in `Probe`. The setting projection reads only `IfdSettings` and
+`ClaimsSettings` through `Get-CrmSetting`.
+
+### 3. Contracts
+
+- The command accepts only a `Cmdlet` registered by the official
+  `Microsoft.Crm.PowerShell` snap-in. A same-named function, alias, module, or
+  another snap-in is not a trusted substitute.
+- If the command is absent, the diagnostic may temporarily load exactly that
+  registered snap-in only in Windows PowerShell Desktop 5.1. It records whether
+  the activation was already loaded or temporarily loaded, and a `finally`
+  block removes only an activation owned by the diagnostic.
+- The projection reports property names and safe shape booleans only; it never
+  returns raw domain, URI, credential, cookie, header, event-message, or DWS
+  values. URI recognition uses an anchored name suffix so scalar fields such as
+  a security-token lifetime cannot be misclassified because their names contain
+  the letters `uri`.
+- Default execution sends no CRM request. `-ProbeWhoAmI` creates one disposable,
+  no-cookie, no-proxy, no-redirect `UseDefaultCredentials` request using the
+  current approved host identity and returns only status-category evidence.
+- The diagnostic does not create remote sessions, prompt for or persist a
+  credential, change Deployment settings, or use SQL, Registry, IIS, DNS, ADFS,
+  Basic, CredSSP, unencrypted WinRM, or `TrustedHosts` as a fallback.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| `Get-CrmSetting` resolves to an untrusted command source | Return `DeploymentShell.Activation=untrusted-command`; do not invoke it. |
+| Desktop PowerShell 5.1 is unavailable | Return `desktop-powershell-required`; do not attempt a module or remote fallback. |
+| The official snap-in is not registered | Return `not-registered`; preserve the Deployment-shell boundary. |
+| A temporary activation succeeds | Read both setting shapes and remove that snap-in exactly once before returning. |
+| A trusted `Get-CrmSetting` query fails | Report `deployment-setting-query-failed`; do not reinterpret it as an authorization to use another management surface. |
+| A scalar field contains the text `uri` within its name | Exclude it unless the name has a URI/URL/endpoint/address suffix. |
+| `-ProbeWhoAmI` returns HTTP 500 | Preserve CRMWeb as an external failed gate; do not change routing, authentication mode, or another infrastructure layer automatically. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an already approved Deployment PowerShell console reads both setting
+  shapes, compares target-specific expected values without printing them, and
+  identifies only the false persisted fields for one Deployment Manager change.
+- Base: a generic administrative PowerShell has no snap-in; the result reports
+  that boundary and allocates no remote connection, credential, or CRM request.
+- Base: a snap-in is loaded by the diagnostic for one invocation, then removed
+  before the function returns; an operator-owned snap-in stays loaded.
+- Bad: use a raw same-named PowerShell function as `Get-CrmSetting`, print
+  complete configuration objects, or treat a shape-only result as proof that
+  every exact persisted value is correct.
+- Bad: repeat the same `WhoAmI` probe without a changed persisted setting or
+  replace the diagnostic with SQL, Registry, IIS, DNS, ADFS, password, Basic,
+  CredSSP, or `TrustedHosts` workarounds.
+
+### 6. Tests Required
+
+- Parse the script under Windows PowerShell 5.1 and run the no-probe path with
+  an explicit non-routable example root; assert exactly one structured snapshot.
+- Assert source-level rejection of credential, remote-session, configuration
+  write, secret, cookie, proxy, and raw diagnostic-text paths.
+- Mock a registered official snap-in; assert that both settings are projected,
+  temporary activation is reported, and exactly one owned snap-in removal occurs.
+- Mock a same-named non-cmdlet; assert `untrusted-command` and no invocation.
+- Include a scalar `SessionSecurityTokenLifetimeInHours` property and assert it
+  is not projected as URI/domain evidence.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```powershell
+# A same-named local function can shadow the official Deployment cmdlet.
+Get-CrmSetting -SettingType IfdSettings | Format-List *
+
+# A missing cmdlet is not permission to inspect CRM native SQL or change IIS.
+```
+
+#### Correct
+
+```powershell
+$evidence = .\Get-DynamicsCrmWebIfdDiagnostics.ps1 `
+    -WebApiRoot 'https://example.invalid/api/data/v9.1/'
+
+$evidence.DeploymentShell
+$evidence.DeploymentSettings |
+    Select-Object SettingType, Status, Enabled, FailureCategory
+```
+
+The correct path preserves command provenance, suppresses raw setting values,
+and makes shell discovery, DWS query access, and CRMWeb live behavior distinct
+evidence boundaries.
 
 ## Scenario: LocalDB legacy epoch 的顯式 drained recovery
 

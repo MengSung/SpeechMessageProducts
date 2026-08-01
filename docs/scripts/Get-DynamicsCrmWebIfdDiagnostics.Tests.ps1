@@ -50,6 +50,13 @@ Assert-Contains -Actual $source -Expected '[ValidateRange(1, 1440)]' -Context 'E
 Assert-Contains -Actual $source -Expected 'Get-WinEvent' -Context 'The server exception discriminator must be collected locally'
 Assert-Contains -Actual $source -Expected 'no-matching-events' -Context 'An empty bounded event query must not be misreported as a diagnostics failure'
 Assert-Contains -Actual $source -Expected 'Get-CrmSetting' -Context 'Claims and IFD settings require supported read-only discovery'
+Assert-Contains -Actual $source -Expected "'Microsoft.Crm.PowerShell'" -Context 'The official Dynamics deployment snap-in must be the only activation candidate'
+Assert-Contains -Actual $source -Expected 'Get-PSSnapin -Registered' -Context 'The diagnostic must distinguish an unregistered deployment snap-in from a missing command'
+Assert-Contains -Actual $source -Expected 'Add-PSSnapin -Name $crmSnapInName -ErrorAction Stop' -Context 'A supported Desktop PowerShell shell must temporarily activate the registered deployment snap-in'
+Assert-Contains -Actual $source -Expected 'Remove-PSSnapin -Name $activation.SnapInName -ErrorAction Stop' -Context 'A snap-in added by this diagnostic must be deterministically removed'
+Assert-Contains -Actual $source -Expected '$crmSnapInAddedHere' -Context 'The diagnostic must never remove a caller-owned deployment snap-in'
+Assert-Contains -Actual $source -Expected 'desktop-powershell-required' -Context 'PowerShell edition incompatibility must be surfaced without falling back to unsupported tooling'
+Assert-Contains -Actual $source -Expected 'temporarily-loaded' -Context 'Successful safe snap-in activation must be observable in the structured snapshot'
 Assert-Contains -Actual $source -Expected 'Get-WebBinding' -Context 'Relevant IIS binding evidence must remain available'
 Assert-Contains -Actual $source -Expected 'UseDefaultCredentials' -Context 'The optional probe must use the current host identity'
 Assert-Contains -Actual $source -Expected 'UseCookies = $false' -Context 'The optional probe must never retain an IFD browser cookie'
@@ -86,6 +93,138 @@ if ($LASTEXITCODE -ne 0) {
 
 if ($outputCountText -ne '1') {
     throw "No-probe execution must emit exactly one structured snapshot; actual pipeline object count was '$outputCountText'."
+}
+
+# 在獨立 scope 模擬已註冊但尚未載入的官方 snap-in。測試只驗證診斷自己的生命週期：
+# 取得 cmdlet 後必須讀取兩種設定，並在函式返回前卸載由它新增的 snap-in。
+# Dot-source the diagnostic once so its private helper functions are available in this
+# test script's scope. The invocation remains no-probe and completes before command
+# mocks are installed, so environment observation cannot affect the fixture below.
+$null = . $scriptPath -WebApiRoot 'https://example.invalid/api/data/v9.1/'
+
+# A same-named function is not evidence of the official Dynamics deployment
+# cmdlet. It must be rejected before it can be invoked.
+& {
+    function Get-Command {
+        param(
+            [string]$Name,
+            [object]$ErrorAction
+        )
+
+        if ($Name -eq 'Get-CrmSetting') {
+            return [pscustomobject]@{
+                Name = 'Get-CrmSetting'
+                CommandType = 'Function'
+            }
+        }
+
+        return $null
+    }
+
+    $untrustedSnapshot = Initialize-CrmDeploymentCommand
+    if ($untrustedSnapshot.Evidence.Activation -ne 'untrusted-command') {
+        throw "A non-cmdlet Get-CrmSetting shadow must be rejected; actual '$($untrustedSnapshot.Evidence.Activation)'."
+    }
+}
+
+& {
+    $activationState = [pscustomobject]@{
+        Loaded = $false
+        RemoveCalls = 0
+    }
+
+    function Get-Command {
+        param(
+            [string]$Name,
+            [object]$ErrorAction
+        )
+
+        if ($Name -eq 'Get-CrmSetting' -and $activationState.Loaded) {
+            return [pscustomobject]@{
+                Name = 'Get-CrmSetting'
+                CommandType = 'Cmdlet'
+                PSSnapIn = [pscustomobject]@{ Name = 'Microsoft.Crm.PowerShell' }
+            }
+        }
+
+        return $null
+    }
+
+    function Get-PSSnapin {
+        param(
+            [string]$Name,
+            [switch]$Registered,
+            [object]$ErrorAction
+        )
+
+        if ($Registered) {
+            return [pscustomobject]@{ Name = 'Microsoft.Crm.PowerShell' }
+        }
+
+        if ($activationState.Loaded) {
+            return [pscustomobject]@{ Name = 'Microsoft.Crm.PowerShell' }
+        }
+
+        throw [System.InvalidOperationException]::new('The test snap-in is not loaded.')
+    }
+
+    function Add-PSSnapin {
+        param(
+            [string]$Name,
+            [object]$ErrorAction
+        )
+
+        if ($Name -ne 'Microsoft.Crm.PowerShell') {
+            throw 'Only the approved Dynamics snap-in may be activated.'
+        }
+
+        $activationState.Loaded = $true
+    }
+
+    function Remove-PSSnapin {
+        param(
+            [string]$Name,
+            [object]$ErrorAction
+        )
+
+        if ($Name -ne 'Microsoft.Crm.PowerShell') {
+            throw 'Only the approved Dynamics snap-in may be removed.'
+        }
+
+        $activationState.Loaded = $false
+        $activationState.RemoveCalls++
+    }
+
+    function Get-CrmSetting {
+        param([string]$SettingType)
+
+        return [pscustomobject]@{
+            Enabled = $true
+            FederationMetadataUrl = 'https://example.invalid/federation-metadata'
+            SessionSecurityTokenLifetimeInHours = 24
+        }
+    }
+
+    $activationSnapshot = Get-CrmDeploymentSettingsEvidence
+    if ($activationSnapshot.Shell.Activation -ne 'temporarily-loaded') {
+        throw "A registered Dynamics snap-in must be reported as temporarily loaded; actual '$($activationSnapshot.Shell.Activation)'."
+    }
+
+    if (@($activationSnapshot.Settings).Count -ne 2) {
+        throw 'A temporarily activated Dynamics cmdlet must read both IFD and Claims setting shapes.'
+    }
+
+    $projectedPropertyNames = @(
+        $activationSnapshot.Settings |
+            ForEach-Object { $_.Properties } |
+            ForEach-Object { $_.Name })
+    if ($projectedPropertyNames -contains 'SessionSecurityTokenLifetimeInHours') {
+        throw 'A scalar token lifetime must not be misclassified as a URI-like Claims/IFD setting.'
+    }
+
+    if ($activationState.Loaded -or $activationState.RemoveCalls -ne 1) {
+        throw 'A Dynamics snap-in activated by the diagnostic must be removed exactly once before the diagnostic returns.'
+    }
 }
 
 $fakeEvent = [pscustomobject]@{

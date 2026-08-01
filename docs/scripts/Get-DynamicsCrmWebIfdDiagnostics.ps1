@@ -184,6 +184,207 @@ function Get-CrmWebUriFormatEvents {
     }
 }
 
+function Initialize-CrmDeploymentCommand {
+    <#
+    .SYNOPSIS
+      安全確認或暫時載入官方 Dynamics 365 Deployment PowerShell snap-in。
+
+    .DESCRIPTION
+      Get-CrmSetting 是唯一允許讀取 Claims/IFD 持久化設定的官方入口。本函式先採用呼叫者
+      已載入的 cmdlet；只有 Windows PowerShell 5.1 Desktop 且 Microsoft.Crm.PowerShell 已註冊時，
+      才暫時載入該 snap-in。它不建立遠端連線、不寫入 CRM、也不接觸秘密資料。
+
+      回傳的 Command 僅供同一個函式呼叫鏈立即使用，絕不寫入最終診斷輸出。SnapInAddedHere 是
+      資源所有權旗標：後續 finally 只能卸載本函式新增的 snap-in，不能移除操作者既有的工作階段狀態。
+    #>
+    $crmSnapInName = 'Microsoft.Crm.PowerShell'
+    $crmSnapInAddedHere = $false
+    $crmSnapInWasAlreadyLoaded = $false
+    $command = Get-Command -Name 'Get-CrmSetting' -ErrorAction SilentlyContinue
+
+    if ($null -ne $command) {
+        $commandType = [string]$command.CommandType
+        $snapInProperty = $command.PSObject.Properties['PSSnapIn']
+        $commandSnapInName = $null
+        if ($null -ne $snapInProperty -and $null -ne $snapInProperty.Value) {
+            $snapInNameProperty = $snapInProperty.Value.PSObject.Properties['Name']
+            if ($null -ne $snapInNameProperty -and $null -ne $snapInNameProperty.Value) {
+                $commandSnapInName = [string]$snapInNameProperty.Value
+            }
+        }
+
+        if ($commandType -ne 'Cmdlet' -or $commandSnapInName -ne $crmSnapInName) {
+            return [pscustomobject]@{
+                Command = $null
+                SnapInName = $crmSnapInName
+                SnapInAddedHere = $false
+                Evidence = [pscustomobject]@{
+                    Status = 'unavailable'
+                    Activation = 'untrusted-command'
+                    FailureCategory = 'deployment-cmdlet-source-untrusted'
+                }
+            }
+        }
+
+        return [pscustomobject]@{
+            Command = $command
+            SnapInName = $crmSnapInName
+            SnapInAddedHere = $false
+            Evidence = [pscustomobject]@{
+                Status = 'available'
+                Activation = 'already-loaded'
+                FailureCategory = $null
+            }
+        }
+    }
+
+    if ($PSVersionTable.PSEdition -ne 'Desktop' -or $PSVersionTable.PSVersion.Major -ne 5) {
+        return [pscustomobject]@{
+            Command = $null
+            SnapInName = $crmSnapInName
+            SnapInAddedHere = $false
+            Evidence = [pscustomobject]@{
+                Status = 'unavailable'
+                Activation = 'desktop-powershell-required'
+                FailureCategory = 'deployment-shell-incompatible'
+            }
+        }
+    }
+
+    try {
+        $crmSnapInWasAlreadyLoaded = @(
+            Get-PSSnapin -Name $crmSnapInName -ErrorAction Stop
+        ).Count -gt 0
+    }
+    catch {
+        # 未載入 snap-in 時 Windows PowerShell 會回報錯誤；這是唯讀探測的正常結果。
+        $crmSnapInWasAlreadyLoaded = $false
+    }
+
+    if ($crmSnapInWasAlreadyLoaded) {
+        return [pscustomobject]@{
+            Command = $null
+            SnapInName = $crmSnapInName
+            SnapInAddedHere = $false
+            Evidence = [pscustomobject]@{
+                Status = 'unavailable'
+                Activation = 'loaded-command-unavailable'
+                FailureCategory = 'deployment-cmdlet-unavailable-after-existing-snapin'
+            }
+        }
+    }
+
+    $registeredSnapInNames = @()
+    try {
+        $registeredSnapInNames = @(Get-PSSnapin -Registered -ErrorAction Stop |
+            Select-Object -ExpandProperty Name)
+    }
+    catch {
+        return [pscustomobject]@{
+            Command = $null
+            SnapInName = $crmSnapInName
+            SnapInAddedHere = $false
+            Evidence = [pscustomobject]@{
+                Status = 'unavailable'
+                Activation = 'registration-query-failed'
+                FailureCategory = 'deployment-snapin-registration-query-failed'
+            }
+        }
+    }
+
+    if ($registeredSnapInNames -notcontains $crmSnapInName) {
+        return [pscustomobject]@{
+            Command = $null
+            SnapInName = $crmSnapInName
+            SnapInAddedHere = $false
+            Evidence = [pscustomobject]@{
+                Status = 'unavailable'
+                Activation = 'not-registered'
+                FailureCategory = 'deployment-snapin-not-registered'
+            }
+        }
+    }
+
+    try {
+        [void](Add-PSSnapin -Name $crmSnapInName -ErrorAction Stop)
+        $crmSnapInAddedHere = $true
+        $command = Get-Command -Name 'Get-CrmSetting' -ErrorAction SilentlyContinue
+        if ($null -eq $command) {
+            return [pscustomobject]@{
+                Command = $null
+                SnapInName = $crmSnapInName
+                SnapInAddedHere = $crmSnapInAddedHere
+                Evidence = [pscustomobject]@{
+                    Status = 'unavailable'
+                    Activation = 'activation-command-missing'
+                    FailureCategory = 'deployment-cmdlet-unavailable-after-activation'
+                }
+            }
+        }
+
+        $commandType = [string]$command.CommandType
+        $snapInProperty = $command.PSObject.Properties['PSSnapIn']
+        $commandSnapInName = $null
+        if ($null -ne $snapInProperty -and $null -ne $snapInProperty.Value) {
+            $snapInNameProperty = $snapInProperty.Value.PSObject.Properties['Name']
+            if ($null -ne $snapInNameProperty -and $null -ne $snapInNameProperty.Value) {
+                $commandSnapInName = [string]$snapInNameProperty.Value
+            }
+        }
+
+        if ($commandType -ne 'Cmdlet' -or $commandSnapInName -ne $crmSnapInName) {
+            return [pscustomobject]@{
+                Command = $null
+                SnapInName = $crmSnapInName
+                SnapInAddedHere = $crmSnapInAddedHere
+                Evidence = [pscustomobject]@{
+                    Status = 'unavailable'
+                    Activation = 'untrusted-command'
+                    FailureCategory = 'deployment-cmdlet-source-untrusted'
+                }
+            }
+        }
+
+        return [pscustomobject]@{
+            Command = $command
+            SnapInName = $crmSnapInName
+            SnapInAddedHere = $crmSnapInAddedHere
+            Evidence = [pscustomobject]@{
+                Status = 'available'
+                Activation = 'temporarily-loaded'
+                FailureCategory = $null
+            }
+        }
+    }
+    catch {
+        # 若載入動作在變更 runspace 後才失敗，仍以目前載入狀態決定是否必須清理。
+        try {
+            $crmSnapInAddedHere = -not $crmSnapInWasAlreadyLoaded -and @(
+                Get-PSSnapin -Name $crmSnapInName -ErrorAction Stop
+            ).Count -gt 0
+        }
+        catch {
+            $crmSnapInAddedHere = $false
+        }
+
+        return [pscustomobject]@{
+            Command = $null
+            SnapInName = $crmSnapInName
+            SnapInAddedHere = $crmSnapInAddedHere
+            Evidence = [pscustomobject]@{
+                Status = 'unavailable'
+                Activation = 'activation-failed'
+                FailureCategory = 'deployment-snapin-activation-failed'
+            }
+        }
+    }
+    finally {
+        $registeredSnapInNames = $null
+        $command = $null
+        $crmSnapInWasAlreadyLoaded = $null
+    }
+}
+
 function Get-CrmDeploymentSettingsEvidence {
     <#
     .SYNOPSIS
@@ -196,32 +397,43 @@ function Get-CrmDeploymentSettingsEvidence {
       大量複製到診斷輸出。finally 會清除取得的設定物件參考；找不到 cmdlet 或權限
       不足時會回傳狀態，讓操作者保留此部署管理邊界而不是採用其他管理捷徑。
     #>
-    $command = Get-Command -Name 'Get-CrmSetting' -ErrorAction SilentlyContinue
-    if ($null -eq $command) {
-        return @([pscustomobject]@{
+    $activation = Initialize-CrmDeploymentCommand
+    $command = $activation.Command
+    $result = @()
+    try {
+        if ($null -eq $command) {
+            $result += [pscustomobject]@{
                 SettingType = 'deployment-cmdlet'
                 Status = 'unavailable'
                 Properties = @()
                 FailureCategory = 'deployment-cmdlet-unavailable'
-            })
-    }
+            }
 
-    $result = @()
-    foreach ($settingType in @('IfdSettings', 'ClaimsSettings')) {
+            return [pscustomobject]@{
+                Shell = $activation.Evidence
+                Settings = @($result)
+            }
+        }
+
+        foreach ($settingType in @('IfdSettings', 'ClaimsSettings')) {
         $setting = $null
         try {
             $setting = Get-CrmSetting -SettingType $settingType -ErrorAction Stop
             $enabledProperty = @($setting.PSObject.Properties |
                 Where-Object { $_.Name -eq 'Enabled' } |
                 Select-Object -First 1)
+            # URI tokens must be suffixes. An unanchored `uri` pattern also matches
+            # scalar names such as SessionSecurityTokenLifetimeInHours.
+            $relevantPropertyNamePattern = '(?i)(?:domain|host|realm|federation|(?:uri|url|endpoint|address)$)'
+            $uriLikePropertyNamePattern = '(?i)(?:uri|url|endpoint|address)$'
             $properties = @($setting.PSObject.Properties |
                 Where-Object {
-                    $_.Name -match '(?i)domain|host|uri|url|realm|federation|endpoint|address'
+                    $_.Name -match $relevantPropertyNamePattern
                 } |
                 ForEach-Object {
                     $rawValue = [string]$_.Value
                     $parsedValue = $null
-                    $isUriLike = $_.Name -match '(?i)uri|url|endpoint|address'
+                    $isUriLike = $_.Name -match $uriLikePropertyNamePattern
                     [pscustomobject]@{
                         Name = $_.Name
                         Kind = $(if ($isUriLike) { 'uri-like' } else { 'host-domain-like' })
@@ -264,11 +476,32 @@ function Get-CrmDeploymentSettingsEvidence {
             }
             $enabledProperty = $null
             $properties = $null
+            $relevantPropertyNamePattern = $null
+            $uriLikePropertyNamePattern = $null
             $setting = $null
         }
-    }
+        }
 
-    return $result
+        return [pscustomobject]@{
+            Shell = $activation.Evidence
+            Settings = @($result)
+        }
+    }
+    finally {
+        # 只有 Initialize-CrmDeploymentCommand 擁有的 snap-in 才可卸載；清理失敗時不輸出可能誤導的快照。
+        if ($activation.SnapInAddedHere) {
+            try {
+                Remove-PSSnapin -Name $activation.SnapInName -ErrorAction Stop
+            }
+            catch {
+                throw 'Dynamics deployment snap-in cleanup failed; no diagnostic snapshot was returned.'
+            }
+        }
+
+        $command = $null
+        $result = $null
+        $activation = $null
+    }
 }
 
 function Get-IisHttpsEvidence {
@@ -458,12 +691,16 @@ if ($apiPath -notmatch '^/api/data/v(8\.2|9\.1)$') {
 }
 
 $eventEvidence = $null
+$deploymentEvidence = $null
+$deploymentShellEvidence = $null
 $settingsEvidence = $null
 $iisEvidence = $null
 $probeEvidence = $null
 try {
     $eventEvidence = Get-CrmWebUriFormatEvents -StartTime (Get-Date).AddMinutes(-$LookbackMinutes) -MaximumCount $MaxEvents
-    $settingsEvidence = @(Get-CrmDeploymentSettingsEvidence)
+    $deploymentEvidence = Get-CrmDeploymentSettingsEvidence
+    $deploymentShellEvidence = $deploymentEvidence.Shell
+    $settingsEvidence = @($deploymentEvidence.Settings)
     $iisEvidence = Get-IisHttpsEvidence -RootUri $rootUri
     if ($ProbeWhoAmI) {
         $probeEvidence = Invoke-CrmWhoAmIProbe -RootUri $rootUri -TimeoutSeconds $RequestTimeoutSeconds
@@ -483,6 +720,7 @@ try {
         ProbeOutcome = $probeEvidence.Outcome
         Probe = $probeEvidence
         AspNet1309 = $eventEvidence
+        DeploymentShell = $deploymentShellEvidence
         DeploymentSettings = $settingsEvidence
         IisHttps = $iisEvidence
     }
@@ -490,6 +728,8 @@ try {
 finally {
     # 最終輸出建立後不保留事件、設定、IIS 或 HTTP 結果的額外參考，所有跨呼叫資源都有各自 owner。
     $eventEvidence = $null
+    $deploymentEvidence = $null
+    $deploymentShellEvidence = $null
     $settingsEvidence = $null
     $iisEvidence = $null
     $probeEvidence = $null
