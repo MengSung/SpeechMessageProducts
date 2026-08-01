@@ -102,8 +102,34 @@ if ($outputCountText -ne '1') {
 # mocks are installed, so environment observation cannot affect the fixture below.
 $null = . $scriptPath -WebApiRoot 'https://example.invalid/api/data/v9.1/'
 
-# A same-named function is not evidence of the official Dynamics deployment
-# cmdlet. It must be rejected before it can be invoked.
+# Dynamics Deployment Web Service 可能將 Deployment Manager 以裸主機名稱儲存的
+# ExternalDomain 表示成 HTTPS 根 URI。此回歸測試確認診斷只比較正規化主機與安全
+# URI 形狀，絕不可用顯示字串直接比較或將原始設定值輸出至診斷證據。
+$expectedExternalDomain = 'auth.speechmessage.com.tw'
+$uriExternalDomainEvidence = Get-CrmIfdExternalDomainMatchEvidence `
+    -ExternalDomainValue ([uri]'https://auth.speechmessage.com.tw/') `
+    -ExpectedHost $expectedExternalDomain
+
+if (-not $uriExternalDomainEvidence.NormalizedHostMatches -or
+    -not $uriExternalDomainEvidence.MatchesExpectedContract -or
+    $uriExternalDomainEvidence.Representation -ne 'absolute-https-root-uri') {
+    throw 'An HTTPS root Uri whose normalized host matches the IFD External Domain contract must pass.'
+}
+
+$uriExternalDomainEvidenceText = $uriExternalDomainEvidence | ConvertTo-Json -Depth 4
+Assert-NotContains -Actual $uriExternalDomainEvidenceText -ForbiddenPattern ([regex]::Escape($expectedExternalDomain)) -Context 'External-domain semantic evidence must not serialize the persisted setting value'
+
+$pathExternalDomainEvidence = Get-CrmIfdExternalDomainMatchEvidence `
+    -ExternalDomainValue ([uri]'https://auth.speechmessage.com.tw/not-a-root') `
+    -ExpectedHost $expectedExternalDomain
+
+if ($pathExternalDomainEvidence.MatchesExpectedContract -or
+    -not $pathExternalDomainEvidence.HasUnexpectedUriShape) {
+    throw 'An ExternalDomain URI with a non-root path must fail the IFD contract.'
+}
+
+# 同名函式不是官方 Dynamics Deployment cmdlet 的證據；在它可能被呼叫、讀取任何
+# 設定或建立可保留狀態前，診斷必須 fail closed 並拒絕這種陰影命令。
 & {
     function Get-Command {
         param(
@@ -200,12 +226,14 @@ $null = . $scriptPath -WebApiRoot 'https://example.invalid/api/data/v9.1/'
 
         return [pscustomobject]@{
             Enabled = $true
+            ExternalDomain = [uri]'https://auth.speechmessage.com.tw/'
             FederationMetadataUrl = 'https://example.invalid/federation-metadata'
             SessionSecurityTokenLifetimeInHours = 24
         }
     }
 
-    $activationSnapshot = Get-CrmDeploymentSettingsEvidence
+    $activationSnapshot = Get-CrmDeploymentSettingsEvidence `
+        -ExpectedIfdExternalDomain 'auth.speechmessage.com.tw'
     if ($activationSnapshot.Shell.Activation -ne 'temporarily-loaded') {
         throw "A registered Dynamics snap-in must be reported as temporarily loaded; actual '$($activationSnapshot.Shell.Activation)'."
     }
@@ -221,6 +249,17 @@ $null = . $scriptPath -WebApiRoot 'https://example.invalid/api/data/v9.1/'
     if ($projectedPropertyNames -contains 'SessionSecurityTokenLifetimeInHours') {
         throw 'A scalar token lifetime must not be misclassified as a URI-like Claims/IFD setting.'
     }
+
+    $ifdSettingsEvidence = @($activationSnapshot.Settings |
+        Where-Object { $_.SettingType -eq 'IfdSettings' } |
+        Select-Object -First 1)
+    if ($ifdSettingsEvidence.Count -ne 1 -or
+        -not $ifdSettingsEvidence[0].ExternalDomainExpectation.MatchesExpectedContract) {
+        throw 'The IFD settings projection must semantically accept an equivalent HTTPS ExternalDomain URI.'
+    }
+
+    $ifdSettingsEvidenceText = $ifdSettingsEvidence[0] | ConvertTo-Json -Depth 8
+    Assert-NotContains -Actual $ifdSettingsEvidenceText -ForbiddenPattern 'auth\.speechmessage\.com\.tw' -Context 'IFD expectation evidence must not serialize the persisted external domain'
 
     if ($activationState.Loaded -or $activationState.RemoveCalls -ne 1) {
         throw 'A Dynamics snap-in activated by the diagnostic must be removed exactly once before the diagnostic returns.'

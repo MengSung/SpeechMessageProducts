@@ -26,6 +26,10 @@
   明確啟用一次使用目前 Windows 身分的唯讀 WhoAmI GET。未提供此參數時不會產生
   CRM 網路流量。
 
+.PARAMETER ExpectedIfdExternalDomain
+  選用的 IFD External Domain 裸主機名稱。指定後，診斷會以正規化 host 與安全 URI
+  形狀比較該值，不會輸出 DWS 的原始設定值。
+
 .PARAMETER LookbackMinutes
   ASP.NET 1309 事件的回溯分鐘數。保持有界可避免在事件記錄龐大時形成長時間或高記憶體
   的列舉。
@@ -50,6 +54,8 @@
 param(
     [Parameter(Mandatory)]
     [string]$WebApiRoot,
+    [AllowNull()]
+    [string]$ExpectedIfdExternalDomain,
     [switch]$ProbeWhoAmI,
     [ValidateRange(1, 1440)]
     [int]$LookbackMinutes = 15,
@@ -385,6 +391,102 @@ function Initialize-CrmDeploymentCommand {
     }
 }
 
+function Get-CrmIfdExternalDomainMatchEvidence {
+    <#
+    .SYNOPSIS
+      以語意化主機名稱比對 IFD ExternalDomain，避免將 DWS 的 URI 表示法誤判為設定不符。
+
+    .DESCRIPTION
+      Dynamics Deployment Web Service 可能把 Deployment Manager 中以裸主機名稱輸入的
+      ExternalDomain 回傳為 HTTPS 根 URI。此函式只傳回是否存在、表示法類型、正規化 host
+      是否吻合，以及 URI 是否含不允許的 scheme、連接埠、路徑、使用者資訊、query 或 fragment；
+      不會輸出原始設定值、目標值、cookie、token 或任何認證資訊。
+
+      裸主機名稱與 HTTPS 根 URI 都可代表同一個 IFD External Domain。任何空白、非 HTTPS
+      scheme、非預設連接埠、非根路徑、使用者資訊、query 或 fragment 都 fail closed。
+    #>
+    [OutputType([pscustomobject])]
+    param(
+        [AllowNull()]
+        [object]$ExternalDomainValue,
+        [Parameter(Mandatory)]
+        [ValidatePattern('(?i)^(?=.{1,253}$)(?!.*\s)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$')]
+        [string]$ExpectedHost
+    )
+
+    $rawValue = $null
+    $trimmedValue = $null
+    $parsedUri = $null
+    try {
+        if ($null -eq $ExternalDomainValue) {
+            return [pscustomobject]@{
+                Present = $false
+                ContainsWhitespace = $false
+                Representation = 'missing'
+                NormalizedHostMatches = $false
+                HasUnexpectedUriShape = $false
+                MatchesExpectedContract = $false
+            }
+        }
+
+        $rawValue = [string]$ExternalDomainValue
+        $trimmedValue = $rawValue.Trim()
+        $present = -not [string]::IsNullOrWhiteSpace($rawValue)
+        $containsWhitespace = $rawValue -match '\s'
+
+        if ($present -and
+            -not $containsWhitespace -and
+            [string]::Equals($trimmedValue, $ExpectedHost, [StringComparison]::OrdinalIgnoreCase)) {
+            return [pscustomobject]@{
+                Present = $true
+                ContainsWhitespace = $false
+                Representation = 'bare-host'
+                NormalizedHostMatches = $true
+                HasUnexpectedUriShape = $false
+                MatchesExpectedContract = $true
+            }
+        }
+
+        $isAbsoluteUri = $present -and [uri]::TryCreate($trimmedValue, [UriKind]::Absolute, [ref]$parsedUri)
+        if (-not $isAbsoluteUri) {
+            return [pscustomobject]@{
+                Present = $present
+                ContainsWhitespace = $containsWhitespace
+                Representation = 'unrecognized'
+                NormalizedHostMatches = $false
+                HasUnexpectedUriShape = $false
+                MatchesExpectedContract = $false
+            }
+        }
+
+        $normalizedHostMatches = [string]::Equals(
+            $parsedUri.DnsSafeHost,
+            $ExpectedHost,
+            [StringComparison]::OrdinalIgnoreCase)
+        $hasUnexpectedUriShape =
+            $parsedUri.Scheme -ne [uri]::UriSchemeHttps -or
+            -not $parsedUri.IsDefaultPort -or
+            $parsedUri.AbsolutePath -ne '/' -or
+            -not [string]::IsNullOrEmpty($parsedUri.UserInfo) -or
+            -not [string]::IsNullOrEmpty($parsedUri.Query) -or
+            -not [string]::IsNullOrEmpty($parsedUri.Fragment)
+
+        return [pscustomobject]@{
+            Present = $true
+            ContainsWhitespace = $containsWhitespace
+            Representation = $(if ($hasUnexpectedUriShape) { 'absolute-uri-with-unexpected-shape' } else { 'absolute-https-root-uri' })
+            NormalizedHostMatches = $normalizedHostMatches
+            HasUnexpectedUriShape = $hasUnexpectedUriShape
+            MatchesExpectedContract = -not $containsWhitespace -and $normalizedHostMatches -and -not $hasUnexpectedUriShape
+        }
+    }
+    finally {
+        $rawValue = $null
+        $trimmedValue = $null
+        $parsedUri = $null
+    }
+}
+
 function Get-CrmDeploymentSettingsEvidence {
     <#
     .SYNOPSIS
@@ -397,6 +499,11 @@ function Get-CrmDeploymentSettingsEvidence {
       大量複製到診斷輸出。finally 會清除取得的設定物件參考；找不到 cmdlet 或權限
       不足時會回傳狀態，讓操作者保留此部署管理邊界而不是採用其他管理捷徑。
     #>
+    param(
+        [AllowNull()]
+        [string]$ExpectedIfdExternalDomain
+    )
+
     $activation = Initialize-CrmDeploymentCommand
     $command = $activation.Command
     $result = @()
@@ -417,6 +524,8 @@ function Get-CrmDeploymentSettingsEvidence {
 
         foreach ($settingType in @('IfdSettings', 'ClaimsSettings')) {
         $setting = $null
+        $externalDomainProperty = $null
+        $externalDomainExpectation = $null
         try {
             $setting = Get-CrmSetting -SettingType $settingType -ErrorAction Stop
             $enabledProperty = @($setting.PSObject.Properties |
@@ -449,6 +558,16 @@ function Get-CrmDeploymentSettingsEvidence {
                     $rawValue = $null
                 })
 
+            if ($settingType -eq 'IfdSettings' -and
+                -not [string]::IsNullOrWhiteSpace($ExpectedIfdExternalDomain)) {
+                $externalDomainProperty = @($setting.PSObject.Properties |
+                    Where-Object { $_.Name -eq 'ExternalDomain' } |
+                    Select-Object -First 1)
+                $externalDomainExpectation = Get-CrmIfdExternalDomainMatchEvidence `
+                    -ExternalDomainValue $(if ($externalDomainProperty.Count -eq 1) { $externalDomainProperty[0].Value } else { $null }) `
+                    -ExpectedHost $ExpectedIfdExternalDomain
+            }
+
             $result += [pscustomobject]@{
                 SettingType = $settingType
                 Status = 'available'
@@ -458,6 +577,7 @@ function Get-CrmDeploymentSettingsEvidence {
                     $null
                 })
                 Properties = $properties
+                ExternalDomainExpectation = $externalDomainExpectation
             }
         }
         catch {
@@ -476,6 +596,8 @@ function Get-CrmDeploymentSettingsEvidence {
             }
             $enabledProperty = $null
             $properties = $null
+            $externalDomainProperty = $null
+            $externalDomainExpectation = $null
             $relevantPropertyNamePattern = $null
             $uriLikePropertyNamePattern = $null
             $setting = $null
@@ -698,7 +820,8 @@ $iisEvidence = $null
 $probeEvidence = $null
 try {
     $eventEvidence = Get-CrmWebUriFormatEvents -StartTime (Get-Date).AddMinutes(-$LookbackMinutes) -MaximumCount $MaxEvents
-    $deploymentEvidence = Get-CrmDeploymentSettingsEvidence
+    $deploymentEvidence = Get-CrmDeploymentSettingsEvidence `
+        -ExpectedIfdExternalDomain $ExpectedIfdExternalDomain
     $deploymentShellEvidence = $deploymentEvidence.Shell
     $settingsEvidence = @($deploymentEvidence.Settings)
     $iisEvidence = Get-IisHttpsEvidence -RootUri $rootUri
