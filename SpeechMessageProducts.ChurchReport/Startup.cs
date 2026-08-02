@@ -189,30 +189,6 @@ namespace ChurchReport
                 })
                 .SetHandlerLifetime(TimeSpan.FromMinutes(10));
 
-#if DEBUG
-            // DEBUG ADFS 診斷共用 Host-owned handler/socket pool；controller 每次只建立並 Dispose 短生命週期 wrapper。
-            // 禁用 Cookie、Redirect、Proxy 與自動解壓縮，避免跨要求身分汙染、內網路由繞行及不受控 response 擴張；
-            // 有界 timeout／connection 數提供最大安全持續效能，Host shutdown 由 IHttpClientFactory 決定性回收 handler。
-            services.AddHttpClient(DiagnosticsOperatorAuthorization.DiagnosticsHttpClientName, client =>
-                {
-                    client.Timeout = TimeSpan.FromSeconds(30);
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-                })
-                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false,
-                    UseProxy = false,
-                    AutomaticDecompression = DecompressionMethods.None,
-                    PreAuthenticate = false,
-                    MaxConnectionsPerServer = 4,
-                    PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-                })
-                .SetHandlerLifetime(TimeSpan.FromMinutes(10));
-#endif
-
             // ========================================
             // 🔧 修復：MemoryCache 添加過期策略（不限制大小，避免登入卡住）
             // ========================================

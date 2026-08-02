@@ -6,7 +6,7 @@
 // - 產品 JSON 的 DynamicsAccess.ExecutionMode=Gateway 時用這個擴充。
 // - Embedded 模式請先呼叫 Embedded 專案的 AddSpeechMessageDynamicsEmbedded，
 //   再呼叫 AddSpeechMessageDynamicsPackage01FeeReads()。
-// - 產品絕不要 ProjectReference 到 SpeechMessage.Dynamics.WebApi。
+// - 產品只能依賴 ProductClient 與 Gateway 契約，不得參考任何 Dynamics 傳輸實作。
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;

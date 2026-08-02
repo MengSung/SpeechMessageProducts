@@ -39,20 +39,21 @@ public sealed class OfficialNuGetWorkerBoundaryTests
     }
 
     [Fact]
-    public void Gateway_source_and_configuration_contain_no_direct_webapi_route()
+    public void Official_route_source_and_configuration_contain_no_direct_webapi_contract()
     {
         var root = FindRepositoryRoot();
-        var productionDirectories = new[]
+        var directTransportDirectories = new[]
         {
+            Path.Combine(root, "SpeechMessage.Dynamics.Abstractions"),
             Path.Combine(root, "SpeechMessage.Dynamics.Gateway"),
             Path.Combine(root, "SpeechMessage.Dynamics.Embedded")
         };
-        var files = productionDirectories
+        var directTransportFiles = directTransportDirectories
             .SelectMany(directory => Directory.GetFiles(directory, "*", SearchOption.AllDirectories))
             .Where(path => !IsBuildOutput(path))
             .Where(path => Path.GetExtension(path) is ".cs" or ".json" or ".csproj")
             .ToArray();
-        var forbidden = new[]
+        var directTransportForbidden = new[]
         {
             "OrganizationWebApiBaseUri",
             "/api/data/",
@@ -62,15 +63,50 @@ public sealed class OfficialNuGetWorkerBoundaryTests
             "DynamicsWebApiOptions",
             "AdfsOAuth"
         };
+        var projectNameDirectories = new[]
+        {
+            Path.Combine(root, "SpeechMessage.Dynamics.ProductClient"),
+            Path.Combine(root, "SpeechMessage.Dynamics.ControlPlane"),
+            Path.Combine(root, "SpeechMessage.Dynamics.WorkerProtocol"),
+            Path.Combine(root, "SpeechMessage.Dynamics.WorkerHost"),
+            Path.Combine(root, "SpeechMessage.Dynamics.WorkerSupervisor")
+        };
+        var projectNameFiles = projectNameDirectories
+            .SelectMany(directory => Directory.GetFiles(directory, "*", SearchOption.AllDirectories))
+            .Where(path => !IsBuildOutput(path))
+            .Where(path => Path.GetExtension(path) is ".cs" or ".json" or ".csproj")
+            .ToArray();
+        var legacyProjectForbidden = directTransportForbidden
+            .Where(value => value != "/api/data/")
+            .ToArray();
 
-        var offenders = files
-            .SelectMany(path => forbidden
+        var offenders = directTransportFiles
+            .SelectMany(path => directTransportForbidden
                 .Where(value => File.ReadAllText(path).Contains(value, StringComparison.OrdinalIgnoreCase))
                 .Select(value => $"{Path.GetFileName(path)}: {value}"))
+            .Concat(projectNameFiles.SelectMany(path => legacyProjectForbidden
+                .Where(value => File.ReadAllText(path).Contains(value, StringComparison.OrdinalIgnoreCase))
+                .Select(value => $"{Path.GetFileName(path)}: {value}")))
             .ToArray();
 
         offenders.Should().BeEmpty(
-            because: "direct Dynamics Web API configuration and routing were retired in favor of official CrmServiceClient workers");
+            because: "the complete product-to-worker route must expose only the official CrmServiceClient worker contract");
+    }
+
+    [Fact]
+    public void Legacy_webapi_projects_and_live_probe_scripts_are_removed()
+    {
+        var root = FindRepositoryRoot();
+        var forbiddenPaths = new[]
+        {
+            Path.Combine(root, "SpeechMessage.Dynamics.WebApi"),
+            Path.Combine(root, "SpeechMessage.Dynamics.SmokeTests"),
+            Path.Combine(root, "docs", "scripts", "Invoke-DynamicsLiveSmoke.ps1"),
+            Path.Combine(root, "docs", "scripts", "Get-DynamicsCrmWebIfdDiagnostics.ps1")
+        };
+
+        forbiddenPaths.Should().OnlyContain(path => !File.Exists(path) && !Directory.Exists(path),
+            because: "direct Web API transport and D365APP01/IFD diagnostics are retired from the executable repository surface");
     }
 
     [Fact]
@@ -131,7 +167,11 @@ public sealed class OfficialNuGetWorkerBoundaryTests
         {
             ExecutionMode = DynamicsExecutionMode.Embedded,
             ProfileAlias = "deferred-embedded",
-            Embedded = new EmbeddedModeOptions()
+            Embedded = new EmbeddedModeOptions
+            {
+                ProductProfileBinding = "deferred-embedded",
+                OrganizationAdmissionCoordinatorRef = "deferred-admission"
+            }
         };
 
         var action = () => services.AddSpeechMessageDynamicsEmbedded(productOptions);

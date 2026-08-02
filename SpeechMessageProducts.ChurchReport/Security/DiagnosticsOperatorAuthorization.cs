@@ -17,9 +17,6 @@ namespace ChurchReport.Security
         /// <summary>供 MVC controller 與 Startup 共用的具名授權政策，避免字串分岔造成保護失效。</summary>
         public const string PolicyName = "diagnostics-operator";
 
-        /// <summary>供 Startup 與 controller 共用的具名 HTTP client，handler/socket pool 由 Host 統一擁有與回收。</summary>
-        public const string DiagnosticsHttpClientName = "adfs-diagnostics";
-
         private const string OperatorContactIdsSection = "Diagnostics:OperatorContactIds";
 
         /// <summary>

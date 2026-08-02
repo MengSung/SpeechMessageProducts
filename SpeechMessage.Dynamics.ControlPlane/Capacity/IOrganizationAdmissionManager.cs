@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/IOrganizationAdmissionManager.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/IOrganizationAdmissionManager.cs
 // 目的：Organization 級 admission 管理介面。
 //
 // 保母教學：

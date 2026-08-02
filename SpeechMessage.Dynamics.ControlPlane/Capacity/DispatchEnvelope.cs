@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/DispatchEnvelope.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/DispatchEnvelope.cs
 // 目的：進入 admission queue 的有界派送信封。
 //
 // 保母教學：

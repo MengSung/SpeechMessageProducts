@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/OrganizationAdmissionRegistry.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/OrganizationAdmissionRegistry.cs
 // 目的：為同一實體 Dynamics Organization 建立唯一、引用計數的 Admission Manager，
 //       並拒絕 GUID、Base URI、Admission Namespace 或 Lease Namespace 的模糊／衝突映射。
 //

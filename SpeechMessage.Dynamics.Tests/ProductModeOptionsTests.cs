@@ -33,7 +33,7 @@ public sealed class ProductModeOptionsTests
     }
 
     [Fact]
-    public void Embedded_mode_options_require_webapi_and_secret_reference()
+    public void Embedded_mode_options_expose_only_deferred_trust_bindings()
     {
         var options = new ProductDynamicsOptions
         {
@@ -41,15 +41,17 @@ public sealed class ProductModeOptionsTests
             ProfileAlias = "jesus-dev",
             Embedded = new EmbeddedModeOptions
             {
-                OrganizationWebApiBaseUri = "https://crm.example.local/api/data/v8.2/",
-                CeVersion = "8.2",
-                SecretReference = "kv-dynamics-dev",
-                ManifestOrRegistrySource = "dev-manifest.json"
+                ProductProfileBinding = "church-report-membership",
+                OrganizationAdmissionCoordinatorRef = "dynamics-admission-development"
             }
         };
 
         options.ExecutionMode.Should().Be(DynamicsExecutionMode.Embedded);
-        options.Embedded!.CeVersion.Should().Be("8.2");
+        options.Embedded!.ProductProfileBinding.Should().Be("church-report-membership");
+        typeof(EmbeddedModeOptions).GetProperties().Select(property => property.Name)
+            .Should().BeEquivalentTo(
+                nameof(EmbeddedModeOptions.ProductProfileBinding),
+                nameof(EmbeddedModeOptions.OrganizationAdmissionCoordinatorRef));
         options.Gateway.Should().BeNull();
     }
 
@@ -154,10 +156,8 @@ public sealed class ProductModeOptionsTests
             "https://localhost:7244/",
             mutate: options => options.Embedded = new EmbeddedModeOptions
             {
-                OrganizationWebApiBaseUri = "https://crm.example/api/data/v9.1/",
-                CeVersion = "9.1",
-                SecretReference = "forbidden-in-gateway-mode",
-                ManifestOrRegistrySource = "forbidden-in-gateway-mode"
+                ProductProfileBinding = "forbidden-in-gateway-mode",
+                OrganizationAdmissionCoordinatorRef = "forbidden-in-gateway-mode"
             });
 
         act.Should().Throw<OptionsValidationException>();

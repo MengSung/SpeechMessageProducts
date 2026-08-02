@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/InMemoryRuntimeHostSlotCoordinator.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/InMemoryRuntimeHostSlotCoordinator.cs
 // 目的：單機/測試用 host-slot coordinator。
 //
 // 保母教學：

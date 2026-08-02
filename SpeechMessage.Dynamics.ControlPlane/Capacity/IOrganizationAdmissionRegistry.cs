@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/IOrganizationAdmissionRegistry.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/IOrganizationAdmissionRegistry.cs
 // 目的：定義 Canonical Organization 容量登錄與引用計數租約，讓多個 Profile Generation
 //       可共用唯一的 Admission Manager，同時保有各自獨立的 Client／Token／Handler Runtime。
 //

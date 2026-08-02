@@ -1,429 +1,357 @@
 <mxfile host="app.diagrams.net" agent="Claude" version="24.0.0">
 
   <diagram name="1 · 系統總覽" id="page-overview">
-    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1060" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <mxCell id="title1" value="SpeechMessageProducts · 系統總覽（25 個專案）" style="text;html=1;fontSize=22;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="20" width="700" height="40" as="geometry" />
+        <mxCell id="title1" value="SpeechMessageProducts · 系統總覽" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="18" width="700" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="sub1" value="快照 2026-07-31 · 箭頭 = ProjectReference 相依方向（A → B 表示 A 參考 B）" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="56" width="800" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- ============ 外部系統 ============ -->
-        <mxCell id="ext" value="外部系統（不在此方案內）" style="swimlane;html=1;startSize=28;fillColor=#f5f5f5;strokeColor=#999999;fontStyle=1;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="40" y="90" width="1500" height="120" as="geometry" />
-        </mxCell>
-        <mxCell id="extLine" value="LINE Platform&#10;Messaging API" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=12;" vertex="1" parent="ext">
-          <mxGeometry x="30" y="45" width="170" height="55" as="geometry" />
-        </mxCell>
-        <mxCell id="extCrm82" value="D365 CE 8.2 IFD&#10;jesus · 202.153.204.60" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=12;" vertex="1" parent="ext">
-          <mxGeometry x="480" y="45" width="200" height="55" as="geometry" />
-        </mxCell>
-        <mxCell id="extCrm91" value="D365 CE 9.1 IFD&#10;sunnyvalechback · Hyper-V" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=12;" vertex="1" parent="ext">
-          <mxGeometry x="700" y="45" width="210" height="55" as="geometry" />
-        </mxCell>
-        <mxCell id="extAdfs" value="AD FS&#10;adfsdev91 / speechmessagests" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=12;" vertex="1" parent="ext">
-          <mxGeometry x="930" y="45" width="200" height="55" as="geometry" />
-        </mxCell>
-        <mxCell id="extSql" value="SQL Control Plane&#10;LocalDB / SQL Server" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=12;dashed=1;" vertex="1" parent="ext">
-          <mxGeometry x="1150" y="45" width="190" height="55" as="geometry" />
+        <mxCell id="sub1" value="快照 2026-08-02 14:00 · HEAD 6b3bb0f4 · 33 個專案 · 箭頭 = ProjectReference（A → B 表示 A 參考 B）" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="900" height="18" as="geometry" />
         </mxCell>
 
-        <!-- ============ 產品層 ============ -->
-        <mxCell id="prod" value="SpeechMessageProducts.ChurchReport&#10;284 個 .cs · ASP.NET Core 主應用（教會報表 / 會友 / 奉獻 / 小組）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="480" y="250" width="620" height="70" as="geometry" />
+        <mxCell id="ext" value="外部系統" style="swimlane;html=1;startSize=26;fillColor=#f5f5f5;strokeColor=#999999;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="82" width="1570" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="prodNote" value="唯一的產品層進入點。未來產品 B～J 會複製同一組相依。" style="text;html=1;fontSize=11;fontColor=#666666;align=center;" vertex="1" parent="1">
-          <mxGeometry x="480" y="322" width="620" height="18" as="geometry" />
+        <mxCell id="extLine" value="LINE Platform" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="30" y="42" width="150" height="50" as="geometry" />
         </mxCell>
-
-        <!-- ============ LINE 能力群組 ============ -->
-        <mxCell id="grpLine" value="LINE 訊息能力（218 個 .cs）" style="swimlane;html=1;startSize=28;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="380" width="400" height="290" as="geometry" />
+        <mxCell id="extCrm82" value="D365 CE 8.2 IFD&#10;jesus" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="620" y="42" width="180" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="lineAsp" value="LineMessagingProcessor.AspNetCore · 2&#10;ASP.NET Core 整合層 / DI 註冊" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
-          <mxGeometry x="20" y="40" width="360" height="45" as="geometry" />
+        <mxCell id="extCrm91" value="D365 CE 9.1 IFD&#10;sunnyvalechback" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="820" y="42" width="180" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="lineWf" value="LineMessagingProcessor.Workflows · 19&#10;綁定 / 通知 / 對話流程編排" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
-          <mxGeometry x="20" y="100" width="175" height="55" as="geometry" />
+        <mxCell id="extAdfs" value="AD FS（IFD / WS-Trust）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="1020" y="42" width="180" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="lineRm" value="LineMessagingProcessor.RichMenus · 41&#10;圖文選單管理" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
-          <mxGeometry x="205" y="100" width="175" height="55" as="geometry" />
+        <mxCell id="extCred" value="Windows 認證管理員&#10;（DPAPI 保護）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="1220" y="42" width="160" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="lineProc" value="LineMessagingProcessor · 1&#10;事件分派核心" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
-          <mxGeometry x="20" y="170" width="360" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="lineSdk" value="Line.Messaging · 155&#10;LINE Messaging API SDK（基礎，無相依）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#d79b00;fontSize=11;fontStyle=2;" vertex="1" parent="grpLine">
-          <mxGeometry x="20" y="227" width="360" height="45" as="geometry" />
+        <mxCell id="extSql" value="SQL 控制平面&#10;（7 項測試未驗證）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=12;dashed=1;" vertex="1" parent="ext">
+          <mxGeometry x="1400" y="42" width="150" height="50" as="geometry" />
         </mxCell>
 
-        <!-- ============ 金流能力群組 ============ -->
-        <mxCell id="grpPay" value="金流能力（61 個 .cs）" style="swimlane;html=1;startSize=28;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="470" y="380" width="330" height="290" as="geometry" />
-        </mxCell>
-        <mxCell id="payAsp" value="SpeechMessage.Payments.AspNetCore · 4&#10;Web 整合 / 回呼端點" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="grpPay">
-          <mxGeometry x="20" y="40" width="290" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="payWf" value="SpeechMessage.Payments.Workflows · 9&#10;付款流程編排 / 後處理" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="grpPay">
-          <mxGeometry x="20" y="105" width="290" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="payCore" value="SpeechMessage.Payments · 48&#10;付款領域核心（無相依）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#9673a6;fontSize=11;fontStyle=2;" vertex="1" parent="grpPay">
-          <mxGeometry x="20" y="170" width="290" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="linePay" value="LinePayCSharp · 35&#10;（獨立，未被 ChurchReport 直接參考）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=11;dashed=1;fontColor=#888888;" vertex="1" parent="grpPay">
-          <mxGeometry x="20" y="230" width="290" height="42" as="geometry" />
+        <mxCell id="prod" value="SpeechMessageProducts.ChurchReport · 284 檔 · ASP.NET Core&#10;Dynamics 相依只剩 Abstractions + ProductClient（Embedded 已解除參考）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="222" width="680" height="66" as="geometry" />
         </mxCell>
 
-        <!-- ============ Dynamics 新架構群組 ============ -->
-        <mxCell id="grpDyn" value="Dynamics 存取新架構（無 SDK · 68 個 .cs）　★ 本次改造重點" style="swimlane;html=1;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="830" y="380" width="710" height="290" as="geometry" />
+        <mxCell id="grpLine" value="LINE 訊息能力 · 218 檔" style="swimlane;html=1;startSize=26;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="330" width="390" height="250" as="geometry" />
         </mxCell>
-        <mxCell id="dynPc" value="ProductClient · 8&#10;產品唯一入口&#10;Package01 費用讀取 / DTO" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="grpDyn">
-          <mxGeometry x="20" y="45" width="200" height="65" as="geometry" />
+        <mxCell id="lineAsp" value="…Processor.AspNetCore · 2　ASP.NET 整合" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
+          <mxGeometry x="18" y="38" width="354" height="36" as="geometry" />
         </mxCell>
-        <mxCell id="dynGw" value="Gateway · 7&#10;HTTP 主機（Central／Local）&#10;授權 · 請求上限 · Readiness" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="grpDyn">
-          <mxGeometry x="250" y="45" width="210" height="65" as="geometry" />
+        <mxCell id="lineWf" value="…Workflows · 19&#10;綁定 / 通知流程" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
+          <mxGeometry x="18" y="86" width="170" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="dynEmb" value="Embedded · 1　【凍結】&#10;僅剩 DI 進入點&#10;由 Local Gateway 取代" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=11;dashed=1;fontColor=#777777;" vertex="1" parent="grpDyn">
-          <mxGeometry x="490" y="45" width="200" height="65" as="geometry" />
+        <mxCell id="lineRm" value="…RichMenus · 41&#10;圖文選單" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
+          <mxGeometry x="202" y="86" width="170" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="dynWa" value="WebApi · 41　【核心連線器】&#10;Runtime：HTTP 傳輸 · ADFS 權杖 · Profile 世代管理 · FetchXML 編碼 · 受控執行&#10;Capacity：容量准入 · Host Slot 租約 · SQL／記憶體協調器" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="grpDyn">
-          <mxGeometry x="20" y="140" width="670" height="70" as="geometry" />
+        <mxCell id="lineProc" value="LineMessagingProcessor · 1　事件分派" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="grpLine">
+          <mxGeometry x="18" y="144" width="354" height="36" as="geometry" />
         </mxCell>
-        <mxCell id="dynAbs" value="Abstractions · 11　【契約層，無相依】&#10;DTO · OperationDefinition · Package01 註冊表 · 錯誤碼 · 執行模式" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#6c8ebf;fontSize=11;fontStyle=2;" vertex="1" parent="grpDyn">
-          <mxGeometry x="20" y="230" width="670" height="45" as="geometry" />
-        </mxCell>
-
-        <!-- ============ Legacy 路徑 ============ -->
-        <mxCell id="grpLeg" value="Legacy CRM 路徑（145 個 .cs）　★ 目前唯一實際在用的 CRM 通道" style="swimlane;html=1;startSize=28;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="830" y="710" width="710" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="legTu" value="ToolUtility · 90&#10;舊 CRM 連線池 / 查詢輔助 / Session 快取&#10;（CrmConnectionPool · ToolUtilityClass · 全域 singleton）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="grpLeg">
-          <mxGeometry x="20" y="42" width="330" height="85" as="geometry" />
-        </mxCell>
-        <mxCell id="legD8" value="PowerPlatform.Dataverse.Client · 55&#10;Data8 第三方實作（非微軟官方）&#10;WS-Trust / SOAP / WCF&#10;⚠ OnPremiseClient 未實作 IDisposable" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="grpLeg">
-          <mxGeometry x="380" y="42" width="310" height="85" as="geometry" />
+        <mxCell id="lineSdk" value="Line.Messaging · 155　LINE SDK（零相依）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#d79b00;fontSize=11;fontStyle=2;" vertex="1" parent="grpLine">
+          <mxGeometry x="18" y="192" width="354" height="40" as="geometry" />
         </mxCell>
 
-        <!-- ============ 測試 ============ -->
-        <mxCell id="grpTest" value="測試專案（7 個）" style="swimlane;html=1;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="710" width="760" height="150" as="geometry" />
+        <mxCell id="grpPay" value="金流能力 · 61 檔" style="swimlane;html=1;startSize=26;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="455" y="330" width="290" height="250" as="geometry" />
         </mxCell>
-        <mxCell id="tDyn" value="SpeechMessage.Dynamics.Tests · 28&#10;253 個測試案例（252 通過 / 1 略過）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpTest">
-          <mxGeometry x="20" y="42" width="230" height="50" as="geometry" />
+        <mxCell id="payAsp" value="Payments.AspNetCore · 4&#10;Web 整合 / 回呼" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="grpPay">
+          <mxGeometry x="18" y="38" width="254" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="tSmoke" value="Dynamics.SmokeTests · 2&#10;真機驗證（需 DYNAMICS_SMOKE_ENABLED）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;dashed=1;" vertex="1" parent="grpTest">
-          <mxGeometry x="270" y="42" width="230" height="50" as="geometry" />
+        <mxCell id="payWf" value="Payments.Workflows · 9&#10;付款流程編排" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="grpPay">
+          <mxGeometry x="18" y="96" width="254" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="tOther" value="ChurchReport.MemberInfo.Tests&#10;ToolUtility.Tests · Payments.Tests&#10;Line.Messaging.Tests 等 5 個" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpTest">
-          <mxGeometry x="520" y="42" width="220" height="50" as="geometry" />
+        <mxCell id="payCore" value="SpeechMessage.Payments · 48&#10;付款領域核心（零相依）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#9673a6;fontSize=11;fontStyle=2;" vertex="1" parent="grpPay">
+          <mxGeometry x="18" y="154" width="254" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="tNote" value="Dynamics 測試 253 項已由實跑驗證；真機 smoke 覆蓋率 0%" style="text;html=1;fontSize=11;fontColor=#7a6000;align=left;" vertex="1" parent="grpTest">
-          <mxGeometry x="20" y="102" width="700" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- ============ 連線 ============ -->
-        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="prod" target="grpLine">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="prod" target="grpPay">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e3" value="Abstractions + ProductClient + Embedded" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="prod" target="grpDyn">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e4" value="ToolUtility" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=3;fontSize=11;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="prod" target="legTu">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points"><mxPoint x="1580" y="285" /><mxPoint x="1580" y="690" /><mxPoint x="1015" y="690" /></Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1" source="legTu" target="legD8">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e6" value="WS-Trust / SOAP&#10;（目前唯一可用）" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=3;fontSize=11;fontStyle=1;" edge="1" parent="1" source="legD8" target="extCrm82">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points"><mxPoint x="1450" y="880" /><mxPoint x="60" y="880" /><mxPoint x="60" y="230" /><mxPoint x="700" y="230" /></Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e7" value="HTTPS / OData v4&#10;（尚未驗證）" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=2;dashed=1;fontSize=11;" edge="1" parent="1" source="dynWa" target="extCrm91">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e8" value="OAuth 權杖" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=2;dashed=1;fontSize=11;" edge="1" parent="1" source="dynWa" target="extAdfs">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e9" value="Host Slot 租約" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=11;" edge="1" parent="1" source="dynWa" target="extSql">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d79b00;strokeWidth=2;" edge="1" parent="1" source="lineSdk" target="extLine">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e11" value="ToolUtility 也參考 Line.Messaging" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#cc9999;strokeWidth=1;dashed=1;fontSize=10;" edge="1" parent="1" source="legTu" target="grpLine">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="linePay" value="LinePayCSharp · 35（未被參考）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=11;dashed=1;fontColor=#888888;" vertex="1" parent="grpPay">
+          <mxGeometry x="18" y="210" width="254" height="30" as="geometry" />
         </mxCell>
 
-        <!-- 圖例 -->
+        <mxCell id="grpDyn" value="Dynamics 存取 · 官方 NuGet Worker 架構 · 15 個專案　★ 2026-08-02 第三次改版" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="770" y="330" width="840" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="dynPc" value="ProductClient · 8&#10;產品唯一入口" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="grpDyn">
+          <mxGeometry x="18" y="38" width="185" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="dynGw" value="Gateway · 7&#10;HTTP 主機 / 授權" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="grpDyn">
+          <mxGeometry x="215" y="38" width="185" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="dynCp" value="ControlPlane · 26&#10;容量准入 + Profile 世代" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="grpDyn">
+          <mxGeometry x="412" y="38" width="185" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="dynSup" value="WorkerSupervisor · 4&#10;挑選 / 派工 / 生命週期" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="grpDyn">
+          <mxGeometry x="609" y="38" width="210" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="dynWh" value="WorkerHost · 18　＋　WorkerProtocol · 18　【netstandard2.0】&#10;具名管道 IPC 契約 · Windows 認證管理員 · Worker 進程宿主&#10;★ netstandard2.0 是唯一能同時被 net48 與 net10 使用的目標框架" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f4ea;strokeColor=#82b366;fontSize=11;" vertex="1" parent="grpDyn">
+          <mxGeometry x="18" y="98" width="800" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="dynW82" value="Crm82Worker · 3　【net48】&#10;官方 XrmTooling 8.2.0.5" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpDyn">
+          <mxGeometry x="18" y="168" width="255" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dynW91" value="Crm91Worker · 3　【net48】&#10;官方 XrmTooling 9.1.1.65" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpDyn">
+          <mxGeometry x="285" y="168" width="255" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dynDead" value="WebApi · 41　【已成孤兒】&#10;Embedded · 1　SmokeTests · 2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;dashed=1;fontColor=#8b2f2a;" vertex="1" parent="grpDyn">
+          <mxGeometry x="552" y="168" width="266" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dynAbsN" value="Abstractions · 10（契約層，零相依，圖 2 詳述）" style="text;html=1;fontSize=11;fontColor=#31558a;align=left;" vertex="1" parent="grpDyn">
+          <mxGeometry x="18" y="222" width="500" height="18" as="geometry" />
+        </mxCell>
+
+        <mxCell id="grpLeg" value="Legacy CRM 路徑 · 145 檔　★ 仍是目前唯一實際在跑的 CRM 通道" style="swimlane;html=1;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="770" y="615" width="840" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="legTu" value="ToolUtility · 90&#10;舊連線池 / 查詢輔助 / Session 快取" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="grpLeg">
+          <mxGeometry x="18" y="38" width="390" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="legD8" value="PowerPlatform.Dataverse.Client · 55&#10;Data8 第三方 WS-Trust / SOAP&#10;⚠ OnPremiseClient 未實作 IDisposable" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;" vertex="1" parent="grpLeg">
+          <mxGeometry x="428" y="38" width="390" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="grpTest" value="測試 · 8 個專案" style="swimlane;html=1;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="615" width="705" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="tDyn" value="Dynamics.Tests · 33&#10;340 案例：332 通過 / 1 失敗 / 7 略過" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;fontStyle=1;" vertex="1" parent="grpTest">
+          <mxGeometry x="18" y="38" width="240" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="tHosts" value="WorkerTestHost · 1&#10;SqlCoordinatorTestWorker · 3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpTest">
+          <mxGeometry x="272" y="38" width="200" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="tOther" value="ChurchReport.MemberInfo / ToolUtility&#10;Payments / Line 等 5 個" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpTest">
+          <mxGeometry x="486" y="38" width="200" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="tNote" value="⚠ 1 個失敗：Legacy_webapi_projects_and_live_probe_scripts_are_removed（TDD RED，遷移待辦）　⚠ 7 個略過全是 SQL live 測試" style="text;html=1;fontSize=11;fontColor=#8b2f2a;align=left;" vertex="1" parent="grpTest">
+          <mxGeometry x="18" y="94" width="670" height="18" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="prod" target="grpLine"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="prod" target="grpPay"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" value="Abstractions + ProductClient" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="prod" target="grpDyn"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="ToolUtility（現行）" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=3;fontSize=11;fontStyle=1;" edge="1" parent="1" source="prod" target="legTu">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1630" y="255" /><mxPoint x="1630" y="600" /><mxPoint x="983" y="600" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1" source="legTu" target="legD8"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" value="WS-Trust / SOAP（目前唯一可用）" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=3;fontSize=11;fontStyle=1;" edge="1" parent="1" source="legD8" target="extCrm82">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1300" y="770" /><mxPoint x="20" y="770" /><mxPoint x="20" y="205" /><mxPoint x="750" y="205" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e7" value="CrmServiceClient&#10;（尚未真機驗證）" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d6b656;strokeWidth=2;dashed=1;fontSize=11;" edge="1" parent="1" source="dynW91" target="extCrm91"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" value="取憑證" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="dynWh" target="extCred"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" value="Host Slot 租約" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d6b656;strokeWidth=1;dashed=1;fontSize=11;" edge="1" parent="1" source="dynCp" target="extSql"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d79b00;strokeWidth=2;" edge="1" parent="1" source="lineSdk" target="extLine"><mxGeometry relative="1" as="geometry" /></mxCell>
+
         <mxCell id="legend" value="圖例" style="swimlane;html=1;startSize=24;fillColor=#ffffff;strokeColor=#666666;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="40" y="890" width="1500" height="70" as="geometry" />
+          <mxGeometry x="40" y="780" width="1570" height="66" as="geometry" />
         </mxCell>
-        <mxCell id="lg1" value="產品層" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="legend">
-          <mxGeometry x="20" y="32" width="110" height="26" as="geometry" />
-        </mxCell>
-        <mxCell id="lg2" value="Dynamics 新架構" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="legend">
-          <mxGeometry x="145" y="32" width="130" height="26" as="geometry" />
-        </mxCell>
-        <mxCell id="lg3" value="Legacy / Data8" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="legend">
-          <mxGeometry x="290" y="32" width="130" height="26" as="geometry" />
-        </mxCell>
-        <mxCell id="lg4" value="LINE 能力" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="legend">
-          <mxGeometry x="435" y="32" width="110" height="26" as="geometry" />
-        </mxCell>
-        <mxCell id="lg5" value="金流能力" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="legend">
-          <mxGeometry x="560" y="32" width="110" height="26" as="geometry" />
-        </mxCell>
-        <mxCell id="lg6" value="測試" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="legend">
-          <mxGeometry x="685" y="32" width="90" height="26" as="geometry" />
-        </mxCell>
-        <mxCell id="lg7" value="虛線 = 尚未驗證或已凍結　　粗紅線 = 目前唯一實際在跑的 CRM 通道" style="text;html=1;fontSize=11;fontColor=#666666;align=left;" vertex="1" parent="legend">
-          <mxGeometry x="800" y="32" width="600" height="26" as="geometry" />
-        </mxCell>
+        <mxCell id="lg1" value="產品層" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="legend"><mxGeometry x="20" y="30" width="105" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg2" value="Dynamics 新架構" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="legend"><mxGeometry x="138" y="30" width="125" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg3" value="官方 NuGet Worker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="legend"><mxGeometry x="276" y="30" width="135" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg4" value="Legacy / 孤兒" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="legend"><mxGeometry x="424" y="30" width="115" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg5" value="LINE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="legend"><mxGeometry x="552" y="30" width="85" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg6" value="金流" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="legend"><mxGeometry x="650" y="30" width="85" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg7" value="虛線 = 尚未驗證或已孤兒　　粗紅線 = 目前唯一實際在跑的 CRM 通道　　★ 官方 Worker 全鏈路尚無真機證據" style="text;html=1;fontSize=11;fontColor=#666666;align=left;" vertex="1" parent="legend"><mxGeometry x="760" y="30" width="790" height="24" as="geometry" /></mxCell>
 
       </root>
     </mxGraphModel>
   </diagram>
 
-  <diagram name="2 · Dynamics 模組詳解" id="page-dynamics">
-    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+  <diagram name="2 · 官方 Worker 架構詳解" id="page-worker">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1250" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <mxCell id="t2" value="Dynamics 存取層 · 模組職責與相依" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="20" width="700" height="40" as="geometry" />
+        <mxCell id="t2" value="Dynamics 官方 NuGet Worker 架構 · 模組職責" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="18" width="800" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="相依方向由上往下。上層可以看見下層，下層永遠看不見上層。" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="56" width="800" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- 產品 -->
-        <mxCell id="d_prod" value="ChurchReport（產品）&#10;只能參考 Abstractions · ProductClient · Embedded　　★ 禁止直接參考 WebApi（有邊界測試把關）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="360" y="100" width="880" height="60" as="geometry" />
+        <mxCell id="s2" value="核心觀念：舊框架的官方 SDK 關在 net48 獨立進程裡，用具名管道跟 net10 主機講話。產品永遠是 net10。" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="1000" height="18" as="geometry" />
         </mxCell>
 
-        <!-- ProductClient -->
-        <mxCell id="d_pc" value="SpeechMessage.Dynamics.ProductClient（8 檔）　產品唯一入口" style="swimlane;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="200" y="210" width="620" height="200" as="geometry" />
-        </mxCell>
-        <mxCell id="pc1" value="Package01FeeReadClient&#10;奉獻費用 / 課程紀錄讀取（10 條已接線路徑）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_pc">
-          <mxGeometry x="20" y="42" width="280" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="pc2" value="GatewayDynamicsOperationExecutor&#10;把操作打包成 HTTP 送去 Gateway" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_pc">
-          <mxGeometry x="320" y="42" width="280" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="pc3" value="GatewayHttpClientFactory + 限制設定&#10;共用連線池 / 逾時 / 回應大小上限" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_pc">
-          <mxGeometry x="20" y="105" width="280" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="pc4" value="FeeRecordDto / StorLessonRecordDto&#10;純資料模型，不含 CRM 概念" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_pc">
-          <mxGeometry x="320" y="105" width="280" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="pcN" value="產品送出的只有：Operation ID + 具名參數。不能送 FetchXML、URL、CRM 動作名稱。" style="text;html=1;fontSize=11;fontColor=#31558a;align=left;" vertex="1" parent="d_pc">
-          <mxGeometry x="20" y="165" width="580" height="20" as="geometry" />
+        <mxCell id="w_abs" value="Abstractions · 10&#10;（net10 · 零相依 · 所有人可見）&#10;&#10;IDynamicsOperationExecutor&#10;OperationDefinition / OperationIds&#10;Package01OperationRegistry&#10;OperationExecutionRequest / Result&#10;ProductDynamicsOptions&#10;DynamicsErrorCodes&#10;DynamicsExecutionMode" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8eef7;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="310" height="190" as="geometry" />
         </mxCell>
 
-        <!-- Gateway / Embedded 並排 -->
-        <mxCell id="d_gw" value="Dynamics.Gateway（7 檔）　HTTP 主機" style="swimlane;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="880" y="210" width="380" height="200" as="geometry" />
-        </mxCell>
-        <mxCell id="gw1" value="Program.cs&#10;POST /v1/organizations/{alias}/operations/{id}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_gw">
-          <mxGeometry x="15" y="42" width="350" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="gw2" value="ConfigurationGatewayOperationAuthorizer&#10;+ GatewayWorkloadBinding&#10;Windows 身分 → 允許的 alias / operation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_gw">
-          <mxGeometry x="15" y="94" width="350" height="52" as="geometry" />
-        </mxCell>
-        <mxCell id="gw3" value="RequestBodyReader / Limits · ReadinessService" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_gw">
-          <mxGeometry x="15" y="156" width="350" height="32" as="geometry" />
+        <mxCell id="w_dead" value="已成孤兒（測試要求刪除）&#10;&#10;WebApi · 41&#10;　v1 的無 SDK OData 連線器&#10;　只剩 SmokeTests 參考&#10;&#10;SmokeTests · 2&#10;Embedded · 1&#10;&#10;docs/scripts/&#10;　Invoke-DynamicsLiveSmoke.ps1&#10;　Get-DynamicsCrmWebIfdDiagnostics.ps1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;dashed=1;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;fontColor=#8b2f2a;" vertex="1" parent="1">
+          <mxGeometry x="40" y="315" width="310" height="320" as="geometry" />
         </mxCell>
 
-        <mxCell id="d_emb" value="Dynamics.Embedded（1 檔）　【凍結】" style="swimlane;html=1;startSize=30;fillColor=#eeeeee;strokeColor=#999999;fontSize=13;fontStyle=1;fontColor=#777777;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="1300" y="210" width="260" height="200" as="geometry" />
-        </mxCell>
-        <mxCell id="emb1" value="EmbeddedServiceCollectionExtensions&#10;把連線器直接掛進產品進程&#10;&#10;已由 Local Gateway 取代&#10;保留但不推進" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f8f8;strokeColor=#aaaaaa;fontSize=11;fontColor=#777777;" vertex="1" parent="d_emb">
-          <mxGeometry x="15" y="42" width="230" height="120" as="geometry" />
+        <mxCell id="w_prod" value="ChurchReport（產品 · net10）　只參考 Abstractions + ProductClient" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="90" width="740" height="50" as="geometry" />
         </mxCell>
 
-        <!-- WebApi -->
-        <mxCell id="d_wa" value="SpeechMessage.Dynamics.WebApi（41 檔）　核心連線器 · 產品看不到" style="swimlane;html=1;startSize=30;fillColor=#cfe2f3;strokeColor=#3d6ea5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="200" y="460" width="1360" height="380" as="geometry" />
+        <mxCell id="w_pc" value="ProductClient · 8（net10）　產品唯一入口" style="swimlane;html=1;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="175" width="740" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="pc1" value="Package01FeeReadClient&#10;奉獻費用 / 課程讀取" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="w_pc">
+          <mxGeometry x="18" y="38" width="225" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="pc2" value="GatewayDynamicsOperationExecutor&#10;打包成 HTTP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="w_pc">
+          <mxGeometry x="255" y="38" width="225" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="pc3" value="FeeRecordDto / StorLessonRecordDto&#10;純資料，無 CRM 概念" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="w_pc">
+          <mxGeometry x="492" y="38" width="230" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="wa_rt" value="Runtime/　連線與執行" style="swimlane;html=1;startSize=26;fillColor=#ffffff;strokeColor=#3d6ea5;fontSize=12;fontStyle=1;" vertex="1" parent="d_wa">
-          <mxGeometry x="20" y="45" width="660" height="310" as="geometry" />
+        <mxCell id="w_gw" value="Gateway · 7（net10）　HTTP 主機" style="swimlane;html=1;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="315" width="740" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="rt1" value="DynamicsHttpTransport&#10;長生命週期 SocketsHttpHandler · 無 Cookie · 無 Proxy" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="15" y="35" width="310" height="48" as="geometry" />
+        <mxCell id="gw1" value="POST /v1/organizations/{alias}/operations/{id}&#10;Windows Negotiate 驗證 → 未驗證即 401" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="w_gw">
+          <mxGeometry x="18" y="36" width="345" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="rt2" value="AdfsOAuthTokenProvider&#10;向 AD FS 取權杖 · 續期 · 世代釋放" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="335" y="35" width="310" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="rt3" value="DynamicsProfileRuntimeManager&#10;每個 alias 最多 1 個 Active + 1 個 Draining 世代&#10;原子發布 · replace-and-drain · 關機收斂" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="15" y="95" width="630" height="55" as="geometry" />
-        </mxCell>
-        <mxCell id="rt4" value="ControlledOperationExecutor&#10;只接受註冊過的 Operation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="15" y="162" width="200" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="rt5" value="ProfileRoutedOperationExecutor&#10;crm82 / crm91 路由" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="225" y="162" width="200" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="rt6" value="DynamicsWebApiClient&#10;實際發出 OData 請求" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="435" y="162" width="210" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="rt7" value="FetchXmlValueEncoder&#10;敵意值編碼防注入" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="15" y="222" width="200" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="rt8" value="ApprovedWebApiRootFactory&#10;只允許 HTTPS · v8.2 / v9.1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="225" y="222" width="200" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="rt9" value="SecretResolver（環境 / 字典 / 串接）&#10;秘密只用參照名稱" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_rt">
-          <mxGeometry x="435" y="222" width="210" height="48" as="geometry" />
+        <mxCell id="gw2" value="ConfigurationGatewayOperationAuthorizer&#10;WorkloadBindingSet → alias / operation 授權，否則 403" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="w_gw">
+          <mxGeometry x="375" y="36" width="347" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="wa_cap" value="Capacity/　容量與租約" style="swimlane;html=1;startSize=26;fillColor=#ffffff;strokeColor=#3d6ea5;fontSize=12;fontStyle=1;" vertex="1" parent="d_wa">
-          <mxGeometry x="700" y="45" width="640" height="310" as="geometry" />
+        <mxCell id="w_cp" value="ControlPlane · 26（net10）　容量與世代治理　【由原 WebApi 專案搬遷而來】" style="swimlane;html=1;startSize=28;fillColor=#cfe2f3;strokeColor=#3d6ea5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="450" width="1100" height="185" as="geometry" />
         </mxCell>
-        <mxCell id="cp1" value="OrganizationAdmissionManager&#10;有界佇列 · 併發號誌 · 每工作負載上限&#10;封包大小檢查 · 期限檢查" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_cap">
-          <mxGeometry x="15" y="35" width="610" height="58" as="geometry" />
+        <mxCell id="cp1" value="Capacity/　12 檔&#10;OrganizationAdmissionManager（有界佇列 · 併發號誌 · 每工作負載上限）&#10;CapacityKeys · AdmissionPlan · InMemory / SQL HostSlotCoordinator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3d6ea5;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="w_cp">
+          <mxGeometry x="18" y="38" width="520" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="cp2" value="CapacityKeys&#10;CanonicalOrganizationCapacityKey&#10;OrganizationAdmissionKey&#10;RuntimeHostSlotLeaseNamespace" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_cap">
-          <mxGeometry x="15" y="105" width="290" height="75" as="geometry" />
+        <mxCell id="cp2" value="Runtime/　13 檔&#10;DynamicsProfileRuntimeManager（每 alias 最多 1 Active + 1 Draining）&#10;ControlledOperationExecutor · ProfileRoutedOperationExecutor · DispatchPreparer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3d6ea5;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="w_cp">
+          <mxGeometry x="550" y="38" width="530" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="cp3" value="OrganizationAdmissionPlan&#10;LocalMaxInFlight =&#10;floor(Aggregate / MaximumRuntimeHosts)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f4f8fd;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="wa_cap">
-          <mxGeometry x="320" y="105" width="305" height="75" as="geometry" />
-        </mxCell>
-        <mxCell id="cp4" value="InMemoryRuntimeHostSlotCoordinator&#10;IsDurable = false&#10;單一進程 / 開發用" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaf5ea;strokeColor=#82b366;fontSize=11;" vertex="1" parent="wa_cap">
-          <mxGeometry x="15" y="192" width="290" height="65" as="geometry" />
-        </mxCell>
-        <mxCell id="cp5" value="SqlRuntimeHostSlotCoordinator&#10;IsDurable = true · Fencing Token&#10;AdmissionEpoch · 設定指紋" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="wa_cap">
-          <mxGeometry x="320" y="192" width="305" height="65" as="geometry" />
-        </mxCell>
-        <mxCell id="cpN" value="⚠ SQL 版本是為「跨進程 / 主機動態增減」設計。單一 Local Gateway 用記憶體版即可（RequireDurableHostCoordinator 開關控制）。&#10;⚠ 唯一未通過驗證的測試就在這裡：SqlRuntimeHostSlotCoordinatorTests 需真實 SQL 實例，目前 SKIP。" style="text;html=1;fontSize=11;fontColor=#8a6d00;align=left;" vertex="1" parent="wa_cap">
-          <mxGeometry x="15" y="265" width="610" height="35" as="geometry" />
+        <mxCell id="cp3" value="⚠ SQL 協調器的 7 項 live 測試全部 SKIP（需真實 SQL 實例）——這是目前最大的未驗證面。&#10;⚠ CE on-premises 沒有微軟服務保護配額；此處容量控管的正當理由已改為「限制 net48 worker 進程數量」。" style="text;html=1;fontSize=11;fontColor=#8a6d00;align=left;" vertex="1" parent="w_cp">
+          <mxGeometry x="18" y="118" width="1062" height="40" as="geometry" />
         </mxCell>
 
-        <!-- Abstractions -->
-        <mxCell id="d_abs" value="SpeechMessage.Dynamics.Abstractions（11 檔）　契約層 · 零相依 · 所有人都看得見" style="swimlane;html=1;startSize=30;fillColor=#e8eef7;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="200" y="890" width="1360" height="130" as="geometry" />
+        <mxCell id="w_sup" value="WorkerSupervisor · 4（net10）　Worker 選擇與生命週期" style="swimlane;html=1;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="670" width="740" height="95" as="geometry" />
         </mxCell>
-        <mxCell id="ab1" value="IDynamicsOperationExecutor&#10;唯一的執行抽象" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_abs">
-          <mxGeometry x="20" y="42" width="250" height="48" as="geometry" />
+        <mxCell id="sp1" value="OfficialWorkerProfileExecutor&#10;依 profile 挑 8.2 或 9.1 worker 並派工" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="w_sup">
+          <mxGeometry x="18" y="36" width="345" height="45" as="geometry" />
         </mxCell>
-        <mxCell id="ab2" value="OperationDefinition / OperationIds&#10;Package01OperationRegistry" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_abs">
-          <mxGeometry x="290" y="42" width="250" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="ab3" value="OperationExecutionRequest / Result&#10;OperationResponseData" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_abs">
-          <mxGeometry x="560" y="42" width="250" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="ab4" value="ProductDynamicsOptions&#10;DynamicsProfileAlignment" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_abs">
-          <mxGeometry x="830" y="42" width="250" height="48" as="geometry" />
-        </mxCell>
-        <mxCell id="ab5" value="DynamicsExecutionMode&#10;DynamicsErrorCodes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="d_abs">
-          <mxGeometry x="1100" y="42" width="240" height="48" as="geometry" />
+        <mxCell id="sp2" value="OfficialWorkerLifecycleSnapshot · OfficialWorkerVersion&#10;可觀測狀態 + 執行檔版本／雜湊綁定" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="w_sup">
+          <mxGeometry x="375" y="36" width="347" height="45" as="geometry" />
         </mxCell>
 
-        <!-- 連線 -->
-        <mxCell id="de1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="d_prod" target="d_pc"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="de2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;" edge="1" parent="1" source="d_prod" target="d_emb"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="de3" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="d_pc" target="d_gw"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="de4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3d6ea5;strokeWidth=2;" edge="1" parent="1" source="d_gw" target="d_wa"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="de5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;" edge="1" parent="1" source="d_emb" target="d_wa"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="de6" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1" source="d_wa" target="d_abs"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="de7" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" parent="1" source="d_pc" target="d_abs"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="160" y="310" /><mxPoint x="160" y="955" /></Array></mxGeometry></mxCell>
+        <mxCell id="w_bridge" value="跨框架橋接層【netstandard2.0】　★ 唯一能同時被 net48 與 net10 參考的目標框架" style="swimlane;html=1;startSize=28;fillColor=#e8f4ea;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="800" width="1100" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="wh1" value="WorkerProtocol · 18　IPC 契約（純資料 + 驗證）&#10;WorkerRequestV1 / WorkerResponseV1 / WorkerReadyV1 / WorkerDrainV1&#10;WorkerFrameCodec · WorkerEnvelopeCodec · Validators · ProtocolLimits · Version" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="w_bridge">
+          <mxGeometry x="18" y="38" width="520" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="wh2" value="WorkerHost · 18　Worker 進程宿主與傳輸&#10;NamedPipeOfficialWorkerConnector（具名管道）&#10;OfficialWorkerProcessHost / Session / ExitCode&#10;WindowsCredentialManagerProvider　★ 憑證改由 Windows 認證管理員提供" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="w_bridge">
+          <mxGeometry x="550" y="38" width="530" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="wh3" value="IOfficialCrmClient / IOfficialCrmClientFactory —— 抽象介面在此，實作在各 worker，因此橋接層本身不相依任何 CRM SDK。" style="text;html=1;fontSize=11;fontColor=#2d6b3f;align=left;" vertex="1" parent="w_bridge">
+          <mxGeometry x="18" y="120" width="1062" height="36" as="geometry" />
+        </mxCell>
+
+        <mxCell id="w82" value="Crm82Worker · 3　【net48 獨立進程】" style="swimlane;html=1;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="1020" width="520" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="w82a" value="Program.cs · OfficialCrmServiceClientFactory · OfficialCrmServiceClientAdapter" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="w82">
+          <mxGeometry x="18" y="36" width="484" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="w82b" value="微軟官方 NuGet（版本鎖定 8.2）&#10;Microsoft.CrmSdk.XrmTooling.CoreAssembly 8.2.0.5&#10;Microsoft.CrmSdk.CoreAssemblies 8.2.0.2&#10;Microsoft.CrmSdk.Deployment / Workflow 8.2.0.2&#10;Microsoft.IdentityModel.Clients.ActiveDirectory 2.29.0" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffbe8;strokeColor=#d6b656;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="w82">
+          <mxGeometry x="18" y="82" width="484" height="86" as="geometry" />
+        </mxCell>
+
+        <mxCell id="w91" value="Crm91Worker · 3　【net48 獨立進程】" style="swimlane;html=1;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="1020" width="520" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="w91a" value="Program.cs · OfficialCrmServiceClientFactory · OfficialCrmServiceClientAdapter" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="w91">
+          <mxGeometry x="18" y="36" width="484" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="w91b" value="微軟官方 NuGet（版本鎖定 9.1）&#10;Microsoft.CrmSdk.XrmTooling.CoreAssembly 9.1.1.65&#10;Microsoft.CrmSdk.CoreAssemblies 9.0.2.60&#10;&#10;★ 與 8.2 完全隔離：不同進程、不同組件版本、不同權杖狀態" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffbe8;strokeColor=#d6b656;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="w91">
+          <mxGeometry x="18" y="82" width="484" height="86" as="geometry" />
+        </mxCell>
+
+        <mxCell id="wx1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="w_prod" target="w_pc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="wx2" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1" source="w_pc" target="w_gw"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="wx3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#3d6ea5;" edge="1" parent="1" source="w_gw" target="w_cp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="wx4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#3d6ea5;" edge="1" parent="1" source="w_cp" target="w_sup"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="wx5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="w_sup" target="w_bridge"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="wx6" value="具名管道 IPC" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=3;strokeColor=#d6b656;fontSize=11;fontStyle=1;" edge="1" parent="1" source="w_bridge" target="w82"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="wx7" value="具名管道 IPC" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=3;strokeColor=#d6b656;fontSize=11;fontStyle=1;" edge="1" parent="1" source="w_bridge" target="w91"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="wxa" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=1;strokeColor=#6c8ebf;dashed=1;" edge="1" parent="1" source="w_pc" target="w_abs"><mxGeometry relative="1" as="geometry" /></mxCell>
 
       </root>
     </mxGraphModel>
   </diagram>
 
-  <diagram name="3 · 一次請求的完整旅程" id="page-flow">
-    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1400" math="0" shadow="0">
+  <diagram name="3 · 一次請求的旅程" id="page-flow">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="1400" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <mxCell id="t3" value="一次「查詢奉獻費用」請求的完整旅程" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="20" width="700" height="40" as="geometry" />
+        <mxCell id="t3" value="一次「查詢奉獻費用」的完整旅程（官方 Worker 路線）" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="18" width="900" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="綠色 = 已由 253 項測試驗證　　橘色 = 已實作但只有本機假目標驗證　　紅色 = 尚未打通" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="56" width="900" height="20" as="geometry" />
+        <mxCell id="s3" value="綠 = 已由 332 項通過測試涵蓋　　黃 = 已實作但未真機驗證　　紅 = 尚未打通或已孤兒" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="900" height="18" as="geometry" />
         </mxCell>
 
         <mxCell id="f1" value="① 使用者在 ChurchReport 開啟「奉獻收費清單」" style="rounded=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="360" y="110" width="480" height="50" as="geometry" />
+          <mxGeometry x="400" y="90" width="450" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="fg" value="Package01FeeReadsEnabled ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="475" y="165" width="300" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="fl" value="false（目前值）&#10;→ ToolUtility → Data8 → WS-Trust/SOAP → CE 8.2&#10;這是現在真正在跑的路徑" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="172" width="350" height="62" as="geometry" />
         </mxCell>
 
-        <mxCell id="fgate" value="Package01FeeReadsEnabled ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="450" y="190" width="300" height="80" as="geometry" />
+        <mxCell id="f2" value="② ProductClient 組請求：Operation ID + 具名參數（contactId、起訖日）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="270" width="450" height="46" as="geometry" />
         </mxCell>
-
-        <mxCell id="flegacy" value="false（目前設定）&#10;→ 走 ToolUtility → Data8 → WS-Trust/SOAP → CE 8.2&#10;這是現在真正在跑的路徑" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="60" y="200" width="340" height="70" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f2" value="② ProductClient 組出請求&#10;只放 Operation ID + 具名參數（contactId, 起訖日）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="400" y="300" width="400" height="55" as="geometry" />
-        </mxCell>
-
         <mxCell id="f3" value="③ HTTP POST → Gateway&#10;/v1/organizations/{alias}/operations/{capabilityOperationId}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="400" y="385" width="400" height="55" as="geometry" />
+          <mxGeometry x="400" y="345" width="450" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" value="④ Windows Negotiate 驗證　未驗證 → 401（在讀 body 之前）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="425" width="450" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="f5" value="⑤ WorkloadBindingSet 授權　alias / operation 未授權 → 403" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="501" width="450" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="f6" value="⑥ ControlPlane 容量准入&#10;排隊 → 取得 Permit。佇列滿 / 超封包上限 / 逾期 → 拒絕&#10;★ 排隊期間不持有任何連線物件，舊世代可正常收斂" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="380" y="577" width="490" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="f7" value="⑦ 取得 Host Slot 租約（InMemory 或 SQL）&#10;⚠ SQL 版 7 項 live 測試全部 SKIP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="671" width="450" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f8" value="⑧ 解析當下 Active Profile 世代 → 取得 Execution Lease" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="751" width="450" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="f9" value="⑨ WorkerSupervisor 依 profile 挑選 worker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="827" width="450" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="f10" value="⑩ 序列化成 WorkerRequestV1 → 具名管道送出&#10;WorkerEnvelopeValidator 檢查大小 / 版本 / 型別" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f4ea;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="903" width="450" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="f4" value="④ Gateway 驗證身分（Windows Negotiate）&#10;未驗證 → 401，在讀 body / 碰 CRM 之前就擋掉" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="400" y="470" width="400" height="55" as="geometry" />
+        <mxCell id="f11" value="⑪ 進程邊界" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="505" y="985" width="240" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="f12a" value="Crm82Worker（net48）&#10;官方 XrmTooling 8.2.0.5&#10;CrmServiceClient → IOrganizationService&#10;→ CE 8.2 IFD" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="110" y="1100" width="300" height="86" as="geometry" />
+        </mxCell>
+        <mxCell id="f12b" value="Crm91Worker（net48）&#10;官方 XrmTooling 9.1.1.65&#10;CrmServiceClient → IOrganizationService&#10;→ CE 9.1 IFD" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="840" y="1100" width="300" height="86" as="geometry" />
+        </mxCell>
+        <mxCell id="f12c" value="憑證來源：Windows 認證管理員（DPAPI）&#10;不再從設定檔或環境變數取得明文" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f4ea;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="1100" width="310" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="f5" value="⑤ 授權檢查（WorkloadBindingSet）&#10;alias 或 operation 不在允許清單 → 403" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="400" y="555" width="400" height="55" as="geometry" />
+        <mxCell id="f13" value="⑫ WorkerResponseV1 回傳 → 投影成 DTO&#10;★ 不得把 CRM 真實 hostname / endpoint 洩漏給產品" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1230" width="450" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f14" value="⑬ 釋放 Execution Lease → 釋放 Admission Permit&#10;★ 中途例外時兩者獨立清理並彙總回報" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1310" width="450" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="f6" value="⑥ 容量准入（OrganizationAdmissionManager）&#10;排隊 → 取得 Permit。佇列滿 / 超過封包上限 / 逾期 → 拒絕&#10;★ 排隊期間不持有任何連線物件，所以舊世代能正常收斂" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="380" y="640" width="440" height="70" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f7" value="⑦ 取得 Host Slot 租約（記憶體版或 SQL 版）&#10;確保所有主機加總不超過該組織的總併發上限" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="400" y="740" width="400" height="55" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f8" value="⑧ 解析「當下」的 Active Profile 世代&#10;取得 Execution Lease → 綁定該世代的 Client / Transport / TokenProvider" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="380" y="825" width="440" height="60" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f9" value="⑨ 套用 server-owned FetchXML 範本&#10;參數經 FetchXmlValueEncoder 編碼（防注入）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="400" y="915" width="400" height="55" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f10" value="⑩ Profile 路由" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="480" y="1000" width="240" height="70" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f11a" value="crm91 → Web API v9.1&#10;（尚未打通真機）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="740" y="1005" width="240" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="f11b" value="crm82 → 方案 A：Web API v8.2&#10;方案 B：net48 Worker（0 行程式）&#10;暫時：Data8 SOAP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="220" y="1000" width="240" height="70" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f12" value="⑪ 回應投影：只回傳 DTO&#10;★ 不能把 CRM 真實 hostname / @odata.context / nextLink 傳給產品&#10;（此項為 Phase 4 未結項）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="380" y="1110" width="440" height="70" as="geometry" />
-        </mxCell>
-
-        <mxCell id="f13" value="⑫ 釋放 Execution Lease → 釋放 Admission Permit&#10;★ 即使中途例外，兩者都會被獨立清理並彙總回報" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="380" y="1210" width="440" height="60" as="geometry" />
-        </mxCell>
-
-        <mxCell id="fx1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f1" target="fgate"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="fx2" value="false" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=3;fontSize=11;fontStyle=1;" edge="1" parent="1" source="fgate" target="flegacy"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="fx3" value="true" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="fgate" target="f2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f1" target="fg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx2" value="false" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=3;fontSize=11;fontStyle=1;" edge="1" parent="1" source="fg" target="fl"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx3" value="true" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="fg" target="f2"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="fx4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f2" target="f3"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="fx5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f3" target="f4"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="fx6" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f4" target="f5"><mxGeometry relative="1" as="geometry" /></mxCell>
@@ -432,10 +360,64 @@
         <mxCell id="fx9" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f7" target="f8"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="fx10" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f8" target="f9"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="fx11" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f9" target="f10"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="fx12" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;dashed=1;" edge="1" parent="1" source="f10" target="f11a"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="fx13" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;dashed=1;" edge="1" parent="1" source="f10" target="f11b"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="fx14" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f10" target="f12"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="fx15" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f12" target="f13"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx12" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f10" target="f11"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx13" value="crm82" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#d6b656;fontSize=11;" edge="1" parent="1" source="f11" target="f12a"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx14" value="crm91" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#d6b656;fontSize=11;" edge="1" parent="1" source="f11" target="f12b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx15" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f12a" target="f13"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx16" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f12b" target="f13"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fx17" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="f13" target="f14"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="4 · 三次路線變更與遺留物" id="page-history">
+    <mxGraphModel dx="1800" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="t4" value="三次路線變更（2026-07-23 → 08-02，11 天）" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="18" width="800" height="34" as="geometry" />
+        </mxCell>
+
+        <mxCell id="v1" value="v1 · 07-23　完全禁用 SDK&#10;&#10;目標：純 HTTP / OData v4&#10;移除所有 Microsoft.Xrm / CrmSdk&#10;移除 Data8&#10;&#10;產出：WebApi 專案（41 檔）&#10;　　　HTTP 傳輸 / ADFS OAuth&#10;　　　FetchXML 編碼 / 世代管理" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="340" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="v2" value="v2 · 07-29　官方優先 + Central/Local&#10;&#10;放棄「完全禁用 SDK」&#10;判準改為「是不是微軟官方」&#10;Embedded → Local Gateway&#10;&#10;產出：SPEC 63KB + 說明書 84KB&#10;　　　＋ 互動架構圖 68KB&#10;　　　Gateway 授權層 / SQL 協調器" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="430" y="90" width="340" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="v3" value="v3 · 08-02　官方 NuGet Worker（現行）&#10;&#10;放棄直接 Web API&#10;改用官方 CrmServiceClient&#10;關在 net48 獨立進程&#10;具名管道 IPC 溝通&#10;&#10;產出：8 個新專案&#10;　　　ControlPlane / WorkerProtocol&#10;　　　WorkerHost / WorkerSupervisor&#10;　　　Crm82Worker / Crm91Worker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="90" width="340" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a1" value="卡住：CE on-prem 的 ADFS&#10;服務身分權杖可能不存在" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=3;strokeColor=#b85450;fontSize=11;" edge="1" parent="1" source="v1" target="v2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a2" value="卡住：需管理員身分註冊&#10;ADFS client，停滯 17.5 小時" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=3;strokeColor=#d79b00;fontSize=11;" edge="1" parent="1" source="v2" target="v3"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="keyIns" value="★ v3 之所以解開僵局，是因為 CrmServiceClient 走 IFD / WS-Trust —— 跟現有 legacy SOAP 是同一條認證路徑。&#10;不需要新的 ADFS client 註冊，也就不需要那個 Codex 打不開的管理通道。這才是這次轉向真正的價值。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f4ea;strokeColor=#82b366;fontSize=13;fontStyle=1;align=left;spacingLeft=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="340" width="1120" height="64" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dead" value="遺留物清單（尚未清除）" style="swimlane;html=1;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="435" width="1120" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="SpeechMessage.Dynamics.WebApi · 41 檔&#10;v1 的核心產出。約 26 檔（Capacity/ 與部分 Runtime/）已搬進 ControlPlane 保住；&#10;約 15 檔傳輸相關成為死碼：DynamicsHttpTransport · AdfsOAuthTokenProvider · DynamicsWebApiClient&#10;· ApprovedWebApiRootFactory · FetchXmlValueEncoder · Package01ServerOwnedTemplates · SecretResolver 系列" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+          <mxGeometry x="20" y="42" width="1080" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="SpeechMessage.Dynamics.SmokeTests · 2 檔　　唯一還參考 WebApi 的專案" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+          <mxGeometry x="20" y="130" width="1080" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="SpeechMessage.Dynamics.Embedded · 1 檔　　ChurchReport 已解除參考，只剩空殼" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+          <mxGeometry x="20" y="174" width="1080" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="docs/scripts/Invoke-DynamicsLiveSmoke.ps1　·　docs/scripts/Get-DynamicsCrmWebIfdDiagnostics.ps1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+          <mxGeometry x="20" y="218" width="1080" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="d5" value="★ 這四項正是目前唯一失敗的測試在要求刪除的：OfficialNuGetWorkerBoundaryTests.Legacy_webapi_projects_and_live_probe_scripts_are_removed&#10;　（TDD RED —— 屬正常遷移中狀態，不是缺陷，但代表方案目前不是全綠）" style="text;html=1;fontSize=11;fontColor=#8b2f2a;align=left;" vertex="1" parent="dead">
+          <mxGeometry x="20" y="256" width="1080" height="36" as="geometry" />
+        </mxCell>
 
       </root>
     </mxGraphModel>

@@ -1,13 +1,5 @@
-// ============================================================================
-// 檔案：SpeechMessage.Dynamics.Tests/ProjectReferenceBoundaryTests.cs
-// 目的：用原始碼層級檢查，避免產品專案直接 reference WebApi。
-//
-// 保母教學：
-// - 設計要求：產品只能走 Gateway HTTP 或 Embedded 專案。
-// - 這裡掃整個 solution 的 csproj，抓出誰 reference 了 WebApi。
-// - 允許的只有 Gateway / Embedded / Tests / SmokeTests。
-// ============================================================================
-
+using System.Text;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 
 namespace SpeechMessage.Dynamics.Tests;
@@ -15,52 +7,68 @@ namespace SpeechMessage.Dynamics.Tests;
 public sealed class ProjectReferenceBoundaryTests
 {
     [Fact]
-    public void No_active_production_project_may_reference_legacy_webapi()
+    public void No_project_may_reference_the_retired_webapi_project()
     {
         var root = FindRepositoryRoot();
-        var csprojFiles = Directory.GetFiles(root, "*.csproj", SearchOption.AllDirectories)
-            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
-            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+        var offenders = Directory
+            .GetFiles(root, "*.csproj", SearchOption.AllDirectories)
+            .Where(path => !IsBuildOutput(path))
+            .Select(path => new
+            {
+                Project = Path.GetFileNameWithoutExtension(path),
+                References = ReadProjectReferences(path)
+            })
+            .Where(item => item.References.Any(reference =>
+                reference.Contains(
+                    "SpeechMessage.Dynamics.WebApi",
+                    StringComparison.OrdinalIgnoreCase)))
+            .Select(item => item.Project)
             .ToArray();
 
-        var offenders = new List<string>();
-        foreach (var csproj in csprojFiles)
-        {
-            var text = File.ReadAllText(csproj);
-            if (!text.Contains("SpeechMessage.Dynamics.WebApi", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var projectName = Path.GetFileNameWithoutExtension(csproj);
-            var allowed =
-                projectName is "SpeechMessage.Dynamics.Tests"
-                    or "SpeechMessage.Dynamics.SmokeTests"
-                    or "SpeechMessage.Dynamics.WebApi";
-
-            if (!allowed)
-            {
-                offenders.Add(projectName);
-            }
-        }
-
         offenders.Should().BeEmpty(
-            because: "legacy WebApi may temporarily support migration tests, but no active production project may compile or route through it");
+            because: "the official NuGet worker route has no direct Web API project or migration-test exception");
+    }
+
+    private static bool IsBuildOutput(string path) =>
+        path.Contains(
+            $"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}",
+            StringComparison.OrdinalIgnoreCase) ||
+        path.Contains(
+            $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
+            StringComparison.OrdinalIgnoreCase);
+
+    private static string[] ReadProjectReferences(string path)
+    {
+        var ascii = Encoding.ASCII.GetString(File.ReadAllBytes(path));
+        var withoutComments = Regex.Replace(
+            ascii,
+            "<!--.*?-->",
+            string.Empty,
+            RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        return Regex
+            .Matches(
+                withoutComments,
+                """<ProjectReference\b[^>]*\bInclude\s*=\s*["'](?<path>[^"']+)["']""",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+            .Select(match => match.Groups["path"].Value)
+            .ToArray();
     }
 
     private static string FindRepositoryRoot()
     {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "SpeechMessageProducts.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
             {
-                return dir.FullName;
+                return directory.FullName;
             }
 
-            dir = dir.Parent;
+            directory = directory.Parent;
         }
 
-        throw new InvalidOperationException("Could not locate SpeechMessageProducts.sln from test base directory.");
+        throw new InvalidOperationException(
+            "Could not locate SpeechMessageProducts.sln from test base directory.");
     }
 }

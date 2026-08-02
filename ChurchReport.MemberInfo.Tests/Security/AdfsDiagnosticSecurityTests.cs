@@ -96,6 +96,35 @@ public sealed class AdfsDiagnosticSourceContractTests
     }
 
     /// <summary>
+    /// 驗證已退休的 ADFS 診斷不再留下命名 HttpClient 或 handler pool 註冊；否則即使路由已移除，
+    /// Host 仍會建立無消費者的網路資源與舊方向設定面。測試只讀取工作樹來源，不建立 client、
+    /// socket、timer、subscription 或背景工作，因此沒有跨測試或跨 Session 的可變狀態。
+    /// </summary>
+    [Fact]
+    public void Retired_adfs_diagnostic_has_no_orphaned_http_client_configuration()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var sources =
+            File.ReadAllText(Path.Combine(
+                repositoryRoot,
+                "SpeechMessageProducts.ChurchReport",
+                "Startup.cs")) +
+            File.ReadAllText(Path.Combine(
+                repositoryRoot,
+                "SpeechMessageProducts.ChurchReport",
+                "Security",
+                "DiagnosticsOperatorAuthorization.cs"));
+        var forbiddenFragments = new[]
+        {
+            "DiagnosticsHttpClientName",
+            "\"adfs-diagnostics\""
+        };
+
+        forbiddenFragments.Should().OnlyContain(fragment =>
+            !sources.Contains(fragment, StringComparison.Ordinal));
+    }
+
+    /// <summary>
     /// 驗證診斷授權仍由部署端操作員清單與登入 cookie 內伺服器簽發的聯絡人識別 claim 共同決定。空清單、未驗證
     /// 身分、缺少或重複 <see cref="ClaimTypes.NameIdentifier"/>、以及清單外識別都必須 fail closed；helper 不可讀取
     /// Session、建立 cache、timer、subscription 或保留 request principal。

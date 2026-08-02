@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/OrganizationAdmissionPlan.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/OrganizationAdmissionPlan.cs
 // 目的：把原始 admission 設定驗證成不可變的執行計畫。
 //
 // 保母教學：

@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/OrganizationAdmissionOptions.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/OrganizationAdmissionOptions.cs
 // 目的：Organization 級 admission / capacity 設定。
 //
 // 保母教學：

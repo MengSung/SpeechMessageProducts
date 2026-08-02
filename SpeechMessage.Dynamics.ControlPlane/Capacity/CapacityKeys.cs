@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/CapacityKeys.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/CapacityKeys.cs
 // 目的：定義容量命名空間，避免環境標籤或 profile 世代誤當獨立預算。
 //
 // 保母教學：
@@ -24,9 +24,9 @@ public readonly record struct CanonicalOrganizationCapacityKey(
     internal const int MaximumNormalizedOrganizationBaseUriLength = 450;
 
     /// <summary>
-    /// 從已驗證的 Dynamics Web API Root 建立唯一的實體 Organization 容量鍵。
-    /// 此方法只移除路徑尾端精確匹配的 <c>/api/data/v8.2|v9.1/</c> 片段，
-    /// 保留 Organization Virtual Directory 的大小寫與結構；Scheme 與 Host 則依 URI 規則正規化。
+    /// 從已驗證的 Dynamics Organization root 建立唯一的實體 Organization 容量鍵。
+    /// 直接傳輸 endpoint 會被拒絕；容量鍵只接受不帶傳輸路徑的 Organization root，
+    /// 並保留 Organization Virtual Directory 的大小寫與結構；Scheme 與 Host 則依 URI 規則正規化。
     /// 這個區分很重要：Host 不分大小寫，但 On-Premises 反向代理或 Virtual Directory 路徑可能區分大小寫，
     /// 若把整條 URI 一律轉小寫，可能把兩個不同部署錯誤合併成同一份容量與 Credential 邊界。
     /// </summary>

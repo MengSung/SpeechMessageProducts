@@ -1,180 +1,78 @@
-// ============================================================================
-// 檔案：SpeechMessage.Dynamics.Abstractions/Configuration/ProductDynamicsOptions.cs
-// 目的：產品 JSON 的強型別設定模型（Gateway / Embedded 二選一）。
-//
-// 保母教學：
-// - 這個設定只是「啟動綁定」，不是授權真相來源。
-// - Gateway 模式只允許 Gateway 端點與 profile alias。
-// - Embedded 模式只允許 profile 設定與 manifest/trust 來源。
-// - 禁止在 JSON 放 CRM 密碼、client secret、使用者/LINE session。
-// ============================================================================
-
 using System.ComponentModel.DataAnnotations;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 
 namespace SpeechMessage.Dynamics.Abstractions.Configuration;
 
 /// <summary>
-/// 產品端 Dynamics 連線模式設定。
-/// 對應 appsettings / 產品 JSON 的 DynamicsAccess 區段。
+/// 產品端 Dynamics 存取設定，只描述產品到 Gateway 的非秘密路由形狀。
+/// 產品不得在此設定 Dynamics endpoint、Worker、套件、Credential、Token 或使用者 Session。
 /// </summary>
 public sealed class ProductDynamicsOptions
 {
+    /// <summary>組態區段名稱。</summary>
     public const string SectionName = "DynamicsAccess";
 
     /// <summary>
-    /// 執行模式：Gateway 或 Embedded。必須明確指定。
+    /// 部署時固定的執行模式。正式與開發的目前支援路徑都是 <see cref="DynamicsExecutionMode.Gateway"/>；
+    /// <see cref="DynamicsExecutionMode.Embedded"/> 保留為延後能力且必須 fail closed。
     /// </summary>
     [Required]
     public DynamicsExecutionMode ExecutionMode { get; set; } = DynamicsExecutionMode.Gateway;
 
     /// <summary>
-    /// 邏輯組織/環境別名，例如 jesus-prod。不是 CRM 連線字串。
+    /// 產品可見的邏輯 Profile alias；Gateway 會依已驗證的工作負載身分在伺服器端解析實際 Profile。
     /// </summary>
     [Required]
     public string ProfileAlias { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Gateway 模式專用設定。ExecutionMode=Gateway 時必填。
-    /// </summary>
+    /// <summary>Gateway 模式的內部服務設定。</summary>
     public GatewayModeOptions? Gateway { get; set; }
 
     /// <summary>
-    /// Embedded 模式專用設定。ExecutionMode=Embedded 時必填。
+    /// Embedded 延後能力的非秘密信任綁定；不得包含任何 Dynamics 傳輸或驗證材料。
     /// </summary>
     public EmbeddedModeOptions? Embedded { get; set; }
 }
 
 /// <summary>
-/// Gateway 模式只需要知道「去哪裡打 Gateway」，不需要知道 CRM 密碼。
+/// Central Gateway 與 Local Gateway 共用的產品端 HTTP 邊界設定。
+/// Endpoint 必須指向受控 Gateway，而不是 Dynamics 服務。
 /// </summary>
 public sealed class GatewayModeOptions
 {
-    /// <summary>
-    /// 內部 Gateway base URL，例如 https://dynamics-gateway.internal/
-    /// </summary>
+    /// <summary>受控 Gateway 的 HTTPS base URI。</summary>
     [Required]
     [Url]
     public string Endpoint { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 可選的 API 路徑前綴。預設 /v1。
-    /// </summary>
+    /// <summary>版本化 Gateway API 前綴。</summary>
     public string ApiPrefix { get; set; } = "/v1";
 
     /// <summary>
-    /// Gateway 回應內容可被產品端緩衝的最大位元組數。
-    /// 必須同時限制已宣告的 Content-Length 與未知長度的 chunked 回應，
-    /// 避免上游錯誤或惡意回應在產品 Process 內造成無上限記憶體保留。
+    /// 單一 Gateway 回應可讀取的最大位元組數；ProductClient 會在完整配置進入記憶體前同時檢查
+    /// Content-Length 與串流累計值，避免不受控回應造成記憶體保留或跨要求資源壓力。
     /// </summary>
     public int MaxResponseBytes { get; set; } = 2_097_152;
 }
 
 /// <summary>
-/// Embedded 模式在產品程序內執行受控操作。
-/// 注意：仍不得把 raw CRM service client 暴露給業務程式。
+/// Embedded 延後能力只保留部署端信任與容量協調綁定。
+/// 此型別刻意不提供 Dynamics URL、版本、Secret、Credential、OAuth、Worker 或套件欄位，
+/// 以免產品設定重新形成繞過 Gateway 的傳輸路線。
 /// </summary>
 public sealed class EmbeddedModeOptions
 {
     /// <summary>
-    /// 組織 Web API 基底 URI（不含任意 query/user-info）。
-    /// 例如 https://crm.example.com/api/data/v9.1/
+    /// 部署端核准的產品／Profile 綁定名稱。
+    /// 這只是非秘密識別，不得包含 endpoint、帳號、Token、Cookie、LINE ID 或 Session ID。
     /// </summary>
     [Required]
-    [Url]
-    public string OrganizationWebApiBaseUri { get; set; } = string.Empty;
+    public string ProductProfileBinding { get; set; } = string.Empty;
 
     /// <summary>
-    /// CE 目標主版本標籤。目前只接受 8.2 或 9.1。
+    /// 部署端核准的 Organization admission coordinator 參照。
+    /// 即使已填入，Embedded 仍不得自行建立 Worker、Credential、連線池、Timer 或背景工作。
     /// </summary>
     [Required]
-    public string CeVersion { get; set; } = "9.1";
-
-    /// <summary>
-    /// 秘密參考名稱（例如 KeyVault secret name），不是秘密本體。
-    /// </summary>
-    [Required]
-    public string SecretReference { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Embedded 啟動時用來驗證 registry/manifest 的來源 URI 或檔案路徑。
-    /// 驗證失敗必須 fail-closed。
-    /// </summary>
-    [Required]
-    public string ManifestOrRegistrySource { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Embedded 模式的 Windows 認證來源。
-    /// HostIdentity 使用目前服務行程身分；SecretReference 只保存使用者名稱/密碼的秘密名稱，實際值由秘密提供者解析。
-    /// </summary>
-    public string CredentialSource { get; set; } = "HostIdentity";
-
-    /// <summary>
-    /// Windows 使用者名稱的秘密名稱，可對應環境變數或 local-dev CrmConnection bridge key。
-    /// CredentialSource=SecretReference 時必填；不得直接填入帳號值。
-    /// </summary>
-    public string? UserNameSecretName { get; set; }
-
-    /// <summary>
-    /// Windows 密碼的秘密名稱；此欄位絕對不可放入密碼本體。
-    /// </summary>
-    public string? PasswordSecretName { get; set; }
-
-    /// <summary>
-    /// 選用的 Windows 網域秘密名稱；未設定時由帳號格式或執行環境決定。
-    /// </summary>
-    public string? DomainSecretName { get; set; }
-
-    /// <summary>
-    /// Embedded 認證模式，只允許 Windows 或 AdfsOAuth；必須在啟動時固定，不能由使用者要求切換。
-    /// </summary>
-    public string AuthMode { get; set; } = "Windows";
-
-    /// <summary>
-    /// ADFS authority，例如 https://speechmessagests.speechmessage.com.tw/adfs；不得包含使用者資訊或動態 query。
-    /// </summary>
-    public string? AuthorityUri { get; set; }
-
-    /// <summary>
-    /// CRM 組織的 OAuth resource/audience，例如 https://jesus.speechmessage.com.tw/。
-    /// </summary>
-    public string? ResourceUri { get; set; }
-
-    /// <summary>
-    /// ADFS client application ID；此識別碼本身不是秘密，但仍必須由部署設定固定。
-    /// </summary>
-    public string? ClientId { get; set; }
-
-    /// <summary>
-    /// Client ID 存放於外部設定來源時使用的選用秘密名稱；不得在此欄位放入 client secret。
-    /// </summary>
-    public string? ClientIdSecretName { get; set; }
-
-    /// <summary>
-    /// 舊設定相容欄位。現行 ADFS provider 不支援 client-secret exchange；非空值會在 Embedded 啟動驗證
-    /// 階段 fail closed，不會解析秘密或建立 token HTTP 資源。
-    /// </summary>
-    public string? ClientSecretName { get; set; }
-
-    /// <summary>
-    /// 選用的預先核發 bearer token 秘密名稱；Token 不得寫入 JSON、記錄或例外。
-    /// </summary>
-    public string? CredentialReferenceName { get; set; }
-
-    /// <summary>
-    /// 舊設定相容的 fail-closed migration trap。所有環境都必須 false；true 會在 provider、handler、socket
-    /// 或秘密解析前被拒絕，禁止以 local-dev-manifest 回退到 ROPC/password grant。
-    /// </summary>
-    public bool AllowLocalDevPasswordGrant { get; set; }
-
-    /// <summary>
-    /// 選用的 refresh token 秘密名稱；Token 本體只能由受控秘密提供者擁有，不得寫入檔案、Session、
-    /// static cache 或產品 JSON。access token 只在單一 Profile Generation 記憶體內短暫快取。
-    /// </summary>
-    public string? RefreshTokenSecretName { get; set; }
-
-    /// <summary>
-    /// local-dev authorization_code 流程使用的 OAuth redirect URI，必須與 ADFS client registration 完全一致。
-    /// </summary>
-    public string? RedirectUri { get; set; }
+    public string OrganizationAdmissionCoordinatorRef { get; set; } = string.Empty;
 }

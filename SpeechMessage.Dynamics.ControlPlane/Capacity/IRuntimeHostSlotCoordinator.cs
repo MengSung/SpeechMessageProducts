@@ -1,5 +1,5 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Capacity/IRuntimeHostSlotCoordinator.cs
+// 檔案：SpeechMessage.Dynamics.ControlPlane/Capacity/IRuntimeHostSlotCoordinator.cs
 // 目的：runtime host 佔位租約協調器介面。
 //
 // 保母教學：
