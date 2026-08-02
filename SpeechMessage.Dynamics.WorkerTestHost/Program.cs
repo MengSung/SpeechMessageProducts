@@ -129,6 +129,10 @@ internal static class Program
         });
     }
 
+    /// <summary>
+    /// 建立每個測試 Worker process 專用的 client。Factory 不保存 Profile、Credential、Session
+    /// 或 request state；hang generation 只用於驗證 Supervisor 的 bounded forced-termination 路徑。
+    /// </summary>
     private sealed class TestClientFactory : IOfficialCrmClientFactory
     {
         public IOfficialCrmClient Create(string profileGenerationId)
@@ -177,14 +181,32 @@ internal static class Program
 
         public WorkerValue Execute(WorkerRequestV1 request)
         {
-            if (Volatile.Read(ref _disposed) != 0 ||
-                request.CapabilityOperationId != OfficialWorkerOperations.RuntimeHealthWhoAmI ||
-                request.Parameters.Count != 0)
+            if (Volatile.Read(ref _disposed) != 0)
             {
                 throw new InvalidOperationException();
             }
 
-            return CreateWhoAmIResult();
+            if (OfficialWorkerOperations.IsSupportedIdentityRequest(request))
+            {
+                if (string.Equals(
+                        request.CapabilityOperationId,
+                        OfficialWorkerOperations.RuntimePoolValidateConnection,
+                        StringComparison.Ordinal) &&
+                    (!request.Parameters.TryGetValue(
+                            "logicalProfileId",
+                            out var logicalProfileId) ||
+                     !string.Equals(
+                         logicalProfileId.Scalar,
+                         "crm91-test",
+                         StringComparison.Ordinal)))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return CreateWhoAmIResult();
+            }
+
+            throw new InvalidOperationException();
         }
 
         public void Dispose()

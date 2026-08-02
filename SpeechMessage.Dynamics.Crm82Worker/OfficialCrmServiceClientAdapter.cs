@@ -62,11 +62,7 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
             throw new ArgumentNullException(nameof(request));
         }
 
-        if (!string.Equals(
-                request.CapabilityOperationId,
-                OfficialWorkerOperations.RuntimeHealthWhoAmI,
-                StringComparison.Ordinal) ||
-            request.Parameters.Count != 0)
+        if (!OfficialWorkerOperations.IsSupportedIdentityRequest(request))
         {
             throw new InvalidOperationException("The official CRM operation is unsupported.");
         }

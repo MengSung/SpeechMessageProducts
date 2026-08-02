@@ -136,7 +136,9 @@ public sealed class OfficialWorkerProfileExecutor : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        ValidateRequest(request);
+        var operationDefinition = ValidateRequestMetadata(request);
+        var workerParameters = ConvertParameters(request.Parameters);
+        ValidateWorkerParameters(request.CapabilityOperationId, workerParameters);
         await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         OperationExecutionResult? result = null;
@@ -164,7 +166,10 @@ public sealed class OfficialWorkerProfileExecutor : IAsyncDisposable
                 using var operationCancellation =
                     CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 operationCancellation.CancelAfter(_options.OperationTimeout);
-                var workerRequest = CreateWorkerRequest(request);
+                var workerRequest = CreateWorkerRequest(
+                    request,
+                    operationDefinition,
+                    workerParameters);
                 try
                 {
                     await WorkerFrameCodec.WriteAsync(
@@ -339,7 +344,15 @@ public sealed class OfficialWorkerProfileExecutor : IAsyncDisposable
         }
     }
 
-    private WorkerRequestV1 CreateWorkerRequest(OperationExecutionRequest request)
+    /// <summary>
+    /// 依已完成 Gateway registry 驗證的 immutable operation definition 建立一次性 IPC request。
+    /// 此方法只複製 bounded scalar parameter，不保存 caller dictionary，也不把 Profile、Credential、
+    /// Token、Session 或 SDK 物件放入跨行程 envelope；request 完成後唯一保留者是目前的 stack scope。
+    /// </summary>
+    private WorkerRequestV1 CreateWorkerRequest(
+        OperationExecutionRequest request,
+        OperationDefinition operationDefinition,
+        IReadOnlyDictionary<string, WorkerValue> workerParameters)
     {
         var deadline = DateTimeOffset.UtcNow.Add(_options.OperationTimeout)
             .UtcDateTime.Ticks;
@@ -348,10 +361,40 @@ public sealed class OfficialWorkerProfileExecutor : IAsyncDisposable
             _processNonce,
             Guid.NewGuid(),
             _options.ProfileGenerationId,
-            OfficialWorkerOperations.RuntimeHealthWhoAmIRevision,
+            operationDefinition.TemplateHash,
             request.CapabilityOperationId,
             deadline,
-            new Dictionary<string, WorkerValue>(StringComparer.Ordinal));
+            workerParameters);
+    }
+
+    /// <summary>
+    /// 將 ControlPlane 已正規化的 scalar 轉成 SDK-free WorkerValue。轉換結果是本次呼叫專用的
+    /// bounded snapshot，避免 caller 在等待 operation gate 時修改原始 dictionary，亦避免跨 Session
+    /// 共用 mutable request state。未列入正式 scalar contract 的型別一律 fail closed。
+    /// </summary>
+    private static IReadOnlyDictionary<string, WorkerValue> ConvertParameters(
+        IReadOnlyDictionary<string, object?> parameters)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        var converted = new Dictionary<string, WorkerValue>(parameters.Count, StringComparer.Ordinal);
+        foreach (var pair in parameters)
+        {
+            var value = pair.Value switch
+            {
+                null => WorkerValue.Null(),
+                bool boolean => WorkerValue.FromBoolean(boolean),
+                long integer => WorkerValue.FromInt64(integer),
+                decimal number => WorkerValue.FromDecimal(number),
+                string text => WorkerValue.FromString(text),
+                Guid guid => WorkerValue.FromGuid(guid),
+                DateTimeOffset dateTime => WorkerValue.FromUtcDateTime(dateTime),
+                _ => throw new InvalidOperationException(
+                    "The official Dynamics worker parameter type is not permitted.")
+            };
+            converted.Add(pair.Key, value);
+        }
+
+        return converted;
     }
 
     /// <summary>
@@ -431,15 +474,42 @@ public sealed class OfficialWorkerProfileExecutor : IAsyncDisposable
         return guid;
     }
 
-    private void ValidateRequest(OperationExecutionRequest request)
+    /// <summary>
+    /// 在列舉 caller parameter collection 前驗證 profile、workload、registry 與固定參數數量。
+    /// 此固定成本 gate 防止繞過 ControlPlane 的呼叫端迫使 Supervisor 建立大型 snapshot；失敗時
+    /// 尚未寫入 pipe、建立 request frame 或接觸 endpoint/secret，也不會 fallback 到其他 transport。
+    /// </summary>
+    private OperationDefinition ValidateRequestMetadata(OperationExecutionRequest request)
     {
         if (!string.Equals(request.ProfileAlias, _options.ProfileAlias, StringComparison.Ordinal) ||
-            !string.Equals(
+            string.IsNullOrWhiteSpace(request.WorkloadSubjectId) ||
+            request.Parameters is null ||
+            !Package01OperationRegistry.TryGet(
                 request.CapabilityOperationId,
-                OfficialWorkerOperations.RuntimeHealthWhoAmI,
-                StringComparison.Ordinal) ||
-            request.Parameters.Count != 0 ||
-            string.IsNullOrWhiteSpace(request.WorkloadSubjectId))
+                out var operationDefinition) ||
+            operationDefinition is null ||
+            !OfficialWorkerOperations.IsSupportedIdentityParameterCount(
+                request.CapabilityOperationId,
+                request.Parameters.Count))
+        {
+            throw new InvalidOperationException(
+                "The official Dynamics worker operation is not permitted.");
+        }
+
+        return operationDefinition;
+    }
+
+    /// <summary>
+    /// 驗證完成 bounded scalar 轉換後的精確參數名稱、型別與值。這是 request frame 建立前的
+    /// 第二道封閉 gate；方法不保存 snapshot，失敗不會啟動另一個 Worker 或改走其他 Profile。
+    /// </summary>
+    private static void ValidateWorkerParameters(
+        string capabilityOperationId,
+        IReadOnlyDictionary<string, WorkerValue> workerParameters)
+    {
+        if (!OfficialWorkerOperations.IsSupportedIdentityOperation(
+                capabilityOperationId,
+                workerParameters))
         {
             throw new InvalidOperationException(
                 "The official Dynamics worker operation is not permitted.");

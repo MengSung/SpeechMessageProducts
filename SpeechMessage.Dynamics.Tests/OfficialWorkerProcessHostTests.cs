@@ -1,4 +1,5 @@
 using FluentAssertions;
+using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.WorkerHost;
 using SpeechMessage.Dynamics.WorkerProtocol;
 
@@ -11,6 +12,30 @@ namespace SpeechMessage.Dynamics.Tests;
 public sealed class OfficialWorkerProcessHostTests
 {
     private const string PackageLockId = "crm91-xrmtooling-9.1.1.65-core-9.0.2.60";
+
+    /// <summary>
+    /// 驗證 WorkerHost 的 identity-operation revision map 必須逐項等於 Abstractions registry。
+    /// 這個 agreement gate 防止 Supervisor、Worker 與 queued operation 在不同 template revision
+    /// 下執行；map 僅包含 immutable 字串，不保存任何 Profile、Credential 或 Session state。
+    /// </summary>
+    [Fact]
+    public void Identity_operation_revisions_match_the_authoritative_registry()
+    {
+        var revisions = OfficialWorkerOperations.CreateRevisionMap();
+        var operationIds = new[]
+        {
+            OperationIds.RuntimeHealthWhoAmI,
+            OperationIds.RuntimePoolValidateConnection
+        };
+
+        revisions.Keys.Should().BeEquivalentTo(operationIds);
+        foreach (var operationId in operationIds)
+        {
+            Package01OperationRegistry.TryGet(operationId, out var definition).Should().BeTrue();
+            definition.Should().NotBeNull();
+            revisions[operationId].Should().Be(definition!.TemplateHash);
+        }
+    }
 
     /// <summary>
     /// 證明 client 未就緒時 session 仍只建立、釋放一次 client，且 process host 確定釋放 pipe stream。

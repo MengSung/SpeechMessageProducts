@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using FluentAssertions;
@@ -13,6 +14,79 @@ namespace SpeechMessage.Dynamics.Tests;
 /// </summary>
 public sealed class OfficialWorkerProfileExecutorTests
 {
+    /// <summary>
+    /// 驗證連線池驗證操作必須由 Supervisor 依 registry 產生精確 revision，並把已正規化的
+    /// logicalProfileId 轉成 bounded WorkerValue。測試 Worker 只接受該 revision 與該參數，
+    /// 因此硬編碼 WhoAmI revision、丟棄參數或 request-time fallback 都會使此測試失敗。
+    /// </summary>
+    [Fact]
+    public async Task Validate_connection_preserves_registry_revision_and_typed_parameter()
+    {
+        var executablePath = FindTestWorkerExecutable();
+        await using var executor = await OfficialWorkerProfileExecutor.StartAsync(
+            CreateOptions(
+                executablePath,
+                "profile-generation-validate-connection",
+                operationTimeout: TimeSpan.FromSeconds(5),
+                drainTimeout: TimeSpan.FromSeconds(2)),
+            CancellationToken.None);
+
+        var result = await executor.ExecuteAsync(
+            new OperationExecutionRequest
+            {
+                ProfileAlias = "crm91-test",
+                CapabilityOperationId = OperationIds.RuntimePoolValidateConnection,
+                WorkloadSubjectId = "worker-supervisor-validate-connection-test",
+                Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["logicalProfileId"] = "crm91-test"
+                }
+            },
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.WhoAmI);
+        result.Data.WhoAmI!.OrganizationId.Should().Be(
+            Guid.Parse("33333333-3333-3333-3333-333333333333"));
+
+        await executor.DisposeAsync();
+        AssertFullyRetired(executor.GetLifecycleSnapshot());
+    }
+
+    /// <summary>
+    /// 驗證不合法的 identity-operation parameter count 必須在列舉或複製 caller dictionary 前
+    /// fail closed。如此即使非標準呼叫端繞過 ControlPlane preparer，也不能用大型或具副作用的
+    /// collection 迫使 Supervisor 配置無界 snapshot；拒絕路徑不會建立 request frame 或寫入 pipe。
+    /// </summary>
+    [Fact]
+    public async Task Invalid_identity_parameter_count_is_rejected_before_parameter_enumeration()
+    {
+        var executablePath = FindTestWorkerExecutable();
+        await using var executor = await OfficialWorkerProfileExecutor.StartAsync(
+            CreateOptions(
+                executablePath,
+                "profile-generation-prevalidation",
+                operationTimeout: TimeSpan.FromSeconds(5),
+                drainTimeout: TimeSpan.FromSeconds(2)),
+            CancellationToken.None);
+
+        var act = () => executor.ExecuteAsync(
+            new OperationExecutionRequest
+            {
+                ProfileAlias = "crm91-test",
+                CapabilityOperationId = OperationIds.RuntimeHealthWhoAmI,
+                WorkloadSubjectId = "worker-supervisor-prevalidation-test",
+                Parameters = new EnumerationForbiddenParameters()
+            },
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("The official Dynamics worker operation is not permitted.");
+
+        await executor.DisposeAsync();
+        AssertFullyRetired(executor.GetLifecycleSnapshot());
+    }
+
     /// <summary>
     /// 驗證 Worker 即使回傳格式正確且內容可解析，只要 RequestId 並非本次要求的識別碼，
     /// Supervisor 就必須拒絕結果、回傳固定協定錯誤並終止整個 generation，避免跨要求資料誤配。
@@ -279,6 +353,37 @@ public sealed class OfficialWorkerProfileExecutorTests
         snapshot.OwnedPipeCount.Should().Be(0);
         snapshot.OwnedBackgroundTaskCount.Should().Be(0);
         snapshot.ActiveOperationCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 代表 Count 已知但禁止列舉的測試 dictionary。若 production 在完成 operation shape
+    /// prevalidation 前嘗試建立 snapshot，測試會以固定例外揭露不必要的配置與信任邊界錯誤。
+    /// </summary>
+    private sealed class EnumerationForbiddenParameters : IReadOnlyDictionary<string, object?>
+    {
+        public int Count => 1;
+
+        public IEnumerable<string> Keys => throw EnumerationFailure();
+
+        public IEnumerable<object?> Values => throw EnumerationFailure();
+
+        public object? this[string key] => throw EnumerationFailure();
+
+        public bool ContainsKey(string key) => throw EnumerationFailure();
+
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() =>
+            throw EnumerationFailure();
+
+        public bool TryGetValue(string key, out object? value)
+        {
+            value = null;
+            throw EnumerationFailure();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => throw EnumerationFailure();
+
+        private static InvalidOperationException EnumerationFailure() =>
+            new("Parameter enumeration must not occur before shape validation.");
     }
 
     private static string FindRepositoryRoot()
