@@ -9,6 +9,7 @@ namespace SpeechMessage.Dynamics.Tests;
 /// 這些測試只建立具有限制生命週期的測試專用子行程，且只透過固定、nonce 綁定的協定交換非機密事件；
 /// 絕不將 CRM 連線、認證、權杖或父行程的例外與輸出交給子行程。
 /// </summary>
+[Collection(LiveSqlTestCollection.Name)]
 public sealed class CrossProcessSqlRuntimeHostSlotCoordinatorTests
 {
     /// <summary>

@@ -11,7 +11,9 @@ $requiredProjectNames = @(
     "SpeechMessage.Dynamics.Abstractions",
     "SpeechMessage.Dynamics.ControlPlane",
     "SpeechMessage.Dynamics.Crm82Worker",
+    "SpeechMessage.Dynamics.Crm82Worker.Tests",
     "SpeechMessage.Dynamics.Crm91Worker",
+    "SpeechMessage.Dynamics.Crm91Worker.Tests",
     "SpeechMessage.Dynamics.Embedded",
     "SpeechMessage.Dynamics.Gateway",
     "SpeechMessage.Dynamics.ProductClient",
@@ -196,6 +198,47 @@ Invoke-FixtureCase -Name "Gateway references a worker executable" -ExpectedRuleI
     Add-ProjectReference -ProjectPath (
         Join-Path $fixtureRoot "SpeechMessage.Dynamics.Gateway\SpeechMessage.Dynamics.Gateway.csproj"
     ) -Reference "..\SpeechMessage.Dynamics.Crm91Worker\SpeechMessage.Dynamics.Crm91Worker.csproj"
+}
+
+Invoke-FixtureCase -Name "Ordinary tests reference an SDK package" -ExpectedRuleId "DYNBOUNDARY004" -Mutate {
+    param($fixtureRoot)
+    Add-PackageReference -ProjectPath (
+        Join-Path $fixtureRoot "SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj"
+    ) -Name "Microsoft.CrmSdk.CoreAssemblies" -Version "9.0.2.60"
+}
+
+Invoke-FixtureCase -Name "CE 8.2 worker tests reference the CE 9.1 worker" -ExpectedRuleId "DYNBOUNDARY006" -Mutate {
+    param($fixtureRoot)
+    $projectPath = Join-Path (
+        $fixtureRoot
+    ) "SpeechMessage.Dynamics.Crm82Worker.Tests\SpeechMessage.Dynamics.Crm82Worker.Tests.csproj"
+    [xml]$project = Get-Content -LiteralPath $projectPath -Raw
+    $reference = @($project.SelectNodes(
+        "//*[local-name()='ProjectReference']"
+    )) | Select-Object -First 1
+    [void]$reference.SetAttribute(
+        "Include",
+        "..\SpeechMessage.Dynamics.Crm91Worker\SpeechMessage.Dynamics.Crm91Worker.csproj"
+    )
+    $project.Save($projectPath)
+}
+
+Invoke-FixtureCase -Name "CE 9.1 worker test package version drift" -ExpectedRuleId "DYNBOUNDARY014" -Mutate {
+    param($fixtureRoot)
+    $projectPath = Join-Path (
+        $fixtureRoot
+    ) "SpeechMessage.Dynamics.Crm91Worker.Tests\SpeechMessage.Dynamics.Crm91Worker.Tests.csproj"
+    [xml]$project = Get-Content -LiteralPath $projectPath -Raw
+    $package = @($project.SelectNodes(
+        "//*[local-name()='PackageReference']"
+    )) |
+        Where-Object {
+            $_.GetAttribute("Include") -eq
+                "Microsoft.CrmSdk.XrmTooling.CoreAssembly"
+        } |
+        Select-Object -First 1
+    [void]$package.SetAttribute("Version", "0.0.0")
+    $project.Save($projectPath)
 }
 
 Invoke-FixtureCase -Name "Worker package version drift" -ExpectedRuleId "DYNBOUNDARY009" -Mutate {

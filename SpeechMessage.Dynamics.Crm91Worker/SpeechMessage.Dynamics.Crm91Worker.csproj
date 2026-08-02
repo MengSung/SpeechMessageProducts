@@ -2,6 +2,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
+    <!-- 專案已明確鎖定 net48 reference-assembly 套件；禁止 SDK 再隱式加入泛型 meta package，
+         否則 packages.lock.json 會出現不一致並使 Visual Studio 進入 NuGet restore loop。 -->
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>

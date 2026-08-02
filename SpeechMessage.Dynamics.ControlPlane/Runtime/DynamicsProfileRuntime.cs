@@ -35,6 +35,7 @@ public sealed class DynamicsProfileRuntime : IDynamicsProfileRuntime
     private Task? _drainTask;
     private DynamicsProfileRuntimeState _state = DynamicsProfileRuntimeState.Active;
     private int _activeExecutionCount;
+    private int _recycleReason;
 
     /// <summary>
     /// 建立一個已完成 Worker READY handshake、但尚未由 Manager 發布的 Active Runtime。
@@ -120,6 +121,57 @@ public sealed class DynamicsProfileRuntime : IDynamicsProfileRuntime
 
     /// <summary>取得不含秘密、Session 或 Worker object reference 的即時 admission 指標。</summary>
     public AdmissionMetricsSnapshot AdmissionSnapshot => _admissionRegistration.Manager.GetSnapshot();
+
+    /// <summary>
+    /// 取得此 Runtime Generation 已觀察到的第一個 sticky Worker recycle reason。
+    /// Reason 是固定 enum，不包含 Process、Pipe、Request、Credential、Token、Exception 或 Session 資料。
+    /// </summary>
+    public OfficialWorkerRecycleReason RecycleReason
+        => (OfficialWorkerRecycleReason)Volatile.Read(ref _recycleReason);
+
+    /// <summary>
+    /// 依固定 Worker 陣列順序評估下一次 admission；任一 Worker 要求回收便以 first-writer-wins 規則
+    /// 聚合為整個 Runtime Generation 的 sticky reason。Worker 資源觀測若拋出或回傳未知值會 fail closed，
+    /// 避免不可信的 Private Bytes／Working Set 證據仍讓新工作進入同一 Generation。
+    /// </summary>
+    public OfficialWorkerRecycleReason EvaluateRecycleForNextAdmission()
+    {
+        var stickyReason = RecycleReason;
+        if (stickyReason != OfficialWorkerRecycleReason.None)
+        {
+            return stickyReason;
+        }
+
+        foreach (var worker in _workers)
+        {
+            OfficialWorkerRecycleReason workerReason;
+            try
+            {
+                workerReason = worker.EvaluateRecycleForNextAdmission();
+                if (!Enum.IsDefined(workerReason))
+                {
+                    workerReason = OfficialWorkerRecycleReason.ResourceObservationFailure;
+                }
+            }
+            catch
+            {
+                workerReason = OfficialWorkerRecycleReason.ResourceObservationFailure;
+            }
+
+            if (workerReason == OfficialWorkerRecycleReason.None)
+            {
+                continue;
+            }
+
+            Interlocked.CompareExchange(
+                ref _recycleReason,
+                (int)workerReason,
+                (int)OfficialWorkerRecycleReason.None);
+            return RecycleReason;
+        }
+
+        return RecycleReason;
+    }
 
     /// <summary>
     /// 只在 State 仍為 Active 時原子增加執行引用並建立 lease。

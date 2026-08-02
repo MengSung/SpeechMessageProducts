@@ -37,7 +37,8 @@ internal static class Program
                 CeVersion,
                 factory,
                 new NamedPipeOfficialWorkerConnector(),
-                OfficialWorkerOperations.CreateRevisionMap());
+                OfficialWorkerOperations.CreateRevisionMap(),
+                Package01FeeWorkerContract.ProtocolLimits);
 
             return (int)host.RunAsync(arguments, CancellationToken.None)
                 .GetAwaiter()

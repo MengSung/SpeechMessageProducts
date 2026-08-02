@@ -465,6 +465,161 @@ if (bodyRead.Status == GatewayOperationRequestBodyReadStatus.UnsupportedMediaTyp
 
 The reader performs the strict JSON-only header check before `Request.Body.ReadAsync` or `ArrayPool<byte>.Rent`; therefore unauthorized callers still receive 403, while authorized invalid media types fail with 415 without acquiring body-lifecycle resources.
 
+## Scenario: Adjacent official-worker deployment overlay
+
+### 1. Scope / Trigger
+
+This scenario applies whenever the pinned CE 8.2/9.1 workers are published,
+deployment-owned worker profiles are materialized, or the Gateway starts with
+`dynamics-official-workers.gateway.json` beside its executable. The overlay is
+the environment-specific artifact-identity bridge between the reviewed worker
+publish manifest and the otherwise checked-in Gateway profile/runtime limits.
+
+### 2. Signatures
+
+```powershell
+.\docs\scripts\Publish-DynamicsOfficialWorkers.ps1 `
+  -RepositoryPath '<worktree-root>' `
+  -OutputRoot '<final-worker-root>' `
+  -Json
+
+.\docs\scripts\New-DynamicsOfficialWorkerDeployment.ps1 `
+  -ManifestPath '<final-worker-root>\official-worker-manifest.json' `
+  -ProfileInputPath '<approved-deployment-profile-input.json>' `
+  -OutputDirectory '<final-gateway-publish-directory>' `
+  -Json
+```
+
+```text
+<final-gateway-publish-directory>/
+  SpeechMessage.Dynamics.Gateway.exe (or owning Gateway host executable)
+  dynamics-official-workers.gateway.json
+
+Program startup order:
+  WebApplication.CreateBuilder(args)
+  -> TryAddAdjacentOverlay(builder.Configuration, AppContext.BaseDirectory)
+  -> LoadDynamicsProfileDefinitions(builder.Configuration, builder.Environment)
+```
+
+### 3. Contracts
+
+- Publish the CE 8.2 and CE 9.1 workers into their final versioned deployment
+  locations before generating the overlay. The overlay contains absolute worker
+  executable paths, so moving a worker after generation invalidates the
+  deployment contract.
+- `OutputDirectory` is the final Gateway publish/executable directory. The
+  generator writes the overlay there and writes each `worker-profile.xml`
+  beside its already-published worker executable.
+- Use a clean/versioned final directory. The generator refuses to overwrite an
+  existing overlay or `worker-profile.xml`; operators must not delete or merge
+  files in place to bypass this fail-closed generation boundary.
+- Never generate an environment-specific overlay inside
+  `SpeechMessage.Dynamics.Gateway` source. The Web SDK includes JSON content in
+  build/publish output, and a source-tree or test-bin overlay can silently alter
+  another environment or `WebApplicationFactory` run.
+- Gateway looks only for the exact file adjacent to `AppContext.BaseDirectory`.
+  Absence is allowed and leaves the checked-in configuration unchanged; a
+  present invalid file fails startup before profile materialization or worker
+  creation.
+- The overlay is added exactly once after all standard `CreateBuilder`
+  configuration sources and before `LoadDynamicsProfileDefinitions`. Its
+  allowlisted artifact/profile identity fields therefore override checked-in
+  placeholders, while base runtime/admission/security settings remain owned by
+  normal Gateway configuration.
+- Loading is startup-only. The helper reads at most 256 KiB with JSON depth at
+  most eight, clears the byte buffer in `finally`, and creates no file provider,
+  `FileSystemWatcher`, reload-on-change owner, timer, or background task. A file
+  change takes effect only after a controlled Gateway restart/replace-and-drain.
+- A private fixed-snapshot source transfers its sole bounded dictionary to one
+  provider with `Interlocked.Exchange`; the retained source no longer owns the
+  original enumerable or a duplicate dictionary. `ConfigurationManager`/Host
+  owns that provider and its one bounded change-token registration until Host
+  disposal. No static mutable deployment snapshot or cross-Host state exists.
+- The overlay accepts only `DynamicsProfiles:Profiles` artifact/profile identity
+  fields. It rejects unknown or secret-shaped fields, case-colliding aliases,
+  duplicate properties, unsupported worker kinds, relative or wrong executable
+  paths, zero/non-hex hashes, and any expected organization GUID whose 16 bytes
+  are all identical.
+- Deployment generation requires authoritative profile identity and
+  authentication inputs. Do not invent CE 8.2/9.1 Organization GUIDs,
+  credential references, authentication modes, organization names, or home
+  realms merely to create an overlay. Until those values are approved, keep
+  `Package01FeeReadsEnabled=false` and leave Phase 4C open.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Overlay is absent beside the running Gateway | Continue with base configuration and add no provider. Placeholder profile values may still make that environment NotReady. |
+| Overlay is present but malformed, oversized, too deep, duplicate-bearing, or contains an unknown/secret field | Throw the fixed sanitized invalid-overlay exception before mutating configuration or starting a worker. |
+| Worker path is relative, names the wrong worker executable, or no longer matches the final location | Reject the overlay; do not search another directory or fall back to a checked-in path. |
+| Executable hash is zero, malformed, or does not match the published manifest/artifact | Generation or startup remains fail closed; do not rewrite the hash from the live file implicitly. |
+| Expected Organization GUID is empty, all-FF, or any other all-identical-byte value | Reject it as a placeholder before profile publication. |
+| Overlay or worker profile already exists at generation targets | Refuse overwrite and require a clean/versioned deployment directory. |
+| Overlay file changes after Gateway startup | Running configuration remains unchanged; perform a controlled restart to load a newly reviewed snapshot. |
+| Two Gateway configuration instances load different overlays | Each instance owns a distinct provider/dictionary; mutation or disposal of one cannot affect the other. |
+| Authoritative CE profile identity/authentication values are unavailable | Publish/hash verification may proceed, but do not generate a deployment overlay or claim Phase 4C. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: workers are published to final immutable paths, manifest hashes are
+  independently verified, the generator writes profiles beside those workers
+  and the overlay beside the final Gateway executable, then one restart loads
+  one fixed snapshot.
+- Base: no overlay exists in a developer/test output directory. Gateway uses its
+  ordinary configuration and no watcher/provider is added by the helper.
+- Bad: generate the production overlay under the Gateway source tree, move the
+  workers afterward, or copy the overlay into a test output directory.
+- Bad: use placeholder Organization GUIDs or guessed credential/authentication
+  fields to make deployment generation pass.
+
+### 6. Tests Required
+
+- Assert the checked-in hash/GUID placeholders are overridden only by one
+  `FixedSnapshotConfigurationProvider`, and deleting the source file after load
+  does not change the running snapshot.
+- Assert missing overlay adds no configuration source/provider.
+- Assert secret/unknown fields, case-colliding aliases, duplicate properties,
+  relative paths, zero hashes, and repeated-byte GUID placeholders fail before
+  configuration mutation.
+- Load two independent `ConfigurationManager` instances, mutate one, and prove
+  provider identity and values do not cross instances. Dispose both managers
+  deterministically.
+- Source-scan `Program.cs` and assert exactly one overlay call occurs before
+  profile materialization.
+- Run deployment-generator tests proving manifest/package/artifact inventory,
+  authentication union, duplicate JSON, secret-field, existing-output, and
+  placeholder validation remain fail closed.
+- Run the changed-file strict UTF-8/no-BOM/CRLF/final-CRLF gate and
+  `git diff --check`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```powershell
+# Source-tree output can be published accidentally, and these are guessed
+# deployment identities rather than approved CE evidence.
+.\docs\scripts\New-DynamicsOfficialWorkerDeployment.ps1 `
+  -ManifestPath .\artifacts\dynamics-workers\official-worker-manifest.json `
+  -ProfileInputPath .\guessed-profile.json `
+  -OutputDirectory .\SpeechMessage.Dynamics.Gateway
+```
+
+#### Correct
+
+```powershell
+# Workers already occupy their final paths. The profile input is separately
+# approved, and the clean output is the final Gateway publish directory.
+.\docs\scripts\New-DynamicsOfficialWorkerDeployment.ps1 `
+  -ManifestPath '<final-worker-root>\official-worker-manifest.json' `
+  -ProfileInputPath '<approved-profile-input.json>' `
+  -OutputDirectory '<clean-final-gateway-publish-directory>'
+```
+
+The correct path preserves adjacency, precedence, immutable startup semantics,
+single ownership, deterministic Host cleanup, and the Phase 4C evidence gate.
+
 ## Scenario: Official NuGet worker protocol and lifecycle
 
 ### 1. Scope / Trigger
@@ -542,6 +697,23 @@ public interface IDynamicsWorkerSupervisor : IAsyncDisposable
   not acknowledge drain, the supervisor terminates it after the grace deadline,
   waits for exit, disposes the process handle, and removes every retained
   request/generation reference.
+- Process ownership is released only after the OS explicitly confirms exit and
+  both redirected stdout/stderr reader tasks reach a terminal state. A worker
+  parent may exit while a descendant still inherits an output handle; the
+  supervisor must retain the `Process` and incomplete reader task references,
+  return the fixed sanitized cleanup failure, and permit a later `DisposeAsync`
+  retry. It must never exchange a reader/process field to `null` before the
+  corresponding completion/disposal is confirmed.
+- Concurrent `DisposeAsync` callers share exactly one cleanup-attempt task. A
+  failed or timed-out attempt is not cached permanently: after it has stopped
+  touching resources, the attempt task is cleared while all incomplete resource
+  owners remain. The operation semaphore is disposed only after cleanup is
+  complete and every caller that entered `ExecuteAsync`, including gate waiters,
+  has left; calls arriving after admission closes fail before touching the
+  disposed semaphore.
+- An exception from `Process.HasExited`, `Kill`, or `WaitForExitAsync` is an
+  unknown lifecycle result, not proof of process exit. Unknown results keep the
+  process owner and fail cleanup closed.
 - Worker age, completed-operation count, private bytes/working set, health
   failure, protocol violation, repeated timeout, and profile/package replacement
   are bounded recycle triggers.
@@ -562,6 +734,8 @@ public interface IDynamicsWorkerSupervisor : IAsyncDisposable
 | Worker response contains an SDK type/raw CRM URL or exceeds bounds | Reject the frame and recycle/quarantine that worker generation. |
 | Worker exceeds age/count/memory/health threshold | Stop new assignment and replace-and-drain it without exceeding aggregate capacity. |
 | Graceful drain exceeds deadline | Force terminate, wait for exit, dispose handles/IPC/registrations, and prove counters return to zero. |
+| Worker parent exits but a descendant still owns stdout/stderr handles | The first cleanup attempt returns `The official Dynamics worker cleanup did not complete.`, keeps the process and incomplete reader owners visible in the lifecycle snapshot, and allows a later retry after the handles close. |
+| Process kill, exit wait, or state query cannot confirm exit | Treat cleanup as incomplete, retain the `Process` reference, keep readiness false, and retry only through the next serialized cleanup owner. |
 | Official operation fails | Return its sanitized failure; do not change transport/profile/version/credential. |
 
 ### 5. Good / Base / Bad Cases
@@ -590,6 +764,12 @@ public interface IDynamicsWorkerSupervisor : IAsyncDisposable
 - Repeated start/READY/request/cancel/timeout/crash/drain/kill/recycle loops with
   counters for processes, pipes, streams, timers, registrations, request-map
   entries, semaphores, leases, permits, and strong generation references.
+- Start a worker that launches a short-lived descendant inheriting stdout/stderr,
+  then let the worker parent drain and exit. Assert concurrent first
+  `DisposeAsync` callers share one task and receive the fixed cleanup failure,
+  `OwnedProcessCount=1`, `OwnedBackgroundTaskCount>0`, and readiness false;
+  after the descendant closes the handles, assert a second dispose succeeds and
+  every ownership counter is zero.
 - Simultaneous CE 8.2/9.1 workers proving no assembly/client/credential/result or
   mutable state crosses versions/profiles.
 - Soak tests proving managed heap, private bytes, working set, handles, threads,
@@ -614,6 +794,26 @@ failed official worker -> direct Web API fallback
 Gateway (.NET 10)
   -> bounded nonce-bound IPC -> Crm82Worker (net48, pinned Microsoft NuGet)
   -> bounded nonce-bound IPC -> Crm91Worker (net48, pinned Microsoft NuGet)
+```
+
+```csharp
+// Await first; clear only the exact owner whose completion was confirmed.
+var reader = Volatile.Read(ref _stdoutDiscardTask);
+if (await AwaitReaderCompletionAsync(reader, drainTimeout).ConfigureAwait(false))
+{
+    Interlocked.CompareExchange(ref _stdoutDiscardTask, null, reader);
+}
+
+// A faulted cleanup attempt is retryable while incomplete owners remain.
+catch
+{
+    lock (_disposeSync)
+    {
+        _disposeTask = null;
+    }
+
+    throw;
+}
 ```
 
 The process boundary isolates SDK versions and provides a deterministic final
@@ -1536,6 +1736,12 @@ EXEC(N'...' + QUOTENAME(...))，因 SQL Server 2025 LocalDB 不能解析後者�
 - An opt-in live LocalDB contract may prove real deletion only against an
   explicitly provisioned Development database with test-owned stale rows; it
   must then prove counts and cleanup without retaining connections or rows.
+- All test classes that use the fixed Development LocalDB belong to one named
+  xUnit collection with collection-level parallelization disabled. Random
+  namespaces isolate durable rows, but they do not isolate the single LocalDB
+  process or short lease/fencing deadlines; cross-class parallel execution can
+  create test-harness contention and false expiry failures. Do not disable
+  parallelization for the entire test assembly.
 
 ### 7. Wrong vs Correct
 

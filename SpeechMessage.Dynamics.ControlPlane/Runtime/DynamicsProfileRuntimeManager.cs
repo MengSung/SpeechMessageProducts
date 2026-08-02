@@ -6,6 +6,7 @@
 
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.WorkerSupervisor;
 
 namespace SpeechMessage.Dynamics.ControlPlane.Runtime;
 
@@ -188,18 +189,16 @@ public sealed class DynamicsProfileRuntimeManager : IDynamicsProfileRuntimeManag
     {
         ArgumentNullException.ThrowIfNull(envelope);
 
-        IOrganizationAdmissionManager admissionManager;
-        OrganizationAdmissionPlan expectedPlan;
-        lock (_gate)
+        var binding = await ResolveAdmissionBindingForAcquireAsync(
+            envelope.ProfileAlias,
+            cancellationToken).ConfigureAwait(false);
+        if (binding is null)
         {
-            if (!TryResolveAdmissionBindingLocked(
-                    envelope.ProfileAlias,
-                    out admissionManager!,
-                    out expectedPlan!))
-            {
-                return NotReadyLeaseResult();
-            }
+            return NotReadyLeaseResult();
         }
+
+        var admissionManager = binding.AdmissionManager;
+        var expectedPlan = binding.AdmissionPlan;
 
         // 這裡刻意不持有 Runtime Execution Lease：Queue 可能等待數秒，若提前取得舊 Runtime，
         // replace-and-drain 會被未 dispatch 的工作阻塞，且 Queue 會長期保留舊 Worker／Pipe Generation。
@@ -429,6 +428,267 @@ public sealed class DynamicsProfileRuntimeManager : IDynamicsProfileRuntimeManag
     }
 
     /// <summary>
+    /// 在取得 Admission Manager 或 Permit 前評估目前 Active Runtime 的 sticky recycle reason。
+    /// 健康 Runtime 只回傳 Admission Manager 與 immutable Plan，不把 Runtime 帶進後續 Queue wait；需要回收時
+    /// 所有 caller 共用同一個 Manager-owned replacement task，而 caller cancellation 只取消自己的等待。
+    /// 單一 Acquire 最多觸發一次 replacement；若候選 warm-up 已立即要求回收，會 fail closed 而不建立第三代。
+    /// </summary>
+    private async Task<AdmissionBinding?> ResolveAdmissionBindingForAcquireAsync(
+        string profileAlias,
+        CancellationToken callerCancellationToken)
+    {
+        var replacementAttempted = false;
+        for (var observationAttempt = 0; observationAttempt < 3; observationAttempt++)
+        {
+            ProfileSlot slot;
+            IDynamicsProfileRuntime observedActive;
+            lock (_gate)
+            {
+                if (!TryResolveActiveRuntimeLocked(profileAlias, out observedActive!) ||
+                    !_slots.TryGetValue(profileAlias.Trim(), out slot!))
+                {
+                    return null;
+                }
+            }
+
+            OfficialWorkerRecycleReason recycleReason;
+            try
+            {
+                recycleReason = observedActive.EvaluateRecycleForNextAdmission();
+                if (!Enum.IsDefined(recycleReason))
+                {
+                    recycleReason = OfficialWorkerRecycleReason.ResourceObservationFailure;
+                }
+            }
+            catch
+            {
+                // Runtime 應自行把不可讀資源映射為固定 reason；此防線確保任一非預期觀測例外仍 fail closed，
+                // 且不把 Process、Pipe、Profile、Exception message 或 caller state 帶入產品錯誤。
+                recycleReason = OfficialWorkerRecycleReason.ResourceObservationFailure;
+            }
+
+            if (recycleReason == OfficialWorkerRecycleReason.None)
+            {
+                lock (_gate)
+                {
+                    if (!TryResolveActiveRuntimeLocked(profileAlias, out var currentActive))
+                    {
+                        return null;
+                    }
+
+                    if (!ReferenceEquals(currentActive, observedActive))
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        recycleReason = observedActive.RecycleReason;
+                        if (!Enum.IsDefined(recycleReason))
+                        {
+                            recycleReason = OfficialWorkerRecycleReason.ResourceObservationFailure;
+                        }
+                    }
+                    catch
+                    {
+                        recycleReason = OfficialWorkerRecycleReason.ResourceObservationFailure;
+                    }
+
+                    if (recycleReason == OfficialWorkerRecycleReason.None)
+                    {
+                        if (!TryResolveAdmissionBindingLocked(
+                                profileAlias,
+                                out var admissionManager,
+                                out var admissionPlan))
+                        {
+                            return null;
+                        }
+
+                        return new AdmissionBinding(admissionManager, admissionPlan);
+                    }
+
+                    // Evaluation 在 Catalog 鎖外執行以避免 Process resource observation 阻塞其他 Alias；
+                    // 取得 AdmissionManager 前再讀一次 sticky reason，縮小平行 worker completion 的競態窗。
+                    // 離開鎖後加入或建立同一個 replacement task。
+                }
+            }
+
+            if (replacementAttempted)
+            {
+                return null;
+            }
+
+            Task<bool>? replacementTask;
+            lock (_gate)
+            {
+                if (!TryResolveActiveRuntimeLocked(profileAlias, out var currentActive))
+                {
+                    return null;
+                }
+
+                if (!ReferenceEquals(currentActive, observedActive))
+                {
+                    continue;
+                }
+
+                replacementTask = GetOrStartRecycleReplacementLocked(slot, observedActive);
+            }
+
+            if (replacementTask is null)
+            {
+                return null;
+            }
+
+            var replaced = await replacementTask
+                .WaitAsync(callerCancellationToken)
+                .ConfigureAwait(false);
+            if (!replaced)
+            {
+                return null;
+            }
+
+            replacementAttempted = true;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 在 Catalog 鎖內取得既有自動替換 task，或為精確的 Active Runtime 建立唯一 owner。
+    /// Manual Replace 已進行、仍有 Draining，或 Active 已改變時一律拒絕配置候選，避免第三代資源。
+    /// </summary>
+    private Task<bool>? GetOrStartRecycleReplacementLocked(
+        ProfileSlot slot,
+        IDynamicsProfileRuntime expectedActive)
+    {
+        if (slot.RecycleReplacementTask is not null)
+        {
+            return slot.RecycleReplacementTask;
+        }
+
+        if (slot.ReplacementInProgress ||
+            slot.Draining is not null ||
+            !ReferenceEquals(slot.Active, expectedActive))
+        {
+            return null;
+        }
+
+        slot.ReplacementInProgress = true;
+        BeginLifecycleOperationLocked();
+        var replacementTask = ReplaceRecycledRuntimeCoreAsync(slot, expectedActive);
+        slot.RecycleReplacementTask = replacementTask;
+        return replacementTask;
+    }
+
+    /// <summary>
+    /// 使用 Manager shutdown token 建立、驗證、發布並 drain 一個 recycle replacement。
+    /// 方法先建立非同步邊界，確保共享 task 已發布到 Slot 後才可能同步完成；候選失敗只回傳 false，
+    /// 呼叫端統一得到 sanitized NotReady，原本 sticky Active 不會被 dispatch 或改寫。
+    /// </summary>
+    private async Task<bool> ReplaceRecycledRuntimeCoreAsync(
+        ProfileSlot slot,
+        IDynamicsProfileRuntime expectedActive)
+    {
+        await Task.Yield();
+
+        IDynamicsProfileRuntime? candidate = null;
+        IDynamicsProfileRuntime? previous = null;
+        var published = false;
+        try
+        {
+            DynamicsProfileDefinition definition;
+            long generation;
+            lock (_gate)
+            {
+                if (_disposeStarted ||
+                    !_ready ||
+                    slot.Draining is not null ||
+                    !ReferenceEquals(slot.Active, expectedActive))
+                {
+                    return false;
+                }
+
+                definition = slot.Definition;
+                generation = checked(++slot.LastGeneration);
+            }
+
+            candidate = await CreateValidatedRuntimeAsync(
+                definition,
+                generation,
+                _shutdownCts.Token).ConfigureAwait(false);
+
+            lock (_gate)
+            {
+                if (_disposeStarted ||
+                    !_ready ||
+                    slot.Draining is not null ||
+                    !ReferenceEquals(slot.Active, expectedActive))
+                {
+                    throw new InvalidOperationException(
+                        "The Dynamics profile slot changed while the recycle replacement was being built.");
+                }
+
+                previous = slot.Active;
+                slot.Active = candidate;
+                slot.Draining = previous;
+                previous.BeginDrain();
+                published = true;
+            }
+
+            await DrainOwnedRuntimeAsync(
+                slot,
+                previous,
+                _shutdownCts.Token).ConfigureAwait(false);
+            return true;
+        }
+        catch
+        {
+            if (!published && candidate is not null)
+            {
+                await DisposeRejectedRecycleCandidateAsync(slot, candidate).ConfigureAwait(false);
+            }
+
+            return false;
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                slot.RecycleReplacementTask = null;
+                slot.ReplacementInProgress = false;
+            }
+
+            EndLifecycleOperation();
+        }
+    }
+
+    /// <summary>
+    /// 清理未發布候選。若 cleanup failure 後 Runtime 仍未 Disposed，Slot 會把它保留為唯一 Draining owner，
+    /// 讓 shutdown 或後續 manual replacement 能重試，而不是遺失 Process、Pipe、CTS 或 Admission Registration。
+    /// </summary>
+    private async Task DisposeRejectedRecycleCandidateAsync(
+        ProfileSlot slot,
+        IDynamicsProfileRuntime candidate)
+    {
+        try
+        {
+            await candidate.DisposeAsync().ConfigureAwait(false);
+        }
+        catch
+        {
+            lock (_gate)
+            {
+                if (candidate.State != DynamicsProfileRuntimeState.Disposed &&
+                    slot.Draining is null &&
+                    !ReferenceEquals(slot.Active, candidate))
+                {
+                    slot.Draining = candidate;
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// 建立、驗證並可選 Warm-up 候選 Generation；Warm-up 失敗視為候選不可發布，
     /// 並在方法內確定性 Dispose 候選 Runtime，避免未發布 Process／Pipe／Registration 洩漏。
     /// </summary>
@@ -623,6 +883,7 @@ public sealed class DynamicsProfileRuntimeManager : IDynamicsProfileRuntimeManag
                 slot.Active = null;
                 slot.Draining = null;
                 slot.ReplacementInProgress = false;
+                slot.RecycleReplacementTask = null;
             }
 
             _slots.Clear();
@@ -852,7 +1113,21 @@ public sealed class DynamicsProfileRuntimeManager : IDynamicsProfileRuntimeManag
 
         /// <summary>取得或設定是否已有 Factory／Warm-up／發布／drain 替換流程進行中。</summary>
         public bool ReplacementInProgress { get; set; }
+
+        /// <summary>
+        /// 取得或設定由 Manager shutdown token 唯一擁有的自動回收替換 task。
+        /// Task 不保存 caller cancellation、Request、Credential、Token 或 Session；平行 caller 只等待同一參考。
+        /// </summary>
+        public Task<bool>? RecycleReplacementTask { get; set; }
     }
+
+    /// <summary>
+    /// Queue wait 唯一需要保存的 admission binding；只包含 manager 與 immutable plan，不持有 Runtime、Executor、
+    /// Process、Pipe、Request、Credential、Token 或 Session，因此不會讓 queued-undispatched 工作保留舊 Generation。
+    /// </summary>
+    private sealed record AdmissionBinding(
+        IOrganizationAdmissionManager AdmissionManager,
+        OrganizationAdmissionPlan AdmissionPlan);
 
     /// <summary>
     /// 以物件身分比較 Runtime，避免同一個 Runtime 因 Catalog 異常或未來 Slot 擴充而被重複 Dispose。

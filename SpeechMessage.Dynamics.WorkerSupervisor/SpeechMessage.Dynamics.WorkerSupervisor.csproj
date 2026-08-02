@@ -13,4 +13,7 @@
     <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerHost\SpeechMessage.Dynamics.WorkerHost.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerProtocol\SpeechMessage.Dynamics.WorkerProtocol.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="SpeechMessage.Dynamics.Tests" />
+  </ItemGroup>
 </Project>

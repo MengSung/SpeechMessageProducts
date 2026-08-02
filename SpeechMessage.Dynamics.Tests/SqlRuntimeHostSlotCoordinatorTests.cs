@@ -9,6 +9,26 @@ using SpeechMessage.Dynamics.ControlPlane.Runtime;
 namespace SpeechMessage.Dynamics.Tests;
 
 /// <summary>
+/// 集中定義所有真實 LocalDB contract 測試的 xUnit collection。這些案例雖各自使用隨機 namespace，
+/// 但共用同一個固定 LocalDB process 與極短 lease/fencing 時限；若跨類別平行執行，測試基礎設施的
+/// SQL 排程競爭可能讓有效 lease 在第一個 renew 前過期，製造與 production contract 無關的假失敗。
+/// 只停用此 collection 的平行化，保留其餘純單元測試的並行效能，也不建立任何長生命週期連線或狀態。
+/// </summary>
+internal static class LiveSqlTestCollection
+{
+    internal const string Name = "Live SQL durable control plane";
+}
+
+/// <summary>
+/// 將所有使用固定 Development LocalDB 的測試類別序列化；collection definition 本身不持有
+/// connection、timer、task、credential 或其他可釋放資源，唯一作用是限制測試排程順序。
+/// </summary>
+[CollectionDefinition(LiveSqlTestCollection.Name, DisableParallelization = true)]
+public sealed class LiveSqlTestCollectionDefinition
+{
+}
+
+/// <summary>
 /// 將需要真實 SQL LocalDB 的測試標成明確的環境型測試；測試探索階段只讀取環境變數是否存在，
 /// 不保存、不輸出也不解析連線秘密。未提供連線字串時由 xUnit 回報「略過」而不是把測試當成成功，
 /// 因此一般單元測試仍可執行，但任何宣稱 live durable SQL 已驗證的流程都必須看到實際執行紀錄。
@@ -37,6 +57,7 @@ internal sealed class LiveSqlFactAttribute : FactAttribute
 /// Provisioning script 是 schema 建立的唯一人工 owner；Gateway 與 live contract 只驗證既有 schema，不能在啟動或測試中暗自建表。
 /// Live contract 只接受同一 Windows user 的固定 LocalDB 與專用資料庫，並使用唯一 namespace，避免測試彼此或正式租約互相污染。
 /// </summary>
+[Collection(LiveSqlTestCollection.Name)]
 public sealed class SqlRuntimeHostSlotCoordinatorTests
 {
     /// <summary>

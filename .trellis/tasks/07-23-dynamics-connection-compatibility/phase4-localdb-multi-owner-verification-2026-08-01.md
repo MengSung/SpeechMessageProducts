@@ -91,3 +91,42 @@ real-server smoke matrix.
 
 `Package01FeeReadsEnabled` remains `false`; Phase 5 consumer migration and
 Phase 6 SDK removal remain locked.
+
+## Fresh rerun and parallel-scheduling correction — 2026-08-02
+
+The fixed LocalDB provisioner completed again against
+`(localdb)\MSSQLLocalDB` and `SpeechMessageDynamicsControlPlane` with integrated
+authentication. It verified schema SHA-256
+`F06E91828C311832B7E9A09710177806B0E5010C0EF25CAC18B09BC2871101B7` and did
+not request or perform drained-row recovery.
+
+The first combined `FullyQualifiedName~Live_sql_` run exposed a test-harness
+scheduling defect: xUnit ran the same-process and cross-process LocalDB test
+classes concurrently. Six cases passed, while one three-second lease expired
+before its first renew and one worker host acquisition was denied during the
+same fixed LocalDB contention window. Each failed case passed when rerun alone,
+proving the production lease/epoch contract was not the differentiating
+variable.
+
+Both LocalDB test classes now share one named xUnit collection with
+collection-level parallelization disabled. This serializes only tests that use
+the single fixed Development LocalDB process; it does not disable parallel test
+execution for the assembly. Random durable namespaces remain mandatory and all
+test-owned rows, child processes, SQL operations, and the process-scoped live
+connection selector retain their existing bounded cleanup owners.
+
+Fresh combined evidence after the correction:
+
+```text
+dotnet test SpeechMessage.Dynamics.Tests --configuration Release \
+  --filter FullyQualifiedName~Live_sql_ --no-restore --nologo
+
+Passed: 8
+Failed: 0
+Skipped: 0
+Duration: 50 seconds
+```
+
+The connection selector existed only inside the invoking PowerShell process
+scope and was restored in `finally`. This verification contacted no Dynamics
+server, used no CRM SQL/database or credential, and does not unlock Phase 5.

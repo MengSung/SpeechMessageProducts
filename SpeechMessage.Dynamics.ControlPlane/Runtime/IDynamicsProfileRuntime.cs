@@ -5,6 +5,7 @@
 
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.WorkerSupervisor;
 
 namespace SpeechMessage.Dynamics.ControlPlane.Runtime;
 
@@ -68,6 +69,18 @@ public interface IDynamicsProfileRuntime : IAsyncDisposable, IDisposable
 
     /// <summary>取得不含秘密的 Admission 即時快照。</summary>
     AdmissionMetricsSnapshot AdmissionSnapshot { get; }
+
+    /// <summary>
+    /// 取得此 Generation 已聚合的第一個 sticky Worker recycle reason。
+    /// 預設為 None，讓不使用官方 Worker 的既有 Runtime fake 保持相容；正式 Worker Runtime 必須覆寫此成員。
+    /// </summary>
+    OfficialWorkerRecycleReason RecycleReason => OfficialWorkerRecycleReason.None;
+
+    /// <summary>
+    /// 在下一次 Admission 前同步評估此 Generation 是否必須整代替換。
+    /// 實作不得保存 Request、User、Session、Credential 或 Token；任何無法可信讀取的資源觀測都必須 fail closed。
+    /// </summary>
+    OfficialWorkerRecycleReason EvaluateRecycleForNextAdmission() => RecycleReason;
 
     /// <summary>
     /// 在同一生命週期鎖內確認 State=Active 並增加執行引用。

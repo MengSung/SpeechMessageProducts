@@ -46,6 +46,7 @@ public sealed class DynamicsProfileDefinition
     /// <param name="operationTimeout">單次 Worker operation 上限；未指定時採 admission 最大 outbound lifetime。</param>
     /// <param name="drainTimeout">等待 execution lease 與 Worker graceful drain 的上限；未指定時採 admission shutdown timeout。</param>
     /// <param name="cancellationGracePeriod">發出 retirement cancellation 後等待 finally/lease cleanup 的上限。</param>
+    /// <param name="recyclePolicyOptions">Worker age、完整作業數、記憶體與完整 timeout streak 的有限回收門檻。</param>
     public DynamicsProfileDefinition(
         string profileAlias,
         string workerProfileGenerationId,
@@ -61,9 +62,12 @@ public sealed class DynamicsProfileDefinition
         TimeSpan? startupTimeout = null,
         TimeSpan? operationTimeout = null,
         TimeSpan? drainTimeout = null,
-        TimeSpan? cancellationGracePeriod = null)
+        TimeSpan? cancellationGracePeriod = null,
+        OfficialWorkerRecyclePolicyOptions? recyclePolicyOptions = null)
     {
         ArgumentNullException.ThrowIfNull(admissionOptions);
+        RecyclePolicyOptions = CloneRecyclePolicyOptions(
+            recyclePolicyOptions ?? new OfficialWorkerRecyclePolicyOptions());
         ProfileAlias = ValidateIdentifier(profileAlias, nameof(profileAlias));
         WorkerProfileGenerationId = ValidateIdentifier(
             workerProfileGenerationId,
@@ -203,6 +207,12 @@ public sealed class DynamicsProfileDefinition
     public TimeSpan CancellationGracePeriod { get; }
 
     /// <summary>
+    /// 取得建構時重新驗證並複製的 immutable Worker recycle options。
+    /// 其中只有非秘密有限純量，不包含 Process、Timer、Task、Credential、Session 或 mutable collection。
+    /// </summary>
+    public OfficialWorkerRecyclePolicyOptions RecyclePolicyOptions { get; }
+
+    /// <summary>
     /// 取得建構時產生的 immutable admission plan。此 internal seam 只供 Factory、Runtime 與契約測試使用；
     /// plan 可跨 generation 共用，因為它不包含 Manager、Semaphore、Lease、Token、Credential 或 mutable collection。
     /// </summary>
@@ -257,6 +267,19 @@ public sealed class DynamicsProfileDefinition
 
         return value;
     }
+
+    /// <summary>
+    /// 逐欄複製已驗證的 immutable recycle options，讓每個 Profile Definition 擁有自己的部署 snapshot；
+    /// 複本不建立 background owner，也不保留呼叫端 options reference 供未來配置機制意外替換。
+    /// </summary>
+    private static OfficialWorkerRecyclePolicyOptions CloneRecyclePolicyOptions(
+        OfficialWorkerRecyclePolicyOptions source)
+        => new(
+            source.MaximumWorkerAge,
+            source.MaximumCompletedOperations,
+            source.MaximumPrivateBytes,
+            source.MaximumWorkingSet,
+            source.MaximumConsecutiveCompleteWorkerTimeouts);
 
     /// <summary>
     /// 逐欄複製 mutable admission options，讓驗證與 immutable plan 建立不會受呼叫端並行修改影響。

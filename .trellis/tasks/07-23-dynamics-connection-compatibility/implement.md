@@ -366,15 +366,47 @@ Gateway
   -> Dynamics Organization Service
 ```
 
-1. Finish the remaining worker-neutral test migrations, then run the complete
-   Dynamics build and test suite.
-2. Run the official-worker boundary, deterministic cleanup/no-leak, fault, and
-   soak gates. Keep each gate open until fresh evidence proves it passes.
-3. Replace deployment worker-executable SHA-256 placeholders with the hashes of
-   the exact published CE 8.2 and CE 9.1 worker artifacts.
-4. Deploy and validate the real website -> Gateway -> official worker -> CE 8.2
-   and CE 9.1 compatibility matrix, including bounded lifecycle and isolation
-   evidence.
+Completed local execution checkpoint on 2026-08-02:
+
+1. The worker-neutral migration, fixed-snapshot Gateway deployment overlay,
+   duplicate/secret/path/hash/GUID validation, and deterministic provider
+   ownership are implemented. The overlay is optional, adjacent, higher
+   precedence than checked-in placeholders, startup-only, and requires restart
+   after change.
+2. Fresh Release verification passed: Dynamics 409 passed / 0 failed / 7
+   opt-in SQL skipped; the real fixed LocalDB gate then passed 8 / 8 with the
+   selector restored in `finally`; focused worker lifecycle/fault/soak tests
+   passed 73 / 73; CE 8.2 and CE 9.1 worker tests each passed 15 / 15; worker
+   boundary verification reported zero findings; deployment/publish script tests
+   passed.
+3. The local reviewed publish artifacts were regenerated and independently
+   matched their manifest:
+   - CE 8.2 executable SHA-256:
+     `3AB968C97A1E2D64A1E7250FDDEA25E1A43D5AB7A8FF95761A382B77A9652014`;
+   - CE 9.1 executable SHA-256:
+     `A719C8097A588C62514B7564EA91CFB9F8808A06B3C284BFF6B9C6D8E93AF3C0`;
+   - CE 8.2 package-lock SHA-256:
+     `4F49F64D7AD1075DE08DDF29C57317843A5BAD3CD0E6203CBC4AA3FF9BCCD58D`;
+   - CE 9.1 package-lock SHA-256:
+     `C2FF98918A505AB260676447B719F1EA52A7516028DBACAEF2B438C68F8383EC`.
+4. A real deployment overlay was deliberately not generated. The generator
+   requires the authoritative CE 8.2/9.1 Organization GUIDs, organization
+   unique names, authentication/identity modes, credential-reference details,
+   home realm where applicable, and final stable installation paths. These
+   values must not be guessed merely to replace checked-in placeholders.
+
+Remaining ordered work:
+
+1. Complete the ChurchReport feature-disabled browser verification and prove no
+   `/v1`/Gateway/Worker traffic or retained listener/process remains.
+2. Create a clean/versioned external deployment generation only after the
+   authoritative profile inputs and final stable Gateway/worker paths exist.
+   Publish workers first, publish Gateway second, then generate the overlay into
+   the final Gateway directory without overwrite or relocation.
+3. Deploy and validate the real website -> Gateway -> official worker -> CE 8.2
+   and CE 9.1 compatibility matrices, including identity, representative reads,
+   test-owned writes, recycle, isolation, rollback, and resource-baseline
+   evidence. Only this work can close Phase 4C for each exact profile.
 
 D365APP01 IFD administration, HTTP `WhoAmI`, and direct Web API are not Phase 4
 gates. Keep `Package01FeeReadsEnabled=false`; no unverified Phase 4 gate is

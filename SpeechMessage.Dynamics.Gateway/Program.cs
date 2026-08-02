@@ -21,11 +21,19 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ControlPlane.Capacity;
 using SpeechMessage.Dynamics.ControlPlane.DependencyInjection;
 using SpeechMessage.Dynamics.ControlPlane.Runtime;
+using SpeechMessage.Dynamics.Gateway;
 using SpeechMessage.Dynamics.Gateway.RequestLimits;
 using SpeechMessage.Dynamics.Gateway.Security;
 using SpeechMessage.Dynamics.WorkerSupervisor;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 發布工具將實際 Worker executable hash、generation 與 Organization identity 寫在 Gateway
+// 執行檔旁的 deployment-owned overlay。此載入器只投影 allowlisted Worker scalar，且以一次性
+// in-memory snapshot 覆寫 appsettings 內的 fail-closed 占位；不建立 reload watcher 或 mutable cache。
+_ = OfficialWorkerDeploymentConfiguration.TryAddAdjacentOverlay(
+    builder.Configuration,
+    AppContext.BaseDirectory);
 
 builder.Services.AddOptions<GatewayRequestBodyLimitOptions>()
     .BindConfiguration(GatewayRequestBodyLimitOptions.SectionName)

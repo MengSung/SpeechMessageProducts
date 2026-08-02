@@ -422,6 +422,40 @@ memory threshold are finite and deployment-capped. Increasing
 otherwise safe throughput scales only by the bounded worker count and the shared
 organization admission budget.
 
+### 6.0.1 Final artifact overlay composition
+
+The checked-in Gateway configuration intentionally retains non-routable or
+placeholder worker artifact/profile identities. A deployment-owned adjacent
+overlay supplies only the reviewed worker generation, kind, absolute executable
+path, executable SHA-256, package-lock ID, organization base URI, and expected
+Organization GUID. It never supplies Gateway authentication/security settings,
+runtime limits, credentials, tokens, passwords, or other secret material.
+
+The deployment sequence is strict:
+
+1. Publish both pinned workers into their final versioned locations and verify
+   the manifest hashes against the actual executable and package-lock files.
+2. Obtain authoritative CE 8.2/9.1 organization identity and authentication
+   inputs. Never invent these values to satisfy the generator.
+3. Run `New-DynamicsOfficialWorkerDeployment.ps1` with a clean final Gateway
+   publish directory as `OutputDirectory`. Workers must already be in final
+   locations because the generated overlay stores absolute executable paths.
+4. Keep `dynamics-official-workers.gateway.json` adjacent to the final Gateway
+   executable. Do not generate it inside the Gateway source tree or a test
+   output directory because Web SDK JSON inclusion and test adjacency can copy
+   environment-specific routing into another host.
+5. Restart the Gateway. `Program` loads the optional file exactly once after
+   `CreateBuilder` and before profile materialization, giving its allowlisted
+   identity fields precedence over checked-in placeholders.
+
+The loader is a bounded startup snapshot, not a configuration watcher. Its
+private source transfers one dictionary to one provider with an atomic exchange;
+the source retains no original enumerable or duplicate dictionary. The Host
+owns the provider and its bounded configuration registration until disposal.
+File changes require a controlled restart and cannot mutate a live generation.
+Generation refuses existing targets so operations use a clean/versioned
+directory rather than merging or overwriting a partially deployed environment.
+
 ### 6.1 Retired direct-Web-API profile material
 
 The remainder of section 6.1 is retained only to identify legacy fields and

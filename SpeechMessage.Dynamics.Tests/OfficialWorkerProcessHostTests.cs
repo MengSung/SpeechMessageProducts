@@ -19,13 +19,14 @@ public sealed class OfficialWorkerProcessHostTests
     /// 下執行；map 僅包含 immutable 字串，不保存任何 Profile、Credential 或 Session state。
     /// </summary>
     [Fact]
-    public void Identity_operation_revisions_match_the_authoritative_registry()
+    public void Operation_revisions_match_the_authoritative_registry()
     {
         var revisions = OfficialWorkerOperations.CreateRevisionMap();
         var operationIds = new[]
         {
             OperationIds.RuntimeHealthWhoAmI,
-            OperationIds.RuntimePoolValidateConnection
+            OperationIds.RuntimePoolValidateConnection,
+            OperationIds.FeeDedicationRetrieveByContactDateRange
         };
 
         revisions.Keys.Should().BeEquivalentTo(operationIds);

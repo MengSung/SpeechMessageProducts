@@ -17,6 +17,12 @@ public sealed class OfficialNuGetWorkerBoundaryTests
         "SpeechMessage.Dynamics.Crm91Worker"
     ];
 
+    private static readonly string[] WorkerTestProjectNames =
+    [
+        "SpeechMessage.Dynamics.Crm82Worker.Tests",
+        "SpeechMessage.Dynamics.Crm91Worker.Tests"
+    ];
+
     [Fact]
     public void Gateway_and_embedded_do_not_reference_the_legacy_webapi_project()
     {
@@ -248,7 +254,7 @@ public sealed class OfficialNuGetWorkerBoundaryTests
     }
 
     [Fact]
-    public void Only_explicit_worker_projects_may_reference_xrm_tooling()
+    public void Only_explicit_worker_and_worker_only_test_projects_may_reference_xrm_tooling()
     {
         var root = FindRepositoryRoot();
         var dynamicsProjects = Directory.GetFiles(
@@ -270,12 +276,64 @@ public sealed class OfficialNuGetWorkerBoundaryTests
                 Project = XDocument.Load(path)
             })
             .Where(item => PackageReferences(item.Project).Any(package => IsCrmSdkPackage(package.Name)))
-            .Where(item => !WorkerProjectNames.Contains(item.Name, StringComparer.OrdinalIgnoreCase))
+            .Where(item => !WorkerProjectNames
+                .Concat(WorkerTestProjectNames)
+                .Contains(item.Name, StringComparer.OrdinalIgnoreCase))
             .Select(item => item.Name)
             .ToArray();
 
         offenders.Should().BeEmpty(
             because: "products, Gateway, shared contracts, and ordinary tests must stay free of CRM SDK assemblies");
+    }
+
+    [Fact]
+    public void Worker_only_tests_are_net48_and_match_only_their_worker_sdk_graph()
+    {
+        var root = FindRepositoryRoot();
+
+        for (var index = 0; index < WorkerProjectNames.Length; index++)
+        {
+            var workerProjectName = WorkerProjectNames[index];
+            var testProjectName = WorkerTestProjectNames[index];
+            var workerProject = XDocument.Load(Path.Combine(
+                root,
+                workerProjectName,
+                workerProjectName + ".csproj"));
+            var testProject = XDocument.Load(Path.Combine(
+                root,
+                testProjectName,
+                testProjectName + ".csproj"));
+
+            ProjectTargets(testProject).Should().ContainSingle().Which.Should().Be("net48");
+            ProjectReferences(testProject)
+                .Select(Path.GetFileNameWithoutExtension)
+                .Should().ContainSingle().Which.Should().Be(workerProjectName,
+                    because: "each worker test process must load only one CE-specific SDK graph");
+
+            var workerPackages = PackageReferences(workerProject)
+                .Where(package => IsCrmSdkPackage(package.Name))
+                .ToDictionary(
+                    package => package.Name,
+                    package => package.Version,
+                    StringComparer.OrdinalIgnoreCase);
+            var testPackages = PackageReferences(testProject)
+                .Where(package => IsCrmSdkPackage(package.Name))
+                .OrderBy(package => package.Name, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            testPackages.Select(package => package.Name).Should().BeEquivalentTo(
+                new[]
+                {
+                    "Microsoft.CrmSdk.XrmTooling.CoreAssembly",
+                    "Microsoft.CrmSdk.CoreAssemblies"
+                });
+            foreach (var package in testPackages)
+            {
+                workerPackages.Should().ContainKey(package.Name);
+                package.Version.Should().Be(workerPackages[package.Name],
+                    because: "a worker-only test must use the exact pinned SDK version shipped by its worker");
+            }
+        }
     }
 
     /// <summary>

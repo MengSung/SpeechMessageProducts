@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <!-- 測試專案與正式 Worker 共用精確 net48 lock；關閉 SDK 自動注入的泛型 reference-assembly
+         套件，避免 design-time restore 與 locked restore 互相改寫相依圖。 -->
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>SpeechMessage.Dynamics.Crm82Worker.Tests</RootNamespace>
+    <AssemblyName>SpeechMessage.Dynamics.Crm82Worker.Tests</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode>true</RestoreLockedMode>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CrmSdk.XrmTooling.CoreAssembly" Version="8.2.0.5" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="8.2.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Crm82Worker\SpeechMessage.Dynamics.Crm82Worker.csproj" />
+  </ItemGroup>
+</Project>

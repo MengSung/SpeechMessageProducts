@@ -187,6 +187,21 @@ $legacyPaths = @(
     "docs\scripts\Get-DynamicsCrmWebIfdDiagnostics.Tests.ps1"
 )
 
+$workerProjectNames = @(
+    "SpeechMessage.Dynamics.Crm82Worker",
+    "SpeechMessage.Dynamics.Crm91Worker"
+)
+$workerTestProjectBindings = [ordered]@{
+    "SpeechMessage.Dynamics.Crm82Worker.Tests" =
+        "SpeechMessage.Dynamics.Crm82Worker"
+    "SpeechMessage.Dynamics.Crm91Worker.Tests" =
+        "SpeechMessage.Dynamics.Crm91Worker"
+}
+$workerTestProjectNames = @($workerTestProjectBindings.Keys)
+$approvedSdkProjectNames = @(
+    $workerProjectNames + $workerTestProjectNames
+)
+
 foreach ($relativePath in $legacyPaths) {
     $fullPath = Get-FullPath `
         -BasePath $repositoryRoot `
@@ -203,7 +218,9 @@ $requiredProjectNames = @(
     "SpeechMessage.Dynamics.Abstractions",
     "SpeechMessage.Dynamics.ControlPlane",
     "SpeechMessage.Dynamics.Crm82Worker",
+    "SpeechMessage.Dynamics.Crm82Worker.Tests",
     "SpeechMessage.Dynamics.Crm91Worker",
+    "SpeechMessage.Dynamics.Crm91Worker.Tests",
     "SpeechMessage.Dynamics.Embedded",
     "SpeechMessage.Dynamics.Gateway",
     "SpeechMessage.Dynamics.ProductClient",
@@ -326,15 +343,12 @@ foreach ($project in @($projects.Values)) {
     foreach ($package in @($project.Packages)) {
         if (
             (Test-IsCrmSdkPackage -Name $package.Name) -and
-            $project.Name -notin @(
-                "SpeechMessage.Dynamics.Crm82Worker",
-                "SpeechMessage.Dynamics.Crm91Worker"
-            )
+            $approvedSdkProjectNames -notcontains $project.Name
         ) {
             Add-Finding `
                 -RuleId "DYNBOUNDARY004" `
                 -Path $project.RelativePath `
-                -Message "CRM SDK package is outside the two official worker projects: $($package.Name)."
+                -Message "CRM SDK package is outside the approved worker or matching worker-only test projects: $($package.Name)."
         }
     }
 
@@ -361,11 +375,6 @@ foreach ($project in @($projects.Values)) {
         }
     }
 }
-
-$workerProjectNames = @(
-    "SpeechMessage.Dynamics.Crm82Worker",
-    "SpeechMessage.Dynamics.Crm91Worker"
-)
 
 foreach ($project in @($projects.Values)) {
     foreach ($reference in @($project.References)) {
@@ -394,11 +403,25 @@ foreach ($project in @($projects.Values)) {
                 -Message "ProjectReference target is missing: $($reference.Name)."
         }
 
-        if ($workerProjectNames -contains $reference.Name) {
+        $expectedWorkerReference = $null
+        if ($workerTestProjectBindings.Contains($project.Name)) {
+            $expectedWorkerReference = [string]$workerTestProjectBindings[
+                $project.Name
+            ]
+        }
+
+        if (
+            $workerProjectNames -contains $reference.Name -and
+            -not [string]::Equals(
+                $reference.Name,
+                $expectedWorkerReference,
+                [StringComparison]::OrdinalIgnoreCase
+            )
+        ) {
             Add-Finding `
                 -RuleId "DYNBOUNDARY006" `
                 -Path $project.RelativePath `
-                -Message "No project may load a version-specific worker executable by ProjectReference."
+                -Message "Only the matching worker-only test may reference a version-specific worker executable."
         }
     }
 }
@@ -413,9 +436,15 @@ $expectedGraph = @{
         "SpeechMessage.Dynamics.WorkerHost",
         "SpeechMessage.Dynamics.WorkerProtocol"
     )
+    "SpeechMessage.Dynamics.Crm82Worker.Tests" = @(
+        "SpeechMessage.Dynamics.Crm82Worker"
+    )
     "SpeechMessage.Dynamics.Crm91Worker" = @(
         "SpeechMessage.Dynamics.WorkerHost",
         "SpeechMessage.Dynamics.WorkerProtocol"
+    )
+    "SpeechMessage.Dynamics.Crm91Worker.Tests" = @(
+        "SpeechMessage.Dynamics.Crm91Worker"
     )
     "SpeechMessage.Dynamics.Embedded" = @(
         "SpeechMessage.Dynamics.Abstractions"
@@ -615,6 +644,131 @@ foreach ($workerName in @($workerContracts.Keys)) {
                     -BasePath $repositoryRoot `
                     -Path $lockPath) `
                 -Message "Worker lock file version drift: $($expectedPackage.Key)."
+        }
+    }
+}
+
+$workerTestContracts = @{
+    "SpeechMessage.Dynamics.Crm82Worker.Tests" = [ordered]@{
+        "Microsoft.CrmSdk.XrmTooling.CoreAssembly" = "8.2.0.5"
+        "Microsoft.CrmSdk.CoreAssemblies" = "8.2.0.2"
+    }
+    "SpeechMessage.Dynamics.Crm91Worker.Tests" = [ordered]@{
+        "Microsoft.CrmSdk.XrmTooling.CoreAssembly" = "9.1.1.65"
+        "Microsoft.CrmSdk.CoreAssemblies" = "9.0.2.60"
+    }
+}
+
+foreach ($testProjectName in @($workerTestContracts.Keys)) {
+    if (-not $projects.ContainsKey($testProjectName)) {
+        continue
+    }
+
+    $testProject = $projects[$testProjectName]
+    $targetFramework = Get-ProjectProperty `
+        -Project $testProject.Xml `
+        -Name "TargetFramework"
+    $isTestProject = Get-ProjectProperty `
+        -Project $testProject.Xml `
+        -Name "IsTestProject"
+    $restoreWithLock = Get-ProjectProperty `
+        -Project $testProject.Xml `
+        -Name "RestorePackagesWithLockFile"
+    $restoreLockedMode = Get-ProjectProperty `
+        -Project $testProject.Xml `
+        -Name "RestoreLockedMode"
+
+    if (
+        $targetFramework -ne "net48" -or
+        $isTestProject -ne "true" -or
+        $restoreWithLock -ne "true" -or
+        $restoreLockedMode -ne "true"
+    ) {
+        Add-Finding `
+            -RuleId "DYNBOUNDARY014" `
+            -Path $testProject.RelativePath `
+            -Message "Worker-only tests must target net48 with locked restore enabled."
+    }
+
+    $expectedPackages = $workerTestContracts[$testProjectName]
+    foreach ($expectedPackage in $expectedPackages.GetEnumerator()) {
+        $matches = @(
+            $testProject.Packages |
+                Where-Object {
+                    $_.Name -eq [string]$expectedPackage.Key
+                }
+        )
+        if (
+            $matches.Count -ne 1 -or
+            $matches[0].Version -ne [string]$expectedPackage.Value
+        ) {
+            Add-Finding `
+                -RuleId "DYNBOUNDARY014" `
+                -Path $testProject.RelativePath `
+                -Message "Worker-only test CRM package version is missing or drifted: $($expectedPackage.Key)."
+        }
+    }
+
+    foreach ($package in @($testProject.Packages)) {
+        if (
+            (Test-IsCrmSdkPackage -Name $package.Name) -and
+            -not $expectedPackages.Contains($package.Name)
+        ) {
+            Add-Finding `
+                -RuleId "DYNBOUNDARY014" `
+                -Path $testProject.RelativePath `
+                -Message "Worker-only test has an unapproved CRM SDK package: $($package.Name)."
+        }
+    }
+
+    $testDirectory = Split-Path -Parent $testProject.Path
+    $lockPath = Join-Path $testDirectory "packages.lock.json"
+    if (-not (Test-Path -LiteralPath $lockPath)) {
+        Add-Finding `
+            -RuleId "DYNBOUNDARY014" `
+            -Path (Get-RelativePath `
+                -BasePath $repositoryRoot `
+                -Path $lockPath) `
+            -Message "Worker-only test packages.lock.json is missing."
+        continue
+    }
+
+    $lock = Get-Content -LiteralPath $lockPath -Raw |
+        ConvertFrom-Json
+    $frameworkProperty = $lock.dependencies.PSObject.Properties[
+        ".NETFramework,Version=v4.8"
+    ]
+    if ($null -eq $frameworkProperty) {
+        Add-Finding `
+            -RuleId "DYNBOUNDARY014" `
+            -Path (Get-RelativePath `
+                -BasePath $repositoryRoot `
+                -Path $lockPath) `
+            -Message "Worker-only test lock file lacks the net48 dependency graph."
+        continue
+    }
+
+    foreach ($expectedPackage in $expectedPackages.GetEnumerator()) {
+        $packageProperty = $frameworkProperty.Value.PSObject.Properties[
+            [string]$expectedPackage.Key
+        ]
+        $resolvedVersion = $null
+        if ($null -ne $packageProperty) {
+            $resolvedProperty = $packageProperty.Value.PSObject.Properties[
+                "resolved"
+            ]
+            if ($null -ne $resolvedProperty) {
+                $resolvedVersion = [string]$resolvedProperty.Value
+            }
+        }
+
+        if ($resolvedVersion -ne [string]$expectedPackage.Value) {
+            Add-Finding `
+                -RuleId "DYNBOUNDARY014" `
+                -Path (Get-RelativePath `
+                    -BasePath $repositoryRoot `
+                    -Path $lockPath) `
+                -Message "Worker-only test lock file version drift: $($expectedPackage.Key)."
         }
     }
 }
