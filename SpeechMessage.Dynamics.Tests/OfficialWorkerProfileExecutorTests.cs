@@ -14,6 +14,23 @@ namespace SpeechMessage.Dynamics.Tests;
 /// </summary>
 public sealed class OfficialWorkerProfileExecutorTests
 {
+    private static readonly string[] SensitiveChildEnvironmentSentinelNames =
+    [
+        "DYNAMICS_TEST_SENTINEL",
+        "CRM_TEST_SENTINEL",
+        "WORKER_CREDENTIAL_SENTINEL",
+        "WORKER_PASSWORD_SENTINEL",
+        "WORKER_SECRET_SENTINEL",
+        "WORKER_TOKEN_SENTINEL",
+        "WORKER_AUTH_SENTINEL",
+        "WORKER_CONNECTION_SENTINEL",
+        "WORKER_SQL_SENTINEL",
+        "WORKER_KEY_SENTINEL",
+        "WORKER_SESSION_SENTINEL",
+        "WORKER_COOKIE_SENTINEL",
+        "SPEECHMESSAGE_ARBITRARY_PARENT_SENTINEL"
+    ];
+
     /// <summary>
     /// 驗證連線池驗證操作必須由 Supervisor 依 registry 產生精確 revision，並把已正規化的
     /// logicalProfileId 轉成 bounded WorkerValue。測試 Worker 只接受該 revision 與該參數，
@@ -85,6 +102,55 @@ public sealed class OfficialWorkerProfileExecutorTests
 
         await executor.DisposeAsync();
         AssertFullyRetired(executor.GetLifecycleSnapshot());
+    }
+
+    /// <summary>
+    /// 驗證 official Worker child process 只繼承最小 Windows/runtime allowlist，父行程中的
+    /// Dynamics、CRM、Credential、Password、Secret、Token、Auth、Connection、SQL、Key、
+    /// Session、Cookie 與任意應用程式狀態皆不可見。finally 逐項還原父行程原值，避免測試本身
+    /// 造成跨測試 Session／環境污染；成功啟動也同時證明必要 OS runtime 變數仍被保留。
+    /// </summary>
+    [Fact]
+    public async Task Worker_process_environment_is_allowlisted_and_parent_sensitive_state_is_not_inherited()
+    {
+        var originals = SensitiveChildEnvironmentSentinelNames.ToDictionary(
+            name => name,
+            name => Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process),
+            StringComparer.OrdinalIgnoreCase);
+
+        try
+        {
+            foreach (var name in SensitiveChildEnvironmentSentinelNames)
+            {
+                Environment.SetEnvironmentVariable(
+                    name,
+                    "synthetic-sentinel",
+                    EnvironmentVariableTarget.Process);
+            }
+
+            var executablePath = FindTestWorkerExecutable();
+            await using var executor = await OfficialWorkerProfileExecutor.StartAsync(
+                CreateOptions(
+                    executablePath,
+                    "profile-generation-environment-scrub",
+                    operationTimeout: TimeSpan.FromSeconds(5),
+                    drainTimeout: TimeSpan.FromSeconds(2)),
+                CancellationToken.None);
+
+            executor.GetLifecycleSnapshot().IsReady.Should().BeTrue();
+            await executor.DisposeAsync();
+            AssertFullyRetired(executor.GetLifecycleSnapshot());
+        }
+        finally
+        {
+            foreach (var pair in originals)
+            {
+                Environment.SetEnvironmentVariable(
+                    pair.Key,
+                    pair.Value,
+                    EnvironmentVariableTarget.Process);
+            }
+        }
     }
 
     /// <summary>

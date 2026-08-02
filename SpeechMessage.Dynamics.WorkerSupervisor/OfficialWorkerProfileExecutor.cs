@@ -559,6 +559,8 @@ public sealed class OfficialWorkerProfileExecutor : IAsyncDisposable
             startInfo.ArgumentList.Add(argument);
         }
 
+        OfficialWorkerProcessEnvironment.Configure(startInfo);
+
         return Process.Start(startInfo) ??
             throw new InvalidOperationException("The official Dynamics worker could not be started.");
     }

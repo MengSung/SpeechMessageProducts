@@ -18,6 +18,24 @@ internal static class Program
     internal const string PackageLockId = "test-worker-package-lock-0001";
     private const string WrongResponseRequestIdGeneration =
         "profile-generation-wrong-request-id";
+    private const string EnvironmentScrubGeneration =
+        "profile-generation-environment-scrub";
+    private static readonly string[] SensitiveEnvironmentSentinelNames =
+    {
+        "DYNAMICS_TEST_SENTINEL",
+        "CRM_TEST_SENTINEL",
+        "WORKER_CREDENTIAL_SENTINEL",
+        "WORKER_PASSWORD_SENTINEL",
+        "WORKER_SECRET_SENTINEL",
+        "WORKER_TOKEN_SENTINEL",
+        "WORKER_AUTH_SENTINEL",
+        "WORKER_CONNECTION_SENTINEL",
+        "WORKER_SQL_SENTINEL",
+        "WORKER_KEY_SENTINEL",
+        "WORKER_SESSION_SENTINEL",
+        "WORKER_COOKIE_SENTINEL",
+        "SPEECHMESSAGE_ARBITRARY_PARENT_SENTINEL"
+    };
     private static readonly Guid WrongResponseRequestId =
         Guid.Parse("44444444-4444-4444-4444-444444444444");
 
@@ -30,6 +48,15 @@ internal static class Program
         try
         {
             var bootstrap = WorkerBootstrapArguments.Parse(arguments);
+            if (string.Equals(
+                    bootstrap.ProfileGenerationId,
+                    EnvironmentScrubGeneration,
+                    StringComparison.Ordinal) &&
+                !HasMinimumIsolatedChildEnvironment())
+            {
+                return (int)OfficialWorkerSessionExitCode.UnexpectedFailure;
+            }
+
             if (string.Equals(
                     bootstrap.ProfileGenerationId,
                     WrongResponseRequestIdGeneration,
@@ -59,6 +86,26 @@ internal static class Program
         {
             return (int)OfficialWorkerSessionExitCode.UnexpectedFailure;
         }
+    }
+
+    /// <summary>
+    /// 驗證 environment-scrub 測試 generation 看不到任何父行程 sentinel，同時仍保有啟動
+    /// Windows worker 所需的 SystemRoot、TEMP 與 USERPROFILE。方法只檢查存在性，不讀取、
+    /// 回傳或記錄值；失敗時在 pipe／client session 建立前結束，避免測試資料進入 IPC。
+    /// </summary>
+    private static bool HasMinimumIsolatedChildEnvironment()
+    {
+        foreach (var name in SensitiveEnvironmentSentinelNames)
+        {
+            if (Environment.GetEnvironmentVariable(name) is not null)
+            {
+                return false;
+            }
+        }
+
+        return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SystemRoot")) &&
+            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TEMP")) &&
+            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("USERPROFILE"));
     }
 
     /// <summary>
