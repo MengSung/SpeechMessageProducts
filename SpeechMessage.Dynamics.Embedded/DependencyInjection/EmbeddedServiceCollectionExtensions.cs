@@ -1,40 +1,33 @@
-// ============================================================================
-// 檔案：SpeechMessage.Dynamics.Embedded/DependencyInjection/EmbeddedServiceCollectionExtensions.cs
-// 目的：讓單一產品（Visual Studio / 隔離部署）啟用 Embedded 受控操作。
-//
-// 保姆級教學：
-// - 產品只參考 Embedded + Abstractions，不要直接參考 WebApi。
-// - Embedded 內部會接上 IDynamicsOperationExecutor，語意與 Gateway 相同。
-// - CredentialSource（Windows 認證來源）：
-//     HostIdentity    = 用目前 Windows 進程身分（IIS AppPool / gMSA）
-//     SecretReference = 用秘密名稱解析帳密
-// - AuthMode（啟動時固定的認證模式）：
-//     Windows   = NTLM/Negotiate（純 AD 環境）
-//     AdfsOAuth = IFD/claims 環境的 Bearer token（jesus 需要這個）
-// - additionalSecrets：本機 local-dev 可傳入「秘密名稱 -> 值」對照表（值來自既有 CrmConnection），
-//   但產品 JSON 仍只存秘密名稱，不存密碼。
-// ============================================================================
-
 using Microsoft.Extensions.DependencyInjection;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
-using SpeechMessage.Dynamics.WebApi.DependencyInjection;
-using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Embedded.DependencyInjection;
 
 /// <summary>
-/// Embedded 模式 DI 註冊。
+/// 提供保留中的 Embedded 註冊入口。Embedded 目前沒有獲准在產品行程內建立 Dynamics transport，
+/// 因此本入口只負責於任何行程、連線、背景工作或秘密解析資源建立前明確拒絕啟動。
 /// </summary>
 public static class EmbeddedServiceCollectionExtensions
 {
     /// <summary>
-    /// 依產品 DynamicsAccess 設定啟用 Embedded 受控操作執行器。
+    /// 驗證呼叫端確實選擇 Embedded 後立即 fail closed，並引導部署改用獨立行程的 Local Gateway。
+    /// 本方法不修改 <paramref name="services"/>，不解析 <paramref name="additionalSecrets"/>，也不建立
+    /// HTTP client、token cache、worker、timer、subscription 或其他需要清理的資源；因此失敗路徑沒有
+    /// 隱藏的生命週期 owner，亦不可能把產品、使用者或憑證狀態保留在 process-level DI container。
     /// </summary>
+    /// <param name="services">產品行程擁有的 DI collection；拒絕完成後內容保持不變。</param>
+    /// <param name="productOptions">部署所綁定的 Dynamics host mode。</param>
     /// <param name="additionalSecrets">
-    /// 可選：本機開發用秘密對照表（key=秘密名稱，value=秘密值）。
-    /// 正式環境應改走環境變數 / KeyVault，不要依賴這張表。
+    /// 相容舊呼叫端而保留的參數。Embedded deferred 期間禁止讀取或複製其中的秘密值。
     /// </param>
+    /// <returns>此版本永遠不會成功返回。</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="services"/> 或 <paramref name="productOptions"/> 為 <see langword="null"/>。
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// 呼叫端沒有選擇 Embedded，或 Embedded 尚未通過隔離、容量與生命週期核准。
+    /// </exception>
     public static IServiceCollection AddSpeechMessageDynamicsEmbedded(
         this IServiceCollection services,
         ProductDynamicsOptions productOptions,
@@ -49,126 +42,10 @@ public static class EmbeddedServiceCollectionExtensions
                 "AddSpeechMessageDynamicsEmbedded requires ExecutionMode=Embedded.");
         }
 
-        if (productOptions.Embedded is null)
-        {
-            throw new InvalidOperationException(
-                "Embedded options are required when ExecutionMode=Embedded.");
-        }
-
-        var embedded = productOptions.Embedded;
-        var authMode = ParseAuthMode(embedded.AuthMode);
-        var credentialSource = ParseCredentialSource(embedded.CredentialSource);
-
-        if (authMode == DynamicsAuthMode.Windows &&
-            credentialSource == DynamicsCredentialSource.SecretReference)
-        {
-            if (string.IsNullOrWhiteSpace(embedded.UserNameSecretName) ||
-                string.IsNullOrWhiteSpace(embedded.PasswordSecretName))
-            {
-                throw new InvalidOperationException(
-                    "Embedded SecretReference requires UserNameSecretName and PasswordSecretName.");
-            }
-        }
-
-        // 先註冊 secret resolver，讓 WebApi 的 TryAddSingleton 不會蓋掉。
-        if (additionalSecrets is { Count: > 0 })
-        {
-            services.AddSingleton<ISecretResolver>(_ =>
-                new ChainedSecretResolver(
-                    new EnvironmentSecretResolver(),
-                    new DictionarySecretResolver(additionalSecrets)));
-        }
-
-        if (authMode == DynamicsAuthMode.AdfsOAuth)
-        {
-            // Embedded 與 Local/Central Gateway 使用相同的 ADFS fail-closed 契約：禁止 ROPC/password grant
-            // 與未經證明的 client-secret exchange。驗證發生在 DI 建立 provider、handler 或 socket 之前，
-            // 因此錯誤設定不會啟動任何 token work，也不會把人類帳密保留在 generation cache。
-            if (embedded.AllowLocalDevPasswordGrant)
-            {
-                throw new InvalidOperationException(
-                    "Embedded ADFS password grant is disabled. Use a controlled bearer or refresh-token secret reference.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(embedded.ClientSecretName))
-            {
-                throw new InvalidOperationException(
-                    "Embedded ADFS client-secret exchange is disabled until a supported service-identity flow is proven.");
-            }
-
-            // 合法路徑只有：
-            // A) CredentialReferenceName 指向預先核發 bearer；
-            // B) Authority＋ClientId＋RefreshTokenSecretName，由 generation-owned provider 做 single-flight refresh。
-            var hasBearerRef = !string.IsNullOrWhiteSpace(embedded.CredentialReferenceName);
-            var hasAuthority = !string.IsNullOrWhiteSpace(embedded.AuthorityUri);
-            var hasClientId =
-                !string.IsNullOrWhiteSpace(embedded.ClientId) ||
-                !string.IsNullOrWhiteSpace(embedded.ClientIdSecretName);
-            var hasRefreshTokenReference =
-                !string.IsNullOrWhiteSpace(embedded.RefreshTokenSecretName);
-
-            if (!hasBearerRef && !(hasAuthority && hasClientId && hasRefreshTokenReference))
-            {
-                throw new InvalidOperationException(
-                    "Embedded AdfsOAuth requires either CredentialReferenceName (pre-issued bearer), " +
-                    "or AuthorityUri + ClientId/ClientIdSecretName + RefreshTokenSecretName.");
-            }
-        }
-
-        services.AddSpeechMessageDynamicsWebApi(options =>
-        {
-            options.OrganizationWebApiBaseUri = embedded.OrganizationWebApiBaseUri;
-            options.CeVersion = embedded.CeVersion;
-            options.AuthMode = authMode;
-            options.CredentialSource = credentialSource;
-            options.SecretReference = embedded.SecretReference;
-            options.UserNameSecretName = embedded.UserNameSecretName;
-            options.PasswordSecretName = embedded.PasswordSecretName;
-            options.DomainSecretName = embedded.DomainSecretName;
-            options.AuthorityUri = embedded.AuthorityUri;
-            options.ResourceUri = embedded.ResourceUri;
-            options.ClientId = embedded.ClientId;
-            options.ClientIdSecretName = embedded.ClientIdSecretName;
-            options.ClientSecretName = null;
-            options.CredentialReferenceName = embedded.CredentialReferenceName;
-            options.AllowLocalDevPasswordGrant = false;
-            options.RefreshTokenSecretName = embedded.RefreshTokenSecretName;
-            options.RedirectUri = embedded.RedirectUri;
-            options.TimeoutSeconds = 30;
-            options.MaxConnectionsPerServer = 4;
-            options.MaxResponseBytes = 2_097_152;
-            options.MaxRetryAttempts = 2;
-            options.MaxRetryDelaySeconds = 5;
-            options.Admission.ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-            options.Admission.AggregateMaxInFlight = 24;
-            options.Admission.MaximumRuntimeHosts = 6;
-            options.Admission.LocalQueueCapacity = 48;
-            options.Admission.MaxInFlightAndQueuedPerWorkload = 8;
-            options.Admission.AdmissionNamespaceId = "embedded-local-admission";
-            options.Admission.LeaseNamespaceId = "embedded-local-host-lease";
-            options.Admission.RequireDurableHostCoordinator = false;
-        });
-
-        return services;
-    }
-
-    private static DynamicsAuthMode ParseAuthMode(string? raw)
-    {
-        if (string.Equals(raw, "AdfsOAuth", StringComparison.OrdinalIgnoreCase))
-        {
-            return DynamicsAuthMode.AdfsOAuth;
-        }
-
-        return DynamicsAuthMode.Windows;
-    }
-
-    private static DynamicsCredentialSource ParseCredentialSource(string? raw)
-    {
-        if (string.Equals(raw, "SecretReference", StringComparison.OrdinalIgnoreCase))
-        {
-            return DynamicsCredentialSource.SecretReference;
-        }
-
-        return DynamicsCredentialSource.HostIdentity;
+        // 此處刻意不檢查或列舉 additionalSecrets。即使呼叫端仍傳入舊設定，拒絕路徑也不能讓秘密值
+        // 進入例外、記錄、static cache 或 DI descriptor；Local Gateway 才是目前唯一核准的本機路徑。
+        _ = additionalSecrets;
+        throw new InvalidOperationException(
+            "Embedded Dynamics hosting is deferred and remains fail closed. Use a separately running Local Gateway.");
     }
 }

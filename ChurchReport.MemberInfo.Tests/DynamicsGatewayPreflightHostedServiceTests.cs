@@ -39,11 +39,12 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
     }
 
     /// <summary>
-    /// 驗證 Package 1 雖啟用但選擇 Embedded 時不執行 Gateway WhoAmI。這個分支避免 preflight 自行發明
-    /// 第二種 transport 或 HttpClient，並維持「只有 Gateway mode 才穿越 Gateway HTTP 邊界」的契約。
+    /// 驗證 Package 1 啟用時拒絕 Embedded，且在解析 Gateway executor、HttpClient 或任何其他 process-owned
+    /// 資源前 fail closed。ChurchReport 僅能透過已部署的 Gateway 呼叫官方 worker，不能把 Embedded 當成
+    /// 本機 transport 或 fallback。
     /// </summary>
     [Fact]
-    public async Task Embedded_mode_does_not_resolve_the_gateway_executor()
+    public async Task Embedded_mode_fails_closed_before_gateway_executor_resolution()
     {
         var host = new RecordingProcessHost(_ =>
             throw new InvalidOperationException("Embedded mode 不得建立 Gateway executor。"));
@@ -51,8 +52,10 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
             CreateConfiguration(enabled: true, executionMode: "Embedded"),
             host);
 
-        await service.StartAsync(CancellationToken.None);
+        var action = () => service.StartAsync(CancellationToken.None);
 
+        await action.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Gateway*");
         host.GatewayExecutorRequests.Should().Be(0);
     }
 
@@ -320,16 +323,6 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
         {
             Interlocked.Increment(ref _gatewayExecutorRequests);
             return _gatewayFactory(options);
-        }
-
-        /// <summary>
-        /// 此測試替身不支援 Embedded；若 production 錯誤穿越此分支，立即 fail-closed。
-        /// </summary>
-        public IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
-            ProductDynamicsOptions options,
-            IReadOnlyDictionary<string, string> localSecrets)
-        {
-            throw new InvalidOperationException("Preflight 不得解析 Embedded executor。");
         }
 
         /// <summary>

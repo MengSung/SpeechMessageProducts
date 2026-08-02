@@ -18,7 +18,7 @@ or enable consumer traffic.
 - Test process: the opt-in SQL connection setting existed only for the test
   process and was cleared afterwards.
 
-## Executed verification
+## Earlier same-process verification
 
 ```text
 dotnet test SpeechMessage.Dynamics.Tests --filter SqlRuntimeHostSlotCoordinatorTests --no-restore --nologo
@@ -43,13 +43,51 @@ lease namespace. It proves all of the following:
    generated test namespace is removed, and both coordinator operation counters
    return to zero.
 
-## What this does not prove
+## Cross-process extension — verified 2026-08-01
 
-This is a real SQL durability and lifecycle check, but both owners run inside
-one xUnit OS process. It does not replace the required true Gateway-plus-
-Embedded multi-process test, coordinator-outage/lease-loss fault proof, or the
-hosted-process soak and performance baseline. It also does not advance the
-blocked CE 8.2/9.1 real-server smoke matrix.
+The separate opt-in cross-process suite launches only the already-built,
+test-only worker executable. The parent and every child use a generated
+non-secret namespace and a fixed protocol; the child environment is explicitly
+scrubbed of the live test selector and Dynamics/CRM/credential-shaped variables.
+No CRM endpoint, CRM credential, browser session, token, or request data crosses
+this boundary.
+
+```text
+dotnet test SpeechMessage.Dynamics.Tests --filter CrossProcessSqlRuntimeHostSlotCoordinatorTests --no-restore
+
+Passed: 6
+Failed: 0
+Skipped: 0
+Duration: 48 seconds
+```
+
+The six facts prove the following bounded behaviours against the real LocalDB
+durable coordinator:
+
+1. The parent accepts only nonce-bound, fixed-format worker protocol events.
+2. A separately running worker returns the required nonce-bound `READY` event.
+3. Independent OS workers share aggregate host/work capacity; a graceful drain
+   retains its slot until its held permit releases and quarantine completes.
+4. A parameterized, generated-namespace fencing mutation makes a real lease
+   renewal fail; the worker emits `LEASE_LOST` and rejects later work.
+5. A forcibly terminated host cannot be replaced until the durable lease TTL
+   expires and the quarantine period completes.
+6. A fixed local coordinator outage leaves its operation counter at zero,
+   drains/releases the original durable slot, and makes later host/work
+   admission fail closed.
+
+The test finally paths use a fresh bounded cleanup token for their own generated
+namespace. After the fresh run, no test worker or Dynamics test host process
+remained and the invoking process no longer had the opt-in SQL test environment
+variable. The full Dynamics test project also passed 313/313 tests, and the
+Release solution build completed with zero warnings and zero errors.
+
+## What this still does not prove
+
+This is now a real SQL durability and lifecycle check across independent OS
+processes. It does not replace a true Gateway-plus-Embedded deployment proof,
+the hosted-process soak/performance baseline, or the blocked CE 8.2/9.1
+real-server smoke matrix.
 
 `Package01FeeReadsEnabled` remains `false`; Phase 5 consumer migration and
 Phase 6 SDK removal remain locked.

@@ -18,11 +18,12 @@ using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.DependencyInjection;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 using SpeechMessage.Dynamics.Gateway.RequestLimits;
 using SpeechMessage.Dynamics.Gateway.Security;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.DependencyInjection;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.WorkerSupervisor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -115,7 +116,7 @@ builder.Services.AddAuthorization();
 var dynamicsProfiles = LoadDynamicsProfileDefinitions(
     builder.Configuration,
     builder.Environment);
-builder.Services.AddSpeechMessageDynamicsProfiles(dynamicsProfiles);
+builder.Services.AddSpeechMessageDynamicsOfficialWorkers(dynamicsProfiles);
 builder.Services.AddSingleton<IGatewayOperationAuthorizer>(serviceProvider =>
     new ConfigurationGatewayOperationAuthorizer(
         serviceProvider.GetRequiredService<IConfiguration>(),
@@ -353,8 +354,8 @@ static bool IsDevelopmentHttpsLoopbackRequest(HttpContext context)
 
 /// <summary>
 /// 從部署設定建立不可變 Profile Definitions。
-/// 優先讀取 <c>DynamicsProfiles:Profiles:{alias}</c>；若尚未遷移則讀取舊 <c>DynamicsWebApi</c> 區段，
-/// 並依明確 CE 版本衍生 crm82／crm91 Alias。方法只綁定 Secret Reference 名稱，不解析秘密值或建立網路資源。
+/// 只讀取 <c>DynamicsProfiles:Profiles:{alias}</c> 的官方 Worker 設定；不存在時立即 fail closed，
+/// 不建立舊 transport fallback，也不解析 Worker-local Credential、Token 或 CRM SDK 狀態。
 /// </summary>
 static IReadOnlyCollection<DynamicsProfileDefinition> LoadDynamicsProfileDefinitions(
     IConfiguration configuration,
@@ -366,68 +367,115 @@ static IReadOnlyCollection<DynamicsProfileDefinition> LoadDynamicsProfileDefinit
         .GetChildren()
         .ToArray();
 
-    if (profileSections.Length > 0)
+    if (profileSections.Length == 0)
     {
-        foreach (var profileSection in profileSections)
-        {
-            var options = new DynamicsWebApiOptions();
-            profileSection.Bind(options);
-            ApplyTestingEndpointFallback(options, environment);
-            definitions.Add(new DynamicsProfileDefinition(
-                profileSection.Key,
-                options,
-                profileSection.GetValue("WarmUpOnActivation", false)));
-        }
-
-        return definitions;
+        throw new InvalidOperationException(
+            "DynamicsProfiles:Profiles must contain at least one official worker profile.");
     }
 
-    // 舊區段只作為遷移相容入口；它仍必須是單一明確版本，不能在 Request 失敗後自動切換 8.2／9.1。
-    var legacyOptions = new DynamicsWebApiOptions();
-    configuration.GetSection(DynamicsWebApiOptions.SectionName).Bind(legacyOptions);
-    ApplyTestingEndpointFallback(legacyOptions, environment);
-    var legacyAlias = legacyOptions.CeVersion.Trim() switch
+    // 每個 Alias 在啟動時固定選取一個版本隔離的官方 Worker；Request 失敗時不得切換版本或 transport。
+    foreach (var profileSection in profileSections)
     {
-        "8.2" => "crm82",
-        "9.1" => "crm91",
-        _ => throw new InvalidOperationException(
-            "Legacy DynamicsWebApi:CeVersion must be exactly 8.2 or 9.1.")
-    };
-    definitions.Add(new DynamicsProfileDefinition(
-        legacyAlias,
-        legacyOptions,
-        configuration.GetValue("DynamicsProfiles:LegacyWarmUpOnActivation", false)));
+        var workerVersion = ParseOfficialWorkerVersion(
+            GetRequiredProfileValue(profileSection, "WorkerKind"));
+        var admissionOptions = new OrganizationAdmissionOptions();
+        profileSection.GetSection("Admission").Bind(admissionOptions);
+
+        definitions.Add(new DynamicsProfileDefinition(
+            profileSection.Key,
+            GetRequiredProfileValue(profileSection, "WorkerProfileGenerationId"),
+            workerVersion,
+            GetRequiredProfileValue(profileSection, "OrganizationBaseUri"),
+            ResolveWorkerExecutablePath(
+                GetRequiredProfileValue(profileSection, "WorkerExecutablePath"),
+                environment.ContentRootPath),
+            GetRequiredProfileValue(profileSection, "WorkerExecutableSha256"),
+            GetRequiredProfileValue(profileSection, "PackageLockId"),
+            admissionOptions,
+            profileSection.GetValue("WorkerCount", 1),
+            profileSection.GetValue("MaxInFlightPerWorker", 1),
+            profileSection.GetValue("WarmUpOnActivation", false),
+            ReadOptionalPositiveSeconds(profileSection, "StartupTimeoutSeconds"),
+            ReadOptionalPositiveSeconds(profileSection, "OperationTimeoutSeconds"),
+            ReadOptionalPositiveSeconds(profileSection, "DrainTimeoutSeconds"),
+            ReadOptionalPositiveSeconds(profileSection, "CancellationGracePeriodSeconds")));
+    }
+
     return definitions;
 }
 
 /// <summary>
-/// 只在 Testing 環境為完全缺少 Endpoint 的測試 Host 補上 localhost Web API root。
-/// 非 Testing 環境必須 fail closed，避免 Central／Local Gateway 因設定遺漏而猜測或誤連 CRM 目標。
+/// 將部署擁有的 WorkerKind 精確映射到版本隔離的官方 Worker graph；未知值在任何 process／pipe 建立前失敗。
 /// </summary>
-static void ApplyTestingEndpointFallback(
-    DynamicsWebApiOptions options,
-    IHostEnvironment environment)
+static OfficialWorkerVersion ParseOfficialWorkerVersion(string rawWorkerKind)
 {
-    if (!string.IsNullOrWhiteSpace(options.OrganizationWebApiBaseUri) ||
-        !string.IsNullOrWhiteSpace(options.OrganizationBaseUri))
+    return rawWorkerKind switch
     {
-        return;
-    }
+        "OfficialCrm82Worker" => OfficialWorkerVersion.Ce82,
+        "OfficialCrm91Worker" => OfficialWorkerVersion.Ce91,
+        _ => throw new InvalidOperationException(
+            "WorkerKind must be exactly OfficialCrm82Worker or OfficialCrm91Worker.")
+    };
+}
 
-    if (!environment.IsEnvironment("Testing"))
+/// <summary>
+/// 讀取不可為空且沒有前後空白的 profile 欄位；錯誤不回顯設定內容，避免路徑或部署資訊外洩。
+/// </summary>
+static string GetRequiredProfileValue(
+    IConfigurationSection profileSection,
+    string key)
+{
+    var value = profileSection[key];
+    if (string.IsNullOrWhiteSpace(value) ||
+        !string.Equals(value, value.Trim(), StringComparison.Ordinal))
     {
         throw new InvalidOperationException(
-            "Every Dynamics profile requires OrganizationBaseUri or OrganizationWebApiBaseUri.");
+            $"Dynamics profile field '{key}' is required and must not contain outer whitespace.");
     }
 
-    var version = options.CeVersion.Trim();
-    if (version is not ("8.2" or "9.1"))
+    return value;
+}
+
+/// <summary>
+/// 將相對 Worker 路徑固定解析到 Gateway content root。此處不展開環境變數，也不從 request、
+/// 使用者 Session 或目前目錄取得替代值；Supervisor 仍會在建立 process/pipe 前驗證完整 SHA-256。
+/// </summary>
+static string ResolveWorkerExecutablePath(
+    string configuredPath,
+    string contentRootPath)
+{
+    var candidate = Path.IsPathFullyQualified(configuredPath)
+        ? configuredPath
+        : Path.Combine(contentRootPath, configuredPath);
+    return Path.GetFullPath(candidate);
+}
+
+/// <summary>
+/// 將可選秒數轉成有限正值；缺少時不建立 timer 或 cancellation owner，而由 immutable definition
+/// 套用其受控預設值。
+/// </summary>
+static TimeSpan? ReadOptionalPositiveSeconds(
+    IConfigurationSection profileSection,
+    string key)
+{
+    var rawValue = profileSection[key];
+    if (rawValue is null)
+    {
+        return null;
+    }
+
+    if (!int.TryParse(
+            rawValue,
+            System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out var seconds) ||
+        seconds is < 1 or > 600)
     {
         throw new InvalidOperationException(
-            "Testing Dynamics profile CeVersion must be exactly 8.2 or 9.1.");
+            $"Dynamics profile field '{key}' must be an integer from 1 through 600.");
     }
 
-    options.OrganizationWebApiBaseUri = $"https://localhost/api/data/v{version}/";
+    return TimeSpan.FromSeconds(seconds);
 }
 
 app.Run();

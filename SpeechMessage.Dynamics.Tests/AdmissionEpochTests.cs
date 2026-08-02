@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -51,25 +51,26 @@ public sealed class AdmissionEpochTests
         int hosts,
         bool requireDurable = false)
     {
-        var options = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationWebApiBaseUri = "https://crm.example.local/api/data/v9.1/",
-            MaxConnectionsPerServer = 1,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = Guid.Parse("34343434-3434-3434-3434-343434343434"),
-                AggregateMaxInFlight = aggregate,
-                MaximumRuntimeHosts = hosts,
-                LocalQueueCapacity = 4,
-                MaxInFlightAndQueuedPerWorkload = 2,
-                AdmissionNamespaceId = "epoch-test-admission",
-                LeaseNamespaceId = "epoch-test-lease",
-                AdmissionEpoch = epoch,
-                RequireDurableHostCoordinator = requireDurable
-            }
+            ExpectedOrganizationId = Guid.Parse("34343434-3434-3434-3434-343434343434"),
+            AggregateMaxInFlight = aggregate,
+            MaximumRuntimeHosts = hosts,
+            LocalQueueCapacity = 4,
+            MaxInFlightAndQueuedPerWorkload = 2,
+            AdmissionNamespaceId = "epoch-test-admission",
+            LeaseNamespaceId = "epoch-test-lease",
+            AdmissionEpoch = epoch,
+            RequireDurableHostCoordinator = requireDurable
         };
 
-        OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+        OrganizationAdmissionPlan.TryCreate(
+                "https://crm.example.local/Epoch/",
+                workerCount: 1,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
+                out var plan,
+                out var error)
             .Should().BeTrue(error?.ErrorMessage);
         return plan!;
     }

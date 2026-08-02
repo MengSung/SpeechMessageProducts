@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>SpeechMessage.Dynamics.WorkerHost</RootNamespace>
+    <AssemblyName>SpeechMessage.Dynamics.WorkerHost</AssemblyName>
+    <Description>SDK-free single-client worker session lifecycle shared by the version-isolated official CRM workers.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerProtocol\SpeechMessage.Dynamics.WorkerProtocol.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="SpeechMessage.Dynamics.Tests" />
+  </ItemGroup>
+</Project>

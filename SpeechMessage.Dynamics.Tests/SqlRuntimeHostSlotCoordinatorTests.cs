@@ -3,8 +3,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -260,12 +260,11 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
     public void Canonical_organization_key_rejects_base_uri_that_exceeds_durable_store_index_bound()
     {
         var oversizedRoot = new Uri(
-            "https://crm.example.local/" + new string('a', 450) + "/api/data/v9.1/");
+            "https://crm.example.local/" + new string('a', 450) + "/");
 
         var created = CanonicalOrganizationCapacityKey.TryCreate(
             Guid.NewGuid(),
             oversizedRoot,
-            "v9.1",
             out _,
             out var error);
 
@@ -421,8 +420,10 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         connection.ConnectTimeout.Should().BeInRange(1, 5);
         connection.ApplicationName.Should().Be("SpeechMessage.Dynamics.Gateway.Development");
 
-        configuration["DynamicsProfiles:Profiles:crm82:OrganizationWebApiBaseUri"]
-            .Should().Be("https://dynamics-local.invalid/api/data/v8.2/");
+        configuration["DynamicsProfiles:Profiles:crm82:WorkerKind"]
+            .Should().Be("OfficialCrm82Worker");
+        configuration["DynamicsProfiles:Profiles:crm82:OrganizationBaseUri"]
+            .Should().Be("https://dynamics-local.invalid/");
     }
 
     /// <summary>
@@ -734,41 +735,39 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
 
         var suffix = Guid.NewGuid().ToString("N");
         var leaseNamespace = new RuntimeHostSlotLeaseNamespace("multi-owner-contract-" + suffix);
-        var webApiOptions = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationBaseUri = $"https://multi-owner-{suffix}.invalid/org/",
-            CeVersion = "9.1",
-            MaxConnectionsPerServer = 1,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = Guid.NewGuid(),
-                AggregateMaxInFlight = 2,
-                MaximumRuntimeHosts = 2,
-                LocalQueueCapacity = 0,
-                MaxInFlightAndQueuedPerWorkload = 2,
-                QueueAdmissionTimeoutSeconds = 5,
-                MaxDispatchEnvelopeBytes = 512,
-                AdmissionNamespaceId = "multi-owner-admission-" + suffix,
-                LeaseNamespaceId = leaseNamespace.LeaseNamespaceId,
-                AdmissionEpoch = 1,
-                RuntimeHostSlotLeaseTtlSeconds = 30,
-                RuntimeHostSlotRenewalIntervalSeconds = 10,
-                RuntimeHostSlotExpiryFenceSeconds = 1,
-                MaximumOutboundWorkLifetimeSeconds = 2,
-                ShutdownDrainTimeoutSeconds = 5,
-                RequireDurableHostCoordinator = true
-            }
+            ExpectedOrganizationId = Guid.NewGuid(),
+            AggregateMaxInFlight = 2,
+            MaximumRuntimeHosts = 2,
+            LocalQueueCapacity = 0,
+            MaxInFlightAndQueuedPerWorkload = 2,
+            QueueAdmissionTimeoutSeconds = 5,
+            MaxDispatchEnvelopeBytes = 512,
+            AdmissionNamespaceId = "multi-owner-admission-" + suffix,
+            LeaseNamespaceId = leaseNamespace.LeaseNamespaceId,
+            AdmissionEpoch = 1,
+            RuntimeHostSlotLeaseTtlSeconds = 30,
+            RuntimeHostSlotRenewalIntervalSeconds = 10,
+            RuntimeHostSlotExpiryFenceSeconds = 1,
+            MaximumOutboundWorkLifetimeSeconds = 2,
+            ShutdownDrainTimeoutSeconds = 5,
+            RequireDurableHostCoordinator = true
         };
 
         OrganizationAdmissionPlan.TryCreate(
-                webApiOptions,
-                webApiOptions.Admission,
+                $"https://multi-owner-{suffix}.invalid/org/",
+                workerCount: 1,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
                 out var firstPlan,
                 out var firstPlanError)
             .Should().BeTrue(firstPlanError?.ErrorMessage);
         OrganizationAdmissionPlan.TryCreate(
-                webApiOptions,
-                webApiOptions.Admission,
+                $"https://multi-owner-{suffix}.invalid/org/",
+                workerCount: 1,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
                 out var secondPlan,
                 out var secondPlanError)
             .Should().BeTrue(secondPlanError?.ErrorMessage);
@@ -1053,8 +1052,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
     {
         var created = CanonicalOrganizationCapacityKey.TryCreate(
             Guid.NewGuid(),
-            new Uri($"https://sql-coordinator-{suffix}.invalid/api/data/v9.1/"),
-            "v9.1",
+            new Uri($"https://sql-coordinator-{suffix}.invalid/"),
             out var key,
             out var error);
 

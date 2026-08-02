@@ -1,6 +1,40 @@
-# No-SDK Dynamics 365 access gateway
+# Microsoft-official-NuGet Dynamics 365 access gateway
 
-## 2026-07-29 direction amendment
+## 2026-08-02 official NuGet direction correction
+
+This correction supersedes every older statement that makes direct Web API,
+CRMWeb/IFD repair, or a universal no-SDK transport the delivery path or a
+Phase 4 blocker.
+
+- The primary Dynamics transport is a pair of separately version-pinned,
+  out-of-process .NET Framework 4.8 workers using Microsoft-published NuGet
+  packages and `CrmServiceClient` / Organization Service semantics.
+- CE 8.2 and CE 9.1 use different worker projects and dependency graphs until
+  real compatibility evidence proves that any consolidation is safe. Their CRM
+  SDK assemblies must never load into the .NET 10 product or Gateway process.
+- Products and the .NET 10 Gateway remain SDK-free. SDK DTOs, connections,
+  credentials, WCF channels, and mutable authentication/session state cannot
+  cross the worker boundary.
+- Direct Web API is not a supported route, fallback, or future adapter in this
+  task. The existing WebApi project and smoke artifacts are legacy replacement
+  inputs only and are removed from the build/routing surface after the official
+  workers replace their remaining test dependencies. The D365APP01 CRMWeb/IFD
+  HTTP 500 investigation is closed as a Gateway prerequisite.
+- "Real-server validation" now means deploying the actual website/Gateway and
+  official worker path on the intended Windows host and exercising the approved
+  Organization operation matrix against CE 8.2 and CE 9.1. It does not mean
+  establishing a D365APP01 management channel, reopening the IFD wizard, or
+  repeating direct Web API `WhoAmI` diagnostics.
+- Data8 remains temporary only for existing legacy traffic. New Gateway work
+  targets the official workers first; Data8 is removed after the corresponding
+  official worker passes compatibility, lifecycle, rollback, and no-leak gates.
+
+The executable contract is
+`.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md`. Older
+Web-API-specific material remains historical evidence only and cannot override
+this correction.
+
+## 2026-07-29 direction amendment (historical)
 
 This amendment supersedes the strict no-SDK requirement wherever the older text conflicts with it.
 
@@ -8,28 +42,31 @@ This amendment supersedes the strict no-SDK requirement wherever the older text 
 - Local Gateway is the immediate Visual Studio/development and isolated-deployment path. It is the same `Gateway` execution mode pointed at a localhost endpoint, not a new execution-mode enum value.
 - Embedded is retained but deferred until Central/Local, CE 8.2/9.1, isolation, and lifecycle validation passes.
 - Microsoft official SDK components are allowed only behind a Gateway adapter or out-of-process compatibility worker. Products still must not reference CRM/Dataverse SDK components directly.
-- CE 9.1 prefers direct Web API or official `ServiceClient` when its authentication path is proven.
-- CE 8.2 may temporarily use the checked-in Data8 WS-Trust bridge because the current IFD OAuth path is not proven. The preferred replacements are proven Web API v8.2 or a .NET Framework 4.8 worker using Microsoft's official `CrmServiceClient`.
+- CE 9.1 and CE 8.2 use their separately pinned official
+  `CrmServiceClient` workers. Direct Web API is removed from the route set.
+- CE 8.2 may temporarily use the checked-in Data8 WS-Trust bridge only for
+  existing unmigrated traffic while its official worker is proven.
 - Data8 remains temporary and removable only after replacement, real-server, lifecycle, isolation, rollback, and dependency-removal gates pass.
 
 The executable contract is `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md`. The full Traditional Chinese decision history and explanation is `docs/dynamics-gateway-central-local-82-91-guide.zh-TW.md`.
 
 ## Goal
 
-Design the future shared Dynamics 365 Organization integration solution for five
-current products and at least ten future products. The solution must use direct
-authenticated HTTP/OData v4 Web API calls for Dynamics 365 Customer Engagement
-8.2 and 9.1, rather than the CRM SDK DLL, WCF SOAP, or the GitHub-derived
-PowerPlatform.Dataverse.Client implementation currently in this repository.
+Design and implement the future shared Dynamics 365 Organization integration
+solution for five current products and at least ten future products. The
+solution uses separately version-pinned, recyclable Microsoft-official-NuGet
+workers for Customer Engagement 8.2 and 9.1 rather than loading CRM SDK/WCF
+assemblies into products or the .NET 10 Gateway, or making the GitHub-derived
+Data8 project the permanent transport.
 
 The recommended default deliverable is an internal Dynamics Access Gateway Web
-Service backed by a private, no-SDK Web API connector library. Each product
+Service backed by process-isolated official NuGet workers. Each product
 uses a product-owned JSON file to select one deployment-owned execution mode:
 `Gateway` (the production default) calls the controlled REST API, while
-`Embedded` hosts the same approved connector runtime inside that product for
-local Visual Studio development, test, or an explicitly isolated deployment.
-This is a host-mode choice, not a caller/runtime switch. Neither mode may use a
-CRM SDK assembly or retain a per-user CRM connection/session.
+`Embedded` remains deferred. Local Visual Studio development uses a separately
+running Local Gateway. This is a host-mode choice, not a caller/runtime switch.
+Only explicit worker projects may reference Microsoft CRM SDK packages; neither
+products nor Gateway may retain a per-user CRM connection/session.
 
 ## User value
 
@@ -74,19 +111,20 @@ CRM SDK assembly or retain a per-user CRM connection/session.
 
 | Decision | Chosen rule | Why it satisfies the request |
 | --- | --- | --- |
-| Transport | Direct HTTPS/OData v4 Web API, no CRM SDK/WCF/SOAP/OData v2 fallback. | Removes SDK/framework/version coupling while using Microsoft's supported HTTP surface. |
+| Transport | Separately version-pinned .NET Framework 4.8 workers using Microsoft-published `Microsoft.CrmSdk.XrmTooling.CoreAssembly` / `CrmServiceClient`; no direct Web API route or fallback. | Uses the supported on-premises Organization client while keeping SDK/WCF version conflicts and lifecycle state outside every .NET 10 product/Gateway process. |
 | Default host | Shared Gateway Web Service. | Centralizes secrets, observability, pool lifecycle, audit, compatibility, and organization-wide limits for five-to-ten products. |
 | Product exception | Per-product JSON may select `Embedded`. | Enables Visual Studio in-process development/testing or an intentionally isolated deployment without copying connector code. |
-| Pooling | Reuse one profile-generation-owned HTTP handler/HttpClient pool; coordinate all hosts by organization admission key. | Removes repeated connection setup without pooling user CRM sessions or allowing Embedded hosts to multiply capacity. |
+| Pooling | Reuse a bounded pool of profile-generation-owned worker processes/official clients; coordinate all hosts by organization admission key and recycle workers by age, operation count, health, and memory. | Removes repeated connection setup without pooling user CRM sessions and gives WCF/SDK state a deterministic process cleanup boundary. |
 | Login acceleration | Service-identity warm-up at host/profile readiness; a login may join only its existing bounded single-flight task. | Reduces cold-call connection/metadata cost while retaining no account, LINE ID, user token, password, browser session, or CRM session. |
-| Version selection | Explicit configured `v8.2` or `v9.1`; discovery validates route/capability only. | Prevents unsafe automatic switching and does not falsely treat an API route as proof of CE release. |
-| IFD | Target-specific non-password service-flow feasibility gate. | Avoids inventing unsupported CE on-prem client-secret/ROPC behavior. |
+| Version selection | Explicit configured CE 8.2 or CE 9.1 worker kind and pinned package set. | Prevents unsafe SDK assembly mixing, binding-redirect guesses, or request-time transport switching. |
+| IFD | Authentication is owned by the selected Microsoft connector worker and proven by that worker's real-server operation matrix. | Avoids making direct Web API/CRMWeb diagnostics an unrelated prerequisite. |
 
 ## Requirements
 
 ### Functional
 
-- Support CE on-premises Dynamics 365 8.2 and 9.1 Organization Web API profiles.
+- Support CE on-premises Dynamics 365 8.2 and 9.1 through separately pinned
+  official Microsoft NuGet worker profiles.
 - Use explicit named JSON profiles for production routing. Each profile includes
   a configured API version, organization endpoint, authentication mode,
   organization identity expectation, and bounded runtime settings.
@@ -125,15 +163,16 @@ CRM SDK assembly or retain a per-user CRM connection/session.
    registry or signed Development manifest) and must remain NotReady if it is
    missing, invalid, expired, or attempts to authorize a production endpoint,
    identity, secret, registry, or signing key.
-- Support common Web API data operations, metadata discovery, server-driven
-  paging, controlled FetchXML, actions/functions, and controlled batch
-  operations according to the selected profile's capability matrix.
-- Support Windows/IWA for CE on-premises AD deployments and OAuth/AD FS for CE
-  on-premises IFD only when the target environment passes a feasibility probe.
-  The service must not store end-user passwords or use ROPC by default. An IFD
-  profile without an approved non-password service-workload grant is blocked.
-  Future Dataverse OAuth is a separately declared profile mode, not an implicit
-  compatibility claim for CE on-premises.
+- Support the approved Organization operation matrix, including common CRUD,
+  QueryExpression or server-owned FetchXML, paging, metadata, actions/requests,
+  and bounded batch operations through typed worker commands. Products cannot
+  submit arbitrary FetchXML, SDK types, organization URLs, or generic Execute.
+- Support the Microsoft connector's documented on-premises authentication
+  modes for the exact CE target. Credential material is resolved inside the
+  worker from an approved secret reference and never appears in process
+  arguments, product JSON, logs, or persisted IPC. Browser/end-user sessions are
+  never a pool or cache key. Future Dataverse OAuth is a separately declared
+  adapter mode, not an implicit compatibility claim for CE on-premises.
 - A Windows/IWA profile is unavailable until each concrete runtime hosting mode
   (Gateway or Embedded on Windows service/IIS/gMSA, or target-like Linux
   Kerberos/keytab) passes a real environment smoke test.
@@ -189,9 +228,9 @@ CRM SDK assembly or retain a per-user CRM connection/session.
 
 ### Performance and lifecycle
 
-- The gateway must reuse profile-owned HTTP connections and metadata instead of
-  creating a client, WCF channel, discovery request, or metadata request per
-  call.
+- The gateway supervisor must reuse bounded profile-generation-owned worker
+  processes and each worker's official client instead of creating a process,
+  client, WCF channel, discovery request, or metadata request per call.
 - It must use bounded concurrency, backpressure, cancellation, timeout,
    transient-failure retry, and Retry-After behavior. It must not use unbounded
    parallel requests as a performance strategy.
@@ -278,20 +317,24 @@ CRM SDK assembly or retain a per-user CRM connection/session.
   requests using the old generation, then disposes it. It cannot mutate a live
   profile runtime in place.
 
-### SDK-removal end state
+### SDK-isolation and legacy-removal end state
 
 - No project in the solution may reference or load a DLL from
   D:\音訊科技產品\系統平台\Dynamics 365 SDK DLL.
-- No production or test project may reference Microsoft.Xrm.*, Microsoft.CrmSdk.*,
+- No product, Gateway, ProductClient, Embedded, Abstractions, or ordinary test
+  project may reference Microsoft.Xrm.*, Microsoft.CrmSdk.*,
   Microsoft.Crm.Sdk.*, Microsoft.PowerPlatform.Dataverse.Client,
   IOrganizationService, OrganizationServiceProxy, or DiscoveryServiceProxy.
-- PowerPlatform.Dataverse.Client is temporary legacy only. Final acceptance
-  requires removing it from SpeechMessageProducts.sln, removing every
-  ProjectReference to it, and deleting or moving the project out of buildable
-  source after all consumers migrate to the no-SDK Dynamics project group.
-- The final SDK-removal gate must scan solution, project, package, props,
-  targets, source, and test artifacts. A passing build is not enough if any
-  Microsoft CRM/Dataverse SDK reference remains reachable.
+  Only explicitly allowlisted CE 8.2/9.1 worker projects and their worker-only
+  tests may reference the pinned Microsoft packages/types.
+- The repository's Data8 `PowerPlatform.Dataverse.Client` is temporary legacy
+  only. Final acceptance requires removing it from `SpeechMessageProducts.sln`,
+  removing every ProjectReference to it, and deleting or moving it out of
+  buildable source after all consumers migrate to the official worker path.
+- The final SDK-boundary gate must scan solution, project, package, props,
+  targets, source, and test artifacts. A passing build is not enough if an SDK
+  reference exists outside the explicit worker allowlist or if a worker exposes
+  an SDK type across IPC.
 - CRM 2011 OrganizationData.svc/OData v2 is not a supported fallback.
 
 ## Acceptance criteria
@@ -310,8 +353,9 @@ CRM SDK assembly or retain a per-user CRM connection/session.
       performance behavior.
 - [ ] The design specifies security controls that prevent caller-directed
       outbound CRM routing and secret exposure.
-- [ ] The design contains measurable unit, integration, soak, fault-injection,
-      performance, real-server smoke-test, and SDK-removal gates.
+- [ ] The design contains measurable unit, integration, worker crash/recycle,
+      IPC isolation, soak, fault-injection, performance, official-worker
+      real-server smoke-test, and SDK-boundary gates.
 - [ ] The design defines a safe maximum-throughput target: connection reuse and
       bounded admission improve speed without exceeding the validated Dynamics
       organization budget, and coordinator failure stops new CRM admission.
@@ -333,7 +377,12 @@ CRM SDK assembly or retain a per-user CRM connection/session.
 
 - Implementing the gateway, changing existing product behavior, or deleting
   existing SDK dependencies.
-- Claiming 8.2 or 9.1 support without a target-server smoke test.
+- Claiming 8.2 or 9.1 support without deploying and testing the selected
+  official worker against the target server.
+- Reopening the D365APP01 IFD wizard, repeating direct Web API `WhoAmI`, or
+  treating CRMWeb/ASP.NET diagnostics as a prerequisite for the official worker
+  implementation. Those actions belong to a separate operations issue only if
+  the selected worker later produces evidence that requires them.
 - Turning the gateway into a generic unauthenticated CRM/OData forwarding proxy.
 - Replacing product business rules with gateway business rules. The gateway owns
   Organization connectivity; products retain their product-specific behavior.

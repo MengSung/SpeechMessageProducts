@@ -5,15 +5,15 @@
 //
 // 重要安全原則：
 // - Canonical key 只能由 ExpectedOrganizationId 與正規化 Organization Base URI 組成。
-// - Profile alias、CE 版本、IP、FQDN 與 MaxConnectionsPerServer 都不能創造新的總容量。
+// - Profile alias、CE 版本、IP、FQDN 與 worker 數量都不能創造新的總容量。
 // - 最後一個 registration 釋放後，Manager 與 Host Slot 才能被回收。
 // - 所有測試資料均為假的非正式環境值，不含真實 Credential、Token 或 Session。
 // ============================================================================
 
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -147,18 +147,18 @@ public sealed class OrganizationAdmissionRegistryTests
     }
 
     /// <summary>
-    /// 證明 MaxConnectionsPerServer 是 Profile-local Transport 上限，不屬於共享 Organization Capacity Digest。
-    /// crm82 與 crm91 可以使用不同 Socket 上限，但兩者都不得超過同一份 LocalMaxInFlight。
+    /// 證明每個 runtime host 的 worker 數量不屬於共享 Organization Capacity Digest。
+    /// crm82 與 crm91 可以使用不同 worker pool 大小，但兩者都不得超過同一份 LocalMaxInFlight。
     /// </summary>
     [Fact]
-    public void Different_profile_connection_limits_keep_one_shared_capacity_digest()
+    public void Different_profile_worker_counts_keep_one_shared_capacity_digest()
     {
-        var first = CreatePlan(maxConnectionsPerServer: 1);
-        var second = CreatePlan(maxConnectionsPerServer: 3);
+        var first = CreatePlan(workerCount: 1);
+        var second = CreatePlan(workerCount: 3);
 
         first.ConfigurationDigest.Should().Be(second.ConfigurationDigest);
         first.LocalMaxInFlight.Should().Be(4);
-        second.MaxConnectionsPerServer.Should().BeLessThanOrEqualTo(second.LocalMaxInFlight);
+        second.MaximumWorkerInFlightPerHost.Should().BeLessOrEqualTo(second.LocalMaxInFlight);
     }
 
     /// <summary>
@@ -222,36 +222,36 @@ public sealed class OrganizationAdmissionRegistryTests
         string admissionNamespace = "crm-one-admission",
         string leaseNamespace = "crm-one-lease",
         int aggregateMaxInFlight = 24,
-        int maxConnectionsPerServer = 2)
+        int workerCount = 2)
     {
-        var options = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationBaseUri = organizationBaseUri,
-            CeVersion = "9.1",
-            MaxConnectionsPerServer = maxConnectionsPerServer,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = organizationId
-                    ?? Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                AggregateMaxInFlight = aggregateMaxInFlight,
-                MaximumRuntimeHosts = 6,
-                LocalQueueCapacity = 12,
-                MaxInFlightAndQueuedPerWorkload = 4,
-                QueueAdmissionTimeoutSeconds = 5,
-                MaxDispatchEnvelopeBytes = 65_536,
-                AdmissionNamespaceId = admissionNamespace,
-                LeaseNamespaceId = leaseNamespace,
-                AdmissionEpoch = 1,
-                RuntimeHostSlotLeaseTtlSeconds = 120,
-                RuntimeHostSlotRenewalIntervalSeconds = 30,
-                RuntimeHostSlotExpiryFenceSeconds = 10,
-                MaximumOutboundWorkLifetimeSeconds = 35,
-                ShutdownDrainTimeoutSeconds = 45,
-                RequireDurableHostCoordinator = false
-            }
+            ExpectedOrganizationId = organizationId
+                ?? Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            AggregateMaxInFlight = aggregateMaxInFlight,
+            MaximumRuntimeHosts = 6,
+            LocalQueueCapacity = 12,
+            MaxInFlightAndQueuedPerWorkload = 4,
+            QueueAdmissionTimeoutSeconds = 5,
+            MaxDispatchEnvelopeBytes = 65_536,
+            AdmissionNamespaceId = admissionNamespace,
+            LeaseNamespaceId = leaseNamespace,
+            AdmissionEpoch = 1,
+            RuntimeHostSlotLeaseTtlSeconds = 120,
+            RuntimeHostSlotRenewalIntervalSeconds = 30,
+            RuntimeHostSlotExpiryFenceSeconds = 10,
+            MaximumOutboundWorkLifetimeSeconds = 35,
+            ShutdownDrainTimeoutSeconds = 45,
+            RequireDurableHostCoordinator = false
         };
 
-        OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+        OrganizationAdmissionPlan.TryCreate(
+                organizationBaseUri,
+                workerCount,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
+                out var plan,
+                out var error)
             .Should().BeTrue(error?.ErrorMessage);
         return plan!;
     }

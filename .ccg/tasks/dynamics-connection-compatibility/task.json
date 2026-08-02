@@ -1,12 +1,12 @@
 {
     "id":  "dynamics-connection-compatibility",
-    "title":  "Design Central and Local Dynamics 365 gateways with CE 8.2 and 9.1 compatibility",
+    "title":  "Build Central and Local Dynamics gateways with official CE 8.2/9.1 NuGet workers",
     "status":  "in_progress",
     "complexity":  "L+",
     "risk":  "high",
     "domain":  "integration",
   "currentPhase":  "implementation",
-  "nextAction":  "Review one read-only, redacted CRMWeb fingerprint from the existing ASP.NET 1309 UriFormatException on D365APP01; do not issue another WhoAmI probe or reopen the IFD wizard. The AD FS metadata source and required auth/organization/Discovery identifiers are now evidenced as consistent. Do not use SQL, DNS, IIS, WinRM, credentials, Basic, CredSSP, or TrustedHosts substitutes. Keep Package01FeeReadsEnabled=false; CE 8.2/9.1 operation matrix, cross-process capacity/fault, soak/performance, Phase 5, and Phase 6 remain gated.",
+  "nextAction":  "Production now routes Gateway -> ControlPlane/WorkerSupervisor -> separate CE 8.2 or CE 9.1 net48 Microsoft CrmServiceClient official-NuGet worker -> Organization Service. D365APP01 IFD, HTTP WhoAmI, and direct Web API are not Phase 4 gates. Finish the remaining worker-neutral test migrations; run the complete build/test plus boundary, deterministic cleanup/no-leak, fault, and soak gates; replace deployment worker-hash placeholders with the exact published executable hashes; then validate the deployed website -> Gateway -> official worker -> CE compatibility matrix. Keep Package01FeeReadsEnabled=false and do not mark an unverified gate passed.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

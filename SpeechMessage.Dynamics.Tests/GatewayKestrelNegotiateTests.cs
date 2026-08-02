@@ -158,13 +158,13 @@ public sealed class GatewayKestrelNegotiateTests
     }
 
     /// <summary>
-    /// 驗證 Development provider 合併基底設定後，仍會把 crm82 的 production URI、ADFS metadata 與所有秘密參考完整替換為不可路由的本機安全邊界。
-    /// 這個檢查只讀取 Host 已發布的 configuration snapshot，不解析環境變數中的秘密、不建立 Dynamics transport，也不啟動額外背景工作；
-    /// Factory 是 configuration、service provider 與 TestServer 的唯一 owner，案例結束時確定性 Dispose，避免跨測試保留 profile 或 credential reference。
-    /// 若未來基底 production profile 新增秘密欄位而 Development 未明確清空，本測試必須 fail closed，阻止開發工作站因既有環境變數而接觸 production CRM。
+    /// 驗證 Development provider 合併基底設定後，crm82 只保留 official worker generation 與不可路由的 Organization identity；
+    /// CRM endpoint、ADFS、token、username、password 與 credential transport 欄位不得存在於 Gateway configuration。
+    /// 這個檢查只讀取 Host 已發布的 configuration snapshot，不啟動 Worker、Process、Pipe、Dynamics transport 或額外背景工作；
+    /// Factory 是 configuration、service provider 與 TestServer 的唯一 owner，案例結束時確定性 Dispose，避免跨測試保留 profile 狀態。
     /// </summary>
     [Fact]
-    public async Task Development_profile_replaces_production_target_and_secret_references()
+    public async Task Development_profile_uses_only_the_official_worker_contract()
     {
         await using var factory = CreateDevelopmentGatewayFactory(useKestrel: false);
         using var client = factory.CreateClient();
@@ -172,17 +172,21 @@ public sealed class GatewayKestrelNegotiateTests
             .GetRequiredService<IConfiguration>()
             .GetSection("DynamicsProfiles:Profiles:crm82");
 
+        profile["WorkerProfileGenerationId"].Should().Be("crm82-local-development");
+        profile["WorkerKind"].Should().Be("OfficialCrm82Worker");
+        profile["PackageLockId"].Should().Be("crm82-xrmtooling-8.2.0.5-core-8.2.0.2");
         profile["OrganizationBaseUri"].Should().Be("https://dynamics-local.invalid/");
-        profile["OrganizationWebApiBaseUri"]
-            .Should().Be("https://dynamics-local.invalid/api/data/v8.2/");
-        profile["AuthMode"].Should().Be("Windows");
-        profile["CredentialSource"].Should().Be("HostIdentity");
+        profile["Admission:ExpectedOrganizationId"]
+            .Should().Be("82828282-8282-8282-8282-828282828282");
         profile.GetValue<bool>("WarmUpOnActivation").Should().BeFalse();
 
-        // Development 必須逐一遮蔽所有會驅動 production token／credential resolution 的 key；
-        // 空值只存在 configuration snapshot，不建立 cache、subscription 或跨 request mutable state。
-        var forbiddenReferenceKeys = new[]
+        // Gateway 從契約層完全移除 transport authentication 欄位，而不是以空字串遮蔽 production 值；
+        // 若未來 configuration merge 重新帶回其中任一 key，本測試立即 fail closed。
+        var forbiddenTransportKeys = new[]
         {
+            "OrganizationWebApiBaseUri",
+            "AuthMode",
+            "CredentialSource",
             "SecretReference",
             "UserNameSecretName",
             "PasswordSecretName",
@@ -193,9 +197,11 @@ public sealed class GatewayKestrelNegotiateTests
             "ClientId",
             "ClientIdSecretName",
             "ClientSecretName",
-            "CredentialReferenceName"
+            "CredentialReferenceName",
+            "RefreshTokenSecretName",
+            "AllowLocalDevPasswordGrant"
         };
-        foreach (var key in forbiddenReferenceKeys)
+        foreach (var key in forbiddenTransportKeys)
         {
             profile[key].Should().BeNullOrEmpty();
         }

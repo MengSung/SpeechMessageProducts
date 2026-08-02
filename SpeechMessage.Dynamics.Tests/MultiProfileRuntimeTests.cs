@@ -8,8 +8,9 @@
 
 using FluentAssertions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
+using SpeechMessage.Dynamics.WorkerSupervisor;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -479,29 +480,34 @@ public sealed class MultiProfileRuntimeTests
         var organizationId = alias.Equals("crm82", StringComparison.OrdinalIgnoreCase)
             ? Guid.Parse("82828282-8282-8282-8282-828282828282")
             : Guid.Parse("91919191-9191-9191-9191-919191919191");
+        var workerVersion = alias.Equals("crm82", StringComparison.OrdinalIgnoreCase)
+            ? OfficialWorkerVersion.Ce82
+            : OfficialWorkerVersion.Ce91;
+        var workerExecutablePath = Path.GetFullPath(
+            Path.Combine(Path.GetTempPath(), "speechmessage-dynamics-tests", alias, "worker.exe"));
         return new DynamicsProfileDefinition(
             alias,
-            new DynamicsWebApiOptions
+            "profile-" + suffix,
+            workerVersion,
+            $"https://{alias}.example.test/Org/",
+            workerExecutablePath,
+            new string('a', 64),
+            "package-lock-" + suffix,
+            new OrganizationAdmissionOptions
             {
-                OrganizationBaseUri = $"https://{alias}.example.test/Org/",
-                CeVersion = alias.Equals("crm82", StringComparison.OrdinalIgnoreCase) ? "8.2" : "9.1",
-                MaxConnectionsPerServer = 1,
-                Admission = new OrganizationAdmissionOptions
-                {
-                    ExpectedOrganizationId = organizationId,
-                    AggregateMaxInFlight = 6,
-                    MaximumRuntimeHosts = 6,
-                    LocalQueueCapacity = 4,
-                    MaxInFlightAndQueuedPerWorkload = 4,
-                    QueueAdmissionTimeoutSeconds = 5,
-                    AdmissionNamespaceId = "admission-" + suffix,
-                    LeaseNamespaceId = "lease-" + suffix,
-                    RequireDurableHostCoordinator = false
-                }
+                ExpectedOrganizationId = organizationId,
+                AggregateMaxInFlight = 6,
+                MaximumRuntimeHosts = 6,
+                LocalQueueCapacity = 4,
+                MaxInFlightAndQueuedPerWorkload = 4,
+                QueueAdmissionTimeoutSeconds = 5,
+                AdmissionNamespaceId = "admission-" + suffix,
+                LeaseNamespaceId = "lease-" + suffix,
+                RequireDurableHostCoordinator = false
             },
             warmUpOnActivation: false,
-            drainTimeout,
-            cancellationGracePeriod);
+            drainTimeout: drainTimeout,
+            cancellationGracePeriod: cancellationGracePeriod);
     }
 
     /// <summary>
@@ -731,10 +737,11 @@ public sealed class MultiProfileRuntimeTests
             _definition = definition;
             _disposeFailure = disposeFailure;
             AdmissionManager = admissionManager;
-            var options = definition.CreateOptionsSnapshot();
-            OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
-                .Should().BeTrue(error?.ErrorMessage);
-            Key = new ProfileRuntimeKey(definition.ProfileAlias, generation, options.CeVersion, plan!.CanonicalKey);
+            Key = new ProfileRuntimeKey(
+                definition.ProfileAlias,
+                generation,
+                definition.CeVersion,
+                definition.AdmissionPlan.CanonicalKey);
             Client = new TrackingClient(Key);
         }
 
@@ -840,7 +847,14 @@ public sealed class MultiProfileRuntimeTests
 
         /// <summary>以 Tracking Client 執行固定 WhoAmI，不建立真實網路、Token、Credential 或背景工作。</summary>
         public Task<OperationExecutionResult> WarmUpAsync(CancellationToken cancellationToken)
-            => Client.WhoAmIAsync(cancellationToken);
+            => Client.ExecuteAsync(
+                new OperationExecutionRequest
+                {
+                    ProfileAlias = Key.ProfileAlias,
+                    CapabilityOperationId = OperationIds.RuntimeHealthWhoAmI,
+                    WorkloadSubjectId = "runtime-warmup"
+                },
+                cancellationToken);
 
         /// <summary>把 Fake Runtime 單向切換為 Draining，立即拒絕新 Lease，但保留既有 Lease 到測試主動釋放。</summary>
         public void BeginDrain()
@@ -954,7 +968,7 @@ public sealed class MultiProfileRuntimeTests
             public ProfileRuntimeKey RuntimeKey => _owner.Key;
 
             /// <summary>取得 owner 的 Tracking Client；Lease 釋放後測試不得用它模擬新的受控外呼。</summary>
-            public IDynamicsWebApiClient Client => _owner.Client;
+            public IDynamicsOperationExecutor Executor => _owner.Client;
 
             /// <summary>取得 drain timeout 後由 Fake Runtime 發出的退休取消訊號。</summary>
             public CancellationToken RetirementToken => _owner._retirementCts.Token;
@@ -984,7 +998,7 @@ public sealed class MultiProfileRuntimeTests
     /// <summary>
     /// Tracking Client 只記錄執行次數與 Runtime Key，不保存 Request Parameters、Token、Credential 或 Session。
     /// </summary>
-    private sealed class TrackingClient : IDynamicsWebApiClient
+    private sealed class TrackingClient : IDynamicsOperationExecutor
     {
         private int _executionCount;
 
@@ -999,6 +1013,20 @@ public sealed class MultiProfileRuntimeTests
 
         /// <summary>取得受控操作執行次數。</summary>
         public int ExecutionCount => Volatile.Read(ref _executionCount);
+
+        public Task<OperationExecutionResult> ExecuteAsync(
+            OperationExecutionRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            cancellationToken.ThrowIfCancellationRequested();
+            Interlocked.Increment(ref _executionCount);
+            return Task.FromResult(OperationExecutionResult.Success(
+                OperationResponseData.ForWhoAmI(
+                    request.CapabilityOperationId,
+                    Key.CeVersion,
+                    new WhoAmIResponseData())));
+        }
 
         /// <summary>建立並執行固定 WhoAmI Definition，確保測試仍走 Operation Registry 形狀而非任意 URL。</summary>
         public Task<OperationExecutionResult> WhoAmIAsync(CancellationToken cancellationToken = default)
@@ -1063,10 +1091,33 @@ public sealed class MultiProfileRuntimeTests
         /// <summary>從 Definition 建立有效 Plan，並以測試指定的 LocalMaxInFlight 配置 Semaphore。</summary>
         public TrackingAdmissionManager(DynamicsProfileDefinition definition, int localMaxInFlight)
         {
-            var options = definition.CreateOptionsSnapshot();
-            options.Admission.AggregateMaxInFlight = localMaxInFlight * options.Admission.MaximumRuntimeHosts;
-            options.MaxConnectionsPerServer = Math.Min(options.MaxConnectionsPerServer, localMaxInFlight);
-            OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+            var sourcePlan = definition.AdmissionPlan;
+            var admissionOptions = new OrganizationAdmissionOptions
+            {
+                ExpectedOrganizationId = sourcePlan.CanonicalKey.ExpectedOrganizationId,
+                AggregateMaxInFlight = checked(localMaxInFlight * sourcePlan.MaximumRuntimeHosts),
+                MaximumRuntimeHosts = sourcePlan.MaximumRuntimeHosts,
+                LocalQueueCapacity = sourcePlan.LocalQueueCapacity,
+                MaxDispatchEnvelopeBytes = sourcePlan.MaxDispatchEnvelopeBytes,
+                QueueAdmissionTimeoutSeconds = sourcePlan.QueueAdmissionTimeoutSeconds,
+                MaxInFlightAndQueuedPerWorkload = sourcePlan.MaxInFlightAndQueuedPerWorkload,
+                AdmissionNamespaceId = sourcePlan.AdmissionKey.AdmissionNamespaceId,
+                LeaseNamespaceId = sourcePlan.LeaseNamespace.LeaseNamespaceId,
+                AdmissionEpoch = sourcePlan.AdmissionEpoch,
+                RuntimeHostSlotLeaseTtlSeconds = checked((int)sourcePlan.RuntimeHostSlotLeaseTtl.TotalSeconds),
+                RuntimeHostSlotRenewalIntervalSeconds = checked((int)sourcePlan.RuntimeHostSlotRenewalInterval.TotalSeconds),
+                RuntimeHostSlotExpiryFenceSeconds = checked((int)sourcePlan.RuntimeHostSlotExpiryFence.TotalSeconds),
+                MaximumOutboundWorkLifetimeSeconds = checked((int)sourcePlan.MaximumOutboundWorkLifetime.TotalSeconds),
+                ShutdownDrainTimeoutSeconds = checked((int)sourcePlan.ShutdownDrainTimeout.TotalSeconds),
+                RequireDurableHostCoordinator = sourcePlan.RequireDurableHostCoordinator
+            };
+            OrganizationAdmissionPlan.TryCreate(
+                    definition.OrganizationBaseUri,
+                    definition.WorkerCount,
+                    definition.MaxInFlightPerWorker,
+                    admissionOptions,
+                    out var plan,
+                    out var error)
                 .Should().BeTrue(error?.ErrorMessage);
             Plan = plan!;
             _inFlight = new SemaphoreSlim(localMaxInFlight, localMaxInFlight);

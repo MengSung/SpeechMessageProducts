@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>SpeechMessage.Dynamics.WorkerTestHost</RootNamespace>
+    <AssemblyName>SpeechMessage.Dynamics.WorkerTestHost</AssemblyName>
+    <Description>SDK-free deterministic worker process used only by supervisor lifecycle tests.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerHost\SpeechMessage.Dynamics.WorkerHost.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerProtocol\SpeechMessage.Dynamics.WorkerProtocol.csproj" />
+  </ItemGroup>
+</Project>

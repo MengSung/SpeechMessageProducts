@@ -106,6 +106,34 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
+    /// 驗證 Package01 啟用時 Embedded 設定在 bootstrap 的設定邊界立即拒絕，不能觸及 process host、
+    /// HttpClient、secret map 或任何 provider generation。測試刻意帶入看似完整的 Embedded 與 CrmConnection
+    /// 欄位，證明它們既不會成為 Gateway fallback，也不會被例外訊息保留。
+    /// </summary>
+    [Fact]
+    public async Task Enabled_package01_rejects_embedded_before_process_host_or_secret_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package01FeeReadsEnabled"] = "true",
+                ["DynamicsAccess:ExecutionMode"] = "Embedded",
+                ["DynamicsAccess:ProfileAlias"] = "legacy-embedded",
+                ["DynamicsAccess:Embedded:OrganizationWebApiBaseUri"] = "https://crm.invalid/api/data/v9.1/",
+                ["DynamicsAccess:Embedded:SecretReference"] = "test-secret-reference",
+                ["CrmConnection:Password"] = "test-password"
+            })
+            .Build();
+
+        var action = () => DonationDynamicsAccessBootstrap.BindOptions(configuration);
+
+        var exception = action.Should().Throw<InvalidOperationException>().Which;
+        exception.Message.Should().Contain("Gateway");
+        exception.Message.Should().NotContain("test-secret-reference");
+        exception.Message.Should().NotContain("test-password");
+    }
+
+    /// <summary>
     /// 模擬 preflight 使 Generic Host 啟動失敗後，DI container 直接 Dispose singleton、未先呼叫 lifecycle
     /// StopAsync 的 rollback 路徑。process host 必須自行撤銷精確相同的 static facade 參考；主要 assertion 是
     /// 後續舊呼叫點回報 host 未啟動，而不是穿越到已 terminal owner 丟出 ObjectDisposedException。
@@ -195,7 +223,6 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
         configuration.GetValue<bool>("DynamicsAccess:Package01FeeReadsEnabled").Should().BeFalse();
         configuration["DynamicsAccess:ExecutionMode"].Should().Be("Gateway");
         configuration["DynamicsAccess:ProfileAlias"].Should().Be("crm82");
-        configuration["DynamicsAccess:CeVersion"].Should().Be("8.2");
         configuration["DynamicsAccess:Gateway:ApiPrefix"].Should().Be("/v1");
 
         var endpointText = configuration["DynamicsAccess:Gateway:Endpoint"];
@@ -240,6 +267,7 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             .AddInMemoryCollection(values)
             .Build();
     }
+
 
     /// <summary>
     /// 從測試輸出目錄向上尋找同時包含 ChurchReport 與 Dynamics Gateway 專案的目前 worktree root。

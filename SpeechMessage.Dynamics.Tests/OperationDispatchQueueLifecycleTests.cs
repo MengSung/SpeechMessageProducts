@@ -15,8 +15,8 @@ using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -265,28 +265,29 @@ public sealed class OperationDispatchQueueLifecycleTests
     /// <summary>建立有界 queue/outbound timeout 的不可變 plan，不含 credential、token 或 request 資料。</summary>
     private static OrganizationAdmissionPlan CreatePlan(int queueAdmissionTimeoutSeconds = 2)
     {
-        var options = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationWebApiBaseUri = "https://crm.example.local/api/data/v9.1/",
-            MaxConnectionsPerServer = 1,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = Guid.Parse("67676767-6767-6767-6767-676767676767"),
-                AggregateMaxInFlight = 1,
-                MaximumRuntimeHosts = 1,
-                LocalQueueCapacity = 1,
-                MaxInFlightAndQueuedPerWorkload = 2,
-                MaxDispatchEnvelopeBytes = 4096,
-                QueueAdmissionTimeoutSeconds = queueAdmissionTimeoutSeconds,
-                MaximumOutboundWorkLifetimeSeconds = 5,
-                RuntimeHostSlotLeaseTtlSeconds = 15,
-                RuntimeHostSlotRenewalIntervalSeconds = 2,
-                RuntimeHostSlotExpiryFenceSeconds = 2,
-                AdmissionNamespaceId = "dispatch-queue-tests",
-                LeaseNamespaceId = "dispatch-queue-tests"
-            }
+            ExpectedOrganizationId = Guid.Parse("67676767-6767-6767-6767-676767676767"),
+            AggregateMaxInFlight = 1,
+            MaximumRuntimeHosts = 1,
+            LocalQueueCapacity = 1,
+            MaxInFlightAndQueuedPerWorkload = 2,
+            MaxDispatchEnvelopeBytes = 4096,
+            QueueAdmissionTimeoutSeconds = queueAdmissionTimeoutSeconds,
+            MaximumOutboundWorkLifetimeSeconds = 5,
+            RuntimeHostSlotLeaseTtlSeconds = 15,
+            RuntimeHostSlotRenewalIntervalSeconds = 2,
+            RuntimeHostSlotExpiryFenceSeconds = 2,
+            AdmissionNamespaceId = "dispatch-queue-tests",
+            LeaseNamespaceId = "dispatch-queue-tests"
         };
-        OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+        OrganizationAdmissionPlan.TryCreate(
+                "https://crm.example.local/DispatchQueue/",
+                workerCount: 1,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
+                out var plan,
+                out var error)
             .Should().BeTrue(error?.ErrorMessage);
         return plan!;
     }
@@ -472,10 +473,10 @@ public sealed class OperationDispatchQueueLifecycleTests
         private int _disposed;
 
         /// <summary>建立綁定 immutable plan 與無狀態 client 的 lease。</summary>
-        public BlockingDisposeLease(OrganizationAdmissionPlan admissionPlan, IDynamicsWebApiClient client)
+        public BlockingDisposeLease(OrganizationAdmissionPlan admissionPlan, IDynamicsOperationExecutor executor)
         {
             AdmissionPlan = admissionPlan;
-            Client = client;
+            Executor = executor;
         }
 
         /// <summary>取得 cleanup 已進入但尚未完成的訊號。</summary>
@@ -489,7 +490,7 @@ public sealed class OperationDispatchQueueLifecycleTests
         public ProfileRuntimeKey? RuntimeKey => null;
 
         /// <summary>取得只在 lease 生命週期內使用的 client。</summary>
-        public IDynamicsWebApiClient Client { get; }
+        public IDynamicsOperationExecutor Executor { get; }
 
         /// <summary>取得計算 outbound 期限的 immutable plan。</summary>
         public OrganizationAdmissionPlan AdmissionPlan { get; }
@@ -528,8 +529,13 @@ public sealed class OperationDispatchQueueLifecycleTests
     }
 
     /// <summary>回傳最小成功結果的無狀態 client，不儲存 parameters 或 cancellation registration。</summary>
-    private sealed class SuccessfulClient : IDynamicsWebApiClient
+    private sealed class SuccessfulClient : IDynamicsOperationExecutor
     {
+        public Task<OperationExecutionResult> ExecuteAsync(
+            OperationExecutionRequest request,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(OperationExecutionResult.Success(data: null));
+
         /// <summary>健康檢查路徑本測試不使用。</summary>
         public Task<OperationExecutionResult> WhoAmIAsync(CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
@@ -559,7 +565,7 @@ public sealed class OperationDispatchQueueLifecycleTests
     /// 依測試設定完成、失敗或拋出的 client；不儲存 parameters、definition 或 cancellation registration，
     /// 因此呼叫完成後唯一剩餘 owner 是 executor 的 cleanup frame。
     /// </summary>
-    private sealed class OutcomeClient : IDynamicsWebApiClient
+    private sealed class OutcomeClient : IDynamicsOperationExecutor
     {
         private readonly ClientOutcome _outcome;
 
@@ -568,6 +574,20 @@ public sealed class OperationDispatchQueueLifecycleTests
         {
             _outcome = outcome;
         }
+
+        public Task<OperationExecutionResult> ExecuteAsync(
+            OperationExecutionRequest request,
+            CancellationToken cancellationToken = default)
+            => _outcome switch
+            {
+                ClientOutcome.Success => Task.FromResult(OperationExecutionResult.Success(data: null)),
+                ClientOutcome.ControlledFailure => Task.FromResult(OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.NotReady,
+                    "controlled-client-failure")),
+                ClientOutcome.Throw => Task.FromException<OperationExecutionResult>(
+                    new InvalidOperationException("client-threw-for-lifecycle-test")),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         /// <summary>健康檢查路徑本測試不使用。</summary>
         public Task<OperationExecutionResult> WhoAmIAsync(CancellationToken cancellationToken = default)

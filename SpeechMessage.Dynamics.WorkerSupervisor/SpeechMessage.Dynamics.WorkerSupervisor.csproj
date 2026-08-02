@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>SpeechMessage.Dynamics.WorkerSupervisor</RootNamespace>
+    <AssemblyName>SpeechMessage.Dynamics.WorkerSupervisor</AssemblyName>
+    <Description>SDK-free bounded process and named-pipe supervisor for version-isolated official Dynamics workers.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerHost\SpeechMessage.Dynamics.WorkerHost.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerProtocol\SpeechMessage.Dynamics.WorkerProtocol.csproj" />
+  </ItemGroup>
+</Project>

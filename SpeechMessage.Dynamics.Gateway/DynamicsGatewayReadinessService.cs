@@ -1,5 +1,5 @@
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 /// <summary>
 /// 將 Gateway readiness 與 durable coordinator schema、runtime-host slot 的安全狀態綁定。

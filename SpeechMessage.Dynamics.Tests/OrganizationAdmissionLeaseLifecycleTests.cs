@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -124,31 +124,31 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
         int expiryFenceSeconds = 1,
         int maximumWorkSeconds = 2)
     {
-        var options = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationBaseUri = "https://crm.example.local/org/",
-            CeVersion = "9.1",
-            MaxConnectionsPerServer = 1,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = Guid.Parse("12121212-1212-1212-1212-121212121212"),
-                AggregateMaxInFlight = 2,
-                MaximumRuntimeHosts = 2,
-                LocalQueueCapacity = 2,
-                MaxInFlightAndQueuedPerWorkload = 2,
-                QueueAdmissionTimeoutSeconds = 2,
-                MaxDispatchEnvelopeBytes = 65536,
-                AdmissionNamespaceId = "lease-lifecycle-admission",
-                LeaseNamespaceId = "lease-lifecycle-slot",
-                RuntimeHostSlotLeaseTtlSeconds = leaseTtlSeconds,
-                RuntimeHostSlotRenewalIntervalSeconds = renewalIntervalSeconds,
-                RuntimeHostSlotExpiryFenceSeconds = expiryFenceSeconds,
-                MaximumOutboundWorkLifetimeSeconds = maximumWorkSeconds,
-                ShutdownDrainTimeoutSeconds = 5
-            }
+            ExpectedOrganizationId = Guid.Parse("12121212-1212-1212-1212-121212121212"),
+            AggregateMaxInFlight = 2,
+            MaximumRuntimeHosts = 2,
+            LocalQueueCapacity = 2,
+            MaxInFlightAndQueuedPerWorkload = 2,
+            QueueAdmissionTimeoutSeconds = 2,
+            MaxDispatchEnvelopeBytes = 65536,
+            AdmissionNamespaceId = "lease-lifecycle-admission",
+            LeaseNamespaceId = "lease-lifecycle-slot",
+            RuntimeHostSlotLeaseTtlSeconds = leaseTtlSeconds,
+            RuntimeHostSlotRenewalIntervalSeconds = renewalIntervalSeconds,
+            RuntimeHostSlotExpiryFenceSeconds = expiryFenceSeconds,
+            MaximumOutboundWorkLifetimeSeconds = maximumWorkSeconds,
+            ShutdownDrainTimeoutSeconds = 5
         };
 
-        OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+        OrganizationAdmissionPlan.TryCreate(
+                "https://crm.example.local/org/",
+                workerCount: 1,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
+                out var plan,
+                out var error)
             .Should().BeTrue(error?.ErrorMessage);
 
         return new OrganizationAdmissionManager(

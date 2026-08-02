@@ -8,8 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -78,9 +78,6 @@ public sealed class GatewayReadinessTests
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["DynamicsWebApi:OrganizationWebApiBaseUri"] = "https://crm.example.test/api/data/v9.1/",
-                    ["DynamicsWebApi:CeVersion"] = "9.1",
-                    ["DynamicsWebApi:Admission:ExpectedOrganizationId"] = "11111111-1111-1111-1111-111111111111",
                     // Readiness route 不需 workload authorization，但 startup validator 仍必須驗證一個隔離、非空的 Testing set；
                     // reserved principal 不會由任何 handler 建立，也不接觸 executor、admission、secret 或外部 socket。
                     ["DynamicsGateway:ActiveWorkloadBindingSet"] = "Testing",

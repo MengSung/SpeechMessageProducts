@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>SpeechMessage.Dynamics.WorkerProtocol</RootNamespace>
+    <AssemblyName>SpeechMessage.Dynamics.WorkerProtocol</AssemblyName>
+    <Description>SDK-free, bounded IPC contract shared by the Dynamics Gateway and version-isolated official CRM workers.</Description>
+  </PropertyGroup>
+</Project>

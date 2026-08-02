@@ -93,6 +93,23 @@ well-formed absolute URI. That is a material supported-review signal, but not
 proof that this setting is the CRMWeb exception's source and not an
 authorization to write the entire setting object or restart CRMWeb.
 
+The current official CE documentation independently strengthens the shape
+signal without turning it into a root-cause claim:
+
+- [`IfdSettings.ExternalDomain`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.deployment.ifdsettings.externaldomain?view=dynamics-general-ce-9)
+  documents this member as an external-domain string and states that SSL is
+  assumed, so `https://` does not need to be specified.
+- [Configure Dynamics 365 Server for IFD](https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/deploy/configure-the-dynamics-365-server-for-ifd?view=op-9-1)
+  describes an external *domain* input with a bare-host example.
+- Neither this public contract nor the deployment-setting cmdlet documentation
+  explicitly states that every Deployment Web Service readback must serialize
+  as a bare hostname, or that a scheme-bearing readback is the input to the
+  private CRMWeb `UriFormatException`.
+
+Accordingly, the scheme-bearing result remains a strong supported-servicing
+signal, not a standalone authorization for `Set-CrmSetting`, an IFD wizard
+change, `iisreset`, or an infrastructure change.
+
 The previous diagnostic revision also projected
 `SessionSecurityTokenLifetimeInHours` as a URI because an unanchored `uri`
 pattern matched the word `Security`. That field is a scalar lifetime, not a

@@ -15,7 +15,7 @@ namespace SpeechMessage.Dynamics.Tests;
 public sealed class ProjectReferenceBoundaryTests
 {
     [Fact]
-    public void Only_gateway_embedded_and_test_projects_may_reference_webapi()
+    public void No_active_production_project_may_reference_legacy_webapi()
     {
         var root = FindRepositoryRoot();
         var csprojFiles = Directory.GetFiles(root, "*.csproj", SearchOption.AllDirectories)
@@ -34,9 +34,7 @@ public sealed class ProjectReferenceBoundaryTests
 
             var projectName = Path.GetFileNameWithoutExtension(csproj);
             var allowed =
-                projectName is "SpeechMessage.Dynamics.Gateway"
-                    or "SpeechMessage.Dynamics.Embedded"
-                    or "SpeechMessage.Dynamics.Tests"
+                projectName is "SpeechMessage.Dynamics.Tests"
                     or "SpeechMessage.Dynamics.SmokeTests"
                     or "SpeechMessage.Dynamics.WebApi";
 
@@ -47,7 +45,7 @@ public sealed class ProjectReferenceBoundaryTests
         }
 
         offenders.Should().BeEmpty(
-            because: "products must not reference SpeechMessage.Dynamics.WebApi directly");
+            because: "legacy WebApi may temporarily support migration tests, but no active production project may compile or route through it");
     }
 
     private static string FindRepositoryRoot()

@@ -16,8 +16,8 @@ using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -432,23 +432,24 @@ public sealed class OperationDispatchPreparerTests
     /// <summary>建立已通過現有容量設定驗證的 plan，唯一變因是 canonical byte 上限。</summary>
     private static OrganizationAdmissionPlan CreatePlan(int maximumEnvelopeBytes)
     {
-        var options = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationWebApiBaseUri = "https://crm.example.local/api/data/v9.1/",
-            MaxConnectionsPerServer = 1,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = Guid.Parse("56565656-5656-5656-5656-565656565656"),
-                AggregateMaxInFlight = 1,
-                MaximumRuntimeHosts = 1,
-                LocalQueueCapacity = 1,
-                MaxInFlightAndQueuedPerWorkload = 2,
-                MaxDispatchEnvelopeBytes = maximumEnvelopeBytes,
-                AdmissionNamespaceId = "dispatch-preparer-tests",
-                LeaseNamespaceId = "dispatch-preparer-tests"
-            }
+            ExpectedOrganizationId = Guid.Parse("56565656-5656-5656-5656-565656565656"),
+            AggregateMaxInFlight = 1,
+            MaximumRuntimeHosts = 1,
+            LocalQueueCapacity = 1,
+            MaxInFlightAndQueuedPerWorkload = 2,
+            MaxDispatchEnvelopeBytes = maximumEnvelopeBytes,
+            AdmissionNamespaceId = "dispatch-preparer-tests",
+            LeaseNamespaceId = "dispatch-preparer-tests"
         };
-        OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+        OrganizationAdmissionPlan.TryCreate(
+                "https://crm.example.local/DispatchPreparer/",
+                workerCount: 1,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
+                out var plan,
+                out var error)
             .Should().BeTrue(error?.ErrorMessage);
         return plan!;
     }

@@ -225,7 +225,7 @@ public sealed class GatewayWorkloadBoundaryTests
         factory.Services.GetRequiredService<IConfiguration>()
             .GetSection("DynamicsProfiles:Profiles:crm91")
             .Exists()
-            .Should().BeTrue("crm91 必須是已載入的 known profile，才能證明拒絕來自 binding 而不是 catalog miss");
+            .Should().BeTrue("crm91 必須是 official worker catalog entry，才能證明拒絕來自 binding 而不是 catalog miss");
 
         using var response = await client.PostAsync(
             "/v1/organizations/crm91/operations/fee.dedication.retrieve.by.contact.date.range",
@@ -723,17 +723,23 @@ public sealed class GatewayWorkloadBoundaryTests
             {
                 var values = new Dictionary<string, string?>
                 {
-                    ["DynamicsWebApi:OrganizationWebApiBaseUri"] = "https://crm.example.test/api/data/v9.1/",
-                    ["DynamicsWebApi:CeVersion"] = "9.1",
-                    ["DynamicsWebApi:Admission:ExpectedOrganizationId"] = "11111111-1111-1111-1111-111111111111",
-                    // 第二個 profile 使用保留測試網域與獨立 organization identity，只用來證明 crm91 是 known catalog entry；
-                    // readiness 已移除且 executor 被記憶體 double 取代，因此不建立 transport、credential、host-slot renewal 或背景 cleanup owner。
+                    // 第二個 profile 使用 official CE 9.1 worker metadata 與不可路由的 Organization identity，只用來證明
+                    // crm91 是 known catalog entry；不含 WebApi endpoint、auth 或 credential。readiness 已移除且 executor
+                    // 被記憶體 double 取代，因此不建立 process、pipe、host-slot renewal 或背景 cleanup owner。
+                    ["DynamicsProfiles:Profiles:crm91:WorkerProfileGenerationId"] =
+                        "crm91-testing-0001",
+                    ["DynamicsProfiles:Profiles:crm91:WorkerKind"] = "OfficialCrm91Worker",
+                    ["DynamicsProfiles:Profiles:crm91:OrganizationBaseUri"] =
+                        "https://crm91.invalid/",
+                    ["DynamicsProfiles:Profiles:crm91:WorkerExecutablePath"] =
+                        "test-workers\\SpeechMessage.Dynamics.Crm91Worker.exe",
+                    ["DynamicsProfiles:Profiles:crm91:WorkerExecutableSha256"] =
+                        "1111111111111111111111111111111111111111111111111111111111111111",
+                    ["DynamicsProfiles:Profiles:crm91:PackageLockId"] =
+                        "crm91-xrmtooling-9.1.1.65-core-9.0.2.60",
+                    ["DynamicsProfiles:Profiles:crm91:WorkerCount"] = "1",
+                    ["DynamicsProfiles:Profiles:crm91:MaxInFlightPerWorker"] = "1",
                     ["DynamicsProfiles:Profiles:crm91:WarmUpOnActivation"] = "false",
-                    ["DynamicsProfiles:Profiles:crm91:OrganizationWebApiBaseUri"] =
-                        "https://crm91.example.test/api/data/v9.1/",
-                    ["DynamicsProfiles:Profiles:crm91:CeVersion"] = "9.1",
-                    ["DynamicsProfiles:Profiles:crm91:AuthMode"] = "Windows",
-                    ["DynamicsProfiles:Profiles:crm91:CredentialSource"] = "HostIdentity",
                     ["DynamicsProfiles:Profiles:crm91:Admission:ExpectedOrganizationId"] =
                         "22222222-2222-2222-2222-222222222222",
                     ["DynamicsGateway:AuthenticationScheme"] = TestAuthenticationHandler.SchemeName,

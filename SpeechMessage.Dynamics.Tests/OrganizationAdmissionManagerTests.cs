@@ -10,8 +10,8 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
-using SpeechMessage.Dynamics.WebApi.Capacity;
-using SpeechMessage.Dynamics.WebApi.Runtime;
+using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -20,22 +20,22 @@ public sealed class OrganizationAdmissionManagerTests
     [Fact]
     public void Plan_derives_local_max_in_flight()
     {
-        var options = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationBaseUri = "https://crm.example.local/org/",
-            CeVersion = "9.1",
-            MaxConnectionsPerServer = 2,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                AggregateMaxInFlight = 24,
-                MaximumRuntimeHosts = 6,
-                AdmissionNamespaceId = "a",
-                LeaseNamespaceId = "b"
-            }
+            ExpectedOrganizationId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            AggregateMaxInFlight = 24,
+            MaximumRuntimeHosts = 6,
+            AdmissionNamespaceId = "a",
+            LeaseNamespaceId = "b"
         };
 
-        OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+        OrganizationAdmissionPlan.TryCreate(
+                "https://crm.example.local/org/",
+                workerCount: 2,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
+                out var plan,
+                out var error)
             .Should().BeTrue(error?.ErrorMessage);
         plan!.LocalMaxInFlight.Should().Be(4);
     }
@@ -592,27 +592,27 @@ public sealed class OrganizationAdmissionManagerTests
         int timeoutSeconds,
         IRuntimeHostSlotCoordinator? coordinator = null)
     {
-        var options = new DynamicsWebApiOptions
+        var admissionOptions = new OrganizationAdmissionOptions
         {
-            OrganizationBaseUri = "https://crm.example.local/org/",
-            CeVersion = "8.2",
-            MaxConnectionsPerServer = 1,
-            Admission = new OrganizationAdmissionOptions
-            {
-                ExpectedOrganizationId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                AggregateMaxInFlight = aggregate,
-                MaximumRuntimeHosts = hosts,
-                LocalQueueCapacity = queueCapacity,
-                MaxInFlightAndQueuedPerWorkload = perWorkload,
-                QueueAdmissionTimeoutSeconds = timeoutSeconds,
-                MaxDispatchEnvelopeBytes = 65536,
-                AdmissionNamespaceId = "unit-admission",
-                LeaseNamespaceId = "unit-lease",
-                RequireDurableHostCoordinator = false
-            }
+            ExpectedOrganizationId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            AggregateMaxInFlight = aggregate,
+            MaximumRuntimeHosts = hosts,
+            LocalQueueCapacity = queueCapacity,
+            MaxInFlightAndQueuedPerWorkload = perWorkload,
+            QueueAdmissionTimeoutSeconds = timeoutSeconds,
+            MaxDispatchEnvelopeBytes = 65536,
+            AdmissionNamespaceId = "unit-admission",
+            LeaseNamespaceId = "unit-lease",
+            RequireDurableHostCoordinator = false
         };
 
-        OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error)
+        OrganizationAdmissionPlan.TryCreate(
+                "https://crm.example.local/org/",
+                workerCount: 1,
+                maxInFlightPerWorker: 1,
+                admissionOptions,
+                out var plan,
+                out var error)
             .Should().BeTrue(error?.ErrorMessage);
 
         return new OrganizationAdmissionManager(

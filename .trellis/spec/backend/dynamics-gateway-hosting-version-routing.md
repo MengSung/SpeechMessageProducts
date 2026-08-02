@@ -1,5 +1,41 @@
 # Dynamics Gateway Hosting and CE 8.2/9.1 Routing Contract
 
+## 0. Authoritative Microsoft NuGet worker direction
+
+This section supersedes every older Web-API-first, optional-Web-API, or
+universal-no-SDK transport statement in this file.
+
+- The only supported transport kinds are `OfficialCrm82Worker` and
+  `OfficialCrm91Worker`.
+- Each transport is a separately version-pinned .NET Framework 4.8 process
+  using Microsoft-published `Microsoft.CrmSdk.XrmTooling.CoreAssembly` /
+  `CrmServiceClient` packages.
+- Products, ProductClient, Abstractions, Gateway, Embedded, and ordinary tests
+  must not reference or load Microsoft CRM SDK assemblies. Only the two explicit
+  worker projects and worker-only tests may do so.
+- Direct Web API is not a route, fallback, future adapter, readiness gate, or
+  Phase 4 prerequisite. Existing WebApi code/scripts/tests are legacy
+  replacement inputs pending removal.
+- The D365APP01 CRMWeb/IFD HTTP 500, Deployment PowerShell channel, ASP.NET 1309
+  events, IFD wizard, and direct Web API `WhoAmI` are not Gateway gates.
+- Real-server validation means deploying the actual website, Gateway, and
+  selected official worker on the intended Windows host, then executing the
+  approved Organization operation matrix against CE 8.2 or CE 9.1.
+- A failed worker request never changes transport, CE version, profile,
+  organization, or credential. No automatic Web API or Data8 fallback exists.
+- Worker IPC is bounded, length-prefixed, versioned, nonce-bound, and typed. It
+  never carries CRM SDK types, arbitrary FetchXML, endpoint/connection strings,
+  credentials, tokens, cookies, raw principals, browser sessions, LINE IDs, or
+  `HttpContext`.
+- Every worker process, `CrmServiceClient`, pipe, stream, timer, cancellation
+  registration, request map, semaphore, queue entry, and background task has one
+  bounded owner and a deterministic graceful-drain plus forced-termination
+  cleanup path.
+- Default safe concurrency is one active Organization operation per worker
+  until exact package/target stress evidence proves a higher value safe.
+  Throughput scales through a bounded worker pool under the shared organization
+  admission budget.
+
 ## 1. Scope / Trigger
 
 This contract applies whenever a SpeechMessage product:
@@ -7,7 +43,8 @@ This contract applies whenever a SpeechMessage product:
 - calls Dynamics 365 Customer Engagement through `SpeechMessage.Dynamics`;
 - selects a shared Central Gateway or a product-local Gateway process;
 - adds or changes a CE 8.2 or CE 9.1 organization profile;
-- introduces a Web API, `ServiceClient`, `CrmServiceClient`, or temporary Data8 transport;
+- introduces or changes an official CE 8.2/9.1 worker, worker protocol,
+  `CrmServiceClient`, worker supervisor, or legacy-removal boundary;
 - changes connection/runtime pooling, authentication, profile reload, worker lifecycle, or SDK-removal behavior.
 
 The product-facing architecture has two execution modes only:
@@ -35,7 +72,7 @@ public interface IDynamicsOperationExecutor
 }
 ```
 
-Product business code depends on `IDynamicsOperationExecutor` or a typed product client such as `IPackage01FeeReadClient`. It must not depend on CRM SDK, WCF, SOAP, Web API URL construction, authentication tokens, or a transport-specific client.
+Product business code depends on `IDynamicsOperationExecutor` or a typed product client such as `IPackage01FeeReadClient`. It must not depend on CRM SDK, WCF, SOAP, Organization Service URL construction, authentication tokens, worker protocol, or a transport-specific client.
 
 ### Gateway HTTP API
 
@@ -96,25 +133,26 @@ Local deployment:
 
 ### Profile transport contract
 
-Before multi-transport routing is enabled, the deployment-owned profile contract must expose one explicit transport kind:
+The deployment-owned profile contract exposes exactly one supported transport kind:
 
 ```text
-WebApi
-OfficialServiceClient
-OfficialLegacyWorker
-TemporaryData8LegacyWorker
+OfficialCrm82Worker
+OfficialCrm91Worker
 ```
 
-The transport kind is fixed for one immutable profile generation. It cannot switch per user request or silently fall back after a failure.
+The transport kind is fixed for one immutable profile generation. `WebApi`,
+`OfficialServiceClient`, `OfficialLegacyWorker`, and
+`TemporaryData8LegacyWorker` are rejected legacy values. The transport cannot
+switch per request or silently fall back after a failure.
 
 ## 3. Contracts
 
 ### Product boundary
 
 - Products know `ExecutionMode`, `ProfileAlias`, Gateway endpoint, API prefix, and typed operation parameters only.
-- Product JSON must not contain a CRM organization-service URL, raw CRM Web API URL, username, password, client secret, access token, refresh token, certificate private key, SDK DLL path, or transport kind.
-- Gateway-owned success envelopes must not serialize `ApprovedWebApiRoot`, CRM hostname, `/api/data/` base path, credential, token, or other internal routing metadata. The validated root remains owned by the profile runtime and is used only for outbound URI allowlisting and server-side paging validation.
-- Raw upstream OData annotations that can contain absolute CRM URLs, including `@odata.context` and `@odata.nextLink`, are not automatically product-safe. Before a production operation can return them, the connector must project them into a typed product contract or consume a validated nextLink server-side without exposing the absolute URL.
+- Product JSON must not contain a CRM organization-service URL, raw CRM Web API URL, username, password, client secret, access token, refresh token, certificate private key, SDK DLL path, worker executable/package path, or transport kind.
+- Gateway-owned success envelopes must not serialize CRM hostname, Organization Service endpoint, `/api/data/` base path, credential, token, package path, pipe name, nonce, process ID, or other internal routing/lifecycle metadata.
+- Raw SDK/Organization Service response types and upstream absolute URLs are not product-safe. The worker must project them into bounded typed DTOs before serialization; no SDK object crosses IPC.
 - The same ProductClient and REST contract are used for Central and Local Gateway deployments.
 - Changing between Central and Local requires configuration replacement plus restart/replace-and-drain. It is not a request-time switch.
 
@@ -131,14 +169,14 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 
 - Central Gateway is the production default for five to ten products.
 - It owns deployment profiles, secret references, authorization policy, operation registry, audit, telemetry, retries, health, readiness, and profile runtime generations.
-- It owns one bounded runtime pool per immutable profile generation. `crm82` and `crm91` never share a mutable client, credential, token cache, WCF channel, or session.
+- It owns one bounded worker-process pool per immutable profile generation. `crm82` and `crm91` never share an executable, SDK assembly graph, mutable client, credential, WCF channel, static cache, or session.
 - Multiple products may share the same Central Gateway profile runtime only after server-side authorization resolves them to the approved alias and workload policy.
 
 ### Local Gateway ownership
 
 - Local Gateway is a separate Windows process started beside one product for Visual Studio development, integration testing, or an explicitly isolated deployment.
 - The product still calls localhost through the Gateway HTTP contract; Local Gateway is not Embedded mode.
-- Every Local Gateway process owns and deterministically disposes its physical handler/client/worker-proxy pool.
+- Every Local Gateway process owns and deterministically drains, terminates, and disposes its worker-process/pipe/process-handle pool.
 - Local Gateway uses the same operation registry, profile validation, adapter contracts, health semantics, and secret-reference rules as Central Gateway.
 - A local JSON file cannot grant production access by itself. Production-capable Local Gateway profiles require an approved manifest or central registry binding.
 
@@ -151,18 +189,27 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 
 ### CE 9.1 profile
 
-- The preferred transport is direct Microsoft Dynamics Web API v9.1 through the approved `HttpClient` runtime.
-- Microsoft's official `ServiceClient` may be used when the real target's supported OAuth/authentication path is proven.
-- Data8 is not a required CE 9.1 dependency.
-- A CE 9.1 profile has its own version-specific capability registry and real-server evidence.
+- The only transport is `OfficialCrm91Worker`, a separately deployed .NET
+  Framework 4.8 process with an immutable Microsoft XRM tooling package lock.
+- The current package baseline is
+  `Microsoft.CrmSdk.XrmTooling.CoreAssembly` 9.1.1.65; any change requires a
+  new package-lock/executable generation and complete verification.
+- Data8 and direct Web API are not CE 9.1 routes or fallbacks.
+- A CE 9.1 profile has its own version-specific operation registry, worker pool,
+  credential reference, recycle policy, and real-server evidence.
 
 ### CE 8.2 profile
 
-- CE 8.2 does not inherently require the checked-in Data8 project.
-- The current CE 8.2 IFD environment temporarily depends on the working WS-Trust/SOAP path because the Web API OAuth path is not yet proven.
-- Preferred replacement A is direct Web API v8.2 after ADFS OAuth client registration, redirect URI, token acquisition/renewal, and required-operation compatibility pass.
-- Preferred replacement B is a separately deployed .NET Framework 4.8 worker using Microsoft's official `Microsoft.CrmSdk.XrmTooling.CoreAssembly` / `CrmServiceClient`.
-- CE 8.2 and CE 9.1 SDK workers are independently version-pinned processes until real-server testing proves that consolidation is safe.
+- The only new transport is `OfficialCrm82Worker`, a separately deployed .NET
+  Framework 4.8 process using a Microsoft-published XRM tooling version proven
+  against the actual CE 8.2 target.
+- The CE 8.2 package lock is selected independently. A CE 9.1 package that
+  merely restores or compiles is not accepted as CE 8.2 compatibility proof.
+- Data8 may continue only behind the existing unmigrated legacy product path
+  until the official worker passes its operation/lifecycle/rollback gates. It
+  is not selectable by new Gateway routing.
+- CE 8.2 and CE 9.1 workers remain independently version-pinned processes; this
+  task does not plan consolidation.
 
 ### Temporary Data8 boundary
 
@@ -170,7 +217,8 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - It is temporary compatibility code only.
 - The current `OnPremiseClient` implements `IOrganizationService` but not `IDisposable`; the existing `CrmConnectionPool` disposal cast therefore does not prove that its underlying WCF channels/factories are closed.
 - The Data8 client must not become the permanent Central or Local Gateway in-process pool implementation.
-- Before Gateway migration uses it under load, Data8 must be placed behind a bounded, recyclable Legacy Worker process or receive an independently verified deterministic WCF close/abort ownership fix.
+- New Gateway migration must not add Data8. Existing legacy use cases stay
+  outside the new route until the matching official worker replaces them.
 - Worker termination is a fallback cleanup boundary, not a substitute for bounded request lifetime, health checks, process recycling policy, handle/socket baseline tests, and graceful shutdown.
 
 ### Embedded boundary
@@ -196,14 +244,14 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 | `ExecutionMode` is `CentralGateway` or `LocalGateway` with the current enum | Startup validation fails. Use `Gateway` and select the deployment by endpoint. |
 | `ExecutionMode=Gateway` without `ProfileAlias` or absolute HTTPS `Gateway.Endpoint` | Startup fails closed. No outbound CRM traffic. |
 | Product JSON contains CRM credentials, token, raw CRM URL, or SDK path | Configuration is rejected and secret scanning fails the build/release gate. |
-| Gateway-owned success payload includes `ApprovedWebApiRoot`, CRM hostname, or `/api/data/` base path | Review and release fail. Remove the internal routing metadata while preserving the runtime-owned URI allowlist. |
-| Upstream OData payload contains an absolute `@odata.context` or `@odata.nextLink` intended for a product response | Project or consume it server-side through a typed contract; do not pass the absolute CRM URL through by default. |
+| Gateway-owned success payload includes CRM hostname, Organization Service endpoint, `/api/data/` base path, package path, pipe/nonce/process metadata, credential, or token | Review and release fail. Return only the bounded product DTO. |
+| Worker response contains an SDK type, raw Entity/Organization response, or absolute CRM URL | Reject the frame, terminate/quarantine the worker generation, and return a sanitized protocol failure. |
 | Product requests an unknown or unauthorized alias/operation | Reject before profile resolution or outbound Dynamics traffic. |
 | Authenticated but unauthorized request uses an invalid Content-Type | Return 403 before media-type validation and before body read. |
 | Authorized operation request omits Content-Type or uses a non-approved media type/parameter/charset | Return 415 before request-body I/O, pooled-buffer rent, JSON parsing, executor invocation, or outbound Dynamics traffic. |
 | Authorized operation request uses case-insensitive `application/json` with no parameters or one UTF-8 charset | Continue to the existing bounded byte/JSON validation path. |
-| CE 8.2 profile selects `WebApi` without successful ADFS OAuth and operation evidence | Profile remains NotReady. No silent Data8 fallback. |
-| CE 9.1 profile selects `ServiceClient` without a supported target authentication proof | Profile remains NotReady. |
+| Any profile selects `WebApi`, `OfficialServiceClient`, `OfficialLegacyWorker`, or `TemporaryData8LegacyWorker` | Startup fails closed; no worker or Dynamics traffic starts. |
+| CE 8.2 or CE 9.1 profile uses the wrong worker/package-lock kind | Profile remains NotReady and the process is not published. |
 | Data8 is loaded as an unbounded long-lived Gateway pool client without deterministic disposal proof | Release blocker. Isolate it in a recyclable worker or fix lifecycle ownership first. |
 | CE 8.2 and 9.1 SDK assemblies require conflicting versions in one worker | Keep separate version-pinned worker processes. Do not solve by unverified binding redirects. |
 | Two aliases/environments resolve to the same physical organization with different admission keys | Startup fails closed until one shared organization capacity entry is configured. |
@@ -218,20 +266,28 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 ### Good
 
 - Ten products use the same ProductClient. Production points to the Central Gateway endpoint; ChurchReport development points to localhost. Both send the same operation request and receive the same result contract.
-- `crm82` uses a temporary isolated Data8 worker while `crm91` uses Web API v9.1. Their clients, credentials, token/WCF state, and pools are separate, while aggregate organization admission is enforced by physical organization identity.
-- A future `crm82` profile generation changes from `TemporaryData8LegacyWorker` to `OfficialLegacyWorker` only after real-server validation. The old generation drains and is disposed before removal.
+- `crm82` uses `OfficialCrm82Worker` while `crm91` uses
+  `OfficialCrm91Worker`. Their executables, pinned SDK graphs, clients,
+  credentials, WCF/static state, pipes, and pools are separate, while aggregate
+  organization admission is enforced by physical organization identity.
+- A worker package/profile generation changes only through validate, publish,
+  drain, dispose/terminate, and remove. The old generation never receives new
+  work after publication of the replacement.
 - An authorized caller sends `Content-Type: application/json; charset=UTF-8`; Gateway validates the header before renting a body buffer, then applies the configured byte/depth/member limits.
 
 ### Base
 
 - Only Central Gateway is deployed in production. Local Gateway is used by a developer with non-production secret references. Embedded remains compiled but unused.
-- CE 8.2 continues through the current SOAP route while the ADFS OAuth proof is incomplete. This is an explicit temporary state with an owner and removal gate.
+- Existing unmigrated CE 8.2 product traffic may continue through its named
+  legacy implementation while the official CE 8.2 worker is built. New Gateway
+  routing cannot select that legacy path.
 - An unauthorized caller sends `Content-Type: text/plain`; Gateway returns 403 without reading the stream, so media-type behavior does not become an authorization oracle.
 
 ### Bad
 
 - Product A directly references Data8 while Product B directly references `ServiceClient`, each with its own connection string and retry/pool implementation.
-- A request selects `crm82`, fails Web API authentication, and silently retries through Data8. This changes transport and security semantics inside one request.
+- A request selects one official worker, fails, and silently retries through
+  Web API, Data8, another worker version, or another profile.
 - One singleton pool contains clients for CE 8.2 and CE 9.1 or for multiple credentials/organizations.
 - Each Local Gateway assumes its local maximum is independent and collectively overloads the same Dynamics organization.
 - A Local Gateway reads production credentials directly from product-owned JSON.
@@ -245,8 +301,12 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - Assert only `Gateway` and `Embedded` are accepted `DynamicsExecutionMode` values.
 - Assert `Gateway` requires a non-empty `ProfileAlias`, absolute HTTPS endpoint, and bounded API prefix.
 - Assert product configuration rejects secrets, raw CRM URLs, authorization headers, and transport selection.
-- Assert a successful operation envelope preserves only the approved product fields and does not add `ApprovedWebApiRoot`, CRM hostname, or `/api/data/` routing metadata.
-- Assert absolute OData context/nextLink annotations are either removed/projected from product payloads or validated and consumed only by the server-side paging implementation.
+- Assert a successful operation envelope preserves only approved product fields
+  and does not add CRM hostname, Organization Service endpoint, SDK type data,
+  package path, pipe/nonce/process metadata, credential, token, or `/api/data/`
+  routing metadata.
+- Assert worker results project SDK responses into bounded DTOs and never
+  serialize raw `Entity`, `OrganizationResponse`, or absolute CRM URLs.
 - Assert unknown/unauthorized aliases and operation IDs fail before outbound transport invocation.
 - Assert missing Content-Type, `text/plain`, `application/*+json`, unknown/repeated parameters, and non-UTF-8 charset return 415 with zero body reads and zero executor calls.
 - Assert unauthorized/unmapped caller with an invalid Content-Type still returns 403 with zero body reads, proving authorization precedes media-type validation.
@@ -256,23 +316,34 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 
 ### Isolation and capacity
 
-- Assert `crm82` and `crm91` create different immutable runtime-generation keys and cannot share client/token/WCF state.
+- Assert `crm82` and `crm91` create different executable/package/runtime
+  generation keys and cannot share assembly, client, credential, WCF/static,
+  pipe, process, or result state.
 - Assert aliases that resolve to the same physical organization share one aggregate admission budget.
 - Run concurrent Central plus Local host tests and assert total in-flight Dynamics work never exceeds `AggregateMaxInFlight`.
-- After replace-and-drain, assert retired handlers, timers, registrations, queues, worker proxies, and strong runtime references return to baseline.
+- After replace-and-drain, assert retired processes, official clients, pipes,
+  streams, timers, registrations, queues, request maps, worker proxies, process
+  handles, and strong runtime references return to baseline.
 
 ### CE 8.2 real-server gates
 
-- `WhoAmI` or equivalent identity probe.
+- Official-worker `WhoAmI` or equivalent identity operation through
+  website -> Gateway -> worker.
 - Representative CRUD, Query/FetchXML, paging, and every approved action/function/organization request.
-- ADFS authorization, token renewal/restart, or official Legacy Worker WS-Trust reconnect.
-- Fault injection for ADFS/CRM timeout, worker crash, malformed response, 429/503, Gateway restart, and profile reload.
-- Long-running worker/socket/handle soak proving a stable post-warm-up baseline.
+- Official-client authentication, cold start, reconnect, worker recycle, and
+  Gateway restart.
+- Fault injection for CRM timeout, worker crash/hang, malformed IPC response,
+  pipe break, Gateway restart, profile reload, and forced termination.
+- Long-running worker/process/pipe/thread/handle/private-bytes soak proving a
+  stable post-warm-up and post-recycle baseline.
 
 ### CE 9.1 real-server gates
 
-- Identity probe, representative operations, paging, actions/functions, batch where used, token renewal, restart, and profile reload.
-- Verify direct Web API and any selected official `ServiceClient` authentication mode against the actual target.
+- Official-worker identity operation, representative operations, paging,
+  requests/actions, batch where used, reconnect, recycle, restart, and profile
+  reload.
+- Verify only the pinned `OfficialCrm91Worker` authentication and operation
+  matrix against the actual target.
 
 ### Data8 removal gates
 
@@ -339,14 +410,15 @@ Physical clients remain process/profile-generation owned. Only the bounded organ
 Product -> Data8 OnPremiseClient singleton -> CE 8.2 and CE 9.1
 ```
 
-### Correct: use a temporary isolated legacy boundary with explicit exit gates
+### Correct: replace the legacy route with version-specific official workers
 
 ```text
-Product -> Gateway contract -> crm82 adapter -> recyclable Data8 Legacy Worker -> CE 8.2
-                                      later -> official worker or proven Web API
+Product -> Gateway contract -> OfficialCrm82Worker -> CE 8.2
+                            -> OfficialCrm91Worker -> CE 9.1
 ```
 
-The Data8 dependency is retained only while the current CE 8.2 IFD replacement is not yet proven.
+Data8 remains only in explicitly unmigrated legacy product code until the CE 8.2
+official worker passes its gates; it is never a new Gateway transport.
 
 ### Wrong: comment only what the syntax already says
 
@@ -392,6 +464,160 @@ if (bodyRead.Status == GatewayOperationRequestBodyReadStatus.UnsupportedMediaTyp
 ```
 
 The reader performs the strict JSON-only header check before `Request.Body.ReadAsync` or `ArrayPool<byte>.Rent`; therefore unauthorized callers still receive 403, while authorized invalid media types fail with 415 without acquiring body-lifecycle resources.
+
+## Scenario: Official NuGet worker protocol and lifecycle
+
+### 1. Scope / Trigger
+
+This scenario applies whenever Gateway starts, dispatches to, drains, recycles,
+terminates, or replaces `OfficialCrm82Worker` or `OfficialCrm91Worker`.
+
+### 2. Signatures
+
+```text
+WorkerRequestV1 =
+  ProtocolVersion
+  ProcessNonce
+  RequestId
+  ProfileGenerationId
+  OperationDefinitionRevision
+  CapabilityOperationId
+  DeadlineUtcTicks
+  BoundedTypedParameters
+
+WorkerResponseV1 =
+  ProtocolVersion
+  ProcessNonce
+  RequestId
+  SanitizedOutcome
+  BoundedTypedResultOrError
+```
+
+```csharp
+public interface IDynamicsWorkerSupervisor : IAsyncDisposable
+{
+    Task<OperationExecutionResult> ExecuteAsync(
+        OperationExecutionRequest request,
+        CancellationToken cancellationToken);
+
+    Task DrainAsync(CancellationToken cancellationToken);
+}
+```
+
+### 3. Contracts
+
+- `SpeechMessage.Dynamics.WorkerProtocol` targets `netstandard2.0`, references no
+  Microsoft CRM SDK package, and exposes no SDK type.
+- `SpeechMessage.Dynamics.Crm82Worker` and
+  `SpeechMessage.Dynamics.Crm91Worker` target .NET Framework 4.8, reference only
+  their own immutable Microsoft package lock, and never reference each other.
+- The supervisor validates executable hash, package-lock ID, worker kind,
+  protocol version, profile generation, one-time nonce, bounded READY deadline,
+  and pipe ACL before publishing a worker.
+- Process arguments contain only the random local pipe name, one-time nonce,
+  protocol version, worker kind, package-lock ID, and profile-generation ID.
+  Environment inheritance is allowlisted/minimized. Neither channel contains an
+  endpoint, connection string, username, password, token, certificate, cookie,
+  or caller identity.
+- Endpoint and credential references are resolved inside the worker from an
+  approved local secret provider. Raw resolved values stay in worker memory and
+  are never serialized or logged.
+- Frames are length-prefixed and reject zero/oversized length, incomplete read,
+  trailing bytes, unsupported version, wrong nonce, duplicate request ID,
+  expired deadline, unknown operation, excessive JSON depth/member/string/array
+  size, or result-size overflow.
+- Operation translation from bounded parameters to `Entity`,
+  `QueryExpression`, server-owned FetchXML, or `OrganizationRequest` occurs only
+  inside the worker. A generic Execute command, arbitrary FetchXML, dynamic
+  entity/table/action name, CRM URL, or SDK-serialized payload is forbidden.
+- One worker admits one active operation by default. A higher value requires an
+  exact package/target concurrency and soak record. Worker-count scaling remains
+  bounded by the existing organization admission plan.
+- Each worker owns exactly one `CrmServiceClient` generation and disposes it once
+  during graceful drain. The supervisor owns every process, pipe, stream,
+  request map, cancellation source/registration, timer, semaphore, health loop,
+  and process handle.
+- Drain closes new admission, waits only until the finite deadline, cancels
+  owned work, disposes the client/IPC, and exits. If the worker is hung or does
+  not acknowledge drain, the supervisor terminates it after the grace deadline,
+  waits for exit, disposes the process handle, and removes every retained
+  request/generation reference.
+- Worker age, completed-operation count, private bytes/working set, health
+  failure, protocol violation, repeated timeout, and profile/package replacement
+  are bounded recycle triggers.
+- A worker crash, hang, malformed response, uncertain post-dispatch write, or
+  timeout returns a sanitized typed failure. It never replays an uncertain write
+  or falls back to Web API, Data8, another worker kind, version, profile, or
+  credential.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Profile selects anything except `OfficialCrm82Worker` or `OfficialCrm91Worker` | Reject configuration before process start. |
+| Worker executable/package lock/hash/CE kind does not match the profile | Do not publish the worker; drain/terminate and dispose all startup resources. |
+| READY frame has wrong nonce/version/generation or arrives after deadline | Reject, terminate, and record only a sanitized startup category. |
+| Request frame is malformed, oversized, expired, duplicate, or unknown | Reject before SDK invocation; keep memory and request-map growth bounded. |
+| Secret-like value appears in args/env/log/IPC/error | Security gate fails; no release or live test proceeds. |
+| Worker response contains an SDK type/raw CRM URL or exceeds bounds | Reject the frame and recycle/quarantine that worker generation. |
+| Worker exceeds age/count/memory/health threshold | Stop new assignment and replace-and-drain it without exceeding aggregate capacity. |
+| Graceful drain exceeds deadline | Force terminate, wait for exit, dispose handles/IPC/registrations, and prove counters return to zero. |
+| Official operation fails | Return its sanitized failure; do not change transport/profile/version/credential. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: two bounded CE 8.2 workers and two CE 9.1 workers run concurrently;
+  their SDK assemblies, clients, credentials, pipes, results, and static/WCF
+  state remain isolated while the shared organization budget is respected.
+- Good: a worker reaches its operation-count limit, stops new assignment,
+  drains the in-flight request, disposes `CrmServiceClient`, exits, and is
+  replaced without a capacity spike or retained process/pipe handle.
+- Base: an SDK call hangs past the grace deadline; Gateway returns a typed
+  timeout, force-terminates only that worker, and restores the bounded pool.
+- Bad: put a password/connection string in `ProcessStartInfo.Arguments` or an
+  environment variable, serialize an `Entity` over the pipe, or keep a static
+  `CrmServiceClient` shared across worker generations.
+- Bad: catch a CE 9.1 worker error and retry through Web API or Data8.
+
+### 6. Tests Required
+
+- Project/package scan proving the SDK allowlist contains only the two workers
+  and worker-only tests.
+- Protocol frame tests for size, partial read, depth/member/string/array limits,
+  version, nonce, duplicate ID, deadline, trailing data, and result bounds.
+- Secret scans over process-start projections, environment projections, logs,
+  exceptions, protocol captures, crash evidence, and snapshots.
+- Repeated start/READY/request/cancel/timeout/crash/drain/kill/recycle loops with
+  counters for processes, pipes, streams, timers, registrations, request-map
+  entries, semaphores, leases, permits, and strong generation references.
+- Simultaneous CE 8.2/9.1 workers proving no assembly/client/credential/result or
+  mutable state crosses versions/profiles.
+- Soak tests proving managed heap, private bytes, working set, handles, threads,
+  process count, pipe count, and queues return to a declared post-warm-up
+  baseline after recycle/drain.
+- Deployed website -> Gateway -> official worker -> target CE tests for identity,
+  representative reads/paging/query/metadata/actions, controlled test-owned
+  writes, reconnect, recycle, and no-leak baselines.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+Gateway (.NET 10) -> loads CE 8.2 and CE 9.1 CRM SDK DLLs in one process
+failed official worker -> direct Web API fallback
+```
+
+#### Correct
+
+```text
+Gateway (.NET 10)
+  -> bounded nonce-bound IPC -> Crm82Worker (net48, pinned Microsoft NuGet)
+  -> bounded nonce-bound IPC -> Crm91Worker (net48, pinned Microsoft NuGet)
+```
+
+The process boundary isolates SDK versions and provides a deterministic final
+cleanup boundary without changing the product contract or organization budget.
 
 ## Scenario: Multi-Profile Runtime Admission, Publication, and Rollback
 
@@ -931,11 +1157,19 @@ Local Gateway gives Visual Studio a separately observable console/process while 
 
 CE 8.2 and CE 9.1 share the product-facing API and policy model. They do not have to share a transport implementation, SDK version, authentication flow, token/WCF state, or physical connection pool.
 
-### Data8 is retained now and removable later
+### Data8 remains only in unmigrated legacy product paths
 
-Deleting Data8 now would break `ToolUtility` and the known-working CE 8.2 WS-Trust path. It becomes removable only after every consumer moves behind Gateway and one proven CE 8.2 replacement satisfies real-server, lifecycle, isolation, and rollback gates.
+Deleting Data8 before its current consumers migrate would break legacy traffic.
+It is not a Gateway transport. It becomes removable after those consumers move
+to `OfficialCrm82Worker` and the worker satisfies real-server, lifecycle,
+isolation, rollback, and no-leak gates.
 
-## Scenario: Explicit live-smoke target and credential-reference boundary
+## Retired artifact: direct-Web-API live-smoke harness
+
+This section is retained only as historical evidence for code scheduled for
+deletion. It is non-normative, must not be executed as part of Phase 4, and does
+not define a supported route, readiness gate, fallback, or operator action. The
+official worker compatibility harness replaces it.
 
 ### 1. Scope / Trigger
 
@@ -1073,7 +1307,12 @@ every bridge key. The target, authentication mode, and resulting evidence
 remain explicit and traceable, while a real CRM fault remains an external gate
 rather than a reason to weaken the Gateway boundary or retain caller state.
 
-## Scenario: Dynamics Deployment PowerShell Claims/IFD persistence diagnostic
+## Retired artifact: Dynamics Deployment PowerShell Claims/IFD diagnostic
+
+This section is retained only as historical evidence. It is non-normative and
+must not be used as a Gateway prerequisite or Phase 4 action. Do not establish a
+D365APP01 management channel, reopen the IFD wizard, repeat direct Web API
+`WhoAmI`, or collect new ASP.NET 1309 evidence for the official-worker task.
 
 ### 1. Scope / Trigger
 
