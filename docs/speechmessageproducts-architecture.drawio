@@ -9,7 +9,7 @@
         <mxCell id="title1" value="SpeechMessageProducts · 系統總覽" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
           <mxGeometry x="40" y="18" width="700" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="sub1" value="快照 2026-08-02 14:00 · HEAD 6b3bb0f4 · 33 個專案 · 箭頭 = ProjectReference（A → B 表示 A 參考 B）" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
+        <mxCell id="sub1" value="快照 2026-08-02 14:40 · HEAD 01fe6d00 · 31 個專案 · 箭頭 = ProjectReference（A → B 表示 A 參考 B）" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
           <mxGeometry x="40" y="50" width="900" height="18" as="geometry" />
         </mxCell>
 
@@ -74,7 +74,7 @@
           <mxGeometry x="18" y="210" width="254" height="30" as="geometry" />
         </mxCell>
 
-        <mxCell id="grpDyn" value="Dynamics 存取 · 官方 NuGet Worker 架構 · 15 個專案　★ 2026-08-02 第三次改版" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+        <mxCell id="grpDyn" value="Dynamics 存取 · 官方 NuGet Worker 架構 · 13 個專案　★ 2026-08-02 第三次改版（孤兒已清除）" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
           <mxGeometry x="770" y="330" width="840" height="250" as="geometry" />
         </mxCell>
         <mxCell id="dynPc" value="ProductClient · 8&#10;產品唯一入口" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="grpDyn">
@@ -98,7 +98,7 @@
         <mxCell id="dynW91" value="Crm91Worker · 3　【net48】&#10;官方 XrmTooling 9.1.1.65" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpDyn">
           <mxGeometry x="285" y="168" width="255" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="dynDead" value="WebApi · 41　【已成孤兒】&#10;Embedded · 1　SmokeTests · 2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;dashed=1;fontColor=#8b2f2a;" vertex="1" parent="grpDyn">
+        <mxCell id="dynDead" value="Embedded · 1　【僅剩殘留】&#10;無產品參考，只有 Tests" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;dashed=1;fontColor=#777777;" vertex="1" parent="grpDyn">
           <mxGeometry x="552" y="168" width="266" height="46" as="geometry" />
         </mxCell>
         <mxCell id="dynAbsN" value="Abstractions · 10（契約層，零相依，圖 2 詳述）" style="text;html=1;fontSize=11;fontColor=#31558a;align=left;" vertex="1" parent="grpDyn">
@@ -118,7 +118,7 @@
         <mxCell id="grpTest" value="測試 · 8 個專案" style="swimlane;html=1;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;" vertex="1" parent="1">
           <mxGeometry x="40" y="615" width="705" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="tDyn" value="Dynamics.Tests · 33&#10;340 案例：332 通過 / 1 失敗 / 7 略過" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;fontStyle=1;" vertex="1" parent="grpTest">
+        <mxCell id="tDyn" value="Dynamics.Tests · 33&#10;340 案例：333 通過 / 0 失敗 / 7 略過" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="grpTest">
           <mxGeometry x="18" y="38" width="240" height="46" as="geometry" />
         </mxCell>
         <mxCell id="tHosts" value="WorkerTestHost · 1&#10;SqlCoordinatorTestWorker · 3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpTest">
@@ -127,7 +127,7 @@
         <mxCell id="tOther" value="ChurchReport.MemberInfo / ToolUtility&#10;Payments / Line 等 5 個" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="grpTest">
           <mxGeometry x="486" y="38" width="200" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="tNote" value="⚠ 1 個失敗：Legacy_webapi_projects_and_live_probe_scripts_are_removed（TDD RED，遷移待辦）　⚠ 7 個略過全是 SQL live 測試" style="text;html=1;fontSize=11;fontColor=#8b2f2a;align=left;" vertex="1" parent="grpTest">
+        <mxCell id="tNote" value="✔ 邊界測試已轉綠（WebApi / SmokeTests / 兩支 PS1 已刪除）　⚠ 7 個略過全是 SQL live 測試，持久協調器仍零驗證" style="text;html=1;fontSize=11;fontColor=#2d6b3f;align=left;" vertex="1" parent="grpTest">
           <mxGeometry x="18" y="94" width="670" height="18" as="geometry" />
         </mxCell>
 
@@ -178,7 +178,7 @@
           <mxGeometry x="40" y="90" width="310" height="190" as="geometry" />
         </mxCell>
 
-        <mxCell id="w_dead" value="已成孤兒（測試要求刪除）&#10;&#10;WebApi · 41&#10;　v1 的無 SDK OData 連線器&#10;　只剩 SmokeTests 參考&#10;&#10;SmokeTests · 2&#10;Embedded · 1&#10;&#10;docs/scripts/&#10;　Invoke-DynamicsLiveSmoke.ps1&#10;　Get-DynamicsCrmWebIfdDiagnostics.ps1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;dashed=1;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;fontColor=#8b2f2a;" vertex="1" parent="1">
+        <mxCell id="w_dead" value="已清除（08-02 14:37 commit 01fe6d00）&#10;&#10;✔ WebApi · 41 檔　已刪除&#10;✔ SmokeTests · 2 檔　已刪除&#10;✔ Invoke-DynamicsLiveSmoke.ps1　已刪除&#10;✔ Get-DynamicsCrmWebIfdDiagnostics.ps1&#10;　 已刪除&#10;&#10;殘留：Embedded · 1 檔&#10;　僅 Tests 參考，無產品使用&#10;　邊界測試未要求刪除" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f4ea;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;fontColor=#2d6b3f;" vertex="1" parent="1">
           <mxGeometry x="40" y="315" width="310" height="320" as="geometry" />
         </mxCell>
 
@@ -287,7 +287,7 @@
         <mxCell id="t3" value="一次「查詢奉獻費用」的完整旅程（官方 Worker 路線）" style="text;html=1;fontSize=22;fontStyle=1;align=left;" vertex="1" parent="1">
           <mxGeometry x="40" y="18" width="900" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="綠 = 已由 332 項通過測試涵蓋　　黃 = 已實作但未真機驗證　　紅 = 尚未打通或已孤兒" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
+        <mxCell id="s3" value="綠 = 已由 333 項通過測試涵蓋　　黃 = 已實作但未真機驗證　　紅 = 尚未打通或已孤兒" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
           <mxGeometry x="40" y="50" width="900" height="18" as="geometry" />
         </mxCell>
 
@@ -400,22 +400,22 @@
           <mxGeometry x="40" y="340" width="1120" height="64" as="geometry" />
         </mxCell>
 
-        <mxCell id="dead" value="遺留物清單（尚未清除）" style="swimlane;html=1;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="dead" value="遺留物處置（08-02 14:37 已清除）" style="swimlane;html=1;startSize=30;fillColor=#e8f4ea;strokeColor=#82b366;fontSize=14;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="40" y="435" width="1120" height="300" as="geometry" />
         </mxCell>
-        <mxCell id="d1" value="SpeechMessage.Dynamics.WebApi · 41 檔&#10;v1 的核心產出。約 26 檔（Capacity/ 與部分 Runtime/）已搬進 ControlPlane 保住；&#10;約 15 檔傳輸相關成為死碼：DynamicsHttpTransport · AdfsOAuthTokenProvider · DynamicsWebApiClient&#10;· ApprovedWebApiRootFactory · FetchXmlValueEncoder · Package01ServerOwnedTemplates · SecretResolver 系列" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+        <mxCell id="d1" value="✔ SpeechMessage.Dynamics.WebApi · 41 檔　已刪除&#10;v1 的核心產出。約 26 檔（Capacity/ 與部分 Runtime/）已先搬進 ControlPlane 保住；&#10;約 15 檔傳輸相關（DynamicsHttpTransport · AdfsOAuthTokenProvider · DynamicsWebApiClient · ApprovedWebApiRootFactory&#10;· FetchXmlValueEncoder · Package01ServerOwnedTemplates · SecretResolver 系列）隨專案一併移除。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
           <mxGeometry x="20" y="42" width="1080" height="78" as="geometry" />
         </mxCell>
-        <mxCell id="d2" value="SpeechMessage.Dynamics.SmokeTests · 2 檔　　唯一還參考 WebApi 的專案" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+        <mxCell id="d2" value="✔ SpeechMessage.Dynamics.SmokeTests · 2 檔　已刪除" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
           <mxGeometry x="20" y="130" width="1080" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="d3" value="SpeechMessage.Dynamics.Embedded · 1 檔　　ChurchReport 已解除參考，只剩空殼" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+        <mxCell id="d3" value="△ SpeechMessage.Dynamics.Embedded · 1 檔　仍保留（僅 Tests 參考，無產品使用）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
           <mxGeometry x="20" y="174" width="1080" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="d4" value="docs/scripts/Invoke-DynamicsLiveSmoke.ps1　·　docs/scripts/Get-DynamicsCrmWebIfdDiagnostics.ps1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
+        <mxCell id="d4" value="✔ docs/scripts/Invoke-DynamicsLiveSmoke.ps1　·　Get-DynamicsCrmWebIfdDiagnostics.ps1　皆已刪除" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="dead">
           <mxGeometry x="20" y="218" width="1080" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="d5" value="★ 這四項正是目前唯一失敗的測試在要求刪除的：OfficialNuGetWorkerBoundaryTests.Legacy_webapi_projects_and_live_probe_scripts_are_removed&#10;　（TDD RED —— 屬正常遷移中狀態，不是缺陷，但代表方案目前不是全綠）" style="text;html=1;fontSize=11;fontColor=#8b2f2a;align=left;" vertex="1" parent="dead">
+        <mxCell id="d5" value="★ 邊界測試 OfficialNuGetWorkerBoundaryTests.Legacy_webapi_projects_and_live_probe_scripts_are_removed 已由 RED 轉 GREEN。&#10;　 測試結果：333 通過 / 0 失敗 / 7 略過（略過全為需真實 SQL 實例的 Live_sql_* 測試）。" style="text;html=1;fontSize=11;fontColor=#2d6b3f;align=left;" vertex="1" parent="dead">
           <mxGeometry x="20" y="256" width="1080" height="36" as="geometry" />
         </mxCell>
 
