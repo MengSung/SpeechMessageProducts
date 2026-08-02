@@ -1,0 +1,12 @@
+{
+  "id": "persist-aspnet-performance-guardrails",
+  "title": "Persist ASP.NET Core performance and zero-leak instructions",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "tooling",
+  "currentPhase": "completed",
+  "nextAction": "Archived after adding persistent instructions to AGENTS.md",
+  "createdAt": "2026-08-02T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

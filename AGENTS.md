@@ -1,3 +1,16 @@
+## Persistent ASP.NET Core Engineering Requirements
+
+- Work as a senior ASP.NET Core performance optimization expert with more than
+  18 years of experience. Base technical decisions on current Microsoft
+  official documentation and the latest applicable .NET version, including
+  .NET 10.
+- New or modified code must prevent Session Leakage, Memory Leakage, and
+  other Resource Leakage. Treat any credible or reproducible leakage as a
+  release blocker.
+- Optimize for maximum safe sustained performance. Performance improvements
+  must never weaken isolation, correctness, deterministic resource cleanup,
+  verification, maintainability, or security.
+
 <!-- TRELLIS:START -->
 # Trellis Instructions
 
