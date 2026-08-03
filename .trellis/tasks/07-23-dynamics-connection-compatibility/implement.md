@@ -26,6 +26,31 @@ No product traffic is enabled while the official-worker gates remain open:
 `Package01FeeReadsEnabled=false`. Phase 5 migration and Phase 6 legacy removal
 remain locked until the relevant Phase 4 gates pass.
 
+## 2026-08-03 Phase 4C compatibility-harness increment
+
+`docs/scripts/Invoke-DynamicsOfficialWorkerCompatibility.ps1` now provides the
+first deployable compatibility evidence entrypoint for the official NuGet worker
+route. Its `ValidateOnly` and `EnableLiveCompatibility` modes both reject an
+invalid Gateway target before manifest/overlay evidence can be recorded. The
+script validates only the pinned manifest, selected overlay profile,
+worker-profile XML, package lock, worker kind, CE version, organization identity
+and executable SHA-256 chain; it never uses direct Web API, D365APP01 management
+PowerShell, an IFD wizard, or a transport fallback.
+
+`ValidateOnly` creates no network resource. `EnableLiveCompatibility` can make
+exactly one Gateway request for the fixed `runtime.health.whoami` operation only
+after the same fail-closed preflight passes. The handler disables cookies,
+proxy, redirects and decompression, uses the current Windows identity, bounds
+connection/response/time limits, and deterministically disposes every request,
+response, stream, buffer, cancellation source, client and handler. It emits
+sanitized evidence only; Gateway URI, CRM endpoint, organization GUID,
+credential reference, token, cookie and CRM body are excluded.
+
+The matching regression test has passed. The remaining Phase 4C work is not a
+script failure: an operator must still supply authoritative non-production or
+approved CE 8.2/9.1 profile identity inputs and final stable published paths,
+then run the complete website -> Gateway -> official worker operation matrix.
+
 ## Preserved completed work
 
 Do not restart the Gateway foundation from zero. Preserve the existing:
@@ -366,25 +391,28 @@ Gateway
   -> Dynamics Organization Service
 ```
 
-Completed local execution checkpoint on 2026-08-02:
+Completed local execution checkpoint, refreshed on 2026-08-03:
 
 1. The worker-neutral migration, fixed-snapshot Gateway deployment overlay,
    duplicate/secret/path/hash/GUID validation, and deterministic provider
    ownership are implemented. The overlay is optional, adjacent, higher
    precedence than checked-in placeholders, startup-only, and requires restart
    after change.
-2. Fresh Release verification passed: Dynamics 409 passed / 0 failed / 7
+2. Fresh Release verification passed: Dynamics 411 passed / 0 failed / 7
    opt-in SQL skipped; the real fixed LocalDB gate then passed 8 / 8 with the
    selector restored in `finally`; focused worker lifecycle/fault/soak tests
    passed 73 / 73; CE 8.2 and CE 9.1 worker tests each passed 15 / 15; worker
    boundary verification reported zero findings; deployment/publish script tests
    passed.
 3. The local reviewed publish artifacts were regenerated and independently
-   matched their manifest:
+   matched their newly generated manifest. The manifest produced by the exact
+   publication is the only deployment hash authority; a later publication may
+   produce a different executable hash and must generate and verify a new
+   manifest rather than reuse an earlier hash:
    - CE 8.2 executable SHA-256:
-     `3AB968C97A1E2D64A1E7250FDDEA25E1A43D5AB7A8FF95761A382B77A9652014`;
+     `C39C2DE0D0C820D49164EA8F0E27F6B0A8343835347A402C430E8C93E385DAA0`;
    - CE 9.1 executable SHA-256:
-     `A719C8097A588C62514B7564EA91CFB9F8808A06B3C284BFF6B9C6D8E93AF3C0`;
+     `6B09FA61422A72FE2EAADF28CB899F8B7827CFCC098B6B34FF45F1BDC968F637`;
    - CE 8.2 package-lock SHA-256:
      `4F49F64D7AD1075DE08DDF29C57317843A5BAD3CD0E6203CBC4AA3FF9BCCD58D`;
    - CE 9.1 package-lock SHA-256:

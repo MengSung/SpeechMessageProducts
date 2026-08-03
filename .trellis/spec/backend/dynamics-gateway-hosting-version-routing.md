@@ -507,6 +507,10 @@ Program startup order:
   locations before generating the overlay. The overlay contains absolute worker
   executable paths, so moving a worker after generation invalidates the
   deployment contract.
+- The manifest produced by that exact publication is the only executable-hash
+  authority. Re-publishing may produce a different executable hash, so it must
+  produce a new manifest and repeat independent artifact-to-manifest comparison;
+  an earlier report's hash must never be copied into a later overlay.
 - `OutputDirectory` is the final Gateway publish/executable directory. The
   generator writes the overlay there and writes each `worker-profile.xml`
   beside its already-published worker executable.
@@ -535,6 +539,13 @@ Program startup order:
   original enumerable or a duplicate dictionary. `ConfigurationManager`/Host
   owns that provider and its one bounded change-token registration until Host
   disposal. No static mutable deployment snapshot or cross-Host state exists.
+- The Phase 4C compatibility harness validates the supplied Gateway base URI as
+  an absolute HTTPS URI with no user-info, query or fragment in both
+  `ValidateOnly` and live modes. `ValidateOnly` must reject a target that could
+  never be executed safely even though it creates no network resource; this
+  prevents sanitized deployment evidence from approving a split validation/live
+  trust boundary. The validated URI is process-local, never logged or cached,
+  and is cleared after the one bounded run.
 - The overlay accepts only `DynamicsProfiles:Profiles` artifact/profile identity
   fields. It rejects unknown or secret-shaped fields, case-colliding aliases,
   duplicate properties, unsupported worker kinds, relative or wrong executable
