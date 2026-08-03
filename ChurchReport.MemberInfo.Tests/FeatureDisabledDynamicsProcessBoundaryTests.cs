@@ -204,7 +204,8 @@ public sealed class FeatureDisabledDynamicsProcessBoundaryTests
         using var handler = new HttpClientHandler
         {
             AllowAutoRedirect = false,
-            UseCookies = false
+            UseCookies = false,
+            UseProxy = false
         };
         using var client = new HttpClient(handler)
         {

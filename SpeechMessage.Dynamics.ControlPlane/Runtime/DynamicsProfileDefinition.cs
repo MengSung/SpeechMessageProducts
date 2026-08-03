@@ -233,7 +233,8 @@ public sealed class DynamicsProfileDefinition
             PackageLockId = PackageLockId,
             StartupTimeout = StartupTimeout,
             OperationTimeout = OperationTimeout,
-            DrainTimeout = DrainTimeout
+            DrainTimeout = DrainTimeout,
+            RecyclePolicyOptions = CloneRecyclePolicyOptions(RecyclePolicyOptions)
         };
 
     /// <summary>驗證 bounded ASCII identifier；避免路徑、URI、空白或控制字元進入 process bootstrap。</summary>

@@ -86,6 +86,33 @@ public sealed class OfficialWorkerRecyclePolicyTests
             .Should().OnlyContain(property => property.SetMethod == null);
     }
 
+    /// <summary>
+    /// 驗證從不可變 Profile Definition 複製出的每一份 Worker bootstrap options，
+    /// 都必須保留完全相同的 recycle 門檻，且取得自己的 immutable policy snapshot。
+    /// 若遺漏此複製，internal 呼叫端會安靜地回退至預設值，導致同一部署 generation
+    /// 的 Worker 在 age、完成作業數、記憶體或 timeout 門檻上產生不一致的回收行為；
+    /// 那會破壞 replace-and-drain 的可預測性，並提高資源滯留或不必要重啟的風險。
+    /// </summary>
+    [Fact]
+    public void Worker_options_preserve_the_profile_recycle_policy_snapshot()
+    {
+        var definition = CreateDefinition(CreateOptions(
+            maximumWorkerAge: TimeSpan.FromMinutes(17),
+            maximumCompletedOperations: 1234,
+            maximumPrivateBytes: 4567,
+            maximumWorkingSet: 3456,
+            maximumConsecutiveCompleteWorkerTimeouts: 4));
+
+        var workerOptions = definition.CreateWorkerOptions();
+
+        workerOptions.RecyclePolicyOptions.Should().NotBeSameAs(definition.RecyclePolicyOptions);
+        workerOptions.RecyclePolicyOptions.MaximumWorkerAge.Should().Be(TimeSpan.FromMinutes(17));
+        workerOptions.RecyclePolicyOptions.MaximumCompletedOperations.Should().Be(1234);
+        workerOptions.RecyclePolicyOptions.MaximumPrivateBytes.Should().Be(4567);
+        workerOptions.RecyclePolicyOptions.MaximumWorkingSet.Should().Be(3456);
+        workerOptions.RecyclePolicyOptions.MaximumConsecutiveCompleteWorkerTimeouts.Should().Be(4);
+    }
+
     /// <summary>Worker age 在單調時間差精確等於門檻時即停止下一次 admission。</summary>
     [Fact]
     public void Maximum_worker_age_boundary_equality_requires_recycle()

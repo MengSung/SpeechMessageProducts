@@ -394,18 +394,26 @@ Completed local execution checkpoint on 2026-08-02:
    unique names, authentication/identity modes, credential-reference details,
    home realm where applicable, and final stable installation paths. These
    values must not be guessed merely to replace checked-in placeholders.
+5. The feature-disabled ChurchReport local boundary is verified with the
+   intended project content root: the browser reached the unsubmitted login
+   page at `readyState=complete`, observed a form and password field, observed
+   zero JavaScript errors and no `/v1` reference, and no login POST was issued
+   by the verification. After closing the browser tab and stopping only the
+   captured ChurchReport process, the local listener, Gateway/Worker/TestHost
+   process set, and the 7244/57244 boundary listener set returned to zero.
+6. `DynamicsProfileDefinition.CreateWorkerOptions()` now clones the validated
+   immutable recycle-policy snapshot, matching the production runtime factory.
+   A regression test first demonstrated the former silent fallback to default
+   thresholds, then passed after the minimal copy fix; this protects consistent
+   worker recycling without sharing mutable profile state.
 
 Remaining ordered work:
 
-1. Start ChurchReport alone with `Package01FeeReadsEnabled=false`, complete the
-   feature-disabled browser verification, and prove no `/v1` request,
-   Gateway/Worker/TestHost process, 7244/57244 listener, login POST, or retained
-   listener/process remains after stopping only the captured ChurchReport PID.
-2. Create a clean/versioned external deployment generation only after the
+1. Create a clean/versioned external deployment generation only after the
    authoritative profile inputs and final stable Gateway/worker paths exist.
    Publish workers first, publish Gateway second, then generate the overlay into
    the final Gateway directory without overwrite or relocation.
-3. Deploy and validate the real website -> Gateway -> official worker -> CE 8.2
+2. Deploy and validate the real website -> Gateway -> official worker -> CE 8.2
    and CE 9.1 compatibility matrices, including identity, representative reads,
    test-owned writes, recycle, isolation, rollback, and resource-baseline
    evidence. Only this work can close Phase 4C for each exact profile.
