@@ -1326,31 +1326,6 @@ finally {
 
 The Host loads the reviewed project configuration and keeps the same fail-closed validation. The runtime verifier records the listener owner and stops only that exact DLL owner during cleanup.
 
-#### Wrong: compensate for missing WinRM authentication with an unsafe client path
-
-```powershell
-Set-Item WSMan:\localhost\Client\TrustedHosts -Value '*'
-Set-Item WSMan:\localhost\Client\AllowUnencrypted -Value $true
-```
-
-#### Correct: require approved Negotiate authentication and deterministic cleanup
-
-```powershell
-$session = $null
-try {
-    $session = New-PSSession -ComputerName $approvedDnsName -Authentication Negotiate -ErrorAction Stop
-    Invoke-Command -Session $session -ScriptBlock { Get-Service WinRM }
-}
-finally {
-    if ($null -ne $session) {
-        Remove-PSSession -Session $session
-    }
-    $session = $null
-}
-```
-
-If session creation fails, stop at read-only WSMan readiness evidence. Do not prompt repeatedly, persist a credential, enable Basic, allow unencrypted transport, or broaden TrustedHosts.
-
 ## Design Decisions
 
 ### Central Gateway is the production default

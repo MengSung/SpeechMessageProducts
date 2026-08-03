@@ -11,6 +11,38 @@
   must never weaken isolation, correctness, deterministic resource cleanup,
   verification, maintainability, or security.
 
+## Persistent Traditional Chinese Documentation and UTF-8 Requirements
+
+- Every `.cs` and `.cshtml` file must contain complete, in-depth, maintainable
+  Traditional Chinese documentation appropriate to the code it owns. This rule
+  applies immediately to every newly created or substantively modified file and
+  to every changed region in an existing file.
+- Public and internal types, interfaces, constructors, methods, important
+  properties, Razor handlers/helpers, and lifecycle-owning test doubles must use
+  the language-appropriate documentation form, including C# XML documentation
+  comments and Razor comments where applicable. A translated symbol name,
+  one-line restatement, or `<inheritdoc />` alone is not sufficient.
+- Non-obvious implementation comments must explain why the implementation is
+  required and which invariants must not be broken. When applicable, document
+  trust boundaries, input validation, the single resource owner, concurrency and
+  race behavior, cancellation and timeout behavior, fail-closed behavior,
+  rollback/drain/dispose/cleanup order, performance trade-offs, and memory
+  retention limits.
+- Code involving Session, identity, token, credential, cache, connection pool,
+  queue, timer, subscription, stream, handle, cancellation registration, process,
+  IPC, or background work must document the maximum data/resource lifetime, the
+  deterministic release path, and how cross-request, cross-user, cross-profile,
+  and cross-tenant leakage is prevented.
+- Test documentation must state the protected contract, the failure or fault
+  injection used, and the decisive assertions, so a future maintainer can tell
+  which security, isolation, lifecycle, performance, or compatibility guarantee
+  failed.
+- All `.cs` and `.cshtml` files must be UTF-8 without BOM, use repository-required
+  CRLF line endings, and end with a final CRLF. Invalid UTF-8, BOM, mixed/LF-only
+  endings, mojibake, or materially misleading/out-of-date comments are
+  review/release blockers. Verify encoding and line endings at byte level before
+  reporting completion.
+
 <!-- TRELLIS:START -->
 # Trellis Instructions
 

@@ -356,26 +356,26 @@ any FetchXML text. A product alias is a logical name such as
 Every operation template is compiled from metadata-typed parameter definitions,
 not string concatenation. FetchXML builders must use XML attribute/text encoders
 for values and a fixed allowlist for entity, attribute, relationship, operator,
-and ordering tokens. OData URL/filter builders must use OData literal and URI
-component encoders for values. A typed parameter value can never be inserted into
-an XML, OData, URL, or multipart boundary context without the context-specific
-encoder declared by the operation definition.
+and ordering tokens. QueryExpression and OrganizationRequest values are created
+only by the registered worker operation from validated typed parameters. A
+caller-supplied value can never select an entity, attribute, relationship,
+operator, request type, or arbitrary SDK message.
 
 For the first production release, the operation registry is authoritative:
 capabilities such as member.get, member.search, list.addMembers, and
-metadata.optionSet map to a fixed OData template, projection, maximum page
-size, approved action, and named parameter schema. The service exposes no
-generic query endpoint. It must never recreate unrestricted
-IOrganizationService.Execute under another name.
+metadata.optionSet map to a fixed version-specific worker operation, projection,
+maximum page size, approved SDK request/query shape, and named parameter schema.
+The service exposes no generic query endpoint. It must never recreate
+unrestricted `IOrganizationService.Execute` under another name.
 
 Phase 0 must create an Organization-call coverage matrix before the first
 consumer migration. Required columns are: product, file/member, legacy SDK/SOAP
 entry point, current `OrganizationRequest`/helper shape, data classification,
-proposed `capabilityOperationId`, Web API route/action/function template,
-v8.2/v9.1 metadata evidence, real-server smoke-test evidence, idempotency/audit
-classification, migration status, owner, and removal deadline. Any row without
-an approved Web API capability remains a temporary legacy item; it cannot be
-handled by a generic Execute proxy.
+approved `capabilityOperationId`, typed official-worker request/query mapping,
+CE 8.2/9.1 package and compatibility evidence, real-server operation evidence,
+idempotency/audit classification, migration status, owner, and removal deadline.
+Any row without an approved official-worker operation remains a temporary legacy
+item; it cannot be handled by a generic Execute proxy.
 
 The Gateway must not become the location for business workflows. For example,
 ChurchReport still decides its own donation or membership business rule; it asks
@@ -732,27 +732,26 @@ after a finite grace deadline the supervisor terminates the worker, waits for
 exit, disposes every process/IPC owner, clears request maps, and proves counters
 return to baseline.
 
-The older HTTP-handler details below are retained only as legacy-removal
-context. They do not define the selected runtime or an alternative route.
-
 ### 7.1 Correct meaning of "Connection Pool"
 
-Each approved runtime host owns a **DynamicsProfileRuntimePool**, not a manual
-pool of borrowed HttpClient instances. A profile runtime owns one long-lived
-SocketsHttpHandler plus HttpClient and therefore its actual underlying HTTP/TCP
-connection pool. It also owns authentication, metadata, health, and its
-generation-scoped retry/circuit state. Organization-wide admission is owned by
-the runtime pool manager, separately from the credential-bearing runtime.
+Each approved runtime host owns a **DynamicsWorkerPoolGeneration**, not a manual
+pool of borrowed `CrmServiceClient`, WCF channel, or HTTP client instances. A
+profile generation owns a bounded set of isolated worker processes. Each worker
+creates and owns one official `CrmServiceClient` generation and every SDK/WCF
+object reachable from it. Organization-wide admission is owned by the .NET 10
+control plane, separately from the credential-bearing worker processes.
 
 Each credential-bearing runtime is keyed by:
 
 ~~~text
-ProfileRuntimeKey = tuple(
-  profileId, immutableConfigurationGeneration, apiVersion,
-  normalizedOrganizationBaseUri, authMode, secretVersionFingerprint)
+WorkerPoolGenerationKey = tuple(
+  profileId, immutableConfigurationGeneration, workerKind,
+  workerExecutableSha256, packageLockId, expectedOrganizationId,
+  normalizedOrganizationBaseUri, credentialReferenceGeneration)
 ~~~
 
-The key never contains raw secret values. A request can only resolve a runtime
+The key never contains raw secret values. A request can only resolve a worker
+generation
 after Gateway authorization or Embedded startup policy resolves the deployment
 assigned workload and authorized logical alias. No user, LINE ID, browser
 session, raw JWT, or user token is a runtime-key component.
@@ -791,10 +790,11 @@ moving to another organization requires a new profile/alias and explicit policy
 cutover, never an in-place generation replacement.
 
 Separate v8.2 and v9.1 profiles may intentionally target the same expected
-organization during an upgrade/migration window. They retain separate
-credential/HTTP/metadata runtime generations but resolve the same
+organization during an upgrade/migration window. They retain separate worker
+processes, SDK assembly graphs, official-client generations, and credential
+references but resolve the same
 `OrganizationAdmissionKey` and `OrganizationAdmissions` entry, so the
-organization's capacity never doubles merely because two API-version profiles
+organization's capacity never doubles merely because two worker-version profiles
 exist.
 
 The same rule applies across deployment-environment labels. If two profiles in
@@ -841,25 +841,17 @@ change.
 
 ### 7.2 Runtime object ownership
 
-Handlers use `UseProxy = false`; the connector must not inherit an ambient
-system/env proxy or send CRM credentials through an undeclared proxy. A proxy is
-out of scope for the initial design and requires a separately reviewed,
-profile-owned trust and credential boundary if ever introduced. The connector
-never writes caller data or Dynamics authorization to
-`HttpClient.DefaultRequestHeaders`; it creates a one-use `HttpRequestMessage`
-and attaches only server-owned OData/auth headers for that request.
-
 | State | Isolation rule | Lifecycle |
 | --- | --- | --- |
-| SocketsHttpHandler and HttpClient | One per profile runtime key. UseCookies is false; AllowAutoRedirect is false; normal TLS validation is mandatory; no handler is shared across profile generations. `PreAuthenticate` remains disabled unless target-like Windows/IWA tests compare the disabled baseline with enabled behavior, prove correct connection-bound authentication/no cross-profile signal, and show a measured benefit for that exact profile. | The runtime owns both objects and creates `HttpClient` with `disposeHandler: true`; no factory or caller shares/disposes the handler. It is created once, reused for requests, drained, then disposed exactly once. PooledConnectionLifetime is configured to handle DNS/network changes. |
-| Windows credentials/host identity | Assigned only to that runtime's handler. `HostIdentity` uses the already validated process/service identity; `SecretReference` resolves only a non-human service account for that generation. | Host identity has no secret copy to dispose; secret-derived credentials are discarded at generation disposal. |
-| OAuth token provider/cache | Separate per profile key and authority/client scope; no static/global token dictionary. A keyed asynchronous single-flight operation allows exactly one token refresh per cache key. | Bounded in memory; clear/dispose on generation retirement. A caller's cancellation stops only its wait, not shared refresh work. Only completion or runtime-drain cancellation removes the keyed entry using its attempt identity; no plaintext token persistence by default. |
-| Metadata/capability cache | Key includes profile runtime key and metadata ETag/version. A keyed single-flight operation prevents metadata stampedes. | Size/TTL bounded; explicit invalidation after deployment/schema signal; disposed with runtime. A caller may abandon its wait but cannot remove a shared in-flight refresh; completion/drain removes the matching attempt and cannot leave an unbounded dictionary. |
-| Retry/circuit state | Separate per profile runtime key. | Bounded and cancellation-aware; removed with runtime. |
+| Worker process and official client | One process belongs to one profile/package generation and loads only its pinned SDK graph. The worker creates exactly one owned `CrmServiceClient` generation; it is never shared with another process, profile, CE version, or product Session. | The worker disposes the official client and SDK/WCF graph on graceful shutdown. The supervisor waits for bounded exit, terminates a hung worker after the grace deadline, waits again, and disposes the `Process` owner exactly once. |
+| IPC pipe, stream, frame buffer, and process handles | One supervisor-owned IPC channel per worker, nonce-bound before any operation. Frames and buffers have fixed byte limits; no credential, token, cookie, raw CRM object, or SDK type crosses IPC. | The generation cancels and awaits the read loop, completes pending requests, closes both pipe directions, disposes streams/registrations/process handles, clears bounded buffers, and proves listener/request counters return to zero. |
+| Credential reference and official-client authentication state | The deployment profile carries only an approved reference. Secret material is resolved inside the worker and cannot enter args, environment variables, Gateway memory, logs, metrics, persisted IPC, or product configuration. | Worker-local authentication/WCF/static state dies with the isolated process. Replacement creates a new generation; no mutable credential or token cache is transferred across generations. |
+| Request map and cancellation state | The bounded map is keyed by generated request ID and belongs to one supervisor generation. Entries contain only the typed protocol envelope, deadline, completion source, and owned cancellation registration; they never retain `HttpContext`, principal, Session, user/LINE identity, SDK object, or credential. | Success, fault, timeout, caller cancellation, pipe loss, drain, and process exit all remove the exact entry and dispose its registration once. Late or duplicate frames cannot resurrect a completed entry. |
+| Operation and recycle state | Registered operation IDs are immutable for one worker build/profile generation. Health, operation count, age, private bytes, crash count, and retry/circuit state are finite and generation-scoped. | Recycle creates a new worker before publication, then drains the old one. Counters and references are cleared when the generation terminates; no background restart loop outlives its supervisor owner. |
 | Organization admission state | One bounded local queue/semaphore per `OrganizationAdmissionKey`, shared by Gateway and Embedded hosts plus old/new runtime generations and aliases for the same validated organization. Its optional distributed permit key is the same non-secret key. Queue entries contain a bounded typed envelope with a server-derived `WorkloadSubjectId`, authorized alias, immutable capability operation revision/hash, deadline, and policy-decision version; they never retain HttpContext, principal/JWT, headers, cookies, streams, credentials, a user/LINE identity, or a generation reference. Cancellation removes an undispatched entry atomically, and bounded per-workload fair scheduling prevents one workload from filling the organization queue. | Reference-counted by active generations; removed only after the last one drains. The active runtime is resolved after dequeue, but it may execute only the queued immutable operation revision; a changed/missing policy or operation revision rejects the item rather than rebinding it to a new semantic template. Aggregate queue capacity and payload size are calculated across all admitted runtime hosts. |
 | Request context | Immutable local request object carrying an opaque generated correlation ID, server-derived `WorkloadSubjectId`, authorized alias, and operation revision only. | Never placed in a singleton, static, AsyncLocal, or shared cache. Correlation IDs and metric/audit tags must not encode a user, LINE ID, JWT/session ID, CRM user, or credential. |
-| Warm-up state | One low-priority, keyed single-flight task per profile runtime generation. It contains only the profile key, a system warm-up subject, and bounded readiness probe state. | It performs bounded service-document/CSDL cache population and a read-only `WhoAmI` probe through the same audit reservation, admission, runtime-host lease, deadline, and cancellation gates as ordinary work. It is cancelled on drain/lease loss and never retains user/login identity. |
-| Per-request HTTP objects | The connector owns every HttpRequestMessage, HttpResponseMessage, HttpContent, and response stream; no transport object crosses the Gateway contract boundary. | Dispose on success, error, cancellation, and drain. Only bounded parsed DTOs or controlled streamed copies may escape the transport layer. |
+| Warm-up state | One bounded readiness operation per worker generation, containing only profile-generation identity, a system warm-up subject, and a finite deadline. It invokes the registered official-client identity operation through the same admission, runtime-host lease, protocol, and cancellation gates as ordinary work. | It is cancelled and awaited on drain/lease loss and never retains a caller/login identity. A failed warm-up keeps the generation NotReady and cannot start an unbounded retry timer. |
+| SDK request/query/response objects | `QueryExpression`, `OrganizationRequest`, `Entity`, `EntityCollection`, paging cookies, and SDK faults remain inside the net48 worker. Only allowlisted bounded scalar/DTO projections cross the worker protocol. | The operation owns and releases all SDK graphs before completing the frame. The supervisor retains only the copied protocol result and drops it when the caller/request-map entry completes. |
 
 ### 7.2.1 Aggregate organization budget across runtime hosts
 
@@ -1012,35 +1004,45 @@ Configuration refresh must use replace-and-drain:
    Existing outbound-work leases may finish only before their runtime-host
    expiry fence and normal deadline.
 4. Wait for in-flight work up to the configured shutdown timeout, honouring
-   request cancellation. Do not create a new retry, token refresh, or metadata
-   fetch after drain begins.
-5. Cancel/await background loops, warm-up, and single-flight owners, dispose all response
-   objects/streams, cancellation registrations, timers, tokens, handlers, and
-   the HttpClient exactly once, then clear generation-owned cache references and
-   record final metrics. The shared organization queue is removed only when the
-   last compatible generation releases its reference.
+   request cancellation. Do not create a new retry, worker, SDK request, or
+   warm-up after drain begins.
+5. Cancel and await supervisor read/write loops and warm-up owners, complete the
+   bounded request map, send the finite shutdown frame, and wait for worker exit.
+   If the worker exceeds the grace deadline, terminate it and wait again. Dispose
+   every pipe, stream, frame buffer, cancellation registration, timer, and
+   process handle exactly once, clear generation-owned references, and record
+   final lifecycle counters. The worker process owns disposal of its
+   `CrmServiceClient`/SDK/WCF graph; forced termination is the fail-safe that
+   prevents an unresponsive graph from being retained in the Gateway process.
+   The shared organization queue is removed only when the last compatible
+   generation releases its reference.
 6. If draining exceeds the deadline, cancel the remaining work, await its
    teardown, and record an operational alert; do not leave an orphaned
    generation or callback.
 
 No runtime object is changed in place. This eliminates the class of bug where a
-new endpoint or credential partially mutates an active profile or rapid reloads
-accumulate unbounded draining handler/token-cache generations.
+new endpoint, credential reference, worker executable, or package lock partially
+mutates an active profile, or rapid reloads accumulate unbounded draining worker
+processes and IPC/request-map owners.
 
 ### 7.4 Secret-version change detection
 
-Each profile has a non-secret secret-version stamp supplied by the secret
-provider. Each runtime host subscribes to provider change notification where
-available and otherwise polls only the version stamp at a bounded interval. A
-version change initiates the same validate -> publish -> drain workflow as a
-configuration change; it never overwrites an active credential in place.
+The implemented deployment overlay is an immutable startup snapshot and does
+not watch a secret store. Credential rotation publishes a new approved worker
+profile generation/reference, updates the external versioned deployment
+artifact, and performs a controlled Gateway restart. The new worker resolves the
+reference locally and must reach Ready before it is published; the old worker is
+then drained and terminated. A reference is never overwritten in an active
+worker, and raw secret/token values are never Gateway cache keys, configuration
+values, process arguments, environment variables, logs, or IPC fields.
 
-Every Gateway and Embedded runtime host must consume the same change through the
-coordinator's `AdmissionEpoch`. Until a replacement generation validates, the
-last valid generation remains active only within its approved credential grace
-period and only when the coordinator has not fenced it. After expiry or a
-confirmed revocation, new admission fails closed and raises an alert. Raw
-secret/token values are never used as cache keys or emitted by the watcher.
+Any future dynamic secret-version notification requires a separately reviewed
+bounded owner and must still cross the coordinator's `AdmissionEpoch` barrier.
+Until a replacement generation validates, the last valid generation may remain
+active only inside its explicitly approved credential grace period and only when
+the coordinator has not fenced it. After expiry or confirmed revocation, new
+admission fails closed and raises an alert; no polling loop or callback may
+outlive its worker-pool owner.
 
 This credential-validity continuity window is unrelated to, and never relaxes,
 the RuntimeHostSlotLease no-admission-after-lease-loss rule in section 7.2.2.
@@ -1050,18 +1052,20 @@ the RuntimeHostSlotLease no-admission-after-lease-loss rule in section 7.2.2.
 "Zero tolerance" is a release policy, not a claim that a computer can prove a
 universal absence of future defects. Any of the following is a release blocker:
 
-- a fake-server test observes Profile A's credential/header/token/cookie or
-  endpoint on a Profile B request;
+- an isolation test observes Profile A's request/result, credential reference,
+  SDK/WCF state, worker process, pipe, or organization identity in Profile B;
 - a request is routed based on caller-provided host/credential/unapproved
   profile input;
 - a Gateway or Embedded host reaches Dynamics without the current admission
   epoch, a valid runtime-host slot, or the expiry-fence/quarantine protocol;
 - a queue/audit/cache/metric/correlation value contains a user identity, LINE
   ID, JWT/session identifier, user token, or credential;
-- a retired profile runtime retains active timers, handlers, response streams,
-  cancellation registrations, or references after the drain/dispose test;
+- a retired profile generation retains active workers, processes, pipes, streams,
+  request-map entries, timers, cancellation registrations, handles, or strong
+  references after the drain/termination test;
 - a controlled soak test demonstrates sustained unbounded managed heap,
-  handler, socket, or queue growth after warm-up;
+  private bytes, handles, threads, processes, pipes, request-map, or queue growth
+  after warm-up;
 - telemetry contains a secret, bearer token, raw authorization value, or
   unredacted sensitive identity detail.
 

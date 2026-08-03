@@ -17,7 +17,9 @@ namespace SpeechMessage.Dynamics.Crm91Worker;
 /// 定義 CE 9.1 adapter 實際需要的最小同步 SDK surface。
 /// 此介面只存在於 worker assembly 內，讓 production wrapper 與 worker-only tests 共用同一條
 /// Execute／RetrieveMultiple 契約；它不會跨 IPC 暴露，也不保存 Session、caller identity、
-/// QueryExpression cache 或跨 request mutable state。
+/// QueryExpression cache 或跨 request mutable state。唯一 disposable owner 是 generation-local client；
+/// OrganizationRequest／Response、QueryExpression、EntityCollection 與 Entity 都是單次方法範圍的 SDK object，
+/// 完成 SDK-free 投影後即不再保留。
 /// </summary>
 internal interface ICrm91SdkClient : IDisposable
 {
@@ -47,6 +49,8 @@ internal interface ICrm91SdkClient : IDisposable
 /// Worker session 依序處理單一在途 operation，因此本型別不以平行呼叫換取吞吐，也不為每次 request
 /// 重建 client、連線或 WCF graph。SDK 呼叫為同步且不提供可中斷取消；deadline 到期後由 Supervisor
 /// 終止整個 worker process，作為卡住之 SDK/WCF handle 與 unmanaged memory 的最終清理邊界。
+/// 本 wrapper 不擁有 Pipe、Stream、Timer、CancellationTokenRegistration 或 background task；那些資源由
+/// Worker Host／Supervisor generation 各自在 process boundary 兩側有界管理。
 /// </summary>
 internal sealed class Crm91SdkClient : ICrm91SdkClient
 {
@@ -121,9 +125,10 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     private readonly bool _identityProbeSucceeded;
 
     /// <summary>
-    /// 接管 factory 建立的 <see cref="CrmServiceClient"/> 與 optional credential，
-    /// 並在 publication 前同步完成一次固定 identity probe；失敗只留下 NotReady 狀態，
-    /// 最終仍由此 adapter 的 <see cref="Dispose"/> 決定性釋放 client 與 credential。
+    /// 在建構完整成功後接管 factory 建立的 <see cref="CrmServiceClient"/> 與 optional credential，
+    /// 並在 publication 前同步完成一次固定 identity probe；probe failure 只留下 NotReady 狀態，
+    /// 最終仍由此 adapter 的 <see cref="Dispose"/> 決定性釋放 client 與 credential。若參數驗證使 constructor
+    /// 拋錯，ownership 尚未提交，factory 的 finally 仍負責釋放原 client／credential。
     /// </summary>
     /// <param name="client">factory 建立且尚未轉交其他 owner 的官方 client。</param>
     /// <param name="credential">由 worker-local provider 取得、需隨 client 一起釋放的 credential。</param>
@@ -143,8 +148,8 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     }
 
     /// <summary>
-    /// 建立可由 worker-only tests 注入同步 SDK 替身的 adapter；此 overload 仍接管 client owner，
-    /// 不允許 caller 在 adapter 釋放後繼續使用同一 client。
+    /// 建立可由 worker-only tests 注入同步 SDK 替身的 adapter；constructor 成功返回後才接管 client owner，
+    /// 不允許 caller 在 adapter 釋放後繼續使用同一 client；constructor 拋錯時 caller 仍是 cleanup owner。
     /// </summary>
     /// <param name="client">由 adapter 接管唯一 ownership 的同步 SDK client。</param>
     /// <param name="credential">optional worker-owned credential；測試可使用 null。</param>
@@ -195,6 +200,8 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     /// query operation 內再次由 shared contract 驗證並丟棄，所有結果都保持 SDK-free。
     /// 一旦進入同步 SDK 呼叫，request cancellation 無法中斷該呼叫；Supervisor 會在有限 deadline
     /// 後停止等待、關閉 admission，並於 graceful drain 失敗時強制終止 worker process。
+    /// WhoAmIRequest／Response 與 Package01 query page 都只存活於本次 call stack，投影後不進入 field、cache
+    /// 或 callback；adapter field 只保留 generation-local client、credential 與 immutable identity scalar。
     /// </summary>
     /// <param name="request">已由 Worker session 驗證 nonce、revision 與 deadline 的 request。</param>
     /// <returns>固定 WhoAmI object 或 Package01 Array&lt;Page&lt;Row&gt;&gt;。</returns>
@@ -243,6 +250,8 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     /// credential。即使 client disposal 失敗，credential 仍在 finally 清除；重複 Dispose 不會
     /// 重複釋放或恢復可執行狀態。若同步 SDK disposal 卡住，Supervisor 的 process termination
     /// 仍是 WCF channel、handle 與 worker memory 的最終 cleanup boundary。
+    /// Pipe stream、reader task、timeout timer 與 cancellation registration 不屬於 adapter，分別由
+    /// Worker Host 與 Supervisor generation 在其 own finally／DisposeAsync 流程釋放。
     /// </summary>
     public void Dispose()
     {
@@ -324,7 +333,8 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     }
 
     /// <summary>
-    /// 將 WhoAmIResponse 投影成三個固定 GUID；SDK response 不會離開 worker method scope。
+    /// 將 WhoAmIResponse 投影成三個固定 GUID；SDK response 不會離開 worker method scope，
+    /// 投影完成後沒有 field、Task continuation 或 collection 保留它。
     /// </summary>
     /// <param name="response">已通過完整 identity validation 的 SDK response。</param>
     /// <returns>僅含 userId、businessUnitId、organizationId 的 SDK-free object。</returns>

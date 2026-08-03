@@ -15,6 +15,9 @@ namespace SpeechMessage.Dynamics.Crm91Worker;
 /// Entity、Money、OptionSetValue 等 SDK 型別都在 worker 內投影成固定十欄 <see cref="WorkerValue"/>，
 /// caller 不能提供 FetchXML、entity/column/order/status token、endpoint 或 routing hint。
 /// page、row、total row 與 canonical result bytes 任一超限即拒絕整體結果，不截斷也不回傳 partial success。
+/// QueryExpression、PagingInfo、EntityCollection、Entity 與 attribute SDK object 不實作本 operation 擁有的
+/// disposable handle；其 owner 是單次同步 call stack，只有有界 SDK-free projection 會加入結果集合。
+/// 本型別不建立 stream、process、timer、cancellation registration、async callback 或 background task。
 /// </summary>
 internal static class Package01FeeQueryOperation
 {
@@ -26,6 +29,8 @@ internal static class Package01FeeQueryOperation
     /// 每頁最多 400 列、全部最多 1,600 列／4 頁，且每次累積後立即驗證 wire byte 上限。
     /// SDK 呼叫本身無法由 CancellationToken 中斷；deadline 超過時 Supervisor 會停止等待並依有限
     /// drain deadline 強制終止 worker process，確保 WCF、handle 與記憶體有最終 cleanup owner。
+    /// 每次迴圈只暫時保留目前 EntityCollection；完成十欄投影後，跨迴圈保存的只有 paging cookie 與
+    /// 有上限的 WorkerValue pages，不會讓 SDK Entity graph 隨 request 或 worker lifetime 累積。
     /// </summary>
     /// <param name="client">本 worker generation 唯一擁有且依序使用的 CE 9.1 SDK client。</param>
     /// <param name="request">Package01 typed request；optional contactName 驗證後不進入 CRM query。</param>
