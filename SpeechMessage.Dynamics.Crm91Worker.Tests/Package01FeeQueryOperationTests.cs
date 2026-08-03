@@ -17,7 +17,7 @@ namespace SpeechMessage.Dynamics.Crm91Worker.Tests;
 /// </summary>
 public sealed class Package01FeeQueryOperationTests
 {
-    internal const string ContactNameSentinel = "不可進入查詢的聯絡人名稱";
+    internal const string ContactNameSentinel = "ignored-contact-name";
 
     private static readonly Guid ContactId =
         Guid.Parse("11111111-1111-1111-1111-111111111111");

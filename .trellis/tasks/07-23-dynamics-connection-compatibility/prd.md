@@ -141,12 +141,14 @@ products nor Gateway may retain a per-user CRM connection/session.
   OData text, FetchXML, credentials, filters, or profile.
 - Before migrating any workload, produce an Organization-call coverage matrix
    for every current `IOrganizationService`, `OrganizationRequest`, SOAP/SVC,
-   SDK helper, and CRM pool call site. Each row must map to an approved Web API
-   capability with v8.2/v9.1 metadata/smoke proof, a temporary legacy item with
-   owner/removal deadline, or explicit out-of-scope. Generic Execute parity is
-   not an acceptable row status. The matrix is versioned machine-readable data;
-   CI must verify its operation ID, typed parameters, encoding contexts, version
-   evidence, and audit/idempotency class against the generated operation registry.
+   SDK helper, and CRM pool call site. Each row must map to an approved typed
+   Organization Service operation implemented by the version-pinned official
+   worker, with CE 8.2/9.1 compatibility evidence, or to a temporary legacy item
+   with an owner and removal deadline. Generic `Execute` parity or an
+   `out-of-scope` placeholder is not an acceptable row status. The matrix is
+   versioned machine-readable data; CI must verify its operation ID, typed
+   parameters, encoding contexts, worker-version evidence, and
+   audit/idempotency class against the generated operation registry.
 - Define one product integration abstraction with two operator-selected host
   modes. `Gateway` is the default and uses the internal REST contract;
   `Embedded` references only a supported no-SDK host adapter and runs the same
@@ -370,15 +372,17 @@ products nor Gateway may retain a per-user CRM connection/session.
       durable coordinator/ledger/audit backend ADR, and a measurable queue
       fairness/capacity artifact.
 - [ ] The final source inventory identifies the current SDK/DLL coupling and
-      keeps the scope honest; no production source behavior is changed in this
-      planning task.
+      proves production changes remain within the reviewed Gateway/worker
+      boundary, with SDK references confined to the explicit net48 worker
+      allowlist.
 
-## Out of scope for this planning task
+## Remaining external acceptance boundary
 
-- Implementing the gateway, changing existing product behavior, or deleting
-  existing SDK dependencies.
-- Claiming 8.2 or 9.1 support without deploying and testing the selected
-  official worker against the target server.
+- Implementation, worker isolation, and legacy-route removal are active work in
+  this task. They are not deferred as planning-only deliverables.
+- A CE 8.2 or CE 9.1 support claim remains blocked until the selected official
+  worker is deployed and its approved operation matrix passes against the named
+  target organization with authoritative deployment inputs.
 - Reopening the D365APP01 IFD wizard, repeating direct Web API `WhoAmI`, or
   treating CRMWeb/ASP.NET diagnostics as a prerequisite for the official worker
   implementation. Those actions belong to a separate operations issue only if

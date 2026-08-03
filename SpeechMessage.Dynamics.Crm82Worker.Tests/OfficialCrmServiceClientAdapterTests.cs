@@ -16,8 +16,6 @@ namespace SpeechMessage.Dynamics.Crm82Worker.Tests;
 /// </summary>
 public sealed class OfficialCrmServiceClientAdapterTests
 {
-    private const string ContactNameSentinel = "不可進入查詢的聯絡人名稱";
-
     private static readonly Guid UserId =
         Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
     private static readonly Guid BusinessUnitId =
@@ -54,13 +52,13 @@ public sealed class OfficialCrmServiceClientAdapterTests
     {
         var request = Package01FeeQueryOperationTests.CreateRequest(includeContactName: true);
         Assert.True(request.Parameters.TryGetValue("contactName", out var contactName));
-        Assert.Equal(ContactNameSentinel, contactName!.Scalar);
+        Assert.Equal(Package01FeeQueryOperationTests.ContactNameSentinel, contactName!.Scalar);
 
         var client = CreateReadyClient();
         client.RetrieveMultipleHandler = query =>
         {
             Assert.DoesNotContain(
-                ContactNameSentinel,
+                Package01FeeQueryOperationTests.ContactNameSentinel,
                 query.Criteria.Conditions.SelectMany(condition => condition.Values)
                     .OfType<string>());
             Assert.Empty(query.LinkEntities);

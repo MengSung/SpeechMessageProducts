@@ -17,6 +17,8 @@ namespace SpeechMessage.Dynamics.Crm82Worker.Tests;
 /// </summary>
 public sealed class Package01FeeQueryOperationTests
 {
+    internal const string ContactNameSentinel = "ignored-contact-name";
+
     private static readonly Guid ContactId =
         Guid.Parse("11111111-1111-1111-1111-111111111111");
     private static readonly DateTimeOffset StartDate =
@@ -31,6 +33,10 @@ public sealed class Package01FeeQueryOperationTests
     [Fact]
     public void Builds_the_exact_server_owned_query_and_discards_contact_name()
     {
+        var request = CreateRequest(includeContactName: true);
+        Assert.True(request.Parameters.TryGetValue("contactName", out var contactName));
+        Assert.Equal(ContactNameSentinel, contactName!.Scalar);
+
         var client = new FakeCrm82SdkClient();
         client.RetrieveMultipleHandler = query =>
         {
@@ -92,15 +98,14 @@ public sealed class Package01FeeQueryOperationTests
             Assert.Null(query.PageInfo.PagingCookie);
             Assert.False(query.PageInfo.ReturnTotalRecordCount);
             Assert.DoesNotContain(
-                "不可進入查詢的聯絡人名稱",
+                ContactNameSentinel,
                 query.Criteria.Conditions.SelectMany(condition => condition.Values)
                     .OfType<string>());
+            Assert.Empty(query.LinkEntities);
             return CreatePage(Array.Empty<Entity>());
         };
 
-        var result = Package01FeeQueryOperation.Execute(
-            client,
-            CreateRequest(includeContactName: true));
+        var result = Package01FeeQueryOperation.Execute(client, request);
 
         Assert.Equal(WorkerValueKind.Array, result.Kind);
         Assert.Single(result.Items!);
@@ -377,7 +382,7 @@ public sealed class Package01FeeQueryOperationTests
         };
         if (includeContactName)
         {
-            parameters["contactName"] = WorkerValue.FromString("不可進入查詢的聯絡人名稱");
+            parameters["contactName"] = WorkerValue.FromString(ContactNameSentinel);
         }
 
         return new WorkerRequestV1(

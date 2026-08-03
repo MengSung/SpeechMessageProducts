@@ -1085,14 +1085,24 @@ await processLifetimeOwner.DisposeSharedLegacyRuntimeAsync().ConfigureAwait(fals
 
 ### 1. Scope / Trigger
 
-This scenario applies when Visual Studio starts `SpeechMessage.Dynamics.Gateway` and ChurchReport under the `Development` environment, when a compiled Host DLL is executed directly for local verification, or when WinRM readiness/administration is attempted against the DC or Dynamics application VM. It defines the fail-closed Local Gateway configuration, durable single-machine control-plane ownership, product-to-Gateway boundary, browser smoke evidence, safe remote-administration gate, and the exact limit of what that evidence proves. It does not authorize real CE traffic or Phase 5 consumer migration.
+This scenario applies when Visual Studio starts `SpeechMessage.Dynamics.Gateway`
+or ChurchReport under the `Development` environment, or when a compiled Host DLL
+is executed directly for local verification. It defines the fail-closed Local
+Gateway configuration, durable single-machine control-plane ownership,
+product-to-Gateway boundary, and two independent runtime checks: Gateway health
+and policy verification, plus feature-disabled ChurchReport browser verification.
+It does not authorize real CE traffic or Phase 5 consumer migration.
 
 ### 2. Signatures
 
 ```text
 SpeechMessage.Dynamics.Gateway/appsettings.Development.json
   ConnectionStrings:DynamicsControlPlane
-  DynamicsGateway:Profiles[*]:ApprovedWebApiRoot
+  DynamicsProfiles:Profiles:*:WorkerKind
+  DynamicsProfiles:Profiles:*:WorkerExecutablePath
+  DynamicsProfiles:Profiles:*:WorkerExecutableSha256
+  DynamicsProfiles:Profiles:*:PackageLockId
+  DynamicsProfiles:Profiles:*:OrganizationBaseUri
   DynamicsGateway:ActiveWorkloadBindingSet = Local
   DynamicsGateway:WorkloadBindingSets:Local[*]
 
@@ -1103,7 +1113,6 @@ SpeechMessage.Dynamics.Gateway/appsettings.json
 SpeechMessageProducts.ChurchReport/appsettings.Development.json
   DynamicsAccess:ExecutionMode
   DynamicsAccess:ProfileAlias
-  DynamicsAccess:CeVersion
   DynamicsAccess:Gateway:Endpoint
   DynamicsAccess:Gateway:ApiPrefix
   DynamicsAccess:Package01FeeReadsEnabled
@@ -1118,29 +1127,26 @@ dotnet .\bin\Debug\net10.0\SpeechMessage.Dynamics.Gateway.dll --urls https://loc
 
 cd ..\SpeechMessageProducts.ChurchReport
 dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://localhost:5080
-
-# Remote administration uses DNS plus an already approved Negotiate identity.
-New-PSSession -ComputerName <approved-dns-name> -Authentication Negotiate
 ```
 
 ### 3. Contracts
 
 - Development Gateway durable coordination uses the explicitly provisioned same-Windows-user LocalDB instance and a dedicated `SpeechMessageDynamicsControlPlane` database. The connection uses integrated authentication, bounded pool size, and bounded connect timeout. Gateway startup validates the schema; it does not connect to Dynamics native SQL, auto-create the database, or fall back to in-memory coordination.
 - The checked-in Development CRM target remains deliberately non-routable. A permitted operation against it must fail in a controlled, sanitized way without falling back to Central Gateway, Embedded, Data8, another alias, or a production endpoint.
-- ChurchReport Development uses `ExecutionMode=Gateway`, `ProfileAlias=crm82`, `CeVersion=8.2`, HTTPS loopback, and API prefix `/v1`. `Package01FeeReadsEnabled=false` remains the authoritative consumer-traffic gate.
+- ChurchReport Development uses `ExecutionMode=Gateway`, `ProfileAlias=crm82`,
+  HTTPS loopback, and API prefix `/v1`. The product does not select or duplicate
+  the CE version; the deployment-owned Gateway profile selects the pinned worker.
+  `Package01FeeReadsEnabled=false` remains the authoritative consumer-traffic
+  gate.
 - Feature-disabled ChurchReport startup must not create ProductClient, HTTP handler/pool, token cache, timer, or Dynamics preflight/operation traffic. Development configuration alignment alone does not enable Package 1.
 - Local Gateway authentication uses server-established Windows Negotiate identity plus server-owned workload bindings. Client JSON and spoofable headers never select principal, workload, alias permission, or operation permission.
 - A syntactically valid authenticated Windows SID is authoritative. When it is present, authorization performs only the SID lookup; an unmapped SID fails closed and must not fall back to a matching principal name. Exact principal-name fallback is allowed only when the authenticated principal has no usable SID at all. This prevents a newly created account with the same name but a different SID from inheriting the retired account's workload permissions.
 - `DynamicsGateway:ActiveWorkloadBindingSet` is the deployment-owned selector and is mandatory. The authorizer enumerates direct children under `DynamicsGateway:WorkloadBindingSets`, resolves exactly one case-insensitive matching set, and materializes only that set. It must not concatenate the selector into a configuration path or enumerate all sets.
 - Central, Local, and Testing binding sets may coexist in the merged configuration because they are separate named subtrees. `appsettings.Development.json` changes only the selector to `Local`; therefore .NET configuration's numeric-array and nested-leaf merge behavior cannot import a Central principal or Central operation into the Local frozen authorization snapshot.
 - An empty, whitespace, wildcard, unknown, ambiguous, scalar-only, or childless active set is a startup failure before the listener, secret resolution, admission, executor, or outbound transport. There is no fallback to `Central`, the first set, the base provider, or the union of all sets.
-- The retired `Invoke-AdfsTokenProbe.ps1` is a fixed fail-closed compatibility entrypoint. It accepts no credential/token/result parameters, reads no appsettings, performs no network or file output, and directs operators to the existing Public Client authorization-code diagnostic flow.
 - Runtime verification artifacts may record HTTP status categories, test counts, readiness state, JavaScript error count, and sanitized policy outcomes. They must not persist credentials, tokens, passwords, Session identifiers, client identifiers, callback values, private VM addresses, complete AD FS/CRM endpoints, or secret-reference values.
 - Raw workload-binding arrays at one shared configuration path are forbidden. .NET configuration merges arrays and nested lists by numeric leaf key; changing index `1` to `0` can still retain base `CapabilityOperationIds:1..N`. Named sets plus one strict selector are the required replacement boundary.
 - A compiled ASP.NET Core DLL resolves `appsettings.json`, `appsettings.{Environment}.json`, content files, and relative configuration from its content root. Local verification must set the process working directory to the owning project directory or pass an explicit reviewed content root. Running the Gateway DLL from the solution root can omit its profile configuration and produce a misleading fail-closed profile-URI startup exception; do not weaken validation or edit deployment JSON to compensate for the wrong content root.
-- WinRM mutation requires an authenticated administrative owner obtained from an already approved Kerberos/Negotiate session or credential store. Every `PSSession` is removed in `finally`, credential/session variables are cleared, and pre-state plus exact rollback are captured before mutation. Basic authentication, `AllowUnencrypted=true`, broad `TrustedHosts`, repeated password attempts, and persisted `PSCredential` or remote object graphs are forbidden.
-- If the caller is not domain joined, is not elevated, has no approved credential/session, or cannot authenticate to the target, verification stops at DNS/TCP/WSMan identify probes. An existing insecure local WinRM client pre-state may be reported as a blocker, but it must not be used as an authorization path or silently changed without the required administrative owner.
-- A Claims/IFD persistence diagnostic accepts only the official `Microsoft.Crm.PowerShell` `Get-CrmSetting` cmdlet. It may temporarily load a registered snap-in only in Windows PowerShell 5.1 Desktop and removes only the snap-in it loaded in `finally`; a same-named function, alias, or another snap-in is rejected. `not-registered` or `desktop-powershell-required` means no supported Deployment shell is available, while a trusted command followed by a setting-query failure is a separate Deployment Web Service context boundary. Neither result authorizes a SQL, Registry, IIS, DNS, ADFS, credential, or remoting fallback.
 - The in-app browser must not bypass a self-signed HTTPS warning or install/trust a development certificate merely to make a smoke test green. A local CLI probe may explicitly ignore the development certificate only for bounded loopback status verification; browser evidence remains limited to pages reachable through the browser's normal trust policy. Production Gateway evidence requires a deployment-trusted certificate.
 
 ### 4. Validation & Error Matrix
@@ -1155,48 +1161,51 @@ New-PSSession -ComputerName <approved-dns-name> -Authentication Negotiate
 | Workload requests an unbound alias or unauthorized operation | Return 403 before connector/token/transport work. |
 | Authorized operation reaches the non-routable Development CRM target | Return controlled sanitized 4xx; do not fall back to any other transport or endpoint. |
 | `Package01FeeReadsEnabled=false` | ChurchReport root may run, but no Package 1 Dynamics traffic or preflight resources are created. |
-| Retired AD FS probe is invoked | Fail immediately with fixed guidance; allocate no network, file, timer, background, credential, or token resource. |
 | `ActiveWorkloadBindingSet` is missing, blank, contains wildcard text, names no direct child set, names a scalar/empty set, or is otherwise ambiguous | Host startup fails closed; do not start the listener or fall back to another set. |
 | A Central principal authenticates against a Development Host whose selector is `Local` | Return 403 `unmapped-principal`; do not resolve an alias, operation, secret, admission permit, executor request, or outbound connection. |
 | A compiled Gateway/ChurchReport DLL is started from the solution root without an explicit content root | Startup may fail closed because project appsettings are not loaded. Restart from the owning project directory; do not relax profile validation or copy secrets/configuration into the solution root. |
-| WinRM listener responds but no approved authenticated administrative identity is available | Perform only DNS/TCP/WSMan identify probes, remove any temporary session in `finally`, and report the remote mutation gate as blocked. Do not attempt passwords, Basic, unencrypted transport, or `TrustedHosts=*`. |
-| Local WinRM client already has Basic or unencrypted transport enabled | Treat it as pre-existing insecure state. Do not use it for the VM operation; hardening requires an elevated, separately owned change with rollback. |
 | The browser rejects the local Gateway development certificate | Do not bypass the security interstitial or mutate trust. Preserve CLI HTTPS status evidence and require a trusted certificate for full browser proof. |
 
 ### 5. Good / Base / Bad Cases
 
 - Good: Gateway `/health` and durable `/ready` return 200, anonymous `/v1` returns 401, the current Windows workload catalog is authorized, wrong alias and unauthorized operation return 403, and the sole allowed operation fails against the non-routable target with a sanitized controlled response.
-- Good: ChurchReport and Local Gateway run concurrently; the ChurchReport login page reaches `readyState=complete`, JavaScript error count is zero, and both processes stop with their listeners released.
+- Good: with `Package01FeeReadsEnabled=false`, ChurchReport starts alone; its login
+  page reaches `readyState=complete` with zero JavaScript errors, creates no
+  `/v1` request, Gateway/Worker process, or listener on 7244/57244, and releases
+  its own 5080 listener on shutdown.
 - Good: Base and Development JSON both remain loaded, but `ActiveWorkloadBindingSet=Local` causes the authorizer to materialize only `WorkloadBindingSets:Local`; a Central principal and every Central-only data operation remain unavailable.
 - Good: a principal presents SID-B and name X while only SID-A/name X was previously authorized; SID-B is unmapped, so the request receives 403 and cannot inherit the old workload by name.
 - Base: Central, Local, and Testing sets coexist as deployment data, while exactly one selector is active for one Host generation. Changing the selector requires configuration replacement plus Host restart/replace-and-drain; it is never a request-time switch.
 - Base: a legacy authenticated principal has no usable SID claim but has an exact configured principal name; name fallback remains available without wildcard, prefix, substring, or caller-header matching.
-- Base: read-only AD FS administration proves exactly one Public Client and callback plus approved description markers without printing their actual values.
 - Bad: replace the Development CRM target with a routable production URL merely to make a smoke test green.
 - Bad: set `Package01FeeReadsEnabled=true` to force preflight evidence before real CE 8.2/9.1 and rollback gates exist.
 - Bad: define Central and Local entries under one `WorkloadBindings` array and assume a later provider replaces the collection; numeric leaf merging can preserve both entire bindings and nested operation entries.
 - Bad: a valid but unmapped SID is allowed to continue into principal-name lookup. Account-name reuse can then grant a different Windows security authority the old account's alias, operation, capacity, and audit identity.
-- Good: direct DLL verification runs from each project's directory, the Gateway and ChurchReport both reach health, and cleanup stops only listener owners whose command lines match the expected DLLs.
-- Good: WinRM readiness proves DNS, TCP 5985, and WSMan identify without printing target addresses; when authentication is unavailable, no remote mutation or password attempt occurs and the final `PSSession` count is zero.
+- Good: direct DLL verification runs each host from its own project directory;
+  Gateway and ChurchReport checks are separate, and cleanup stops only the
+  listener owner whose command line matches the expected DLL.
 - Base: the development Gateway certificate is accepted by CLI loopback verification only; the in-app browser validates ChurchReport and the authorization redirect while Gateway browser proof remains gated on certificate trust.
 - Bad: run the Gateway DLL from the solution root, observe a missing-profile exception, and modify profile JSON or weaken fail-closed validation instead of correcting the content root.
-- Bad: use a pre-existing Basic/unencrypted WinRM client or broaden TrustedHosts to work around missing administrative authentication.
 
 ### 6. Tests Required
 
-- Configuration precedence tests assert the LocalDB instance, dedicated control-plane database, integrated authentication, bounded pool, bounded timeout, non-routable CRM target, ChurchReport Local Gateway alias/version/prefix, and Package 1 false state.
+- Configuration precedence tests assert the LocalDB instance, dedicated control-plane database, integrated authentication, bounded pool, bounded timeout, non-routable CRM target, deployment-owned worker version, ChurchReport Local Gateway alias/prefix, absence of a product-side CE version selector, and Package 1 false state.
 - Load real base plus Development JSON, authenticate with the Central binding principal, and assert Local authorization returns `unmapped-principal` with zero executor/outbound work. This regression must fail against a shared `WorkloadBindings` array implementation.
 - Authenticate with a syntactically valid but unmapped SID plus a principal name that otherwise matches an authorized binding. Assert 403, `unmapped-principal`, zero executor calls, and no materialized execution request. Separately assert a principal with no usable SID still succeeds through the exact principal-name compatibility binding.
 - Assert a missing selector, leading/trailing whitespace, `*` and `?` wildcard text, an unknown name, a delimiter-bearing value such as `Local:0`, scalar-only, scalar-plus-children, and a true childless JSON set all fail Host startup. Assert exact set selection is case-insensitive. Testing factories must select an explicit nonempty `Testing` set rather than inheriting `Central`.
 - Execute the opt-in live LocalDB durable coordinator contract against the explicitly provisioned database and assert lease/fencing behavior without auto-provisioning.
 - Start the real Development Gateway and verify `/health`, `/ready`, 401 anonymous, authorized workload catalog, 403 wrong alias, 403 unauthorized operation, and controlled no-fallback connector failure.
-- Start ChurchReport and Gateway together, use a browser to assert the login page completes with zero JavaScript errors, then stop both hosts and assert both listeners are released.
-- Verify the AD FS Public Client/callback/description markers read-only without writing or printing sensitive values.
-- Parse the retired PowerShell entrypoint, assert it has no secret/result parameters or network/file code path, and verify it fails closed.
+- Start ChurchReport alone with `Package01FeeReadsEnabled=false`; use a browser to
+  assert the login page completes with zero JavaScript errors, no `/v1` request
+  or login POST occurs, no Gateway/Worker/TestHost process or 7244/57244 listener
+  exists, then stop only the captured ChurchReport PID and assert port 5080 and
+  all captured processes return to baseline.
 - Run Dynamics tests, ChurchReport tests, Release solution build, changed-file format, strict UTF-8/no-BOM/CRLF/final-CRLF, `git diff --check`, and added-line sensitive-literal scans.
-- Start each compiled host from its project content root and assert the 200/200/401/200/403/403/controlled-400 matrix, ChurchReport `readyState=complete`, zero JavaScript errors, and listener count zero after cleanup.
+- Start each compiled host independently from its project content root. Assert
+  the Gateway 200/200/401/200/403/403/controlled-400 matrix in the Gateway lane,
+  and ChurchReport `readyState=complete`, zero JavaScript errors, zero Dynamics
+  traffic/processes, and listener count zero after cleanup in the disabled lane.
 - Add a negative runtime check that starts the Gateway DLL from the wrong content root and proves it fails closed without opening a listener; the correction is the process content root, not a configuration or validation change.
-- For WinRM work, assert DNS/TCP/WSMan identify results are sanitized, authenticated mutation is skipped when no approved admin identity exists, no password retry occurs, and the final owned `PSSession` count is zero.
 
 ### 7. Wrong vs Correct
 
@@ -1219,7 +1228,6 @@ This couples deployment readiness to consumer migration and can move multiple Ch
   "DynamicsAccess": {
     "ExecutionMode": "Gateway",
     "ProfileAlias": "crm82",
-    "CeVersion": "8.2",
     "Gateway": {
       "Endpoint": "https://localhost:7244",
       "ApiPrefix": "/v1"

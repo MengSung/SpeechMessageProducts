@@ -397,8 +397,10 @@ Completed local execution checkpoint on 2026-08-02:
 
 Remaining ordered work:
 
-1. Complete the ChurchReport feature-disabled browser verification and prove no
-   `/v1`/Gateway/Worker traffic or retained listener/process remains.
+1. Start ChurchReport alone with `Package01FeeReadsEnabled=false`, complete the
+   feature-disabled browser verification, and prove no `/v1` request,
+   Gateway/Worker/TestHost process, 7244/57244 listener, login POST, or retained
+   listener/process remains after stopping only the captured ChurchReport PID.
 2. Create a clean/versioned external deployment generation only after the
    authoritative profile inputs and final stable Gateway/worker paths exist.
    Publish workers first, publish Gateway second, then generate the overlay into
