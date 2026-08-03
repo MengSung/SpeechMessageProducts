@@ -1073,8 +1073,15 @@ Assert-ExactJsonInteger `
     -Context 'Worker profile input.schemaVersion'
 
 $inputProfiles = @($profileInput.profiles)
-if ($inputProfiles.Count -ne 2) {
-    throw 'Worker profile input must contain exactly two profiles.'
+# Phase 4C 的相容性證據以「每一個已核准 profile」為單位，而不是要求兩個 CE
+# 目標必須同時具備可部署的組織身分與認證資料。發布 manifest 仍必須完整驗證兩個
+# 官方 Worker，避免部署輸入藉由省略 artifact 而放寬 package-lock/hash 邊界；然而
+# profile 輸入可安全地只選擇其中一個已驗證 Worker。這可讓 CE 8.2 或 CE 9.1
+# 分別完成相容性驗證，同時不猜測另一目標的組織、credential reference 或 home realm。
+# 未選取 Worker 不會取得 XML、overlay 節點或任何跨 profile 的可變狀態，因此不會
+# 產生 Session、credential 或資源所有權外洩。
+if ($inputProfiles.Count -lt 1 -or $inputProfiles.Count -gt 2) {
+    throw 'Worker profile input must contain one or two profiles.'
 }
 
 $profileAliases = [Collections.Generic.HashSet[string]]::new(
@@ -1257,12 +1264,6 @@ foreach ($profile in $inputProfiles) {
         ExecutableSha256 = $validatedWorker.ExecutableSha256
         WorkerProfilePath = $workerProfilePath
     })
-}
-
-foreach ($approvedKind in $approvedWorkers.Keys) {
-    if (-not $profileWorkerKinds.Contains($approvedKind)) {
-        throw 'Worker profile input is missing an approved worker profile.'
-    }
 }
 
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {

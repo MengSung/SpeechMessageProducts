@@ -410,6 +410,25 @@ try {
             [Text.UTF8Encoding]::new($false))
     }
 
+    # profile 可獨立驗證不代表輸入集合可為空或無界；空集合會失去任何可驗證的
+    # Worker owner，超過兩個則可能嘗試重複寫入同一 executable 旁的 XML。兩者都必須
+    # 在建立 temporary output、overlay 或接觸既有 artifact 前 fail closed。
+    Assert-FailureBeforeWrites -Name 'profile-empty-list' -Mutate {
+        param($fixture)
+        $fixture.Profiles.profiles = @()
+        Write-Utf8Json -Path $fixture.ProfileInputPath -Value $fixture.Profiles
+    }
+
+    Assert-FailureBeforeWrites -Name 'profile-excess-count' -Mutate {
+        param($fixture)
+        $fixture.Profiles.profiles = @(
+            $fixture.Profiles.profiles[0],
+            $fixture.Profiles.profiles[1],
+            $fixture.Profiles.profiles[0]
+        )
+        Write-Utf8Json -Path $fixture.ProfileInputPath -Value $fixture.Profiles
+    }
+
     $existingOutputFixture = New-DeploymentFixture -Name 'existing-output-refused'
     [IO.File]::WriteAllText(
         $existingOutputFixture.OverlayPath,
@@ -602,6 +621,100 @@ try {
     )) -Message 'Generated deployment output contains a secret-shaped field or value.'
     Assert-True -Condition (Test-Path -LiteralPath $fixture.ProtectedMarker) `
         -Message 'Provisioning removed an unrelated output marker.'
+
+    # Phase 4C 允許 CE 8.2 或 CE 9.1 各自完成部署與相容性驗證；因此缺少另一版的權威資料時，
+    # 不能為了湊成雙 profile 而猜測組織、認證或 credential reference。此案例只保留 CE 8.2 的
+    # 已核准非機密輸入，驗證產生器只建立該 worker 的 XML 與同樣單 profile 的 Gateway overlay，
+    # 既不觸碰未選取 CE 9.1 目錄，也不把兩版本的設定、Session 或資源所有權混在一起。
+    $singleProfileFixture = New-DeploymentFixture -Name 'valid-single-ce82-profile-deployment'
+    $singleProfileFixture.Profiles.profiles = @(
+        $singleProfileFixture.Profiles.profiles[0]
+    )
+    Write-Utf8Json `
+        -Path $singleProfileFixture.ProfileInputPath `
+        -Value $singleProfileFixture.Profiles
+    Assert-NoDeploymentWrites -Fixture $singleProfileFixture
+    $singleProfileResult = Invoke-ProvisioningScript -Fixture $singleProfileFixture
+    Assert-True -Condition ($singleProfileResult.ExitCode -eq 0) `
+        -Message (
+            'A valid single CE 8.2 deployment profile was rejected. ExitCode=' +
+            $singleProfileResult.ExitCode + ' Output=' + $singleProfileResult.Text
+        )
+
+    $singleProfileResultObject = $singleProfileResult.Text |
+        ConvertFrom-Json -ErrorAction Stop
+    Assert-True -Condition (@($singleProfileResultObject.workers).Count -eq 1) `
+        -Message 'A single-profile deployment result must expose exactly one worker.'
+    Assert-True -Condition (
+        $singleProfileResultObject.workers[0].workerKind -eq 'OfficialCrm82Worker'
+    ) -Message 'A single CE 8.2 deployment result selected an unexpected worker.'
+    Assert-True -Condition (Test-Path -LiteralPath $singleProfileFixture.Crm82ProfilePath) `
+        -Message 'A valid single CE 8.2 deployment did not create its worker profile.'
+    Assert-True -Condition (-not (
+        Test-Path -LiteralPath $singleProfileFixture.Crm91ProfilePath
+    )) -Message 'A single CE 8.2 deployment created an unselected CE 9.1 worker profile.'
+    Assert-True -Condition (Test-Path -LiteralPath $singleProfileFixture.OverlayPath) `
+        -Message 'A valid single CE 8.2 deployment did not create the Gateway overlay.'
+    Assert-StrictTextFile -Path $singleProfileFixture.Crm82ProfilePath
+    Assert-StrictTextFile -Path $singleProfileFixture.OverlayPath
+
+    $singleProfileOverlay = Get-Content `
+        -LiteralPath $singleProfileFixture.OverlayPath `
+        -Raw `
+        -Encoding utf8 |
+        ConvertFrom-Json -ErrorAction Stop
+    Assert-True -Condition ($null -ne $singleProfileOverlay.DynamicsProfiles.Profiles.crm82) `
+        -Message 'A single CE 8.2 Gateway overlay omitted the selected profile.'
+    Assert-True -Condition ($null -eq (
+        $singleProfileOverlay.DynamicsProfiles.Profiles.PSObject.Properties['crm91']
+    )) `
+        -Message 'A single CE 8.2 Gateway overlay invented an unselected CE 9.1 profile.'
+    Assert-True -Condition (Test-Path -LiteralPath $singleProfileFixture.ProtectedMarker) `
+        -Message 'Single-profile provisioning removed an unrelated test-owned marker.'
+
+    # CE 9.1 的單 profile 路徑另行保護 IFD／Windows credential reference 的嚴格聯集。
+    # 這個 fixture 只驗證輸出的數量與選取範圍，不讀取或輸出 credential reference、home realm
+    # 或 CRM 回應；每個 temporary fixture 仍由最外層 finally 唯一擁有並刪除，避免測試程序
+    # 殘留 profile、檔案 handle、Session 或跨版本狀態。
+    $singleCrm91Fixture = New-DeploymentFixture -Name 'valid-single-ce91-profile-deployment'
+    $singleCrm91Fixture.Profiles.profiles = @(
+        $singleCrm91Fixture.Profiles.profiles[1]
+    )
+    Write-Utf8Json `
+        -Path $singleCrm91Fixture.ProfileInputPath `
+        -Value $singleCrm91Fixture.Profiles
+    Assert-NoDeploymentWrites -Fixture $singleCrm91Fixture
+    $singleCrm91Result = Invoke-ProvisioningScript -Fixture $singleCrm91Fixture
+    Assert-True -Condition ($singleCrm91Result.ExitCode -eq 0) `
+        -Message 'A valid single CE 9.1 deployment profile was rejected.'
+    $singleCrm91ResultObject = $singleCrm91Result.Text |
+        ConvertFrom-Json -ErrorAction Stop
+    Assert-True -Condition (@($singleCrm91ResultObject.workers).Count -eq 1) `
+        -Message 'A single CE 9.1 deployment result must expose exactly one worker.'
+    Assert-True -Condition (
+        $singleCrm91ResultObject.workers[0].workerKind -eq 'OfficialCrm91Worker'
+    ) -Message 'A single CE 9.1 deployment result selected an unexpected worker.'
+    Assert-True -Condition (-not (
+        Test-Path -LiteralPath $singleCrm91Fixture.Crm82ProfilePath
+    )) -Message 'A single CE 9.1 deployment created an unselected CE 8.2 worker profile.'
+    Assert-True -Condition (Test-Path -LiteralPath $singleCrm91Fixture.Crm91ProfilePath) `
+        -Message 'A valid single CE 9.1 deployment did not create its worker profile.'
+    Assert-StrictTextFile -Path $singleCrm91Fixture.Crm91ProfilePath
+    $singleCrm91Overlay = Get-Content `
+        -LiteralPath $singleCrm91Fixture.OverlayPath `
+        -Raw `
+        -Encoding utf8 |
+        ConvertFrom-Json -ErrorAction Stop
+    Assert-True -Condition ($null -eq (
+        $singleCrm91Overlay.DynamicsProfiles.Profiles.PSObject.Properties['crm82']
+    )) `
+        -Message 'A single CE 9.1 Gateway overlay invented an unselected CE 8.2 profile.'
+    Assert-True -Condition ($null -ne (
+        $singleCrm91Overlay.DynamicsProfiles.Profiles.PSObject.Properties['crm91']
+    )) `
+        -Message 'A single CE 9.1 Gateway overlay omitted the selected profile.'
+    Assert-True -Condition (Test-Path -LiteralPath $singleCrm91Fixture.ProtectedMarker) `
+        -Message 'Single CE 9.1 provisioning removed an unrelated test-owned marker.'
 
     $sourceHashAfter = (
         Get-FileHash -LiteralPath $sourceGatewaySettings -Algorithm SHA256
