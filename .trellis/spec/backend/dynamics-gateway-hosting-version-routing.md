@@ -18,9 +18,12 @@ universal-no-SDK transport statement in this file.
   replacement inputs pending removal.
 - The D365APP01 CRMWeb/IFD HTTP 500, Deployment PowerShell channel, ASP.NET 1309
   events, IFD wizard, and direct Web API `WhoAmI` are not Gateway gates.
-- Real-server validation means deploying the actual website, Gateway, and
+- Real-server validation means executing the actual website, Gateway, and
   selected official worker on the intended Windows host, then executing the
-  approved Organization operation matrix against CE 8.2 or CE 9.1.
+  approved Organization operation matrix against CE 8.2 or CE 9.1. That host
+  may be a Visual Studio Local Gateway on the developer workstation; a separate
+  Central/IIS deployment is not a prerequisite. Local hosting must still use
+  the real pinned Worker and Organization Service rather than a fake transport.
 - A failed worker request never changes transport, CE version, profile,
   organization, or credential. No automatic Web API or Data8 fallback exists.
 - Worker IPC is bounded, length-prefixed, versioned, nonce-bound, and typed. It
@@ -486,12 +489,12 @@ publish manifest and the otherwise checked-in Gateway profile/runtime limits.
 .\docs\scripts\New-DynamicsOfficialWorkerDeployment.ps1 `
   -ManifestPath '<final-worker-root>\official-worker-manifest.json' `
   -ProfileInputPath '<approved-deployment-profile-input.json>' `
-  -OutputDirectory '<final-gateway-publish-directory>' `
+  -OutputDirectory '<clean-gateway-host-directory>' `
   -Json
 ```
 
 ```text
-<final-gateway-publish-directory>/
+<clean-gateway-host-directory>/
   SpeechMessage.Dynamics.Gateway.exe (or owning Gateway host executable)
   dynamics-official-workers.gateway.json
 
@@ -511,10 +514,11 @@ Program startup order:
   authority. Re-publishing may produce a different executable hash, so it must
   produce a new manifest and repeat independent artifact-to-manifest comparison;
   an earlier report's hash must never be copied into a later overlay.
-- `OutputDirectory` is the final Gateway publish/executable directory. The
+- `OutputDirectory` is the clean Gateway publish/executable directory for the
+  selected Local or Central host generation. The
   generator writes the overlay there and writes each `worker-profile.xml`
   beside its already-published worker executable.
-- Use a clean/versioned final directory. The generator refuses to overwrite an
+- Use a clean/versioned host directory. The generator refuses to overwrite an
   existing overlay or `worker-profile.xml`; operators must not delete or merge
   files in place to bypass this fail-closed generation boundary.
 - Never generate an environment-specific overlay inside
@@ -575,7 +579,7 @@ Program startup order:
 
 - Good: workers are published to final immutable paths, manifest hashes are
   independently verified, the generator writes profiles beside those workers
-  and the overlay beside the final Gateway executable, then one restart loads
+  and the overlay beside the selected Gateway executable, then one restart loads
   one fixed snapshot.
 - Base: no overlay exists in a developer/test output directory. Gateway uses its
   ordinary configuration and no watcher/provider is added by the helper.
@@ -621,11 +625,11 @@ Program startup order:
 
 ```powershell
 # Workers already occupy their final paths. The profile input is separately
-# approved, and the clean output is the final Gateway publish directory.
+# approved, and the clean output is the selected Local or Central Gateway host directory.
 .\docs\scripts\New-DynamicsOfficialWorkerDeployment.ps1 `
   -ManifestPath '<final-worker-root>\official-worker-manifest.json' `
   -ProfileInputPath '<approved-profile-input.json>' `
-  -OutputDirectory '<clean-final-gateway-publish-directory>'
+  -OutputDirectory '<clean-gateway-host-directory>'
 ```
 
 The correct path preserves adjacency, precedence, immutable startup semantics,
@@ -1099,10 +1103,13 @@ await processLifetimeOwner.DisposeSharedLegacyRuntimeAsync().ConfigureAwait(fals
 This scenario applies when Visual Studio starts `SpeechMessage.Dynamics.Gateway`
 or ChurchReport under the `Development` environment, or when a compiled Host DLL
 is executed directly for local verification. It defines the fail-closed Local
-Gateway configuration, durable single-machine control-plane ownership,
-product-to-Gateway boundary, and two independent runtime checks: Gateway health
-and policy verification, plus feature-disabled ChurchReport browser verification.
-It does not authorize real CE traffic or Phase 5 consumer migration.
+  Gateway configuration, durable single-machine control-plane ownership,
+  product-to-Gateway boundary, and two independent runtime checks: Gateway health
+  and policy verification, plus feature-disabled ChurchReport browser verification.
+  It also defines the permitted Phase 4C Local Gateway lane: with an approved
+  non-production or explicitly approved CE profile, Visual Studio may run the
+  exact pinned Worker against the real Organization Service. It does not enable
+  Phase 5 consumer traffic or permit invented profile/credential data.
 
 ### 2. Signatures
 
@@ -1144,6 +1151,13 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 
 - Development Gateway durable coordination uses the explicitly provisioned same-Windows-user LocalDB instance and a dedicated `SpeechMessageDynamicsControlPlane` database. The connection uses integrated authentication, bounded pool size, and bounded connect timeout. Gateway startup validates the schema; it does not connect to Dynamics native SQL, auto-create the database, or fall back to in-memory coordination.
 - The checked-in Development CRM target remains deliberately non-routable. A permitted operation against it must fail in a controlled, sanitized way without falling back to Central Gateway, Embedded, Data8, another alias, or a production endpoint.
+- A real CE Phase 4C run replaces that non-routable target only through one
+  approved Local Gateway overlay/profile generation. Its paths need to remain
+  stable for that generation, but they do not need to be a final Central/IIS
+  deployment directory. The Local Gateway verifies the current manifest hash,
+  package lock, Worker kind, organization identity, and secret reference before
+  the Worker starts; the overlay and every Worker profile remain outside product
+  JSON and are removed or retained only by their explicit local deployment owner.
 - ChurchReport Development uses `ExecutionMode=Gateway`, `ProfileAlias=crm82`,
   HTTPS loopback, and API prefix `/v1`. The product does not select or duplicate
   the CE version; the deployment-owned Gateway profile selects the pinned worker.
@@ -1171,6 +1185,8 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 | Authenticated principal has no usable SID and its exact principal name has a binding | Permit the existing name-compatibility path, subject to the same alias and operation allowlists. |
 | Workload requests an unbound alias or unauthorized operation | Return 403 before connector/token/transport work. |
 | Authorized operation reaches the non-routable Development CRM target | Return controlled sanitized 4xx; do not fall back to any other transport or endpoint. |
+| A Visual Studio Local Gateway Phase 4C profile is approved and its manifest/overlay/Worker chain is valid | Start only the selected pinned Worker and run the fixed approved operation matrix against that exact CE target. |
+| A Visual Studio Local Gateway Phase 4C profile is absent, malformed, hash-drifted, unapproved, or owns unstable paths | Remain NotReady; do not substitute a fake Worker, Web API, Data8, Central profile, or guessed identity. |
 | `Package01FeeReadsEnabled=false` | ChurchReport root may run, but no Package 1 Dynamics traffic or preflight resources are created. |
 | `ActiveWorkloadBindingSet` is missing, blank, contains wildcard text, names no direct child set, names a scalar/empty set, or is otherwise ambiguous | Host startup fails closed; do not start the listener or fall back to another set. |
 | A Central principal authenticates against a Development Host whose selector is `Local` | Return 403 `unmapped-principal`; do not resolve an alias, operation, secret, admission permit, executor request, or outbound connection. |
@@ -1188,7 +1204,7 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 - Good: a principal presents SID-B and name X while only SID-A/name X was previously authorized; SID-B is unmapped, so the request receives 403 and cannot inherit the old workload by name.
 - Base: Central, Local, and Testing sets coexist as deployment data, while exactly one selector is active for one Host generation. Changing the selector requires configuration replacement plus Host restart/replace-and-drain; it is never a request-time switch.
 - Base: a legacy authenticated principal has no usable SID claim but has an exact configured principal name; name fallback remains available without wildcard, prefix, substring, or caller-header matching.
-- Bad: replace the Development CRM target with a routable production URL merely to make a smoke test green.
+- Bad: replace the checked-in Development CRM target with a routable URL merely to make a smoke test green. Use one approved Local Gateway overlay instead, with the same immutable profile rules as a Central host.
 - Bad: set `Package01FeeReadsEnabled=true` to force preflight evidence before real CE 8.2/9.1 and rollback gates exist.
 - Bad: define Central and Local entries under one `WorkloadBindings` array and assume a later provider replaces the collection; numeric leaf merging can preserve both entire bindings and nested operation entries.
 - Bad: a valid but unmapped SID is allowed to continue into principal-name lookup. Account-name reuse can then grant a different Windows security authority the old account's alias, operation, capacity, and audit identity.
@@ -1206,6 +1222,12 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 - Assert a missing selector, leading/trailing whitespace, `*` and `?` wildcard text, an unknown name, a delimiter-bearing value such as `Local:0`, scalar-only, scalar-plus-children, and a true childless JSON set all fail Host startup. Assert exact set selection is case-insensitive. Testing factories must select an explicit nonempty `Testing` set rather than inheriting `Central`.
 - Execute the opt-in live LocalDB durable coordinator contract against the explicitly provisioned database and assert lease/fencing behavior without auto-provisioning.
 - Start the real Development Gateway and verify `/health`, `/ready`, 401 anonymous, authorized workload catalog, 403 wrong alias, 403 unauthorized operation, and controlled no-fallback connector failure.
+- With an approved Local Gateway Phase 4C profile, start the Gateway from the
+  Visual Studio/project-owned local host, then prove the website -> localhost
+  Gateway -> pinned Worker -> CE identity/read/paging/recycle matrix. Assert
+  that the worker/pipe/process/resource counters return to baseline after
+  controlled shutdown. This is real CE compatibility evidence; it does not
+  require a Central or IIS deployment.
 - Start ChurchReport alone with `Package01FeeReadsEnabled=false`; use a browser to
   assert the login page completes with zero JavaScript errors, no `/v1` request
   or login POST occurs, no Gateway/Worker/TestHost process or 7244/57244 listener

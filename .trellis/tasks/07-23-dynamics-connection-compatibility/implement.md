@@ -48,8 +48,10 @@ credential reference, token, cookie and CRM body are excluded.
 
 The matching regression test has passed. The remaining Phase 4C work is not a
 script failure: an operator must still supply authoritative non-production or
-approved CE 8.2/9.1 profile identity inputs and final stable published paths,
-then run the complete website -> Gateway -> official worker operation matrix.
+approved CE 8.2/9.1 profile identity inputs and stable paths for one Local
+Gateway generation, then run the complete website -> localhost Gateway ->
+official worker operation matrix from Visual Studio. A separate Central/IIS
+deployment is not required for this compatibility lane.
 
 ## Preserved completed work
 
@@ -261,10 +263,12 @@ Write the failing tests before worker implementation.
    throughput improves without correctness, isolation, p95/p99, GC, handle, or
    memory regression.
 
-### 4C. Deployed CE 8.2/9.1 compatibility gates
+### 4C. Locally hosted or deployed CE 8.2/9.1 compatibility gates
 
-Deploy the actual website, Local or Central Gateway, and official workers on the
-intended Windows host. For each target:
+Run the actual website, Local or Central Gateway, and official workers on the
+intended Windows host. A Visual Studio Local Gateway on the developer
+workstation is a valid host; it must use the exact pinned worker and real
+Organization Service, not a fake transport. For each target:
 
 1. Start the exact pinned worker and verify sanitized Ready/identity evidence.
 2. Execute the approved identity operation through the website/Gateway/worker
@@ -280,7 +284,7 @@ intended Windows host. For each target:
    timing, and resource evidence. Do not record credentials, tokens, CRM bodies,
    connection strings, or raw server diagnostics.
 
-This deployed compatibility test is not a D365APP01 administration channel. Do
+This locally hosted or deployed compatibility test is not a D365APP01 administration channel. Do
 not use Deployment PowerShell, reopen the IFD wizard, repeat Web API `WhoAmI`,
 or inspect ASP.NET 1309 as a prerequisite. If the official worker produces
 specific evidence of a server configuration defect, record a separate
@@ -351,7 +355,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\eng\Verify-DynamicsWorkerBoundary.ps1
 ```
 
-The deployed compatibility harness must select an explicit non-production or
+The Local Gateway compatibility harness must select an explicit non-production or
 approved target profile and fail before worker start if required secret
 references, package locks, executable hashes, operation allowlists, or cleanup
 ownership are absent.
@@ -420,7 +424,7 @@ Completed local execution checkpoint, refreshed on 2026-08-03:
 4. A real deployment overlay was deliberately not generated. The generator
    requires the authoritative CE 8.2/9.1 Organization GUIDs, organization
    unique names, authentication/identity modes, credential-reference details,
-   home realm where applicable, and final stable installation paths. These
+   home realm where applicable, and stable Local Gateway host paths. These
    values must not be guessed merely to replace checked-in placeholders.
 5. The feature-disabled ChurchReport local boundary is verified with the
    intended project content root: the browser reached the unsubmitted login
@@ -437,12 +441,13 @@ Completed local execution checkpoint, refreshed on 2026-08-03:
 
 Remaining ordered work:
 
-1. Create a clean/versioned external deployment generation only after the
-   authoritative profile inputs and final stable Gateway/worker paths exist.
-   Publish workers first, publish Gateway second, then generate the overlay into
-   the final Gateway directory without overwrite or relocation.
-2. Deploy and validate the real website -> Gateway -> official worker -> CE 8.2
-   and CE 9.1 compatibility matrices, including identity, representative reads,
+1. Create a clean/versioned Local Gateway generation in a Visual Studio-owned
+   local host directory only after the authoritative profile inputs and stable
+   Local Gateway/worker paths exist. Publish workers first, start the Local
+   Gateway second, then generate the overlay into that one local Gateway
+   directory without overwrite or relocation.
+2. Start and validate the real website -> localhost Gateway -> official worker
+   -> CE 8.2 and CE 9.1 compatibility matrices, including identity, representative reads,
    test-owned writes, recycle, isolation, rollback, and resource-baseline
    evidence. Only this work can close Phase 4C for each exact profile.
 

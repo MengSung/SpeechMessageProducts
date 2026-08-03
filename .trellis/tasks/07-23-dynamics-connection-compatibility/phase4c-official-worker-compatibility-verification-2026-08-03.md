@@ -32,8 +32,10 @@ direct Web API、D365APP01 管理通道、IFD 精靈、AD FS 診斷或 Data8 fal
 | --- | --- | --- |
 | Harness regression | 通過 | `Invoke-DynamicsOfficialWorkerCompatibility.Tests.ps1`：全部通過；涵蓋非 HTTPS target、duplicate JSON property、artifact tamper、worker kind/package lock drift 與無 opt-in 模式。 |
 | Worker deployment script | 通過 | `New-DynamicsOfficialWorkerDeployment.Tests.ps1`：全部通過。 |
+| Worker publication | 通過（桌面權限） | `Publish-DynamicsOfficialWorkers.ps1` 重新產出 CE 8.2／9.1 artifact；兩個 executable 均與本次新 manifest 的 SHA-256 相符，且 publish output 未含 `worker-profile.xml`。同腳本測試於受限 sandbox 子行程 publish 失敗，但在既有桌面權限重跑通過；此差異不代表產品或 manifest 合約失敗。 |
 | Worker source/project boundary | 通過 | `eng/Verify-DynamicsWorkerBoundary.ps1`：0 findings。 |
-| Dynamics Release 測試 | 通過 | 411 passed、0 failed、7 skipped；略過項目皆為需明確啟用真實 SQL 的 live tests。 |
+| SQL durable coordinator live gate | 通過 | 2026-08-03 以專用 `SpeechMessageDynamicsControlPlane` LocalDB 執行 `FullyQualifiedName~Live_sql_`：8 passed、0 failed、0 skipped。測試後 process-level selector 已清除，跨行程 test worker 為 0。 |
+| Dynamics Release 測試 | 通過 | 2026-08-03 以受控 LocalDB selector 重跑完整套件：418 passed、0 failed、0 skipped。selector 僅存在於測試程序，finally 已清除。 |
 | CE 8.2 worker Release 測試 | 通過 | 15 passed、0 failed。 |
 | CE 9.1 worker Release 測試 | 通過 | 15 passed、0 failed。 |
 | Release solution build | 通過 | `SpeechMessageProducts.sln`：0 warnings、0 errors。建置需在既有使用者權限下讀取 Windows SDK discovery directory。 |
