@@ -3,7 +3,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <!-- 專案已明確鎖定 net48 reference-assembly 套件；禁止 SDK 再隱式加入泛型 meta package，
-         否則 packages.lock.json 會出現不一致並使 Visual Studio 進入 NuGet restore loop。 -->
+         否則 packages.lock.json 會出現不一致並使 Visual Studio 進入 NuGet restore loop。
+         此設定只影響 restore graph，不建立 runtime assembly loader、watcher、timer 或 background owner；
+         CE 9.1 SDK graph 的 bounded owner 仍是單一 recyclable worker process generation。 -->
     <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>

@@ -20,6 +20,9 @@ namespace SpeechMessage.Dynamics.WorkerSupervisor;
 /// frame I/O 開始後的 timeout／cancellation 可能使 IPC 失同步，才會停止 admission 並要求 forced retirement。
 /// Worker 內的同步 CRM SDK 呼叫無法由 token 中斷，所以有限 drain deadline 到期後以 process termination 回收
 /// WCF channel、SDK static state、handle、reader graph 與 process memory；清理未確認時保留同一 owner 供重試。
+/// 一個 options instance 只描述一個 immutable generation；replace-and-drain 必須建立新 instance／executor，
+/// 舊 generation 進入 non-accepting 後由原 owner 清理，不能原地改寫 path、hash、version 或 recycle policy，
+/// 也不能讓 active／draining generation 共用 Process、Pipe、task graph 或 <c>CrmServiceClient</c>。
 /// </remarks>
 public sealed class OfficialWorkerProfileOptions
 {

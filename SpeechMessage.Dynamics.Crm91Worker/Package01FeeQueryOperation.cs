@@ -32,7 +32,7 @@ internal static class Package01FeeQueryOperation
     /// 每次迴圈只暫時保留目前 EntityCollection；完成十欄投影後，跨迴圈保存的只有 paging cookie 與
     /// 有上限的 WorkerValue pages，不會讓 SDK Entity graph 隨 request 或 worker lifetime 累積。
     /// </summary>
-    /// <param name="client">本 worker generation 唯一擁有且依序使用的 CE 9.1 SDK client。</param>
+    /// <param name="client">由 adapter 唯一擁有、此 operation 僅同步借用且不得 Dispose 的 CE 9.1 SDK client。</param>
     /// <param name="request">Package01 typed request；optional contactName 驗證後不進入 CRM query。</param>
     /// <returns>Array&lt;Page&lt;Row[10]&gt;&gt; 的完整 SDK-free WorkerValue。</returns>
     internal static WorkerValue Execute(

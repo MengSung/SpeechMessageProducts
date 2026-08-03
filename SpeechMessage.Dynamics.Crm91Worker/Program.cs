@@ -23,7 +23,9 @@ internal static class Program
     /// 建立一個受限 Pipe session。Factory 只在建構階段暫時擁有 CRM client／Credential，成功後移交
     /// adapter；<see cref="OfficialWorkerSession"/> 在 message loop 結束後 Dispose adapter，
     /// <see cref="OfficialWorkerProcessHost"/> 則以 using 唯一擁有並關閉 named-pipe stream。
-    /// <c>RunAsync</c> 的非同步工作在本方法同步等待到 terminal，不留下 fire-and-forget callback。
+    /// <c>CancellationToken.None</c> 表示 Worker 不自行建立 process-lifetime cancellation owner；正常停止由
+    /// pipe 上的有限 drain frame 驅動。<c>RunAsync</c> 的非同步工作在本方法同步等待到 terminal，
+    /// 不留下 fire-and-forget callback。
     /// 若同步 SDK 或 stream 無法在 Supervisor 的有限 drain deadline 內合作結束，Supervisor 會終止
     /// 本 worker process，作為 WCF channel、SDK static state、OS handle 與 process memory 的最終清理邊界。
     /// </summary>

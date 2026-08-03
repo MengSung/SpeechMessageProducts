@@ -32,15 +32,15 @@ internal interface ICrm91SdkClient : IDisposable
     /// <summary>
     /// 同步執行固定 server-owned OrganizationRequest；caller 不得提供 generic Execute payload。
     /// </summary>
-    /// <param name="request">adapter 建立的固定 SDK request。</param>
-    /// <returns>官方 SDK response，僅可在 worker 內投影。</returns>
+    /// <param name="request">adapter 擁有方法範圍且只借給 SDK 的固定 request；client 不取得持久 ownership。</param>
+    /// <returns>非 disposable 的官方 SDK response；caller 必須立即投影且不得保存到跨 request state。</returns>
     OrganizationResponse Execute(OrganizationRequest request);
 
     /// <summary>
     /// 同步執行 worker-owned QueryExpression；query 生命週期只涵蓋單一 operation 呼叫。
     /// </summary>
-    /// <param name="query">已套用固定 entity、欄位、條件、排序與 paging 的查詢。</param>
-    /// <returns>官方 SDK page，必須在 worker 內完成型別驗證與 SDK-free 投影。</returns>
+    /// <param name="query">operation 擁有且只同步借給 SDK 的固定查詢；client 不保存或 Dispose 它。</param>
+    /// <returns>非 disposable 的官方 SDK page；必須在 worker 內完成型別驗證與 SDK-free 投影。</returns>
     EntityCollection RetrieveMultiple(QueryExpression query);
 }
 
@@ -79,16 +79,16 @@ internal sealed class Crm91SdkClient : ICrm91SdkClient
     /// 同步執行固定 OrganizationRequest。進入 SDK 後沒有 per-call cancellation hook；
     /// Supervisor timeout 只能停止等待並依回收流程終止 worker process。
     /// </summary>
-    /// <param name="request">adapter 建立的固定 request。</param>
-    /// <returns>官方 SDK response。</returns>
+    /// <param name="request">adapter 擁有方法範圍且只同步借給 SDK 的固定 request。</param>
+    /// <returns>只供目前 call stack 立即投影、不需 Dispose 的官方 SDK response。</returns>
     public OrganizationResponse Execute(OrganizationRequest request) =>
         GetClient().Execute(request);
 
     /// <summary>
     /// 同步執行本次 operation 擁有的 QueryExpression；不使用 Task.Run、parallel paging 或跨要求 query cache。
     /// </summary>
-    /// <param name="query">固定 server-owned query。</param>
-    /// <returns>官方 SDK page。</returns>
+    /// <param name="query">operation 擁有方法範圍且只同步借給 SDK 的固定 server-owned query。</param>
+    /// <returns>只供目前 page 投影、不需 Dispose 的官方 SDK EntityCollection。</returns>
     public EntityCollection RetrieveMultiple(QueryExpression query) =>
         GetClient().RetrieveMultiple(query);
 
@@ -246,10 +246,13 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     }
 
     /// <summary>
-    /// 先以 Interlocked 關閉 admission 並取走唯一 client／credential owner，再依序釋放 client 與
-    /// credential。即使 client disposal 失敗，credential 仍在 finally 清除；重複 Dispose 不會
-    /// 重複釋放或恢復可執行狀態。若同步 SDK disposal 卡住，Supervisor 的 process termination
-    /// 仍是 WCF channel、handle 與 worker memory 的最終 cleanup boundary。
+    /// 在 Worker session 已停止 message loop、且不再有同步 Execute／RetrieveMultiple 呼叫後，
+    /// 以 Interlocked 取走唯一 client／credential owner，再依序釋放 client 與 credential。
+    /// Interlocked 只提供 idempotent ownership transfer，並不是 operation lease；若任意 caller 讓 Dispose
+    /// 與 SDK 呼叫並行，先前借出的 client 仍可能被交錯釋放，因此 production owner 必須維持上述順序。
+    /// 即使 client disposal 失敗，credential 仍在 finally 清除；重複 Dispose 不會重複釋放或恢復可執行狀態。
+    /// 若同步 SDK disposal 卡住，Supervisor 的 process termination 仍是 WCF channel、handle 與
+    /// worker memory 的最終 cleanup boundary。
     /// Pipe stream、reader task、timeout timer 與 cancellation registration 不屬於 adapter，分別由
     /// Worker Host 與 Supervisor generation 在其 own finally／DisposeAsync 流程釋放。
     /// </summary>
@@ -260,7 +263,7 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
         Exception? failure = null;
         try
         {
-            // 先關閉可執行狀態再釋放 SDK owner，避免 Dispose 與新 operation 交錯取得 client。
+            // Session 已先停止 message loop；此處的 exchange 只確保唯一 cleanup owner，不取代 operation gate。
             client?.Dispose();
         }
         catch (Exception exception)
