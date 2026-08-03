@@ -13,6 +13,10 @@
 
 ## Persistent Traditional Chinese Documentation and UTF-8 Requirements
 
+- At the beginning of every task, read this complete `AGENTS.md` before
+  inspecting, generating, or modifying any `.cs` or `.cshtml` file. Treat these
+  documentation, encoding, isolation, lifecycle, and performance requirements
+  as release-blocking constraints throughout the task.
 - Every `.cs` and `.cshtml` file must contain complete, in-depth, maintainable
   Traditional Chinese documentation appropriate to the code it owns. This rule
   applies immediately to every newly created or substantively modified file and
