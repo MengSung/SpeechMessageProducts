@@ -335,7 +335,7 @@ function Assert-PreflightFailure {
     & $Mutate $fixture
     $result = Invoke-CompatibilityHarness -Fixture $fixture -ValidateOnly
     Assert-True -Condition ($result.ExitCode -ne 0) `
-        -Message 'Invalid compatibility preflight was accepted.'
+        -Message "Invalid compatibility preflight was accepted: $Name"
     Assert-True -Condition (-not $result.Text.Contains($fixture.GatewayEndpoint)) `
         -Message 'Compatibility failure exposed the Gateway endpoint.'
 }
@@ -387,9 +387,9 @@ try {
         param($fixture)
         $json = Get-Content -LiteralPath $fixture.OverlayPath -Raw -Encoding utf8
         Write-StrictUtf8Text -Path $fixture.OverlayPath -Value (
-            $json.Replace(
-                '"WorkerKind":  "OfficialCrm82Worker",',
-                '"WorkerKind":  "OfficialCrm82Worker", "WorkerKind":  "OfficialCrm82Worker",'))
+            $json -replace
+                '("WorkerKind"\s*:\s*"OfficialCrm82Worker"),',
+                '$1, "WorkerKind": "OfficialCrm82Worker",')
     }
     Assert-PreflightFailure -Name 'worker-profile-package-lock-drift' -Mutate {
         param($fixture)
@@ -416,7 +416,7 @@ try {
         'UseCookies = $false',
         'UseProxy = $false',
         'AllowAutoRedirect = $false',
-        'AutomaticDecompression = [Net.DecompressionMethods]::None',
+        'AutomaticDecompression = [System.Net.DecompressionMethods]::None',
         'ResponseHeadersRead',
         '[Array]::Clear('
     )) {
