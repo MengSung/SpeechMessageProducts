@@ -54,6 +54,13 @@ ConnectorKind   ∈ { Data8, OfficialCrm82Worker, OfficialCrm91Worker }
 
 排隊期間不得持有任何連線物件、Runtime 或 Token Provider —— 否則舊世代無法收斂（規格規則 7.1）。
 
+### D-8　外部 CE 是 P6 後的跨模式整合閘門
+
+P4 Embedded 與 P5 Dedicated Gateway 的程式、設定、契約、隔離、drain/dispose、建置與離線測試先各自完成。
+使用者再於 P6 程式完成後安排一次真實 CE 量測；該量測必須使用相同 Organization、同一不可破壞 read workload、
+固定 warm-up 與樣本數，逐一驗證 legacy／Embedded／Dedicated 的結果一致性、p50／p95／p99、故障淘汰與資源回到基線。
+P4 不應保存真實 credential 或建立等待遠端的 session／timer／retry task；opt-in 測試僅作為這個後置閘門工具。
+
 ## 現有資產對應
 
 完整對應表見規格 §12。摘要：

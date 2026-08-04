@@ -10,7 +10,8 @@
 
 ## 本任務範圍
 
-**P1 → P4。** P5 以後另開任務（使用者決策 D1）。
+**P1 → P4。** P5 以後另開任務（使用者決策 D1）。外部 CE 真機量測不屬本任務的阻塞條件；它由 P6 完成後的
+跨模式整合驗收負責，且不可被離線結果取代。
 
 | 階段 | 工作天 | 累計 | 產出 |
 | --- | --- | --- | --- |
@@ -18,7 +19,7 @@
 | P1 契約層 | 2～3 | 3.5 | 型別與守門就緒 |
 | P2 Data8 修正 | 1～2 | 5.5 | 無 Memory Leakage 底線成立 |
 | P3 連線池 | 3～4 | 9.5 | 池化與世代就緒 |
-| **P4 Embedded** | 2～3 | **12.5** | **★ F5 可跑，真機取得資料** |
+| **P4 Embedded** | 2～3 | **12.5** | **★ F5 可跑，受控離線組合根就緒** |
 
 ## 執行清單
 
@@ -44,7 +45,7 @@
 - [ ] Dispose 依序 `Close()`，失敗則 `Abort()`；多個失敗以 `AggregateException` 彙總
 - [ ] 檔頭註明本地修改內容與日期，保留 `Copyright © 2021 Data8 Limited`
 - [ ] （視 A1）`_sdkMajorVersion` 改實例欄位，建構子可選傳入
-- [ ] 真機：`sunnyvalechback` 建立→Dispose 100 次，Handle 無單調成長
+- [ ] P6 後真機整合閘門：`sunnyvalechback` 建立→Dispose 100 次，Handle 無單調成長
 
 ### P3　連線池抽出與世代化（已完成，2026-08-04）
 
@@ -57,15 +58,15 @@
 - [x] 撰寫規格 §10.3（7 項）與 §10.4（8 項）測試
 - [x] 以 focused lifecycle 測試驗證借出、歸還、取消、deadline、drain 與 dispose；真機 WhoAmI 不屬 P3 的完成條件。
 
-### P4　Embedded 模式
+### P4　Embedded 模式（程式與離線驗收完成；外部 CE 延後至 P6）
 
-- [ ] 重寫 `AddSpeechMessageDynamicsEmbedded`
-- [ ] 實作 `EmbeddedHostAdapter`（同進程呼叫，仍走完整 Guard→Resolver→Admission→Pool）
-- [ ] 設定映射器：既有 `CrmConnection` → `DynamicsProfiles` ＋ `OrganizationCatalog`
-- [ ] ChurchReport `appsettings.Development.json` 設為 `ConnectionMode: Embedded`
-- [ ] 撰寫規格 §10.5（3 項）測試
-- [ ] 量測並記錄 legacy 路徑 p50／p95／p99 基準
-- [ ] **真機且可展示**：VS 2026 F5 → 登入 → 奉獻收費清單 → 資料由 Embedded 路徑取得
+- [x] 重寫 `AddSpeechMessageDynamicsEmbedded`
+- [x] 實作 `EmbeddedHostAdapter`（同進程呼叫，仍走完整 Guard→Resolver→Admission→Pool）
+- [x] 設定映射器：既有 `CrmConnection` → `DynamicsProfiles` ＋ `OrganizationCatalog`
+- [x] ChurchReport `appsettings.Development.json` 設為 `ConnectionMode: Embedded`
+- [x] 撰寫規格 §10.5 與 P4 lifecycle／isolation 測試
+- [x] 準備 opt-in legacy／Embedded p50／p95／p99 對照工具；不提供密碼時安全略過
+- [ ] P6 後真機整合閘門：VS 2026 F5 → legacy／Embedded／Dedicated 非破壞性工作負載結果一致，並取得 p50／p95／p99
 
 ## 驗證指令
 
@@ -88,9 +89,9 @@ dotnet test SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj --n
 | 關卡 | 時機 | 條件 |
 | --- | --- | --- |
 | G-0 | P2 開始前 | A1 結果已知；`_sdkMajorVersion` 是否必修已確定 |
-| G-1 | P3 開始前 | P2 真機 100 次建立／Dispose 通過，Handle 無成長 |
+| G-1 | P3 開始前 | P2 離線 lifecycle／soak 測試通過；100 次真機建立／Dispose 延後至 P6 整合閘門 |
 | G-2 | P4 開始前 | P3 的 §10.4 洩漏測試與 soak 全綠 |
-| G-3 | 任務完成 | P4 真機可展示；PRD 全部驗收條件打勾 |
+| G-3 | 任務完成 | P4 程式、離線測試、Release build 與編碼驗收通過；真機量測已移交 P6 後整合閘門 |
 
 ## 回滾點
 
