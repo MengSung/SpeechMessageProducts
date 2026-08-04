@@ -32,10 +32,10 @@
 
 ## Acceptance criteria
 
-- [ ] `SpeechMessage.Dynamics.Connectors.Data8.csproj` 為 net10，僅依賴 Abstractions、ControlPlane 與 Data8 client；不被產品直接參考。
-- [ ] 契約編譯期不含 CRM SDK 型別；Router 對不相容 Connector fail closed，且不 fallback。
-- [ ] 測試先寫且先觀察 RED，再以最小實作轉 GREEN。
-- [ ] 測試覆蓋：健康歸還、故障淘汰、取消／逾時釋放 Permit、Generation drain、跨 Profile 隔離、同 Organization 容量共用、Dispose idempotency、soak 無單調資源成長。
-- [ ] 既有 P1／P2 測試與 ToolUtility legacy 行為不退步。
-- [ ] 所有新增或修改 `.cs` 為 UTF-8 without BOM、CRLF、最終 CRLF，具完整繁體中文 XML 與生命週期註解。
-- [ ] P3 測試、完整 Dynamics 測試與 Release build 結果被記錄；任何既有不穩定測試不得被放寬或忽略。
+- [x] `SpeechMessage.Dynamics.Connectors.Data8.csproj` 為 net10，僅依賴 Abstractions、ControlPlane 與 Data8 client；不被產品直接參考。
+- [x] 契約編譯期不含 CRM SDK 型別；Router 對不相容 Connector fail closed，且不 fallback。
+- [x] 測試先寫且先觀察 RED，再以最小實作轉 GREEN。
+- [x] 測試覆蓋：健康歸還、故障淘汰、取消／逾時釋放 Permit、Generation drain、跨 Profile 隔離、同 Organization 容量共用、Dispose idempotency、soak 無單調資源成長。
+- [x] 既有 P1／P2 測試與 ToolUtility legacy 行為不退步。
+- [x] 所有新增或修改 `.cs` 為 UTF-8 without BOM、CRLF、最終 CRLF，具完整繁體中文 XML 與生命週期註解。
+- [x] P3 測試、完整 Dynamics 測試與 Release build 結果被記錄；唯一完整套件失敗已確認為既有 Official Worker private-bytes soak 不穩定項，未放寬門檻且直接重跑通過。

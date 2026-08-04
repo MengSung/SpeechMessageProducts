@@ -13,6 +13,11 @@ namespace SpeechMessage.Dynamics.Tests;
 /// 每個 fake client 都是測試擁有的可計數資源；測試結束前必須回到零，
 /// 以便捕捉連線、Permit 或 Lease 遺留造成的 Memory／Resource Leakage。
 /// </summary>
+/// <remarks>
+/// 每個測試都以 <c>await using</c> 釋放 Pool、Lease、Registry 與 Registration，並使用不含真實端點、
+/// Credential、Token 或 Session 的替身。測試聚焦於 Client、Permit、Cancellation、Drain 與 Generation 的
+/// 確定性所有權，避免把 P3 的隔離與資源回收契約交給整合環境才驗證。
+/// </remarks>
 public sealed class Data8ConnectorPoolTests
 {
     /// <summary>
@@ -373,16 +378,28 @@ public sealed class Data8ConnectorPoolTests
         return plan!;
     }
 
+    /// <summary>
+    /// 以原子計數觀察 Client 建立與 Dispose 的測試 Factory。可選擇性無限等待建立或執行，
+    /// 並完全依賴傳入的取消權杖解除，藉此驗證 Pool 不會遺留工作、Timer 或 Client。
+    /// </summary>
     private sealed class TrackingClientFactory : IData8ConnectorClientFactory
     {
         private int _created;
         private int _disposed;
 
+        /// <summary>指出建立是否必須等待取消，以模擬可取消的 Factory I/O。</summary>
         public bool BlockCreation { get; init; }
+
+        /// <summary>指出 Client 執行是否必須等待取消，以模擬不確定的傳輸狀態。</summary>
         public bool BlockExecution { get; init; }
+
+        /// <summary>取得已建立 Client 數量；只用於測試斷言，不保存 Client 實體。</summary>
         public int CreatedCount => Volatile.Read(ref _created);
+
+        /// <summary>取得已完成 Dispose 的 Client 數量，用以確認資源回到基線。</summary>
         public int DisposedCount => Volatile.Read(ref _disposed);
 
+        /// <summary>建立不含真實 Credential 或網路資源的假 Client，並把唯一 Dispose 計數回呼交給 Client。</summary>
         public async Task<IConnectorClient> CreateAsync(ResolvedProfile profile, CancellationToken cancellationToken)
         {
             if (BlockCreation) await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
@@ -393,18 +410,24 @@ public sealed class Data8ConnectorPoolTests
         }
     }
 
+    /// <summary>
+    /// 模擬可取消 Connector 執行與 exactly-once Dispose 的 Client。它不保存 Profile、作業、Credential 或 Session，
+    /// 因此測試只觀察 Pool 的生命週期責任，而非模擬任何真實 D365 傳輸。
+    /// </summary>
     private sealed class TrackingClient : IConnectorClient
     {
         private readonly Action _dispose;
         private readonly bool _blockExecution;
         private int _disposed;
 
+        /// <summary>建立假 Client 並接收一次性的 Dispose 通知回呼。</summary>
         public TrackingClient(Action dispose, bool blockExecution)
         {
             _dispose = dispose;
             _blockExecution = blockExecution;
         }
 
+        /// <summary>依設定等待取消或回傳成功，讓 Lease 的取消淘汰流程可被決定性驗證。</summary>
         public async Task<ConnectorOperationResult> ExecuteAsync(
             ConnectorOperation operation,
             CancellationToken cancellationToken)
@@ -417,6 +440,7 @@ public sealed class Data8ConnectorPoolTests
             return new ConnectorOperationResult(true);
         }
 
+        /// <summary>只執行一次回呼，模擬真實 Client 的 deterministic cleanup。</summary>
         public ValueTask DisposeAsync()
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0) _dispose();
@@ -424,20 +448,32 @@ public sealed class Data8ConnectorPoolTests
         }
     }
 
+    /// <summary>
+    /// 為單元測試提供立即成功的 Admission Manager 與 exactly-once Permit 計數。
+    /// 此替身不建立 Host Slot、背景續租或佇列；需要實際共用容量時，測試會改用 OrganizationAdmissionRegistry。
+    /// </summary>
     private sealed class TrackingAdmissionManager : IOrganizationAdmissionManager
     {
+        /// <summary>取得 Permit 的次數。</summary>
         public int AcquireCount;
+
+        /// <summary>Permit 釋放的次數。</summary>
         public int ReleaseCount;
+
+        /// <summary>取得符合測試前置條件的固定 Admission Plan。</summary>
         public OrganizationAdmissionPlan Plan { get; } = CreatePlan();
 
+        /// <summary>測試替身沒有實體 Host Slot；此方法不保留任何資源。</summary>
         public Task EnsureHostSlotAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
+        /// <summary>立即核發僅由返回 Permit 擁有的假 Permit，以驗證 Pool 的釋放順序。</summary>
         public Task<AdmissionAcquireResult> AcquireAsync(DispatchEnvelope envelope, CancellationToken cancellationToken)
         {
             AcquireCount++;
             return Task.FromResult(AdmissionAcquireResult.Success(new Permit(() => Interlocked.Increment(ref ReleaseCount))));
         }
 
+        /// <summary>回傳無背景狀態的最小計量快照。</summary>
         public AdmissionMetricsSnapshot GetSnapshot() => new()
         {
             LocalMaxInFlight = 2, InFlight = 0, Queued = 0, LocalQueueCapacity = 2,
@@ -446,9 +482,13 @@ public sealed class Data8ConnectorPoolTests
             ActivePermits = 0, RenewalLoopActive = false
         };
 
+        /// <summary>替身不擁有非受控資源或背景工作，因此非同步釋放為空操作。</summary>
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        /// <summary>替身不擁有資源；同步釋放為空操作。</summary>
         public void Dispose() { }
 
+        /// <summary>建立只用於假 Permit 計數的有效 Plan，不含真實端點或機密。</summary>
         private static OrganizationAdmissionPlan CreatePlan()
         {
             var options = new OrganizationAdmissionOptions
@@ -474,23 +514,35 @@ public sealed class Data8ConnectorPoolTests
         }
     }
 
+    /// <summary>
+    /// 以 Interlocked 確保釋放回呼最多執行一次的假 Permit。它不保存作業、使用者或 Client，
+    /// 用來證明 Lease 即使遇到取消與 Dispose 重入，也不會重複或遺漏容量釋放。
+    /// </summary>
     private sealed class Permit : IAdmissionPermit
     {
         private readonly Action _release;
         private int _released;
 
+        /// <summary>建立由此 Permit 唯一擁有的釋放回呼。</summary>
         public Permit(Action release) => _release = release;
 
+        /// <summary>取得測試用相關識別碼；不含任何真實請求識別資料。</summary>
         public Guid CorrelationId { get; } = Guid.NewGuid();
+
+        /// <summary>取得固定的測試 fencing token。</summary>
         public long HostFencingToken => 1;
+
+        /// <summary>測試替身沒有 lease-loss 來源，因此永不取消。</summary>
         public CancellationToken LeaseLostToken => CancellationToken.None;
 
+        /// <summary>以 exactly-once 規則釋放 Permit 計數，不建立背景資源。</summary>
         public ValueTask DisposeAsync()
         {
             if (Interlocked.Exchange(ref _released, 1) == 0) _release();
             return ValueTask.CompletedTask;
         }
 
+        /// <summary>同步等待與 <see cref="DisposeAsync"/> 相同的唯一釋放流程。</summary>
         public void Dispose() => DisposeAsync().GetAwaiter().GetResult();
     }
 }
