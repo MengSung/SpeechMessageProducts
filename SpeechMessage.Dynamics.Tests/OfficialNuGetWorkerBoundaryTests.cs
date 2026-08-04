@@ -171,13 +171,8 @@ public sealed class OfficialNuGetWorkerBoundaryTests
         var services = new ServiceCollection();
         var productOptions = new ProductDynamicsOptions
         {
-            ExecutionMode = DynamicsExecutionMode.Embedded,
-            ProfileAlias = "deferred-embedded",
-            Embedded = new EmbeddedModeOptions
-            {
-                ProductProfileBinding = "deferred-embedded",
-                OrganizationAdmissionCoordinatorRef = "deferred-admission"
-            }
+            ConnectionMode = ConnectionMode.Embedded,
+            ProfileAlias = "deferred-embedded"
         };
 
         var action = () => services.AddSpeechMessageDynamicsEmbedded(productOptions);

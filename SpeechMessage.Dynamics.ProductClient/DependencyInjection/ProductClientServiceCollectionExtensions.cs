@@ -3,7 +3,7 @@
 // 目的：產品端註冊 DynamicsAccess（Gateway 模式）與 Package 1 fee-read client。
 //
 // 保母教學：
-// - 產品 JSON 的 DynamicsAccess.ExecutionMode=Gateway 時用這個擴充。
+// - 產品 JSON 的 DynamicsAccess.ConnectionMode=DedicatedGateway 或 CentralGateway 時用這個擴充。
 // - Embedded 模式請先呼叫 Embedded 專案的 AddSpeechMessageDynamicsEmbedded，
 //   再呼叫 AddSpeechMessageDynamicsPackage01FeeReads()。
 // - 產品只能依賴 ProductClient 與 Gateway 契約，不得參考任何 Dynamics 傳輸實作。

@@ -1,0 +1,117 @@
+flowchart TB
+    subgraph PRODUCT["① 產品與設定層"]
+        APP["ChurchReport／其他產品"]
+        JSON["appsettings.json<br/>ConnectionMode<br/>ProfileAlias<br/>Gateway.Endpoint（條件式）"]
+        APP --> JSON
+        JSON --> MODE{"ConnectionMode"}
+    end
+
+    subgraph DEPLOY["② 三種永久部署方式"]
+        EMB["Embedded<br/>控制層與產品同進程<br/>不使用 Gateway.Endpoint"]
+        DED["DedicatedGateway<br/>原 LocalGateway<br/>每個產品專屬 Gateway"]
+        CEN["CentralGateway<br/>多個產品共用 Gateway"]
+    end
+
+    MODE -->|"Embedded"| EMB
+    MODE -->|"DedicatedGateway"| DED
+    MODE -->|"CentralGateway"| CEN
+
+    DED -->|"同主機"| LOOP["https://localhost:7244/"]
+    DED -->|"不同容器／主機"| INTERNAL["內部服務網址"]
+    CEN --> PUBLIC["正式 Central Gateway 網址"]
+
+    EMB --> CONTRACT
+    LOOP --> API
+    INTERNAL --> API
+    PUBLIC --> API
+
+    subgraph BOUNDARY["③ 統一存取邊界"]
+        API["Gateway HTTPS API<br/>驗證呼叫者、逾時與要求大小"]
+        CONTRACT["Dynamics 操作契約<br/>只接受 ProfileAlias 與操作內容"]
+        GUARD["Request Guard<br/>禁止要求自行指定<br/>OrganizationId／ConnectorKind／Credential"]
+        API --> CONTRACT
+        CONTRACT --> GUARD
+    end
+
+    GUARD --> RESOLVER
+
+    subgraph CONFIG["④ Profile、Organization 與憑證設定"]
+        RESOLVER["Profile Resolver<br/>依 ProfileAlias 解析設定"]
+        PROFILES["DynamicsProfiles<br/>OrganizationAlias<br/>CE Version<br/>ConnectorKind<br/>容量／逾時／CredentialReference"]
+        CATALOG["OrganizationCatalog<br/>FriendlyName<br/>UniqueName<br/>OrganizationId<br/>Enabled／Disabled"]
+        SECRETS["Credential Provider<br/>開發環境可讀設定檔<br/>正式環境可接 Secret Store"]
+
+        RESOLVER --> PROFILES
+        PROFILES --> CATALOG
+        PROFILES --> SECRETS
+    end
+
+    CATALOG --> EXAMPLE["sunnyvalechback<br/>OrganizationId<br/>bfb92ead-3705-f011-8143-00155d006608"]
+    PROFILES --> GENERATION
+
+    subgraph GOVERNANCE["⑤ 世代、隔離與容量治理"]
+        GENERATION["Profile Generation Manager<br/>設定不可變<br/>變更建立新世代<br/>舊世代 Drain 後釋放"]
+        ADMISSION["Admission Control<br/>有界佇列、併發限制、逾時<br/>防止流量耗盡記憶體"]
+        ORGBUDGET["Organization Capacity<br/>同一 Organization 聚合總預算"]
+        LOCALCAP["In-Memory Coordinator<br/>Embedded／Dedicated／單一 Central"]
+        DISTCAP["Distributed Coordinator<br/>僅多節點 Central 需要<br/>SQL 只是可選實作"]
+
+        GENERATION --> ADMISSION
+        ADMISSION --> ORGBUDGET
+        ORGBUDGET --> LOCALCAP
+        ORGBUDGET -. "多節點時才使用" .-> DISTCAP
+    end
+
+    LOCALCAP --> ROUTER
+    DISTCAP -.-> ROUTER
+    PROFILES -. "固定 ConnectorKind" .-> ROUTER
+
+    subgraph CONNECTORS["⑥ Connector 與實體 Pool"]
+        ROUTER{"Connector Router<br/>只依 Profile 的 ConnectorKind<br/>禁止 Request-time fallback"}
+        DATA8["Data8 Connection Pool<br/>永久保留<br/>支援 CE 8.2／9.1"]
+        W82["OfficialCrm82Worker Pool<br/>獨立 net48 Worker 進程<br/>Microsoft CE 8.2 NuGet"]
+        W91["OfficialCrm91Worker Pool<br/>獨立 net48 Worker 進程<br/>Microsoft CE 9.1 NuGet"]
+
+        ROUTER -->|"Data8"| DATA8
+        ROUTER -->|"OfficialCrm82Worker"| W82
+        ROUTER -->|"OfficialCrm91Worker"| W91
+    end
+
+    DATA8 --> LEASE
+    W82 --> LEASE
+    W91 --> LEASE
+
+    subgraph LIFECYCLE["⑦ 借出、使用、歸還與故障清理"]
+        LEASE["Lease Manager<br/>借出 Connection 或 Worker Slot"]
+        EXECUTE["執行 Dynamics 操作<br/>每次要求獨立 Context"]
+        HEALTH{"結果與資源是否健康？"}
+        RETURN["健康：重設必要狀態<br/>歸還原 Profile Generation Pool"]
+        EVICT["故障／逾時／取消：淘汰資源<br/>Dispose 連線／終止 Worker"]
+        RELEASE["finally：確定清理<br/>釋放 Permit 與 Cancellation Registration<br/>清除 Request Context"]
+
+        LEASE --> EXECUTE
+        EXECUTE --> HEALTH
+        HEALTH -->|"健康"| RETURN
+        HEALTH -->|"故障／逾時／取消"| EVICT
+        RETURN --> RELEASE
+        EVICT --> RELEASE
+    end
+
+    EXECUTE --> CRM
+
+    subgraph D365["⑧ Dynamics 365"]
+        CRM["指定的 D365 Organization<br/>CE 8.2 或 CE 9.1"]
+    end
+
+    RELEASE --> RESULT["回傳結果給產品<br/>不保留使用者 Session／Token／可變狀態"]
+    RETURN -. "健康才可再次借出" .-> LEASE
+
+    subgraph OBS["⑨ 監控與安全"]
+        TELEMETRY["Metrics／Tracing／Health Check<br/>監控延遲、容量、Pool 與 Worker<br/>禁止記錄 Credential／Token／敏感內容"]
+    end
+
+    ADMISSION -.-> TELEMETRY
+    DATA8 -.-> TELEMETRY
+    W82 -.-> TELEMETRY
+    W91 -.-> TELEMETRY
+    RELEASE -.-> TELEMETRY

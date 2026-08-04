@@ -20,19 +20,15 @@ public sealed class GatewayProductDynamicsOptionsValidator
         ArgumentNullException.ThrowIfNull(options);
 
         var failures = new List<string>();
-        if (options.ExecutionMode != DynamicsExecutionMode.Gateway)
+        if (options.ConnectionMode is not (
+                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway))
         {
-            failures.Add("ExecutionMode must be Gateway.");
+            failures.Add("ConnectionMode must be DedicatedGateway or CentralGateway.");
         }
 
         if (!IsValidProfileAlias(options.ProfileAlias))
         {
             failures.Add("ProfileAlias must be 1-128 letters, digits, '.', '_' or '-'.");
-        }
-
-        if (options.Embedded is not null)
-        {
-            failures.Add("Embedded options are forbidden when ExecutionMode=Gateway.");
         }
 
         if (options.Gateway is null)
@@ -51,6 +47,11 @@ public sealed class GatewayProductDynamicsOptionsValidator
                     $"Gateway MaxResponseBytes must be between " +
                     $"{GatewayProductClientLimits.MinimumResponseBytes} and " +
                     $"{GatewayProductClientLimits.MaximumResponseBytes}.");
+            }
+
+            if (options.Gateway.RequestTimeoutSeconds is < 1 or > 600)
+            {
+                failures.Add("Gateway RequestTimeoutSeconds must be between 1 and 600.");
             }
         }
 

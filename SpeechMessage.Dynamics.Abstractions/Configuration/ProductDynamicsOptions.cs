@@ -4,75 +4,57 @@ using SpeechMessage.Dynamics.Abstractions.Execution;
 namespace SpeechMessage.Dynamics.Abstractions.Configuration;
 
 /// <summary>
-/// 產品端 Dynamics 存取設定，只描述產品到 Gateway 的非秘密路由形狀。
-/// 產品不得在此設定 Dynamics endpoint、Worker、套件、Credential、Token 或使用者 Session。
+/// 產品唯一可擁有的 Dynamics 部署設定。它刻意只含主機模式、Profile Alias 與 Gateway
+/// 端點；Organization GUID、CRM Service URI、Connector、Credential、Token、Pool 與
+/// Worker 皆屬部署端 ControlPlane，不能寫入產品 JSON 或跨產品/Session 傳遞。
 /// </summary>
 public sealed class ProductDynamicsOptions
 {
-    /// <summary>組態區段名稱。</summary>
+    /// <summary>產品組態區段名稱。</summary>
     public const string SectionName = "DynamicsAccess";
 
     /// <summary>
-    /// 部署時固定的執行模式。正式與開發的目前支援路徑都是 <see cref="DynamicsExecutionMode.Gateway"/>；
-    /// <see cref="DynamicsExecutionMode.Embedded"/> 保留為延後能力且必須 fail closed。
+    /// 啟動時固定的連線模式。此值只能由部署設定變更；請求處理期間不得切換，讓 DI owner
+    /// 可以在停止或設定 replace-and-drain 時確定釋放對應 HTTP handler、Pool 與 Worker。
     /// </summary>
     [Required]
-    public DynamicsExecutionMode ExecutionMode { get; set; } = DynamicsExecutionMode.Gateway;
+    public ConnectionMode ConnectionMode { get; set; } = ConnectionMode.Embedded;
 
     /// <summary>
-    /// 產品可見的邏輯 Profile alias；Gateway 會依已驗證的工作負載身分在伺服器端解析實際 Profile。
+    /// 部署端已登錄 Profile 的別名。它不是 CRM endpoint 或 Organization ID；Resolver 以此
+    /// 選取不可變 Profile snapshot，並將容量、Credential 與連線狀態隔離在該 snapshot 內。
     /// </summary>
     [Required]
     public string ProfileAlias { get; set; } = string.Empty;
 
-    /// <summary>Gateway 模式的內部服務設定。</summary>
-    public GatewayModeOptions? Gateway { get; set; }
-
     /// <summary>
-    /// Embedded 延後能力的非秘密信任綁定；不得包含任何 Dynamics 傳輸或驗證材料。
+    /// DedicatedGateway 或 CentralGateway 的 HTTPS 設定。Embedded 模式不可需要或讀取此值，
+    /// 以免產品在 F5 時意外建立網路 handler、保留 Gateway Session，或改走未核准端點。
     /// </summary>
-    public EmbeddedModeOptions? Embedded { get; set; }
+    public GatewayEndpointOptions? Gateway { get; set; }
 }
 
 /// <summary>
-/// Central Gateway 與 Local Gateway 共用的產品端 HTTP 邊界設定。
-/// Endpoint 必須指向受控 Gateway，而不是 Dynamics 服務。
+/// 產品呼叫 Gateway 所需且受限的 HTTP 設定。此類別不承載 CRM URL、Connector 或任何憑證；
+/// HTTP client、socket 與 response stream 的唯一所有者是 ProductClient DI 註冊，會隨
+/// ServiceProvider 釋放，而不是被靜態欄位或使用者 Session 保留。
 /// </summary>
-public sealed class GatewayModeOptions
+public sealed class GatewayEndpointOptions
 {
-    /// <summary>受控 Gateway 的 HTTPS base URI。</summary>
+    /// <summary>Gateway 的絕對 HTTPS 根 URI，允許 Dedicated 的 localhost 或 Central 內部主機。</summary>
     [Required]
     [Url]
     public string Endpoint { get; set; } = string.Empty;
 
-    /// <summary>版本化 Gateway API 前綴。</summary>
+    /// <summary>受版本控制且無 query/fragment 的 Gateway API 前置路徑。</summary>
     public string ApiPrefix { get; set; } = "/v1";
 
     /// <summary>
-    /// 單一 Gateway 回應可讀取的最大位元組數；ProductClient 會在完整配置進入記憶體前同時檢查
-    /// Content-Length 與串流累計值，避免不受控回應造成記憶體保留或跨要求資源壓力。
+    /// 單一 Gateway 回應可讀取的最大位元組數。此上限避免回應 Buffer 無界成長；超限時
+    /// ProductClient 必須拒絕並在 finally 歸還暫租陣列與釋放 stream。
     /// </summary>
     public int MaxResponseBytes { get; set; } = 2_097_152;
-}
 
-/// <summary>
-/// Embedded 延後能力只保留部署端信任與容量協調綁定。
-/// 此型別刻意不提供 Dynamics URL、版本、Secret、Credential、OAuth、Worker 或套件欄位，
-/// 以免產品設定重新形成繞過 Gateway 的傳輸路線。
-/// </summary>
-public sealed class EmbeddedModeOptions
-{
-    /// <summary>
-    /// 部署端核准的產品／Profile 綁定名稱。
-    /// 這只是非秘密識別，不得包含 endpoint、帳號、Token、Cookie、LINE ID 或 Session ID。
-    /// </summary>
-    [Required]
-    public string ProductProfileBinding { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 部署端核准的 Organization admission coordinator 參照。
-    /// 即使已填入，Embedded 仍不得自行建立 Worker、Credential、連線池、Timer 或背景工作。
-    /// </summary>
-    [Required]
-    public string OrganizationAdmissionCoordinatorRef { get; set; } = string.Empty;
+    /// <summary>單次 Gateway 請求的部署端 timeout 秒數；實際使用時必須建立可釋放的 linked CTS。</summary>
+    public int RequestTimeoutSeconds { get; set; } = 35;
 }

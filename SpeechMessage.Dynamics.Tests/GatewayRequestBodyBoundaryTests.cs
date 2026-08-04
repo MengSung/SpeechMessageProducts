@@ -147,6 +147,38 @@ public sealed class GatewayRequestBodyBoundaryTests
     }
 
     /// <summary>
+    /// 保護已通過 HTTP 身分與 JSON media type 的請求仍不可利用 body 夾帶 OrganizationId。
+    /// 此案例刻意讓 Gateway 完整讀取受限 body，接著驗證 RequestGuard 在任何 executor、
+    /// admission permit、Profile resolver 或 Connector 建立前回傳 400；Tracking stream 的
+    /// owner 仍是 ASP.NET Core，測試結束才由呼叫端釋放，避免測試本身製造 stream 泄漏。
+    /// </summary>
+    [Fact]
+    public async Task Reserved_routing_parameter_is_rejected_before_executor_invocation()
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            maxRequestBodyBytes: 128,
+            mapped: true,
+            useKestrel: false);
+        var bodyBytes = Encoding.UTF8.GetBytes(
+            "{\"parameters\":{\"organizationId\":\"untrusted\"}}");
+        var body = new TrackingReadStream(bodyBytes);
+
+        var response = await SendThroughTestServerAsync(
+            factory,
+            body,
+            declaredContentLength: bodyBytes.Length,
+            contentType: "application/json");
+
+        response.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        body.ReadCount.Should().BeGreaterThan(0);
+        executor.CallCount.Should().Be(0,
+            "RequestGuard must reject routing overrides before any Dynamics runtime resource is touched");
+        body.Dispose();
+    }
+
+    /// <summary>
     /// 已授權要求若 Content-Length 在讀取前已超過 deployment limit，必須直接 413 且完全不觸碰 stream；
     /// 這避免攻擊者用宣告長度迫使配置／讀取 body，也確保 executor、admission permit 與 Dynamics transport
     /// 都不被建立。失敗路徑不得租用 pooled buffer、建立 cancellation registration，或改變 ASP.NET Core

@@ -4,7 +4,7 @@
 //
 // 安全與生命週期契約：
 // 1. Package01FeeReadsEnabled=false 時保留既有 ToolUtility/Data8 業務路徑，且不建立 executor、provider 或 HTTP 資源。
-// 2. 啟用時僅接受 ExecutionMode=Gateway；Embedded 與未知 mode 在 process host、ServiceProvider、HttpClient 或 secret 解析前 fail closed。
+            // 2. 啟用時僅接受 DedicatedGateway/CentralGateway；Embedded 與未知 mode 在 process host、ServiceProvider、HttpClient 或 secret 解析前 fail closed。
 // 3. ProfileAlias 與 Gateway endpoint 只能由 DynamicsAccess 取得；不得由 CrmConnection、CRM URL 或 credential 推導。
 // 4. 唯一 process host 擁有 Gateway ServiceProvider generation，host stop/DI disposal 以同一 terminal cleanup path 釋放資源。
 // 5. static facade 只保存受主 DI lifecycle 管理的 host 參考，絕不保存 provider、session、credential 或 token。
@@ -126,7 +126,7 @@ namespace ChurchReport.Services
         {
             var options = new ProductDynamicsOptions
             {
-                Gateway = new GatewayModeOptions()
+                Gateway = new GatewayEndpointOptions()
             };
 
             // 字串欄位再保險，避免 section bind 失敗時整段空白。
@@ -134,21 +134,21 @@ namespace ChurchReport.Services
                 options.ProfileAlias,
                 configuration["DynamicsAccess:ProfileAlias"]) ?? string.Empty;
 
-            var modeText = configuration["DynamicsAccess:ExecutionMode"];
+            var modeText = configuration["DynamicsAccess:ConnectionMode"];
             if (!string.IsNullOrWhiteSpace(modeText) &&
-                !Enum.TryParse<DynamicsExecutionMode>(modeText, ignoreCase: true, out _))
+                !Enum.TryParse<ConnectionMode>(modeText, ignoreCase: true, out _))
             {
                 throw new InvalidOperationException(
-                    $"Unsupported DynamicsAccess:ExecutionMode '{modeText}'. Expected {nameof(DynamicsExecutionMode)}.{nameof(DynamicsExecutionMode.Gateway)}.");
+                    $"Unsupported DynamicsAccess:ConnectionMode '{modeText}'. Expected a {nameof(ConnectionMode)} value.");
             }
 
             if (!string.IsNullOrWhiteSpace(modeText) &&
-                Enum.TryParse<DynamicsExecutionMode>(modeText, ignoreCase: true, out var mode))
+                Enum.TryParse<ConnectionMode>(modeText, ignoreCase: true, out var mode))
             {
-                options.ExecutionMode = mode;
+                options.ConnectionMode = mode;
             }
 
-            options.Gateway ??= new GatewayModeOptions();
+            options.Gateway ??= new GatewayEndpointOptions();
             options.Gateway.Endpoint = FirstNonEmpty(
                 options.Gateway.Endpoint,
                 configuration["DynamicsAccess:Gateway:Endpoint"]) ?? string.Empty;
@@ -171,10 +171,11 @@ namespace ChurchReport.Services
         private static void EnsureGatewayOnly(ProductDynamicsOptions productOptions)
         {
             ArgumentNullException.ThrowIfNull(productOptions);
-            if (productOptions.ExecutionMode != DynamicsExecutionMode.Gateway)
+            if (productOptions.ConnectionMode is not (
+                    ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway))
             {
                 throw new InvalidOperationException(
-                    "Package01FeeReadsEnabled requires DynamicsAccess:ExecutionMode=Gateway.");
+                    "Package01FeeReadsEnabled requires DynamicsAccess:ConnectionMode=DedicatedGateway or CentralGateway.");
             }
         }
         private static IDynamicsOperationExecutor CreateGatewayExecutor(
@@ -359,11 +360,11 @@ namespace ChurchReport.Services
             {
                 services.AddSpeechMessageDynamicsGatewayProductClient(configured =>
                 {
-                    configured.ExecutionMode = DynamicsExecutionMode.Gateway;
+                    configured.ConnectionMode = options.ConnectionMode;
                     configured.ProfileAlias = options.ProfileAlias;
                     configured.Gateway = options.Gateway is null
                         ? null
-                        : new GatewayModeOptions
+                        : new GatewayEndpointOptions
                         {
                             Endpoint = options.Gateway.Endpoint,
                             ApiPrefix = options.Gateway.ApiPrefix,

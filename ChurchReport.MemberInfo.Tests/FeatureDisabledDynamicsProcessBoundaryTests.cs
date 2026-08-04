@@ -389,7 +389,7 @@ public sealed class FeatureDisabledDynamicsProcessBoundaryTests
             startInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
             startInfo.Environment["ASPNETCORE_ALLOWEDHOSTS"] = "*";
             startInfo.Environment["DynamicsAccess__Package01FeeReadsEnabled"] = "false";
-            startInfo.Environment["DynamicsAccess__ExecutionMode"] = "Gateway";
+            startInfo.Environment["DynamicsAccess__ConnectionMode"] = "DedicatedGateway";
             startInfo.Environment["DynamicsAccess__ProfileAlias"] = "feature-disabled-test";
             startInfo.Environment["DynamicsAccess__Gateway__Endpoint"] = $"https://127.0.0.1:{gatewayProbePort}/";
             startInfo.Environment["DynamicsAccess__Gateway__ApiPrefix"] = "/v1";

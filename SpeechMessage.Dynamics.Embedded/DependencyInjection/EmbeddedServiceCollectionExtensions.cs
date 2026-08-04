@@ -36,10 +36,10 @@ public static class EmbeddedServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(productOptions);
 
-        if (productOptions.ExecutionMode != DynamicsExecutionMode.Embedded)
+        if (productOptions.ConnectionMode != ConnectionMode.Embedded)
         {
             throw new InvalidOperationException(
-                "AddSpeechMessageDynamicsEmbedded requires ExecutionMode=Embedded.");
+                "AddSpeechMessageDynamicsEmbedded requires ConnectionMode=Embedded.");
         }
 
         // 此處刻意不檢查或列舉 additionalSecrets。即使呼叫端仍傳入舊設定，拒絕路徑也不能讓秘密值

@@ -117,7 +117,7 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DynamicsAccess:Package01FeeReadsEnabled"] = "true",
-                ["DynamicsAccess:ExecutionMode"] = "Embedded",
+                ["DynamicsAccess:ConnectionMode"] = "Embedded",
                 ["DynamicsAccess:ProfileAlias"] = "legacy-embedded",
                 ["DynamicsAccess:Embedded:OrganizationWebApiBaseUri"] = "https://crm.invalid/api/data/v9.1/",
                 ["DynamicsAccess:Embedded:SecretReference"] = "test-secret-reference",
@@ -221,7 +221,7 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             .Build();
 
         configuration.GetValue<bool>("DynamicsAccess:Package01FeeReadsEnabled").Should().BeFalse();
-        configuration["DynamicsAccess:ExecutionMode"].Should().Be("Gateway");
+        configuration["DynamicsAccess:ConnectionMode"].Should().Be("DedicatedGateway");
         configuration["DynamicsAccess:ProfileAlias"].Should().Be("crm82");
         configuration["DynamicsAccess:Gateway:ApiPrefix"].Should().Be("/v1");
 
@@ -257,7 +257,7 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
         var values = new Dictionary<string, string?>
         {
             ["DynamicsAccess:Package01FeeReadsEnabled"] = "true",
-            ["DynamicsAccess:ExecutionMode"] = "Gateway",
+            ["DynamicsAccess:ConnectionMode"] = "DedicatedGateway",
             ["DynamicsAccess:ProfileAlias"] = "jesus-prod",
             ["DynamicsAccess:Gateway:Endpoint"] = endpoint,
             ["DynamicsAccess:Gateway:ApiPrefix"] = "/v1"

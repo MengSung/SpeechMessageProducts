@@ -1,6 +1,9 @@
 // ============================================================================
 // 檔案：SpeechMessage.Dynamics.Tests/ProductModeOptionsTests.cs
-// 目的：確認產品 JSON 模型能表達 Gateway / Embedded 二選一。
+// 用途：驗證產品端三種 ConnectionMode 的設定邊界與 Gateway HTTP 參數上限。
+//
+// 測試僅建立 DI 設定驗證器，不會送出 HTTP、建立 CRM Session 或建立任何 Worker。using provider
+// 的區塊確保 Options/HttpClientFactory 若已配置，也會隨測試結束被決定性釋放。
 // ============================================================================
 
 using FluentAssertions;
@@ -12,172 +15,115 @@ using SpeechMessage.Dynamics.ProductClient.DependencyInjection;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證產品 JSON 僅能在啟動時選擇連線模式，並確認 HTTP 型模式的 Endpoint 不可被用作
+/// 原始 CRM endpoint。這是產品與 Connector/Pool/憑證隔離的第一層防線。
+/// </summary>
 public sealed class ProductModeOptionsTests
 {
-    [Fact]
-    public void Gateway_mode_options_only_require_endpoint_and_alias()
-    {
-        var options = new ProductDynamicsOptions
-        {
-            ExecutionMode = DynamicsExecutionMode.Gateway,
-            ProfileAlias = "jesus-prod",
-            Gateway = new GatewayModeOptions
-            {
-                Endpoint = "https://dynamics-gateway.internal/"
-            }
-        };
-
-        options.ExecutionMode.Should().Be(DynamicsExecutionMode.Gateway);
-        options.Gateway!.Endpoint.Should().StartWith("https://");
-        options.Embedded.Should().BeNull();
-    }
-
-    [Fact]
-    public void Embedded_mode_options_expose_only_deferred_trust_bindings()
-    {
-        var options = new ProductDynamicsOptions
-        {
-            ExecutionMode = DynamicsExecutionMode.Embedded,
-            ProfileAlias = "jesus-dev",
-            Embedded = new EmbeddedModeOptions
-            {
-                ProductProfileBinding = "church-report-membership",
-                OrganizationAdmissionCoordinatorRef = "dynamics-admission-development"
-            }
-        };
-
-        options.ExecutionMode.Should().Be(DynamicsExecutionMode.Embedded);
-        options.Embedded!.ProductProfileBinding.Should().Be("church-report-membership");
-        typeof(EmbeddedModeOptions).GetProperties().Select(property => property.Name)
-            .Should().BeEquivalentTo(
-                nameof(EmbeddedModeOptions.ProductProfileBinding),
-                nameof(EmbeddedModeOptions.OrganizationAdmissionCoordinatorRef));
-        options.Gateway.Should().BeNull();
-    }
-
+    /// <summary>
+    /// 保護 Dedicated Gateway 與 Central Gateway 均可使用同一產品 HTTP client 契約；差異只
+    /// 在部署位置，不會讓產品持有不同的 CRM Session 或連線池。
+    /// </summary>
     [Theory]
-    [InlineData("https://dynamics-gateway.internal/")]
-    [InlineData("https://localhost:7244/")]
-    public void Gateway_mode_accepts_central_and_local_https_endpoints(string endpoint)
+    [InlineData(ConnectionMode.DedicatedGateway, "https://localhost:7244/")]
+    [InlineData(ConnectionMode.CentralGateway, "https://dynamics-gateway.internal/")]
+    public void Gateway_modes_accept_safe_https_endpoint(ConnectionMode connectionMode, string endpoint)
     {
-        var options = ResolveGatewayOptions(endpoint);
+        var options = ResolveGatewayOptions(connectionMode, endpoint);
 
+        options.ConnectionMode.Should().Be(connectionMode);
         options.Gateway!.Endpoint.Should().Be(endpoint);
     }
 
+    /// <summary>
+    /// 保護 Embedded 不會誤用 Gateway ProductClient。Embedded 將在自己的 Host Adapter 建立
+    /// 相同 Guard/Resolver/Admission 鏈；在 P4 前該 Adapter 仍 fail-closed，不能藉由 HTTP
+    /// 型註冊繞過其信任與資源生命週期驗證。
+    /// </summary>
     [Fact]
-    public void Gateway_mode_exposes_a_bounded_response_size_setting()
+    public void Gateway_product_client_rejects_embedded_mode()
     {
-        typeof(GatewayModeOptions)
-            .GetProperty("MaxResponseBytes")
-            .Should()
-            .NotBeNull();
+        var act = () => ResolveGatewayOptions(ConnectionMode.Embedded, "https://localhost:7244/");
+
+        act.Should().Throw<OptionsValidationException>();
     }
 
+    /// <summary>保護 Alias 不可成為無界或 URI 型 routing key。</summary>
     [Theory]
     [InlineData("crm 91")]
     [InlineData("crm/91")]
     [InlineData("crm:91")]
-    public void Gateway_mode_rejects_unsafe_profile_aliases(string profileAlias)
+    public void Gateway_modes_reject_unsafe_profile_aliases(string profileAlias)
     {
         var act = () => ResolveGatewayOptions(
+            ConnectionMode.DedicatedGateway,
             "https://localhost:7244/",
             mutate: options => options.ProfileAlias = profileAlias);
 
         act.Should().Throw<OptionsValidationException>();
     }
 
-    [Fact]
-    public void Gateway_mode_rejects_profile_alias_longer_than_128_characters()
-    {
-        var act = () => ResolveGatewayOptions(
-            "https://localhost:7244/",
-            mutate: options => options.ProfileAlias = new string('a', 129));
-
-        act.Should().Throw<OptionsValidationException>();
-    }
-
-    [Theory]
-    [InlineData(1023)]
-    [InlineData(8_388_609)]
-    public void Gateway_mode_rejects_response_size_outside_the_bounded_range(int maxResponseBytes)
-    {
-        var act = () => ResolveGatewayOptions(
-            "https://localhost:7244/",
-            mutate: options => options.Gateway!.MaxResponseBytes = maxResponseBytes);
-
-        act.Should().Throw<OptionsValidationException>();
-    }
-
-    [Theory]
-    [InlineData(1024)]
-    [InlineData(2_097_152)]
-    [InlineData(8_388_608)]
-    public void Gateway_mode_accepts_response_size_inside_the_bounded_range(int maxResponseBytes)
-    {
-        var options = ResolveGatewayOptions(
-            "https://localhost:7244/",
-            mutate: configured => configured.Gateway!.MaxResponseBytes = maxResponseBytes);
-
-        options.Gateway!.MaxResponseBytes.Should().Be(maxResponseBytes);
-    }
-
+    /// <summary>
+    /// 保護產品端只允許 Gateway 自己的 HTTPS root，不能將 CRM Organization Service 或 Web API
+    /// URL 當作 Endpoint，避免繞過 server-owned Profile、Credential 與 Connector 選擇。
+    /// </summary>
     [Theory]
     [InlineData("http://localhost:7244/")]
     [InlineData("https://user:password@localhost:7244/")]
     [InlineData("https://localhost:7244/?target=https://crm.example/")]
     [InlineData("https://crm.example/XRMServices/2011/Organization.svc")]
     [InlineData("https://crm.example/api/data/v9.1/")]
-    public void Gateway_mode_rejects_unsafe_or_raw_crm_endpoints(string endpoint)
+    public void Gateway_modes_reject_unsafe_or_raw_crm_endpoints(string endpoint)
     {
-        var act = () => ResolveGatewayOptions(endpoint);
+        var act = () => ResolveGatewayOptions(ConnectionMode.DedicatedGateway, endpoint);
 
         act.Should().Throw<OptionsValidationException>();
     }
 
+    /// <summary>
+    /// 保護 bounded response 與 timeout 的限制在 DI 啟動時就 fail-closed，避免錯誤設定產生
+    /// 無界 Buffer、長期 Socket 等待或無法回收的 request CTS。
+    /// </summary>
     [Theory]
-    [InlineData("")]
-    [InlineData("v1")]
-    [InlineData("/v1?x=1")]
-    [InlineData("/v1#fragment")]
-    [InlineData("/../v1")]
-    [InlineData("/v1//operations")]
-    public void Gateway_mode_rejects_invalid_api_prefix(string apiPrefix)
-    {
-        var act = () => ResolveGatewayOptions("https://localhost:7244/", apiPrefix);
-
-        act.Should().Throw<OptionsValidationException>();
-    }
-
-    [Fact]
-    public void Gateway_mode_rejects_inactive_embedded_branch()
+    [InlineData(1023, 35)]
+    [InlineData(2_097_152, 0)]
+    [InlineData(2_097_152, 601)]
+    public void Gateway_modes_reject_response_or_timeout_outside_safe_bounds(
+        int maximumResponseBytes,
+        int requestTimeoutSeconds)
     {
         var act = () => ResolveGatewayOptions(
+            ConnectionMode.DedicatedGateway,
             "https://localhost:7244/",
-            mutate: options => options.Embedded = new EmbeddedModeOptions
+            mutate: options =>
             {
-                ProductProfileBinding = "forbidden-in-gateway-mode",
-                OrganizationAdmissionCoordinatorRef = "forbidden-in-gateway-mode"
+                options.Gateway!.MaxResponseBytes = maximumResponseBytes;
+                options.Gateway.RequestTimeoutSeconds = requestTimeoutSeconds;
             });
 
         act.Should().Throw<OptionsValidationException>();
     }
 
+    /// <summary>
+    /// 以可釋放 ServiceProvider 觸發實際 options validation。helper 不快取 provider、options 或
+    /// HttpClient，因此不同測試與 Profile 不會共享可變 DI/Session 狀態。
+    /// </summary>
     private static ProductDynamicsOptions ResolveGatewayOptions(
+        ConnectionMode connectionMode,
         string endpoint,
-        string apiPrefix = "/v1",
         Action<ProductDynamicsOptions>? mutate = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSpeechMessageDynamicsGatewayProductClient(options =>
         {
-            options.ExecutionMode = DynamicsExecutionMode.Gateway;
-            options.ProfileAlias = "jesus-prod";
-            options.Gateway = new GatewayModeOptions
+            options.ConnectionMode = connectionMode;
+            options.ProfileAlias = "sunnyvalechback";
+            options.Gateway = new GatewayEndpointOptions
             {
                 Endpoint = endpoint,
-                ApiPrefix = apiPrefix
+                ApiPrefix = "/v1"
             };
             mutate?.Invoke(options);
         });

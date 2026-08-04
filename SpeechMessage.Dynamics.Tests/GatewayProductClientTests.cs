@@ -65,9 +65,9 @@ public sealed class GatewayProductClientTests
 
         var options = Options.Create(new ProductDynamicsOptions
         {
-            ExecutionMode = DynamicsExecutionMode.Gateway,
+            ConnectionMode = ConnectionMode.DedicatedGateway,
             ProfileAlias = "jesus-prod",
-            Gateway = new GatewayModeOptions
+            Gateway = new GatewayEndpointOptions
             {
                 Endpoint = "https://dynamics-gateway.internal/",
                 ApiPrefix = "/v1"
@@ -391,9 +391,9 @@ public sealed class GatewayProductClientTests
         services.AddLogging();
         services.AddSpeechMessageDynamicsGatewayProductClient(options =>
         {
-            options.ExecutionMode = DynamicsExecutionMode.Gateway;
+            options.ConnectionMode = ConnectionMode.DedicatedGateway;
             options.ProfileAlias = "jesus-prod";
-            options.Gateway = new GatewayModeOptions
+            options.Gateway = new GatewayEndpointOptions
             {
                 Endpoint = "https://dynamics-gateway.internal/",
                 ApiPrefix = "/v1"
@@ -422,9 +422,9 @@ public sealed class GatewayProductClientTests
     {
         var options = Options.Create(new ProductDynamicsOptions
         {
-            ExecutionMode = DynamicsExecutionMode.Gateway,
+            ConnectionMode = ConnectionMode.DedicatedGateway,
             ProfileAlias = profileAlias,
-            Gateway = new GatewayModeOptions
+            Gateway = new GatewayEndpointOptions
             {
                 Endpoint = endpoint,
                 ApiPrefix = "/v1",

@@ -1,196 +1,204 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1760" viewBox="0 0 1200 1760" role="img" aria-labelledby="title desc">
-  <title id="title">Codex 修正版 Dynamics 連線架構流程圖</title>
-  <desc id="desc">產品可選 DirectData8、Local Gateway 或 Central Gateway。Local 與 Central 共用同一個 Gateway 契約，再依不可變 Organization Profile Generation 選擇 Data8、CE 8.2 官方 Worker 或 CE 9.1 官方 Worker。每一個 Gateway Pool 都有借出、重設、歸還與故障隔離流程，並共用同一個實體 Organization 容量預算。</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1900" viewBox="0 0 1200 1900" role="img" aria-labelledby="title desc">
+  <title id="title">Claude 與 Codex 合併後的 Dynamics 最終架構流程圖</title>
+  <desc id="desc">產品透過 ProductClient 選擇 Governed Embedded、Local Gateway 或 Central Gateway。三條路全部匯合至相同的 ControlPlane、不可變 Organization Profile Generation 與 Connector 策略。Data8、CE 8.2 官方 Worker、CE 9.1 官方 Worker 各有符合資源型態的實體池，但共用同一套租約生命週期與 Organization 容量預算。</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#111318"/>
-      <stop offset="1" stop-color="#171b22"/>
+      <stop offset="0" stop-color="#101218"/>
+      <stop offset="1" stop-color="#171c24"/>
     </linearGradient>
-    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#315b83"/>
-      <stop offset="1" stop-color="#236d68"/>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#315f8c"/>
+      <stop offset="1" stop-color="#23756d"/>
     </linearGradient>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.28"/>
     </filter>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b7c0ce"/>
-    </marker>
-    <marker id="arrowAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ddb66b"/>
+      <path d="M0 0 L10 5 L0 10 Z" fill="#bcc6d4"/>
     </marker>
     <style>
-      .title { font: 700 34px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #f5f8fc; }
-      .subtitle { font: 400 17px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #aeb9c8; }
-      .node-title { font: 700 21px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #f5f8fc; text-anchor: middle; }
-      .node-sub { font: 400 15px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #c9d1dc; text-anchor: middle; }
-      .edge-label { font: 600 16px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #eef2f7; text-anchor: middle; }
-      .chip { font: 700 13px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #f8fafc; text-anchor: middle; }
-      .callout { font: 600 15px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #e7edf5; }
-      .line { fill: none; stroke: #b7c0ce; stroke-width: 2; marker-end: url(#arrow); }
-      .line-direct { fill: none; stroke: #ddb66b; stroke-width: 2.2; marker-end: url(#arrowAmber); }
-      .line-dashed { fill: none; stroke: #8e9aae; stroke-width: 1.8; stroke-dasharray: 8 8; }
+      .heading { font: 700 34px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #f5f8fc; }
+      .subheading { font: 400 17px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #aeb9c8; }
+      .title { font: 700 20px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #f5f8fc; text-anchor: middle; }
+      .sub { font: 400 14px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #c7d0dc; text-anchor: middle; }
+      .edge { font: 600 15px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #edf2f8; text-anchor: middle; }
+      .chip { font: 700 13px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #ffffff; text-anchor: middle; }
+      .note { font: 600 14px "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; fill: #dce4ee; }
+      .line { fill: none; stroke: #bcc6d4; stroke-width: 2; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #8793a3; stroke-width: 1.7; stroke-dasharray: 8 8; }
     </style>
   </defs>
 
-  <rect x="10" y="10" width="1180" height="1740" rx="30" fill="url(#bg)" stroke="#2c323c" stroke-width="2"/>
+  <rect x="10" y="10" width="1180" height="1880" rx="30" fill="url(#bg)" stroke="#2d333d" stroke-width="2"/>
+  <text x="52" y="62" class="heading">最終合併版：F5 體驗 × 安全邊界</text>
+  <text x="52" y="95" class="subheading">省略 HTTP 可以；省略 Profile、ControlPlane、租約、回收與容量治理不可以</text>
 
-  <text x="54" y="64" class="title">Codex 修正版：三種路徑 × 三種 Connector</text>
-  <text x="54" y="96" class="subtitle">和 Claude 的骨架相近；新增的是可執行的 Profile、Pool、容量與確定性回收契約</text>
-
-  <g transform="translate(820 42)">
-    <rect x="0" y="0" width="310" height="68" rx="12" fill="#20252e" stroke="#3b4350"/>
-    <rect x="16" y="15" width="14" height="14" rx="3" fill="#33736c"/>
-    <text x="40" y="27" class="callout">目前／建議路徑</text>
-    <rect x="165" y="15" width="14" height="14" rx="3" fill="#785d2e"/>
-    <text x="189" y="27" class="callout">提案／待 Gate</text>
-    <line x1="16" y1="48" x2="46" y2="48" stroke="#d15b5b" stroke-width="2" stroke-dasharray="5 5"/>
-    <text x="58" y="53" class="callout">禁止自動 fallback</text>
+  <g transform="translate(860 42)">
+    <rect width="270" height="64" rx="12" fill="#20252e" stroke="#3a424e"/>
+    <rect x="16" y="14" width="14" height="14" rx="3" fill="#2d6f68"/>
+    <text x="40" y="26" class="note">已採用／建議</text>
+    <rect x="150" y="14" width="14" height="14" rx="3" fill="#785d2e"/>
+    <text x="174" y="26" class="note">待獨立 Gate</text>
+    <line x1="16" y1="46" x2="46" y2="46" stroke="#c95c63" stroke-width="2" stroke-dasharray="5 5"/>
+    <text x="58" y="51" class="note">不可自動 fallback</text>
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="490" y="135" width="220" height="70" rx="8" fill="url(#hero)" stroke="#79a3b5"/>
-    <text x="600" y="178" class="node-title">產品</text>
+    <rect x="490" y="140" width="220" height="68" rx="9" fill="url(#brand)" stroke="#75a2b7"/>
+    <text x="600" y="182" class="title">產品</text>
   </g>
-
-  <path class="line" d="M600 205 L600 238"/>
+  <path class="line" d="M600 208 L600 244"/>
 
   <g filter="url(#shadow)">
-    <polygon points="600,238 764,350 600,462 436,350" fill="#343942" stroke="#626b78" stroke-width="2"/>
-    <text x="600" y="342" class="node-title">執行路徑</text>
-    <text x="600" y="369" class="node-sub">概念選項，不等於現行 enum</text>
+    <rect x="420" y="244" width="360" height="74" rx="9" fill="#2a435f" stroke="#678caf"/>
+    <text x="600" y="277" class="title">ProductClient · 唯一入口</text>
+    <text x="600" y="302" class="sub">只送 ProfileAlias＋OperationId＋具名參數</text>
   </g>
-
-  <path class="line-direct" d="M488 408 C350 470 190 510 190 575"/>
-  <text x="310" y="485" class="edge-label" fill="#f1cb80">DirectData8 · opt-in</text>
-
-  <path class="line" d="M565 438 C540 480 520 520 520 575"/>
-  <text x="505" y="510" class="edge-label">Local</text>
-
-  <path class="line" d="M713 405 C820 465 850 510 850 575"/>
-  <text x="812" y="494" class="edge-label">Central</text>
+  <path class="line" d="M600 318 L600 348"/>
 
   <g filter="url(#shadow)">
-    <rect x="55" y="575" width="270" height="92" rx="9" fill="#5c4928" stroke="#c9a35d"/>
-    <text x="190" y="614" class="node-title">產品內 Data8 Runtime</text>
-    <text x="190" y="641" class="node-sub">產品自行擁有 Pool 與 Cleanup</text>
+    <polygon points="600,348 765,455 600,562 435,455" fill="#343942" stroke="#626c79" stroke-width="2"/>
+    <text x="600" y="447" class="title">HostingMode</text>
+    <text x="600" y="474" class="sub">治理層跑在哪個進程</text>
   </g>
+
+  <path class="line" d="M488 510 C370 555 215 575 190 624"/>
+  <text x="318" y="565" class="edge">Embedded</text>
+  <path class="line" d="M570 542 C555 570 535 590 520 624"/>
+  <text x="515" y="583" class="edge">Local</text>
+  <path class="line" d="M712 510 C830 555 850 580 860 624"/>
+  <text x="830" y="565" class="edge">Central</text>
 
   <g filter="url(#shadow)">
-    <rect x="390" y="575" width="260" height="92" rx="9" fill="#24544f" stroke="#61aaa1"/>
-    <text x="520" y="614" class="node-title">Local Gateway</text>
-    <text x="520" y="641" class="node-sub">Visual Studio 開發預設</text>
-  </g>
-
-  <g filter="url(#shadow)">
-    <rect x="720" y="575" width="260" height="92" rx="9" fill="#24544f" stroke="#61aaa1"/>
-    <text x="850" y="614" class="node-title">Central Gateway</text>
-    <text x="850" y="641" class="node-sub">正式多產品預設</text>
-  </g>
-
-  <path class="line" d="M520 667 C520 695 555 707 575 724"/>
-  <path class="line" d="M850 667 C850 700 760 707 625 724"/>
-
-  <g filter="url(#shadow)">
-    <rect x="390" y="724" width="420" height="88" rx="10" fill="#2b4563" stroke="#668ab3"/>
-    <rect x="412" y="740" width="58" height="24" rx="12" fill="#33736c"/>
-    <text x="441" y="757" class="chip">修正 1</text>
-    <text x="600" y="764" class="node-title">相同 Gateway API／ControlPlane</text>
-    <text x="600" y="791" class="node-sub">Local／Central 只差部署 Endpoint，不分叉產品契約</text>
-  </g>
-
-  <path class="line" d="M600 812 L600 842"/>
-
-  <g filter="url(#shadow)">
-    <rect x="360" y="842" width="480" height="100" rx="11" fill="#463f61" stroke="#8e80b8"/>
-    <rect x="382" y="858" width="58" height="24" rx="12" fill="#6550a6"/>
-    <text x="411" y="875" class="chip">修正 2</text>
-    <text x="600" y="883" class="node-title">Immutable per-Org Profile Generation</text>
-    <text x="600" y="912" class="node-sub">OrgId＋BaseUri＋CE＋Connector＋SecretRef＋GenerationId</text>
-  </g>
-
-  <path class="line" d="M600 942 L600 980"/>
-
-  <g>
-    <rect x="410" y="980" width="380" height="46" rx="23" fill="#3b2528" stroke="#aa555c" stroke-dasharray="7 6"/>
-    <text x="600" y="1009" class="edge-label" fill="#ffd8d8">一個 Request 綁定一個 Connector · 失敗不切換</text>
-  </g>
-
-  <path class="line" d="M600 1026 L600 1048"/>
-
-  <g filter="url(#shadow)">
-    <polygon points="600,1048 748,1140 600,1232 452,1140" fill="#343942" stroke="#626b78" stroke-width="2"/>
-    <rect x="565" y="1080" width="70" height="24" rx="12" fill="#315b83"/>
-    <text x="600" y="1097" class="chip">修正 3</text>
-    <text x="600" y="1145" class="node-title">ConnectorKind</text>
-    <text x="600" y="1173" class="node-sub">Official 明確拆成 8.2／9.1</text>
-  </g>
-
-  <path class="line-direct" d="M498 1194 C430 1232 290 1240 205 1285"/>
-  <text x="340" y="1242" class="edge-label" fill="#f1cb80">Data8</text>
-
-  <path class="line" d="M576 1218 C555 1245 525 1250 500 1285"/>
-  <text x="514" y="1249" class="edge-label">CE 8.2</text>
-
-  <path class="line" d="M702 1194 C770 1232 890 1240 995 1285"/>
-  <text x="850" y="1242" class="edge-label">CE 9.1</text>
-
-  <g filter="url(#shadow)">
-    <rect x="35" y="1285" width="340" height="116" rx="10" fill="#5c4928" stroke="#c9a35d"/>
-    <rect x="55" y="1301" width="92" height="24" rx="12" fill="#785d2e"/>
-    <text x="101" y="1318" class="chip">待獨立 Gate</text>
-    <text x="205" y="1350" class="node-title">Gateway Data8 Pool</text>
-    <text x="205" y="1378" class="node-sub">Rent → Reset → Return</text>
+    <rect x="45" y="624" width="290" height="112" rx="10" fill="#27564f" stroke="#66aaa1"/>
+    <rect x="65" y="640" width="92" height="24" rx="12" fill="#2d6f68"/>
+    <text x="111" y="657" class="chip">採用 Claude</text>
+    <text x="190" y="691" class="title">Governed Embedded</text>
+    <text x="190" y="717" class="sub">同進程、無 HTTP；仍走完整治理</text>
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="430" y="1285" width="340" height="116" rx="10" fill="#293f58" stroke="#6d8fb3"/>
-    <rect x="450" y="1301" width="92" height="24" rx="12" fill="#315b83"/>
-    <text x="496" y="1318" class="chip">目前路徑</text>
-    <text x="600" y="1350" class="node-title">OfficialCrm82Worker</text>
-    <text x="600" y="1378" class="node-sub">bounded net48 Worker Process Pool</text>
+    <rect x="375" y="624" width="290" height="112" rx="10" fill="#27564f" stroke="#66aaa1"/>
+    <rect x="395" y="640" width="92" height="24" rx="12" fill="#2d6f68"/>
+    <text x="441" y="657" class="chip">開發邊界測試</text>
+    <text x="520" y="691" class="title">Local Gateway</text>
+    <text x="520" y="717" class="sub">localhost HTTP＋獨立進程</text>
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="825" y="1285" width="340" height="116" rx="10" fill="#293f58" stroke="#6d8fb3"/>
-    <rect x="845" y="1301" width="92" height="24" rx="12" fill="#315b83"/>
-    <text x="891" y="1318" class="chip">目前路徑</text>
-    <text x="995" y="1350" class="node-title">OfficialCrm91Worker</text>
-    <text x="995" y="1378" class="node-sub">bounded net48 Worker Process Pool</text>
+    <rect x="715" y="624" width="290" height="112" rx="10" fill="#27564f" stroke="#66aaa1"/>
+    <rect x="735" y="640" width="92" height="24" rx="12" fill="#2d6f68"/>
+    <text x="781" y="657" class="chip">正式預設</text>
+    <text x="860" y="691" class="title">Central Gateway</text>
+    <text x="860" y="717" class="sub">共享 HTTP Service＋獨立進程</text>
+  </g>
+
+  <path class="line" d="M190 736 C190 775 420 778 500 812"/>
+  <path class="line" d="M520 736 L560 812"/>
+  <path class="line" d="M860 736 C860 775 780 778 700 812"/>
+
+  <g filter="url(#shadow)">
+    <rect x="120" y="812" width="960" height="120" rx="12" fill="#2c4058" stroke="#6688ae"/>
+    <rect x="140" y="829" width="92" height="24" rx="12" fill="#315b83"/>
+    <text x="186" y="846" class="chip">三路匯合</text>
+    <text x="600" y="850" class="title">相同 ControlPlane Governance Contract</text>
+    <g transform="translate(155 874)">
+      <rect x="0" y="0" width="200" height="38" rx="8" fill="#202d3d" stroke="#506d8c"/>
+      <rect x="220" y="0" width="200" height="38" rx="8" fill="#202d3d" stroke="#506d8c"/>
+      <rect x="440" y="0" width="200" height="38" rx="8" fill="#202d3d" stroke="#506d8c"/>
+      <rect x="660" y="0" width="150" height="38" rx="8" fill="#202d3d" stroke="#506d8c"/>
+      <text x="100" y="25" class="sub">Operation Registry</text>
+      <text x="320" y="25" class="sub">Bounded Admission</text>
+      <text x="540" y="25" class="sub">Generation Manager</text>
+      <text x="735" y="25" class="sub">Audit／Health</text>
+    </g>
   </g>
 
   <g>
-    <rect x="395" y="1425" width="410" height="52" rx="10" fill="#48282b" stroke="#a65b61"/>
-    <rect x="414" y="1439" width="58" height="24" rx="12" fill="#a33a3a"/>
-    <text x="443" y="1456" class="chip">修正 4</text>
-    <text x="495" y="1458" class="callout">故障 → Quarantine → Close／Abort／Recycle</text>
+    <rect x="62" y="952" width="360" height="64" rx="10" fill="#3a2528" stroke="#a7555b" stroke-dasharray="7 6"/>
+    <text x="242" y="978" class="edge" fill="#ffd9d9">Embedded ≠ Gateway 安全邊界</text>
+    <text x="242" y="1000" class="sub">上線前仍須 Local Gateway 邊界 Gate</text>
   </g>
 
-  <path class="line" d="M205 1401 C205 1465 400 1480 460 1510"/>
-  <path class="line" d="M600 1401 L600 1502"/>
-  <path class="line" d="M995 1401 C995 1465 800 1480 740 1510"/>
+  <path class="line" d="M600 932 L600 972"/>
+  <g filter="url(#shadow)">
+    <rect x="370" y="972" width="460" height="100" rx="11" fill="#473f61" stroke="#9182bb"/>
+    <rect x="842" y="988" width="106" height="24" rx="12" fill="#6550a6"/>
+    <text x="895" y="1005" class="chip">Codex 修正 1</text>
+    <text x="600" y="1015" class="title">Immutable Organization Profile Generation</text>
+    <text x="600" y="1044" class="sub">OrgId＋BaseUri＋CE＋Connector＋SecretRef＋GenerationId</text>
+  </g>
+
+  <path class="line" d="M600 1072 L600 1110"/>
+  <g filter="url(#shadow)">
+    <polygon points="600,1110 755,1205 600,1300 445,1205" fill="#343942" stroke="#626c79" stroke-width="2"/>
+    <rect x="550" y="1142" width="100" height="24" rx="12" fill="#315b83"/>
+    <text x="600" y="1159" class="chip">Codex 修正 2</text>
+    <text x="600" y="1208" class="title">ConnectorKind</text>
+    <text x="600" y="1235" class="sub">部署期固定於 Profile Generation</text>
+    <text x="600" y="1257" class="sub">不是 compile-time，也不是 request-time 開關</text>
+  </g>
+
+  <path class="line" d="M492 1260 C420 1305 270 1310 205 1352"/>
+  <path class="line" d="M575 1284 C550 1310 525 1320 500 1352"/>
+  <path class="line" d="M708 1260 C780 1305 930 1310 995 1352"/>
 
   <g filter="url(#shadow)">
-    <rect x="335" y="1502" width="530" height="86" rx="11" fill="#5a482a" stroke="#c49b50"/>
-    <rect x="355" y="1518" width="58" height="24" rx="12" fill="#9a5b08"/>
-    <text x="384" y="1535" class="chip">修正 5</text>
-    <text x="600" y="1538" class="node-title">Canonical Organization Capacity Budget</text>
-    <text x="600" y="1567" class="node-sub">跨 Local／Central／Profile Generation 共用總並行上限</text>
+    <rect x="35" y="1352" width="340" height="130" rx="10" fill="#5c4928" stroke="#c8a15c"/>
+    <rect x="55" y="1368" width="92" height="24" rx="12" fill="#785d2e"/>
+    <text x="101" y="1385" class="chip">待獨立 Gate</text>
+    <text x="205" y="1419" class="title">Data8 Connector Runtime</text>
+    <text x="205" y="1446" class="sub">Data8 Connection Object Pool</text>
+    <text x="205" y="1467" class="sub">確定性 Close／Abort 證據未完成前不發布</text>
   </g>
-
-  <path class="line" d="M600 1588 L600 1621"/>
 
   <g filter="url(#shadow)">
-    <rect x="445" y="1621" width="310" height="82" rx="9" fill="#2f343c" stroke="#6e7784"/>
-    <text x="600" y="1658" class="node-title">D365 Organization</text>
-    <text x="600" y="1685" class="node-sub">CE 8.2／9.1 · 每個 Org 獨立</text>
+    <rect x="430" y="1352" width="340" height="130" rx="10" fill="#293f58" stroke="#6d8fb3"/>
+    <rect x="450" y="1368" width="92" height="24" rx="12" fill="#315b83"/>
+    <text x="496" y="1385" class="chip">目前路徑</text>
+    <text x="600" y="1419" class="title">OfficialCrm82Worker</text>
+    <text x="600" y="1446" class="sub">CE 8.2 pinned NuGet＋net48</text>
+    <text x="600" y="1467" class="sub">bounded Worker Process Pool</text>
   </g>
 
-  <path class="line-direct" d="M190 667 L190 1515 C190 1620 320 1662 445 1662"/>
-  <text x="74" y="1535" class="callout" fill="#f1cb80">DirectData8 不共享</text>
-  <text x="74" y="1558" class="callout" fill="#f1cb80">Gateway Pool／容量治理</text>
+  <g filter="url(#shadow)">
+    <rect x="825" y="1352" width="340" height="130" rx="10" fill="#293f58" stroke="#6d8fb3"/>
+    <rect x="845" y="1368" width="92" height="24" rx="12" fill="#315b83"/>
+    <text x="891" y="1385" class="chip">目前路徑</text>
+    <text x="995" y="1419" class="title">OfficialCrm91Worker</text>
+    <text x="995" y="1446" class="sub">CE 9.1 pinned NuGet＋net48</text>
+    <text x="995" y="1467" class="sub">bounded Worker Process Pool</text>
+  </g>
 
-  <path class="line-dashed" d="M375 1343 L430 1343"/>
-  <path class="line-dashed" d="M770 1343 L825 1343"/>
-  <text x="600" y="1728" class="subtitle" text-anchor="middle">沒有量測、stress、soak 與資源回到 baseline 的證據，就不宣稱「最高效能」或「沒有 Leakage」</text>
+  <g>
+    <rect x="70" y="1508" width="1060" height="88" rx="12" fill="#263b38" stroke="#5b938b"/>
+    <rect x="90" y="1524" width="100" height="24" rx="12" fill="#2d6f68"/>
+    <text x="140" y="1541" class="chip">共用 Policy</text>
+    <text x="600" y="1547" class="title">Admit → Rent → Bind → Execute → Reset／Health → Return</text>
+    <text x="600" y="1576" class="sub">故障 → Quarantine → Data8 Close／Abort 或 Worker Drain／Terminate／Recycle</text>
+  </g>
+
+  <path class="line" d="M205 1482 L340 1508"/>
+  <path class="line" d="M600 1482 L600 1508"/>
+  <path class="line" d="M995 1482 L860 1508"/>
+
+  <path class="line" d="M600 1596 L600 1630"/>
+  <g filter="url(#shadow)">
+    <rect x="330" y="1630" width="540" height="90" rx="11" fill="#594729" stroke="#c29a50"/>
+    <rect x="880" y="1646" width="110" height="24" rx="12" fill="#9a5b08"/>
+    <text x="935" y="1663" class="chip">Codex 修正 3</text>
+    <text x="600" y="1683" class="title">Canonical Organization Capacity Budget</text>
+    <text x="600" y="1708" class="sub">實體 Pool per Generation；總容量 per Organization</text>
+  </g>
+
+  <path class="line" d="M600 1720 L600 1754"/>
+  <g filter="url(#shadow)">
+    <rect x="430" y="1754" width="340" height="82" rx="10" fill="#30353d" stroke="#707987"/>
+    <text x="600" y="1790" class="title">D365 Organization</text>
+    <text x="600" y="1818" class="sub">CE 8.2／9.1 · 每個 Org 與世代不可混用</text>
+  </g>
+
+  <path class="dash" d="M375 1417 L430 1417"/>
+  <path class="dash" d="M770 1417 L825 1417"/>
+  <text x="600" y="1867" class="subheading" text-anchor="middle">三種 Hosting 共用治理程式碼；三種 Connector 各自通過 compatibility、fault、soak 與 no-leak Gate</text>
 </svg>

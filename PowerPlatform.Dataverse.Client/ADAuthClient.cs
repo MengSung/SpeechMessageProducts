@@ -24,6 +24,7 @@ using System.Net.Security;
 using System;
 using System.Net;
 using System.Runtime.Serialization;
+using System.Security.Cryptography;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Xml;
@@ -31,18 +32,21 @@ using System.Xml;
 namespace PowerPlatform.Dataverse.Client
 {
     /// <summary>
-    /// Inner client to set up the SOAP channel using WS-Trust with SSPI auth
+    /// 使用 AD/SSPI 驗證的內部 Organization Service 實作。
+    /// 此物件只屬於一個 <see cref="OnPremiseClient"/>；Dispose 後會清除可清除的驗證衍生
+    /// 資料與帳密參考，避免連線池淘汰後讓 Token、密碼或身分狀態被保留在記憶體中。
     /// </summary>
-    class ADAuthClient : IOrganizationService
+    class ADAuthClient : IOrganizationService, IDisposable
     {
-        private readonly string _url;
-        private readonly string _domain;
-        private readonly string _username;
-        private readonly string _password;
-        private readonly string _upn;
+        private string _url;
+        private string _domain;
+        private string _username;
+        private string _password;
+        private string _upn;
         private DateTime _tokenExpires;
         private byte[] _proofToken;
         private SecurityContextToken _securityContextToken;
+        private int _disposeState;
 
         /// <summary>
         /// Creates a new <see cref="ADAuthClient"/>
@@ -106,10 +110,16 @@ namespace PowerPlatform.Dataverse.Client
         public Guid CallerId { get; set; }
 
         /// <summary>
-        /// Authenticates with the server
+        /// 向 AD/SSPI 端點取得並驗證目前 Client 專屬的短期安全權杖。
         /// </summary>
+        /// <remarks>
+        /// NegotiateAuthentication 僅在本次驗證呼叫的 using 範圍存活；權杖資料只保留到其到期
+        /// 或 Client Dispose，後者會清除 proof token 與帳密參考，避免跨連線或跨使用者重用。
+        /// </remarks>
         private void Authenticate()
         {
+            ThrowIfDisposed();
+
             if (_tokenExpires > DateTime.UtcNow.AddSeconds(10))
                 return;
 
@@ -121,7 +131,7 @@ namespace PowerPlatform.Dataverse.Client
             else
                 cred = new NetworkCredential(_username, _password, _domain);
 
-            var context = new NegotiateAuthentication(new NegotiateAuthenticationClientOptions
+            using var context = new NegotiateAuthentication(new NegotiateAuthenticationClientOptions
             {
                 AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Identification,
                 Credential = cred,
@@ -214,6 +224,47 @@ namespace PowerPlatform.Dataverse.Client
 
             // Check the authenticator is valid
             auth.Validate(_proofToken, finalResponse.Responses[1].Authenticator.Token);
+        }
+
+        /// <summary>
+        /// 釋放 AD 驗證快取並清除此實體仍可控制的敏感資料參考。
+        /// 字串本身不可在 .NET 中原地覆寫，因此以移除參考縮短其可達生命週期；位元組型
+        /// proof token 則會先歸零。這個 Client 不建立長駐背景工作，重複 Dispose 為安全 no-op。
+        /// </summary>
+        public void Dispose()
+        {
+            if (System.Threading.Interlocked.Exchange(ref _disposeState, 1) != 0)
+            {
+                return;
+            }
+
+            if (_proofToken != null)
+            {
+                CryptographicOperations.ZeroMemory(_proofToken);
+                _proofToken = null;
+            }
+
+            _securityContextToken = null;
+            _tokenExpires = default;
+            _url = null;
+            _domain = null;
+            _username = null;
+            _password = null;
+            _upn = null;
+            SdkClientVersion = null;
+            CallerId = Guid.Empty;
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// 防止 Client 在釋放後重新取得或重用 AD 工作階段，維持每個連線實體的單次生命週期。
+        /// </summary>
+        private void ThrowIfDisposed()
+        {
+            if (System.Threading.Volatile.Read(ref _disposeState) != 0)
+            {
+                throw new ObjectDisposedException(nameof(ADAuthClient));
+            }
         }
 
         /// <inheritdoc/>

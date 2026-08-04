@@ -2,7 +2,7 @@
     "id":  "dynamics-connection-compatibility",
     "name":  "dynamics-connection-compatibility",
     "title":  "Build the official-NuGet Dynamics 365 access gateway",
-    "description":  "Build a shared Dynamics 365 8.2/9.1 access gateway using separately version-pinned Microsoft CrmServiceClient worker processes, with SDK-free product/Gateway boundaries, deterministic worker recycling, zero session/resource leakage, and removal of direct Web API and Data8 routes.",
+    "description":  "Build a shared Dynamics 365 8.2/9.1 connection-management architecture with permanent Embedded, Dedicated Gateway, and Central Gateway deployment modes; deployment-owned Data8 or separately pinned Microsoft-worker connectors; deterministic resource cleanup; and zero session/resource leakage.",
     "status":  "in_progress",
     "dev_type":  null,
     "scope":  null,
@@ -27,8 +27,8 @@
     "relatedFiles":  [
 
                      ],
-    "notes":  "2026-08-02 direction correction: direct Web API and the D365APP01 CRMWeb/IFD management-diagnostic channel are no longer supported routes or Phase 4 blockers. The only new transports are separately version-pinned net48 Microsoft CrmServiceClient workers for CE 8.2 and CE 9.1. Existing WebApi scripts/projects are legacy replacement inputs pending removal; Data8 remains only for explicitly unmigrated traffic. Preserve the completed LocalDB cross-process capacity/fault evidence and existing Gateway isolation/lifecycle foundations. Package01FeeReadsEnabled remains false until its matching Phase 4 gates pass.",
-    "nextAction":  "Visual Studio Local Gateway is the immediate Phase 4C host: use a stable local Gateway/worker generation, approved CE 8.2 or CE 9.1 profile inputs, and validate website -> localhost Gateway -> pinned official Worker -> Organization Service. D365APP01 IFD, HTTP WhoAmI, and direct Web API are not Phase 4 gates. Keep Package01FeeReadsEnabled=false, prove identity/read/paging/recycle/isolation/no-leak behavior, and do not mark an unverified gate passed.",
+    "notes":  "2026-08-04 user-approved connection-management direction supersedes earlier Data8-removal language. Direct Web API and D365APP01 CRMWeb/IFD diagnostics are not routes or gates. Data8 is a permanent ConnectorKind alongside separately pinned net48 official workers; ConnectionMode is Embedded, DedicatedGateway, or CentralGateway. P1 contract/profile boundary and P2 deterministic Data8 disposal are implemented locally. Package01FeeReadsEnabled remains false until its matching gateway operation and live lifecycle gates pass.",
+    "nextAction":  "Implement P3: generation-owned per-Organization Data8 connector pools and an IConnectorRouter driven only by a resolved deployment profile. Then implement the shared Embedded/Dedicated/Central execution path. Keep all products free of connector/credential state, preserve Data8 and worker choices in deployment-owned JSON, and prove isolation, drain, cancellation, capacity, and no-leak gates before enabling product traffic.",
     "meta":  {
 
              }

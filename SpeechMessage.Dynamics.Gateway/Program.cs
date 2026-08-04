@@ -17,9 +17,12 @@ using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Extensions.Options;
+using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Configuration;
 using SpeechMessage.Dynamics.ControlPlane.DependencyInjection;
+using SpeechMessage.Dynamics.ControlPlane.Guard;
 using SpeechMessage.Dynamics.ControlPlane.Runtime;
 using SpeechMessage.Dynamics.Gateway;
 using SpeechMessage.Dynamics.Gateway.RequestLimits;
@@ -124,11 +127,22 @@ builder.Services.AddAuthorization();
 var dynamicsProfiles = LoadDynamicsProfileDefinitions(
     builder.Configuration,
     builder.Environment);
+// 新式 Profile/Catalog Resolver 與既有 official-worker definition 並行存在於 P1：前者固定
+// 三種 ConnectionMode 的部署端選擇與 Data8/Official connector 相容性，後者維持已驗證的
+// WorkerSupervisor 生命週期。兩者都只建立 immutable scalar snapshot，沒有 secret、session、
+// socket 或 reload subscription；後續 P3 Router 才會使用此 Resolver 建立 generation-owned Pool。
+var configurationProfileResolver = LoadConfigurationProfileResolver(builder.Configuration);
+builder.Services.AddSingleton<IProfileResolver>(configurationProfileResolver);
 builder.Services.AddSpeechMessageDynamicsOfficialWorkers(dynamicsProfiles);
 builder.Services.AddSingleton<IGatewayOperationAuthorizer>(serviceProvider =>
     new ConfigurationGatewayOperationAuthorizer(
         serviceProvider.GetRequiredService<IConfiguration>(),
         dynamicsProfiles.Select(static profile => profile.ProfileAlias)));
+// RequestGuard 只保存不可變 operation ID 集合，不保存 HttpContext、principal、body、Token 或
+// Profile 可變設定。它必須在 body 成功轉成受限 DTO 後、任何 executor/admission/worker 資源前
+// 執行，讓保留路由欄位在 400 路徑沒有 Session、Permit、連線或背景工作的遺留。
+builder.Services.AddSingleton<IRequestGuard>(_ => new RequestGuard(
+    Package01OperationRegistry.All.Select(static definition => definition.CapabilityOperationId)));
 builder.Services.AddHostedService<GatewayOperationAuthorizationStartupValidator>();
 
 if (!builder.Environment.IsEnvironment("Testing"))
@@ -233,6 +247,7 @@ app.MapPost(
         string capabilityOperationId,
         HttpContext httpContext,
         IGatewayOperationAuthorizer operationAuthorizer,
+        IRequestGuard requestGuard,
         GatewayOperationRequestBodyReader bodyReader,
         IDynamicsOperationExecutor executor,
         CancellationToken cancellationToken) =>
@@ -282,6 +297,16 @@ app.MapPost(
             Parameters = body.Parameters ?? new Dictionary<string, object?>(),
             IdempotencyKey = body.IdempotencyKey
         };
+
+        // Gateway 端先由 authenticated workload 導出 canonical alias/operation，再以同一套
+        // RequestGuard 拒絕 body 內企圖改寫 Organization、Connector、Credential、Endpoint 或
+        // FetchXML 的保留欄位。此步驟不觸碰 Resolver、Permit、Worker 或 Connector；被拒絕的
+        // request 因而不會留下跨 Profile Session 或任何可釋放資源。
+        var guardResult = requestGuard.Inspect(request, RequestOrigin.CentralGateway);
+        if (!guardResult.Succeeded)
+        {
+            return Results.BadRequest();
+        }
 
         var result = await executor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         return result.Succeeded
@@ -410,6 +435,79 @@ static IReadOnlyCollection<DynamicsProfileDefinition> LoadDynamicsProfileDefinit
     }
 
     return definitions;
+}
+
+/// <summary>
+/// 讀取 P1 的部署端 Profile 與 Organization Catalog，並立即製作不可變 Resolver snapshot。
+/// 此函式只處理設定 scalar，絕不解析 Credential、建立 CRM 連線、Worker、Permit、Timer 或
+/// reload watcher；因此 Gateway 啟動若因資料不完整失敗，不會留下跨 Profile/Organization 的
+/// Session 或資源。每個已設定 Profile 都必須在啟動時解析成功，防止 placeholder GUID、停用
+/// Organization 或不相容 Connector 延遲到第一個產品請求才暴露。
+/// </summary>
+/// <param name="configuration">Gateway 的啟動設定快照。</param>
+/// <returns>可安全在多執行緒間共用的 immutable Profile Resolver。</returns>
+/// <exception cref="InvalidOperationException">任何部署 Profile 未通過 fail-closed 驗證時擲回。</exception>
+static IProfileResolver LoadConfigurationProfileResolver(IConfiguration configuration)
+{
+    ArgumentNullException.ThrowIfNull(configuration);
+
+    var profiles = new Dictionary<string, DynamicsProfileOptions>(StringComparer.OrdinalIgnoreCase);
+    foreach (var section in configuration
+                 .GetSection("DynamicsConnectionManagement:Profiles")
+                 .GetChildren())
+    {
+        profiles[section.Key] = section.Get<DynamicsProfileOptions>() ?? new DynamicsProfileOptions();
+    }
+
+    var catalog = new Dictionary<string, OrganizationCatalogEntry>(StringComparer.OrdinalIgnoreCase);
+    foreach (var section in configuration
+                 .GetSection("DynamicsConnectionManagement:OrganizationCatalog")
+                 .GetChildren())
+    {
+        catalog[section.Key] = section.Get<OrganizationCatalogEntry>() ?? new OrganizationCatalogEntry();
+    }
+
+    ValidateOrganizationCatalog(catalog);
+    var resolver = new ConfigurationProfileResolver(profiles, catalog, generationId: 1);
+    foreach (var profileAlias in profiles.Keys)
+    {
+        if (!resolver.TryResolve(profileAlias, out _, out var error))
+        {
+            throw new InvalidOperationException(
+                $"DynamicsConnectionManagement profile '{profileAlias}' is invalid: {error}.");
+        }
+    }
+
+    return resolver;
+}
+
+/// <summary>
+/// 驗證所有已配置的 Organization Catalog 項目，即使目前尚未有對應 Profile。這讓已知 GUID
+/// 能在啟動時被固定並排除全零/全 f 樣板值，但不強迫尚未取得 CE 8.2 端點證據的 Catalog
+/// 項目提供 Service URI；沒有 Profile 就不會被 Resolver、Connector 或 Pool 使用，維持
+/// fail-closed 與資源零配置。此檢查只讀取 scalar，沒有 I/O 或可釋放所有者。
+/// </summary>
+/// <param name="catalog">從部署設定繫結而得的 Catalog 暫存快照。</param>
+/// <exception cref="InvalidOperationException">Catalog 身分或狀態不完整時擲回。</exception>
+static void ValidateOrganizationCatalog(
+    IReadOnlyDictionary<string, OrganizationCatalogEntry> catalog)
+{
+    foreach (var pair in catalog)
+    {
+        var entry = pair.Value;
+        var identityBytes = entry.OrganizationId.ToByteArray();
+        if (string.IsNullOrWhiteSpace(pair.Key) ||
+            string.IsNullOrWhiteSpace(entry.FriendlyName) ||
+            string.IsNullOrWhiteSpace(entry.UniqueName) ||
+            !string.Equals(pair.Key, entry.UniqueName, StringComparison.OrdinalIgnoreCase) ||
+            entry.OrganizationId == Guid.Empty ||
+            identityBytes.All(static value => value == byte.MaxValue) ||
+            !Enum.IsDefined(entry.State))
+        {
+            throw new InvalidOperationException(
+                $"DynamicsConnectionManagement organization catalog entry '{pair.Key}' is invalid.");
+        }
+    }
 }
 
 /// <summary>

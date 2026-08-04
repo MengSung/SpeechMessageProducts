@@ -76,7 +76,7 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
         var action = () => service.StartAsync(CancellationToken.None);
 
         await action.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*LocalGateway*DynamicsExecutionMode*");
+            .WithMessage("*LocalGateway*ConnectionMode*");
         host.GatewayExecutorRequests.Should().Be(0);
     }
 
@@ -240,14 +240,14 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
     /// </summary>
     private static IConfiguration CreateConfiguration(
         bool enabled,
-        string executionMode = "Gateway",
+        string executionMode = "DedicatedGateway",
         string endpoint = "https://localhost:7244/")
     {
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DynamicsAccess:Package01FeeReadsEnabled"] = enabled ? "true" : "false",
-                ["DynamicsAccess:ExecutionMode"] = executionMode,
+                ["DynamicsAccess:ConnectionMode"] = executionMode,
                 ["DynamicsAccess:ProfileAlias"] = "jesus-prod",
                 ["DynamicsAccess:Gateway:Endpoint"] = endpoint,
                 ["DynamicsAccess:Gateway:ApiPrefix"] = "/v1"
@@ -265,9 +265,9 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
             httpClient,
             Options.Create(new ProductDynamicsOptions
             {
-                ExecutionMode = DynamicsExecutionMode.Gateway,
+                ConnectionMode = ConnectionMode.DedicatedGateway,
                 ProfileAlias = "jesus-prod",
-                Gateway = new GatewayModeOptions
+                Gateway = new GatewayEndpointOptions
                 {
                     Endpoint = "https://localhost:7244/",
                     ApiPrefix = "/v1"

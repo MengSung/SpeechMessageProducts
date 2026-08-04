@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Codex" version="24.7.17" type="device">
+  <diagram id="dynamics-ultimate" name="終極版 Dynamics 連線架構">
+    <mxGraphModel dx="2600" dy="1900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="1900" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Dynamics 365 連線管理終極版架構" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=30;fontStyle=1;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="50" y="20" width="1800" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="ConnectionMode 決定部署位置；ConnectorKind 決定 Data8 或 Microsoft 官方 Worker。Central Gateway 是選項，不是強制。" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontColor=#42526E;" vertex="1" parent="1">
+          <mxGeometry x="50" y="67" width="2050" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="product-bg" value="① 產品與部署選擇" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#EAF2FF;strokeColor=#4C78A8;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="40" y="115" width="1680" height="245" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary-bg" value="② 統一操作邊界" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#E9F7EF;strokeColor=#3D9970;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="40" y="390" width="1680" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="config-bg" value="③ Profile、Organization 與憑證設定" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#FFF8E5;strokeColor=#C58B00;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#6B4E00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="605" width="1680" height="245" as="geometry" />
+        </mxCell>
+        <mxCell id="governance-bg" value="④ 世代、容量與隔離治理" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#F5ECFF;strokeColor=#8E63B0;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#4F2D66;" vertex="1" parent="1">
+          <mxGeometry x="40" y="880" width="1680" height="225" as="geometry" />
+        </mxCell>
+        <mxCell id="connector-bg" value="⑤ Connector 與實體 Pool" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#E7FAFC;strokeColor=#168C99;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1135" width="1680" height="245" as="geometry" />
+        </mxCell>
+        <mxCell id="lifecycle-bg" value="⑥ 借出、執行、歸還與故障清理" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#FFF1E8;strokeColor=#D97935;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1410" width="1680" height="385" as="geometry" />
+        </mxCell>
+        <mxCell id="notes-bg" value="模組說明與不可破壞的規則" style="swimlane;html=1;rounded=1;startSize=38;horizontal=1;fillColor=#F7F8FA;strokeColor=#5E6C84;strokeWidth=2;fontSize=17;fontStyle=1;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="1755" y="115" width="795" height="1680" as="geometry" />
+        </mxCell>
+
+        <mxCell id="product" value="&lt;b&gt;ChurchReport／其他產品&lt;/b&gt;&lt;br&gt;只提出 Dynamics 操作要求" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4C78A8;strokeWidth=2;fontSize=15;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="75" y="190" width="225" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="settings" value="&lt;b&gt;appsettings.json&lt;/b&gt;&lt;br&gt;ConnectionMode&lt;br&gt;ProfileAlias = sunnyvalechback&lt;br&gt;Gateway.Endpoint（條件式）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4C78A8;strokeWidth=2;fontSize=14;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="340" y="168" width="275" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="mode" value="&lt;b&gt;ConnectionMode&lt;/b&gt;&lt;br&gt;部署方式" style="rhombus;whiteSpace=wrap;html=1;fillColor=#D7E7FF;strokeColor=#2E5C8A;strokeWidth=2;fontSize=15;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="665" y="170" width="170" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="embedded" value="&lt;b&gt;Embedded&lt;/b&gt;&lt;br&gt;同進程控制層&lt;br&gt;最低延遲&lt;br&gt;不使用 Gateway.Endpoint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DFF0FF;strokeColor=#4C78A8;strokeWidth=2;fontSize=14;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="890" y="165" width="225" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="dedicated" value="&lt;b&gt;DedicatedGateway&lt;/b&gt;&lt;br&gt;原 LocalGateway&lt;br&gt;每個產品專屬服務&lt;br&gt;同主機可用 localhost:7244" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DFF0FF;strokeColor=#4C78A8;strokeWidth=2;fontSize=14;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="165" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="central" value="&lt;b&gt;CentralGateway&lt;/b&gt;&lt;br&gt;多產品共用服務&lt;br&gt;正式 HTTPS 網址&lt;br&gt;集中 Pool／容量／監控" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DFF0FF;strokeColor=#4C78A8;strokeWidth=2;fontSize=14;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="1435" y="165" width="250" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="embedded-adapter" value="&lt;b&gt;Embedded Host Adapter&lt;/b&gt;&lt;br&gt;以同進程方法呼叫共用核心&lt;br&gt;無 HTTP 網路跳躍" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3D9970;strokeWidth=2;fontSize=14;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="90" y="445" width="260" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway-api" value="&lt;b&gt;Gateway HTTPS API&lt;/b&gt;&lt;br&gt;Dedicated／Central 共用&lt;br&gt;驗證呼叫者、要求大小與逾時" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3D9970;strokeWidth=2;fontSize=14;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="410" y="445" width="285" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="contract" value="&lt;b&gt;Dynamics Operation Contract&lt;/b&gt;&lt;br&gt;只傳 ProfileAlias 與核准操作&lt;br&gt;產品不持有 SDK 連線物件" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3D9970;strokeWidth=2;fontSize=14;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="755" y="445" width="315" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="request-guard" value="&lt;b&gt;Request Guard&lt;/b&gt;&lt;br&gt;禁止 Request 自訂 OrganizationId、ConnectorKind、Credential&lt;br&gt;防止跨租戶與 Request-time fallback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5E8;strokeColor=#2E7D4F;strokeWidth=2;fontSize=14;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="435" width="500" height="115" as="geometry" />
+        </mxCell>
+
+        <mxCell id="resolver" value="&lt;b&gt;Profile Resolver&lt;/b&gt;&lt;br&gt;依 ProfileAlias 查詢&lt;br&gt;不存在、停用或不相容時 Fail Closed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B00;strokeWidth=2;fontSize=14;fontColor=#6B4E00;" vertex="1" parent="1">
+          <mxGeometry x="85" y="670" width="260" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="profiles" value="&lt;b&gt;DynamicsProfiles&lt;/b&gt;&lt;br&gt;OrganizationAlias／CE Version&lt;br&gt;ConnectorKind／CredentialReference&lt;br&gt;Pool、容量、逾時與重試政策" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B00;strokeWidth=2;fontSize=14;fontColor=#6B4E00;" vertex="1" parent="1">
+          <mxGeometry x="400" y="655" width="315" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="catalog" value="&lt;b&gt;OrganizationCatalog&lt;/b&gt;&lt;br&gt;FriendlyName／UniqueName&lt;br&gt;OrganizationId／State&lt;br&gt;只保存身分事實，不保存憑證" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B00;strokeWidth=2;fontSize=14;fontColor=#6B4E00;" vertex="1" parent="1">
+          <mxGeometry x="775" y="655" width="305" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="org-example" value="&lt;b&gt;sunnyvalechback&lt;/b&gt;&lt;br&gt;聖谷行道會（公司研發）&lt;br&gt;bfb92ead-3705-f011-8143-00155d006608" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF1BE;strokeColor=#C58B00;strokeWidth=2;fontSize=13;fontColor=#6B4E00;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="655" width="345" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="secrets" value="&lt;b&gt;Credential Provider&lt;/b&gt;&lt;br&gt;開發：Configuration&lt;br&gt;正式：Environment／Secret Store&lt;br&gt;Token／Credential 不寫入 Catalog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0F0;strokeColor=#C94C4C;strokeWidth=2;fontSize=14;fontColor=#7A1F1F;" vertex="1" parent="1">
+          <mxGeometry x="1495" y="655" width="195" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="generation" value="&lt;b&gt;Profile Generation Manager&lt;/b&gt;&lt;br&gt;設定不可變；更新建立新世代&lt;br&gt;舊世代 Drain 後才 Dispose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8E63B0;strokeWidth=2;fontSize=14;fontColor=#4F2D66;" vertex="1" parent="1">
+          <mxGeometry x="80" y="945" width="300" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="admission" value="&lt;b&gt;Admission Control&lt;/b&gt;&lt;br&gt;有界佇列、併發上限、逾時&lt;br&gt;拒絕無上限累積，保護記憶體" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8E63B0;strokeWidth=2;fontSize=14;fontColor=#4F2D66;" vertex="1" parent="1">
+          <mxGeometry x="425" y="945" width="285" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="org-capacity" value="&lt;b&gt;Organization Capacity&lt;/b&gt;&lt;br&gt;同一 Organization 聚合總預算&lt;br&gt;實體 Pool 仍按 Profile Generation 隔離" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8E63B0;strokeWidth=2;fontSize=14;fontColor=#4F2D66;" vertex="1" parent="1">
+          <mxGeometry x="755" y="945" width="330" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="inmemory" value="&lt;b&gt;In-Memory Coordinator&lt;/b&gt;&lt;br&gt;Embedded／Dedicated&lt;br&gt;或單一 Central 節點" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE1F7;strokeColor=#8E63B0;strokeWidth=2;fontSize=13;fontColor=#4F2D66;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="945" width="235" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="distributed" value="&lt;b&gt;Distributed Coordinator&lt;/b&gt;&lt;br&gt;僅多節點 Central 才需要&lt;br&gt;SQL 是可選實作，不是必需" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE1F7;strokeColor=#8E63B0;strokeWidth=2;dashed=1;fontSize=13;fontColor=#4F2D66;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="945" width="270" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="router" value="&lt;b&gt;Connector Router&lt;/b&gt;&lt;br&gt;只讀 Profile 固定 ConnectorKind&lt;br&gt;版本不相容立即拒絕" style="rhombus;whiteSpace=wrap;html=1;fillColor=#CDEFF3;strokeColor=#168C99;strokeWidth=2;fontSize=14;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1200" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="data8" value="&lt;b&gt;Data8 Connection Pool&lt;/b&gt;&lt;br&gt;永久保留的 Connector&lt;br&gt;支援 CE 8.2／9.1&lt;br&gt;有界連線物件與確定 Dispose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#168C99;strokeWidth=2;fontSize=14;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="375" y="1195" width="285" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="worker82" value="&lt;b&gt;OfficialCrm82Worker Pool&lt;/b&gt;&lt;br&gt;獨立 net48 Worker 進程&lt;br&gt;Microsoft CE 8.2 NuGet&lt;br&gt;監督啟動、健康與回收" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#168C99;strokeWidth=2;fontSize=14;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="705" y="1195" width="290" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="worker91" value="&lt;b&gt;OfficialCrm91Worker Pool&lt;/b&gt;&lt;br&gt;獨立 net48 Worker 進程&lt;br&gt;Microsoft CE 9.1 NuGet&lt;br&gt;監督啟動、健康與回收" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#168C99;strokeWidth=2;fontSize=14;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="1195" width="290" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="lease" value="&lt;b&gt;Lease Manager&lt;/b&gt;&lt;br&gt;借出 Connection 或 Worker Slot&lt;br&gt;單一擁有者；完成一定歸還&lt;br&gt;故障資源不得再進 Pool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D8F5F7;strokeColor=#168C99;strokeWidth=2;fontSize=14;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="1195" width="300" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="execute" value="&lt;b&gt;執行 Dynamics 操作&lt;/b&gt;&lt;br&gt;每次要求建立獨立 Request Context&lt;br&gt;不把使用者／Token／Session 放入 Pool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97935;strokeWidth=2;fontSize=14;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1490" width="330" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="d365" value="&lt;b&gt;D365 Organization Service&lt;/b&gt;&lt;br&gt;由 OrganizationAlias 對應指定 Org&lt;br&gt;CE 8.2 或 CE 9.1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#59636E;strokeWidth=2;fontSize=14;fontColor=#263238;" vertex="1" parent="1">
+          <mxGeometry x="465" y="1490" width="300" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="healthy" value="&lt;b&gt;結果與資源&lt;br&gt;是否健康？&lt;/b&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFE1CC;strokeColor=#D97935;strokeWidth=2;fontSize=14;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="825" y="1470" width="210" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="return" value="&lt;b&gt;健康路徑&lt;/b&gt;&lt;br&gt;重設必要狀態&lt;br&gt;歸還原 Profile Generation Pool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#3D9970;strokeWidth=2;fontSize=14;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="1455" width="280" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="evict" value="&lt;b&gt;故障／逾時／取消路徑&lt;/b&gt;&lt;br&gt;標記失效並淘汰&lt;br&gt;Dispose 連線／終止 Worker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE5E5;strokeColor=#C94C4C;strokeWidth=2;fontSize=14;fontColor=#7A1F1F;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="1620" width="280" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="cleanup" value="&lt;b&gt;finally：確定清理&lt;/b&gt;&lt;br&gt;釋放容量 Permit／Cancellation Registration&lt;br&gt;清除 Request Context；回傳結果&lt;br&gt;不留下 Process／Timer／Handle／Task" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE9D9;strokeColor=#D97935;strokeWidth=3;fontSize=14;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="1440" y="1535" width="245" height="145" as="geometry" />
+        </mxCell>
+
+        <mxCell id="notes-modes" value="&lt;b&gt;A. 三種正式部署方式都永久支援&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Embedded：產品內共用核心，最低延遲。&lt;br&gt;• DedicatedGateway：與單一產品一起部署，但保持獨立進程。&lt;br&gt;• CentralGateway：多產品共用，集中治理與資源重用。&lt;br&gt;&lt;br&gt;Localhost 只在產品與 Dedicated Gateway 位於同一主機／網路命名空間時成立。" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#FFFFFF;strokeColor=#4C78A8;strokeWidth=2;fontSize=14;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="175" width="725" height="245" as="geometry" />
+        </mxCell>
+        <mxCell id="notes-profile" value="&lt;b&gt;B. ProfileAlias 是唯一產品選擇鍵&lt;/b&gt;&lt;br&gt;&lt;br&gt;產品只傳 ProfileAlias，例如 sunnyvalechback。Profile 解析 OrganizationAlias、CE Version 與 ConnectorKind，再由 OrganizationCatalog 自動取得 OrganizationId。&lt;br&gt;&lt;br&gt;同一 Organization 若要同時啟用不同 Connector，應建立不同 ProfileAlias；禁止每個 Request 臨時切換 Connector。" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#FFFFFF;strokeColor=#C58B00;strokeWidth=2;fontSize=14;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="450" width="725" height="245" as="geometry" />
+        </mxCell>
+        <mxCell id="notes-pool" value="&lt;b&gt;C. Pool 與容量不是同一個切分維度&lt;/b&gt;&lt;br&gt;&lt;br&gt;• 實體 Pool：按 Profile Generation 隔離，防止不同 Connector、憑證或設定混用。&lt;br&gt;• Organization Capacity：同一實體 Organization 聚合總預算。&lt;br&gt;• Data8：是真正的連線物件 Pool。&lt;br&gt;• Official Worker：是有界的獨立進程／執行槽 Pool。" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#FFFFFF;strokeColor=#168C99;strokeWidth=2;fontSize=14;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="725" width="725" height="235" as="geometry" />
+        </mxCell>
+        <mxCell id="notes-leak" value="&lt;b&gt;D. Session／Memory／Resource Leakage 零容忍&lt;/b&gt;&lt;br&gt;&lt;br&gt;• 不共用 Request、使用者、租戶、Token 或可變狀態。&lt;br&gt;• 所有 Lease、Permit、Timer、Stream、Handle、Process、Task 與 Cancellation Registration 都有單一擁有者。&lt;br&gt;• 健康資源才可歸還；故障資源必須淘汰。&lt;br&gt;• 設定更新使用新世代，舊世代 Drain 後確定釋放。" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#FFF7F7;strokeColor=#C94C4C;strokeWidth=2;fontSize=14;fontColor=#7A1F1F;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="990" width="725" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="notes-sql" value="&lt;b&gt;E. SQL 並不是 Gateway 的必要條件&lt;/b&gt;&lt;br&gt;&lt;br&gt;Embedded、DedicatedGateway 與單一 Central 節點使用 In-Memory Coordinator 即可。只有 Central Gateway 同時部署多個節點、又需要跨節點總容量與 fencing 時，才需要分散式 Coordinator；SQL 只是其中一種可替換實作。" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#FFFFFF;strokeColor=#8E63B0;strokeWidth=2;fontSize=14;fontColor=#4F2D66;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="1280" width="725" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="notes-observe" value="&lt;b&gt;F. 監控與效能&lt;/b&gt;&lt;br&gt;&lt;br&gt;監控 Profile Generation、等待時間、借出數、拒絕數、Pool 使用率、Worker 重啟與清理結果。Telemetry 不得記錄 Credential、Token、Cookie 或完整敏感 Payload。Embedded 延遲最低；Dedicated 提供故障隔離；Central 提供最高的跨產品資源重用。" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#FFFFFF;strokeColor=#5E6C84;strokeWidth=2;fontSize=14;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="1520" width="725" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e-product-settings" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#4C78A8;" edge="1" parent="1" source="product" target="settings"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-settings-mode" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#4C78A8;" edge="1" parent="1" source="settings" target="mode"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-mode-embedded" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#4C78A8;exitX=1;exitY=0.4;entryX=0;entryY=0.5;" edge="1" parent="1" source="mode" target="embedded"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-mode-dedicated" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#4C78A8;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="mode" target="dedicated"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="750" y="325" /><mxPoint x="1275" y="325" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-mode-central" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#4C78A8;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="mode" target="central"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="750" y="345" /><mxPoint x="1560" y="345" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-embedded-adapter" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3D9970;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="embedded" target="embedded-adapter"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1003" y="370" /><mxPoint x="220" y="370" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-dedicated-api" value="localhost／內部網址" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3D9970;fontSize=12;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="dedicated" target="gateway-api"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1275" y="375" /><mxPoint x="553" y="375" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-central-api" value="正式 HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3D9970;fontSize=12;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" edge="1" parent="1" source="central" target="gateway-api"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1560" y="382" /><mxPoint x="720" y="382" /><mxPoint x="720" y="493" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-adapter-contract" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3D9970;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="embedded-adapter" target="contract"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="220" y="560" /><mxPoint x="913" y="560" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-api-contract" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3D9970;" edge="1" parent="1" source="gateway-api" target="contract"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-contract-guard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3D9970;" edge="1" parent="1" source="contract" target="request-guard"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-guard-resolver" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#C58B00;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="request-guard" target="resolver"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1380" y="590" /><mxPoint x="215" y="590" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-resolver-profiles" value="ProfileAlias" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#C58B00;fontSize=12;" edge="1" parent="1" source="resolver" target="profiles"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-profiles-catalog" value="OrganizationAlias" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#C58B00;fontSize=12;" edge="1" parent="1" source="profiles" target="catalog"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-catalog-example" value="自動取得 ID" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#C58B00;fontSize=12;" edge="1" parent="1" source="catalog" target="org-example"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-profiles-secrets" value="CredentialReference" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#C94C4C;fontSize=12;dashed=1;" edge="1" parent="1" source="profiles" target="secrets"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-profiles-generation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#8E63B0;" edge="1" parent="1" source="profiles" target="generation"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-generation-admission" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#8E63B0;" edge="1" parent="1" source="generation" target="admission"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-admission-orgcapacity" value="取得 Permit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#8E63B0;fontSize=12;" edge="1" parent="1" source="admission" target="org-capacity"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-orgcapacity-inmemory" value="單節點" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#8E63B0;fontSize=12;" edge="1" parent="1" source="org-capacity" target="inmemory"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-orgcapacity-distributed" value="多節點 Central" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#8E63B0;fontSize=12;dashed=1;" edge="1" parent="1" source="org-capacity" target="distributed"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-inmemory-router" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;" edge="1" parent="1" source="inmemory" target="router"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-distributed-router" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;dashed=1;" edge="1" parent="1" source="distributed" target="router"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-profiles-router" value="固定 ConnectorKind" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;endFill=0;strokeWidth=2;strokeColor=#168C99;fontSize=12;dashed=1;" edge="1" parent="1" source="profiles" target="router"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-router-data8" value="Data8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="router" target="data8"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-router-worker82" value="Official 8.2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;fontSize=12;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="router" target="worker82"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="1350" /><mxPoint x="850" y="1350" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-router-worker91" value="Official 9.1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;fontSize=12;exitX=0.5;exitY=0;entryX=0.5;entryY=0;" edge="1" parent="1" source="router" target="worker91"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="1178" /><mxPoint x="1185" y="1178" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-data8-lease" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;exitX=0.5;exitY=0;entryX=0.5;entryY=0;" edge="1" parent="1" source="data8" target="lease"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="518" y="1184" /><mxPoint x="1530" y="1184" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-worker82-lease" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="worker82" target="lease"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="850" y="1362" /><mxPoint x="1530" y="1362" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-worker91-lease" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#168C99;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="worker91" target="lease"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-lease-execute" value="借出" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D97935;fontSize=12;" edge="1" parent="1" source="lease" target="execute"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-execute-d365" value="呼叫" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D97935;fontSize=12;" edge="1" parent="1" source="execute" target="d365"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-d365-healthy" value="結果" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D97935;fontSize=12;" edge="1" parent="1" source="d365" target="healthy"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-healthy-return" value="健康" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3D9970;fontSize=12;" edge="1" parent="1" source="healthy" target="return"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-healthy-evict" value="故障／取消／逾時" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#C94C4C;fontSize=12;" edge="1" parent="1" source="healthy" target="evict"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-return-cleanup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D97935;" edge="1" parent="1" source="return" target="cleanup"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-evict-cleanup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D97935;" edge="1" parent="1" source="evict" target="cleanup"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-return-pool" value="健康才歸還" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;endFill=0;strokeWidth=2;strokeColor=#3D9970;fontSize=12;dashed=1;" edge="1" parent="1" source="return" target="lease"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

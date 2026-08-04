@@ -1,5 +1,46 @@
 # Dynamics Gateway Hosting and CE 8.2/9.1 Routing Contract
 
+## 0. 2026-08-04 connection-management supersession
+
+The user-approved contract in `docs/dynamics-connection-management-spec.md`
+supersedes any conflicting historic wording below, including statements that
+Data8 is temporary-only, that the only modes are `Gateway`/`Embedded`, or that
+Embedded must be deferred.
+
+- `ConnectionMode` has exactly `Embedded`, `DedicatedGateway`, and
+  `CentralGateway`. All three are permanent deployment choices. Dedicated and
+  Central Gateway share the HTTPS product contract; their deployment location
+  does not change product-facing behavior.
+- `ConnectorKind` has exactly `Data8`, `OfficialCrm82Worker`, and
+  `OfficialCrm91Worker`. Data8 is a permanent supported choice, not merely a
+  fallback. Connector selection belongs to a deployment-owned Profile and
+  cannot be selected or changed by a request.
+- A Data8 `OnPremiseClient` is the unique owner of its Federated WCF Channel,
+  ChannelFactory, or AD authentication client. It must Close each healthy WCF
+  object, Abort it if Close fails, continue attempting all later cleanup, and
+  surface aggregated cleanup failures to its pool owner. Construction rollback
+  follows the same ownership rule. A legacy pool must nevertheless release its
+  own capacity slot in `finally` even when downstream disposal fails; otherwise
+  it leaks capacity and eventually rejects unrelated profiles as permanently
+  full. Do not log raw cleanup exception details because WCF exception text may
+  contain endpoint or authentication data.
+- Profile isolation is `(ProfileAlias, GenerationId)`. Organization-level
+  capacity is keyed by the confirmed `OrganizationId`, so aliases of the same
+  physical Organization share a budget while never sharing mutable sessions,
+  credentials, connections, workers, or profile state.
+- Products expose only `ConnectionMode`, `ProfileAlias`, and optional Gateway
+  endpoint settings. They never contain Organization ID, connector kind, CRM
+  endpoint, credential reference, token, or pool configuration.
+- Every mode executes the same RequestGuard before Profile resolution,
+  admission, Connector allocation, or outbound work. `organizationId`,
+  `connectorKind`, `credential`, `endpoint`, and `fetchXml` are reserved input
+  names and must fail closed.
+
+The older official-worker material remains applicable when the selected
+connector is `OfficialCrm82Worker` or `OfficialCrm91Worker`, especially for
+net48 process isolation and deterministic worker cleanup. It is not an
+exclusive transport mandate.
+
 ## 0. Authoritative Microsoft NuGet worker direction
 
 This section supersedes every older Web-API-first, optional-Web-API, or

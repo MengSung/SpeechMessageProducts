@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Codex" version="24.7.17" type="device">
+  <diagram id="teaching-simple" name="教學簡易版">
+    <mxGraphModel dx="2150" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2150" pageHeight="1000" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Dynamics 365 連線架構｜教學簡易版" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=30;fontStyle=1;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="45" y="20" width="1350" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="先選「部署方式」，再由 Profile 固定選擇「連線技術」。Central Gateway 是選項，不是強制。" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;fontColor=#42526E;" vertex="1" parent="1">
+          <mxGeometry x="45" y="70" width="1800" height="32" as="geometry" />
+        </mxCell>
+
+        <mxCell id="product" value="&lt;b&gt;① 產品&lt;/b&gt;&lt;br&gt;&lt;br&gt;ChurchReport&lt;br&gt;或其他產品" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAF2FF;strokeColor=#4C78A8;strokeWidth=3;fontSize=18;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="45" y="330" width="190" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="settings" value="&lt;b&gt;appsettings.json&lt;/b&gt;&lt;br&gt;&lt;br&gt;ConnectionMode&lt;br&gt;ProfileAlias&lt;br&gt;= sunnyvalechback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4C78A8;strokeWidth=3;fontSize=17;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="280" y="315" width="255" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="mode" value="&lt;b&gt;② 選擇&lt;br&gt;部署方式&lt;/b&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#D9F2E4;strokeColor=#3D9970;strokeWidth=3;fontSize=18;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="580" y="330" width="190" height="155" as="geometry" />
+        </mxCell>
+
+        <mxCell id="embedded" value="&lt;b&gt;A. Embedded&lt;/b&gt;&lt;br&gt;放在產品裡面&lt;br&gt;最快、最方便" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#3D9970;strokeWidth=3;fontSize=17;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="825" y="150" width="245" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="dedicated" value="&lt;b&gt;B. Dedicated Gateway&lt;/b&gt;&lt;br&gt;原 Local Gateway&lt;br&gt;與單一產品一起部署&lt;br&gt;同主機可用 localhost" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#3D9970;strokeWidth=3;fontSize=16;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="825" y="345" width="245" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="central" value="&lt;b&gt;C. Central Gateway&lt;/b&gt;&lt;br&gt;多個產品共用&lt;br&gt;集中管理連線與容量" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#3D9970;strokeWidth=3;fontSize=17;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="825" y="560" width="245" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="manager" value="&lt;b&gt;③ 連線管理中心&lt;/b&gt;&lt;br&gt;&lt;br&gt;ProfileAlias&lt;br&gt;↓&lt;br&gt;DynamicsProfile&lt;br&gt;↓&lt;br&gt;OrganizationId&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#6B4E00&quot;&gt;全部自動對應&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E5;strokeColor=#C58B00;strokeWidth=3;fontSize=17;fontColor=#6B4E00;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="260" width="270" height="310" as="geometry" />
+        </mxCell>
+
+        <mxCell id="connector" value="&lt;b&gt;④ Profile 固定&lt;br&gt;ConnectorKind&lt;/b&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#D8F5F7;strokeColor=#168C99;strokeWidth=3;fontSize=17;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="1465" y="335" width="205" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="data8" value="&lt;b&gt;Data8 Pool&lt;/b&gt;&lt;br&gt;永久保留&lt;br&gt;CE 8.2／9.1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7FAFC;strokeColor=#168C99;strokeWidth=3;fontSize=17;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="1725" y="215" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="official" value="&lt;b&gt;官方 Worker Pool&lt;/b&gt;&lt;br&gt;CE 8.2 Worker&lt;br&gt;CE 9.1 Worker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7FAFC;strokeColor=#168C99;strokeWidth=3;fontSize=17;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="1725" y="500" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="d365" value="&lt;b&gt;⑤ D365&lt;/b&gt;&lt;br&gt;&lt;br&gt;指定 Organization&lt;br&gt;CE 8.2／9.1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F3F5;strokeColor=#59636E;strokeWidth=3;fontSize=18;fontColor=#263238;" vertex="1" parent="1">
+          <mxGeometry x="1965" y="330" width="155" height="175" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lifecycle-title" value="&lt;b&gt;⑥ 每一次操作都必須完成「借出 → 使用 → 歸還」&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=19;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="300" y="735" width="1500" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="borrow" value="&lt;b&gt;借出&lt;/b&gt;&lt;br&gt;Connection／Worker Slot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF1E8;strokeColor=#D97935;strokeWidth=3;fontSize=17;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="430" y="790" width="270" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="use" value="&lt;b&gt;使用&lt;/b&gt;&lt;br&gt;執行 D365 操作&lt;br&gt;每個要求狀態獨立" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF1E8;strokeColor=#D97935;strokeWidth=3;fontSize=17;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="885" y="790" width="270" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="giveback" value="&lt;b&gt;歸還／淘汰&lt;/b&gt;&lt;br&gt;健康就歸還 Pool&lt;br&gt;故障就 Dispose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF1E8;strokeColor=#D97935;strokeWidth=3;fontSize=17;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="790" width="270" height="105" as="geometry" />
+        </mxCell>
+
+        <mxCell id="note1" value="Central Gateway 不是必選" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAF2FF;strokeColor=#4C78A8;strokeWidth=2;fontSize=15;fontStyle=1;fontColor=#17365D;" vertex="1" parent="1">
+          <mxGeometry x="75" y="930" width="330" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="note2" value="Data8 是永久 Connector" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7FAFC;strokeColor=#168C99;strokeWidth=2;fontSize=15;fontStyle=1;fontColor=#0B4F56;" vertex="1" parent="1">
+          <mxGeometry x="500" y="930" width="330" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="note3" value="Dedicated Gateway 也能正式部署" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#3D9970;strokeWidth=2;fontSize=15;fontStyle=1;fontColor=#1E5631;" vertex="1" parent="1">
+          <mxGeometry x="925" y="930" width="350" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="note4" value="用完一定歸還；故障一定淘汰" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF1E8;strokeColor=#D97935;strokeWidth=2;fontSize=15;fontStyle=1;fontColor=#7A3511;" vertex="1" parent="1">
+          <mxGeometry x="1370" y="930" width="365" height="48" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e-product-settings" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#4C78A8;" edge="1" parent="1" source="product" target="settings"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-settings-mode" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#4C78A8;" edge="1" parent="1" source="settings" target="mode"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-mode-embedded" value="A" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#3D9970;fontSize=15;fontStyle=1;exitX=1;exitY=0.25;entryX=0;entryY=0.5;" edge="1" parent="1" source="mode" target="embedded"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="795" y="369" /><mxPoint x="795" y="213" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-mode-dedicated" value="B" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#3D9970;fontSize=15;fontStyle=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="mode" target="dedicated"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-mode-central" value="C" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#3D9970;fontSize=15;fontStyle=1;exitX=1;exitY=0.75;entryX=0;entryY=0.5;" edge="1" parent="1" source="mode" target="central"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="795" y="446" /><mxPoint x="795" y="623" /></Array></mxGeometry></mxCell>
+
+        <mxCell id="e-embedded-manager" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#C58B00;exitX=1;exitY=0.5;entryX=0;entryY=0.25;" edge="1" parent="1" source="embedded" target="manager"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1100" y="213" /><mxPoint x="1100" y="338" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-dedicated-manager" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#C58B00;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="dedicated" target="manager"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-central-manager" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#C58B00;exitX=1;exitY=0.5;entryX=0;entryY=0.75;" edge="1" parent="1" source="central" target="manager"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1100" y="623" /><mxPoint x="1100" y="493" /></Array></mxGeometry></mxCell>
+
+        <mxCell id="e-manager-connector" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#168C99;" edge="1" parent="1" source="manager" target="connector"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-connector-data8" value="Data8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#168C99;fontSize=15;fontStyle=1;exitX=1;exitY=0.3;entryX=0;entryY=0.5;" edge="1" parent="1" source="connector" target="data8"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1695" y="385" /><mxPoint x="1695" y="280" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-connector-official" value="Official" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#168C99;fontSize=15;fontStyle=1;exitX=1;exitY=0.7;entryX=0;entryY=0.5;" edge="1" parent="1" source="connector" target="official"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1695" y="451" /><mxPoint x="1695" y="565" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-data8-d365" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#59636E;exitX=1;exitY=0.5;entryX=0;entryY=0.25;" edge="1" parent="1" source="data8" target="d365"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1945" y="280" /><mxPoint x="1945" y="374" /></Array></mxGeometry></mxCell>
+        <mxCell id="e-official-d365" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#59636E;exitX=1;exitY=0.5;entryX=0;entryY=0.75;" edge="1" parent="1" source="official" target="d365"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1945" y="565" /><mxPoint x="1945" y="461" /></Array></mxGeometry></mxCell>
+
+        <mxCell id="e-borrow-use" value="使用" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#D97935;fontSize=15;" edge="1" parent="1" source="borrow" target="use"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-use-return" value="完成" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#D97935;fontSize=15;" edge="1" parent="1" source="use" target="giveback"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-return-borrow" value="下一次再借出" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;endFill=0;strokeWidth=3;strokeColor=#D97935;fontSize=15;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="giveback" target="borrow"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1475" y="915" /><mxPoint x="565" y="915" /></Array></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

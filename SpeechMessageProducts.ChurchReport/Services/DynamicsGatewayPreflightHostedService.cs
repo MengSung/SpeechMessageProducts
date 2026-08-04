@@ -86,7 +86,8 @@ public sealed class DynamicsGatewayPreflightHostedService : IHostedService
         }
 
         var options = DonationDynamicsAccessBootstrap.BindOptions(_configuration);
-        if (options.ExecutionMode != DynamicsExecutionMode.Gateway)
+        if (options.ConnectionMode is not (
+                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway))
         {
             return;
         }

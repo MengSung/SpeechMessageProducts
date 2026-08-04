@@ -401,7 +401,10 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// 釋放單一池化連線，並同步更新查找表與大小計數。
+        /// 釋放單一池化連線，並在任何下游釋放失敗後仍歸還此連線所占用的容量槽。
+        /// 服務本體的 Dispose 可能因 WCF Close/Abort 失敗而擲出例外；該錯誤不得阻止
+        /// 查找表移除與容量計數回收，否則池會永久誤判為已滿。此方法不記錄例外詳細內容，
+        /// 避免端點、帳密或驗證資訊經由例外文字外洩到診斷輸出。
         /// </summary>
         private void DisposeConnection(PooledConnection connection)
         {
@@ -413,14 +416,18 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 }
 
                 (connection?.Service as IDisposable)?.Dispose();
-                if (connection != null && connection.PoolOwned)
-                {
-                    Interlocked.Decrement(ref _currentSize);
-                }
             }
             catch
             {
-                // 釋放失敗不再往外拋，避免清理流程中斷。
+                // 此為盡力清理路徑；finally 仍必須回收池的容量所有權。
+            }
+            finally
+            {
+                if (connection != null && connection.PoolOwned)
+                {
+                    connection.PoolOwned = false;
+                    Interlocked.Decrement(ref _currentSize);
+                }
             }
         }
 
