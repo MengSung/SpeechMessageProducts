@@ -1,0 +1,143 @@
+<mxfile host="app.diagrams.net" agent="Claude" version="24.0.0">
+
+  <diagram name="1 · 綜合版設計" id="m1">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1520" pageHeight="1320" math="0" shadow="0">
+      <root>
+        <mxCell id="0" /><mxCell id="1" parent="0" />
+
+        <mxCell id="t" value="綜合版：借用 Codex 的命名與擴充點，修正治理繞道" style="text;html=1;fontSize=24;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="14" width="1000" height="34" as="geometry" /></mxCell>
+        <mxCell id="s" value="一句話：ConnectionMode 決定「治理層跑在哪個進程」，不是「要不要治理」。ConnectorKind 是編譯期策略介面，不是執行期開關。" style="text;html=1;fontSize=12;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="46" width="1300" height="18" as="geometry" /></mxCell>
+
+        <mxCell id="prod" value="產品（ChurchReport ／ 產品 B～J）&#10;只提供：ProfileAlias ＋ CapabilityOperationId ＋ 具名參數" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="86" width="600" height="56" as="geometry" /></mxCell>
+        <mxCell id="pc" value="ProductClient（唯一入口 · 產品端不含任何 CRM 概念）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="490" y="164" width="540" height="40" as="geometry" /></mxCell>
+
+        <mxCell id="cm" value="ConnectionMode&#10;決定「治理層跑在哪個進程」" style="rhombus;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="226" width="280" height="94" as="geometry" /></mxCell>
+        <mxCell id="cmn" value="★ 命名借自 Codex" style="text;html=1;fontSize=11;fontColor=#1F5FA8;align=left;" vertex="1" parent="1">
+          <mxGeometry x="915" y="264" width="180" height="18" as="geometry" /></mxCell>
+
+        <mxCell id="m1" value="Embedded&#10;治理層在產品進程內&#10;★ VS 按 F5 直接跑&#10;（取代 Codex 的 DirectData8）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="366" width="250" height="76" as="geometry" /></mxCell>
+        <mxCell id="m2" value="LocalGateway&#10;治理層在本機獨立進程&#10;產品經 HTTP 呼叫&#10;（驗證邊界時用）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="635" y="366" width="250" height="76" as="geometry" /></mxCell>
+        <mxCell id="m3" value="CentralGateway&#10;治理層在共用服務&#10;多產品經 HTTP 呼叫&#10;（正式部署）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="366" width="250" height="76" as="geometry" /></mxCell>
+
+        <mxCell id="band" value="★★★　三種模式在這裡匯合 —— 以下每一層都是同一份程式碼、同一套規則、同一組測試　★★★" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="120" y="480" width="1280" height="40" as="geometry" /></mxCell>
+
+        <mxCell id="cp" value="ControlPlane　治理層" style="swimlane;html=1;startSize=30;fillColor=#ffffff;strokeColor=#1F5FA8;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="550" width="1280" height="130" as="geometry" /></mxCell>
+        <mxCell id="cp1" value="Operation Registry&#10;只有註冊過的操作能執行&#10;產品不能送 FetchXML／URL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF0F4;strokeColor=#1F5FA8;fontSize=11;" vertex="1" parent="cp">
+          <mxGeometry x="18" y="38" width="300" height="70" as="geometry" /></mxCell>
+        <mxCell id="cp2" value="容量准入&#10;有界佇列 · 併發號誌&#10;每產品上限 · 封包大小檢查" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF0F4;strokeColor=#1F5FA8;fontSize=11;" vertex="1" parent="cp">
+          <mxGeometry x="334" y="38" width="300" height="70" as="geometry" /></mxCell>
+        <mxCell id="cp3" value="Profile 世代管理&#10;每 alias 最多 1 Active + 1 Draining&#10;replace-and-drain 換設定" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF0F4;strokeColor=#1F5FA8;fontSize=11;" vertex="1" parent="cp">
+          <mxGeometry x="650" y="38" width="300" height="70" as="geometry" /></mxCell>
+        <mxCell id="cp4" value="稽核 · 遙測 · 健康&#10;誰在何時查了什麼&#10;集中一處可觀測" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF0F4;strokeColor=#1F5FA8;fontSize=11;" vertex="1" parent="cp">
+          <mxGeometry x="966" y="38" width="296" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="pfr" value="per-Organization Profile 解析　★ 借自 Codex：Profile 綁 Organization，不綁版本。版本只是 Profile 的一個屬性" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="706" width="1280" height="40" as="geometry" /></mxCell>
+
+        <mxCell id="pool" value="ConnectionPool　唯一一份實作 · 每個 Organization 一個池" style="swimlane;html=1;startSize=30;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="772" width="1280" height="182" as="geometry" /></mxCell>
+        <mxCell id="pl1" value="Pool: sunnyvalechback&#10;9.1 · bfb92ead-…" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=10;" vertex="1" parent="pool">
+          <mxGeometry x="18" y="38" width="238" height="48" as="geometry" /></mxCell>
+        <mxCell id="pl2" value="Pool: elijah&#10;9.1 · 2db26a2f-…" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=10;" vertex="1" parent="pool">
+          <mxGeometry x="272" y="38" width="238" height="48" as="geometry" /></mxCell>
+        <mxCell id="pl3" value="Pool: david&#10;9.1 · 37412ebe-…" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=10;" vertex="1" parent="pool">
+          <mxGeometry x="526" y="38" width="238" height="48" as="geometry" /></mxCell>
+        <mxCell id="pl4" value="Pool: solomon ／ speechmessage&#10;9.1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=10;" vertex="1" parent="pool">
+          <mxGeometry x="780" y="38" width="238" height="48" as="geometry" /></mxCell>
+        <mxCell id="pl5" value="Pool: jesus&#10;8.2 · GUID 待取得" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=10;" vertex="1" parent="pool">
+          <mxGeometry x="1034" y="38" width="228" height="48" as="geometry" /></mxCell>
+        <mxCell id="pln" value="↺　AcquireConnection（借出）　→　使用　→　ReleaseConnection（歸還）　↺&#10;MinPoolSize／MaxPoolSize · 閒置回收 · 健康檢查 · 確定性 Dispose" style="text;html=1;fontSize=12;fontColor=#12492E;align=center;fontStyle=1;" vertex="1" parent="pool">
+          <mxGeometry x="18" y="96" width="1244" height="46" as="geometry" /></mxCell>
+        <mxCell id="pln2" value="★ 不論 ConnectionMode 是哪一種，池的實作與生命週期規則完全相同 —— 只是這份池活在不同的進程裡" style="text;html=1;fontSize=11;fontColor=#1F7A4C;align=center;" vertex="1" parent="pool">
+          <mxGeometry x="18" y="146" width="1244" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="ck" value="IConnectorKind　傳輸策略介面　★ 借自 Codex 的概念，但改成「編譯期擴充點」而非「執行期開關」" style="swimlane;html=1;startSize=30;fillColor=#ffffff;strokeColor=#1F5FA8;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="982" width="1280" height="152" as="geometry" /></mxCell>
+        <mxCell id="ck1" value="Data8Connector　【現行唯一啟用的實作】&#10;· MIT 授權 · 原始碼在 repo（55 檔／6,919 行）&#10;· crm82 → sdkVersion:8　　crm91 → sdkVersion:9&#10;· 兩個必修：IDisposable ＋ _sdkMajorVersion 改實例欄位&#10;· 進 CI · 有完整測試與 soak 驗證" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="ck">
+          <mxGeometry x="18" y="38" width="620" height="98" as="geometry" /></mxCell>
+        <mxCell id="ck2" value="OfficialWorkerConnector　【擴充點 · 程式碼保留 · 未啟用】&#10;· net48 進程 ＋ 官方 CrmServiceClient（63 檔已存在）&#10;· 不進 CI · 不寫平行測試 · 不承諾行為一致&#10;· 將來若合規要求「只能用原廠元件」，換這個實作即可&#10;· 上層（ControlPlane／Pool／產品）完全不用改" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F0F0F0;strokeColor=#999999;fontSize=11;dashed=1;align=left;spacingLeft=10;fontColor=#666666;" vertex="1" parent="ck">
+          <mxGeometry x="654" y="38" width="608" height="98" as="geometry" /></mxCell>
+
+        <mxCell id="crm" value="D365 CE 8.2 ／ 9.1　（IFD · WS-Trust · AD FS）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="1170" width="400" height="46" as="geometry" /></mxCell>
+
+        <mxCell id="ea" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="prod" target="pc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eb" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="pc" target="cm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=3;strokeColor=#1F7A4C;" edge="1" parent="1" source="cm" target="m1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ed" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="cm" target="m2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ee" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="cm" target="m3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ef" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=3;strokeColor=#1F7A4C;" edge="1" parent="1" source="m1" target="band"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eg" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#1F7A4C;" edge="1" parent="1" source="m2" target="band"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eh" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;strokeColor=#1F7A4C;" edge="1" parent="1" source="m3" target="band"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ei" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="band" target="cp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ej" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="cp" target="pfr"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ek" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="pfr" target="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="el" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="pool" target="ck"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="em" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="ck1" target="crm"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="2 · 取捨紀錄與設定範例" id="m2">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" /><mxCell id="1" parent="0" />
+
+        <mxCell id="t" value="綜合版取捨紀錄" style="text;html=1;fontSize=24;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="14" width="700" height="34" as="geometry" /></mxCell>
+
+        <mxCell id="b1" value="從 Codex 借來的（它比我好的地方）" style="swimlane;html=1;startSize=34;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=15;fontStyle=1;fontColor=#5A3B00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="700" height="330" as="geometry" /></mxCell>
+        <mxCell id="b1a" value="① ConnectionMode ／ ConnectorKind 這兩個命名&#10;&#10;比我原本的 ExecutionMode 精確。它把「兩個決策維度」直接寫進&#10;型別名稱，看程式碼的人一眼就知道有兩個獨立的軸。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b1">
+          <mxGeometry x="18" y="44" width="664" height="80" as="geometry" /></mxCell>
+        <mxCell id="b1b" value="② ConnectorKind 作為抽象是對的 —— 我原本想錯了&#10;&#10;我原本說「選一個傳輸，另一個保留但停用」，把它當成死程式碼。&#10;Codex 把它抽象成介面比較好：它是擴充點，不是包袱。&#10;將來要換官方 Worker，只換這一層，上面全部不動。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b1">
+          <mxGeometry x="18" y="134" width="664" height="94" as="geometry" /></mxCell>
+        <mxCell id="b1c" value="③ 明確畫出「Pool 活在哪個進程」&#10;&#10;我原本的圖把宿主位置藏起來了。Codex 畫出「產品內 Pool ／&#10;Gateway 內 Pool」是有價值的資訊 —— 讀圖的人需要知道記憶體在誰身上。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b1">
+          <mxGeometry x="18" y="238" width="664" height="80" as="geometry" /></mxCell>
+
+        <mxCell id="b2" value="從我這邊保留的" style="swimlane;html=1;startSize=34;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=15;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="760" y="70" width="700" height="330" as="geometry" /></mxCell>
+        <mxCell id="b2a" value="① 三種模式共用同一套治理與池化&#10;&#10;ConnectionMode 只決定「治理層跑在哪個進程」，&#10;不決定「要不要治理」。開發測到的行為 ＝ 正式跑的行為。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b2">
+          <mxGeometry x="18" y="44" width="664" height="80" as="geometry" /></mxCell>
+        <mxCell id="b2b" value="② 唯一一份 Pool 實作&#10;&#10;三個宿主、一份程式碼。生命週期規則寫一次、洩漏測試寫一次。&#10;宿主換了，池不變。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b2">
+          <mxGeometry x="18" y="134" width="664" height="80" as="geometry" /></mxCell>
+        <mxCell id="b2c" value="③ Pool 是 per-Organization，並且畫出借出／歸還&#10;&#10;你有 5 個 Organization，每個一個池、各自的憑證與 endpoint。&#10;「用完歸還」是你列的三條件之一，圖上要看得見。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b2">
+          <mxGeometry x="18" y="224" width="664" height="88" as="geometry" /></mxCell>
+
+        <mxCell id="b3" value="修正的地方（唯一一處我認為 Codex 要改）" style="swimlane;html=1;startSize=34;fillColor=#F8DFDD;strokeColor=#A32620;fontSize=15;fontStyle=1;fontColor=#7A1D18;" vertex="1" parent="1">
+          <mxGeometry x="40" y="424" width="1420" height="180" as="geometry" /></mxCell>
+        <mxCell id="b3a" value="DirectData8　→　Embedded" style="text;html=1;fontSize=15;fontStyle=1;fontColor=#7A1D18;align=left;" vertex="1" parent="b3">
+          <mxGeometry x="18" y="42" width="600" height="24" as="geometry" /></mxCell>
+        <mxCell id="b3b" value="Codex 版：產品 ──▶ 產品內 Data8 Pool ──▶ CRM&#10;　　　　　（繞過 Profile、ConnectorKind、ControlPlane）&#10;&#10;問題：產品又自己持有憑證與連線；沒有容量准入、沒有操作白名單、&#10;　　　沒有稽核。而且開發時走的路跟正式環境完全不同。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#A32620;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b3">
+          <mxGeometry x="18" y="74" width="680" height="90" as="geometry" /></mxCell>
+        <mxCell id="b3c" value="綜合版：產品 ──▶ ControlPlane ──▶ Pool ──▶ Connector ──▶ CRM&#10;　　　　　（同進程，但每一層治理都在）&#10;&#10;意圖保留：開發時仍然是「按 F5 就跑，不用開第二個進程」。&#10;改變的只有：省掉的是 HTTP 那一跳，不是省掉治理。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="b3">
+          <mxGeometry x="722" y="74" width="680" height="90" as="geometry" /></mxCell>
+
+        <mxCell id="cfg" value="設定長什麼樣 —— 產品端三個環境只差一個字串" style="swimlane;html=1;startSize=34;fillColor=#EEF0F4;strokeColor=#79839A;fontSize=15;fontStyle=1;fontColor=#3A4152;" vertex="1" parent="1">
+          <mxGeometry x="40" y="628" width="1420" height="232" as="geometry" /></mxCell>
+        <mxCell id="cfg1" value="開發　appsettings.Development.json&#10;&#10;&quot;DynamicsAccess&quot;: {&#10;    &quot;ConnectionMode&quot;: &quot;Embedded&quot;,&#10;    &quot;ConnectorKind&quot;: &quot;Data8&quot;&#10;}&#10;&#10;連線資訊沿用既有的 CrmConnection 區段。&#10;不用建 profile、不用算雜湊、不用佈建 LocalDB。&#10;→ VS 2026 按 F5，開網頁，看到資料。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=11;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;fontFamily=Consolas;" vertex="1" parent="cfg">
+          <mxGeometry x="18" y="44" width="450" height="172" as="geometry" /></mxCell>
+        <mxCell id="cfg2" value="測 HTTP 邊界　appsettings.Local.json&#10;&#10;&quot;DynamicsAccess&quot;: {&#10;    &quot;ConnectionMode&quot;: &quot;LocalGateway&quot;,&#10;    &quot;ConnectorKind&quot;: &quot;Data8&quot;,&#10;    &quot;Gateway&quot;: { &quot;Endpoint&quot;: &quot;https://localhost:7244/&quot; }&#10;}&#10;&#10;VS 多重啟始專案，一次 F5 起兩個進程。&#10;平常不用，要驗證序列化與授權邊界時才切。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=11;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;fontFamily=Consolas;" vertex="1" parent="cfg">
+          <mxGeometry x="484" y="44" width="450" height="172" as="geometry" /></mxCell>
+        <mxCell id="cfg3" value="正式　appsettings.Production.json&#10;&#10;&quot;DynamicsAccess&quot;: {&#10;    &quot;ConnectionMode&quot;: &quot;CentralGateway&quot;,&#10;    &quot;ConnectorKind&quot;: &quot;Data8&quot;,&#10;    &quot;Gateway&quot;: { &quot;Endpoint&quot;: &quot;https://dyn-gw.internal/&quot; }&#10;}&#10;&#10;5 個 Organization 的 Profile 集中在 Gateway 端。&#10;產品端完全沒有 CRM 位址與憑證。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F5FA8;fontSize=11;align=left;spacingLeft=12;verticalAlign=top;spacingTop=10;fontFamily=Consolas;" vertex="1" parent="cfg">
+          <mxGeometry x="950" y="44" width="452" height="172" as="geometry" /></mxCell>
+
+        <mxCell id="fin" value="ConnectorKind 現階段永遠是 Data8 —— 它存在是為了將來換得掉，不是為了現在切來切去。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="40" y="886" width="1420" height="46" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+</mxfile>
