@@ -21,6 +21,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
 | [MemberInfo Tree And Grid Contract](./member-info-tree-contract.md) | Cross-layer MemberInfo authorization, DTO, paging, sorting, cache, and CRM batching rules | Established |
 | [Dynamics Gateway Hosting and CE 8.2/9.1 Routing](./dynamics-gateway-hosting-version-routing.md) | Central/Local Gateway topology, separately pinned Microsoft NuGet workers, bounded IPC/process lifecycle, SDK isolation, and WebApi/Data8 removal gates | Established |
+| [Data8 Generation-owned Connector Pool](./data8-generation-owned-connector-pool.md) | P3 SDK-free Data8 Pool/Lease/Router contracts, generation drain, shared Organization admission, and zero-leak lifecycle rules | Established |
 
 ---
 
