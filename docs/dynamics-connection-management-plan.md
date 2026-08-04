@@ -17,8 +17,9 @@
 **P2　最快讓 F5 能跑。**
 `Embedded` 模式排在 Central Gateway 之前。開發體驗是這次調整的直接動機。
 
-**P3　真機驗證不再延後。**
-從 P4 開始每階段都要對 `sunnyvalechback` 做一次真實連線，不累積到最後。
+**P3　真機驗證集中到 P6 後。**
+P4、P5、P6 先完成程式與離線生命週期驗證；使用者完成 Embedded Data8 與 Dedicated Gateway 的部署前測試後，
+才在 P6 後以同一受控環境執行一次跨模式外部 CE 整合量測。離線綠燈不可冒充真機成功。
 
 ---
 
@@ -77,7 +78,7 @@
 - 單元測試：Dispose 後 channel 與 factory 皆為 `Closed` 或 `Aborted`
 - 單元測試：Dispose 失敗時不吞例外、不阻斷後續清理
 - （視 A1）單元測試：同一進程建立 `sdkVersion:8` 與 `sdkVersion:9` 兩個實例，各自送出正確參數
-- **真機**：對 `sunnyvalechback` 建立→Dispose 100 次，Handle 數不單調成長
+- P6 後整合閘門：對 `sunnyvalechback` 建立→Dispose 100 次，Handle 數不單調成長
 
 ---
 
@@ -98,8 +99,8 @@
 **驗收**
 - §10.3 世代與容量測試全綠（7 項）
 - §10.4 借還與洩漏測試全綠（8 項），含 soak 無單調成長
-- **真機**：`sunnyvalechback` 借出→執行 WhoAmI→歸還，重複 200 次，池大小穩定在 Min～Max 之間
-- **真機**：故意讓連線失效，確認淘汰路徑不把故障連線放回池
+- P6 後整合閘門：`sunnyvalechback` 借出→執行 WhoAmI→歸還，重複 200 次，池大小穩定在 Min～Max 之間
+- P6 後整合閘門：故意讓連線失效，確認淘汰路徑不把故障連線放回池
 
 ---
 
@@ -117,7 +118,7 @@
 **驗收**
 - §10.5 三模式等價性測試全綠（3 項）
 - `Embedded` 模式下 `Gateway.Endpoint` 不存在也能啟動（規則 1.3）
-- **真機且可展示**：VS 2026 F5 → 登入 ChurchReport → 開啟奉獻收費清單 → 資料由 `Embedded` 路徑取得，與 legacy 路徑筆數一致
+- P6 後整合閘門：VS 2026 F5 → 登入 ChurchReport → 開啟奉獻收費清單 → 資料由 `Embedded` 路徑取得，與 legacy 路徑筆數一致
 - 關閉後無殘留進程、Handle 或 Socket
 
 ---
@@ -135,7 +136,7 @@
 
 **驗收**
 - 端點矩陣：`/health` 200、`/ready` 200、匿名 `/v1` 401、錯誤 alias 403、未授權 operation 403
-- **真機**：同一查詢在 `Embedded` 與 `DedicatedGateway` 兩種模式下結果逐筆一致
+- P6 後整合閘門：同一查詢在 `Embedded` 與 `DedicatedGateway` 兩種模式下結果逐筆一致
 - 產品端只需改一個 `ConnectionMode` 字串即可切換
 
 ---
@@ -155,6 +156,8 @@
 - 相容性矩陣測試全綠（Official82 × Ce91 等不合法組合被拒）
 - 以 `ConnectorKind: OfficialCrm91Worker` 建立一個測試用 ProfileAlias，能啟動並回應
 - 預設 Profile 仍為 `Data8`，未啟用 Official 時不啟動任何 net48 進程
+- P6 程式與離線測試完成後，才執行一次外部 CE 整合量測：legacy／Embedded／Dedicated 的結果一致性、p50／p95／p99、
+  200 次 borrow/use/return、故障淘汰與所有資源回到基線。
 
 ---
 
@@ -241,3 +244,15 @@
 3. **開發**：A1／A2 回來後即可開始 P1
 
 A1 與 A2 都不需要新權限，且合計約 10 分鐘。
+
+---
+
+## 7. P4.1：D365 8.2 Organization Catalog（已登錄）
+
+P4 已將使用者在 D365 8.2 匯出的 27 筆 Organization（含 Enabled／Disabled）與既有 5 筆 D365 9.1 組織，
+登錄至 ChurchReport 的 `CrmConnection:OrganizationCatalog`。這不是新的產品 Profile 檔：產品仍只需要設定一個
+`DynamicsAccess:ProfileAlias`，例如 `sunnyvalechback`、`jesus` 或 `speechmessage-ce82`。
+
+ID 資料只能完成「選對組織與版本」，不能推導連線端點或 credential。因此目前只有已配置 HTTPS ServiceUri 的
+`sunnyvalechback` 可在 P6 後進入真機整合路徑；其他 CE 8.2 alias 一旦被選取，會安全拒絕而不誤連 9.1。等各 8.2 組織
+提供經核准的 ServiceUri 後，補入同一 Catalog entry 即可啟用，不需改產品程式或複製 OrganizationId。

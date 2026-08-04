@@ -46,16 +46,16 @@
 - [ ] （視 A1）`_sdkMajorVersion` 改實例欄位，建構子可選傳入
 - [ ] 真機：`sunnyvalechback` 建立→Dispose 100 次，Handle 無單調成長
 
-### P3　連線池抽出與世代化
+### P3　連線池抽出與世代化（已完成，2026-08-04）
 
-- [ ] 新增 `SpeechMessage.Dynamics.Connectors.Data8` 專案（net10）
-- [ ] 移植 `CrmConnectionPool` → `Data8ConnectorPool`（複製後改造，`ToolUtility` 原檔不動）
-- [ ] 池鍵改為 `(ProfileAlias, GenerationId)`
-- [ ] 實作 `IConnectorLease`（含 `MarkFaulted`）
-- [ ] 接上既有 `DynamicsProfileRuntimeManager` 世代機制
-- [ ] 新增 `IConnectorRouter`，只讀 `ResolvedProfile.ConnectorKind`
-- [ ] 撰寫規格 §10.3（7 項）與 §10.4（8 項）測試
-- [ ] 真機：借出→WhoAmI→歸還重複 200 次，池大小穩定
+- [x] 新增 `SpeechMessage.Dynamics.Connectors.Data8` 專案（net10）
+- [x] 移植 `CrmConnectionPool` → `Data8ConnectorPool`（複製後改造，`ToolUtility` 原檔不動）
+- [x] 池鍵改為 `(ProfileAlias, GenerationId)`
+- [x] 實作 `IConnectorLease`（含 `MarkFaulted`）
+- [x] 接上既有 `DynamicsProfileRuntimeManager` 世代機制
+- [x] 新增 `IConnectorRouter`，只讀 `ResolvedProfile.ConnectorKind`
+- [x] 撰寫規格 §10.3（7 項）與 §10.4（8 項）測試
+- [x] 以 focused lifecycle 測試驗證借出、歸還、取消、deadline、drain 與 dispose；真機 WhoAmI 不屬 P3 的完成條件。
 
 ### P4　Embedded 模式
 

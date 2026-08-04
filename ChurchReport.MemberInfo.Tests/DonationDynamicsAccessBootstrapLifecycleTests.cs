@@ -106,12 +106,12 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
-    /// 驗證 Package01 啟用時 Embedded 設定在 bootstrap 的設定邊界立即拒絕，不能觸及 process host、
-    /// HttpClient、secret map 或任何 provider generation。測試刻意帶入看似完整的 Embedded 與 CrmConnection
-    /// 欄位，證明它們既不會成為 Gateway fallback，也不會被例外訊息保留。
+    /// 驗證 Embedded 設定可以在不提供 Gateway endpoint 時完成純產品選項繫結。此測試刻意帶入
+    /// CrmConnection 密碼與舊 Embedded 欄位，並斷言選項物件只保存 mode／alias；因此產品設定不會把
+    /// endpoint、credential 或 secret-reference 複製到長生命週期 process host 或 session。
     /// </summary>
     [Fact]
-    public async Task Enabled_package01_rejects_embedded_before_process_host_or_secret_resolution()
+    public void Bind_options_accepts_embedded_without_gateway_endpoint_or_secret_projection()
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -125,12 +125,36 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             })
             .Build();
 
-        var action = () => DonationDynamicsAccessBootstrap.BindOptions(configuration);
+        var options = DonationDynamicsAccessBootstrap.BindOptions(configuration);
 
-        var exception = action.Should().Throw<InvalidOperationException>().Which;
-        exception.Message.Should().Contain("Gateway");
-        exception.Message.Should().NotContain("test-secret-reference");
-        exception.Message.Should().NotContain("test-password");
+        options.ConnectionMode.Should().Be(SpeechMessage.Dynamics.Abstractions.Execution.ConnectionMode.Embedded);
+        options.ProfileAlias.Should().Be("legacy-embedded");
+        options.Gateway!.Endpoint.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// 保護實際 ChurchReport process host 可以由既有 CrmConnection 組成一個 Embedded adapter，而不要求或讀取
+    /// Gateway endpoint。故障注入是缺少 Gateway 區段；決定性斷言是同設定只重用一個 adapter generation，尚未
+    /// 執行 operation 前不會建立 Data8 client，且 host Dispose 後拒絕再次組成。測試使用 example.invalid 與
+    /// 虛擬帳密字串，從不呼叫 executor，因此不產生 WCF、ADFS、HTTP、permit、timer 或真實 Session。
+    /// </summary>
+    [Fact]
+    public async Task Embedded_process_host_composes_one_adapter_without_gateway_endpoint_and_becomes_terminal_after_dispose()
+    {
+        var configuration = CreateEmbeddedConfiguration();
+        var options = DonationDynamicsAccessBootstrap.BindOptions(configuration);
+        await using var host = new DonationDynamicsAccessProcessHost();
+
+        var first = host.GetOrCreateEmbeddedExecutor(options, configuration);
+        var second = host.GetOrCreateEmbeddedExecutor(options, configuration);
+
+        first.Should().BeOfType<SpeechMessage.Dynamics.Embedded.EmbeddedHostAdapter>();
+        second.Should().BeSameAs(first);
+
+        await host.DisposeAsync();
+
+        var action = () => host.GetOrCreateEmbeddedExecutor(options, configuration);
+        action.Should().Throw<ObjectDisposedException>();
     }
 
     /// <summary>
@@ -203,14 +227,14 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
-    /// 驗證 Visual Studio Development profile 依 ASP.NET Core 的基底後覆寫順序，明確把 ChurchReport 指向
-    /// localhost Local Gateway 與 Gateway 已授權的 <c>crm82</c> profile；同時 Package 1 consumer flag 必須
-    /// 維持關閉，確保目前只完成 hosting/configuration 對齊，不會建立 ProductClient、HTTP handler、token cache
-    /// 或送出任何 Dynamics operation。測試只讀 checked-in JSON，不解析 Embedded credential reference 的值，
-    /// 也不建立網路、Session、Timer 或背景工作；localhost URI assertion 防止 Development 設定誤指 Central／正式 endpoint。
+    /// 驗證 Visual Studio Development profile 依 ASP.NET Core 的基底後覆寫順序，明確選擇 Embedded 與
+    /// <c>sunnyvalechback</c>。Package 1 consumer flag 維持關閉，所以既有收費讀取不會切換；P4 host startup
+    /// 仍會建立唯一受控 runtime 並執行一次 WhoAmI，這不是 consumer migration。測試只讀 checked-in JSON；基底
+    /// 設定可能保留 Gateway 欄位供其他部署模式使用，但 Embedded adapter 依契約不讀取它，因此不會悄悄建立
+    /// localhost 或 Central HTTP session。
     /// </summary>
     [Fact]
-    public void Development_configuration_selects_local_gateway_while_package01_reads_remain_disabled()
+    public void Development_configuration_selects_embedded_while_package01_reads_remain_disabled()
     {
         var repositoryRoot = FindRepositoryRoot();
         var applicationRoot = Path.Combine(repositoryRoot, "SpeechMessageProducts.ChurchReport");
@@ -221,16 +245,8 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             .Build();
 
         configuration.GetValue<bool>("DynamicsAccess:Package01FeeReadsEnabled").Should().BeFalse();
-        configuration["DynamicsAccess:ConnectionMode"].Should().Be("DedicatedGateway");
-        configuration["DynamicsAccess:ProfileAlias"].Should().Be("crm82");
-        configuration["DynamicsAccess:Gateway:ApiPrefix"].Should().Be("/v1");
-
-        var endpointText = configuration["DynamicsAccess:Gateway:Endpoint"];
-        Uri.TryCreate(endpointText, UriKind.Absolute, out var endpoint).Should().BeTrue();
-        endpoint.Should().NotBeNull();
-        endpoint!.Scheme.Should().Be(Uri.UriSchemeHttps);
-        endpoint.IsLoopback.Should().BeTrue();
-        endpoint.Port.Should().Be(7244);
+        configuration["DynamicsAccess:ConnectionMode"].Should().Be("Embedded");
+        configuration["DynamicsAccess:ProfileAlias"].Should().Be("sunnyvalechback");
     }
 
     /// <summary>
@@ -265,6 +281,33 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
 
         return new ConfigurationBuilder()
             .AddInMemoryCollection(values)
+            .Build();
+    }
+
+    /// <summary>
+    /// 建立只供 composition／lifecycle 測試的 Embedded 設定。CrmConnection 是既有產品設定來源，但本 helper
+    /// 不提供真實 endpoint 或 credential，且測試不會執行 adapter；因此它只驗證 mapper 與 DI ownership，
+    /// 不建立外部連線或把任何資料寫入靜態狀態。
+    /// </summary>
+    private static IConfiguration CreateEmbeddedConfiguration()
+    {
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package01FeeReadsEnabled"] = "false",
+                ["DynamicsAccess:ConnectionMode"] = "Embedded",
+                ["DynamicsAccess:ProfileAlias"] = "sunnyvalechback",
+                ["CrmConnection:Organization"] = "sunnyvalechback",
+                ["CrmConnection:OrganizationId"] = "bfb92ead-3705-f011-8143-00155d006608",
+                ["CrmConnection:CeVersion"] = "9.1",
+                ["CrmConnection:ServerUrl"] = "https://example.invalid/CrmApp/XRMServices/2011/Organization.svc",
+                ["CrmConnection:Username"] = "test-user",
+                ["CrmConnection:Password"] = "test-password",
+                ["CrmConnection:MinPoolSize"] = "0",
+                ["CrmConnection:MaxPoolSize"] = "1",
+                ["CrmConnection:ConnectionTimeoutSeconds"] = "5",
+                ["CrmConnection:IdleTimeoutMinutes"] = "1"
+            })
             .Build();
     }
 

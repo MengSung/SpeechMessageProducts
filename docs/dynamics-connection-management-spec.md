@@ -553,6 +553,23 @@ Data8 為 MIT 授權、原始碼 55 檔／6,919 行已在本 repo 內；上游�
 2. `ConnectorKind` 至少 `Data8` 一種實作通過全部 §10 測試；`OfficialCrm82Worker`／`OfficialCrm91Worker` 可作為擴充點保留
 3. §10.4 全部通過，含 soak 無單調成長
 4. §11.2 已修正並有測試佐證
-5. Embedded 模式在 Visual Studio 2026 按 F5 可直接執行並取得真實 D365 資料，無需額外進程、雜湊或資料庫
-6. 至少一個真實 Organization（`sunnyvalechback`）完成端到端真機驗證
+5. Embedded 模式在 Visual Studio 2026 按 F5 可直接執行其受控離線組合根，無需額外進程、雜湊或資料庫；外部 CE
+   執行由使用者在 P6 後整合驗收時安排
+6. P6 程式與離線測試完成後，至少一個真實 Organization（`sunnyvalechback`）完成 legacy／Embedded／Dedicated
+   端到端真機驗證、結果一致性及 p50／p95／p99 比較
 7. §9.2 遙測禁止事項通過掃描
+
+---
+
+## 14. P4.1 組織 Catalog 登錄與選取
+
+`CrmConnection:OrganizationCatalog` 是已知 CE Organization identity 的唯一設定來源。每個 key 是可由
+`DynamicsAccess:ProfileAlias` 選取的固定 alias；entry 保存 FriendlyName、UniqueName、OrganizationId、
+State、CeVersion 與（已知時）ServiceUri。產品 request、Session、controller 與 operation payload 不得攜帶這些欄位。
+
+- 2026-08-04 已登錄 5 個 CE 9.1 與 27 個 CE 8.2 組織；Disabled 項目保留稽核身分，但禁止新 Profile 解析。
+- `speechmessage` 同時存在於 CE 8.2／9.1，必須選 `speechmessage-ce82` 或 `speechmessage-ce91`，不可依名稱猜測版本。
+- OrganizationId 與 CeVersion 不是連線授權。若 entry 尚無已核准的 HTTPS ServiceUri，mapper 必須在任何 permit、
+  Data8 client、WCF channel 或 credential 使用前 fail closed；不得套用別的 profile 的 endpoint。
+- Embedded factory 只採 Catalog 的 ServiceUri，完全不回讀舊 CrmConnection transport URI；因此改一個
+  `ProfileAlias` 即可切換已完整配置的組織，也不會把 alias 已切換的 request 誤送至舊組織。

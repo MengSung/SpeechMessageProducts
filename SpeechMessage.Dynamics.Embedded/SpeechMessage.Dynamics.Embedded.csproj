@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.ControlPlane\SpeechMessage.Dynamics.ControlPlane.csproj" />
   </ItemGroup>
 </Project>

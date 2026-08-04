@@ -27,8 +27,9 @@
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Production.json;web.config">
+    <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Development.json;appsettings.Production.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Remove="文件\佈署規劃\**" />
     <EmbeddedResource Remove="文件\佈署規劃\**" />
@@ -94,6 +95,9 @@
     <ProjectReference Include="..\LineMessagingProcessor.Workflows\LineMessagingProcessor.Workflows.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.ControlPlane\SpeechMessage.Dynamics.ControlPlane.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Connectors.Data8\SpeechMessage.Dynamics.Connectors.Data8.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Embedded\SpeechMessage.Dynamics.Embedded.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.ProductClient\SpeechMessage.Dynamics.ProductClient.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />

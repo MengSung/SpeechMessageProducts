@@ -3,6 +3,8 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
+using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.ControlPlane.Guard;
 using SpeechMessage.Dynamics.Embedded.DependencyInjection;
 
 namespace SpeechMessage.Dynamics.Tests;
@@ -162,24 +164,27 @@ public sealed class OfficialNuGetWorkerBoundaryTests
         };
 
         references.Intersect(forbiddenReferences, StringComparer.OrdinalIgnoreCase).Should().BeEmpty(
-            because: "Embedded is deferred and cannot become an in-process SDK or legacy Web API escape route");
+            because: "Embedded must remain a neutral ControlPlane route and cannot become an in-process SDK or legacy Web API escape route");
     }
 
     [Fact]
-    public void Embedded_registration_fails_closed_and_directs_callers_to_local_gateway()
+    public void Embedded_registration_rejects_a_non_embedded_host_mode_before_any_transport_is_created()
     {
         var services = new ServiceCollection();
         var productOptions = new ProductDynamicsOptions
         {
-            ConnectionMode = ConnectionMode.Embedded,
-            ProfileAlias = "deferred-embedded"
+            ConnectionMode = ConnectionMode.DedicatedGateway,
+            ProfileAlias = "wrong-mode"
         };
 
-        var action = () => services.AddSpeechMessageDynamicsEmbedded(productOptions);
+        var action = () => services.AddSpeechMessageDynamicsEmbedded(
+            productOptions,
+            new RequestGuard(["runtime.health.whoami"]),
+            new BoundaryNoopExecutor());
 
         action.Should()
             .Throw<InvalidOperationException>()
-            .WithMessage("*Local Gateway*");
+            .WithMessage("*ConnectionMode=Embedded*");
     }
 
     [Fact]
@@ -532,5 +537,19 @@ public sealed class OfficialNuGetWorkerBoundaryTests
 
         throw new InvalidOperationException(
             "Could not locate SpeechMessageProducts.sln from the test base directory.");
+    }
+
+    /// <summary>
+    /// 提供只供 mode fail-closed 測試使用的無資源 executor。測試在 adapter 註冊前即預期失敗，
+    /// 因此此實作絕不可被執行；若意外被呼叫，立即拋出以揭露測試邊界被錯誤跨越，且不建立 Client、Permit、
+    /// Timer、Task cache 或任何可跨測試保留的狀態。
+    /// </summary>
+    private sealed class BoundaryNoopExecutor : IDynamicsOperationExecutor
+    {
+        /// <summary>拒絕任何意外執行，保護本測試只驗證 DI mode 防線。</summary>
+        public Task<OperationExecutionResult> ExecuteAsync(
+            OperationExecutionRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("The mode-boundary test executor must not be invoked.");
     }
 }

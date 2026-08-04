@@ -301,9 +301,10 @@ namespace ChurchReport
             // 減少字串處理時的記憶體分配
             services.AddSingleton<ChurchReport.Services.Performance.IStringBuilderPool, ChurchReport.Services.Performance.StringBuilderPool>();
 
-            // Dynamics provider／executor／HttpClient handler generation 由主 DI singleton 唯一擁有；
-            // lifecycle 先發佈舊 static facade 再由 preflight 借用同一 executor，確保不建立第二個 HttpClient pool。
-            // Generic Host 會依註冊反序停止：preflight 先停止、lifecycle 再撤銷 facade 並等待 provider cleanup。
+            // Dynamics provider／executor generation 由主 DI singleton 唯一擁有；Gateway 時包含 HttpClient handler，
+            // Embedded 時包含 Data8 Pool／Admission runtime。lifecycle 先發佈舊 static facade，再由 preflight 借用同一
+            // executor，確保不建立第二個 provider、HTTP pool 或 Data8 client graph。Generic Host 會依註冊反序停止：
+            // preflight 先停止、lifecycle 再撤銷 facade 並等待 provider cleanup。
             services.AddSingleton<ChurchReport.Services.IDonationDynamicsAccessProcessHost, ChurchReport.Services.DonationDynamicsAccessProcessHost>();
             services.AddHostedService<ChurchReport.Services.DonationDynamicsAccessBootstrapLifetime>();
             services.AddHostedService<ChurchReport.Services.DynamicsGatewayPreflightHostedService>();

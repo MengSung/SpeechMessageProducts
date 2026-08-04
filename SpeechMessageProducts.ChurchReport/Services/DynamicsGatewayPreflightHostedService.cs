@@ -11,11 +11,11 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 namespace ChurchReport.Services;
 
 /// <summary>
-/// 在 ChurchReport host StartAsync 階段執行 Gateway WhoAmI preflight，確保正式流量進入前已驗證
-/// ProductClient 設定與 Gateway operation pipeline。此服務不擁有 provider、executor、HttpClient 或 handler；
-/// 它只借用主 DI singleton <see cref="IDonationDynamicsAccessProcessHost"/> 已擁有的 executor，因此不會建立
-/// 第二個連線池。feature flag=false 與 Embedded mode 在解析 process host executor 前即返回，維持嚴格 no-op。
-/// Gateway 失敗、內部逾時或無效設定全部 fail-closed 阻止 host ready；caller cancellation 則保留原取消語意。
+/// 在 ChurchReport host StartAsync 階段執行受控 WhoAmI preflight。Gateway 模式只在 Package01 功能旗標開啟時
+/// 驗證 ProductClient pipeline；Embedded 模式則無論該旗標如何都驗證 P4 Data8 路徑，因為 P4 必須讓 Visual Studio
+/// F5 取得真實 Dynamics 身分資料，但不能提早啟用 P7 的收費讀取切換。此服務不擁有 provider、executor、HttpClient、
+/// Data8 client 或 handler；它只借用主 DI singleton <see cref="IDonationDynamicsAccessProcessHost"/> 已擁有的 executor，
+/// 因此不會建立第二個連線池。失敗、內部逾時或無效設定全部 fail-closed 阻止 host ready；caller cancellation 則保留原取消語意。
 /// </summary>
 public sealed class DynamicsGatewayPreflightHostedService : IHostedService
 {
@@ -70,31 +70,46 @@ public sealed class DynamicsGatewayPreflightHostedService : IHostedService
     }
 
     /// <summary>
-    /// 依 feature flag 與 execution mode 決定是否執行正式 WhoAmI pipeline。
-    /// flag=false 先返回，保證不綁定 options、不解析 executor、不建立 provider／HttpClient／timer；Gateway mode
-    /// 才向 process host 取得 executor，讓正式 options validator 在 StartAsync 內 fail-closed。探測使用 caller
-    /// token 與 bounded timeout 的 linked token：host shutdown 取消保持 <see cref="OperationCanceledException"/>，
-    /// 只有內部期限先到才轉成 <see cref="TimeoutException"/>。任何上游失敗只丟固定消毒訊息，不回顯內容。
+    /// 依 execution mode 決定是否執行正式 WhoAmI pipeline。Embedded 一律向 process host 取得受控 executor，讓
+    /// P4 的 Guard→Resolver→Admission→Router→Pool 在 F5 時被真實驗證；此路徑不讀 Gateway endpoint，也不開啟
+    /// Package01 收費功能。Dedicated/Central Gateway 則維持既有旗標控制，flag=false 時不綁定 options、不解析
+    /// executor、不建立 provider／HttpClient／timer。探測使用 caller token 與 bounded timeout 的 linked token：host
+    /// shutdown 取消保持 <see cref="OperationCanceledException"/>，只有內部期限先到才轉成 <see cref="TimeoutException"/>。
+    /// 任何上游失敗只丟固定消毒訊息，不回顯內容。
     /// </summary>
     /// <param name="cancellationToken">Generic Host 的啟動／關機取消訊號。</param>
     /// <returns>只有正式 WhoAmI 成功或此分支為嚴格 no-op 時才完成。</returns>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (!DonationDynamicsAccessBootstrap.IsPackage01Enabled(_configuration))
-        {
-            return;
-        }
-
         var options = DonationDynamicsAccessBootstrap.BindOptions(_configuration);
-        if (options.ConnectionMode is not (
-                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway))
+        IDynamicsOperationExecutor executor;
+        string transportName;
+        if (options.ConnectionMode == ConnectionMode.Embedded)
         {
-            return;
+            // process host 是 Embedded runtime／Data8 Pool 的唯一 owner；preflight 只借用 adapter，不建立第二個
+            // ServiceProvider 或 client。Embedded composition root 不讀取 options.Gateway。
+            executor = _processHost.GetOrCreateEmbeddedExecutor(options, _configuration);
+            transportName = "Embedded";
+        }
+        else
+        {
+            if (!DonationDynamicsAccessBootstrap.IsPackage01Enabled(_configuration))
+            {
+                return;
+            }
+
+            if (options.ConnectionMode is not (
+                    ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway))
+            {
+                return;
+            }
+
+            // process host 是 provider／HttpClient 的唯一 owner；preflight 只能借用同一 executor，不能自行 new client。
+            // executor 解析會觸發正式 Gateway options validation，因此設定不完整會在 host StartAsync 立即失敗。
+            executor = _processHost.GetOrCreateGatewayExecutor(options);
+            transportName = "Gateway";
         }
 
-        // process host 是 provider／HttpClient 的唯一 owner；preflight 只能借用同一 executor，不能自行 new client。
-        // executor 解析會觸發正式 Gateway options validation，因此設定不完整會在 host StartAsync 立即失敗。
-        var executor = _processHost.GetOrCreateGatewayExecutor(options);
         using var timeout = new CancellationTokenSource(_preflightTimeout);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken,
@@ -124,23 +139,24 @@ public sealed class DynamicsGatewayPreflightHostedService : IHostedService
         {
             // linked CTS 與兩個來源 CTS 都在方法離開前 Dispose，避免 cancellation registration／timer 留存。
             throw new TimeoutException(
-                "Dynamics Gateway WhoAmI preflight exceeded its startup timeout.");
+                $"Dynamics {transportName} WhoAmI preflight exceeded its startup timeout.");
         }
         catch (Exception exception)
         {
             // 不把可能含 endpoint、credential、token 或 upstream body 的原始訊息／inner exception 帶到 host 例外。
             _logger.LogError(
-                "Dynamics Gateway WhoAmI preflight threw an unexpected exception. ExceptionType={ExceptionType}",
+                "Dynamics {TransportName} WhoAmI preflight threw an unexpected exception. ExceptionType={ExceptionType}",
+                transportName,
                 exception.GetType().Name);
             throw new InvalidOperationException(
-                "Dynamics Gateway WhoAmI preflight failed.");
+                $"Dynamics {transportName} WhoAmI preflight failed.");
         }
 
         if (!result.Succeeded)
         {
             // ErrorMessage 屬於外部 Gateway 回應，不能在 startup exception 或 log 回顯；固定訊息仍清楚表達 fail-closed。
             throw new InvalidOperationException(
-                "Dynamics Gateway WhoAmI preflight failed.");
+                $"Dynamics {transportName} WhoAmI preflight failed.");
         }
     }
 

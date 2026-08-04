@@ -15,16 +15,17 @@ using Xunit;
 namespace ChurchReport.MemberInfo.Tests;
 
 /// <summary>
-/// 驗證 ChurchReport 啟動階段的 Local／Central Gateway WhoAmI preflight。
+/// 驗證 ChurchReport 啟動階段的 Gateway 與 Embedded WhoAmI preflight。
 /// 測試將 HTTP 限制在記憶體內的 <see cref="HttpMessageHandler"/>，不接觸真實 Gateway、CRM 或秘密；
-/// 主要保護 feature flag 的嚴格 no-op、設定 fail-closed、正式 executor pipeline、caller cancellation、
-/// 內部逾時與 spoof identity header 禁止等啟動信任邊界。
+/// 主要保護 Gateway flag=false 的嚴格 no-op、Embedded P4 的受控連通性驗證、設定 fail-closed、正式 executor
+/// pipeline、caller cancellation、內部逾時與 spoof identity header 禁止等啟動信任邊界。
 /// </summary>
 public sealed class DynamicsGatewayPreflightHostedServiceTests
 {
     /// <summary>
-    /// 驗證 flag=false 時 StartAsync 在解析 process host、executor、provider 或 HttpClient 前即返回。
-    /// fake host 的 invocation count 是主要 assertion；若被呼叫，代表安全預設已不再是零配置、零網路、零資源。
+    /// 驗證 Gateway mode 的 flag=false 時 StartAsync 在解析 process host、executor、provider 或 HttpClient 前即返回。
+    /// fake host 的 invocation count 是主要 assertion；若被呼叫，代表既有 Gateway 功能旗標已不再是零配置、零網路、
+    /// 零資源。Embedded mode 是 P4 的明確例外，另由下一個測試保護其一次受控 WhoAmI。
     /// </summary>
     [Fact]
     public async Task Flag_false_is_a_strict_no_op_before_executor_or_http_creation()
@@ -39,24 +40,51 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
     }
 
     /// <summary>
-    /// 驗證 Package 1 啟用時拒絕 Embedded，且在解析 Gateway executor、HttpClient 或任何其他 process-owned
-    /// 資源前 fail closed。ChurchReport 僅能透過已部署的 Gateway 呼叫官方 worker，不能把 Embedded 當成
-    /// 本機 transport 或 fallback。
+    /// 保護 P4 Embedded F5 的實際 Data8 連通性驗證不受 P7 收費讀取功能旗標影響。故障注入是
+    /// <c>Package01FeeReadsEnabled=false</c> 並完全省略 Gateway endpoint；決定性斷言是啟動只向同一個
+    /// process host 取得 Embedded executor 並執行一次受控 WhoAmI，Gateway executor 仍為零。這確保 F5 可以
+    /// 驗證 Guard→Resolver→Admission→Router→Pool，而不會提早開啟收費清單遷移、HTTP 或第二個資源 owner。
     /// </summary>
     [Fact]
-    public async Task Embedded_mode_fails_closed_before_gateway_executor_resolution()
+    public async Task Embedded_mode_executes_one_controlled_whoami_preflight_while_package01_reads_remain_disabled()
     {
-        var host = new RecordingProcessHost(_ =>
-            throw new InvalidOperationException("Embedded mode 不得建立 Gateway executor。"));
+        var executor = new DelegateExecutor((_, _) => Task.FromResult(OperationExecutionResult.Success(data: null)));
+        var host = new RecordingProcessHost(
+            _ => throw new InvalidOperationException("Embedded preflight 不得建立 Gateway executor。"),
+            (_, _) => executor);
+        var service = CreateService(CreateConfiguration(enabled: false, executionMode: "Embedded"), host);
+
+        await service.StartAsync(CancellationToken.None);
+
+        host.EmbeddedExecutorRequests.Should().Be(1);
+        host.GatewayExecutorRequests.Should().Be(0);
+        executor.Invocations.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 Embedded preflight 的 timeout 會取消同一條受控 executor pipeline，而不留下等待中的 Data8 lease、
+    /// permit、timer 或工作。故障注入為只有收到 cancellation 才完成的 executor；決定性斷言是固定的 Embedded
+    /// timeout 例外、一次 executor 呼叫與零 Gateway 呼叫。測試替身不建立 connector 或任何外部連線。
+    /// </summary>
+    [Fact]
+    public async Task Embedded_whoami_timeout_cancels_the_controlled_pipeline_without_gateway_fallback()
+    {
+        var executor = DelegateExecutor.CreateBlocking();
+        var host = new RecordingProcessHost(
+            _ => throw new InvalidOperationException("Embedded preflight 不得建立 Gateway executor。"),
+            (_, _) => executor);
         var service = CreateService(
-            CreateConfiguration(enabled: true, executionMode: "Embedded"),
-            host);
+            CreateConfiguration(enabled: false, executionMode: "Embedded"),
+            host,
+            timeout: TimeSpan.FromMilliseconds(30));
 
         var action = () => service.StartAsync(CancellationToken.None);
 
-        await action.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*Gateway*");
+        await action.Should().ThrowAsync<TimeoutException>()
+            .WithMessage("*Embedded*WhoAmI preflight*");
+        host.EmbeddedExecutorRequests.Should().Be(1);
         host.GatewayExecutorRequests.Should().Be(0);
+        executor.Invocations.Should().Be(1);
     }
 
     /// <summary>
@@ -284,15 +312,20 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
     private sealed class RecordingProcessHost : IDonationDynamicsAccessProcessHost
     {
         private readonly Func<ProductDynamicsOptions, IDynamicsOperationExecutor> _gatewayFactory;
+        private readonly Func<ProductDynamicsOptions, IConfiguration, IDynamicsOperationExecutor> _embeddedFactory;
 
         /// <summary>
         /// 建立無資源擁有權的記錄替身。
         /// </summary>
         /// <param name="gatewayFactory">只有 Gateway 分支可呼叫的 executor factory。</param>
+        /// <param name="embeddedFactory">只有 Embedded 分支可呼叫的 executor factory。</param>
         public RecordingProcessHost(
-            Func<ProductDynamicsOptions, IDynamicsOperationExecutor> gatewayFactory)
+            Func<ProductDynamicsOptions, IDynamicsOperationExecutor> gatewayFactory,
+            Func<ProductDynamicsOptions, IConfiguration, IDynamicsOperationExecutor>? embeddedFactory = null)
         {
             _gatewayFactory = gatewayFactory;
+            _embeddedFactory = embeddedFactory ?? ((_, _) =>
+                throw new InvalidOperationException("This test did not configure an Embedded executor."));
         }
 
         /// <summary>
@@ -300,7 +333,14 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
         /// </summary>
         public int GatewayExecutorRequests => Volatile.Read(ref _gatewayExecutorRequests);
 
+        /// <summary>
+        /// process host 被要求解析 Embedded executor 的總次數；這與 Gateway 計數分離，確保 P4 不會把
+        /// Embedded 偽裝成 HTTP fallback，也不會在同一啟動期間建立兩個 executor generation。
+        /// </summary>
+        public int EmbeddedExecutorRequests => Volatile.Read(ref _embeddedExecutorRequests);
+
         private int _gatewayExecutorRequests;
+        private int _embeddedExecutorRequests;
 
         /// <summary>
         /// preflight 測試不經 legacy lifecycle，因此 facade 發佈為 no-op，且不建立任何 executor／provider。
@@ -323,6 +363,20 @@ public sealed class DynamicsGatewayPreflightHostedServiceTests
         {
             Interlocked.Increment(ref _gatewayExecutorRequests);
             return _gatewayFactory(options);
+        }
+
+        /// <summary>
+        /// 記錄一次 Embedded executor 解析並交由測試 factory 回傳；不建立 provider、HTTP、client、permit 或
+        /// 背景工作。production 介面新增此方法前，本替身已用此契約描述 P4 所需的 host 邊界。
+        /// </summary>
+        public IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
+            ProductDynamicsOptions options,
+            IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(configuration);
+            Interlocked.Increment(ref _embeddedExecutorRequests);
+            return _embeddedFactory(options, configuration);
         }
 
         /// <summary>

@@ -1,12 +1,14 @@
 // ============================================================================
 // 檔案：ChurchReport/Services/DonationDynamicsAccessBootstrap.cs
-// 目的：只以部署設定中的非秘密 Gateway 欄位建立 Package01 fee-read 路徑。
+// 目的：繫結產品可見的 Dynamics mode／ProfileAlias，並分別組成 Gateway fee-read 與 P4 Embedded WhoAmI executor。
 //
 // 安全與生命週期契約：
 // 1. Package01FeeReadsEnabled=false 時保留既有 ToolUtility/Data8 業務路徑，且不建立 executor、provider 或 HTTP 資源。
-            // 2. 啟用時僅接受 DedicatedGateway/CentralGateway；Embedded 與未知 mode 在 process host、ServiceProvider、HttpClient 或 secret 解析前 fail closed。
+// 2. Embedded 不讀取 Gateway endpoint；Package01 功能旗標維持 false 時，只有 host startup 的一次受控 WhoAmI
+//    會建立 P4 composition root，既有收費清單仍不會切換或建立第二條業務 connector 路徑。
 // 3. ProfileAlias 與 Gateway endpoint 只能由 DynamicsAccess 取得；不得由 CrmConnection、CRM URL 或 credential 推導。
-// 4. 唯一 process host 擁有 Gateway ServiceProvider generation，host stop/DI disposal 以同一 terminal cleanup path 釋放資源。
+// 4. 唯一 process host 擁有 Gateway 或 Embedded 的單一 ServiceProvider generation，host stop/DI disposal 以同一
+//    terminal cleanup path 釋放資源；兩種 mode 不可在同一 host generation 混用。
 // 5. static facade 只保存受主 DI lifecycle 管理的 host 參考，絕不保存 provider、session、credential 或 token。
 // ============================================================================
 
@@ -23,6 +25,9 @@ using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.Connectors.Data8;
+using SpeechMessage.Dynamics.ControlPlane.Guard;
+using SpeechMessage.Dynamics.Embedded.DependencyInjection;
 using SpeechMessage.Dynamics.ProductClient.DependencyInjection;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
@@ -44,7 +49,7 @@ namespace ChurchReport.Services
         private static IDonationDynamicsAccessProcessHost? _compatibilityProcessHost;
 
         /// <summary>
-        /// 建立奉獻收費表單服務；若啟用 Package 1，會依 JSON 走 Gateway-only。
+    /// 建立奉獻收費表單服務；Package01 啟用時目前仍只走已完成 lifecycle 的 Gateway executor。
         /// </summary>
         public static DonationDedicationFeeFormService CreateFeeFormService(
             ToolUtilityClass utility,
@@ -89,7 +94,7 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// 嘗試建立 Package 1 client（Gateway-only）。
+    /// 嘗試建立 Package 1 client（已完成的 Gateway 路徑）。
         /// 若未啟用或設定不完整，回傳 null，呼叫端應走舊路徑。
         /// </summary>
         public static IPackage01FeeReadClient? TryCreatePackage01Client(IConfiguration configuration)
@@ -118,9 +123,9 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// 只讀取 Gateway 所需的非秘密欄位並建立短生命週期 options。Embedded、CrmConnection、CRM endpoint、
-        /// credential、token 與 secret-reference 均不會被繫結、複製或快取；ProfileAlias 缺漏交由既有
-        /// Gateway validation 在任何 outbound request 前 fail closed。
+    /// 繫結產品唯一可見的 mode、ProfileAlias 與可選 Gateway 設定。Embedded 不需要亦不使用 Gateway endpoint；
+    /// CrmConnection、CRM endpoint、credential、token 與 secret-reference 均不會被複製到回傳 options。
+    /// 實際 Gateway executor 啟用時仍由既有 validator 在任何 outbound request 前 fail closed。
         /// </summary>
         public static ProductDynamicsOptions BindOptions(IConfiguration configuration)
         {
@@ -157,8 +162,9 @@ namespace ChurchReport.Services
                 configuration["DynamicsAccess:Gateway:ApiPrefix"],
                 "/v1") ?? "/v1";
 
-            EnsureGatewayOnly(options);
-
+            // 這裡只做純設定繫結，不能因為 Embedded 沒有 Gateway endpoint 就拒絕。真正啟用 Package01
+            // 時仍由各 mode 的 composition root 解析 executor；如此讀取設定不會建立 provider、HTTP handler、
+            // connector、permit、timer 或秘密快取，也不會把 Embedded 降級為 Gateway fallback。
             return options;
         }
 
@@ -286,6 +292,19 @@ namespace ChurchReport.Services
         /// <returns>由本 process host 擁有、不得由呼叫者 Dispose 的正式 operation executor。</returns>
         IDynamicsOperationExecutor GetOrCreateGatewayExecutor(ProductDynamicsOptions options);
 
+        /// <summary>
+        /// 取得或建立目前唯一的 Embedded Data8 executor generation。完整 <c>CrmConnection</c> 組態只可由
+        /// 本 host composition boundary 讀取一次，用來映射受控 Profile、Organization Catalog 與 Data8 Factory；
+        /// controller、request、session 與產品業務碼均只看到回傳的 SDK-free executor。相同的非秘密組態重用
+        /// generation，變更則 fail-closed 並要求 host restart，防止舊 Pool／credential graph 與新設定混用。
+        /// </summary>
+        /// <param name="options">只含 ConnectionMode 與固定 ProfileAlias 的產品公開設定。</param>
+        /// <param name="configuration">僅限 host 啟動 composition root 的設定來源，不可由 request 傳入。</param>
+        /// <returns>由本 process host 唯一擁有、經 Shared Guard 與 ControlPlane 管線保護的 executor。</returns>
+        IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
+            ProductDynamicsOptions options,
+            IConfiguration configuration);
+
 
     }
 
@@ -371,6 +390,90 @@ namespace ChurchReport.Services
                             MaxResponseBytes = options.Gateway.MaxResponseBytes
                         };
                 });
+            });
+        }
+
+        /// <summary>
+        /// 取得或建立 Embedded Data8 generation。此方法只在 P4 的 host composition boundary 讀取既有
+        /// <c>CrmConnection</c>，並將它映射為一個不可變 Profile/Catalog snapshot；產品 request 永遠不能攜帶
+        /// OrganizationId、endpoint、ConnectorKind 或 credential。生成的 provider 由本 process host 唯一持有，
+        /// provider DisposeAsync 會依 DI 反向順序先 drain/dispose <see cref="EmbeddedData8Runtime"/> 的 Pool/client，
+        /// 再釋放 Admission manager 的 permit、CTS、renewal task 與 host slot，不留下 session 或 WCF resource。
+        /// </summary>
+        /// <param name="options">必須為 Embedded 的公開產品選項；Gateway 欄位在此完全不讀取。</param>
+        /// <param name="configuration">只供本次啟動組裝的既有 CrmConnection 設定來源。</param>
+        /// <returns>固定 alias 的 stateless EmbeddedHostAdapter。</returns>
+        public IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
+            ProductDynamicsOptions options,
+            IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (options.ConnectionMode != ConnectionMode.Embedded)
+            {
+                throw new InvalidOperationException(
+                    "Embedded Dynamics executor requires DynamicsAccess:ConnectionMode=Embedded.");
+            }
+
+            if (!CrmConnectionEmbeddedProfileMapper.TryCreate(
+                    configuration,
+                    options,
+                    out var profiles,
+                    out var catalog,
+                    out var profileMappingError) ||
+                !profiles.TryGetValue(options.ProfileAlias, out var profile) ||
+                profile is null ||
+                !catalog.TryGetValue(profile.OrganizationAlias, out var organization) ||
+                organization is null)
+            {
+                throw new InvalidOperationException(
+                    "Embedded Dynamics composition configuration is invalid: " + NormalizeEmbeddedConfigurationError(profileMappingError));
+            }
+
+            if (!CrmConnectionEmbeddedProfileMapper.TryCreateConnectionSettings(
+                    configuration,
+                    organization.ServiceUri,
+                    out var connectionSettings,
+                    out var connectionSettingsError) ||
+                connectionSettings is null)
+            {
+                throw new InvalidOperationException(
+                    "Embedded Dynamics connection credentials are unavailable: " + NormalizeEmbeddedConfigurationError(connectionSettingsError));
+            }
+
+            // Generation key 僅保存單向 SHA-256 digest。它涵蓋可影響 pool／admission 隔離的非秘密組態，
+            // 不保存或記錄 CrmConnection password、帳號、endpoint、Organization GUID 或 profile 物件。
+            var key = ComputeGenerationKey(
+                "embedded",
+                options.ProfileAlias,
+                profile.OrganizationAlias,
+                profile.CeVersion.ToString(),
+                profile.ConnectorKind.ToString(),
+                profile.CredentialReference,
+                profile.Pool.MinSize.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                profile.Pool.MaxSize.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                profile.Pool.IdleTimeoutMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                profile.Pool.AcquireTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                profile.Pool.HealthCheckOnAcquire.ToString(),
+                profile.Operation.TimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                profile.Operation.MaxRetries.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                profile.Operation.RetryBaseDelayMs.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                organization.OrganizationId.ToString("D"),
+                organization.ServiceUri);
+
+            return GetOrCreate(key, services =>
+            {
+                services.AddSingleton<EmbeddedData8Runtime>(serviceProvider => new EmbeddedData8Runtime(
+                    profiles,
+                    catalog,
+                    options.ProfileAlias,
+                    new OnPremiseData8ConnectorClientFactory(connectionSettings),
+                    serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<EmbeddedData8Runtime>>(),
+                    serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>()));
+                services.AddSpeechMessageDynamicsEmbedded(
+                    options,
+                    _ => new RequestGuard([OperationIds.RuntimeHealthWhoAmI]),
+                    serviceProvider => serviceProvider.GetRequiredService<EmbeddedData8Runtime>().Executor);
             });
         }
 
@@ -490,6 +593,25 @@ namespace ChurchReport.Services
 
             return Convert.ToHexString(hash.GetHashAndReset());
         }
+
+        /// <summary>
+        /// 將 mapper 的內部失敗原因壓縮為固定安全分類，避免 host startup exception 回顯 Organization GUID、
+        /// service URI、帳號、密碼或任何設定值。未知代碼一律視為 unavailable，維持 fail-closed。
+        /// </summary>
+        /// <param name="errorCode">composition mapper 回傳的內部分類。</param>
+        /// <returns>可安全顯示或記錄的固定分類。</returns>
+        private static string NormalizeEmbeddedConfigurationError(string? errorCode)
+            => errorCode switch
+            {
+                "embedded.connection-mode-required" => "connection-mode-required",
+                "embedded.profile-alias-mismatch" => "profile-alias-mismatch",
+                "embedded.organization-id-invalid" => "organization-id-invalid",
+                "embedded.ce-version-unsupported" => "ce-version-unsupported",
+                "embedded.service-uri-invalid" => "service-uri-invalid",
+                "embedded.pool-policy-invalid" => "pool-policy-invalid",
+                "embedded.connection-credentials-invalid" => "connection-credentials-invalid",
+                _ => "configuration-unavailable"
+            };
     }
 
     /// <summary>
