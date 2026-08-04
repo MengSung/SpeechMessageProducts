@@ -1,0 +1,12 @@
+{
+  "id": "dynamics-connection-management-plan",
+  "title": "Plan Dynamics connection management architecture",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "Complete Trellis PRD and architecture design",
+  "createdAt": "2026-08-04T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

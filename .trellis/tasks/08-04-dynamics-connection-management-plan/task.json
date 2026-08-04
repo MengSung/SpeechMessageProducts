@@ -1,0 +1,28 @@
+{
+  "id": "dynamics-connection-management-plan",
+  "name": "dynamics-connection-management-plan",
+  "title": "Dynamics 連線管理新版規劃",
+  "description": "以新版 Dynamics 連線管理 Spec 與 Plan 建立乾淨的 PRD、架構設計與可執行實作計畫；Data8 為永久 Connector，支援 Embedded、DedicatedGateway、CentralGateway。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-04",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "08-04-generation-owned-data8-connector-pool"
+  ],
+  "parent": "07-23-dynamics-connection-compatibility",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

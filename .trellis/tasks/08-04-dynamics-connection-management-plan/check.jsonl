@@ -1,0 +1,4 @@
+{"file": "docs/dynamics-connection-management-spec.md", "reason": "權威技術規格：型別契約、G1-G6 守門、R1-R6 fail-closed、錯誤碼、26 項具名測試、驗收條件"}
+{"file": "docs/dynamics-connection-management-plan.md", "reason": "權威分階段計畫：P1-P4 工作項、時程、風險緩解、明確排除項"}
+{"file": ".trellis/spec/backend/index.md", "reason": "後端既有規格索引；本任務與其衝突處以本任務文件為準"}
+{"file": ".trellis/tasks/08-04-dynamics-connection-management-plan/prd.md", "reason": "驗收條件逐項核對來源，含決策紀錄與前置阻塞項"}

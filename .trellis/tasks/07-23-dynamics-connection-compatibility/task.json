@@ -1,35 +1,29 @@
 {
-    "id":  "dynamics-connection-compatibility",
-    "name":  "dynamics-connection-compatibility",
-    "title":  "Build the official-NuGet Dynamics 365 access gateway",
-    "description":  "Build a shared Dynamics 365 8.2/9.1 connection-management architecture with permanent Embedded, Dedicated Gateway, and Central Gateway deployment modes; deployment-owned Data8 or separately pinned Microsoft-worker connectors; deterministic resource cleanup; and zero session/resource leakage.",
-    "status":  "in_progress",
-    "dev_type":  null,
-    "scope":  null,
-    "package":  null,
-    "priority":  "P1",
-    "creator":  "codex",
-    "assignee":  "codex",
-    "createdAt":  "2026-07-23",
-    "completedAt":  null,
-    "branch":  "1.0.0.3.Gateway&Embedded.Worktree",
-    "base_branch":  "1.0.0.2.IsolateConnector.Worktree",
-    "worktree_path":  null,
-    "commit":  null,
-    "pr_url":  null,
-    "subtasks":  [
-
-                 ],
-    "children":  [
-
-                 ],
-    "parent":  null,
-    "relatedFiles":  [
-
-                     ],
-    "notes":  "2026-08-04 user-approved connection-management direction supersedes earlier Data8-removal language. Direct Web API and D365APP01 CRMWeb/IFD diagnostics are not routes or gates. Data8 is a permanent ConnectorKind alongside separately pinned net48 official workers; ConnectionMode is Embedded, DedicatedGateway, or CentralGateway. P1 contract/profile boundary and P2 deterministic Data8 disposal are implemented locally. Package01FeeReadsEnabled remains false until its matching gateway operation and live lifecycle gates pass.",
-    "nextAction":  "Implement P3: generation-owned per-Organization Data8 connector pools and an IConnectorRouter driven only by a resolved deployment profile. Then implement the shared Embedded/Dedicated/Central execution path. Keep all products free of connector/credential state, preserve Data8 and worker choices in deployment-owned JSON, and prove isolation, drain, cancellation, capacity, and no-leak gates before enabling product traffic.",
-    "meta":  {
-
-             }
+  "id": "dynamics-connection-compatibility",
+  "name": "dynamics-connection-compatibility",
+  "title": "Build the official-NuGet Dynamics 365 access gateway",
+  "description": "Build a shared Dynamics 365 8.2/9.1 connection-management architecture with permanent Embedded, Dedicated Gateway, and Central Gateway deployment modes; deployment-owned Data8 or separately pinned Microsoft-worker connectors; deterministic resource cleanup; and zero session/resource leakage.",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-07-23",
+  "completedAt": null,
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "base_branch": "1.0.0.2.IsolateConnector.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "08-04-dynamics-connection-management-plan"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "2026-08-04 user-approved connection-management direction supersedes earlier Data8-removal language. Direct Web API and D365APP01 CRMWeb/IFD diagnostics are not routes or gates. Data8 is a permanent ConnectorKind alongside separately pinned net48 official workers; ConnectionMode is Embedded, DedicatedGateway, or CentralGateway. P1 contract/profile boundary and P2 deterministic Data8 disposal are implemented locally. Package01FeeReadsEnabled remains false until its matching gateway operation and live lifecycle gates pass.",
+  "nextAction": "Implement P3: generation-owned per-Organization Data8 connector pools and an IConnectorRouter driven only by a resolved deployment profile. Then implement the shared Embedded/Dedicated/Central execution path. Keep all products free of connector/credential state, preserve Data8 and worker choices in deployment-owned JSON, and prove isolation, drain, cancellation, capacity, and no-leak gates before enabling product traffic.",
+  "meta": {}
 }
