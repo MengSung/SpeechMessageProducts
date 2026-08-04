@@ -33,6 +33,7 @@
     <ProjectReference Include="..\SpeechMessage.Dynamics.ProductClient\SpeechMessage.Dynamics.ProductClient.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.Embedded\SpeechMessage.Dynamics.Embedded.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.Gateway\SpeechMessage.Dynamics.Gateway.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Connectors.Data8\SpeechMessage.Dynamics.Connectors.Data8.csproj" />
     <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.SqlCoordinatorTestWorker\SpeechMessage.Dynamics.SqlCoordinatorTestWorker.csproj" ReferenceOutputAssembly="false" />
