@@ -749,15 +749,24 @@ namespace ChurchReport.Controllers
         [Route("/Home/DisplayErrorView/{*ErrorMessage}")]
         public IActionResult DisplayErrorView(string? ErrorMessage = null)
         {
-            var message = TempData["ErrorMessage"] as string;
-            if (string.IsNullOrWhiteSpace(message))
+            // URL 參數可能是舊呼叫端留下的 exception.Message 或使用者輸入，絕不回顯。
+            // TempData provider 失敗時改用固定訊息，避免錯誤頁再覆蓋原始失敗。
+            const string safeFallbackMessage = "系統暫時無法完成操作，請稍後再試。";
+            string? message = null;
+
+            try
             {
-                message = ErrorMessage;
+                message = TempData["ErrorMessage"] as string;
+            }
+            catch (Exception tempDataException)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Unable to read the safe error message from TempData: {tempDataException.GetType().Name}");
             }
 
             if (string.IsNullOrWhiteSpace(message))
             {
-                message = "An unexpected error occurred.";
+                message = safeFallbackMessage;
             }
 
             ViewBag.ErrorMessage = message;

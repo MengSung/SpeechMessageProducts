@@ -315,6 +315,9 @@ namespace ChurchReport.Controllers
         /// </summary>
         protected IActionResult HandleError(Exception exception, string methodName)
         {
+            // 瀏覽器只可見固定訊息；原始例外可能含 CRM 端點或內部型別，僅供伺服器端診斷。
+            const string safeUserMessage = "系統暫時無法完成操作，請稍後再試。";
+
             // 蝯??航炊閮
             string errorMessage = $"?航炊閮 : FullName = {GetType().FullName}, " +
                                 $"Method = {methodName}, " +
@@ -354,7 +357,7 @@ namespace ChurchReport.Controllers
                 return Json(new
                 {
                     status = "error",
-                    message = exception.Message,
+                    message = safeUserMessage,
                     timestamp = DateTime.Now
                 });
             }
@@ -362,8 +365,31 @@ namespace ChurchReport.Controllers
             {
                 // 銝?祈?瘙??隤日???
                 // 長錯誤訊息不可塞進 route（會 404 / 斷字）。改放 TempData。
-                TempData["ErrorMessage"] = exception.Message;
+                StoreSafeErrorMessage(safeUserMessage);
                 return RedirectToAction("DisplayErrorView", "Home");
+            }
+        }
+
+        /// <summary>
+        /// 將已去識別化的錯誤訊息寫入目前 request 的 TempData。
+        ///
+        /// <para>
+        /// TempData 是 MVC request scope 的可選基礎設施；相容性轉送、背景觸發或測試
+        /// 可能沒有可用 provider。寫入失敗時必須保留原始錯誤處理結果，不能以第二個
+        /// NullReferenceException 覆蓋前一個例外，也不得把原始例外內容放入任何共享狀態。
+        /// </para>
+        /// </summary>
+        /// <param name="safeUserMessage">已驗證為安全、可呈現給使用者的固定訊息。</param>
+        private void StoreSafeErrorMessage(string safeUserMessage)
+        {
+            try
+            {
+                TempData["ErrorMessage"] = safeUserMessage;
+            }
+            catch (Exception tempDataException)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Unable to store the safe error message in TempData: {tempDataException.GetType().Name}");
             }
         }
 
@@ -1235,9 +1261,8 @@ namespace ChurchReport.Controllers
         public new void Dispose()
         {
             // ?撌亙憿鞈?
-            ToolUtility?.Dispose();
-
-            // ?澆?箇?憿??Dispose
+            // Controller 僅結束自己的 MVC 狀態；ToolUtility 屬 Provider/Factory，禁止在此釋放。
+            // 各 CRM lease 必須由借用方法的 finally 歸還，避免跨請求保留連線或 session 狀態。
             base.Dispose();
         }
 
