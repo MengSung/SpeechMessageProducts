@@ -1,0 +1,12 @@
+{
+  "id": "harden-churchreport-error-recovery",
+  "title": "修復 ChurchReport 錯誤處理遮蔽原始例外並追查共用 CRM 服務生命週期",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "追查 HandleError、TempData、ToolUtility 連線借還與 Dispose 路徑",
+  "createdAt": "2026-08-05T09:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

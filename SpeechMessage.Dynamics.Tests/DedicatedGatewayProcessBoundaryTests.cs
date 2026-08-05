@@ -129,6 +129,7 @@ public sealed class DedicatedGatewayProcessBoundaryTests
         }
 
         await WaitForNoListenerAsync(gatewayPort);
+        await WaitForProcessBaselineAsync(baselineProcesses);
         IsListening(gatewayPort).Should().BeFalse(
             because: "Dedicated runtime/pool/admission 由 host 停止流程擁有；子程序結束後不可留下其 HTTPS listener");
         GetNewDynamicsBoundaryProcesses(baselineProcesses).Should().BeEmpty(
@@ -276,6 +277,26 @@ public sealed class DedicatedGatewayProcessBoundaryTests
         while (stopwatch.Elapsed < ShutdownTimeout)
         {
             if (!IsListening(port))
+            {
+                return;
+            }
+
+            await Task.Delay(PollInterval).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// 有界等待 Dynamics process snapshot 回到啟動前基線。listener 關閉與 Windows process table 移除
+    /// 不是同一個原子事件：Kestrel port 可能先釋放，而 apphost 尚在執行最後的 DI/host cleanup。
+    /// 因此不能以「port 已消失」推論「process 已清理」；此條件式等待保留每次 snapshot 的短生命週期
+    /// Process handle，並在 timeout 後交由最終 assertion 報出殘留身分。
+    /// </summary>
+    private static async Task WaitForProcessBaselineAsync(IReadOnlySet<ProcessIdentity> baseline)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < ShutdownTimeout)
+        {
+            if (GetNewDynamicsBoundaryProcesses(baseline).Count == 0)
             {
                 return;
             }
