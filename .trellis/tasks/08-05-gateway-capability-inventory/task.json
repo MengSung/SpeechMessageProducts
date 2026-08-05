@@ -21,6 +21,6 @@
   "children": [],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-08-05 流程修正：P7.0 是 P7 Parent 內部 inventory，不是 P6 前置條件；P7.0 維持 planning，等待 P5 結案後的 P6 Router/CE 整合驗證完成。",
   "meta": {}
 }

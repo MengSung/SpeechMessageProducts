@@ -1,0 +1,30 @@
+{
+  "id": "official-worker-router-ce-integration",
+  "name": "official-worker-router-ce-integration",
+  "title": "P6 Official Worker Router 接入與 CE 整合驗證",
+  "description": "以 deployment-owned ConnectorKind 將 CE 8.2／9.1 Official Worker 納入既有 Router／Pool／Lease 邊界，完成離線生命週期驗證規劃與受控真機驗證交接。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-05",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-04-dynamics-connection-management-plan",
+  "relatedFiles": [],
+  "notes": "高複雜度、高風險：跨程序 Worker、Router、Connector、CE 版本相容、profile isolation 與資源生命週期均屬 release-blocking 邊界。Phase 1 僅規劃；未取得使用者明確核准不得 task.py start 或執行 CE 呼叫。",
+  "meta": {
+    "complexity": "L",
+    "risk": "high",
+    "phaseBoundary": "planning-only"
+  }
+}

@@ -5,8 +5,11 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using SpeechMessage.Dynamics.Abstractions.Configuration;
+using SpeechMessage.Dynamics.Abstractions.Connectors;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Connectors;
 using SpeechMessage.Dynamics.ControlPlane.Runtime;
 
 namespace SpeechMessage.Dynamics.ControlPlane.DependencyInjection;
@@ -64,6 +67,9 @@ public static class OfficialWorkerServiceCollectionExtensions
             new DynamicsProfileRuntimeManager(
                 profileSnapshot,
                 serviceProvider.GetRequiredService<IDynamicsProfileRuntimeFactory>()));
+        services.TryAddSingleton<IActiveProfileGenerationResolver>(serviceProvider =>
+            (IActiveProfileGenerationResolver)serviceProvider
+                .GetRequiredService<IDynamicsProfileRuntimeManager>());
         services.TryAddSingleton<IProfileExecutionLeaseProvider>(serviceProvider =>
             serviceProvider.GetRequiredService<IDynamicsProfileRuntimeManager>());
         services.TryAddSingleton<ProfileRoutedOperationExecutor>(serviceProvider =>
@@ -72,6 +78,33 @@ public static class OfficialWorkerServiceCollectionExtensions
 
         // IDynamicsOperationExecutor 是產品/Gateway 唯一派送 seam。移除先前 descriptor 可避免同一 Host
         // 同時存在舊 transport 或 request-time fallback；不移除外部資源型 singleton，因本方法不擁有它們。
+        services.RemoveAll<IDynamicsOperationExecutor>();
+        services.AddSingleton<IDynamicsOperationExecutor>(serviceProvider =>
+            serviceProvider.GetRequiredService<ProfileRoutedOperationExecutor>());
+        return services;
+    }
+
+    /// <summary>
+    /// 將已建立的 Official Worker runtime manager 接到 connector-oriented Gateway 執行路徑。
+    /// 這個方法必須在 composition root 註冊 <see cref="IProfileResolver"/> 之後呼叫；
+    /// registry 只擁有 Pool generation，不擁有 runtime manager，故 DI dispose 順序仍由宿主控制。
+    /// Dedicated Gateway 不得呼叫此方法，Dedicated 的 Data8 pool 仍維持獨立 composition。
+    /// </summary>
+    /// <param name="services">Gateway host 的 DI collection。</param>
+    /// <returns>同一個 collection，方便 composition root 串接設定。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsOfficialWorkerConnectorRouting(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton<OfficialWorkerConnectorPoolRegistry>();
+        services.TryAddSingleton<IConnectorRouter>(serviceProvider =>
+            serviceProvider.GetRequiredService<OfficialWorkerConnectorPoolRegistry>());
+        services.RemoveAll<ProfileRoutedOperationExecutor>();
+        services.AddSingleton<ProfileRoutedOperationExecutor>(serviceProvider =>
+            new ProfileRoutedOperationExecutor(
+                serviceProvider.GetRequiredService<IProfileResolver>(),
+                serviceProvider.GetRequiredService<IConnectorRouter>()));
         services.RemoveAll<IDynamicsOperationExecutor>();
         services.AddSingleton<IDynamicsOperationExecutor>(serviceProvider =>
             serviceProvider.GetRequiredService<ProfileRoutedOperationExecutor>());

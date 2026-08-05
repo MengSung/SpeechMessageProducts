@@ -3,8 +3,12 @@
 // 目的：把受控 Operation Registry 驗證與 Multi-Profile 合併租約取得串接成可注入的執行器。
 // ============================================================================
 
+using SpeechMessage.Dynamics.Abstractions.Configuration;
+using SpeechMessage.Dynamics.Abstractions.Connectors;
+using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ControlPlane.Capacity;
+using SpeechMessage.Dynamics.ControlPlane.Connectors;
 
 namespace SpeechMessage.Dynamics.ControlPlane.Runtime;
 
@@ -16,7 +20,9 @@ namespace SpeechMessage.Dynamics.ControlPlane.Runtime;
 /// </summary>
 public sealed class ProfileRoutedOperationExecutor : IDynamicsOperationExecutor
 {
-    private readonly ControlledOperationExecutor _inner;
+    private readonly ControlledOperationExecutor? _inner;
+    private readonly IProfileResolver? _profileResolver;
+    private readonly IConnectorRouter? _connectorRouter;
 
     /// <summary>
     /// 建立 Profile-aware 執行器。Provider 的生命週期由外層 Runtime Manager／DI Container 擁有，
@@ -29,13 +35,102 @@ public sealed class ProfileRoutedOperationExecutor : IDynamicsOperationExecutor
     }
 
     /// <summary>
+    /// 建立 connector-oriented 執行路徑。Profile resolver 先以 server/deployment-owned alias
+    /// 解析不可變 generation snapshot，Router 再依 ConnectorKind 選取唯一 Pool；executor
+    /// 不會從 request 讀取 connector、CE、endpoint 或 credential，也不會在 worker 失敗時 fallback。
+    /// </summary>
+    /// <param name="profileResolver">負責驗證 alias、Organization 與 Active generation 的 resolver。</param>
+    /// <param name="connectorRouter">負責以 profile snapshot 選取 generation-owned connector pool 的 router。</param>
+    public ProfileRoutedOperationExecutor(
+        IProfileResolver profileResolver,
+        IConnectorRouter connectorRouter)
+    {
+        _profileResolver = profileResolver ?? throw new ArgumentNullException(nameof(profileResolver));
+        _connectorRouter = connectorRouter ?? throw new ArgumentNullException(nameof(connectorRouter));
+    }
+
+    /// <summary>
     /// 執行一個伺服器端已註冊的受控 Dynamics 操作；所有 Alias、Admission 與 Runtime 選擇
     /// 都由 Provider 在信任邊界內完成，Request 不能提供 CRM URL、Credential 或任意 Transport。
     /// </summary>
     public Task<OperationExecutionResult> ExecuteAsync(
         OperationExecutionRequest request,
         CancellationToken cancellationToken = default)
-        => _inner.ExecuteAsync(request, cancellationToken);
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return _connectorRouter is null
+            ? _inner!.ExecuteAsync(request, cancellationToken)
+            : ExecuteThroughConnectorAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// 將已驗證的 product operation 轉成 bounded ConnectorOperation，並以 await using 擁有
+    /// 一次性 lease。所有準備好的參數由 Pool 在 acquire 時複製與正規化；本方法不保留 caller
+    /// dictionary、HttpContext、principal 或任何 credential/session state。
+    /// </summary>
+    private async Task<OperationExecutionResult> ExecuteThroughConnectorAsync(
+        OperationExecutionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.ProfileAlias) ||
+            string.IsNullOrWhiteSpace(request.WorkloadSubjectId))
+        {
+            return OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidParameter,
+                "ProfileAlias and WorkloadSubjectId are required.");
+        }
+
+        if (!_profileResolver!.TryResolve(
+                request.ProfileAlias.Trim(),
+                out var profile,
+                out _) ||
+            profile is null)
+        {
+            return OperationExecutionResult.Failure(
+                DynamicsErrorCodes.NotReady,
+                "The requested Dynamics profile is not ready.");
+        }
+
+        IConnectorPool pool;
+        try
+        {
+            pool = _connectorRouter!.Resolve(profile);
+        }
+        catch (NotSupportedException)
+        {
+            return OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidConfiguration,
+                "The requested connector profile is not supported.");
+        }
+        catch (KeyNotFoundException)
+        {
+            return OperationExecutionResult.Failure(
+                DynamicsErrorCodes.NotReady,
+                "The requested connector generation is not ready.");
+        }
+
+        var operation = new ConnectorOperation
+        {
+            OperationId = request.CapabilityOperationId,
+            WorkloadSubjectId = request.WorkloadSubjectId.Trim(),
+            Parameters = request.Parameters,
+            DeadlineUtc = DateTimeOffset.UtcNow.Add(profile.Operation.Timeout)
+        };
+
+        await using var lease = await pool
+            .AcquireAsync(operation, cancellationToken)
+            .ConfigureAwait(false);
+        var connectorResult = await lease
+            .ExecuteAsync(operation, cancellationToken)
+            .ConfigureAwait(false);
+
+        return connectorResult.Succeeded
+            ? OperationExecutionResult.Success(connectorResult.Data)
+            : OperationExecutionResult.Failure(
+                connectorResult.ErrorCode ?? DynamicsErrorCodes.UpstreamFailure,
+                "The connector operation failed.");
+    }
+
 }
 
 /// <summary>

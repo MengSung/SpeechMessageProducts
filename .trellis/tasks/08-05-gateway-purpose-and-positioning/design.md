@@ -134,6 +134,23 @@ P8 在第二個產品接入時啟動，除了 Central Gateway deployment，還�
 - 任一 slice 發生資料差異、隔離、資源、錯誤語意或效能退步，即只回滾該 capability。
 - ToolUtility reference 只在全部 capability 通過 observation window 後移除。
 
+### 12.1 遷移重疊期間的 aggregate capacity gate
+
+P7.4 的逐 capability cutover 期間，legacy ToolUtility 與 Gateway 可能在不同 process 同時存取同一個
+Organization。每個 process 自己的 In-Memory admission／host-slot coordinator 不能證明 aggregate capacity
+受到限制；`DedicatedGateway` 未註冊 durable SQL host-slot coordinator 的現況尤其不能被當作跨 process
+容量保證。
+
+因此第一個 P7.4 consumer feature gate 開啟前，child task 必須提出並由使用者核准一個明確方案：
+
+1. 讓所有同時 active 的 legacy/Gateway host 共用 durable distributed admission／host-slot authority，並以
+   壓力測試證明總併發不超過 Organization budget；或
+2. 在 rollout runbook 中強制兩條路徑不重疊（drain 一條後才啟用另一條），並以 deployment/runtime evidence
+   證明沒有併發流量。
+
+不可把「暫時一律改用 Embedded」預設為答案；它是部署選擇，仍需以可驗證的 capacity、isolation、rollback
+條件另行核准。無論選項為何，request-time connector/profile fallback 與未設計 dual-write 仍一律禁止。
+
 ## 13. 驗收條件
 
 1. Capability matrix 對每個正式 ChurchReport D365 use case 都有唯一 owner 與狀態，無未分類 call site。
@@ -143,6 +160,7 @@ P8 在第二個產品接入時啟動，除了 Central Gateway deployment，還�
 5. Drain／dispose 後 process、task、timer、registration、permit、lease、connection、channel、handle 與 socket 回到宣告基線。
 6. 新產品 architecture test 拒絕 ToolUtility／CRM SDK reference，並只能呼叫授權的 shared／namespaced capabilities。
 7. P7／P8 文件、support matrix、runbook 與監控告警與實際程式一致。
+8. 每個 P7.4 enabled capability 都有已核准的 aggregate-capacity overlap 方案與相應壓力／drain evidence。
 
 ## 14. 不在本 Parent Task 直接實作的內容
 

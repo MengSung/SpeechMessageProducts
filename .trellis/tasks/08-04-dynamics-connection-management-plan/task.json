@@ -21,7 +21,8 @@
   "children": [
     "08-04-generation-owned-data8-connector-pool",
     "08-04-embedded-churchreport-f5",
-    "08-05-dedicated-gateway-alignment"
+    "08-05-dedicated-gateway-alignment",
+    "08-05-official-worker-router-ce-integration"
   ],
   "parent": "07-23-dynamics-connection-compatibility",
   "relatedFiles": [],

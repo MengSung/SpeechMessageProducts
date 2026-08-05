@@ -12,7 +12,9 @@
 
 ## 1. Parent／Child 交付樹
 
-本 parent 只維護來源需求、子任務順序、跨 child 驗收與最終整合審查。書面規格核准後建立下列 children：
+本 parent 只維護來源需求、子任務順序、跨 child 驗收與最終整合審查。P5 已封存；P6.1 離線 Router 接入
+與 P6.2 經授權 CE 8.2／9.1 evidence 都完成並正式結案前，不建立或啟動下列 P7 children。書面規格核准後
+依此順序建立：
 
 1. `gateway-capability-inventory` — 建立 70 call-site rows 到業務 capability 的權威矩陣與 coverage validator。
 2. `gateway-operation-catalog-modules` — 將 static Package01 registry 納入可組合 catalog，統一 Gateway authorization、ProductClient contract 與 support matrix 查詢。
@@ -20,14 +22,15 @@
 4. `churchreport-read-capability-migrations` — 依矩陣拆成 MemberInfo、Contact／List、Activity／report、metadata 等可獨立 children；每個 child 不跨越不同 rollback owner。
 5. `churchreport-write-action-migrations` — 依 idempotency／transaction boundary 拆分 Create／Update／Associate／Action／Function children。
 6. `churchreport-special-resource-migrations` — Attachment、large paging、background／scheduler、metadata cache 的有界 contract 與生命週期。
-7. `churchreport-productclient-cutover` — 將所有 Controller／Service／WebServiceConnector consumer 切至 ProductClient，完成 capability-level rollout。
+7. `churchreport-productclient-cutover` — 將所有 Controller／Service／WebServiceConnector consumer 切至 ProductClient，完成 capability-level rollout，並在第一個 feature gate 前決定 legacy/Gateway overlap 的 aggregate-capacity authority 或 non-overlap drain runbook。
 8. `churchreport-toolutility-removal` — 移除 ChurchReport project reference、DI／Factory、legacy settings／credential 與 SDK type，執行 zero-reference gate。
 9. `gateway-multiproduct-onboarding` — 第二產品接入時交付 shared／namespaced catalog policy、ProductClient ownership、workload authorization 與 Central capacity gates。
 
 ## 2. 依賴順序
 
 ```text
-inventory
+P5（已封存） → P6.1 離線 Router 接入 → P6.2 CE evidence／P6 結案
+  → inventory
   → catalog modules
   → Package01 first vertical slice
   → remaining reads ─┐
@@ -91,6 +94,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\docs\scripts\Test-Dyna
 | Product cutover | 逐 capability 回退 | 不做整站自動 fallback，不更換 Profile／Connector |
 | ToolUtility removal | 只在 observation window 後執行 | 若仍需回滾，先恢復已驗證的 project／DI／settings commit，不在 runtime 動態載入 legacy |
 | Multi-product onboarding | 撤銷 workload allowlist／deployment | 不影響其他產品 Profile、permit、pool 或 operation policy |
+
+在任何 Product cutover feature gate 前，child 必須先通過 aggregate-capacity gate：若 legacy 與 Gateway
+不同 process 同時連到同一 Organization，兩者必須共用 durable admission/host-slot authority；若沒有該
+authority，runbook 必須證明先 drain 舊路徑再啟用新路徑。不可把每個 process 的 In-Memory coordinator
+誤當成跨 process 總容量保證。
 
 ## 7. Parent 完成條件
 

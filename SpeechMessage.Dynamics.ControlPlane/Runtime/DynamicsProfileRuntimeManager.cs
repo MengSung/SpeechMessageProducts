@@ -20,7 +20,9 @@ namespace SpeechMessage.Dynamics.ControlPlane.Runtime;
 /// 一律在鎖外等待。Request 在 Admission Queue 等待期間只保存非秘密 Dispatch Envelope 與 Admission Manager，
 /// 不取得或保存 Runtime Lease；排隊完成後才在 Catalog 鎖內取得當下 Active Generation，避免 Queue 強引用舊 Runtime。
 /// </remarks>
-public sealed class DynamicsProfileRuntimeManager : IDynamicsProfileRuntimeManager
+public sealed class DynamicsProfileRuntimeManager :
+    IDynamicsProfileRuntimeManager,
+    IActiveProfileGenerationResolver
 {
     private readonly object _gate = new();
     private readonly Dictionary<string, ProfileSlot> _slots;
@@ -174,6 +176,36 @@ public sealed class DynamicsProfileRuntimeManager : IDynamicsProfileRuntimeManag
             }
 
             admissionPlan = slot.Active.AdmissionManager.Plan;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// 只讀取目前 Active Runtime 的非秘密 generation key，供 Official Worker Profile resolver 更新
+    /// Router 的 generation snapshot。此方法不建立或保存 Runtime、Worker、Pipe、Permit、Credential、
+    /// Timer 或 Request；Draining／NotReady／Shutdown 狀態一律 fail closed。
+    /// </summary>
+    public bool TryGetActiveRuntimeKey(
+        string profileAlias,
+        out ProfileRuntimeKey key)
+    {
+        key = default;
+        if (string.IsNullOrWhiteSpace(profileAlias))
+        {
+            return false;
+        }
+
+        lock (_gate)
+        {
+            if (_disposeStarted || !_ready ||
+                !_slots.TryGetValue(profileAlias.Trim(), out var slot) ||
+                slot.Active is null ||
+                slot.Active.State != DynamicsProfileRuntimeState.Active)
+            {
+                return false;
+            }
+
+            key = slot.Active.Key;
             return true;
         }
     }

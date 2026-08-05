@@ -78,7 +78,8 @@ internal sealed class OperationDispatchPreparer
         OperationDefinition definition,
         OrganizationAdmissionPlan admissionPlan,
         out PreparedOperationDispatch? prepared,
-        out OperationExecutionResult? error)
+        out OperationExecutionResult? error,
+        DateTimeOffset? deadlineUtc = null)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(definition);
@@ -150,6 +151,16 @@ internal sealed class OperationDispatchPreparer
                 error = Invalid($"Unknown parameter '{pair.Key}'.");
                 return false;
             }
+        }
+
+        var effectiveDeadlineUtc = deadlineUtc ?? DateTimeOffset.UtcNow.AddSeconds(
+            Math.Max(1, admissionPlan.QueueAdmissionTimeoutSeconds + 30));
+        if (effectiveDeadlineUtc <= DateTimeOffset.UtcNow)
+        {
+            error = OperationExecutionResult.Failure(
+                DynamicsErrorCodes.AdmissionTimeout,
+                "The operation deadline expired before admission preparation.");
+            return false;
         }
 
         var normalized = new Dictionary<string, object?>(sourceParameters.Count, StringComparer.Ordinal);
@@ -228,8 +239,7 @@ internal sealed class OperationDispatchPreparer
                 TemplateId = definition.TemplateId,
                 TemplateHash = definition.TemplateHash,
                 IdempotencyKey = idempotencyKey,
-                DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(
-                    Math.Max(1, admissionPlan.QueueAdmissionTimeoutSeconds + 30)),
+                DeadlineUtc = effectiveDeadlineUtc,
                 CanonicalEnvelopeBytes = canonicalLength
             };
 

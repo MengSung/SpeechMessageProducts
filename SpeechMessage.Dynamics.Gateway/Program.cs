@@ -161,8 +161,15 @@ else
     var dynamicsProfiles = LoadDynamicsProfileDefinitions(builder.Configuration, builder.Environment);
     configuredProfileAliases = dynamicsProfiles.Select(static profile => profile.ProfileAlias).ToArray();
     var configurationProfileResolver = LoadConfigurationProfileResolver(builder.Configuration);
-    builder.Services.AddSingleton<IProfileResolver>(configurationProfileResolver);
     builder.Services.AddSpeechMessageDynamicsOfficialWorkers(dynamicsProfiles);
+    // Official Worker Runtime Manager 會在 replace-and-drain 後產生新的 numeric generation；
+    // Router 使用的 Profile snapshot 必須即時投影目前 Active generation，不能永久保留載入時的 1，
+    // 否則 replacement 後會把新工作送到舊世代。Wrapper 不持有 Worker、Pipe、Permit 或 Credential。
+    builder.Services.AddSingleton<IProfileResolver>(serviceProvider =>
+        new OfficialWorkerRuntimeProfileResolver(
+            configurationProfileResolver,
+            serviceProvider.GetRequiredService<IActiveProfileGenerationResolver>()));
+    builder.Services.AddSpeechMessageDynamicsOfficialWorkerConnectorRouting();
 }
 builder.Services.AddSingleton<IGatewayOperationAuthorizer>(serviceProvider =>
     new ConfigurationGatewayOperationAuthorizer(

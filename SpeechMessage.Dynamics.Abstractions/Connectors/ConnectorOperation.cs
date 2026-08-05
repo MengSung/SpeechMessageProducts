@@ -1,3 +1,5 @@
+using SpeechMessage.Dynamics.Abstractions.Operations;
+
 namespace SpeechMessage.Dynamics.Abstractions.Connectors;
 
 /// <summary>
@@ -11,11 +13,12 @@ public sealed record ConnectorOperation
     public required string OperationId { get; init; }
 
     /// <summary>
-    /// 取得經過 Guard 驗證的有界作業參數。Pool 與 Lease 不得保存此字典超出單次執行的生命週期，
-    /// 避免請求資料或使用者輸入被 idle Client、快取或後續請求重用。
+    /// 取得經過 Guard 與 Operation Registry 驗證的有界 typed 作業參數。Pool 與 Lease 不得保存此字典
+    /// 超出單次執行的生命週期；Official Worker adapter 只在同步 prepare 階段讀取它，之後只保留
+    /// normalized scalar copy，避免 JsonElement、請求資料或使用者輸入被 idle Worker、快取或後續請求重用。
     /// </summary>
-    public IReadOnlyDictionary<string, string?> Parameters { get; init; }
-        = new Dictionary<string, string?>(StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, object?> Parameters { get; init; }
+        = new Dictionary<string, object?>(StringComparer.Ordinal);
 
     /// <summary>
     /// 取得本次作業的絕對截止時間。Lease 必須以此時間建立短生命週期取消來源，並在執行結束後立即釋放。
@@ -38,6 +41,14 @@ public sealed record ConnectorOperation
 /// </summary>
 public sealed record ConnectorOperationResult(bool Succeeded, string? ErrorCode = null)
 {
+    /// <summary>
+    /// 取得已由 Connector 在 request scope 完成投影的封閉回應資料。Official Worker 必須直接交回
+    /// <see cref="OperationResponseData"/> discriminated union，而不是把 SDK object、Entity、FetchXML、
+    /// endpoint、credential、token、pipe 或原始 IPC frame 降級成字典。此純值不擁有 stream、process、
+    /// timer、CTS 或 lease；那些資源仍由 Connector Lease 在 Dispose 前確定釋放。
+    /// </summary>
+    public OperationResponseData? Data { get; init; }
+
     /// <summary>取得已投影的結果欄位；呼叫端必須依能力作業契約解讀，不得作為任意 CRM 欄位通道。</summary>
     public IReadOnlyDictionary<string, string?> Values { get; init; }
         = new Dictionary<string, string?>(StringComparer.Ordinal);
