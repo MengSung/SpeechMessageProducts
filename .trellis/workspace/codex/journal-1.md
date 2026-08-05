@@ -216,3 +216,36 @@ Completed fail-closed diagnostics operator authorization, bounded factory-owned 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: P5 Dedicated Gateway 對齊結案
+
+**Date**: 2026-08-05
+**Task**: P5 Dedicated Gateway 對齊結案
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+P5 CRLF-only 正規化已通過 focused/full tests、Release build 與 byte-level UTF-8/CRLF 驗證；Phase 3.3 判定無 spec update 必要，已完成工作提交並封存任務。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d7a30aa1` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
