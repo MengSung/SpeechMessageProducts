@@ -1,8 +1,8 @@
 {
   "id": "official-worker-router-ce-integration",
   "name": "official-worker-router-ce-integration",
-  "title": "P6 Official Worker Router 接入與 CE 整合驗證",
-  "description": "以 deployment-owned ConnectorKind 將 CE 8.2／9.1 Official Worker 納入既有 Router／Pool／Lease 邊界，完成離線生命週期驗證規劃與受控真機驗證交接。",
+  "title": "P6 Official Worker Router and CE integration validation",
+  "description": "Route CE 8.2 and CE 9.1 Official Workers through the deployment-owned ConnectorKind, Router, Pool, and Lease boundaries; retain offline lifecycle evidence and controlled live-read validation handoff.",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -17,14 +17,15 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
+  "nextAction": "Run the local-only readiness probe under the target Gateway/Worker service identity with an approved local profile-input document. Generate the final overlay only after it reports go; do not start P7.",
   "subtasks": [],
   "children": [],
   "parent": "08-04-dynamics-connection-management-plan",
   "relatedFiles": [],
-  "notes": "高複雜度、高風險：跨程序 Worker、Router、Connector、CE 版本相容、profile isolation 與資源生命週期均屬 release-blocking 邊界。Phase 1 僅規劃；未取得使用者明確核准不得 task.py start 或執行 CE 呼叫。",
+  "notes": "P6.1 offline Router, Pool, Lease, lifecycle, and quality checks passed. P6.2 is No-Go because the deployment-owned overlay and worker-local credential profile are absent. Do not create deployment values, start P7, change ChurchReport traffic, or change feature flags.",
   "meta": {
     "complexity": "L",
     "risk": "high",
-    "phaseBoundary": "planning-only"
+    "phaseBoundary": "p6.1-offline-complete-p6.2-deployment-readiness-blocked"
   }
 }
