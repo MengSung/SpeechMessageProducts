@@ -5,8 +5,8 @@
   "complexity": "M",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "analysis",
-  "nextAction": "追查 HandleError、TempData、ToolUtility 連線借還與 Dispose 路徑",
+  "currentPhase": "implementation",
+  "nextAction": "後續另立小任務，將 DownloadListManager 的借用 IOrganizationService 改為操作範圍參數，避免寫入共享 ToolUtility",
   "createdAt": "2026-08-05T09:00:00+08:00",
   "branch": "1.0.0.3.Gateway&Embedded.Worktree"
 }

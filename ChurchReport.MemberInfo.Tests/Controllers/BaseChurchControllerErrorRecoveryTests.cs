@@ -129,6 +129,33 @@ public sealed class BaseChurchControllerErrorRecoveryTests
     }
 
     /// <summary>
+    /// 保護既有的 LIFF 入口提示：路由只能傳遞受控錯誤代碼，錯誤頁必須由自己的
+    /// 對照表產生使用者訊息，不能把 URL 中任意的 ErrorMessage 原樣回顯。
+    /// </summary>
+    [Fact]
+    public void DisplayErrorView_WhenRecognizedErrorCodeIsProvided_UsesMappedSafeMessage()
+    {
+        var controller = new HomeController(
+            new HttpContextAccessor(),
+            null!,
+            new FixedToolUtilityProvider(null!),
+            new NoOpCrmConnectionPool(),
+            new NullInMemoryDataContext());
+
+        var method = typeof(HomeController).GetMethod(
+            nameof(HomeController.DisplayErrorView),
+            new[] { typeof(string), typeof(string) });
+        method.Should().NotBeNull("錯誤頁必須明確接受受控 ErrorCode，而非重用 ErrorMessage");
+
+        var result = method!.Invoke(
+            controller,
+            new object?[] { "internal CRM connection detail", "missing-liff-parameter" });
+
+        var view = result.Should().BeOfType<ViewResult>().Subject;
+        view.ViewData["ErrorMessage"].Should().Be("缺少 LINE 啟動參數，請從 LINE 入口重新開啟。");
+    }
+
+    /// <summary>
     /// 建立未經建構式初始化的受測 Controller，刻意不提供 HTTP/TempData 依賴，
     /// 重現錯誤處理器在背景、手動轉送或測試環境中缺少完整 MVC 管線的情境。
     /// </summary>

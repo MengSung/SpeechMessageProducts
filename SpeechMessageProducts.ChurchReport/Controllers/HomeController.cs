@@ -747,7 +747,7 @@ namespace ChurchReport.Controllers
         [HttpGet]
         [Route("/Home/DisplayErrorView")]
         [Route("/Home/DisplayErrorView/{*ErrorMessage}")]
-        public IActionResult DisplayErrorView(string? ErrorMessage = null)
+        public IActionResult DisplayErrorView(string? ErrorMessage = null, string? errorCode = null)
         {
             // URL 參數可能是舊呼叫端留下的 exception.Message 或使用者輸入，絕不回顯。
             // TempData provider 失敗時改用固定訊息，避免錯誤頁再覆蓋原始失敗。
@@ -766,11 +766,34 @@ namespace ChurchReport.Controllers
 
             if (string.IsNullOrWhiteSpace(message))
             {
-                message = safeFallbackMessage;
+                message = ResolveSafeErrorMessage(errorCode, safeFallbackMessage);
             }
 
             ViewBag.ErrorMessage = message;
             return View("DisplayErrorView");
+        }
+
+        /// <summary>
+        /// 將路由中的受控錯誤代碼轉為固定使用者訊息。
+        ///
+        /// <para>
+        /// 此方法刻意不讀取 <c>ErrorMessage</c> 的路由內容。URL、Location header 與
+        /// bookmark 都屬於不可信邊界，若直接回顯可能讓舊呼叫端的 exception.Message
+        /// 洩漏 CRM 內部資訊。未知代碼一律 fail closed 回傳通用訊息；白名單中的代碼
+        /// 不含使用者、Session、Organization 或 credential 資料，因此可安全跨 redirect。
+        /// </para>
+        /// </summary>
+        /// <param name="errorCode">由受信任伺服器端呼叫端提供的固定錯誤代碼。</param>
+        /// <param name="safeFallbackMessage">未知或遺失代碼時使用的固定安全訊息。</param>
+        /// <returns>可呈現給使用者、且不含內部例外內容的固定訊息。</returns>
+        private static string ResolveSafeErrorMessage(string? errorCode, string safeFallbackMessage)
+        {
+            return errorCode switch
+            {
+                "missing-liff-parameter" => "缺少 LINE 啟動參數，請從 LINE 入口重新開啟。",
+                "contact-create-failed" => "目前無法建立聯絡人，請稍後再試。",
+                _ => safeFallbackMessage
+            };
         }
     }
 }

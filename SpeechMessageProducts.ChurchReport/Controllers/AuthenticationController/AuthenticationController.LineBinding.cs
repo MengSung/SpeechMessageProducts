@@ -40,7 +40,8 @@ namespace ChurchReport.Controllers
             {
                 if (string.IsNullOrWhiteSpace(LineIdLoginViewPatameter))
                 {
-                    return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = "缺少 LIFF 參數，請從 LINE 入口開啟。" });
+                    // 只傳固定錯誤代碼；錯誤頁在伺服器端決定可安全顯示的繁中訊息。
+                    return RedirectToAction("DisplayErrorView", "Home", new { errorCode = "missing-liff-parameter" });
                 }
 
                 var images = new List<string>

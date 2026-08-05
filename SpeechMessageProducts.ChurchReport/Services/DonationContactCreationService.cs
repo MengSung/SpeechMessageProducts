@@ -79,7 +79,8 @@ namespace ChurchReport.Services
                     " , Description = " + exception;
 
                 _notifyRegistrationError(errorString);
-                return _redirectToAction("DisplayErrorView", new { ErrorMessage = exception.Message });
+                // URL 僅傳遞固定代碼；原始例外只留在既有管理通知，避免 Location header 洩漏 CRM 細節。
+                return _redirectToAction("DisplayErrorView", new { errorCode = "contact-create-failed" });
             }
         }
 

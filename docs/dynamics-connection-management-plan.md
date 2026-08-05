@@ -180,34 +180,61 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 
 ---
 
-### P7　消費者遷移（3～5 天）
+### P7　ChurchReport 完全 Gateway 化（多個可獨立驗證批次）
 
-**目標**：把 ChurchReport 的 Package 1 讀取路徑實際切到新架構。
+**目標**：將 ChurchReport 的全部正式 D365 業務能力改由強型別 ProductClient 呼叫受控 operation，完成 CE 8.2／9.1 證據、逐 capability rollout 與 ToolUtility removal gate。P7 不是把 ToolUtility 方法一對一搬成遠端 CRUD，而是以業務 use case 組合粗粒度 capabilities。
 
-| 工作 |
-|---|
-| 依既有 Tier A～D 分級，逐步開啟 `Package01FeeReadsEnabled` |
-| 每一級與 legacy 路徑做筆數與金額對帳 |
-| 任一級失敗即關閉旗標回退 |
+#### P7.0　Capability inventory 與 coverage gate
 
-**驗收（每一級）**
-- 同一聯絡人、同一日期區間，新舊路徑筆數與總額一致
-- p95 延遲不劣於 legacy 路徑
-- 連續操作 1 小時，記憶體與 Handle 無單調成長
+- 將 Phase 0 的 70 個 normalized call-site rows 對應到業務 use case、Operation ID、ProductClient owner、consumer、ConnectorKind／CeVersion support 與 rollout 狀態。
+- 建立 deterministic coverage validator；Registry 登錄、executor 實作、consumer enablement 與真機 evidence 分欄追蹤，禁止用單一「已完成」混淆不同層級。
+- 未分類 call site、無 owner 的 temporary legacy 或未經授權的 generic CRUD／FetchXML 都阻塞 P7.5。
+
+#### P7.1　Read capabilities
+
+- 先完成既有 Package 1 fee／stor 六個 operations 的 Data8 executor、typed projection、ProductClient 與 Tier A～D rollout。
+- 再依 capability matrix 拆分 MemberInfo、Contact／List、Activity／report、metadata 等 children；每個 child 必須能獨立測試、對帳與回滾。
+- Read 可做有界 shadow comparison，但 shadow failure 不得污染 authoritative response，且取消／逾時後不得保留 task、timer、registration、permit、lease 或 response buffer。
+
+#### P7.2　Write／Action／Function capabilities
+
+- 依 transaction／idempotency／authorization 邊界拆分 Create、Update、Associate／Disassociate、Action 與 Function。
+- 每次只允許一條 authoritative writer；禁止未設計的 dual-write。每個 operation 明確定義重複送達、optimistic concurrency、部分完成、timeout-after-commit 與 reconciliation。
+
+#### P7.3　特殊資源能力
+
+- Attachment、large paging、background／scheduler、metadata cache 與其他 stream／process／subscription owner 使用獨立 contract 與 lifecycle gate。
+- Payload、page、queue、concurrency 與 retention 全部有硬上限；cleanup／drain／dispose failure 是 release blocker。
+
+#### P7.4　Product cutover
+
+- Controller、Service 與 WebServiceConnector 逐 capability 改依賴 ProductClient；產品不再傳遞 SDK `Entity`、`QueryBase`、`OrganizationRequest`、`IOrganizationService`、credential、endpoint 或 connector kind。
+- 每個 capability 以獨立 feature gate 切換；任一資料差異、錯誤語意、隔離、效能或資源退步只回滾該 capability。
+
+#### P7.5　ToolUtility removal gate
+
+- Capability matrix 不得再有 ChurchReport production temporary-legacy rows。
+- 移除 ChurchReport 對 ToolUtility／CRM SDK 的 project reference、DI／Factory、legacy credential／endpoint 與直接呼叫。
+- 完整 Release build、Dynamics／ChurchReport tests、zero-reference scan、CE 8.2／9.1 真機結果、p50／p95／p99、soak 與資源基線全部通過後，才關閉 rollback window。
+- P7.5 只移除 ChurchReport dependency；ToolUtility project 若仍有其他 consumer，保留至獨立退役任務。
 
 ---
 
-### P8　Central Gateway（可選，視需要啟動）
+### P8　多產品 Operation 治理與 Central Gateway（第二產品觸發）
 
-**目標**：多產品共用。**在只有 ChurchReport 一個產品時不需要執行本階段。**
+**目標**：讓建設公司、票款通、協會等新產品從第一天只使用 ProductClient／capability operation，不複製 ToolUtility／CRM SDK／credential ownership；需要集中部署時再啟用 Central Gateway。
 
-| 工作 |
-|---|
-| 部署為共用服務，工作負載身分驗證 |
-| 多節點時才導入 `IDistributedCapacityCoordinator`（既有 SQL 實作可直接用） |
-| 跨產品公平排程與聚合容量驗證 |
+| 工作 | 驗收重點 |
+|---|---|
+| 建立平台共同、共用領域與 product-namespaced operation modules | 同一契約才能共用；產品猜中 ID 也不能越權呼叫其他產品能力 |
+| 定義 ProductClient package／namespace owner 與版本政策 | 破壞性變更建立新版本；舊版無 consumer／流量後才移除 |
+| 建立 workload → profile／operation allowlist | Authentication／authorization 先於 body parsing、Profile resolution 與 outbound work |
+| 加入新產品 architecture test | 禁止 ToolUtility、CRM SDK、raw endpoint／credential／ConnectorKind 進入產品 |
+| 部署 Central Gateway 與工作負載身分驗證 | 單產品不強制 Central；Dedicated／Embedded 仍使用相同 operation contract |
+| 多節點時才導入 `IDistributedCapacityCoordinator` | 單節點使用 In-Memory；多節點驗證 fencing、lease loss、drain 與 cleanup |
+| 跨產品公平排程與 aggregate Organization capacity | 不同 alias／產品不得乘增同一實體 Organization 的容量；noisy-neighbor 測試通過 |
 
-**觸發條件**：第二個產品要接入時。
+**觸發條件**：第二個產品進入 onboarding。新產品需求先搜尋既有 catalog；只有業務語意、授權或 DTO 邊界不同時才新增 operation。
 
 ---
 
@@ -219,15 +246,17 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 | P1 契約層 | 2～3 | 3.5 | 型別與守門就緒 |
 | P2 Data8 修正 | 1～2 | 5.5 | 洩漏底線成立 |
 | P3 連線池 | 3～4 | 9.5 | 池化與世代就緒 |
-| **P4 Embedded** | 2～3 | **12.5** | **★ F5 可跑，真機取得資料** |
-| P5 Dedicated | 2～3 | 15.5 | 三模式等價 |
-| P6 Official 接入 | 1～2 | 17.5 | 擴充點就緒 |
-| P7 消費者遷移 | 3～5 | 22.5 | 實際切換 |
-| P8 Central | 視需要 | — | 多產品時才做 |
+| **P4 Embedded** | 2～3 | **12.5** | **★ F5 可跑，受控核心就緒** |
+| P5 Dedicated | 2～3 | 15.5 | 獨立進程與 HTTPS 對齊 |
+| P6 Official 接入 | 1～2 | 17.5 | Connector 擴充點就緒 |
+| P7.0 Capability inventory | 獨立批次 | — | 權威 coverage matrix 與 validator |
+| P7.1～P7.3 Capability slices | 依矩陣拆分 | — | 全部讀、寫與特殊資源 operations |
+| P7.4～P7.5 Cutover／Removal | 依驗證批次 | — | ChurchReport 完全 Gateway 化並移除 ToolUtility dependency |
+| P8 多產品／Central | 第二產品觸發 | — | Operation governance、workload policy 與跨產品容量 |
 
-**單一開發者連續投入約 4～5 週；若維持先前觀測到的 AI 輔助節奏，可壓縮至 2～3 週。**
+先前「P7 只需 3～5 天、全計畫 4～5 週」的估算只涵蓋 Package 1 fee-read，已被 ChurchReport 完全 Gateway 化的新範圍取代。P7 總量必須由 P7.0 capability matrix 依獨立 rollback owner 與真機 evidence 數量估算，不以 70 個 call-site rows 或 ToolUtility 方法數直接換算工期。
 
-**最有價值的里程碑是 P4（第 12.5 天）** —— 在那之前的所有工作都是為了讓那一次 F5 成立。
+P4 仍是第一個可見平台里程碑；P7.5 才是 ChurchReport 產品遷移完成里程碑。
 
 ---
 

@@ -1,0 +1,7 @@
+{"path":".trellis/tasks/08-05-gateway-purpose-and-positioning/prd.md","reason":"既有問題陳述、已確認事實與待決策項目"}
+{"path":"docs/dynamics-connection-management-spec.md","reason":"2026-08-04 使用者核准、優先於舊規格的現行契約"}
+{"path":"docs/dynamics-connection-management-plan.md","reason":"Embedded、DedicatedGateway、CentralGateway 與消費者遷移階段"}
+{"path":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Gateway hosting、版本路由、信任邊界與資源生命週期規範"}
+{"path":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"Data8 pool／lease 的同進程所有權契約"}
+{"path":"C:/Users/Administrator/AppData/Local/Temp/codex-clipboard-a5f4f7e7-e8bb-4bc5-82b4-425765712fff.png","reason":"使用者提供的整體產品與 Dynamics 連線治理架構圖"}
+{"path":"C:/Users/Administrator/AppData/Local/Temp/codex-clipboard-591b880b-fe4e-4058-8407-3e4ae2bbeef4.png","reason":"使用者提供的 legacy 與新治理路徑對照圖"}

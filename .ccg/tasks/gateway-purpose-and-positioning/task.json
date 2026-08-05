@@ -1,0 +1,12 @@
+{
+  "id": "gateway-purpose-and-positioning",
+  "title": "釐清 Dynamics Gateway 存在意義與 ToolUtility 定位",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "確認多產品 ProductClient 與 operation catalog 分層，再形成完整 Trellis design 與分批遷移計畫",
+  "createdAt": "2026-08-05T10:02:32+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
