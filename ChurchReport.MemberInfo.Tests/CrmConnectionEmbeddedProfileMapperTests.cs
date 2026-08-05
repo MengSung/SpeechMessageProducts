@@ -223,6 +223,29 @@ public sealed class CrmConnectionEmbeddedProfileMapperTests
             .Should().Be("sunnyvalechback");
         dedicatedEnvironment.GetProperty("DynamicsAccess__Gateway__Endpoint").GetString()
             .Should().Be("https://localhost:7244/");
+        dedicatedEnvironment.GetProperty("DynamicsAccess__Package01FeeReadsEnabled").GetString()
+            .Should().Be("true");
+
+        var gatewayRoot = Path.Combine(FindRepositoryRoot(), "SpeechMessage.Dynamics.Gateway");
+        using var gatewayLaunchSettings = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(gatewayRoot, "Properties", "launchSettings.json")));
+        var gatewayDedicatedEnvironment = gatewayLaunchSettings.RootElement
+            .GetProperty("profiles")
+            .GetProperty("DedicatedGateway")
+            .GetProperty("environmentVariables");
+
+        gatewayDedicatedEnvironment
+            .GetProperty("DynamicsGateway__ActiveWorkloadBindingSet")
+            .GetString()
+            .Should().Be("DedicatedGateway");
+        gatewayDedicatedEnvironment
+            .GetProperty("DynamicsGateway__WorkloadBindingSets__DedicatedGateway__0__ProfileAliases__0")
+            .GetString()
+            .Should().Be("sunnyvalechback");
+        gatewayDedicatedEnvironment
+            .GetProperty("DynamicsGateway__WorkloadBindingSets__DedicatedGateway__0__CapabilityOperationIds__0")
+            .GetString()
+            .Should().Be("runtime.health.whoami");
     }
 
     /// <summary>

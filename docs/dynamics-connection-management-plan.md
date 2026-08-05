@@ -139,6 +139,25 @@ P4、P5、P6 先完成程式與離線生命週期驗證；使用者完成 Embedd
 - P6 後整合閘門：同一查詢在 `Embedded` 與 `DedicatedGateway` 兩種模式下結果逐筆一致
 - 產品端只需改一個 `ConnectionMode` 字串即可切換
 
+#### P5 開發操作與離線驗證補充（2026-08-05）
+
+P5 的 Dedicated Gateway 是可隨 ChurchReport 一起部署的獨立進程，不是 Central Gateway 的前置條件，也不會取代一般開發時的 Embedded F5。
+
+| 情境 | Visual Studio 2026 設定 | 結果 |
+|---|---|---|
+| 一般產品開發 | 只啟動 ChurchReport 的 `ChurchReport`（或 IIS Express）profile | `ConnectionMode=Embedded`；不讀取 `Gateway.Endpoint`，沒有 HTTP hop。 |
+| Dedicated Gateway 開發／除錯 | Multiple Startup Projects：先啟動 `SpeechMessage.Dynamics.Gateway` 的 `DedicatedGateway` profile，再啟動 ChurchReport 的 `DedicatedGateway` profile | ChurchReport 以 `https://localhost:7244/` 呼叫固定的 `sunnyvalechback` profile；Gateway 使用獨立的 Data8 runtime、pool、admission、client 與 permit。 |
+| 回滾 | 改回 ChurchReport 一般 profile，或把 `DynamicsAccess:ConnectionMode` 設為 `Embedded` 後重新啟動產品 | 不修改 profile、pool、Catalog 或外部 CE；不可自動退回 Official Worker、Central Gateway 或其他 connector。 |
+
+Dedicated Gateway 的首次本機操作步驟：
+
+1. 在使用者工作階段設定一次 `CRM_PASSWORD` 環境變數；它只由 Gateway child process 的 startup configuration 讀取，**不得**寫入 `appsettings*.json`、`launchSettings.json`、Git、log 或產品 request。
+2. 在方案 Properties 的 **Multiple startup projects** 中，把 `SpeechMessage.Dynamics.Gateway` 排第一並選取 `DedicatedGateway` profile；把 `SpeechMessageProducts.ChurchReport` 排第二並選取同名 profile。
+3. 按 F5 後，僅以 `GET https://localhost:7244/health` 與 `GET https://localhost:7244/ready` 檢查本機 host。`/ready` 的 `runtime=configured` 只代表 DI 已完成 Dedicated Data8 runtime 的組態化，**不代表**已連上 CE、已驗證密碼或已建立 Data8 session。
+4. P5 不執行 `/v1`、WhoAmI、CE、SQL、IIS、DNS、ADFS、IFD、CRMWeb 或 Web API 真機呼叫。外部 CE 跨模式一致性、效能與 soak 量測仍完全延至 P6 後。
+
+Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profile/catalog shape；兩個 host 不能共用 runtime、pool、admission、Data8 client、lease、permit、credential、token 或其他可變 Session 狀態。Gateway host stop 時由 `DedicatedData8RuntimeHostedService` 唯一 await runtime 的 drain/dispose，程序邊界測試會確認 listener 與 process 回到基線。
+
 ---
 
 ### P6　Official Worker 接進 Router（1～2 天）

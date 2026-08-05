@@ -235,11 +235,17 @@ if (isDedicatedGateway)
 app.MapGet("/ready", (HttpContext context, Data8ProfileRuntime runtime) =>
 {
     context.Response.Headers.CacheControl = "no-store";
+    // Dedicated host 在 startup 僅建立 immutable configuration、resolver、admission 與 pool registry；
+    // Data8 client/WCF channel 必須等到授權後的 /v1 operation 才由 lease 建立。因此 readiness 只能宣告
+    // runtime 已由本機 DI materialize，不能把非 null executor 誤標為「active」或暗示已成功連到 CE。
+    // 仍保留 runtime DI parameter，確保 endpoint 僅在唯一 host-owned runtime 可解析時才會成功處理，
+    // 但不讀取 credential、endpoint、client、pool 或任何跨 request 可變狀態。
+    ArgumentNullException.ThrowIfNull(runtime);
     return Results.Ok(new
     {
         status = "ready",
         service = "SpeechMessage.Dynamics.Gateway",
-        profile = runtime.Executor is not null ? "active" : "not-ready"
+        runtime = "configured"
     });
 });
 }

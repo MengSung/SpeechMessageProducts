@@ -23,7 +23,8 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DynamicsAccess__ConnectionMode": "DedicatedGateway",
         "DynamicsAccess__ProfileAlias": "sunnyvalechback",
-        "DynamicsAccess__Gateway__Endpoint": "https://localhost:7244/"
+        "DynamicsAccess__Gateway__Endpoint": "https://localhost:7244/",
+        "DynamicsAccess__Package01FeeReadsEnabled": "true"
       }
     },
     "WSL": {

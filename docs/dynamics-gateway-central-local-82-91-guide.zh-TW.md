@@ -1481,6 +1481,45 @@ git diff --check                   passed
 
 所有新增或修改的 source、test、tool、script、configuration、SPEC 與文件都必須通過 strict UTF-8 decoder，並維持 UTF-8 without BOM、CRLF-only 與 final CRLF。註解或編碼不合格不是排版小問題，而是會阻擋交付的規格違反。
 
+## 18.21 P5 Dedicated Gateway 實作狀態與 Visual Studio F5 指引（2026-08-05）
+
+本節是 P5 的現行權威補充；若本文件較早段落仍將「Local Gateway」描述成 Official Worker、SQL coordinator、Web API 或外部 CE 驗證流程，該描述不適用於 P5 Dedicated Data8 模式。
+
+```mermaid
+flowchart LR
+    VS["Visual Studio 2026\nMultiple Startup Projects"] --> GW["Gateway\nDedicatedGateway profile\nHTTPS localhost:7244"]
+    VS --> CR["ChurchReport\nDedicatedGateway profile"]
+    CR -->|"固定 alias：sunnyvalechback"| GW
+    GW --> RG["RequestGuard → ProfileResolver\n→ Admission → Data8 Router"]
+    RG --> POOL["Dedicated-only\nData8 generation-owned Pool"]
+```
+
+### 18.21.1 兩種 F5，不是二選一
+
+| 你要做的事 | 選取的 profile | 是否需 Gateway | 重要限制 |
+|---|---|---|---|
+| 一般 ChurchReport 開發 | ChurchReport 的一般 `ChurchReport`／IIS Express profile | 不需要 | 預設為 `ConnectionMode=Embedded`；Embedded 不讀取 `Gateway.Endpoint`。 |
+| 驗證 HTTP 邊界與 Dedicated process | Gateway `DedicatedGateway` + ChurchReport `DedicatedGateway` | 需要；Gateway 先啟動 | ChurchReport 只能送 mode、alias 與 `https://localhost:7244/`；不得送 organization、connector、endpoint、credential、token 或 FetchXML。 |
+
+這兩種模式都永久保留。Data8 亦永久保留為 `ConnectorKind`，profile 可以選擇 CE 8.2 或 CE 9.1；版本只是 profile adapter 屬性，pool/runtime 的隔離鍵仍是 `(ProfileAlias, GenerationId)`，不同 host 也絕不共用任何可變連線或 Session。
+
+### 18.21.2 Dedicated F5 設定步驟
+
+1. 在目前使用者的 process environment 設定 `CRM_PASSWORD`；不可放入 JSON、Git、命令列、log、HTTP header 或 ChurchReport request。
+2. 在 Visual Studio 2026 的 Solution Properties → **Multiple startup projects**，依序選擇：
+   - `SpeechMessage.Dynamics.Gateway` → `DedicatedGateway` profile；
+   - `SpeechMessageProducts.ChurchReport` → `DedicatedGateway` profile。
+3. 按 F5。Gateway 開啟 HTTPS loopback `https://localhost:7244/`；ChurchReport 明確覆寫為 `ConnectionMode=DedicatedGateway`、`ProfileAlias=sunnyvalechback` 和相同 endpoint。
+4. 停止偵錯時，兩個 host 各自依 DI lifecycle 釋放資源。Gateway 的 hosted service 會 await Data8 runtime，先 drain/dispose pool，再釋放 admission；不得讓 ChurchReport 啟動、終止或重用 Gateway process。
+
+只可把 `/health`、`/ready` 當作本機 composition probe。`/ready` 中的 `runtime=configured` 是「runtime 已 materialize」的安全訊號，**不是** CE 可連線、密碼正確、Data8 client 已建立或資料查詢成功的訊號。
+
+### 18.21.3 回滾與 P6 邊界
+
+Dedicated 開發有問題時，只需選回 ChurchReport 一般 profile 或設回 `ConnectionMode=Embedded` 後重新啟動；不需要改 Organization Catalog、Pool、Gateway endpoint、外部 D365、IIS、DNS、ADFS 或 SQL。
+
+P5 的自動化測試只驗證 localhost HTTPS、Negotiate、workload authorization、RequestGuard、no-store、host lifecycle 與 resource baseline；不會發出 `/v1` 或任何外部 CE request。跨模式 CE 8.2／9.1 結果一致性、容量/故障、200 次 borrow/use/return、soak 與效能測量都是 P6 後的受控工作。
+
 ## 19. 一句話總結
 
 > 產品 A～10 永遠只學一種 Dynamics 呼叫方式；Central Gateway 與 Local Gateway 負責部署差異，`crm82` 與 `crm91` 負責版本差異，Web API／官方 SDK／暫時 Data8 Worker 負責 Transport 差異，而這些差異全部不能滲透回產品業務程式。
