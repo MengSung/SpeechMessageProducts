@@ -1,7 +1,7 @@
 {
-  "id": "gateway-purpose-and-positioning",
-  "name": "gateway-purpose-and-positioning",
-  "title": "釐清 Dynamics Gateway 存在意義與定位",
+  "id": "gateway-capability-inventory",
+  "name": "gateway-capability-inventory",
+  "title": "P7.0 Gateway Capability Inventory 與 Coverage Gate",
   "description": "",
   "status": "planning",
   "dev_type": null,
@@ -18,10 +18,8 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [
-    "08-05-gateway-capability-inventory"
-  ],
-  "parent": null,
+  "children": [],
+  "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
   "notes": "",
   "meta": {}

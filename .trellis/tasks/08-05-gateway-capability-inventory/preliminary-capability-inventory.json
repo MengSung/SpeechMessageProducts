@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "p7.0.preliminary-capability-inventory.v1",
+  "purpose": "保留 P7.0 對 Phase 0 normalized CRM call sites 的可追溯初步 grouping；不含 credential、token、endpoint、CRM payload 或真機資料。",
+  "sourceMatrix": {
+    "path": ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+    "sha256": "06caa1d96ce5eddb93381b6361528d304ae1608240b87ab5316df1a557d5b823",
+    "normalizedCallSiteCount": 70,
+    "sourceSchemaVersion": "2026-07-24.phase0.v1"
+  },
+  "currentCoverage": {
+    "operationRegistryDeclared": 9,
+    "data8ExecutorImplemented": 1,
+    "officialWorkerExecutorImplemented": 3,
+    "gatewayConsumerEnabled": 0,
+    "ce82RealEvidence": 0,
+    "ce91RealEvidence": 0,
+    "temporaryLegacyRows": 16
+  },
+  "capabilityGroups": [
+    {
+      "family": "platform.shared.runtime",
+      "count": 6,
+      "callSiteIds": ["ORG-CALL-00001", "ORG-CALL-00002", "ORG-CALL-00003", "ORG-CALL-00004", "ORG-CALL-00013", "ORG-CALL-00021"],
+      "p7Route": "P5/P6 platform gate; no ChurchReport consumer cutover"
+    },
+    {
+      "family": "platform.legacy.blocked",
+      "count": 5,
+      "callSiteIds": ["ORG-CALL-00007", "ORG-CALL-00008", "ORG-CALL-00009", "ORG-CALL-00010", "ORG-CALL-00046"],
+      "p7Route": "P7.5 removal gate; no remote capability may be created"
+    },
+    {
+      "family": "churchreport.list.membership",
+      "count": 23,
+      "callSiteIds": ["ORG-CALL-00011", "ORG-CALL-00012", "ORG-CALL-00014", "ORG-CALL-00015", "ORG-CALL-00016", "ORG-CALL-00017", "ORG-CALL-00018", "ORG-CALL-00019", "ORG-CALL-00020", "ORG-CALL-00025", "ORG-CALL-00031", "ORG-CALL-00032", "ORG-CALL-00035", "ORG-CALL-00045", "ORG-CALL-00047", "ORG-CALL-00051", "ORG-CALL-00052", "ORG-CALL-00053", "ORG-CALL-00054", "ORG-CALL-00057", "ORG-CALL-00058", "ORG-CALL-00065", "ORG-CALL-00070"],
+      "p7Route": "P7.1 reads, P7.2 mutations, P7.3 paging/large graph"
+    },
+    {
+      "family": "churchreport.member.profile",
+      "count": 8,
+      "callSiteIds": ["ORG-CALL-00022", "ORG-CALL-00023", "ORG-CALL-00024", "ORG-CALL-00028", "ORG-CALL-00029", "ORG-CALL-00030", "ORG-CALL-00033", "ORG-CALL-00034"],
+      "p7Route": "P7.1 reads and P7.2 profile/image writes"
+    },
+    {
+      "family": "churchreport.fee.lessons",
+      "count": 10,
+      "callSiteIds": ["ORG-CALL-00005", "ORG-CALL-00006", "ORG-CALL-00027", "ORG-CALL-00048", "ORG-CALL-00050", "ORG-CALL-00061", "ORG-CALL-00062", "ORG-CALL-00064", "ORG-CALL-00066", "ORG-CALL-00067"],
+      "p7Route": "P7.1 typed reads; fee writes remain P7.2"
+    },
+    {
+      "family": "churchreport.donation.lifecycle",
+      "count": 9,
+      "callSiteIds": ["ORG-CALL-00036", "ORG-CALL-00037", "ORG-CALL-00038", "ORG-CALL-00041", "ORG-CALL-00042", "ORG-CALL-00043", "ORG-CALL-00049", "ORG-CALL-00059", "ORG-CALL-00060"],
+      "p7Route": "P7.1 reads and P7.2 financial writes"
+    },
+    {
+      "family": "churchreport.contact.onboarding",
+      "count": 1,
+      "callSiteIds": ["ORG-CALL-00044"],
+      "p7Route": "P7.2 typed orchestration; never generic CRUD"
+    },
+    {
+      "family": "churchreport.appointments",
+      "count": 1,
+      "callSiteIds": ["ORG-CALL-00039"],
+      "p7Route": "P7.2 appointment create/update/assign contract"
+    },
+    {
+      "family": "churchreport.metadata",
+      "count": 1,
+      "callSiteIds": ["ORG-CALL-00040"],
+      "p7Route": "P7.3 bounded metadata and cache lifecycle"
+    },
+    {
+      "family": "churchreport.attendance",
+      "count": 3,
+      "callSiteIds": ["ORG-CALL-00026", "ORG-CALL-00068", "ORG-CALL-00069"],
+      "p7Route": "P7.1 read and P7.2 create/upsert"
+    },
+    {
+      "family": "churchreport.weekly.reporting",
+      "count": 1,
+      "callSiteIds": ["ORG-CALL-00063"],
+      "p7Route": "P7.3 bounded aggregation/paging"
+    },
+    {
+      "family": "churchreport.authentication",
+      "count": 2,
+      "callSiteIds": ["ORG-CALL-00055", "ORG-CALL-00056"],
+      "p7Route": "P7.1 identity lookup with workload authorization"
+    }
+  ],
+  "finalPerCallSiteRequiredProperties": [
+    "callSiteId", "source.file", "source.symbol", "legacyBehavior", "businessUseCase", "capabilityFamily", "operationKind", "operation.id", "productClient.owner", "requestDto.owner", "responseDto.owner", "registry.status", "data8Executor.status", "officialWorkerExecutor.status", "consumer.status", "realCeEvidence.ce82", "realCeEvidence.ce91", "featureGate", "authorization", "profileBoundary", "workloadBoundary", "rollout.owner", "rollback.owner", "temporaryLegacy.status", "toolUtilityRemovalGate", "lifecycleRisk.resources", "lifecycleRisk.owner", "lifecycleRisk.releasePath", "lifecycleRisk.isolationBoundary"
+  ],
+  "statusRule": "A registry declaration, executor implementation, consumer enablement and CE real evidence are separate states; none may be inferred from another."
+}

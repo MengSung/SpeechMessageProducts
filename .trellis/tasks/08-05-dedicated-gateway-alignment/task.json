@@ -21,6 +21,7 @@
   "children": [],
   "parent": "08-04-dynamics-connection-management-plan",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-08-05 P5 closure audit: local focused/full tests and Release build pass, but three P5 C# files have mixed/LF-only line endings. See closure-analysis.md; do not close P5 until a line-ending-only repair and repeat verification pass.",
+  "nextAction": "等待使用者核准僅修復三個 P5 C# 檔案的 CRLF，再重跑完整 P5 驗收；不得啟動 P6 或切換 ChurchReport 流量。",
   "meta": {}
 }

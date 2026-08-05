@@ -1,0 +1,12 @@
+{
+  "id": "gateway-capability-inventory",
+  "title": "P7.0 Gateway Capability Inventory 與 Coverage Gate",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "驗證 P7.0 規劃文件與 task-local capability inventory，等待使用者審閱",
+  "createdAt": "2026-08-05T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
