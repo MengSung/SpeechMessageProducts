@@ -18,6 +18,33 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "DedicatedGateway": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:7244",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DynamicsGateway__DeploymentMode": "DedicatedGateway",
+        "DynamicsGateway__Dedicated__ProfileAlias": "sunnyvalechback",
+        "DedicatedGateway__Data8__Username": "SPEECHMESSAGE\\Administrator",
+        "DedicatedGateway__Data8__Password": "REPLACE_WITH_USER_SECRET_OR_ENVIRONMENT",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__OrganizationAlias": "sunnyvalechback",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__CeVersion": "Ce91",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__ConnectorKind": "Data8",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__CredentialReference": "dedicated.gateway.data8",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__Pool__MinSize": "0",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__Pool__MaxSize": "1",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__Pool__IdleTimeoutMinutes": "10",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__Pool__AcquireTimeoutSeconds": "5",
+        "DynamicsConnectionManagement__Profiles__sunnyvalechback__Operation__TimeoutSeconds": "35",
+        "DynamicsConnectionManagement__OrganizationCatalog__sunnyvalechback__FriendlyName": "聖谷行道會公司研發",
+        "DynamicsConnectionManagement__OrganizationCatalog__sunnyvalechback__UniqueName": "sunnyvalechback",
+        "DynamicsConnectionManagement__OrganizationCatalog__sunnyvalechback__OrganizationId": "bfb92ead-3705-f011-8143-00155d006608",
+        "DynamicsConnectionManagement__OrganizationCatalog__sunnyvalechback__State": "Enabled",
+        "DynamicsConnectionManagement__OrganizationCatalog__sunnyvalechback__ServiceUri": "https://sunnyvalechback.speechmessage.com.tw/XRMServices/2011/Organization.svc"
+      }
     }
   }
 }

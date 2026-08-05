@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.Connectors.Data8;
 using SpeechMessage.Dynamics.ControlPlane.Capacity;
 using SpeechMessage.Dynamics.ControlPlane.Configuration;
 using SpeechMessage.Dynamics.ControlPlane.DependencyInjection;
@@ -30,13 +31,20 @@ using SpeechMessage.Dynamics.Gateway.Security;
 using SpeechMessage.Dynamics.WorkerSupervisor;
 
 var builder = WebApplication.CreateBuilder(args);
+var isDedicatedGateway = string.Equals(
+    builder.Configuration["DynamicsGateway:DeploymentMode"],
+    DedicatedGatewayOptions.DedicatedDeploymentMode,
+    StringComparison.Ordinal);
 
 // 發布工具將實際 Worker executable hash、generation 與 Organization identity 寫在 Gateway
 // 執行檔旁的 deployment-owned overlay。此載入器只投影 allowlisted Worker scalar，且以一次性
 // in-memory snapshot 覆寫 appsettings 內的 fail-closed 占位；不建立 reload watcher 或 mutable cache。
-_ = OfficialWorkerDeploymentConfiguration.TryAddAdjacentOverlay(
-    builder.Configuration,
-    AppContext.BaseDirectory);
+if (!isDedicatedGateway)
+{
+    _ = OfficialWorkerDeploymentConfiguration.TryAddAdjacentOverlay(
+        builder.Configuration,
+        AppContext.BaseDirectory);
+}
 
 builder.Services.AddOptions<GatewayRequestBodyLimitOptions>()
     .BindConfiguration(GatewayRequestBodyLimitOptions.SectionName)
@@ -124,20 +132,42 @@ builder.Services.AddAuthorization();
 // Gateway 從部署擁有的 Alias Catalog 建立多 Profile Runtime；產品 Request 只能提供已授權 Alias，
 // 不能傳入 CRM Endpoint、Transport、Credential 或 Secret Reference。Central／Local Gateway 使用同一段程式，
 // 差異只在產品端 Gateway.Endpoint 指向中央服務或 localhost。
-var dynamicsProfiles = LoadDynamicsProfileDefinitions(
-    builder.Configuration,
-    builder.Environment);
+IReadOnlyCollection<string> configuredProfileAliases;
 // 新式 Profile/Catalog Resolver 與既有 official-worker definition 並行存在於 P1：前者固定
 // 三種 ConnectionMode 的部署端選擇與 Data8/Official connector 相容性，後者維持已驗證的
 // WorkerSupervisor 生命週期。兩者都只建立 immutable scalar snapshot，沒有 secret、session、
 // socket 或 reload subscription；後續 P3 Router 才會使用此 Resolver 建立 generation-owned Pool。
-var configurationProfileResolver = LoadConfigurationProfileResolver(builder.Configuration);
-builder.Services.AddSingleton<IProfileResolver>(configurationProfileResolver);
-builder.Services.AddSpeechMessageDynamicsOfficialWorkers(dynamicsProfiles);
+if (isDedicatedGateway)
+{
+    var dedicatedOptions = DedicatedGatewayOptions.BindAndValidate(builder.Configuration);
+    var dedicatedData8 = DedicatedGatewayData8Configuration.Load(builder.Configuration, dedicatedOptions);
+    configuredProfileAliases = [dedicatedOptions.ProfileAlias];
+    builder.Services.AddSingleton(dedicatedOptions);
+    builder.Services.AddSingleton(dedicatedData8);
+    builder.Services.AddSingleton<Data8ProfileRuntime>(serviceProvider => new Data8ProfileRuntime(
+        dedicatedData8.Profiles,
+        dedicatedData8.Catalog,
+        dedicatedOptions.ProfileAlias,
+        new OnPremiseData8ConnectorClientFactory(dedicatedData8.ConnectionSettings),
+        serviceProvider.GetRequiredService<ILoggerFactory>()));
+    builder.Services.AddSingleton<IProfileResolver>(serviceProvider =>
+        serviceProvider.GetRequiredService<Data8ProfileRuntime>().ProfileResolver);
+    builder.Services.AddSingleton<IDynamicsOperationExecutor>(serviceProvider =>
+        serviceProvider.GetRequiredService<Data8ProfileRuntime>().Executor);
+    builder.Services.AddHostedService<DedicatedData8RuntimeHostedService>();
+}
+else
+{
+    var dynamicsProfiles = LoadDynamicsProfileDefinitions(builder.Configuration, builder.Environment);
+    configuredProfileAliases = dynamicsProfiles.Select(static profile => profile.ProfileAlias).ToArray();
+    var configurationProfileResolver = LoadConfigurationProfileResolver(builder.Configuration);
+    builder.Services.AddSingleton<IProfileResolver>(configurationProfileResolver);
+    builder.Services.AddSpeechMessageDynamicsOfficialWorkers(dynamicsProfiles);
+}
 builder.Services.AddSingleton<IGatewayOperationAuthorizer>(serviceProvider =>
     new ConfigurationGatewayOperationAuthorizer(
         serviceProvider.GetRequiredService<IConfiguration>(),
-        dynamicsProfiles.Select(static profile => profile.ProfileAlias)));
+        configuredProfileAliases));
 // RequestGuard 只保存不可變 operation ID 集合，不保存 HttpContext、principal、body、Token 或
 // Profile 可變設定。它必須在 body 成功轉成受限 DTO 後、任何 executor/admission/worker 資源前
 // 執行，讓保留路由欄位在 400 路徑沒有 Session、Permit、連線或背景工作的遺留。
@@ -145,7 +175,7 @@ builder.Services.AddSingleton<IRequestGuard>(_ => new RequestGuard(
     Package01OperationRegistry.All.Select(static definition => definition.CapabilityOperationId)));
 builder.Services.AddHostedService<GatewayOperationAuthorizationStartupValidator>();
 
-if (!builder.Environment.IsEnvironment("Testing"))
+if (!builder.Environment.IsEnvironment("Testing") && !isDedicatedGateway)
 {
     var coordinatorConnection =
         builder.Configuration.GetConnectionString("DynamicsControlPlane")
@@ -200,6 +230,21 @@ app.MapGet("/health", (HttpContext context) =>
     context.Response.Headers.CacheControl = "no-store";
     return Results.Ok(new { status = "ok", service = "SpeechMessage.Dynamics.Gateway" });
 });
+if (isDedicatedGateway)
+{
+app.MapGet("/ready", (HttpContext context, Data8ProfileRuntime runtime) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    return Results.Ok(new
+    {
+        status = "ready",
+        service = "SpeechMessage.Dynamics.Gateway",
+        profile = runtime.Executor is not null ? "active" : "not-ready"
+    });
+});
+}
+else
+{
 app.MapGet("/ready", (HttpContext context, IDynamicsProfileRuntimeManager runtimeManager) =>
 {
     context.Response.Headers.CacheControl = "no-store";
@@ -236,6 +281,7 @@ app.MapGet("/ready", (HttpContext context, IDynamicsProfileRuntimeManager runtim
         ? Results.Ok(body)
         : Results.Json(body, statusCode: StatusCodes.Status503ServiceUnavailable);
 });
+}
 
 // 受控操作入口：
 // 受控操作端點：POST /v1/organizations/{alias}/operations/{capabilityOperationId}。
@@ -302,7 +348,9 @@ app.MapPost(
         // RequestGuard 拒絕 body 內企圖改寫 Organization、Connector、Credential、Endpoint 或
         // FetchXML 的保留欄位。此步驟不觸碰 Resolver、Permit、Worker 或 Connector；被拒絕的
         // request 因而不會留下跨 Profile Session 或任何可釋放資源。
-        var guardResult = requestGuard.Inspect(request, RequestOrigin.CentralGateway);
+        var guardResult = requestGuard.Inspect(
+            request,
+            isDedicatedGateway ? RequestOrigin.DedicatedGateway : RequestOrigin.CentralGateway);
         if (!guardResult.Succeeded)
         {
             return Results.BadRequest();

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Connectors.Data8;
+using System.Text.Json;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests;
@@ -187,6 +188,41 @@ public sealed class CrmConnectionEmbeddedProfileMapperTests
         created.Should().BeTrue(errorCode);
         profiles.Should().ContainKey("sunnyvalechback");
         catalog.Should().ContainKey("sunnyvalechback");
+    }
+
+    /// <summary>
+    /// 驗證一般 Development 組態永遠保留 Embedded，Dedicated Gateway 則只能由 Visual Studio 專用
+    /// 啟動設定以環境變數明確選擇。這個契約使一般 F5 不會意外產生 HTTP hop，也讓同一份靜態
+    /// 組態不會保存 Gateway 模式的可變端點、認證或 Session 狀態。
+    /// 測試直接讀取 checked-in JSON：若 Dedicated 專用 profile 遺漏、覆寫錯誤，或 Development
+    /// 預設被改回 DedicatedGateway，便在尚未建立 HttpClient、Data8 client、permit 或背景工作前失敗。
+    /// </summary>
+    [Fact]
+    public void Checked_in_churchreport_launch_profile_selects_dedicated_gateway_without_replacing_embedded_development_default()
+    {
+        var applicationRoot = Path.Combine(FindRepositoryRoot(), "SpeechMessageProducts.ChurchReport");
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(applicationRoot)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: false)
+            .Build();
+
+        DonationDynamicsAccessBootstrap.BindOptions(configuration)
+            .ConnectionMode.Should().Be(ConnectionMode.Embedded);
+
+        using var launchSettings = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(applicationRoot, "Properties", "launchSettings.json")));
+        var dedicatedEnvironment = launchSettings.RootElement
+            .GetProperty("profiles")
+            .GetProperty("DedicatedGateway")
+            .GetProperty("environmentVariables");
+
+        dedicatedEnvironment.GetProperty("DynamicsAccess__ConnectionMode").GetString()
+            .Should().Be("DedicatedGateway");
+        dedicatedEnvironment.GetProperty("DynamicsAccess__ProfileAlias").GetString()
+            .Should().Be("sunnyvalechback");
+        dedicatedEnvironment.GetProperty("DynamicsAccess__Gateway__Endpoint").GetString()
+            .Should().Be("https://localhost:7244/");
     }
 
     /// <summary>

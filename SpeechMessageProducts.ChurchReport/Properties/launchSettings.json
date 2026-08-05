@@ -15,6 +15,17 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
+    "DedicatedGateway": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DynamicsAccess__ConnectionMode": "DedicatedGateway",
+        "DynamicsAccess__ProfileAlias": "sunnyvalechback",
+        "DynamicsAccess__Gateway__Endpoint": "https://localhost:7244/"
+      }
+    },
     "WSL": {
       "commandName": "WSL2",
       "launchBrowser": true,
