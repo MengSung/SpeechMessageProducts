@@ -86,3 +86,9 @@ P5 依使用者指示維持 `in_progress`，等待審閱決定；未啟動 P6、
 第一次完整 Dynamics suite 曾在未修改的 `GatewayRequestBodyBoundaryTests.Kestrel_http11_rejects_declared_and_chunked_limit_plus_one` 收到 `HttpIOException: ResponseEnded`。該檔案沒有工作區 diff，測試獨立重跑通過，之後完整 suite 亦通過；因此記為 Kestrel 測試序列中的瞬時傳輸層波動，而非 P5 CRLF 修復造成的行為回歸。未為此進行任何非授權程式修改。
 
 本次沒有發現需沉澱到 `.trellis/spec/` 的新程式契約或可重複使用模式：變更只涉及既有檔案的無語意行結尾正規化。P5 維持 `in_progress`，不 commit、archive、push，也不啟動 P6 或 consumer 流量。
+
+## Phase 3.3 Spec Update 判斷（2026-08-05）
+
+不更新 `.trellis/spec/`。本次只將三個既有 C# 檔案正規化為既有規格已要求的 UTF-8 無 BOM、CRLF-only 與 final CRLF，LF-normalized SHA-256 也證明沒有任何程式 token、API、資料流、資源所有權、設定或測試契約變化。
+
+現有 `backend/dynamics-gateway-hosting-version-routing.md` 的「Source documentation and text encoding」與「Documentation and encoding gates」已明確規定本次所驗證的格式與失敗條件；新增或重述規格只會造成重複，無法提供未來實作所需的新可執行契約。P5 因而保持 `in_progress`，等待使用者的結案決定。
