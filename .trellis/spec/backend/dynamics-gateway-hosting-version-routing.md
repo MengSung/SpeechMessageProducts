@@ -1940,3 +1940,118 @@ var options = new SqlRuntimeHostSlotCoordinatorOptions
 };
 options.Validate(); // Validation rejects every SQL credential field before connection ownership begins.
 ```
+
+## Scenario: Capability-scoped CE write evidence authorization
+
+### 1. Scope / Trigger
+
+This contract applies whenever a Gateway migration needs a live CE 8.2 or CE 9.1
+write, Action, or Function operation for compatibility, parity, or rollout
+evidence. It separates environment isolation from operation authorization and
+prevents a safe development Organization from becoming an unbounded test target.
+
+### 2. Signatures
+
+```text
+CapabilityWriteEvidencePlan = {
+  operationId,
+  ceVersion,
+  profileAlias,
+  fixtureOwner,
+  allowedMutations,
+  precondition,
+  idempotencyPolicy,
+  cleanupPlan,
+  reconciliationPlan,
+  evidenceProjection
+}
+```
+
+The plan is produced from the P7.0 support matrix and is an activation input for
+the P7.2 child. `fixtureOwner` is the sole owner of creation, verification,
+cleanup, and reconciliation for that operation family.
+
+### 3. Contracts
+
+- An Organization being separate from production is an environment-level
+  feasibility fact, not authorization for arbitrary writes.
+- P6 remains read-only for business semantics. P6 proves ConnectorKind／CE
+  version routing, Official Worker process/IPC, Router／Pool／Lease／admission,
+  IFD identity, and deterministic cleanup. P7.2 proves product write semantics.
+- A live write is allowed only when P7.0 marks that CE/version/capability
+  combination `required` and the child task contains a bounded fixture owner,
+  allowed mutation set, precondition, idempotency policy, cleanup, and
+  reconciliation plan.
+- CE 9.1 `sunnyvalechback` may be a test-owned fixture host after operator
+  confirmation; a single test member cannot be reused as an implicit fixture
+  for unrelated financial, appointment, permission, attachment, or destructive
+  operation families.
+- CE 8.2 write evidence is required only when the support matrix says
+  `required`; `unsupported` combinations fail closed before dispatch and are
+  recorded as matrix outcomes, not as failed live tests.
+- An ambiguous timeout after dispatch is reconciled before any retry. Writes are
+  never blindly replayed. Cleanup is bounded, repeatable, and owned by the same
+  operation family; unresolved cleanup keeps that slice No-Go.
+- Evidence contains only sanitized operation/category/status/resource-baseline
+  fields. It must not contain SDK objects, raw Entity／OrganizationRequest,
+  endpoint, OrganizationId, credential, token, cookie, or complete personal data.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Environment is isolated but no operation-specific plan exists | Reject before live write; retain the child in planning/no-go. |
+| P7.0 marks the combination `unsupported` | Fail closed before dispatch; record the stable reason and do not seek another connector/version. |
+| Fixture owner, allowed mutation, cleanup, or reconciliation is missing | Do not activate the slice; produce a scoped operator handoff. |
+| Precondition does not identify a test-owned record | Reject before mutation; do not guess or reuse an opaque record. |
+| Write times out after dispatch | Stop automatic retry; run the bounded reconciliation plan and preserve an ambiguous result if unresolved. |
+| Cleanup fails or resource counters do not return to baseline | Keep the slice No-Go, retain the cleanup owner, and stop further writes in that family. |
+| Evidence contains secret, SDK, endpoint, or full payload data | Reject the evidence artifact and remove the sensitive projection before any completion claim. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: P7.0 marks a CE 9.1 member-create capability required, names one
+  test-owned member fixture and owner, verifies the precondition, performs one
+  idempotent operation, reconciles the result, cleans it up, and records a
+  sanitized baseline.
+- Base: a CE 8.2 capability is unsupported for the first ChurchReport product;
+  the matrix records `unsupported`, the dispatcher refuses it, and CE 9.1
+  evidence is not incorrectly copied across versions.
+- Bad: infer that any financial or appointment write is safe because
+  `sunnyvalechback` is separate, or reuse one test member across unrelated
+  operation families without an owner and cleanup contract.
+
+### 6. Tests Required
+
+- Validator tests reject a write plan that lacks any required field and accept a
+  complete plan with stable, deterministic output.
+- Contract tests prove an `unsupported` CE/version combination performs zero
+  connector, admission, and outbound invocations.
+- Live-bridge tests (when explicitly authorized) assert exactly one
+  test-owned fixture owner, bounded idempotency/reconciliation, cleanup after
+  success and failure, and no secret or full-payload fields in evidence.
+- Fault tests inject timeout-after-dispatch and cleanup failure; assertions prove
+  no blind replay, the family remains No-Go, and resource/admission counters do
+  not report a false clean baseline.
+- Scope tests prove P6's allowlist remains read-only and that P7.2 is the only
+  path allowed to run the capability-specific live write evidence.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+sunnyvalechback is non-production, so run every ChurchReport write and delete
+whatever was created if the test looks wrong.
+```
+
+#### Correct
+
+```text
+P7.0 matrix -> required CE/profile -> operation-specific fixture owner
+  -> bounded mutation + idempotency -> reconcile -> cleanup -> sanitized evidence
+```
+
+The correct path preserves the distinction between connector readiness and
+business semantics, prevents cross-family test data leakage, and keeps an
+ambiguous or unclean write from becoming a false Green gate.

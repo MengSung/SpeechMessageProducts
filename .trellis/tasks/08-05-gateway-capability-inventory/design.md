@@ -63,7 +63,7 @@ flowchart LR
 | ProductClient | `IPackage01FeeReadClient` 提供 6 個 typed read methods | ChurchReport flag 為 false，沒有 Gateway consumer enablement |
 | CE evidence | 70 rows 在 CE 8.2/9.1 都是 `metadata-only`、smoke 都未開始 | 不能以 unit tests、registry hash 或 local appsettings 宣稱真機相容 |
 
-P6 是 P7 Parent（含 P7.0～P7.5）全部 family 的 release prerequisite。Data8 仍是永久 ConnectorKind，但它必須經 Router/profile/admission 對應；官方 Worker也是同一 connector-selection contract 的另一個選項。P6.1 的離線 Router integration 已通過，但 P6.2 real CE evidence 尚未完成，因此 P7.0 只可保存 planning artifacts，必須等待 P6 正式結案後才可啟動。P7.0 啟動時必須重新從 source 產生 manifest，為每個 capability 決定 `Data8-only`、`Official-worker-required`、`both-required` 或 `evidence-insufficient`，並以 CE 8.2 與 9.1 分開記錄。
+P6 是 P7 Parent（含 P7.0～P7.5）全部 family 的 release prerequisite。Data8 仍是永久 ConnectorKind，但它必須經 Router/profile/admission 對應；官方 Worker 也是同一 connector-selection contract 的另一個選項。P6.1 的離線 Router integration 已通過，但 P6.2 real CE evidence 尚未完成，因此 P7.0 只可保存 planning artifacts，必須等待 P6 正式結案後才可啟動。P7.0 啟動時必須重新從 source 產生 manifest，為每個 capability 決定 `Data8-only`、`Official-worker-required`、`both-required` 或 `evidence-insufficient`，並以 CE 8.2 與 9.1 分開記錄。
 
 coverage status 必須由可重現的 source-derived manifest 取得，不能手寫數字或混合不同層級。Official
 Worker 的 protocol/adapter allowlist 現有三個 operation（兩個 identity 加一個 bounded fee read）；這與
@@ -96,7 +96,7 @@ P7.0 可以先提供 reference-scan **報告**並列出尚存依賴，讓 migrat
 
 P7.1～P7.3 每次只處理一個業務 capability slice，先建立 typed request/response、authorization、bounded response/paging、connector/CE evidence 和故障 cleanup 契約，再在 P7.4 以 capability-specific flag 啟用 consumer。Rollback 必須是關閉該 capability flag、停止新 admission、drain in-flight lease/worker/stream，並回到已核准的 legacy path；不得變更 profile、credential、connector 或把失敗請求改送其他 CE version。
 
-CE 9.1 write/action/function evidence 使用已確認與正式系統隔離的 `sunnyvalechback` 公司研發 Organization，資料歸屬為唯一 test member 與該 operation family 明確建立的 test-owned records。每個 slice 需在執行前定義 cleanup/reconciliation，不能因環境非正式便允許無界或不可辨識資料。CE 8.2 只有在本 matrix 將 capability 標為 `required` 時才要求安全 write fixture；若產品不需要且契約不支援，必須在 dispatch 前 fail closed 並標示 `unsupported`，不得以缺少無條件的 CE 8.2 sandbox 阻塞 CE 9.1 ChurchReport 路線。
+CE 9.1 write/action/function evidence 使用已確認與正式系統分離的 `sunnyvalechback` 公司研發 Organization。使用者目前只授權可建立一筆 test member 而不影響正式資料；這是環境級可行性，不是任意寫入或「寫壞再刪」授權。資料歸屬必須是唯一 test member 與該 operation family 明確建立的 test-owned records；每個 slice 在 activation 前需定義 allowed mutations、fixture owner、precondition、cleanup/reconciliation 與 ambiguous-timeout policy，不能因環境非正式便允許無界或不可辨識資料。CE 8.2 只有在本 matrix 將 capability 標為 `required` 時才要求安全 write fixture；若產品不需要且契約不支援，必須在 dispatch 前 fail closed 並標示 `unsupported`，不得以缺少無條件的 CE 8.2 sandbox 阻塞 CE 9.1 ChurchReport 路線。
 
 P7.5 只在所有 70 rows 不再是 production temporary legacy、所有 consumer 已有證據、CE 8.2/9.1 matrix 均通過、release build/tests/reference scan 均通過、且 rollback window 結束後，才允許移除 ChurchReport 對 ToolUtility、Dataverse client 與 CRM SDK 的 production dependency。
 

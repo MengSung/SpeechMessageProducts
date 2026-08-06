@@ -203,7 +203,7 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 
 - 依 transaction／idempotency／authorization 邊界拆分 Create、Update、Associate／Disassociate、Action 與 Function。
 - 每次只允許一條 authoritative writer；禁止未設計的 dual-write。每個 operation 明確定義重複送達、optimistic concurrency、部分完成、timeout-after-commit 與 reconciliation。
-- CE 9.1 live evidence 使用隔離的 `sunnyvalechback` 與唯一 test member／test-owned records，並在每個 operation family 定義 cleanup。CE 8.2 只有 matrix 標示 required 的 capability 需要相應 write fixture；其他組合明確 unsupported 並 fail closed。
+- CE 9.1 live evidence 使用隔離的 `sunnyvalechback` 與唯一 test member／test-owned records。此確認只代表環境級可行性，不是任意寫入授權；每個 matrix-required operation family 都必須在 activation 前定義 allowed mutations、fixture owner、cleanup/reconciliation 與 ambiguous-timeout policy。CE 8.2 只有 matrix 標示 required 的 capability 需要相應 write fixture；其他組合明確 unsupported 並 fail closed。
 
 #### P7.3　特殊資源能力
 

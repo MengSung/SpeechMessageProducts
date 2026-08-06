@@ -169,10 +169,16 @@ deployment profile，由 host 的 secret provider 解析憑證，且不把任何
 1. 對已確認與正式系統隔離的 CE 9.1 `sunnyvalechback` profile，以現有 Data8 `runtime.health.whoami` 作為受控 control measurement；
    此為 P6.2 的第一筆端到端真機證據，不重開 P5、不啟用 ChurchReport feature flag，也不移轉產品流量。
 2. 對每個 selected Official Worker profile 執行 `runtime.health.whoami` 與
-   `runtime.pool.validate.connection`；兩者各自記錄 selected ConnectorKind，絕不在 request-time 替換。
-3. 在資料最小化與授權範圍已確認時，才執行
-   `fee.dedication.retrieve.by.contact.date.range` 的 bounded read。現有 Data8 connector 尚未實作此
-   capability，因此不得在 P6.2 承諾 fee read 的 Data8 parity；該跨 connector capability 對帳屬 P7.1。
+   `runtime.pool.validate.connection`；兩者各自記錄 selected ConnectorKind，絕不在 request-time 替換。這兩個
+   operation 對 CE 8.2／9.1 都通過，才構成 P6.2 必要的 connector／version 真機矩陣。
+3. 只有在 deployment owner 提供 repository 外、test-owned 且具資料最小化範圍的 contact/date-range input 時，
+   才額外執行 `fee.dedication.retrieve.by.contact.date.range`。缺少該核准輸入不阻塞 P6；business read/parity
+   evidence 移至 P7.1。現有 Data8 connector 尚未實作此 capability，因此不得在 P6.2 承諾 fee read 的
+   Data8 parity。
+
+現有 `Invoke-DynamicsOfficialWorkerCompatibility.ps1` 只支援 `runtime.health.whoami`。P6.2 必須沿用它取得
+identity evidence，並以測試先行新增或確認一支固定 allowlist 的 evidence harness 來執行
+`runtime.pool.validate.connection`；不得把任意 operation ID、Entity 或 FetchXML 參數化成通用探針。
 
 `sunnyvalechback` 可以安全建立 test member 的事實不擴張 P6 scope。P6 不執行 Create／Update／Action／Function；P7.2 才以唯一 test-owned member 與 operation-specific cleanup/reconciliation 驗證 ChurchReport 寫入語意。CE 8.2 寫入證據只在 P7.0 support matrix 將該 capability 標為 required 時才成為該 child 的 gate。
 
@@ -180,8 +186,8 @@ deployment profile，由 host 的 secret provider 解析憑證，且不把任何
 分類、sanitized correlation ID、p50/p95/p99、admission/worker recycle counters 和 drain 後 baseline。此矩陣
 不得包含 Entity、個人資料、token、cookie、endpoint、connection string 或 credential。
 
-只有 P6.1 的離線 gate 與經使用者核准的 P6.2 兩個 CE version evidence 都通過，P6 才可結案並解除 P7
-Parent 的前置條件。
+只有 P6.1 的離線 gate 與經使用者核准的 P6.2 CE 8.2／9.1 identity/connection evidence 都通過，P6 才可
+結案並解除 P7 Parent 的前置條件。可選的 fee read 不可在缺少 test-owned input 時成為隱性 P6 blocker。
 
 ### 8.3 Lenovo Legion 本機 evidence 邊界
 

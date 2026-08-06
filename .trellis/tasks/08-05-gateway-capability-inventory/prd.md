@@ -10,7 +10,7 @@
 
 - Phase 0 權威矩陣仍有 70 筆 `normalizedCallSites`；其中 35 read、23 write、4 action、2 function、5 connection-runtime、1 metadata；54 筆為 `mapped-pending-evidence`，16 筆為 `temporary-legacy`。
 - 70 筆對 CE 8.2 與 CE 9.1 的證據均為 `metadata-only`，所有 smoke evidence 均為 `not-started`；不得把 registry、unit test 或本機設定當成真機證據。
-- `Package01OperationRegistry` 實際宣告 9 個 operation，僅對應 9 筆 Phase 0 rows。Data8 executor 目前只實作 `runtime.health.whoami`；官方 Worker 已有兩個 identity operation 與 `fee.dedication.retrieve.by.contact.date.range` 共 3 個 allowlisted operation，但 P6 尚未接入 Router。
+- `Package01OperationRegistry` 實際宣告 9 個 operation，僅對應 9 筆 Phase 0 rows。Data8 executor 目前只實作 `runtime.health.whoami`；官方 Worker 已有兩個 identity operation 與 `fee.dedication.retrieve.by.contact.date.range` 共 3 個 allowlisted operation。P6.1 已完成 Official Worker Router／Pool／Lease 離線接入，但 P6.2 尚未取得 CE 8.2／9.1 real evidence；protocol allowlist、Router implementation 與真機 evidence 必須分開記錄。
 - ProductClient 公開 6 個 Package01 fee/read 方法；ChurchReport 的 `Package01FeeReadsEnabled` 在 base 與 Development 設定均為 `false`，因此尚未有 Gateway consumer 啟用。
 - P5 `dedicated-gateway-alignment` 已於 2026-08-05 完成驗收、提交並封存；P6 Official Worker child task 已為 `in_progress`，P6.1 已通過，P6.2 Lenovo readiness 仍只差 deployment-owned profile input。不得把 P6 描述為已結案，也不得提前啟動 P7.0。
 - ChurchReport 專案仍含 ToolUtility、Dataverse 與 CRM SDK 的 production dependency；這是 P7.5 的移除 gate，不是本輪要移除的內容。
@@ -57,5 +57,7 @@ P6 是所有 P7 工作的拓樸與實證前置條件：即使某一 capability �
 - [ ] validator 規格可阻擋未分類 row、缺 owner/DTO/connector/CE 狀態、未授權 generic CRUD/FetchXML、未受 owner 管理的 temporary legacy，以及 P7.5 尚存 production SDK dependency。
 - [ ] coverage 數字由 source-derived manifest 取得，並明確分開 Official Worker protocol/adapter allowlist、Official Worker Router integration、consumer enablement 與 CE evidence；不得以手寫數字混淆這些層次。
 - [ ] `implement.md` 定義先驗證、後建立 machine-readable matrix/validator 的順序、檔案界線、驗證命令、UTF-8/CRLF、`git diff --check`、rollback 與使用者審閱 gate。
-- [ ] 本輪 diff 不含產品程式、專案檔或產品設定變更；不啟動 implementation、commit、archive 或 push。
+- [ ] P7.0 的 Phase 2 diff 只包含 task-local inventory、deterministic validator、validator tests、
+      evidence／reference-scan artifacts 與 task metadata；不修改產品 runtime、專案引用、feature flag
+      或 ChurchReport 流量。品質 gate 通過後可依整合 Goal 建立 task-owned commit 並 archive；不得 push。
 - [ ] P7.5 handoff 明確要求 ChurchReport production zero-reference 與完整本機 evidence，P8 只接收已封存 artifact，不把雲端部署工作倒灌進 P7.0。

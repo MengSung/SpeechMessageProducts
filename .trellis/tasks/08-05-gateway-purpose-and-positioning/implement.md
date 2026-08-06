@@ -17,7 +17,7 @@
 1. **P6** `official-worker-router-ce-integration` — 完成 P6.2 本機 readiness、read-only CE evidence、品質檢查、spec update、commit 與封存。
 2. **P7.0** `gateway-capability-inventory` — 建立 70 call-site rows 到業務 capability 的權威矩陣與 deterministic coverage validator。
 3. **P7.1** `churchreport-read-capability-migrations` — 先交付 Package01 vertical slice，再依矩陣完成全部 read capabilities；catalog module 是本階段的必要底層工作，不另編號。
-4. **P7.2** `churchreport-write-action-function-migrations` — 依 idempotency／transaction／authorization 邊界完成 Create／Update／Associate／Action／Function。
+4. **P7.2** `churchreport-write-action-function-migrations` — 讀取 parent-owned `p7.2-write-environment-readiness.md` 與 P7.0 per-family matrix，依 idempotency／transaction／authorization 邊界完成 Create／Update／Associate／Action／Function。
 5. **P7.3** `churchreport-special-resource-migrations` — 完成 attachment、large paging、background／scheduler、metadata cache 的有界 contract 與生命週期。
 6. **P7.4** `churchreport-productclient-cutover` — 將 Controller／Service／WebServiceConnector 逐 capability 切至 ProductClient，並在第一個 feature gate 前完成 aggregate-capacity authority 或 non-overlap drain runbook。
 7. **P7.5** `churchreport-toolutility-removal` — 移除 ChurchReport project reference、DI／Factory、legacy settings／credential 與 SDK type，執行 zero-reference gate。
@@ -42,7 +42,7 @@ Package01 是 P7.1 第一個 slice，因既有 Registry、ProductClient 與 feat
 
 `docs/superpowers/plans/2026-08-06-p6-p7-integrated-execution.md` 定義單一 `/goal` 的連續執行規則。該 goal 可一次核准建立／啟動後續 P7 children、執行本機 feature-gated cutover、完成 task-local commit/archive；每個技術 gate 仍必須按順序通過，禁止為了「一次做完」跳過驗證。
 
-該 Goal 不是完全無人值守：長跑前的 G0 必須先建立 scoped Git/text baseline、使 P6 readiness 為 `go`，並確認 P7.2 的非正式 CE／test-owned fixture 與 cleanup/reconciliation。P6 與 P7.0 位於不同 parent；執行者直接使用兩個 task path，不靠 children traversal。相同 gate 最多三次自我修復，同一 root cause 連續兩次即停止並產生 operator handoff。
+該 Goal 不是完全無人值守：長跑前的 G0 必須先建立 scoped Git/text baseline、使 P6 readiness 為 `go`，並把 P7.2 的 CE 9.1 環境級 test-member 可行性記錄在 P7 parent。P7.0 matrix 完成後，P7.2 activation gate 才逐 required operation family 確認 fixture owner、allowed mutations、cleanup/reconciliation 與 ambiguous-timeout policy。P6 與 P7.0 位於不同 parent；執行者直接使用兩個 task path，不靠 children traversal。相同 gate 最多三次自我修復，同一 root cause 連續兩次即停止並產生 operator handoff。
 
 ## 3. Child 共同 TDD 節奏
 
@@ -114,4 +114,4 @@ authority，runbook 必須證明先 drain 舊路徑再啟用新路徑。不可�
 
 ## 8. 執行起點
 
-目前執行起點是 G0 feasibility gate，之後才是既有 P6 的 P6.2 deployment readiness；不是重新啟動 P5，也不是先執行 P7.0。使用者之後若提交整合 `/goal` 提示詞，代理先完成或等待一次前置 operator handoff，再從 P6 當下狀態續跑；P6 結案後以 `.trellis/tasks/08-05-gateway-capability-inventory` 明確路徑啟動 P7.0，完成 inventory/validator 後才建立各 P7.1～P7.5 child 的精確 code-level plan並依 gate 執行。禁止在 capability 邊界尚未證實前一次性修改全部 ChurchReport CRM 呼叫，也不得由該 goal 啟動 P8。
+目前執行起點是 G0 feasibility gate，之後才是既有 P6 的 P6.2 deployment readiness；不是重新啟動 P5，也不是先執行 P7.0。使用者之後若提交整合 `/goal` 提示詞，代理先完成或等待 P6 operator handoff，再從 P6 當下狀態續跑；P6 結案後以 `.trellis/tasks/08-05-gateway-capability-inventory` 明確路徑啟動 P7.0，完成 inventory/validator 與 per-family evidence/fixture requirements 後才建立各 P7.1～P7.5 child 的精確 code-level plan，並依 gate 執行。禁止在 capability 邊界尚未證實前一次性修改全部 ChurchReport CRM 呼叫，也不得由該 goal 啟動 P8。

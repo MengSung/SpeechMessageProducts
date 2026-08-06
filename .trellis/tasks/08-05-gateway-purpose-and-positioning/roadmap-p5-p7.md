@@ -29,7 +29,7 @@ flowchart LR
     P83 --> P84["P8.4 Live validation + closure"]
 ```
 
-前置 gate 仍必須依序通過，但使用者可以用一個整合 `/goal` 預先授權 P6 與 P7 的連續執行。這代表不必每一階段重新下提示詞，不代表完全無人值守：P6 profile／Credential Manager 與 P7.2 safe-write fixture 必須先在 G0 透過一次 operator handoff 前置。它也不代表可略過 Trellis task、測試、quality check、spec update、commit 或 archive。
+前置 gate 仍必須依序通過，但使用者可以用一個整合 `/goal` 預先授權 P6 與 P7 的連續執行。這代表不必每一階段重新下提示詞，不代表完全無人值守：P6 profile／Credential Manager 必須在 G0 透過 operator handoff 收斂；P7.2 先記錄環境級可行性，再於 P7.0 matrix 完成後為每個 required operation family 通過 fixture／cleanup activation gate。它也不代表可略過 Trellis task、測試、quality check、spec update、commit 或 archive。
 
 P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/tasks/08-05-official-worker-router-ce-integration` 與 `.trellis/tasks/08-05-gateway-capability-inventory` 兩個明確路徑切換，不得靠任一 parent 的 children traversal 尋找整條路線。
 
@@ -55,7 +55,7 @@ P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/
 
 ### P6.2B Read-only live matrix
 
-- 以與正式系統隔離的 CE 9.1 `sunnyvalechback` 作 Data8／Official Worker allowlisted health／connection control，再執行經資料最小化的 bounded read；CE 8.2 使用另行核准的 read-only profile。
+- 以與正式系統隔離的 CE 9.1 `sunnyvalechback` 作 Data8／Official Worker allowlisted health／connection control；CE 8.2 使用另行核准的 read-only profile。兩個 version 的 identity/connection evidence 是 P6 必要矩陣；bounded fee read 只有在 deployment owner 提供 repository 外、test-owned contact/date-range input 時才執行，否則移至 P7.1。
 - CE 8.2 與 CE 9.1 各自保存 sanitized result、ConnectorKind、operation ID、p50／p95／p99 與 drain 後 process／handle／pipe／permit baseline。
 - 任何不相容、錯誤 routing、credential/session/profile leakage 或資源無法回到基線都是 release blocker；不得自動改用另一 Connector、Profile、CE version 或 transport。
 - P6.1 與 P6.2 全綠後依 Trellis Phase 3 執行 spec 判斷、task-owned commit 與 archive，才解除 P7.0 前置條件。
@@ -93,7 +93,7 @@ Read shadow failure 不得改變使用者 response；shadow task 必須共用 bo
 - 每次只有一條 authoritative writer；禁止沒有協議的 dual-write。
 - 明確定義 duplicate delivery、optimistic concurrency、partial completion、timeout-after-commit 與 reconciliation。
 - Live write evidence 只可在明確核准的非正式環境／測試資料範圍執行；若缺少安全的 fixture 或 cleanup path，該 slice 必須停在 No-Go，不能用 mock 冒充真機完成。
-- CE 9.1 使用已確認與正式系統隔離的 `sunnyvalechback` 與唯一 test member；每個 operation family 仍建立可辨識、可清理的 test-owned records。CE 8.2 只有 capability matrix 標為 required 時才需要 write evidence，否則明確標示 unsupported 並在 dispatch 前 fail closed。
+- CE 9.1 使用已確認與正式系統隔離的 `sunnyvalechback` 與唯一 test member；這只代表環境級可行性，不是任意寫入授權。每個 required operation family 仍需在 activation 前定義 allowed mutations、fixture owner、可辨識且可清理的 test-owned records、cleanup/reconciliation 與 ambiguous-timeout policy。CE 8.2 只有 capability matrix 標為 required 時才需要 write evidence，否則明確標示 unsupported 並在 dispatch 前 fail closed。
 
 ## 8. P7.3：Special-resource capabilities
 
@@ -148,7 +148,7 @@ P7.5 只代表 ChurchReport 不再依賴 ToolUtility；若 repository 仍有其�
 
 ## 12. 單一 P6／P7 Goal 的自動續跑規則
 
-整合 Goal 先執行 G0：確認 scoped Git/text baseline、使 P6 readiness 為 Go，並確認 P7.2 非正式 CE／test-owned fixture、資料 owner、允許操作與 cleanup/reconciliation。G0 未綠時先產生 PowerShell/operator handoff 並保存 checkpoint，不啟動長跑。
+整合 Goal 先執行 G0：確認 scoped Git/text baseline 並使 P6 readiness 為 Go；同時只記錄 P7.2 的 CE 9.1 環境級 test-member 可行性。G0 未綠時先產生 P6 PowerShell/operator handoff 並保存 checkpoint。P7.0 matrix 產生後，再在 P7.2 activation gate 確認每個 required family 的資料 owner、允許操作與 cleanup/reconciliation。
 
 G0 通過後，整合 Goal 可一次授權：
 
@@ -165,4 +165,4 @@ G0 通過後，整合 Goal 可一次授權：
 
 ## 13. 目前下一步
 
-先完成 G0：正規化本批文件並建立 scoped baseline；補齊 P6.2 deployment-owned CE 8.2／9.1 local profile input，使 readiness probe 從只有 `profile-input-required` 的 No-Go 收斂為 Go；同時確認 P7.2 safe-write evidence authority。P6 正式結案後，依明確 task path 自動銜接 P7.0；不要在此之前啟動 P7，也不要跳到 P8。
+先完成 G0：正規化本批文件並建立 scoped baseline；補齊 P6.2 deployment-owned CE 8.2／9.1 local profile input，使 readiness probe 從只有 `profile-input-required` 的 No-Go 收斂為 Go；同時把 `sunnyvalechback` 的環境級 test-member 可行性記錄到 P7 parent。P6 正式結案後，依明確 task path 自動銜接 P7.0；由 P7.0 matrix 決定 P7.2 required families，再逐 family 完成 fixture gate。不要在 P6 結案前啟動 P7，也不要跳到 P8。

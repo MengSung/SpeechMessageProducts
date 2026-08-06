@@ -89,10 +89,16 @@ trust boundary。任何 session、profile、credential、permit、process、time
    在 source、設定範例、log、test output 或 Trellis artifact 寫入或複製 credential、token、cookie、
     connection string 或其他 secret。
 9. **本機部署邊界**：P6.2 profile overlay、worker-local credential target 與執行 identity 都屬 Lenovo Legion 開發環境。任何未來雲端值不得從本機 artifact 直接複製；P8 必須以雲端 deployment owner 重新解析與核准。
-10. **前置 G0 gate**：P6／P7 長跑前必須先通過 scoped Git/text baseline、P6 readiness=`go` 與 P7.2 safe-write evidence authority。若任一項缺失，先產生 consolidated PowerShell/operator handoff，不啟動 P7 或宣稱可無人值守完成。
+10. **前置 G0 gate**：P6 執行前必須先通過 scoped Git/text baseline 與 P6 readiness=`go`。G0 同時把 `sunnyvalechback` 的 CE 9.1 環境級 test-member 可行性記錄到 P7 parent，但不要求在 P7.0 matrix 產生前猜測所有 P7.2 operation-family fixture，也不把該事實視為任意寫入授權。缺少 P6 profile／credential 事實時先產生 consolidated PowerShell/operator handoff；P7.2 的 fixture owner、allowed mutation、cleanup/reconciliation 與 ambiguous-timeout policy 由 P7.0 matrix 產生後的 activation gate 逐項確認。
 11. **P6／P7 分工**：P6 證明 ConnectorKind／CE version routing、Official Worker process/IPC、Pool/Lease/admission、credential boundary 與 cleanup；P6 不實作或驗證 ChurchReport 的 write/action/function 業務語意。後者由 P7.2 使用 test-owned fixture 驗證。
 
-## 非目標與嚴格限制
+## 本輪文件重校限制與未來執行邊界
+
+以下限制只描述 2026-08-06 產生、校正與驗證 P6／P7 整合計畫的文件工作，
+不是未來使用者提交整合 `/goal` 後的 P6 Phase 2 永久禁令。整合 Goal 啟動後，
+以 `docs/superpowers/plans/2026-08-06-p6-p7-integrated-execution.md` 的明確授權、
+本 PRD 的安全契約及當前 Trellis gate 共同決定可執行範圍；任何 profile、secret、
+安全 fixture 或真機 evidence 缺口仍必須 fail closed。
 
 - 本次路線文件重校不重新執行 `task.py start`；既有 P6 保持 `in_progress` 並從 P6.2 續作。
 - 不修改產品程式、產品設定、feature flag、ChurchReport 流量、Operation Registry、ProductClient，
@@ -113,14 +119,19 @@ trust boundary。任何 session、profile、credential、permit、process、time
 - [ ] `implement.md` 提供按風險排序的實作、測試、rollback 與驗證順序，並把 CE read-only run 留在
       使用者另行核准之後。
 - [ ] P6 task metadata 說明其高複雜度、高風險、P6.1 已完成與 P6.2 local-readiness 邊界；task status 保持 `in_progress` 直到 CE 8.2／9.1 evidence 與結案 gate 通過。
-- [ ] 本輪 diff 僅限 Trellis task 文件與 metadata；不含產品程式、設定或流量變更。
+- [ ] 本輪文件重校 diff 僅限 Trellis task 文件與 metadata；不含產品程式、設定或流量變更。
+      這項驗收只證明規劃基線乾淨，不禁止後續整合 Goal 依 gate 執行 P6 Phase 2、
+      task-owned commit 與 archive。
 
 ## 尚待使用者決定的事項
 
 1. **Local profile input**：由 deployment owner 提供 CE 8.2／9.1 各自的 ProfileAlias、CE version、ConnectorKind、ServiceUri／Organization mapping 與 Windows Credential Manager target；不得把密碼貼入 task 文件或命令列。
 2. **CE 真機 window**：P6 離線品質閘門已通過後，是否提供一次獨立、read-only 的 CE 8.2 與 CE 9.1
    驗證授權，以及各自的已核准 ProfileAlias／執行時段／讀取範圍。建議：僅使用上述三個 allowlisted
-   operation，先 health/connection，再執行一個有明確資料最小化條件的 fee read；不進行寫入或流量切換。
+   operation；兩個 version 的 health/connection 是必要 P6 matrix。只有 deployment owner 額外提供 repository
+   外、test-owned 的 contact/date-range input 時才執行 fee read，否則將 business read/parity evidence 移至
+   P7.1；不進行寫入或流量切換。
 3. **P6 結案門檻**：建議維持「離線實作與品質檢查 + 明確核准的 CE 8.2/9.1 read-only evidence」兩者皆
-   通過才結案；在此之前 P7 Parent 與 P7.0 一律不得啟動。
+   通過才結案，其中真機必要集合是兩個 version 的 identity/connection evidence；可選 fee read 不得因缺少
+   test-owned input 成為隱性 blocker。在此之前 P7 Parent 與 P7.0 一律不得啟動。
 4. **整合 Goal**：若使用者採用 P6／P7 單一 `/goal` 提示詞，該提示詞可同時構成 P6.2 read-only CE window 與後續 P7 activation 的預先授權；仍不得繞過缺少 profile／secret／安全 fixture 的 No-Go。

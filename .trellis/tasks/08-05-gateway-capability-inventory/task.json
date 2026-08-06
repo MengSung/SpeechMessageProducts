@@ -22,7 +22,7 @@
   "children": [],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
-  "notes": "P7.0 是 P7 Parent 內部 inventory，不是 P6 前置條件；P5 已封存，P6.1 已通過，P7.0 維持 planning 等待 P6.2 與 P6 封存。P7.5 完成後才由獨立 P8.0-P8.4 目標部署 ChurchReport cloud Central Gateway。",
+  "notes": "P7.0 是 P7 Parent 內部 inventory，不是 P6 前置條件；P5 已封存，P6.1 已通過，P7.0 維持 planning 等待 P6.2 與 P6 封存。sunnyvalechback 已確認為隔離的 CE 9.1 development Organization，可承接 P7.2 test-member fixtures；CE 8.2 write evidence 只在 matrix 標為 required 時要求。P7.5 完成後才由獨立 P8.0-P8.4 目標部署 ChurchReport cloud Central Gateway。",
   "meta": {
     "executionHost": "Lenovo Legion local development environment",
     "canonicalSequence": "P7.0-P7.5",

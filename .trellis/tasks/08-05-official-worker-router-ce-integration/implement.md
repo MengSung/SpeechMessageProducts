@@ -112,16 +112,21 @@ git diff --check
 4. 重新執行 readiness probe；只有 outcome 為 `go` 才先對已確認與正式系統隔離的 CE 9.1 `sunnyvalechback` profile 執行既有 Data8 `runtime.health.whoami` control measurement，取得第一筆
    Gateway/Connector/CE 端到端 evidence；不改寫 P5 archive、不開啟 ChurchReport feature flag，也不讓產品
    業務流量改道。
-5. 對每個 version 的 selected Official Worker 依序執行 allowlisted `runtime.health.whoami`、
-   `runtime.pool.validate.connection`，最後才在明確資料最小化條件下執行一筆 bounded fee read；禁止 write、
-   Action、Function、generic CRUD、FetchXML 與 ChurchReport consumer cutover。
-6. 在同一個核准 profile 內取得單 Connector 的 sanitized 結果與 p50/p95/p99、admission wait、worker recycle、
+5. 現有 `Invoke-DynamicsOfficialWorkerCompatibility.ps1` 只支援 `runtime.health.whoami`；沿用它取得 identity
+   evidence。若 repository 尚無相等的 bounded harness，先以測試建立
+   `Invoke-DynamicsOfficialWorkerP6Evidence.ps1`，只允許 `runtime.pool.validate.connection`，以及在明確傳入
+   repository 外核准 input 時允許 `fee.dedication.retrieve.by.contact.date.range`；禁止任意 operation ID、
+   generic CRUD、FetchXML、write、Action、Function 與 ChurchReport consumer cutover。
+6. 對每個 version 的 selected Official Worker 依序執行 `runtime.health.whoami` 與
+   `runtime.pool.validate.connection`。兩個 version 的 identity/connection evidence 是 P6.2 必要矩陣；fee read
+   只有在 deployment owner 提供 test-owned contact/date-range input 時才額外執行，否則移至 P7.1，不阻塞 P6。
+7. 在同一個核准 profile 內取得單 Connector 的 sanitized 結果與 p50/p95/p99、admission wait、worker recycle、
    process/handle baseline。若比較 legacy/Embedded/Dedicated，僅比較同一 operation 的 bounded output contract；
    現有 Data8 只支援 WhoAmI，不得把 fee-read parity 提前宣稱為 P6 成果；不在 request-time 替換 connector。
-7. 任一 CE/IPC/resource leak/incorrect result 失敗即停止後續 operation，drain Official generation，保存
+8. 任一 CE/IPC/resource leak/incorrect result 失敗即停止後續 operation，drain Official generation，保存
    sanitized evidence，並維持 P6 `in_progress`。成功證據不得外推到另一 CE version、profile、operation 或
    package lock。
-8. 不因 `sunnyvalechback` 可建立 test member 而在 P6 執行 write/action/function。該 test-owned fixture 在 P7.2 依 capability-specific idempotency、reconciliation 與 cleanup contract 使用；P6 只證明 connector／version／identity／lifecycle 底座。
+9. 不因 `sunnyvalechback` 可建立 test member 而在 P6 執行 write/action/function。該 test-owned fixture 在 P7.2 依 capability-specific idempotency、reconciliation 與 cleanup contract 使用；P6 只證明 connector／version／identity／lifecycle 底座。
 
 ## 6. 結案與後續路線
 
