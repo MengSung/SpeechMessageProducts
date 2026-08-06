@@ -1,7 +1,7 @@
 # P6 Official Worker Router 接入與 CE 整合驗證執行計畫
 
-> 前提：使用者已先審閱並明確核准 `prd.md`、`design.md`，再以 `task.py start` 進入實作。
-> 本文件不是本回合的實作授權；目前 task 必須維持 `planning`。
+> 現況：使用者已核准並啟動 task；P6.1 離線實作與品質閘門已完成，task 為 `in_progress`。
+> 本輪從 P6.2 Lenovo Legion deployment readiness 續作，不重跑 `task.py start`，也不把本文件視為雲端部署授權。
 
 ## 1. 實作範圍與不變量
 
@@ -101,32 +101,36 @@ git diff --check
 這一節通過代表 P6.1 完成，不代表 P6 結案。task 保持 `in_progress`，且 P7 Parent／P7.0 繼續保持
 `planning`，直到下一節 P6.2 取得已授權的 CE evidence。
 
-## 5. P6.2：使用者另行核准後的 CE read-only 驗證
+## 5. P6.2：Lenovo Legion deployment readiness 與 CE read-only 驗證
 
-這一節只有同時滿足「離線品質閘門全綠」和「使用者明確指定 CE 8.2/9.1 target/profile/window」時才能執行。
-它不是 `task.py start` 的隱含權限。
+這一節只有同時滿足「離線品質閘門全綠」和「使用者明確指定 CE 8.2/9.1 target/profile/window」時才能執行。使用者採用經核准的 P6／P7 整合 `/goal` 時，該 goal 可提供本節 read-only 操作授權；它不授權猜測 credential、寫入資料或部署雲端。
 
-1. 由部署 owner 確認已核准、enabled 的 CE 8.2 與 CE 9.1 ProfileAlias，並在 host-side secret provider
+1. 在 Lenovo Legion 預計執行 Gateway／Worker 的 Windows identity 下，以 `-InventoryOnly` 確認 manifest／artifact 狀態。既有結果兩個 profile 都只剩 `profile-input-required`，因此保留該證據並進入 profile input，不重做 P6.1。
+2. 由 deployment owner 建立 CE 8.2 與 CE 9.1 的非敏感 profile overlay，並以 Windows Credential Manager／核准 secret provider 保存 worker-local credential target；不得把密碼放入 overlay、命令列、source、log 或 artifact。
+3. 由部署 owner 確認已核准、enabled 的 CE 8.2 與 CE 9.1 ProfileAlias，並在 host-side secret provider
    可解析 secret 的環境啟動 Gateway/Worker；不把秘密放入命令列、source、設定範例、Trellis artifact 或 log。
-2. 先對同一 CE 9.1 profile 執行既有 Data8 `runtime.health.whoami` control measurement，取得第一筆
+4. 重新執行 readiness probe；只有 outcome 為 `go` 才先對已確認與正式系統隔離的 CE 9.1 `sunnyvalechback` profile 執行既有 Data8 `runtime.health.whoami` control measurement，取得第一筆
    Gateway/Connector/CE 端到端 evidence；不改寫 P5 archive、不開啟 ChurchReport feature flag，也不讓產品
    業務流量改道。
-3. 對每個 version 的 selected Official Worker 依序執行 allowlisted `runtime.health.whoami`、
+5. 對每個 version 的 selected Official Worker 依序執行 allowlisted `runtime.health.whoami`、
    `runtime.pool.validate.connection`，最後才在明確資料最小化條件下執行一筆 bounded fee read；禁止 write、
    Action、Function、generic CRUD、FetchXML 與 ChurchReport consumer cutover。
-4. 在同一個核准 profile 內取得單 Connector 的 sanitized 結果與 p50/p95/p99、admission wait、worker recycle、
+6. 在同一個核准 profile 內取得單 Connector 的 sanitized 結果與 p50/p95/p99、admission wait、worker recycle、
    process/handle baseline。若比較 legacy/Embedded/Dedicated，僅比較同一 operation 的 bounded output contract；
    現有 Data8 只支援 WhoAmI，不得把 fee-read parity 提前宣稱為 P6 成果；不在 request-time 替換 connector。
-5. 任一 CE/IPC/resource leak/incorrect result 失敗即停止後續 operation，drain Official generation，保存
+7. 任一 CE/IPC/resource leak/incorrect result 失敗即停止後續 operation，drain Official generation，保存
    sanitized evidence，並維持 P6 `in_progress`。成功證據不得外推到另一 CE version、profile、operation 或
    package lock。
+8. 不因 `sunnyvalechback` 可建立 test member 而在 P6 執行 write/action/function。該 test-owned fixture 在 P7.2 依 capability-specific idempotency、reconciliation 與 cleanup contract 使用；P6 只證明 connector／version／identity／lifecycle 底座。
 
 ## 6. 結案與後續路線
 
 P6 只有在離線 Router/lifecycle 品質閘門及已核准的 CE 8.2/9.1 read-only evidence 都通過後，才能進入
-spec update、commit 與 archive 判斷。P6 未正式結案前，禁止啟動 P7 Parent、P7.0 或 P7.1～P7.5。
+spec update、task-owned commit 與 archive。P6 未正式結案前，禁止啟動 P7.0 或 P7.1～P7.5。
 
 固定後續路線為：
 
-`P5（已封存）` → `P6 文件審閱` → `使用者核准 task.py start` → `P6 離線實作與品質閘門` →
-`使用者核准 CE read-only evidence` → `P6 結案` → `P7 Parent` → `P7.0` → `P7.1～P7.5`。
+`P5（已封存）` → `P6.1（已通過）` → `Lenovo profile input／readiness Go` →
+`P6.2 CE 8.2／9.1 read-only evidence` → `P6 結案` → `P7.0` → `P7.1` → `P7.2` → `P7.3` → `P7.4` → `P7.5`。
+
+採用 `docs/superpowers/plans/2026-08-06-p6-p7-integrated-execution.md` 的單一 `/goal` 時，P6 結案後可自動建立／啟動後續 P7 children 並逐 gate 續跑；不需每階段再次詢問，但任何紅燈必須先修復或 fail closed。P8.0～P8.4 不在此 goal 內，不得自動啟動或部署雲端。

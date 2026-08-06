@@ -17,10 +17,15 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
+  "nextAction": "Keep P7.0 in planning until P6.2 Lenovo readiness and CE 8.2/9.1 evidence are complete and P6 is archived; then activate P7.0 under explicit per-stage approval or the approved integrated P6/P7 goal.",
   "subtasks": [],
   "children": [],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
-  "notes": "2026-08-05 流程修正：P7.0 是 P7 Parent 內部 inventory，不是 P6 前置條件；P7.0 維持 planning，等待 P5 結案後的 P6 Router/CE 整合驗證完成。",
-  "meta": {}
+  "notes": "P7.0 是 P7 Parent 內部 inventory，不是 P6 前置條件；P5 已封存，P6.1 已通過，P7.0 維持 planning 等待 P6.2 與 P6 封存。P7.5 完成後才由獨立 P8.0-P8.4 目標部署 ChurchReport cloud Central Gateway。",
+  "meta": {
+    "executionHost": "Lenovo Legion local development environment",
+    "canonicalSequence": "P7.0-P7.5",
+    "downstream": "P8.0-P8.4 independently authorized ChurchReport cloud Central Gateway deployment"
+  }
 }

@@ -17,15 +17,17 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Run the local-only readiness probe under the target Gateway/Worker service identity with an approved local profile-input document. Generate the final overlay only after it reports go; do not start P7.",
+  "nextAction": "On Lenovo Legion, create deployment-owned CE 8.2 and CE 9.1 local profile input plus worker credential targets without persisting secrets; rerun readiness and proceed to authorized read-only CE evidence only when outcome is go. Do not start P7 or P8 before P6 closure.",
   "subtasks": [],
   "children": [],
   "parent": "08-04-dynamics-connection-management-plan",
   "relatedFiles": [],
-  "notes": "P6.1 offline Router, Pool, Lease, lifecycle, and quality checks passed. P6.2 is No-Go because the deployment-owned overlay and worker-local credential profile are absent. Do not create deployment values, start P7, change ChurchReport traffic, or change feature flags.",
+  "notes": "P6.1 offline Router, Pool, Lease, lifecycle, and quality checks passed. Lenovo Legion InventoryOnly readiness completed successfully; both CE profiles report only profile-input-required. P6.2 remains No-Go until deployment-owned local profile input and worker credential targets are present and readiness returns go. Cloud deployment belongs to P8.",
   "meta": {
     "complexity": "L",
     "risk": "high",
-    "phaseBoundary": "p6.1-offline-complete-p6.2-deployment-readiness-blocked"
+    "phaseBoundary": "p6.1-complete-p6.2-local-profile-input-required",
+    "executionHost": "Lenovo Legion local development environment",
+    "downstream": "P7.0-P7.5 local completion, then independently authorized P8.0-P8.4 cloud Central Gateway deployment"
   }
 }

@@ -1,6 +1,6 @@
 # P6 Official Worker Router 接入與 CE 整合驗證技術設計
 
-> 本設計只界定 P6 的未來實作契約。它不修改 runtime、設定或產品流量，也不是 CE 操作授權。
+> 本設計是既有 P6 `in_progress` task 的執行契約。P6.1 已通過；目前只剩 P6.2 Lenovo Legion readiness 與受控 CE evidence，本文本身不啟動 CE 操作。
 
 ## 1. 權威來源與衝突處理
 
@@ -166,7 +166,7 @@ profile 或 operation 已被真實伺服器驗證。此時 P6 保持 `in_progres
 CE 真機階段僅在離線品質閘門全綠後、使用者提供獨立授權時進行。每個 CE version 需選一個已核准的
 deployment profile，由 host 的 secret provider 解析憑證，且不把任何 secret 寫入 artifact。建議順序：
 
-1. 對同一核准 CE 9.1 profile，以現有 Data8 `runtime.health.whoami` 作為受控 control measurement；
+1. 對已確認與正式系統隔離的 CE 9.1 `sunnyvalechback` profile，以現有 Data8 `runtime.health.whoami` 作為受控 control measurement；
    此為 P6.2 的第一筆端到端真機證據，不重開 P5、不啟用 ChurchReport feature flag，也不移轉產品流量。
 2. 對每個 selected Official Worker profile 執行 `runtime.health.whoami` 與
    `runtime.pool.validate.connection`；兩者各自記錄 selected ConnectorKind，絕不在 request-time 替換。
@@ -174,12 +174,26 @@ deployment profile，由 host 的 secret provider 解析憑證，且不把任何
    `fee.dedication.retrieve.by.contact.date.range` 的 bounded read。現有 Data8 connector 尚未實作此
    capability，因此不得在 P6.2 承諾 fee read 的 Data8 parity；該跨 connector capability 對帳屬 P7.1。
 
+`sunnyvalechback` 可以安全建立 test member 的事實不擴張 P6 scope。P6 不執行 Create／Update／Action／Function；P7.2 才以唯一 test-owned member 與 operation-specific cleanup/reconciliation 驗證 ChurchReport 寫入語意。CE 8.2 寫入證據只在 P7.0 support matrix 將該 capability 標為 required 時才成為該 child 的 gate。
+
 每列需要分開記錄：profile alias（可揭露時）、CE version、ConnectorKind、operation ID、時間窗、結果
 分類、sanitized correlation ID、p50/p95/p99、admission/worker recycle counters 和 drain 後 baseline。此矩陣
 不得包含 Entity、個人資料、token、cookie、endpoint、connection string 或 credential。
 
 只有 P6.1 的離線 gate 與經使用者核准的 P6.2 兩個 CE version evidence 都通過，P6 才可結案並解除 P7
 Parent 的前置條件。
+
+### 8.3 Lenovo Legion 本機 evidence 邊界
+
+Lenovo Legion 是 P6.2 的 execution identity、profile overlay、worker credential target、Gateway／Worker process 與 evidence owner。既有 `-InventoryOnly` 結果顯示兩個 profile 的唯一缺口都是 `profile-input-required`；因此下一步是由 deployment owner 建立本機 profile input，而不是重做 Worker artifact 或 P6.1。
+
+使用者已確認兩個 CE 目標皆採 IFD；本機實測為 `LENOVO-LEGION\Administrator`、CloudAP、非網域成員。Readiness contract 因此固定要求 `authentication="Ifd"`、`identity.mode="WindowsCredentialReference"`、同一 identity 可解析的 credential target，以及 HTTPS `homeRealm`。`HostIdentity` 只允許 Active Directory，在此設計下必須直接拒絕而不是浪費一次 readiness 嘗試。
+
+本機 overlay 只保存非敏感 deployment mapping，credential value 留在 Windows Credential Manager／核准 secret provider。P6 artifact 不保存密碼、token、cookie、connection string、完整 endpoint 或可識別資料。未來雲端 Central Gateway 不沿用 Lenovo identity 或 secret target；P8.0～P8.4 必須以雲端 host 重新完成 identity、TLS、ACL、monitoring、rollback 與 live evidence。
+
+若使用者採用已核准的 P6／P7 整合 `/goal`，該目標可以一次授權本節 read-only CE matrix 及 P6 結案後的 P7 activation；任何 profile／credential／CE target 缺口仍 fail closed，不因「自動續跑」而猜測或建立秘密。
+
+P6 No-Go 的責任拆分必須明確：operator 提供或確認 Organization／IFD facts 與同 user Credential Manager target；manifest 提供 Worker executable 的絕對路徑與 hash；`New-DynamicsOfficialWorkerDeployment.ps1` 產生 `worker-profile.xml` 與 Gateway overlay。後兩項是自動化工作，不得錯誤列為使用者手工前置。
 
 ## 9. Rollback 邊界
 
@@ -190,3 +204,7 @@ Parent 的前置條件。
 - ChurchReport flag、routing、traffic、ToolUtility/CRM SDK references 和 P7 artifacts 不因 P6 rollback 而變更。
 - CE 真機測試失敗或 evidence 不足時，只保留 sanitized evidence、停止後續 CE action，讓 P6 維持
   `in_progress`；不得以未驗證的 connector 宣稱 P6 結案或開始 P7。
+
+## 10. 固定交接
+
+`P6 結案` → `P7.0 inventory/validator` → `P7.1 reads` → `P7.2 writes/actions/functions` → `P7.3 special resources` → `P7.4 local cutover` → `P7.5 ToolUtility removal`。P8.0～P8.4 的 ChurchReport 雲端 Central Gateway deployment 另由獨立目標啟動；P6 不準備或切換雲端流量。

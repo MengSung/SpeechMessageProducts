@@ -14,6 +14,7 @@ flowchart LR
     E --> F["P7.1～P7.3 typed capability slices"]
     F --> G["P7.4 gated consumer cutover"]
     G --> H["P7.5 dependency-removal gate"]
+    H --> I["P8.0～P8.4 cloud Central Gateway（獨立目標）"]
 ```
 
 任何 Registry 定義、executor 程式、ProductClient method、feature flag 或真機測試都只更新自己的欄位；不得以單一「完成」欄位取代四個獨立證據狀態。
@@ -58,17 +59,17 @@ flowchart LR
 | Phase 0 | 70 rows；9 rows 映射至既有 registry ID | 不代表 70 個 API 或 70 個 executable operations |
 | Registry | 9 declared definitions；含 2 runtime、1 metadata、6 Package01 read | 不代表 executor/consumer/CE 已可用 |
 | Data8 executor | 只支援 `runtime.health.whoami`；其他 registry ID 取得 pool 前即 fail closed | 不可宣稱 Package01、metadata 或任何 ChurchReport domain capability 已被 Data8 執行 |
-| Official Worker | 已有兩個 identity operation 與 `fee.dedication.retrieve.by.contact.date.range` 的 bounded worker contract | P6 尚未把 Worker 接入 Router，且沒有 CE 8.2/9.1 real evidence |
+| Official Worker | 已有兩個 identity operation 與 `fee.dedication.retrieve.by.contact.date.range` 的 bounded worker contract；P6.1 Router／Pool／Lease 離線 gate 已通過 | P6.2 尚缺 deployment-owned profile input 與 CE 8.2/9.1 real evidence；不得宣稱 P6 結案 |
 | ProductClient | `IPackage01FeeReadClient` 提供 6 個 typed read methods | ChurchReport flag 為 false，沒有 Gateway consumer enablement |
 | CE evidence | 70 rows 在 CE 8.2/9.1 都是 `metadata-only`、smoke 都未開始 | 不能以 unit tests、registry hash 或 local appsettings 宣稱真機相容 |
 
-P6 是 P7 Parent（含 P7.0～P7.5）全部 family 的 release prerequisite。Data8 仍是永久 ConnectorKind，但它必須經 Router/profile/admission 對應；官方 Worker 也是同一 connector-selection contract 的另一個選項。現況僅可把三個 worker operations 標示為「worker implementation exists, router/CE evidence absent」，不可視為 P6 完成。P7.0 只可保存 planning artifacts，必須等待 P6 Router integration 與 CE evidence 結案後才可啟動。未來 P6 task 必須為每個 P7 capability 決定 `Data8-only`、`Official-worker-required`、`both-required` 或 `evidence-insufficient`，並以 CE 8.2 與 9.1 分開記錄。
+P6 是 P7 Parent（含 P7.0～P7.5）全部 family 的 release prerequisite。Data8 仍是永久 ConnectorKind，但它必須經 Router/profile/admission 對應；官方 Worker也是同一 connector-selection contract 的另一個選項。P6.1 的離線 Router integration 已通過，但 P6.2 real CE evidence 尚未完成，因此 P7.0 只可保存 planning artifacts，必須等待 P6 正式結案後才可啟動。P7.0 啟動時必須重新從 source 產生 manifest，為每個 capability 決定 `Data8-only`、`Official-worker-required`、`both-required` 或 `evidence-insufficient`，並以 CE 8.2 與 9.1 分開記錄。
 
 coverage status 必須由可重現的 source-derived manifest 取得，不能手寫數字或混合不同層級。Official
 Worker 的 protocol/adapter allowlist 現有三個 operation（兩個 identity 加一個 bounded fee read）；這與
-「Official Worker 已透過 Router 實作」是兩個獨立欄位，後者目前仍為 0。validator 必須分別輸出
+「Official Worker 已透過 Router 通過離線 gate」及「已取得 real CE evidence」是獨立欄位。validator 必須分別輸出
 `officialWorkerProtocol.status`、`officialWorkerRouter.status` 與 `realCeEvidence`，避免把 3 寫成 1，
-或把現有 Worker contract 誤報為 P6 已完成。
+或把 P6.1 離線完成誤報為 P6 已結案。
 
 ## 5. Offline deterministic coverage validator
 
@@ -95,8 +96,12 @@ P7.0 可以先提供 reference-scan **報告**並列出尚存依賴，讓 migrat
 
 P7.1～P7.3 每次只處理一個業務 capability slice，先建立 typed request/response、authorization、bounded response/paging、connector/CE evidence 和故障 cleanup 契約，再在 P7.4 以 capability-specific flag 啟用 consumer。Rollback 必須是關閉該 capability flag、停止新 admission、drain in-flight lease/worker/stream，並回到已核准的 legacy path；不得變更 profile、credential、connector 或把失敗請求改送其他 CE version。
 
+CE 9.1 write/action/function evidence 使用已確認與正式系統隔離的 `sunnyvalechback` 公司研發 Organization，資料歸屬為唯一 test member 與該 operation family 明確建立的 test-owned records。每個 slice 需在執行前定義 cleanup/reconciliation，不能因環境非正式便允許無界或不可辨識資料。CE 8.2 只有在本 matrix 將 capability 標為 `required` 時才要求安全 write fixture；若產品不需要且契約不支援，必須在 dispatch 前 fail closed 並標示 `unsupported`，不得以缺少無條件的 CE 8.2 sandbox 阻塞 CE 9.1 ChurchReport 路線。
+
 P7.5 只在所有 70 rows 不再是 production temporary legacy、所有 consumer 已有證據、CE 8.2/9.1 matrix 均通過、release build/tests/reference scan 均通過、且 rollback window 結束後，才允許移除 ChurchReport 對 ToolUtility、Dataverse client 與 CRM SDK 的 production dependency。
+
+P7.5 結案 artifact 必須固定 ProductClient／operation contract 版本、support matrix、deployment package、required profile aliases、sanitized evidence、resource baseline 與 rollback package。P8.0 只接收這組已封存輸入來評估雲端 readiness；不得在 P7.0～P7.5 先建立 cloud identity、TLS、DNS 或 Central Gateway traffic。
 
 ## 7. 本輪已知缺口與決策
 
-本輪沒有阻礙規劃文件完成的產品決策：使用者已明確要求 P5→P6→CE evidence→P7 Parent→P7.0→P7.1～P7.5 的順序。尚未可以宣稱的結果是各 capability 的最終 ConnectorKind、CE support、rollout owner、rollback owner、DTO owner 與 feature gate；這些必須由後續獨立 child task 的具體契約與證據填入，不得在 P7.0 推測或預先啟用。
+本輪沒有阻礙規劃文件完成的產品決策：使用者已明確要求 P5→P6→CE evidence→P7.0→P7.1～P7.5，之後另以 P8.0～P8.4 將 ChurchReport 部署到雲端 Central Gateway。尚未可以宣稱的結果是各 capability 的最終 ConnectorKind、CE support、rollout owner、rollback owner、DTO owner 與 feature gate；這些必須由後續獨立 child task 的具體契約與證據填入，不得在 P7.0 推測或預先啟用。

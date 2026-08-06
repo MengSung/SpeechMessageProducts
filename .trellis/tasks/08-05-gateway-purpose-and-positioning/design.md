@@ -1,14 +1,14 @@
-# ChurchReport 完全 Gateway 化與多產品 Operation 治理設計
+# ChurchReport 完全 Gateway 化與雲端 Central Gateway 設計
 
-> 日期：2026-08-05  
-> 狀態：待使用者書面審閱  
+> 日期：2026-08-05；2026-08-06 依使用者核准路線重校
+> 狀態：方向已核准，規劃文件重校中
 > 核准方向：ChurchReport 最終完全移除產品端 ToolUtility／`IOrganizationService` D365 存取；新產品一律採 capability operation 模型。
 
 ## 1. 設計目標
 
 建立一個所有 SpeechMessage 產品都能使用的 Dynamics 存取邊界：產品只呼叫強型別 ProductClient；Gateway／Embedded 執行層負責 operation authorization、Profile 解析、Organization admission、Connector lease、D365 呼叫、錯誤清理與結果投影。
 
-本設計保留 P4 Embedded、P5 Dedicated Gateway、P6 Official Worker 作為已建平台基礎，擴充 P7 為 ChurchReport 全量 capability 遷移，並擴充 P8 為多產品 operation governance 與 Central Gateway onboarding。
+本設計保留 P4 Embedded、已封存的 P5 Dedicated Gateway 與進行中的 P6 Official Worker 作為平台基礎；P7 負責 ChurchReport 全量 capability 遷移，P8 則把已完成本機驗收的單一 ChurchReport 部署到雲端 Central Gateway。第二、第三產品 onboarding 是後續獨立範圍，不阻塞 P6～P8。
 
 ## 2. 已確認的現況缺口
 
@@ -97,18 +97,17 @@ P7.5 完成只代表 ChurchReport 不再依賴 ToolUtility。ToolUtility project
 
 Gateway／Connector 不得引用整個 ToolUtility facade。可重用邏輯只能在確認沒有 request／profile mutable state、SDK object retention 或隱含連線 ownership 後，抽到較低層的明確 owner。
 
-## 9. 多產品與 P8
+## 9. P8：單一 ChurchReport 雲端 Central Gateway
 
-P8 在第二個產品接入時啟動，除了 Central Gateway deployment，還必須包含：
+P8 在 P7.5 完成且本機 evidence 封存後啟動，不等待其他產品。P8 只把已通過 Lenovo Legion 驗收的相同 ProductClient／operation contract 部署至雲端，不在部署階段重新發明 capability。固定拆分如下：
 
-- ProductClient package／namespace ownership。
-- Shared 與 product-namespaced operation review gate。
-- Workload → allowed profile／operation policy。
-- Operation version、deprecation、usage telemetry 與 removal gate。
-- 新產品不得引用 ToolUtility／CRM SDK 的 architecture test。
-- 多產品公平排程、aggregate Organization capacity 與 noisy-neighbor tests。
+- **P8.0 Cloud deployment readiness**：確認雲端主機、網路、DNS、憑證、service identity、secret provider、CE reachability、備份、部署包與 rollback package 均可用；任何缺口都先 No-Go。
+- **P8.1 Host／identity／TLS hardening**：Gateway 僅接受已核准 ChurchReport workload identity，TLS 憑證、私鑰與 CRM credential 由部署環境擁有；產品 request、設定檔與 artifact 不得保存 secret。
+- **P8.2 Central Gateway＋Worker deployment**：以服務管理員建立可重啟、可 drain、可確定停止的 Gateway／Worker；監測 process、pipe、connection、handle、queue、permit 與 generation，不允許跨 profile mutable state。
+- **P8.3 ChurchReport cutover**：先 health／ready 與受控 operation smoke，再以明確變更視窗將 ChurchReport endpoint 指向 Central Gateway；不得同時改 operation contract、Profile、ConnectorKind 或 CE version。
+- **P8.4 Live validation／monitoring／rollback／closure**：核對功能結果、p50／p95／p99、錯誤率、資源基線、告警與 rollback drill；觀測窗通過後才結案。
 
-新產品新增能力時，先搜尋既有 catalog；只有契約語意或授權邊界不同時才新增 product operation。破壞性 contract 變更建立新版本，舊版本在所有 consumer 遷移且無流量後才移除。
+未來第二、第三產品仍須遵守 shared／product-namespaced catalog、workload allowlist、版本治理、aggregate capacity 與 noisy-neighbor 規則，但另立 task 規劃與驗收，不是 P8 的完成條件。
 
 ## 10. 錯誤、重試與寫入安全
 
@@ -159,13 +158,15 @@ Organization。每個 process 自己的 In-Memory admission／host-slot coordina
 4. CE 8.2／9.1 需要支援的組合皆有真實 Organization evidence；離線綠燈不得取代真機證據。
 5. Drain／dispose 後 process、task、timer、registration、permit、lease、connection、channel、handle 與 socket 回到宣告基線。
 6. 新產品 architecture test 拒絕 ToolUtility／CRM SDK reference，並只能呼叫授權的 shared／namespaced capabilities。
-7. P7／P8 文件、support matrix、runbook 與監控告警與實際程式一致。
+7. P8 的 ChurchReport 雲端 Central Gateway 有可重現部署包、service identity／TLS／secret 邊界、監控告警、rollback drill 與受控 live evidence。
 8. 每個 P7.4 enabled capability 都有已核准的 aggregate-capacity overlap 方案與相應壓力／drain evidence。
+9. P7.5 完成後才可啟動 P8；P8 不回頭改變 P7 capability contract，也不以未來產品作為結案前置。
 
 ## 14. 不在本 Parent Task 直接實作的內容
 
 - 不在本 parent 一次修改全部業務程式碼。
 - 不把任意 CRUD／FetchXML／SDK object 暴露成 Gateway API。
 - 不因 ChurchReport 完成遷移便立即刪除仍有 consumer 的 ToolUtility project。
-- 不把 Central Gateway 設為單產品 ChurchReport 的必要條件。
+- 不在 P6／P7 本機階段提前部署或切換雲端 Central Gateway；該工作由 P8 獨立承擔。
+- 不把第二、第三產品 onboarding 併入 ChurchReport 的 P8 結案條件。
 - 不在缺少真機證據時宣稱 CE 8.2／9.1 operation coverage 完成。

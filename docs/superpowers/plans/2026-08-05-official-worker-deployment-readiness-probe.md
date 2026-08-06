@@ -4,7 +4,7 @@
 
 **Goal:** Add a local-only PowerShell preflight that determines whether approved CE 8.2 and CE 9.1 profile input can safely proceed to deployment generation without printing deployment identities, credential references, endpoints, or secrets.
 
-**Architecture:** The probe reads a bounded UTF-8 manifest and a separately supplied, local profile-input JSON file. It confirms the two pinned Worker artifact records, validates only the allowed CE 8.2/9.1 profile shapes, compares the current execution identity to an explicit expected identity, and checks Credential Manager target presence without reading credential blobs. It never invokes the deployment generator, starts a Worker, starts Gateway, creates files, or sends a network request.
+**Architecture:** The probe reads a bounded UTF-8 manifest and, outside inventory mode, a separately supplied local profile-input JSON file. It confirms the two pinned Worker artifact records, validates only the allowed CE 8.2/9.1 profile shapes, compares the current execution identity to an explicit expected identity, and checks Credential Manager target presence without reading credential blobs. `-InventoryOnly` skips profile and credential checks so the operator can first verify local artifacts with one safe command. It never invokes the deployment generator, starts a Worker, starts Gateway, creates files, or sends a network request.
 
 **Tech Stack:** Windows PowerShell 5.1, built-in .NET JSON/XML APIs, `cmdkey.exe`, existing standalone PowerShell assertion-test convention.
 
@@ -44,7 +44,7 @@
 
 - [x] **Step 1: Add comment-based help and strict process boundaries.**
 
-  Parameters are `ManifestPath`, `ProfileInputPath`, `ExpectedExecutionIdentity`, and `Json`. The script uses `Set-StrictMode`, bounded UTF-8/no-BOM reads, and a single JSON output object. It contains no HTTP client, deployment-generator invocation, `New-Item`, `Set-Content`, `WriteAllText`, `Start-Process`, or credential-blob reader.
+  Parameters are `ManifestPath`, optional `ProfileInputPath`, `ExpectedExecutionIdentity`, `InventoryOnly`, and `Json`. The script uses `Set-StrictMode`, bounded UTF-8/no-BOM reads, and a single JSON output object. It contains no HTTP client, deployment-generator invocation, `New-Item`, `Set-Content`, `WriteAllText`, `Start-Process`, or credential-blob reader.
 
 - [x] **Step 2: Add fail-closed manifest/profile parsing and pinned-artifact validation.**
 

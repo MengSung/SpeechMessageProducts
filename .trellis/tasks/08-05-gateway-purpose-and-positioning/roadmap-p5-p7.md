@@ -1,311 +1,168 @@
-# P5 / P6 / P7 實作路線建議
+# P5～P8 Dynamics Gateway 執行路線
 
-> 日期：2026-08-05
-> 基準：HEAD `c6ec00c3`
-> 性質：對現有 `implement.md`（Codex 版 9 個 child）的**順序修正建議**，不是推翻重寫
-> 狀態：待使用者審閱決定是否併入 `implement.md`
+> 2026-08-06 重校。為避免既有引用失效，保留 `roadmap-p5-p7.md` 檔名；本文件內容已擴充至 P8。
+> 本文件採納舊規劃中「vertical slice、deterministic coverage、aggregate capacity、可獨立回滾」的優點，修正 P5 已結案、P7 編號漂移與 P8 觸發條件。
 
----
+## 1. 已鎖定的最終成果
 
-## 0. 這份路線要修正什麼
+1. P5 Dedicated Gateway 已正式封存，不再重開。
+2. P6 在 Lenovo Legion 完成 Official Worker Router 與 CE 8.2／9.1 本機整合證據。
+3. P7.0～P7.5 在 Lenovo Legion 完成 ChurchReport 全部 D365 capability 遷移，P7.5 移除 ChurchReport 對 ToolUtility／CRM SDK 的 production dependency。
+4. P8.0～P8.4 將已在本機驗收的單一 ChurchReport 部署到雲端 Central Gateway，完成身分、TLS、監控、回滾與 live validation。
+5. 第二、第三產品 onboarding 日後另立獨立 task，不阻塞目前 P6～P8。
 
-現有路線的技術內容是對的，問題出在**順序**與**產出型態**。三個具體症狀：
+## 2. 唯一路線
 
-| 症狀 | 證據 |
-|---|---|
-| P7 建立在一條從未通電的管道上 | CE 8.2 真機證據 = 0、CE 9.1 = 0、consumer enabled = 0。至今沒有任何一次「產品送出請求 → Gateway 執行 → 真實 D365 回資料」發生過 |
-| 機制落後於文件 | P7.0 產出 416 行規劃，但核心交付物 `Test-DynamicsCapabilityCoverage.ps1` 不存在；`officialWorkerExecutorImplemented: 3` 與程式碼（實際 1）不符 |
-| 先重構再實作，本末倒置 | child #2 `catalog modules` 排在第一個真實 slice 之前。模組邊界該切在哪，要等做過一個真實 capability 才知道 |
-
-三個修正原則：
-
-1. **先通電，再擴張** —— 一條端到端跑通並取得真機證據，才展開其餘 capability。
-2. **機制優先於敘述** —— validator 與 architecture test 比盤點文字更早交付，因為它們會持續回報真實狀態。
-3. **由實作驅動重構** —— catalog 模組化與契約擴充的需求，由第一個真實 slice 暴露出來，不是憑空設計。
-
----
-
-## 1. 前置阻塞項（不解決會卡住後面）
-
-| # | 項目 | 執行者 | 阻塞什麼 | 成本 |
-|---|---|---|---|---|
-| B1 | 設定 `CRM_PASSWORD` 環境變數（使用者工作階段） | 你 | P5.1 全部 | 5 分鐘 |
-| B2 | 確認 `sunnyvalechback` 可從開發機連通（HTTPS / DNS / ADFS） | 你 | P5.1、P6.2 | 10 分鐘 |
-| B3 | 前置決策 A1：瀏覽器對 8.2 伺服器測 `?wsdl&sdkversion=8` 與 `=9` | 你 | 只阻塞「同進程雙 CE 版本」；不阻塞 P5.1～P7.1 | 10 分鐘 |
-| B4 | 任務衛生：封存或關閉停滯的 4 個 task | 你／我 | 狀態列誤導人與 AI | 15 分鐘 |
-
-B4 明細：`00-bootstrap-guidelines`、`06-25-payment-module-extraction`、`06-29-payment-host-integration-layer` 三個 payment 任務長期停在 `in_progress`；CCG 的「修復 ChurchReport 錯誤處理」任務已連續三次觸發 loop 警告，且其 next action 與現行 Gateway 路線無關。
-
-**B1 與 B2 是唯一真正的硬阻塞**，合計約 15 分鐘。
-
----
-
-## 2. 路線總覽
-
-```text
-前置 B1/B2（15 分鐘）
-   │
-   ├─────────────────┬─────────────────────────┐
-   ▼                 ▼                         ▼
-P5.1 通電          P5.2 治理機制            B4 任務衛生
-（1～2 天）        （1 天 · 可並行）        （可並行）
-   │                 │
-   └────────┬────────┘
-            ▼
-      P6.1 Official Worker 離線接入（2～3 天）
-            │
-            ├──────────────────────────┐
-            ▼                          ▼
-      P6.2 CE 真機驗證           P7.0 Capability matrix 定稿
-      （需授權 · 1～2 天）        （1～2 天 · 可並行）
-            └────────┬─────────────────┘
-                     ▼
-        P7.1 第一個完整 vertical slice（3～5 天）★ 關鍵
-                     │
-                     ▼
-        P7.2 契約補強（由 P7.1 暴露的實際需求驅動）
-                     │
-                     ▼
-        P7.3 讀取批次 → P7.4 寫入批次 → P7.5 特殊資源
-                     │
-                     ▼
-        P7.6 Product cutover → P7.7 ToolUtility removal gate
+```mermaid
+flowchart LR
+    P5["P5 Dedicated Gateway：已封存"] --> P6["P6 Official Worker + CE evidence：進行中"]
+    P6 --> P70["P7.0 Inventory + coverage validator"]
+    P70 --> P71["P7.1 Read capabilities"]
+    P71 --> P72["P7.2 Write / Action / Function"]
+    P72 --> P73["P7.3 Special resources"]
+    P73 --> P74["P7.4 Product cutover"]
+    P74 --> P75["P7.5 ToolUtility removal"]
+    P75 --> P80["P8.0 Cloud readiness"]
+    P80 --> P81["P8.1 Identity + TLS"]
+    P81 --> P82["P8.2 Central Gateway deployment"]
+    P82 --> P83["P8.3 ChurchReport cutover"]
+    P83 --> P84["P8.4 Live validation + closure"]
 ```
 
----
+前置 gate 仍必須依序通過，但使用者可以用一個整合 `/goal` 預先授權 P6 與 P7 的連續執行。這代表不必每一階段重新下提示詞，不代表完全無人值守：P6 profile／Credential Manager 與 P7.2 safe-write fixture 必須先在 G0 透過一次 operator handoff 前置。它也不代表可略過 Trellis task、測試、quality check、spec update、commit 或 archive。
 
-## 3. P5.1　通電：讓 Dedicated Gateway 第一次真的執行操作
+P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/tasks/08-05-official-worker-router-ce-integration` 與 `.trellis/tasks/08-05-gateway-capability-inventory` 兩個明確路徑切換，不得靠任一 parent 的 children traversal 尋找整條路線。
 
-**這不是重做 P5。** P5 已完成的部分（架構、離線測試、Release build、格式閘門）保留。P5.1 只補上 P5 刻意跳過的那一段 —— 計畫書明寫「P5 不執行 `/v1`、WhoAmI、CE 真機呼叫」。
+## 3. 目前真實狀態
 
-### 為什麼放在最前面
-
-所有後續假設都依賴這條鏈路成立：Guard → Resolver → Admission → Pool → Data8 client → 真實 CE → 回應投影 → 產品端反序列化。任何一個只在真機浮現的問題（IFD 驗證行為、WSDL 探索、逾時特性、扁平 scalar 契約撐不撐得住），現在都還沒有機會出現。等到 P7.1 才發現，前面設計的所有 capability 契約可能都要重做。
-
-### 好消息：程式碼已經寫好了
-
-[`DynamicsGatewayPreflightHostedService.cs:89`](SpeechMessageProducts.ChurchReport/Services/DynamicsGatewayPreflightHostedService.cs:89) 在 host `StartAsync` 就會送一次真的 WhoAmI，只是被 `IsPackage01Enabled` 擋住。所以「通電」不需要寫新功能。
-
-### 工作項
-
-| # | 工作 | 備註 |
-|---|---|---|
-| 1 | 設定 `CRM_PASSWORD`（B1） | 只由 Gateway child process 讀取，不得進 appsettings／launchSettings／Git／log |
-| 2 | ChurchReport `appsettings.Development.json` 開 `Package01FeeReadsEnabled=true` | **只在 Development**，正式設定不動 |
-| 3 | VS Multiple Startup：Gateway（`DedicatedGateway` profile）先啟動，ChurchReport 次之 | 依 P5 補充章節的既有步驟 |
-| 4 | F5，觀察 host StartAsync 的 WhoAmI preflight | 這是第一次真的呼叫 `/v1` |
-| 5 | 同一組驗證再跑一次 `ConnectionMode=Embedded` | 證明兩種模式對同一操作結果一致 |
-| 6 | 關閉後檢查資源基線 | 無殘留 process／handle／socket／WCF channel |
-
-### 驗收
-
-- [ ] Gateway `/health` 200、`/ready` 200
-- [ ] ChurchReport host 啟動成功，log 顯示 WhoAmI preflight 通過（**不得記錄 GUID、endpoint、credential**）
-- [ ] 匿名 `/v1` 回 401；錯誤 alias 回 403；未註冊 operation 回 403
-- [ ] `Embedded` 與 `DedicatedGateway` 兩種模式的 WhoAmI 結果一致
-- [ ] 關閉後 handle／socket／process 回到基線
-- [ ] **產出一份真機證據記錄**（時間、模式、結果、延遲、資源基線），這是 CE 9.1 evidence 從 0 變 1 的第一筆
-
-### 驗證命令
-
-```powershell
-dotnet build SpeechMessageProducts.sln --configuration Release --nologo
-```
-
-估時：**1～2 天**（含環境排錯的緩衝）
-
----
-
-## 4. P5.2　治理機制落地（可與 P5.1 並行）
-
-兩個交付物，都是「會持續回報真實狀態」的機制。
-
-### 4.1 Capability coverage validator
-
-現在 `docs/scripts/Test-DynamicsCapabilityCoverage.ps1` 不存在，而 `implement.md` 已經在引用它。
-
-要求：
-
-- **數字必須從程式碼推導，不得手寫。** 掃描 `Package01OperationRegistry` 取得 declared 清單；掃描 Data8 與 Official Worker executor 取得 implemented 清單；掃描設定取得 consumer-enabled 清單。
-- 四個狀態分欄輸出，任一不得由另一推論。
-- 順便修正 `preliminary-capability-inventory.json` 的 `officialWorkerExecutorImplemented: 3` —— 實際是 1（`Package01FeeWorkerContract.CapabilityOperationId` 是單一 const）。
-
-### 4.2 P7.5 removal gate 的 red architecture test
-
-現在就寫，讓它紅著。`implement.md` §3 的 TDD 節奏本來就要求「先新增 failing test」，而 removal gate 的 failing test 應該**最早**寫 —— 它會在整個 P7 期間持續告訴你還剩幾個引用，是最誠實的進度條。
-
-放在 `SpeechMessage.Dynamics.Tests`，內容：
-
-- ChurchReport 不得 ProjectReference `ToolUtility`、`Connectors.Data8`、`PowerPlatform.Dataverse.Client`
-- ChurchReport 原始碼不得出現 `Microsoft.Xrm.Sdk` / `IOrganizationService` / `Entity` / `QueryBase` / `OrganizationRequest`
-- 現有 `ProjectReferenceBoundaryTests` 目前只檢查一個已退役的 WebApi 專案，可在同檔擴充
-
-### 驗收
-
-- [ ] validator 可執行，輸出四欄數字，且與人工核對一致
-- [ ] red test 存在且失敗，失敗訊息清楚列出剩餘引用數與清單
-- [ ] validator 納入 parent gate 的驗證命令清單
-
-估時：**1 天**
-
----
-
-## 5. P6.1　Official Worker Router 接入（離線）
-
-維持 Codex 原本的 P6 內容，但**拆成離線與真機兩段**，理由是 P6.2 卡在外部條件（授權、真機視窗），不該讓 P6.1 一起卡住。
-
-| 工作 | 檔案 |
-|---|---|
-| `OfficialWorkerPool` 實作 `IConnectorPool` / `IConnectorLease` | `WorkerSupervisor/` |
-| 註冊為 `ConnectorKind.OfficialCrm82Worker` / `OfficialCrm91Worker` | `ControlPlane/` |
-| 相容性矩陣在 **Profile 載入時**（非 request 時）強制 | `ControlPlane/Runtime/` |
-| 世代／drain／dispose／無洩漏的離線測試 | `Dynamics.Tests/` |
-
-### 驗收
-
-- [ ] 不相容組合（Official82 × Ce91 等）在 Profile 載入即拒絕，錯誤碼 `profile.connector-incompatible`
-- [ ] 以 `ConnectorKind: OfficialCrm91Worker` 建立測試 ProfileAlias，能啟動並回應
-- [ ] 預設 Profile 仍為 `Data8`；未啟用 Official 時不啟動任何 net48 進程
-- [ ] drain／dispose 後 process、pipe、handle 回到基線
-
-估時：**2～3 天**
-
----
-
-## 6. P6.2　CE 8.2 / 9.1 真機驗證（需要明確授權）
-
-**這是唯一需要外部條件的階段**，所以獨立成一段，讓前後都不被它卡住。
-
-- read-only operation matrix，對 `sunnyvalechback`（CE 9.1）與一個已配置 ServiceUri 的 CE 8.2 組織
-- 比對 legacy / Embedded / Dedicated 三條路徑的結果一致性
-- 記錄 p50／p95／p99、allocation、working set、handle、socket、WCF channel、pool size、queue depth
-- 200 次 borrow／use／return，確認池大小穩定、故障淘汰路徑正確
-
-**前提**：B3（A1 決策）若顯示 8.2 不接受 `sdkversion=9`，需先把 `_sdkMajorVersion` 改為實例欄位（約 5 行）。
-
-估時：**1～2 天**（不含等待授權與環境準備）
-
----
-
-## 7. P7.0　Capability matrix 定稿（可與 P6.2 並行）
-
-Codex 已完成初步歸類（70 rows → 12 family）。定稿要補的：
-
-- 每個 call site 補齊 `finalPerCallSiteRequiredProperties` 的 29 個欄位
-- 由 P5.2 的 validator 驗證矩陣自身的一致性（不能有未分類、無 owner 的 temporary legacy）
-- **附上以 capability family 為單位的粗估區間（樂觀／悲觀）**
-
-最後這點很重要：現有計畫把時程改成「依矩陣拆分」，誠實但無法決策。這是一個數個月的投資，需要一個數量級的估計，才能跟替代方案比較。
-
-估時：**1～2 天**
-
----
-
-## 8. P7.1　第一個完整 vertical slice　★ 最關鍵的重排
-
-**選 `fee.dedication.retrieve.by.contact.date.range`。**
-
-選它的理由：
-
-1. Registry 已宣告
-2. ProductClient 方法已存在（`Package01FeeReadClient.RetrieveDedicationFeesByContactDateRangeAsync`）
-3. **Official Worker 端已經實作了這一個 operation** —— 可以拿來跟 Data8 端互相對照，這是唯一有雙 connector 可交叉驗證的 capability
-4. 它是 read-only，可做 shadow comparison，風險最低
-
-### 它要證明什麼
-
-這個 slice 的價值不在「多一個能用的功能」，而在**把整個交付模板走完一次**，暴露所有隱藏成本：
-
-- 回應型別要怎麼加進 `OperationResponseData` 的封閉聯集
-- FetchXML template 要存在哪、`templateHash` 要怎麼改成 hash 內容
-- 扁平 `IReadOnlyDictionary<string,string?>` 撐不撐得住實際結果集
-- 分頁契約長什麼樣
-- legacy 對帳 harness 要怎麼寫
-- 一個 capability 真正花多少時間
-
-### 工作項（依 implement.md §3 的 TDD 節奏）
-
-- [ ] 先寫 failing contract／authorization／support-matrix test
-- [ ] 實作 Data8 executor 的 template 套用與投影（目前 `OnPremiseData8ConnectorClientFactory.cs:191` 寫死只接 whoami，要改成 registry 驅動的分派）
-- [ ] 建立 FetchXML template store，`templateHash` 改為 hash template 內容
-- [ ] ProductClient 端到端串通
-- [ ] legacy 對帳 harness：同一 contact、同一日期區間，新舊路徑筆數與金額一致
-- [ ] 取消／逾時／未授權／錯誤 Profile／不支援 Connector 的契約測試
-- [ ] lifecycle／soak：queue、permit、lease、connection、channel、task、timer、handle、socket 回基線
-- [ ] Tier A 開啟觀測
-
-### 驗收
-
-- [ ] 同一查詢在 legacy / Embedded / Dedicated 三條路徑結果逐筆一致
-- [ ] p95 不劣於 legacy
-- [ ] **產出「一個 capability 的實際工時」數字**，用來校正 P7.0 的估算
-
-估時：**3～5 天**（第一次會比後續慢，這是預期的）
-
----
-
-## 9. P7.2　契約補強（由 P7.1 暴露的需求驅動）
-
-這一段就是 Codex 原本的 child #2 `catalog modules`，但**移到第一個 slice 之後**。
-
-理由：模組邊界該切在哪，要等做過一個真實 capability 才知道。先重構再實作，切出來的邊界只是猜測。
-
-預期要處理（由 P7.1 確認實際需求後定稿）：
-
-| 項目 | 為什麼 |
-|---|---|
-| `OperationResponseData` 封閉聯集模組化 | 12 個 family 都要改同一個建構子與 `ValidateSingleSafeBranch`，會成為平行開發的單點衝突 |
-| `Package01OperationRegistry` → 可組合 catalog module | `design.md` §4 已識別，不得把所有產品堆入同一 static registry |
-| `ConnectorOperation` 分頁／大型結果契約 | 扁平 `IReadOnlyDictionary<string,string?>` 撐不住 `churchreport.list.membership` 的 23 個 call site |
-| FetchXML template store 正式化 | 從 P7.1 的臨時實作提升為正式機制 |
-
-估時：**依 P7.1 結果決定**
-
----
-
-## 10. P7.3 ～ P7.7　展開
-
-順序沿用 Codex 原設計，只是編號後移：
-
-| 階段 | 內容 | 對應原編號 |
-|---|---|---|
-| P7.3 | 讀取批次（MemberInfo、Contact／List、Activity、metadata） | 原 P7.1 剩餘部分 |
-| P7.4 | 寫入／Action／Function 批次 | 原 P7.2 |
-| P7.5 | 特殊資源（Attachment、large paging、background、metadata cache） | 原 P7.3 |
-| P7.6 | Product cutover（Controller／Service／WebServiceConnector） | 原 P7.4 |
-| P7.7 | ToolUtility removal gate | 原 P7.5 |
-
-**遷移期間的容量協調（現有設計缺這一塊）**：P7.6 逐 capability 切換期間，ToolUtility（產品進程）與 Gateway（另一進程）會同時打同一個 Organization。但 `DedicatedGateway` 不註冊 host slot 協調器（`Program.cs:177`），`InMemoryRuntimeHostSlotCoordinator` 自述 `IsDurable=false` 只保證進程內。
-
-處理方式二選一，需在 P7.6 開始前決定：
-
-- **A（建議）**：遷移期間 ChurchReport 一律用 `Embedded` —— 單進程、單池、單一預算，InMemory 協調器就夠
-- **B**：啟用 SQL 分散式協調器，並在 validator 加一條「同時 active 的 host 數」檢查
-
----
-
-## 11. 與 Codex 原路線的差異總結
-
-| 項目 | Codex 原路線 | 本建議 | 理由 |
+| 階段 | 狀態 | 已有證據 | 下一個 gate |
 |---|---|---|---|
-| 第一個真機呼叫 | P6 之後 | **P5.1，最前面** | 所有後續假設都依賴這條鏈路；越晚驗證，返工面積越大 |
-| coverage validator | P7.0 的一部分 | **P5.2，提前並與通電並行** | 它是機制不是文件；越早有，每次對照越可信 |
-| removal gate 測試 | P7.5 | **P5.2 寫成 red test** | 它是整個 P7 期間最誠實的進度條 |
-| catalog modules 重構 | child #2，在第一個 slice 之前 | **P7.2，在第一個 slice 之後** | 模組邊界要由真實實作暴露，不是憑空設計 |
-| P6 | 單一階段 | **拆成 P6.1 離線 / P6.2 真機** | 真機卡外部條件，不該讓離線工作一起卡住 |
-| 遷移期容量協調 | 未涵蓋 | **P7.6 前必須決定 A 或 B** | 遷移期兩條路都活著，是風險最高的時段 |
-| 時程 | 完全開放 | **P7.0 必須附估算區間** | 沒有數量級就無法跟替代方案比較 |
+| P5 | 已封存 | Dedicated Gateway 離線 host／lifecycle／quality gate | 無；不得重開 |
+| P6.1 | 已通過 | Router／Pool／Lease 與離線 lifecycle／quality evidence | 保留現有結果，不重做 |
+| P6.2 | `in_progress` | Lenovo `InventoryOnly` probe 可執行；兩個 profile 唯一原因均為 `profile-input-required` | 建立 deployment-owned local profile input，再執行受控 CE evidence |
+| P7.0 | `planning` | PRD／design／implement 與 preliminary inventory 已存在 | 等 P6 正式結案後 activation |
+| P7.1～P7.5 | 尚未建立／啟動 | 由 P7.0 matrix 決定精確 child 邊界 | P7.0 validator 全綠 |
+| P8.0～P8.4 | 尚未建立／啟動 | 本文件只有路線定義 | P7.5 結案與獨立 P8 授權 |
 
-順序以外的技術內容全部沿用 Codex 的設計 —— `design.md` 的邊界定義、四狀態規則、capability 分層、rollback 政策都是對的，不需要改。
+## 4. P6：Lenovo Legion Official Worker 與 CE 證據
 
----
+### P6.2A Deployment readiness
 
-## 12. 最近三天可以立刻開始的事
+- 使用預計執行 Gateway／Worker 的 Windows identity。
+- 由 deployment owner 建立 CE 8.2 與 CE 9.1 profile input；endpoint、Organization、ConnectorKind 與 credential reference 必須互相一致。
+- Credential 只存在 Windows Credential Manager／核准 secret provider，不寫入 source、命令列、JSON artifact、log 或 Trellis 文件。
+- readiness probe 必須由 `profile-input-required` 收斂為 `go`；任何 identity、ACL、manifest、runtime、package-lock 或 secret 解析缺口都維持 No-Go。
 
-不需要等任何審閱：
+### P6.2B Read-only live matrix
 
-1. B1 ＋ B2（15 分鐘）
-2. P5.1 通電（1～2 天）
-3. P5.2 兩個機制（1 天，可與 2 並行）
+- 以與正式系統隔離的 CE 9.1 `sunnyvalechback` 作 Data8／Official Worker allowlisted health／connection control，再執行經資料最小化的 bounded read；CE 8.2 使用另行核准的 read-only profile。
+- CE 8.2 與 CE 9.1 各自保存 sanitized result、ConnectorKind、operation ID、p50／p95／p99 與 drain 後 process／handle／pipe／permit baseline。
+- 任何不相容、錯誤 routing、credential/session/profile leakage 或資源無法回到基線都是 release blocker；不得自動改用另一 Connector、Profile、CE version 或 transport。
+- P6.1 與 P6.2 全綠後依 Trellis Phase 3 執行 spec 判斷、task-owned commit 與 archive，才解除 P7.0 前置條件。
 
-做完這三件，你會第一次擁有：一筆真機證據、一支可信的 coverage validator、一個持續回報剩餘工作量的 red test。之後所有規劃都會建立在事實上，而不是宣稱上。
+P6 是本機 connector／CE gate；它不修改 ChurchReport consumer、feature flag 或 ToolUtility dependency，也不部署雲端。
+即使 `sunnyvalechback` 可安全建立 test member，P6 仍不執行業務 write/action/function；P6 的價值是證明版本隔離的 Official Worker、Router／Pool／Lease、identity 與 deterministic cleanup，業務寫入屬 P7.2。
+
+## 5. P7.0：Capability inventory 與 deterministic coverage
+
+- 以 Phase 0 的 70 個 normalized call-site rows 為權威來源，不把 70 rows 當成 70 operations。
+- 依業務 use case 收斂為 platform、真正共用 domain 或 `churchreport.*` typed capabilities。
+- 分開記錄 Registry declared、Executor implemented、Consumer enabled、Real CE evidence；禁止單一「完成」欄位。
+- 建立完全離線、固定排序、固定 exit code 的 validator，阻擋未分類 row、缺 owner／DTO、未知 connector／CE、generic CRUD／FetchXML、無 rollback owner 與 lifecycle 邊界。
+- 建立 ToolUtility／CRM SDK reference baseline；P7.0 只報告現有數量，P7.5 才要求 production zero reference。
+
+P7.0 結案輸出是 P7.1～P7.3 的精確 capability child 清單、ownership、依賴與 evidence matrix。它不夾帶 operation implementation。
+
+## 6. P7.1：Read capabilities
+
+先以 Package01 fee／stor 完成第一個完整 vertical slice，再依 matrix 處理其餘 read family。每個 slice 固定包含：
+
+1. fail-first contract／authorization／support-matrix tests；
+2. bounded request／response DTO 與 stable Operation ID；
+3. Registry、Data8／Official Worker executor support 與 ProductClient；
+4. cancellation、timeout、paging、error sanitization、permit／lease cleanup；
+5. legacy parity 或 bounded shadow comparison；
+6. capability feature gate、rollout owner、rollback owner；
+7. CE 8.2／9.1 evidence 與效能／資源基線。
+
+Read shadow failure 不得改變使用者 response；shadow task 必須共用 bounded deadline 並確定清理。
+
+## 7. P7.2：Write／Action／Function capabilities
+
+- 依 transaction、authorization、idempotency 與 rollback owner 拆 child，不依 CRM entity 或 ToolUtility 方法拆分。
+- 每次只有一條 authoritative writer；禁止沒有協議的 dual-write。
+- 明確定義 duplicate delivery、optimistic concurrency、partial completion、timeout-after-commit 與 reconciliation。
+- Live write evidence 只可在明確核准的非正式環境／測試資料範圍執行；若缺少安全的 fixture 或 cleanup path，該 slice 必須停在 No-Go，不能用 mock 冒充真機完成。
+- CE 9.1 使用已確認與正式系統隔離的 `sunnyvalechback` 與唯一 test member；每個 operation family 仍建立可辨識、可清理的 test-owned records。CE 8.2 只有 capability matrix 標為 required 時才需要 write evidence，否則明確標示 unsupported 並在 dispatch 前 fail closed。
+
+## 8. P7.3：Special-resource capabilities
+
+- Attachment／stream：大小、類型、buffer、timeout 與 dispose 均有硬上限。
+- Paging／large result：continuation token、page size、retention 與 cancellation 有界，不保留跨 user/session state。
+- Background／scheduler：queue、retry、idempotency、shutdown drain、subscription／timer／task owner 可驗證。
+- Metadata cache：Profile／Organization 隔離、容量／TTL 上限與 eviction/dispose 路徑明確。
+
+任何 stream、buffer、timer、registration、task、process、handle 或 cache retained reference 無法回到宣告基線，該 child 不得結案。
+
+## 9. P7.4：ChurchReport ProductClient cutover
+
+- Controller、Service 與 WebServiceConnector 逐 capability 切至 ProductClient，不做全站一次切換。
+- 第一個 feature gate 開啟前，必須選定並證明其中一種 aggregate-capacity 方案：共用 durable admission authority，或先 drain legacy 再啟用 Gateway 的 non-overlap runbook。
+- 任一資料差異、錯誤語意、授權、隔離、效能或資源退步只回滾該 capability。
+- 不在 request-time 改 ConnectorKind、Profile、CE version 或 transport；回滾由 deployment-owned gate 決定。
+
+## 10. P7.5：ChurchReport ToolUtility removal
+
+只有下列條件全部通過才可移除 dependency：
+
+- capability matrix 無未分類或 production temporary-legacy row；
+- 所有 enabled consumer 有對應 CE、parity、錯誤、效能與 lifecycle evidence；
+- ChurchReport production zero-reference scan 不再找到 ToolUtility、CRM SDK、`IOrganizationService`、`Entity`、`QueryBase` 或 `OrganizationRequest`；
+- project reference、DI／Factory、legacy endpoint／credential settings 與直接呼叫已移除；
+- Release build、完整 Dynamics／ChurchReport tests、soak、drain 與 rollback drill 全綠；
+- observation window 通過，且 rollback package 可重現。
+
+P7.5 只代表 ChurchReport 不再依賴 ToolUtility；若 repository 仍有其他 consumer，ToolUtility project 留待獨立退役 task。
+
+## 11. P8：單一 ChurchReport 雲端 Central Gateway
+
+### P8.0 Cloud deployment readiness
+
+確認 cloud host、網路、DNS、TLS certificate、service identity、secret provider、CE reachability、備份、部署包、容量基線與 rollback package。缺一即 No-Go。
+
+### P8.1 Host／service identity／TLS
+
+建立最小權限 ChurchReport workload identity、Gateway／Worker service identity、TLS trust 與 secret ACL。驗證未授權 workload 在 body parsing、Profile resolution 與 outbound work 前被拒絕。
+
+### P8.2 Central Gateway＋Worker deployment
+
+以可重現部署包安裝服務，驗證 startup、health、ready、restart、drain、forced termination、log／metric sanitization 與 process／pipe／handle baseline。
+
+### P8.3 ChurchReport cutover
+
+在變更視窗先做受控 smoke，再只變更 ChurchReport 的 Central Gateway endpoint／deployment-owned routing。不得同時改 capability contract、Profile、ConnectorKind 或 CE version。
+
+### P8.4 Live validation、monitoring、rollback、closure
+
+取得功能、p50／p95／p99、錯誤率、queue、permit、lease、connection、worker recycle、working set、handle 與 alert evidence；實際演練 rollback。觀測窗通過後才 commit/archive P8。
+
+## 12. 單一 P6／P7 Goal 的自動續跑規則
+
+整合 Goal 先執行 G0：確認 scoped Git/text baseline、使 P6 readiness 為 Go，並確認 P7.2 非正式 CE／test-owned fixture、資料 owner、允許操作與 cleanup/reconciliation。G0 未綠時先產生 PowerShell/operator handoff 並保存 checkpoint，不啟動長跑。
+
+G0 通過後，整合 Goal 可一次授權：
+
+- 從目前 P6.2 狀態續作，不重做已綠的 P6.1；
+- P6 gate 全綠後執行 spec update、task-owned commit、archive；
+- 啟動既有 P7.0，完成後依 matrix 建立並啟動 P7.1～P7.5 children；
+- 每個 child 都先規劃、再實作、再 Trellis check，通過才 commit/archive 並自動進入下一個；
+- 允許 Lenovo 本機的 feature-gated ChurchReport cutover 與明確核准測試環境的 CE evidence；
+- 禁止啟動 P8、部署雲端、push、建立 PR 或操作第二／第三產品。
+
+同一 gate 最多三次自我修復 cycle；同一 root cause 連續兩次即停止。Credential/profile/authorization 缺口不得盲目重試，直接轉 operator handoff。
+
+只有下列情況可以暫停並要求使用者：缺少無法由 repository 推導的 profile／secret／非正式 CE fixture、需要不可逆資料操作、遇到產品語意歧義、或同一阻塞條件依 Goal 規則已重試仍無法安全前進。一般測試失敗、編譯錯誤與可修復的文件／程式缺口由代理自行診斷、修正、重跑與續作。
+
+## 13. 目前下一步
+
+先完成 G0：正規化本批文件並建立 scoped baseline；補齊 P6.2 deployment-owned CE 8.2／9.1 local profile input，使 readiness probe 從只有 `profile-input-required` 的 No-Go 收斂為 Go；同時確認 P7.2 safe-write evidence authority。P6 正式結案後，依明確 task path 自動銜接 P7.0；不要在此之前啟動 P7，也不要跳到 P8。

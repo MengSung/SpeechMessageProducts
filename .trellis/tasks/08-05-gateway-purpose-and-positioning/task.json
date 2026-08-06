@@ -2,7 +2,7 @@
   "id": "gateway-purpose-and-positioning",
   "name": "gateway-purpose-and-positioning",
   "title": "釐清 Dynamics Gateway 存在意義與定位",
-  "description": "",
+  "description": "Own the P5-P8 Dynamics Gateway roadmap: complete P6 and P7 locally on Lenovo Legion, then deploy the single ChurchReport product through a cloud Central Gateway in independently authorized P8.",
   "status": "planning",
   "dev_type": null,
   "scope": null,
@@ -17,12 +17,18 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
+  "nextAction": "Finish planning rebaseline and use the integrated P6/P7 goal to resume P6.2; keep this parent and P7.0 planning until their activation gates are satisfied, and do not start P8.",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "notes": "Canonical route: P5 archived -> P6 local Official Worker/CE evidence -> P7.0-P7.5 local ChurchReport migration and ToolUtility removal -> independently authorized P8.0-P8.4 cloud Central Gateway deployment. Future products are separate scope.",
+  "meta": {
+    "localExecutionHost": "Lenovo Legion",
+    "p7Sequence": "P7.0-P7.5",
+    "p8Sequence": "P8.0-P8.4",
+    "futureProductOnboarding": "independent"
+  }
 }

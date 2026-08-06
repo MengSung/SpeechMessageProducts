@@ -295,6 +295,10 @@ try {
         $_.reasons -contains 'profile-input-required'
     }).Count -eq 2) `
         -Message 'Inventory-only mode must report the missing profile-input requirement.'
+    Assert-True -Condition (@($inventoryEvidence.profiles | Where-Object {
+        @($_.reasons).Count -ne 1
+    }).Count -eq 0) `
+        -Message 'Inventory-only mode must not report unrelated manifest or credential failures.'
     foreach ($sensitiveMarker in @($fixture.EndpointMarker, $fixture.CredentialMarker)) {
         Assert-True -Condition (-not $inventoryResult.Text.Contains($sensitiveMarker)) `
             -Message 'Inventory-only evidence exposed a sensitive fixture marker.'

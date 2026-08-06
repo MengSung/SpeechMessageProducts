@@ -3,6 +3,7 @@
 > 建立日期：2026-08-05
 > 狀態：規劃中（Phase 1 · 需求探索）
 > 起因：使用者的心智模型與實際架構不符，需要先取得共識再決定後續工程方向
+> 路線重校日期：2026-08-06；目前核准目標為先在 Lenovo Legion 完成 P6／P7，再由 P8 將單一 ChurchReport 部署為雲端 Central Gateway。
 
 ---
 
@@ -45,25 +46,25 @@
 盤點檔：`.trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json`
 （migrationStatus：54 `mapped-pending-evidence` / 16 `temporary-legacy`）
 
-### 2.3 文件明說 Gateway 的前提是「多產品」
+### 2.3 舊文件曾把 Central Gateway 綁定多產品（已被 2026-08-06 決策取代）
 
 | 出處 | 內容 |
 |---|---|
 | 規格書 §0.1 | 「讓**多個產品**在存取多個 Organization 時…」 |
 | 規格書 §1 | `CentralGateway` = 「獨立服務，**多產品共用**」 |
 | 設計說明書 §3.5 | 「由於現有產品可能從四、五個增加到十個以上…」 |
-| 計畫書 P8 | 「**在只有 ChurchReport 一個產品時不需要執行本階段**」，觸發條件＝第二個產品接入 |
+| 舊版計畫書 P8 | 曾把 Central Gateway 的觸發條件綁定第二個產品；此限制已不再是目前產品路線。 |
 
 設計說明書 §4 明確定義 Central Gateway 集中的**不是連線，是管理責任**：
 Workload Authentication、Authorization、Profile Registry、Secret Reference Resolution、
 Operation Registry、Retry／Timeout／Backpressure、Audit／Telemetry／Health、
 Profile Runtime Generation、Aggregate Organization Admission。
 
-### 2.4 Gateway 的兩個 justification 其實是分開的
+### 2.4 Dedicated 與 Central Gateway 的部署價值不同
 
 | 模式 | 真正解決的問題 | 前提 |
 |---|---|---|
-| `CentralGateway` | 多產品共用治理：secret 不散落、統一政策、聚合容量 | **需要 ≥2 個產品** |
+| `CentralGateway` | 雲端集中部署與治理：service identity、TLS、secret 不落入產品、統一監控與回滾；未來也可擴充多產品 | 單一 ChurchReport 即可成立 |
 | `DedicatedGateway` | 單產品的**進程隔離**：SDK/WCF 不進產品進程、crash 邊界、獨立回收 | 不需要多產品 |
 
 這兩個被「Gateway」一個詞綁在一起，是心智模型混淆的來源之一。
@@ -92,9 +93,10 @@ Profile Runtime Generation、Aggregate Organization Admission。
 
 ## 3. 本任務要產出的決策
 
-1. Gateway 在「只有 ChurchReport 一個產品」的現況下，是否保留、以什麼定位保留
+1. Gateway 在「只有 ChurchReport 一個產品」的現況下，以何種本機與雲端部署角色保留
 2. ToolUtility 的治理路徑：是否改為向 `Data8ConnectorPool` 借 lease（Embedded），或維持現狀
-3. 上述決策對規格書／計畫書／架構圖的修訂範圍
+3. P6／P7 本機完成與 P8 ChurchReport 雲端 Central Gateway 部署的明確交界
+4. 上述決策對規格書／計畫書／架構圖的修訂範圍
 
 ---
 
@@ -125,17 +127,18 @@ Gateway 的 operation registry 是**按需成長**的：新產品需要幾個 op
 
 ## 4. 已收斂決策與非阻塞技術證據
 
-- [x] 第二個產品的時程不阻塞 ChurchReport P7；P8 由第二產品實際 onboarding 觸發。
+- [x] 第二、第三產品不阻塞目前路線；P8 先由單一 ChurchReport 的雲端 Central Gateway 部署觸發，其他產品日後另立獨立 onboarding task。
 - [x] 「產品進程零 ToolUtility／CRM SDK／`IOrganizationService`」是 P7.5 與新產品的硬性驗收條件。
 - [x] 進程隔離是 `DedicatedGateway` 的部署價值；`Embedded`、`DedicatedGateway`、`CentralGateway` 仍共用相同 operation contract，不要求所有環境一律使用獨立進程。
 - [x] CE 8.2／9.1 由 immutable Profile 與 Connector support matrix 路由。若選擇同進程 Data8，必須另有雙版本並存與資源基線證據；這是技術驗證，不再是產品方向的開放問題。
+- [x] Lenovo Legion 是 P6 與 P7 的本機開發、整合與驗收主機；正式雲端 host/service identity/TLS/monitoring/rollback 屬 P8，不倒灌至 P6 或 P7。
 
 ### 4.1 2026-08-05 後續對話：使用者傾向產品走 Gateway
 
 使用者以「ChurchReport 走 Gateway」為目標繼續探索，並詢問是否必須把
 ChurchReport 目前透過 ToolUtility 使用的所有能力逐一註冊到 Operation Registry。
 
-目前尚未把這句話視為最終架構核准；本階段必須先說清楚以下差異：
+此方向後續已由使用者核准為最終架構；實作仍必須保留下列差異：
 
 - 搬移「ToolUtility 技術方法」不是目標，例如不應把通用 `RetrieveMultiple`、
   `Update(Entity)` 或任意 FetchXML 原封不動暴露成 Gateway operation。
@@ -143,8 +146,8 @@ ChurchReport 目前透過 ToolUtility 使用的所有能力逐一註冊到 Opera
   邊界內組合必要的查詢、驗證、更新與交易補償，再回傳產品安全的 DTO。
 - Gateway 不會依 ToolUtility 呼叫自動產生 operation；每個 operation 都需要明確的
   contract、authorization／guard、executor、DTO、registry 登錄與測試證據。
-- 是否要求 ChurchReport 最終完全移除所有 legacy ToolUtility CRM 存取，仍是需要
-  使用者確認的遷移完成定義。
+- ChurchReport 最終必須完全移除所有 legacy ToolUtility CRM 存取；這是 P7.5 的完成定義，
+  不再是開放問題。
 
 ### 4.2 Microsoft 官方模型與本專案模型的界線
 
@@ -235,7 +238,7 @@ vertical-slice child tasks 逐批交付。
 產品專屬 client 可以提供 ToolUtility 類似的 C# 使用便利性，但不得暴露 SDK `Entity`、
 `QueryBase`、任意 FetchXML 或 connector lease。
 
-### 4.9 現有 P4／P5／P6 計畫缺口（2026-08-05 對照確認）
+### 4.9 現有 P4／P5／P6 計畫缺口與 P8 重校（2026-08-06）
 
 使用者詢問既有 P4、P5、P6 是否已包含「ChurchReport 完全 Gateway 化、移除
 ToolUtility，以及未來多產品按需擴充 operation」的規劃。對照
@@ -249,13 +252,13 @@ ToolUtility，以及未來多產品按需擴充 operation」的規劃。對照
   process lifecycle；它不是業務 operation 實作階段。
 - P7 目前只遷移 Package 1 fee-read consumer，並不涵蓋 ChurchReport 全部讀、寫、
   action、function、metadata、attachment、background work，也沒有 ToolUtility 移除驗收。
-- P8 只有第二產品接入時的 Central Gateway deployment、workload authentication、
-  distributed capacity 與公平排程；尚未定義 shared／product-namespaced operation catalog、
-  ProductClient 套件策略或新產品 onboarding contract。
+- 舊版 P8 把 Central Gateway deployment 綁定第二產品；目前已改為先將單一 ChurchReport
+  部署至雲端 Central Gateway，完成 workload/service identity、TLS、secret ownership、監控、
+  rollback 與 live evidence。多產品 governance 另列未來獨立範圍。
 
 因此既有 P4～P8 不足以交付使用者剛核准的完整目標。後續 design 必須保留 P4～P6
 作平台基礎，並重寫／擴充 P7 之後的工作分解，加入全量 capability mapping、分批讀寫
-遷移、ChurchReport ToolUtility removal gate，以及多產品 operation governance。
+遷移、ChurchReport ToolUtility removal gate，以及 P8 單一產品雲端 Central Gateway 部署。
 
 ---
 
@@ -266,7 +269,8 @@ ToolUtility，以及未來多產品按需擴充 operation」的規劃。對照
 - [ ] `prd.md` 明確記錄 ChurchReport 完全 Gateway 化、新產品禁止 ToolUtility／CRM SDK 與 ToolUtility 分階段退役決策。
 - [ ] `design.md` 定義 ProductClient／Gateway／Connector 邊界、operation catalog 分層、資料流、錯誤、資源所有權、效能、rollout 與 CE 8.2／9.1 evidence gate。
 - [ ] `implement.md` 將全量遷移拆成具 owner、依賴、驗證與回滾的 parent／child 交付樹；parent 不直接承擔巨型跨域 implementation。
-- [ ] `docs/dynamics-connection-management-plan.md` 保留 P4～P6 基礎，並將 P7／P8 修訂為完整 ChurchReport cutover／ToolUtility removal 與多產品 governance。
+- [ ] `docs/dynamics-connection-management-plan.md` 保留 P4～P6 基礎，並將 P7／P8 修訂為完整 ChurchReport cutover／ToolUtility removal 與單一產品雲端 Central Gateway 部署。
+- [ ] P6／P7 單一授權總計畫允許代理在每一個 gate 全綠後自動銜接下一個 Trellis child；P8 仍需獨立目標與授權。
 - [ ] 書面規格不存在未解 placeholder、互相矛盾的完成定義或把 Registry declaration 冒充 executable／production evidence 的敘述。
 - [ ] 使用者完成書面審閱並核准後，才建立第一個 `gateway-capability-inventory` child；本 parent 不直接進入程式實作。
 

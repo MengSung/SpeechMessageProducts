@@ -390,8 +390,10 @@ function Get-ArtifactStates {
         $packageLockId = Get-RequiredString -Object $worker[0] -PropertyName 'packageLockId' -MaximumLength 128
         $relativeExecutablePath = Get-RequiredString -Object $worker[0] -PropertyName 'relativeExecutablePath' -MaximumLength 512
         $expectedHash = Get-RequiredString -Object $worker[0] -PropertyName 'sha256' -MaximumLength 64
+        $isRootedExecutablePath = [IO.Path]::IsPathRooted($relativeExecutablePath) -or
+            $relativeExecutablePath -match '^[A-Za-z]:'
         if (-not (Test-SafeIdentifier -Value $packageLockId -MaximumLength 128 -AllowDot) -or
-            [IO.Path]::IsPathFullyQualified($relativeExecutablePath) -or
+            $isRootedExecutablePath -or
             $relativeExecutablePath.Contains('..') -or
             -not [string]::Equals(
                 [IO.Path]::GetFileName($relativeExecutablePath),

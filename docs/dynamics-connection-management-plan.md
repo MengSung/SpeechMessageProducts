@@ -1,6 +1,6 @@
 # Dynamics 365 連線管理實作計劃書
 
-> 版本：1.0　｜　日期：2026-08-04
+> 版本：1.1　｜　原始日期：2026-08-04　｜　P6～P8 路線重校：2026-08-06
 > 對應規格：`docs/dynamics-connection-management-spec.md`
 > 基準：HEAD `eb87c5fa` · Dynamics 測試 411 通過 / 0 失敗 / 7 略過（另 8 項 SQL live 通過）
 
@@ -17,9 +17,8 @@
 **P2　最快讓 F5 能跑。**
 `Embedded` 模式排在 Central Gateway 之前。開發體驗是這次調整的直接動機。
 
-**P3　真機驗證集中到 P6 後。**
-P4、P5、P6 先完成程式與離線生命週期驗證；使用者完成 Embedded Data8 與 Dedicated Gateway 的部署前測試後，
-才在 P6 後以同一受控環境執行一次跨模式外部 CE 整合量測。離線綠燈不可冒充真機成功。
+**P3　P6／P7 先在 Lenovo Legion 完整驗證，P8 才進雲端。**
+P5 已封存，P6.1 離線 gate 已通過；P6.2 在 Lenovo Legion 補齊 deployment-owned profile input 與 CE 8.2／9.1 evidence。P7.0～P7.5 也在同一開發主機完成 capability migration、local cutover 與 ToolUtility removal。P8 才以獨立目標部署單一 ChurchReport cloud Central Gateway。離線綠燈不可冒充真機或雲端成功。
 
 ---
 
@@ -164,6 +163,10 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 
 **目標**：把既有 63 檔 Worker 資產接成 `ConnectorKind` 的第二種實作，作為擴充點保留。
 
+**目前狀態（2026-08-06）**：P6 task 為 `in_progress`；P6.1 Router／Pool／Lease、離線 lifecycle 與正式 quality check 已通過。Lenovo Legion 的 `-InventoryOnly` probe 已可執行，CE 8.2／9.1 都只剩 `profile-input-required`。下一步是由 deployment owner 建立本機 profile input／worker credential targets，readiness 為 Go 後才執行受控 read-only CE matrix。P6 不部署雲端，也不切換 ChurchReport consumer。
+
+`sunnyvalechback` 已確認是與正式系統分離的 CE 9.1 公司研發 Organization。P6 以它取得 Data8／Official Worker read-only identity、connection、version routing 與 resource baseline，不執行業務 write/action/function；可建立 test member 的能力留給 P7.2。CE 8.2 仍需一個核准的 read-only profile 來完成 P6 connector/version evidence。
+
 | 工作 | 檔案 |
 |---|---|
 | `OfficialWorkerPool` 實作 `IConnectorPool`／`IConnectorLease` | `WorkerSupervisor/` |
@@ -200,6 +203,7 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 
 - 依 transaction／idempotency／authorization 邊界拆分 Create、Update、Associate／Disassociate、Action 與 Function。
 - 每次只允許一條 authoritative writer；禁止未設計的 dual-write。每個 operation 明確定義重複送達、optimistic concurrency、部分完成、timeout-after-commit 與 reconciliation。
+- CE 9.1 live evidence 使用隔離的 `sunnyvalechback` 與唯一 test member／test-owned records，並在每個 operation family 定義 cleanup。CE 8.2 只有 matrix 標示 required 的 capability 需要相應 write fixture；其他組合明確 unsupported 並 fail closed。
 
 #### P7.3　特殊資源能力
 
@@ -220,21 +224,19 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 
 ---
 
-### P8　多產品 Operation 治理與 Central Gateway（第二產品觸發）
+### P8　單一 ChurchReport 雲端 Central Gateway（P7.5 後獨立啟動）
 
-**目標**：讓建設公司、票款通、協會等新產品從第一天只使用 ProductClient／capability operation，不複製 ToolUtility／CRM SDK／credential ownership；需要集中部署時再啟用 Central Gateway。
+**目標**：將已在 Lenovo Legion 完成 P7.5 驗收的單一 ChurchReport 部署至雲端機房，透過 Central Gateway 正確存取 D365，並完成安全、監控、rollback drill 與 live validation。P8 不等待第二產品，也不在部署階段重新設計 P7 capability。
 
-| 工作 | 驗收重點 |
-|---|---|
-| 建立平台共同、共用領域與 product-namespaced operation modules | 同一契約才能共用；產品猜中 ID 也不能越權呼叫其他產品能力 |
-| 定義 ProductClient package／namespace owner 與版本政策 | 破壞性變更建立新版本；舊版無 consumer／流量後才移除 |
-| 建立 workload → profile／operation allowlist | Authentication／authorization 先於 body parsing、Profile resolution 與 outbound work |
-| 加入新產品 architecture test | 禁止 ToolUtility、CRM SDK、raw endpoint／credential／ConnectorKind 進入產品 |
-| 部署 Central Gateway 與工作負載身分驗證 | 單產品不強制 Central；Dedicated／Embedded 仍使用相同 operation contract |
-| 多節點時才導入 `IDistributedCapacityCoordinator` | 單節點使用 In-Memory；多節點驗證 fencing、lease loss、drain 與 cleanup |
-| 跨產品公平排程與 aggregate Organization capacity | 不同 alias／產品不得乘增同一實體 Organization 的容量；noisy-neighbor 測試通過 |
+| 子階段 | 工作 | 驗收重點 |
+|---|---|---|
+| P8.0 | Cloud deployment readiness | host、network、DNS、TLS、service identity、secret provider、CE reachability、部署／rollback package 齊全；缺一即 No-Go |
+| P8.1 | Host／service identity／TLS hardening | 最小權限 workload allowlist；未授權 caller 在 body parsing／Profile resolution／outbound work 前被拒絕；secret 不落入產品或 artifact |
+| P8.2 | Central Gateway＋Worker deployment | 可重現 install/start/restart/drain/stop；process、pipe、connection、handle、permit、queue 與 generation 有單一 owner／baseline |
+| P8.3 | ChurchReport cutover | 先受控 smoke，再只切 endpoint／deployment-owned routing；不混入 contract、Profile、ConnectorKind 或 CE version 變更 |
+| P8.4 | Live validation／monitoring／rollback／closure | 功能、p50／p95／p99、錯誤率、資源、告警與實際 rollback drill 全綠，觀測窗通過才結案 |
 
-**觸發條件**：第二個產品進入 onboarding。新產品需求先搜尋既有 catalog；只有業務語意、授權或 DTO 邊界不同時才新增 operation。
+第二、第三產品的 catalog governance、workload policy、公平排程與 noisy-neighbor 容量驗證屬未來獨立 onboarding task，不是 P8 完成條件。
 
 ---
 
@@ -252,11 +254,11 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 | P7.0 Capability inventory | 獨立批次 | — | 權威 coverage matrix 與 validator |
 | P7.1～P7.3 Capability slices | 依矩陣拆分 | — | 全部讀、寫與特殊資源 operations |
 | P7.4～P7.5 Cutover／Removal | 依驗證批次 | — | ChurchReport 完全 Gateway 化並移除 ToolUtility dependency |
-| P8 多產品／Central | 第二產品觸發 | — | Operation governance、workload policy 與跨產品容量 |
+| P8.0～P8.4 ChurchReport cloud Central | P7.5 後獨立批次 | — | 單一 ChurchReport 雲端部署、cutover、monitoring、rollback 與 live evidence |
 
 先前「P7 只需 3～5 天、全計畫 4～5 週」的估算只涵蓋 Package 1 fee-read，已被 ChurchReport 完全 Gateway 化的新範圍取代。P7 總量必須由 P7.0 capability matrix 依獨立 rollback owner 與真機 evidence 數量估算，不以 70 個 call-site rows 或 ToolUtility 方法數直接換算工期。
 
-P4 仍是第一個可見平台里程碑；P7.5 才是 ChurchReport 產品遷移完成里程碑。
+P4 仍是第一個可見平台里程碑；P7.5 是 ChurchReport 本機產品遷移完成里程碑；P8.4 是本階段單一 ChurchReport 雲端 Central Gateway 完成里程碑。
 
 ---
 
@@ -280,18 +282,16 @@ P4 仍是第一個可見平台里程碑；P7.5 才是 ChurchReport 產品遷移�
 | 刪除 63 檔 Worker 資產 | 保留為 `ConnectorKind` 擴充點 |
 | 強制使用 SQL | 規則 6.9：非必要條件 |
 | 直接 Web API／OData 傳輸 | 已於 2026-08-02 退役 |
-| Central Gateway 先行 | 只有一個產品時無收益 |
+| 在 P7.5 前提前部署 Central Gateway | 雲端只接收已完成本機驗收的 contract／deployment package；避免把 migration 與 deployment 風險疊在一起 |
 | 為 Official Worker 寫平行行為測試 | 規則：不承諾兩種 Connector 行為一致 |
 
 ---
 
 ## 6. 立即可執行的下一步
 
-1. **你**：完成 A1（瀏覽器兩個 URL）與 A2（8.2 伺服器跑 `Get-CrmOrganization`）
-2. **你**：書面追認 A3（Data8 為預設 Connector）
-3. **開發**：A1／A2 回來後即可開始 P1
-
-A1 與 A2 都不需要新權限，且合計約 10 分鐘。
+1. 在 Lenovo Legion 建立 P6.2 所需 CE 8.2／9.1 deployment-owned local profile input 與 worker credential targets；不得把 secret 寫入 source、命令列或 artifact。
+2. 重新執行 readiness probe；只有 outcome=`go` 才進入 read-only CE evidence。
+3. P6 結案後，依 `docs/superpowers/plans/2026-08-06-p6-p7-integrated-execution.md` 自動銜接 P7.0～P7.5；P8 保持未啟動。
 
 ---
 
