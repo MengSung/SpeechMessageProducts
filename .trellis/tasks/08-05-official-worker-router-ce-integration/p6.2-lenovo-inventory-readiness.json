@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "operator-supplied-readiness-inventory",
+  "recordedDate": "2026-08-06",
+  "source": "Sanitized PowerShell transcript supplied by the deployment operator.",
+  "probe": {
+    "script": "Test-DynamicsOfficialWorkerDeploymentReadiness.ps1",
+    "mode": "InventoryOnly",
+    "manifest": "artifacts/dynamics-workers-p6.2/official-worker-manifest.json",
+    "outcome": "no-go"
+  },
+  "profiles": [
+    {
+      "ceVersion": "8.2",
+      "profileAlias": "crm82",
+      "workerKind": "OfficialCrm82Worker",
+      "credentialTargetState": "not-applicable",
+      "reasons": [
+        "profile-input-required"
+      ]
+    },
+    {
+      "ceVersion": "9.1",
+      "profileAlias": "crm91",
+      "workerKind": "OfficialCrm91Worker",
+      "credentialTargetState": "not-applicable",
+      "reasons": [
+        "profile-input-required"
+      ]
+    }
+  ],
+  "interpretation": {
+    "p6Readiness": "no-go",
+    "blocker": "Both profiles require a deployment-owned non-secret profile input before Credential Manager target validation can begin.",
+    "workerArtifactFailureObserved": false,
+    "nextRequiredGate": "Create validated local profile input, then rerun the same readiness probe under the intended Lenovo execution identity.",
+    "p7OrP8Authorized": false
+  }
+}
