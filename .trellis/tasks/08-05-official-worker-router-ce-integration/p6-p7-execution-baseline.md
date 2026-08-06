@@ -6,7 +6,7 @@ Recorded: 2026-08-06
 
 - Commit: `b098887efbdfbe3c952c94fac2e878b0c0e6d9e3` (`docs: rebaseline P6 P7 execution plan`)
 - Scope: 15 reviewed P6/P7 planning, task, roadmap, and gateway-routing documents.
-- Excluded: `.ccg/tasks/harden-churchreport-error-recovery/.turns.json`. It is unrelated, remains uncommitted, and must never enter a P6/P7 change set.
+- Excluded: `.ccg/tasks/harden-churchreport-error-recovery/.turns.json`. It was unrelated and uncommitted when this baseline was recorded, and was never staged in a P6/P7 change set. It was subsequently committed independently as `a1cd7213e`.
 - Verification before the commit: the scoped documents were strict UTF-8 without BOM, CRLF-only with a final CRLF, had no trailing whitespace, and passed `git diff --check`.
 
 ## P6.2 readiness checkpoint
