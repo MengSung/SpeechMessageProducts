@@ -273,7 +273,12 @@ function Assert-ExactProperties {
 function Get-ProfileInputs {
     param([object] $Document)
 
-    Assert-ExactProperties -Object $Document -Expected @('profiles')
+    Assert-ExactProperties -Object $Document -Expected @('schemaVersion', 'profiles')
+    if (($Document.schemaVersion -isnot [int] -and $Document.schemaVersion -isnot [long]) -or
+        $Document.schemaVersion -ne 1) {
+        throw 'profile-schema-version-invalid'
+    }
+
     $profiles = @($Document.profiles)
     if ($profiles.Count -ne 2) {
         throw 'profile-count-invalid'

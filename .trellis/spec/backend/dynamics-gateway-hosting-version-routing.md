@@ -2055,3 +2055,150 @@ P7.0 matrix -> required CE/profile -> operation-specific fixture owner
 The correct path preserves the distinction between connector readiness and
 business semantics, prevents cross-family test data leakage, and keeps an
 ambiguous or unclean write from becoming a false Green gate.
+
+## Scenario: P6.2 local IFD Official Worker profile input
+
+### 1. Scope / Trigger
+
+This contract applies when a Lenovo or future deployment host must turn
+operator-supplied, non-secret CE 8.2/9.1 IFD metadata into the single local
+profile document consumed by both the Official Worker readiness probe and the
+deployment-overlay generator. It prevents a schema mismatch from producing a
+permanent false No-Go and prevents secrets or mutable endpoint choices from
+crossing into source control, task evidence, Gateway APIs, or IPC payloads.
+
+### 2. Signatures
+
+```powershell
+New-DynamicsOfficialWorkerProfileInput.ps1 `
+  -ManifestPath <official-worker-manifest.json> `
+  -Crm82OrganizationBaseUri <https-uri> `
+  -Crm82OrganizationName <identifier> `
+  -Crm82ExpectedOrganizationId <guid> `
+  -Crm82HomeRealm <https-uri> `
+  -Crm82CredentialTarget <credential-target-name> `
+  -Crm82ProfileGenerationId <generation-id> `
+  -Crm91OrganizationBaseUri <https-uri> `
+  -Crm91OrganizationName <identifier> `
+  -Crm91ExpectedOrganizationId <guid> `
+  -Crm91HomeRealm <https-uri> `
+  -Crm91CredentialTarget <credential-target-name> `
+  -Crm91ProfileGenerationId <generation-id> `
+  -Json
+
+Test-DynamicsOfficialWorkerDeploymentReadiness.ps1 `
+  -ManifestPath <official-worker-manifest.json> `
+  -ProfileInputPath "$env:LOCALAPPDATA\SpeechMessage\Dynamics\P6.2\official-worker-profile-input.json" `
+  -ExpectedExecutionIdentity <windows-identity> `
+  -Json
+```
+
+The generated top-level shape is exact and versioned:
+
+```json
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "profileAlias": "crm82|crm91",
+      "workerKind": "OfficialCrm82Worker|OfficialCrm91Worker",
+      "packageLockId": "manifest-derived",
+      "profileGenerationId": "operator-supplied-non-secret-id",
+      "organizationBaseUri": "https://...",
+      "organizationName": "safe-identifier",
+      "expectedOrganizationId": "non-placeholder-guid",
+      "authentication": "Ifd",
+      "identity": {
+        "mode": "WindowsCredentialReference",
+        "reference": "credential-target-name",
+        "homeRealm": "https://..."
+      }
+    }
+  ]
+}
+```
+
+### 3. Contracts
+
+- One local document has exactly `schemaVersion: 1` and exactly two profiles:
+  `crm82` maps to `OfficialCrm82Worker`/CE 8.2 and `crm91` maps to
+  `OfficialCrm91Worker`/CE 9.1. Readiness and deployment must both accept this
+  same versioned shape; neither tool may maintain a different top-level schema.
+- `workerKind` and `packageLockId` are derived from the immutable manifest, not
+  typed by an operator. The manifest must declare exactly both approved Worker
+  kinds, their matching CE version, safe package-lock identifiers, schema
+  version 1, and a disabled feature gate.
+- Authentication is case-sensitive `Ifd`; identity is always
+  `WindowsCredentialReference` with an HTTPS home realm. `HostIdentity` and
+  Active Directory are not fallback forms for an IFD target.
+- The document is created only at
+  `%LOCALAPPDATA%\SpeechMessage\Dynamics\P6.2\official-worker-profile-input.json`
+  using atomic create-new semantics. Existing output is never overwritten.
+- The document may contain non-secret deployment metadata locally. Credential
+  values remain solely in Credential Manager or another approved secret owner.
+  The generator never accepts, reads, validates, serializes, or logs a
+  password, token, cookie, connection string, private key, or credential blob.
+- `-Json` output is a sanitized `{ schemaVersion, outcome, profileCount }` on
+  success or `{ schemaVersion, outcome, reason }` on failure. It must not echo
+  URI, Organization ID, home realm, credential-target name, local path, or raw
+  exception text.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Profile document omits `schemaVersion`, adds an unexpected top-level field, or version is not integer `1` | Readiness returns No-Go with profile-input validation failure; no credential lookup or CE action starts. |
+| Manifest lacks either approved Worker, has a wrong CE pairing, unsafe package-lock ID, unsupported schema, or enabled gate | Generator fails before creating a profile file. |
+| URI is not absolute HTTPS DNS, contains user info/query/fragment, organization name/generation/target name is unsafe, or GUID is malformed/placeholder | Generator fails before creating a profile file. |
+| Credential target is absent for the same Windows identity | Readiness returns sanitized No-Go; it never reads a credential value. |
+| Output file already exists or another process wins the create-new race | Generator refuses the write and leaves the existing bytes unchanged. |
+| Unknown secret parameter is supplied | PowerShell parameter binding fails and no profile file is created. |
+| Readiness outcome is not `go` | Do not publish overlay, start Worker, execute CE operations, enable a feature flag, or advance P7/P8. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an operator enters the two approved IFD metadata sets locally, the
+  generator derives both locks from the manifest, emits no metadata to the
+  console, and readiness returns `go` only after both same-user target names
+  are resolvable.
+- Base: the CE 9.1 development target is prepared while CE 8.2 approval is
+  still absent. The generator is not run with a guessed CE 8.2 target; P6 stays
+  No-Go and the scoped operator handoff records the missing authority.
+- Bad: store credential values in the profile JSON, choose ConnectorKind or CE
+  version per request, hand-edit a package-lock identifier, or overwrite an
+  existing local profile file to force a Green probe.
+
+### 6. Tests Required
+
+- `Test-DynamicsOfficialWorkerDeploymentReadiness.Tests.ps1` must construct the
+  versioned top-level document and prove unresolved targets report only
+  sanitized No-Go reasons.
+- `New-DynamicsOfficialWorkerProfileInput.Tests.ps1` must prove valid manifest
+  derivation, exact versioned shape, strict UTF-8 without BOM/CRLF text,
+  sanitized output, HTTP URI rejection, missing Worker rejection, unknown
+  password parameter rejection, and byte-identical create-new refusal.
+- Existing deployment, publish, and compatibility PowerShell harness tests must
+  remain green, followed by the focused/full Dynamics tests, ChurchReport tests,
+  and Release solution build.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+Readiness expects { profiles }, deployment expects { schemaVersion, profiles },
+and an operator hand-edits two different files until one command appears green.
+```
+
+#### Correct
+
+```text
+Approved non-secret IFD metadata + immutable manifest
+  -> atomic local { schemaVersion: 1, profiles }
+  -> same-user sanitized readiness probe
+  -> go only before overlay/Worker/CE evidence is allowed
+```
+
+The correct path preserves deployment ownership, profile-generation isolation,
+credential secrecy, deterministic file ownership, and the no-request-time-
+fallback rule across Local and future Central Gateway hosts.

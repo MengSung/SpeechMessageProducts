@@ -135,6 +135,7 @@ function New-ReadinessFixture {
     $credentialMarker = 'credential-reference-must-not-appear-fixture'
     $profileInputPath = Join-Path $fixtureRoot 'approved-profile-input.json'
     Write-StrictJson -Path $profileInputPath -Value ([ordered]@{
+        schemaVersion = 1
         profiles = @(
             [ordered]@{
                 profileAlias = 'crm82'
