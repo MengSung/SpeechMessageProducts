@@ -10,12 +10,14 @@ The expected execution identity is `LENOVO-LEGION\Administrator`. Perform every 
 
 Prepare these non-secret values for each approved read-only target. Do not paste any of them into chat except the final sanitized JSON output.
 
-1. CE 8.2: approved read-only Organization base HTTPS URI, organization name, Organization ID, and IFD HTTPS home realm.
-2. CE 9.1: the isolated `sunnyvalechback` Organization's base HTTPS URI, organization name, Organization ID, and IFD HTTPS home realm.
+1. CE 8.2: approved read-only canonical Organization HTTPS root URI, organization name, Organization ID, and IFD HTTPS home realm.
+2. CE 9.1: the isolated `sunnyvalechback` Organization's canonical HTTPS root URI, organization name, Organization ID, and IFD HTTPS home realm.
 3. Two new, stable Credential Manager target names. Use only letters, digits, `.`, `-`, or `_`; for example, `speechmessage.crm82.p62` and `speechmessage.crm91.p62`.
 4. Two non-secret profile generation IDs, also using only letters, digits, `.`, `-`, or `_`; for example, `crm82-p6-2-local-001` and `crm91-p6-2-local-001`.
 
 For each Credential Manager target, open **Control Panel → Credential Manager → Windows Credentials → Add a generic credential**. Enter the target name and the dedicated IFD test account's username/password. Never paste the username or password into chat, a repository file, a Trellis artifact, or the commands below. The later readiness probe checks only whether the target name is resolvable; it never prints or reads the credential value.
+
+The Organization base URI is the canonical IFD host root, exactly `https://host-name/`: it includes the final `/`, has no organization path, query, fragment, user information, or non-default port spelling. Enter the organization separately in the organization-name prompt. For example, `https://crm.example.test/organization/` is invalid here even when that is a browser navigation URL.
 
 Do not select a CE 8.2 target until its owner has explicitly approved it for P6 read-only validation. `sunnyvalechback` is approved only as the isolated CE 9.1 development target; its future test-member write authority belongs to P7.2 and is not used here.
 
@@ -27,14 +29,14 @@ Copy the following entire block into PowerShell. Each prompt asks for a non-secr
 $root = 'D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree'
 $manifest = "$root\artifacts\dynamics-workers-p6.2\official-worker-manifest.json"
 
-$crm82BaseUri = Read-Host 'CE 8.2 Organization base HTTPS URI'
+$crm82BaseUri = Read-Host 'CE 8.2 canonical Organization HTTPS root URI (https://host-name/)'
 $crm82Name = Read-Host 'CE 8.2 organization name'
 $crm82OrganizationId = Read-Host 'CE 8.2 Organization ID (GUID)'
 $crm82HomeRealm = Read-Host 'CE 8.2 IFD HTTPS home realm'
 $crm82CredentialTarget = Read-Host 'CE 8.2 Credential Manager target name'
 $crm82GenerationId = Read-Host 'CE 8.2 profile generation ID'
 
-$crm91BaseUri = Read-Host 'CE 9.1 Organization base HTTPS URI'
+$crm91BaseUri = Read-Host 'CE 9.1 canonical Organization HTTPS root URI (https://host-name/)'
 $crm91Name = Read-Host 'CE 9.1 organization name'
 $crm91OrganizationId = Read-Host 'CE 9.1 Organization ID (GUID)'
 $crm91HomeRealm = Read-Host 'CE 9.1 IFD HTTPS home realm'

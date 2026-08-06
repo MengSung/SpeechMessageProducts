@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "operator-supplied-readiness",
+  "recordedDate": "2026-08-06",
+  "source": "Sanitized PowerShell readiness transcript supplied by the deployment operator.",
+  "probe": {
+    "script": "Test-DynamicsOfficialWorkerDeploymentReadiness.ps1",
+    "outcome": "go"
+  },
+  "profiles": [
+    {
+      "ceVersion": "8.2",
+      "profileAlias": "crm82",
+      "workerKind": "OfficialCrm82Worker",
+      "credentialTargetState": "present",
+      "reasons": []
+    },
+    {
+      "ceVersion": "9.1",
+      "profileAlias": "crm91",
+      "workerKind": "OfficialCrm91Worker",
+      "credentialTargetState": "present",
+      "reasons": []
+    }
+  ],
+  "interpretation": {
+    "localProfileAndCredentialReadiness": "go",
+    "ceContacted": false,
+    "workerStarted": false,
+    "featureFlagChanged": false,
+    "deploymentMaterialGenerated": false,
+    "nextRequiredGate": "Replace the current local profile input only after entering canonical Organization HTTPS root URIs, then generate and validate deployment material offline.",
+    "p7OrP8AuthorizedByThisEvidence": false
+  }
+}

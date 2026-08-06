@@ -294,6 +294,19 @@ try {
         -Message 'A non-HTTPS organization URI must be rejected.'
     Assert-NoProfileInputOutput -Fixture $unsafeUriFixture
 
+    # 部署器會把 OrganizationName 另行傳給官方 SDK，因此 base URI 必須只代表
+    # IFD HTTPS host root。若在此接受組織路徑，後續部署器才拒絕會造成 profile
+    # 已建立卻無法部署的永久 No-Go；此案例必須在 create-new 寫入前 fail closed。
+    $nonCanonicalOrganizationFixture = New-ProfileInputFixture -Name 'non-canonical-organization-uri'
+    $nonCanonicalOrganizationResult = Invoke-ProfileInputGenerator `
+        -Fixture $nonCanonicalOrganizationFixture `
+        -Overrides @{
+            Crm82OrganizationBaseUri = 'https://crm82-profile-input.fixture.invalid/organization/'
+        }
+    Assert-True -Condition ($nonCanonicalOrganizationResult.ExitCode -ne 0) `
+        -Message 'An organization URI containing an organization path must be rejected before writing a profile.'
+    Assert-NoProfileInputOutput -Fixture $nonCanonicalOrganizationFixture
+
     $missingWorkerFixture = New-ProfileInputFixture -Name 'missing-worker'
     $missingWorkerFixture.Manifest.workers = @($missingWorkerFixture.Manifest.workers[0])
     Write-StrictJson -Path $missingWorkerFixture.ManifestPath -Value $missingWorkerFixture.Manifest

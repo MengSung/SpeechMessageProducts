@@ -144,6 +144,25 @@ function Test-SafeHttpsUri {
         [string]::IsNullOrEmpty($uri.Fragment)
 }
 
+function Test-CanonicalHttpsRootUri {
+    param([string] $Value)
+
+    $uri = $null
+    if (-not (Test-SafeHttpsUri -Value $Value) -or
+        -not [Uri]::TryCreate($Value, [UriKind]::Absolute, [ref]$uri) -or
+        -not [string]::Equals($uri.AbsolutePath, '/', [StringComparison]::Ordinal)) {
+        return $false
+    }
+
+    $canonical = 'https://' + $uri.IdnHost.ToLowerInvariant()
+    if ($uri.Port -ne 443) {
+        $canonical += ':' + $uri.Port.ToString([Globalization.CultureInfo]::InvariantCulture)
+    }
+
+    $canonical += '/'
+    return [string]::Equals($Value, $canonical, [StringComparison]::Ordinal)
+}
+
 function Assert-NoDuplicateJsonObjectProperties {
     param([Xml.XmlElement] $Element)
 
@@ -324,7 +343,7 @@ function New-IfdProfile {
 
     if (-not $Workers.ContainsKey($WorkerKind) -or
         -not (Test-SafeIdentifier -Value $ProfileAlias -MaximumLength 128) -or
-        -not (Test-SafeHttpsUri -Value $OrganizationBaseUri) -or
+        -not (Test-CanonicalHttpsRootUri -Value $OrganizationBaseUri) -or
         -not (Test-SafeIdentifier -Value $OrganizationName -MaximumLength 100) -or
         -not (Test-NonPlaceholderGuid -Value $ExpectedOrganizationId) -or
         -not (Test-SafeHttpsUri -Value $HomeRealm) -or

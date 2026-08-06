@@ -2072,13 +2072,13 @@ crossing into source control, task evidence, Gateway APIs, or IPC payloads.
 ```powershell
 New-DynamicsOfficialWorkerProfileInput.ps1 `
   -ManifestPath <official-worker-manifest.json> `
-  -Crm82OrganizationBaseUri <https-uri> `
+  -Crm82OrganizationBaseUri <canonical-https-root-uri> `
   -Crm82OrganizationName <identifier> `
   -Crm82ExpectedOrganizationId <guid> `
   -Crm82HomeRealm <https-uri> `
   -Crm82CredentialTarget <credential-target-name> `
   -Crm82ProfileGenerationId <generation-id> `
-  -Crm91OrganizationBaseUri <https-uri> `
+  -Crm91OrganizationBaseUri <canonical-https-root-uri> `
   -Crm91OrganizationName <identifier> `
   -Crm91ExpectedOrganizationId <guid> `
   -Crm91HomeRealm <https-uri> `
@@ -2104,7 +2104,7 @@ The generated top-level shape is exact and versioned:
       "workerKind": "OfficialCrm82Worker|OfficialCrm91Worker",
       "packageLockId": "manifest-derived",
       "profileGenerationId": "operator-supplied-non-secret-id",
-      "organizationBaseUri": "https://...",
+      "organizationBaseUri": "https://canonical-host/",
       "organizationName": "safe-identifier",
       "expectedOrganizationId": "non-placeholder-guid",
       "authentication": "Ifd",
@@ -2131,6 +2131,12 @@ The generated top-level shape is exact and versioned:
 - Authentication is case-sensitive `Ifd`; identity is always
   `WindowsCredentialReference` with an HTTPS home realm. `HostIdentity` and
   Active Directory are not fallback forms for an IFD target.
+- `organizationBaseUri` is the canonical IFD HTTPS host root, exactly
+  `https://canonical-host/`: it has a DNS host, lowercase IDN host spelling,
+  an explicit final `/`, no organization path, no query/fragment/user info,
+  and no explicit default port. `organizationName` carries the organization
+  separately. `homeRealm` remains a safe full HTTPS URI because its AD FS path
+  is part of its identity contract.
 - The document is created only at
   `%LOCALAPPDATA%\SpeechMessage\Dynamics\P6.2\official-worker-profile-input.json`
   using atomic create-new semantics. Existing output is never overwritten.
@@ -2149,7 +2155,7 @@ The generated top-level shape is exact and versioned:
 | --- | --- |
 | Profile document omits `schemaVersion`, adds an unexpected top-level field, or version is not integer `1` | Readiness returns No-Go with profile-input validation failure; no credential lookup or CE action starts. |
 | Manifest lacks either approved Worker, has a wrong CE pairing, unsafe package-lock ID, unsupported schema, or enabled gate | Generator fails before creating a profile file. |
-| URI is not absolute HTTPS DNS, contains user info/query/fragment, organization name/generation/target name is unsafe, or GUID is malformed/placeholder | Generator fails before creating a profile file. |
+| `organizationBaseUri` is not the exact canonical HTTPS root, or another URI is not absolute HTTPS DNS / contains user info/query/fragment, organization name/generation/target name is unsafe, or GUID is malformed/placeholder | Generator fails before creating a profile file. |
 | Credential target is absent for the same Windows identity | Readiness returns sanitized No-Go; it never reads a credential value. |
 | Output file already exists or another process wins the create-new race | Generator refuses the write and leaves the existing bytes unchanged. |
 | Unknown secret parameter is supplied | PowerShell parameter binding fails and no profile file is created. |
@@ -2161,12 +2167,16 @@ The generated top-level shape is exact and versioned:
   generator derives both locks from the manifest, emits no metadata to the
   console, and readiness returns `go` only after both same-user target names
   are resolvable.
+- Good: a browser navigation address may contain an organization path, but the
+  operator enters only its confirmed canonical IFD host root in
+  `organizationBaseUri` and enters the organization name in its own field.
 - Base: the CE 9.1 development target is prepared while CE 8.2 approval is
   still absent. The generator is not run with a guessed CE 8.2 target; P6 stays
   No-Go and the scoped operator handoff records the missing authority.
 - Bad: store credential values in the profile JSON, choose ConnectorKind or CE
-  version per request, hand-edit a package-lock identifier, or overwrite an
-  existing local profile file to force a Green probe.
+  version per request, place the organization path in `organizationBaseUri`,
+  hand-edit a package-lock identifier, or overwrite an existing local profile
+  file to force a Green probe.
 
 ### 6. Tests Required
 
@@ -2175,8 +2185,9 @@ The generated top-level shape is exact and versioned:
   sanitized No-Go reasons.
 - `New-DynamicsOfficialWorkerProfileInput.Tests.ps1` must prove valid manifest
   derivation, exact versioned shape, strict UTF-8 without BOM/CRLF text,
-  sanitized output, HTTP URI rejection, missing Worker rejection, unknown
-  password parameter rejection, and byte-identical create-new refusal.
+  sanitized output, HTTP URI rejection, organization-path base-URI rejection,
+  missing Worker rejection, unknown password parameter rejection, and
+  byte-identical create-new refusal.
 - Existing deployment, publish, and compatibility PowerShell harness tests must
   remain green, followed by the focused/full Dynamics tests, ChurchReport tests,
   and Release solution build.
@@ -2186,14 +2197,15 @@ The generated top-level shape is exact and versioned:
 #### Wrong
 
 ```text
-Readiness expects { profiles }, deployment expects { schemaVersion, profiles },
-and an operator hand-edits two different files until one command appears green.
+The profile generator accepts https://crm.example.test/organization/ while the
+deployment generator later requires https://crm.example.test/, leaving a local
+profile that can never produce deployment material.
 ```
 
 #### Correct
 
 ```text
-Approved non-secret IFD metadata + immutable manifest
+Approved non-secret IFD metadata with canonical HTTPS roots + immutable manifest
   -> atomic local { schemaVersion: 1, profiles }
   -> same-user sanitized readiness probe
   -> go only before overlay/Worker/CE evidence is allowed
