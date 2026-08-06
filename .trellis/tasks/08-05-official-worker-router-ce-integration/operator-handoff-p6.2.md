@@ -131,18 +131,109 @@ Paste only the final JSON line. Expected meanings:
 
 ## If Step 3 reports `gateway-startup-failed-before-ready`
 
-Do not change the canonical root URI, regenerate the local profile, or rerun the bridge unchanged.
-The current canonical root URIs have already been recorded successfully. On **Lenovo Legion**, while
-signed in as `LENOVO-LEGION\Administrator`, refresh only these two existing Windows Credentials:
+Do not change the canonical root URI, regenerate the local profile, recreate a Credential Manager
+target, or rerun the bridge unchanged. First run the account-form comparison below. It proves whether
+each existing target has the same account form that the operator already used successfully on the
+corresponding IFD login page, without revealing that form, its target name, or its password.
 
-1. In **Windows Credentials → Generic Credentials**, find `speechmessage.crm82.p62`, choose
-   **Edit**, and enter the exact account and password that successfully sign in through the CE 8.2
-   IFD login for `https://jesus.speechmessage.com.tw/`.
-2. Find `speechmessage.crm91.p62`, choose **Edit**, and enter the exact account and password that
-   successfully sign in through the CE 9.1 IFD login for
-   `https://sunnyvalechback.speechmessage.com.tw/`.
-3. Select **Save** for both entries. Do not create a duplicate target, disclose a password, or
-   change the target-name spelling.
-4. Rerun the Step 3 block exactly once. Paste only its final sanitized JSON output. A new
-   `outcome: "started"` permits the P6 allowlisted read-only matrix; the same `no-go` result means
-   the next required fact is CE/ADFS-side IFD account authorization, not another local retry.
+## 2026-08-06 credential identity confirmation
+
+On **Lenovo Legion**, in PowerShell opened as `LENOVO-LEGION\Administrator`, copy the entire block:
+
+```powershell
+$root = 'D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree'
+$profileInput = Join-Path $env:LOCALAPPDATA 'SpeechMessage\Dynamics\P6.2\official-worker-profile-input.json'
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
+  "$root\docs\scripts\Test-DynamicsOfficialWorkerCredentialIdentity.ps1" `
+  -ProfileInputPath $profileInput `
+  -Crm82ExpectedUserName 'Administrator@speechmessage.com.tw' `
+  -Crm91ExpectedUserName 'SPEECHMESSAGE\administrator' `
+  -Json
+```
+
+這個版本不會再停在互動提示；兩個**帳號字串**已由上面的參數傳入，且不會被輸出或保存。
+不要輸入密碼。腳本只會輸出一行 sanitized JSON，請只貼回那一行。
+
+Expected success shape:
+
+```json
+{"schemaVersion":1,"outcome":"go","profiles":[{"profileAlias":"crm82","credentialUserNameState":"matches-operator-provided-ifd-login"},{"profileAlias":"crm91","credentialUserNameState":"matches-operator-provided-ifd-login"}],"operationExecuted":false,"featureFlagChanged":false}
+```
+
+Interpretation:
+
+- `outcome: "go"`: do not edit either existing target, URI, home realm, or profile. The account-form
+  concern is removed; continue only with the bounded SDK startup checkpoint below.
+- `does-not-match-operator-provided-ifd-login`: edit only that existing target under **Windows
+  Credentials → Generic Credentials** and use the same account form that works on its IFD page. Do
+  not create a duplicate target or disclose a password. After saving, rerun this comparison once.
+- `credential-identity-unreadable` or `error`: stop and paste only the sanitized JSON. Do not retry
+  or modify the local profile.
+
+## 2026-08-06 continuation: bounded SDK startup checkpoint
+
+Do not recreate a Credential Manager target or change canonical URI/home-realm again. The existing
+targets pass readiness and load into the Worker path; IFD metadata is reachable. When the credential
+identity confirmation returns `go`, the only remaining external confirmation is that the same IFD
+test account is authorized to enter its corresponding CE Organization, not merely that the login
+page is reachable.
+
+Use the latest isolated diagnostic material only when you need to reproduce the current sanitized
+checkpoint on **Lenovo Legion** under `LENOVO-LEGION\Administrator`:
+
+```powershell
+$root = 'D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree'
+$diagnosticRoot = "$root\artifacts\dynamics-workers-p6.2-final-diagnostic-40d1500cf6f041ea98767a7126cc654d"
+$manifest = Get-Content -LiteralPath "$diagnosticRoot\official-worker-manifest.json" -Raw | ConvertFrom-Json
+$profileInput = Get-Content -LiteralPath (Join-Path $env:LOCALAPPDATA 'SpeechMessage\Dynamics\P6.2\official-worker-profile-input.json') -Raw | ConvertFrom-Json
+$script = "$root\docs\scripts\Test-DynamicsOfficialWorkerStartupClassification.ps1"
+
+$results = foreach ($profile in @($profileInput.profiles | Sort-Object profileAlias)) {
+    $worker = @($manifest.workers | Where-Object { $_.workerKind -eq $profile.workerKind })
+    if ($worker.Count -ne 1) { throw 'sanitized-worker-mapping-invalid' }
+    $args = @(
+        '-NoProfile','-ExecutionPolicy','Bypass','-File',$script,
+        '-ProfileAlias',$profile.profileAlias,
+        '-WorkerExecutablePath',(Join-Path $diagnosticRoot $worker[0].relativeExecutablePath),
+        '-WorkerKind',$profile.workerKind,
+        '-PackageLockId',$worker[0].packageLockId,
+        '-ProfileGenerationId',$profile.profileGenerationId,
+        '-StartupTimeoutSeconds','45','-Json'
+    )
+    $json = @(& powershell.exe @args 2>&1)
+    ($json -join [Environment]::NewLine) | ConvertFrom-Json
+}
+$results | Select-Object profileAlias,outcome,startupClassification,workerExitCode,operationExecuted,featureFlagChanged | ConvertTo-Json -Compress
+```
+
+Expected current safe checkpoint:
+
+```json
+[{"profileAlias":"crm82","outcome":"no-go","startupClassification":"sdk-diagnostic-unavailable","workerExitCode":21,"operationExecuted":false,"featureFlagChanged":false},{"profileAlias":"crm91","outcome":"no-go","startupClassification":"sdk-unclassified-failure","workerExitCode":20,"operationExecuted":false,"featureFlagChanged":false}]
+```
+
+Do not paste the account, password, token, cookie, raw exception, or full profile. When the CE/AD FS
+owner confirms the organization authorization or makes an externally confirmed correction, rerun the
+block and paste only its final JSON. P6 may continue to the allowlisted read-only matrix only after
+both rows report `worker-reported-ready`; P7/P8 remain stopped before that gate.
+
+## Next external fact: confirm CE Organization access
+
+The account-form result is `go`, but the Worker still stops before READY. Do not edit the targets,
+profile, URI, or home realm again. On Lenovo Legion, using the same Windows account, open each normal
+CE Organization bookmark or organization URL that you already use after login. Do **not** use only an
+AD FS `/adfs/ls` login page as evidence. After signing in, confirm that the actual Dynamics CE
+application home for that Organization loads and that the account is not rejected or redirected back
+to the login form. This is a manual authorization observation; it does not create, update, or delete
+any CE record.
+
+After checking both versions, paste only this sanitized summary (replace the values locally before
+pasting; never include the URL, account, password, token, cookie, or screenshot):
+
+```json
+{"schemaVersion":1,"outcome":"go-or-no-go","profiles":[{"profileAlias":"crm82","ceOrganizationAccess":"confirmed-or-not-confirmed"},{"profileAlias":"crm91","ceOrganizationAccess":"confirmed-or-not-confirmed"}],"operationExecuted":false,"featureFlagChanged":false}
+```
+
+If both are `confirmed`, the next required input is a sanitized CE／AD FS owner classification of
+the SDK username/password token exchange failure; do not repeat the same Worker launch unchanged.

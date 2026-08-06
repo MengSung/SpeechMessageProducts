@@ -96,6 +96,82 @@ function Get-ListenerObserved {
     }
 }
 
+function ReadBoundedDiagnosticText {
+    param([string] $Path)
+
+    $stream = $null
+    $buffer = $null
+    try {
+        if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+            return [string]::Empty
+        }
+
+        $buffer = New-Object byte[] 16384
+        $stream = [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)
+        $offset = 0
+        while ($offset -lt $buffer.Length) {
+            $read = $stream.Read($buffer, $offset, $buffer.Length - $offset)
+            if ($read -eq 0) {
+                break
+            }
+
+            $offset += $read
+        }
+
+        return [Text.UTF8Encoding]::new($false, $false).GetString($buffer, 0, $offset)
+    }
+    finally {
+        if ($null -ne $stream) {
+            $stream.Dispose()
+        }
+        if ($null -ne $buffer) {
+            [Array]::Clear($buffer, 0, $buffer.Length)
+        }
+    }
+}
+
+function Get-GatewayStartupFailureClassification {
+    param(
+        [string] $StandardOutputPath,
+        [string] $StandardErrorPath
+    )
+
+    # child log 僅在本程序記憶體內以固定、受限字串分類；不得回傳、寫檔或列印原始內容。
+    $diagnosticText = (ReadBoundedDiagnosticText -Path $StandardOutputPath) +
+        [Environment]::NewLine +
+        (ReadBoundedDiagnosticText -Path $StandardErrorPath)
+    try {
+        if ($diagnosticText.IndexOf(
+                'The worker frame ended before the declared length was read.',
+                [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            return 'worker-ready-frame-not-published'
+        }
+        if ($diagnosticText.IndexOf(
+                'Dynamics control-plane schema verification failed.',
+                [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+            $diagnosticText.IndexOf(
+                'Cannot open database "SpeechMessageDynamicsControlPlane"',
+                [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            return 'control-plane-schema-or-connection-failed'
+        }
+        if ($diagnosticText.IndexOf(
+                'The official Dynamics worker deployment overlay is invalid.',
+                [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            return 'official-worker-overlay-invalid'
+        }
+        if ($diagnosticText.IndexOf(
+                'Unable to configure HTTPS endpoint',
+                [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            return 'local-https-binding-failed'
+        }
+
+        return 'gateway-startup-unclassified'
+    }
+    finally {
+        $diagnosticText = $null
+    }
+}
+
 try {
     $endpointUri = Get-ValidatedLocalHttpsUri -Value $GatewayEndpoint
     $resolvedExecutable = Assert-LocalPath -Path $GatewayExecutablePath -RequireLeaf $true
@@ -142,6 +218,14 @@ try {
 
     $processExited = $process.HasExited
     $listenerObserved = Get-ListenerObserved -Port $endpointUri.Port
+    $failureClassification = if ($processExited) {
+        Get-GatewayStartupFailureClassification `
+            -StandardOutputPath $stdoutPath `
+            -StandardErrorPath $stderrPath
+    }
+    else {
+        'not-applicable'
+    }
     $result = [ordered]@{
         schemaVersion = 1
         outcome = if ($processExited) { 'no-go' } else { 'started' }
@@ -154,6 +238,7 @@ try {
         processObserved = $true
         processExitedBeforeWindow = $processExited
         listenerObserved = $listenerObserved
+        failureClassification = $failureClassification
         ceContacted = $false
         featureFlagChanged = $false
         operationExecuted = $false
@@ -167,6 +252,7 @@ catch {
         processObserved = $null -ne $process
         processExitedBeforeWindow = $null
         listenerObserved = $false
+        failureClassification = 'startup-bridge-input-or-process-error'
         ceContacted = $false
         featureFlagChanged = $false
         operationExecuted = $false

@@ -20,6 +20,12 @@ internal sealed class FakeCrm82SdkClient : ICrm82SdkClient
     /// <summary>取得或設定用來驗證 CE 8.2 major/minor 的固定組織版本。</summary>
     internal Version? OrganizationVersion { get; set; } = new Version(8, 2, 0, 0);
 
+    /// <summary>
+    /// 取得或設定 test-owned SDK startup exception。此資料只在單一測試 stack scope 內被 adapter
+    /// 投影為 enum；替身不保存實際 IFD endpoint、Credential、Token 或 CRM response。
+    /// </summary>
+    internal Exception? StartupException { get; set; }
+
     /// <summary>取得或設定同步 Execute 的案例專屬回應工廠。</summary>
     internal Func<OrganizationRequest, OrganizationResponse>? ExecuteHandler { get; set; }
 
@@ -42,6 +48,9 @@ internal sealed class FakeCrm82SdkClient : ICrm82SdkClient
 
     /// <summary>回傳測試固定的 CE 版本，不解析或保存任何端點或 credential。</summary>
     Version? ICrm82SdkClient.ConnectedOrgVersion => OrganizationVersion;
+
+    /// <summary>回傳案例提供的 startup exception；production classifier 不會輸出其文字或 inner detail。</summary>
+    Exception? ICrm82SdkClient.LastStartupException => StartupException;
 
     /// <summary>
     /// 同步執行 identity request；釋放後立即拒絕，且未設定 handler 時 fail closed。

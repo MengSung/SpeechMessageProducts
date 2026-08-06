@@ -16,6 +16,65 @@ public sealed class OfficialWorkerSessionTests
     private static readonly DateTimeOffset Now = new(2026, 8, 2, 8, 0, 0, TimeSpan.Zero);
 
     /// <summary>
+    /// 驗證 shared startup classifier 只用 exception family 將 secure-channel failure 投影成固定 enum。
+    /// 故障注入不含 URI、帳密或原始 SDK error；決定性斷言保護診斷不會透過 exception text 洩漏
+    /// deployment metadata，同時讓兩個 net48 Worker 使用相同分類規則。
+    /// </summary>
+    [Fact]
+    public void Startup_failure_classifier_maps_secure_channel_web_exception_without_retaining_detail()
+    {
+        var failure = new System.Net.WebException(
+            "test-only secure channel failure",
+            System.Net.WebExceptionStatus.SecureChannelFailure);
+
+        var category = OfficialCrmClientStartupFailureClassifier.Classify(failure);
+
+        category.Should().Be(OfficialCrmClientStartupFailureCategory.SecureChannel);
+    }
+
+    /// <summary>
+    /// 驗證 SDK 在 client 尚未 ready 時完全沒有提供 startup exception，會得到與「存在但未知」不同的
+    /// 固定去識別化分類。此 regression 不建立真實 CRM client 或網路連線；決定性斷言保護 operator 能安全
+    /// 區分「SDK 未留診斷」與「未知 exception family」，而不把 exception 文字、端點、帳密或堆疊保留到
+    /// Worker、IPC 或跨 profile 狀態。
+    /// </summary>
+    [Fact]
+    public void Startup_failure_classifier_maps_absent_sdk_diagnostic_without_retaining_detail()
+    {
+        var category = OfficialCrmClientStartupFailureClassifier.Classify(exception: null);
+
+        category.Should().Be(OfficialCrmClientStartupFailureCategory.DiagnosticUnavailable);
+    }
+
+    /// <summary>
+    /// 驗證 SDK 以 framework timeout exception 表示連線建立逾時時，分類器會將其投影為既有 transport
+    /// 類別。故障只使用 test-owned exception；決定性斷言保護 timeout 不會落入需要猜測的未知類別，也不會
+    /// 將 timeout message 或其他部署資料保留到診斷輸出。
+    /// </summary>
+    [Fact]
+    public void Startup_failure_classifier_maps_framework_timeout_to_transport()
+    {
+        var category = OfficialCrmClientStartupFailureClassifier.Classify(
+            new TimeoutException("test-only timeout"));
+
+        category.Should().Be(OfficialCrmClientStartupFailureCategory.Transport);
+    }
+
+    /// <summary>
+    /// 驗證 SDK 建構或初始化層以 framework <see cref="InvalidOperationException"/> 表示設定／初始化失敗時，
+    /// 會被投影為固定的 SDK initialization 分類。測試不使用真實 profile 或 credential；決定性斷言只保留
+    /// 可供下一步診斷的無敏感原因，避免把原始訊息、端點或登入資料輸出。
+    /// </summary>
+    [Fact]
+    public void Startup_failure_classifier_maps_invalid_operation_to_sdk_initialization()
+    {
+        var category = OfficialCrmClientStartupFailureClassifier.Classify(
+            new InvalidOperationException("test-only SDK initialization failure"));
+
+        category.Should().Be(OfficialCrmClientStartupFailureCategory.SdkInitialization);
+    }
+
+    /// <summary>
     /// 證明正常 READY／request／response／drain 流程只建立並釋放一次 client，
     /// request ID 與 pipe stream 均由單一測試生命週期擁有。
     /// </summary>
@@ -131,6 +190,135 @@ public sealed class OfficialWorkerSessionTests
             CancellationToken.None);
 
         outcome.Should().Be(OfficialWorkerSessionExitCode.ClientNotReady);
+        client.DisposeCount.Should().Be(1);
+        fromWorker.Reader.TryRead(out var readResult).Should().BeFalse();
+    }
+
+    /// <summary>
+    /// 驗證 SDK client 已建立但固定 WhoAmI identity probe 未通過時，Worker 不得將它混同於一般
+    /// SDK client 未就緒。故障注入 client 只公開去識別化 startup state；決定性斷言是固定 exit code、
+    /// 不發布 READY，且 client 仍恰好 Dispose 一次，避免診斷分支造成資源或 profile 狀態殘留。
+    /// </summary>
+    [Fact]
+    public async Task RunAsync_identity_probe_not_ready_returns_distinct_sanitized_exit_code()
+    {
+        var client = new IdentityProbeNotReadyClient();
+        var factory = new FakeOfficialCrmClientFactory(client);
+        var session = new OfficialWorkerSession(
+            factory,
+            CreateBootstrap(),
+            "9.1",
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            WorkerProtocolLimits.Default,
+            () => Now);
+        var toWorker = new Pipe();
+        var fromWorker = new Pipe();
+        await using var workerInput = toWorker.Reader.AsStream();
+        await using var workerOutput = fromWorker.Writer.AsStream();
+
+        var outcome = await session.RunAsync(
+            workerInput,
+            workerOutput,
+            CancellationToken.None);
+
+        outcome.Should().Be(OfficialWorkerSessionExitCode.IdentityProbeNotReady);
+        client.DisposeCount.Should().Be(1);
+        fromWorker.Reader.TryRead(out var readResult).Should().BeFalse();
+    }
+
+    /// <summary>
+    /// 驗證 SDK 已建立但其固定且去識別化的啟動診斷判定為 authentication failure 時，Session 必須
+    /// 回傳獨立 exit code 而非模糊地歸類為一般 client-not-ready。此 fault injection 不含帳號、密碼、
+    /// endpoint、token 或 SDK exception；決定性斷言是未發布 READY 且 client 恰好 Dispose 一次，
+    /// 讓 operator 可安全區分需要檢查的邊界而不改變 fail-closed 行為。
+    /// </summary>
+    [Fact]
+    public async Task RunAsync_sdk_authentication_not_ready_returns_distinct_sanitized_exit_code()
+    {
+        var client = new SdkAuthenticationNotReadyClient();
+        var factory = new FakeOfficialCrmClientFactory(client);
+        var session = new OfficialWorkerSession(
+            factory,
+            CreateBootstrap(),
+            "9.1",
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            WorkerProtocolLimits.Default,
+            () => Now);
+        var toWorker = new Pipe();
+        var fromWorker = new Pipe();
+        await using var workerInput = toWorker.Reader.AsStream();
+        await using var workerOutput = fromWorker.Writer.AsStream();
+
+        var outcome = await session.RunAsync(
+            workerInput,
+            workerOutput,
+            CancellationToken.None);
+
+        outcome.Should().Be(OfficialWorkerSessionExitCode.AuthenticationNotReady);
+        client.DisposeCount.Should().Be(1);
+        fromWorker.Reader.TryRead(out var readResult).Should().BeFalse();
+    }
+
+    /// <summary>
+    /// 驗證 SDK client 尚未 ready 且沒有留下 startup exception 時，Session 回傳固定的「診斷不可用」exit code。
+    /// 此 fault injection 不包含 CRM SDK 物件、帳密、端點或原始 exception；決定性斷言是沒有 READY frame、
+    /// client 仍恰好釋放一次，且 Supervisor 可以安全區分資料缺失與未知 exception family。
+    /// </summary>
+    [Fact]
+    public async Task RunAsync_sdk_diagnostic_unavailable_returns_distinct_sanitized_exit_code()
+    {
+        var client = new SdkDiagnosticUnavailableClient();
+        var factory = new FakeOfficialCrmClientFactory(client);
+        var session = new OfficialWorkerSession(
+            factory,
+            CreateBootstrap(),
+            "9.1",
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            WorkerProtocolLimits.Default,
+            () => Now);
+        var toWorker = new Pipe();
+        var fromWorker = new Pipe();
+        await using var workerInput = toWorker.Reader.AsStream();
+        await using var workerOutput = fromWorker.Writer.AsStream();
+
+        var outcome = await session.RunAsync(
+            workerInput,
+            workerOutput,
+            CancellationToken.None);
+
+        outcome.Should().Be(OfficialWorkerSessionExitCode.SdkDiagnosticUnavailable);
+        client.DisposeCount.Should().Be(1);
+        fromWorker.Reader.TryRead(out var readResult).Should().BeFalse();
+    }
+
+    /// <summary>
+    /// 驗證 SDK startup 診斷映射為初始化 failure 時，Session 回傳獨立 exit code 而不誤導為帳密、TLS 或
+    /// transport。替身不包含 CRM 物件、登入資料或 exception detail；決定性斷言是未發布 READY、唯一
+    /// cleanup 與固定 exit code，讓後續診斷可停在初始化邊界而不改變 fail-closed 行為。
+    /// </summary>
+    [Fact]
+    public async Task RunAsync_sdk_initialization_not_ready_returns_distinct_sanitized_exit_code()
+    {
+        var client = new SdkInitializationNotReadyClient();
+        var factory = new FakeOfficialCrmClientFactory(client);
+        var session = new OfficialWorkerSession(
+            factory,
+            CreateBootstrap(),
+            "9.1",
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            WorkerProtocolLimits.Default,
+            () => Now);
+        var toWorker = new Pipe();
+        var fromWorker = new Pipe();
+        await using var workerInput = toWorker.Reader.AsStream();
+        await using var workerOutput = fromWorker.Writer.AsStream();
+
+        var outcome = await session.RunAsync(
+            workerInput,
+            workerOutput,
+            CancellationToken.None);
+
+        outcome.Should().Be(OfficialWorkerSessionExitCode.SdkInitializationNotReady);
         client.DisposeCount.Should().Be(1);
         fromWorker.Reader.TryRead(out var readResult).Should().BeFalse();
     }
@@ -343,6 +531,121 @@ public sealed class OfficialWorkerSessionTests
                 ["organizationId"] = WorkerValue.FromGuid(Guid.Parse("22222222-2222-2222-2222-222222222222"))
             });
         }
+
+        public void Dispose()
+        {
+            DisposeCount++;
+        }
+    }
+
+    /// <summary>
+    /// 模擬已建立 SDK client、但 Worker-local 固定 identity probe 未通過的啟動狀態。
+    /// 此替身不保存或模擬 CRM SDK／credential；它只驗證 Session 對去識別化狀態採用正確 exit code，
+    /// 並在不發布 READY 的路徑仍執行唯一 client cleanup。
+    /// </summary>
+    private sealed class IdentityProbeNotReadyClient :
+        IOfficialCrmClient,
+        IOfficialCrmClientStartupDiagnostics
+    {
+        public bool IsReady => false;
+
+        public OfficialCrmClientStartupReadiness StartupReadiness =>
+            OfficialCrmClientStartupReadiness.IdentityProbeNotReady;
+
+        public OfficialCrmClientStartupFailureCategory StartupFailureCategory =>
+            OfficialCrmClientStartupFailureCategory.None;
+
+        public int DisposeCount { get; private set; }
+
+        public WorkerValue Execute(WorkerRequestV1 request) =>
+            throw new InvalidOperationException("The identity-probe-not-ready test client must not execute requests.");
+
+        public void Dispose()
+        {
+            DisposeCount++;
+        }
+    }
+
+    /// <summary>
+    /// 模擬官方 SDK 在 READY 前只回傳固定 authentication failure 類別的 client。替身刻意不保留
+    /// 原始例外、Credential 或 IFD metadata；其唯一用途是保護 Session 對安全診斷 enum 的 exit-code
+    /// 映射，並證明診斷分支仍維持一次性 disposal。
+    /// </summary>
+    private sealed class SdkAuthenticationNotReadyClient :
+        IOfficialCrmClient,
+        IOfficialCrmClientStartupDiagnostics
+    {
+        public bool IsReady => false;
+
+        public OfficialCrmClientStartupReadiness StartupReadiness =>
+            OfficialCrmClientStartupReadiness.SdkClientNotReady;
+
+        public OfficialCrmClientStartupFailureCategory StartupFailureCategory =>
+            OfficialCrmClientStartupFailureCategory.Authentication;
+
+        public int DisposeCount { get; private set; }
+
+        public WorkerValue Execute(WorkerRequestV1 request) =>
+            throw new InvalidOperationException(
+                "The sdk-authentication-not-ready test client must not execute requests.");
+
+        public void Dispose()
+        {
+            DisposeCount++;
+        }
+    }
+
+    /// <summary>
+    /// 模擬官方 SDK client 未 ready、但 <c>LastCrmException</c> 不存在或無法安全讀取的情形。
+    /// 替身只公開共用 enum，沒有可保留的 exception graph；用來保護 Session 對診斷資料缺失的
+    /// fail-closed exit mapping 與一次性 cleanup，不觸及真實 CE、credential 或網路。
+    /// </summary>
+    private sealed class SdkDiagnosticUnavailableClient :
+        IOfficialCrmClient,
+        IOfficialCrmClientStartupDiagnostics
+    {
+        public bool IsReady => false;
+
+        public OfficialCrmClientStartupReadiness StartupReadiness =>
+            OfficialCrmClientStartupReadiness.SdkClientNotReady;
+
+        public OfficialCrmClientStartupFailureCategory StartupFailureCategory =>
+            OfficialCrmClientStartupFailureCategory.DiagnosticUnavailable;
+
+        public int DisposeCount { get; private set; }
+
+        public WorkerValue Execute(WorkerRequestV1 request) =>
+            throw new InvalidOperationException(
+                "The sdk-diagnostic-unavailable test client must not execute requests.");
+
+        public void Dispose()
+        {
+            DisposeCount++;
+        }
+    }
+
+    /// <summary>
+    /// 模擬 SDK 在建立可用 client 前回報固定 initialization 分類的 worker-local client。此替身的唯一目的
+    /// 是保護 Session 的 sanitized exit-code mapping；它不配置 network、credential、SDK payload 或任何
+    /// 跨 request mutable state，並以 DisposeCount 驗證失敗分支仍有唯一的資源釋放 owner。
+    /// </summary>
+    private sealed class SdkInitializationNotReadyClient :
+        IOfficialCrmClient,
+        IOfficialCrmClientStartupDiagnostics
+    {
+        public bool IsReady => false;
+
+        public OfficialCrmClientStartupReadiness StartupReadiness =>
+            OfficialCrmClientStartupReadiness.SdkClientNotReady;
+
+        public OfficialCrmClientStartupFailureCategory StartupFailureCategory =>
+            OfficialCrmClientStartupFailureCategory.SdkInitialization;
+
+        public int DisposeCount { get; private set; }
+
+        public WorkerValue Execute(WorkerRequestV1 request) =>
+            throw new InvalidOperationException(
+                "The sdk-initialization-not-ready test client must not execute requests.");
 
         public void Dispose()
         {

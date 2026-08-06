@@ -28,6 +28,13 @@ internal interface ICrm82SdkClient : IDisposable
     Version? ConnectedOrgVersion { get; }
 
     /// <summary>
+    /// 取得 SDK 對目前尚未 ready client 提供的最後一個 exception。呼叫端只能立即投影其型別家族為
+    /// 固定安全分類，絕不可保存、記錄或跨 IPC 傳遞 exception／訊息／InnerException，因為它可能含
+    /// endpoint、organization 或 authentication 細節。
+    /// </summary>
+    Exception? LastStartupException { get; }
+
+    /// <summary>
     /// 同步執行固定 server-owned OrganizationRequest；caller 不得提供 generic Execute payload。
     /// </summary>
     /// <param name="request">adapter 建立的固定 SDK request。</param>
@@ -88,6 +95,32 @@ internal sealed class Crm82SdkClient : ICrm82SdkClient
     public Version? ConnectedOrgVersion => Volatile.Read(ref _client)?.ConnectedOrgVersion;
 
     /// <summary>
+    /// 在 client 尚未 ready 時暫時讀取官方 SDK 提供的最後失敗物件。任何 getter failure 都轉成 null，
+    /// 讓上層 fail closed 為 unclassified；本 wrapper 不保存 exception reference，分類完成後 GC 可回收
+    /// 它及其可能的 stack graph，避免跨 generation 的 diagnostic retention。
+    /// </summary>
+    public Exception? LastStartupException
+    {
+        get
+        {
+            var client = Volatile.Read(ref _client);
+            if (client is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return client.LastCrmException;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+
+    /// <summary>
     /// 同步執行固定 OrganizationRequest；已釋放時在碰觸 SDK 前拒絕。
     /// </summary>
     /// <param name="request">adapter 建立的固定 request。</param>
@@ -136,7 +169,9 @@ internal sealed class Crm82SdkClient : ICrm82SdkClient
 /// 或 Package01 fee query。所有 SDK object 都在方法返回前投影成 bounded <see cref="WorkerValue"/>；
 /// adapter 不保存 caller Session、contactName、QueryExpression、Entity 或跨 request cache。
 /// </summary>
-internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
+internal sealed class OfficialCrmServiceClientAdapter :
+    IOfficialCrmClient,
+    IOfficialCrmClientStartupDiagnostics
 {
     private ICrm82SdkClient? _client;
     private OfficialCrmCredential? _credential;
@@ -202,14 +237,44 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     /// 只有 client owner 尚在、startup identity probe 成功且 SDK readiness 仍有效時才為 true；
     /// getter 不建立連線、query、timer 或 background work。
     /// </summary>
-    public bool IsReady
+    public bool IsReady => StartupReadiness == OfficialCrmClientStartupReadiness.Ready;
+
+    /// <summary>
+    /// 以固定且去識別化的 enum 區分 SDK client 本身未 ready 與 WhoAmI identity probe 未通過。
+    /// 這個 getter 只讀取目前 generation-local client 與建構期 immutable probe 結果，不重新驗證、
+    /// 不建立任何 CRM request、timer、cache 或跨 profile state；Supervisor 只能據此回報固定 exit code，
+    /// 不得將狀態用作 connector fallback、秘密診斷或 request-time routing。
+    /// </summary>
+    public OfficialCrmClientStartupReadiness StartupReadiness
     {
         get
         {
             var client = Volatile.Read(ref _client);
-            return client is not null &&
-                _identityProbeSucceeded &&
-                client.IsReady;
+            if (client is null || !IsClientReady(client))
+            {
+                return OfficialCrmClientStartupReadiness.SdkClientNotReady;
+            }
+
+            return _identityProbeSucceeded
+                ? OfficialCrmClientStartupReadiness.Ready
+                : OfficialCrmClientStartupReadiness.IdentityProbeNotReady;
+        }
+    }
+
+    /// <summary>
+    /// 將目前 SDK-not-ready detail 立即投影為共用的安全 enum。SDK client 已 ready 或 identity probe
+    /// failure 時都回傳 None；這個 property 不會建立連線或重試，且不會把 exception、endpoint、帳密、
+    /// token 或 CRM payload 保存到 adapter field、process exit 或 IPC。
+    /// </summary>
+    public OfficialCrmClientStartupFailureCategory StartupFailureCategory
+    {
+        get
+        {
+            var client = Volatile.Read(ref _client);
+            return client is null || IsClientReady(client)
+                ? OfficialCrmClientStartupFailureCategory.None
+                : OfficialCrmClientStartupFailureClassifier.Classify(
+                    client.LastStartupException);
         }
     }
 
@@ -300,7 +365,7 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
         Guid expectedOrganizationId,
         string expectedCeVersion)
     {
-        if (!client.IsReady)
+        if (!IsClientReady(client))
         {
             return false;
         }
@@ -315,6 +380,22 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
                 expectedOrganizationId,
                 client.ConnectedOrgVersion,
                 expectedCeVersion);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 讀取 CE 8.2 SDK readiness 時把 getter 自身的例外收斂為 false，讓 startup status 不會攜帶
+    /// 原始 SDK 細節。這不會建立或重試連線；client 的唯一釋放路徑仍是 adapter Dispose。
+    /// </summary>
+    private static bool IsClientReady(ICrm82SdkClient client)
+    {
+        try
+        {
+            return client.IsReady;
         }
         catch
         {

@@ -119,6 +119,87 @@ public sealed class OfficialCrmServiceClientAdapterTests
         Assert.Equal(0, client.RetrieveMultipleCallCount);
     }
 
+    /// <summary>
+    /// 驗證 SDK readiness 本身為 false 時，adapter 回報固定的 SDK-not-ready 分類且不嘗試 WhoAmI。
+    /// 此故障注入保護 P6 startup 診斷不會把 client 建立失敗誤認為組織 identity mismatch；斷言不保存
+    /// SDK 例外或任何連線資料，只檢查 enum、零次 Execute 與 using scope 的唯一 disposal。
+    /// </summary>
+    [Fact]
+    public void Reports_sdk_client_not_ready_without_identity_probe()
+    {
+        var client = new FakeCrm82SdkClient { Ready = false };
+        using var adapter = CreateAdapter(client);
+
+        Assert.False(adapter.IsReady);
+        Assert.Equal(
+            OfficialCrmClientStartupReadiness.SdkClientNotReady,
+            adapter.StartupReadiness);
+        Assert.Equal(0, client.ExecuteCallCount);
+    }
+
+    /// <summary>
+    /// 驗證 CE 8.2 adapter 僅以 test-owned secure-channel exception 的型別家族投影安全分類；原始訊息
+    /// 不會出現在 adapter state 或測試斷言。此案例保護 operator diagnostics 可分辨 TLS/trust 邊界，
+    /// 同時維持未 ready、零次 WhoAmI 與單一 client disposal 的 fail-closed 契約。
+    /// </summary>
+    [Fact]
+    public void Reports_secure_channel_category_for_an_sdk_not_ready_client()
+    {
+        var client = new FakeCrm82SdkClient
+        {
+            Ready = false,
+            StartupException = new System.Net.WebException(
+                "test-only secure channel failure",
+                System.Net.WebExceptionStatus.SecureChannelFailure)
+        };
+        using var adapter = CreateAdapter(client);
+
+        Assert.False(adapter.IsReady);
+        Assert.Equal(
+            OfficialCrmClientStartupFailureCategory.SecureChannel,
+            adapter.StartupFailureCategory);
+        Assert.Equal(0, client.ExecuteCallCount);
+    }
+
+    /// <summary>
+    /// 驗證 CE 8.2 SDK client 未 ready 且未提供任何 startup exception 時，adapter 會保留「診斷不可用」的
+    /// 固定分類。測試使用無 credential 的 worker-local fake，不建立真實連線；決定性斷言是沒有 WhoAmI probe、
+    /// 沒有例外 detail 外流，且不會把無診斷誤判成未知例外 family。
+    /// </summary>
+    [Fact]
+    public void Reports_diagnostic_unavailable_when_not_ready_sdk_has_no_exception()
+    {
+        var client = new FakeCrm82SdkClient { Ready = false };
+        using var adapter = CreateAdapter(client);
+
+        Assert.False(adapter.IsReady);
+        Assert.Equal(
+            OfficialCrmClientStartupFailureCategory.DiagnosticUnavailable,
+            adapter.StartupFailureCategory);
+        Assert.Equal(0, client.ExecuteCallCount);
+    }
+
+    /// <summary>
+    /// 驗證 SDK 已 ready 但固定 WhoAmI probe 發生失敗時，adapter 回報 identity-probe 分類。
+    /// 故障只存在於此 test-owned SDK fake；決定性斷言是一次 probe、無 READY 狀態與去識別化 enum，
+    /// 不將錯誤文字、Organization 或 credential 留在 adapter 欄位或測試輸出。
+    /// </summary>
+    [Fact]
+    public void Reports_identity_probe_not_ready_after_ready_client_probe_failure()
+    {
+        var client = new FakeCrm82SdkClient
+        {
+            ExecuteHandler = _ => throw new InvalidOperationException("test identity probe failure")
+        };
+        using var adapter = CreateAdapter(client);
+
+        Assert.False(adapter.IsReady);
+        Assert.Equal(
+            OfficialCrmClientStartupReadiness.IdentityProbeNotReady,
+            adapter.StartupReadiness);
+        Assert.Equal(1, client.ExecuteCallCount);
+    }
+
     /// <summary>建立 identity probe 與執行都會回傳固定有效 WhoAmIResponse 的 client。</summary>
     private static FakeCrm82SdkClient CreateReadyClient()
     {

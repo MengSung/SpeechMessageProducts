@@ -30,6 +30,13 @@ internal interface ICrm91SdkClient : IDisposable
     Version? ConnectedOrgVersion { get; }
 
     /// <summary>
+    /// 取得 SDK 對目前尚未 ready client 提供的最後一個 exception。此值只能在本 Worker process 的
+    /// startup stack scope 內立刻投影成固定分類；不得保存、記錄或經 IPC 傳遞 exception／訊息／內層例外，
+    /// 以免 endpoint、organization 或 authentication detail 跨 profile／session 保留。
+    /// </summary>
+    Exception? LastStartupException { get; }
+
+    /// <summary>
     /// 同步執行固定 server-owned OrganizationRequest；caller 不得提供 generic Execute payload。
     /// </summary>
     /// <param name="request">adapter 擁有方法範圍且只借給 SDK 的固定 request；client 不取得持久 ownership。</param>
@@ -76,6 +83,26 @@ internal sealed class Crm91SdkClient : ICrm91SdkClient
     public Version? ConnectedOrgVersion => GetClient().ConnectedOrgVersion;
 
     /// <summary>
+    /// 以暫時讀取方式取得 official SDK 最近的 startup exception。getter 失敗或 client 已被釋放時皆回傳
+    /// null，讓共同 classifier 採 unclassified fail-closed；wrapper 不持有 exception reference，因此不會
+    /// 保留 stack graph、endpoint 或 credential-related data 到下一個 request 或 generation。
+    /// </summary>
+    public Exception? LastStartupException
+    {
+        get
+        {
+            try
+            {
+                return GetClient().LastCrmException;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+
+    /// <summary>
     /// 同步執行固定 OrganizationRequest。進入 SDK 後沒有 per-call cancellation hook；
     /// Supervisor timeout 只能停止等待並依回收流程終止 worker process。
     /// </summary>
@@ -116,7 +143,9 @@ internal sealed class Crm91SdkClient : ICrm91SdkClient
 /// 一個 operation；所有 SDK object 都在方法返回前投影成 bounded <see cref="WorkerValue"/>。
 /// Adapter 不保存 caller Session、contactName、QueryExpression、Entity 或跨 request cache。
 /// </summary>
-internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
+internal sealed class OfficialCrmServiceClientAdapter :
+    IOfficialCrmClient,
+    IOfficialCrmClientStartupDiagnostics
 {
     private ICrm91SdkClient? _client;
     private OfficialCrmCredential? _credential;
@@ -183,14 +212,44 @@ internal sealed class OfficialCrmServiceClientAdapter : IOfficialCrmClient
     /// 只有 client owner 尚在、startup identity probe 成功且 SDK readiness 仍有效時才為 true；
     /// getter 將 SDK readiness 例外轉成 false，且不建立連線、query、timer 或 background work。
     /// </summary>
-    public bool IsReady
+    public bool IsReady => StartupReadiness == OfficialCrmClientStartupReadiness.Ready;
+
+    /// <summary>
+    /// 回傳目前 generation 的固定 startup 分類，以分開 SDK client 與 WhoAmI identity probe 的 failure。
+    /// 此屬性只讀取已存在的 client 與建構期 probe 結果，不重新登入、不執行 CRM operation，且不保存
+    /// endpoint、Organization ID、credential、token、SDK exception 或任何 Session 資料。Worker Session
+    /// 只能把 enum 映射為 sanitized exit code，不能把它用於 connector fallback 或重試。
+    /// </summary>
+    public OfficialCrmClientStartupReadiness StartupReadiness
     {
         get
         {
             var client = Volatile.Read(ref _client);
-            return client is not null &&
-                _identityProbeSucceeded &&
-                IsClientReady(client);
+            if (client is null || !IsClientReady(client))
+            {
+                return OfficialCrmClientStartupReadiness.SdkClientNotReady;
+            }
+
+            return _identityProbeSucceeded
+                ? OfficialCrmClientStartupReadiness.Ready
+                : OfficialCrmClientStartupReadiness.IdentityProbeNotReady;
+        }
+    }
+
+    /// <summary>
+    /// 將 SDK-not-ready 的短生命週期 exception 立即收斂成共用、去識別化 enum。若 client 已 ready 或
+    /// failure 屬於 WhoAmI identity probe，結果一律為 None；此 property 不建立連線、重試或背景工作，
+    /// 也不輸出原始 exception、endpoint、credential、token 或 CRM response。
+    /// </summary>
+    public OfficialCrmClientStartupFailureCategory StartupFailureCategory
+    {
+        get
+        {
+            var client = Volatile.Read(ref _client);
+            return client is null || IsClientReady(client)
+                ? OfficialCrmClientStartupFailureCategory.None
+                : OfficialCrmClientStartupFailureClassifier.Classify(
+                    client.LastStartupException);
         }
     }
 

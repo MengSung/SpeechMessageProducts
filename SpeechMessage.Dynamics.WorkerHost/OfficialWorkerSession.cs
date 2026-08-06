@@ -110,7 +110,12 @@ public sealed class OfficialWorkerSession
             client = _clientFactory.Create(_bootstrap.ProfileGenerationId);
             if (client is null || !client.IsReady)
             {
-                exitCode = OfficialWorkerSessionExitCode.ClientNotReady;
+                // adapter 的 startup diagnostic 只輸出固定 enum，不能把 SDK 例外、端點、組織、
+                // credential 或 WhoAmI payload 帶入 process exit / IPC。未實作診斷介面的既有 client
+                // 維持原本 ClientNotReady fail-closed 行為，絕不因此建立 fallback 或重試。
+                exitCode = client is IOfficialCrmClientStartupDiagnostics diagnostics
+                    ? MapStartupFailure(diagnostics)
+                    : OfficialWorkerSessionExitCode.ClientNotReady;
             }
             else
             {
@@ -174,6 +179,45 @@ public sealed class OfficialWorkerSession
             _codec.SerializeReady(ready),
             _limits.MaximumFrameBytes,
             cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 將 Worker-local adapter 的固定 startup enum 映射為 process exit code。這是唯一會讀取
+    /// <see cref="IOfficialCrmClientStartupDiagnostics"/> 的位置；它不保存 diagnostics、SDK exception 或
+    /// credential，也不發布 READY、重試或切換 connector。未知／不一致值必須保守回到一般
+    /// <see cref="OfficialWorkerSessionExitCode.ClientNotReady"/>。
+    /// </summary>
+    /// <param name="diagnostics">目前 process generation 的去識別化診斷投影。</param>
+    /// <returns>供 Supervisor 安全分類的固定、無機密 exit code。</returns>
+    private static OfficialWorkerSessionExitCode MapStartupFailure(
+        IOfficialCrmClientStartupDiagnostics diagnostics)
+    {
+        if (diagnostics.StartupReadiness == OfficialCrmClientStartupReadiness.IdentityProbeNotReady)
+        {
+            return OfficialWorkerSessionExitCode.IdentityProbeNotReady;
+        }
+
+        if (diagnostics.StartupReadiness != OfficialCrmClientStartupReadiness.SdkClientNotReady)
+        {
+            return OfficialWorkerSessionExitCode.ClientNotReady;
+        }
+
+        return diagnostics.StartupFailureCategory switch
+        {
+            OfficialCrmClientStartupFailureCategory.Authentication =>
+                OfficialWorkerSessionExitCode.AuthenticationNotReady,
+            OfficialCrmClientStartupFailureCategory.SecureChannel =>
+                OfficialWorkerSessionExitCode.SecureChannelNotReady,
+            OfficialCrmClientStartupFailureCategory.Transport =>
+                OfficialWorkerSessionExitCode.TransportNotReady,
+            OfficialCrmClientStartupFailureCategory.Unclassified =>
+                OfficialWorkerSessionExitCode.UnclassifiedSdkNotReady,
+            OfficialCrmClientStartupFailureCategory.DiagnosticUnavailable =>
+                OfficialWorkerSessionExitCode.SdkDiagnosticUnavailable,
+            OfficialCrmClientStartupFailureCategory.SdkInitialization =>
+                OfficialWorkerSessionExitCode.SdkInitializationNotReady,
+            _ => OfficialWorkerSessionExitCode.ClientNotReady
+        };
     }
 
     /// <summary>
