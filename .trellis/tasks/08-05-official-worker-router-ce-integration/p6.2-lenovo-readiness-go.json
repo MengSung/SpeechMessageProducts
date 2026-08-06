@@ -28,8 +28,14 @@
     "ceContacted": false,
     "workerStarted": false,
     "featureFlagChanged": false,
-    "deploymentMaterialGenerated": false,
-    "nextRequiredGate": "Replace the current local profile input only after entering canonical Organization HTTPS root URIs, then generate and validate deployment material offline.",
+    "deploymentMaterialGenerated": true,
+    "nextRequiredGate": "Pass the published Gateway/Official Worker runtime READY gate and then execute the approved allowlisted CE read-only matrix.",
+    "offlineIdentityChain": {
+      "crm82": "validated",
+      "crm91": "validated"
+    },
+    "liveStartup": "no-go-worker-ready-frame-missing",
+    "ceOperationExecuted": false,
     "p7OrP8AuthorizedByThisEvidence": false
   }
 }

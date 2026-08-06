@@ -28,6 +28,7 @@ $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $scriptPath = Join-Path $PSScriptRoot 'Invoke-DynamicsOfficialWorkerCompatibility.ps1'
+$p6EvidenceScriptPath = Join-Path $PSScriptRoot 'Invoke-DynamicsOfficialWorkerP6Evidence.ps1'
 $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) (
     'speechmessage-dynamics-official-worker-compatibility-' +
     [Guid]::NewGuid().ToString('N'))
@@ -278,7 +279,8 @@ function Invoke-CompatibilityHarness {
         [switch] $ValidateOnly,
         [switch] $EnableLiveCompatibility,
         [string] $ProfileAlias = 'crm82',
-        [string] $GatewayEndpoint = $Fixture.GatewayEndpoint
+        [string] $GatewayEndpoint = $Fixture.GatewayEndpoint,
+        [string] $OperationId = 'runtime.health.whoami'
     )
 
     $arguments = @(
@@ -292,6 +294,9 @@ function Invoke-CompatibilityHarness {
         '-ExpectedWorkerKind', 'OfficialCrm82Worker',
         '-Json'
     )
+    if ($OperationId -cne 'runtime.health.whoami') {
+        $arguments += @('-OperationId', $OperationId)
+    }
     if ($ValidateOnly) {
         $arguments += '-ValidateOnly'
     }
@@ -340,11 +345,68 @@ function Assert-PreflightFailure {
         -Message 'Compatibility failure exposed the Gateway endpoint.'
 }
 
+function Invoke-P6EvidenceHarness {
+    <#
+    .SYNOPSIS
+    在獨立 child PowerShell 中執行 P6 connection-evidence wrapper。
+
+    .DESCRIPTION
+    Wrapper 本身只固定轉送 `runtime.pool.validate.connection`，並由既有 compatibility
+    harness 執行 hash、profile generation 與 worker identity preflight。本測試只使用
+    ValidateOnly，因此不會建立 Gateway socket、Worker process、CE 連線或任何 credential
+    session。child process 結束後，任何短生命期 HttpClient、CTS、buffer 與輸出物件都由其
+    唯一 process owner 回收；本函式只保留 bounded 文字供 assertion，避免 fixture state
+    跨案例留存。
+    #>
+    param(
+        [object] $Fixture,
+        [switch] $ValidateOnly,
+        [switch] $EnableLiveEvidence,
+        [string[]] $AdditionalArguments = @()
+    )
+
+    $arguments = @(
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', $p6EvidenceScriptPath,
+        '-ManifestPath', $Fixture.ManifestPath,
+        '-GatewayOverlayPath', $Fixture.OverlayPath,
+        '-GatewayEndpoint', $Fixture.GatewayEndpoint,
+        '-ProfileAlias', 'crm82',
+        '-ExpectedWorkerKind', 'OfficialCrm82Worker',
+        '-Json'
+    ) + $AdditionalArguments
+    if ($ValidateOnly) {
+        $arguments += '-ValidateOnly'
+    }
+    if ($EnableLiveEvidence) {
+        $arguments += '-EnableLiveEvidence'
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = @(& powershell.exe @arguments 2>&1)
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        Text = $output -join [Environment]::NewLine
+    }
+}
+
 try {
     Assert-True -Condition (Test-Path -LiteralPath $scriptPath -PathType Leaf) `
         -Message 'The official Dynamics worker compatibility harness is missing.'
     Assert-StrictTextFile -Path $PSCommandPath
     Assert-StrictTextFile -Path $scriptPath
+    Assert-True -Condition (Test-Path -LiteralPath $p6EvidenceScriptPath -PathType Leaf) `
+        -Message 'The P6 connection-evidence harness is missing.'
+    Assert-StrictTextFile -Path $p6EvidenceScriptPath
 
     $validFixture = New-CompatibilityFixture -Name 'valid-validate-only'
     $validResult = Invoke-CompatibilityHarness -Fixture $validFixture -ValidateOnly
@@ -363,6 +425,65 @@ try {
         -Message 'Compatibility evidence exposed the Gateway endpoint.'
     Assert-True -Condition (-not $validResult.Text.Contains($validFixture.Root)) `
         -Message 'Compatibility evidence exposed a deployment path.'
+
+    $connectionValidateOnlyResult = Invoke-CompatibilityHarness `
+        -Fixture $validFixture `
+        -ValidateOnly `
+        -OperationId 'runtime.pool.validate.connection'
+    Assert-True -Condition ($connectionValidateOnlyResult.ExitCode -eq 0) `
+        -Message 'The compatibility harness rejected the approved connection-validation operation.'
+    $connectionValidateOnlyEvidence = $connectionValidateOnlyResult.Text |
+        ConvertFrom-Json -ErrorAction Stop
+    Assert-True -Condition (
+        $connectionValidateOnlyEvidence.operationId -eq 'runtime.pool.validate.connection') `
+        -Message 'The compatibility harness did not preserve the approved connection-validation operation.'
+    Assert-True -Condition (-not $connectionValidateOnlyEvidence.requestExecuted) `
+        -Message 'ValidateOnly must not execute the connection-validation operation.'
+
+    $unknownOperationResult = Invoke-CompatibilityHarness `
+        -Fixture $validFixture `
+        -ValidateOnly `
+        -OperationId 'runtime.unapproved.operation'
+    Assert-True -Condition ($unknownOperationResult.ExitCode -ne 0) `
+        -Message 'The compatibility harness accepted an unapproved operation.'
+    Assert-True -Condition (-not $unknownOperationResult.Text.Contains($validFixture.GatewayEndpoint)) `
+        -Message 'Unknown-operation failure exposed the Gateway endpoint.'
+
+    $p6ValidateOnlyResult = Invoke-P6EvidenceHarness `
+        -Fixture $validFixture `
+        -ValidateOnly
+    Assert-True -Condition ($p6ValidateOnlyResult.ExitCode -eq 0) `
+        -Message 'The P6 connection-evidence harness rejected a coherent identity chain.'
+    $p6ValidateOnlyEvidence = $p6ValidateOnlyResult.Text |
+        ConvertFrom-Json -ErrorAction Stop
+    Assert-True -Condition ($p6ValidateOnlyEvidence.outcome -eq 'validated') `
+        -Message 'P6 ValidateOnly must report a sanitized validated outcome.'
+    Assert-True -Condition (
+        $p6ValidateOnlyEvidence.operationId -eq 'runtime.pool.validate.connection') `
+        -Message 'P6 evidence must select only the connection-validation operation.'
+    Assert-True -Condition (-not $p6ValidateOnlyEvidence.requestExecuted) `
+        -Message 'P6 ValidateOnly must not execute a Gateway request.'
+    Assert-True -Condition ($p6ValidateOnlyEvidence.PSObject.Properties.Name -notcontains 'gatewayEndpoint') `
+        -Message 'P6 evidence must not expose the Gateway endpoint.'
+    Assert-True -Condition (-not $p6ValidateOnlyResult.Text.Contains($validFixture.GatewayEndpoint)) `
+        -Message 'P6 evidence exposed the Gateway endpoint.'
+    Assert-True -Condition (-not $p6ValidateOnlyResult.Text.Contains($validFixture.Root)) `
+        -Message 'P6 evidence exposed a deployment path.'
+
+    $p6NoOptInResult = Invoke-P6EvidenceHarness -Fixture $validFixture
+    Assert-True -Condition ($p6NoOptInResult.ExitCode -ne 0) `
+        -Message 'P6 evidence accepted execution without explicit mode opt-in.'
+    Assert-True -Condition (-not $p6NoOptInResult.Text.Contains($validFixture.GatewayEndpoint)) `
+        -Message 'P6 no-opt-in failure exposed the Gateway endpoint.'
+
+    $p6UnknownOperationResult = Invoke-P6EvidenceHarness `
+        -Fixture $validFixture `
+        -ValidateOnly `
+        -AdditionalArguments @('-OperationId', 'runtime.unapproved.operation')
+    Assert-True -Condition ($p6UnknownOperationResult.ExitCode -ne 0) `
+        -Message 'P6 evidence accepted a caller-selected operation.'
+    Assert-True -Condition (-not $p6UnknownOperationResult.Text.Contains($validFixture.GatewayEndpoint)) `
+        -Message 'P6 unapproved-operation failure exposed the Gateway endpoint.'
 
     $noOptInResult = Invoke-CompatibilityHarness -Fixture $validFixture
     Assert-True -Condition ($noOptInResult.ExitCode -ne 0) `
@@ -422,6 +543,31 @@ try {
     )) {
         Assert-True -Condition ($source.Contains($requiredSourceFragment)) `
             -Message 'The compatibility harness is missing a required lifecycle boundary.'
+    }
+
+    $p6EvidenceSource = [IO.File]::ReadAllText(
+        $p6EvidenceScriptPath,
+        [Text.UTF8Encoding]::new($false, $true))
+    foreach ($requiredP6SourceFragment in @(
+        "'-OperationId', 'runtime.pool.validate.connection'",
+        'ValidateOnly',
+        'EnableLiveEvidence',
+        'MaximumResponseBytes',
+        'Official worker P6 evidence operation failed.'
+    )) {
+        Assert-True -Condition ($p6EvidenceSource.Contains($requiredP6SourceFragment)) `
+            -Message 'The P6 evidence wrapper is missing a required safety boundary.'
+    }
+    foreach ($forbiddenP6SourceFragment in @(
+        'Invoke-WebRequest',
+        'Invoke-RestMethod',
+        '/api/data/',
+        'Authorization',
+        'Bearer ',
+        'Basic '
+    )) {
+        Assert-True -Condition (-not $p6EvidenceSource.Contains($forbiddenP6SourceFragment)) `
+            -Message 'The P6 evidence wrapper contains a forbidden direct transport path.'
     }
     foreach ($forbiddenSourceFragment in @(
         '/api/data/',

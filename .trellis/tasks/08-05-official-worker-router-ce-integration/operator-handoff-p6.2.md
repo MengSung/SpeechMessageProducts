@@ -12,10 +12,18 @@ Prepare these non-secret values for each approved read-only target. Do not paste
 
 1. CE 8.2: approved read-only canonical Organization HTTPS root URI, organization name, Organization ID, and IFD HTTPS home realm.
 2. CE 9.1: the isolated `sunnyvalechback` Organization's canonical HTTPS root URI, organization name, Organization ID, and IFD HTTPS home realm.
-3. Two new, stable Credential Manager target names. Use only letters, digits, `.`, `-`, or `_`; for example, `speechmessage.crm82.p62` and `speechmessage.crm91.p62`.
+3. Two stable Credential Manager target names. Use only letters, digits, `.`, `-`, or `_`; the
+   current local profile uses `speechmessage.crm82.p62` and `speechmessage.crm91.p62`.
 4. Two non-secret profile generation IDs, also using only letters, digits, `.`, `-`, or `_`; for example, `crm82-p6-2-local-001` and `crm91-p6-2-local-001`.
 
-For each Credential Manager target, open **Control Panel → Credential Manager → Windows Credentials → Add a generic credential**. Enter the target name and the dedicated IFD test account's username/password. Never paste the username or password into chat, a repository file, a Trellis artifact, or the commands below. The later readiness probe checks only whether the target name is resolvable; it never prints or reads the credential value.
+For each Credential Manager target, open **Control Panel → Credential Manager → Windows Credentials**.
+If the target already exists, expand it and choose **Edit**; add a generic credential only when it
+does not exist. Enter the target name and the dedicated IFD test account's username/password. The
+username must be exactly the form accepted by that environment's IFD login page (for example,
+`DOMAIN\\name` or a UPN only when that is the working interactive-login form). Never paste the
+username or password into chat, a repository file, a Trellis artifact, or the commands below. The
+later readiness probe checks only whether the target name is resolvable; it never validates a
+password or reads the credential value.
 
 The Organization base URI is the canonical IFD host root, exactly `https://host-name/`: it includes the final `/`, has no organization path, query, fragment, user information, or non-default port spelling. Enter the organization separately in the organization-name prompt. For example, `https://crm.example.test/organization/` is invalid here even when that is a browser navigation URL.
 
@@ -67,7 +75,9 @@ Expected safe result:
 {"schemaVersion":1,"outcome":"written","profileCount":2}
 ```
 
-If the outcome is `error`, paste only that short JSON line. Do not open, copy, attach, or paste `official-worker-profile-input.json`; it contains deployment metadata and stays local.
+If the outcome is `error`, paste only that short JSON line. Do not open, copy, attach, or paste `official-worker-profile-input.json`; it contains deployment metadata and stays local. When an
+existing local profile is replaced, the script retains a recoverable local backup rather than
+writing the prior profile to this repository.
 
 ## Step 2: Run the sanitized readiness probe
 
@@ -86,3 +96,53 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
 ```
 
 Paste only this second JSON result into chat. A result of `go` permits the next P6.2 offline deployment-material generation and controlled read-only evidence. A result of `no-go` is still useful: its `reasons` array tells us the next safe action without exposing credential values or D365 metadata.
+
+## Step 3: Run the sanitized local Gateway startup bridge
+
+Use this only after the readiness result is `go` and the deployment material has been
+provisioned. Run it as the same `LENOVO-LEGION\Administrator` user that owns both
+Credential Manager targets. The bridge starts only the published local Gateway with the
+fixed `crm82`／`crm91` profile selectors and the two P6 read-only operation IDs; it does not
+send a CE request or start ChurchReport. It captures child logs in a temporary directory,
+does not print them, stops only the process it started, and prints one sanitized JSON result.
+
+```powershell
+$root = 'D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree'
+$gatewayDir = Join-Path $root 'artifacts\dynamics-workers-p6.2\gateway-host'
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
+  "$root\docs\scripts\Test-DynamicsOfficialWorkerP6LocalStartup.ps1" `
+  -GatewayExecutablePath "$gatewayDir\SpeechMessage.Dynamics.Gateway.exe" `
+  -GatewayContentRootPath $gatewayDir `
+  -GatewayEndpoint 'https://localhost:7244/' `
+  -StartupTimeoutSeconds 20 `
+  -Json
+```
+
+Paste only the final JSON line. Expected meanings:
+
+- `outcome: "started"`: the Gateway survived the bounded startup window and released its
+  listener after the bridge stopped it; continue with the P6 allowlisted read-only evidence.
+- `outcome: "no-go"` with `reason: "gateway-startup-failed-before-ready"`: do not retry
+  blindly. Recheck the two target credentials and approved IFD home realms under this same
+  Windows user, then regenerate the profile input only if an externally confirmed fact changed.
+- `outcome: "error"`: the local bridge input or process setup is invalid; paste only that
+  sanitized JSON and do not paste its temporary logs.
+
+## If Step 3 reports `gateway-startup-failed-before-ready`
+
+Do not change the canonical root URI, regenerate the local profile, or rerun the bridge unchanged.
+The current canonical root URIs have already been recorded successfully. On **Lenovo Legion**, while
+signed in as `LENOVO-LEGION\Administrator`, refresh only these two existing Windows Credentials:
+
+1. In **Windows Credentials → Generic Credentials**, find `speechmessage.crm82.p62`, choose
+   **Edit**, and enter the exact account and password that successfully sign in through the CE 8.2
+   IFD login for `https://jesus.speechmessage.com.tw/`.
+2. Find `speechmessage.crm91.p62`, choose **Edit**, and enter the exact account and password that
+   successfully sign in through the CE 9.1 IFD login for
+   `https://sunnyvalechback.speechmessage.com.tw/`.
+3. Select **Save** for both entries. Do not create a duplicate target, disclose a password, or
+   change the target-name spelling.
+4. Rerun the Step 3 block exactly once. Paste only its final sanitized JSON output. A new
+   `outcome: "started"` permits the P6 allowlisted read-only matrix; the same `no-go` result means
+   the next required fact is CE/ADFS-side IFD account authorization, not another local retry.

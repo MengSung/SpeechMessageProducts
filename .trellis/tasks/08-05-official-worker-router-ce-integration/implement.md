@@ -112,10 +112,10 @@ git diff --check
 4. 重新執行 readiness probe；只有 outcome 為 `go` 才先對已確認與正式系統隔離的 CE 9.1 `sunnyvalechback` profile 執行既有 Data8 `runtime.health.whoami` control measurement，取得第一筆
    Gateway/Connector/CE 端到端 evidence；不改寫 P5 archive、不開啟 ChurchReport feature flag，也不讓產品
    業務流量改道。
-5. 現有 `Invoke-DynamicsOfficialWorkerCompatibility.ps1` 只支援 `runtime.health.whoami`；沿用它取得 identity
-   evidence。若 repository 尚無相等的 bounded harness，先以測試建立
-   `Invoke-DynamicsOfficialWorkerP6Evidence.ps1`，只允許 `runtime.pool.validate.connection`，以及在明確傳入
-   repository 外核准 input 時允許 `fee.dedication.retrieve.by.contact.date.range`；禁止任意 operation ID、
+5. `Invoke-DynamicsOfficialWorkerCompatibility.ps1` 只接受固定 allowlist 的 `runtime.health.whoami` 與
+   `runtime.pool.validate.connection`；沿用它取得 identity evidence。以測試建立的
+   `Invoke-DynamicsOfficialWorkerP6Evidence.ps1` 固定包裝後者，並只允許 `runtime.pool.validate.connection`；
+   fee read 若未來有明確傳入 repository 外核准 input 才另行建立 bounded slice；禁止任意 operation ID、
    generic CRUD、FetchXML、write、Action、Function 與 ChurchReport consumer cutover。
 6. 對每個 version 的 selected Official Worker 依序執行 `runtime.health.whoami` 與
    `runtime.pool.validate.connection`。兩個 version 的 identity/connection evidence 是 P6.2 必要矩陣；fee read

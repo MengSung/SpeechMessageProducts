@@ -70,6 +70,9 @@ param(
     [ValidateRange(1024, 65536)]
     [int] $MaximumResponseBytes = 16384,
 
+    [ValidateSet('runtime.health.whoami', 'runtime.pool.validate.connection')]
+    [string] $OperationId = 'runtime.health.whoami',
+
     [switch] $ValidateOnly,
 
     [switch] $EnableLiveCompatibility,
@@ -88,7 +91,7 @@ $strictUtf8 = [Text.UTF8Encoding]::new($false, $true)
 $maximumManifestBytes = 256 * 1024
 $maximumOverlayBytes = 128 * 1024
 $maximumWorkerProfileBytes = 64 * 1024
-$operationId = 'runtime.health.whoami'
+$operationId = $OperationId
 
 function Get-ResolvedExistingFile {
     <#
@@ -1478,7 +1481,7 @@ function Invoke-GatewayIdentityOperation {
 
     .DESCRIPTION
     此函式沒有 retry、transport fallback 或可呼叫端指定的 operation/path。它只
-    組合固定 /v1/organizations/{alias}/operations/runtime.health.whoami URI，並
+    組合固定 allowlist 中的 /v1/organizations/{alias}/operations/{operationId} URI，並
     禁用 cookie、proxy、redirect、automatic decompression 與預先驗證。handler
     僅能使用目前 Windows identity，沒有密碼輸入、持久 token 或外部 Session。
 
