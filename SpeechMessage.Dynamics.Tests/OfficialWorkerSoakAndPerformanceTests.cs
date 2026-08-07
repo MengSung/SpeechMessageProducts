@@ -572,9 +572,18 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
         var baseline = Math.Max(1L, samples[0]);
         var materialGrowth = samples[^1] - samples[0] >
             (long)Math.Ceiling(baseline * relativeGrowthAllowance);
+        var samplesSummary = string.Join(
+            ", ",
+            samples.Select(value => value.ToString(CultureInfo.InvariantCulture)));
+        var deltasSummary = string.Join(
+            ", ",
+            deltas.Select(value => value.ToString(CultureInfo.InvariantCulture)));
 
         (sustainedIncrease && materialGrowth).Should().BeFalse(
-            because: $"{metricName} must not show a material monotonic post-warm-up trend");
+            because: $"{metricName} must not show a material monotonic post-warm-up trend; " +
+                $"samples=[{samplesSummary}], deltas=[{deltasSummary}], " +
+                $"baseline={baseline.ToString(CultureInfo.InvariantCulture)}, " +
+                $"allowance={relativeGrowthAllowance.ToString(CultureInfo.InvariantCulture)}");
     }
 
     /// <summary>

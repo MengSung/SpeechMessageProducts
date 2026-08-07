@@ -17,7 +17,7 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Apply the 2026-08-07 scope rebaseline: P6.1 is the completed original Official Worker Router/Pool/Lease extension deliverable. Run the final offline P6 quality and document-consistency gates, record Official Worker live compatibility as evidence-pending (latest controlled result: both Workers exit 20 before READY and no CE operation executed), then perform spec-update judgment, task-owned commit, and archive P6. After archive, activate the existing P7.0 task. P7 must preserve configurable Embedded+Data8 and DedicatedGateway+Data8 on Lenovo Legion; P8 remains separate and its first ChurchReport deployment uses CentralGateway+Data8.",
+  "nextAction": "P6.1 scope rebaseline and all non-soak offline evidence are complete, and P6.2 Official Worker live compatibility remains evidence-pending. Do not archive P6 or activate P7.0 while the P6 WorkerTestHost soak gate is reproducibly failing its within-generation private-bytes trend assertion. Preserve the diagnostic sample output, keep the threshold unchanged, and repair the test design or a proven lifecycle retention defect through a bounded P6-owned change. No CE operation, P6.2 startup, feature-flag change, or ChurchReport traffic change is authorized during that repair.",
   "subtasks": [],
   "children": [],
   "parent": "08-04-dynamics-connection-management-plan",

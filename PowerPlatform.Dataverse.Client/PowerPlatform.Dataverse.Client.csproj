@@ -45,6 +45,23 @@ void CreateRecord(IOrganizationService svc)
     <PackageIcon>Data8.png</PackageIcon>
   </PropertyGroup>
 
+  <!-- AI-修正註解（對齊上游 Data8 commit e58a0ad「Updated DVSC package and target frameworks」，2025-02-20）：
+       上游在該次改動中把 NSspi 原始碼的 <Compile Include> 條件由「net462 或 net6.0」收斂為「僅 net462」。
+       原因是 System.Net.Security.NegotiateAuthentication 依 Microsoft Learn 的 Applies-to 僅存在於 .NET 7 以上
+       （moniker：net-7.0 / net-8.0 / net-9.0 / net-10.0 / net-11.0，沒有 net-6.0）。上游先前必須為 net6.0 保留
+       NSspi 這條 P/Invoke 後備路徑；一旦把 net6.0／net7.0 併為 net8.0，該後備路徑對所有 .NET 目標就成為死碼。
+
+       本專案唯一目標為 net10.0，NET7_0_OR_GREATER 恆為真，因此 ADAuthClient 的 #else（NSspi）分支永不編譯，
+       但 NSspi 底下 37 個檔案仍會被 SDK 預設 glob 全部編入輸出組件——其中 NativeMethods.cs、
+       ContextNativeMethods.cs、CredentialNativeMethods.cs 是對 secur32.dll 的非受管 P/Invoke 宣告。
+       這些型別永遠不會被呼叫，卻實際存在於交付組件中，屬於沒有必要的未使用非受管介面面積。
+
+       以 Remove 形式排除（而非上游的 Include 形式），是因為本 repo 的 NSspi 原始碼實體位於專案資料夾內，
+       會被預設 glob 自動納入；條件保留 net462 判斷，日後若真的重新加回 net462 目標，後備路徑會自動恢復編譯。 -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net462'">
+    <Compile Remove="NSspi\**\*.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" Version="6.8.0" />
     <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" Version="1.1.32" />
