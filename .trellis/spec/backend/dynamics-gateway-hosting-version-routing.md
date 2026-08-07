@@ -2425,3 +2425,78 @@ fixed sunnyvalechback + typed fixture environment
 
 This keeps real CE evidence separate from registry/executor/consumer state and
 preserves the permanent Data8 contract for both Embedded and Gateway hosts.
+
+## Scenario: Archived P7 coverage-validator repository discovery
+
+### 1. Scope / Trigger
+
+This contract applies to a P7 task-local validator that regenerates or validates
+coverage artifacts after its Trellis task has moved from an active task path to
+`archive/<year-month>`. The archive move changes directory depth but must not
+change the validator's source-of-truth repository or cause it to touch CE.
+
+### 2. Signatures
+
+```text
+python <p7-task-directory>/validate_coverage.py --build
+python <p7-task-directory>/validate_coverage.py
+```
+
+The validator discovers the repository root by walking upward to the directory
+that contains both `.trellis` and `.trellis/tasks`; it does not derive the root
+from a fixed `Path.parents[n]` offset.
+
+### 3. Contracts
+
+- `--build` may read only repository-versioned source and task-local JSON, then
+  rewrite only the validator's task-local artifacts with deterministic UTF-8,
+  CRLF JSON.
+- The same invocation must work before and after task archival. Archive year,
+  month, and task-name depth are not inputs to repository discovery.
+- If no structural `.trellis/tasks` anchor exists, discovery fails before any
+  source scan, artifact write, network call, credential lookup, or CE action.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Active task path | Locate the enclosing repository root and produce the normal deterministic report. |
+| Archived task path | Locate the same enclosing repository root and preserve identical validation semantics. |
+| Fixed parent offset resolves to `.trellis/tasks` | Reject that implementation; it is not a repository root. |
+| No `.trellis/tasks` ancestor | Raise a deterministic local error before reading or writing artifacts. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an archived P7.0 validator runs `--build`, reads current approved source
+  under the repository root, writes its own manifest, and emits a valid report.
+- Base: the task is still active; anchor discovery selects the same root without
+  depending on the active path's depth.
+- Bad: `TASK_DIRECTORY.parents[2]` is treated as permanent; archival shifts the
+  offset and source scans look under `.trellis/tasks` instead of the repository.
+
+### 6. Tests Required
+
+- A direct contract test asserts the discovered root contains `.trellis` and a
+  known repository source after the task resides under `archive/<year-month>`.
+- The full validator test suite runs `--build` from the archived task directory
+  and verifies the worker allowlist and P7.2 activation candidate contracts.
+- A normal validation run remains deterministic and reports no errors for the
+  committed P7.0 matrix.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+REPOSITORY_ROOT = TASK_DIRECTORY.parents[2]
+```
+
+#### Correct
+
+```python
+REPOSITORY_ROOT = find_repository_root(TASK_DIRECTORY)  # locate `.trellis/tasks`
+```
+
+The structural anchor keeps archive portability deterministic, prevents an
+incorrect source baseline from being generated, and preserves the P7 gate's
+offline, fail-closed boundary.

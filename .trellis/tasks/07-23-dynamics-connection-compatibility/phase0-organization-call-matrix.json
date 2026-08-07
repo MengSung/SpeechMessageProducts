@@ -2140,7 +2140,7 @@
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-route",
                                                                 "templateId":  "memberinfo.contact.basic.info.patch.v1",
-                                                                "templateHash":  "66bc3bf55adf478e9224cf91779eb7f7630288f3b4015ab9b2b6a2ace492aaba"
+                                                                "templateHash":  "5f1dc9fd497fdd8e1136563ae4fa34dc68aa6e6aee092a4d0d2cba1af72bedbf"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -2197,6 +2197,11 @@
                                                       },
                                     "auditRequirement":  "write-audit",
                                     "idempotencyClass":  "caller-idempotency-key-required",
+                                    "responseKind":  "ContactBasicInfoUpdate",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "migrationStatus":  "mapped-pending-evidence",
                                     "temporaryLegacyOwner":  "churchreport-memberinfo",
                                     "temporaryLegacyRemovalDeadline":  "2026-11-15"

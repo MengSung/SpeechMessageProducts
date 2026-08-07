@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "p7.2.fixture-activation.v1",
+  "coverageMatrix": "archive/2026-08/08-05-gateway-capability-inventory/coverage-matrix.json",
+  "sourceMatrix": ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+  "sourceMatrixSha256": "ec99208639e85e9f9f3b48999b3d829d578f2f094554447ddb469195d0615c83",
+  "defaultDispatch": "fail-closed",
+  "allowedExecutionHost": "Lenovo Legion local development environment",
+  "allowedConnector": "Data8",
+  "defaultCeSupport": {
+    "ce82": "unsupported",
+    "ce91": "fixture-pending"
+  },
+  "slices": [
+    {
+      "id": "contact-basic-info",
+      "status": "required-for-activation",
+      "operationIds": [
+        "memberinfo.contact.update.basic.info"
+      ],
+      "fixtureOwner": "p7.2-controlled-test-contact",
+      "requiredCeVersion": "9.1",
+      "allowedMutations": [
+        "contact.mobilephone",
+        "contact.address2_line1"
+      ],
+      "preconditions": [
+        "deployment-owned crm91 profile resolves to Data8",
+        "contact is selected or created by the task-owned fixture bridge",
+        "fixture marker is owned by the current Windows identity",
+        "baseline read of both allowed fields succeeds"
+      ],
+      "idempotency": "no automatic write retry after an ambiguous outcome; reconcile by read-back",
+      "ambiguousTimeoutPolicy": "read current values; clean up only when the state is provably baseline or expected sentinel; otherwise stop no-go",
+      "cleanup": "restore the captured baseline values for exactly the two allowed fields",
+      "reconciliation": "compare only the two allowlisted fields and report sanitized state categories",
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.2 contact-basic-info fixture bridge"
+    },
+    {
+      "id": "contact-profile-media-and-aggregate",
+      "status": "fixture-pending",
+      "operationIds": [
+        "memberinfo.contact.update.line.profile",
+        "memberinfo.contact.count.ungrouped.commitment",
+        "memberinfo.contact.update.image",
+        "newperson.contact.update.image"
+      ],
+      "reason": "LINE, image bytes and aggregate semantics each require dedicated field limits and reconciliation."
+    },
+    {
+      "id": "list-membership",
+      "status": "fixture-pending",
+      "operationIds": [
+        "list.members.add.many",
+        "list.members.remove.one",
+        "listmanagement.smallgroup.update.fields",
+        "contact.assign.owner",
+        "newperson.contact.transfer.between.lists",
+        "list.members.service.interface.unresolved"
+      ],
+      "reason": "Membership association, owner assignment and list transfer need a dedicated contact-list-owner fixture graph."
+    },
+    {
+      "id": "donation-lifecycle",
+      "status": "fixture-pending",
+      "operationIds": [
+        "payments.fee.update.after.payment",
+        "payments.dedication.complete.recurring",
+        "payments.contact.create.or.update",
+        "payments.dedication.cancel.booking",
+        "payments.contact.create.with.dedication.number",
+        "payments.contact.update.card.profile"
+      ],
+      "reason": "Payment and dedication records require an isolated financial fixture graph and ledger reconciliation."
+    },
+    {
+      "id": "appointments",
+      "status": "fixture-pending",
+      "operationIds": [
+        "appointments.entity.create.or.update"
+      ],
+      "reason": "Appointment create/update and ownership assignment require an isolated appointment fixture."
+    },
+    {
+      "id": "contact-onboarding",
+      "status": "fixture-pending",
+      "operationIds": [
+        "newperson.contact.create.full.onboarding"
+      ],
+      "reason": "Onboarding creates a multi-record contact graph and needs an explicit known-ID cleanup contract."
+    },
+    {
+      "id": "fee-lessons",
+      "status": "fixture-pending",
+      "operationIds": [
+        "fees.editor.update.by.storlesson",
+        "fees.editor.stage.inmemory.change",
+        "fees.create.from.storlesson"
+      ],
+      "reason": "Fee and stor-lesson updates require monetary and status reconciliation."
+    },
+    {
+      "id": "attendance",
+      "status": "fixture-pending",
+      "operationIds": [
+        "presentrecord.create.on.download",
+        "presentrecord.upsert.on.upload"
+      ],
+      "reason": "Attendance create/upsert requires a dedicated attendance key and cleanup graph."
+    }
+  ]
+}

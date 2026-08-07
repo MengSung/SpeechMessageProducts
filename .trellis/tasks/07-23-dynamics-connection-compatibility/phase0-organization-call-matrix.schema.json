@@ -371,7 +371,8 @@
             "Unsupported",
             "WhoAmI",
             "Package01FeeRecords",
-            "Package01StorLessonRecords"
+            "Package01StorLessonRecords",
+            "ContactBasicInfoUpdate"
           ]
         },
         "maximumPageCount": {
@@ -514,7 +515,8 @@
                   "fees.retrieve.by.dedication.period",
                   "fees.editor.load.by.disciplelesson",
                   "lessons.stor.retrieve.by.contact",
-                  "lessons.stor.retrieve.by.disciplelesson"
+                  "lessons.stor.retrieve.by.disciplelesson",
+                  "memberinfo.contact.update.basic.info"
                 ]
               }
             }

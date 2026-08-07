@@ -21,7 +21,8 @@
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",
-    "08-07-p7-1-package01-data8-read"
+    "08-07-p7-1-package01-data8-read",
+    "08-07-churchreport-write-action-function-migrations"
   ],
   "parent": null,
   "relatedFiles": [],

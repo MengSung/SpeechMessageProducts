@@ -1,0 +1,5 @@
+{"file":".trellis/tasks/08-07-churchreport-write-action-function-migrations/prd.md","reason":"驗收條件、範圍與對 CE fixture／Official Worker 的隔離約束。"}
+{"file":".trellis/tasks/08-07-churchreport-write-action-function-migrations/design.md","reason":"寫入 contract、timeout/reconciliation、cleanup 與 lifecycle 設計的審查依據。"}
+{"file":".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-fixture-activation-matrix.json","reason":"每個 P7.2 slice 的預設拒絕、fixture owner 與 rollback boundary。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"產品／Gateway／Data8 的 request-time routing、安全與資源所有權規範。"}
+{"file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"lease、permit、drain 與不跨 Profile／Organization 保留狀態的驗證基準。"}

@@ -41,7 +41,15 @@ public enum OperationResponseKind
     /// <summary>
     /// Package 1 stor-lesson/read-editor 的安全 stor lesson record 集合。
     /// </summary>
-    Package01StorLessonRecords = 3
+    Package01StorLessonRecords = 3,
+
+    /// <summary>
+    /// P7.2 會友基本資料更新的封閉回應種類。
+    /// 目前 registry 先以此 discriminator 保留寫入契約；在 Data8 template、read-back projection 與 ProductClient
+    /// branch 尚未全部完成前，executor 仍會在取得 connector lease 前拒絕該 operation，不能把 enum 的存在誤解為
+    /// 已允許 CRM 寫入或 feature flag 已啟用。
+    /// </summary>
+    ContactBasicInfoUpdate = 4
 }
 
 /// <summary>
@@ -62,7 +70,8 @@ public sealed class OperationResponseData
         OperationResponseKind responseKind,
         WhoAmIResponseData? whoAmI = null,
         IReadOnlyList<Package01FeeRecord>? feeRecords = null,
-        IReadOnlyList<Package01StorLessonRecord>? storLessonRecords = null)
+        IReadOnlyList<Package01StorLessonRecord>? storLessonRecords = null,
+        ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate = null)
     {
         if (string.IsNullOrWhiteSpace(operationId))
         {
@@ -74,7 +83,7 @@ public sealed class OperationResponseData
             throw new ArgumentException("ceVersion is required.", nameof(ceVersion));
         }
 
-        ValidateSingleSafeBranch(responseKind, whoAmI, feeRecords, storLessonRecords);
+        ValidateSingleSafeBranch(responseKind, whoAmI, feeRecords, storLessonRecords, contactBasicInfoUpdate);
 
         OperationId = operationId;
         CeVersion = ceVersion;
@@ -82,6 +91,7 @@ public sealed class OperationResponseData
         WhoAmI = whoAmI;
         FeeRecords = feeRecords?.ToArray();
         StorLessonRecords = storLessonRecords?.ToArray();
+        ContactBasicInfoUpdate = contactBasicInfoUpdate;
     }
 
     /// <summary>
@@ -124,6 +134,16 @@ public sealed class OperationResponseData
     [JsonPropertyName("storLessonRecords")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<Package01StorLessonRecord>? StorLessonRecords { get; }
+
+    /// <summary>
+    /// P7.2 會友基本資料寫入的唯一安全結果投影。它只含 changed/no-change 與固定的 read-back correlation
+    /// category；不含 contact ID、電話、地址、OptionSet、baseline、CRM logical name、URL、token、cookie、
+    /// 例外或原始 response。此 immutable 值沒有資源所有權，connector 的 lease、service、request、response、
+    /// buffer 與 cancellation registration 仍必須在 executor request scope 內釋放，不能由結果物件延長生命週期。
+    /// </summary>
+    [JsonPropertyName("contactBasicInfoUpdate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactBasicInfoUpdateResponseData? ContactBasicInfoUpdate { get; }
 
     /// <summary>
     /// 建立 WhoAmI branch。呼叫端在 connector request scope 完成原始 JSON 投影並 dispose 上游 response 後才可
@@ -173,6 +193,29 @@ public sealed class OperationResponseData
     }
 
     /// <summary>
+    /// 建立 P7.2 會友基本資料更新的封閉成功 branch。呼叫端只能選擇有限 enum，不能附帶 contact、欄位值、
+    /// CRM response 或自訂 correlation ID；<paramref name="disposition"/> 與
+    /// <paramref name="correlationCategory"/> 的合法配對由這個 class 的單一驗證點確認。
+    /// <see cref="ContactBasicInfoUpdateDisposition.NoChange"/> 表示 executor 在取得 connector lease 前發現沒有
+    /// 可更新的 allowlisted 欄位；<see cref="ContactBasicInfoUpdateDisposition.Changed"/> 則只能在 Data8 寫入後
+    /// read-back 完全確認時回傳。timeout 或任何未知結果不得建構成功 envelope，必須留在 fail-closed error path。
+    /// </summary>
+    public static OperationResponseData ForContactBasicInfoUpdate(
+        string operationId,
+        string ceVersion,
+        ContactBasicInfoUpdateDisposition disposition,
+        ContactBasicInfoUpdateCorrelationCategory correlationCategory)
+        => new(
+            operationId,
+            ceVersion,
+            OperationResponseKind.ContactBasicInfoUpdate,
+            contactBasicInfoUpdate: new ContactBasicInfoUpdateResponseData
+            {
+                Disposition = disposition,
+                CorrelationCategory = correlationCategory
+            });
+
+    /// <summary>
     /// 建立明確的 unsupported envelope。connector/Gateway 應把它轉成受控失敗，而不是把未投影 metadata、
     /// OData annotation 或 endpoint detail 回傳給產品；此值不擁有背景資源或可清理 handle。
     /// </summary>
@@ -183,19 +226,25 @@ public sealed class OperationResponseData
         OperationResponseKind responseKind,
         WhoAmIResponseData? whoAmI,
         IReadOnlyList<Package01FeeRecord>? feeRecords,
-        IReadOnlyList<Package01StorLessonRecord>? storLessonRecords)
+        IReadOnlyList<Package01StorLessonRecord>? storLessonRecords,
+        ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
         // 多 branch 讓資料跨 capability 混合。失敗時不保留任何集合或外部資源。
         var branchCount = (whoAmI is null ? 0 : 1) +
                           (feeRecords is null ? 0 : 1) +
-                          (storLessonRecords is null ? 0 : 1);
+                          (storLessonRecords is null ? 0 : 1) +
+                          (contactBasicInfoUpdate is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
             OperationResponseKind.WhoAmI => branchCount == 1 && whoAmI is not null,
             OperationResponseKind.Package01FeeRecords => branchCount == 1 && feeRecords is not null,
             OperationResponseKind.Package01StorLessonRecords => branchCount == 1 && storLessonRecords is not null,
+            OperationResponseKind.ContactBasicInfoUpdate =>
+                branchCount == 1 &&
+                contactBasicInfoUpdate is not null &&
+                IsValidContactBasicInfoUpdate(contactBasicInfoUpdate),
             _ => false
         };
 
@@ -206,6 +255,92 @@ public sealed class OperationResponseData
                 nameof(responseKind));
         }
     }
+
+    /// <summary>
+    /// 驗證 P7.2 寫入結果的兩個 enum 必須是已知且可安全解釋的配對。這裡是 JSON constructor 與 public factory
+    /// 共用的防線，避免反序列化或未來呼叫端用未定義的 enum 數值偽造「已確認」結果；此方法不配置或保留任何
+    /// client、lease、stream、timer、cache 或 session 狀態。
+    /// </summary>
+    private static bool IsValidContactBasicInfoUpdate(ContactBasicInfoUpdateResponseData response)
+    {
+        if (!Enum.IsDefined(response.Disposition) || !Enum.IsDefined(response.CorrelationCategory))
+        {
+            return false;
+        }
+
+        return response.Disposition switch
+        {
+            ContactBasicInfoUpdateDisposition.NoChange =>
+                response.CorrelationCategory == ContactBasicInfoUpdateCorrelationCategory.NoDispatch,
+            ContactBasicInfoUpdateDisposition.Changed =>
+                response.CorrelationCategory == ContactBasicInfoUpdateCorrelationCategory.ReadBackConfirmed,
+            _ => false
+        };
+    }
+}
+
+/// <summary>
+/// P7.2 會友基本資料更新的受控結果種類。此 enum 只描述實際 mutation 是否發生，不能承載 contact、欄位值、
+/// endpoint、credential、profile、token 或 request identifier；unknown、timeout 與 cleanup ambiguity 不屬於成功結果，
+/// 必須由 executor 以 fail-closed error 回傳並讓 fixture bridge 依 read-back 規則處理。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ContactBasicInfoUpdateDisposition
+{
+    /// <summary>
+    /// 沒有 allowlisted 欄位需要更新；executor 不得取得 connector lease 或呼叫 CE，並以
+    /// <see cref="ContactBasicInfoUpdateCorrelationCategory.NoDispatch"/> 證明沒有 outbound write。
+    /// </summary>
+    NoChange = 0,
+
+    /// <summary>
+    /// allowlisted 寫入已完成，且兩個允許欄位的 read-back 已確認預期狀態；不能用於 timeout、部分讀回或
+    /// 任意 CRM 回應，這些情況必須中止並保留 sanitized no-go evidence。
+    /// </summary>
+    Changed = 1
+}
+
+/// <summary>
+/// P7.2 寫入結果可公開的固定 correlation 分類。它不是 correlation ID，故不會把 trace、使用者、contact、
+/// profile、session 或 credential 關聯資料帶出 connector request scope；每個值僅描述可由本 capability
+/// 安全證明的 bounded lifecycle outcome。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ContactBasicInfoUpdateCorrelationCategory
+{
+    /// <summary>
+    /// 因為沒有有效的 allowlisted 欄位而沒有 dispatch；此值保證沒有 connector lease、CE client 或 outbound
+    /// write 被建立，避免 no-change 路徑意外保留不必要的資源。
+    /// </summary>
+    NoDispatch = 0,
+
+    /// <summary>
+    /// 已完成一次 bounded update 後的 allowlisted read-back 與預期一致。它不表示 timeout 可重試，也不提供
+    /// 任何可追溯至 contact 或 CRM transport 的識別資料。
+    /// </summary>
+    ReadBackConfirmed = 1
+}
+
+/// <summary>
+/// P7.2 寫入 capability 的最小、安全 wire payload。這個 record 故意只有兩個 enum，藉此防止產品端重新接觸
+/// 原始 Entity、OData JSON、CRM 欄位名稱或 fixture baseline；它不擁有非受控資源，也不得被用作跨請求、
+/// 跨使用者、跨 profile 或跨 tenant 的 mutable cache/session state。
+/// </summary>
+public sealed record ContactBasicInfoUpdateResponseData
+{
+    /// <summary>
+    /// 表示是否發生已確認的 allowlisted mutation；合法值及與 correlation 分類的配對由
+    /// <see cref="OperationResponseData"/> 在 envelope 建構時驗證。
+    /// </summary>
+    [JsonPropertyName("disposition")]
+    public required ContactBasicInfoUpdateDisposition Disposition { get; init; }
+
+    /// <summary>
+    /// 表示不洩漏識別資料的 lifecycle correlation 類別。它只能是 no-dispatch 或 read-back-confirmed，不能替代
+    /// idempotency key、trace ID、credential reference 或 fixture identity。
+    /// </summary>
+    [JsonPropertyName("correlationCategory")]
+    public required ContactBasicInfoUpdateCorrelationCategory CorrelationCategory { get; init; }
 }
 
 /// <summary>

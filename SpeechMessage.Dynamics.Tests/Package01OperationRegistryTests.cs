@@ -33,7 +33,7 @@ public sealed class Package01OperationRegistryTests
     private const int ConservativeMaximumResultItemCount = 4096;
 
     /// <summary>
-    /// 確認目前九個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
+    /// 確認目前十個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
     /// 各自發明未經審查的作業 ID。此檢查只讀取 immutable registry，不配置外部資源。
     /// </summary>
     [Fact]
@@ -51,10 +51,11 @@ public sealed class Package01OperationRegistryTests
             OperationIds.FeesRetrieveByDedicationPeriod,
             OperationIds.FeesEditorLoadByDiscipleLesson,
             OperationIds.LessonsStorRetrieveByContact,
-            OperationIds.LessonsStorRetrieveByDiscipleLesson
+            OperationIds.LessonsStorRetrieveByDiscipleLesson,
+            OperationIds.MemberInfoContactUpdateBasicInfo
         });
 
-        ids.Should().HaveCount(9);
+        ids.Should().HaveCount(10);
     }
 
     /// <summary>
@@ -72,6 +73,42 @@ public sealed class Package01OperationRegistryTests
     }
 
     /// <summary>
+    /// 保護 P7.2 的會友基本資料更新只能以固定 capability 與四個具名欄位進入 registry；故障注入是目前尚未登錄的
+    /// operation ID，決定性斷言是 registry 必須拒絕任意欄位 map，並且未來只允許 contact ID、電話、地址與兩個
+    /// OptionSet scalar。此測試只讀取 process-static 定義，不建立 CRM client、連線、背景工作或跨測試 retained state。
+    /// </summary>
+    [Fact]
+    public void Contact_basic_info_update_is_registered_with_a_closed_field_limited_schema()
+    {
+        const string operationId = "memberinfo.contact.update.basic.info";
+
+        Package01OperationRegistry.TryGet(operationId, out var definition).Should().BeTrue();
+        definition!.OperationKind.Should().Be("write");
+        definition.TemplateKind.Should().Be("odata-route");
+        definition.TemplateId.Should().Be("memberinfo.contact.basic.info.patch.v1");
+        Enum.GetNames<OperationResponseKind>().Should().Contain("ContactBasicInfoUpdate");
+        definition.ResponseKind.ToString().Should().Be("ContactBasicInfoUpdate");
+        definition.IdempotencyClass.Should().Be("caller-idempotency-key-required");
+        definition.Parameters.Select(parameter => new
+            {
+                parameter.Name,
+                parameter.Type,
+                parameter.Required,
+                parameter.EncodingContext
+            })
+            .Should()
+            .BeEquivalentTo(
+                [
+                    new { Name = "contactId", Type = "guid", Required = true, EncodingContext = "odata-uri-segment" },
+                    new { Name = "phone", Type = "string", Required = false, EncodingContext = "json-body" },
+                    new { Name = "address", Type = "string", Required = false, EncodingContext = "json-body" },
+                    new { Name = "membershipStatusValue", Type = "integer", Required = false, EncodingContext = "json-body" },
+                    new { Name = "spiritualIdentityValue", Type = "integer", Required = false, EncodingContext = "json-body" }
+                ],
+                options => options.WithStrictOrdering());
+    }
+
+    /// <summary>
     /// 驗證每個已登錄 capability 都宣告封閉回應 discriminator 與同一組保守、有限的 page/byte 上限。
     /// 四頁、每頁 64 KiB 且累積 256 KiB 讓關閉中的 Package 1 在尚無實測容量證據前保持小而可預測的
     /// 記憶體與 credential-bearing request 範圍；metadata 則明確 Unsupported，以失敗關閉取代 raw metadata 回傳。
@@ -86,6 +123,7 @@ public sealed class Package01OperationRegistryTests
     [InlineData(OperationIds.FeesEditorLoadByDiscipleLesson, OperationResponseKind.Package01StorLessonRecords)]
     [InlineData(OperationIds.LessonsStorRetrieveByContact, OperationResponseKind.Package01StorLessonRecords)]
     [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson, OperationResponseKind.Package01StorLessonRecords)]
+    [InlineData(OperationIds.MemberInfoContactUpdateBasicInfo, OperationResponseKind.ContactBasicInfoUpdate)]
     public void Registered_operations_declare_closed_response_kind_and_conservative_finite_paging_policy(
         string operationId,
         OperationResponseKind expectedResponseKind)
@@ -190,6 +228,61 @@ public sealed class Package01OperationRegistryTests
         root.TryGetProperty("feeRecords", out _).Should().BeFalse();
         root.TryGetProperty("whoAmI", out _).Should().BeFalse();
         json.Should().NotContain("new_stor_lessonsid");
+        json.Should().NotContain("@odata");
+    }
+
+    /// <summary>
+    /// 保護 P7.2 會友基本資料寫入回應必須是另一個封閉 union branch。故障注入是目前尚未實作的
+    /// factory／discriminator 型別；決定性斷言是 factory 只能接受具名的 changed/no-change 與 read-back
+    /// correlation enum，並且序列化後不含 contact ID、電話、地址、OptionSet、CRM logical name、URL、token、
+    /// cookie、baseline 或任何原始 connector 回應。測試只反射 immutable contract metadata，未建立 CRM client、
+    /// connector lease、網路連線、背景工作或跨測試 retained state。
+    /// </summary>
+    [Fact]
+    public void Contact_basic_info_update_response_exposes_only_safe_outcome_and_correlation_category()
+    {
+        var factory = typeof(OperationResponseData).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .SingleOrDefault(method => string.Equals(
+                method.Name,
+                "ForContactBasicInfoUpdate",
+                StringComparison.Ordinal));
+
+        factory.Should().NotBeNull("P7.2 寫入結果必須有封閉 factory，不能以自由字典或 raw CRM payload 組裝");
+        var parameters = factory!.GetParameters();
+        parameters.Select(parameter => parameter.ParameterType.Name).Should().Equal(
+            "String",
+            "String",
+            "ContactBasicInfoUpdateDisposition",
+            "ContactBasicInfoUpdateCorrelationCategory");
+
+        var disposition = Enum.Parse(parameters[2].ParameterType, "Changed");
+        var correlationCategory = Enum.Parse(parameters[3].ParameterType, "ReadBackConfirmed");
+        var response = factory.Invoke(
+            null,
+            [
+                OperationIds.MemberInfoContactUpdateBasicInfo,
+                "v9.1",
+                disposition,
+                correlationCategory
+            ]) as OperationResponseData;
+
+        response.Should().NotBeNull();
+        var json = JsonSerializer.Serialize(response);
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        root.GetProperty("responseKind").GetString().Should().Be(nameof(OperationResponseKind.ContactBasicInfoUpdate));
+        root.TryGetProperty("contactBasicInfoUpdate", out var update).Should().BeTrue();
+        update.GetProperty("disposition").GetString().Should().Be("Changed");
+        update.GetProperty("correlationCategory").GetString().Should().Be("ReadBackConfirmed");
+        root.TryGetProperty("feeRecords", out _).Should().BeFalse();
+        root.TryGetProperty("storLessonRecords", out _).Should().BeFalse();
+        root.TryGetProperty("whoAmI", out _).Should().BeFalse();
+        json.Should().NotContain("contactId");
+        json.Should().NotContain("mobilephone");
+        json.Should().NotContain("address2_line1");
+        json.Should().NotContain("customertypecode");
+        json.Should().NotContain("new_spiriitual_identity");
         json.Should().NotContain("@odata");
     }
 

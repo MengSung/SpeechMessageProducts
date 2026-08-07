@@ -45,4 +45,13 @@ public static class OperationIds
 
     /// <summary>對應 ORG-CALL-00062：依 disciple lesson 讀取 stor lessons。</summary>
     public const string LessonsStorRetrieveByDiscipleLesson = "lessons.stor.retrieve.by.disciplelesson";
+
+    // -------- Package 2：會友具名寫入能力；P7.4 啟用產品流量前維持 fail-closed --------
+
+    /// <summary>
+    /// 對應 ORG-CALL-00030：只更新會友基本資料的具名能力。
+    /// 此常數只識別 server-owned allowlist，不能攜帶或推導 CRM endpoint、Entity 名稱、欄位字典、credential、
+    /// Profile 或 CE version；實際 routing 仍完全由 deployment-owned immutable profile 決定。
+    /// </summary>
+    public const string MemberInfoContactUpdateBasicInfo = "memberinfo.contact.update.basic.info";
 }

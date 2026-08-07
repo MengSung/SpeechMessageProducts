@@ -240,6 +240,74 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護 P7.2 的 Data8 contact basic-info capability 只能建立一個固定 <c>contact</c> patch，且完成後只讀回
+    /// <c>mobilephone</c> 與 <c>address2_line1</c>。故障注入是未實作的 write operation；決定性斷言是 service
+    /// 恰好執行一次 Update 與一次 allowlisted Retrieve，回應僅公開 changed/read-back-confirmed，沒有 Entity、
+    /// contact ID、欄位值、endpoint、credential、token、cookie 或原始 SDK response。測試替身不開啟 CRM、WCF、
+    /// 網路、timer 或背景工作，並在 client dispose 後確認唯一 service owner 已釋放。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_a_fixed_contact_basic_info_update_then_confirms_only_allowlisted_fields()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            update: entity =>
+            {
+                entity.LogicalName.Should().Be("contact");
+                entity.Id.Should().Be(contactId);
+                entity.Attributes.Should().BeEquivalentTo(
+                    new Dictionary<string, object?>(StringComparer.Ordinal)
+                    {
+                        ["mobilephone"] = "0900-000-001",
+                        ["address2_line1"] = "P7.2 fixture address"
+                    });
+            },
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.AllColumns.Should().BeFalse();
+                columnSet.Columns.Should().Equal("mobilephone", "address2_line1");
+                return new Entity("contact", contactId)
+                {
+                    ["mobilephone"] = "0900-000-001",
+                    ["address2_line1"] = "P7.2 fixture address"
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MemberInfoContactUpdateBasicInfo,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["phone"] = "0900-000-001",
+                ["address"] = "P7.2 fixture address"
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactBasicInfoUpdate);
+        result.Data.ContactBasicInfoUpdate!.Disposition.Should().Be(ContactBasicInfoUpdateDisposition.Changed);
+        result.Data.ContactBasicInfoUpdate.CorrelationCategory
+            .Should().Be(ContactBasicInfoUpdateCorrelationCategory.ReadBackConfirmed);
+        service.UpdateCount.Should().Be(1);
+        service.RetrieveCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 建立只在本測試記憶體內存在的 factory 設定。字串內容不是真實 endpoint 或 credential；production factory
     /// 不記錄這些值，且設定 owner 是 host composition root，不會把它傳入 OperationExecutionRequest 或 Pool key。
     /// </summary>
@@ -438,8 +506,12 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     {
         private readonly Guid _organizationId;
         private readonly Func<QueryBase, EntityCollection>? _retrieveMultiple;
+        private readonly Action<Entity>? _update;
+        private readonly Func<string, Guid, ColumnSet, Entity>? _retrieve;
         private int _executeCount;
         private int _retrieveMultipleCount;
+        private int _updateCount;
+        private int _retrieveCount;
         private int _disposeCount;
 
         /// <summary>
@@ -450,16 +522,32 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
         /// <param name="retrieveMultiple">測試所有的固定查詢 callback；不保存真實資料庫、連線或 session。</param>
         public FakeOrganizationService(
             Guid organizationId,
-            Func<QueryBase, EntityCollection>? retrieveMultiple = null)
+            Func<QueryBase, EntityCollection>? retrieveMultiple = null,
+            Action<Entity>? update = null,
+            Func<string, Guid, ColumnSet, Entity>? retrieve = null)
         {
             _organizationId = organizationId;
             _retrieveMultiple = retrieveMultiple;
+            _update = update;
+            _retrieve = retrieve;
         }
 
         public int ExecuteCount => Volatile.Read(ref _executeCount);
 
         /// <summary>取得固定 QueryExpression 實際呼叫次數，供驗證沒有背景補送或未界定 paging。</summary>
         public int RetrieveMultipleCount => Volatile.Read(ref _retrieveMultipleCount);
+
+        /// <summary>
+        /// 取得已被允許的固定 update 次數。此計數只在測試 process 內使用，不保存 Entity、聯絡人資料、
+        /// credential 或連線狀態，讓測試能判定 no-change／write path 是否意外執行。
+        /// </summary>
+        public int UpdateCount => Volatile.Read(ref _updateCount);
+
+        /// <summary>
+        /// 取得已被允許的固定 read-back 次數。它只量測本替身的同步 callback，不建立 session、cache、timer
+        /// 或背景資源，因此不會跨測試保留任何 mutable 狀態。
+        /// </summary>
+        public int RetrieveCount => Volatile.Read(ref _retrieveCount);
 
         public int DisposeCount => Volatile.Read(ref _disposeCount);
 
@@ -480,11 +568,37 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
 
         public Guid Create(Entity entity) => throw new NotSupportedException();
 
-        public void Update(Entity entity) => throw new NotSupportedException();
+        /// <summary>
+        /// 執行測試明確注入的固定 update callback。沒有 callback 時立即失敗，避免測試替身默默接受任意
+        /// Entity／欄位 map；callback 不會被 service 保留，確保 Entity 僅活在目前呼叫 scope。
+        /// </summary>
+        public void Update(Entity entity)
+        {
+            ArgumentNullException.ThrowIfNull(entity);
+            var callback = _update ?? throw new NotSupportedException();
+            Interlocked.Increment(ref _updateCount);
+            callback(entity);
+        }
 
         public void Delete(string entityName, Guid id) => throw new NotSupportedException();
 
-        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => throw new NotSupportedException();
+        /// <summary>
+        /// 執行測試明確注入的 allowlisted read-back callback。沒有 callback、空 entity 名稱、空 GUID 或空
+        /// ColumnSet 都立即失敗，防止 unit test 偽造未驗證的 CRM read；回傳 Entity 只會立刻由 connector
+        /// projection 使用，不會存入 fake 的欄位、session 或快取。
+        /// </summary>
+        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet)
+        {
+            if (string.IsNullOrWhiteSpace(entityName) || id == Guid.Empty || columnSet is null)
+            {
+                throw new ArgumentException("The fixed read-back test request is invalid.");
+            }
+
+            var callback = _retrieve ?? throw new NotSupportedException();
+            Interlocked.Increment(ref _retrieveCount);
+            return callback(entityName, id, columnSet)
+                ?? throw new InvalidOperationException("The fake read-back callback returned null.");
+        }
 
         /// <summary>
         /// 執行唯一由本測試注入並立即驗證的固定 QueryExpression。callback 不存在、query 為 null 或 callback

@@ -1,0 +1,8 @@
+{"file":".trellis/tasks/archive/2026-08/08-05-gateway-capability-inventory/coverage-matrix.json","reason":"P7.2 的 24 個 candidate、slice 指派與 legacy-removal gate 的權威盤點。"}
+{"file":".trellis/tasks/archive/2026-08/08-05-gateway-capability-inventory/p7.2-activation-input.json","reason":"P7.0 產出的預設拒絕 activation input，證明候選能力不能因環境可用而自動執行。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/p7.2-write-environment-readiness.md","reason":"sunnyvalechback CE 9.1 fixture 環境、CE 8.2 不阻擋條件及 operator bridge 邊界。"}
+{"file":".trellis/tasks/archive/2026-08/08-07-p7-1-package01-data8-read/design.md","reason":"已封存 P7.1 的 Data8-first、封閉 DTO、Gateway/Embedded parity 與 lifecycle 樣板。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"ConnectionMode、Data8 profile、請求信任邊界、CE routing 與文件／資源釋放規範。"}
+{"file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"Data8 pool、lease、admission、generation drain 與資源所有權規範。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo 授權、資料範圍、cache 與 CRM batch 的產品層契約。"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Abstractions、Data8、ProductClient、Gateway/Embedded 與 ChurchReport 的跨層契約檢查。"}

@@ -220,6 +220,27 @@ public static class Package01OperationRegistry
                 Param("discipleLessonId", "guid", required: true, encoding: "fetchxml-attribute-value"),
                 Param("lessonName", "string", required: false, encoding: "fetchxml-attribute-value")
             ]);
+
+        // Package 2 member-info write：僅宣告固定五個 scalar，不開放 Entity、欄位 map 或 caller 選擇 template。
+        // Data8 executor 尚未完成 operation template 時，registry 宣告本身不構成寫入權限；其 allowlist 仍會 fail closed。
+        yield return Def(
+            OperationIds.MemberInfoContactUpdateBasicInfo,
+            package: "package-2-memberinfo-writes",
+            kind: "write",
+            templateKind: "odata-route",
+            templateId: "memberinfo.contact.basic.info.patch.v1",
+            responseKind: OperationResponseKind.ContactBasicInfoUpdate,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("phone", "string", required: false, encoding: "json-body"),
+                Param("address", "string", required: false, encoding: "json-body"),
+                Param("membershipStatusValue", "integer", required: false, encoding: "json-body"),
+                Param("spiritualIdentityValue", "integer", required: false, encoding: "json-body")
+            ]);
     }
 
     /// <summary>
