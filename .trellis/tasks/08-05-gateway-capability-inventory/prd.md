@@ -12,7 +12,7 @@
 - 70 筆對 CE 8.2 與 CE 9.1 的證據均為 `metadata-only`，所有 smoke evidence 均為 `not-started`；不得把 registry、unit test 或本機設定當成真機證據。
 - `Package01OperationRegistry` 實際宣告 9 個 operation，僅對應 9 筆 Phase 0 rows。Data8 executor 目前只實作 `runtime.health.whoami`；官方 Worker 已有兩個 identity operation 與 `fee.dedication.retrieve.by.contact.date.range` 共 3 個 allowlisted operation。P6.1 已完成 Official Worker Router／Pool／Lease 離線接入；Official Worker 尚未取得 CE 8.2／9.1 real evidence，必須標為 `evidence-pending`。protocol allowlist、Router implementation、consumer selection 與真機 evidence 必須分開記錄。
 - ProductClient 公開 6 個 Package01 fee/read 方法；ChurchReport 的 `Package01FeeReadsEnabled` 在 base 與 Development 設定均為 `false`，因此尚未有 Gateway consumer 啟用。
-- P5 `dedicated-gateway-alignment` 已於 2026-08-05 完成驗收、提交並封存；P6 Official Worker child task 的 P6.1 已通過，現正依 2026-08-07 範圍重校完成最後 quality／spec／commit／archive。P7.0 只等待 P6 正式封存，不等待 Official Worker live evidence。
+- P5 `dedicated-gateway-alignment` 已於 2026-08-05 完成驗收、提交並封存；P6 Official Worker child task 已於 2026-08-07 完成 P6.1 離線 quality／spec／commit／archive，Official Worker live compatibility 維持 `evidence-pending`。P7.0 已在此封存後啟動，不等待 Official Worker live evidence。
 - ChurchReport 專案仍含 ToolUtility、Dataverse 與 CRM SDK 的 production dependency；這是 P7.5 的移除 gate，不是本輪要移除的內容。
 - 使用者確認 `sunnyvalechback` 是與正式系統分離的 CE 9.1 公司研發 Organization，可建立 test member 而不影響正式資料。P7.2 可將它作為 CE 9.1 test-owned fixture environment；每個 operation family 仍需唯一 fixture owner 與 cleanup/reconciliation。
 
@@ -26,7 +26,7 @@
 
 ## 非目標
 
-- P6 正式封存前，P7.0 維持 `planning`；不執行 `task.py start`、不建立 P7.1～P7.5 child task，也不執行 P5 或 P6。
+- P7.0 已在 P6 正式封存後進入 `in_progress`；本子任務不建立或啟動 P7.1～P7.5 child task，也不重跑 P5 或 P6。
 - 不修改 `.cs`、`.cshtml`、`.csproj`、產品設定、Operation Registry、Data8／Official Worker executor 或 ProductClient。
 - 不啟用 feature flag、不對 CE 8.2／9.1 發出呼叫、不執行 read/write/action/function 或資料遷移。
 - 不提交、archive、push 或建立 PR；本輪結束時保留規劃供使用者審閱。
@@ -39,7 +39,7 @@
 P6 是所有 P7 工作的拓樸前置條件：必須先有已接入 Router 的 connector 選擇、profile isolation、
 admission 與 lifecycle contract。P7 的實證則按 capability、ConnectorKind 與 CE version 在各 child
 取得，不要求未被 ChurchReport deployment 選用的 Official Worker 先通過真機證據。P7.0 可以保留規劃
-文件，但不得在 P6 正式封存前啟動；啟動後必須讓每個 capability 明確標示 `Data8-only`、
+文件；P6 已正式封存，啟動後必須讓每個 capability 明確標示 `Data8-only`、
 `Official-worker-required`、`both-required`、`unsupported` 或 `evidence-pending`。
 
 ## 功能與品質需求
