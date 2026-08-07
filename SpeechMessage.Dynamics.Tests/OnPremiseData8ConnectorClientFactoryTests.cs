@@ -5,6 +5,7 @@ using Microsoft.Xrm.Sdk.Query;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Connectors;
 using SpeechMessage.Dynamics.Abstractions.Execution;
+using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.Connectors.Data8;
 
 namespace SpeechMessage.Dynamics.Tests;
@@ -71,6 +72,145 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護真正的 Data8 client 對 Package01 fee read 只能建立固定 QueryExpression，並在同一個 connector scope
+    /// 將 CRM Entity 投影為安全 fee branch。故障注入由離線 service 擷取 query，確保 legacy contactName 不會
+    /// 進入條件、也不會接受 caller FetchXML/endpoint；決定性斷言是固定 entity/filter/order/page 上限、封閉 DTO
+    /// 與 client Dispose 後 service 恰好釋放一次。測試不建立 D365/WCF/ADFS 連線或真實憑證。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_a_server_owned_package01_fee_read_and_projects_only_safe_records()
+    {
+        var contactId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var feeId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            query =>
+            {
+                var feeQuery = query.Should().BeOfType<QueryExpression>().Subject;
+                feeQuery.EntityName.Should().Be("new_fee");
+                feeQuery.ColumnSet.Columns.Should().BeEquivalentTo(
+                    [
+                        "new_feeid",
+                        "new_name",
+                        "createdon",
+                        "new_pay_date",
+                        "new_fee_really_paid",
+                        "new_pay_way",
+                        "new_category",
+                        "new_others",
+                        "new_paid_period"
+                    ],
+                    options => options.WithStrictOrdering());
+                feeQuery.Criteria.Conditions.Should().HaveCount(2);
+                feeQuery.Criteria.Conditions[0].AttributeName.Should().Be("new_contact_new_fee");
+                feeQuery.Criteria.Conditions[0].Operator.Should().Be(ConditionOperator.Equal);
+                feeQuery.Criteria.Conditions[0].Values.Should().ContainSingle().Which.Should().Be(contactId);
+                feeQuery.Criteria.Conditions[1].AttributeName.Should().Be("new_category");
+                feeQuery.Criteria.Conditions[1].Operator.Should().Be(ConditionOperator.NotNull);
+                feeQuery.Orders.Should().HaveCount(2);
+                feeQuery.Orders[0].AttributeName.Should().Be("new_name");
+                feeQuery.Orders[0].OrderType.Should().Be(OrderType.Ascending);
+                feeQuery.Orders[1].AttributeName.Should().Be("new_feeid");
+                feeQuery.Orders[1].OrderType.Should().Be(OrderType.Ascending);
+                feeQuery.PageInfo.PageNumber.Should().Be(1);
+                feeQuery.PageInfo.Count.Should().Be(128);
+                feeQuery.PageInfo.PagingCookie.Should().BeNull();
+
+                var page = new EntityCollection();
+                var row = new Entity("new_fee", feeId)
+                {
+                    ["new_feeid"] = feeId,
+                    ["new_name"] = "測試奉獻",
+                    ["createdon"] = new DateTime(2026, 8, 7, 1, 2, 3, DateTimeKind.Utc),
+                    ["new_pay_date"] = new DateTime(2026, 8, 7, 0, 0, 0, DateTimeKind.Utc),
+                    ["new_fee_really_paid"] = new Money(123.45m),
+                    ["new_pay_way"] = new OptionSetValue(100000002),
+                    ["new_category"] = new OptionSetValue(100000003),
+                    ["new_others"] = "備註",
+                    ["new_paid_period"] = "2026-08"
+                };
+                row.FormattedValues["new_pay_way"] = "ATM 轉帳";
+                row.FormattedValues["new_category"] = "十一奉獻";
+                page.Entities.Add(row);
+                return page;
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.FeeDedicationRetrieveByContact,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId
+            }
+        };
+
+        var result = await client.ExecuteAsync(operation, CancellationToken.None);
+        await client.DisposeAsync();
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.Package01FeeRecords);
+        result.Data.FeeRecords.Should().ContainSingle().Which.Should().BeEquivalentTo(new Package01FeeRecord
+        {
+            FeeId = feeId,
+            CreatedOn = new DateTimeOffset(2026, 8, 7, 1, 2, 3, TimeSpan.Zero),
+            PayDate = new DateTimeOffset(2026, 8, 7, 0, 0, 0, TimeSpan.Zero),
+            Amount = 123.45m,
+            PayWayOption = 100000002,
+            PayWayLabel = "ATM 轉帳",
+            CategoryLabel = "十一奉獻",
+            Others = "備註",
+            PaidPeriod = "2026-08",
+            Name = "測試奉獻"
+        });
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護其餘五個 P7.1 read operation 都具有自己的 server-owned query route，且不會因為它們都屬於 Package01
+    /// 就落入 generic CRM 通道。故障注入是以一個離線 service 擷取每種 QueryExpression；決定性斷言是每個
+    /// operation 的 entity、必要 filter、order/link shape 與安全 response branch 正確。這些 tests 不發出 CE
+    /// 呼叫，所有 Entity/Query 只存在於單一同步 callback，client 仍由 await using 確定釋放。
+    /// </summary>
+    /// <param name="operationId">必須由 Data8 實作的既有 Package01 capability ID。</param>
+    /// <param name="responseKind">registry 指定且產品可接受的唯一安全 response discriminator。</param>
+    [Theory]
+    [InlineData(OperationIds.FeeDedicationRetrieveByContactDateRange, OperationResponseKind.Package01FeeRecords)]
+    [InlineData(OperationIds.FeesRetrieveByDedicationPeriod, OperationResponseKind.Package01FeeRecords)]
+    [InlineData(OperationIds.FeesEditorLoadByDiscipleLesson, OperationResponseKind.Package01StorLessonRecords)]
+    [InlineData(OperationIds.LessonsStorRetrieveByContact, OperationResponseKind.Package01StorLessonRecords)]
+    [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson, OperationResponseKind.Package01StorLessonRecords)]
+    public async Task Created_client_executes_each_remaining_package01_read_with_its_fixed_query_contract(
+        string operationId,
+        OperationResponseKind responseKind)
+    {
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            query =>
+            {
+                AssertPackage01QueryContract(operationId, query);
+                return responseKind == OperationResponseKind.Package01FeeRecords
+                    ? CreateFeePage()
+                    : CreateStorLessonPage();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(CreatePackage01Operation(operationId), CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.OperationId.Should().Be(operationId);
+        result.Data.ResponseKind.Should().Be(responseKind);
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 建立只在本測試記憶體內存在的 factory 設定。字串內容不是真實 endpoint 或 credential；production factory
     /// 不記錄這些值，且設定 owner 是 host composition root，不會把它傳入 OperationExecutionRequest 或 Pool key。
     /// </summary>
@@ -98,18 +238,164 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             GenerationId: 1);
 
     /// <summary>
-    /// 離線 IOrganizationService 替身只接受 WhoAmI，並記錄 Execute／Dispose 的精確次數。它不開啟 channel、
-    /// handle、timer 或 thread；所有未預期 CRM 呼叫立即失敗，避免測試誤把 generic service 當成未受控通道。
+    /// 建立五個剩餘 P7.1 read operation 的 executor-normalized 測試 operation。這裡只使用 Guid、UTC
+    /// DateTimeOffset 與 bounded string scalar，模擬 Data8ProfileOperationExecutor 已完成的輸入防線；測試不
+    /// 能提供 FetchXML、endpoint、credential、connector 或 profile override。
+    /// </summary>
+    /// <param name="operationId">待測的已登錄 Package01 operation。</param>
+    /// <returns>僅含該 operation 固定 schema 必需值的 connector operation。</returns>
+    private static ConnectorOperation CreatePackage01Operation(string operationId)
+    {
+        var contactId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var dedicationBookingId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        var discipleLessonId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+        var parameters = operationId switch
+        {
+            OperationIds.FeeDedicationRetrieveByContactDateRange => new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["startDate"] = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),
+                ["endDate"] = new DateTimeOffset(2026, 8, 31, 23, 59, 59, TimeSpan.Zero)
+            },
+            OperationIds.FeesRetrieveByDedicationPeriod => new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["dedicationBookingId"] = dedicationBookingId,
+                ["paidPeriod"] = "2026-08"
+            },
+            OperationIds.FeesEditorLoadByDiscipleLesson or OperationIds.LessonsStorRetrieveByDiscipleLesson =>
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["discipleLessonId"] = discipleLessonId
+                },
+            OperationIds.LessonsStorRetrieveByContact => new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "Unsupported Package01 test operation.")
+        };
+        return new ConnectorOperation
+        {
+            OperationId = operationId,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = parameters
+        };
+    }
+
+    /// <summary>
+    /// 逐項驗證實際傳給 IOrganizationService 的 fixed QueryExpression。此 helper 是測試的唯一 query decoder，
+    /// 避免多個 test 各自寬鬆讀取 raw SDK object 而產生不同安全定義；每個分支都同時確認 128-row page cap。
+    /// </summary>
+    private static void AssertPackage01QueryContract(string operationId, QueryBase query)
+    {
+        var expression = query.Should().BeOfType<QueryExpression>().Subject;
+        expression.PageInfo.Count.Should().Be(128);
+        expression.PageInfo.PageNumber.Should().Be(1);
+        expression.PageInfo.PagingCookie.Should().BeNull();
+        switch (operationId)
+        {
+            case OperationIds.FeeDedicationRetrieveByContactDateRange:
+                expression.EntityName.Should().Be("new_fee");
+                expression.Criteria.Conditions.Should().HaveCount(5);
+                expression.Criteria.Conditions[0].AttributeName.Should().Be("new_contact_new_fee");
+                expression.Criteria.Conditions[1].AttributeName.Should().Be("new_category");
+                expression.Criteria.Conditions[2].AttributeName.Should().Be("new_pay_status");
+                expression.Criteria.Conditions[2].Operator.Should().Be(ConditionOperator.In);
+                expression.Criteria.Conditions[3].AttributeName.Should().Be("new_pay_date");
+                expression.Criteria.Conditions[3].Operator.Should().Be(ConditionOperator.OnOrAfter);
+                expression.Criteria.Conditions[4].AttributeName.Should().Be("new_pay_date");
+                expression.Criteria.Conditions[4].Operator.Should().Be(ConditionOperator.OnOrBefore);
+                expression.Orders.Select(order => order.AttributeName).Should().ContainInOrder("new_name", "new_feeid");
+                return;
+            case OperationIds.FeesRetrieveByDedicationPeriod:
+                expression.EntityName.Should().Be("new_fee");
+                expression.Criteria.Conditions.Should().HaveCount(3);
+                expression.Criteria.Conditions.Select(condition => condition.AttributeName)
+                    .Should().ContainInOrder("new_dedication_booking_new_fee", "new_paid_period", "statecode");
+                expression.Orders.Select(order => order.AttributeName).Should().ContainInOrder("createdon", "new_feeid");
+                return;
+            case OperationIds.FeesEditorLoadByDiscipleLesson:
+            case OperationIds.LessonsStorRetrieveByDiscipleLesson:
+                expression.EntityName.Should().Be("new_stor_lessons");
+                expression.Criteria.Conditions.Should().HaveCount(4);
+                expression.Criteria.Conditions.Select(condition => condition.AttributeName)
+                    .Should().ContainInOrder(
+                        "new_enroll_status",
+                        "new_new_disciple_lessons_new_stor_les",
+                        "statuscode",
+                        "statecode");
+                expression.LinkEntities.Should().ContainSingle(link => link.EntityAlias == "contact");
+                return;
+            case OperationIds.LessonsStorRetrieveByContact:
+                expression.EntityName.Should().Be("new_stor_lessons");
+                expression.Criteria.Conditions.Should().HaveCount(2);
+                expression.Criteria.Conditions.Select(condition => condition.AttributeName)
+                    .Should().ContainInOrder("new_contact_new_stor_lessons", "statecode");
+                expression.LinkEntities.Select(link => link.EntityAlias).Should().ContainInOrder("contact", "lesson");
+                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "Unsupported Package01 query contract.");
+        }
+    }
+
+    /// <summary>
+    /// 建立一頁合法最小 fee EntityCollection。每個 SDK object 只存活在 fake service callback 到 client projection
+    /// 的同步範圍；沒有 CRM channel、cookie、timer 或 static data，故用於驗證 query contract 不會污染其他測試。
+    /// </summary>
+    private static EntityCollection CreateFeePage()
+    {
+        var feeId = Guid.Parse("77777777-7777-7777-7777-777777777777");
+        var page = new EntityCollection();
+        page.Entities.Add(new Entity("new_fee", feeId) { ["new_feeid"] = feeId });
+        return page;
+    }
+
+    /// <summary>
+    /// 建立一頁合法最小 stor-lesson EntityCollection。lookup/日期/顯示欄位刻意缺失，驗證 shared contract 的
+    /// nullable DTO 語意；primary id 保持有效，避免測試把不合法資料誤當成 query 成功。
+    /// </summary>
+    private static EntityCollection CreateStorLessonPage()
+    {
+        var storLessonId = Guid.Parse("88888888-8888-8888-8888-888888888888");
+        var page = new EntityCollection();
+        page.Entities.Add(new Entity("new_stor_lessons", storLessonId)
+        {
+            ["new_stor_lessonsid"] = storLessonId
+        });
+        return page;
+    }
+
+    /// <summary>
+    /// 離線 IOrganizationService 替身只接受 WhoAmI 與指定測試注入的固定 QueryExpression，並記錄 Execute、
+    /// RetrieveMultiple／Dispose 的精確次數。它不開啟 channel、handle、timer 或 thread；所有未預期 CRM 呼叫
+    /// 立即失敗，避免測試誤把 generic service 當成未受控通道。
     /// </summary>
     private sealed class FakeOrganizationService : IOrganizationService, IDisposable
     {
         private readonly Guid _organizationId;
+        private readonly Func<QueryBase, EntityCollection>? _retrieveMultiple;
         private int _executeCount;
+        private int _retrieveMultipleCount;
         private int _disposeCount;
 
-        public FakeOrganizationService(Guid organizationId) => _organizationId = organizationId;
+        /// <summary>
+        /// 建立只提供必要 CRM 回應的離線 service。Query callback 為 null 時仍只允許 WhoAmI；提供時也只接受
+        /// 此測試明確檢查的 QueryExpression，不會形成可任意執行 CRM command 的替身。
+        /// </summary>
+        /// <param name="organizationId">WhoAmI 唯一回傳的非秘密組織 GUID。</param>
+        /// <param name="retrieveMultiple">測試所有的固定查詢 callback；不保存真實資料庫、連線或 session。</param>
+        public FakeOrganizationService(
+            Guid organizationId,
+            Func<QueryBase, EntityCollection>? retrieveMultiple = null)
+        {
+            _organizationId = organizationId;
+            _retrieveMultiple = retrieveMultiple;
+        }
 
         public int ExecuteCount => Volatile.Read(ref _executeCount);
+
+        /// <summary>取得固定 QueryExpression 實際呼叫次數，供驗證沒有背景補送或未界定 paging。</summary>
+        public int RetrieveMultipleCount => Volatile.Read(ref _retrieveMultipleCount);
 
         public int DisposeCount => Volatile.Read(ref _disposeCount);
 
@@ -136,7 +422,18 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
 
         public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => throw new NotSupportedException();
 
-        public EntityCollection RetrieveMultiple(QueryBase query) => throw new NotSupportedException();
+        /// <summary>
+        /// 執行唯一由本測試注入並立即驗證的固定 QueryExpression。callback 不存在、query 為 null 或 callback
+        /// 回傳 null 都 fail closed；此替身不會快取 query、EntityCollection 或資料列，因此測試結束後沒有
+        /// CRM Entity graph 能跨測試 retained。
+        /// </summary>
+        public EntityCollection RetrieveMultiple(QueryBase query)
+        {
+            ArgumentNullException.ThrowIfNull(query);
+            var callback = _retrieveMultiple ?? throw new NotSupportedException();
+            Interlocked.Increment(ref _retrieveMultipleCount);
+            return callback(query) ?? throw new InvalidOperationException("The fake query callback returned null.");
+        }
 
         public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities)
             => throw new NotSupportedException();

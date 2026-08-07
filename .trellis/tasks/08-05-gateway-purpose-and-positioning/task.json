@@ -20,7 +20,8 @@
   "nextAction": "Keep this parent and the existing P7.0 task in planning while P6 completes its offline closure and is archived; do not resume the retired P6.2 live-compatibility bridge. After P6 archive, activate P7.0 for the Data8-first Embedded+Data8/DedicatedGateway+Data8 local route; do not start P8.",
   "subtasks": [],
   "children": [
-    "08-05-gateway-capability-inventory"
+    "08-05-gateway-capability-inventory",
+    "08-07-p7-1-package01-data8-read"
   ],
   "parent": null,
   "relatedFiles": [],

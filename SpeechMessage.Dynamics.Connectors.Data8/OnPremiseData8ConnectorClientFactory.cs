@@ -152,7 +152,7 @@ public sealed class OnPremiseData8ConnectorClientFactory : IData8ConnectorClient
                 ?? throw new InvalidOperationException("The Data8 service factory returned null.");
             cancellationToken.ThrowIfCancellationRequested();
 
-            var client = new OnPremiseData8ConnectorClient(service);
+            var client = new OnPremiseData8ConnectorClient(service, profile.CeVersion);
             service = null;
             return Task.FromResult<IConnectorClient>(client);
         }
@@ -166,61 +166,88 @@ public sealed class OnPremiseData8ConnectorClientFactory : IData8ConnectorClient
 }
 
 /// <summary>
-/// 將同步 Data8 IOrganizationService 限縮為單一 SDK-free WhoAmI Connector 操作。
+/// 將同步 Data8 IOrganizationService 限縮為已審查的 SDK-free runtime 與 Package01 唯讀 Connector 操作。
 /// 此類別只由 Pool 建立並由 Lease Dispose；它不快取 OrganizationResponse、request、Profile、credential 或
-/// session，且不允許 generic Execute，因此產品無法藉由 Embedded 建立未審查的 CRM command 通道。
+/// session，且不允許 generic Execute，因此產品無法藉由 Embedded 建立未審查的 CRM command 通道。所有 CRM
+/// QueryExpression/Entity 投影仍留在 <see cref="Package01Data8ReadOperations"/> 的單次執行 scope。
 /// </summary>
 internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
 {
     private IOrganizationService? _service;
+    private readonly string _ceVersion;
     private int _disposed;
 
-    /// <summary>接手已建立 service 的唯一 Dispose ownership；建構後呼叫端不得再直接使用 service。</summary>
-    internal OnPremiseData8ConnectorClient(IOrganizationService service)
-        => _service = service ?? throw new ArgumentNullException(nameof(service));
+    /// <summary>
+    /// 接手已建立 service 的唯一 Dispose ownership，並複製 resolver 已固定的 CE version。建構後呼叫端不得
+    /// 再直接使用 service；version 不是 request input，而是此 client 所屬 immutable Pool generation 的部署資料，
+    /// 用於回應 envelope 一致性而非選擇 SDK、endpoint 或 connector。
+    /// </summary>
+    /// <param name="service">已成功建立、尚未交給其他 owner 的 Data8 organization service。</param>
+    /// <param name="ceVersion">解析 Profile 的固定 CE version，僅允許已支援的 8.2 或 9.1。</param>
+    internal OnPremiseData8ConnectorClient(IOrganizationService service, CeVersion ceVersion)
+    {
+        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _ceVersion = ceVersion switch
+        {
+            CeVersion.Ce82 => "8.2",
+            CeVersion.Ce91 => "9.1",
+            _ => throw new ArgumentOutOfRangeException(nameof(ceVersion), ceVersion, "Unsupported CE version.")
+        };
+    }
 
     /// <summary>
-    /// 執行唯一已完成安全投影的 WhoAmI operation。
+    /// 執行已完成安全投影的 WhoAmI 或 Package01 server-owned read operation。
     /// WCF IOrganizationService 是同步 API，因此不建立額外 ThreadPool task；取消在呼叫前後檢查。若呼叫
     /// 期間發生取消或 service 例外，例外會回到 Lease，Lease 隨即標記 faulted 並 Dispose 此 client，不會將
     /// 健康狀態未知的 WCF Session 放回 Pool。
     /// </summary>
-    /// <param name="operation">由 Data8ProfileOperationExecutor 建立的無參數 WhoAmI operation。</param>
+    /// <param name="operation">由 Data8ProfileOperationExecutor 建立的 allowlisted、型別化 operation。</param>
     /// <param name="cancellationToken">單次 lease 的取消訊號，永不保存。</param>
-    /// <returns>僅含三個 GUID string 的 SDK-free 結果。</returns>
+    /// <returns>僅含 WhoAmI scalar 或 Package01 封閉 response branch 的 SDK-free 結果。</returns>
     public Task<ConnectorOperationResult> ExecuteAsync(
         ConnectorOperation operation,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(operation);
         cancellationToken.ThrowIfCancellationRequested();
-        if (!string.Equals(operation.OperationId, OperationIds.RuntimeHealthWhoAmI, StringComparison.Ordinal) ||
-            operation.Parameters is not { Count: 0 })
-        {
-            throw new InvalidOperationException("The Data8 connector operation is not permitted.");
-        }
-
         var service = Volatile.Read(ref _service)
             ?? throw new ObjectDisposedException(nameof(OnPremiseData8ConnectorClient));
-        var response = service.Execute(new WhoAmIRequest()) as WhoAmIResponse
-            ?? throw new InvalidOperationException("The Data8 WhoAmI response is invalid.");
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (response.UserId == Guid.Empty ||
-            response.BusinessUnitId == Guid.Empty ||
-            response.OrganizationId == Guid.Empty)
+        if (string.Equals(operation.OperationId, OperationIds.RuntimeHealthWhoAmI, StringComparison.Ordinal))
         {
-            throw new InvalidOperationException("The Data8 WhoAmI response is incomplete.");
+            if (operation.Parameters is not { Count: 0 })
+            {
+                throw new InvalidOperationException("The Data8 connector operation is not permitted.");
+            }
+
+            var response = service.Execute(new WhoAmIRequest()) as WhoAmIResponse
+                ?? throw new InvalidOperationException("The Data8 WhoAmI response is invalid.");
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (response.UserId == Guid.Empty ||
+                response.BusinessUnitId == Guid.Empty ||
+                response.OrganizationId == Guid.Empty)
+            {
+                throw new InvalidOperationException("The Data8 WhoAmI response is incomplete.");
+            }
+
+            return Task.FromResult(new ConnectorOperationResult(true)
+            {
+                Values = new Dictionary<string, string?>(StringComparer.Ordinal)
+                {
+                    ["userId"] = response.UserId.ToString("D"),
+                    ["businessUnitId"] = response.BusinessUnitId.ToString("D"),
+                    ["organizationId"] = response.OrganizationId.ToString("D")
+                }
+            });
         }
 
+        // Package01 helper 是唯一可觸碰 QueryExpression、EntityCollection 與 CRM Entity 的位置；它不接受
+        // request-time CRM metadata，且一旦同步 SDK 呼叫、投影或 paging 發生例外，Lease 會淘汰本 client。
+        var data = Package01Data8ReadOperations.Execute(service, operation, _ceVersion);
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(new ConnectorOperationResult(true)
         {
-            Values = new Dictionary<string, string?>(StringComparer.Ordinal)
-            {
-                ["userId"] = response.UserId.ToString("D"),
-                ["businessUnitId"] = response.BusinessUnitId.ToString("D"),
-                ["organizationId"] = response.OrganizationId.ToString("D")
-            }
+            Data = data
         });
     }
 

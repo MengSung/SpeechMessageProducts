@@ -71,7 +71,7 @@ public sealed class Data8ProfileOperationExecutorTests
     /// <summary>
     /// 保護產品 request 即使透過非序列化呼叫端將 Parameters 指定為 null，仍必須在取得 permit 或 client 前
     /// fail closed。故障注入為刻意破壞 required collection 的異常 request；決定性斷言是回傳
-    /// operation.not-supported 且 admission、factory 計數維持零，避免 NullReferenceException 使日後
+    /// operation.invalid-parameters 且 admission、factory 計數維持零，避免 NullReferenceException 使日後
     /// 呼叫端誤以為已部分取得 Session 或連線資源。
     /// </summary>
     [Fact]
@@ -93,7 +93,7 @@ public sealed class Data8ProfileOperationExecutorTests
         var result = await executor.ExecuteAsync(malformedRequest, CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
-        result.ErrorCode.Should().Be("operation.not-supported");
+        result.ErrorCode.Should().Be("operation.invalid-parameters");
         admission.AcquireCount.Should().Be(0);
         admission.ReleaseCount.Should().Be(0);
         factory.CreatedCount.Should().Be(0);
@@ -116,6 +116,123 @@ public sealed class Data8ProfileOperationExecutorTests
         var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
 
         var result = await executor.ExecuteAsync(CreateWhoAmIRequest(), CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("connector.invalid-response");
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+        factory.CreatedCount.Should().Be(1);
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 P7.1 的既有 Package01 fee capability 在解析到 Data8 Profile 後，必須以 server-owned 的最小型別
+    /// 參數通過 Pool/Lease，再只回傳封閉 fee branch。故障模型是 executor 仍沿用 WhoAmI-only allowlist，或把
+    /// legacy contactName、原始 request dictionary、CRM endpoint/credential 帶入 connector；決定性斷言是成功
+    /// 結果、只含 contactId 的獨立 scalar copy、permit exactly-once release 與 drain 後 client dispose。
+    /// 此測試不連線 D365，所有 mutable request 與替身只活在單一測試 scope，避免測試本身形成跨 Profile state。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_projects_registered_fee_read_through_a_lease_with_only_server_owned_parameters()
+    {
+        var contactId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var feeId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForPackage01FeeRecords(
+                operation.OperationId,
+                "9.1",
+                [new Package01FeeRecord { FeeId = feeId, Amount = 123.45m, Name = "測試奉獻" }])
+        })
+        {
+            ExpectedOperationId = OperationIds.FeeDedicationRetrieveByContact
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.FeeDedicationRetrieveByContact,
+                new Dictionary<string, object?>
+                {
+                    ["contactId"] = contactId,
+                    ["contactName"] = "只供舊版顯示相容，絕不可成為 CRM 查詢權威"
+                }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.Package01FeeRecords);
+        result.Data.FeeRecords.Should().ContainSingle().Which.FeeId.Should().Be(feeId);
+        factory.LastOperation!.Parameters.Should().ContainSingle();
+        factory.LastOperation.Parameters["contactId"].Should().Be(contactId);
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 Package01 型別化參數若違反 registry 的 Guid contract，必須在取得 admission permit 或建立 Data8 client
+    /// 前 fail closed。故障注入是將 contactId 改成不可解析字串；決定性斷言是專屬 invalid-parameters 分類與
+    /// 所有資源計數為零，避免無效或 caller-controlled 值進入 Pool、WCF session 或後續 request reuse。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_invalid_package01_parameters_before_admission_or_client_creation()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForPackage01FeeRecords(
+                OperationIds.FeeDedicationRetrieveByContact,
+                "9.1",
+                Array.Empty<Package01FeeRecord>())
+        });
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.FeeDedicationRetrieveByContact,
+                new Dictionary<string, object?> { ["contactId"] = "not-a-guid" }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("operation.invalid-parameters");
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護 connector 即使宣告成功，也不能把另一個 capability 的合法封閉 branch 重標成目前 fee read 成功。
+    /// 故障注入是回傳 stor-lesson branch；決定性斷言是 executor 在 lease scope 內標記 faulted、回傳固定的
+    /// invalid-response 分類，並在退出時淘汰 client 與歸還 permit，避免錯誤資料或未知 session 重用。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_evicts_client_when_package01_response_does_not_match_the_requested_operation()
+    {
+        var contactId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForPackage01StorLessonRecords(
+                operation.OperationId,
+                "9.1",
+                Array.Empty<Package01StorLessonRecord>())
+        });
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.FeeDedicationRetrieveByContact,
+                new Dictionary<string, object?> { ["contactId"] = contactId }),
+            CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
         result.ErrorCode.Should().Be("connector.invalid-response");
@@ -185,6 +302,25 @@ public sealed class Data8ProfileOperationExecutorTests
             ProfileAlias = profileAlias,
             CapabilityOperationId = OperationIds.RuntimeHealthWhoAmI,
             WorkloadSubjectId = "embedded-test"
+        };
+
+    /// <summary>
+    /// 建立只含 Package01 registry operation 與 caller-owned scalar 的測試 request。真正 executor 必須在首次
+    /// 非同步等待前驗證、正規化並複製必要值；此 helper 不提供 endpoint、credential、connector 或 Organization
+    /// 選擇，以維持產品邊界與 Embedded/Dedicated route 的相同信任模型。
+    /// </summary>
+    /// <param name="operationId">已登錄的 Package01 capability operation ID。</param>
+    /// <param name="parameters">故意以可變字典模擬產品/Gateway 輸入，供 executor 驗證其不會跨 await 保留。</param>
+    /// <returns>只在目前測試呼叫生命週期內使用的受控 operation request。</returns>
+    private static OperationExecutionRequest CreatePackage01Request(
+        string operationId,
+        IReadOnlyDictionary<string, object?> parameters)
+        => new()
+        {
+            ProfileAlias = "sunnyvalechback",
+            CapabilityOperationId = operationId,
+            WorkloadSubjectId = "embedded-test",
+            Parameters = parameters
         };
 
     /// <summary>
@@ -317,6 +453,127 @@ public sealed class Data8ProfileOperationExecutorTests
             return Task.FromResult<IConnectorClient>(new WhoAmIClient(
                 _organizationId,
                 () => Interlocked.Increment(ref _disposed)));
+        }
+    }
+
+    /// <summary>
+    /// 建立可回傳預先封閉資料的離線 connector factory。它只在單一測試 scope 保存 callback、計數與 defensive
+    /// copied operation snapshot，用來確認 executor 是否正確移除 legacy-only 參數；它不保存真實 request、
+    /// credential、token、session、stream 或任何跨測試資源，client 的唯一 Dispose owner 仍是 Pool/Lease。
+    /// </summary>
+    private sealed class FixedResultFactory : IData8ConnectorClientFactory
+    {
+        private readonly Func<ConnectorOperation, ConnectorOperationResult> _createResult;
+        private int _created;
+        private int _disposed;
+
+        /// <summary>
+        /// 建立固定結果 factory。callback 僅接收 executor 已建立的 SDK-free operation，不能接觸 Profile 的端點、
+        /// credential 或底層 client；它讓測試能把 response branch mismatch 當成可重現故障注入。
+        /// </summary>
+        /// <param name="createResult">依目前 connector operation 建立單一封閉 result 的測試 callback。</param>
+        public FixedResultFactory(Func<ConnectorOperation, ConnectorOperationResult> createResult)
+            => _createResult = createResult ?? throw new ArgumentNullException(nameof(createResult));
+
+        /// <summary>取得測試期間實際建立的 lease-owned client 次數，僅供精確 ownership assertion。</summary>
+        public int CreatedCount => Volatile.Read(ref _created);
+
+        /// <summary>取得 Pool fault/drain 後實際呼叫 client Dispose 的次數，必須與建立次數一致。</summary>
+        public int DisposedCount => Volatile.Read(ref _disposed);
+
+        /// <summary>
+        /// 取得 defensive copied 的最後 operation snapshot。此值只由目前測試保存，複製參數字典後不會保留
+        /// executor caller dictionary；production factory 絕不可模仿此診斷用途的測試 state。
+        /// </summary>
+        public ConnectorOperation? LastOperation { get; private set; }
+
+        /// <summary>
+        /// 設定測試預期 operation ID。若 executor 對固定 factory 傳入其他能力即立即失敗，防止測試意外把
+        /// generic connector routing 當作成功；null 表示本測試只關心 response projection。
+        /// </summary>
+        public string? ExpectedOperationId { get; init; }
+
+        /// <summary>
+        /// 建立一個由 Pool/Lease 唯一擁有的離線 client。profile 不被保存，取消在建立前檢查；每個 client 只
+        /// 持有 callback 到 Dispose，Dispose 後不留下可被下一個 test/request 重用的 connector state。
+        /// </summary>
+        public Task<IConnectorClient> CreateAsync(ResolvedProfile profile, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profile);
+            cancellationToken.ThrowIfCancellationRequested();
+            Interlocked.Increment(ref _created);
+            return Task.FromResult<IConnectorClient>(new FixedResultClient(
+                operation =>
+                {
+                    if (ExpectedOperationId is not null)
+                    {
+                        operation.OperationId.Should().Be(ExpectedOperationId);
+                    }
+
+                    LastOperation = operation with
+                    {
+                        Parameters = new Dictionary<string, object?>(operation.Parameters, StringComparer.Ordinal)
+                    };
+                    return _createResult(operation);
+                },
+                () => Interlocked.Increment(ref _disposed)));
+        }
+    }
+
+    /// <summary>
+    /// 只在測試中同步回傳 factory 指定結果的 lease-owned client。它不建立網路、WCF、timer 或背景工作；
+    /// Interlocked Dispose callback 證明 executor 的成功與 faulted 路徑都由 Pool/Lease 一次性收回資源。
+    /// </summary>
+    private sealed class FixedResultClient : IConnectorClient
+    {
+        private readonly Func<ConnectorOperation, ConnectorOperationResult> _execute;
+        private readonly Action _onDispose;
+        private int _disposed;
+
+        /// <summary>
+        /// 建立固定結果 client。兩個 delegate 僅屬於此 client，Pool dispose 後不再可達，不會保存 Profile、
+        /// Organization、credential 或先前使用者輸入。
+        /// </summary>
+        /// <param name="execute">建立一次封閉 operation result 的同步 callback。</param>
+        /// <param name="onDispose">記錄唯一資源釋放的測試 callback。</param>
+        public FixedResultClient(
+            Func<ConnectorOperation, ConnectorOperationResult> execute,
+            Action onDispose)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _onDispose = onDispose ?? throw new ArgumentNullException(nameof(onDispose));
+        }
+
+        /// <summary>
+        /// 執行 single-use test callback。取消會在 callback 前 fail closed；若已 Dispose 則拒絕，確保測試不會
+        /// 掩蓋 lease 對已淘汰 client 的錯誤重用。此方法沒有 await，因此不會建立未受控 continuation。
+        /// </summary>
+        public Task<ConnectorOperationResult> ExecuteAsync(
+            ConnectorOperation operation,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                throw new ObjectDisposedException(nameof(FixedResultClient));
+            }
+
+            return Task.FromResult(_execute(operation));
+        }
+
+        /// <summary>
+        /// 以 exactly-once 方式完成 client 釋放計數。callback 不拋出且沒有後續資源，因此 Data8 pool 可在
+        /// fault、cancel、drain 或正常回收後安全回到測試所宣告的 baseline。
+        /// </summary>
+        public ValueTask DisposeAsync()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) == 0)
+            {
+                _onDispose();
+            }
+
+            return ValueTask.CompletedTask;
         }
     }
 
