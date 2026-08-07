@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
+using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ControlPlane.Guard;
 using SpeechMessage.Dynamics.Embedded;

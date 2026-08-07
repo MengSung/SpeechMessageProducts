@@ -3,6 +3,8 @@ using ChurchReport.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.ProductClient.MemberInfo;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests;
@@ -130,6 +132,45 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
         options.ConnectionMode.Should().Be(SpeechMessage.Dynamics.Abstractions.Execution.ConnectionMode.Embedded);
         options.ProfileAlias.Should().Be("legacy-embedded");
         options.Gateway!.Endpoint.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// 保護 P7.2 contact basic-info consumer 尚未啟用時是嚴格 no-op：即使沒有已啟動的 process host，
+    /// composition helper 也只能回傳 null，不建立 executor、HTTP handler、Data8 pool、credential 或任何
+    /// ChurchReport 流量。未來 P7.4 只需在獨立 reviewed flag 變為 true 後接入同一個 host owner。
+    /// </summary>
+    [Fact]
+    public void Package02_contact_updates_remain_disabled_by_default_before_host_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+
+        DonationDynamicsAccessBootstrap.IsPackage02ContactBasicInfoUpdatesEnabled(configuration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.TryCreatePackage02ContactBasicInfoClient(configuration)
+            .Should().BeNull();
+    }
+
+    /// <summary>
+    /// 保護未來 reviewed flag 開啟時仍可由主 DI 注入既有 typed client，而不要求 helper 另建 provider。
+    /// 測試使用不擁有資源的純記憶體替身；它只證明 flag／composition 邊界，不執行 contact write 或 CE operation。
+    /// </summary>
+    [Fact]
+    public void Package02_contact_updates_accept_an_injected_client_only_when_flag_is_enabled()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package02ContactBasicInfoUpdatesEnabled"] = "true"
+            })
+            .Build();
+        var injected = new DisabledContactBasicInfoClient();
+
+        DonationDynamicsAccessBootstrap.IsPackage02ContactBasicInfoUpdatesEnabled(configuration)
+            .Should().BeTrue();
+        DonationDynamicsAccessBootstrap.TryCreatePackage02ContactBasicInfoClient(configuration, injected)
+            .Should().BeSameAs(injected);
     }
 
     /// <summary>
@@ -282,6 +323,15 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
         return new ConfigurationBuilder()
             .AddInMemoryCollection(values)
             .Build();
+    }
+
+    /// <summary>不建立任何外部資源的 composition 測試替身；不應在 disabled／registration 測試中被呼叫。</summary>
+    private sealed class DisabledContactBasicInfoClient : IPackage02ContactBasicInfoUpdateClient
+    {
+        public Task<ContactBasicInfoUpdateResult> UpdateAsync(
+            ContactBasicInfoUpdateRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled composition test client must not execute.");
     }
 
     /// <summary>

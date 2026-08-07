@@ -31,6 +31,7 @@ using SpeechMessage.Dynamics.Embedded.DependencyInjection;
 using SpeechMessage.Dynamics.ProductClient.DependencyInjection;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
+using SpeechMessage.Dynamics.ProductClient.MemberInfo;
 using ToolUtilityNameSpace;
 
 namespace ChurchReport.Services
@@ -120,6 +121,56 @@ namespace ChurchReport.Services
             var raw = configuration["DynamicsAccess:Package01FeeReadsEnabled"];
             return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
                    || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 讀取 P7.2 contact basic-info 的獨立 consumer flag。預設為 false，故在 P7.4 之前不會建立
+        /// ProductClient、provider、HTTP handler、Data8 pool 或任何 ChurchReport 寫入流量；此 flag 與
+        /// Package01FeeReadsEnabled 分離，避免讀取與寫入能力意外形成同一個 rollout 邊界。
+        /// </summary>
+        public static bool IsPackage02ContactBasicInfoUpdatesEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            var raw = configuration["DynamicsAccess:Package02ContactBasicInfoUpdatesEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 嘗試建立 P7.2 contact basic-info typed client。flag=false 時在解析 process host 前立即回傳 null；
+        /// flag=true 時借用既有主 DI process host 的單一 Gateway 或 Embedded executor，絕不另建 provider、
+        /// handler、Data8 pool 或 credential graph。此 helper 只提供尚未接入 controller 的 composition 支援，
+        /// 不會自行啟用 ChurchReport 流量；正式 consumer cutover 屬 P7.4。
+        /// </summary>
+        public static IPackage02ContactBasicInfoUpdateClient? TryCreatePackage02ContactBasicInfoClient(
+            IConfiguration configuration,
+            IPackage02ContactBasicInfoUpdateClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage02ContactBasicInfoUpdatesEnabled(configuration))
+            {
+                return null;
+            }
+
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            var productOptions = BindOptions(configuration);
+            var processHost = GetStartedProcessHost();
+            var executor = productOptions.ConnectionMode switch
+            {
+                ConnectionMode.Embedded => processHost.GetOrCreateEmbeddedExecutor(productOptions, configuration),
+                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway =>
+                    processHost.GetOrCreateGatewayExecutor(productOptions),
+                _ => throw new InvalidOperationException(
+                    "Package02 contact basic-info updates require a supported Dynamics connection mode.")
+            };
+
+            return new Package02ContactBasicInfoUpdateClient(
+                executor,
+                NullLogger<Package02ContactBasicInfoUpdateClient>.Instance);
         }
 
         /// <summary>
