@@ -108,6 +108,16 @@ class CoverageValidatorContractTests(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertIn("P70-GENERIC-CAPABILITY", [error["ruleId"] for error in report["errors"]])
 
+    def test_p7_2_input_includes_non_platform_function_candidates(self) -> None:
+        """P7.2 input 必須涵蓋 matrix 的 write、action、function；只有 platform gate 可被排除。"""
+        result = self.run_validator("--build")
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        activation_input = json.loads((TASK_DIRECTORY / "p7.2-activation-input.json").read_text(encoding="utf-8"))
+        candidate_ids = {candidate["callSiteId"] for candidate in activation_input["pendingCandidates"]}
+        self.assertIn("ORG-CALL-00024", candidate_ids)
+        self.assertNotIn("ORG-CALL-00003", candidate_ids)
+
 
 if __name__ == "__main__":
     unittest.main()

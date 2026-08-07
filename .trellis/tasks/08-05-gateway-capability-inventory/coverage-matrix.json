@@ -1728,7 +1728,7 @@
           "idempotency and ambiguous-timeout reconciliation"
         ]
       },
-      "nextP7Slice": "P7.1-read",
+      "nextP7Slice": "P7.2-write-action-function",
       "officialWorkerExecutor": {
         "status": "not-implemented"
       },

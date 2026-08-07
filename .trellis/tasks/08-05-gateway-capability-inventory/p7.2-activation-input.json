@@ -45,6 +45,20 @@
       ]
     },
     {
+      "callSiteId": "ORG-CALL-00024",
+      "capabilityFamily": "churchreport.member.profile",
+      "operationId": "memberinfo.contact.count.ungrouped.commitment",
+      "operationKind": "function",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
       "callSiteId": "ORG-CALL-00029",
       "capabilityFamily": "churchreport.member.profile",
       "operationId": "memberinfo.contact.update.image",

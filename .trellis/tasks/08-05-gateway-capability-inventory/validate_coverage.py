@@ -234,7 +234,7 @@ def row_route(capability_family: str, operation_kind: str) -> str:
         return "P7.5-removal-gate"
     if operation_kind == "metadata":
         return "P7.3-special-resource"
-    if operation_kind in {"write", "action"}:
+    if operation_kind in {"write", "action", "function"}:
         return "P7.2-write-action-function"
     return "P7.1-read"
 
