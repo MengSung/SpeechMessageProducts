@@ -175,6 +175,131 @@ public sealed class Data8ProfileOperationExecutorTests
     }
 
     /// <summary>
+    /// 保護 P7.2 contact basic-info capability 只有在 CE 9.1 Data8 profile 下，才會以固定三個 scalar 取得一次
+    /// connector lease；故障注入是尚未加入 executor allowlist 的 operation，決定性斷言是 typed response、copied
+    /// parameters 與 permit exactly-once release。測試 factory 不建立 CRM、WCF、credential、token、session 或
+    /// background resource，client 在 pool drain 時必須確定釋放。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_routes_contact_basic_info_update_through_a_ce91_data8_lease()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForContactBasicInfoUpdate(
+                operation.OperationId,
+                "9.1",
+                ContactBasicInfoUpdateDisposition.Changed,
+                ContactBasicInfoUpdateCorrelationCategory.ReadBackConfirmed)
+        })
+        {
+            ExpectedOperationId = OperationIds.MemberInfoContactUpdateBasicInfo
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MemberInfoContactUpdateBasicInfo,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["phone"] = "0900-000-001",
+                    ["address"] = "P7.2 fixture address"
+                }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactBasicInfoUpdate);
+        result.Data.ContactBasicInfoUpdate!.Disposition.Should().Be(ContactBasicInfoUpdateDisposition.Changed);
+        factory.LastOperation!.Parameters.Should().BeEquivalentTo(
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["phone"] = "0900-000-001",
+                ["address"] = "P7.2 fixture address"
+            });
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護空白字串沿用 legacy 的「不覆寫」語意：executor 應在取得 connector lease 前直接產生
+    /// NoChange/NoDispatch。故障注入是目前 generic string normalizer 對空白值的拒絕；決定性斷言是 success
+    /// envelope 與 admission/factory 均為零，證明 no-change 路徑沒有建立 client、session、timer 或 outbound CRM。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_returns_contact_basic_info_no_change_before_admission_when_only_blank_values_are_supplied()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ => throw new InvalidOperationException("no-change must not create a client."));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MemberInfoContactUpdateBasicInfo,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = Guid.Parse("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb"),
+                    ["phone"] = "   ",
+                    ["address"] = ""
+                }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ContactBasicInfoUpdate!.Disposition.Should().Be(ContactBasicInfoUpdateDisposition.NoChange);
+        result.Data.ContactBasicInfoUpdate.CorrelationCategory
+            .Should().Be(ContactBasicInfoUpdateCorrelationCategory.NoDispatch);
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護同一 capability 不會因為將 CE 版本切到 8.2 就偷偷 fallback 或取得 Data8 lease；故障注入是
+    /// CE 8.2 resolved profile，決定性斷言是 operation.not-supported 且 admission、factory 都為零。Official
+    /// Worker 與 CE 8.2 live evidence 不在此 Data8-first slice 內，也不能由 connector 自動切換。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_contact_basic_info_update_for_ce82_before_admission()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ => throw new InvalidOperationException("CE 8.2 must fail closed."));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile() with { CeVersion = CeVersion.Ce82 },
+            admission,
+            factory,
+            minSize: 0,
+            maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(
+            CreateResolver(CeVersion.Ce82),
+            new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MemberInfoContactUpdateBasicInfo,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = Guid.Parse("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb"),
+                    ["phone"] = "0900-000-001"
+                }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("operation.not-supported");
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
     /// 保護 Package01 型別化參數若違反 registry 的 Guid contract，必須在取得 admission permit 或建立 Data8 client
     /// 前 fail closed。故障注入是將 contactId 改成不可解析字串；決定性斷言是專屬 invalid-parameters 分類與
     /// 所有資源計數為零，避免無效或 caller-controlled 值進入 Pool、WCF session 或後續 request reuse。
@@ -247,12 +372,12 @@ public sealed class Data8ProfileOperationExecutorTests
     /// <summary>
     /// 建立與 ChurchReport mapper 輸出同形狀的 immutable resolver；URL 使用不可路由測試位址，保證測試沒有網路 I/O。
     /// </summary>
-    private static ConfigurationProfileResolver CreateResolver()
+    private static ConfigurationProfileResolver CreateResolver(CeVersion ceVersion = CeVersion.Ce91)
     {
         var profile = new DynamicsProfileOptions
         {
             OrganizationAlias = "sunnyvalechback",
-            CeVersion = CeVersion.Ce91,
+            CeVersion = ceVersion,
             ConnectorKind = ConnectorKind.Data8,
             CredentialReference = "churchreport.crmconnection",
             Pool = new PoolPolicy { MinSize = 0, MaxSize = 1, IdleTimeoutMinutes = 1, AcquireTimeoutSeconds = 1 },

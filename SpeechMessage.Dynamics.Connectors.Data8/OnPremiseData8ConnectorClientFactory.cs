@@ -243,7 +243,14 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
 
         // Package01 helper 是唯一可觸碰 QueryExpression、EntityCollection 與 CRM Entity 的位置；它不接受
         // request-time CRM metadata，且一旦同步 SDK 呼叫、投影或 paging 發生例外，Lease 會淘汰本 client。
-        var data = Package01Data8ReadOperations.Execute(service, operation, _ceVersion);
+        // P7.1 read 與 P7.2 contact write 各自擁有封閉 template；此 dispatch 不提供 generic CRUD、
+        // Entity、FetchXML 或 caller-selected routing。未知 operation 仍由各 capability owner fail closed。
+        var data = string.Equals(
+            operation.OperationId,
+            OperationIds.MemberInfoContactUpdateBasicInfo,
+            StringComparison.Ordinal)
+            ? Package02Data8ContactBasicInfoWriteOperations.Execute(service, operation, _ceVersion)
+            : Package01Data8ReadOperations.Execute(service, operation, _ceVersion);
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(new ConnectorOperationResult(true)
         {
