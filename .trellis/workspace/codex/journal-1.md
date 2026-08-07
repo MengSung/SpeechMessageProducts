@@ -249,3 +249,37 @@ P5 CRLF-only 正規化已通過 focused/full tests、Release build 與 byte-leve
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: P7.1 Data8 Package01 read evidence closure
+
+**Date**: 2026-08-07
+**Task**: P7.1 Data8 Package01 read evidence closure
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+Completed and archived P7.1: six fixed Package01 Data8 read capabilities passed sanitized CE 9.1 evidence; feature flag remains false. Added fail-closed handoff lifecycle and per-page byte-budget regressions, then completed review and quality gates.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `19e2cc45` | (see git log) |
+| `064e2d19` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
