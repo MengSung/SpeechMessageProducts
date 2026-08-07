@@ -1,0 +1,739 @@
+{
+  "findings": [
+    {
+      "counts": {
+        "IOrganizationService": 6,
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineBinding.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 1,
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 2,
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOAuth.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 3,
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Private.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 1,
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.SaveUserId.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 2,
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/DedicationController.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/DonationPaymentLoginController.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/EquipmentController.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/FeeManagementController.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 3
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/HomeController.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 28,
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 36
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 6
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/MyPayController.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 1,
+        "Microsoft.Xrm.Sdk": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 4,
+        "ToolUtility": 14
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/PersonalController.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 3,
+        "Microsoft.Xrm.Sdk": 9,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/QrCodeController.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.LineLogin.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 5
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/TSPGController.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 5,
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/TimedOrganizationService.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/TimedToolUtilityProvider.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/AppointmentsListManager.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/Authentication/AuthResult.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/Authentication/SessionData.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/EquipmentDataManager.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 7,
+        "ToolUtility": 3
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/FeeList.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 3
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/HappyGroupDataManager.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 3
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/InMemoryDataContextSmallGroup.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 1,
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/ListManager.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/ListSmallGroupWeeklyReport.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/NewPersonModel.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/PersonalInfomationModel.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 3,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/PollManager.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 9
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/SmallGroupDataList.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Models/WeeklyReportRecord.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Payments/ChurchReportPaymentContextBuilder.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 5
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Payments/ChurchReportPaymentPostPaymentHandlers.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/Authentication/ISessionInitializationService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/Contact/IContactService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/Donation/DonationNavigationAccessResolver.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationBookingService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationContactCreationService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationContactService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationDedicationFeeFormService.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationDynamicsAccessBootstrap.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationFeeQueryService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationKeyInDedicationService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationLoginContactService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/DonationPaymentModelAssembler.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/FollowUp/IFollowUpService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/ListManagement/IListManagementService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 2,
+        "Microsoft.Xrm.Sdk": 3
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 1,
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 2,
+        "Microsoft.Xrm.Sdk": 6
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/OptionSetMetadataService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/PaymentCrmService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/PaymentFeeTypeHelper.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/PresentRecord/IPresentRecordService.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Services/StorLessonQueryService.cs"
+    },
+    {
+      "counts": {
+        "DataverseClient": 1,
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj"
+    },
+    {
+      "counts": {
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Startup.Caching.cs"
+    },
+    {
+      "counts": {
+        "ToolUtility": 7
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Startup.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 2,
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 1,
+        "Microsoft.Xrm.Sdk": 7
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 7
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/SmallGroupQrCodeUtility.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/ViewComponents/MemberInfoNavViewComponent.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/ViewModels/GalleryViewModel.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 9
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/AppointmentsDownUpLoader.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/ChurchListDataProcessor.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 2,
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/Converters/IdentityConverter.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DedicationInfo.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1,
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 14
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.DedicationBooking.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 15
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.EntityMapper.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 4,
+        "ToolUtility": 31
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentGateway.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 12
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentProcessing.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2,
+        "ToolUtility": 8
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Utilities.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadEquipment.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 9
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadHappyGroup.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 1
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.Core.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.FollowUp.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.Identity.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 1,
+        "Microsoft.Xrm.Sdk": 4
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.Members.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.PresentRecord.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.Setup.cs"
+    },
+    {
+      "counts": {
+        "IOrganizationService": 2,
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadListManager.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 9
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/HappyGroupUtility.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 8,
+        "ToolUtility": 3
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/LineBindingUtility.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 7,
+        "ToolUtility": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/LineNotifyUtility.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/PersonalInfomatioManager.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/RegisterConnector.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadData.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Assignment.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Contact.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Converters.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Core.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.FollowUp.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.HappyGroup.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 40
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 2
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.WeeklyReport.cs"
+    },
+    {
+      "counts": {
+        "Microsoft.Xrm.Sdk": 10
+      },
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/WeeklyReportManager.cs"
+    }
+  ],
+  "releaseBlockingAt": "P7.5",
+  "remainingReferenceCount": 661,
+  "schemaVersion": "p7.0.reference-scan-baseline.v1",
+  "scope": "SpeechMessageProducts.ChurchReport production .cs and .csproj files only"
+}

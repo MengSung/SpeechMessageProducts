@@ -1,0 +1,5258 @@
+{
+  "callSites": [
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "connection-runtime:connection-pool-runtime",
+      "callSiteId": "ORG-CALL-00001",
+      "capabilityFamily": "platform.shared.runtime",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "connection-runtime-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "runtime.profile.acquire.connection",
+        "status": "candidate"
+      },
+      "operationKind": "connection-runtime",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Startup.cs",
+        "symbol": "ConfigureServices.AddSingleton<ICrmConnectionPool>"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "connection-runtime:organization-service-factory",
+      "callSiteId": "ORG-CALL-00002",
+      "capabilityFamily": "platform.shared.runtime",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "connection-runtime-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "runtime.auth.resolve.organization.client",
+        "status": "candidate"
+      },
+      "operationKind": "connection-runtime",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/ConnectionOperations/ICrmConnectionService.cs",
+        "symbol": "GetOrganizationService"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "function:whoami",
+      "callSiteId": "ORG-CALL-00003",
+      "capabilityFamily": "platform.shared.runtime",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "implemented",
+        "officialWorker": "evidence-pending"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "function-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "protocol-allowlisted"
+      },
+      "operation": {
+        "id": "runtime.health.whoami",
+        "status": "candidate"
+      },
+      "operationKind": "function",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ConnectionOperations/CrmConnectionService.cs",
+        "symbol": "ValidateConnection"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "connection-runtime:whoami",
+      "callSiteId": "ORG-CALL-00004",
+      "capabilityFamily": "platform.shared.runtime",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "evidence-pending"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "connection-runtime-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "protocol-allowlisted"
+      },
+      "operation": {
+        "id": "runtime.pool.validate.connection",
+        "status": "candidate"
+      },
+      "operationKind": "connection-runtime",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ConnectionOperations/CrmConnectionPool.cs",
+        "symbol": "ValidateConnection / IsConnectionHealthy"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_fee",
+      "callSiteId": "ORG-CALL-00005",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "Package01FeeReadsEnabled",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "fee.dedication.retrieve.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "SpeechMessage.Dynamics.ProductClient.IPackage01FeeReadClient"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/FeeOperations/FeeService.cs",
+        "symbol": "RetrieveDedicationFee"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_fee",
+      "callSiteId": "ORG-CALL-00006",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "evidence-pending"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "Package01FeeReadsEnabled",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "protocol-allowlisted"
+      },
+      "operation": {
+        "id": "fee.dedication.retrieve.by.contact.date.range",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "SpeechMessage.Dynamics.ProductClient.IPackage01FeeReadClient"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/FeeOperations/FeeService.cs",
+        "symbol": "RetrieveDedicationFeeByDateRange"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:generic-entity-retrieve",
+      "callSiteId": "ORG-CALL-00007",
+      "capabilityFamily": "platform.legacy.blocked",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "entity.generic.retrieve.blocked",
+        "status": "forbidden-no-capability"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/ToolUtilityPartials/ToolUtilityClass.Entity.cs",
+        "symbol": "RetrieveEntity / RetrieveEntityDynamics365 / RetrieveEntityCrm2011"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:generic-entity-create",
+      "callSiteId": "ORG-CALL-00008",
+      "capabilityFamily": "platform.legacy.blocked",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "entity.generic.create.blocked",
+        "status": "forbidden-no-capability"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/ToolUtilityPartials/ToolUtilityClass.Entity.cs",
+        "symbol": "CreateEntityCrm2011 / CreateEntityDynamics365 / CreateEntityAsync"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:generic-entity-update",
+      "callSiteId": "ORG-CALL-00009",
+      "capabilityFamily": "platform.legacy.blocked",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "entity.generic.update.blocked",
+        "status": "forbidden-no-capability"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/ToolUtilityPartials/ToolUtilityClass.Entity.cs",
+        "symbol": "UpdateEntity / UpdateEntityCrm2011 / UpdateEntityDynamics365 / UpdateEntityAsync"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:generic-entity-delete",
+      "callSiteId": "ORG-CALL-00010",
+      "capabilityFamily": "platform.legacy.blocked",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "entity.generic.delete.blocked",
+        "status": "forbidden-no-capability"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/ToolUtilityPartials/ToolUtilityClass.Entity.cs",
+        "symbol": "DeleteEntity"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "action:list.addlistmemberslist",
+      "callSiteId": "ORG-CALL-00011",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "action-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.members.add.many",
+        "status": "candidate"
+      },
+      "operationKind": "action",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "AddMembers / AddMembersUsingSdk"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "action:list.removememberlist",
+      "callSiteId": "ORG-CALL-00012",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "action-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.members.remove.one",
+        "status": "candidate"
+      },
+      "operationKind": "action",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "RemoveMember / RemoveMemberUsingSdk"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "connection-runtime:decorator-pass-through",
+      "callSiteId": "ORG-CALL-00013",
+      "capabilityFamily": "platform.shared.runtime",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "connection-runtime-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "diagnostics.organization.timing.decorator",
+        "status": "candidate"
+      },
+      "operationKind": "connection-runtime",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-platform"
+      },
+      "rollout": {
+        "owner": "churchreport-platform"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/TimedOrganizationService.cs",
+        "symbol": "Create/Retrieve/RetrieveMultiple/Update/Delete/Execute/Associate/Disassociate"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-platform",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00014",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.catalog.retrieve.app.named",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "RetrieveLists"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00015",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.catalog.retrieve.by.contact.name",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "RetrieveListByContact"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00016",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.catalog.retrieve.by.race.leader",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "RetrieveListByRacerLeader"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:listmember",
+      "callSiteId": "ORG-CALL-00017",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.members.retrieve.by.listid",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "RetrieveMemberListCollectionByListId / RetrieveMemberListCore"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list.query.dynamic-members",
+      "callSiteId": "ORG-CALL-00018",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.members.retrieve.dynamic.by.listid",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-lists"
+      },
+      "rollout": {
+        "owner": "churchreport-lists"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "RetrieveDynamicMemberList / RetrieveDynamicMemberListCore"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-lists",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:listmember",
+      "callSiteId": "ORG-CALL-00019",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.membership.retrieve.by.contactid",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "QueryListByContactId"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00020",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.catalog.retrieve.by.name",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ListOperations/ListService.cs",
+        "symbol": "RetrieveListEntityByName"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "connection-runtime:connection-pool-borrow",
+      "callSiteId": "ORG-CALL-00021",
+      "capabilityFamily": "platform.shared.runtime",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "connection-runtime-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "runtime.profile.borrow.connection",
+        "status": "candidate"
+      },
+      "operationKind": "connection-runtime",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs",
+        "symbol": "GetConnection / ReleaseConnection"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:contact",
+      "callSiteId": "ORG-CALL-00022",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.contact.retrieve.ungrouped.page",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "ungrouped contact page RetrieveMultiple"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact",
+      "callSiteId": "ORG-CALL-00023",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.contact.update.line.profile",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "LINE profile contact Update"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "function:contact.commitment-type-counts",
+      "callSiteId": "ORG-CALL-00024",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "function-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.contact.count.ungrouped.commitment",
+        "status": "candidate"
+      },
+      "operationKind": "function",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "CountUngroupedCommitmentValues"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:listmember-list",
+      "callSiteId": "ORG-CALL-00025",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.listnames.retrieve.by.contactids",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "batch listmember names for contacts"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_present_record",
+      "callSiteId": "ORG-CALL-00026",
+      "capabilityFamily": "churchreport.attendance",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.present.retrieve.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "LoadContactPresentRecords"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_stor_lessons",
+      "callSiteId": "ORG-CALL-00027",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.storlessons.retrieve.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "LoadContactStorLessons"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:contact.entityimage",
+      "callSiteId": "ORG-CALL-00028",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.contact.retrieve.image",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "GetContactImage"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact.entityimage",
+      "callSiteId": "ORG-CALL-00029",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.contact.update.image",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "UploadContactImage"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact",
+      "callSiteId": "ORG-CALL-00030",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.contact.update.basic.info",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "UpdateContactInfo"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00031",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.smallgroup.retrieve.descriptors",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "FetchSmallGroupDescriptors"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:listmember-contact",
+      "callSiteId": "ORG-CALL-00032",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.smallgroup.retrieve.memberships",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "FetchGroupMemberships"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:connection",
+      "callSiteId": "ORG-CALL-00033",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "memberinfo.connection.retrieve.relation.goals",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+        "symbol": "GetRelationGoals / BatchRelationGoals"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact.entityimage",
+      "callSiteId": "ORG-CALL-00034",
+      "capabilityFamily": "churchreport.member.profile",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "newperson.contact.update.image",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs",
+        "symbol": "entityimage Update via GetConnection"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:list-contact",
+      "callSiteId": "ORG-CALL-00035",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "listmanagement.smallgroup.update.fields",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-lists"
+      },
+      "rollout": {
+        "owner": "churchreport-lists"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs",
+        "symbol": "UpdateSmallGroup / UpdateContactMember paths"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-lists",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:new_fee",
+      "callSiteId": "ORG-CALL-00036",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.fee.update.after.payment",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs",
+        "symbol": "payment success fee/contact/stor lesson updates"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:new_dedication_booking-new_fee",
+      "callSiteId": "ORG-CALL-00037",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.dedication.complete.recurring",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs",
+        "symbol": "recurring dedication booking + fee create"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact",
+      "callSiteId": "ORG-CALL-00038",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.contact.create.or.update",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-payments"
+      },
+      "rollout": {
+        "owner": "churchreport-payments"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/DonationContactService.cs",
+        "symbol": "CreateEntity/RetrieveEntity/UpdateEntity contact"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-payments",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:appointment",
+      "callSiteId": "ORG-CALL-00039",
+      "capabilityFamily": "churchreport.appointments",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "appointments.entity.create.or.update",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-appointments"
+      },
+      "rollout": {
+        "owner": "churchreport-appointments"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/AppointmentsDownUpLoader.cs",
+        "symbol": "Create/Update appointment + AssignOwner"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-appointments",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "metadata:metadata.optionset",
+      "callSiteId": "ORG-CALL-00040",
+      "capabilityFamily": "churchreport.metadata",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "metadata-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.3-special-resource",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "metadata.optionset.retrieve.by.attribute",
+        "status": "candidate"
+      },
+      "operationKind": "metadata",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/OptionSetMetadataService.cs",
+        "symbol": "option-set metadata via IOrganizationService"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_dedication_booking",
+      "callSiteId": "ORG-CALL-00041",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.dedication.retrieve.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/DonationBookingService.cs",
+        "symbol": "FillBookingList"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:new_dedication_booking",
+      "callSiteId": "ORG-CALL-00042",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.dedication.cancel.booking",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/DonationBookingService.cs",
+        "symbol": "DeleteBookingAsync"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact",
+      "callSiteId": "ORG-CALL-00043",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.contact.create.with.dedication.number",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/DonationContactCreationService.cs",
+        "symbol": "CreateContact / SetDedicationNumber"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact-list-new_present_record",
+      "callSiteId": "ORG-CALL-00044",
+      "capabilityFamily": "churchreport.contact.onboarding",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "newperson.contact.create.full.onboarding",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+        "symbol": "CreateNewContact orchestration"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "action:contact.assign",
+      "callSiteId": "ORG-CALL-00045",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "action-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "contact.assign.owner",
+        "status": "candidate"
+      },
+      "operationKind": "action",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+        "symbol": "AssignOwner / transfer list owner updates"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "action:assignrequest",
+      "callSiteId": "ORG-CALL-00046",
+      "capabilityFamily": "platform.legacy.blocked",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "action-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.5-removal-gate",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "runtime.entity.assign.owner",
+        "status": "forbidden-no-capability"
+      },
+      "operationKind": "action",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/EntityOperations/EntityRepository.cs",
+        "symbol": "AssignOwner Execute(AssignRequest)"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list-listmember",
+      "callSiteId": "ORG-CALL-00047",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.members.count.by.listid",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadListManager.cs",
+        "symbol": "GetSmallGroupMemberNumber"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:new_fee-new_stor_lessons",
+      "callSiteId": "ORG-CALL-00048",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "fees.editor.update.by.storlesson",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs",
+        "symbol": "UpdateFeeDataList"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact.new_visa_info",
+      "callSiteId": "ORG-CALL-00049",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.contact.update.card.profile",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs",
+        "symbol": "DeleteCreditCard"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:fee-editor-memory",
+      "callSiteId": "ORG-CALL-00050",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "fees.editor.stage.inmemory.change",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-payments"
+      },
+      "rollout": {
+        "owner": "churchreport-payments"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Models/FeeList.cs",
+        "symbol": "PopulateObjectAndUpdateEntity"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-payments",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:contact-list-listmember-new_present_record",
+      "callSiteId": "ORG-CALL-00051",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "newperson.contact.transfer.between.lists",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+        "symbol": "AddContactToNewListAsync / TransferContactBetweenListsAsync"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:listmember-list",
+      "callSiteId": "ORG-CALL-00052",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "contact.current.group.retrieve",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+        "symbol": "GetContactCurrentGroup"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:contact-list",
+      "callSiteId": "ORG-CALL-00053",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.download.user.lists",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadListManager.cs",
+        "symbol": "GetListManager login + QueryListOfContactManyToMany"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00054",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.download.role.lists.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadListManager.cs",
+        "symbol": "role-based QueryListByContactId chains"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:contact",
+      "callSiteId": "ORG-CALL-00055",
+      "capabilityFamily": "churchreport.authentication",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "auth.contact.retrieve.by.account",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/ContactOperations/ContactService.cs",
+        "symbol": "RetrieveByAccountNumber"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:contact",
+      "callSiteId": "ORG-CALL-00056",
+      "capabilityFamily": "churchreport.authentication",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "auth.contact.retrieve.by.lineid",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/ContactOperations/ContactService.cs",
+        "symbol": "RetrieveByLineId"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list-listmember",
+      "callSiteId": "ORG-CALL-00057",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.membership.retrieve.appnamed.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/RelationshipQueryService.cs",
+        "symbol": "QueryListOfContactManyToMany"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00058",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.retrieve.by.contact.association",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "rollout": {
+        "owner": "platform-dynamics-gateway"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/PresentRecordQueryService.cs",
+        "symbol": "QueryListByContactId(associationName)"
+      },
+      "temporaryLegacy": {
+        "owner": "platform-dynamics-gateway",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_dedication_booking",
+      "callSiteId": "ORG-CALL-00059",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.dedication.fetchxml.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/FetchXmlQueryService.cs",
+        "symbol": "RetrieveDedicationBookingByFetchXml"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:contact",
+      "callSiteId": "ORG-CALL-00060",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "payments.contact.resolve.for.dedication.form",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/DonationDedicationFeeFormService.cs",
+        "symbol": "contact resolve for dedication fee form"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_stor_lessons",
+      "callSiteId": "ORG-CALL-00061",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "Package01FeeReadsEnabled",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "lessons.stor.retrieve.by.contact",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "SpeechMessage.Dynamics.ProductClient.IPackage01FeeReadClient"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/FetchXmlQueryService.cs",
+        "symbol": "RetrieveStorLessonsByFetchXml"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_stor_lessons",
+      "callSiteId": "ORG-CALL-00062",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "Package01FeeReadsEnabled",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "lessons.stor.retrieve.by.disciplelesson",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "SpeechMessage.Dynamics.ProductClient.IPackage01FeeReadClient"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/FetchXmlQueryService.cs",
+        "symbol": "RetrieveStorLessonsByDiscipleLessonsFetchXml"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:meeting-statistics",
+      "callSiteId": "ORG-CALL-00063",
+      "capabilityFamily": "churchreport.weekly.reporting",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "stats.meeting.retrieve.by.sunday",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/FetchXmlQueryService.cs",
+        "symbol": "RetrieveMeetingStatisticsByFetchXml"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_fee",
+      "callSiteId": "ORG-CALL-00064",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "Package01FeeReadsEnabled",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "fees.retrieve.by.dedication.period",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "SpeechMessage.Dynamics.ProductClient.IPackage01FeeReadClient"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/FetchXmlQueryService.cs",
+        "symbol": "RetrieveFeeByFetchXml"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:list",
+      "callSiteId": "ORG-CALL-00065",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.catalog.retrieve.appnamed.smallgroups",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "ToolUtility/QueryOperations/FetchXmlQueryService.cs",
+        "symbol": "RetrieveListByFetchXml / RetrieveSmallGroupListCollectionByFetchXml"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "read:new_disciple_lessons-new_stor_lessons-contact",
+      "callSiteId": "ORG-CALL-00066",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "Package01FeeReadsEnabled",
+      "legacyBehavior": "read-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "bounded response or paging state"
+        ]
+      },
+      "nextP7Slice": "P7.1-read",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "fees.editor.load.by.disciplelesson",
+        "status": "candidate"
+      },
+      "operationKind": "read",
+      "productClient": {
+        "owner": "SpeechMessage.Dynamics.ProductClient.IPackage01FeeReadClient"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs",
+        "symbol": "ProcessDiscipleLesson / ProcesseStorLessons load path"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:new_fee",
+      "callSiteId": "ORG-CALL-00067",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "fees.create.from.storlesson",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs",
+        "symbol": "CreateFee"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:new_present_record",
+      "callSiteId": "ORG-CALL-00068",
+      "capabilityFamily": "churchreport.attendance",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "presentrecord.create.on.download",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "p7-child-task-required"
+      },
+      "rollout": {
+        "owner": "p7-child-task-required"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.PresentRecord.cs",
+        "symbol": "CreatePresentRecord"
+      },
+      "temporaryLegacy": {
+        "owner": "not-applicable",
+        "status": "mapped-pending-evidence"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:new_present_record-contact",
+      "callSiteId": "ORG-CALL-00069",
+      "capabilityFamily": "churchreport.attendance",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "presentrecord.upsert.on.upload",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-presentrecord"
+      },
+      "rollout": {
+        "owner": "churchreport-presentrecord"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs",
+        "symbol": "CreatePresentRecord / UpdateSinglePresentRecord"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-presentrecord",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    },
+    {
+      "authorization": "server-owned-workload-policy-required",
+      "businessUseCase": "write:listmember",
+      "callSiteId": "ORG-CALL-00070",
+      "capabilityFamily": "churchreport.list.membership",
+      "ceSupport": {
+        "ce82": "evidence-pending",
+        "ce91": "evidence-pending"
+      },
+      "connectorSupport": {
+        "data8": "evidence-pending",
+        "officialWorker": "not-selected"
+      },
+      "consumer": {
+        "status": "disabled"
+      },
+      "data8Executor": {
+        "status": "not-implemented"
+      },
+      "featureGate": "not-yet-created",
+      "legacyBehavior": "write-legacy-dynamics-access",
+      "lifecycleRisk": {
+        "isolationBoundary": "profile alias plus immutable generation; no request may supply connector, credential, endpoint, or organization",
+        "owner": "deployment profile runtime and request scope",
+        "releasePath": "stop admission, drain request, dispose lease, then release profile-owned resources",
+        "resources": [
+          "profile-scoped connector lease",
+          "request cancellation",
+          "idempotency and ambiguous-timeout reconciliation"
+        ]
+      },
+      "nextP7Slice": "P7.2-write-action-function",
+      "officialWorkerExecutor": {
+        "status": "not-implemented"
+      },
+      "operation": {
+        "id": "list.members.service.interface.unresolved",
+        "status": "candidate"
+      },
+      "operationKind": "write",
+      "productClient": {
+        "owner": "p7-child-task-required"
+      },
+      "profileBoundary": "deployment-owned profile alias and immutable generation",
+      "realCeEvidence": {
+        "ce82": "metadata-only",
+        "ce91": "metadata-only"
+      },
+      "registry": {
+        "status": "not-declared"
+      },
+      "requestDto": {
+        "owner": "p7-child-task-required"
+      },
+      "responseDto": {
+        "owner": "p7-child-task-required"
+      },
+      "rollback": {
+        "owner": "churchreport-lists"
+      },
+      "rollout": {
+        "owner": "churchreport-lists"
+      },
+      "source": {
+        "file": "SpeechMessageProducts.ChurchReport/Services/ListManagement/IListManagementService.cs",
+        "symbol": "AddContactToListAsync / RemoveContactFromListAsync interface-only"
+      },
+      "temporaryLegacy": {
+        "owner": "churchreport-lists",
+        "status": "temporary-legacy"
+      },
+      "toolUtilityRemovalGate": "p7.5-required",
+      "workloadBoundary": "server-owned workload-to-profile authorization required"
+    }
+  ],
+  "coverageInterpretation": "Registry, executor, consumer and real CE evidence are independent states; none implies another.",
+  "schemaVersion": "p7.0.coverage-matrix.v1",
+  "sourceMatrix": {
+    "normalizedCallSiteCount": 70,
+    "normalizedCallSiteIds": [
+      "ORG-CALL-00001",
+      "ORG-CALL-00002",
+      "ORG-CALL-00003",
+      "ORG-CALL-00004",
+      "ORG-CALL-00005",
+      "ORG-CALL-00006",
+      "ORG-CALL-00007",
+      "ORG-CALL-00008",
+      "ORG-CALL-00009",
+      "ORG-CALL-00010",
+      "ORG-CALL-00011",
+      "ORG-CALL-00012",
+      "ORG-CALL-00013",
+      "ORG-CALL-00014",
+      "ORG-CALL-00015",
+      "ORG-CALL-00016",
+      "ORG-CALL-00017",
+      "ORG-CALL-00018",
+      "ORG-CALL-00019",
+      "ORG-CALL-00020",
+      "ORG-CALL-00021",
+      "ORG-CALL-00022",
+      "ORG-CALL-00023",
+      "ORG-CALL-00024",
+      "ORG-CALL-00025",
+      "ORG-CALL-00026",
+      "ORG-CALL-00027",
+      "ORG-CALL-00028",
+      "ORG-CALL-00029",
+      "ORG-CALL-00030",
+      "ORG-CALL-00031",
+      "ORG-CALL-00032",
+      "ORG-CALL-00033",
+      "ORG-CALL-00034",
+      "ORG-CALL-00035",
+      "ORG-CALL-00036",
+      "ORG-CALL-00037",
+      "ORG-CALL-00038",
+      "ORG-CALL-00039",
+      "ORG-CALL-00040",
+      "ORG-CALL-00041",
+      "ORG-CALL-00042",
+      "ORG-CALL-00043",
+      "ORG-CALL-00044",
+      "ORG-CALL-00045",
+      "ORG-CALL-00046",
+      "ORG-CALL-00047",
+      "ORG-CALL-00048",
+      "ORG-CALL-00049",
+      "ORG-CALL-00050",
+      "ORG-CALL-00051",
+      "ORG-CALL-00052",
+      "ORG-CALL-00053",
+      "ORG-CALL-00054",
+      "ORG-CALL-00055",
+      "ORG-CALL-00056",
+      "ORG-CALL-00057",
+      "ORG-CALL-00058",
+      "ORG-CALL-00059",
+      "ORG-CALL-00060",
+      "ORG-CALL-00061",
+      "ORG-CALL-00062",
+      "ORG-CALL-00063",
+      "ORG-CALL-00064",
+      "ORG-CALL-00065",
+      "ORG-CALL-00066",
+      "ORG-CALL-00067",
+      "ORG-CALL-00068",
+      "ORG-CALL-00069",
+      "ORG-CALL-00070"
+    ],
+    "path": ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+    "sha256": "06caa1d96ce5eddb93381b6361528d304ae1608240b87ab5316df1a557d5b823"
+  }
+}

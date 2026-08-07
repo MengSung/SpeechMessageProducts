@@ -66,8 +66,8 @@ flowchart LR
 P6 是 P7 Parent（含 P7.0～P7.5）的拓樸與 lifecycle prerequisite。Data8 是永久
 ConnectorKind，且 Lenovo ChurchReport 必須同時保留 `Embedded + Data8` 與
 `DedicatedGateway + Data8`；Official Worker 是同一 connector-selection contract 的額外選項。
-P6.1 的離線 Router integration 已通過，P7.0 只等待 P6 正式 archive，不等待未被目前
-ChurchReport deployment 選用的 Official Worker real CE evidence。P7.0 啟動時必須重新從 source
+P6.1 的離線 Router integration 已通過，P6 已正式 archive，P7.0 已據此啟動，且不等待未被目前
+ChurchReport deployment 選用的 Official Worker real CE evidence。P7.0 啟動後必須重新從 source
 產生 manifest，為每個 capability 決定 `Data8-only`、`Official-worker-required`、
 `both-required`、`unsupported` 或 `evidence-pending`，並以 CE 8.2 與 9.1 分開記錄。
 

@@ -1,0 +1,331 @@
+{
+  "ce91FixtureEnvironment": "sunnyvalechback-isolated-development-organization",
+  "outcome": "not-approved-p7.0-inventory-only",
+  "pendingCandidates": [
+    {
+      "callSiteId": "ORG-CALL-00011",
+      "capabilityFamily": "churchreport.list.membership",
+      "operationId": "list.members.add.many",
+      "operationKind": "action",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00012",
+      "capabilityFamily": "churchreport.list.membership",
+      "operationId": "list.members.remove.one",
+      "operationKind": "action",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00023",
+      "capabilityFamily": "churchreport.member.profile",
+      "operationId": "memberinfo.contact.update.line.profile",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00029",
+      "capabilityFamily": "churchreport.member.profile",
+      "operationId": "memberinfo.contact.update.image",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00030",
+      "capabilityFamily": "churchreport.member.profile",
+      "operationId": "memberinfo.contact.update.basic.info",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00034",
+      "capabilityFamily": "churchreport.member.profile",
+      "operationId": "newperson.contact.update.image",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00035",
+      "capabilityFamily": "churchreport.list.membership",
+      "operationId": "listmanagement.smallgroup.update.fields",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00036",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "operationId": "payments.fee.update.after.payment",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00037",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "operationId": "payments.dedication.complete.recurring",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00038",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "operationId": "payments.contact.create.or.update",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00039",
+      "capabilityFamily": "churchreport.appointments",
+      "operationId": "appointments.entity.create.or.update",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00042",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "operationId": "payments.dedication.cancel.booking",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00043",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "operationId": "payments.contact.create.with.dedication.number",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00044",
+      "capabilityFamily": "churchreport.contact.onboarding",
+      "operationId": "newperson.contact.create.full.onboarding",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00045",
+      "capabilityFamily": "churchreport.list.membership",
+      "operationId": "contact.assign.owner",
+      "operationKind": "action",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00048",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "operationId": "fees.editor.update.by.storlesson",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00049",
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "operationId": "payments.contact.update.card.profile",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00050",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "operationId": "fees.editor.stage.inmemory.change",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00051",
+      "capabilityFamily": "churchreport.list.membership",
+      "operationId": "newperson.contact.transfer.between.lists",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00067",
+      "capabilityFamily": "churchreport.fee.lessons",
+      "operationId": "fees.create.from.storlesson",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00068",
+      "capabilityFamily": "churchreport.attendance",
+      "operationId": "presentrecord.create.on.download",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00069",
+      "capabilityFamily": "churchreport.attendance",
+      "operationId": "presentrecord.upsert.on.upload",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    },
+    {
+      "callSiteId": "ORG-CALL-00070",
+      "capabilityFamily": "churchreport.list.membership",
+      "operationId": "list.members.service.interface.unresolved",
+      "operationKind": "write",
+      "requiredBeforeActivation": [
+        "unique fixture owner",
+        "allowed mutations",
+        "precondition",
+        "cleanup and reconciliation",
+        "ambiguous-timeout policy",
+        "CE support decision"
+      ]
+    }
+  ],
+  "requiredFamilies": [],
+  "schemaVersion": "p7.0.p7.2-activation-input.v1",
+  "sourceMatrixSha256": "06caa1d96ce5eddb93381b6361528d304ae1608240b87ab5316df1a557d5b823"
+}

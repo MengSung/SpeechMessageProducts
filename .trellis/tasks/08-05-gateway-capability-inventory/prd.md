@@ -58,13 +58,13 @@ admission 與 lifecycle contract。P7 的實證則按 capability、ConnectorKind
 
 ## 驗收條件
 
-- [ ] task-local JSON 初步 inventory 的 source hash、70 個 ID 與 12 個初步 capability group 可被離線檢查。
-- [ ] `design.md` 清楚區分 Registry declared、Executor implemented、Consumer enabled、Real CE evidence 四種狀態。
-- [ ] `design.md` 記錄 9/1/3/0 的現況覆蓋數（registry/Data8/official-worker/consumer-or-real-CE）。
-- [ ] 每個初步 group 都有 P6 判定、P7 child-task 落點與 rollback/removal 原則。
-- [ ] validator 規格可阻擋未分類 row、缺 owner/DTO/connector/CE 狀態、未授權 generic CRUD/FetchXML、未受 owner 管理的 temporary legacy，以及 P7.5 尚存 production SDK dependency。
-- [ ] coverage 數字由 source-derived manifest 取得，並明確分開 Official Worker protocol/adapter allowlist、Official Worker Router integration、consumer enablement 與 CE evidence；不得以手寫數字混淆這些層次。
-- [ ] `implement.md` 定義先驗證、後建立 machine-readable matrix/validator 的順序、檔案界線、驗證命令、UTF-8/CRLF、`git diff --check`、rollback 與使用者審閱 gate。
+- [x] task-local JSON 初步 inventory 的 source hash、70 個 ID 與 12 個初步 capability group 可被離線檢查。
+- [x] `design.md` 清楚區分 Registry declared、Executor implemented、Consumer enabled、Real CE evidence 四種狀態。
+- [x] `design.md` 記錄 9/1/3/0 的現況覆蓋數（registry/Data8/official-worker/consumer-or-real-CE）。
+- [x] 每個初步 group 都有 P6 判定、P7 child-task 落點與 rollback/removal 原則。
+- [x] validator 規格可阻擋未分類 row、缺 owner/DTO/connector/CE 狀態、未授權 generic CRUD/FetchXML、未受 owner 管理的 temporary legacy，以及 P7.5 尚存 production SDK dependency。
+- [x] coverage 數字由 source-derived manifest 取得，並明確分開 Official Worker protocol/adapter allowlist、Official Worker Router integration、consumer enablement 與 CE evidence；不得以手寫數字混淆這些層次。
+- [x] `implement.md` 定義先驗證、後建立 machine-readable matrix/validator 的順序、檔案界線、驗證命令、UTF-8/CRLF、`git diff --check`、rollback 與使用者審閱 gate。
 - [ ] P7.0 的 Phase 2 diff 只包含 task-local inventory、deterministic validator、validator tests、
       evidence／reference-scan artifacts 與 task metadata；不修改產品 runtime、專案引用、feature flag
       或 ChurchReport 流量。品質 gate 通過後可依整合 Goal 建立 task-owned commit 並 archive；不得 push。

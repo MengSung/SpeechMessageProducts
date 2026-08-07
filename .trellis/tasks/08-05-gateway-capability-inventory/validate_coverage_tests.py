@@ -73,6 +73,41 @@ class CoverageValidatorContractTests(unittest.TestCase):
             [error["ruleId"] for error in release_report["errors"]],
         )
 
+    def test_source_manifest_keeps_worker_protocol_allowlist_distinct_from_registry(self) -> None:
+        """Worker protocol 只允許兩個 identity 與一個 date-range fee operation，不能因來源註解而誤列 Registry 項目。"""
+        result = self.run_validator("--build")
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        manifests = json.loads((TASK_DIRECTORY / "source-manifests.json").read_text(encoding="utf-8"))
+        self.assertEqual(["runtime.health.whoami"], manifests["data8Executor"]["operationIds"])
+        self.assertEqual(
+            [
+                "fee.dedication.retrieve.by.contact.date.range",
+                "runtime.health.whoami",
+                "runtime.pool.validate.connection",
+            ],
+            manifests["officialWorkerProtocol"]["operationIds"],
+        )
+
+    def test_generic_entity_capability_is_rejected(self) -> None:
+        """任何企圖把 generic entity CRUD 當成遠端 capability 的 row 必須在 P7.0 離線 gate 被拒絕。"""
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            matrix_path = Path(temporary_directory) / "coverage-matrix.json"
+            shutil.copyfile(TASK_DIRECTORY / "coverage-matrix.json", matrix_path)
+            matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+            matrix["callSites"][0]["operation"]["id"] = "entity.retrieve"
+            matrix_path.write_text(
+                json.dumps(matrix, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+                newline="",
+            )
+
+            result = self.run_validator("--matrix", str(matrix_path))
+
+        self.assertNotEqual(0, result.returncode)
+        report = json.loads(result.stdout)
+        self.assertIn("P70-GENERIC-CAPABILITY", [error["ruleId"] for error in report["errors"]])
+
 
 if __name__ == "__main__":
     unittest.main()

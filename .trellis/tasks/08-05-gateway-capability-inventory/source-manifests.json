@@ -1,0 +1,188 @@
+{
+  "consumer": {
+    "baseValue": "false",
+    "developmentValue": "false",
+    "featureGate": "Package01FeeReadsEnabled",
+    "sources": [
+      {
+        "path": "SpeechMessageProducts.ChurchReport/appsettings.json",
+        "sha256": "56fc822a342c997705889ec6c2ee97179f6787129e4a60126523f3705a60eb4e"
+      },
+      {
+        "path": "SpeechMessageProducts.ChurchReport/appsettings.Development.json",
+        "sha256": "6a92f65e42660f7b29851926f6f05aa4c05f2bde7352187bb0379a37e125d1b3"
+      }
+    ],
+    "status": "disabled"
+  },
+  "data8Executor": {
+    "operationIds": [
+      "runtime.health.whoami"
+    ],
+    "sources": [
+      {
+        "path": "SpeechMessage.Dynamics.Connectors.Data8/Data8ProfileOperationExecutor.cs",
+        "sha256": "14b8f4d932437d1de897c89bdc2fa80914570ab857209675abf6db265ae13b7f"
+      }
+    ],
+    "status": "implemented"
+  },
+  "officialWorkerProtocol": {
+    "operationIds": [
+      "fee.dedication.retrieve.by.contact.date.range",
+      "runtime.health.whoami",
+      "runtime.pool.validate.connection"
+    ],
+    "sources": [
+      {
+        "path": "SpeechMessage.Dynamics.WorkerHost/OfficialWorkerOperations.cs",
+        "sha256": "3b8d425572e285ad54a077564a5b7ce7f22bde68f76cafda31a9dd26dccb3930"
+      },
+      {
+        "path": "SpeechMessage.Dynamics.WorkerProtocol/Package01FeeWorkerContract.cs",
+        "sha256": "e162275c69526227a11bcfa9bdcadb87d8cdd9dc6d749c8714bbb61aa51a9a0c"
+      }
+    ],
+    "status": "protocol-allowlisted"
+  },
+  "officialWorkerRouter": {
+    "hasExplicitConnectorKinds": true,
+    "sources": [
+      {
+        "path": "SpeechMessage.Dynamics.ControlPlane/Connectors/OfficialWorkerConnectorRouter.cs",
+        "sha256": "8cb05f6c80eeae89cbbeef51c2f896fba91959bf0974dba8258d5cbdac9829e0"
+      }
+    ],
+    "status": "implemented-offline-p6.1"
+  },
+  "productClient": {
+    "operationIds": [
+      "fee.dedication.retrieve.by.contact",
+      "fee.dedication.retrieve.by.contact.date.range",
+      "fees.editor.load.by.disciplelesson",
+      "fees.retrieve.by.dedication.period",
+      "lessons.stor.retrieve.by.contact",
+      "lessons.stor.retrieve.by.disciplelesson"
+    ],
+    "owner": "SpeechMessage.Dynamics.ProductClient.IPackage01FeeReadClient",
+    "sources": [
+      {
+        "path": "SpeechMessage.Dynamics.ProductClient/FeeReads/Package01FeeReadClient.cs",
+        "sha256": "d4d35ada096b375889fcdd34e9a4be9b7250feb020d2e785f5a51020ed091754"
+      },
+      {
+        "path": "SpeechMessage.Dynamics.ProductClient/FeeReads/IPackage01FeeReadClient.cs",
+        "sha256": "6d67f6c1ef4ceb8b98e13be9f05a5953f4287c21f11d4c2e9eab1aa7f4da5b13"
+      }
+    ],
+    "status": "declared"
+  },
+  "realCeEvidence": {
+    "ce82": "metadata-only",
+    "ce91": "metadata-only",
+    "smoke": "not-started",
+    "status": "evidence-pending"
+  },
+  "registry": {
+    "operationIds": [
+      "fee.dedication.retrieve.by.contact",
+      "fee.dedication.retrieve.by.contact.date.range",
+      "fees.editor.load.by.disciplelesson",
+      "fees.retrieve.by.dedication.period",
+      "lessons.stor.retrieve.by.contact",
+      "lessons.stor.retrieve.by.disciplelesson",
+      "metadata.optionset.retrieve.by.attribute",
+      "runtime.health.whoami",
+      "runtime.pool.validate.connection"
+    ],
+    "sources": [
+      {
+        "path": "SpeechMessage.Dynamics.Abstractions/Operations/OperationIds.cs",
+        "sha256": "da0e8ea060c7f7bf117ee2a0fb75af51388de940a70e223fa5b7ba572b818175"
+      },
+      {
+        "path": "SpeechMessage.Dynamics.Abstractions/Operations/Package01OperationRegistry.cs",
+        "sha256": "703e1c153d89b054070f6233abab1f8ed9a976398fe5d12a80f8ff425984951f"
+      }
+    ],
+    "status": "declared"
+  },
+  "schemaVersion": "p7.0.source-manifests.v1",
+  "sourceMatrix": {
+    "normalizedCallSiteCount": 70,
+    "normalizedCallSiteIds": [
+      "ORG-CALL-00001",
+      "ORG-CALL-00002",
+      "ORG-CALL-00003",
+      "ORG-CALL-00004",
+      "ORG-CALL-00005",
+      "ORG-CALL-00006",
+      "ORG-CALL-00007",
+      "ORG-CALL-00008",
+      "ORG-CALL-00009",
+      "ORG-CALL-00010",
+      "ORG-CALL-00011",
+      "ORG-CALL-00012",
+      "ORG-CALL-00013",
+      "ORG-CALL-00014",
+      "ORG-CALL-00015",
+      "ORG-CALL-00016",
+      "ORG-CALL-00017",
+      "ORG-CALL-00018",
+      "ORG-CALL-00019",
+      "ORG-CALL-00020",
+      "ORG-CALL-00021",
+      "ORG-CALL-00022",
+      "ORG-CALL-00023",
+      "ORG-CALL-00024",
+      "ORG-CALL-00025",
+      "ORG-CALL-00026",
+      "ORG-CALL-00027",
+      "ORG-CALL-00028",
+      "ORG-CALL-00029",
+      "ORG-CALL-00030",
+      "ORG-CALL-00031",
+      "ORG-CALL-00032",
+      "ORG-CALL-00033",
+      "ORG-CALL-00034",
+      "ORG-CALL-00035",
+      "ORG-CALL-00036",
+      "ORG-CALL-00037",
+      "ORG-CALL-00038",
+      "ORG-CALL-00039",
+      "ORG-CALL-00040",
+      "ORG-CALL-00041",
+      "ORG-CALL-00042",
+      "ORG-CALL-00043",
+      "ORG-CALL-00044",
+      "ORG-CALL-00045",
+      "ORG-CALL-00046",
+      "ORG-CALL-00047",
+      "ORG-CALL-00048",
+      "ORG-CALL-00049",
+      "ORG-CALL-00050",
+      "ORG-CALL-00051",
+      "ORG-CALL-00052",
+      "ORG-CALL-00053",
+      "ORG-CALL-00054",
+      "ORG-CALL-00055",
+      "ORG-CALL-00056",
+      "ORG-CALL-00057",
+      "ORG-CALL-00058",
+      "ORG-CALL-00059",
+      "ORG-CALL-00060",
+      "ORG-CALL-00061",
+      "ORG-CALL-00062",
+      "ORG-CALL-00063",
+      "ORG-CALL-00064",
+      "ORG-CALL-00065",
+      "ORG-CALL-00066",
+      "ORG-CALL-00067",
+      "ORG-CALL-00068",
+      "ORG-CALL-00069",
+      "ORG-CALL-00070"
+    ],
+    "path": ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+    "sha256": "06caa1d96ce5eddb93381b6361528d304ae1608240b87ab5316df1a557d5b823"
+  }
+}
