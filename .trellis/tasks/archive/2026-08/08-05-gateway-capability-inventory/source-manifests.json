@@ -22,7 +22,7 @@
     "sources": [
       {
         "path": "SpeechMessage.Dynamics.Connectors.Data8/Data8ProfileOperationExecutor.cs",
-        "sha256": "14b8f4d932437d1de897c89bdc2fa80914570ab857209675abf6db265ae13b7f"
+        "sha256": "642f33b50cf729eab1e6df4251dd57da2c538c34fbcbd5bcd0fa92127cbd6513"
       }
     ],
     "status": "implemented"

@@ -18,8 +18,24 @@ from pathlib import Path
 from typing import Any
 
 
+def find_repository_root(task_directory: Path) -> Path:
+    """從 task 的目前位置找到包含 `.trellis/tasks` 的 repository root。
+
+    P7.0 task 在 active 目錄與 `archive/<year-month>` 目錄的深度不同；
+    因此不可用固定 `parents[n]` 推算 root。此函式只依 repository 的
+    結構性錨點判定，找不到即在任何來源掃描、artifact 改寫或 CE 相關
+    行為之前失敗，避免把輸出寫到錯誤目錄。
+    """
+    for candidate in (task_directory, *task_directory.parents):
+        trellis_directory = candidate / ".trellis"
+        if trellis_directory.is_dir() and (trellis_directory / "tasks").is_dir():
+            return candidate
+
+    raise RuntimeError("The P7.0 coverage validator could not locate the repository root.")
+
+
 TASK_DIRECTORY = Path(__file__).resolve().parent
-REPOSITORY_ROOT = TASK_DIRECTORY.parents[2]
+REPOSITORY_ROOT = find_repository_root(TASK_DIRECTORY)
 SOURCE_MATRIX = REPOSITORY_ROOT / ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json"
 PRELIMINARY_INVENTORY = TASK_DIRECTORY / "preliminary-capability-inventory.json"
 SOURCE_MANIFESTS = TASK_DIRECTORY / "source-manifests.json"
