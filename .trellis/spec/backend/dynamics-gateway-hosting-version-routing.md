@@ -2279,3 +2279,149 @@ Approved non-secret IFD metadata with canonical HTTPS roots + immutable manifest
 The correct path preserves deployment ownership, profile-generation isolation,
 credential secrecy, deterministic file ownership, and the no-request-time-
 fallback rule across Local and future Central Gateway hosts.
+
+## 10. P7.1 Data8 read evidence handoff
+
+### 1. Scope / Trigger
+
+This contract applies to the Lenovo-only, operator-triggered P7.1 Package01
+read evidence lane. It is intentionally narrower than P7.4 cutover: the
+selected ChurchReport development profile is `sunnyvalechback`, CE 9.1,
+`Embedded + Data8`; Dedicated Gateway live listener evidence remains a P7.4
+responsibility. The handoff must prove the six typed read operations without
+changing the product consumer flag or starting an Official Worker.
+
+### 2. Signatures
+
+The Windows PowerShell 5.1 entry point is:
+
+```text
+docs/scripts/Invoke-Package01Data8ReadEvidence.ps1
+  -RepositoryPath <worktree-root>
+  -ContactId <test-owned-guid>
+  -DedicationBookingId <test-owned-guid>
+  -DiscipleLessonId <test-owned-guid>
+  -StartDate <ISO-8601-UTC>
+  -EndDate <ISO-8601-UTC>
+  -PaidPeriod <bounded-string>
+  -Json
+```
+
+The child test is opt-in only when `SPEECHMESSAGE_P7_1_LIVE=1` and the same
+process has `CRM_PASSWORD` plus all six `P7_1_*` fixture variables. The script
+itself never accepts a password or credential-reference argument: after all
+repository and fixture validation succeeds, it reads only its fixed local
+Windows Generic Credential target, sets `CRM_PASSWORD` in its own short-lived
+process environment for the spawned child, and restores the prior environment
+in `finally`.
+
+### 3. Contracts
+
+Before repository or fixture validation can take an early-exit path, the script
+snapshots every process environment variable it might later override. It sets
+the fixture variables and ephemeral password only in its own short-lived
+process environment, so the spawned child inherits them; `finally` restores
+every prior value even when validation fails. The Generic Credential native
+buffer has a single owner: `CredRead` is followed by `CredFree` in `finally`,
+and any managed character buffer is cleared before the helper returns. Temporary
+TRX deletion is best-effort and must not throw from `finally`, because it cannot
+block restoration or secret clearing. Neither the target name nor the secret
+may appear in stdout, stderr, TRX, task artifacts, or JSON. The fixed output
+shape is:
+
+```json
+{
+  "schemaVersion": 1,
+  "outcome": "go|no-go|error",
+  "reason": "fixed-sanitized-reason",
+  "mode": "Embedded",
+  "profileAlias": "sunnyvalechback",
+  "ceVersion": "9.1",
+  "operationExecuted": false,
+  "featureFlagChanged": false,
+  "operations": [
+    { "operationId": "allowlisted-id", "status": "succeeded|failed", "rowCount": 0 }
+  ]
+}
+```
+
+The output must not contain a password, token, cookie, endpoint, Organization
+GUID, account name, CRM payload, TRX path, or raw exception. The six operation
+IDs are fixed by `Package01OperationRegistry`; no generic CRUD, arbitrary
+FetchXML, endpoint, profile, CE version, or ConnectorKind is accepted.
+
+Each CRM page independently consumes `OperationDefinition.MaximumPageBytes`.
+The projected record is first counted against that page-local budget and then
+against `MaximumCumulativeResponseBytes`; a page that fits the four-page total
+but exceeds its own 64 KiB limit must fail closed before any partial DTO is
+returned. Page counters are request-local and never cross a lease, profile, or
+operation boundary.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Worktree or test project is missing | Emit `error/repository-invalid`; do not start `dotnet` or CE. |
+| Any fixture GUID/date/period is missing, malformed, empty, or unbounded | Emit `error/fixture-input-invalid`; do not start `dotnet` or CE. |
+| Fixed Generic Credential is unavailable, malformed, non-Generic, or unreadable | Emit `no-go/credential-unavailable`; do not prompt, log the native failure, start `dotnet`, or retry. |
+| Child test exceeds 180 seconds | Kill the bounded child process and emit `no-go/test-timeout`; do not retry in the same handoff. |
+| TRX has zero, multiple, malformed, or unexpected evidence markers | Emit `error/evidence-result-unavailable`; do not infer success from a zero exit code. |
+| Any of six operations fails | Emit `no-go/one-or-more-operations-failed`; keep the consumer flag off and preserve the operation classifications. |
+| All six operations succeed and cleanup completes | Emit `go` with exactly six sanitized operation entries. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an approved test-owned fixture is available and the fixed Generic
+  Credential exists for the same Windows identity; the script supplies the
+  secret only to its bounded child process, executes six read-only typed calls,
+  clears/restores the environment, and emits one sanitized marker after runtime
+  disposal.
+- Base: fixtures are not yet available. The script remains runnable as a
+  bounded handoff, but P7.1 evidence stays `evidence-pending`; no P6 profile is
+  rebuilt and no broad retry is attempted.
+- Bad: put a password or CRM URL on the command line, enable
+  `Package01FeeReadsEnabled`, use a production member as a guessed fixture, or
+  treat a skipped test / missing TRX marker as `go`.
+
+### 6. Tests Required
+
+- `Invoke-Package01Data8ReadEvidence.Tests.ps1` must prove strict UTF-8/CRLF,
+  invalid repository fail-closed behavior, fixed JSON output, no feature-flag
+  mutation, fixed-target `CredRead`/`CredFree` ownership, environment snapshot
+  before every validation early exit, non-throwing temporary cleanup, a public
+  native type with no compiler warning on stdout, and absence of network or
+  Official Worker behavior outside the bounded child test.
+- `OnPremiseData8ConnectorClientFactoryTests` must inject an offline fee and
+  stor-lesson page that exceeds `MaximumPageBytes` while remaining below the
+  cumulative budget, then assert both branches fail closed and dispose their
+  fake service exactly once.
+- `LivePackage01Data8ReadEvidenceTests` must remain skipped unless all explicit
+  opt-in variables exist, execute each fixed operation at most once per lane,
+  assert the CE 9.1 profile, and dispose the runtime/logger owner before
+  emitting its marker.
+- The focused and full Dynamics/ChurchReport suites, Release build, `git
+  diff --check`, and byte-level encoding checks are required before commit.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+Read CRM_PASSWORD from a command-line parameter, print dotnet stderr, accept a
+skipped live test as success, or let a fixture exception decide the next
+profile/connector dynamically.
+```
+
+#### Correct
+
+```text
+fixed sunnyvalechback + typed fixture environment
+  -> fixed local Generic Credential, temporary process-only password
+  -> bounded opt-in child test
+  -> six allowlisted Data8 reads
+  -> dispose runtime/logger, clear/restore process environment and native buffers
+  -> one sanitized JSON line
+```
+
+This keeps real CE evidence separate from registry/executor/consumer state and
+preserves the permanent Data8 contract for both Embedded and Gateway hosts.

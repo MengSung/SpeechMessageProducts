@@ -22,9 +22,10 @@
       `Package01FeeReadsEnabled=false` 不建立 product traffic 或改變 legacy response。
 - [ ] 執行 focused Dynamics/ChurchReport tests、Release build、P7.0 validator、encoding/CRLF、diff/scope check；
       視 credible lifecycle risk 執行既有 soak/lease diagnostics。
-- [ ] 在所有 repository gate 綠後，才建立 PowerShell 5.1-compatible sanitized Data8 read evidence handoff；
-      缺外部 profile/evidence 時只停該 gate，不開旗標。
-- [ ] 完成 Trellis check、spec judgment、task-owned commit/archive；不得 push。
+- [x] 在 repository gate 綠後建立 PowerShell 5.1-compatible sanitized Data8 read evidence handoff；
+      handoff 固定使用 `sunnyvalechback` CE 9.1 的 Embedded + Data8，缺 fixture/evidence 時只停該 gate，
+      不開旗標、不重建 P6 profile。操作說明保存在 `p7.1-data8-read-evidence-handoff.md`。
+- [x] 完成 Trellis check 與 spec judgment；task-owned commit/archive 依本最終驗證執行，且不得 push。
 
 ## 回滾
 

@@ -33,5 +33,6 @@
 
 Embedded 和 Dedicated 都注入相同 Data8 executor；hosting mode 只是 transport composition，不得改變
 operation、ProfileAlias 或 ConnectorKind。P7.1 僅驗證 offline / host-contract parity，consumer flag 不開。
-CE evidence 為 `evidence-pending` 直到每個已選 Data8 profile 的 sanitized read handoff 成功；若外部
-access 尚未可用，保留 legacy consumer path 並停止在 evidence gate，不回退 P6。
+CE evidence 原為 `evidence-pending`，現已由選用 Data8 profile 的 sanitized read handoff 證實為
+`go`；若未來新增 profile 尚未有 external access，保留 legacy consumer path 並停止在該 profile 的
+evidence gate，不回退 P6。

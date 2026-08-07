@@ -21,6 +21,6 @@
   "children": [],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "P7.1 offline Data8 typed read slice and quality gates are complete. Six operations are implemented for the permanent Data8 connector; Package01FeeReadsEnabled remains false. CE 9.1 sunnyvalechback live evidence returned sanitized go for all six operations. Official Worker/P6.2 was not started. Spec update recorded in closure-analysis.md and backend routing spec.",
   "meta": {}
 }

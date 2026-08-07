@@ -211,6 +211,35 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護每個 Package01 Data8 page 都必須套用 registry 的 64 KiB `MaximumPageBytes`，不能只依賴四頁合計的
+    /// 256 KiB 上限。故障注入是在離線 CRM page 放入單筆超過單頁預算、但仍低於累積預算的顯示字串；決定性斷言
+    /// 是 fee 與 stor-lesson 兩種 response branch 都在回傳任何 DTO 前 fail closed，並由 lease owner 照常釋放
+    /// fake service，不建立真實 CE/WCF session 或保留 CRM Entity。
+    /// </summary>
+    /// <param name="operationId">用於覆蓋 fee 與 stor-lesson 投影路徑的固定 allowlisted operation。</param>
+    [Theory]
+    [InlineData(OperationIds.FeeDedicationRetrieveByContactDateRange)]
+    [InlineData(OperationIds.LessonsStorRetrieveByContact)]
+    public async Task Created_client_rejects_a_page_that_exceeds_the_registry_page_byte_budget(
+        string operationId)
+    {
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            _ => CreatePageExceedingSinglePageByteBudget(operationId));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            var action = async () => await client.ExecuteAsync(CreatePackage01Operation(operationId), CancellationToken.None);
+
+            await action.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 建立只在本測試記憶體內存在的 factory 設定。字串內容不是真實 endpoint 或 credential；production factory
     /// 不記錄這些值，且設定 owner 是 host composition root，不會把它傳入 OperationExecutionRequest 或 Pool key。
     /// </summary>
@@ -363,6 +392,41 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             ["new_stor_lessonsid"] = storLessonId
         });
         return page;
+    }
+
+    /// <summary>
+    /// 建立超過單頁但未超過總回應預算的離線資料列，精準重現「只檢查 cumulative bytes」時會漏放行的情況。
+    /// 長字串只活在這個 test callback 與 connector 投影的同步範圍；它不會寫入 log、cache、fixture 或 CRM。
+    /// </summary>
+    /// <param name="operationId">決定要建立 fee 或 stor-lesson 的 schema 正確測試 Entity。</param>
+    /// <returns>只有一筆資料、但投影後超過 registry 64 KiB 單頁預算的 EntityCollection。</returns>
+    private static EntityCollection CreatePageExceedingSinglePageByteBudget(string operationId)
+    {
+        var oversizedText = new string('x', 64 * 1024);
+        var page = new EntityCollection();
+        if (operationId == OperationIds.FeeDedicationRetrieveByContactDateRange)
+        {
+            var feeId = Guid.Parse("99999999-9999-9999-9999-999999999999");
+            page.Entities.Add(new Entity("new_fee", feeId)
+            {
+                ["new_feeid"] = feeId,
+                ["new_others"] = oversizedText
+            });
+            return page;
+        }
+
+        if (operationId == OperationIds.LessonsStorRetrieveByContact)
+        {
+            var storLessonId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+            page.Entities.Add(new Entity("new_stor_lessons", storLessonId)
+            {
+                ["new_stor_lessonsid"] = storLessonId,
+                ["contact.fullname"] = new AliasedValue("contact", "fullname", oversizedText)
+            });
+            return page;
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "Unsupported Package01 page-budget test operation.");
     }
 
     /// <summary>

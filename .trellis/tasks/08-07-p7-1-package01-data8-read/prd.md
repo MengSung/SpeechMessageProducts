@@ -37,11 +37,11 @@ feature flag 預設關閉。此 task 以六個既有 Registry/ProductClient oper
 
 ## 驗收條件
 
-- [ ] 六個 operation 全部以 strict typed request/response 成功投影，未知 operation 或不符參數在取得
+- [x] 六個 operation 全部以 strict typed request/response 成功投影，未知 operation 或不符參數在取得
       Pool 前回傳固定 fail-closed error。
-- [ ] 每個 Data8 lease 在 success、connector failure、projection failure、timeout 與 cancellation 時都
+- [x] 每個 Data8 lease 在 success、connector failure、projection failure、timeout 與 cancellation 時都
       由唯一 owner 歸還或 fault/evict，沒有跨 profile／user／organization state。
-- [ ] Embedded 與 DedicatedGateway 使用同一 ProductClient／operation contract；本 task 不開旗標或改流量。
-- [ ] 所有新增/改動的 C#、tests、task docs 為 UTF-8 without BOM、CRLF-only、final CRLF，且測試、
+- [x] Embedded 與 DedicatedGateway 使用同一 ProductClient／operation contract；本 task 不開旗標或改流量。
+- [x] 所有新增/改動的 C#、tests、task docs 為 UTF-8 without BOM、CRLF-only、final CRLF，且測試、
       Release build、static scan、soak/lifecycle 與 rollback assertion 通過。
-- [ ] 沒有真機證據時，P7.1 只留下 bounded sanitized operator handoff；不得宣稱 CE 8.2／9.1 已驗證。
+- [x] 沒有真機證據時，P7.1 只留下 bounded sanitized operator handoff；不得宣稱 CE 8.2／9.1 已驗證。
