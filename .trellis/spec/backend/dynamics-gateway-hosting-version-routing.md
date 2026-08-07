@@ -1,11 +1,14 @@
 # Dynamics Gateway Hosting and CE 8.2/9.1 Routing Contract
 
-## 0. 2026-08-04 connection-management supersession
+## 0. 2026-08-07 connection-management supersession
 
-The user-approved contract in `docs/dynamics-connection-management-spec.md`
+The user-approved contract in `docs/dynamics-connection-management-spec.md`,
+as rebaselined by
+`.trellis/tasks/08-05-official-worker-router-ce-integration/scope-rebaseline-2026-08-07.md`,
 supersedes any conflicting historic wording below, including statements that
 Data8 is temporary-only, that the only modes are `Gateway`/`Embedded`, or that
-Embedded must be deferred.
+Embedded must be deferred. Official Worker live evidence is conditional on the
+selected profile and is not a prerequisite for a Data8-only ChurchReport route.
 
 - `ConnectionMode` has exactly `Embedded`, `DedicatedGateway`, and
   `CentralGateway`. All three are permanent deployment choices. Dedicated and
@@ -41,13 +44,16 @@ connector is `OfficialCrm82Worker` or `OfficialCrm91Worker`, especially for
 net48 process isolation and deterministic worker cleanup. It is not an
 exclusive transport mandate.
 
-## 0. Authoritative Microsoft NuGet worker direction
+## 0. Official Worker direction when that ConnectorKind is selected
 
-This section supersedes every older Web-API-first, optional-Web-API, or
-universal-no-SDK transport statement in this file.
+This section governs only a deployment profile whose selected `ConnectorKind`
+is `OfficialCrm82Worker` or `OfficialCrm91Worker`. It supersedes older
+Web-API-first or optional-Web-API transport statements, but does not make an
+Official Worker the exclusive transport mandate.
 
-- The only supported transport kinds are `OfficialCrm82Worker` and
-  `OfficialCrm91Worker`.
+- `OfficialCrm82Worker` and `OfficialCrm91Worker` are separately supported
+  version-pinned Worker ConnectorKinds. `Data8` remains the permanent .NET 10
+  ConnectorKind and is not a fallback.
 - Each transport is a separately version-pinned .NET Framework 4.8 process
   using Microsoft-published `Microsoft.CrmSdk.XrmTooling.CoreAssembly` /
   `CrmServiceClient` packages.
@@ -59,12 +65,11 @@ universal-no-SDK transport statement in this file.
   replacement inputs pending removal.
 - The D365APP01 CRMWeb/IFD HTTP 500, Deployment PowerShell channel, ASP.NET 1309
   events, IFD wizard, and direct Web API `WhoAmI` are not Gateway gates.
-- Real-server validation means executing the actual website, Gateway, and
-  selected official worker on the intended Windows host, then executing the
-  approved Organization operation matrix against CE 8.2 or CE 9.1. That host
-  may be a Visual Studio Local Gateway on the developer workstation; a separate
-  Central/IIS deployment is not a prerequisite. Local hosting must still use
-  the real pinned Worker and Organization Service rather than a fake transport.
+- Real-server validation for an Official Worker means executing the actual
+  website, hosting mode, and selected Worker on the intended Windows host, then
+  executing the approved Organization operation matrix against CE 8.2 or CE
+  9.1. It proves only that Worker/profile/version combination. It must not be
+  used to block a Data8-only capability that does not select an Official Worker.
 - A failed worker request never changes transport, CE version, profile,
   organization, or credential. No automatic Web API or Data8 fallback exists.
 - Worker IPC is bounded, length-prefixed, versioned, nonce-bound, and typed. It
@@ -85,23 +90,24 @@ universal-no-SDK transport statement in this file.
 This contract applies whenever a SpeechMessage product:
 
 - calls Dynamics 365 Customer Engagement through `SpeechMessage.Dynamics`;
-- selects a shared Central Gateway or a product-local Gateway process;
+- selects a shared Central Gateway or a product-local Dedicated Gateway process;
 - adds or changes a CE 8.2 or CE 9.1 organization profile;
 - introduces or changes an official CE 8.2/9.1 worker, worker protocol,
   `CrmServiceClient`, worker supervisor, or legacy-removal boundary;
 - changes connection/runtime pooling, authentication, profile reload, worker lifecycle, or SDK-removal behavior.
 
-The product-facing architecture has two execution modes only:
+The product-facing architecture has exactly three `ConnectionMode` values:
 
-- `Gateway`: the product calls the versioned Gateway REST contract.
 - `Embedded`: the connector runtime is hosted in the product process.
+- `DedicatedGateway`: the product calls a separately deployed HTTPS Gateway for
+  the one product.
+- `CentralGateway`: the product calls the shared HTTPS Gateway service.
 
-Central Gateway and Local Gateway are two deployment topologies of `Gateway` mode. They are not additional `DynamicsExecutionMode` enum values. Central versus Local is selected by the configured Gateway endpoint and deployment ownership:
-
-- Central: `Gateway.Endpoint` resolves to the shared internal Gateway service.
-- Local: `Gateway.Endpoint` resolves to the product's separately running localhost Gateway process.
-
-`Embedded` remains deferred until the Local Gateway, CE 8.2, CE 9.1, isolation, and lifecycle gates pass. Existing Embedded code may remain, but it is not the current recommended production or development path.
+`ConnectionMode` and `ConnectorKind` are independent deployment dimensions.
+For ChurchReport on Lenovo, `Embedded + Data8` and `DedicatedGateway + Data8`
+are both required, configurable routes. The first cloud ChurchReport route is
+`CentralGateway + Data8`. Neither mode selection nor a connector failure may
+change ConnectorKind, ProfileAlias, CE version, or endpoint at request time.
 
 ## 2. Signatures
 
@@ -148,7 +154,7 @@ Central deployment:
 ```json
 {
   "DynamicsAccess": {
-    "ExecutionMode": "Gateway",
+    "ConnectionMode": "CentralGateway",
     "ProfileAlias": "crm82",
     "Gateway": {
       "Endpoint": "https://dynamics-gateway.internal/",
@@ -158,12 +164,12 @@ Central deployment:
 }
 ```
 
-Local deployment:
+Dedicated local deployment:
 
 ```json
 {
   "DynamicsAccess": {
-    "ExecutionMode": "Gateway",
+    "ConnectionMode": "DedicatedGateway",
     "ProfileAlias": "crm91",
     "Gateway": {
       "Endpoint": "https://localhost:7244/",
@@ -173,13 +179,19 @@ Local deployment:
 }
 ```
 
-`CentralGateway` and `LocalGateway` are architecture labels only. They are invalid values for the current `DynamicsExecutionMode` enum unless a separately reviewed contract change intentionally adds them.
+`ConnectionMode` is the product-facing hosting selector and accepts exactly
+`Embedded`, `DedicatedGateway`, or `CentralGateway`. `LocalGateway` and the old
+`Gateway`/`DynamicsExecutionMode` names are historical terminology, not valid
+configuration values. The connector remains deployment-owned by the selected
+profile and is not included in product JSON.
 
 ### Profile transport contract
 
-The deployment-owned profile contract exposes exactly one supported transport kind:
+The deployment-owned profile contract exposes exactly one selected transport
+kind per immutable profile generation. The supported values are:
 
 ```text
+Data8
 OfficialCrm82Worker
 OfficialCrm91Worker
 ```
@@ -193,12 +205,15 @@ switch per request or silently fall back after a failure.
 
 ### Product boundary
 
-- Products know `ExecutionMode`, `ProfileAlias`, Gateway endpoint, API prefix, and typed operation parameters only.
+- Products know `ConnectionMode`, `ProfileAlias`, Gateway endpoint, API prefix,
+  and typed operation parameters only.
 - Product JSON must not contain a CRM organization-service URL, raw CRM Web API URL, username, password, client secret, access token, refresh token, certificate private key, SDK DLL path, worker executable/package path, or transport kind.
 - Gateway-owned success envelopes must not serialize CRM hostname, Organization Service endpoint, `/api/data/` base path, credential, token, package path, pipe name, nonce, process ID, or other internal routing/lifecycle metadata.
 - Raw SDK/Organization Service response types and upstream absolute URLs are not product-safe. The worker must project them into bounded typed DTOs before serialization; no SDK object crosses IPC.
-- The same ProductClient and REST contract are used for Central and Local Gateway deployments.
-- Changing between Central and Local requires configuration replacement plus restart/replace-and-drain. It is not a request-time switch.
+- The same ProductClient and REST contract are used for Dedicated and Central
+  Gateway deployments.
+- Changing between Embedded, Dedicated, and Central requires configuration
+  replacement plus restart/replace-and-drain. It is not a request-time switch.
 
 ### Gateway request Content-Type boundary
 
@@ -216,61 +231,78 @@ switch per request or silently fall back after a failure.
 - It owns one bounded worker-process pool per immutable profile generation. `crm82` and `crm91` never share an executable, SDK assembly graph, mutable client, credential, WCF channel, static cache, or session.
 - Multiple products may share the same Central Gateway profile runtime only after server-side authorization resolves them to the approved alias and workload policy.
 
-### Local Gateway ownership
+### Dedicated Gateway ownership
 
-- Local Gateway is a separate Windows process started beside one product for Visual Studio development, integration testing, or an explicitly isolated deployment.
-- The product still calls localhost through the Gateway HTTP contract; Local Gateway is not Embedded mode.
-- Every Local Gateway process owns and deterministically drains, terminates, and disposes its worker-process/pipe/process-handle pool.
-- Local Gateway uses the same operation registry, profile validation, adapter contracts, health semantics, and secret-reference rules as Central Gateway.
-- A local JSON file cannot grant production access by itself. Production-capable Local Gateway profiles require an approved manifest or central registry binding.
+- Dedicated Gateway is a separate Windows process started beside one product for Visual Studio development, integration testing, or an explicitly isolated deployment.
+- The product calls the configured HTTPS endpoint (often localhost during Lenovo development); Dedicated Gateway is not Embedded mode.
+- Every Dedicated Gateway process owns and deterministically drains, terminates, and disposes its worker-process/pipe/process-handle pool.
+- Dedicated Gateway uses the same operation registry, profile validation, adapter contracts, health semantics, and secret-reference rules as Central Gateway.
+- A local JSON file cannot grant production access by itself. Production-capable Dedicated Gateway profiles require an approved manifest or central registry binding.
 
 ### Organization-level capacity
 
-- Central and Local physical pools are process-local and are never the same object.
-- All Central, Local, blue/green, canary, and draining runtime hosts that reach the same physical Dynamics organization share one `OrganizationAdmissionKey` and aggregate concurrency budget.
+- Central and Dedicated physical pools are process-local and are never the same object.
+- All Central, Dedicated, blue/green, canary, and draining runtime hosts that reach the same physical Dynamics organization share one `OrganizationAdmissionKey` and aggregate concurrency budget.
 - Version labels, aliases, environment labels, or process boundaries must not multiply the physical organization's capacity.
 - Every admitted request holds a bounded lease/permit before outbound Dynamics traffic. Loss or expiry of the host lease stops new admission and forces bounded drain/cancellation.
 
 ### CE 9.1 profile
 
-- The only transport is `OfficialCrm91Worker`, a separately deployed .NET
-  Framework 4.8 process with an immutable Microsoft XRM tooling package lock.
+- A CE 9.1 profile may select `Data8` or `OfficialCrm91Worker`; the immutable
+  deployment profile chooses one ConnectorKind and the request cannot override
+  it. `OfficialCrm91Worker` is a separately deployed .NET Framework 4.8
+  process with an immutable Microsoft XRM tooling package lock.
 - The current package baseline is
   `Microsoft.CrmSdk.XrmTooling.CoreAssembly` 9.1.1.65; any change requires a
   new package-lock/executable generation and complete verification.
-- Data8 and direct Web API are not CE 9.1 routes or fallbacks.
-- A CE 9.1 profile has its own version-specific operation registry, worker pool,
+- Direct Web API is not a CE 9.1 route or fallback. Data8 and Official Worker
+  are separate profile-selected paths; a failure of either never retries the
+  other.
+- A CE 9.1 profile has its own version-specific operation registry, pool,
   credential reference, recycle policy, and real-server evidence.
 
 ### CE 8.2 profile
 
-- The only new transport is `OfficialCrm82Worker`, a separately deployed .NET
-  Framework 4.8 process using a Microsoft-published XRM tooling version proven
-  against the actual CE 8.2 target.
+- A CE 8.2 profile may select `Data8` or `OfficialCrm82Worker`; the immutable
+  deployment profile chooses one ConnectorKind. `OfficialCrm82Worker` is a
+  separately deployed .NET Framework 4.8 process using a Microsoft-published
+  XRM tooling version proven against the actual CE 8.2 target.
 - The CE 8.2 package lock is selected independently. A CE 9.1 package that
   merely restores or compiles is not accepted as CE 8.2 compatibility proof.
-- Data8 may continue only behind the existing unmigrated legacy product path
-  until the official worker passes its operation/lifecycle/rollback gates. It
-  is not selectable by new Gateway routing.
+- Data8 is a supported CE 8.2 route when the selected profile declares it. An
+  Official Worker that lacks real evidence remains `evidence-pending`; it does
+  not make the selected Data8 profile unsupported.
 - CE 8.2 and CE 9.1 workers remain independently version-pinned processes; this
   task does not plan consolidation.
 
-### Temporary Data8 boundary
+### Data8 boundary
 
 - `PowerPlatform.Dataverse.Client` in this repository is the third-party Data8 WS-Trust client, not Microsoft-owned source.
-- It is temporary compatibility code only.
+- It is a permanent ConnectorKind owned by this repository. The project owns
+  its compatibility, lifecycle, security and verification obligations.
 - The current `OnPremiseClient` implements `IOrganizationService` but not `IDisposable`; the existing `CrmConnectionPool` disposal cast therefore does not prove that its underlying WCF channels/factories are closed.
-- The Data8 client must not become the permanent Central or Local Gateway in-process pool implementation.
-- New Gateway migration must not add Data8. Existing legacy use cases stay
-  outside the new route until the matching official worker replaces them.
-- Worker termination is a fallback cleanup boundary, not a substitute for bounded request lifetime, health checks, process recycling policy, handle/socket baseline tests, and graceful shutdown.
+- A Data8 client used by `Embedded`, `DedicatedGateway`, or `CentralGateway`
+  must remain behind the same profile/admission/pool/lease contract; products
+  never create it directly.
+- Data8 lifecycle ownership is not weakened by selecting it as the route. Each
+  client/channel/factory/AD auth resource has a bounded owner, deterministic
+  close-or-abort cleanup and a release baseline.
+- Worker termination remains a cleanup boundary when an Official Worker is
+  selected; it is never a Data8 fallback or a substitute for bounded request
+  lifetime, health checks, process recycling policy, handle/socket baseline
+  tests, and graceful shutdown.
 
 ### Embedded boundary
 
-- Embedded remains a reserved execution mode and may retain its existing project and research artifacts.
-- New product rollouts use Local Gateway for developer convenience instead of expanding Embedded.
-- Embedded development resumes only after Central/Local contract equivalence, real CE 8.2/9.1 validation, aggregate admission, secret isolation, and lifecycle baselines pass.
-- Removing Embedded is a separate reviewed decision; it is not implied by choosing Local Gateway first.
+- Embedded is a permanent `ConnectionMode`, not a bypass or deferred-only
+  placeholder. It executes the same RequestGuard, immutable profile resolution,
+  admission, Connector Router and pool/lease lifecycle as Gateway modes; it
+  omits only the HTTP hop.
+- ChurchReport local development must retain `Embedded + Data8` alongside
+  `DedicatedGateway + Data8`. A capability cannot hard-code a mode or Connector
+  in product business code.
+- Removing Embedded is a separate reviewed decision; it is not implied by
+  choosing Dedicated or Central Gateway first.
 
 ### Source documentation and text encoding
 
@@ -285,8 +317,9 @@ switch per request or silently fall back after a failure.
 
 | Condition | Required behavior |
 | --- | --- |
-| `ExecutionMode` is `CentralGateway` or `LocalGateway` with the current enum | Startup validation fails. Use `Gateway` and select the deployment by endpoint. |
-| `ExecutionMode=Gateway` without `ProfileAlias` or absolute HTTPS `Gateway.Endpoint` | Startup fails closed. No outbound CRM traffic. |
+| `ConnectionMode` is not exactly `Embedded`, `DedicatedGateway`, or `CentralGateway` | Startup validation fails. No outbound CRM traffic. |
+| `ConnectionMode=DedicatedGateway` or `CentralGateway` without `ProfileAlias` or absolute HTTPS `Gateway.Endpoint` | Startup fails closed. No outbound CRM traffic. |
+| `ConnectionMode=Embedded` provides a Gateway endpoint | Embedded ignores or rejects the endpoint according to its product validator; it never silently creates a Gateway client. |
 | Product JSON contains CRM credentials, token, raw CRM URL, or SDK path | Configuration is rejected and secret scanning fails the build/release gate. |
 | Gateway-owned success payload includes CRM hostname, Organization Service endpoint, `/api/data/` base path, package path, pipe/nonce/process metadata, credential, or token | Review and release fail. Return only the bounded product DTO. |
 | Worker response contains an SDK type, raw Entity/Organization response, or absolute CRM URL | Reject the frame, terminate/quarantine the worker generation, and return a sanitized protocol failure. |
@@ -294,14 +327,14 @@ switch per request or silently fall back after a failure.
 | Authenticated but unauthorized request uses an invalid Content-Type | Return 403 before media-type validation and before body read. |
 | Authorized operation request omits Content-Type or uses a non-approved media type/parameter/charset | Return 415 before request-body I/O, pooled-buffer rent, JSON parsing, executor invocation, or outbound Dynamics traffic. |
 | Authorized operation request uses case-insensitive `application/json` with no parameters or one UTF-8 charset | Continue to the existing bounded byte/JSON validation path. |
-| Any profile selects `WebApi`, `OfficialServiceClient`, `OfficialLegacyWorker`, or `TemporaryData8LegacyWorker` | Startup fails closed; no worker or Dynamics traffic starts. |
+| Any profile selects `WebApi`, `OfficialServiceClient`, `OfficialLegacyWorker`, or `TemporaryData8LegacyWorker` | Startup fails closed; no worker or Dynamics traffic starts. `Data8`, `OfficialCrm82Worker`, and `OfficialCrm91Worker` remain the only valid ConnectorKind values. |
 | CE 8.2 or CE 9.1 profile uses the wrong worker/package-lock kind | Profile remains NotReady and the process is not published. |
-| Data8 is loaded as an unbounded long-lived Gateway pool client without deterministic disposal proof | Release blocker. Isolate it in a recyclable worker or fix lifecycle ownership first. |
+| Data8 is loaded as an unbounded long-lived client without deterministic disposal proof | Release blocker. Use the bounded Data8 pool/lease ownership contract and fix lifecycle ownership first. |
 | CE 8.2 and 9.1 SDK assemblies require conflicting versions in one worker | Keep separate version-pinned worker processes. Do not solve by unverified binding redirects. |
 | Two aliases/environments resolve to the same physical organization with different admission keys | Startup fails closed until one shared organization capacity entry is configured. |
-| Central or Local host loses its runtime-host lease | Stop admitting new work, become NotReady, and drain/cancel within the configured fence. |
+| Central or Dedicated host loses its runtime-host lease | Stop admitting new work, become NotReady, and drain/cancel within the configured fence. |
 | Profile endpoint/version/organization identity does not match expected evidence | Profile remains NotReady; never auto-upgrade or auto-switch versions. |
-| Embedded is selected before its trust/admission/lifecycle gates are approved | Startup remains NotReady. |
+| Embedded bypasses RequestGuard, profile resolution, admission, Router, or pool/lease lifecycle | Release blocker; fail closed before outbound Dynamics traffic. |
 | A new C# type or lifecycle/concurrency/security method lacks detailed Traditional Chinese documentation | Review fails; add the missing intent, ownership, failure, and cleanup explanation before merge. |
 | A changed source/config/test/script/document file is not valid UTF-8 or violates repository encoding rules | Verification fails before build/release completion. |
 
@@ -309,7 +342,7 @@ switch per request or silently fall back after a failure.
 
 ### Good
 
-- Ten products use the same ProductClient. Production points to the Central Gateway endpoint; ChurchReport development points to localhost. Both send the same operation request and receive the same result contract.
+- Ten products use the same ProductClient. Production points to the Central Gateway endpoint; ChurchReport development can point to a Dedicated Gateway on localhost or use Embedded composition. Both send the same operation request and receive the same result contract.
 - `crm82` uses `OfficialCrm82Worker` while `crm91` uses
   `OfficialCrm91Worker`. Their executables, pinned SDK graphs, clients,
   credentials, WCF/static state, pipes, and pools are separate, while aggregate
@@ -321,10 +354,12 @@ switch per request or silently fall back after a failure.
 
 ### Base
 
-- Only Central Gateway is deployed in production. Local Gateway is used by a developer with non-production secret references. Embedded remains compiled but unused.
-- Existing unmigrated CE 8.2 product traffic may continue through its named
-  legacy implementation while the official CE 8.2 worker is built. New Gateway
-  routing cannot select that legacy path.
+- ChurchReport development selects `Embedded + Data8` or `DedicatedGateway +
+  Data8` by deployment configuration; product behavior and typed contracts are
+  the same. A future cloud deployment selects `CentralGateway + Data8`.
+- An Official Worker profile can remain `evidence-pending` while a selected
+  Data8 profile continues through its own capability evidence gate. Neither
+  route is a retry target for the other.
 - An unauthorized caller sends `Content-Type: text/plain`; Gateway returns 403 without reading the stream, so media-type behavior does not become an authorization oracle.
 
 ### Bad
@@ -333,8 +368,8 @@ switch per request or silently fall back after a failure.
 - A request selects one official worker, fails, and silently retries through
   Web API, Data8, another worker version, or another profile.
 - One singleton pool contains clients for CE 8.2 and CE 9.1 or for multiple credentials/organizations.
-- Each Local Gateway assumes its local maximum is independent and collectively overloads the same Dynamics organization.
-- A Local Gateway reads production credentials directly from product-owned JSON.
+- Each Dedicated Gateway assumes its local maximum is independent and collectively overloads the same Dynamics organization.
+- A Dedicated Gateway reads production credentials directly from product-owned JSON.
 - Gateway accepts `text/plain` or arbitrary `application/*+json` merely because the body happens to parse as JSON, or reads the body before deciding to return 415.
 
 ## 6. Tests Required
@@ -342,8 +377,8 @@ switch per request or silently fall back after a failure.
 ### Contract and configuration
 
 - Assert Central endpoint and localhost endpoint produce identical ProductClient request payloads and result parsing.
-- Assert only `Gateway` and `Embedded` are accepted `DynamicsExecutionMode` values.
-- Assert `Gateway` requires a non-empty `ProfileAlias`, absolute HTTPS endpoint, and bounded API prefix.
+- Assert only `Embedded`, `DedicatedGateway`, and `CentralGateway` are accepted `ConnectionMode` values.
+- Assert `DedicatedGateway` and `CentralGateway` require a non-empty `ProfileAlias`, absolute HTTPS endpoint, and bounded API prefix; Embedded does not create an HTTP client.
 - Assert product configuration rejects secrets, raw CRM URLs, authorization headers, and transport selection.
 - Assert a successful operation envelope preserves only approved product fields
   and does not add CRM hostname, Organization Service endpoint, SDK type data,
@@ -369,7 +404,12 @@ switch per request or silently fall back after a failure.
   streams, timers, registrations, queues, request maps, worker proxies, process
   handles, and strong runtime references return to baseline.
 
-### CE 8.2 real-server gates
+### Conditional Official Worker real-server gates
+
+The following gates apply only when a deployment profile explicitly selects an
+Official Worker. They are not a prerequisite for a Data8-only capability and
+the current P6 record remains `evidence-pending` until a future, independently
+authorized task completes them.
 
 - Official-worker `WhoAmI` or equivalent identity operation through
   website -> Gateway -> worker.
@@ -381,7 +421,7 @@ switch per request or silently fall back after a failure.
 - Long-running worker/process/pipe/thread/handle/private-bytes soak proving a
   stable post-warm-up and post-recycle baseline.
 
-### CE 9.1 real-server gates
+### Conditional Official Worker CE 9.1 real-server gates
 
 - Official-worker identity operation, representative operations, paging,
   requests/actions, batch where used, reconnect, recycle, restart, and profile
@@ -389,12 +429,15 @@ switch per request or silently fall back after a failure.
 - Verify only the pinned `OfficialCrm91Worker` authentication and operation
   matrix against the actual target.
 
-### Data8 removal gates
+### Legacy-removal gates (Data8 is retained)
 
-- No project or package reference to the checked-in `PowerPlatform.Dataverse.Client` project.
-- No source construction of `OnPremiseClient`.
-- No solution entry or reachable WCF/WS-Trust dependency retained solely for Data8.
-- All CE 8.2 and 9.1 real-server, isolation, lifecycle, rollback, and operation-coverage gates pass through replacement adapters.
+- Data8 is not removed by this contract. A Data8 profile remains a supported
+  route for CE 8.2 and CE 9.1 when selected by deployment configuration.
+- ChurchReport may remove its direct ToolUtility/CRM SDK production dependency
+  only after the P7 capability matrix, Data8 lifecycle evidence, and rollback
+  gates pass; that removal does not delete the repository-owned Data8 connector.
+- Any future Official Worker replacement or removal must be a separately scoped
+  task with its own CE/version evidence and rollback boundary.
 
 ### Documentation and encoding gates
 
@@ -408,18 +451,19 @@ switch per request or silently fall back after a failure.
 
 ```json
 {
-  "ExecutionMode": "LocalGateway",
+  "ConnectionMode": "LocalGateway",
   "ProfileAlias": "crm91"
 }
 ```
 
-This contradicts the current `DynamicsExecutionMode` contract and duplicates deployment topology in the product API.
+This contradicts the current `ConnectionMode` contract. `LocalGateway` is not
+an enum value; local one-product hosting is `DedicatedGateway`.
 
-### Correct: keep one Gateway contract and change the endpoint
+### Correct: select a hosting mode and keep the connector deployment-owned
 
 ```json
 {
-  "ExecutionMode": "Gateway",
+  "ConnectionMode": "DedicatedGateway",
   "ProfileAlias": "crm91",
   "Gateway": {
     "Endpoint": "https://localhost:7244/",
@@ -428,7 +472,9 @@ This contradicts the current `DynamicsExecutionMode` contract and duplicates dep
 }
 ```
 
-The same product build can point to Central or Local Gateway without changing business code or CRM transport semantics.
+The same product build can select `Embedded + Data8`, `DedicatedGateway +
+Data8`, or (in a later cloud deployment) `CentralGateway + Data8` without
+changing business code or introducing request-time connector fallback.
 
 ### Wrong: pool every CRM client behind one singleton
 
@@ -448,21 +494,26 @@ Central crm91 runtime pool  ----/     (only when they resolve to the same physic
 
 Physical clients remain process/profile-generation owned. Only the bounded organization admission authority is shared.
 
-### Wrong: keep Data8 as the permanent .NET 10 pool foundation
+### Wrong: collapse every connector into one mutable singleton
 
 ```text
-Product -> Data8 OnPremiseClient singleton -> CE 8.2 and CE 9.1
+Product -> one mutable client/singleton -> CE 8.2 and CE 9.1
 ```
 
-### Correct: replace the legacy route with version-specific official workers
+### Correct: select a connector per immutable deployment profile
 
 ```text
-Product -> Gateway contract -> OfficialCrm82Worker -> CE 8.2
-                            -> OfficialCrm91Worker -> CE 9.1
+Product -> Gateway contract -> Data8                -> CE 8.2 or CE 9.1
+                            -> OfficialCrm82Worker  -> CE 8.2 (when selected)
+                            -> OfficialCrm91Worker  -> CE 9.1 (when selected)
 ```
 
-Data8 remains only in explicitly unmigrated legacy product code until the CE 8.2
-official worker passes its gates; it is never a new Gateway transport.
+Data8 is a permanent supported ConnectorKind and is the current ChurchReport
+local/cloud baseline (`Embedded + Data8`, `DedicatedGateway + Data8`, and the
+future `CentralGateway + Data8`). Official Workers remain separately pinned,
+non-fallback alternatives whose live evidence is required only when a deployment
+explicitly selects them. A failed connector never silently changes profile,
+version, or transport.
 
 ### Wrong: comment only what the syntax already says
 
@@ -556,7 +607,7 @@ Program startup order:
   produce a new manifest and repeat independent artifact-to-manifest comparison;
   an earlier report's hash must never be copied into a later overlay.
 - `OutputDirectory` is the clean Gateway publish/executable directory for the
-  selected Local or Central host generation. The
+  selected Dedicated or Central host generation. The
   generator writes the overlay there and writes each `worker-profile.xml`
   beside its already-published worker executable.
 - Use a clean/versioned host directory. The generator refuses to overwrite an
@@ -666,7 +717,7 @@ Program startup order:
 
 ```powershell
 # Workers already occupy their final paths. The profile input is separately
-# approved, and the clean output is the selected Local or Central Gateway host directory.
+# approved, and the clean output is the selected Dedicated or Central Gateway host directory.
 .\docs\scripts\New-DynamicsOfficialWorkerDeployment.ps1 `
   -ManifestPath '<final-worker-root>\official-worker-manifest.json' `
   -ProfileInputPath '<approved-profile-input.json>' `
@@ -1010,7 +1061,7 @@ finally
 
 ### 1. Scope / Trigger
 
-This scenario applies when ChurchReport creates or reuses `DonationPaymentManager` from ASP.NET Session state, when logout/re-login resets identity, when `IMemoryCache` evicts a generation, or when the ChurchReport host stops. It also applies when Local Gateway preflight is enabled from the ChurchReport primary DI container.
+This scenario applies when ChurchReport creates or reuses `DonationPaymentManager` from ASP.NET Session state, when logout/re-login resets identity, when `IMemoryCache` evicts a generation, or when the ChurchReport host stops. It also applies when Dedicated Gateway preflight is enabled from the ChurchReport primary DI container.
 
 ### 2. Signatures
 
@@ -1041,7 +1092,7 @@ ChurchReport obtains `DonationPaymentManager` only through `InMemoryDataContextS
 - `DonationPaymentManager` disposes only its self-created LINE client and semaphore. Factory/DI-owned CRM utilities and workflows remain owned by their original containers.
 - If resource cleanup throws, the entry remains strongly owned in `CleanupFailed`, `ActiveEntryCount` does not decrease, and `CleanupFailureCount` increases. A later serialized host `Dispose` may retry that exact entry. Active reaches zero only after cleanup succeeds.
 - ChurchReport legacy controllers may construct `InMemoryDataContextSmallGroup` manually. Therefore the approved lease-return contract is response `OnCompleted` plus `RegisterForDispose`, both targeting one idempotent lease. The context itself is not the authoritative lease owner and must not release a request-shared lease early.
-- `DynamicsGatewayPreflightHostedService` executes bounded `runtime.health.whoami` only when `DynamicsAccess:Package01FeeReadsEnabled=true` and mode is `Gateway`. Disabled and Embedded paths are strict no-ops. The process host is a primary-DI singleton and owns the only ProductClient provider/HTTP generation.
+- `DynamicsGatewayPreflightHostedService` executes bounded `runtime.health.whoami` only when `DynamicsAccess:Package01FeeReadsEnabled=true` and mode is `DedicatedGateway` or `CentralGateway`. Disabled and Embedded paths are strict no-ops. The process host is a primary-DI singleton and owns the only ProductClient provider/HTTP generation.
 - Other legacy `InMemoryDataContextSmallGroup` Session cache properties currently hold data managers that do not implement `IDisposable`; several managers reference the same process-wide `ToolUtilityFactory` singleton. Their eviction callbacks must not dispose `subValue` or the shared `ToolUtilityClass`, because that would allow one Session eviction to invalidate CRM state used by other Sessions.
 - The process-wide legacy `ToolUtilityFactory` currently has only an internal test reset and no proven Production host-shutdown owner. This is a pre-existing Phase 6 lifecycle/removal blocker: either retire the singleton behind Gateway or add one host-owned deterministic cleanup path before final release. Session cache modernization must not pretend to solve that process owner by disposing shared dependencies from an eviction callback.
 
@@ -1137,20 +1188,19 @@ RemoveSessionOwnedReferenceOnly();
 await processLifetimeOwner.DisposeSharedLegacyRuntimeAsync().ConfigureAwait(false);
 ```
 
-## Scenario: Local Gateway Development Configuration And Safe Runtime Verification
+## Scenario: Dedicated Gateway Development Configuration And Safe Runtime Verification
 
 ### 1. Scope / Trigger
 
 This scenario applies when Visual Studio starts `SpeechMessage.Dynamics.Gateway`
 or ChurchReport under the `Development` environment, or when a compiled Host DLL
-is executed directly for local verification. It defines the fail-closed Local
-  Gateway configuration, durable single-machine control-plane ownership,
-  product-to-Gateway boundary, and two independent runtime checks: Gateway health
-  and policy verification, plus feature-disabled ChurchReport browser verification.
-  It also defines the permitted Phase 4C Local Gateway lane: with an approved
-  non-production or explicitly approved CE profile, Visual Studio may run the
-  exact pinned Worker against the real Organization Service. It does not enable
-  Phase 5 consumer traffic or permit invented profile/credential data.
+is executed directly for local verification. It defines the fail-closed Dedicated
+Gateway configuration, durable single-machine control-plane ownership,
+product-to-Gateway boundary, and two independent runtime checks: Gateway health
+and policy verification, plus feature-disabled ChurchReport browser verification.
+With an approved non-production or explicitly approved CE profile, Visual Studio
+may run the selected Data8 profile through Dedicated Gateway. An Official Worker
+live run is a separate, future task and is not implied by this local scenario.
 
 ### 2. Signatures
 
@@ -1162,15 +1212,15 @@ SpeechMessage.Dynamics.Gateway/appsettings.Development.json
   DynamicsProfiles:Profiles:*:WorkerExecutableSha256
   DynamicsProfiles:Profiles:*:PackageLockId
   DynamicsProfiles:Profiles:*:OrganizationBaseUri
-  DynamicsGateway:ActiveWorkloadBindingSet = Local
-  DynamicsGateway:WorkloadBindingSets:Local[*]
+  DynamicsGateway:ActiveWorkloadBindingSet = Dedicated
+  DynamicsGateway:WorkloadBindingSets:Dedicated[*]
 
 SpeechMessage.Dynamics.Gateway/appsettings.json
   DynamicsGateway:ActiveWorkloadBindingSet = Central
   DynamicsGateway:WorkloadBindingSets:Central[*]
 
 SpeechMessageProducts.ChurchReport/appsettings.Development.json
-  DynamicsAccess:ExecutionMode
+  DynamicsAccess:ConnectionMode
   DynamicsAccess:ProfileAlias
   DynamicsAccess:Gateway:Endpoint
   DynamicsAccess:Gateway:ApiPrefix
@@ -1192,23 +1242,25 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 
 - Development Gateway durable coordination uses the explicitly provisioned same-Windows-user LocalDB instance and a dedicated `SpeechMessageDynamicsControlPlane` database. The connection uses integrated authentication, bounded pool size, and bounded connect timeout. Gateway startup validates the schema; it does not connect to Dynamics native SQL, auto-create the database, or fall back to in-memory coordination.
 - The checked-in Development CRM target remains deliberately non-routable. A permitted operation against it must fail in a controlled, sanitized way without falling back to Central Gateway, Embedded, Data8, another alias, or a production endpoint.
-- A real CE Phase 4C run replaces that non-routable target only through one
-  approved Local Gateway overlay/profile generation. Its paths need to remain
+- A real CE local run replaces that non-routable target only through one
+  approved Dedicated Gateway overlay/profile generation. Its paths need to remain
   stable for that generation, but they do not need to be a final Central/IIS
-  deployment directory. The Local Gateway verifies the current manifest hash,
-  package lock, Worker kind, organization identity, and secret reference before
-  the Worker starts; the overlay and every Worker profile remain outside product
+  deployment directory. The Dedicated Gateway verifies the selected profile
+  manifest, package lock, ConnectorKind, organization identity, and secret
+  reference before its connector starts; the overlay and any Worker profile remain outside product
   JSON and are removed or retained only by their explicit local deployment owner.
-- ChurchReport Development uses `ExecutionMode=Gateway`, `ProfileAlias=crm82`,
-  HTTPS loopback, and API prefix `/v1`. The product does not select or duplicate
-  the CE version; the deployment-owned Gateway profile selects the pinned worker.
+- ChurchReport Development may use `ConnectionMode=DedicatedGateway`,
+  `ProfileAlias=sunnyvalechback`, HTTPS loopback, and API prefix `/v1`, or it may
+  use `ConnectionMode=Embedded` with the same Data8 profile. The product does not
+  select or duplicate the CE version or ConnectorKind; the deployment-owned
+  profile selects Data8 (or a separately authorized Official Worker).
   `Package01FeeReadsEnabled=false` remains the authoritative consumer-traffic
   gate.
 - Feature-disabled ChurchReport startup must not create ProductClient, HTTP handler/pool, token cache, timer, or Dynamics preflight/operation traffic. Development configuration alignment alone does not enable Package 1.
-- Local Gateway authentication uses server-established Windows Negotiate identity plus server-owned workload bindings. Client JSON and spoofable headers never select principal, workload, alias permission, or operation permission.
+- Dedicated Gateway authentication uses server-established Windows Negotiate identity plus server-owned workload bindings. Client JSON and spoofable headers never select principal, workload, alias permission, or operation permission.
 - A syntactically valid authenticated Windows SID is authoritative. When it is present, authorization performs only the SID lookup; an unmapped SID fails closed and must not fall back to a matching principal name. Exact principal-name fallback is allowed only when the authenticated principal has no usable SID at all. This prevents a newly created account with the same name but a different SID from inheriting the retired account's workload permissions.
 - `DynamicsGateway:ActiveWorkloadBindingSet` is the deployment-owned selector and is mandatory. The authorizer enumerates direct children under `DynamicsGateway:WorkloadBindingSets`, resolves exactly one case-insensitive matching set, and materializes only that set. It must not concatenate the selector into a configuration path or enumerate all sets.
-- Central, Local, and Testing binding sets may coexist in the merged configuration because they are separate named subtrees. `appsettings.Development.json` changes only the selector to `Local`; therefore .NET configuration's numeric-array and nested-leaf merge behavior cannot import a Central principal or Central operation into the Local frozen authorization snapshot.
+- Central, Dedicated, and Testing binding sets may coexist in the merged configuration because they are separate named subtrees. `appsettings.Development.json` changes only the selector to `Dedicated`; therefore .NET configuration's numeric-array and nested-leaf merge behavior cannot import a Central principal or Central operation into the Dedicated frozen authorization snapshot.
 - An empty, whitespace, wildcard, unknown, ambiguous, scalar-only, or childless active set is a startup failure before the listener, secret resolution, admission, executor, or outbound transport. There is no fallback to `Central`, the first set, the base provider, or the union of all sets.
 - Runtime verification artifacts may record HTTP status categories, test counts, readiness state, JavaScript error count, and sanitized policy outcomes. They must not persist credentials, tokens, passwords, Session identifiers, client identifiers, callback values, private VM addresses, complete AD FS/CRM endpoints, or secret-reference values.
 - Raw workload-binding arrays at one shared configuration path are forbidden. .NET configuration merges arrays and nested lists by numeric leaf key; changing index `1` to `0` can still retain base `CapabilityOperationIds:1..N`. Named sets plus one strict selector are the required replacement boundary.
@@ -1226,8 +1278,8 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 | Authenticated principal has no usable SID and its exact principal name has a binding | Permit the existing name-compatibility path, subject to the same alias and operation allowlists. |
 | Workload requests an unbound alias or unauthorized operation | Return 403 before connector/token/transport work. |
 | Authorized operation reaches the non-routable Development CRM target | Return controlled sanitized 4xx; do not fall back to any other transport or endpoint. |
-| A Visual Studio Local Gateway Phase 4C profile is approved and its manifest/overlay/Worker chain is valid | Start only the selected pinned Worker and run the fixed approved operation matrix against that exact CE target. |
-| A Visual Studio Local Gateway Phase 4C profile is absent, malformed, hash-drifted, unapproved, or owns unstable paths | Remain NotReady; do not substitute a fake Worker, Web API, Data8, Central profile, or guessed identity. |
+| A Visual Studio Dedicated Gateway profile is approved and its manifest/overlay/connector chain is valid | Start only the selected deployment-owned ConnectorKind and run the fixed approved operation matrix against that exact CE target. |
+| A Visual Studio Dedicated Gateway profile is absent, malformed, hash-drifted, unapproved, or owns unstable paths | Remain NotReady; do not substitute a fake Worker, Web API, another ConnectorKind, Central profile, or guessed identity. |
 | `Package01FeeReadsEnabled=false` | ChurchReport root may run, but no Package 1 Dynamics traffic or preflight resources are created. |
 | `ActiveWorkloadBindingSet` is missing, blank, contains wildcard text, names no direct child set, names a scalar/empty set, or is otherwise ambiguous | Host startup fails closed; do not start the listener or fall back to another set. |
 | A Central principal authenticates against a Development Host whose selector is `Local` | Return 403 `unmapped-principal`; do not resolve an alias, operation, secret, admission permit, executor request, or outbound connection. |
@@ -1245,7 +1297,7 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 - Good: a principal presents SID-B and name X while only SID-A/name X was previously authorized; SID-B is unmapped, so the request receives 403 and cannot inherit the old workload by name.
 - Base: Central, Local, and Testing sets coexist as deployment data, while exactly one selector is active for one Host generation. Changing the selector requires configuration replacement plus Host restart/replace-and-drain; it is never a request-time switch.
 - Base: a legacy authenticated principal has no usable SID claim but has an exact configured principal name; name fallback remains available without wildcard, prefix, substring, or caller-header matching.
-- Bad: replace the checked-in Development CRM target with a routable URL merely to make a smoke test green. Use one approved Local Gateway overlay instead, with the same immutable profile rules as a Central host.
+- Bad: replace the checked-in Development CRM target with a routable URL merely to make a smoke test green. Use one approved Dedicated Gateway overlay instead, with the same immutable profile rules as a Central host.
 - Bad: set `Package01FeeReadsEnabled=true` to force preflight evidence before real CE 8.2/9.1 and rollback gates exist.
 - Bad: define Central and Local entries under one `WorkloadBindings` array and assume a later provider replaces the collection; numeric leaf merging can preserve both entire bindings and nested operation entries.
 - Bad: a valid but unmapped SID is allowed to continue into principal-name lookup. Account-name reuse can then grant a different Windows security authority the old account's alias, operation, capacity, and audit identity.
@@ -1257,18 +1309,18 @@ dotnet .\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll --urls http://
 
 ### 6. Tests Required
 
-- Configuration precedence tests assert the LocalDB instance, dedicated control-plane database, integrated authentication, bounded pool, bounded timeout, non-routable CRM target, deployment-owned worker version, ChurchReport Local Gateway alias/prefix, absence of a product-side CE version selector, and Package 1 false state.
+- Configuration precedence tests assert the LocalDB instance, dedicated control-plane database, integrated authentication, bounded pool, bounded timeout, non-routable CRM target, deployment-owned ConnectorKind/profile, ChurchReport Dedicated Gateway alias/prefix, absence of a product-side CE version selector, and Package 1 false state.
 - Load real base plus Development JSON, authenticate with the Central binding principal, and assert Local authorization returns `unmapped-principal` with zero executor/outbound work. This regression must fail against a shared `WorkloadBindings` array implementation.
 - Authenticate with a syntactically valid but unmapped SID plus a principal name that otherwise matches an authorized binding. Assert 403, `unmapped-principal`, zero executor calls, and no materialized execution request. Separately assert a principal with no usable SID still succeeds through the exact principal-name compatibility binding.
 - Assert a missing selector, leading/trailing whitespace, `*` and `?` wildcard text, an unknown name, a delimiter-bearing value such as `Local:0`, scalar-only, scalar-plus-children, and a true childless JSON set all fail Host startup. Assert exact set selection is case-insensitive. Testing factories must select an explicit nonempty `Testing` set rather than inheriting `Central`.
 - Execute the opt-in live LocalDB durable coordinator contract against the explicitly provisioned database and assert lease/fencing behavior without auto-provisioning.
 - Start the real Development Gateway and verify `/health`, `/ready`, 401 anonymous, authorized workload catalog, 403 wrong alias, 403 unauthorized operation, and controlled no-fallback connector failure.
-- With an approved Local Gateway Phase 4C profile, start the Gateway from the
+- With an approved Dedicated Gateway profile, start the Gateway from the
   Visual Studio/project-owned local host, then prove the website -> localhost
-  Gateway -> pinned Worker -> CE identity/read/paging/recycle matrix. Assert
-  that the worker/pipe/process/resource counters return to baseline after
-  controlled shutdown. This is real CE compatibility evidence; it does not
-  require a Central or IIS deployment.
+  Gateway -> selected Data8 profile -> CE identity/read/paging matrix. Assert
+  that connector/process/resource counters return to baseline after controlled
+  shutdown. If an Official Worker is selected, its READY/read-only evidence is
+  governed by a separate future task; it does not become a Data8 prerequisite.
 - Start ChurchReport alone with `Package01FeeReadsEnabled=false`; use a browser to
   assert the login page completes with zero JavaScript errors, no `/v1` request
   or login POST occurs, no Gateway/Worker/TestHost process or 7244/57244 listener
@@ -1300,7 +1352,7 @@ This couples deployment readiness to consumer migration and can move multiple Ch
 ```json
 {
   "DynamicsAccess": {
-    "ExecutionMode": "Gateway",
+    "ConnectionMode": "DedicatedGateway",
     "ProfileAlias": "crm82",
     "Gateway": {
       "Endpoint": "https://localhost:7244",
@@ -1311,7 +1363,9 @@ This couples deployment readiness to consumer migration and can move multiple Ch
 }
 ```
 
-This configures the Local Gateway boundary for development while keeping consumer traffic fail closed until Phase 4 and Phase 5 evidence explicitly unlock it.
+This configures the Dedicated Gateway boundary for development while keeping
+consumer traffic fail closed until the capability and P7 rollout evidence
+explicitly unlock it.
 
 #### Wrong: array overlay for authorization
 
@@ -1406,20 +1460,25 @@ The Host loads the reviewed project configuration and keeps the same fail-closed
 
 Central Gateway centralizes secrets, authorization, operation governance, audit, observability, profile lifecycle, and reusable outbound runtimes for the multi-product estate. This avoids duplicating high-risk integration state across five to ten products.
 
-### Local Gateway replaces Embedded as the immediate developer path
+### Embedded and Dedicated Gateway are parallel local paths
 
-Local Gateway gives Visual Studio a separately observable console/process while preserving the same HTTP boundary as production. It avoids loading CRM transport dependencies into ChurchReport and keeps failures, SDK conflicts, and worker recycling outside the product process.
+Embedded gives Visual Studio the lowest-latency same-process route while still
+using Guard→Profile→Admission→Router→Pool. Dedicated Gateway gives the same
+typed product contract a separately observable process boundary. ChurchReport
+must keep both `Embedded + Data8` and `DedicatedGateway + Data8` selectable;
+the choice belongs to deployment configuration, not product business code.
 
 ### Compatibility is provided at the Gateway contract, not by one universal SDK
 
 CE 8.2 and CE 9.1 share the product-facing API and policy model. They do not have to share a transport implementation, SDK version, authentication flow, token/WCF state, or physical connection pool.
 
-### Data8 remains only in unmigrated legacy product paths
+### Data8 is a permanent profile-selected ConnectorKind
 
-Deleting Data8 before its current consumers migrate would break legacy traffic.
-It is not a Gateway transport. It becomes removable after those consumers move
-to `OfficialCrm82Worker` and the worker satisfies real-server, lifecycle,
-isolation, rollback, and no-leak gates.
+Data8 executes directly under .NET 10 and is the ChurchReport P7 local route
+and first P8 cloud route. It is not a request-time fallback from an Official
+Worker, and an Official Worker is not a fallback from Data8. Any future change
+to this decision requires an explicit spec/plan update and independent
+capability evidence.
 
 ## Retired artifact: direct-Web-API live-smoke harness
 
@@ -1819,7 +1878,7 @@ EXEC(N'...' + QUOTENAME(...))，因 SQL Server 2025 LocalDB 不能解析後者�
 
 ### 1. Scope / Trigger
 
-當 Gateway、Local Gateway 或測試建立 `SqlRuntimeHostSlotCoordinator` 時，
+當 Gateway、Dedicated Gateway 或測試建立 `SqlRuntimeHostSlotCoordinator` 時，
 `ConnectionStrings:DynamicsControlPlane` 是跨 host 容量、fencing token、
 AdmissionEpoch 與 quarantine 的控制平面連線，不是 CRM 資料或憑證存放區。
 此規則用來阻止 SQL 帳密因設定漂移被保留在 coordinator 的長生命週期狀態中。

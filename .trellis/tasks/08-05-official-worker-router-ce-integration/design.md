@@ -1,6 +1,8 @@
 # P6 Official Worker Router 接入與 CE 整合驗證技術設計
 
-> 本設計是既有 P6 `in_progress` task 的執行契約。P6.1 已通過；目前只剩 P6.2 Lenovo Legion readiness 與受控 CE evidence，本文本身不啟動 CE 操作。
+> 本設計是既有 P6 `in_progress` task 的執行契約。P6.1 已通過；依
+> [2026-08-07 範圍重校](./scope-rebaseline-2026-08-07.md)，P6.1 構成原始
+> Official Worker 擴充點交付，P6.2 真機相容性保留為非阻塞的已知限制。
 
 ## 1. 權威來源與衝突處理
 
@@ -157,26 +159,29 @@ credential、token、cookie、session ID、worker pipe name、nonce、PID 或完
 - 反射／architecture test 證明 product/Abstractions/HTTP DTO 沒有 CRM SDK、ConnectorKind、endpoint 或 secret
   surface；IPC contract 亦不含上述資料。
 
-P6.1 通過後可證明 Connector Router 與生命週期實作已準備好接受真機驗證，但不可宣稱任何 CE version、
-profile 或 operation 已被真實伺服器驗證。此時 P6 保持 `in_progress`，並不解除 P7 Parent/P7.0 的
-前置條件。
+P6.1 通過後可證明 Connector Router 與生命週期擴充點已完成，足以進入 P6 的品質、spec、commit 與
+archive 結案流程；但不可宣稱任何 Official Worker CE version、profile 或 operation 已被真實伺服器驗證。
+P7.0 可在 P6 正式封存後啟動，並以永久支援的 Data8 Connector 推進 ChurchReport capability migration。
 
-### 8.2 P6.2：另行核准的 CE read-only matrix
+### 8.2 P6.2：保留但延後的 Official Worker CE read-only matrix
 
-CE 真機階段僅在離線品質閘門全綠後、使用者提供獨立授權時進行。每個 CE version 需選一個已核准的
-deployment profile，由 host 的 secret provider 解析憑證，且不把任何 secret 寫入 artifact。建議順序：
+本節保存已建立的 readiness／部署／診斷設計，並如實記錄目前未通過 READY；它不再屬於 P6 結案或
+Data8 P7 主線的必要條件。未來只有 deployment 明確選用 Official Worker 且另立 Trellis task 後，才可在
+離線品質閘門仍全綠、使用者提供獨立授權的前提下恢復。每個 CE version 需選一個已核准的 deployment
+profile，由 host 的 secret provider 解析憑證，且不把任何 secret 寫入 artifact。恢復時的建議順序：
 
 1. 對已確認與正式系統隔離的 CE 9.1 `sunnyvalechback` profile，以現有 Data8 `runtime.health.whoami` 作為受控 control measurement；
    此為 P6.2 的第一筆端到端真機證據，不重開 P5、不啟用 ChurchReport feature flag，也不移轉產品流量。
 2. 對每個 selected Official Worker profile 執行 `runtime.health.whoami` 與
-   `runtime.pool.validate.connection`；兩者各自記錄 selected ConnectorKind，絕不在 request-time 替換。這兩個
-   operation 對 CE 8.2／9.1 都通過，才構成 P6.2 必要的 connector／version 真機矩陣。
+   `runtime.pool.validate.connection`；兩者各自記錄 selected ConnectorKind，絕不在 request-time 替換。
+   這兩個 operation 對 CE 8.2／9.1 都通過，才構成該未來 Official Worker deployment 的
+   connector／version 真機證據；不得回填成 P6 已經取得的證據。
 3. 只有在 deployment owner 提供 repository 外、test-owned 且具資料最小化範圍的 contact/date-range input 時，
    才額外執行 `fee.dedication.retrieve.by.contact.date.range`。缺少該核准輸入不阻塞 P6；business read/parity
    evidence 移至 P7.1。現有 Data8 connector 尚未實作此 capability，因此不得在 P6.2 承諾 fee read 的
    Data8 parity。
 
-現有 `Invoke-DynamicsOfficialWorkerCompatibility.ps1` 只支援 `runtime.health.whoami`。P6.2 必須沿用它取得
+現有 `Invoke-DynamicsOfficialWorkerCompatibility.ps1` 只支援 `runtime.health.whoami`。未來 task 可沿用它取得
 identity evidence，並以測試先行新增或確認一支固定 allowlist 的 evidence harness 來執行
 `runtime.pool.validate.connection`；不得把任意 operation ID、Entity 或 FetchXML 參數化成通用探針。
 
@@ -186,18 +191,24 @@ identity evidence，並以測試先行新增或確認一支固定 allowlist 的 
 分類、sanitized correlation ID、p50/p95/p99、admission/worker recycle counters 和 drain 後 baseline。此矩陣
 不得包含 Entity、個人資料、token、cookie、endpoint、connection string 或 credential。
 
-只有 P6.1 的離線 gate 與經使用者核准的 P6.2 CE 8.2／9.1 identity/connection evidence 都通過，P6 才可
-結案並解除 P7 Parent 的前置條件。可選的 fee read 不可在缺少 test-owned input 時成為隱性 P6 blocker。
+P6.1 的離線 gate 構成 P6 原始完成範圍。P6.2 readiness／diagnostic 結果只作為未來 Official Worker
+deployment 的起點；缺少 CE 8.2／9.1 identity/connection evidence 不再阻塞 P6 結案或 P7.0。可選 fee read
+亦不得成為 P6 或 Data8 capability 的隱性 blocker。
 
 ### 8.3 Lenovo Legion 本機 evidence 邊界
 
-Lenovo Legion 是 P6.2 的 execution identity、profile overlay、worker credential target、Gateway／Worker process 與 evidence owner。既有 `-InventoryOnly` 結果顯示兩個 profile 的唯一缺口都是 `profile-input-required`；因此下一步是由 deployment owner 建立本機 profile input，而不是重做 Worker artifact 或 P6.1。
+Lenovo Legion 是既有 P6.2 readiness 資產的 execution identity、profile overlay、worker credential target、
+Gateway／Worker process 與 evidence owner。profile input、Credential Manager targets 與 readiness=`go` 已完成；
+最新兩個 Worker 都在 READY 前以 exit code 20 結束，沒有執行 CE operation。不要重做 Worker artifact、
+P6.1 或已完成的 operator steps。
 
 使用者已確認兩個 CE 目標皆採 IFD；本機實測為 `LENOVO-LEGION\Administrator`、CloudAP、非網域成員。Readiness contract 因此固定要求 `authentication="Ifd"`、`identity.mode="WindowsCredentialReference"`、同一 identity 可解析的 credential target，以及 HTTPS `homeRealm`。`HostIdentity` 只允許 Active Directory，在此設計下必須直接拒絕而不是浪費一次 readiness 嘗試。
 
 本機 overlay 只保存非敏感 deployment mapping，credential value 留在 Windows Credential Manager／核准 secret provider。P6 artifact 不保存密碼、token、cookie、connection string、完整 endpoint 或可識別資料。未來雲端 Central Gateway 不沿用 Lenovo identity 或 secret target；P8.0～P8.4 必須以雲端 host 重新完成 identity、TLS、ACL、monitoring、rollback 與 live evidence。
 
-若使用者採用已核准的 P6／P7 整合 `/goal`，該目標可以一次授權本節 read-only CE matrix 及 P6 結案後的 P7 activation；任何 profile／credential／CE target 缺口仍 fail closed，不因「自動續跑」而猜測或建立秘密。
+2026-08-07 的使用者決策已取代整合 `/goal` 中把本節設為 P7 前置的舊文字。P7 activation 仍須等待
+P6 正式封存，但不等待 Official Worker READY。未來獨立 Official Worker task 的任何 profile／credential／
+CE target 缺口仍 fail closed，不因自動續跑而猜測或建立秘密。
 
 P6 No-Go 的責任拆分必須明確：operator 提供或確認 Organization／IFD facts 與同 user Credential Manager target；manifest 提供 Worker executable 的絕對路徑與 hash；`New-DynamicsOfficialWorkerDeployment.ps1` 產生 `worker-profile.xml` 與 Gateway overlay。後兩項是自動化工作，不得錯誤列為使用者手工前置。
 
@@ -208,9 +219,13 @@ P6 No-Go 的責任拆分必須明確：operator 提供或確認 Organization／I
 - Data8 的既有 Profile、Pool、Dedicated Gateway 與 legacy 路徑保持原樣，作為獨立、已部署的合法路徑，
   而不是 P6 request-time fallback。
 - ChurchReport flag、routing、traffic、ToolUtility/CRM SDK references 和 P7 artifacts 不因 P6 rollback 而變更。
-- CE 真機測試失敗或 evidence 不足時，只保留 sanitized evidence、停止後續 CE action，讓 P6 維持
-  `in_progress`；不得以未驗證的 connector 宣稱 P6 結案或開始 P7。
+- Official Worker CE 真機測試失敗或 evidence 不足時，只保留 sanitized evidence、停止後續 CE action，
+  並把該 Connector 標為 `evidence-pending`；不得宣稱它已可用，但也不得阻塞已核准的 Data8 profile、
+  Embedded／DedicatedGateway 模式或 P7 capability migration。
 
 ## 10. 固定交接
 
-`P6 結案` → `P7.0 inventory/validator` → `P7.1 reads` → `P7.2 writes/actions/functions` → `P7.3 special resources` → `P7.4 local cutover` → `P7.5 ToolUtility removal`。P8.0～P8.4 的 ChurchReport 雲端 Central Gateway deployment 另由獨立目標啟動；P6 不準備或切換雲端流量。
+`P6 擴充點結案（Official live evidence pending）` → `P7.0 inventory/validator` → `P7.1 reads` →
+`P7.2 writes/actions/functions` → `P7.3 special resources` → `P7.4 Embedded+Data8／DedicatedGateway+Data8 local cutover` →
+`P7.5 ToolUtility removal`。P8.0～P8.4 另由獨立目標把 ChurchReport 部署為
+`CentralGateway + Data8` 第一產品；P6 不準備或切換雲端流量。

@@ -4,15 +4,15 @@
 
 建立 ChurchReport 目前 D365 存取需求的可追溯能力盤點與離線 coverage gate 設計，讓後續 P7.1～P7.5 能以小範圍、強型別、可驗證且可回滾的 capability 逐步遷移，而不是把 ToolUtility 方法、CRM SDK 型別或任意 FetchXML 暴露成遠端 API。
 
-本子任務目前只保存 P7 Parent 內部的規劃、現況盤點與 task-local 初步 inventory；不建立 Gateway operation、不切換網站流量，也不改動產品程式或設定。P7.0 不是 P6 的前置條件，必須在 P5 結案、P6 Router 接入與 CE 8.2／9.1 整合驗證完成後，才由 P7 Parent 啟動。Lenovo Legion 是後續 P7.0～P7.5 的本機執行與 evidence host；雲端部署屬 P8。
+本子任務目前只保存 P7 Parent 內部的規劃、現況盤點與 task-local 初步 inventory；不建立 Gateway operation、不切換網站流量，也不改動產品程式或設定。P7.0 不是 P6 的前置條件，必須在 P5 結案、P6 Official Worker Router 擴充點完成並正式封存後，才由 P7 Parent 啟動；不再等待 Official Worker 真機 READY。Lenovo Legion 是後續 P7.0～P7.5 的本機執行與 evidence host；雲端部署屬 P8。
 
 ## 已確認事實
 
 - Phase 0 權威矩陣仍有 70 筆 `normalizedCallSites`；其中 35 read、23 write、4 action、2 function、5 connection-runtime、1 metadata；54 筆為 `mapped-pending-evidence`，16 筆為 `temporary-legacy`。
 - 70 筆對 CE 8.2 與 CE 9.1 的證據均為 `metadata-only`，所有 smoke evidence 均為 `not-started`；不得把 registry、unit test 或本機設定當成真機證據。
-- `Package01OperationRegistry` 實際宣告 9 個 operation，僅對應 9 筆 Phase 0 rows。Data8 executor 目前只實作 `runtime.health.whoami`；官方 Worker 已有兩個 identity operation 與 `fee.dedication.retrieve.by.contact.date.range` 共 3 個 allowlisted operation。P6.1 已完成 Official Worker Router／Pool／Lease 離線接入，但 P6.2 尚未取得 CE 8.2／9.1 real evidence；protocol allowlist、Router implementation 與真機 evidence 必須分開記錄。
+- `Package01OperationRegistry` 實際宣告 9 個 operation，僅對應 9 筆 Phase 0 rows。Data8 executor 目前只實作 `runtime.health.whoami`；官方 Worker 已有兩個 identity operation 與 `fee.dedication.retrieve.by.contact.date.range` 共 3 個 allowlisted operation。P6.1 已完成 Official Worker Router／Pool／Lease 離線接入；Official Worker 尚未取得 CE 8.2／9.1 real evidence，必須標為 `evidence-pending`。protocol allowlist、Router implementation、consumer selection 與真機 evidence 必須分開記錄。
 - ProductClient 公開 6 個 Package01 fee/read 方法；ChurchReport 的 `Package01FeeReadsEnabled` 在 base 與 Development 設定均為 `false`，因此尚未有 Gateway consumer 啟用。
-- P5 `dedicated-gateway-alignment` 已於 2026-08-05 完成驗收、提交並封存；P6 Official Worker child task 已為 `in_progress`，P6.1 已通過，P6.2 Lenovo readiness 仍只差 deployment-owned profile input。不得把 P6 描述為已結案，也不得提前啟動 P7.0。
+- P5 `dedicated-gateway-alignment` 已於 2026-08-05 完成驗收、提交並封存；P6 Official Worker child task 的 P6.1 已通過，現正依 2026-08-07 範圍重校完成最後 quality／spec／commit／archive。P7.0 只等待 P6 正式封存，不等待 Official Worker live evidence。
 - ChurchReport 專案仍含 ToolUtility、Dataverse 與 CRM SDK 的 production dependency；這是 P7.5 的移除 gate，不是本輪要移除的內容。
 - 使用者確認 `sunnyvalechback` 是與正式系統分離的 CE 9.1 公司研發 Organization，可建立 test member 而不影響正式資料。P7.2 可將它作為 CE 9.1 test-owned fixture environment；每個 operation family 仍需唯一 fixture owner 與 cleanup/reconciliation。
 
@@ -26,7 +26,7 @@
 
 ## 非目標
 
-- P6 完成前，P7.0 維持 `planning`；不執行 `task.py start`、不建立 P7.1～P7.5 child task，也不執行 P5 或 P6。
+- P6 正式封存前，P7.0 維持 `planning`；不執行 `task.py start`、不建立 P7.1～P7.5 child task，也不執行 P5 或 P6。
 - 不修改 `.cs`、`.cshtml`、`.csproj`、產品設定、Operation Registry、Data8／Official Worker executor 或 ProductClient。
 - 不啟用 feature flag、不對 CE 8.2／9.1 發出呼叫、不執行 read/write/action/function 或資料遷移。
 - 不提交、archive、push 或建立 PR；本輪結束時保留規劃供使用者審閱。
@@ -34,9 +34,13 @@
 
 ## 依賴與順序
 
-`P5 Dedicated Gateway 驗收與結案` → `P6 Official Worker 接入 Router 與 CE 8.2/9.1 受控跨模式真機驗證` → `P7 Parent ChurchReport 完全 Gateway 化` → `P7.0 inventory/coverage gate` → `P7.1 read` → `P7.2 write/action/function` → `P7.3 special resource` → `P7.4 per-capability cutover` → `P7.5 ToolUtility/CRM SDK removal gate` → `獨立 P8.0～P8.4 ChurchReport 雲端 Central Gateway`。
+`P5 Dedicated Gateway 驗收與結案` → `P6 Official Worker Router 擴充點離線完成並封存（live evidence pending）` → `P7 Parent ChurchReport 完全 Gateway 化` → `P7.0 inventory/coverage gate` → `P7.1 read` → `P7.2 write/action/function` → `P7.3 special resource` → `P7.4 Embedded+Data8／DedicatedGateway+Data8 per-capability cutover` → `P7.5 ToolUtility/CRM SDK removal gate` → `獨立 P8.0～P8.4 CentralGateway+Data8 ChurchReport 雲端部署`。
 
-P6 是所有 P7 工作的拓樸與實證前置條件：即使某一 capability 選擇永久支援的 Data8 connector，也必須先有已接入 Router 的 connector 選擇、profile isolation 與 CE evidence gate，才可啟用 P7 Parent 或 consumer。P7.0 可以保留規劃文件，但不得在 P6 完成前啟動、執行或被宣稱為 P6 gate。
+P6 是所有 P7 工作的拓樸前置條件：必須先有已接入 Router 的 connector 選擇、profile isolation、
+admission 與 lifecycle contract。P7 的實證則按 capability、ConnectorKind 與 CE version 在各 child
+取得，不要求未被 ChurchReport deployment 選用的 Official Worker 先通過真機證據。P7.0 可以保留規劃
+文件，但不得在 P6 正式封存前啟動；啟動後必須讓每個 capability 明確標示 `Data8-only`、
+`Official-worker-required`、`both-required`、`unsupported` 或 `evidence-pending`。
 
 ## 功能與品質需求
 
@@ -47,6 +51,10 @@ P6 是所有 P7 工作的拓樸與實證前置條件：即使某一 capability �
 5. 跨 request／user／profile／organization 的 mutable state、SDK client、connection、lease、permit、stream、paging cookie、timer、task、handle 與 cancellation registration 都必須有唯一且有限的 owner、drain/dispose 路徑與驗證證據。
 6. Coverage validator 必須完全離線，不讀取 D365、credential、token、cookie、connection string 或 secret，並對相同輸入產生相同結果。
 7. P7.0 support matrix 必須逐 capability 決定 CE 8.2／9.1 的 `required`、`unsupported` 或 `evidence-pending`；ChurchReport 第一產品的 CE 9.1 寫入 evidence 不得因沒有無條件要求的 CE 8.2 write sandbox 而被阻塞。只有標為 CE 8.2 `required` 的 capability 才需相應安全 fixture/evidence。
+8. P7 的 Lenovo runtime 必須同時保留可設定的 `Embedded + Data8` 與
+   `DedicatedGateway + Data8`；ConnectionMode 與 ConnectorKind 不得混為二選一。P8 handoff 必須要求
+   Central Gateway composition 保留 Data8，第一個 ChurchReport cloud deployment 採
+   `CentralGateway + Data8`，且沒有 request-time connector fallback。
 
 ## 驗收條件
 

@@ -6,6 +6,11 @@
 >
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:executing-plans`（inline 模式）。
 
+> **2026-08-07 執行狀態（Codex 重校）：本文件是未來 P8 的輔助材料，不授權目前
+> 啟動或部署。** P8 必須在 P7.5 結案後以獨立 Goal 重新規劃；第一個 ChurchReport
+> 雲端 composition 固定以 `CentralGateway + Data8` 為 baseline。未驗證 Official
+> Worker 不得被視為 P8 predecessor 或隱含部署內容。
+
 **Goal:** 把已在 Lenovo Legion 驗收完成的 ChurchReport 部署到雲端機房，
 透過 Central Gateway 連接 Dynamics 365 CE on-premises 8.2 或 9.1，成為第一個正式產品。
 
@@ -145,7 +150,7 @@ CE 8.2／9.1 的 Official Worker 是 **.NET Framework 4.8（net48）**，Windows
   確認未授權 workload 在 **body parsing、Profile resolution 與 outbound work 之前**就被拒絕，
   而不是先做完工作才檢查。
 
-## 5. P8.2 — Central Gateway 與 Worker 部署
+## 5. P8.2 — Central Gateway + Data8 部署 baseline（Official Worker 另立 task）
 
 - [ ] **Step 1: 以可重現部署包安裝服務**
 

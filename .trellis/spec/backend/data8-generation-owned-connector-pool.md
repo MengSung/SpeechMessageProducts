@@ -8,7 +8,11 @@ Organization Admission 行為時，必須遵守本契約。
 - Pool 隔離鍵固定為 `(ProfileAlias, GenerationId)`。
 - Organization 總容量固定由既有 `IOrganizationAdmissionManager`／`IOrganizationAdmissionRegistry` 管理。
 - 不得將 Data8、WCF、CRM SDK、Credential、Token、Cookie、Session、端點、OrganizationId 或請求可變資料公開至 Abstractions。
-- 本規格不授權實作 Embedded、Dedicated Gateway、Central Gateway、Official Worker、Web API 或實機診斷。
+- 本規格不授權實作 Embedded、Dedicated Gateway、Central Gateway、Official Worker、Web API 或實機診斷；但任何已選取 `ConnectorKind.Data8` 的模式都必須遵循本 Pool／Lease 契約。
+- `Data8` 是永久合法的 ConnectorKind。ChurchReport Lenovo 路線必須可由 deployment configuration
+  選取 `Embedded + Data8` 或 `DedicatedGateway + Data8`；P8 的第一個雲端路線是
+  `CentralGateway + Data8`。這三者不改變 `ProfileAlias`／`GenerationId`／admission／cleanup
+  owner，也不允許 request-time fallback 到 Official Worker。
 
 ## 2. Signatures
 

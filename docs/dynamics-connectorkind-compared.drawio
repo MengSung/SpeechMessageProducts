@@ -1,0 +1,252 @@
+<mxfile host="app.diagrams.net" agent="Claude" version="24.0.0">
+
+  <diagram name="1 · 核心洞見" id="c1">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1520" pageHeight="1020" math="0" shadow="0">
+      <root>
+        <mxCell id="0" /><mxCell id="1" parent="0" />
+
+        <mxCell id="t" value="三個 ConnectorKind 的差異從哪裡來？" style="text;html=1;fontSize=26;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="14" width="900" height="36" as="geometry" /></mxCell>
+        <mxCell id="s" value="不是「誰寫的」，也不是「新舊」。真正的分水嶺只有一個問題：這段程式碼跑在哪個 .NET 上？" style="text;html=1;fontSize=13;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="1300" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="fact" value="決定一切的技術事實" style="swimlane;html=1;startSize=34;fillColor=#F8DFDD;strokeColor=#A32620;fontSize=16;fontStyle=1;fontColor=#7A1D18;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1440" height="150" as="geometry" /></mxCell>
+        <mxCell id="f1" value="微軟官方的 CE 連線元件（Microsoft.CrmSdk.XrmTooling.CoreAssembly → CrmServiceClient）&#10;只能跑在 .NET Framework 4.8。它不支援 .NET 10。&#10;&#10;而你的產品 ChurchReport 是 .NET 10。兩者不能在同一個進程裡共存。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#A32620;fontSize=14;align=left;spacingLeft=16;verticalAlign=top;spacingTop=12;" vertex="1" parent="fact">
+          <mxGeometry x="18" y="42" width="1404" height="94" as="geometry" /></mxCell>
+
+        <mxCell id="br" value="於是產生兩條完全不同的路" style="text;html=1;fontSize=19;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="264" width="800" height="30" as="geometry" /></mxCell>
+
+        <mxCell id="pathA" value="路線 A ── 自己用 .NET 10 重寫協定" style="swimlane;html=1;startSize=34;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=16;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="40" y="304" width="700" height="480" as="geometry" /></mxCell>
+        <mxCell id="pa1" value="Data8 的做法" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;fontSize=14;fontStyle=1;" vertex="1" parent="pathA">
+          <mxGeometry x="18" y="44" width="664" height="34" as="geometry" /></mxCell>
+        <mxCell id="pa2" value="不包裝官方 SDK，而是直接用 .NET 10 實作 WS-Trust 協定本身。&#10;&#10;repo 裡看得到證據：&#10;　ADAuthHelpers/　　WS-Trust 權杖請求／回應的 XML 解析&#10;　NSspi/　　　　　　Windows 安全介面的 P/Invoke&#10;　ClaimsBasedAuthClient.cs　　WCF Federation binding&#10;　OnPremiseClient.cs　　　　　實作 IOrganizationService&#10;&#10;因為協定是自己寫的，「8.2 還是 9.1」只是一個參數：&#10;　　url + &quot;?wsdl&amp;sdkversion=&quot; + 8 或 9" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;fontFamily=Consolas;" vertex="1" parent="pathA">
+          <mxGeometry x="18" y="90" width="664" height="180" as="geometry" /></mxCell>
+        <mxCell id="pa3" value="結果：一份程式碼，同進程，同時支援 8.2 與 9.1&#10;&#10;✔ 跟產品同一個 .NET 10 進程，直接方法呼叫&#10;✔ 8.2 和 9.1 只是不同的連線物件，可以並存&#10;✔ 池化的是「連線物件」—— 便宜、可大量" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;" vertex="1" parent="pathA">
+          <mxGeometry x="18" y="282" width="664" height="120" as="geometry" /></mxCell>
+        <mxCell id="pa4" value="代價：第三方實作，維護責任在你（6,919 行，MIT，上游 2024-05 後未更新）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=14;" vertex="1" parent="pathA">
+          <mxGeometry x="18" y="414" width="664" height="46" as="geometry" /></mxCell>
+
+        <mxCell id="pathB" value="路線 B ── 把官方 SDK 關進 net48 獨立進程" style="swimlane;html=1;startSize=34;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=16;fontStyle=1;fontColor=#5A3B00;" vertex="1" parent="1">
+          <mxGeometry x="780" y="304" width="700" height="480" as="geometry" /></mxCell>
+        <mxCell id="pb1" value="OfficialCrm82Worker ／ OfficialCrm91Worker 的做法" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5E3C0;strokeColor=#8A5A00;fontSize=14;fontStyle=1;" vertex="1" parent="pathB">
+          <mxGeometry x="18" y="44" width="664" height="34" as="geometry" /></mxCell>
+        <mxCell id="pb2" value="直接用微軟原廠的 CrmServiceClient，不自己實作協定。&#10;但它只能跑 net48，所以必須：&#10;&#10;　① 編譯成獨立的 .exe（net48）&#10;　② 由 net10 的 Supervisor 啟動這個子進程&#10;　③ 兩邊用「具名管道」傳訊息（IPC）&#10;　④ 契約層必須是 netstandard2.0&#10;　　 —— 唯一 net48 與 net10 都能參考的目標框架" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;" vertex="1" parent="pathB">
+          <mxGeometry x="18" y="90" width="664" height="180" as="geometry" /></mxCell>
+        <mxCell id="pb3" value="為什麼要「兩個」Worker 而不是一個？&#10;&#10;XrmTooling 8.2.0.5 與 9.1.1.65 是同一個組件的不同版本。&#10;.NET Framework 的 assembly binding 不允許同一進程&#10;載入同一組件的兩個版本 → 所以必須拆成兩個進程。&#10;&#10;★ 這就是為什麼是「1 個 Data8」對「2 個 Worker」" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5E3C0;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;fontStyle=1;" vertex="1" parent="pathB">
+          <mxGeometry x="18" y="282" width="664" height="120" as="geometry" /></mxCell>
+        <mxCell id="pb4" value="代價：進程啟動成本、記憶體×N、IPC 序列化、進程監督、回收政策、執行檔雜湊驗證" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8DFDD;strokeColor=#A32620;fontSize=12;align=left;spacingLeft=14;" vertex="1" parent="pathB">
+          <mxGeometry x="18" y="414" width="664" height="46" as="geometry" /></mxCell>
+
+        <mxCell id="concl" value="所以三者的關係是：1 個「同進程協定實作」　vs　2 個「跨進程官方 SDK 包裝」——而那 2 個之所以要分開，純粹是組件版本衝突。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;strokeWidth=3;fontSize=15;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="40" y="820" width="1440" height="56" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="2 · 池的是什麼" id="c2">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1520" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" /><mxCell id="1" parent="0" />
+
+        <mxCell id="t" value="最關鍵的差異：兩邊「池」的東西不一樣" style="text;html=1;fontSize=26;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="14" width="900" height="36" as="geometry" /></mxCell>
+        <mxCell id="s" value="這決定了成本、併發能力與失敗模式。我從你 repo 的實際程式碼取出來的。" style="text;html=1;fontSize=13;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="1200" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="L" value="Data8ConnectorPool　池的是「連線物件」" style="swimlane;html=1;startSize=34;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=16;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="700" height="560" as="geometry" /></mxCell>
+        <mxCell id="Lc" value="private readonly ConcurrentQueue&lt;IConnectorClient&gt; _idleClients;&#10;private readonly SemaphoreSlim _localSlots;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=11;fontFamily=Consolas;align=left;spacingLeft=12;" vertex="1" parent="L">
+          <mxGeometry x="18" y="44" width="664" height="50" as="geometry" /></mxCell>
+        <mxCell id="Lp" value="一個 net10 進程" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="L">
+          <mxGeometry x="18" y="110" width="664" height="34" as="geometry" /></mxCell>
+        <mxCell id="Lo1" value="連線&#10;#1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;fontSize=11;" vertex="1" parent="L">
+          <mxGeometry x="40" y="164" width="70" height="70" as="geometry" /></mxCell>
+        <mxCell id="Lo2" value="連線&#10;#2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;fontSize=11;" vertex="1" parent="L">
+          <mxGeometry x="125" y="164" width="70" height="70" as="geometry" /></mxCell>
+        <mxCell id="Lo3" value="連線&#10;#3" style="ellipse;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;fontSize=11;" vertex="1" parent="L">
+          <mxGeometry x="210" y="164" width="70" height="70" as="geometry" /></mxCell>
+        <mxCell id="Lo4" value="…" style="ellipse;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;fontSize=14;" vertex="1" parent="L">
+          <mxGeometry x="295" y="164" width="70" height="70" as="geometry" /></mxCell>
+        <mxCell id="Lo5" value="連線&#10;#20" style="ellipse;whiteSpace=wrap;html=1;fillColor=#C8E6D4;strokeColor=#1F7A4C;fontSize=11;" vertex="1" parent="L">
+          <mxGeometry x="380" y="164" width="70" height="70" as="geometry" /></mxCell>
+        <mxCell id="Ln1" value="每個是一個 C# 物件（WCF channel）&#10;成本 ≈ 數 MB" style="text;html=1;fontSize=11;fontColor=#12492E;align=left;" vertex="1" parent="L">
+          <mxGeometry x="470" y="180" width="210" height="40" as="geometry" /></mxCell>
+
+        <mxCell id="Lpar" value="池化參數（連線池的語言）&#10;&#10;MinSize　　　　　　預先建立幾條&#10;MaxSize　　　　　　最多幾條（預設 20）&#10;IdleTimeoutMinutes　閒置多久回收&#10;AcquireTimeoutSeconds　借不到等多久" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;fontFamily=Consolas;" vertex="1" parent="L">
+          <mxGeometry x="18" y="256" width="664" height="130" as="geometry" /></mxCell>
+
+        <mxCell id="Lsum" value="✔ 借出／歸還是「取出物件／放回佇列」，微秒級&#10;✔ 20 條並行 ＝ 1 個進程 ＋ 20 個物件&#10;✔ 8.2 與 9.1 的連線可以並存在同一個佇列裡&#10;✔ 失敗只影響那一條連線，Dispose 掉即可" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;" vertex="1" parent="L">
+          <mxGeometry x="18" y="398" width="664" height="140" as="geometry" /></mxCell>
+
+        <mxCell id="R" value="OfficialWorkerConnectorPool　池的是「進程的租約」" style="swimlane;html=1;startSize=34;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=16;fontStyle=1;fontColor=#5A3B00;" vertex="1" parent="1">
+          <mxGeometry x="780" y="90" width="700" height="560" as="geometry" /></mxCell>
+        <mxCell id="Rc" value="private readonly IProfileExecutionLeaseProvider _leaseProvider;&#10;// 註解原文：Pool 不自行建立 Worker、Process、Pipe、Credential&#10;//           或 admission permit —— 沒有任何容器" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8A5A00;fontSize=11;fontFamily=Consolas;align=left;spacingLeft=12;" vertex="1" parent="R">
+          <mxGeometry x="18" y="44" width="664" height="50" as="geometry" /></mxCell>
+        <mxCell id="Rp" value="net10 主進程（Supervisor）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="R">
+          <mxGeometry x="18" y="110" width="664" height="34" as="geometry" /></mxCell>
+        <mxCell id="Rw1" value="net48 進程 #1&#10;CrmServiceClient&#10;（8.2 或 9.1）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5E3C0;strokeColor=#8A5A00;fontSize=11;" vertex="1" parent="R">
+          <mxGeometry x="40" y="164" width="180" height="76" as="geometry" /></mxCell>
+        <mxCell id="Rw2" value="net48 進程 #2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5E3C0;strokeColor=#8A5A00;fontSize=11;dashed=1;" vertex="1" parent="R">
+          <mxGeometry x="236" y="164" width="180" height="76" as="geometry" /></mxCell>
+        <mxCell id="Rw3" value="net48 進程 #N" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5E3C0;strokeColor=#8A5A00;fontSize=11;dashed=1;" vertex="1" parent="R">
+          <mxGeometry x="432" y="164" width="180" height="76" as="geometry" /></mxCell>
+        <mxCell id="Rn1" value="每個是一個完整的 .NET Framework 執行環境&#10;實測（測試宿主，真實 worker 更重）：&#10;WorkingSet 24.3 MB · Handles 298 · Threads 14" style="text;html=1;fontSize=11;fontColor=#5A3B00;align=left;" vertex="1" parent="R">
+          <mxGeometry x="40" y="248" width="600" height="46" as="geometry" /></mxCell>
+
+        <mxCell id="Rpar" value="回收參數（進程監督的語言）&#10;&#10;MaximumWorkerAge　　　　　　　進程活多久就換掉&#10;MaximumCompletedOperations　　做幾次就換掉&#10;MaximumPrivateBytes　　　　　　吃多少記憶體就換掉&#10;MaximumWorkingSet&#10;MaximumConsecutiveCompleteWorkerTimeouts" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;fontFamily=Consolas;" vertex="1" parent="R">
+          <mxGeometry x="18" y="300" width="664" height="130" as="geometry" /></mxCell>
+
+        <mxCell id="Rsum" value="⚠ 借出／歸還牽涉「啟動或重用一個 OS 進程」，毫秒～秒級&#10;⚠ 20 條並行 ＝ 20 個 net48 進程（記憶體 ×20）&#10;⚠ 8.2 與 9.1 必須是不同進程，不能共池&#10;⚠ 每次請求要序列化／反序列化過管道" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5E3C0;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;" vertex="1" parent="R">
+          <mxGeometry x="18" y="442" width="664" height="100" as="geometry" /></mxCell>
+
+        <mxCell id="key" value="兩組參數的用語就洩漏了本質：一邊講「幾條連線、閒置多久」，另一邊講「進程活多久、吃多少記憶體」。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;strokeWidth=2;fontSize=15;fontStyle=1;fontColor=#14375F;" vertex="1" parent="1">
+          <mxGeometry x="40" y="680" width="1440" height="50" as="geometry" /></mxCell>
+
+        <mxCell id="cost" value="20 條並行的成本對比" style="swimlane;html=1;startSize=32;fillColor=#ffffff;strokeColor=#666666;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="754" width="1440" height="180" as="geometry" /></mxCell>
+        <mxCell id="ch1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF0F4;strokeColor=#79839A;" vertex="1" parent="cost">
+          <mxGeometry x="18" y="40" width="300" height="30" as="geometry" /></mxCell>
+        <mxCell id="ch2" value="Data8" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;fontStyle=1;" vertex="1" parent="cost">
+          <mxGeometry x="334" y="40" width="540" height="30" as="geometry" /></mxCell>
+        <mxCell id="ch3" value="Official Worker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=12;fontStyle=1;" vertex="1" parent="cost">
+          <mxGeometry x="890" y="40" width="532" height="30" as="geometry" /></mxCell>
+        <mxCell id="cr1" value="進程數" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="cost">
+          <mxGeometry x="18" y="76" width="300" height="30" as="geometry" /></mxCell>
+        <mxCell id="cr2" value="1 個" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="cost">
+          <mxGeometry x="334" y="76" width="540" height="30" as="geometry" /></mxCell>
+        <mxCell id="cr3" value="20 個" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="cost">
+          <mxGeometry x="890" y="76" width="532" height="30" as="geometry" /></mxCell>
+        <mxCell id="cr4" value="粗估記憶體" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="cost">
+          <mxGeometry x="18" y="112" width="300" height="30" as="geometry" /></mxCell>
+        <mxCell id="cr5" value="數十 MB（一個執行環境 ＋ 20 個物件）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="cost">
+          <mxGeometry x="334" y="112" width="540" height="30" as="geometry" /></mxCell>
+        <mxCell id="cr6" value="500 MB 以上（20 份 .NET Framework 執行環境）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="cost">
+          <mxGeometry x="890" y="112" width="532" height="30" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="3 · 六維度比較" id="c3">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1560" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" /><mxCell id="1" parent="0" />
+
+        <mxCell id="t" value="六個維度逐項比較" style="text;html=1;fontSize=26;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="14" width="900" height="36" as="geometry" /></mxCell>
+        <mxCell id="s" value="OfficialCrm82Worker 與 OfficialCrm91Worker 除了版本鎖不同，其餘特性完全相同，所以合併成一欄。" style="text;html=1;fontSize=13;fontColor=#666666;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="1300" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="h0" value="維度" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF0F4;strokeColor=#79839A;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="230" height="44" as="geometry" /></mxCell>
+        <mxCell id="h1" value="Data8" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=14;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="278" y="90" width="620" height="44" as="geometry" /></mxCell>
+        <mxCell id="h2" value="OfficialCrm82Worker ／ OfficialCrm91Worker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=14;fontStyle=1;fontColor=#5A3B00;" vertex="1" parent="1">
+          <mxGeometry x="906" y="90" width="614" height="44" as="geometry" /></mxCell>
+
+        <mxCell id="d0" value="① 誰維護" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="142" width="230" height="70" as="geometry" /></mxCell>
+        <mxCell id="d1" value="Data8 Ltd 第三方 · MIT · 原始碼 55 檔在你 repo 內&#10;上游 2024-05-29（2.4.2）後未更新 → 維護責任在你" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="278" y="142" width="620" height="70" as="geometry" /></mxCell>
+        <mxCell id="d2" value="微軟原廠 NuGet · 有官方支援與安全更新&#10;版本鎖：8.2.0.5 ／ 9.1.1.65" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="906" y="142" width="614" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="e0" value="② 跑在哪" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="230" height="70" as="geometry" /></mxCell>
+        <mxCell id="e1" value="與產品同一個 net10 進程&#10;直接方法呼叫，無序列化、無 IPC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="278" y="220" width="620" height="70" as="geometry" /></mxCell>
+        <mxCell id="e2" value="獨立 net48 子進程 · 具名管道 IPC&#10;每次請求要序列化／反序列化" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="906" y="220" width="614" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="f0" value="③ 併發成本" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="298" width="230" height="70" as="geometry" /></mxCell>
+        <mxCell id="f1" value="多一條並行 ＝ 多一個 C# 物件（數 MB）&#10;MaxSize 預設 20，可調高" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="278" y="298" width="620" height="70" as="geometry" /></mxCell>
+        <mxCell id="f2" value="多一條並行 ＝ 多一個 OS 進程（數十 MB ＋ 啟動時間）&#10;20 條並行約需 500 MB 以上" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8DFDD;strokeColor=#A32620;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="906" y="298" width="614" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="g0" value="④ 8.2／9.1 支援" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="376" width="230" height="70" as="geometry" /></mxCell>
+        <mxCell id="g1" value="一份實作同時支援兩版，同進程共存&#10;版本只是參數 sdkversion=8 或 9" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="278" y="376" width="620" height="70" as="geometry" /></mxCell>
+        <mxCell id="g2" value="必須兩個獨立 Worker（組件版本不能同進程共存）&#10;★ 但也因此版本隔離最徹底：權杖、WCF、快取全分開" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="906" y="376" width="614" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="i0" value="⑤ 故障隔離" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="454" width="230" height="70" as="geometry" /></mxCell>
+        <mxCell id="i1" value="連線壞掉 → Dispose 那一條即可&#10;但 SDK 若有記憶體洩漏，會累積在產品進程裡" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="278" y="454" width="620" height="70" as="geometry" /></mxCell>
+        <mxCell id="i2" value="Worker 壞掉 → 直接殺掉整個進程重開&#10;★ 進程回收是最終保險：任何洩漏都隨進程結束歸零" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="906" y="454" width="614" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="j0" value="⑥ 目前狀態" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#79839A;fontSize=12;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="532" width="230" height="70" as="geometry" /></mxCell>
+        <mxCell id="j1" value="✅ 完整實作 · 在生產環境運作中 · 已修 IDisposable&#10;唯一能真正連上 D365 的選項" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="278" y="532" width="620" height="70" as="geometry" /></mxCell>
+        <mxCell id="j2" value="⚠ 程式碼完整（Pool／Router／Registry 都有）&#10;但 SDK 驗證握手失敗：exitCode 20／21，真機未通過" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8DFDD;strokeColor=#A32620;fontSize=12;align=left;spacingLeft=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="906" y="532" width="614" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="sc" value="計分：不是誰全面勝出，而是「你在乎什麼」" style="swimlane;html=1;startSize=32;fillColor=#ffffff;strokeColor=#666666;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="632" width="1480" height="290" as="geometry" /></mxCell>
+        <mxCell id="sc1" value="Data8 贏的地方&#10;&#10;· 資源效率　　　同進程物件池，20 條並行只要 1 個進程&#10;· 延遲　　　　　無 IPC 序列化，直接方法呼叫&#10;· 雙版本共存　　一份實作同時服務 8.2 與 9.1&#10;· 開發體驗　　　VS 按 F5 就跑，不用產出執行檔、算雜湊&#10;· 部署簡單　　　沒有子進程要監督、沒有執行檔要驗證&#10;· 現在就能用　　唯一真的連得上 D365 的" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;fontColor=#12492E;" vertex="1" parent="sc">
+          <mxGeometry x="18" y="42" width="710" height="230" as="geometry" /></mxCell>
+        <mxCell id="sc2" value="Official Worker 贏的地方&#10;&#10;· 官方支援　　　微軟維護、有安全更新、文件背書&#10;· 版本隔離　　　8.2 與 9.1 連組件都不共用記憶體&#10;· 故障邊界　　　殺掉進程就徹底歸零，洩漏不累積&#10;· 合規　　　　　若要求「只能用原廠元件」，只有這條路&#10;· 維護責任　　　協定層問題由微軟負責，不用自己讀 6,919 行&#10;&#10;⚠ 但目前連不上 —— 卡在 SDK 驗證握手" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;fontColor=#5A3B00;" vertex="1" parent="sc">
+          <mxGeometry x="744" y="42" width="718" height="230" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="4 · 什麼時候選誰" id="c4">
+    <mxGraphModel dx="1800" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" /><mxCell id="1" parent="0" />
+
+        <mxCell id="t" value="決策指引" style="text;html=1;fontSize=26;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="14" width="800" height="36" as="geometry" /></mxCell>
+
+        <mxCell id="q1" value="問題 1：你有「只能用原廠元件」的合規要求嗎？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="80" width="440" height="90" as="geometry" /></mxCell>
+        <mxCell id="a1" value="有 → 只能走 Official Worker&#10;（而且必須先解決 SDK 驗證問題，&#10;　需要 AD FS 端的協助）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAEDD4;strokeColor=#8A5A00;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="90" width="340" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="q2" value="問題 2：單一 Organization 需要多少並行？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="210" width="440" height="90" as="geometry" /></mxCell>
+        <mxCell id="a2" value="≥ 5 → 強烈傾向 Data8&#10;（每條並行多一個進程的代價太高）&#10;&#10;&lt; 5 → 兩者差距不明顯" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="215" width="340" height="80" as="geometry" /></mxCell>
+
+        <mxCell id="q3" value="問題 3：你願意維護 6,919 行協定程式碼嗎？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="340" width="440" height="90" as="geometry" /></mxCell>
+        <mxCell id="a3" value="不願意 → 傾向 Official Worker&#10;（協定層問題由微軟負責）&#10;&#10;願意 → Data8 沒問題（MIT，你已改過兩處）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="345" width="340" height="80" as="geometry" /></mxCell>
+
+        <mxCell id="q4" value="問題 4：將來會遷移到 Dataverse 雲端嗎？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="470" width="440" height="90" as="geometry" /></mxCell>
+        <mxCell id="a4" value="會 → 官方 SDK 的雲端路徑成熟&#10;（Data8 是純 on-prem WS-Trust 實作）&#10;&#10;不會 → Data8 完全足夠" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="475" width="340" height="80" as="geometry" /></mxCell>
+
+        <mxCell id="ans" value="你的答案（依這幾天的對話）" style="swimlane;html=1;startSize=32;fillColor=#DCEFE3;strokeColor=#1F7A4C;fontSize=15;fontStyle=1;fontColor=#12492E;" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="1320" height="180" as="geometry" /></mxCell>
+        <mxCell id="an1" value="① 合規要求：沒有 —— 你說過「不一定非要用官方的方案，現在的 Data8 也無所謂」&#10;② 並行需求：5 個 Organization × 未來 5～10 個產品 → 並行需求會成長，進程成本會放大&#10;③ 維護意願：原始碼已在 repo 內，你已經改過 IDisposable，等於已經在維護了&#10;④ 雲端遷移：目前是 on-prem IFD（jesus 8.2、sunnyvalechback 9.1），沒有遷雲計劃&#10;&#10;→ 四題都指向 Data8。這也是 08-04 已經做出的決定。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1F7A4C;fontSize=13;align=left;spacingLeft=14;verticalAlign=top;spacingTop=10;" vertex="1" parent="ans">
+          <mxGeometry x="18" y="42" width="1284" height="122" as="geometry" /></mxCell>
+
+        <mxCell id="fin" value="Official Worker 的價值不是「現在用」，而是「將來換得掉」—— 上面每一層都不用動。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DDE9F7;strokeColor=#1F5FA8;strokeWidth=2;fontSize=14;fontStyle=1;fontColor=#14375F;" vertex="1" parent="1">
+          <mxGeometry x="40" y="800" width="1320" height="50" as="geometry" /></mxCell>
+
+        <mxCell id="ex1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="q1" target="a1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ex2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="q2" target="a2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ex3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="q3" target="a3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ex4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="q4" target="a4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ex5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="q1" target="q2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ex6" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="q2" target="q3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ex7" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeWidth=2;" edge="1" parent="1" source="q3" target="q4"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+</mxfile>

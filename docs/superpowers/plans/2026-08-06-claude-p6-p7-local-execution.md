@@ -7,6 +7,11 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:executing-plans`（inline 模式）。
 > Steps 用 checkbox（`- [ ]`）追蹤。不派遣 implement／check subagent。
 
+> **2026-08-07 執行狀態（Codex 重校）：不得依本文件啟動 P6.2、Worker、CE
+> matrix 或 P7。** 本文件只保留 Claude 輔助設計中的可重用觀點；其 Worker-first
+> 順序已由 `2026-08-06-p6-p7-integrated-execution.md`、P6 scope rebaseline 與
+> Trellis task artifacts 取代。現行 P6 closure 不重跑 P6.2，P7 採 Data8-first。
+
 **Goal:** 在 Lenovo Legion 完成 P6 Official Worker／CE 整合與 P7.0～P7.5 ChurchReport 全量 Gateway 化，
 移除產品端 ToolUtility／CRM SDK 依賴，並產出 P8 雲端部署可直接接手的 immutable handoff。
 
@@ -74,7 +79,7 @@ git diff --check
 Expected：`git diff --check` 無輸出；無與 P6／P7 無關的未提交產品程式。
 若有，先單獨 commit 或隔離，**不得**與後續 task-owned commit 混在一起。
 
-### Task 2: 讓 P6.2 readiness 收斂為 Go
+### Task 2（歷史、不得執行）: 讓 P6.2 readiness 收斂為 Go
 
 **Files:**
 - Use: `docs/scripts/Publish-DynamicsOfficialWorkers.ps1`
@@ -172,7 +177,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
 Expected：manifest、overlay、worker profile、package lock、executable hash、generation、
 worker kind 全部一致；**不啟動任何 Gateway 或 Worker 行程**。
 
-### Task 3: P6.2 受控 CE read-only 證據並封存 P6
+### Task 3（歷史、不得執行）: P6.2 受控 CE read-only 證據並封存 P6
 
 **Files:**
 - Update: `.trellis/tasks/08-05-official-worker-router-ce-integration/p6.2-ce-readiness-evidence.md`

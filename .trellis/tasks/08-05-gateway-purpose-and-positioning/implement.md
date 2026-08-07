@@ -4,7 +4,7 @@
 
 **Goal:** 先在 Lenovo Legion 以可獨立驗證與回滾的 vertical slices 完成 P6 與 P7，將 ChurchReport 全部 D365 業務能力移至 ProductClient／Gateway 並移除產品端 ToolUtility；再由獨立 P8 將單一 ChurchReport 部署到雲端 Central Gateway。
 
-**Architecture:** 保留 P4 Embedded 與已封存的 P5 Dedicated 基礎；P6 完成 Official Worker 與 CE 8.2／9.1 本機證據，P7.0～P7.5 依 capability matrix 連續完成 inventory、read、write/action/function、special-resource、consumer cutover 與 removal。P8.0～P8.4 是後續獨立雲端部署鏈，不包含第二、第三產品 onboarding。
+**Architecture:** 保留 P4 Embedded 與已封存的 P5 Dedicated 基礎；P6 完成 Official Worker Router／Pool／Lease 擴充點並把 live compatibility 如實記為 `evidence-pending`。P7.0～P7.5 以 Data8 完成可設定的 `Embedded + Data8` 與 `DedicatedGateway + Data8` capability migration、consumer cutover 與 removal。P8.0～P8.4 是後續獨立的 `CentralGateway + Data8` 雲端部署鏈，不包含第二、第三產品 onboarding。
 
 **Tech Stack:** .NET 10、ASP.NET Core Minimal API、`IHttpClientFactory`、SpeechMessage.Dynamics Abstractions／ProductClient／ControlPlane／Gateway／Embedded／Connectors.Data8、CE 8.2／9.1 Organization Service、xUnit。
 
@@ -12,9 +12,9 @@
 
 ## 1. Parent／Child 交付樹
 
-本 parent 只維護來源需求、子任務順序、跨 child 驗收與最終整合審查。P5 已封存；P6.1 已通過，P6.2 仍須在 Lenovo Legion 補齊 deployment-owned profile input 與 CE 8.2／9.1 evidence。P6 正式結案前，P7.0 維持 `planning`。固定交付樹為：
+本 parent 只維護來源需求、子任務順序、跨 child 驗收與最終整合審查。P5 已封存；P6.1 已通過，P6.2 的 Official Worker live compatibility 保留為未來獨立、非阻塞的 `evidence-pending` 支線。P6 正式結案前，P7.0 維持 `planning`。固定交付樹為：
 
-1. **P6** `official-worker-router-ce-integration` — 完成 P6.2 本機 readiness、read-only CE evidence、品質檢查、spec update、commit 與封存。
+1. **P6** `official-worker-router-ce-integration` — 完成 P6.1 Router／Pool／Lease 離線擴充點的品質檢查、spec update、commit 與封存，並保留 Official Worker live compatibility=`evidence-pending`。
 2. **P7.0** `gateway-capability-inventory` — 建立 70 call-site rows 到業務 capability 的權威矩陣與 deterministic coverage validator。
 3. **P7.1** `churchreport-read-capability-migrations` — 先交付 Package01 vertical slice，再依矩陣完成全部 read capabilities；catalog module 是本階段的必要底層工作，不另編號。
 4. **P7.2** `churchreport-write-action-function-migrations` — 讀取 parent-owned `p7.2-write-environment-readiness.md` 與 P7.0 per-family matrix，依 idempotency／transaction／authorization 邊界完成 Create／Update／Associate／Action／Function。
@@ -27,8 +27,7 @@
 
 ```text
 P5（已封存）
-  → P6.1（已通過）
-  → P6.2 Lenovo readiness + CE 8.2／9.1 evidence → P6 結案
+  → P6.1（已通過）→ 記錄 Official Worker live evidence pending → P6 結案
   → P7.0 inventory + validator
   → P7.1 reads
   → P7.2 writes／actions／functions
@@ -42,7 +41,7 @@ Package01 是 P7.1 第一個 slice，因既有 Registry、ProductClient 與 feat
 
 `docs/superpowers/plans/2026-08-06-p6-p7-integrated-execution.md` 定義單一 `/goal` 的連續執行規則。該 goal 可一次核准建立／啟動後續 P7 children、執行本機 feature-gated cutover、完成 task-local commit/archive；每個技術 gate 仍必須按順序通過，禁止為了「一次做完」跳過驗證。
 
-該 Goal 不是完全無人值守：長跑前的 G0 必須先建立 scoped Git/text baseline、使 P6 readiness 為 `go`，並把 P7.2 的 CE 9.1 環境級 test-member 可行性記錄在 P7 parent。P7.0 matrix 完成後，P7.2 activation gate 才逐 required operation family 確認 fixture owner、allowed mutations、cleanup/reconciliation 與 ambiguous-timeout policy。P6 與 P7.0 位於不同 parent；執行者直接使用兩個 task path，不靠 children traversal。相同 gate 最多三次自我修復，同一 root cause 連續兩次即停止並產生 operator handoff。
+該 Goal 不是完全無人值守：長跑前必須建立 scoped Git/text baseline，並把 P6.1 的已通過離線證據與 Official Worker live compatibility=`evidence-pending` 正確分開記錄；不重跑現有 P6.2 startup。P7.0 matrix 完成後，P7.2 activation gate 才逐 required operation family 確認 fixture owner、allowed mutations、cleanup/reconciliation 與 ambiguous-timeout policy。P6 與 P7.0 位於不同 parent；執行者直接使用兩個 task path，不靠 children traversal。相同 gate 最多三次自我修復，同一 root cause 連續兩次即停止並產生 operator handoff。
 
 ## 3. Child 共同 TDD 節奏
 
@@ -114,4 +113,4 @@ authority，runbook 必須證明先 drain 舊路徑再啟用新路徑。不可�
 
 ## 8. 執行起點
 
-目前執行起點是 G0 feasibility gate，之後才是既有 P6 的 P6.2 deployment readiness；不是重新啟動 P5，也不是先執行 P7.0。使用者之後若提交整合 `/goal` 提示詞，代理先完成或等待 P6 operator handoff，再從 P6 當下狀態續跑；P6 結案後以 `.trellis/tasks/08-05-gateway-capability-inventory` 明確路徑啟動 P7.0，完成 inventory/validator 與 per-family evidence/fixture requirements 後才建立各 P7.1～P7.5 child 的精確 code-level plan，並依 gate 執行。禁止在 capability 邊界尚未證實前一次性修改全部 ChurchReport CRM 呼叫，也不得由該 goal 啟動 P8。
+目前執行起點是 P6.1 document/quality closure baseline；不是重新啟動 P5、P6.2 live startup 或先執行 P7.0。使用者之後若提交整合 `/goal` 提示詞，代理先封存 P6 的離線擴充點與 `evidence-pending` 結論，再以 `.trellis/tasks/08-05-gateway-capability-inventory` 明確路徑啟動 P7.0。完成 inventory/validator 與 per-family evidence/fixture requirements 後，才建立各 P7.1～P7.5 child 的精確 code-level plan，並依 gate 執行。禁止在 capability 邊界尚未證實前一次性修改全部 ChurchReport CRM 呼叫，也不得由該 goal 啟動 P8。

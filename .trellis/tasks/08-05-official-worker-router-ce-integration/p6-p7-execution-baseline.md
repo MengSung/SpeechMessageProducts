@@ -1,4 +1,4 @@
-# P6/P7 Execution Baseline
+# P6/P7 Execution Baseline（歷史 checkpoint）
 
 Recorded: 2026-08-06
 
@@ -26,11 +26,17 @@ Recorded: 2026-08-06
   startup result cannot distinguish credential/IFD/Organization-authorization/runtime causes and
   must not be guessed.
 
-## Boundary and next gate
+## Boundary and next gate（已由 2026-08-07 重校取代）
 
-P6.2 remains the active task and P7/P8 remain unauthorized. The next step is for the operator to
-confirm the IFD account, password and Organization authorization in the two existing same-user
-Credential Manager targets, then rerun the sanitized operator startup bridge. Only an externally
-confirmed credential or IFD fact may be corrected. Credential values, tokens, cookies, connection
-strings, private keys, Organization IDs, and personal data must not be stored in this file, task
-artifacts, source control, or console evidence.
+上述 P6.2 readiness／startup 結果只描述 Official Worker live-compatibility 的歷史
+checkpoint。它不是 Data8、Embedded 或 Dedicated Gateway 的失敗證據，也不再要求操作者
+重建 Credential Manager target、修改 URI／home realm 或重跑相同 startup。
+
+目前的下一個 gate 是：把 P6.1 離線 Router／Pool／Lease 擴充點完成文件一致性、quality
+與 spec 判斷，保留 Official Worker 為 `evidence-pending`，然後在取得必要的 task-owned
+結案提交與封存後啟動既有 P7.0。P7 的 Lenovo 路線固定保留 `Embedded + Data8` 與
+`DedicatedGateway + Data8`；P8 另行以 `CentralGateway + Data8` 評估。
+
+Credential values, tokens, cookies, connection strings, private keys, Organization IDs,
+and personal data must not be stored in this file, task artifacts, source control, or console
+evidence. Future Official Worker live work must use a new, independently authorized task.

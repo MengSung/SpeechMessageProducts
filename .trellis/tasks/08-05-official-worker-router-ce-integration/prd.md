@@ -1,6 +1,8 @@
 # P6 Official Worker Router 接入與 CE 整合驗證 PRD
 
-> 狀態：Phase 2 `in_progress`。P6.1 離線品質閘門已通過；目前停在 P6.2 Lenovo Legion deployment readiness／CE evidence。
+> 狀態：Phase 2 `in_progress`。P6.1 離線品質閘門已通過；依
+> [2026-08-07 範圍重校](./scope-rebaseline-2026-08-07.md)，P6.1 構成原始 P6
+> 擴充點交付，P6.2 Official Worker 真機相容性改列非阻塞的已知限制。
 
 ## 目標與使用者價值
 
@@ -10,15 +12,16 @@ deployment-owned profile 決定，產品端與請求端都不能選擇 SDK、CE 
 fallback；同時保留 Data8 為永久合法的 ConnectorKind。
 
 P6 的可交付結果是「Official Worker 已成為可由 Router 選取、具世代與 lease 生命週期的第二種
-Connector」，並以離線測試證明隔離、drain、dispose 與無洩漏契約。在取得額外明確授權後，才以
-受控、read-only 的 CE 8.2／9.1 operation matrix 取得真機證據；離線測試或部署設定不得被宣稱為
-CE 相容證據。
+Connector」，並以離線測試證明隔離、drain、dispose 與無洩漏契約。這個原始交付由 P6.1 完成。
+Official Worker 的真實 CE 8.2／9.1 相容性必須保留為獨立 evidence 狀態；離線測試或部署設定不得被
+宣稱為 CE 相容證據，也不再阻塞以 Data8 完成 ChurchReport 本機遷移。
 
 Lenovo Legion 是 P6 的 authoritative local development、Gateway／Worker execution 與 evidence host。P6 不部署雲端，也不把 Lenovo 的 Windows identity、credential target 或 profile overlay 當成未來雲端設定；雲端 host/service identity/TLS/monitoring/rollback 由 P8 重新建立並驗證。
 
-P6 分成兩個不改變順序的驗收里程碑：**P6.1 離線 Router 接入**完成程式、離線 lifecycle／soak 證據與
-品質閘門；**P6.2 CE read-only 整合驗證**只在另行授權的視窗取得 CE 8.2／9.1 evidence。P6.1 通過不等於
-P6 結案，P6.2 未完成時 task 仍維持 `in_progress`，P7 Parent 與 P7.0 不得啟動。
+P6 的必要驗收里程碑是 **P6.1 離線 Router 接入**：完成程式、離線 lifecycle／soak 證據與品質閘門。
+後續曾加入的 **P6.2 CE read-only 整合驗證**已留下 readiness 與啟動診斷資產，但它是未完成的
+Official Worker live-compatibility follow-up，不再屬 P6 結案或 P7.0 啟動的必要條件。若未來部署選擇
+Official Worker，必須以獨立 task 恢復 READY 與受控真機證據；現況不得冒充成功。
 
 ## 已確認事實
 
@@ -47,7 +50,10 @@ P6 結案，P6.2 未完成時 task 仍維持 `in_progress`，P7 Parent 與 P7.0 
 - ChurchReport 的 Gateway consumer flag 仍為 false，且 ChurchReport 仍有 ToolUtility/CRM SDK
   production dependency。這些屬 P7 Parent/P7.5，不在 P6 變更。
 - P6.1 Router／Pool／Lease、離線 lifecycle 與正式 quality check 已通過；task 已是 `in_progress`，不得再寫成只完成 planning。
-- Lenovo Legion 上的 `-InventoryOnly` readiness probe 已在目標 Windows identity 下成功執行；CE 8.2 與 CE 9.1 profile 都只回報 `profile-input-required`。這證明 probe、manifest 與 worker artifact inventory 可用，但尚未證明 profile、secret 或 CE 連線可用。
+- Lenovo Legion 上的早期 `-InventoryOnly` readiness probe 曾對 CE 8.2 與 CE 9.1 回報
+  `profile-input-required`；後續 operator handoff 已完成非敏感 profile input、Credential
+  Manager reference 與 offline identity-chain/readiness 驗證，現況 readiness=`go`。兩者都只
+  證明部署材料與本機解析鏈可用，**不**證明 Official Worker 已通過 READY 或 CE operation。
 - 使用者已確認 Lenovo 可連 CE 8.2／9.1 且驗證形態為 IFD。本機實測 identity 為 `LENOVO-LEGION\Administrator`、`AuthenticationType=CloudAP`、`PartOfDomain=false`；因此本機 IFD profile 必須使用大小寫敏感的 `Ifd` 與 `WindowsCredentialReference`＋HTTPS `homeRealm`，不得嘗試只允許 Active Directory 的 `HostIdentity`。
 - Windows Credential Manager 是 per-user store；credential target 必須由實際執行 Worker 的同一 Windows user 建立。Organization／IFD facts 與 credential target 需要 operator 協助；Worker 絕對路徑可由 manifest 推導，`worker-profile.xml`／Gateway overlay 由部署工具產生，不要求使用者手工建立。
 - 使用者確認 `sunnyvalechback` 是與正式系統分離的 CE 9.1 公司研發 Organization，可建立測試會員而不影響正式資料。P6 只用它取得 Data8／Official Worker 的 allowlisted read-only identity、connection 與 resource evidence；測試會員的業務寫入驗證保留給 P7.2。
@@ -84,12 +90,16 @@ trust boundary。任何 session、profile、credential、permit、process、time
 7. **離線品質驗證**：實作前先建立可重現的 contract、fault-injection、generation replacement、
    process/pipe cleanup、permit accounting、profile isolation 與 soak baseline 測試。這些驗證不得連線
    D365 或讀取真實 secret。
-8. **受控 CE 證據**：只有使用者另行書面授權時，才能對事先核准的一個 CE 8.2 profile 與一個 CE 9.1
-   profile 執行 allowlisted、read-only operation。執行時只使用 deployment-owned secret provider；不得
-   在 source、設定範例、log、test output 或 Trellis artifact 寫入或複製 credential、token、cookie、
-    connection string 或其他 secret。
+8. **Official Worker 真機證據狀態**：P6 結案必須明確記錄 Official Worker 對 CE 8.2／9.1 尚未通過
+   READY／read-only operation，不得把 readiness=`go`、互動式瀏覽器登入或離線 harness 冒充真機相容。
+   未來若 deployment 明確選用 Official Worker，另立 task 後仍只可對核准 profile 執行 allowlisted、
+   read-only operation，並只使用 deployment-owned secret provider；不得在 source、設定範例、log、
+   test output 或 Trellis artifact 寫入或複製 credential、token、cookie、connection string 或其他 secret。
 9. **本機部署邊界**：P6.2 profile overlay、worker-local credential target 與執行 identity 都屬 Lenovo Legion 開發環境。任何未來雲端值不得從本機 artifact 直接複製；P8 必須以雲端 deployment owner 重新解析與核准。
-10. **前置 G0 gate**：P6 執行前必須先通過 scoped Git/text baseline 與 P6 readiness=`go`。G0 同時把 `sunnyvalechback` 的 CE 9.1 環境級 test-member 可行性記錄到 P7 parent，但不要求在 P7.0 matrix 產生前猜測所有 P7.2 operation-family fixture，也不把該事實視為任意寫入授權。缺少 P6 profile／credential 事實時先產生 consolidated PowerShell/operator handoff；P7.2 的 fixture owner、allowed mutation、cleanup/reconciliation 與 ambiguous-timeout policy 由 P7.0 matrix 產生後的 activation gate 逐項確認。
+10. **G0 已完成的部署事實**：scoped Git/text baseline 與 P6 readiness=`go` 已取得，證明本機 manifest、
+    profile shape 與 Credential Manager reference 可供後續部署驗證使用；它不等於 CE 相容成功。
+    `sunnyvalechback` 的 CE 9.1 環境級 test-member 可行性保留給 P7.0／P7.2，但不要求在 P7.0 matrix
+    產生前猜測所有 operation-family fixture，也不把該事實視為任意寫入授權。
 11. **P6／P7 分工**：P6 證明 ConnectorKind／CE version routing、Official Worker process/IPC、Pool/Lease/admission、credential boundary 與 cleanup；P6 不實作或驗證 ChurchReport 的 write/action/function 業務語意。後者由 P7.2 使用 test-owned fixture 驗證。
 
 ## 本輪文件重校限制與未來執行邊界
@@ -100,7 +110,8 @@ trust boundary。任何 session、profile、credential、permit、process、time
 本 PRD 的安全契約及當前 Trellis gate 共同決定可執行範圍；任何 profile、secret、
 安全 fixture 或真機 evidence 缺口仍必須 fail closed。
 
-- 本次路線文件重校不重新執行 `task.py start`；既有 P6 保持 `in_progress` 並從 P6.2 續作。
+- 本次路線文件重校不重新執行 `task.py start`；既有 P6 保持 `in_progress`，直到完成重校後的
+  quality／spec-update／commit／archive 閘門，不再從 P6.2 真機診斷續作。
 - 不修改產品程式、產品設定、feature flag、ChurchReport 流量、Operation Registry、ProductClient，
   也不移除 ToolUtility 或 CRM SDK dependency。
 - 不執行 CE、WhoAmI、資料查詢、寫入、Action、Function、部署、IIS、SQL、DNS、ADFS、IFD 或 Web API
@@ -118,20 +129,19 @@ trust boundary。任何 session、profile、credential、permit、process、time
 - [ ] `design.md` 明確列出 fail-closed／no-fallback、secret/SDK/IPC 邊界、離線與真機 evidence 的差異。
 - [ ] `implement.md` 提供按風險排序的實作、測試、rollback 與驗證順序，並把 CE read-only run 留在
       使用者另行核准之後。
-- [ ] P6 task metadata 說明其高複雜度、高風險、P6.1 已完成與 P6.2 local-readiness 邊界；task status 保持 `in_progress` 直到 CE 8.2／9.1 evidence 與結案 gate 通過。
+- [ ] P6 task metadata 說明其高複雜度、高風險、P6.1 已完成，以及 P6.2 readiness=`go` 但
+      Official Worker live compatibility 未驗證；task status 保持 `in_progress` 到重校後的
+      quality／spec-update／commit／archive 閘門通過。
 - [ ] 本輪文件重校 diff 僅限 Trellis task 文件與 metadata；不含產品程式、設定或流量變更。
       這項驗收只證明規劃基線乾淨，不禁止後續整合 Goal 依 gate 執行 P6 Phase 2、
       task-owned commit 與 archive。
 
 ## 尚待使用者決定的事項
 
-1. **Local profile input**：由 deployment owner 提供 CE 8.2／9.1 各自的 ProfileAlias、CE version、ConnectorKind、ServiceUri／Organization mapping 與 Windows Credential Manager target；不得把密碼貼入 task 文件或命令列。
-2. **CE 真機 window**：P6 離線品質閘門已通過後，是否提供一次獨立、read-only 的 CE 8.2 與 CE 9.1
-   驗證授權，以及各自的已核准 ProfileAlias／執行時段／讀取範圍。建議：僅使用上述三個 allowlisted
-   operation；兩個 version 的 health/connection 是必要 P6 matrix。只有 deployment owner 額外提供 repository
-   外、test-owned 的 contact/date-range input 時才執行 fee read，否則將 business read/parity evidence 移至
-   P7.1；不進行寫入或流量切換。
-3. **P6 結案門檻**：建議維持「離線實作與品質檢查 + 明確核准的 CE 8.2/9.1 read-only evidence」兩者皆
-   通過才結案，其中真機必要集合是兩個 version 的 identity/connection evidence；可選 fee read 不得因缺少
-   test-owned input 成為隱性 blocker。在此之前 P7 Parent 與 P7.0 一律不得啟動。
-4. **整合 Goal**：若使用者採用 P6／P7 單一 `/goal` 提示詞，該提示詞可同時構成 P6.2 read-only CE window 與後續 P7 activation 的預先授權；仍不得繞過缺少 profile／secret／安全 fixture 的 No-Go。
+1. **P6 結案**：沒有剩餘 operator input。先重跑 P6 離線品質與文件一致性 gate；通過後如實記錄
+   Official Worker live compatibility 未驗證，完成 task-owned commit／archive。
+2. **P7 本機模式**：P7 必須讓 ChurchReport 可由設定選取 `Embedded + Data8` 或
+   `DedicatedGateway + Data8`。Dedicated Gateway 與 Data8 是不同維度，不得被文件或程式寫成二選一。
+3. **未來 Official Worker live task**：只有 deployment owner 明確選用 Official Worker 時才另立 task，
+   以既有本機 profile/readiness 資產續做 READY 與 allowlisted read-only evidence；不得倒退重開 P6，
+   也不得因該 task 未建立而阻塞 Data8 主線。

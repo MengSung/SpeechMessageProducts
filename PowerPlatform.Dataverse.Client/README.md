@@ -5,7 +5,12 @@ package provides an SDK for connecting to Dataverse & Dynamics 365 instances fro
 authentication. This poses a problem when you need to connect to an on-premise instance that either does not support
 OAuth, or where the OAuth tokens regularly expire and cannot be automatically refreshed.
 
-This package [PowerPlatform.Dataverse.Client](https://nuget.org/packages/PowerPlatform.Dataverse.Client)
+This package [PowerPlatform.Dataverse.Client]
+https://nuget.org/packages/PowerPlatform.Dataverse.Client
+
+"E:\我的下載\軟體下載\Data8 .NET Core Client SDK for On-Premise Dynamics 365 CRM"
+https://github.com/Data8/DataverseClient
+
 builds on top of the Microsoft one and offers an alternative `IOrganizationService` implementation using WS-Trust.
 This allows you to connect using the URL of the organization service, username and password without any additional
 configuration.

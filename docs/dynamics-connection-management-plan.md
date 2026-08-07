@@ -18,7 +18,11 @@
 `Embedded` 模式排在 Central Gateway 之前。開發體驗是這次調整的直接動機。
 
 **P3　P6／P7 先在 Lenovo Legion 完整驗證，P8 才進雲端。**
-P5 已封存，P6.1 離線 gate 已通過；P6.2 在 Lenovo Legion 補齊 deployment-owned profile input 與 CE 8.2／9.1 evidence。P7.0～P7.5 也在同一開發主機完成 capability migration、local cutover 與 ToolUtility removal。P8 才以獨立目標部署單一 ChurchReport cloud Central Gateway。離線綠燈不可冒充真機或雲端成功。
+P5 已封存，P6.1 離線 gate 已通過；P6.2 Official Worker 真機相容性目前保留為
+`evidence-pending` 的未來獨立支線，不阻塞 Data8-first 的 P7。P7.0～P7.5 也在同一
+開發主機完成 capability migration、local cutover 與 ToolUtility removal，並同時保留
+`Embedded + Data8` 與 `DedicatedGateway + Data8`。P8 才以獨立目標部署單一 ChurchReport
+cloud `CentralGateway + Data8`。離線綠燈不可冒充真機或雲端成功。
 
 ---
 
@@ -163,9 +167,16 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 
 **目標**：把既有 63 檔 Worker 資產接成 `ConnectorKind` 的第二種實作，作為擴充點保留。
 
-**目前狀態（2026-08-06）**：P6 task 為 `in_progress`；P6.1 Router／Pool／Lease、離線 lifecycle 與正式 quality check 已通過。Lenovo Legion 的 `-InventoryOnly` probe 已可執行，CE 8.2／9.1 都只剩 `profile-input-required`。下一步是由 deployment owner 建立本機 profile input／worker credential targets，readiness 為 Go 後才執行受控 read-only CE matrix。P6 不部署雲端，也不切換 ChurchReport consumer。
+**目前狀態（2026-08-07）**：P6 task 為 `in_progress`；P6.1 Router／Pool／Lease、離線
+lifecycle 與正式 quality check 已通過。Lenovo Legion readiness material 已經是 `go`，
+但兩個 Official Worker 都在 READY 前結束，沒有 CE operation；因此 live compatibility
+記為 `evidence-pending`。本次 P6 只需完成文件／spec／quality／結案 gate，不重跑 startup，
+不部署雲端，也不切換 ChurchReport consumer。
 
-`sunnyvalechback` 已確認是與正式系統分離的 CE 9.1 公司研發 Organization。P6 以它取得 Data8／Official Worker read-only identity、connection、version routing 與 resource baseline，不執行業務 write/action/function；可建立 test member 的能力留給 P7.2。CE 8.2 仍需一個核准的 read-only profile 來完成 P6 connector/version evidence。
+`sunnyvalechback` 已確認是與正式系統分離的 CE 9.1 公司研發 Organization。P7.2 可依
+matrix 將它作為 test-owned fixture environment；P6 不執行業務 write/action/function。
+若未來明確選用 Official Worker，才另立 task 取得其 read-only identity／connection evidence；
+CE 8.2／9.1 的 Official Worker live evidence 不是 Data8 P7 的必要條件。
 
 | 工作 | 檔案 |
 |---|---|
@@ -178,8 +189,9 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 - 相容性矩陣測試全綠（Official82 × Ce91 等不合法組合被拒）
 - 以 `ConnectorKind: OfficialCrm91Worker` 建立一個測試用 ProfileAlias，能啟動並回應
 - 預設 Profile 仍為 `Data8`，未啟用 Official 時不啟動任何 net48 進程
-- P6 程式與離線測試完成後，才執行一次外部 CE 整合量測：legacy／Embedded／Dedicated 的結果一致性、p50／p95／p99、
-  200 次 borrow/use/return、故障淘汰與所有資源回到基線。
+- P6 程式與離線測試完成後，保存 Official Worker live compatibility=`evidence-pending`；
+  P7 先以 Data8 驗證 `Embedded + Data8` 與 `DedicatedGateway + Data8` 的 capability 結果、
+  p50／p95／p99、故障淘汰與所有資源回到基線。Official Worker 的外部 CE 整合量測另立 task。
 
 ---
 
@@ -219,7 +231,9 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 
 - Capability matrix 不得再有 ChurchReport production temporary-legacy rows。
 - 移除 ChurchReport 對 ToolUtility／CRM SDK 的 project reference、DI／Factory、legacy credential／endpoint 與直接呼叫。
-- 完整 Release build、Dynamics／ChurchReport tests、zero-reference scan、CE 8.2／9.1 真機結果、p50／p95／p99、soak 與資源基線全部通過後，才關閉 rollback window。
+- 完整 Release build、Dynamics／ChurchReport tests、zero-reference scan、Data8 在必要
+  `Embedded`／`DedicatedGateway` 組合的真機結果、p50／p95／p99、soak 與資源基線全部
+  通過後，才關閉 rollback window。未選用的 Official Worker 不得被當成 P7 blocker。
 - P7.5 只移除 ChurchReport dependency；ToolUtility project 若仍有其他 consumer，保留至獨立退役任務。
 
 ---
@@ -232,7 +246,7 @@ Dedicated mode 只重用 Embedded 的 Data8 runtime 程式碼與 immutable profi
 |---|---|---|
 | P8.0 | Cloud deployment readiness | host、network、DNS、TLS、service identity、secret provider、CE reachability、部署／rollback package 齊全；缺一即 No-Go |
 | P8.1 | Host／service identity／TLS hardening | 最小權限 workload allowlist；未授權 caller 在 body parsing／Profile resolution／outbound work 前被拒絕；secret 不落入產品或 artifact |
-| P8.2 | Central Gateway＋Worker deployment | 可重現 install/start/restart/drain/stop；process、pipe、connection、handle、permit、queue 與 generation 有單一 owner／baseline |
+| P8.2 | Central Gateway＋Data8 deployment baseline | 以 Data8 為第一個 ChurchReport composition；可重現 install/start/restart/drain/stop；process、connection、channel、handle、permit、queue 與 generation 有單一 owner／baseline。若未來明確選用 Official Worker，另立 task 取得 evidence 後才納入。 |
 | P8.3 | ChurchReport cutover | 先受控 smoke，再只切 endpoint／deployment-owned routing；不混入 contract、Profile、ConnectorKind 或 CE version 變更 |
 | P8.4 | Live validation／monitoring／rollback／closure | 功能、p50／p95／p99、錯誤率、資源、告警與實際 rollback drill 全綠，觀測窗通過才結案 |
 
@@ -289,9 +303,9 @@ P4 仍是第一個可見平台里程碑；P7.5 是 ChurchReport 本機產品遷�
 
 ## 6. 立即可執行的下一步
 
-1. 在 Lenovo Legion 建立 P6.2 所需 CE 8.2／9.1 deployment-owned local profile input 與 worker credential targets；不得把 secret 寫入 source、命令列或 artifact。
-2. 重新執行 readiness probe；只有 outcome=`go` 才進入 read-only CE evidence。
-3. P6 結案後，依 `docs/superpowers/plans/2026-08-06-p6-p7-integrated-execution.md` 自動銜接 P7.0～P7.5；P8 保持未啟動。
+1. 完成 P6.1 文件、spec、quality 與結案 gate，保留 Official Worker live compatibility=`evidence-pending`；不重跑 P6.2 startup。
+2. P6 封存後，依 `docs/superpowers/plans/2026-08-06-p6-p7-integrated-execution.md` 自動銜接 P7.0～P7.5，以 Data8 驗證 `Embedded + Data8` 與 `DedicatedGateway + Data8`；P8 保持未啟動。
+3. 若未來要補 Official Worker，另立獨立 deployment task；第一個 ChurchReport cloud deployment 仍固定為 `CentralGateway + Data8`。
 
 ---
 

@@ -6,7 +6,7 @@
 ## 1. 已鎖定的最終成果
 
 1. P5 Dedicated Gateway 已正式封存，不再重開。
-2. P6 在 Lenovo Legion 完成 Official Worker Router 與 CE 8.2／9.1 本機整合證據。
+2. P6 在 Lenovo Legion 完成 Official Worker Router 擴充點；Official Worker CE 8.2／9.1 live compatibility 保留為未來 `evidence-pending` 支線。
 3. P7.0～P7.5 在 Lenovo Legion 完成 ChurchReport 全部 D365 capability 遷移，P7.5 移除 ChurchReport 對 ToolUtility／CRM SDK 的 production dependency。
 4. P8.0～P8.4 將已在本機驗收的單一 ChurchReport 部署到雲端 Central Gateway，完成身分、TLS、監控、回滾與 live validation。
 5. 第二、第三產品 onboarding 日後另立獨立 task，不阻塞目前 P6～P8。
@@ -15,7 +15,7 @@
 
 ```mermaid
 flowchart LR
-    P5["P5 Dedicated Gateway：已封存"] --> P6["P6 Official Worker + CE evidence：進行中"]
+    P5["P5 Dedicated Gateway：已封存"] --> P6["P6 Official Worker Router extension：live evidence pending"]
     P6 --> P70["P7.0 Inventory + coverage validator"]
     P70 --> P71["P7.1 Read capabilities"]
     P71 --> P72["P7.2 Write / Action / Function"]
@@ -29,7 +29,7 @@ flowchart LR
     P83 --> P84["P8.4 Live validation + closure"]
 ```
 
-前置 gate 仍必須依序通過，但使用者可以用一個整合 `/goal` 預先授權 P6 與 P7 的連續執行。這代表不必每一階段重新下提示詞，不代表完全無人值守：P6 profile／Credential Manager 必須在 G0 透過 operator handoff 收斂；P7.2 先記錄環境級可行性，再於 P7.0 matrix 完成後為每個 required operation family 通過 fixture／cleanup activation gate。它也不代表可略過 Trellis task、測試、quality check、spec update、commit 或 archive。
+前置 gate 仍必須依序通過，但使用者可以用一個整合 `/goal` 預先授權 P6 與 P7 的連續執行。這代表不必每一階段重新下提示詞，不代表完全無人值守：本輪 P6 只需完成既有 P6.1 離線 closure、文件／spec／quality 與封存，Official Worker live compatibility 保留為 `evidence-pending`，不重跑已完成的 profile／Credential Manager handoff。P7.2 先記錄環境級可行性，再於 P7.0 matrix 完成後為每個 required operation family 通過 fixture／cleanup activation gate。它也不代表可略過 Trellis task、測試、quality check、spec update、commit 或 archive。
 
 P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/tasks/08-05-official-worker-router-ce-integration` 與 `.trellis/tasks/08-05-gateway-capability-inventory` 兩個明確路徑切換，不得靠任一 parent 的 children traversal 尋找整條路線。
 
@@ -39,26 +39,26 @@ P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/
 |---|---|---|---|
 | P5 | 已封存 | Dedicated Gateway 離線 host／lifecycle／quality gate | 無；不得重開 |
 | P6.1 | 已通過 | Router／Pool／Lease 與離線 lifecycle／quality evidence | 保留現有結果，不重做 |
-| P6.2 | `in_progress` | Lenovo `InventoryOnly` probe 可執行；兩個 profile 唯一原因均為 `profile-input-required` | 建立 deployment-owned local profile input，再執行受控 CE evidence |
+| P6.2 | `evidence-pending` | readiness 已 `go`，但兩個 Worker 在 READY 前結束，未執行 CE operation | 保留到未來獨立 Official Worker deployment task |
 | P7.0 | `planning` | PRD／design／implement 與 preliminary inventory 已存在 | 等 P6 正式結案後 activation |
 | P7.1～P7.5 | 尚未建立／啟動 | 由 P7.0 matrix 決定精確 child 邊界 | P7.0 validator 全綠 |
 | P8.0～P8.4 | 尚未建立／啟動 | 本文件只有路線定義 | P7.5 結案與獨立 P8 授權 |
 
-## 4. P6：Lenovo Legion Official Worker 與 CE 證據
+## 4. P6：Lenovo Legion Official Worker Router 擴充點
 
-### P6.2A Deployment readiness
+### P6.2A Historical deployment readiness
 
 - 使用預計執行 Gateway／Worker 的 Windows identity。
 - 由 deployment owner 建立 CE 8.2 與 CE 9.1 profile input；endpoint、Organization、ConnectorKind 與 credential reference 必須互相一致。
 - Credential 只存在 Windows Credential Manager／核准 secret provider，不寫入 source、命令列、JSON artifact、log 或 Trellis 文件。
 - readiness probe 必須由 `profile-input-required` 收斂為 `go`；任何 identity、ACL、manifest、runtime、package-lock 或 secret 解析缺口都維持 No-Go。
 
-### P6.2B Read-only live matrix
+### P6.2B Historical read-only live matrix
 
-- 以與正式系統隔離的 CE 9.1 `sunnyvalechback` 作 Data8／Official Worker allowlisted health／connection control；CE 8.2 使用另行核准的 read-only profile。兩個 version 的 identity/connection evidence 是 P6 必要矩陣；bounded fee read 只有在 deployment owner 提供 repository 外、test-owned contact/date-range input 時才執行，否則移至 P7.1。
+- 以與正式系統隔離的 CE 9.1 `sunnyvalechback` 作未來 Data8／Official Worker allowlisted health／connection control；CE 8.2 使用另行核准的 read-only profile。Official Worker identity/connection evidence 不再是 P6 或 Data8 P7 的必要矩陣；若未來選用 Official Worker，另立 task 再恢復。
 - CE 8.2 與 CE 9.1 各自保存 sanitized result、ConnectorKind、operation ID、p50／p95／p99 與 drain 後 process／handle／pipe／permit baseline。
 - 任何不相容、錯誤 routing、credential/session/profile leakage 或資源無法回到基線都是 release blocker；不得自動改用另一 Connector、Profile、CE version 或 transport。
-- P6.1 與 P6.2 全綠後依 Trellis Phase 3 執行 spec 判斷、task-owned commit 與 archive，才解除 P7.0 前置條件。
+- P6.1 的離線 quality、文件與 spec 判斷全綠後依 Trellis Phase 3 執行 task-owned commit 與 archive，才解除 P7.0 前置條件；P6.2 保留為 `evidence-pending`。
 
 P6 是本機 connector／CE gate；它不修改 ChurchReport consumer、feature flag 或 ToolUtility dependency，也不部署雲端。
 即使 `sunnyvalechback` 可安全建立 test member，P6 仍不執行業務 write/action/function；P6 的價值是證明版本隔離的 Official Worker、Router／Pool／Lease、identity 與 deterministic cleanup，業務寫入屬 P7.2。
@@ -134,9 +134,9 @@ P7.5 只代表 ChurchReport 不再依賴 ToolUtility；若 repository 仍有其�
 
 建立最小權限 ChurchReport workload identity、Gateway／Worker service identity、TLS trust 與 secret ACL。驗證未授權 workload 在 body parsing、Profile resolution 與 outbound work 前被拒絕。
 
-### P8.2 Central Gateway＋Worker deployment
+### P8.2 Central Gateway＋Data8 deployment baseline
 
-以可重現部署包安裝服務，驗證 startup、health、ready、restart、drain、forced termination、log／metric sanitization 與 process／pipe／handle baseline。
+以 `CentralGateway + Data8` 的可重現部署包安裝服務，驗證 startup、health、ready、restart、drain、forced termination、log／metric sanitization 與 connection／channel／permit／queue／generation baseline。若未來選擇 Official Worker，另立 task 取得其獨立 evidence；不得把未驗證 Worker 混入本次 Central Gateway baseline。
 
 ### P8.3 ChurchReport cutover
 
@@ -148,11 +148,11 @@ P7.5 只代表 ChurchReport 不再依賴 ToolUtility；若 repository 仍有其�
 
 ## 12. 單一 P6／P7 Goal 的自動續跑規則
 
-整合 Goal 先執行 G0：確認 scoped Git/text baseline 並使 P6 readiness 為 Go；同時只記錄 P7.2 的 CE 9.1 環境級 test-member 可行性。G0 未綠時先產生 P6 PowerShell/operator handoff 並保存 checkpoint。P7.0 matrix 產生後，再在 P7.2 activation gate 確認每個 required family 的資料 owner、允許操作與 cleanup/reconciliation。
+整合 Goal 從既有 P6.1 closure checkpoint 開始：確認 scoped Git/text baseline、P6.1 離線 quality 與 Official Worker `evidence-pending` 記錄；不重跑 P6.2。同步只記錄 P7.2 的 CE 9.1 環境級 test-member 可行性。P7.0 matrix 產生後，再在 P7.2 activation gate 確認每個 required family 的資料 owner、允許操作與 cleanup/reconciliation。
 
-G0 通過後，整合 Goal 可一次授權：
+P6 closure gate 全綠後，整合 Goal 可一次授權：
 
-- 從目前 P6.2 狀態續作，不重做已綠的 P6.1；
+- 從目前 P6.1 closure checkpoint 續作，不重做已綠的 P6.1，也不重跑 P6.2；
 - P6 gate 全綠後執行 spec update、task-owned commit、archive；
 - 啟動既有 P7.0，完成後依 matrix 建立並啟動 P7.1～P7.5 children；
 - 每個 child 都先規劃、再實作、再 Trellis check，通過才 commit/archive 並自動進入下一個；
@@ -165,4 +165,4 @@ G0 通過後，整合 Goal 可一次授權：
 
 ## 13. 目前下一步
 
-先完成 G0：正規化本批文件並建立 scoped baseline；補齊 P6.2 deployment-owned CE 8.2／9.1 local profile input，使 readiness probe 從只有 `profile-input-required` 的 No-Go 收斂為 Go；同時把 `sunnyvalechback` 的環境級 test-member 可行性記錄到 P7 parent。P6 正式結案後，依明確 task path 自動銜接 P7.0；由 P7.0 matrix 決定 P7.2 required families，再逐 family 完成 fixture gate。不要在 P6 結案前啟動 P7，也不要跳到 P8。
+先完成 P6.1 closure：正規化本批文件並建立 scoped baseline；記錄 P6.1 已完成與 P6.2 Official Worker live compatibility=`evidence-pending`，不重跑 startup；同時把 `sunnyvalechback` 的環境級 test-member 可行性記錄到 P7 parent。P6 正式結案後，依明確 task path 自動銜接 P7.0；由 P7.0 matrix 決定 P7.2 required families，再逐 family 完成 fixture gate。不要在 P6 結案前啟動 P7，也不要跳到 P8。

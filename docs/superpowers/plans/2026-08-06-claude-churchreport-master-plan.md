@@ -9,6 +9,13 @@
 > 2. `2026-08-06-claude-p6-p7-local-execution.md`（Lenovo Legion 本機執行）
 > 3. `2026-08-06-claude-p8-central-gateway-deployment.md`（雲端機房部署）
 
+> **2026-08-07 執行狀態（Codex 重校）：本文件是輔助稽核材料，不是目前可執行的
+> Trellis authority。** 其 P6.2 live-compatibility-first 順序已被
+> `2026-08-06-p6-p7-integrated-execution.md`、P6 scope rebaseline 與對應 Trellis
+> task artifacts 取代；目前順序是 `P6.1 offline closure → P7.0 → P7.1～P7.5`，
+> Official Worker 保留為未來獨立 `evidence-pending` deployment task。P8 仍是
+> 獨立 Goal，第一個 ChurchReport 雲端 baseline 是 `CentralGateway + Data8`。
+
 建立日期：2026-08-06
 撰寫者：Claude
 授權主體：使用者（Lenovo Legion 開發主機擁有者）
@@ -222,7 +229,7 @@ deterministic script 缺陷、可修復的 lifecycle bug。
 ```text
 按照 Trellis Workflow，依照 docs/superpowers/plans/2026-08-06-claude-churchreport-master-plan.md
 與 docs/superpowers/plans/2026-08-06-claude-p6-p7-local-execution.md，
-從既有 task .trellis/tasks/08-05-official-worker-router-ce-integration 的 P6.2 checkpoint 開始，
+（歷史版本）從既有 task .trellis/tasks/08-05-official-worker-router-ce-integration 的 P6.2 checkpoint 開始，
 連續完成並封存 P6，再自動完成並封存 P7.0～P7.5，
 直到 ChurchReport 在 Lenovo Legion 全部透過 Gateway／ProductClient 正確執行，
 且 ChurchReport production code／project／DI／設定不再依賴 ToolUtility、CRM SDK、
@@ -231,7 +238,10 @@ IOrganizationService、Entity、QueryBase 或 OrganizationRequest。
 這是 P6＋P7 的單一持續執行授權。前置 gate 全綠時，你可以自行建立、規劃、task.py start、
 實作、Trellis check、spec update、建立只含 task-owned 變更的本機 commit、archive，
 然後自動進入下一個 child，不需要每階段再問我。
-技術順序固定為 P6.2 → P6 結案 → P7.0 → P7.1 → P7.2 → P7.3 → P7.4 → P7.5。
+原文件曾把技術順序寫成 `P6.2 → P6 結案 → P7.0 → P7.1 → P7.2 → P7.3 → P7.4 → P7.5`；
+該順序已被 2026-08-07 Codex rebaseline 取代。現行順序是
+`P6.1 offline closure → P7.0 → P7.1 → P7.2 → P7.3 → P7.4 → P7.5`，
+P6.2 live compatibility 只在未來獨立 Official Worker task 恢復。
 
 環境事實已確認，不需要再問我：CE 8.2 與 9.1 都連得到；驗證形態是 IFD；
 IFD 只能用 WindowsCredentialReference 且必須含 homeRealm；

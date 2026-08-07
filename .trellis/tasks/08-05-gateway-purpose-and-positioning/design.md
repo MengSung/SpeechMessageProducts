@@ -8,7 +8,7 @@
 
 建立一個所有 SpeechMessage 產品都能使用的 Dynamics 存取邊界：產品只呼叫強型別 ProductClient；Gateway／Embedded 執行層負責 operation authorization、Profile 解析、Organization admission、Connector lease、D365 呼叫、錯誤清理與結果投影。
 
-本設計保留 P4 Embedded、已封存的 P5 Dedicated Gateway 與進行中的 P6 Official Worker 作為平台基礎；P7 負責 ChurchReport 全量 capability 遷移，P8 則把已完成本機驗收的單一 ChurchReport 部署到雲端 Central Gateway。第二、第三產品 onboarding 是後續獨立範圍，不阻塞 P6～P8。
+本設計保留 P4 Embedded、已封存的 P5 Dedicated Gateway 與 P6 Official Worker Router 擴充點作為平台基礎；P6 Official Worker live compatibility 為 `evidence-pending` 的未來支線。P7 負責以 Data8 完成 ChurchReport 全量 capability 遷移，並保留 `Embedded + Data8` 與 `DedicatedGateway + Data8`；P8 才把已完成本機驗收的單一 ChurchReport 以 `CentralGateway + Data8` 部署到雲端。第二、第三產品 onboarding 是後續獨立範圍，不阻塞 P6～P8。
 
 ## 2. 已確認的現況缺口
 
@@ -103,7 +103,7 @@ P8 在 P7.5 完成且本機 evidence 封存後啟動，不等待其他產品。P
 
 - **P8.0 Cloud deployment readiness**：確認雲端主機、網路、DNS、憑證、service identity、secret provider、CE reachability、備份、部署包與 rollback package 均可用；任何缺口都先 No-Go。
 - **P8.1 Host／identity／TLS hardening**：Gateway 僅接受已核准 ChurchReport workload identity，TLS 憑證、私鑰與 CRM credential 由部署環境擁有；產品 request、設定檔與 artifact 不得保存 secret。
-- **P8.2 Central Gateway＋Worker deployment**：以服務管理員建立可重啟、可 drain、可確定停止的 Gateway／Worker；監測 process、pipe、connection、handle、queue、permit 與 generation，不允許跨 profile mutable state。
+- **P8.2 CentralGateway＋Data8 deployment**：以服務管理員建立可重啟、可 drain、可確定停止的 Gateway／Data8 runtime；監測 process、connection、channel、handle、queue、permit 與 generation，不允許跨 profile mutable state。Official Worker 只有在未來另行選用並取得真機證據時才納入雲端 composition。
 - **P8.3 ChurchReport cutover**：先 health／ready 與受控 operation smoke，再以明確變更視窗將 ChurchReport endpoint 指向 Central Gateway；不得同時改 operation contract、Profile、ConnectorKind 或 CE version。
 - **P8.4 Live validation／monitoring／rollback／closure**：核對功能結果、p50／p95／p99、錯誤率、資源基線、告警與 rollback drill；觀測窗通過後才結案。
 

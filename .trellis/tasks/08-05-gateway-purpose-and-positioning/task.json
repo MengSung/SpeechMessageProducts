@@ -17,14 +17,14 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Finish planning rebaseline and use the integrated P6/P7 goal to resume P6.2; keep this parent and P7.0 planning until their activation gates are satisfied, and do not start P8.",
+  "nextAction": "Keep this parent and the existing P7.0 task in planning while P6 completes its offline closure and is archived; do not resume the retired P6.2 live-compatibility bridge. After P6 archive, activate P7.0 for the Data8-first Embedded+Data8/DedicatedGateway+Data8 local route; do not start P8.",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "Canonical route: P5 archived -> P6 local Official Worker/CE evidence -> P7.0-P7.5 local ChurchReport migration and ToolUtility removal -> independently authorized P8.0-P8.4 cloud Central Gateway deployment. Future products are separate scope.",
+  "notes": "Canonical route: P5 archived -> P6 Official Worker Router extension archived with live compatibility evidence-pending -> P7.0-P7.5 local ChurchReport migration using configurable Embedded+Data8 and DedicatedGateway+Data8, then ToolUtility removal -> independently authorized P8.0-P8.4 cloud CentralGateway+Data8 deployment. Future products are separate scope.",
   "meta": {
     "localExecutionHost": "Lenovo Legion",
     "p7Sequence": "P7.0-P7.5",

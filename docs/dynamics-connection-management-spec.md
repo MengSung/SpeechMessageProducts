@@ -527,7 +527,7 @@ Data8 為 MIT 授權、原始碼 55 檔／6,919 行已在本 repo 內；上游�
 
 | 規格元件 | 現有資產 | 動作 |
 |---|---|---|
-| `ConnectionMode` | `DynamicsExecutionMode`（Gateway/Embedded） | 擴充為三值並改名 |
+| `ConnectionMode` | `ConnectionMode`（已存在三值） | 以 `Embedded`、`DedicatedGateway`、`CentralGateway` 維持三值契約；不再使用舊的 `DynamicsExecutionMode`／`Gateway` 名稱 |
 | `ConnectorKind` | 無 | 新增 |
 | `IDynamicsOperationExecutor` | `Abstractions/Operations/` | 保留 |
 | `DynamicsOperationContract` | `Abstractions` + `ProductClient` | 保留 |
@@ -555,8 +555,10 @@ Data8 為 MIT 授權、原始碼 55 檔／6,919 行已在本 repo 內；上游�
 4. §11.2 已修正並有測試佐證
 5. Embedded 模式在 Visual Studio 2026 按 F5 可直接執行其受控離線組合根，無需額外進程、雜湊或資料庫；外部 CE
    執行由使用者在 P6 後整合驗收時安排
-6. P6 程式與離線測試完成後，至少一個真實 Organization（`sunnyvalechback`）完成 legacy／Embedded／Dedicated
-   端到端真機驗證、結果一致性及 p50／p95／p99 比較
+6. P6 程式與離線測試完成後，Official Worker live compatibility 如實保存為
+   `evidence-pending`；ChurchReport 的 Data8 主線在 P7 依 capability matrix，分別完成
+   `Embedded + Data8` 與 `DedicatedGateway + Data8` 的必要真機驗證、結果一致性及
+   p50／p95／p99 比較。Official Worker 真機驗證若日後需要，另立獨立 task，不阻塞 Data8 主線。
 7. §9.2 遙測禁止事項通過掃描
 
 ---
