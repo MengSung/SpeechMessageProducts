@@ -15,11 +15,15 @@ using PowerPlatform.Dataverse.Client.ADAuthHelpers;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
-using NSspi.Contexts;
 #if NET7_0_OR_GREATER
 using System.Buffers;
 using System.Net.Security;
 #else
+// AI-修正註解（對齊上游 Data8 2.4.2 的檔案結構）：
+// NSspi 型別只在非 .NET 7+ 的 Windows SSPI 後備路徑用得到（見下方 Authenticate 的 #else 分支）。
+// 原本這個 using 放在條件式外，在本專案唯一的 net10.0 建置下永遠是未使用的 using，
+// 也讓讀者誤以為 NSspi 仍在主要路徑上。移入 #else 後語意與實際編譯結果一致。
+using NSspi.Contexts;
 #endif
 using System;
 using System.Net;
@@ -175,23 +179,31 @@ namespace PowerPlatform.Dataverse.Client
             // Keep exchanging tokens until we get a full RSTR
             while (finalResponse == null)
             {
-                if (resp is RequestSecurityTokenResponse r)
-                {
+                // AI-修正註解（本地強化；上游 Data8 2.4.2 有等價缺陷，其寫法為 `if (!(resp is ...)) continue;`）：
+                // 原本是 `if (resp is RequestSecurityTokenResponse r) { ... }`，沒有 else 分支。
+                // 當伺服器回傳的既不是 RequestSecurityTokenResponseCollection、也不是
+                // RequestSecurityTokenResponse 時（協定不符、STS 回傳非預期訊息、中間裝置改寫回應），
+                // 迴圈條件 finalResponse == null 永遠成立，而迴圈內不再更新 resp，
+                // 會變成沒有出口、沒有逾時、100% CPU 空轉的活鎖，且執行緒卡死在驗證階段無法回收。
+                // 改為 fail-fast：協商無法繼續就立即拋出，讓上層連線池能釋放此 Client 並回報失敗。
+                // 例外訊息刻意不含端點、帳號、權杖或原始回應內容，維持去識別化的診斷邊界。
+                if (!(resp is RequestSecurityTokenResponse r))
+                    throw new ApplicationException("Error authenticating with the server: unexpected WS-Trust response during token exchange.");
+
 #if NET7_0_OR_GREATER
-                    token = context.GetOutgoingBlob(r.BinaryExchange.Token, out state);
+                token = context.GetOutgoingBlob(r.BinaryExchange.Token, out state);
 
-                    if (state != NegotiateAuthenticationStatusCode.Completed && state != NegotiateAuthenticationStatusCode.ContinueNeeded)
-                        throw new ApplicationException("Error authenticating with the server: " + state);
+                if (state != NegotiateAuthenticationStatusCode.Completed && state != NegotiateAuthenticationStatusCode.ContinueNeeded)
+                    throw new ApplicationException("Error authenticating with the server: " + state);
 #else
-                    state = context.Init(r.BinaryExchange.Token, out token);
+                state = context.Init(r.BinaryExchange.Token, out token);
 
-                    if (state != NSspi.SecurityStatus.OK && state != NSspi.SecurityStatus.ContinueNeeded)
-                        throw new ApplicationException("Error authenticating with the server: " + state);
+                if (state != NSspi.SecurityStatus.OK && state != NSspi.SecurityStatus.ContinueNeeded)
+                    throw new ApplicationException("Error authenticating with the server: " + state);
 #endif
 
-                    resp = new RequestSecurityTokenResponse(r.Context, token).Execute(_url, auth);
-                    finalResponse = resp as RequestSecurityTokenResponseCollection;
-                }
+                resp = new RequestSecurityTokenResponse(r.Context, token).Execute(_url, auth);
+                finalResponse = resp as RequestSecurityTokenResponseCollection;
             }
 
             var wrappedToken = finalResponse.Responses[0].RequestedProofToken.CipherValue;
@@ -360,7 +372,16 @@ namespace PowerPlatform.Dataverse.Client
                     }
                 }
             }
+            // AI-修正註解（對齊上游 Data8 2.4.2）：補上 `when (ex.Response != null)` 例外篩選。
+            // 原本無條件進入此區塊。當失敗屬於「還沒拿到 HTTP 回應」的類別——連線逾時、
+            // DNS 解析失敗、連線被拒、TLS 交握失敗、要求被取消——WebException.Response 為 null，
+            // 於是 `ex.Response.GetResponseStream()` 會丟出 NullReferenceException，
+            // 把真正的 WebException（連同其 WebExceptionStatus 這個唯一的分類依據）整個遮蔽掉，
+            // 呼叫端只會收到一個沒有診斷價值、也無法安全分類的 NRE。
+            // 加上篩選後，沒有回應本體的 WebException 不再進入此區塊，會以原始型別與 Status 往外傳遞；
+            // 只有真的帶回 SOAP Fault 本體的情況才會走 FaultReader 解析。
             catch (WebException ex)
+            when (ex.Response != null)
             {
                 using (var errorStream = ex.Response.GetResponseStream())
                 {
