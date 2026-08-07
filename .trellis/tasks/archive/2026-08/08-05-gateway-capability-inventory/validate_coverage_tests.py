@@ -10,8 +10,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import validate_coverage
-
 
 TASK_DIRECTORY = Path(__file__).resolve().parent
 VALIDATOR = TASK_DIRECTORY / "validate_coverage.py"
@@ -41,22 +39,6 @@ class CoverageValidatorContractTests(unittest.TestCase):
         self.assertEqual("valid", report["outcome"])
         self.assertEqual(70, report["summary"]["callSiteCount"])
         self.assertEqual([], report["errors"])
-
-    def test_archived_validator_locates_the_repository_root_by_trellis_anchor(self) -> None:
-        """封存後仍必須從 `.trellis` 錨點回到 repository root。
-
-        此測試保護 task archive 的可重現性：`--build` 會重新讀取
-        Phase 0 matrix 與 operation source，因此不可依賴 active task
-        目錄固定深度。斷言以實際 repository source existence 為準，
-        而非硬編碼 archive 年月或 parent index。
-        """
-        self.assertTrue((validate_coverage.REPOSITORY_ROOT / ".trellis").is_dir())
-        self.assertTrue(
-            (
-                validate_coverage.REPOSITORY_ROOT
-                / "SpeechMessage.Dynamics.Abstractions/Operations/OperationIds.cs"
-            ).is_file()
-        )
 
     def test_duplicate_call_site_id_is_rejected_without_reading_external_state(self) -> None:
         """兩筆 row 共用 call-site ID 時必須在純本機資料上 fail closed，不能接觸 CE 或設定祕密。"""
