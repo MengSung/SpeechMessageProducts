@@ -31,12 +31,13 @@ namespace SpeechMessage.Dynamics.Tests;
 public sealed class GatewayKestrelNegotiateTests
 {
     private const string BoundPrincipalName = @"IIS APPPOOL\ChurchReport";
+    private const string EphemeralKestrelServerUrl = "https://127.0.0.1:0";
     private const string ProtectedOperationPath =
         "/v1/organizations/crm82/operations/runtime.health.whoami";
 
     /// <summary>
     /// Development 即使收到設定檔指定的 Testing fake scheme 與 X-Principal／X-Workload spoof headers，
-    /// 仍必須先由 Kestrel 的 server-owned address feature 證明唯一 listener 使用核准的 localhost:7244，
+    /// 仍必須先由 Kestrel 的 server-owned address feature 證明唯一 listener 使用核准的 HTTPS loopback，
     /// 再由 Negotiate handler challenge；caller-controlled headers 不得建立任何 ClaimsPrincipal 或進入 executor。
     /// Factory 是 listener、client 與 service provider 的唯一生命週期 owner，測試完成後會依序 Dispose，且不保留跨案例連線或可變狀態。
     /// </summary>
@@ -46,14 +47,7 @@ public sealed class GatewayKestrelNegotiateTests
         await using var factory = CreateDevelopmentGatewayFactory(useKestrel: true);
         using var client = factory.CreateClient(
             new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-        var addresses = factory.Services
-            .GetRequiredService<IServer>()
-            .Features
-            .Get<IServerAddressesFeature>()!
-            .Addresses;
-        addresses.Should().Contain("https://localhost:7244");
-
-        client.BaseAddress = new Uri("https://localhost:7244", UriKind.Absolute);
+        client.BaseAddress = GetStartedKestrelBaseAddress(factory);
         using var request = new HttpRequestMessage(HttpMethod.Post, ProtectedOperationPath)
         {
             Content = JsonContent.Create(new { parameters = new Dictionary<string, object?>() })
@@ -82,15 +76,10 @@ public sealed class GatewayKestrelNegotiateTests
         await using var factory = CreateDevelopmentGatewayFactory(useKestrel: true);
         using var serverStarter = factory.CreateClient(
             new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-        factory.Services
-            .GetRequiredService<IServer>()
-            .Features
-            .Get<IServerAddressesFeature>()!
-            .Addresses
-            .Should().Contain("https://localhost:7244");
+        var serverUri = GetStartedKestrelBaseAddress(factory);
 
-        // 只對目前 Factory 擁有的 localhost development certificate 放寬鏈驗證；URI、listener 與 Windows credential
-        // 仍固定為 server-owned 7244／DefaultNetworkCredentials，不能由 request header 改寫或跨測試共享 handler pool。
+        // 只對目前 Factory 擁有的 development certificate 放寬鏈驗證；URI、listener 與 Windows credential
+        // 仍固定為 server-owned HTTPS loopback／DefaultNetworkCredentials，不能由 request header 改寫或跨測試共享 handler pool。
         using var handler = new HttpClientHandler
         {
             AllowAutoRedirect = false,
@@ -101,7 +90,7 @@ public sealed class GatewayKestrelNegotiateTests
         };
         using var client = new HttpClient(handler)
         {
-            BaseAddress = new Uri("https://localhost:7244", UriKind.Absolute)
+            BaseAddress = serverUri
         };
         using var request = new HttpRequestMessage(HttpMethod.Post, ProtectedOperationPath)
         {
@@ -134,6 +123,7 @@ public sealed class GatewayKestrelNegotiateTests
             });
         using var serverStarter = factory.CreateClient(
             new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var serverUri = GetStartedKestrelBaseAddress(factory);
         using var handler = new HttpClientHandler
         {
             AllowAutoRedirect = false,
@@ -144,7 +134,7 @@ public sealed class GatewayKestrelNegotiateTests
         };
         using var client = new HttpClient(handler)
         {
-            BaseAddress = new Uri("https://localhost:7244", UriKind.Absolute)
+            BaseAddress = serverUri
         };
         using var request = new HttpRequestMessage(HttpMethod.Post, ProtectedOperationPath)
         {
@@ -283,6 +273,15 @@ public sealed class GatewayKestrelNegotiateTests
                     // RED 基線刻意要求一個 fake scheme；GREEN 必須由 Program 忽略此值並固定使用 Negotiate。
                     ["DynamicsGateway:AuthenticationScheme"] = HeaderTrustingFakeAuthenticationHandler.SchemeName
                 };
+                if (useKestrel)
+                {
+                    // Kestrel endpoint 設定優先於 WebHost ServerUrls；測試以相同 configuration layer 覆寫固定 7244，
+                    // 讓 OS 以 127.0.0.1:0 配發單一 HTTPS loopback listener。Kestrel 不允許 localhost:0，
+                    // 因此不可將這個 test-only 位址改回 localhost。這不修改 appsettings.Development.json 的部署契約，
+                    // 也不讓 request 決定 URI；實際 URI 一律在啟動後由 IServerAddressesFeature 讀回。
+                    values["Kestrel:Endpoints:LocalHttps:Url"] = EphemeralKestrelServerUrl;
+                }
+
                 if (configurationOverrides is not null)
                 {
                     // 每個 override dictionary 只由單一 Factory setup 擁有，啟動後 configuration/authorizer 會建立唯讀 snapshot；
@@ -321,12 +320,37 @@ public sealed class GatewayKestrelNegotiateTests
 
         if (useKestrel)
         {
-            // .NET 10 WebApplicationFactory 的 Kestrel mode 才提供 Negotiate 所需的 connection items；
-            // listener 使用 appsettings.Development.json 的 HTTPS localhost:7244，Factory disposal 是 listener 的唯一 cleanup owner。
             factory.UseKestrel();
         }
 
         return factory;
+    }
+
+    /// <summary>
+    /// 讀取已啟動 Kestrel 的唯一實際 HTTPS loopback 位址。測試 listener 以 port 0 要求 OS 配發，
+    /// 因此不可猜測或重用正式開發設定的固定埠；只可從 server-owned feature 取得實際 endpoint。
+    /// 此 helper 不建立或保留 socket、client、certificate 或 server handle；其唯一輸出是 immutable URI，
+    /// listener 與所有 transport 資源仍完全由傳入 Factory 的 await-using owner 在案例結束時停止並釋放。
+    /// </summary>
+    /// <param name="factory">已由目前測試啟動、且唯一擁有 Kestrel listener 的 Factory。</param>
+    /// <returns>已驗證為 HTTPS loopback 且具有 OS 實際配置埠的 server-owned URI。</returns>
+    private static Uri GetStartedKestrelBaseAddress(WebApplicationFactory<Program> factory)
+    {
+        var address = factory.Services
+            .GetRequiredService<IServer>()
+            .Features
+            .Get<IServerAddressesFeature>()!
+            .Addresses
+            .Should()
+            .ContainSingle(
+                because: "每個 Kestrel Factory 只擁有一個測試 listener")
+            .Which;
+        var serverUri = new Uri(address, UriKind.Absolute);
+
+        serverUri.Scheme.Should().Be(Uri.UriSchemeHttps);
+        serverUri.IsLoopback.Should().BeTrue();
+        serverUri.Port.Should().BeGreaterThan(0);
+        return serverUri;
     }
 
     /// <summary>

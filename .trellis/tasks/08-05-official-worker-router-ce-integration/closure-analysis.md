@@ -17,7 +17,7 @@ Official Worker live validation 另列為未來、獨立且非阻塞的 deployme
 ## 本輪範圍
 
 - 不修改產品程式、產品設定、feature flag 或 ChurchReport 流量。
-- 不執行 CE operation、Official Worker startup、資料寫入、commit、archive 或 push。
+- 不執行 CE operation、Official Worker startup、資料寫入、feature flag 或 ChurchReport 流量變更。
 - P7.0 在 P6 正式封存後才可啟動；P8 仍不啟動。
 
 ## Spec update 判斷
@@ -47,19 +47,17 @@ Official Worker live validation 另列為未來、獨立且非阻塞的 deployme
   通過；本批 26 個文字文件已驗證 UTF-8 without BOM、CRLF-only、final CRLF、無
   trailing whitespace。
 - readiness probe PowerShell tests 通過；P6 focused Dynamics tests 為 174/174。
-- Dynamics tests（排除無法在本機保留埠上啟動的 Kestrel class 與其獨立 soak class）為
-  457 passed／7 skipped；Official Worker soak class 單獨執行 2/2 通過，核心 recycle
-  soak 額外連續 3 次通過。ChurchReport MemberInfo tests 為 401 passed／1 skipped；
+- Dynamics tests 全套為 466 passed／7 skipped；Kestrel Negotiate 7/7 通過，WorkerTestHost
+  core recycle soak 連續 3 次通過。ChurchReport MemberInfo tests 為 401 passed／1 skipped；
   Release solution build 為 0 warnings／0 errors。
-- 完整 Dynamics run 的 3 個 Kestrel failure 都在進入產品斷言前因
-  `https://localhost:7244` 綁定 `AccessDenied` 結束；OS 證據顯示 TCP exclusion
-  range `7171-7270`，而 ephemeral loopback port 可正常 bind。這是 Lenovo host
-  的部署／測試 port 前置條件，不是 CE、Credential、Official Worker 或 P6.1
-  Router 契約證據；P7.4 必須依整合計畫的 listener preflight 處理，不能用放寬測試
-  或移除 OS exclusion 方式繞過。
-- 一次與完整 suite 同時執行的 soak run 曾出現 private-bytes trend assertion；在
-  單獨 class 執行、核心測試連續三次重跑後均通過。這次不修改產品或測試門檻，並把
-  證據保留給新 Goal 在 P6 closure quality gate 重新確認。
+- 完整 Dynamics run 的原始 3 個 Kestrel failure 是 `https://localhost:7244` 在
+  Lenovo 的 TCP exclusion range `7171-7270` 內而被 OS 拒絕；測試 harness 已改為
+  只在 test-owned configuration 使用 `https://127.0.0.1:0`，並從 server-owned
+  `IServerAddressesFeature` 讀回實際埠。正式開發的 7244 設定未修改，固定埠仍由
+  P7.4 listener preflight 管理。
+- 早期短 window soak 的 private-bytes trend failure 已由 64 次 warm-up＋64 次
+  measured window 的同形負載測試取代；沒有降低 50% threshold、強制 GC 或 skip。
+  新 measured window 保留 recycle、drain 與 owner 歸零斷言，並連續三次通過。
 
 ## 後續 gate
 
@@ -68,3 +66,14 @@ Official Worker live validation 另列為未來、獨立且非阻塞的 deployme
 source-derived coverage matrix；P7.1～P7.5 以 Data8 實作 ChurchReport capability，
 同時保留兩種 Lenovo hosting mode。P8 只在 P7.5 完成後另行評估並部署
 `CentralGateway + Data8`。
+
+## 2026-08-07 最終重校狀態
+
+P6.1 WorkerTestHost soak gate 已以不降低門檻的長壽命量測設計通過：每個 generation
+先完成 64 次 warm-up，再量測 64 次 measured request；recycle budget 為 128，所有
+measured resource trend、recycle、drain、process/pipe/task/permit owner 歸零斷言均
+通過。Kestrel 測試也已在 test-owned ephemeral loopback port 全數通過。
+
+因此 P6 已具備正式結案條件；P6.2 仍維持 `evidence-pending`，不被誤報為真機成功，
+也不阻塞未選用 Official Worker 的 Data8 P7。P7.0 必須等 P6 完成 Trellis close/archive
+後才可由既有 task 明確啟動，P8 仍不啟動。

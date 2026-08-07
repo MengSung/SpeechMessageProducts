@@ -391,7 +391,7 @@ switch per request or silently fall back after a failure.
 - Assert unauthorized/unmapped caller with an invalid Content-Type still returns 403 with zero body reads, proving authorization precedes media-type validation.
 - Assert `application/json` comparison is case-insensitive and accepts either no parameter or exactly one UTF-8 charset parameter.
 - Assert 415 paths do not rent or return pooled body buffers because ownership never begins, and do not dispose the ASP.NET Core-owned request stream.
-- A `WebApplicationFactory` Kestrel boundary fixture configured through `WithWebHostBuilder` must place `http://127.0.0.1:0` on that same `IWebHostBuilder` through `WebHostDefaults.ServerUrlsKey`, then call parameterless `UseKestrel()`. In .NET 10 minimal-host tests, `UseKestrel(0)` on the returned derived factory can leave the original factory's `CreateHost` delegate without the port value and silently bind the default `localhost:5000`. Assert the observed listener is not 5000 and run the fixture once while a test-owned listener reserves 5000.
+- A `WebApplicationFactory` Kestrel boundary fixture configured through `WithWebHostBuilder` must override the Kestrel endpoint on that same test-owned configuration layer, then call parameterless `UseKestrel()` on the returned factory. For HTTPS tests use `https://127.0.0.1:0`: Kestrel does not support `https://localhost:0`, and a configuration-defined `Kestrel:Endpoints:*:Url` takes precedence over `WebHostDefaults.ServerUrlsKey`. Read the actual endpoint from `IServerAddressesFeature`, assert HTTPS plus loopback plus a positive OS-assigned port, and use that URI for the client. Never alter the product's fixed development `https://localhost:7244` setting or remove a Windows excluded-port range to make a test pass; fixed-port availability is a separate deployment listener-preflight gate.
 
 ### Isolation and capacity
 
@@ -419,7 +419,13 @@ authorized task completes them.
 - Fault injection for CRM timeout, worker crash/hang, malformed IPC response,
   pipe break, Gateway restart, profile reload, and forced termination.
 - Long-running worker/process/pipe/thread/handle/private-bytes soak proving a
-  stable post-warm-up and post-recycle baseline.
+  stable post-warm-up and post-recycle baseline. The test must execute the same
+  bounded request through a distinct warm-up window and measured window (the
+  current WorkerTestHost gate uses 64 plus 64 requests, a 128-operation recycle
+  budget, and samples only the measured window). Keep the relative trend
+  threshold unchanged; do not force GC, skip the assertion, or treat a short
+  process's initial CLR segment allocation as retention without a measured-window
+  reproduction.
 
 ### Conditional Official Worker CE 9.1 real-server gates
 

@@ -2,10 +2,10 @@
 
 ## 目前結論
 
-P6 不能在這一輪正式封存。P6.1 的 Router／Pool／Lease／IPC／drain 與其他離線品質
-證據仍有效，P6.2 的真機 CE 相容性仍是未來獨立的 `evidence-pending` 工作；但 P6.1
-的核心 WorkerTestHost soak gate 在本機可重現失敗，因此不能以先前單獨通過的結果取代
-本輪品質閘門。
+本文件保留早期 soak gate 阻塞的完整去識別化證據與根因分析；該阻塞已由下方的
+長壽命 measured-window 測試設計修復並通過。P6.1 的 Router／Pool／Lease／IPC／drain
+與其他離線品質證據維持有效，P6.2 的真機 CE 相容性仍是未來獨立的 `evidence-pending`
+工作，不是 Data8-first P7 的前置條件。
 
 這個結果不會啟動 Official CRM Worker、不會連線 CE，也不會變更 ChurchReport 流量、
 feature flag、profile 或 credential。
@@ -45,16 +45,26 @@ Supervisor 在同一 generation 內保留 payload 的可能性。
 2. 放寬 50% 門檻、強制 GC、略過 assertion 或把此測試標記 skipped。
    結果：未採用；任何一種都會掩蓋真實 retention，違反 P6 lifecycle quality contract。
 
-## 下一個有界修復工作
+## 已完成的有界修復工作
 
-在 P6 scope 內建立一個不接觸 CE 的長壽命 WorkerTestHost lifecycle test：
+在 P6 scope 內建立不接觸 CE 的長壽命 WorkerTestHost lifecycle test：
 
 1. 明確區分相同負載的 warm-up window 與 measured window，並以足夠的
    `maximumCompletedOperations` 容納兩者。
 2. 不強制 GC、不放寬 50% 門檻；只量測 warm-up 完成後的固定 window。
 3. 保留 worker reuse、IPC payload、resource trend、recycle、drain 與所有 owner 歸零的
    assertion，讓它能分辨真實 retention 與 CLR 啟動配置。
-4. 若 measured window 仍出現相同趨勢，將其視為 P6 lifecycle defect，從
-   WorkerTestHost／WorkerProcessHost／Supervisor 的 request-result ownership 反向追查。
+4. measured window 若仍出現相同趨勢才會視為 P6 lifecycle defect，從
+   WorkerTestHost／WorkerProcessHost／Supervisor 的 request-result ownership 反向追查；
+   本次 measured window 未重現該趨勢。
 
-此工作不需要使用者提供任何資料；完成並全綠前，P6 不 archive，P7.0 不 `task.py start`。
+此工作不需要使用者提供任何資料。實作後核心 soak 連續三次通過，每次 6 個 generation、
+每代 64 warm-up＋64 measured request，共 384 measured requests；recycle、drain 與所有
+process／pipe／gate／reader／task／CTS／admission owner 均回到零。完整 Dynamics suite
+為 466 passed／7 skipped，Kestrel Negotiate 為 7/7，Release build 為 0 warnings／0 errors。
+
+## P6 closure disposition
+
+P6.1 soak gate 已綠，可進入 Trellis 結案流程；P6.2 仍記為 `evidence-pending`，不啟動
+Official Worker 真機、CE operation、feature flag 或 ChurchReport 流量。正式 P6 close/archive
+完成後，才可啟動既有 P7.0 task。

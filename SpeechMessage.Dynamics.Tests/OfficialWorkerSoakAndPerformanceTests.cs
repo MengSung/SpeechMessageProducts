@@ -38,8 +38,11 @@ public sealed class OfficialWorkerSoakTestCollectionDefinition
 public sealed class OfficialWorkerSoakAndPerformanceTests
 {
     private const int GenerationCount = 6;
-    private const int SuccessfulRequestsPerGeneration = 16;
-    private const int ResourceSampleInterval = 4;
+    private const int WarmUpRequestsPerGeneration = 64;
+    private const int MeasuredRequestsPerGeneration = 64;
+    private const int RecyclableRequestsPerGeneration =
+        WarmUpRequestsPerGeneration + MeasuredRequestsPerGeneration;
+    private const int ResourceSampleInterval = 16;
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan OperationTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan DrainTimeout = TimeSpan.FromSeconds(3);
@@ -57,11 +60,13 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
     }
 
     /// <summary>
-    /// 反覆啟動六個獨立 Worker generation，每代完成十六次 Package01 request，
-    /// 以完成次數門檻觸發 sticky recycle，再送一個只應在 Supervisor 端被拒絕的 request 使該代 drain。
-    /// 第一個取樣窗作為 JIT/IPC warm-up；後續 Private Bytes、Working Set、Handle、Thread、p95 與 p99
-    /// latency 只在「連續上升且相對基準有重大增幅」時判定為無界趨勢，避免使用易受機器規格影響的
-    /// 絕對效能門檻；aggregate p99 另須維持在 operation 加 drain 的有限生命週期 budget 內。
+    /// 反覆啟動六個獨立 Worker generation。每代先以相同的有界 Package01 request 完成 64 次
+    /// JIT、IPC codec 與 GC heap 暖機，再量測後續 64 次 request 的 Private Bytes、Working Set、
+    /// Handle、Thread、p95 與 p99。暖機與量測都走同一個 Supervisor／Worker／Pipe／Lease 路徑，
+    /// 且共同計入 completed-operation recycle policy；測試絕不強制 GC 或降低 50% 趨勢門檻。
+    /// 量測完成後必須由完成次數門檻觸發 sticky recycle，再送一個只應在 Supervisor 端被拒絕的 request
+    /// 使該代 drain。這可將新 .NET process 的初始 heap 配置與同一代 request-result retention 分開，
+    /// 同時維持 aggregate p99 位於 operation 加 drain 的有限生命週期 budget 內。
     /// </summary>
     [Fact]
     public async Task WorkerSoak_repeated_package01_recycle_returns_all_owners_to_zero_without_unbounded_trends()
@@ -95,8 +100,9 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
 
                 _output.WriteLine(string.Format(
                     CultureInfo.InvariantCulture,
-                    "generation={0:D2} requests={1} p95Ms={2:F3} p99Ms={3:F3} privateBytes={4} workingSetBytes={5} handles={6} threads={7} activeHighWater={8} queuedHighWater={9} supervisorManagedHeapBytes={10} supervisorAllocatedBytes={11}",
+                    "generation={0:D2} warmUpRequests={1} measuredRequests={2} p95Ms={3:F3} p99Ms={4:F3} privateBytes={5} workingSetBytes={6} handles={7} threads={8} activeHighWater={9} queuedHighWater={10} supervisorManagedHeapBytes={11} supervisorAllocatedBytes={12}",
                     generationIndex,
+                    WarmUpRequestsPerGeneration,
                     observation.Latencies.Count,
                     GetPercentile(observation.Latencies, 0.95).TotalMilliseconds,
                     GetPercentile(observation.Latencies, 0.99).TotalMilliseconds,
@@ -112,7 +118,7 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
 
             var allLatencies = generations.SelectMany(item => item.Latencies).ToArray();
             allLatencies.Should().HaveCount(
-                GenerationCount * SuccessfulRequestsPerGeneration);
+                GenerationCount * MeasuredRequestsPerGeneration);
             allLatencies.Should().OnlyContain(
                 elapsed => elapsed >= TimeSpan.Zero &&
                     elapsed < OperationTimeout + DrainTimeout,
@@ -282,9 +288,9 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
     }
 
     /// <summary>
-    /// 執行單一 immutable Worker generation 的 warm-up、取樣、完成次數 recycle 與 deterministic drain。
-    /// Executor 是 Process/Pipe/reader task 的唯一 production owner；測試僅保存 PID identity 與純量觀測，
-    /// 不持有或 Dispose Executor 內部的 Process handle。
+    /// 執行單一 immutable Worker generation 的同形負載 warm-up、steady-state 取樣、完成次數 recycle
+    /// 與 deterministic drain。Executor 是 Process/Pipe/reader task 的唯一 production owner；測試僅保存
+    /// PID identity 與純量觀測，不持有或 Dispose Executor 內部的 Process handle。
     /// </summary>
     private static async Task<GenerationObservation> RunGenerationAsync(
         string executablePath,
@@ -300,9 +306,9 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
             $"profile-generation-package01-large-valid-soak-{runId}-{generationIndex:D2}");
         OfficialWorkerProfileExecutor? executor = null;
         TestOwnedProcessIdentity? processIdentity = null;
-        var latencies = new List<TimeSpan>(SuccessfulRequestsPerGeneration);
+        var latencies = new List<TimeSpan>(MeasuredRequestsPerGeneration);
         var resourceSamples = new List<ProcessResourceObservation>(
-            SuccessfulRequestsPerGeneration / ResourceSampleInterval);
+            MeasuredRequestsPerGeneration / ResourceSampleInterval);
         var activeOperationHighWaterMark = 0;
         var queuedOperationHighWaterMark = 0;
 
@@ -314,12 +320,25 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
             AssertActiveOwnership(executor.GetLifecycleSnapshot());
 
             for (var requestIndex = 0;
-                 requestIndex < SuccessfulRequestsPerGeneration;
+                 requestIndex < WarmUpRequestsPerGeneration;
+                 requestIndex++)
+            {
+                var warmUpResult = await executor.ExecuteAsync(
+                    CreatePackage01Request(generationIndex, requestIndex),
+                    cancellationToken);
+                AssertSuccessfulPackage01Result(warmUpResult);
+                AssertActiveOwnership(executor.GetLifecycleSnapshot());
+            }
+
+            for (var requestIndex = 0;
+                 requestIndex < MeasuredRequestsPerGeneration;
                  requestIndex++)
             {
                 var startedTimestamp = Stopwatch.GetTimestamp();
                 var execution = executor.ExecuteAsync(
-                    CreatePackage01Request(generationIndex, requestIndex),
+                    CreatePackage01Request(
+                        generationIndex,
+                        WarmUpRequestsPerGeneration + requestIndex),
                     cancellationToken);
                 var lifecycleSnapshot = executor.GetLifecycleSnapshot();
                 activeOperationHighWaterMark = Math.Max(
@@ -334,10 +353,7 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
 
                 var result = await execution;
                 latencies.Add(Stopwatch.GetElapsedTime(startedTimestamp));
-                result.Succeeded.Should().BeTrue();
-                result.Data!.ResponseKind.Should().Be(OperationResponseKind.Package01FeeRecords);
-                result.Data.FeeRecords.Should().HaveCount(30);
-                result.Data.FeeRecords![0].Amount.Should().Be(123.45m);
+                AssertSuccessfulPackage01Result(result);
                 AssertActiveOwnership(executor.GetLifecycleSnapshot());
 
                 if ((requestIndex + 1) % ResourceSampleInterval == 0)
@@ -349,7 +365,7 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
             activeOperationHighWaterMark.Should().BeInRange(0, 1);
             queuedOperationHighWaterMark.Should().BeInRange(0, 1);
             resourceSamples.Should().HaveCount(
-                SuccessfulRequestsPerGeneration / ResourceSampleInterval);
+                MeasuredRequestsPerGeneration / ResourceSampleInterval);
             AssertPostWarmUpResourceTrend(resourceSamples);
 
             executor.RecycleReason.Should().Be(
@@ -358,7 +374,7 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
                 OfficialWorkerRecycleReason.MaximumCompletedOperations);
 
             var rejected = await executor.ExecuteAsync(
-                CreatePackage01Request(generationIndex, SuccessfulRequestsPerGeneration),
+                CreatePackage01Request(generationIndex, RecyclableRequestsPerGeneration),
                 cancellationToken);
             rejected.Succeeded.Should().BeFalse();
             rejected.ErrorCode.Should().Be("worker.operation.recycle-required");
@@ -411,7 +427,7 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
             DrainTimeout = DrainTimeout,
             RecyclePolicyOptions = new OfficialWorkerRecyclePolicyOptions(
                 maximumWorkerAge: TimeSpan.FromMinutes(10),
-                maximumCompletedOperations: SuccessfulRequestsPerGeneration,
+                maximumCompletedOperations: RecyclableRequestsPerGeneration,
                 maximumPrivateBytes: 1L << 40,
                 maximumWorkingSet: 1L << 40,
                 maximumConsecutiveCompleteWorkerTimeouts: 10)
@@ -440,6 +456,20 @@ public sealed class OfficialWorkerSoakAndPerformanceTests
                 ["endDate"] = new DateTimeOffset(2026, 8, 31, 23, 59, 59, TimeSpan.Zero)
             }
         };
+    }
+
+    /// <summary>
+    /// 驗證 warm-up 與 measured window 都收到同一個有限、SDK-free 的 Package01 projection。
+    /// 此方法不保留 response graph、CRM 型別或 request state；呼叫端在斷言後立即讓結果離開作用域，
+    /// 使 measured window 的 process-resource 趨勢只反映 Worker 端實際 retention，而不是測試端集合。
+    /// </summary>
+    /// <param name="result">由當前 immutable Worker generation 回傳的 operation 結果。</param>
+    private static void AssertSuccessfulPackage01Result(OperationExecutionResult result)
+    {
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.Package01FeeRecords);
+        result.Data.FeeRecords.Should().HaveCount(30);
+        result.Data.FeeRecords![0].Amount.Should().Be(123.45m);
     }
 
     /// <summary>
