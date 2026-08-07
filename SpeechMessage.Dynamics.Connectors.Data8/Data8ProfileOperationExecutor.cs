@@ -99,6 +99,23 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 "The requested Dynamics operation does not match the approved Data8 contract."));
         }
 
+        // contact basic-info 的空白 phone/address 代表「不覆寫」；沒有欄位需要變更時，
+        // 必須在取得 pool lease 前完成 no-change 回應，避免建立 CRM client 或 outbound request。
+        if (string.Equals(
+                operation.OperationId,
+                OperationIds.MemberInfoContactUpdateBasicInfo,
+                StringComparison.Ordinal) &&
+            !operation.Parameters.ContainsKey("phone") &&
+            !operation.Parameters.ContainsKey("address"))
+        {
+            return Task.FromResult(OperationExecutionResult.Success(
+                OperationResponseData.ForContactBasicInfoUpdate(
+                    operation.OperationId,
+                    ToCeVersionString(profile.CeVersion),
+                    ContactBasicInfoUpdateDisposition.NoChange,
+                    ContactBasicInfoUpdateCorrelationCategory.NoDispatch)));
+        }
+
         IConnectorPool pool;
         try
         {
@@ -186,7 +203,27 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             return false;
         }
 
-        if (!TryCopyValidatedParameters(request.Parameters, definition, out var parameters))
+        var isContactBasicInfoUpdate = string.Equals(
+            request.CapabilityOperationId,
+            OperationIds.MemberInfoContactUpdateBasicInfo,
+            StringComparison.Ordinal);
+        if (isContactBasicInfoUpdate &&
+            (profile.CeVersion != CeVersion.Ce91 ||
+             request.Parameters is null ||
+             request.Parameters.Keys.Any(parameter =>
+                 parameter is not "contactId" and not "phone" and not "address")))
+        {
+            errorCode = profile.CeVersion == CeVersion.Ce91
+                ? InvalidOperationParametersErrorCode
+                : OperationNotSupportedErrorCode;
+            return false;
+        }
+
+        if (!TryCopyValidatedParameters(
+                request.Parameters,
+                definition,
+                out var parameters,
+                allowBlankOptionalStrings: isContactBasicInfoUpdate))
         {
             errorCode = InvalidOperationParametersErrorCode;
             return false;
@@ -221,6 +258,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.FeesEditorLoadByDiscipleLesson => true,
             OperationIds.LessonsStorRetrieveByContact => true,
             OperationIds.LessonsStorRetrieveByDiscipleLesson => true,
+            OperationIds.MemberInfoContactUpdateBasicInfo => true,
             _ => false
         };
 
@@ -233,8 +271,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private static bool TryCopyValidatedParameters(
         IReadOnlyDictionary<string, object?>? source,
         OperationDefinition definition,
-        out IReadOnlyDictionary<string, object?> parameters)
+        out IReadOnlyDictionary<string, object?> parameters,
+        bool allowBlankOptionalStrings = false)
     {
+        // 只有 contact basic-info 的 optional phone/address 使用 blank-as-omitted；所有其他 operation
+        // 仍要求 non-empty string，避免泛化 no-change 語意而放寬既有 read contract。
         parameters = null!;
         if (source is null || source.Count > definition.Parameters.Count)
         {
@@ -263,7 +304,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 continue;
             }
 
-            if (!TryNormalizeParameter(parameter, sourceValue, out var normalized))
+            if (!TryNormalizeParameter(
+                    parameter,
+                    sourceValue,
+                    allowBlankOptionalStrings,
+                    out var normalized))
             {
                 return false;
             }
@@ -271,6 +316,13 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             if (parameter.Required && normalized is null)
             {
                 return false;
+            }
+
+            if (normalized is null)
+            {
+                // P7.2 contact basic-info 的空白 optional string 是不覆寫意圖；省略該欄位，
+                // 讓後續 no-change 判斷與固定 connector template 保持一致。
+                continue;
             }
 
             // contactName、dedicationBookingName 與 lessonName 只保留 legacy API shape；它們沒有 query authority，
@@ -309,6 +361,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private static bool TryNormalizeParameter(
         OperationParameterDefinition definition,
         object? source,
+        bool allowBlankOptionalStrings,
         out object? normalized)
     {
         normalized = null;
@@ -316,7 +369,10 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         {
             "guid" => TryNormalizeNonEmptyGuid(source, out normalized),
             "date-time" => TryNormalizeUtcDateTime(source, out normalized),
-            "string" => TryNormalizeBoundedString(source, out normalized),
+            "string" => TryNormalizeBoundedString(
+                source,
+                allowBlankOptionalStrings && !definition.Required,
+                out normalized),
             _ => false
         };
     }
@@ -382,7 +438,10 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     /// scalar 都 fail closed；嚴格 UTF-8 byte count 同時保證後續 connector/result accounting 不會替換字元而
     /// 意外放寬大小估計。
     /// </summary>
-    private static bool TryNormalizeBoundedString(object? source, out object? normalized)
+    private static bool TryNormalizeBoundedString(
+        object? source,
+        bool allowBlankAsNoValue,
+        out object? normalized)
     {
         var text = source switch
         {
@@ -390,10 +449,18 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             JsonElement { ValueKind: JsonValueKind.String } element => element.GetString(),
             _ => null
         };
+        if (text is null)
+        {
+            // 只有實際 string scalar 才能使用「空白代表不覆寫」；null、number、object 與 array
+            // 仍然是格式錯誤，避免把 JSON null 靜默轉成 no-change。
+            normalized = null;
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(text))
         {
             normalized = null;
-            return false;
+            return allowBlankAsNoValue;
         }
 
         var trimmed = text.Trim();
@@ -495,6 +562,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                                                        TryValidateFeeRecords(connectorData.FeeRecords, definition),
             OperationResponseKind.Package01StorLessonRecords => connectorData.StorLessonRecords is not null &&
                                                                  TryValidateStorLessonRecords(connectorData.StorLessonRecords, definition),
+            OperationResponseKind.ContactBasicInfoUpdate => connectorData.ContactBasicInfoUpdate is not null,
             _ => false
         };
         if (!isValid)

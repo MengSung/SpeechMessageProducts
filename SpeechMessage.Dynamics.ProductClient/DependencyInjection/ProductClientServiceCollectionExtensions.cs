@@ -19,6 +19,7 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ProductClient.Configuration;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
+using SpeechMessage.Dynamics.ProductClient.MemberInfo;
 
 namespace SpeechMessage.Dynamics.ProductClient.DependencyInjection;
 
@@ -73,6 +74,7 @@ public static class ProductClientServiceCollectionExtensions
         .SetHandlerLifetime(TimeSpan.FromMinutes(10));
 
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
+        services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         return services;
     }
 
@@ -84,6 +86,19 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 只註冊 P7.2 contact basic-info typed client；它不啟用 ChurchReport 流量，也不建立下游 transport。
+    /// 呼叫端必須先註冊 Embedded 或 Gateway 的 <see cref="IDynamicsOperationExecutor"/>；真正的 profile、
+    /// ConnectorKind、CE version、admission 與 Data8 lease 仍由該 executor 的 composition root 擁有。
+    /// </summary>
+    public static IServiceCollection AddSpeechMessageDynamicsPackage02ContactBasicInfoUpdates(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         return services;
     }
 }
