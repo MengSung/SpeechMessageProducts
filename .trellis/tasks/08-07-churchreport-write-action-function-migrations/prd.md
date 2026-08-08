@@ -9,7 +9,7 @@
 ## 已確認事實
 
 - P7.0 已封存，coverage matrix 有 70 個 call-site，其中 24 個歸屬 P7.2：21 個 write、2 個 action、1 個 function；它們分屬 list membership、member profile、donation lifecycle、appointments、contact onboarding、fee lessons 與 attendance。
-- `sunnyvalechback` 是與正式組織隔離的 CE 9.1 開發 Organization；使用者已允許建立／使用 task-owned 測試會員，但此授權不等於任意寫入、刪除或操作非測試資料。
+- `sunnyvalechback` 是與正式組織隔離的 CE 9.1 開發 Organization；使用者於 2026-08-08 明確確認其中所有會員、收費單、課程、出席及其他資料均為虛構研發資料，授權 P7 在 coverage matrix 範圍內任意新增、修改或刪除。這項授權只適用於 `sunnyvalechback`，不得延伸到 `jesus`、正式環境、P8 或 Central Gateway。
 - CE 8.2 寫入證據目前沒有 matrix `required` row；P7.2 對 CE 8.2 的寫入 dispatch 必須 fail closed，直到未來任務明確新增 required row 與其獨立 fixture。
 - P7.1 已完成並封存，維持 `Embedded + Data8` 與 `DedicatedGateway + Data8` 的 Lenovo 路線；`Package01FeeReadsEnabled` 仍為 `false`，P7.2 不啟用 ChurchReport 流量、feature flag 或 P6.2／Official Worker。
 - 現有 `OperationExecutionRequest` 已有 `IdempotencyKey` 欄位，但 Data8 executor 目前只允許 WhoAmI 與 P7.1 Package01 read；任何寫入路徑都必須先新增封閉 DTO、registry definition、connector template、回應 discriminator、ProductClient 與測試，不能擴張為 generic API。
@@ -29,7 +29,7 @@
 - P6.2／Official Worker 啟動或 CE live compatibility 重試。
 - CE 8.2 寫入、正式環境、雲端 Central Gateway、P8、push、PR 或部署。
 - 啟用 ChurchReport feature flag、切換產品流量，或移除 ToolUtility／CRM SDK；這些屬 P7.4／P7.5。
-- 對非 task-owned CE 記錄寫入、刪除或以「寫了再刪」取代已定義的 cleanup。
+- 對 `jesus`、正式環境或 coverage matrix 未核准的 CE 記錄寫入、刪除，或以「寫了再刪」取代各切片已定義的 cleanup／reconciliation。
 
 ## 受控切片與順序
 

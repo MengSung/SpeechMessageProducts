@@ -25,7 +25,7 @@
       ],
       "preconditions": [
         "deployment-owned crm91 profile resolves to Data8",
-        "contact is selected or created by the task-owned fixture bridge",
+        "contact is selected or created by the task-owned fixture bridge under the owner's 2026-08-08 authorization for the isolated sunnyvalechback synthetic development database",
         "fixture marker is owned by the current Windows identity",
         "baseline read of both allowed fields succeeds"
       ],

@@ -52,7 +52,7 @@ CE contact update 沒有可供本 contract 使用的伺服器端 idempotency tok
 
 ## Fixture 與授權邊界
 
-首個 fixture 由 P7.2 task-owned bridge 建立或找回一筆 CE 9.1 `sunnyvalechback` contact。fixture identity 僅儲存於目前 Windows identity 的 `%LOCALAPPDATA%\SpeechMessage\Dynamics\P7.2`，不寫入 repository、log、chat、test result 或 feature flag。bridge 先驗證：
+首個 fixture 由 P7.2 task-owned bridge 建立，或依使用者 2026-08-08 對 `sunnyvalechback` 全資料庫的明確研發操作授權選取任一既有 CE 9.1 contact。被選取的 contact 只在本切片執行兩個 allowlisted 欄位的 sentinel update，並在同一 bounded flow 還原 baseline；這不會把任意資料庫操作能力暴露給產品 API。fixture identity 僅儲存於目前 Windows identity 的 `%LOCALAPPDATA%\SpeechMessage\Dynamics\P7.2`，不寫入 repository、log、chat、test result 或 feature flag。bridge 先驗證：
 
 1. Profile alias 是 deployment-owned `crm91`，ConnectorKind 是 Data8，CE version 是 9.1。
 2. contact 帶有本機持有的 fixture marker，且不能與非 P7.2 record 混用。
