@@ -686,6 +686,116 @@ public sealed class Data8ProfileOperationExecutorTests
         factory.DisposedCount.Should().Be(1);
     }
 
+    /// <summary>
+    /// 保護 Slice C add-many 只有在 CE 9.1、Data8、固定 schema 與 idempotency key 全部成立時才取得 lease。
+    /// 故障注入是 executor 尚未允許此 capability；決定性斷言是 member set 在第一個 await 前成為排序後的新
+    /// GUID array、成功 response branch 完全相符、permit exactly-once 歸還，且原始 request array 不被 connector 保存。
+    /// 測試 client 不連線 CE，也不建立 credential、session、timer、stream 或 background task。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_routes_slice_c_add_many_with_a_bounded_guid_array_and_matching_response()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var sourceMembers = new[]
+        {
+            Guid.Parse("55555555-5555-5555-5555-555555555555"),
+            Guid.Parse("11111111-1111-1111-1111-111111111111")
+        };
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForStaticListMembershipMutation(
+                operation.OperationId,
+                "9.1",
+                P72ControlledMutationDisposition.Changed,
+                P72ControlledMutationCorrelationCategory.ReadBackConfirmed)
+        })
+        {
+            ExpectedOperationId = OperationIds.ListMembersAddMany
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(CreateListMembersAddRequest(listId, sourceMembers), CancellationToken.None);
+        sourceMembers[0] = Guid.Parse("99999999-9999-9999-9999-999999999999");
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.StaticListMembershipMutation);
+        result.Data.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        factory.LastOperation.Should().NotBeNull();
+        factory.LastOperation!.Parameters["listId"].Should().Be(listId);
+        ((IReadOnlyList<Guid>)factory.LastOperation.Parameters["memberIds"]!)
+            .Should()
+            .Equal(Guid.Parse("11111111-1111-1111-1111-111111111111"), Guid.Parse("55555555-5555-5555-5555-555555555555"));
+        factory.LastOperation.EstimatedBytes.Should().BeGreaterThan(256);
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 Slice C 在 CE 8.2、缺少 idempotency key、duplicate/empty member set 時全部在 Router/admission 前
+    /// fail closed。故障注入涵蓋版本與三種 payload 錯誤；決定性斷言是所有結果失敗，CE 9.1 與 CE 8.2 的
+    /// admission/factory 計數均為零，因此不會嘗試 fallback、取得 WCF session 或送出 CRM action。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_slice_c_ce82_missing_idempotency_and_invalid_member_sets_before_admission()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var memberId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var ce91Admission = new TrackingAdmissionManager();
+        var ce91Factory = new FixedResultFactory(_ => throw new InvalidOperationException("must not execute"));
+        await using var ce91Pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), ce91Admission, ce91Factory, minSize: 0, maxSize: 1);
+        var ce91Executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(ce91Pool));
+        var ce82Admission = new TrackingAdmissionManager();
+        var ce82Factory = new FixedResultFactory(_ => throw new InvalidOperationException("must not execute"));
+        await using var ce82Pool = new Data8ConnectorPool(
+            CreateResolvedProfile() with { CeVersion = CeVersion.Ce82 },
+            ce82Admission,
+            ce82Factory,
+            minSize: 0,
+            maxSize: 1);
+        var ce82Executor = new Data8ProfileOperationExecutor(
+            CreateResolver(CeVersion.Ce82),
+            new Data8ConnectorRouter(ce82Pool));
+
+        var missingKey = CreateListMembersAddRequest(listId, new[] { memberId }, idempotencyKey: null);
+        var duplicate = CreateListMembersAddRequest(listId, new[] { memberId, memberId });
+        var empty = CreateListMembersAddRequest(listId, new[] { Guid.Empty });
+        var ce82 = CreateListMembersAddRequest(listId, new[] { memberId });
+
+        (await ce91Executor.ExecuteAsync(missingKey)).ErrorCode.Should().Be("operation.invalid-parameters");
+        (await ce91Executor.ExecuteAsync(duplicate)).ErrorCode.Should().Be("operation.invalid-parameters");
+        (await ce91Executor.ExecuteAsync(empty)).ErrorCode.Should().Be("operation.invalid-parameters");
+        (await ce82Executor.ExecuteAsync(ce82)).ErrorCode.Should().Be("operation.not-supported");
+        ce91Admission.AcquireCount.Should().Be(0);
+        ce91Factory.CreatedCount.Should().Be(0);
+        ce82Admission.AcquireCount.Should().Be(0);
+        ce82Factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>建立直接 executor 用的 Slice C add-many request；它只含 bounded test GUID 與非秘密 idempotency key。</summary>
+    private static OperationExecutionRequest CreateListMembersAddRequest(
+        Guid listId,
+        IReadOnlyList<Guid> memberIds,
+        string? idempotencyKey = "p72-list-members-add")
+        => new()
+        {
+            ProfileAlias = "sunnyvalechback",
+            CapabilityOperationId = OperationIds.ListMembersAddMany,
+            WorkloadSubjectId = "embedded-test",
+            IdempotencyKey = idempotencyKey,
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberIds"] = memberIds
+            }
+        };
+
     private static readonly Guid OrganizationId = Guid.Parse("bfb92ead-3705-f011-8143-00155d006608");
 
     /// <summary>
@@ -819,7 +929,7 @@ public sealed class Data8ProfileOperationExecutorTests
                 AggregateMaxInFlight = 1,
                 MaximumRuntimeHosts = 1,
                 LocalQueueCapacity = 0,
-                MaxDispatchEnvelopeBytes = 4096,
+                MaxDispatchEnvelopeBytes = 64 * 1024,
                 QueueAdmissionTimeoutSeconds = 1,
                 MaxInFlightAndQueuedPerWorkload = 1,
                 AdmissionNamespaceId = "data8-profile-executor-test",

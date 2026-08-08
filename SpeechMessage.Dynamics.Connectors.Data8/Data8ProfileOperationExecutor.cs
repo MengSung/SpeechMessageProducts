@@ -42,6 +42,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private const int MaximumLinePictureUrlBytes = 1024;
     private const int MaximumLineProfileTextBytes = 512;
     private const int MaximumUngroupedSearchBytes = 256;
+    private const int MaximumGuidArrayItems = 1000;
+    private const int MaximumSliceCDispatchEnvelopeBytes = 64 * 1024;
     private const int MaximumIdempotencyKeyCharacters = 128;
     private static readonly UTF8Encoding StrictUtf8 = new(
         encoderShouldEmitUTF8Identifier: false,
@@ -221,7 +223,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             request.CapabilityOperationId,
             OperationIds.MemberInfoContactCountUngroupedCommitment,
             StringComparison.Ordinal);
-        if ((isContactBasicInfoUpdate || isContactLineProfileUpdate || isUngroupedCommitmentCount) &&
+        var isSliceCOperation = IsSliceCOperation(request.CapabilityOperationId);
+        if ((isContactBasicInfoUpdate || isContactLineProfileUpdate || isUngroupedCommitmentCount || isSliceCOperation) &&
             (profile.CeVersion != CeVersion.Ce91 ||
              request.Parameters is null ||
              (isContactBasicInfoUpdate && request.Parameters.Keys.Any(parameter =>
@@ -252,6 +255,14 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             return false;
         }
 
+        if (isSliceCOperation &&
+            (!IsValidIdempotencyKey(request.IdempotencyKey) ||
+             !HasValidSliceCParameters(request.CapabilityOperationId, parameters)))
+        {
+            errorCode = InvalidOperationParametersErrorCode;
+            return false;
+        }
+
         if (isUngroupedCommitmentCount && request.IdempotencyKey is not null)
         {
             errorCode = InvalidOperationParametersErrorCode;
@@ -259,7 +270,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         }
 
         var estimatedBytes = 256;
-        if ((isContactLineProfileUpdate || isUngroupedCommitmentCount) &&
+        if ((isContactLineProfileUpdate || isUngroupedCommitmentCount || isSliceCOperation) &&
             !TryEstimateBoundedEnvelopeBytes(
                 request.CapabilityOperationId,
                 request.WorkloadSubjectId,
@@ -303,8 +314,25 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.MemberInfoContactUpdateBasicInfo => true,
             OperationIds.MemberInfoContactUpdateLineProfile => true,
             OperationIds.MemberInfoContactCountUngroupedCommitment => true,
+            OperationIds.ListMembersAddMany => true,
+            OperationIds.ListMembersRemoveOne => true,
+            OperationIds.ListManagementSmallGroupUpdateFields => true,
+            OperationIds.ContactAssignOwner => true,
+            OperationIds.NewPersonContactTransferBetweenLists => true,
             _ => false
         };
+
+    /// <summary>
+    /// Slice C 的固定 list-management operation allowlist。它只表示 executor 已有封閉 schema；
+    /// matrix fixture 與 ChurchReport consumer gate 仍在更上層控制，未核准 fixture 不會因此被啟用。
+    /// </summary>
+    private static bool IsSliceCOperation(string operationId)
+        => operationId is
+            OperationIds.ListMembersAddMany or
+            OperationIds.ListMembersRemoveOne or
+            OperationIds.ListManagementSmallGroupUpdateFields or
+            OperationIds.ContactAssignOwner or
+            OperationIds.NewPersonContactTransferBetweenLists;
 
     /// <summary>
     /// 依 registry schema 將 request parameters 正規化為新的短生命週期 dictionary。輸入僅接受 primitive CLR
@@ -428,8 +456,82 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 maximumCharacters: 16,
                 maximumBytes: 16,
                 out normalized),
+            "guid-array" => TryNormalizeGuidArray(source, out normalized),
             _ => false
         };
+    }
+
+    /// <summary>
+    /// 將 Slice C 的有限 GUID 集合複製成排序後的新陣列。只接受具備有限 Count 的
+    /// <see cref="IReadOnlyList{T}"/> 或 JSON array；空值、空 GUID、重複值及超過 1,000 筆一律拒絕。
+    /// 排序後的 defensive copy 讓 canonical hash 不受輸入順序影響，也不會把 caller 的 mutable array
+    /// 保留到 connector lease 或非同步狀態機。
+    /// </summary>
+    private static bool TryNormalizeGuidArray(object? source, out object? normalized)
+    {
+        normalized = null;
+        Guid[]? copy = source switch
+        {
+            IReadOnlyList<Guid> values when values.Count is > 0 and <= MaximumGuidArrayItems
+                => CopyGuidArray(values),
+            JsonElement { ValueKind: JsonValueKind.Array } element
+                => CopyJsonGuidArray(element),
+            _ => null
+        };
+
+        if (copy is null || copy.Length is 0 or > MaximumGuidArrayItems)
+        {
+            return false;
+        }
+
+        var seen = new HashSet<Guid>();
+        foreach (var guid in copy)
+        {
+            if (guid == Guid.Empty || !seen.Add(guid))
+            {
+                return false;
+            }
+        }
+
+        Array.Sort(copy);
+        normalized = copy;
+        return true;
+    }
+
+    /// <summary>複製有限原生 GUID list，避免後續 caller 變更影響 executor-owned operation。</summary>
+    private static Guid[] CopyGuidArray(IReadOnlyList<Guid> source)
+    {
+        var copy = new Guid[source.Count];
+        for (var index = 0; index < copy.Length; index++)
+        {
+            copy[index] = source[index];
+        }
+
+        return copy;
+    }
+
+    /// <summary>從 JSON array 建立有限 GUID copy；非 string GUID 元素立即拒絕。</summary>
+    private static Guid[]? CopyJsonGuidArray(JsonElement source)
+    {
+        if (source.GetArrayLength() is 0 or > MaximumGuidArrayItems)
+        {
+            return null;
+        }
+
+        var copy = new Guid[source.GetArrayLength()];
+        var index = 0;
+        foreach (var element in source.EnumerateArray())
+        {
+            if (element.ValueKind != JsonValueKind.String ||
+                !Guid.TryParse(element.GetString(), out var guid))
+            {
+                return null;
+            }
+
+            copy[index++] = guid;
+        }
+
+        return copy;
     }
 
     /// <summary>
@@ -647,6 +749,41 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                character is '-' or '.' or '_' or '~');
 
     /// <summary>
+    /// 驗證 Slice C 的跨欄位不變量。small-group 只接受兩個固定 mode；transfer 不允許 source 與 target
+    /// 相同，且 weekStartDate 必須已正規化為 UTC Sunday。這些規則在取得 lease 前執行，避免不完整 graph
+    /// mutation 進入 connector 或以 request-time fallback 改變版本／profile。
+    /// </summary>
+    private static bool HasValidSliceCParameters(
+        string operationId,
+        IReadOnlyDictionary<string, object?> parameters)
+    {
+        if (string.Equals(operationId, OperationIds.ListManagementSmallGroupUpdateFields, StringComparison.Ordinal))
+        {
+            return parameters.TryGetValue("mode", out var mode) &&
+                   mode is string modeText &&
+                   modeText is "change-race-leader" or "change-area-leader";
+        }
+
+        if (!string.Equals(operationId, OperationIds.NewPersonContactTransferBetweenLists, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (!parameters.TryGetValue("targetListId", out var target) || target is not Guid targetId ||
+            !parameters.TryGetValue("weekStartDate", out var weekStart) ||
+            weekStart is not DateTimeOffset weekStartUtc ||
+            weekStartUtc.Offset != TimeSpan.Zero ||
+            weekStartUtc.DayOfWeek != DayOfWeek.Sunday)
+        {
+            return false;
+        }
+
+        return !parameters.TryGetValue("sourceListId", out var source) ||
+               source is not Guid sourceId ||
+               sourceId != targetId;
+    }
+
+    /// <summary>
     /// 由已驗證的 bounded scalar 建立保守 envelope 大小。計算包含固定結構、operation、workload、冪等鍵、
     /// parameter name/value；checked 與嚴格 UTF-8 防止 overflow／replacement fallback。超過 4 KiB 即在 Router 前
     /// fail closed，因此 admission 不會低估 B1 對 shared Organization 的成本。
@@ -659,6 +796,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         out int estimatedBytes)
     {
         estimatedBytes = 256;
+        var maximumBytes = IsSliceCOperation(operationId)
+            ? MaximumSliceCDispatchEnvelopeBytes
+            : MaximumDispatchEnvelopeBytes;
         try
         {
             estimatedBytes = checked(estimatedBytes + StrictUtf8.GetByteCount(operationId));
@@ -674,6 +814,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 estimatedBytes = parameter.Value switch
                 {
                     Guid => checked(estimatedBytes + 16),
+                    Guid[] guidArray => checked(estimatedBytes + sizeof(int) + checked(guidArray.Length * 16)),
+                    IReadOnlyList<Guid> => throw new InvalidOperationException("GUID array must be executor-owned."),
                     DateTimeOffset => checked(estimatedBytes + 16),
                     int => checked(estimatedBytes + 4),
                     string text => checked(estimatedBytes + StrictUtf8.GetByteCount(text)),
@@ -681,7 +823,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 };
             }
 
-            return estimatedBytes <= MaximumDispatchEnvelopeBytes;
+            return estimatedBytes <= maximumBytes;
         }
         catch (EncoderFallbackException)
         {
@@ -783,6 +925,10 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationResponseKind.ContactBasicInfoUpdate => connectorData.ContactBasicInfoUpdate is not null,
             OperationResponseKind.ContactLineProfileUpdate => connectorData.ContactLineProfileUpdate is not null,
             OperationResponseKind.UngroupedCommitmentCounts => connectorData.UngroupedCommitmentCounts is not null,
+            OperationResponseKind.StaticListMembershipMutation => connectorData.StaticListMembershipMutation is not null,
+            OperationResponseKind.SmallGroupFixedFieldsMutation => connectorData.SmallGroupFixedFieldsMutation is not null,
+            OperationResponseKind.ContactOwnerAssignment => connectorData.ContactOwnerAssignment is not null,
+            OperationResponseKind.ContactListTransfer => connectorData.ContactListTransfer is not null,
             _ => false
         };
         if (!isValid)

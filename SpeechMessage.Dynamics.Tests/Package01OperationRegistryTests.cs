@@ -54,10 +54,15 @@ public sealed class Package01OperationRegistryTests
             OperationIds.LessonsStorRetrieveByDiscipleLesson,
             OperationIds.MemberInfoContactUpdateBasicInfo,
             "memberinfo.contact.update.line.profile",
-            "memberinfo.contact.count.ungrouped.commitment"
+            "memberinfo.contact.count.ungrouped.commitment",
+            "list.members.add.many",
+            "list.members.remove.one",
+            "listmanagement.smallgroup.update.fields",
+            "contact.assign.owner",
+            "newperson.contact.transfer.between.lists"
         });
 
-        ids.Should().HaveCount(12);
+        ids.Should().HaveCount(17);
     }
 
     /// <summary>
@@ -106,6 +111,89 @@ public sealed class Package01OperationRegistryTests
         })
             .Should()
             .Equal(new { Name = "search", Type = "string", Required = false });
+    }
+
+    /// <summary>
+    /// 保護 P7.2 Slice C 不會把 static-list association、小組固定欄位、contact owner 指派與新人轉組降級成
+    /// generic Entity／FetchXML／OrganizationRequest 通道。故障注入是任何不在五個封閉 schema 中的欄位或
+    /// response kind；決定性斷言是每個 operation 只宣告指定的 GUID、mode、日期與 bounded guid-array，且
+    /// write/action 都要求 caller idempotency key。測試只讀取 immutable registry，不建立 CRM service、
+    /// connector lease、credential、session 或背景資源。
+    /// </summary>
+    [Fact]
+    public void Slice_c_operations_are_registered_with_closed_fixed_schemas_and_response_branches()
+    {
+        var expected = new[]
+        {
+            new
+            {
+                Id = "list.members.add.many",
+                Kind = "action",
+                Template = "list.members.add.many.v1",
+                Response = "StaticListMembershipMutation",
+                Parameters = new[] { "listId:guid:True", "memberIds:guid-array:True" }
+            },
+            new
+            {
+                Id = "list.members.remove.one",
+                Kind = "action",
+                Template = "list.members.remove.one.v1",
+                Response = "StaticListMembershipMutation",
+                Parameters = new[] { "listId:guid:True", "memberId:guid:True" }
+            },
+            new
+            {
+                Id = "listmanagement.smallgroup.update.fields",
+                Kind = "write",
+                Template = "listmanagement.smallgroup.fixed.fields.v1",
+                Response = "SmallGroupFixedFieldsMutation",
+                Parameters = new[] { "listId:guid:True", "mode:enum:True", "targetLeaderContactId:guid:True" }
+            },
+            new
+            {
+                Id = "contact.assign.owner",
+                Kind = "action",
+                Template = "contact.assign.owner.v1",
+                Response = "ContactOwnerAssignment",
+                Parameters = new[] { "contactId:guid:True", "ownerSystemUserId:guid:True" }
+            },
+            new
+            {
+                Id = "newperson.contact.transfer.between.lists",
+                Kind = "write",
+                Template = "newperson.contact.transfer.between.lists.v1",
+                Response = "ContactListTransfer",
+                Parameters = new[]
+                {
+                    "contactId:guid:True",
+                    "sourceListId:guid:False",
+                    "targetListId:guid:True",
+                    "weekStartDate:date-time:True",
+                    "ownerSystemUserId:guid:False"
+                }
+            }
+        };
+
+        foreach (var item in expected)
+        {
+            Package01OperationRegistry.TryGet(item.Id, out var definition).Should().BeTrue();
+            definition!.OperationKind.Should().Be(item.Kind);
+            definition.TemplateId.Should().Be(item.Template);
+            definition.ResponseKind.ToString().Should().Be(item.Response);
+            definition.IdempotencyClass.Should().Be("caller-idempotency-key-required");
+            definition.Parameters.Select(parameter =>
+                    $"{parameter.Name}:{parameter.Type}:{parameter.Required}")
+                .Should()
+                .Equal(item.Parameters);
+        }
+
+        Enum.GetNames<OperationResponseKind>().Should().Contain(new[]
+        {
+            "StaticListMembershipMutation",
+            "SmallGroupFixedFieldsMutation",
+            "ContactOwnerAssignment",
+            "ContactListTransfer"
+        });
     }
 
     /// <summary>

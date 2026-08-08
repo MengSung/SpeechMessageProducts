@@ -341,6 +341,99 @@ public sealed class OperationDispatchPreparerTests
         pool.ReturnedSnapshot!.Should().OnlyContain(value => value == 0);
     }
 
+    /// <summary>
+    /// 保護 Slice C static-list add-many 在 admission 前只能接收最多 1,000 個非空且不重複的 GUID，並將不具商業
+    /// 順序意義的 member set 轉成排序後的 immutable copy。故障注入是同一 GUID 集合以相反插入順序提供；決定性
+    /// 斷言是兩次 canonical hash 相同，且 prepared owner 不再參考 caller array。此測試不配置 CRM client、
+    /// connector lease、HTTP request 或 background work；兩個 prepared owner 都在 method scope 結束前 dispose。
+    /// </summary>
+    [Fact]
+    public void Guid_array_is_bounded_distinct_and_canonicalized_as_a_sorted_immutable_copy()
+    {
+        var preparer = new OperationDispatchPreparer(ArrayPool<byte>.Shared);
+        var definition = CreateDefinition(new OperationParameterDefinition
+        {
+            Name = "memberIds",
+            Type = "guid-array",
+            Required = true,
+            EncodingContext = "guid-array-canonical"
+        });
+        var first = new[]
+        {
+            Guid.Parse("55555555-5555-5555-5555-555555555555"),
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("99999999-9999-9999-9999-999999999999")
+        };
+        var second = first.Reverse().ToArray();
+
+        preparer.TryPrepare(
+                CreateRequest(new Dictionary<string, object?> { ["memberIds"] = first }),
+                definition,
+                CreatePlan(64 * 1024),
+                out var firstPrepared,
+                out var firstError)
+            .Should()
+            .BeTrue(firstError?.ErrorMessage);
+        preparer.TryPrepare(
+                CreateRequest(new Dictionary<string, object?> { ["memberIds"] = second }),
+                definition,
+                CreatePlan(64 * 1024),
+                out var secondPrepared,
+                out var secondError)
+            .Should()
+            .BeTrue(secondError?.ErrorMessage);
+
+        var firstOwned = firstPrepared!;
+        var secondOwned = secondPrepared!;
+        using (firstOwned)
+        using (secondOwned)
+        {
+            firstOwned.CanonicalSha256.Should().Be(secondOwned.CanonicalSha256);
+            firstOwned.Parameters["memberIds"].Should().BeAssignableTo<IReadOnlyList<Guid>>();
+            ((IReadOnlyList<Guid>)firstOwned.Parameters["memberIds"]!)
+                .Should()
+                .Equal(first.OrderBy(static value => value));
+        }
+    }
+
+    /// <summary>
+    /// 保護 guid-array 的拒絕路徑不會在 invalid member collection 下租借 buffer 或轉移 prepared ownership。
+    /// 故障注入依序為空 GUID、重複 GUID 與 1,001 筆輸入；決定性斷言是三種情況都回傳既有 invalid-parameter
+    /// 分類且 prepared 為 null。這代表失敗發生於 CRM／connector/admission 之前，不會保留 array、session 或 lease。
+    /// </summary>
+    [Fact]
+    public void Guid_array_rejects_empty_duplicate_or_more_than_one_thousand_members_before_buffer_rent()
+    {
+        var preparer = new OperationDispatchPreparer(ArrayPool<byte>.Shared);
+        var definition = CreateDefinition(new OperationParameterDefinition
+        {
+            Name = "memberIds",
+            Type = "guid-array",
+            Required = true,
+            EncodingContext = "guid-array-canonical"
+        });
+        var nonEmpty = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var overLimit = Enumerable.Range(1, 1001)
+            .Select(static value => Guid.Parse($"00000000-0000-0000-0000-{value:D12}"))
+            .ToArray();
+
+        AssertInvalid(
+            preparer,
+            definition,
+            CreatePlan(64 * 1024),
+            new Dictionary<string, object?> { ["memberIds"] = new[] { Guid.Empty } });
+        AssertInvalid(
+            preparer,
+            definition,
+            CreatePlan(64 * 1024),
+            new Dictionary<string, object?> { ["memberIds"] = new[] { nonEmpty, nonEmpty } });
+        AssertInvalid(
+            preparer,
+            definition,
+            CreatePlan(64 * 1024),
+            new Dictionary<string, object?> { ["memberIds"] = overLimit });
+    }
+
     /// <summary>建立不被 string intern pool 保留的參數，並取得 prepared 容器內實際 scalar 的弱參考。</summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static PreparedOperationDispatch CreatePreparedWithCollectibleParameter(

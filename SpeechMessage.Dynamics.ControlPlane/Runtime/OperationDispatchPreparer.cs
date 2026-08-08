@@ -39,9 +39,11 @@ internal sealed class OperationDispatchPreparer
     private const byte DecimalTag = 5;
     private const byte BooleanTag = 6;
     private const byte EnumTag = 7;
+    private const byte GuidArrayTag = 8;
     private const int MaximumParameterCount = 32;
     private const int MaximumParameterNameUtf8Bytes = 128;
     private const int MaximumIdempotencyKeyCharacters = 128;
+    private const int MaximumGuidArrayItems = 1000;
     private static readonly UTF8Encoding StrictUtf8 = new(
         encoderShouldEmitUTF8Identifier: false,
         throwOnInvalidBytes: true);
@@ -306,9 +308,12 @@ internal sealed class OperationDispatchPreparer
         return true;
     }
 
-    /// <summary>只允許可形成 bounded immutable scalar 副本的 registry type；array/object 留待後續獨立設計。</summary>
+    /// <summary>
+    /// 只允許 bounded immutable scalar，或 Slice C 明確核准的 <c>guid-array</c>。guid-array 固定最多 1,000
+    /// 個 non-empty distinct GUID，且會複製並排序；其他 array/object 仍留待各自具名 capability 設計，不能泛化。
+    /// </summary>
     private static bool IsSupportedScalarType(string type)
-        => type is "string" or "guid" or "date-time" or "integer" or "decimal" or "boolean" or "enum";
+        => type is "string" or "guid" or "date-time" or "integer" or "decimal" or "boolean" or "enum" or "guid-array";
 
     /// <summary>
     /// 不使用 <c>Convert</c>、serializer 或 <c>JsonElement.GetRawText()</c>。JSON object/array 對任何 scalar definition
@@ -338,6 +343,9 @@ internal sealed class OperationDispatchPreparer
             case "guid":
                 typeTag = GuidTag;
                 return TryGetGuid(source, out normalized);
+            case "guid-array":
+                typeTag = GuidArrayTag;
+                return TryGetGuidArray(source, out normalized);
             case "date-time":
                 typeTag = DateTimeTag;
                 return TryGetDateTime(source, out normalized);
@@ -384,6 +392,86 @@ internal sealed class OperationDispatchPreparer
 
         value = null;
         return false;
+    }
+
+    /// <summary>
+    /// 將唯一允許的 non-scalar input 轉為 request-owned sorted GUID array。只接受原生有限 GUID list 或 JSON string
+    /// array；空陣列、超過 1,000 筆、空 GUID、重複 GUID、object 與 lazy enumerable 都在 admission 前拒絕。排序使
+    /// static-list member set 的 canonical hash 不受 caller 插入順序影響，而新陣列切斷來源 collection 的可變參考。
+    /// </summary>
+    private static bool TryGetGuidArray(object source, out object? value)
+    {
+        value = null;
+        var values = source switch
+        {
+            IReadOnlyList<Guid> guidList => CopyGuidList(guidList),
+            JsonElement { ValueKind: JsonValueKind.Array } element => CopyJsonGuidArray(element),
+            _ => null
+        };
+        if (values is null || values.Length is 0 or > MaximumGuidArrayItems)
+        {
+            return false;
+        }
+
+        var distinct = new HashSet<Guid>();
+        foreach (var guid in values)
+        {
+            if (guid == Guid.Empty || !distinct.Add(guid))
+            {
+                return false;
+            }
+        }
+
+        Array.Sort(values);
+        value = values;
+        return true;
+    }
+
+    /// <summary>
+    /// 複製原生有限 GUID list，避免 prepared dispatch 在 queue wait 期間保留 caller array/list。Count 在複製前
+    /// 先檢查，故不會因惡意 collection 請求超大配置；copy 只存活於本次 prepare，成功時移交 prepared owner。
+    /// </summary>
+    private static Guid[]? CopyGuidList(IReadOnlyList<Guid> source)
+    {
+        if (source.Count is < 1 or > MaximumGuidArrayItems)
+        {
+            return null;
+        }
+
+        var copy = new Guid[source.Count];
+        for (var index = 0; index < copy.Length; index++)
+        {
+            copy[index] = source[index];
+        }
+
+        return copy;
+    }
+
+    /// <summary>
+    /// 由 JSON array 建立最多 1,000 筆 GUID copy。每個元素都必須是可解析的 string GUID；number、object、null
+    /// 或未預先宣告的 CLR graph 會 fail closed，避免 JsonDocument backing buffer 漏進 admission queue。
+    /// </summary>
+    private static Guid[]? CopyJsonGuidArray(JsonElement source)
+    {
+        if (source.GetArrayLength() is < 1 or > MaximumGuidArrayItems)
+        {
+            return null;
+        }
+
+        var copy = new Guid[source.GetArrayLength()];
+        var index = 0;
+        foreach (var element in source.EnumerateArray())
+        {
+            if (element.ValueKind != JsonValueKind.String ||
+                !Guid.TryParse(element.GetString(), out var guid))
+            {
+                return null;
+            }
+
+            copy[index++] = guid;
+        }
+
+        return copy;
     }
 
     /// <summary>
@@ -573,6 +661,10 @@ internal sealed class OperationDispatchPreparer
                     case GuidTag:
                         length = checked(length + 16);
                         break;
+                    case GuidArrayTag:
+                        var guidArray = (Guid[])parameter.Value!;
+                        length = checked(length + sizeof(uint) + checked(guidArray.Length * 16));
+                        break;
                     case IntegerTag:
                         length = checked(length + sizeof(long));
                         break;
@@ -663,6 +755,24 @@ internal sealed class OperationDispatchPreparer
                     }
 
                     offset += 16;
+                    break;
+                case GuidArrayTag:
+                    var guidArray = (Guid[])parameter.Value!;
+                    BinaryPrimitives.WriteUInt32BigEndian(
+                        destination.AsSpan(offset, sizeof(uint)),
+                        checked((uint)guidArray.Length));
+                    offset += sizeof(uint);
+                    foreach (var guid in guidArray)
+                    {
+                        guid.TryWriteBytes(destination.AsSpan(offset, 16), bigEndian: true, out var guidBytesWritten);
+                        if (guidBytesWritten != 16)
+                        {
+                            throw new InvalidOperationException("Guid-array canonical encoding did not write 16 bytes.");
+                        }
+
+                        offset += 16;
+                    }
+
                     break;
                 case IntegerTag:
                     BinaryPrimitives.WriteInt64BigEndian(destination.AsSpan(offset, sizeof(long)), (long)parameter.Value!);

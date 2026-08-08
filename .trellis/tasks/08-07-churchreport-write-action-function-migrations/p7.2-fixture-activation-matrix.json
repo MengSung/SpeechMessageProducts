@@ -112,17 +112,145 @@
       "rollbackOwner": "P7.3 contact-image media fixture owner"
     },
     {
-      "id": "list-membership",
-      "status": "fixture-pending",
+      "id": "list-membership-association",
+      "status": "required-for-activation",
       "operationIds": [
         "list.members.add.many",
-        "list.members.remove.one",
-        "listmanagement.smallgroup.update.fields",
-        "contact.assign.owner",
-        "newperson.contact.transfer.between.lists",
+        "list.members.remove.one"
+      ],
+      "fixtureOwner": "p7.2-list-membership-association-fixture",
+      "requiredCeVersion": "9.1",
+      "allowedMutations": [
+        "add at most 1000 distinct contacts to one task-owned static list",
+        "remove one contact from one task-owned static list"
+      ],
+      "preconditions": [
+        "deployment-owned crm91 profile resolves to Data8",
+        "the list is static and belongs to the Slice C fixture graph",
+        "the contact set is bounded, distinct and owned by the same fixture graph",
+        "membership baseline is read before the first action"
+      ],
+      "idempotency": "add pre-reads membership and dispatches only missing members; remove pre-reads membership and returns no-change when already absent",
+      "ambiguousTimeoutPolicy": "never replay the action blindly; reconcile every requested membership and clean up only when the current set is exactly baseline or expected",
+      "cleanup": "restore the exact membership baseline for the task-owned list and contact set",
+      "reconciliation": "query listmember with fixed list/contact filters, 500-ID chunks and bounded row limits",
+      "realCeEvidence": {
+        "ce82": "unsupported",
+        "ce91": "pending",
+        "artifact": null
+      },
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.2 list-membership association fixture bridge"
+    },
+    {
+      "id": "small-group-fixed-fields",
+      "status": "required-for-activation",
+      "operationIds": [
+        "listmanagement.smallgroup.update.fields"
+      ],
+      "fixtureOwner": "p7.2-small-group-fixed-fields-fixture",
+      "requiredCeVersion": "9.1",
+      "allowedMutations": [
+        "change-race-leader sets only list.new_contact_race_leager_list",
+        "change-area-leader sets list.new_contact_list_arealeader, list.new_area_name and list.new_contact_race_leager_list, then clears the three fixed deputy lookups"
+      ],
+      "preconditions": [
+        "deployment-owned crm91 profile resolves to Data8",
+        "the target list and leader contacts belong to the Slice C fixture graph",
+        "mode is exactly change-race-leader or change-area-leader",
+        "the complete six-field baseline is read before mutation",
+        "change-area-leader can resolve exactly one area leader from the server-owned target-leader list relationship"
+      ],
+      "idempotency": "no automatic write retry; an already matching six-field projection returns no-change",
+      "ambiguousTimeoutPolicy": "read back all six fixed fields; restore only a provable expected or baseline state, otherwise stop no-go",
+      "cleanup": "restore the six-field baseline or delete only the task-owned list during final fixture cleanup",
+      "reconciliation": "compare the six fixed list fields; no caller field map or arbitrary Entity update is accepted",
+      "realCeEvidence": {
+        "ce82": "unsupported",
+        "ce91": "pending",
+        "artifact": null
+      },
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.2 small-group fixed-field fixture bridge"
+    },
+    {
+      "id": "contact-owner-assignment",
+      "status": "required-for-activation",
+      "operationIds": [
+        "contact.assign.owner"
+      ],
+      "fixtureOwner": "p7.2-contact-owner-assignment-fixture",
+      "requiredCeVersion": "9.1",
+      "allowedMutations": [
+        "assign one task-owned contact to one allowlisted active system user"
+      ],
+      "preconditions": [
+        "deployment-owned crm91 profile resolves to Data8",
+        "contact and baseline owner are read before Assign",
+        "target owner is an active systemuser selected by the fixture bridge",
+        "target owner differs from the baseline owner for live evidence"
+      ],
+      "idempotency": "matching owner returns no-change; otherwise one Assign action is followed by owner read-back",
+      "ambiguousTimeoutPolicy": "never replay Assign blindly; reconcile ownerid and restore only a provable baseline or target state",
+      "cleanup": "assign the contact back to the captured baseline systemuser and confirm owner read-back",
+      "reconciliation": "compare only contact.ownerid and return a sanitized assignment category",
+      "realCeEvidence": {
+        "ce82": "unsupported",
+        "ce91": "pending",
+        "artifact": null
+      },
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.2 contact-owner fixture bridge"
+    },
+    {
+      "id": "contact-list-transfer-composite",
+      "status": "required-for-activation",
+      "operationIds": [
+        "newperson.contact.transfer.between.lists"
+      ],
+      "fixtureOwner": "p7.2-contact-list-transfer-fixture",
+      "requiredCeVersion": "9.1",
+      "allowedMutations": [
+        "add the task-owned contact to the target static list",
+        "remove it from the optional source static list",
+        "create at most one task-owned new_present_record for the supplied week-start date and target list weekly report",
+        "set contact.new_cell_list_contact to the target list",
+        "optionally assign the contact to one allowlisted systemuser"
+      ],
+      "preconditions": [
+        "deployment-owned crm91 profile resolves to Data8",
+        "source and target are distinct task-owned static lists",
+        "contact is in the optional source and absent from the target",
+        "exactly one target-list weekly report exists for the bounded week-start date",
+        "no matching present record exists before mutation",
+        "membership, primary-list lookup and owner baselines are captured before the first action"
+      ],
+      "idempotency": "one caller idempotency key governs the whole ordered composite; a completed target state returns no-change only after every component read-back matches",
+      "ambiguousTimeoutPolicy": "do not restart the composite; reconcile membership, present record, primary-list lookup and owner, then compensate only when every observed state is baseline or expected",
+      "cleanup": "delete only a present record created by this fixture, restore primary-list lookup and owner, restore source membership, and remove target membership",
+      "reconciliation": "verify the complete fixed graph; partial or unknown state remains no-go and retains the cleanup owner",
+      "realCeEvidence": {
+        "ce82": "unsupported",
+        "ce91": "pending",
+        "artifact": null
+      },
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.2 transfer-composite fixture bridge"
+    },
+    {
+      "id": "list-membership-interface-coverage-resolution",
+      "status": "coverage-alias",
+      "operationIds": [
         "list.members.service.interface.unresolved"
       ],
-      "reason": "Membership association, owner assignment and list transfer need a dedicated contact-list-owner fixture graph."
+      "reason": "The row is an interface-only duplicate with no implementation or DI registration. It does not create a sixth runtime operation and is satisfied only by the two concrete list membership capabilities.",
+      "resolvedByOperationIds": [
+        "list.members.add.many",
+        "list.members.remove.one"
+      ],
+      "dispatchBeforeResolution": "fail-closed",
+      "rolloutOwner": "P7.4 ChurchReport consumer rewiring",
+      "rollbackOwner": "P7.2 coverage validator"
     },
     {
       "id": "donation-lifecycle",

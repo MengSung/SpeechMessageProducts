@@ -253,6 +253,10 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
                 Package02Data8ContactProfileOperations.ExecuteLineProfileUpdate(service, operation, _ceVersion),
             OperationIds.MemberInfoContactCountUngroupedCommitment =>
                 Package02Data8ContactProfileOperations.ExecuteUngroupedCommitmentCount(service, operation, _ceVersion),
+            OperationIds.ListMembersAddMany =>
+                Package02Data8ListManagementOperations.ExecuteAddMembers(service, operation, _ceVersion),
+            OperationIds.ListMembersRemoveOne =>
+                Package02Data8ListManagementOperations.ExecuteRemoveMember(service, operation, _ceVersion),
             _ => Package01Data8ReadOperations.Execute(service, operation, _ceVersion)
         };
         cancellationToken.ThrowIfCancellationRequested();

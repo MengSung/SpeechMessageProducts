@@ -67,4 +67,36 @@ public static class OperationIds
     /// </summary>
     public const string MemberInfoContactCountUngroupedCommitment =
         "memberinfo.contact.count.ungrouped.commitment";
+
+    // -------- Package 2：名單與小組固定操作；每個 ID 都有獨立的 fixture／reconciliation owner --------
+
+    /// <summary>
+    /// 對應 P7.2 Slice C：一次將最多 1,000 位 distinct contact 加入一個固定 static list。
+    /// member set 只可由 bounded <c>guid-array</c> 表達；它不是 generic association 或任意 Entity command。
+    /// </summary>
+    public const string ListMembersAddMany = "list.members.add.many";
+
+    /// <summary>
+    /// 對應 P7.2 Slice C：從一個固定 static list 移除一位指定 contact。
+    /// 這個 ID 不接受 listmember Entity、任意條件或 caller-selected relationship。
+    /// </summary>
+    public const string ListMembersRemoveOne = "list.members.remove.one";
+
+    /// <summary>
+    /// 對應 P7.2 Slice C：只以 <c>change-race-leader</c> 或 <c>change-area-leader</c> 模式更新小組固定六欄。
+    /// 呼叫端不能傳入欄位 map；area leader 與 area name 只由 connector 的固定關聯規則解析。
+    /// </summary>
+    public const string ListManagementSmallGroupUpdateFields = "listmanagement.smallgroup.update.fields";
+
+    /// <summary>
+    /// 對應 P7.2 Slice C：將一位 contact 指派給一位 allowlisted systemuser。
+    /// 這個 ID 不會成為任意 entity AssignRequest 的代理。
+    /// </summary>
+    public const string ContactAssignOwner = "contact.assign.owner";
+
+    /// <summary>
+    /// 對應 P7.2 Slice C：以 server-owned 順序完成 contact 的 static-list transfer、週報 present record、
+    /// primary-list lookup 與選擇性 owner assignment。它不是可任意拼裝 CRM transaction 的 generic workflow。
+    /// </summary>
+    public const string NewPersonContactTransferBetweenLists = "newperson.contact.transfer.between.lists";
 }

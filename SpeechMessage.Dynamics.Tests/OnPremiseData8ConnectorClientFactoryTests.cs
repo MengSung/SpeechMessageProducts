@@ -243,6 +243,314 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護 Slice C add-many 只發出固定 AddListMembersListRequest，且只把已排序的 bounded member set
+    /// 交給 SDK。故障注入是目前 connector dispatch 尚未接線；決定性斷言是 action request 的 list/member
+    /// 欄位固定、回應只含 changed/read-back-confirmed 分類，沒有 generic Entity 或 caller-selected message。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_a_fixed_add_list_members_action()
+    {
+        var listId = Guid.Parse("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
+        var memberIds = new[]
+        {
+            Guid.Parse("55555555-5555-5555-5555-555555555555"),
+            Guid.Parse("11111111-1111-1111-1111-111111111111")
+        };
+        var queryStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                queryStep++;
+                AssertFixedMembershipQuery(query, listId, memberIds);
+                return queryStep == 1
+                    ? new EntityCollection()
+                    : new EntityCollection(memberIds.Select(memberId => new Entity("listmember")
+                    {
+                        ["listid"] = listId,
+                        ["entityid"] = memberId
+                    }).ToList());
+            },
+            execute: request =>
+            {
+                var add = request.Should().BeOfType<AddListMembersListRequest>().Subject;
+                add.ListId.Should().Be(listId);
+                add.MemberIds.Should().Equal(memberIds);
+                return new OrganizationResponse();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListMembersAddMany,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberIds"] = memberIds
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.StaticListMembershipMutation);
+        result.Data.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.StaticListMembershipMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 Slice C remove-one 只能使用固定 RemoveMemberListRequest，不能退化為任意 Delete 或 Entity request。
+    /// 故障注入是目前 connector dispatch 尚未接線；決定性斷言是 list/member identity 與封閉 response branch。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_a_fixed_remove_list_member_action()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var memberId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var queryStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                queryStep++;
+                AssertFixedMembershipQuery(query, listId, [memberId]);
+                return queryStep == 1
+                    ? new EntityCollection([new Entity("listmember")
+                    {
+                        ["listid"] = listId,
+                        ["entityid"] = memberId
+                    }])
+                    : new EntityCollection();
+            },
+            execute: request =>
+            {
+                var remove = request.Should().BeOfType<RemoveMemberListRequest>().Subject;
+                remove.ListId.Should().Be(listId);
+                remove.EntityId.Should().Be(memberId);
+                return new OrganizationResponse();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListMembersRemoveOne,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberId"] = memberId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.StaticListMembershipMutation);
+        result.Data.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.StaticListMembershipMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 change-area-leader 只能由 server-owned relationship 解析區牧與區名，並一次更新三個目標欄位、
+    /// 清除三個固定 deputy lookup。故障注入是 connector 尚未接線；決定性斷言是完整六欄 baseline/read-back、
+    /// exact Entity update 與封閉 response branch，沒有 caller field-map、FetchXML 或跨 request SDK graph。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_updates_and_confirms_the_six_fixed_small_group_fields()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var raceLeaderId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var areaLeaderId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var retrieveStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                expression.EntityName.Should().Be("list");
+                expression.ColumnSet.Columns.Should().Equal(
+                    "new_contact_list_arealeader",
+                    "new_area_name");
+                expression.Criteria.Conditions.Should().Contain(condition =>
+                    condition.AttributeName == "new_contact_race_leager_list" &&
+                    condition.Operator == ConditionOperator.Equal);
+                return new EntityCollection([new Entity("list", Guid.Parse("33333333-3333-3333-3333-333333333333"))
+                {
+                    ["new_contact_list_arealeader"] = new EntityReference("contact", areaLeaderId),
+                    ["new_area_name"] = "測試牧區"
+                }]);
+            },
+            update: entity =>
+            {
+                entity.LogicalName.Should().Be("list");
+                entity.Id.Should().Be(listId);
+                entity.Attributes.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["new_contact_list_arealeader"] = new EntityReference("contact", areaLeaderId),
+                    ["new_area_name"] = "測試牧區",
+                    ["new_contact_race_leager_list"] = new EntityReference("contact", raceLeaderId),
+                    ["new_contact_list_co_arealeader"] = null,
+                    ["new_contact_co_race_leager_list"] = null,
+                    ["new_contact_list_vice_family_leader"] = null
+                });
+            },
+            retrieve: (entityName, id, columnSet) =>
+            {
+                retrieveStep++;
+                entityName.Should().Be("list");
+                id.Should().Be(listId);
+                columnSet.Columns.Should().Equal(SmallGroupFixedFieldNames);
+                return retrieveStep == 1
+                    ? new Entity("list", listId)
+                    : new Entity("list", listId)
+                    {
+                        ["new_contact_list_arealeader"] = new EntityReference("contact", areaLeaderId),
+                        ["new_area_name"] = "測試牧區",
+                        ["new_contact_race_leager_list"] = new EntityReference("contact", raceLeaderId),
+                        ["new_contact_list_co_arealeader"] = null,
+                        ["new_contact_co_race_leager_list"] = null,
+                        ["new_contact_list_vice_family_leader"] = null
+                    };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListManagementSmallGroupUpdateFields,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["mode"] = "change-area-leader",
+                ["targetLeaderContactId"] = raceLeaderId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.SmallGroupFixedFieldsMutation);
+        result.Data.SmallGroupFixedFieldsMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.RetrieveCount.Should().Be(2);
+        service.UpdateCount.Should().Be(1);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 contact owner assignment 先驗證 active systemuser、讀取 baseline owner、執行一次 AssignRequest 並
+    /// read-back ownerid。故障注入是 connector 尚未接線；決定性斷言是不接受 team/任意 entity，且結果不包含
+    /// contact/owner identity、SDK response、credential、session 或 transport detail。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_assigns_contact_to_an_active_system_user_and_confirms_owner()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var originalOwnerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var targetOwnerId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var contactReadStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (entityName, id, columnSet) =>
+            {
+                if (entityName == "systemuser")
+                {
+                    id.Should().Be(targetOwnerId);
+                    columnSet.Columns.Should().Equal("isdisabled");
+                    return new Entity("systemuser", targetOwnerId) { ["isdisabled"] = false };
+                }
+
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.Columns.Should().Equal("ownerid");
+                contactReadStep++;
+                var ownerId = contactReadStep == 1 ? originalOwnerId : targetOwnerId;
+                return new Entity("contact", contactId)
+                {
+                    ["ownerid"] = new EntityReference("systemuser", ownerId)
+                };
+            },
+            execute: request =>
+            {
+                var assign = request.Should().BeOfType<AssignRequest>().Subject;
+                assign.Target.Should().Be(new EntityReference("contact", contactId));
+                assign.Assignee.Should().Be(new EntityReference("systemuser", targetOwnerId));
+                return new OrganizationResponse();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ContactAssignOwner,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["ownerSystemUserId"] = targetOwnerId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactOwnerAssignment);
+        result.Data.ContactOwnerAssignment!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        service.RetrieveCount.Should().Be(3);
+        service.ExecuteCount.Should().Be(1);
+        service.UpdateCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>驗證 list-member pre/post read 只使用 connector-owned QueryExpression 與兩個固定 GUID filter。</summary>
+    private static void AssertFixedMembershipQuery(QueryBase query, Guid listId, IReadOnlyList<Guid> memberIds)
+    {
+        var expression = query.Should().BeOfType<QueryExpression>().Subject;
+        expression.EntityName.Should().Be("listmember");
+        expression.ColumnSet.Columns.Should().Equal("listid", "entityid");
+        var listCondition = expression.Criteria.Conditions.Single(condition =>
+            condition.AttributeName == "listid" && condition.Operator == ConditionOperator.Equal);
+        listCondition.Values.Should().ContainSingle().Which.Should().Be(listId);
+        var memberCondition = expression.Criteria.Conditions.Single(condition =>
+            condition.AttributeName == "entityid" && condition.Operator == ConditionOperator.In);
+        memberCondition.Values.Cast<Guid>().OrderBy(value => value)
+            .Should().Equal(memberIds.OrderBy(value => value));
+    }
+
+    private static readonly string[] SmallGroupFixedFieldNames =
+    [
+        "new_contact_list_arealeader",
+        "new_area_name",
+        "new_contact_race_leager_list",
+        "new_contact_list_co_arealeader",
+        "new_contact_co_race_leager_list",
+        "new_contact_list_vice_family_leader"
+    ];
+
+    /// <summary>
     /// 保護 P7.2 的 Data8 contact basic-info capability 只能建立一個固定 <c>contact</c> patch，且完成後只讀回
     /// <c>mobilephone</c> 與 <c>address2_line1</c>。故障注入是未實作的 write operation；決定性斷言是 service
     /// 恰好執行一次 Update 與一次 allowlisted Retrieve，回應僅公開 changed/read-back-confirmed，沒有 Entity、

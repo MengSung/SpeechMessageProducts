@@ -61,7 +61,29 @@ public enum OperationResponseKind
     /// P7.2 未分組 commitment aggregate 的 bounded raw OptionSet value/count 集合；不包含 FetchXML、
     /// QueryExpression、Entity、AliasedValue、metadata label 或 grouped contact identity。
     /// </summary>
-    UngroupedCommitmentCounts = 6
+    UngroupedCommitmentCounts = 6,
+
+    /// <summary>
+    /// P7.2 Slice C static-list member add/remove 的封閉結果；它不含 list、contact 或 listmember identity，
+    /// 只能描述固定 action 是否由 read-back 證實。
+    /// </summary>
+    StaticListMembershipMutation = 7,
+
+    /// <summary>
+    /// P7.2 Slice C 小組六欄固定寫入的封閉結果；任何部分欄位、未知 timeout 或任意 field-map 都不能建構此 branch。
+    /// </summary>
+    SmallGroupFixedFieldsMutation = 8,
+
+    /// <summary>
+    /// P7.2 Slice C contact 指派固定 systemuser owner 的封閉結果；它不回傳 owner/contact identity 或 CRM Assign response。
+    /// </summary>
+    ContactOwnerAssignment = 9,
+
+    /// <summary>
+    /// P7.2 Slice C contact list-transfer composite 的封閉結果；只有完整 membership、weekly record、lookup 與 owner
+    /// reconciliation 都已確認時才可回傳成功 branch。
+    /// </summary>
+    ContactListTransfer = 10
 }
 
 /// <summary>
@@ -87,7 +109,11 @@ public sealed class OperationResponseData
         IReadOnlyList<Package01StorLessonRecord>? storLessonRecords = null,
         ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate = null,
         ContactLineProfileUpdateResponseData? contactLineProfileUpdate = null,
-        IReadOnlyList<UngroupedCommitmentCountRecord>? ungroupedCommitmentCounts = null)
+        IReadOnlyList<UngroupedCommitmentCountRecord>? ungroupedCommitmentCounts = null,
+        StaticListMembershipMutationResponseData? staticListMembershipMutation = null,
+        SmallGroupFixedFieldsMutationResponseData? smallGroupFixedFieldsMutation = null,
+        ContactOwnerAssignmentResponseData? contactOwnerAssignment = null,
+        ContactListTransferResponseData? contactListTransfer = null)
     {
         if (string.IsNullOrWhiteSpace(operationId))
         {
@@ -106,7 +132,11 @@ public sealed class OperationResponseData
             storLessonRecords,
             contactBasicInfoUpdate,
             contactLineProfileUpdate,
-            ungroupedCommitmentCounts);
+            ungroupedCommitmentCounts,
+            staticListMembershipMutation,
+            smallGroupFixedFieldsMutation,
+            contactOwnerAssignment,
+            contactListTransfer);
 
         OperationId = operationId;
         CeVersion = ceVersion;
@@ -117,6 +147,10 @@ public sealed class OperationResponseData
         ContactBasicInfoUpdate = contactBasicInfoUpdate;
         ContactLineProfileUpdate = contactLineProfileUpdate;
         UngroupedCommitmentCounts = ungroupedCommitmentCounts?.ToArray();
+        StaticListMembershipMutation = staticListMembershipMutation;
+        SmallGroupFixedFieldsMutation = smallGroupFixedFieldsMutation;
+        ContactOwnerAssignment = contactOwnerAssignment;
+        ContactListTransfer = contactListTransfer;
     }
 
     /// <summary>
@@ -185,6 +219,38 @@ public sealed class OperationResponseData
     [JsonPropertyName("ungroupedCommitmentCounts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<UngroupedCommitmentCountRecord>? UngroupedCommitmentCounts { get; }
+
+    /// <summary>
+    /// P7.2 Slice C static-list member action 的最小安全結果。它沒有 list/contact/member identity、加入數量、
+    /// baseline、endpoint、credential 或 CRM response；所有 SDK graph 已在 connector lease scope 釋放。
+    /// </summary>
+    [JsonPropertyName("staticListMembershipMutation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StaticListMembershipMutationResponseData? StaticListMembershipMutation { get; }
+
+    /// <summary>
+    /// P7.2 Slice C 小組固定欄位操作的最小安全結果。回應不攜帶六個欄位或 leader identity，避免把 fixture
+    /// baseline 或跨 profile 資料保留到 ProductClient／Gateway 序列化範圍。
+    /// </summary>
+    [JsonPropertyName("smallGroupFixedFieldsMutation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SmallGroupFixedFieldsMutationResponseData? SmallGroupFixedFieldsMutation { get; }
+
+    /// <summary>
+    /// P7.2 Slice C contact owner assignment 的最小安全結果。它只陳述 read-back 是否確認，不回傳 contact 或
+    /// systemuser GUID、名稱、CRM request 或 profile 資訊。
+    /// </summary>
+    [JsonPropertyName("contactOwnerAssignment")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactOwnerAssignmentResponseData? ContactOwnerAssignment { get; }
+
+    /// <summary>
+    /// P7.2 Slice C transfer composite 的最小安全結果。成功只表示完整固定圖譜已 reconcile；不回傳 membership、
+    /// present record、weekly report、owner、contact 或 cleanup baseline identity。
+    /// </summary>
+    [JsonPropertyName("contactListTransfer")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactListTransferResponseData? ContactListTransfer { get; }
 
     /// <summary>
     /// 建立 WhoAmI branch。呼叫端在 connector request scope 完成原始 JSON 投影並 dispose 上游 response 後才可
@@ -293,6 +359,82 @@ public sealed class OperationResponseData
     }
 
     /// <summary>
+    /// 建立 static-list member add/remove 的封閉結果。NoChange 只可表示 pre-read 已證實集合處於目標狀態；
+    /// Changed 則必須已完成 fixed action 與 membership read-back。timeout、部分集合或未知結果不得建構成功回應。
+    /// </summary>
+    public static OperationResponseData ForStaticListMembershipMutation(
+        string operationId,
+        string ceVersion,
+        P72ControlledMutationDisposition disposition,
+        P72ControlledMutationCorrelationCategory correlationCategory)
+        => new(
+            operationId,
+            ceVersion,
+            OperationResponseKind.StaticListMembershipMutation,
+            staticListMembershipMutation: new StaticListMembershipMutationResponseData
+            {
+                Disposition = disposition,
+                CorrelationCategory = correlationCategory
+            });
+
+    /// <summary>
+    /// 建立小組六欄 fixed-mode write 的封閉結果。NoChange 代表完整 six-field projection 已相同；Changed
+    /// 只能在所有 set/clear 欄位 read-back 確認後回傳。
+    /// </summary>
+    public static OperationResponseData ForSmallGroupFixedFieldsMutation(
+        string operationId,
+        string ceVersion,
+        P72ControlledMutationDisposition disposition,
+        P72ControlledMutationCorrelationCategory correlationCategory)
+        => new(
+            operationId,
+            ceVersion,
+            OperationResponseKind.SmallGroupFixedFieldsMutation,
+            smallGroupFixedFieldsMutation: new SmallGroupFixedFieldsMutationResponseData
+            {
+                Disposition = disposition,
+                CorrelationCategory = correlationCategory
+            });
+
+    /// <summary>
+    /// 建立 contact owner assignment 的封閉結果。NoChange 只在 pre-read owner 已符合時成立；Changed 必須由 Assign
+    /// 後 ownerid read-back 證實，絕不把 transport completion 當作 assignment success。
+    /// </summary>
+    public static OperationResponseData ForContactOwnerAssignment(
+        string operationId,
+        string ceVersion,
+        P72ControlledMutationDisposition disposition,
+        P72ControlledMutationCorrelationCategory correlationCategory)
+        => new(
+            operationId,
+            ceVersion,
+            OperationResponseKind.ContactOwnerAssignment,
+            contactOwnerAssignment: new ContactOwnerAssignmentResponseData
+            {
+                Disposition = disposition,
+                CorrelationCategory = correlationCategory
+            });
+
+    /// <summary>
+    /// 建立 contact list-transfer composite 的封閉結果。NoChange 必須先確認所有 target graph 都已完成；Changed
+    /// 則僅在 membership、present record、primary lookup 與 optional owner 全部 read-back 後成立。
+    /// </summary>
+    public static OperationResponseData ForContactListTransfer(
+        string operationId,
+        string ceVersion,
+        P72ControlledMutationDisposition disposition,
+        P72ControlledMutationCorrelationCategory correlationCategory)
+        => new(
+            operationId,
+            ceVersion,
+            OperationResponseKind.ContactListTransfer,
+            contactListTransfer: new ContactListTransferResponseData
+            {
+                Disposition = disposition,
+                CorrelationCategory = correlationCategory
+            });
+
+    /// <summary>
     /// 建立明確的 unsupported envelope。connector/Gateway 應把它轉成受控失敗，而不是把未投影 metadata、
     /// OData annotation 或 endpoint detail 回傳給產品；此值不擁有背景資源或可清理 handle。
     /// </summary>
@@ -306,7 +448,11 @@ public sealed class OperationResponseData
         IReadOnlyList<Package01StorLessonRecord>? storLessonRecords,
         ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate,
         ContactLineProfileUpdateResponseData? contactLineProfileUpdate,
-        IReadOnlyList<UngroupedCommitmentCountRecord>? ungroupedCommitmentCounts)
+        IReadOnlyList<UngroupedCommitmentCountRecord>? ungroupedCommitmentCounts,
+        StaticListMembershipMutationResponseData? staticListMembershipMutation,
+        SmallGroupFixedFieldsMutationResponseData? smallGroupFixedFieldsMutation,
+        ContactOwnerAssignmentResponseData? contactOwnerAssignment,
+        ContactListTransferResponseData? contactListTransfer)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
         // 多 branch 讓資料跨 capability 混合。失敗時不保留任何集合或外部資源。
@@ -315,7 +461,11 @@ public sealed class OperationResponseData
                           (storLessonRecords is null ? 0 : 1) +
                           (contactBasicInfoUpdate is null ? 0 : 1) +
                           (contactLineProfileUpdate is null ? 0 : 1) +
-                          (ungroupedCommitmentCounts is null ? 0 : 1);
+                          (ungroupedCommitmentCounts is null ? 0 : 1) +
+                          (staticListMembershipMutation is null ? 0 : 1) +
+                          (smallGroupFixedFieldsMutation is null ? 0 : 1) +
+                          (contactOwnerAssignment is null ? 0 : 1) +
+                          (contactListTransfer is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -334,6 +484,22 @@ public sealed class OperationResponseData
                 branchCount == 1 &&
                 ungroupedCommitmentCounts is not null &&
                 IsValidUngroupedCommitmentCounts(ungroupedCommitmentCounts),
+            OperationResponseKind.StaticListMembershipMutation =>
+                branchCount == 1 &&
+                staticListMembershipMutation is not null &&
+                IsValidP72ControlledMutation(staticListMembershipMutation),
+            OperationResponseKind.SmallGroupFixedFieldsMutation =>
+                branchCount == 1 &&
+                smallGroupFixedFieldsMutation is not null &&
+                IsValidP72ControlledMutation(smallGroupFixedFieldsMutation),
+            OperationResponseKind.ContactOwnerAssignment =>
+                branchCount == 1 &&
+                contactOwnerAssignment is not null &&
+                IsValidP72ControlledMutation(contactOwnerAssignment),
+            OperationResponseKind.ContactListTransfer =>
+                branchCount == 1 &&
+                contactListTransfer is not null &&
+                IsValidP72ControlledMutation(contactListTransfer),
             _ => false
         };
 
@@ -399,6 +565,22 @@ public sealed class OperationResponseData
 
         return true;
     }
+
+    /// <summary>
+    /// 驗證 Slice C 四個封閉 response branch 共用的成功狀態機。NoChange 必須配 NoDispatch，Changed 必須配
+    /// ReadBackConfirmed；其他 enum 數值、timeout、partial graph 或 cleanup ambiguity 永遠不能偽裝為成功。
+    /// </summary>
+    private static bool IsValidP72ControlledMutation(IP72ControlledMutationResponse response)
+        => Enum.IsDefined(response.Disposition) &&
+           Enum.IsDefined(response.CorrelationCategory) &&
+           response.Disposition switch
+           {
+               P72ControlledMutationDisposition.NoChange =>
+                   response.CorrelationCategory == P72ControlledMutationCorrelationCategory.NoDispatch,
+               P72ControlledMutationDisposition.Changed =>
+                   response.CorrelationCategory == P72ControlledMutationCorrelationCategory.ReadBackConfirmed,
+               _ => false
+           };
 }
 
 /// <summary>
@@ -499,6 +681,95 @@ public sealed record ContactLineProfileUpdateResponseData
     /// <summary>表示 connector 已完成 allowlisted read-back。</summary>
     [JsonPropertyName("correlationCategory")]
     public required ContactLineProfileUpdateCorrelationCategory CorrelationCategory { get; init; }
+}
+
+/// <summary>
+/// P7.2 Slice C 固定 CRM mutation 的共用、封閉結果種類。它只描述 operation 是否由完整 pre-read/read-back
+/// 證實，不攜帶 entity、欄位值、GUID、credential、profile、token、session、lease 或 CRM response。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum P72ControlledMutationDisposition
+{
+    /// <summary>完整 target projection 已相符；connector 不得取得 lease 或送出 CRM mutation。</summary>
+    NoChange = 0,
+
+    /// <summary>固定 action/write 已執行且完整 target projection 已 read-back 確認。</summary>
+    Changed = 1
+}
+
+/// <summary>
+/// P7.2 Slice C 受控 mutation 的安全 lifecycle 分類。它不是可追蹤的 correlation ID，故不能作為 contact、
+/// list、weekly report、owner、fixture 或 credential 的旁路識別資料。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum P72ControlledMutationCorrelationCategory
+{
+    /// <summary>pre-read 證實無需 mutation，沒有 connector lease 或 outbound CRM request。</summary>
+    NoDispatch = 0,
+
+    /// <summary>完整固定 graph 已由 read-back 確認；這不表示未知 timeout 可以被盲目重送。</summary>
+    ReadBackConfirmed = 1
+}
+
+/// <summary>
+/// Slice C 回應 branch 共用的最小結構。每一個 concrete branch 仍有獨立 discriminator，避免 static membership、
+/// small-group field、owner assignment 與 transfer composite 在產品端被混用。
+/// </summary>
+public interface IP72ControlledMutationResponse
+{
+    /// <summary>取得受控 mutation 是否被完整證實的 bounded 結果。</summary>
+    P72ControlledMutationDisposition Disposition { get; }
+
+    /// <summary>取得不含識別資料的 no-dispatch/read-back-confirmed 分類。</summary>
+    P72ControlledMutationCorrelationCategory CorrelationCategory { get; }
+}
+
+/// <summary>static-list add/remove action 的封閉 response payload。</summary>
+public sealed record StaticListMembershipMutationResponseData : IP72ControlledMutationResponse
+{
+    /// <summary>取得 membership target set 是否已確認。</summary>
+    [JsonPropertyName("disposition")]
+    public required P72ControlledMutationDisposition Disposition { get; init; }
+
+    /// <summary>取得無識別資料的 reconciliation 分類。</summary>
+    [JsonPropertyName("correlationCategory")]
+    public required P72ControlledMutationCorrelationCategory CorrelationCategory { get; init; }
+}
+
+/// <summary>小組六欄 fixed-mode update 的封閉 response payload。</summary>
+public sealed record SmallGroupFixedFieldsMutationResponseData : IP72ControlledMutationResponse
+{
+    /// <summary>取得六欄 projection 是否已完全確認。</summary>
+    [JsonPropertyName("disposition")]
+    public required P72ControlledMutationDisposition Disposition { get; init; }
+
+    /// <summary>取得無識別資料的 reconciliation 分類。</summary>
+    [JsonPropertyName("correlationCategory")]
+    public required P72ControlledMutationCorrelationCategory CorrelationCategory { get; init; }
+}
+
+/// <summary>contact Assign action 的封閉 response payload。</summary>
+public sealed record ContactOwnerAssignmentResponseData : IP72ControlledMutationResponse
+{
+    /// <summary>取得 ownerid 是否已確認為目標狀態。</summary>
+    [JsonPropertyName("disposition")]
+    public required P72ControlledMutationDisposition Disposition { get; init; }
+
+    /// <summary>取得無識別資料的 reconciliation 分類。</summary>
+    [JsonPropertyName("correlationCategory")]
+    public required P72ControlledMutationCorrelationCategory CorrelationCategory { get; init; }
+}
+
+/// <summary>contact transfer composite 的封閉 response payload。</summary>
+public sealed record ContactListTransferResponseData : IP72ControlledMutationResponse
+{
+    /// <summary>取得完整 membership／record／lookup／owner graph 是否已確認。</summary>
+    [JsonPropertyName("disposition")]
+    public required P72ControlledMutationDisposition Disposition { get; init; }
+
+    /// <summary>取得無識別資料的 reconciliation 分類。</summary>
+    [JsonPropertyName("correlationCategory")]
+    public required P72ControlledMutationCorrelationCategory CorrelationCategory { get; init; }
 }
 
 /// <summary>

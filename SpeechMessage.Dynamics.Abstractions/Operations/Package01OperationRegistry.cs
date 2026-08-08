@@ -73,7 +73,7 @@ public static class Package01OperationRegistry
         => Definitions.ContainsKey(capabilityOperationId);
 
     /// <summary>
-    /// 建立目前十二個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
+    /// 建立目前十七個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
     /// shape；新增 capability 時必須同步更新 matrix、projection、有限政策與 hash agreement test。
     /// </summary>
     private static IEnumerable<OperationDefinition> Build()
@@ -278,6 +278,96 @@ public static class Package01OperationRegistry
             parameters:
             [
                 Param("search", "string", required: false, encoding: "fetchxml-attribute-value")
+            ]);
+
+        // Slice C：static-list association 以固定 action 表達；memberIds 的 1,000 筆／distinct／non-empty
+        // 限制由 canonical dispatch 與 connector 再驗證，不能把它退化為 caller 提供的 listmember Entity 集合。
+        yield return Def(
+            OperationIds.ListMembersAddMany,
+            package: "package-2-list-management-writes",
+            kind: "action",
+            templateKind: "odata-action",
+            templateId: "list.members.add.many.v1",
+            responseKind: OperationResponseKind.StaticListMembershipMutation,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("listId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("memberIds", "guid-array", required: true, encoding: "guid-array-canonical")
+            ]);
+
+        yield return Def(
+            OperationIds.ListMembersRemoveOne,
+            package: "package-2-list-management-writes",
+            kind: "action",
+            templateKind: "odata-action",
+            templateId: "list.members.remove.one.v1",
+            responseKind: OperationResponseKind.StaticListMembershipMutation,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("listId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("memberId", "guid", required: true, encoding: "odata-uri-segment")
+            ]);
+
+        // 兩個 mode 固定為 change-race-leader / change-area-leader；connector 擁有六個欄位與關聯查詢，
+        // 因此產品不能透過 JSON object 改寫共同區牧、代理區長或其他非此契約允許的欄位。
+        yield return Def(
+            OperationIds.ListManagementSmallGroupUpdateFields,
+            package: "package-2-list-management-writes",
+            kind: "write",
+            templateKind: "odata-route",
+            templateId: "listmanagement.smallgroup.fixed.fields.v1",
+            responseKind: OperationResponseKind.SmallGroupFixedFieldsMutation,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("listId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("mode", "enum", required: true, encoding: "server-enum"),
+                Param("targetLeaderContactId", "guid", required: true, encoding: "odata-uri-segment")
+            ]);
+
+        yield return Def(
+            OperationIds.ContactAssignOwner,
+            package: "package-2-list-management-writes",
+            kind: "action",
+            templateKind: "odata-action",
+            templateId: "contact.assign.owner.v1",
+            responseKind: OperationResponseKind.ContactOwnerAssignment,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("ownerSystemUserId", "guid", required: true, encoding: "odata-uri-segment")
+            ]);
+
+        // transfer 的週起日須由 caller 以明確 UTC offset 提供；connector 固定解析 target list weekly report，
+        // 不讀取主機時區，也不接受 callers 直接指定 present-record、weekly-report 或任意欄位 map。
+        yield return Def(
+            OperationIds.NewPersonContactTransferBetweenLists,
+            package: "package-2-list-management-writes",
+            kind: "write",
+            templateKind: "composite",
+            templateId: "newperson.contact.transfer.between.lists.v1",
+            responseKind: OperationResponseKind.ContactListTransfer,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("sourceListId", "guid", required: false, encoding: "odata-uri-segment"),
+                Param("targetListId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("weekStartDate", "date-time", required: true, encoding: "fetchxml-attribute-value"),
+                Param("ownerSystemUserId", "guid", required: false, encoding: "odata-uri-segment")
             ]);
     }
 

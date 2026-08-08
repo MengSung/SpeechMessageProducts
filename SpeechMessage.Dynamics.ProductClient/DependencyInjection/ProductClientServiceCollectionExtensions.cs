@@ -19,6 +19,7 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ProductClient.Configuration;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
+using SpeechMessage.Dynamics.ProductClient.ListManagement;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
 
 namespace SpeechMessage.Dynamics.ProductClient.DependencyInjection;
@@ -76,6 +77,7 @@ public static class ProductClientServiceCollectionExtensions
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
+        services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
         return services;
     }
 
@@ -112,6 +114,18 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 只註冊 P7.2 Slice C list-management typed client。它不啟用 ChurchReport 流量、不建立 transport，且不持有
+    /// list/contact/owner fixture、credential、session 或 connector resource；呼叫端必須先註冊唯一的 Embedded/Gateway executor。
+    /// </summary>
+    public static IServiceCollection AddSpeechMessageDynamicsPackage02ListManagementOperations(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
         return services;
     }
 }
