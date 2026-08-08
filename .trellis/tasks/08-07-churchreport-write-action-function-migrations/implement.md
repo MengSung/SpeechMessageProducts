@@ -25,8 +25,8 @@
 
 ## Phase 3：CE 9.1 fixture bridge 與證據
 
-1. 先完成 repository 內 contract／unit tests，再建立 Windows PowerShell 5.1-compatible bridge。它必須 bounded、fail-closed，只允許 `crm91`／Data8／P7.2 marker contact／兩個字串欄位，且只輸出去識別化 JSON。已完成 preflight bridge、明確 `-ExecuteFixture` opt-in runner、固定 Credential Manager 讀取、bounded child process、strict TRX parser 與 20 項 PowerShell 契約測試；目前只驗證 activation 前置條件，尚未執行 CE write。
-2. 下一個受控 live-evidence slice 才可依序執行 baseline read → sentinel update → read-back reconciliation → baseline restore → restore read-back；任何 ambiguous timeout、owner mismatch、profile mismatch 或 cleanup 失敗都停在 no-go，絕不自動重送不確定 write。runner 已具備該流程。使用者於 2026-08-08 明確授權 `sunnyvalechback` 全資料庫作為可新增／修改／刪除的虛構研發資料，因此 Slice A 可由 bridge 任選既有 contact 建立本機 descriptor；仍須先通過不帶 `-ExecuteFixture` 的 preflight，才可啟動受控流程。
+1. 先完成 repository 內 contract／unit tests，再建立 Windows PowerShell 5.1-compatible bridge。它必須 bounded、fail-closed，只允許 `crm91`／Data8／P7.2 marker contact／兩個字串欄位，且只輸出去識別化 JSON。已完成 preflight bridge、明確 `-ExecuteFixture` opt-in runner、固定 Credential Manager 讀取、bounded child process、strict TRX parser 與 20 項 PowerShell 契約測試；2026-08-08 preflight 已回傳 `outcome=go`、`operationExecuted=false`、`featureFlagChanged=false`。
+2. 受控 live-evidence slice 依序執行 baseline read → sentinel update → read-back reconciliation → baseline restore → restore read-back；任何 ambiguous timeout、owner mismatch、profile mismatch 或 cleanup 失敗都停在 no-go，絕不自動重送不確定 write。使用者於 2026-08-08 明確授權 `sunnyvalechback` 全資料庫作為可新增／修改／刪除的虛構研發資料。Slice A 已任選既有 contact 並完成真實 CE 9.1 Data8 flow：`outcome=go`、`sentinelState=confirmed`、`cleanupState=restored`、`featureFlagChanged=false`。
 3. 只有 preflight 與後續 live bridge 都回傳 sanitized `outcome=go` 才可寫入 task evidence；不得貼入密碼、token、cookie、endpoint、Organization ID、contact GUID、原始 baseline 或例外內容。
 4. 如需要使用者在 Lenovo 執行 bridge，直接提供可 copy/paste 的完整命令與預期 JSON；不得重新要求 P6 credential profile 或手動輸入可由 bridge 建立的資料。
 

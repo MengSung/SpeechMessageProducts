@@ -4,18 +4,19 @@
 
 - PowerShell contract：20 checks passed。
 - `SpeechMessage.Dynamics.Tests`：493 passed、7 skipped、0 failed。
-- `ChurchReport.MemberInfo.Tests`：410 passed、3 skipped、0 failed。
+- `ChurchReport.MemberInfo.Tests`：404 passed、3 skipped、0 failed。
 - Dynamics Release build：0 warnings、0 errors。
 - ChurchReport Release build：0 warnings、0 errors。
 - P7.2 live test 在未設定 opt-in 時明確 skipped。
 - 預設 preflight：`outcome=no-go`、`reason=fixture-input-required`、`preflightOnly=true`、`operationExecuted=false`。
 - `git diff --check` 通過；所有本輪修改文字檔均為 UTF-8 without BOM、CRLF-only、final CRLF。
 - 沒有啟用 ChurchReport flag／流量，沒有執行 Official Worker、P6.2、CE 8.2 write、push、PR 或外部模型。
+- `sunnyvalechback` CE 9.1 live preflight：`outcome=go`、`operationExecuted=false`、`featureFlagChanged=false`。
+- Slice A 真實 Data8 evidence：`outcome=go`、`operationExecuted=true`、`sentinelState=confirmed`、`cleanupState=restored`、`featureFlagChanged=false`。
+- 第一次把 Dynamics 與 ChurchReport process-boundary tests 平行執行時，ChurchReport 正確偵測到另一套測試暫時啟動的 `WorkerTestHost`；確認程序已退出後改為循序執行，兩套測試皆全綠。此項不以放寬斷言處理。
 
 ## 未完成／不宣稱完成
 
-- 尚未取得 task-owned contact fixture descriptor，因此尚未執行 `-ExecuteFixture`、真實 CE 9.1 write、live read-back 或 rollback drill。
-- 目前 browser 只有 sunnyvalechback AD FS 登入頁，沒有輸入帳密；等待使用者登入後進行唯讀 fixture 查詢。
 - P7.2 B-H slices、coverage validator、最後 commit/archive 與 P7.3 尚未開始。
 
 ## 外部 review

@@ -4,6 +4,7 @@
 - 目前只完成 `memberinfo.contact.update.basic.info` 的 opt-in CE 9.1 Data8 evidence runner。
 - 預設只做 preflight；沒有明確 `-ExecuteFixture` 不得啟動 dotnet 或 CE operation。
 - Slice A 只允許 sunnyvalechback、CE 9.1、Data8、由 bridge 依 2026-08-08 全資料庫研發授權選取的 contact、`mobilephone` 與 `address2_line1`；其他 slices 仍受各自 matrix contract 限制。
+- 使用者已明確授權 sunnyvalechback（CE 9.1）與 jesus（CE 8.2）全資料庫的虛構研發資料可新增、修改、刪除；不得延伸到正式環境、P8 或 Central Gateway，CE 8.2 仍須 matrix 明確標為 required。
 - 寫入最多一次；timeout／transport ambiguity 不得重送，必須 read-back reconciliation 與 baseline restore。
 - credential 只從固定 Windows Generic Credential 短暫讀取，不得輸出或寫入 repository。
 - runtime、fixture store、logger、child process、暫存檔與 process environment 都必須確定釋放或還原。

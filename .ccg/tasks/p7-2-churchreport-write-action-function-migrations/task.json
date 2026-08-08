@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P7.2 Slice A fixture ownership 已解除：使用者於 2026-08-08 明確確認 sunnyvalechback 全資料庫均為虛構研發資料，授權 P7 在 matrix 邊界內新增、修改、刪除。任選既有 contact 建立本機 descriptor，先跑 operationExecuted=false preflight；Go 後執行受控 sentinel update、read-back、baseline restore 與 restore read-back",
+  "nextAction": "P7.2 Slice A live evidence 已完成：CE 9.1 Data8 sentinel confirmed、cleanup restored、feature flag unchanged。重跑完整 Slice A quality gate並更新 review；之後依 matrix 規劃與實作 Slice B。sunnyvalechback 與 jesus 均有全資料庫研發 CRUD 授權，但 CE 8.2 operation 只有 matrix required 時才執行",
   "createdAt": "2026-08-08T00:00:00Z",
   "branch": "1.0.0.3.Gateway&Embedded.Worktree"
 }

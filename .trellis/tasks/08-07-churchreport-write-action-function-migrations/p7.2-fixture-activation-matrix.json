@@ -33,6 +33,11 @@
       "ambiguousTimeoutPolicy": "read current values; clean up only when the state is provably baseline or expected sentinel; otherwise stop no-go",
       "cleanup": "restore the captured baseline values for exactly the two allowed fields",
       "reconciliation": "compare only the two allowlisted fields and report sanitized state categories",
+      "realCeEvidence": {
+        "ce82": "unsupported",
+        "ce91": "complete",
+        "artifact": ".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-slice-a-live-evidence.json"
+      },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
       "rollbackOwner": "P7.2 contact-basic-info fixture bridge"
     },
