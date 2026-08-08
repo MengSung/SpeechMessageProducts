@@ -75,6 +75,7 @@ public static class ProductClientServiceCollectionExtensions
 
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
+        services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
         return services;
     }
 
@@ -99,6 +100,18 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 只註冊 P7.2 Slice B contact profile typed client；它不啟用 ChurchReport 流量、不建立 transport，也不持有
+    /// LINE token、session、profile state 或 connector resource。呼叫端必須先註冊唯一的 Embedded/Gateway executor。
+    /// </summary>
+    public static IServiceCollection AddSpeechMessageDynamicsPackage02ContactProfileOperations(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
         return services;
     }
 }

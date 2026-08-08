@@ -1746,7 +1746,7 @@
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-route",
                                                                 "templateId":  "memberinfo.contact.line.profile.patch.v1",
-                                                                "templateHash":  "17cd5cf73f456e218a4d292e63183e1562d2457e3d770fa1e09eddb4827da3ad"
+                                                                "templateHash":  "19c6c3a6f014387ef777af042f491d0e6f3dcf9fc708aad9e55d1da3b4df9c2e"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -1756,19 +1756,37 @@
                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
-                                                                "name":  "linePictureUrl",
+                                                                "name":  "pictureMode",
+                                                                "type":  "enum",
+                                                                "required":  true,
+                                                                "encodingContext":  "server-enum"
+                                                            },
+                                                            {
+                                                                "name":  "pictureUrl",
                                                                 "type":  "string",
                                                                 "required":  false,
                                                                 "encodingContext":  "json-body"
                                                             },
                                                             {
-                                                                "name":  "lineStatusMessage",
+                                                                "name":  "statusMode",
+                                                                "type":  "enum",
+                                                                "required":  true,
+                                                                "encodingContext":  "server-enum"
+                                                            },
+                                                            {
+                                                                "name":  "statusMessage",
                                                                 "type":  "string",
                                                                 "required":  false,
                                                                 "encodingContext":  "json-body"
                                                             },
                                                             {
-                                                                "name":  "lineDisplayName",
+                                                                "name":  "displayNameMode",
+                                                                "type":  "enum",
+                                                                "required":  true,
+                                                                "encodingContext":  "server-enum"
+                                                            },
+                                                            {
+                                                                "name":  "displayName",
                                                                 "type":  "string",
                                                                 "required":  false,
                                                                 "encodingContext":  "json-body"
@@ -1776,8 +1794,9 @@
                                                         ],
                                     "encodingContexts":  [
                                                              "odata-uri-segment",
-                                                             "json-body"
-                                                         ],
+                                                              "server-enum",
+                                                              "json-body"
+                                                          ],
                                     "versionEvidence":  {
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
@@ -1790,7 +1809,12 @@
                                                                          "notes":  "Field-limited PATCH contact({id}) with allowlisted LINE profile attributes only."
                                                                      }
                                                         },
-                                    "smokeEvidence":  {
+                                     "responseKind":  "ContactLineProfileUpdate",
+                                     "maximumPageCount":  4,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
+                                     "smokeEvidence":  {
                                                           "status":  "not-started",
                                                           "evidenceId":  null,
                                                           "notes":  "Concrete product write path replacing generic entity update for this feature."
@@ -1814,29 +1838,17 @@
                                     "capabilityOperationId":  "memberinfo.contact.count.ungrouped.commitment",
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
-                                                                "templateId":  "memberinfo.contact.ungrouped.commitment.counts.v1",
-                                                                "templateHash":  "2e8c0ea3447772efa780ee64bb7e89a6dbdfaef00f7a227784eb7ce522c70754"
+                                                                 "templateId":  "memberinfo.contact.ungrouped.commitment.count.v1",
+                                                                "templateHash":  "35c92a6d1fc8dca0acbfc3372422b9e84302bc25a57fd8096dc3222185a75542"
                                                             },
-                                    "typedParameters":  [
+                                     "typedParameters":  [
                                                             {
                                                                 "name":  "search",
                                                                 "type":  "string",
                                                                 "required":  false,
                                                                 "encodingContext":  "fetchxml-attribute-value"
-                                                            },
-                                                            {
-                                                                "name":  "closedStatus",
-                                                                "type":  "integer",
-                                                                "required":  true,
-                                                                "encodingContext":  "fetchxml-attribute-value"
-                                                            },
-                                                            {
-                                                                "name":  "statusValues",
-                                                                "type":  "string-array",
-                                                                "required":  false,
-                                                                "encodingContext":  "fetchxml-attribute-value"
                                                             }
-                                                        ],
+                                                         ],
                                     "encodingContexts":  [
                                                              "fetchxml-attribute-value"
                                                          ],
@@ -1852,7 +1864,12 @@
                                                                          "notes":  "Replace QueryExpression-\u003eFetchXML conversion with one server-owned aggregate FetchXML/template."
                                                                      }
                                                         },
-                                    "smokeEvidence":  {
+                                     "responseKind":  "UngroupedCommitmentCounts",
+                                     "maximumPageCount":  4,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
+                                     "smokeEvidence":  {
                                                           "status":  "not-started",
                                                           "evidenceId":  null,
                                                           "notes":  "Supports MemberInfo commitment-type UI counts."

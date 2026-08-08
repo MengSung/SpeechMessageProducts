@@ -1,12 +1,15 @@
 using FluentAssertions;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Connectors;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.Connectors.Data8;
+using System.Xml.Linq;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -308,6 +311,416 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護 B1 connector 只更新三個固定 LINE profile 欄位，且 clear 會寫入 null、preserve 不會寫入欄位。
+    /// 故障注入是目前 client 尚未擁有 B1 template；決定性斷言是一次 Update 後用固定三欄 ColumnSet read-back，
+    /// 回應不含 contact、URL、文字、Entity 或 SDK graph，並在 client scope 結束時唯一 service owner 正好釋放一次。
+    /// 測試完全離線，不建立 LINE／CRM 網路、credential、session、timer、stream 或背景工作。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_updates_only_fixed_line_profile_fields_and_confirms_bounded_read_back()
+    {
+        var contactId = Guid.Parse("bbbbbbbb-1111-2222-3333-cccccccccccc");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            update: entity =>
+            {
+                entity.LogicalName.Should().Be("contact");
+                entity.Id.Should().Be(contactId);
+                entity.Attributes.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["new_line_picture_url"] = "https://profile.line-scdn.net/p7.2-test",
+                    ["new_line_status_message"] = null,
+                    ["new_line_displayname"] = "測試顯示名稱"
+                });
+            },
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.AllColumns.Should().BeFalse();
+                columnSet.Columns.Should().Equal(
+                    "new_line_picture_url",
+                    "new_line_status_message",
+                    "new_line_displayname");
+                return new Entity("contact", contactId)
+                {
+                    ["new_line_picture_url"] = "https://profile.line-scdn.net/p7.2-test",
+                    ["new_line_status_message"] = null,
+                    ["new_line_displayname"] = "測試顯示名稱"
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MemberInfoContactUpdateLineProfile,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            EstimatedBytes = 512,
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["pictureMode"] = "set",
+                ["pictureUrl"] = "https://profile.line-scdn.net/p7.2-test",
+                ["statusMode"] = "clear",
+                ["displayNameMode"] = "set",
+                ["displayName"] = "測試顯示名稱"
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactLineProfileUpdate);
+        result.Data.ContactLineProfileUpdate!.Disposition.Should().Be(ContactLineProfileUpdateDisposition.Changed);
+        result.Data.ContactLineProfileUpdate.CorrelationCategory
+            .Should().Be(ContactLineProfileUpdateCorrelationCategory.ReadBackConfirmed);
+        service.UpdateCount.Should().Be(1);
+        service.RetrieveCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 B1 只有三個 allowlisted 欄位全部讀回相符時才能回傳成功。故障注入令 status read-back 與剛完成的
+    /// mutation 不同；決定性斷言是 connector 回報不確定寫入結果、沒有建立成功 envelope，且 client scope
+    /// 結束時唯一 service owner 仍 Dispose 一次。這個離線替身不配置 CE 連線或保存欄位基線。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_rejects_a_line_profile_read_back_mismatch_and_disposes_service()
+    {
+        var contactId = Guid.Parse("bbbbbbbb-aaaa-2222-3333-cccccccccccc");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            update: _ => { },
+            retrieve: (_, _, _) => new Entity("contact", contactId)
+            {
+                ["new_line_picture_url"] = "https://profile.line-scdn.net/p7.2-test",
+                ["new_line_status_message"] = "unexpected-status",
+                ["new_line_displayname"] = "測試顯示名稱"
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MemberInfoContactUpdateLineProfile,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            EstimatedBytes = 512,
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["pictureMode"] = "set",
+                ["pictureUrl"] = "https://profile.line-scdn.net/p7.2-test",
+                ["statusMode"] = "clear",
+                ["displayNameMode"] = "set",
+                ["displayName"] = "測試顯示名稱"
+            }
+        };
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+            await client.ExecuteAsync(operation, CancellationToken.None);
+        };
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.UpdateCount.Should().Be(1);
+        service.RetrieveCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 B2 aggregate 由 connector 自行解析 contact.customertypecode metadata、固定的 active app-named
+    /// 小組清單與 membership，再建立不可由 caller 改寫的 aggregate FetchXML。故障注入是目前尚未存在的 B2
+    /// connector template；決定性斷言是 caller 只供應 search，metadata 找到唯一「結案」與 label match，
+    /// grouped contact 以 not-in 排除，結果只投影 bounded raw value/count。所有 SDK graph 僅活在同步 fake callback，
+    /// client scope 結束後 service 恰好 Dispose 一次，沒有 cache、session、timer、stream 或 background task。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_builds_server_owned_ungrouped_commitment_aggregate_and_projects_safe_counts()
+    {
+        var listId = Guid.Parse("cccccccc-1111-2222-3333-dddddddddddd");
+        var groupedContactId = Guid.Parse("dddddddd-1111-2222-3333-eeeeeeeeeeee");
+        var queryStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                queryStep++;
+                if (queryStep == 1)
+                {
+                    var lists = query.Should().BeOfType<QueryExpression>().Subject;
+                    lists.EntityName.Should().Be("list");
+                    lists.ColumnSet.Columns.Should().Equal("listid");
+                    lists.Criteria.Conditions.Select(condition => new { condition.AttributeName, condition.Operator })
+                        .Should().Equal(
+                            new { AttributeName = "statecode", Operator = ConditionOperator.Equal },
+                            new { AttributeName = "purpose", Operator = ConditionOperator.Equal },
+                            new { AttributeName = "new_app_named", Operator = ConditionOperator.Equal });
+                    lists.Criteria.Conditions[1].Values.Should().ContainSingle().Which.Should().Be("小組名單");
+                    lists.Criteria.Conditions[2].Values.Should().ContainSingle().Which.Should().Be(true);
+                    return new EntityCollection([new Entity("list", listId) { ["listid"] = listId }]);
+                }
+
+                if (queryStep == 2)
+                {
+                    var memberships = query.Should().BeOfType<QueryExpression>().Subject;
+                    memberships.EntityName.Should().Be("listmember");
+                    memberships.ColumnSet.Columns.Should().Equal("listid", "entityid");
+                    memberships.Criteria.Conditions.Should().ContainSingle(condition =>
+                        condition.AttributeName == "listid" && condition.Operator == ConditionOperator.In);
+                    memberships.Criteria.Conditions[0].Values.Should().ContainSingle().Which.Should().Be(listId);
+                    memberships.LinkEntities.Should().ContainSingle();
+                    var contactLink = memberships.LinkEntities[0];
+                    contactLink.LinkToEntityName.Should().Be("contact");
+                    contactLink.LinkCriteria.Conditions.Should().ContainSingle(condition =>
+                        condition.AttributeName == "statecode" && condition.Operator == ConditionOperator.Equal);
+                    contactLink.LinkCriteria.Filters.Should().ContainSingle();
+                    return new EntityCollection(
+                    [
+                        new Entity("listmember")
+                        {
+                            ["listid"] = listId,
+                            ["entityid"] = groupedContactId
+                        }
+                    ]);
+                }
+
+                var aggregate = query.Should().BeOfType<FetchExpression>().Subject;
+                var document = XDocument.Parse(aggregate.Query);
+                document.Root!.Attribute("aggregate")!.Value.Should().Be("true");
+                document.Descendants("entity").Should().ContainSingle(node =>
+                    HasAttributeValue(node, "name", "contact"));
+                document.Descendants("attribute").Should().Contain(node =>
+                    HasAttributeValue(node, "name", "customertypecode") &&
+                    HasAttributeValue(node, "alias", "commitmenttype") &&
+                    HasAttributeValue(node, "groupby", "true"));
+                document.Descendants("condition").Should().Contain(node =>
+                    HasAttributeValue(node, "attribute", "customertypecode") &&
+                    HasAttributeValue(node, "operator", "not-null"));
+                document.Descendants("condition").Should().Contain(node =>
+                    HasAttributeValue(node, "attribute", "customertypecode") &&
+                    HasAttributeValue(node, "operator", "ne") &&
+                    HasAttributeValue(node, "value", "100000011"));
+                document.Descendants("condition").Should().Contain(node =>
+                    HasAttributeValue(node, "attribute", "contactid") &&
+                    HasAttributeValue(node, "operator", "not-in") &&
+                    node.Elements("value").Single().Value == groupedContactId.ToString("D"));
+                document.Descendants("condition").Should().Contain(node =>
+                    HasAttributeValue(node, "attribute", "fullname") &&
+                    HasAttributeValue(node, "operator", "like") &&
+                    HasAttributeValue(node, "value", "%會友%"));
+                document.Descendants("condition").Should().Contain(node =>
+                    HasAttributeValue(node, "attribute", "customertypecode") &&
+                    HasAttributeValue(node, "operator", "in") &&
+                    node.Elements("value").Single().Value == "100000001");
+                return new EntityCollection(
+                [
+                    new Entity("contact")
+                    {
+                        ["commitmenttype"] = new AliasedValue(
+                            "contact",
+                            "customertypecode",
+                            new OptionSetValue(100000001)),
+                        ["rowcount"] = new AliasedValue("contact", "contactid", 5)
+                    }
+                ]);
+            },
+            execute: request =>
+            {
+                var metadataRequest = request.Should().BeOfType<RetrieveAttributeRequest>().Subject;
+                metadataRequest.EntityLogicalName.Should().Be("contact");
+                metadataRequest.LogicalName.Should().Be("customertypecode");
+                metadataRequest.RetrieveAsIfPublished.Should().BeTrue();
+                return CreateCustomerTypeMetadataResponse();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MemberInfoContactCountUngroupedCommitment,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            EstimatedBytes = 320,
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal) { ["search"] = "會友" }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.UngroupedCommitmentCounts);
+        result.Data.UngroupedCommitmentCounts.Should().ContainSingle()
+            .Which.Should().Be(new UngroupedCommitmentCountRecord { Value = 100000001, Count = 5 });
+        queryStep.Should().Be(3);
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(3);
+        service.UpdateCount.Should().Be(0);
+        service.RetrieveCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 B2 不得把分頁未完成或 logical entity 錯配的 aggregate row 當成完整計數。故障注入分別令
+    /// <see cref="EntityCollection.MoreRecords"/> 為 true，或令 alias row 宣告為 account；決定性斷言是
+    /// connector 在建立成功 envelope 前失敗、沒有回傳 partial count，且唯一 Data8 service owner 仍釋放一次。
+    /// 測試只使用同步記憶體替身，不建立 CE 連線、credential、session、timer、stream 或背景工作。
+    /// </summary>
+    /// <param name="aggregateHasMoreRecords">是否模擬尚有未讀 aggregate page。</param>
+    /// <param name="aggregateEntityName">模擬 aggregate row 宣告的 logical entity name。</param>
+    [Theory]
+    [InlineData(true, "contact")]
+    [InlineData(false, "account")]
+    public async Task Created_client_rejects_incomplete_or_wrong_entity_ungrouped_aggregate(
+        bool aggregateHasMoreRecords,
+        string aggregateEntityName)
+    {
+        var queryStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                queryStep++;
+                if (queryStep == 1)
+                {
+                    query.Should().BeOfType<QueryExpression>().Which.EntityName.Should().Be("list");
+                    return new EntityCollection();
+                }
+
+                query.Should().BeOfType<FetchExpression>();
+                return new EntityCollection(
+                [
+                    new Entity(aggregateEntityName)
+                    {
+                        ["commitmenttype"] = new AliasedValue(
+                            "contact",
+                            "customertypecode",
+                            new OptionSetValue(100000001)),
+                        ["rowcount"] = new AliasedValue("contact", "contactid", 1)
+                    }
+                ])
+                {
+                    MoreRecords = aggregateHasMoreRecords,
+                    PagingCookie = aggregateHasMoreRecords ? "opaque-test-cookie" : null
+                };
+            },
+            execute: _ => CreateCustomerTypeMetadataResponse());
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MemberInfoContactCountUngroupedCommitment,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            EstimatedBytes = 256,
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+            await client.ExecuteAsync(operation, CancellationToken.None);
+        };
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        queryStep.Should().Be(2);
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 B2 必須從 metadata 找到唯一 normalized「結案」OptionSet value。故障注入分別移除結案 label，
+    /// 或加入第二個不同 value 的結案 label；決定性斷言是任何 list、membership 或 aggregate query 開始前
+    /// fail closed，且唯一 service owner 仍釋放一次，不把 metadata 或 profile state 放入 cache／session。
+    /// </summary>
+    /// <param name="addTwoClosedValues">是否注入兩個相異的結案 OptionSet value。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Created_client_rejects_missing_or_ambiguous_closed_status_metadata(bool addTwoClosedValues)
+    {
+        var options = new List<OptionMetadata>
+        {
+            new(new Label("01. 會友", 1028), 100000001)
+        };
+        if (addTwoClosedValues)
+        {
+            options.Add(new OptionMetadata(new Label("10. 結案", 1028), 100000011));
+            options.Add(new OptionMetadata(new Label("11. 結案", 1028), 100000012));
+        }
+
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: _ => throw new InvalidOperationException("Metadata failure must precede CRM queries."),
+            execute: _ => CreateCustomerTypeMetadataResponse(options));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MemberInfoContactCountUngroupedCommitment,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            EstimatedBytes = 256,
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+            await client.ExecuteAsync(operation, CancellationToken.None);
+        };
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 建立 B2 測試專用的 bounded picklist metadata response。內容只含三個固定 OptionSet label/value，
+    /// 不包含 endpoint、Organization、credential 或 contact data；回應只在 fake Execute callback 期間使用。
+    /// </summary>
+    private static RetrieveAttributeResponse CreateCustomerTypeMetadataResponse()
+        => CreateCustomerTypeMetadataResponse(
+        [
+            new OptionMetadata(new Label("01. 會友", 1028), 100000001),
+            new OptionMetadata(new Label("02. 新朋友", 1028), 100000002),
+            new OptionMetadata(new Label("10. 結案", 1028), 100000011)
+        ]);
+
+    /// <summary>
+    /// 以 caller 提供的有限 OptionMetadata 集合建立離線 RetrieveAttributeResponse。輸入只由測試擁有並立即
+    /// 複製到 response；helper 不保存 metadata、不建立 CRM client，也不跨測試共用 mutable OptionSet state。
+    /// </summary>
+    /// <param name="options">本測試案例擁有的有限 OptionSet options。</param>
+    private static RetrieveAttributeResponse CreateCustomerTypeMetadataResponse(
+        IReadOnlyCollection<OptionMetadata> options)
+    {
+        var metadata = new PicklistAttributeMetadata
+        {
+            LogicalName = "customertypecode",
+            OptionSet = new OptionSetMetadata()
+        };
+        foreach (var option in options)
+        {
+            metadata.OptionSet.Options.Add(option);
+        }
+
+        var response = new RetrieveAttributeResponse();
+        response.Results["AttributeMetadata"] = metadata;
+        return response;
+    }
+
+    /// <summary>以 expression-tree 相容方式比較 XML attribute；只讀測試 DOM，不配置外部資源。</summary>
+    private static bool HasAttributeValue(XElement element, string attributeName, string expectedValue)
+        => string.Equals(element.Attribute(attributeName)?.Value, expectedValue, StringComparison.Ordinal);
+
+    /// <summary>
     /// 建立只在本測試記憶體內存在的 factory 設定。字串內容不是真實 endpoint 或 credential；production factory
     /// 不記錄這些值，且設定 owner 是 host composition root，不會把它傳入 OperationExecutionRequest 或 Pool key。
     /// </summary>
@@ -508,6 +921,7 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
         private readonly Func<QueryBase, EntityCollection>? _retrieveMultiple;
         private readonly Action<Entity>? _update;
         private readonly Func<string, Guid, ColumnSet, Entity>? _retrieve;
+        private readonly Func<OrganizationRequest, OrganizationResponse>? _execute;
         private int _executeCount;
         private int _retrieveMultipleCount;
         private int _updateCount;
@@ -524,12 +938,14 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             Guid organizationId,
             Func<QueryBase, EntityCollection>? retrieveMultiple = null,
             Action<Entity>? update = null,
-            Func<string, Guid, ColumnSet, Entity>? retrieve = null)
+            Func<string, Guid, ColumnSet, Entity>? retrieve = null,
+            Func<OrganizationRequest, OrganizationResponse>? execute = null)
         {
             _organizationId = organizationId;
             _retrieveMultiple = retrieveMultiple;
             _update = update;
             _retrieve = retrieve;
+            _execute = execute;
         }
 
         public int ExecuteCount => Volatile.Read(ref _executeCount);
@@ -553,8 +969,14 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
 
         public OrganizationResponse Execute(OrganizationRequest request)
         {
-            request.Should().BeOfType<WhoAmIRequest>();
             Interlocked.Increment(ref _executeCount);
+            if (_execute is not null)
+            {
+                return _execute(request)
+                    ?? throw new InvalidOperationException("The fake execute callback returned null.");
+            }
+
+            request.Should().BeOfType<WhoAmIRequest>();
             return new WhoAmIResponse
             {
                 Results = new ParameterCollection

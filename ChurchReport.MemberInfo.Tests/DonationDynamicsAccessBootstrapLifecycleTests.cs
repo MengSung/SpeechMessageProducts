@@ -174,6 +174,46 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
+    /// 保護 P7.2 Slice B consumer composition 預設為嚴格 no-op。故障注入是沒有 process host、endpoint 或
+    /// credential 的空設定；決定性斷言是 flag=false 且 helper 回傳 null，因而不建立 executor、HTTP handler、
+    /// Data8 pool、metadata cache、session、timer 或 ChurchReport 流量。
+    /// </summary>
+    [Fact]
+    public void Package02_contact_profile_operations_remain_disabled_by_default_before_host_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+
+        DonationDynamicsAccessBootstrap.IsPackage02ContactProfileOperationsEnabled(configuration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.TryCreatePackage02ContactProfileClient(configuration)
+            .Should().BeNull();
+    }
+
+    /// <summary>
+    /// 保護 reviewed flag 未來開啟時只借用主 DI 注入的 stateless Slice B typed client，不自行建立 provider 或
+    /// transport。故障注入是 in-memory injected client；決定性斷言是原物件被回傳且沒有執行 B1 write／B2 query、
+    /// CE operation、LINE call、timer、stream 或 background work。
+    /// </summary>
+    [Fact]
+    public void Package02_contact_profile_operations_accept_an_injected_client_only_when_flag_is_enabled()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package02ContactProfileOperationsEnabled"] = "true"
+            })
+            .Build();
+        var injected = new DisabledContactProfileClient();
+
+        DonationDynamicsAccessBootstrap.IsPackage02ContactProfileOperationsEnabled(configuration)
+            .Should().BeTrue();
+        DonationDynamicsAccessBootstrap.TryCreatePackage02ContactProfileClient(configuration, injected)
+            .Should().BeSameAs(injected);
+    }
+
+    /// <summary>
     /// 保護實際 ChurchReport process host 可以由既有 CrmConnection 組成一個 Embedded adapter，而不要求或讀取
     /// Gateway endpoint。故障注入是缺少 Gateway 區段；決定性斷言是同設定只重用一個 adapter generation，尚未
     /// 執行 operation 前不會建立 Data8 client，且 host Dispose 後拒絕再次組成。測試使用 example.invalid 與
@@ -332,6 +372,24 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             ContactBasicInfoUpdateRequest request,
             CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("Disabled composition test client must not execute.");
+    }
+
+    /// <summary>
+    /// 不擁有資源的 Slice B composition 替身；任一 method 被執行即失敗，證明本測試只驗證 flag／DI 邊界。
+    /// </summary>
+    private sealed class DisabledContactProfileClient : IPackage02ContactProfileClient
+    {
+        /// <summary>禁止 disabled composition 測試執行 LINE profile write。</summary>
+        public Task<ContactLineProfileUpdateResult> UpdateLineProfileAsync(
+            ContactLineProfileUpdateRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Slice B composition test client must not execute.");
+
+        /// <summary>禁止 disabled composition 測試執行 aggregate function。</summary>
+        public Task<UngroupedCommitmentCountResult> CountUngroupedCommitmentAsync(
+            UngroupedCommitmentCountRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Slice B composition test client must not execute.");
     }
 
     /// <summary>

@@ -73,7 +73,7 @@ public static class Package01OperationRegistry
         => Definitions.ContainsKey(capabilityOperationId);
 
     /// <summary>
-    /// 建立目前九個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
+    /// 建立目前十二個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
     /// shape；新增 capability 時必須同步更新 matrix、projection、有限政策與 hash agreement test。
     /// </summary>
     private static IEnumerable<OperationDefinition> Build()
@@ -240,6 +240,44 @@ public static class Package01OperationRegistry
                 Param("address", "string", required: false, encoding: "json-body"),
                 Param("membershipStatusValue", "integer", required: false, encoding: "json-body"),
                 Param("spiritualIdentityValue", "integer", required: false, encoding: "json-body")
+            ]);
+
+        // Slice B1：LINE credential/profile retrieval 留在產品，Gateway 只允許三個固定欄位的 set/clear/preserve scalar。
+        yield return Def(
+            OperationIds.MemberInfoContactUpdateLineProfile,
+            package: "package-2-memberinfo-writes",
+            kind: "write",
+            templateKind: "odata-route",
+            templateId: "memberinfo.contact.line.profile.patch.v1",
+            responseKind: OperationResponseKind.ContactLineProfileUpdate,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("pictureMode", "enum", required: true, encoding: "server-enum"),
+                Param("pictureUrl", "string", required: false, encoding: "json-body"),
+                Param("statusMode", "enum", required: true, encoding: "server-enum"),
+                Param("statusMessage", "string", required: false, encoding: "json-body"),
+                Param("displayNameMode", "enum", required: true, encoding: "server-enum"),
+                Param("displayName", "string", required: false, encoding: "json-body")
+            ]);
+
+        // Slice B2：只允許 bounded search；closed status、metadata matches、list scope 與 FetchXML 由 connector 固定產生。
+        yield return Def(
+            OperationIds.MemberInfoContactCountUngroupedCommitment,
+            package: "package-2-memberinfo-functions",
+            kind: "function",
+            templateKind: "fetchxml",
+            templateId: "memberinfo.contact.ungrouped.commitment.count.v1",
+            responseKind: OperationResponseKind.UngroupedCommitmentCounts,
+            data: "personal-data",
+            audit: "read-audit",
+            idempotency: "read-only",
+            parameters:
+            [
+                Param("search", "string", required: false, encoding: "fetchxml-attribute-value")
             ]);
     }
 

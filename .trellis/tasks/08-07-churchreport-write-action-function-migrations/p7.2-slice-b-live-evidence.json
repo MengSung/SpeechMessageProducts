@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "p7.2.live-evidence.v1",
+  "sliceId": "contact-line-profile-and-ungrouped-commitment",
+  "operationIds": [
+    "memberinfo.contact.update.line.profile",
+    "memberinfo.contact.count.ungrouped.commitment"
+  ],
+  "evidenceDate": "2026-08-08",
+  "environmentClass": "isolated-synthetic-development",
+  "profileAlias": "sunnyvalechback",
+  "deploymentProfileAlias": "crm91",
+  "ceVersion": "9.1",
+  "connector": "Data8",
+  "preflight": {
+    "outcome": "go",
+    "preflightOnly": true,
+    "operationExecuted": false,
+    "featureFlagChanged": false,
+    "checks": [
+      "matrix-approved",
+      "profile-crm91-present",
+      "credential-target-present",
+      "b1-fixture-owner-matches-operator",
+      "b2-fixture-owner-matches-operator"
+    ]
+  },
+  "execution": {
+    "outcome": "go",
+    "preflightOnly": false,
+    "operationExecuted": true,
+    "featureFlagChanged": false,
+    "b1": {
+      "outcome": "go",
+      "operationExecuted": true,
+      "sentinelState": "confirmed",
+      "cleanupState": "restored"
+    },
+    "b2": {
+      "outcome": "go",
+      "operationExecuted": true,
+      "parityState": "confirmed",
+      "rowCount": 4
+    }
+  },
+  "sensitiveDataIncluded": false
+}

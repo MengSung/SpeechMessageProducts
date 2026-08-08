@@ -166,10 +166,10 @@ public sealed class OnPremiseData8ConnectorClientFactory : IData8ConnectorClient
 }
 
 /// <summary>
-/// 將同步 Data8 IOrganizationService 限縮為已審查的 SDK-free runtime 與 Package01 唯讀 Connector 操作。
+/// 將同步 Data8 IOrganizationService 限縮為已審查的 SDK-free runtime、Package01 read 與 P7.2 contact 操作。
 /// 此類別只由 Pool 建立並由 Lease Dispose；它不快取 OrganizationResponse、request、Profile、credential 或
 /// session，且不允許 generic Execute，因此產品無法藉由 Embedded 建立未審查的 CRM command 通道。所有 CRM
-/// QueryExpression/Entity 投影仍留在 <see cref="Package01Data8ReadOperations"/> 的單次執行 scope。
+/// QueryExpression／Entity／metadata 投影只留在各 capability owner 的單次執行 scope，不會跨 lease 保存。
 /// </summary>
 internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
 {
@@ -196,14 +196,14 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
     }
 
     /// <summary>
-    /// 執行已完成安全投影的 WhoAmI 或 Package01 server-owned read operation。
+    /// 執行已完成安全投影的 WhoAmI、Package01 server-owned read 或 P7.2 固定 contact operation。
     /// WCF IOrganizationService 是同步 API，因此不建立額外 ThreadPool task；取消在呼叫前後檢查。若呼叫
     /// 期間發生取消或 service 例外，例外會回到 Lease，Lease 隨即標記 faulted 並 Dispose 此 client，不會將
     /// 健康狀態未知的 WCF Session 放回 Pool。
     /// </summary>
     /// <param name="operation">由 Data8ProfileOperationExecutor 建立的 allowlisted、型別化 operation。</param>
     /// <param name="cancellationToken">單次 lease 的取消訊號，永不保存。</param>
-    /// <returns>僅含 WhoAmI scalar 或 Package01 封閉 response branch 的 SDK-free 結果。</returns>
+    /// <returns>僅含 WhoAmI scalar 或 registry 對應封閉 response branch 的 SDK-free 結果。</returns>
     public Task<ConnectorOperationResult> ExecuteAsync(
         ConnectorOperation operation,
         CancellationToken cancellationToken)
@@ -241,16 +241,20 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
             });
         }
 
-        // Package01 helper 是唯一可觸碰 QueryExpression、EntityCollection 與 CRM Entity 的位置；它不接受
-        // request-time CRM metadata，且一旦同步 SDK 呼叫、投影或 paging 發生例外，Lease 會淘汰本 client。
-        // P7.1 read 與 P7.2 contact write 各自擁有封閉 template；此 dispatch 不提供 generic CRUD、
-        // Entity、FetchXML 或 caller-selected routing。未知 operation 仍由各 capability owner fail closed。
-        var data = string.Equals(
-            operation.OperationId,
-            OperationIds.MemberInfoContactUpdateBasicInfo,
-            StringComparison.Ordinal)
-            ? Package02Data8ContactBasicInfoWriteOperations.Execute(service, operation, _ceVersion)
-            : Package01Data8ReadOperations.Execute(service, operation, _ceVersion);
+        // Package01 與 P7.2 helpers 分別擁有固定 QueryExpression、Entity、metadata 與 aggregate template；它們
+        // 不接受 request-time CRM metadata，且同步 SDK 呼叫、投影或 paging 發生例外時 Lease 會淘汰本 client。
+        // 此 dispatch 不提供 generic CRUD、caller Entity／FetchXML 或 caller-selected routing；未知 operation
+        // 仍由各 capability owner fail closed。
+        var data = operation.OperationId switch
+        {
+            OperationIds.MemberInfoContactUpdateBasicInfo =>
+                Package02Data8ContactBasicInfoWriteOperations.Execute(service, operation, _ceVersion),
+            OperationIds.MemberInfoContactUpdateLineProfile =>
+                Package02Data8ContactProfileOperations.ExecuteLineProfileUpdate(service, operation, _ceVersion),
+            OperationIds.MemberInfoContactCountUngroupedCommitment =>
+                Package02Data8ContactProfileOperations.ExecuteUngroupedCommitmentCount(service, operation, _ceVersion),
+            _ => Package01Data8ReadOperations.Execute(service, operation, _ceVersion)
+        };
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(new ConnectorOperationResult(true)
         {

@@ -2,7 +2,7 @@
   "schemaVersion": "p7.2.fixture-activation.v1",
   "coverageMatrix": "archive/2026-08/08-05-gateway-capability-inventory/coverage-matrix.json",
   "sourceMatrix": ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
-  "sourceMatrixSha256": "ec99208639e85e9f9f3b48999b3d829d578f2f094554447ddb469195d0615c83",
+  "sourceMatrixSha256": "dc0087b5febe92879f5427df75195521a08dae6dfb0d128bb526eabc8f69cd83",
   "defaultDispatch": "fail-closed",
   "allowedExecutionHost": "Lenovo Legion local development environment",
   "allowedConnector": "Data8",
@@ -42,15 +42,74 @@
       "rollbackOwner": "P7.2 contact-basic-info fixture bridge"
     },
     {
-      "id": "contact-profile-media-and-aggregate",
-      "status": "fixture-pending",
+      "id": "contact-line-profile",
+      "status": "required-for-activation",
       "operationIds": [
-        "memberinfo.contact.update.line.profile",
-        "memberinfo.contact.count.ungrouped.commitment",
+        "memberinfo.contact.update.line.profile"
+      ],
+      "fixtureOwner": "p7.2-controlled-contact-line-profile",
+      "requiredCeVersion": "9.1",
+      "allowedMutations": [
+        "contact.new_line_picture_url",
+        "contact.new_line_status_message",
+        "contact.new_line_displayname"
+      ],
+      "preconditions": [
+        "deployment-owned crm91 profile resolves to Data8",
+        "contact is selected by the task-owned fixture bridge under the owner's 2026-08-08 sunnyvalechback authorization",
+        "baseline read of all three allowed fields succeeds",
+        "LINE token and profile retrieval remain outside the Dynamics Gateway contract"
+      ],
+      "idempotency": "no automatic retry after an ambiguous write; reconcile the three allowlisted fields by read-back",
+      "ambiguousTimeoutPolicy": "restore only when current state is exactly the baseline or expected sentinel; otherwise stop no-go",
+      "cleanup": "restore the captured baseline values for exactly the three LINE profile fields",
+      "reconciliation": "compare only the three allowlisted fields and report sanitized state categories",
+      "realCeEvidence": {
+        "ce82": "unsupported",
+        "ce91": "complete",
+        "artifact": ".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-slice-b-live-evidence.json"
+      },
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.2 contact-line-profile fixture bridge"
+    },
+    {
+      "id": "ungrouped-commitment-aggregate",
+      "status": "required-for-activation",
+      "operationIds": [
+        "memberinfo.contact.count.ungrouped.commitment"
+      ],
+      "fixtureOwner": "p7.2-read-only-ungrouped-commitment-query",
+      "requiredCeVersion": "9.1",
+      "allowedMutations": [],
+      "preconditions": [
+        "deployment-owned crm91 profile resolves to Data8",
+        "connector owns the fixed active app-named small-group and current-contact filters",
+        "request contains no FetchXML, QueryExpression, entity name, field name or grouped contact IDs"
+      ],
+      "idempotency": "read-only",
+      "ambiguousTimeoutPolicy": "return fail-closed read error; no mutation or cleanup retry exists",
+      "cleanup": "dispose request-scoped list, membership, aggregate, lease and service resources",
+      "reconciliation": "compare bounded raw OptionSet value/count pairs with the legacy query on the same sanitized input category",
+      "realCeEvidence": {
+        "ce82": "unsupported",
+        "ce91": "complete",
+        "artifact": ".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-slice-b-live-evidence.json"
+      },
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.2 aggregate contract owner"
+    },
+    {
+      "id": "contact-image-media-handoff",
+      "status": "p7.3-media-dependency",
+      "operationIds": [
         "memberinfo.contact.update.image",
         "newperson.contact.update.image"
       ],
-      "reason": "LINE, image bytes and aggregate semantics each require dedicated field limits and reconciliation."
+      "reason": "Legacy ingress allows 5 MiB images, while the controlled operation JSON and canonical dispatch envelope are 64 KiB scalar boundaries. P7.3 must own bounded streaming, opaque handle lifetime, one-time consumption, read-back, cleanup and live evidence without widening the operation body limit.",
+      "requiredCeVersion": "9.1",
+      "dispatchBeforeDependency": "fail-closed",
+      "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
+      "rollbackOwner": "P7.3 contact-image media fixture owner"
     },
     {
       "id": "list-membership",

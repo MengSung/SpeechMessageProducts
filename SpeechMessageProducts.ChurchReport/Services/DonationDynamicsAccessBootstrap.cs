@@ -50,7 +50,7 @@ namespace ChurchReport.Services
         private static IDonationDynamicsAccessProcessHost? _compatibilityProcessHost;
 
         /// <summary>
-    /// 建立奉獻收費表單服務；Package01 啟用時目前仍只走已完成 lifecycle 的 Gateway executor。
+        /// 建立奉獻收費表單服務；Package01 啟用時目前仍只走已完成 lifecycle 的 Gateway executor。
         /// </summary>
         public static DonationDedicationFeeFormService CreateFeeFormService(
             ToolUtilityClass utility,
@@ -95,7 +95,7 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-    /// 嘗試建立 Package 1 client（已完成的 Gateway 路徑）。
+        /// 嘗試建立 Package 1 client（已完成的 Gateway 路徑）。
         /// 若未啟用或設定不完整，回傳 null，呼叫端應走舊路徑。
         /// </summary>
         public static IPackage01FeeReadClient? TryCreatePackage01Client(IConfiguration configuration)
@@ -157,16 +157,7 @@ namespace ChurchReport.Services
                 return injectedClient;
             }
 
-            var productOptions = BindOptions(configuration);
-            var processHost = GetStartedProcessHost();
-            var executor = productOptions.ConnectionMode switch
-            {
-                ConnectionMode.Embedded => processHost.GetOrCreateEmbeddedExecutor(productOptions, configuration),
-                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway =>
-                    processHost.GetOrCreateGatewayExecutor(productOptions),
-                _ => throw new InvalidOperationException(
-                    "Package02 contact basic-info updates require a supported Dynamics connection mode.")
-            };
+            var executor = CreatePackage02Executor(configuration);
 
             return new Package02ContactBasicInfoUpdateClient(
                 executor,
@@ -174,9 +165,69 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-    /// 繫結產品唯一可見的 mode、ProfileAlias 與可選 Gateway 設定。Embedded 不需要亦不使用 Gateway endpoint；
-    /// CrmConnection、CRM endpoint、credential、token 與 secret-reference 均不會被複製到回傳 options。
-    /// 實際 Gateway executor 啟用時仍由既有 validator 在任何 outbound request 前 fail closed。
+        /// 讀取 P7.2 Slice B LINE profile／ungrouped aggregate 的獨立 consumer flag。預設 false，故 P7.4
+        /// cutover 前不解析 process host、不建立 provider／HTTP handler／Data8 pool，也不送出 write、metadata、
+        /// list、membership 或 aggregate operation。此 flag 不與 basic-info 或 Package01 共享 rollout 邊界。
+        /// </summary>
+        public static bool IsPackage02ContactProfileOperationsEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            var raw = configuration["DynamicsAccess:Package02ContactProfileOperationsEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 嘗試建立 P7.2 Slice B typed client。flag=false 時在 host resolution 前回傳 null；flag=true 時只借用
+        /// process host 的單一 Embedded／Gateway executor generation，不建立第二個 provider、pool、credential graph
+        /// 或 session。此 helper 尚未接入 controller，因此不會自行切換 ChurchReport 流量；P7.4 才擁有 cutover。
+        /// </summary>
+        /// <param name="configuration">deployment-owned DynamicsAccess 設定；不能來自 HTTP request。</param>
+        /// <param name="injectedClient">測試或正式 DI 已擁有的 stateless typed client；helper 不 Dispose。</param>
+        /// <returns>flag 關閉時 null；開啟時為注入 client 或共用 executor 上的新 stateless facade。</returns>
+        public static IPackage02ContactProfileClient? TryCreatePackage02ContactProfileClient(
+            IConfiguration configuration,
+            IPackage02ContactProfileClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage02ContactProfileOperationsEnabled(configuration))
+            {
+                return null;
+            }
+
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            return new Package02ContactProfileClient(
+                CreatePackage02Executor(configuration),
+                NullLogger<Package02ContactProfileClient>.Instance);
+        }
+
+        /// <summary>
+        /// 為所有已實作但尚未 cutover 的 Package02 typed clients 選取同一 process generation。ConnectionMode 只由
+        /// deployment configuration 決定；request 不能切換 Embedded／Dedicated／Central、Profile 或 connector。
+        /// 回傳 executor 由 process host 唯一擁有，typed client 與 helper 均不得 Dispose。
+        /// </summary>
+        private static IDynamicsOperationExecutor CreatePackage02Executor(IConfiguration configuration)
+        {
+            var productOptions = BindOptions(configuration);
+            var processHost = GetStartedProcessHost();
+            return productOptions.ConnectionMode switch
+            {
+                ConnectionMode.Embedded => processHost.GetOrCreateEmbeddedExecutor(productOptions, configuration),
+                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway =>
+                    processHost.GetOrCreateGatewayExecutor(productOptions),
+                _ => throw new InvalidOperationException(
+                    "Package02 contact operations require a supported Dynamics connection mode.")
+            };
+        }
+
+        /// <summary>
+        /// 繫結產品唯一可見的 mode、ProfileAlias 與可選 Gateway 設定。Embedded 不需要亦不使用 Gateway endpoint；
+        /// CrmConnection、CRM endpoint、credential、token 與 secret-reference 均不會被複製到回傳 options。
+        /// 實際 Gateway executor 啟用時仍由既有 validator 在任何 outbound request 前 fail closed。
         /// </summary>
         public static ProductDynamicsOptions BindOptions(IConfiguration configuration)
         {
@@ -523,7 +574,13 @@ namespace ChurchReport.Services
                     serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>()));
                 services.AddSpeechMessageDynamicsEmbedded(
                     options,
-                    _ => new RequestGuard([OperationIds.RuntimeHealthWhoAmI]),
+                    _ => new RequestGuard(
+                    [
+                        OperationIds.RuntimeHealthWhoAmI,
+                        OperationIds.MemberInfoContactUpdateBasicInfo,
+                        OperationIds.MemberInfoContactUpdateLineProfile,
+                        OperationIds.MemberInfoContactCountUngroupedCommitment
+                    ]),
                     serviceProvider => serviceProvider.GetRequiredService<EmbeddedData8Runtime>().Executor);
             });
         }

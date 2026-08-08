@@ -2121,6 +2121,99 @@ The correct path preserves the distinction between connector readiness and
 business semantics, prevents cross-family test data leakage, and keeps an
 ambiguous or unclean write from becoming a false Green gate.
 
+## Scenario: Operation registry and Phase 0 matrix synchronization
+
+### 1. Scope / Trigger
+
+This contract applies whenever a Dynamics capability is added or its typed
+request, response discriminator, server-owned template, encoding context,
+page/byte limit, or CE evidence changes. It keeps the compiled registry, the
+machine-readable Phase 0 matrix, its JSON schema, and P7 fixture artifacts as
+one cross-layer contract.
+
+### 2. Signatures
+
+The registry definition is the executable source for these fields:
+
+```text
+OperationDefinition(
+  capabilityOperationId, operationKind, templateKind, templateId,
+  responseKind, maximumPageCount, maximumPageBytes,
+  maximumCumulativeResponseBytes, maximumResultItemCount,
+  dataClassification, auditRequirement, idempotencyClass, parameters[])
+```
+
+The corresponding matrix row must contain the same fields under
+`serverOwnedTemplate`, `typedParameters`, `encodingContexts`,
+`versionEvidence`, `responseKind`, and the four maximum fields. The P7.2
+fixture matrix records the exact byte-level SHA-256 of the source matrix in
+`sourceMatrixSha256`.
+
+### 3. Contracts
+
+- Every current `Package01OperationRegistry` definition has exactly one
+  `normalizedCallSites` row with the same operation ID; no registry operation
+  may be silently absent from the matrix.
+- `serverOwnedTemplate.templateHash` is generated from the compiled registry
+  material; hand-copying an earlier hash is invalid.
+- A row with a typed response must use a closed `responseKind` enum and include
+  all four conservative page/byte limits. If a registry parameter uses an
+  encoding context such as `server-enum`, the schema enum must declare it.
+- After changing the source matrix, recompute `sourceMatrixSha256` over the
+  exact UTF-8/no-BOM/CRLF bytes. A stale hash is a fixture-artifact failure,
+  not a reason to bypass the registry agreement gate.
+- CE-version evidence remains independent per row. `metadata-only` or
+  `unsupported` evidence cannot be promoted to live `passed` by copying the
+  other CE version.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Registry operation has zero or multiple matrix rows | Agreement test fails; dispatch remains fail-closed. |
+| Template ID, hash, parameter list, encoding, response kind, or limits differ | Agreement test fails; do not update the consumer or enable rollout. |
+| Matrix response discriminator is absent from the schema enum | Schema/agreement validation fails before live evidence. |
+| Registry introduces an encoding context missing from the schema | Schema validation fails; add the closed enum value before proceeding. |
+| P7 fixture artifact has a stale source-matrix SHA-256 | Fixture preflight is invalid and no CE operation starts. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: add the registry definition, update one matrix row and schema enum,
+  regenerate the template hash, refresh the fixture source hash, then run the
+  agreement tests before any CE evidence.
+- Base: a CE 8.2 row remains `unsupported` while the CE 9.1 row is
+  `metadata-only`; both rows still match the registry contract.
+- Bad: change only C# registry code and leave an older matrix hash or omit the
+  new response discriminator because the focused connector tests pass.
+
+### 6. Tests Required
+
+- `OperationRegistryAgreementTests.Compiled_registry_exactly_matches_enforced_phase0_matrix_rows`
+  asserts the complete field-for-field registry/matrix agreement.
+- `OperationRegistryAgreementTests.Matrix_response_policy_is_present_for_exactly_current_registry_rows`
+  asserts the closed response row set and all four limits.
+- `OperationRegistryAgreementTests.Matrix_schema_declares_closed_response_policy_contract`
+  asserts that every compiled response discriminator and encoding context is
+  declared by the schema.
+- Fixture preflight tests assert that `sourceMatrixSha256` equals the current
+  source bytes and reject stale artifacts without connector or CE calls.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+Add an operation to Package01OperationRegistry and rely on connector tests;
+leave the Phase 0 row, schema enum, and P7 fixture hash unchanged.
+```
+
+#### Correct
+
+```text
+Registry -> matrix row -> schema enum/limits -> fixture source hash
+         -> agreement tests -> only then live CE evidence
+```
+
 ## Scenario: P6.2 local IFD Official Worker profile input
 
 ### 1. Scope / Trigger
@@ -2500,3 +2593,137 @@ REPOSITORY_ROOT = find_repository_root(TASK_DIRECTORY)  # locate `.trellis/tasks
 The structural anchor keeps archive portability deterministic, prevents an
 incorrect source baseline from being generated, and preserves the P7 gate's
 offline, fail-closed boundary.
+
+## Scenario: P7.2 aggregate parity and ephemeral live-evidence handoff
+
+### 1. Scope / Trigger
+
+This contract applies when a typed Data8 capability projects a Dynamics
+aggregate whose legacy business result excludes records with a null grouping
+attribute, or when an opt-in live test must return one sanitized evidence
+record to a Windows PowerShell handoff and the test runner does not reliably
+preserve that record in TRX standard output. It prevents a null aggregate row
+from changing legacy counts and prevents missing test-runner output from being
+misreported as either Green evidence or an unknown CE failure.
+
+### 2. Signatures
+
+The current aggregate template and evidence boundary are:
+
+```text
+memberinfo.contact.count.ungrouped.commitment
+  -> contact.customertypecode not-null
+  -> contact.customertypecode != <server-resolved closed status>
+  -> group by contact.customertypecode as commitmenttype
+  -> count contactid as rowcount
+
+P7_2_B2_EVIDENCE_PATH=<OS-temp-root>/speechmessage-p7-2-profile-<nonce>/P72Data8B2Evidence.json
+```
+
+The evidence file contains exactly one bounded, sanitized object:
+
+```json
+{
+  "schemaVersion": 1,
+  "outcome": "go|no-go",
+  "reason": "fixed-sanitized-category",
+  "operationId": "memberinfo.contact.count.ungrouped.commitment",
+  "profileAlias": "sunnyvalechback",
+  "deploymentProfileAlias": "crm91",
+  "ceVersion": "9.1",
+  "connector": "Data8",
+  "preflightOnly": false,
+  "operationExecuted": true,
+  "parityState": "confirmed|mismatch|unknown",
+  "rowCount": 0,
+  "featureFlagChanged": false
+}
+```
+
+### 3. Contracts
+
+- If legacy projection ignores a null grouping value, the server-owned Data8
+  template must add an explicit `not-null` condition before the `groupby`.
+  Projection must still reject a row whose required alias is absent or whose
+  aliased value is null; the filter prevents the known semantic mismatch but
+  does not weaken fail-closed response validation.
+- Aggregate parity compares bounded raw OptionSet value/count pairs. It does
+  not compare translated labels, accept caller-supplied FetchXML, or silently
+  turn a missing alias into a synthetic zero/null bucket.
+- TRX remains suitable for test outcome and sanitized diagnostics, but a live
+  lane may use an ephemeral evidence file when its stdout marker is not
+  deterministically retained. A zero child exit code without a valid evidence
+  object is still `evidence-result-unavailable`, never Green.
+- The handoff creates the parent directory under the OS temporary root and
+  supplies the exact path through a process-scoped environment variable. The
+  test accepts only the exact file name, an existing nonce-prefixed parent
+  that is not a reparse point, and create-new semantics. The path is never
+  caller-selected through the product or Gateway contract.
+- The file is UTF-8 without BOM, CRLF-terminated, at most 32 KiB, and contains
+  no password, token, cookie, endpoint, Organization ID, contact ID, account
+  name, CRM payload, raw exception, baseline value, or feature-flag mutation.
+- The PowerShell owner validates every field, consumes the file once, and
+  removes the entire task-created temporary directory in `finally`. Environment
+  variables are restored in `finally`; no path, evidence object, stream,
+  process, task, or buffer survives the bounded handoff.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Legacy excludes null status but aggregate template omits `not-null` | Contract/parity test fails; do not publish CE evidence. |
+| CE returns a row without `commitmenttype` or `rowcount` | Projection fails closed; do not synthesize a value or partial result. |
+| Evidence path is outside the OS temp root, has a wrong file name, nonce parent mismatch, reparse parent, or pre-existing file | Live test fails before writing evidence. |
+| Evidence exceeds 32 KiB, is malformed, has an unexpected field value/type, or reports Green without `confirmed` parity | Handoff returns `evidence-result-unavailable`; no flag changes or retry occurs. |
+| Child exits zero but neither a valid TRX marker nor the required evidence file exists | Treat as missing evidence, not success. |
+| Cleanup or environment restoration fails | Return a sanitized cleanup failure and preserve fail-closed rollout state. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: the aggregate template excludes null `customertypecode`, Data8 and
+  legacy return the same bounded value/count pairs, the test atomically writes
+  one sanitized temporary object, and the handoff validates then deletes it.
+- Base: a normal offline test has no opt-in evidence path. It performs no CE
+  operation and remains skipped; it does not create a temporary file.
+- Bad: accept a missing aggregate alias as zero, infer Green from a child exit
+  code, write evidence into the repository, reuse a prior file, or retain the
+  file/environment after the handoff ends.
+
+### 6. Tests Required
+
+- `OnPremiseData8ConnectorClientFactoryTests` asserts that the exact aggregate
+  FetchXML contains both `customertypecode not-null` and the server-resolved
+  closed-status exclusion, then proves the projected result remains bounded.
+- ProductClient and bridge parity tests cover matching, mismatch, empty, fault,
+  cancellation, and deterministic disposal paths without returning raw CRM
+  objects or translated metadata.
+- `Invoke-Package02Data8ContactProfileEvidence.Tests.ps1` proves the fixed
+  temporary path contract, 32 KiB/schema validation, sanitized output,
+  create-new behavior, environment restoration, and recursive cleanup.
+- The opt-in live lane must dispose the Data8 runtime, parity store, logger,
+  connector lease, WCF service, and temporary evidence owner before reporting
+  completion.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+group by nullable customertypecode
+  -> accept a missing alias as a null/zero bucket
+  -> infer live success from dotnet exit code or unreliable TRX stdout
+```
+
+#### Correct
+
+```text
+server-owned not-null + closed-status filters
+  -> strict bounded aggregate projection
+  -> Data8/legacy raw value-count parity
+  -> strict one-use OS-temp evidence file when TRX stdout is insufficient
+  -> validate, consume, restore environment, delete in finally
+```
+
+The correct path preserves legacy aggregate semantics, keeps CE evidence
+explicit, and gives every temporary resource one bounded owner and deterministic
+cleanup path.

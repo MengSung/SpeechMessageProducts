@@ -49,7 +49,19 @@ public enum OperationResponseKind
     /// branch 尚未全部完成前，executor 仍會在取得 connector lease 前拒絕該 operation，不能把 enum 的存在誤解為
     /// 已允許 CRM 寫入或 feature flag 已啟用。
     /// </summary>
-    ContactBasicInfoUpdate = 4
+    ContactBasicInfoUpdate = 4,
+
+    /// <summary>
+    /// P7.2 contact LINE profile 三欄固定寫入的封閉結果；LINE token、profile payload、URL 與 contact identity
+    /// 不得出現在結果。正式 branch 只有在 Data8 read-back 完成後才可建構。
+    /// </summary>
+    ContactLineProfileUpdate = 5,
+
+    /// <summary>
+    /// P7.2 未分組 commitment aggregate 的 bounded raw OptionSet value/count 集合；不包含 FetchXML、
+    /// QueryExpression、Entity、AliasedValue、metadata label 或 grouped contact identity。
+    /// </summary>
+    UngroupedCommitmentCounts = 6
 }
 
 /// <summary>
@@ -59,6 +71,8 @@ public enum OperationResponseKind
 /// </summary>
 public sealed class OperationResponseData
 {
+    private const int MaximumUngroupedCommitmentCountRecords = 4096;
+
     /// <summary>
     /// 建立封閉回應。JSON 反序列化也必須經過此驗證，故未知/錯配 branch 無法被悄悄保存在長生命週期的
     /// Gateway 結果、queue 或 audit 物件中。非 null 集合會複製，唯一 owner 成為本 envelope。
@@ -71,7 +85,9 @@ public sealed class OperationResponseData
         WhoAmIResponseData? whoAmI = null,
         IReadOnlyList<Package01FeeRecord>? feeRecords = null,
         IReadOnlyList<Package01StorLessonRecord>? storLessonRecords = null,
-        ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate = null)
+        ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate = null,
+        ContactLineProfileUpdateResponseData? contactLineProfileUpdate = null,
+        IReadOnlyList<UngroupedCommitmentCountRecord>? ungroupedCommitmentCounts = null)
     {
         if (string.IsNullOrWhiteSpace(operationId))
         {
@@ -83,7 +99,14 @@ public sealed class OperationResponseData
             throw new ArgumentException("ceVersion is required.", nameof(ceVersion));
         }
 
-        ValidateSingleSafeBranch(responseKind, whoAmI, feeRecords, storLessonRecords, contactBasicInfoUpdate);
+        ValidateSingleSafeBranch(
+            responseKind,
+            whoAmI,
+            feeRecords,
+            storLessonRecords,
+            contactBasicInfoUpdate,
+            contactLineProfileUpdate,
+            ungroupedCommitmentCounts);
 
         OperationId = operationId;
         CeVersion = ceVersion;
@@ -92,6 +115,8 @@ public sealed class OperationResponseData
         FeeRecords = feeRecords?.ToArray();
         StorLessonRecords = storLessonRecords?.ToArray();
         ContactBasicInfoUpdate = contactBasicInfoUpdate;
+        ContactLineProfileUpdate = contactLineProfileUpdate;
+        UngroupedCommitmentCounts = ungroupedCommitmentCounts?.ToArray();
     }
 
     /// <summary>
@@ -144,6 +169,22 @@ public sealed class OperationResponseData
     [JsonPropertyName("contactBasicInfoUpdate")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ContactBasicInfoUpdateResponseData? ContactBasicInfoUpdate { get; }
+
+    /// <summary>
+    /// P7.2 LINE profile 三欄寫入的唯一安全結果。它只描述已確認 mutation 與 read-back category；不含
+    /// contact ID、LINE user ID、token、picture URL、status、display name、CRM response 或 fixture baseline。
+    /// </summary>
+    [JsonPropertyName("contactLineProfileUpdate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactLineProfileUpdateResponseData? ContactLineProfileUpdate { get; }
+
+    /// <summary>
+    /// P7.2 未分組 commitment aggregate 的 bounded value/count 純值集合。constructor 立即複製集合，避免
+    /// caller 在 Gateway 序列化期間改寫；它不保存 Entity、AliasedValue、FetchXML、metadata 或 grouped contact。
+    /// </summary>
+    [JsonPropertyName("ungroupedCommitmentCounts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<UngroupedCommitmentCountRecord>? UngroupedCommitmentCounts { get; }
 
     /// <summary>
     /// 建立 WhoAmI branch。呼叫端在 connector request scope 完成原始 JSON 投影並 dispose 上游 response 後才可
@@ -216,6 +257,42 @@ public sealed class OperationResponseData
             });
 
     /// <summary>
+    /// 建立 P7.2 LINE profile write 的封閉成功 branch。Changed 只能與 ReadBackConfirmed 配對；timeout、
+    /// partial update 或未知結果不得建構此 envelope，必須由 executor 回傳 sanitized failure 並交由 fixture reconcile。
+    /// </summary>
+    public static OperationResponseData ForContactLineProfileUpdate(
+        string operationId,
+        string ceVersion,
+        ContactLineProfileUpdateDisposition disposition,
+        ContactLineProfileUpdateCorrelationCategory correlationCategory)
+        => new(
+            operationId,
+            ceVersion,
+            OperationResponseKind.ContactLineProfileUpdate,
+            contactLineProfileUpdate: new ContactLineProfileUpdateResponseData
+            {
+                Disposition = disposition,
+                CorrelationCategory = correlationCategory
+            });
+
+    /// <summary>
+    /// 建立 P7.2 ungrouped commitment aggregate 的封閉 branch。輸入先 materialize 為 request-owned array，
+    /// constructor 再驗證數量、唯一 raw value 與非負 count；任何 invalid row 都 fail closed，不回傳 partial data。
+    /// </summary>
+    public static OperationResponseData ForUngroupedCommitmentCounts(
+        string operationId,
+        string ceVersion,
+        IEnumerable<UngroupedCommitmentCountRecord> counts)
+    {
+        ArgumentNullException.ThrowIfNull(counts);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.UngroupedCommitmentCounts,
+            ungroupedCommitmentCounts: counts.ToArray());
+    }
+
+    /// <summary>
     /// 建立明確的 unsupported envelope。connector/Gateway 應把它轉成受控失敗，而不是把未投影 metadata、
     /// OData annotation 或 endpoint detail 回傳給產品；此值不擁有背景資源或可清理 handle。
     /// </summary>
@@ -227,14 +304,18 @@ public sealed class OperationResponseData
         WhoAmIResponseData? whoAmI,
         IReadOnlyList<Package01FeeRecord>? feeRecords,
         IReadOnlyList<Package01StorLessonRecord>? storLessonRecords,
-        ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate)
+        ContactBasicInfoUpdateResponseData? contactBasicInfoUpdate,
+        ContactLineProfileUpdateResponseData? contactLineProfileUpdate,
+        IReadOnlyList<UngroupedCommitmentCountRecord>? ungroupedCommitmentCounts)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
         // 多 branch 讓資料跨 capability 混合。失敗時不保留任何集合或外部資源。
         var branchCount = (whoAmI is null ? 0 : 1) +
                           (feeRecords is null ? 0 : 1) +
                           (storLessonRecords is null ? 0 : 1) +
-                          (contactBasicInfoUpdate is null ? 0 : 1);
+                          (contactBasicInfoUpdate is null ? 0 : 1) +
+                          (contactLineProfileUpdate is null ? 0 : 1) +
+                          (ungroupedCommitmentCounts is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -245,6 +326,14 @@ public sealed class OperationResponseData
                 branchCount == 1 &&
                 contactBasicInfoUpdate is not null &&
                 IsValidContactBasicInfoUpdate(contactBasicInfoUpdate),
+            OperationResponseKind.ContactLineProfileUpdate =>
+                branchCount == 1 &&
+                contactLineProfileUpdate is not null &&
+                IsValidContactLineProfileUpdate(contactLineProfileUpdate),
+            OperationResponseKind.UngroupedCommitmentCounts =>
+                branchCount == 1 &&
+                ungroupedCommitmentCounts is not null &&
+                IsValidUngroupedCommitmentCounts(ungroupedCommitmentCounts),
             _ => false
         };
 
@@ -276,6 +365,39 @@ public sealed class OperationResponseData
                 response.CorrelationCategory == ContactBasicInfoUpdateCorrelationCategory.ReadBackConfirmed,
             _ => false
         };
+    }
+
+    /// <summary>
+    /// 驗證 LINE profile 成功結果的 enum 與配對，防止 unknown JSON enum 或 NoChange 偽裝成已完成的 write。
+    /// 此方法只讀純值，不保留 request、URL、profile 或 connector 資源。
+    /// </summary>
+    private static bool IsValidContactLineProfileUpdate(ContactLineProfileUpdateResponseData response)
+        => Enum.IsDefined(response.Disposition) &&
+           Enum.IsDefined(response.CorrelationCategory) &&
+           response.Disposition == ContactLineProfileUpdateDisposition.Changed &&
+           response.CorrelationCategory == ContactLineProfileUpdateCorrelationCategory.ReadBackConfirmed;
+
+    /// <summary>
+    /// 驗證 aggregate row 數量有限、raw value 唯一且 count 非負。HashSet 只活在 constructor scope，
+    /// 最多 4096 個整數，驗證完成後立即可回收，不形成跨 request／tenant cache。
+    /// </summary>
+    private static bool IsValidUngroupedCommitmentCounts(IReadOnlyList<UngroupedCommitmentCountRecord> counts)
+    {
+        if (counts.Count > MaximumUngroupedCommitmentCountRecords)
+        {
+            return false;
+        }
+
+        var values = new HashSet<int>();
+        foreach (var row in counts)
+        {
+            if (row is null || row.Count < 0 || !values.Add(row.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
@@ -341,6 +463,57 @@ public sealed record ContactBasicInfoUpdateResponseData
     /// </summary>
     [JsonPropertyName("correlationCategory")]
     public required ContactBasicInfoUpdateCorrelationCategory CorrelationCategory { get; init; }
+}
+
+/// <summary>
+/// LINE profile write 的受控 mutation 結果。只有 Changed 可用；不存在 NoChange 或 Unknown，避免未送出、
+/// partial 或 timeout-after-dispatch 被誤報為成功。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ContactLineProfileUpdateDisposition
+{
+    /// <summary>三個固定 LINE profile 欄位已寫入，且 connector read-back 完全確認。</summary>
+    Changed = 1
+}
+
+/// <summary>
+/// LINE profile write 的安全 correlation category。它不是 correlation ID，不含 contact、LINE、profile 或 trace identity。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ContactLineProfileUpdateCorrelationCategory
+{
+    /// <summary>固定欄位 update 後的 bounded read-back 與預期完全一致。</summary>
+    ReadBackConfirmed = 1
+}
+
+/// <summary>
+/// LINE profile write 的最小安全 wire payload。它不保存欄位值或外部資源，合法 enum 配對由
+/// <see cref="OperationResponseData"/> constructor 與 factory 共用驗證。
+/// </summary>
+public sealed record ContactLineProfileUpdateResponseData
+{
+    /// <summary>表示唯一合法的已確認 mutation 結果。</summary>
+    [JsonPropertyName("disposition")]
+    public required ContactLineProfileUpdateDisposition Disposition { get; init; }
+
+    /// <summary>表示 connector 已完成 allowlisted read-back。</summary>
+    [JsonPropertyName("correlationCategory")]
+    public required ContactLineProfileUpdateCorrelationCategory CorrelationCategory { get; init; }
+}
+
+/// <summary>
+/// 未分組 commitment aggregate 的安全純值 row。Value 只作為產品 metadata segment key，不能當作排序順位；
+/// Count 必須非負。此 record 不含 CRM SDK、Entity、FetchXML、label 或 contact identity。
+/// </summary>
+public sealed record UngroupedCommitmentCountRecord
+{
+    /// <summary>取得 raw contact.customertypecode OptionSet value；產品仍依 metadata sequence 排序。</summary>
+    [JsonPropertyName("value")]
+    public required int Value { get; init; }
+
+    /// <summary>取得該 raw value 的非負 contact 筆數。</summary>
+    [JsonPropertyName("count")]
+    public required int Count { get; init; }
 }
 
 /// <summary>

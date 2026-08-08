@@ -61,6 +61,36 @@ CE contact update 沒有可供本 contract 使用的伺服器端 idempotency tok
 
 其他七個 slices 在專屬 matrix row 取得其 graph fixture、reconciliation 及 cleanup 規則前保持 `fixture-pending`。尤其 donation、fee、attendance、list owner 與 appointment 都不得借用 contact fixture 或以 production-like data 假裝驗證。
 
+## Slice B 重校：LINE profile、aggregate 與大型 image transport
+
+原始 Slice B 將四個 call-site 放在同一列，repository research 證明它們實際有三種不同資源與 rollback owner，不能共用一個含糊的 fixture gate。
+
+### B1：Contact LINE profile write
+
+`memberinfo.contact.update.line.profile` 只接收單一 contact ID，以及三個固定欄位的封閉 mutation 指令：
+
+- `new_line_picture_url`：`set` 或 `clear`；`set` 時只允許 bounded `https` URL。
+- `new_line_status_message`：`set` 或 `clear`；`set` 時是 bounded UTF-8 純文字。
+- `new_line_displayname`：`set` 或 `preserve`；沿用 legacy 行為，空白顯示名稱不能清空既有值。
+
+LINE token、`new_lineid`、圖片探測、LINE API response 與 profile retrieval 全部留在 ChurchReport 產品流程；Gateway 只執行已授權且已正規化的 CRM 欄位 update。這可防止 LINE credential 或第三方 response 穿越 Dynamics contract。ProductClient 必須在第一次 await 前複製有限 scalar；Data8 template 只建立固定 `contact` Entity，完成 update 後只讀回三個 allowlisted 欄位。timeout 後不盲目重送，live fixture 只在可證明為 sentinel 或 baseline 時復原。
+
+固定 request schema 為：`contactId: guid`、`pictureMode: enum(set|clear)`、`pictureUrl?: string`、`statusMode: enum(set|clear)`、`statusMessage?: string`、`displayNameMode: enum(set|preserve)`、`displayName?: string`。mode 與值必須成對：`set` 必須有 bounded value，`clear`／`preserve` 不得夾帶 value。picture URL 最多 1,024 UTF-8 bytes，status message 與 display name 各最多 512 UTF-8 bytes；三個欄位加上其餘 scalar 即使同時出現，也必須保持在 Embedded Data8 既有 4,096-byte admission envelope 內。URL 必須是 absolute HTTPS、不得含 user-info、fragment 或非預設 port。成功結果只回傳 `Changed + ReadBackConfirmed`，不包含欄位值、contact identity 或 LINE 資料。
+
+### B2：Ungrouped commitment aggregate function
+
+`memberinfo.contact.count.ungrouped.commitment` 是唯讀的封閉 function，不接受 FetchXML、QueryExpression、entity logical name、欄位名或 caller-selected sort。輸入只包含 bounded search、已驗證的「結案」OptionSet 值與 bounded matching-status values；小組名單與 grouped contact graph 由 connector 依固定 `statecode=0`、`purpose=小組名單`、`new_app_named=true` 規則在 request scope 內取得，不能由產品傳入無界 GUID array。
+
+實際 public request 只接受 `search?: string`，trim 後最多 256 UTF-8 bytes。`closedStatus` 與 `matchingStatusValues` 不信任 caller；connector 以固定 `contact.customertypecode` metadata 取得「結案」值與 label search matches，metadata 缺失或歧義即 fail closed。這也避免為單一 function 擴張 canonical dispatch 的 array/object 輸入種類。
+
+Connector 對 list、listmember 與 aggregate rows 都套用 page／row／byte 上限，所有 `IN`／`NOT IN` 值以 500 筆分塊；結果只回傳 bounded `{ value, count }` records，不回傳 Entity、AliasedValue、FetchXML 或 raw metadata。空值 segment count 仍是另一個既有產品查詢，不能被這個 operation 的非空 group-by 結果假裝涵蓋。
+
+### B3：兩個 image writes 交由 P7.3 media owner
+
+`memberinfo.contact.update.image` 與 `newperson.contact.update.image` 的 legacy ingress 都允許最多 5 MiB，並在產品端使用 ImageSharp 正規化。Dedicated Gateway operation body 預設 64 KiB，canonical dispatch 也只允許 bounded scalar；直接傳 `byte[]`、Base64、任意本機路徑或共享 mutable buffer 都不合法。P7.2 因此不實作假的小圖特例，也不放寬全域 operation body ceiling。
+
+P7.3 必須建立 capability-scoped media ingress：最多 5 MiB、只接受產品正規化後的允許圖片格式、串流期間持續計數、取消即停止、內容 hash 與短生命週期 opaque handle 綁定 workload／profile／operation／contact、一次 consume、逾時或失敗確定刪除。operation request 只能引用 P7.3 mint 的 opaque handle，不能引用檔案路徑、URL、任意 blob key 或其他 tenant 的 handle。P7.3 完成前，兩個固定 operation ID 在 dispatch 前 fail closed；它們仍留在 coverage matrix，不視為 P7.2 evidence-complete。
+
 ## 相容性、啟用與回退
 
 - CE 9.1 Data8 是初始唯一 required support。CE 8.2 及 Official Worker 都是 unsupported／not-selected，不得嘗試 fallback。

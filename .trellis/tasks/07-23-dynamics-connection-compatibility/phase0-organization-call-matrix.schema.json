@@ -372,7 +372,9 @@
             "WhoAmI",
             "Package01FeeRecords",
             "Package01StorLessonRecords",
-            "ContactBasicInfoUpdate"
+            "ContactBasicInfoUpdate",
+            "ContactLineProfileUpdate",
+            "UngroupedCommitmentCounts"
           ]
         },
         "maximumPageCount": {
@@ -516,7 +518,9 @@
                   "fees.editor.load.by.disciplelesson",
                   "lessons.stor.retrieve.by.contact",
                   "lessons.stor.retrieve.by.disciplelesson",
-                  "memberinfo.contact.update.basic.info"
+                  "memberinfo.contact.update.basic.info",
+                  "memberinfo.contact.update.line.profile",
+                  "memberinfo.contact.count.ungrouped.commitment"
                 ]
               }
             }
@@ -606,6 +610,7 @@
         "odata-query-option",
         "odata-filter-literal",
         "json-body",
+        "server-enum",
         "fetchxml-attribute-value",
         "fetchxml-text",
         "multipart-body"

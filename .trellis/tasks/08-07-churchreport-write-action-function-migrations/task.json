@@ -21,6 +21,6 @@
   "children": [],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
-  "notes": "P7.2 Slice A：2026-08-08 已確認 sunnyvalechback 登入恢復。使用者進一步明確確認 sunnyvalechback（CE 9.1）與 jesus（CE 8.2）全資料庫均為虛構研發資料，授權 P7 在 coverage matrix 與各切片 cleanup／reconciliation 邊界內對任何會員、收費、課程、出席及其他資料新增、修改或刪除；此授權不適用於正式環境、P8 或 Central Gateway，CE 8.2 operation 仍須 matrix 明確標為 required。Slice A 已任選既有 contact 建立本機 descriptor，preflight 為 Go，真實 CE 9.1 Data8 sentinel update、read-back、baseline restore 與 restore read-back 均成功，feature flag 未變更。",
+  "notes": "P7.2 Slice A：2026-08-08 已確認 sunnyvalechback 登入恢復。使用者進一步明確確認 sunnyvalechback（CE 9.1）與 jesus（CE 8.2）全資料庫均為虛構研發資料，授權 P7 在 coverage matrix 與各切片 cleanup／reconciliation 邊界內對任何會員、收費、課程、出席及其他資料新增、修改或刪除；此授權不適用於正式環境、P8 或 Central Gateway，CE 8.2 operation 仍須 matrix 明確標為 required。Slice A 已任選既有 contact 建立本機 descriptor，preflight 為 Go，真實 CE 9.1 Data8 sentinel update、read-back、baseline restore 與 restore read-back 均成功，feature flag 未變更。Slice B1/B2 亦已完成：LINE profile 三欄 sentinel 寫入、read-back 與 baseline restore 均成功；ungrouped commitment aggregate 與 legacy 四組 raw value/count parity confirmed。兩者均為 sunnyvalechback CE 9.1 Data8、feature flag 未變更，去識別化證據在 p7.2-slice-b-live-evidence.json。其餘 list、donation、appointment、onboarding、fee、attendance families 仍為 fixture-pending；兩個 image rows 由 P7.3 bounded media contract 接續，P7.2 尚未結案。",
   "meta": {}
 }

@@ -300,6 +300,223 @@ public sealed class Data8ProfileOperationExecutorTests
     }
 
     /// <summary>
+    /// 保護 P7.2 B1 LINE profile write 只有 CE 9.1 Data8、固定七個 scalar 與合法冪等鍵才能取得 lease。
+    /// 故障模型是 executor 尚未支援 enum 與 operation-specific byte ceiling；決定性斷言是 mode/value 經同步
+    /// 複製後才進入 connector、admission permit 正好取得與釋放一次，而且 estimated envelope 真實反映 bounded
+    /// 字串而非沿用固定 256 bytes。測試 client 不建立 CRM、LINE、credential、session、timer 或背景工作。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_routes_contact_line_profile_update_with_bounded_envelope_and_releases_lease()
+    {
+        var contactId = Guid.Parse("abababab-1111-2222-3333-cdcdcdcdcdcd");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForContactLineProfileUpdate(
+                operation.OperationId,
+                "9.1",
+                ContactLineProfileUpdateDisposition.Changed,
+                ContactLineProfileUpdateCorrelationCategory.ReadBackConfirmed)
+        })
+        {
+            ExpectedOperationId = OperationIds.MemberInfoContactUpdateLineProfile
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(new OperationExecutionRequest
+        {
+            ProfileAlias = "sunnyvalechback",
+            CapabilityOperationId = OperationIds.MemberInfoContactUpdateLineProfile,
+            WorkloadSubjectId = "embedded-test",
+            IdempotencyKey = "p72-line-profile-test-1",
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["pictureMode"] = "set",
+                ["pictureUrl"] = "https://profile.line-scdn.net/p7.2-test",
+                ["statusMode"] = "clear",
+                ["displayNameMode"] = "set",
+                ["displayName"] = "測試顯示名稱"
+            }
+        }, CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactLineProfileUpdate);
+        factory.LastOperation!.Parameters.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["contactId"] = contactId,
+            ["pictureMode"] = "set",
+            ["pictureUrl"] = "https://profile.line-scdn.net/p7.2-test",
+            ["statusMode"] = "clear",
+            ["displayNameMode"] = "set",
+            ["displayName"] = "測試顯示名稱"
+        });
+        factory.LastOperation.EstimatedBytes.Should().BeGreaterThan(256);
+        factory.LastOperation.EstimatedBytes.Should().BeLessThanOrEqualTo(4096);
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 B1 的 CE 版本、冪等鍵與 mode/value 配對都在 Router／Pool 前 fail closed。故障注入是 CE 8.2、
+    /// 缺少冪等鍵與 clear 仍夾帶 picture URL；決定性斷言是三次都沒有 admission、client、WCF session 或
+    /// retained request state。這也證明使用者對 jesus 開發資料庫的授權不會自動放寬 matrix CE support。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_unsupported_or_malformed_line_profile_writes_before_admission()
+    {
+        static OperationExecutionRequest CreateRequest(string? idempotencyKey, bool clearWithValue = false)
+        {
+            var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = Guid.Parse("abababab-1111-2222-3333-cdcdcdcdcdcd"),
+                ["pictureMode"] = "clear",
+                ["statusMode"] = "clear",
+                ["displayNameMode"] = "preserve"
+            };
+            if (clearWithValue)
+            {
+                parameters["pictureUrl"] = "https://example.test/not-allowed";
+            }
+
+            return new OperationExecutionRequest
+            {
+                ProfileAlias = "sunnyvalechback",
+                CapabilityOperationId = OperationIds.MemberInfoContactUpdateLineProfile,
+                WorkloadSubjectId = "embedded-test",
+                IdempotencyKey = idempotencyKey,
+                Parameters = parameters
+            };
+        }
+
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ => throw new InvalidOperationException("Invalid B1 request must not create a client."));
+        await using var ce91Pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var ce91Executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(ce91Pool));
+
+        var missingKey = await ce91Executor.ExecuteAsync(CreateRequest(null), CancellationToken.None);
+        var invalidPair = await ce91Executor.ExecuteAsync(CreateRequest("p72-invalid-pair", clearWithValue: true), CancellationToken.None);
+
+        var ce82Admission = new TrackingAdmissionManager();
+        var ce82Factory = new FixedResultFactory(_ => throw new InvalidOperationException("CE 8.2 B1 must fail closed."));
+        await using var ce82Pool = new Data8ConnectorPool(
+            CreateResolvedProfile() with { CeVersion = CeVersion.Ce82 },
+            ce82Admission,
+            ce82Factory,
+            minSize: 0,
+            maxSize: 1);
+        var ce82Executor = new Data8ProfileOperationExecutor(
+            CreateResolver(CeVersion.Ce82),
+            new Data8ConnectorRouter(ce82Pool));
+        var unsupportedVersion = await ce82Executor.ExecuteAsync(
+            CreateRequest("p72-ce82-not-required"),
+            CancellationToken.None);
+
+        missingKey.ErrorCode.Should().Be("operation.invalid-parameters");
+        invalidPair.ErrorCode.Should().Be("operation.invalid-parameters");
+        unsupportedVersion.ErrorCode.Should().Be("operation.not-supported");
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+        ce82Admission.AcquireCount.Should().Be(0);
+        ce82Factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護 P7.2 B2 aggregate 只複製 optional bounded search，並在 CE 9.1 Data8 lease 內回傳 bounded raw
+    /// value/count records。故障模型是 executor 尚未 allowlist function；決定性斷言是 trim 後只有 search 進入
+    /// connector、envelope 依實際 scalar 計價、permit 正好釋放一次，且回應沒有 FetchXML、metadata、Entity、
+    /// grouped contact identity 或 session state。測試 client 完全離線且 drain 後確定 Dispose。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_routes_ungrouped_commitment_count_with_only_bounded_search()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForUngroupedCommitmentCounts(
+                operation.OperationId,
+                "9.1",
+                [new UngroupedCommitmentCountRecord { Value = 100000001, Count = 7 }])
+        })
+        {
+            ExpectedOperationId = OperationIds.MemberInfoContactCountUngroupedCommitment
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(CreatePackage01Request(
+            OperationIds.MemberInfoContactCountUngroupedCommitment,
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["search"] = " 會友 " }), CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.UngroupedCommitmentCounts);
+        result.Data.UngroupedCommitmentCounts.Should().ContainSingle()
+            .Which.Should().Be(new UngroupedCommitmentCountRecord { Value = 100000001, Count = 7 });
+        factory.LastOperation!.Parameters.Should().BeEquivalentTo(
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["search"] = "會友" });
+        factory.LastOperation.EstimatedBytes.Should().BeGreaterThan(256);
+        factory.LastOperation.EstimatedBytes.Should().BeLessThanOrEqualTo(4096);
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 B2 在 CE 8.2 以及兩個尚未由 P7.3 擁有的 image operation 都必須在 Pool 前 fail closed。
+    /// 故障注入是使用者已授權的 jesus CE 8.2 profile 與兩個固定 image ID；決定性斷言仍是零 admission／
+    /// 零 client，證明資料庫操作授權不會跳過 coverage matrix，也不會把 5 MiB binary 塞進 4 KiB scalar envelope。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_ce82_aggregate_and_p7_3_image_operations_before_admission()
+    {
+        var ce82Admission = new TrackingAdmissionManager();
+        var ce82Factory = new FixedResultFactory(_ => throw new InvalidOperationException("CE 8.2 B2 must fail closed."));
+        await using var ce82Pool = new Data8ConnectorPool(
+            CreateResolvedProfile() with { CeVersion = CeVersion.Ce82 },
+            ce82Admission,
+            ce82Factory,
+            minSize: 0,
+            maxSize: 1);
+        var ce82Executor = new Data8ProfileOperationExecutor(
+            CreateResolver(CeVersion.Ce82),
+            new Data8ConnectorRouter(ce82Pool));
+
+        var unsupportedVersion = await ce82Executor.ExecuteAsync(CreatePackage01Request(
+            OperationIds.MemberInfoContactCountUngroupedCommitment,
+            new Dictionary<string, object?>(StringComparer.Ordinal)), CancellationToken.None);
+
+        var ce91Admission = new TrackingAdmissionManager();
+        var ce91Factory = new FixedResultFactory(_ => throw new InvalidOperationException("P7.3 image must fail closed."));
+        await using var ce91Pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), ce91Admission, ce91Factory, minSize: 0, maxSize: 1);
+        var ce91Executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(ce91Pool));
+        var memberImage = await ce91Executor.ExecuteAsync(CreatePackage01Request(
+            "memberinfo.contact.update.image",
+            new Dictionary<string, object?>(StringComparer.Ordinal)), CancellationToken.None);
+        var newPersonImage = await ce91Executor.ExecuteAsync(CreatePackage01Request(
+            "newperson.contact.update.image",
+            new Dictionary<string, object?>(StringComparer.Ordinal)), CancellationToken.None);
+
+        unsupportedVersion.ErrorCode.Should().Be("operation.not-supported");
+        memberImage.ErrorCode.Should().Be("operation.not-supported");
+        newPersonImage.ErrorCode.Should().Be("operation.not-supported");
+        ce82Admission.AcquireCount.Should().Be(0);
+        ce82Factory.CreatedCount.Should().Be(0);
+        ce91Admission.AcquireCount.Should().Be(0);
+        ce91Factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
     /// 保護 Package01 型別化參數若違反 registry 的 Guid contract，必須在取得 admission permit 或建立 Data8 client
     /// 前 fail closed。故障注入是將 contactId 改成不可解析字串；決定性斷言是專屬 invalid-parameters 分類與
     /// 所有資源計數為零，避免無效或 caller-controlled 值進入 Pool、WCF session 或後續 request reuse。
@@ -361,6 +578,108 @@ public sealed class Data8ProfileOperationExecutorTests
 
         result.Succeeded.Should().BeFalse();
         result.ErrorCode.Should().Be("connector.invalid-response");
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+        factory.CreatedCount.Should().Be(1);
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 Slice B 的兩個新 discriminator 不能互相冒充成功。故障注入讓 B1 回傳 B2 branch、B2 回傳 B1
+    /// branch；決定性斷言是 executor 回傳固定 invalid-response、在 lease scope 內淘汰 client，並完整歸還
+    /// admission permit。所有結果皆為離線純值，不保存 contact、profile、credential 或 CRM SDK graph。
+    /// </summary>
+    /// <param name="operationId">目前被測 capability operation ID。</param>
+    [Theory]
+    [InlineData(OperationIds.MemberInfoContactUpdateLineProfile)]
+    [InlineData(OperationIds.MemberInfoContactCountUngroupedCommitment)]
+    public async Task Execute_async_evicts_client_when_slice_b_response_discriminator_is_wrong(string operationId)
+    {
+        var contactId = Guid.Parse("77777777-5555-5555-5555-555555555555");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = string.Equals(
+                    operation.OperationId,
+                    OperationIds.MemberInfoContactUpdateLineProfile,
+                    StringComparison.Ordinal)
+                ? OperationResponseData.ForUngroupedCommitmentCounts(
+                    operation.OperationId,
+                    "9.1",
+                    Array.Empty<UngroupedCommitmentCountRecord>())
+                : OperationResponseData.ForContactLineProfileUpdate(
+                    operation.OperationId,
+                    "9.1",
+                    ContactLineProfileUpdateDisposition.Changed,
+                    ContactLineProfileUpdateCorrelationCategory.ReadBackConfirmed)
+        })
+        {
+            ExpectedOperationId = operationId
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+        var request = string.Equals(operationId, OperationIds.MemberInfoContactUpdateLineProfile, StringComparison.Ordinal)
+            ? new OperationExecutionRequest
+            {
+                ProfileAlias = "sunnyvalechback",
+                CapabilityOperationId = operationId,
+                WorkloadSubjectId = "embedded-test",
+                IdempotencyKey = "slice-b-wrong-response",
+                Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["pictureMode"] = "clear",
+                    ["statusMode"] = "clear",
+                    ["displayNameMode"] = "preserve"
+                }
+            }
+            : CreatePackage01Request(operationId, new Dictionary<string, object?>(StringComparer.Ordinal));
+
+        var result = await executor.ExecuteAsync(request, CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("connector.invalid-response");
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+        factory.CreatedCount.Should().Be(1);
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 Slice B connector 在傳輸例外或取消後不把健康狀態未知的 client 放回 Pool。故障注入由離線 client
+    /// 同步拋出一般例外或 OperationCanceledException；決定性斷言是例外保留原分類、lease 將 client 標為
+    /// faulted、client Dispose 一次且 admission permit 一定歸還，不留下 CTS、timer、session 或 profile reference。
+    /// </summary>
+    /// <param name="cancelled">是否注入取消例外；false 時注入一般 connector 例外。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Execute_async_releases_slice_b_lease_after_connector_fault_or_cancellation(bool cancelled)
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ =>
+        {
+            if (cancelled)
+            {
+                throw new OperationCanceledException("injected cancellation");
+            }
+
+            throw new InvalidOperationException("injected connector failure");
+        })
+        {
+            ExpectedOperationId = OperationIds.MemberInfoContactCountUngroupedCommitment
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+        var request = CreatePackage01Request(
+            OperationIds.MemberInfoContactCountUngroupedCommitment,
+            new Dictionary<string, object?>(StringComparer.Ordinal));
+
+        var action = async () => await executor.ExecuteAsync(request, CancellationToken.None);
+
+        await action.Should().ThrowAsync<Exception>();
         admission.AcquireCount.Should().Be(1);
         admission.ReleaseCount.Should().Be(1);
         factory.CreatedCount.Should().Be(1);

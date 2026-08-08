@@ -33,7 +33,7 @@ public sealed class Package01OperationRegistryTests
     private const int ConservativeMaximumResultItemCount = 4096;
 
     /// <summary>
-    /// 確認目前十個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
+    /// 確認目前十二個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
     /// 各自發明未經審查的作業 ID。此檢查只讀取 immutable registry，不配置外部資源。
     /// </summary>
     [Fact]
@@ -52,10 +52,60 @@ public sealed class Package01OperationRegistryTests
             OperationIds.FeesEditorLoadByDiscipleLesson,
             OperationIds.LessonsStorRetrieveByContact,
             OperationIds.LessonsStorRetrieveByDiscipleLesson,
-            OperationIds.MemberInfoContactUpdateBasicInfo
+            OperationIds.MemberInfoContactUpdateBasicInfo,
+            "memberinfo.contact.update.line.profile",
+            "memberinfo.contact.count.ungrouped.commitment"
         });
 
-        ids.Should().HaveCount(10);
+        ids.Should().HaveCount(12);
+    }
+
+    /// <summary>
+    /// 保護 Slice B1/B2 只能以固定 LINE profile write 與 ungrouped commitment function 進入 allowlist。
+    /// 故障注入是尚未宣告的 operation；決定性斷言是 B1 只能接受三組 set/clear/preserve scalar，B2 只能接受
+    /// bounded search，且兩者各自選擇封閉 response discriminator。測試只讀 immutable registry，不建立 CRM
+    /// service、connector lease、LINE token、session、stream 或背景工作。
+    /// </summary>
+    [Fact]
+    public void Slice_b_operations_are_registered_with_closed_scalar_only_schemas()
+    {
+        Package01OperationRegistry.TryGet("memberinfo.contact.update.line.profile", out var line).Should().BeTrue();
+        line!.OperationKind.Should().Be("write");
+        line.TemplateId.Should().Be("memberinfo.contact.line.profile.patch.v1");
+        line.ResponseKind.ToString().Should().Be("ContactLineProfileUpdate");
+        line.IdempotencyClass.Should().Be("caller-idempotency-key-required");
+        line.Parameters.Select(parameter => new
+        {
+            parameter.Name,
+            parameter.Type,
+            parameter.Required
+        })
+            .Should()
+            .BeEquivalentTo(
+                [
+                    new { Name = "contactId", Type = "guid", Required = true },
+                    new { Name = "pictureMode", Type = "enum", Required = true },
+                    new { Name = "pictureUrl", Type = "string", Required = false },
+                    new { Name = "statusMode", Type = "enum", Required = true },
+                    new { Name = "statusMessage", Type = "string", Required = false },
+                    new { Name = "displayNameMode", Type = "enum", Required = true },
+                    new { Name = "displayName", Type = "string", Required = false }
+                ],
+                options => options.WithStrictOrdering());
+
+        Package01OperationRegistry.TryGet("memberinfo.contact.count.ungrouped.commitment", out var count).Should().BeTrue();
+        count!.OperationKind.Should().Be("function");
+        count.TemplateId.Should().Be("memberinfo.contact.ungrouped.commitment.count.v1");
+        count.ResponseKind.ToString().Should().Be("UngroupedCommitmentCounts");
+        count.IdempotencyClass.Should().Be("read-only");
+        count.Parameters.Select(parameter => new
+        {
+            parameter.Name,
+            parameter.Type,
+            parameter.Required
+        })
+            .Should()
+            .Equal(new { Name = "search", Type = "string", Required = false });
     }
 
     /// <summary>
@@ -90,12 +140,12 @@ public sealed class Package01OperationRegistryTests
         definition.ResponseKind.ToString().Should().Be("ContactBasicInfoUpdate");
         definition.IdempotencyClass.Should().Be("caller-idempotency-key-required");
         definition.Parameters.Select(parameter => new
-            {
-                parameter.Name,
-                parameter.Type,
-                parameter.Required,
-                parameter.EncodingContext
-            })
+        {
+            parameter.Name,
+            parameter.Type,
+            parameter.Required,
+            parameter.EncodingContext
+        })
             .Should()
             .BeEquivalentTo(
                 [

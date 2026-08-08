@@ -38,6 +38,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private const string ConnectorFailureErrorCode = "connector.operation-failed";
     private const string InvalidResponseErrorCode = "connector.invalid-response";
     private const int MaximumLegacyDisplayNameCharacters = 256;
+    private const int MaximumDispatchEnvelopeBytes = 4096;
+    private const int MaximumLinePictureUrlBytes = 1024;
+    private const int MaximumLineProfileTextBytes = 512;
+    private const int MaximumUngroupedSearchBytes = 256;
+    private const int MaximumIdempotencyKeyCharacters = 128;
     private static readonly UTF8Encoding StrictUtf8 = new(
         encoderShouldEmitUTF8Identifier: false,
         throwOnInvalidBytes: true);
@@ -61,7 +66,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     }
 
     /// <summary>
-    /// 執行目前可由 Data8 Pool 安全投影的 runtime WhoAmI 或 Package01 六項 read capability。
+    /// 執行目前可由 Data8 Pool 安全投影的 runtime WhoAmI、Package01 read 與 P7.2 已核准 contact capabilities。
     /// 在任何 await 前，本方法只讀取並投影 request 的有限 scalar，且解析部署端 Profile；返回的非同步路徑
     /// 不捕捉原始 request，避免 queue／pool wait 將 HttpContext、Session 或大型參數圖保留到請求範圍之外。
     /// Profile 不存在、ConnectorKind 非 Data8、Pool generation 未登錄、未知 capability、未登錄參數、型別
@@ -179,8 +184,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     /// <summary>
     /// 將 caller-owned request 同步驗證並複製為 connector-owned operation。此步驟必須在第一次 await 前完成，
     /// 因此 admission queue、Pool wait 與 Data8 client 永遠不會保留原始 dictionary、JsonElement backing graph、
-    /// legacy display name、endpoint、credential 或其他 caller state。只有六項 Package01 read 與 WhoAmI 可通過；
-    /// 未實作 metadata、write/action/function、generic CRUD、QueryBase 與任意 FetchXML 仍一律 fail closed。
+    /// legacy display name、endpoint、credential 或其他 caller state。只有明列的 Package01 read、contact basic-info、
+    /// LINE profile write 與 ungrouped commitment function 可通過；未實作 action、image/media、generic CRUD、
+    /// QueryBase 與 caller-supplied FetchXML 仍一律 fail closed。
     /// </summary>
     /// <param name="request">尚由 caller 擁有的產品/Gateway request；本方法不保存其參考。</param>
     /// <param name="profile">resolver 提供的 immutable Data8 Profile，用於唯一 deadline policy。</param>
@@ -207,11 +213,19 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             request.CapabilityOperationId,
             OperationIds.MemberInfoContactUpdateBasicInfo,
             StringComparison.Ordinal);
-        if (isContactBasicInfoUpdate &&
+        var isContactLineProfileUpdate = string.Equals(
+            request.CapabilityOperationId,
+            OperationIds.MemberInfoContactUpdateLineProfile,
+            StringComparison.Ordinal);
+        var isUngroupedCommitmentCount = string.Equals(
+            request.CapabilityOperationId,
+            OperationIds.MemberInfoContactCountUngroupedCommitment,
+            StringComparison.Ordinal);
+        if ((isContactBasicInfoUpdate || isContactLineProfileUpdate || isUngroupedCommitmentCount) &&
             (profile.CeVersion != CeVersion.Ce91 ||
              request.Parameters is null ||
-             request.Parameters.Keys.Any(parameter =>
-                 parameter is not "contactId" and not "phone" and not "address")))
+             (isContactBasicInfoUpdate && request.Parameters.Keys.Any(parameter =>
+                 parameter is not "contactId" and not "phone" and not "address"))))
         {
             errorCode = profile.CeVersion == CeVersion.Ce91
                 ? InvalidOperationParametersErrorCode
@@ -223,7 +237,35 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 request.Parameters,
                 definition,
                 out var parameters,
-                allowBlankOptionalStrings: isContactBasicInfoUpdate))
+                request.CapabilityOperationId,
+                allowBlankOptionalStrings: isContactBasicInfoUpdate || isUngroupedCommitmentCount))
+        {
+            errorCode = InvalidOperationParametersErrorCode;
+            return false;
+        }
+
+        if (isContactLineProfileUpdate &&
+            (!IsValidIdempotencyKey(request.IdempotencyKey) ||
+             !HasValidLineProfileMutation(parameters)))
+        {
+            errorCode = InvalidOperationParametersErrorCode;
+            return false;
+        }
+
+        if (isUngroupedCommitmentCount && request.IdempotencyKey is not null)
+        {
+            errorCode = InvalidOperationParametersErrorCode;
+            return false;
+        }
+
+        var estimatedBytes = 256;
+        if ((isContactLineProfileUpdate || isUngroupedCommitmentCount) &&
+            !TryEstimateBoundedEnvelopeBytes(
+                request.CapabilityOperationId,
+                request.WorkloadSubjectId,
+                request.IdempotencyKey,
+                parameters,
+                out estimatedBytes))
         {
             errorCode = InvalidOperationParametersErrorCode;
             return false;
@@ -236,9 +278,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             Parameters = parameters,
             WorkloadSubjectId = request.WorkloadSubjectId.Trim(),
             DeadlineUtc = now.Add(profile.Operation.Timeout),
-            // Operation registry 已將 scalar 數量與字串長度限制在小範圍；256 bytes 是既有 admission 基準，
-            // 不用 caller 聲稱的大小或 raw JSON byte count 影響 shared Organization 容量。
-            EstimatedBytes = 256
+            // B1 以已複製 scalar 的保守 UTF-8 大小進入 admission；既有 operation 仍維持原 256-byte 基準。
+            // caller 不能提供自稱大小，且任何超過 Embedded 4 KiB 上限的 B1 request 會在 Pool 前失敗。
+            EstimatedBytes = estimatedBytes
         };
         return true;
     }
@@ -259,6 +301,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.LessonsStorRetrieveByContact => true,
             OperationIds.LessonsStorRetrieveByDiscipleLesson => true,
             OperationIds.MemberInfoContactUpdateBasicInfo => true,
+            OperationIds.MemberInfoContactUpdateLineProfile => true,
+            OperationIds.MemberInfoContactCountUngroupedCommitment => true,
             _ => false
         };
 
@@ -272,10 +316,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         IReadOnlyDictionary<string, object?>? source,
         OperationDefinition definition,
         out IReadOnlyDictionary<string, object?> parameters,
+        string operationId,
         bool allowBlankOptionalStrings = false)
     {
-        // 只有 contact basic-info 的 optional phone/address 使用 blank-as-omitted；所有其他 operation
-        // 仍要求 non-empty string，避免泛化 no-change 語意而放寬既有 read contract。
+        // contact basic-info 的 optional phone/address 與 B2 optional search 使用 blank-as-omitted；其他 operation
+        // 仍要求 non-empty string，避免泛化 no-change／no-filter 語意而放寬既有 read/write contract。
         parameters = null!;
         if (source is null || source.Count > definition.Parameters.Count)
         {
@@ -308,6 +353,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                     parameter,
                     sourceValue,
                     allowBlankOptionalStrings,
+                    operationId,
                     out var normalized))
             {
                 return false;
@@ -320,8 +366,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
 
             if (normalized is null)
             {
-                // P7.2 contact basic-info 的空白 optional string 是不覆寫意圖；省略該欄位，
-                // 讓後續 no-change 判斷與固定 connector template 保持一致。
+                // P7.2 contact basic-info 的空白 optional string 是不覆寫，B2 空白 search 是不套用搜尋；
+                // 兩者都省略欄位，讓後續 no-change／fixed-query 判斷與 connector template 保持一致。
                 continue;
             }
 
@@ -362,6 +408,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         OperationParameterDefinition definition,
         object? source,
         bool allowBlankOptionalStrings,
+        string operationId,
         out object? normalized)
     {
         normalized = null;
@@ -372,6 +419,14 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             "string" => TryNormalizeBoundedString(
                 source,
                 allowBlankOptionalStrings && !definition.Required,
+                GetMaximumStringCharacters(operationId, definition.Name),
+                GetMaximumStringBytes(operationId, definition.Name),
+                out normalized),
+            "enum" => TryNormalizeBoundedString(
+                source,
+                allowBlankAsNoValue: false,
+                maximumCharacters: 16,
+                maximumBytes: 16,
                 out normalized),
             _ => false
         };
@@ -441,6 +496,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private static bool TryNormalizeBoundedString(
         object? source,
         bool allowBlankAsNoValue,
+        int maximumCharacters,
+        int maximumBytes,
         out object? normalized)
     {
         var text = source switch
@@ -466,8 +523,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         var trimmed = text.Trim();
         try
         {
-            if (trimmed.Length > MaximumLegacyDisplayNameCharacters ||
-                StrictUtf8.GetByteCount(trimmed) > MaximumLegacyDisplayNameCharacters * 4)
+            if (trimmed.Length > maximumCharacters ||
+                StrictUtf8.GetByteCount(trimmed) > maximumBytes)
             {
                 normalized = null;
                 return false;
@@ -481,6 +538,166 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
 
         normalized = trimmed;
         return true;
+    }
+
+    /// <summary>
+    /// 取得 operation-specific 字元上限。B1 允許 URL 到 1,024 字元、profile 文字到 512 字元；其他既有
+    /// operation 保留原本 256 字元限制，避免本次 enum 支援意外擴張 P7.1 read contract。
+    /// </summary>
+    private static int GetMaximumStringCharacters(string operationId, string parameterName)
+        => operationId switch
+        {
+            OperationIds.MemberInfoContactUpdateLineProfile => parameterName switch
+            {
+                "pictureUrl" => MaximumLinePictureUrlBytes,
+                "statusMessage" or "displayName" => MaximumLineProfileTextBytes,
+                _ => 16
+            },
+            OperationIds.MemberInfoContactCountUngroupedCommitment => MaximumUngroupedSearchBytes,
+            _ => MaximumLegacyDisplayNameCharacters
+        };
+
+    /// <summary>
+    /// 取得嚴格 UTF-8 byte ceiling。此值與 ProductClient、connector template 及 4 KiB admission envelope
+    /// 同步；無效 UTF-16 由共同 normalizer fail closed，不會以 replacement character 縮小計算值。
+    /// </summary>
+    private static int GetMaximumStringBytes(string operationId, string parameterName)
+        => operationId switch
+        {
+            OperationIds.MemberInfoContactUpdateLineProfile => parameterName switch
+            {
+                "pictureUrl" => MaximumLinePictureUrlBytes,
+                "statusMessage" or "displayName" => MaximumLineProfileTextBytes,
+                _ => 16
+            },
+            OperationIds.MemberInfoContactCountUngroupedCommitment => MaximumUngroupedSearchBytes,
+            _ => MaximumLegacyDisplayNameCharacters * 4
+        };
+
+    /// <summary>
+    /// 驗證 B1 三組封閉 mutation。picture/status 只允許 set/clear，display name 只允許 set/preserve；set
+    /// 必須附值，clear/preserve 禁止附值。Picture URL 另要求 absolute HTTPS、無 user-info／fragment／自訂 port。
+    /// 本方法只巡覽 executor-owned scalar copy，不保留 URI、字串或 caller dictionary。
+    /// </summary>
+    private static bool HasValidLineProfileMutation(IReadOnlyDictionary<string, object?> parameters)
+    {
+        if (!HasValidNullableLineMutation(parameters, "pictureMode", "pictureUrl", validateHttpsUrl: true) ||
+            !HasValidNullableLineMutation(parameters, "statusMode", "statusMessage", validateHttpsUrl: false) ||
+            !parameters.TryGetValue("displayNameMode", out var displayModeValue) ||
+            displayModeValue is not string displayMode)
+        {
+            return false;
+        }
+
+        return displayMode switch
+        {
+            "set" => parameters.TryGetValue("displayName", out var value) && value is string,
+            "preserve" => !parameters.ContainsKey("displayName"),
+            _ => false
+        };
+    }
+
+    /// <summary>驗證 picture/status 的 mode/value 配對；只在 picture 分支解析 bounded URI，不發出 URL probe。</summary>
+    private static bool HasValidNullableLineMutation(
+        IReadOnlyDictionary<string, object?> parameters,
+        string modeName,
+        string valueName,
+        bool validateHttpsUrl)
+    {
+        if (!parameters.TryGetValue(modeName, out var modeValue) || modeValue is not string mode)
+        {
+            return false;
+        }
+
+        if (string.Equals(mode, "clear", StringComparison.Ordinal))
+        {
+            return !parameters.ContainsKey(valueName);
+        }
+
+        if (!string.Equals(mode, "set", StringComparison.Ordinal) ||
+            !parameters.TryGetValue(valueName, out var rawValue) ||
+            rawValue is not string value)
+        {
+            return false;
+        }
+
+        return !validateHttpsUrl || IsSafeHttpsPictureUrl(value);
+    }
+
+    /// <summary>以無 I/O 的 URI parser 驗證 B1 picture URL；不解析 DNS、不跟隨 redirect，也不保存 Uri。</summary>
+    private static bool IsSafeHttpsPictureUrl(string value)
+        => Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+           string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
+           !string.IsNullOrWhiteSpace(uri.Host) &&
+           string.IsNullOrEmpty(uri.UserInfo) &&
+           string.IsNullOrEmpty(uri.Fragment) &&
+           uri.IsDefaultPort;
+
+    /// <summary>
+    /// 驗證 caller-owned 冪等鍵為 1-128 個 RFC 3986 unreserved ASCII 字元。鍵只參與本次 admission size，
+    /// 不進 connector、cache、session 或 log；unknown write outcome 仍由上層 reconciliation 處理而不盲目重送。
+    /// </summary>
+    private static bool IsValidIdempotencyKey(string? value)
+        => !string.IsNullOrEmpty(value) &&
+           value.Length <= MaximumIdempotencyKeyCharacters &&
+           value.All(static character =>
+               (character >= 'a' && character <= 'z') ||
+               (character >= 'A' && character <= 'Z') ||
+               (character >= '0' && character <= '9') ||
+               character is '-' or '.' or '_' or '~');
+
+    /// <summary>
+    /// 由已驗證的 bounded scalar 建立保守 envelope 大小。計算包含固定結構、operation、workload、冪等鍵、
+    /// parameter name/value；checked 與嚴格 UTF-8 防止 overflow／replacement fallback。超過 4 KiB 即在 Router 前
+    /// fail closed，因此 admission 不會低估 B1 對 shared Organization 的成本。
+    /// </summary>
+    private static bool TryEstimateBoundedEnvelopeBytes(
+        string operationId,
+        string workloadSubjectId,
+        string? idempotencyKey,
+        IReadOnlyDictionary<string, object?> parameters,
+        out int estimatedBytes)
+    {
+        estimatedBytes = 256;
+        try
+        {
+            estimatedBytes = checked(estimatedBytes + StrictUtf8.GetByteCount(operationId));
+            estimatedBytes = checked(estimatedBytes + StrictUtf8.GetByteCount(workloadSubjectId.Trim()));
+            if (idempotencyKey is not null)
+            {
+                estimatedBytes = checked(estimatedBytes + StrictUtf8.GetByteCount(idempotencyKey));
+            }
+
+            foreach (var parameter in parameters)
+            {
+                estimatedBytes = checked(estimatedBytes + StrictUtf8.GetByteCount(parameter.Key) + 8);
+                estimatedBytes = parameter.Value switch
+                {
+                    Guid => checked(estimatedBytes + 16),
+                    DateTimeOffset => checked(estimatedBytes + 16),
+                    int => checked(estimatedBytes + 4),
+                    string text => checked(estimatedBytes + StrictUtf8.GetByteCount(text)),
+                    _ => throw new InvalidOperationException("Unsupported bounded scalar.")
+                };
+            }
+
+            return estimatedBytes <= MaximumDispatchEnvelopeBytes;
+        }
+        catch (EncoderFallbackException)
+        {
+            estimatedBytes = 0;
+            return false;
+        }
+        catch (OverflowException)
+        {
+            estimatedBytes = 0;
+            return false;
+        }
+        catch (InvalidOperationException)
+        {
+            estimatedBytes = 0;
+            return false;
+        }
     }
 
     /// <summary>
@@ -531,8 +748,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
 
     /// <summary>
     /// 將已由 connector 投影的結果驗證為目前 capability 對應的封閉 response branch。WhoAmI 保留既有的
-    /// OrganizationId cross-check；Package01 則同時比對 operation、CE version、registry response kind、列數與
-    /// 保守 byte budget。任何不符都由 caller 在 lease scope 內 MarkFaulted，避免不可信 client 回池。
+    /// OrganizationId cross-check；registry capabilities 則同時比對 operation、CE version、response kind 與對應
+    /// branch，Package01 records 另驗證列數與保守 byte budget。任何不符都由 caller 在 lease scope 內
+    /// MarkFaulted，避免不可信 client 回池。
     /// </summary>
     private static bool TryProjectOperationResponse(
         ConnectorOperation operation,
@@ -563,6 +781,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationResponseKind.Package01StorLessonRecords => connectorData.StorLessonRecords is not null &&
                                                                  TryValidateStorLessonRecords(connectorData.StorLessonRecords, definition),
             OperationResponseKind.ContactBasicInfoUpdate => connectorData.ContactBasicInfoUpdate is not null,
+            OperationResponseKind.ContactLineProfileUpdate => connectorData.ContactLineProfileUpdate is not null,
+            OperationResponseKind.UngroupedCommitmentCounts => connectorData.UngroupedCommitmentCounts is not null,
             _ => false
         };
         if (!isValid)

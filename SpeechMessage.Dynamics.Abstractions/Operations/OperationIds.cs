@@ -54,4 +54,17 @@ public static class OperationIds
     /// Profile 或 CE version；實際 routing 仍完全由 deployment-owned immutable profile 決定。
     /// </summary>
     public const string MemberInfoContactUpdateBasicInfo = "memberinfo.contact.update.basic.info";
+
+    /// <summary>
+    /// 對應 ORG-CALL-00023：將 ChurchReport 已取得並正規化的 LINE profile 寫入 contact 三個固定欄位。
+    /// LINE token、LINE user ID、profile API response 與圖片探測結果不得進入此 operation；它們仍由產品流程擁有。
+    /// </summary>
+    public const string MemberInfoContactUpdateLineProfile = "memberinfo.contact.update.line.profile";
+
+    /// <summary>
+    /// 對應 ORG-CALL-00024：以 server-owned 小組／在籍規則計算未分組 contact 的非空 commitment raw value 筆數。
+    /// 此 ID 不允許 caller 提供 FetchXML、QueryExpression、entity name、欄位名或 grouped contact GUID graph。
+    /// </summary>
+    public const string MemberInfoContactCountUngroupedCommitment =
+        "memberinfo.contact.count.ungrouped.commitment";
 }

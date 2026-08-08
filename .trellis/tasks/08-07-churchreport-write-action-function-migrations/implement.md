@@ -34,6 +34,11 @@
 
 依序完成 B 到 H，每個切片都重複以下 gate，且不得共享不相容的 fixture／rollback owner：
 
+- Slice B 先依 repository 證據拆成 B1 LINE profile、B2 ungrouped commitment aggregate 與 B3 image media handoff。B1／B2 在 P7.2 以 TDD 完成 typed contract、Data8 executor、ProductClient、未啟用 ChurchReport composition 與 bounded CE 9.1 evidence；B3 的兩個 5 MiB image row 只完成 P7.3 可執行 handoff，P7.3 bounded media contract 完成前不得放入 JSON／canonical envelope、不得取得 lease、不得宣稱 live evidence。
+- B1 的 LINE token、profile fetch 與 URL probe 留在 ChurchReport；Gateway 只接受三個固定欄位的 set／clear／preserve scalar。B2 由 connector 依 server-owned 小組規則建立 aggregate，不接受任意 FetchXML、QueryExpression 或無界 grouped-ID array。
+- [x] 2026-08-08 已完成 Slice B1／B2：typed DTO、registry、Data8 executor、ProductClient、未啟用 ChurchReport composition、fixture bridge、Windows PowerShell 5.1 handoff 與 lifecycle tests 均已建立。真實 sunnyvalechback CE 9.1 Data8 evidence 為 `outcome=go`；B1 的 sentinel read-back 已確認且 baseline 已復原，B2 與 legacy 的四組 raw OptionSet value/count 結果一致。兩者均未變更 feature flag；evidence 保存於 `p7.2-slice-b-live-evidence.json`。
+- [x] Slice B2 的 parity 修正已在 server-owned aggregate template 明確排除 null `customertypecode`，避免 CE 回傳沒有 `commitmenttype` alias 的 null group；live runner 在 TRX 無法穩定保存 stdout 時改用嚴格 OS-temp evidence file，並由 handoff 在 `finally` 清除。兩項可重複契約已寫入 backend Gateway spec。
+
 - machine-readable matrix row 先從 `fixture-pending` 變為 `required-for-activation`，並寫明 exact operation IDs、fixture graph、allowed mutation、idempotency、timeout policy、cleanup／reconciliation、CE support、rollout／rollback owner。
 - 先補 unit／fault／lifecycle tests，再補 registry、Data8 template、ProductClient 和未啟用 ChurchReport adapter。
 - 取得一次 bounded real CE 9.1 evidence，完成 cleanup 和 sanitized evidence，才可將 row 標成 `evidence-complete`。
