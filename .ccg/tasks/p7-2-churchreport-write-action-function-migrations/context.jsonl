@@ -1,0 +1,5 @@
+{"path":".trellis/tasks/08-07-churchreport-write-action-function-migrations/prd.md","purpose":"P7.2 requirements and acceptance criteria"}
+{"path":".trellis/tasks/08-07-churchreport-write-action-function-migrations/design.md","purpose":"bounded capability, fixture, reconciliation, and lifecycle design"}
+{"path":".trellis/tasks/08-07-churchreport-write-action-function-migrations/implement.md","purpose":"ordered P7.2 execution and verification plan"}
+{"path":"ChurchReport.MemberInfo.Tests/P72ContactBasicInfoFixtureBridge.cs","purpose":"offline fixture state machine and fixed-field store"}
+{"path":"docs/scripts/Invoke-Package02Data8ContactBasicInfoWriteEvidence.ps1","purpose":"operator preflight and opt-in evidence handoff"}

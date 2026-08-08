@@ -6,3 +6,12 @@
 {"file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"Data8 pool、lease、admission、generation drain 與資源所有權規範。"}
 {"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo 授權、資料範圍、cache 與 CRM batch 的產品層契約。"}
 {"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Abstractions、Data8、ProductClient、Gateway/Embedded 與 ChurchReport 的跨層契約檢查。"}
+{"file":"SpeechMessage.Dynamics.Abstractions/Operations/Package01OperationRegistry.cs","reason":"封閉 operation registry、CE support、connector policy 與 response discriminator 的來源。"}
+{"file":"SpeechMessage.Dynamics.Connectors.Data8/Package02Data8ContactBasicInfoWriteOperations.cs","reason":"contact basic-info 的固定 Entity 欄位模板與 connector-internal write/read-back 投影。"}
+{"file":"SpeechMessage.Dynamics.Connectors.Data8/Data8ProfileOperationExecutor.cs","reason":"Data8 lease、profile generation、request validation 與 deterministic disposal 邊界。"}
+{"file":"SpeechMessage.Dynamics.ProductClient/MemberInfo/IPackage02ContactBasicInfoUpdateClient.cs","reason":"ChurchReport 可見的 typed request/result contract，不暴露 generic CRM API。"}
+{"file":"SpeechMessage.Dynamics.ProductClient/MemberInfo/Package02ContactBasicInfoUpdateClient.cs","reason":"bounded ProductClient defensive copy、idempotency validation 與 no-retry error contract。"}
+{"file":"SpeechMessageProducts.ChurchReport/Services/EmbeddedData8Runtime.cs","reason":"Embedded Data8 composition root 與 runtime disposal ownership。"}
+{"file":"ChurchReport.MemberInfo.Tests/P72ContactBasicInfoFixtureBridge.cs","reason":"task-owned fixture state machine、read-back reconciliation、baseline restore 與 fixed-field store。"}
+{"file":"ChurchReport.MemberInfo.Tests/LivePackage02Data8ContactBasicInfoWriteEvidenceTests.cs","reason":"明確 opt-in 的 CE 9.1 Data8 live evidence、child-process marker 與 runtime/store/logger cleanup。"}
+{"file":"docs/scripts/Invoke-Package02Data8ContactBasicInfoWriteEvidence.ps1","reason":"Windows PowerShell preflight、Credential Manager bounded read、opt-in child process 與 strict TRX parser。"}

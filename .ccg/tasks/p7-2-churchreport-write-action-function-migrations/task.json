@@ -1,0 +1,12 @@
+{
+  "id": "p7-2-churchreport-write-action-function-migrations",
+  "title": "P7.2 ChurchReport Data8-first 寫入、Action 與 Function 能力遷移",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "P7.2 Slice A fixture ownership 待確認：Edge sunnyvalechback 已登入；第 9 頁找到 3 筆含測試字樣的候選，但均無 p7.2-contact-basic-info 標記或可唯一證明 task ownership 的近期建立證據。等待使用者確認第 1、2 或第 3 筆候選後，才建立本機 descriptor 並重跑唯讀 preflight；不得猜選或執行 CE write",
+  "createdAt": "2026-08-08T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

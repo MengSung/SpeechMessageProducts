@@ -21,6 +21,6 @@
   "children": [],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "P7.2 Slice A：2026-08-08 已確認 sunnyvalechback 登入恢復。唯讀掃描第 9 頁三筆含測試字樣候選，均未找到 p7.2-contact-basic-info 標記或可唯一證明 task ownership 的近期建立證據；等待使用者只確認第 1、2 或第 3 筆，不要求 GUID。確認前不得建立 fixture descriptor 或執行 CE write。",
   "meta": {}
 }
