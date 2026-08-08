@@ -374,7 +374,11 @@
             "Package01StorLessonRecords",
             "ContactBasicInfoUpdate",
             "ContactLineProfileUpdate",
-            "UngroupedCommitmentCounts"
+            "UngroupedCommitmentCounts",
+            "StaticListMembershipMutation",
+            "SmallGroupFixedFieldsMutation",
+            "ContactOwnerAssignment",
+            "ContactListTransfer"
           ]
         },
         "maximumPageCount": {
@@ -416,7 +420,8 @@
                 "odata-function",
                 "odata-action",
                 "fetchxml",
-                "batch"
+                "batch",
+                "composite"
               ]
             },
             "templateId": {
@@ -501,7 +506,7 @@
       },
       "allOf": [
         {
-          "description": "只有目前九個 compiled registry capability 可以宣告 typed response policy；這讓未登錄 matrix row 不能提前聲稱可回傳資料或引入未審查的資源上限。",
+          "description": "只有目前十七個 compiled registry capability 可以宣告 typed response policy；這讓未登錄 matrix row 不能提前聲稱可回傳資料或引入未審查的資源上限。",
           "if": {
             "required": [
               "capabilityOperationId"
@@ -520,7 +525,12 @@
                   "lessons.stor.retrieve.by.disciplelesson",
                   "memberinfo.contact.update.basic.info",
                   "memberinfo.contact.update.line.profile",
-                  "memberinfo.contact.count.ungrouped.commitment"
+                  "memberinfo.contact.count.ungrouped.commitment",
+                  "list.members.add.many",
+                  "list.members.remove.one",
+                  "listmanagement.smallgroup.update.fields",
+                  "contact.assign.owner",
+                  "newperson.contact.transfer.between.lists"
                 ]
               }
             }
@@ -613,6 +623,7 @@
         "server-enum",
         "fetchxml-attribute-value",
         "fetchxml-text",
+        "guid-array-canonical",
         "multipart-body"
       ]
     },

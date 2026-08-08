@@ -308,6 +308,78 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護 add-many 的 idempotency：baseline 已存在的成員不得再次送入 AddListMembersListRequest，只有
+    /// 缺少的 GUID 可以 dispatch。故障注入是目前實作把完整 caller set 重送；決定性斷言是 action 只含
+    /// missing member，且 post-read 仍確認完整 target set。測試不保存任何跨 request membership state。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_adds_only_members_missing_from_the_baseline()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var existingMemberId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var missingMemberId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var queryStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                AssertFixedMembershipQuery(query, listId, [existingMemberId, missingMemberId]);
+                queryStep++;
+                return queryStep == 1
+                    ? new EntityCollection([new Entity("listmember")
+                    {
+                        ["listid"] = listId,
+                        ["entityid"] = existingMemberId
+                    }])
+                    : new EntityCollection(
+                    [
+                        new Entity("listmember")
+                        {
+                            ["listid"] = listId,
+                            ["entityid"] = existingMemberId
+                        },
+                        new Entity("listmember")
+                        {
+                            ["listid"] = listId,
+                            ["entityid"] = missingMemberId
+                        }
+                    ]);
+            },
+            execute: request =>
+            {
+                var add = request.Should().BeOfType<AddListMembersListRequest>().Subject;
+                add.ListId.Should().Be(listId);
+                add.MemberIds.Should().Equal(missingMemberId);
+                return new OrganizationResponse();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListMembersAddMany,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberIds"] = new[] { existingMemberId, missingMemberId }
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.StaticListMembershipMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 保護 Slice C remove-one 只能使用固定 RemoveMemberListRequest，不能退化為任意 Delete 或 Entity request。
     /// 故障注入是目前 connector dispatch 尚未接線；決定性斷言是 list/member identity 與封閉 response branch。
     /// </summary>
@@ -364,6 +436,247 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
         service.ExecuteCount.Should().Be(1);
         service.RetrieveMultipleCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 static-list membership pre-read/read-back 對 501 筆 GUID 一律切成最多 500 筆的固定查詢。
+    /// 故障注入是目前 template 仍把整組 GUID 放進單一 IN；決定性斷言是兩個 phase 各收到兩個 bounded
+    /// QueryExpression，action 本身仍只執行一次且傳送完整、distinct、defensive-copied member set。
+    /// 測試替身只在同步 callback 內產生短生命週期 EntityCollection，沒有 CRM session、背景工作或快取。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_reads_membership_in_bounded_500_id_chunks()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var memberIds = Enumerable.Range(1, 501)
+            .Select(index => new Guid(index, 0, 0, new byte[8]))
+            .ToArray();
+        var queryCall = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                var phaseCall = queryCall++;
+                var chunkIndex = phaseCall % 2;
+                var expectedChunk = memberIds.Skip(chunkIndex * 500).Take(500).ToArray();
+                AssertFixedMembershipQuery(query, listId, expectedChunk);
+                expectedChunk.Length.Should().BeLessThanOrEqualTo(500);
+                return phaseCall < 2
+                    ? new EntityCollection()
+                    : new EntityCollection(expectedChunk.Select(memberId => new Entity("listmember")
+                    {
+                        ["listid"] = listId,
+                        ["entityid"] = memberId
+                    }).ToList());
+            },
+            execute: request =>
+            {
+                var add = request.Should().BeOfType<AddListMembersListRequest>().Subject;
+                add.ListId.Should().Be(listId);
+                add.MemberIds.Should().Equal(memberIds);
+                return new OrganizationResponse();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListMembersAddMany,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberIds"] = memberIds
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.StaticListMembershipMutation);
+        result.Data.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.StaticListMembershipMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(4);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 contact transfer composite 依固定順序完成 target membership、source removal、週報 present record、
+    /// primary-list lookup，並在每個 component read-back 後才回傳成功。故障注入是目前 connector dispatch 尚未
+    /// 接線；決定性斷言是不得接受 caller 的 entity/field map，且只執行兩個固定 membership action、一次
+    /// present-record create、一次 contact lookup update。所有資料只在同步 fake callback 內存活，不跨 lease。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_and_reconciles_the_fixed_contact_list_transfer_graph()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var sourceListId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var targetListId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var weeklyReportId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var presentRecordId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var weekStartDate = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero);
+        var sourceMembershipReads = 0;
+        var targetMembershipReads = 0;
+        var presentRecordReads = 0;
+        var contactReads = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                if (expression.EntityName == "listmember")
+                {
+                    var listCondition = expression.Criteria.Conditions.Single(condition =>
+                        condition.AttributeName == "listid" && condition.Operator == ConditionOperator.Equal);
+                    var queriedListId = listCondition.Values.Should().ContainSingle().Which.Should().BeOfType<Guid>().Subject;
+                    var memberCondition = expression.Criteria.Conditions.Single(condition =>
+                        condition.AttributeName == "entityid" && condition.Operator == ConditionOperator.In);
+                    memberCondition.Values.Should().ContainSingle().Which.Should().Be(contactId);
+                    if (queriedListId == sourceListId)
+                    {
+                        return sourceMembershipReads++ == 0
+                            ? new EntityCollection([new Entity("listmember")
+                            {
+                                ["listid"] = sourceListId,
+                                ["entityid"] = contactId
+                            }])
+                            : new EntityCollection();
+                    }
+
+                    queriedListId.Should().Be(targetListId);
+                    return targetMembershipReads++ == 0
+                        ? new EntityCollection()
+                        : new EntityCollection([new Entity("listmember")
+                        {
+                            ["listid"] = targetListId,
+                            ["entityid"] = contactId
+                        }]);
+                }
+
+                if (expression.EntityName == "new_group_present_weekly_report")
+                {
+                    expression.Criteria.Conditions.Should().Contain(condition =>
+                        condition.AttributeName == "new_list_group_present_weekly_report" &&
+                        condition.Operator == ConditionOperator.Equal &&
+                        condition.Values.Contains(targetListId));
+                    expression.Criteria.Conditions.Should().Contain(condition =>
+                        condition.AttributeName == "new_sunday_date" &&
+                        condition.Operator == ConditionOperator.Equal &&
+                        condition.Values.Contains(weekStartDate.UtcDateTime));
+                    return new EntityCollection([new Entity("new_group_present_weekly_report", weeklyReportId)]);
+                }
+
+                expression.EntityName.Should().Be("new_present_record");
+                expression.Criteria.Conditions.Should().Contain(condition =>
+                    condition.AttributeName == "new_group_present_weekly_report_prese" &&
+                    condition.Operator == ConditionOperator.Equal &&
+                    condition.Values.Contains(weeklyReportId));
+                expression.Criteria.Conditions.Should().Contain(condition =>
+                    condition.AttributeName == "new_contact_new_present_record" &&
+                    condition.Operator == ConditionOperator.Equal &&
+                    condition.Values.Contains(contactId));
+                expression.Criteria.Conditions.Should().Contain(condition =>
+                    condition.AttributeName == "new_sunday_date" &&
+                    condition.Operator == ConditionOperator.Equal &&
+                    condition.Values.Contains(weekStartDate.UtcDateTime));
+                return presentRecordReads++ == 0
+                    ? new EntityCollection()
+                    : new EntityCollection([new Entity("new_present_record", presentRecordId)
+                    {
+                        ["new_group_present_weekly_report_prese"] = new EntityReference(
+                            "new_group_present_weekly_report", weeklyReportId),
+                        ["new_contact_new_present_record"] = new EntityReference("contact", contactId),
+                        ["new_list_new_present_record"] = new EntityReference("list", targetListId),
+                        ["new_sunday_date"] = weekStartDate.UtcDateTime
+                    }]);
+            },
+            update: entity =>
+            {
+                entity.LogicalName.Should().Be("contact");
+                entity.Id.Should().Be(contactId);
+                entity.Attributes.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["new_cell_list_contact"] = new EntityReference("list", targetListId)
+                });
+            },
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.Columns.Should().Equal("new_cell_list_contact");
+                contactReads++;
+                return new Entity("contact", contactId)
+                {
+                    ["new_cell_list_contact"] = new EntityReference(
+                        "list",
+                        contactReads == 1 ? sourceListId : targetListId)
+                };
+            },
+            execute: request =>
+            {
+                switch (request)
+                {
+                    case AddListMembersListRequest add:
+                        add.ListId.Should().Be(targetListId);
+                        add.MemberIds.Should().Equal(contactId);
+                        break;
+                    case RemoveMemberListRequest remove:
+                        remove.ListId.Should().Be(sourceListId);
+                        remove.EntityId.Should().Be(contactId);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unexpected transfer request.");
+                }
+
+                return new OrganizationResponse();
+            },
+            create: entity =>
+            {
+                entity.LogicalName.Should().Be("new_present_record");
+                entity.Attributes.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["new_group_present_weekly_report_prese"] = new EntityReference(
+                        "new_group_present_weekly_report", weeklyReportId),
+                    ["new_contact_new_present_record"] = new EntityReference("contact", contactId),
+                    ["new_list_new_present_record"] = new EntityReference("list", targetListId),
+                    ["new_sunday_date"] = weekStartDate.UtcDateTime
+                });
+                return presentRecordId;
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.NewPersonContactTransferBetweenLists,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["sourceListId"] = sourceListId,
+                ["targetListId"] = targetListId,
+                ["weekStartDate"] = weekStartDate
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactListTransfer);
+        result.Data.ContactListTransfer!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.ContactListTransfer.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.ExecuteCount.Should().Be(2);
+        service.CreateCount.Should().Be(1);
+        service.UpdateCount.Should().Be(1);
+        service.RetrieveCount.Should().Be(2);
         service.DisposeCount.Should().Be(1);
     }
 
@@ -1220,8 +1533,8 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
 
     /// <summary>
     /// 離線 IOrganizationService 替身只接受 WhoAmI 與指定測試注入的固定 QueryExpression，並記錄 Execute、
-    /// RetrieveMultiple／Dispose 的精確次數。它不開啟 channel、handle、timer 或 thread；所有未預期 CRM 呼叫
-    /// 立即失敗，避免測試誤把 generic service 當成未受控通道。
+    /// Create、RetrieveMultiple／Dispose 的精確次數。它不開啟 channel、handle、timer 或 thread；所有未預期
+    /// CRM 呼叫立即失敗，避免測試誤把 generic service 當成未受控通道。
     /// </summary>
     private sealed class FakeOrganizationService : IOrganizationService, IDisposable
     {
@@ -1230,7 +1543,9 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
         private readonly Action<Entity>? _update;
         private readonly Func<string, Guid, ColumnSet, Entity>? _retrieve;
         private readonly Func<OrganizationRequest, OrganizationResponse>? _execute;
+        private readonly Func<Entity, Guid>? _create;
         private int _executeCount;
+        private int _createCount;
         private int _retrieveMultipleCount;
         private int _updateCount;
         private int _retrieveCount;
@@ -1247,16 +1562,21 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             Func<QueryBase, EntityCollection>? retrieveMultiple = null,
             Action<Entity>? update = null,
             Func<string, Guid, ColumnSet, Entity>? retrieve = null,
-            Func<OrganizationRequest, OrganizationResponse>? execute = null)
+            Func<OrganizationRequest, OrganizationResponse>? execute = null,
+            Func<Entity, Guid>? create = null)
         {
             _organizationId = organizationId;
             _retrieveMultiple = retrieveMultiple;
             _update = update;
             _retrieve = retrieve;
             _execute = execute;
+            _create = create;
         }
 
         public int ExecuteCount => Volatile.Read(ref _executeCount);
+
+        /// <summary>取得 transfer fixture 建立唯一 present record 的次數；未注入 create callback 時立即 fail closed。</summary>
+        public int CreateCount => Volatile.Read(ref _createCount);
 
         /// <summary>取得固定 QueryExpression 實際呼叫次數，供驗證沒有背景補送或未界定 paging。</summary>
         public int RetrieveMultipleCount => Volatile.Read(ref _retrieveMultipleCount);
@@ -1296,7 +1616,17 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             };
         }
 
-        public Guid Create(Entity entity) => throw new NotSupportedException();
+        /// <summary>
+        /// 執行測試明確注入的固定 create callback。callback 不會被 service 保存任何資料列或 SDK graph；回傳的
+        /// GUID 只供目前 transfer read-back 測試使用，避免 fake 意外變成可任意建立 CRM entity 的通道。
+        /// </summary>
+        public Guid Create(Entity entity)
+        {
+            ArgumentNullException.ThrowIfNull(entity);
+            var callback = _create ?? throw new NotSupportedException();
+            Interlocked.Increment(ref _createCount);
+            return callback(entity);
+        }
 
         /// <summary>
         /// 執行測試明確注入的固定 update callback。沒有 callback 時立即失敗，避免測試替身默默接受任意

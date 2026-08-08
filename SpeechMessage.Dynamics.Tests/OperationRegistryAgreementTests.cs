@@ -84,7 +84,7 @@ public sealed class OperationRegistryAgreementTests
             .OrderBy(id => id, StringComparer.Ordinal)
             .ToArray();
 
-        responsePolicyRows.Should().HaveCount(12);
+        responsePolicyRows.Should().HaveCount(17);
         matrixIds.Should().Equal(registryIds);
 
         foreach (var row in responsePolicyRows)

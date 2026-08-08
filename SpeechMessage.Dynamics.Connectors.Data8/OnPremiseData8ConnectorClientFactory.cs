@@ -257,6 +257,12 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
                 Package02Data8ListManagementOperations.ExecuteAddMembers(service, operation, _ceVersion),
             OperationIds.ListMembersRemoveOne =>
                 Package02Data8ListManagementOperations.ExecuteRemoveMember(service, operation, _ceVersion),
+            OperationIds.ListManagementSmallGroupUpdateFields =>
+                Package02Data8ListManagementOperations.ExecuteUpdateSmallGroupFields(service, operation, _ceVersion),
+            OperationIds.ContactAssignOwner =>
+                Package02Data8ListManagementOperations.ExecuteAssignContactOwner(service, operation, _ceVersion),
+            OperationIds.NewPersonContactTransferBetweenLists =>
+                Package02Data8ListManagementOperations.ExecuteTransferContactBetweenLists(service, operation, _ceVersion),
             _ => Package01Data8ReadOperations.Execute(service, operation, _ceVersion)
         };
         cancellationToken.ThrowIfCancellationRequested();

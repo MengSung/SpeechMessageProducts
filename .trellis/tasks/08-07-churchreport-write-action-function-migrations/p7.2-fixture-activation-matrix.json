@@ -2,7 +2,7 @@
   "schemaVersion": "p7.2.fixture-activation.v1",
   "coverageMatrix": "archive/2026-08/08-05-gateway-capability-inventory/coverage-matrix.json",
   "sourceMatrix": ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
-  "sourceMatrixSha256": "dc0087b5febe92879f5427df75195521a08dae6dfb0d128bb526eabc8f69cd83",
+  "sourceMatrixSha256": "f12a7fa3fb778a1e26018716fac55d78a4a03104c41a1e4f0a13f1532d573b8b",
   "defaultDispatch": "fail-closed",
   "allowedExecutionHost": "Lenovo Legion local development environment",
   "allowedConnector": "Data8",

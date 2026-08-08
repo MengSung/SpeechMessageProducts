@@ -1104,28 +1104,34 @@
                                     "operationKind":  "action",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "list.members.add.many",
-                                    "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-action",
-                                                                "templateId":  "Microsoft.Dynamics.CRM.AddListMembersList",
-                                                                "templateHash":  "cceaf801b1f83ddc32f959c3b73b0e181b76291d7be420d8b10f51de8647b006"
-                                                            },
+                                     "serverOwnedTemplate":  {
+                                                                 "templateKind":  "odata-action",
+                                                                 "templateId":  "list.members.add.many.v1",
+                                                                 "templateHash":  "563bd60fcc2c6cf3da4da8f7c6edc32c24da00f139abd5c5c0e4a40371912a6e"
+                                                             },
                                     "typedParameters":  [
                                                             {
                                                                 "name":  "listId",
                                                                 "type":  "guid",
                                                                 "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
                                                                 "name":  "memberIds",
                                                                 "type":  "guid-array",
                                                                 "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "encodingContext":  "guid-array-canonical"
                                                             }
                                                         ],
-                                    "encodingContexts":  [
-                                                             "json-body"
-                                                         ],
+                                     "encodingContexts":  [
+                                                              "odata-uri-segment",
+                                                              "guid-array-canonical"
+                                                          ],
+                                     "responseKind":  "StaticListMembershipMutation",
+                                     "maximumPageCount":  4,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
                                     "versionEvidence":  {
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
@@ -1160,28 +1166,33 @@
                                     "operationKind":  "action",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "list.members.remove.one",
-                                    "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-action",
-                                                                "templateId":  "Microsoft.Dynamics.CRM.RemoveMemberList",
-                                                                "templateHash":  "f4800fd429471ab93fc52f3b0cd46c15706bff652fb561c03f4cbfacbd8d3c07"
-                                                            },
+                                     "serverOwnedTemplate":  {
+                                                                 "templateKind":  "odata-action",
+                                                                 "templateId":  "list.members.remove.one.v1",
+                                                                 "templateHash":  "0c496c0bb069a028d2d41ba2201f789f30c6b0af7d6bc92e11068eb1f9cc7274"
+                                                             },
                                     "typedParameters":  [
                                                             {
                                                                 "name":  "listId",
                                                                 "type":  "guid",
                                                                 "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
                                                                 "name":  "memberId",
                                                                 "type":  "guid",
                                                                 "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             }
                                                         ],
-                                    "encodingContexts":  [
-                                                             "json-body"
-                                                         ],
+                                     "encodingContexts":  [
+                                                              "odata-uri-segment"
+                                                          ],
+                                     "responseKind":  "StaticListMembershipMutation",
+                                     "maximumPageCount":  4,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
                                     "versionEvidence":  {
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
@@ -1200,7 +1211,7 @@
                                                           "notes":  "Pair with ORG-CALL-00011 for list membership migration package."
                                                       },
                                     "auditRequirement":  "write-audit",
-                                    "idempotencyClass":  "crm-native-idempotent",
+                                     "idempotencyClass":  "caller-idempotency-key-required",
                                     "migrationStatus":  "mapped-pending-evidence",
                                     "temporaryLegacyOwner":  "churchreport-lists",
                                     "temporaryLegacyRemovalDeadline":  "2026-10-31"
@@ -2447,35 +2458,40 @@
                                     "operationKind":  "write",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "listmanagement.smallgroup.update.fields",
-                                    "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-route",
-                                                                "templateId":  "listmanagement.smallgroup.fields.patch.v1",
-                                                                "templateHash":  "31d98388e9e5582ce7f7f090b24dbcb85f23a1d12241e1c6976407562fe343f5"
-                                                            },
+                                     "serverOwnedTemplate":  {
+                                                                 "templateKind":  "odata-route",
+                                                                 "templateId":  "listmanagement.smallgroup.fixed.fields.v1",
+                                                                 "templateHash":  "b6707cd8e78624135a5d0c9685f2ac417362e8df0a9857da702cd04bce80d73d"
+                                                             },
                                     "typedParameters":  [
                                                             {
                                                                 "name":  "listId",
                                                                 "type":  "guid",
-                                                                "required":  false,
+                                                                 "required":  true,
                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
-                                                                "name":  "contactId",
-                                                                "type":  "guid",
-                                                                "required":  false,
-                                                                "encodingContext":  "odata-uri-segment"
+                                                                 "name":  "mode",
+                                                                 "type":  "enum",
+                                                                 "required":  true,
+                                                                 "encodingContext":  "server-enum"
                                                             },
                                                             {
-                                                                "name":  "fields",
-                                                                "type":  "object",
-                                                                "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "name":  "targetLeaderContactId",
+                                                                 "type":  "guid",
+                                                                 "required":  true,
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-uri-segment",
-                                                             "json-body"
-                                                         ],
+                                                              "odata-uri-segment",
+                                                              "server-enum"
+                                                          ],
+                                     "responseKind":  "SmallGroupFixedFieldsMutation",
+                                     "maximumPageCount":  4,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
                                     "versionEvidence":  {
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
@@ -3042,28 +3058,33 @@
                                     "operationKind":  "action",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "contact.assign.owner",
-                                    "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-action",
-                                                                "templateId":  "Microsoft.Dynamics.CRM.Assign",
-                                                                "templateHash":  "0e6866dc116a939605e92b5a8b188410685a71fe39f0247c5d13a1ed76095228"
-                                                            },
+                                     "serverOwnedTemplate":  {
+                                                                 "templateKind":  "odata-action",
+                                                                 "templateId":  "contact.assign.owner.v1",
+                                                                 "templateHash":  "7a8abfa79993595cedac59922178833bd5b5a9944cec9ffc5cb51c354d665b98"
+                                                             },
                                     "typedParameters":  [
                                                             {
-                                                                "name":  "contactId",
-                                                                "type":  "guid",
-                                                                "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "name":  "contactId",
+                                                                 "type":  "guid",
+                                                                 "required":  true,
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
-                                                                "name":  "ownerId",
-                                                                "type":  "guid",
-                                                                "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "name":  "ownerSystemUserId",
+                                                                 "type":  "guid",
+                                                                 "required":  true,
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "json-body"
-                                                         ],
+                                                              "odata-uri-segment"
+                                                          ],
+                                     "responseKind":  "ContactOwnerAssignment",
+                                     "maximumPageCount":  4,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
                                     "versionEvidence":  {
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
@@ -3081,8 +3102,8 @@
                                                           "evidenceId":  null,
                                                           "notes":  "Used by new person create/transfer flows."
                                                       },
-                                    "auditRequirement":  "security-audit",
-                                    "idempotencyClass":  "crm-native-idempotent",
+                                     "auditRequirement":  "write-audit",
+                                     "idempotencyClass":  "caller-idempotency-key-required",
                                     "migrationStatus":  "mapped-pending-evidence",
                                     "temporaryLegacyOwner":  "churchreport-newperson",
                                     "temporaryLegacyRemovalDeadline":  "2026-11-30"
@@ -3385,41 +3406,53 @@
                                     "entityOrAction":  "contact+list+listmember+new_present_record",
                                     "operationKind":  "write",
                                     "dataClassification":  "personal-data",
-                                    "capabilityOperationId":  "newperson.contact.transfer.between.lists",
-                                    "serverOwnedTemplate":  {
-                                                                "templateKind":  "batch",
-                                                                "templateId":  "newperson.contact.transfer.lists.v1",
-                                                                "templateHash":  "358ad9ee3d86a999e8a2af75b6123ae26cb9ce2573c9137f80d176e6fd14586c"
-                                                            },
+                                     "capabilityOperationId":  "newperson.contact.transfer.between.lists",
+                                     "serverOwnedTemplate":  {
+                                                                 "templateKind":  "composite",
+                                                                 "templateId":  "newperson.contact.transfer.between.lists.v1",
+                                                                 "templateHash":  "e653c582cc93e0f2578b7a1f3129bf35a85b7cb492a97ca8eac8afe8909f19da"
+                                                             },
                                     "typedParameters":  [
+                                                             {
+                                                                 "name":  "contactId",
+                                                                 "type":  "guid",
+                                                                 "required":  true,
+                                                                 "encodingContext":  "odata-uri-segment"
+                                                             },
                                                             {
-                                                                "name":  "contactId",
-                                                                "type":  "guid",
-                                                                "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                 "name":  "sourceListId",
+                                                                 "type":  "guid",
+                                                                 "required":  false,
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
-                                                                "name":  "fromListId",
-                                                                "type":  "guid",
-                                                                "required":  false,
-                                                                "encodingContext":  "json-body"
+                                                                 "name":  "targetListId",
+                                                                 "type":  "guid",
+                                                                 "required":  true,
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
-                                                                "name":  "toListId",
-                                                                "type":  "guid",
-                                                                "required":  true,
-                                                                "encodingContext":  "json-body"
-                                                            },
-                                                            {
-                                                                "name":  "ownerId",
-                                                                "type":  "guid",
-                                                                "required":  false,
-                                                                "encodingContext":  "json-body"
+                                                                 "name":  "weekStartDate",
+                                                                 "type":  "date-time",
+                                                                 "required":  true,
+                                                                 "encodingContext":  "fetchxml-attribute-value"
+                                                             },
+                                                             {
+                                                                 "name":  "ownerSystemUserId",
+                                                                 "type":  "guid",
+                                                                 "required":  false,
+                                                                 "encodingContext":  "odata-uri-segment"
                                                             }
                                                         ],
-                                    "encodingContexts":  [
-                                                             "json-body"
-                                                         ],
+                                     "encodingContexts":  [
+                                                              "odata-uri-segment",
+                                                              "fetchxml-attribute-value"
+                                                          ],
+                                     "responseKind":  "ContactListTransfer",
+                                     "maximumPageCount":  4,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
                                     "versionEvidence":  {
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
