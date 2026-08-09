@@ -195,6 +195,14 @@ function Invoke-RunnerWithSyntheticFailingChild {
     $syntheticRunner = $syntheticRunner.Replace(
         'return [SpeechMessage.P72SliceCLive.CredentialReader]::ReadGenericSecret($credentialTarget)',
         "return 'synthetic-test-secret'")
+    $dotnetSelectionLine = '$dotnetCommand = Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue'
+    Assert-True $syntheticRunner.Contains($dotnetSelectionLine) 'Synthetic child regression requires the runner dotnet command selection seam.'
+    # 測試 runner 必須明確選到暫存 dotnet.cmd；只調整 command lookup，不改變 parent
+    # 在 child 結束、drain stdout/stderr、判斷 ExitCode 與清理 evidence 的實際控制流程。
+    # 這避開 Windows 全域 dotnet.exe 與 .cmd 副檔名優先序的非決定性競爭。
+    $syntheticRunner = $syntheticRunner.Replace(
+        $dotnetSelectionLine,
+        '$dotnetCommand = Get-Command $env:SPEECHMESSAGE_P72_SYNTHETIC_DOTNET_PATH -CommandType Application -ErrorAction SilentlyContinue')
     Write-StrictTextFile $syntheticRunnerPath $syntheticRunner
 
     $syntheticOperations = @()
@@ -259,21 +267,24 @@ function Invoke-RunnerWithSyntheticFailingChild {
         'exit /b %ERRORLEVEL%'
     ) -join "`r`n")
 
-    $previousPath = $env:PATH
+    $previousSyntheticDotnetPath = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_DOTNET_PATH', 'Process')
     try {
-        $env:PATH = $fakeDotnetDirectory + ';' + $previousPath
-        $resolvedFakeDotnet = Get-Command dotnet -CommandType Application -ErrorAction Stop
+        # 以 process-scoped 明確路徑選擇暫存 dotnet.cmd，不依賴 PATH 或 PATHEXT；這可避免
+        # 系統安裝的 dotnet.exe 影響故障注入。finally 會無條件還原此測試專用環境值。
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_DOTNET_PATH', $fakeDotnetPath, 'Process')
+        $resolvedFakeDotnet = @(Get-Command $fakeDotnetPath -CommandType Application -ErrorAction Stop)
         Assert-True (
+            $resolvedFakeDotnet.Count -eq 1 -and
             [string]::Equals(
-                [IO.Path]::GetFullPath($resolvedFakeDotnet.Source),
+                [IO.Path]::GetFullPath($resolvedFakeDotnet[0].Source),
                 [IO.Path]::GetFullPath($fakeDotnetPath),
                 [StringComparison]::OrdinalIgnoreCase)) 'Synthetic non-zero child must be selected instead of the installed dotnet executable.'
         return Invoke-RunnerJson $syntheticRunnerPath $RepositoryPath $ProfilePath $SourceFixturePath $FixturePath -ExecuteFixture
     }
     finally {
-        # PATH 是 child executable 選擇的唯一測試注入點；即使 assertion、runner 或 parser 擲出例外，
-        # 也必須立即還原，避免後續測試或使用者命令誤啟動假的 dotnet.cmd。
-        $env:PATH = $previousPath
+        # 即使 assertion、runner 或 parser 擲出例外，也必須立即還原測試專用 selector，
+        # 避免後續測試或使用者命令繼承假的 dotnet.cmd 路徑。
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_DOTNET_PATH', $previousSyntheticDotnetPath, 'Process')
     }
 }
 
@@ -623,6 +634,26 @@ try {
     $parsed = Get-StrictSliceCEvidenceFile $evidencePath
     Assert-True ($parsed.outcome -eq 'go' -and @($parsed.operations).Count -eq 5) 'Strict parser must accept the exact five-operation sanitized evidence file.'
 
+    # child 的 process exit code 是 parent 的可信度邊界：即使 child 留下外觀正確的
+    # evidence，非零結束仍可能代表部分 operation、cleanup 或 runtime fault，不能讓
+    # parent 只看檔案內容而宣告 go。這個合成 child 不啟動 CE、不讀取 credential，
+    # 只寫入固定去識別化 evidence 後以非零碼結束，專門鎖定 parent 的 fail-closed 契約。
+    $syntheticChildResult = Invoke-RunnerWithSyntheticFailingChild `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $sourceFixturePath `
+        $sliceCFixturePath `
+        $fixtureRoot
+    Assert-True ($syntheticChildResult.ExitCode -eq 2) 'A non-zero child exit must make the parent return the no-go exit code.'
+    Assert-True (
+        $syntheticChildResult.Evidence.outcome -eq 'no-go' -and
+        $syntheticChildResult.Evidence.reason -eq 'child-process-failed'
+    ) ('A non-zero child exit must remain child-process-failed no-go even when evidence is otherwise valid. Actual sanitized reason: ' + $syntheticChildResult.Evidence.reason)
+    Assert-True $syntheticChildResult.Evidence.operationExecuted 'An execute-lane child failure must conservatively preserve possible operation execution.'
+    Assert-True (-not $syntheticChildResult.Evidence.featureFlagChanged) 'A child process failure must never imply a feature-flag change.'
+    Assert-True (@($syntheticChildResult.Evidence.operations).Count -eq 5) 'An execute-lane child failure must expose exactly five sanitized not-started operations.'
+
     $notRunOperations = @()
     foreach ($operationId in $global:expectedOperationIds) {
         $notRunOperations += [ordered]@{
@@ -693,6 +724,19 @@ try {
         $parsedReconciliation.probeStage -eq 'fixture-store-created' -and
         $parsedReconciliation.states.addMembership -eq 'baseline-absent' -and
         @($parsedReconciliation.operations).Count -eq 5) 'Strict reconciliation parser must accept only the fixed read-only schema.'
+
+    # cleanup 是 read-only child 的 release-blocking 邊界。即使五段 projection 都已完成，
+    # 任一 owner 無法釋放時，child 只能回報 cleanup-failure 與 readOnlyProbeExecuted=false；
+    # parent 必須保留這個原因，而不是把它重新分類成一般的 baseline-unprovable。
+    $cleanupFailureEvidence = $reconciliationEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $cleanupFailureEvidence.reason = 'cleanup-failure'
+    $cleanupFailureEvidence.readOnlyProbeExecuted = $false
+    Write-StrictJsonFile $evidencePath $cleanupFailureEvidence
+    $parsedCleanupFailure = Get-StrictSliceCReconciliationEvidenceFile $evidencePath
+    Assert-True ($parsedCleanupFailure.outcome -eq 'no-go' -and
+        $parsedCleanupFailure.reason -eq 'cleanup-failure' -and
+        -not $parsedCleanupFailure.readOnlyProbeExecuted -and
+        @($parsedCleanupFailure.operations).Count -eq 5) 'Strict reconciliation parser must preserve a cleanup-failure no-go without claiming a completed read-only probe.'
 
     $childRetryField = $reconciliationEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
     $childRetryField | Add-Member -NotePropertyName safeToRetry -NotePropertyValue $false
@@ -792,7 +836,7 @@ try {
     Remove-Item -LiteralPath Function:\global:Write-HandoffResult -Force
     Remove-Variable -Name capturedHandoffResult -Scope Global -ErrorAction SilentlyContinue
 
-    [ordered]@{ outcome = 'passed'; checks = 51 } | ConvertTo-Json -Compress
+    [ordered]@{ outcome = 'passed'; checks = 53 } | ConvertTo-Json -Compress
 }
 finally {
     if (Test-Path -LiteralPath $fixtureRoot) {

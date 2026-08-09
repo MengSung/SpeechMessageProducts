@@ -408,9 +408,27 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
         WriteSliceCReconciliationEvidenceFile(JsonSerializer.Serialize(evidence, EvidenceJsonOptions));
 
         outcome.Should().Be("no-go");
-        reason.Should().Be("baseline-unprovable");
-        readOnlyProbeExecuted.Should().BeTrue(
-            because: "a returned live reconciliation result is useful only when all bounded store reads and WhoAmI binding completed");
+        if (cleanupSucceeded)
+        {
+            reason.Should().Be("baseline-unprovable");
+            // 無法完成某一段固定 projection 也是合法且有診斷價值的 no-go：catch 已把 raw exception
+            // 隔離在 child 內，parent 應收到對應的 probeStage／unavailable state，而不是因為 xUnit
+            // assertion 變成 child-process-failed。只有真的完成所有 projection 時，才允許宣告 true。
+            if (readOnlyProbeExecuted)
+            {
+                probeStage.Should().Be(
+                    "classification-complete",
+                    because: "a completed read-only probe requires WhoAmI plus every fixed fixture projection and classification");
+            }
+        }
+        else
+        {
+            // cleanup-failure 已寫入固定 evidence；此處不得再以 assertion 製造 child 非零結束，
+            // 否則 parent 只能看到較低資訊量的 child-process-failed，會掩蓋真正的資源生命週期阻斷原因。
+            reason.Should().Be("cleanup-failure");
+            readOnlyProbeExecuted.Should().BeFalse(
+                because: "a failed store, runtime, or logger cleanup invalidates the read-only evidence completion claim");
+        }
     }
 
     /// <summary>

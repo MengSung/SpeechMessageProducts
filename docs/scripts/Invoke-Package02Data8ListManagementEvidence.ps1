@@ -16,7 +16,9 @@
 
     明確傳入 -ReconcileFixture 時，runner 使用同一個 Credential Manager reference，但只啟動
     獨立的 read-only child lane。該 lane 僅執行 WhoAmI、Retrieve 與 RetrieveMultiple projection，
-    永遠輸出 baseline-unprovable，且 parent-owned safeToRetry 固定為 false。-ExecuteFixture 與
+    正常路徑輸出 baseline-unprovable；若 child 的 store、runtime 或 logger cleanup 無法證明完成，
+    則輸出優先序更高的 cleanup-failure 並把 readOnlyProbeExecuted 固定為 false。parent-owned
+    safeToRetry 固定為 false。-ExecuteFixture 與
     -ReconcileFixture 為互斥 parameter set；同時指定會在讀取 credential 或建立 child 前由 binder 拒絕。
 
     所有 stdout 僅為一行 sanitized JSON。child 在清理自身 runtime 後只可寫入 parent 已建立的
@@ -909,8 +911,9 @@ function Get-StrictSliceCReconciliationEvidenceFile {
 
     .DESCRIPTION
         reconciliation 與 mutation evidence 使用不同檔名及不同環境變數。此 parser 只接受
-        baseline-unprovable、五筆 not-run operation、readOnlyProbeExecuted、ownerBinding 與固定
-        state categories；它刻意拒絕 child 自行傳入 safeToRetry，因為 retry 權限只能由 parent
+        baseline-unprovable 或 cleanup-failure、五筆 not-run operation、readOnlyProbeExecuted、ownerBinding 與固定
+        state categories。cleanup-failure 必須連同 readOnlyProbeExecuted=false，否則拒絕 evidence；它刻意拒絕
+        child 自行傳入 safeToRetry，因為 retry 權限只能由 parent
         handoff 決定。所有 raw path、GUID、baseline、credential 與例外都在此邊界外消失。
     #>
     param([string] $EvidencePath)
@@ -948,6 +951,9 @@ function Get-StrictSliceCReconciliationEvidenceFile {
         transfer = @('baseline-shape-unproven', 'unexpected-shape-unproven', 'unavailable')
     }
     $operations = @($evidence.operations)
+    # cleanup-failure 是唯一允許覆寫一般 baseline reason 的 release-blocking 類別；它只能
+    # 與 readOnlyProbeExecuted=false 一起傳遞，避免 child 的未完成資源釋放被誤視為可用證據。
+    $isCleanupFailure = $evidence.reason -ceq 'cleanup-failure'
     if ($evidence.schemaVersion -ne 1 -or
         $evidence.profileAlias -cne $expectedProfileAlias -or
         $evidence.deploymentProfileAlias -cne $expectedDeploymentProfileAlias -or
@@ -959,7 +965,8 @@ function Get-StrictSliceCReconciliationEvidenceFile {
         $evidence.operationExecuted -ne $false -or
         $evidence.featureFlagChanged -ne $false -or
         $evidence.outcome -cne 'no-go' -or
-        $evidence.reason -cne 'baseline-unprovable' -or
+        $evidence.reason -cnotin @('baseline-unprovable', 'cleanup-failure') -or
+        ($isCleanupFailure -and $evidence.readOnlyProbeExecuted) -or
         $evidence.ownerBinding -cnotin @('matches-service-identity', 'unavailable') -or
         $evidence.probeStage -cnotin @(
             'not-started',
@@ -1017,7 +1024,7 @@ function Get-StrictSliceCReconciliationEvidenceFile {
 
     return [pscustomobject]@{
         outcome = 'no-go'
-        reason = 'baseline-unprovable'
+        reason = [string]$evidence.reason
         readOnlyProbeExecuted = [bool]$evidence.readOnlyProbeExecuted
         ownerBinding = [string]$evidence.ownerBinding
         probeStage = [string]$evidence.probeStage
@@ -1325,6 +1332,25 @@ try {
     $process.WaitForExit()
     [void]$standardOutputTask.GetAwaiter().GetResult()
     [void]$standardErrorTask.GetAwaiter().GetResult()
+    if ($process.ExitCode -ne 0) {
+        # child 的 evidence 檔不是成功證明：非零結束可能代表 operation、runtime 或 cleanup
+        # 在寫檔後仍失敗。先 drain 兩個 stream 才讀取穩定 ExitCode，接著完全拒絕 child
+        # 留下的內容，避免格式正確但不可信的 JSON 越過 process lifecycle 邊界。Execute lane
+        # 保守宣告可能已進入 operation 範圍，並以五筆 not-started projection 禁止任何重試；
+        # reconciliation lane 則維持零 mutation 的空 operation 集合。
+        $childFailureOperations = @()
+        if (-not $isReconciliationMode) {
+            $childFailureOperations = New-NotStartedOperations
+        }
+        Complete-HandoffResult (New-HandoffResult `
+            -Outcome 'no-go' `
+            -Reason 'child-process-failed' `
+            -PreflightOnly $false `
+            -OperationExecuted (-not $isReconciliationMode) `
+            -Operations $childFailureOperations)
+        $scriptExitCode = 2
+        throw 'result-written'
+    }
     if ($isReconciliationMode) {
         $strictEvidence = Get-StrictSliceCReconciliationEvidenceFile $evidencePath
         Complete-HandoffResult (New-HandoffResult `

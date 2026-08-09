@@ -2727,3 +2727,87 @@ server-owned not-null + closed-status filters
 The correct path preserves legacy aggregate semantics, keeps CE evidence
 explicit, and gives every temporary resource one bounded owner and deterministic
 cleanup path.
+
+## Scenario: Child-process evidence trust and cleanup precedence
+
+### 1. Scope / Trigger
+
+This contract applies to every live Data8 handoff that launches a child test
+process and receives sanitized evidence through an OS-temporary file. It was
+added after a child could leave a structurally valid evidence file and still
+exit non-zero, which would otherwise let a parent mistake an incomplete or
+unclean execution for a usable result.
+
+### 2. Signatures
+
+```text
+child process -> evidence file + ExitCode
+parent runner -> sanitized handoff result
+```
+
+The process lifecycle result is an input to evidence validity; the JSON file
+cannot replace it.
+
+### 3. Contracts
+
+- The parent must drain stdout and stderr, read the final child `ExitCode`, and
+  reject all child evidence when that code is non-zero.
+- A non-zero child exit returns `outcome=no-go` with the fixed reason
+  `child-process-failed`; an execute lane conservatively reports that an
+  operation may have executed and must not be retried automatically.
+- A reconciliation lane remains mutation-free and must not inherit stale
+  evidence from the failed child.
+- Cleanup failure has precedence over ordinary baseline classification. It
+  returns `reason=cleanup-failure`, sets `readOnlyProbeExecuted=false`, and
+  preserves the fail-closed rollout state.
+- The parent owns the final retry decision; child-supplied retry fields are not
+  trusted or propagated.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Child exits non-zero after writing valid-looking JSON | Ignore the file; return `child-process-failed` no-go. |
+| Child exits zero but evidence is absent or malformed | Return `evidence-result-unavailable`; do not infer success. |
+| Reconciliation cleanup fails | Return `cleanup-failure` with `readOnlyProbeExecuted=false`; do not downgrade it to baseline no-go. |
+| Parent cannot restore process-scoped environment state | Return sanitized cleanup failure and retain fail-closed state. |
+| Any failed child leaves an old evidence file | Do not parse or trust the stale file; remove it through the bounded owner. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: the parent drains both streams, checks `ExitCode`, validates one fresh
+  evidence file only after a zero exit, and reports cleanup failure separately.
+- Base: an offline or skipped lane produces no child evidence and no mutation.
+- Bad: parse a valid-looking file before checking `ExitCode`, reuse a previous
+  file, or convert cleanup failure into an ordinary baseline-unprovable result.
+
+### 6. Tests Required
+
+- Inject a child that writes valid-looking sanitized JSON and exits non-zero;
+  assert `child-process-failed`, no Green result, and no automatic retry.
+- Inject reconciliation cleanup failure; assert `cleanup-failure`,
+  `readOnlyProbeExecuted=false`, and preservation of the fixed operation set.
+- Assert both stdout/stderr are drained and process-scoped environment values
+  are restored in `finally` after success and failure.
+- Run the focused PowerShell contract suite and the corresponding C# live-lane
+  assertion tests without contacting CE.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+read evidence file -> declare result -> inspect child exit code later
+```
+
+#### Correct
+
+```text
+drain child streams -> check ExitCode == 0
+  -> validate one fresh evidence file
+  -> classify cleanup separately
+  -> publish sanitized no-go or evidence
+```
+
+This ordering makes the process lifecycle, evidence file, and cleanup owner a
+single fail-closed trust boundary.
