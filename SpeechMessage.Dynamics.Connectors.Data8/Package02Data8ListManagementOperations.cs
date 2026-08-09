@@ -952,9 +952,10 @@ internal static class Package02Data8ListManagementOperations
             var allowedMembers = chunk.ToHashSet();
             foreach (var row in rows.Entities)
             {
-                var entityId = row.GetAttributeValue<Guid>("entityid");
+                var returnedListId = ReadListMemberLookupId(row, "listid", ListEntityName);
+                var entityId = ReadListMemberLookupId(row, "entityid", ContactEntityName);
                 if (!string.Equals(row.LogicalName, "listmember", StringComparison.Ordinal) ||
-                    row.GetAttributeValue<Guid>("listid") != listId ||
+                    returnedListId != listId ||
                     entityId == Guid.Empty ||
                     !allowedMembers.Contains(entityId) ||
                     !result.Add(entityId))
@@ -965,5 +966,34 @@ internal static class Package02Data8ListManagementOperations
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 將 <c>listmember</c> 的固定 lookup 屬性投影成 GUID。Dataverse 真機通常以
+    /// <see cref="EntityReference"/> 傳回 lookup；少數 Data8 adapter／既有離線替身則以裸
+    /// <see cref="Guid"/> 正規化。兩種形狀都必須是非空 identity，而 EntityReference 還必須具有
+    /// 預期 logical name，否則 read-back 立即 fail closed。這個方法不保留 SDK 物件或跨 request
+    /// 狀態，確保 list/contact identity 只活在目前同步 reconciliation scope。
+    /// </summary>
+    /// <param name="row">目前 query 回傳的短生命期 listmember row。</param>
+    /// <param name="attributeName">固定 allowlisted lookup 欄位名稱。</param>
+    /// <param name="expectedLogicalName">lookup 必須指向的固定 entity logical name。</param>
+    /// <returns>已驗證、非空的 list 或 contact GUID。</returns>
+    /// <exception cref="InvalidOperationException">CRM projection 缺欄、型別錯誤或 lookup 指向錯誤 entity 時擲回。</exception>
+    private static Guid ReadListMemberLookupId(Entity row, string attributeName, string expectedLogicalName)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        if (!row.Attributes.TryGetValue(attributeName, out var value) || value is null)
+        {
+            throw new InvalidOperationException("The Data8 static-list read-back is invalid.");
+        }
+
+        return value switch
+        {
+            Guid guid when guid != Guid.Empty => guid,
+            EntityReference reference when reference.Id != Guid.Empty &&
+                                          string.Equals(reference.LogicalName, expectedLogicalName, StringComparison.Ordinal) => reference.Id,
+            _ => throw new InvalidOperationException("The Data8 static-list read-back is invalid.")
+        };
     }
 }

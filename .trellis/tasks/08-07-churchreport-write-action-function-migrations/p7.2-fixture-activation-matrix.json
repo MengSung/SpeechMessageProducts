@@ -39,7 +39,8 @@
         "artifact": ".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-slice-a-live-evidence.json"
       },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
-      "rollbackOwner": "P7.2 contact-basic-info fixture bridge"
+      "rollbackOwner": "P7.2 contact-basic-info fixture bridge",
+      "lifecycleOwner": "P7.2 request-scoped Data8 lease, executor and fixture store"
     },
     {
       "id": "contact-line-profile",
@@ -70,7 +71,8 @@
         "artifact": ".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-slice-b-live-evidence.json"
       },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
-      "rollbackOwner": "P7.2 contact-line-profile fixture bridge"
+      "rollbackOwner": "P7.2 contact-line-profile fixture bridge",
+      "lifecycleOwner": "P7.2 request-scoped Data8 lease, executor and fixture store"
     },
     {
       "id": "ungrouped-commitment-aggregate",
@@ -96,7 +98,8 @@
         "artifact": ".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-slice-b-live-evidence.json"
       },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
-      "rollbackOwner": "P7.2 aggregate contract owner"
+      "rollbackOwner": "P7.2 aggregate contract owner",
+      "lifecycleOwner": "P7.2 request-scoped Data8 lease, executor and aggregate store"
     },
     {
       "id": "contact-image-media-handoff",
@@ -140,7 +143,8 @@
         "artifact": null
       },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
-      "rollbackOwner": "P7.2 list-membership association fixture bridge"
+      "rollbackOwner": "P7.2 list-membership association fixture bridge",
+      "lifecycleOwner": "P7.2 request-scoped Data8 lease, executor and fixture store"
     },
     {
       "id": "small-group-fixed-fields",
@@ -171,7 +175,8 @@
         "artifact": null
       },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
-      "rollbackOwner": "P7.2 small-group fixed-field fixture bridge"
+      "rollbackOwner": "P7.2 small-group fixed-field fixture bridge",
+      "lifecycleOwner": "P7.2 request-scoped Data8 lease, executor and fixture store"
     },
     {
       "id": "contact-owner-assignment",
@@ -200,7 +205,8 @@
         "artifact": null
       },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
-      "rollbackOwner": "P7.2 contact-owner fixture bridge"
+      "rollbackOwner": "P7.2 contact-owner fixture bridge",
+      "lifecycleOwner": "P7.2 request-scoped Data8 lease, executor and fixture store"
     },
     {
       "id": "contact-list-transfer-composite",
@@ -235,7 +241,8 @@
         "artifact": null
       },
       "rolloutOwner": "P7.4 ChurchReport per-capability cutover",
-      "rollbackOwner": "P7.2 transfer-composite fixture bridge"
+      "rollbackOwner": "P7.2 transfer-composite fixture bridge",
+      "lifecycleOwner": "P7.2 request-scoped Data8 lease, executor and fixture store"
     },
     {
       "id": "list-membership-interface-coverage-resolution",

@@ -47,7 +47,17 @@
 ## Phase 5：P7.2 收尾
 
 - [ ] coverage validator 對全部 P7.2 matrix-required row 成功，沒有 `required` row 缺 DTO、registry、executor、consumer、fixture、evidence、rollback owner 或 lifecycle owner。
-- [x] 執行 focused tests、完整 `SpeechMessage.Dynamics.Tests`、ChurchReport tests 與 Release build；resource stress／soak、drain／dispose 與 rollback drill 仍待 live fixture／最後切片。
+- [x] 執行 focused tests、完整 `SpeechMessage.Dynamics.Tests`、ChurchReport tests 與 Release build；resource stress／soak、drain／dispose 與 rollback drill 仍待 live fixture／最後切片。完整 solution Release test 必須使用 `dotnet test .\SpeechMessageProducts.sln --configuration Release --no-build --no-restore -m:1`：process-boundary tests 會觀察全機器的 Gateway／WorkerTestHost 程序，預設跨 test project 平行排程會使另一個 test assembly 的短生命期 worker 落入 snapshot，形成 false positive；`-m:1` 保留測試原本的 fail-closed 程序隔離語意，並非放寬 assertion 或忽略殘留程序。
 - [x] 執行 `git diff --check`、byte-level UTF-8 no-BOM／CRLF-only／final CRLF check，並確認目前變更只含 P7.2-owned files。
 - [ ] 執行 Trellis check、spec update judgment、task-owned staged commit 與 archive；不得 push、PR、啟動 P8 或啟用 ChurchReport 流量。
 - [ ] 封存後自動建立／規劃 P7.3，不需額外 PROCEED。
+
+## 2026-08-09 Slice C fixture provenance remediation（TDD）
+
+審閱發現 Slice C 的 descriptor 雖然驗證本機 schema、marker 與目前 Windows identity，卻尚未在 CE 讀取層證明五個 list、兩個 fixture contact 與 relationship-derived area leader 都是 task-owned，且 list 為 static。因此在任何 `-ExecuteFixture` 前必須完成下列最小修正；不得以使用者對隔離開發資料庫的廣泛操作授權取代程式內的可重複 fail-closed 邊界。
+
+1. 先在 `ChurchReport.MemberInfo.Tests/P72Data8ListManagementFixtureStoreTests.cs` 新增失敗測試：固定的 list/contact retrieval 必須拒絕不含 `P7.2-SC-` task marker、dynamic list、錯誤 logical name、空或錯誤投影；任何拒絕都不得發出 mutation。
+2. 在 `P72Data8ListManagementFixtureStore.cs` 新增唯讀、固定欄位的 provenance projection；它只讀 descriptor 已列出的 list/contact identities，驗證固定名稱 marker、static list type、contact marker，並在 `ResolveSmallGroupExpected` 對 relationship area-leader contact 重複驗證。不得提供 generic discovery、caller query、field map 或跨 request cache。
+3. 在 `LivePackage02Data8ListManagementEvidenceTests.cs` 的 `TryProveFixtureGraph` 最前方呼叫 provenance projection。任何 provenance failure 必須使 execution lane 在第一個 dispatch 前輸出 `fixture-precondition-failed`，且 reconciliation lane 不得將資源釋放失敗覆寫成 `baseline-unprovable`。
+4. 先在 `docs/scripts/Invoke-Package02Data8ListManagementEvidence.Tests.ps1` 新增失敗測試，鎖定 child non-zero exit code 即使遺留外觀正確的 evidence file 也必須輸出 no-go；再在 runner 於 parse evidence 前以固定 `child-process-failed` reason fail closed。
+5. 增加 child 非零退出、reconciliation cleanup failure 與 strict parser 的 focused tests；完成後執行 PowerShell contract suite、focused C# tests、P7.2 coverage validator、Release build、serial solution test、text/encoding gate。只有全部通過才回到已登入的 D365 分頁補 task-owned relationship fixture，並先執行唯讀 reconciliation。

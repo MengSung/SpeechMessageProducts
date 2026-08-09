@@ -440,6 +440,164 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護實際 Dataverse <c>listmember</c> read-back 的 lookup 投影相容性。故障注入使用真機常見的
+    /// <see cref="EntityReference"/> 形狀，而不是既有 fake 預設的裸 GUID；決定性斷言是 Data8 connector
+    /// 仍只送出一次固定 AddListMembers action，並能以 list/contact 邏輯名稱與非空 identity 讀回確認。
+    /// 這能避免真機寫入已提交後，因測試替身未模擬 lookup 形狀而被誤判成不明狀態。service 與所有 SDK
+    /// Entity 都只活在本方法及同步 fake callback，await using 結束時由 connector lease 確定釋放。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_reads_listmember_lookup_attributes_as_entity_references()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var memberId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var queryStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                AssertFixedMembershipQuery(query, listId, [memberId]);
+                if (queryStep++ == 0)
+                {
+                    return new EntityCollection();
+                }
+
+                return new EntityCollection(
+                [
+                    new Entity("listmember")
+                    {
+                        ["listid"] = new EntityReference("list", listId),
+                        ["entityid"] = new EntityReference("contact", memberId)
+                    }
+                ]);
+            },
+            execute: request =>
+            {
+                var add = request.Should().BeOfType<AddListMembersListRequest>().Subject;
+                add.ListId.Should().Be(listId);
+                add.MemberIds.Should().Equal(memberId);
+                return new OrganizationResponse();
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListMembersAddMany,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberIds"] = new[] { memberId }
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.StaticListMembershipMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.ExecuteCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 驗證 add-many 在 baseline 已完整包含要求的成員時只回傳 no-change，絕不重送 CRM action。
+    /// 這保護 caller idempotency 與 unknown-timeout 後的 reconciliation 邊界。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_returns_no_change_for_an_already_complete_add_members_set()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var memberId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                AssertFixedMembershipQuery(query, listId, [memberId]);
+                return new EntityCollection([new Entity("listmember")
+                {
+                    ["listid"] = listId,
+                    ["entityid"] = memberId
+                }]);
+            },
+            execute: _ => throw new InvalidOperationException("No-change must not dispatch an action."));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListMembersAddMany,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberIds"] = new[] { memberId }
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.NoChange);
+        result.Data.StaticListMembershipMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.NoDispatch);
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 驗證 remove-one 在 baseline 已不存在時只回傳 no-change，避免重送 RemoveMember action。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_returns_no_change_for_an_absent_remove_member()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var memberId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                AssertFixedMembershipQuery(query, listId, [memberId]);
+                return new EntityCollection();
+            },
+            execute: _ => throw new InvalidOperationException("No-change must not dispatch an action."));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListMembersRemoveOne,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["memberId"] = memberId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.StaticListMembershipMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.NoChange);
+        result.Data.StaticListMembershipMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.NoDispatch);
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 保護 static-list membership pre-read/read-back 對 501 筆 GUID 一律切成最多 500 筆的固定查詢。
     /// 故障注入是目前 template 仍把整組 GUID 放進單一 IN；決定性斷言是兩個 phase 各收到兩個 bounded
     /// QueryExpression，action 本身仍只執行一次且傳送完整、distinct、defensive-copied member set。
@@ -772,6 +930,125 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 驗證 change-race-leader 只更新 race leader 欄位，並保留其餘五欄 baseline。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_updates_only_the_race_leader_for_small_group_race_mode()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var oldRaceLeaderId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var newRaceLeaderId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var retrieveStep = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            update: entity =>
+            {
+                entity.LogicalName.Should().Be("list");
+                entity.Id.Should().Be(listId);
+                entity.Attributes.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["new_contact_race_leager_list"] = new EntityReference("contact", newRaceLeaderId)
+                });
+            },
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("list");
+                id.Should().Be(listId);
+                columnSet.Columns.Should().Equal(SmallGroupFixedFieldNames);
+                retrieveStep++;
+                return new Entity("list", listId)
+                {
+                    ["new_contact_list_arealeader"] = new EntityReference("contact", oldRaceLeaderId),
+                    ["new_area_name"] = "area",
+                    ["new_contact_race_leager_list"] = new EntityReference(
+                        "contact",
+                        retrieveStep == 1 ? oldRaceLeaderId : newRaceLeaderId),
+                    ["new_contact_list_co_arealeader"] = new EntityReference("contact", oldRaceLeaderId),
+                    ["new_contact_co_race_leager_list"] = new EntityReference("contact", oldRaceLeaderId),
+                    ["new_contact_list_vice_family_leader"] = new EntityReference("contact", oldRaceLeaderId)
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListManagementSmallGroupUpdateFields,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["mode"] = "change-race-leader",
+                ["targetLeaderContactId"] = newRaceLeaderId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.SmallGroupFixedFieldsMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.SmallGroupFixedFieldsMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.RetrieveCount.Should().Be(2);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.UpdateCount.Should().Be(1);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 驗證 change-race-leader 在 projection 已符合時不會送出 update。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_returns_no_change_for_an_already_matching_small_group_race_leader()
+    {
+        var listId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var raceLeaderId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            update: _ => throw new InvalidOperationException("No-change must not update the list."),
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("list");
+                id.Should().Be(listId);
+                columnSet.Columns.Should().Equal(SmallGroupFixedFieldNames);
+                return new Entity("list", listId)
+                {
+                    ["new_contact_race_leager_list"] = new EntityReference("contact", raceLeaderId)
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListManagementSmallGroupUpdateFields,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["listId"] = listId,
+                ["mode"] = "change-race-leader",
+                ["targetLeaderContactId"] = raceLeaderId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.SmallGroupFixedFieldsMutation!.Disposition.Should().Be(P72ControlledMutationDisposition.NoChange);
+        result.Data.SmallGroupFixedFieldsMutation.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.NoDispatch);
+        service.RetrieveCount.Should().Be(1);
+        service.UpdateCount.Should().Be(0);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 保護 contact owner assignment 先驗證 active systemuser、讀取 baseline owner、執行一次 AssignRequest 並
     /// read-back ownerid。故障注入是 connector 尚未接線；決定性斷言是不接受 team/任意 entity，且結果不包含
     /// contact/owner identity、SDK response、credential、session 或 transport detail。
@@ -838,7 +1115,390 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
         service.DisposeCount.Should().Be(1);
     }
 
+    /// <summary>
+    /// 驗證 contact 已由目標 active systemuser 擁有時，Assign action 不會被重送。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_returns_no_change_when_contact_owner_already_matches()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var ownerId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (entityName, id, columnSet) =>
+            {
+                if (entityName == "systemuser")
+                {
+                    id.Should().Be(ownerId);
+                    columnSet.Columns.Should().Equal("isdisabled");
+                    return new Entity("systemuser", ownerId) { ["isdisabled"] = false };
+                }
+
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.Columns.Should().Equal("ownerid");
+                return new Entity("contact", contactId)
+                {
+                    ["ownerid"] = new EntityReference("systemuser", ownerId)
+                };
+            },
+            execute: _ => throw new InvalidOperationException("No-change must not dispatch Assign."));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ContactAssignOwner,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["ownerSystemUserId"] = ownerId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.ContactOwnerAssignment!.Disposition.Should().Be(P72ControlledMutationDisposition.NoChange);
+        result.Data.ContactOwnerAssignment.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.NoDispatch);
+        service.RetrieveCount.Should().Be(2);
+        service.ExecuteCount.Should().Be(0);
+        service.UpdateCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
     /// <summary>驗證 list-member pre/post read 只使用 connector-owned QueryExpression 與兩個固定 GUID filter。</summary>
+    /// <summary>
+    /// 驗證 transfer composite 在省略 source list、但指定 optional owner 時，仍會以單一 graph 完成 owner
+    /// assignment，並在最後 read-back 所有元件；任何步驟都不會自動重送。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_transfer_with_optional_owner_without_source_list()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var targetListId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var weeklyReportId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var presentRecordId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var oldOwnerId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        var targetOwnerId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+        var weekStartDate = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero);
+        var targetMembershipReads = 0;
+        var presentRecordReads = 0;
+        var primaryListReads = 0;
+        var ownerReads = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                switch (expression.EntityName)
+                {
+                    case "listmember":
+                        expression.Criteria.Conditions.Should().Contain(condition =>
+                            condition.AttributeName == "listid" && condition.Values.Contains(targetListId));
+                        return targetMembershipReads++ == 0
+                            ? new EntityCollection()
+                            : new EntityCollection([new Entity("listmember")
+                            {
+                                ["listid"] = targetListId,
+                                ["entityid"] = contactId
+                            }]);
+                    case "new_group_present_weekly_report":
+                        return new EntityCollection([new Entity("new_group_present_weekly_report", weeklyReportId)]);
+                    case "new_present_record":
+                        presentRecordReads++;
+                        return presentRecordReads == 1
+                            ? new EntityCollection()
+                            : new EntityCollection([new Entity("new_present_record", presentRecordId)
+                            {
+                                ["new_group_present_weekly_report_prese"] = new EntityReference(
+                                    "new_group_present_weekly_report", weeklyReportId),
+                                ["new_contact_new_present_record"] = new EntityReference("contact", contactId),
+                                ["new_list_new_present_record"] = new EntityReference("list", targetListId),
+                                ["new_sunday_date"] = weekStartDate.UtcDateTime
+                            }]);
+                    default:
+                        throw new InvalidOperationException("Unexpected transfer query.");
+                }
+            },
+            retrieve: (entityName, id, columnSet) =>
+            {
+                if (entityName == "systemuser")
+                {
+                    id.Should().Be(targetOwnerId);
+                    columnSet.Columns.Should().Equal("isdisabled");
+                    return new Entity("systemuser", targetOwnerId) { ["isdisabled"] = false };
+                }
+
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                if (columnSet.Columns.SequenceEqual(["new_cell_list_contact"]))
+                {
+                    return primaryListReads++ == 0
+                        ? new Entity("contact", contactId)
+                        : new Entity("contact", contactId)
+                        {
+                            ["new_cell_list_contact"] = new EntityReference("list", targetListId)
+                        };
+                }
+
+                columnSet.Columns.Should().Equal("ownerid");
+                return new Entity("contact", contactId)
+                {
+                    ["ownerid"] = new EntityReference(
+                        "systemuser",
+                        ownerReads++ == 0 ? oldOwnerId : targetOwnerId)
+                };
+            },
+            update: entity =>
+            {
+                entity.LogicalName.Should().Be("contact");
+                entity.Id.Should().Be(contactId);
+                entity.Attributes.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["new_cell_list_contact"] = new EntityReference("list", targetListId)
+                });
+            },
+            execute: request =>
+            {
+                switch (request)
+                {
+                    case AddListMembersListRequest add:
+                        add.ListId.Should().Be(targetListId);
+                        add.MemberIds.Should().Equal(contactId);
+                        break;
+                    case AssignRequest assign:
+                        assign.Target.Should().Be(new EntityReference("contact", contactId));
+                        assign.Assignee.Should().Be(new EntityReference("systemuser", targetOwnerId));
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unexpected transfer request.");
+                }
+
+                return new OrganizationResponse();
+            },
+            create: entity =>
+            {
+                entity.LogicalName.Should().Be("new_present_record");
+                return presentRecordId;
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.NewPersonContactTransferBetweenLists,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["targetListId"] = targetListId,
+                ["weekStartDate"] = weekStartDate,
+                ["ownerSystemUserId"] = targetOwnerId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Data!.ContactListTransfer!.Disposition.Should().Be(P72ControlledMutationDisposition.Changed);
+        result.Data.ContactListTransfer.CorrelationCategory
+            .Should().Be(P72ControlledMutationCorrelationCategory.ReadBackConfirmed);
+        service.ExecuteCount.Should().Be(2);
+        service.CreateCount.Should().Be(1);
+        service.UpdateCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(7);
+        service.RetrieveCount.Should().Be(5);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 驗證 transfer 在 source 與 target 同時已有成員的 partial state 會 fail closed，且在任何 mutation 前停止。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_rejects_a_partial_transfer_graph_before_dispatch()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var sourceListId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var targetListId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var weeklyReportId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var weekStartDate = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero);
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                if (expression.EntityName == "listmember")
+                {
+                    var listId = expression.Criteria.Conditions
+                        .Single(condition => condition.AttributeName == "listid")
+                        .Values.Should().ContainSingle().Which.Should().BeOfType<Guid>().Subject;
+                    new[] { sourceListId, targetListId }.Should().Contain(listId);
+                    return new EntityCollection([new Entity("listmember")
+                    {
+                        ["listid"] = listId,
+                        ["entityid"] = contactId
+                    }]);
+                }
+
+                if (expression.EntityName == "new_group_present_weekly_report")
+                {
+                    return new EntityCollection([new Entity("new_group_present_weekly_report", weeklyReportId)]);
+                }
+
+                expression.EntityName.Should().Be("new_present_record");
+                return new EntityCollection();
+            },
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.Columns.Should().Equal("new_cell_list_contact");
+                return new Entity("contact", contactId)
+                {
+                    ["new_cell_list_contact"] = new EntityReference("list", sourceListId)
+                };
+            },
+            execute: _ => throw new InvalidOperationException("Partial state must not dispatch."),
+            update: _ => throw new InvalidOperationException("Partial state must not update."),
+            create: _ => throw new InvalidOperationException("Partial state must not create."));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.NewPersonContactTransferBetweenLists,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["sourceListId"] = sourceListId,
+                ["targetListId"] = targetListId,
+                ["weekStartDate"] = weekStartDate
+            }
+        };
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+            await client.ExecuteAsync(operation, CancellationToken.None);
+        };
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.ExecuteCount.Should().Be(0);
+        service.CreateCount.Should().Be(0);
+        service.UpdateCount.Should().Be(0);
+        service.RetrieveMultipleCount.Should().Be(4);
+        service.RetrieveCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// CE 8.2 對 Slice C 五個 Data8 write/action operation 一律 fail closed；測試確保不會因版本不支援而觸發 CRM。
+    /// </summary>
+    [Theory]
+    [InlineData("add")]
+    [InlineData("remove")]
+    [InlineData("small-group")]
+    [InlineData("owner")]
+    [InlineData("transfer")]
+    public async Task Created_client_fails_closed_for_slice_c_operations_on_ce82(string operationShape)
+    {
+        var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var listId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var ownerId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var operation = operationShape switch
+        {
+            "add" => new ConnectorOperation
+            {
+                OperationId = OperationIds.ListMembersAddMany,
+                WorkloadSubjectId = "test",
+                DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+                Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["listId"] = listId,
+                    ["memberIds"] = new[] { contactId }
+                }
+            },
+            "remove" => new ConnectorOperation
+            {
+                OperationId = OperationIds.ListMembersRemoveOne,
+                WorkloadSubjectId = "test",
+                DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+                Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["listId"] = listId,
+                    ["memberId"] = contactId
+                }
+            },
+            "small-group" => new ConnectorOperation
+            {
+                OperationId = OperationIds.ListManagementSmallGroupUpdateFields,
+                WorkloadSubjectId = "test",
+                DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+                Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["listId"] = listId,
+                    ["mode"] = "change-race-leader",
+                    ["targetLeaderContactId"] = contactId
+                }
+            },
+            "owner" => new ConnectorOperation
+            {
+                OperationId = OperationIds.ContactAssignOwner,
+                WorkloadSubjectId = "test",
+                DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+                Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["ownerSystemUserId"] = ownerId
+                }
+            },
+            "transfer" => new ConnectorOperation
+            {
+                OperationId = OperationIds.NewPersonContactTransferBetweenLists,
+                WorkloadSubjectId = "test",
+                DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+                Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["targetListId"] = listId,
+                    ["weekStartDate"] = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero)
+                }
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(operationShape))
+        };
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: _ => throw new InvalidOperationException("CE 8.2 must fail before CRM query."),
+            retrieve: (_, _, _) => throw new InvalidOperationException("CE 8.2 must fail before CRM read."),
+            execute: _ => throw new InvalidOperationException("CE 8.2 must fail before CRM action."),
+            update: _ => throw new InvalidOperationException("CE 8.2 must fail before CRM update."),
+            create: _ => throw new InvalidOperationException("CE 8.2 must fail before CRM create."));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(
+                CreateProfile() with { CeVersion = CeVersion.Ce82 },
+                CancellationToken.None);
+            await client.ExecuteAsync(operation, CancellationToken.None);
+        };
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.RetrieveCount.Should().Be(0);
+        service.ExecuteCount.Should().Be(0);
+        service.UpdateCount.Should().Be(0);
+        service.CreateCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
     private static void AssertFixedMembershipQuery(QueryBase query, Guid listId, IReadOnlyList<Guid> memberIds)
     {
         var expression = query.Should().BeOfType<QueryExpression>().Subject;
