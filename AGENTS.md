@@ -47,6 +47,40 @@
   review/release blockers. Verify encoding and line endings at byte level before
   reporting completion.
 
+## Permanent Cross-User Isolation and Sustainable Performance Rule
+
+This rule applies to every current and future product line, deployment mode,
+service, UI, background worker, test harness, and development tool in this
+repository. It is not limited to Dynamics or ChurchReport.
+
+- A request, session, or login for subject A must never reveal, reuse, mutate,
+  cache, log, or otherwise retain data, identity, authorization, credentials,
+  connection state, token, cookie, response, error detail, or mutable state
+  belonging to subject B. Cross-user, cross-tenant, cross-profile, and
+  cross-product leakage is a zero-tolerance release blocker.
+- Authentication and authorization scope must be derived and validated on the
+  server before data access. Caller-provided routing, tenant, identity,
+  credential, or profile values are never authority.
+- Any cache, pool, queue, singleton, static, background task, retry state, or
+  diagnostic buffer must either contain no user-/tenant-/profile-specific data
+  or be explicitly partitioned by the complete validated isolation boundary,
+  bounded in size and lifetime, and deterministically cleared or disposed.
+- Reusable connections and clients may be pooled only when they carry no
+  request/user session state and their ownership, fault eviction, drain, and
+  disposal paths are proven. A timeout, cancellation, or uncertain transport
+  state must not be reused by another request.
+- Isolation always wins over throughput. Small, predictable validation,
+  partitioning, and cleanup costs are acceptable. Do not introduce a large
+  performance regression, such as an unbounded scan, global serialization, or
+  a fresh expensive runtime per normal request, merely as a substitute for a
+  correct isolation design.
+- Before release, focused concurrent A/B isolation tests and lifecycle/soak
+  tests must prove that responses, caches, leases, permits, temporary data, and
+  resource counters return to their declared safe baseline. See
+  `.trellis/spec/backend/cross-user-isolation-and-performance.md` for the
+  executable contract and `.trellis/spec/guides/cross-user-isolation-and-performance-review.md`
+  for the mandatory review checklist.
+
 <!-- TRELLIS:START -->
 # Trellis Instructions
 

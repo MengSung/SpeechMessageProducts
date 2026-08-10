@@ -24,6 +24,15 @@ These guides help you **ask the right questions before coding**.
 | [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md) | Identify patterns and reduce duplication | When you notice repeated patterns |
 | [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md) | Think through data flow across layers | Features spanning multiple layers |
 | [CCG External Review Thinking Guide](./ccg-external-review-thinking-guide.md) | Avoid repeated Gemini/Claude reviewer toolchain debugging | Before running or repairing CCG external review |
+| [Cross-User Isolation and Performance Review](./cross-user-isolation-and-performance-review.md) | Enforce absolute A/B data isolation while preserving safe sustained performance | Every product, login, cache, background, gateway, or integration change |
+
+## Mandatory Cross-Product Gate
+
+For every implementation or design change, read
+[Cross-User Isolation and Performance Review](./cross-user-isolation-and-performance-review.md).
+It applies to frontend, backend, tests, scripts, gateways, background work, and
+future product lines. The detailed executable backend contract is
+[Cross-User Isolation and Sustainable Performance](../backend/cross-user-isolation-and-performance.md).
 
 ---
 
