@@ -20,12 +20,14 @@ $OutputEncoding = [Text.UTF8Encoding]::new($false)
 $runnerPath = Join-Path $PSScriptRoot 'Invoke-Package02Data8ListManagementEvidence.ps1'
 $liveTestPath = Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))) 'ChurchReport.MemberInfo.Tests\LivePackage02Data8ListManagementEvidenceTests.cs'
 $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('speechmessage-p7-2-slice-c-script-test-' + [Guid]::NewGuid().ToString('N'))
+$script:assertionCount = 0
 
 function Assert-True {
     param([bool] $Condition, [string] $Message)
     if (-not $Condition) {
         throw $Message
     }
+    $script:assertionCount++
 }
 
 function Assert-StrictTextFile {
@@ -73,7 +75,9 @@ function Invoke-RunnerJson {
         [string] $SourceFixturePath,
         [string] $FixturePath,
         [switch] $ExecuteFixture,
-        [switch] $ReconcileFixture
+        [switch] $ReconcileFixture,
+        [switch] $RepairFixture,
+        [switch] $RepairProbe
     )
 
     $arguments = @(
@@ -89,6 +93,12 @@ function Invoke-RunnerJson {
     }
     if ($ReconcileFixture) {
         $arguments += '-ReconcileFixture'
+    }
+    if ($RepairFixture) {
+        $arguments += '-RepairFixture'
+    }
+    if ($RepairProbe) {
+        $arguments += '-RepairProbe'
     }
 
     $previous = $ErrorActionPreference
@@ -125,7 +135,12 @@ function Invoke-RunnerBinderFailure {
         [string] $RepositoryPath,
         [string] $ProfilePath,
         [string] $SourceFixturePath,
-        [string] $FixturePath
+        [string] $FixturePath,
+        [string[]] $ModeArguments = @(
+            '-ExecuteFixture',
+            '-ReconcileFixture',
+            '-RepairFixture',
+            '-RepairProbe')
     )
 
     $arguments = @(
@@ -134,8 +149,9 @@ function Invoke-RunnerBinderFailure {
         '-ProfileInputPath', $ProfilePath,
         '-SourceFixtureDescriptorPath', $SourceFixturePath,
         '-FixtureDescriptorPath', $FixturePath,
-        '-Json', '-ExecuteFixture', '-ReconcileFixture'
+        '-Json'
     )
+    $arguments += $ModeArguments
     $previous = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
@@ -505,8 +521,39 @@ try {
         -not $reconciliationCredentialMissing.Evidence.featureFlagChanged -and
         $reconciliationCredentialMissing.Evidence.safeToRetry -eq $false) 'Reconciliation credential failure must remain no-go, mutation-free, and non-retryable.'
 
+    $repairCredentialMissing = Invoke-RunnerJson $missingCredentialRunner $testRepository $profilePath $sourceFixturePath $sliceCFixturePath -RepairFixture
+    Assert-True ($repairCredentialMissing.ExitCode -eq 2 -and $repairCredentialMissing.Evidence.reason -eq 'credential-unavailable') 'Repair missing credential must fail closed before child launch.'
+    Assert-True (-not $repairCredentialMissing.Evidence.preflightOnly -and
+        -not $repairCredentialMissing.Evidence.operationExecuted -and
+        -not $repairCredentialMissing.Evidence.featureFlagChanged -and
+        $repairCredentialMissing.Evidence.safeToRetry -eq $false) 'Repair credential failure must remain no-go, mutation-free, and non-retryable.'
+
+    $repairProbeCredentialMissing = Invoke-RunnerJson $missingCredentialRunner $testRepository $profilePath $sourceFixturePath $sliceCFixturePath -RepairProbe
+    Assert-True ($repairProbeCredentialMissing.ExitCode -eq 2 -and $repairProbeCredentialMissing.Evidence.reason -eq 'credential-unavailable') 'Repair probe missing credential must fail closed before child launch.'
+    Assert-True (-not $repairProbeCredentialMissing.Evidence.preflightOnly -and
+        -not $repairProbeCredentialMissing.Evidence.operationExecuted -and
+        -not $repairProbeCredentialMissing.Evidence.featureFlagChanged -and
+        $repairProbeCredentialMissing.Evidence.safeToRetry -eq $false) 'Repair probe credential failure must remain no-go, mutation-free, and non-retryable.'
+
+    foreach ($modeArguments in @(
+        @('-ExecuteFixture', '-ReconcileFixture'),
+        @('-ExecuteFixture', '-RepairFixture'),
+        @('-ExecuteFixture', '-RepairProbe'),
+        @('-ReconcileFixture', '-RepairFixture'),
+        @('-ReconcileFixture', '-RepairProbe'),
+        @('-RepairFixture', '-RepairProbe'))) {
+        $pairBinderFailure = Invoke-RunnerBinderFailure `
+            $runnerPath `
+            $testRepository `
+            $profilePath `
+            $sourceFixturePath `
+            $sliceCFixturePath `
+            -ModeArguments $modeArguments
+        Assert-True ($pairBinderFailure.ExitCode -ne 0 -and $pairBinderFailure.JsonLineCount -eq 0) 'Every pair of live lanes must be rejected by the parameter binder before script body execution.'
+    }
+
     $binderFailure = Invoke-RunnerBinderFailure $runnerPath $testRepository $profilePath $sourceFixturePath $sliceCFixturePath
-    Assert-True ($binderFailure.ExitCode -ne 0 -and $binderFailure.JsonLineCount -eq 0) 'ExecuteFixture and ReconcileFixture must be rejected by the parameter binder before script body execution.'
+    Assert-True ($binderFailure.ExitCode -ne 0 -and $binderFailure.JsonLineCount -eq 0) 'All four live lanes must be rejected together by the parameter binder before script body execution.'
 
     $source = [IO.File]::ReadAllText($runnerPath, [Text.UTF8Encoding]::new($false, $true))
     foreach ($fragment in @(
@@ -520,7 +567,12 @@ try {
         'P72Data8ListManagementReconciliationEvidence.json',
         'WaitForExit(180000)', 'CredRead', 'CredFree',
         'contact-basic-info-fixture.json', 'list-management-fixture.json',
-        'featureFlagChanged = $false', '[switch] $ExecuteFixture', '[switch] $ReconcileFixture',
+        'featureFlagChanged = $false', '[switch] $ExecuteFixture', '[switch] $ReconcileFixture', '[switch] $RepairFixture',
+        '[switch] $RepairProbe', 'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', 'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE',
+        'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', 'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', 'Get-StrictSliceCRepairEvidenceFile',
+        'Get-StrictSliceCRepairProbeEvidenceFile',
+        'P72Data8ListManagementRepairEvidence.json', 'Repair_package02_data8_relationship_fixture_emits_sanitized_evidence',
+        'P72Data8ListManagementRepairProbeEvidence.json', 'Probe_package02_data8_relationship_fixture_emits_sanitized_evidence',
         'Package02ContactBasicInfoUpdatesEnabled', 'Package02ContactProfileOperationsEnabled',
         'Test-SliceCFixtureDescriptor', 'New-NotStartedOperations', 'Remove-OwnedSliceCTemporaryDirectory',
         'New-TemporaryCleanupFailureResult', 'Complete-HandoffResult'
@@ -539,6 +591,10 @@ try {
     foreach ($fragment in @(
         '[P72Data8SliceCLiveFact]', 'P7_2_SLICE_C_EVIDENCE_PATH', 'WriteSliceCEvidenceFile',
         '[P72Data8SliceCReconcileFact]', 'Reconcile_package02_data8_list_management_emits_sanitized_reconciliation',
+        '[P72Data8SliceCRepairFact]', 'Repair_package02_data8_relationship_fixture_emits_sanitized_evidence',
+        'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', 'WriteSliceCRepairEvidenceFile',
+        '[P72Data8SliceCRepairProbeFact]', 'Probe_package02_data8_relationship_fixture_emits_sanitized_evidence',
+        'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', 'WriteSliceCRepairProbeEvidenceFile',
         'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', 'P72Data8ListManagementReconciliationEvidence.json',
         'P72ListManagementFixtureBridge.ExecuteAddMembersAsync',
         'P72ListManagementFixtureBridge.ExecuteRemoveMemberAsync',
@@ -593,6 +649,8 @@ try {
     Import-ScriptFunction $runnerPath 'Read-StrictJsonFile'
     Import-ScriptFunction $runnerPath 'Get-StrictSliceCEvidenceFile'
     Import-ScriptFunction $runnerPath 'Get-StrictSliceCReconciliationEvidenceFile'
+    Import-ScriptFunction $runnerPath 'Get-StrictSliceCRepairEvidenceFile'
+    Import-ScriptFunction $runnerPath 'Get-StrictSliceCRepairProbeEvidenceFile'
     Import-ScriptFunction $runnerPath 'Remove-OwnedSliceCTemporaryDirectory'
     Import-ScriptFunction $runnerPath 'New-TemporaryCleanupFailureResult'
     Import-ScriptFunction $runnerPath 'Complete-HandoffResult'
@@ -633,6 +691,91 @@ try {
     Write-StrictJsonFile $evidencePath $validEvidence
     $parsed = Get-StrictSliceCEvidenceFile $evidencePath
     Assert-True ($parsed.outcome -eq 'go' -and @($parsed.operations).Count -eq 5) 'Strict parser must accept the exact five-operation sanitized evidence file.'
+
+    $repairEvidencePath = Join-Path $fixtureRoot 'strict-slice-c-repair-evidence.json'
+    $validRepairEvidence = [ordered]@{
+        schemaVersion = 1
+        outcome = 'go'
+        reason = ''
+        profileAlias = $global:expectedProfileAlias
+        deploymentProfileAlias = $global:expectedDeploymentProfileAlias
+        ceVersion = '9.1'
+        connector = 'Data8'
+        preflightOnly = $false
+        operationExecuted = $true
+        readBackConfirmed = $true
+        featureFlagChanged = $false
+    }
+    Write-StrictJsonFile $repairEvidencePath $validRepairEvidence
+    $parsedRepair = Get-StrictSliceCRepairEvidenceFile $repairEvidencePath
+    Assert-True ($parsedRepair.outcome -eq 'go' -and $parsedRepair.readBackConfirmed) 'Strict parser must accept a confirmed one-update repair evidence file.'
+
+    $repairProbeEvidencePath = Join-Path $fixtureRoot 'strict-slice-c-repair-probe-evidence.json'
+    $validRepairProbeEvidence = [ordered]@{
+        schemaVersion = 1
+        outcome = 'no-go'
+        reason = 'repair-preconditions-proven'
+        profileAlias = $global:expectedProfileAlias
+        deploymentProfileAlias = $global:expectedDeploymentProfileAlias
+        ceVersion = '9.1'
+        connector = 'Data8'
+        preflightOnly = $false
+        operationExecuted = $false
+        readOnlyProbeExecuted = $true
+        featureFlagChanged = $false
+        probe = [ordered]@{
+            sourceContactMarkerValid = $true
+            smallGroupListValid = $true
+            expectedRelationshipListValid = $true
+            targetLeaderMarkerValid = $true
+            expectedRelationshipRaceLeaderMatches = $true
+            expectedRelationshipFieldsState = 'blank'
+            preconditionState = 'blank-repairable'
+        }
+    }
+    Write-StrictJsonFile $repairProbeEvidencePath $validRepairProbeEvidence
+    $parsedRepairProbe = Get-StrictSliceCRepairProbeEvidenceFile $repairProbeEvidencePath
+    Assert-True ($parsedRepairProbe.outcome -eq 'no-go' -and
+        $parsedRepairProbe.reason -eq 'repair-preconditions-proven' -and
+        $parsedRepairProbe.readOnlyProbeExecuted -and
+        $parsedRepairProbe.preconditionState -eq 'blank-repairable' -and
+        $parsedRepairProbe.probe.expectedRelationshipFieldsState -eq 'blank') 'Strict probe parser must accept only a completed read-only precondition projection.'
+
+    $missingProbePropertyEvidence = $validRepairProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $missingProbePropertyEvidence.probe.PSObject.Properties.Remove('expectedRelationshipFieldsState')
+    Write-StrictJsonFile $repairProbeEvidencePath $missingProbePropertyEvidence
+    $missingProbePropertyRejected = $false
+    try {
+        [void](Get-StrictSliceCRepairProbeEvidenceFile $repairProbeEvidencePath)
+    }
+    catch {
+        $missingProbePropertyRejected = $_.Exception.Message -eq 'evidence-result-unavailable'
+    }
+    Assert-True $missingProbePropertyRejected 'Strict probe parser must reject a missing fixed projection property.'
+
+    $extraProbePropertyEvidence = $validRepairProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $extraProbePropertyEvidence.probe | Add-Member -NotePropertyName unexpected -NotePropertyValue 'must-not-cross-handoff'
+    Write-StrictJsonFile $repairProbeEvidencePath $extraProbePropertyEvidence
+    $extraProbePropertyRejected = $false
+    try {
+        [void](Get-StrictSliceCRepairProbeEvidenceFile $repairProbeEvidencePath)
+    }
+    catch {
+        $extraProbePropertyRejected = $_.Exception.Message -eq 'evidence-result-unavailable'
+    }
+    Assert-True $extraProbePropertyRejected 'Strict probe parser must reject an extra projection property.'
+
+    $mutatingProbeEvidence = $validRepairProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $mutatingProbeEvidence.operationExecuted = $true
+    Write-StrictJsonFile $repairProbeEvidencePath $mutatingProbeEvidence
+    $mutatingProbeRejected = $false
+    try {
+        [void](Get-StrictSliceCRepairProbeEvidenceFile $repairProbeEvidencePath)
+    }
+    catch {
+        $mutatingProbeRejected = $_.Exception.Message -eq 'evidence-result-unavailable'
+    }
+    Assert-True $mutatingProbeRejected 'Strict probe parser must reject operationExecuted=true.'
 
     # child 的 process exit code 是 parent 的可信度邊界：即使 child 留下外觀正確的
     # evidence，非零結束仍可能代表部分 operation、cleanup 或 runtime fault，不能讓
@@ -836,7 +979,7 @@ try {
     Remove-Item -LiteralPath Function:\global:Write-HandoffResult -Force
     Remove-Variable -Name capturedHandoffResult -Scope Global -ErrorAction SilentlyContinue
 
-    [ordered]@{ outcome = 'passed'; checks = 53 } | ConvertTo-Json -Compress
+    [ordered]@{ outcome = 'passed'; checks = $script:assertionCount } | ConvertTo-Json -Compress
 }
 finally {
     if (Test-Path -LiteralPath $fixtureRoot) {

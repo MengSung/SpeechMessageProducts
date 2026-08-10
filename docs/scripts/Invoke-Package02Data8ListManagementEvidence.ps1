@@ -48,7 +48,13 @@ param(
     [switch] $ExecuteFixture,
 
     [Parameter(ParameterSetName = 'Reconcile')]
-    [switch] $ReconcileFixture
+    [switch] $ReconcileFixture,
+
+    [Parameter(ParameterSetName = 'Repair')]
+    [switch] $RepairFixture,
+
+    [Parameter(ParameterSetName = 'RepairProbe')]
+    [switch] $RepairProbe
 )
 
 Set-StrictMode -Version Latest
@@ -65,12 +71,17 @@ $process = $null
 $childProcessStarted = $false
 $credentialPassword = $null
 $isReconciliationMode = [bool]$ReconcileFixture
-$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture)
+$isRepairMode = [bool]$RepairFixture
+$isRepairProbeMode = [bool]$RepairProbe
+$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe)
+$operationMayHaveExecuted = -not ($isReconciliationMode -or $isRepairMode -or $isRepairProbeMode)
 $previousEnvironment = @{}
 $inputEnvironmentNames = @(
     'CRM_PASSWORD',
     'SPEECHMESSAGE_P7_2_SLICE_C_LIVE',
     'SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE',
+    'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR',
+    'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE',
     'P7_2_SLICE_C_FIXTURE_OWNER',
     'P7_2_SLICE_C_FIXTURE_MARKER',
     'P7_2_SLICE_C_CONTACT_ID',
@@ -83,7 +94,9 @@ $inputEnvironmentNames = @(
     'P7_2_SLICE_C_TRANSFER_TARGET_LIST_ID',
     'P7_2_SLICE_C_TRANSFER_WEEK_START_UTC',
     'P7_2_SLICE_C_EVIDENCE_PATH',
-    'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH'
+    'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH',
+    'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH',
+    'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH'
 )
 $credentialTarget = 'speechmessage.crm91.p62'
 $expectedProfileAlias = 'sunnyvalechback'
@@ -127,9 +140,11 @@ function New-HandoffResult {
         [object[]] $Operations = @(),
         [object[]] $Checks = @(),
         [Nullable[bool]] $ReadOnlyProbeExecuted = $null,
+        [Nullable[bool]] $ReadBackConfirmed = $null,
         [string] $OwnerBinding = $null,
         [string] $ProbeStage = $null,
-        [object] $States = $null
+        [object] $States = $null,
+        [object] $Probe = $null
     )
 
     $result = [ordered]@{
@@ -146,12 +161,19 @@ function New-HandoffResult {
         featureFlagChanged = $false
     }
     $modeVariable = Get-Variable -Name isReconciliationMode -Scope Script -ErrorAction SilentlyContinue
-    if ($null -ne $modeVariable -and [bool]$modeVariable.Value) {
+    $repairVariable = Get-Variable -Name isRepairMode -Scope Script -ErrorAction SilentlyContinue
+    $repairProbeVariable = Get-Variable -Name isRepairProbeMode -Scope Script -ErrorAction SilentlyContinue
+    if (($null -ne $modeVariable -and [bool]$modeVariable.Value) -or
+        ($null -ne $repairVariable -and [bool]$repairVariable.Value) -or
+        ($null -ne $repairProbeVariable -and [bool]$repairProbeVariable.Value)) {
         # 這個欄位由 parent mode 自己產生；child evidence 若攜帶同名欄位會被 strict parser 拒絕。
         $result.safeToRetry = $false
     }
     if ($null -ne $ReadOnlyProbeExecuted) {
         $result.readOnlyProbeExecuted = [bool]$ReadOnlyProbeExecuted
+    }
+    if ($null -ne $ReadBackConfirmed) {
+        $result.readBackConfirmed = [bool]$ReadBackConfirmed
     }
     if (-not [string]::IsNullOrWhiteSpace($OwnerBinding)) {
         $result.ownerBinding = $OwnerBinding
@@ -161,6 +183,9 @@ function New-HandoffResult {
     }
     if ($null -ne $States) {
         $result.states = $States
+    }
+    if ($null -ne $Probe) {
+        $result.probe = $Probe
     }
     if ($Operations.Count -gt 0) {
         $result.operations = $Operations
@@ -1033,6 +1058,195 @@ function Get-StrictSliceCReconciliationEvidenceFile {
     }
 }
 
+function Get-StrictSliceCRepairEvidenceFile {
+    <#
+    .SYNOPSIS
+        解析 relationship-list repair child 的最小 sanitized evidence schema。
+
+    .DESCRIPTION
+        repair 是唯一一個允許對 task-owned relationship list 送出一次 Update 的 lane；
+        parser 只接受固定 profile、CE、connector、operation/read-back scalar 與 allowlisted
+        reason。任何缺欄位、額外欄位、未預期 outcome 或 operationExecuted/readBackConfirmed
+        組合都 fail closed，並由 parent 保持 safeToRetry=false。
+    #>
+    param([string] $EvidencePath)
+
+    $evidence = Read-StrictJsonFile -Path $EvidencePath -MaximumBytes 32768 -FailureReason 'evidence-result-unavailable'
+    $topPropertyNames = @(
+        'schemaVersion',
+        'outcome',
+        'reason',
+        'profileAlias',
+        'deploymentProfileAlias',
+        'ceVersion',
+        'connector',
+        'preflightOnly',
+        'operationExecuted',
+        'readBackConfirmed',
+        'featureFlagChanged'
+    )
+    $actualPropertyNames = @($evidence.PSObject.Properties.Name)
+    if ($actualPropertyNames.Count -ne $topPropertyNames.Count -or
+        @($actualPropertyNames | Where-Object { $_ -cnotin $topPropertyNames }).Count -ne 0 -or
+        @($topPropertyNames | Where-Object { $_ -cnotin $actualPropertyNames }).Count -ne 0) {
+        throw 'evidence-result-unavailable'
+    }
+
+    $allowedReasons = @(
+        '',
+        'already-repaired',
+        'fixture-precondition-failed',
+        'fixture-state-unexpected',
+        'repair-readback-mismatch',
+        'repair-ambiguous',
+        'repair-precondition-failed',
+        'cleanup-failure'
+    )
+    if ($evidence.schemaVersion -ne 1 -or
+        $evidence.outcome -cnotin @('go', 'no-go') -or
+        $evidence.reason -cnotin $allowedReasons -or
+        $evidence.profileAlias -cne $expectedProfileAlias -or
+        $evidence.deploymentProfileAlias -cne $expectedDeploymentProfileAlias -or
+        $evidence.ceVersion -cne '9.1' -or
+        $evidence.connector -cne 'Data8' -or
+        $evidence.preflightOnly -ne $false -or
+        $evidence.operationExecuted -isnot [bool] -or
+        $evidence.readBackConfirmed -isnot [bool] -or
+        $evidence.featureFlagChanged -ne $false) {
+        throw 'evidence-result-unavailable'
+    }
+
+    if ($evidence.outcome -ceq 'go') {
+        if ($evidence.reason -ceq 'already-repaired') {
+            if ($evidence.operationExecuted -or -not $evidence.readBackConfirmed) {
+                throw 'evidence-result-unavailable'
+            }
+        }
+        elseif ($evidence.reason -cne '' -or -not $evidence.operationExecuted -or -not $evidence.readBackConfirmed) {
+            throw 'evidence-result-unavailable'
+        }
+    }
+    else {
+        if ($evidence.reason -ceq '' -or
+            ($evidence.reason -in @('fixture-precondition-failed', 'fixture-state-unexpected', 'repair-precondition-failed') -and $evidence.operationExecuted) -or
+            ($evidence.reason -in @('repair-readback-mismatch', 'repair-ambiguous') -and -not $evidence.operationExecuted) -or
+            $evidence.readBackConfirmed) {
+            throw 'evidence-result-unavailable'
+        }
+    }
+
+    return [pscustomobject]@{
+        outcome = [string]$evidence.outcome
+        reason = [string]$evidence.reason
+        operationExecuted = [bool]$evidence.operationExecuted
+        readBackConfirmed = [bool]$evidence.readBackConfirmed
+    }
+}
+
+function Get-StrictSliceCRepairProbeEvidenceFile {
+    <#
+    .SYNOPSIS
+        解析 relationship-list repair 的唯讀 precondition probe evidence。
+
+    .DESCRIPTION
+        Probe 永遠不是 repair 授權；即使所有遠端 proof 成立，child 仍回傳 no-go，
+        parent 只投影固定的 precondition 狀態。任何額外欄位、mutation 標記、原始例外、
+        GUID 或不在 allowlist 的狀態都 fail closed。
+    #>
+    param([string] $EvidencePath)
+
+    $evidence = Read-StrictJsonFile -Path $EvidencePath -MaximumBytes 32768 -FailureReason 'evidence-result-unavailable'
+    $topPropertyNames = @(
+        'schemaVersion',
+        'outcome',
+        'reason',
+        'profileAlias',
+        'deploymentProfileAlias',
+        'ceVersion',
+        'connector',
+        'preflightOnly',
+        'operationExecuted',
+        'readOnlyProbeExecuted',
+        'featureFlagChanged',
+        'probe'
+    )
+    $actualTopPropertyNames = @($evidence.PSObject.Properties.Name)
+    if ($actualTopPropertyNames.Count -ne $topPropertyNames.Count -or
+        @($actualTopPropertyNames | Where-Object { $_ -cnotin $topPropertyNames }).Count -ne 0 -or
+        @($topPropertyNames | Where-Object { $_ -cnotin $actualTopPropertyNames }).Count -ne 0) {
+        throw 'evidence-result-unavailable'
+    }
+
+    $allowedReasons = @('repair-preconditions-proven', 'probe-precondition-failed', 'cleanup-failure')
+    if ($evidence.schemaVersion -ne 1 -or
+        $evidence.outcome -cne 'no-go' -or
+        $evidence.reason -cnotin $allowedReasons -or
+        $evidence.profileAlias -cne $expectedProfileAlias -or
+        $evidence.deploymentProfileAlias -cne $expectedDeploymentProfileAlias -or
+        $evidence.ceVersion -cne '9.1' -or
+        $evidence.connector -cne 'Data8' -or
+        $evidence.preflightOnly -ne $false -or
+        $evidence.operationExecuted -ne $false -or
+        $evidence.readOnlyProbeExecuted -isnot [bool] -or
+        $evidence.featureFlagChanged -ne $false) {
+        throw 'evidence-result-unavailable'
+    }
+
+    $probePropertyNames = @(
+        'sourceContactMarkerValid',
+        'smallGroupListValid',
+        'expectedRelationshipListValid',
+        'targetLeaderMarkerValid',
+        'expectedRelationshipRaceLeaderMatches',
+        'expectedRelationshipFieldsState',
+        'preconditionState'
+    )
+    if ($null -eq $evidence.probe) {
+        throw 'evidence-result-unavailable'
+    }
+    $actualProbePropertyNames = @($evidence.probe.PSObject.Properties.Name)
+    if ($actualProbePropertyNames.Count -ne $probePropertyNames.Count -or
+        @($actualProbePropertyNames | Where-Object { $_ -cnotin $probePropertyNames }).Count -ne 0 -or
+        @($probePropertyNames | Where-Object { $_ -cnotin $actualProbePropertyNames }).Count -ne 0) {
+        throw 'evidence-result-unavailable'
+    }
+
+    $allowedFieldStates = @('blank', 'expected', 'partial', 'unexpected', 'unreadable')
+    $allowedPreconditionStates = @('blank-repairable', 'already-repaired', 'partial-or-unexpected', 'provenance-invalid', 'fixture-precondition-failed', 'unavailable')
+    if ($evidence.probe.sourceContactMarkerValid -isnot [bool] -or
+        $evidence.probe.smallGroupListValid -isnot [bool] -or
+        $evidence.probe.expectedRelationshipListValid -isnot [bool] -or
+        $evidence.probe.targetLeaderMarkerValid -isnot [bool] -or
+        $evidence.probe.expectedRelationshipRaceLeaderMatches -isnot [bool] -or
+        $evidence.probe.expectedRelationshipFieldsState -cnotin $allowedFieldStates -or
+        $evidence.probe.preconditionState -cnotin $allowedPreconditionStates) {
+        throw 'evidence-result-unavailable'
+    }
+
+    if ($evidence.reason -ceq 'repair-preconditions-proven' -and -not $evidence.readOnlyProbeExecuted) {
+        throw 'evidence-result-unavailable'
+    }
+    if ($evidence.reason -cne 'repair-preconditions-proven' -and $evidence.readOnlyProbeExecuted) {
+        throw 'evidence-result-unavailable'
+    }
+
+    return [pscustomobject]@{
+        outcome = 'no-go'
+        reason = [string]$evidence.reason
+        readOnlyProbeExecuted = [bool]$evidence.readOnlyProbeExecuted
+        preconditionState = [string]$evidence.probe.preconditionState
+        probe = [pscustomobject]@{
+            sourceContactMarkerValid = [bool]$evidence.probe.sourceContactMarkerValid
+            smallGroupListValid = [bool]$evidence.probe.smallGroupListValid
+            expectedRelationshipListValid = [bool]$evidence.probe.expectedRelationshipListValid
+            targetLeaderMarkerValid = [bool]$evidence.probe.targetLeaderMarkerValid
+            expectedRelationshipRaceLeaderMatches = [bool]$evidence.probe.expectedRelationshipRaceLeaderMatches
+            expectedRelationshipFieldsState = [string]$evidence.probe.expectedRelationshipFieldsState
+            preconditionState = [string]$evidence.probe.preconditionState
+        }
+    }
+}
+
 function Remove-OwnedSliceCTemporaryDirectory {
     <#
     .SYNOPSIS
@@ -1256,10 +1470,26 @@ try {
     if ($isReconciliationMode) {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_LIVE', $null, 'Process')
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE', '1', 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', $null, 'Process')
+    }
+    elseif ($isRepairMode) {
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_LIVE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', '1', 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', $null, 'Process')
+    }
+    elseif ($isRepairProbeMode) {
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_LIVE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', '1', 'Process')
     }
     else {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_LIVE', '1', 'Process')
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', $null, 'Process')
     }
     [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_OWNER', [string]$fixture.ownerIdentity, 'Process')
     [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_MARKER', [string]$fixture.marker, 'Process')
@@ -1278,12 +1508,32 @@ try {
     $temporaryDirectoryCreated = $true
     if ($isReconciliationMode) {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $null, 'Process')
         $evidencePath = Join-Path $temporaryDirectory 'P72Data8ListManagementReconciliationEvidence.json'
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', $evidencePath, 'Process')
         $testFilter = 'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementEvidenceTests.Reconcile_package02_data8_list_management_emits_sanitized_reconciliation'
     }
+    elseif ($isRepairMode) {
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $null, 'Process')
+        $evidencePath = Join-Path $temporaryDirectory 'P72Data8ListManagementRepairEvidence.json'
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $evidencePath, 'Process')
+        $testFilter = 'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementEvidenceTests.Repair_package02_data8_relationship_fixture_emits_sanitized_evidence'
+    }
+    elseif ($isRepairProbeMode) {
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $null, 'Process')
+        $evidencePath = Join-Path $temporaryDirectory 'P72Data8ListManagementRepairProbeEvidence.json'
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $evidencePath, 'Process')
+        $testFilter = 'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementEvidenceTests.Probe_package02_data8_relationship_fixture_emits_sanitized_evidence'
+    }
     else {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $null, 'Process')
         $evidencePath = Join-Path $temporaryDirectory 'P72Data8ListManagementEvidence.json'
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $evidencePath, 'Process')
         $testFilter = 'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementEvidenceTests.Live_package02_data8_list_management_emits_sanitized_evidence'
@@ -1316,14 +1566,14 @@ try {
         }
 
         $timeoutOperations = @()
-        if (-not $isReconciliationMode) {
+        if ($operationMayHaveExecuted) {
             $timeoutOperations = New-NotStartedOperations
         }
         Complete-HandoffResult (New-HandoffResult `
             -Outcome 'no-go' `
             -Reason 'test-timeout' `
             -PreflightOnly $false `
-            -OperationExecuted (-not $isReconciliationMode) `
+            -OperationExecuted $operationMayHaveExecuted `
             -Operations $timeoutOperations)
         $scriptExitCode = 2
         throw 'result-written'
@@ -1339,14 +1589,14 @@ try {
         # 保守宣告可能已進入 operation 範圍，並以五筆 not-started projection 禁止任何重試；
         # reconciliation lane 則維持零 mutation 的空 operation 集合。
         $childFailureOperations = @()
-        if (-not $isReconciliationMode) {
+        if ($operationMayHaveExecuted) {
             $childFailureOperations = New-NotStartedOperations
         }
         Complete-HandoffResult (New-HandoffResult `
             -Outcome 'no-go' `
             -Reason 'child-process-failed' `
             -PreflightOnly $false `
-            -OperationExecuted (-not $isReconciliationMode) `
+            -OperationExecuted $operationMayHaveExecuted `
             -Operations $childFailureOperations)
         $scriptExitCode = 2
         throw 'result-written'
@@ -1362,6 +1612,26 @@ try {
             -OwnerBinding $strictEvidence.ownerBinding `
             -ProbeStage $strictEvidence.probeStage `
             -States $strictEvidence.states)
+    }
+    elseif ($isRepairMode) {
+        $strictEvidence = Get-StrictSliceCRepairEvidenceFile $evidencePath
+        Complete-HandoffResult (New-HandoffResult `
+            -Outcome $strictEvidence.outcome `
+            -Reason $strictEvidence.reason `
+            -PreflightOnly $false `
+            -OperationExecuted $strictEvidence.operationExecuted `
+            -ReadBackConfirmed $strictEvidence.readBackConfirmed)
+    }
+    elseif ($isRepairProbeMode) {
+        $strictEvidence = Get-StrictSliceCRepairProbeEvidenceFile $evidencePath
+        Complete-HandoffResult (New-HandoffResult `
+            -Outcome $strictEvidence.outcome `
+            -Reason $strictEvidence.reason `
+            -PreflightOnly $false `
+            -OperationExecuted $false `
+            -ReadOnlyProbeExecuted $strictEvidence.readOnlyProbeExecuted `
+            -ProbeStage 'relationship-list-repair-preconditions' `
+            -Probe $strictEvidence.probe)
     }
     else {
         $strictEvidence = Get-StrictSliceCEvidenceFile $evidencePath
@@ -1379,14 +1649,14 @@ catch {
         if ($childProcessStarted) {
             $reason = if ([string]$_.Exception.Message -eq 'evidence-result-unavailable') { 'evidence-result-unavailable' } else { 'handoff-failed' }
             $childFailureOperations = @()
-            if (-not $isReconciliationMode) {
+            if ($operationMayHaveExecuted) {
                 $childFailureOperations = New-NotStartedOperations
             }
             Complete-HandoffResult (New-HandoffResult `
                 -Outcome 'no-go' `
                 -Reason $reason `
                 -PreflightOnly $false `
-                -OperationExecuted (-not $isReconciliationMode) `
+                -OperationExecuted $operationMayHaveExecuted `
                 -Operations $childFailureOperations)
             $scriptExitCode = 2
         }

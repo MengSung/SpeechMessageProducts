@@ -432,6 +432,232 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
     }
 
     /// <summary>
+    /// 只修復 task-owned expected relationship list 的 area-leader 與 area-name 欄位。
+    /// 此 lane 不呼叫 ProductClient、feature flag 或任何其他 Slice C operation；它先以同一個
+    /// crm91/Data8 runtime 執行 WhoAmI，再由 fixture store 驗證 provenance，最後最多送出一次
+    /// allowlisted Update 並立即 read-back。任何寫入後的不確定狀態都輸出 sanitized no-go，
+    /// 不會由 child 自動重試。
+    /// </summary>
+    [P72Data8SliceCRepairFact]
+    public async Task Repair_package02_data8_relationship_fixture_emits_sanitized_evidence()
+    {
+        var outcome = "no-go";
+        var reason = "fixture-precondition-failed";
+        var operationExecuted = false;
+        var readBackConfirmed = false;
+        var cleanupSucceeded = true;
+        ILoggerFactory? loggerFactory = null;
+        EmbeddedData8Runtime? runtime = null;
+        P72Data8ListManagementFixtureStore? store = null;
+
+        try
+        {
+            var fixture = ReadFixture();
+            var configuration = CreateDevelopmentConfiguration();
+            var (profiles, catalog, organization, settings) = ResolveProfile(configuration);
+            var credentialPassword = Environment.GetEnvironmentVariable("CRM_PASSWORD");
+            credentialPassword.Should().NotBeNullOrWhiteSpace();
+
+            loggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Warning));
+            runtime = new EmbeddedData8Runtime(
+                profiles,
+                catalog,
+                ProfileAlias,
+                new OnPremiseData8ConnectorClientFactory(settings),
+                loggerFactory.CreateLogger<EmbeddedData8Runtime>(),
+                loggerFactory);
+
+            var verifiedOwnerId = await ResolveFixtureTargetOwnerIdAsync(
+                runtime.Executor,
+                organization.OrganizationId).ConfigureAwait(false);
+            if (verifiedOwnerId is Guid)
+            {
+                store = new P72Data8ListManagementFixtureStore(new OnPremiseClient(
+                    organization.ServiceUri,
+                    settings.UserName,
+                    credentialPassword!));
+
+                var repair = store.RepairTaskOwnedExpectedRelationshipFields(
+                    fixture.ContactId,
+                    fixture.SmallGroupListId,
+                    fixture.SmallGroupTargetLeaderContactId,
+                    fixture.SmallGroupExpectedRelationshipListId);
+                outcome = repair.Outcome;
+                reason = repair.Reason;
+                operationExecuted = repair.OperationExecuted;
+                readBackConfirmed = repair.ReadBackConfirmed;
+            }
+        }
+        catch (Exception)
+        {
+            // 寫入請求可能已抵達 CE 但 child 未取得回應；這種狀態必須保持 ambiguous，禁止重試。
+            reason = operationExecuted ? "repair-ambiguous" : "repair-precondition-failed";
+            outcome = "no-go";
+            readBackConfirmed = false;
+        }
+        finally
+        {
+            DisposeStore(ref store, ref outcome, ref reason);
+            if (reason == "cleanup-failure")
+            {
+                cleanupSucceeded = false;
+            }
+
+            if (!await DisposeRuntimeAsync(runtime).ConfigureAwait(false))
+            {
+                cleanupSucceeded = false;
+            }
+
+            DisposeLogger(ref loggerFactory, ref outcome, ref reason);
+            if (reason == "cleanup-failure")
+            {
+                cleanupSucceeded = false;
+            }
+        }
+
+        if (!cleanupSucceeded)
+        {
+            outcome = "no-go";
+            reason = "cleanup-failure";
+            readBackConfirmed = false;
+        }
+
+        var evidence = new
+        {
+            schemaVersion = 1,
+            outcome,
+            reason,
+            profileAlias = ProfileAlias,
+            deploymentProfileAlias = "crm91",
+            ceVersion = "9.1",
+            connector = "Data8",
+            preflightOnly = false,
+            operationExecuted,
+            readBackConfirmed,
+            featureFlagChanged = false
+        };
+        WriteSliceCRepairEvidenceFile(JsonSerializer.Serialize(evidence, EvidenceJsonOptions));
+    }
+
+    /// <summary>
+    /// 只執行 relationship-list repair 的唯讀 precondition probe。
+    /// 此測試永遠不呼叫 Update/Execute/Create/Delete 或 ProductClient；它沿用既有 crm91/Data8
+    /// WhoAmI 與 fixture store read path，將 source contact、兩個 static list、leader marker、
+    /// race-leader 關聯及 area 欄位狀態投影成 bounded sanitized evidence。
+    /// </summary>
+    [P72Data8SliceCRepairProbeFact]
+    public async Task Probe_package02_data8_relationship_fixture_emits_sanitized_evidence()
+    {
+        var outcome = "no-go";
+        var reason = "probe-precondition-failed";
+        var readOnlyProbeExecuted = false;
+        var cleanupSucceeded = true;
+        var probe = new P72SmallGroupFixtureRepairProbe(false, false, false, false, false, "unreadable", "unavailable");
+        ILoggerFactory? loggerFactory = null;
+        EmbeddedData8Runtime? runtime = null;
+        P72Data8ListManagementFixtureStore? store = null;
+
+        try
+        {
+            var fixture = ReadFixture();
+            var configuration = CreateDevelopmentConfiguration();
+            var (profiles, catalog, organization, settings) = ResolveProfile(configuration);
+            var credentialPassword = Environment.GetEnvironmentVariable("CRM_PASSWORD");
+            credentialPassword.Should().NotBeNullOrWhiteSpace();
+
+            loggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Warning));
+            runtime = new EmbeddedData8Runtime(
+                profiles,
+                catalog,
+                ProfileAlias,
+                new OnPremiseData8ConnectorClientFactory(settings),
+                loggerFactory.CreateLogger<EmbeddedData8Runtime>(),
+                loggerFactory);
+
+            var verifiedOwnerId = await ResolveFixtureTargetOwnerIdAsync(
+                runtime.Executor,
+                organization.OrganizationId).ConfigureAwait(false);
+            if (verifiedOwnerId is Guid)
+            {
+                store = new P72Data8ListManagementFixtureStore(new OnPremiseClient(
+                    organization.ServiceUri,
+                    settings.UserName,
+                    credentialPassword!));
+
+                probe = store.ProbeTaskOwnedExpectedRelationshipFields(
+                    fixture.ContactId,
+                    fixture.SmallGroupListId,
+                    fixture.SmallGroupTargetLeaderContactId,
+                    fixture.SmallGroupExpectedRelationshipListId);
+                // probe 永遠不是 repair 授權或成功寫入；即使所有 proof 成立，也以 no-go
+                // 回報「已完成診斷」，避免 parent exit code 被誤解為可直接重試 Update。
+                outcome = "no-go";
+                reason = "repair-preconditions-proven";
+                readOnlyProbeExecuted = true;
+            }
+        }
+        catch (Exception)
+        {
+            // 唯讀診斷不輸出遠端例外；未完成 proof 時保持 no-go，且不暗示任何 repair 可重試。
+            outcome = "no-go";
+            reason = "probe-precondition-failed";
+            readOnlyProbeExecuted = false;
+        }
+        finally
+        {
+            DisposeStore(ref store, ref outcome, ref reason);
+            if (reason == "cleanup-failure")
+            {
+                cleanupSucceeded = false;
+            }
+
+            if (!await DisposeRuntimeAsync(runtime).ConfigureAwait(false))
+            {
+                cleanupSucceeded = false;
+            }
+
+            DisposeLogger(ref loggerFactory, ref outcome, ref reason);
+            if (reason == "cleanup-failure")
+            {
+                cleanupSucceeded = false;
+            }
+        }
+
+        if (!cleanupSucceeded)
+        {
+            outcome = "no-go";
+            reason = "cleanup-failure";
+            readOnlyProbeExecuted = false;
+        }
+
+        var evidence = new
+        {
+            schemaVersion = 1,
+            outcome,
+            reason,
+            profileAlias = ProfileAlias,
+            deploymentProfileAlias = "crm91",
+            ceVersion = "9.1",
+            connector = "Data8",
+            preflightOnly = false,
+            operationExecuted = false,
+            readOnlyProbeExecuted,
+            featureFlagChanged = false,
+            probe = new
+            {
+                sourceContactMarkerValid = probe.SourceContactMarkerValid,
+                smallGroupListValid = probe.SmallGroupListValid,
+                expectedRelationshipListValid = probe.ExpectedRelationshipListValid,
+                targetLeaderMarkerValid = probe.TargetLeaderMarkerValid,
+                expectedRelationshipRaceLeaderMatches = probe.ExpectedRelationshipRaceLeaderMatches,
+                expectedRelationshipFieldsState = probe.ExpectedRelationshipFieldsState,
+                preconditionState = probe.PreconditionState
+            }
+        };
+        WriteSliceCRepairProbeEvidenceFile(JsonSerializer.Serialize(evidence, EvidenceJsonOptions));
+    }
+
+    /// <summary>
     /// 決定 Slice C reconciliation 的最終去識別化 evidence 分類。未保存的歷史 baseline 本身只能得出
     /// <c>baseline-unprovable</c> 的 no-go；但 store、runtime 或 logger 任一唯一資源 owner 無法完成
     /// Dispose 時，<c>cleanup-failure</c> 是更高優先序且 release-blocking 的狀態，絕不可被 baseline
@@ -653,6 +879,29 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
             evidenceJson,
             "P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH",
             "P72Data8ListManagementReconciliationEvidence.json");
+
+    /// <summary>
+    /// 將 fixture repair child 的 sanitized evidence 寫入 parent 指定的 nonce temporary file。
+    /// repair lane 與 execute/reconcile lane 共用相同的 bounded UTF-8/CRLF/回收契約，避免
+    /// credential、GUID、CRM payload 或端點從 child stdout 泄漏。
+    /// </summary>
+    /// <param name="evidenceJson">已通過 child schema 投影的 bounded JSON。</param>
+    private static void WriteSliceCRepairEvidenceFile(string evidenceJson)
+        => WriteSliceCEvidenceFile(
+            evidenceJson,
+            "P7_2_SLICE_C_REPAIR_EVIDENCE_PATH",
+            "P72Data8ListManagementRepairEvidence.json");
+
+    /// <summary>
+    /// 將唯讀 repair probe child evidence 寫入 parent 指定的 bounded temporary file。
+    /// probe 不使用 stdout 傳送 CRM projection，並沿用既有 UTF-8/CRLF/finally cleanup 契約。
+    /// </summary>
+    /// <param name="evidenceJson">已去識別化且通過固定 schema 的 JSON。</param>
+    private static void WriteSliceCRepairProbeEvidenceFile(string evidenceJson)
+        => WriteSliceCEvidenceFile(
+            evidenceJson,
+            "P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH",
+            "P72Data8ListManagementRepairProbeEvidence.json");
 
     /// <summary>
     /// 實作兩種 child evidence 共用的單次 temporary-file 邊界。environment variable 與固定檔名皆由
@@ -1073,6 +1322,92 @@ internal sealed class P72Data8SliceCReconcileFactAttribute : FactAttribute
             !RequiredVariables.All(name => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name))))
         {
             Skip = "P7.2 Slice C reconciliation requires an approved task-owned CE 9.1 Data8 fixture graph.";
+        }
+    }
+}
+
+/// <summary>
+/// Slice C relationship-list repair 的獨立 opt-in gate。
+/// repair 不與 execute 或 reconciliation 共用 mode flag；只有 runner 明確設定 repair flag、
+/// credential、fixture identities 與 bounded evidence path 時才啟用，避免一般測試探索意外修改 CRM。
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+internal sealed class P72Data8SliceCRepairFactAttribute : FactAttribute
+{
+    private static readonly string[] RequiredVariables =
+    [
+        "SPEECHMESSAGE_P7_2_SLICE_C_REPAIR",
+        "CRM_PASSWORD",
+        "P7_2_SLICE_C_FIXTURE_OWNER",
+        "P7_2_SLICE_C_FIXTURE_MARKER",
+        "P7_2_SLICE_C_CONTACT_ID",
+        "P7_2_SLICE_C_ADD_LIST_ID",
+        "P7_2_SLICE_C_REMOVE_LIST_ID",
+        "P7_2_SLICE_C_SMALL_GROUP_LIST_ID",
+        "P7_2_SLICE_C_SMALL_GROUP_TARGET_LEADER_CONTACT_ID",
+        "P7_2_SLICE_C_SMALL_GROUP_EXPECTED_RELATIONSHIP_LIST_ID",
+        "P7_2_SLICE_C_TRANSFER_SOURCE_LIST_ID",
+        "P7_2_SLICE_C_TRANSFER_TARGET_LIST_ID",
+        "P7_2_SLICE_C_TRANSFER_WEEK_START_UTC",
+        "P7_2_SLICE_C_REPAIR_EVIDENCE_PATH"
+    ];
+
+    /// <summary>
+    /// 檢查 repair child 是否由受控 runner 啟動。缺少任一 bounded input 或同時啟用其他 lane
+    /// 時直接 Skip，確保一般 `dotnet test` 不會建立 Data8 session 或觸發 CRM Update。
+    /// </summary>
+    public P72Data8SliceCRepairFactAttribute()
+    {
+        if (!string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_REPAIR"), "1", StringComparison.Ordinal) ||
+            string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_LIVE"), "1", StringComparison.Ordinal) ||
+            string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE"), "1", StringComparison.Ordinal) ||
+            string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE"), "1", StringComparison.Ordinal) ||
+            !RequiredVariables.All(name => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name))))
+        {
+            Skip = "P7.2 Slice C repair requires an explicit task-owned CE 9.1 Data8 repair lane.";
+        }
+    }
+}
+
+/// <summary>
+/// Slice C relationship-list repair precondition probe 的獨立 opt-in gate。
+/// 它只允許 read-only Data8 proof，且與 execute、reconcile、repair 三個 lane 互斥；普通
+/// test discovery 不會建立 CRM session，也不會觸發任何 mutation。
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+internal sealed class P72Data8SliceCRepairProbeFactAttribute : FactAttribute
+{
+    private static readonly string[] RequiredVariables =
+    [
+        "SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE",
+        "CRM_PASSWORD",
+        "P7_2_SLICE_C_FIXTURE_OWNER",
+        "P7_2_SLICE_C_FIXTURE_MARKER",
+        "P7_2_SLICE_C_CONTACT_ID",
+        "P7_2_SLICE_C_ADD_LIST_ID",
+        "P7_2_SLICE_C_REMOVE_LIST_ID",
+        "P7_2_SLICE_C_SMALL_GROUP_LIST_ID",
+        "P7_2_SLICE_C_SMALL_GROUP_TARGET_LEADER_CONTACT_ID",
+        "P7_2_SLICE_C_SMALL_GROUP_EXPECTED_RELATIONSHIP_LIST_ID",
+        "P7_2_SLICE_C_TRANSFER_SOURCE_LIST_ID",
+        "P7_2_SLICE_C_TRANSFER_TARGET_LIST_ID",
+        "P7_2_SLICE_C_TRANSFER_WEEK_START_UTC",
+        "P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH"
+    ];
+
+    /// <summary>
+    /// 只有 runner 明確設定 probe mode 且所有 bounded inputs 都存在時才啟用測試。
+    /// 任一 mutation lane 同時存在都直接 Skip，避免 read-only 診斷意外與寫入共用 process。
+    /// </summary>
+    public P72Data8SliceCRepairProbeFactAttribute()
+    {
+        if (!string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE"), "1", StringComparison.Ordinal) ||
+            string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_LIVE"), "1", StringComparison.Ordinal) ||
+            string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE"), "1", StringComparison.Ordinal) ||
+            string.Equals(Environment.GetEnvironmentVariable("SPEECHMESSAGE_P7_2_SLICE_C_REPAIR"), "1", StringComparison.Ordinal) ||
+            !RequiredVariables.All(name => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name))))
+        {
+            Skip = "P7.2 Slice C repair probe requires an explicit task-owned CE 9.1 Data8 read-only lane.";
         }
     }
 }

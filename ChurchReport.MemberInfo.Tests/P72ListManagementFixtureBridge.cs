@@ -72,6 +72,20 @@ internal sealed record P72SmallGroupFixtureRepairResult(
     bool ReadBackConfirmed);
 
 /// <summary>
+/// Slice C relationship-list repair 的唯讀前置條件投影。
+/// 每個欄位只表示一項已去識別化的 CE read proof；不攜帶 GUID、欄位內容、端點、
+/// 認證資料或例外文字，因此可以安全地交給 operator 判斷是否值得重新評估 repair。
+/// </summary>
+internal sealed record P72SmallGroupFixtureRepairProbe(
+    bool SourceContactMarkerValid,
+    bool SmallGroupListValid,
+    bool ExpectedRelationshipListValid,
+    bool TargetLeaderMarkerValid,
+    bool ExpectedRelationshipRaceLeaderMatches,
+    string ExpectedRelationshipFieldsState,
+    string PreconditionState);
+
+/// <summary>
 /// transfer composite 的固定 graph projection。PresentRecordId 只在 task-local store 內用於確認「本次
 /// reconciliation 所觀察到」的單筆 record；它不會進入 bridge result，cleanup 也只能刪除這個已確認 ID。
 /// </summary>

@@ -57,6 +57,7 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
     private const int ContactListCreatedFromCodeValue = 2;
     private const string SliceCListMarkerPrefix = "P7.2-SC-";
     private const string SliceASourceContactMarker = "p7.2-contact-basic-info";
+    private const string ExpectedRelationshipAreaName = "P7.2-SC-AREA-EXPECTED";
 
     private static readonly string[] SmallGroupFields =
     [
@@ -197,6 +198,167 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
             ReadOptionalReference(entity, CoAreaLeaderAttribute, ContactEntityName),
             ReadOptionalReference(entity, CoRaceLeaderAttribute, ContactEntityName),
             ReadOptionalReference(entity, ViceFamilyLeaderAttribute, ContactEntityName));
+    }
+
+    /// <summary>
+    /// 以單一、固定的 Data8 Update 修復 Slice C task-owned relationship list 的兩個缺失欄位。
+    ///
+    /// 這不是通用 CRUD API：方法只接受 descriptor 已核准的 fixture identities，先驗證來源 contact、
+    /// 小組與 relationship list 的 task marker/static shape，以及 relationship list 目前的 race leader。
+    /// area-leader 與 area-name 必須同時為空，或同時已是本方法的 deterministic expected state；部分填寫、
+    /// 非預期值、錯誤 leader 或任何 provenance 不明都 fail closed，且在 Update 前不修改 CRM。
+    /// Update 只送出 <c>new_contact_list_arealeader</c> 與 <c>new_area_name</c>，完成後立即用同一個
+    /// service read-back；寫入後 read-back 失敗或不相符時不嘗試第二次，也不猜測 rollback 狀態。
+    /// </summary>
+    /// <param name="fixtureContactId">Slice A 已核准的 task-owned contact。</param>
+    /// <param name="smallGroupListId">Slice C task-owned small-group list。</param>
+    /// <param name="targetLeaderContactId">既有 task-owned race/small-group leader。</param>
+    /// <param name="expectedRelationshipListId">要修復的 task-owned relationship list。</param>
+    /// <returns>僅含 outcome、reason、execution 與 read-back 狀態的 sanitized 結果。</returns>
+    internal P72SmallGroupFixtureRepairResult RepairTaskOwnedExpectedRelationshipFields(
+        Guid fixtureContactId,
+        Guid smallGroupListId,
+        Guid targetLeaderContactId,
+        Guid expectedRelationshipListId)
+    {
+        RequireGuid(fixtureContactId, nameof(fixtureContactId));
+        RequireGuid(smallGroupListId, nameof(smallGroupListId));
+        RequireGuid(targetLeaderContactId, nameof(targetLeaderContactId));
+        RequireGuid(expectedRelationshipListId, nameof(expectedRelationshipListId));
+        if (smallGroupListId == expectedRelationshipListId ||
+            !HasSourceFixtureContactMarker(fixtureContactId) ||
+            !IsTaskOwnedStaticList(smallGroupListId) ||
+            !IsTaskOwnedStaticList(expectedRelationshipListId) ||
+            !HasTaskOwnedContactName(targetLeaderContactId))
+        {
+            return new P72SmallGroupFixtureRepairResult(
+                "no-go",
+                "fixture-precondition-failed",
+                false,
+                false);
+        }
+
+        var current = ReadSmallGroupFields(expectedRelationshipListId);
+        if (current.RaceLeaderId != targetLeaderContactId)
+        {
+            return new P72SmallGroupFixtureRepairResult(
+                "no-go",
+                "fixture-precondition-failed",
+                false,
+                false);
+        }
+
+        var alreadyExpected = current.AreaLeaderId == targetLeaderContactId &&
+                              string.Equals(current.AreaName, ExpectedRelationshipAreaName, StringComparison.Ordinal);
+        if (alreadyExpected)
+        {
+            return new P72SmallGroupFixtureRepairResult(
+                "go",
+                "already-repaired",
+                false,
+                true);
+        }
+
+        if (current.AreaLeaderId is not null || !string.IsNullOrWhiteSpace(current.AreaName))
+        {
+            return new P72SmallGroupFixtureRepairResult(
+                "no-go",
+                "fixture-state-unexpected",
+                false,
+                false);
+        }
+
+        try
+        {
+            // Update 前即視為 operation started：CE 可能已接受請求，即使 transport 最後拋出例外。
+            // 因此任何例外都回傳不可重試的 ambiguous，而不是重新送出第二次 Update。
+            GetService().Update(new Entity(ListEntityName, expectedRelationshipListId)
+            {
+                [AreaLeaderAttribute] = new EntityReference(ContactEntityName, targetLeaderContactId),
+                [AreaNameAttribute] = ExpectedRelationshipAreaName
+            });
+
+            var afterUpdate = ReadSmallGroupFields(expectedRelationshipListId);
+            var readBackConfirmed = afterUpdate.AreaLeaderId == targetLeaderContactId &&
+                                    string.Equals(afterUpdate.AreaName, ExpectedRelationshipAreaName, StringComparison.Ordinal);
+            return readBackConfirmed
+                ? new P72SmallGroupFixtureRepairResult("go", string.Empty, true, true)
+                : new P72SmallGroupFixtureRepairResult("no-go", "repair-readback-mismatch", true, false);
+        }
+        catch (Exception)
+        {
+            return new P72SmallGroupFixtureRepairResult("no-go", "repair-ambiguous", true, false);
+        }
+    }
+
+    /// <summary>
+    /// 以唯讀 Retrieve 建立 relationship-list repair 的逐項前置條件投影。
+    /// 此方法刻意不呼叫 <c>Update</c>、<c>Execute</c>、<c>Create</c>、<c>Delete</c> 或
+    /// association API；每個遠端查詢失敗都轉成去識別化的 false/unreadable 狀態，讓
+    /// operator 能先知道是哪一個 proof 不成立，而不必重跑具有不可重試語意的 repair lane。
+    /// </summary>
+    /// <param name="fixtureContactId">Slice A task-owned source contact。</param>
+    /// <param name="smallGroupListId">Slice C task-owned small-group list。</param>
+    /// <param name="targetLeaderContactId">task-owned race/small-group leader。</param>
+    /// <param name="expectedRelationshipListId">專用 area leader/name relationship list。</param>
+    /// <returns>不含 CRM identity 或原始例外的 bounded proof projection。</returns>
+    internal P72SmallGroupFixtureRepairProbe ProbeTaskOwnedExpectedRelationshipFields(
+        Guid fixtureContactId,
+        Guid smallGroupListId,
+        Guid targetLeaderContactId,
+        Guid expectedRelationshipListId)
+    {
+        RequireGuid(fixtureContactId, nameof(fixtureContactId));
+        RequireGuid(smallGroupListId, nameof(smallGroupListId));
+        RequireGuid(targetLeaderContactId, nameof(targetLeaderContactId));
+        RequireGuid(expectedRelationshipListId, nameof(expectedRelationshipListId));
+
+        var sourceContactMarkerValid = ProbeBoolean(() => HasSourceFixtureContactMarker(fixtureContactId));
+        var smallGroupListValid = ProbeBoolean(() => IsTaskOwnedStaticList(smallGroupListId));
+        var expectedRelationshipListValid = ProbeBoolean(() => IsTaskOwnedStaticList(expectedRelationshipListId));
+        var targetLeaderMarkerValid = ProbeBoolean(() => HasTaskOwnedContactName(targetLeaderContactId));
+        var raceLeaderMatches = false;
+        var relationshipFieldsState = "unreadable";
+
+        if (expectedRelationshipListValid)
+        {
+            try
+            {
+                var current = ReadSmallGroupFields(expectedRelationshipListId);
+                raceLeaderMatches = current.RaceLeaderId == targetLeaderContactId;
+                relationshipFieldsState = ClassifyExpectedRelationshipFields(current, targetLeaderContactId);
+            }
+            catch (Exception)
+            {
+                // 唯讀診斷只回報狀態，不把 CRM/WCF 例外內容帶出 process 或 operator console。
+                raceLeaderMatches = false;
+                relationshipFieldsState = "unreadable";
+            }
+        }
+
+        var preconditionState = !sourceContactMarkerValid ||
+                                !smallGroupListValid ||
+                                !expectedRelationshipListValid ||
+                                !targetLeaderMarkerValid
+            ? "provenance-invalid"
+            : !raceLeaderMatches
+                ? "fixture-precondition-failed"
+                : relationshipFieldsState switch
+                {
+                    "blank" => "blank-repairable",
+                    "expected" => "already-repaired",
+                    "partial" or "unexpected" => "partial-or-unexpected",
+                    _ => "unavailable"
+                };
+
+        return new P72SmallGroupFixtureRepairProbe(
+            sourceContactMarkerValid,
+            smallGroupListValid,
+            expectedRelationshipListValid,
+            targetLeaderMarkerValid,
+            raceLeaderMatches,
+            relationshipFieldsState,
+            preconditionState);
     }
 
     /// <summary>
@@ -637,6 +799,42 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
                string.Equals(entity.LogicalName, ContactEntityName, StringComparison.Ordinal) &&
                entity.Id == contactId &&
                ReadRequiredText(entity, ContactFullNameAttribute).StartsWith(SliceCListMarkerPrefix, StringComparison.Ordinal);
+    }
+
+    /// <summary>將唯讀 proof 的例外收斂成 false，避免診斷輸出洩漏遠端例外內容。</summary>
+    private static bool ProbeBoolean(Func<bool> probe)
+    {
+        try
+        {
+            return probe();
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 將 relationship list 的兩個 allowlisted 欄位分類為 bounded 狀態。
+    /// 空白表示可供 repair 評估；expected 表示已完成；partial/unexpected 一律維持 fail closed。
+    /// </summary>
+    private static string ClassifyExpectedRelationshipFields(
+        P72SmallGroupFixedFieldsSnapshot snapshot,
+        Guid targetLeaderContactId)
+    {
+        var areaNameBlank = string.IsNullOrWhiteSpace(snapshot.AreaName);
+        if (snapshot.AreaLeaderId is null && areaNameBlank)
+        {
+            return "blank";
+        }
+
+        if (snapshot.AreaLeaderId == targetLeaderContactId &&
+            string.Equals(snapshot.AreaName, ExpectedRelationshipAreaName, StringComparison.Ordinal))
+        {
+            return "expected";
+        }
+
+        return snapshot.AreaLeaderId is null || areaNameBlank ? "partial" : "unexpected";
     }
 
     /// <summary>複製最多一千個 distinct contact IDs，與 connector 的 bounded membership contract 對齊。</summary>

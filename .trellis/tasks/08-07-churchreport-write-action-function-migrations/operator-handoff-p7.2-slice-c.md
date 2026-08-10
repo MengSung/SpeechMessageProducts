@@ -212,3 +212,50 @@ baseline、sentinel、CRM response、TRX、raw exception 或 browser session 資
 本 handoff 對應的本機防呆測試與 child lane 都不會自行進入寫入 mode。下一個實機動作只能是上述
 `-ReconcileFixture`；其結果無論為正常的 `baseline-unprovable` 或任何其他 no-go，都不會改動 CE、
 產品程式、設定、feature flag 或 ChurchReport 流量。
+## Slice C relationship-list repair precondition probe
+
+Before any repair or execute lane, run this read-only probe from the Lenovo
+operator PowerShell:
+
+```powershell
+$root = 'D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
+  "$root\docs\scripts\Invoke-Package02Data8ListManagementEvidence.ps1" `
+  -RepositoryPath $root `
+  -RepairProbe `
+  -Json
+```
+
+The probe is diagnostic only. A completed probe still reports `outcome=no-go`,
+keeps `operationExecuted=false`, and sets `safeToRetry=false`. Do not paste
+passwords, tokens, cookies, GUIDs, endpoints, or raw exceptions; return only
+the final sanitized JSON line.
+
+The 2026-08-10 probe completed read-only but reported
+`preconditionState=provenance-invalid`, with
+`sourceContactMarkerValid=false` and
+`expectedRelationshipRaceLeaderMatches=false`. The relationship fields were
+blank. This is not permission to run `-RepairFixture`; the two provenance
+conditions must be corrected first, then the probe must be run again.
+
+## Slice C relationship-list repair gate
+
+目前 relationship list 的「牧區」與「區別」欄位同時空白，但唯讀 probe 也發現
+source contact marker 與 expected relationship race-leader provenance 尚未成立。因此
+不得執行下方 `-RepairFixture`；必須先修正這兩個 task-owned provenance 條件，再重跑
+`-RepairProbe`。
+
+```powershell
+$root = 'D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
+  "$root\docs\scripts\Invoke-Package02Data8ListManagementEvidence.ps1" `
+  -RepositoryPath $root `
+  -RepairFixture `
+  -Json
+```
+
+只有新的 probe 顯示兩個 provenance 條件成立後，才可由授權的下一個操作執行一次
+`-RepairFixture`；成功且 `readBackConfirmed=true` 後，才可執行一次既有的
+`-ReconcileFixture -Json`。任何 `safeToRetry=false`、`repair-ambiguous`、
+`repair-readback-mismatch` 或 `cleanup-failure` 都不得重試。所有 lane 都只接受一行
+sanitized JSON，不會輸出 GUID、密碼、token、cookie、端點或原始例外。

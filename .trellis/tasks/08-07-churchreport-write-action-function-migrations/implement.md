@@ -61,3 +61,10 @@
 3. 在 `LivePackage02Data8ListManagementEvidenceTests.cs` 的 `TryProveFixtureGraph` 最前方呼叫 provenance projection。任何 provenance failure 必須使 execution lane 在第一個 dispatch 前輸出 `fixture-precondition-failed`，且 reconciliation lane 不得將資源釋放失敗覆寫成 `baseline-unprovable`。
 4. 先在 `docs/scripts/Invoke-Package02Data8ListManagementEvidence.Tests.ps1` 新增失敗測試，鎖定 child non-zero exit code 即使遺留外觀正確的 evidence file 也必須輸出 no-go；再在 runner 於 parse evidence 前以固定 `child-process-failed` reason fail closed。
 5. 增加 child 非零退出、reconciliation cleanup failure 與 strict parser 的 focused tests；完成後執行 PowerShell contract suite、focused C# tests、P7.2 coverage validator、Release build、serial solution test、text/encoding gate。只有全部通過才回到已登入的 D365 分頁補 task-owned relationship fixture，並先執行唯讀 reconciliation。
+## 2026-08-10 Slice C relationship-list repair lane
+
+- Repair is a separate, explicit runner mode; it is not `-ExecuteFixture`, is not reconciliation, and is never selected by ordinary test discovery.
+- The repair child proves the current Windows identity through the existing descriptor and the same CE 9.1/Data8 WhoAmI path, then validates only the descriptor-owned source contact, small-group list, expected relationship list, and task-owned leader.
+- The relationship list must be static and marker-bound. Its area-leader and area-name fields must both be blank, or both already equal the deterministic expected state. Partial or unexpected state fails closed before Update.
+- At most one Data8 Update is sent, containing only `new_contact_list_arealeader` and `new_area_name`. A transport exception after the request begins is `repair-ambiguous` and is never retried; the child immediately performs one read-back when transport returns.
+- The parent runner accepts only the bounded repair evidence schema, emits `safeToRetry=false`, and restores every process environment variable and temporary evidence directory in `finally`.

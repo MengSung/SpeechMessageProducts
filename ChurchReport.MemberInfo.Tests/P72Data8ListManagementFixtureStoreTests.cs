@@ -162,6 +162,85 @@ public sealed class P72Data8ListManagementFixtureStoreTests
     }
 
     /// <summary>
+    /// 驗證 fixture repair 只會對 relationship list 送出兩個 allowlisted 欄位，並以 read-back
+    /// 確認 deterministic expected state；任何其他欄位、通用 CRUD 或第二次 Update 都不允許。
+    /// </summary>
+    [Fact]
+    public void Repair_expected_relationship_fields_updates_only_the_allowlisted_fields()
+    {
+        using var service = new RepairRecordingOrganizationService();
+        using var store = new P72Data8ListManagementFixtureStore(service);
+
+        var result = store.RepairTaskOwnedExpectedRelationshipFields(
+            MembershipContactId,
+            TargetSmallGroupListId,
+            TargetLeaderContactId,
+            ExpectedRelationshipListId);
+
+        result.Should().Be(new P72SmallGroupFixtureRepairResult("go", string.Empty, true, true));
+        service.UpdateCount.Should().Be(1);
+        service.UpdatedAttributeNames.Should().BeEquivalentTo(
+            "new_contact_list_arealeader",
+            "new_area_name");
+        service.UnexpectedOperationCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 部分填寫的 relationship fixture 必須 fail closed，且在判斷出狀態不安全後完全不寫入 CRM。
+    /// </summary>
+    [Fact]
+    public void Repair_expected_relationship_fields_rejects_partial_state_without_update()
+    {
+        using var service = new RepairRecordingOrganizationService(
+            areaLeaderId: AreaLeaderContactId,
+            areaName: null);
+        using var store = new P72Data8ListManagementFixtureStore(service);
+
+        var result = store.RepairTaskOwnedExpectedRelationshipFields(
+            MembershipContactId,
+            TargetSmallGroupListId,
+            TargetLeaderContactId,
+            ExpectedRelationshipListId);
+
+        result.Should().Be(new P72SmallGroupFixtureRepairResult(
+            "no-go",
+            "fixture-state-unexpected",
+            false,
+            false));
+        service.UpdateCount.Should().Be(0);
+        service.UnexpectedOperationCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護 repair probe 的唯讀契約：正常 task-owned graph 應逐項回報 true 與 blank 欄位狀態，
+    /// 且不應送出任何 CRM mutation。這個測試的決定性斷言是 UpdateCount 與
+    /// UnexpectedOperationCount 都維持零。
+    /// </summary>
+    [Fact]
+    public void Probe_expected_relationship_repair_preconditions_is_read_only_and_bounded()
+    {
+        using var service = new RepairRecordingOrganizationService();
+        using var store = new P72Data8ListManagementFixtureStore(service);
+
+        var result = store.ProbeTaskOwnedExpectedRelationshipFields(
+            MembershipContactId,
+            TargetSmallGroupListId,
+            TargetLeaderContactId,
+            ExpectedRelationshipListId);
+
+        result.Should().Be(new P72SmallGroupFixtureRepairProbe(
+            SourceContactMarkerValid: true,
+            SmallGroupListValid: true,
+            ExpectedRelationshipListValid: true,
+            TargetLeaderMarkerValid: true,
+            ExpectedRelationshipRaceLeaderMatches: true,
+            ExpectedRelationshipFieldsState: "blank",
+            PreconditionState: "blank-repairable"));
+        service.UpdateCount.Should().Be(0);
+        service.UnexpectedOperationCount.Should().Be(0);
+    }
+
+    /// <summary>
     /// 呼叫 descriptor-bound 四參數 contract。TDD 的 red phase 已確認舊 store 沒有這個 boundary；
     /// 現在以型別安全呼叫保護 query 的專用 relationship ID，不讓未來重構退回三參數、只依 leader
     /// 的廣泛查詢。
@@ -177,6 +256,138 @@ public sealed class P72Data8ListManagementFixtureStoreTests
             mode,
             targetLeaderContactId,
             expectedRelationshipListId);
+
+    /// <summary>
+    /// repair lane 的 deterministic CRM double。它只暴露固定的 list/contact projection 與一次
+    /// relationship-list Update，藉此讓測試能證明 provenance、欄位 allowlist 與 read-back 順序。
+    /// </summary>
+    private sealed class RepairRecordingOrganizationService : IOrganizationService, IDisposable
+    {
+        private readonly Entity _smallGroup;
+        private readonly Entity _expectedRelationship;
+        private readonly Entity _sourceContact;
+        private readonly Entity _targetLeader;
+        private bool _disposed;
+
+        /// <summary>建立可選擇初始 area 欄位狀態的 repair double。</summary>
+        internal RepairRecordingOrganizationService(Guid? areaLeaderId = null, string? areaName = null)
+        {
+            _smallGroup = CreateStaticList(TargetSmallGroupListId, TargetLeaderContactId);
+            _expectedRelationship = CreateStaticList(ExpectedRelationshipListId, TargetLeaderContactId);
+            _expectedRelationship["new_contact_list_arealeader"] = areaLeaderId is Guid id
+                ? new EntityReference("contact", id)
+                : null!;
+            _expectedRelationship["new_area_name"] = areaName!;
+            _sourceContact = new Entity("contact", MembershipContactId)
+            {
+                ["description"] = "p7.2-contact-basic-info"
+            };
+            _targetLeader = new Entity("contact", TargetLeaderContactId)
+            {
+                ["fullname"] = "P7.2-SC-LEADER"
+            };
+        }
+
+        /// <summary>記錄唯一允許的 Update 次數。</summary>
+        internal int UpdateCount { get; private set; }
+
+        /// <summary>記錄 Update 實際接收的欄位名稱，避免 repair 擴張成 generic CRUD。</summary>
+        internal IReadOnlyList<string> UpdatedAttributeNames { get; private set; } = Array.Empty<string>();
+
+        /// <summary>記錄任何未列入 repair allowlist 的 CRM 呼叫。</summary>
+        internal int UnexpectedOperationCount { get; private set; }
+
+        /// <summary>只回傳固定的 list/contact projection；其餘查詢一律拒絕。</summary>
+        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (entityName == "list" && id == TargetSmallGroupListId)
+            {
+                return _smallGroup;
+            }
+
+            if (entityName == "list" && id == ExpectedRelationshipListId)
+            {
+                return _expectedRelationship;
+            }
+
+            if (entityName == "contact" && id == MembershipContactId)
+            {
+                return _sourceContact;
+            }
+
+            if (entityName == "contact" && id == TargetLeaderContactId)
+            {
+                return _targetLeader;
+            }
+
+            throw Unexpected();
+        }
+
+        /// <summary>只接受 expected relationship list 的兩個 allowlisted 欄位。</summary>
+        public void Update(Entity entity)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (entity.LogicalName != "list" || entity.Id != ExpectedRelationshipListId ||
+                !entity.Attributes.Keys.OrderBy(static key => key, StringComparer.Ordinal)
+                    .SequenceEqual(
+                        ["new_area_name", "new_contact_list_arealeader"],
+                        StringComparer.Ordinal))
+            {
+                throw Unexpected();
+            }
+
+            UpdateCount++;
+            UpdatedAttributeNames = entity.Attributes.Keys.OrderBy(static key => key, StringComparer.Ordinal).ToArray();
+            foreach (var pair in entity.Attributes)
+            {
+                _expectedRelationship[pair.Key] = pair.Value;
+            }
+        }
+
+        /// <summary>repair lane 不允許 RetrieveMultiple，避免 caller query/discovery。</summary>
+        public EntityCollection RetrieveMultiple(QueryBase query) => throw Unexpected();
+
+        /// <summary>repair lane 不允許建立 CRM row。</summary>
+        public Guid Create(Entity entity) => throw Unexpected();
+
+        /// <summary>repair lane 不允許刪除 CRM row。</summary>
+        public void Delete(string entityName, Guid id) => throw Unexpected();
+
+        /// <summary>repair lane 不允許 OrganizationRequest。</summary>
+        public OrganizationResponse Execute(OrganizationRequest request) => throw Unexpected();
+
+        /// <summary>repair lane 不允許 association。</summary>
+        public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities)
+            => throw Unexpected();
+
+        /// <summary>repair lane 不允許 disassociation。</summary>
+        public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities)
+            => throw Unexpected();
+
+        /// <summary>釋放 double；之後所有呼叫 fail closed。</summary>
+        public void Dispose() => _disposed = true;
+
+        private static Entity CreateStaticList(Guid listId, Guid raceLeaderId)
+            => new("list", listId)
+            {
+                ["listname"] = "P7.2-SC-REPAIR-LIST",
+                ["type"] = false,
+                ["createdfromcode"] = new OptionSetValue(2),
+                ["new_contact_race_leager_list"] = new EntityReference("contact", raceLeaderId),
+                ["new_contact_list_arealeader"] = null!,
+                ["new_area_name"] = null!,
+                ["new_contact_list_co_arealeader"] = null!,
+                ["new_contact_co_race_leager_list"] = null!,
+                ["new_contact_list_vice_family_leader"] = null!
+            };
+
+        private InvalidOperationException Unexpected()
+        {
+            UnexpectedOperationCount++;
+            return new InvalidOperationException("The repair fixture double received an unapproved CRM operation.");
+        }
+    }
 
     /// <summary>
     /// 最小且封閉的 CRM service 替身。它只允許 expected relationship 的讀取，並以 assertions
