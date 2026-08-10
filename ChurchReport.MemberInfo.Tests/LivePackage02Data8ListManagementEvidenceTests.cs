@@ -1061,7 +1061,7 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
     /// 禁用 reload 避免 evidence 期間保留 file watcher、subscription 或跨測試 mutable state；
     /// connector/profile/endpoint 仍完全由部署設定擁有，fixture 不能覆寫它們。
     /// </summary>
-    private static IConfiguration CreateDevelopmentConfiguration()
+    internal static IConfiguration CreateDevelopmentConfiguration()
     {
         var root = FindRepositoryRoot();
         return new ConfigurationBuilder()
@@ -1076,7 +1076,7 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
     /// 透過 environment 指定 connector、endpoint、organization 或 CE version。任何 mapper
     /// 不一致都在建立 CRM client 前失敗，確保 CE 8.2 與 Official Worker 不會被選取或 fallback。
     /// </summary>
-    private static (
+    internal static (
         IReadOnlyDictionary<string, DynamicsProfileOptions> Profiles,
         IReadOnlyDictionary<string, OrganizationCatalogEntry> Catalog,
         OrganizationCatalogEntry Organization,

@@ -54,7 +54,19 @@ param(
     [switch] $RepairFixture,
 
     [Parameter(ParameterSetName = 'RepairProbe')]
-    [switch] $RepairProbe
+    [switch] $RepairProbe,
+
+    [Parameter(ParameterSetName = 'ProvisionFresh')]
+    [switch] $ProvisionFreshFixture,
+
+    [Parameter(ParameterSetName = 'ProvisionFresh')]
+    [switch] $ReplaceStaleDescriptor,
+
+    [Parameter(ParameterSetName = 'CleanupFresh')]
+    [switch] $CleanupFreshFixture,
+
+    [Parameter(ParameterSetName = 'CleanupFresh')]
+    [switch] $ConfirmFreshFixtureCleanup
 )
 
 Set-StrictMode -Version Latest
@@ -70,14 +82,57 @@ $temporaryDirectoryCreated = $false
 $process = $null
 $childProcessStarted = $false
 $credentialPassword = $null
+$freshControlPlaneRoots = $null
+$freshLedgerPath = $null
+$freshNonce = $null
+$freshLedgerBeforeCleanup = $null
+$freshOriginalTargetLeaderContactId = $null
 $isReconciliationMode = [bool]$ReconcileFixture
 $isRepairMode = [bool]$RepairFixture
 $isRepairProbeMode = [bool]$RepairProbe
-$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe)
+$isFreshProvisionMode = [bool]$ProvisionFreshFixture
+$isFreshCleanupMode = [bool]$CleanupFreshFixture
+$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe -or $ProvisionFreshFixture -or $CleanupFreshFixture)
 $operationMayHaveExecuted = -not ($isReconciliationMode -or $isRepairMode -or $isRepairProbeMode)
 $previousEnvironment = @{}
 $inputEnvironmentNames = @(
     'CRM_PASSWORD',
+    'SPEECHMESSAGE_P7_2_SLICE_C_LIVE',
+    'SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE',
+    'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR',
+    'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE',
+    'P7_2_SLICE_C_FIXTURE_OWNER',
+    'P7_2_SLICE_C_FIXTURE_MARKER',
+    'P7_2_SLICE_C_CONTACT_ID',
+    'P7_2_SLICE_C_ADD_LIST_ID',
+    'P7_2_SLICE_C_REMOVE_LIST_ID',
+    'P7_2_SLICE_C_SMALL_GROUP_LIST_ID',
+    'P7_2_SLICE_C_SMALL_GROUP_TARGET_LEADER_CONTACT_ID',
+    'P7_2_SLICE_C_SMALL_GROUP_EXPECTED_RELATIONSHIP_LIST_ID',
+    'P7_2_SLICE_C_TRANSFER_SOURCE_LIST_ID',
+    'P7_2_SLICE_C_TRANSFER_TARGET_LIST_ID',
+    'P7_2_SLICE_C_TRANSFER_WEEK_START_UTC',
+    'P7_2_SLICE_C_EVIDENCE_PATH',
+    'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH',
+    'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH',
+    'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH',
+    'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION',
+    'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP',
+    'P7_2_SLICE_C_FRESH_LEDGER_ROOT',
+    'P7_2_SLICE_C_FRESH_LEDGER_PATH',
+    'P7_2_SLICE_C_FRESH_EVIDENCE_PATH',
+    'P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION',
+    'P7_2_SLICE_C_FRESH_NONCE',
+    'P7_2_SLICE_C_FRESH_OWNER',
+    'P7_2_SLICE_C_FRESH_ADD_LIST_ID',
+    'P7_2_SLICE_C_FRESH_REMOVE_LIST_ID',
+    'P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID',
+    'P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID',
+    'P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID',
+    'P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID',
+    'P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC'
+)
+$legacySliceCEnvironmentNames = @(
     'SPEECHMESSAGE_P7_2_SLICE_C_LIVE',
     'SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE',
     'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR',
@@ -163,9 +218,13 @@ function New-HandoffResult {
     $modeVariable = Get-Variable -Name isReconciliationMode -Scope Script -ErrorAction SilentlyContinue
     $repairVariable = Get-Variable -Name isRepairMode -Scope Script -ErrorAction SilentlyContinue
     $repairProbeVariable = Get-Variable -Name isRepairProbeMode -Scope Script -ErrorAction SilentlyContinue
+    $freshProvisionVariable = Get-Variable -Name isFreshProvisionMode -Scope Script -ErrorAction SilentlyContinue
+    $freshCleanupVariable = Get-Variable -Name isFreshCleanupMode -Scope Script -ErrorAction SilentlyContinue
     if (($null -ne $modeVariable -and [bool]$modeVariable.Value) -or
         ($null -ne $repairVariable -and [bool]$repairVariable.Value) -or
-        ($null -ne $repairProbeVariable -and [bool]$repairProbeVariable.Value)) {
+        ($null -ne $repairProbeVariable -and [bool]$repairProbeVariable.Value) -or
+        ($null -ne $freshProvisionVariable -and [bool]$freshProvisionVariable.Value) -or
+        ($null -ne $freshCleanupVariable -and [bool]$freshCleanupVariable.Value)) {
         # 這個欄位由 parent mode 自己產生；child evidence 若攜帶同名欄位會被 strict parser 拒絕。
         $result.safeToRetry = $false
     }
@@ -801,6 +860,530 @@ function Test-SliceCFixtureDescriptor {
     return $null -ne $SourceFixture -and (Test-NonEmptyGuid $SourceFixture.contactId)
 }
 
+function Test-StrictPropertyNames {
+    <#
+    .SYNOPSIS
+        驗證 fresh-fixture ledger/evidence 的 top-level JSON 欄位完全符合固定 schema。
+
+    .DESCRIPTION
+        Parent 不接受額外欄位或缺欄位，避免 child 把 CRM ID、endpoint、credential、token、
+        cookie、原始例外或其他跨 session 狀態偷偷帶出 evidence boundary。
+    #>
+    param(
+        [object] $Value,
+        [string[]] $ExpectedNames
+    )
+
+    if ($null -eq $Value -or $null -eq $ExpectedNames) {
+        return $false
+    }
+
+    $actualNames = @($Value.PSObject.Properties.Name)
+    return $actualNames.Count -eq $ExpectedNames.Count -and
+        @($actualNames | Where-Object { $_ -cnotin $ExpectedNames }).Count -eq 0 -and
+        @($ExpectedNames | Where-Object { $_ -cnotin $actualNames }).Count -eq 0
+}
+
+function Read-StrictFinalCrLfJsonFile {
+    <#
+    .SYNOPSIS
+        讀取要求 final CRLF 的 fresh-fixture ledger 或 evidence。
+
+    .DESCRIPTION
+        既有 strict reader 已限制 UTF-8、BOM、bare LF 與檔案大小；此 wrapper 再要求最後
+        byte 是 CRLF，讓 parent 只信任 repository 規範的 atomic child output。
+    #>
+    param(
+        [string] $Path,
+        [int] $MaximumBytes,
+        [string] $FailureReason
+    )
+
+    $text = Read-StrictTextFile -Path $Path -MaximumBytes $MaximumBytes -FailureReason $FailureReason
+    if (-not $text.EndsWith("`r`n", [StringComparison]::Ordinal)) {
+        throw $FailureReason
+    }
+
+    try {
+        return $text | ConvertFrom-Json -ErrorAction Stop
+    }
+    catch {
+        throw $FailureReason
+    }
+}
+
+function Get-StrictFreshFixtureEvidenceFile {
+    <#
+    .SYNOPSIS
+        讀取並驗證 fresh provision/cleanup child 的唯一去識別化 evidence。
+
+    .DESCRIPTION
+        Evidence 只包含 lane、結果分類、operationExecuted、descriptor publication readiness
+        與固定 feature-flag false；child exit code 仍由 parent 先驗證，JSON 不可取代 process
+        lifecycle proof。
+    #>
+    param(
+        [string] $EvidencePath,
+        [ValidateSet('provision', 'cleanup')]
+        [string] $ExpectedLane
+    )
+
+    $evidence = Read-StrictFinalCrLfJsonFile -Path $EvidencePath -MaximumBytes 32768 -FailureReason 'fresh-fixture-evidence-unavailable'
+    $expectedNames = @(
+        'schemaVersion',
+        'lane',
+        'outcome',
+        'reason',
+        'operationExecuted',
+        'descriptorPublicationReady',
+        'featureFlagChanged'
+    )
+    if (-not (Test-StrictPropertyNames -Value $evidence -ExpectedNames $expectedNames) -or
+        $evidence.schemaVersion -ne 1 -or
+        $evidence.lane -cne $ExpectedLane -or
+        $evidence.outcome -cnotin @('go', 'no-go') -or
+        $evidence.reason -isnot [string] -or
+        $evidence.operationExecuted -isnot [bool] -or
+        $evidence.descriptorPublicationReady -isnot [bool] -or
+        $evidence.featureFlagChanged -ne $false) {
+        throw 'fresh-fixture-evidence-unavailable'
+    }
+
+    $expectedGoReason = if ($ExpectedLane -eq 'provision') {
+        'fresh-fixture-provisioned'
+    }
+    else {
+        'fresh-fixture-cleaned'
+    }
+    $expectedDescriptorPublicationReady = $ExpectedLane -eq 'provision'
+    if ($evidence.outcome -eq 'go' -and
+        ($evidence.reason -cne $expectedGoReason -or
+         $evidence.operationExecuted -ne $true -or
+         $evidence.descriptorPublicationReady -ne $expectedDescriptorPublicationReady)) {
+        throw 'fresh-fixture-evidence-unavailable'
+    }
+
+    if ($evidence.outcome -eq 'no-go' -and $evidence.descriptorPublicationReady -ne $false) {
+        throw 'fresh-fixture-evidence-unavailable'
+    }
+
+    return $evidence
+}
+
+function Get-StrictFreshFixtureLedger {
+    <#
+    .SYNOPSIS
+        讀取 current-user fresh-fixture pending ledger，作為 descriptor publication 的唯一 ID 來源。
+
+    .DESCRIPTION
+        Ledger 必須位於 parent 指定的 local-app-data root、固定檔名、固定 profile/connector/CE
+        binding，且只允許 final fresh-graph-proven stage。所有 ID 只留在本機控制面，不進 console、
+        evidence、TRX 或產品 request。
+    #>
+    param(
+        [string] $Path,
+        [string] $OwnedRoot,
+        [string] $CurrentIdentity,
+        [ValidateSet('fresh-graph-proven', 'cleanup-leader-contact-deleted')]
+        [string] $ExpectedStage = 'fresh-graph-proven'
+    )
+
+    $resolvedRoot = [IO.Path]::GetFullPath($OwnedRoot)
+    $resolvedPath = [IO.Path]::GetFullPath($Path)
+    if (-not (Test-Path -LiteralPath $resolvedRoot -PathType Container) -or
+        -not (Test-Path -LiteralPath $resolvedPath -PathType Leaf) -or
+        -not [string]::Equals([IO.Path]::GetDirectoryName($resolvedPath), $resolvedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        [IO.Path]::GetFileName($resolvedPath) -cne 'fresh-slice-c-ledger.json') {
+        throw 'fresh-fixture-ledger-unavailable'
+    }
+
+    $rootItem = Get-Item -LiteralPath $resolvedRoot -Force -ErrorAction Stop
+    $fileItem = Get-Item -LiteralPath $resolvedPath -Force -ErrorAction Stop
+    if (($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+        ($fileItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw 'fresh-fixture-ledger-unavailable'
+    }
+
+    $ledger = Read-StrictFinalCrLfJsonFile -Path $resolvedPath -MaximumBytes 32768 -FailureReason 'fresh-fixture-ledger-unavailable'
+    $expectedNames = @(
+        'schemaVersion',
+        'fixtureId',
+        'profileAlias',
+        'ceVersion',
+        'connector',
+        'ownerIdentity',
+        'stage',
+        'nonce',
+        'sourceContactId',
+        'leaderContactId',
+        'relationshipListId',
+        'originalTargetLeaderContactId'
+    )
+    if (-not (Test-StrictPropertyNames -Value $ledger -ExpectedNames $expectedNames) -or
+        $ledger.schemaVersion -ne 2 -or
+        $ledger.fixtureId -cne 'p7.2-slice-c-fresh-fixture' -or
+        $ledger.profileAlias -cne 'crm91' -or
+        $ledger.ceVersion -cne '9.1' -or
+        $ledger.connector -cne 'Data8' -or
+        $ledger.ownerIdentity -isnot [string] -or
+        -not (Test-SafeOwnerIdentity $ledger.ownerIdentity) -or
+        -not [string]::Equals($ledger.ownerIdentity, $CurrentIdentity, [StringComparison]::OrdinalIgnoreCase) -or
+        $ledger.stage -cne $ExpectedStage -or
+        -not (Test-NonEmptyGuid $ledger.nonce) -or
+        -not (Test-NonEmptyGuid $ledger.sourceContactId) -or
+        -not (Test-NonEmptyGuid $ledger.leaderContactId) -or
+        -not (Test-NonEmptyGuid $ledger.relationshipListId) -or
+        -not (Test-NonEmptyGuid $ledger.originalTargetLeaderContactId) -or
+        $ledger.originalTargetLeaderContactId -eq $ledger.leaderContactId) {
+        throw 'fresh-fixture-ledger-unavailable'
+    }
+
+    return $ledger
+}
+
+function Write-AtomicStrictJsonFile {
+    <#
+    .SYNOPSIS
+        以 UTF-8 no-BOM、CRLF、create-new temporary file 寫出單一 local descriptor。
+
+    .DESCRIPTION
+        只寫入 parent 已驗證的 descriptor 目標；bytes、stream 與 temporary path 都由本次
+        invocation 擁有，flush 失敗不會留下可被下一個 session 誤信任的 partial file。
+    #>
+    param(
+        [string] $Path,
+        [string] $JsonText
+    )
+
+    $directory = [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($Path))
+    if ([string]::IsNullOrWhiteSpace($directory) -or -not (Test-Path -LiteralPath $directory -PathType Container)) {
+        throw 'fresh-descriptor-publication-failed'
+    }
+
+    $normalized = ($JsonText -replace "`r?`n", "`n").Replace("`r", "`n").Replace("`n", "`r`n")
+    if (-not $normalized.EndsWith("`r`n", [StringComparison]::Ordinal)) {
+        $normalized += "`r`n"
+    }
+
+    $bytes = [Text.UTF8Encoding]::new($false, $true).GetBytes($normalized)
+    $temporaryPath = Join-Path $directory ('.p7-2-fresh-descriptor.tmp-' + [Guid]::NewGuid().ToString('N'))
+    # Windows PowerShell/.NET Framework 的 File.Replace 不能將 $null 綁定為 backup path。使用同一目錄中、
+    # 本次 invocation 唯一擁有的 random backup path 可保留原子取代語意；成功後立即精確刪除。若
+    # 任一步驟失敗，將由上層 fresh transaction quarantine descriptors 並保留 ledger，不會用舊 bytes 進行 rollback。
+    $backupPath = Join-Path $directory ('.p7-2-fresh-descriptor.backup-' + [Guid]::NewGuid().ToString('N'))
+    try {
+        $stream = [IO.FileStream]::new($temporaryPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None, 4096, [IO.FileOptions]::WriteThrough)
+        try {
+            $stream.Write($bytes, 0, $bytes.Length)
+            $stream.Flush($true)
+        }
+        finally {
+            $stream.Dispose()
+        }
+
+        if (Test-Path -LiteralPath $Path -PathType Leaf) {
+            [IO.File]::Replace($temporaryPath, $Path, $backupPath, $true)
+            if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
+                throw 'fresh-descriptor-publication-failed'
+            }
+            [IO.File]::Delete($backupPath)
+            if (Test-Path -LiteralPath $backupPath -PathType Leaf) {
+                throw 'fresh-descriptor-publication-failed'
+            }
+        }
+        else {
+            [IO.File]::Move($temporaryPath, $Path)
+        }
+    }
+    catch {
+        throw 'fresh-descriptor-publication-failed'
+    }
+    finally {
+        [Array]::Clear($bytes, 0, $bytes.Length)
+        if (Test-Path -LiteralPath $temporaryPath -PathType Leaf) {
+            Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue
+        }
+        if (Test-Path -LiteralPath $backupPath -PathType Leaf) {
+            Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Get-CurrentUserFreshFixtureControlPlaneRoots {
+    <#
+    .SYNOPSIS
+        建立並驗證只屬於目前 Windows 使用者的 P7.2 fresh-fixture control-plane 路徑。
+
+    .DESCRIPTION
+        此路徑僅保存本機 descriptor 與 recovery ledger；它不包含密碼、endpoint、token、
+        browser cookie 或 CRM response。每一個既有或剛建立的 path segment 都拒絕 reparse
+        point，避免其他 session 把 parent/child 的 ID-only recovery state 重新導向。這是一次
+        explicit fresh invocation 的固定成本，不能以共用 static cache 或任意 caller path 取代。
+    #>
+    $localAppData = [Environment]::GetEnvironmentVariable('LOCALAPPDATA', 'Process')
+    if ([string]::IsNullOrWhiteSpace($localAppData) -or $localAppData.IndexOfAny([char[]]@("`0", "`r", "`n")) -ge 0) {
+        throw 'fresh-fixture-local-root-unavailable'
+    }
+
+    $root = [IO.Path]::GetFullPath($localAppData)
+    if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+        throw 'fresh-fixture-local-root-unavailable'
+    }
+
+    $rootItem = Get-Item -LiteralPath $root -Force -ErrorAction Stop
+    if (($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw 'fresh-fixture-local-root-unavailable'
+    }
+
+    $descriptorRoot = $root
+    foreach ($segment in @('SpeechMessage', 'Dynamics', 'P7.2')) {
+        $descriptorRoot = Join-Path $descriptorRoot $segment
+        if (-not (Test-Path -LiteralPath $descriptorRoot -PathType Container)) {
+            if (Test-Path -LiteralPath $descriptorRoot) {
+                throw 'fresh-fixture-local-root-unavailable'
+            }
+            [void][IO.Directory]::CreateDirectory($descriptorRoot)
+        }
+
+        $item = Get-Item -LiteralPath $descriptorRoot -Force -ErrorAction Stop
+        if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw 'fresh-fixture-local-root-unavailable'
+        }
+    }
+
+    $ledgerRoot = Join-Path $descriptorRoot 'FreshSliceC'
+    if (-not (Test-Path -LiteralPath $ledgerRoot -PathType Container)) {
+        if (Test-Path -LiteralPath $ledgerRoot) {
+            throw 'fresh-fixture-local-root-unavailable'
+        }
+        [void][IO.Directory]::CreateDirectory($ledgerRoot)
+    }
+
+    $ledgerItem = Get-Item -LiteralPath $ledgerRoot -Force -ErrorAction Stop
+    if (($ledgerItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw 'fresh-fixture-local-root-unavailable'
+    }
+
+    return [pscustomobject]@{
+        descriptorRoot = $descriptorRoot
+        ledgerRoot = $ledgerRoot
+    }
+}
+
+function Assert-CurrentUserFreshFixtureDescriptorPath {
+    <#
+    .SYNOPSIS
+        限定 fresh descriptor transaction 只能寫入預定的 current-user P7.2 檔案。
+
+    .DESCRIPTION
+        Provision child 沒有 descriptor path；只有 parent 在完整 graph evidence 與 ledger proof
+        後能寫入這兩個固定檔案。拒絕任意 path、錯誤檔名、reparse point 或缺檔，避免成功的
+        CRM fixture 被用來覆寫其他使用者／產品／profile 的本機設定。
+    #>
+    param(
+        [string] $Path,
+        [string] $DescriptorRoot,
+        [string] $ExpectedFileName
+    )
+
+    $resolvedPath = [IO.Path]::GetFullPath($Path)
+    if (-not (Test-Path -LiteralPath $resolvedPath -PathType Leaf) -or
+        -not [string]::Equals([IO.Path]::GetDirectoryName($resolvedPath), $DescriptorRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        [IO.Path]::GetFileName($resolvedPath) -cne $ExpectedFileName) {
+        throw 'fresh-fixture-descriptor-path-invalid'
+    }
+
+    $item = Get-Item -LiteralPath $resolvedPath -Force -ErrorAction Stop
+    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw 'fresh-fixture-descriptor-path-invalid'
+    }
+}
+
+function Publish-FreshFixtureDescriptorPair {
+    <#
+    .SYNOPSIS
+        將完全 proven fresh graph 的 source/leader/relationship IDs 發布為一組本機 descriptors。
+
+    .DESCRIPTION
+        兩個 descriptor 均以固定 schema 重新投影，絕不保留 child 原始 JSON 或 caller-provided
+        extra field。先寫 source 再寫 Slice C，任一寫入或讀回驗證失敗便以 invocation 內的原始
+        strict bytes 回復已寫的檔案；若回復也失敗則回傳 release-blocking no-go，且保留 pending
+        ledger。此 transaction 從不觸及 stale CRM rows、feature flag、流量或 browser session。
+    #>
+    param(
+        [string] $SourcePath,
+        [string] $FixturePath,
+        [string] $DescriptorRoot,
+        [object] $SourceFixture,
+        [object] $Fixture,
+        [object] $Ledger,
+        [string] $CurrentIdentity
+    )
+
+    Assert-CurrentUserFreshFixtureDescriptorPath -Path $SourcePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'contact-basic-info-fixture.json'
+    Assert-CurrentUserFreshFixtureDescriptorPath -Path $FixturePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'list-management-fixture.json'
+    if ([string]::Equals([IO.Path]::GetFullPath($SourcePath), [IO.Path]::GetFullPath($FixturePath), [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'fresh-fixture-descriptor-path-invalid'
+    }
+
+    # 發佈前仍然要驗證舊檔案的編碼與大小，但不保留其 bytes 作為 rollback 來源。一旦 fresh
+    # transaction 部分失敗，舊的 descriptor 不再能代表 fresh graph；重新啟用它們會使 execution/cleanup
+    # lane 誤用未證明的 CRM IDs。唯一的 recovery 權威是仍保留的 strict pending ledger。
+    [void](Read-StrictTextFile -Path $SourcePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-publication-failed')
+    [void](Read-StrictTextFile -Path $FixturePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-publication-failed')
+    $updatedSource = [ordered]@{
+        schemaVersion = 1
+        fixtureId = 'p7.2-contact-basic-info'
+        profileAlias = $expectedProfileAlias
+        ceVersion = '9.1'
+        connector = 'Data8'
+        marker = 'p7.2-contact-basic-info'
+        contactId = [string]$Ledger.sourceContactId
+        ownerIdentity = $CurrentIdentity
+    }
+    $updatedFixture = [ordered]@{
+        schemaVersion = 1
+        fixtureId = 'p7.2-list-management'
+        profileAlias = $expectedProfileAlias
+        ceVersion = '9.1'
+        connector = 'Data8'
+        marker = $expectedFixtureMarker
+        ownerIdentity = $CurrentIdentity
+        addListId = [string]$Fixture.addListId
+        removeListId = [string]$Fixture.removeListId
+        smallGroupListId = [string]$Fixture.smallGroupListId
+        smallGroupTargetLeaderContactId = [string]$Ledger.leaderContactId
+        smallGroupExpectedRelationshipListId = [string]$Ledger.relationshipListId
+        transferSourceListId = [string]$Fixture.transferSourceListId
+        transferTargetListId = [string]$Fixture.transferTargetListId
+        transferWeekStartUtc = [string]$Fixture.transferWeekStartUtc
+    }
+    $sourceText = $updatedSource | ConvertTo-Json -Depth 4
+    $fixtureText = $updatedFixture | ConvertTo-Json -Depth 4
+    try {
+        Write-AtomicStrictJsonFile -Path $SourcePath -JsonText $sourceText
+        Write-AtomicStrictJsonFile -Path $FixturePath -JsonText $fixtureText
+
+        $publishedSource = Read-StrictJsonFile -Path $SourcePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-publication-failed'
+        $publishedFixture = Read-StrictJsonFile -Path $FixturePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-publication-failed'
+        if (-not (Test-SourceFixtureDescriptor $publishedSource $CurrentIdentity) -or
+            -not (Test-SliceCFixtureDescriptor $publishedFixture $publishedSource $CurrentIdentity) -or
+            $publishedSource.contactId -cne $Ledger.sourceContactId -or
+            $publishedFixture.smallGroupTargetLeaderContactId -cne $Ledger.leaderContactId -or
+            $publishedFixture.smallGroupExpectedRelationshipListId -cne $Ledger.relationshipListId) {
+            throw 'fresh-descriptor-publication-failed'
+        }
+    }
+    catch {
+        # 第一個 write 成功、第二個 write 失敗時，不可以將 stale bytes 寫回任一檔案。這會讓之後的
+        # child 誤以為它得到了完整 fresh graph。只能以 exact path 刪除兩檔案來 quarantine；失敗時仍保留
+        # ledger 供一條明確的 reconciliation/cleanup lane 處理，不做自動 remote compensation。
+        $quarantineSucceeded = $true
+        foreach ($descriptorPath in @($FixturePath, $SourcePath)) {
+            try {
+                $resolvedDescriptorPath = [IO.Path]::GetFullPath($descriptorPath)
+                if (Test-Path -LiteralPath $resolvedDescriptorPath -PathType Leaf) {
+                    [IO.File]::Delete($resolvedDescriptorPath)
+                }
+                if (Test-Path -LiteralPath $resolvedDescriptorPath -PathType Leaf) {
+                    throw 'fresh-descriptor-publication-failed'
+                }
+            }
+            catch {
+                $quarantineSucceeded = $false
+            }
+        }
+
+        if (-not $quarantineSucceeded) {
+            throw 'fresh-descriptor-publication-failed'
+        }
+        throw 'fresh-descriptor-publication-failed'
+    }
+}
+
+function Remove-FreshFixtureDescriptorPair {
+    <#
+    .SYNOPSIS
+        僅在 remote cleanup 已有 exact absence proof 後移除仍指向同一 fresh graph 的 descriptors。
+
+    .DESCRIPTION
+        Parent 會先重讀並比對目前 descriptor 與 ledger，防止移除被另一個 profile/session 替換的
+        檔案。檔案刪除使用 exact paths、無 wildcard、無 recursive delete；失敗時保留 ledger，
+        讓後續人工 reconciliation 有一個 current-user ID-only recovery record。
+    #>
+    param(
+        [string] $SourcePath,
+        [string] $FixturePath,
+        [string] $DescriptorRoot,
+        [object] $Ledger,
+        [string] $CurrentIdentity
+    )
+
+    Assert-CurrentUserFreshFixtureDescriptorPath -Path $SourcePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'contact-basic-info-fixture.json'
+    Assert-CurrentUserFreshFixtureDescriptorPath -Path $FixturePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'list-management-fixture.json'
+    $source = Read-StrictJsonFile -Path $SourcePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-cleanup-failed'
+    $fixture = Read-StrictJsonFile -Path $FixturePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-cleanup-failed'
+    if (-not (Test-SourceFixtureDescriptor $source $CurrentIdentity) -or
+        -not (Test-SliceCFixtureDescriptor $fixture $source $CurrentIdentity) -or
+        $source.contactId -cne $Ledger.sourceContactId -or
+        $fixture.smallGroupTargetLeaderContactId -cne $Ledger.leaderContactId -or
+        $fixture.smallGroupExpectedRelationshipListId -cne $Ledger.relationshipListId) {
+        throw 'fresh-descriptor-cleanup-failed'
+    }
+
+    try {
+        [IO.File]::Delete([IO.Path]::GetFullPath($FixturePath))
+        if (Test-Path -LiteralPath $FixturePath -PathType Leaf) {
+            throw 'fresh-descriptor-cleanup-failed'
+        }
+        [IO.File]::Delete([IO.Path]::GetFullPath($SourcePath))
+        if (Test-Path -LiteralPath $SourcePath -PathType Leaf) {
+            throw 'fresh-descriptor-cleanup-failed'
+        }
+    }
+    catch {
+        throw 'fresh-descriptor-cleanup-failed'
+    }
+}
+
+function Remove-StrictFreshFixtureLedger {
+    <#
+    .SYNOPSIS
+        刪除已證明完成 cleanup 的 current-user ledger。
+
+    .DESCRIPTION
+        只有 cleanup child 以最後一個 exact-ID absence read-back 寫入 final stage 後，parent 才會
+        再讀一次 strict ledger 並比對 provision snapshot。任何 stage、owner、nonce 或 ID 不符皆
+        保留 ledger 並 fail closed；不會根據名稱搜尋或刪除其他 profile 的 recovery data。
+    #>
+    param(
+        [string] $Path,
+        [string] $OwnedRoot,
+        [string] $CurrentIdentity,
+        [object] $ExpectedLedger
+    )
+
+    $ledger = Get-StrictFreshFixtureLedger -Path $Path -OwnedRoot $OwnedRoot -CurrentIdentity $CurrentIdentity -ExpectedStage 'cleanup-leader-contact-deleted'
+    if ($ledger.nonce -cne $ExpectedLedger.nonce -or
+        $ledger.sourceContactId -cne $ExpectedLedger.sourceContactId -or
+        $ledger.leaderContactId -cne $ExpectedLedger.leaderContactId -or
+        $ledger.relationshipListId -cne $ExpectedLedger.relationshipListId -or
+        $ledger.originalTargetLeaderContactId -cne $ExpectedLedger.originalTargetLeaderContactId) {
+        throw 'fresh-fixture-ledger-cleanup-failed'
+    }
+
+    $resolved = [IO.Path]::GetFullPath($Path)
+    $item = Get-Item -LiteralPath $resolved -Force -ErrorAction Stop
+    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw 'fresh-fixture-ledger-cleanup-failed'
+    }
+
+    [IO.File]::Delete($resolved)
+    if (Test-Path -LiteralPath $resolved -PathType Leaf) {
+        throw 'fresh-fixture-ledger-cleanup-failed'
+    }
+}
+
 function Get-StrictSliceCEvidenceFile {
     <#
     .SYNOPSIS
@@ -1428,6 +2011,84 @@ try {
         throw 'result-written'
     }
 
+    # fresh-fixture provision 與 cleanup 是兩條獨立的遠端 mutation lane。先在所有 descriptor
+    # shape/owner proof 都完成後檢查明確確認，卻刻意早於 Credential Manager、temporary directory
+    # 與 dotnet child；這使缺少確認的 invocation 無法讀取密碼、保留 ledger 或碰觸 CE。
+    if (($ReplaceStaleDescriptor -and -not $isFreshProvisionMode) -or
+        ($ConfirmFreshFixtureCleanup -and -not $isFreshCleanupMode)) {
+        Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-confirmation-misused' -PreflightOnly $false)
+        $scriptExitCode = 2
+        throw 'result-written'
+    }
+
+    if ($isFreshProvisionMode -and -not $ReplaceStaleDescriptor) {
+        Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-confirmation-required' -PreflightOnly $false)
+        $scriptExitCode = 2
+        throw 'result-written'
+    }
+
+    if ($isFreshCleanupMode -and -not $ConfirmFreshFixtureCleanup) {
+        Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-cleanup-confirmation-required' -PreflightOnly $false)
+        $scriptExitCode = 2
+        throw 'result-written'
+    }
+
+    # fresh control plane 只能使用目前 Windows 使用者的預定 local-app-data paths；即使呼叫端
+    # 傳入其他 descriptor path，亦不允許藉由一個已 proven 的 CRM graph 覆寫其他產品或 profile
+    # 的設定。這些 local proof 均早於 Credential Manager 與 child process，因此失敗時零 CE I/O。
+    if ($isFreshProvisionMode -or $isFreshCleanupMode) {
+        $freshControlPlaneRoots = Get-CurrentUserFreshFixtureControlPlaneRoots
+        Assert-CurrentUserFreshFixtureDescriptorPath `
+            -Path $SourceFixtureDescriptorPath `
+            -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+            -ExpectedFileName 'contact-basic-info-fixture.json'
+        Assert-CurrentUserFreshFixtureDescriptorPath `
+            -Path $FixtureDescriptorPath `
+            -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+            -ExpectedFileName 'list-management-fixture.json'
+        $freshLedgerPath = Join-Path $freshControlPlaneRoots.ledgerRoot 'fresh-slice-c-ledger.json'
+
+        if ($isFreshProvisionMode) {
+            # pending ledger 表示上一次 create/associate/assign 可能已送達但尚未完成 graph proof；
+            # 不可用新的 nonce 覆寫它，也不可用名稱搜尋或自動刪除做猜測式補償。
+            if (Test-Path -LiteralPath $freshLedgerPath -PathType Leaf) {
+                Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-ledger-pending' -PreflightOnly $false)
+                $scriptExitCode = 2
+                throw 'result-written'
+            }
+            $freshNonce = [Guid]::NewGuid().ToString('D')
+            # publication 前的 target leader 是 cleanup 唯一可接受的 immutable baseline。它必須保留在 parent
+            # invocation 內，並在 child 寫出 ledger 後做 exact match；不可信任已發佈 descriptor 或 child environment。
+            $freshOriginalTargetLeaderContactId = [string]$fixture.smallGroupTargetLeaderContactId
+        }
+        else {
+            # cleanup 只可開始於之前 fully proven 的 exact-ID graph；解析或 owner binding 失敗時
+            # 不讀 credential、不啟 child，並保留 ledger 給後續唯讀 reconciliation。
+            try {
+                $freshLedgerBeforeCleanup = Get-StrictFreshFixtureLedger `
+                    -Path $freshLedgerPath `
+                    -OwnedRoot $freshControlPlaneRoots.ledgerRoot `
+                    -CurrentIdentity $identity `
+                    -ExpectedStage 'fresh-graph-proven'
+            }
+            catch {
+                # 嚴格 ledger 缺失或不合法是預先條件拒絕，不是 runner 內部錯誤。這個分支發生在 Credential Manager 與子行程序之前，所以不可投影為沒有來源的泛用 error。
+                if ([string]$_.Exception.Message -eq 'fresh-fixture-ledger-unavailable') {
+                    Write-HandoffResult (New-HandoffResult `
+                        -Outcome 'no-go' `
+                        -Reason 'fresh-fixture-ledger-unavailable' `
+                        -PreflightOnly $false `
+                        -OperationExecuted $false)
+                    $scriptExitCode = 2
+                    throw 'result-written'
+                }
+
+                throw
+            }
+            $freshNonce = [string]$freshLedgerBeforeCleanup.nonce
+        }
+    }
+
     if (-not (Test-CredentialTargetPresent)) {
         Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'credential-unavailable' -PreflightOnly (-not $liveModeRequested))
         $scriptExitCode = 2
@@ -1467,7 +2128,42 @@ try {
     [Environment]::SetEnvironmentVariable('CRM_PASSWORD', $credentialPassword, 'Process')
     # 兩個 child lane 共用 fixture scalar，但 mode flag 與 evidence path 永遠互斥；先清掉另一
     # lane 的 process environment，避免從 parent 或前一次測試繼承後誤觸 mutation。
-    if ($isReconciliationMode) {
+    if ($isFreshProvisionMode -or $isFreshCleanupMode) {
+        # Fresh control plane 和既有 Slice C 互斥：子行程序只能看見本次、已驗證的 fresh
+        # allowlist。不可以使用 parent 或前一次執行殘留的 contact、list、leader 或 evidence 參數，否則
+        # 會在不同 fixture、profile 或 Windows session 間誤用 mutable CRM state。
+        foreach ($legacyEnvironmentName in $legacySliceCEnvironmentNames) {
+            [Environment]::SetEnvironmentVariable($legacyEnvironmentName, $null, 'Process')
+        }
+
+        # fresh lanes 不可繼承舊 Slice C execute/reconcile/repair 的 environment；parent 唯一會
+        # 傳遞 deployment-owned descriptor scalars、current-user ledger path 與 current invocation
+        # nonce。password 只存在此 child process 的 CRM_PASSWORD 環境變數，finally 必定還原。
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_LIVE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION', $(if ($isFreshProvisionMode) { '1' } else { $null }), 'Process')
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP', $(if ($isFreshCleanupMode) { '1' } else { $null }), 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_LEDGER_ROOT', [string]$freshControlPlaneRoots.ledgerRoot, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_LEDGER_PATH', [string]$freshLedgerPath, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION', $(if ($isFreshProvisionMode) { 'replace-stale-descriptor' } else { 'cleanup-fresh-fixture' }), 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_NONCE', [string]$freshNonce, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_OWNER', $identity, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_ADD_LIST_ID', [string]$fixture.addListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_REMOVE_LIST_ID', [string]$fixture.removeListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID', [string]$fixture.smallGroupListId, 'Process')
+        # Provision 會使用 publication 前 descriptor leader 作為 immutable baseline。Cleanup 只能从 strict
+        # ledger 取回原始 baseline，不可繼承 fresh 或 legacy target-leader environment variable。
+        [Environment]::SetEnvironmentVariable(
+            'P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID',
+            $(if ($isFreshProvisionMode) { [string]$fixture.smallGroupTargetLeaderContactId } else { $null }),
+            'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID', [string]$fixture.transferSourceListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID', [string]$fixture.transferTargetListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC', [string]$fixture.transferWeekStartUtc, 'Process')
+    }
+    elseif ($isReconciliationMode) {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_LIVE', $null, 'Process')
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE', '1', 'Process')
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
@@ -1491,22 +2187,41 @@ try {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', $null, 'Process')
     }
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_OWNER', [string]$fixture.ownerIdentity, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_MARKER', [string]$fixture.marker, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_CONTACT_ID', [string]$sourceFixture.contactId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_ADD_LIST_ID', [string]$fixture.addListId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REMOVE_LIST_ID', [string]$fixture.removeListId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_SMALL_GROUP_LIST_ID', [string]$fixture.smallGroupListId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_SMALL_GROUP_TARGET_LEADER_CONTACT_ID', [string]$fixture.smallGroupTargetLeaderContactId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_SMALL_GROUP_EXPECTED_RELATIONSHIP_LIST_ID', [string]$fixture.smallGroupExpectedRelationshipListId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_TRANSFER_SOURCE_LIST_ID', [string]$fixture.transferSourceListId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_TRANSFER_TARGET_LIST_ID', [string]$fixture.transferTargetListId, 'Process')
-    [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_TRANSFER_WEEK_START_UTC', [string]$fixture.transferWeekStartUtc, 'Process')
+    if (-not ($isFreshProvisionMode -or $isFreshCleanupMode)) {
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_OWNER', [string]$fixture.ownerIdentity, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_MARKER', [string]$fixture.marker, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_CONTACT_ID', [string]$sourceFixture.contactId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_ADD_LIST_ID', [string]$fixture.addListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REMOVE_LIST_ID', [string]$fixture.removeListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_SMALL_GROUP_LIST_ID', [string]$fixture.smallGroupListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_SMALL_GROUP_TARGET_LEADER_CONTACT_ID', [string]$fixture.smallGroupTargetLeaderContactId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_SMALL_GROUP_EXPECTED_RELATIONSHIP_LIST_ID', [string]$fixture.smallGroupExpectedRelationshipListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_TRANSFER_SOURCE_LIST_ID', [string]$fixture.transferSourceListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_TRANSFER_TARGET_LIST_ID', [string]$fixture.transferTargetListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_TRANSFER_WEEK_START_UTC', [string]$fixture.transferWeekStartUtc, 'Process')
+    }
 
     $temporaryDirectory = Join-Path ([IO.Path]::GetTempPath()) ('speechmessage-p7-2-slice-c-' + [Guid]::NewGuid().ToString('N'))
     [void][IO.Directory]::CreateDirectory($temporaryDirectory)
     $temporaryDirectoryCreated = $true
-    if ($isReconciliationMode) {
+    if ($isFreshProvisionMode -or $isFreshCleanupMode) {
+        # Fresh child 只接受 fresh evidence path；不可以寫入或讀取既有 Slice C 的 generic、reconcile、repair
+        # evidence 名稱。將互斥的 path 全部清空後才指定固定檔名，避免不同 session 的 child 取到前一次
+        # 執行殘留的 evidence 來決定是否發佈或 cleanup。
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $null, 'Process')
+        $evidencePath = Join-Path $temporaryDirectory 'P72FreshSliceCFixtureEvidence.json'
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_EVIDENCE_PATH', $evidencePath, 'Process')
+        $testFilter = if ($isFreshProvisionMode) {
+            'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementFreshFixtureTests.Provision_fresh_package02_data8_list_management_fixture_emits_sanitized_evidence'
+        }
+        else {
+            'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementFreshFixtureCleanupTests.Cleanup_fresh_package02_data8_list_management_fixture_emits_sanitized_evidence'
+        }
+    }
+    elseif ($isReconciliationMode) {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $null, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $null, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $null, 'Process')
@@ -1632,6 +2347,87 @@ try {
             -ReadOnlyProbeExecuted $strictEvidence.readOnlyProbeExecuted `
             -ProbeStage 'relationship-list-repair-preconditions' `
             -Probe $strictEvidence.probe)
+    }
+    elseif ($isFreshProvisionMode -or $isFreshCleanupMode) {
+        # Fresh lane 的 child schema 和舊 Slice C evidence 完全不同。一定要先以 fresh allowlist 解析它，再決定
+        # 是否發佈 descriptor 或移除 recovery state。不允許 generic parser 把另一條 lane 的欄位當成可信任的操作證據。
+        $freshExpectedLane = if ($isFreshProvisionMode) { 'provision' } else { 'cleanup' }
+        try {
+            $strictEvidence = Get-StrictFreshFixtureEvidenceFile `
+                -EvidencePath $evidencePath `
+                -ExpectedLane $freshExpectedLane
+
+            if ($strictEvidence.outcome -eq 'go') {
+                if ($isFreshProvisionMode) {
+                    $freshLedgerAfterProvision = Get-StrictFreshFixtureLedger `
+                        -Path $freshLedgerPath `
+                        -OwnedRoot $freshControlPlaneRoots.ledgerRoot `
+                        -CurrentIdentity $identity `
+                        -ExpectedStage 'fresh-graph-proven'
+                    if ($freshLedgerAfterProvision.originalTargetLeaderContactId -cne $freshOriginalTargetLeaderContactId) {
+                        throw 'fresh-fixture-ledger-unavailable'
+                    }
+
+                    Publish-FreshFixtureDescriptorPair `
+                        -SourcePath $SourceFixtureDescriptorPath `
+                        -FixturePath $FixtureDescriptorPath `
+                        -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+                        -SourceFixture $sourceFixture `
+                        -Fixture $fixture `
+                        -Ledger $freshLedgerAfterProvision `
+                        -CurrentIdentity $identity
+                }
+                else {
+                    $freshLedgerAfterCleanup = Get-StrictFreshFixtureLedger `
+                        -Path $freshLedgerPath `
+                        -OwnedRoot $freshControlPlaneRoots.ledgerRoot `
+                        -CurrentIdentity $identity `
+                        -ExpectedStage 'cleanup-leader-contact-deleted'
+                    if ($freshLedgerAfterCleanup.originalTargetLeaderContactId -cne $freshLedgerBeforeCleanup.originalTargetLeaderContactId) {
+                        throw 'fresh-fixture-ledger-cleanup-failed'
+                    }
+
+                    Remove-FreshFixtureDescriptorPair `
+                        -SourcePath $SourceFixtureDescriptorPath `
+                        -FixturePath $FixtureDescriptorPath `
+                        -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+                        -Ledger $freshLedgerAfterCleanup `
+                        -CurrentIdentity $identity
+                    Remove-StrictFreshFixtureLedger `
+                        -Path $freshLedgerPath `
+                        -OwnedRoot $freshControlPlaneRoots.ledgerRoot `
+                        -CurrentIdentity $identity `
+                        -ExpectedLedger $freshLedgerAfterCleanup
+                }
+            }
+
+            Complete-HandoffResult (New-HandoffResult `
+                -Outcome $strictEvidence.outcome `
+                -Reason $strictEvidence.reason `
+                -PreflightOnly $false `
+                -OperationExecuted $strictEvidence.operationExecuted)
+        }
+        catch {
+            # Child 已結束且可能已發出 Create/Associate/Assign/Delete。因此 schema、ledger、publication、cleanup 任何
+            # 不確定都要是 non-retryable no-go，保留 strict ledger 供以後 exact-ID reconciliation，而不可默認成未執行。
+            $freshFailureReason = [string]$_.Exception.Message
+            if ($freshFailureReason -cnotin @(
+                    'fresh-fixture-evidence-unavailable',
+                    'fresh-fixture-ledger-unavailable',
+                    'fresh-fixture-ledger-cleanup-failed',
+                    'fresh-descriptor-publication-failed',
+                    'fresh-descriptor-cleanup-failed')) {
+                $freshFailureReason = 'fresh-fixture-evidence-unavailable'
+            }
+
+            Complete-HandoffResult (New-HandoffResult `
+                -Outcome 'no-go' `
+                -Reason $freshFailureReason `
+                -PreflightOnly $false `
+                -OperationExecuted $operationMayHaveExecuted)
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
     }
     else {
         $strictEvidence = Get-StrictSliceCEvidenceFile $evidencePath

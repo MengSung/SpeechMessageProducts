@@ -68,3 +68,40 @@
 - The relationship list must be static and marker-bound. Its area-leader and area-name fields must both be blank, or both already equal the deterministic expected state. Partial or unexpected state fails closed before Update.
 - At most one Data8 Update is sent, containing only `new_contact_list_arealeader` and `new_area_name`. A transport exception after the request begins is `repair-ambiguous` and is never retried; the child immediately performs one read-back when transport returns.
 - The parent runner accepts only the bounded repair evidence schema, emits `safeToRetry=false`, and restores every process environment variable and temporary evidence directory in `finally`.
+
+## 2026-08-10 Slice C fresh-fixture implementation order
+
+- [ ] Re-read the read-only `RepairProbe` evidence and preserve the stale
+  source/relationship rows as permanently non-mutable inputs.
+- [ ] Add a failing C# fixture-provisioner test that supplies the exact
+  descriptor-bound reused list IDs plus a task-marked owner-source leader and
+  asserts zero mutation before every precondition is proven.
+- [ ] Run that focused test and record its expected RED failure because the
+  provisioner/control-plane type does not yet exist.
+- [ ] Add the minimal test-only provisioner and fixed request templates:
+  three Creates, two `AddListMembersListRequest` calls, and one `AssignRequest`;
+  require exact read-back after each stage and publish no descriptor directly
+  from C#.
+- [ ] Add fault tests for each mutation boundary, including timeout-after-
+  dispatch, missing weekly report, same-owner rejection, and descriptor-
+  publication refusal. Each ambiguity must be non-retryable and retain only a
+  current-user local pending ledger.
+- [ ] Extract or add one bounded graph-proof helper only if both the
+  provisioner and the existing live bridge need the identical full graph
+  predicate; do not duplicate a generic CRM query API.
+- [ ] Add failing PowerShell contract tests for `-ProvisionFreshFixture`,
+  `-CleanupFreshFixture`, and any required read-only reconciliation mode:
+  mutually exclusive parameter sets, explicit confirmation, no credential or
+  child process before authorization, strict evidence/ledger schema,
+  environment restoration, and temporary-directory cleanup.
+- [ ] Implement the PowerShell parent only after the RED checks: generate
+  paths itself, pass fixed environment variables to one child, validate the
+  child exit code before any evidence, atomically publish only a fully proven
+  descriptor, and remove no stale descriptor or stale remote row.
+- [ ] Run focused C#, PowerShell, coverage-validator, Release build, serial
+  solution, isolation, lifecycle/soak, encoding, and `git diff --check` gates.
+  Do not offer the new operator command until all repository gates are green.
+- [ ] Run one explicit, bounded CE 9.1 provision/probe/evidence/cleanup cycle
+  only through the final operator handoff. Preserve an ambiguous or unclean
+  result as `no-go`; do not retry, switch connector, change a feature flag, or
+  start P6.2.
