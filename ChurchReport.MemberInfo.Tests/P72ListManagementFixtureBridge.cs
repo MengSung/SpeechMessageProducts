@@ -60,6 +60,18 @@ internal sealed record P72SmallGroupFixedFieldsSnapshot(
     Guid? ViceFamilyLeaderId);
 
 /// <summary>
+/// Slice C relationship-list fixture repair 的去識別化結果。
+/// 這個結果只描述是否執行過一次 allowlisted Update 以及 read-back 是否精確確認，
+/// 不攜帶 CRM GUID、欄位值、端點、例外內容或 credential；ambiguous result 必須由上層
+/// 視為不可重試，避免同一筆 fixture 在未知狀態下被重複寫入。
+/// </summary>
+internal sealed record P72SmallGroupFixtureRepairResult(
+    string Outcome,
+    string Reason,
+    bool OperationExecuted,
+    bool ReadBackConfirmed);
+
+/// <summary>
 /// transfer composite 的固定 graph projection。PresentRecordId 只在 task-local store 內用於確認「本次
 /// reconciliation 所觀察到」的單筆 record；它不會進入 bridge result，cleanup 也只能刪除這個已確認 ID。
 /// </summary>
