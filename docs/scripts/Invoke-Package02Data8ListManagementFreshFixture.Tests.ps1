@@ -439,6 +439,33 @@ function ConvertTo-Base64StrictJsonPayload {
     }
 }
 
+function ConvertTo-Base64StrictTextPayload {
+    <#
+    .SYNOPSIS
+        將已精確形成的 synthetic JSON bytes 安全傳遞給 fake child。
+
+    .DESCRIPTION
+        少數 schema 邊界必須保留 JSON 原始 numeric token，例如 decimal、exponent 或 quoted
+        number；ConvertTo-Json 會正規化它們，因而無法驗證 parent 是否拒絕非整數 token。此 helper
+        僅接受 test-owned 字串，正規化為 UTF-8 no-BOM、CRLF-only、final CRLF，再以 base64 避免
+        shell quoting 改寫 payload。buffer 的唯一 owner 是本函式，finally 會清除它，且測試不會輸出
+        payload、temporary path 或任何 production identity。
+    #>
+    param([string] $Text)
+
+    $bytes = $null
+    try {
+        $normalized = ($Text -replace "`r?`n", "`r`n").TrimEnd("`r", "`n") + "`r`n"
+        $bytes = [Text.UTF8Encoding]::new($false, $true).GetBytes($normalized)
+        return [Convert]::ToBase64String($bytes)
+    }
+    finally {
+        if ($null -ne $bytes) {
+            [Array]::Clear($bytes, 0, $bytes.Length)
+        }
+    }
+}
+
 function New-SyntheticFreshFixtureEvidence {
     <#
     .SYNOPSIS
@@ -511,6 +538,29 @@ function New-SyntheticFreshFixtureLedger {
     return $ledger
 }
 
+function New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral {
+    <#
+    .SYNOPSIS
+        以指定 JSON literal 建立 synthetic ledger，保留 schemaVersion 的原始 token。
+
+    .DESCRIPTION
+        此 helper 只服務 strict parser regression：PowerShell JSON serializer 會將 quoted、decimal
+        或 exponent numeric token 正規化，使測試無法區分它們與合法整數。先由既有 fixture 產生完整
+        test-owned ledger，再只替換第一個 schemaVersion scalar，確保其餘 owner、nonce、GUID 與
+        stage 均維持已驗證 baseline。任何 serializer shape 漂移會立即讓測試失敗，避免 fault
+        injection 靜默失效或誤把未知 payload 帶進 child process。
+    #>
+    param(
+        [object] $Ledger,
+        [string] $SchemaVersionLiteral
+    )
+
+    $json = $Ledger | ConvertTo-Json -Compress -Depth 12
+    $expectedToken = '"schemaVersion":2'
+    Assert-True $json.Contains($expectedToken) 'Synthetic ledger must expose exactly one serializable schemaVersion token.'
+    return $json.Replace($expectedToken, ('"schemaVersion":' + $SchemaVersionLiteral))
+}
+
 function Write-SyntheticFreshChild {
     <#
     .SYNOPSIS
@@ -526,12 +576,21 @@ function Write-SyntheticFreshChild {
         [string] $Path,
         [object] $Evidence,
         [object] $Ledger,
+        [object] $LedgerJsonOverride = $null,
         [int] $ExitCode
     )
 
     $evidencePayload = ConvertTo-Base64StrictJsonPayload $Evidence
-    $ledgerPayload = if ($null -eq $Ledger) { '' } else { ConvertTo-Base64StrictJsonPayload $Ledger }
-    $writeLedger = if ($null -eq $Ledger) { 'false' } else { 'true' }
+    $ledgerPayload = if ($null -ne $LedgerJsonOverride) {
+        ConvertTo-Base64StrictTextPayload $LedgerJsonOverride
+    }
+    elseif ($null -eq $Ledger) {
+        ''
+    }
+    else {
+        ConvertTo-Base64StrictJsonPayload $Ledger
+    }
+    $writeLedger = if ($null -eq $Ledger -and $null -eq $LedgerJsonOverride) { 'false' } else { 'true' }
     $childSource = @'
 $ErrorActionPreference = 'Stop'
 
@@ -589,7 +648,9 @@ if ('__WRITE_LEDGER__' -ceq 'true') {
         throw 'synthetic-fresh-ledger-input-missing'
     }
     if (-not (Test-Path -LiteralPath $ledgerRoot -PathType Container)) {
-        [void][IO.Directory]::CreateDirectory($ledgerRoot)
+        # ledger root 的唯一建立者是 parent；child 不得補建未知或跨 session 的 control-plane
+        # directory。缺失時立即失敗，才能驗證 fresh ledger 不會在未證明 owner 的路徑發佈。
+        throw 'synthetic-fresh-parent-owned-ledger-root-missing'
     }
     Write-EncodedSyntheticLedger -TargetPath $ledgerPath -Payload '__LEDGER_PAYLOAD__'
 }
@@ -627,7 +688,10 @@ foreach ($legacyName in @(
     'P7_2_SLICE_C_EVIDENCE_PATH',
     'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH',
     'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH',
-    'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH')) {
+    'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH',
+    'P7_2_SLICE_C_EVIDENCE_JSON',
+    'P7_2_SLICE_C_RETIRED_TRX_EVIDENCE',
+    'P7_2_SLICE_C_TARGET_OWNER_ID')) {
     $legacyEnvironment[$legacyName] = [Environment]::GetEnvironmentVariable($legacyName, 'Process')
 }
 $observation.legacyEnvironment = $legacyEnvironment
@@ -659,7 +723,8 @@ function New-SyntheticFreshRunner {
     param(
         [string] $DestinationPath,
         [string] $RunnerPath,
-        [switch] $FailFreshDescriptorPublicationAfterSourceWrite
+        [switch] $FailFreshDescriptorPublicationAfterSourceWrite,
+        [switch] $OmitFreshLedgerRootForChild
     )
 
     $syntheticRunner = [IO.File]::ReadAllText($RunnerPath, [Text.UTF8Encoding]::new($false, $true))
@@ -667,12 +732,17 @@ function New-SyntheticFreshRunner {
     $credentialPasswordLine = 'return [SpeechMessage.P72SliceCLive.CredentialReader]::ReadGenericSecret($credentialTarget)'
     $dotnetSelectionLine = '$dotnetCommand = Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue'
     $fixturePublicationLine = '        Write-AtomicStrictJsonFile -Path $FixturePath -JsonText $fixtureText'
+    $freshLedgerRootLine = '        [Environment]::SetEnvironmentVariable(''P7_2_SLICE_C_FRESH_LEDGER_ROOT'', [string]$freshControlPlaneRoots.ledgerRoot, ''Process'')'
+    $omittedFreshLedgerRootLine = '        [Environment]::SetEnvironmentVariable(''P7_2_SLICE_C_FRESH_LEDGER_ROOT'', $null, ''Process'')'
     $exitLine = 'exit $scriptExitCode'
     Assert-True $syntheticRunner.Contains($credentialPresenceLine) 'Synthetic fresh runner requires the credential-presence seam.'
     Assert-True $syntheticRunner.Contains($credentialPasswordLine) 'Synthetic fresh runner requires the credential-password seam.'
     Assert-True $syntheticRunner.Contains($dotnetSelectionLine) 'Synthetic fresh runner requires the dotnet selection seam.'
     if ($FailFreshDescriptorPublicationAfterSourceWrite) {
         Assert-True $syntheticRunner.Contains($fixturePublicationLine) 'Synthetic fresh runner requires the second descriptor-publication seam.'
+    }
+    if ($OmitFreshLedgerRootForChild) {
+        Assert-True $syntheticRunner.Contains($freshLedgerRootLine) 'Synthetic fresh runner requires the parent-owned ledger-root environment seam.'
     }
     Assert-True $syntheticRunner.Contains($exitLine) 'Synthetic fresh runner requires the final process-exit seam.'
 
@@ -687,6 +757,13 @@ function New-SyntheticFreshRunner {
         $syntheticRunner = $syntheticRunner.Replace(
             $fixturePublicationLine,
             "        throw 'synthetic-fresh-descriptor-publication-failure'")
+    }
+    if ($OmitFreshLedgerRootForChild) {
+        # fault injection 僅移除 child 可見的 root binding；parent 仍會照 production flow 建立自己的
+        # root。fake child 因此必須拒絕無 owner-proven root 的 ledger write，而不是自行建立資料夾。
+        $syntheticRunner = $syntheticRunner.Replace(
+            $freshLedgerRootLine,
+            $omittedFreshLedgerRootLine)
     }
 
     $restorationObserver = @'
@@ -789,8 +866,10 @@ function Invoke-SyntheticFreshProvision {
     [void][IO.Directory]::CreateDirectory($fakeDotnetDirectory)
 
     $ledger = $null
+    $ledgerJsonOverride = $null
     $exitCode = 0
     $injectPublicationFailure = $false
+    $omitFreshLedgerRootForChild = $false
     switch ($Scenario) {
         'child-nonzero-valid-evidence' {
             $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
@@ -804,9 +883,45 @@ function Invoke-SyntheticFreshProvision {
             $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
             break
         }
+        'evidence-unknown-provision-reason' {
+            # no-go 的 publication bit 合法但 reason 不屬於 provision allowlist；parent 不得把 child
+            # 自訂字串投影到 console，也不得從 no-go evidence 推論可安全保留任何 descriptor。
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'no-go' 'synthetic-unknown-provision-reason' $true $false
+            break
+        }
         'ledger-extra-property' {
             $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
             $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity -IncludeUnexpectedProperty
+            break
+        }
+        'ledger-schema-v1' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $ledger.schemaVersion = 1
+            break
+        }
+        'ledger-schema-missing' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            [void]$ledger.Remove('schemaVersion')
+            break
+        }
+        'ledger-schema-quoted-two' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $ledgerJsonOverride = New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral $ledger '"2"'
+            break
+        }
+        'ledger-schema-decimal-two' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $ledgerJsonOverride = New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral $ledger '2.0'
+            break
+        }
+        'ledger-schema-exponent-two' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $ledgerJsonOverride = New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral $ledger '2e0'
             break
         }
         'ledger-missing-original-target-leader' {
@@ -843,12 +958,36 @@ function Invoke-SyntheticFreshProvision {
             $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
             break
         }
+        'missing-parent-owned-ledger-root' {
+            # child 仍收到 ledger/evidence write 請求，但 synthetic runner 會移除 root binding；只有
+            # parent 已建立且傳入的 root 才能承載 child ledger，child 不可自行補建。
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $omitFreshLedgerRootForChild = $true
+            break
+        }
         default {
             throw 'Unknown synthetic fresh-fixture scenario.'
         }
     }
 
-    Write-SyntheticFreshChild -Path $fakeChildPath -Evidence $evidence -Ledger $ledger -ExitCode $exitCode
+    # [string] parameter 對 $null 會 coercion 成 empty string；只有 raw token scenario 才傳入
+    # override，否則維持原有 object serializer 路徑，避免 fake child 將正常 ledger 寫成空 payload。
+    if ($null -eq $ledgerJsonOverride) {
+        Write-SyntheticFreshChild `
+            -Path $fakeChildPath `
+            -Evidence $evidence `
+            -Ledger $ledger `
+            -ExitCode $exitCode
+    }
+    else {
+        Write-SyntheticFreshChild `
+            -Path $fakeChildPath `
+            -Evidence $evidence `
+            -Ledger $ledger `
+            -LedgerJsonOverride $ledgerJsonOverride `
+            -ExitCode $exitCode
+    }
     Write-StrictTextFile -Path $fakeDotnetPath -Text (@(
         '@echo off',
         ('powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $fakeChildPath + '" %*'),
@@ -857,7 +996,8 @@ function Invoke-SyntheticFreshProvision {
     New-SyntheticFreshRunner `
         -DestinationPath $syntheticRunnerPath `
         -RunnerPath $runnerPath `
-        -FailFreshDescriptorPublicationAfterSourceWrite:$injectPublicationFailure
+        -FailFreshDescriptorPublicationAfterSourceWrite:$injectPublicationFailure `
+        -OmitFreshLedgerRootForChild:$omitFreshLedgerRootForChild
 
     $selectorNames = @(
         'SPEECHMESSAGE_P72_SYNTHETIC_FRESH_DOTNET_PATH',
@@ -914,7 +1054,9 @@ function Invoke-SyntheticFreshCleanup {
         [object] $ProvisionScenario,
         [string] $RepositoryPath,
         [string] $ProfilePath,
-        [string] $OwnerIdentity
+        [string] $OwnerIdentity,
+        [ValidateSet('success', 'invalid-post-child-ledger', 'unknown-cleanup-reason')]
+        [string] $Scenario = 'success'
     )
 
     $cleanupRoot = Join-Path ([string]$ProvisionScenario.ScenarioRoot) ('synthetic-cleanup-' + [Guid]::NewGuid().ToString('N'))
@@ -928,6 +1070,25 @@ function Invoke-SyntheticFreshCleanup {
 
     $evidence = New-SyntheticFreshFixtureEvidence 'cleanup' 'go' 'fresh-fixture-cleaned' $true $false
     $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity -Stage 'cleanup-leader-contact-deleted'
+    switch ($Scenario) {
+        'invalid-post-child-ledger' {
+            # pre-child ledger 由 parent 以 strict v2 驗證；此處只在 child 已完成宣告後覆寫為 v1，
+            # 以驗證 post-child re-read 失敗時不得刪除仍可供人工 recovery 的 descriptors 或 ledger。
+            $ledger.schemaVersion = 1
+            break
+        }
+        'unknown-cleanup-reason' {
+            # cleanup 的 no-go reason 亦必須與 provision 分開 allowlist；未知字串不得穿越 parent
+            # handoff boundary，即使其 descriptorPublicationReady=false 看似安全也一樣。這個 child
+            # 故意不重寫 ledger，讓後續成功 cleanup 可證明拒絕 evidence 沒有破壞既有 recovery state。
+            $evidence = New-SyntheticFreshFixtureEvidence 'cleanup' 'no-go' 'synthetic-unknown-cleanup-reason' $true $false
+            $ledger = $null
+            break
+        }
+        'success' {
+            break
+        }
+    }
     Write-SyntheticFreshChild -Path $fakeChildPath -Evidence $evidence -Ledger $ledger -ExitCode 0
     Write-StrictTextFile -Path $fakeDotnetPath -Text (@(
         '@echo off',
@@ -1122,6 +1283,9 @@ try {
         'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH',
         'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH',
         'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH',
+        'P7_2_SLICE_C_EVIDENCE_JSON',
+        'P7_2_SLICE_C_RETIRED_TRX_EVIDENCE',
+        'P7_2_SLICE_C_TARGET_OWNER_ID',
         'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION',
         'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP',
         'P7_2_SLICE_C_FRESH_LEDGER_ROOT',
@@ -1202,6 +1366,7 @@ try {
             [string]::IsNullOrWhiteSpace([string]$nonzeroChildObservation.cleanupMode) -and
             $nonzeroChildObservation.descriptorConfirmation -eq 'replace-stale-descriptor' -and
             -not [string]::IsNullOrWhiteSpace([string]$nonzeroChildObservation.ledgerRoot) -and
+            (Test-Path -LiteralPath ([string]$nonzeroChildObservation.ledgerRoot) -PathType Container) -and
             [string]::Equals(
                 [IO.Path]::GetDirectoryName([string]$nonzeroChildObservation.ledgerPath),
                 [string]$nonzeroChildObservation.ledgerRoot,
@@ -1227,6 +1392,35 @@ try {
 
         # strict evidence schema 必須拒絕額外欄位；child exit code 為零也不能讓看似 successful 的
         # provision evidence 把未經 allowlist 的資料跨 process boundary，或讓 parent 發佈 descriptor。
+        # child 僅可在 parent 已建立且明確交付的 ledger root 寫入。此 fault 刻意清除 child 的 root
+        # binding；預期是 child-process-failed，而不是 child 自行建立目錄、寫入 ledger 或發佈 descriptor。
+        $missingParentOwnedLedgerRoot = Invoke-SyntheticFreshProvision `
+            -Scenario 'missing-parent-owned-ledger-root' `
+            -TemporaryRoot $fixtureRoot `
+            -RepositoryPath $repositoryPath `
+            -ProfilePath $profilePath `
+            -SourceFixturePath $sourceFixturePath `
+            -SliceCFixturePath $sliceCFixturePath `
+            -OwnerIdentity $identity
+        Assert-True (
+            $missingParentOwnedLedgerRoot.Result.ExitCode -eq 2 -and
+            $missingParentOwnedLedgerRoot.Result.Evidence.outcome -eq 'no-go' -and
+            $missingParentOwnedLedgerRoot.Result.Evidence.reason -eq 'child-process-failed' -and
+            $missingParentOwnedLedgerRoot.Result.Evidence.operationExecuted -and
+            -not $missingParentOwnedLedgerRoot.Result.Evidence.safeToRetry
+        ) 'Fresh provision must require a parent-owned ledger root before child or ledger publication.'
+        Assert-DescriptorsRemainUnpublished `
+            -SourceFixturePath $missingParentOwnedLedgerRoot.SourceFixturePath `
+            -SliceCFixturePath $missingParentOwnedLedgerRoot.SliceCFixturePath `
+            -ExpectedSourceFingerprint $missingParentOwnedLedgerRoot.ExpectedSourceFingerprint `
+            -ExpectedSliceCFingerprint $missingParentOwnedLedgerRoot.ExpectedSliceCFingerprint
+        $missingParentOwnedLedgerPath = Join-Path `
+            ([string]$missingParentOwnedLedgerRoot.LocalAppDataRoot) `
+            'SpeechMessage\Dynamics\P7.2\FreshSliceC\fresh-slice-c-ledger.json'
+        Assert-True (
+            -not (Test-Path -LiteralPath $missingParentOwnedLedgerPath -PathType Leaf)
+        ) 'A missing parent-owned ledger root must leave no child-created ledger publication.'
+
         $extraEvidence = Invoke-SyntheticFreshProvision `
             -Scenario 'evidence-extra-property' `
             -TemporaryRoot $fixtureRoot `
@@ -1250,6 +1444,29 @@ try {
 
         # strict ledger schema 使用同一個 no-go publication boundary。evidence 完全合法且 child 成功
         # 結束仍不足夠：ledger 多出一個欄位時，parent 不能猜測 ID、不能補欄位，也不能覆寫 descriptor。
+        # no-go evidence 仍可能包含 child 任意字串；parent 必須依 lane allowlist 投影，否則未知 reason
+        # 會穿越 process boundary。拒絕時不得發佈 provision descriptor，即使 child 宣告它已執行操作。
+        $unknownProvisionReason = Invoke-SyntheticFreshProvision `
+            -Scenario 'evidence-unknown-provision-reason' `
+            -TemporaryRoot $fixtureRoot `
+            -RepositoryPath $repositoryPath `
+            -ProfilePath $profilePath `
+            -SourceFixturePath $sourceFixturePath `
+            -SliceCFixturePath $sliceCFixturePath `
+            -OwnerIdentity $identity
+        Assert-True (
+            $unknownProvisionReason.Result.ExitCode -eq 2 -and
+            $unknownProvisionReason.Result.Evidence.outcome -eq 'no-go' -and
+            $unknownProvisionReason.Result.Evidence.reason -eq 'fresh-fixture-evidence-unavailable' -and
+            $unknownProvisionReason.Result.Evidence.operationExecuted -and
+            -not $unknownProvisionReason.Result.Evidence.safeToRetry
+        ) 'A child-provided provision reason outside its allowlist must become a sanitized no-go.'
+        Assert-DescriptorsRemainUnpublished `
+            -SourceFixturePath $unknownProvisionReason.SourceFixturePath `
+            -SliceCFixturePath $unknownProvisionReason.SliceCFixturePath `
+            -ExpectedSourceFingerprint $unknownProvisionReason.ExpectedSourceFingerprint `
+            -ExpectedSliceCFingerprint $unknownProvisionReason.ExpectedSliceCFingerprint
+
         $extraLedger = Invoke-SyntheticFreshProvision `
             -Scenario 'ledger-extra-property' `
             -TemporaryRoot $fixtureRoot `
@@ -1277,6 +1494,36 @@ try {
         # schema v2 的 original target leader 是 provision 前唯一可接受的 baseline binding。缺欄位時
         # parent 不可以已發佈的新 leader、child 環境或任何 descriptor fallback 補值，否則 cleanup
         # 可能把另一個 session 的 target 當成原始 baseline。
+        # schemaVersion 是 parent/child ledger contract 的型別邊界，不是可被 PowerShell coercion 接受的
+        # 值比較。v1、缺失、quoted、decimal 與 exponent 都不可取得 descriptor 發佈權限。
+        foreach ($ledgerSchemaScenario in @(
+                'ledger-schema-v1',
+                'ledger-schema-missing',
+                'ledger-schema-quoted-two',
+                'ledger-schema-decimal-two',
+                'ledger-schema-exponent-two')) {
+            $invalidLedgerSchema = Invoke-SyntheticFreshProvision `
+                -Scenario $ledgerSchemaScenario `
+                -TemporaryRoot $fixtureRoot `
+                -RepositoryPath $repositoryPath `
+                -ProfilePath $profilePath `
+                -SourceFixturePath $sourceFixturePath `
+                -SliceCFixturePath $sliceCFixturePath `
+                -OwnerIdentity $identity
+            Assert-True (
+                $invalidLedgerSchema.Result.ExitCode -eq 2 -and
+                $invalidLedgerSchema.Result.Evidence.outcome -eq 'no-go' -and
+                $invalidLedgerSchema.Result.Evidence.reason -eq 'fresh-fixture-ledger-unavailable' -and
+                $invalidLedgerSchema.Result.Evidence.operationExecuted -and
+                -not $invalidLedgerSchema.Result.Evidence.safeToRetry
+            ) ('Fresh ledger schema scenario must fail closed: ' + $ledgerSchemaScenario)
+            Assert-DescriptorsRemainUnpublished `
+                -SourceFixturePath $invalidLedgerSchema.SourceFixturePath `
+                -SliceCFixturePath $invalidLedgerSchema.SliceCFixturePath `
+                -ExpectedSourceFingerprint $invalidLedgerSchema.ExpectedSourceFingerprint `
+                -ExpectedSliceCFingerprint $invalidLedgerSchema.ExpectedSliceCFingerprint
+        }
+
         $missingOriginalTargetLeader = Invoke-SyntheticFreshProvision `
             -Scenario 'ledger-missing-original-target-leader' `
             -TemporaryRoot $fixtureRoot `
@@ -1338,7 +1585,10 @@ try {
             $partialPublicationFailure.Result.Evidence.reason -eq 'fresh-descriptor-publication-failed' -and
             $partialPublicationFailure.Result.Evidence.operationExecuted -and
             -not $partialPublicationFailure.Result.Evidence.safeToRetry
-        ) 'A partial fresh descriptor publication failure must be a non-retryable sanitized no-go.'
+        ) ('A partial fresh descriptor publication failure must be a non-retryable sanitized no-go; actual=' +
+            [string]$partialPublicationFailure.Result.ExitCode + '/' +
+            [string]$partialPublicationFailure.Result.Evidence.outcome + '/' +
+            [string]$partialPublicationFailure.Result.Evidence.reason)
         Assert-DescriptorsQuarantinedAfterPublicationFailure `
             -SourceFixturePath $partialPublicationFailure.SourceFixturePath `
             -SliceCFixturePath $partialPublicationFailure.SliceCFixturePath
@@ -1433,6 +1683,30 @@ try {
         # leakage，並保護 cleanup request 不會誤用另一個 descriptor/session 的 baseline。
         $provenLedgerPath = Join-Path ([string]$provenProvision.LocalAppDataRoot) 'SpeechMessage\Dynamics\P7.2\FreshSliceC\fresh-slice-c-ledger.json'
         Assert-True (Test-Path -LiteralPath $provenLedgerPath -PathType Leaf) 'Successful provision must retain its v2 ledger until explicit cleanup completes.'
+        $publishedSourceFingerprint = Get-FileFingerprint $provenProvision.SourceFixturePath
+        $publishedSliceCFingerprint = Get-FileFingerprint $provenProvision.SliceCFixturePath
+
+        # cleanup child 也不可將任意 no-go reason 透過 handoff 回傳。拒絕未知 reason 時，parent 必須
+        # 保留已證明的 v2 ledger 與 descriptor pair，讓 operator 仍能執行後續一次明確 cleanup。
+        $unknownCleanupReason = Invoke-SyntheticFreshCleanup `
+            -ProvisionScenario $provenProvision `
+            -RepositoryPath $repositoryPath `
+            -ProfilePath $profilePath `
+            -OwnerIdentity $identity `
+            -Scenario 'unknown-cleanup-reason'
+        Assert-True (
+            $unknownCleanupReason.Result.ExitCode -eq 2 -and
+            $unknownCleanupReason.Result.Evidence.outcome -eq 'no-go' -and
+            $unknownCleanupReason.Result.Evidence.reason -eq 'fresh-fixture-evidence-unavailable' -and
+            $unknownCleanupReason.Result.Evidence.operationExecuted -and
+            -not $unknownCleanupReason.Result.Evidence.safeToRetry
+        ) 'A child-provided cleanup reason outside its allowlist must become a sanitized no-go.'
+        Assert-True (
+            (Get-FileFingerprint $provenProvision.SourceFixturePath) -ceq $publishedSourceFingerprint -and
+            (Get-FileFingerprint $provenProvision.SliceCFixturePath) -ceq $publishedSliceCFingerprint -and
+            (Test-Path -LiteralPath $provenLedgerPath -PathType Leaf)
+        ) 'Rejected cleanup evidence must preserve the current-user recovery ledger and published descriptor pair.'
+
         $successfulCleanup = Invoke-SyntheticFreshCleanup `
             -ProvisionScenario $provenProvision `
             -RepositoryPath $repositoryPath `
@@ -1455,6 +1729,20 @@ try {
             $null -eq $cleanupObservation.freshExistingTargetLeaderId -and
             $null -eq $cleanupObservation.legacyTargetLeaderContactId
         ) 'Cleanup child must receive neither the fresh nor legacy target-leader environment variable.'
+        foreach ($legacyProperty in @($cleanupObservation.legacyEnvironment.PSObject.Properties)) {
+            Assert-True (
+                [string]::IsNullOrWhiteSpace([string]$legacyProperty.Value)
+            ) 'Fresh cleanup child must not inherit legacy Slice C fixture, contact, mode or evidence environment variables.'
+        }
+        Assert-True (Test-Path -LiteralPath $successfulCleanup.RestorationObservationPath -PathType Leaf) 'Synthetic cleanup runner must observe the post-finally environment state.'
+        $restoredCleanupEnvironment = [IO.File]::ReadAllText($successfulCleanup.RestorationObservationPath, [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+        foreach ($environmentName in $freshEnvironmentNames) {
+            $restoredProperty = @($restoredCleanupEnvironment.PSObject.Properties | Where-Object { $_.Name -ceq $environmentName })
+            Assert-True (
+                $restoredProperty.Count -eq 1 -and
+                [string]$restoredProperty[0].Value -ceq [string]$sentinelValues[$environmentName]
+            ) 'Fresh parent finally must restore every process environment variable after successful cleanup.'
+        }
         Assert-True (
             -not (Test-Path -LiteralPath ([string]$cleanupObservation.evidenceDirectory) -PathType Container)
         ) 'Parent must remove its fresh child temporary evidence directory after successful cleanup.'
@@ -1463,6 +1751,51 @@ try {
             -not (Test-Path -LiteralPath $provenProvision.SliceCFixturePath -PathType Leaf) -and
             -not (Test-Path -LiteralPath $provenLedgerPath -PathType Leaf)
         ) 'Successful cleanup must remove only the matching fresh descriptors and completed current-user ledger.'
+
+        # 使用獨立 successful provision 建立 valid pre-cleanup baseline。child 隨後回報合法 cleanup
+        # evidence 卻把 ledger 改寫為 v1；parent 必須 fail closed，且不得因 cleanup 開始過就刪除
+        # descriptor 或唯一的 recovery ledger。這保護 post-child re-read 的 transaction boundary。
+        $invalidPostChildLedgerProvision = Invoke-SyntheticFreshProvision `
+            -Scenario 'fresh-graph-proven' `
+            -TemporaryRoot $fixtureRoot `
+            -RepositoryPath $repositoryPath `
+            -ProfilePath $profilePath `
+            -SourceFixturePath $sourceFixturePath `
+            -SliceCFixturePath $sliceCFixturePath `
+            -OwnerIdentity $identity
+        Assert-True (
+            $invalidPostChildLedgerProvision.Result.ExitCode -eq 0 -and
+            $invalidPostChildLedgerProvision.Result.Evidence.outcome -eq 'go'
+        ) 'Cleanup post-child ledger regression requires an independently proven fresh fixture.'
+        $invalidPostChildLedgerPath = Join-Path `
+            ([string]$invalidPostChildLedgerProvision.LocalAppDataRoot) `
+            'SpeechMessage\Dynamics\P7.2\FreshSliceC\fresh-slice-c-ledger.json'
+        $invalidPreCleanupSourceFingerprint = Get-FileFingerprint $invalidPostChildLedgerProvision.SourceFixturePath
+        $invalidPreCleanupSliceCFingerprint = Get-FileFingerprint $invalidPostChildLedgerProvision.SliceCFixturePath
+        $invalidPostChildLedgerCleanup = Invoke-SyntheticFreshCleanup `
+            -ProvisionScenario $invalidPostChildLedgerProvision `
+            -RepositoryPath $repositoryPath `
+            -ProfilePath $profilePath `
+            -OwnerIdentity $identity `
+            -Scenario 'invalid-post-child-ledger'
+        Assert-True (
+            $invalidPostChildLedgerCleanup.Result.ExitCode -eq 2 -and
+            $invalidPostChildLedgerCleanup.Result.Evidence.outcome -eq 'no-go' -and
+            $invalidPostChildLedgerCleanup.Result.Evidence.reason -eq 'fresh-fixture-ledger-unavailable' -and
+            $invalidPostChildLedgerCleanup.Result.Evidence.operationExecuted -and
+            -not $invalidPostChildLedgerCleanup.Result.Evidence.safeToRetry
+        ) 'An invalid post-child cleanup ledger must be a sanitized fail-closed result, never an unsafe success.'
+        Assert-True (
+            (Get-FileFingerprint $invalidPostChildLedgerProvision.SourceFixturePath) -ceq $invalidPreCleanupSourceFingerprint -and
+            (Get-FileFingerprint $invalidPostChildLedgerProvision.SliceCFixturePath) -ceq $invalidPreCleanupSliceCFingerprint -and
+            (Test-Path -LiteralPath $invalidPostChildLedgerPath -PathType Leaf)
+        ) 'Invalid post-child cleanup ledger must preserve both descriptors and the recovery ledger.'
+        $invalidPostChildLedger = [IO.File]::ReadAllText(
+            $invalidPostChildLedgerPath,
+            [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+        Assert-True (
+            $invalidPostChildLedger.schemaVersion -eq 1
+        ) 'Cleanup regression must prove the parent observed the child-replaced invalid ledger rather than a stale baseline.'
     }
     finally {
         Restore-ProcessEnvironmentSnapshot $environmentSnapshot

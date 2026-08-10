@@ -95,43 +95,11 @@ $isFreshCleanupMode = [bool]$CleanupFreshFixture
 $liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe -or $ProvisionFreshFixture -or $CleanupFreshFixture)
 $operationMayHaveExecuted = -not ($isReconciliationMode -or $isRepairMode -or $isRepairProbeMode)
 $previousEnvironment = @{}
-$inputEnvironmentNames = @(
-    'CRM_PASSWORD',
-    'SPEECHMESSAGE_P7_2_SLICE_C_LIVE',
-    'SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE',
-    'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR',
-    'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE',
-    'P7_2_SLICE_C_FIXTURE_OWNER',
-    'P7_2_SLICE_C_FIXTURE_MARKER',
-    'P7_2_SLICE_C_CONTACT_ID',
-    'P7_2_SLICE_C_ADD_LIST_ID',
-    'P7_2_SLICE_C_REMOVE_LIST_ID',
-    'P7_2_SLICE_C_SMALL_GROUP_LIST_ID',
-    'P7_2_SLICE_C_SMALL_GROUP_TARGET_LEADER_CONTACT_ID',
-    'P7_2_SLICE_C_SMALL_GROUP_EXPECTED_RELATIONSHIP_LIST_ID',
-    'P7_2_SLICE_C_TRANSFER_SOURCE_LIST_ID',
-    'P7_2_SLICE_C_TRANSFER_TARGET_LIST_ID',
-    'P7_2_SLICE_C_TRANSFER_WEEK_START_UTC',
-    'P7_2_SLICE_C_EVIDENCE_PATH',
-    'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH',
-    'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH',
-    'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH',
-    'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION',
-    'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP',
-    'P7_2_SLICE_C_FRESH_LEDGER_ROOT',
-    'P7_2_SLICE_C_FRESH_LEDGER_PATH',
-    'P7_2_SLICE_C_FRESH_EVIDENCE_PATH',
-    'P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION',
-    'P7_2_SLICE_C_FRESH_NONCE',
-    'P7_2_SLICE_C_FRESH_OWNER',
-    'P7_2_SLICE_C_FRESH_ADD_LIST_ID',
-    'P7_2_SLICE_C_FRESH_REMOVE_LIST_ID',
-    'P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID',
-    'P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID',
-    'P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID',
-    'P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID',
-    'P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC'
-)
+# legacy inventory 是 fresh child 的唯一 inherited Slice C state denylist；它同時餵給 snapshot、
+# fresh-mode clear 與 finally restore，避免新增 key 時只更新其中一條 lifecycle path 而跨 session
+# 洩漏。最後三個 retired key 使用拆分 suffix 組合，僅用於 scrub/restore，絕非 child protocol、
+# evidence、owner 或 credential contract。
+$legacySliceCEnvironmentPrefix = 'P7_2_SLICE_C_'
 $legacySliceCEnvironmentNames = @(
     'SPEECHMESSAGE_P7_2_SLICE_C_LIVE',
     'SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE',
@@ -151,7 +119,27 @@ $legacySliceCEnvironmentNames = @(
     'P7_2_SLICE_C_EVIDENCE_PATH',
     'P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH',
     'P7_2_SLICE_C_REPAIR_EVIDENCE_PATH',
-    'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH'
+    'P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH',
+    ($legacySliceCEnvironmentPrefix + 'EVIDENCE_' + 'JSON'),
+    ($legacySliceCEnvironmentPrefix + 'RETIRED_' + 'TRX_' + 'EVIDENCE'),
+    ($legacySliceCEnvironmentPrefix + 'TARGET_' + 'OWNER_' + 'ID')
+)
+$inputEnvironmentNames = @('CRM_PASSWORD') + $legacySliceCEnvironmentNames + @(
+    'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION',
+    'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP',
+    'P7_2_SLICE_C_FRESH_LEDGER_ROOT',
+    'P7_2_SLICE_C_FRESH_LEDGER_PATH',
+    'P7_2_SLICE_C_FRESH_EVIDENCE_PATH',
+    'P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION',
+    'P7_2_SLICE_C_FRESH_NONCE',
+    'P7_2_SLICE_C_FRESH_OWNER',
+    'P7_2_SLICE_C_FRESH_ADD_LIST_ID',
+    'P7_2_SLICE_C_FRESH_REMOVE_LIST_ID',
+    'P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID',
+    'P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID',
+    'P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID',
+    'P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID',
+    'P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC'
 )
 $credentialTarget = 'speechmessage.crm91.p62'
 $expectedProfileAlias = 'sunnyvalechback'
@@ -884,6 +872,23 @@ function Test-StrictPropertyNames {
         @($ExpectedNames | Where-Object { $_ -cnotin $actualNames }).Count -eq 0
 }
 
+function Test-StrictFreshFixtureLedgerSchemaVersion {
+    <#
+    .SYNOPSIS
+        驗證 ledger schemaVersion 是唯一允許的 JSON integral numeric 2。
+
+    .DESCRIPTION
+        ConvertFrom-Json 對未帶 decimal/exponent 的 JSON 整數 2 產生 Int32；quoted 值、decimal 與
+        exponent 則分別是 String、Decimal 或 Double。不能使用 PowerShell 的鬆散 -eq/-ne 比較，否則
+        child 可把不同 wire schema 偽裝為 version 2，導致 parent 從未證明的 ledger 發佈或刪除 current-
+        user descriptor。此函式沒有快取或可變 shared state，caller 在每一個跨 process ledger read 時
+        都重新驗證原始 parser type，失敗一律由既有 no-go 邊界處理。
+    #>
+    param([object] $Value)
+
+    return $Value -is [int] -and $Value -eq 2
+}
+
 function Read-StrictFinalCrLfJsonFile {
     <#
     .SYNOPSIS
@@ -938,11 +943,45 @@ function Get-StrictFreshFixtureEvidenceFile {
         'descriptorPublicationReady',
         'featureFlagChanged'
     )
+    # reason 是 child-to-parent 的分類邊界，必須依 lane 使用完整但有限的 published vocabulary。
+    # 這些值不含 CRM ID、identity、路徑、transport detail 或 exception；未知字串即使搭配 no-go 與
+    # descriptorPublicationReady=false 也不得穿越 console handoff，避免未受控 child state 留存或洩漏。
+    $allowedReasons = if ($ExpectedLane -ceq 'provision') {
+        @(
+            'fresh-fixture-provisioned',
+            'fixture-precondition-failed',
+            'baseline-owner-unavailable',
+            'fresh-source-readback-failed',
+            'fresh-leader-readback-failed',
+            'fresh-relationship-readback-failed',
+            'remove-membership-readback-failed',
+            'transfer-source-membership-readback-failed',
+            'baseline-owner-readback-failed',
+            'fresh-graph-unproven',
+            'provisioning-ambiguous',
+            'runtime-failure',
+            'cleanup-failure'
+        )
+    }
+    else {
+        @(
+            'fresh-fixture-cleaned',
+            'cleanup-precondition-failed',
+            'cleanup-membership-readback-failed',
+            'cleanup-relationship-readback-failed',
+            'cleanup-source-readback-failed',
+            'cleanup-leader-readback-failed',
+            'cleanup-ambiguous',
+            'runtime-failure',
+            'cleanup-failure'
+        )
+    }
     if (-not (Test-StrictPropertyNames -Value $evidence -ExpectedNames $expectedNames) -or
         $evidence.schemaVersion -ne 1 -or
         $evidence.lane -cne $ExpectedLane -or
         $evidence.outcome -cnotin @('go', 'no-go') -or
         $evidence.reason -isnot [string] -or
+        $evidence.reason -cnotin $allowedReasons -or
         $evidence.operationExecuted -isnot [bool] -or
         $evidence.descriptorPublicationReady -isnot [bool] -or
         $evidence.featureFlagChanged -ne $false) {
@@ -1020,7 +1059,7 @@ function Get-StrictFreshFixtureLedger {
         'originalTargetLeaderContactId'
     )
     if (-not (Test-StrictPropertyNames -Value $ledger -ExpectedNames $expectedNames) -or
-        $ledger.schemaVersion -ne 2 -or
+        -not (Test-StrictFreshFixtureLedgerSchemaVersion $ledger.schemaVersion) -or
         $ledger.fixtureId -cne 'p7.2-slice-c-fresh-fixture' -or
         $ledger.profileAlias -cne 'crm91' -or
         $ledger.ceVersion -cne '9.1' -or

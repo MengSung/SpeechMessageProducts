@@ -169,6 +169,62 @@ public sealed class P72FreshSliceCFixtureFileLedgerTests
     }
 
     /// <summary>
+    /// 驗證同一個 fresh-fixture invocation 的原始 baseline leader 一旦在第一個 ledger stage
+    /// 被接受後，後續 stage 不得藉由相同 nonce 改寫它。故障注入會先寫入
+    /// <c>preflight-proven</c>，再以另一個非空 GUID 寫入 <c>source-contact-created</c>；
+    /// 若 writer 接受第二筆資料，cleanup 便可能在跨程序恢復時將錯誤的既有領隊當作
+    /// baseline，破壞 owner isolation 與可回復性。決定性斷言是第二次寫入失敗，且檔案
+    /// 仍保留第一個 stage 的原始 baseline；測試只使用每次呼叫專屬的 temporary root，
+    /// 因此不會保留跨測試、跨使用者或跨 profile 的檔案、session 或 CRM 資源。
+    /// </summary>
+    [Fact]
+    public void Persist_rejects_a_stage_that_changes_the_immutable_original_baseline_leader()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            using var ledger = new P72FreshSliceCFixtureFileLedger(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+
+            ledger.Persist(new P72FreshSliceCFixtureLedgerState(
+                "preflight-proven",
+                Nonce,
+                null,
+                null,
+                null,
+                OriginalTargetLeaderContactId));
+
+            var changedBaselineLeader = Guid.Parse("eeeeeeee-5555-5555-5555-555555555555");
+            Action action = () => ledger.Persist(new P72FreshSliceCFixtureLedgerState(
+                "source-contact-created",
+                Nonce,
+                SourceContactId,
+                null,
+                null,
+                changedBaselineLeader));
+
+            action.Should().Throw<InvalidOperationException>();
+
+            using var document = JsonDocument.Parse(File.ReadAllText(path, Encoding.UTF8));
+            document.RootElement.GetProperty("stage").GetString().Should().Be("preflight-proven");
+            document.RootElement.GetProperty("originalTargetLeaderContactId").GetGuid()
+                .Should().Be(OriginalTargetLeaderContactId);
+        }
+        finally
+        {
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
     /// cleanup child 只能讀取同一個 current-user、crm91/Data8/CE 9.1 ledger，且 stage 必須已達
     /// <c>fresh-graph-proven</c>。這個測試保護 ambiguous provision 後的 recovery path 不會接受
     /// 其他 profile、其他 Windows owner 或半完成 stage 的任意 GUID。

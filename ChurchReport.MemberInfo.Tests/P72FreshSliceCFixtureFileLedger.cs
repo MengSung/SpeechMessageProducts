@@ -56,6 +56,12 @@ internal sealed class P72FreshSliceCFixtureFileLedger : IP72FreshSliceCFixtureLe
     private readonly string _ceVersion;
     private readonly string _connector;
     private Guid? _nonce;
+    // 同一個 ledger instance 代表一次 fresh-fixture invocation；原始 baseline leader 是 cleanup
+    // 唯一允許用來還原 owner 的跨 stage 不可變資料。即使呼叫端意外重用 nonce，writer 也不能
+    // 讓後續 stage 用另一筆 leader 覆寫這個值，否則 child 間的 recovery state 可能跨 profile
+    // 或跨 fixture 指向錯誤擁有者。此欄位僅存放當前 invocation 的 GUID，Dispose 後 instance
+    // 不可再使用，且不會進入 static/cache/log/response，因此不存在跨 session 的保留路徑。
+    private Guid? _originalTargetLeaderContactId;
     private bool _disposed;
 
     /// <summary>
@@ -125,6 +131,12 @@ internal sealed class P72FreshSliceCFixtureFileLedger : IP72FreshSliceCFixtureLe
         if (_nonce != state.Nonce)
         {
             throw new InvalidOperationException("The fresh-fixture ledger nonce changed during one invocation.");
+        }
+
+        _originalTargetLeaderContactId ??= state.OriginalTargetLeaderContactId;
+        if (_originalTargetLeaderContactId != state.OriginalTargetLeaderContactId)
+        {
+            throw new InvalidOperationException("The fresh-fixture ledger baseline leader changed during one invocation.");
         }
 
         var document = new FreshFixtureLedgerDocument(
