@@ -9,7 +9,7 @@
 - FallbackAccepted: True
 - QuotaBlocked: False
 - CompletedBackends: gemini, claude
-- FailedBackends: 
+- FailedBackends:
 
 Artifacts are stored in:
 

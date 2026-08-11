@@ -97,7 +97,7 @@
      }
      else {
 @@ -1231,6 +1243,9 @@
- 
+
 -    $expectedGoReason = if ($ExpectedLane -eq 'provision') {
 +    $expectedGoReason = if ($ExpectedLane -eq 'provision') {
          'fresh-fixture-provisioned'
@@ -163,7 +163,7 @@
 +        $freshExpectedLane = if ($isFreshProvisionMode) { 'provision' } elseif ($isFreshProvisionProbeMode) { 'provision-probe' } else { 'cleanup' }
          try {
 @@ -2721,3 +2740,3 @@
- 
+
 -            if ($strictEvidence.outcome -eq 'go') {
 +            if ($strictEvidence.outcome -eq 'go' -and -not $isFreshProvisionProbeMode) {
                  if ($isFreshProvisionMode) {

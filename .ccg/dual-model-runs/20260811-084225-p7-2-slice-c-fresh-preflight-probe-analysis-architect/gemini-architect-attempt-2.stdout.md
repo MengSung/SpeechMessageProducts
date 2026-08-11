@@ -47,13 +47,13 @@
 @@ -56,6 +56,9 @@ param(
      [Parameter(ParameterSetName = 'RepairProbe')]
      [switch] $RepairProbe,
- 
+
 +    [Parameter(ParameterSetName = 'FreshPreflightProbe')]
 +    [switch] $FreshPreflightProbe,
 +
      [Parameter(ParameterSetName = 'ProvisionFresh')]
      [switch] $ProvisionFreshFixture,
- 
+
 @@ -90,11 +93,12 @@ $completedHandoffOutcome = $null
  $isReconciliationMode = [bool]$ReconcileFixture
  $isRepairMode = [bool]$RepairFixture
@@ -81,7 +81,7 @@
 @@ -2181,6 +2186,79 @@ function Get-StrictSliceCRepairProbeEvidenceFile {
      }
  }
- 
+
 +function Get-StrictSliceCFreshPreflightProbeEvidenceFile {
 +    param([string] $EvidencePath)
 +
