@@ -315,7 +315,9 @@ internal static class P72FreshSliceCFixtureLiveEvidence
             value.OwnerKind == "systemuser" &&
             value.OwnerState == "active" &&
             value.OwnerRelation == "different-from-data8" &&
-            value.WeeklyReport == "exactly-one-active";
+            // zero-active 是已確認的正常業務分支；writer 只能輸出 fixed category，不能輸出或
+            // 推導 report identity，因此 parent 仍無法把 evidence 當成選取／修補週報的能力。
+            value.WeeklyReport is "exactly-one-active" or "zero-active";
         var validCategories =
             value.RequestShape is "valid" or "invalid" &&
             value.OperationalLists is "valid" or "invalid" or "unavailable" &&
@@ -323,7 +325,7 @@ internal static class P72FreshSliceCFixtureLiveEvidence
             value.OwnerKind is "systemuser" or "other-or-missing" or "unavailable" &&
             value.OwnerState is "active" or "inactive-or-missing" or "unavailable" &&
             value.OwnerRelation is "different-from-data8" or "same-as-data8" or "unavailable" &&
-            value.WeeklyReport is "exactly-one-active" or "not-exactly-one-active" or "unavailable";
+            value.WeeklyReport is "exactly-one-active" or "zero-active" or "duplicate-active" or "unavailable";
         var validReason = Array.IndexOf(PreflightProbeReasons, value.Reason) >= 0;
         var validCombination =
             (value.Outcome == "go" && value.Reason == "fresh-preconditions-proven" && value.ReadOnlyProbeExecuted && allGreen) ||

@@ -293,8 +293,11 @@ public sealed class P72FreshSliceCFixtureLiveGateTests
     /// CRM ID、名稱、owner identity、endpoint、credential 或 raw exception。finally 只刪除本測試
     /// 建立的 temporary root，不會保留其他 session、profile 或 fixture state。
     /// </summary>
-    [Fact]
-    public void Fresh_preflight_probe_evidence_writer_emits_only_the_strict_zero_mutation_contract()
+    /// <param name="weeklyReportCategory">唯一週報或零週報的固定正常業務分類。</param>
+    [Theory]
+    [InlineData("exactly-one-active")]
+    [InlineData("zero-active")]
+    public void Fresh_preflight_probe_evidence_writer_emits_only_the_strict_zero_mutation_contract(string weeklyReportCategory)
     {
         var root = Path.Combine(Path.GetTempPath(), "speechmessage-p72-fresh-preflight-evidence-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
@@ -314,7 +317,7 @@ public sealed class P72FreshSliceCFixtureLiveGateTests
                     OwnerKind: "systemuser",
                     OwnerState: "active",
                     OwnerRelation: "different-from-data8",
-                    WeeklyReport: "exactly-one-active"));
+                    WeeklyReport: weeklyReportCategory));
 
             var bytes = File.ReadAllBytes(path);
             try
@@ -347,6 +350,7 @@ public sealed class P72FreshSliceCFixtureLiveGateTests
                 document.RootElement.GetProperty("operationExecuted").GetBoolean().Should().BeFalse();
                 document.RootElement.GetProperty("readOnlyProbeExecuted").GetBoolean().Should().BeTrue();
                 document.RootElement.GetProperty("featureFlagChanged").GetBoolean().Should().BeFalse();
+                document.RootElement.GetProperty("probe").GetProperty("weeklyReport").GetString().Should().Be(weeklyReportCategory);
                 document.RootElement.GetProperty("probe").EnumerateObject().Select(static property => property.Name).Should().BeEquivalentTo(
                 [
                     "requestShape",

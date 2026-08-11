@@ -299,7 +299,7 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
     /// mutation trace 與 pending ledger 都維持空白。
     /// </summary>
     [Fact]
-    public void Provision_rejects_missing_weekly_report_before_ledger_or_mutation()
+    public void Provision_accepts_missing_weekly_report_as_a_normal_unlinked_present_record_branch()
     {
         using var service = new FreshFixtureProvisionSuccessService(BaselineOwnerId, Data8ServiceUserId, weeklyReportCount: 0);
         var ledger = new RecordingFreshFixtureLedger();
@@ -317,12 +317,26 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
 
         var result = provisioner.Provision(request, ledger);
 
-        result.Outcome.Should().Be("no-go");
-        result.Reason.Should().Be("fixture-precondition-failed");
-        result.OperationExecuted.Should().BeFalse();
-        service.SourceCreateAttemptCount.Should().Be(0);
-        service.MutationTrace.Should().BeEmpty();
-        ledger.States.Should().BeEmpty();
+        result.Outcome.Should().Be("go");
+        result.Reason.Should().Be("fresh-fixture-provisioned");
+        result.OperationExecuted.Should().BeTrue();
+        service.SourceCreateAttemptCount.Should().Be(1);
+        service.MutationTrace.Should().Equal(
+            "create:source",
+            "create:leader",
+            "create:relationship-list",
+            "add:remove",
+            "add:transfer-source",
+            "assign:baseline-owner");
+        ledger.States.Select(static state => state.Stage).Should().Equal(
+            "preflight-proven",
+            "source-contact-created",
+            "leader-contact-created",
+            "relationship-list-created",
+            "remove-membership-added",
+            "transfer-source-membership-added",
+            "baseline-owner-assigned",
+            "fresh-graph-proven");
     }
 
     /// <summary>
@@ -574,6 +588,28 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
     }
 
     /// <summary>
+    /// 保護使用者確認的正常業務分支：目標小組在指定週日沒有啟用週報時，唯讀 probe 必須回傳
+    /// <c>zero-active</c> 與 <c>go</c>，而不是把「尚未建立週報」誤判成資料錯誤。此測試只使用
+    /// test-local 的零列 QueryExpression 回應；決定性 assertion 是不發出任何 mutation、沒有 ledger，
+    /// 且未來 transfer 仍須以 absent weekly-report lookup 的 read-back 保護這個分支。
+    /// </summary>
+    [Fact]
+    public void Fresh_preflight_probe_returns_go_for_a_normal_zero_active_weekly_report_state()
+    {
+        using var service = new FreshPreflightProbeService(FreshPreflightProbeScenario.WeeklyReportIsMissing);
+        var probe = new P72FreshSliceCFixturePreflightProbe(service);
+
+        var result = probe.Probe(CreateFreshPreflightRequest());
+
+        result.Outcome.Should().Be("go");
+        result.Reason.Should().Be("fresh-preconditions-proven");
+        result.ReadOnlyProbeExecuted.Should().BeTrue();
+        result.WeeklyReport.Should().Be("zero-active");
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.MutationAttemptCount.Should().Be(0);
+    }
+
+    /// <summary>
     /// 保護每個 fresh-provision 前置條件都能以 bounded、去識別化分類指出失敗 stage，而不需要
     /// 掃描 CRM、回傳 ID/名稱或嘗試補救。每個 scenario 僅改變一份 test-local 投影；決定性
     /// assertions 是 probe 保持 read-only、reason 固定為 <c>fresh-preconditions-not-proven</c>，
@@ -588,7 +624,7 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
     [InlineData(FreshPreflightProbeScenario.OwnerIsNotSystemUser, nameof(P72FreshSliceCFixturePreflightProbeResult.OwnerKind), "other-or-missing")]
     [InlineData(FreshPreflightProbeScenario.OwnerIsDisabled, nameof(P72FreshSliceCFixturePreflightProbeResult.OwnerState), "inactive-or-missing")]
     [InlineData(FreshPreflightProbeScenario.OwnerEqualsData8User, nameof(P72FreshSliceCFixturePreflightProbeResult.OwnerRelation), "same-as-data8")]
-    [InlineData(FreshPreflightProbeScenario.WeeklyReportIsNotUnique, nameof(P72FreshSliceCFixturePreflightProbeResult.WeeklyReport), "not-exactly-one-active")]
+    [InlineData(FreshPreflightProbeScenario.WeeklyReportHasDuplicates, nameof(P72FreshSliceCFixturePreflightProbeResult.WeeklyReport), "duplicate-active")]
     public void Fresh_preflight_probe_classifies_each_unproven_remote_precondition_without_mutation(
         FreshPreflightProbeScenario scenario,
         string expectedField,
@@ -705,8 +741,11 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
         /// <summary>leader owner 與 deployment-owned Data8 WhoAmI user 相同。</summary>
         OwnerEqualsData8User,
 
-        /// <summary>fixed target-list/Sunday query 不再恰好回傳一筆 active weekly report。</summary>
-        WeeklyReportIsNotUnique,
+        /// <summary>fixed target-list/Sunday query 完整回傳零筆 active weekly report。</summary>
+        WeeklyReportIsMissing,
+
+        /// <summary>fixed target-list/Sunday query 回傳兩筆以上 active weekly report。</summary>
+        WeeklyReportHasDuplicates,
 
         /// <summary>第一個 direct Retrieve 發生 transport/projection fault。</summary>
         RetrieveThrows
@@ -814,7 +853,7 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
         /// caller-selectable FetchXML、paging 或跨 fixture discovery。
         /// </summary>
         /// <param name="query">必須是固定 entity、fixed filters 與 TopCount=2 的 QueryExpression。</param>
-        /// <returns>正常時一筆，not-unique scenario 時兩筆的 test-local synthetic rows。</returns>
+        /// <returns>正常時一筆，missing scenario 時零筆，duplicate scenario 時兩筆的 test-local synthetic rows。</returns>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             ThrowIfDisposed();
@@ -839,7 +878,12 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
                 new DateTime(2026, 8, 9, 0, 0, 0, DateTimeKind.Utc));
 
             var rows = new EntityCollection();
-            if (_scenario != FreshPreflightProbeScenario.WeeklyReportIsNotUnique)
+            if (_scenario == FreshPreflightProbeScenario.WeeklyReportIsMissing)
+            {
+                return rows;
+            }
+
+            if (_scenario != FreshPreflightProbeScenario.WeeklyReportHasDuplicates)
             {
                 rows.Entities.Add(new Entity("new_group_present_weekly_report", WeeklyReportId));
                 return rows;

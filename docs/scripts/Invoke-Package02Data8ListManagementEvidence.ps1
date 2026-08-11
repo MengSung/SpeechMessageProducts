@@ -2268,7 +2268,7 @@ function Get-StrictFreshPreflightProbeEvidenceFile {
         $evidence.probe.ownerKind -cin @('systemuser', 'other-or-missing', 'unavailable') -and
         $evidence.probe.ownerState -cin @('active', 'inactive-or-missing', 'unavailable') -and
         $evidence.probe.ownerRelation -cin @('different-from-data8', 'same-as-data8', 'unavailable') -and
-        $evidence.probe.weeklyReport -cin @('exactly-one-active', 'not-exactly-one-active', 'unavailable')
+        $evidence.probe.weeklyReport -cin @('exactly-one-active', 'zero-active', 'duplicate-active', 'unavailable')
     $allRemoteUnavailable =
         $evidence.probe.operationalLists -ceq 'unavailable' -and
         $evidence.probe.leaderMarker -ceq 'unavailable' -and
@@ -2283,7 +2283,10 @@ function Get-StrictFreshPreflightProbeEvidenceFile {
         $evidence.probe.ownerKind -ceq 'systemuser' -and
         $evidence.probe.ownerState -ceq 'active' -and
         $evidence.probe.ownerRelation -ceq 'different-from-data8' -and
-        $evidence.probe.weeklyReport -ceq 'exactly-one-active'
+        # 使用者已確認 zero-active 是目標小組尚未建立本週週報的正常分支；它和唯一週報分支
+        # 都只能證明 fresh fixture 可開始。duplicate/unavailable 仍落在 no-go，且 evidence 從不
+        # 攜帶 report ID、名稱、日期、數量或任何可供挑選／修補週報的資料。
+        $evidence.probe.weeklyReport -cin @('exactly-one-active', 'zero-active')
     $validCombination =
         ($evidence.outcome -ceq 'go' -and
             $evidence.reason -ceq 'fresh-preconditions-proven' -and

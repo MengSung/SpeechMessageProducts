@@ -664,13 +664,16 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
-    /// 保護 contact transfer composite 依固定順序完成 target membership、source removal、週報 present record、
-    /// primary-list lookup，並在每個 component read-back 後才回傳成功。故障注入是目前 connector dispatch 尚未
-    /// 接線；決定性斷言是不得接受 caller 的 entity/field map，且只執行兩個固定 membership action、一次
-    /// present-record create、一次 contact lookup update。所有資料只在同步 fake callback 內存活，不跨 lease。
+    /// 保護 contact transfer composite 依固定順序完成 target membership、source removal、present record 與
+    /// primary-list lookup，並在每個 component read-back 後才回傳成功。兩個案例分別驗證：唯一週報必須
+    /// 精確關聯，以及沒有週報時必須建立不帶 weekly-report lookup 的出席紀錄。決定性 assertion 是不得
+    /// 接受 caller 的 entity/field map，且只執行兩個固定 membership action、一次 present-record create、
+    /// 一次 contact lookup update。所有資料只在同步 fake callback 內存活，不跨 lease。
     /// </summary>
-    [Fact]
-    public async Task Created_client_executes_and_reconciles_the_fixed_contact_list_transfer_graph()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Created_client_executes_and_reconciles_the_fixed_contact_list_transfer_graph(bool zeroActiveWeeklyReport)
     {
         var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var sourceListId = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -726,14 +729,24 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
                         condition.AttributeName == "new_sunday_date" &&
                         condition.Operator == ConditionOperator.Equal &&
                         condition.Values.Contains(weekStartDate.UtcDateTime));
-                    return new EntityCollection([new Entity("new_group_present_weekly_report", weeklyReportId)]);
+                    return zeroActiveWeeklyReport
+                        ? new EntityCollection()
+                        : new EntityCollection([new Entity("new_group_present_weekly_report", weeklyReportId)]);
                 }
 
                 expression.EntityName.Should().Be("new_present_record");
-                expression.Criteria.Conditions.Should().Contain(condition =>
-                    condition.AttributeName == "new_group_present_weekly_report_prese" &&
-                    condition.Operator == ConditionOperator.Equal &&
-                    condition.Values.Contains(weeklyReportId));
+                if (zeroActiveWeeklyReport)
+                {
+                    expression.Criteria.Conditions.Should().NotContain(condition =>
+                        condition.AttributeName == "new_group_present_weekly_report_prese");
+                }
+                else
+                {
+                    expression.Criteria.Conditions.Should().Contain(condition =>
+                        condition.AttributeName == "new_group_present_weekly_report_prese" &&
+                        condition.Operator == ConditionOperator.Equal &&
+                        condition.Values.Contains(weeklyReportId));
+                }
                 expression.Criteria.Conditions.Should().Contain(condition =>
                     condition.AttributeName == "new_contact_new_present_record" &&
                     condition.Operator == ConditionOperator.Equal &&
@@ -742,16 +755,24 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
                     condition.AttributeName == "new_sunday_date" &&
                     condition.Operator == ConditionOperator.Equal &&
                     condition.Values.Contains(weekStartDate.UtcDateTime));
-                return presentRecordReads++ == 0
-                    ? new EntityCollection()
-                    : new EntityCollection([new Entity("new_present_record", presentRecordId)
-                    {
-                        ["new_group_present_weekly_report_prese"] = new EntityReference(
-                            "new_group_present_weekly_report", weeklyReportId),
-                        ["new_contact_new_present_record"] = new EntityReference("contact", contactId),
-                        ["new_list_new_present_record"] = new EntityReference("list", targetListId),
-                        ["new_sunday_date"] = weekStartDate.UtcDateTime
-                    }]);
+                if (presentRecordReads++ == 0)
+                {
+                    return new EntityCollection();
+                }
+
+                var presentRecord = new Entity("new_present_record", presentRecordId)
+                {
+                    ["new_contact_new_present_record"] = new EntityReference("contact", contactId),
+                    ["new_list_new_present_record"] = new EntityReference("list", targetListId),
+                    ["new_sunday_date"] = weekStartDate.UtcDateTime
+                };
+                if (!zeroActiveWeeklyReport)
+                {
+                    presentRecord["new_group_present_weekly_report_prese"] = new EntityReference(
+                        "new_group_present_weekly_report", weeklyReportId);
+                }
+
+                return new EntityCollection([presentRecord]);
             },
             update: entity =>
             {
@@ -796,14 +817,19 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             create: entity =>
             {
                 entity.LogicalName.Should().Be("new_present_record");
-                entity.Attributes.Should().BeEquivalentTo(new Dictionary<string, object?>(StringComparer.Ordinal)
+                var expectedAttributes = new Dictionary<string, object?>(StringComparer.Ordinal)
                 {
-                    ["new_group_present_weekly_report_prese"] = new EntityReference(
-                        "new_group_present_weekly_report", weeklyReportId),
                     ["new_contact_new_present_record"] = new EntityReference("contact", contactId),
                     ["new_list_new_present_record"] = new EntityReference("list", targetListId),
                     ["new_sunday_date"] = weekStartDate.UtcDateTime
-                });
+                };
+                if (!zeroActiveWeeklyReport)
+                {
+                    expectedAttributes["new_group_present_weekly_report_prese"] = new EntityReference(
+                        "new_group_present_weekly_report", weeklyReportId);
+                }
+
+                entity.Attributes.Should().BeEquivalentTo(expectedAttributes);
                 return presentRecordId;
             });
         var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
@@ -835,6 +861,87 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
         service.CreateCount.Should().Be(1);
         service.UpdateCount.Should().Be(1);
         service.RetrieveCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護使用者已確認的資料完整性邊界：相同 descriptor-bound target list、啟用狀態與固定 UTC
+    /// Sunday 若讀到兩筆週報，即代表目標小組本週週報重複，connector 必須在第一個 CRM mutation 前
+    /// fail closed，不能猜選其中一筆、不能自動修補週報，也不能建立未關聯的出席紀錄。本測試在記憶體
+    /// fake service 注入兩個合法但不同的週報 identity；決定性 assertions 是兩個固定 membership
+    /// 預讀與一個 <c>TopCount=2</c> 週報查詢後，Execute/Create/Update/Retrieve 皆維持零次，且
+    /// lease 仍由目前 request scope 確定釋放，不會讓失敗連線或 Entity 留給下一個 profile 使用。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_rejects_duplicate_active_weekly_reports_before_any_transfer_mutation()
+    {
+        var contactId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var sourceListId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var targetListId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var firstWeeklyReportId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var secondWeeklyReportId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        var weekStartDate = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero);
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                if (expression.EntityName == "listmember")
+                {
+                    return new EntityCollection();
+                }
+
+                expression.EntityName.Should().Be("new_group_present_weekly_report");
+                expression.TopCount.Should().Be(2);
+                expression.Criteria.Conditions.Should().Contain(condition =>
+                    condition.AttributeName == "new_list_group_present_weekly_report" &&
+                    condition.Operator == ConditionOperator.Equal &&
+                    condition.Values.Contains(targetListId));
+                expression.Criteria.Conditions.Should().Contain(condition =>
+                    condition.AttributeName == "statecode" &&
+                    condition.Operator == ConditionOperator.Equal &&
+                    condition.Values.Contains(0));
+                expression.Criteria.Conditions.Should().Contain(condition =>
+                    condition.AttributeName == "new_sunday_date" &&
+                    condition.Operator == ConditionOperator.Equal &&
+                    condition.Values.Contains(weekStartDate.UtcDateTime));
+                return new EntityCollection(
+                [
+                    new Entity("new_group_present_weekly_report", firstWeeklyReportId),
+                    new Entity("new_group_present_weekly_report", secondWeeklyReportId)
+                ]);
+            },
+            retrieve: (_, _, _) => throw new InvalidOperationException("Duplicate weekly reports must reject before contact read-back."),
+            execute: _ => throw new InvalidOperationException("Duplicate weekly reports must reject before membership mutation."),
+            update: _ => throw new InvalidOperationException("Duplicate weekly reports must reject before contact mutation."),
+            create: _ => throw new InvalidOperationException("Duplicate weekly reports must reject before present-record creation."));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.NewPersonContactTransferBetweenLists,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["sourceListId"] = sourceListId,
+                ["targetListId"] = targetListId,
+                ["weekStartDate"] = weekStartDate
+            }
+        };
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+            await client.ExecuteAsync(operation, CancellationToken.None);
+        };
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.ExecuteCount.Should().Be(0);
+        service.CreateCount.Should().Be(0);
+        service.UpdateCount.Should().Be(0);
+        service.RetrieveCount.Should().Be(0);
+        service.RetrieveMultipleCount.Should().Be(3);
         service.DisposeCount.Should().Be(1);
     }
 

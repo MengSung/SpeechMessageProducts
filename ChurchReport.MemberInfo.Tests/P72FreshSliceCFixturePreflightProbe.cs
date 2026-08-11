@@ -97,6 +97,10 @@ internal sealed class P72FreshSliceCFixturePreflightProbe
     private const string WeeklyReportIdAttribute = "new_group_present_weekly_reportid";
     private const string WeeklyReportListAttribute = "new_list_group_present_weekly_report";
     private const string WeeklyReportDateAttribute = "new_sunday_date";
+    private const string ExactlyOneActiveWeeklyReport = "exactly-one-active";
+    private const string ZeroActiveWeeklyReports = "zero-active";
+    private const string DuplicateActiveWeeklyReports = "duplicate-active";
+    private const string WeeklyReportUnavailable = "unavailable";
     private const int ContactListCreatedFromCodeValue = 2;
 
     private readonly IOrganizationService _service;
@@ -204,7 +208,11 @@ internal sealed class P72FreshSliceCFixturePreflightProbe
                     weeklyReport: "unavailable");
             }
 
-            if (!HasExactlyOneActiveWeeklyReport(request.TransferTargetListId, request.TransferWeekStartUtc))
+            var weeklyReport = ClassifyActiveWeeklyReport(
+                request.TransferTargetListId,
+                request.TransferWeekStartUtc);
+            if (!string.Equals(weeklyReport, ExactlyOneActiveWeeklyReport, StringComparison.Ordinal) &&
+                !string.Equals(weeklyReport, ZeroActiveWeeklyReports, StringComparison.Ordinal))
             {
                 return NotProven(
                     operationalLists: "valid",
@@ -212,7 +220,7 @@ internal sealed class P72FreshSliceCFixturePreflightProbe
                     ownerKind: "systemuser",
                     ownerState: "active",
                     ownerRelation: "different-from-data8",
-                    weeklyReport: "not-exactly-one-active");
+                    weeklyReport: weeklyReport);
             }
 
             return new P72FreshSliceCFixturePreflightProbeResult(
@@ -225,7 +233,7 @@ internal sealed class P72FreshSliceCFixturePreflightProbe
                 OwnerKind: "systemuser",
                 OwnerState: "active",
                 OwnerRelation: "different-from-data8",
-                WeeklyReport: "exactly-one-active");
+                WeeklyReport: weeklyReport);
         }
         catch (Exception)
         {
@@ -242,7 +250,7 @@ internal sealed class P72FreshSliceCFixturePreflightProbe
                 OwnerKind: "unavailable",
                 OwnerState: "unavailable",
                 OwnerRelation: "unavailable",
-                WeeklyReport: "unavailable");
+                WeeklyReport: WeeklyReportUnavailable);
         }
     }
 
@@ -341,14 +349,19 @@ internal sealed class P72FreshSliceCFixturePreflightProbe
            owner.GetAttributeValue<bool?>(SystemUserDisabledAttribute) == false;
 
     /// <summary>
-    /// 以 exact transfer-target list、active state、UTC Sunday date 與 TopCount=2 驗證恰好一筆 weekly
-    /// report。report ID 僅在 method-local collection 內檢查合法性，絕不寫入 result/evidence/cache；
-    /// 零筆、多筆、MoreRecords、錯 logical name 或空 ID 都是 no-go，不能由另一週或另一個 list 補選。
+    /// 以 exact transfer-target list、active state、UTC Sunday date 與 TopCount=2 將 weekly report
+    /// cardinality 轉為固定去識別化分類。這不是同日全 Organization 的計數：其他 list 的週報在 CRM
+    /// filter 中已排除。report ID 僅在 method-local collection 內檢查合法性，絕不寫入
+    /// result/evidence/cache；輸出永遠不含 count、ID、名稱、日期、raw Entity 或例外。
     /// </summary>
     /// <param name="targetListId">已證明 task-owned static 的 transfer-target list exact ID。</param>
     /// <param name="weekStartUtc">已驗證 UTC Sunday 00:00 的 fixed time key。</param>
-    /// <returns>剛好一筆 valid active report 時為 true。</returns>
-    private bool HasExactlyOneActiveWeeklyReport(Guid targetListId, DateTimeOffset weekStartUtc)
+    /// <returns>
+    /// 完整零列時為 <c>zero-active</c>；完整且剛好一筆合法列時為 <c>exactly-one-active</c>；
+    /// 已驗證有多列或 paging 時為 <c>duplicate-active</c>；任何不完整或不合理投影為
+    /// <c>unavailable</c>。後三者都只能使外層 fail closed。
+    /// </returns>
+    private string ClassifyActiveWeeklyReport(Guid targetListId, DateTimeOffset weekStartUtc)
     {
         var query = new QueryExpression(WeeklyReportEntityName)
         {
@@ -360,11 +373,32 @@ internal sealed class P72FreshSliceCFixturePreflightProbe
         query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
         query.Criteria.AddCondition(WeeklyReportDateAttribute, ConditionOperator.Equal, weekStartUtc.UtcDateTime);
         var rows = _service.RetrieveMultiple(query);
-        return rows is not null &&
-               !rows.MoreRecords &&
-               rows.Entities.Count == 1 &&
-               string.Equals(rows.Entities[0].LogicalName, WeeklyReportEntityName, StringComparison.Ordinal) &&
-               rows.Entities[0].Id != Guid.Empty;
+        if (rows is null)
+        {
+            return WeeklyReportUnavailable;
+        }
+
+        if (!rows.MoreRecords && rows.Entities.Count == 0)
+        {
+            return ZeroActiveWeeklyReports;
+        }
+
+        if (rows.Entities.Count == 0 ||
+            rows.Entities.Any(static entity =>
+                !string.Equals(entity.LogicalName, WeeklyReportEntityName, StringComparison.Ordinal) ||
+                entity.Id == Guid.Empty))
+        {
+            return WeeklyReportUnavailable;
+        }
+
+        if (!rows.MoreRecords && rows.Entities.Count == 1)
+        {
+            return ExactlyOneActiveWeeklyReport;
+        }
+
+        // TopCount=2 使這條分支最多保留兩個 method-local identity projection；MoreRecords 或第二列
+        // 都已足以證明「此固定 list/date 交集不是唯一」，無須取得 total count 或掃描其他小組資料。
+        return DuplicateActiveWeeklyReports;
     }
 
     /// <summary>

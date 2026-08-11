@@ -360,13 +360,22 @@ internal static class Package02Data8ListManagementOperations
             EnsureMembershipState(service, sourceList, contactId, expectedPresent: false);
         }
 
-        var presentRecordId = service.Create(new Entity(PresentRecordEntityName)
+        var presentRecord = new Entity(PresentRecordEntityName)
         {
-            [PresentRecordWeeklyReportAttribute] = new EntityReference(WeeklyReportEntityName, weeklyReportId),
             [PresentRecordContactAttribute] = new EntityReference(ContactEntityName, contactId),
             [PresentRecordListAttribute] = new EntityReference(ListEntityName, targetListId),
             [DateAttribute] = weekStartDate.UtcDateTime
-        });
+        };
+        if (weeklyReportId is Guid resolvedWeeklyReportId)
+        {
+            // 只有固定 target-list/UTC-Sunday 查詢證明唯一週報時才可設定 lookup；零筆是既有
+            // ChurchReport 的正常分支，不能由 connector 猜測建立或選擇另一份 weekly report。
+            presentRecord[PresentRecordWeeklyReportAttribute] = new EntityReference(
+                WeeklyReportEntityName,
+                resolvedWeeklyReportId);
+        }
+
+        var presentRecordId = service.Create(presentRecord);
         if (presentRecordId == Guid.Empty)
         {
             throw new InvalidOperationException("The Data8 transfer present record create result is invalid.");
@@ -714,10 +723,12 @@ internal static class Package02Data8ListManagementOperations
     }
 
     /// <summary>
-    /// 以 target list relationship 與 UTC Sunday 唯一解析 weekly report。query 只使用 connector-owned
-    /// entity/attribute/filter；零筆、多筆、paging continuation 或空 identity 都是不可執行 fixture 狀態。
+    /// 以 target list relationship 與 UTC Sunday 解析零或唯一 weekly report。query 只使用
+    /// connector-owned entity/attribute/filter；零筆是正常的未關聯週報分支，多筆、paging continuation 或
+    /// 空 identity 則是不可執行的歧義狀態。結果只在目前同步 transfer scope 保留，不進入 cache、session
+    /// 或 response，避免 profile／使用者間重用 CRM identity。
     /// </summary>
-    private static Guid ResolveWeeklyReport(
+    private static Guid? ResolveWeeklyReport(
         IOrganizationService service,
         Guid targetListId,
         DateTimeOffset weekStartDate)
@@ -733,9 +744,14 @@ internal static class Package02Data8ListManagementOperations
         query.Criteria.AddCondition(DateAttribute, ConditionOperator.Equal, weekStartDate.UtcDateTime);
         var rows = service.RetrieveMultiple(query)
             ?? throw new InvalidOperationException("The Data8 transfer weekly-report response is missing.");
-        if (rows.MoreRecords || rows.Entities.Count != 1)
+        if (rows.MoreRecords || rows.Entities.Count > 1)
         {
             throw new InvalidOperationException("The Data8 transfer weekly-report relationship is ambiguous.");
+        }
+
+        if (rows.Entities.Count == 0)
+        {
+            return null;
         }
 
         var row = rows.Entities[0];
@@ -748,12 +764,13 @@ internal static class Package02Data8ListManagementOperations
     }
 
     /// <summary>
-    /// 查詢指定週報/contact/date 的 present record。最多允許一列；任何多列或 malformed SDK graph 都視為
-    /// partial/ambiguous state，不讓 composite 以猜測方式覆寫既有出席資料。
+    /// 查詢指定週報分支/contact/date 的 present record。唯一週報分支會加入 exact weekly-report filter；
+    /// 零週報分支則刻意不帶該 filter，以避免既有未關聯或錯誤關聯 record 被漏掉。最多允許一列；任何多列
+    /// 或 malformed SDK graph 都視為 partial/ambiguous state，不讓 composite 以猜測方式覆寫既有出席資料。
     /// </summary>
     private static IReadOnlyList<TransferPresentRecord> ReadPresentRecords(
         IOrganizationService service,
-        Guid weeklyReportId,
+        Guid? weeklyReportId,
         Guid contactId,
         DateTimeOffset weekStartDate)
     {
@@ -767,7 +784,10 @@ internal static class Package02Data8ListManagementOperations
             TopCount = 2,
             NoLock = true
         };
-        query.Criteria.AddCondition(PresentRecordWeeklyReportAttribute, ConditionOperator.Equal, weeklyReportId);
+        if (weeklyReportId is Guid resolvedWeeklyReportId)
+        {
+            query.Criteria.AddCondition(PresentRecordWeeklyReportAttribute, ConditionOperator.Equal, resolvedWeeklyReportId);
+        }
         query.Criteria.AddCondition(PresentRecordContactAttribute, ConditionOperator.Equal, contactId);
         query.Criteria.AddCondition(DateAttribute, ConditionOperator.Equal, weekStartDate.UtcDateTime);
         query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
@@ -780,7 +800,7 @@ internal static class Package02Data8ListManagementOperations
 
         return rows.Entities.Select(row => new TransferPresentRecord(
                 row.Id,
-                ReadReferenceId(row, PresentRecordWeeklyReportAttribute, WeeklyReportEntityName),
+                ReadOptionalReferenceId(row, PresentRecordWeeklyReportAttribute, WeeklyReportEntityName),
                 ReadReferenceId(row, PresentRecordContactAttribute, ContactEntityName),
                 ReadReferenceId(row, PresentRecordListAttribute, ListEntityName),
                 ReadUtcDate(row, DateAttribute)))
@@ -830,7 +850,7 @@ internal static class Package02Data8ListManagementOperations
     /// <summary>比對 transfer present record 的完整固定 graph projection。</summary>
     private static bool IsMatchingPresentRecord(
         TransferPresentRecord record,
-        Guid weeklyReportId,
+        Guid? weeklyReportId,
         Guid contactId,
         Guid targetListId,
         DateTimeOffset weekStartDate)
@@ -839,6 +859,21 @@ internal static class Package02Data8ListManagementOperations
            record.ContactId == contactId &&
            record.ListId == targetListId &&
            record.WeekStartUtc == weekStartDate.UtcDateTime;
+
+    /// <summary>
+    /// 讀取可缺席的固定 lookup reference 並驗證 logical name。缺欄或 null 只可用於
+    /// <c>new_group_present_weekly_report_prese</c> 的 zero-active 分支；呼叫端仍以 nullable exact
+    /// equality 驗證它，不能將缺席寬鬆解讀為任意 lookup 成功。
+    /// </summary>
+    private static Guid? ReadOptionalReferenceId(Entity entity, string attributeName, string expectedLogicalName)
+    {
+        if (!entity.Attributes.TryGetValue(attributeName, out var value) || value is null)
+        {
+            return null;
+        }
+
+        return ReadReferenceId(entity, attributeName, expectedLogicalName);
+    }
 
     /// <summary>讀取固定 lookup reference 並驗證 logical name；不以 ToString 寬鬆轉型。</summary>
     private static Guid ReadReferenceId(Entity entity, string attributeName, string expectedLogicalName)
@@ -870,7 +905,7 @@ internal static class Package02Data8ListManagementOperations
     /// <summary>transfer present-record 的 connector-internal pure snapshot，不跨 request 或保存 SDK object。</summary>
     private sealed record TransferPresentRecord(
         Guid Id,
-        Guid WeeklyReportId,
+        Guid? WeeklyReportId,
         Guid ContactId,
         Guid ListId,
         DateTime WeekStartUtc);

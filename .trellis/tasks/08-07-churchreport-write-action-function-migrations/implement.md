@@ -142,3 +142,46 @@
 - [ ] 所有本機 gate green 後，只執行一次 `-FreshPreflightProbe -Json`。若 non-go，記錄其
   deidentified categories並停止；若 go，才重新評估是否滿足新的獨立 fresh-fixture cycle 的所有
   allowlist 條件，絕不把 probe 視為先前 provision 的重試。
+
+## 2026-08-11 Slice C weekly-report cardinality diagnostic 修正（TDD）
+
+- [ ] 先更新 PRD／design／本計畫，明確將 unique 定義為 exact transfer-target list、active state、
+  fixed UTC Sunday 的交集，而非同日全 Organization 資料列；此文件修正不改動 CE。
+- [ ] 在 `P72Data8ListManagementFreshFixtureProvisionerTests.cs` 先分開 zero-row、two-row／paging
+  weekly-report fake scenarios，斷言只產生 `zero-active`／`duplicate-active` 的 no-go、仍為一次
+  bounded RetrieveMultiple 且 mutation/ledger 為零；先執行並確認現有 `not-exactly-one-active` 實作
+  使該測試 RED。
+- [ ] 最小化更新 `P72FreshSliceCFixturePreflightProbe`：保留 exact target-list、statecode、UTC Sunday
+  與 `TopCount=2` query；只改 method-local deidentified cardinality classifier，不新增 generic search、
+  count、ID、名稱、cache、retry 或 CRM mutation。
+- [ ] 更新 `Invoke-Package02Data8ListManagementEvidence.ps1` 與其 contract tests，使 strict schema 只
+  接受 `exactly-one-active`、`zero-active`、`duplicate-active`、`unavailable`；拒絕 legacy ambiguous
+  值、raw count、extra field 或 identity leakage，且維持 preflightOnly/operationExecuted/feature flag
+  固定 false。
+- [ ] 此段的 `zero-active` no-go 假設已由 2026-08-11 使用者確認撤銷；以下新增的相容行為計畫優先。
+
+## 2026-08-11 Slice C zero-active 相容行為修正（TDD）
+
+- [ ] 先以已確認的 ChurchReport `UploadIntegrateData.PresentRecord` 行為更新 PRD／design／CCG record：
+  zero weekly report 時，present record 的 weekly-report lookup 缺席是正常且必須精確讀回的狀態；
+  不建立、選擇或修補 weekly report。
+- [ ] 在 `P72Data8ListManagementFreshFixtureProvisionerTests.cs` 先把「zero weekly report 拒絕」
+  改成 RED 測試：預期 provision `go`、固定 Create/Add/Assign trace 不變、pending ledger 完整，且
+  final present-record-absence query 不帶不存在的 weekly-report lookup。保留並擴充 duplicate/paging
+  對應的 zero-mutation no-go 測試。
+- [ ] 在 Data8 connector tests 先加入 RED：zero-row weekly report 可完成 transfer，created
+  `new_present_record` 不含 weekly-report lookup；one-row 時 lookup 精確相符；two-row/paging、
+  existing/malformed present record 皆在任何 mutation 前拒絕。測試 fake 必須拒絕 generic query、
+  unbounded enumeration 與未 allowlist 的 mutation。
+- [ ] 最小化實作 optional weekly-report resolver 與 exact read-back：只讓 `zero-active` 或
+  `exactly-one-active` 通過；zero 時以 contact/list/UTC-Sunday 的 bounded present-record query
+  證明 absence，one 時額外比對 exact lookup；duplicate/unavailable 永遠不取得候選 ID、不可寫入。
+- [ ] 更新 `P72FreshSliceCFixturePreflightProbe` 與 strict PowerShell evidence contract：`zero-active`
+  與 `exactly-one-active` 都是 `go` 的允許 weeklyReport 分支；`duplicate-active`、`unavailable` 維持
+  `no-go`。輸出仍不得包含 count、ID、名稱、日期、例外或 raw entity。
+- [ ] 完成 focused C#／PowerShell RED-GREEN、P7.2 validator、Release build、serial solution tests、
+  isolation/lifecycle、encoding/CRLF 與 diff gate；CCG run 看到 Claude quota/session block 時立即停止
+  等待並記錄 `雙模型未完成`，不重試 provider。
+- [ ] 全部本機 gate green 後才執行一次新版 `-FreshPreflightProbe -Json`。`zero-active` 與
+  `exactly-one-active` 可作為新的 fresh-fixture cycle 的必要前置證據；`duplicate-active`／
+  `unavailable` 則精確記錄後停止，絕不修改 CRM weekly report。

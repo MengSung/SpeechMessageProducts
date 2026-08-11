@@ -145,9 +145,24 @@ child 只可寫入 version 1 的 strict JSON。parent 拒絕遺漏、額外、�
 - `ownerKind`: `systemuser`、`other-or-missing` 或 `unavailable`；
 - `ownerState`: `active`、`inactive-or-missing` 或 `unavailable`；
 - `ownerRelation`: `different-from-data8`、`same-as-data8` 或 `unavailable`；
-- `weeklyReport`: `exactly-one-active`、`not-exactly-one-active` 或 `unavailable`。
+- `weeklyReport`: `exactly-one-active`、`zero-active`、`duplicate-active` 或 `unavailable`。
 
-所有七項為 green 時，child 回傳 `outcome=go`、`reason=fresh-preconditions-proven`、
+weekly report cardinality 只在 exact `transferTargetListId`、active state 與 exact UTC Sunday 三個
+server-derived filter 的交集內計算；它不計數同日其他 group/list 的週報。`zero-active` 只代表完整、
+非 paging 的零列投影；`duplicate-active` 只代表可驗證的兩列以上或 paging 投影；任何 null、錯誤
+logical name、空 ID 或不合理 projection 都維持 `unavailable`。這些類別不含數量，因此 evidence
+不會洩漏既有資料規模，也不會形成選取、修補或 retry 依據。
+
+2026-08-11 的使用者確認覆寫舊有「exactly one 才可執行」假設：`zero-active` 代表目標小組在
+該週尚未建立週報，屬於正常資料狀態。Data8 transfer 將 weekly-report resolver 投影成 optional
+exact ID：零列回傳 null、唯一合法列回傳其 method-local ID、two-or-more／paging／malformed 投影仍
+fail closed。建立 `new_present_record` 時，null 只代表不寫
+`new_group_present_weekly_report_prese`；read-back 對 null 必須精確證明該 lookup 缺席，而非容忍
+錯誤 reference。唯一週報則仍必須以同一個 exact ID 讀回確認 lookup 相符。這保留既有 ChurchReport
+`UploadIntegrateData.PresentRecord` 的相容語意，且不會建立或修補 weekly report。
+
+除 weekly-report 分支外的所有前置項為 green，且 weekly report 為 `exactly-one-active` 或
+`zero-active` 時，child 回傳 `outcome=go`、`reason=fresh-preconditions-proven`、
 `readOnlyProbeExecuted=true`。已完成 read-only calls 但任一 proof 為 false 時回傳
 `outcome=no-go`、`reason=fresh-preconditions-not-proven`、`readOnlyProbeExecuted=true`；shape、
 WhoAmI、runtime、transport 或 cleanup 不可證明時回傳 `outcome=no-go` 與固定 bounded reason，

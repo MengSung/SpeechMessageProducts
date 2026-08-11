@@ -88,3 +88,33 @@ provision、repair、reconcile、execute 或 cleanup 的替代品，也不能被
 - 只有新 probe 完整為 `go`，才表示「external condition has materially changed」這個必要條件已被
   證明；是否可開始一個新的獨立 fresh-fixture cycle，仍必須遵守本 PRD 的 allowlist、先前 no-retry
   record、local quality gate 與 sequential Slice C boundary。
+
+### 2026-08-11 Slice C weekly-report cardinality clarification
+
+`weeklyReport` 的唯一性絕不是「同一 UTC Sunday 的全 Organization 只能有一筆週報」。它只針對
+同時符合下列固定條件的資料列：descriptor-bound `transferTargetListId`、`statecode=0` 與
+`transferWeekStartUtc`。因此不同小組／不同 list 在同一個星期日各有一筆 active weekly report 是
+正常且不應影響 Slice C 的情況。
+
+既有 `not-exactly-one-active` 是安全但資訊不足的歷史 no-go 類別；它無法區分 exact target-list/
+UTC-Sunday query 的零筆結果與重複結果。新的 read-only diagnostic 只能在不改變 query 範圍與
+`TopCount=2` 的前提下，使用 `exactly-one-active`、`zero-active`、`duplicate-active` 與
+`unavailable` 四個固定去識別化分類。它不得輸出 count、日期、list/report ID、名稱、raw Entity
+或例外，也不得將此分類變更解釋為任何 CRM 寫入授權。
+
+### 2026-08-11 Slice C weekly-report business-rule correction
+
+使用者已明確確認：在 exact transfer-target list、active state 與 fixed UTC Sunday 的交集內，
+`zero-active` 是正常業務狀態，並非資料錯誤；只有 `duplicate-active` 才是資料錯誤。系統不得因
+`zero-active` 自動建立、選取、停用、合併或修改 weekly report。
+
+transfer composite 必須保留既有 ChurchReport 的相容行為：`zero-active` 時仍可完成固定 member/list、
+primary-list 與 allowlisted owner 轉移，並建立一筆同日的 `new_present_record`，但不得設定
+`new_group_present_weekly_report_prese` lookup；`exactly-one-active` 時才設定該 lookup，且 read-back
+必須精確證明它關聯至該筆週報。兩種分支都必須以精確 read-back 驗證 lookup 的「缺席」或「精確相符」。
+`duplicate-active`、`unavailable`、任一既有／多筆 present record、讀回不符、timeout 或 cleanup 不確定
+仍必須 fail closed，且不重試。
+
+這項修正擴及 Data8 transfer contract、fresh fixture preflight/provision proof 與 sanitized evidence。
+它不授權修改現有 CRM weekly report，也不將舊 no-go 重試成寫入；完成本機品質閘門後，第一個 CE 動作
+仍只能是新版零寫入 preflight probe。

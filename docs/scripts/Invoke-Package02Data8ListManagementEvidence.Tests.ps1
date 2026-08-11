@@ -863,6 +863,46 @@ try {
         $parsedFreshPreflightProbe.readOnlyProbeExecuted -and
         $parsedFreshPreflightProbe.probe.ownerRelation -eq 'different-from-data8') 'Strict fresh preflight parser must accept only the complete fixed read-only go projection.'
 
+    # 使用者已確認：exact target-list/UTC-Sunday 交集為零筆 weekly report 是正常狀態。parser 必須
+    # 接受同樣完整的 read-only go evidence，但只允許固定 zero-active 分類；測試不啟動 child、
+    # 不讀取 credential，也不建立 ledger 或任何 CRM mutation。
+    $zeroActiveFreshPreflightEvidence = $validFreshPreflightProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $zeroActiveFreshPreflightEvidence.probe.weeklyReport = 'zero-active'
+    Write-StrictJsonFile $freshPreflightProbeEvidencePath $zeroActiveFreshPreflightEvidence
+    $parsedZeroActiveFreshPreflightProbe = Get-StrictFreshPreflightProbeEvidenceFile $freshPreflightProbeEvidencePath
+    Assert-True ($parsedZeroActiveFreshPreflightProbe.outcome -eq 'go' -and
+        $parsedZeroActiveFreshPreflightProbe.reason -eq 'fresh-preconditions-proven' -and
+        $parsedZeroActiveFreshPreflightProbe.readOnlyProbeExecuted -and
+        $parsedZeroActiveFreshPreflightProbe.probe.weeklyReport -eq 'zero-active') 'Strict fresh preflight parser must accept the complete zero-active read-only go projection.'
+
+    # 重複週報是唯一允許保留的週報資料 no-go：parser 必須接受固定、去識別化的
+    # duplicate-active 分類與完整零 mutation 證據，讓 parent 能停止 fixture cycle；它不可攜帶
+    # CRM ID、名稱、數量或任何足以挑選、合併、建立或修補週報的資料。
+    $duplicateActiveFreshPreflightEvidence = $validFreshPreflightProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $duplicateActiveFreshPreflightEvidence.outcome = 'no-go'
+    $duplicateActiveFreshPreflightEvidence.reason = 'fresh-preconditions-not-proven'
+    $duplicateActiveFreshPreflightEvidence.probe.weeklyReport = 'duplicate-active'
+    Write-StrictJsonFile $freshPreflightProbeEvidencePath $duplicateActiveFreshPreflightEvidence
+    $parsedDuplicateActiveFreshPreflightProbe = Get-StrictFreshPreflightProbeEvidenceFile $freshPreflightProbeEvidencePath
+    Assert-True ($parsedDuplicateActiveFreshPreflightProbe.outcome -eq 'no-go' -and
+        $parsedDuplicateActiveFreshPreflightProbe.reason -eq 'fresh-preconditions-not-proven' -and
+        $parsedDuplicateActiveFreshPreflightProbe.readOnlyProbeExecuted -and
+        $parsedDuplicateActiveFreshPreflightProbe.probe.weeklyReport -eq 'duplicate-active') 'Strict fresh preflight parser must accept the complete duplicate-active no-go projection.'
+
+    # 舊合併分類無法辨識零筆與重複週報，會破壞新的業務語意；嚴格 parser 必須拒絕它，確保
+    # parent 無法把歷史 evidence 當成新版 fresh fixture 的可執行條件。
+    $legacyWeeklyReportCategoryEvidence = $validFreshPreflightProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $legacyWeeklyReportCategoryEvidence.probe.weeklyReport = 'not-exactly-one-active'
+    Write-StrictJsonFile $freshPreflightProbeEvidencePath $legacyWeeklyReportCategoryEvidence
+    $legacyWeeklyReportCategoryRejected = $false
+    try {
+        [void](Get-StrictFreshPreflightProbeEvidenceFile $freshPreflightProbeEvidencePath)
+    }
+    catch {
+        $legacyWeeklyReportCategoryRejected = $_.Exception.Message -eq 'evidence-result-unavailable'
+    }
+    Assert-True $legacyWeeklyReportCategoryRejected 'Strict fresh preflight parser must reject the obsolete merged weekly-report category.'
+
     $extraFreshPreflightProperty = $validFreshPreflightProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
     $extraFreshPreflightProperty.probe | Add-Member -NotePropertyName crmId -NotePropertyValue '11111111-1111-1111-1111-111111111111'
     Write-StrictJsonFile $freshPreflightProbeEvidencePath $extraFreshPreflightProperty

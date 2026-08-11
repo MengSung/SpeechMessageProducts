@@ -318,7 +318,7 @@ internal sealed class P72FreshSliceCFixtureProvisioner
                 return NoGo("baseline-owner-unavailable");
             }
 
-            if (!TryResolveExactlyOneActiveWeeklyReport(
+            if (!TryResolveAtMostOneActiveWeeklyReport(
                     request.TransferTargetListId,
                     request.TransferWeekStartUtc,
                     out var weeklyReportId))
@@ -615,20 +615,21 @@ internal sealed class P72FreshSliceCFixtureProvisioner
     }
 
     /// <summary>
-    /// 以 exact target-list/date 條件與 TopCount=2 解析唯一 active weekly report。report ID 只在目前
-    /// invocation 的 method-local scalar 中保留，供 final present-record proof 使用；它不會進入 result、
-    /// evidence、log 或跨 profile 快取。零筆、多筆、paging、錯 logical name 或空 ID 均 fail closed。
+    /// 以 exact target-list/date 條件與 TopCount=2 解析零或唯一 active weekly report。report ID 只在目前
+    /// invocation 的 method-local nullable scalar 中保留，供 final present-record proof 使用；它不會進入
+    /// result、evidence、log 或跨 profile 快取。零筆是正常「不關聯週報」分支；多筆、paging、錯 logical
+    /// name 或空 ID 仍 fail closed，因為控制面不得替呼叫端挑選或修補 weekly report。
     /// </summary>
     /// <param name="targetListId">已證明為 task-owned static transfer target list 的 ID。</param>
     /// <param name="weekStartUtc">已驗證的 UTC Sunday 00:00 time key。</param>
-    /// <param name="weeklyReportId">成功時的 exact report ID；失敗時為 empty GUID。</param>
-    /// <returns>恰好一筆 active weekly report 且投影 identity 合法時為 <see langword="true"/>。</returns>
-    private bool TryResolveExactlyOneActiveWeeklyReport(
+    /// <param name="weeklyReportId">零筆時為 <see langword="null"/>；唯一合法列時為 exact report ID；失敗時也為 null。</param>
+    /// <returns>零筆或唯一合法 active weekly report 時為 <see langword="true"/>。</returns>
+    private bool TryResolveAtMostOneActiveWeeklyReport(
         Guid targetListId,
         DateTimeOffset weekStartUtc,
-        out Guid weeklyReportId)
+        out Guid? weeklyReportId)
     {
-        weeklyReportId = Guid.Empty;
+        weeklyReportId = null;
         var query = new QueryExpression(WeeklyReportEntityName)
         {
             ColumnSet = new ColumnSet(WeeklyReportIdAttribute),
@@ -639,10 +640,17 @@ internal sealed class P72FreshSliceCFixtureProvisioner
         query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
         query.Criteria.AddCondition(WeeklyReportDateAttribute, ConditionOperator.Equal, weekStartUtc.UtcDateTime);
         var rows = _service.RetrieveMultiple(query);
-        if (rows is null ||
-            rows.MoreRecords ||
-            rows.Entities.Count != 1 ||
-            !string.Equals(rows.Entities[0].LogicalName, WeeklyReportEntityName, StringComparison.Ordinal) ||
+        if (rows is null || rows.MoreRecords || rows.Entities.Count > 1)
+        {
+            return false;
+        }
+
+        if (rows.Entities.Count == 0)
+        {
+            return true;
+        }
+
+        if (!string.Equals(rows.Entities[0].LogicalName, WeeklyReportEntityName, StringComparison.Ordinal) ||
             rows.Entities[0].Id == Guid.Empty)
         {
             return false;
@@ -823,7 +831,7 @@ internal sealed class P72FreshSliceCFixtureProvisioner
         Guid sourceContactId,
         Guid leaderContactId,
         Guid relationshipListId,
-        Guid weeklyReportId,
+        Guid? weeklyReportId,
         Guid baselineOwnerId)
     {
         return IsFreshSourceContact(sourceContactId) &&
@@ -835,7 +843,7 @@ internal sealed class P72FreshSliceCFixtureProvisioner
                !HasExactMembership(request.TransferTargetListId, sourceContactId) &&
                HasExactOwner(sourceContactId, baselineOwnerId) &&
                HasNonTransferPrimaryList(sourceContactId, request.TransferTargetListId) &&
-               HasNoMatchingPresentRecord(weeklyReportId, sourceContactId, request.TransferTargetListId, request.TransferWeekStartUtc);
+               HasNoMatchingPresentRecord(sourceContactId, request.TransferTargetListId, request.TransferWeekStartUtc);
     }
 
     /// <summary>
@@ -866,22 +874,21 @@ internal sealed class P72FreshSliceCFixtureProvisioner
     }
 
     /// <summary>
-    /// 以 weekly report、source、target list 與 UTC Sunday 四個 fixed filters 確認沒有 matching present
-    /// record。這不是泛用 attendance 查詢；結果只允許零列，任何資料列、paging 或 transport failure 都
-    /// 使 provision result 保持 no-go，避免預先存在的 attendance state 被本次 fixture 接管。
+    /// 以 source、target list 與 UTC Sunday 三個 fixed filters 確認沒有 matching present record。weekly
+    /// report 可為 null，因為零週報分支仍不可接管既有的 unlinked present record；結果只允許零列，任何資料
+    /// 列、paging 或 transport failure 都使 provision result 保持 no-go，避免預先存在的 attendance state
+    /// 被本次 fixture 接管。
     /// </summary>
-    /// <param name="weeklyReportId">preflight 唯一解析的 weekly report ID。</param>
     /// <param name="sourceContactId">fresh source contact ID。</param>
     /// <param name="transferTargetListId">既有 transfer target list ID。</param>
     /// <param name="weekStartUtc">固定 UTC Sunday date key。</param>
     /// <returns>response 完整且沒有 matching record 時為 <see langword="true"/>。</returns>
     private bool HasNoMatchingPresentRecord(
-        Guid weeklyReportId,
         Guid sourceContactId,
         Guid transferTargetListId,
         DateTimeOffset weekStartUtc)
     {
-        if (weeklyReportId == Guid.Empty || sourceContactId == Guid.Empty || transferTargetListId == Guid.Empty)
+        if (sourceContactId == Guid.Empty || transferTargetListId == Guid.Empty)
         {
             return false;
         }
@@ -892,7 +899,6 @@ internal sealed class P72FreshSliceCFixtureProvisioner
             NoLock = true,
             TopCount = 2
         };
-        query.Criteria.AddCondition(PresentRecordWeeklyReportAttribute, ConditionOperator.Equal, weeklyReportId);
         query.Criteria.AddCondition(PresentRecordContactAttribute, ConditionOperator.Equal, sourceContactId);
         query.Criteria.AddCondition(PresentRecordListAttribute, ConditionOperator.Equal, transferTargetListId);
         query.Criteria.AddCondition(WeeklyReportDateAttribute, ConditionOperator.Equal, weekStartUtc.UtcDateTime);
