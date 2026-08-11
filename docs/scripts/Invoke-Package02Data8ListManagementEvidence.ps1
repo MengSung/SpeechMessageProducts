@@ -56,6 +56,9 @@ param(
     [Parameter(ParameterSetName = 'RepairProbe')]
     [switch] $RepairProbe,
 
+    [Parameter(ParameterSetName = 'FreshPreflightProbe')]
+    [switch] $FreshPreflightProbe,
+
     [Parameter(ParameterSetName = 'ProvisionFresh')]
     [switch] $ProvisionFreshFixture,
 
@@ -90,21 +93,27 @@ $freshOriginalTargetLeaderContactId = $null
 $isReconciliationMode = [bool]$ReconcileFixture
 $isRepairMode = [bool]$RepairFixture
 $isRepairProbeMode = [bool]$RepairProbe
+$isFreshPreflightProbeMode = [bool]$FreshPreflightProbe
 $isFreshProvisionMode = [bool]$ProvisionFreshFixture
 $isFreshCleanupMode = [bool]$CleanupFreshFixture
-$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe -or $ProvisionFreshFixture -or $CleanupFreshFixture)
-$operationMayHaveExecuted = -not ($isReconciliationMode -or $isRepairMode -or $isRepairProbeMode)
+$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe -or $FreshPreflightProbe -or $ProvisionFreshFixture -or $CleanupFreshFixture)
+$operationMayHaveExecuted = -not ($isReconciliationMode -or $isRepairMode -or $isRepairProbeMode -or $isFreshPreflightProbeMode)
 $previousEnvironment = @{}
 # legacy inventory 是 fresh child 的唯一 inherited Slice C state denylist；它同時餵給 snapshot、
-# fresh-mode clear 與 finally restore，避免新增 key 時只更新其中一條 lifecycle path 而跨 session
-# 洩漏。最後三個 retired key 使用拆分 suffix 組合，僅用於 scrub/restore，絕非 child protocol、
-# evidence、owner 或 credential contract。
+# fresh-mode clear 與 finally restore，避免 P7_2_ 或 SPEECHMESSAGE_ namespace 新增 key 時只更新其中
+# 一條 lifecycle path 而跨 session 洩漏。最後三個 retired key 使用拆分 suffix 組合，僅用於
+# scrub/restore，絕非 child protocol、evidence、owner 或 credential contract。
 $legacySliceCEnvironmentPrefix = 'P7_2_SLICE_C_'
+$legacySliceCEnvironmentPrefixes = @(
+    $legacySliceCEnvironmentPrefix,
+    'SPEECHMESSAGE_P7_2_SLICE_C_'
+)
 $legacySliceCEnvironmentNames = @(
     'SPEECHMESSAGE_P7_2_SLICE_C_LIVE',
     'SPEECHMESSAGE_P7_2_SLICE_C_RECONCILE',
     'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR',
     'SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE',
+    'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PREFLIGHT_PROBE',
     'P7_2_SLICE_C_FIXTURE_OWNER',
     'P7_2_SLICE_C_FIXTURE_MARKER',
     'P7_2_SLICE_C_CONTACT_ID',
@@ -124,12 +133,17 @@ $legacySliceCEnvironmentNames = @(
     ($legacySliceCEnvironmentPrefix + 'RETIRED_' + 'TRX_' + 'EVIDENCE'),
     ($legacySliceCEnvironmentPrefix + 'TARGET_' + 'OWNER_' + 'ID')
 )
-$inputEnvironmentNames = @('CRM_PASSWORD') + $legacySliceCEnvironmentNames + @(
+# 僅有這些由 parent 在本次 invocation 明確建立的 P7_2_SLICE_C_FRESH_* bindings 能傳給
+# fresh child。此 allowlist 必須是大小寫不敏感的精確比對；未知名稱即使帶有 FRESH_ prefix，
+# 仍是長壽命 shell 遺留的 mutable state，必須 snapshot、清空並在 finally 還原。
+$freshSliceCControlPlaneEnvironmentNames = @(
     'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION',
     'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP',
     'P7_2_SLICE_C_FRESH_LEDGER_ROOT',
     'P7_2_SLICE_C_FRESH_LEDGER_PATH',
     'P7_2_SLICE_C_FRESH_EVIDENCE_PATH',
+    'P7_2_SLICE_C_FRESH_DIAGNOSTIC_PATH',
+    'P7_2_SLICE_C_FRESH_PREFLIGHT_EVIDENCE_PATH',
     'P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION',
     'P7_2_SLICE_C_FRESH_NONCE',
     'P7_2_SLICE_C_FRESH_OWNER',
@@ -141,6 +155,38 @@ $inputEnvironmentNames = @('CRM_PASSWORD') + $legacySliceCEnvironmentNames + @(
     'P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID',
     'P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC'
 )
+$freshSliceCControlPlaneEnvironmentNameSet = [System.Collections.Generic.HashSet[string]]::new(
+    [StringComparer]::OrdinalIgnoreCase)
+foreach ($freshSliceCControlPlaneEnvironmentName in $freshSliceCControlPlaneEnvironmentNames) {
+    [void]$freshSliceCControlPlaneEnvironmentNameSet.Add($freshSliceCControlPlaneEnvironmentName)
+}
+
+# Take one process-local inventory before this runner changes any mode input. A
+# long-lived shell may retain an unknown legacy P7.2 Slice C value introduced by
+# an earlier runner version; fresh child processes must neither inherit it nor
+# lose it after this invocation.
+$discoveredLegacySliceCEnvironmentNames = @(
+    [Environment]::GetEnvironmentVariables([EnvironmentVariableTarget]::Process).Keys |
+        ForEach-Object { [string]$_ } |
+        Where-Object {
+            $candidateEnvironmentName = [string]$_
+            $matchesLegacySliceCNamespace = $false
+            foreach ($legacyNamespacePrefix in $legacySliceCEnvironmentPrefixes) {
+                if ($candidateEnvironmentName.StartsWith($legacyNamespacePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+                    $matchesLegacySliceCNamespace = $true
+                    break
+                }
+            }
+
+            $matchesLegacySliceCNamespace -and
+                -not $freshSliceCControlPlaneEnvironmentNameSet.Contains($candidateEnvironmentName)
+        }
+)
+$legacySliceCEnvironmentNames = @(
+    @($legacySliceCEnvironmentNames + $discoveredLegacySliceCEnvironmentNames) |
+        Select-Object -Unique
+)
+$inputEnvironmentNames = @('CRM_PASSWORD') + $legacySliceCEnvironmentNames + $freshSliceCControlPlaneEnvironmentNames
 $credentialTarget = 'speechmessage.crm91.p62'
 $expectedProfileAlias = 'sunnyvalechback'
 $expectedDeploymentProfileAlias = 'crm91'
@@ -187,7 +233,8 @@ function New-HandoffResult {
         [string] $OwnerBinding = $null,
         [string] $ProbeStage = $null,
         [object] $States = $null,
-        [object] $Probe = $null
+        [object] $Probe = $null,
+        [string] $DiagnosticCategory = $null
     )
 
     $result = [ordered]@{
@@ -206,11 +253,13 @@ function New-HandoffResult {
     $modeVariable = Get-Variable -Name isReconciliationMode -Scope Script -ErrorAction SilentlyContinue
     $repairVariable = Get-Variable -Name isRepairMode -Scope Script -ErrorAction SilentlyContinue
     $repairProbeVariable = Get-Variable -Name isRepairProbeMode -Scope Script -ErrorAction SilentlyContinue
+    $freshPreflightProbeVariable = Get-Variable -Name isFreshPreflightProbeMode -Scope Script -ErrorAction SilentlyContinue
     $freshProvisionVariable = Get-Variable -Name isFreshProvisionMode -Scope Script -ErrorAction SilentlyContinue
     $freshCleanupVariable = Get-Variable -Name isFreshCleanupMode -Scope Script -ErrorAction SilentlyContinue
     if (($null -ne $modeVariable -and [bool]$modeVariable.Value) -or
         ($null -ne $repairVariable -and [bool]$repairVariable.Value) -or
         ($null -ne $repairProbeVariable -and [bool]$repairProbeVariable.Value) -or
+        ($null -ne $freshPreflightProbeVariable -and [bool]$freshPreflightProbeVariable.Value) -or
         ($null -ne $freshProvisionVariable -and [bool]$freshProvisionVariable.Value) -or
         ($null -ne $freshCleanupVariable -and [bool]$freshCleanupVariable.Value)) {
         # 這個欄位由 parent mode 自己產生；child evidence 若攜帶同名欄位會被 strict parser 拒絕。
@@ -233,6 +282,27 @@ function New-HandoffResult {
     }
     if ($null -ne $Probe) {
         $result.probe = $Probe
+    }
+    if (-not [string]::IsNullOrWhiteSpace($DiagnosticCategory)) {
+        # 這個欄位只能說明非零 child exit 的固定分類；它絕不是 child evidence，不能用來
+        # 發布 descriptor、推導 CRM 寫入結果、觸發 cleanup 或將 safeToRetry 改為 true。
+        if ($DiagnosticCategory -cnotin @(
+                'fixture-precondition-failed',
+                'baseline-owner-unavailable',
+                'fresh-source-readback-failed',
+                'fresh-leader-readback-failed',
+                'fresh-relationship-readback-failed',
+                'remove-membership-readback-failed',
+                'transfer-source-membership-readback-failed',
+                'baseline-owner-readback-failed',
+                'fresh-graph-unproven',
+                'provisioning-ambiguous',
+                'runtime-failure',
+                'cleanup-failure')) {
+            throw 'fresh-fixture-diagnostic-invalid'
+        }
+
+        $result.diagnosticCategory = $DiagnosticCategory
     }
     if ($Operations.Count -gt 0) {
         $result.operations = $Operations
@@ -307,8 +377,178 @@ function Read-StrictJsonFile {
     param(
         [string] $Path,
         [int] $MaximumBytes,
-        [string] $FailureReason
+        [string] $FailureReason,
+        [switch] $RequireFinalCrLf
     )
+
+    # 此 reader 會被既有 contract suite 以單一 function AST import；duplicate-key guard 因此必須
+    # 與 reader 同一 lexical scope，不依賴未被 import 的 script-level helper。兩個 local function
+    # 僅在此次 bounded read 存活，避免 parser state 跨測試、profile 或 child handoff 留存。
+    function Get-StrictJsonStringEndIndex {
+        param(
+            [string] $JsonText,
+            [int] $StartIndex
+        )
+
+        if ($null -eq $JsonText -or
+            $StartIndex -lt 0 -or
+            $StartIndex -ge $JsonText.Length -or
+            $JsonText[$StartIndex] -ne '"') {
+            return -1
+        }
+
+        $index = $StartIndex + 1
+        while ($index -lt $JsonText.Length) {
+            $character = $JsonText[$index]
+            if ($character -eq '"') {
+                return $index
+            }
+
+            if ($character -eq '\') {
+                $index++
+                if ($index -ge $JsonText.Length) {
+                    return -1
+                }
+
+                $escapedCharacter = $JsonText[$index]
+                if ($escapedCharacter -eq 'u') {
+                    if ($index + 4 -ge $JsonText.Length) {
+                        return -1
+                    }
+
+                    for ($hexIndex = $index + 1; $hexIndex -le $index + 4; $hexIndex++) {
+                        if ('0123456789abcdefABCDEF'.IndexOf($JsonText[$hexIndex]) -lt 0) {
+                            return -1
+                        }
+                    }
+
+                    $index += 5
+                    continue
+                }
+
+                if (@('"', '\', '/', 'b', 'f', 'n', 'r', 't') -cnotcontains [string]$escapedCharacter) {
+                    return -1
+                }
+
+                $index++
+                continue
+            }
+
+            if ([int][char]$character -lt 0x20) {
+                return -1
+            }
+
+            $index++
+        }
+
+        return -1
+    }
+
+    function Test-StrictJsonObjectPropertyNamesAreUnique {
+        param([string] $JsonText)
+
+        if ($null -eq $JsonText) {
+            return $false
+        }
+
+        $contexts = [System.Collections.Generic.Stack[object]]::new()
+        try {
+            $index = 0
+            while ($index -lt $JsonText.Length) {
+                $character = $JsonText[$index]
+                if ($character -eq ' ' -or
+                    $character -eq [char]0x09 -or
+                    $character -eq [char]0x0D -or
+                    $character -eq [char]0x0A) {
+                    $index++
+                    continue
+                }
+
+                if ($character -eq '{') {
+                    $contexts.Push([pscustomobject]@{
+                            Kind = 'object'
+                            PropertyNames = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+                        })
+                    $index++
+                    continue
+                }
+
+                if ($character -eq '[') {
+                    $contexts.Push([pscustomobject]@{
+                            Kind = 'array'
+                            PropertyNames = $null
+                        })
+                    $index++
+                    continue
+                }
+
+                if ($character -eq '}') {
+                    if ($contexts.Count -eq 0 -or $contexts.Peek().Kind -cne 'object') {
+                        return $false
+                    }
+
+                    [void]$contexts.Pop()
+                    $index++
+                    continue
+                }
+
+                if ($character -eq ']') {
+                    if ($contexts.Count -eq 0 -or $contexts.Peek().Kind -cne 'array') {
+                        return $false
+                    }
+
+                    [void]$contexts.Pop()
+                    $index++
+                    continue
+                }
+
+                if ($character -eq '"') {
+                    $stringEndIndex = Get-StrictJsonStringEndIndex -JsonText $JsonText -StartIndex $index
+                    if ($stringEndIndex -lt 0) {
+                        return $false
+                    }
+
+                    $nextTokenIndex = $stringEndIndex + 1
+                    while ($nextTokenIndex -lt $JsonText.Length -and
+                        ($JsonText[$nextTokenIndex] -eq ' ' -or
+                         $JsonText[$nextTokenIndex] -eq [char]0x09 -or
+                         $JsonText[$nextTokenIndex] -eq [char]0x0D -or
+                         $JsonText[$nextTokenIndex] -eq [char]0x0A)) {
+                        $nextTokenIndex++
+                    }
+
+                    if ($nextTokenIndex -lt $JsonText.Length -and $JsonText[$nextTokenIndex] -eq ':') {
+                        if ($contexts.Count -eq 0 -or $contexts.Peek().Kind -cne 'object') {
+                            return $false
+                        }
+
+                        try {
+                            $propertyName = $JsonText.Substring($index, $stringEndIndex - $index + 1) |
+                                ConvertFrom-Json -ErrorAction Stop
+                        }
+                        catch {
+                            return $false
+                        }
+
+                        if ($propertyName -isnot [string] -or
+                            -not $contexts.Peek().PropertyNames.Add([string]$propertyName)) {
+                            return $false
+                        }
+                    }
+
+                    $index = $stringEndIndex + 1
+                    continue
+                }
+
+                $index++
+            }
+
+            return $contexts.Count -eq 0
+        }
+        finally {
+            $contexts.Clear()
+        }
+    }
 
     $bytes = $null
     try {
@@ -329,7 +569,20 @@ function Read-StrictJsonFile {
         }
 
         $text = [Text.UTF8Encoding]::new($false, $true).GetString($bytes)
-        if ([Regex]::IsMatch($text, '(?<!\r)\n')) {
+        # JSON 允許 standalone CR 作為 whitespace；因此必須同時拒絕沒有前置 CR 的 LF 與沒有
+        # 後續 LF 的 CR。只檢查 bare LF 會讓看似 final-CRLF 的本機 descriptor 越過 CRLF-only
+        # trust boundary，而它之後可能成為 child、cleanup 與 descriptor publication 的輸入。
+        if ([Regex]::IsMatch($text, '(?<!\r)\n|\r(?!\n)')) {
+            throw $FailureReason
+        }
+        if ($RequireFinalCrLf) {
+            $requiredFinalCrLf = [string]([char]0x0D) + [string]([char]0x0A)
+            if (-not $text.EndsWith($requiredFinalCrLf, [StringComparison]::Ordinal)) {
+                throw $FailureReason
+            }
+        }
+
+        if (-not (Test-StrictJsonObjectPropertyNamesAreUnique -JsonText $text)) {
             throw $FailureReason
         }
 
@@ -375,7 +628,10 @@ function Read-StrictTextFile {
         }
 
         $text = [Text.UTF8Encoding]::new($false, $true).GetString($bytes)
-        if ([Regex]::IsMatch($text, '(?<!\r)\n')) {
+        # 設定文字與 JSON descriptor 使用同一個 byte-level line-ending boundary；獨立 CR 也不能
+        # 因為 .NET/PowerShell 將其視為 whitespace 而被接受，否則不同 reader 會對同一檔案產生
+        # 不一致的 local control-plane 信任結果。
+        if ([Regex]::IsMatch($text, '(?<!\r)\n|\r(?!\n)')) {
             throw $FailureReason
         }
 
@@ -390,7 +646,6 @@ function Read-StrictTextFile {
         }
     }
 }
-
 function Test-NonEmptyGuid {
     <#
     .SYNOPSIS
@@ -872,21 +1127,24 @@ function Test-StrictPropertyNames {
         @($ExpectedNames | Where-Object { $_ -cnotin $actualNames }).Count -eq 0
 }
 
-function Test-StrictFreshFixtureLedgerSchemaVersion {
+function Test-StrictFreshFixtureSchemaVersion {
     <#
     .SYNOPSIS
-        驗證 ledger schemaVersion 是唯一允許的 JSON integral numeric 2。
+        驗證 fresh-fixture JSON schemaVersion 是唯一允許的 integral numeric version。
 
     .DESCRIPTION
-        ConvertFrom-Json 對未帶 decimal/exponent 的 JSON 整數 2 產生 Int32；quoted 值、decimal 與
-        exponent 則分別是 String、Decimal 或 Double。不能使用 PowerShell 的鬆散 -eq/-ne 比較，否則
-        child 可把不同 wire schema 偽裝為 version 2，導致 parent 從未證明的 ledger 發佈或刪除 current-
-        user descriptor。此函式沒有快取或可變 shared state，caller 在每一個跨 process ledger read 時
-        都重新驗證原始 parser type，失敗一律由既有 no-go 邊界處理。
+        ConvertFrom-Json 對未帶 decimal/exponent 的 JSON 整數產生 Int32；quoted 值、decimal、
+        exponent、Boolean、null 與集合則不是可接受的同值 token。不能使用 PowerShell 鬆散的 -eq/-ne
+        比較，否則 child 可把不同 wire schema 偽裝成 evidence/diagnostic 的 version 1 或 ledger 的
+        version 2，導致 parent 從未證明的資料跨越 process boundary。此函式沒有快取或可變 shared
+        state；每次讀取都重新驗證原始 parser type，失敗一律交由既有 no-go 邊界處理。
     #>
-    param([object] $Value)
+    param(
+        [object] $Value,
+        [int] $ExpectedVersion
+    )
 
-    return $Value -is [int] -and $Value -eq 2
+    return $Value -is [int] -and $Value -eq $ExpectedVersion
 }
 
 function Read-StrictFinalCrLfJsonFile {
@@ -895,8 +1153,9 @@ function Read-StrictFinalCrLfJsonFile {
         讀取要求 final CRLF 的 fresh-fixture ledger 或 evidence。
 
     .DESCRIPTION
-        既有 strict reader 已限制 UTF-8、BOM、bare LF 與檔案大小；此 wrapper 再要求最後
-        byte 是 CRLF，讓 parent 只信任 repository 規範的 atomic child output。
+        此 wrapper 將 final-CRLF requirement 交給唯一的 strict JSON reader，因此 UTF-8、BOM、
+        bare-LF、raw duplicate-key、schema-parser 與 byte lifetime 都由同一個 bounded ownership path
+        驗證，避免未來兩條 parser 邊界漂移。
     #>
     param(
         [string] $Path,
@@ -904,17 +1163,7 @@ function Read-StrictFinalCrLfJsonFile {
         [string] $FailureReason
     )
 
-    $text = Read-StrictTextFile -Path $Path -MaximumBytes $MaximumBytes -FailureReason $FailureReason
-    if (-not $text.EndsWith("`r`n", [StringComparison]::Ordinal)) {
-        throw $FailureReason
-    }
-
-    try {
-        return $text | ConvertFrom-Json -ErrorAction Stop
-    }
-    catch {
-        throw $FailureReason
-    }
+    return Read-StrictJsonFile -Path $Path -MaximumBytes $MaximumBytes -FailureReason $FailureReason -RequireFinalCrLf
 }
 
 function Get-StrictFreshFixtureEvidenceFile {
@@ -977,7 +1226,7 @@ function Get-StrictFreshFixtureEvidenceFile {
         )
     }
     if (-not (Test-StrictPropertyNames -Value $evidence -ExpectedNames $expectedNames) -or
-        $evidence.schemaVersion -ne 1 -or
+        -not (Test-StrictFreshFixtureSchemaVersion -Value $evidence.schemaVersion -ExpectedVersion 1) -or
         $evidence.lane -cne $ExpectedLane -or
         $evidence.outcome -cnotin @('go', 'no-go') -or
         $evidence.reason -isnot [string] -or
@@ -1007,6 +1256,75 @@ function Get-StrictFreshFixtureEvidenceFile {
     }
 
     return $evidence
+}
+
+function Get-StrictFreshFixtureChildFailureDiagnosticCategory {
+    <#
+    .SYNOPSIS
+        讀取 fresh provision 非零 child exit 的非授權診斷分類。
+
+    .DESCRIPTION
+        此函式只在 parent 已確認 child ExitCode 非零後使用。它不讀取或信任 child evidence，
+        不會發布 descriptor、執行 cleanup、改變 feature flag 或允許重試；其唯一輸出是固定
+        allowlist 的去識別化 category，協助下一次經明確授權的獨立診斷定位前置失敗邊界。
+        診斷檔由 parent-owned temporary root 侷限，讀取後仍由 parent finally 刪除；任何路徑、
+        編碼、schema 或內容問題都回傳 null，以保留既有 child-process-failed fail-closed 結果。
+    #>
+    param(
+        [string] $DiagnosticPath,
+        [string] $OwnedRoot
+    )
+
+    try {
+        if ([string]::IsNullOrWhiteSpace($DiagnosticPath) -or
+            [string]::IsNullOrWhiteSpace($OwnedRoot)) {
+            return $null
+        }
+
+        $resolvedRoot = [IO.Path]::GetFullPath($OwnedRoot)
+        $resolvedPath = [IO.Path]::GetFullPath($DiagnosticPath)
+        if (-not (Test-Path -LiteralPath $resolvedRoot -PathType Container) -or
+            -not (Test-Path -LiteralPath $resolvedPath -PathType Leaf) -or
+            -not [string]::Equals([IO.Path]::GetDirectoryName($resolvedPath), $resolvedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+            [IO.Path]::GetFileName($resolvedPath) -cne 'P72FreshSliceCFixtureDiagnostic.json') {
+            return $null
+        }
+
+        $rootItem = Get-Item -LiteralPath $resolvedRoot -Force -ErrorAction Stop
+        $fileItem = Get-Item -LiteralPath $resolvedPath -Force -ErrorAction Stop
+        if (($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+            ($fileItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            return $null
+        }
+
+        $diagnostic = Read-StrictFinalCrLfJsonFile `
+            -Path $resolvedPath `
+            -MaximumBytes 1024 `
+            -FailureReason 'fresh-fixture-diagnostic-invalid'
+        if (-not (Test-StrictPropertyNames -Value $diagnostic -ExpectedNames @('schemaVersion', 'category')) -or
+            -not (Test-StrictFreshFixtureSchemaVersion -Value $diagnostic.schemaVersion -ExpectedVersion 1) -or
+            $diagnostic.category -isnot [string] -or
+            $diagnostic.category -cnotin @(
+                'fixture-precondition-failed',
+                'baseline-owner-unavailable',
+                'fresh-source-readback-failed',
+                'fresh-leader-readback-failed',
+                'fresh-relationship-readback-failed',
+                'remove-membership-readback-failed',
+                'transfer-source-membership-readback-failed',
+                'baseline-owner-readback-failed',
+                'fresh-graph-unproven',
+                'provisioning-ambiguous',
+                'runtime-failure',
+                'cleanup-failure')) {
+            return $null
+        }
+
+        return [string]$diagnostic.category
+    }
+    catch {
+        return $null
+    }
 }
 
 function Get-StrictFreshFixtureLedger {
@@ -1059,7 +1377,7 @@ function Get-StrictFreshFixtureLedger {
         'originalTargetLeaderContactId'
     )
     if (-not (Test-StrictPropertyNames -Value $ledger -ExpectedNames $expectedNames) -or
-        -not (Test-StrictFreshFixtureLedgerSchemaVersion $ledger.schemaVersion) -or
+        -not (Test-StrictFreshFixtureSchemaVersion -Value $ledger.schemaVersion -ExpectedVersion 2) -or
         $ledger.fixtureId -cne 'p7.2-slice-c-fresh-fixture' -or
         $ledger.profileAlias -cne 'crm91' -or
         $ledger.ceVersion -cne '9.1' -or
@@ -1869,6 +2187,143 @@ function Get-StrictSliceCRepairProbeEvidenceFile {
     }
 }
 
+function Get-StrictFreshPreflightProbeEvidenceFile {
+    <#
+    .SYNOPSIS
+        驗證 Slice C fresh-fixture 唯讀前置診斷 child 所寫出的固定分類 evidence。
+
+    .DESCRIPTION
+        此 parser 是 child 與 parent 間的信任邊界。它只接受固定欄位、固定分類與零 mutation
+        bit 的 JSON；任何 CRM ID、名稱、端點、帳密、原始回應、例外、額外欄位或不一致的
+        completion state 都會在 descriptor 發布、ledger 寫入、fixture 建立與後續 CE 寫入前
+        fail closed。它不保存 evidence、profile、credential 或 CRM 物件；temporary file 的唯一
+        cleanup owner 是 parent runner 的 finally。
+    #>
+    param([string] $EvidencePath)
+
+    $evidence = Read-StrictJsonFile -Path $EvidencePath -MaximumBytes 32768 -FailureReason 'evidence-result-unavailable'
+    $topPropertyNames = @(
+        'schemaVersion',
+        'outcome',
+        'reason',
+        'profileAlias',
+        'deploymentProfileAlias',
+        'ceVersion',
+        'connector',
+        'preflightOnly',
+        'operationExecuted',
+        'readOnlyProbeExecuted',
+        'featureFlagChanged',
+        'probe'
+    )
+    $actualTopPropertyNames = @($evidence.PSObject.Properties.Name)
+    if ($actualTopPropertyNames.Count -ne $topPropertyNames.Count -or
+        @($actualTopPropertyNames | Where-Object { $_ -cnotin $topPropertyNames }).Count -ne 0 -or
+        @($topPropertyNames | Where-Object { $_ -cnotin $actualTopPropertyNames }).Count -ne 0) {
+        throw 'evidence-result-unavailable'
+    }
+
+    $allowedReasons = @(
+        'fresh-preconditions-proven',
+        'fresh-preconditions-not-proven',
+        'probe-input-invalid',
+        'probe-unavailable',
+        'cleanup-failure'
+    )
+    if ($evidence.schemaVersion -ne 1 -or
+        $evidence.outcome -cnotin @('go', 'no-go') -or
+        $evidence.reason -cnotin $allowedReasons -or
+        $evidence.profileAlias -cne $expectedProfileAlias -or
+        $evidence.deploymentProfileAlias -cne $expectedDeploymentProfileAlias -or
+        $evidence.ceVersion -cne '9.1' -or
+        $evidence.connector -cne 'Data8' -or
+        $evidence.preflightOnly -ne $false -or
+        $evidence.operationExecuted -ne $false -or
+        $evidence.readOnlyProbeExecuted -isnot [bool] -or
+        $evidence.featureFlagChanged -ne $false -or
+        $null -eq $evidence.probe) {
+        throw 'evidence-result-unavailable'
+    }
+
+    $probePropertyNames = @(
+        'requestShape',
+        'operationalLists',
+        'leaderMarker',
+        'ownerKind',
+        'ownerState',
+        'ownerRelation',
+        'weeklyReport'
+    )
+    $actualProbePropertyNames = @($evidence.probe.PSObject.Properties.Name)
+    if ($actualProbePropertyNames.Count -ne $probePropertyNames.Count -or
+        @($actualProbePropertyNames | Where-Object { $_ -cnotin $probePropertyNames }).Count -ne 0 -or
+        @($probePropertyNames | Where-Object { $_ -cnotin $actualProbePropertyNames }).Count -ne 0) {
+        throw 'evidence-result-unavailable'
+    }
+
+    $validCategories =
+        $evidence.probe.requestShape -cin @('valid', 'invalid') -and
+        $evidence.probe.operationalLists -cin @('valid', 'invalid', 'unavailable') -and
+        $evidence.probe.leaderMarker -cin @('valid', 'invalid', 'unavailable') -and
+        $evidence.probe.ownerKind -cin @('systemuser', 'other-or-missing', 'unavailable') -and
+        $evidence.probe.ownerState -cin @('active', 'inactive-or-missing', 'unavailable') -and
+        $evidence.probe.ownerRelation -cin @('different-from-data8', 'same-as-data8', 'unavailable') -and
+        $evidence.probe.weeklyReport -cin @('exactly-one-active', 'not-exactly-one-active', 'unavailable')
+    $allRemoteUnavailable =
+        $evidence.probe.operationalLists -ceq 'unavailable' -and
+        $evidence.probe.leaderMarker -ceq 'unavailable' -and
+        $evidence.probe.ownerKind -ceq 'unavailable' -and
+        $evidence.probe.ownerState -ceq 'unavailable' -and
+        $evidence.probe.ownerRelation -ceq 'unavailable' -and
+        $evidence.probe.weeklyReport -ceq 'unavailable'
+    $allGreen =
+        $evidence.probe.requestShape -ceq 'valid' -and
+        $evidence.probe.operationalLists -ceq 'valid' -and
+        $evidence.probe.leaderMarker -ceq 'valid' -and
+        $evidence.probe.ownerKind -ceq 'systemuser' -and
+        $evidence.probe.ownerState -ceq 'active' -and
+        $evidence.probe.ownerRelation -ceq 'different-from-data8' -and
+        $evidence.probe.weeklyReport -ceq 'exactly-one-active'
+    $validCombination =
+        ($evidence.outcome -ceq 'go' -and
+            $evidence.reason -ceq 'fresh-preconditions-proven' -and
+            $evidence.readOnlyProbeExecuted -and
+            $allGreen) -or
+        ($evidence.outcome -ceq 'no-go' -and
+            $evidence.reason -ceq 'fresh-preconditions-not-proven' -and
+            $evidence.readOnlyProbeExecuted -and
+            $evidence.probe.requestShape -ceq 'valid' -and
+            -not $allGreen) -or
+        ($evidence.outcome -ceq 'no-go' -and
+            $evidence.reason -ceq 'probe-input-invalid' -and
+            -not $evidence.readOnlyProbeExecuted -and
+            $evidence.probe.requestShape -ceq 'invalid' -and
+            $allRemoteUnavailable) -or
+        ($evidence.outcome -ceq 'no-go' -and
+            $evidence.reason -cin @('probe-unavailable', 'cleanup-failure') -and
+            -not $evidence.readOnlyProbeExecuted -and
+            $evidence.probe.requestShape -ceq 'valid' -and
+            $allRemoteUnavailable)
+    if (-not $validCategories -or -not $validCombination) {
+        throw 'evidence-result-unavailable'
+    }
+
+    return [pscustomobject]@{
+        outcome = [string]$evidence.outcome
+        reason = [string]$evidence.reason
+        readOnlyProbeExecuted = [bool]$evidence.readOnlyProbeExecuted
+        probe = [pscustomobject]@{
+            requestShape = [string]$evidence.probe.requestShape
+            operationalLists = [string]$evidence.probe.operationalLists
+            leaderMarker = [string]$evidence.probe.leaderMarker
+            ownerKind = [string]$evidence.probe.ownerKind
+            ownerState = [string]$evidence.probe.ownerState
+            ownerRelation = [string]$evidence.probe.ownerRelation
+            weeklyReport = [string]$evidence.probe.weeklyReport
+        }
+    }
+}
+
 function Remove-OwnedSliceCTemporaryDirectory {
     <#
     .SYNOPSIS
@@ -2075,7 +2530,28 @@ try {
     # fresh control plane 只能使用目前 Windows 使用者的預定 local-app-data paths；即使呼叫端
     # 傳入其他 descriptor path，亦不允許藉由一個已 proven 的 CRM graph 覆寫其他產品或 profile
     # 的設定。這些 local proof 均早於 Credential Manager 與 child process，因此失敗時零 CE I/O。
-    if ($isFreshProvisionMode -or $isFreshCleanupMode) {
+    if ($isFreshPreflightProbeMode) {
+        # 唯讀 probe 不得繼承上一個 shell 的 execute/reconcile/repair 或 fresh ledger state。
+        # 先清空兩個受限 namespace，再只設定本次 descriptor-derived scalar 與唯一 evidence path；
+        # child 沒有 nonce、ledger、descriptor publication 或 mutation flag，因此無法退化為寫入 lane。
+        foreach ($legacyEnvironmentName in $legacySliceCEnvironmentNames) {
+            [Environment]::SetEnvironmentVariable($legacyEnvironmentName, $null, 'Process')
+        }
+        foreach ($freshEnvironmentName in $freshSliceCControlPlaneEnvironmentNames) {
+            [Environment]::SetEnvironmentVariable($freshEnvironmentName, $null, 'Process')
+        }
+
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PREFLIGHT_PROBE', '1', 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_OWNER', $identity, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_ADD_LIST_ID', [string]$fixture.addListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_REMOVE_LIST_ID', [string]$fixture.removeListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID', [string]$fixture.smallGroupListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID', [string]$fixture.smallGroupTargetLeaderContactId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID', [string]$fixture.transferSourceListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID', [string]$fixture.transferTargetListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC', [string]$fixture.transferWeekStartUtc, 'Process')
+    }
+    elseif ($isFreshProvisionMode -or $isFreshCleanupMode) {
         $freshControlPlaneRoots = Get-CurrentUserFreshFixtureControlPlaneRoots
         Assert-CurrentUserFreshFixtureDescriptorPath `
             -Path $SourceFixtureDescriptorPath `
@@ -2186,6 +2662,7 @@ try {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP', $(if ($isFreshCleanupMode) { '1' } else { $null }), 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_LEDGER_ROOT', [string]$freshControlPlaneRoots.ledgerRoot, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_LEDGER_PATH', [string]$freshLedgerPath, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_DIAGNOSTIC_PATH', $null, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION', $(if ($isFreshProvisionMode) { 'replace-stale-descriptor' } else { 'cleanup-fresh-fixture' }), 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_NONCE', [string]$freshNonce, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_OWNER', $identity, 'Process')
@@ -2226,7 +2703,7 @@ try {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', $null, 'Process')
     }
-    if (-not ($isFreshProvisionMode -or $isFreshCleanupMode)) {
+    if (-not ($isFreshProvisionMode -or $isFreshCleanupMode -or $isFreshPreflightProbeMode)) {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_OWNER', [string]$fixture.ownerIdentity, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_MARKER', [string]$fixture.marker, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_CONTACT_ID', [string]$sourceFixture.contactId, 'Process')
@@ -2243,7 +2720,17 @@ try {
     $temporaryDirectory = Join-Path ([IO.Path]::GetTempPath()) ('speechmessage-p7-2-slice-c-' + [Guid]::NewGuid().ToString('N'))
     [void][IO.Directory]::CreateDirectory($temporaryDirectory)
     $temporaryDirectoryCreated = $true
-    if ($isFreshProvisionMode -or $isFreshCleanupMode) {
+    $freshDiagnosticPath = $null
+    if ($isFreshPreflightProbeMode) {
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $null, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $null, 'Process')
+        $evidencePath = Join-Path $temporaryDirectory 'P72FreshSliceCFixturePreflightProbeEvidence.json'
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_PREFLIGHT_EVIDENCE_PATH', $evidencePath, 'Process')
+        $testFilter = 'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementFreshPreflightProbeTests.Probe_fresh_package02_data8_list_management_preconditions_emits_sanitized_evidence'
+    }
+    elseif ($isFreshProvisionMode -or $isFreshCleanupMode) {
         # Fresh child 只接受 fresh evidence path；不可以寫入或讀取既有 Slice C 的 generic、reconcile、repair
         # evidence 名稱。將互斥的 path 全部清空後才指定固定檔名，避免不同 session 的 child 取到前一次
         # 執行殘留的 evidence 來決定是否發佈或 cleanup。
@@ -2253,6 +2740,10 @@ try {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_PROBE_EVIDENCE_PATH', $null, 'Process')
         $evidencePath = Join-Path $temporaryDirectory 'P72FreshSliceCFixtureEvidence.json'
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_EVIDENCE_PATH', $evidencePath, 'Process')
+        if ($isFreshProvisionMode) {
+            $freshDiagnosticPath = Join-Path $temporaryDirectory 'P72FreshSliceCFixtureDiagnostic.json'
+            [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_DIAGNOSTIC_PATH', $freshDiagnosticPath, 'Process')
+        }
         $testFilter = if ($isFreshProvisionMode) {
             'FullyQualifiedName=ChurchReport.MemberInfo.Tests.LivePackage02Data8ListManagementFreshFixtureTests.Provision_fresh_package02_data8_list_management_fixture_emits_sanitized_evidence'
         }
@@ -2346,16 +2837,34 @@ try {
         if ($operationMayHaveExecuted) {
             $childFailureOperations = New-NotStartedOperations
         }
+        $diagnosticCategory = $null
+        if ($isFreshProvisionMode) {
+            $diagnosticCategory = Get-StrictFreshFixtureChildFailureDiagnosticCategory `
+                -DiagnosticPath $freshDiagnosticPath `
+                -OwnedRoot $temporaryDirectory
+        }
         Complete-HandoffResult (New-HandoffResult `
             -Outcome 'no-go' `
             -Reason 'child-process-failed' `
             -PreflightOnly $false `
             -OperationExecuted $operationMayHaveExecuted `
-            -Operations $childFailureOperations)
+            -Operations $childFailureOperations `
+            -DiagnosticCategory $diagnosticCategory)
         $scriptExitCode = 2
         throw 'result-written'
     }
-    if ($isReconciliationMode) {
+    if ($isFreshPreflightProbeMode) {
+        $strictEvidence = Get-StrictFreshPreflightProbeEvidenceFile $evidencePath
+        Complete-HandoffResult (New-HandoffResult `
+            -Outcome $strictEvidence.outcome `
+            -Reason $strictEvidence.reason `
+            -PreflightOnly $false `
+            -OperationExecuted $false `
+            -ReadOnlyProbeExecuted $strictEvidence.readOnlyProbeExecuted `
+            -ProbeStage 'fresh-fixture-provision-preconditions' `
+            -Probe $strictEvidence.probe)
+    }
+    elseif ($isReconciliationMode) {
         $strictEvidence = Get-StrictSliceCReconciliationEvidenceFile $evidencePath
         Complete-HandoffResult (New-HandoffResult `
             -Outcome $strictEvidence.outcome `

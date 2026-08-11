@@ -105,3 +105,40 @@
   only through the final operator handoff. Preserve an ambiguous or unclean
   result as `no-go`; do not retry, switch connector, change a feature flag, or
   start P6.2.
+
+## 2026-08-11 Slice C Fresh Preflight Probe 實作計畫（TDD）
+
+- [ ] 在 `P72Data8ListManagementFreshFixtureProvisionerTests.cs` 先新增 failing tests：對完整
+  valid fake projection 預期 `fresh-preconditions-proven`，對無效 request shape、任何一個
+  operational list、leader marker、非 `systemuser` owner、disabled owner、same-as-WhoAmI owner、
+  零/多筆 weekly report 與 CRM read exception 預期固定分類；每個 test 均斷言 `Create`、`Update`、
+  `Execute`、`Delete` 和 ledger persistence 均為零。執行 focused test，確認因 probe type/method
+  尚不存在而 RED。
+- [ ] 以最小實作新增 `P72FreshSliceCFixturePreflightProbe` 及其 immutable request/result；固定使用
+  existing provision request 的 descriptor scalars，但不接受 nonce/ledger，也不公開 Entity、GUID
+  或 raw result。它只發出 five list Retrieve、leader Retrieve、owner Retrieve、以及一個
+  `TopCount=2` weekly-report `RetrieveMultiple`；同一 service scope 內依 fixed category 回傳。
+  重新執行上述 suite 至 GREEN，並加入同 profile two-invocation isolation test，證明 classifications
+  不跨 invocation 保留。
+- [ ] 在 `LivePackage02Data8ListManagementFreshFixtureTests.cs` 先新增 failing opt-in fact 與
+  strict environment reader；它以既有 deployment resolver 呼叫 WhoAmI，然後建立一個 direct
+  Data8 service 給 probe，任何 runtime/cleanup failure 都只產生 bounded no-go。再新增一個
+  專屬 evidence writer/parser tests；wire evidence 必須固定為 version 1 schema 且永遠 zero mutation。
+- [ ] 在 `Invoke-Package02Data8ListManagementFreshFixture.Tests.ps1` 先新增 `-FreshPreflightProbe`
+  的 failing contract checks：所有 mode 互斥、缺 credential/descriptor 不建立 child、strict
+  evidence rejects IDs/names/extra properties、result 永遠 operationExecuted=false、environment
+  restored、temporary root deleted，以及 read-only mode 絕不生成 ledger/descriptor publication path。
+  執行 script，確認 binder/schema checks RED。
+- [ ] 最小化更新 `Invoke-Package02Data8ListManagementEvidence.ps1`：新增互斥 parameter set、
+  read-only mode flag、無 ledger 的 temporary/evidence env bindings、60/180-second existing
+  child bound、strict parser 和 parent JSON projection。明確拒絕所有 fresh provision/cleanup
+  environment variables與子測試 filter 混用，並在 child nonzero/timeout 回傳 no-go/zero mutation。
+  執行 PowerShell suite 至 GREEN。
+- [ ] 跑 focused C#、PowerShell contract、P7.2 coverage validator、Release build、serial solution
+  test、UTF-8 no-BOM/CRLF/final-CRLF byte gate、`git diff --check` 和 scope check。開始 review 前
+  將 major results 寫入 `p7.2-slice-c-continuation-2026-08-10.md` 與 CCG task record。
+- [ ] 以 project self-healing runner 平行嘗試 Gemini/Claude review，最多等待 45 秒；逾時停止
+  等待、記錄 `雙模型未完成`，只以本機 review/test 繼續。
+- [ ] 所有本機 gate green 後，只執行一次 `-FreshPreflightProbe -Json`。若 non-go，記錄其
+  deidentified categories並停止；若 go，才重新評估是否滿足新的獨立 fresh-fixture cycle 的所有
+  allowlist 條件，絕不把 probe 視為先前 provision 的重試。

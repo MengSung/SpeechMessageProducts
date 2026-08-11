@@ -62,3 +62,29 @@
 ## 未決事項與判斷規則
 
 不需要使用者現在手動提供 GUID、密碼或欄位值。第一個實際 CE write 前，P7.2 會先完成 task-specific、Windows PowerShell 5.1-compatible 的受限 preflight／fixture bridge；它只建立或選取一筆帶本機 fixture marker 的測試 contact，且只回傳去識別化 JSON。若該 bridge 無法證明 owner、基線讀取或 cleanup 能力，僅暫停切片 A 的 live evidence，不倒退 P6／P7.0／P7.1，也不開放其他寫入切片。
+
+## 2026-08-11 Slice C fresh preflight diagnostic 補充需求
+
+一次明確授權的 Slice C fresh-fixture provision cycle 在 child process 非零結束後，parent
+僅能安全揭露 `fixture-precondition-failed`。此結果不是 mutation 成功證明，也不得重試。為了
+判斷外部前置條件是否已實質改變，P7.2 必須新增一條完全獨立的 fresh preflight probe；它不是
+provision、repair、reconcile、execute 或 cleanup 的替代品，也不能被用來取得任何寫入權限。
+
+- 新模式固定為 `-FreshPreflightProbe`，與所有既有 live/mutation mode 在 PowerShell parameter
+  binder 層互斥；缺少必要 deployment-owned descriptor/profile/credential 時必須在 child 之前
+  fail closed。
+- probe 僅可使用同一個 `crm91 + Data8 + CE 9.1` child scope 的 WhoAmI、五次 exact-ID
+  `Retrieve`、leader/owner 的 exact-ID `Retrieve`，及一個 exact-list/exact-Sunday/`TopCount=2`
+  的 `RetrieveMultiple`。不得呼叫 Create、Update、Assign、Delete、Associate、Disassociate、
+  feature flag、traffic switch、ledger persistence、descriptor publication 或 cleanup。
+- sanitized evidence 必須是 UTF-8 no-BOM、CRLF-only、final-CRLF 的小型固定 schema，只能揭露
+  request shape、五個 operational list aggregate、leader marker、owner logical kind、owner
+  enabled state、owner-vs-WhoAmI relation、weekly-report cardinality/date/active proof，以及最終
+  `go`/`no-go`；禁止 CRM ID、名稱、endpoint、credential、token、cookie、baseline、raw response
+  和 raw exception。
+- 任一 local shape、remote projection、transport、runtime 或 deterministic cleanup 無法證明時，
+  probe 必須 `no-go`、`operationExecuted=false`、`readOnlyProbeExecuted=false` 或明確 bounded
+  completed-probe state；它絕不使先前 no-go 可重試。
+- 只有新 probe 完整為 `go`，才表示「external condition has materially changed」這個必要條件已被
+  證明；是否可開始一個新的獨立 fresh-fixture cycle，仍必須遵守本 PRD 的 allowlist、先前 no-retry
+  record、local quality gate 與 sequential Slice C boundary。

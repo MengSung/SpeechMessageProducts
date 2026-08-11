@@ -98,6 +98,69 @@ P7.3 必須建立 capability-scoped media ingress：最多 5 MiB、只接受產�
 - 若 contract、fixture、read-back、cleanup、authorization、profile generation 或 lifecycle check 失敗，該 capability 回到 registry fail-closed 狀態；既有 ToolUtility route 只可維持至 P7.5 的正式 removal gate，不能在 P7.2 形成雙寫。
 - 任何有資料、授權、錯誤語意、p95 latency、resource baseline 或 rollback regression 的切片，僅回退該 capability，保留其他已證明切片的 artifacts。
 
+## 2026-08-11 Slice C Fresh Preflight Probe
+
+### 邊界與資料流
+
+`-FreshPreflightProbe` 是 provision 前的獨立、read-only 診斷 lane。PowerShell parent 只讀取
+既有 deployment-owned descriptor，建立一個 nonce temporary evidence directory，透過既有
+Credential Manager reference 把 password 僅傳入一個 child process。child 固定建立
+`crm91 + Data8 + CE 9.1` runtime，以同一個 profile 完成 WhoAmI，並以 direct exact-ID
+projections 執行 probe。它不建立 ledger、nonce、fresh entity、descriptor publication 或任何
+remote mutation；parent 在 child exit=0 且 strict evidence schema 有效時，才投影唯一一行
+sanitized JSON，最後無條件還原 environment、清空 password reference、dispose Process/streams，
+並刪除唯一 temporary directory。
+
+```text
+FreshPreflightProbe
+  -> parent descriptor/profile shape validation
+  -> one crm91/Data8/CE 9.1 child
+  -> WhoAmI
+  -> five exact-ID list Retrieves
+  -> exact-ID leader Retrieve + exact-ID owner Retrieve
+  -> one TopCount=2 weekly-report RetrieveMultiple
+  -> bounded evidence -> parent strict parser -> temporary cleanup
+```
+
+同一 C# `P72FreshSliceCFixturePreflightProbe` 擁有 remote proof logic；它只借用 child-owned
+`IOrganizationService`，不 Dispose、快取、static 保存或將 service/Entity/exception 交給背景
+工作。request scalar 與 result classifications 都只在 invocation scope 存活。WhoAmI identity 是
+deployment-owned executor 的輸出，絕不允許從 descriptor 或 parent environment 指定。
+
+### 固定 evidence contract
+
+child 只可寫入 version 1 的 strict JSON。parent 拒絕遺漏、額外、格式錯誤或不在 allowlist 的
+欄位，並絕不轉發原始 child stdout/stderr、CRM response 或 exception。固定 top-level 欄位為
+`schemaVersion`、`outcome`、`reason`、`profileAlias`、`deploymentProfileAlias`、`ceVersion`、
+`connector`、`preflightOnly`、`operationExecuted`、`readOnlyProbeExecuted`、
+`featureFlagChanged` 與 `probe`。`operationExecuted` 與 `featureFlagChanged` 永遠為 false；
+`preflightOnly` 永遠為 true。
+
+`probe` 固定為 `requestShape`、`operationalLists`、`leaderMarker`、`ownerKind`、`ownerState`、
+`ownerRelation`、`weeklyReport`。每一欄只使用固定、去識別化值：
+
+- `requestShape`: `valid` 或 `invalid`；
+- `operationalLists`: `valid`、`invalid` 或 `unavailable`；
+- `leaderMarker`: `valid`、`invalid` 或 `unavailable`；
+- `ownerKind`: `systemuser`、`other-or-missing` 或 `unavailable`；
+- `ownerState`: `active`、`inactive-or-missing` 或 `unavailable`；
+- `ownerRelation`: `different-from-data8`、`same-as-data8` 或 `unavailable`；
+- `weeklyReport`: `exactly-one-active`、`not-exactly-one-active` 或 `unavailable`。
+
+所有七項為 green 時，child 回傳 `outcome=go`、`reason=fresh-preconditions-proven`、
+`readOnlyProbeExecuted=true`。已完成 read-only calls 但任一 proof 為 false 時回傳
+`outcome=no-go`、`reason=fresh-preconditions-not-proven`、`readOnlyProbeExecuted=true`；shape、
+WhoAmI、runtime、transport 或 cleanup 不可證明時回傳 `outcome=no-go` 與固定 bounded reason，
+不把 partial result 當作寫入授權。
+
+### 安全、不確定性與回退
+
+此 lane 不可重用 `Provision`，因為 provision 的 pending ledger、nonce 和寫入 allowlist 會擴張
+診斷權限；亦不可重用 `RepairProbe`，因為後者驗證 stale relationship graph，而非五個 operational
+lists、owner 和 weekly report 的 fresh provisioning prerequisites。任一 WhoAmI/remote read 或
+resource cleanup exception 均 fail closed；probe 結果只能支援「是否外部狀態可能已改變」的判斷，
+不能授權重試前一個 no-go、不能建立/清理 fixture，也不能開始 D--H。
+
 ## 測試策略
 
 1. 先寫 contract tests：未知 operation、錯誤 profile／connector／CE、未授權 contact、空 update、超長字串、未知欄位、錯配 response、取消、timeout 與 duplicate idempotency key 都必須 fail closed。

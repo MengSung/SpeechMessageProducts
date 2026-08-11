@@ -225,6 +225,425 @@ public sealed class P72FreshSliceCFixtureFileLedgerTests
     }
 
     /// <summary>
+    /// 驗證第二個獨立 FileLedger writer 無法把同一 current-user 路徑上的既有帳本，改寫成不同的
+    /// 原始 target-leader baseline。故障注入先由第一個 writer 原子寫入完整的
+    /// <c>preflight-proven</c> snapshot，再讓第二個 writer 以相同 binding 與 nonce、但不同 baseline
+    /// 嘗試寫入下一個 stage。決定性斷言是第二次寫入 fail closed，且檔案位元組仍逐一等於第一個 writer
+    /// 的內容；這可阻止不同 process、profile 或 Windows session 把既有 recovery provenance 覆寫掉。
+    /// 測試資料只存在於 finally 移除的專屬 temporary root，不會保留任何 CRM、credential 或跨測試狀態。
+    /// </summary>
+    [Fact]
+    public void Persist_rejects_a_changed_baseline_from_a_new_file_backed_writer_and_preserves_prior_bytes()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        byte[] priorBytes = [];
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            using (var firstWriter = new P72FreshSliceCFixtureFileLedger(
+                       path,
+                       root,
+                       owner,
+                       "crm91",
+                       "sunnyvalechback",
+                       "9.1",
+                       "Data8"))
+            {
+                firstWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                    "preflight-proven",
+                    Nonce,
+                    null,
+                    null,
+                    null,
+                    OriginalTargetLeaderContactId));
+                priorBytes = File.ReadAllBytes(path);
+            }
+
+            using var secondWriter = new P72FreshSliceCFixtureFileLedger(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+            var changedBaselineLeader = Guid.Parse("eeeeeeee-5555-5555-5555-555555555555");
+
+            Action action = () => secondWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                "source-contact-created",
+                Nonce,
+                SourceContactId,
+                null,
+                null,
+                changedBaselineLeader));
+
+            action.Should().Throw<InvalidOperationException>();
+
+            var retainedBytes = File.ReadAllBytes(path);
+            try
+            {
+                retainedBytes.Should().Equal(priorBytes);
+            }
+            finally
+            {
+                Array.Clear(retainedBytes, 0, retainedBytes.Length);
+            }
+        }
+        finally
+        {
+            Array.Clear(priorBytes, 0, priorBytes.Length);
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 驗證第二個 process writer 即使持有相同 binding、nonce 與原始 baseline，也不能在前一個
+    /// <c>source-contact-created</c> snapshot 已 materialize source ID 後改寫該 ID。故障注入先
+    /// 發布來源 contact，再讓新 writer 以合法的下一個 leader stage 攜帶不同 source ID；決定性斷言是
+    /// 寫入在 <see cref="File.Replace(string, string, string?, bool)"/> 前 fail closed，原帳本位元組完全不變。
+    /// 此測試不建立 Data8 runtime、不使用 credential 或 CE，temporary root 僅屬於本測試並於 finally 移除，
+    /// 因此不會將 recovery state、ID 或 session 資料留給另一個使用者、profile 或測試。
+    /// </summary>
+    [Fact]
+    public void Persist_rejects_a_new_writer_that_changes_an_existing_source_id_and_preserves_prior_bytes()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        byte[] priorBytes = [];
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            using (var firstWriter = new P72FreshSliceCFixtureFileLedger(
+                       path,
+                       root,
+                       owner,
+                       "crm91",
+                       "sunnyvalechback",
+                       "9.1",
+                       "Data8"))
+            {
+                firstWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                    "source-contact-created",
+                    Nonce,
+                    SourceContactId,
+                    null,
+                    null,
+                    OriginalTargetLeaderContactId));
+                priorBytes = File.ReadAllBytes(path);
+            }
+
+            using var secondWriter = new P72FreshSliceCFixtureFileLedger(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+            Action action = () => secondWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                "leader-contact-created",
+                Nonce,
+                Guid.Parse("f1f1f1f1-1111-1111-1111-111111111111"),
+                LeaderContactId,
+                null,
+                OriginalTargetLeaderContactId));
+
+            action.Should().Throw<InvalidOperationException>();
+
+            var retainedBytes = File.ReadAllBytes(path);
+            try
+            {
+                retainedBytes.Should().Equal(priorBytes);
+            }
+            finally
+            {
+                Array.Clear(retainedBytes, 0, retainedBytes.Length);
+            }
+        }
+        finally
+        {
+            Array.Clear(priorBytes, 0, priorBytes.Length);
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 驗證已 materialize 的 fresh leader ID 是跨程序 recovery provenance 的不可變部分。故障注入先
+    /// 發布 <c>leader-contact-created</c>，再讓新 writer 嘗試在唯一合法的 relationship-list 下一階段
+    /// 換成不同 leader；決定性斷言是替換失敗且舊檔每一個位元組均被保留，不能把 cleanup 日後使用的
+    /// exact ID 指向另一個 contact。測試只操作本機 temporary file，finally 清除 byte buffer 與目錄，
+    /// 不會保留可跨 Windows session、使用者或 connector profile 重用的 mutable state。
+    /// </summary>
+    [Fact]
+    public void Persist_rejects_a_new_writer_that_changes_an_existing_leader_id_and_preserves_prior_bytes()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        byte[] priorBytes = [];
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            using (var firstWriter = new P72FreshSliceCFixtureFileLedger(
+                       path,
+                       root,
+                       owner,
+                       "crm91",
+                       "sunnyvalechback",
+                       "9.1",
+                       "Data8"))
+            {
+                firstWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                    "leader-contact-created",
+                    Nonce,
+                    SourceContactId,
+                    LeaderContactId,
+                    null,
+                    OriginalTargetLeaderContactId));
+                priorBytes = File.ReadAllBytes(path);
+            }
+
+            using var secondWriter = new P72FreshSliceCFixtureFileLedger(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+            Action action = () => secondWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                "relationship-list-created",
+                Nonce,
+                SourceContactId,
+                Guid.Parse("f2f2f2f2-2222-2222-2222-222222222222"),
+                RelationshipListId,
+                OriginalTargetLeaderContactId));
+
+            action.Should().Throw<InvalidOperationException>();
+
+            var retainedBytes = File.ReadAllBytes(path);
+            try
+            {
+                retainedBytes.Should().Equal(priorBytes);
+            }
+            finally
+            {
+                Array.Clear(retainedBytes, 0, retainedBytes.Length);
+            }
+        }
+        finally
+        {
+            Array.Clear(priorBytes, 0, priorBytes.Length);
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 驗證 relationship-list ID 一旦經 exact read-back 寫入帳本，就不能被第二個 writer 以同一個
+    /// lifecycle 的下一 stage 換成另一個 list。故障注入先發布 relationship-list state，再嘗試寫入
+    /// <c>remove-membership-added</c> 並改變 list ID；決定性斷言是原子替換被拒絕且既有檔案位元組不變。
+    /// 此 contract 防止不同 process 將 cleanup 的 exact-delete 對象導向未證明的 CRM row；本測試完全離線，
+    /// 並在 finally 釋放 temporary directory 與所有讀取 byte buffer。
+    /// </summary>
+    [Fact]
+    public void Persist_rejects_a_new_writer_that_changes_an_existing_relationship_list_id_and_preserves_prior_bytes()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        byte[] priorBytes = [];
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            using (var firstWriter = new P72FreshSliceCFixtureFileLedger(
+                       path,
+                       root,
+                       owner,
+                       "crm91",
+                       "sunnyvalechback",
+                       "9.1",
+                       "Data8"))
+            {
+                firstWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                    "relationship-list-created",
+                    Nonce,
+                    SourceContactId,
+                    LeaderContactId,
+                    RelationshipListId,
+                    OriginalTargetLeaderContactId));
+                priorBytes = File.ReadAllBytes(path);
+            }
+
+            using var secondWriter = new P72FreshSliceCFixtureFileLedger(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+            Action action = () => secondWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                "remove-membership-added",
+                Nonce,
+                SourceContactId,
+                LeaderContactId,
+                Guid.Parse("f3f3f3f3-3333-3333-3333-333333333333"),
+                OriginalTargetLeaderContactId));
+
+            action.Should().Throw<InvalidOperationException>();
+
+            var retainedBytes = File.ReadAllBytes(path);
+            try
+            {
+                retainedBytes.Should().Equal(priorBytes);
+            }
+            finally
+            {
+                Array.Clear(retainedBytes, 0, retainedBytes.Length);
+            }
+        }
+        finally
+        {
+            Array.Clear(priorBytes, 0, priorBytes.Length);
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 驗證相同 binding 的新 process 不得把 ledger stage 倒退。故障注入先發布
+    /// <c>remove-membership-added</c>，再讓另一個 writer 提交 ID 相同但較早的
+    /// <c>relationship-list-created</c>；決定性斷言是狀態倒退在檔案取代前遭拒，舊位元組完全保留。
+    /// 這避免 cleanup/reconciliation 依賴被回捲的 local recovery history 而重複或錯序 remote mutation；
+    /// 測試沒有 CRM I/O，並由 finally 負責刪除其唯一 temporary root。
+    /// </summary>
+    [Fact]
+    public void Persist_rejects_a_new_writer_that_regresses_an_existing_stage_and_preserves_prior_bytes()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        byte[] priorBytes = [];
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            using (var firstWriter = new P72FreshSliceCFixtureFileLedger(
+                       path,
+                       root,
+                       owner,
+                       "crm91",
+                       "sunnyvalechback",
+                       "9.1",
+                       "Data8"))
+            {
+                firstWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                    "remove-membership-added",
+                    Nonce,
+                    SourceContactId,
+                    LeaderContactId,
+                    RelationshipListId,
+                    OriginalTargetLeaderContactId));
+                priorBytes = File.ReadAllBytes(path);
+            }
+
+            using var secondWriter = new P72FreshSliceCFixtureFileLedger(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+            Action action = () => secondWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                "relationship-list-created",
+                Nonce,
+                SourceContactId,
+                LeaderContactId,
+                RelationshipListId,
+                OriginalTargetLeaderContactId));
+
+            action.Should().Throw<InvalidOperationException>();
+
+            var retainedBytes = File.ReadAllBytes(path);
+            try
+            {
+                retainedBytes.Should().Equal(priorBytes);
+            }
+            finally
+            {
+                Array.Clear(retainedBytes, 0, retainedBytes.Length);
+            }
+        }
+        finally
+        {
+            Array.Clear(priorBytes, 0, priorBytes.Length);
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 驗證 cleanup 可由另一個 process 只從完整的 <c>fresh-graph-proven</c> ledger 接續，並以完全
+    /// 相同的三個 recovery IDs 發布唯一合法的 <c>cleanup-preflight-proven</c> 下一階段。決定性斷言是
+    /// 第二個 writer 成功後帳本 stage 前進、ID 與 nonce/baseline 均不變；這證明單調轉移不會阻斷正確的
+    /// cross-process cleanup。測試不接觸 CE，所有 temporary file 由 finally 的單一 owner 清除，避免跨測試
+    /// 或跨使用者保留 recovery state。
+    /// </summary>
+    [Fact]
+    public void Persist_allows_a_new_writer_to_transition_from_fresh_graph_to_cleanup_preflight()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            using (var firstWriter = new P72FreshSliceCFixtureFileLedger(
+                       path,
+                       root,
+                       owner,
+                       "crm91",
+                       "sunnyvalechback",
+                       "9.1",
+                       "Data8"))
+            {
+                firstWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                    "fresh-graph-proven",
+                    Nonce,
+                    SourceContactId,
+                    LeaderContactId,
+                    RelationshipListId,
+                    OriginalTargetLeaderContactId));
+            }
+
+            using (var secondWriter = new P72FreshSliceCFixtureFileLedger(
+                       path,
+                       root,
+                       owner,
+                       "crm91",
+                       "sunnyvalechback",
+                       "9.1",
+                       "Data8"))
+            {
+                secondWriter.Persist(new P72FreshSliceCFixtureLedgerState(
+                    "cleanup-preflight-proven",
+                    Nonce,
+                    SourceContactId,
+                    LeaderContactId,
+                    RelationshipListId,
+                    OriginalTargetLeaderContactId));
+            }
+
+            using var document = JsonDocument.Parse(File.ReadAllText(path, Encoding.UTF8));
+            document.RootElement.GetProperty("stage").GetString().Should().Be("cleanup-preflight-proven");
+            document.RootElement.GetProperty("nonce").GetGuid().Should().Be(Nonce);
+            document.RootElement.GetProperty("sourceContactId").GetGuid().Should().Be(SourceContactId);
+            document.RootElement.GetProperty("leaderContactId").GetGuid().Should().Be(LeaderContactId);
+            document.RootElement.GetProperty("relationshipListId").GetGuid().Should().Be(RelationshipListId);
+            document.RootElement.GetProperty("originalTargetLeaderContactId").GetGuid().Should().Be(OriginalTargetLeaderContactId);
+        }
+        finally
+        {
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
     /// cleanup child 只能讀取同一個 current-user、crm91/Data8/CE 9.1 ledger，且 stage 必須已達
     /// <c>fresh-graph-proven</c>。這個測試保護 ambiguous provision 後的 recovery path 不會接受
     /// 其他 profile、其他 Windows owner 或半完成 stage 的任意 GUID。
@@ -452,6 +871,45 @@ public sealed class P72FreshSliceCFixtureFileLedgerTests
     }
 
     /// <summary>
+    /// 驗證帳本 parser 拒絕內嵌的單獨 CR 字元，即使檔案最後仍有合法 final CRLF。
+    /// JSON 規範允許 CR 作為空白，因此單純確認每個 LF 前有 CR 並不足以證明整份檔案是 CRLF-only；
+    /// 若接受這種內容，另一個 process 便可能把非 repository 規格的控制平面文件當成可清理的 recovery
+    /// state。故障注入只在開頭大括號後加入一個 standalone CR，保留所有 binding、ID 與 final CRLF，
+    /// 使斷言精確保護行結尾 trust boundary，而非依賴 schema 或 identity 驗證失敗。
+    /// </summary>
+    [Fact]
+    public void Read_rejects_a_document_with_an_embedded_standalone_carriage_return()
+    {
+        var root = CreateOwnedTemporaryRoot();
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+            WriteFinalLedgerDocument(path, owner, schemaVersion: 2, OriginalTargetLeaderContactId);
+            var canonicalText = File.ReadAllText(path, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            File.WriteAllText(
+                path,
+                canonicalText.Replace("{", "{\r", StringComparison.Ordinal),
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+
+            Action action = () => P72FreshSliceCFixtureFileLedger.Read(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+
+            action.Should().Throw<InvalidOperationException>();
+        }
+        finally
+        {
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
     /// 保護路徑信任邊界：ledger 不得寫到指定 owned root 以外，也不得藉由 caller-provided path
     /// 逃出 current-user control plane。拒絕必須發生在任何檔案建立前；測試最後確認 target 與
     /// root 都沒有殘留，避免失敗路徑造成資料或 handle leakage。
@@ -482,6 +940,104 @@ public sealed class P72FreshSliceCFixtureFileLedgerTests
         {
             RemoveOwnedTemporaryRoot(outsideRoot);
             RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 驗證 FileLedger 僅接受 parent 預先建立的 current-user root，不能把 child 收到的非空但不存在路徑
+    /// 當成可自行建立的控制面目錄。故障注入使用尚未存在的 temporary 路徑；決定性斷言是 constructor
+    /// 在任何帳本 I/O 前拒絕該輸入，且該目錄仍不存在。這讓 parent 保有 temporary root 的唯一生命週期
+    /// 與 finally 清理責任，避免 child 將另一個 invocation、profile 或使用者的路徑變成可保留的 recovery
+    /// state。finally 僅移除本測試已知的唯一 temporary path，避免資源殘留。
+    /// </summary>
+    [Fact]
+    public void Constructor_rejects_a_missing_parent_owned_root_without_creating_it()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "speechmessage-p7-2-ledger-missing-root-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var path = Path.Combine(root, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+
+            Action action = () => _ = new P72FreshSliceCFixtureFileLedger(
+                path,
+                root,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+
+            action.Should().Throw<InvalidOperationException>();
+            Directory.Exists(root).Should().BeFalse();
+        }
+        finally
+        {
+            RemoveOwnedTemporaryRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 驗證 ledger constructor 不只檢查 root leaf，也會拒絕 lexical path 中的既有 reparse-point ancestor。
+    /// 故障注入在本測試專屬 temporary root 內建立一個指向另一個同測試目錄的 directory symbolic link，並將
+    /// 其正常子目錄作為 parent-owned root；決定性斷言是 link 本身帶有 reparse attribute、leaf 不帶該
+    /// attribute，仍在任何 ledger I/O 前遭拒。Windows 若因本機 symbolic-link 權限或 policy 不允許建立
+    /// 測試 link，會明確標示 skip 而不將環境限制誤判為產品行為；實作仍必須保守地檢查祖先。finally 只
+    /// 清除本測試建立的 temporary tree，因此不會觸及外部檔案、session、profile 或 recovery state。
+    /// </summary>
+    [Fact(Skip = "Requires SeCreateSymbolicLinkPrivilege; the current Windows test policy returns ERROR_PRIVILEGE_NOT_HELD for directory symbolic links.")]
+    public void Constructor_rejects_a_parent_owned_root_with_a_reparse_point_ancestor()
+    {
+        var testRoot = CreateOwnedTemporaryRoot();
+        try
+        {
+            var targetRoot = Path.Combine(testRoot, "target");
+            var reparseAncestor = Path.Combine(testRoot, "reparse-ancestor");
+            var ownedRoot = Path.Combine(targetRoot, "owned-root");
+            Directory.CreateDirectory(ownedRoot);
+            try
+            {
+                Directory.CreateSymbolicLink(reparseAncestor, targetRoot);
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                throw Xunit.Sdk.SkipException.ForSkip(
+                    "Windows denied directory symbolic-link creation required to prove the ancestor reparse guard: " +
+                    exception.GetType().Name);
+            }
+            catch (PlatformNotSupportedException exception)
+            {
+                throw Xunit.Sdk.SkipException.ForSkip(
+                    "This platform does not support the directory symbolic-link test required to prove the ancestor reparse guard: " +
+                    exception.GetType().Name);
+            }
+            catch (IOException exception) when (exception.HResult == unchecked((int)0x80070522))
+            {
+                throw Xunit.Sdk.SkipException.ForSkip(
+                    "Windows policy denied the directory symbolic-link privilege required to prove the ancestor reparse guard: " +
+                    exception.GetType().Name);
+            }
+
+            var rootViaReparseAncestor = Path.Combine(reparseAncestor, "owned-root");
+            (File.GetAttributes(reparseAncestor) & FileAttributes.ReparsePoint).Should().NotBe(0);
+            (File.GetAttributes(rootViaReparseAncestor) & FileAttributes.ReparsePoint).Should().Be(0);
+            var path = Path.Combine(rootViaReparseAncestor, "fresh-slice-c-ledger.json");
+            var owner = WindowsIdentity.GetCurrent().Name;
+
+            Action action = () => _ = new P72FreshSliceCFixtureFileLedger(
+                path,
+                rootViaReparseAncestor,
+                owner,
+                "crm91",
+                "sunnyvalechback",
+                "9.1",
+                "Data8");
+
+            action.Should().Throw<InvalidOperationException>();
+        }
+        finally
+        {
+            RemoveOwnedTemporaryRoot(testRoot);
         }
     }
 

@@ -61,7 +61,7 @@ function Assert-StrictTextFile {
         Assert-True ($bytes.Length -gt 0) 'Checked script must not be empty.'
         Assert-True (-not ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)) 'Checked script must not contain a UTF-8 BOM.'
         $text = [Text.UTF8Encoding]::new($false, $true).GetString($bytes)
-        Assert-True (-not [Regex]::IsMatch($text, '(?<!\r)\n')) 'Checked script must use CRLF-only line endings.'
+        Assert-True (-not [Regex]::IsMatch($text, '(?<!\r)\n|\r(?!\n)')) 'Checked script must use CRLF-only line endings.'
         Assert-True $text.EndsWith("`r`n", [StringComparison]::Ordinal) 'Checked script must end with a final CRLF.'
     }
     finally {
@@ -495,6 +495,33 @@ function New-SyntheticFreshFixtureEvidence {
     }
 }
 
+function New-SyntheticFreshFixtureDiagnostic {
+    <#
+    .SYNOPSIS
+        建立 fresh provision 非零 child exit 專用的最小去識別化診斷 payload。
+
+    .DESCRIPTION
+        此物件只模擬 parent-owned temporary diagnostic file 的兩個允許欄位；測試可在不接觸
+        credential、CRM response 或真實 child output 的情況下注入未知欄位與未知 category。
+        所有 payload 都只在 scenario temporary root 存活，讓負向 parser 測試能明確證明 malformed
+        diagnostic 不得穿越 child-process-failed 邊界。
+    #>
+    param(
+        [string] $Category,
+        [switch] $IncludeUnexpectedProperty
+    )
+
+    $diagnostic = [ordered]@{
+        schemaVersion = 1
+        category = $Category
+    }
+    if ($IncludeUnexpectedProperty) {
+        $diagnostic.unexpectedChildField = 'synthetic-only'
+    }
+
+    return $diagnostic
+}
+
 function New-SyntheticFreshFixtureLedger {
     <#
     .SYNOPSIS
@@ -538,10 +565,10 @@ function New-SyntheticFreshFixtureLedger {
     return $ledger
 }
 
-function New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral {
+function New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral {
     <#
     .SYNOPSIS
-        以指定 JSON literal 建立 synthetic ledger，保留 schemaVersion 的原始 token。
+        以指定 JSON literal 建立 synthetic fresh-fixture payload，保留 schemaVersion 的原始 token。
 
     .DESCRIPTION
         此 helper 只服務 strict parser regression：PowerShell JSON serializer 會將 quoted、decimal
@@ -551,13 +578,16 @@ function New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral {
         injection 靜默失效或誤把未知 payload 帶進 child process。
     #>
     param(
-        [object] $Ledger,
+        [object] $Value,
+        [int] $ExpectedSchemaVersion,
         [string] $SchemaVersionLiteral
     )
 
-    $json = $Ledger | ConvertTo-Json -Compress -Depth 12
-    $expectedToken = '"schemaVersion":2'
-    Assert-True $json.Contains($expectedToken) 'Synthetic ledger must expose exactly one serializable schemaVersion token.'
+    # 同一個 test-only helper 同時覆蓋 evidence 與 ledger，避免兩條跨程序 schema 測試各自
+    # 接受不同的 JSON token shape；其餘 fixture 欄位保持不變，故失敗只代表 schema 邊界拒絕。
+    $json = $Value | ConvertTo-Json -Compress -Depth 12
+    $expectedToken = '"schemaVersion":' + [string]$ExpectedSchemaVersion
+    Assert-True $json.Contains($expectedToken) 'Synthetic fresh payload must expose exactly one serializable schemaVersion token.'
     return $json.Replace($expectedToken, ('"schemaVersion":' + $SchemaVersionLiteral))
 }
 
@@ -575,12 +605,30 @@ function Write-SyntheticFreshChild {
     param(
         [string] $Path,
         [object] $Evidence,
+        [string] $EvidenceJsonOverride = $null,
         [object] $Ledger,
         [object] $LedgerJsonOverride = $null,
+        [string] $DiagnosticCategory = '',
+        [string] $DiagnosticJsonOverride = $null,
         [int] $ExitCode
     )
 
-    $evidencePayload = ConvertTo-Base64StrictJsonPayload $Evidence
+    $evidencePayload = if (-not [string]::IsNullOrEmpty($EvidenceJsonOverride)) {
+        ConvertTo-Base64StrictTextPayload $EvidenceJsonOverride
+    }
+    else {
+        ConvertTo-Base64StrictJsonPayload $Evidence
+    }
+    $diagnosticPayload = if (-not [string]::IsNullOrEmpty($DiagnosticJsonOverride)) {
+        ConvertTo-Base64StrictTextPayload $DiagnosticJsonOverride
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($DiagnosticCategory)) {
+        ConvertTo-Base64StrictJsonPayload (New-SyntheticFreshFixtureDiagnostic -Category $DiagnosticCategory)
+    }
+    else {
+        ''
+    }
+    $writeDiagnostic = if ([string]::IsNullOrEmpty($diagnosticPayload)) { 'false' } else { 'true' }
     $ledgerPayload = if ($null -ne $LedgerJsonOverride) {
         ConvertTo-Base64StrictTextPayload $LedgerJsonOverride
     }
@@ -636,6 +684,7 @@ function Write-EncodedSyntheticLedger {
 }
 
 $evidencePath = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_FRESH_EVIDENCE_PATH', 'Process')
+$diagnosticPath = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_FRESH_DIAGNOSTIC_PATH', 'Process')
 $ledgerPath = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_FRESH_LEDGER_PATH', 'Process')
 $ledgerRoot = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_FRESH_LEDGER_ROOT', 'Process')
 $childObservationPath = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_FRESH_CHILD_OBSERVATION_PATH', 'Process')
@@ -656,6 +705,10 @@ if ('__WRITE_LEDGER__' -ceq 'true') {
 }
 
 Write-EncodedSyntheticFile -TargetPath $evidencePath -Payload '__EVIDENCE_PAYLOAD__'
+if ('__WRITE_DIAGNOSTIC__' -ceq 'true' -and
+    -not [string]::IsNullOrWhiteSpace($diagnosticPath)) {
+    Write-EncodedSyntheticFile -TargetPath $diagnosticPath -Payload '__DIAGNOSTIC_PAYLOAD__'
+}
 $observation = [ordered]@{
     evidenceDirectory = [IO.Path]::GetDirectoryName($evidencePath)
     ledgerPath = $ledgerPath
@@ -663,10 +716,21 @@ $observation = [ordered]@{
     provisionMode = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION', 'Process')
     cleanupMode = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP', 'Process')
     descriptorConfirmation = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION', 'Process')
+    diagnosticPath = $diagnosticPath
+    diagnosticFileExists = -not [string]::IsNullOrWhiteSpace($diagnosticPath) -and (Test-Path -LiteralPath $diagnosticPath -PathType Leaf)
     # cleanup child 不可使用 provision 時才需要的 descriptor target，也不可繼承 legacy
     # Slice C target。兩者都記錄為 $null 才代表 parent 已從 child process environment 移除。
     freshExistingTargetLeaderId = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID', 'Process')
     legacyTargetLeaderContactId = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_SMALL_GROUP_TARGET_LEADER_CONTACT_ID', 'Process')
+    # 此值不是 production allowlist 的成員；它模擬另一個 shell 或舊版 runner 遺留的 legacy state。
+    # fresh child 看見此 sentinel 即代表 parent 隔離不完整，可能跨 session 重用 mutable fixture input。
+    undeclaredLegacySentinel = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_UNDECLARED_LEGACY_SENTINEL', 'Process')
+    # 名稱帶有 FRESH_ 但不在 parent 的精確 control-plane allowlist；它仍是跨 session legacy state，
+    # 若 child 看見它，即代表 prefix-based exclusion 錯把未知 mutable input 當成當前 invocation binding。
+    undeclaredFreshLegacySentinel = [Environment]::GetEnvironmentVariable('P7_2_SLICE_C_FRESH_UNDECLARED_LEGACY_SENTINEL', 'Process')
+    # SPEECHMESSAGE_ namespace 也可由長壽命 shell 留下未知 fresh state；它不是任何 parent-owned
+    # binding，fresh child 看見它即代表第二個 legacy namespace 未被完整 snapshot/scrub。
+    undeclaredSpeechmessageFreshLegacySentinel = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_UNDECLARED_LEGACY_SENTINEL', 'Process')
 }
 $legacyEnvironment = [ordered]@{}
 foreach ($legacyName in @(
@@ -702,8 +766,10 @@ $observation.legacyEnvironment = $legacyEnvironment
 exit __EXIT_CODE__
 '@
     $childSource = $childSource.Replace('__EVIDENCE_PAYLOAD__', $evidencePayload)
+    $childSource = $childSource.Replace('__DIAGNOSTIC_PAYLOAD__', $diagnosticPayload)
     $childSource = $childSource.Replace('__LEDGER_PAYLOAD__', $ledgerPayload)
     $childSource = $childSource.Replace('__WRITE_LEDGER__', $writeLedger)
+    $childSource = $childSource.Replace('__WRITE_DIAGNOSTIC__', $writeDiagnostic)
     $childSource = $childSource.Replace('__EXIT_CODE__', [string]$ExitCode)
     Write-StrictTextFile -Path $Path -Text $childSource
 }
@@ -846,7 +912,8 @@ function Invoke-SyntheticFreshProvision {
         [string] $ProfilePath,
         [string] $SourceFixturePath,
         [string] $SliceCFixturePath,
-        [string] $OwnerIdentity
+        [string] $OwnerIdentity,
+        [string] $DiagnosticJsonOverride = $null
     )
 
     # PowerShell 的變數名不分大小寫；不可使用 $scenario 計算 local context，否則會與已經
@@ -866,14 +933,17 @@ function Invoke-SyntheticFreshProvision {
     [void][IO.Directory]::CreateDirectory($fakeDotnetDirectory)
 
     $ledger = $null
+    $evidenceJsonOverride = $null
     $ledgerJsonOverride = $null
     $exitCode = 0
+    $diagnosticCategory = ''
     $injectPublicationFailure = $false
     $omitFreshLedgerRootForChild = $false
     switch ($Scenario) {
         'child-nonzero-valid-evidence' {
             $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
             $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $diagnosticCategory = 'fixture-precondition-failed'
             $exitCode = 17
             break
         }
@@ -887,6 +957,42 @@ function Invoke-SyntheticFreshProvision {
             # no-go 的 publication bit 合法但 reason 不屬於 provision allowlist；parent 不得把 child
             # 自訂字串投影到 console，也不得從 no-go evidence 推論可安全保留任何 descriptor。
             $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'no-go' 'synthetic-unknown-provision-reason' $true $false
+            break
+        }
+        'evidence-schema-quoted-one' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $evidenceJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $evidence -ExpectedSchemaVersion 1 -SchemaVersionLiteral '"1"'
+            break
+        }
+        'evidence-schema-decimal-one' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $evidenceJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $evidence -ExpectedSchemaVersion 1 -SchemaVersionLiteral '1.0'
+            break
+        }
+        'evidence-schema-exponent-one' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $evidenceJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $evidence -ExpectedSchemaVersion 1 -SchemaVersionLiteral '1e0'
+            break
+        }
+        'evidence-schema-bool-one' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $evidenceJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $evidence -ExpectedSchemaVersion 1 -SchemaVersionLiteral 'true'
+            break
+        }
+        'evidence-schema-null' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $evidenceJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $evidence -ExpectedSchemaVersion 1 -SchemaVersionLiteral 'null'
+            break
+        }
+        'evidence-schema-array' {
+            $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
+            $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
+            $evidenceJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $evidence -ExpectedSchemaVersion 1 -SchemaVersionLiteral '[]'
             break
         }
         'ledger-extra-property' {
@@ -909,19 +1015,19 @@ function Invoke-SyntheticFreshProvision {
         'ledger-schema-quoted-two' {
             $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
             $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
-            $ledgerJsonOverride = New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral $ledger '"2"'
+            $ledgerJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $ledger -ExpectedSchemaVersion 2 -SchemaVersionLiteral '"2"'
             break
         }
         'ledger-schema-decimal-two' {
             $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
             $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
-            $ledgerJsonOverride = New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral $ledger '2.0'
+            $ledgerJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $ledger -ExpectedSchemaVersion 2 -SchemaVersionLiteral '2.0'
             break
         }
         'ledger-schema-exponent-two' {
             $evidence = New-SyntheticFreshFixtureEvidence 'provision' 'go' 'fresh-fixture-provisioned' $true $true
             $ledger = New-SyntheticFreshFixtureLedger $OwnerIdentity
-            $ledgerJsonOverride = New-SyntheticFreshFixtureLedgerJsonWithSchemaVersionLiteral $ledger '2e0'
+            $ledgerJsonOverride = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $ledger -ExpectedSchemaVersion 2 -SchemaVersionLiteral '2e0'
             break
         }
         'ledger-missing-original-target-leader' {
@@ -977,15 +1083,21 @@ function Invoke-SyntheticFreshProvision {
         Write-SyntheticFreshChild `
             -Path $fakeChildPath `
             -Evidence $evidence `
+            -EvidenceJsonOverride $evidenceJsonOverride `
             -Ledger $ledger `
+            -DiagnosticCategory $diagnosticCategory `
+            -DiagnosticJsonOverride $DiagnosticJsonOverride `
             -ExitCode $exitCode
     }
     else {
         Write-SyntheticFreshChild `
             -Path $fakeChildPath `
             -Evidence $evidence `
+            -EvidenceJsonOverride $evidenceJsonOverride `
             -Ledger $ledger `
             -LedgerJsonOverride $ledgerJsonOverride `
+            -DiagnosticCategory $diagnosticCategory `
+            -DiagnosticJsonOverride $DiagnosticJsonOverride `
             -ExitCode $exitCode
     }
     Write-StrictTextFile -Path $fakeDotnetPath -Text (@(
@@ -1055,7 +1167,7 @@ function Invoke-SyntheticFreshCleanup {
         [string] $RepositoryPath,
         [string] $ProfilePath,
         [string] $OwnerIdentity,
-        [ValidateSet('success', 'invalid-post-child-ledger', 'unknown-cleanup-reason')]
+        [ValidateSet('success', 'invalid-post-child-ledger', 'altered-post-child-original-baseline', 'unknown-cleanup-reason')]
         [string] $Scenario = 'success'
     )
 
@@ -1075,6 +1187,15 @@ function Invoke-SyntheticFreshCleanup {
             # pre-child ledger 由 parent 以 strict v2 驗證；此處只在 child 已完成宣告後覆寫為 v1，
             # 以驗證 post-child re-read 失敗時不得刪除仍可供人工 recovery 的 descriptors 或 ledger。
             $ledger.schemaVersion = 1
+            break
+        }
+        'altered-post-child-original-baseline' {
+            # child 仍寫出完整 v2 ledger，但竄改 cleanup 前已 proven 的 immutable baseline；parent
+            # 必須把它視為 transaction-boundary failure，保留 descriptors/ledger 供明確復原而非刪除。
+            $ledger = New-SyntheticFreshFixtureLedger `
+                -OwnerIdentity $OwnerIdentity `
+                -Stage 'cleanup-leader-contact-deleted' `
+                -OriginalTargetLeaderContactId 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
             break
         }
         'unknown-cleanup-reason' {
@@ -1286,11 +1407,21 @@ try {
         'P7_2_SLICE_C_EVIDENCE_JSON',
         'P7_2_SLICE_C_RETIRED_TRX_EVIDENCE',
         'P7_2_SLICE_C_TARGET_OWNER_ID',
+        # 未宣告 legacy key 代表升級後仍可能留在長壽命 shell 的 state；它必須被 fresh parent
+        # snapshot、對 child 清空並在 finally 還原，不能因不在靜態清單而跨 session 流入 child。
+        'P7_2_SLICE_C_UNDECLARED_LEGACY_SENTINEL',
+        # 此 key 刻意使用 FRESH_ 前綴卻不是任何已知 control-plane binding。它驗證 parent 的
+        # allowlist 必須精確且大小寫不敏感，而非以 prefix 誤放行未知跨 session mutable state。
+        'P7_2_SLICE_C_FRESH_UNDECLARED_LEGACY_SENTINEL',
+        # 第二個歷史 namespace 同樣不能因為名稱含 SPEECHMESSAGE_ 而繞過 fresh child 的精確
+        # control-plane allowlist；此 sentinel 保護 parent snapshot、scrub 與 finally restore 三段。
+        'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_UNDECLARED_LEGACY_SENTINEL',
         'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PROVISION',
         'SPEECHMESSAGE_P7_2_SLICE_C_FRESH_CLEANUP',
         'P7_2_SLICE_C_FRESH_LEDGER_ROOT',
         'P7_2_SLICE_C_FRESH_LEDGER_PATH',
         'P7_2_SLICE_C_FRESH_EVIDENCE_PATH',
+        'P7_2_SLICE_C_FRESH_DIAGNOSTIC_PATH',
         'P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION',
         'P7_2_SLICE_C_FRESH_NONCE',
         'P7_2_SLICE_C_FRESH_OWNER',
@@ -1347,13 +1478,22 @@ try {
             -SourceFixturePath $sourceFixturePath `
             -SliceCFixturePath $sliceCFixturePath `
             -OwnerIdentity $identity
+        Assert-True (Test-Path -LiteralPath $nonzeroChild.ChildObservationPath -PathType Leaf) 'Synthetic child must expose its test-only boundary observation before parent evidence is asserted.'
+        $nonzeroChildDiagnosticObservation = [IO.File]::ReadAllText($nonzeroChild.ChildObservationPath, [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+        $diagnosticCategoryProperty = @($nonzeroChild.Result.Evidence.PSObject.Properties | Where-Object { $_.Name -ceq 'diagnosticCategory' })
         Assert-True (
             $nonzeroChild.Result.ExitCode -eq 2 -and
             $nonzeroChild.Result.Evidence.outcome -eq 'no-go' -and
             $nonzeroChild.Result.Evidence.reason -eq 'child-process-failed' -and
+            $diagnosticCategoryProperty.Count -eq 1 -and
+            [string]$diagnosticCategoryProperty[0].Value -eq 'fixture-precondition-failed' -and
+            -not [string]::IsNullOrWhiteSpace([string]$nonzeroChildDiagnosticObservation.diagnosticPath) -and
+            [bool]$nonzeroChildDiagnosticObservation.diagnosticFileExists -and
             $nonzeroChild.Result.Evidence.operationExecuted -and
             -not $nonzeroChild.Result.Evidence.safeToRetry
-        ) 'A non-zero fresh child exit must never trust valid-looking evidence or authorize a retry.'
+        ) ('A non-zero fresh child exit must retain only its allowlisted diagnostic category; diagnostic path was bound=' +
+            (-not [string]::IsNullOrWhiteSpace([string]$nonzeroChildDiagnosticObservation.diagnosticPath)) +
+            ', file existed in child=' + [bool]$nonzeroChildDiagnosticObservation.diagnosticFileExists)
         Assert-DescriptorsRemainUnpublished `
             -SourceFixturePath $nonzeroChild.SourceFixturePath `
             -SliceCFixturePath $nonzeroChild.SliceCFixturePath `
@@ -1378,6 +1518,15 @@ try {
             ) 'Fresh provision child must not inherit legacy Slice C fixture, contact, mode or evidence environment variables.'
         }
         Assert-True (
+            [string]::IsNullOrWhiteSpace([string]$nonzeroChildObservation.undeclaredLegacySentinel)
+        ) 'Fresh provision child must not inherit an undeclared P7_2_SLICE_C legacy sentinel.'
+        Assert-True (
+            [string]::IsNullOrWhiteSpace([string]$nonzeroChildObservation.undeclaredFreshLegacySentinel)
+        ) 'Fresh provision child must not inherit an undeclared FRESH-prefixed P7_2_SLICE_C legacy sentinel.'
+        Assert-True (
+            [string]::IsNullOrWhiteSpace([string]$nonzeroChildObservation.undeclaredSpeechmessageFreshLegacySentinel)
+        ) 'Fresh provision child must not inherit an undeclared FRESH-prefixed SPEECHMESSAGE_P7_2_SLICE_C legacy sentinel.'
+        Assert-True (
             -not (Test-Path -LiteralPath ([string]$nonzeroChildObservation.evidenceDirectory) -PathType Container)
         ) 'Parent must remove its fresh child temporary evidence directory after a non-zero child exit.'
         Assert-True (Test-Path -LiteralPath $nonzeroChild.RestorationObservationPath -PathType Leaf) 'Synthetic runner must observe the post-finally environment state.'
@@ -1388,6 +1537,91 @@ try {
                 $restoredProperty.Count -eq 1 -and
                 [string]$restoredProperty[0].Value -ceq [string]$sentinelValues[$environmentName]
             ) 'Fresh parent finally must restore every process environment variable after child failure.'
+        }
+
+        # Diagnostic file 僅能在非零 child exit 後提供固定 category。以下 fault injection 保留
+        # child-process-failed 的既有 no-go，不讓 quoted/decimal/exponent/bool/null schema、額外欄位
+        # 或未知 category 變成可觀測或可重試的 child evidence。
+        $validDiagnostic = New-SyntheticFreshFixtureDiagnostic -Category 'fixture-precondition-failed'
+        $extraFieldDiagnostic = New-SyntheticFreshFixtureDiagnostic `
+            -Category 'fixture-precondition-failed' `
+            -IncludeUnexpectedProperty
+        $invalidDiagnosticScenarios = @(
+            [pscustomobject]@{
+                Name = 'diagnostic-schema-quoted-one'
+                Json = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $validDiagnostic -ExpectedSchemaVersion 1 -SchemaVersionLiteral '"1"'
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-schema-decimal-one'
+                Json = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $validDiagnostic -ExpectedSchemaVersion 1 -SchemaVersionLiteral '1.0'
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-schema-exponent-one'
+                Json = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $validDiagnostic -ExpectedSchemaVersion 1 -SchemaVersionLiteral '1e0'
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-schema-bool-one'
+                Json = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $validDiagnostic -ExpectedSchemaVersion 1 -SchemaVersionLiteral 'true'
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-schema-null'
+                Json = New-SyntheticFreshFixtureJsonWithSchemaVersionLiteral -Value $validDiagnostic -ExpectedSchemaVersion 1 -SchemaVersionLiteral 'null'
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-extra-property'
+                Json = $extraFieldDiagnostic | ConvertTo-Json -Compress -Depth 12
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-unknown-category'
+                Json = New-SyntheticFreshFixtureDiagnostic -Category 'synthetic-unknown-diagnostic-category' | ConvertTo-Json -Compress -Depth 12
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-duplicate-schema-version'
+                Json = '{"schemaVersion":1,"schemaVersion":1,"category":"fixture-precondition-failed"}'
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-duplicate-escaped-schema-version'
+                Json = '{"schemaVersion":1,"\u0073chemaVersion":1,"category":"fixture-precondition-failed"}'
+            },
+            [pscustomobject]@{
+                Name = 'diagnostic-duplicate-category'
+                Json = '{"schemaVersion":1,"category":"fixture-precondition-failed","category":"fixture-precondition-failed"}'
+            }
+        )
+        foreach ($invalidDiagnosticScenario in $invalidDiagnosticScenarios) {
+            $invalidDiagnostic = Invoke-SyntheticFreshProvision `
+                -Scenario 'child-nonzero-valid-evidence' `
+                -TemporaryRoot $fixtureRoot `
+                -RepositoryPath $repositoryPath `
+                -ProfilePath $profilePath `
+                -SourceFixturePath $sourceFixturePath `
+                -SliceCFixturePath $sliceCFixturePath `
+                -OwnerIdentity $identity `
+                -DiagnosticJsonOverride ([string]$invalidDiagnosticScenario.Json)
+            $invalidDiagnosticCategoryProperty = @(
+                $invalidDiagnostic.Result.Evidence.PSObject.Properties |
+                    Where-Object { $_.Name -ceq 'diagnosticCategory' }
+            )
+            Assert-True (
+                $invalidDiagnostic.Result.ExitCode -eq 2 -and
+                $invalidDiagnostic.Result.Evidence.outcome -eq 'no-go' -and
+                $invalidDiagnostic.Result.Evidence.reason -eq 'child-process-failed' -and
+                $invalidDiagnosticCategoryProperty.Count -eq 0 -and
+                $invalidDiagnostic.Result.Evidence.operationExecuted -and
+                -not $invalidDiagnostic.Result.Evidence.safeToRetry
+            ) ('Invalid child diagnostic must remain omitted from the child-process-failed no-go: ' +
+                [string]$invalidDiagnosticScenario.Name)
+            Assert-DescriptorsRemainUnpublished `
+                -SourceFixturePath $invalidDiagnostic.SourceFixturePath `
+                -SliceCFixturePath $invalidDiagnostic.SliceCFixturePath `
+                -ExpectedSourceFingerprint $invalidDiagnostic.ExpectedSourceFingerprint `
+                -ExpectedSliceCFingerprint $invalidDiagnostic.ExpectedSliceCFingerprint
+            $invalidDiagnosticObservation = [IO.File]::ReadAllText(
+                $invalidDiagnostic.ChildObservationPath,
+                [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+            Assert-True ([bool]$invalidDiagnosticObservation.diagnosticFileExists) (
+                'Diagnostic parser regression must prove the malformed file reached the parent boundary: ' +
+                [string]$invalidDiagnosticScenario.Name)
         }
 
         # strict evidence schema 必須拒絕額外欄位；child exit code 為零也不能讓看似 successful 的
@@ -1522,6 +1756,38 @@ try {
                 -SliceCFixturePath $invalidLedgerSchema.SliceCFixturePath `
                 -ExpectedSourceFingerprint $invalidLedgerSchema.ExpectedSourceFingerprint `
                 -ExpectedSliceCFingerprint $invalidLedgerSchema.ExpectedSliceCFingerprint
+        }
+
+        # evidence schemaVersion 是 descriptor publication 前的獨立 trust boundary。JSON 的字面值
+        # 必須恰為 integral numeric 1；相等比較不可接受 quoted、decimal、exponent、bool、null
+        # 或集合 shape，否則 child 能以非預期 wire schema 驅動本機 descriptor 發布。
+        foreach ($evidenceSchemaScenario in @(
+                'evidence-schema-quoted-one',
+                'evidence-schema-decimal-one',
+                'evidence-schema-exponent-one',
+                'evidence-schema-bool-one',
+                'evidence-schema-null',
+                'evidence-schema-array')) {
+            $invalidEvidenceSchema = Invoke-SyntheticFreshProvision `
+                -Scenario $evidenceSchemaScenario `
+                -TemporaryRoot $fixtureRoot `
+                -RepositoryPath $repositoryPath `
+                -ProfilePath $profilePath `
+                -SourceFixturePath $sourceFixturePath `
+                -SliceCFixturePath $sliceCFixturePath `
+                -OwnerIdentity $identity
+            Assert-True (
+                $invalidEvidenceSchema.Result.ExitCode -eq 2 -and
+                $invalidEvidenceSchema.Result.Evidence.outcome -eq 'no-go' -and
+                $invalidEvidenceSchema.Result.Evidence.reason -eq 'fresh-fixture-evidence-unavailable' -and
+                $invalidEvidenceSchema.Result.Evidence.operationExecuted -and
+                -not $invalidEvidenceSchema.Result.Evidence.safeToRetry
+            ) ('Fresh evidence schema scenario must fail closed before descriptor publication: ' + $evidenceSchemaScenario)
+            Assert-DescriptorsRemainUnpublished `
+                -SourceFixturePath $invalidEvidenceSchema.SourceFixturePath `
+                -SliceCFixturePath $invalidEvidenceSchema.SliceCFixturePath `
+                -ExpectedSourceFingerprint $invalidEvidenceSchema.ExpectedSourceFingerprint `
+                -ExpectedSliceCFingerprint $invalidEvidenceSchema.ExpectedSliceCFingerprint
         }
 
         $missingOriginalTargetLeader = Invoke-SyntheticFreshProvision `
@@ -1701,6 +1967,28 @@ try {
             $unknownCleanupReason.Result.Evidence.operationExecuted -and
             -not $unknownCleanupReason.Result.Evidence.safeToRetry
         ) 'A child-provided cleanup reason outside its allowlist must become a sanitized no-go.'
+        $unknownCleanupObservation = [IO.File]::ReadAllText(
+            $unknownCleanupReason.ChildObservationPath,
+            [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+        Assert-True (
+            [string]::IsNullOrWhiteSpace([string]$unknownCleanupObservation.undeclaredFreshLegacySentinel)
+        ) 'Fresh cleanup no-go child must not inherit an undeclared FRESH-prefixed P7_2_SLICE_C legacy sentinel.'
+        Assert-True (
+            [string]::IsNullOrWhiteSpace([string]$unknownCleanupObservation.undeclaredSpeechmessageFreshLegacySentinel)
+        ) 'Fresh cleanup no-go child must not inherit an undeclared FRESH-prefixed SPEECHMESSAGE_P7_2_SLICE_C legacy sentinel.'
+        Assert-True (Test-Path -LiteralPath $unknownCleanupReason.RestorationObservationPath -PathType Leaf) 'Synthetic cleanup no-go runner must observe the post-finally environment state.'
+        $restoredUnknownCleanupEnvironment = [IO.File]::ReadAllText(
+            $unknownCleanupReason.RestorationObservationPath,
+            [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+        $restoredUnknownFreshLegacyProperty = @(
+            $restoredUnknownCleanupEnvironment.PSObject.Properties |
+                Where-Object { $_.Name -ceq 'P7_2_SLICE_C_FRESH_UNDECLARED_LEGACY_SENTINEL' }
+        )
+        Assert-True (
+            $restoredUnknownFreshLegacyProperty.Count -eq 1 -and
+            [string]$restoredUnknownFreshLegacyProperty[0].Value -ceq
+                [string]$sentinelValues['P7_2_SLICE_C_FRESH_UNDECLARED_LEGACY_SENTINEL']
+        ) 'Fresh cleanup no-go finally must restore the undeclared FRESH-prefixed legacy sentinel.'
         Assert-True (
             (Get-FileFingerprint $provenProvision.SourceFixturePath) -ceq $publishedSourceFingerprint -and
             (Get-FileFingerprint $provenProvision.SliceCFixturePath) -ceq $publishedSliceCFingerprint -and
@@ -1734,6 +2022,9 @@ try {
                 [string]::IsNullOrWhiteSpace([string]$legacyProperty.Value)
             ) 'Fresh cleanup child must not inherit legacy Slice C fixture, contact, mode or evidence environment variables.'
         }
+        Assert-True (
+            [string]::IsNullOrWhiteSpace([string]$cleanupObservation.undeclaredLegacySentinel)
+        ) 'Fresh cleanup child must not inherit an undeclared P7_2_SLICE_C legacy sentinel.'
         Assert-True (Test-Path -LiteralPath $successfulCleanup.RestorationObservationPath -PathType Leaf) 'Synthetic cleanup runner must observe the post-finally environment state.'
         $restoredCleanupEnvironment = [IO.File]::ReadAllText($successfulCleanup.RestorationObservationPath, [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
         foreach ($environmentName in $freshEnvironmentNames) {
@@ -1796,6 +2087,53 @@ try {
         Assert-True (
             $invalidPostChildLedger.schemaVersion -eq 1
         ) 'Cleanup regression must prove the parent observed the child-replaced invalid ledger rather than a stale baseline.'
+
+        # 第二個獨立 fresh graph 將 cleanup child 的 final ledger 維持為完整 v2，但修改 provision
+        # snapshot 的 original target-leader baseline。這不是 schema 損壞而是跨 child transaction
+        # tampering；parent 必須回報專屬 cleanup failure，且不得移除 descriptors 或唯一 recovery ledger。
+        $alteredBaselineProvision = Invoke-SyntheticFreshProvision `
+            -Scenario 'fresh-graph-proven' `
+            -TemporaryRoot $fixtureRoot `
+            -RepositoryPath $repositoryPath `
+            -ProfilePath $profilePath `
+            -SourceFixturePath $sourceFixturePath `
+            -SliceCFixturePath $sliceCFixturePath `
+            -OwnerIdentity $identity
+        Assert-True (
+            $alteredBaselineProvision.Result.ExitCode -eq 0 -and
+            $alteredBaselineProvision.Result.Evidence.outcome -eq 'go'
+        ) 'Altered post-cleanup baseline regression requires an independently proven fresh fixture.'
+        $alteredBaselineLedgerPath = Join-Path `
+            ([string]$alteredBaselineProvision.LocalAppDataRoot) `
+            'SpeechMessage\Dynamics\P7.2\FreshSliceC\fresh-slice-c-ledger.json'
+        $alteredBaselineSourceFingerprint = Get-FileFingerprint $alteredBaselineProvision.SourceFixturePath
+        $alteredBaselineSliceCFingerprint = Get-FileFingerprint $alteredBaselineProvision.SliceCFixturePath
+        $alteredBaselineCleanup = Invoke-SyntheticFreshCleanup `
+            -ProvisionScenario $alteredBaselineProvision `
+            -RepositoryPath $repositoryPath `
+            -ProfilePath $profilePath `
+            -OwnerIdentity $identity `
+            -Scenario 'altered-post-child-original-baseline'
+        Assert-True (
+            $alteredBaselineCleanup.Result.ExitCode -eq 2 -and
+            $alteredBaselineCleanup.Result.Evidence.outcome -eq 'no-go' -and
+            $alteredBaselineCleanup.Result.Evidence.reason -eq 'fresh-fixture-ledger-cleanup-failed' -and
+            $alteredBaselineCleanup.Result.Evidence.operationExecuted -and
+            -not $alteredBaselineCleanup.Result.Evidence.safeToRetry
+        ) 'A valid v2 post-cleanup ledger with an altered original baseline must fail closed.'
+        Assert-True (
+            (Get-FileFingerprint $alteredBaselineProvision.SourceFixturePath) -ceq $alteredBaselineSourceFingerprint -and
+            (Get-FileFingerprint $alteredBaselineProvision.SliceCFixturePath) -ceq $alteredBaselineSliceCFingerprint -and
+            (Test-Path -LiteralPath $alteredBaselineLedgerPath -PathType Leaf)
+        ) 'Altered post-cleanup baseline must retain both descriptors and its recovery ledger.'
+        $alteredBaselineLedger = [IO.File]::ReadAllText(
+            $alteredBaselineLedgerPath,
+            [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+        Assert-True (
+            $alteredBaselineLedger.schemaVersion -is [int] -and
+            $alteredBaselineLedger.schemaVersion -eq 2 -and
+            $alteredBaselineLedger.originalTargetLeaderContactId -eq 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
+        ) 'The cleanup assertion must observe the child-written valid v2 ledger rather than a cached pre-cleanup value.'
     }
     finally {
         Restore-ProcessEnvironmentSnapshot $environmentSnapshot

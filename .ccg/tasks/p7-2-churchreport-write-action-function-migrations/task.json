@@ -5,8 +5,9 @@
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "P7.2 Slice A live evidence 已完成：CE 9.1 Data8 sentinel confirmed、cleanup restored、feature flag unchanged。重跑完整 Slice A quality gate並更新 review；之後依 matrix 規劃與實作 Slice B。sunnyvalechback 與 jesus 均有全資料庫研發 CRUD 授權，但 CE 8.2 operation 只有 matrix required 時才執行",
+  "currentPhase": "planning",
+  "lastLiveResult": "2026-08-11: FreshPreflightProbe local control plane passed C# focused tests (34 passed, 2 privilege-limited skips), main PowerShell contract (222 assertions), fresh-fixture contract (623 assertions), Release build (0 warnings, 0 errors), serial solution tests (1271 passed, 21 explicit live/environment skips, 0 failed), and P7.2 validator contracts (6/6). No CE call occurred during these gates; one read-only probe remains pending.",
+  "nextAction": "依使用者的自治授權，新增並以 TDD 驗證 Slice C FreshPreflightProbe；它僅讀 crm91/Data8/CE 9.1 的 fixed WhoAmI/Retrieve/RetrieveMultiple projections，零 mutation、零 ledger/descriptor publication。完成本機品質與限時審查後只執行一次唯讀 probe；除非該 probe 充分證明前置條件實質改變，否則不得重試 provision 或開始後續 Slice。",
   "createdAt": "2026-08-08T00:00:00Z",
   "branch": "1.0.0.3.Gateway&Embedded.Worktree"
 }

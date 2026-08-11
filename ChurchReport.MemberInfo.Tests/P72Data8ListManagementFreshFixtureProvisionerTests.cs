@@ -545,6 +545,375 @@ public sealed class P72Data8ListManagementFreshFixtureProvisionerTests
     }
 
     /// <summary>
+    /// 保護 fresh provision 前的純唯讀診斷契約：五個 operational list、task-marked leader、
+    /// active non-service systemuser owner 與唯一 weekly report 都完整投影時，probe 才可回傳
+    /// 去識別化 <c>go</c>。故障注入使用完全離線的固定 service；決定性 assertions 是每個
+    /// classification 都是固定字彙，且 Create、Update、Execute、Delete、Associate、
+    /// Disassociate 與 ledger 都維持零，防止診斷意外成為新的寫入控制面。
+    /// </summary>
+    [Fact]
+    public void Fresh_preflight_probe_returns_go_only_for_the_complete_read_only_projection()
+    {
+        using var service = new FreshPreflightProbeService(FreshPreflightProbeScenario.Valid);
+        var probe = new P72FreshSliceCFixturePreflightProbe(service);
+
+        var result = probe.Probe(CreateFreshPreflightRequest());
+
+        result.Outcome.Should().Be("go");
+        result.Reason.Should().Be("fresh-preconditions-proven");
+        result.ReadOnlyProbeExecuted.Should().BeTrue();
+        result.RequestShape.Should().Be("valid");
+        result.OperationalLists.Should().Be("valid");
+        result.LeaderMarker.Should().Be("valid");
+        result.OwnerKind.Should().Be("systemuser");
+        result.OwnerState.Should().Be("active");
+        result.OwnerRelation.Should().Be("different-from-data8");
+        result.WeeklyReport.Should().Be("exactly-one-active");
+        service.MutationAttemptCount.Should().Be(0);
+        service.RetrieveMultipleCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護每個 fresh-provision 前置條件都能以 bounded、去識別化分類指出失敗 stage，而不需要
+    /// 掃描 CRM、回傳 ID/名稱或嘗試補救。每個 scenario 僅改變一份 test-local 投影；決定性
+    /// assertions 是 probe 保持 read-only、reason 固定為 <c>fresh-preconditions-not-proven</c>，
+    /// 且所有禁止 mutation 的計數均為零。
+    /// </summary>
+    /// <param name="scenario">唯一被破壞的固定 remote projection。</param>
+    /// <param name="expectedField">預期要反映失敗的 sanitized result property 名稱。</param>
+    /// <param name="expectedValue">該 property 的固定 deidentified failure category。</param>
+    [Theory]
+    [InlineData(FreshPreflightProbeScenario.InvalidOperationalList, nameof(P72FreshSliceCFixturePreflightProbeResult.OperationalLists), "invalid")]
+    [InlineData(FreshPreflightProbeScenario.InvalidLeaderMarker, nameof(P72FreshSliceCFixturePreflightProbeResult.LeaderMarker), "invalid")]
+    [InlineData(FreshPreflightProbeScenario.OwnerIsNotSystemUser, nameof(P72FreshSliceCFixturePreflightProbeResult.OwnerKind), "other-or-missing")]
+    [InlineData(FreshPreflightProbeScenario.OwnerIsDisabled, nameof(P72FreshSliceCFixturePreflightProbeResult.OwnerState), "inactive-or-missing")]
+    [InlineData(FreshPreflightProbeScenario.OwnerEqualsData8User, nameof(P72FreshSliceCFixturePreflightProbeResult.OwnerRelation), "same-as-data8")]
+    [InlineData(FreshPreflightProbeScenario.WeeklyReportIsNotUnique, nameof(P72FreshSliceCFixturePreflightProbeResult.WeeklyReport), "not-exactly-one-active")]
+    public void Fresh_preflight_probe_classifies_each_unproven_remote_precondition_without_mutation(
+        FreshPreflightProbeScenario scenario,
+        string expectedField,
+        string expectedValue)
+    {
+        using var service = new FreshPreflightProbeService(scenario);
+        var probe = new P72FreshSliceCFixturePreflightProbe(service);
+
+        var result = probe.Probe(CreateFreshPreflightRequest());
+
+        result.Outcome.Should().Be("no-go");
+        result.Reason.Should().Be("fresh-preconditions-not-proven");
+        result.ReadOnlyProbeExecuted.Should().BeTrue();
+        result.GetType().GetProperty(expectedField)!.GetValue(result).Should().Be(expectedValue);
+        service.MutationAttemptCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護 local descriptor shape 在第一個 CRM read 前被拒絕。此測試以空 add-list ID 模擬
+    /// descriptor 破損；決定性 assertions 是固定 input-failure category、零 read、零 mutation
+    /// 與所有未曾驗證的 remote categories 都維持 unavailable，避免 partial state 被錯當成寫入
+    /// 授權或跨 invocation 快取。
+    /// </summary>
+    [Fact]
+    public void Fresh_preflight_probe_rejects_invalid_descriptor_shape_before_any_remote_call()
+    {
+        using var service = new FreshPreflightProbeService(FreshPreflightProbeScenario.Valid);
+        var probe = new P72FreshSliceCFixturePreflightProbe(service);
+        var invalidRequest = CreateFreshPreflightRequest() with { AddListId = Guid.Empty };
+
+        var result = probe.Probe(invalidRequest);
+
+        result.Outcome.Should().Be("no-go");
+        result.Reason.Should().Be("probe-input-invalid");
+        result.ReadOnlyProbeExecuted.Should().BeFalse();
+        result.RequestShape.Should().Be("invalid");
+        result.OperationalLists.Should().Be("unavailable");
+        result.LeaderMarker.Should().Be("unavailable");
+        result.OwnerKind.Should().Be("unavailable");
+        result.OwnerState.Should().Be("unavailable");
+        result.OwnerRelation.Should().Be("unavailable");
+        result.WeeklyReport.Should().Be("unavailable");
+        service.RetrieveCount.Should().Be(0);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.MutationAttemptCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護 direct read 的 transport/projection exception 不得洩漏例外內容或變成部分成功證據。
+    /// fault injection 只在此 test-local fake 的第一個 Retrieve 發生；決定性 assertions 是固定
+    /// <c>probe-unavailable</c>、所有 remote category unavailable、零 mutation，以及無 ledger
+    /// 物件可被寫入或發布。
+    /// </summary>
+    [Fact]
+    public void Fresh_preflight_probe_fails_closed_when_a_read_projection_is_unavailable()
+    {
+        using var service = new FreshPreflightProbeService(FreshPreflightProbeScenario.RetrieveThrows);
+        var probe = new P72FreshSliceCFixturePreflightProbe(service);
+
+        var result = probe.Probe(CreateFreshPreflightRequest());
+
+        result.Outcome.Should().Be("no-go");
+        result.Reason.Should().Be("probe-unavailable");
+        result.ReadOnlyProbeExecuted.Should().BeFalse();
+        result.RequestShape.Should().Be("valid");
+        result.OperationalLists.Should().Be("unavailable");
+        result.LeaderMarker.Should().Be("unavailable");
+        result.OwnerKind.Should().Be("unavailable");
+        result.OwnerState.Should().Be("unavailable");
+        result.OwnerRelation.Should().Be("unavailable");
+        result.WeeklyReport.Should().Be("unavailable");
+        service.MutationAttemptCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 建立所有 remote precondition 都合法的固定 fresh probe input。GUID 與 UTC Sunday 都是 unit-test
+    /// constants，沒有 descriptor、Data8 profile、credential 或 CRM state 會離開該 test invocation；
+    /// production probe 仍只接受 parent 驗證後的 deployment-owned descriptor scalars。
+    /// </summary>
+    /// <returns>完整且不含 nonce/ledger/mutation selector 的 read-only probe request。</returns>
+    private static P72FreshSliceCFixturePreflightRequest CreateFreshPreflightRequest()
+        => new(
+            AddListId,
+            RemoveListId,
+            SmallGroupListId,
+            ExistingLeaderContactId,
+            TransferSourceListId,
+            TransferTargetListId,
+            new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero),
+            Data8ServiceUserId);
+
+    /// <summary>
+    /// 定義 fresh preflight probe test-local service 可注入的唯一投影差異。此 enum 不會出現在
+    /// production API、PowerShell environment 或 evidence；它只讓離線 regression tests 可以逐一
+    /// 證明每個 no-go branch 不會送出任何 remote mutation。
+    /// </summary>
+    public enum FreshPreflightProbeScenario
+    {
+        /// <summary>所有固定 remote precondition 都有效。</summary>
+        Valid,
+
+        /// <summary>五個 reused list 中一個不再是 task-owned static contact list。</summary>
+        InvalidOperationalList,
+
+        /// <summary>descriptor-bound leader 不再具有 P7.2-SC task marker。</summary>
+        InvalidLeaderMarker,
+
+        /// <summary>leader owner reference 不是 systemuser。</summary>
+        OwnerIsNotSystemUser,
+
+        /// <summary>leader owner systemuser 處於 disabled 狀態。</summary>
+        OwnerIsDisabled,
+
+        /// <summary>leader owner 與 deployment-owned Data8 WhoAmI user 相同。</summary>
+        OwnerEqualsData8User,
+
+        /// <summary>fixed target-list/Sunday query 不再恰好回傳一筆 active weekly report。</summary>
+        WeeklyReportIsNotUnique,
+
+        /// <summary>第一個 direct Retrieve 發生 transport/projection fault。</summary>
+        RetrieveThrows
+    }
+
+    /// <summary>
+    /// 模擬 fresh preflight probe 可看見的最小、固定 CRM read surface。此替身只支援五個
+    /// descriptor-bound operational list、leader、owner 與 bounded weekly-report query；沒有
+    /// 查詢列舉、cache、static mutable state、credential 或背景工作。每個 instance 屬於單一測試
+    /// using scope，Dispose 後所有 read/mutation 都 fail closed，避免測試替身掩蓋跨使用者、
+    /// 跨 profile 或跨 invocation 的 session/resource reuse。
+    /// </summary>
+    private sealed class FreshPreflightProbeService : IOrganizationService, IDisposable
+    {
+        private readonly FreshPreflightProbeScenario _scenario;
+        private readonly Guid _ownerId;
+        private bool _disposed;
+
+        /// <summary>
+        /// 建立單一指定 projection fault 的離線 read-only service。owner ID 僅是 test 常數：只有
+        /// same-as-Data8 scenario 使用 Data8 service-user constant，其餘情況使用 distinct baseline
+        /// owner，故無任何 caller-provided CRM identity、環境變數或 shared fixture state。
+        /// </summary>
+        /// <param name="scenario">本 instance 唯一要模擬的 bounded precondition 差異。</param>
+        internal FreshPreflightProbeService(FreshPreflightProbeScenario scenario)
+        {
+            _scenario = scenario;
+            _ownerId = scenario == FreshPreflightProbeScenario.OwnerEqualsData8User
+                ? Data8ServiceUserId
+                : BaselineOwnerId;
+        }
+
+        /// <summary>取得本 instance 已執行的 exact-ID Retrieve 次數；僅用於斷言 invalid local shape 不做 remote I/O。</summary>
+        internal int RetrieveCount { get; private set; }
+
+        /// <summary>取得本 instance 已執行的 bounded RetrieveMultiple 次數；正常 probe 最多可為一。</summary>
+        internal int RetrieveMultipleCount { get; private set; }
+
+        /// <summary>
+        /// 取得所有禁止 remote mutation 的嘗試次數。任何 Create、Update、Delete、Execute、
+        /// Associate 或 Disassociate 都會先增加此 test-local counter 再拋出，因此上層即使錯誤
+        /// 處理例外，也無法讓 zero-mutation contract 被誤判為 green。
+        /// </summary>
+        internal int MutationAttemptCount { get; private set; }
+
+        /// <summary>
+        /// 回傳 fixed exact-ID projections 並檢查每個 ColumnSet。這會鎖定 probe 不得讀取任意欄位、
+        /// 不得以名稱搜尋或將 descriptor IDs 替換成全組織 scan；回傳 Entity 僅在呼叫端 method
+        /// scope 存活，沒有資料會被此 service 快取或跨 test 保留。
+        /// </summary>
+        /// <param name="entityName">只允許 list、contact 或 systemuser 的固定 logical name。</param>
+        /// <param name="id">只允許本檔宣告的 descriptor-bound test ID。</param>
+        /// <param name="columnSet">呼叫端宣告的 fixed bounded projection。</param>
+        /// <returns>對應 scenario 的 isolated synthetic entity。</returns>
+        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet)
+        {
+            ThrowIfDisposed();
+            ArgumentNullException.ThrowIfNull(columnSet);
+            RetrieveCount++;
+            if (_scenario == FreshPreflightProbeScenario.RetrieveThrows)
+            {
+                throw new TimeoutException("Synthetic read-only probe transport failure.");
+            }
+
+            if (string.Equals(entityName, "list", StringComparison.Ordinal) && IsOperationalList(id))
+            {
+                RequireColumns(columnSet, "listname", "type", "createdfromcode");
+                return new Entity("list", id)
+                {
+                    ["listname"] = "P7.2-SC-OPERATIONS",
+                    ["type"] = _scenario == FreshPreflightProbeScenario.InvalidOperationalList && id == AddListId,
+                    ["createdfromcode"] = new OptionSetValue(2)
+                };
+            }
+
+            if (string.Equals(entityName, "contact", StringComparison.Ordinal) && id == ExistingLeaderContactId)
+            {
+                RequireColumns(columnSet, "fullname", "ownerid");
+                return new Entity("contact", id)
+                {
+                    ["fullname"] = _scenario == FreshPreflightProbeScenario.InvalidLeaderMarker
+                        ? "NOT-A-TASK-MARKER"
+                        : "P7.2-SC-EXISTING-LEADER",
+                    ["ownerid"] = new EntityReference(
+                        _scenario == FreshPreflightProbeScenario.OwnerIsNotSystemUser ? "team" : "systemuser",
+                        _ownerId)
+                };
+            }
+
+            if (string.Equals(entityName, "systemuser", StringComparison.Ordinal) && id == _ownerId)
+            {
+                RequireColumns(columnSet, "isdisabled");
+                return new Entity("systemuser", id)
+                {
+                    ["isdisabled"] = _scenario == FreshPreflightProbeScenario.OwnerIsDisabled
+                };
+            }
+
+            throw new InvalidOperationException("The probe requested an entity outside its fixed read-only allowlist.");
+        }
+
+        /// <summary>
+        /// 回傳唯一允許的 weekly-report bounded query response。此替身拒絕錯 entity、TopCount、
+        /// column set 或 target-list/state/date filter，確保 probe 的 cardinality proof 不會變成
+        /// caller-selectable FetchXML、paging 或跨 fixture discovery。
+        /// </summary>
+        /// <param name="query">必須是固定 entity、fixed filters 與 TopCount=2 的 QueryExpression。</param>
+        /// <returns>正常時一筆，not-unique scenario 時兩筆的 test-local synthetic rows。</returns>
+        public EntityCollection RetrieveMultiple(QueryBase query)
+        {
+            ThrowIfDisposed();
+            RetrieveMultipleCount++;
+            if (_scenario == FreshPreflightProbeScenario.RetrieveThrows)
+            {
+                throw new TimeoutException("Synthetic read-only probe query failure.");
+            }
+
+            query.Should().BeOfType<QueryExpression>();
+            var expression = (QueryExpression)query;
+            expression.EntityName.Should().Be("new_group_present_weekly_report");
+            expression.TopCount.Should().Be(2);
+            RequireColumns(expression.ColumnSet, "new_group_present_weekly_reportid");
+            RequireEqualCondition(expression, "new_list_group_present_weekly_report", TransferTargetListId);
+            RequireEqualCondition(expression, "statecode", 0);
+            var sundayCondition = expression.Criteria.Conditions.Single(condition =>
+                string.Equals(condition.AttributeName, "new_sunday_date", StringComparison.Ordinal));
+            sundayCondition.Operator.Should().Be(ConditionOperator.Equal);
+            sundayCondition.Values.Should().ContainSingle();
+            sundayCondition.Values[0].Should().BeOfType<DateTime>().Which.Should().Be(
+                new DateTime(2026, 8, 9, 0, 0, 0, DateTimeKind.Utc));
+
+            var rows = new EntityCollection();
+            if (_scenario != FreshPreflightProbeScenario.WeeklyReportIsNotUnique)
+            {
+                rows.Entities.Add(new Entity("new_group_present_weekly_report", WeeklyReportId));
+                return rows;
+            }
+
+            rows.Entities.Add(new Entity("new_group_present_weekly_report", WeeklyReportId));
+            rows.Entities.Add(new Entity("new_group_present_weekly_report", Guid.Parse("dddddddd-3333-3333-3333-333333333333")));
+            return rows;
+        }
+
+        /// <summary>任何 Create 都違反 probe read-only boundary，故紀錄後立即失敗。</summary>
+        public Guid Create(Entity entity) => ThrowUnexpectedMutation<Guid>();
+
+        /// <summary>任何 Update 都違反 probe read-only boundary，故紀錄後立即失敗。</summary>
+        public void Update(Entity entity) => ThrowUnexpectedMutation<object?>();
+
+        /// <summary>任何 Delete 都違反 probe read-only boundary，故紀錄後立即失敗。</summary>
+        public void Delete(string entityName, Guid id) => ThrowUnexpectedMutation<object?>();
+
+        /// <summary>任何 Execute（含 Assign 或 list membership action）都違反 probe read-only boundary。</summary>
+        public OrganizationResponse Execute(OrganizationRequest request) => ThrowUnexpectedMutation<OrganizationResponse>();
+
+        /// <summary>任何 Associate 都違反 probe read-only boundary，故紀錄後立即失敗。</summary>
+        public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities)
+            => ThrowUnexpectedMutation<object?>();
+
+        /// <summary>任何 Disassociate 都違反 probe read-only boundary，故紀錄後立即失敗。</summary>
+        public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities)
+            => ThrowUnexpectedMutation<object?>();
+
+        /// <summary>
+        /// 釋放本 test-local fake 的唯一 owner。它沒有可重用 client、cache、timer、subscription 或
+        /// background work；清除 disposed state 後所有後續使用都會失敗，以模擬 request-scoped
+        /// Data8 service 不可跨 invocation reuse 的生命週期保證。
+        /// </summary>
+        public void Dispose() => _disposed = true;
+
+        /// <summary>判斷 id 是否為本 probe 固定重用的五個 list 之一。</summary>
+        private static bool IsOperationalList(Guid id)
+            => id == AddListId ||
+               id == RemoveListId ||
+               id == SmallGroupListId ||
+               id == TransferSourceListId ||
+               id == TransferTargetListId;
+
+        /// <summary>要求 bounded column projection 完全等於 expected allowlist。</summary>
+        private static void RequireColumns(ColumnSet columnSet, params string[] expectedColumns)
+        {
+            columnSet.AllColumns.Should().BeFalse();
+            columnSet.Columns.Should().BeEquivalentTo(expectedColumns);
+        }
+
+        /// <summary>要求 query 帶有一個 exact scalar Equal filter。</summary>
+        private static void RequireEqualCondition(QueryExpression query, string attributeName, object expectedValue)
+        {
+            query.Criteria.Conditions.Should().ContainSingle(condition =>
+                string.Equals(condition.AttributeName, attributeName, StringComparison.Ordinal) &&
+                condition.Operator == ConditionOperator.Equal &&
+                condition.Values.Count == 1 &&
+                Equals(condition.Values[0], expectedValue));
+        }
+
+        /// <summary>記錄任何違反 read-only contract 的 mutation，接著以固定測試例外停止流程。</summary>
+        private T ThrowUnexpectedMutation<T>()
+        {
+            MutationAttemptCount++;
+            throw new InvalidOperationException("The fresh preflight probe attempted a prohibited CRM mutation.");
+        }
+
+        /// <summary>拒絕已 disposed test service 的後續使用，避免測試遮蔽資源生命週期缺陷。</summary>
+        private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
+    }
+
+    /// <summary>
     /// 模擬 provision child 所見的最小、固定且已由 descriptor 綁定的 CRM 投影。
     /// 這個替身只允許五個 static contact list、task-marked leader、其 active owner 與一個
     /// bounded weekly report；任何寫入 API 都會同步遞增計數。服務的生命週期只屬於本測試 using

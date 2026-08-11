@@ -140,6 +140,16 @@ public sealed class LivePackage02Data8ListManagementFreshFixtureTests
                     reason,
                     operationExecuted,
                     descriptorPublicationReady));
+            if (outcome == "no-go")
+            {
+                // 診斷檔僅供 parent 在 nonzero exit 後顯示固定失敗分類，不能作為 evidence 或
+                // 重試/cleanup 授權。它與目前 invocation 的 temporary root 共用 owner，並在
+                // parent finally 清除，故不會跨 child、profile 或使用者 session 保留狀態。
+                P72FreshSliceCFixtureLiveEvidence.TryWriteDiagnostic(
+                    environment.DiagnosticPath,
+                    environment.EvidenceRoot,
+                    reason);
+            }
         }
 
         outcome.Should().Be(
@@ -168,10 +178,20 @@ public sealed class LivePackage02Data8ListManagementFreshFixtureTests
             throw new InvalidOperationException("The fresh-fixture owner is invalid.");
         }
 
+        // parent 是 ledger root 的唯一建立與 finally cleanup owner。先在所有 credential/runtime/CE
+        // 路徑之前拒絕不存在或 reparse root，避免 child 將失效 invocation 的 local path 變成可保留的
+        // recovery state；此檢查沒有建立目錄、讀取密碼或進行任何遠端 I/O。
+        var ledgerRoot = ReadRequiredText("P7_2_SLICE_C_FRESH_LEDGER_ROOT", maximumLength: 1024);
+        if (!P72FreshSliceCFixtureParentOwnedRootGate.IsExistingNonReparseDirectory(ledgerRoot))
+        {
+            throw new InvalidOperationException("The fresh-fixture ledger root is invalid.");
+        }
+
         return new FreshProvisionEnvironment(
-            ReadRequiredText("P7_2_SLICE_C_FRESH_LEDGER_ROOT", maximumLength: 1024),
+            ledgerRoot,
             ReadRequiredText("P7_2_SLICE_C_FRESH_LEDGER_PATH", maximumLength: 1024),
             ReadRequiredText("P7_2_SLICE_C_FRESH_EVIDENCE_PATH", maximumLength: 1024),
+            ReadRequiredText("P7_2_SLICE_C_FRESH_DIAGNOSTIC_PATH", maximumLength: 1024),
             owner,
             ReadGuid("P7_2_SLICE_C_FRESH_NONCE"),
             ReadGuid("P7_2_SLICE_C_FRESH_ADD_LIST_ID"),
@@ -317,6 +337,7 @@ public sealed class LivePackage02Data8ListManagementFreshFixtureTests
         string LedgerRoot,
         string LedgerPath,
         string EvidencePath,
+        string DiagnosticPath,
         string OwnerIdentity,
         Guid Nonce,
         Guid AddListId,

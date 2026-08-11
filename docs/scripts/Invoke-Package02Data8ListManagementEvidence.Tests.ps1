@@ -40,7 +40,7 @@ function Assert-StrictTextFile {
         Assert-True ($bytes.Length -gt 0) 'Checked file must not be empty.'
         Assert-True (-not ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)) 'Checked file must not contain a UTF-8 BOM.'
         $text = [Text.UTF8Encoding]::new($false, $true).GetString($bytes)
-        Assert-True (-not [Regex]::IsMatch($text, '(?<!\r)\n')) 'Checked file must use CRLF-only line endings.'
+        Assert-True (-not [Regex]::IsMatch($text, '(?<!\r)\n|\r(?!\n)')) 'Checked file must use CRLF-only line endings.'
         Assert-True $text.EndsWith("`r`n", [StringComparison]::Ordinal) 'Checked file must end with a final CRLF.'
     }
     finally {
@@ -77,7 +77,8 @@ function Invoke-RunnerJson {
         [switch] $ExecuteFixture,
         [switch] $ReconcileFixture,
         [switch] $RepairFixture,
-        [switch] $RepairProbe
+        [switch] $RepairProbe,
+        [switch] $FreshPreflightProbe
     )
 
     $arguments = @(
@@ -99,6 +100,9 @@ function Invoke-RunnerJson {
     }
     if ($RepairProbe) {
         $arguments += '-RepairProbe'
+    }
+    if ($FreshPreflightProbe) {
+        $arguments += '-FreshPreflightProbe'
     }
 
     $previous = $ErrorActionPreference
@@ -535,13 +539,27 @@ try {
         -not $repairProbeCredentialMissing.Evidence.featureFlagChanged -and
         $repairProbeCredentialMissing.Evidence.safeToRetry -eq $false) 'Repair probe credential failure must remain no-go, mutation-free, and non-retryable.'
 
+    # Fresh preflight probe 是獨立的 read-only child lane；缺少 credential 時仍必須在 child、
+    # ledger、descriptor publication 或任何 CRM mutation 前停止。它不能因為名稱帶有 preflight
+    # 就退回普通預檢模式，否則 caller 會誤把未執行的 CE proof 當作條件已改變。
+    $freshPreflightProbeCredentialMissing = Invoke-RunnerJson $missingCredentialRunner $testRepository $profilePath $sourceFixturePath $sliceCFixturePath -FreshPreflightProbe
+    Assert-True ($freshPreflightProbeCredentialMissing.ExitCode -eq 2 -and $freshPreflightProbeCredentialMissing.Evidence.reason -eq 'credential-unavailable') 'Fresh preflight probe missing credential must fail closed before child launch.'
+    Assert-True (-not $freshPreflightProbeCredentialMissing.Evidence.preflightOnly -and
+        -not $freshPreflightProbeCredentialMissing.Evidence.operationExecuted -and
+        -not $freshPreflightProbeCredentialMissing.Evidence.featureFlagChanged -and
+        $freshPreflightProbeCredentialMissing.Evidence.safeToRetry -eq $false) 'Fresh preflight credential failure must remain a zero-mutation, non-retryable no-go.'
+
     foreach ($modeArguments in @(
         @('-ExecuteFixture', '-ReconcileFixture'),
         @('-ExecuteFixture', '-RepairFixture'),
         @('-ExecuteFixture', '-RepairProbe'),
+        @('-ExecuteFixture', '-FreshPreflightProbe'),
         @('-ReconcileFixture', '-RepairFixture'),
         @('-ReconcileFixture', '-RepairProbe'),
-        @('-RepairFixture', '-RepairProbe'))) {
+        @('-ReconcileFixture', '-FreshPreflightProbe'),
+        @('-RepairFixture', '-RepairProbe'),
+        @('-RepairFixture', '-FreshPreflightProbe'),
+        @('-RepairProbe', '-FreshPreflightProbe'))) {
         $pairBinderFailure = Invoke-RunnerBinderFailure `
             $runnerPath `
             $testRepository `
@@ -647,10 +665,12 @@ try {
 
     Import-ScriptFunction $runnerPath 'New-HandoffResult'
     Import-ScriptFunction $runnerPath 'Read-StrictJsonFile'
+    Import-ScriptFunction $runnerPath 'Read-StrictTextFile'
     Import-ScriptFunction $runnerPath 'Get-StrictSliceCEvidenceFile'
     Import-ScriptFunction $runnerPath 'Get-StrictSliceCReconciliationEvidenceFile'
     Import-ScriptFunction $runnerPath 'Get-StrictSliceCRepairEvidenceFile'
     Import-ScriptFunction $runnerPath 'Get-StrictSliceCRepairProbeEvidenceFile'
+    Import-ScriptFunction $runnerPath 'Get-StrictFreshPreflightProbeEvidenceFile'
     Import-ScriptFunction $runnerPath 'Remove-OwnedSliceCTemporaryDirectory'
     Import-ScriptFunction $runnerPath 'New-TemporaryCleanupFailureResult'
     Import-ScriptFunction $runnerPath 'Complete-HandoffResult'
@@ -691,6 +711,38 @@ try {
     Write-StrictJsonFile $evidencePath $validEvidence
     $parsed = Get-StrictSliceCEvidenceFile $evidencePath
     Assert-True ($parsed.outcome -eq 'go' -and @($parsed.operations).Count -eq 5) 'Strict parser must accept the exact five-operation sanitized evidence file.'
+
+    # JSON 規範允許單獨 CR 作為 whitespace；若 strict reader 僅拒絕 bare LF，便會把非 CRLF-only
+    # descriptor 當成有效控制平面輸入。以下以仍保有 final CRLF 的最小 JSON 注入 standalone CR，
+    # 兩個 reader 都必須在任何 schema 或 descriptor 消費前回傳固定 failure reason。
+    $embeddedStandaloneCrPath = Join-Path $fixtureRoot 'embedded-standalone-cr.json'
+    [IO.File]::WriteAllText(
+        $embeddedStandaloneCrPath,
+        "{`r`"schemaVersion`":1}`r`n",
+        [Text.UTF8Encoding]::new($false))
+    $embeddedStandaloneCrFailure = 'embedded-standalone-cr-rejected'
+    $jsonStandaloneCrRejected = $false
+    try {
+        $null = Read-StrictJsonFile `
+            -Path $embeddedStandaloneCrPath `
+            -MaximumBytes 1024 `
+            -FailureReason $embeddedStandaloneCrFailure `
+            -RequireFinalCrLf
+    }
+    catch {
+        $jsonStandaloneCrRejected = $_.Exception.Message -eq $embeddedStandaloneCrFailure
+    }
+    $textStandaloneCrRejected = $false
+    try {
+        $null = Read-StrictTextFile `
+            -Path $embeddedStandaloneCrPath `
+            -MaximumBytes 1024 `
+            -FailureReason $embeddedStandaloneCrFailure
+    }
+    catch {
+        $textStandaloneCrRejected = $_.Exception.Message -eq $embeddedStandaloneCrFailure
+    }
+    Assert-True ($jsonStandaloneCrRejected -and $textStandaloneCrRejected) 'Strict local readers must reject embedded standalone CR even when the file ends in CRLF.'
 
     $repairEvidencePath = Join-Path $fixtureRoot 'strict-slice-c-repair-evidence.json'
     $validRepairEvidence = [ordered]@{
@@ -776,6 +828,64 @@ try {
         $mutatingProbeRejected = $_.Exception.Message -eq 'evidence-result-unavailable'
     }
     Assert-True $mutatingProbeRejected 'Strict probe parser must reject operationExecuted=true.'
+
+    # Fresh preflight probe 的 wire schema 必須獨立於 stale relationship RepairProbe。此合成
+    # evidence 只使用固定分類；決定性 assertions 是 parser 接受完整 read-only go projection，
+    # 但拒絕多餘欄位、任何 mutation/feature flag bit，以及會將 CRM identity 混入 evidence 的
+    # caller-controlled text。檔案與 byte buffer 都是 temporary-root owned，finally 會刪除。
+    $freshPreflightProbeEvidencePath = Join-Path $fixtureRoot 'strict-fresh-preflight-probe-evidence.json'
+    $validFreshPreflightProbeEvidence = [ordered]@{
+        schemaVersion = 1
+        outcome = 'go'
+        reason = 'fresh-preconditions-proven'
+        profileAlias = $global:expectedProfileAlias
+        deploymentProfileAlias = $global:expectedDeploymentProfileAlias
+        ceVersion = '9.1'
+        connector = 'Data8'
+        preflightOnly = $false
+        operationExecuted = $false
+        readOnlyProbeExecuted = $true
+        featureFlagChanged = $false
+        probe = [ordered]@{
+            requestShape = 'valid'
+            operationalLists = 'valid'
+            leaderMarker = 'valid'
+            ownerKind = 'systemuser'
+            ownerState = 'active'
+            ownerRelation = 'different-from-data8'
+            weeklyReport = 'exactly-one-active'
+        }
+    }
+    Write-StrictJsonFile $freshPreflightProbeEvidencePath $validFreshPreflightProbeEvidence
+    $parsedFreshPreflightProbe = Get-StrictFreshPreflightProbeEvidenceFile $freshPreflightProbeEvidencePath
+    Assert-True ($parsedFreshPreflightProbe.outcome -eq 'go' -and
+        $parsedFreshPreflightProbe.reason -eq 'fresh-preconditions-proven' -and
+        $parsedFreshPreflightProbe.readOnlyProbeExecuted -and
+        $parsedFreshPreflightProbe.probe.ownerRelation -eq 'different-from-data8') 'Strict fresh preflight parser must accept only the complete fixed read-only go projection.'
+
+    $extraFreshPreflightProperty = $validFreshPreflightProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $extraFreshPreflightProperty.probe | Add-Member -NotePropertyName crmId -NotePropertyValue '11111111-1111-1111-1111-111111111111'
+    Write-StrictJsonFile $freshPreflightProbeEvidencePath $extraFreshPreflightProperty
+    $extraFreshPreflightPropertyRejected = $false
+    try {
+        [void](Get-StrictFreshPreflightProbeEvidenceFile $freshPreflightProbeEvidencePath)
+    }
+    catch {
+        $extraFreshPreflightPropertyRejected = $_.Exception.Message -eq 'evidence-result-unavailable'
+    }
+    Assert-True $extraFreshPreflightPropertyRejected 'Fresh preflight parser must reject an extra CRM identity property.'
+
+    $mutatingFreshPreflightEvidence = $validFreshPreflightProbeEvidence | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $mutatingFreshPreflightEvidence.operationExecuted = $true
+    Write-StrictJsonFile $freshPreflightProbeEvidencePath $mutatingFreshPreflightEvidence
+    $mutatingFreshPreflightRejected = $false
+    try {
+        [void](Get-StrictFreshPreflightProbeEvidenceFile $freshPreflightProbeEvidencePath)
+    }
+    catch {
+        $mutatingFreshPreflightRejected = $_.Exception.Message -eq 'evidence-result-unavailable'
+    }
+    Assert-True $mutatingFreshPreflightRejected 'Fresh preflight parser must reject operationExecuted=true.'
 
     # child 的 process exit code 是 parent 的可信度邊界：即使 child 留下外觀正確的
     # evidence，非零結束仍可能代表部分 operation、cleanup 或 runtime fault，不能讓
