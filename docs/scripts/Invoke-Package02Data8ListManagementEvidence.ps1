@@ -59,6 +59,9 @@ param(
     [Parameter(ParameterSetName = 'FreshPreflightProbe')]
     [switch] $FreshPreflightProbe,
 
+    [Parameter(ParameterSetName = 'BootstrapFreshSeed')]
+    [switch] $BootstrapFreshSeed,
+
     [Parameter(ParameterSetName = 'ProvisionFresh')]
     [switch] $ProvisionFreshFixture,
 
@@ -90,14 +93,17 @@ $freshLedgerPath = $null
 $freshNonce = $null
 $freshLedgerBeforeCleanup = $null
 $freshOriginalTargetLeaderContactId = $null
+$freshSeedDescriptorPath = $null
+$freshSeedFixture = $null
 $isReconciliationMode = [bool]$ReconcileFixture
 $isRepairMode = [bool]$RepairFixture
 $isRepairProbeMode = [bool]$RepairProbe
 $isFreshPreflightProbeMode = [bool]$FreshPreflightProbe
+$isBootstrapFreshSeedMode = [bool]$BootstrapFreshSeed
 $isFreshProvisionMode = [bool]$ProvisionFreshFixture
 $isFreshCleanupMode = [bool]$CleanupFreshFixture
-$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe -or $FreshPreflightProbe -or $ProvisionFreshFixture -or $CleanupFreshFixture)
-$operationMayHaveExecuted = -not ($isReconciliationMode -or $isRepairMode -or $isRepairProbeMode -or $isFreshPreflightProbeMode)
+$liveModeRequested = [bool]($ExecuteFixture -or $ReconcileFixture -or $RepairFixture -or $RepairProbe -or $FreshPreflightProbe -or $BootstrapFreshSeed -or $ProvisionFreshFixture -or $CleanupFreshFixture)
+$operationMayHaveExecuted = -not ($isReconciliationMode -or $isRepairMode -or $isRepairProbeMode -or $isFreshPreflightProbeMode -or $isBootstrapFreshSeedMode)
 $previousEnvironment = @{}
 # legacy inventory 是 fresh child 的唯一 inherited Slice C state denylist；它同時餵給 snapshot、
 # fresh-mode clear 與 finally restore，避免 P7_2_ 或 SPEECHMESSAGE_ namespace 新增 key 時只更新其中
@@ -254,12 +260,14 @@ function New-HandoffResult {
     $repairVariable = Get-Variable -Name isRepairMode -Scope Script -ErrorAction SilentlyContinue
     $repairProbeVariable = Get-Variable -Name isRepairProbeMode -Scope Script -ErrorAction SilentlyContinue
     $freshPreflightProbeVariable = Get-Variable -Name isFreshPreflightProbeMode -Scope Script -ErrorAction SilentlyContinue
+    $bootstrapFreshSeedVariable = Get-Variable -Name isBootstrapFreshSeedMode -Scope Script -ErrorAction SilentlyContinue
     $freshProvisionVariable = Get-Variable -Name isFreshProvisionMode -Scope Script -ErrorAction SilentlyContinue
     $freshCleanupVariable = Get-Variable -Name isFreshCleanupMode -Scope Script -ErrorAction SilentlyContinue
     if (($null -ne $modeVariable -and [bool]$modeVariable.Value) -or
         ($null -ne $repairVariable -and [bool]$repairVariable.Value) -or
         ($null -ne $repairProbeVariable -and [bool]$repairProbeVariable.Value) -or
         ($null -ne $freshPreflightProbeVariable -and [bool]$freshPreflightProbeVariable.Value) -or
+        ($null -ne $bootstrapFreshSeedVariable -and [bool]$bootstrapFreshSeedVariable.Value) -or
         ($null -ne $freshProvisionVariable -and [bool]$freshProvisionVariable.Value) -or
         ($null -ne $freshCleanupVariable -and [bool]$freshCleanupVariable.Value)) {
         # 這個欄位由 parent mode 自己產生；child evidence 若攜帶同名欄位會被 strict parser 拒絕。
@@ -298,7 +306,8 @@ function New-HandoffResult {
                 'fresh-graph-unproven',
                 'provisioning-ambiguous',
                 'runtime-failure',
-                'cleanup-failure')) {
+                'cleanup-failure',
+                'live-evidence-incomplete')) {
             throw 'fresh-fixture-diagnostic-invalid'
         }
 
@@ -1103,6 +1112,253 @@ function Test-SliceCFixtureDescriptor {
     return $null -ne $SourceFixture -and (Test-NonEmptyGuid $SourceFixture.contactId)
 }
 
+function Test-FreshSliceCSeedDescriptor {
+    <#
+    .SYNOPSIS
+        驗證 current-user、task-owned 的 Slice C 靜態 seed，讓 fresh cycle 不會依賴上一輪已清理的輸出。
+
+    .DESCRIPTION
+        seed 只保存五個固定 list、baseline leader、UTC Sunday 與固定部署 metadata；它不含 source
+        contact、relationship-list、token、端點或任何 CRM systemuser authority。此函式只做本機 shape
+        驗證，必須在 Credential Manager 與 child process 之前執行；遠端 task ownership、owner 與週報
+        則仍由 read-only preflight 以固定 Data8 身分重新證明。拒絕未知欄位可阻止 legacy targetOwnerId
+        或未來呼叫端資料跨越此控制面邊界。
+    #>
+    param(
+        [object] $Seed,
+        [string] $CurrentIdentity
+    )
+
+    if ($null -eq $Seed -or
+        $Seed.schemaVersion -ne 1 -or
+        $Seed.fixtureId -cne 'p7.2-slice-c-seed' -or
+        $Seed.profileAlias -cne $expectedProfileAlias -or
+        $Seed.deploymentProfileAlias -cne $expectedDeploymentProfileAlias -or
+        $Seed.ceVersion -cne '9.1' -or
+        $Seed.connector -cne 'Data8' -or
+        $Seed.marker -cne 'p7.2-list-management-seed' -or
+        -not (Test-SafeOwnerIdentity $Seed.ownerIdentity) -or
+        -not [string]::Equals($Seed.ownerIdentity, $CurrentIdentity, [StringComparison]::OrdinalIgnoreCase)) {
+        return $false
+    }
+
+    $expectedPropertyNames = @(
+        'schemaVersion', 'fixtureId', 'profileAlias', 'deploymentProfileAlias', 'ceVersion', 'connector',
+        'marker', 'ownerIdentity', 'addListId', 'removeListId', 'smallGroupListId',
+        'baselineLeaderContactId', 'transferSourceListId', 'transferTargetListId', 'transferWeekStartUtc'
+    )
+    if (-not (Test-StrictPropertyNames -Value $Seed -ExpectedNames $expectedPropertyNames)) {
+        return $false
+    }
+
+    $requiredGuidProperties = @(
+        'addListId', 'removeListId', 'smallGroupListId', 'baselineLeaderContactId',
+        'transferSourceListId', 'transferTargetListId'
+    )
+    foreach ($name in $requiredGuidProperties) {
+        if ($null -eq $Seed.PSObject.Properties[$name] -or -not (Test-NonEmptyGuid $Seed.$name)) {
+            return $false
+        }
+    }
+
+    $listIds = @(
+        [string]$Seed.addListId, [string]$Seed.removeListId, [string]$Seed.smallGroupListId,
+        [string]$Seed.transferSourceListId, [string]$Seed.transferTargetListId
+    )
+    if (@($listIds | Select-Object -Unique).Count -ne $listIds.Count) {
+        return $false
+    }
+
+    $weekStart = [DateTimeOffset]::MinValue
+    return $null -ne $Seed.PSObject.Properties['transferWeekStartUtc'] -and
+        [DateTimeOffset]::TryParseExact(
+            [string]$Seed.transferWeekStartUtc,
+            'O',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal,
+            [ref]$weekStart) -and
+        $weekStart.Offset -eq [TimeSpan]::Zero -and
+        $weekStart.TimeOfDay -eq [TimeSpan]::Zero -and
+        $weekStart.DayOfWeek -eq [DayOfWeek]::Sunday
+}
+
+function Test-LegacyFreshSliceCSeedCandidate {
+    <#
+    .SYNOPSIS
+        驗證一次性 seed bootstrap 所允許的固定 legacy descriptor 形狀與目前 Windows 使用者繫結。
+
+    .DESCRIPTION
+        此驗證器只接受 cleanup 前保留於 current-user control-plane 固定檔名的舊 Slice C 描述子。
+        它會完整驗證 UTF-8 JSON 解析後的固定 schema、靜態清單、UTC Sunday 與操作員身分，避免
+        bootstrap 以名稱掃描、猜選 CRM 資料或復用舊 source/relationship ID。legacy 的 targetOwnerId
+        僅在此處檢查為非空 GUID，以辨識受支援的舊 schema；它不是 authority，絕不寫入 seed，
+        亦絕不傳入 child process。呼叫端在建立 Credential Manager、Data8 service、ledger、暫存目錄
+        或任何 CE I/O 前使用本函式，因此 false 必須讓流程 fail closed。
+    #>
+    param(
+        [object] $Candidate,
+        [string] $CurrentIdentity
+    )
+
+    if ($null -eq $Candidate -or
+        $Candidate.schemaVersion -ne 1 -or
+        $Candidate.fixtureId -cne 'p7.2-list-management' -or
+        $Candidate.profileAlias -cne $expectedProfileAlias -or
+        $Candidate.ceVersion -cne '9.1' -or
+        $Candidate.connector -cne 'Data8' -or
+        $Candidate.marker -cne $expectedFixtureMarker -or
+        -not (Test-SafeOwnerIdentity $Candidate.ownerIdentity) -or
+        -not [string]::Equals($Candidate.ownerIdentity, $CurrentIdentity, [StringComparison]::OrdinalIgnoreCase)) {
+        return $false
+    }
+
+    $expectedPropertyNames = @(
+        'schemaVersion', 'fixtureId', 'profileAlias', 'ceVersion', 'connector', 'marker', 'ownerIdentity',
+        'addListId', 'removeListId', 'smallGroupListId', 'smallGroupTargetLeaderContactId',
+        'smallGroupExpectedRelationshipListId', 'transferSourceListId', 'transferTargetListId', 'transferWeekStartUtc',
+        'targetOwnerId'
+    )
+    if (-not (Test-StrictPropertyNames -Value $Candidate -ExpectedNames $expectedPropertyNames)) {
+        return $false
+    }
+
+    $requiredGuidProperties = @(
+        'addListId', 'removeListId', 'smallGroupListId', 'smallGroupTargetLeaderContactId',
+        'smallGroupExpectedRelationshipListId', 'transferSourceListId', 'transferTargetListId', 'targetOwnerId'
+    )
+    foreach ($name in $requiredGuidProperties) {
+        if ($null -eq $Candidate.PSObject.Properties[$name] -or -not (Test-NonEmptyGuid $Candidate.$name)) {
+            return $false
+        }
+    }
+
+    $listIds = @(
+        [string]$Candidate.addListId,
+        [string]$Candidate.removeListId,
+        [string]$Candidate.smallGroupListId,
+        [string]$Candidate.smallGroupExpectedRelationshipListId,
+        [string]$Candidate.transferSourceListId,
+        [string]$Candidate.transferTargetListId
+    )
+    if (@($listIds | Select-Object -Unique).Count -ne $listIds.Count) {
+        return $false
+    }
+
+    $weekStart = [DateTimeOffset]::MinValue
+    return $null -ne $Candidate.PSObject.Properties['transferWeekStartUtc'] -and
+        [DateTimeOffset]::TryParseExact(
+            [string]$Candidate.transferWeekStartUtc,
+            'O',
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal,
+            [ref]$weekStart) -and
+        $weekStart.Offset -eq [TimeSpan]::Zero -and
+        $weekStart.TimeOfDay -eq [TimeSpan]::Zero -and
+        $weekStart.DayOfWeek -eq [DayOfWeek]::Sunday
+}
+
+function New-FreshSliceCSeedDescriptorFromLegacyCandidate {
+    <#
+    .SYNOPSIS
+        將已驗證的 legacy candidate 縮減為不含 stale fresh-graph ID 的持久 seed。
+
+    .DESCRIPTION
+        此轉換是 bootstrap 的唯一資料縮減邊界。它只保留五個 deployment-owned 靜態清單、
+        baseline leader、UTC Sunday、固定部署 metadata 與 current-user 繫結；舊 source contact、
+        expected relationship list 及 targetOwnerId 都不可跨越此邊界。回傳的 ordered object 隨後仍由
+        Test-FreshSliceCSeedDescriptor 驗證，確保任何 schema 漂移都不會發布局部或跨使用者 seed。
+    #>
+    param(
+        [object] $Candidate,
+        [string] $CurrentIdentity
+    )
+
+    if (-not (Test-LegacyFreshSliceCSeedCandidate -Candidate $Candidate -CurrentIdentity $CurrentIdentity)) {
+        throw 'fresh-seed-candidate-invalid'
+    }
+
+    return [pscustomobject][ordered]@{
+        schemaVersion = 1
+        fixtureId = 'p7.2-slice-c-seed'
+        profileAlias = $expectedProfileAlias
+        deploymentProfileAlias = $expectedDeploymentProfileAlias
+        ceVersion = '9.1'
+        connector = 'Data8'
+        marker = 'p7.2-list-management-seed'
+        ownerIdentity = $CurrentIdentity
+        addListId = [string]$Candidate.addListId
+        removeListId = [string]$Candidate.removeListId
+        smallGroupListId = [string]$Candidate.smallGroupListId
+        baselineLeaderContactId = [string]$Candidate.smallGroupTargetLeaderContactId
+        transferSourceListId = [string]$Candidate.transferSourceListId
+        transferTargetListId = [string]$Candidate.transferTargetListId
+        transferWeekStartUtc = [string]$Candidate.transferWeekStartUtc
+    }
+}
+
+function Publish-FreshSliceCSeedDescriptor {
+    <#
+    .SYNOPSIS
+        在 read-only CE preflight 證明成功後，以原子寫入發布 current-user 的永久 static seed。
+
+    .DESCRIPTION
+        publication 只操作固定 control-plane root 中的 fresh-slice-c-seed.json，且永不覆寫既有 seed；
+        呼叫端必須先確認子程序輸出的零 mutation evidence 為 go。函式以 write-through temporary file
+        與 atomic move/replacement 完成 UTF-8 無 BOM、CRLF 檔案寫入，接著重新讀取並驗證 exact schema。
+        任一寫入、read-back 或 identity 繫結失敗都拋出有界分類，呼叫端必須報告 no-go；不會建立 ledger、
+        active descriptor pair 或 CRM entity。暫存 byte buffer 的唯一 owner 是 Write-AtomicStrictJsonFile，
+        並在 finally 清除與移除。
+    #>
+    param(
+        [string] $SeedPath,
+        [string] $DescriptorRoot,
+        [object] $Candidate,
+        [string] $CurrentIdentity
+    )
+
+    try {
+        Assert-CurrentUserFreshFixtureDescriptorPath `
+            -Path $SeedPath `
+            -DescriptorRoot $DescriptorRoot `
+            -ExpectedFileName 'fresh-slice-c-seed.json'
+        if (Test-Path -LiteralPath $SeedPath -PathType Leaf) {
+            throw 'fresh-seed-already-published'
+        }
+
+        $seed = New-FreshSliceCSeedDescriptorFromLegacyCandidate `
+            -Candidate $Candidate `
+            -CurrentIdentity $CurrentIdentity
+        if (-not (Test-FreshSliceCSeedDescriptor -Seed $seed -CurrentIdentity $CurrentIdentity)) {
+            throw 'fresh-seed-publication-failed'
+        }
+
+        Write-AtomicStrictJsonFile -Path $SeedPath -JsonText ($seed | ConvertTo-Json -Depth 4)
+        $publishedSeed = Read-StrictFinalCrLfJsonFile `
+            -Path $SeedPath `
+            -MaximumBytes 32768 `
+            -FailureReason 'fresh-seed-publication-failed'
+        if (-not (Test-FreshSliceCSeedDescriptor -Seed $publishedSeed -CurrentIdentity $CurrentIdentity) -or
+            $publishedSeed.addListId -cne $seed.addListId -or
+            $publishedSeed.removeListId -cne $seed.removeListId -or
+            $publishedSeed.smallGroupListId -cne $seed.smallGroupListId -or
+            $publishedSeed.baselineLeaderContactId -cne $seed.baselineLeaderContactId -or
+            $publishedSeed.transferSourceListId -cne $seed.transferSourceListId -or
+            $publishedSeed.transferTargetListId -cne $seed.transferTargetListId -or
+            $publishedSeed.transferWeekStartUtc -cne $seed.transferWeekStartUtc) {
+            throw 'fresh-seed-publication-failed'
+        }
+
+        return $publishedSeed
+    }
+    catch {
+        $reason = [string]$_.Exception.Message
+        if ($reason -ceq 'fresh-seed-already-published') {
+            throw
+        }
+        throw 'fresh-seed-publication-failed'
+    }
+}
+
 function Test-StrictPropertyNames {
     <#
     .SYNOPSIS
@@ -1540,19 +1796,22 @@ function Assert-CurrentUserFreshFixtureDescriptorPath {
     param(
         [string] $Path,
         [string] $DescriptorRoot,
-        [string] $ExpectedFileName
+        [string] $ExpectedFileName,
+        [switch] $RequireExisting
     )
 
     $resolvedPath = [IO.Path]::GetFullPath($Path)
-    if (-not (Test-Path -LiteralPath $resolvedPath -PathType Leaf) -or
+    if (($RequireExisting -and -not (Test-Path -LiteralPath $resolvedPath -PathType Leaf)) -or
         -not [string]::Equals([IO.Path]::GetDirectoryName($resolvedPath), $DescriptorRoot, [StringComparison]::OrdinalIgnoreCase) -or
         [IO.Path]::GetFileName($resolvedPath) -cne $ExpectedFileName) {
         throw 'fresh-fixture-descriptor-path-invalid'
     }
 
-    $item = Get-Item -LiteralPath $resolvedPath -Force -ErrorAction Stop
-    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
-        throw 'fresh-fixture-descriptor-path-invalid'
+    if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
+        $item = Get-Item -LiteralPath $resolvedPath -Force -ErrorAction Stop
+        if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw 'fresh-fixture-descriptor-path-invalid'
+        }
     }
 }
 
@@ -1571,8 +1830,7 @@ function Publish-FreshFixtureDescriptorPair {
         [string] $SourcePath,
         [string] $FixturePath,
         [string] $DescriptorRoot,
-        [object] $SourceFixture,
-        [object] $Fixture,
+        [object] $SeedFixture,
         [object] $Ledger,
         [string] $CurrentIdentity
     )
@@ -1586,8 +1844,9 @@ function Publish-FreshFixtureDescriptorPair {
     # 發佈前仍然要驗證舊檔案的編碼與大小，但不保留其 bytes 作為 rollback 來源。一旦 fresh
     # transaction 部分失敗，舊的 descriptor 不再能代表 fresh graph；重新啟用它們會使 execution/cleanup
     # lane 誤用未證明的 CRM IDs。唯一的 recovery 權威是仍保留的 strict pending ledger。
-    [void](Read-StrictTextFile -Path $SourcePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-publication-failed')
-    [void](Read-StrictTextFile -Path $FixturePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-publication-failed')
+    if (-not (Test-FreshSliceCSeedDescriptor -Seed $SeedFixture -CurrentIdentity $CurrentIdentity)) {
+        throw 'fresh-descriptor-publication-failed'
+    }
     $updatedSource = [ordered]@{
         schemaVersion = 1
         fixtureId = 'p7.2-contact-basic-info'
@@ -1606,14 +1865,14 @@ function Publish-FreshFixtureDescriptorPair {
         connector = 'Data8'
         marker = $expectedFixtureMarker
         ownerIdentity = $CurrentIdentity
-        addListId = [string]$Fixture.addListId
-        removeListId = [string]$Fixture.removeListId
-        smallGroupListId = [string]$Fixture.smallGroupListId
+        addListId = [string]$SeedFixture.addListId
+        removeListId = [string]$SeedFixture.removeListId
+        smallGroupListId = [string]$SeedFixture.smallGroupListId
         smallGroupTargetLeaderContactId = [string]$Ledger.leaderContactId
         smallGroupExpectedRelationshipListId = [string]$Ledger.relationshipListId
-        transferSourceListId = [string]$Fixture.transferSourceListId
-        transferTargetListId = [string]$Fixture.transferTargetListId
-        transferWeekStartUtc = [string]$Fixture.transferWeekStartUtc
+        transferSourceListId = [string]$SeedFixture.transferSourceListId
+        transferTargetListId = [string]$SeedFixture.transferTargetListId
+        transferWeekStartUtc = [string]$SeedFixture.transferWeekStartUtc
     }
     $sourceText = $updatedSource | ConvertTo-Json -Depth 4
     $fixtureText = $updatedFixture | ConvertTo-Json -Depth 4
@@ -1676,8 +1935,8 @@ function Remove-FreshFixtureDescriptorPair {
         [string] $CurrentIdentity
     )
 
-    Assert-CurrentUserFreshFixtureDescriptorPath -Path $SourcePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'contact-basic-info-fixture.json'
-    Assert-CurrentUserFreshFixtureDescriptorPath -Path $FixturePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'list-management-fixture.json'
+    Assert-CurrentUserFreshFixtureDescriptorPath -Path $SourcePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'contact-basic-info-fixture.json' -RequireExisting
+    Assert-CurrentUserFreshFixtureDescriptorPath -Path $FixturePath -DescriptorRoot $DescriptorRoot -ExpectedFileName 'list-management-fixture.json' -RequireExisting
     $source = Read-StrictJsonFile -Path $SourcePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-cleanup-failed'
     $fixture = Read-StrictJsonFile -Path $FixturePath -MaximumBytes 32768 -FailureReason 'fresh-descriptor-cleanup-failed'
     if (-not (Test-SourceFixtureDescriptor $source $CurrentIdentity) -or
@@ -1866,6 +2125,66 @@ function Get-StrictSliceCEvidenceFile {
         reason = [string]$evidence.reason
         operationExecuted = [bool]$evidence.operationExecuted
         operations = $projectedOperations
+    }
+}
+
+function Get-StrictSliceCChildFailureDiagnosticCategory {
+    <#
+    .SYNOPSIS
+        在 Slice C ExecuteFixture child 非零結束時，從既有嚴格 evidence 取回唯一允許的去識別化診斷分類。
+
+    .DESCRIPTION
+        ExecuteFixture 的 child 可能已寫入完整、固定 schema 的 no-go evidence，接著因 xUnit 的最終
+        成功 assertion 以非零結束。父程序仍必須將整體結果固定為 child-process-failed、
+        safeToRetry=false，且不得採用 operations、operationExecuted 或任何 child 輸出作為成功、
+        cleanup 或重試權限。本函式只在 parent 所建立、非 reparse 的 temporary root 中接受固定檔名，
+        並重用完整 strict parser 驗證 schema，最後僅投影既有 allowlist 中的 no-go reason。
+
+        檔案、路徑、編碼、schema、結果或清理邊界任一不符時都回傳 null；呼叫端必須保留
+        child-process-failed 的 fail-closed 結果。temporary root 的唯一 owner 仍是父程序 finally，
+        本函式不建立、修改或刪除任何本機或 CE 資源，避免跨 session 保留資料或資源。
+    #>
+    param(
+        [string] $EvidencePath,
+        [string] $OwnedRoot
+    )
+
+    try {
+        if ([string]::IsNullOrWhiteSpace($EvidencePath) -or
+            [string]::IsNullOrWhiteSpace($OwnedRoot)) {
+            return $null
+        }
+
+        $resolvedRoot = [IO.Path]::GetFullPath($OwnedRoot)
+        $resolvedPath = [IO.Path]::GetFullPath($EvidencePath)
+        if (-not (Test-Path -LiteralPath $resolvedRoot -PathType Container) -or
+            -not (Test-Path -LiteralPath $resolvedPath -PathType Leaf) -or
+            -not [string]::Equals([IO.Path]::GetDirectoryName($resolvedPath), $resolvedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+            [IO.Path]::GetFileName($resolvedPath) -cne 'P72Data8ListManagementEvidence.json') {
+            return $null
+        }
+
+        $rootItem = Get-Item -LiteralPath $resolvedRoot -Force -ErrorAction Stop
+        $fileItem = Get-Item -LiteralPath $resolvedPath -Force -ErrorAction Stop
+        if (($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+            ($fileItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            return $null
+        }
+
+        $evidence = Get-StrictSliceCEvidenceFile -EvidencePath $resolvedPath
+        if ($evidence.outcome -cne 'no-go' -or
+            $evidence.reason -cnotin @(
+                'runtime-failure',
+                'cleanup-failure',
+                'fixture-precondition-failed',
+                'live-evidence-incomplete')) {
+            return $null
+        }
+
+        return [string]$evidence.reason
+    }
+    catch {
+        return $null
     }
 }
 
@@ -2491,21 +2810,102 @@ try {
         throw 'result-written'
     }
 
-    if (-not (Test-Path -LiteralPath $SourceFixtureDescriptorPath -PathType Leaf) -or
-        -not (Test-Path -LiteralPath $FixtureDescriptorPath -PathType Leaf)) {
-        Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fixture-input-required' -PreflightOnly (-not $liveModeRequested))
-        $scriptExitCode = 2
-        throw 'result-written'
-    }
-
-    $sourceFixture = Read-StrictJsonFile $SourceFixtureDescriptorPath 32KB 'fixture-input-invalid'
-    $fixture = Read-StrictJsonFile $FixtureDescriptorPath 32KB 'fixture-input-invalid'
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-    if (-not (Test-SourceFixtureDescriptor $sourceFixture $identity) -or
-        -not (Test-SliceCFixtureDescriptor $fixture $sourceFixture $identity)) {
-        Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fixture-input-invalid' -PreflightOnly (-not $liveModeRequested))
-        $scriptExitCode = 2
-        throw 'result-written'
+    $isFreshSeedLane = $isFreshPreflightProbeMode -or $isFreshProvisionMode -or $isFreshCleanupMode
+    if ($isBootstrapFreshSeedMode) {
+        # Bootstrap 的 candidate 與 seed 都必須位於當前 Windows 使用者的固定 control-plane root。
+        # 忽略呼叫端提供的任意 sibling/backup 路徑，避免以檔名、舊資料或跨使用者檔案製造新的 authority。
+        try {
+            $freshControlPlaneRoots = Get-CurrentUserFreshFixtureControlPlaneRoots
+            Assert-CurrentUserFreshFixtureDescriptorPath `
+                -Path $SourceFixtureDescriptorPath `
+                -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+                -ExpectedFileName 'contact-basic-info-fixture.json'
+            Assert-CurrentUserFreshFixtureDescriptorPath `
+                -Path $FixtureDescriptorPath `
+                -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+                -ExpectedFileName 'list-management-fixture.json'
+            $freshSeedDescriptorPath = Join-Path $freshControlPlaneRoots.descriptorRoot 'fresh-slice-c-seed.json'
+            Assert-CurrentUserFreshFixtureDescriptorPath `
+                -Path $freshSeedDescriptorPath `
+                -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+                -ExpectedFileName 'fresh-slice-c-seed.json'
+        }
+        catch {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-seed-control-plane-invalid' -PreflightOnly $false)
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+        if (Test-Path -LiteralPath $freshSeedDescriptorPath -PathType Leaf) {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-seed-already-published' -PreflightOnly $false)
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+
+        $legacySeedCandidatePath = Join-Path $freshControlPlaneRoots.descriptorRoot 'list-management-fixture.json.before-whoami-owner-binding.bak'
+        if (-not (Test-Path -LiteralPath $legacySeedCandidatePath -PathType Leaf)) {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-seed-candidate-required' -PreflightOnly $false)
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+        try {
+            Assert-CurrentUserFreshFixtureDescriptorPath `
+                -Path $legacySeedCandidatePath `
+                -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+                -ExpectedFileName 'list-management-fixture.json.before-whoami-owner-binding.bak' `
+                -RequireExisting
+            $legacySeedCandidate = Read-StrictFinalCrLfJsonFile `
+                -Path $legacySeedCandidatePath `
+                -MaximumBytes 32768 `
+                -FailureReason 'fresh-seed-candidate-invalid'
+        }
+        catch {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-seed-candidate-invalid' -PreflightOnly $false)
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+        if (-not (Test-LegacyFreshSliceCSeedCandidate -Candidate $legacySeedCandidate -CurrentIdentity $identity)) {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-seed-candidate-invalid' -PreflightOnly $false)
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+        $freshSeedFixture = New-FreshSliceCSeedDescriptorFromLegacyCandidate `
+            -Candidate $legacySeedCandidate `
+            -CurrentIdentity $identity
+    }
+    elseif ($isFreshSeedLane) {
+        # active descriptor pair 是每輪 fresh graph 的 disposable output；不得再作為新 cycle 的輸入。
+        # seed 與 pair 同屬 caller 無法選擇的 P7.2 control-plane directory，但只有 seed 可跨 cleanup 保留。
+        $freshSeedDescriptorPath = Join-Path (Split-Path -Parent $FixtureDescriptorPath) 'fresh-slice-c-seed.json'
+        if (-not (Test-Path -LiteralPath $freshSeedDescriptorPath -PathType Leaf)) {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-seed-required' -PreflightOnly (-not $liveModeRequested))
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+
+        $freshSeedFixture = Read-StrictJsonFile $freshSeedDescriptorPath 32KB 'fresh-seed-invalid'
+        if (-not (Test-FreshSliceCSeedDescriptor -Seed $freshSeedFixture -CurrentIdentity $identity)) {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-seed-invalid' -PreflightOnly (-not $liveModeRequested))
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+    }
+    else {
+        if (-not (Test-Path -LiteralPath $SourceFixtureDescriptorPath -PathType Leaf) -or
+            -not (Test-Path -LiteralPath $FixtureDescriptorPath -PathType Leaf)) {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fixture-input-required' -PreflightOnly (-not $liveModeRequested))
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
+
+        $sourceFixture = Read-StrictJsonFile $SourceFixtureDescriptorPath 32KB 'fixture-input-invalid'
+        $fixture = Read-StrictJsonFile $FixtureDescriptorPath 32KB 'fixture-input-invalid'
+        if (-not (Test-SourceFixtureDescriptor $sourceFixture $identity) -or
+            -not (Test-SliceCFixtureDescriptor $fixture $sourceFixture $identity)) {
+            Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fixture-input-invalid' -PreflightOnly (-not $liveModeRequested))
+            $scriptExitCode = 2
+            throw 'result-written'
+        }
     }
 
     # fresh-fixture provision 與 cleanup 是兩條獨立的遠端 mutation lane。先在所有 descriptor
@@ -2533,7 +2933,7 @@ try {
     # fresh control plane 只能使用目前 Windows 使用者的預定 local-app-data paths；即使呼叫端
     # 傳入其他 descriptor path，亦不允許藉由一個已 proven 的 CRM graph 覆寫其他產品或 profile
     # 的設定。這些 local proof 均早於 Credential Manager 與 child process，因此失敗時零 CE I/O。
-    if ($isFreshPreflightProbeMode) {
+    if ($isFreshPreflightProbeMode -or $isBootstrapFreshSeedMode) {
         # 唯讀 probe 不得繼承上一個 shell 的 execute/reconcile/repair 或 fresh ledger state。
         # 先清空兩個受限 namespace，再只設定本次 descriptor-derived scalar 與唯一 evidence path；
         # child 沒有 nonce、ledger、descriptor publication 或 mutation flag，因此無法退化為寫入 lane。
@@ -2546,16 +2946,21 @@ try {
 
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_FRESH_PREFLIGHT_PROBE', '1', 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_OWNER', $identity, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_ADD_LIST_ID', [string]$fixture.addListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_REMOVE_LIST_ID', [string]$fixture.removeListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID', [string]$fixture.smallGroupListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID', [string]$fixture.smallGroupTargetLeaderContactId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID', [string]$fixture.transferSourceListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID', [string]$fixture.transferTargetListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC', [string]$fixture.transferWeekStartUtc, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_ADD_LIST_ID', [string]$freshSeedFixture.addListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_REMOVE_LIST_ID', [string]$freshSeedFixture.removeListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID', [string]$freshSeedFixture.smallGroupListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID', [string]$freshSeedFixture.baselineLeaderContactId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID', [string]$freshSeedFixture.transferSourceListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID', [string]$freshSeedFixture.transferTargetListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC', [string]$freshSeedFixture.transferWeekStartUtc, 'Process')
     }
     elseif ($isFreshProvisionMode -or $isFreshCleanupMode) {
         $freshControlPlaneRoots = Get-CurrentUserFreshFixtureControlPlaneRoots
+        Assert-CurrentUserFreshFixtureDescriptorPath `
+            -Path $freshSeedDescriptorPath `
+            -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+            -ExpectedFileName 'fresh-slice-c-seed.json' `
+            -RequireExisting
         Assert-CurrentUserFreshFixtureDescriptorPath `
             -Path $SourceFixtureDescriptorPath `
             -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
@@ -2567,6 +2972,12 @@ try {
         $freshLedgerPath = Join-Path $freshControlPlaneRoots.ledgerRoot 'fresh-slice-c-ledger.json'
 
         if ($isFreshProvisionMode) {
+            if ((Test-Path -LiteralPath $SourceFixtureDescriptorPath -PathType Leaf) -or
+                (Test-Path -LiteralPath $FixtureDescriptorPath -PathType Leaf)) {
+                Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-active-descriptor-pending' -PreflightOnly $false)
+                $scriptExitCode = 2
+                throw 'result-written'
+            }
             # pending ledger 表示上一次 create/associate/assign 可能已送達但尚未完成 graph proof；
             # 不可用新的 nonce 覆寫它，也不可用名稱搜尋或自動刪除做猜測式補償。
             if (Test-Path -LiteralPath $freshLedgerPath -PathType Leaf) {
@@ -2577,9 +2988,29 @@ try {
             $freshNonce = [Guid]::NewGuid().ToString('D')
             # publication 前的 target leader 是 cleanup 唯一可接受的 immutable baseline。它必須保留在 parent
             # invocation 內，並在 child 寫出 ledger 後做 exact match；不可信任已發佈 descriptor 或 child environment。
-            $freshOriginalTargetLeaderContactId = [string]$fixture.smallGroupTargetLeaderContactId
+            $freshOriginalTargetLeaderContactId = [string]$freshSeedFixture.baselineLeaderContactId
         }
         else {
+            if (-not (Test-Path -LiteralPath $SourceFixtureDescriptorPath -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $FixtureDescriptorPath -PathType Leaf)) {
+                Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-active-descriptor-required' -PreflightOnly $false)
+                $scriptExitCode = 2
+                throw 'result-written'
+            }
+            $sourceFixture = Read-StrictJsonFile $SourceFixtureDescriptorPath 32KB 'fresh-fixture-active-descriptor-invalid'
+            $fixture = Read-StrictJsonFile $FixtureDescriptorPath 32KB 'fresh-fixture-active-descriptor-invalid'
+            if (-not (Test-SourceFixtureDescriptor $sourceFixture $identity) -or
+                -not (Test-SliceCFixtureDescriptor $fixture $sourceFixture $identity) -or
+                $fixture.addListId -cne $freshSeedFixture.addListId -or
+                $fixture.removeListId -cne $freshSeedFixture.removeListId -or
+                $fixture.smallGroupListId -cne $freshSeedFixture.smallGroupListId -or
+                $fixture.transferSourceListId -cne $freshSeedFixture.transferSourceListId -or
+                $fixture.transferTargetListId -cne $freshSeedFixture.transferTargetListId -or
+                $fixture.transferWeekStartUtc -cne $freshSeedFixture.transferWeekStartUtc) {
+                Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-active-descriptor-invalid' -PreflightOnly $false)
+                $scriptExitCode = 2
+                throw 'result-written'
+            }
             # cleanup 只可開始於之前 fully proven 的 exact-ID graph；解析或 owner binding 失敗時
             # 不讀 credential、不啟 child，並保留 ledger 給後續唯讀 reconciliation。
             try {
@@ -2602,6 +3033,11 @@ try {
                 }
 
                 throw
+            }
+            if ($freshLedgerBeforeCleanup.originalTargetLeaderContactId -cne $freshSeedFixture.baselineLeaderContactId) {
+                Write-HandoffResult (New-HandoffResult -Outcome 'no-go' -Reason 'fresh-fixture-ledger-unavailable' -PreflightOnly $false)
+                $scriptExitCode = 2
+                throw 'result-written'
             }
             $freshNonce = [string]$freshLedgerBeforeCleanup.nonce
         }
@@ -2669,18 +3105,18 @@ try {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_DESCRIPTOR_CONFIRMATION', $(if ($isFreshProvisionMode) { 'replace-stale-descriptor' } else { 'cleanup-fresh-fixture' }), 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_NONCE', [string]$freshNonce, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_OWNER', $identity, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_ADD_LIST_ID', [string]$fixture.addListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_REMOVE_LIST_ID', [string]$fixture.removeListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID', [string]$fixture.smallGroupListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_ADD_LIST_ID', [string]$freshSeedFixture.addListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_REMOVE_LIST_ID', [string]$freshSeedFixture.removeListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_SMALL_GROUP_LIST_ID', [string]$freshSeedFixture.smallGroupListId, 'Process')
         # Provision 會使用 publication 前 descriptor leader 作為 immutable baseline。Cleanup 只能从 strict
         # ledger 取回原始 baseline，不可繼承 fresh 或 legacy target-leader environment variable。
         [Environment]::SetEnvironmentVariable(
             'P7_2_SLICE_C_FRESH_EXISTING_TARGET_LEADER_ID',
-            $(if ($isFreshProvisionMode) { [string]$fixture.smallGroupTargetLeaderContactId } else { $null }),
+            $(if ($isFreshProvisionMode) { [string]$freshSeedFixture.baselineLeaderContactId } else { $null }),
             'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID', [string]$fixture.transferSourceListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID', [string]$fixture.transferTargetListId, 'Process')
-        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC', [string]$fixture.transferWeekStartUtc, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_SOURCE_LIST_ID', [string]$freshSeedFixture.transferSourceListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_TARGET_LIST_ID', [string]$freshSeedFixture.transferTargetListId, 'Process')
+        [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FRESH_TRANSFER_WEEK_START_UTC', [string]$freshSeedFixture.transferWeekStartUtc, 'Process')
     }
     elseif ($isReconciliationMode) {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_LIVE', $null, 'Process')
@@ -2706,7 +3142,7 @@ try {
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR', $null, 'Process')
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P7_2_SLICE_C_REPAIR_PROBE', $null, 'Process')
     }
-    if (-not ($isFreshProvisionMode -or $isFreshCleanupMode -or $isFreshPreflightProbeMode)) {
+    if (-not ($isFreshProvisionMode -or $isFreshCleanupMode -or $isFreshPreflightProbeMode -or $isBootstrapFreshSeedMode)) {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_OWNER', [string]$fixture.ownerIdentity, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_FIXTURE_MARKER', [string]$fixture.marker, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_CONTACT_ID', [string]$sourceFixture.contactId, 'Process')
@@ -2724,7 +3160,7 @@ try {
     [void][IO.Directory]::CreateDirectory($temporaryDirectory)
     $temporaryDirectoryCreated = $true
     $freshDiagnosticPath = $null
-    if ($isFreshPreflightProbeMode) {
+    if ($isFreshPreflightProbeMode -or $isBootstrapFreshSeedMode) {
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_EVIDENCE_PATH', $null, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_RECONCILIATION_EVIDENCE_PATH', $null, 'Process')
         [Environment]::SetEnvironmentVariable('P7_2_SLICE_C_REPAIR_EVIDENCE_PATH', $null, 'Process')
@@ -2846,6 +3282,11 @@ try {
                 -DiagnosticPath $freshDiagnosticPath `
                 -OwnedRoot $temporaryDirectory
         }
+        elseif ($ExecuteFixture) {
+            $diagnosticCategory = Get-StrictSliceCChildFailureDiagnosticCategory `
+                -EvidencePath $evidencePath `
+                -OwnedRoot $temporaryDirectory
+        }
         Complete-HandoffResult (New-HandoffResult `
             -Outcome 'no-go' `
             -Reason 'child-process-failed' `
@@ -2856,15 +3297,43 @@ try {
         $scriptExitCode = 2
         throw 'result-written'
     }
-    if ($isFreshPreflightProbeMode) {
+    if ($isFreshPreflightProbeMode -or $isBootstrapFreshSeedMode) {
         $strictEvidence = Get-StrictFreshPreflightProbeEvidenceFile $evidencePath
+        if ($isBootstrapFreshSeedMode -and $strictEvidence.outcome -ceq 'go') {
+            try {
+                $publishedSeed = Publish-FreshSliceCSeedDescriptor `
+                    -SeedPath $freshSeedDescriptorPath `
+                    -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
+                    -Candidate $legacySeedCandidate `
+                    -CurrentIdentity $identity
+                if ($null -eq $publishedSeed) {
+                    throw 'fresh-seed-publication-failed'
+                }
+            }
+            catch {
+                $seedPublicationReason = [string]$_.Exception.Message
+                if ($seedPublicationReason -cnotin @('fresh-seed-already-published', 'fresh-seed-publication-failed')) {
+                    $seedPublicationReason = 'fresh-seed-publication-failed'
+                }
+                Complete-HandoffResult (New-HandoffResult `
+                    -Outcome 'no-go' `
+                    -Reason $seedPublicationReason `
+                    -PreflightOnly $false `
+                    -OperationExecuted $false `
+                    -ReadOnlyProbeExecuted $strictEvidence.readOnlyProbeExecuted `
+                    -ProbeStage 'fresh-seed-bootstrap-preconditions' `
+                    -Probe $strictEvidence.probe)
+                $scriptExitCode = 2
+                throw 'result-written'
+            }
+        }
         Complete-HandoffResult (New-HandoffResult `
             -Outcome $strictEvidence.outcome `
-            -Reason $strictEvidence.reason `
+            -Reason $(if ($isBootstrapFreshSeedMode -and $strictEvidence.outcome -ceq 'go') { 'fresh-seed-bootstrapped' } else { $strictEvidence.reason }) `
             -PreflightOnly $false `
             -OperationExecuted $false `
             -ReadOnlyProbeExecuted $strictEvidence.readOnlyProbeExecuted `
-            -ProbeStage 'fresh-fixture-provision-preconditions' `
+            -ProbeStage $(if ($isBootstrapFreshSeedMode) { 'fresh-seed-bootstrap-preconditions' } else { 'fresh-fixture-provision-preconditions' }) `
             -Probe $strictEvidence.probe)
     }
     elseif ($isReconciliationMode) {
@@ -2923,8 +3392,7 @@ try {
                         -SourcePath $SourceFixtureDescriptorPath `
                         -FixturePath $FixtureDescriptorPath `
                         -DescriptorRoot $freshControlPlaneRoots.descriptorRoot `
-                        -SourceFixture $sourceFixture `
-                        -Fixture $fixture `
+                        -SeedFixture $freshSeedFixture `
                         -Ledger $freshLedgerAfterProvision `
                         -CurrentIdentity $identity
                 }

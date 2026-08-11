@@ -17,4 +17,3 @@
 1. 此序列在「先唯讀、後一次受控寫入、精確 read-back、清理」上是否缺少 release-blocking safety gate。
 2. 是否有任何內容可能錯誤地把前一週期的 no-go 變成重試。
 3. 只列出可由既有 fail-closed 合約驗證的 Critical／Warning；若沒有，明確寫無發現。
-

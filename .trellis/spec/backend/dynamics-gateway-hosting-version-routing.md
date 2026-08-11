@@ -2741,20 +2741,31 @@ unclean execution for a usable result.
 ### 2. Signatures
 
 ```text
-child process -> evidence file + ExitCode
-parent runner -> sanitized handoff result
+ExecuteFixture child -> strict evidence file + ExitCode
+parent runner -> child-process-failed handoff + optional diagnosticCategory
 ```
 
 The process lifecycle result is an input to evidence validity; the JSON file
-cannot replace it.
+cannot replace it. The optional category is a diagnosis projection, never a
+replacement for the process result or a CE operation result.
 
 ### 3. Contracts
 
 - The parent must drain stdout and stderr, read the final child `ExitCode`, and
-  reject all child evidence when that code is non-zero.
+  return `outcome=no-go` / `reason=child-process-failed` for every non-zero
+  exit. It never accepts a child success, operation result, read-back,
+  cleanup, descriptor publication, or retry decision after that exit.
 - A non-zero child exit returns `outcome=no-go` with the fixed reason
   `child-process-failed`; an execute lane conservatively reports that an
   operation may have executed and must not be retried automatically.
+- ExecuteFixture may expose one optional `diagnosticCategory` only when the
+  evidence path is the fixed `P72Data8ListManagementEvidence.json` directly
+  beneath the parent-owned, non-reparse temporary root, the complete strict
+  Slice C parser accepts the file, and its result is an allowlisted `no-go`
+  reason. The only allowed values are `runtime-failure`, `cleanup-failure`,
+  `fixture-precondition-failed`, and `live-evidence-incomplete`. A `go`,
+  malformed, stale, reparse, misplaced, or unknown-category file exposes no
+  category.
 - A reconciliation lane remains mutation-free and must not inherit stale
   evidence from the failed child.
 - Cleanup failure has precedence over ordinary baseline classification. It
@@ -2767,7 +2778,9 @@ cannot replace it.
 
 | Condition | Required behavior |
 | --- | --- |
-| Child exits non-zero after writing valid-looking JSON | Ignore the file; return `child-process-failed` no-go. |
+| Child exits non-zero after writing strict `go` evidence | Return `child-process-failed` no-go without `diagnosticCategory`. |
+| Child exits non-zero after writing strict allowlisted `no-go` evidence in the owned root | Return `child-process-failed` no-go and project only `diagnosticCategory`; never accept the file as CE evidence. |
+| Child exits non-zero after malformed, stale, reparse, misplaced, or unknown-category evidence | Return `child-process-failed` no-go without `diagnosticCategory`. |
 | Child exits zero but evidence is absent or malformed | Return `evidence-result-unavailable`; do not infer success. |
 | Reconciliation cleanup fails | Return `cleanup-failure` with `readOnlyProbeExecuted=false`; do not downgrade it to baseline no-go. |
 | Parent cannot restore process-scoped environment state | Return sanitized cleanup failure and retain fail-closed state. |
@@ -2776,15 +2789,21 @@ cannot replace it.
 ### 5. Good / Base / Bad Cases
 
 - Good: the parent drains both streams, checks `ExitCode`, validates one fresh
-  evidence file only after a zero exit, and reports cleanup failure separately.
+  evidence file after a zero exit, or—after a non-zero ExecuteFixture exit—
+  projects at most one fixed no-go category while retaining child failure.
 - Base: an offline or skipped lane produces no child evidence and no mutation.
 - Bad: parse a valid-looking file before checking `ExitCode`, reuse a previous
-  file, or convert cleanup failure into an ordinary baseline-unprovable result.
+  file, turn a child `go` record into success after a non-zero exit, expose
+  operations/CRM data from a failed child, or convert cleanup failure into an
+  ordinary baseline-unprovable result.
 
 ### 6. Tests Required
 
-- Inject a child that writes valid-looking sanitized JSON and exits non-zero;
-  assert `child-process-failed`, no Green result, and no automatic retry.
+- Inject a child that writes strict `go` evidence and exits non-zero; assert
+  `child-process-failed`, no category, no Green result, and no automatic retry.
+- Inject a child that writes each strict allowlisted `no-go` category and exits
+  non-zero; assert the same terminal failure and the single matching category
+  only. Inject malformed/path/reparse evidence and assert no category.
 - Inject reconciliation cleanup failure; assert `cleanup-failure`,
   `readOnlyProbeExecuted=false`, and preservation of the fixed operation set.
 - Assert both stdout/stderr are drained and process-scoped environment values
@@ -2797,17 +2816,166 @@ cannot replace it.
 #### Wrong
 
 ```text
-read evidence file -> declare result -> inspect child exit code later
+read child `go` evidence -> declare result -> inspect child exit code later
 ```
 
 #### Correct
 
 ```text
-drain child streams -> check ExitCode == 0
-  -> validate one fresh evidence file
-  -> classify cleanup separately
-  -> publish sanitized no-go or evidence
+drain child streams -> check ExitCode
+  -> zero: validate one fresh evidence file normally
+  -> non-zero ExecuteFixture: optionally project one strict no-go category only
+  -> retain child-process-failed, classify cleanup separately, and deny retry
 ```
 
 This ordering makes the process lifecycle, evidence file, and cleanup owner a
 single fail-closed trust boundary.
+
+## Scenario: Optional weekly-report transfer graph propagation and diagnostic staging
+
+### 1. Scope / Trigger
+
+This contract applies whenever the ChurchReport list-transfer capability changes
+the cardinality or lookup semantics of its descriptor-bound weekly report. The
+same rule must be propagated through fresh preflight, fixture provision, the
+Data8 connector, the live fixture store, execute/reconciliation evidence, and
+cleanup. A layer that still assumes "exactly one" after another layer accepts
+"zero or one" is a cross-layer release blocker even when its own unit tests pass.
+
+### 2. Signatures
+
+The connector and fixture-store resolvers use the same closed nullable shape:
+
+```csharp
+Guid? ResolveWeeklyReport(
+    IOrganizationService service,
+    Guid targetListId,
+    DateTimeOffset weekStartDate);
+
+Guid? ResolveWeeklyReport(
+    Guid targetListId,
+    DateTimeOffset weekStartDate);
+```
+
+The present-record projection also preserves that optional identity:
+
+```text
+TransferPresentRecord.WeeklyReportId : Guid?
+P72PresentRecord.WeeklyReportId      : Guid?
+
+zero rows        -> null
+one valid row    -> exact method-local weekly-report ID
+two rows/paging/malformed/missing response -> fail closed
+```
+
+Reconciliation evidence uses the existing closed `probeStage` value
+`transfer-read`. It is assigned immediately before entering the composite
+transfer read, so a failure inside membership, weekly-report, present-record,
+primary-list, or owner projection cannot remain mislabeled as the prior
+`contact-owner-read` boundary.
+
+### 3. Contracts
+
+- The weekly-report query is fixed to the descriptor-bound target list,
+  `statecode=0`, exact UTC Sunday, `TopCount=2`, and the ID-only projection. It
+  never searches by name, scans another list, selects the first row, or creates,
+  repairs, disables, merges, or deletes a weekly report.
+- Zero complete rows are a normal `zero-active` state. The new present record
+  omits `new_group_present_weekly_report_prese`; read-back must prove that the
+  lookup is absent by nullable exact equality.
+- One valid row is `exactly-one-active`. Create and read-back both use that exact
+  ID; a different lookup is a partial/ambiguous graph, never a compatible row.
+- In the zero-active branch, the present-record query deliberately omits the
+  weekly-report filter while retaining exact contact/date/state and `TopCount=2`.
+  This makes an existing wrongly linked record visible so the baseline fails
+  closed instead of being mistaken for absence.
+- Duplicate rows, paging continuation, malformed rows, missing responses,
+  multiple present records, or malformed lookups fail before the first transfer
+  mutation. They do not fall back to the zero-active branch.
+- Cleanup re-runs the same zero-or-one resolver and present-record projection.
+  It deletes only the exact record ID that the expected graph already proved,
+  with absent lookup for zero-active or exact lookup for exactly-one-active.
+- Resolver results, SDK entities, and query objects remain method-local. They
+  are not cached, stored in session/static state, written to evidence, or reused
+  across a request, profile, user, tenant, or connector generation.
+- A cardinality change is complete only when every owning layer and its tests
+  have changed together. Updating preflight/provision while leaving execute or
+  reconciliation on the old assumption is forbidden change propagation.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Exact target-list/date query returns zero complete rows | Continue with nullable `null`; create/read back a present record with the weekly-report lookup absent. |
+| Query returns exactly one valid row | Carry the exact ID through create, reconciliation, and cleanup; require exact lookup equality. |
+| Query returns two rows or `MoreRecords=true` | Fail before any membership, present-record, contact, or owner mutation; do not choose a row or downgrade to zero-active. |
+| Weekly-report row has wrong logical name or an empty ID | Fail closed before mutation. |
+| Zero-active present-record query finds an existing row with another weekly lookup | Preserve the row ID in the request-local snapshot, classify it as non-matching, and reject the baseline; do not delete it. |
+| Present-record query returns paging, multiple rows, a wrong logical name, or a malformed lookup | Fail closed; no cleanup guess and no automatic retry. |
+| Cleanup re-read no longer matches the expected nullable lookup/record ID | Stop cleanup as ambiguous, retain the cleanup owner, and keep the slice No-Go. |
+| Transfer read throws after owner projection | Emit `probeStage=transfer-read`; never misreport the failure as `contact-owner-read` or expose a raw exception. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: the exact query returns zero rows, the baseline has no present record,
+  the connector creates one unlinked present record, read-back proves the lookup
+  absent, and cleanup proves then removes only that record.
+- Base: the exact query returns one row. The connector and fixture store carry
+  the same ID through create, read-back, reconciliation, and cleanup without
+  placing it in evidence or shared state.
+- Bad: preflight accepts zero rows but the execute fixture store still requires
+  exactly one, causing every operation to remain not-run and reconciliation to
+  report the previous owner-read stage. Also bad: add a weekly lookup filter in
+  the zero-active present-record query, which hides an existing wrong relation.
+
+### 6. Tests Required
+
+- A fixture-store regression must first fail against an exactly-one-only
+  resolver, then prove zero-active produces an absent-record baseline with no
+  mutation calls.
+- Exactly-one tests assert the present-record query contains the exact weekly
+  filter and the projected lookup equals the same ID.
+- Duplicate, paging, malformed weekly-row, multiple present-record, and malformed
+  lookup tests assert rejection before Create/Update/Delete/Execute.
+- A zero-active wrong-lookup test asserts the row remains visible, its ID is
+  request-local, `PresentRecordMatches=false`, and no mutation occurs.
+- A zero-active cleanup test asserts exact record re-proof, one Delete, one
+  primary-list rollback, the required membership rollback only, and no extra
+  mutation.
+- Connector, fixture-store, PowerShell strict-evidence, focused P7.2, Release
+  build, serial solution, isolation/lifecycle, and byte-level UTF-8/CRLF gates
+  must all pass before the one permitted live verification cycle.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var weeklyReportId = ResolveExactlyOneWeeklyReport(targetListId, sunday);
+query.Criteria.AddCondition(
+    "new_group_present_weekly_report_prese",
+    ConditionOperator.Equal,
+    weeklyReportId);
+```
+
+This rejects the valid zero-active business state and hides wrongly linked
+present records when the lookup should be absent.
+
+#### Correct
+
+```csharp
+Guid? weeklyReportId = ResolveZeroOrOneWeeklyReport(targetListId, sunday);
+if (weeklyReportId is Guid exactWeeklyReportId)
+{
+    query.Criteria.AddCondition(
+        "new_group_present_weekly_report_prese",
+        ConditionOperator.Equal,
+        exactWeeklyReportId);
+}
+
+// The projected nullable lookup must equal `weeklyReportId` exactly.
+```
+
+The correct form preserves the established ChurchReport zero-active behavior,
+detects conflicting present records, keeps duplicate data fail-closed, and
+prevents the fixture/evidence layer from drifting away from the connector.

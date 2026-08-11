@@ -3,11 +3,17 @@ using SpeechMessage.Dynamics.WorkerProtocol;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證 Worker binary envelope 的 canonical encoding、bounded value tree、metadata fencing 與公開型別去 SDK/去祕密契約。
+/// 測試注入版本、nonce、deadline、operation、duplicate ID、深度與敏感欄位名稱故障；主要斷言是所有 fault
+/// 在 SDK dispatch 前得到固定分類，且公開 protocol surface 不保留 credential、Session、endpoint 或 CRM SDK 型別。
+/// </summary>
 public sealed class WorkerEnvelopeCodecTests
 {
     private const string Nonce = "0123456789abcdef0123456789abcdef";
     private static readonly DateTimeOffset Now = new(2026, 8, 2, 8, 0, 0, TimeSpan.Zero);
 
+    /// <summary>證明各種 bounded scalar/array 只以封閉 WorkerValue round-trip，沒有任意 CLR/SDK 物件穿越 IPC。</summary>
     [Fact]
     public void Request_round_trip_preserves_only_bounded_typed_values()
     {
@@ -36,6 +42,7 @@ public sealed class WorkerEnvelopeCodecTests
         payload.Length.Should().BeLessThanOrEqualTo(WorkerProtocolLimits.Default.MaximumFrameBytes);
     }
 
+    /// <summary>以不同 dictionary insertion order 注入相同參數，證明 canonical bytes 不受可變容器順序影響。</summary>
     [Fact]
     public void SerializeRequest_is_canonical_across_parameter_insertion_order()
     {
@@ -71,6 +78,7 @@ public sealed class WorkerEnvelopeCodecTests
         codec.SerializeRequest(first).Should().Equal(codec.SerializeRequest(second));
     }
 
+    /// <summary>逐一注入錯誤版本、nonce、過期 deadline 與未知 operation，證明 request 在 active-set/SDK 使用前 fail closed。</summary>
     [Theory]
     [InlineData(WorkerProtocolFailureCategory.UnsupportedProtocolVersion)]
     [InlineData(WorkerProtocolFailureCategory.InvalidProcessNonce)]
@@ -112,6 +120,7 @@ public sealed class WorkerEnvelopeCodecTests
             .Which.Category.Should().Be(expectedCategory);
     }
 
+    /// <summary>預先登錄相同 request ID，證明同一 Worker process 不能並行接受 duplicate delivery。</summary>
     [Fact]
     public void ValidateAndRegister_rejects_a_duplicate_request_id()
     {
@@ -131,6 +140,7 @@ public sealed class WorkerEnvelopeCodecTests
         seen.Should().ContainSingle();
     }
 
+    /// <summary>注入超過最大巢狀深度的 value tree，證明 codec 在無界遞迴或大型 allocation 前拒絕。</summary>
     [Fact]
     public void SerializeRequest_rejects_excessive_nested_value_depth()
     {
@@ -159,6 +169,7 @@ public sealed class WorkerEnvelopeCodecTests
             .Which.Category.Should().Be(WorkerProtocolFailureCategory.EnvelopeLimitExceeded);
     }
 
+    /// <summary>注入 password 欄位名，證明 sensitive field denylist 不能以合法字串 value 繞過。</summary>
     [Fact]
     public void SerializeRequest_rejects_secret_shaped_parameter_names()
     {
@@ -174,6 +185,7 @@ public sealed class WorkerEnvelopeCodecTests
             .Which.Category.Should().Be(WorkerProtocolFailureCategory.InvalidEnvelope);
     }
 
+    /// <summary>反射所有 public protocol member，證明沒有 CRM SDK type 或祕密/Session/route-shaped API 重新進入邊界。</summary>
     [Fact]
     public void Public_protocol_contract_exposes_no_sdk_or_secret_transport_member()
     {

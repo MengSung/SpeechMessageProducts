@@ -277,8 +277,10 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
         var readOnlyProbeExecuted = false;
         var cleanupSucceeded = true;
         var ownerBinding = "unavailable";
-        // 僅記錄 allowlist 的已完成唯讀階段，不記錄例外、GUID、endpoint、credential 或 CRM payload；此值
-        // 讓 parent 能在 zero-mutation 的前提下定位中斷邊界，且其生命週期僅限本次 child evidence。
+        // 僅記錄 allowlist 的最近唯讀邊界，不記錄例外、GUID、endpoint、credential 或 CRM payload；大多數
+        // 階段在讀取完成後更新，但可能失敗的 transfer composite 會在進入 ReadTransferGraph 前先標記，
+        // 讓 parent 不會把 weekly-report/present-record 投影失敗誤報為前一個 contact-owner read。此值的
+        // 生命週期僅限本次 child evidence，不能成為 retry 或 mutation 授權。
         var probeStage = "not-started";
         var operations = CreateUnavailableReconciliationOperations();
         ILoggerFactory? loggerFactory = null;
@@ -340,8 +342,11 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
                     fixture.TransferTargetListId,
                     fixture.TransferWeekStartUtc,
                     verifiedTargetOwnerId);
-                var transfer = store.ReadTransferGraph(transferFixture);
+                // transfer read 內含 membership、weekly report、present record、primary list 與 owner 多個固定
+                // 投影；必須在呼叫前先切換 stage，否則其中任一 fail-closed 例外都會留下 contact-owner-read，
+                // 誤導 operator 追查已成功的 owner 邊界。此分類不揭露失敗子階段，也不授權重試。
                 probeStage = "transfer-read";
+                var transfer = store.ReadTransferGraph(transferFixture);
                 var reconciliation = P72Data8ListManagementFixtureReconciler.Classify(
                     addMembership,
                     removeMembership,

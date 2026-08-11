@@ -7,6 +7,12 @@ using System.Text;
 
 namespace SpeechMessage.Dynamics.WorkerProtocol;
 
+/// <summary>
+/// 將 Worker request／ready／response／drain DTO 轉換為 deterministic、bounded、SDK-free binary envelope。
+/// Codec 不快取 request、Profile、credential、Stream 或 Session；每次序列化的 <see cref="MemoryStream"/>
+/// 與 scratch buffer 都由 invocation-local writer 擁有並在 <c>using</c> 結束時確定釋放／清除。
+/// 反序列化在建立大集合前強制 frame、深度、總 item/member 與 UTF-8 byte 上限，避免 memory/CPU exhaustion。
+/// </summary>
 public sealed class WorkerEnvelopeCodec
 {
     private static readonly byte[] RequestMagic = { (byte)'S', (byte)'M', (byte)'W', (byte)'1' };
@@ -15,11 +21,18 @@ public sealed class WorkerEnvelopeCodec
     private static readonly byte[] DrainMagic = { (byte)'S', (byte)'M', (byte)'D', (byte)'1' };
     private readonly WorkerProtocolLimits _limits;
 
+    /// <summary>
+    /// 建立使用 immutable protocol limits 的 codec；limits 可以安全共用，因為不含任何 request-specific 可變狀態。
+    /// </summary>
     public WorkerEnvelopeCodec(WorkerProtocolLimits limits)
     {
         _limits = limits ?? throw new ArgumentNullException(nameof(limits));
     }
 
+    /// <summary>
+    /// 驗證並序列化具名 Worker request。欄位依 ordinal key 排序，因此相同輸入產生相同 bytes；
+    /// 此 canonical 特性避免 dictionary insertion order 成為跨程序差異或簽章／稽核不一致來源。
+    /// </summary>
     public byte[] SerializeRequest(WorkerRequestV1 request)
     {
         if (request is null)
@@ -43,6 +56,10 @@ public sealed class WorkerEnvelopeCodec
         return writer.ToArray();
     }
 
+    /// <summary>
+    /// 從 bounded byte array 解析 request，拒絕空值、超限、非法 UTF-8、重複欄位、未知 kind 與 trailing data。
+    /// 回傳前再次執行完整 envelope validation，確保 parser 與 object contract 不能互相繞過。
+    /// </summary>
     public WorkerRequestV1 DeserializeRequest(byte[] payload)
     {
         if (payload is null)
@@ -91,6 +108,10 @@ public sealed class WorkerEnvelopeCodec
         return request;
     }
 
+    /// <summary>
+    /// 只檢查固定 magic 來判斷訊息種類；payload 仍須由對應 Deserialize 方法完成完整 shape 驗證後才能使用。
+    /// 未知 magic 一律 fail closed，不推測或 fallback 成其他生命週期訊息。
+    /// </summary>
     public WorkerMessageKind DetectMessageKind(byte[] payload)
     {
         ValidatePayload(payload);
@@ -117,6 +138,7 @@ public sealed class WorkerEnvelopeCodec
         throw InvalidEnvelope("The worker message type is invalid.");
     }
 
+    /// <summary>序列化與 process nonce、package lock、generation 及 CE 版本綁定的 Ready 證據。</summary>
     public byte[] SerializeReady(WorkerReadyV1 ready)
     {
         ValidateReady(ready);
@@ -131,6 +153,7 @@ public sealed class WorkerEnvelopeCodec
         return writer.ToArray();
     }
 
+    /// <summary>解析 Ready 證據並精確驗證 WorkerKind 與 CE 版本對應，不接受跨版本混用。</summary>
     public WorkerReadyV1 DeserializeReady(byte[] payload)
     {
         ValidatePayload(payload);
@@ -148,6 +171,9 @@ public sealed class WorkerEnvelopeCodec
         return ready;
     }
 
+    /// <summary>
+    /// 序列化互斥的成功／失敗 response shape：成功只允許 bounded Result，失敗只允許 sanitized error code。
+    /// </summary>
     public byte[] SerializeResponse(WorkerResponseV1 response)
     {
         ValidateResponse(response);
@@ -169,6 +195,7 @@ public sealed class WorkerEnvelopeCodec
         return writer.ToArray();
     }
 
+    /// <summary>解析 response，精確驗證 request ID、outcome 與 Result/ErrorCode 互斥契約。</summary>
     public WorkerResponseV1 DeserializeResponse(byte[] payload)
     {
         ValidatePayload(payload);
@@ -207,6 +234,7 @@ public sealed class WorkerEnvelopeCodec
         return response;
     }
 
+    /// <summary>序列化具有 finite absolute deadline 的 drain 命令，避免背景排空無限延長。</summary>
     public byte[] SerializeDrain(WorkerDrainV1 drain)
     {
         ValidateDrain(drain);
@@ -218,6 +246,7 @@ public sealed class WorkerEnvelopeCodec
         return writer.ToArray();
     }
 
+    /// <summary>解析 drain 命令並驗證 protocol、nonce 與 UTC deadline 範圍。</summary>
     public WorkerDrainV1 DeserializeDrain(byte[] payload)
     {
         ValidatePayload(payload);
@@ -370,6 +399,8 @@ public sealed class WorkerEnvelopeCodec
 
     private void WriteValue(BoundedEnvelopeWriter writer, WorkerValue value, int depth)
     {
+        // 先檢查深度再遞迴，且 writer 會在每次寫入前檢查剩餘 byte；兩道邊界可避免
+        // 深層 value tree 與大型 scalar 在 MemoryStream 擴張後才被拒絕。
         if (depth > _limits.MaximumValueDepth)
         {
             throw LimitExceeded("The worker value nesting limit was exceeded.");
@@ -438,6 +469,11 @@ public sealed class WorkerEnvelopeCodec
             WorkerProtocolFailureCategory.FrameTooLarge,
             "The worker request envelope exceeds the configured maximum.");
 
+    /// <summary>
+    /// 單次序列化專用的受界限 writer。它是 <see cref="MemoryStream"/> 與 scalar scratch buffer 的
+    /// 唯一 owner；每次寫入前先驗證剩餘容量，完成後由外層 <c>using</c> 決定性清除 scratch 並釋放
+    /// stream。實例不會進入 static、cache、session 或背景工作，因此不保留前一要求的 envelope 資料。
+    /// </summary>
     private sealed class BoundedEnvelopeWriter : IDisposable
     {
         private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
@@ -445,24 +481,45 @@ public sealed class WorkerEnvelopeCodec
         private readonly MemoryStream _stream;
         private readonly byte[] _scratch = new byte[sizeof(long)];
 
+        /// <summary>
+        /// 建立單次使用的 writer。初始配置最多 4 KiB 以降低小 envelope 的配置成本；所有後續成長
+        /// 仍受 <paramref name="maximumBytes"/> 限制，不能因 <see cref="MemoryStream"/> 自動擴張而越界。
+        /// </summary>
+        /// <param name="maximumBytes">完整 envelope 可佔用的部署端固定最大位元組數。</param>
         internal BoundedEnvelopeWriter(int maximumBytes)
         {
+            // 4 KiB 是初始容量而非可接受上限；Stream 成長始終受 EnsureRemaining 控制。
+            // Writer 是一次序列化的唯一 owner，Dispose 時同時清除 scratch 並釋放 Stream。
             _maximumBytes = maximumBytes;
             _stream = new MemoryStream(Math.Min(maximumBytes, 4096));
         }
 
+        /// <summary>
+        /// 寫入一個 protocol byte；先做容量檢查，確保拒絕發生在 stream 擴張之前。
+        /// </summary>
+        /// <param name="value">要寫入的固定 protocol byte。</param>
         internal void WriteByte(byte value)
         {
             EnsureRemaining(1);
             _stream.WriteByte(value);
         }
 
+        /// <summary>
+        /// 寫入固定、呼叫端擁有的 byte array。writer 不保存陣列參考，呼叫返回後只由自己的
+        /// bounded stream 持有複本，並在 Dispose 時釋放。
+        /// </summary>
+        /// <param name="value">要複製到 envelope 的受界限位元組。</param>
         internal void WriteBytes(byte[] value)
         {
             EnsureRemaining(value.Length);
             _stream.Write(value, 0, value.Length);
         }
 
+        /// <summary>
+        /// 以 big-endian 寫入 32-bit 整數。共用的 8-byte scratch 只屬於此 writer 實例，寫入完成後
+        /// 不跨 invocation 暴露，且 Dispose 會主動清零。
+        /// </summary>
+        /// <param name="value">要以網路位元序保存的整數。</param>
         internal void WriteInt32(int value)
         {
             _scratch[0] = (byte)(value >> 24);
@@ -473,6 +530,10 @@ public sealed class WorkerEnvelopeCodec
             _stream.Write(_scratch, 0, sizeof(int));
         }
 
+        /// <summary>
+        /// 以 big-endian 寫入 64-bit 整數；容量驗證先於 stream write，避免在超限後才配置 backing buffer。
+        /// </summary>
+        /// <param name="value">要以網路位元序保存的長整數。</param>
         internal void WriteInt64(long value)
         {
             _scratch[0] = (byte)(value >> 56);
@@ -487,6 +548,12 @@ public sealed class WorkerEnvelopeCodec
             _stream.Write(_scratch, 0, sizeof(long));
         }
 
+        /// <summary>
+        /// 以嚴格 UTF-8 編碼字串，先計算 byte count 並同時套用欄位上限與完整 frame 上限。
+        /// 暫時 byte array 僅活在方法內，不被快取或寫入共享狀態；非法 surrogate 會由嚴格 encoder 拒絕。
+        /// </summary>
+        /// <param name="value">要序列化的已驗證字串。</param>
+        /// <param name="maximumUtf8Bytes">此欄位可使用的最大 UTF-8 位元組數。</param>
         internal void WriteString(string value, int maximumUtf8Bytes)
         {
             var byteCount = StrictUtf8.GetByteCount(value);
@@ -506,6 +573,11 @@ public sealed class WorkerEnvelopeCodec
             _stream.Write(bytes, 0, bytes.Length);
         }
 
+        /// <summary>
+        /// 建立完成 envelope 的獨立 byte array；空 envelope fail closed。回傳陣列的 owner 轉交呼叫端，
+        /// writer 隨後仍可獨立 Dispose 自己的 stream，不會讓回傳值引用已釋放的 backing buffer。
+        /// </summary>
+        /// <returns>由呼叫端擁有的完整 envelope 複本。</returns>
         internal byte[] ToArray()
         {
             if (_stream.Length == 0)
@@ -516,12 +588,22 @@ public sealed class WorkerEnvelopeCodec
             return _stream.ToArray();
         }
 
+        /// <summary>
+        /// 依序清除 invocation-local scalar scratch，再釋放唯一的 <see cref="MemoryStream"/> owner。
+        /// 方法不把 stream 回收到共用 pool，避免不確定或未來可能含敏感值的 buffer 被下一要求重用。
+        /// </summary>
         public void Dispose()
         {
+            // scratch 可能暫存 protocol scalar；雖不應包含 credential，仍主動清除並立即
+            // Dispose MemoryStream，避免 byte buffer 延長至下一次 GC 或被未來修改誤用。
             Array.Clear(_scratch, 0, _scratch.Length);
             _stream.Dispose();
         }
 
+        /// <summary>
+        /// 在任何配置或寫入前，以避免整數溢位的減法形式驗證剩餘 frame 容量。
+        /// </summary>
+        /// <param name="additionalBytes">本次即將追加的位元組數。</param>
         private void EnsureRemaining(int additionalBytes)
         {
             if (additionalBytes < 0 ||
@@ -532,6 +614,11 @@ public sealed class WorkerEnvelopeCodec
         }
     }
 
+    /// <summary>
+    /// 單次反序列化專用的受界限 reader。它只借用呼叫端 payload 並維護 method-local offset／累計器，
+    /// 不建立 stream、timer、registration 或背景 Task。所有集合在配置前先驗證深度與總量上限，
+    /// 以防惡意或損壞 frame 造成無界配置與記憶體保留。
+    /// </summary>
     private sealed class BoundedEnvelopeReader
     {
         private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
@@ -541,12 +628,24 @@ public sealed class WorkerEnvelopeCodec
         private int _totalItems;
         private int _totalMembers;
 
+        /// <summary>
+        /// 建立只存活於一次 Deserialize 呼叫的 reader。<paramref name="payload"/> 仍由呼叫端擁有，
+        /// reader 不修改、不複製到共享狀態，也不延長其生命週期；limits 為 immutable protocol policy。
+        /// </summary>
+        /// <param name="payload">已通過 frame 大小檢查的完整 envelope。</param>
+        /// <param name="limits">部署端固定且可安全共用的 protocol 上限。</param>
         internal BoundedEnvelopeReader(byte[] payload, WorkerProtocolLimits limits)
         {
+            // Reader 只借用呼叫端 payload，沒有 Stream、Timer 或背景 Task；整個狀態僅存活於
+            // 單次 Deserialize call，不可存入 static/cache，因此不會跨要求保留 frame 資料。
             _payload = payload;
             _limits = limits;
         }
 
+        /// <summary>
+        /// 驗證目前位置的固定 magic bytes；不足或不符立即 fail closed，不嘗試猜測其他訊息種類。
+        /// </summary>
+        /// <param name="expected">對應具名 envelope 類型的固定 magic。</param>
         internal void RequireBytes(byte[] expected)
         {
             EnsureAvailable(expected.Length);
@@ -561,6 +660,10 @@ public sealed class WorkerEnvelopeCodec
             _offset += expected.Length;
         }
 
+        /// <summary>
+        /// 讀取 big-endian 32-bit 整數。方法先證明剩餘長度，再推進 invocation-local offset。
+        /// </summary>
+        /// <returns>解碼後的 32-bit 整數。</returns>
         internal int ReadInt32()
         {
             EnsureAvailable(sizeof(int));
@@ -573,6 +676,10 @@ public sealed class WorkerEnvelopeCodec
             return value;
         }
 
+        /// <summary>
+        /// 讀取 big-endian 64-bit 整數；固定八次迴圈不配置暫存陣列，兼顧界限與低配置效能。
+        /// </summary>
+        /// <returns>解碼後的 64-bit 整數。</returns>
         internal long ReadInt64()
         {
             EnsureAvailable(sizeof(long));
@@ -586,6 +693,12 @@ public sealed class WorkerEnvelopeCodec
             return unchecked((long)value);
         }
 
+        /// <summary>
+        /// 讀取 length-prefixed 嚴格 UTF-8 字串。負長度、欄位超限、frame 截斷或非法 UTF-8 均在
+        /// 回傳字串前 fail closed，且錯誤不回顯原始 payload 或可能的敏感內容。
+        /// </summary>
+        /// <param name="maximumUtf8Bytes">此欄位可接受的最大 UTF-8 位元組數。</param>
+        /// <returns>完成嚴格解碼、由本次 object graph 擁有的字串。</returns>
         internal string ReadString(int maximumUtf8Bytes)
         {
             var byteCount = ReadInt32();
@@ -612,6 +725,12 @@ public sealed class WorkerEnvelopeCodec
             }
         }
 
+        /// <summary>
+        /// 讀取具有 ordinal key 與唯一名稱的物件。單一 object 數量與整棵樹累計 member 數都在配置前
+        /// 受限，避免以大量小 object 繞過總量上限；失敗時不保留部分 dictionary 到共享狀態。
+        /// </summary>
+        /// <param name="depth">目前 value tree 深度。</param>
+        /// <returns>只屬於本次反序列化結果的 bounded member dictionary。</returns>
         internal IReadOnlyDictionary<string, WorkerValue> ReadObject(int depth)
         {
             if (depth > _limits.MaximumValueDepth)
@@ -622,6 +741,8 @@ public sealed class WorkerEnvelopeCodec
             var count = ReadBoundedCount(
                 _limits.MaximumObjectMembers,
                 "object member");
+            // 除單一 object 上限外再累計整棵樹的 member 數，防止多個小 object 疊加成
+            // 大型保留圖而繞過 allocation bound。
             _totalMembers = checked(_totalMembers + count);
             if (_totalMembers > _limits.MaximumObjectMembers)
             {
@@ -643,6 +764,9 @@ public sealed class WorkerEnvelopeCodec
             return members;
         }
 
+        /// <summary>
+        /// 要求 offset 精確位於 payload 結尾，拒絕尾隨資料、黏包或隱藏的第二個訊息。
+        /// </summary>
         internal void RequireEnd()
         {
             if (_offset != _payload.Length)
@@ -651,6 +775,12 @@ public sealed class WorkerEnvelopeCodec
             }
         }
 
+        /// <summary>
+        /// 依封閉 kind allowlist 讀取一個 value。每個 scalar／array／object 分支在配置前套用深度、
+        /// byte 與全樹累計上限，不接受未知 kind 或混合 shape。
+        /// </summary>
+        /// <param name="depth">目前 value tree 深度。</param>
+        /// <returns>由本次反序列化 object graph 單獨擁有的 <see cref="WorkerValue"/>。</returns>
         internal WorkerValue ReadValue(int depth)
         {
             if (depth > _limits.MaximumValueDepth)
@@ -697,6 +827,7 @@ public sealed class WorkerEnvelopeCodec
                         null);
                 case WorkerValueKind.Array:
                     var count = ReadBoundedCount(_limits.MaximumArrayItems, "array item");
+                    // 與 object member 相同，累計整棵樹的 item 數，避免巢狀小陣列繞過總量上限。
                     _totalItems = checked(_totalItems + count);
                     if (_totalItems > _limits.MaximumArrayItems)
                     {
@@ -717,12 +848,20 @@ public sealed class WorkerEnvelopeCodec
             }
         }
 
+        /// <summary>在先證明剩餘長度後讀取單一 byte，並只推進本 reader 的 offset。</summary>
+        /// <returns>目前位置的 byte。</returns>
         private byte ReadByte()
         {
             EnsureAvailable(1);
             return _payload[_offset++];
         }
 
+        /// <summary>
+        /// 讀取非負且不超過具名上限的 count；錯誤只輸出固定 category，不回顯 payload。
+        /// </summary>
+        /// <param name="maximum">此集合允許的最大元素數。</param>
+        /// <param name="category">供固定錯誤訊息使用的非敏感類別。</param>
+        /// <returns>已驗證、可安全用於 bounded 配置的元素數。</returns>
         private int ReadBoundedCount(int maximum, string category)
         {
             var count = ReadInt32();
@@ -739,6 +878,10 @@ public sealed class WorkerEnvelopeCodec
             return count;
         }
 
+        /// <summary>
+        /// 以避免整數溢位的減法形式驗證 payload 剩餘長度，截斷 frame 在任何讀取前 fail closed。
+        /// </summary>
+        /// <param name="byteCount">後續操作需要的位元組數。</param>
         private void EnsureAvailable(int byteCount)
         {
             if (byteCount < 0 || _offset > _payload.Length - byteCount)

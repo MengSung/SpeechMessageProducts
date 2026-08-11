@@ -6,6 +6,11 @@ using System.Text;
 
 namespace SpeechMessage.Dynamics.WorkerProtocol;
 
+/// <summary>
+/// 對 WorkerValue tree 與 request metadata 執行無 I/O、無共享可變狀態的 fail-closed 驗證。
+/// 除 shape 與 canonical scalar 外，還會拒絕 credential／token／cookie／endpoint／Session 等敏感欄位名稱，
+/// 並以全樹累計上限防止巢狀小集合繞過 allocation bound。
+/// </summary>
 internal static class WorkerEnvelopeValidator
 {
     private static readonly string[] ForbiddenFieldTerms =
@@ -23,6 +28,9 @@ internal static class WorkerEnvelopeValidator
         "session"
     };
 
+    /// <summary>
+    /// 驗證 request identity、deadline、operation metadata 與完整 parameter tree；失敗時不修改外部狀態或取得任何 connector resource。
+    /// </summary>
     internal static void ValidateRequest(
         WorkerRequestV1 request,
         WorkerProtocolLimits limits)
@@ -59,6 +67,7 @@ internal static class WorkerEnvelopeValidator
         }
     }
 
+    /// <summary>驗證獨立 result/value tree，供 response serialization 在跨 process 前套用相同資源與敏感資料邊界。</summary>
     internal static void ValidateStandaloneValue(
         WorkerValue value,
         WorkerProtocolLimits limits)
@@ -74,6 +83,8 @@ internal static class WorkerEnvelopeValidator
         int depth,
         ValidationState state)
     {
+        // 每個 branch 先驗證 kind 對應的唯一 shape，再解析 scalar 或遞迴集合；這可阻止
+        // 一個 WorkerValue 同時保留 Scalar 與 Members，造成隱藏資料跨 IPC 邊界。
         if (value is null)
         {
             throw InvalidEnvelope("The worker value is missing.");
@@ -208,6 +219,8 @@ internal static class WorkerEnvelopeValidator
         WorkerProtocolLimits limits,
         string category)
     {
+        // Identifier 僅允許可預測的 ASCII subset，可讓 UTF-8 byte 上限與 canonical encoding
+        // 保持穩定，並排除路徑、引號、空白與 shell/protocol 控制字元。
         if (string.IsNullOrWhiteSpace(value))
         {
             throw InvalidEnvelope($"The worker {category} is missing.");
@@ -228,6 +241,8 @@ internal static class WorkerEnvelopeValidator
     {
         ValidateIdentifier(value, limits, "field name");
         var normalized = value.Replace("_", string.Empty).Replace("-", string.Empty);
+        // Denylist 在移除 '_'/'-' 後比較，避免以 password、pass_word 或 pass-word 等拼法
+        // 把祕密/Session/路由欄位偽裝成一般 parameter 帶入 Worker。
         if (ForbiddenFieldTerms.Any(term =>
                 normalized.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0))
         {
@@ -251,18 +266,38 @@ internal static class WorkerEnvelopeValidator
             WorkerProtocolFailureCategory.EnvelopeLimitExceeded,
             message);
 
+    /// <summary>
+    /// 單次 value-tree 驗證專用的累計狀態。它只保存 immutable limits 與兩個整數 counter，
+    /// 不保存 WorkerValue、request、session、profile 或 credential；每次 public validation 都建立新實例，
+    /// 因此不同要求、使用者、profile 與 process generation 之間不會共享或殘留驗證狀態。
+    /// </summary>
     private sealed class ValidationState
     {
         private int _totalItems;
         private int _totalMembers;
 
+        /// <summary>
+        /// 建立 invocation-local 累計器。<paramref name="limits"/> 是 immutable policy，可安全共用；
+        /// item/member 計數則從零開始且只活到本次同步驗證完成。
+        /// </summary>
+        /// <param name="limits">部署端固定的深度、字串與集合資源上限。</param>
         internal ValidationState(WorkerProtocolLimits limits)
         {
+            // State 僅屬於一次 validation call，不進入 static/cache；因此不同要求不會共享
+            // 累計 counter 或殘留先前 payload 參考。
             Limits = limits;
         }
 
+        /// <summary>
+        /// 取得本次驗證使用的 immutable protocol limits；屬性不暴露或修改累計 counter。
+        /// </summary>
         internal WorkerProtocolLimits Limits { get; }
 
+        /// <summary>
+        /// 在走訪 array branch 時累加全樹 item 數。使用 checked arithmetic 防止 overflow，且總量超限
+        /// 立即 fail closed，避免多個小陣列分別合法卻合計造成無界配置。
+        /// </summary>
+        /// <param name="count">目前 array 已先通過單一集合上限檢查的元素數。</param>
         internal void AddItems(int count)
         {
             _totalItems = checked(_totalItems + count);
@@ -272,6 +307,11 @@ internal static class WorkerEnvelopeValidator
             }
         }
 
+        /// <summary>
+        /// 在走訪 object branch 時累加全樹 member 數。counter 只屬於本次驗證；overflow 或總量超限
+        /// 立即拒絕，不會把部分 object graph 放入 cache、session 或後續 IPC。
+        /// </summary>
+        /// <param name="count">目前 object 已先通過單一集合上限檢查的 member 數。</param>
         internal void AddMembers(int count)
         {
             _totalMembers = checked(_totalMembers + count);

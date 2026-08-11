@@ -6,11 +6,19 @@ using System.Threading.Tasks;
 
 namespace SpeechMessage.Dynamics.WorkerProtocol;
 
+/// <summary>
+/// 讀寫 Worker IPC 的 4-byte big-endian length-prefixed frame。
+/// Codec 只配置宣告上限內的 invocation-local byte array，不 Dispose 呼叫端 Stream，也不快取
+/// payload、Session 或 Profile；取消由呼叫端 token 傳入，截斷、超限與 trailing data 均 fail closed。
+/// </summary>
 public static class WorkerFrameCodec
 {
+    /// <summary>固定 frame header byte 數。</summary>
     public const int HeaderBytes = sizeof(int);
+    /// <summary>預設單一 payload 上限為 1 MiB，防止無界 IPC allocation。</summary>
     public const int DefaultMaximumFrameBytes = 1024 * 1024;
 
+    /// <summary>將非空且未超限的 payload 複製成單一 big-endian length-prefixed frame。</summary>
     public static byte[] Encode(
         byte[] payload,
         int maxFrameBytes = DefaultMaximumFrameBytes)
@@ -24,6 +32,7 @@ public static class WorkerFrameCodec
         return frame;
     }
 
+    /// <summary>解碼記憶體中的單一完整 frame，拒絕 header/payload 截斷與任何 trailing bytes。</summary>
     public static byte[] DecodeSingleFrame(
         byte[] frame,
         int maxFrameBytes = DefaultMaximumFrameBytes)
@@ -62,6 +71,10 @@ public static class WorkerFrameCodec
         return payload;
     }
 
+    /// <summary>
+    /// 從 caller-owned Stream 精確讀滿一個 header 與 payload。
+    /// 方法不關閉 Stream；只回傳 payload byte array，取消或 EOF 會在目前 invocation 結束並由呼叫端決定 Stream/pipe cleanup。
+    /// </summary>
     public static async Task<byte[]> ReadAsync(
         Stream stream,
         int maxFrameBytes = DefaultMaximumFrameBytes,
@@ -87,6 +100,10 @@ public static class WorkerFrameCodec
         return payload;
     }
 
+    /// <summary>
+    /// 將單一 bounded frame 寫入 caller-owned Stream 並 Flush；不關閉 Stream，也不啟動背景寫入，
+    /// 因此 completion/failure 可被唯一 owner 直接觀察，不會留下 fire-and-forget Task。
+    /// </summary>
     public static async Task WriteAsync(
         Stream stream,
         byte[] payload,
@@ -134,6 +151,8 @@ public static class WorkerFrameCodec
         byte[] buffer,
         CancellationToken cancellationToken)
     {
+        // Stream 可合法分段回傳；迴圈只累積至固定 buffer 長度。Read=0 代表 remote 已結束，
+        // 必須立即以 IncompleteFrame fail closed，不能重用部分 payload 或等待無界資料。
         var offset = 0;
         while (offset < buffer.Length)
         {

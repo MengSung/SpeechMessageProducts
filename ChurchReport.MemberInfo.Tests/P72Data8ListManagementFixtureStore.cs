@@ -569,9 +569,11 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
     }
 
     /// <summary>
-    /// 讀取 transfer composite 的完整固定 graph：source/target membership、唯一 weekly report、最多一筆
-    /// present record、contact primary-list lookup 與 owner。每個 query 均有固定 entity、欄位、date 和
-    /// row bound，結果只投影成純值 snapshot，讓 partial 或跨 fixture record 在 mutation 前保持 no-go。
+    /// 讀取 transfer composite 的完整固定 graph：source/target membership、零或唯一 weekly report、最多一筆
+    /// present record、contact primary-list lookup 與 owner。零週報時 present-record query 不加 weekly lookup
+    /// filter，才能看見同 contact/date 下既有但錯誤關聯的資料；最後仍以 nullable lookup 精確相等判定。
+    /// 每個 query 均有固定 entity、欄位、date 和 row bound，結果只投影成純值 snapshot，讓 partial 或
+    /// 跨 fixture record 在 mutation 前保持 no-go，且不建立、選取或修補 weekly report。
     /// </summary>
     public P72TransferGraphSnapshot ReadTransferGraph(P72TransferFixture fixture)
     {
@@ -602,9 +604,10 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
     }
 
     /// <summary>
-    /// 對已由 bridge read-back 證實的 expected transfer graph 執行有序 rollback。先再次確認即將刪除的
-    /// present record 仍是同一 fixture identity，接著刪除該 record、還原 primary list/owner/source
-    /// membership 並移除 target membership；任一步失敗都拋回 bridge，禁止猜測或刪除未證實的資料。
+    /// 對已由 bridge read-back 證實的 expected transfer graph 執行有序 rollback。先用相同的零／唯一週報
+    /// 分支再次確認即將刪除的 present record：zero-active 必須精確缺少 weekly lookup，exactly-one-active
+    /// 必須精確指向同一筆週報。證明後才刪除 record、還原 primary list/owner/source membership 並移除
+    /// target membership；任一步失敗都拋回 bridge，禁止猜測或刪除未證實的資料。
     /// </summary>
     public void RestoreTransferGraph(
         P72TransferFixture fixture,
@@ -670,8 +673,13 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
         disposable?.Dispose();
     }
 
-    /// <summary>以 target list/date 唯一解析週報；零筆、多筆、paging 或 malformed row 均 fail closed。</summary>
-    private Guid ResolveWeeklyReport(Guid listId, DateTimeOffset weekStartDate)
+    /// <summary>
+    /// 以 exact target list、active state 與 UTC Sunday 解析零或唯一週報。完整零列回傳 null，代表既有
+    /// ChurchReport 相容的未關聯 present-record 分支；唯一合法列回傳其 method-local ID。多筆、paging、
+    /// malformed row 或缺失 response 仍 fail closed，且方法不建立、選取、停用或修補任何 weekly report。
+    /// 回傳 identity 只活在目前同步 graph read/cleanup scope，不進入 cache、session、evidence 或 shared state。
+    /// </summary>
+    private Guid? ResolveWeeklyReport(Guid listId, DateTimeOffset weekStartDate)
     {
         var query = new QueryExpression(WeeklyReportEntityName)
         {
@@ -684,9 +692,14 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
         query.Criteria.AddCondition(DateAttribute, ConditionOperator.Equal, weekStartDate.UtcDateTime);
         var rows = GetService().RetrieveMultiple(query)
             ?? throw new InvalidOperationException("The fixture weekly-report response is missing.");
-        if (rows.MoreRecords || rows.Entities.Count != 1)
+        if (rows.MoreRecords || rows.Entities.Count > 1)
         {
             throw new InvalidOperationException("The fixture weekly-report relationship is ambiguous.");
+        }
+
+        if (rows.Entities.Count == 0)
+        {
+            return null;
         }
 
         var row = rows.Entities[0];
@@ -698,8 +711,13 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
         return row.Id;
     }
 
-    /// <summary>讀取最多一筆 matching present record；多筆直接拋錯，禁止 cleanup 猜 record。</summary>
-    private P72PresentRecord? ReadPresentRecord(Guid weeklyReportId, P72TransferFixture fixture)
+    /// <summary>
+    /// 讀取最多一筆 matching present record。唯一週報分支加入 exact weekly lookup filter；零週報分支刻意
+    /// 不加該 filter，避免既有錯誤關聯 record 被 query 漏掉後誤判為安全 baseline。回傳 projection 的
+    /// weekly lookup 為 nullable，呼叫端必須以精確 nullable equality 證明「缺席」或「同一筆週報」；多筆、
+    /// paging、錯 logical name 或錯 lookup 型別直接 fail closed，禁止 cleanup 猜測 record。
+    /// </summary>
+    private P72PresentRecord? ReadPresentRecord(Guid? weeklyReportId, P72TransferFixture fixture)
     {
         var query = new QueryExpression(PresentRecordEntityName)
         {
@@ -711,7 +729,13 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
             NoLock = true,
             TopCount = 2
         };
-        query.Criteria.AddCondition(PresentRecordWeeklyReportAttribute, ConditionOperator.Equal, weeklyReportId);
+        if (weeklyReportId is Guid resolvedWeeklyReportId)
+        {
+            query.Criteria.AddCondition(
+                PresentRecordWeeklyReportAttribute,
+                ConditionOperator.Equal,
+                resolvedWeeklyReportId);
+        }
         query.Criteria.AddCondition(PresentRecordContactAttribute, ConditionOperator.Equal, fixture.ContactId);
         query.Criteria.AddCondition(DateAttribute, ConditionOperator.Equal, fixture.WeekStartDate.UtcDateTime);
         query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
@@ -730,7 +754,7 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
         var row = rows.Entities[0];
         return new P72PresentRecord(
             row.Id,
-            ReadRequiredReference(row, PresentRecordWeeklyReportAttribute, WeeklyReportEntityName),
+            ReadOptionalReference(row, PresentRecordWeeklyReportAttribute, WeeklyReportEntityName),
             ReadRequiredReference(row, PresentRecordContactAttribute, ContactEntityName),
             ReadRequiredReference(row, PresentRecordListAttribute, ListEntityName),
             ReadRequiredUtcDate(row, DateAttribute));
@@ -980,7 +1004,7 @@ internal sealed class P72Data8ListManagementFixtureStore : IP72ListManagementFix
     /// <summary>固定 present-record projection；SDK Entity 不跨出 store method。</summary>
     private sealed record P72PresentRecord(
         Guid Id,
-        Guid WeeklyReportId,
+        Guid? WeeklyReportId,
         Guid ContactId,
         Guid ListId,
         DateTime WeekStartUtc);

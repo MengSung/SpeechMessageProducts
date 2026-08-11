@@ -78,7 +78,9 @@ function Invoke-RunnerJson {
         [switch] $ReconcileFixture,
         [switch] $RepairFixture,
         [switch] $RepairProbe,
-        [switch] $FreshPreflightProbe
+        [switch] $FreshPreflightProbe,
+        [switch] $BootstrapFreshSeed,
+        [string] $LocalAppDataRoot
     )
 
     $arguments = @(
@@ -104,14 +106,22 @@ function Invoke-RunnerJson {
     if ($FreshPreflightProbe) {
         $arguments += '-FreshPreflightProbe'
     }
+    if ($BootstrapFreshSeed) {
+        $arguments += '-BootstrapFreshSeed'
+    }
 
     $previous = $ErrorActionPreference
+    $previousLocalAppData = [Environment]::GetEnvironmentVariable('LOCALAPPDATA', 'Process')
     try {
         $ErrorActionPreference = 'Continue'
+        if (-not [string]::IsNullOrWhiteSpace($LocalAppDataRoot)) {
+            [Environment]::SetEnvironmentVariable('LOCALAPPDATA', $LocalAppDataRoot, 'Process')
+        }
         $lines = @(& powershell.exe @arguments 2>&1)
         $exitCode = $LASTEXITCODE
     }
     finally {
+        [Environment]::SetEnvironmentVariable('LOCALAPPDATA', $previousLocalAppData, 'Process')
         $ErrorActionPreference = $previous
     }
 
@@ -197,7 +207,12 @@ function Invoke-RunnerWithSyntheticFailingChild {
         [string] $ProfilePath,
         [string] $SourceFixturePath,
         [string] $FixturePath,
-        [string] $TemporaryRoot
+        [string] $TemporaryRoot,
+        # 僅供這個 parent/child 邊界測試建立完全嚴格的 no-go evidence；不會觸及 Credential Manager 或 CE。
+        [switch] $WriteNoGoEvidence,
+        # 只接受 production strict parser 已允許的 bounded reason，避免測試資料越過 child wire contract。
+        [ValidateSet('runtime-failure', 'cleanup-failure', 'fixture-precondition-failed', 'live-evidence-incomplete')]
+        [string] $NoGoReason = 'runtime-failure'
     )
 
     $syntheticRunnerPath = Join-Path $TemporaryRoot 'Invoke-Package02Data8ListManagementEvidence.synthetic-child.ps1'
@@ -255,6 +270,18 @@ function Invoke-RunnerWithSyntheticFailingChild {
         featureFlagChanged = $false
         operations = $syntheticOperations
     }
+    if ($WriteNoGoEvidence) {
+        $syntheticEvidence.outcome = 'no-go'
+        $syntheticEvidence.reason = $NoGoReason
+        $syntheticEvidence.operationExecuted = $false
+        foreach ($operation in $syntheticOperations) {
+            $operation.outcome = 'not-run'
+            $operation.reason = 'prior-operation-no-go'
+            $operation.operationExecuted = $false
+            $operation.reconciliationState = 'not-started'
+            $operation.cleanupState = 'not-started'
+        }
+    }
     $evidenceBytes = [Text.UTF8Encoding]::new($false).GetBytes(($syntheticEvidence | ConvertTo-Json -Compress -Depth 8))
     try {
         $evidencePayload = [Convert]::ToBase64String($evidenceBytes)
@@ -305,6 +332,107 @@ function Invoke-RunnerWithSyntheticFailingChild {
         # 即使 assertion、runner 或 parser 擲出例外，也必須立即還原測試專用 selector，
         # 避免後續測試或使用者命令繼承假的 dotnet.cmd 路徑。
         [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_DOTNET_PATH', $previousSyntheticDotnetPath, 'Process')
+    }
+}
+
+function Invoke-RunnerWithSyntheticBootstrapChild {
+    <#
+    .SYNOPSIS
+        以零 mutation 的 synthetic preflight child 證明 seed bootstrap 會原子發布並 read-back seed。
+
+    .DESCRIPTION
+        此 helper 只替換 Credential Manager 與 dotnet executable 邊界；fake child 僅寫入固定 schema 的
+        read-only probe evidence，絕不建立 CRM entity、ledger 或 active descriptor。呼叫完成後由 caller
+        驗證 seed 的固定 bytes、欄位縮減與 current-user path，避免正向 bootstrap 測試只驗證 console JSON。
+    #>
+    param(
+        [string] $CommandPath,
+        [string] $RepositoryPath,
+        [string] $ProfilePath,
+        [string] $SourceFixturePath,
+        [string] $FixturePath,
+        [string] $LocalAppDataRoot,
+        [string] $TemporaryRoot
+    )
+
+    $syntheticRunnerPath = Join-Path $TemporaryRoot 'Invoke-Package02Data8ListManagementEvidence.synthetic-bootstrap.ps1'
+    $fakeDotnetDirectory = Join-Path $TemporaryRoot 'synthetic-bootstrap-dotnet'
+    $fakeChildPath = Join-Path $fakeDotnetDirectory 'synthetic-bootstrap-child.ps1'
+    $fakeDotnetPath = Join-Path $fakeDotnetDirectory 'dotnet.cmd'
+    [void][IO.Directory]::CreateDirectory($fakeDotnetDirectory)
+
+    $syntheticRunner = [IO.File]::ReadAllText($CommandPath, [Text.UTF8Encoding]::new($false, $true))
+    $syntheticRunner = $syntheticRunner.Replace(
+        'return [SpeechMessage.P72SliceC.CredentialPresenceReader]::Exists($credentialTarget)',
+        'return $true')
+    $syntheticRunner = $syntheticRunner.Replace(
+        'return [SpeechMessage.P72SliceCLive.CredentialReader]::ReadGenericSecret($credentialTarget)',
+        "return 'synthetic-bootstrap-secret'")
+    $dotnetSelectionLine = '$dotnetCommand = Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue'
+    Assert-True $syntheticRunner.Contains($dotnetSelectionLine) 'Synthetic bootstrap requires the runner dotnet command selection seam.'
+    $syntheticRunner = $syntheticRunner.Replace(
+        $dotnetSelectionLine,
+        '$dotnetCommand = Get-Command $env:SPEECHMESSAGE_P72_SYNTHETIC_BOOTSTRAP_DOTNET_PATH -CommandType Application -ErrorAction SilentlyContinue')
+    Write-StrictTextFile $syntheticRunnerPath $syntheticRunner
+
+    $syntheticEvidence = [ordered]@{
+        schemaVersion = 1
+        outcome = 'go'
+        reason = 'fresh-preconditions-proven'
+        profileAlias = 'sunnyvalechback'
+        deploymentProfileAlias = 'crm91'
+        ceVersion = '9.1'
+        connector = 'Data8'
+        preflightOnly = $false
+        operationExecuted = $false
+        readOnlyProbeExecuted = $true
+        featureFlagChanged = $false
+        probe = [ordered]@{
+            requestShape = 'valid'
+            operationalLists = 'valid'
+            leaderMarker = 'valid'
+            ownerKind = 'systemuser'
+            ownerState = 'active'
+            ownerRelation = 'different-from-data8'
+            weeklyReport = 'zero-active'
+        }
+    }
+    $evidenceJson = $syntheticEvidence | ConvertTo-Json -Compress -Depth 8
+    $evidenceBase64 = [Convert]::ToBase64String([Text.UTF8Encoding]::new($false).GetBytes($evidenceJson))
+    $fakeChild = @(
+        '$ErrorActionPreference = ''Stop''',
+        '$evidencePath = $env:P7_2_SLICE_C_FRESH_PREFLIGHT_EVIDENCE_PATH',
+        'if ([string]::IsNullOrWhiteSpace($evidencePath)) { exit 19 }',
+        '$payload = $null',
+        'try {',
+        ('    $payload = [Convert]::FromBase64String(''' + $evidenceBase64 + ''')'),
+        '    $json = [Text.UTF8Encoding]::new($false, $true).GetString($payload)',
+        '    [IO.File]::WriteAllText($evidencePath, $json + "`r`n", [Text.UTF8Encoding]::new($false))',
+        '}',
+        'finally { if ($null -ne $payload) { [Array]::Clear($payload, 0, $payload.Length) } }',
+        'exit 0'
+    ) -join "`r`n"
+    Write-StrictTextFile $fakeChildPath $fakeChild
+    Write-StrictTextFile $fakeDotnetPath (@(
+        '@echo off',
+        ('powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $fakeChildPath + '" %*'),
+        'exit /b %ERRORLEVEL%'
+    ) -join "`r`n")
+
+    $previousSyntheticDotnetPath = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_BOOTSTRAP_DOTNET_PATH', 'Process')
+    try {
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_BOOTSTRAP_DOTNET_PATH', $fakeDotnetPath, 'Process')
+        return Invoke-RunnerJson `
+            $syntheticRunnerPath `
+            $RepositoryPath `
+            $ProfilePath `
+            $SourceFixturePath `
+            $FixturePath `
+            -BootstrapFreshSeed `
+            -LocalAppDataRoot $LocalAppDataRoot
+    }
+    finally {
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_P72_SYNTHETIC_BOOTSTRAP_DOTNET_PATH', $previousSyntheticDotnetPath, 'Process')
     }
 }
 
@@ -431,6 +559,37 @@ function Write-TestSliceCFixture {
     })
 }
 
+function Write-TestFreshSeed {
+    <#
+    .SYNOPSIS
+        建立只含靜態前置條件的 Slice C seed，供 fresh lane 測試確認不會讀取上一輪 active descriptor。
+
+    .DESCRIPTION
+        此測試 helper 刻意不產生 source contact 或 relationship-list ID，並且不接受 legacy
+        targetOwnerId。測試藉由刪除 active descriptor pair 後仍能走到 credential gate，保護
+        seed 與每輪 fresh 輸出的生命週期分離，以及 parent 在 CE/child 邊界前的零 mutation 規則。
+    #>
+    param([string] $Path, [string] $Identity)
+
+    Write-StrictJsonFile $Path ([ordered]@{
+        schemaVersion = 1
+        fixtureId = 'p7.2-slice-c-seed'
+        profileAlias = 'sunnyvalechback'
+        deploymentProfileAlias = 'crm91'
+        ceVersion = '9.1'
+        connector = 'Data8'
+        marker = 'p7.2-list-management-seed'
+        ownerIdentity = $Identity
+        addListId = '11111111-1111-1111-1111-111111111111'
+        removeListId = '22222222-2222-2222-2222-222222222222'
+        smallGroupListId = '33333333-3333-3333-3333-333333333333'
+        baselineLeaderContactId = '44444444-4444-4444-4444-444444444444'
+        transferSourceListId = '66666666-6666-6666-6666-666666666666'
+        transferTargetListId = '77777777-7777-7777-7777-777777777777'
+        transferWeekStartUtc = '2026-08-09T00:00:00.0000000+00:00'
+    })
+}
+
 try {
     foreach ($path in @($PSCommandPath, $runnerPath, $liveTestPath)) {
         Assert-StrictTextFile $path
@@ -460,11 +619,83 @@ try {
     New-TestRepository $testRepository
     Write-TestSourceFixture $sourceFixturePath $contactId $identity
     Write-TestSliceCFixture $sliceCFixturePath $identity
+
     $missingTarget = 'speechmessage.p72.slice-c.missing.' + [Guid]::NewGuid().ToString('N')
     Write-TestProfileInput $profilePath $missingTarget
     $missingCredentialRunner = Join-Path $fixtureRoot 'Invoke-Package02Data8ListManagementEvidence.missing-credential.ps1'
     $runnerText = [IO.File]::ReadAllText($runnerPath, [Text.UTF8Encoding]::new($false, $true))
     Write-StrictTextFile $missingCredentialRunner $runnerText.Replace('speechmessage.crm91.p62', $missingTarget)
+
+    # bootstrap 只讀取固定的 legacy candidate，而非 active descriptor pair。即使 pair 已被 cleanup，
+    # credential gate 仍必須先阻止 child 與 seed publication；這個測試保護 control-plane 的無循環契約。
+    $bootstrapLocalAppDataRoot = Join-Path $fixtureRoot 'bootstrap-local-app-data'
+    $bootstrapDescriptorRoot = Join-Path $bootstrapLocalAppDataRoot 'SpeechMessage\Dynamics\P7.2'
+    $bootstrapSourceFixturePath = Join-Path $bootstrapDescriptorRoot 'contact-basic-info-fixture.json'
+    $bootstrapSliceCFixturePath = Join-Path $bootstrapDescriptorRoot 'list-management-fixture.json'
+    $legacySeedCandidatePath = $bootstrapSliceCFixturePath + '.before-whoami-owner-binding.bak'
+    $legacySeedCandidate = [IO.File]::ReadAllText($sliceCFixturePath, [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+    $legacySeedCandidate | Add-Member -NotePropertyName targetOwnerId -NotePropertyValue '55555555-5555-5555-5555-555555555555'
+    Write-StrictJsonFile $legacySeedCandidatePath $legacySeedCandidate
+    $freshSeedPath = Join-Path $bootstrapDescriptorRoot 'fresh-slice-c-seed.json'
+    if (Test-Path -LiteralPath $freshSeedPath -PathType Leaf) {
+        Remove-Item -LiteralPath $freshSeedPath -Force
+    }
+    $bootstrapCredentialMissing = Invoke-RunnerJson `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $bootstrapSourceFixturePath `
+        $bootstrapSliceCFixturePath `
+        -BootstrapFreshSeed `
+        -LocalAppDataRoot $bootstrapLocalAppDataRoot
+    Assert-True ($bootstrapCredentialMissing.ExitCode -eq 2 -and $bootstrapCredentialMissing.Evidence.reason -eq 'credential-unavailable') 'Read-only seed bootstrap must validate only the fixed legacy candidate and stop at the credential gate without an active descriptor pair.'
+    Assert-True (-not $bootstrapCredentialMissing.Evidence.operationExecuted -and
+        -not (Test-Path -LiteralPath $freshSeedPath -PathType Leaf)) 'Failed seed bootstrap must not publish a seed or execute a CE mutation.'
+
+    $legacySeedCandidate.targetOwnerId = 'not-a-guid'
+    Write-StrictJsonFile $legacySeedCandidatePath $legacySeedCandidate
+    $bootstrapCandidateInvalid = Invoke-RunnerJson `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $bootstrapSourceFixturePath `
+        $bootstrapSliceCFixturePath `
+        -BootstrapFreshSeed `
+        -LocalAppDataRoot $bootstrapLocalAppDataRoot
+    Assert-True ($bootstrapCandidateInvalid.ExitCode -eq 2 -and $bootstrapCandidateInvalid.Evidence.reason -eq 'fresh-seed-candidate-invalid') 'Malformed legacy candidate must fail closed before Credential Manager access.'
+    Assert-True (-not $bootstrapCandidateInvalid.Evidence.operationExecuted -and
+        -not (Test-Path -LiteralPath $freshSeedPath -PathType Leaf)) 'Invalid candidate must not publish a seed or execute a CE mutation.'
+
+    $legacySeedCandidate.targetOwnerId = '55555555-5555-5555-5555-555555555555'
+    Write-StrictJsonFile $legacySeedCandidatePath $legacySeedCandidate
+    Write-TestProfileInput $profilePath 'speechmessage.crm91.p62'
+    $bootstrapSuccess = Invoke-RunnerWithSyntheticBootstrapChild `
+        -CommandPath $runnerPath `
+        -RepositoryPath $testRepository `
+        -ProfilePath $profilePath `
+        -SourceFixturePath $bootstrapSourceFixturePath `
+        -FixturePath $bootstrapSliceCFixturePath `
+        -LocalAppDataRoot $bootstrapLocalAppDataRoot `
+        -TemporaryRoot $fixtureRoot
+    Assert-True ($bootstrapSuccess.ExitCode -eq 0 -and
+        $bootstrapSuccess.Evidence.outcome -eq 'go' -and
+        $bootstrapSuccess.Evidence.reason -eq 'fresh-seed-bootstrapped' -and
+        $bootstrapSuccess.Evidence.readOnlyProbeExecuted -and
+        -not $bootstrapSuccess.Evidence.operationExecuted) 'Read-only bootstrap must publish a seed only after go evidence and report no CE mutation.'
+    Assert-True ((Test-Path -LiteralPath $freshSeedPath -PathType Leaf) -and
+        -not (Test-Path -LiteralPath $bootstrapSourceFixturePath -PathType Leaf) -and
+        -not (Test-Path -LiteralPath $bootstrapSliceCFixturePath -PathType Leaf) -and
+        -not (Test-Path -LiteralPath (Join-Path $bootstrapDescriptorRoot 'FreshSliceC\fresh-slice-c-ledger.json') -PathType Leaf)) 'Successful bootstrap must publish only the permanent seed, never an active descriptor pair or ledger.'
+    Assert-StrictTextFile $freshSeedPath
+    $publishedBootstrapSeed = [IO.File]::ReadAllText($freshSeedPath, [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+    Assert-True (
+        $publishedBootstrapSeed.fixtureId -eq 'p7.2-slice-c-seed' -and
+        $publishedBootstrapSeed.baselineLeaderContactId -eq '44444444-4444-4444-4444-444444444444' -and
+        $null -eq $publishedBootstrapSeed.PSObject.Properties['targetOwnerId'] -and
+        $null -eq $publishedBootstrapSeed.PSObject.Properties['smallGroupExpectedRelationshipListId'] -and
+        $null -eq $publishedBootstrapSeed.PSObject.Properties['contactId']
+    ) 'Published seed must retain only verified static inputs and must exclude legacy owner, relationship, and source identifiers.'
+    Write-TestProfileInput $profilePath $missingTarget
 
     Write-TestDevelopmentConfiguration $testRepository 'DedicatedGateway'
     $modeMismatch = Invoke-RunnerJson $missingCredentialRunner $testRepository $profilePath $sourceFixturePath $sliceCFixturePath
@@ -542,12 +773,21 @@ try {
     # Fresh preflight probe 是獨立的 read-only child lane；缺少 credential 時仍必須在 child、
     # ledger、descriptor publication 或任何 CRM mutation 前停止。它不能因為名稱帶有 preflight
     # 就退回普通預檢模式，否則 caller 會誤把未執行的 CE proof 當作條件已改變。
+    $freshSeedPath = Join-Path (Split-Path -Parent $sliceCFixturePath) 'fresh-slice-c-seed.json'
+    Write-TestFreshSeed $freshSeedPath $identity
+    Remove-Item -LiteralPath $sourceFixturePath -Force
+    Remove-Item -LiteralPath $sliceCFixturePath -Force
     $freshPreflightProbeCredentialMissing = Invoke-RunnerJson $missingCredentialRunner $testRepository $profilePath $sourceFixturePath $sliceCFixturePath -FreshPreflightProbe
     Assert-True ($freshPreflightProbeCredentialMissing.ExitCode -eq 2 -and $freshPreflightProbeCredentialMissing.Evidence.reason -eq 'credential-unavailable') 'Fresh preflight probe missing credential must fail closed before child launch.'
     Assert-True (-not $freshPreflightProbeCredentialMissing.Evidence.preflightOnly -and
         -not $freshPreflightProbeCredentialMissing.Evidence.operationExecuted -and
         -not $freshPreflightProbeCredentialMissing.Evidence.featureFlagChanged -and
         $freshPreflightProbeCredentialMissing.Evidence.safeToRetry -eq $false) 'Fresh preflight credential failure must remain a zero-mutation, non-retryable no-go.'
+    Assert-True ((Test-Path -LiteralPath $freshSeedPath -PathType Leaf) -and
+        -not (Test-Path -LiteralPath $sourceFixturePath -PathType Leaf) -and
+        -not (Test-Path -LiteralPath $sliceCFixturePath -PathType Leaf)) 'Fresh preflight must retain seed and must not recreate active descriptors before a successful provision.'
+    Write-TestSourceFixture $sourceFixturePath $contactId $identity
+    Write-TestSliceCFixture $sliceCFixturePath $identity
 
     foreach ($modeArguments in @(
         @('-ExecuteFixture', '-ReconcileFixture'),
@@ -559,7 +799,14 @@ try {
         @('-ReconcileFixture', '-FreshPreflightProbe'),
         @('-RepairFixture', '-RepairProbe'),
         @('-RepairFixture', '-FreshPreflightProbe'),
-        @('-RepairProbe', '-FreshPreflightProbe'))) {
+        @('-RepairProbe', '-FreshPreflightProbe'),
+        @('-BootstrapFreshSeed', '-ExecuteFixture'),
+        @('-BootstrapFreshSeed', '-ReconcileFixture'),
+        @('-BootstrapFreshSeed', '-RepairFixture'),
+        @('-BootstrapFreshSeed', '-RepairProbe'),
+        @('-BootstrapFreshSeed', '-FreshPreflightProbe'),
+        @('-BootstrapFreshSeed', '-ProvisionFreshFixture'),
+        @('-BootstrapFreshSeed', '-CleanupFreshFixture'))) {
         $pairBinderFailure = Invoke-RunnerBinderFailure `
             $runnerPath `
             $testRepository `
@@ -946,6 +1193,41 @@ try {
     Assert-True $syntheticChildResult.Evidence.operationExecuted 'An execute-lane child failure must conservatively preserve possible operation execution.'
     Assert-True (-not $syntheticChildResult.Evidence.featureFlagChanged) 'A child process failure must never imply a feature-flag change.'
     Assert-True (@($syntheticChildResult.Evidence.operations).Count -eq 5) 'An execute-lane child failure must expose exactly five sanitized not-started operations.'
+    Assert-True (
+        @($syntheticChildResult.Evidence.PSObject.Properties | Where-Object { $_.Name -ceq 'diagnosticCategory' }).Count -eq 0
+    ) 'A child that exits non-zero after writing go evidence must not contribute a category or success authority.'
+
+    # child 寫入完整 no-go evidence 後即使仍以非零結束，parent 也只能揭露固定分類；
+    # 不得將 child evidence 提升為成功、read-back、cleanup 或重試權限。
+    $syntheticNoGoChildResult = Invoke-RunnerWithSyntheticFailingChild `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $sourceFixturePath `
+        $sliceCFixturePath `
+        $fixtureRoot `
+        -WriteNoGoEvidence
+    Assert-True (
+        $syntheticNoGoChildResult.Evidence.outcome -eq 'no-go' -and
+        $syntheticNoGoChildResult.Evidence.reason -eq 'child-process-failed' -and
+        $syntheticNoGoChildResult.Evidence.diagnosticCategory -eq 'runtime-failure' -and
+        @($syntheticNoGoChildResult.Evidence.PSObject.Properties | Where-Object { $_.Name -ceq 'safeToRetry' }).Count -eq 0
+    ) 'A valid child no-go evidence file must contribute only a fixed diagnostic category, never success or retry authority.'
+
+    $syntheticIncompleteChildResult = Invoke-RunnerWithSyntheticFailingChild `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $sourceFixturePath `
+        $sliceCFixturePath `
+        $fixtureRoot `
+        -WriteNoGoEvidence `
+        -NoGoReason 'live-evidence-incomplete'
+    Assert-True (
+        $syntheticIncompleteChildResult.Evidence.outcome -eq 'no-go' -and
+        $syntheticIncompleteChildResult.Evidence.reason -eq 'child-process-failed' -and
+        $syntheticIncompleteChildResult.Evidence.diagnosticCategory -eq 'live-evidence-incomplete'
+    ) 'Every strict allowlisted Slice C no-go reason must remain a bounded diagnostic category after a non-zero child exit.'
 
     $notRunOperations = @()
     foreach ($operationId in $global:expectedOperationIds) {

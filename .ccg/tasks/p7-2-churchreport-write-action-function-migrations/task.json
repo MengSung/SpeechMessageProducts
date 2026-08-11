@@ -1,13 +1,14 @@
 {
   "id": "p7-2-churchreport-write-action-function-migrations",
   "title": "P7.2 ChurchReport Data8-first 寫入、Action 與 Function 能力遷移",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "lastLiveResult": "2026-08-11: after a newly authorized independent Slice C cycle, the one FreshPreflightProbe invocation stopped at no-go / fixture-input-required with operationExecuted=false and featureFlagChanged=false. The current-user controlled source/graph descriptor pair is absent after the prior deterministic cleanup, so the runner did not read credentials, start a child process, or make a CE call.",
-  "nextAction": "Slice C is blocked: do not retry the FreshPreflightProbe, provision, ExecuteFixture, reconciliation, cleanup, weekly-report mutation, or start Slice D-H. Continue only after a separately governed external prerequisite supplies a verified current-user, task-owned Slice C graph descriptor pair through approved provisioning, or after separately planned and verified safe bootstrap capability exists. Preserve zero-active as an unlinked present record and exactly-one-active as exact lookup read-back.",
+  "currentPhase": "completed",
+  "lastLiveResult": "2026-08-11: the single final task-owned Slice C cycle reached FreshPreflightProbe go, ProvisionFreshFixture go, RepairProbe already-repaired, ExecuteFixture no-go child-process-failed/live-evidence-incomplete, one read-only ReconcileFixture no-go baseline-unprovable, and exact-ledger cleanup go. Final control-plane read-back confirms static seed present and active descriptors/ledger absent. Slice C is terminal unreleasable fail-closed; Slice D-H remain closed; no further CE cycle is permitted.",
+  "nextAction": "Archive this completed task and preserve the sanitized terminal result. Do not rerun any historical or final CE cycle. Weekly reports and feature flags remain unchanged. Local ChurchReport browser verification was attempted and correctly failed closed because embedded Dynamics composition configuration was unavailable; no browser credential or storage was inspected.",
+  "terminalResultArtifact": ".trellis/tasks/08-07-churchreport-write-action-function-migrations/p7.2-slice-c-final-terminal-result.json",
   "createdAt": "2026-08-08T00:00:00Z",
   "branch": "1.0.0.3.Gateway&Embedded.Worktree"
 }

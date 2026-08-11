@@ -3,8 +3,14 @@ using SpeechMessage.Dynamics.WorkerProtocol;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證 Worker process 命令列只包含固定、bounded、非祕密的 bootstrap projection。
+/// 故障注入涵蓋祕密/路由形狀 switch 與重複 switch；主要斷言為 parser 在 process/credential 建立前 fail closed，
+/// 且 round-trip 結果不含 password、token、connection string 或 endpoint，避免 process-list 洩漏與跨 Profile 身分混用。
+/// </summary>
 public sealed class WorkerBootstrapArgumentsTests
 {
+    /// <summary>證明固定六組 switch 可被精確解析成 immutable bootstrap DTO。</summary>
     [Fact]
     public void Parse_accepts_only_the_non_secret_bootstrap_projection()
     {
@@ -28,6 +34,7 @@ public sealed class WorkerBootstrapArgumentsTests
         parsed.ProfileGenerationId.Should().Be("profile-generation-0001");
     }
 
+    /// <summary>注入 password/credential/token/endpoint 等未知 switch，證明祕密與 caller-selected route 無法進入 Worker 命令列。</summary>
     [Theory]
     [InlineData("--password")]
     [InlineData("--credential")]
@@ -44,6 +51,7 @@ public sealed class WorkerBootstrapArgumentsTests
             .Which.Category.Should().Be(WorkerProtocolFailureCategory.InvalidEnvelope);
     }
 
+    /// <summary>注入重複 nonce switch，證明 parser 不採用 first/last wins，避免不同 process identity 解讀不一致。</summary>
     [Fact]
     public void Parse_rejects_duplicate_switches()
     {
@@ -55,6 +63,7 @@ public sealed class WorkerBootstrapArgumentsTests
             .Which.Category.Should().Be(WorkerProtocolFailureCategory.InvalidEnvelope);
     }
 
+    /// <summary>證明 parse→projection→parse 為等價且 flattened arguments 不包含任何祕密或 endpoint 詞彙。</summary>
     [Fact]
     public void ToArgumentList_round_trips_without_secret_material()
     {

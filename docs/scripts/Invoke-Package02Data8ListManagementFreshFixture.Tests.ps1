@@ -313,6 +313,37 @@ function Get-FileFingerprint {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
 }
 
+function Write-StrictFreshSeed {
+    <#
+    .SYNOPSIS
+        建立 current-user 專屬的 synthetic static seed，不夾帶任何 active fresh graph ID。
+
+    .DESCRIPTION
+        seed 是 fresh preflight/provision 的唯一靜態輸入；source contact、fresh leader 與 relationship
+        list 都必須在每輪 provision 後由 ledger 證明並另行發佈。此 helper 因此只寫五個 list、baseline
+        leader、UTC Sunday 與去識別化 deployment metadata，讓測試可驗證 cleanup 不會破壞下一輪輸入。
+    #>
+    param([string] $Path, [string] $OwnerIdentity)
+
+    Write-StrictJsonFile -Path $Path -Value ([ordered]@{
+        schemaVersion = 1
+        fixtureId = 'p7.2-slice-c-seed'
+        profileAlias = 'sunnyvalechback'
+        deploymentProfileAlias = 'crm91'
+        ceVersion = '9.1'
+        connector = 'Data8'
+        marker = 'p7.2-list-management-seed'
+        ownerIdentity = $OwnerIdentity
+        addListId = '11111111-1111-1111-1111-111111111111'
+        removeListId = '22222222-2222-2222-2222-222222222222'
+        smallGroupListId = '33333333-3333-3333-3333-333333333333'
+        baselineLeaderContactId = '44444444-4444-4444-4444-444444444444'
+        transferSourceListId = '66666666-6666-6666-6666-666666666666'
+        transferTargetListId = '77777777-7777-7777-7777-777777777777'
+        transferWeekStartUtc = '2026-08-09T00:00:00.0000000+00:00'
+    })
+}
+
 function Assert-DescriptorsRemainUnpublished {
     <#
     .SYNOPSIS
@@ -330,10 +361,19 @@ function Assert-DescriptorsRemainUnpublished {
         [string] $ExpectedSliceCFingerprint
     )
 
-    Assert-True (
-        (Get-FileFingerprint $SourceFixturePath) -ceq $ExpectedSourceFingerprint -and
+    $sourceIsUnpublished = if ([string]::IsNullOrEmpty($ExpectedSourceFingerprint)) {
+        -not (Test-Path -LiteralPath $SourceFixturePath -PathType Leaf)
+    }
+    else {
+        (Get-FileFingerprint $SourceFixturePath) -ceq $ExpectedSourceFingerprint
+    }
+    $sliceCIsUnpublished = if ([string]::IsNullOrEmpty($ExpectedSliceCFingerprint)) {
+        -not (Test-Path -LiteralPath $SliceCFixturePath -PathType Leaf)
+    }
+    else {
         (Get-FileFingerprint $SliceCFixturePath) -ceq $ExpectedSliceCFingerprint
-    ) 'Fresh-fixture no-go path must not publish or overwrite either descriptor.'
+    }
+    Assert-True ($sourceIsUnpublished -and $sliceCIsUnpublished) 'Fresh-fixture no-go path must not publish or overwrite either descriptor.'
 }
 
 function Assert-DescriptorsQuarantinedAfterPublicationFailure {
@@ -873,11 +913,12 @@ function New-SyntheticFreshScenarioContext {
     $descriptorRoot = Join-Path $localAppDataRoot 'SpeechMessage\Dynamics\P7.2'
     $scenarioSourceFixturePath = Join-Path $descriptorRoot 'contact-basic-info-fixture.json'
     $scenarioSliceCFixturePath = Join-Path $descriptorRoot 'list-management-fixture.json'
+    $scenarioSeedPath = Join-Path $descriptorRoot 'fresh-slice-c-seed.json'
     $sourceText = [IO.File]::ReadAllText($SourceFixturePath, [Text.UTF8Encoding]::new($false, $true))
     $sliceCText = [IO.File]::ReadAllText($SliceCFixturePath, [Text.UTF8Encoding]::new($false, $true))
     try {
-        Write-StrictTextFile -Path $scenarioSourceFixturePath -Text $sourceText
-        Write-StrictTextFile -Path $scenarioSliceCFixturePath -Text $sliceCText
+        $seedOwnerIdentity = [string](($sliceCText | ConvertFrom-Json).ownerIdentity)
+        Write-StrictFreshSeed -Path $scenarioSeedPath -OwnerIdentity $seedOwnerIdentity
     }
     finally {
         $sourceText = $null
@@ -890,8 +931,10 @@ function New-SyntheticFreshScenarioContext {
         DescriptorRoot = $descriptorRoot
         SourceFixturePath = $scenarioSourceFixturePath
         SliceCFixturePath = $scenarioSliceCFixturePath
-        SourceFingerprint = Get-FileFingerprint $scenarioSourceFixturePath
-        SliceCFingerprint = Get-FileFingerprint $scenarioSliceCFixturePath
+        SeedPath = $scenarioSeedPath
+        SeedFingerprint = Get-FileFingerprint $scenarioSeedPath
+        SourceFingerprint = $null
+        SliceCFingerprint = $null
     }
 }
 
@@ -1140,6 +1183,8 @@ function Invoke-SyntheticFreshProvision {
             LocalAppDataRoot = $scenarioContext.LocalAppDataRoot
             SourceFixturePath = $scenarioContext.SourceFixturePath
             SliceCFixturePath = $scenarioContext.SliceCFixturePath
+            SeedPath = $scenarioContext.SeedPath
+            ExpectedSeedFingerprint = $scenarioContext.SeedFingerprint
             ExpectedSourceFingerprint = $scenarioContext.SourceFingerprint
             ExpectedSliceCFingerprint = $scenarioContext.SliceCFingerprint
         }
@@ -1308,6 +1353,8 @@ try {
         transferTargetListId = '77777777-7777-7777-7777-777777777777'
         transferWeekStartUtc = '2026-08-09T00:00:00.0000000+00:00'
     })
+    $freshSeedPath = Join-Path $descriptorRoot 'fresh-slice-c-seed.json'
+    Write-StrictFreshSeed -Path $freshSeedPath -OwnerIdentity $identity
 
     $provisionWithoutConfirmation = Invoke-RunnerJson `
         -RepositoryPath $repositoryPath `
@@ -1937,6 +1984,9 @@ try {
             $provenProvision.ExpectedLedger.originalTargetLeaderContactId -eq '44444444-4444-4444-4444-444444444444' -and
             $provenProvision.ExpectedLedger.originalTargetLeaderContactId -ne $provenProvision.ExpectedLedger.leaderContactId
         ) 'Successful provision must publish only the three descriptor scalars proven by a v2 ledger that preserves the pre-publication target leader.'
+        Assert-True (
+            (Get-FileFingerprint $provenProvision.SeedPath) -ceq $provenProvision.ExpectedSeedFingerprint
+        ) 'Successful provision must leave the static seed byte-identical.'
         Assert-StrictTextFile $provenProvision.SourceFixturePath
         Assert-StrictTextFile $provenProvision.SliceCFixturePath
         $provenObservation = [IO.File]::ReadAllText($provenProvision.ChildObservationPath, [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
@@ -2042,6 +2092,10 @@ try {
             -not (Test-Path -LiteralPath $provenProvision.SliceCFixturePath -PathType Leaf) -and
             -not (Test-Path -LiteralPath $provenLedgerPath -PathType Leaf)
         ) 'Successful cleanup must remove only the matching fresh descriptors and completed current-user ledger.'
+        Assert-True (
+            (Test-Path -LiteralPath $provenProvision.SeedPath -PathType Leaf) -and
+            (Get-FileFingerprint $provenProvision.SeedPath) -ceq $provenProvision.ExpectedSeedFingerprint
+        ) 'Successful cleanup must retain the static seed byte-identical for the next fresh cycle.'
 
         # 使用獨立 successful provision 建立 valid pre-cleanup baseline。child 隨後回報合法 cleanup
         # evidence 卻把 ledger 改寫為 v1；parent 必須 fail closed，且不得因 cleanup 開始過就刪除

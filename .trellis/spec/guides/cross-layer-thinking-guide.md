@@ -116,6 +116,11 @@ After implementation:
 - [ ] Tested with edge cases (null, empty, invalid)
 - [ ] Verified error handling at each boundary
 - [ ] Checked data survives round-trip
+- [ ] If a cardinality or nullable rule changed (for example, exactly-one to
+      zero-or-one), searched every producer, consumer, fixture, reconciliation,
+      cleanup, evidence parser, and diagnostic stage for the superseded
+      assumption, then added a cross-layer regression that fails when any layer
+      still enforces the old contract
 - [ ] Checked that consumers import shared decoders / projections instead of
       casting payload fields locally
 - [ ] Checked that derived state points back to the source event identifier
@@ -325,3 +330,31 @@ state correctly, but several commands still re-parsed event payload fields with
 local casts. The fix was to make the core event layer own `ThreadChannelEvent`
 and `isThreadEvent`, make `reduceChannelMetadata` the only channel metadata
 projection, and make `reduceThreads` the only thread replay reducer.
+
+---
+
+## 外部寫入週期的有限終態檢查
+
+跨層外部寫入若同時包含 fixture、child process、遠端 mutation、read-back 與 cleanup，必須把
+「成功」與「不可發布」都建模成不可回到 mutation 的 terminal state。這可防止修正一個本機契約
+後又盲目建立新週期，造成重複寫入、session state 殘留或資源無界保留。
+
+### Before implementing or operating:
+
+- [ ] 明確列出唯一允許的 mutation family、nonce、ledger owner、descriptor root 與 cleanup owner。
+- [ ] 將 preflight、provision、產品 connector、fixture store 的 cardinality／authority contract
+      逐層對照；例如 zero-active 必須在每層都表示 nullable absent lookup，而不是只有部分層接受。
+- [ ] 為 child 非零退出、transport timeout、partial read-back、baseline-unprovable 與 cleanup
+      uncertain 定義固定、不可 retry 的分類；不得把保守 `operationExecuted=true` 當成功證據。
+- [ ] 指定唯一 reconciliation 次數與 exact-ID cleanup 路徑；cleanup 完成後只可保留 static seed，
+      不可把 active descriptor 或歷史 ledger 當成下一輪 authority。
+
+### After implementing or operating:
+
+- [ ] 只允許完整 execution + exact read-back + deterministic cleanup 進入下一個 Slice；任何 no-go、
+      ambiguity 或 cleanup uncertainty 都將目前 Slice 標為 unreleasable，並關閉後續 Slice。
+- [ ] 以固定檔案的存在與否驗證 control-plane baseline，不在診斷輸出、瀏覽器或測試 log 中回顯
+      credential、token、endpoint、GUID、owner identity、session state 或 raw exception。
+- [ ] 執行一次 concurrency／lifecycle gate，確認 request-scoped lease、process、temporary file、
+      stream、timer、task、cancellation registration 與 environment snapshot 均在 finally 釋放或還原。
+- [ ] 將終態與「不得再開週期」原因寫入任務 artifact；沒有新外部治理時不得以重跑來掩蓋缺失證據。

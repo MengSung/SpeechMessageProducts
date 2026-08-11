@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "p7.2.slice-c-terminal.v1",
+  "recordedAt": "2026-08-11",
+  "outcome": "unreleasable-fail-closed",
+  "terminalReason": "live-evidence-incomplete",
+  "cyclePolicy": {
+    "historicalCyclesRerun": false,
+    "finalIndependentCycleConsumed": true,
+    "furtherCeCyclePermitted": false,
+    "weeklyReportMutationPermitted": false
+  },
+  "stages": {
+    "freshPreflight": { "outcome": "go", "operationExecuted": false, "featureFlagChanged": false },
+    "freshProvision": { "outcome": "go", "operationExecuted": true, "featureFlagChanged": false },
+    "repairProbe": { "outcome": "no-go", "reason": "repair-preconditions-proven", "preconditionState": "already-repaired", "operationExecuted": false },
+    "execute": { "outcome": "no-go", "reason": "child-process-failed", "diagnosticCategory": "live-evidence-incomplete", "operationExecuted": true },
+    "reconciliation": { "outcome": "no-go", "reason": "baseline-unprovable", "operationExecuted": false },
+    "cleanup": { "outcome": "go", "reason": "fresh-fixture-cleaned", "operationExecuted": true, "featureFlagChanged": false }
+  },
+  "controlPlaneAfterCleanup": {
+    "staticSeedPresent": true,
+    "activeSourceDescriptorPresent": false,
+    "activeListDescriptorPresent": false,
+    "freshLedgerPresent": false
+  },
+  "sliceDecision": {
+    "sliceC": "unreleasable",
+    "sliceDThroughH": "closed",
+    "coverageMatrixCe91": "pending-live-evidence",
+    "weeklyReports": "immutable"
+  },
+  "browserVerification": {
+    "browserStarted": true,
+    "localChurchReportReachable": false,
+    "localFailure": "embedded-dynamics-composition-configuration-unavailable",
+    "browserCredentialOrStorageInspected": false
+  },
+  "verification": {
+    "releaseBuildWarnings": 0,
+    "releaseBuildErrors": 0,
+    "serialSolutionPassed": 1282,
+    "serialSolutionSkipped": 21,
+    "serialSolutionFailed": 0,
+    "runnerContractChecks": 258,
+    "freshFixtureContractChecks": 533,
+    "coverageValidatorTestsPassed": 6,
+    "coveragePendingSliceCount": 4
+  },
+  "lifecycleAssertions": {
+    "featureFlagsRemainDisabled": true,
+    "temporaryFixtureCleaned": true,
+    "activeDescriptorAndLedgerAbsent": true,
+    "crossSessionStateRetained": false
+  }
+}
