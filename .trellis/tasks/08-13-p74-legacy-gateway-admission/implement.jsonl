@@ -1,0 +1,5 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/cross-user-isolation-and-performance.md", "reason": "Mandatory isolation and deterministic cleanup contract for legacy control-plane work."}
+{"file": ".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md", "reason": "Hosting, routing, durable admission and legacy-removal constraints."}
+{"file": ".trellis/spec/guides/cross-user-isolation-and-performance-review.md", "reason": "Cross-product review checklist for lifecycle and A/B isolation."}
+{"file": ".trellis/tasks/08-13-p74-legacy-gateway-admission/research/legacy-admission-seam-audit.md", "reason": "Repository-source call-chain evidence and no-go basis."}

@@ -224,7 +224,8 @@ public sealed class CrmConnectionEmbeddedProfileMapperTests
         dedicatedEnvironment.GetProperty("DynamicsAccess__Gateway__Endpoint").GetString()
             .Should().Be("https://localhost:7244/");
         dedicatedEnvironment.GetProperty("DynamicsAccess__Package01FeeReadsEnabled").GetString()
-            .Should().Be("true");
+            .Should().Be("false",
+                because: "P7.4 尚未取得 durable admission、legacy coverage 與 drain-first/non-overlap evidence；F5 DedicatedGateway profile 也不得繞過 deployment-owned feature gate");
 
         var gatewayRoot = Path.Combine(FindRepositoryRoot(), "SpeechMessage.Dynamics.Gateway");
         using var gatewayLaunchSettings = JsonDocument.Parse(

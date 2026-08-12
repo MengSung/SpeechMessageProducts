@@ -298,3 +298,17 @@ ToolUtility，以及未來多產品按需擴充 operation」的規劃。對照
 `08-12-churchreport-special-resource-migrations`（P7.3），僅處理 ORG-CALL-00028、00029、00034、
 00040、00063 的本機 bounded resource contract。它不開啟 ChurchReport consumer、feature gate 或 CE
 寫入，也不構成 CE evidence、ToolUtility removal 或 P7.4/P7.5/P8 的完成證明。
+
+### 2026-08-13 P7.4 admission boundary 補充（現行權威）
+
+P7.3 已封存。P7.4 active parent `08-12-churchreport-productclient-cutover` 的 child
+`08-13-p74-legacy-gateway-admission` 已完成並驗證 repository-side fail-closed legacy intake/drain
+controller、deployment runbook、固定分類 validator、full solution tests 與 Release build。這個 child 明確
+保留三個 external enablement blockers：同步 ToolUtility SDK I/O 不可 cancellation fence、全 legacy ingress
+coverage 未獲證明、per-host memory controller 不能取代 canonical durable coordinator。
+
+因此所有 checked-in `Package01FeeReadsEnabled` 值（appsettings、Development 及 DedicatedGateway
+launch profile）均為 false；沒有 CE mutation、feature/traffic enablement、P7.5 或 P8 操作。後續 P7.4
+可繼續依 matrix 完成獨立的 local-only consumer migration，但不得把本 child 的 local evidence 升格為
+deployment/cutover evidence。P7.5 仍等待 zero-reference/parity/soak/drain/rollback 全綠；P8 仍等待
+P7.5 immutable handoff 與獨立 deployment authorization。

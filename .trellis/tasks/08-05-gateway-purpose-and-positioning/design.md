@@ -176,3 +176,15 @@ Organization。每個 process 自己的 In-Memory admission／host-slot coordina
 P7 之後的 child 不得再以 parent 早期的 P6/P7.0 next action 為執行依據。`08-12-p7-remaining-work-rebaseline` 以 P7.0 70-row source matrix 為 immutable baseline，將現況分解為 registry、Data8 executor、typed ProductClient、ChurchReport consumer、CE 8.2/9.1、Embedded/Dedicated、rollout/rollback、temporary legacy、P7.3 資源需求與 P7.5 removal blocker 等獨立狀態。
 
 這個 matrix 是 capability child 的排程與 release gate，不是 CE 寫入授權、profile routing authority 或部署設定。任何 local-only reducer、disabled gate、靜態 registry、unit test 或歷史 CE no-go 都不能被升格為 product cutover 或 live evidence。P7.4 必須逐 capability、disabled-by-default 並具 deterministic rollback；P7.5 只能在所有 production row 遷移及 zero-reference scan 通過後移除 ChurchReport dependency；P8 僅可由 P7.5 的 immutable handoff 建立。
+
+### 2026-08-13 P7.4 admission boundary 完成後的設計狀態
+
+P7.4 已有一個 task-owned local control-plane：它只停止並計量已註冊的 Package01 legacy fee ingress，
+不保存 request/session/CRM Entity/profile/endpoint/credential，也以 exactly-once lease release 與 bounded
+drain fail closed。這降低 host shutdown 與新受控 legacy work 的重疊風險，但不提供 Organization-level
+capacity proof。同步 legacy SDK call 不能中止、未註冊 ingress 不可觀察、以及 per-host state 不可持久化
+協調，仍是 feature enablement 的硬性 no-go。
+
+所有 launch/appsettings gate 因此保持 false。後續 P7.4 設計可獨立遷移具 typed DTO 與 request-local
+contract 的 consumer，但每一 capability 仍需 own CE/parity/authorization/isolation/performance/cleanup/
+rollback evidence；P7.5/P8 的 predecessor 不因本機 admission child 完成而改變。

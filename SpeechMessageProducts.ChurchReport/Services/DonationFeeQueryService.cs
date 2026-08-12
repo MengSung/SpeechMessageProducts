@@ -33,22 +33,41 @@ namespace ChurchReport.Services
         private readonly IPackage01FeeReadClient? _package01FeeReadClient;
         private readonly ProductDynamicsOptions? _dynamicsAccess;
         private readonly bool _package01Enabled;
+        private readonly LegacyToolUtilityDrainController? _legacyDrainController;
 
+        /// <summary>
+        /// 建立保留既有 legacy 行為的奉獻費用查詢服務。
+        /// 此相容建構式不會自行建立 controller；正式 host 必須從 DI 注入唯一的 lifecycle owner，
+        /// 避免手動建立第二份計數器而錯誤宣稱跨 host 或跨 Organization 的容量證明。
+        /// </summary>
+        /// <param name="utility">既有 ToolUtility 實例；遷移期仍由其執行 legacy CRM 存取。</param>
         public DonationFeeQueryService(ToolUtilityClass utility)
-            : this(utility, package01FeeReadClient: null, dynamicsAccess: null)
+            : this(utility, package01FeeReadClient: null, dynamicsAccess: null, legacyDrainController: null)
         {
         }
 
+        /// <summary>
+        /// 建立費用查詢服務，依 deployment-owned Package01 flag 選擇既有 legacy 或已註冊 typed client。
+        /// legacy controller 只在 caller 已由主 DI 取得唯一 host-owned 實例時才包住 fee ingress；它不會
+        /// 改變 flag、不會建立 CRM/Gateway client，也不把同步 ToolUtility work 宣稱為可取消或全域排空。
+        /// </summary>
+        /// <param name="utility">遷移期的既有 ToolUtility；呼叫端仍負責其原有生命週期。</param>
+        /// <param name="package01FeeReadClient">已由 process host 擁有 transport 的 typed client；可為 null。</param>
+        /// <param name="dynamicsAccess">只讀 deployment-owned Dynamics 設定，不接受 request routing。</param>
+        /// <param name="package01FeeReadsEnabled">僅當 client 存在時才允許 typed read path。</param>
+        /// <param name="legacyDrainController">可選的 host-owned legacy ingress controller；不得手動 new。</param>
         public DonationFeeQueryService(
             ToolUtilityClass utility,
             IPackage01FeeReadClient? package01FeeReadClient,
             IOptions<ProductDynamicsOptions>? dynamicsAccess,
-            bool package01FeeReadsEnabled = false)
+            bool package01FeeReadsEnabled = false,
+            LegacyToolUtilityDrainController? legacyDrainController = null)
         {
             _utility = utility ?? throw new ArgumentNullException(nameof(utility));
             _package01FeeReadClient = package01FeeReadClient;
             _dynamicsAccess = dynamicsAccess?.Value;
             _package01Enabled = package01FeeReadsEnabled && package01FeeReadClient is not null;
+            _legacyDrainController = legacyDrainController;
         }
 
         /// <summary>
@@ -72,6 +91,12 @@ namespace ChurchReport.Services
                 return;
             }
 
+            // 同步 legacy SDK call 不能觀察 cancellation；因此 lease 的作用僅是精確計量本受控 ingress。
+            // shutdown/drain timeout 不可據此宣稱遠端 I/O 已停止，外部 non-overlap runbook 仍必須驗證
+            // 全部 legacy coverage 與 durable topology。lease 以 await using 保證 mapping 或 CRM fault
+            // 時也會在 finally 等價路徑釋放，不保留 request/contact/Entity 至 shared controller。
+            await using var lease = await AcquireLegacyFeeLeaseAsync(cancellationToken).ConfigureAwait(false);
+
             // ---- 舊路徑（遷移期兼容）----
             EntityCollection feeEntities = _utility.RetrieveDedicationFeeByDateFetchXml(
                 fullName,
@@ -91,6 +116,31 @@ namespace ChurchReport.Services
             {
                 model.TotalAmount += fee.Amount;
             }
+        }
+
+        /// <summary>
+        /// 只在 host 已注入 controller 時建立受控 lease；未注入時維持既有 compatibility path。
+        /// intake 停止時會在任何 ToolUtility CRM 呼叫前 fail closed，避免 shutdown 與新的 legacy
+        /// ingress 重疊。回傳的 lease 僅在目前 async stack 存活，不保存呼叫端資料。
+        /// </summary>
+        private async ValueTask<LegacyToolUtilityDrainController.LegacyToolUtilityDrainLease?>
+            AcquireLegacyFeeLeaseAsync(CancellationToken cancellationToken)
+        {
+            if (_legacyDrainController is null)
+            {
+                return null;
+            }
+
+            var lease = await _legacyDrainController.AcquireAsync(
+                    LegacyToolUtilityWorkload.Package01FeeRead,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (lease is null)
+            {
+                throw new InvalidOperationException("Legacy ToolUtility intake is stopped.");
+            }
+
+            return lease;
         }
 
         private async Task FillFeeListViaPackage01Async(

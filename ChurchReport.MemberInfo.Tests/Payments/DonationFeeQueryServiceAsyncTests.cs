@@ -169,6 +169,40 @@ public sealed class DonationFeeQueryServiceAsyncTests
         model.DedicationFeeList.Should().ContainSingle().Which.Should().BeSameAs(originalFee);
     }
 
+    /// <summary>
+    /// legacy intake 已停止時，受控 fee boundary 必須在進入 ToolUtility CRM 呼叫前 fail closed。
+    /// 測試使用已停止的本機 controller；沒有可觀察的 lease 時不允許退回未受控 legacy 呼叫。
+    /// </summary>
+    [Fact]
+    public async Task Stopped_legacy_intake_rejects_before_toolutility_call()
+    {
+        var valid = true;
+        using var utility = new ToolUtilityClass(ref valid);
+        await using var controller = new LegacyToolUtilityDrainController();
+        (await controller.StopIntakeAndDrainAsync(
+            TimeSpan.FromSeconds(1),
+            CancellationToken.None)).Should().Be(LegacyToolUtilityDrainResult.Drained);
+
+        var service = new DonationFeeQueryService(
+            utility,
+            package01FeeReadClient: null,
+            dynamicsAccess: null,
+            package01FeeReadsEnabled: false,
+            legacyDrainController: controller);
+        var model = new DonationPaymentFormModel
+        {
+            FullName = "isolated-test-user",
+            QueryStartDate = new DateTime(2026, 1, 1),
+            QueryEndDate = new DateTime(2026, 1, 31)
+        };
+        var contact = new Entity("contact", Guid.NewGuid());
+
+        Func<Task> act = () => service.FillFeeListAsync(model, contact, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Legacy ToolUtility intake is stopped.");
+    }
+
     private sealed class DeferredFeeReadClient : IPackage01FeeReadClient
     {
         // 此 fake 只記錄本次呼叫的取消權杖，不使用 static 或共享狀態，避免測試彼此污染。

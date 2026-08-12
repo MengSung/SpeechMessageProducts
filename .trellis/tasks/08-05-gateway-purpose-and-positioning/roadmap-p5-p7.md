@@ -43,8 +43,9 @@ P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/
 | P7.0 | 已封存 | 70-row inventory／coverage validator 的唯讀基準 | 不得重做 |
 | P7.1 | 已封存 | 六項 Package01 typed Data8 read 與 CE 9.1 唯讀 evidence | consumer gate 維持 disabled |
 | P7.2 | 已封存 | 本機候選版；Slice C 最後 CE cycle no-go 並 cleanup | 不得重試 historical cycle |
-| P7.3 | `planning` | 五項 image/metadata/paging 特殊資源本機 contract | 完成 local lifecycle/quality gate；不切流、不寫 CE |
-| P7.4～P7.5 | 尚未啟動 | 依 P7.3/P7 matrix evidence 分別切換 capability 與移除 legacy dependency | 前置 gate 全綠 |
+| P7.3 | 已封存 | 五項 image/metadata/paging 特殊資源本機 contract 與 lifecycle/quality gate | 不構成 CE、traffic 或 removal evidence |
+| P7.4 | 進行中 | 已有 disabled ProductClient consumer batches；legacy admission boundary child 已完成本機 controller、runbook、validator、full local quality gate | feature flags 保持 false；繼續 matrix 的 local-only consumer migration |
+| P7.5 | 尚未啟動 | 等待所有 temporary legacy rows、zero-reference、parity、soak、drain/rollback gate | P7.4 完整證據與 immutable handoff |
 | P8.0～P8.4 | 尚未建立／啟動 | 本文件只有路線定義 | P7.5 結案與獨立 P8 授權 |
 
 ## 4. P6：Lenovo Legion Official Worker Router 擴充點
@@ -175,16 +176,23 @@ P6 closure gate 全綠後，整合 Goal 可一次授權：
 | P7.1 | 六個 Package01 typed Data8 read 與 CE 9.1 read-only evidence 已完成；consumer disabled | 唯讀 evidence；未代表所有 read 完成。 |
 | P7.2 | 本機 RC 已封存；Slice C CE no-go 已 cleanup；D–H local-only | 舊 cycle 永不重試；不得當作 CE/cutover evidence。 |
 | P7 remaining rebaseline | 已完成品質閘門，待 scope-only commit/archive | authoritative 70-row gap matrix 是後續唯一排程基準。 |
-| P7.3–P7.5 | P7.3 應於 rebaseline archive 後建立；P7.4/P7.5 尚未建立 | 依 matrix 與前置 child gate 依序建立。 |
+| P7.3 | 已封存 | special-resource local contracts；不是 CE/consumer/cutover evidence。 |
+| P7.4 | active | disabled local consumer batches、capacity no-go audit 與 legacy admission boundary local control-plane 已完成；所有 flags=false。 |
+| P7.5 | 尚未建立 | 僅在 matrix/zero-reference/parity/soak/drain/rollback 全綠後建立。 |
 | P8.0–P8.4 | 尚未建立 | 僅在 P7.5 immutable handoff 後建立。 |
 
 後續品質策略不變：一般變更執行 targeted tests；每一 child 邊界與 P7/P8 最終交付執行完整 solution tests、Release build、encoding／CRLF、scope、isolation、lifecycle 與 rollback gate。Gemini／Claude 每次等待上限 45 秒，逾時或 quota/session 限制即記錄降級並改採本機驗證，不得反覆等待。
 
-## 13. 目前下一步
+## 13. 2026-08-13 目前下一步（現行權威）
 
-先完成 `08-12-p7-remaining-work-rebaseline` 與
-`08-12-process-boundary-cross-assembly-isolation` 的 scope-only commit/archive。之後建立
-`churchreport-special-resource-migrations`，以 matrix 的 5 個 special-resource row 為範圍，先完成
-attachment/image/stream、paging/result、metadata cache 的 bounded owner、lifetime、cancellation、drain、
-dispose 與 A/B isolation evidence。P7.4 僅能在個別 capability 的 CE/parity/rollback gate 都通過後建立；
-P7.5 與 P8 均不得提前啟動。
+P7.3 已封存，P7.4 的 child `08-13-p74-legacy-gateway-admission` 已完成 repository-side local
+admission/drain boundary、固定分類 validator、drain-first/non-overlap runbook 與 full local quality gate。
+它證明的是「沒有 durable binding 時保持 fail-closed」，不是 CE、cross-host durable coordinator、legacy
+coverage 或 traffic enablement 證據。
+
+下一步在 parent `08-12-churchreport-productclient-cutover` 依 authoritative 70-row matrix 建立下一個
+independently verifiable local-only consumer sub-batch：優先處理可以移除 SDK bridge、具明確 typed DTO
+與 request-local response contract 的 read consumer；`ORG-CALL-00005`、`00064`、`00066` 與 Package03
+inventory 已明確列為 temporary-legacy，除非其 own design 先解決 authorization、write adjacency 或
+DTO-only boundary，不得猜測遷移。所有 `Package01FeeReadsEnabled` 設定（包括 DedicatedGateway F5 profile）
+維持 false。P7.5/P8 繼續不得提前啟動。

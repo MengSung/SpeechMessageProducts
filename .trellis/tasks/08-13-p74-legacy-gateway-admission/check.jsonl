@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/cross-user-isolation-and-performance.md", "reason": "Mandatory final isolation/lifecycle verification."}
+{"file": ".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md", "reason": "Gateway admission and cutover gating review."}
+{"file": ".trellis/spec/guides/cross-user-isolation-and-performance-review.md", "reason": "Final A/B, cleanup, performance review checklist."}
+{"file": ".trellis/tasks/08-13-p74-legacy-gateway-admission/research/legacy-admission-seam-audit.md", "reason": "Verify implementation does not overstate legacy coverage or enablement."}
+{"file": ".trellis/tasks/08-13-p74-legacy-gateway-admission/check.md", "reason": "Gemini degraded architect review, verified Critical findings and required no-go constraints."}

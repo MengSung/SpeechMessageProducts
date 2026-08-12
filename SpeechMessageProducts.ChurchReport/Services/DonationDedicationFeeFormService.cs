@@ -29,23 +29,38 @@ namespace ChurchReport.Services
         private readonly ToolUtilityClass _utility;
         private readonly DonationFeeQueryService _feeQueryService;
 
+        /// <summary>
+        /// 建立保留 legacy 相容行為的表單服務；不會自行建立 drain controller 或任何 connector。
+        /// </summary>
+        /// <param name="utility">既有 ToolUtility，由上游產品流程擁有。</param>
         public DonationDedicationFeeFormService(ToolUtilityClass utility)
             : this(utility, package01FeeReadClient: null, dynamicsAccess: null, package01FeeReadsEnabled: false)
         {
         }
 
+        /// <summary>
+        /// 建立可選 typed fee read 的表單服務。controller 必須是主 DI 擁有的 singleton，
+        /// 僅保護受控 legacy fee ingress，不保存 contact、表單或使用者資料。
+        /// </summary>
+        /// <param name="utility">既有 ToolUtility。</param>
+        /// <param name="package01FeeReadClient">可選 typed client。</param>
+        /// <param name="dynamicsAccess">deployment-owned Dynamics 設定。</param>
+        /// <param name="package01FeeReadsEnabled">Package01 feature flag 的既有解析結果。</param>
+        /// <param name="legacyDrainController">可選 host-owned legacy drain controller。</param>
         public DonationDedicationFeeFormService(
             ToolUtilityClass utility,
             IPackage01FeeReadClient? package01FeeReadClient,
             IOptions<ProductDynamicsOptions>? dynamicsAccess,
-            bool package01FeeReadsEnabled)
+            bool package01FeeReadsEnabled,
+            LegacyToolUtilityDrainController? legacyDrainController = null)
         {
             _utility = utility ?? throw new ArgumentNullException(nameof(utility));
             _feeQueryService = new DonationFeeQueryService(
                 _utility,
                 package01FeeReadClient,
                 dynamicsAccess,
-                package01FeeReadsEnabled);
+                package01FeeReadsEnabled,
+                legacyDrainController);
         }
 
         public async Task<DonationPaymentFormModel> FillFromLineIdAsync(

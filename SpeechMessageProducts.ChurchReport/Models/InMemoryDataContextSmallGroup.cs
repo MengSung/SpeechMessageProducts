@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Payments;
+using ChurchReport.Services;
 using ChurchReport.Services.Caching;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
@@ -169,6 +170,13 @@ namespace ChurchReport.Models
         /// Coordinator 不保存 HttpContext、Session、Controller、Credential 或 Token，只保存 bounded cache key 與可釋放資源。
         /// </summary>
         private readonly SessionScopedResourceDisposalCoordinator<DonationPaymentManager> _sessionResourceCoordinator;
+
+        /// <summary>
+        /// 主 DI 唯一擁有的 legacy admission controller。它只保存固定 workload 計數，不持有 Session、
+        /// request、contact、credential 或 CRM Entity；本 context 只在建立 session-owned manager 時傳遞同一 owner。
+        /// 手動 legacy 建構未注入時，會在目前 request 的 ServiceProvider 解析，不建立 fallback controller。
+        /// </summary>
+        private readonly LegacyToolUtilityDrainController? _legacyDrainController;
 
         /// <summary>
         /// ToolUtility 提供者，用於依賴注入
@@ -523,7 +531,8 @@ namespace ChurchReport.Models
             IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter = null,
             ILineNotificationWorkflow? lineNotificationWorkflow = null,
             ILineReplyWorkflow? lineReplyWorkflow = null,
-            SessionScopedResourceDisposalCoordinator<DonationPaymentManager> sessionResourceCoordinator = null)
+            SessionScopedResourceDisposalCoordinator<DonationPaymentManager> sessionResourceCoordinator = null,
+            LegacyToolUtilityDrainController legacyDrainController = null)
         {
             _memoryCache = memoryCache;
 
@@ -538,6 +547,7 @@ namespace ChurchReport.Models
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
             _lineNotificationWorkflow = lineNotificationWorkflow;
             _lineReplyWorkflow = lineReplyWorkflow;
+            _legacyDrainController = legacyDrainController;
             _sessionResourceCoordinator = sessionResourceCoordinator
                 ?? contextAccessor.HttpContext?.RequestServices?.GetService(
                     typeof(SessionScopedResourceDisposalCoordinator<DonationPaymentManager>))
@@ -1216,7 +1226,9 @@ namespace ChurchReport.Models
                     m_DonationPaymentManager = new DonationPaymentManager(
                         m_DonationPaymentCreateGatewayAdapter,
                         _lineNotificationWorkflow,
-                        _lineReplyWorkflow);
+                        _lineReplyWorkflow,
+                        _legacyDrainController ?? httpContext.RequestServices.GetService(
+                            typeof(LegacyToolUtilityDrainController)) as LegacyToolUtilityDrainController);
                     SetSessionDirtyFlag();
                     return m_DonationPaymentManager;
                 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -638,6 +639,39 @@ public sealed class OfficialWorkerControlPlaneAdmissionTests
     }
 
     /// <summary>
+    /// 驗證 Worker PID evidence 在 writer 尚未釋放 Windows 檔案 handle 的短暫窗口仍會等待，
+    /// 而不是把可預期的 sharing violation 誤判為測試失敗；其他檔案系統錯誤仍須立即浮出。
+    /// </summary>
+    [Fact]
+    public async Task Read_captured_process_id_waits_for_writer_handle_release()
+    {
+        var evidencePath = Path.Combine(
+            Path.GetTempPath(),
+            $"speechmessage-dynamics-worker-read-race-{Guid.NewGuid():N}.pid");
+        Task<int> reader;
+        await using (var writer = new FileStream(
+            evidencePath,
+            FileMode.CreateNew,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 16,
+            FileOptions.Asynchronous))
+        {
+            reader = ReadCapturedProcessIdAsync(evidencePath);
+            await writer.WriteAsync(
+                Encoding.UTF8.GetBytes(Environment.ProcessId.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture)));
+            await writer.FlushAsync();
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            reader.IsCompleted.Should().BeFalse(
+                because: "the reader must wait for the writer to release its exclusive evidence handle");
+        }
+
+        (await reader).Should().Be(Environment.ProcessId);
+        File.Delete(evidencePath);
+    }
+
+    /// <summary>
     /// 驗證 Factory Dispose 的 creation-gate wait、retained cleanup 與所有 Create entrant drain 共用一次
     /// monotonic deadline；並行 Dispose caller 必須取得同一 attempt task。deadline 失敗後不 Dispose
     /// semaphore，也不清除未完成 owner；持有 gate 的 Create 結束後，下一次 bounded retry 才能清零。
@@ -884,15 +918,22 @@ public sealed class OfficialWorkerControlPlaneAdmissionTests
         {
             if (File.Exists(evidencePath))
             {
-                var text = await File.ReadAllTextAsync(evidencePath);
-                if (int.TryParse(
-                        text,
-                        System.Globalization.NumberStyles.None,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out var processId) &&
-                    processId > 0)
+                try
                 {
-                    return processId;
+                    var text = await File.ReadAllTextAsync(evidencePath);
+                    if (int.TryParse(
+                            text,
+                            System.Globalization.NumberStyles.None,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out var processId) &&
+                        processId > 0)
+                    {
+                        return processId;
+                    }
+                }
+                catch (IOException exception) when (IsExpectedEvidenceContention(exception))
+                {
+                    // Writer 已建立 evidence 但尚未釋放 handle；維持 bounded polling，避免讀取競態。
                 }
             }
 
@@ -900,6 +941,16 @@ public sealed class OfficialWorkerControlPlaneAdmissionTests
         }
 
         throw new InvalidOperationException("The test worker process evidence was not captured.");
+    }
+
+    /// <summary>
+    /// 僅將 Windows sharing/lock violation 視為 writer 尚未完成的可重試狀態；權限、路徑、磁碟與其他
+    /// 未知錯誤不得被吞掉，否則會掩蓋測試隔離或資源生命週期缺陷。
+    /// </summary>
+    private static bool IsExpectedEvidenceContention(IOException exception)
+    {
+        var win32ErrorCode = exception.HResult & 0xFFFF;
+        return win32ErrorCode is 32 or 33;
     }
 
     /// <summary>Waits for the run-unique test-owned worker process to exit without retaining its handle.</summary>

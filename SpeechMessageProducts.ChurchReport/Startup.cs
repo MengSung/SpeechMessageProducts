@@ -309,6 +309,12 @@ namespace ChurchReport
             services.AddHostedService<ChurchReport.Services.DonationDynamicsAccessBootstrapLifetime>();
             services.AddHostedService<ChurchReport.Services.DynamicsGatewayPreflightHostedService>();
 
+            // legacy admission controller 由主 DI singleton 唯一擁有；它只計量已註冊的 legacy ingress，
+            // 不取代 ToolUtilityFactory、CrmConnectionPool 或跨 host durable capacity authority。host stop
+            // 時先停止新 intake 並排空受控 lease，任何 timeout 都向 Generic Host 回報而不假裝 cleanup 成功。
+            services.AddSingleton<ChurchReport.Services.LegacyToolUtilityDrainController>();
+            services.AddHostedService<ChurchReport.Services.LegacyToolUtilityAdmissionHostedService>();
+
 #if DEBUG
             // ========================================
             // ✅ 最終驗證: 註冊效能監控服務（僅 DEBUG 模式）

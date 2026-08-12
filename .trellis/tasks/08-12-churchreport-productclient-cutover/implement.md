@@ -70,9 +70,14 @@
       in-memory coordinator，legacy ToolUtility 未接入同一 durable admission/host-slot authority，且 repository
       沒有已驗證 drain-first non-overlap runbook。因此維持 exact no-go 與所有 gates=false；完整證據和恢復條件
       見 `capacity-enablement-audit.md`。
-- [ ] 執行完整 P7.4 focused suites、`dotnet test .\\SpeechMessageProducts.sln --configuration Release --no-restore`、
+- [x] 完成 child `08-13-p74-legacy-gateway-admission`：已交付 fail-closed host-local controlled legacy
+      intake/drain controller、runbook、validator、Package01 flag disabled launch-profile regression 與全量
+      local quality gate。這是 no-go safety boundary，不是 durable coordinator、full legacy coverage、CE 或
+      traffic enablement 證據；所有 flags 仍為 false。
+- [x] 執行目前已完成 P7.4 batches 的 focused suites、`dotnet test .\\SpeechMessageProducts.sln --configuration Release --no-restore`、
       `dotnet build .\\SpeechMessageProducts.sln --configuration Release --no-restore`、encoding/CRLF scan、
-      `git diff --check`、scope check 和 CCG review。
+      `git diff --check`、scope check 和 CCG review；implementation review 是 Gemini usable / Claude quota
+      blocked 的降級結果，已明確記錄「雙模型未完成，採本機驗證」。
 - [ ] 只有 matrix 所有 consumer rows、required CE/host evidence、capacity gate、zero-reference、soak/
       drain/rollback evidence 都綠燈時才封存 P7.4；否則留下已完成 local batches、未完成 owned rows 和
       precise next child。不得啟動 P7.5 或 P8。

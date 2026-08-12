@@ -3613,3 +3613,98 @@ public sealed class ChurchReportTest { }
 
 Both test assemblies compile the same test-only fixture source and therefore acquire
 the same worktree-partitioned OS lease before observing the shared process namespace.
+
+## Scenario: Worker PID evidence publication/read race
+
+### 1. Scope / Trigger
+
+Apply this scenario when `SpeechMessage.Dynamics.WorkerTestHost` or a test-only child
+process writes a run-unique PID evidence file and a bounded test reader observes that
+file. On Windows, `File.Exists` can become true before the writer releases an exclusive
+handle; immediate `ReadAllTextAsync` can therefore fail with sharing violation even
+though the test-owned writer is still publishing its one scalar PID.
+
+### 2. Signatures
+
+```csharp
+private static async Task<int> ReadCapturedProcessIdAsync(string evidencePath);
+private static bool IsExpectedEvidenceContention(IOException exception);
+```
+
+The path remains derived only from the test's run-unique validated generation. The
+content contract remains one positive invariant-culture decimal PID; it is not a
+product identifier, request field, endpoint, credential or routing input.
+
+### 3. Contracts
+
+- The reader has one fixed, monotonic deadline and uses condition polling; it does not
+  sleep after a successful read or keep a `FileStream`, process handle, background task,
+  timer or static cache.
+- It may catch and retry only Windows sharing violation (32) or lock violation (33).
+  Path, permission, disk, malformed-content and all other `IOException` cases remain
+  observable failures immediately; they must not be recategorized as normal startup.
+- A parsed PID must be greater than zero before it is returned. The caller remains the
+  sole owner of any `Process` handle it later acquires and of final evidence-file deletion.
+- This is a test-only publication race fix. It does not authorize Worker startup,
+  CE access, profile selection, feature enablement or retry of an external operation.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Evidence file absent | Continue bounded condition polling. |
+| Evidence file exists but writer still holds exclusive handle (32/33) | Continue polling only until the same fixed deadline. |
+| Evidence contains non-positive/non-numeric text after readable | Do not accept it; continue only until deadline, then fail bounded. |
+| Permission/path/disk/unexpected I/O error | Rethrow immediately; do not hide an isolation or cleanup defect. |
+| Deadline expires | Throw fixed evidence-not-captured failure; do not infer a PID or inspect unrelated processes. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a test opens a run-unique evidence file with `FileShare.None`, starts the reader,
+  writes the decimal PID, then releases the handle; the reader is incomplete while the
+  handle is held and returns the exact PID afterward.
+- Base: the writer has already closed before the first reader poll; the reader returns the
+  validated PID without creating retained state.
+- Bad: catch every `IOException`, use an unbounded retry, read another test's path,
+  enumerate processes to guess a PID, or treat the file's appearance as proof that a
+  Worker is ready or safely drained.
+
+### 6. Tests Required
+
+- Hold an exclusive writer handle after the file exists; assert the reader remains pending,
+  then returns exactly the written positive PID after release.
+- Run the OfficialWorker control-plane/profile focused suites and the complete solution
+  suite to prove the cross-assembly test path remains clean.
+- Verify changed test sources are UTF-8 without BOM, CRLF-only with final CRLF, and
+  `git diff --check` is clean.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+if (File.Exists(evidencePath))
+{
+    return int.Parse(await File.ReadAllTextAsync(evidencePath));
+}
+```
+
+This confuses name visibility with completed publication and flakes when the writer has
+not released its exclusive handle.
+
+#### Correct
+
+```csharp
+try
+{
+    var text = await File.ReadAllTextAsync(evidencePath);
+    // Parse strictly and return only a positive PID.
+}
+catch (IOException exception) when (IsExpectedEvidenceContention(exception))
+{
+    // Continue the pre-existing bounded polling deadline.
+}
+```
+
+The correct form tolerates only the proven publication race while preserving fail-closed
+behavior for every unknown filesystem failure.

@@ -56,7 +56,8 @@ namespace ChurchReport.Services
             ToolUtilityClass utility,
             IConfiguration configuration,
             IPackage01FeeReadClient? injectedFeeReadClient = null,
-            IOptions<ProductDynamicsOptions>? injectedOptions = null)
+            IOptions<ProductDynamicsOptions>? injectedOptions = null,
+            LegacyToolUtilityDrainController? legacyDrainController = null)
         {
             ArgumentNullException.ThrowIfNull(utility);
             ArgumentNullException.ThrowIfNull(configuration);
@@ -64,7 +65,12 @@ namespace ChurchReport.Services
             var enabled = IsPackage01Enabled(configuration);
             if (!enabled)
             {
-                return new DonationDedicationFeeFormService(utility);
+                return new DonationDedicationFeeFormService(
+                    utility,
+                    package01FeeReadClient: null,
+                    dynamicsAccess: null,
+                    package01FeeReadsEnabled: false,
+                    legacyDrainController);
             }
 
             // 已由 DI 注入完成時（測試/正式 DI 路徑），直接使用。
@@ -75,7 +81,8 @@ namespace ChurchReport.Services
                     utility,
                     injectedFeeReadClient,
                     options,
-                    package01FeeReadsEnabled: true);
+                    package01FeeReadsEnabled: true,
+                    legacyDrainController);
             }
 
             var productOptions = BindOptions(configuration);
@@ -91,7 +98,8 @@ namespace ChurchReport.Services
                 utility,
                 feeReadClient,
                 Options.Create(productOptions),
-                package01FeeReadsEnabled: true);
+                package01FeeReadsEnabled: true,
+                legacyDrainController);
         }
 
         /// <summary>

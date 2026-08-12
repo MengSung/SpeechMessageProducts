@@ -1299,15 +1299,22 @@ public sealed class OfficialWorkerProfileExecutorTests
         {
             if (File.Exists(evidencePath))
             {
-                var text = await File.ReadAllTextAsync(evidencePath);
-                if (int.TryParse(
-                        text,
-                        System.Globalization.NumberStyles.None,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out var processId) &&
-                    processId > 0)
+                try
                 {
-                    return processId;
+                    var text = await File.ReadAllTextAsync(evidencePath);
+                    if (int.TryParse(
+                            text,
+                            System.Globalization.NumberStyles.None,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out var processId) &&
+                        processId > 0)
+                    {
+                        return processId;
+                    }
+                }
+                catch (IOException exception) when (IsExpectedEvidenceContention(exception))
+                {
+                    // Worker evidence writer 尚未釋放 handle；只等待已知的短暫 sharing race。
                 }
             }
 
@@ -1315,6 +1322,16 @@ public sealed class OfficialWorkerProfileExecutorTests
         }
 
         throw new InvalidOperationException("The test worker process evidence was not captured.");
+    }
+
+    /// <summary>
+    /// 僅將 Windows sharing/lock violation 視為 writer 尚未完成的可重試狀態；其他 I/O 錯誤立即失敗，
+    /// 以維持測試檔案隔離與確定性 cleanup 的可觀測性。
+    /// </summary>
+    private static bool IsExpectedEvidenceContention(IOException exception)
+    {
+        var win32ErrorCode = exception.HResult & 0xFFFF;
+        return win32ErrorCode is 32 or 33;
     }
 
     /// <summary>

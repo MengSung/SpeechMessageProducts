@@ -162,7 +162,8 @@ namespace ChurchReport.Models
         public DonationPaymentManager(
             IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter,
             ILineNotificationWorkflow? lineNotificationWorkflow,
-            ILineReplyWorkflow? lineReplyWorkflow)
+            ILineReplyWorkflow? lineReplyWorkflow,
+            LegacyToolUtilityDrainController? legacyDrainController = null)
         {
             // 商店編號
             if (m_Configuration["Cash_Environment"] == "正式環境")
@@ -212,7 +213,10 @@ namespace ChurchReport.Models
             m_DonationLoginContactService = new DonationLoginContactService(
                 m_ToolUtilityClass,
                 m_DonationContactService);
-            m_DonationDedicationFeeFormService = DonationDynamicsAccessBootstrap.CreateFeeFormService(m_ToolUtilityClass, m_Configuration);
+            m_DonationDedicationFeeFormService = DonationDynamicsAccessBootstrap.CreateFeeFormService(
+                m_ToolUtilityClass,
+                m_Configuration,
+                legacyDrainController: legacyDrainController);
 
         }
         #endregion

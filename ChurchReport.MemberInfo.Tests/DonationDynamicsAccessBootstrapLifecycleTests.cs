@@ -305,6 +305,12 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
         services.Should().ContainSingle(descriptor =>
             descriptor.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService) &&
             descriptor.ImplementationType == typeof(DynamicsGatewayPreflightHostedService));
+        services.Should().ContainSingle(descriptor =>
+            descriptor.ServiceType == typeof(LegacyToolUtilityDrainController) &&
+            descriptor.Lifetime == ServiceLifetime.Singleton);
+        services.Should().ContainSingle(descriptor =>
+            descriptor.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService) &&
+            descriptor.ImplementationType == typeof(LegacyToolUtilityAdmissionHostedService));
     }
 
     /// <summary>

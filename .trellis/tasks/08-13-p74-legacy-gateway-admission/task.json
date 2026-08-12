@@ -1,0 +1,32 @@
+{
+  "id": "p74-legacy-gateway-admission",
+  "name": "p74-legacy-gateway-admission",
+  "title": "P7.4 legacy Gateway admission boundary",
+  "description": "Design and implement a fail-closed legacy drain/non-overlap control plane for the P7.4 Package01 cutover. It must not enable the feature flag without actual durable binding and deployment evidence.",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": "ChurchReport legacy ToolUtility ingress control-plane, local contract tests, no-secret validator and drain-first/non-overlap runbook only; no gate enablement, CE work, P7.5 or P8.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [],
+  "notes": "Repository-side P7.4 local boundary complete: fail-closed controller, host drain, validator/runbook and regression tests. Feature-gate enablement remains no-go: a Package01-only meter cannot fence synchronous singleton ToolUtility transport, prove all legacy coverage or replace durable cross-host coordination. Package01FeeReadsEnabled is false in appsettings, Development and DedicatedGateway launch profile. Implementation review: Gemini usable; Claude quota/session blocked; recorded as dual-model incomplete with local verification. Full solution test/build passed after a bounded PID evidence sharing-race regression fix.",
+  "meta": {
+    "featureGate": "false-required",
+    "externalEvidence": "required-before-enable",
+    "localBoundary": "complete",
+    "implementationReview": "gemini-degraded; claude-quota-blocked-or-timeout; local-verification-complete",
+    "finalReview": "gemini-pass; claude-not-completed-within-45s; dual-model-incomplete"
+  }
+}

@@ -122,3 +122,14 @@ authority，runbook 必須證明先 drain 舊路徑再啟用新路徑。不可�
 3. 完成 P7.3 special-resource resource-owner/lifecycle child，然後才依 evidence 建立 P7.4 per-capability disabled-by-default cutover；禁止 request-time fallback。
 4. 僅在 matrix 沒有 temporary legacy/unclassified production row 且 ChurchReport zero-reference、parity、soak、drain、rollback gate 全綠時，建立 P7.5 ToolUtility removal child。
 5. P7.5 已提交、封存與 immutable handoff 後，才建立 P8 parent 與 P8.0–P8.4；外部 host、DNS、TLS、service identity、secret provider、CE/ADFS reachability 或 permission 缺失時僅交付 repository-side validator/runbook/handoff，絕不猜測或假裝部署。
+
+## 2026-08-13 P7.4 local admission boundary checkpoint
+
+`08-13-p74-legacy-gateway-admission` 已完成本機 control-plane、runbook、validator、full solution tests、
+Release build、UTF-8/CRLF/scope gate 與降級雙模型 review 記錄。它沒有啟用任何 gate，也沒有 CE/traffic
+operation；同步 legacy I/O、legacy coverage、durable coordinator 三項 enablement blocker 仍存在。
+
+後續實作直接回到 `08-12-churchreport-productclient-cutover` 的 authoritative matrix。建立下一個 child 前，
+先為單一 consumer 確認 typed DTO、server-selected authorization、request-local projection、disabled gate、
+rollback owner 與 no-SDK boundary；不允許以 Entity/EntityCollection bridge、request-time fallback 或猜測
+資料語意冒充 migration。P7.5/P8 gate 不變。
