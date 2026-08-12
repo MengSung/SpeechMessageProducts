@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 10
-- **Last Active**: 2026-08-12
+- **Total Sessions**: 11
+- **Last Active**: 2026-08-13
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~355 | Active |
+| `journal-1.md` | ~388 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 11 | 2026-08-13 | P7.4 legacy admission boundary | `0ee9eeab` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 10 | 2026-08-12 | 完成 P7.2 本機候選版品質閘門與安全收尾 | `9b14df72`, `d0eb0993`, `1566d5f4`, `344c621e`, `70f06551` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 9 | 2026-08-11 | 完成 P7.2 Slice C 最終有限週期與 Phase 4-6 收尾 | `0b2cad35` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 8 | 2026-08-07 | P7.1 Data8 Package01 read evidence closure | `19e2cc45`, `064e2d19` | `1.0.0.3.Gateway&Embedded.Worktree` |

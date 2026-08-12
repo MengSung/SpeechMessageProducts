@@ -353,3 +353,36 @@ Completed and archived P7.1: six fixed Package01 Data8 read capabilities passed 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 11: P7.4 legacy admission boundary
+
+**Date**: 2026-08-13
+**Task**: P7.4 legacy admission boundary
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成並封存 P7.4 legacy admission local control-plane；所有 Package01 gates 保持 false，CE/traffic/P7.5/P8 未啟動。補強 Worker PID evidence sharing-race regression，完整 solution tests與Release build通過。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0ee9eeab` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
