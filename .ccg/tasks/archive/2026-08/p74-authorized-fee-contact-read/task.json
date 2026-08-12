@@ -1,0 +1,13 @@
+{
+    "id":  "p74-authorized-fee-contact-read",
+    "title":  "P7.4 授權奉獻稽核讀取 consumer",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "high",
+    "domain":  "backend-integration-security",
+    "currentPhase":  "completed",
+    "nextAction":  "archived after scope-only commit",
+    "createdAt":  "2026-08-13T05:00:00+08:00",
+    "completedAt": "2026-08-13T05:30:00+08:00",
+    "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree"
+}
