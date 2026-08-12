@@ -228,6 +228,35 @@ deployment-owned typed operation. The result contains only immutable, allowliste
 view values and no CRM `Entity`, form model, profile, credential, token, cache
 entry, cancellation state, or raw upstream exception.
 
+### Server-loaded collection snapshot locator variant
+
+For a read-only page whose existing authorization source is a server-loaded collection (for example,
+the current login's lesson list), the collection may authorize a browser GUID only when all of the
+following are true before parsing the GUID:
+
+```csharp
+feeList.EnsureLoginScope(account, password); // scope-only; must not load CRM data
+if (!FeeEditorLessonAccessResolver.TryCreateAuthorizedLessonIds(
+        feeList.IsLessonListLoadedFor(account, password),
+        feeList.LessonList,
+        out var authorizedLessonIds))
+{
+    return FixedDenied();
+}
+
+if (!Guid.TryParse(browserLessonLocator, out var lessonId)
+    || !FeeEditorLessonAccessResolver.IsAuthorizedTarget(authorizedLessonIds, lessonId))
+{
+    return FixedDenied();
+}
+```
+
+The scope check may clear a mismatched legacy cache but must not invoke a loader, CRM lookup, or
+outbound I/O. The server collection must already be loaded for the current login; null, malformed or
+duplicate identifiers make the snapshot ambiguous and fail closed. The resolver copies unique IDs into
+a fresh request-local allowlist and never accepts browser input as profile, owner, connector,
+organization, or authorization authority.
+
 ### 3. Contracts
 
 1. Rehydrate existing request context and evaluate the server login snapshot
@@ -263,6 +292,7 @@ entry, cancellation state, or raw upstream exception.
 | Typed row/total outside `Int32` range or null row | Throw/fail closed before publishing any result. |
 | Request cancellation or typed fault | Propagate cancellation/fault, release owner resources, do not emit raw detail or retry/fallback. |
 | Caller casts published rows to an array or writable collection | Array cast is impossible; any collection mutation attempt throws and leaves the published rows unchanged. |
+| Server-loaded authorization collection is absent, belongs to a previous login, contains null/invalid IDs, or duplicates an ID | Reject before browser GUID parsing, CRM loading, client composition, or typed dispatch. |
 
 ### 5. Good / Base / Bad Cases
 
@@ -277,6 +307,9 @@ entry, cancellation state, or raw upstream exception.
   a generic error, or exposes `DonationFeeAuditRow[]` directly as an
   `IReadOnlyList`. Each creates either an IDOR, lifecycle, or mutable-result
   leak risk and is release-blocking.
+- **Bad:** An endpoint calls `SetupLessonList`, `EnsureLessonListLoaded`, or another legacy CRM loader
+  merely because its request-time browser GUID needs authorization. That turns a locator into an
+  authorization-triggered data load and can resurrect another login's collection state.
 
 ### 6. Tests Required
 
@@ -294,6 +327,11 @@ entry, cancellation state, or raw upstream exception.
 5. Run the owning focused suite, product suite, full solution Release tests,
    Release build, byte-level UTF-8-no-BOM/CRLF/final-CRLF scan, and
    `git diff --check` before classifying the local migration as checked.
+6. When authorization uses an existing server-loaded collection, test current-login mismatch, unloaded,
+   null/invalid/duplicate snapshot entries, target-not-in-snapshot, and interleaved A/B results. A
+   source/controller contract test must prove the snapshot is validated before browser GUID parsing and
+   that no legacy loader, CRM `RetrieveEntity`, `FeeList` data mutation, fallback, or retry enters the
+   new route.
 
 ### 7. Wrong vs Correct
 

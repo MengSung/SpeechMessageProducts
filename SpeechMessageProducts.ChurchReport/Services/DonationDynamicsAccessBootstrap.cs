@@ -132,6 +132,27 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 讀取 P7.4 fee-editor 唯讀 endpoint 的獨立 deployment-owned gate。此 capability 必須同時通過
+        /// Package01 基礎 gate 與自己的 gate；任一缺失或 false 都在 controller 解析 browser locator、
+        /// 讀取 session lesson snapshot、建立 ProductClient、process host、HTTP handler 或 Data8 pool 前
+        /// 回傳 false。這使 rollback 可只關閉 fee-editor read，不會意外改變其他 Package01 consumer。
+        /// </summary>
+        /// <param name="configuration">只允許 deployment configuration；不得由 HTTP、Session 或 browser 值替代。</param>
+        /// <returns>兩個明確 gate 都啟用時為 true；預設與缺值一律為 false。</returns>
+        public static bool IsPackage01FeeEditorReadEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage01Enabled(configuration))
+            {
+                return false;
+            }
+
+            var raw = configuration["DynamicsAccess:Package01FeeEditorReadEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// 讀取 P7.2 contact basic-info 的獨立 consumer flag。預設為 false，故在 P7.4 之前不會建立
         /// ProductClient、provider、HTTP handler、Data8 pool 或任何 ChurchReport 寫入流量；此 flag 與
         /// Package01FeeReadsEnabled 分離，避免讀取與寫入能力意外形成同一個 rollout 邊界。

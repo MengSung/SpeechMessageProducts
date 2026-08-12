@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"規範 server-derived authorization、request-local DTO、A/B isolation、取消與資源生命週期的不可違反合約。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"在設計、實作與檢查期間使用的跨使用者隔離與效能審核清單。"}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/design.md","reason":"定義 P7.4 disabled-by-default、rollback、capacity no-go 與 P7.5/P8 邊界。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00066 operation、consumer 與 CE/host evidence 的不可變排程基準。"}
+{"file":".trellis/tasks/archive/2026-08/08-13-08-13-p74-authorized-fee-contact-read/design.md","reason":"先前 server-authorized browser locator 到 immutable DTO 的已驗證 P7.4 設計模式；僅參考，不複用其 contact authorization。"}

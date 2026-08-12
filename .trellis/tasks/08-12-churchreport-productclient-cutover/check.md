@@ -111,6 +111,38 @@ P7.4 保持 `in_progress`。下一個可進行的本機範圍是 Phase 4 的 ORG
 inventory；先確認每個 consumer 的 DTO／response contract、legacy bridge、rollback owner 與 required evidence，
 再建立獨立 sub-batch。不得因 Batch B 本機通過而啟用 gate、開始 P7.5 或建立 P8。
 
+## P7.4 child：ORG-CALL-00066 fee-editor read boundary
+
+Child `08-13-p74-fee-editor-read-boundary` 已完成並準備封存。它沒有把既有 `Fee`、`Present`、
+`GetFeeData` 或可寫 `FeeList.FeeDataList` 改接 Gateway；改為新增獨立、JSON-only、DTO-only 的
+`GetFeeEditorRows` route。兩個 deployment-owned gates 在 browser GUID parsing、session snapshot、
+ProductClient composition 或 I/O 前 short-circuit，checked-in config 全數保持 false。
+
+gate=true 時，route 只接受目前登入者已載入的 server lesson snapshot：先 scope、驗證 loaded 狀態與
+snapshot ID 完整性，再建立 request-local unique allowlist，最後才解析 browser locator 與 dispatch。它不會
+呼叫 legacy lesson loader、ToolUtility、`RetrieveEntity`、fallback 或 retry。typed service 固定使用
+`fees.editor.load.by.disciplelesson`、server profile、`church-report-service` workload，完整驗證每一列
+lesson ID 並 defensive-copy read-only scalar result；A/B interleaved tests 證明 result、collection、row 與
+marker 沒有跨 request 共用。
+
+final review 的 cancellation finding 已先 RED 後 GREEN：controller generic catch 現以
+`catch (Exception ex) when (ex is not OperationCanceledException)` 排除所有取消來源，避免非
+`RequestAborted` token 的取消被轉譯為一般 unavailable。新 ProductClient mapping regression 證明
+ORG-CALL-00066 既有實作已固定映射到正確 operation，沒有宣稱新增 executor。
+
+品質證據：focused 12+12 tests、ChurchReport Release 568 passed／14 existing environment skips、Dynamics
+Release 737 passed／7 existing live SQL skips、solution Release tests 全綠、solution Release build 0 warnings／
+0 errors；UTF-8 no-BOM、CRLF、final CRLF、`git diff --check`、forbidden API 與 gate=false scans 通過。
+CCG final review 先依 45 秒上限以 Gemini usable 結果繼續；runner 後續自行完成 Claude，`summary.json` 證明
+Gemini+Claude 均完成，兩者無 Critical/Warning。Gemini 的 UTF-8 BOM Info 與 AGENTS.md no-BOM 強制規則衝突，
+故未採用並有 byte-level evidence；Claude 記錄的同一 session `FeeList` cache 並行風險是既有架構項目，
+新 route 對其 fail closed，不形成此 child 的資料洩漏或交付阻擋。
+
+此 child 沒有 CE、Dedicated、traffic、P7.5 或 P8 evidence，也沒有 fixture 或外部 cleanup；rollback 是保持／
+設回 editor gate=false。capacity enablement no-go 不變：legacy ToolUtility 尚未證明與 Gateway 共用 durable
+organization admission，legacy ingress coverage 與 drain-first/non-overlap 實機 evidence 不足。因此 P7.5／P8
+仍不可啟動；下一 child 必須繼續從 authoritative gap matrix 選擇獨立 local-only consumer 或 P7.5 prerequisite。
+
 ## Batch B review follow-up：取消例外不可進入 HandleError
 
 P7.4 Batch B review 指出的兩個 `catch (Exception)` 經本機 root-cause tracing 確認為真實生命週期風險：

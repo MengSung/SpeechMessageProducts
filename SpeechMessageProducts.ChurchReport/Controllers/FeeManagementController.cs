@@ -20,9 +20,12 @@ using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
@@ -34,6 +37,20 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class FeeManagementController : BaseChurchController
     {
+        /// <summary>
+        /// 保存 deployment-owned Dynamics gate 與非秘密組態讀取器。此欄位不持有 profile 對應的
+        /// ProductClient、endpoint、credential、token、handler 或 session；route 僅在兩個 gate 皆為
+        /// true 且 server lesson snapshot 通過後才使用它建立既有 DI process host 的 stateless facade。
+        /// </summary>
+        private readonly IConfiguration _configuration;
+
+        /// <summary>
+        /// fee-editor 唯讀端點在 gate、授權、locator 或上游資料無法證明時回傳的固定訊息。
+        /// 訊息故意不含 lesson GUID、登入帳號、profile、endpoint、CRM 回應或例外內容，避免診斷
+        /// 成為跨使用者授權或組態探測通道。
+        /// </summary>
+        private const string FeeEditorReadUnavailableMessage = "目前無法讀取課程摘要。";
+
         #region 建構式
 
         /// <summary>
@@ -48,9 +65,11 @@ namespace ChurchReport.Controllers
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            IConfiguration configuration)
         : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         #endregion
@@ -336,6 +355,93 @@ namespace ChurchReport.Controllers
                 {
                     data = new List<Fee>(),
                     totalCount = 0
+                });
+            }
+        }
+
+        /// <summary>
+        /// 讀取費用編輯器可安全顯示的唯讀課程摘要。
+        ///
+        /// 這是 P7.4 新增、未被既有 Fee／Present editable Grid 使用的 JSON-only endpoint。兩個
+        /// deployment-owned gate 任一為 false 時，方法在解析 browser GUID、讀取 Session/FeeList、
+        /// 建立 Package01 client 或進行任何 I/O 前立即拒絕。gate=true 時，只有已載入且仍屬於目前
+        /// login 的 server lesson snapshot 能授權 locator；result 永遠是 request-local immutable DTO，
+        /// 不會回填 FeeList.FeeDataList、Fee、ChangeHistory、UpdateFeeData 或 SaveBatch。
+        /// </summary>
+        /// <param name="discipleLessonsId">browser 提供的課程 locator；它不是身分、profile、owner、connector 或授權依據。</param>
+        /// <returns>完整驗證後的 immutable scalar rows，或固定去識別化 unavailable 結果。</returns>
+        [HttpGet]
+        [Route("/FeeManagement/Api/FeeEditorRows/{discipleLessonsId?}")]
+        public async Task<IActionResult> GetFeeEditorRows(string discipleLessonsId)
+        {
+            if (!DonationDynamicsAccessBootstrap.IsPackage01FeeEditorReadEnabled(_configuration))
+            {
+                return Json(new
+                {
+                    status = "unavailable",
+                    message = FeeEditorReadUnavailableMessage
+                });
+            }
+
+            try
+            {
+                var (account, password) = CurrentLogin();
+                var feeList = InMemoryContext.FeeList;
+
+                // 只重新 scope 既有 session cache；此方法在登入不符時清除資料但不發出任何 legacy CRM I/O。
+                feeList.EnsureLoginScope(account, password);
+                if (!FeeEditorLessonAccessResolver.TryCreateAuthorizedLessonIds(
+                        feeList.IsLessonListLoadedFor(account, password),
+                        feeList.LessonList,
+                        out var authorizedLessonIds))
+                {
+                    return Json(new
+                    {
+                        status = "unavailable",
+                        message = FeeEditorReadUnavailableMessage
+                    });
+                }
+
+                if (!Guid.TryParse(discipleLessonsId, out var discipleLessonId) ||
+                    !FeeEditorLessonAccessResolver.IsAuthorizedTarget(authorizedLessonIds, discipleLessonId))
+                {
+                    return Json(new
+                    {
+                        status = "unavailable",
+                        message = FeeEditorReadUnavailableMessage
+                    });
+                }
+
+                var package01Client = DonationDynamicsAccessBootstrap.TryCreatePackage01Client(_configuration);
+                if (package01Client is null)
+                {
+                    return Json(new
+                    {
+                        status = "unavailable",
+                        message = FeeEditorReadUnavailableMessage
+                    });
+                }
+
+                var service = new FeeEditorReadService(
+                    package01Client,
+                    Options.Create(DonationDynamicsAccessBootstrap.BindOptions(_configuration)));
+                var result = await service.RetrieveAsync(discipleLessonId, HttpContext.RequestAborted)
+                    .ConfigureAwait(false);
+
+                return Json(new
+                {
+                    status = "success",
+                    rows = result.Rows
+                });
+            }
+            // 已取消的上游 typed operation 必須保留 ASP.NET Core 原有的取消語意；只依賴
+            // RequestAborted 是否已標記會漏掉其他取消來源，並錯誤將取消包裝成一般 unavailable。
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return Json(new
+                {
+                    status = "unavailable",
+                    message = FeeEditorReadUnavailableMessage
                 });
             }
         }

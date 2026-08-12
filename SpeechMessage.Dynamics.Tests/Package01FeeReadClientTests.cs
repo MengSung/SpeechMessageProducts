@@ -78,6 +78,41 @@ public sealed class Package01FeeReadClientTests
     }
 
     /// <summary>
+    /// 驗證費用編輯器的獨立唯讀能力固定映射到 <c>fees.editor.load.by.disciplelesson</c>，且只把
+    /// 已授權的 lesson GUID 作為具型別參數交給 executor。此回歸測試不建立 CRM、HTTP、連線或
+    /// 背景工作；它只檢查短生命週期的 request，以防日後產品端誤改用一般 stor-lesson 或費用
+    /// operation 而越過 P7.4 的 DTO-only authorization boundary。
+    /// </summary>
+    [Fact]
+    public async Task Fee_editor_read_sends_only_the_exact_registered_disciple_lesson_operation()
+    {
+        OperationExecutionRequest? seen = null;
+        var target = Guid.Parse("11111111-2222-3333-4444-555555555555");
+        var executor = new FakeExecutor(request =>
+        {
+            seen = request;
+            return CreateStorLessonResult(
+                request.CapabilityOperationId,
+                new Package01StorLessonRecord { DiscipleLessonId = target });
+        });
+        var client = CreateClient(executor);
+
+        var rows = await client.RetrieveFeeEditorRowsByDiscipleLessonAsync(
+            "server-owned-profile",
+            "church-report-service",
+            target,
+            CancellationToken.None);
+
+        seen.Should().NotBeNull();
+        seen!.CapabilityOperationId.Should().Be(OperationIds.FeesEditorLoadByDiscipleLesson);
+        seen.ProfileAlias.Should().Be("server-owned-profile");
+        seen.WorkloadSubjectId.Should().Be("church-report-service");
+        seen.Parameters.Keys.Should().BeEquivalentTo(new[] { "discipleLessonId" });
+        seen.Parameters["discipleLessonId"].Should().Be(target);
+        rows.Should().ContainSingle().Which.DiscipleLessonId.Should().Be(target);
+    }
+
+    /// <summary>
     /// 驗證封閉費用記錄的可選欄位直接保留 null，且缺省金額維持既有的零值預設。
     /// 這是產品 DTO 的相容性保證；原始 OData 金額、日期與選項集轉換必須在 Gateway
     /// 投影器完成，避免用戶端保存任何上游格式或容錯解析路徑。

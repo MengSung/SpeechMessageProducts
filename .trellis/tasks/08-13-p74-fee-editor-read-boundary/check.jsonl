@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"驗證 authorization-before-data、A/B isolation、fault/cancellation 與資源基線。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"確認沒有 response、cache、session、profile 或可變集合跨請求共用。"}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/implement.md","reason":"核對 local-only scope、feature gates=false、capacity no-go 與 P7.5/P8 不可提前啟動。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"驗證不把 local consumer work 誤記為 CE、Dedicated 或 traffic evidence。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"已回饋 server-loaded collection snapshot 在 browser GUID parse 前完成 current-login scope、完整性與 request-local allowlist 驗證的可執行 contract。"}
+{"file":".trellis/tasks/08-13-p74-fee-editor-read-boundary/check.md","reason":"記錄 RED/GREEN cancellation regression、focused/full Release tests、build、encoding/scope scans、CCG 45 秒降級 review、rollback 與未解除 capacity gate。"}
