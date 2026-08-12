@@ -316,3 +316,40 @@ Completed and archived P7.1: six fixed Package01 Data8 read capabilities passed 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: 完成 P7.2 本機候選版品質閘門與安全收尾
+
+**Date**: 2026-08-12
+**Task**: 完成 P7.2 本機候選版品質閘門與安全收尾
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成 Slice C operation-local service 隔離與 fresh-fixture cleanup 的終態紀錄；完成 Slice D-H local-only contract、A/B isolation、Data8 pre-admission fail-closed 和第一版 RC。本機 solution test 與 Release build 均通過；CE evidence 不完整，P7.4/P7.5 持續 fail closed。最後重現調查未發現可重現的 Kestrel/程序隔離缺陷。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9b14df72` | (see git log) |
+| `d0eb0993` | (see git log) |
+| `1566d5f4` | (see git log) |
+| `344c621e` | (see git log) |
+| `70f06551` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
