@@ -92,6 +92,18 @@
       weekly statistics 與動態 Entity 及出席／週報寫入耦合。
 - [x] 未執行 CE、feature gate、traffic、P7.5 或 P8 操作。
 
+## 2026-08-13 後續 P7.4 consumer 候選 re-read
+
+- [x] 重新以 authoritative 70-row matrix 篩選 registry、Data8 executor 與 typed ProductClient 均完成、
+      且尚未有 own local outcome 的 read row。結果沒有合格的非重複 candidate：00005／00006／00061／00062／
+      00066 已各自有 migrated-disabled 或 completed local child；00064 是 archived P7.2 payment-return
+      financial-write 的 dedup precondition，禁止 read-new/write-legacy。
+- [x] 不為了製造進度重做既有 endpoint。Package03 00028／00040／00063 在 matrix 仍是 incomplete，且現有
+      contact-image fallback、metadata cache isolation 或 weekly-statistics write adjacency 尚未有 own
+      DTO-only/authorization/rollback design，維持 temporary-legacy。
+- [ ] 下一個 P7.4 child 只能由新的 owner-approved capability family 或已補齊 matrix／DTO／authorization
+      前置的 row 建立；在此前繼續 P7.5 prerequisite evidence，不啟用 flag，也不開始 P7.5/P8。
+
 ## rollback points
 
 1. 任一測試顯示 flag=false 建立 typed resource、typed fault 污染 model、跨 request/profile 資料混用、
