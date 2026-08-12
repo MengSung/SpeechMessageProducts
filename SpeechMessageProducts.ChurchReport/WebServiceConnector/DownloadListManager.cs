@@ -101,26 +101,32 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 下載資料區
         #region 主程式區
+        /// <summary>
+        /// 在單一下載操作內建立登入者可見的小組與週報資料。
+        ///
+        /// <para>
+        /// <paramref name="organizationService"/> 若由上層借用，僅能在此呼叫鏈以參數
+        /// 傳遞；絕不可寫入 Factory 共用的 <see cref="ToolUtilityClass"/>。這可避免
+        /// 下一個 HTTP request、使用者或 Dynamics profile 取得前一個操作的可變連線狀態。
+        /// service 的建立、lease 歸還與 Dispose 仍由呼叫端擁有，本方法不轉移所有權。
+        /// </para>
+        /// </summary>
+        /// <param name="Account">已由上層驗證的登入帳號識別；不得以此參數選擇 CRM profile。</param>
+        /// <param name="Password">既有登入流程的受保護驗證資料；本方法不記錄或快取它。</param>
+        /// <param name="aDownloadDate">用於計算本週主日的操作範圍日期。</param>
+        /// <param name="aMultiGroupList">回傳本次操作建立的多小組資料。</param>
+        /// <param name="aMultiGroupChartDataList">回傳本次操作建立的統計資料。</param>
+        /// <param name="LoginType">回傳固定登入類別。</param>
+        /// <param name="UserType">回傳由 CRM 資料判定的使用者類別。</param>
+        /// <param name="LoginFullName">回傳既有登入者名稱欄位；呼叫端負責依授權範圍呈現。</param>
+        /// <param name="ActiveListId">回傳當次選定名單識別。</param>
+        /// <param name="organizationService">可選的 operation-scoped CRM service；借用且不保存、不 Dispose。</param>
         public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref MultiGroupList aMultiGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String UserType, ref String LoginFullName, ref String ActiveListId, IOrganizationService organizationService = null )
         {
             try
             {
-                // ✅ 如果傳入了 organizationService 且 m_ToolUtilityClass 的服務為 null，則設定它
-                if (organizationService != null && this.m_ToolUtilityClass != null)
-                {
-                    if (this.m_ToolUtilityClass.m_Crm2011OrganizationService == null)
-                    {
-                        this.m_ToolUtilityClass.m_Crm2011OrganizationService = organizationService;
-                    }
-                    if (this.m_ToolUtilityClass.m_OrganizationService == null)
-                    {
-                        // 如果是 OrganizationServiceProxy 類型才設定
-                        if (organizationService is OrganizationServiceProxy)
-                        {
-                            this.m_ToolUtilityClass.m_OrganizationService = organizationService as OrganizationServiceProxy;
-                        }
-                    }
-                }
+                // 借用 service 的唯一合法資料流是 method parameter → private helper；
+                // 不可回寫 Factory singleton，否則不同 request 會共用連線、認證與故障狀態。
 
                 #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
                 m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();
@@ -193,7 +199,7 @@ namespace ChurchReport.WebServiceConnector
                     LoginType = "小組長";
                     ActiveListId = this.m_Lists.Entities[0].Id.ToString();
                     #region 處理每個要點名的名單
-                    ProcessListEntity();
+                    ProcessListEntity(organizationService);
                     #endregion
 
                     return ;
@@ -216,7 +222,7 @@ namespace ChurchReport.WebServiceConnector
 
                     #region 處理每個要點名的名單
                     m_SetIdentityFlag = false; // 因為新朋友、未入組會變更委身類型，旗標防止設定太多次，false表示尚未設定
-                    ProcessPersonalListEntity();
+                    ProcessPersonalListEntity(organizationService);
                     #endregion
 
                     return;
@@ -224,17 +230,20 @@ namespace ChurchReport.WebServiceConnector
                 }
                     #endregion
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                // 保留原始 stack trace，讓上層只能依受控分類處理錯誤，而非失去真正失敗邊界。
+                throw;
             }
         }
 
         #endregion
         #region 處理小組名單
-        private void ProcessListEntity()
+        /// <summary>
+        /// 處理小組長以上可見的名單，並將借用 service 繼續限制在目前操作呼叫鏈。
+        /// </summary>
+        /// <param name="organizationService">可選的 operation-scoped service；不保存也不釋放。</param>
+        private void ProcessListEntity(IOrganizationService organizationService)
         {
             try
             {
@@ -258,19 +267,29 @@ namespace ChurchReport.WebServiceConnector
                     //String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
                     // 取得週報資料
-                    SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity);
+                    SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity, organizationService);
                 }
                 return;
             }
-            catch (System.Exception Exception)
+            catch (System.Exception)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                throw;
             }
         }
 
-        public void SetupWeeklyReportRecord(List<WeeklyReportRecord> aWeeklyReportRecordListData, Entity ListEntity, Entity GroupWeeklyReportEntity)
+        /// <summary>
+        /// 將一筆名單與其零或一筆週報投影為操作範圍資料列。
+        ///
+        /// <para>
+        /// 名單成員計數可使用借用 service，但只透過參數傳遞給即時查詢；不會保存到
+        /// 共用工具，也不會在本方法 Dispose，確保 service 的 owner 仍是外層 lease。
+        /// </para>
+        /// </summary>
+        /// <param name="aWeeklyReportRecordListData">本次操作輸出集合。</param>
+        /// <param name="ListEntity">已由上游查詢取得的名單。</param>
+        /// <param name="GroupWeeklyReportEntity">同一名單與主日的零或一筆週報。</param>
+        /// <param name="organizationService">可選的 operation-scoped CRM service。</param>
+        public void SetupWeeklyReportRecord(List<WeeklyReportRecord> aWeeklyReportRecordListData, Entity ListEntity, Entity GroupWeeklyReportEntity, IOrganizationService organizationService = null)
         {
             try
             {
@@ -291,7 +310,7 @@ namespace ChurchReport.WebServiceConnector
                              // 小組名稱
                              Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname"),
                              // 小組總人數
-                             TotalNumber = GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
+                              TotalNumber = GetSmallGroupMemberNumber(ListEntity.Id, organizationService).ToString(),
                              // 主日出席人數
                              SundayNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number").ToString(),
                              // 主日出席率
@@ -309,7 +328,7 @@ namespace ChurchReport.WebServiceConnector
 
                     // 圓餅圖所需的數據
                     // 成員人數:萬一不知怎麼的週報的應該聚會人數不存在，就只好以現在的成員人數為準
-                    int aTotalMemberNumber = GetSmallGroupMemberNumber(ListEntity.Id);
+                    int aTotalMemberNumber = GetSmallGroupMemberNumber(ListEntity.Id, organizationService);
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number += aTotalMemberNumber;
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number");
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number");
@@ -323,7 +342,7 @@ namespace ChurchReport.WebServiceConnector
                              ListEntityId = ListEntity.Id.ToString(),
                              WeeklyReportEntityId = "",
                              Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname"),
-                             TotalNumber = GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
+                              TotalNumber = GetSmallGroupMemberNumber(ListEntity.Id, organizationService).ToString(),
                              SundayNumber = "0",
                              SundayRate = "0",
                              SmallGroupNumber = "0",
@@ -331,34 +350,38 @@ namespace ChurchReport.WebServiceConnector
                          }
                     );
 
-                    int aTotalMemberNumber = GetSmallGroupMemberNumber(ListEntity.Id);
+                    int aTotalMemberNumber = GetSmallGroupMemberNumber(ListEntity.Id, organizationService);
                     //this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number = this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number + aTotalMemberNumber;
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number += aTotalMemberNumber;
                 }
 
                 return;
             }
-            catch (System.Exception Exception)
+            catch (System.Exception)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                throw;
             }
         }
-        private int GetSmallGroupMemberNumber(Guid ListEntityId)
+        /// <summary>
+        /// 使用單一操作的 service 讀取名單類型與成員數，且絕不把它寫回共用工具。
+        ///
+        /// <para>
+        /// 傳入 service 優先於既有 deployment-owned ToolUtility service；兩者皆不存在時
+        /// 立即 fail closed。查詢僅保留局部變數，方法結束即失去參考，避免把連線、
+        /// profile 或使用者相關狀態延伸至下一個 request。service 的 Dispose/lease release
+        /// 仍由建立者負責，這個 helper 不取得所有權。
+        /// </para>
+        /// </summary>
+        /// <param name="ListEntityId">已授權名單的固定識別。</param>
+        /// <param name="organizationService">可選的借用 operation-scoped service。</param>
+        /// <returns>名單成員數量。</returns>
+        private int GetSmallGroupMemberNumber(Guid ListEntityId, IOrganizationService organizationService)
         {
             #region // 初始化每個小組名單，建立原始的 Member Data
 
-            // ✅ 確保使用正確的 organizationService
-            IOrganizationService serviceToUse = null;
-            if (this.m_ToolUtilityClass.m_Crm2011OrganizationService != null)
-            {
-                serviceToUse = this.m_ToolUtilityClass.m_Crm2011OrganizationService;
-            }
-            else if (this.m_ToolUtilityClass.m_OrganizationService != null)
-            {
-                serviceToUse = this.m_ToolUtilityClass.m_OrganizationService;
-            }
+            IOrganizationService serviceToUse = organizationService
+                ?? this.m_ToolUtilityClass.m_Crm2011OrganizationService
+                ?? this.m_ToolUtilityClass.m_OrganizationService;
 
             if (serviceToUse == null)
             {
@@ -373,41 +396,13 @@ namespace ChurchReport.WebServiceConnector
             EntityCollection MemberCollection;
             if (ListType == false)
             {
-                // 靜態名單：批量取得成員（使用既有方法，但避免對 list 再次 Retrieve）
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    if (this.m_ToolUtilityClass.m_OrganizationService != null)
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
-                    }
-                    else
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                    }
-                }
-                else
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                }
+                // helper 的 ref 只指向方法區域變數，不能把借用 service 保存到 ToolUtility 欄位。
+                MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref serviceToUse, ListEntityId);
             }
             else
             {
-                // 動態名單
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    if (this.m_ToolUtilityClass.m_OrganizationService != null)
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
-                    }
-                    else
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                    }
-                }
-                else
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                }
+                // 同一 ownership 規則適用於動態名單；逾時或例外由呼叫端決定 lease 淘汰。
+                MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref serviceToUse, ListEntityId);
             }
 
             return MemberCollection.Entities.Count;
@@ -441,15 +436,17 @@ namespace ChurchReport.WebServiceConnector
                 }
                 return;
             }
-            catch (System.Exception Exception)
+            catch (System.Exception)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                throw;
             }
         }
 
-        private void ProcessPersonalListEntity()
+        /// <summary>
+        /// 處理個人回報名單，將借用 service 保持在單一同步操作範圍內。
+        /// </summary>
+        /// <param name="organizationService">可選的 operation-scoped service；不保存也不釋放。</param>
+        private void ProcessPersonalListEntity(IOrganizationService organizationService)
         {
             try
             {
@@ -475,17 +472,15 @@ namespace ChurchReport.WebServiceConnector
                         //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                         String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
 
-                        SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity);
+                        SetupWeeklyReportRecord(this.m_MultiGroupList.m_WeeklyReportRecordListData, ListEntity, GroupWeeklyReportEntity, organizationService);
                         #endregion
                     }
                 }
                 return;
             }
-            catch (System.Exception Exception)
+            catch (System.Exception)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                throw;
             }
         }
 
@@ -563,11 +558,11 @@ namespace ChurchReport.WebServiceConnector
 
                 return;
             }
-            catch (System.Exception Exception)
+            catch (System.Exception)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                // 查詢例外可能帶有上游 transport 細節；保留 stack 供受控診斷分類，
+                // 並避免在本層建立或留存原始例外文字的複本。
+                throw;
             }
         }
         private void MergeCollectionSmallGroupAhead(ref EntityCollection aListEntityCollection )
@@ -647,11 +642,9 @@ namespace ChurchReport.WebServiceConnector
                 }
                 return ;
             }
-            catch (System.Exception Exception)
+            catch (System.Exception)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                throw;
             }
         }
         private void SetUserType( ref String UserType)

@@ -2134,11 +2134,12 @@ function Get-StrictSliceCChildFailureDiagnosticCategory {
         在 Slice C ExecuteFixture child 非零結束時，從既有嚴格 evidence 取回唯一允許的去識別化診斷分類。
 
     .DESCRIPTION
-        ExecuteFixture 的 child 可能已寫入完整、固定 schema 的 no-go evidence，接著因 xUnit 的最終
-        成功 assertion 以非零結束。父程序仍必須將整體結果固定為 child-process-failed、
-        safeToRetry=false，且不得採用 operations、operationExecuted 或任何 child 輸出作為成功、
-        cleanup 或重試權限。本函式只在 parent 所建立、非 reparse 的 temporary root 中接受固定檔名，
-        並重用完整 strict parser 驗證 schema，最後僅投影既有 allowlist 中的 no-go reason。
+        非零 child exit 一律代表 process／resource lifecycle 不完整；即使留下外觀正確的 evidence，
+        父程序仍固定回報 child-process-failed、safeToRetry=false，且不得採用 operations、
+        operationExecuted 或任何 child 輸出作為成功、cleanup 或重試權限。完整發布的正常 no-go
+        evidence 則必須由 child 以零結束，改走一般 strict parser 與 no-go handoff。此函式只在
+        parent 所建立、非 reparse 的 temporary root 中接受固定檔名，並重用完整 strict parser 驗證
+        schema，最後僅投影既有 allowlist 中的 no-go reason。
 
         檔案、路徑、編碼、schema、結果或清理邊界任一不符時都回傳 null；呼叫端必須保留
         child-process-failed 的 fail-closed 結果。temporary root 的唯一 owner 仍是父程序 finally，
@@ -2774,7 +2775,9 @@ try {
     }
 
     $resolvedRepositoryPath = [IO.Path]::GetFullPath($RepositoryPath)
-    $matrixPath = Join-Path $resolvedRepositoryPath '.trellis\tasks\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
+    # 原 P7.2 task 已封存；matrix 是 immutable、唯讀的 capability contract。runner 只能讀取此
+    # 歸檔證據，不能藉由缺失路徑重建、修改或重試 historical/final cycle。
+    $matrixPath = Join-Path $resolvedRepositoryPath '.trellis\tasks\archive\2026-08\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
     $testProjectPath = Join-Path $resolvedRepositoryPath 'ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj'
     if (-not (Test-Path -LiteralPath $resolvedRepositoryPath -PathType Container) -or
         -not (Test-Path -LiteralPath $matrixPath -PathType Leaf) -or

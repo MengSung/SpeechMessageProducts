@@ -59,6 +59,20 @@ namespace ChurchReport.Models
 
         DownloadIntegrateData m_DownloadIntegrateData = new DownloadIntegrateData();
 
+        /// <summary>
+        /// 建立目前登入者的名單資料，並將可選 CRM service 原封不動地限制在本次呼叫。
+        ///
+        /// <para>
+        /// service 是外部借用資源，所有權、timeout 淘汰與 Dispose 仍由取得它的 lease
+        /// owner 負責。本方法只把它交給 DownloadListManager 的 operation-scoped 參數，
+        /// 不會保存、快取或轉移到 Factory 共用 ToolUtility，避免跨使用者／profile state
+        /// leakage。任何例外均保留原始 stack，讓上層可安全分類而不暴露原始 CRM 資料。
+        /// </para>
+        /// </summary>
+        /// <param name="Account">已授權登入帳號。</param>
+        /// <param name="Password">既有受保護登入驗證資料，不會在此快取或記錄。</param>
+        /// <param name="aSelectDate">名單週期日期。</param>
+        /// <param name="organizationService">可選的 operation-scoped CRM service。</param>
         public void SetupListManager(String Account, String Password, DateTime aSelectDate, IOrganizationService organizationService = null)
         {
             try
@@ -71,11 +85,9 @@ namespace ChurchReport.Models
 
                 m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref UserType, ref LoginFullName, ref ActiveListId, organizationService);
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                throw;
             }
         }
         public void SetSelectDate( DateTime aSelectDate)

@@ -431,34 +431,81 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
             => _listService.Value.RetrieveMemberListCollectionByListId(listId);
 
+        /// <summary>
+        /// 使用目前操作借用的 CRM service 取得靜態名單成員；不回退到 façade 建構時的
+        /// service，避免跨 request、profile 或使用者重用共享連線狀態。
+        /// </summary>
+        /// <param name="organizationService">本次操作的 service；由外層 owner 管理生命週期。</param>
+        /// <param name="listId">已由上游授權的名單識別。</param>
+        /// <returns>由指定 operation service 取得的成員集合。</returns>
         public EntityCollection RetrieveMemberListCollectionByListId(ref IOrganizationService organizationService, Guid listId)
-            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(_organizationService, listId);
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
 
+        /// <summary>
+        /// 使用目前操作借用的 Dynamics proxy 取得靜態名單成員；proxy 不會被 façade 保存。
+        /// </summary>
+        /// <param name="organizationService">本次操作的 proxy；其釋放由建立它的 owner 負責。</param>
+        /// <param name="listId">已由上游授權的名單識別。</param>
+        /// <returns>由指定 operation proxy 取得的成員集合。</returns>
         public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(ref OrganizationServiceProxy organizationService, Guid listId)
-            => _listService.Value.RetrieveMemberListCollectionByListIdUsingProxy(_organizationService, listId);
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingProxy(organizationService, listId);
 
+        /// <summary>
+        /// 使用目前操作借用的 CRM 2011 service 取得靜態名單成員，不跨操作使用內部 service。
+        /// </summary>
+        /// <param name="organizationService">本次操作的 service；不由 façade 取得或釋放所有權。</param>
+        /// <param name="listId">已由上游授權的名單識別。</param>
+        /// <returns>由指定 operation service 取得的成員集合。</returns>
         public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService organizationService, Guid listId)
-            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(_organizationService, listId);
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
 
         // 動態名單查詢方法
         public EntityCollection RetrieveDynamicMemberList(string strList)
             => _listService.Value.RetrieveDynamicMemberList(Guid.Parse(strList));
 
+        /// <summary>
+        /// 使用呼叫端在目前操作借用的 CRM service 取得動態名單成員。
+        /// </summary>
+        /// <param name="service">
+        /// 本次 operation-local CRM service。此 façade 不保存、不 Dispose、也不以建構時的
+        /// service 取代它；建立該 service 的 lease owner 必須在操作完成、取消或 fault 時負責
+        /// 確定性釋放，防止 request、profile 或使用者間重用連線狀態。
+        /// </param>
+        /// <param name="strList">已由上游授權的動態名單識別字串。</param>
+        /// <returns>只由傳入 service 查得的成員集合。</returns>
         public EntityCollection RetrieveDynamicMemberList(IOrganizationService service, string strList)
         {
-            IOrganizationService svc = _organizationService;
+            IOrganizationService svc = service;
             return RetrieveDynamicMemberList(ref svc, Guid.Parse(strList));
         }
 
+        /// <summary>
+        /// 使用呼叫端在目前操作借用的 Dynamics 365 proxy 取得動態名單成員。
+        /// </summary>
+        /// <param name="service">
+        /// 本次 operation-local proxy；其 session、認證與 Dispose 所有權屬於呼叫端，不能回寫至
+        /// façade 或任何 shared ToolUtility，避免不同 profile／使用者看見前一個操作的狀態。
+        /// </param>
+        /// <param name="strList">已由上游授權的名單 ID。</param>
+        /// <returns>只由傳入 proxy 查得的成員集合。</returns>
         public EntityCollection RetrieveDynamicMemberListDynamics365(IOrganizationService service, Guid strList)
         {
-            IOrganizationService proxy = _organizationService;
+            IOrganizationService proxy = service;
             return RetrieveDynamicMemberListDynamics365(ref proxy, strList);
         }
 
+        /// <summary>
+        /// 使用呼叫端在目前操作借用的 CRM 2011 service 取得動態名單成員。
+        /// </summary>
+        /// <param name="service">
+        /// 本次 operation-local service；本方法僅同步轉傳，不取得、快取、修改或釋放該 service。
+        /// timeout、取消或 transport 不確定時，lease owner 必須淘汰它而不是交給後續操作重用。
+        /// </param>
+        /// <param name="strList">已由上游授權的動態名單識別字串。</param>
+        /// <returns>只由傳入 service 查得的成員集合。</returns>
         public EntityCollection RetrieveDynamicMemberListCrm2011(IOrganizationService service, string strList)
         {
-            IOrganizationService svc = _organizationService;
+            IOrganizationService svc = service;
             return RetrieveDynamicMemberList(ref svc, Guid.Parse(strList));
         }
 

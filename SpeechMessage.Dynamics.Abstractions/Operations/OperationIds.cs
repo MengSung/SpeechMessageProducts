@@ -99,4 +99,45 @@ public static class OperationIds
     /// primary-list lookup 與選擇性 owner assignment。它不是可任意拼裝 CRM transaction 的 generic workflow。
     /// </summary>
     public const string NewPersonContactTransferBetweenLists = "newperson.contact.transfer.between.lists";
+
+    // -------- P7.2 continuation：Slice D–H local-only capability 索引 --------
+
+    /// <summary>對應 Slice D／ORG-CALL-00036：付款完成後的固定 fee lifecycle 投影。</summary>
+    public const string PaymentsFeeUpdateAfterPayment = "payments.fee.update.after.payment";
+
+    /// <summary>對應 Slice D／ORG-CALL-00037： recurring dedication 的固定完成流程。</summary>
+    public const string PaymentsDedicationCompleteRecurring = "payments.dedication.complete.recurring";
+
+    /// <summary>對應 Slice D／ORG-CALL-00038：奉獻聯絡人的固定建立或補欄流程。</summary>
+    public const string PaymentsContactCreateOrUpdate = "payments.contact.create.or.update";
+
+    /// <summary>對應 Slice D／ORG-CALL-00042：奉獻 booking 的固定取消流程。</summary>
+    public const string PaymentsDedicationCancelBooking = "payments.dedication.cancel.booking";
+
+    /// <summary>對應 Slice D／ORG-CALL-00043：附奉獻編號的聯絡人建立候選流程。</summary>
+    public const string PaymentsContactCreateWithDedicationNumber = "payments.contact.create.with.dedication.number";
+
+    /// <summary>對應 Slice D／ORG-CALL-00049：聯絡人卡片欄位的固定遮罩更新流程。</summary>
+    public const string PaymentsContactUpdateCardProfile = "payments.contact.update.card.profile";
+
+    /// <summary>對應 Slice E／ORG-CALL-00039：約談記錄固定建立或更新流程。</summary>
+    public const string AppointmentsEntityCreateOrUpdate = "appointments.entity.create.or.update";
+
+    /// <summary>對應 Slice F／ORG-CALL-00044：新人聯絡人多記錄 onboarding 流程。</summary>
+    public const string NewPersonContactCreateFullOnboarding = "newperson.contact.create.full.onboarding";
+
+    /// <summary>對應 Slice G／ORG-CALL-00048：依 stor-lesson 更新 fee 的固定流程。</summary>
+    public const string FeesEditorUpdateByStorLesson = "fees.editor.update.by.storlesson";
+
+    /// <summary>對應 Slice G／ORG-CALL-00050：費用編輯器的 operation-local 暫存變更流程。</summary>
+    public const string FeesEditorStageInmemoryChange = "fees.editor.stage.inmemory.change";
+
+    /// <summary>對應 Slice G／ORG-CALL-00067：從 stor-lesson 建立 fee 的固定流程。</summary>
+    public const string FeesCreateFromStorLesson = "fees.create.from.storlesson";
+
+    /// <summary>對應 Slice H／ORG-CALL-00068：下載時建立出席紀錄的固定流程。</summary>
+    public const string PresentRecordCreateOnDownload = "presentrecord.create.on.download";
+
+    /// <summary>對應 Slice H／ORG-CALL-00069：上傳時以 attendance key upsert 出席紀錄的固定流程。</summary>
+    public const string PresentRecordUpsertOnUpload = "presentrecord.upsert.on.upload";
 }

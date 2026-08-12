@@ -210,6 +210,9 @@ function Invoke-RunnerWithSyntheticFailingChild {
         [string] $TemporaryRoot,
         # 僅供這個 parent/child 邊界測試建立完全嚴格的 no-go evidence；不會觸及 Credential Manager 或 CE。
         [switch] $WriteNoGoEvidence,
+        # 模擬 child 已完整發布 no-go evidence 並以 0 結束；這和真正 process failure 不同，
+        # 用來保護 parent 將「操作 no-go」與「child lifecycle failure」分開處理的契約。
+        [switch] $SuccessfulNoGoExit,
         # 只接受 production strict parser 已允許的 bounded reason，避免測試資料越過 child wire contract。
         [ValidateSet('runtime-failure', 'cleanup-failure', 'fixture-precondition-failed', 'live-evidence-incomplete')]
         [string] $NoGoReason = 'runtime-failure'
@@ -282,6 +285,9 @@ function Invoke-RunnerWithSyntheticFailingChild {
             $operation.cleanupState = 'not-started'
         }
     }
+    if ($SuccessfulNoGoExit -and -not $WriteNoGoEvidence) {
+        throw 'SuccessfulNoGoExit requires WriteNoGoEvidence.'
+    }
     $evidenceBytes = [Text.UTF8Encoding]::new($false).GetBytes(($syntheticEvidence | ConvertTo-Json -Compress -Depth 8))
     try {
         $evidencePayload = [Convert]::ToBase64String($evidenceBytes)
@@ -305,7 +311,7 @@ function Invoke-RunnerWithSyntheticFailingChild {
         'finally {',
         '    if ($null -ne $payload) { [Array]::Clear($payload, 0, $payload.Length) }',
         '}',
-        'exit 17'
+        ('exit ' + $(if ($SuccessfulNoGoExit) { '0' } else { '17' }))
     ) -join "`r`n"
     Write-StrictTextFile $fakeChildPath $fakeChild
     Write-StrictTextFile $fakeDotnetPath (@(
@@ -457,8 +463,10 @@ function New-TestRepository {
     param([string] $Root)
 
     $realRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-    $matrixSource = Join-Path $realRoot '.trellis\tasks\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
-    $matrixTarget = Join-Path $Root '.trellis\tasks\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
+    # P7.2 的 matrix 在歸檔後仍是 runner 的唯讀契約輸入；測試複本只能複製 bytes，
+    # 不得建立或改寫 archival task，避免 synthetic runner 誤成 historical cycle 的控制面。
+    $matrixSource = Join-Path $realRoot '.trellis\tasks\archive\2026-08\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
+    $matrixTarget = Join-Path $Root '.trellis\tasks\archive\2026-08\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
     Write-StrictTextFile $matrixTarget ([IO.File]::ReadAllText($matrixSource, [Text.UTF8Encoding]::new($false, $true)))
     Write-StrictTextFile (Join-Path $Root 'ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj') '<Project Sdk="Microsoft.NET.Sdk"></Project>'
     Write-StrictTextFile (Join-Path $Root 'SpeechMessageProducts.ChurchReport\appsettings.json') @'
@@ -1228,6 +1236,27 @@ try {
         $syntheticIncompleteChildResult.Evidence.reason -eq 'child-process-failed' -and
         $syntheticIncompleteChildResult.Evidence.diagnosticCategory -eq 'live-evidence-incomplete'
     ) 'Every strict allowlisted Slice C no-go reason must remain a bounded diagnostic category after a non-zero child exit.'
+
+    # 這是本任務修正的 child/parent 正常 no-go 契約：child 已完成自己的 runtime/store/logger cleanup
+    # 並寫出嚴格 no-go evidence 時，必須以 0 表示 process 完整；parent 再以 no-go handoff 的 2
+    # 表示 CE operation 不可發佈。這避免 child 把合法 live-evidence-incomplete 偽裝成 crash，
+    # 同時仍保留 non-retryable、五筆 bounded operation 與零 feature-flag 變更。
+    $syntheticPublishedNoGoResult = Invoke-RunnerWithSyntheticFailingChild `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $sourceFixturePath `
+        $sliceCFixturePath `
+        $fixtureRoot `
+        -WriteNoGoEvidence `
+        -NoGoReason 'live-evidence-incomplete' `
+        -SuccessfulNoGoExit
+    Assert-True ($syntheticPublishedNoGoResult.ExitCode -eq 2) 'A published CE no-go must remain a non-zero parent handoff.'
+    Assert-True (
+        $syntheticPublishedNoGoResult.Evidence.outcome -eq 'no-go' -and
+        $syntheticPublishedNoGoResult.Evidence.reason -eq 'live-evidence-incomplete' -and
+        @($syntheticPublishedNoGoResult.Evidence.PSObject.Properties | Where-Object { $_.Name -ceq 'diagnosticCategory' }).Count -eq 0
+    ) 'A zero-exit child with valid no-go evidence must preserve the direct bounded reason, not become child-process-failed.'
 
     $notRunOperations = @()
     foreach ($operationId in $global:expectedOperationIds) {

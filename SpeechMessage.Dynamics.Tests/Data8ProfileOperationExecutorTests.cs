@@ -779,6 +779,46 @@ public sealed class Data8ProfileOperationExecutorTests
     }
 
     /// <summary>建立直接 executor 用的 Slice C add-many request；它只含 bounded test GUID 與非秘密 idempotency key。</summary>
+    /// <summary>
+    /// 保護 D–H 尚未取得 CE evidence 時維持 fail closed：即使 local-only catalog 已列出
+    /// operation ID，Data8 executor 仍不得取得 admission、lease 或 client。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_slice_d_to_h_local_only_operations_before_admission()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ =>
+            throw new InvalidOperationException("D-H local-only operations must not create a connector client."));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(),
+            admission,
+            factory,
+            minSize: 0,
+            maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(
+            CreateResolver(),
+            new Data8ConnectorRouter(pool));
+
+        var operationIds = P72ContinuationLocalOnlyCatalog.All
+            .Select(definition => definition.OperationId)
+            .ToArray();
+        var results = new List<OperationExecutionResult>(operationIds.Length);
+
+        foreach (var operationId in operationIds)
+        {
+            results.Add(await executor.ExecuteAsync(
+                CreatePackage01Request(operationId, new Dictionary<string, object?>(StringComparer.Ordinal)),
+                CancellationToken.None));
+        }
+
+        results.Should().OnlyContain(result =>
+            !result.Succeeded && result.ErrorCode == "operation.not-supported");
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+        factory.DisposedCount.Should().Be(0);
+    }
+
     private static OperationExecutionRequest CreateListMembersAddRequest(
         Guid listId,
         IReadOnlyList<Guid> memberIds,

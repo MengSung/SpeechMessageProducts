@@ -231,8 +231,10 @@ function New-TestRepository {
     param([string] $Root)
 
     $realRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-    $matrixSource = Join-Path $realRoot '.trellis\tasks\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
-    $matrixTarget = Join-Path $Root '.trellis\tasks\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
+    # 原 P7.2 task 已歸檔；fresh-fixture 的 synthetic repository 只能複製這份 immutable
+    # matrix bytes，不能重建或改寫 historical task control plane，避免測試誤導為舊 cycle 重試。
+    $matrixSource = Join-Path $realRoot '.trellis\tasks\archive\2026-08\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
+    $matrixTarget = Join-Path $Root '.trellis\tasks\archive\2026-08\08-07-churchreport-write-action-function-migrations\p7.2-fixture-activation-matrix.json'
     Write-StrictTextFile $matrixTarget ([IO.File]::ReadAllText($matrixSource, [Text.UTF8Encoding]::new($false, $true)))
     Write-StrictTextFile (Join-Path $Root 'ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj') '<Project Sdk="Microsoft.NET.Sdk"></Project>'
     Write-StrictTextFile (Join-Path $Root 'SpeechMessageProducts.ChurchReport\appsettings.json') @'

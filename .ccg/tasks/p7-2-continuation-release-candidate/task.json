@@ -1,0 +1,22 @@
+{
+    "id":  "p7-2-continuation-release-candidate",
+    "title":  "P7.2 continuation release candidate",
+    "status":  "in_progress",
+    "complexity":  "L+",
+    "risk":  "high",
+    "domain":  "backend",
+    "currentPhase":  "review",
+    "nextAction":  "本機 Release candidate 已驗證；下一步只允許設計 DownloadIntegrateData request-local propagation，並在其 lifecycle/A-B isolation evidence 完成前維持 P7.4/P7.5 fail-closed",
+    "createdAt":  "2026-08-12T00:00:00+08:00",
+    "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "predecessors":  [
+                         ".ccg/tasks/archive/2026-08/p7-2-churchreport-write-action-function-migrations",
+                         ".ccg/tasks/harden-churchreport-error-recovery"
+                     ],
+    "constraints":  [
+                        "Never retry the archived P7.2 historical or final CE cycle",
+                        "A new CE cycle requires a new nonce, ledger, task-owned fresh fixture, preflight, read-back, reconcile, and exact cleanup",
+                        "Slice D-H remain local-only until independent CE evidence and rollout gates exist",
+                        "Do not change feature flags, product traffic, CE 8.2, Official Worker, shared data, or production data"
+                    ]
+}

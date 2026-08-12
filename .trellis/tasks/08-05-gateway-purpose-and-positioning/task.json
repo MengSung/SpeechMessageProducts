@@ -22,7 +22,8 @@
   "children": [
     "08-05-gateway-capability-inventory",
     "08-07-p7-1-package01-data8-read",
-    "08-07-churchreport-write-action-function-migrations"
+    "08-07-churchreport-write-action-function-migrations",
+    "08-12-p7-2-continuation-release-candidate"
   ],
   "parent": null,
   "relatedFiles": [],

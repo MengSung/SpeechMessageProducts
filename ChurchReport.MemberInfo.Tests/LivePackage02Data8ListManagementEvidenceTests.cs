@@ -253,9 +253,10 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
         };
         WriteSliceCEvidenceFile(JsonSerializer.Serialize(evidence, EvidenceJsonOptions));
 
-        outcome.Should().Be(
-            "go",
-            because: "all five bounded dispatches, their read-backs, baseline restores, and deterministic resource cleanup must succeed");
+        // child 的 exit code 表示 process／資源完整性，而 evidence.outcome 才表示受控 CE 操作結果。
+        // 已完整寫入並完成 cleanup 的 no-go 必須正常結束，讓 parent strict parser 能保留固定分類；
+        // 只有 parent 才決定最後的 non-zero handoff 與禁止重試，不能把預期 no-go 偽裝成 child crash。
+        outcome.Should().BeOneOf("go", "no-go");
     }
 
     /// <summary>
