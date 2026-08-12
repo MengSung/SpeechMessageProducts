@@ -11,7 +11,7 @@
 
 | Slice | 本機狀態 | CE 實證 | Runtime / rollout 狀態 | cleanup 狀態 |
 | --- | --- | --- | --- | --- |
-| C | 已修正 operation-scoped `IOrganizationService` 不再寫入共享 ToolUtility；三個 dynamic-list façade overload 亦已驗證只使用呼叫端 service；child no-go 分類與 stack preservation 已有回歸測試。 | 尚未取得新的獨立 cycle evidence。 | `DownloadIntegrateData` 仍直接持有 Factory ToolUtility，P7.4/P7.5 保持 fail closed。 | 舊 cycle 已完成紀錄中的 cleanup；新 cycle 尚未開始。 |
+| C | 已修正 operation-scoped `IOrganizationService` 不再寫入共享 ToolUtility；group-leader 唯讀路徑使用 explicit service 與 operation-local report，A/B、fault、Dispose、lazy connector 及 session-state overload fail-closed 均有回歸測試。 | 新 fresh cycle 的 read-only preflight=go、provision=go；single ExecuteFixture=no-go（`write-not-committed`），故沒有完整可發布 CE evidence。 | `ListManager` 過渡 overload 與所有未遷移 legacy flow 固定 fail closed；P7.4/P7.5 保持禁止。 | 本 cycle strict ledger 的 exact cleanup=go（`fresh-fixture-cleaned`）；沒有 pending fixture。 |
 | D | 6 個 donation lifecycle ID 與 local-only contract 已建立。 | 未執行。 | `CeExecutorEnabled=false`、`ConsumerEnabled=false`。 | 僅定義 reverse-known-keys contract，未建立 CE fixture。 |
 | E | appointment contract 與 operation ID 已建立。 | 未執行。 | `CeExecutorEnabled=false`、`ConsumerEnabled=false`。 | 僅定義 reverse-known-keys contract，未建立 CE fixture。 |
 | F | contact onboarding contract 與 operation ID 已建立。 | 未執行。 | `CeExecutorEnabled=false`、`ConsumerEnabled=false`。 | 僅定義 reverse-known-keys contract，未建立 CE fixture。 |
@@ -26,7 +26,7 @@
 4. Data8 executor 對全部 13 個 D–H ID 在 resolver / admission / connector pool 之前回傳 `operation.not-supported`；回歸測試證明 admission acquire/release 與 connector client create/dispose 都是零。
 5. Slice C 修正將借用的 CRM service 限制於當前操作呼叫鏈；靜態／動態名單 façade overload 均把傳入 service 原樣轉送。service 所有權、lease release、timeout eviction 與 Dispose 仍由外層 owner 管理，不能回寫 Factory 共用 ToolUtility。
 6. local-only catalog 拒絕 `token`、`organization` 與 `profile` authority fragments；其輸入仍不能成為 connector／credential／profile 選路來源。
-7. `ListManager.SetupIntegrateData` → `DownloadIntegrateData` 仍有 Factory ToolUtility service、converter 與 partial-flow 依賴；尚未完成 request-local propagation、fault eviction 與 interleaved A/B lifecycle 證據前，它是 P7.4/P7.5 的明確切流 blocker。
+7. `ListManager.SetupIntegrateData(string, IOrganizationService)` 由於會讀取 session instance state，已在 CRM I/O 前固定拒絕；產品尚未接入具有完整 immutable context 的新入口。未遷移 legacy flow 仍直接依賴 Factory ToolUtility，因此是 P7.4/P7.5 的明確切流 blocker。
 
 ## 建置與測試方式
 
@@ -48,4 +48,4 @@ bootstrap → read-only preflight → provision → single ExecuteFixture
 → exact read-back / reconcile → exact cleanup
 ```
 
-任何 no-go、timeout、ambiguous、read-back mismatch 或 cleanup uncertainty 都立即停止該 CE mutation family；不重試、不切流、不移除 ToolUtility。
+任何 no-go、timeout、ambiguous、read-back mismatch 或 cleanup uncertainty 都立即停止該 CE mutation family；不重試、不切流、不移除 ToolUtility。本輪的唯一 ExecuteFixture 已發生 `write-not-committed` no-go，且 strict fresh-fixture cleanup 已完成；因此 CE 軌道目前 closed。

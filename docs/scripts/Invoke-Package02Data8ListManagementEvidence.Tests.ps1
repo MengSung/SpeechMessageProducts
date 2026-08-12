@@ -130,6 +130,9 @@ function Invoke-RunnerJson {
     return [pscustomobject]@{
         ExitCode = $exitCode
         JsonLine = [string]$jsonLines[0]
+        # parent runner 的唯一公開輸出必須恰為 sanitized JSON。保留其餘 capture 僅供此離線契約
+        # 驗證 child stdout/stderr 未被轉送；不保存真實 credential、CRM 或使用者資料。
+        ParentOutput = ([string]::Join("`n", [string[]]$lines))
         Evidence = ($jsonLines[0] | ConvertFrom-Json)
     }
 }
@@ -213,6 +216,13 @@ function Invoke-RunnerWithSyntheticFailingChild {
         # 模擬 child 已完整發布 no-go evidence 並以 0 結束；這和真正 process failure 不同，
         # 用來保護 parent 將「操作 no-go」與「child lifecycle failure」分開處理的契約。
         [switch] $SuccessfulNoGoExit,
+        # 故障注入 child 嘗試將 raw exception、local path 與 CRM identifier 夾帶進 evidence 的情境。
+        # 此 switch 只可和零結束的 synthetic child 搭配，讓 strict parent parser 必須自行拒絕不可信
+        # payload；測試不會建立真實 CRM identifier、讀取 credential 或輸出任何 child stream。
+        [switch] $InjectForbiddenRawData,
+        # 故障注入 child 將相同類型的原始診斷寫至 stdout/stderr。parent 必須 drain 兩個 stream
+        # 以回收 process resource，卻不可把任何內容轉送到 operator JSON、TRX 或下一個 child。
+        [switch] $EmitForbiddenRawDiagnosticStreams,
         # 只接受 production strict parser 已允許的 bounded reason，避免測試資料越過 child wire contract。
         [ValidateSet('runtime-failure', 'cleanup-failure', 'fixture-precondition-failed', 'live-evidence-incomplete')]
         [string] $NoGoReason = 'runtime-failure'
@@ -288,6 +298,17 @@ function Invoke-RunnerWithSyntheticFailingChild {
     if ($SuccessfulNoGoExit -and -not $WriteNoGoEvidence) {
         throw 'SuccessfulNoGoExit requires WriteNoGoEvidence.'
     }
+    if ($InjectForbiddenRawData -and -not $SuccessfulNoGoExit) {
+        throw 'InjectForbiddenRawData requires SuccessfulNoGoExit.'
+    }
+    if ($InjectForbiddenRawData) {
+        # 這三個 sentinel 僅是離線測試文字，分別代表不可跨程序邊界的 upstream exception、
+        # 本機路徑與 CRM identifier。嚴格 schema 必須在 parent 輸出前拒絕額外欄位，且 child stdout
+        # 仍保持空白，避免 assertion 本身反而把不可信 payload 複製到測試記錄。
+        $syntheticEvidence.rawCrmException = 'raw-crm-exception-sentinel'
+        $syntheticEvidence.rawLocalPath = 'C:\raw-crm-path-sentinel'
+        $syntheticEvidence.rawCrmIdentifier = '11111111-1111-1111-1111-111111111111'
+    }
     $evidenceBytes = [Text.UTF8Encoding]::new($false).GetBytes(($syntheticEvidence | ConvertTo-Json -Compress -Depth 8))
     try {
         $evidencePayload = [Convert]::ToBase64String($evidenceBytes)
@@ -311,6 +332,11 @@ function Invoke-RunnerWithSyntheticFailingChild {
         'finally {',
         '    if ($null -ne $payload) { [Array]::Clear($payload, 0, $payload.Length) }',
         '}',
+        $(if ($EmitForbiddenRawDiagnosticStreams) {
+            '[Console]::Out.WriteLine(''raw-crm-exception-stream-sentinel'')'
+            '[Console]::Error.WriteLine(''C:\raw-crm-stream-path-sentinel'')'
+            '[Console]::Error.WriteLine(''22222222-2222-2222-2222-222222222222'')'
+        }),
         ('exit ' + $(if ($SuccessfulNoGoExit) { '0' } else { '17' }))
     ) -join "`r`n"
     Write-StrictTextFile $fakeChildPath $fakeChild
@@ -1257,6 +1283,60 @@ try {
         $syntheticPublishedNoGoResult.Evidence.reason -eq 'live-evidence-incomplete' -and
         @($syntheticPublishedNoGoResult.Evidence.PSObject.Properties | Where-Object { $_.Name -ceq 'diagnosticCategory' }).Count -eq 0
     ) 'A zero-exit child with valid no-go evidence must preserve the direct bounded reason, not become child-process-failed.'
+
+    # child 即使正常結束也不能把 raw exception、path 或 CRM identifier 夾帶進 parent handoff。
+    # 故障注入使用額外 top-level property，讓 complete strict parser 在任何輸出前拒絕整個 evidence；
+    # 決定性 assertion 同時確認 parent 只保留固定 unavailable 分類，JSON 中沒有 raw sentinel，且
+    # 不新增 diagnosticCategory（它僅適用於真正 non-zero child failure 的 allowlisted 投影）。
+    $syntheticForbiddenDataResult = Invoke-RunnerWithSyntheticFailingChild `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $sourceFixturePath `
+        $sliceCFixturePath `
+        $fixtureRoot `
+        -WriteNoGoEvidence `
+        -NoGoReason 'live-evidence-incomplete' `
+        -SuccessfulNoGoExit `
+        -InjectForbiddenRawData
+    Assert-True (
+        $syntheticForbiddenDataResult.ExitCode -eq 2 -and
+        $syntheticForbiddenDataResult.Evidence.outcome -eq 'no-go' -and
+        $syntheticForbiddenDataResult.Evidence.reason -eq 'evidence-result-unavailable' -and
+        @($syntheticForbiddenDataResult.Evidence.PSObject.Properties | Where-Object { $_.Name -ceq 'diagnosticCategory' }).Count -eq 0
+    ) 'A zero-exit child evidence payload with forbidden raw fields must be rejected before parent handoff.'
+    foreach ($forbiddenSentinel in @(
+            'raw-crm-exception-sentinel',
+            'C:\raw-crm-path-sentinel',
+            '11111111-1111-1111-1111-111111111111')) {
+        Assert-True ($syntheticForbiddenDataResult.JsonLine.IndexOf($forbiddenSentinel, [StringComparison]::Ordinal) -lt 0) 'Parent JSON must not expose the child raw diagnostic sentinel.'
+    }
+
+    # child stdout/stderr 必須被 parent 完整 drain，避免 pipe 或 process handle 留存；但 drain 的資料
+    # 不能重送到 parent console。故障注入的 child 若因 stream 行為而成為非零退出，parent 仍必須
+    # fail closed 為 child-process-failed，且所有 stream sentinel 均不得出現在唯一 JSON output。
+    $syntheticForbiddenStreamResult = Invoke-RunnerWithSyntheticFailingChild `
+        $missingCredentialRunner `
+        $testRepository `
+        $profilePath `
+        $sourceFixturePath `
+        $sliceCFixturePath `
+        $fixtureRoot `
+        -WriteNoGoEvidence `
+        -NoGoReason 'live-evidence-incomplete' `
+        -SuccessfulNoGoExit `
+        -EmitForbiddenRawDiagnosticStreams
+    Assert-True (
+        $syntheticForbiddenStreamResult.ExitCode -eq 2 -and
+        $syntheticForbiddenStreamResult.Evidence.reason -eq 'child-process-failed' -and
+        $syntheticForbiddenStreamResult.Evidence.diagnosticCategory -eq 'live-evidence-incomplete'
+    ) 'A child that emits raw diagnostic streams must retain only the bounded no-go category after fail-closed process classification.'
+    foreach ($forbiddenStreamSentinel in @(
+            'raw-crm-exception-stream-sentinel',
+            'C:\raw-crm-stream-path-sentinel',
+            '22222222-2222-2222-2222-222222222222')) {
+        Assert-True ($syntheticForbiddenStreamResult.ParentOutput.IndexOf($forbiddenStreamSentinel, [StringComparison]::Ordinal) -lt 0) 'Parent output must not relay raw child stdout or stderr diagnostics.'
+    }
 
     $notRunOperations = @()
     foreach ($operationId in $global:expectedOperationIds) {

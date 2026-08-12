@@ -60,3 +60,38 @@
   無輸出。依 45 秒規則不重試，審查狀態明確降級為本機驗證＋部分 Gemini 輸出，不可稱完整雙模型審查。
 - 規格已補入 `dynamics-gateway-hosting-version-routing.md` 的 deterministic negative deployment
   validation scenario，禁止為測試競態修改 `Program`、接受 `ObjectDisposedException`、關閉全域平行化或重試。
+
+## DownloadIntegrateData operation-local service gate：2026-08-12
+
+- 唯讀 ownership trace 證明 Session-keyed `ListManager`（最長 30 分鐘）會持有
+  `DownloadIntegrateData`，後者又取得 Factory process-static `ToolUtilityClass`；多個 partial
+  CRM read/write 路徑直接使用其 service 欄位。此為 P7.4／P7.5 的實際切流 blocker。
+- 新增 service-aware `ListManager.SetupIntegrateData(string, IOrganizationService)` 與
+  `DownloadIntegrateData.SetupIntegrateData(..., IOrganizationService, ref ...)`。因完整 private
+  propagation 尚未完成，入口目前在任何 CRM I/O 前 fail closed；不得偷偷 fallback 至 Factory service。
+- 新增 `DownloadIntegrateDataIsolationTests`：A/B marker、例外後 B、instance field retention 與
+  caller-owned Dispose sentinel，1 passed。`DownloadListManagerIsolationTests` 與新測試合計 8 passed。
+- ChurchReport Release build：0 warnings、0 errors。D–H local-only catalog 與 executor regression：29 passed。
+- 尚未執行 CE、fixture、週報、feature flag、流量、CE 8.2 或 Official Worker；因此不宣稱任何新 Slice C
+  CE evidence，也不解除 P7.4／P7.5 fail-closed。
+
+## 最終 Slice C cycle 與候選版檢查：2026-08-12
+
+- root cause：service-aware header 的 login fake 缺少既有密碼欄位，使登入驗證合法地早退，圖表
+  precondition 因未寫入 list/date 而 fail。已先以 red test 重現，再補足 fake 的既有契約；沒有放寬
+  production precondition。
+- 額外 red test 找出 service-aware header 仍讀取 `m_LoginType` instance state。已改為明確方法參數，
+  使 operation-local output 不讀取 session-cache 的舊登入型態。`ListManager` 的過渡 overload 沒有
+  產品呼叫端卻會讀取 session state，因此改為 CRM I/O 前固定 fail closed；雙模型 architect review
+  `20260812-124420-p7-2-listmanager-operation-input-analysis-architect` 兩後端均完成，支持此界線。
+- 本機驗證：ChurchReport operation-local isolation 16 passed；D–H catalog／Data8 admission guard 9 passed；
+  `Invoke-Package02Data8ListManagementEvidence.Tests.ps1` 277 checks passed；Dynamics full suite 553 passed、7
+  明示 live SQL skip；ChurchReport Release build 0 warnings、0 errors。
+- 新 fresh Slice C cycle：read-only preflight=go（owner 為 active systemuser、different-from-data8、
+  weeklyReport=zero-active），provision=go，唯一 ExecuteFixture=no-go。前兩個 operation 已
+  read-back／restored；第三個 `listmanagement.smallgroup.update.fields` 為 `write-not-committed`／baseline，
+  後兩項未執行。依 no-retry 規則已停止 CE 寫入家族。
+- strict fresh cleanup=go（`fresh-fixture-cleaned`）；沒有 pending fixture／ledger，且沒有週報、feature
+  flag、產品流量、CE 8.2 或 Official Worker 變更。CE evidence 仍不足以解除 P7.4/P7.5 fail-closed。
+- byte-level gate：所有本輪 C#／PowerShell 檔均確認 UTF-8 無 BOM、CRLF-only、final CRLF；`git diff --check`
+  通過。完整雙模型 code review 尚待最後一次 45 秒 bounded runner；不得將前述 architect analysis 當作 review。

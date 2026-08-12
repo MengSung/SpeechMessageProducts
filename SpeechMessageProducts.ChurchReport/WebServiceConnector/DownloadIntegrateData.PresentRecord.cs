@@ -14,6 +14,7 @@
 using System;
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -23,6 +24,58 @@ namespace ChurchReport.WebServiceConnector
     public partial class DownloadIntegrateData
     {
         #region 出席紀錄查詢
+
+        /// <summary>
+        /// 使用僅屬於目前操作的 CRM service，取得指定週報的出席紀錄。
+        ///
+        /// <para>
+        /// <paramref name="organizationService"/> 由最外層 request/lease owner 借出，本方法只
+        /// 在同步 method parameter 範圍使用它，絕不寫入 instance、static、AsyncLocal、cache、
+        /// Factory 或 ToolUtility，也絕不 Dispose。如此即使 DownloadIntegrateData 被 legacy
+        /// session 快取重用，另一位使用者、profile 或 connector generation 也無從讀取本次
+        /// service 的可變連線、認證或查詢結果。
+        /// </para>
+        ///
+        /// <para>
+        /// 查詢只接受已由上層流程決定的單一週報 ID，且條件直接送往傳入 service；不會呼叫
+        /// ToolUtility 的 relationship helper 或以共用 service fallback。空 ID 視為無法證明
+        /// 授權範圍，必須 fail closed 而非擴大為全表掃描。
+        /// </para>
+        /// </summary>
+        /// <param name="organizationService">呼叫端借用且仍由呼叫端負責釋放的 CRM service。</param>
+        /// <param name="weeklyReportId">已授權週報的唯一識別，不能是空值。</param>
+        /// <returns>只符合該週報 lookup 的出席紀錄集合。</returns>
+        /// <exception cref="ArgumentNullException">當未提供 operation-local service 時擲回。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">當週報 ID 為空且無法建立最小查詢範圍時擲回。</exception>
+        private EntityCollection GetPresentRecordByLoginType(
+            IOrganizationService organizationService,
+            Guid weeklyReportId)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            if (weeklyReportId == Guid.Empty)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(weeklyReportId),
+                    "出席紀錄查詢必須綁定已授權的週報識別，不能以空識別掃描 CRM。");
+            }
+
+            // 此 QueryExpression 沒有 fetch XML、沒有 caller 控制的 entity/欄位名稱，並且只保留
+            // legacy flow 顯示與後續轉換所需的欄位。服務借用生命週期不跨出這次呼叫。
+            var query = new QueryExpression("new_present_record")
+            {
+                ColumnSet = new ColumnSet(true),
+                Criteria = new FilterExpression(LogicalOperator.And)
+            };
+            query.Criteria.AddCondition(
+                "new_group_present_weekly_report_prese",
+                ConditionOperator.Equal,
+                weeklyReportId);
+
+            return organizationService.RetrieveMultiple(query);
+        }
+
+
 
         /// <summary>
         /// 根據登入類型取得出席紀錄

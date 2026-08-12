@@ -99,6 +99,222 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        /// <summary>
+        /// 以 operation-local CRM service 建立小組長的唯讀成員輸出。
+        ///
+        /// <para>
+        /// 此方法只服務已驗證的小組長下載路徑。service 從 public entry 以參數同步傳入，
+        /// 全程不寫入 DownloadIntegrateData、ToolUtility、Factory、static 或 cache，亦不 Dispose。
+        /// 因此 A/B 交錯操作只能使用各自 lease 的 service；任何 fault 直接往外傳遞，讓 lease
+        /// owner 淘汰不確定 transport，而不是回落到 legacy ToolUtility。
+        /// </para>
+        /// </summary>
+        /// <param name="listEntityId">已由上層驗證的名單識別。</param>
+        /// <param name="weeklyReportEntityId">本週週報識別；空值表示沒有週報。</param>
+        /// <param name="report">當次 request-local 報表輸出。</param>
+        /// <param name="organizationService">由外層 lease owner 持有的 CRM service。</param>
+        /// <exception cref="ArgumentNullException">當 report 或 service 為空時擲回。</exception>
+        /// <exception cref="FormatException">當名單或週報識別不是有效 GUID 時擲回。</exception>
+        private void SetupOperationLocalLeaderMembers(
+            string listEntityId,
+            string weeklyReportEntityId,
+            ref ListSmallGroupWeeklyReport report,
+            IOrganizationService organizationService)
+        {
+            ArgumentNullException.ThrowIfNull(report);
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            report.m_SmallGroupDataList = new SmallGroupDataList();
+            report.m_SmallGroupDataList.m_AllMemeberData = new SmallGroupData
+            {
+                Members = new List<Member>(64),
+                LoginType = report.LoginType
+            };
+
+            if (!string.IsNullOrEmpty(weeklyReportEntityId))
+            {
+                GetOperationLocalMembersFromPresentRecords(
+                    report.ListEntityName,
+                    Guid.Parse(weeklyReportEntityId),
+                    ref report,
+                    organizationService);
+            }
+            else
+            {
+                GetOperationLocalMembersFromList(
+                    report.ListEntityName,
+                    Guid.Parse(listEntityId),
+                    ref report,
+                    organizationService);
+            }
+
+            SetSmallGroupData(ref report);
+            SortAndCleanMemberStatus(ref report);
+        }
+
+        /// <summary>
+        /// 使用 operation-local service 讀取有週報時的出席紀錄與成員資料。
+        /// </summary>
+        private void GetOperationLocalMembersFromPresentRecords(
+            string groupName,
+            Guid weeklyReportId,
+            ref ListSmallGroupWeeklyReport report,
+            IOrganizationService organizationService)
+        {
+            var presentRecords = GetPresentRecordByLoginType(organizationService, weeklyReportId);
+            var contactIds = ExtractOperationLocalContactIds(presentRecords);
+            var contacts = BatchRetrieveContacts(contactIds, organizationService);
+
+            foreach (var presentRecord in presentRecords.Entities)
+            {
+                if (!TryGetActiveVisibleContactReference(presentRecord, out var contactReference) ||
+                    !contacts.TryGetValue(contactReference.Id, out var contact))
+                {
+                    continue;
+                }
+
+                report.m_SmallGroupDataList.m_AllMemeberData.Members.Add(
+                    CreateOperationLocalMember(groupName, presentRecord, contact));
+            }
+        }
+
+        /// <summary>
+        /// 使用 operation-local service 讀取沒有週報時的靜態或動態名單成員。
+        /// </summary>
+        private void GetOperationLocalMembersFromList(
+            string groupName,
+            Guid listEntityId,
+            ref ListSmallGroupWeeklyReport report,
+            IOrganizationService organizationService)
+        {
+            var list = RetrieveListTypeEntity(listEntityId, organizationService);
+            var isDynamicList = list.GetAttributeValue<bool?>("type") ?? false;
+            var members = GetMemberCollection(listEntityId, isDynamicList, organizationService);
+            var contactIds = ExtractContactIdsFromMembers(members, isDynamicList);
+            var contacts = BatchRetrieveContacts(contactIds, organizationService);
+            var counter = 0;
+
+            foreach (var member in members.Entities)
+            {
+                var contactId = GetContactIdFromMember(member, isDynamicList);
+                if (contactId == Guid.Empty || !contacts.TryGetValue(contactId, out var contact) || !IsActiveContact(contact))
+                {
+                    continue;
+                }
+
+                report.m_SmallGroupDataList.m_AllMemeberData.Members.Add(
+                    CreateOperationLocalMember(groupName, presentRecord: null, contact, counter++));
+            }
+        }
+
+        /// <summary>
+        /// 從固定格式的出席紀錄萃取啟用且可見的 contact reference。
+        /// </summary>
+        private static bool TryGetActiveVisibleContactReference(Entity presentRecord, out EntityReference contactReference)
+        {
+            contactReference = null!;
+            if (presentRecord.GetAttributeValue<OptionSetValue>("statecode")?.Value != 0 ||
+                presentRecord.GetAttributeValue<bool?>("new_not_display") == true)
+            {
+                return false;
+            }
+
+            contactReference = presentRecord.GetAttributeValue<EntityReference>("new_contact_new_present_record")!;
+            return contactReference is not null && contactReference.Id != Guid.Empty;
+        }
+
+        /// <summary>
+        /// 將 present-record 集合轉成去重的 contact 識別，避免 N+1 CRM 呼叫。
+        /// </summary>
+        private static List<Guid> ExtractOperationLocalContactIds(EntityCollection presentRecords)
+        {
+            var contactIds = new HashSet<Guid>();
+            foreach (var presentRecord in presentRecords.Entities)
+            {
+                if (TryGetActiveVisibleContactReference(presentRecord, out var contactReference))
+                {
+                    contactIds.Add(contactReference.Id);
+                }
+            }
+
+            return contactIds.ToList();
+        }
+
+        /// <summary>
+        /// 從 operation-local CRM entity 建立 request-local 成員顯示資料。
+        ///
+        /// <para>
+        /// 只讀取已投影至 entity 的欄位；此轉換絕不呼叫 ToolUtility 或 CRM，故不會引入 service
+        /// retention。未知 option label 以固定 fallback 呈現，避免為了畫面文字讀取 metadata service。
+        /// </para>
+        /// </summary>
+        private static Member CreateOperationLocalMember(
+            string groupName,
+            Entity? presentRecord,
+            Entity contact,
+            int counter = 0)
+        {
+            var identity = contact.GetAttributeValue<OptionSetValue>("customertypecode")?.Value ?? 0;
+            var birthday = contact.GetAttributeValue<DateTime?>("birthdate") ?? default;
+            var presentRecordId = presentRecord?.Id.ToString() ?? counter.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            return new Member
+            {
+                PresentRecordId = presentRecordId,
+                ContactId = contact.Id.ToString(),
+                Group = groupName,
+                FullName = contact.GetAttributeValue<string>("fullname") ?? string.Empty,
+                Phone = KeepDigitsOnly(contact.GetAttributeValue<string>("mobilephone") ?? string.Empty),
+                HomePhone = KeepDigitsOnly(contact.GetAttributeValue<string>("telephone2") ?? string.Empty),
+                Address = contact.GetAttributeValue<string>("address2_line1") ?? string.Empty,
+                BirthDate = birthday == default ? default : birthday.ToLocalTime(),
+                Industry = contact.GetAttributeValue<string>("new_industry") ?? string.Empty,
+                EquipmentStatus = contact.GetAttributeValue<string>("new_equipment_status") ?? string.Empty,
+                SpiritualIdentity = string.Empty,
+                BaptizedSituation = string.Empty,
+                BestLeader = contact.GetAttributeValue<EntityReference>("new_contact_contact_spiritleader")?.Name ?? string.Empty,
+                BestIntroducer = contact.GetAttributeValue<string>("new_best_introducer") ?? string.Empty,
+                BestRelationship = contact.GetAttributeValue<string>("new_best_relationship") ?? string.Empty,
+                Description = contact.GetAttributeValue<string>("description") ?? string.Empty,
+                Status = ConvertOperationLocalIdentity(identity),
+                SmallGroupName = groupName,
+                SectionName = groupName,
+                PrayItem = presentRecord?.GetAttributeValue<string>("new_explanation") ?? string.Empty,
+                Sunday = (presentRecord?.GetAttributeValue<int?>("new_sunday_present_this_week") ?? 0) > 0,
+                SmallGroup = (presentRecord?.GetAttributeValue<int?>("new_group_present_this_week") ?? 0) > 0,
+                PrayerMeeting = (presentRecord?.GetAttributeValue<int?>("new_prayer_meeting_number") ?? 0) > 0,
+                Child = (presentRecord?.GetAttributeValue<int?>("new_child_number") ?? 0) > 0,
+                BigDisciple = (presentRecord?.GetAttributeValue<int?>("new_big_disciple_number") ?? 0) > 0,
+                LeadershipSmallLecture = (presentRecord?.GetAttributeValue<int?>("new_leadership_small_lecture_number") ?? 0) > 0,
+                LeadersGather = (presentRecord?.GetAttributeValue<int?>("new_leaders_gather_number") ?? 0) > 0,
+                Decision = (presentRecord?.GetAttributeValue<int?>("new_happy_decision") ?? 0) > 0,
+                SpiritualWork = presentRecord?.GetAttributeValue<int?>("new_spiritual_work") ?? 0,
+                MorningPray = presentRecord?.GetAttributeValue<int?>("new_morning_pray") ?? 0,
+                GeneralCare = presentRecord?.GetAttributeValue<int?>("new_general_care") ?? 0,
+                FollowUpWeek = string.Empty,
+                FollowUpResult = string.Empty,
+                FollowUpOption = string.Empty,
+                FollowUp = presentRecord?.GetAttributeValue<string>("new_follow_up") ?? string.Empty,
+                FollowUpNextStep = string.Empty,
+                FollowUpNote = presentRecord?.GetAttributeValue<string>("new_explanation") ?? string.Empty,
+                NewComerNote = string.Empty
+            };
+        }
+
+        /// <summary>
+        /// 提供 operation-local 唯讀畫面使用的固定身分類型 fallback。
+        /// </summary>
+        private static string ConvertOperationLocalIdentity(int identity)
+        {
+            return identity switch
+            {
+                100000001 => "10. 未入組結案",
+                100000004 => "07. 未入組",
+                1 => "05. 小組員",
+                _ => "未選擇身分類型"
+            };
+        }
+
         #endregion
 
         #region 從出席紀錄取得成員 (優化版 - 批次查詢)
@@ -227,6 +443,61 @@ namespace ChurchReport.WebServiceConnector
                     System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] 批次查詢失敗: {ex.Message}");
                     // 降級處理：逐筆查詢
                     RetrieveContactsIndividually(batch, result);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 使用呼叫端借用的 CRM service 批次讀取成員聯絡人。
+        ///
+        /// <para>
+        /// 此 overload 尚未由 Core 入口啟用，只為後續 operation-local propagation 提供可驗證的
+        /// read-only 邊界。所有輸入 ID 先在方法內去重、分批並建立短生命期查詢；結果字典只屬於
+        /// 本次呼叫，不寫入 instance、static、cache、Factory、ToolUtility 或 ToolUtilityFacade。
+        /// service 是 caller-owned lease，方法不保存、不轉交、不 Dispose，timeout 或 transport
+        /// fault 的淘汰仍完全屬於外層 owner。
+        /// </para>
+        ///
+        /// <para>
+        /// 任一批失敗時直接擲回，不可退回 legacy ToolUtility 的逐筆查詢；那種 fallback 會失去
+        /// 目前 operation 的 service 邊界，可能讀取另一個使用者、profile 或 generation 的 client。
+        /// </para>
+        /// </summary>
+        /// <param name="contactIds">已由上游授權的聯絡人 ID；不會跨呼叫保留。</param>
+        /// <param name="organizationService">呼叫端借用且仍由其唯一 owner 回收的 CRM service。</param>
+        /// <returns>以 contact ID 為鍵、只含目前 operation 查詢結果的短生命期字典。</returns>
+        /// <exception cref="ArgumentNullException">當 ID 集合或 service 未提供時擲回。</exception>
+        private Dictionary<Guid, Entity> BatchRetrieveContacts(
+            List<Guid> contactIds,
+            IOrganizationService organizationService)
+        {
+            ArgumentNullException.ThrowIfNull(contactIds);
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            if (contactIds.Count == 0)
+            {
+                return new Dictionary<Guid, Entity>();
+            }
+
+            const int batchSize = 50;
+            var uniqueContactIds = new HashSet<Guid>(contactIds);
+            var result = new Dictionary<Guid, Entity>(uniqueContactIds.Count);
+
+            foreach (var batch in SplitIntoBatches(uniqueContactIds.ToList(), batchSize))
+            {
+                var query = new QueryExpression("contact")
+                {
+                    ColumnSet = CreateMemberContactColumnSet(),
+                    Criteria = new FilterExpression(LogicalOperator.And)
+                };
+                query.Criteria.AddCondition("contactid", ConditionOperator.In, ToObjectArray(batch));
+
+                var contacts = organizationService.RetrieveMultiple(query);
+                foreach (var contact in contacts.Entities)
+                {
+                    result[contact.Id] = contact;
                 }
             }
 
@@ -556,6 +827,57 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
+        /// 透過目前 operation 借用的 CRM service 取得靜態或動態名單成員。
+        ///
+        /// <para>
+        /// 此 private overload 直接使用 service，不使用 ToolUtilityFacade、ToolUtility 的共享欄位或
+        /// generic proxy cast。靜態名單以 listmember 精確查詢；動態名單先讀取指定 list 的 query，
+        /// 再用同一個 service 執行 FetchXML。兩個查詢物件與結果都只存活於呼叫堆疊，避免 Session
+        /// 快取的 DownloadIntegrateData 把 A 的 service 或資料留給 B。
+        /// </para>
+        ///
+        /// <para>
+        /// 動態名單缺少 query 或 query 非字串時 fail closed，不可轉用 legacy ToolUtility fallback。
+        /// service 的 fault、timeout、取消與釋放由 lease owner 處理；本 helper 不 Dispose 任何借用
+        /// 資源，亦不建立額外 client、cache 或背景工作。
+        /// </para>
+        /// </summary>
+        /// <param name="ListEntityId">上游已驗證授權的名單 ID。</param>
+        /// <param name="ListType"><see langword="false"/> 為靜態名單；<see langword="true"/> 為動態名單。</param>
+        /// <param name="organizationService">呼叫端借用、仍由其 owner 管理生命週期的 CRM service。</param>
+        /// <returns>只由當前 operation service 取得的成員集合。</returns>
+        /// <exception cref="ArgumentNullException">當 service 未提供時擲回。</exception>
+        /// <exception cref="InvalidOperationException">當動態名單未提供可執行且受限的 query 時擲回。</exception>
+        private static EntityCollection GetMemberCollection(
+            Guid ListEntityId,
+            bool ListType,
+            IOrganizationService organizationService)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            if (!ListType)
+            {
+                var staticListQuery = new QueryByAttribute("listmember")
+                {
+                    ColumnSet = new ColumnSet(true)
+                };
+                staticListQuery.Attributes.Add("listid");
+                staticListQuery.Values.Add(ListEntityId);
+                return organizationService.RetrieveMultiple(staticListQuery);
+            }
+
+            var listEntity = organizationService.Retrieve("list", ListEntityId, new ColumnSet("query"));
+            var dynamicQuery = listEntity.GetAttributeValue<string>("query");
+            if (string.IsNullOrWhiteSpace(dynamicQuery))
+            {
+                throw new InvalidOperationException(
+                    "operation-local 動態名單缺少 query；已拒絕回落至共用 ToolUtility。 ");
+            }
+
+            return organizationService.RetrieveMultiple(new FetchExpression(dynamicQuery));
+        }
+
+        /// <summary>
         /// 從成員實體取得聯絡人
         /// </summary>
         private Entity GetContactFromMember(Entity MemberEntity, bool ListType)
@@ -772,6 +1094,22 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
+        /// 以 operation-local CRM service 讀取單筆成員聯絡人。
+        /// 此 helper 只建立短生命期欄位集合並直接呼叫傳入 service；不能回落至 ToolUtility，不能保存
+        /// service 或實體，也不能 Dispose 借用資源。這使批次查詢遺漏時的後續 migration 有明確、
+        /// 可測且不跨 profile 的讀取邊界。
+        /// </summary>
+        /// <param name="contactId">上游已驗證且只屬於目前操作的聯絡人 ID。</param>
+        /// <param name="organizationService">呼叫端借用、仍由其 owner 回收的 CRM service。</param>
+        /// <returns>目前 service 查得的聯絡人實體。</returns>
+        /// <exception cref="ArgumentNullException">當 service 未提供時擲回。</exception>
+        private static Entity RetrieveMemberContact(Guid contactId, IOrganizationService organizationService)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+            return organizationService.Retrieve("contact", contactId, CreateMemberContactColumnSet());
+        }
+
+        /// <summary>
         /// 只抓 list.type，避免為了判斷靜態/動態名單而載入整個 List 實體。
         /// </summary>
         private Entity RetrieveListTypeEntity(Guid listEntityId)
@@ -782,6 +1120,22 @@ namespace ChurchReport.WebServiceConnector
                 return this.m_ToolUtilityClass.RetrieveEntity("list", listEntityId);
             }
 
+            return organizationService.Retrieve("list", listEntityId, new ColumnSet("type"));
+        }
+
+        /// <summary>
+        /// 以 operation-local CRM service 讀取名單類型欄位。
+        /// 回傳實體只屬於目前同步呼叫，service 不會被寫入任何可跨 request 存活的欄位、cache 或
+        /// ToolUtility。若 service 無法使用，由外層 lease owner 依其 fault eviction 契約處理，
+        /// 本 helper 不會嘗試 legacy fallback 或釋放借用資源。
+        /// </summary>
+        /// <param name="listEntityId">上游已驗證授權的名單 ID。</param>
+        /// <param name="organizationService">呼叫端借用且仍由其唯一 owner 管理的 CRM service。</param>
+        /// <returns>只含 <c>type</c> 的名單實體。</returns>
+        /// <exception cref="ArgumentNullException">當 service 未提供時擲回。</exception>
+        private static Entity RetrieveListTypeEntity(Guid listEntityId, IOrganizationService organizationService)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
             return organizationService.Retrieve("list", listEntityId, new ColumnSet("type"));
         }
 

@@ -15,6 +15,7 @@ using System;
 using ChurchReport.Models;
 using ChurchReport.Models.CrmTransmitModule;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -23,6 +24,91 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public partial class DownloadIntegrateData
     {
+        #region Operation-local CRM service helper
+
+        /// <summary>
+        /// 以呼叫端當次借用的 CRM service 讀取委身判斷所需的出席紀錄。
+        ///
+        /// <para>
+        /// 此 helper 的 service 生命週期嚴格限制在同步呼叫期間：它只以參數接收並直接傳給
+        /// <see cref="IOrganizationService.RetrieveMultiple(QueryBase)"/>，不會寫入 instance、
+        /// static、<c>AsyncLocal</c>、cache、Factory 或 ToolUtility，也不會 Dispose、Close 或
+        /// 釋放它。因此下一個使用者、profile 或 connector generation 無法重用本次可變連線。
+        /// </para>
+        ///
+        /// <para>
+        /// 查詢使用固定 entity、欄位、條件與排序，不接受 caller 提供的 FetchXML、endpoint、
+        /// profile 或任意欄位。未提供有效識別或 service 時在任何 CRM I/O 前 fail closed，避免
+        /// 回落到共用 ToolUtility service 或建立不受隔離保護的查詢。
+        /// </para>
+        /// </summary>
+        /// <param name="organizationService">呼叫端 lease owner 借用且仍由其釋放的 CRM service。</param>
+        /// <param name="listEntityId">已由上層授權的名單識別。</param>
+        /// <param name="contactId">已由上層授權的聯絡人識別。</param>
+        /// <returns>僅含委身門檻統計需要欄位的當次出席紀錄集合。</returns>
+        /// <exception cref="ArgumentNullException">當沒有 operation-local service 時擲回。</exception>
+        /// <exception cref="ArgumentException">當名單或聯絡人識別為空時擲回。</exception>
+        private static EntityCollection RetrieveIdentityPresentRecords(
+            IOrganizationService organizationService,
+            Guid listEntityId,
+            Guid contactId)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            if (listEntityId == Guid.Empty)
+            {
+                throw new ArgumentException("委身判斷需要有效的名單識別。", nameof(listEntityId));
+            }
+
+            if (contactId == Guid.Empty)
+            {
+                throw new ArgumentException("委身判斷需要有效的聯絡人識別。", nameof(contactId));
+            }
+
+            var query = new QueryExpression("new_present_record")
+            {
+                ColumnSet = new ColumnSet(
+                    "new_sunday_present_this_week",
+                    "new_group_present_this_week"),
+                Criteria = new FilterExpression(LogicalOperator.And)
+            };
+
+            query.Criteria.AddCondition("new_list_new_present_record", ConditionOperator.Equal, listEntityId);
+            query.Criteria.AddCondition("new_contact_new_present_record", ConditionOperator.Equal, contactId);
+            query.Criteria.AddCondition("new_sunday_date", ConditionOperator.LastXWeeks, WEEK_PERIOD);
+            query.Orders.Add(new OrderExpression("new_sunday_date", OrderType.Descending));
+
+            return organizationService.RetrieveMultiple(query);
+        }
+
+        /// <summary>
+        /// 以 operation-local CRM service 更新已完成委身轉換的 Contact。
+        ///
+        /// <para>
+        /// 呼叫端仍是 service 的唯一 owner；本 helper 不包裝 ToolUtility、不重試、不 catch 後
+        /// 改寫例外，也不 Dispose service。若 transport 已 fault、逾時或取消，原始 SDK 例外會
+        /// 回到 owner，由外層依其 pool／lease 規則淘汰或歸還，避免不確定連線流給下一個操作。
+        /// </para>
+        /// </summary>
+        /// <param name="organizationService">當次借用且不可由此 helper 釋放的 CRM service。</param>
+        /// <param name="contact">只包含本次欲寫回欄位的 Contact entity。</param>
+        /// <exception cref="ArgumentNullException">當沒有 operation-local service 或 Contact 時擲回。</exception>
+        /// <exception cref="ArgumentException">當 Contact 類型或識別不符合固定更新契約時擲回。</exception>
+        private static void UpdateIdentityContact(IOrganizationService organizationService, Entity contact)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+            ArgumentNullException.ThrowIfNull(contact);
+
+            if (!string.Equals(contact.LogicalName, "contact", StringComparison.Ordinal) || contact.Id == Guid.Empty)
+            {
+                throw new ArgumentException("委身更新只能寫回具有有效識別的 Contact。", nameof(contact));
+            }
+
+            organizationService.Update(contact);
+        }
+
+        #endregion
+
         #region 委身類型設定
 
         /// <summary>

@@ -2980,6 +2980,120 @@ The correct form preserves the established ChurchReport zero-active behavior,
 detects conflicting present records, keeps duplicate data fail-closed, and
 prevents the fixture/evidence layer from drifting away from the connector.
 
+## Scenario: Session-cached legacy manager and operation-local CRM service bridge
+
+### 1. Scope / Trigger
+
+This contract applies whenever a ChurchReport Session-cached manager, a legacy
+partial class, or a facade accepts an `IOrganizationService` supplied by a
+Gateway/Data8 lease. A borrowed service is mutable transport state; it is never
+made safe by clearing a field later. It must not cross from an operation into a
+Session object, `ToolUtility`, Factory singleton, static field, cache,
+`AsyncLocal`, closure, queue, timer, or background task.
+
+### 2. Signatures
+
+```csharp
+void SetupIntegrateData(
+    string account,
+    string password,
+    string loginType,
+    DateTime downloadDate,
+    string listId,
+    string weeklyReportId,
+    ref ListSmallGroupWeeklyReport report,
+    IOrganizationService organizationService);
+```
+
+The final service argument is borrowed synchronously. Its outer lease owner is
+the only owner allowed to evict, return, close, abort, or dispose it.
+
+### 3. Contracts
+
+- An operation-local entry validates every supported immutable branch before
+  its first CRM call. A legacy or unvalidated login type fails closed before
+  login, list, weekly-report, metadata, or chart I/O; it must not first inspect
+  the borrowed service and then fall back to `ToolUtility`.
+- Each service-aware helper receives the service explicitly and uses it only in
+  its current stack frame. It does not store, wrap, return, dispose, or pass it
+  to an API that can retain it.
+- Read-only output is assembled in a new local report. Assign it to the caller
+  only after every allowed CRM read succeeds. A fault, cancellation, or timeout
+  preserves the caller's prior report reference.
+- A Session-cached `ListManager` overload that lacks a complete immutable,
+  server-validated operation context fails before reading its instance fields
+  or performing CRM I/O. It is not a compatibility path for forwarding a
+  borrowed service to a legacy downloader.
+- Legacy mutation paths remain isolated from the service-aware read-only route
+  until each partial has explicit parameter propagation and the required
+  rollback/read-back evidence. Delay construction of a legacy mutation
+  connector during read-only DTO construction, but keep creation at the actual
+  mutation boundary so ownership is unchanged.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Login type is not an explicitly verified operation-local read path | Reject before the first borrowed-service CRM call; do not alter output or dispose the service. |
+| Session manager would need account/password/date/login fields | Reject before reading those fields; require a new immutable context API. |
+| Any service-aware helper would use Factory/ToolUtility fallback | Reject the operation; never mix borrowed and shared services. |
+| CRM read faults, cancels, or times out | Propagate the bounded failure; preserve the prior output reference and leave lease eviction/disposal to the outer owner. |
+| DTO is created only for a read operation | Do not initialize a legacy mutation connector or acquire its shared CRM service. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: two interleaved A/B calls each receive a different fake service; each
+  response contains only its own marker, neither service is retained or
+  disposed, and a failed B call leaves B's prior response untouched.
+- Base: an unsupported login type returns a bounded error before one CRM call.
+- Bad: put the service into a `ListManager` field, call `ToolUtility` after a
+  borrowed-service lookup, dispose the service in a helper, or use `finally` to
+  clear a temporary shared field. Each permits cross-operation state reuse.
+
+### 6. Tests Required
+
+- Interleave A/B marker services through the public service-aware entry; assert
+  no foreign marker, no instance/static retained reference, and zero helper
+  `Dispose` calls.
+- Inject the first CRM call fault; assert prior report reference and content are
+  unchanged.
+- Invoke every unsupported login type branch with a call-counting fake; assert
+  zero CRM calls, zero `Dispose`, and no output mutation.
+- Invoke the Session-manager service overload with uninitialized session state;
+  assert it fails before field read/CRM I/O and does not retain either marker.
+- Construct a read-only report and assert its legacy mutation connector is not
+  created. Run focused isolation tests, Release build, encoding/CRLF checks,
+  and `git diff --check` before the CE evidence gate.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+_service = organizationService;
+LoadHeader();                 // may use Session fields
+ToolUtility.LoadMembers();    // shared service fallback
+_service = null;
+```
+
+#### Correct
+
+```csharp
+if (!IsVerifiedLeader(loginType))
+{
+    throw new InvalidOperationException("Operation is not isolated.");
+}
+
+var localReport = new ListSmallGroupWeeklyReport();
+LoadHeader(account, password, listId, ref localReport, organizationService);
+LoadMembers(listId, ref localReport, organizationService);
+report = localReport; // only after all reads succeed
+```
+
+The correct form preserves the full user/profile/generation boundary, makes
+the caller the single resource owner, and gives later P7.4/P7.5 work a
+testable condition instead of an unsafe migration shortcut.
+
 ## Scenario: Deterministic negative deployment validation without TestHost disposal races
 
 ### 1. Scope / Trigger

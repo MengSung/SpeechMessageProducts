@@ -18,6 +18,7 @@ using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.WebServiceConnector.Converters;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -26,6 +27,121 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public partial class DownloadIntegrateData
     {
+        #region Operation-local CRM service helper
+
+        /// <summary>
+        /// 以呼叫端當次借用的 CRM service 取得新人跟進需要的 Contact。
+        ///
+        /// <para>
+        /// service 僅以參數存在於此同步呼叫鏈，直接執行 SDK <see cref="IOrganizationService.Retrieve"/>
+        /// 後即失去參考；不會寫入 DownloadIntegrateData、ToolUtility、Factory、static、cache 或
+        /// <c>AsyncLocal</c>，也不會 Dispose。這使 Session 快取的上層物件無法把 A 的 mutable
+        /// service 或 Contact 查詢狀態帶給 B。
+        /// </para>
+        /// </summary>
+        /// <param name="organizationService">由呼叫端 lease owner 借出、仍由 owner 釋放的 service。</param>
+        /// <param name="contactId">上層已驗證並授權的 Contact 識別。</param>
+        /// <returns>只投影新人跟進與委身判斷所需欄位的 Contact。</returns>
+        /// <exception cref="ArgumentNullException">當沒有 operation-local service 時擲回。</exception>
+        /// <exception cref="ArgumentException">當 Contact 識別為空時擲回。</exception>
+        private static Entity RetrieveFollowUpContact(IOrganizationService organizationService, Guid contactId)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            if (contactId == Guid.Empty)
+            {
+                throw new ArgumentException("新人跟進需要有效的聯絡人識別。", nameof(contactId));
+            }
+
+            return organizationService.Retrieve(
+                "contact",
+                contactId,
+                new ColumnSet(
+                    "customertypecode",
+                    "new_start_tracking_date",
+                    "fullname",
+                    "gendercode",
+                    "new_enter_church_date",
+                    "description"));
+        }
+
+        /// <summary>
+        /// 以 operation-local CRM service 讀取 Contact 最近十週的新人跟進出席紀錄。
+        ///
+        /// <para>
+        /// 查詢條件與投影是固定 allowlist，避免未驗證的呼叫端輸入改變 CRM entity、欄位或
+        /// 查詢範圍。此方法不使用 FetchXML 或 ToolUtility façade；直接 SDK query 既保持完整
+        /// parameter boundary，也避免把 service 封裝在可能跨操作保存的相依物件內。
+        /// </para>
+        /// </summary>
+        /// <param name="organizationService">當次借用且不可由此 helper 釋放的 CRM service。</param>
+        /// <param name="contactId">上層已驗證並授權的 Contact 識別。</param>
+        /// <returns>依主日由舊到新排序的固定欄位出席紀錄集合。</returns>
+        /// <exception cref="ArgumentNullException">當沒有 operation-local service 時擲回。</exception>
+        /// <exception cref="ArgumentException">當 Contact 識別為空時擲回。</exception>
+        private static EntityCollection RetrieveFollowUpPresentRecords(
+            IOrganizationService organizationService,
+            Guid contactId)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            if (contactId == Guid.Empty)
+            {
+                throw new ArgumentException("新人跟進需要有效的聯絡人識別。", nameof(contactId));
+            }
+
+            var query = new QueryExpression("new_present_record")
+            {
+                ColumnSet = new ColumnSet(
+                    "new_sunday_date",
+                    "new_groupleader_present_record",
+                    "new_followup_ways",
+                    "new_follow_up",
+                    "new_conclusion_choise",
+                    "new_next_step",
+                    "new_explanation",
+                    "new_weeks"),
+                Criteria = new FilterExpression(LogicalOperator.And)
+            };
+
+            query.Criteria.AddCondition("new_contact_new_present_record", ConditionOperator.Equal, contactId);
+            query.Criteria.AddCondition("new_sunday_date", ConditionOperator.LastXWeeks, 10);
+            query.Orders.Add(new OrderExpression("new_sunday_date", OrderType.Ascending));
+
+            return organizationService.RetrieveMultiple(query);
+        }
+
+        /// <summary>
+        /// 以 operation-local CRM service 寫回單筆新人跟進週次。
+        ///
+        /// <para>
+        /// 這是同步傳遞鏈的最後一跳，僅使用 direct SDK <see cref="IOrganizationService.Update"/>。
+        /// 它不保留、包裝、Dispose 或重試 borrowed service；遇到故障、逾時、取消或不確定傳輸
+        /// 狀態時保留原始例外讓呼叫端 owner fail closed 並處理 fault eviction。
+        /// </para>
+        /// </summary>
+        /// <param name="organizationService">當次借用且不可由此 helper 釋放的 CRM service。</param>
+        /// <param name="presentRecord">只包含本次週次變更的出席紀錄 entity。</param>
+        /// <exception cref="ArgumentNullException">當沒有 operation-local service 或出席紀錄時擲回。</exception>
+        /// <exception cref="ArgumentException">當 entity 類型或識別不符合固定更新契約時擲回。</exception>
+        private static void UpdateFollowUpPresentRecord(
+            IOrganizationService organizationService,
+            Entity presentRecord)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+            ArgumentNullException.ThrowIfNull(presentRecord);
+
+            if (!string.Equals(presentRecord.LogicalName, "new_present_record", StringComparison.Ordinal) ||
+                presentRecord.Id == Guid.Empty)
+            {
+                throw new ArgumentException("新人跟進週次只能寫回具有有效識別的出席紀錄。", nameof(presentRecord));
+            }
+
+            organizationService.Update(presentRecord);
+        }
+
+        #endregion
+
         #region 新人跟進資訊
 
         /// <summary>

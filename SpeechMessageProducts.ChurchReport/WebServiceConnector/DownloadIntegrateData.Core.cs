@@ -133,6 +133,77 @@ namespace ChurchReport.WebServiceConnector
             this.SetupWeeklyReportChartData(ref aListSmallGroupWeeklyReport);
         }
 
+        /// <summary>
+        /// 接收 operation-local CRM service 的整合資料下載入口。
+        ///
+        /// <para>
+        /// 傳入的 service 是呼叫端 lease owner 借出的資源；此方法不能將它保存到本類別、
+        /// ListManager、ToolUtility、Factory、static 欄位或 cache，也不能 Dispose、Close、
+        /// Abort 或歸還它。這些限制可防止 session 快取的 ListManager 讓不同使用者、
+        /// profile 或 connector generation 共用可變 client state。
+        /// </para>
+        ///
+        /// <para>
+        /// 本類別的 legacy partial 仍包含直接使用 Factory 共用 ToolUtility service 欄位的
+        /// 路徑。在那些路徑全部改為顯式參數前，讓借用 service 進入原版流程會造成 silent
+        /// fallback 與 cross-operation reuse。本 overload 因此在第一個 CRM 呼叫前固定
+        /// fail closed；不得以暫存欄位、AsyncLocal 或 finally 清空來假裝隔離。
+        /// </para>
+        /// </summary>
+        /// <param name="Account">既有登入流程提供的受保護帳號資料；不會記錄或快取。</param>
+        /// <param name="Password">既有登入流程提供的受保護驗證資料；不會記錄或快取。</param>
+        /// <param name="LoginType">已驗證的既有登入類型。</param>
+        /// <param name="aDownloadDate">目前操作的週期日期。</param>
+        /// <param name="ListEntityId">已授權的名單識別。</param>
+        /// <param name="WeeklyReportEntityId">既有週報識別；不會被寫入共用狀態。</param>
+        /// <param name="aListSmallGroupWeeklyReport">只屬於目前操作回應的輸出模型。</param>
+        /// <param name="organizationService">呼叫端借用、仍由其 owner 釋放的 CRM service。</param>
+        /// <exception cref="ArgumentNullException">當未提供 operation-local service 時擲回。</exception>
+        /// <exception cref="InvalidOperationException">當下載鏈尚不能完整保證 service 隔離時擲回。</exception>
+        public void SetupIntegrateData(
+            string Account,
+            string Password,
+            string LoginType,
+            DateTime aDownloadDate,
+            string ListEntityId,
+            string WeeklyReportEntityId,
+            ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport,
+            IOrganizationService organizationService)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            // 個人回報與其他 legacy 登入型態仍會走到 ToolUtility-only partial；必須在任何登入、
+            // 名單、週報或圖表 CRM I/O 之前拒絕。這可避免未完成 operation-local 隔離的呼叫先讀取
+            // 借用 service 後，再因後段 fallback 造成跨 Session／profile 的 service 或資料混用。
+            // service 的 fault eviction、lease 歸還與 Dispose 始終仍由呼叫端 owner 負責。
+            if (!string.Equals(LoginType, "小組長", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    "operation-local 下載目前只支援已完成隔離驗證的小組長唯讀路徑；其他登入型態已在 CRM I/O 前拒絕回落至共用 ToolUtility。");
+            }
+
+            // 先把所有輸出建立在本次呼叫的區域物件；任何 CRM 例外都不會污染呼叫端既有報表，
+            // 更不會把 borrowed service 寫入可被 Session 重用的 DownloadIntegrateData 欄位。
+            var operationReport = new ListSmallGroupWeeklyReport();
+            SetupHeaderData(
+                Account,
+                Password,
+                aDownloadDate,
+                ListEntityId,
+                WeeklyReportEntityId,
+                LoginType,
+                ref operationReport,
+                organizationService);
+
+            SetupOperationLocalLeaderMembers(ListEntityId, WeeklyReportEntityId, ref operationReport, organizationService);
+            SetupWeeklyReportData(WeeklyReportEntityId, ref operationReport, organizationService);
+            SetupWeeklyReportChartData(ref operationReport, organizationService);
+
+            // 所有唯讀 SDK 呼叫成功後才以單一 reference assignment 提交；這是此同步入口唯一
+            // 改動 caller output 的位置，故失敗與 timeout 不會留下半成品或前次 service 的資料。
+            aListSmallGroupWeeklyReport = operationReport;
+        }
+
         #endregion
 
         #region 輔助方法

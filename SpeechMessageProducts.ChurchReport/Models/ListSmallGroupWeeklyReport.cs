@@ -28,7 +28,6 @@ namespace ChurchReport.Models
         public ListSmallGroupWeeklyReport()
         {
             ModifyFlag = false;
-            m_UploadIntegrateData = new UploadIntegrateData();
 
             //GroupArray.Add("以利亞");
             //GroupArray.Add("耶穌基督");
@@ -66,7 +65,25 @@ namespace ChurchReport.Models
         // 長條圖表資料
         public ChartDataList m_WeeklyReportChart { get; set; }
         public bool ModifyFlag { get; set; }
+        /// <summary>
+        /// 延遲建立的 legacy 上傳 connector。
+        ///
+        /// <para>
+        /// 此報表也用於純讀取畫面；建構時不可初始化 <see cref="UploadIntegrateData"/>，因為它會
+        /// 取得 ToolUtility 的可變 CRM service，讓 operation-local 讀取路徑跨回 shared Factory。
+        /// 僅在真正上傳或刪除時建立 connector，且不保存或處置 request 借用的 service。
+        /// </para>
+        /// </summary>
         public UploadIntegrateData m_UploadIntegrateData;
+
+        /// <summary>
+        /// 取得僅供實際 legacy mutation 使用的上傳 connector。
+        /// </summary>
+        /// <returns>在第一次寫入操作時才建立的上傳 connector。</returns>
+        private UploadIntegrateData GetUploadIntegrateDataForMutation()
+        {
+            return m_UploadIntegrateData ??= new UploadIntegrateData();
+        }
 
         // 表單是個人回報需要用到"暫時"傳遞資料用的資料結構
         public PersonalReportViewModel m_PersonalReportViewModel = new PersonalReportViewModel();
@@ -94,7 +111,7 @@ namespace ChurchReport.Models
             PauseCheckBox = PauseCheckBox;
 
             //ChurchReport.Models.ListSmallGroupWeeklyReport
-            m_UploadIntegrateData.UploadData(aSelectedDate, Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
+            GetUploadIntegrateDataForMutation().UploadData(aSelectedDate, Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
             return;
         }
@@ -122,7 +139,7 @@ namespace ChurchReport.Models
             PauseCheckBox = PauseCheckBox;
 
             // 使用 UploadIntegrateData 類別提供的非同步 wrapper
-            var result = await m_UploadIntegrateData.UploadDataAsync(
+            var result = await GetUploadIntegrateDataForMutation().UploadDataAsync(
                 aSelectedDate,
                 Account,
                 Password,
@@ -149,7 +166,7 @@ namespace ChurchReport.Models
         }
         public void DeleteMemberData(String Account, String Password, Member aMemberToBeDeleted)
         {
-            m_UploadIntegrateData.DeleteMember(Account, Password, ListEntityId, aMemberToBeDeleted);
+            GetUploadIntegrateDataForMutation().DeleteMember(Account, Password, ListEntityId, aMemberToBeDeleted);
         }
         public void SetPersonalReportViewModel(ref ToolUtilityClass m_ToolUtilityClass, Entity aLoginContact)
         {
@@ -397,4 +414,3 @@ namespace ChurchReport.Models
     }
 
 }
-

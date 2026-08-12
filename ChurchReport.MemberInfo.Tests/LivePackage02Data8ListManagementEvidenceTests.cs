@@ -82,6 +82,27 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
     }
 
     /// <summary>
+    /// 保護 ExecuteFixture child 已完成 store、runtime 與 logger 清理後的正常 no-go handoff。
+    /// 故障注入只提供固定 <c>live-evidence-incomplete</c> 分類與已完成 cleanup 的純值狀態；
+    /// 決定性 assertion 是 parent 可解析的 evidence 必須保留該原始 bounded reason，不能因為 no-go
+    /// 本身被誤視為 child process failure。此測試不建立 runtime、temporary file、Credential Manager
+    /// 或 CE 連線，故不會保留任何跨 process、使用者或 profile 的資源與識別資料。
+    /// </summary>
+    [Fact]
+    public void Execute_evidence_finalizer_preserves_complete_live_evidence_incomplete_reason()
+    {
+        var terminal = FinalizeExecuteEvidence(
+            outcome: "no-go",
+            reason: "live-evidence-incomplete",
+            cleanupSucceeded: true);
+
+        terminal.Outcome.Should().Be("no-go");
+        terminal.Reason.Should().Be(
+            "live-evidence-incomplete",
+            because: "a complete child no-go is an operation verdict, not a child lifecycle failure");
+    }
+
+    /// <summary>
     /// 以固定順序執行 add、remove、small-group、owner 與 transfer 五段流程。
     /// 每段流程在 bridge 內只會 dispatch 一次，之後立刻 read-back 並還原 baseline；若前段
     /// 出現 no-go，後段標記為未啟動，避免在已不可信的 graph 上擴大 mutation。所有五段的
@@ -235,6 +256,12 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
             DisposeLogger(ref loggerFactory, ref outcome, ref reason);
         }
 
+        var terminal = FinalizeExecuteEvidence(
+            outcome,
+            reason,
+            cleanupSucceeded: reason != "cleanup-failure");
+        outcome = terminal.Outcome;
+        reason = terminal.Reason;
         CompleteNotStartedOperations(operations);
         operationExecuted |= operations.Any(static operation => operation.OperationExecuted);
         var evidence = new
@@ -683,6 +710,27 @@ public sealed class LivePackage02Data8ListManagementEvidenceTests
             ? ("no-go", "baseline-unprovable", readOnlyProbeExecuted)
             : ("no-go", "cleanup-failure", false);
     }
+
+    /// <summary>
+    /// 決定 ExecuteFixture child 在完成所有 child-owned cleanup 後可安全交給 parent 的最終 bounded verdict。
+    /// 操作 no-go 與 process failure 是不同信任邊界：當 store、runtime 與 logger 都已確定釋放時，
+    /// <paramref name="outcome"/> 與 <paramref name="reason"/> 已是嚴格 schema 允許的固定結果，必須
+    /// 原樣保留，例如 <c>live-evidence-incomplete</c>；不得用 assertion 人為改寫 child exit code 後，
+    /// 讓 parent 將它降階為 <c>child-process-failed</c>。反之，cleanup 未完成即代表資源可能跨 child
+    /// process 保留，必須優先輸出 <c>cleanup-failure</c>。此純值方法不持有 CRM exception、path、GUID、
+    /// credential 或 resource reference，故不會擴大跨程序、跨使用者或跨 profile 的資料生命週期。
+    /// </summary>
+    /// <param name="outcome">已由操作結果投影出的固定 <c>go</c> 或 <c>no-go</c> 分類。</param>
+    /// <param name="reason">已去識別化的固定 reason；不得是原始 exception 或上游資料。</param>
+    /// <param name="cleanupSucceeded">本 child 唯一擁有的 store、runtime 與 logger 是否皆已確定釋放。</param>
+    /// <returns>cleanup 成功時保留原 verdict；失敗時以最高優先序的固定 cleanup failure fail closed。</returns>
+    internal static (string Outcome, string Reason) FinalizeExecuteEvidence(
+        string outcome,
+        string reason,
+        bool cleanupSucceeded)
+        => cleanupSucceeded
+            ? (outcome, reason)
+            : ("no-go", "cleanup-failure");
 
     /// <summary>
     /// 在任何 bridge dispatch 前讀取五段流程所需的固定 graph，並確認每一段都會有可判斷的

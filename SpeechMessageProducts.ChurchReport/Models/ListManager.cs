@@ -254,6 +254,41 @@ namespace ChurchReport.Models
                 m_DownloadIntegrateData.SetupIntegrateData( m_Account, m_Password, LoginType, this.m_SelectDate, ListEntityId, aWeeklyReportRecord.WeeklyReportEntityId, ref m_ListSmallGroupWeeklyReport);
             }
         }
+
+        /// <summary>
+        /// 以呼叫端借用的 CRM service 設定整合資料。
+        ///
+        /// <para>
+        /// 此 overload 僅建立 operation-local 參數資料流：service 從目前呼叫堆疊傳入
+        /// <see cref="DownloadIntegrateData"/>，絕不寫入 <see cref="ListManager"/>、
+        /// ToolUtility、Factory、static 欄位或快取。service 的建立、lease 歸還、故障淘汰
+        /// 與 <see cref="IDisposable.Dispose"/> 均仍屬最外層 owner；本方法及下游下載器
+        /// 不得取得所有權或釋放它。
+        /// </para>
+        ///
+        /// <para>
+        /// 此過渡 overload 目前沒有產品呼叫端，且它的其餘輸入仍位於 session 快取的
+        /// instance fields。即使 service 本身以參數傳入，若從這些欄位取得帳號、登入型態
+        /// 或日期，仍無法證明完整的 operation isolation boundary。因此它固定在讀取任何
+        /// instance 狀態或執行 CRM I/O 前 fail closed。未來替代 API 必須接收完整且不可變
+        /// 的、由伺服器驗證的 operation context，不能以此 overload 偷渡 session state。
+        /// </para>
+        /// </summary>
+        /// <param name="ListEntityId">已由上層授權流程選定的名單識別。</param>
+        /// <param name="organizationService">只限本次操作借用的 CRM service，不可為 null。</param>
+        /// <exception cref="ArgumentNullException">當呼叫端未提供可證明所有權的 service 時擲回。</exception>
+        /// <exception cref="InvalidOperationException">此過渡 API 尚無完整 operation context，固定 fail closed。</exception>
+        public void SetupIntegrateData(String ListEntityId, IOrganizationService organizationService)
+        {
+            ArgumentNullException.ThrowIfNull(organizationService);
+
+            // 不得以 m_Account、m_Password、LoginType、m_SelectDate 或既有報表拼湊操作，
+            // 因為它們屬於 session-cache 的可變 instance state。先拒絕可防止未來呼叫端誤把
+            // A 的登入／日期帶入 B 的 borrowed service；service 也不會被保存、Dispose 或傳給
+            // ToolUtility。外層 lease owner 仍負責 fault、timeout、cancellation 時的淘汰與回收。
+            throw new InvalidOperationException(
+                "此 ListManager 過渡 API 缺少完整、不可變且已驗證的 operation context；已在 CRM I/O 前拒絕，請改用明確 operation-local 流程。");
+        }
         public void SetupIntegrateDataDemo(String ListEntityId)
         {
             switch (ListEntityId)
