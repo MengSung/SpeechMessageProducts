@@ -1,12 +1,12 @@
 {
   "id": "p7-remaining-work-rebaseline",
   "title": "P7 尚餘能力重新基準化",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "review",
-  "nextAction": "最終 validator、13 tests、solution tests、Release build、encoding 與 scope check 已通過；reviewer Claude 逾 45 秒，已記錄雙模型未完成。執行 scope-only work commit，接著 archive CCG/Trellis task 並建立 P7.3 child。",
+  "currentPhase": "completed",
+  "nextAction": "已由 commit 74bae560 完成 scope-only 提交與 Trellis 歸檔；保留 70-row authoritative gap matrix 作為後續 P7 child 的唯一排程／release-gate 基線。下一步是建立 P7.3 special-resource migrations；不得重試歷史 P7.2 CE cycle。",
   "createdAt": "2026-08-12T00:00:00+08:00",
   "branch": "1.0.0.3.Gateway&Embedded.Worktree",
   "predecessors": [

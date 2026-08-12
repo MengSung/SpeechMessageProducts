@@ -17,7 +17,7 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "P6、P7.0、P7.1 與 P7.2 已封存且不得重做。08-12-p7-remaining-work-rebaseline 與 08-12-process-boundary-cross-assembly-isolation 已完成品質閘門，下一步是 scope-only commit/archive，接著依 authoritative 70-row gap matrix 建立 P7.3 churchreport-special-resource-migrations。不得開始 P8，也不得重試 P7.2 historical CE cycle。",
+  "nextAction": "P6、P7.0、P7.1、P7.2、P7 remaining rebaseline 與跨程序集 WorkerTestHost 隔離已封存且不得重做。下一步依 authoritative 70-row gap matrix 建立 P7.3 churchreport-special-resource-migrations；P7.4/P7.5/P8 仍受 immutable gate 保護。不得重試 P7.2 historical CE cycle。",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",

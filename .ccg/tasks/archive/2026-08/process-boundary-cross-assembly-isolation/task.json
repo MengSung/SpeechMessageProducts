@@ -1,0 +1,12 @@
+{
+  "id": "process-boundary-cross-assembly-isolation",
+  "title": "跨程序集 WorkerTestHost 程序隔離",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "test-infrastructure",
+  "currentPhase": "completed",
+  "nextAction": "已由 commit 74bae560 完成 scope-only 提交與 Trellis 歸檔。跨程序集 WorkerTestHost 隔離固定使用 worktree-partitioned bounded lease，並保留真實 process-leak 斷言。",
+  "createdAt": "2026-08-12T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
