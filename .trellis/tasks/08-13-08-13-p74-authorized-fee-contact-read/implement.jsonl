@@ -1,0 +1,5 @@
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"Mandatory repository-wide A/B isolation, resource ownership and verification checklist for the request/session/DTO path."}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Authoritative server-derived boundary, no fallback, cancellation and deterministic lifecycle contract."}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Deployment-owned profile/feature-gate and P7/P8 evidence boundary contract."}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/prd.md","reason":"Parent P7.4 scope, disabled-by-default and historical Slice C restrictions."}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/batch-c-caller-shape-inventory.md","reason":"Authoritative analysis of ORG-CALL-00005 and exclusions for 00064/00066."}

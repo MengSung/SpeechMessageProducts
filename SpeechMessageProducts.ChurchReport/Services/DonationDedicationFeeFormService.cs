@@ -63,6 +63,36 @@ namespace ChurchReport.Services
                 legacyDrainController);
         }
 
+        /// <summary>
+        /// 取得本 session service 在建構時是否接到 deployment-owned Package01 typed read 路徑。
+        /// </summary>
+        /// <remarks>
+        /// 這是唯讀的 route observation，不寫入設定、不開啟旗標，也不保存 contact、表單或
+        /// 使用者資訊；controller 以它選擇既有 rollback-compatible legacy 或新的 typed read，
+        /// 不允許任一 HTTP 呼叫改變此值。
+        /// </remarks>
+        public bool IsPackage01FeeReadEnabled => _feeQueryService.IsPackage01FeeReadEnabled;
+
+        /// <summary>
+        /// 在已完成 controller 伺服器端授權後，以 request-local typed DTO 讀取指定 contact 的
+        /// 奉獻稽核資料。
+        /// </summary>
+        /// <param name="contactId">已授權的目標 contact locator；不在此層做 CRM Entity 補查。</param>
+        /// <param name="cancellationToken">目前 HTTP request 的取消 token，原樣轉交 typed client。</param>
+        /// <returns>不含付款表單、CRM Entity 或共享快取資料的獨立讀取結果。</returns>
+        /// <exception cref="InvalidOperationException">Package01 未啟用時拒絕，避免默默 fallback。</exception>
+        public Task<DonationFeeAuditReadResult> RetrieveFeeAuditByContactAsync(
+            Guid contactId,
+            CancellationToken cancellationToken = default)
+        {
+            if (!IsPackage01FeeReadEnabled)
+            {
+                throw new InvalidOperationException("Package01 fee audit reads are not enabled.");
+            }
+
+            return _feeQueryService.RetrieveFeeAuditByContactAsync(contactId, cancellationToken);
+        }
+
         public async Task<DonationPaymentFormModel> FillFromLineIdAsync(
             DonationPaymentFormModel model,
             string userLineId,

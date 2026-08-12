@@ -194,3 +194,137 @@ public async Task<MemberDto> LoadAsync(
 typed context. The non-negotiable behavior is server validation before data
 access, request-local mutable state, full-boundary cache partitioning where a
 user-specific cache is genuinely required, and deterministic cleanup.
+
+## 8. Server-Authorized Browser Locator to Immutable Audit DTO Scenario
+
+### 1. Scope / Trigger
+
+Apply this scenario when an existing browser endpoint carries a target GUID but
+must migrate from a session-owned CRM/legacy form path to a typed read response.
+The target ID is a locator, never an authenticated subject, authorization scope,
+profile, endpoint, credential, connector, or organization selector. This
+scenario is mandatory for a Controller -> session manager -> service ->
+ProductClient -> JSON path, such as ChurchReport's Package01 fee-audit read.
+
+### 2. Signatures
+
+```csharp
+bool CanAccessFeeAudit(Entity? serverLoginContact);
+
+Task<DonationFeeAuditReadResult> RetrieveFeeAuditByContactAsync(
+    Guid contactId,
+    CancellationToken cancellationToken = default);
+
+public sealed class DonationFeeAuditReadResult
+{
+    public IReadOnlyList<DonationFeeAuditRow> Fees { get; }
+    public int TotalAmount { get; }
+}
+```
+
+`serverLoginContact` originates only from the server-resolved request/session
+snapshot. `contactId` is parsed only after authorization and is sent only to a
+deployment-owned typed operation. The result contains only immutable, allowlisted
+view values and no CRM `Entity`, form model, profile, credential, token, cache
+entry, cancellation state, or raw upstream exception.
+
+### 3. Contracts
+
+1. Rehydrate existing request context and evaluate the server login snapshot
+   before parsing the browser locator, acquiring a session manager, target CRM
+   lookup, cache access, or typed/legacy dispatch.
+2. Missing/empty login ID, absent/non-string role, or insufficient role returns
+   the same fixed, de-identified denial response. Do not use a syntactically
+   valid target GUID to distinguish existence or obtain authority.
+3. A disabled deployment gate may retain the existing compatibility route. The
+   enabled branch must use only the typed operation: no target `Entity` read,
+   DTO-to-`Entity` rehydration, request-time fallback, retry, or form-model
+   mutation.
+4. Map all typed rows and calculate totals in request-local variables first.
+   Validate each value and the final `Int32` total before publishing a result.
+   Overflow, cancellation and typed faults leave no partially published model
+   or result.
+5. An immutable row type alone is insufficient. The result must defensively
+   copy rows and publish a read-only wrapper rather than expose a backing array;
+   otherwise a caller can cast the array and replace a row between authorization
+   and JSON serialization.
+6. Cancellation propagates unchanged through all async layers. A controller's
+   generic failure handler excludes `OperationCanceledException`; every acquired
+   semaphore/lease releases exactly once in `finally`/`await using`.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+|---|---|
+| No server login snapshot, empty ID, invalid role attribute, or insufficient role | Fixed de-identified denial before locator parse or I/O. |
+| Malformed browser GUID after successful authorization | Same fixed denial; no target lookup or dispatch. |
+| Gate disabled | Use documented legacy compatibility route only; do not silently construct a typed alternative. |
+| Gate enabled but profile/client unavailable | Fail before outbound work; do not fallback to legacy. |
+| Typed row/total outside `Int32` range or null row | Throw/fail closed before publishing any result. |
+| Request cancellation or typed fault | Propagate cancellation/fault, release owner resources, do not emit raw detail or retry/fallback. |
+| Caller casts published rows to an array or writable collection | Array cast is impossible; any collection mutation attempt throws and leaves the published rows unchanged. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** An accounting-authorized request obtains a fresh typed result whose
+  copied, read-only rows can be serialized but cannot be replaced. Interleaved
+  A/B calls return distinct row collections and totals.
+- **Base:** The gate remains false. The legacy route remains compatible, while
+  the typed implementation is locally tested without being represented as live
+  cutover or CE evidence.
+- **Bad:** The controller parses the browser GUID before authorization, passes
+  it to a role resolver, retrieves the target `Entity`, catches cancellation as
+  a generic error, or exposes `DonationFeeAuditRow[]` directly as an
+  `IReadOnlyList`. Each creates either an IDOR, lifecycle, or mutable-result
+  leak risk and is release-blocking.
+
+### 6. Tests Required
+
+1. Resolver tests prove only a valid server login snapshot with the established
+   role succeeds; null/empty/missing-role/non-authorized snapshots fail.
+2. Source/controller contract tests assert authorization occurs before GUID
+   parsing, manager access and dispatch; verify disabled/enabled branch shape,
+   no target retrieve, no raw exception message, and cancellation exclusion.
+3. Typed-client tests assert fixed profile/workload, null caller name, exact
+   cancellation forwarding, no form-model input, per-row/total overflow
+   rejection, and no fallback.
+4. Interleaved A/B tests assert independently allocated lists/totals. A
+   regression must prove published rows are not assignable to an array and that
+   writable-collection replacement is rejected.
+5. Run the owning focused suite, product suite, full solution Release tests,
+   Release build, byte-level UTF-8-no-BOM/CRLF/final-CRLF scan, and
+   `git diff --check` before classifying the local migration as checked.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+// The browser value enters authority before server authorization, and the
+// backing array can later be downcast and mutated.
+var target = Guid.Parse(Request.Query["id"]);
+var result = new DonationFeeAuditReadResult(rows.ToArray(), total);
+return Json(result);
+```
+
+#### Correct
+
+```csharp
+EnsureCorrectUserData();
+if (!DonationFeeAuditAccessResolver.CanAccessFeeAudit(serverLoginContact))
+{
+    return FixedDenied();
+}
+
+if (!Guid.TryParse(browserId, out var target))
+{
+    return FixedDenied();
+}
+
+var result = await manager.RetrieveFeeAuditByContactAsync(target, requestAborted);
+return Json(new { result.Fees, result.TotalAmount });
+```
+
+The manager/service owns request-local typed mapping; its result makes a
+defensive copy and publishes a read-only wrapper. The flag remains a
+deployment-owned rollback boundary and is not live-cutover evidence.

@@ -714,6 +714,49 @@ namespace ChurchReport.Models
                 _feeRefreshLock.Release();
             }
         }
+
+        /// <summary>
+        /// 在目前 session manager 的既有生命週期中，轉送已授權的 Package01 奉獻稽核讀取。
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 授權責任仍屬 controller；本方法不接受瀏覽器身分、profile、endpoint 或 credential。
+        /// contact ID 只是一個已授權 typed locator，真正的 deployment route 由建立 form service
+        /// 時的固定設定決定。
+        /// </para>
+        /// <para>
+        /// 雖然 typed result 不會改寫 <c>m_DonationPaymentFormModel</c>，仍使用此 manager 唯一
+        /// 擁有的 semaphore 與既有 form 讀取一致地序列化 session manager 存取。等待與下游 I/O
+        /// 都接受同一個 cancellation token；無論成功、取消或 fault，<c>finally</c> 都恰好釋放
+        /// semaphore 一次，且不 catch/fallback typed failure，避免不確定結果重用或混入 legacy。
+        /// </para>
+        /// </remarks>
+        /// <param name="contactId">controller 已驗證授權後的 contact locator。</param>
+        /// <param name="cancellationToken">request 取消 token。</param>
+        /// <returns>新的 request-local DTO 投影與 checked 總額。</returns>
+        public async Task<DonationFeeAuditReadResult> RetrieveFeeAuditByContactAsync(
+            Guid contactId,
+            CancellationToken cancellationToken = default)
+        {
+            await _feeRefreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return await m_DonationDedicationFeeFormService
+                    .RetrieveFeeAuditByContactAsync(contactId, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                _feeRefreshLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// 取得此 session manager 所持有的 form service 是否已在啟動設定中建立 Package01 typed
+        /// fee read 路徑。此值唯讀且不會由 HTTP caller、Session 或 controller 改寫。
+        /// </summary>
+        public bool IsPackage01FeeReadEnabled => m_DonationDedicationFeeFormService.IsPackage01FeeReadEnabled;
+
         private DateTime ParseDateTime(string dateString)
         {
             return DonationPaymentFormBuilder.ParseDateTime(dateString);

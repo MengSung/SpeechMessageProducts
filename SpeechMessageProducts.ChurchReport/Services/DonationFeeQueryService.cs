@@ -71,6 +71,16 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 取得此 service 是否已由 deployment-owned Package01 設定與 typed client 同時啟用。
+        /// </summary>
+        /// <remarks>
+        /// 此值在建構時固定，沒有 setter、Session 寫入或 request-time 重選路由；它只用來讓
+        /// controller 明確區分既有 legacy rollback 分支與 typed 分支，不能當作 CE enablement
+        /// 或流量切換證據。
+        /// </remarks>
+        public bool IsPackage01FeeReadEnabled => _package01Enabled;
+
+        /// <summary>
         /// 將 CRM 查出的奉獻收費單填入表單模型，並同步更新總金額。
         /// </summary>
         public async Task FillFeeListAsync(
@@ -116,6 +126,80 @@ namespace ChurchReport.Services
             {
                 model.TotalAmount += fee.Amount;
             }
+        }
+
+        /// <summary>
+        /// 以 Package01 的受控「依聯絡人、不分日期」能力讀取奉獻稽核列。
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 信任邊界：<paramref name="contactId"/> 只能在 controller 已完成伺服器端登入與角色
+        /// 授權後傳入，且在此方法中僅作為 typed operation 的 locator。profile 與 workload subject
+        /// 都由 deployment/service 固定，瀏覽器不能選取 endpoint、credential、connector、organization
+        /// 或 contactName。
+        /// </para>
+        /// <para>
+        /// 隔離與生命週期：每次呼叫只配置 request-local DTO 投影與陣列，不讀取 target CRM
+        /// Entity、不接收 DonationPaymentFormModel、不寫入 Session/cache/static state，也沒有要由
+        /// 此方法 Dispose 的外部資源。取消與 typed fault 原樣向上傳遞；不 fallback、不中斷重試。
+        /// </para>
+        /// </remarks>
+        /// <param name="contactId">已授權 target 的 typed locator；空 GUID 一律拒絕。</param>
+        /// <param name="cancellationToken">目前 HTTP request 的取消 token，原樣傳給 ProductClient。</param>
+        /// <returns>新的 request-local 費用列與 checked 總額。</returns>
+        /// <exception cref="InvalidOperationException">Package01 未啟用或缺少 deployment profile。</exception>
+        /// <exception cref="ArgumentException">目標 contact ID 為空。</exception>
+        /// <exception cref="OverflowException">總額超出付款顯示模型可支援的 Int32 範圍。</exception>
+        public async Task<DonationFeeAuditReadResult> RetrieveFeeAuditByContactAsync(
+            Guid contactId,
+            CancellationToken cancellationToken = default)
+        {
+            if (contactId == Guid.Empty)
+            {
+                throw new ArgumentException("A non-empty contact ID is required for fee audit reads.", nameof(contactId));
+            }
+
+            if (!_package01Enabled)
+            {
+                throw new InvalidOperationException("Package01 fee audit reads are not enabled.");
+            }
+
+            var profileAlias = _dynamicsAccess?.ProfileAlias;
+            if (string.IsNullOrWhiteSpace(profileAlias))
+            {
+                throw new InvalidOperationException(
+                    "DynamicsAccess:ProfileAlias is required when Package01 fee reads are enabled.");
+            }
+
+            // Service identity 是固定 workload subject，絕不由 HTTP caller、Session 或 target contact 導出。
+            const string workloadSubjectId = "church-report-service";
+            var rows = await _package01FeeReadClient!
+                .RetrieveDedicationFeesByContactAsync(
+                    profileAlias,
+                    workloadSubjectId,
+                    contactId,
+                    contactName: null,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            ArgumentNullException.ThrowIfNull(rows);
+
+            var mappedFees = new List<DonationFeeAuditRow>(rows.Count);
+            long totalAmount = 0;
+            foreach (var row in rows)
+            {
+                ArgumentNullException.ThrowIfNull(row);
+                var mappedFee = MapFeeAuditRow(row);
+                mappedFees.Add(mappedFee);
+                totalAmount = checked(totalAmount + mappedFee.Amount);
+            }
+
+            if (totalAmount > int.MaxValue || totalAmount < int.MinValue)
+            {
+                throw new OverflowException("The dedication fee total exceeds the supported model range.");
+            }
+
+            return new DonationFeeAuditReadResult(mappedFees, (int)totalAmount);
         }
 
         /// <summary>
@@ -217,10 +301,66 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 將 ProductClient fee DTO 投影為不可變稽核列。
+        /// </summary>
+        /// <remarks>
+        /// 此 mapping 不會回填或保留 <see cref="DonationPaymentFormModel"/>，也不產生 CRM
+        /// Entity。所有字串與日期在本 request 的 local variables 中完成，回傳後只能讀取，
+        /// 因而不能被另一個付款流程或使用者 request 修改。
+        /// </remarks>
+        /// <param name="dto">已由 typed client 回傳的單一 fee DTO。</param>
+        /// <returns>僅含 JSON 稽核畫面核准欄位的不可變列。</returns>
+        private static DonationFeeAuditRow MapFeeAuditRow(
+            SpeechMessage.Dynamics.ProductClient.Models.FeeRecordDto dto)
+        {
+            var amount = dto.Amount;
+            if (amount < int.MinValue || amount > int.MaxValue)
+            {
+                throw new OverflowException("A dedication fee amount exceeds the supported model range.");
+            }
+
+            return new DonationFeeAuditRow(
+                !string.IsNullOrWhiteSpace(dto.CategoryLabel) ? dto.CategoryLabel : "一般奉獻",
+                (dto.CreatedOn ?? DateTimeOffset.MinValue).LocalDateTime,
+                (dto.PayDate ?? DateTimeOffset.MinValue).LocalDateTime,
+                !string.IsNullOrWhiteSpace(dto.PayWayLabel)
+                    ? dto.PayWayLabel
+                    : ConvertPayWay(dto.PayWayOption ?? -1),
+                Convert.ToInt32(amount),
+                dto.PaidPeriod ?? string.Empty,
+                dto.Others ?? string.Empty);
+        }
+
+        /// <summary>
         /// 將收費單清單投影成既有 AJAX endpoint 會序列化的匿名物件形狀。
         /// </summary>
         public static List<object> ToAjaxRows(IEnumerable<DedicationFee> fees)
         {
+            return fees.Select(f => new
+            {
+                f.Category,
+                f.DedicationDate,
+                f.PayDate,
+                f.PayWay,
+                f.Amount,
+                f.PaidPeriod,
+                f.Others
+            }).ToList<object>();
+        }
+
+        /// <summary>
+        /// 將不可變 typed audit rows 轉為既有 AJAX JSON 欄位形狀。
+        /// </summary>
+        /// <remarks>
+        /// 這個 overload 只枚舉目前 request 的 immutable rows，不存入 Session、cache 或 static
+        /// state，也不把資料轉回付款表單或 CRM Entity；enumeration 結束後沒有需要釋放的資源。
+        /// </remarks>
+        /// <param name="fees">已授權 typed audit 讀取回傳的不可變列。</param>
+        /// <returns>與既有畫面相容、但不暴露內部 DTO/Entity 的 JSON 物件列。</returns>
+        public static List<object> ToAjaxRows(IEnumerable<DonationFeeAuditRow> fees)
+        {
+            ArgumentNullException.ThrowIfNull(fees);
+
             return fees.Select(f => new
             {
                 f.Category,

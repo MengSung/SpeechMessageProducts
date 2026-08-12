@@ -12,6 +12,8 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Models;
+using ChurchReport.Services;
+using ChurchReport.Services.Donation;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -19,6 +21,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -31,6 +34,19 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class DedicationAuditController : BaseChurchController
     {
+        /// <summary>
+        /// 奉獻稽核授權不足或登入快照缺失時回傳的固定、去識別化訊息。
+        /// 不得以 CRM ID、職稱、Session 狀態或原始例外取代，避免瀏覽器藉由錯誤推論他人資料。
+        /// </summary>
+        private const string FeeAuditAccessDeniedMessage = "目前帳號沒有奉獻稽核權限。";
+
+        /// <summary>
+        /// 奉獻稽核讀取發生非取消 fault 時的固定、去識別化訊息。
+        /// 真正 exception 可能包含 transport 或 CRM 細節，故不得輸出到 JSON、ViewBag、Session
+        /// 或任何可被下一個使用者請求讀取的共享位置。
+        /// </summary>
+        private const string FeeAuditUnavailableMessage = "目前無法取得奉獻稽核資料。";
+
         #region 建構函式
 
         public DedicationAuditController(
@@ -344,28 +360,75 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 以 contact Id 取得該聯絡人的奉獻清單 (AJAX)
+        /// 以已授權 contact locator 取得奉獻清單 (AJAX)。
+        ///
+        /// 瀏覽器提交的 <paramref name="id"/> 只有定位用途，絕不作為授權依據。方法先確認
+        /// request/session 已解析的登入 contact 與會計職稱，才解析 target GUID 或配置 session
+        /// manager。Package01 關閉時保留既有 legacy rollback 路徑；開啟時只傳回新的 request-local
+        /// DTO 結果，不查 target CRM Entity、不改寫付款表單、沒有 legacy fallback 或 retry。
         /// </summary>
-        /// <param name="id">contact Id (GUID)</param>
+        /// <param name="id">已通過伺服器端帳號授權後才可使用的 target contact GUID locator。</param>
         [HttpGet]
         public async Task<IActionResult> GetFeesByContactId(string id)
         {
             try
             {
-                if (string.IsNullOrEmpty(id))
-                    return Json(new { status = "0", message = "missing id", DedicationFeeList = new object[] { } });
+                EnsureCorrectUserData();
+                var loginContact = InMemoryContext.PersonalInfomationModel?.m_LoginContact;
+                if (!DonationFeeAuditAccessResolver.CanAccessFeeAudit(loginContact))
+                {
+                    return Json(new
+                    {
+                        status = "0",
+                        message = FeeAuditAccessDeniedMessage,
+                        DedicationFeeList = Array.Empty<object>()
+                    });
+                }
 
-                var feeList = await InMemoryContext.DonationPaymentManager.GetDedicationFeesByContactIdAsync(
+                if (!Guid.TryParse(id, out var contactId))
+                {
+                    return Json(new
+                    {
+                        status = "0",
+                        message = FeeAuditAccessDeniedMessage,
+                        DedicationFeeList = Array.Empty<object>()
+                    });
+                }
+
+                var feeManager = InMemoryContext.DonationPaymentManager;
+                if (feeManager.IsPackage01FeeReadEnabled)
+                {
+                    var auditResult = await feeManager.RetrieveFeeAuditByContactAsync(
+                        contactId,
+                        HttpContext.RequestAborted);
+                    return Json(new
+                    {
+                        status = "1",
+                        DedicationFeeList = DonationFeeQueryService.ToAjaxRows(auditResult.Fees),
+                        auditResult.TotalAmount
+                    });
+                }
+
+                var feeList = await feeManager.GetDedicationFeesByContactIdAsync(
                     id,
                     HttpContext.RequestAborted);
 
                 // GetDedicationFeesByContactId 內部已透過 SetDedicationFeeList 算好總金額
-                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.TotalAmount });
+                return Json(new
+                {
+                    status = "1",
+                    DedicationFeeList = feeList,
+                    TotalAmount = feeManager.m_DonationPaymentFormModel.TotalAmount
+                });
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not OperationCanceledException)
             {
-                System.Diagnostics.Debug.WriteLine($"GetFeesByContactId 錯誤: {e.Message}");
-                return Json(new { status = "0", message = e.Message, DedicationFeeList = new object[] { } });
+                return Json(new
+                {
+                    status = "0",
+                    message = FeeAuditUnavailableMessage,
+                    DedicationFeeList = Array.Empty<object>()
+                });
             }
         }
 

@@ -203,6 +203,142 @@ public sealed class DonationFeeQueryServiceAsyncTests
             .WithMessage("Legacy ToolUtility intake is stopped.");
     }
 
+    /// <summary>
+    /// 奉獻稽核的 Package01 路徑必須使用受限的「依 contact、不分日期」operation，並由
+    /// service 固定帶入 deployment profile 與 server-owned workload subject。fault injection
+    /// fake 記錄所有輸入；決定性斷言是瀏覽器目標只以 GUID 傳入、姓名固定為 null，且回傳
+    /// 的 rows/total 是新的 request-local result，不需要也不會接收付款表單模型。
+    /// </summary>
+    [Fact]
+    public async Task Package01_fee_audit_uses_contact_operation_with_null_name_and_request_local_result()
+    {
+        var client = new AuditFeeReadClient(contactId => Task.FromResult<IReadOnlyList<FeeRecordDto>>(new[]
+        {
+            new FeeRecordDto
+            {
+                Amount = 1250m,
+                CategoryLabel = "一般奉獻",
+                PayWayLabel = "信用卡",
+                CreatedOn = new DateTimeOffset(2026, 8, 13, 0, 0, 0, TimeSpan.Zero),
+                PayDate = new DateTimeOffset(2026, 8, 14, 0, 0, 0, TimeSpan.Zero)
+            }
+        }));
+        var valid = true;
+        using var utility = new ToolUtilityClass(ref valid);
+        using var cancellation = new CancellationTokenSource();
+        var service = new DonationFeeQueryService(
+            utility,
+            client,
+            Options.Create(new ProductDynamicsOptions { ProfileAlias = "church-report-test" }),
+            package01FeeReadsEnabled: true);
+        var targetContactId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+
+        var result = await service.RetrieveFeeAuditByContactAsync(targetContactId, cancellation.Token);
+
+        result.TotalAmount.Should().Be(1250);
+        result.Fees.Should().ContainSingle().Which.Amount.Should().Be(1250);
+        typeof(DonationFeeAuditRow).GetProperties()
+            .Should().OnlyContain(property => property.SetMethod == null,
+                "typed audit rows must be immutable DTOs rather than mutable payment form models");
+        result.Fees.Should().NotBeAssignableTo<DonationFeeAuditRow[]>(
+            "the request-local result must not expose its copied array for later replacement by another flow");
+        var writableFees = result.Fees as IList<DonationFeeAuditRow>;
+        writableFees.Should().NotBeNull(
+            "the result may expose a read-only collection interface, but the mutation attempt must be rejected");
+        Action replaceRow = () => writableFees![0] = new DonationFeeAuditRow(
+            "不應寫入",
+            DateTime.MinValue,
+            DateTime.MinValue,
+            "不應寫入",
+            0,
+            string.Empty,
+            string.Empty);
+        replaceRow.Should().Throw<NotSupportedException>(
+            "a caller must not replace a row after the request-local audit result is published");
+        client.ProfileAlias.Should().Be("church-report-test");
+        client.WorkloadSubjectId.Should().Be("church-report-service");
+        client.ContactId.Should().Be(targetContactId);
+        client.ContactName.Should().BeNull();
+        client.ObservedCancellationToken.Should().Be(cancellation.Token);
+    }
+
+    /// <summary>
+    /// 兩個不同聯絡人的 typed audit I/O 以交錯方式完成時，結果不得共用集合、總額或任一
+    /// contact 的資料。fake 每個 contact 各有一個 request-local completion source；這能偵測
+    /// static/cache/表單模型重用造成的 A/B 資料混入，而不建立 CRM、Session 或背景資源。
+    /// </summary>
+    [Fact]
+    public async Task Package01_fee_audit_keeps_interleaved_contact_results_isolated()
+    {
+        var firstId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+        var secondId = Guid.Parse("77777777-7777-7777-7777-777777777777");
+        var first = new TaskCompletionSource<IReadOnlyList<FeeRecordDto>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var second = new TaskCompletionSource<IReadOnlyList<FeeRecordDto>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var client = new AuditFeeReadClient(contactId => contactId == firstId ? first.Task : second.Task);
+        var valid = true;
+        using var utility = new ToolUtilityClass(ref valid);
+        var service = new DonationFeeQueryService(
+            utility,
+            client,
+            Options.Create(new ProductDynamicsOptions { ProfileAlias = "church-report-test" }),
+            package01FeeReadsEnabled: true);
+
+        var firstOperation = service.RetrieveFeeAuditByContactAsync(firstId, CancellationToken.None);
+        var secondOperation = service.RetrieveFeeAuditByContactAsync(secondId, CancellationToken.None);
+        second.SetResult(new[] { new FeeRecordDto { Amount = 22m, CategoryLabel = "B" } });
+        first.SetResult(new[] { new FeeRecordDto { Amount = 11m, CategoryLabel = "A" } });
+
+        var results = await Task.WhenAll(firstOperation, secondOperation);
+
+        results[0].TotalAmount.Should().Be(11);
+        results[0].Fees.Should().ContainSingle().Which.Category.Should().Be("A");
+        results[1].TotalAmount.Should().Be(22);
+        results[1].Fees.Should().ContainSingle().Which.Category.Should().Be("B");
+        results[0].Fees.Should().NotBeSameAs(results[1].Fees);
+    }
+
+    /// <summary>
+    /// 取消與 Int32 總額溢位都必須在 typed audit 結果發布前 fail closed。因為此 API 不接收
+    /// DonationPaymentFormModel，測試同時保護「已取消或不合法結果不會改寫 session-owned
+    /// form」的設計；取消 token 必須由 controller 原樣傳到底層 client，不可重試或轉舊路徑。
+    /// </summary>
+    [Fact]
+    public async Task Package01_fee_audit_forwards_cancellation_and_rejects_overflow_before_result()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var cancelledClient = new AuditFeeReadClient(_ =>
+            Task.FromCanceled<IReadOnlyList<FeeRecordDto>>(new CancellationToken(canceled: true)));
+        var valid = true;
+        using var utility = new ToolUtilityClass(ref valid);
+        var cancelledService = new DonationFeeQueryService(
+            utility,
+            cancelledClient,
+            Options.Create(new ProductDynamicsOptions { ProfileAlias = "church-report-test" }),
+            package01FeeReadsEnabled: true);
+
+        Func<Task> cancelled = () => cancelledService.RetrieveFeeAuditByContactAsync(Guid.NewGuid(), cancellation.Token);
+
+        await cancelled.Should().ThrowAsync<OperationCanceledException>();
+        cancelledClient.ObservedCancellationToken.Should().Be(cancellation.Token);
+
+        var overflowingClient = new AuditFeeReadClient(_ => Task.FromResult<IReadOnlyList<FeeRecordDto>>(new[]
+        {
+            new FeeRecordDto { Amount = int.MaxValue },
+            new FeeRecordDto { Amount = 1m }
+        }));
+        var overflowingService = new DonationFeeQueryService(
+            utility,
+            overflowingClient,
+            Options.Create(new ProductDynamicsOptions { ProfileAlias = "church-report-test" }),
+            package01FeeReadsEnabled: true);
+
+        Func<Task> overflowing = () => overflowingService.RetrieveFeeAuditByContactAsync(Guid.NewGuid(), CancellationToken.None);
+
+        await overflowing.Should().ThrowAsync<OverflowException>();
+    }
+
     private sealed class DeferredFeeReadClient : IPackage01FeeReadClient
     {
         // 此 fake 只記錄本次呼叫的取消權杖，不使用 static 或共享狀態，避免測試彼此污染。
@@ -229,6 +365,81 @@ public sealed class DonationFeeQueryServiceAsyncTests
             string profileAlias,
             string workloadSubjectId,
             Guid contactId,
+            string? contactName = null,
+            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<FeeRecordDto>> RetrieveFeesByDedicationPeriodAsync(
+            string profileAlias,
+            string workloadSubjectId,
+            Guid dedicationBookingId,
+            string paidPeriod,
+            string? dedicationBookingName = null,
+            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<StorLessonRecordDto>> RetrieveFeeEditorRowsByDiscipleLessonAsync(
+            string profileAlias,
+            string workloadSubjectId,
+            Guid discipleLessonId,
+            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<StorLessonRecordDto>> RetrieveStorLessonsByContactAsync(
+            string profileAlias,
+            string workloadSubjectId,
+            Guid contactId,
+            string? contactName = null,
+            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<StorLessonRecordDto>> RetrieveStorLessonsByDiscipleLessonAsync(
+            string profileAlias,
+            string workloadSubjectId,
+            Guid discipleLessonId,
+            string? lessonName = null,
+            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    /// <summary>
+    /// 僅供 typed audit 契約測試使用的 request-local fake。它不儲存 CRM Entity、Session 或
+    /// static state；每個 instance 只記錄單一測試安排的受限參數，以證明 service 沒有把
+    /// caller 文字、可變表單或非 deployment-owned routing 資料送往 ProductClient。
+    /// </summary>
+    private sealed class AuditFeeReadClient : IPackage01FeeReadClient
+    {
+        private readonly Func<Guid, Task<IReadOnlyList<FeeRecordDto>>> _retrieveByContact;
+
+        public AuditFeeReadClient(Func<Guid, Task<IReadOnlyList<FeeRecordDto>>> retrieveByContact)
+            => _retrieveByContact = retrieveByContact;
+
+        public string? ProfileAlias { get; private set; }
+
+        public string? WorkloadSubjectId { get; private set; }
+
+        public Guid ContactId { get; private set; }
+
+        public string? ContactName { get; private set; }
+
+        public CancellationToken ObservedCancellationToken { get; private set; }
+
+        public Task<IReadOnlyList<FeeRecordDto>> RetrieveDedicationFeesByContactAsync(
+            string profileAlias,
+            string workloadSubjectId,
+            Guid contactId,
+            string? contactName = null,
+            CancellationToken cancellationToken = default)
+        {
+            ProfileAlias = profileAlias;
+            WorkloadSubjectId = workloadSubjectId;
+            ContactId = contactId;
+            ContactName = contactName;
+            ObservedCancellationToken = cancellationToken;
+            return _retrieveByContact(contactId);
+        }
+
+        public Task<IReadOnlyList<FeeRecordDto>> RetrieveDedicationFeesByContactDateRangeAsync(
+            string profileAlias,
+            string workloadSubjectId,
+            Guid contactId,
+            DateTime startDate,
+            DateTime endDate,
             string? contactName = null,
             CancellationToken cancellationToken = default) => throw new NotSupportedException();
 

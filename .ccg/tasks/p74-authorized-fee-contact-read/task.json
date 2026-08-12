@@ -1,0 +1,12 @@
+{
+  "id": "p74-authorized-fee-contact-read",
+  "title": "P7.4 授權奉獻稽核讀取 consumer",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-security",
+  "currentPhase": "review",
+  "nextAction": "記錄最終品質證據並封存 CCG task",
+  "createdAt": "2026-08-13T05:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

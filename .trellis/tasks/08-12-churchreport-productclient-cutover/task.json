@@ -19,7 +19,8 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "08-13-p74-legacy-gateway-admission"
+    "08-13-p74-legacy-gateway-admission",
+    "08-13-08-13-p74-authorized-fee-contact-read"
   ],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [
@@ -27,6 +28,6 @@
     ".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md",
     ".trellis/spec/backend/cross-user-isolation-and-performance.md"
   ],
-  "notes": "P7.4 Batch A/B are committed-disabled local candidates. Batch B cancellation audit, Batch C caller-shape inventory and Package03 consumer inventory are committed. Only MemberInfo/Equipment StorLesson projection consumers are migrated-disabled; EntityCollection/SDK, financial-write-adjacent and Package03 consumers remain temporary-legacy/P7.5 blockers. The 2026-08-13 capacity audit remains exact enablement no-go: Dedicated/Embedded Data8 has only in-memory host-slot coordination, legacy ToolUtility is not bound to the same durable admission authority, and full legacy coverage is unproven. Child 08-13-p74-legacy-gateway-admission has now completed its fail-closed local admission/drain controller, runbook, validator and full local quality gate; it deliberately does not replace durable binding or enable any gate. All Package01 settings, including DedicatedGateway F5, remain false. Historical P7.2 Slice C remains closed and must not be retried. Next: use the authoritative matrix for an independent local-only consumer sub-batch; P7.5/P8 remain gated.",
+  "notes": "P7.4 Batch A/B are committed-disabled local candidates. Batch B cancellation audit, Batch C caller-shape inventory and Package03 consumer inventory are committed. Child 08-13-p74-authorized-fee-contact-read completes the local-only, disabled-by-default ORG-CALL-00005 consumer overlay: server-authorized browser locator, typed request-local immutable DTO result, no target Entity/fallback and full local quality evidence. It is not CE/cutover evidence and does not modify the immutable authoritative matrix baseline; Dedicated evidence remains pending. Only MemberInfo/Equipment StorLesson projection consumers and ORG-CALL-00005 are migrated-disabled; EntityCollection/SDK, financial-write-adjacent and Package03 consumers remain temporary-legacy/P7.5 blockers. The 2026-08-13 capacity audit remains exact enablement no-go: Dedicated/Embedded Data8 has only in-memory host-slot coordination, legacy ToolUtility is not bound to the same durable admission authority, and full legacy coverage is unproven. Child 08-13-p74-legacy-gateway-admission completed a fail-closed local admission/drain controller, runbook, validator and full local quality gate; it deliberately does not replace durable binding or enable any gate. All Package01 settings, including DedicatedGateway F5, remain false. Historical P7.2 Slice C remains closed and must not be retried. Next: use the authoritative matrix for an independent local-only consumer sub-batch; P7.5/P8 remain gated.",
   "meta": {}
 }

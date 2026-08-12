@@ -100,3 +100,8 @@
 2. 任一 CE/gate evidence 顯示 capacity 無法證明、timeout、ambiguous 或 no-go：不重試、不改 flag，
    記錄去識別化 blocker，繼續不相依的 local-only batch。
 - [x] Package03 special-resource consumer inventory completed; see `package03-consumer-inventory.md`. ORG-CALL-00028, ORG-CALL-00040 and ORG-CALL-00063 remain `temporary-legacy` because their current consumers do not satisfy the DTO-only, no-request-fallback and write-separation gates. No CE, feature-gate, traffic, P7.5 or P8 operation occurred.
+- [x] Child `08-13-p74-authorized-fee-contact-read` 完成本機、預設關閉的 `ORG-CALL-00005`
+      consumer overlay：controller 在 browser locator 前檢查 server login accounting snapshot；true-gate 僅走
+      typed Package01；結果使用 defensive copy/read-only wrapper 的 immutable DTO rows；沒有 target Entity、
+      form mutation、fallback 或 retry。完整 solution tests／Release build／encoding／diff check 均通過；
+      Gemini-only final review 無 Critical/Warning，Claude 45 秒未完成。此非 CE、cutover、P7.5 或 P8 證據。
