@@ -17,7 +17,7 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "P6、P7.0、P7.1、P7.2、P7 remaining rebaseline、跨程序集 WorkerTestHost 隔離與 P7.3 已封存且不得重做。P7.4 Batch A/B 已完成本機 migrated-disabled；Batch B cancellation lifecycle audit、Batch C 與 Package03 inventories 已完成本機驗證，待 scope-only commit。後續依 authoritative 70-row matrix 僅遷移 server-authorized、DTO-only、read-only consumer；temporary-legacy rows 必須交由明確 owning capability 清除。enablement 仍被 aggregate-capacity/drain-first、CE parity、rollback evidence 阻擋，P7.5/P8 仍受 immutable gate 保護。不得重試 P7.2 historical CE cycle。",
+  "nextAction": "P6、P7.0、P7.1、P7.2、P7 remaining rebaseline、跨程序集 WorkerTestHost 隔離與 P7.3 已封存且不得重做。P7.4 Batch A/B 已完成本機 migrated-disabled；Batch B cancellation lifecycle audit、Batch C 與 Package03 inventories 已提交。P7.4 feature enablement audit 是 no-go：legacy ToolUtility 和 Dedicated/Embedded Data8 尚未共用 durable admission，且無 verified drain-first/non-overlap runbook；所有 gates 仍為 false。後續依 authoritative 70-row matrix 僅遷移 server-authorized、DTO-only、read-only consumer，temporary-legacy rows 必須交由明確 owning capability 清除。CE parity、rollback 與 capacity evidence 未完成前，P7.5/P8 仍受 immutable gate 保護。不得重試 P7.2 historical CE cycle。",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",

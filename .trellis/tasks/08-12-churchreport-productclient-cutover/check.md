@@ -169,3 +169,20 @@ repository caller 的不一致推論未採用。本批狀態為「雙模型未�
 
 下一步是盤點 P7.3 已完成的 special-resource ProductClient 是否已有完整 server-authorized、DTO-only、
 read-only ChurchReport consumer；若沒有，記錄精確 no-go 後再檢視下一個 capability。所有 gate 繼續為 false。
+
+## P7.4 feature gate capacity enablement audit
+
+唯讀 audit 結論為 **NO-GO**，詳細內容見 `capacity-enablement-audit.md`。Package01 feature gate 維持 false，
+且沒有 CE、流量、P7.5 或 P8 操作。原因不是 ProductClient 或已遷移 read projection 的本機測試失敗，而是
+實際部署流量尚未能證明 aggregate capacity/non-overlap：Dedicated/Embedded Data8 runtime 建立行程內
+`InMemoryRuntimeHostSlotCoordinator`，legacy ToolUtility 使用另一個 process-wide singleton/connection pool，
+兩者沒有 shared durable admission；另外沒有實際演練的 drain-first runbook。
+
+`SqlRuntimeHostSlotCoordinator` 與其跨 process tests 是日後的可用基礎，但沒有證明現有 legacy ToolUtility
+和 ChurchReport Package01 deployment 使用相同 canonical Organization、namespace、epoch/fencing 與 admission
+permit。不得把元件存在或 isolated test 誤當成切流證據。
+
+已嘗試依 45 秒規則執行 CCG capacity architect audit；在時間上限內沒有產生 usable backend output，故立刻
+改採本機 call-chain/configuration evidence。本 audit 狀態為「雙模型未完成」，不能稱為雙模型審查完成。
+恢復條件是把兩條路徑接到同一 durable authority 並以兩 host/path 證明 aggregate capacity/drain baseline，
+或由 deployment owner 演練並記錄 drain-first non-overlap runbook；在此之前只繼續 local-only P7 work。

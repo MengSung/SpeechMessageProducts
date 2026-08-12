@@ -66,8 +66,10 @@
       維持 `temporary-legacy`，不以 ToolUtility bridge 假裝完成。
 - [ ] 每個 capability 加入/更新 deployment-owned disabled gate 與 rollback document；任何 flag=true
       測試皆只在 local fake executor/client 中執行，不開啟環境設定或 CE 流量。
-- [ ] 對 Gate enablement 做 read-only evidence audit：是否已有 durable shared admission authority 或
-      verified drain-first non-overlap runbook。若沒有，寫入 exact no-go，保留所有 gates=false。
+- [x] 對 Gate enablement 做 read-only evidence audit：現有 Dedicated/Embedded Data8 runtime 只有
+      in-memory coordinator，legacy ToolUtility 未接入同一 durable admission/host-slot authority，且 repository
+      沒有已驗證 drain-first non-overlap runbook。因此維持 exact no-go 與所有 gates=false；完整證據和恢復條件
+      見 `capacity-enablement-audit.md`。
 - [ ] 執行完整 P7.4 focused suites、`dotnet test .\\SpeechMessageProducts.sln --configuration Release --no-restore`、
       `dotnet build .\\SpeechMessageProducts.sln --configuration Release --no-restore`、encoding/CRLF scan、
       `git diff --check`、scope check 和 CCG review。
