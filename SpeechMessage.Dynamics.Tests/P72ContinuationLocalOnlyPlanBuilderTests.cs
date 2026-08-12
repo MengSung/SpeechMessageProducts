@@ -149,7 +149,7 @@ public sealed class P72ContinuationLocalOnlyPlanBuilderTests
         string marker)
         => definition.AllowedInputNames.ToDictionary(
             inputName => inputName,
-            inputName => $"{inputName}-{marker}",
+            inputName => (string?)$"{inputName}-{marker}",
             StringComparer.Ordinal);
 
     /// <summary>
