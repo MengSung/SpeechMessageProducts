@@ -17,13 +17,15 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Keep this parent and the existing P7.0 task in planning while P6 completes its offline closure and is archived; do not resume the retired P6.2 live-compatibility bridge. After P6 archive, activate P7.0 for the Data8-first Embedded+Data8/DedicatedGateway+Data8 local route; do not start P8.",
+  "nextAction": "P6、P7.0、P7.1 與 P7.2 已封存且不得重做。08-12-p7-remaining-work-rebaseline 與 08-12-process-boundary-cross-assembly-isolation 已完成品質閘門，下一步是 scope-only commit/archive，接著依 authoritative 70-row gap matrix 建立 P7.3 churchreport-special-resource-migrations。不得開始 P8，也不得重試 P7.2 historical CE cycle。",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",
     "08-07-p7-1-package01-data8-read",
     "08-07-churchreport-write-action-function-migrations",
-    "08-12-p7-2-continuation-release-candidate"
+    "08-12-p7-2-continuation-release-candidate",
+    "08-12-p7-remaining-work-rebaseline",
+    "08-12-process-boundary-cross-assembly-isolation"
   ],
   "parent": null,
   "relatedFiles": [],

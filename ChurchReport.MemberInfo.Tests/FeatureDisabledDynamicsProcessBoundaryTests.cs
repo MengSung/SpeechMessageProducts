@@ -3,26 +3,10 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using FluentAssertions;
+using SpeechMessage.Testing;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests;
-
-/// <summary>
-/// 為需要啟動真實 ChurchReport 子程序的測試建立獨占集合。
-///
-/// 這個集合刻意禁止與同一測試組件的其他 collection 平行執行；子程序、loopback
-/// listener、目前的處理序快照與暫時設定都屬於 process-wide 資源。若與其他測試同時
-/// 修改或觀察它們，便無法區分「本測試建立的資源」和「其他測試建立的資源」，會破壞
-/// 無 Session／Memory／Resource Leakage 的驗證意義。
-/// </summary>
-[CollectionDefinition(Name, DisableParallelization = true)]
-public sealed class FeatureDisabledDynamicsProcessBoundaryCollection
-{
-    /// <summary>
-    /// xUnit collection 的固定名稱；只有明確加入本集合的子程序測試才會被序列化。
-    /// </summary>
-    public const string Name = "Feature-disabled Dynamics process boundary";
-}
 
 /// <summary>
 /// 驗證 ChurchReport 在 <c>DynamicsAccess:Package01FeeReadsEnabled=false</c> 時的真實
@@ -34,7 +18,7 @@ public sealed class FeatureDisabledDynamicsProcessBoundaryCollection
 /// 測試只送出未驗證的 <c>GET /health</c>，不載入登入表單、不建立瀏覽器 Session、更不
 /// 提交登入 POST；因此它不會把測試資料或使用者身分帶進任何 CRM/Dynamics 路徑。
 /// </summary>
-[Collection(FeatureDisabledDynamicsProcessBoundaryCollection.Name)]
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
 public sealed class FeatureDisabledDynamicsProcessBoundaryTests
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);

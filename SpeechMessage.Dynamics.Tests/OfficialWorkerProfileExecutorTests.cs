@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using FluentAssertions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.WorkerSupervisor;
+using SpeechMessage.Testing;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -12,6 +13,7 @@ namespace SpeechMessage.Dynamics.Tests;
 /// 測試不載入 CRM SDK、不讀 Credential，也不連線到 Dynamics；只證明 process／pipe／
 /// discard task／operation lease 在完成與重複 Dispose 後回到零基線。
 /// </summary>
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
 public sealed class OfficialWorkerProfileExecutorTests
 {
     private static readonly string[] SensitiveChildEnvironmentSentinelNames =

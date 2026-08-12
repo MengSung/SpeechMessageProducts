@@ -280,3 +280,13 @@ ToolUtility，以及未來多產品按需擴充 operation」的規劃。對照
 
 - 實作任何程式碼變更（本任務只到規劃）
 - 移除 Data8 或 Worker 資產（已決議永久保留為擴充點）
+
+## 2026-08-12 重新基準化補充（現行權威）
+
+本 parent 的早期文字仍描述 P6／P7.0 尚待完成；該描述已被下列封存證據取代，僅保留作為歷史規劃脈絡：
+
+- P3 Data8 generation-owned pool、P4 Embedded、P5 Dedicated Gateway、P6 Router／Pool／Lease 已完成；Official Worker live compatibility 維持 `evidence-pending`，但不阻擋 Data8-first P7。
+- P7.0 已封存 70-row capability inventory 與 coverage validator；P7.1 已完成六項 Package01 typed Data8 read，取得 CE 9.1 唯讀證據，ChurchReport feature gate 仍為 disabled。
+- P7.2 已封存本機候選版。Slice C 最後的 fresh CE cycle 是 `write-not-committed` no-go，且 exact cleanup 已完成；D–H 是 local-only contract，不能被宣稱為 executor、consumer 或 CE evidence。
+
+現行唯一可執行的後續工作為 child `08-12-p7-remaining-work-rebaseline`：它必須以現行程式碼、設定與上述唯讀封存 evidence 產生新的 authoritative 70-row gap matrix。只有 matrix 指出且完成驗收的能力才可建立後續 P7.1／P7.2／P7.3／P7.4／P7.5 child；P8 一律等待 P7.5 immutable handoff。不得重試已封存的 CE cycle、復用 nonce／ledger／fixture／descriptor，或把 disabled feature gate、local-only plan、registry declaration 當成上線證據。

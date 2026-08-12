@@ -39,4 +39,7 @@
     <ProjectReference Include="..\SpeechMessage.Dynamics.SqlCoordinatorTestWorker\SpeechMessage.Dynamics.SqlCoordinatorTestWorker.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.WorkerTestHost\SpeechMessage.Dynamics.WorkerTestHost.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\TestInfrastructure\WorkerTestHostProcessBoundaryCollection.cs" Link="Support\WorkerTestHostProcessBoundaryCollection.cs" />
+  </ItemGroup>
 </Project>

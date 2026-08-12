@@ -1,0 +1,22 @@
+{
+  "id": "p7-remaining-work-rebaseline",
+  "title": "P7 尚餘能力重新基準化",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "最終 validator、13 tests、solution tests、Release build、encoding 與 scope check 已通過；reviewer Claude 逾 45 秒，已記錄雙模型未完成。執行 scope-only work commit，接著 archive CCG/Trellis task 並建立 P7.3 child。",
+  "createdAt": "2026-08-12T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "predecessors": [
+    ".ccg/tasks/archive/2026-08/p7-2-continuation-release-candidate"
+  ],
+  "constraints": [
+    "Do not reopen archived P4, P5, P6, P7.0, P7.1, or P7.2 tasks",
+    "Do not retry historical CE cycles or reuse nonce, ledger, fixture, or descriptor",
+    "Registry, executor, ProductClient, consumer, CE evidence, and rollout evidence remain independent states",
+    "No CE mutation, feature flag, traffic cutover, Official Worker, CE 8.2, or cloud deployment in this rebaseline task",
+    "Gemini and Claude wait budget is at most 45 seconds; record a degraded result rather than retry waiting"
+  ]
+}

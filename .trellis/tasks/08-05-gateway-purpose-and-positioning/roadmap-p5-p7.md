@@ -163,6 +163,25 @@ P6 closure gate 全綠後，整合 Goal 可一次授權：
 
 只有下列情況可以暫停並要求使用者：缺少無法由 repository 推導的 profile／secret／非正式 CE fixture、需要不可逆資料操作、遇到產品語意歧義、或同一阻塞條件依 Goal 規則已重試仍無法安全前進。一般測試失敗、編譯錯誤與可修復的文件／程式缺口由代理自行診斷、修正、重跑與續作。
 
+## 2026-08-12 路線圖狀態校正
+
+| 階段 | 現行狀態 | 可否重做／啟動 |
+| --- | --- | --- |
+| P3–P6 | 已完成；P6 Official Worker live compatibility=`evidence-pending` | 不重做；不阻擋 Data8-first P7。 |
+| P7.0 | 已封存 70-row inventory／validator | 唯讀 baseline。 |
+| P7.1 | 六個 Package01 typed Data8 read 與 CE 9.1 read-only evidence 已完成；consumer disabled | 唯讀 evidence；未代表所有 read 完成。 |
+| P7.2 | 本機 RC 已封存；Slice C CE no-go 已 cleanup；D–H local-only | 舊 cycle 永不重試；不得當作 CE/cutover evidence。 |
+| P7 remaining rebaseline | 已完成品質閘門，待 scope-only commit/archive | authoritative 70-row gap matrix 是後續唯一排程基準。 |
+| P7.3–P7.5 | P7.3 應於 rebaseline archive 後建立；P7.4/P7.5 尚未建立 | 依 matrix 與前置 child gate 依序建立。 |
+| P8.0–P8.4 | 尚未建立 | 僅在 P7.5 immutable handoff 後建立。 |
+
+後續品質策略不變：一般變更執行 targeted tests；每一 child 邊界與 P7/P8 最終交付執行完整 solution tests、Release build、encoding／CRLF、scope、isolation、lifecycle 與 rollback gate。Gemini／Claude 每次等待上限 45 秒，逾時或 quota/session 限制即記錄降級並改採本機驗證，不得反覆等待。
+
 ## 13. 目前下一步
 
-先完成 P6.1 closure：正規化本批文件並建立 scoped baseline；記錄 P6.1 已完成與 P6.2 Official Worker live compatibility=`evidence-pending`，不重跑 startup；同時把 `sunnyvalechback` 的環境級 test-member 可行性記錄到 P7 parent。P6 正式結案後，依明確 task path 自動銜接 P7.0；由 P7.0 matrix 決定 P7.2 required families，再逐 family 完成 fixture gate。不要在 P6 結案前啟動 P7，也不要跳到 P8。
+先完成 `08-12-p7-remaining-work-rebaseline` 與
+`08-12-process-boundary-cross-assembly-isolation` 的 scope-only commit/archive。之後建立
+`churchreport-special-resource-migrations`，以 matrix 的 5 個 special-resource row 為範圍，先完成
+attachment/image/stream、paging/result、metadata cache 的 bounded owner、lifetime、cancellation、drain、
+dispose 與 A/B isolation evidence。P7.4 僅能在個別 capability 的 CE/parity/rollback gate 都通過後建立；
+P7.5 與 P8 均不得提前啟動。

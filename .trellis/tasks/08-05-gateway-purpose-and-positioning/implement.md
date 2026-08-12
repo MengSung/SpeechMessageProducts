@@ -114,3 +114,11 @@ authority，runbook 必須證明先 drain 舊路徑再啟用新路徑。不可�
 ## 8. 執行起點
 
 目前執行起點是 P6.1 document/quality closure baseline；不是重新啟動 P5、P6.2 live startup 或先執行 P7.0。使用者之後若提交整合 `/goal` 提示詞，代理先封存 P6 的離線擴充點與 `evidence-pending` 結論，再以 `.trellis/tasks/08-05-gateway-capability-inventory` 明確路徑啟動 P7.0。完成 inventory/validator 與 per-family evidence/fixture requirements 後，才建立各 P7.1～P7.5 child 的精確 code-level plan，並依 gate 執行。禁止在 capability 邊界尚未證實前一次性修改全部 ChurchReport CRM 呼叫，也不得由該 goal 啟動 P8。
+
+## 2026-08-12 後續執行順序（取代過期 P6/P7.0 next action）
+
+1. 完成並封存 `08-12-p7-remaining-work-rebaseline`：以 70-row P7.0 baseline 建立 deterministic authoritative gap matrix、validator、測試與 parent update；不執行 CE mutation。
+2. 依 matrix 剩餘能力建立可獨立驗收的 P7.1/P7.2 child；每個寫入 family 必須使用新的 child/nonce/ledger/fresh fixture/preflight/read-back/reconcile/cleanup，historical CE cycle 一律不重試。
+3. 完成 P7.3 special-resource resource-owner/lifecycle child，然後才依 evidence 建立 P7.4 per-capability disabled-by-default cutover；禁止 request-time fallback。
+4. 僅在 matrix 沒有 temporary legacy/unclassified production row 且 ChurchReport zero-reference、parity、soak、drain、rollback gate 全綠時，建立 P7.5 ToolUtility removal child。
+5. P7.5 已提交、封存與 immutable handoff 後，才建立 P8 parent 與 P8.0–P8.4；外部 host、DNS、TLS、service identity、secret provider、CE/ADFS reachability 或 permission 缺失時僅交付 repository-side validator/runbook/handoff，絕不猜測或假裝部署。

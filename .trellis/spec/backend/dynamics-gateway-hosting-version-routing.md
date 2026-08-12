@@ -3318,3 +3318,202 @@ materialize.Should().Throw<InvalidOperationException>();
 This tests the same startup validation boundary with deterministic ownership,
 while separate positive HTTP and Kestrel tests continue to prove the hosted
 pipeline.
+
+## Scenario: P7 capability rebaseline evidence artifact
+
+### 1. Scope / Trigger
+
+When a migration task needs to schedule or release-gate a set of legacy
+Dynamics call sites, create a deterministic offline matrix from the canonical
+call-site inventory. This applies before any P7 capability cutover, P7.5
+legacy removal claim, or P8 handoff. It does not grant a connector operation,
+CE mutation, feature-gate change, or deployment action.
+
+### 2. Signatures
+
+The task-owned analyzer has only a bounded local build/validate surface:
+
+```text
+python build_rebaseline.py --output authoritative-gap-matrix.json
+python build_rebaseline.py --validate authoritative-gap-matrix.json
+```
+
+It has no endpoint, credential, identity, profile, connector, network or CE
+arguments.
+
+### 3. Contracts
+
+- The canonical phase0 inventory owns the immutable 70 call-site IDs and its
+  current file checksum. A derivative coverage artifact may provide family
+  classification only after its ID set and operation IDs exactly match phase0;
+  its embedded historic hash cannot replace the current canonical checksum.
+- A row records registry, Data8 executor, typed ProductClient, ChurchReport
+  consumer, CE evidence, host evidence, rollout and rollback as independent
+  finite states. Static declarations, disabled gates, unit tests and
+  local-only plans do not imply real execution or cutover.
+- Static symbol scanning first removes C# comments and quoted literals; an
+  `OperationIds` spelling in documentation or a diagnostic string is not
+  implementation evidence.
+- A local-only row must stay executor-rejected, client-unimplemented,
+  consumer-unmigrated and CE-not-executed until a separate capability child
+  proves a fresh, allowed evidence family.
+- Output is UTF-8 without BOM, CRLF-only with a final CRLF, deterministic in
+  call-site order and contains only bounded de-identified classifications.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Phase0/coverage row count, unique IDs or operation IDs disagree | Fail closed; do not emit a green matrix. |
+| Matrix checksum differs from the current canonical phase0 file | Validator reports a source-hash error. |
+| Local-only row claims executor, ProductClient, consumer or CE success | Validator rejects the row. |
+| Disabled consumer is represented as enabled without CE/Dedicated evidence | Validator rejects the row. |
+| Requested output contains identity, routing, credential or raw upstream fields | Test/validator rejects the artifact before delivery. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: the analyzer reads fixed repository files, compares exact symbols and
+  immutable IDs, and returns a short-lived JSON snapshot with no connector.
+- Base: a typed client may be `implemented` while the consumer remains
+  `not-migrated` or `migrated-disabled`; the matrix shows that gap explicitly.
+- Bad: infer CE 9.1, Dedicated, product traffic or ToolUtility removal from a
+  registry entry, a client type, a local reducer or a feature flag string.
+
+### 6. Tests Required
+
+- Assert exactly the canonical 70 IDs, canonical checksum and deterministic
+  ordering.
+- Assert a client-only operation remains `not-migrated`, an explicitly gated
+  consumer remains `migrated-disabled`, and multiline C# constants are not
+  omitted from static implementation detection.
+- Assert a comment-only and literal-only `OperationIds` reference produces no
+  implementation evidence.
+- Fault-inject local-only CE success and disabled-consumer enabled state; both
+  must fail closed.
+- Byte-check generated JSON for UTF-8 no BOM, CRLF-only and final CRLF.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+Package01 registry exists -> claim CE/Dedicated consumer cutover complete
+```
+
+#### Correct
+
+```text
+registry=declared, executor=implemented, client=implemented,
+consumer=migrated-disabled, ce91=succeeded, dedicated=evidence-pending
+```
+
+The correct form preserves the missing evidence so later P7/P8 work cannot
+accidentally remove a legacy path or change traffic before its actual proof.
+
+## Scenario: Cross-assembly WorkerTestHost process-boundary tests
+
+### 1. Scope / Trigger
+
+Apply this scenario whenever a test class starts `SpeechMessage.Dynamics.WorkerTestHost`,
+or asserts that its product startup created no `WorkerTestHost`. xUnit collection
+parallelization is assembly-local; it cannot serialize a Dynamics testhost against a
+ChurchReport testhost. A test must never weaken its process/listener/cleanup assertion
+just because another test assembly can create the same process name.
+
+### 2. Signatures
+
+The test-only source linked into each participating test assembly exposes one collection
+and one `IDisposable` fixture:
+
+```csharp
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
+public sealed class WorkerBoundaryTest
+{
+}
+
+public sealed class WorkerTestHostProcessBoundaryLease : IDisposable
+{
+    public WorkerTestHostProcessBoundaryLease();
+}
+```
+
+The default fixture path is derived as follows; the SHA-256 output is only a
+same-worktree partition key, never a product identifier or routing input:
+
+```text
+%TEMP%/speechmessage-worker-testhost-process-boundary-v1-{sha256(solution-root)[0..16]}.lock
+```
+
+### 3. Contracts
+
+- The lease source is linked only into test projects. No product, ProductClient,
+  Gateway, connector, worker runtime or deployment assembly may reference it.
+- The fixture owns exactly one `FileStream` opened with `FileShare.None` for the
+  whole xUnit class collection lifetime. It writes no contents and retains no process
+  ID, profile, session, principal, credential, endpoint, payload or test result.
+- Same-worktree testhosts derive the same path and therefore serialize before either
+  takes a process baseline. Different checkout roots derive different opaque path
+  partitions, avoiding unrelated worktree contention.
+- Acquisition has a fixed deadline. Only Win32 sharing violation (32) and lock
+  violation (33) may poll; any other I/O error is rethrown unchanged. On deadline,
+  throw a bounded `TimeoutException` and do not execute the ambiguous observer class.
+- `Dispose` closes the sole stream exactly once. If a testhost aborts, Windows owns
+  closing the process handle. A remaining empty lock-file name is not a held lease.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Same worktree already holds lease | Wait only until fixed deadline, then fail closed with bounded timeout. |
+| Different checkout/worktree | Derive a different hash partition; do not cause irrelevant test serialization. |
+| Path, permission, disk or other non-contention I/O error | Rethrow immediately; never recategorize as contention timeout. |
+| Fixture dispose / testhost abort | Release `FileStream` directly or through OS process-handle cleanup; next bounded acquire can proceed. |
+| ChurchReport disabled test observes a worker after lease acquisition | Preserve the original process/listener/cleanup failure; do not suppress it. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a Dynamics worker-producing class and the ChurchReport zero-worker observer
+  share the source-linked collection. The latter waits before its baseline, then still
+  proves no worker was created by its own startup.
+- Base: a prior aborted testhost leaves an empty path on disk but no open handle; the
+  next fixture obtains the lease and continues safely.
+- Bad: rely on two identically named assembly-local collections, use a fixed `%TEMP%`
+  file shared by every checkout, catch every `IOException` as a timeout, or remove the
+  ChurchReport process assertion to make concurrent tests pass.
+
+### 6. Tests Required
+
+- Contract-test contention timeout, dispose release, non-contention I/O failure and
+  same-worktree/different-worktree path derivation without CRM, Gateway or network I/O.
+- Run the worker soak/process-boundary tests and the ChurchReport disabled-boundary
+  test; then run the complete solution suite and assert no `WorkerTestHost` remains.
+- Verify source is linked only by test `.csproj` files, both modified sources are
+  UTF-8 without BOM with CRLF/final CRLF, and `git diff --check` is clean.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+[Collection("Worker tests")]
+public sealed class DynamicsTest { }
+
+[Collection("Worker tests")]
+public sealed class ChurchReportTest { }
+```
+
+Those matching names do not cross an xUnit assembly boundary, so a valid Dynamics
+worker can still contaminate the ChurchReport process baseline.
+
+#### Correct
+
+```csharp
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
+public sealed class DynamicsTest { }
+
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
+public sealed class ChurchReportTest { }
+```
+
+Both test assemblies compile the same test-only fixture source and therefore acquire
+the same worktree-partitioned OS lease before observing the shared process namespace.

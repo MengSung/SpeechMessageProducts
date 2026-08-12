@@ -24,4 +24,7 @@
     <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor.RichMenus\LineMessagingProcessor.RichMenus.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\TestInfrastructure\WorkerTestHostProcessBoundaryCollection.cs" Link="Support\WorkerTestHostProcessBoundaryCollection.cs" />
+  </ItemGroup>
 </Project>

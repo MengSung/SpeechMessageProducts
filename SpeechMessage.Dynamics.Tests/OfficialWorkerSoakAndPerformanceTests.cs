@@ -5,27 +5,10 @@ using System.Security.Cryptography;
 using FluentAssertions;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.WorkerSupervisor;
+using SpeechMessage.Testing;
 using Xunit.Abstractions;
 
 namespace SpeechMessage.Dynamics.Tests;
-
-/// <summary>
-/// 定義官方 Worker 本機 soak 測試的獨立 xUnit collection。
-/// 此 collection 停用跨 collection 平行執行，避免其他測試同時啟動 WorkerTestHost，
-/// 讓行程、Handle、Thread 與延遲觀測只反映本測試擁有的有界工作量。
-/// </summary>
-internal static class OfficialWorkerSoakTestCollection
-{
-    internal const string Name = "Official worker soak and performance";
-}
-
-/// <summary>
-/// 將官方 Worker soak 測試與其餘測試序列化；本型別不持有行程、Pipe、Timer 或背景工作。
-/// </summary>
-[CollectionDefinition(OfficialWorkerSoakTestCollection.Name, DisableParallelization = true)]
-public sealed class OfficialWorkerSoakTestCollectionDefinition
-{
-}
 
 /// <summary>
 /// 以真實 <c>SpeechMessage.Dynamics.WorkerTestHost</c> 與
@@ -34,7 +17,7 @@ public sealed class OfficialWorkerSoakTestCollectionDefinition
 /// Session 或任何網路資源；每一代 Worker 的 Process、Pipe、輸出讀取背景工作與 active operation
 /// 都必須在 recycle/drain 後回到零，測試另以精確 PID 與啟動時間確認 OS 行程已退出。
 /// </summary>
-[Collection(OfficialWorkerSoakTestCollection.Name)]
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
 public sealed class OfficialWorkerSoakAndPerformanceTests
 {
     private const int GenerationCount = 6;

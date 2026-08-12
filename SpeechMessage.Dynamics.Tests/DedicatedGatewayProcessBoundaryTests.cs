@@ -4,25 +4,10 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.Json;
 using FluentAssertions;
+using SpeechMessage.Testing;
 using Xunit;
 
 namespace SpeechMessage.Dynamics.Tests;
-
-/// <summary>
-/// 為 Dedicated Gateway 的真實子程序邊界測試建立獨占 collection。
-///
-/// 此 collection 禁止平行執行，因為測試需要暫時建立 Kestrel HTTPS listener、子程序與
-/// 作業系統處理序快照。這些資源皆屬 process-wide；若與其他案例同時讀寫，便無法證明
-/// shutdown 後的 listener、process、socket、背景工作或可變組態確實回到基線。
-/// </summary>
-[CollectionDefinition(Name, DisableParallelization = true)]
-public sealed class DedicatedGatewayProcessBoundaryCollection
-{
-    /// <summary>
-    /// 取得 xUnit collection 的穩定名稱；只有明確加入的程序邊界案例才會受到此隔離規則保護。
-    /// </summary>
-    public const string Name = "Dedicated Gateway process boundary";
-}
 
 /// <summary>
 /// 驗證 Visual Studio DedicatedGateway launch profile 在真實 Gateway process 中的啟動、
@@ -33,7 +18,7 @@ public sealed class DedicatedGatewayProcessBoundaryCollection
 /// 因此它專門保護「Dedicated composition root 可啟動且可回收」的本機程序邊界，而非冒充 P6 的
 /// 外部 Dynamics 相容性量測。
 /// </summary>
-[Collection(DedicatedGatewayProcessBoundaryCollection.Name)]
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
 public sealed class DedicatedGatewayProcessBoundaryTests
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);

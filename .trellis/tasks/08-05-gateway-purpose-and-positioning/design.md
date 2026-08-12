@@ -170,3 +170,9 @@ Organization。每個 process 自己的 In-Memory admission／host-slot coordina
 - 不在 P6／P7 本機階段提前部署或切換雲端 Central Gateway；該工作由 P8 獨立承擔。
 - 不把第二、第三產品 onboarding 併入 ChurchReport 的 P8 結案條件。
 - 不在缺少真機證據時宣稱 CE 8.2／9.1 operation coverage 完成。
+
+## 2026-08-12 重新基準化設計決策
+
+P7 之後的 child 不得再以 parent 早期的 P6/P7.0 next action 為執行依據。`08-12-p7-remaining-work-rebaseline` 以 P7.0 70-row source matrix 為 immutable baseline，將現況分解為 registry、Data8 executor、typed ProductClient、ChurchReport consumer、CE 8.2/9.1、Embedded/Dedicated、rollout/rollback、temporary legacy、P7.3 資源需求與 P7.5 removal blocker 等獨立狀態。
+
+這個 matrix 是 capability child 的排程與 release gate，不是 CE 寫入授權、profile routing authority 或部署設定。任何 local-only reducer、disabled gate、靜態 registry、unit test 或歷史 CE no-go 都不能被升格為 product cutover 或 live evidence。P7.4 必須逐 capability、disabled-by-default 並具 deterministic rollback；P7.5 只能在所有 production row 遷移及 zero-reference scan 通過後移除 ChurchReport dependency；P8 僅可由 P7.5 的 immutable handoff 建立。

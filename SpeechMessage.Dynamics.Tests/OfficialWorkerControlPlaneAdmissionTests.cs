@@ -8,6 +8,7 @@ using SpeechMessage.Dynamics.ControlPlane.Capacity;
 using SpeechMessage.Dynamics.ControlPlane.DependencyInjection;
 using SpeechMessage.Dynamics.ControlPlane.Runtime;
 using SpeechMessage.Dynamics.WorkerSupervisor;
+using SpeechMessage.Testing;
 
 namespace SpeechMessage.Dynamics.Tests;
 
@@ -16,6 +17,7 @@ namespace SpeechMessage.Dynamics.Tests;
 /// 測試只使用 SDK-free test worker，不載入 CRM SDK、Credential、Token、Session 或產品要求狀態；
 /// 每個案例都明確檢查 immutable generation identity、單 Worker 單一在途限制與 drain 後資源歸零。
 /// </summary>
+[Collection(WorkerTestHostProcessBoundaryCollection.Name)]
 public sealed class OfficialWorkerControlPlaneAdmissionTests
 {
     /// <summary>
