@@ -110,3 +110,62 @@ aggregate-capacity／drain-first no-go 不變。
 P7.4 保持 `in_progress`。下一個可進行的本機範圍是 Phase 4 的 ORG-CALL-00005、00064、00066 caller-shape
 inventory；先確認每個 consumer 的 DTO／response contract、legacy bridge、rollback owner 與 required evidence，
 再建立獨立 sub-batch。不得因 Batch B 本機通過而啟用 gate、開始 P7.5 或建立 P8。
+
+## Batch B review follow-up：取消例外不可進入 HandleError
+
+P7.4 Batch B review 指出的兩個 `catch (Exception)` 經本機 root-cause tracing 確認為真實生命週期風險：
+`LoadContactStorLessons` 與 `LoadEquipmentStorLessons` 雖先以
+`catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)` 重新擲出，
+但只有 request token 已標示取消才會命中。若下游 ProductClient／Data8 lease 以不同 token、timeout 或內部
+取消來源擲出 `OperationCanceledException`，該例外會落入後續 catch-all，被 `HandleError` 轉成回應或診斷；
+這會違反原始取消語意，並可能在已中止 request 後延長例外／回應資料生命週期。
+
+先新增並執行 focused source-contract test，RED 如預期：
+
+```text
+dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~StorLessonControllerProductClientContractTests
+失敗：Stor_lesson_actions_leave_operation_cancellation_outside_generic_error_handling
+原因：MemberInfo action 尚未以 exception filter 排除 OperationCanceledException。
+```
+
+最小修正將兩個 action 的一般處理改為
+`catch (Exception ex) when (ex is not OperationCanceledException)`（Equipment 同理使用 `e`）。因此所有
+`OperationCanceledException` 均保留原始 token／堆疊並自然離開 action，由 ASP.NET Core 與既有
+ProductClient／lease owner 完成取消與釋放；非取消錯誤仍完全維持既有 `HandleError` 行為。沒有新增
+fallback、DI、ToolUtility、feature gate、CE 或流量變更。
+
+GREEN 與格式證據：
+
+```text
+dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~StorLessonControllerProductClientContractTests
+通過：3，失敗：0。
+
+git diff --check
+通過（無輸出）。
+```
+
+三個 changed C# 檔案均以 byte-level 檢查確認 UTF-8 without BOM、僅 CRLF、且 final CRLF。此次只處理
+review 指定的兩個 action；同檔其他既有 catch-all 不屬本次 Package01 stor-lesson async cancellation
+call-chain，未擴張修改。
+
+## Batch C：Package01 fee caller-shape inventory
+
+本輪只讀盤點已寫入 `batch-c-caller-shape-inventory.md`。它確認既有 typed ProductClient capability
+存在不等於 consumer 可安全遷移：
+
+- `ORG-CALL-00005` 的實際 action 邊界接收 browser-supplied contact ID，且既有流程會復用可變付款
+  form model。未先完成 server-side selected-contact authorization 與 request-local AJAX response 前，接上
+  ProductClient 會讓 caller-provided CRM ID 跨越授權邊界，故維持 `temporary-legacy`。
+- `ORG-CALL-00064` 是 recurring payment-return 中建立 fee、更新 booking、可能更新 contact/card 前的
+  金融判定；它需要 payment write 的 idempotency、timeout-after-dispatch、read-back、reconciliation 與
+  rollback owner，不能冒充成 P7.4 的純 read migration。
+- `ORG-CALL-00066` 綁定 fee editor 的 `Entity`、`EntityCollection`、formatted values 與 mutable `FeeList`，
+  並相鄰 update/create/assign-owner 路徑；DTO rehydration 會把 SDK bridge 偽裝成遷移，故維持
+  `temporary-legacy`。
+
+Batch C 未執行 CE request、mutation、feature gate enablement、流量切換、P7.5 或 P8。CCG architect
+run 遵守 45 秒上限：Gemini 僅產生逾時的部分輸出、Claude 受 provider quota/session limit 阻擋；其對
+repository caller 的不一致推論未採用。本批狀態為「雙模型未完成」，結論以本機 call-chain evidence 為準。
+
+下一步是盤點 P7.3 已完成的 special-resource ProductClient 是否已有完整 server-authorized、DTO-only、
+read-only ChurchReport consumer；若沒有，記錄精確 no-go 後再檢視下一個 capability。所有 gate 繼續為 false。

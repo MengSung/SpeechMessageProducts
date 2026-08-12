@@ -60,20 +60,21 @@ public sealed class StorLessonControllerProductClientContractTests
 
     /// <summary>
     /// 已取消的 HTTP request 不得被泛用例外處理轉成錯誤回應或診斷資料。兩個非同步 action
-    /// 都必須只在其 <see cref="HttpContext.RequestAborted"/> 已取消時重新擲出
-    /// <see cref="OperationCanceledException"/>；這讓 ASP.NET Core 結束原 request，而不會把
-    /// 已中止的 ProductClient work、例外或使用者資料保留到 HandleError 的後續流程。
+    /// 的一般例外處理必須排除 <see cref="OperationCanceledException"/>，讓取消例外自然離開
+    /// action 並由 ASP.NET Core 結束原 request；控制器不得以 catch/轉譯方式介入取消例外，
+    /// 也不得把已中止的 ProductClient work、例外或使用者資料保留到 HandleError 的後續流程。
     /// </summary>
     [Fact]
-    public void Stor_lesson_actions_rethrow_request_cancellation_before_generic_error_handling()
+    public void Stor_lesson_actions_leave_operation_cancellation_outside_generic_error_handling()
     {
         var memberInfoSource = ReadSource("MemberInfoController.cs");
         var equipmentSource = ReadSource("EquipmentController.cs");
-        const string cancellationGuard =
-            "catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)";
-
-        memberInfoSource.Should().Contain(cancellationGuard);
-        equipmentSource.Should().Contain(cancellationGuard);
+        memberInfoSource.Should().Contain(
+            "catch (Exception ex) when (ex is not OperationCanceledException)");
+        equipmentSource.Should().Contain(
+            "catch (Exception e) when (e is not OperationCanceledException)");
+        memberInfoSource.Should().NotContain("catch (OperationCanceledException)");
+        equipmentSource.Should().NotContain("catch (OperationCanceledException)");
     }
 
     /// <summary>

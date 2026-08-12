@@ -579,14 +579,11 @@ namespace ChurchReport.Controllers
 
                 return DataSourceLoader.Load(rows, loadOptions);
             }
-            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                // 已中止的瀏覽器 request 不可被轉成 HandleError 回應或診斷；重新擲出讓 ASP.NET Core
-                // 結束此 request，並讓下游 ProductClient/lease 依既有 cancellation 規則完成釋放。
-                throw;
-            }
-            catch (Exception ex)
-            {
+                // 只有非取消故障可轉成既有錯誤回應；取消例外必須保留原始 token 與堆疊直接交回
+                // ASP.NET Core，讓 request-local ProductClient/lease 的既有 owner 完成釋放，且不會
+                // 建立可能在用戶端離線後無法送達的資料或診斷回應。
                 return HandleError(ex, "MemberInfo.LoadContactStorLessons");
             }
         }

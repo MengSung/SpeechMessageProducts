@@ -407,14 +407,11 @@ namespace ChurchReport.Controllers
                     return DataSourceLoader.Load(lessonsList, loadOptions);
                 }
             }
-            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+            catch (Exception e) when (e is not OperationCanceledException)
             {
-                // 客戶端已中止時不建立錯誤回應或延長任何 projection／例外的生命週期；重新擲出讓
-                // ASP.NET Core 與既有 Data8 取消／lease cleanup owner 完成確定性釋放。
-                throw;
-            }
-            catch (Exception e)
-            {
+                // 只有非取消故障可進入既有錯誤回應；取消例外保留給 ASP.NET Core 終結目前 request，
+                // 使 request-local ProductClient/lease 依其既有 owner 確定性釋放，並避免把無法送達的
+                // 裝備課程資料或例外診斷保留在中止 request 的後續流程。
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 錯誤: {e.Message}");
                 return HandleError(e, "LoadEquipmentStorLessons");
             }
