@@ -47,6 +47,9 @@ dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchRe
 - `SpeechMessageProducts.ChurchReport` Release build：**0 warnings、0 errors**。
 - byte-level check：本輪 16 個 task-owned C# 檔皆為 UTF-8 無 BOM、CRLF-only、final CRLF；`git diff --check` 通過。
 - CCG final reviewer 在 45 秒預算內：Gemini 有可讀輸出且無 Critical／Warning；Claude session quota 無可用輸出，故本輪是「Gemini 單模型降級＋本機驗證」，不是完整雙模型審查。不得因此解除任何 CE、P7.4 或 P7.5 gate。
+- 最後 solution quality gate：`dotnet test .\SpeechMessageProducts.sln --no-restore -m:1` 全數通過。
+  Kestrel request-body 邊界案例在獨立重複 8 次、Dynamics 全套與 ChurchReport 真實程序邊界案例
+  均通過；沒有以忽略 transport reset、關閉全域平行化或放寬 HTTP 413 assertion 來換取綠燈。
 
 ## 進入下一個 CE cycle 的唯一條件
 

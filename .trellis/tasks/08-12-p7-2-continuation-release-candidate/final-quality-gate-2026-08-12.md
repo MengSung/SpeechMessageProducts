@@ -19,6 +19,12 @@ P7.4 Gateway 切流或 P7.5 ToolUtility 移除。
 - Data8 executor 對 D–H 的全量 catalog operation 在 admission、lease、client 建立前回傳
   `operation.not-supported`；對應 local-only gate、A/B isolation、no-replay 與 cleanup
   契約測試均已通過。
+- 先前一次序列 solution test 曾觀察到 Kestrel HTTP/1.1 chunked-body transport reset；依根因
+  調查，不修改 production code 或放寬 assertion。相同案例連續 8 次皆通過，Dynamics 全套
+  **660 passed、0 failed、7 skipped**，ChurchReport 真實程序邊界案例 **1 passed、0 failed**，
+  而後 `dotnet test .\SpeechMessageProducts.sln --no-restore -m:1` 亦全數通過。現有證據不支持
+  將前次單一失敗歸因為可重現產品、Session 或資源生命週期缺陷；後續仍以完整 solution gate
+  保護提交前的可重現性。
 
 ## 上線安全結論
 
