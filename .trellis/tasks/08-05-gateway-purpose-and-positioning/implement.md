@@ -133,3 +133,16 @@ operation；同步 legacy I/O、legacy coverage、durable coordinator 三項 ena
 先為單一 consumer 確認 typed DTO、server-selected authorization、request-local projection、disabled gate、
 rollback owner 與 no-SDK boundary；不允許以 Entity/EntityCollection bridge、request-time fallback 或猜測
 資料語意冒充 migration。P7.5/P8 gate 不變。
+
+## 2026-08-13 P7.2 recurring payment-return local boundary checkpoint
+
+1. `08-13-p72-dedication-payment-return-write-boundary` 先完成 `prd.md`、`design.md`、`implement.md`
+   與本機 TDD。它只處理 recurring dedication payment-return financial write boundary，禁止修改
+   `RecurringDonationPaymentProcessor` 的 real CRM chain 或啟動 CE dispatch。
+2. 先固定 six-family map：dedup fee-period read、card update、fee create、owner assignment、booking
+   completion、notification。每個未來 CE family 都需要獨立 authorization、fixture/ledger、read-back/
+   reconcile、rollback/cleanup；不得以 generic entity update 或 payment callback retry 取代。
+3. local-only types 必須維持 `CeExecutorEnabled=false`、`ConsumerEnabled=false`；測試覆蓋 duplicate
+   callback、timeout/ambiguous、partial outcome、A/B isolation、allowlist 與 no partial plan。
+4. 完成 child quality gate 後，CE evidence 仍是 pending/no-go，除非另一個新 governed child 一次性通過
+   preflight/provision/dispatch/read-back/cleanup。historical Slice C 永不重試。

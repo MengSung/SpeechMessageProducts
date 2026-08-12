@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"驗證 local-only plan 不保留跨使用者、profile 或 connector state，並確認 A/B 隔離、fail-closed 與資源生命週期契約。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"驗證 evidence-pending local-only capability 不可提升為 CE dispatch、consumer 或 P7.4/P7.5 rollout 證據。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"檢查計畫輸入 defensive copy、無 Session/cache/lease retention，以及 timeout/ambiguous outcome 的 no-replay。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-2-continuation-release-candidate/d-h-callsite-map-2026-08-12.md","reason":"核對既有 P7.2 D-H local-only 契約與歷史 Slice C closed/no-retry 邊界。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"確認 ORG-CALL-00064 為金融寫入相鄰 dedup read，不能誤報為已遷移 consumer 或 CE write evidence。"}

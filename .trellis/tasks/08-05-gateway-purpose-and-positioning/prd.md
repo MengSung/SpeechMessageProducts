@@ -312,3 +312,15 @@ launch profile）均為 false；沒有 CE mutation、feature/traffic enablement�
 可繼續依 matrix 完成獨立的 local-only consumer migration，但不得把本 child 的 local evidence 升格為
 deployment/cutover evidence。P7.5 仍等待 zero-reference/parity/soak/drain/rollback 全綠；P8 仍等待
 P7.5 immutable handoff 與獨立 deployment authorization。
+
+### 2026-08-13 P7.2 定期定額付款回傳寫入邊界補充（現行權威）
+
+已建立 child `08-13-p72-dedication-payment-return-write-boundary`，僅處理 recurring dedication
+payment-return 的本機寫入邊界。現有 `RecurringDonationPaymentProcessor.HandlePaymentReturn` 混合 booking／
+fee period 讀取、contact card 更新、fee create、fee owner assignment、booking completion 與 notification，
+不可將 `fees.retrieve.by.dedication.period` typed read 直接接入 legacy 寫入鏈。
+
+child 僅可交付 immutable、DTO-only、zero-I/O 的 decision／plan／TDD 與未來 governed fixture family 設計。
+所有 CE executor 與 consumer 維持 disabled；timeout、ambiguous、partial、read-back mismatch 或 cleanup
+uncertainty 必須 no-go/no-replay。歷史 Slice C nonce、ledger、fixture 與 descriptor 不可重試或復用。此工作
+不阻擋其他獨立 P7.4 read-only migration，但 P7.5/P8 gate 不會提前解除。

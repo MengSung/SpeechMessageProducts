@@ -2,11 +2,11 @@
   "id": "gateway-purpose-and-positioning",
   "name": "gateway-purpose-and-positioning",
   "title": "Dynamics Gateway P5-P8 roadmap and positioning",
-  "description": "Own the P5-P8 Dynamics Gateway roadmap. P3-P7.3 are archived baseline evidence; P7.4 is active and gate-disabled pending legacy/Gateway capacity proof, P7.5 awaits zero ToolUtility/CRM SDK product references, and P8 follows only after immutable P7.5 handoff and externally authorized deployment readiness.",
-  "currentBaseline": "2026-08-13: do not redo archived P4-P7.3. Continue P7.4 admission-boundary child and independent local capability work. Package01FeeReadsEnabled remains false. P7.5/P8 have not started and must remain gated.",
+  "description": "Own the P5-P8 Dynamics Gateway roadmap. P3-P7.3 are archived baseline evidence; P7.4 is active and gate-disabled pending legacy/Gateway capacity proof, while P7.2 recurring payment-return work remains local-only. P7.5 awaits zero ToolUtility/CRM SDK product references, and P8 follows only after immutable P7.5 handoff and externally authorized deployment readiness.",
+  "currentBaseline": "2026-08-13: do not redo archived P4-P7.3 or retry the historical P7.2 Slice C cycle. P7.4 has disabled local read-boundary work but is incomplete. 08-13-p72-dedication-payment-return-write-boundary owns local-only financial write-boundary design; Package01FeeReadsEnabled remains false. P7.5/P8 have not started and must remain gated.",
   "status": "planning",
   "dev_type": null,
-  "scope": "P5-P8 roadmap parent; P7.4 active child owns implementation while P7.5/P8 retain prerequisite gates.",
+  "scope": "P5-P8 roadmap parent; P7.2 financial-write boundary and P7.4 disabled local consumer children own implementation while P7.5/P8 retain prerequisite gates.",
   "package": null,
   "priority": "P2",
   "creator": "codex",
@@ -18,7 +18,7 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Archive completed 08-13-p74-legacy-gateway-admission, then continue 08-12-churchreport-productclient-cutover with the next independent local-only matrix consumer batch. Keep Package01FeeReadsEnabled false until external durable-binding, full legacy coverage and drain-first/non-overlap evidence exist.",
+  "nextAction": "Complete and verify 08-13-p72-dedication-payment-return-write-boundary local-only financial contract without CE dispatch, then continue 08-12-churchreport-productclient-cutover with the next independent local-only matrix consumer batch. Keep Package01FeeReadsEnabled false until durable aggregate admission, full legacy coverage and drain-first/non-overlap evidence exist.",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",
@@ -28,14 +28,15 @@
     "08-12-p7-remaining-work-rebaseline",
     "08-12-process-boundary-cross-assembly-isolation",
     "08-12-churchreport-special-resource-migrations",
-    "08-12-churchreport-productclient-cutover"
+    "08-12-churchreport-productclient-cutover",
+    "08-13-p72-dedication-payment-return-write-boundary"
   ],
   "parent": null,
   "relatedFiles": [
     ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
     ".trellis/tasks/08-12-churchreport-productclient-cutover/capacity-enablement-audit.md"
   ],
-  "notes": "Canonical route: P5 archived -> P6 Official Worker Router extension archived with live compatibility evidence-pending -> P7.0-P7.5 local ChurchReport migration using configurable Embedded+Data8 and DedicatedGateway+Data8 -> ToolUtility removal -> independently authorized P8.0-P8.4 cloud CentralGateway+Data8 deployment. Future products remain separate scope.",
+  "notes": "Canonical route: P5 archived -> P6 Official Worker Router extension archived with live compatibility evidence-pending -> P7.0-P7.5 local ChurchReport migration using configurable Embedded+Data8 and DedicatedGateway+Data8 -> ToolUtility removal -> independently authorized P8.0-P8.4 cloud CentralGateway+Data8 deployment. Historical P7.2 Slice C is permanently closed after write-not-committed no-go and exact cleanup. The P7.2 payment-return child separates dedup read, card update, fee create, owner assignment, booking completion and notification before any future governed fixture family can be considered. Future products remain separate scope.",
   "meta": {
     "localExecutionHost": "Lenovo Legion",
     "p7Sequence": "P7.0-P7.5",

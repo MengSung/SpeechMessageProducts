@@ -196,3 +196,16 @@ independently verifiable local-only consumer sub-batch：優先處理可以移�
 inventory 已明確列為 temporary-legacy，除非其 own design 先解決 authorization、write adjacency 或
 DTO-only boundary，不得猜測遷移。所有 `Package01FeeReadsEnabled` 設定（包括 DedicatedGateway F5 profile）
 維持 false。P7.5/P8 繼續不得提前啟動。
+
+## 14. 2026-08-13 P7.2 financial write-boundary 並行路線
+
+P7.4 的獨立、disabled readonly consumer migration 可以繼續，但不得讓 `ORG-CALL-00064`
+（fee-period dedup read）接入 legacy financial write chain。為此新增
+`08-13-p72-dedication-payment-return-write-boundary`：它只設計與驗證 local-only recurring payment-return
+boundary，明確分離 card update、fee create、owner assignment、booking completion 與 notification。
+
+此 child 的輸出不是 CE mutation evidence。所有 executor/consumer 仍為 false；任何未來 CE cycle 都是
+新的 family，須有 new child、new nonce、new ledger、fresh fixture、preflight、single dispatch、exact
+read-back/reconcile 與 deterministic cleanup。timeout、ambiguous、partial、mismatch 或 cleanup uncertainty
+停止該 family 並禁止 replay。它不解除 P7.5 zero-reference/parity/soak/drain/rollback gate，也不允許建立
+P8 parent。

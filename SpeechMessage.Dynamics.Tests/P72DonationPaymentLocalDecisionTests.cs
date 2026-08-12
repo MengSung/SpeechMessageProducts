@@ -316,6 +316,81 @@ public sealed class P72DonationPaymentLocalDecisionTests
     }
 
     /// <summary>
+    /// 保護定期定額付款回傳的 local-only plan 不能因為已取得一份有效的「付款後費用更新」草稿，
+    /// 就暗中提升為其他付款寫入家族。故障注入是呼叫端試圖以同一 observation 取得 booking completion、
+    /// contact card、fee create 或 owner assignment 的 dispatch 權限；決定性斷言是本層只公開既有單一
+    /// operation ID，且 CE dispatch 與產品 consumer 都保持關閉。這避免 callback 在尚無獨立 ledger、
+    /// read-back、reconcile 與 cleanup owner 時，把多步金融流程包裝成一個可重播的泛用寫入。
+    /// </summary>
+    [Fact]
+    public void Build_keeps_a_recurring_payment_return_plan_local_only_and_single_family()
+    {
+        var result = P72DonationPaymentLocalPlanBuilder.BuildFeeUpdateAfterPayment(
+            new P72DonationPaymentLocalObservation
+            {
+                IsComplete = true,
+                Outcome = P72DonationPaymentOutcome.Succeeded,
+                HasMatchingProcessedOrder = false,
+                IsAwaitingPayment = true
+            },
+            "fixture-key-single-family");
+
+        result.Succeeded.Should().BeTrue();
+        result.Plan.Should().NotBeNull();
+        result.Plan!.Definition.OperationId.Should().Be(OperationIds.PaymentsFeeUpdateAfterPayment);
+        result.Plan.Definition.MutationPolicy.Should().Be(P72LocalMutationPolicy.SingleAllowlistedDispatch);
+        result.Plan.Definition.ReadBackPolicy.Should().Be(P72LocalReadBackPolicy.ExactProjection);
+        result.Plan.Definition.TimeoutPolicy.Should().Be(P72LocalTimeoutPolicy.NoReplayAfterUncertainDispatch);
+        result.Plan.Definition.CleanupPolicy.Should().Be(P72LocalCleanupPolicy.ReverseKnownKeys);
+        result.Plan.CeDispatchAllowed.Should().BeFalse();
+        result.Plan.ProductConsumerAllowed.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// 保護 A/B 兩個請求即使使用相同有效付款分類，各自建立的 local-only plan 仍必須擁有防禦性複製後的
+    /// input snapshot。故障注入是 A 先取得 plan，然後呼叫端修改原始輸入字典，再讓 B 使用不同 fixture
+    /// key 建立另一份 plan；決定性斷言是兩份 plan 不共用 dictionary 參考，A 不會取得 B 或後續 caller
+    /// 的 marker。測試不建立 connector、lease、CRM fixture 或背景工作，因此暫存集合在方法返回後由當前
+    /// request/test owner 釋放，並證明純本機邊界不會保留跨使用者 state。
+    /// </summary>
+    [Fact]
+    public void Build_defensively_copies_interleaved_payment_return_plan_inputs()
+    {
+        var aInputs = new Dictionary<string, string?>(StringComparer.Ordinal)
+        {
+            ["fixtureKey"] = "fixture-key-a",
+            ["transition"] = "payment-succeeded"
+        };
+
+        var aGenericPlan = P72ContinuationLocalOnlyPlanBuilder.Build(new P72ContinuationLocalPlanRequest
+        {
+            OperationId = OperationIds.PaymentsFeeUpdateAfterPayment,
+            Inputs = aInputs
+        });
+        aInputs["fixtureKey"] = "fixture-key-mutated-after-build";
+
+        var b = P72DonationPaymentLocalPlanBuilder.BuildFeeUpdateAfterPayment(
+            new P72DonationPaymentLocalObservation
+            {
+                IsComplete = true,
+                Outcome = P72DonationPaymentOutcome.Succeeded,
+                HasMatchingProcessedOrder = false,
+                IsAwaitingPayment = true
+            },
+            "fixture-key-b");
+
+        aGenericPlan.Succeeded.Should().BeTrue();
+        aGenericPlan.Plan.Should().NotBeNull();
+        aGenericPlan.Plan!.Inputs["fixtureKey"].Should().Be("fixture-key-a");
+        b.Succeeded.Should().BeTrue();
+        b.Plan.Should().NotBeNull();
+        b.Plan!.Inputs["fixtureKey"].Should().Be("fixture-key-b");
+        b.Plan.Inputs.Should().NotBeSameAs(aGenericPlan.Plan.Inputs);
+        b.Plan.CeDispatchAllowed.Should().BeFalse();
+        b.Plan.ProductConsumerAllowed.Should().BeFalse();
+    }
+
+    /// <summary>
     /// 模擬兩個獨立 request 同時進入決策點，不讓測試依賴排程巧合。
     /// Barrier 與 concurrent bag 都只由這個測試持有並在測試結束釋放；production 決策沒有任何共享
     /// collection、timer、subscription 或 background task。

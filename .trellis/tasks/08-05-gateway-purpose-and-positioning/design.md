@@ -188,3 +188,15 @@ capacity proof。同步 legacy SDK call 不能中止、未註冊 ingress 不可�
 所有 launch/appsettings gate 因此保持 false。後續 P7.4 設計可獨立遷移具 typed DTO 與 request-local
 contract 的 consumer，但每一 capability 仍需 own CE/parity/authorization/isolation/performance/cleanup/
 rollback evidence；P7.5/P8 的 predecessor 不因本機 admission child 完成而改變。
+
+### 2026-08-13 P7.2 recurring dedication payment-return 寫入邊界
+
+`ORG-CALL-00064` 已有 typed fee-period read，但它是 recurring payment-return 金融寫入的 dedup
+precondition，不是可獨立切換的 read consumer。新 child 將 legacy chain 分解為 dedup read、contact card
+update、fee create、owner assignment、booking completion 與 notification 六個不可混合的 family。local-only
+plan 不接受 Entity、Owner、raw card/token、profile、endpoint 或 credential，且不保存 request state。
+
+未來每個 family 都要有 server-owned authorization、固定 request DTO、single writer、new nonce／ledger／
+task-owned fresh fixture、preflight、single dispatch、exact read-back/reconcile 與 reverse-known-key cleanup。
+未具備這些證據前，Data8 executor 與 product consumer 都是 false，歷史 Slice C cycle 不能成為新 family
+authority。這可讓本機設計與 P7.4 獨立 readonly work 繼續，但不會將 read-new/write-legacy 混合成未受治理雙路徑。
