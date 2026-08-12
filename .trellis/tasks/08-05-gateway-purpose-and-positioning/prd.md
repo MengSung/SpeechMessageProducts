@@ -290,3 +290,11 @@ ToolUtility，以及未來多產品按需擴充 operation」的規劃。對照
 - P7.2 已封存本機候選版。Slice C 最後的 fresh CE cycle 是 `write-not-committed` no-go，且 exact cleanup 已完成；D–H 是 local-only contract，不能被宣稱為 executor、consumer 或 CE evidence。
 
 現行唯一可執行的後續工作為 child `08-12-p7-remaining-work-rebaseline`：它必須以現行程式碼、設定與上述唯讀封存 evidence 產生新的 authoritative 70-row gap matrix。只有 matrix 指出且完成驗收的能力才可建立後續 P7.1／P7.2／P7.3／P7.4／P7.5 child；P8 一律等待 P7.5 immutable handoff。不得重試已封存的 CE cycle、復用 nonce／ledger／fixture／descriptor，或把 disabled feature gate、local-only plan、registry declaration 當成上線證據。
+
+### 2026-08-12 P7.3 啟動補充（現行權威）
+
+`08-12-p7-remaining-work-rebaseline` 已封存並產生 authoritative matrix；因此上段「唯一可執行」
+的敘述已完成其歷史作用。現行 active child 是
+`08-12-churchreport-special-resource-migrations`（P7.3），僅處理 ORG-CALL-00028、00029、00034、
+00040、00063 的本機 bounded resource contract。它不開啟 ChurchReport consumer、feature gate 或 CE
+寫入，也不構成 CE evidence、ToolUtility removal 或 P7.4/P7.5/P8 的完成證明。

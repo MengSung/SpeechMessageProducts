@@ -1,0 +1,24 @@
+{
+  "id": "p7-3-churchreport-special-resource-migrations",
+  "title": "P7.3 ChurchReport 特殊資源能力遷移",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "本機品質閘門與 scope review 已通過；雙模型在 45 秒上限內未完成，已記錄降級。接著僅提交並封存 P7.3 task-owned 變更，之後才建立 P7.4 planning task。",
+  "createdAt": "2026-08-12T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "predecessors": [
+    ".ccg/tasks/archive/2026-08/p7-remaining-work-rebaseline",
+    ".trellis/tasks/08-12-churchreport-special-resource-migrations"
+  ],
+  "constraints": [
+    "Only migrate ORG-CALL-00028, ORG-CALL-00029, ORG-CALL-00034, ORG-CALL-00040, and ORG-CALL-00063 in this task.",
+    "Do not mutate CE, change feature flags, cut product traffic, use CE 8.2, use Official Worker, or deploy to the cloud.",
+    "Do not retry, reuse, or alter archived P7.2 Slice C nonce, ledger, fixture, descriptor, or historical CE cycle.",
+    "Use bounded typed DTOs only; never cross Entity, IOrganizationService, raw stream, CRM endpoint, credential, token, cookie, raw response, or raw exception across the ProductClient boundary.",
+    "Maintain ProfileAlias plus GenerationId isolation and deterministic ownership/release for all streams, buffers, pages, cache entries, cancellation registrations, and connector leases.",
+    "Wait no more than 20 seconds per external model and record degraded local verification if no usable dual-model output arrives."
+  ]
+}

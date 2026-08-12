@@ -378,7 +378,11 @@
             "StaticListMembershipMutation",
             "SmallGroupFixedFieldsMutation",
             "ContactOwnerAssignment",
-            "ContactListTransfer"
+            "ContactListTransfer",
+            "ContactImage",
+            "ContactImageUpdate",
+            "OptionSetOptions",
+            "MeetingStatistics"
           ]
         },
         "maximumPageCount": {
@@ -530,7 +534,11 @@
                   "list.members.remove.one",
                   "listmanagement.smallgroup.update.fields",
                   "contact.assign.owner",
-                  "newperson.contact.transfer.between.lists"
+                  "newperson.contact.transfer.between.lists",
+                  "memberinfo.contact.retrieve.image",
+                  "memberinfo.contact.update.image",
+                  "newperson.contact.update.image",
+                  "stats.meeting.retrieve.by.sunday"
                 ]
               }
             }

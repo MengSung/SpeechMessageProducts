@@ -472,12 +472,13 @@ public sealed class Data8ProfileOperationExecutorTests
     }
 
     /// <summary>
-    /// 保護 B2 在 CE 8.2 以及兩個尚未由 P7.3 擁有的 image operation 都必須在 Pool 前 fail closed。
-    /// 故障注入是使用者已授權的 jesus CE 8.2 profile 與兩個固定 image ID；決定性斷言仍是零 admission／
-    /// 零 client，證明資料庫操作授權不會跳過 coverage matrix，也不會把 5 MiB binary 塞進 4 KiB scalar envelope。
+    /// 保護 B2 在 CE 8.2 必須於 Pool 前 fail closed，且 P7.3 image write 缺少必要 idempotency key/payload 時也
+    /// 必須於 admission 前拒絕。故障注入是使用者已授權的 jesus CE 8.2 profile 與兩個不完整 image request；
+    /// 決定性斷言仍是零 admission／零 client，證明資料庫操作授權不會跳過 coverage matrix，也不會把不受驗證的
+    /// binary 塞進 bounded envelope。
     /// </summary>
     [Fact]
-    public async Task Execute_async_rejects_ce82_aggregate_and_p7_3_image_operations_before_admission()
+    public async Task Execute_async_rejects_ce82_aggregate_and_invalid_p7_3_image_operations_before_admission()
     {
         var ce82Admission = new TrackingAdmissionManager();
         var ce82Factory = new FixedResultFactory(_ => throw new InvalidOperationException("CE 8.2 B2 must fail closed."));
@@ -508,12 +509,386 @@ public sealed class Data8ProfileOperationExecutorTests
             new Dictionary<string, object?>(StringComparer.Ordinal)), CancellationToken.None);
 
         unsupportedVersion.ErrorCode.Should().Be("operation.not-supported");
-        memberImage.ErrorCode.Should().Be("operation.not-supported");
-        newPersonImage.ErrorCode.Should().Be("operation.not-supported");
+        memberImage.ErrorCode.Should().Be("operation.invalid-parameters");
+        newPersonImage.ErrorCode.Should().Be("operation.invalid-parameters");
         ce82Admission.AcquireCount.Should().Be(0);
         ce82Factory.CreatedCount.Should().Be(0);
         ce91Admission.AcquireCount.Should().Be(0);
         ce91Factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護 P7.3 影像、metadata 與 weekly-statistics contract 在已解析的 CE 9.1 Data8 profile 中，必須先由
+    /// executor 複製封閉 payload 並進入一個 lease；故障模型是新 operation 尚未有 allowlist/normalizer，會在
+    /// admission 前拒絕。決定性斷言是三種 response discriminator 都能被安全傳回，permit 正好歸還一次，且
+    /// connector 看見的參數不是 caller dictionary。fake client、lease 與 permit 都由測試 scope 確定 drain/dispose，
+    /// 不會建立真實 CRM session、影像 stream、metadata cache 或跨案例 retained state。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_routes_p7_3_special_resource_operations_with_closed_owned_parameters()
+    {
+        var contactId = Guid.Parse("abababab-0000-1111-2222-cdcdcdcdcdcd");
+        var imageBytes = CreateValidOnePixelPng();
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = operation.OperationId switch
+            {
+                "memberinfo.contact.retrieve.image" => OperationResponseData.ForContactImage(
+                    operation.OperationId,
+                    "9.1",
+                    new ContactImageResponseData(imageBytes, ContactImageMediaKind.Png)),
+                "metadata.optionset.retrieve.by.attribute" => OperationResponseData.ForOptionSetOptions(
+                    operation.OperationId,
+                    "9.1",
+                    [new OptionSetOptionRecord { Value = 1, Label = "測試", ConfiguredOrder = 0 }]),
+                "stats.meeting.retrieve.by.sunday" => OperationResponseData.ForMeetingStatistics(
+                    operation.OperationId,
+                    "9.1",
+                    [new MeetingStatisticRecord
+                    {
+                        MeetingStatisticId = Guid.Parse("cccccccc-0000-1111-2222-dddddddddddd"),
+                        SundayDate = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero)
+                    }]),
+                _ => throw new InvalidOperationException("Unexpected P7.3 operation.")
+            }
+        });
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var image = await executor.ExecuteAsync(CreatePackage01Request(
+            "memberinfo.contact.retrieve.image",
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["contactId"] = contactId }), CancellationToken.None);
+        var metadata = await executor.ExecuteAsync(CreatePackage01Request(
+            "metadata.optionset.retrieve.by.attribute",
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+            }), CancellationToken.None);
+        var statistics = await executor.ExecuteAsync(CreatePackage01Request(
+            "stats.meeting.retrieve.by.sunday",
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["sundayDate"] = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero)
+            }), CancellationToken.None);
+
+        image.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactImage);
+        metadata.Data!.ResponseKind.Should().Be(OperationResponseKind.OptionSetOptions);
+        statistics.Data!.ResponseKind.Should().Be(OperationResponseKind.MeetingStatistics);
+        admission.AcquireCount.Should().Be(3);
+        admission.ReleaseCount.Should().Be(3);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護同一已驗證 profile/generation 的 metadata operation，在 connector 已回傳可信 server locale 後可以命中
+    /// runtime-owned pure-value cache。故障注入為第二次完全相同的 request；decisive assertions 是第一次正常取得
+    /// lease 並保存 projection，第二次不取得 permit/client 仍回傳相同 DTO。cache key 不接受 caller locale，故此
+    /// 快取捷徑不會跨 profile、generation 或使用者重用 Data8 session、credential、SDK metadata graph 或 response。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_reuses_server_resolved_option_set_projection_within_profile_generation()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForOptionSetOptions(
+                operation.OperationId,
+                "9.1",
+                [new OptionSetOptionRecord { Value = 1, Label = "伺服器解析標籤", ConfiguredOrder = 0 }]),
+            ServerResolvedMetadataLocale = 1028
+        })
+        {
+            ExpectedOperationId = OperationIds.MetadataOptionSetByAttribute
+        };
+        using var cache = new MetadataOptionSetCache(
+            maximumEntryCount: 8,
+            maximumByteCount: 8_192,
+            timeToLive: TimeSpan.FromMinutes(1));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(
+            CreateResolver(),
+            new Data8ConnectorRouter(pool),
+            cache);
+        var request = CreatePackage01Request(
+            OperationIds.MetadataOptionSetByAttribute,
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+            });
+
+        var first = await executor.ExecuteAsync(request, CancellationToken.None);
+        var second = await executor.ExecuteAsync(request, CancellationToken.None);
+
+        first.Succeeded.Should().BeTrue();
+        second.Succeeded.Should().BeTrue();
+        second.Data!.OptionSetOptions.Should().ContainSingle().Which.Label.Should().Be("伺服器解析標籤");
+        cache.TryGet("sunnyvalechback", 1, MetadataOptionSetTarget.ContactCustomerTypeCode, out var cached)
+            .Should().BeTrue();
+        cached!.Should().ContainSingle().Which.Label.Should().Be("伺服器解析標籤");
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+        factory.CreatedCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 connector 未能證實 server-resolved locale 時，executor 維持 request-local projection 而不猜測主機、
+    /// caller 或上一筆 metadata 的語系。故障注入為連續兩次成功但不含 locale 的 connector result；decisive
+    /// assertions 是兩次都取得獨立 lease，cache 保持 miss，避免用不完整 key 把不明 locale label 長期保留或交給
+    /// 下一個 request。兩個健康 lease 都正常歸還，證明 fail-closed cache fallback 不造成 permit/client 洩漏。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_keeps_option_set_request_local_when_server_locale_is_unproven()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForOptionSetOptions(
+                operation.OperationId,
+                "9.1",
+                [new OptionSetOptionRecord { Value = 1, Label = "未快取標籤", ConfiguredOrder = 0 }])
+        })
+        {
+            ExpectedOperationId = OperationIds.MetadataOptionSetByAttribute
+        };
+        using var cache = new MetadataOptionSetCache(
+            maximumEntryCount: 8,
+            maximumByteCount: 8_192,
+            timeToLive: TimeSpan.FromMinutes(1));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(
+            CreateResolver(),
+            new Data8ConnectorRouter(pool),
+            cache);
+        var request = CreatePackage01Request(
+            OperationIds.MetadataOptionSetByAttribute,
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+            });
+
+        (await executor.ExecuteAsync(request, CancellationToken.None)).Succeeded.Should().BeTrue();
+        (await executor.ExecuteAsync(request, CancellationToken.None)).Succeeded.Should().BeTrue();
+
+        cache.TryGet("sunnyvalechback", 1, MetadataOptionSetTarget.ContactCustomerTypeCode, out _)
+            .Should().BeFalse();
+        admission.AcquireCount.Should().Be(2);
+        admission.ReleaseCount.Should().Be(2);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 P7.3 image retrieve 即使 connector 宣告成功，也不可把只有 PNG signature、但無法由實際 decoder
+    /// 識別的內容當作可信 response。故障注入讓替身 connector 回傳不完整 payload；決定性斷言是 executor
+    /// 在 lease 還存在時回傳固定 invalid-response、標記 client faulted、歸還 permit 並 dispose client，避免
+    /// 不可信 image bytes 或未知 Data8 session 回到同一 profile/generation 的可重用 pool。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_evicts_client_when_contact_image_response_is_signature_only()
+    {
+        var contactId = Guid.Parse("acacacac-0000-1111-2222-cdcdcdcdcdcd");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForContactImage(
+                operation.OperationId,
+                "9.1",
+                new ContactImageResponseData(
+                    [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+                    ContactImageMediaKind.Png))
+        })
+        {
+            ExpectedOperationId = OperationIds.MemberInfoContactRetrieveImage
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MemberInfoContactRetrieveImage,
+                new Dictionary<string, object?>(StringComparer.Ordinal) { ["contactId"] = contactId }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("connector.invalid-response");
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+        factory.CreatedCount.Should().Be(1);
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 P7.3 特殊資源的 connector 即使沒有丟出傳輸例外、而是以未成功的結果回覆時，executor 仍須把
+    /// 該 lease 視為健康狀態無法證明並淘汰 client。故障注入使用 metadata capability 的
+    /// <see cref="ConnectorOperationResult.Succeeded"/> 為 <see langword="false"/>；決定性斷言是對外只回傳
+    /// <c>connector.operation-failed</c> 固定分類，同時在 request 結束前確定 Dispose client 並 exactly-once
+    /// 釋放 admission permit。這避免含有未知 Data8/WCF session 狀態的 client 回到同一 Profile/Generation 的
+    /// idle pool，被後續使用者或請求重用；測試不建立 CRM request、metadata cache、cookie 或任何跨請求資料。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_evicts_client_when_special_resource_connector_reports_unsuccessful_result()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ => new ConnectorOperationResult(false, "injected-failure"))
+        {
+            ExpectedOperationId = OperationIds.MetadataOptionSetByAttribute
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MetadataOptionSetByAttribute,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+                }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("connector.operation-failed");
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+        factory.CreatedCount.Should().Be(1);
+        factory.DisposedCount.Should().Be(1,
+            "未成功的 connector 結果無法證明 Data8 session 可安全重用，必須在 permit 釋放前淘汰 client");
+    }
+
+    /// <summary>
+    /// 驗證 P7.3 影像寫入會在取得 Data8 admission permit 與建立 connector client 之前，拒絕只有 PNG
+    /// signature、卻無法被實際影像 decoder 讀取的偽造內容。此測試刻意注入「標頭看似正確但沒有完整
+    /// PNG 結構」的 payload，保護格式欺騙不可進入 CRM 寫入路徑；決定性斷言是 invalid-parameters、
+    /// 零 permit 與零 client。測試不保留 image bytes、request 或 connector lease，pool 仍由 await using
+    /// 於測試結束時確定 drain/dispose，避免測試基礎設施跨測試或跨 profile 洩漏資源。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_a_signature_only_image_payload_before_admission()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ => throw new InvalidOperationException(
+            "An invalid image payload must not create a Data8 client."));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+        var contactId = Guid.Parse("dededede-0000-1111-2222-ffffffffffff");
+        var signatureOnlyPng = new byte[]
+        {
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x00
+        };
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MemberInfoContactUpdateImage,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["imagePayload"] = new ContactImageResponseData(signatureOnlyPng, ContactImageMediaKind.Png)
+                },
+                idempotencyKey: "p7-3-invalid-signature-only-image"),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("operation.invalid-parameters");
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 驗證 P7.3 影像 payload 即使具有可辨識的 PNG IHDR，也不可用超過 connector policy 的宣告尺寸繞過
+    /// 入站保護。此故障注入不需要配置大量像素或解壓縮資料；測試只以受限 header 宣告危險尺寸並斷言
+    /// executor 在 admission 前 fail closed，避免 image bomb 消耗 pool、WCF session 或 CRM 寫入額度。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_an_image_payload_with_excessive_declared_pixels_before_admission()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ => throw new InvalidOperationException(
+            "An oversized image payload must not create a Data8 client."));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+        var contactId = Guid.Parse("edededed-0000-1111-2222-ffffffffffff");
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.NewPersonContactUpdateImage,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["imagePayload"] = new ContactImageResponseData(
+                        CreatePngHeaderWithDimensions(width: 2049, height: 2048),
+                        ContactImageMediaKind.Png)
+                },
+                idempotencyKey: "p7-3-excessive-pixel-image"),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("operation.invalid-parameters");
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 驗證符合 P7.3 byte、decoder、媒體格式、尺寸及像素 policy 的最小 PNG 仍可通過 executor 的入站
+    /// 驗證並取得一次受控 lease。此測試和兩個負向測試共同證明正常影像不會被過度拒絕，但未驗證任何
+    /// CRM 寫入；factory 回傳封閉的 read-back-confirmed result，並由 pool drain 確定釋放唯一 client
+    /// 與 admission permit，不留下跨請求 image buffer、session 或資源。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_admits_a_decodable_bounded_png_image_payload()
+    {
+        var contactId = Guid.Parse("fefefefe-0000-1111-2222-ffffffffffff");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForContactImageUpdate(
+                operation.OperationId,
+                "9.1",
+                ContactImageUpdateDisposition.Changed,
+                ContactImageUpdateCorrelationCategory.ReadBackConfirmed)
+        })
+        {
+            ExpectedOperationId = OperationIds.MemberInfoContactUpdateImage
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MemberInfoContactUpdateImage,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["imagePayload"] = new ContactImageResponseData(
+                        CreateValidOnePixelPng(),
+                        ContactImageMediaKind.Png)
+                },
+                idempotencyKey: "p7-3-valid-bounded-image"),
+            CancellationToken.None);
+
+        result.ErrorCode.Should().BeNull("a valid bounded PNG must pass pre-admission validation before the fake connector result is checked");
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.ContactImageUpdate);
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
     }
 
     /// <summary>
@@ -908,14 +1283,49 @@ public sealed class Data8ProfileOperationExecutorTests
     /// <returns>只在目前測試呼叫生命週期內使用的受控 operation request。</returns>
     private static OperationExecutionRequest CreatePackage01Request(
         string operationId,
-        IReadOnlyDictionary<string, object?> parameters)
+        IReadOnlyDictionary<string, object?> parameters,
+        string? idempotencyKey = null)
         => new()
         {
             ProfileAlias = "sunnyvalechback",
             CapabilityOperationId = operationId,
             WorkloadSubjectId = "embedded-test",
-            Parameters = parameters
+            Parameters = parameters,
+            IdempotencyKey = idempotencyKey
         };
+
+    /// <summary>
+    /// 建立只含 PNG signature 與 IHDR 的最小測試 payload，用來在不配置實際 pixel buffer 的前提下，模擬
+    /// 惡意宣告的影像尺寸。這是 test-local、呼叫結束即由 managed array 回收的資料；它不代表可解碼 PNG，
+    /// 因此 production decoder 必須同時驗證結構與尺寸，而不能只信任本 helper 產生的 header。
+    /// </summary>
+    /// <param name="width">要寫入 IHDR 的正整數寬度。</param>
+    /// <param name="height">要寫入 IHDR 的正整數高度。</param>
+    /// <returns>供 fail-closed 測試使用的有限 byte array。</returns>
+    private static byte[] CreatePngHeaderWithDimensions(int width, int height)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+        return
+        [
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+            0x00, 0x00, 0x00, 0x0D,
+            0x49, 0x48, 0x44, 0x52,
+            (byte)(width >> 24), (byte)(width >> 16), (byte)(width >> 8), (byte)width,
+            (byte)(height >> 24), (byte)(height >> 16), (byte)(height >> 8), (byte)height,
+            0x08, 0x06, 0x00, 0x00, 0x00
+        ];
+    }
+
+    /// <summary>
+    /// 建立已知可解碼的一像素 PNG，作為 P7.3 安全 payload 正常路徑的固定、無個資測試資料。每次呼叫
+    /// 都從 base64 建立新陣列，因此測試不共用可變 image bytes；這可讓 executor 的 defensive-copy
+    /// 契約與 pool/lease 生命周期在不接觸真實 CRM 或檔案系統的情況下被獨立驗證。
+    /// </summary>
+    /// <returns>可由受控 decoder 驗證為 1 × 1 PNG 的新 byte array。</returns>
+    private static byte[] CreateValidOnePixelPng()
+        => Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==");
 
     /// <summary>
     /// 以真實 admission contract 模擬單一 permit，不建立 host slot、timer 或 coordinator worker，並以計數驗證

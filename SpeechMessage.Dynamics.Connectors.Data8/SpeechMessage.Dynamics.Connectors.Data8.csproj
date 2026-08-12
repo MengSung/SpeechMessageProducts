@@ -9,6 +9,14 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="SpeechMessage.Dynamics.Tests" />
+    <!--
+      P7.3 影像 boundary 使用已修補的 ImageSharp decoder 驗證實際資料格式與 dimensions；不可沿用
+      ChurchReport 既有的 3.1.6，因其已知安全公告不適合作為 Gateway/Data8 入站防線。decoder 僅在
+      request scope 內以記憶體串流短暫使用，絕不把 Image、format、stream 或 bytes 存入 pool、cache、
+      profile 或 connector client。
+    -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.ControlPlane\SpeechMessage.Dynamics.ControlPlane.csproj" />
     <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj" />

@@ -1,0 +1,5 @@
+{"file":".trellis/tasks/08-12-churchreport-special-resource-migrations/prd.md","reason":"P7.3 的產品範圍與安全約束。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"五個 operation 的權威 matrix 狀態與 P7.5 blocker。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Data8/三種 ConnectionMode/產品邊界契約。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"跨使用者、Profile、Generation 與資源生命週期的 release-blocking 規則。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"跨層、快取與資源所有權的檢查清單。"}

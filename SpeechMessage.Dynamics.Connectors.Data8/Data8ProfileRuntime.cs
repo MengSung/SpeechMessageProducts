@@ -21,6 +21,7 @@ public sealed class Data8ProfileRuntime : IAsyncDisposable
 {
     private readonly Data8ConnectorPoolRegistry _poolRegistry = new();
     private readonly OrganizationAdmissionManager _admissionManager;
+    private readonly MetadataOptionSetCache _metadataOptionSetCache;
     private readonly object _disposeGate = new();
     private Task? _disposeTask;
 
@@ -57,17 +58,25 @@ public sealed class Data8ProfileRuntime : IAsyncDisposable
             CreateAdmissionPlan(profile, organization),
             new InMemoryRuntimeHostSlotCoordinator(),
             loggerFactory.CreateLogger<OrganizationAdmissionManager>());
+        _metadataOptionSetCache = new MetadataOptionSetCache(
+            maximumEntryCount: 64,
+            maximumByteCount: 256 * 1024,
+            timeToLive: TimeSpan.FromMinutes(15));
 
         try
         {
             _poolRegistry.Register(profile, _admissionManager, clientFactory, profile.Pool.MinSize, profile.Pool.MaxSize);
             Router = _poolRegistry;
-            Executor = new Data8ProfileOperationExecutor(ProfileResolver, Router);
+            Executor = new Data8ProfileOperationExecutor(ProfileResolver, Router, _metadataOptionSetCache);
         }
         catch
         {
             try { _poolRegistry.Dispose(); }
-            finally { _admissionManager.Dispose(); }
+            finally
+            {
+                try { _metadataOptionSetCache.Dispose(); }
+                finally { _admissionManager.Dispose(); }
+            }
             throw;
         }
     }
@@ -80,6 +89,13 @@ public sealed class Data8ProfileRuntime : IAsyncDisposable
 
     /// <summary>取得由 resolver → admission → router → lease 驅動的 SDK-free operation executor。</summary>
     public Data8ProfileOperationExecutor Executor { get; }
+
+    /// <summary>
+    /// 取得本 runtime generation 唯一擁有的 metadata pure-value cache。此屬性只供組態／生命週期測試觀察 owner
+    /// 釋放行為；產品、Gateway request 與 connector client 都不可直接以它傳遞 profile、locale 或 CRM metadata。
+    /// runtime Dispose 會在 pool drain 後清除它，使 cache key／label 不會跨 generation 或 Host 留存。
+    /// </summary>
+    internal MetadataOptionSetCache MetadataOptionSetCache => _metadataOptionSetCache;
 
     /// <summary>
     /// 以 idempotent 的單一 cleanup task 釋放 runtime。
@@ -99,6 +115,8 @@ public sealed class Data8ProfileRuntime : IAsyncDisposable
     {
         List<Exception>? failures = null;
         try { await _poolRegistry.DisposeAsync().ConfigureAwait(false); }
+        catch (Exception exception) { (failures ??= []).Add(exception); }
+        try { _metadataOptionSetCache.Dispose(); }
         catch (Exception exception) { (failures ??= []).Add(exception); }
         try { await _admissionManager.DisposeAsync().ConfigureAwait(false); }
         catch (Exception exception) { (failures ??= []).Add(exception); }

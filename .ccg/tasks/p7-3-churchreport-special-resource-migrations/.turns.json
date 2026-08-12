@@ -1,0 +1,1 @@
+[{"phase":"analysis","next":"完成雙模型架構分析與 Trellis 設計，將五個特殊資源 capability 以 TDD 遷移至 bounded Gateway contract；禁止 CE 寫入、feature gate、產品切流與 P7.4/P7.5/P8 操作。","ts":1786538540028},{"phase":"analysis","next":"完成雙模型架構分析與 Trellis 設計，將五個特殊資源 capability 以 TDD 遷移至 bounded Gateway contract；禁止 CE 寫入、feature gate、產品切流與 P7.4/P7.5/P8 操作。","ts":1786548543415}]

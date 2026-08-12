@@ -73,7 +73,7 @@ public static class Package01OperationRegistry
         => Definitions.ContainsKey(capabilityOperationId);
 
     /// <summary>
-    /// 建立目前十七個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
+    /// 建立目前二十一個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
     /// shape；新增 capability 時必須同步更新 matrix、projection、有限政策與 hash agreement test。
     /// </summary>
     private static IEnumerable<OperationDefinition> Build()
@@ -107,18 +107,82 @@ public static class Package01OperationRegistry
 
         yield return Def(
             OperationIds.MetadataOptionSetByAttribute,
-            package: "package-0-runtime",
+            package: "package-3-special-resources",
             kind: "metadata",
             templateKind: "odata-route",
-            templateId: "metadata.optionset.by.attribute.v1",
-            responseKind: OperationResponseKind.Unsupported,
+            templateId: "metadata.optionset.by.attribute.v2",
+            responseKind: OperationResponseKind.OptionSetOptions,
             data: "internal",
             audit: "none",
             idempotency: "read-only",
             parameters:
             [
-                Param("entityLogicalName", "string", required: true, encoding: "odata-uri-segment"),
-                Param("attributeLogicalName", "string", required: true, encoding: "odata-uri-segment")
+                Param("target", "metadata-optionset-target", required: true, encoding: "server-metadata-target")
+            ]);
+
+        // P7.3 image 與 weekly reporting 都是固定 capability；產品不得把 raw Stream、IFormFile、FetchXML、
+        // entity/schema/field 或 paging token 包裝成參數。image payload 的實際 bytes、format、dimension 與
+        // pixel 限制由 executor/connector 在取得 lease 前與 request scope 中各自重驗。
+        yield return Def(
+            OperationIds.MemberInfoContactRetrieveImage,
+            package: "package-3-special-resources",
+            kind: "read",
+            templateKind: "odata-route",
+            templateId: "memberinfo.contact.entityimage.retrieve.v1",
+            responseKind: OperationResponseKind.ContactImage,
+            data: "personal-data",
+            audit: "read-audit",
+            idempotency: "read-only",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment")
+            ]);
+
+        yield return Def(
+            OperationIds.MemberInfoContactUpdateImage,
+            package: "package-3-special-resources",
+            kind: "write",
+            templateKind: "odata-route",
+            templateId: "memberinfo.contact.entityimage.update.v1",
+            responseKind: OperationResponseKind.ContactImageUpdate,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("imagePayload", "image-payload", required: true, encoding: "bounded-image-payload")
+            ]);
+
+        yield return Def(
+            OperationIds.NewPersonContactUpdateImage,
+            package: "package-3-special-resources",
+            kind: "write",
+            templateKind: "odata-route",
+            templateId: "newperson.contact.entityimage.update.v1",
+            responseKind: OperationResponseKind.ContactImageUpdate,
+            data: "personal-data",
+            audit: "write-audit",
+            idempotency: "caller-idempotency-key-required",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment"),
+                Param("imagePayload", "image-payload", required: true, encoding: "bounded-image-payload")
+            ]);
+
+        yield return Def(
+            OperationIds.StatsMeetingRetrieveBySunday,
+            package: "package-3-special-resources",
+            kind: "read",
+            templateKind: "fetchxml",
+            templateId: "stats.meeting.by.sunday.v1",
+            responseKind: OperationResponseKind.MeetingStatistics,
+            data: "internal",
+            audit: "read-audit",
+            idempotency: "read-only",
+            parameters:
+            [
+                Param("sundayDate", "date-time", required: true, encoding: "fetchxml-attribute-value")
             ]);
 
         // Package 1 fee reads：雖然 feature gate 仍為 false，所有未來允許的資料都先被鎖定為安全 wire record。

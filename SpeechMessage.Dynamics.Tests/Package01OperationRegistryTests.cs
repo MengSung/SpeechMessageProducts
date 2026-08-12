@@ -33,7 +33,7 @@ public sealed class Package01OperationRegistryTests
     private const int ConservativeMaximumResultItemCount = 4096;
 
     /// <summary>
-    /// 確認目前十二個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
+    /// 確認目前二十一個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
     /// 各自發明未經審查的作業 ID。此檢查只讀取 immutable registry，不配置外部資源。
     /// </summary>
     [Fact]
@@ -59,10 +59,14 @@ public sealed class Package01OperationRegistryTests
             "list.members.remove.one",
             "listmanagement.smallgroup.update.fields",
             "contact.assign.owner",
-            "newperson.contact.transfer.between.lists"
+            "newperson.contact.transfer.between.lists",
+            OperationIds.MemberInfoContactRetrieveImage,
+            OperationIds.MemberInfoContactUpdateImage,
+            OperationIds.NewPersonContactUpdateImage,
+            OperationIds.StatsMeetingRetrieveBySunday
         });
 
-        ids.Should().HaveCount(17);
+        ids.Should().HaveCount(21);
     }
 
     /// <summary>
@@ -197,6 +201,114 @@ public sealed class Package01OperationRegistryTests
     }
 
     /// <summary>
+    /// 保護 P7.3 五項特殊資源能力必須各自擁有固定 operation ID、有限 policy 與封閉 response branch，不能把
+    /// image、metadata 或 page 結果退化成 generic object、SDK Entity、raw stream、FetchXML 或 caller-selected
+    /// schema。故障模型是 registry 尚未宣告這些 capability；決定性斷言是每個 operation 的 kind、template、
+    /// idempotency 與具名參數都與安全合約一致。測試只讀 process-static registry，不建立 CRM client、buffer、
+    /// stream、cache、connector lease、session 或背景資源。
+    /// </summary>
+    [Fact]
+    public void P7_3_special_resource_operations_are_registered_with_closed_bounded_schemas()
+    {
+        var expected = new[]
+        {
+            new
+            {
+                Id = "memberinfo.contact.retrieve.image",
+                Kind = "read",
+                Template = "memberinfo.contact.entityimage.retrieve.v1",
+                Response = "ContactImage",
+                Idempotency = "read-only",
+                Parameters = new[] { "contactId:guid:True" }
+            },
+            new
+            {
+                Id = "memberinfo.contact.update.image",
+                Kind = "write",
+                Template = "memberinfo.contact.entityimage.update.v1",
+                Response = "ContactImageUpdate",
+                Idempotency = "caller-idempotency-key-required",
+                Parameters = new[] { "contactId:guid:True", "imagePayload:image-payload:True" }
+            },
+            new
+            {
+                Id = "newperson.contact.update.image",
+                Kind = "write",
+                Template = "newperson.contact.entityimage.update.v1",
+                Response = "ContactImageUpdate",
+                Idempotency = "caller-idempotency-key-required",
+                Parameters = new[] { "contactId:guid:True", "imagePayload:image-payload:True" }
+            },
+            new
+            {
+                Id = "metadata.optionset.retrieve.by.attribute",
+                Kind = "metadata",
+                Template = "metadata.optionset.by.attribute.v2",
+                Response = "OptionSetOptions",
+                Idempotency = "read-only",
+                Parameters = new[] { "target:metadata-optionset-target:True" }
+            },
+            new
+            {
+                Id = "stats.meeting.retrieve.by.sunday",
+                Kind = "read",
+                Template = "stats.meeting.by.sunday.v1",
+                Response = "MeetingStatistics",
+                Idempotency = "read-only",
+                Parameters = new[] { "sundayDate:date-time:True" }
+            }
+        };
+
+        foreach (var item in expected)
+        {
+            Package01OperationRegistry.TryGet(item.Id, out var definition).Should().BeTrue();
+            definition!.OperationKind.Should().Be(item.Kind);
+            definition.TemplateId.Should().Be(item.Template);
+            definition.ResponseKind.ToString().Should().Be(item.Response);
+            definition.IdempotencyClass.Should().Be(item.Idempotency);
+            definition.Parameters.Select(parameter =>
+                    $"{parameter.Name}:{parameter.Type}:{parameter.Required}")
+                .Should()
+                .Equal(item.Parameters);
+            definition.MaximumPageCount.Should().Be(ConservativeMaximumPageCount);
+            definition.MaximumPageBytes.Should().Be(ConservativeMaximumPageBytes);
+            definition.MaximumCumulativeResponseBytes.Should().Be(ConservativeMaximumCumulativeResponseBytes);
+            definition.MaximumResultItemCount.Should().Be(ConservativeMaximumResultItemCount);
+        }
+    }
+
+    /// <summary>
+    /// 保護 P7.3 response envelope 對 image、metadata 與 meeting 結果仍維持「剛好一個 branch」規則。故障注入
+    /// 是呼叫端在 image branch 混入 metadata 集合，或在 construction 後改動 image source bytes；決定性斷言是
+    /// constructor 拒絕混合 branch，且兩次讀取 image bytes 都是互不共享的 defensive copy。此測試不建立
+    /// decoder、stream、CRM client、cache、lease 或 session，所有短生命週期 JSON 文件都在 method scope dispose。
+    /// </summary>
+    [Fact]
+    public void P7_3_response_union_rejects_mixed_branches_and_defensively_copies_image_bytes()
+    {
+        var source = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+        var response = OperationResponseData.ForContactImage(
+            "memberinfo.contact.retrieve.image",
+            "9.1",
+            new ContactImageResponseData(source, ContactImageMediaKind.Png));
+        source[0] = 0;
+
+        response.ContactImage!.GetImageBytes().Should().Equal(0x89, 0x50, 0x4E, 0x47);
+        var first = response.ContactImage.GetImageBytes();
+        first[0] = 0;
+        response.ContactImage.GetImageBytes().Should().Equal(0x89, 0x50, 0x4E, 0x47);
+
+        var invalid = () => new OperationResponseData(
+            "memberinfo.contact.retrieve.image",
+            "9.1",
+            OperationResponseKind.ContactImage,
+            contactImage: new ContactImageResponseData(source, ContactImageMediaKind.Png),
+            optionSetOptions: [new OptionSetOptionRecord { Value = 1, Label = "測試", ConfiguredOrder = 0 }]);
+
+        invalid.Should().Throw<ArgumentException>();
+    }
+
+    /// <summary>
     /// 確認 fee 查詢的必要 typed parameter 仍由 server-owned template 約束，防止呼叫端以遺漏欄位或 raw
     /// FetchXML 繞過既有 allowlist。此處不送出請求，因此不存在跨測試的認證或連線狀態。
     /// </summary>
@@ -248,13 +360,14 @@ public sealed class Package01OperationRegistryTests
 
     /// <summary>
     /// 驗證每個已登錄 capability 都宣告封閉回應 discriminator 與同一組保守、有限的 page/byte 上限。
-    /// 四頁、每頁 64 KiB 且累積 256 KiB 讓關閉中的 Package 1 在尚無實測容量證據前保持小而可預測的
-    /// 記憶體與 credential-bearing request 範圍；metadata 則明確 Unsupported，以失敗關閉取代 raw metadata 回傳。
+    /// 四頁、每頁 64 KiB 且累積 256 KiB 讓關閉中的 Package 1 與 P7.3 特殊資源在尚無實測容量證據前保持小而
+    /// 可預測的記憶體與 credential-bearing request 範圍；metadata 只回傳封閉 OptionSet pure-value projection，
+    /// 不可傳遞 raw metadata graph。
     /// </summary>
     [Theory]
     [InlineData(OperationIds.RuntimeHealthWhoAmI, OperationResponseKind.WhoAmI)]
     [InlineData(OperationIds.RuntimePoolValidateConnection, OperationResponseKind.WhoAmI)]
-    [InlineData(OperationIds.MetadataOptionSetByAttribute, OperationResponseKind.Unsupported)]
+    [InlineData(OperationIds.MetadataOptionSetByAttribute, OperationResponseKind.OptionSetOptions)]
     [InlineData(OperationIds.FeeDedicationRetrieveByContact, OperationResponseKind.Package01FeeRecords)]
     [InlineData(OperationIds.FeeDedicationRetrieveByContactDateRange, OperationResponseKind.Package01FeeRecords)]
     [InlineData(OperationIds.FeesRetrieveByDedicationPeriod, OperationResponseKind.Package01FeeRecords)]
@@ -262,6 +375,10 @@ public sealed class Package01OperationRegistryTests
     [InlineData(OperationIds.LessonsStorRetrieveByContact, OperationResponseKind.Package01StorLessonRecords)]
     [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson, OperationResponseKind.Package01StorLessonRecords)]
     [InlineData(OperationIds.MemberInfoContactUpdateBasicInfo, OperationResponseKind.ContactBasicInfoUpdate)]
+    [InlineData(OperationIds.MemberInfoContactRetrieveImage, OperationResponseKind.ContactImage)]
+    [InlineData(OperationIds.MemberInfoContactUpdateImage, OperationResponseKind.ContactImageUpdate)]
+    [InlineData(OperationIds.NewPersonContactUpdateImage, OperationResponseKind.ContactImageUpdate)]
+    [InlineData(OperationIds.StatsMeetingRetrieveBySunday, OperationResponseKind.MeetingStatistics)]
     public void Registered_operations_declare_closed_response_kind_and_conservative_finite_paging_policy(
         string operationId,
         OperationResponseKind expectedResponseKind)

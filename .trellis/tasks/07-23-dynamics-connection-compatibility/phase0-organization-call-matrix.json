@@ -2058,10 +2058,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "memberinfo.contact.retrieve.image",
+                                    "responseKind":  "ContactImage",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-route",
-                                                                "templateId":  "memberinfo.contact.image.v1",
-                                                                "templateHash":  "28dbcf2582373f3b57618c00a3d51158c26671857e42a61d1774c37dc0132c13"
+                                                                "templateId":  "memberinfo.contact.entityimage.retrieve.v1",
+                                                                "templateHash":  "9b1ec17aca6e40af53053c122f4e7334d6ef3ca3f3904e29adc10871807d44f2"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -2108,10 +2113,15 @@
                                     "operationKind":  "write",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "memberinfo.contact.update.image",
+                                    "responseKind":  "ContactImageUpdate",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-route",
-                                                                "templateId":  "memberinfo.contact.image.patch.v1",
-                                                                "templateHash":  "0d0db3ff04676df6fd1bb0ba6ee23825953b58445f37b56cad6b84db3478d893"
+                                                                "templateId":  "memberinfo.contact.entityimage.update.v1",
+                                                                "templateHash":  "ddf19a00a3150a1567c1dd2399613e1f2fb7434b57189a5f0c45c5f44a99e59a"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -2121,15 +2131,15 @@
                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
-                                                                "name":  "imageBytes",
-                                                                "type":  "object",
+                                                                "name":  "imagePayload",
+                                                                "type":  "image-payload",
                                                                 "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                "encodingContext":  "bounded-image-payload"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-uri-segment",
-                                                             "json-body"
+                                                             "bounded-image-payload",
+                                                             "odata-uri-segment"
                                                          ],
                                     "versionEvidence":  {
                                                             "v8_2":  {
@@ -2401,10 +2411,15 @@
                                     "operationKind":  "write",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "newperson.contact.update.image",
+                                    "responseKind":  "ContactImageUpdate",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-route",
-                                                                "templateId":  "newperson.contact.image.patch.v1",
-                                                                "templateHash":  "41138b48c3f7c9090b2073dcff19b5869cb8e452041542401c21f22e3396836c"
+                                                                "templateId":  "newperson.contact.entityimage.update.v1",
+                                                                "templateHash":  "446093adbf11ad0886d9470e526f12b999eb7235a7d09b4eef5160bfecfcf8ed"
                                                             },
                                     "typedParameters":  [
                                                             {
@@ -2414,15 +2429,15 @@
                                                                 "encodingContext":  "odata-uri-segment"
                                                             },
                                                             {
-                                                                "name":  "imageBytes",
-                                                                "type":  "object",
+                                                                "name":  "imagePayload",
+                                                                "type":  "image-payload",
                                                                 "required":  true,
-                                                                "encodingContext":  "json-body"
+                                                                "encodingContext":  "bounded-image-payload"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-uri-segment",
-                                                             "json-body"
+                                                             "bounded-image-payload",
+                                                             "odata-uri-segment"
                                                          ],
                                     "versionEvidence":  {
                                                             "v8_2":  {
@@ -2760,32 +2775,26 @@
                                     "operationKind":  "metadata",
                                     "dataClassification":  "internal",
                                     "capabilityOperationId":  "metadata.optionset.retrieve.by.attribute",
-                                    "responseKind":  "Unsupported",
+                                    "responseKind":  "OptionSetOptions",
                                     "maximumPageCount":  4,
                                     "maximumPageBytes":  65536,
                                     "maximumCumulativeResponseBytes":  262144,
                                     "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "odata-route",
-                                                                "templateId":  "metadata.optionset.by.attribute.v1",
-                                                                "templateHash":  "59b947558991910fb8361c3928119392b8976a3d4b2f9a5d95cba215b3cebff2"
+                                                                "templateId":  "metadata.optionset.by.attribute.v2",
+                                                                "templateHash":  "ec5839bcba806bfc53c62336d1572625df3e58e9e16d4fb1848b20993794cb4a"
                                                             },
                                     "typedParameters":  [
                                                             {
-                                                                "name":  "entityLogicalName",
-                                                                "type":  "string",
+                                                                "name":  "target",
+                                                                "type":  "metadata-optionset-target",
                                                                 "required":  true,
-                                                                "encodingContext":  "odata-uri-segment"
-                                                            },
-                                                            {
-                                                                "name":  "attributeLogicalName",
-                                                                "type":  "string",
-                                                                "required":  true,
-                                                                "encodingContext":  "odata-uri-segment"
+                                                                "encodingContext":  "server-metadata-target"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-uri-segment"
+                                                             "server-metadata-target"
                                                          ],
                                     "versionEvidence":  {
                                                             "v8_2":  {
@@ -4096,12 +4105,17 @@
                                     "currentRequestShape":  "RetrieveMultipleRequest(FetchExpression) with sundayDate typed parameter.",
                                     "entityOrAction":  "meeting-statistics",
                                     "operationKind":  "read",
-                                    "dataClassification":  "personal-data",
+                                    "dataClassification":  "internal",
                                     "capabilityOperationId":  "stats.meeting.retrieve.by.sunday",
+                                    "responseKind":  "MeetingStatistics",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "stats.meeting.by.sunday.v1",
-                                                                "templateHash":  "fef3fe6e2a7f63e5ba9210a131e2787f1b92f111901465fba4f967dccd55f3dc"
+                                                                "templateHash":  "7c3b853f6b770130fd9eb6aba9240c09eb37b8b490ae45799f95724df963b26d"
                                                             },
                                     "typedParameters":  [
                                                             {

@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"檢查 A/B/profile/generation isolation、fault eviction 與 bounded resource return-to-baseline。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"檢查 cache、stream、buffer、paging cookie、lease、CTS 與 logging 邊界。"}
+{"file":".ccg/tasks/p7-3-churchreport-special-resource-migrations/requirements.md","reason":"CCG requirements 與五項 special-resource scope、非 CE 寫入限制。"}
+{"file":".ccg/tasks/p7-3-churchreport-special-resource-migrations/plan.md","reason":"CCG layer order、TDD、quality gate 與 review fallback 計畫。"}

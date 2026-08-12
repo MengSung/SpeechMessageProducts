@@ -346,6 +346,17 @@ app.MapPost(
 
         var body = bodyRead.Request;
 
+        // P7.3 的 image nested object 不能以 JsonElement 穿過 Gateway；authorization 已先取得 canonical operation，
+        // 因此 normalizer 只依 server-approved ID 選擇封閉 wire shape。失敗在 RequestGuard、profile、permit 與
+        // connector 之前回傳固定 400，不保存 body/document/buffer，也不建立跨使用者或跨 profile 資源。
+        if (!GatewayOperationParameterNormalizer.TryNormalize(
+                authorization.CapabilityOperationId,
+                body.Parameters,
+                out var normalizedParameters))
+        {
+            return Results.BadRequest();
+        }
+
         // 必須完整通過 principal→workload→alias→operation 後才建立 request；三個 routing/security 欄位
         // 全部採 server canonical 值，caller body 只能提供 registry 後續仍會驗證的 bounded parameters。
         var request = new OperationExecutionRequest
@@ -353,7 +364,7 @@ app.MapPost(
             ProfileAlias = authorization.ProfileAlias,
             CapabilityOperationId = authorization.CapabilityOperationId,
             WorkloadSubjectId = authorization.WorkloadSubjectId,
-            Parameters = body.Parameters ?? new Dictionary<string, object?>(),
+            Parameters = normalizedParameters,
             IdempotencyKey = body.IdempotencyKey
         };
 

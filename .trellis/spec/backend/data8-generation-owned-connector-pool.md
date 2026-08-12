@@ -62,6 +62,7 @@ public interface IConnectorRouter
 | 作業 deadline 已到 | `OperationCanceledException`；不得建立或回池 Client |
 | Factory、local slot 或 Drain 期間 Acquire 失敗 | 釋放已取得 Permit 與 local slot；Dispose 暫存 Client |
 | Lease 執行取消／逾時／例外 | 標記 faulted；Dispose 時淘汰 Client 並釋放 Permit |
+| Connector 以 `Succeeded=false` 回覆 | 視為 transport/session 健康無法證實；在回傳 bounded failure 前標記 lease faulted，Dispose 時淘汰 Client 並釋放 Permit |
 | Drain 已開始 | 拒絕新 Lease；只等待既有 Lease；最後 Dispose idle Client |
 | 多個 Client／Permit cleanup 同時失敗 | 繼續清理並回報 `AggregateException` |
 
@@ -87,12 +88,16 @@ var client = lease.Client;
 await client.ExecuteAsync(operation, cancellationToken);
 ```
 
+未成功的 connector 結果也不是健康證明；不得僅回傳 failure 後讓 lease 將 client 歸還 idle queue，因為
+Data8/WCF transport、server session 或部分完成狀態均可能未知。
+
 ## 6. Tests Required
 
 任何實作或調整都必須覆蓋：
 
 - 健康 Lease 歸還原 Generation 並正好釋放一次 Permit。
 - `MarkFaulted` 的 Client 不回池且下次 Acquire 建立新 Client。
+- Connector 回傳 `Succeeded=false` 時，即使未提供原始例外，也要驗證 Client 在 request 結束前被淘汰、Permit 恰好釋放一次，且後續 request 不會重用該 session。
 - Acquire cancellation／deadline 與 Execute cancellation／deadline 都釋放 Permit 並淘汰不可靠 Client。
 - Drain 拒絕新 Lease、等待既有 Lease、再 Dispose idle Client。
 - 不同 Profile 不共用 idle Client。
@@ -107,7 +112,30 @@ await client.ExecuteAsync(operation, cancellationToken);
 以 `ProfileAlias` 作為 Organization 容量 key，或在每個 Pool 自建 `SemaphoreSlim` 當作總容量預算。
 這會讓同一實體 Organization 因多個 Alias 或 replacement 放大可用併發。
 
+```csharp
+var result = await lease.ExecuteAsync(operation, cancellationToken);
+if (!result.Succeeded)
+{
+    return OperationExecutionResult.Failure("connector.operation-failed");
+}
+```
+
+這個寫法把未成功結果誤當作健康 session。雖然沒有丟出例外，但 transport 或 session 狀態無法被證明；
+若直接離開 `await using`，client 可能回到 idle pool。
+
 ### Correct
 
 以 `(ProfileAlias, GenerationId)` 隔離可重用 Client；以既有 Admission Manager 的 canonical
 Organization key 管理總容量。Pool 的 `SemaphoreSlim` 僅限制該 Pool 的 Client 容器大小，不能取代 Admission。
+
+```csharp
+var result = await lease.ExecuteAsync(operation, cancellationToken);
+if (!result.Succeeded)
+{
+    lease.MarkFaulted();
+    return OperationExecutionResult.Failure("connector.operation-failed");
+}
+```
+
+bounded failure 仍保護產品邊界，但 `MarkFaulted()` 讓 lease 的唯一 cleanup owner 先淘汰未知 session
+再釋放 permit，因此後續 request 只能建立或取得已證實健康、同 Profile／Generation 的 client。

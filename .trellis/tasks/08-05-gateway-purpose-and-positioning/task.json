@@ -25,7 +25,8 @@
     "08-07-churchreport-write-action-function-migrations",
     "08-12-p7-2-continuation-release-candidate",
     "08-12-p7-remaining-work-rebaseline",
-    "08-12-process-boundary-cross-assembly-isolation"
+    "08-12-process-boundary-cross-assembly-isolation",
+    "08-12-churchreport-special-resource-migrations"
   ],
   "parent": null,
   "relatedFiles": [],

@@ -173,6 +173,399 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 驗證 P7.3 image retrieve 的 CRM read-back 即使具有 PNG signature，只要 decoder 無法確認完整內容與
+    /// 尺寸／像素限制，就必須 fail closed。故障注入使用固定的 signature-only bytes；決定性斷言是 client
+    /// 不建立 ContactImage response，且在 await using 結束時仍釋放 service。此測試特別保護未來可能繞過
+    /// executor pre-admission normalizer 的內部 connector 呼叫，避免無效 CRM image 進入產品 response。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_rejects_a_signature_only_contact_image_read_back()
+    {
+        var contactId = Guid.Parse("c0c0c0c0-0000-1111-2222-d0d0d0d0d0d0");
+        var signatureOnlyPng = new byte[]
+        {
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x00
+        };
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.Columns.Should().ContainSingle().Which.Should().Be("entityimage");
+                return new Entity("contact", contactId)
+                {
+                    ["entityimage"] = signatureOnlyPng.ToArray()
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            var action = async () => await client.ExecuteAsync(
+                new ConnectorOperation
+                {
+                    OperationId = OperationIds.MemberInfoContactRetrieveImage,
+                    WorkloadSubjectId = "test",
+                    DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+                    Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+                    {
+                        ["contactId"] = contactId
+                    }
+                },
+                CancellationToken.None);
+
+            await action.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        service.RetrieveCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護真實 Data8 metadata connector 僅在所有 option 的 CRM <c>UserLocalizedLabel.LanguageCode</c> 一致且為正時，
+    /// 才把該 server-resolved locale 交回 executor cache 邊界。故障注入是固定 RetrieveAttribute request 回傳兩個
+    /// 相同 locale 的 option；decisive assertions 是 response 保持純值 OptionSet branch、locale 為已證實的 1028，
+    /// 且 service 在 client scope 結束後釋放一次。此測試不讓 LocalizedLabel 或 SDK metadata graph 離開 connector。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_projects_a_consistent_server_resolved_metadata_locale()
+    {
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            execute: request =>
+            {
+                var retrieveAttribute = request.Should().BeOfType<RetrieveAttributeRequest>().Subject;
+                retrieveAttribute.EntityLogicalName.Should().Be("contact");
+                retrieveAttribute.LogicalName.Should().Be("customertypecode");
+                retrieveAttribute.RetrieveAsIfPublished.Should().BeTrue();
+                return CreateCustomerTypeMetadataResponse(
+                [
+                    CreateServerLocalizedOptionMetadata("會友", 1028, "Member", 1033, 100000001),
+                    CreateServerLocalizedOptionMetadata("新朋友", 1028, "New friend", 1033, 100000002)
+                ]);
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MetadataOptionSetByAttribute,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.OptionSetOptions);
+        result.Data.OptionSetOptions.Should().HaveCount(2);
+        result.ServerResolvedMetadataLocale.Should().Be(1028);
+        service.ExecuteCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 CRM metadata 同時帶有多個翻譯時，connector 仍只採用伺服器為此 response 選定的
+    /// <c>UserLocalizedLabel</c>，而不是依 <c>LocalizedLabels</c> 的筆數、集合順序或本機 culture 拒絕或猜選。
+    /// 故障注入是一筆 option 含繁中與英文翻譯、但 server-selected label 明確為繁中；決定性斷言是投影文字與
+    /// cache locale 均為 server-selected 的 1028。測試中的 SDK metadata graph 只存在於 fake Execute callback，
+    /// client 完成後仍由唯一 await-using owner 釋放，避免 metadata 或 profile state 跨 request 保留。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_uses_the_server_selected_label_when_metadata_contains_multiple_translations()
+    {
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            execute: _ => CreateCustomerTypeMetadataResponse(
+            [
+                CreateServerLocalizedOptionMetadata("會友", 1028, "Member", 1033, 100000001),
+                CreateServerLocalizedOptionMetadata("新朋友", 1028, "New friend", 1033, 100000002)
+            ]));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MetadataOptionSetByAttribute,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.OptionSetOptions.Should().SatisfyRespectively(
+            option => option.Label.Should().Be("會友"),
+            option => option.Label.Should().Be("新朋友"));
+        result.ServerResolvedMetadataLocale.Should().Be(1028);
+        service.ExecuteCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 CRM 未填 <c>UserLocalizedLabel</c>、但完整翻譯集合恰有一筆時，connector 可回傳這筆無歧義的
+    /// request-local projection，卻不得杜撰 server locale 或建立快取。故障注入是 SDK materializer 缺少
+    /// convenience property；決定性斷言是純值 label 保留、cache locale 為 null。這個退化路徑不依賴 OS、HTTP、
+    /// caller locale 或集合排序，且 await-using 仍在 client scope 結束時釋放唯一 service owner。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_keeps_a_single_unselected_metadata_translation_request_local()
+    {
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            execute: _ => CreateCustomerTypeMetadataResponse(
+            [new OptionMetadata(new Label("單一翻譯", 1028), 100000001)]));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MetadataOptionSetByAttribute,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.OptionSetOptions.Should().ContainSingle().Which.Label.Should().Be("單一翻譯");
+        result.ServerResolvedMetadataLocale.Should().BeNull();
+        service.ExecuteCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護同一 metadata response 內若 option labels 沒有單一 CRM server locale，connector 仍可回傳本次已驗證的
+    /// request-local pure-value projection，但絕不可猜測或輸出可快取 locale。故障注入為兩個 option 使用不同的
+    /// LanguageCode；decisive assertions 是成功 branch 的 labels 完整存在、locale 為 null，確保 executor 下一次
+    /// 必須重新讀取而非混用語系。SDK metadata graph 與 service 仍在本次 client scope 唯一釋放。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_does_not_mark_an_inconsistent_option_set_locale_as_cacheable()
+    {
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            execute: _ => CreateCustomerTypeMetadataResponse(
+            [
+                CreateServerLocalizedOptionMetadata("Member", 1033, "會友", 1028, 100000001),
+                CreateServerLocalizedOptionMetadata("新朋友", 1028, "New friend", 1033, 100000002)
+            ]));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.MetadataOptionSetByAttribute,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["target"] = MetadataOptionSetTarget.ContactCustomerTypeCode
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.OptionSetOptions.Should().HaveCount(2);
+        result.ServerResolvedMetadataLocale.Should().BeNull();
+        service.ExecuteCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 weekly meeting 的同步 CRM paging 在第一頁完成後若 request scope 已取消，就不得再送出第二頁 query。
+    /// 故障注入是第一頁回傳有效 continuation cookie 後立即取消；決定性斷言是保留
+    /// <see cref="OperationCanceledException"/>、RetrieveMultiple 恰為一次且唯一 service owner 仍釋放一次。
+    /// 因此不會回傳 partial result、建立 retry/background work，或把 cookie/Entity 留到下一個 profile、使用者或 request。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_stops_meeting_paging_when_cancellation_arrives_between_pages()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var queryCount = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                queryCount++;
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                AssertMeetingStatisticsQuery(expression, expectedPageNumber: 1, expectedPagingCookie: null);
+                cancellation.Cancel();
+                return new EntityCollection(
+                [
+                    new Entity("new_meeting_statistics", Guid.Parse("11111111-2222-3333-4444-555555555555"))
+                ])
+                {
+                    MoreRecords = true,
+                    PagingCookie = "test-only-next-page"
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            Func<Task> action = async () => await client.ExecuteAsync(
+                CreateMeetingStatisticsOperation(),
+                cancellation.Token);
+
+            await action.Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        queryCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 weekly meeting 成功跨頁時，唯一可接受的 continuation 是 CRM 前一頁回傳的 opaque cookie；第二頁結束後
+    /// connector 只回傳 bounded pure-value records，不將 cookie、QueryExpression 或 Entity graph 交給產品。故障注入是
+    /// 兩頁各有不同 ID；決定性斷言是兩次 query 的 page/cookie 精確相連、response 有兩筆 projection，且 client scope
+    /// 結束時唯一 service owner 釋放一次。這是離線契約測試，不構成 CE evidence，也不建立 session 或背景工作。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_projects_complete_weekly_statistics_across_server_owned_pages()
+    {
+        var firstId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+        var secondId = Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa");
+        var queryCount = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                queryCount++;
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                return queryCount switch
+                {
+                    1 => CreateMeetingStatisticsPage(
+                        [CreateMeetingStatisticEntity(firstId, "第一頁")],
+                        moreRecords: true,
+                        pagingCookie: "test-only-next-page",
+                        expression,
+                        expectedPageNumber: 1,
+                        expectedPagingCookie: null),
+                    2 => CreateMeetingStatisticsPage(
+                        [CreateMeetingStatisticEntity(secondId, "第二頁")],
+                        moreRecords: false,
+                        pagingCookie: null,
+                        expression,
+                        expectedPageNumber: 2,
+                        expectedPagingCookie: "test-only-next-page"),
+                    _ => throw new InvalidOperationException("The weekly paging connector attempted an unbounded page.")
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(CreateMeetingStatisticsOperation(), CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.MeetingStatistics);
+        result.Data.MeetingStatistics!.Select(record => record.MeetingStatisticId).Should().Equal(firstId, secondId);
+        queryCount.Should().Be(2);
+        service.RetrieveMultipleCount.Should().Be(2);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 weekly meeting 的每個不可完成 page 狀態都不會被投影成 partial success。故障注入依序模擬缺少 continuation
+    /// cookie、連續四頁仍未結束、單頁 129 列、單頁 UTF-8 預算超限，以及錯誤 CRM logical name；決定性斷言是固定
+    /// <see cref="InvalidOperationException"/>、精確 bounded query 次數與 service dispose 一次。測試不保存已投影資料、
+    /// cookie 或例外內容，確保失敗不會跨 request/profile 成為可重用狀態。
+    /// </summary>
+    /// <param name="fault">本案例唯一允許的 server-page fault 分類。</param>
+    /// <param name="expectedQueryCount">失敗前合理且有限的 CRM page 呼叫數。</param>
+    [Theory]
+    [InlineData("missing-cookie", 1)]
+    [InlineData("page-limit", 4)]
+    [InlineData("row-limit", 1)]
+    [InlineData("byte-limit", 1)]
+    [InlineData("schema-mismatch", 1)]
+    public async Task Created_client_rejects_incomplete_or_over_budget_weekly_statistics_without_partial_success(
+        string fault,
+        int expectedQueryCount)
+    {
+        var queryCount = 0;
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieveMultiple: query =>
+            {
+                queryCount++;
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                AssertMeetingStatisticsQuery(
+                    expression,
+                    expectedPageNumber: queryCount,
+                    expectedPagingCookie: queryCount == 1 ? null : "test-only-next-page");
+                return fault switch
+                {
+                    "missing-cookie" => new EntityCollection(
+                    [CreateMeetingStatisticEntity(Guid.Parse("11111111-2222-3333-4444-555555555555"), "缺 cookie")])
+                    {
+                        MoreRecords = true,
+                        PagingCookie = null
+                    },
+                    "page-limit" => new EntityCollection(
+                    [CreateMeetingStatisticEntity(Guid.Parse("22222222-2222-3333-4444-555555555555"), "超頁")])
+                    {
+                        MoreRecords = true,
+                        PagingCookie = "test-only-next-page"
+                    },
+                    "row-limit" => new EntityCollection(
+                        Enumerable.Range(0, 129)
+                            .Select(index => CreateMeetingStatisticEntity(
+                                new Guid(index + 1, 0, 0, new byte[8]),
+                                "超列"))
+                            .ToList()),
+                    "byte-limit" => new EntityCollection(
+                    [CreateMeetingStatisticEntity(
+                        Guid.Parse("33333333-2222-3333-4444-555555555555"),
+                        new string('x', 64 * 1024))]),
+                    "schema-mismatch" => new EntityCollection(
+                    [new Entity("account", Guid.Parse("44444444-2222-3333-4444-555555555555"))]),
+                    _ => throw new ArgumentOutOfRangeException(nameof(fault), fault, "Unsupported weekly paging fault.")
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            Func<Task> action = async () => await client.ExecuteAsync(
+                CreateMeetingStatisticsOperation(),
+                CancellationToken.None);
+
+            await action.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        queryCount.Should().Be(expectedQueryCount);
+        service.RetrieveMultipleCount.Should().Be(expectedQueryCount);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 保護其餘五個 P7.1 read operation 都具有自己的 server-owned query route，且不會因為它們都屬於 Package01
     /// 就落入 generic CRM 通道。故障注入是以一個離線 service 擷取每種 QueryExpression；決定性斷言是每個
     /// operation 的 entity、必要 filter、order/link shape 與安全 response branch 正確。這些 tests 不發出 CE
@@ -2082,6 +2475,32 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
         ]);
 
     /// <summary>
+    /// 建立同時含多個翻譯、且明確指定 CRM server-selected label 的測試 metadata option。這個 helper 刻意不依賴
+    /// 集合順序來表達目前使用者語系；<see cref="Label.UserLocalizedLabel"/> 是唯一被 production connector 信任的
+    /// authority，而 <see cref="Label.LocalizedLabels"/> 僅模擬 CRM 完整翻譯圖。回傳物只存活於單一 fake response，
+    /// 不會跨測試、profile 或 connector generation 共用。
+    /// </summary>
+    /// <param name="serverLabel">CRM 已為目前 response 選定的顯示文字。</param>
+    /// <param name="serverLanguageCode">server-selected 顯示文字的正整數語系碼。</param>
+    /// <param name="alternateLabel">同一 metadata 中另一個可用翻譯。</param>
+    /// <param name="alternateLanguageCode">另一個翻譯的正整數語系碼。</param>
+    /// <param name="value">固定 OptionSet value。</param>
+    private static OptionMetadata CreateServerLocalizedOptionMetadata(
+        string serverLabel,
+        int serverLanguageCode,
+        string alternateLabel,
+        int alternateLanguageCode,
+        int value)
+    {
+        var label = new Label(serverLabel, serverLanguageCode)
+        {
+            UserLocalizedLabel = new LocalizedLabel(serverLabel, serverLanguageCode)
+        };
+        label.LocalizedLabels.Add(new LocalizedLabel(alternateLabel, alternateLanguageCode));
+        return new OptionMetadata(label, value);
+    }
+
+    /// <summary>
     /// 以 caller 提供的有限 OptionMetadata 集合建立離線 RetrieveAttributeResponse。輸入只由測試擁有並立即
     /// 複製到 response；helper 不保存 metadata、不建立 CRM client，也不跨測試共用 mutable OptionSet state。
     /// </summary>
@@ -2177,6 +2596,98 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             WorkloadSubjectId = "test",
             DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
             Parameters = parameters
+        };
+    }
+
+    /// <summary>
+    /// 建立已由 executor 正規化的 weekly meeting connector operation。Sunday 固定為 UTC 午夜，產品無法在此
+    /// helper 注入 FetchXML、page token、entity/attribute、profile 或 credential；paging continuation 只能由
+    /// server response 在 connector method scope 內產生並消耗。
+    /// </summary>
+    private static ConnectorOperation CreateMeetingStatisticsOperation()
+        => new()
+        {
+            OperationId = OperationIds.StatsMeetingRetrieveBySunday,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["sundayDate"] = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero)
+            }
+        };
+
+    /// <summary>
+    /// 驗證 weekly meeting query 只使用 P7.3 server-owned schema、active/Sunday filter 與 deterministic order。
+    /// <paramref name="expectedPagingCookie"/> 只供對照 connector 從上一頁 server response 暫存的 opaque token；
+    /// 測試從不自行構造下一頁 token 交給產品或 service，因此不會形成跨 request/session continuation state。
+    /// </summary>
+    /// <param name="expression">由 connector 送入 fake service 的唯一 QueryExpression。</param>
+    /// <param name="expectedPageNumber">本輪唯一允許的 server-driven page 序號。</param>
+    /// <param name="expectedPagingCookie">第一頁為 null，後續頁只可為上一頁回傳的 test token。</param>
+    private static void AssertMeetingStatisticsQuery(
+        QueryExpression expression,
+        int expectedPageNumber,
+        string? expectedPagingCookie)
+    {
+        expression.EntityName.Should().Be("new_meeting_statistics");
+        expression.ColumnSet.Columns.Should().Equal(
+            "new_meeting_statisticsid",
+            "new_name",
+            "createdon",
+            "new_sunday_date");
+        expression.PageInfo.Count.Should().Be(128);
+        expression.PageInfo.PageNumber.Should().Be(expectedPageNumber);
+        expression.PageInfo.PagingCookie.Should().Be(expectedPagingCookie);
+        expression.Criteria.Conditions.Should().HaveCount(2);
+        expression.Criteria.Conditions[0].AttributeName.Should().Be("statecode");
+        expression.Criteria.Conditions[0].Operator.Should().Be(ConditionOperator.Equal);
+        expression.Criteria.Conditions[0].Values.Should().ContainSingle().Which.Should().Be(0);
+        expression.Criteria.Conditions[1].AttributeName.Should().Be("new_sunday_date");
+        expression.Criteria.Conditions[1].Operator.Should().Be(ConditionOperator.On);
+        expression.Criteria.Conditions[1].Values.Should().ContainSingle().Which.Should().Be(new DateTime(2026, 8, 9));
+        expression.Orders.Select(order => new { order.AttributeName, order.OrderType }).Should().Equal(
+            new { AttributeName = "createdon", OrderType = OrderType.Descending },
+            new { AttributeName = "new_meeting_statisticsid", OrderType = OrderType.Ascending });
+    }
+
+    /// <summary>
+    /// 建立測試唯一擁有的 schema 正確 meeting entity。固定 Sunday/createdOn 均為 UTC，避免本機時區、DST 或
+    /// formatted-values 影響 connector projection；回傳的 SDK Entity 只存活在 fake RetrieveMultiple callback 至
+    /// 目前 request 的同步投影過程，絕不放入 static cache、session 或下一頁 state。
+    /// </summary>
+    private static Entity CreateMeetingStatisticEntity(Guid id, string? name)
+    {
+        var entity = new Entity("new_meeting_statistics", id)
+        {
+            ["createdon"] = new DateTime(2026, 8, 9, 10, 0, 0, DateTimeKind.Utc),
+            ["new_sunday_date"] = new DateTime(2026, 8, 9, 0, 0, 0, DateTimeKind.Utc)
+        };
+        if (name is not null)
+        {
+            entity["new_name"] = name;
+        }
+
+        return entity;
+    }
+
+    /// <summary>
+    /// 驗證指定 page 的 server-owned query 後，建立只在目前 fake callback 使用的 EntityCollection。cookie 是純測試
+    /// 字串，connector 不會將它回傳至 ProductClient；這個 helper 不保存 collection，讓下一個 test/request 無法
+    /// 讀取或重用前一頁的 CRM state。
+    /// </summary>
+    private static EntityCollection CreateMeetingStatisticsPage(
+        IReadOnlyCollection<Entity> entities,
+        bool moreRecords,
+        string? pagingCookie,
+        QueryExpression expression,
+        int expectedPageNumber,
+        string? expectedPagingCookie)
+    {
+        AssertMeetingStatisticsQuery(expression, expectedPageNumber, expectedPagingCookie);
+        return new EntityCollection(entities.ToList())
+        {
+            MoreRecords = moreRecords,
+            PagingCookie = pagingCookie
         };
     }
 

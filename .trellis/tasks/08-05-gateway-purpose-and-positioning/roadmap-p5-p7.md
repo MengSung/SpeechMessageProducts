@@ -40,8 +40,11 @@ P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/
 | P5 | 已封存 | Dedicated Gateway 離線 host／lifecycle／quality gate | 無；不得重開 |
 | P6.1 | 已通過 | Router／Pool／Lease 與離線 lifecycle／quality evidence | 保留現有結果，不重做 |
 | P6.2 | `evidence-pending` | readiness 已 `go`，但兩個 Worker 在 READY 前結束，未執行 CE operation | 保留到未來獨立 Official Worker deployment task |
-| P7.0 | `planning` | PRD／design／implement 與 preliminary inventory 已存在 | 等 P6 正式結案後 activation |
-| P7.1～P7.5 | 尚未建立／啟動 | 由 P7.0 matrix 決定精確 child 邊界 | P7.0 validator 全綠 |
+| P7.0 | 已封存 | 70-row inventory／coverage validator 的唯讀基準 | 不得重做 |
+| P7.1 | 已封存 | 六項 Package01 typed Data8 read 與 CE 9.1 唯讀 evidence | consumer gate 維持 disabled |
+| P7.2 | 已封存 | 本機候選版；Slice C 最後 CE cycle no-go 並 cleanup | 不得重試 historical cycle |
+| P7.3 | `planning` | 五項 image/metadata/paging 特殊資源本機 contract | 完成 local lifecycle/quality gate；不切流、不寫 CE |
+| P7.4～P7.5 | 尚未啟動 | 依 P7.3/P7 matrix evidence 分別切換 capability 與移除 legacy dependency | 前置 gate 全綠 |
 | P8.0～P8.4 | 尚未建立／啟動 | 本文件只有路線定義 | P7.5 結案與獨立 P8 授權 |
 
 ## 4. P6：Lenovo Legion Official Worker Router 擴充點

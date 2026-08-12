@@ -434,6 +434,229 @@ public sealed class GatewayRequestBodyBoundaryTests
     }
 
     /// <summary>
+    /// 保護 P7.3 image update 的 Gateway JSON 不可把 cloned <see cref="JsonElement"/> 或可變 base64 text 原封不動
+    /// 交給 executor。測試使用已授權的固定 capability 與可解碼的一像素 PNG；決定性斷言是 endpoint 在
+    /// RequestGuard 前將 exact image object 建成 defensive-copy 的 <see cref="ContactImageResponseData"/>，並且
+    /// executor 看不到 JSON 文件、stream、HttpContext 或 caller 可變字串。Factory、content 與 test executor 都只活
+    /// 在本案例，結束時由 using/await using 釋放，不建立 Data8 client、permit 或跨使用者 cache。
+    /// </summary>
+    [Fact]
+    public async Task Authorized_p7_3_image_request_is_normalized_to_a_closed_owned_payload_before_executor()
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            maxRequestBodyBytes: 4_096,
+            mapped: true,
+            useKestrel: false,
+            capabilityOperationId: OperationIds.MemberInfoContactUpdateImage);
+        var imageBase64 = Convert.ToBase64String(CreateValidOnePixelPng());
+        var requestJson = "{\"idempotencyKey\":\"p7-3-image-boundary\",\"parameters\":{\"contactId\":\"abababab-0000-1111-2222-cdcdcdcdcdcd\",\"imagePayload\":{\"imageBytes\":\"" +
+            imageBase64 + "\",\"mediaKind\":\"Png\"}}}";
+        var bytes = Encoding.UTF8.GetBytes(requestJson);
+        var body = new TrackingReadStream(bytes);
+
+        var response = await SendThroughTestServerAsync(
+            factory,
+            body,
+            bytes.Length,
+            operationPath: CreateOperationPath(OperationIds.MemberInfoContactUpdateImage));
+
+        response.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        executor.CallCount.Should().Be(1);
+        executor.LastRequest.Should().NotBeNull();
+        executor.LastRequest!.Parameters.Should().ContainKey("imagePayload");
+        var image = executor.LastRequest.Parameters!["imagePayload"]
+            .Should().BeOfType<ContactImageResponseData>().Subject;
+        image.MediaKind.Should().Be(ContactImageMediaKind.Png);
+        image.GetImageBytes().Should().Equal(CreateValidOnePixelPng());
+        body.Dispose();
+    }
+
+    /// <summary>
+    /// 保護 P7.3 image JSON 只接受 exact <c>imageBytes</c>/<c>mediaKind</c> 封閉物件。故障注入加入未知欄位、
+    /// 數字 media kind 或缺少 image bytes；每一種都必須在 RequestGuard、executor、admission 與任何 Data8
+    /// resource 之前回傳 400。這防止未審查的 MIME、URL、stream hint 或其他欄位跨越 Gateway 邊界並形成
+    /// session/buffer retention 或 schema injection surface。
+    /// </summary>
+    /// <param name="imagePayloadJson">要嵌入 request 的惡意或不完整 image payload JSON。</param>
+    [Theory]
+    [InlineData("{\"imageBytes\":\"AA==\",\"mediaKind\":\"Png\",\"unexpected\":true}")]
+    [InlineData("{\"imageBytes\":\"AA==\",\"mediaKind\":1}")]
+    [InlineData("{\"mediaKind\":\"Png\"}")]
+    public async Task Authorized_p7_3_image_request_with_non_closed_payload_is_rejected_before_executor(
+        string imagePayloadJson)
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            maxRequestBodyBytes: 4_096,
+            mapped: true,
+            useKestrel: false,
+            capabilityOperationId: OperationIds.MemberInfoContactUpdateImage);
+        var requestJson = "{\"idempotencyKey\":\"p7-3-image-boundary\",\"parameters\":{\"contactId\":\"abababab-0000-1111-2222-cdcdcdcdcdcd\",\"imagePayload\":" +
+            imagePayloadJson + "}}";
+        var bytes = Encoding.UTF8.GetBytes(requestJson);
+        var body = new TrackingReadStream(bytes);
+
+        var response = await SendThroughTestServerAsync(
+            factory,
+            body,
+            bytes.Length,
+            operationPath: CreateOperationPath(OperationIds.MemberInfoContactUpdateImage));
+
+        response.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        executor.CallCount.Should().Be(0);
+        body.Dispose();
+    }
+
+    /// <summary>
+    /// 保護 P7.3 metadata capability 只能把公開 JSON string 轉成固定的 <see cref="MetadataOptionSetTarget"/> enum。
+    /// 成功路徑的 decisive assertion 是 executor 收到 server-owned enum 而非任意 entity/attribute 字串或
+    /// <see cref="JsonElement"/>；這使 connector private allowlist 仍是唯一能決定 CRM metadata request 的位置。
+    /// 測試不建立 cache、Data8 client 或 permit，所有 HTTP body/Factory 仍由案例 scope 確定釋放。
+    /// </summary>
+    [Fact]
+    public async Task Authorized_p7_3_metadata_request_is_normalized_to_a_closed_target_before_executor()
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            maxRequestBodyBytes: 1_024,
+            mapped: true,
+            useKestrel: false,
+            capabilityOperationId: OperationIds.MetadataOptionSetByAttribute);
+        var bytes = Encoding.UTF8.GetBytes(
+            "{\"parameters\":{\"target\":\"ContactCustomerTypeCode\"}}");
+        var body = new TrackingReadStream(bytes);
+
+        var response = await SendThroughTestServerAsync(
+            factory,
+            body,
+            bytes.Length,
+            operationPath: CreateOperationPath(OperationIds.MetadataOptionSetByAttribute));
+
+        response.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        executor.CallCount.Should().Be(1);
+        executor.LastRequest!.Parameters!["target"].Should().Be(MetadataOptionSetTarget.ContactCustomerTypeCode);
+        body.Dispose();
+    }
+
+    /// <summary>
+    /// 保護 P7.3 metadata JSON 不可藉由數字 enum、未知 target、object 或任意 CRM entity/attribute shape 擴張
+    /// 固定 allowlist。每個故障輸入都必須於 RequestGuard/executor 前回覆 400，避免 request body 成為 metadata
+    /// routing authority 或讓 raw document 被 connector/cache 保留。
+    /// </summary>
+    /// <param name="targetJson">caller 提供的非封閉 target JSON value。</param>
+    [Theory]
+    [InlineData("1")]
+    [InlineData("\"contact.customertypecode\"")]
+    [InlineData("{\"entity\":\"contact\",\"attribute\":\"customertypecode\"}")]
+    public async Task Authorized_p7_3_metadata_request_with_non_closed_target_is_rejected_before_executor(
+        string targetJson)
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            maxRequestBodyBytes: 1_024,
+            mapped: true,
+            useKestrel: false,
+            capabilityOperationId: OperationIds.MetadataOptionSetByAttribute);
+        var bytes = Encoding.UTF8.GetBytes("{\"parameters\":{\"target\":" + targetJson + "}}");
+        var body = new TrackingReadStream(bytes);
+
+        var response = await SendThroughTestServerAsync(
+            factory,
+            body,
+            bytes.Length,
+            operationPath: CreateOperationPath(OperationIds.MetadataOptionSetByAttribute));
+
+        response.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        executor.CallCount.Should().Be(0);
+        body.Dispose();
+    }
+
+    /// <summary>
+    /// 保護 P7.3 週日統計 capability 的日期邊界：已授權的 HTTP request 只能把明確 UTC 的星期日午夜字串
+    /// 轉成短生命週期、不可變的 <see cref="DateTimeOffset"/>。決定性斷言是 executor 收到的值既不是
+    /// <see cref="JsonElement"/>，也不是呼叫端可控制的 profile、endpoint、schema 或 query 片段；因此後續
+    /// connector 只能使用其 server-owned 固定 query。Factory、HTTP body 與測試替身都在案例結束時釋放，
+    /// 不建立 Data8 client、permit、cache、計時器或跨 request retained state。
+    /// </summary>
+    [Fact]
+    public async Task Authorized_p7_3_weekly_meeting_request_is_normalized_to_a_utc_sunday_before_executor()
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            maxRequestBodyBytes: 1_024,
+            mapped: true,
+            useKestrel: false,
+            capabilityOperationId: OperationIds.StatsMeetingRetrieveBySunday);
+        var bytes = Encoding.UTF8.GetBytes(
+            "{\"parameters\":{\"sundayDate\":\"2026-08-09T00:00:00Z\"}}");
+        var body = new TrackingReadStream(bytes);
+
+        var response = await SendThroughTestServerAsync(
+            factory,
+            body,
+            bytes.Length,
+            operationPath: CreateOperationPath(OperationIds.StatsMeetingRetrieveBySunday));
+
+        response.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        executor.CallCount.Should().Be(1);
+        executor.LastRequest.Should().NotBeNull();
+        executor.LastRequest!.Parameters.Should().ContainKey("sundayDate");
+        executor.LastRequest.Parameters!["sundayDate"]
+            .Should().BeOfType<DateTimeOffset>()
+            .Which.Should().Be(new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero));
+        body.Dispose();
+    }
+
+    /// <summary>
+    /// 保護週日統計的 wire contract 不會把缺漏、null、JSON 複合值、數字、無 offset、非 UTC、非星期日、
+    /// 非午夜或無效日期交給 RequestGuard、executor 或 connector。每一筆 fault injection 都應在 Gateway
+    /// normalizer 回傳固定 400，且 executor 呼叫次數保持零；這防止 caller 以日期文字夾帶 routing/schema
+    /// 語意，亦避免建立 permit、connector lease、背景工作或跨 profile 狀態。
+    /// </summary>
+    /// <param name="parametersJson">要嵌入 request 的無效 parameters JSON object。</param>
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{\"sundayDate\":null}")]
+    [InlineData("{\"sundayDate\":{}}")]
+    [InlineData("{\"sundayDate\":[]}")]
+    [InlineData("{\"sundayDate\":1}")]
+    [InlineData("{\"sundayDate\":\"2026-08-09T00:00:00\"}")]
+    [InlineData("{\"sundayDate\":\"2026-08-09T00:00:00+00:00\"}")]
+    [InlineData("{\"sundayDate\":\"2026-08-10T00:00:00Z\"}")]
+    [InlineData("{\"sundayDate\":\"2026-08-09T00:00:01Z\"}")]
+    [InlineData("{\"sundayDate\":\"2026-02-29T00:00:00Z\"}")]
+    [InlineData("{\"sundayDate\":\"2026-08-09T00:00:00Z\",\"schema\":\"caller-controlled\"}")]
+    public async Task Authorized_p7_3_weekly_meeting_request_with_non_canonical_sunday_is_rejected_before_executor(
+        string parametersJson)
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            maxRequestBodyBytes: 1_024,
+            mapped: true,
+            useKestrel: false,
+            capabilityOperationId: OperationIds.StatsMeetingRetrieveBySunday);
+        var bytes = Encoding.UTF8.GetBytes("{\"parameters\":" + parametersJson + "}");
+        var body = new TrackingReadStream(bytes);
+
+        var response = await SendThroughTestServerAsync(
+            factory,
+            body,
+            bytes.Length,
+            operationPath: CreateOperationPath(OperationIds.StatsMeetingRetrieveBySunday));
+
+        response.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        executor.CallCount.Should().Be(0);
+        body.Dispose();
+    }
+
+    /// <summary>
     /// 建立隔離 Testing Host。Program 必須選用 configured fake scheme，但 handler 只從 server-side configuration 建立 principal，
     /// 完全忽略 HTTP identity headers；executor 為單一案例記憶體 double，Kestrel 模式由 Factory 唯一擁有 listener 與 socket cleanup。
     /// </summary>
@@ -441,7 +664,8 @@ public sealed class GatewayRequestBodyBoundaryTests
         RecordingExecutor executor,
         int maxRequestBodyBytes,
         bool mapped,
-        bool useKestrel)
+        bool useKestrel,
+        string capabilityOperationId = OperationIds.RuntimeHealthWhoAmI)
     {
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -466,7 +690,7 @@ public sealed class GatewayRequestBodyBoundaryTests
                         "request-boundary-baseline-service",
                     ["DynamicsGateway:WorkloadBindingSets:Testing:0:ProfileAliases:0"] = "crm82",
                     ["DynamicsGateway:WorkloadBindingSets:Testing:0:CapabilityOperationIds:0"] =
-                        "runtime.health.whoami"
+                        capabilityOperationId
                 };
                 if (mapped)
                 {
@@ -475,7 +699,7 @@ public sealed class GatewayRequestBodyBoundaryTests
                         "request-boundary-service";
                     values["DynamicsGateway:WorkloadBindingSets:Testing:1:ProfileAliases:0"] = "crm82";
                     values["DynamicsGateway:WorkloadBindingSets:Testing:1:CapabilityOperationIds:0"] =
-                        "runtime.health.whoami";
+                        capabilityOperationId;
                 }
 
                 configuration.AddInMemoryCollection(values);
@@ -560,17 +784,27 @@ public sealed class GatewayRequestBodyBoundaryTests
         WebApplicationFactory<Program> factory,
         Stream body,
         long? declaredContentLength,
-        string? contentType = "application/json")
+        string? contentType = "application/json",
+        string operationPath = OperationPath)
         => factory.Server.SendAsync(context =>
         {
             context.Request.Method = HttpMethod.Post.Method;
             context.Request.Scheme = "https";
             context.Request.Host = new HostString("localhost");
-            context.Request.Path = OperationPath;
+            context.Request.Path = operationPath;
             context.Request.ContentType = contentType;
             context.Request.ContentLength = declaredContentLength;
             context.Request.Body = body;
         });
+
+    /// <summary>
+    /// 建立 P7.3 端點測試使用的固定 route。operation ID 仍由 Gateway authorization/server registry 決定；
+    /// 此 helper 只組合測試常數，不接觸 endpoint、credential、profile 或任意 caller route 片段。
+    /// </summary>
+    /// <param name="operationId">已由測試設定的固定 capability ID。</param>
+    /// <returns>只供 TestServer 使用的 HTTPS relative route。</returns>
+    private static string CreateOperationPath(string operationId)
+        => "/v1/organizations/crm82/operations/" + operationId;
 
     /// <summary>
     /// 建立固定 HTTP/1.1 operation request；content ownership 轉交給 request，caller Dispose request 時會連同 content 一起清理。
@@ -587,6 +821,15 @@ public sealed class GatewayRequestBodyBoundaryTests
     }
 
     /// <summary>
+    /// 建立已知可解碼的一像素 PNG，讓 Gateway normalizer test 不依賴檔案系統或共享 mutable buffer。
+    /// 每次呼叫皆回傳新陣列；image bytes 的最終 owner 由 test body 或 closed payload constructor 決定。
+    /// </summary>
+    /// <returns>可被 P7.3 decoder policy 接受的新 PNG byte array。</returns>
+    private static byte[] CreateValidOnePixelPng()
+        => Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==");
+
+    /// <summary>
     /// 記錄通過所有 inbound boundary 的 request；不建立 transport、admission、token、socket 或背景工作，
     /// 因此 <see cref="CallCount"/> 為零可直接證明拒絕發生在 outbound ownership 前。
     /// </summary>
@@ -594,6 +837,12 @@ public sealed class GatewayRequestBodyBoundaryTests
     {
         /// <summary>取得單一測試案例內的 executor 呼叫次數；實例不跨測試共享。</summary>
         public int CallCount { get; private set; }
+
+        /// <summary>
+        /// 取得最後一個已通過 Gateway 邊界的 request，僅供同一案例斷言封閉型別；Factory dispose 後不再使用。
+        /// 測試 double 不把此值放入 static/cache/背景工作，避免其觀察用途變成跨案例 retained request state。
+        /// </summary>
+        public OperationExecutionRequest? LastRequest { get; private set; }
 
         /// <summary>
         /// 同步記錄呼叫並回傳固定成功結果；不保留 request、principal、body、credential、token 或 cancellation registration。
@@ -607,6 +856,7 @@ public sealed class GatewayRequestBodyBoundaryTests
             CancellationToken cancellationToken = default)
         {
             CallCount++;
+            LastRequest = request;
             return Task.FromResult(OperationExecutionResult.Success(
                 OperationResponseData.ForWhoAmI(
                     OperationIds.RuntimeHealthWhoAmI,

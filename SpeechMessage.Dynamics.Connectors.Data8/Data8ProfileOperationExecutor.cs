@@ -15,6 +15,8 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Connectors;
 using SpeechMessage.Dynamics.Abstractions.Execution;
@@ -44,6 +46,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private const int MaximumUngroupedSearchBytes = 256;
     private const int MaximumGuidArrayItems = 1000;
     private const int MaximumSliceCDispatchEnvelopeBytes = 64 * 1024;
+    private const int MaximumSpecialResourceDispatchEnvelopeBytes = 64 * 1024;
+    private const int MaximumImagePayloadBytes = 32 * 1024;
+    private const int MaximumImageWidthPixels = 2048;
+    private const int MaximumImageHeightPixels = 2048;
+    private const long MaximumImagePixels = 2_097_152;
     private const int MaximumIdempotencyKeyCharacters = 128;
     private static readonly UTF8Encoding StrictUtf8 = new(
         encoderShouldEmitUTF8Identifier: false,
@@ -51,6 +58,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
 
     private readonly IProfileResolver _profileResolver;
     private readonly IConnectorRouter _connectorRouter;
+    private readonly MetadataOptionSetCache? _metadataOptionSetCache;
 
     /// <summary>
     /// 建立不擁有外部資源的 Data8 executor。Resolver 與 Router 均由 host composition root 擁有；
@@ -62,9 +70,27 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     public Data8ProfileOperationExecutor(
         IProfileResolver profileResolver,
         IConnectorRouter connectorRouter)
+        : this(profileResolver, connectorRouter, metadataOptionSetCache: null)
+    {
+    }
+
+    /// <summary>
+    /// 建立可選 runtime-owned metadata cache 的 Data8 executor。cache 只能由同一 host generation composition root
+    /// 建立並在 runtime Dispose 時釋放；本 executor 不擁有或 Dispose cache，避免某次 request 或單一 executor 提早
+    /// 清除其他同 runtime request 的 immutable metadata。cache 不含 user/session、SDK graph、lease 或 connector client，
+    /// 且只有 server-resolved locale 已被 connector result 證實時才會使用。
+    /// </summary>
+    /// <param name="profileResolver">將固定 ProfileAlias 解析為 immutable generation snapshot 的部署端 resolver。</param>
+    /// <param name="connectorRouter">只接受 resolver 輸出的 Data8 Profile 並回傳同 generation Pool 的 router。</param>
+    /// <param name="metadataOptionSetCache">可為 null 的 runtime-owned bounded pure-value cache。</param>
+    public Data8ProfileOperationExecutor(
+        IProfileResolver profileResolver,
+        IConnectorRouter connectorRouter,
+        MetadataOptionSetCache? metadataOptionSetCache)
     {
         _profileResolver = profileResolver ?? throw new ArgumentNullException(nameof(profileResolver));
         _connectorRouter = connectorRouter ?? throw new ArgumentNullException(nameof(connectorRouter));
+        _metadataOptionSetCache = metadataOptionSetCache;
     }
 
     /// <summary>
@@ -123,6 +149,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                     ContactBasicInfoUpdateCorrelationCategory.NoDispatch)));
         }
 
+        if (TryGetCachedMetadataOptionSet(profile, operation, out var cachedMetadata))
+        {
+            return Task.FromResult(OperationExecutionResult.Success(cachedMetadata));
+        }
+
         IConnectorPool pool;
         try
         {
@@ -147,7 +178,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 "The resolved Data8 profile generation is draining."));
         }
 
-        return ExecuteOperationAsync(pool, profile, operation, cancellationToken);
+        return ExecuteOperationAsync(pool, profile, operation, _metadataOptionSetCache, cancellationToken);
     }
 
     /// <summary>
@@ -160,12 +191,17 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         IConnectorPool pool,
         ResolvedProfile profile,
         ConnectorOperation operation,
+        MetadataOptionSetCache? metadataOptionSetCache,
         CancellationToken cancellationToken)
     {
         await using var lease = await pool.AcquireAsync(operation, cancellationToken).ConfigureAwait(false);
         var connectorResult = await lease.ExecuteAsync(operation, cancellationToken).ConfigureAwait(false);
         if (!connectorResult.Succeeded)
         {
+            // Connector 已明確回報未成功時，該 client 的 transport/session 狀態不能再被證明安全；即使沒有
+            // 原始例外也必須在 lease 結束前標成 faulted，讓 Pool dispose 而非放回同 Profile/Generation 的
+            // idle queue。這與 timeout、取消及無效 response 的淘汰規則相同，避免下一個 request 重用不確定狀態。
+            lease.MarkFaulted();
             return OperationExecutionResult.Failure(
                 ConnectorFailureErrorCode,
                 "The Data8 connector did not complete the requested operation.");
@@ -180,15 +216,93 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 "The Data8 connector returned an invalid operation response.");
         }
 
-        return OperationExecutionResult.Success(data);
+        var projectedData = data!;
+        TryStoreMetadataOptionSet(metadataOptionSetCache, profile, operation, connectorResult, projectedData);
+        return OperationExecutionResult.Success(projectedData);
+    }
+
+    /// <summary>
+    /// 在取得 lease 前嘗試讀取 metadata cache。只接受 metadata operation 的封閉 target，並將 profile resolver
+    /// 已證實的 alias/generation 交給 cache；不可使用 request alias 外觀、caller locale 或上一個 response 作為
+    /// authority。miss 一律回到正常 connector request，故 cache 不可用不會改變正確性或把使用者資料跨 request 保留。
+    /// </summary>
+    private bool TryGetCachedMetadataOptionSet(
+        ResolvedProfile profile,
+        ConnectorOperation operation,
+        out OperationResponseData? data)
+    {
+        data = null;
+        if (_metadataOptionSetCache is null ||
+            !string.Equals(operation.OperationId, OperationIds.MetadataOptionSetByAttribute, StringComparison.Ordinal) ||
+            !TryReadMetadataOptionSetTarget(operation.Parameters, out var target) ||
+            !_metadataOptionSetCache.TryGet(profile.ProfileAlias, profile.GenerationId, target, out var options) ||
+            options is null)
+        {
+            return false;
+        }
+
+        data = OperationResponseData.ForOptionSetOptions(
+            operation.OperationId,
+            ToCeVersionString(profile.CeVersion),
+            options);
+        return true;
+    }
+
+    /// <summary>
+    /// 在 connector result 已通過 closed-union projection 後，才將 metadata pure values 存入 runtime cache。locale
+    /// 必須是正的 server-resolved value，且 target 必須和本次 operation 精確相符；任何缺值、invalid response、
+    /// cache disposed 或超出容量的狀況都靜默維持 request-local result，絕不重試 connector 或將不完整 key 寫入 cache。
+    /// </summary>
+    private static void TryStoreMetadataOptionSet(
+        MetadataOptionSetCache? metadataOptionSetCache,
+        ResolvedProfile profile,
+        ConnectorOperation operation,
+        ConnectorOperationResult connectorResult,
+        OperationResponseData data)
+    {
+        if (metadataOptionSetCache is null ||
+            !string.Equals(operation.OperationId, OperationIds.MetadataOptionSetByAttribute, StringComparison.Ordinal) ||
+            connectorResult.ServerResolvedMetadataLocale is not > 0 ||
+            data.OptionSetOptions is null ||
+            !TryReadMetadataOptionSetTarget(operation.Parameters, out var target))
+        {
+            return;
+        }
+
+        var key = new MetadataOptionSetCacheKey(
+            profile.ProfileAlias,
+            profile.GenerationId,
+            target,
+            connectorResult.ServerResolvedMetadataLocale.Value);
+        _ = metadataOptionSetCache.Store(key, data.OptionSetOptions);
+    }
+
+    /// <summary>
+    /// 讀取 executor 已正規化的唯一 metadata target。此 helper 不接受 string、integer 或 caller schema，因此 cache
+    /// 與 connector 固定 RetrieveAttribute request 永遠指向相同 allowlisted capability，而非任意 CRM metadata。
+    /// </summary>
+    private static bool TryReadMetadataOptionSetTarget(
+        IReadOnlyDictionary<string, object?> parameters,
+        out MetadataOptionSetTarget target)
+    {
+        target = default;
+        if (!parameters.TryGetValue("target", out var value) ||
+            value is not MetadataOptionSetTarget candidate ||
+            !Enum.IsDefined(candidate))
+        {
+            return false;
+        }
+
+        target = candidate;
+        return true;
     }
 
     /// <summary>
     /// 將 caller-owned request 同步驗證並複製為 connector-owned operation。此步驟必須在第一次 await 前完成，
     /// 因此 admission queue、Pool wait 與 Data8 client 永遠不會保留原始 dictionary、JsonElement backing graph、
     /// legacy display name、endpoint、credential 或其他 caller state。只有明列的 Package01 read、contact basic-info、
-    /// LINE profile write 與 ungrouped commitment function 可通過；未實作 action、image/media、generic CRUD、
-    /// QueryBase 與 caller-supplied FetchXML 仍一律 fail closed。
+    /// LINE profile write、ungrouped commitment function 與 P7.3 已封閉的 image/metadata/meeting capability 可通過；
+    /// generic CRUD、QueryBase 與 caller-supplied FetchXML 仍一律 fail closed。
     /// </summary>
     /// <param name="request">尚由 caller 擁有的產品/Gateway request；本方法不保存其參考。</param>
     /// <param name="profile">resolver 提供的 immutable Data8 Profile，用於唯一 deadline policy。</param>
@@ -224,7 +338,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.MemberInfoContactCountUngroupedCommitment,
             StringComparison.Ordinal);
         var isSliceCOperation = IsSliceCOperation(request.CapabilityOperationId);
-        if ((isContactBasicInfoUpdate || isContactLineProfileUpdate || isUngroupedCommitmentCount || isSliceCOperation) &&
+        var isSpecialResourceOperation = IsSpecialResourceOperation(request.CapabilityOperationId);
+        if ((isContactBasicInfoUpdate || isContactLineProfileUpdate || isUngroupedCommitmentCount || isSliceCOperation ||
+             isSpecialResourceOperation) &&
             (profile.CeVersion != CeVersion.Ce91 ||
              request.Parameters is null ||
              (isContactBasicInfoUpdate && request.Parameters.Keys.Any(parameter =>
@@ -255,9 +371,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             return false;
         }
 
-        if (isSliceCOperation &&
+        if ((isSliceCOperation || IsSpecialResourceImageWrite(request.CapabilityOperationId)) &&
             (!IsValidIdempotencyKey(request.IdempotencyKey) ||
-             !HasValidSliceCParameters(request.CapabilityOperationId, parameters)))
+             !(isSliceCOperation
+                 ? HasValidSliceCParameters(request.CapabilityOperationId, parameters)
+                 : HasValidSpecialResourceImagePayload(parameters))))
         {
             errorCode = InvalidOperationParametersErrorCode;
             return false;
@@ -270,7 +388,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         }
 
         var estimatedBytes = 256;
-        if ((isContactLineProfileUpdate || isUngroupedCommitmentCount || isSliceCOperation) &&
+        if ((isContactLineProfileUpdate || isUngroupedCommitmentCount || isSliceCOperation || isSpecialResourceOperation) &&
             !TryEstimateBoundedEnvelopeBytes(
                 request.CapabilityOperationId,
                 request.WorkloadSubjectId,
@@ -319,8 +437,32 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.ListManagementSmallGroupUpdateFields => true,
             OperationIds.ContactAssignOwner => true,
             OperationIds.NewPersonContactTransferBetweenLists => true,
+            OperationIds.MemberInfoContactRetrieveImage => true,
+            OperationIds.MemberInfoContactUpdateImage => true,
+            OperationIds.NewPersonContactUpdateImage => true,
+            OperationIds.MetadataOptionSetByAttribute => true,
+            OperationIds.StatsMeetingRetrieveBySunday => true,
             _ => false
         };
+
+    /// <summary>
+    /// 判斷 operation 是否屬於 P7.3 的五項特殊資源 contract。這個小型 allowlist 僅用於 CE 9.1、idempotency
+    /// 與 bounded envelope 規則選擇；它不啟用 ChurchReport 流量、不建立 cache，也不允許 generic image/metadata/page API。
+    /// </summary>
+    private static bool IsSpecialResourceOperation(string operationId)
+        => operationId is
+            OperationIds.MemberInfoContactRetrieveImage or
+            OperationIds.MemberInfoContactUpdateImage or
+            OperationIds.NewPersonContactUpdateImage or
+            OperationIds.MetadataOptionSetByAttribute or
+            OperationIds.StatsMeetingRetrieveBySunday;
+
+    /// <summary>
+    /// 判斷 operation 是否為兩個 image write 之一。讀取 image 無需冪等鍵；write 必須要求 caller 的 bounded key，
+    /// 但 timeout/ambiguous outcome 仍不得自動重送，後續 CE evidence family 另行處理 reconciliation。
+    /// </summary>
+    private static bool IsSpecialResourceImageWrite(string operationId)
+        => operationId is OperationIds.MemberInfoContactUpdateImage or OperationIds.NewPersonContactUpdateImage;
 
     /// <summary>
     /// Slice C 的固定 list-management operation allowlist。它只表示 executor 已有封閉 schema；
@@ -457,8 +599,49 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 maximumBytes: 16,
                 out normalized),
             "guid-array" => TryNormalizeGuidArray(source, out normalized),
+            "image-payload" => TryNormalizeImagePayload(source, out normalized),
+            "metadata-optionset-target" => TryNormalizeMetadataOptionSetTarget(source, out normalized),
             _ => false
         };
+    }
+
+    /// <summary>
+    /// 複製 P7.3 image payload 的閉合 bytes。此 executor 層只處理已由 typed ProductClient 或 Gateway JSON
+    /// normalizer 提供的 <see cref="ContactImageResponseData"/>；不接受 Stream、IFormFile、JsonElement/object 或
+    /// MIME string。bytes 上限低於 64 KiB Gateway wire cap，並在 connector 層再驗 magic/decoder/dimension/pixels。
+    /// </summary>
+    private static bool TryNormalizeImagePayload(object? source, out object? normalized)
+    {
+        normalized = null;
+        if (source is not ContactImageResponseData image)
+        {
+            return false;
+        }
+
+        var bytes = image.GetImageBytes();
+        if (!IsValidDecodedImage(bytes, image.MediaKind))
+        {
+            return false;
+        }
+
+        normalized = new ContactImageResponseData(bytes, image.MediaKind);
+        return true;
+    }
+
+    /// <summary>
+    /// 只接受封閉 metadata target enum，避免 entity/attribute string、OData path 或 locale 被 caller 當作路由 authority。
+    /// 未知 enum 一律在 connector lease 前拒絕；真正 CRM logical name 只在 Data8 helper 的 private allowlist 出現。
+    /// </summary>
+    private static bool TryNormalizeMetadataOptionSetTarget(object? source, out object? normalized)
+    {
+        normalized = null;
+        if (source is not MetadataOptionSetTarget target || !Enum.IsDefined(target))
+        {
+            return false;
+        }
+
+        normalized = target;
+        return true;
     }
 
     /// <summary>
@@ -784,6 +967,94 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     }
 
     /// <summary>
+    /// 驗證 executor-owned image copy 仍具非空 bytes 與合法 closed media kind。connector 在服務呼叫前還會驗證
+    /// signature/decoder/dimension/pixels；這個 pre-admission check 的責任是排除任何 stream/object/空白 payload，
+    /// 不讓它們進入 Pool、lease 或 WCF session。
+    /// </summary>
+    private static bool HasValidSpecialResourceImagePayload(IReadOnlyDictionary<string, object?> parameters)
+        => parameters.TryGetValue("imagePayload", out var value) &&
+           value is ContactImageResponseData image &&
+           IsValidDecodedImage(image.GetImageBytes(), image.MediaKind);
+
+    /// <summary>
+    /// 在任何 admission permit、Data8 connector lease 或 CRM 寫入之前，以受控 decoder 驗證 P7.3 的 image
+    /// payload。此方法只接受 bounded PNG/JPEG bytes，透過 ImageSharp 的 <c>DetectFormat</c> 與
+    /// <c>Identify</c> 讀取真實格式與 dimensions，不信任 MIME、檔名、magic bytes 或呼叫端 enum。所有 decoder 物件與暫時
+    /// metadata 都侷限在本同步呼叫範圍，不寫入 static/cache/profile/pool；因此無效或 image-bomb payload
+    /// 會在外部 I/O 前 fail closed，不會耗用其他使用者或 profile 的 client、session、permit 或記憶體預算。
+    /// </summary>
+    /// <param name="bytes">由 typed boundary defensive-copy 取得、且尚未交給 connector 的有限內容。</param>
+    /// <param name="declaredMediaKind">封閉 DTO 宣告的 media kind，必須與 decoder 真正格式一致。</param>
+    /// <returns>格式、寬高、總像素與 byte 上限都符合 policy 時為 <see langword="true"/>。</returns>
+    private static bool IsValidDecodedImage(byte[] bytes, ContactImageMediaKind declaredMediaKind)
+    {
+        if (bytes is null || bytes.Length is < 1 or > MaximumImagePayloadBytes ||
+            !Enum.IsDefined(declaredMediaKind))
+        {
+            return false;
+        }
+
+        try
+        {
+            var decodedFormat = Image.DetectFormat(bytes);
+            var info = Image.Identify(bytes);
+            if (info is null || decodedFormat is null ||
+                !TryMapDecodedImageFormat(decodedFormat, out var decodedMediaKind) ||
+                decodedMediaKind != declaredMediaKind ||
+                info.Width is < 1 or > MaximumImageWidthPixels ||
+                info.Height is < 1 or > MaximumImageHeightPixels)
+            {
+                return false;
+            }
+
+            return checked((long)info.Width * info.Height) <= MaximumImagePixels;
+        }
+        catch (UnknownImageFormatException)
+        {
+            return false;
+        }
+        catch (InvalidImageContentException)
+        {
+            return false;
+        }
+        catch (ImageFormatException)
+        {
+            return false;
+        }
+        catch (OverflowException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 將 decoder 的已驗證格式收斂為 P7.3 wire contract 的封閉 enum。以 format 名稱做大小寫不敏感的固定
+    /// 比對，不接受 decoder 的任意 subtype、外掛格式或 MIME；若新格式被加入 ImageSharp，必須先擴充 DTO、
+    /// policy 與測試，否則本方法維持 fail closed。
+    /// </summary>
+    /// <param name="decodedFormat">只在 <see cref="IsValidDecodedImage"/> scope 內存在的 decoder format。</param>
+    /// <param name="mediaKind">成功時輸出的封閉 media kind。</param>
+    /// <returns>只有 PNG/JPEG 時為 <see langword="true"/>。</returns>
+    private static bool TryMapDecodedImageFormat(IImageFormat decodedFormat, out ContactImageMediaKind mediaKind)
+    {
+        ArgumentNullException.ThrowIfNull(decodedFormat);
+        if (string.Equals(decodedFormat.Name, "PNG", StringComparison.OrdinalIgnoreCase))
+        {
+            mediaKind = ContactImageMediaKind.Png;
+            return true;
+        }
+
+        if (string.Equals(decodedFormat.Name, "JPEG", StringComparison.OrdinalIgnoreCase))
+        {
+            mediaKind = ContactImageMediaKind.Jpeg;
+            return true;
+        }
+
+        mediaKind = default;
+        return false;
+    }
+
+    /// <summary>
     /// 由已驗證的 bounded scalar 建立保守 envelope 大小。計算包含固定結構、operation、workload、冪等鍵、
     /// parameter name/value；checked 與嚴格 UTF-8 防止 overflow／replacement fallback。超過 4 KiB 即在 Router 前
     /// fail closed，因此 admission 不會低估 B1 對 shared Organization 的成本。
@@ -798,7 +1069,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         estimatedBytes = 256;
         var maximumBytes = IsSliceCOperation(operationId)
             ? MaximumSliceCDispatchEnvelopeBytes
-            : MaximumDispatchEnvelopeBytes;
+            : IsSpecialResourceOperation(operationId)
+                ? MaximumSpecialResourceDispatchEnvelopeBytes
+                : MaximumDispatchEnvelopeBytes;
         try
         {
             estimatedBytes = checked(estimatedBytes + StrictUtf8.GetByteCount(operationId));
@@ -819,6 +1092,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                     DateTimeOffset => checked(estimatedBytes + 16),
                     int => checked(estimatedBytes + 4),
                     string text => checked(estimatedBytes + StrictUtf8.GetByteCount(text)),
+                    ContactImageResponseData image => checked(estimatedBytes + image.GetImageBytes().Length + 8),
+                    MetadataOptionSetTarget => checked(estimatedBytes + 4),
                     _ => throw new InvalidOperationException("Unsupported bounded scalar.")
                 };
             }
@@ -929,6 +1204,13 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationResponseKind.SmallGroupFixedFieldsMutation => connectorData.SmallGroupFixedFieldsMutation is not null,
             OperationResponseKind.ContactOwnerAssignment => connectorData.ContactOwnerAssignment is not null,
             OperationResponseKind.ContactListTransfer => connectorData.ContactListTransfer is not null,
+            OperationResponseKind.ContactImage => connectorData.ContactImage is not null &&
+                                                  TryValidateContactImage(connectorData.ContactImage, definition),
+            OperationResponseKind.ContactImageUpdate => connectorData.ContactImageUpdate is not null,
+            OperationResponseKind.OptionSetOptions => connectorData.OptionSetOptions is not null &&
+                                                        TryValidateOptionSetOptions(connectorData.OptionSetOptions, definition),
+            OperationResponseKind.MeetingStatistics => connectorData.MeetingStatistics is not null &&
+                                                        TryValidateMeetingStatistics(connectorData.MeetingStatistics, definition),
             _ => false
         };
         if (!isValid)
@@ -997,6 +1279,73 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 !TryAddUtf8Bytes(ref bytes, record.ContactName, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.ContactMobile, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.DiscipleLessonName, definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 image response 不僅符合 registry byte budget，也必須由實際 decoder 識別為與封閉 enum 一致的 PNG/JPEG，
+    /// 並符合 dimensions/pixels policy。即使 connector 已有同樣的深度防禦，executor 仍要防禦測試替身、未來 adapter
+    /// 或已損毀 connector 回應；bytes getter 只產生本同步驗證用的短生命週期 copy，不保存 mutable array、stream、decoder
+    /// 或 image metadata。任何不符皆由外層在 lease scope 標記 faulted，讓未知 session/client 不會回到同 profile/generation pool。
+    /// </summary>
+    private static bool TryValidateContactImage(ContactImageResponseData image, OperationDefinition definition)
+    {
+        var bytes = image.GetImageBytes();
+        return bytes.Length <= definition.MaximumCumulativeResponseBytes &&
+               IsValidDecodedImage(bytes, image.MediaKind);
+    }
+
+    /// <summary>
+    /// 驗證 metadata records 仍符合 registry 的 row/UTF-8 cumulative budget。collection 是 envelope copy，HashSet
+    /// 僅存在此呼叫；不建立 profile/generation cache 或保留 raw metadata/session 物件。
+    /// </summary>
+    private static bool TryValidateOptionSetOptions(
+        IReadOnlyList<OptionSetOptionRecord> options,
+        OperationDefinition definition)
+    {
+        if (options.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var bytes = 0;
+        foreach (var option in options)
+        {
+            if (option is null || string.IsNullOrWhiteSpace(option.Label) || option.ConfiguredOrder < 0 ||
+                !TryAddFixedBytes(ref bytes, 32, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, option.Label, definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 meeting projection 的 row/identity/name bytes。paging cookie、page EntityCollection 與 query 永遠不在此
+    /// collection 中；connector 發現 page failure 或 budget overflow 時不會建立 envelope，因而沒有 partial success。
+    /// </summary>
+    private static bool TryValidateMeetingStatistics(
+        IReadOnlyList<MeetingStatisticRecord> statistics,
+        OperationDefinition definition)
+    {
+        if (statistics.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var bytes = 0;
+        foreach (var statistic in statistics)
+        {
+            if (statistic is null || statistic.MeetingStatisticId == Guid.Empty ||
+                !TryAddFixedBytes(ref bytes, 64, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, statistic.Name, definition.MaximumCumulativeResponseBytes))
             {
                 return false;
             }

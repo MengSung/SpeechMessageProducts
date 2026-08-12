@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"P7.3 cache、buffer、lease、profile/generation isolation 與 deterministic cleanup 的 release-blocking contract。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Embedded/Dedicated/Data8 operation routing、ProductClient boundary 與 evidence-pending 規則。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"跨層 image、metadata cache、paging 與 resource owner 的設計/審查清單。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"五個 P7.3 rows、consumer-not-migrated 與 P7.5 blockers 的權威狀態。"}

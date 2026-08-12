@@ -26,6 +26,32 @@ public static class OperationIds
     /// <summary>對應 ORG-CALL-00040：option-set metadata 讀取。</summary>
     public const string MetadataOptionSetByAttribute = "metadata.optionset.retrieve.by.attribute";
 
+    // -------- Package 3：特殊資源；僅建立本機 bounded contract，P7.4 前不切換產品流量 --------
+
+    /// <summary>
+    /// 對應 ORG-CALL-00028：讀取 contact 的固定 entityimage 投影。此 ID 不允許產品選擇 entity、attribute、
+    /// stream、格式、endpoint 或 CRM SDK type；實際 media validation 與 byte ownership 由 connector contract 擁有。
+    /// </summary>
+    public const string MemberInfoContactRetrieveImage = "memberinfo.contact.retrieve.image";
+
+    /// <summary>
+    /// 對應 ORG-CALL-00029：以 bounded image payload 更新會友 contact 的固定 entityimage，並要求 read-back。
+    /// 這不是 generic Update(Entity)；timeout、未知結果或不符 read-back 必須 fail closed，不能從此 ID 推導重試。
+    /// </summary>
+    public const string MemberInfoContactUpdateImage = "memberinfo.contact.update.image";
+
+    /// <summary>
+    /// 對應 ORG-CALL-00034：以獨立 authorization/policy 更新新人 contact 的固定 entityimage。雖可共用底層
+    /// connector primitive，仍保留獨立 ID，避免 MemberInfo 與 NewPerson 的產品權限或 rollout 被混合。
+    /// </summary>
+    public const string NewPersonContactUpdateImage = "newperson.contact.update.image";
+
+    /// <summary>
+    /// 對應 ORG-CALL-00063：依 UTC Sunday 讀取固定 meeting statistic projection。呼叫端不得提供 FetchXML、
+    /// page cookie、entity/field name 或排序；paging 和暫存資料均只活在 connector request scope。
+    /// </summary>
+    public const string StatsMeetingRetrieveBySunday = "stats.meeting.retrieve.by.sunday";
+
     // -------- Package 1：費用唯讀能力；正式流量在 Phase 4 證據完成前維持 feature flag 關閉 --------
 
     /// <summary>對應 ORG-CALL-00005：依 contact 讀取 dedication fee。</summary>

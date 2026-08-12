@@ -21,6 +21,7 @@ using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
 using SpeechMessage.Dynamics.ProductClient.ListManagement;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
+using SpeechMessage.Dynamics.ProductClient.SpecialResources;
 
 namespace SpeechMessage.Dynamics.ProductClient.DependencyInjection;
 
@@ -78,6 +79,7 @@ public static class ProductClientServiceCollectionExtensions
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
         services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
+        services.TryAddSingleton<IPackage03SpecialResourceClient, Package03SpecialResourceClient>();
         return services;
     }
 
@@ -126,6 +128,19 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 只註冊 P7.3 image、metadata 與 weekly-statistics typed client。它不啟用 ChurchReport consumer、feature gate、
+    /// CE mutation 或 shared metadata cache；呼叫端必須先由 Embedded/Gateway composition 註冊唯一 executor，
+    /// 而 Data8 runtime generation、lease、drain 與 disposal 仍由下游 owner 確定管理。
+    /// </summary>
+    public static IServiceCollection AddSpeechMessageDynamicsPackage03SpecialResources(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IPackage03SpecialResourceClient, Package03SpecialResourceClient>();
         return services;
     }
 }

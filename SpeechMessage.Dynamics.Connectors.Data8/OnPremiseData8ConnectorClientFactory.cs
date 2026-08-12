@@ -241,11 +241,21 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
             });
         }
 
-        // Package01 與 P7.2 helpers 分別擁有固定 QueryExpression、Entity、metadata 與 aggregate template；它們
+        // Package01、P7.2 與 P7.3 helpers 分別擁有固定 QueryExpression、Entity、metadata 與 aggregate template；它們
         // 不接受 request-time CRM metadata，且同步 SDK 呼叫、投影或 paging 發生例外時 Lease 會淘汰本 client。
         // 此 dispatch 不提供 generic CRUD、caller Entity／FetchXML 或 caller-selected routing；未知 operation
         // 仍由各 capability owner fail closed。
-        var data = operation.OperationId switch
+        Package03Data8OperationResult? specialResourceResult = operation.OperationId switch
+        {
+            OperationIds.MemberInfoContactRetrieveImage or
+            OperationIds.MemberInfoContactUpdateImage or
+            OperationIds.NewPersonContactUpdateImage or
+            OperationIds.MetadataOptionSetByAttribute or
+            OperationIds.StatsMeetingRetrieveBySunday =>
+                Package03Data8SpecialResourceOperations.Execute(service, operation, _ceVersion, cancellationToken),
+            _ => null
+        };
+        var data = specialResourceResult?.Data ?? operation.OperationId switch
         {
             OperationIds.MemberInfoContactUpdateBasicInfo =>
                 Package02Data8ContactBasicInfoWriteOperations.Execute(service, operation, _ceVersion),
@@ -268,7 +278,8 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(new ConnectorOperationResult(true)
         {
-            Data = data
+            Data = data,
+            ServerResolvedMetadataLocale = specialResourceResult?.ServerResolvedMetadataLocale
         });
     }
 

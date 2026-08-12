@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Connectors;
 using SpeechMessage.Dynamics.Abstractions.Execution;
+using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.Connectors.Data8;
 
 namespace SpeechMessage.Dynamics.Tests;
@@ -40,6 +41,43 @@ public sealed class Data8ProfileRuntimeTests
 
         var useDisposedRuntime = () => runtime.Router.Resolve(profile!);
         useDisposedRuntime.Should().Throw<ObjectDisposedException>();
+    }
+
+    /// <summary>
+    /// 保護 generation-owned runtime 是 metadata cache 的唯一釋放 owner。故障注入是在 runtime Dispose 前先放入一筆
+    /// 已完整隔離的 server-locale metadata，隨後仍嘗試使用相同 cache；decisive assertions 是 Dispose 後讀寫皆
+    /// fail closed。這證明 profile replacement／host shutdown 不會把 option label、profile/generation key 或 cache
+    /// entry 留給下一個 runtime，而 constructor 仍不會預先建立 Data8 connector、WCF channel 或背景清理工作。
+    /// </summary>
+    [Fact]
+    public async Task Dispose_async_clears_the_runtime_owned_metadata_cache()
+    {
+        var factory = new ThrowingFactory();
+        await using var runtime = new Data8ProfileRuntime(
+            CreateProfiles(),
+            CreateCatalog(),
+            "sunnyvalechback",
+            factory,
+            NullLoggerFactory.Instance);
+        var key = new MetadataOptionSetCacheKey(
+            "sunnyvalechback",
+            generationId: 1,
+            MetadataOptionSetTarget.ContactCustomerTypeCode,
+            serverResolvedLocale: 1028);
+
+        runtime.MetadataOptionSetCache.Store(
+            key,
+            [new OptionSetOptionRecord { Value = 1, Label = "runtime-owned", ConfiguredOrder = 0 }])
+            .Should().BeTrue();
+
+        await runtime.DisposeAsync();
+
+        runtime.MetadataOptionSetCache.TryGet(key, out _).Should().BeFalse();
+        runtime.MetadataOptionSetCache.Store(
+            key,
+            [new OptionSetOptionRecord { Value = 2, Label = "disposed", ConfiguredOrder = 0 }])
+            .Should().BeFalse();
+        factory.CreateCount.Should().Be(0);
     }
 
     /// <summary>

@@ -83,7 +83,31 @@ public enum OperationResponseKind
     /// P7.2 Slice C contact list-transfer composite 的封閉結果；只有完整 membership、weekly record、lookup 與 owner
     /// reconciliation 都已確認時才可回傳成功 branch。
     /// </summary>
-    ContactListTransfer = 10
+    ContactListTransfer = 10,
+
+    /// <summary>
+    /// P7.3 contact entityimage 的 copied bytes 投影。它不含 stream、decoder、CRM Entity、contact identity
+    /// 或 cache key；connector 已在 request scope 完成格式與大小驗證，產品只能讀取 defensive copy。
+    /// </summary>
+    ContactImage = 11,
+
+    /// <summary>
+    /// P7.3 兩個 contact image write operation 的最小 read-back-confirmed 結果。未知 timeout、部分寫入或
+    /// cleanup uncertainty 不得使用此 discriminator，必須維持 fail-closed error。
+    /// </summary>
+    ContactImageUpdate = 12,
+
+    /// <summary>
+    /// P7.3 固定 metadata OptionSet 的 ordered pure value/label projection。它不保留 AttributeMetadata、
+    /// LocalizedLabel、cache segment、profile generation 或任何 SDK graph。
+    /// </summary>
+    OptionSetOptions = 13,
+
+    /// <summary>
+    /// P7.3 依 UTC Sunday 讀取的 bounded meeting statistic projection。它不含 FetchXML、cookie、page token
+    /// 或 raw Entity，任何 page failure 都不會產生 partial branch。
+    /// </summary>
+    MeetingStatistics = 14
 }
 
 /// <summary>
@@ -94,6 +118,10 @@ public enum OperationResponseKind
 public sealed class OperationResponseData
 {
     private const int MaximumUngroupedCommitmentCountRecords = 4096;
+    private const int MaximumOptionSetOptionRecords = 1024;
+    private const int MaximumMeetingStatisticRecords = 4096;
+    private const int MaximumOptionSetLabelCharacters = 512;
+    private const int MaximumMeetingNameCharacters = 512;
 
     /// <summary>
     /// 建立封閉回應。JSON 反序列化也必須經過此驗證，故未知/錯配 branch 無法被悄悄保存在長生命週期的
@@ -113,7 +141,11 @@ public sealed class OperationResponseData
         StaticListMembershipMutationResponseData? staticListMembershipMutation = null,
         SmallGroupFixedFieldsMutationResponseData? smallGroupFixedFieldsMutation = null,
         ContactOwnerAssignmentResponseData? contactOwnerAssignment = null,
-        ContactListTransferResponseData? contactListTransfer = null)
+        ContactListTransferResponseData? contactListTransfer = null,
+        ContactImageResponseData? contactImage = null,
+        ContactImageUpdateResponseData? contactImageUpdate = null,
+        IReadOnlyList<OptionSetOptionRecord>? optionSetOptions = null,
+        IReadOnlyList<MeetingStatisticRecord>? meetingStatistics = null)
     {
         if (string.IsNullOrWhiteSpace(operationId))
         {
@@ -136,7 +168,11 @@ public sealed class OperationResponseData
             staticListMembershipMutation,
             smallGroupFixedFieldsMutation,
             contactOwnerAssignment,
-            contactListTransfer);
+            contactListTransfer,
+            contactImage,
+            contactImageUpdate,
+            optionSetOptions,
+            meetingStatistics);
 
         OperationId = operationId;
         CeVersion = ceVersion;
@@ -151,6 +187,10 @@ public sealed class OperationResponseData
         SmallGroupFixedFieldsMutation = smallGroupFixedFieldsMutation;
         ContactOwnerAssignment = contactOwnerAssignment;
         ContactListTransfer = contactListTransfer;
+        ContactImage = contactImage;
+        ContactImageUpdate = contactImageUpdate;
+        OptionSetOptions = optionSetOptions?.ToArray();
+        MeetingStatistics = meetingStatistics?.ToArray();
     }
 
     /// <summary>
@@ -251,6 +291,38 @@ public sealed class OperationResponseData
     [JsonPropertyName("contactListTransfer")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ContactListTransferResponseData? ContactListTransfer { get; }
+
+    /// <summary>
+    /// P7.3 contact image 的封閉 projection。該物件自身會在 getter 複製 bytes，故 serializing 或產品端修改不會
+    /// 回寫 connector/envelope；image 不可進 shared cache，stream/decoder/buffer 已於 connector scope 釋放。
+    /// </summary>
+    [JsonPropertyName("contactImage")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactImageResponseData? ContactImage { get; }
+
+    /// <summary>
+    /// P7.3 image write 的最小 read-back-confirmed 結果。它不包含 contact、image、hash、baseline 或 CRM response，
+    /// 因此不會讓 fixture/session identity 跨 ProductClient 或 Gateway response 留存。
+    /// </summary>
+    [JsonPropertyName("contactImageUpdate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactImageUpdateResponseData? ContactImageUpdate { get; }
+
+    /// <summary>
+    /// P7.3 metadata options 的 ordered pure value projection。constructor 立即 materialize collection；它不持有
+    /// metadata cache、profile/generation key、SDK object 或 locale context，這些資源/邊界由 connector owner 管理。
+    /// </summary>
+    [JsonPropertyName("optionSetOptions")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<OptionSetOptionRecord>? OptionSetOptions { get; }
+
+    /// <summary>
+    /// P7.3 weekly meeting statistics 的 bounded DTO collection。constructor 複製資料且不保存 paging cookie、
+    /// upstream page 或 FetchXML；任何 connector page failure 必須在建立本 branch 前失敗關閉。
+    /// </summary>
+    [JsonPropertyName("meetingStatistics")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<MeetingStatisticRecord>? MeetingStatistics { get; }
 
     /// <summary>
     /// 建立 WhoAmI branch。呼叫端在 connector request scope 完成原始 JSON 投影並 dispose 上游 response 後才可
@@ -435,6 +507,76 @@ public sealed class OperationResponseData
             });
 
     /// <summary>
+    /// 建立 P7.3 image read branch。影像 bytes 由 <paramref name="contactImage"/> constructor 與自己的 getter
+    /// defensive copy；這個 factory 不接受 raw stream 或 SDK object，也不承擔 decoder/buffer 的 disposal。
+    /// </summary>
+    public static OperationResponseData ForContactImage(
+        string operationId,
+        string ceVersion,
+        ContactImageResponseData contactImage)
+    {
+        ArgumentNullException.ThrowIfNull(contactImage);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.ContactImage,
+            contactImage: contactImage);
+    }
+
+    /// <summary>
+    /// 建立 P7.3 image update 的封閉成功 branch。只有 Changed/ReadBackConfirmed 的合法配對能通過 union 驗證；
+    /// timeout、ambiguous transport、read-back mismatch 或 cleanup uncertainty 必須由 executor 回傳失敗，不能呼叫此 factory。
+    /// </summary>
+    public static OperationResponseData ForContactImageUpdate(
+        string operationId,
+        string ceVersion,
+        ContactImageUpdateDisposition disposition,
+        ContactImageUpdateCorrelationCategory correlationCategory)
+        => new(
+            operationId,
+            ceVersion,
+            OperationResponseKind.ContactImageUpdate,
+            contactImageUpdate: new ContactImageUpdateResponseData
+            {
+                Disposition = disposition,
+                CorrelationCategory = correlationCategory
+            });
+
+    /// <summary>
+    /// 建立 P7.3 metadata OptionSet branch。輸入立即 materialize，constructor 再驗證 value/order/label 的 bounded
+    /// 純值規則；AttributeMetadata、LocalizedLabel、exception、profile/generation cache key 均不可成為 response。
+    /// </summary>
+    public static OperationResponseData ForOptionSetOptions(
+        string operationId,
+        string ceVersion,
+        IEnumerable<OptionSetOptionRecord> optionSetOptions)
+    {
+        ArgumentNullException.ThrowIfNull(optionSetOptions);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.OptionSetOptions,
+            optionSetOptions: optionSetOptions.ToArray());
+    }
+
+    /// <summary>
+    /// 建立 P7.3 weekly meeting statistics branch。輸入先 materialize，讓 upstream page collection/cookie 不會被
+    /// envelope 保留；任何 page failure、超限或 schema mismatch 都必須在 connector scope 內阻止呼叫此 factory。
+    /// </summary>
+    public static OperationResponseData ForMeetingStatistics(
+        string operationId,
+        string ceVersion,
+        IEnumerable<MeetingStatisticRecord> meetingStatistics)
+    {
+        ArgumentNullException.ThrowIfNull(meetingStatistics);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.MeetingStatistics,
+            meetingStatistics: meetingStatistics.ToArray());
+    }
+
+    /// <summary>
     /// 建立明確的 unsupported envelope。connector/Gateway 應把它轉成受控失敗，而不是把未投影 metadata、
     /// OData annotation 或 endpoint detail 回傳給產品；此值不擁有背景資源或可清理 handle。
     /// </summary>
@@ -452,7 +594,11 @@ public sealed class OperationResponseData
         StaticListMembershipMutationResponseData? staticListMembershipMutation,
         SmallGroupFixedFieldsMutationResponseData? smallGroupFixedFieldsMutation,
         ContactOwnerAssignmentResponseData? contactOwnerAssignment,
-        ContactListTransferResponseData? contactListTransfer)
+        ContactListTransferResponseData? contactListTransfer,
+        ContactImageResponseData? contactImage,
+        ContactImageUpdateResponseData? contactImageUpdate,
+        IReadOnlyList<OptionSetOptionRecord>? optionSetOptions,
+        IReadOnlyList<MeetingStatisticRecord>? meetingStatistics)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
         // 多 branch 讓資料跨 capability 混合。失敗時不保留任何集合或外部資源。
@@ -465,7 +611,11 @@ public sealed class OperationResponseData
                           (staticListMembershipMutation is null ? 0 : 1) +
                           (smallGroupFixedFieldsMutation is null ? 0 : 1) +
                           (contactOwnerAssignment is null ? 0 : 1) +
-                          (contactListTransfer is null ? 0 : 1);
+                          (contactListTransfer is null ? 0 : 1) +
+                          (contactImage is null ? 0 : 1) +
+                          (contactImageUpdate is null ? 0 : 1) +
+                          (optionSetOptions is null ? 0 : 1) +
+                          (meetingStatistics is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -500,6 +650,22 @@ public sealed class OperationResponseData
                 branchCount == 1 &&
                 contactListTransfer is not null &&
                 IsValidP72ControlledMutation(contactListTransfer),
+            OperationResponseKind.ContactImage =>
+                branchCount == 1 &&
+                contactImage is not null &&
+                IsValidContactImage(contactImage),
+            OperationResponseKind.ContactImageUpdate =>
+                branchCount == 1 &&
+                contactImageUpdate is not null &&
+                IsValidContactImageUpdate(contactImageUpdate),
+            OperationResponseKind.OptionSetOptions =>
+                branchCount == 1 &&
+                optionSetOptions is not null &&
+                IsValidOptionSetOptions(optionSetOptions),
+            OperationResponseKind.MeetingStatistics =>
+                branchCount == 1 &&
+                meetingStatistics is not null &&
+                IsValidMeetingStatistics(meetingStatistics),
             _ => false
         };
 
@@ -581,6 +747,78 @@ public sealed class OperationResponseData
                    response.CorrelationCategory == P72ControlledMutationCorrelationCategory.ReadBackConfirmed,
                _ => false
            };
+
+    /// <summary>
+    /// 驗證 image read payload 只使用定義過的 media kind 且 bytes 已由封閉 payload owner 複製。實際格式、
+    /// dimensions、pixels 與 wire-size 檢查屬 connector/executor 的更早防線；response union 不保存 decoder/stream。
+    /// </summary>
+    private static bool IsValidContactImage(ContactImageResponseData response)
+        => Enum.IsDefined(response.MediaKind);
+
+    /// <summary>
+    /// 驗證 image write 成功只能表示 Changed 加 ReadBackConfirmed。這避免 timeout-after-dispatch、partial update
+    /// 或未知 cleanup outcome 被序列化成成功，且此純值檢查不保留 fixture、image、lease 或 session。
+    /// </summary>
+    private static bool IsValidContactImageUpdate(ContactImageUpdateResponseData response)
+        => Enum.IsDefined(response.Disposition) &&
+           Enum.IsDefined(response.CorrelationCategory) &&
+           response.Disposition == ContactImageUpdateDisposition.Changed &&
+           response.CorrelationCategory == ContactImageUpdateCorrelationCategory.ReadBackConfirmed;
+
+    /// <summary>
+    /// 驗證 metadata option collection 的固定邊界。HashSet 只存在 constructor scope；value/order 必須各自唯一，
+    /// label 不能為空或超限，避免 raw metadata/無界 localized string 進入 response/cache。
+    /// </summary>
+    private static bool IsValidOptionSetOptions(IReadOnlyList<OptionSetOptionRecord> options)
+    {
+        if (options.Count > MaximumOptionSetOptionRecords)
+        {
+            return false;
+        }
+
+        var values = new HashSet<int>();
+        var orders = new HashSet<int>();
+        foreach (var option in options)
+        {
+            if (option is null ||
+                string.IsNullOrWhiteSpace(option.Label) ||
+                option.Label.Length > MaximumOptionSetLabelCharacters ||
+                option.ConfiguredOrder < 0 ||
+                !values.Add(option.Value) ||
+                !orders.Add(option.ConfiguredOrder))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 meeting result 的 row count、non-empty identity 與 bounded display name。paging cookie/page object 不在
+    /// DTO 中；每列只能保留 primitive projections，杜絕跨 request/profile 的 continuation 或 CRM Entity retention。
+    /// </summary>
+    private static bool IsValidMeetingStatistics(IReadOnlyList<MeetingStatisticRecord> statistics)
+    {
+        if (statistics.Count > MaximumMeetingStatisticRecords)
+        {
+            return false;
+        }
+
+        var ids = new HashSet<Guid>();
+        foreach (var statistic in statistics)
+        {
+            if (statistic is null ||
+                statistic.MeetingStatisticId == Guid.Empty ||
+                !ids.Add(statistic.MeetingStatisticId) ||
+                statistic.Name?.Length > MaximumMeetingNameCharacters)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 /// <summary>

@@ -49,6 +49,15 @@ public sealed record ConnectorOperationResult(bool Succeeded, string? ErrorCode 
     /// </summary>
     public OperationResponseData? Data { get; init; }
 
+    /// <summary>
+    /// 取得 connector 在同一次成功 metadata projection 中，由 CRM 回應的 <c>UserLocalizedLabel.LanguageCode</c>
+    /// 所證實的 locale identifier。此欄位只允許 metadata OptionSet operation 使用，不能由 ProductClient、Gateway
+    /// JSON 或 caller 指定；executor 只將其與已解析的 profile/generation/target 組成 private cache key，絕不把
+    /// locale、profile、generation、SDK LocalizedLabel 或 cache key 放進 <see cref="Data"/>、產品回應或日誌。
+    /// 值為 <see langword="null"/> 時代表 locale 無法被伺服器證實，executor 必須維持 request-local projection。
+    /// </summary>
+    public int? ServerResolvedMetadataLocale { get; init; }
+
     /// <summary>取得已投影的結果欄位；呼叫端必須依能力作業契約解讀，不得作為任意 CRM 欄位通道。</summary>
     public IReadOnlyDictionary<string, string?> Values { get; init; }
         = new Dictionary<string, string?>(StringComparer.Ordinal);
