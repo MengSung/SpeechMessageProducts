@@ -3094,6 +3094,120 @@ The correct form preserves the full user/profile/generation boundary, makes
 the caller the single resource owner, and gives later P7.4/P7.5 work a
 testable condition instead of an unsafe migration shortcut.
 
+## Scenario: Evidence-pending local-only capability gate
+
+### 1. Scope / Trigger
+
+This scenario applies when a P7.x capability has complete local contracts and
+tests but does not yet have the governed CE evidence required for a product
+rollout. It applies equally to Central Gateway, Dedicated Gateway, Embedded,
+Data8 and both Official Worker connector kinds. A green local test suite is not
+a replacement for CE read-back, reconciliation and deterministic cleanup.
+
+### 2. Signatures
+
+The local capability metadata and the executable boundary expose both gate
+values explicitly:
+
+```csharp
+public sealed class LocalCapabilityDefinition
+{
+    public required string OperationId { get; init; }
+    public bool CeExecutorEnabled { get; init; }
+    public bool ConsumerEnabled { get; init; }
+}
+
+Task<OperationExecutionResult> ExecuteAsync(
+    OperationExecutionRequest request,
+    CancellationToken cancellationToken = default);
+```
+
+The two flags are server-owned immutable metadata. They are never accepted from
+a request, configuration reload, browser, IPC frame or product caller.
+
+### 3. Contracts
+
+- An evidence-pending capability may create only an operation-local immutable
+  plan. It may not call `Create`, `Update`, `Delete`, `Assign`, `Associate`,
+  `Disassociate`, a CRM action, a feature flag, or a product consumer.
+- Its `CeExecutorEnabled` and `ConsumerEnabled` values both remain `false`.
+  The executor rejects its operation with `operation.not-supported` before
+  profile resolution, admission, lease acquisition, connector/client creation
+  or outbound I/O.
+- An executor rejection must be observable in tests through zero acquire,
+  release, create and dispose counters. A late rejection after a lease/client
+  was made is not an equivalent safety result.
+- P7.4 Gateway cutover and P7.5 ToolUtility removal stay fail closed until the
+  operation has its independently governed CE fixture, exact read-back,
+  reconciliation, deterministic cleanup and approved rollout evidence.
+- A local plan is not a queue, retry record or deferred command. It does not
+  retain CRM identities, owner IDs, profiles, credentials, tokens, endpoints,
+  `HttpContext`, Session, principals, SDK entities, connector clients or mutable
+  collections beyond the current caller's stack.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Local plan has no CE evidence | Retain both gates as `false`; do not enqueue or dispatch it. |
+| Caller tries a local-only operation through the executor | Return `operation.not-supported` before admission/lease/client work. |
+| A test observes an admission acquire or client creation | Fail the test and treat the capability as rollout-ineligible. |
+| CE write returns timeout, ambiguous, no-go, read-back mismatch or uncertain cleanup | Stop that write family; never convert the local plan into a retry. |
+| P7.4/P7.5 is proposed while any required CE evidence is absent | Reject the rollout/removal gate; retain the legacy safe path. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: D–H local reducers accept only bounded, deidentified input, return an
+  immutable plan, and an executor test proves all candidate operation IDs are
+  rejected before allocation.
+- Base: a local test suite and Release build pass, but release notes still say
+  `CE evidence pending` and no Gateway configuration or ToolUtility path
+  changes.
+- Bad: add an operation ID to a catalog and assume it may reach Data8, enable a
+  consumer because its unit test passed, or call a CE write merely to make a
+  candidate version look complete.
+
+### 6. Tests Required
+
+- Enumerate every evidence-pending operation and assert both metadata gates are
+  false.
+- Send every operation through the executor using counting admission and client
+  fakes; assert `operation.not-supported` and all allocation counters are zero.
+- Interleave two local plans with different synthetic markers; assert each plan
+  is a defensive immutable snapshot and does not retain the other marker.
+- Run timeout, partial-completion, duplicate, unavailable, no-replay and
+  cleanup-order tests appropriate to the capability family.
+- Before candidate delivery run the full Dynamics suite, relevant product
+  isolation tests, Release build, UTF-8/CRLF audit and `git diff --check`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+if (localPlan.Succeeded)
+{
+    return await executor.ExecuteAsync(request, cancellationToken);
+}
+```
+
+This turns a local validation result into an ungoverned external write and can
+allocate a client containing operation state before the CE safety gate exists.
+
+#### Correct
+
+```csharp
+if (!definition.CeExecutorEnabled || !definition.ConsumerEnabled)
+{
+    return OperationExecutionResult.Failure("operation.not-supported");
+}
+
+// The allocation and dispatch path is reachable only after independent CE evidence.
+```
+
+The correct form preserves cross-user/profile isolation, prevents accidental
+rollout and leaves P7.4/P7.5 blocked by evidence rather than optimism.
+
 ## Scenario: Deterministic negative deployment validation without TestHost disposal races
 
 ### 1. Scope / Trigger

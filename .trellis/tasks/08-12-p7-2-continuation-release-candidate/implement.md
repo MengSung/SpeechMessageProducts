@@ -25,13 +25,13 @@
 
 ### 3. Slice D–H 本機 capability
 
-- [ ] 逐 Slice 由 coverage matrix 與既有 call site 建立 operation contract；每份 contract 列出固定輸入／輸出、allowlist、baseline、partial-completion policy、rollback owner、cleanup 與 CE evidence gate。
-- [ ] 對 D donation lifecycle 建立 request validation、financial fixture contract、read-back／cleanup 的 unit／integration tests。
-- [ ] 對 E appointments 建立固定 create/update contract、owner isolation 與 cleanup tests。
-- [ ] 對 F onboarding 建立 multi-record ledger 與 reverse-cleanup tests。
-- [ ] 對 G fee lessons 建立 monetary/status reconcile、timeout no-replay 與 restore tests。
-- [ ] 對 H attendance 建立 weekly-report zero/exactly-one/duplicate/unavailable 分支、present-record upsert 與 cleanup tests。
-- [ ] 每一個 Slice 僅在其 C#／PowerShell tests 與 contract tests 全綠後標記「本機完成」；全部 CE 寫入維持禁止。
+- [x] 逐 Slice 由 coverage matrix 與既有 call site 建立 operation contract；每份 contract 列出固定輸入／輸出、allowlist、baseline、partial-completion policy、rollback owner、cleanup 與 CE evidence gate。
+- [x] 對 D donation lifecycle 建立 request validation、financial fixture contract、read-back／cleanup 的 unit／integration tests。
+- [x] 對 E appointments 建立固定 create/update contract、owner isolation 與 cleanup tests。
+- [x] 對 F onboarding 建立 multi-record ledger 與 reverse-cleanup tests。
+- [x] 對 G fee lessons 建立 monetary/status reconcile、timeout no-replay 與 restore tests。
+- [x] 對 H attendance 建立 weekly-report zero/exactly-one/duplicate/unavailable 分支、present-record upsert 與 cleanup tests。
+- [x] 每一個 Slice 僅在其 C#／PowerShell tests 與 contract tests 全綠後標記「本機完成」；全部 CE 寫入維持禁止。
 
 ### 4. 候選版、檢查與交付
 

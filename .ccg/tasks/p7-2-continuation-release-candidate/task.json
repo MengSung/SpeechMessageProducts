@@ -6,12 +6,12 @@
     "risk":  "high",
     "domain":  "backend",
     "currentPhase":  "implementation",
-    "nextAction":  "CE 軌道已因單次 fresh ExecuteFixture 的 write-not-committed no-go 而 closed；完成本機 RC 審查與 task 記錄，D-H 繼續維持 local-only，P7.4/P7.5 fail-closed",
+    "nextAction":  "完成候選版的 scope-only review 與交付紀錄；Slice C 的 write-not-committed CE no-go 維持 closed，Slice D-H 只維持 local-only，P7.4/P7.5 fail-closed",
     "createdAt":  "2026-08-12T00:00:00+08:00",
     "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree",
     "predecessors":  [
                          ".ccg/tasks/archive/2026-08/p7-2-churchreport-write-action-function-migrations",
-                         ".ccg/tasks/harden-churchreport-error-recovery"
+                         ".ccg/tasks/archive/2026-08/harden-churchreport-error-recovery"
                      ],
     "constraints":  [
                         "Never retry the archived P7.2 historical or final CE cycle",

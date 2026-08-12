@@ -1,0 +1,12 @@
+{
+    "id":  "harden-churchreport-error-recovery",
+    "title":  "靽桀儔 ChurchReport ?航炊???株??靘?銝西蕭?亙??CRM ????望?",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "high",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "已由 p7-2-continuation-release-candidate 接續驗證 operation-scoped IOrganizationService、A/B isolation、Dispose 與 P7.4/P7.5 fail-closed；本任務不再建立重複實作。",
+    "createdAt":  "2026-08-05T09:00:00+08:00",
+    "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree"
+}
