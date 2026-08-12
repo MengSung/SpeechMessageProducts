@@ -123,12 +123,25 @@ namespace ChurchReport.Services
             System.Diagnostics.Trace.WriteLine(
                 $"[DEDQUERY-P01] ContactId={contactId:D} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={rows.Count}");
 
-            model.TotalAmount = 0;
-            model.DedicationFeeList = rows.Select(MapFeeDto).ToList();
-            foreach (var fee in model.DedicationFeeList)
+            // DTO 投影可能因上游不完整資料而失敗。先在 request-local 區域集合完成所有映射與
+            // 加總，最後才原子地更新既有表單模型；如此 cancellation、fault 或投影例外不會留下
+            // 半成品總額／清單給同一個請求後續流程，更不會建立跨請求共享的暫存狀態。
+            var mappedFees = rows.Select(MapFeeDto).ToList();
+            long totalAmount = 0;
+            foreach (var fee in mappedFees)
             {
-                model.TotalAmount += fee.Amount;
+                totalAmount += fee.Amount;
             }
+
+            if (totalAmount > int.MaxValue || totalAmount < int.MinValue)
+            {
+                // 畫面模型以 Int32 表示總額；若上游資料總和超出既有契約，寧可 fail-closed
+                // 並維持舊 model，也不能讓 unchecked 運算環繞為錯誤負數或靜默截斷。
+                throw new OverflowException("The dedication fee total exceeds the supported model range.");
+            }
+
+            model.TotalAmount = (int)totalAmount;
+            model.DedicationFeeList = mappedFees;
         }
 
         private static DedicationFee MapFeeDto(SpeechMessage.Dynamics.ProductClient.Models.FeeRecordDto dto)

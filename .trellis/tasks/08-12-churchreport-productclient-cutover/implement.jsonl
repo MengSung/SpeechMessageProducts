@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"P7.4 consumer、ProductClient、profile/generation isolation、fault cleanup 與 A/B lifecycle 的強制契約。"}
+{"file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"既有 Data8 lease、admission、fault eviction 與 deterministic disposal 邊界；consumer 不得另建或重用不確定 connector。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Embedded/Dedicated/Central routing、deployment-owned configuration、feature-gate 與 P7/P8 rollout boundary。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md","reason":"P7.4、P7.5、P8 的 canonical dependency、capacity gate 與 rollout/rollback 規則。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"70-row immutable source、現有 consumer/CE/host/legacy status 與每列 P7.5 blocker。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-churchreport-special-resource-migrations/check.md","reason":"P7.3 已完成的 special-resource boundary 與本機驗證證據，避免在 P7.4 重做或誤跨寫入範圍。"}

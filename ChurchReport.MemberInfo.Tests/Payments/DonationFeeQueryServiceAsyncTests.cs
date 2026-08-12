@@ -98,6 +98,77 @@ public sealed class DonationFeeQueryServiceAsyncTests
         client.ObservedCancellationToken.Should().Be(cancellation.Token);
     }
 
+    /// <summary>
+    /// 保護 Package01 受控讀取的投影失敗原子性。故障注入回傳含有無效項目的 DTO 集合，
+    /// 模擬 connector 已成功回應但產品投影尚未完成的邊界；決定性斷言是例外傳出後，
+    /// 原本屬於此 request 的表單總額與清單參考均不被半成品覆寫，避免後續同一 request
+    /// 以錯誤資料繼續處理，也避免任何共享或跨使用者狀態被引入。
+    /// </summary>
+    [Fact]
+    public async Task Package01_fee_projection_fault_does_not_mutate_the_model()
+    {
+        var client = new DeferredFeeReadClient(
+            Task.FromResult<IReadOnlyList<FeeRecordDto>>(new FeeRecordDto[] { null! }));
+        var valid = true;
+        using var utility = new ToolUtilityClass(ref valid);
+        var service = new DonationFeeQueryService(
+            utility,
+            client,
+            Options.Create(new ProductDynamicsOptions { ProfileAlias = "church-report-test" }),
+            package01FeeReadsEnabled: true);
+        var originalFee = new DedicationFee { Amount = 88 };
+        var model = new DonationPaymentFormModel
+        {
+            FullName = "isolated-test-user",
+            TotalAmount = 88,
+            DedicationFeeList = new List<DedicationFee> { originalFee }
+        };
+        var contact = new Entity("contact", Guid.Parse("33333333-3333-3333-3333-333333333333"));
+
+        Func<Task> act = () => service.FillFeeListAsync(model, contact, CancellationToken.None);
+
+        await act.Should().ThrowAsync<Exception>();
+        model.TotalAmount.Should().Be(88);
+        model.DedicationFeeList.Should().ContainSingle().Which.Should().BeSameAs(originalFee);
+    }
+
+    /// <summary>
+    /// 保護 Package01 金額加總的溢位語意。故障注入兩筆 individually valid、但總和超出
+    /// <see cref="int.MaxValue"/> 的 DTO；決定性斷言是服務 fail-closed 並保留原 model，
+    /// 而不是讓未檢查的整數環繞產生負的金額或將半成品資料交給後續請求流程。
+    /// </summary>
+    [Fact]
+    public async Task Package01_fee_total_overflow_fails_closed_without_mutating_the_model()
+    {
+        var client = new DeferredFeeReadClient(
+            Task.FromResult<IReadOnlyList<FeeRecordDto>>(new[]
+            {
+                new FeeRecordDto { Amount = int.MaxValue },
+                new FeeRecordDto { Amount = 1 }
+            }));
+        var valid = true;
+        using var utility = new ToolUtilityClass(ref valid);
+        var service = new DonationFeeQueryService(
+            utility,
+            client,
+            Options.Create(new ProductDynamicsOptions { ProfileAlias = "church-report-test" }),
+            package01FeeReadsEnabled: true);
+        var originalFee = new DedicationFee { Amount = 77 };
+        var model = new DonationPaymentFormModel
+        {
+            FullName = "isolated-test-user",
+            TotalAmount = 77,
+            DedicationFeeList = new List<DedicationFee> { originalFee }
+        };
+        var contact = new Entity("contact", Guid.Parse("44444444-4444-4444-4444-444444444444"));
+
+        Func<Task> act = () => service.FillFeeListAsync(model, contact, CancellationToken.None);
+
+        await act.Should().ThrowAsync<OverflowException>();
+        model.TotalAmount.Should().Be(77);
+        model.DedicationFeeList.Should().ContainSingle().Which.Should().BeSameAs(originalFee);
+    }
+
     private sealed class DeferredFeeReadClient : IPackage01FeeReadClient
     {
         // 此 fake 只記錄本次呼叫的取消權杖，不使用 static 或共享狀態，避免測試彼此污染。

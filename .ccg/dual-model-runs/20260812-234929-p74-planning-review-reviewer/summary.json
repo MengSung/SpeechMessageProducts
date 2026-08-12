@@ -1,0 +1,77 @@
+{
+    "runId":  "20260812-234929-p74-planning-review-reviewer",
+    "role":  "reviewer",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "taskFile":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.ccg\\dual-model-runs\\p74-planning-review-reviewer.md",
+    "runDirectory":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer",
+    "wrapperPath":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+    "toolchainEnvironment":  {
+                                 "ToolPathEntries":  [
+                                                         "C:\\Users\\Administrator\\AppData\\Roaming\\npm",
+                                                         "C:\\Users\\Administrator\\.claude\\bin",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\Scripts",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Launcher"
+                                                     ],
+                                 "ChangedProcessPath":  false,
+                                 "ChangedUserPath":  false,
+                                 "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                                 "CODEAGENT_LITE_MODE":  "true",
+                                 "PYTHONIOENCODING":  "utf-8",
+                                 "CLAUDE_MODEL":  "sonnet",
+                                 "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-46668-b5cad8ef69dc4560b4ca4af5e7cb28e2\\claude.cmd",
+                                 "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-46668-b5cad8ef69dc4560b4ca4af5e7cb28e2",
+                                 "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                             },
+    "healthBackendSmoke":  false,
+    "attempts":  [
+                     {
+                         "attempt":  1,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer\\health-attempt-1.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "gemini",
+                                              "ok":  true,
+                                              "exitCode":  0,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "ok",
+                                              "producedOutput":  true,
+                                              "outputLength":  2798,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer\\gemini-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer\\gemini-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer\\gemini-reviewer-attempt-1.stderr.md"
+                                          },
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  true,
+                                              "exitCode":  0,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "ok",
+                                              "producedOutput":  true,
+                                              "outputLength":  6972,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer\\claude-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer\\claude-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260812-234929-p74-planning-review-reviewer\\claude-reviewer-attempt-1.stderr.md"
+                                          }
+                                      ]
+                     }
+                 ],
+    "ok":  true,
+    "degradedFallback":  false,
+    "fallbackAccepted":  true,
+    "quotaBlocked":  false,
+    "completedBackends":  [
+                              "gemini",
+                              "claude"
+                          ],
+    "failedBackends":  [
+
+                       ]
+}

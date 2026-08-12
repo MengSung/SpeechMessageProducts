@@ -1,0 +1,30 @@
+{
+  "id": "churchreport-productclient-cutover",
+  "name": "churchreport-productclient-cutover",
+  "title": "P7.4 ChurchReport ProductClient 逐能力切換",
+  "description": "依 authoritative 70-row matrix 將 ChurchReport capability 逐一改為 typed ProductClient；預設 disabled、明確 rollback、在 local-only 先完成 contract/integration tests，不執行 CE mutation、feature flag enablement、流量切換、P7.5/P8。",
+  "status": "in_progress",
+  "dev_type": "backend-integration-migration",
+  "scope": "ChurchReport consumer capability cutover only; disabled-by-default local implementation and verification; no CE mutation, feature enablement, traffic cutover, P7.5 or P8.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-12",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-05-gateway-purpose-and-positioning",
+  "relatedFiles": [
+    ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
+    ".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md"
+  ],
+  "notes": "P7.4 planning and Package01 fee Batch A are locally verified. Batch B must remove StorLesson typed-path RetrieveEntity enrichment and sync-over-async before either projection-only consumer can be counted as migrated. Feature enablement is separately blocked until durable shared admission or verified drain-first non-overlap evidence exists. Historical P7.2 Slice C remains closed and must not be retried.",
+  "meta": {}
+}
