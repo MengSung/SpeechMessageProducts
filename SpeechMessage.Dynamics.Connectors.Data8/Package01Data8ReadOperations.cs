@@ -61,6 +61,8 @@ internal static class Package01Data8ReadOperations
     private const string DiscipleLessonEntityName = "new_disciple_lessons";
     private const string DiscipleLessonIdAttribute = "new_disciple_lessonsid";
     private const string DiscipleLessonNameAttribute = "new_name";
+    private const string DiscipleLessonClassStartDateAttribute = "new_class_start_date";
+    private const string DiscipleLessonStageNameAttribute = "new_now_stage_name";
     private const string ContactAlias = "contact";
     private const string LessonAlias = "lesson";
 
@@ -314,6 +316,7 @@ internal static class Package01Data8ReadOperations
         query.Criteria.AddCondition(StorLessonStatusCodeAttribute, ConditionOperator.NotEqual, 2);
         query.Criteria.AddCondition(StateCodeAttribute, ConditionOperator.Equal, 0);
         AddContactLink(query);
+        AddDiscipleLessonLink(query);
         return query;
     }
 
@@ -357,8 +360,9 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
-    /// 將 disciple lesson 名稱加入既定 alias。僅依 contact 查詢需要這個 inner join；依 lesson 的 operation
-    /// 已由輸入 Guid 限定集合，仍保留 contact join 以投影姓名／手機，而不信任 legacy lesson name。
+    /// 將 disciple lesson 名稱、開課日與階段加入既定 alias。依 contact、依 disciple lesson 與 fee editor
+    /// 共用 executor 的 operation 都必須使用此 inner join，確保三者具有相同封閉顯示欄位；依 lesson 的
+    /// operation 雖由輸入 Guid 限定集合，仍保留 contact join 以投影姓名／手機，而不信任 legacy lesson name。
     /// </summary>
     private static void AddDiscipleLessonLink(QueryExpression query)
     {
@@ -368,7 +372,10 @@ internal static class Package01Data8ReadOperations
             DiscipleLessonIdAttribute,
             JoinOperator.Inner);
         lesson.EntityAlias = LessonAlias;
-        lesson.Columns = new ColumnSet(DiscipleLessonNameAttribute);
+        lesson.Columns = new ColumnSet(
+            DiscipleLessonNameAttribute,
+            DiscipleLessonClassStartDateAttribute,
+            DiscipleLessonStageNameAttribute);
     }
 
     /// <summary>
@@ -541,6 +548,10 @@ internal static class Package01Data8ReadOperations
             ContactMobile = ReadOptionalAliasedString(entity, ContactAlias + "." + ContactMobileAttribute),
             DiscipleLessonName = ReadOptionalAliasedString(entity, LessonAlias + "." + DiscipleLessonNameAttribute)
                 ?? ReadOptionalFormattedValue(entity, StorLessonDiscipleLessonAttribute),
+            ClassStartDate = ReadOptionalAliasedUtcDateTime(
+                entity,
+                LessonAlias + "." + DiscipleLessonClassStartDateAttribute),
+            StageName = ReadOptionalAliasedString(entity, LessonAlias + "." + DiscipleLessonStageNameAttribute),
             FeeAmount = ReadOptionalValue<Money>(entity, StorLessonFeeAmountAttribute)?.Value
         };
     }
@@ -746,6 +757,30 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 讀取 lesson link 的 nullable UTC DateTime alias。缺欄位代表 outer/legacy schema 沒有值，
+    /// 但只要上游宣稱欄位存在卻不是 <see cref="AliasedValue"/> 包裝的 <see cref="DateTime"/>，
+    /// 即以受控例外 fail-closed；不得以 ToString、local-time 猜測或另一筆 CRM 補查掩蓋 schema 漂移。
+    /// 轉換完成後只留下不可變的 UTC 值，SDK wrapper 保持在 connector request scope 內。
+    /// </summary>
+    private static DateTimeOffset? ReadOptionalAliasedUtcDateTime(Entity entity, string aliasAttributeName)
+    {
+        if (!entity.Attributes.TryGetValue(aliasAttributeName, out var value) || value is null)
+        {
+            return null;
+        }
+
+        if (value is not AliasedValue { Value: DateTime dateTime })
+        {
+            throw new InvalidOperationException("The Data8 aliased date attribute type is invalid.");
+        }
+
+        var utcDateTime = dateTime.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)
+            : dateTime.ToUniversalTime();
+        return new DateTimeOffset(utcDateTime).ToUniversalTime();
+    }
+
+    /// <summary>
     /// 從 EntityReference 取出非空 Guid 後立即丟棄 reference。這防止 EntityReference.Name、logical name
     /// 或其他 SDK 資訊沿 response 留存，並維持產品端只依 DTO GUID 作後續受控讀取。
     /// </summary>
@@ -790,7 +825,8 @@ internal static class Package01Data8ReadOperations
         return TryAddBytes(ref totalBytes, 256, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.ContactName, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.ContactMobile, maximumBytes) &&
-               TryAddStringBytes(ref totalBytes, record.DiscipleLessonName, maximumBytes);
+               TryAddStringBytes(ref totalBytes, record.DiscipleLessonName, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.StageName, maximumBytes);
     }
 
     /// <summary>

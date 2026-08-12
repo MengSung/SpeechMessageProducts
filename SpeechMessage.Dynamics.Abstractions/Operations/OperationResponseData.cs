@@ -1113,6 +1113,21 @@ public sealed record Package01StorLessonRecord
     [JsonPropertyName("discipleLessonName")]
     public string? DiscipleLessonName { get; init; }
 
+    /// <summary>
+    /// 關聯 disciple lesson 的開課時間。connector 必須在 lesson alias 邊界將 CRM DateTime
+    /// 正規化為 UTC <see cref="DateTimeOffset"/>；此 immutable 值只能隨本次 operation response
+    /// 傳遞，不能保留 CRM Entity、時區 metadata 或另一個 request 的 session 狀態。
+    /// </summary>
+    [JsonPropertyName("classStartDate")]
+    public DateTimeOffset? ClassStartDate { get; init; }
+
+    /// <summary>
+    /// 關聯 disciple lesson 的目前階段名稱。文字長度與 UTF-8 byte budget 由 connector owner
+    /// 受控計算；ProductClient 與 UI 僅接收這個 request-local 投影，不能另以 SDK 補查。
+    /// </summary>
+    [JsonPropertyName("stageName")]
+    public string? StageName { get; init; }
+
     [JsonPropertyName("feeAmount")]
     public decimal? FeeAmount { get; init; }
 }

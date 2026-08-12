@@ -607,6 +607,84 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 驗證所有使用 stor-lesson executor 的 capability 都以 connector 擁有的 <c>lesson</c> inner link 讀取課程名稱、開課日期與
+    /// 目前階段，並將 CRM 的 aliased UTC 日期與字串投影成純值 response。故障注入使用離線
+    /// <see cref="IOrganizationService"/>，其 callback 會拒絕缺少 link 或遺漏欄位的 QueryExpression；決定性
+    /// 斷言則確認投影沒有保留 <see cref="Entity"/>／<see cref="AliasedValue"/>，且所有共用 executor 的 operation 都取得相同的
+    /// 課程顯示欄位。這保障每筆請求只持有自己的不可變資料，避免後續 ChurchReport 重新取回 Entity 而延長 CRM
+    /// session 或跨請求資料的生命週期。
+    /// </summary>
+    /// <param name="operationId">受測的受限 stor-lesson capability。</param>
+    [Theory]
+    [InlineData(OperationIds.LessonsStorRetrieveByContact)]
+    [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson)]
+    [InlineData(OperationIds.FeesEditorLoadByDiscipleLesson)]
+    public async Task Created_client_projects_lesson_link_date_and_stage_for_each_stor_lesson_operation(
+        string operationId)
+    {
+        var classStartUtc = new DateTime(2026, 8, 9, 1, 2, 3, DateTimeKind.Utc);
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            query =>
+            {
+                AssertStorLessonLessonLinkProjectionContract(query);
+                return CreateStorLessonLessonProjectionPage(classStartUtc, "進行中");
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(CreatePackage01Operation(operationId), CancellationToken.None);
+        }
+
+        var record = result.Data!.StorLessonRecords.Should().ContainSingle().Subject;
+        record.DiscipleLessonName.Should().Be("門徒課程 101");
+        ReadRequiredStorLessonClassStartDate(record).Should().Be(
+            new DateTimeOffset(classStartUtc).ToUniversalTime());
+        ReadRequiredStorLessonStageName(record).Should().Be("進行中");
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 驗證 <c>lesson</c> alias 的日期或字串 payload 一旦不符合已宣告的欄位型別，connector 必須在建立成功 response
+    /// 前 fail-closed。故障注入分別以字串偽裝日期、以日期偽裝階段名稱，並覆蓋所有共用 stor-lesson executor 的 operation；決定性
+    /// 斷言是 <see cref="InvalidOperationException"/> 與 service 的單次、可釋放 read，確保錯誤 alias 不會被
+    /// <c>ToString()</c> 偷渡、快取或遺留給下一個 profile／request。
+    /// </summary>
+    /// <param name="operationId">受測的受限 stor-lesson capability。</param>
+    /// <param name="fault">要注入到 lesson alias 的不相容型別。</param>
+    [Theory]
+    [InlineData(OperationIds.LessonsStorRetrieveByContact, "class-start-date")]
+    [InlineData(OperationIds.LessonsStorRetrieveByContact, "stage-name")]
+    [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson, "class-start-date")]
+    [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson, "stage-name")]
+    [InlineData(OperationIds.FeesEditorLoadByDiscipleLesson, "class-start-date")]
+    [InlineData(OperationIds.FeesEditorLoadByDiscipleLesson, "stage-name")]
+    public async Task Created_client_rejects_invalid_lesson_alias_types_for_each_stor_lesson_operation(
+        string operationId,
+        string fault)
+    {
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            _ => CreateStorLessonLessonProjectionPageWithInvalidAliasType(fault));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            Func<Task> action = async () => await client.ExecuteAsync(
+                CreatePackage01Operation(operationId),
+                CancellationToken.None);
+
+            await action.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 保護每個 Package01 Data8 page 都必須套用 registry 的 64 KiB `MaximumPageBytes`，不能只依賴四頁合計的
     /// 256 KiB 上限。故障注入是在離線 CRM page 放入單筆超過單頁預算、但仍低於累積預算的顯示字串；決定性斷言
     /// 是 fee 與 stor-lesson 兩種 response branch 都在回傳任何 DTO 前 fail closed，並由 lease owner 照常釋放
@@ -616,6 +694,8 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     [Theory]
     [InlineData(OperationIds.FeeDedicationRetrieveByContactDateRange)]
     [InlineData(OperationIds.LessonsStorRetrieveByContact)]
+    [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson)]
+    [InlineData(OperationIds.FeesEditorLoadByDiscipleLesson)]
     public async Task Created_client_rejects_a_page_that_exceeds_the_registry_page_byte_budget(
         string operationId)
     {
@@ -2733,7 +2813,7 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
                         "new_new_disciple_lessons_new_stor_les",
                         "statuscode",
                         "statecode");
-                expression.LinkEntities.Should().ContainSingle(link => link.EntityAlias == "contact");
+                expression.LinkEntities.Select(link => link.EntityAlias).Should().ContainInOrder("contact", "lesson");
                 return;
             case OperationIds.LessonsStorRetrieveByContact:
                 expression.EntityName.Should().Be("new_stor_lessons");
@@ -2775,10 +2855,119 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 驗證 connector 實際送出的 stor-lesson 查詢只透過固定 <c>lesson</c> inner link 取得課程投影欄位。這是
+    /// 測試唯一的 lesson query decoder，避免各案例各自解讀 QueryExpression 而遺漏欄位；它不保存 query、Entity
+    /// 或任何請求資料，因此不會形成測試間的 session retention。
+    /// </summary>
+    /// <param name="query">由 connector 在本次 read scope 傳入 fake service 的固定查詢。</param>
+    private static void AssertStorLessonLessonLinkProjectionContract(QueryBase query)
+    {
+        var expression = query.Should().BeOfType<QueryExpression>().Subject;
+        expression.EntityName.Should().Be("new_stor_lessons");
+        var lesson = expression.LinkEntities.Should().ContainSingle(link => link.EntityAlias == "lesson").Subject;
+        lesson.LinkFromEntityName.Should().Be("new_stor_lessons");
+        lesson.LinkFromAttributeName.Should().Be("new_new_disciple_lessons_new_stor_les");
+        lesson.LinkToEntityName.Should().Be("new_disciple_lessons");
+        lesson.LinkToAttributeName.Should().Be("new_disciple_lessonsid");
+        lesson.JoinOperator.Should().Be(JoinOperator.Inner);
+        lesson.Columns.Columns.Should().ContainInOrder(
+            "new_name",
+            "new_class_start_date",
+            "new_now_stage_name");
+    }
+
+    /// <summary>
+    /// 建立正常 lesson alias payload 的單頁離線 CRM 回應。所有 CRM SDK wrapper 都只存在於 fake service callback
+    /// 的同步期間；connector 成功後必須將它們複製為 response 的純值欄位，讓 client Dispose 可以決定性釋放 service。
+    /// </summary>
+    /// <param name="classStartUtc">CRM 回傳、預期被正規化為 UTC 的開課時間。</param>
+    /// <param name="stageName">CRM 回傳、預期被原樣投影的目前階段名稱。</param>
+    /// <returns>僅供單一 connector request 使用的 stor-lesson page。</returns>
+    private static EntityCollection CreateStorLessonLessonProjectionPage(DateTime classStartUtc, string stageName)
+    {
+        var storLessonId = Guid.Parse("99999999-9999-9999-9999-999999999999");
+        var discipleLessonId = Guid.Parse("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
+        return new EntityCollection(
+        [
+            new Entity("new_stor_lessons", storLessonId)
+            {
+                ["new_stor_lessonsid"] = storLessonId,
+                ["new_new_disciple_lessons_new_stor_les"] = new EntityReference(
+                    "new_disciple_lessons",
+                    discipleLessonId),
+                ["lesson.new_name"] = new AliasedValue(
+                    "new_disciple_lessons",
+                    "new_name",
+                    "門徒課程 101"),
+                ["lesson.new_class_start_date"] = new AliasedValue(
+                    "new_disciple_lessons",
+                    "new_class_start_date",
+                    classStartUtc),
+                ["lesson.new_now_stage_name"] = new AliasedValue(
+                    "new_disciple_lessons",
+                    "new_now_stage_name",
+                    stageName)
+            }
+        ]);
+    }
+
+    /// <summary>
+    /// 建立單一明確錯誤的 lesson alias，模擬 CRM schema 漂移或上游 materializer 不相容。此 helper 不使用字串
+    /// 轉型補救；測試要求 connector 拒絕錯誤而非猜測資料，防止不可信課程欄位跨越 request-local response 邊界。
+    /// </summary>
+    /// <param name="fault">要替換的 alias payload 名稱。</param>
+    /// <returns>含不相容 alias payload 的單頁 stor-lesson 回應。</returns>
+    private static EntityCollection CreateStorLessonLessonProjectionPageWithInvalidAliasType(string fault)
+    {
+        var page = CreateStorLessonLessonProjectionPage(
+            new DateTime(2026, 8, 9, 1, 2, 3, DateTimeKind.Utc),
+            "進行中");
+        var row = page.Entities.Should().ContainSingle().Subject;
+        row["lesson.new_class_start_date"] = new AliasedValue(
+            "new_disciple_lessons",
+            "new_class_start_date",
+            fault == "class-start-date" ? "not-a-date" : new DateTime(2026, 8, 9));
+        row["lesson.new_now_stage_name"] = new AliasedValue(
+            "new_disciple_lessons",
+            "new_now_stage_name",
+            fault == "stage-name" ? new DateTime(2026, 8, 9) : "進行中");
+        return page;
+    }
+
+    /// <summary>
+    /// 讀取尚未由舊 wire contract 宣告、但 Batch B 必須公開的 UTC 開課時間。使用反射讓本 red test 能在 DTO 欄位
+    /// 尚未實作時編譯並精確失敗；production 完成後仍強制檢查公開純值欄位，而不允許測試直接接觸 CRM Entity。
+    /// </summary>
+    /// <param name="record">connector 已投影的 stor-lesson 純值記錄。</param>
+    /// <returns>公開且 nullable 的 UTC 開課時間。</returns>
+    private static DateTimeOffset? ReadRequiredStorLessonClassStartDate(Package01StorLessonRecord record)
+    {
+        var property = record.GetType().GetProperty("ClassStartDate")
+            ?? throw new InvalidOperationException("The stor-lesson class-start projection is missing.");
+        return property.GetValue(record) is DateTimeOffset classStartDate
+            ? classStartDate
+            : throw new InvalidOperationException("The stor-lesson class-start projection type is invalid.");
+    }
+
+    /// <summary>
+    /// 讀取尚未由舊 wire contract 宣告、但 Batch B 必須公開的目前階段名稱。此檢查只接受純字串，避免 alias wrapper、
+    /// formatted dictionary 或其他 SDK graph 逸出 connector boundary 並在下一個請求保留可變狀態。
+    /// </summary>
+    /// <param name="record">connector 已投影的 stor-lesson 純值記錄。</param>
+    /// <returns>公開且 nullable 的目前階段名稱。</returns>
+    private static string? ReadRequiredStorLessonStageName(Package01StorLessonRecord record)
+    {
+        var property = record.GetType().GetProperty("StageName")
+            ?? throw new InvalidOperationException("The stor-lesson stage-name projection is missing.");
+        return property.GetValue(record) as string
+            ?? throw new InvalidOperationException("The stor-lesson stage-name projection type is invalid.");
+    }
+
+    /// <summary>
     /// 建立超過單頁但未超過總回應預算的離線資料列，精準重現「只檢查 cumulative bytes」時會漏放行的情況。
     /// 長字串只活在這個 test callback 與 connector 投影的同步範圍；它不會寫入 log、cache、fixture 或 CRM。
     /// </summary>
-    /// <param name="operationId">決定要建立 fee 或 stor-lesson 的 schema 正確測試 Entity。</param>
+    /// <param name="operationId">決定要建立 fee 或所有共用 stor-lesson executor 的 schema 正確測試 Entity。</param>
     /// <returns>只有一筆資料、但投影後超過 registry 64 KiB 單頁預算的 EntityCollection。</returns>
     private static EntityCollection CreatePageExceedingSinglePageByteBudget(string operationId)
     {
@@ -2795,13 +2984,18 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             return page;
         }
 
-        if (operationId == OperationIds.LessonsStorRetrieveByContact)
+        if (operationId is OperationIds.LessonsStorRetrieveByContact or
+            OperationIds.LessonsStorRetrieveByDiscipleLesson or
+            OperationIds.FeesEditorLoadByDiscipleLesson)
         {
             var storLessonId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
             page.Entities.Add(new Entity("new_stor_lessons", storLessonId)
             {
                 ["new_stor_lessonsid"] = storLessonId,
-                ["contact.fullname"] = new AliasedValue("contact", "fullname", oversizedText)
+                ["lesson.new_now_stage_name"] = new AliasedValue(
+                    "new_disciple_lessons",
+                    "new_now_stage_name",
+                    oversizedText)
             });
             return page;
         }

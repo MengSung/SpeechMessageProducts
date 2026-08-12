@@ -527,8 +527,18 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 以目前已授權的聯絡人讀取上課紀錄。Package01 關閉時保留既有 contact fullname 與
+        /// ToolUtility 查詢語意；開啟時不再回讀 CRM contact，而以 null 顯示名稱和
+        /// <see cref="HttpContext.RequestAborted"/> 呼叫唯一的非同步 typed projection。這可避免
+        /// SDK Entity、同步阻塞與已取消 request 的資料延長到另一位使用者；回應 model 只在本 action
+        /// 的 request-local 集合建立，例外仍走既有受控錯誤處理。
+        /// </summary>
+        /// <param name="contactId">既有授權檢查使用的聯絡人識別碼，無效或不可見時回傳空集合。</param>
+        /// <param name="loadOptions">DevExtreme 載入選項，只套用於本次 request-local 顯示集合。</param>
+        /// <returns>可供 DevExtreme 載入的上課紀錄資料或既有安全錯誤回應。</returns>
         [HttpGet]
-        public object LoadContactStorLessons(string contactId, DataSourceLoadOptions loadOptions)
+        public async Task<object> LoadContactStorLessons(string contactId, DataSourceLoadOptions loadOptions)
         {
             try
             {
@@ -539,14 +549,21 @@ namespace ChurchReport.Controllers
                     return DataSourceLoader.Load(new List<MemberInfoStorLessonRow>(), loadOptions);
                 }
 
-                var service = ToolUtility.m_Crm2011OrganizationService;
-                var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
-                var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
-
                 var rows = new List<MemberInfoStorLessonRow>();
                 var configuration = HttpContext.RequestServices.GetService<IConfiguration>();
                 var queryService = new StorLessonQueryService(ToolUtility, configuration ?? new ConfigurationBuilder().Build());
-                var projections = queryService.GetByContact(fullName, contactGuid.ToString());
+                string? fullName = null;
+                if (!queryService.IsPackage01Enabled)
+                {
+                    var service = ToolUtility.m_Crm2011OrganizationService;
+                    var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
+                    fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
+                }
+
+                var projections = await queryService.GetByContactAsync(
+                    fullName,
+                    contactGuid.ToString(),
+                    HttpContext.RequestAborted).ConfigureAwait(false);
 
                 foreach (var row in projections)
                 {
@@ -561,6 +578,12 @@ namespace ChurchReport.Controllers
                 }
 
                 return DataSourceLoader.Load(rows, loadOptions);
+            }
+            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                // 已中止的瀏覽器 request 不可被轉成 HandleError 回應或診斷；重新擲出讓 ASP.NET Core
+                // 結束此 request，並讓下游 ProductClient/lease 依既有 cancellation 規則完成釋放。
+                throw;
             }
             catch (Exception ex)
             {

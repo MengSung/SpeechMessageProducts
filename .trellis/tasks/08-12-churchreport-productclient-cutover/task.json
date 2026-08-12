@@ -25,6 +25,6 @@
     ".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md",
     ".trellis/spec/backend/cross-user-isolation-and-performance.md"
   ],
-  "notes": "P7.4 planning and Package01 fee Batch A are locally verified. Batch B must remove StorLesson typed-path RetrieveEntity enrichment and sync-over-async before either projection-only consumer can be counted as migrated. Feature enablement is separately blocked until durable shared admission or verified drain-first non-overlap evidence exists. Historical P7.2 Slice C remains closed and must not be retried.",
+  "notes": "P7.4 planning, Package01 fee Batch A and StorLesson Batch B are locally verified and committed-disabled candidates. Batch B migrated only MemberInfo/Equipment projection-only callers; all EntityCollection/SDK and write-adjacent callers remain temporary-legacy/P7.5 blockers. Feature enablement is separately blocked until durable shared admission or verified drain-first non-overlap evidence exists. Historical P7.2 Slice C remains closed and must not be retried. Next local work is the distinct ORG-CALL-00005/00064/00066 caller-shape inventory; P7.5/P8 remain out of scope.",
   "meta": {}
 }

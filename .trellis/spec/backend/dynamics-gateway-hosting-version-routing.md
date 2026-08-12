@@ -3410,6 +3410,102 @@ consumer=migrated-disabled, ce91=succeeded, dedicated=evidence-pending
 The correct form preserves the missing evidence so later P7/P8 work cannot
 accidentally remove a legacy path or change traffic before its actual proof.
 
+## Scenario: P7.4 bounded UTC display projection
+
+### 1. Scope / Trigger
+
+Apply this scenario when a Data8/Gateway response adds a nullable UTC
+`DateTimeOffset` display field that ChurchReport must convert into a legacy
+local `DateTime` view model. It covers the connector → wire record →
+ProductClient DTO → request-local projection path. It does not authorize a
+feature-gate enablement, CE request, ToolUtility removal, P7.5 or P8.
+
+### 2. Signatures
+
+```csharp
+private static DateTime ToLegacyDisplayDateTime(DateTimeOffset? utcValue);
+
+public sealed record StorLessonRecordDto
+{
+    public DateTimeOffset? ClassStartDate { get; init; }
+}
+```
+
+The connector owns conversion of CRM `DateTime` aliases into UTC
+`DateTimeOffset`; the ProductClient copies the immutable value; the consumer
+owns only a request-local legacy-display conversion.
+
+### 3. Contracts
+
+- An absent CRM value remains `null` through the wire record and DTO. The
+  consumer returns the established `DateTime.MinValue` view-model sentinel;
+  it must not substitute `DateTimeOffset.MinValue` and convert it to local
+  time.
+- A UTC-minimum value is also an unavailable legacy-display value. It maps to
+  `DateTime.MinValue`, regardless of host timezone. A positive offset must not
+  turn it into a plausible `0001-01-01 08:00` timestamp; a negative offset
+  must not cause an underflow exception.
+- Before invoking `DateTimeOffset.LocalDateTime` for other values, the
+  conversion checks `TimeZoneInfo.Local.GetUtcOffset(utcValue.UtcDateTime)` and
+  clamps only an otherwise unrepresentable lower/upper boundary to
+  `DateTime.MinValue`/`DateTime.MaxValue`.
+- The conversion must not cache `TimeZoneInfo`, DTOs, response models,
+  `HttpContext`, profile state or CRM objects. Each projection is request-local
+  and the connector/pool remains the sole owner of external resources.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| CRM alias is absent | Connector returns null; consumer returns `DateTime.MinValue`. |
+| UTC-minimum DTO value | Consumer returns `DateTime.MinValue`; no local-time conversion occurs. |
+| Non-minimum value is representable in host local time | Consumer returns its `LocalDateTime`. |
+| Host offset would make a non-minimum UTC value unrepresentable | Clamp to the corresponding `DateTime` bound; do not throw or retain a partial projection. |
+| CRM alias has the wrong runtime type | Connector fails closed before DTO/projection creation. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: connector projects an aliased UTC date to `DateTimeOffset?`; a
+  request-local consumer maps null/minimum to the existing UI sentinel and
+  converts ordinary dates once.
+- Base: an extreme but non-minimum UTC value is clamped to the closest
+  representable local `DateTime`; the UI does not receive an exception or a
+  prior request's result.
+- Bad: `(dto.Date ?? DateTimeOffset.MinValue).LocalDateTime`, a static timezone
+  or projection cache, SDK `RetrieveEntity` enrichment, or a local-time
+  conversion before connector alias validation.
+
+### 6. Tests Required
+
+- Assert null and UTC-minimum values both result in exactly
+  `DateTime.MinValue`, including on a host with a positive local offset.
+- Assert an ordinary UTC value preserves the existing local-time display
+  behavior.
+- Fault-inject an incompatible CRM alias type and assert connector fail-closed
+  behavior before a ProductClient DTO is emitted.
+- Interleave two identifiable DTO responses and assert no response model,
+  timezone conversion state or display field leaks between requests.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+DisplayDate = (dto.ClassStartDate ?? DateTimeOffset.MinValue).LocalDateTime;
+```
+
+This turns the missing/minimum sentinel into a timezone-dependent plausible
+date or can become unrepresentable on a negative-offset host.
+
+#### Correct
+
+```csharp
+DisplayDate = ToLegacyDisplayDateTime(dto.ClassStartDate);
+```
+
+The helper preserves absence semantics, bounds timezone conversion, and keeps
+all data request-local without changing the connector, profile or traffic path.
+
 ## Scenario: Cross-assembly WorkerTestHost process-boundary tests
 
 ### 1. Scope / Trigger

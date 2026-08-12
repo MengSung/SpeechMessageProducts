@@ -25,6 +25,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
@@ -297,13 +298,16 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 載入裝備課程清單資料
-        /// 用於第三層 master-detail 的 DataGrid - 返回 EquipmentStorLessons 清單
+        /// 載入裝備課程清單資料，用於第三層 master-detail 的 DataGrid。Package01 關閉時維持
+        /// legacy fullname 查詢；開啟時只傳 null 名稱及 <see cref="HttpContext.RequestAborted"/> 到
+        /// 非同步 typed projection，避免以 SDK 補查或同步等待延長 request/session 生命週期。所有
+        /// 資料僅建立在此 action 的區域集合；取消或失敗不會寫入 shared member state 或切換 fallback。
         /// </summary>
-        /// <param name="id">聯絡人的 PresentRecordId</param>
-        /// <param name="loadOptions">載入選項</param>
+        /// <param name="id">既有成員清單中的 PresentRecordId；找不到、無 contact 或未載入時回傳空集合。</param>
+        /// <param name="loadOptions">僅套用於本次 request-local 課程顯示集合的 DevExtreme 載入選項。</param>
+        /// <returns>可供 DataGrid 使用的裝備課程資料或既有安全錯誤回應。</returns>
         [HttpGet]
-        public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
+        public async Task<object> LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
         {
             using var perfPhase = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons");
 
@@ -361,16 +365,17 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢課程記錄: ContactName={member.FullName}, ContactId={member.ContactId}");
 
-                // 從 CRM 查詢該聯絡人的所有課程記錄
-                // Package 1 可選路徑：StorLessonQueryService
-                // - Package01 關閉：內部仍呼叫 RetrieveStorLessonsByFetchXml（舊行為）
-                // - Package01 開啟：主查詢改 no-SDK，再補 disciple lesson 欄位
+                // Package01 關閉時服務保留既有 FetchXML 行為；開啟時資料已在 connector 以 lesson link
+                // 封閉投影，不可為補全姓名或階段再取回 CRM Entity，否則會破壞本批 no-SDK 邊界。
                 IReadOnlyList<StorLessonProjection> projections;
                 using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.QueryService"))
                 {
                     var configuration = HttpContext.RequestServices.GetService<IConfiguration>();
                     var queryService = new StorLessonQueryService(ToolUtility, configuration ?? new ConfigurationBuilder().Build());
-                    projections = queryService.GetByContact(member.FullName, member.ContactId);
+                    projections = await queryService.GetByContactAsync(
+                        queryService.IsPackage01Enabled ? null : member.FullName,
+                        member.ContactId,
+                        HttpContext.RequestAborted).ConfigureAwait(false);
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢結果: Count={projections.Count}");
@@ -401,6 +406,12 @@ namespace ChurchReport.Controllers
                 {
                     return DataSourceLoader.Load(lessonsList, loadOptions);
                 }
+            }
+            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                // 客戶端已中止時不建立錯誤回應或延長任何 projection／例外的生命週期；重新擲出讓
+                // ASP.NET Core 與既有 Data8 取消／lease cleanup owner 完成確定性釋放。
+                throw;
             }
             catch (Exception e)
             {

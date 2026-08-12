@@ -33,18 +33,29 @@
 
 ## Phase 3：Batch B — Package01 stor projection consumers
 
-- [ ] 盤點 `StorLessonQueryService` 的所有 consumer，分辨只需 projection 的 caller 與要求
-      `EntityCollection` 的 legacy caller；把檔案/呼叫點寫入 task record。
-- [ ] 對每個只需 projection 的 caller，先寫 fail-first tests，證明 Package01 flag=false 保持 legacy，
-      flag=true 只走 `RetrieveStorLessonsByContactAsync` 或 `...ByDiscipleLessonAsync`，且取消/fault 不
-      混入另一個 request 或 profile 的結果。
-- [ ] 將已盤點的 projection-only caller 改為 typed projection；不得呼叫 `RetrieveEntity` 或將 DTO
-      回轉為 `EntityCollection`。仍需 SDK entity 的 caller 留在 temporary-legacy，並在 matrix/task
-      record 保留其 P7.5 blocker。
-- [ ] 執行該 caller 的 focused tests，以及
-      `dotnet test .\\ChurchReport.MemberInfo.Tests\\ChurchReport.MemberInfo.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~StorLesson`。
-- [ ] 完成 encoding、`git diff --check`、scope 與 local review；若會改動超過 30 行，執行 CCG
-      self-healing dual-model review，最多等待 45 秒。
+- [x] 盤點 `StorLessonQueryService` 的所有 consumer，分辨只需 projection 的 caller 與要求
+      `EntityCollection` 的 legacy caller；已確認 `MemberInfoController.LoadContactStorLessons` 與
+      `EquipmentController.LoadEquipmentStorLessons` 是僅讀 `StorLessonProjection` 的候選。`DownloadEquipment`、
+      `FeeDownUpLoader`、`EquipmentStatusCalculator` 與 `FindStorLessonId` 的 write-adjacent caller 保持
+      temporary-legacy，不能列為 migrated。
+- [x] 建立 shared wire/ProductClient/connector contract：課程開始時間與階段名稱經 `lesson` link 以 DTO
+      傳遞，三個共用 stor executor 具有相同欄位；錯誤 aliased 型別、page-byte 超限或 branch mismatch
+      都 fail closed。因 shared workspace 的 production 投影已由並行工作先存在，初始 connector/DTO
+      測試沒有可觀察的 red；此限制已寫入 check 紀錄，不將其宣稱為 red/green 證據。
+- [x] 建立 ChurchReport focused contract：Package01 stor query 全程非同步、原樣傳遞 cancellation，DTO
+      projection 不呼叫 `RetrieveEntity`，且 A/B 交錯 request 不共享結果。最小 UTC 哨兵回歸測試先實際
+      red（台北時區原本投影為 `0001-01-01 08:00`），修正後 green。
+- [x] 對兩個 projection-only caller 建立 contract tests，證明 Package01 flag=false 保持 legacy，flag=true
+      只走 `RetrieveStorLessonsByContactAsync`，並傳遞 `RequestAborted`；取消會重新擲出而不混入其他
+      request/profile 結果或走 legacy fallback。
+- [x] 將 `MemberInfoController.LoadContactStorLessons` 與 `EquipmentController.LoadEquipmentStorLessons` 改為
+      typed projection；不呼叫 `RetrieveEntity`、不把 DTO 回轉為 `EntityCollection`。仍需 SDK entity 的
+      caller 留在 temporary-legacy，並保留 P7.5 blocker。
+- [x] 執行 StorLesson focused tests、兩個受影響 test project 與完整 solution regression；結果記入
+      `check.md`／`check.jsonl`。
+- [x] 完成 encoding、`git diff --check`、source-only scope 與 local review；已經由 CCG self-healing
+      runner 嘗試 45 秒限時 Gemini/Claude review。Gemini 的一項極端日期 Warning 已以 red/green 測試修正；
+      Claude 未在上限內完成，明確記為「雙模型未完成」。
 
 ## Phase 4：後續 read sub-batches 與 P7.4 release gate
 

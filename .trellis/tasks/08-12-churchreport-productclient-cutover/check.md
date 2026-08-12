@@ -57,3 +57,56 @@ regression test 證明。其 UTF-8 with BOM 建議違反 AGENTS.md 的 UTF-8 無
 繼續 Batch B 的 StorLesson caller inventory。只有改為 projection-only、無 `Entity`/
 `EntityCollection` rehydration 的 consumer 才可計為 P7.4 migrated-disabled；所有 legacy bridge 繼續
 保留 temporary-legacy/P7.5 blocker。不得開啟 gate 或開始 P7.5/P8。
+
+## Batch B：StorLesson read-only projection consumer
+
+本批將 `lessons.stor.retrieve.by.contact`、`lessons.stor.retrieve.by.disciplelesson` 和共用的
+`fees.editor.load.by.disciplelesson` connector projection 補齊為 lesson inner link 的名稱、開課 UTC
+時間與階段名稱，並依序通過 wire record、ProductClient DTO、request-local projection 和兩個
+controller action。只有 `MemberInfoController.LoadContactStorLessons` 與
+`EquipmentController.LoadEquipmentStorLessons` 被列為 migrated-disabled；`DownloadEquipment`、
+`FeeDownUpLoader`、`EquipmentStatusCalculator`、`FindStorLessonId` 與所有 `EntityCollection` caller
+仍明確是 temporary-legacy，沒有被本批誤列為遷移。
+
+typed path 使用 `GetByContactAsync`／`GetByDiscipleLessonAsync` 與 `RequestAborted`，不會使用
+`GetAwaiter().GetResult()`、`RetrieveEntity`、DTO-to-Entity rehydration、request-time fallback 或 shared
+mutable collection。connector 對 lesson date/stage alias 型別不符與 page/cumulative byte budget 均 fail
+closed；controller 對 request cancellation 重新擲出，避免在中止 request 建立錯誤回應或延長例外生命週期。
+
+外部 Gemini reviewer 指出極端 UTC 最小日期會被本機正偏移誤顯示為 `0001-01-01 08:00`，負偏移可能
+無法表示。已新增先 red 的 regression（舊實作實際顯示 `08:00`），再以受限
+`ToLegacyDisplayDateTime` 將 null／UTC minimum 保持為既有 `DateTime.MinValue` 哨兵，並在其餘邊界值
+先檢查時區 offset 的可表示範圍。此 helper 不快取時區、DTO 或 request 資料。
+
+### Batch B 驗證證據
+
+- `dotnet test .\SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj --configuration Release --no-restore`
+  ：735 passed、7 skipped（既有 live SQL tests）。
+- `dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --configuration Release --no-restore`
+  ：539 passed、14 skipped（既有 live／environment fixture tests）。
+- `dotnet test .\SpeechMessageProducts.sln --configuration Release --no-restore`
+  ：solution 所有可執行 tests passed；Dynamics 735 passed／7 skipped，ChurchReport 539 passed／14 skipped。
+- `dotnet build .\SpeechMessageProducts.sln --configuration Release --no-restore`
+  ：0 warnings、0 errors。
+- changed Batch B C#／task files：UTF-8 no-BOM、CRLF-only、final CRLF；`git diff --check`、typed-path
+  forbidden-pattern scan 與 source-only scope scan 通過。
+
+UTC 最小日期修正後重新執行完整 regression：`ChurchReport.MemberInfo.Tests` 為 540 passed、14 skipped，
+`SpeechMessage.Dynamics.Tests` 為 735 passed、7 skipped，完整 `SpeechMessageProducts.sln` tests 均通過，
+Release build 為 0 warnings、0 errors。skip 皆為既有 live SQL／CE／environment fixture，沒有被本批啟用或
+重新分類為通過。
+
+### Batch B 審查與範圍
+
+CCG self-healing runner 的第一次 review 得到 Gemini 可用輸出，且五項本機 Warning 已修正；最後
+45 秒限時 run 的 Gemini 又找到極端日期 Warning，已用上述 red/green 修正。Claude 在限時內沒有完成，
+所以本批是「雙模型未完成」，不是 completed dual-model review。沒有 feature gate enablement、CE request／
+mutation、traffic switch、CE 8.2、Official Worker、P7.5、P8、雲端資源、push 或 PR。本機既存的
+`launchSettings.json` 旗標值未被讀取作為 enablement 證據，也未被本批改動；實機 enablement 的
+aggregate-capacity／drain-first no-go 不變。
+
+## 下一步（更新）
+
+P7.4 保持 `in_progress`。下一個可進行的本機範圍是 Phase 4 的 ORG-CALL-00005、00064、00066 caller-shape
+inventory；先確認每個 consumer 的 DTO／response contract、legacy bridge、rollback owner 與 required evidence，
+再建立獨立 sub-batch。不得因 Batch B 本機通過而啟用 gate、開始 P7.5 或建立 P8。

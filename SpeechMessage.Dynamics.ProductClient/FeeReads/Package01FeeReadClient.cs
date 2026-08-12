@@ -415,6 +415,8 @@ public sealed class Package01FeeReadClient : IPackage01FeeReadClient
             ContactName = record.ContactName,
             ContactMobile = record.ContactMobile,
             DiscipleLessonName = record.DiscipleLessonName,
+            ClassStartDate = record.ClassStartDate,
+            StageName = record.StageName,
             FeeAmount = record.FeeAmount
         };
     }

@@ -200,6 +200,42 @@ public sealed class Package01FeeReadClientTests
     }
 
     /// <summary>
+    /// 驗證依聯絡人讀取的 stor-lesson 公開方法，會把 connector 已封閉的開課 UTC 時間與目前階段
+    /// 一對一投影至產品 DTO；同時刻意輸入 null 顯示欄位，防止產品端以共用預設值補寫前一筆或
+    /// 其他請求的姓名、手機與課程名稱。替身只在此次呼叫同步產生不可變回應，沒有保存 profile、
+    /// workload、CRM 實體或外部資源；決定性斷言同時守護欄位精確性與跨請求資料隔離契約。
+    /// </summary>
+    [Fact]
+    public async Task Stor_lessons_by_contact_maps_class_start_date_stage_name_and_nullable_display_fields()
+    {
+        var classStartDate = new DateTimeOffset(2026, 8, 12, 9, 30, 0, TimeSpan.Zero);
+        var executor = new FakeExecutor(request => CreateStorLessonResult(
+            request.CapabilityOperationId,
+            new Package01StorLessonRecord
+            {
+                StorLessonId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                ClassStartDate = classStartDate,
+                StageName = "裝備課程－進行中",
+                ContactName = null,
+                ContactMobile = null,
+                DiscipleLessonName = null
+            }));
+        var client = CreateClient(executor);
+
+        var rows = await client.RetrieveStorLessonsByContactAsync(
+            "jesus-prod",
+            "church-report-service",
+            Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+
+        rows.Should().ContainSingle();
+        rows[0].ClassStartDate.Should().Be(classStartDate);
+        rows[0].StageName.Should().Be("裝備課程－進行中");
+        rows[0].ContactName.Should().BeNull();
+        rows[0].ContactMobile.Should().BeNull();
+        rows[0].DiscipleLessonName.Should().BeNull();
+    }
+
+    /// <summary>
     /// 驗證 stor-lesson API 收到費用 branch 時會拒絕回應，而非把財務欄位誤當成課程資料。
     /// 故障會在產品 DTO 建立前結束，讓上游分支錯配不會形成跨資料域的殘留或快取資料。
     /// </summary>
@@ -304,6 +340,42 @@ public sealed class Package01FeeReadClientTests
         rows[0].DiscipleLessonId.Should().BeNull();
         rows[0].FeeAmount.Should().BeNull();
         rows[0].CurrentComplete.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// 驗證依門徒課程讀取的 stor-lesson 公開方法，與依聯絡人路徑使用相同的封閉 DTO 合約：開課
+    /// 時間不可遺失，null 階段不可被產品端猜測或補成舊值。三個顯示欄位提供不同於另一測試的
+    /// 非 null marker，證明每次映射建立新的 request-local DTO，而非重用前次呼叫的可變顯示資料。
+    /// 此測試不建立計時器、連線或背景工作；executor 回傳後沒有可由下一位使用者觀察到的資源或狀態。
+    /// </summary>
+    [Fact]
+    public async Task Stor_lessons_by_disciple_lesson_maps_class_start_date_and_null_stage_without_display_leakage()
+    {
+        var classStartDate = new DateTimeOffset(2026, 8, 13, 14, 45, 0, TimeSpan.FromHours(8));
+        var executor = new FakeExecutor(request => CreateStorLessonResult(
+            request.CapabilityOperationId,
+            new Package01StorLessonRecord
+            {
+                StorLessonId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                ClassStartDate = classStartDate,
+                StageName = null,
+                ContactName = "門徒甲",
+                ContactMobile = "0900000000",
+                DiscipleLessonName = "門徒課程－八月班"
+            }));
+        var client = CreateClient(executor);
+
+        var rows = await client.RetrieveStorLessonsByDiscipleLessonAsync(
+            "jesus-prod",
+            "church-report-service",
+            Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"));
+
+        rows.Should().ContainSingle();
+        rows[0].ClassStartDate.Should().Be(classStartDate);
+        rows[0].StageName.Should().BeNull();
+        rows[0].ContactName.Should().Be("門徒甲");
+        rows[0].ContactMobile.Should().Be("0900000000");
+        rows[0].DiscipleLessonName.Should().Be("門徒課程－八月班");
     }
 
     /// <summary>

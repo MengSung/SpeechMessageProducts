@@ -36,13 +36,33 @@ Controller / Service / WebServiceConnector
 | 批次 | 能力 / rows | 本 task 可做的本機工作 | 不能宣稱或執行的工作 |
 | --- | --- | --- | --- |
 | A | `fee.dedication.retrieve.by.contact.date.range` / `ORG-CALL-00006` | 完成 fee typed DTO 到畫面 model 的 consumer contract、flag=false short-circuit、flag=true cancellation/fault/isolation tests，並移除該 typed 分支中不必要的 SDK 資料依賴。 | feature enablement、Dedicated traffic、contact identity read、P7.5 removal。 |
-| B | `lessons.stor.retrieve.by.contact` / `00061`、`...by.disciplelesson` / `00062` | 將只需要 lesson view 的 callers 改用 `StorLessonProjection`；替每個 caller 將 legacy `EntityCollection` contract 轉成 typed projection。 | 以 `RetrieveEntity` 回補 entity；仍需要 entity 的 caller 不得標示 migrated。 |
+| B | `lessons.stor.retrieve.by.contact` / `00061`、`...by.disciplelesson` / `00062` | 將只需要 lesson view 的 callers 改用 `StorLessonProjection`；課程開始時間與階段名稱必須由同一 bounded DTO/wire projection 提供，且 typed path 需全程 async。 | 以 `RetrieveEntity` 回補 entity、`GetAwaiter().GetResult()` 同步等待，或將仍需要 entity 的 caller 標示 migrated。 |
 | C | `fee.dedication.retrieve.by.contact` / `00005`、`fees.retrieve.by.dedication.period` / `00064`、`fees.editor.load.by.disciplelesson` / `00066` | 僅在既有 caller 的 DTO/response contract 完整盤點後，建立獨立 sub-batch；必要時保留在 P7.4 task 但不開 gate。 | 以模型猜測取代 CE parity、與 Package02 write 混合。 |
 | D | Package02 write/action/function、list、attendance、owner assign、未實作能力 | 記錄為 owning P7.1/P7.2 evidence family prerequisite。 | 透過 P7.4 直接 dispatch、dual-write 或帶入 CE mutation。 |
 
 P7.4 的完成不是「把 flag 設為 true」。每個 row 的 consumer 只有在 typed path 不再需要
 ToolUtility/SDK bridge、契約和 lifecycle tests 綠燈、required CE/host evidence 已完成、以及 deployment
 capacity gate 已通過後，才可由 deployment owner 另行啟用。
+
+## Batch B 的封閉課程顯示投影
+
+Batch B 的顯示資料流固定為：Data8 `new_stor_lessons` 受限 query → `lesson` inner link 的
+`new_class_start_date`、`new_now_stage_name` → `Package01StorLessonRecord` →
+`StorLessonRecordDto` → request-local `StorLessonProjection` → controller view model。所有邊界
+只允許 Guid、nullable UTC `DateTimeOffset`、nullable bool、decimal 與 bounded string；不得讓
+CRM `Entity`、`AliasedValue`、`EntityReference` 或 formatted dictionary 離開 connector。
+
+connector 以精確 aliased UTC DateTime/string reader 驗證 `lesson` 欄位型別並納入同一 page/cumulative
+byte budget。`lessons.stor.retrieve.by.disciplelesson` 也必須加入既定 lesson link，否則不能聲稱兩個
+operation 的 UI 欄位 parity 相同。ProductClient 只逐欄複製 wire record；ChurchReport 只在 request-local
+集合投影，絕不再補送 `RetrieveEntity`。
+
+現有同步 `StorLessonQueryService` public API 不可被 Package01 typed branch 繼續使用，因為它會以
+`GetAwaiter().GetResult()` 阻塞 request thread 並使 cancellation 無法流至 client。Batch B 應新增以
+`CancellationToken` 為界的 async API；只有兩個 projection-only controller action 可改接此 API 並傳遞
+`HttpContext.RequestAborted`。仍需要 `EntityCollection` 的 `DownloadEquipment`、`FeeDownUpLoader`、
+`EquipmentStatusCalculator`，以及涉及寫入的 `FindStorLessonId` consumer 均維持 temporary-legacy，不能
+被本批 bridge 或統計為 migrated。
 
 ## feature gate 與 rollback
 
