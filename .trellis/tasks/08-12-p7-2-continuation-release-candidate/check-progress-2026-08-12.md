@@ -39,3 +39,24 @@
   runtime failure。
 - ChurchReport Release build 為 0 warnings／0 errors；相關 targeted tests 36 passed；
   UTF-8 無 BOM、CRLF、final CRLF 與 `git diff --check` 均通過。
+
+## Gateway 負向啟動測試檢查：2026-08-12
+
+- 變更範圍僅限 `GatewayWorkloadBoundaryTests` 與
+  `GatewayRequestBodyBoundaryTests`。預期 startup failure 改以直接驗證正式 startup validator；
+  所有正向 HTTP／TestHost／Kestrel integration cases 保留，未改動 production Gateway。
+- targeted 指令
+  `dotnet test .\SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj --no-restore --filter "FullyQualifiedName~GatewayWorkloadBoundaryTests|FullyQualifiedName~GatewayRequestBodyBoundaryTests" --logger "console;verbosity=minimal"`
+  結果為 58 passed、0 failed、0 skipped。
+- 完整指令
+  `dotnet test .\SpeechMessage.Dynamics.Tests\SpeechMessage.Dynamics.Tests.csproj --no-restore --logger "console;verbosity=minimal"`
+  結果為 553 passed、0 failed、7 skipped；7 項都是明示 live SQL coordinator 相依條件，沒有被視為 CE 或
+  Gateway 成功證據。
+- 新增 helper 與測試註解明示 configuration snapshot、Host／provider 不建立、無 reload subscription、
+  無外部 I/O 與 deterministic resource ownership；byte-level check 證明兩個修改 C# 為 UTF-8 無 BOM、
+  CRLF-only、final CRLF。`git diff --check` 通過。
+- CCG reviewer run `20260812-103840-p7-2-gateway-negative-startup-test-lifecycle-review-reviewer`
+  為雙模型未完成：Gemini timeout（仍留可讀正向 review，無 Critical／Warning），Claude session quota
+  無輸出。依 45 秒規則不重試，審查狀態明確降級為本機驗證＋部分 Gemini 輸出，不可稱完整雙模型審查。
+- 規格已補入 `dynamics-gateway-hosting-version-routing.md` 的 deterministic negative deployment
+  validation scenario，禁止為測試競態修改 `Program`、接受 `ObjectDisposedException`、關閉全域平行化或重試。

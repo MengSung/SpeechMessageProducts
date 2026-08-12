@@ -263,19 +263,23 @@ public sealed class GatewayRequestBodyBoundaryTests
     /// <summary>
     /// 超過絕對 hard ceiling 的 deployment 設定必須在 listener 接受流量前停止 Host；
     /// 不能由 Kestrel、IIS 或 reader 各自截斷成不同值，否則不同 hosting topology 會形成不一致的記憶體與安全邊界。
+    /// 直接驗證正式 Kestrel callback 與 Options validation 共用的 <see cref="GatewayRequestBodyLimitOptions.BindAndValidate"/>
+    /// 契約，避免預期 startup failure 經過 top-level <c>app.Run()</c> 時被 TestHost disposal race 遮蔽。
     /// </summary>
     [Fact]
-    public void Request_limit_above_hard_ceiling_fails_host_startup()
+    public void Request_limit_above_hard_ceiling_fails_deployment_validation()
     {
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            maxRequestBodyBytes: 1_048_577,
-            mapped: true,
-            useKestrel: false);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsGateway:RequestLimits:MaxRequestBodyBytes"] = "1048577",
+                ["DynamicsGateway:RequestLimits:JsonMaxDepth"] = "32"
+            })
+            .Build();
 
-        var start = () => factory.CreateClient();
+        var bind = () => GatewayRequestBodyLimitOptions.BindAndValidate(configuration);
 
-        start.Should().Throw<OptionsValidationException>()
+        bind.Should().Throw<InvalidOperationException>()
             .WithMessage("*request body*maximum*");
     }
 

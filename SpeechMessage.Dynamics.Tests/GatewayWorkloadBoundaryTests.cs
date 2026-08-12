@@ -455,8 +455,9 @@ public sealed class GatewayWorkloadBoundaryTests
     /// Binding set selector 是 deployment-owned authorization authority；缺少、空白、前後空白、wildcard、含 section delimiter
     /// 或不存在的名稱都不能回退到 base、第一組或全部集合。特別覆蓋 <c>Local:0</c>，確保 selector 不會被串接成
     /// configuration path 而穿越具名集合邊界。
-    /// 每筆 Theory 使用獨立 Factory 與 configuration snapshot，Host 必須在 listener、executor、admission、secret resolution 與 outbound socket
-    /// 建立前同步中止；測試不啟動背景工作，也不保留 configuration reload subscription，因此 Factory Dispose 是唯一 cleanup 邊界。
+    /// 每筆 Theory 使用獨立 configuration snapshot，authorizer 建構即是 startup validator 的實際 materialization 契約，
+    /// 因此可在 listener、executor、admission、secret resolution 與 outbound socket 建立前同步拒絕。刻意不啟動 TestHost，
+    /// 以排除預期 startup failure 與 top-level <c>app.Run()</c> disposal 交錯時遮蔽原始設定例外的框架競態。
     /// </summary>
     /// <param name="invalidSelector">刻意不合法或不存在的 selector；只屬於測試設定，不接受 HTTP request 輸入。</param>
     [Theory]
@@ -468,43 +469,39 @@ public sealed class GatewayWorkloadBoundaryTests
     [InlineData("?")]
     [InlineData("Local:0")]
     [InlineData("Missing")]
-    public void Invalid_active_workload_binding_set_fails_host_startup(string? invalidSelector)
+    public void Invalid_active_workload_binding_set_fails_authorizer_construction(string? invalidSelector)
     {
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: true,
-            configurationOverrides: new Dictionary<string, string?>
-            {
-                ["DynamicsGateway:ActiveWorkloadBindingSet"] = invalidSelector
-            });
+        var configuration = CreateAuthorizerConfiguration(new Dictionary<string, string?>
+        {
+            ["DynamicsGateway:ActiveWorkloadBindingSet"] = invalidSelector
+        });
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>();
+        construct.Should().Throw<InvalidOperationException>();
     }
 
     /// <summary>
-    /// selector 對應的 section 若只是 scalar，就不是可 materialize 的 binding collection，必須在 Host startup fail closed。
+    /// selector 對應的 section 若只是 scalar，就不是可 materialize 的 binding collection，必須在 authorizer 建構時 fail closed；
     /// 這個案例刻意與真正的 childless JSON object 分開，避免測試名稱過度聲明未驗證的 provider 形狀。
-    /// Factory、Host 與 service provider 由本測試同步 Dispose；失敗發生在 executor、CRM／SQL 連線、timer、subscription 或背景任務建立之前。
+    /// 不建立 Factory 或 Host，因此失敗發生在 executor、CRM／SQL 連線、timer、subscription 或背景任務建立之前，且不受 TestHost 生命週期影響。
     /// </summary>
     [Fact]
-    public void Selected_scalar_workload_binding_set_fails_host_startup()
+    public void Selected_scalar_workload_binding_set_fails_authorizer_construction()
     {
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: true,
-            configurationOverrides: new Dictionary<string, string?>
-            {
-                ["DynamicsGateway:ActiveWorkloadBindingSet"] = "Empty",
-                ["DynamicsGateway:WorkloadBindingSets:Empty"] = "declared-without-bindings"
-            });
+        var configuration = CreateAuthorizerConfiguration(new Dictionary<string, string?>
+        {
+            ["DynamicsGateway:ActiveWorkloadBindingSet"] = "Empty",
+            ["DynamicsGateway:WorkloadBindingSets:Empty"] = "declared-without-bindings"
+        });
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>();
+        construct.Should().Throw<InvalidOperationException>();
     }
 
     /// <summary>
@@ -541,10 +538,10 @@ public sealed class GatewayWorkloadBoundaryTests
     /// <summary>
     /// configuration provider 可同時對一個 section 提供 scalar value 與 child leaves；這種歧義形狀不能因 children 看似完整就被接受。
     /// Authorizer 必須在解析任何 principal、alias 或 operation 之前拒絕 scalar-plus-children，避免 provider 優先序成為隱藏的授權開關。
-    /// Factory 是 Host 與 service provider 的唯一 owner；startup 失敗前不得建立 executor call、admission permit、secret、socket 或需要 drain 的背景工作。
+    /// 直接建構避免 TestHost 對預期 startup failure 的 framework race；拒絕前不得建立 executor call、admission permit、secret、socket 或需要 drain 的背景工作。
     /// </summary>
     [Fact]
-    public void Selected_scalar_with_children_workload_binding_set_fails_host_startup()
+    public void Selected_scalar_with_children_workload_binding_set_fails_authorizer_construction()
     {
         var scalarWithChildren = new Dictionary<string, string?>
         {
@@ -560,15 +557,13 @@ public sealed class GatewayWorkloadBoundaryTests
                 DefaultOperationId
         };
 
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: false,
-            configurationOverrides: scalarWithChildren);
+        var configuration = CreateAuthorizerConfiguration(scalarWithChildren);
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>()
+        construct.Should().Throw<InvalidOperationException>()
             .WithMessage("*scalar value*");
     }
 
@@ -600,21 +595,23 @@ public sealed class GatewayWorkloadBoundaryTests
     }
 
     /// <summary>
-    /// Wildcard 會把部署設定從有限白名單變成未來 alias／operation 的隱性授權，因此 Host 必須在 listener 接流量前拒絕啟動。
+    /// Wildcard 會把部署設定從有限白名單變成未來 alias／operation 的隱性授權，因此 authorizer 必須在 listener 接流量前拒絕建構。
     /// </summary>
     [Fact]
-    public void Wildcard_binding_value_fails_host_startup()
+    public void Wildcard_binding_value_fails_authorizer_construction()
     {
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: true,
+        var configuration = CreateAuthorizerConfiguration(CreateBindingValues(
+            index: 1,
+            principalName: DefaultPrincipalName,
+            workloadSubjectId: "church-report-service",
             allowedAlias: "*",
-            allowedOperation: DefaultOperationId);
+            allowedOperation: DefaultOperationId));
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>()
+        construct.Should().Throw<InvalidOperationException>()
             .WithMessage("*wildcard*");
     }
 
@@ -622,7 +619,7 @@ public sealed class GatewayWorkloadBoundaryTests
     /// 同一 principal 若出現兩份 binding，解析順序會變成安全語意的一部分；啟動期必須拒絕，而不是 last-write-wins。
     /// </summary>
     [Fact]
-    public void Duplicate_principal_binding_fails_host_startup()
+    public void Duplicate_principal_binding_fails_authorizer_construction()
     {
         var overrides = CreateBindingValues(
             index: 2,
@@ -630,15 +627,13 @@ public sealed class GatewayWorkloadBoundaryTests
             workloadSubjectId: "duplicate-service",
             allowedAlias: DefaultProfileAlias,
             allowedOperation: DefaultOperationId);
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: true,
-            configurationOverrides: overrides);
+        var configuration = CreateAuthorizerConfiguration(overrides);
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>()
+        construct.Should().Throw<InvalidOperationException>()
             .WithMessage("*duplicate*principal*");
     }
 
@@ -647,60 +642,67 @@ public sealed class GatewayWorkloadBoundaryTests
     /// 必須在 Host startup 暴露，避免維護者誤以為兩個不同能力已被審查。
     /// </summary>
     [Fact]
-    public void Duplicate_operation_value_fails_host_startup()
+    public void Duplicate_operation_value_fails_authorizer_construction()
     {
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: true,
-            configurationOverrides: new Dictionary<string, string?>
-            {
-                ["DynamicsGateway:WorkloadBindingSets:Testing:1:CapabilityOperationIds:1"] =
-                    DefaultOperationId
-            });
+        var configuration = CreateAuthorizerConfiguration(new Dictionary<string, string?>
+        {
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:CapabilityOperationIds:1"] =
+                DefaultOperationId
+        });
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>()
+        construct.Should().Throw<InvalidOperationException>()
             .WithMessage("*duplicate*operation*");
     }
 
     /// <summary>
-    /// Binding 只能引用目前部署擁有的 immutable profile catalog；拼錯或已移除的 alias 必須讓 Host 啟動失敗，
-    /// 不能留到 request time 才猜測、fallback 或建立錯誤 runtime。
+    /// Binding 只能引用目前部署擁有的 immutable profile catalog；拼錯或已移除的 alias 必須在 authorizer 建構時拒絕，
+    /// 因 startup validator 會同步 materialize authorizer，所以正式 Host 仍會在接收流量前停止。此測試刻意不透過
+    /// <see cref="WebApplicationFactory{TEntryPoint}"/> 觸發 top-level <c>app.Run()</c>，避免預期 startup failure 與
+    /// TestHost 延後存取 service provider 的框架生命週期競態遮蔽真正的設定例外。
+    /// Configuration snapshot 只屬於本案例且不開啟 reload subscription；不建立 Host、listener、executor、CRM 連線、timer 或背景工作。
     /// </summary>
     [Fact]
-    public void Unknown_profile_alias_in_binding_fails_host_startup()
+    public void Unknown_profile_alias_in_binding_fails_authorizer_construction()
     {
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: true,
-            allowedAlias: "missing-profile",
-            allowedOperation: DefaultOperationId);
+        var configuration = CreateAuthorizerConfiguration(new Dictionary<string, string?>
+        {
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:PrincipalName"] = DefaultPrincipalName,
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:WorkloadSubjectId"] = "church-report-service",
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:ProfileAliases:0"] = "missing-profile",
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:CapabilityOperationIds:0"] = DefaultOperationId
+        });
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>()
+        construct.Should().Throw<InvalidOperationException>()
             .WithMessage("*unknown*profile alias*");
     }
 
     /// <summary>
     /// Binding 只能引用已註冊且可審查的 canonical operation ID；未知值不得在未來 registry 擴張後意外變成有效權限。
+    /// 直接建構驗證正式 startup validator 所 materialize 的 singleton，避免預期 Host 啟動失敗受到 TestHost disposal race 干擾。
     /// </summary>
     [Fact]
-    public void Unknown_operation_in_binding_fails_host_startup()
+    public void Unknown_operation_in_binding_fails_authorizer_construction()
     {
-        using var factory = CreateFactory(
-            new RecordingExecutor(),
-            DefaultPrincipalName,
-            mapped: true,
+        var configuration = CreateAuthorizerConfiguration(CreateBindingValues(
+            index: 1,
+            principalName: DefaultPrincipalName,
+            workloadSubjectId: "church-report-service",
             allowedAlias: DefaultProfileAlias,
-            allowedOperation: "runtime.unknown.operation");
+            allowedOperation: "runtime.unknown.operation"));
 
-        var start = () => factory.CreateClient();
+        var construct = () => new ConfigurationGatewayOperationAuthorizer(
+            configuration,
+            new[] { DefaultProfileAlias });
 
-        start.Should().Throw<InvalidOperationException>()
+        construct.Should().Throw<InvalidOperationException>()
             .WithMessage("*unknown*operation*");
     }
 
@@ -847,6 +849,50 @@ public sealed class GatewayWorkloadBoundaryTests
             [$"DynamicsGateway:WorkloadBindingSets:{TestingBindingSetName}:{index}:ProfileAliases:0"] = allowedAlias,
             [$"DynamicsGateway:WorkloadBindingSets:{TestingBindingSetName}:{index}:CapabilityOperationIds:0"] = allowedOperation
         };
+
+    /// <summary>
+    /// 建立只供 authorizer 直接建構測試使用的最小 deployment configuration snapshot。
+    /// 預設 binding 讓案例可以只覆寫一個有問題的 selector、集合或欄位；每次呼叫都配置新的 Dictionary 與 configuration root，
+    /// 不保留 reload subscription、principal、Host、service provider 或任何跨案例可變狀態。這與正式 startup validator 的 authorizer
+    /// materialization 使用相同 <see cref="IConfiguration"/> 輸入契約，卻不觸發 <c>WebApplicationFactory</c> 對預期失敗 Host 的 disposal race。
+    /// </summary>
+    /// <param name="overrides">僅限本案例、在 base snapshot 後覆寫的 configuration leaves。</param>
+    /// <returns>不含外部 I/O 或 reload provider 的 in-memory configuration snapshot。</returns>
+    private static IConfiguration CreateAuthorizerConfiguration(
+        IReadOnlyDictionary<string, string?> overrides)
+    {
+        ArgumentNullException.ThrowIfNull(overrides);
+
+        var values = new Dictionary<string, string?>
+        {
+            ["DynamicsGateway:ActiveWorkloadBindingSet"] = TestingBindingSetName,
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:PrincipalName"] =
+                @"SPEECHMESSAGE\TestingBaseline$",
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:WorkloadSubjectId"] =
+                "testing-baseline-service",
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:ProfileAliases:0"] =
+                DefaultProfileAlias,
+            ["DynamicsGateway:WorkloadBindingSets:Testing:0:CapabilityOperationIds:0"] =
+                DefaultOperationId,
+            ["DynamicsGateway:WorkloadBindingSets:Testing:1:PrincipalName"] =
+                DefaultPrincipalName,
+            ["DynamicsGateway:WorkloadBindingSets:Testing:1:WorkloadSubjectId"] =
+                "church-report-service",
+            ["DynamicsGateway:WorkloadBindingSets:Testing:1:ProfileAliases:0"] =
+                DefaultProfileAlias,
+            ["DynamicsGateway:WorkloadBindingSets:Testing:1:CapabilityOperationIds:0"] =
+                DefaultOperationId
+        };
+
+        foreach (var pair in overrides)
+        {
+            values[pair.Key] = pair.Value;
+        }
+
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(values)
+            .Build();
+    }
 
     /// <summary>建立 UTF-8 JSON request content；每個呼叫端以 using 擁有並確定性釋放底層 buffer。</summary>
     private static StringContent Json(string value)

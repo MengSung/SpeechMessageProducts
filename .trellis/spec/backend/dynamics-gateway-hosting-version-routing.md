@@ -2979,3 +2979,114 @@ if (weeklyReportId is Guid exactWeeklyReportId)
 The correct form preserves the established ChurchReport zero-active behavior,
 detects conflicting present records, keeps duplicate data fail-closed, and
 prevents the fixture/evidence layer from drifting away from the connector.
+
+## Scenario: Deterministic negative deployment validation without TestHost disposal races
+
+### 1. Scope / Trigger
+
+This scenario applies when a Gateway test verifies that deployment-owned
+configuration is rejected before the listener accepts traffic. It specifically
+covers the .NET 10 interaction between top-level `app.Run()` and
+`WebApplicationFactory`: when startup deliberately throws, the application can
+dispose its provider before `DeferredHost` finishes reading it. That test-host
+lifecycle race must never replace the intended fail-closed validation result or
+motivate a production change.
+
+### 2. Signatures
+
+The direct unit boundary must be the same concrete validator that production
+startup materializes:
+
+```csharp
+new ConfigurationGatewayOperationAuthorizer(
+    IConfiguration configuration,
+    IReadOnlyCollection<string> knownProfileAliases);
+
+GatewayRequestBodyLimitOptions.BindAndValidate(
+    IConfiguration configuration);
+```
+
+The normal positive HTTP boundary remains the existing
+`WebApplicationFactory<Program>` / TestHost or Kestrel integration fixture.
+
+### 3. Contracts
+
+- A negative deployment-configuration test creates one fresh in-memory or
+  JSON-stream `IConfiguration` snapshot for its own case, then directly invokes
+  the validator that startup invokes. It does not need to create a Host,
+  listener, executor, admission permit, connector, socket, timer, background
+  task, reload subscription, or shared service provider.
+- The direct test must preserve production's fail-closed contract: invalid
+  binding selectors, malformed binding sets, unknown aliases/operations and
+  invalid body limits throw the same bounded validation exception before any
+  runtime resource is materialized.
+- `WebApplicationFactory` is retained for positive HTTP authorization,
+  request-body, TestHost and Kestrel coverage. It must not be used merely to
+  assert an intentionally thrown top-level startup exception when the direct
+  validator is the actual contract under test.
+- Tests must not change `Program`, weaken startup validation, serialize the
+  whole suite, catch `ObjectDisposedException` as a compatible result, or add a
+  retry. Those options hide a framework-lifecycle race instead of proving the
+  Gateway's deployment boundary.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Invalid deployment binding selector, set shape, profile alias or operation | Direct authorizer construction throws the expected fail-closed validation exception; no Host or outbound resource exists. |
+| Request body maximum exceeds the hard ceiling | `BindAndValidate` throws the bounded configuration validation exception before Kestrel is configured. |
+| Positive authorized HTTP / Kestrel body-boundary case | Continue using the integration fixture and assert the real response and zero unexpected executor work. |
+| A test sees `ObjectDisposedException` from a provider while expecting startup validation | Treat it as a test-host lifecycle defect; replace that negative assertion with the direct validator contract, never accept or retry the disposal exception. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: each invalid selector case builds a private configuration snapshot and
+  directly constructs the authorizer; the expected configuration exception is
+  observed without creating a listener.
+- Base: normal requests still pass through `WebApplicationFactory` or Kestrel,
+  so routing, authentication, request ownership and response behavior retain
+  integration coverage.
+- Bad: alter `Program` shutdown ownership, disable suite parallelism, or accept
+  an `ObjectDisposedException` because a negative `CreateClient()` assertion is
+  intermittently masked by `app.Run()` disposal.
+
+### 6. Tests Required
+
+- Cover missing, blank, wildcard, delimiter-bearing, unknown, scalar-only,
+  scalar-plus-children and childless binding-set forms by direct authorizer
+  construction; assert only the expected configuration validation category.
+- Cover a request-body hard-ceiling setting by direct
+  `GatewayRequestBodyLimitOptions.BindAndValidate` invocation.
+- Retain focused Gateway HTTP/TestHost/Kestrel tests and run the complete
+  `SpeechMessage.Dynamics.Tests` suite after the change. The test report must
+  distinguish explicitly skipped live dependencies from passing local tests.
+- Assert changed test files are UTF-8 without BOM, CRLF-only and final-CRLF;
+  run `git diff --check` before commit.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+using var factory = CreateInvalidFactory();
+Action start = () => factory.CreateClient();
+start.Should().Throw<InvalidOperationException>();
+```
+
+This makes a configuration assertion depend on a test host that may already
+have been disposed by top-level startup cleanup.
+
+#### Correct
+
+```csharp
+var configuration = CreateCaseLocalConfiguration(invalidValues);
+Action materialize = () => new ConfigurationGatewayOperationAuthorizer(
+    configuration,
+    knownProfileAliases);
+
+materialize.Should().Throw<InvalidOperationException>();
+```
+
+This tests the same startup validation boundary with deterministic ownership,
+while separate positive HTTP and Kestrel tests continue to prove the hosted
+pipeline.
