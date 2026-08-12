@@ -1,0 +1,33 @@
+{
+  "id": "p7-2-continuation-release-candidate",
+  "name": "p7-2-continuation-release-candidate",
+  "title": "P7.2 continuation release candidate",
+  "description": "Delivery-first local implementation and verification for Slice C root-cause fixes and Slice D-H contracts. CE evidence remains fail-closed until a new governed cycle is proven.",
+  "status": "completed",
+  "dev_type": "backend",
+  "scope": "P7.2 continuation; local Slice C-D-H work and one independently governed Slice C CE cycle",
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-12",
+  "completedAt": "2026-08-12",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-05-gateway-purpose-and-positioning",
+  "relatedFiles": [
+    "SpeechMessage.Dynamics.Abstractions/Operations/OperationIds.cs",
+    "SpeechMessage.Dynamics.Abstractions/Operations/P72ContinuationLocalOnlyCatalog.cs",
+    "SpeechMessage.Dynamics.Tests/P72ContinuationOperationIdsTests.cs",
+    "SpeechMessage.Dynamics.Tests/Data8ProfileOperationExecutorTests.cs",
+    "ToolUtility/Core/ToolUtilityFacade.cs",
+    "ChurchReport.MemberInfo.Tests/WebServiceConnector/DownloadListManagerIsolationTests.cs"
+  ],
+  "notes": "Historical CE cycle remains closed. 本輪已完成 dynamic-list operation service forwarding、local-only authority guard 與本機 RC targeted gates；DownloadIntegrateData Factory ToolUtility dependency remains a P7.4/P7.5 fail-closed blocker。No new CE cycle has executed.",
+  "meta": {}
+}
