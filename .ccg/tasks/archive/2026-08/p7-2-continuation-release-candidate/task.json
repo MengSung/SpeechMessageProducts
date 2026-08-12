@@ -1,12 +1,12 @@
 {
     "id":  "p7-2-continuation-release-candidate",
     "title":  "P7.2 continuation release candidate",
-    "status":  "in_progress",
+    "status":  "completed",
     "complexity":  "L+",
     "risk":  "high",
     "domain":  "backend",
-    "currentPhase":  "implementation",
-    "nextAction":  "完成候選版的 scope-only review 與交付紀錄；Slice C 的 write-not-committed CE no-go 維持 closed，Slice D-H 只維持 local-only，P7.4/P7.5 fail-closed",
+    "currentPhase":  "completed",
+    "nextAction":  "第一版本機驗證候選版已完成並由 Trellis 歸檔；Slice C 的 write-not-committed CE no-go 維持 closed，Slice D-H 只維持 local-only，P7.4/P7.5 fail-closed。",
     "createdAt":  "2026-08-12T00:00:00+08:00",
     "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree",
     "predecessors":  [
