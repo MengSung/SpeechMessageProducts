@@ -42,22 +42,25 @@
    傳遞給 ASP.NET Core 和下游 lease owner。
 6. controller 不得保留 DTO、profile、token、client、exception、authorization result 或
    `HttpContext`；它只在目前 request 將 immutable option snapshot 傳給搜尋、排序與 row projection。
-7. false-gate legacy path、base/sub gate composition、profile 驗證順序、固定 request、
+7. gate=true 時，「結案」的 raw choice value 也必須由同一份 request-local typed snapshot 以
+   精確且唯一的標籤解析；缺少或重複皆 fail closed，且不得再讀 legacy OptionSet service、
+   provider 或 shared cache。
+8. false-gate legacy path、base/sub gate composition、profile 驗證順序、固定 request、
    malformed DTO、A/B profile isolation、cancellation、controller source contract、UTF-8/CRLF
    均需由本機測試與檢查證明。
 
 ## 驗收條件
 
-- [ ] Package03 metadata base/sub gate 與 factory 在 host resolution 前 fail closed，且 direct
+- [x] Package03 metadata base/sub gate 與 factory 在 host resolution 前 fail closed，且 direct
       lifecycle tests 覆蓋 false、base-only、both-gates、空白 ProfileAlias。
-- [ ] 新 service 只發出固定 typed metadata operation，建立 request-local immutable copy，並拒絕
+- [x] 新 service 只發出固定 typed metadata operation，建立 request-local immutable copy，並拒絕
       malformed response、retry、fallback 或 shared ChurchReport metadata cache。
-- [ ] 三個 MemberInfo metadata consumer 在 true gate 使用同一份 request snapshot；false gate 保留
-      legacy provider 和既有文字比對行為。
-- [ ] cancellation 不被 controller generic catch 吞掉；typed fault 不會改走 legacy metadata。
-- [ ] 所有新增/修改 C# 與 task artifact 為 UTF-8 無 BOM、CRLF、final CRLF，完整繁體中文文件，
+- [x] 三個 MemberInfo metadata consumer 在 true gate 使用同一份 request snapshot；false gate 保留
+      legacy provider 和既有文字比對行為；true gate 的「結案」值只由該 snapshot 唯一解析。
+- [x] cancellation 不被 controller generic catch 吞掉；typed fault 不會改走 legacy metadata。
+- [x] 所有新增/修改 C# 與 task artifact 為 UTF-8 無 BOM、CRLF、final CRLF，完整繁體中文文件，
       且沒有 Session、Memory、Resource 或 cross-profile leakage。
-- [ ] focused tests、完整 solution tests、Release build、encoding/scope/diff 檢查、限時 CCG review
+- [x] focused tests、完整 solution tests、Release build、encoding/scope/diff 檢查、限時 CCG review
       與 Trellis Check 均有任務紀錄；若雙模型未在 45 秒完成，明確記錄降級而不延遲工作。
 
 ## 不在範圍

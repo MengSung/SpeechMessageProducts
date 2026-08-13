@@ -59,6 +59,106 @@ bypass; it must not add a user/session cache, retain a DTO, or create a new
 resource owner. Malformed, duplicate, negative, cancelled, or faulted typed
 results fail closed before publishing a partial count map.
 
+### Disabled Package03 commitment-metadata consumer boundary
+
+#### 1. Scope / Trigger
+
+Apply this scenario when a MemberInfo action migrates the read of
+`contact.customertypecode` metadata from the legacy CRM metadata provider to
+the Package03 typed option-set operation. It applies to every route that uses
+the option label, configured order, or the unique `結案` value: authorized
+search, group members, and ungrouped paging. This is a consumer overlay only;
+it does not authorize CE activity, traffic cutover, ToolUtility removal, P7.5,
+or P8.
+
+#### 2. Signatures
+
+```csharp
+private async Task<IReadOnlyList<MemberInfoCommitmentTypeOption>?>
+    LoadCommitmentTypeOptionsAsync(
+        IConfiguration configuration,
+        bool useTypedCommitmentMetadata,
+        CancellationToken cancellationToken);
+
+private int GetRequiredClosedCustomerTypeValue(
+    IOrganizationService service,
+    IReadOnlyList<MemberInfoCommitmentTypeOption>? typedCommitmentOptions = null);
+```
+
+#### 3. Contracts
+
+- `DynamicsAccess:Package03SpecialResourcesEnabled` is the Package03 base
+  gate and `DynamicsAccess:Package03MemberInfoCommitmentMetadataReadEnabled`
+  is the independent consumer rollback gate. Both checked-in values remain
+  `false`; neither missing value nor a truthy value supplied by a request is
+  valid enablement.
+- When both deployment-owned gates are enabled, an action obtains exactly one
+  immutable, bounded, request-local option snapshot through its fixed
+  Package03 profile, workload, target, and `RequestAborted` token. It passes
+  that same snapshot to search mapping, segment ordering, row projection, and
+  the closed-status resolver.
+- In the typed branch, `結案` is resolved by one exact label match in that
+  snapshot. The branch must never read `GetSharedOptionSetService`, the legacy
+  metadata provider, or its process-global cache. The legacy service is only
+  permitted when the snapshot is `null`, which represents the false-gate
+  compatibility branch.
+- The snapshot, CRM service, client, profile, cancellation token, authorization
+  decision, entity, and exception remain request-local. Existing action
+  `finally` blocks remain the only owner that releases the borrowed CRM
+  connection; Package03 reusable resources remain owned by the process host.
+
+#### 4. Validation & Error Matrix
+
+| Condition | Required result |
+| --- | --- |
+| Base or metadata sub-gate is false/missing | Do not bind profile, resolve host, create client, or issue typed I/O; use the legacy compatibility path. |
+| Enabled gate with blank deployment ProfileAlias | Reject before host/provider/pool composition. |
+| Typed snapshot has no `結案` label or more than one exact `結案` label | Fail closed; do not query legacy metadata or return a partial result. |
+| Typed metadata fault, timeout, cancellation, malformed DTO, or client unavailability | Propagate the failure; do not retry or fall back to legacy metadata. |
+| Typed snapshot contains an unknown raw choice value on a member row | Render an empty membership-status label; do not invoke the legacy resolver. |
+
+#### 5. Good / Base / Bad Cases
+
+- **Good:** an enabled request receives one valid typed snapshot; the same
+  snapshot supplies label matching, configured rank, row text, and exactly one
+  `結案` value before the response is constructed.
+- **Base:** the metadata gate is false; no typed graph is composed and the
+  established legacy metadata behavior remains unchanged.
+- **Bad:** an enabled action resolves `結案` by calling the legacy shared
+  OptionSet service after receiving a typed snapshot. This mixes metadata from
+  potentially different profile/generation boundaries and is release-blocking.
+
+#### 6. Tests Required
+
+- Direct bootstrap tests cover gate false, base-only, both gates with a valid
+  profile, and empty ProfileAlias rejection before host resolution.
+- Service tests cover fixed request fields, defensive copies, bounded malformed
+  DTO rejection, A/B profile isolation, cancellation, and no retry/fallback.
+- Controller contracts assert that all three consumers pass the same typed
+  snapshot to the closed-status resolver and that the resolver's typed branch
+  contains no legacy OptionSet lookup. Include missing/duplicate `結案` as a
+  fail-closed regression condition.
+- Run focused tests, full `ChurchReport.MemberInfo.Tests`, solution Release
+  tests/build, UTF-8 no-BOM/CRLF/final-CRLF checks, and `git diff --check`.
+
+#### 7. Wrong vs Correct
+
+```csharp
+// Wrong: typed metadata is loaded, but the closed value can cross back into
+// a legacy process-global metadata cache with another profile/generation.
+var closedStatus = GetSharedOptionSetService(service)
+    .GetOptionSetValue("contact", "customertypecode", "結案", null);
+```
+
+```csharp
+// Correct: an enabled request has one immutable metadata authority. Single
+// intentionally throws for a missing or duplicate label, so the route fails
+// closed instead of fabricating a fallback value.
+var closedStatus = typedCommitmentOptions
+    .Single(option => option.Label.Equals("結案", StringComparison.Ordinal))
+    .Value;
+```
+
 ## 4. Validation & Error Matrix
 
 | Condition | Required result |

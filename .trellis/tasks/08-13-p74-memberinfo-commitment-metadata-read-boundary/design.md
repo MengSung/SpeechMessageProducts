@@ -36,7 +36,8 @@ MemberInfo action
    locale、profile、token、client 或 exception。
 4. action 取得 snapshot 後僅在本 request 使用：文字搜尋從該 options 對照，configured segments 和
    member rows 使用同一份 option list。true branch 遇到未知 value 顯示空字串，而非 call legacy metadata；
-   false branch 保留既有 `ResolveOptionSetText` fallback。
+   false branch 保留既有 `ResolveOptionSetText` fallback。用於在籍過濾的「結案」值同樣只在 typed
+   snapshot 內作精確唯一比對；缺少或重複標籤直接 fail closed，不可回查 legacy OptionSet metadata。
 
 ## 相容性與取消
 
@@ -56,6 +57,7 @@ MemberInfo action
 | client null、typed fault、timeout | action failure，不回落 legacy |
 | 取消 | 原樣傳遞，不重試 |
 | null/超量/重複 value/order/非連續 order/空白或過長 label | 不發布 snapshot |
+| typed snapshot 缺少或重複「結案」 | action fail closed，不讀 legacy OptionSet service |
 | true branch unknown raw choice value | 顯示空字串，不 legacy metadata lookup |
 | false branch | 保留 legacy provider、locale fallback 和既有 mapping |
 

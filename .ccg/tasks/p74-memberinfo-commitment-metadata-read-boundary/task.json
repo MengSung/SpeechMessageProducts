@@ -5,8 +5,8 @@
   "complexity": "M",
   "risk": "medium",
   "domain": "backend-integration-migration",
-  "currentPhase": "implementation",
-  "nextAction": "以 TDD 建立 Package03 metadata sub-gate、request-local service 與 controller overlay",
+  "currentPhase": "review",
+  "nextAction": "完成 Trellis Check、scope-only commit 與 archive；雙模型未完成，採本機完整驗證",
   "createdAt": "2026-08-13T11:12:00+08:00",
   "branch": "1.0.0.3.Gateway&Embedded.Worktree"
 }

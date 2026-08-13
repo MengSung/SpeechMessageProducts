@@ -2,11 +2,11 @@
   "id": "p74-memberinfo-commitment-metadata-read-boundary",
   "name": "p74-memberinfo-commitment-metadata-read-boundary",
   "title": "P7.4 MemberInfo 承諾 metadata 讀取邊界",
-  "description": "",
+  "description": "ORG-CALL-00040 disabled-by-default Package03 typed metadata consumer boundary. Local-only; no CE, enablement, traffic, P7.5 or P8. Final local verification passed; final dual-model review did not complete within 45 seconds.",
   "status": "in_progress",
   "dev_type": null,
-  "scope": null,
-  "package": null,
+  "scope": "MemberInfo contact.customertypecode typed metadata consumer overlay only; checked-in gates false; no CE, traffic, P7.5 or P8.",
+  "package": "SpeechMessageProducts.ChurchReport",
   "priority": "P2",
   "creator": "codex",
   "assignee": "codex",
@@ -20,7 +20,11 @@
   "subtasks": [],
   "children": [],
   "parent": "08-12-churchreport-productclient-cutover",
-  "relatedFiles": [],
-  "notes": "",
+  "relatedFiles": [
+    ".trellis/spec/backend/member-info-tree-contract.md",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md",
+    ".trellis/tasks/08-12-churchreport-productclient-cutover/package03-consumer-inventory.md"
+  ],
+  "notes": "TDD regression fixed typed closed-status resolution: gate=true now resolves exactly one 結案 value only from the request-local Package03 snapshot and fails closed for missing/duplicate labels; it does not query legacy OptionSet metadata. Focused 42, full MemberInfo 606/14 controlled skips, solution Release tests and Release build passed. UTF-8 no BOM/CRLF/final CRLF and diff checks passed. Final CCG review timed out at 45 seconds: Gemini wrapper exited abnormally and Claude supplied no usable output; recorded as 雙模型未完成. No CE/cutover evidence.",
   "meta": {}
 }
