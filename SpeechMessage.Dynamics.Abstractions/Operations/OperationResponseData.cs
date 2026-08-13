@@ -134,7 +134,14 @@ public enum OperationResponseKind
     /// 此值只建立 local typed contract，不代表 Data8、產品 consumer、CE 驗證或 deployment gate 已啟用；未來 page、
     /// lease 與 transport 資源仍由 connector request scope 的唯一 owner 在完成、取消、逾時或 fault 時釋放。
     /// </summary>
-    SmallGroupAppNamedListCatalogRecords = 18
+    SmallGroupAppNamedListCatalogRecords = 18,
+
+    /// <summary>
+    /// ORG-CALL-00026 已授權 contact 的個人出席紀錄純量列。此分支只含可顯示的日期、旗標及
+    /// 有界文字，不含 CRM Entity、lookup、profile、session、credential、lease、stream 或取消狀態；
+    /// 因此 connector 完成並釋放外部資源後，產品層仍只能取得 request-local 值快照。
+    /// </summary>
+    MemberInfoPresentRecordReadRecords = 19
 }
 
 /// <summary>
@@ -151,8 +158,14 @@ public sealed class OperationResponseData
     // retained-data 上限：即使未來 connector、測試替身或 transport 回傳錯誤的集合，envelope 也
     // 不會 materialize 第三筆 contact 到 ProductClient 邊界，並保留 zero / one / duplicate 的唯一語意。
     private const int MaximumAuthenticationContactReadRecords = 2;
+    private const int MaximumMemberInfoPresentRecordReadRecords = 4096;
     private const int MaximumOptionSetLabelCharacters = 512;
     private const int MaximumMeetingNameCharacters = 512;
+    private const int MaximumMemberInfoPresentRecordTextCharacters = 512;
+    private const int MaximumMemberInfoPresentRecordTextBytes =
+        MaximumMemberInfoPresentRecordTextCharacters * 4;
+    private const int MaximumMemberInfoPresentRecordResponseBytes = 256 * 1024;
+    private const int MemberInfoPresentRecordFixedRowBytes = 96;
     private static readonly System.Text.UTF8Encoding StrictUtf8 = new(false, true);
 
     /// <summary>
@@ -182,6 +195,7 @@ public sealed class OperationResponseData
         IReadOnlyList<AppNamedListCatalogRecord>? appNamedListCatalogRecords = null,
         IReadOnlyList<SmallGroupAppNamedListCatalogRecord>? smallGroupAppNamedListCatalogRecords = null,
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords = null,
+        IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords = null,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification =
             AuthenticationContactReadSafetyClassification.Safe)
     {
@@ -215,6 +229,7 @@ public sealed class OperationResponseData
             appNamedListCatalogRecords,
             smallGroupAppNamedListCatalogRecords,
             authenticationContactReadRecords,
+            memberInfoPresentRecordReadRecords,
             authenticationContactReadSafetyClassification);
 
         OperationId = operationId;
@@ -238,6 +253,7 @@ public sealed class OperationResponseData
         AppNamedListCatalogRecords = appNamedListCatalogRecords?.ToArray();
         SmallGroupAppNamedListCatalogRecords = smallGroupAppNamedListCatalogRecords?.ToArray();
         AuthenticationContactReadRecords = authenticationContactReadRecords?.ToArray();
+        MemberInfoPresentRecordReadRecords = memberInfoPresentRecordReadRecords?.ToArray();
         AuthenticationContactReadSafetyClassification = authenticationContactReadSafetyClassification;
     }
 
@@ -380,6 +396,16 @@ public sealed class OperationResponseData
     [JsonPropertyName("authenticationContactReadRecords")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<AuthenticationContactReadRecord>? AuthenticationContactReadRecords { get; }
+
+    /// <summary>
+    /// ORG-CALL-00026 的 immutable 出席紀錄列快照。建構子會在目前 request 立即複製集合，讓
+    /// connector、測試替身或上游可變 list 在 response 發佈後無法插入其他 contact 的列；row 僅有
+    /// allowlisted scalar，且不擁有需 dispose 的資源。字數、UTF-8 可編碼性、唯一非空 ID 與總列數
+    /// 都在同一個封閉 union 驗證，任何不合格資料皆不會形成 partial response。
+    /// </summary>
+    [JsonPropertyName("memberInfoPresentRecordReadRecords")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<MemberInfoPresentRecordReadRecord>? MemberInfoPresentRecordReadRecords { get; }
 
     /// <summary>
     /// P7.4 專用的非敏感安全分類。<see cref="AuthenticationContactReadSafetyClassification.SecretPresent"/> 只說明
@@ -760,6 +786,29 @@ public sealed class OperationResponseData
     }
 
     /// <summary>
+    /// 建立 ORG-CALL-00026 的唯一成功 response branch。列舉在 factory 與 constructor 均會 materialize
+    /// 成 request-local 陣列；呼叫端必須先完成 authorization 以及固定單頁 query 的 schema/MoreRecords
+    /// 驗證。此方法不建立或持有 CRM client、lease、profile、cache、stream、timer 或背景工作，外部資源
+    /// 的唯一 owner 仍是 connector/host，取消、fault 與 timeout 時不得呼叫本方法發佈 partial rows。
+    /// </summary>
+    /// <param name="operationId">僅能對應 server-owned ORG-CALL-00026 的 capability ID。</param>
+    /// <param name="ceVersion">已由 deployment routing 確認的 CE version；此 abstraction 不做版本選擇。</param>
+    /// <param name="memberInfoPresentRecordReadRecords">已完整驗證的純量列集合。</param>
+    /// <returns>只含此分支且具有獨立集合快照的封閉 response envelope。</returns>
+    public static OperationResponseData ForMemberInfoPresentRecordReadRecords(
+        string operationId,
+        string ceVersion,
+        IEnumerable<MemberInfoPresentRecordReadRecord> memberInfoPresentRecordReadRecords)
+    {
+        ArgumentNullException.ThrowIfNull(memberInfoPresentRecordReadRecords);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.MemberInfoPresentRecordReadRecords,
+            memberInfoPresentRecordReadRecords: memberInfoPresentRecordReadRecords.ToArray());
+    }
+
+    /// <summary>
     /// 建立明確的 unsupported envelope。connector/Gateway 應把它轉成受控失敗，而不是把未投影 metadata、
     /// OData annotation 或 endpoint detail 回傳給產品；此值不擁有背景資源或可清理 handle。
     /// </summary>
@@ -786,6 +835,7 @@ public sealed class OperationResponseData
         IReadOnlyList<AppNamedListCatalogRecord>? appNamedListCatalogRecords,
         IReadOnlyList<SmallGroupAppNamedListCatalogRecord>? smallGroupAppNamedListCatalogRecords,
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords,
+        IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
@@ -807,7 +857,8 @@ public sealed class OperationResponseData
                            (dedicationBookingRecords is null ? 0 : 1) +
                            (appNamedListCatalogRecords is null ? 0 : 1) +
                            (smallGroupAppNamedListCatalogRecords is null ? 0 : 1) +
-                           (authenticationContactReadRecords is null ? 0 : 1);
+                           (authenticationContactReadRecords is null ? 0 : 1) +
+                           (memberInfoPresentRecordReadRecords is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -867,6 +918,10 @@ public sealed class OperationResponseData
                 IsValidAuthenticationContactReadRecords(
                     authenticationContactReadRecords,
                     authenticationContactReadSafetyClassification),
+            OperationResponseKind.MemberInfoPresentRecordReadRecords =>
+                branchCount == 1 &&
+                memberInfoPresentRecordReadRecords is not null &&
+                IsValidMemberInfoPresentRecordReadRecords(memberInfoPresentRecordReadRecords),
             _ => false
         };
 
@@ -902,6 +957,122 @@ public sealed class OperationResponseData
             record.ContactId != Guid.Empty &&
             IsBoundedAuthenticationContactText(record.AccountLocator) &&
             IsBoundedAuthenticationContactText(record.DisplayName));
+    }
+
+    /// <summary>
+    /// 驗證 ORG-CALL-00026 row 的封閉純量合約。HashSet 只存在於 constructor 呼叫期間，完成後不會
+    /// 保留 contact 或 response 狀態；因此它既能防止同一 response 混入重複 identity，也不會成為
+    /// 跨 request cache。日期保持原始 <see cref="DateTime"/> 語意，不做 UTC 或時區轉換；缺值及
+    /// 年份小於等於一由上游投影成 null，避免本 abstraction 改寫既有 Sunday-date 行為。
+    /// </summary>
+    /// <param name="records">欲建立 response 的 request-local 純量列。</param>
+    /// <returns>全部列皆符合數量、ID 與文字界限時為 <see langword="true"/>。</returns>
+    private static bool IsValidMemberInfoPresentRecordReadRecords(
+        IReadOnlyList<MemberInfoPresentRecordReadRecord> records)
+    {
+        if (records.Count > MaximumMemberInfoPresentRecordReadRecords)
+        {
+            return false;
+        }
+
+        var ids = new HashSet<Guid>();
+        var totalBytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null ||
+                record.PresentRecordId == Guid.Empty ||
+                !ids.Add(record.PresentRecordId) ||
+                !IsValidMemberInfoPresentRecordDate(record.SundayDate) ||
+                !TryAddMemberInfoPresentRecordBytes(ref totalBytes, record))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 Sunday-date 保持既有語意。connector 已把缺值或年份小於等於一投影為 null；union 再次拒絕
+    /// 年份小於等於一的非 null 值，以免錯誤 transport/JSON payload 重建無效日期。沒有任何時區轉換，
+    /// 因此不會把另一使用者的 locale、session 或時區狀態帶入 response。
+    /// </summary>
+    /// <param name="value">已投影的可選 Sunday 日期。</param>
+    /// <returns>值為 null 或是有效 legacy-compatible 日期時為 <see langword="true"/>。</returns>
+    private static bool IsValidMemberInfoPresentRecordDate(DateTime? value)
+        => value is null || value.Value.Year > 1;
+
+    /// <summary>
+    /// 將一筆 row 的固定 JSON 結構成本及兩段文字計入 256 KiB response hard limit。計數器與 HashSet
+    /// 只在 constructor 驗證期間存活，成功後不保存 byte counter 或 identity state；checked overflow、
+    /// 無效 UTF-8、單欄超限或總額超限皆立即失敗關閉，避免 partial response 保留在 request 之外。
+    /// </summary>
+    /// <param name="totalBytes">目前 request-local envelope 的累積估算位元組數。</param>
+    /// <param name="record">待驗證的純量 row。</param>
+    /// <returns>row 可在不超過安全上限時加入 response。</returns>
+    private static bool TryAddMemberInfoPresentRecordBytes(
+        ref int totalBytes,
+        MemberInfoPresentRecordReadRecord record)
+    {
+        if (!TryAddBoundedMemberInfoPresentRecordBytes(ref totalBytes, MemberInfoPresentRecordFixedRowBytes) ||
+            !TryAddBoundedMemberInfoPresentRecordTextBytes(ref totalBytes, record.ContactFullName) ||
+            !TryAddBoundedMemberInfoPresentRecordTextBytes(ref totalBytes, record.PrayItem))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證可選顯示文字的字元與 UTF-8 byte 上限，並把實際 byte 數加入目前 response 的固定預算。
+    /// null 合法代表 legacy source 未提供顯示值；helper 不配置共享 cache，也不記錄文字內容，故不會
+    /// 延長任何 contact 資料生命週期。
+    /// </summary>
+    /// <param name="value">可為 null 的純量顯示文字。</param>
+    /// <returns>文字可安全納入封閉 response 時為 <see langword="true"/>。</returns>
+    private static bool TryAddBoundedMemberInfoPresentRecordTextBytes(ref int totalBytes, string? value)
+    {
+        if (value is null)
+        {
+            return true;
+        }
+
+        if (value.Length > MaximumMemberInfoPresentRecordTextCharacters)
+        {
+            return false;
+        }
+
+        try
+        {
+            var textBytes = StrictUtf8.GetByteCount(value);
+            return textBytes <= MaximumMemberInfoPresentRecordTextBytes &&
+                   TryAddBoundedMemberInfoPresentRecordBytes(ref totalBytes, textBytes);
+        }
+        catch (System.Text.EncoderFallbackException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 以 checked 算術累加封閉 response 預算。此數值沒有 static owner 且不會離開 constructor；任何
+    /// overflow 或超過 registry 256 KiB hard limit 都回傳 false，讓呼叫端不建立 envelope。
+    /// </summary>
+    /// <param name="totalBytes">目前 request-local 累積數。</param>
+    /// <param name="additionalBytes">欲加入的已驗證固定或 UTF-8 文字位元組數。</param>
+    /// <returns>累積後仍在有界 response 預算內時為 <see langword="true"/>。</returns>
+    private static bool TryAddBoundedMemberInfoPresentRecordBytes(ref int totalBytes, int additionalBytes)
+    {
+        try
+        {
+            totalBytes = checked(totalBytes + additionalBytes);
+            return totalBytes <= MaximumMemberInfoPresentRecordResponseBytes;
+        }
+        catch (OverflowException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -1381,6 +1552,58 @@ public sealed record Package01DedicationBookingRecord
     /// <summary>奉獻預約結束 UTC 時間。</summary>
     [JsonPropertyName("endDate")]
     public DateTimeOffset? EndDate { get; init; }
+}
+
+/// <summary>
+/// ORG-CALL-00026 的不可變 wire row。它只描述一筆已由固定 CE 9.1 查詢投影完成的出席紀錄，
+/// 因而不包含 CRM <c>Entity</c>、lookup、profile、credential、session、cache、connector、lease、
+/// stream、timer、background task 或 cancellation token。每次 response 建構會複製列集合，並在
+/// <see cref="OperationResponseData"/> 中驗證唯一非空 ID 與文字界限，避免另一 request 從可變上游
+/// 集合重用或混入資料；此 record 本身不擁有外部資源，無需 dispose。
+/// </summary>
+public sealed record MemberInfoPresentRecordReadRecord
+{
+    /// <summary>
+    /// <c>new_present_record</c> 的非空主鍵。response union 會在同一 envelope 內拒絕重複值，讓
+    /// consumer 不會將不同來源或重複頁面資料誤合併；此 GUID 不代表授權權限，也不能選擇 profile。
+    /// </summary>
+    [JsonPropertyName("presentRecordId")]
+    public Guid PresentRecordId { get; init; }
+
+    /// <summary>
+    /// 從固定 contact lookup 投影的可選顯示名稱。它只用於維持既有 MemberInfo row 顯示，且受
+    /// constructor 的字元與 UTF-8 byte 界限約束；不保存 contact Entity、Session 或其他個資圖形。
+    /// </summary>
+    [JsonPropertyName("contactFullName")]
+    public string? ContactFullName { get; init; }
+
+    /// <summary>
+    /// <c>new_sunday_date</c> 的可選日期值。null 代表來源缺值或年份小於等於一；此欄位刻意保留
+    /// 原始 <see cref="DateTime"/> 語意，不進行 UTC、Local 或使用者時區轉換，以免改變既有顯示契約。
+    /// </summary>
+    [JsonPropertyName("sundayDate")]
+    public DateTime? SundayDate { get; init; }
+
+    /// <summary>
+    /// 固定 schema 解析後的主日出席旗標。它是 closed boolean，不攜帶原始 OptionSet 或 formatted value，
+    /// 避免 metadata、locale 或 session 狀態越過 abstraction 邊界。
+    /// </summary>
+    [JsonPropertyName("sunday")]
+    public bool Sunday { get; init; }
+
+    /// <summary>
+    /// 固定 schema 解析後的小組出席旗標。connector 必須在投影前拒絕未知原始值，本 response 僅保留
+    /// 無狀態的 bool，不能用於選取或重用連線、profile 或 credential。
+    /// </summary>
+    [JsonPropertyName("smallGroup")]
+    public bool SmallGroup { get; init; }
+
+    /// <summary>
+    /// <c>new_explanation</c> 的可選有界說明文字。值在 response 建構時經過嚴格 UTF-8 byte 驗證，
+    /// 不會建立共用 cache 或診斷保留；null 代表來源未提供說明而非另一筆 contact 的 fallback。
+    /// </summary>
+    [JsonPropertyName("prayItem")]
+    public string? PrayItem { get; init; }
 }
 
 /// <summary>

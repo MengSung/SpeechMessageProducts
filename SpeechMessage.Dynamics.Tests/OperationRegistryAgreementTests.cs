@@ -7,7 +7,7 @@
 //    response branch、無界 paging 或不同的 template revision。
 // 2. JSON 文件只在 test method 範圍內以 using 持有並立即 dispose；測試不建立 HTTP、認證、Token、queue
 //    或背景 work，因此不會把輸入檔案內容跨測試或跨設定檔世代保存。
-// 3. 只有 registry 的二十六列可帶 response policy；metadata 只能宣告 OptionSet pure-value branch，
+// 3. 只有 registry 的二十七列可帶 response policy；metadata 只能宣告 OptionSet pure-value branch，
 //    不得把 CRM metadata graph、URL 或 OData extension 資料透過 matrix 誤標為產品可回傳資料。
 // ============================================================================
 
@@ -60,7 +60,7 @@ public sealed class OperationRegistryAgreementTests
     }
 
     /// <summary>
-    /// matrix 只允許目前 registry 所擁有的二十六列宣告 response policy；這防止尚未投產的 call site 偽裝成
+    /// matrix 只允許目前 registry 所擁有的二十七列宣告 response policy；這防止尚未投產的 call site 偽裝成
     /// 可回傳的 typed payload，也能確保 metadata row 的封閉 pure-value branch 和有限政策受到 CI 鎖定。
     /// </summary>
     [Fact]
@@ -84,7 +84,7 @@ public sealed class OperationRegistryAgreementTests
             .OrderBy(id => id, StringComparer.Ordinal)
             .ToArray();
 
-        responsePolicyRows.Should().HaveCount(26);
+        responsePolicyRows.Should().HaveCount(27);
         matrixIds.Should().Equal(registryIds);
 
         foreach (var row in responsePolicyRows)
@@ -97,7 +97,7 @@ public sealed class OperationRegistryAgreementTests
     }
 
     /// <summary>
-    /// schema 必須宣告封閉 discriminator、有限整數範圍及只允許二十六個 registry rows 填入政策的條件，否則
+    /// schema 必須宣告封閉 discriminator、有限整數範圍及只允許二十七個 registry rows 填入政策的條件，否則
     /// matrix 即使通過 JSON parse 仍可能接受未審查的資料外洩或記憶體保留契約。此檢查不載入網路 schema，
     /// 只讀 repository 內版本化檔案。
     /// </summary>

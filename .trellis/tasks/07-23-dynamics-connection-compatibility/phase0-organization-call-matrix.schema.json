@@ -386,7 +386,8 @@
             "MeetingStatistics",
             "AuthenticationContactReadRecords",
             "AppNamedListCatalogRecords",
-            "SmallGroupAppNamedListCatalogRecords"
+            "SmallGroupAppNamedListCatalogRecords",
+            "MemberInfoPresentRecordReadRecords"
           ]
         },
         "maximumPageCount": {
@@ -429,7 +430,8 @@
                 "odata-action",
                 "fetchxml",
                 "batch",
-                "composite"
+                "composite",
+                "queryexpression"
               ]
             },
             "templateId": {
@@ -547,7 +549,8 @@
                   "auth.contact.retrieve.by.account",
                   "auth.contact.retrieve.by.lineid",
                   "list.catalog.retrieve.app.named",
-                  "list.catalog.retrieve.appnamed.smallgroups"
+                  "list.catalog.retrieve.appnamed.smallgroups",
+                  "memberinfo.present.retrieve.by.contact"
                 ]
               }
             }
@@ -640,6 +643,7 @@
         "server-enum",
         "fetchxml-attribute-value",
         "fetchxml-text",
+        "queryexpression-condition",
         "guid-array-canonical",
         "multipart-body"
       ]

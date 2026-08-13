@@ -265,6 +265,11 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
                 Package02Data8ContactProfileOperations.ExecuteLineProfileUpdate(service, operation, _ceVersion),
             OperationIds.MemberInfoContactCountUngroupedCommitment =>
                 Package02Data8ContactProfileOperations.ExecuteUngroupedCommitmentCount(service, operation, _ceVersion),
+            // ORG-CALL-00026 由獨立的唯讀 helper 擁有。不得落入 Package01 較寬的多頁讀取 dispatcher；
+            // 該 helper 唯一負責精確 contactId schema、CE 9.1 防護、固定單頁、MoreRecords fail-closed 與純量投影。
+            // lease 仍是 service 的唯一 owner，故 helper 不得保存或釋放 service。
+            OperationIds.MemberInfoPresentRetrieveByContact =>
+                Package02Data8PresentRecordReadOperations.Execute(service, operation, _ceVersion, cancellationToken),
             OperationIds.ListMembersAddMany =>
                 Package02Data8ListManagementOperations.ExecuteAddMembers(service, operation, _ceVersion),
             OperationIds.ListMembersRemoveOne =>

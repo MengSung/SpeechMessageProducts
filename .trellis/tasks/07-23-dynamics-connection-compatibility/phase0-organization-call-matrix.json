@@ -1958,22 +1958,27 @@
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "memberinfo.present.retrieve.by.contact",
                                     "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-route",
+                                                                "templateKind":  "queryexpression",
                                                                 "templateId":  "memberinfo.present.by.contact.v1",
-                                                                "templateHash":  "2bda8a2ab1d2d0838ccbd390e0e31201291476a3d6631db94a0bdbe0b5064f56"
+                                                                "templateHash":  "6af947f1e31641656099de36047a7d8fd34fe449147388f14c4a628be023453f"
                                                             },
                                     "typedParameters":  [
                                                             {
                                                                 "name":  "contactId",
                                                                 "type":  "guid",
                                                                 "required":  true,
-                                                                "encodingContext":  "odata-query-option"
+                                                                "encodingContext":  "queryexpression-condition"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-query-option"
+                                                              "queryexpression-condition"
                                                          ],
-                                    "versionEvidence":  {
+                                     "responseKind":  "MemberInfoPresentRecordReadRecords",
+                                     "maximumPageCount":  1,
+                                     "maximumPageBytes":  65536,
+                                     "maximumCumulativeResponseBytes":  262144,
+                                     "maximumResultItemCount":  4096,
+                                     "versionEvidence":  {
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
                                                                          "evidenceId":  null,

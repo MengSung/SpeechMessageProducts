@@ -33,7 +33,7 @@ public sealed class Package01OperationRegistryTests
     private const int ConservativeMaximumResultItemCount = 4096;
 
     /// <summary>
-    /// 確認目前二十六個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
+    /// 確認目前二十七個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
     /// 各自發明未經審查的作業 ID。此檢查只讀取 immutable registry，不配置外部資源。
     /// </summary>
     [Fact]
@@ -58,6 +58,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.AuthenticationContactRetrieveByAccount,
             OperationIds.AuthenticationContactRetrieveByLineId,
             OperationIds.MemberInfoContactUpdateBasicInfo,
+            OperationIds.MemberInfoPresentRetrieveByContact,
             "memberinfo.contact.update.line.profile",
             "memberinfo.contact.count.ungrouped.commitment",
             "list.members.add.many",
@@ -71,7 +72,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.StatsMeetingRetrieveBySunday
         });
 
-        ids.Should().HaveCount(26);
+        ids.Should().HaveCount(27);
     }
 
     /// <summary>

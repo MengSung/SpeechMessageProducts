@@ -84,6 +84,7 @@ public static class ProductClientServiceCollectionExtensions
         services.TryAddSingleton<IAuthenticationContactReadClient, AuthenticationContactReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
+        services.TryAddSingleton<IMemberInfoPresentRecordReadClient, MemberInfoPresentRecordReadClient>();
         services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
         services.TryAddSingleton<IPackage03SpecialResourceClient, Package03SpecialResourceClient>();
         return services;
@@ -172,6 +173,23 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 註冊 ORG-CALL-00026 的獨立 MemberInfo 個人出席紀錄唯讀 ProductClient。
+    /// 此方法只加入不持有 request/profile/contact/response 狀態的 singleton，刻意不註冊或取得
+    /// <see cref="IPackage02ContactProfileClient"/>，以防 disabled-by-default present-read composition 意外取得
+    /// LINE 寫入或 aggregate capability。executor、Gateway/Embedded transport、connector、lease、credential graph、
+    /// timer 與 disposal 仍由既有 DI/process-host owner 管理；本 registration 不建立 provider、I/O、cache 或背景工作。
+    /// </summary>
+    /// <param name="services">要加入唯一 DTO-only read boundary 的 composition root service collection。</param>
+    /// <returns>已加入無狀態 present-record read client 的同一 service collection。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsMemberInfoPresentRecordReads(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IMemberInfoPresentRecordReadClient, MemberInfoPresentRecordReadClient>();
         return services;
     }
 

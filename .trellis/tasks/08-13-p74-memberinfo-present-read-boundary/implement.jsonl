@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"跨 Profile、request-local DTO、Data8 executor generation、cancellation 與資源生命週期的強制契約。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo server authorization、locator、DataSourceLoader 與既有 response compatibility 的跨層契約。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"固定 ProfileAlias、Data8/host routing、CE version 及 process-host ownership 的 transport 邊界。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"實作與測試前必經的 A/B isolation、retention、cleanup review。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00026 的唯一 completion/evidence source；防止把 local code 誤稱為 CE、consumer 或 P7.5 完成。"}
+{"file":".trellis/tasks/08-13-p74-memberinfo-present-read-boundary/design.md","reason":"本 child 的固定 query、DTO、gate、rollback 與 fail-closed data-flow design。"}

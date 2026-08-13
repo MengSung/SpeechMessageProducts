@@ -371,6 +371,28 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 判斷 P7.4 ORG-CALL-00026 個人出席紀錄唯讀 capability 是否由部署端明確開啟。此 sub-gate 必須同時
+        /// 依賴 Package02 base gate；任一 gate 缺失、空白或不是精確 true／1 時都 fail closed。此 predicate
+        /// 只讀取 deployment configuration，不 bind options、不解析 ProfileAlias、不取得 process host、不建立
+        /// ProductClient、provider、handler、Data8 pool、credential graph 或 outbound I/O，因此 rollback 只需關閉
+        /// sub-gate 即可在 user/session hydration 和 transport 資源建立前停止，不會留下跨 request state。
+        /// </summary>
+        /// <param name="configuration">唯一可提供 deployment-owned gate 的設定來源；不得由 HTTP、Session 或 browser 取代。</param>
+        /// <returns>Package02 base gate 與本 sub-gate 都是明確 true／1 時為 true；其餘一律為 false。</returns>
+        public static bool IsPackage02MemberInfoPresentReadEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage02ContactProfileOperationsEnabled(configuration))
+            {
+                return false;
+            }
+
+            var raw = configuration["DynamicsAccess:Package02MemberInfoPresentReadEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// 嘗試建立 P7.2 Slice B typed client。flag=false 時在 host resolution 前回傳 null；flag=true 時先驗證
         /// deployment-owned ProfileAlias，才可借用 injected facade 或 process host 的單一 Embedded／Gateway executor
         /// generation，不建立第二個 provider、pool、credential graph 或 session。injected facade 不是設定 authority，
@@ -433,6 +455,38 @@ namespace ChurchReport.Services
             return new Package02ContactProfileClient(
                 CreatePackage02Executor(configuration),
                 NullLogger<Package02ContactProfileClient>.Instance);
+        }
+
+        /// <summary>
+        /// 建立只供 ORG-CALL-00026 使用的獨立 present-record typed client。base/sub gate 為 false 時，此方法
+        /// 必須在 options bind、ProfileAlias、host、provider、handler、pool、credential 與 outbound I/O 前回傳
+        /// null；true 時則先驗證 deployment-owned ProfileAlias，連測試/DI injected facade 也不能繞過這個
+        /// profile/generation isolation boundary。facade 與 executor 均不由本 helper Dispose，process host 是其
+        /// 唯一 resource owner；本 helper 不自行接入流量、不 retry，也不提供 ToolUtility fallback。
+        /// </summary>
+        /// <param name="configuration">只含部署端 Package02 gate 與 DynamicsAccess 設定的來源，不能來自 request。</param>
+        /// <param name="injectedClient">由受控 DI 或測試擁有的無狀態 read facade；只有 gate/profile 完整時才可借用。</param>
+        /// <returns>gate 不完整時為 null；有效時為固定 deployment profile 的獨立 present-record client。</returns>
+        public static IMemberInfoPresentRecordReadClient? TryCreatePackage02MemberInfoPresentReadClient(
+            IConfiguration configuration,
+            IMemberInfoPresentRecordReadClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage02MemberInfoPresentReadEnabled(configuration))
+            {
+                return null;
+            }
+
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package02 MemberInfo present read operations");
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            return new MemberInfoPresentRecordReadClient(
+                CreatePackage02Executor(productOptions, configuration),
+                NullLogger<MemberInfoPresentRecordReadClient>.Instance);
         }
 
         /// <summary>

@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"檢查 A/B request/profile isolation、request-local copies、bounded resource owner 及 cancellation cleanup。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"檢查 MemberInfo authorization 順序、DataSourceLoader compatibility 與 legacy false-gate path。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"檢查 deployment ProfileAlias、executor routing、CE version 與 host lifecycle 不可由 caller 控制。"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"此變更跨 abstractions、Data8、ProductClient、bootstrap、service、controller 與 tests，需核對封閉資料流。"}
+{"file":".trellis/tasks/08-13-p74-memberinfo-present-read-boundary/prd.md","reason":"以 acceptance criteria 檢查 local-only、fixed query、gate、test 與禁止範圍。"}
+{"file":".trellis/tasks/08-13-p74-memberinfo-present-read-boundary/design.md","reason":"以 technical design 檢查 no fallback/retry、all-or-nothing response、rollback 和 owner boundary。"}

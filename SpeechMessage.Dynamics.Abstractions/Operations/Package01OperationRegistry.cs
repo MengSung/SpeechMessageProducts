@@ -56,6 +56,13 @@ public static class Package01OperationRegistry
     /// </summary>
     private const int AuthenticationContactReadMaximumResultItemCount = 2;
 
+    /// <summary>
+    /// ORG-CALL-00026 僅允許一個已授權 contact 的固定單頁投影。此上限使 connector 能在遇到
+    /// continuation/MoreRecords 時失敗關閉，而非執行未界定掃描或把下一頁延長到另一個 request；
+    /// 所有列仍需由 response union 驗證 ID、文字與集合界限後才可發佈。
+    /// </summary>
+    private const int MemberInfoPresentRecordReadMaximumPageCount = 1;
+
     private static readonly IReadOnlyDictionary<string, OperationDefinition> Definitions =
         Build().ToDictionary(x => x.CapabilityOperationId, StringComparer.Ordinal);
 
@@ -80,7 +87,7 @@ public static class Package01OperationRegistry
         => Definitions.ContainsKey(capabilityOperationId);
 
     /// <summary>
-    /// 建立目前二十六個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
+    /// 建立目前二十七個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
     /// shape；新增 capability 時必須同步更新 matrix、projection、有限政策與 hash agreement test。
     /// </summary>
     private static IEnumerable<OperationDefinition> Build()
@@ -432,6 +439,25 @@ public static class Package01OperationRegistry
                 Param("search", "string", required: false, encoding: "fetchxml-attribute-value")
             ]);
 
+        // ORG-CALL-00026 的 contact 是已由 controller 授權的 locator。registry 僅宣告此 GUID，
+        // 不把 profile、workload、entity、columns、排序、endpoint 或 CE 路由交給 caller；Data8
+        // executor 只能選取對應的固定 CE 9.1 QueryExpression 並在 MoreRecords 時停止發佈。
+        yield return Def(
+            OperationIds.MemberInfoPresentRetrieveByContact,
+            package: "package-2-memberinfo-present-record-reads",
+            kind: "read",
+            templateKind: "queryexpression",
+            templateId: "memberinfo.present.by.contact.v1",
+            responseKind: OperationResponseKind.MemberInfoPresentRecordReadRecords,
+            data: "personal-data",
+            audit: "read-audit",
+            idempotency: "read-only",
+            maximumPageCount: MemberInfoPresentRecordReadMaximumPageCount,
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "queryexpression-condition")
+            ]);
+
         // Slice C：static-list association 以固定 action 表達；memberIds 的 1,000 筆／distinct／non-empty
         // 限制由 canonical dispatch 與 connector 再驗證，不能把它退化為 caller 提供的 listmember Entity 集合。
         yield return Def(
@@ -537,6 +563,7 @@ public static class Package01OperationRegistry
         string data,
         string audit,
         string idempotency,
+        int maximumPageCount = ConservativeMaximumPageCount,
         int maximumResultItemCount = ConservativeMaximumResultItemCount,
         IReadOnlyList<OperationParameterDefinition>? parameters = null)
     {
@@ -545,7 +572,7 @@ public static class Package01OperationRegistry
             templateId,
             id,
             responseKind.ToString(),
-            ConservativeMaximumPageCount.ToString(CultureInfo.InvariantCulture),
+            maximumPageCount.ToString(CultureInfo.InvariantCulture),
             ConservativeMaximumPageBytes.ToString(CultureInfo.InvariantCulture),
             ConservativeMaximumCumulativeResponseBytes.ToString(CultureInfo.InvariantCulture),
             maximumResultItemCount.ToString(CultureInfo.InvariantCulture));
@@ -558,7 +585,7 @@ public static class Package01OperationRegistry
             TemplateId = templateId,
             TemplateHash = Sha256Hex(material),
             ResponseKind = responseKind,
-            MaximumPageCount = ConservativeMaximumPageCount,
+            MaximumPageCount = maximumPageCount,
             MaximumPageBytes = ConservativeMaximumPageBytes,
             MaximumCumulativeResponseBytes = ConservativeMaximumCumulativeResponseBytes,
             MaximumResultItemCount = maximumResultItemCount,

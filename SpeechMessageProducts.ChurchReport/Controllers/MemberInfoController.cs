@@ -611,8 +611,50 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 讀取目前使用者可檢視 contact 的個人出席紀錄。P7.4 present-read base/sub gate 關閉時，會完整保留既有
+        /// ToolUtility/CRM SDK 路徑以維持畫面相容；gate 開啟後，只在 deployment configuration 的第一個決策、
+        /// server session 還原、contact GUID parse 與 <see cref="CanViewContact"/> 都完成後，才使用獨立 DTO-only
+        /// ProductClient path。browser 的 contactId 永遠只是 locator，不能決定 profile、connector、owner、endpoint
+        /// 或 credential。typed result、ViewModel list 與 DataSourceLoader input 均是 request-local，沒有 cache、
+        /// retry、fallback 或外部資源 owner；client/lease/transport cleanup 仍屬 process host。
+        /// </summary>
+        /// <param name="contactId">瀏覽器提供的 target locator；必須由 server session scope 驗證才可使用。</param>
+        /// <param name="loadOptions">DevExtreme 載入選項，只會套用於本次 action 建立的 local row list。</param>
+        /// <returns>既有 legacy 或 gated typed path 產生的資料來源結果；取消會原樣傳遞給 ASP.NET Core。</returns>
         [HttpGet]
-        public object LoadContactPresentRecords(string contactId, DataSourceLoadOptions loadOptions)
+        public async Task<object> LoadContactPresentRecords(string contactId, DataSourceLoadOptions loadOptions)
+        {
+            // IConfiguration 是 deployment-owned singleton；在 false gate 時，這是唯一新工作，絕不 hydration session、
+            // parse target、組成 ProductClient、取得 host/pool 或送出 I/O，故 rollback 不會遺留 request/transport state。
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            if (!DonationDynamicsAccessBootstrap.IsPackage02MemberInfoPresentReadEnabled(configuration))
+            {
+                return LoadContactPresentRecordsLegacy(contactId, loadOptions);
+            }
+
+            try
+            {
+                return await LoadContactPresentRecordsTypedAsync(contactId, loadOptions, configuration)
+                    .ConfigureAwait(false);
+            }
+            // request 取消必須離開 generic handler，讓 ASP.NET Core、executor 與 process-host owner 依既有順序
+            // fault/evict/release 不確定 transport；將取消包裝為一般錯誤會掩蓋 cleanup 結果並可能誘發上游重送。
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return HandleError(ex, "MemberInfo.LoadContactPresentRecords");
+            }
+        }
+
+        /// <summary>
+        /// 維持 gate=false 的既有 ToolUtility 相容路徑。此 helper 不供 typed branch 呼叫，避免已啟用 capability
+        /// 於 fault、無 client 或資料異常時回到 SDK 查詢。legacy CRM service 的取得與釋放語意保持原 action 行為；
+        /// 本次 P7.4 child 沒有變更其 query、cache、retry 或 traffic，未來完整移除仍屬 P7.5 gate。
+        /// </summary>
+        /// <param name="contactId">既有 browser locator，由 legacy path 自行完成原有授權檢查。</param>
+        /// <param name="loadOptions">既有 DevExtreme 載入選項。</param>
+        /// <returns>與原 action 相同的 legacy DataSourceLoader result。</returns>
+        private object LoadContactPresentRecordsLegacy(string contactId, DataSourceLoadOptions loadOptions)
         {
             try
             {
@@ -664,6 +706,51 @@ namespace ChurchReport.Controllers
             {
                 return HandleError(ex, "MemberInfo.LoadContactPresentRecords");
             }
+        }
+
+        /// <summary>
+        /// 執行 gate=true 的唯一 typed DTO path。必須先完成既有 session 資料還原與 contact authorization，才可
+        /// 組成 deployment-owned client；不讀取 contact Entity、不建立 QueryExpression、不使用 ToolUtility 或
+        /// GetConnection，也不 catch/retry/fallback。任何 typed fault 會回到公開 action 的受控 generic handler，
+        /// 而 cancellation 原樣離開；所有 row mapping 完成後才呼叫 DataSourceLoader，杜絕 partial result publication。
+        /// </summary>
+        /// <param name="contactId">只作已授權 target locator 的 browser 字串。</param>
+        /// <param name="loadOptions">只套用於完成的 action-local row list。</param>
+        /// <param name="configuration">公開 action 已讀取的 deployment-owned configuration，不能由 browser 代換。</param>
+        /// <returns>純 scalar typed DTO 投影後的 DevExtreme 資料來源結果。</returns>
+        private async Task<object> LoadContactPresentRecordsTypedAsync(
+            string contactId,
+            DataSourceLoadOptions loadOptions,
+            IConfiguration configuration)
+        {
+            EnsureCorrectUserData();
+            if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
+            {
+                return DataSourceLoader.Load(new List<ContactPresentRecordRow>(), loadOptions);
+            }
+
+            var presentRecordClient = DonationDynamicsAccessBootstrap.TryCreatePackage02MemberInfoPresentReadClient(configuration)
+                ?? throw new InvalidOperationException(
+                    "The Package02 MemberInfo present-record typed client was unavailable after the deployment gate was enabled.");
+            var service = new Package02MemberInfoPresentRecordReadService(
+                presentRecordClient,
+                DonationDynamicsAccessBootstrap.BindOptions(configuration).ProfileAlias);
+            var typedResult = await service.RetrieveAsync(contactGuid, HttpContext.RequestAborted).ConfigureAwait(false);
+            var rows = new List<ContactPresentRecordRow>();
+            foreach (var record in typedResult.GetRows())
+            {
+                rows.Add(new ContactPresentRecordRow
+                {
+                    PresentRecordId = record.PresentRecordId.ToString(),
+                    FullName = record.ContactFullName,
+                    SundayDate = record.SundayDate,
+                    Sunday = record.Sunday,
+                    SmallGroup = record.SmallGroup,
+                    PrayItem = record.PrayItem
+                });
+            }
+
+            return DataSourceLoader.Load(rows, loadOptions);
         }
 
         /// <summary>

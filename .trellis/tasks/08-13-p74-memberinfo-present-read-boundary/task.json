@@ -1,0 +1,36 @@
+{
+    "id":  "p74-memberinfo-present-read-boundary",
+    "name":  "p74-memberinfo-present-read-boundary",
+    "title":  "P7.4 MemberInfo present-record typed read boundary",
+    "description":  "將 ORG-CALL-00026 以 server-authorized、disabled-by-default、DTO-only ProductClient boundary 遷移；僅本機實作與驗證，無 CE、切流、P7.5 或 P8 操作。",
+    "status":  "in_progress",
+    "dev_type":  "backend-integration-migration",
+    "scope":  "ORG-CALL-00026 only: independent disabled-by-default MemberInfo present-record read boundary; registry/Data8/ProductClient/ChurchReport local implementation and verification only; no CE, traffic, P7.5, P8, push or PR.",
+    "package":  "SpeechMessageProducts.ChurchReport",
+    "priority":  "P1",
+    "creator":  "codex",
+    "assignee":  "codex",
+    "createdAt":  "2026-08-13",
+    "completedAt":  null,
+    "branch":  null,
+    "base_branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "worktree_path":  null,
+    "commit":  null,
+    "pr_url":  null,
+    "subtasks":  [
+
+                 ],
+    "children":  [
+
+                 ],
+    "parent":  "08-12-churchreport-productclient-cutover",
+    "relatedFiles":  [
+                         ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
+                         ".trellis/spec/backend/cross-user-isolation-and-performance.md",
+                         ".trellis/tasks/08-13-p74-memberinfo-present-read-boundary/design.md"
+                     ],
+    "notes":  "已完成 ORG-CALL-00026 local disabled candidate。RED evidence：MemberInfoControllerPresentRecordContractTests 0/3、DonationDynamicsAccessBootstrapPresentRecordContractTests 0/2，皆在 implementation 前因 gate/action/helper 尚不存在而預期失敗。GREEN/Check：focused Dynamics 19/19、ChurchReport 9/9、Release build 0 warning/0 error、完整 solution Release test 通過（Dynamics 826 passed/7 skipped；兩個 .NET Framework worker suite 各 19 passed）、byte-level UTF-8 no-BOM/CRLF/final-CRLF、diff/scope/typed-branch forbidden API scan 通過。initial full suite 找到 registry expected-count 仍為 26；已新增 server-owned operation 至既有 allowlist 並重跑完整 suite 成功。CCG final review：Gemini PASS、Claude provider session limit，因此是「雙模型未完成／single-model degraded fallback」，不是完整雙模型審查。checked-in base/sub gates 均為 false，沒有 CE、fixture、feature enablement、traffic、P7.5 或 P8 操作；matrix 仍為 mapped-pending-evidence。",
+    "meta":  {
+
+             }
+}

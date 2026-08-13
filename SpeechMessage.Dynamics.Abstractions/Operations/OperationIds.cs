@@ -137,6 +137,15 @@ public static class OperationIds
     public const string MemberInfoContactCountUngroupedCommitment =
         "memberinfo.contact.count.ungrouped.commitment";
 
+    /// <summary>
+    /// ORG-CALL-00026：僅供已完成伺服器授權之 contact 使用的個人出席紀錄唯讀 capability。
+    /// 此識別碼只能選取固定的 CE 9.1 查詢與純量 response branch；它不接受或攜帶 profile、endpoint、
+    /// credential、connector、排序、查詢文字或任何 CRM SDK 物件。部署 profile 與 runtime generation
+    /// 仍由 host 所有，授權 contact GUID 由 request-local 上層在 dispatch 前驗證，避免跨使用者、
+    /// 跨 profile 或跨租戶資料洩漏。
+    /// </summary>
+    public const string MemberInfoPresentRetrieveByContact = "memberinfo.present.retrieve.by.contact";
+
     // -------- Package 2：名單與小組固定操作；每個 ID 都有獨立的 fixture／reconciliation owner --------
 
     /// <summary>

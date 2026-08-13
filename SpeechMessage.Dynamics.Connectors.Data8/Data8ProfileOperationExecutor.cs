@@ -48,6 +48,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private const int MaximumAuthenticationLookupBytes = 256;
     private const int MaximumAuthenticationContactResponseTextBytes = 256;
     private const int MaximumAuthenticationContactRecords = 2;
+    private const int MaximumMemberInfoPresentRecordTextBytes = 512 * 4;
+    private const int MaximumMemberInfoPresentRecordFixedBytes = 96;
     private const int MaximumGuidArrayItems = 1000;
     private const int MaximumSliceCDispatchEnvelopeBytes = 64 * 1024;
     private const int MaximumSpecialResourceDispatchEnvelopeBytes = 64 * 1024;
@@ -337,13 +339,18 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             request.CapabilityOperationId,
             OperationIds.MemberInfoContactUpdateLineProfile,
             StringComparison.Ordinal);
+        var isMemberInfoPresentRecordRead = string.Equals(
+            request.CapabilityOperationId,
+            OperationIds.MemberInfoPresentRetrieveByContact,
+            StringComparison.Ordinal);
         var isUngroupedCommitmentCount = string.Equals(
             request.CapabilityOperationId,
             OperationIds.MemberInfoContactCountUngroupedCommitment,
             StringComparison.Ordinal);
         var isSliceCOperation = IsSliceCOperation(request.CapabilityOperationId);
         var isSpecialResourceOperation = IsSpecialResourceOperation(request.CapabilityOperationId);
-        if ((isContactBasicInfoUpdate || isContactLineProfileUpdate || isUngroupedCommitmentCount || isSliceCOperation ||
+        if ((isContactBasicInfoUpdate || isContactLineProfileUpdate || isMemberInfoPresentRecordRead ||
+             isUngroupedCommitmentCount || isSliceCOperation ||
              isSpecialResourceOperation) &&
             (profile.CeVersion != CeVersion.Ce91 ||
              request.Parameters is null ||
@@ -441,6 +448,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.MemberInfoContactUpdateBasicInfo => true,
             OperationIds.MemberInfoContactUpdateLineProfile => true,
             OperationIds.MemberInfoContactCountUngroupedCommitment => true,
+            OperationIds.MemberInfoPresentRetrieveByContact => true,
             OperationIds.ListMembersAddMany => true,
             OperationIds.ListMembersRemoveOne => true,
             OperationIds.ListManagementSmallGroupUpdateFields => true,
@@ -1226,6 +1234,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 TryValidateAuthenticationContactReadRecords(
                     connectorData.AuthenticationContactReadRecords,
                     definition),
+            OperationResponseKind.MemberInfoPresentRecordReadRecords =>
+                connectorData.MemberInfoPresentRecordReadRecords is not null &&
+                TryValidateMemberInfoPresentRecordReadRecords(
+                    connectorData.MemberInfoPresentRecordReadRecords,
+                    definition),
             OperationResponseKind.ContactBasicInfoUpdate => connectorData.ContactBasicInfoUpdate is not null,
             OperationResponseKind.ContactLineProfileUpdate => connectorData.ContactLineProfileUpdate is not null,
             OperationResponseKind.UngroupedCommitmentCounts => connectorData.UngroupedCommitmentCounts is not null,
@@ -1294,6 +1307,84 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 驗證 ORG-CALL-00026 connector response 在 lease 離開前仍是唯一、有限的純量列。每筆需有非空且唯一的
+    /// record GUID 與非空 fullname；fullname 與說明皆受嚴格 UTF-8 限制，日期保持 legacy DateTime 原值而不在 executor
+    /// 轉換時區。任何 MoreRecords/schema failure 從 Data8 helper 到達此處前都已中止；本層仍重驗證以防未來 adapter
+    /// 或測試替身繞過 helper 後將不受限 response 傳到 ProductClient。
+    /// </summary>
+    /// <param name="records">目前 request scope 建立的 immutable present-record rows。</param>
+    /// <param name="definition">server-owned registry 定義的 result 與 response byte policy。</param>
+    /// <returns>全部 rows 符合 unique ID、文字與累積 byte policy 時為 true。</returns>
+    private static bool TryValidateMemberInfoPresentRecordReadRecords(
+        IReadOnlyList<MemberInfoPresentRecordReadRecord> records,
+        OperationDefinition definition)
+    {
+        if (records.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var identifiers = new HashSet<Guid>();
+        var bytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null ||
+                record.PresentRecordId == Guid.Empty ||
+                !identifiers.Add(record.PresentRecordId) ||
+                string.IsNullOrWhiteSpace(record.ContactFullName) ||
+                !TryAddFixedBytes(ref bytes, MaximumMemberInfoPresentRecordFixedBytes, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddBoundedMemberInfoPresentRecordText(
+                    ref bytes,
+                    record.ContactFullName,
+                    definition.MaximumCumulativeResponseBytes) ||
+                !TryAddBoundedMemberInfoPresentRecordText(
+                    ref bytes,
+                    record.PrayItem,
+                    definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 對 legacy display text 累積嚴格 UTF-8 bytes。代禱文字可為 null，但 fullname 必須由呼叫端先證明非空；非 null
+    /// 文字不可超過 helper/union 的 512 字元與 2 KiB byte 上限，不接受替代字元或未驗證的 object conversion。
+    /// </summary>
+    /// <param name="total">目前 request-local cumulative response bytes。</param>
+    /// <param name="value">nullable text scalar。</param>
+    /// <param name="maximumBytes">registry response byte cap。</param>
+    /// <returns>值合法且累積值仍在上限內時為 true。</returns>
+    private static bool TryAddBoundedMemberInfoPresentRecordText(
+        ref int total,
+        string? value,
+        int maximumBytes)
+    {
+        if (value is null)
+        {
+            return true;
+        }
+
+        if (value.Length > 512)
+        {
+            return false;
+        }
+
+        try
+        {
+            var valueBytes = StrictUtf8.GetByteCount(value);
+            return valueBytes <= MaximumMemberInfoPresentRecordTextBytes &&
+                   TryAddFixedBytes(ref total, valueBytes, maximumBytes);
+        }
+        catch (EncoderFallbackException)
+        {
+            return false;
+        }
     }
 
     /// <summary>

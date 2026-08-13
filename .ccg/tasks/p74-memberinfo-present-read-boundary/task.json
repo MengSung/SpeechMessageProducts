@@ -1,0 +1,12 @@
+{
+    "id":  "p74-memberinfo-present-read-boundary",
+    "title":  "P7.4 MemberInfo 個人出席紀錄 typed read boundary",
+    "status":  "in_progress",
+    "complexity":  "L+",
+    "risk":  "high",
+    "domain":  "backend-integration-migration",
+    "currentPhase":  "review",
+    "nextAction":  "已完成 local candidate、品質檢查與降級 CCG review；執行 scope-only commit 與 Trellis archive，不進行 CE、feature enablement、P7.5 或 P8。",
+    "createdAt":  "2026-08-13T23:20:00+08:00",
+    "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree"
+}
