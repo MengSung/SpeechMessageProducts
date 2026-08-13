@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00041 的唯一權威 migration 維度與 evidence 狀態。"}
+{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"舊 DonationBookingService 讀取流程、固定 template 與 typed parameter 的來源。"}
+{"file":".trellis/tasks/08-13-08-13-p71-dedication-booking-typed-read/prd.md","reason":"本 child 的 scope、non-goals 與驗收條件。"}
+{"file":".ccg\\dual-model-runs\\20260813-132647-p71-dedication-booking-read-analysis-architect","reason":"CCG architect run 超過 45 秒，僅 health/prompt artifact；雙模型未完成，改採本機分析。"}

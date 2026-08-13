@@ -1,0 +1,2 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file":".ccg\\dual-model-runs\\20260813-132647-p71-dedication-booking-read-analysis-architect","reason":"CCG architect run 超過 45 秒，僅 health/prompt artifact；雙模型未完成，改採本機分析。"}

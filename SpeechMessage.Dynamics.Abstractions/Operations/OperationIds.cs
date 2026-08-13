@@ -57,6 +57,12 @@ public static class OperationIds
     /// <summary>對應 ORG-CALL-00005：依 contact 讀取 dedication fee。</summary>
     public const string FeeDedicationRetrieveByContact = "fee.dedication.retrieve.by.contact";
 
+    /// <summary>
+    /// ORG-CALL-00041 奉獻預約的唯讀查詢能力。contactId 僅作為已由伺服器授權的定位器，
+    /// 不得用來選取 profile、connector、endpoint、credential 或其他跨請求狀態。
+    /// </summary>
+    public const string PaymentsDedicationRetrieveByContact = "payments.dedication.retrieve.by.contact";
+
     /// <summary>對應 ORG-CALL-00006：依 contact + 日期區間讀取 dedication fee。</summary>
     public const string FeeDedicationRetrieveByContactDateRange = "fee.dedication.retrieve.by.contact.date.range";
 

@@ -107,7 +107,10 @@ public enum OperationResponseKind
     /// P7.3 依 UTC Sunday 讀取的 bounded meeting statistic projection。它不含 FetchXML、cookie、page token
     /// 或 raw Entity，任何 page failure 都不會產生 partial branch。
     /// </summary>
-    MeetingStatistics = 14
+    MeetingStatistics = 14,
+
+    /// <summary>Package 01 奉獻預約的 bounded read projection。</summary>
+    Package01DedicationBookingRecords = 15
 }
 
 /// <summary>
@@ -145,7 +148,8 @@ public sealed class OperationResponseData
         ContactImageResponseData? contactImage = null,
         ContactImageUpdateResponseData? contactImageUpdate = null,
         IReadOnlyList<OptionSetOptionRecord>? optionSetOptions = null,
-        IReadOnlyList<MeetingStatisticRecord>? meetingStatistics = null)
+        IReadOnlyList<MeetingStatisticRecord>? meetingStatistics = null,
+        IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords = null)
     {
         if (string.IsNullOrWhiteSpace(operationId))
         {
@@ -172,7 +176,8 @@ public sealed class OperationResponseData
             contactImage,
             contactImageUpdate,
             optionSetOptions,
-            meetingStatistics);
+            meetingStatistics,
+            dedicationBookingRecords);
 
         OperationId = operationId;
         CeVersion = ceVersion;
@@ -191,6 +196,7 @@ public sealed class OperationResponseData
         ContactImageUpdate = contactImageUpdate;
         OptionSetOptions = optionSetOptions?.ToArray();
         MeetingStatistics = meetingStatistics?.ToArray();
+        DedicationBookingRecords = dedicationBookingRecords?.ToArray();
     }
 
     /// <summary>
@@ -325,6 +331,14 @@ public sealed class OperationResponseData
     public IReadOnlyList<MeetingStatisticRecord>? MeetingStatistics { get; }
 
     /// <summary>
+    /// Package 01 奉獻預約的 immutable wire rows。建構時會複製輸入集合，避免上游 CRM
+    /// collection 在 response 發布後被修改而跨請求或跨使用者洩漏資料。
+    /// </summary>
+    [JsonPropertyName("dedicationBookingRecords")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<Package01DedicationBookingRecord>? DedicationBookingRecords { get; }
+
+    /// <summary>
     /// 建立 WhoAmI branch。呼叫端在 connector request scope 完成原始 JSON 投影並 dispose 上游 response 後才可
     /// 呼叫；本方法只接受已投影的 GUID data，不接受 raw JSON 或 transport 物件。
     /// </summary>
@@ -369,6 +383,22 @@ public sealed class OperationResponseData
             ceVersion,
             OperationResponseKind.Package01StorLessonRecords,
             storLessonRecords: storLessonRecords.ToArray());
+    }
+
+    /// <summary>
+    /// 建立奉獻預約專用 response branch，並在 envelope 建構時 materialize 輸入集合。
+    /// </summary>
+    public static OperationResponseData ForPackage01DedicationBookingRecords(
+        string operationId,
+        string ceVersion,
+        IEnumerable<Package01DedicationBookingRecord> dedicationBookingRecords)
+    {
+        ArgumentNullException.ThrowIfNull(dedicationBookingRecords);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.Package01DedicationBookingRecords,
+            dedicationBookingRecords: dedicationBookingRecords.ToArray());
     }
 
     /// <summary>
@@ -598,7 +628,8 @@ public sealed class OperationResponseData
         ContactImageResponseData? contactImage,
         ContactImageUpdateResponseData? contactImageUpdate,
         IReadOnlyList<OptionSetOptionRecord>? optionSetOptions,
-        IReadOnlyList<MeetingStatisticRecord>? meetingStatistics)
+        IReadOnlyList<MeetingStatisticRecord>? meetingStatistics,
+        IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
         // 多 branch 讓資料跨 capability 混合。失敗時不保留任何集合或外部資源。
@@ -615,7 +646,8 @@ public sealed class OperationResponseData
                           (contactImage is null ? 0 : 1) +
                           (contactImageUpdate is null ? 0 : 1) +
                           (optionSetOptions is null ? 0 : 1) +
-                          (meetingStatistics is null ? 0 : 1);
+                          (meetingStatistics is null ? 0 : 1) +
+                          (dedicationBookingRecords is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -666,6 +698,7 @@ public sealed class OperationResponseData
                 branchCount == 1 &&
                 meetingStatistics is not null &&
                 IsValidMeetingStatistics(meetingStatistics),
+            OperationResponseKind.Package01DedicationBookingRecords => branchCount == 1 && dedicationBookingRecords is not null,
             _ => false
         };
 
@@ -1077,6 +1110,61 @@ public sealed record Package01FeeRecord
 
     [JsonPropertyName("name")]
     public string? Name { get; init; }
+}
+
+/// <summary>
+/// Package 01 奉獻預約的 immutable wire projection。僅包含 ProductClient 所需的 allowlisted
+/// scalar 值，不攜帶 CRM Entity、查詢、profile、credential、session 或其他可跨請求保留的狀態。
+/// </summary>
+public sealed record Package01DedicationBookingRecord
+{
+    /// <summary>奉獻預約識別碼；缺欄時保留 null，不以 caller 輸入補值。</summary>
+    [JsonPropertyName("dedicationBookingId")]
+    public Guid? DedicationBookingId { get; init; }
+
+    /// <summary>奉獻類別的 CRM option-set 原始值。</summary>
+    [JsonPropertyName("dedicationCategoryOption")]
+    public int? DedicationCategoryOption { get; init; }
+
+    /// <summary>奉獻類別的伺服器格式化標籤。</summary>
+    [JsonPropertyName("dedicationCategoryLabel")]
+    public string? DedicationCategoryLabel { get; init; }
+
+    /// <summary>奉獻預約狀態的 CRM option-set 原始值。</summary>
+    [JsonPropertyName("dedicationBookingStatusOption")]
+    public int? DedicationBookingStatusOption { get; init; }
+
+    /// <summary>奉獻預約狀態的伺服器格式化標籤。</summary>
+    [JsonPropertyName("dedicationBookingStatusLabel")]
+    public string? DedicationBookingStatusLabel { get; init; }
+
+    /// <summary>每期奉獻金額。</summary>
+    [JsonPropertyName("amountPerStage")]
+    public decimal? AmountPerStage { get; init; }
+
+    /// <summary>奉獻總期數的原始文字表示。</summary>
+    [JsonPropertyName("totalStages")]
+    public string? TotalStages { get; init; }
+
+    /// <summary>奉獻預約總金額。</summary>
+    [JsonPropertyName("dedicationAmount")]
+    public decimal? DedicationAmount { get; init; }
+
+    /// <summary>目前已付款期別。</summary>
+    [JsonPropertyName("paidPeriod")]
+    public string? PaidPeriod { get; init; }
+
+    /// <summary>CRM rollup 計算的累計已繳金額。</summary>
+    [JsonPropertyName("rollupPaidFee")]
+    public decimal? RollupPaidFee { get; init; }
+
+    /// <summary>奉獻預約起始 UTC 時間。</summary>
+    [JsonPropertyName("startDate")]
+    public DateTimeOffset? StartDate { get; init; }
+
+    /// <summary>奉獻預約結束 UTC 時間。</summary>
+    [JsonPropertyName("endDate")]
+    public DateTimeOffset? EndDate { get; init; }
 }
 
 /// <summary>

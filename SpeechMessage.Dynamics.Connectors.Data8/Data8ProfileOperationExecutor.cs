@@ -426,6 +426,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.FeeDedicationRetrieveByContact => true,
             OperationIds.FeeDedicationRetrieveByContactDateRange => true,
             OperationIds.FeesRetrieveByDedicationPeriod => true,
+            OperationIds.PaymentsDedicationRetrieveByContact => true,
             OperationIds.FeesEditorLoadByDiscipleLesson => true,
             OperationIds.LessonsStorRetrieveByContact => true,
             OperationIds.LessonsStorRetrieveByDiscipleLesson => true,
@@ -1197,6 +1198,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                                                        TryValidateFeeRecords(connectorData.FeeRecords, definition),
             OperationResponseKind.Package01StorLessonRecords => connectorData.StorLessonRecords is not null &&
                                                                  TryValidateStorLessonRecords(connectorData.StorLessonRecords, definition),
+            OperationResponseKind.Package01DedicationBookingRecords =>
+                connectorData.DedicationBookingRecords is not null &&
+                TryValidateDedicationBookingRecords(connectorData.DedicationBookingRecords, definition),
             OperationResponseKind.ContactBasicInfoUpdate => connectorData.ContactBasicInfoUpdate is not null,
             OperationResponseKind.ContactLineProfileUpdate => connectorData.ContactLineProfileUpdate is not null,
             OperationResponseKind.UngroupedCommitmentCounts => connectorData.UngroupedCommitmentCounts is not null,
@@ -1279,6 +1283,39 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 !TryAddUtf8Bytes(ref bytes, record.ContactName, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.ContactMobile, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.DiscipleLessonName, definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證認獻單 read branch 在離開 Data8 lease 前仍符合 registry 的筆數與 UTF-8 累積位元組上限。每筆只接受
+    /// 有效 GUID 與 allowlisted scalar；此驗證不保留 collection、CRM Entity、profile 或 connector 的參考，
+    /// 因此 A/B 交錯呼叫只能取得各自 envelope 的 request-local snapshot。任何不完整或超限回應都回傳
+    /// <see langword="false"/>，使上層依既有 fault/eviction 流程 fail closed，而非發布部分認獻資料。
+    /// </summary>
+    private static bool TryValidateDedicationBookingRecords(
+        IReadOnlyList<Package01DedicationBookingRecord> records,
+        OperationDefinition definition)
+    {
+        if (records.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var bytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null || record.DedicationBookingId is not { } dedicationBookingId ||
+                dedicationBookingId == Guid.Empty ||
+                !TryAddFixedBytes(ref bytes, 256, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.DedicationCategoryLabel, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.DedicationBookingStatusLabel, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.TotalStages, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.PaidPeriod, definition.MaximumCumulativeResponseBytes))
             {
                 return false;
             }

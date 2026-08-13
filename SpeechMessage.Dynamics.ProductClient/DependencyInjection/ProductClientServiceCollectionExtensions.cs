@@ -76,6 +76,7 @@ public static class ProductClientServiceCollectionExtensions
         .SetHandlerLifetime(TimeSpan.FromMinutes(10));
 
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
+        services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
         services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
@@ -91,6 +92,7 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
+        services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
         return services;
     }
 

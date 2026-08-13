@@ -203,6 +203,22 @@ public static class Package01OperationRegistry
             ]);
 
         yield return Def(
+            OperationIds.PaymentsDedicationRetrieveByContact,
+            package: "package-1-fee-reads",
+            kind: "read",
+            templateKind: "fetchxml",
+            templateId: "payments.dedication.by.contact.v1",
+            responseKind: OperationResponseKind.Package01DedicationBookingRecords,
+            data: "financial-data",
+            audit: "financial-audit",
+            idempotency: "read-only",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "fetchxml-attribute-value"),
+                Param("contactName", "string", required: false, encoding: "fetchxml-attribute-value")
+            ]);
+
+        yield return Def(
             OperationIds.FeeDedicationRetrieveByContactDateRange,
             package: "package-1-fee-reads",
             kind: "read",

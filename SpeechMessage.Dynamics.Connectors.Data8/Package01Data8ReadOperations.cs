@@ -45,6 +45,21 @@ internal static class Package01Data8ReadOperations
     private const string FeePayStatusAttribute = "new_pay_status";
     private const string StateCodeAttribute = "statecode";
 
+    private const string DedicationBookingEntityName = "new_dedication_booking";
+    private const string DedicationBookingIdAttribute = "new_dedication_bookingid";
+    private const string DedicationBookingCreatedOnAttribute = "createdon";
+    private const string DedicationBookingContactAttribute = "new_contact_new_dedication_booking";
+    private const string DedicationBookingStatusAttribute = "new_dedication_booking_status";
+    private const string DedicationCategoryAttribute = "new_dedication_category";
+    private const string DedicationAmountPerStageAttribute = "new_amount_per_stage";
+    private const string DedicationTotalStagesAttribute = "new_total_stages";
+    private const string DedicationAmountAttribute = "new_dedication_amount";
+    private const string DedicationPaidPeriodAttribute = "new_paid_period";
+    private const string DedicationRollupPaidFeeAttribute = "new_rollup_paid_fee";
+    private const string DedicationStartDateAttribute = "new_dedication_start_date";
+    private const string DedicationEndDateAttribute = "new_dedication_end_date";
+    private const int ActiveDedicationBookingStatus = 100000001;
+
     private const string StorLessonEntityName = "new_stor_lessons";
     private const string StorLessonIdAttribute = "new_stor_lessonsid";
     private const string StorLessonContactAttribute = "new_contact_new_stor_lessons";
@@ -115,6 +130,7 @@ internal static class Package01Data8ReadOperations
             OperationIds.FeeDedicationRetrieveByContact => ExecuteFeeDedicationByContact(service, operation, ceVersion),
             OperationIds.FeeDedicationRetrieveByContactDateRange => ExecuteFeeDedicationByContactDateRange(service, operation, ceVersion),
             OperationIds.FeesRetrieveByDedicationPeriod => ExecuteFeesByDedicationPeriod(service, operation, ceVersion),
+            OperationIds.PaymentsDedicationRetrieveByContact => ExecuteDedicationBookingByContact(service, operation, ceVersion),
             OperationIds.FeesEditorLoadByDiscipleLesson => ExecuteStorLessonsByDiscipleLesson(service, operation, ceVersion),
             OperationIds.LessonsStorRetrieveByContact => ExecuteStorLessonsByContact(service, operation, ceVersion),
             OperationIds.LessonsStorRetrieveByDiscipleLesson => ExecuteStorLessonsByDiscipleLesson(service, operation, ceVersion),
@@ -181,6 +197,73 @@ internal static class Package01Data8ReadOperations
             CreateFeesByDedicationPeriodQuery(dedicationBookingId, paidPeriod),
             definition);
         return OperationResponseData.ForPackage01FeeRecords(operation.OperationId, ceVersion, records);
+    }
+
+    /// <summary>
+    /// 依已驗證的聯絡人識別碼讀取有效且進行中的認獻單投影。
+    /// 呼叫端提供的 <c>contactName</c> 僅是舊介面相容欄位，絕不可成為查詢、設定檔或權限依據；唯一的
+    /// 篩選 locator 是經 executor 驗證後的 <c>contactId</c>。此方法僅使用固定的 QueryExpression、欄位
+    /// allowlist、排序與頁面上限，且直接把每筆 CRM Entity 投影為不可變 wire DTO，不保留 Entity、page、
+    /// paging cookie 或聯絡人資料於 request 之外。
+    ///
+    /// Data8 lease 是 service 的唯一生命週期 owner；任一頁面、型別、大小或 continuation 合約異常皆拋出，
+    /// 由上層 fault/eviction 路徑處理，絕不發布部分資料或將不確定 transport 狀態交給下一個使用者。固定
+    /// page、item 與 UTF-8 byte 限制避免單次查詢讓 request-local DTO 配置無界成長。
+    /// </summary>
+    private static OperationResponseData ExecuteDedicationBookingByContact(
+        IOrganizationService service,
+        ConnectorOperation operation,
+        string ceVersion)
+    {
+        var definition = GetDefinition(operation.OperationId, OperationResponseKind.Package01DedicationBookingRecords);
+        var contactId = ReadRequiredGuid(operation.Parameters, "contactId");
+        var query = CreateDedicationBookingByContactQuery(contactId);
+        var records = new List<Package01DedicationBookingRecord>(MaximumRowsPerPage);
+        var totalBytes = 0;
+        string? pagingCookie = null;
+
+        for (var pageNumber = 1; pageNumber <= definition.MaximumPageCount; pageNumber++)
+        {
+            var pageBytes = 0;
+            query.PageInfo.PageNumber = pageNumber;
+            query.PageInfo.PagingCookie = pagingCookie;
+            var page = service.RetrieveMultiple(query)
+                ?? throw new InvalidOperationException("The Data8 dedication-booking query returned no page.");
+            if (page.Entities.Count > MaximumRowsPerPage ||
+                checked(records.Count + page.Entities.Count) > definition.MaximumResultItemCount)
+            {
+                throw new InvalidOperationException("The Data8 dedication-booking query exceeded its result limit.");
+            }
+
+            foreach (var entity in page.Entities)
+            {
+                var record = ProjectDedicationBookingRecord(entity);
+                if (!TryAddDedicationBookingRecordBytes(ref pageBytes, record, definition.MaximumPageBytes) ||
+                    !TryAddDedicationBookingRecordBytes(
+                        ref totalBytes,
+                        record,
+                        definition.MaximumCumulativeResponseBytes))
+                {
+                    throw new InvalidOperationException("The Data8 dedication-booking query exceeded its response budget.");
+                }
+
+                records.Add(record);
+            }
+
+            if (!page.MoreRecords)
+            {
+                return OperationResponseData.ForPackage01DedicationBookingRecords(operation.OperationId, ceVersion, records);
+            }
+
+            if (pageNumber == definition.MaximumPageCount || string.IsNullOrWhiteSpace(page.PagingCookie))
+            {
+                throw new InvalidOperationException("The Data8 dedication-booking query paging contract is invalid.");
+            }
+
+            pagingCookie = page.PagingCookie;
+        }
+
+        throw new InvalidOperationException("The Data8 dedication-booking query exceeded its page limit.");
     }
 
     /// <summary>
@@ -263,6 +346,38 @@ internal static class Package01Data8ReadOperations
         query.Criteria.AddCondition(StateCodeAttribute, ConditionOperator.Equal, 0);
         query.AddOrder(FeeCreatedOnAttribute, OrderType.Descending);
         query.AddOrder(FeeIdAttribute, OrderType.Ascending);
+        return query;
+    }
+
+    /// <summary>
+    /// 建立完全由 connector 擁有的認獻單讀取模板。條件固定為同一個 typed contact、進行中狀態與 active
+    /// state，排序使用建立時間倒序再以主鍵升序打破同秒資料的次序，避免跨頁資料順序不穩定。沒有 caller 可
+    /// 控制的 entity、attribute、filter、order 或 page cookie 能進入這個模板。
+    /// </summary>
+    private static QueryExpression CreateDedicationBookingByContactQuery(Guid contactId)
+    {
+        var query = new QueryExpression(DedicationBookingEntityName)
+        {
+            ColumnSet = new ColumnSet(
+                DedicationBookingIdAttribute,
+                DedicationBookingCreatedOnAttribute,
+                DedicationCategoryAttribute,
+                DedicationBookingStatusAttribute,
+                DedicationAmountPerStageAttribute,
+                DedicationTotalStagesAttribute,
+                DedicationAmountAttribute,
+                DedicationPaidPeriodAttribute,
+                DedicationRollupPaidFeeAttribute,
+                DedicationStartDateAttribute,
+                DedicationEndDateAttribute),
+            Criteria = new FilterExpression(LogicalOperator.And),
+            PageInfo = CreateInitialPageInfo()
+        };
+        query.Criteria.AddCondition(DedicationBookingContactAttribute, ConditionOperator.Equal, contactId);
+        query.Criteria.AddCondition(DedicationBookingStatusAttribute, ConditionOperator.Equal, ActiveDedicationBookingStatus);
+        query.Criteria.AddCondition(StateCodeAttribute, ConditionOperator.Equal, 0);
+        query.AddOrder(DedicationBookingCreatedOnAttribute, OrderType.Descending);
+        query.AddOrder(DedicationBookingIdAttribute, OrderType.Ascending);
         return query;
     }
 
@@ -557,6 +672,38 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 將單一認獻單 Entity 轉為封閉的 scalar wire record。所有 CRM 特有容器（Entity、Money、OptionSetValue
+    /// 與 FormattedValues）僅在此同步投影期間存活；回傳值不保有 SDK dictionary、lookup、連線或 session
+    /// 參考，因此不能被共享 pool、下一頁或下一個 request 重用。
+    /// </summary>
+    private static Package01DedicationBookingRecord ProjectDedicationBookingRecord(Entity entity)
+    {
+        ValidateEntityIdentity(entity, DedicationBookingEntityName, DedicationBookingIdAttribute);
+        var category = ReadOptionalValue<OptionSetValue>(entity, DedicationCategoryAttribute);
+        var status = ReadOptionalValue<OptionSetValue>(entity, DedicationBookingStatusAttribute);
+        if (status?.Value != ActiveDedicationBookingStatus)
+        {
+            throw new InvalidOperationException("The Data8 dedication-booking status projection is invalid.");
+        }
+
+        return new Package01DedicationBookingRecord
+        {
+            DedicationBookingId = entity.Id,
+            DedicationCategoryOption = category?.Value,
+            DedicationCategoryLabel = ReadOptionalFormattedValue(entity, DedicationCategoryAttribute),
+            DedicationBookingStatusOption = status.Value,
+            DedicationBookingStatusLabel = ReadOptionalFormattedValue(entity, DedicationBookingStatusAttribute),
+            AmountPerStage = ReadOptionalValue<Money>(entity, DedicationAmountPerStageAttribute)?.Value ?? 0m,
+            TotalStages = ReadOptionalString(entity, DedicationTotalStagesAttribute),
+            DedicationAmount = ReadOptionalValue<Money>(entity, DedicationAmountAttribute)?.Value ?? 0m,
+            PaidPeriod = ReadOptionalString(entity, DedicationPaidPeriodAttribute),
+            RollupPaidFee = ReadOptionalValue<Money>(entity, DedicationRollupPaidFeeAttribute)?.Value ?? 0m,
+            StartDate = ReadOptionalUtcDateTime(entity, DedicationStartDateAttribute),
+            EndDate = ReadOptionalUtcDateTime(entity, DedicationEndDateAttribute)
+        };
+    }
+
+    /// <summary>
     /// 讀取 operation registry 定義並確認回應分支。registry 宣告本身不是 connector 實作授權；此檢查
     /// 防止未來錯將 fee query 投影成 stor branch，或因 registry 漂移而降低目前 operation 的資源上限。
     /// </summary>
@@ -827,6 +974,24 @@ internal static class Package01Data8ReadOperations
                TryAddStringBytes(ref totalBytes, record.ContactMobile, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.DiscipleLessonName, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.StageName, maximumBytes);
+    }
+
+    /// <summary>
+    /// 以保守固定結構成本及可驗證 UTF-8 字串成本計入認獻單 record 的封包預算。日期、GUID、金額與 option
+    /// 數值均已納入固定成本；可變長度僅限 allowlisted 類別/狀態標籤、期數與已繳期間。溢位或無效 UTF-16
+    /// 一律拒絕整個回應，避免截斷後的資料或無界配置跨越 connector lease。
+    /// </summary>
+    private static bool TryAddDedicationBookingRecordBytes(
+        ref int totalBytes,
+        Package01DedicationBookingRecord record,
+        int maximumBytes)
+    {
+        return record.DedicationBookingId is { } dedicationBookingId && dedicationBookingId != Guid.Empty &&
+               TryAddBytes(ref totalBytes, 256, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.DedicationCategoryLabel, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.DedicationBookingStatusLabel, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.TotalStages, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.PaidPeriod, maximumBytes);
     }
 
     /// <summary>

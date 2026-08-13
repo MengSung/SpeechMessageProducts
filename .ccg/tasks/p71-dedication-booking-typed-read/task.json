@@ -1,0 +1,12 @@
+{
+  "id": "p71-dedication-booking-typed-read",
+  "title": "P7.1 認獻單強型別讀取能力",
+  "status": "planning",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-integration-migration",
+  "currentPhase": "planning",
+  "nextAction": "完成限時雙模型分析紀錄、啟動 Trellis child，並以 TDD 新增 ORG-CALL-00041 registry/client/connector 契約。",
+  "createdAt": "2026-08-13T13:25:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
