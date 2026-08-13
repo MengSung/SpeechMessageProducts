@@ -1,0 +1,8 @@
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"完整 child quality gate 的 A/B isolation、resource lifecycle 與 no-leak checklist。"}
+{"file":".trellis/spec/guides/ccg-external-review-thinking-guide.md","reason":"45 秒 CCG self-healing dual-model review 與 quota fallback 的必經流程。"}
+{"file":".trellis/tasks/08-14-p72-governed-recurring-payment-return-write-family/prd.md","reason":"本 child 的驗收條件與明確不可越界範圍。"}
+{"file":".trellis/tasks/08-14-p72-governed-recurring-payment-return-write-family/design.md","reason":"cycle admission、read-back、reconcile、cleanup 與 no-replay state machine。"}
+{"file": ".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md", "reason": "新增付款 fresh-fixture control-plane admission code-spec；local plan 不可直接授權 CE。"}
+{"file": ".trellis\\tasks\\08-14-p72-governed-recurring-payment-return-write-family\\check.md", "reason": "記錄本 child 的 local-only quality、CE evidence-pending 與雙模型未完成。"}
+{"file": "SpeechMessage.Dynamics.Tests/P72PaymentFreshFixtureControlPlaneTests.cs", "reason": "payment descriptor/ledger control-plane 的 fail-closed 與 A/B isolation tests。"}
+{"file": "SpeechMessage.Dynamics.Tests/P72PaymentAdmissionIntegrationTests.cs", "reason": "payment local plan 不可跨 admission/preflight 提升 CE dispatch 權限的整合 tests。"}

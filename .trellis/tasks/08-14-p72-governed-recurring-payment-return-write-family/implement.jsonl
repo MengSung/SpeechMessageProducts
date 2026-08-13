@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"付款寫入、fixture ledger、Data8 lease 與 A/B request isolation 的強制契約。"}
+{"file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"未來 governed executor 的 admission、fault eviction、lease 與 deterministic disposal 邊界。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"P7/P8 deployment-owned routing、CE 版本與 feature-gate 不可越界規則。"}
+{"file":".trellis/tasks/archive/2026-08/08-13-p72-dedication-payment-return-write-boundary/design.md","reason":"既有 payment-return local-only design 與不可直接接線 legacy writer 的證據。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-2-continuation-release-candidate/d-h-callsite-map-2026-08-12.md","reason":"Slice D payment lifecycle 與後續 write-family 邊界。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"70-row matrix 的 temporary-legacy、CE/host/evidence 狀態。"}

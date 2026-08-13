@@ -2236,6 +2236,122 @@ The correct path preserves the distinction between connector readiness and
 business semantics, prevents cross-family test data leakage, and keeps an
 ambiguous or unclean write from becoming a false Green gate.
 
+## Scenario: Payment fresh-fixture control-plane admission
+
+### 1. Scope / Trigger
+
+Apply this contract before creating a new P7.2 financial write fixture or
+connecting a payment-return writer to CE. It defines the repository-side
+bootstrap boundary between a local payment plan and a future operation-specific
+CE executor. It does not replace the existing capability-scoped CE evidence
+plan and never authorizes a mutation by itself.
+
+### 2. Signatures
+
+The pure local control plane accepts only immutable, de-identified evidence:
+
+```text
+PaymentFreshFixtureControlPlaneInput = {
+  family,
+  schemaVersion,
+  hasFreshNonce,
+  hasImmutableDescriptorDigest,
+  hasEmptySingleWriterLedger,
+  hasSecureExactKeyLedger,
+  hasServerDerivedDistinctOwnerBinding,
+  hasFeeUpdateOnlyAllowlist,
+  hasFixedExactReadBackProjection,
+  hasReverseKnownKeyCleanupPlan
+}
+```
+
+Its output is limited to `read-only-preflight-required` or a fixed `no-go`
+category. `CeDispatchAllowed`, `ProductConsumerAllowed`, fixture provision and
+exactly-once dispatch remain false. The first family is fixed to
+`payments.fee.update.after.payment`; no caller field map, CRM ID, Owner,
+ProfileAlias, endpoint, credential, Entity or legacy processor is accepted.
+
+### 3. Contracts
+
+- The schema version, fresh nonce and immutable descriptor digest must be
+  server-owned and bound to one new payment family; historical Slice C values
+  and any other family are never reusable.
+- The single-writer ledger must be empty before provision and must retain only
+  secure exact keys created by its own operation owner. Caller-supplied keys or
+  an opaque plan key are not authorization.
+- The owner/writer binding is server-derived, active and distinct. Missing or
+  ambiguous owner evidence fails closed; the control plane never scans CRM or
+  guesses a user.
+- The allowlist contains exactly one fee-update mutation plus fixed typed
+  preimage/postimage projection and reverse-known-key cleanup. Fee create,
+  owner assignment, booking completion, card profile update and notification
+  require independent writer families.
+- A complete control-plane assessment only permits the zero-mutation
+  preflight. A future executor must then pass the cycle admission state machine:
+  `bootstrap -> preflight=go -> provision -> one dispatch -> exact read-back ->
+  reconcile -> cleanup`. Timeout, ambiguous, partial, mismatch, unknown effect
+  or cleanup uncertainty is terminal no-replay for that family.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Missing/unknown family or schema version | Fixed `no-go`; do not provision or dispatch. |
+| Missing fresh nonce, descriptor digest or empty secure ledger | Fixed `no-go`; never reuse historical or stale keys. |
+| Missing/ambiguous server-derived owner binding | Fixed `no-go`; do not scan or guess CRM users. |
+| Allowlist/projection/cleanup is absent or includes another side effect | Fixed `no-go`; require a separate writer child. |
+| Complete local control-plane evidence | Permit only zero-mutation preflight; CE/consumer gates stay false. |
+| Preflight, dispatch, read-back, reconcile or cleanup is uncertain | Stop the family and prohibit replay. |
+
+### 5. Good/Base/Bad Cases
+
+- **Good:** A fresh payment descriptor and empty secure ledger are complete;
+  local assessment requests read-only preflight, and no connector or product
+  consumer is allocated.
+- **Base:** The local plan and tests are green but no secured payment fixture
+  exists; the family remains evidence-pending and P7.4/P7.5/P8 are unchanged.
+- **Bad:** Treat a valid local plan, a non-production organization or an old
+  Slice C fixture as permission to create/update a fee, or add create/assign/
+  booking/notification effects to the fee-update allowlist.
+
+### 6. Tests Required
+
+- Reject every missing descriptor, nonce, schema, ledger, owner, allowlist,
+  projection and cleanup field independently.
+- Accept only a complete bootstrap as `read-only-preflight-required` and assert
+  CE/consumer/provision/dispatch flags are false.
+- Interleave A/B immutable inputs with different validity and assert no result
+  or marker crosses the operation boundary.
+- Combine a valid local payment plan with an incomplete fresh admission and
+  assert no provision/dispatch authority is inferred.
+- Cover timeout, ambiguous, partial, read-back mismatch, unknown effect and
+  cleanup uncertainty through the cycle admission no-replay tests.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+localPlan.Succeeded == true -> create/update a CRM fee
+```
+
+This converts a local decision into an ungoverned financial write and may
+allocate a client before operation-specific fixture evidence exists.
+
+#### Correct
+
+```text
+complete payment control plane
+  -> read-only preflight
+  -> new task-owned fixture + ledger
+  -> one allowlisted mutation
+  -> exact read-back/reconcile
+  -> reverse-known-key cleanup
+```
+
+The control plane is a prerequisite contract, not CE evidence or rollout
+authorization.
+
 ## Scenario: Operation registry and Phase 0 matrix synchronization
 
 ### 1. Scope / Trigger
