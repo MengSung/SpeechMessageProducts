@@ -1,0 +1,12 @@
+{
+  "id": "p74-memberinfo-commitment-metadata-read-boundary",
+  "title": "P7.4 MemberInfo 承諾類型 metadata 讀取邊界",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend-integration-migration",
+  "currentPhase": "implementation",
+  "nextAction": "以 TDD 建立 Package03 metadata sub-gate、request-local service 與 controller overlay",
+  "createdAt": "2026-08-13T11:12:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

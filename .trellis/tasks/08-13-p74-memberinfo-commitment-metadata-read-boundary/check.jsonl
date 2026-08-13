@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/index.md","reason":"ChurchReport backend quality checklist, C# documentation and encoding verification."}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"Configured-order and MemberInfo tree regression review."}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Typed DTO, cancellation, profile isolation and resource lifecycle review."}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Gate/profile ownership, no request-time routing fallback and P7/P8 boundary review."}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"Final isolation, retention and deterministic cleanup checklist."}

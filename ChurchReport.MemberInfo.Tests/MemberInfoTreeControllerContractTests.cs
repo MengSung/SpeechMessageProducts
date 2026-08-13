@@ -3,30 +3,37 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests;
 
+/// <summary>
+/// 驗證 MemberInfo 樹狀與網格 action 的公開 MVC 契約。測試只讀取目前 worktree 的 source，故障模型涵蓋
+/// P7.4 將承諾 metadata 改為 request-local typed snapshot 後，意外保留同步 action 或遺漏原有授權與列投影。
+/// 所有 source 字串與檔案 handle 僅存活於單一測試呼叫，不會建立 CRM、Gateway、Session、cache 或背景資源。
+/// </summary>
 public class MemberInfoTreeControllerContractTests
 {
     private static readonly string Source = File.ReadAllText(
         Path.Combine(FindRepositoryRoot(), "SpeechMessageProducts.ChurchReport", "Controllers", "MemberInfoController.cs"));
 
+    /// <summary>
+    /// 保護 MemberInfo tree action 的公開 MVC 非同步契約。此測試直接讀取編譯前 controller source，故障注入是
+    /// 將任一 action 降回同步簽章或遺漏既有 route；決定性斷言是 LoadDistrictTree 保留既有同步讀取邊界，而其餘
+    /// action 以 <see cref="System.Threading.Tasks.Task"/> 回傳，使 request-local Package03 metadata 的取消可以
+    /// 由 ASP.NET Core 正確傳遞。測試不建立 CRM 連線、不保存 controller、session、profile 或 response，因此不會
+    /// 製造跨使用者狀態或資源所有權。
+    /// </summary>
     [Theory]
     [InlineData("LoadDistrictTree")]
     [InlineData("SearchDistrictTree")]
     [InlineData("LoadGroupMembers")]
     [InlineData("LoadUngroupedMembers")]
-    /// <summary>
-    /// 保護 tree actions 的公開 MVC signature；故障注入是 ORG-CALL-00024 將未分組 action 改為 async 後仍用
-    /// 舊的同步字串契約。決定性斷言是只有該 action 可為 <see cref="Task{TResult}"/>，其餘 action 保持既有
-    /// synchronous signature，避免測試掩蓋無關路由或資源生命週期變更。
-    /// </summary>
     public void Controller_ExposesRequiredTreeActions(string action)
     {
-        if (string.Equals(action, "LoadUngroupedMembers", StringComparison.Ordinal))
+        if (string.Equals(action, "LoadDistrictTree", StringComparison.Ordinal))
         {
-            Source.Should().Contain("public async Task<IActionResult> LoadUngroupedMembers(");
+            Source.Should().Contain("public IActionResult LoadDistrictTree(");
             return;
         }
 
-        Source.Should().Contain("public IActionResult " + action + "(");
+        Source.Should().Contain("public async Task<IActionResult> " + action + "(");
     }
 
     [Fact]
@@ -58,7 +65,7 @@ public class MemberInfoTreeControllerContractTests
         Source.Should().Contain("GetTreeContactColumns(),");
         Source.Should().Contain("matchingContacts = matchingContacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();");
         Source.Should().Contain("BatchRelationGoals(service, matchingContacts.Select");
-        Source.Should().Contain("BuildMemberRows(service, matchingContacts, relations)");
+        Source.Should().Contain("BuildMemberRows(service, matchingContacts, relations, typedCommitmentOptions)");
         Source.Should().Contain("MemberInfoTreeSearchBuilder.Build(");
     }
 

@@ -330,6 +330,81 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
+    /// 保護 ORG-CALL-00040 的 metadata sub-gate 預設為嚴格 no-op。故障注入是空設定與只開 sub-gate 的設定；
+    /// 決定性斷言是兩者都在 host resolution 前回傳 null，不建立 provider、handler、pool、metadata cache、
+    /// Session 或 outbound I/O，也不會因其他 Package03 capability 的 base gate 未明確開啟而切流。
+    /// </summary>
+    [Fact]
+    public void Package03_memberinfo_commitment_metadata_read_requires_both_base_and_sub_gates_before_host_resolution()
+    {
+        var disabledConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+        var subGateOnlyConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package03MemberInfoCommitmentMetadataReadEnabled"] = "true"
+            })
+            .Build();
+
+        DonationDynamicsAccessBootstrap.IsPackage03MemberInfoCommitmentMetadataReadEnabled(disabledConfiguration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.IsPackage03MemberInfoCommitmentMetadataReadEnabled(subGateOnlyConfiguration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.TryCreatePackage03MemberInfoCommitmentMetadataReadClient(disabledConfiguration)
+            .Should().BeNull();
+        DonationDynamicsAccessBootstrap.TryCreatePackage03MemberInfoCommitmentMetadataReadClient(subGateOnlyConfiguration)
+            .Should().BeNull();
+    }
+
+    /// <summary>
+    /// 保護兩層部署 gate 都啟用時，metadata child 只借用 DI 已擁有的 stateless Package03 facade。故障注入是
+    /// 純記憶體 fake；決定性斷言是 bootstrap 原樣回傳同一物件，沒有執行 metadata/image/weekly operation、
+    /// 建立 process host、provider、pool、handler 或 background work，資源 owner 維持在 Generic Host。
+    /// </summary>
+    [Fact]
+    public void Package03_memberinfo_commitment_metadata_read_accepts_only_a_reviewed_base_and_sub_gate_combination()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package03SpecialResourcesEnabled"] = "true",
+                ["DynamicsAccess:Package03MemberInfoCommitmentMetadataReadEnabled"] = "true",
+                ["DynamicsAccess:ProfileAlias"] = "crm91"
+            })
+            .Build();
+        var injected = new DisabledPackage03SpecialResourceClient();
+
+        DonationDynamicsAccessBootstrap.IsPackage03MemberInfoCommitmentMetadataReadEnabled(configuration)
+            .Should().BeTrue();
+        DonationDynamicsAccessBootstrap.TryCreatePackage03MemberInfoCommitmentMetadataReadClient(configuration, injected)
+            .Should().BeSameAs(injected);
+    }
+
+    /// <summary>
+    /// 保護 metadata enabled composition 在碰觸 process host、provider、handler、pool 或 credential 前先驗證
+    /// deployment ProfileAlias。故障注入是 base/sub gate 均開啟但 alias 空白；決定性斷言是 profile 錯誤先出現，
+    /// 不會因 host 尚未啟動而掩蓋錯誤或猜選另一個 Dynamics profile。
+    /// </summary>
+    [Fact]
+    public void Package03_memberinfo_commitment_metadata_read_rejects_an_empty_deployment_profile_before_host_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package03SpecialResourcesEnabled"] = "true",
+                ["DynamicsAccess:Package03MemberInfoCommitmentMetadataReadEnabled"] = "true"
+            })
+            .Build();
+
+        Action create = () => DonationDynamicsAccessBootstrap
+            .TryCreatePackage03MemberInfoCommitmentMetadataReadClient(configuration);
+
+        create.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ProfileAlias*");
+    }
+
+    /// <summary>
     /// 保護實際 ChurchReport process host 可以由既有 CrmConnection 組成一個 Embedded adapter，而不要求或讀取
     /// Gateway endpoint。故障注入是缺少 Gateway 區段；決定性斷言是同設定只重用一個 adapter generation，尚未
     /// 執行 operation 前不會建立 Data8 client，且 host Dispose 後拒絕再次組成。測試使用 example.invalid 與

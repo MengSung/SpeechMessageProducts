@@ -1,0 +1,7 @@
+{"file":".trellis/spec/backend/index.md","reason":"ChurchReport backend pre-development/quality checklist and C# documentation/encoding requirements."}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo configured-order, legacy compatibility, metadata ordering and tree consumer contract."}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Package03 deployment gate, request-local DTO, cancellation, resource ownership and A/B isolation requirements."}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Deployment-owned profile/gate, typed ProductClient and P7/P8 routing boundary."}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"Mandatory isolation/resource lifecycle review checklist."}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/package03-consumer-inventory.md","reason":"ORG-CALL-00040 legacy cache/locale constraints and Package03 consumer evidence."}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md","reason":"P7.4 local-only delivery and P7.5/P8 predecessor constraints."}

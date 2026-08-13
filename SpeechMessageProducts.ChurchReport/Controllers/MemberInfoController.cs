@@ -236,11 +236,23 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 搜尋目前登入者可檢視的小組與會友樹狀資料。搜尋文字只是資料篩選條件，不能決定 profile、connector、
+        /// owner、endpoint 或 credential；action 會先還原 server session 與授權範圍，並在投影前再次收斂 contact。
+        /// ORG-CALL-00040 的 Package03 metadata gate 預設關閉；關閉時保持既有 metadata 相容路徑，開啟時只使用
+        /// 一份 request-local typed snapshot 做 customertypecode 搜尋與列投影。取消、typed fault 或無可用 client
+        /// 不得 fallback/retry；legacy CRM connection 仍由 finally 唯一釋放，沒有 request DTO、token 或 metadata 被保留。
+        /// </summary>
+        /// <param name="search">既有 browser 搜尋文字；不得作為 Dynamics 路由或授權依據。</param>
+        /// <returns>只含已授權 contact 的樹狀搜尋 DTO，或既有禁止／錯誤結果。</returns>
         [HttpGet]
         [Route("/MemberInfo/SearchDistrictTree")]
-        public IActionResult SearchDistrictTree(string search)
+        public async Task<IActionResult> SearchDistrictTree(string search)
         {
             IOrganizationService service = null;
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var useTypedCommitmentMetadata =
+                DonationDynamicsAccessBootstrap.IsPackage03MemberInfoCommitmentMetadataReadEnabled(configuration);
 
             try
             {
@@ -257,7 +269,11 @@ namespace ChurchReport.Controllers
                 }
 
                 service = GetConnection();
-                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
+                var typedCommitmentOptions = await LoadCommitmentTypeOptionsAsync(
+                    configuration,
+                    useTypedCommitmentMetadata,
+                    HttpContext.RequestAborted).ConfigureAwait(false);
+                var closedStatus = GetRequiredClosedCustomerTypeValue(service, typedCommitmentOptions);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
                 var memberships = FetchGroupMemberships(
                     service,
@@ -266,7 +282,7 @@ namespace ChurchReport.Controllers
                 // 搜尋採三段式安全資料流：先以「在籍且未結案」條件查出候選聯絡人，接著批次授權，
                 // 最後才把通過授權者組成完整資料列。候選資料絕不直接進入回應，避免搜尋功能繞過可見範圍。
                 // 此處一次取齊資料列所需欄位，授權完成後即可沿用同批 Entity，不必再逐人查詢 CRM。
-                var statusValues = GetCustomerTypeValuesMatchingText(service, search);
+                var statusValues = GetCustomerTypeValuesMatchingText(service, search, typedCommitmentOptions);
                 var query = BuildStrictCurrentContactQuery(
                     GetTreeContactColumns(),
                     search,
@@ -293,7 +309,7 @@ namespace ChurchReport.Controllers
                 // 在補關係文字及建立 DTO 前再次用 allowedIds 收斂候選 Entity，確保完整列不會夾帶未授權資料。
                 matchingContacts = matchingContacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
                 var relations = BatchRelationGoals(service, matchingContacts.Select(contact => contact.Id).ToList());
-                var rows = BuildMemberRows(service, matchingContacts, relations);
+                var rows = BuildMemberRows(service, matchingContacts, relations, typedCommitmentOptions);
 
                 var result = MemberInfoTreeSearchBuilder.Build(
                     memberships,
@@ -302,7 +318,7 @@ namespace ChurchReport.Controllers
                     rows);
                 return Json(result);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 return HandleError(ex, "MemberInfo.SearchDistrictTree");
             }
@@ -312,11 +328,23 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 載入指定且已由 server scope 驗證的小組成員。listId 只可定位既有可見小組，不能取得另一個使用者的
+        /// 授權、Dynamics profile、connector 或 credential。Package03 metadata sub-gate 關閉時維持 legacy 行為；
+        /// 開啟時，此 action 只取得一次固定 profile/workload 的 request-local typed snapshot，並禁止對
+        /// customertypecode 的 legacy fallback。取消與 typed fault 原樣傳播；finally 是 legacy connection 的唯一 owner。
+        /// </summary>
+        /// <param name="listId">browser 小組 locator；必須通過既有可見小組 allowlist。</param>
+        /// <param name="search">既有成員篩選文字；不能影響組態、身分或連線選擇。</param>
+        /// <returns>只含目前授權範圍內會友列的 JSON，或既有禁止／錯誤結果。</returns>
         [HttpGet]
         [Route("/MemberInfo/LoadGroupMembers")]
-        public IActionResult LoadGroupMembers(string listId, string search)
+        public async Task<IActionResult> LoadGroupMembers(string listId, string search)
         {
             IOrganizationService service = null;
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var useTypedCommitmentMetadata =
+                DonationDynamicsAccessBootstrap.IsPackage03MemberInfoCommitmentMetadataReadEnabled(configuration);
 
             try
             {
@@ -333,13 +361,20 @@ namespace ChurchReport.Controllers
                 }
 
                 service = GetConnection();
-                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
                 var visibleListIds = descriptors.Select(group => group.ListId).ToList();
                 if (!MemberInfoScopeGuard.IsListAllowed(access, visibleListIds, listId))
                 {
                     return Forbid();
                 }
+
+                // listId 的 target authorization 完成後才可開始任何 Package03 I/O。metadata 不帶會員資料，
+                // 但仍屬 profile-bound outbound operation，不能讓未授權 browser locator 提前觸發它。
+                var typedCommitmentOptions = await LoadCommitmentTypeOptionsAsync(
+                    configuration,
+                    useTypedCommitmentMetadata,
+                    HttpContext.RequestAborted).ConfigureAwait(false);
+                var closedStatus = GetRequiredClosedCustomerTypeValue(service, typedCommitmentOptions);
 
                 var memberships = FetchGroupMemberships(
                     service,
@@ -350,7 +385,12 @@ namespace ChurchReport.Controllers
                     .Select(row => Guid.Parse(row.ContactId))
                     .Distinct()
                     .ToList();
-                var contacts = FetchContactsByIds(service, memberIds, search, closedStatus);
+                var contacts = FetchContactsByIds(
+                    service,
+                    memberIds,
+                    search,
+                    closedStatus,
+                    typedCommitmentOptions);
                 var allowedIds = CanViewContactsBatch(
                     contacts.Select(contact => contact.Id).ToList(),
                     service,
@@ -360,10 +400,10 @@ namespace ChurchReport.Controllers
 
                 var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
                 var rows = MemberInfoCommitmentTypeSort.OrderRows(
-                    BuildMemberRows(service, contacts, relations));
+                    BuildMemberRows(service, contacts, relations, typedCommitmentOptions));
                 return Json(new { data = rows });
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 return HandleError(ex, "MemberInfo.LoadGroupMembers");
             }
@@ -394,6 +434,8 @@ namespace ChurchReport.Controllers
             var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
             var useTypedUngroupedCommitmentCount =
                 DonationDynamicsAccessBootstrap.IsPackage02UngroupedCommitmentReadEnabled(configuration);
+            var useTypedCommitmentMetadata =
+                DonationDynamicsAccessBootstrap.IsPackage03MemberInfoCommitmentMetadataReadEnabled(configuration);
 
             try
             {
@@ -405,7 +447,11 @@ namespace ChurchReport.Controllers
                 }
 
                 service = GetConnection();
-                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
+                var typedCommitmentOptions = await LoadCommitmentTypeOptionsAsync(
+                    configuration,
+                    useTypedCommitmentMetadata,
+                    HttpContext.RequestAborted).ConfigureAwait(false);
+                var closedStatus = GetRequiredClosedCustomerTypeValue(service, typedCommitmentOptions);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
                 var usesCommitmentSort = TryGetCommitmentTypeSort(loadOptions, out var commitmentDescending);
                 // enabled typed count 本身使用 Data8 的即時 membership snapshot；為避免 legacy empty/page branch
@@ -417,7 +463,7 @@ namespace ChurchReport.Controllers
                     descriptors,
                     closedStatus,
                     bypassCache: useTypedUngroupedCommitmentCount && usesCommitmentSort);
-                var statusValues = GetCustomerTypeValuesMatchingText(service, search);
+                var statusValues = GetCustomerTypeValuesMatchingText(service, search, typedCommitmentOptions);
                 UngroupedContactPage contactPage;
                 if (usesCommitmentSort)
                 {
@@ -432,6 +478,7 @@ namespace ChurchReport.Controllers
                         commitmentDescending,
                         configuration,
                         useTypedUngroupedCommitmentCount,
+                        typedCommitmentOptions,
                         HttpContext.RequestAborted).ConfigureAwait(false);
                 }
                 else
@@ -462,7 +509,7 @@ namespace ChurchReport.Controllers
                 contacts = contacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
 
                 var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
-                var rows = BuildMemberRows(service, contacts, relations);
+                var rows = BuildMemberRows(service, contacts, relations, typedCommitmentOptions);
                 return Json(new { data = rows, totalCount = contactPage.TotalCount });
             }
             // 取消必須原樣交給 ASP.NET Core 與 typed executor/lease owner；不可把取消轉成 legacy response、
@@ -1458,10 +1505,31 @@ namespace ChurchReport.Controllers
             });
         }
 
-        private int GetRequiredClosedCustomerTypeValue(IOrganizationService service)
+        /// <summary>
+        /// 取得本 request 必須排除的 <c>contact.customertypecode</c>「結案」值。Package03 metadata snapshot
+        /// 存在時，值只能從該 immutable、request-local snapshot 精確解析，絕不讀取 legacy OptionSet service、
+        /// 共用 metadata cache 或另一個 profile/generation 的資料；缺少或重複標籤時 <see cref="Enumerable.Single{TSource}"/>
+        /// 會拋出，讓 action fail closed。snapshot 為 null 僅代表 deployment gate 關閉的既有相容路徑，才可使用
+        /// 目前 action 已借用的 legacy CRM service。此方法不保存 option、service、例外或使用者資料；connection
+        /// 的唯一釋放 owner 仍是 action 的 <c>finally</c>。
+        /// </summary>
+        /// <param name="service">gate=false 相容分支使用的目前 request-scoped CRM service。</param>
+        /// <param name="typedCommitmentOptions">gate=true 時唯一可用的 immutable request-local metadata snapshot；null 表示 legacy 分支。</param>
+        /// <returns>唯一且可用於在籍資料排除條件的「結案」raw choice value。</returns>
+        private int GetRequiredClosedCustomerTypeValue(
+            IOrganizationService service,
+            IReadOnlyList<MemberInfoCommitmentTypeOption>? typedCommitmentOptions = null)
         {
-            // GetOptionSetValue 在找不到且 defaultValue=null 時會拋出異常；
-            // 不捕獲該異常，讓新樹狀端點 fail-closed，絕不在無法辨識「結案」時放行資料。
+            if (typedCommitmentOptions is not null)
+            {
+                return typedCommitmentOptions
+                    .Single(option => option.Label.Equals("結案", StringComparison.Ordinal))
+                    .Value;
+            }
+
+            // GetOptionSetValue 在找不到且 defaultValue=null 時會拋出異常；不捕獲該異常，讓 legacy compatibility
+            // branch 同樣 fail-closed，絕不在無法辨識「結案」時放行資料。此行不可移入 typed branch，否則不同
+            // deployment profile/generation 的 metadata 會在同一 response 被混用。
             return GetSharedOptionSetService(service)
                 .GetOptionSetValue("contact", "customertypecode", "結案", null);
         }
@@ -1684,7 +1752,29 @@ namespace ChurchReport.Controllers
             return query;
         }
 
+        /// <summary>
+        /// 維持 gate=false 的既有 metadata 搜尋相容入口。它明確傳入 null，使下游只在 false-gate branch 使用
+        /// request-scoped legacy metadata provider；呼叫端不應以此 overload 組合 typed snapshot、profile 或 client。
+        /// </summary>
+        /// <param name="service">目前 legacy request 唯一擁有的 CRM service。</param>
+        /// <param name="search">既有搜尋文字；空白不會產生 metadata 條件。</param>
+        /// <returns>legacy label mapping 找到的 unique raw values。</returns>
         private List<int> GetCustomerTypeValuesMatchingText(IOrganizationService service, string search)
+            => GetCustomerTypeValuesMatchingText(service, search, null);
+
+        /// <summary>
+        /// 將搜尋字比對至承諾類型 option label。typed snapshot 存在時只可比對該 request-local DTO，絕不向
+        /// legacy metadata service 補查未知值；null 只代表部署 gate 關閉時的既有相容路徑，仍由目前 request 的
+        /// legacy service 取得 metadata。此 helper 不快取、保存或修改 snapshot，避免跨 profile/generation 共用。
+        /// </summary>
+        /// <param name="service">僅 false-gate compatibility branch 可使用的 request-scoped CRM service。</param>
+        /// <param name="search">既有搜尋文字；空白時不執行 metadata lookup。</param>
+        /// <param name="typedCommitmentOptions">gate=true 的 immutable request-local option snapshot；null 為 legacy branch。</param>
+        /// <returns>可安全加入既有 QueryExpression 的 unique raw values。</returns>
+        private List<int> GetCustomerTypeValuesMatchingText(
+            IOrganizationService service,
+            string search,
+            IReadOnlyList<MemberInfoCommitmentTypeOption>? typedCommitmentOptions)
         {
             if (string.IsNullOrWhiteSpace(search))
             {
@@ -1692,6 +1782,15 @@ namespace ChurchReport.Controllers
             }
 
             var term = search.Trim();
+            if (typedCommitmentOptions is not null)
+            {
+                return typedCommitmentOptions
+                    .Where(option => option.Label.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .Select(option => option.Value)
+                    .Distinct()
+                    .ToList();
+            }
+
             return GetSharedOptionSetService(service)
                 .GetOptionSetMapping("contact", "customertypecode")
                 .Where(pair => !string.IsNullOrEmpty(pair.Key) &&
@@ -1731,11 +1830,24 @@ namespace ChurchReport.Controllers
             return entities;
         }
 
+        /// <summary>
+        /// 以有界 CRM in-clause 載入已由上游小組 membership 推導的會友候選列。contact ID 與搜尋條件不授權
+        /// profile、connector、owner 或 endpoint；真正可見性仍由後續批次授權收斂。typed snapshot 不為 null 時，
+        /// customertypecode 文字比對只使用當前 request 的 DTO，避免回查 legacy metadata；本方法不保存 Entity、
+        /// snapshot、token 或連線，service 的釋放仍由 action finally 唯一擁有。
+        /// </summary>
+        /// <param name="service">目前 action 借用的 legacy CRM connection。</param>
+        /// <param name="contactIds">server-derived candidate contact IDs；空集合立刻回傳空列。</param>
+        /// <param name="search">既有文字篩選，不是授權或路由輸入。</param>
+        /// <param name="closedStatus">本 request 已讀取的結案 option value。</param>
+        /// <param name="typedCommitmentOptions">gate=true 的 request-local metadata snapshot；null 保留 legacy mapping。</param>
+        /// <returns>尚未序列化且仍待 authorization 的 request-local Entity 集合。</returns>
         private List<Entity> FetchContactsByIds(
             IOrganizationService service,
             IReadOnlyCollection<Guid> contactIds,
             string search,
-            int closedStatus)
+            int closedStatus,
+            IReadOnlyList<MemberInfoCommitmentTypeOption>? typedCommitmentOptions = null)
         {
             var result = new Dictionary<Guid, Entity>();
             var ids = (contactIds ?? Array.Empty<Guid>())
@@ -1747,7 +1859,7 @@ namespace ChurchReport.Controllers
                 return new List<Entity>();
             }
 
-            var statusValues = GetCustomerTypeValuesMatchingText(service, search);
+            var statusValues = GetCustomerTypeValuesMatchingText(service, search, typedCommitmentOptions);
             foreach (var chunk in ids.Chunk(CrmInClauseChunkSize))
             {
                 var query = BuildStrictCurrentContactQuery(
@@ -2053,9 +2165,12 @@ namespace ChurchReport.Controllers
             bool descending,
             IConfiguration configuration,
             bool useTypedUngroupedCommitmentCount,
+            IReadOnlyList<MemberInfoCommitmentTypeOption>? typedCommitmentOptions,
             CancellationToken cancellationToken)
         {
-            var options = GetCommitmentTypeOptions(service);
+            // metadata snapshot 由 action 在同一 request 取得一次；typed branch 絕不能在 segment loader 偷查 legacy
+            // provider。null 僅表示 ORG-CALL-00040 gate=false 時保留既有 metadata compatibility path。
+            var options = typedCommitmentOptions ?? GetCommitmentTypeOptions(service);
             var configuredValues = options
                 .OrderBy(option => option.Order)
                 .Select(option => option.Value)
@@ -2276,13 +2391,27 @@ namespace ChurchReport.Controllers
                 pair => RelationGoalFormatter.Format(pair.Value));
         }
 
+        /// <summary>
+        /// 將已授權的 contact Entity 投影成短生命週期會友列。typedCommitmentOptions 不為 null 時，承諾類型
+        /// label/order 只能從同一 request 的 immutable Package03 snapshot 讀取，未知值輸出空字串；null 則只代表
+        /// gate=false 的 legacy compatibility branch。性別與屬靈身分仍沿用既有非本 child 的 metadata owner。
+        /// 本方法不快取 Entity、DTO、profile、token、授權結果或 connection；所有結果由 action 立即 JSON 序列化。
+        /// </summary>
+        /// <param name="service">目前 action 的 legacy CRM service，僅供既有非承諾類型 metadata 與 false-gate fallback。</param>
+        /// <param name="contacts">已由 caller 授權收斂的 request-local Entity 集合。</param>
+        /// <param name="relationGoalsByContact">同一 request 批次投影的關係文字。</param>
+        /// <param name="typedCommitmentOptions">Package03 gate=true 時唯一允許的承諾 metadata snapshot。</param>
+        /// <returns>不含 CRM Entity 或可變 metadata graph 的 row view-model 清單。</returns>
         private List<GroupMemberRowViewModel> BuildMemberRows(
             IOrganizationService service,
             IEnumerable<Entity> contacts,
-            IReadOnlyDictionary<Guid, string> relationGoalsByContact)
+            IReadOnlyDictionary<Guid, string> relationGoalsByContact,
+            IReadOnlyList<MemberInfoCommitmentTypeOption>? typedCommitmentOptions = null)
         {
             var optionService = GetSharedOptionSetService(service);
-            var commitmentOptions = GetCommitmentTypeOptions(service);
+            // true branch 的承諾 metadata 已由 caller 以固定 Package03 profile/workload 建立為 request-local copy。
+            // 只能在 false-gate compatibility branch 讀 legacy provider；這條分界避免同一回應混用兩個 metadata path。
+            var commitmentOptions = typedCommitmentOptions ?? GetCommitmentTypeOptions(service);
             var commitmentByValue = commitmentOptions
                 .GroupBy(option => option.Value)
                 .ToDictionary(group => group.Key, group => group.First());
@@ -2323,7 +2452,9 @@ namespace ChurchReport.Controllers
                     HasMembershipStatusValue = membershipStatusValue.HasValue,
                     MembershipStatus = membershipStatusValue.HasValue
                         ? commitmentOption?.Label
-                            ?? ResolveOptionSetText(optionService, contact, "customertypecode")
+                            ?? (typedCommitmentOptions is null
+                                ? ResolveOptionSetText(optionService, contact, "customertypecode")
+                                : string.Empty)
                         : string.Empty,
                     RelationGoals = relationGoals ?? string.Empty
                 });
@@ -3275,6 +3406,36 @@ namespace ChurchReport.Controllers
             return new MemberInfoCommitmentTypeMetadataProvider(
                 service,
                 memberInfoMemoryCache).GetOptions();
+        }
+
+        /// <summary>
+        /// 依 ORG-CALL-00040 的 immutable gate 決定承諾 metadata 來源。gate=false 時回傳 null，讓呼叫端明確保留
+        /// 既有 legacy compatibility path，且不 bind profile、不解析 process host、不建立 typed client 或 outbound I/O。
+        /// gate=true 時只建立固定 deployment profile、固定 workload 與固定 metadata target 的 Package03 service；client
+        /// unavailable、typed fault 或取消一律原樣傳播，禁止 retry、partial snapshot 與 legacy fallback。此方法不快取
+        /// result、token、client 或例外；typed facade 的 pool/lease/connection cleanup 仍由 Generic Host owner 負責。
+        /// </summary>
+        /// <param name="configuration">deployment-owned base/sub gate 與 profile 設定；不得由 HTTP、Session 或 browser 覆寫。</param>
+        /// <param name="useTypedCommitmentMetadata">action 早期固定的 gate 決策，避免同一 request 重新讀取可變設定。</param>
+        /// <param name="cancellationToken">目前 HTTP request 的取消 token；不保存或註冊，原樣送往 typed service。</param>
+        /// <returns>gate=true 時的新 read-only snapshot；gate=false 時為 null 以選擇既有 compatibility branch。</returns>
+        private async Task<IReadOnlyList<MemberInfoCommitmentTypeOption>?> LoadCommitmentTypeOptionsAsync(
+            IConfiguration configuration,
+            bool useTypedCommitmentMetadata,
+            CancellationToken cancellationToken)
+        {
+            if (!useTypedCommitmentMetadata)
+            {
+                return null;
+            }
+
+            var package03Client = DonationDynamicsAccessBootstrap.TryCreatePackage03MemberInfoCommitmentMetadataReadClient(configuration)
+                ?? throw new InvalidOperationException(
+                    "The Package03 MemberInfo commitment metadata typed client was unavailable after the deployment gate was enabled.");
+            var metadataService = new Package03MemberInfoCommitmentMetadataReadService(
+                package03Client,
+                DonationDynamicsAccessBootstrap.BindOptions(configuration).ProfileAlias);
+            return (await metadataService.RetrieveAsync(cancellationToken).ConfigureAwait(false)).GetOptions();
         }
 
         /// <summary>

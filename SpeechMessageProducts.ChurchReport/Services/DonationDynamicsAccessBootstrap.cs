@@ -334,6 +334,59 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 讀取 P7.4 MemberInfo 承諾類型 metadata 的獨立 Package03 consumer gate。base gate 只表示 Package03
+        /// composition 可以被部署考慮；本 sub-gate 才是 ORG-CALL-00040 的可回復邊界，兩者都必須明確 true／1。
+        /// 缺值、空白、僅開啟圖片 base gate 或任何其他文字都 fail closed，因此不會在 user/session hydration、
+        /// process host、provider、handler、Data8 pool、metadata cache 或 outbound I/O 前意外建立 typed path。
+        /// </summary>
+        /// <param name="configuration">只含 deployment-owned 設定的來源；HTTP、Session、profile、locale 與 browser 值不得替代它。</param>
+        /// <returns>base/sub gate 均有效時為 true；其餘情況一律為 false。</returns>
+        public static bool IsPackage03MemberInfoCommitmentMetadataReadEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage03SpecialResourcesEnabled(configuration))
+            {
+                return false;
+            }
+
+            var raw = configuration["DynamicsAccess:Package03MemberInfoCommitmentMetadataReadEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 嘗試建立只供 P7.4 ORG-CALL-00040 使用的 Package03 metadata typed client。sub-gate 關閉時必須在
+        /// options bind、host resolution、provider、handler、pool、metadata cache 與 credential graph 前回傳 null；
+        /// 開啟時先驗證 non-empty deployment ProfileAlias，才可借用 process host 已擁有的 executor generation。
+        /// 本 helper 不接受 caller profile/workload/target/locale，也不 Dispose injected 或 facade；所有可重用資源
+        /// 仍由 Generic Host 的 process host 以 profile/generation 為界唯一擁有與釋放。
+        /// </summary>
+        /// <param name="configuration">唯一可提供 Package03 base/sub gate 與 deployment profile 的設定來源。</param>
+        /// <param name="injectedClient">測試或受控 DI 已擁有的 stateless facade；僅在 gate/profile 完整時可借用。</param>
+        /// <returns>gate 不完整時為 null；有效時回傳同一個 process-host executor 的 stateless Package03 client。</returns>
+        public static IPackage03SpecialResourceClient? TryCreatePackage03MemberInfoCommitmentMetadataReadClient(
+            IConfiguration configuration,
+            IPackage03SpecialResourceClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage03MemberInfoCommitmentMetadataReadEnabled(configuration))
+            {
+                return null;
+            }
+
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package03 MemberInfo commitment metadata read operations");
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            return new Package03SpecialResourceClient(
+                CreatePackage03Executor(productOptions, configuration),
+                NullLogger<Package03SpecialResourceClient>.Instance);
+        }
+
+        /// <summary>
         /// 為所有已實作但尚未 cutover 的 Package02 typed clients 選取同一 process generation。ConnectionMode 只由
         /// deployment configuration 決定；request 不能切換 Embedded／Dedicated／Central、Profile 或 connector。
         /// 回傳 executor 由 process host 唯一擁有，typed client 與 helper 均不得 Dispose。
