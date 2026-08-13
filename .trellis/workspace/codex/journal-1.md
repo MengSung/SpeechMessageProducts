@@ -554,3 +554,36 @@ Reconciled P7/P8 parent evidence hierarchy, preserved Slice C non-replay and P7.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 17: P7.2 QR 出席寫入安全邊界稽核
+
+**Date**: 2026-08-14
+**Task**: P7.2 QR 出席寫入安全邊界稽核
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成並封存 P7.2 QR weekly-attendance family。本機 32 個 attendance contract、Release build 與最終序列化 solution suite 均通過；記錄 QR shared InMemoryContext authorization local design no-go 與新隔離 spec。未執行 CE、gate 或 traffic；雙模型 final review 未完成。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b48bb651` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
