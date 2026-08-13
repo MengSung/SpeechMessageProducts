@@ -1,0 +1,5 @@
+{"path":".trellis/tasks/08-14-p74-memberinfo-basic-info-consumer-boundary/prd.md","reason":"task requirements and acceptance criteria"}
+{"path":".trellis/tasks/08-14-p74-memberinfo-basic-info-consumer-boundary/design.md","reason":"fail-closed no-go design and recovery conditions"}
+{"path":"SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs","reason":"four-field legacy mutation evidence"}
+{"path":"SpeechMessage.Dynamics.ProductClient/MemberInfo/IPackage02ContactBasicInfoUpdateClient.cs","reason":"two-field typed input and response evidence"}
+{"path":"SpeechMessage.Dynamics.Connectors.Data8/Package02Data8ContactBasicInfoWriteOperations.cs","reason":"connector allowlist and two-field read-back evidence"}

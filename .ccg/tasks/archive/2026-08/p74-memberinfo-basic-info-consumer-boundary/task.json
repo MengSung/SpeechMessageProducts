@@ -1,0 +1,12 @@
+{
+  "id": "p74-memberinfo-basic-info-consumer-boundary",
+  "title": "P7.4 MemberInfo basic-info consumer boundary",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-migration",
+  "currentPhase": "completed",
+  "nextAction": "已封存；下一步由 P7.4 parent 選取另一個可獨立驗證的 capability",
+  "createdAt": "2026-08-14T00:52:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

@@ -1,0 +1,7 @@
+{"path":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"server-derived authorization and deterministic cleanup contract"}
+{"path":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"disabled deployment routing and evidence gates"}
+{"path":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"authoritative ORG-CALL-00030 status"}
+{"path":".trellis/tasks/archive/2026-08/08-07-churchreport-write-action-function-migrations/design.md","reason":"archived two-field P7.2 contract"}
+{"path":"SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs","reason":"four-field legacy composite source"}
+{"path":"SpeechMessage.Dynamics.ProductClient/MemberInfo/IPackage02ContactBasicInfoUpdateClient.cs","reason":"two-field typed boundary"}
+{"path":"SpeechMessage.Dynamics.Connectors.Data8/Package02Data8ContactBasicInfoWriteOperations.cs","reason":"allowlist and read-back source"}

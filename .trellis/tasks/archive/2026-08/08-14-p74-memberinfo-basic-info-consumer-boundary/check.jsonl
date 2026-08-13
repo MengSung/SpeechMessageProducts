@@ -1,0 +1,8 @@
+{"path":".trellis/tasks/08-14-p74-memberinfo-basic-info-consumer-boundary/prd.md","reason":"requirements evidence"}
+{"path":".trellis/tasks/08-14-p74-memberinfo-basic-info-consumer-boundary/design.md","reason":"no-go design"}
+{"path":".trellis/tasks/08-14-p74-memberinfo-basic-info-consumer-boundary/implement.md","reason":"validation plan"}
+{"path":".trellis/tasks/08-14-p74-memberinfo-basic-info-consumer-boundary/check.md","reason":"final local verification and external-review downgrade record"}
+{"path":"SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs","reason":"source-only scope evidence"}
+{"path":"SpeechMessage.Dynamics.ProductClient/MemberInfo/IPackage02ContactBasicInfoUpdateClient.cs","reason":"typed contract evidence"}
+{"path":"SpeechMessage.Dynamics.Connectors.Data8/Package02Data8ContactBasicInfoWriteOperations.cs","reason":"connector evidence"}
+{"path":".ccg/dual-model-runs/20260814-005215-p74-memberinfo-basic-info-boundary-review-reviewer/ccg-health-20260814-005215.json","reason":"CCG health evidence; outer review exceeded the 45-second wait budget before backend output."}
