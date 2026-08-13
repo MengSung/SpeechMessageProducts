@@ -281,3 +281,18 @@ template → Data8 projection → immutable DTO。scope 不得讀寫 Session、I
 credential、shared authorization cache 或 browser locator；invalid、duplicate、stale 或 ambiguous scope 必須 fail
 closed。只有該前置 boundary 通過後，descriptor 與 membership 才可各自有 Data8/ProductClient、A/B isolation、
 cancellation/lease cleanup、disabled gate、CE 與 rollback evidence。
+
+### 2026-08-14 dedication capability identity boundary
+
+`ORG-CALL-00059`／`00041` 的關係是「product service 與其 legacy transport helper」，不是兩個可各自
+遷移的 Gateway capability。當同一 fixed active-booking filter、同一 contact locator 與同一 consumer scalar
+contract 皆可由 typed operation 覆蓋時，只保留 `payments.dedication.retrieve.by.contact` 作為唯一新資料層
+operation。這避免兩個看似相近、實則可能在 filter、排序、paging、projection 或 rollback 上漂移的 duplicate
+registry。任何 legacy consumer 的真實 cutover 仍必須獨立證明 authorization、gate、capacity、CE、host、traffic
+與 rollback。
+
+`ORG-CALL-00060` 不能從既有 payment form／manager／`Entity` path 直接抽成 typed client。安全資料流必須先是
+authenticated principal → immutable server-derived policy scope → 已授權的 target contact locator → fixed bounded
+DTO contact projection → request-local form projection。前置 scope 不得讀寫或引用 Session、InMemoryContext、
+ListManager、cached Entity、form、profile、connector、credential 或 browser／Line locator。若 role 的 target scope
+不能由 server policy 先決定，必須 fail closed，而非將直接 CRM `RetrieveEntity` 或既有 fee-read branch 當替代。

@@ -245,3 +245,15 @@ legacy QR path 的 independent matrix capability。
 3. [x] architect/reviewer CCG runs 都在 45 秒內未有 usable output，均標記「雙模型未完成」，採本機驗證且不重試等待。
 4. [x] child 已完成 scope-only commit/archive；從 matrix 選擇下一個不相依 P7 capability。唯有先完成 immutable
    server-derived MemberInfo authorization boundary，才能重新評估 00033。
+
+## 2026-08-14 dedication capability identity checkpoint
+
+1. [x] 以 child `08-14-p74-dedication-capability-identity-audit` 對 00059／00060 完成 matrix、legacy
+   helper、typed registry/Data8/ProductClient、payment-form consumer、controller、Session/InMemoryContext 與
+   ToolUtility Entity trace。
+2. [x] 00059 判定為 00041 historical duplicate：不建造第二個 operation family；typed DTO 覆蓋現有
+   form scalar，但 consumer、CE、host、traffic、P7.5/P8 evidence 一律維持 pending。
+3. [x] 00060 判定為 source-only local design no-go：在 immutable scope 出現前，禁止將 browser／Line locator、
+   Session、mutable manager/form 或 Entity bridge 接到 Gateway。先建立 principal-to-scope child 才能恢復。
+4. [x] architect run 在 45 秒內僅 Gemini 有 usable output；Claude 未完成，記錄「雙模型未完成」，以本機
+   evidence 覆核。完成 child scope check、commit/archive 後，繼續從 authoritative matrix 選取不相依 family。

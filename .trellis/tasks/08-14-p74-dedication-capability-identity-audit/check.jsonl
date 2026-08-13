@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/08-14-p74-dedication-capability-identity-audit/prd.md","reason":"本 child 的範圍、驗收與 fail-closed 限制。"}
+{"file":".trellis/tasks/08-14-p74-dedication-capability-identity-audit/design.md","reason":"能力去重與 contact resolver no-go 的設計結論。"}
+{"file":".trellis/tasks/08-14-p74-dedication-capability-identity-audit/implement.md","reason":"稽核步驟、品質閘門與回滾邊界。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"跨使用者隔離與 resource lifecycle release-blocking 規則。"}

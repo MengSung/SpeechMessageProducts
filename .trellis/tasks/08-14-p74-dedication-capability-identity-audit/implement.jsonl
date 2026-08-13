@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"P7.4 financial/contact capability 的 server-derived authorization、A/B isolation、fault cleanup 與禁止 shared mutable state 的強制契約。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"P7/P8 host、feature gate、CE evidence 與 rollout boundary。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md","reason":"P7.4/P7.5/P8 的權威順序與不可提前啟動規則。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"70-row authoritative status，包含 ORG-CALL-00041、00059、00060。"}
+{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"ORG-CALL-00059 去重註記與 ORG-CALL-00060 原始 request/response shape。"}

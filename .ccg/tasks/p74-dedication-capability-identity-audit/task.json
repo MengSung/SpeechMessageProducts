@@ -1,0 +1,12 @@
+{
+  "id": "p74-dedication-capability-identity-audit",
+  "title": "P7.4 奉獻能力對應與隔離稽核",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-security",
+  "currentPhase": "completed",
+  "nextAction": "已完成 source-only audit 的審查與格式／範圍驗證；封存後由 P7.4 parent 選擇下一個不相依 capability family。00059 去重與 00060 no-go 均不得升級為 consumer、CE、cutover、P7.5 或 P8 evidence。",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

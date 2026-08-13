@@ -431,3 +431,19 @@ partial/unavailable 與實際空關係混為成功空字串，不能構成 bound
 恢復前同樣須先完成不可變、server-derived 的完整 MemberInfo Church／Shepherd authorization boundary；之後另行
 設計有 chunk/page/row/text/byte 上限、錯誤 union、A/B scope/profile isolation 與 deterministic lease cleanup 的
 relation-goal capability。P7.5／P8 gate 不因這份 local audit 改變。
+
+### 2026-08-14 認獻能力對應與 contact resolve checkpoint
+
+`ORG-CALL-00059` 的稽核已確認它是 `ORG-CALL-00041` 產品服務使用的底層
+`RetrieveDedicationBookingByFetchXml` helper，而不是第二個獨立產品能力。現有
+`payments.dedication.retrieve.by.contact` 的 fixed query、bounded Data8 projection 與 typed booking DTO
+覆蓋 `DonationBookingService.MapBooking` 實際需要的 scalar；legacy initial FetchXML 的 `new_name` 沒有形成
+額外 consumer contract。因此不再建立重複 registry、executor 或 ProductClient。但同步 `FillBookingList` 仍
+temporary-legacy，且沒有 CE／host／parity／traffic／ToolUtility removal 證據；去重不得升級任何 matrix evidence。
+
+`ORG-CALL-00060` 是 contact resolve／付款表單 hydration，與 00041 不同。其 Line ID／browser target
+locator 會先經 Session、`InMemoryContext`、ListManager、mutable `DonationPaymentManager`／form 與 ToolUtility
+`Entity` read，沒有在此之前形成可證明的 immutable server-derived target policy。既有 fee-audit typed read
+不能替代這個 resolver。它是 source-only local design no-go，僅停止此 family 的 direct migration；未來須先由
+獨立 child 建立 authenticated principal → immutable authorization scope，並再分開證明 bounded contact DTO、
+A/B isolation、fault cleanup、CE／host parity 與 rollback。此結果不阻擋其他 P7 family；P7.5/P8 gate 不變。

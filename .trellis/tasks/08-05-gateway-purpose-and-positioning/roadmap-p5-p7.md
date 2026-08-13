@@ -278,3 +278,19 @@ consumer、host、P7.5 或 P8 evidence。
 server 分別選擇 Church／Shepherd capability 並產生 bounded list allowlist，最後才可設計固定 descriptor／
 membership template、DTO、Data8/ProductClient、A/B isolation、resource cleanup、disabled gate、CE 與 rollback
 evidence。此 no-go 不影響不依賴該 chain 的 P7 family；所有 P7.5/P8 predecessor 維持不變。
+
+## 18. 2026-08-14 dedication capability identity and contact resolve audit
+
+`ORG-CALL-00059`／`payments.dedication.fetchxml.by.contact` 已被確認為 `ORG-CALL-00041` 的底層 legacy
+FetchXML helper。兩者同為依 contact 讀取 active `new_dedication_booking`，而 typed booking record 提供付款
+表單實際使用的所有 scalar。因此唯一的 Gateway data-plane capability 是既有
+`payments.dedication.retrieve.by.contact`；不建立第二個 registry、Data8 executor 或 ProductClient。這項
+去重只消除重複實作，不能被稱為 consumer migration、CE／host evidence、cutover、ToolUtility removal、P7.5 或 P8。
+
+`ORG-CALL-00060`／`payments.contact.resolve.for.dedication.form` 是獨立的 local design no-go。現行 contact
+resolve 會在任何 immutable server-derived authorization scope 前穿越 Session、`InMemoryContext`、ListManager、
+mutable payment manager/form 與 ToolUtility `Entity`；browser target GUID 與 Line ID 都不能成為 capability
+authority。現有 fee-audit typed read 不是 contact-resolver migration。恢復順序固定為：先建立
+authenticated-principal → immutable policy scope，再針對 identity／auditor target 各建立 bounded DTO contact
+projection、A/B isolation、fault cleanup、CE／host parity 與 rollback evidence。此 no-go 只停止 00060，不影響
+其他獨立 P7 family；P7.5/P8 先決條件不變。
