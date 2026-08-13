@@ -32,6 +32,8 @@ internal static class Package03Data8SpecialResourceOperations
     private const string ContactEntityName = "contact";
     private const string ContactIdAttribute = "contactid";
     private const string ContactImageAttribute = "entityimage";
+    private const string ContactLinePictureUrlAttribute = "new_line_picture_url";
+    private const string ContactGenderCodeAttribute = "gendercode";
     private const string MeetingStatisticEntityName = "new_meeting_statistics";
     private const string MeetingStatisticIdAttribute = "new_meeting_statisticsid";
     private const string MeetingStatisticNameAttribute = "new_name";
@@ -77,6 +79,7 @@ internal static class Package03Data8SpecialResourceOperations
             data = operation.OperationId switch
             {
                 OperationIds.MemberInfoContactRetrieveImage => ExecuteRetrieveContactImage(service, operation, ceVersion),
+                OperationIds.MemberInfoContactRetrieveImageDisplay => ExecuteRetrieveContactImageDisplay(service, operation, ceVersion),
                 OperationIds.MemberInfoContactUpdateImage => ExecuteUpdateContactImage(service, operation, ceVersion),
                 OperationIds.NewPersonContactUpdateImage => ExecuteUpdateContactImage(service, operation, ceVersion),
                 OperationIds.StatsMeetingRetrieveBySunday => ExecuteRetrieveMeetingStatistics(
@@ -105,6 +108,103 @@ internal static class Package03Data8SpecialResourceOperations
         var entity = service.Retrieve(ContactEntityName, contactId, new ColumnSet(ContactImageAttribute));
         var image = ReadRequiredContactImage(entity, contactId);
         return OperationResponseData.ForContactImage(operation.OperationId, ceVersion, image);
+    }
+
+    /// <summary>
+    /// 以一次固定 projection 讀取 contact 的 entityimage、LINE 圖片網址與 gendercode，並依 image 優先、
+    /// allowlisted LINE URL 次之、預設頭像最後的順序建立封閉 display union。CRM 欄位型別、URL 網域、
+    /// 影像內容或任何界線不明時均不向產品發布原始值；只回傳安全的 DefaultAvatar 分支。
+    /// </summary>
+    private static OperationResponseData ExecuteRetrieveContactImageDisplay(
+        IOrganizationService service,
+        ConnectorOperation operation,
+        string ceVersion)
+    {
+        var contactId = ReadRequiredGuid(operation.Parameters, "contactId");
+        var entity = service.Retrieve(
+            ContactEntityName,
+            contactId,
+            new ColumnSet(ContactImageAttribute, ContactLinePictureUrlAttribute, ContactGenderCodeAttribute));
+
+        // Retrieve 的 logical name 與 identity 是 server-authorized locator 和 CRM materializer 之間最後的
+        // 不可省略配對。若不先拒絕錯誤 Entity，後續「無 image」fallback 可能把另一位 contact 的 LINE URL
+        // 或 gender scalar 發布給目前請求；這是跨使用者資料洩漏，不可把它降級成 avatar/redirect 成功。
+        if (entity is null ||
+            !string.Equals(entity.LogicalName, ContactEntityName, StringComparison.Ordinal) ||
+            entity.Id != contactId)
+        {
+            throw new InvalidOperationException("The Data8 contact-image display response identity is invalid.");
+        }
+
+        ContactImageDisplayResponseData display;
+        if (entity.Attributes.TryGetValue(ContactImageAttribute, out var imageValue) &&
+            imageValue is byte[] imageBytes)
+        {
+            try
+            {
+                var mediaKind = DetectMediaKind(imageBytes.ToArray());
+                ValidateImagePayload(imageBytes.ToArray(), mediaKind);
+                display = ContactImageDisplayResponseData.ForImage(imageBytes, mediaKind);
+            }
+            catch (InvalidOperationException)
+            {
+                display = CreateLineOrAvatarDisplay(entity);
+            }
+        }
+        else
+        {
+            display = CreateLineOrAvatarDisplay(entity);
+        }
+
+        return OperationResponseData.ForContactImageDisplay(operation.OperationId, ceVersion, display);
+    }
+
+    /// <summary>由固定 contact projection 建立受限 LINE redirect 或 gender avatar 分支；不回傳未驗證 URL。</summary>
+    private static ContactImageDisplayResponseData CreateLineOrAvatarDisplay(Entity? entity)
+    {
+        if (entity?.Attributes.TryGetValue(ContactLinePictureUrlAttribute, out var urlValue) == true &&
+            urlValue is string url &&
+            TryCreateAllowlistedLineUri(url, out var lineUri))
+        {
+            return ContactImageDisplayResponseData.ForLineRedirect(lineUri.ToString());
+        }
+
+        int? genderCode = null;
+        if (entity?.Attributes.TryGetValue(ContactGenderCodeAttribute, out var genderValue) == true)
+        {
+            genderCode = genderValue switch
+            {
+                OptionSetValue optionSet => optionSet.Value,
+                int value => value,
+                _ => null
+            };
+        }
+
+        return ContactImageDisplayResponseData.ForDefaultAvatar(genderCode);
+    }
+
+    /// <summary>只允許部署核准的 HTTPS LINE profile host，避免 CRM 內容形成 open redirect。</summary>
+    private static bool TryCreateAllowlistedLineUri(string value, out Uri uri)
+    {
+        uri = null!;
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 2048 ||
+            !Uri.TryCreate(value, UriKind.Absolute, out var parsed) ||
+            !string.Equals(parsed.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            !string.IsNullOrEmpty(parsed.UserInfo) || !string.IsNullOrEmpty(parsed.Fragment) ||
+            !parsed.IsDefaultPort)
+        {
+            return false;
+        }
+
+        var host = parsed.Host.TrimEnd('.');
+        if (!string.Equals(host, "profile.line-scdn.net", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(host, "obs.line-apps.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        uri = parsed;
+        return true;
     }
 
     /// <summary>

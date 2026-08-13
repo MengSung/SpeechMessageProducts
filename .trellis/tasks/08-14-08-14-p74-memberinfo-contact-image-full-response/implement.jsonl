@@ -1,0 +1,8 @@
+{"file":".trellis/spec/backend/index.md","reason":"Backend mandatory checklist、C# 文件與編碼要求。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"A/B isolation、request-local DTO、cancellation、cache 與 deterministic resource cleanup。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"deployment-owned gate/profile、no fallback、P7/P8 boundary。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"跨層 image/redirect/avatar 回應的 isolation 與 lifecycle review。"}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/prd.md","reason":"P7.4 consumer cutover scope、capacity no-go 與 rollback boundary。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-churchreport-special-resource-migrations/design.md","reason":"既有 P7.3 image resource contract 與 connector ownership。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00028 的 immutable baseline 與 P7.5 blocker。"}
+{"file":"SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs","reason":"舊三分支 headshot 行為與新 route authorization boundary。"}

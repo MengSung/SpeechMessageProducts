@@ -13,6 +13,7 @@
 // ============================================================================
 using ChurchReport.Models;
 using ChurchReport.Services;
+using ChurchReport.Services.ContactAvatar;
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
@@ -118,6 +119,88 @@ namespace ChurchReport.Controllers
             }
             // 取消必須保留給 ASP.NET Core 與下游 executor owner；不可把已終止 request 轉為一般 404，
             // 否則可能掩蓋 lease／transport 的確定性清理結果，或誘發上層重送。
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return NotFound();
+            }
+        }
+
+        /// <summary>
+        /// 讀取完整 Package03 contact-image display union 的預設關閉路由。
+        /// deployment base/sub gate 是第一個 executable decision；未開啟時不 hydrate Session、不解析 browser
+        /// locator、不建立 typed client 或觸及外部 I/O。啟用後只接受 server-authorized contact，並將單次 typed
+        /// projection 的 image、LINE redirect 與 default avatar 分支映射為 MVC 回應；本 action 不持有 client、
+        /// lease、stream、cache 或背景工作，所有可重用 transport 資源仍由 process host 唯一擁有與釋放。
+        /// </summary>
+        /// <param name="contactId">browser 提供的 GUID locator；它絕不是 profile、connector、owner 或授權依據。</param>
+        /// <param name="size">圖片 branch 的顯示邊長；小於等於零保留原圖，其他值限制為 32..256。</param>
+        /// <param name="fit">圖片 branch 是否完整等比置入；false 時沿用既有中心裁切語意。</param>
+        /// <returns>已驗證 image、LINE redirect 或 default avatar；任何拒絕或非取消 fault 都是固定 404。</returns>
+        [HttpGet]
+        [Route("/MemberInfo/Package03FullContactImage")]
+        public async Task<IActionResult> Package03FullContactImage(string contactId, int size = 80, bool fit = false)
+        {
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            if (!DonationDynamicsAccessBootstrap.IsPackage03MemberInfoFullContactImageReadEnabled(configuration))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                EnsureCorrectUserData();
+                var access = GetAccess();
+                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
+                {
+                    return NotFound();
+                }
+
+                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
+                {
+                    return NotFound();
+                }
+
+                var package03Client = DonationDynamicsAccessBootstrap.TryCreatePackage03MemberInfoFullContactImageReadClient(configuration);
+                if (package03Client is null)
+                {
+                    return NotFound();
+                }
+
+                var service = new Package03MemberInfoFullContactImageReadService(
+                    package03Client,
+                    DonationDynamicsAccessBootstrap.BindOptions(configuration).ProfileAlias);
+                var result = await service.RetrieveAsync(contactGuid, HttpContext.RequestAborted).ConfigureAwait(false);
+
+                switch (result.Kind)
+                {
+                    case Package03MemberInfoFullContactImageReadResultKind.Image:
+                    {
+                        var returnOriginal = size <= 0;
+                        var thumbnailSize = returnOriginal ? 0 : Math.Clamp(size, 32, 256);
+                        var imageBytes = result.GetImageBytes();
+                        var outputBytes = returnOriginal
+                            ? imageBytes
+                            : (fit
+                                ? CreateFitThumbnail(imageBytes, thumbnailSize)
+                                : CreateThumbnailIfNeeded(imageBytes, thumbnailSize));
+                        ApplyImageResponseCacheHeaders();
+                        return File(outputBytes, result.ContentType!);
+                    }
+
+                    case Package03MemberInfoFullContactImageReadResultKind.LineRedirect:
+                        ApplyImageResponseCacheHeaders();
+                        return Redirect(result.LineRedirectUrl!);
+
+                    case Package03MemberInfoFullContactImageReadResultKind.DefaultAvatar:
+                        ApplyImageResponseCacheHeaders();
+                        return Content(DefaultAvatarSvg.ForGender(result.GenderCode), "image/svg+xml");
+
+                    default:
+                        return NotFound();
+                }
+            }
+            // 取消必須原樣離開 action，讓下游 executor/lease owner 對已取消或 transport uncertain 的資源
+            // 執行 fault eviction 與 deterministic cleanup；一般錯誤不回顯 typed transport 或 contact 資料。
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 return NotFound();

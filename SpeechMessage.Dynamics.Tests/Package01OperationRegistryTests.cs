@@ -33,7 +33,7 @@ public sealed class Package01OperationRegistryTests
     private const int ConservativeMaximumResultItemCount = 4096;
 
     /// <summary>
-    /// 確認目前二十七個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
+    /// 確認目前二十八個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
     /// 各自發明未經審查的作業 ID。此檢查只讀取 immutable registry，不配置外部資源。
     /// </summary>
     [Fact]
@@ -67,12 +67,13 @@ public sealed class Package01OperationRegistryTests
             "contact.assign.owner",
             "newperson.contact.transfer.between.lists",
             OperationIds.MemberInfoContactRetrieveImage,
+            OperationIds.MemberInfoContactRetrieveImageDisplay,
             OperationIds.MemberInfoContactUpdateImage,
             OperationIds.NewPersonContactUpdateImage,
             OperationIds.StatsMeetingRetrieveBySunday
         });
 
-        ids.Should().HaveCount(27);
+        ids.Should().HaveCount(28);
     }
 
     /// <summary>
@@ -207,7 +208,7 @@ public sealed class Package01OperationRegistryTests
     }
 
     /// <summary>
-    /// 保護 P7.3 五項特殊資源能力必須各自擁有固定 operation ID、有限 policy 與封閉 response branch，不能把
+    /// 保護 P7.3/P7.4 六項特殊資源能力必須各自擁有固定 operation ID、有限 policy 與封閉 response branch，不能把
     /// image、metadata 或 page 結果退化成 generic object、SDK Entity、raw stream、FetchXML 或 caller-selected
     /// schema。故障模型是 registry 尚未宣告這些 capability；決定性斷言是每個 operation 的 kind、template、
     /// idempotency 與具名參數都與安全合約一致。測試只讀 process-static registry，不建立 CRM client、buffer、
@@ -224,6 +225,15 @@ public sealed class Package01OperationRegistryTests
                 Kind = "read",
                 Template = "memberinfo.contact.entityimage.retrieve.v1",
                 Response = "ContactImage",
+                Idempotency = "read-only",
+                Parameters = new[] { "contactId:guid:True" }
+            },
+            new
+            {
+                Id = "memberinfo.contact.retrieve.image.display",
+                Kind = "read",
+                Template = "memberinfo.contact.image.display.retrieve.v1",
+                Response = "ContactImageDisplay",
                 Idempotency = "read-only",
                 Parameters = new[] { "contactId:guid:True" }
             },

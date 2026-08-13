@@ -509,6 +509,63 @@
                                          "triageStatus":  "candidate-only"
                                      }
                                  ],
+    "derivedOperationMappings":  [
+                                    {
+                                        "id":  "ORG-CALL-00028",
+                                        "product":  "SpeechMessageProducts.ChurchReport",
+                                        "file":  "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+                                        "member":  "Package03FullContactImage",
+                                        "legacyEntryPoint":  "Derived local-only DTO mapping for GetContactImage; the immutable source inventory remains ORG-CALL-00028.",
+                                        "currentRequestShape":  "One fixed contact Retrieve projection decides Image, allowlisted LINE redirect, or default avatar; no write.",
+                                        "entityOrAction":  "contact.entityimage+new_line_picture_url+gendercode",
+                                        "operationKind":  "read",
+                                        "dataClassification":  "personal-data",
+                                        "capabilityOperationId":  "memberinfo.contact.retrieve.image.display",
+                                        "responseKind":  "ContactImageDisplay",
+                                        "maximumPageCount":  4,
+                                        "maximumPageBytes":  65536,
+                                        "maximumCumulativeResponseBytes":  262144,
+                                        "maximumResultItemCount":  4096,
+                                        "serverOwnedTemplate":  {
+                                                                    "templateKind":  "odata-route",
+                                                                    "templateId":  "memberinfo.contact.image.display.retrieve.v1",
+                                                                    "templateHash":  "8d7deb0a17251ef42177fd8b0c28ebba2e3386f3d4254f2218198773b3f85cab"
+                                                                },
+                                        "typedParameters":  [
+                                                                {
+                                                                    "name":  "contactId",
+                                                                    "type":  "guid",
+                                                                    "required":  true,
+                                                                    "encodingContext":  "odata-uri-segment"
+                                                                }
+                                                            ],
+                                        "encodingContexts":  [
+                                                                 "odata-uri-segment"
+                                                             ],
+                                        "versionEvidence":  {
+                                                                "v8_2":  {
+                                                                             "status":  "metadata-only",
+                                                                             "evidenceId":  null,
+                                                                             "notes":  "Local-only display contract; no CE execution evidence or traffic enablement."
+                                                                         },
+                                                                "v9_1":  {
+                                                                             "status":  "metadata-only",
+                                                                             "evidenceId":  null,
+                                                                             "notes":  "Local-only display contract; no CE execution evidence or traffic enablement."
+                                                                         }
+                                                            },
+                                        "smokeEvidence":  {
+                                                              "status":  "not-started",
+                                                              "evidenceId":  null,
+                                                              "notes":  "Disabled-by-default display route; no CE smoke, feature enablement, or traffic cutover."
+                                                          },
+                                        "auditRequirement":  "read-audit",
+                                        "idempotencyClass":  "read-only",
+                                        "migrationStatus":  "registry-defined",
+                                        "temporaryLegacyOwner":  "churchreport-memberinfo",
+                                        "temporaryLegacyRemovalDeadline":  "2026-11-15"
+                                    }
+                                ],
     "normalizedCallSites":  [
                                 {
                                     "id":  "ORG-CALL-00001",

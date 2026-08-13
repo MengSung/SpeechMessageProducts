@@ -462,7 +462,106 @@ return File(result.GetImageBytes(), result.ContentType);
 
 The gate, scope and target are all server validated before the fixed-profile typed dispatch; bytes are request-local copies and failure cannot select a legacy or alternate transport path.
 
-## 10. Authentication Credential Verification Boundary Scenario
+## 10. Full Package03 Contact-Image Display And Derived Matrix Mapping Scenario
+
+### 1. Scope / Trigger
+
+Apply this scenario when a pre-existing Package03 image-bytes operation cannot express every visible branch of the
+same legacy endpoint, such as a contact image, approved LINE profile redirect and gender-based default avatar.
+The source `normalizedCallSites` inventory remains immutable: an extra typed response contract is represented only
+as a separately named `derivedOperationMappings` entry that cites exactly one existing source call-site ID. This is
+local-only contract work until its own CE, capacity, parity, rollout and rollback evidence exists.
+
+### 2. Signatures
+
+```text
+CapabilityOperationId = "memberinfo.contact.retrieve.image.display"
+ContactImageDisplayKind = Image | LineRedirect | DefaultAvatar
+
+GET /MemberInfo/Package03FullContactImage?contactId=<GUID>&size=<int>&fit=<bool>
+```
+
+The connector owns one fixed `Retrieve(contact)` projection of `entityimage`, `new_line_picture_url` and
+`gendercode`. The browser supplies only the contact locator and presentation scalars; it never selects the profile,
+workload, CRM attribute, URL, host, connector, endpoint, owner or CE version.
+
+### 3. Contracts
+
+1. `normalizedCallSites` stays the unique 70-row source inventory. Every derived mapping has one existing source ID,
+   a distinct capability ID, the same closed row schema and a unique response policy; it may not add an untracked CRM
+   call or overwrite a source operation.
+2. Connector identity must be exactly `contact` plus the requested `contactId` before reading any attribute. A null,
+   wrong logical name or wrong ID fails closed before image, redirect or avatar mapping.
+3. The output union has exactly one branch, selected in strict order: validated bounded PNG/JPEG copy, then approved
+   LINE redirect, then optional pure `gendercode`. Entity, `OptionSetValue`, stream, raw URL, cache entry and raw
+   upstream exception never leave the connector request scope.
+4. A LINE redirect is absolute HTTPS with no user-info, fragment or non-default port and with exact host equality to
+   `profile.line-scdn.net` or `obs.line-apps.com`. Connector and ChurchReport independently apply this same policy;
+   a later layer rejects a malformed or policy-divergent union instead of redirecting it.
+5. Base Package03 gate and full-display sub-gate are both false in checked-in configuration. The route order is gate →
+   server scope → GUID locator parse → exact target authorization → fixed-profile typed client → dispatch. It has no
+   ToolUtility/CRM SDK path, server image cache, retry or request-time legacy fallback.
+6. Image arrays are copied at each boundary; the service, controller and result own no connector, stream, cache,
+   timer, subscription, background task or cancellation registration. Cancellation leaves unchanged so the existing
+   profile/generation lease owner can evict uncertain transport and release resources deterministically.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Derived mapping lacks one source row, repeats source capability, or duplicates a derived capability | Fail the matrix/registry agreement test before build or connector dispatch. |
+| CRM retrieve identity is null, non-contact or mismatched | Fail closed; do not return a different contact's image, LINE URL or gender. |
+| Image is absent/invalid and URL is absent, unapproved, non-HTTPS, has user-info/fragment or a non-default port | Publish only the default-avatar branch. |
+| Full-display gate is false or scope/target validation fails | Fixed 404 before locator I/O/client construction or typed dispatch. |
+| Product layer observes an invalid redirect union | Throw/fail closed before MVC redirect; no avatar or legacy fallback is substituted. |
+| Cancellation, connector fault or incomplete branch | Propagate cancellation or return the existing fixed failure; do not retry, cache, partially publish or reuse transport. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** A Data8 retrieve for A and B returns distinct contact entities. Each result is identity-checked, copied and
+  mapped request-locally; the registered derived capability remains traceable to `ORG-CALL-00028` without changing
+  the 70-row source inventory.
+- **Base:** Both display gates are false. The new route is unreachable, the legacy route is untouched and the local
+  contract is not CE/traffic/P7.5/P8 evidence.
+- **Bad:** Replace the source image operation with the display operation, create a 71st source call-site, accept an
+  allowlisted host on port 8443, select a host from a browser parameter, redirect after a typed failure, or cache a
+  contact image under a shared key.
+
+### 6. Tests Required
+
+1. Matrix agreement tests prove the source row count remains 70; each derived mapping has one source ID and a
+   distinct/unique capability ID; merged source-plus-derived policy rows exactly equal the compiled registry.
+2. Data8 tests inject mismatched entity identity, image/LINE/avatar priority, unapproved host, default-port and
+   non-default-port URLs, `OptionSetValue`/integer gender, cancellation-before-dispatch and service disposal.
+3. Product/service tests prove exact profile/workload/token forwarding, defensive copies, A/B interleaving and
+   product-layer rejection of an otherwise allowlisted host with a non-default port.
+4. Controller source/contract tests prove gate/scope/locator/target/client order, false default settings and absence
+   of ToolUtility, SDK entity, cache, retry and legacy fallback in the new action.
+5. Run impacted suites, full Dynamics/ChurchReport tests, full solution Release tests/build, UTF-8-no-BOM/CRLF/final
+   CRLF scan and `git diff --check`. Record any bounded external-review timeout as dual-model-not-completed.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+normalizedCallSites += displayContract; // changes immutable source count
+if (allowedHosts.Contains(uri.Host)) return Redirect(uri); // permits :8443
+return legacy.GetContactImage(contactId); // typed fallback
+```
+
+#### Correct
+
+```text
+derivedOperationMappings += sourceId=ORG-CALL-00028 + distinct display capability
+if (!uri.IsDefaultPort || !ExactLineHost(uri.Host)) fail closed
+gate -> scope -> locator -> target authorization -> fixed typed display dispatch
+```
+
+This retains an auditable source inventory, maintains identical connector/product redirect policy and preserves the
+request-local isolation/cleanup boundary without claiming live cutover.
+
+## 11. Authentication Credential Verification Boundary Scenario
 
 ### 1. Scope / Trigger
 

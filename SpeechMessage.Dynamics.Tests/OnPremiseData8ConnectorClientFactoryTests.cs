@@ -223,6 +223,213 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護 P7.4 完整聯絡人圖片 display capability 必須以一次固定的 contact Retrieve 同時投影影像、LINE
+    /// 圖片網址與性別 scalar。故障注入提供有效 PNG、已核准 LINE 網域網址及 gendercode；決定性斷言是影像優先於
+    /// redirect/avatar、ColumnSet 恰好包含三個 server-owned 欄位，且 client scope 結束時仍只釋放本次 service。
+    /// 此測試不保存 CRM Entity、byte 陣列、URL 或取消權杖到共用狀態，避免測試基礎設施本身跨使用者保留資料。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_projects_a_fixed_full_contact_image_display_with_image_priority()
+    {
+        const string displayOperationId = "memberinfo.contact.retrieve.image.display";
+        var contactId = Guid.Parse("c1c1c1c1-0000-1111-2222-d1d1d1d1d1d1");
+        var imageBytes = Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.AllColumns.Should().BeFalse();
+                columnSet.Columns.Should().Equal("entityimage", "new_line_picture_url", "gendercode");
+                return new Entity("contact", contactId)
+                {
+                    ["entityimage"] = imageBytes.ToArray(),
+                    ["new_line_picture_url"] = "https://profile.line-scdn.net/avatar.png",
+                    ["gendercode"] = new OptionSetValue(2)
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = displayOperationId,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.ToString().Should().Be("ContactImageDisplay");
+        var display = result.Data.GetType().GetProperty("ContactImageDisplay")!.GetValue(result.Data);
+        display.Should().NotBeNull();
+        display!.GetType().GetProperty("Kind")!.GetValue(display)!.ToString().Should().Be("Image");
+        service.RetrieveCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護完整圖片 display 的 target identity 不可因 CRM materializer、替身或 schema 故障而被降級為
+    /// LINE redirect／預設頭像。故障注入是固定 <c>Retrieve</c> 對已授權 contact locator 回傳另一個 contact
+    /// identity 與原本看似合法的 LINE 網址；決定性斷言是 connector 在發布任何 union branch 前 fail closed，
+    /// 並在目前 client scope 結束時釋放唯一 service owner。這避免 A 的已授權 locator 意外取得 B 的 URL、
+    /// gender scalar 或其他可跨使用者保留的投影資料。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_rejects_a_full_contact_image_display_with_a_mismatched_contact_identity()
+    {
+        var requestedContactId = Guid.Parse("c1c1c1c1-0000-1111-2222-d1d1d1d1d1d1");
+        var returnedContactId = Guid.Parse("d2d2d2d2-0000-1111-2222-e2e2e2e2e2e2");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(requestedContactId);
+                columnSet.Columns.Should().Equal("entityimage", "new_line_picture_url", "gendercode");
+                return new Entity("contact", returnedContactId)
+                {
+                    ["new_line_picture_url"] = "https://profile.line-scdn.net/not-authorized-for-requested-contact.png",
+                    ["gendercode"] = new OptionSetValue(2)
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = CreateContactImageDisplayOperation(requestedContactId);
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+            await client.ExecuteAsync(operation, CancellationToken.None);
+        };
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.RetrieveCount.Should().Be(1);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護沒有 entityimage 時，只能把 Data8 server allowlist 的 HTTPS LINE host 投影為 redirect branch。
+    /// 故障注入包含合法 URL 與無關的 gendercode；決定性斷言是單次固定 Retrieve 回傳 LineRedirect、沒有
+    /// image/gender branch 資料，且 service 在 request scope 離開後只釋放一次。此測試不開啟 HTTP redirect、
+    /// 不建立 CRM 連線，也不保留 URL 或 Entity 給下一個測試／使用者。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_projects_an_allowlisted_line_redirect_when_contact_has_no_image()
+    {
+        var contactId = Guid.Parse("e3e3e3e3-0000-1111-2222-f3f3f3f3f3f3");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (entityName, id, columnSet) =>
+            {
+                entityName.Should().Be("contact");
+                id.Should().Be(contactId);
+                columnSet.Columns.Should().Equal("entityimage", "new_line_picture_url", "gendercode");
+                return new Entity("contact", contactId)
+                {
+                    ["new_line_picture_url"] = "https://obs.line-apps.com/profile/avatar.png",
+                    ["gendercode"] = new OptionSetValue(2)
+                };
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(CreateContactImageDisplayOperation(contactId), CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        var display = result.Data!.ContactImageDisplay
+            ?? throw new InvalidOperationException("The display response was absent.");
+        display.Kind.Should().Be(ContactImageDisplayKind.LineRedirect);
+        display.LineRedirectUri.Should().Be(new Uri("https://obs.line-apps.com/profile/avatar.png"));
+        display.MediaKind.Should().BeNull();
+        display.GenderCode.Should().BeNull();
+        service.RetrieveCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護非 allowlisted、非 HTTPS、帶帳密或其他不可信 LINE 欄位不會變成 open redirect。故障注入為一個
+    /// 看似完整但網域不受部署核准的 URL 與兩種 CRM gendercode materializer 形狀；決定性斷言是 connector
+    /// 僅發佈 DefaultAvatar，正確投影 <see cref="OptionSetValue"/> 或 <see cref="int"/>，未知型別只產生中性
+    /// null scalar。所有資料與替身均在單一 test scope 釋放，不形成跨 profile/session 快取。
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Created_client_rejects_an_unapproved_line_url_and_projects_only_safe_avatar_scalar(bool useOptionSetValue)
+    {
+        var contactId = Guid.Parse(useOptionSetValue
+            ? "f4f4f4f4-0000-1111-2222-a4a4a4a4a4a4"
+            : "a5a5a5a5-0000-1111-2222-b5b5b5b5b5b5");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (_, _, _) => new Entity("contact", contactId)
+            {
+                ["new_line_picture_url"] = "https://unapproved.example.invalid/avatar.png",
+                ["gendercode"] = useOptionSetValue ? new OptionSetValue(1) : 2
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(CreateContactImageDisplayOperation(contactId), CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        var display = result.Data!.ContactImageDisplay
+            ?? throw new InvalidOperationException("The display response was absent.");
+        display.Kind.Should().Be(ContactImageDisplayKind.DefaultAvatar);
+        display.LineRedirectUri.Should().BeNull();
+        display.MediaKind.Should().BeNull();
+        display.GenderCode.Should().Be(useOptionSetValue ? 1 : 2);
+        service.RetrieveCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 display operation 收到已取消 token 時在接觸 CRM 前原樣停止。故障注入是預先取消的 request token；
+    /// 決定性斷言是沒有 Retrieve/Query/Execute 呼叫，且已建立的 client 仍由 await using 唯一 Dispose。這防止
+    /// 已取消 request 的 transport 或資料被下一位使用者復用，也禁止此只讀 capability 背景重試。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_cancels_full_contact_image_display_before_any_crm_dispatch()
+    {
+        var contactId = Guid.Parse("b6b6b6b6-0000-1111-2222-c6c6c6c6c6c6");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            retrieve: (_, _, _) => throw new InvalidOperationException("Cancellation must precede CRM Retrieve."));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var action = async () =>
+        {
+            await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+            await client.ExecuteAsync(CreateContactImageDisplayOperation(contactId), cancellation.Token);
+        };
+
+        await action.Should().ThrowAsync<OperationCanceledException>();
+        service.RetrieveCount.Should().Be(0);
+        service.RetrieveMultipleCount.Should().Be(0);
+        service.ExecuteCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 保護真實 Data8 metadata connector 僅在所有 option 的 CRM <c>UserLocalizedLabel.LanguageCode</c> 一致且為正時，
     /// 才把該 server-resolved locale 交回 executor cache 邊界。故障注入是固定 RetrieveAttribute request 回傳兩個
     /// 相同 locale 的 option；decisive assertions 是 response 保持純值 OptionSet branch、locale 為已證實的 1028，
@@ -3105,6 +3312,26 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
             Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
             {
                 ["sundayDate"] = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero)
+            }
+        };
+
+    /// <summary>
+    /// 建立已由 executor 正規化的完整 contact-image display operation。唯一可變欄位是已由產品層授權的
+    /// contact locator；測試無法提供 URL、圖片、entity、profile、connector、endpoint 或 credential，確保所有
+    /// branch 都只能由 connector 的固定 single-retrieve projection 決定，且 operation 在單一測試 scope 後不保存
+    /// 任何可變資料。
+    /// </summary>
+    /// <param name="contactId">目前測試已明確授權且非空的 contact identity。</param>
+    /// <returns>只包含固定 operation ID、workload 與 contact GUID 的 connector operation。</returns>
+    private static ConnectorOperation CreateContactImageDisplayOperation(Guid contactId)
+        => new()
+        {
+            OperationId = OperationIds.MemberInfoContactRetrieveImageDisplay,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId
             }
         };
 

@@ -250,6 +250,7 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
         Package03Data8OperationResult? specialResourceResult = operation.OperationId switch
         {
             OperationIds.MemberInfoContactRetrieveImage or
+            OperationIds.MemberInfoContactRetrieveImageDisplay or
             OperationIds.MemberInfoContactUpdateImage or
             OperationIds.NewPersonContactUpdateImage or
             OperationIds.MetadataOptionSetByAttribute or

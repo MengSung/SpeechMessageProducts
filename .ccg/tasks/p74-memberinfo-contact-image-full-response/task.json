@@ -1,0 +1,12 @@
+{
+  "id": "p74-memberinfo-contact-image-full-response",
+  "title": "P7.4 MemberInfo full contact-image response boundary",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-integration-migration",
+  "currentPhase": "completed",
+  "nextAction": "Perform a scope-only commit, then archive with the matching Trellis child. Keep P7.4 active; P7.5/P8 remain gated.",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

@@ -14,6 +14,7 @@
     "sourceCandidateGroups",
     "highSignalCandidateFiles",
     "normalizedCallSites",
+    "derivedOperationMappings",
     "operationRegistryAgreementGate"
   ],
   "properties": {
@@ -93,6 +94,13 @@
       }
     },
     "normalizedCallSites": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/normalizedCallSite"
+      }
+    },
+    "derivedOperationMappings": {
+      "description": "由 immutable normalizedCallSites source inventory 可追溯的額外 local-only registry mapping；不得新增未盤點 CRM call site 或取代 source row。",
       "type": "array",
       "items": {
         "$ref": "#/$defs/normalizedCallSite"
@@ -387,7 +395,8 @@
             "AuthenticationContactReadRecords",
             "AppNamedListCatalogRecords",
             "SmallGroupAppNamedListCatalogRecords",
-            "MemberInfoPresentRecordReadRecords"
+            "MemberInfoPresentRecordReadRecords",
+            "ContactImageDisplay"
           ]
         },
         "maximumPageCount": {
@@ -516,7 +525,7 @@
       },
       "allOf": [
         {
-          "description": "只有目前十七個 compiled registry capability 可以宣告 typed response policy；這讓未登錄 matrix row 不能提前聲稱可回傳資料或引入未審查的資源上限。",
+          "description": "只有目前 compiled registry capability 可以宣告 typed response policy；這讓未登錄 matrix row 不能提前聲稱可回傳資料或引入未審查的資源上限。",
           "if": {
             "required": [
               "capabilityOperationId"
@@ -543,6 +552,7 @@
                   "contact.assign.owner",
                   "newperson.contact.transfer.between.lists",
                   "memberinfo.contact.retrieve.image",
+                  "memberinfo.contact.retrieve.image.display",
                   "memberinfo.contact.update.image",
                   "newperson.contact.update.image",
                   "stats.meeting.retrieve.by.sunday",

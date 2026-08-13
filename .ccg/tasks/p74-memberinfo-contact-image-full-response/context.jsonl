@@ -1,0 +1,3 @@
+{"path":".trellis/tasks/08-14-08-14-p74-memberinfo-contact-image-full-response/prd.md","reason":"定義 ORG-CALL-00028 local-disabled scope、驗收條件與禁止事項。"}
+{"path":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"定義 request-local DTO、A/B isolation、transport ownership、cancellation 與 deterministic cleanup 合約。"}
+{"path":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"定義 immutable source inventory 與 derived display mapping 的追溯邊界。"}

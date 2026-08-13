@@ -35,6 +35,11 @@ public static class OperationIds
     public const string MemberInfoContactRetrieveImage = "memberinfo.contact.retrieve.image";
 
     /// <summary>
+    /// P7.4 MemberInfo 聯絡人顯示能力；此識別碼與原始影像讀取能力分離，固定只回傳 Image、LINE 重新導向或預設頭像其中一個分支。
+    /// </summary>
+    public const string MemberInfoContactRetrieveImageDisplay = "memberinfo.contact.retrieve.image.display";
+
+    /// <summary>
     /// 對應 ORG-CALL-00029：以 bounded image payload 更新會友 contact 的固定 entityimage，並要求 read-back。
     /// 這不是 generic Update(Entity)；timeout、未知結果或不符 read-back 必須 fail closed，不能從此 ID 推導重試。
     /// </summary>

@@ -1,0 +1,33 @@
+{
+  "id": "08-14-p74-memberinfo-contact-image-full-response",
+  "name": "08-14-p74-memberinfo-contact-image-full-response",
+  "title": "P7.4 MemberInfo full contact-image response boundary",
+  "description": "將 ORG-CALL-00028 的既有圖片、LINE redirect 與性別 avatar 語意設計為 server-authorized、disabled-by-default、DTO-only 完整回應邊界；本機實作與驗證，不啟用 CE/流量/P7.5/P8。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": "ORG-CALL-00028 only: an independently rollbackable, disabled-by-default full contact-image display boundary with registry/Data8/ProductClient/ChurchReport local implementation and verification; no CE, traffic, P7.5, P8, push or PR.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-14",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md",
+    ".trellis/tasks/08-14-08-14-p74-memberinfo-contact-image-full-response/check.md"
+  ],
+  "notes": "Local-disabled candidate complete: a distinct derived mapping preserves the immutable 70-row inventory while declaring the closed ContactImageDisplay response. The route base/sub gates remain checked-in false. Local verification passed; no CE request, fixture, traffic, P7.5, P8, Official Worker, push or PR occurred. Historical P7.2 Slice C remains closed and unrelated. Final external reviewer result is dual-model incomplete within the 45-second budget; the non-default LINE port warning and CRLF warning were fixed and independently re-verified.",
+  "meta": {
+    "verification": "local-only",
+    "externalReview": "dual-model-incomplete"
+  }
+}

@@ -42,6 +42,34 @@ public sealed class Package03SpecialResourceClient : IPackage03SpecialResourceCl
     }
 
     /// <inheritdoc />
+    public async Task<ContactImageDisplayResult> RetrieveContactImageDisplayAsync(
+        ContactImageDisplayRetrieveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var execution = await ExecuteAsync(
+            request.ProfileAlias,
+            request.WorkloadSubjectId,
+            OperationIds.MemberInfoContactRetrieveImageDisplay,
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = RequireNonEmptyGuid(request.ContactId, nameof(request.ContactId))
+            },
+            idempotencyKey: null,
+            cancellationToken).ConfigureAwait(false);
+        var data = RequireExpectedResponse(
+            execution.Data,
+            OperationIds.MemberInfoContactRetrieveImageDisplay,
+            OperationResponseKind.ContactImageDisplay,
+            static response => response.ContactImageDisplay is not null);
+        var result = ContactImageDisplayResult.FromResponse(data.ContactImageDisplay!);
+        _logger.LogInformation(
+            "Package03 contact-image display retrieve completed for profile {ProfileAlias}",
+            request.ProfileAlias.Trim());
+        return result;
+    }
+
+    /// <inheritdoc />
     public async Task<ContactImageResult> RetrieveContactImageAsync(
         ContactImageRetrieveRequest request,
         CancellationToken cancellationToken = default)

@@ -152,6 +152,22 @@ public static class Package01OperationRegistry
                 Param("contactId", "guid", required: true, encoding: "odata-uri-segment")
             ]);
 
+        // P7.4 顯示讀取是獨立、唯讀 capability；contactId 是伺服器授權後的 locator，其他路由與身分由部署端固定。
+        yield return Def(
+            OperationIds.MemberInfoContactRetrieveImageDisplay,
+            package: "package-3-special-resources",
+            kind: "read",
+            templateKind: "odata-route",
+            templateId: "memberinfo.contact.image.display.retrieve.v1",
+            responseKind: OperationResponseKind.ContactImageDisplay,
+            data: "personal-data",
+            audit: "read-audit",
+            idempotency: "read-only",
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "odata-uri-segment")
+            ]);
+
         yield return Def(
             OperationIds.MemberInfoContactUpdateImage,
             package: "package-3-special-resources",

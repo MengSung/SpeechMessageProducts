@@ -455,6 +455,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.ContactAssignOwner => true,
             OperationIds.NewPersonContactTransferBetweenLists => true,
             OperationIds.MemberInfoContactRetrieveImage => true,
+            OperationIds.MemberInfoContactRetrieveImageDisplay => true,
             OperationIds.MemberInfoContactUpdateImage => true,
             OperationIds.NewPersonContactUpdateImage => true,
             OperationIds.MetadataOptionSetByAttribute => true,
@@ -469,6 +470,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private static bool IsSpecialResourceOperation(string operationId)
         => operationId is
             OperationIds.MemberInfoContactRetrieveImage or
+            OperationIds.MemberInfoContactRetrieveImageDisplay or
             OperationIds.MemberInfoContactUpdateImage or
             OperationIds.NewPersonContactUpdateImage or
             OperationIds.MetadataOptionSetByAttribute or

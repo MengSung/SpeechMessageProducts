@@ -536,6 +536,55 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 讀取完整 contact-image display consumer 的雙重部署閘門。base gate 只允許 Package03
+        /// composition 被考慮，display sub-gate 才是本路由的獨立 rollback 邊界；任一缺值或非明確
+        /// true/1 都在建立 host、client、session 或任何外部 I/O 前 fail closed。
+        /// </summary>
+        /// <param name="configuration">僅由部署組合根提供的設定；不得由 request、Session 或 browser 覆寫。</param>
+        /// <returns>base 與 display sub-gate 同時開啟時為 true，其他情況一律為 false。</returns>
+        public static bool IsPackage03MemberInfoFullContactImageReadEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage03SpecialResourcesEnabled(configuration))
+            {
+                return false;
+            }
+
+            var raw = configuration["DynamicsAccess:Package03MemberInfoFullContactImageReadEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 取得完整 contact-image display 的 stateless typed client。雙重 gate 關閉時立即回傳 null；開啟時
+        /// 僅借用既有 process host 世代，絕不建立 per-request provider、pool、handler、credential 或 timer。
+        /// </summary>
+        /// <param name="configuration">deployment-owned DynamicsAccess 設定。</param>
+        /// <param name="injectedClient">由受控 DI 或測試擁有的 typed facade；不可由 caller request 提供。</param>
+        /// <returns>gate 關閉為 null，完整且有效設定時回傳 stateless client。</returns>
+        public static IPackage03SpecialResourceClient? TryCreatePackage03MemberInfoFullContactImageReadClient(
+            IConfiguration configuration,
+            IPackage03SpecialResourceClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage03MemberInfoFullContactImageReadEnabled(configuration))
+            {
+                return null;
+            }
+
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package03 MemberInfo full contact-image display operations");
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            return new Package03SpecialResourceClient(
+                CreatePackage03Executor(productOptions, configuration),
+                NullLogger<Package03SpecialResourceClient>.Instance);
+        }
+
+        /// <summary>
         /// 讀取 P7.4 MemberInfo 承諾類型 metadata 的獨立 Package03 consumer gate。base gate 只表示 Package03
         /// composition 可以被部署考慮；本 sub-gate 才是 ORG-CALL-00040 的可回復邊界，兩者都必須明確 true／1。
         /// 缺值、空白、僅開啟圖片 base gate 或任何其他文字都 fail closed，因此不會在 user/session hydration、

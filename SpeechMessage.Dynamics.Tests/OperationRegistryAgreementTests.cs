@@ -7,8 +7,8 @@
 //    response branch、無界 paging 或不同的 template revision。
 // 2. JSON 文件只在 test method 範圍內以 using 持有並立即 dispose；測試不建立 HTTP、認證、Token、queue
 //    或背景 work，因此不會把輸入檔案內容跨測試或跨設定檔世代保存。
-// 3. 只有 registry 的二十七列可帶 response policy；metadata 只能宣告 OptionSet pure-value branch，
-//    不得把 CRM metadata graph、URL 或 OData extension 資料透過 matrix 誤標為產品可回傳資料。
+// 3. registry policy 可來自 immutable 70-row source call-site 或其明確可追溯的 derived mapping；兩者合併後
+//    每個 capability 仍只能有一列，避免把 CRM metadata graph、URL 或 OData extension 資料誤標為產品可回傳資料。
 // ============================================================================
 
 using System.Text.Json;
@@ -39,10 +39,7 @@ public sealed class OperationRegistryAgreementTests
             .GetString()
             .Should().Be("enforced");
 
-        var rows = document.GetProperty("normalizedCallSites")
-            .EnumerateArray()
-            .Select(row => row.Clone())
-            .ToArray();
+        var rows = GetRegistryAgreementRows(document);
 
         foreach (var definition in Package01OperationRegistry.All)
         {
@@ -60,17 +57,15 @@ public sealed class OperationRegistryAgreementTests
     }
 
     /// <summary>
-    /// matrix 只允許目前 registry 所擁有的二十七列宣告 response policy；這防止尚未投產的 call site 偽裝成
-    /// 可回傳的 typed payload，也能確保 metadata row 的封閉 pure-value branch 和有限政策受到 CI 鎖定。
+    /// matrix 只允許目前 registry 所擁有的 capability 宣告 response policy；immutable source call-site 與
+    /// derived mapping 合併後仍須一對一，這防止尚未投產的 call site 偽裝成可回傳的 typed payload，也能確保
+    /// metadata row 的封閉 pure-value branch 和有限政策受到 CI 鎖定。
     /// </summary>
     [Fact]
     public void Matrix_response_policy_is_present_for_exactly_current_registry_rows()
     {
         using var matrix = OpenMatrix();
-        var rows = matrix.RootElement.GetProperty("normalizedCallSites")
-            .EnumerateArray()
-            .Select(row => row.Clone())
-            .ToArray();
+        var rows = GetRegistryAgreementRows(matrix.RootElement);
 
         var responsePolicyRows = rows
             .Where(row => row.TryGetProperty("responseKind", out _))
@@ -84,7 +79,7 @@ public sealed class OperationRegistryAgreementTests
             .OrderBy(id => id, StringComparer.Ordinal)
             .ToArray();
 
-        responsePolicyRows.Should().HaveCount(27);
+        responsePolicyRows.Should().HaveCount(registryIds.Length);
         matrixIds.Should().Equal(registryIds);
 
         foreach (var row in responsePolicyRows)
@@ -97,9 +92,58 @@ public sealed class OperationRegistryAgreementTests
     }
 
     /// <summary>
-    /// schema 必須宣告封閉 discriminator、有限整數範圍及只允許二十七個 registry rows 填入政策的條件，否則
-    /// matrix 即使通過 JSON parse 仍可能接受未審查的資料外洩或記憶體保留契約。此檢查不載入網路 schema，
-    /// 只讀 repository 內版本化檔案。
+    /// derived mapping 只能重述既有 immutable source call-site 的另一個封閉 DTO contract：每列必須回指剛好
+    /// 一個 source ID、使用不同 capability ID，且不得重複任一 source 或其他 derived capability。故障模型是
+    /// 以 derived array 偷渡新的 CRM 呼叫或覆蓋來源 contract；決定性斷言是在任何 connector/CE 互動前拒絕。
+    /// </summary>
+    [Fact]
+    public void Derived_registry_mappings_are_traceable_to_exactly_one_distinct_source_capability()
+    {
+        using var matrix = OpenMatrix();
+        var document = matrix.RootElement;
+        var sourceRows = document.GetProperty("normalizedCallSites")
+            .EnumerateArray()
+            .Select(row => row.Clone())
+            .ToArray();
+        var derivedRows = document.GetProperty("derivedOperationMappings")
+            .EnumerateArray()
+            .Select(row => row.Clone())
+            .ToArray();
+
+        sourceRows.Should().HaveCount(70, "normalizedCallSites 是 immutable 70-row source inventory");
+
+        var sourceOperationIds = sourceRows
+            .Select(row => row.GetProperty("capabilityOperationId").GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+        var derivedOperationIds = derivedRows
+            .Select(row => row.GetProperty("capabilityOperationId").GetString()!)
+            .ToArray();
+        derivedOperationIds.Should().OnlyHaveUniqueItems(
+            "一個 derived capability 只能有一筆 machine-readable policy");
+        derivedOperationIds.Should().NotIntersectWith(sourceOperationIds,
+            "derived mapping 不可覆蓋 immutable source capability");
+
+        foreach (var derivedRow in derivedRows)
+        {
+            var sourceId = derivedRow.GetProperty("id").GetString();
+            var matchingSources = sourceRows
+                .Where(sourceRow => string.Equals(
+                    sourceRow.GetProperty("id").GetString(),
+                    sourceId,
+                    StringComparison.Ordinal))
+                .ToArray();
+            matchingSources.Should().ContainSingle(
+                $"derived mapping {derivedRow.GetProperty("capabilityOperationId").GetString()} 必須回指唯一 source call-site");
+            derivedRow.GetProperty("capabilityOperationId").GetString().Should()
+                .NotBe(matchingSources[0].GetProperty("capabilityOperationId").GetString(),
+                    "derived mapping 必須是另一個封閉 DTO contract，而非重標來源 capability");
+        }
+    }
+
+    /// <summary>
+    /// schema 必須宣告封閉 discriminator、有限整數範圍及只允許目前 registry capability 填入政策的條件；
+    /// derived mapping 必須重用同一個 source-row schema，避免新增未審查的資料外洩或記憶體保留契約。
+    /// 此檢查不載入網路 schema，只讀 repository 內版本化檔案。
     /// </summary>
     [Fact]
     public void Matrix_schema_declares_closed_response_policy_contract()
@@ -127,6 +171,17 @@ public sealed class OperationRegistryAgreementTests
         properties.GetProperty("maximumCumulativeResponseBytes").GetProperty("minimum").GetInt32().Should().BeGreaterThan(0);
         properties.GetProperty("maximumResultItemCount").GetProperty("minimum").GetInt32().Should().BeGreaterThan(0);
         normalizedCallSite.TryGetProperty("allOf", out _).Should().BeTrue();
+
+        var derivedMappings = schema.RootElement
+            .GetProperty("properties")
+            .GetProperty("derivedOperationMappings");
+        derivedMappings.GetProperty("items").GetProperty("$ref").GetString()
+            .Should().Be("#/$defs/normalizedCallSite");
+        schema.RootElement.GetProperty("required")
+            .EnumerateArray()
+            .Select(value => value.GetString())
+            .Should().Contain("derivedOperationMappings",
+                "registry agreement 需要明確區分 immutable source inventory 與 derived mapping");
     }
 
     private static void AssertDefinitionMatchesRow(OperationDefinition definition, JsonElement row)
@@ -183,6 +238,22 @@ public sealed class OperationRegistryAgreementTests
         var versionEvidence = row.GetProperty("versionEvidence");
         AssertEvidenceDeclared(versionEvidence.GetProperty("v8_2"), "v8.2", definition.CapabilityOperationId);
         AssertEvidenceDeclared(versionEvidence.GetProperty("v9_1"), "v9.1", definition.CapabilityOperationId);
+    }
+
+    /// <summary>
+    /// 合併 immutable source call-site 與 derived registry mapping。前者仍是固定 70-row inventory；後者只可
+    /// 為同一 legacy call-site 建立不同且封閉的 DTO response contract，不能藉此增加未盤點的 CRM 呼叫。
+    /// 每個 JsonElement 都 clone 成 method-owned value，原始 JsonDocument 仍由呼叫端 using 釋放。
+    /// </summary>
+    private static JsonElement[] GetRegistryAgreementRows(JsonElement document)
+    {
+        var normalizedRows = document.GetProperty("normalizedCallSites")
+            .EnumerateArray()
+            .Select(row => row.Clone());
+        var derivedRows = document.GetProperty("derivedOperationMappings")
+            .EnumerateArray()
+            .Select(row => row.Clone());
+        return normalizedRows.Concat(derivedRows).ToArray();
     }
 
     private static void AssertEvidenceDeclared(JsonElement evidence, string ceVersion, string operationId)

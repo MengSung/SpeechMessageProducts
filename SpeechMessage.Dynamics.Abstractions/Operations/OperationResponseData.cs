@@ -141,7 +141,10 @@ public enum OperationResponseKind
     /// 有界文字，不含 CRM Entity、lookup、profile、session、credential、lease、stream 或取消狀態；
     /// 因此 connector 完成並釋放外部資源後，產品層仍只能取得 request-local 值快照。
     /// </summary>
-    MemberInfoPresentRecordReadRecords = 19
+    MemberInfoPresentRecordReadRecords = 19,
+
+    /// <summary> P7.4 聯絡人顯示聯集：影像、LINE 重新導向或預設頭像。 </summary>
+    ContactImageDisplay = 20
 }
 
 /// <summary>
@@ -188,6 +191,7 @@ public sealed class OperationResponseData
         ContactOwnerAssignmentResponseData? contactOwnerAssignment = null,
         ContactListTransferResponseData? contactListTransfer = null,
         ContactImageResponseData? contactImage = null,
+        ContactImageDisplayResponseData? contactImageDisplay = null,
         ContactImageUpdateResponseData? contactImageUpdate = null,
         IReadOnlyList<OptionSetOptionRecord>? optionSetOptions = null,
         IReadOnlyList<MeetingStatisticRecord>? meetingStatistics = null,
@@ -222,6 +226,7 @@ public sealed class OperationResponseData
             contactOwnerAssignment,
             contactListTransfer,
             contactImage,
+            contactImageDisplay,
             contactImageUpdate,
             optionSetOptions,
             meetingStatistics,
@@ -246,6 +251,7 @@ public sealed class OperationResponseData
         ContactOwnerAssignment = contactOwnerAssignment;
         ContactListTransfer = contactListTransfer;
         ContactImage = contactImage;
+        ContactImageDisplay = contactImageDisplay;
         ContactImageUpdate = contactImageUpdate;
         OptionSetOptions = optionSetOptions?.ToArray();
         MeetingStatistics = meetingStatistics?.ToArray();
@@ -363,6 +369,11 @@ public sealed class OperationResponseData
     [JsonPropertyName("contactImage")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ContactImageResponseData? ContactImage { get; }
+
+    /// <summary> P7.4 顯示聯集；建構時只允許一個已驗證分支，且不保留上游可變資料。 </summary>
+    [JsonPropertyName("contactImageDisplay")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactImageDisplayResponseData? ContactImageDisplay { get; }
 
     /// <summary>
     /// P7.3 image write 的最小 read-back-confirmed 結果。它不包含 contact、image、hash、baseline 或 CRM response，
@@ -733,6 +744,23 @@ public sealed class OperationResponseData
     }
 
     /// <summary>
+    /// 建立 P7.4 聯絡人顯示聯集。display branch 已在其 factory 中完成資料驗證與防禦性複製；
+    /// envelope 只允許此單一 branch，避免影像、重新導向與頭像資料混合發布。
+    /// </summary>
+    public static OperationResponseData ForContactImageDisplay(
+        string operationId,
+        string ceVersion,
+        ContactImageDisplayResponseData contactImageDisplay)
+    {
+        ArgumentNullException.ThrowIfNull(contactImageDisplay);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.ContactImageDisplay,
+            contactImageDisplay: contactImageDisplay);
+    }
+
+    /// <summary>
     /// 建立 P7.3 image update 的封閉成功 branch。只有 Changed/ReadBackConfirmed 的合法配對能通過 union 驗證；
     /// timeout、ambiguous transport、read-back mismatch 或 cleanup uncertainty 必須由 executor 回傳失敗，不能呼叫此 factory。
     /// </summary>
@@ -828,6 +856,7 @@ public sealed class OperationResponseData
         ContactOwnerAssignmentResponseData? contactOwnerAssignment,
         ContactListTransferResponseData? contactListTransfer,
         ContactImageResponseData? contactImage,
+        ContactImageDisplayResponseData? contactImageDisplay,
         ContactImageUpdateResponseData? contactImageUpdate,
         IReadOnlyList<OptionSetOptionRecord>? optionSetOptions,
         IReadOnlyList<MeetingStatisticRecord>? meetingStatistics,
@@ -851,6 +880,7 @@ public sealed class OperationResponseData
                           (contactOwnerAssignment is null ? 0 : 1) +
                           (contactListTransfer is null ? 0 : 1) +
                           (contactImage is null ? 0 : 1) +
+                          (contactImageDisplay is null ? 0 : 1) +
                           (contactImageUpdate is null ? 0 : 1) +
                            (optionSetOptions is null ? 0 : 1) +
                            (meetingStatistics is null ? 0 : 1) +
@@ -897,6 +927,10 @@ public sealed class OperationResponseData
                 branchCount == 1 &&
                 contactImage is not null &&
                 IsValidContactImage(contactImage),
+            OperationResponseKind.ContactImageDisplay =>
+                branchCount == 1 &&
+                contactImageDisplay is not null &&
+                IsValidContactImageDisplay(contactImageDisplay),
             OperationResponseKind.ContactImageUpdate =>
                 branchCount == 1 &&
                 contactImageUpdate is not null &&
@@ -1174,6 +1208,40 @@ public sealed class OperationResponseData
     /// </summary>
     private static bool IsValidContactImage(ContactImageResponseData response)
         => Enum.IsDefined(response.MediaKind);
+
+    /// <summary>
+    /// 驗證 P7.4 顯示封閉聯集的唯一分支。驗證使用 getter 的複本，因此不會把可變位元組陣列外洩給 envelope 或後續請求。
+    /// </summary>
+    private static bool IsValidContactImageDisplay(ContactImageDisplayResponseData response)
+    {
+        try
+        {
+            return response.Kind switch
+            {
+                ContactImageDisplayKind.Image =>
+                    response.MediaKind is { } mediaKind &&
+                    Enum.IsDefined(mediaKind) &&
+                    response.LineRedirectUri is null &&
+                    response.GenderCode is null &&
+                    response.GetImageBytes().Length > 0,
+                ContactImageDisplayKind.LineRedirect =>
+                    response.MediaKind is null &&
+                    response.GenderCode is null &&
+                    response.LineRedirectUri is { IsAbsoluteUri: true } uri &&
+                    string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
+                    string.IsNullOrEmpty(uri.UserInfo) &&
+                    string.IsNullOrEmpty(uri.Fragment),
+                ContactImageDisplayKind.DefaultAvatar =>
+                    response.MediaKind is null &&
+                    response.LineRedirectUri is null,
+                _ => false
+            };
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// 驗證 image write 成功只能表示 Changed 加 ReadBackConfirmed。這避免 timeout-after-dispatch、partial update

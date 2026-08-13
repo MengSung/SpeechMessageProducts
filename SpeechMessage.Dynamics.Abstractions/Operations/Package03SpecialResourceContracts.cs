@@ -89,6 +89,115 @@ public sealed class ContactImageResponseData
 }
 
 /// <summary>
+/// P7.4 顯示回應唯一分支的種類。此 discriminator 僅表達輸出方式，不傳遞 CRM SDK、LINE 憑證、連線或請求身分資料。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ContactImageDisplayKind
+{
+    /// <summary>已驗證且由回應單獨擁有的 PNG/JPEG 位元組。</summary>
+    Image = 1,
+
+    /// <summary>已驗證的 HTTPS LINE 頭像重新導向網址。</summary>
+    LineRedirect = 2,
+
+    /// <summary>沒有影像與可接受 LINE 網址時使用的預設頭像性別碼。</summary>
+    DefaultAvatar = 3
+}
+
+/// <summary>
+/// P7.4 聯絡人影像顯示的封閉聯集。每個 factory 只建立一個分支；影像在輸入與輸出均複製，網址僅接受無帳密的絕對 HTTPS URI，避免跨請求保留可變資料或不受信任重新導向。
+/// </summary>
+public sealed class ContactImageDisplayResponseData
+{
+    private readonly byte[]? _imageBytes;
+
+    private ContactImageDisplayResponseData(
+        ContactImageDisplayKind kind,
+        byte[]? imageBytes,
+        ContactImageMediaKind? mediaKind,
+        Uri? lineRedirectUri,
+        int? genderCode)
+    {
+        Kind = kind;
+        _imageBytes = imageBytes?.ToArray();
+        MediaKind = mediaKind;
+        LineRedirectUri = lineRedirectUri;
+        GenderCode = genderCode;
+    }
+
+    /// <summary>建立影像分支；輸入陣列立即複製，呼叫端後續修改不會影響封裝結果。</summary>
+    public static ContactImageDisplayResponseData ForImage(byte[] imageBytes, ContactImageMediaKind mediaKind)
+    {
+        ArgumentNullException.ThrowIfNull(imageBytes);
+        if (imageBytes.Length == 0 || !Enum.IsDefined(mediaKind))
+        {
+            throw new ArgumentOutOfRangeException(nameof(imageBytes));
+        }
+
+        return new ContactImageDisplayResponseData(
+            ContactImageDisplayKind.Image,
+            imageBytes,
+            mediaKind,
+            lineRedirectUri: null,
+            genderCode: null);
+    }
+
+    /// <summary>建立 LINE 重新導向分支；僅接受絕對 HTTPS URI，拒絕帳密、fragment 與超過安全長度的值。</summary>
+    public static ContactImageDisplayResponseData ForLineRedirect(string lineRedirectUri)
+    {
+        if (string.IsNullOrWhiteSpace(lineRedirectUri) || lineRedirectUri.Length > 2048 ||
+            !Uri.TryCreate(lineRedirectUri, UriKind.Absolute, out var parsedUri) ||
+            !string.Equals(parsedUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            !string.IsNullOrEmpty(parsedUri.UserInfo) ||
+            !string.IsNullOrEmpty(parsedUri.Fragment))
+        {
+            throw new ArgumentException("lineRedirectUri is invalid.", nameof(lineRedirectUri));
+        }
+
+        return new ContactImageDisplayResponseData(
+            ContactImageDisplayKind.LineRedirect,
+            imageBytes: null,
+            mediaKind: null,
+            lineRedirectUri: parsedUri,
+            genderCode: null);
+    }
+
+    /// <summary>建立預設頭像分支；性別碼是可選純量，null 表示既有中性頭像策略。</summary>
+    public static ContactImageDisplayResponseData ForDefaultAvatar(int? genderCode)
+        => new(
+            ContactImageDisplayKind.DefaultAvatar,
+            imageBytes: null,
+            mediaKind: null,
+            lineRedirectUri: null,
+            genderCode: genderCode);
+
+    /// <summary>回應分支種類；消費者必須依此值選擇唯一輸出，而不可猜測其他屬性。</summary>
+    [JsonPropertyName("kind")]
+    public ContactImageDisplayKind Kind { get; }
+
+    /// <summary>影像媒體種類；僅在 <see cref="ContactImageDisplayKind.Image"/> 分支存在。</summary>
+    [JsonPropertyName("mediaKind")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContactImageMediaKind? MediaKind { get; }
+
+    /// <summary>已驗證的 LINE HTTPS URI；僅在 <see cref="ContactImageDisplayKind.LineRedirect"/> 分支存在。</summary>
+    [JsonPropertyName("lineRedirectUri")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Uri? LineRedirectUri { get; }
+
+    /// <summary>預設頭像的可選性別碼；僅在 <see cref="ContactImageDisplayKind.DefaultAvatar"/> 分支存在。</summary>
+    [JsonPropertyName("genderCode")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? GenderCode { get; }
+
+    /// <summary>取得影像的防禦性複本；非影像分支 fail-closed，不會回傳 null 或其他分支資料。</summary>
+    public byte[] GetImageBytes()
+        => Kind == ContactImageDisplayKind.Image
+            ? _imageBytes!.ToArray()
+            : throw new InvalidOperationException("The display response does not contain image bytes.");
+}
+
+/// <summary>
 /// image update 的最小封閉 response data。兩個 enum 配對由 <see cref="OperationResponseData"/> 驗證，
 /// 因此不能用未定義 enum 或未 read-back 的 transport success 偽造成功。
 /// </summary>

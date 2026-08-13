@@ -19,6 +19,13 @@ namespace SpeechMessage.Dynamics.ProductClient.SpecialResources;
 /// </summary>
 public interface IPackage03SpecialResourceClient
 {
+    /// <summary>以固定 P7.4 capability 取得聯絡人顯示聯集；取消 token 原樣傳遞且不接受 caller 選擇 operation、profile 或連線。</summary>
+    Task<ContactImageDisplayResult> RetrieveContactImageDisplayAsync(
+        ContactImageDisplayRetrieveRequest request,
+        CancellationToken cancellationToken = default)
+        => throw new NotSupportedException(
+            "The Package03 contact-image display capability is unavailable for this client implementation.");
+
     /// <summary>讀取單一已授權 contact 的封閉 image projection；回傳 bytes 為 defensive copy，不含 stream 或 CRM Entity。</summary>
     Task<ContactImageResult> RetrieveContactImageAsync(
         ContactImageRetrieveRequest request,
@@ -43,6 +50,85 @@ public interface IPackage03SpecialResourceClient
     Task<MeetingStatisticsRetrieveResult> RetrieveMeetingStatisticsAsync(
         MeetingStatisticsRetrieveRequest request,
         CancellationToken cancellationToken = default);
+}
+
+/// <summary>P7.4 顯示讀取請求；contactId 僅是經伺服器授權的 locator，profile/workload 由部署端驗證。</summary>
+public sealed record ContactImageDisplayRetrieveRequest
+{
+    /// <summary>部署端固定的 Dynamics profile alias。</summary>
+    public required string ProfileAlias { get; init; }
+
+    /// <summary>部署端固定的 workload subject。</summary>
+    public required string WorkloadSubjectId { get; init; }
+
+    /// <summary>經伺服器 CanViewContact 驗證的聯絡人識別碼。</summary>
+    public required Guid ContactId { get; init; }
+}
+
+/// <summary>P7.4 顯示結果；只暴露封閉聯集，不暴露 CRM Entity、stream、session 或原始 response。</summary>
+public sealed class ContactImageDisplayResult
+{
+    private readonly byte[]? _imageBytes;
+
+    private ContactImageDisplayResult(
+        ContactImageDisplayKind kind,
+        byte[]? imageBytes,
+        ContactImageMediaKind? mediaKind,
+        Uri? lineRedirectUri,
+        int? genderCode)
+    {
+        Kind = kind;
+        _imageBytes = imageBytes?.ToArray();
+        MediaKind = mediaKind;
+        LineRedirectUri = lineRedirectUri;
+        GenderCode = genderCode;
+    }
+
+    /// <summary>由 abstraction 顯示 union 建立結果，並複製 image bytes。</summary>
+    public static ContactImageDisplayResult FromResponse(ContactImageDisplayResponseData response)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        return response.Kind switch
+        {
+            ContactImageDisplayKind.Image => new(
+                response.Kind,
+                response.GetImageBytes(),
+                response.MediaKind,
+                null,
+                null),
+            ContactImageDisplayKind.LineRedirect => new(
+                response.Kind,
+                null,
+                null,
+                response.LineRedirectUri,
+                null),
+            ContactImageDisplayKind.DefaultAvatar => new(
+                response.Kind,
+                null,
+                null,
+                null,
+                response.GenderCode),
+            _ => throw new InvalidOperationException("Unknown contact-image display branch.")
+        };
+    }
+
+    /// <summary>顯示分支 discriminator。</summary>
+    public ContactImageDisplayKind Kind { get; }
+
+    /// <summary>影像媒體種類；僅 Image 分支存在。</summary>
+    public ContactImageMediaKind? MediaKind { get; }
+
+    /// <summary>LINE HTTPS 重新導向 URI；僅 LineRedirect 分支存在。</summary>
+    public Uri? LineRedirectUri { get; }
+
+    /// <summary>預設頭像性別碼；僅 DefaultAvatar 分支存在。</summary>
+    public int? GenderCode { get; }
+
+    /// <summary>取得影像防禦性複本；其他分支呼叫時 fail-closed。</summary>
+    public byte[] GetImageBytes()
+        => Kind == ContactImageDisplayKind.Image
+            ? _imageBytes!.ToArray()
+            : throw new InvalidOperationException("The display result does not contain image bytes.");
 }
 
 /// <summary>image retrieve 的最小產品輸入；ContactId 必須已在產品授權 scope 中，profile/workload 不能由終端使用者任意指定。</summary>
