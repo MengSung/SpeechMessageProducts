@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 12
-- **Last Active**: 2026-08-13
+- **Total Sessions**: 13
+- **Last Active**: 2026-08-14
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~421 | Active |
+| `journal-1.md` | ~456 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 13 | 2026-08-14 | P7.4 MemberInfo 出席紀錄 typed read | `f88c8392`, `85b57b6e`, `dfc3d4bf` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 12 | 2026-08-13 | P7.4 認證聯絡人唯讀安全邊界 | `fa60f6fe` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 11 | 2026-08-13 | P7.4 legacy admission boundary | `0ee9eeab` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 10 | 2026-08-12 | 完成 P7.2 本機候選版品質閘門與安全收尾 | `9b14df72`, `d0eb0993`, `1566d5f4`, `344c621e`, `70f06551` | `1.0.0.3.Gateway&Embedded.Worktree` |

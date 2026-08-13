@@ -419,3 +419,38 @@ Completed and archived P7.1: six fixed Package01 Data8 read capabilities passed 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 13: P7.4 MemberInfo 出席紀錄 typed read
+
+**Date**: 2026-08-14
+**Task**: P7.4 MemberInfo 出席紀錄 typed read
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成並封存 ORG-CALL-00026 disabled-by-default DTO-only 出席紀錄讀取；完整 solution Release tests 與 Release build 通過，Gemini PASS、Claude session limit 降級，未執行 CE、流量、P7.5 或 P8。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f88c8392` | (see git log) |
+| `85b57b6e` | (see git log) |
+| `dfc3d4bf` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
