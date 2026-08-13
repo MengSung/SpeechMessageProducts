@@ -229,6 +229,12 @@ P3～P6、P7.0、P7.1、P7.2、P7.3 都是封存 baseline；Official Worker live
 exact cleanup 完成，永久不可 replay。新封存的 P7.2 payment fresh-fixture control plane 維持
 `CeDispatchAllowed=false` 與 `ProductConsumerAllowed=false`，只代表 local planning/admission evidence。
 
+`ORG-CALL-00047` 的獨立 source audit 已判定為 local design no-go：legacy `GetListManager` 是 mutable
+login/list workflow，沒有 request-local server-derived list authorization；static list 與 dynamic list 有不同語意，
+後者直接執行 CRM `list.query` 保存的 FetchXML。不得以 static-only count、caller listId、raw query／SDK object
+或 ToolUtility fallback 假裝完成遷移。這只封鎖該 capability 的直接 migration，不阻擋其他 P7 family；未來必須
+先建立獨立 authorization/template boundary，再重新評估。
+
 P7.4 已完成 15 個 local child，所有 checked-in gate 維持 false。這些成果不得誤稱為 consumer cutover、
 CE、Dedicated、Central 或 traffic evidence，也不能改寫 70-row matrix 的 legacy consumer 狀態。已確認
 `ORG-CALL-00066` fee-editor endpoint 已封存且不得重做；下一 child 必須從尚未安全分流的 capability family

@@ -1,0 +1,3 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"驗證 no-go 沒有把 mutable session、shared singleton 或資料庫 query 視為授權來源。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"驗證記錄包含 isolation、cleanup、cache、fault 與 fail-closed 的關鍵檢查。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md","reason":"驗證 child 沒有越權宣稱 P7.5 removal 或 P8 readiness。"}

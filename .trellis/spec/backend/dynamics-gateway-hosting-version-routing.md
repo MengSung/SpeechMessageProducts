@@ -3433,6 +3433,113 @@ The correct form preserves the full user/profile/generation boundary, makes
 the caller the single resource owner, and gives later P7.4/P7.5 work a
 testable condition instead of an unsafe migration shortcut.
 
+## Scenario: CRM-stored dynamic query is not a Gateway capability template
+
+### 1. Scope / Trigger
+
+Apply this scenario when a legacy CRM entity stores FetchXML, OData, a query
+fragment, a filter expression, a view definition, or another executable query
+description that a proposed Gateway/Data8/ProductClient capability would read
+and execute. A syntactically valid CRM record identifier is a locator only; it
+does not establish the caller's authorization to use the record, select a
+query strategy, or execute a query stored in the record.
+
+### 2. Signatures
+
+```text
+ResolveAuthorizedResource(
+    ValidatedRequestScope scope,
+    ResourceLocator candidate)
+    -> AuthorizedResource | fixed denial
+
+ExecuteFixedOperation(
+    AuthorizedResource resource,
+    BoundedRequest request)
+    -> BoundedResponse | fixed failure
+```
+
+`ValidatedRequestScope` contains server-derived subject/workload, product,
+authorization scope, profile alias and runtime generation. `ResourceLocator`
+is not a profile, credential, endpoint, connector, organization, operation,
+query type or executable query. The operation registry, not CRM row data,
+selects every executable query/template.
+
+### 3. Contracts
+
+- Validate the complete request-local authorization boundary before reading the
+  resource, resolving a profile, allocating a connector/lease, inspecting a
+  stored query, consulting a cache or performing outbound I/O.
+- CRM-stored FetchXML/OData/filter text is data, never a Gateway executable
+  template. Do not pass it to `FetchExpression`, `QueryExpression`, a worker,
+  Data8, ProductClient, IPC frame, queue, cache or fallback service.
+- Static and dynamic resource semantics are separate capabilities. A
+  static-only implementation must not be advertised as a migration of a legacy
+  use case that also supports dynamic resources. Dynamic behavior must use a
+  registry-reviewed server-owned named template, or remain `temporary-legacy`.
+- ProductClient DTOs contain only bounded, immutable inputs and outputs. They
+  never expose raw CRM query text, `Entity`, `EntityCollection`, SDK query
+  objects, endpoint, credential, profile or connector state.
+- Missing authorization, unknown resource kind, unregistered dynamic template,
+  malformed data, timeout, cancellation, fault, partial result or cleanup
+  uncertainty fails closed. Do not retry an uncertain dispatch or fall back to
+  a shared ToolUtility/Factory CRM service.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Caller supplies only a CRM record ID without proven server-derived visibility | Fixed denial before resource/query I/O. |
+| Legacy record contains dynamic FetchXML/OData/filter text | Do not execute or transfer it; retain legacy until a separately registered template exists. |
+| A proposed migration handles only static rows while legacy handles static and dynamic rows | Record partial-migration no-go; do not enable a consumer/gate. |
+| Query kind, template registration, result bound or authorization is ambiguous | Fail closed without cache, fallback or connector reuse. |
+| Connector dispatch faults, cancels, times out or has uncertain cleanup | Evict/release according to the owning lease policy; do not replay or use shared legacy transport. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** a server-authorized static resource maps to one named registry
+  operation with a fixed projection and count-only bounded response.
+- **Base:** a dynamic legacy resource remains `temporary-legacy`; no typed
+  path, CE evidence, traffic change or removal claim is emitted.
+- **Bad:** a ProductClient receives `listId` as the only authority, reads the
+  CRM row's stored FetchXML and executes it, or silently returns a static count
+  for a dynamic resource. Each bypasses authorization or changes legacy
+  semantics.
+
+### 6. Tests Required
+
+1. Test that an otherwise valid resource ID outside the request-local
+   server-derived allowlist is rejected before cache/profile/client/query I/O.
+2. Test static/dynamic distinction, missing template and malformed stored query
+   all fail closed without raw query publication, fallback or retry.
+3. Test bounded response, cancellation/fault eviction and deterministic lease
+   release; where a capability is implemented, include interleaved A/B scope,
+   profile and generation markers.
+4. Test that a static-only capability cannot be wired to a legacy consumer that
+   has dynamic semantics; retain the matrix consumer as `temporary-legacy`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var row = service.Retrieve("list", callerListId, new ColumnSet("query"));
+return service.RetrieveMultiple(new FetchExpression(row.GetAttributeValue<string>("query")));
+```
+
+#### Correct
+
+```text
+validate request-local server scope
+  -> prove candidate resource is authorized
+  -> select one server-owned registry operation
+  -> execute only its fixed bounded query
+  -> map a bounded DTO or fail closed
+```
+
+The correct flow treats the identifier as a candidate locator and treats CRM
+query text as non-executable data. It preserves isolation and legacy semantics
+without inventing a partial migration shortcut.
+
 ## Scenario: Partial capability replacement inside a legacy mutation composite
 
 ### 1. Scope / Trigger

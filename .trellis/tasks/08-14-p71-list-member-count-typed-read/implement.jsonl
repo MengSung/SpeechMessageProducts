@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/index.md","reason":"本 child 僅記錄安全邊界，但必須依後端隔離、資源生命週期與 fail-closed 規範審查 legacy 資料流。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"用於判定 session、shared ToolUtility service、caller listId 與跨請求狀態不可作為 Gateway 授權邊界。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"用於檢查 no-go 決策是否涵蓋權限、快取、資源所有權與回復條件。"}
+{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"ORG-CALL-00047 的 capability 定義與原始來源。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"後續 P7 工作唯一排程基準與 temporary-legacy 證據。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md","reason":"P7.1、P7.5 與 P8 的不可提前升格規則。"}
