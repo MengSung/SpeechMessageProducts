@@ -1,7 +1,7 @@
 {
   "id": "p74-dedication-capability-identity-audit",
   "title": "P7.4 奉獻能力對應與隔離稽核",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "M",
   "risk": "high",
   "domain": "backend-integration-security",
