@@ -1,0 +1,12 @@
+{
+    "id":  "p71-appnamed-list-catalog-typed-read",
+    "title":  "P7.1 app-named list catalog typed read capability",
+    "status":  "completed",
+    "complexity":  "L+",
+    "risk":  "medium",
+    "domain":  "dynamics-gateway",
+    "currentPhase":  "completed",
+    "nextAction":  "Archived after P7.1 local verification; select the next P7 child from the authoritative gap matrix.",
+    "createdAt":  "2026-08-13T19:55:00+08:00",
+    "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree"
+}
