@@ -80,6 +80,7 @@ public static class ProductClientServiceCollectionExtensions
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
         services.TryAddSingleton<IAppNamedListCatalogReadClient, AppNamedListCatalogReadClient>();
+        services.TryAddSingleton<ISmallGroupAppNamedListCatalogReadClient, SmallGroupAppNamedListCatalogReadClient>();
         services.TryAddSingleton<IAuthenticationContactReadClient, AuthenticationContactReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
@@ -113,6 +114,23 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IAppNamedListCatalogReadClient, AppNamedListCatalogReadClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 註冊 ORG-CALL-00065 的 stateless small-group app-named catalog ProductClient。
+    /// 此方法只加入 client descriptor，不建立 consumer、feature gate、CE traffic、cache、retry、background task 或
+    /// connector；Gateway/Embedded executor 仍是 transport、lease、permit 與 cancellation/fault cleanup 的單一 owner。
+    /// singleton 不保留 profile、workload、request、leader GUID、DTO 或 response，因此每次呼叫維持 request-local
+    /// 隔離並在完成後不留下可變 state。
+    /// </summary>
+    /// <param name="services">要加入封閉 small-group catalog client 的 composition root service collection。</param>
+    /// <returns>同一個 service collection，供 composition root 繼續鏈結。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsSmallGroupAppNamedListCatalogReads(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<ISmallGroupAppNamedListCatalogReadClient, SmallGroupAppNamedListCatalogReadClient>();
         return services;
     }
 

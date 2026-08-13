@@ -80,7 +80,7 @@ public static class Package01OperationRegistry
         => Definitions.ContainsKey(capabilityOperationId);
 
     /// <summary>
-    /// 建立目前二十五個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
+    /// 建立目前二十六個作業的 immutable 定義。每一列同時指定產品安全回應種類，因而 connector 不必猜測 JSON
     /// shape；新增 capability 時必須同步更新 matrix、projection、有限政策與 hash agreement test。
     /// </summary>
     private static IEnumerable<OperationDefinition> Build()
@@ -318,6 +318,21 @@ public static class Package01OperationRegistry
             templateKind: "fetchxml",
             templateId: "list.catalog.appnamed.v1",
             responseKind: OperationResponseKind.AppNamedListCatalogRecords,
+            data: "personal-data",
+            audit: "read-audit",
+            idempotency: "read-only");
+
+        // P7.1 App-named small-group catalog：這是 ORG-CALL-00014 的獨立 capability，不接受任何 caller parameter，
+        // 使 list 篩選、purpose、退出排除、leader projection、排序與 template 都維持 server-owned。此 immutable
+        // declaration 不建立 Data8 client、cache、retry、timer 或背景 work；未來 connector 的 page/buffer/lease 必須
+        // 在單一 request scope 內有界地釋放，不能因 registry 存在而接上 consumer、feature gate、CE 或 deployment。
+        yield return Def(
+            OperationIds.ListCatalogRetrieveAppNamedSmallGroups,
+            package: "package-1-list-catalog-reads",
+            kind: "read",
+            templateKind: "fetchxml",
+            templateId: "list.catalog.appnamed.smallgroups.v1",
+            responseKind: OperationResponseKind.SmallGroupAppNamedListCatalogRecords,
             data: "personal-data",
             audit: "read-audit",
             idempotency: "read-only");

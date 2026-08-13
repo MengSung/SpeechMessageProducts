@@ -363,3 +363,14 @@ ChurchReport consumer、不開 feature gate、不執行 CE、切流、P7.5 或 P
 其 ChurchReport consumer 目前持有共享 `EntityCollection` memory cache，尚未證明 request-local DTO 和完整
 isolation boundary；它維持 temporary-legacy，不能為了重用 registry 或加速交付而與 `00014` 合併、
 rehydrate Entity、共享 cache 或自動 cutover。
+
+### 2026-08-13 ORG-CALL-00065 app-named small-groups list catalog read（現行權威）
+
+`ORG-CALL-00014` 與 `ORG-CALL-00065` 都已以 scope-only commit/archive 完成本機 registry、Data8 fixed-query、
+closed response 與 ProductClient evidence，但沒有 consumer、CE、host 或 traffic evidence。00065 的
+`list.catalog.retrieve.appnamed.smallgroups` 保持與 00014 分離的 operation/template/response branch，固定投影 list
+scalar 與兩個 leader lookup 的 nullable GUID，並以有界 query、immutable DTO 與 A/B request-local isolation 測試
+交付 local-only evidence。ChurchReport legacy `EntityCollection` cache、feature gate、CE、traffic、P7.5 removal 與
+P8 仍不在 scope。最終 CCG reviewer 被限制在 45 秒：Gemini timeout、Claude session-limit，沒有 accepted usable
+output，紀錄為「雙模型未完成」。下一個 child 必須依 authoritative matrix 選取，且維持同樣的本機設計、TDD、build
+與 bounded review 規則。

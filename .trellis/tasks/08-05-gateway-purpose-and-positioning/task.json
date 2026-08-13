@@ -3,7 +3,7 @@
   "name": "gateway-purpose-and-positioning",
   "title": "Dynamics Gateway P5-P8 roadmap and positioning",
   "description": "Own the P5-P8 Dynamics Gateway roadmap. P3-P7.3 are archived baseline evidence; P7.4 is active and gate-disabled pending legacy/Gateway capacity proof, while P7.2 recurring payment-return work remains local-only. P7.5 awaits zero ToolUtility/CRM SDK product references, and P8 follows only after immutable P7.5 handoff and externally authorized deployment readiness.",
-  "currentBaseline": "2026-08-13: P3-P6 and P7.0/P7.3 are archived baseline; Official Worker live compatibility remains evidence-pending without blocking Data8-first local reads. Historical P7.2 Slice C is permanently closed after write-not-committed no-go and exact cleanup. ORG-CALL-00041 has local registry/Data8 fixed-query/closed-response/ProductClient evidence only, not consumer, CE, traffic or feature-gate evidence. The active P7.1 child now plans ORG-CALL-00014 app-named list catalog as a separate fixed-query DTO-only capability; ORG-CALL-00065 stays a distinct legacy consumer due to shared EntityCollection cache. P7.4 remains disabled-by-default local migration. P7.5 prerequisite report remains no-go with temporary-legacy rows and zero-reference/CE/host/parity/soak/drain/rollback gaps.",
+  "currentBaseline": "2026-08-13: P3-P6 and P7.0/P7.3 are archived baseline; Official Worker live compatibility remains evidence-pending without blocking Data8-first local reads. Historical P7.2 Slice C is permanently closed after write-not-committed no-go and exact cleanup. ORG-CALL-00014 and ORG-CALL-00065 have completed independent registry/Data8 fixed-query/closed-response/ProductClient local evidence and remain not-migrated for consumer/CE/host/traffic. The 00065 legacy consumer/shared EntityCollection state remains out of scope and temporary-legacy. Final bounded review for ORG-CALL-00065 was dual-model-incomplete (Gemini timeout; Claude session limit), with full local checks retained. P7.4 remains disabled-by-default local migration. P7.5 prerequisite report remains no-go with temporary-legacy rows and zero-reference/CE/host/parity/soak/drain/rollback gaps.",
   "status": "planning",
   "dev_type": null,
   "scope": "P5-P8 roadmap parent; P7.2 financial-write boundary and P7.4 disabled local consumer children own implementation while P7.5/P8 retain prerequisite gates.",
@@ -18,7 +18,7 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Complete the active P7.1 ORG-CALL-00014 app-named list catalog typed-read child: fixed server-owned query, bounded DTO-only Data8/ProductClient capability, local tests, scope-only commit and archive. Do not cut over a consumer, enable gates, issue CE requests, retry historical Slice C, start P7.5 removal or create P8 until their immutable handoff gates are green.",
+  "nextAction": "Select the next independently verifiable local P7 capability from the authoritative matrix. It must have a bounded DTO-only contract, no unresolved write adjacency/shared-state authorization defect, task-owned tests and scope-only commit/archive. Do not cut over a consumer, enable gates, issue CE requests, retry historical Slice C, start P7.5 removal or create P8 until their immutable handoff gates are green.",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",
@@ -31,14 +31,15 @@
     "08-12-churchreport-productclient-cutover",
     "08-13-p72-dedication-payment-return-write-boundary",
     "08-13-08-13-p71-dedication-booking-typed-read",
-    "08-13-p71-appnamed-list-catalog-typed-read"
+    "08-13-p71-appnamed-list-catalog-typed-read",
+    "08-13-08-13-p71-appnamed-smallgroups-list-catalog-typed-read"
   ],
   "parent": null,
   "relatedFiles": [
     ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
     ".trellis/tasks/08-12-churchreport-productclient-cutover/capacity-enablement-audit.md"
   ],
-  "notes": "Canonical route: P5 archived -> P6 Router/Pool/Lease local completion with Official Worker live compatibility evidence-pending -> P7.0-P7.5 ChurchReport migration -> ToolUtility removal -> independently authorized P8.0-P8.4 CentralGateway deployment. Historical P7.2 Slice C remains permanently closed after write-not-committed no-go and exact cleanup. ORG-CALL-00041 has local registry/Data8/ProductClient evidence only; it is not consumer, CE or cutover evidence. ORG-CALL-00014 is now an active P7.1 fixed-query app-named list-catalog typed-read child. ORG-CALL-00065 remains a distinct query/consumer and must not be cut over while its EntityCollection shared cache lacks a DTO-only isolation design. P7.4 local-only disabled candidates remain the active migration route. P7.5 prerequisite evidence remains deterministic no-go: temporary-legacy matrix rows and legacy source/project/settings plus CE/host/parity/soak/drain/rollback gaps remain. P7.5 removal and P8 remain gated.",
+  "notes": "Canonical route: P5 archived -> P6 Router/Pool/Lease local completion with Official Worker live compatibility evidence-pending -> P7.0-P7.5 ChurchReport migration -> ToolUtility removal -> independently authorized P8.0-P8.4 CentralGateway deployment. Historical P7.2 Slice C remains permanently closed after write-not-committed no-go and exact cleanup. ORG-CALL-00041 has local registry/Data8/ProductClient evidence only; it is not consumer, CE or cutover evidence. ORG-CALL-00014 and ORG-CALL-00065 are completed as separate fixed-query app-named list-catalog typed-read capabilities and remain consumer/CE/host pending. 00065's legacy shared EntityCollection consumer cannot be cut over until a later P7.4 DTO-only isolation design proves authorization, cache partitioning and rollback. P7.4 local-only disabled candidates remain the active migration route. P7.5 prerequisite evidence remains deterministic no-go: temporary-legacy matrix rows and legacy source/project/settings plus CE/host/parity/soak/drain/rollback gaps remain. P7.5 removal and P8 remain gated.",
   "meta": {
     "localExecutionHost": "Lenovo Legion",
     "p7Sequence": "P7.0-P7.5",

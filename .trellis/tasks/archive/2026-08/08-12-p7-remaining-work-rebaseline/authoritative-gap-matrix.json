@@ -2444,7 +2444,7 @@
         "status": "not-migrated"
       },
       "data8Executor": {
-        "status": "not-implemented"
+        "status": "implemented"
       },
       "hostEvidence": {
         "dedicated": "evidence-pending",
@@ -2457,16 +2457,16 @@
       "operationKind": "read",
       "p75RemovalBlocker": "consumer-not-migrated",
       "productClient": {
-        "status": "not-implemented"
+        "status": "implemented"
       },
       "registry": {
-        "status": "not-declared"
+        "status": "declared"
       },
       "rollback": {
-        "owner": "pending"
+        "owner": "p7.4-capability-owner"
       },
       "rollout": {
-        "owner": "pending"
+        "owner": "p7.4-capability-owner"
       },
       "specialResourceRequirement": "none",
       "temporaryLegacy": "temporary-legacy"
@@ -2665,6 +2665,6 @@
   "schemaVersion": "p7.remaining-work.rebaseline.v1",
   "sourceMatrix": {
     "callSiteCount": 70,
-    "sha256": "a940b81ec0223da688b82613ccd92cb113a01004141841bc4592ebd1abdcf755"
+    "sha256": "22d28141b0234f63b5e42e6b85f64e34fc1570fd38731aa93d503a79f5934752"
   }
 }

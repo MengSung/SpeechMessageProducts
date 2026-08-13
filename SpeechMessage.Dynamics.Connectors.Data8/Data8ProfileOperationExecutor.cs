@@ -437,6 +437,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.LessonsStorRetrieveByContact => true,
             OperationIds.LessonsStorRetrieveByDiscipleLesson => true,
             OperationIds.ListCatalogRetrieveAppNamed => true,
+            OperationIds.ListCatalogRetrieveAppNamedSmallGroups => true,
             OperationIds.MemberInfoContactUpdateBasicInfo => true,
             OperationIds.MemberInfoContactUpdateLineProfile => true,
             OperationIds.MemberInfoContactCountUngroupedCommitment => true,
@@ -1215,6 +1216,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationResponseKind.AppNamedListCatalogRecords =>
                 connectorData.AppNamedListCatalogRecords is not null &&
                 TryValidateAppNamedListCatalogRecords(connectorData.AppNamedListCatalogRecords, definition),
+            OperationResponseKind.SmallGroupAppNamedListCatalogRecords =>
+                connectorData.SmallGroupAppNamedListCatalogRecords is not null &&
+                TryValidateSmallGroupAppNamedListCatalogRecords(
+                    connectorData.SmallGroupAppNamedListCatalogRecords,
+                    definition),
             OperationResponseKind.AuthenticationContactReadRecords =>
                 connectorData.AuthenticationContactReadRecords is not null &&
                 TryValidateAuthenticationContactReadRecords(
@@ -1446,6 +1452,47 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 (record.LastUsedOn is { Offset: var offset } && offset != TimeSpan.Zero) ||
                 (record.Purpose is not null && !string.Equals(record.Purpose, "小組名單", StringComparison.Ordinal)) ||
                 !TryAddFixedBytes(ref bytes, 128, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.ListName, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.Purpose, definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 ORG-CALL-00065 的小組 App 點名名單 response 仍符合封閉 branch、row count、UTC、purpose、leader identity
+    /// 與 registry cumulative byte budget。executor 對 connector、測試替身與未來 adapter 再次執行此防禦，確保任何
+    /// 不可信資料都會在 lease scope 內被拒絕並由外層標記 client faulted，而不是發布已驗證前幾列的 partial response。
+    ///
+    /// 這裡只巡覽 immutable pure-value record，不保留 CRM Entity、EntityReference、formatted values、paging cookie、
+    /// profile、session、cache、stream 或 connector。每一 request 都使用新的 local byte counter，因此 A/B profile 或
+    /// workload 的 interleaved response 無法交叉累積、重用或洩漏 leader／名單資料。
+    /// </summary>
+    /// <param name="records">connector 在目前 request scope 投影後的 immutable 小組目錄 rows。</param>
+    /// <param name="definition">server-owned registry 的固定列數與 byte policy。</param>
+    /// <returns>所有 rows 都符合完整封閉契約時為 <see langword="true"/>。</returns>
+    private static bool TryValidateSmallGroupAppNamedListCatalogRecords(
+        IReadOnlyList<SmallGroupAppNamedListCatalogRecord> records,
+        OperationDefinition definition)
+    {
+        if (records.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var bytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null ||
+                record.ListId == Guid.Empty ||
+                (record.LastUsedOn is { Offset: var offset } && offset != TimeSpan.Zero) ||
+                (record.Purpose is not null && !string.Equals(record.Purpose, "小組名單", StringComparison.Ordinal)) ||
+                (record.RaceLeaderContactId is { } raceLeaderId && raceLeaderId == Guid.Empty) ||
+                (record.FamilyLeaderContactId is { } familyLeaderId && familyLeaderId == Guid.Empty) ||
+                !TryAddFixedBytes(ref bytes, 192, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.ListName, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.Purpose, definition.MaximumCumulativeResponseBytes))
             {

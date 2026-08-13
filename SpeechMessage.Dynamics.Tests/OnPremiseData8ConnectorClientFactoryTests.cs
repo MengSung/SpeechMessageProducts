@@ -868,6 +868,157 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護 ORG-CALL-00065 的固定小組 App 點名名單讀取契約：Data8 只能送出唯一的 <see cref="QueryExpression"/>
+    /// 與七個 allowlisted 欄位，並把兩個 CRM leader lookup 壓縮為 nullable contact GUID。
+    ///
+    /// 故障面包含 caller 不能控制的 entity、filter、排序與分頁；此 fake service 會逐一檢查實際 query，且在
+    /// EntityReference 上故意提供 Name，以證明 response 不會攜帶 display name、logical-name 字串、Entity、
+    /// formatted values、cookie 或其他 SDK graph。所有 CRM 物件都只存活在本次 client/lease scope，await using
+    /// 結束時唯一 service owner 必須 dispose 一次。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_the_fixed_app_named_small_group_catalog_query_and_projects_only_scalar_and_leader_guids()
+    {
+        var listId = Guid.Parse("a6666666-3333-2222-1111-000000000003");
+        var raceLeaderId = Guid.Parse("b6666666-3333-2222-1111-000000000003");
+        var familyLeaderId = Guid.Parse("c6666666-3333-2222-1111-000000000003");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                expression.EntityName.Should().Be("list");
+                expression.ColumnSet.Columns.Should().Equal(
+                    "listid",
+                    "listname",
+                    "createdfromcode",
+                    "lastusedon",
+                    "purpose",
+                    "new_contact_race_leager_list",
+                    "new_contact_family_leader_list");
+                expression.Criteria.Conditions.Should().HaveCount(4);
+                expression.Criteria.Conditions[0].AttributeName.Should().Be("statuscode");
+                expression.Criteria.Conditions[0].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[0].Values.Should().ContainSingle().Which.Should().Be(0);
+                expression.Criteria.Conditions[1].AttributeName.Should().Be("purpose");
+                expression.Criteria.Conditions[1].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[1].Values.Should().ContainSingle().Which.Should().Be("小組名單");
+                expression.Criteria.Conditions[2].AttributeName.Should().Be("new_app_named");
+                expression.Criteria.Conditions[2].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[2].Values.Should().ContainSingle().Which.Should().Be(true);
+                expression.Criteria.Conditions[3].AttributeName.Should().Be("listname");
+                expression.Criteria.Conditions[3].Operator.Should().Be(ConditionOperator.NotLike);
+                expression.Criteria.Conditions[3].Values.Should().ContainSingle().Which.Should().Be("%已退出%");
+                expression.Orders.Select(order => new { order.AttributeName, order.OrderType })
+                    .Should().Equal(
+                        new { AttributeName = "listname", OrderType = OrderType.Descending },
+                        new { AttributeName = "listid", OrderType = OrderType.Ascending });
+                expression.PageInfo.PageNumber.Should().Be(1);
+                expression.PageInfo.Count.Should().Be(128);
+                expression.PageInfo.PagingCookie.Should().BeNull();
+
+                return new EntityCollection(
+                [
+                    new Entity("list", listId)
+                    {
+                        ["listid"] = listId,
+                        ["listname"] = "小組測試名單",
+                        ["createdfromcode"] = new OptionSetValue(1),
+                        ["lastusedon"] = new DateTime(2026, 8, 13, 12, 0, 0, DateTimeKind.Utc),
+                        ["purpose"] = "小組名單",
+                        ["new_contact_race_leager_list"] = new EntityReference("contact", raceLeaderId)
+                        {
+                            Name = "must-not-cross-the-wire-race"
+                        },
+                        ["new_contact_family_leader_list"] = new EntityReference("contact", familyLeaderId)
+                        {
+                            Name = "must-not-cross-the-wire-family"
+                        }
+                    }
+                ]);
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListCatalogRetrieveAppNamedSmallGroups,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.SmallGroupAppNamedListCatalogRecords);
+        result.Data.SmallGroupAppNamedListCatalogRecords.Should().ContainSingle().Which.Should().BeEquivalentTo(
+            new SmallGroupAppNamedListCatalogRecord
+            {
+                ListId = listId,
+                ListName = "小組測試名單",
+                CreatedFromCodeOption = 1,
+                LastUsedOn = new DateTimeOffset(2026, 8, 13, 12, 0, 0, TimeSpan.Zero),
+                Purpose = "小組名單",
+                RaceLeaderContactId = raceLeaderId,
+                FamilyLeaderContactId = familyLeaderId
+            });
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.RetrieveCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護 ORG-CALL-00065 的單頁封閉回應規則：任何 <see cref="EntityCollection.MoreRecords"/> 或 paging cookie
+    /// 都代表上游 page 邊界不完整，必須在建立成功 envelope 前 fail closed，不能發布本頁已投影的 partial rows。
+    ///
+    /// 兩種故障注入分別模擬 CRM 宣告尚有下一頁，或錯誤地附帶 continuation cookie；決定性斷言是 ExecuteAsync
+    /// 拋出受控例外、只發生一次讀取，且 service 在 client 釋放時被 deterministic dispose。此測試不建立網路、
+    /// credential、cookie cache、timer 或背景工作，因此不會引入跨 profile/session 保留狀態。
+    /// </summary>
+    /// <param name="moreRecords">是否模擬 CRM 聲稱還有後續資料。</param>
+    /// <param name="pagingCookie">是否模擬 CRM 回傳不允許離開 lease scope 的 continuation token。</param>
+    [Theory]
+    [InlineData(true, null)]
+    [InlineData(false, "opaque-test-cookie")]
+    public async Task Created_client_rejects_paging_signals_for_the_single_page_app_named_small_group_catalog(
+        bool moreRecords,
+        string? pagingCookie)
+    {
+        var listId = Guid.Parse("d6666666-3333-2222-1111-000000000003");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            _ => new EntityCollection(
+            [
+                new Entity("list", listId)
+                {
+                    ["listid"] = listId,
+                    ["purpose"] = "小組名單"
+                }
+            ])
+            {
+                MoreRecords = moreRecords,
+                PagingCookie = pagingCookie
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListCatalogRetrieveAppNamedSmallGroups,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+
+        await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+        var action = async () => await client.ExecuteAsync(operation, CancellationToken.None);
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.RetrieveMultipleCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 驗證所有使用 stor-lesson executor 的 capability 都以 connector 擁有的 <c>lesson</c> inner link 讀取課程名稱、開課日期與
     /// 目前階段，並將 CRM 的 aliased UTC 日期與字串投影成純值 response。故障注入使用離線
     /// <see cref="IOrganizationService"/>，其 callback 會拒絕缺少 link 或遺漏欄位的 QueryExpression；決定性

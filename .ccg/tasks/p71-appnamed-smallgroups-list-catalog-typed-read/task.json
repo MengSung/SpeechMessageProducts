@@ -1,0 +1,12 @@
+{
+    "id":  "p71-appnamed-smallgroups-list-catalog-typed-read",
+    "title":  "P7.1 app-named small-groups list catalog typed read",
+    "status":  "completed",
+    "complexity":  "L+",
+    "risk":  "medium",
+    "domain":  "dynamics-gateway",
+    "currentPhase":  "completed",
+    "nextAction":  "Archive this CCG task with the related Trellis child; do not treat local completion as consumer, CE, P7.5, or P8 evidence.",
+    "createdAt":  "2026-08-13T22:30:00+08:00",
+    "branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree"
+}

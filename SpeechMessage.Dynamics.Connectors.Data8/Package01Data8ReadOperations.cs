@@ -54,6 +54,9 @@ internal static class Package01Data8ReadOperations
     private const string AppNamedListFlagAttribute = "new_app_named";
     private const string AppNamedListStatusCodeAttribute = "statuscode";
     private const string AppNamedListPurpose = "小組名單";
+    private const string AppNamedSmallGroupRaceLeaderAttribute = "new_contact_race_leager_list";
+    private const string AppNamedSmallGroupFamilyLeaderAttribute = "new_contact_family_leader_list";
+    private const string AppNamedSmallGroupLegacyExitNamePattern = "%已退出%";
 
     private const string DedicationBookingEntityName = "new_dedication_booking";
     private const string DedicationBookingIdAttribute = "new_dedication_bookingid";
@@ -151,6 +154,8 @@ internal static class Package01Data8ReadOperations
             OperationIds.LessonsStorRetrieveByContact => ExecuteStorLessonsByContact(service, operation, ceVersion),
             OperationIds.LessonsStorRetrieveByDiscipleLesson => ExecuteStorLessonsByDiscipleLesson(service, operation, ceVersion),
             OperationIds.ListCatalogRetrieveAppNamed => ExecuteAppNamedListCatalog(service, operation, ceVersion),
+            OperationIds.ListCatalogRetrieveAppNamedSmallGroups =>
+                ExecuteAppNamedSmallGroupListCatalog(service, operation, ceVersion),
             _ => throw new InvalidOperationException("The Data8 Package01 operation is not permitted.")
         };
     }
@@ -223,6 +228,68 @@ internal static class Package01Data8ReadOperations
         }
 
         throw new InvalidOperationException("The Data8 App-named list catalog query exceeded its page limit.");
+    }
+
+    /// <summary>
+    /// 執行 ORG-CALL-00065 的固定 App-named 小組名單目錄查詢。此 capability 與一般 App-named catalog 完全分離，
+    /// 不接受 list ID、名稱、leader、purpose、FetchXML、profile、endpoint 或任何 caller parameter；所有查詢條件、
+    /// projection、排序、128 筆上限與 response byte budget 都由 server-owned registry 和本方法共同固定。
+    ///
+    /// CRM page、EntityReference 與 Entity 僅存活在目前 Data8 lease 的同步 scope。此 operation 明確是單頁封閉讀取：
+    /// <see cref="EntityCollection.MoreRecords"/> 或任何 paging cookie 都表示可跨 request 延續的不完整資料，必須在
+    /// 投影或 envelope 發布前失敗。故障、取消或 schema 漂移會由外層 lease owner 依既有流程淘汰不可信 client，
+    /// 不保存 partial rows、cookie、session、profile 或快取資料。
+    /// </summary>
+    /// <param name="service">目前 Data8 lease 唯一擁有的 Organization service。</param>
+    /// <param name="operation">已由 executor allowlist 與 registry 驗證的固定 capability。</param>
+    /// <param name="ceVersion">deployment-owned profile 解析出的 CE 版本。</param>
+    /// <returns>只含 allowlisted scalar 和兩個 nullable leader GUID 的 immutable 小組目錄 branch。</returns>
+    private static OperationResponseData ExecuteAppNamedSmallGroupListCatalog(
+        IOrganizationService service,
+        ConnectorOperation operation,
+        string ceVersion)
+    {
+        var definition = GetDefinition(operation.OperationId, OperationResponseKind.SmallGroupAppNamedListCatalogRecords);
+        if (operation.Parameters is not { Count: 0 })
+        {
+            throw new InvalidOperationException("The Data8 App-named small-group list catalog operation parameters are invalid.");
+        }
+
+        var page = service.RetrieveMultiple(CreateAppNamedSmallGroupListCatalogQuery())
+            ?? throw new InvalidOperationException("The Data8 App-named small-group list catalog query returned no page.");
+        if (page.MoreRecords || page.PagingCookie is not null)
+        {
+            throw new InvalidOperationException("The Data8 App-named small-group list catalog paging contract is invalid.");
+        }
+
+        if (page.Entities.Count > MaximumRowsPerPage ||
+            page.Entities.Count > definition.MaximumResultItemCount)
+        {
+            throw new InvalidOperationException("The Data8 App-named small-group list catalog query exceeded its result limit.");
+        }
+
+        var records = new List<SmallGroupAppNamedListCatalogRecord>(page.Entities.Count);
+        var pageBytes = 0;
+        var cumulativeBytes = 0;
+        foreach (var entity in page.Entities)
+        {
+            var record = ProjectAppNamedSmallGroupListCatalogRecord(entity);
+            if (!TryAddAppNamedSmallGroupListCatalogRecordBytes(
+                    ref pageBytes,
+                    record,
+                    definition.MaximumPageBytes) ||
+                !TryAddAppNamedSmallGroupListCatalogRecordBytes(
+                    ref cumulativeBytes,
+                    record,
+                    definition.MaximumCumulativeResponseBytes))
+            {
+                throw new InvalidOperationException("The Data8 App-named small-group list catalog query exceeded its response budget.");
+            }
+
+            records.Add(record);
+        }
+
+        return OperationResponseData.ForSmallGroupAppNamedListCatalogRecords(operation.OperationId, ceVersion, records);
     }
 
     /// <summary>
@@ -614,6 +681,43 @@ internal static class Package01Data8ReadOperations
         query.Criteria.AddCondition(AppNamedListStatusCodeAttribute, ConditionOperator.Equal, 0);
         query.Criteria.AddCondition(AppNamedListPurposeAttribute, ConditionOperator.Equal, AppNamedListPurpose);
         query.Criteria.AddCondition(AppNamedListFlagAttribute, ConditionOperator.Equal, true);
+        query.AddOrder(AppNamedListNameAttribute, OrderType.Descending);
+        query.AddOrder(AppNamedListIdAttribute, OrderType.Ascending);
+        return query;
+    }
+
+    /// <summary>
+    /// 建立 ORG-CALL-00065 唯一允許的 App-named 小組名單 <see cref="QueryExpression"/>。欄位順序、active、
+    /// purpose、App 點名、歷史「已退出」名稱排除、排序及單頁容量全部固定；caller 不能由 parameter 改寫 query，
+    /// 也不能取得 FetchXML、paging cookie、profile、endpoint 或 credential。
+    ///
+    /// 此 query 只在目前 Data8 lease scope 傳入 <see cref="IOrganizationService.RetrieveMultiple(QueryBase)"/>。
+    /// operation 對 upstream paging 採 fail-closed 單頁契約，因此 query 不保存 continuation state，response 建立後
+    /// CRM Entity 與 EntityReference 都會離開 connector scope，避免跨 request/session/profile 保留。
+    /// </summary>
+    /// <returns>具有精確七欄 projection、四個固定 filters、穩定排序與 128-row page cap 的 query。</returns>
+    private static QueryExpression CreateAppNamedSmallGroupListCatalogQuery()
+    {
+        var query = new QueryExpression(AppNamedListEntityName)
+        {
+            ColumnSet = new ColumnSet(
+                AppNamedListIdAttribute,
+                AppNamedListNameAttribute,
+                AppNamedListCreatedFromCodeAttribute,
+                AppNamedListLastUsedOnAttribute,
+                AppNamedListPurposeAttribute,
+                AppNamedSmallGroupRaceLeaderAttribute,
+                AppNamedSmallGroupFamilyLeaderAttribute),
+            Criteria = new FilterExpression(LogicalOperator.And),
+            PageInfo = CreateInitialPageInfo()
+        };
+        query.Criteria.AddCondition(AppNamedListStatusCodeAttribute, ConditionOperator.Equal, 0);
+        query.Criteria.AddCondition(AppNamedListPurposeAttribute, ConditionOperator.Equal, AppNamedListPurpose);
+        query.Criteria.AddCondition(AppNamedListFlagAttribute, ConditionOperator.Equal, true);
+        query.Criteria.AddCondition(
+            AppNamedListNameAttribute,
+            ConditionOperator.NotLike,
+            AppNamedSmallGroupLegacyExitNamePattern);
         query.AddOrder(AppNamedListNameAttribute, OrderType.Descending);
         query.AddOrder(AppNamedListIdAttribute, OrderType.Ascending);
         return query;
@@ -1023,6 +1127,41 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 將固定 <c>list</c> Entity 投影為 ORG-CALL-00065 的小組目錄純值 record。每一欄都以精確 CLR 型別驗證；
+    /// list identity、option set、UTC date、purpose 與兩個 lookup 任一不一致都立即 fail closed，不以 formatted
+    /// values、<c>ToString</c>、裸 Guid 或 SDK graph 寬鬆修復 schema 漂移。
+    ///
+    /// leader lookup 只允許 <c>contact</c> 的非空 <see cref="EntityReference.Id"/>，並在此 scope 立即複製為
+    /// nullable Guid；不讀取或保存 Name、LogicalName 以外的值、Entity、EntityCollection、cookie、profile、
+    /// session 或 cache。因 record 僅在所有列驗證和 byte checks 後才發佈，後續 row 發生錯誤時不會回傳 partial result。
+    /// </summary>
+    /// <param name="entity">目前單頁 RetrieveMultiple 回傳、尚屬 connector request scope 的 list Entity。</param>
+    /// <returns>只含 allowlisted scalar 和 leader contact GUID 的 immutable small-group catalog record。</returns>
+    private static SmallGroupAppNamedListCatalogRecord ProjectAppNamedSmallGroupListCatalogRecord(Entity entity)
+    {
+        ValidateEntityIdentity(entity, AppNamedListEntityName, AppNamedListIdAttribute);
+        var createdFromCode = ReadOptionalValue<OptionSetValue>(entity, AppNamedListCreatedFromCodeAttribute);
+        var purpose = ReadOptionalString(entity, AppNamedListPurposeAttribute);
+        if (purpose is not null && !string.Equals(purpose, AppNamedListPurpose, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The Data8 App-named small-group list catalog purpose projection is invalid.");
+        }
+
+        var raceLeader = ReadOptionalValue<EntityReference>(entity, AppNamedSmallGroupRaceLeaderAttribute);
+        var familyLeader = ReadOptionalValue<EntityReference>(entity, AppNamedSmallGroupFamilyLeaderAttribute);
+        return new SmallGroupAppNamedListCatalogRecord
+        {
+            ListId = entity.Id,
+            ListName = ReadOptionalString(entity, AppNamedListNameAttribute),
+            CreatedFromCodeOption = createdFromCode?.Value,
+            LastUsedOn = ReadOptionalStrictUtcDateTime(entity, AppNamedListLastUsedOnAttribute),
+            Purpose = purpose,
+            RaceLeaderContactId = ReadContactEntityReferenceId(raceLeader),
+            FamilyLeaderContactId = ReadContactEntityReferenceId(familyLeader)
+        };
+    }
+
+    /// <summary>
     /// 讀取 operation registry 定義並確認回應分支。registry 宣告本身不是 connector 實作授權；此檢查
     /// 防止未來錯將 fee query 投影成 stor branch，或因 registry 漂移而降低目前 operation 的資源上限。
     /// </summary>
@@ -1289,6 +1428,33 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 從 ORG-CALL-00065 的 optional leader lookup 擷取 contact GUID。null 表示該 leader 尚未設定；存在時必須是
+    /// 具有非空 ID 且 logical name 精確為 <c>contact</c> 的 <see cref="EntityReference"/>，否則上游資料不可信
+    /// 而必須失敗。禁止接受裸 Guid、其他 entity reference 或任何可攜帶名稱／物件圖的替代 CLR 型別。
+    ///
+    /// 此 helper 的唯一輸出是 value-type Guid；不會保存 reference、Name、profile、session 或 connector 狀態。呼叫端
+    /// 只在目前 page projection 使用它，之後 record byte validation 失敗也不發布這個暫存值，維持 no-partial-result
+    /// 與跨使用者／跨 profile 隔離。
+    /// </summary>
+    /// <param name="reference">固定 leader 欄位的 optional CRM lookup reference。</param>
+    /// <returns>缺欄時為 null；有效 contact lookup 時為其 non-empty GUID。</returns>
+    private static Guid? ReadContactEntityReferenceId(EntityReference? reference)
+    {
+        if (reference is null)
+        {
+            return null;
+        }
+
+        if (reference.Id == Guid.Empty ||
+            !string.Equals(reference.LogicalName, ContactEntityName, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The Data8 App-named small-group leader reference is invalid.");
+        }
+
+        return reference.Id;
+    }
+
+    /// <summary>
     /// 累積 fee response 的保守序列化大小。每筆先保留固定結構開銷，再加所有可顯示字串；超限時
     /// 整個 operation 失敗，避免部分 financial 結果被誤視為完整成功。
     /// </summary>
@@ -1352,6 +1518,31 @@ internal static class Package01Data8ReadOperations
     {
         return record.ListId != Guid.Empty &&
                TryAddBytes(ref totalBytes, 128, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.ListName, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.Purpose, maximumBytes);
+    }
+
+    /// <summary>
+    /// 將小組 App 點名名單 record 的保守 DTO/JSON overhead、純文字與兩個 optional GUID 納入 page 或累積 byte
+    /// budget。所有加法都使用既有 checked helper，overflow、非法 UTF-16 surrogate 或上限超出均回傳 false；呼叫端
+    /// 隨即放棄整個尚未發布的結果，而非保留或發佈 partial collection。
+    ///
+    /// 此預算只存在目前 request-local loop，沒有 static counter、cache 或 session。leader 欄位若存在必須是非空 Guid，
+    /// 以免錯誤 projection 在小列資料下繞過 bytes bound 並把不可信 identity 傳給另一個 consumer/request。
+    /// </summary>
+    /// <param name="totalBytes">目前 page 或整次 response 的 request-local 累積位元組數。</param>
+    /// <param name="record">已完成 SDK graph 隔離的純值小組目錄 row。</param>
+    /// <param name="maximumBytes">registry 定義的固定 page 或 cumulative 上限。</param>
+    /// <returns>加入後仍具有有效 identity 並未超出上限時為 <see langword="true"/>。</returns>
+    private static bool TryAddAppNamedSmallGroupListCatalogRecordBytes(
+        ref int totalBytes,
+        SmallGroupAppNamedListCatalogRecord record,
+        int maximumBytes)
+    {
+        return record.ListId != Guid.Empty &&
+               (record.RaceLeaderContactId is not { } raceLeaderId || raceLeaderId != Guid.Empty) &&
+               (record.FamilyLeaderContactId is not { } familyLeaderId || familyLeaderId != Guid.Empty) &&
+               TryAddBytes(ref totalBytes, 192, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.ListName, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.Purpose, maximumBytes);
     }

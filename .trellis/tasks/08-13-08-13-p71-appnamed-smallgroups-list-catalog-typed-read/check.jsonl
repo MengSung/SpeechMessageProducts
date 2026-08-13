@@ -1,0 +1,5 @@
+{"phase":"check","file":"SpeechMessage.Dynamics.Tests/SpeechMessage.Dynamics.Tests.csproj","reason":"驗證 registry、Data8、ProductClient、A/B isolation、cancellation、bounds 與 DI lifetime。"}
+{"phase":"check","file":"SpeechMessageProducts.sln","reason":"child boundary必須執行完整 Release tests 與 build，避免跨專案契約漂移。"}
+{"phase":"check","file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"確認只更新 ORG-CALL-00065 的 local evidence，保留 consumer/CE/host/temporary legacy 真實狀態。"}
+{"phase":"check","file":".trellis/tasks/08-12-churchreport-productclient-cutover/capacity-enablement-audit.md","reason":"確認所有 feature gates 保持 false，local child 不宣稱 capacity/cutover evidence。"}
+{"phase":"check","file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"執行跨使用者、resource lifecycle、scope 與 forbidden-symbol 檢查。"}

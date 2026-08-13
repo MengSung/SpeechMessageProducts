@@ -125,7 +125,16 @@ public enum OperationResponseKind
     /// Data8、產品 consumer、CE 驗證或 deployment gate 已啟用；任何頁面/lease 資源仍由未來 connector request
     /// scope 的唯一 owner 在完成、取消、逾時或 fault 時釋放。
     /// </summary>
-    AppNamedListCatalogRecords = 17
+    AppNamedListCatalogRecords = 17,
+
+    /// <summary>
+    /// P7.1 App-named 小組名單目錄的 bounded pure-scalar projection。它與一般 app-named catalog 使用不同的
+    /// discriminator 與 wire record，額外只允許兩個 nullable leader contact GUID；不含 CRM Entity、EntityReference
+    /// 名稱、FetchXML、formatted-value 字典、cookie、profile、endpoint、credential、cache key 或 transport response。
+    /// 此值只建立 local typed contract，不代表 Data8、產品 consumer、CE 驗證或 deployment gate 已啟用；未來 page、
+    /// lease 與 transport 資源仍由 connector request scope 的唯一 owner 在完成、取消、逾時或 fault 時釋放。
+    /// </summary>
+    SmallGroupAppNamedListCatalogRecords = 18
 }
 
 /// <summary>
@@ -171,6 +180,7 @@ public sealed class OperationResponseData
         IReadOnlyList<MeetingStatisticRecord>? meetingStatistics = null,
         IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords = null,
         IReadOnlyList<AppNamedListCatalogRecord>? appNamedListCatalogRecords = null,
+        IReadOnlyList<SmallGroupAppNamedListCatalogRecord>? smallGroupAppNamedListCatalogRecords = null,
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords = null,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification =
             AuthenticationContactReadSafetyClassification.Safe)
@@ -203,6 +213,7 @@ public sealed class OperationResponseData
             meetingStatistics,
             dedicationBookingRecords,
             appNamedListCatalogRecords,
+            smallGroupAppNamedListCatalogRecords,
             authenticationContactReadRecords,
             authenticationContactReadSafetyClassification);
 
@@ -225,6 +236,7 @@ public sealed class OperationResponseData
         MeetingStatistics = meetingStatistics?.ToArray();
         DedicationBookingRecords = dedicationBookingRecords?.ToArray();
         AppNamedListCatalogRecords = appNamedListCatalogRecords?.ToArray();
+        SmallGroupAppNamedListCatalogRecords = smallGroupAppNamedListCatalogRecords?.ToArray();
         AuthenticationContactReadRecords = authenticationContactReadRecords?.ToArray();
         AuthenticationContactReadSafetyClassification = authenticationContactReadSafetyClassification;
     }
@@ -397,6 +409,16 @@ public sealed class OperationResponseData
     public IReadOnlyList<AppNamedListCatalogRecord>? AppNamedListCatalogRecords { get; }
 
     /// <summary>
+    /// P7.1 App-named 小組名單目錄的 immutable wire rows。constructor 在本次呼叫立即複製輸入集合，因此 upstream
+    /// connector、測試替身或序列化前 caller 無法在 envelope 發布後置換、加入或移除另一個 request 的資料。rows 僅含
+    /// allowlisted scalar 和 nullable leader GUID，不保存 CRM Entity、EntityReference 名稱、paging cookie、profile、
+    /// session、cache、stream、handle 或 cancellation registration；connector 必須在建立 envelope 前釋放其外部資源。
+    /// </summary>
+    [JsonPropertyName("smallGroupAppNamedListCatalogRecords")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<SmallGroupAppNamedListCatalogRecord>? SmallGroupAppNamedListCatalogRecords { get; }
+
+    /// <summary>
     /// 建立 WhoAmI branch。呼叫端在 connector request scope 完成原始 JSON 投影並 dispose 上游 response 後才可
     /// 呼叫；本方法只接受已投影的 GUID data，不接受 raw JSON 或 transport 物件。
     /// </summary>
@@ -480,6 +502,29 @@ public sealed class OperationResponseData
             ceVersion,
             OperationResponseKind.AppNamedListCatalogRecords,
             appNamedListCatalogRecords: appNamedListCatalogRecords.ToArray());
+    }
+
+    /// <summary>
+    /// 建立 P7.1 App-named 小組名單目錄的唯一成功 branch。<paramref name="smallGroupAppNamedListCatalogRecords"/>
+    /// 會在目前 request scope 立刻 materialize，之後 envelope 也會再 defensive-copy，使上游可變 collection 的
+    /// 生命週期不會越過 Gateway/ProductClient 邊界。呼叫端必須先完成固定 template、leader lookup scalar、分頁、
+    /// 列數與 byte 預算驗證並釋放 Data8 page、lease 與 transport；取消、逾時、fault 或任一頁失敗時不得發布 partial rows。
+    /// </summary>
+    /// <param name="operationId">固定的 server-owned ORG-CALL-00065 capability ID。</param>
+    /// <param name="ceVersion">由 deployment-owned profile 已選定的 CE API 版本。</param>
+    /// <param name="smallGroupAppNamedListCatalogRecords">本次 operation 投影出的純值、request-local 小組名單列。</param>
+    /// <returns>只具有 small-group catalog branch 的 immutable response envelope。</returns>
+    public static OperationResponseData ForSmallGroupAppNamedListCatalogRecords(
+        string operationId,
+        string ceVersion,
+        IEnumerable<SmallGroupAppNamedListCatalogRecord> smallGroupAppNamedListCatalogRecords)
+    {
+        ArgumentNullException.ThrowIfNull(smallGroupAppNamedListCatalogRecords);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.SmallGroupAppNamedListCatalogRecords,
+            smallGroupAppNamedListCatalogRecords: smallGroupAppNamedListCatalogRecords.ToArray());
     }
 
     /// <summary>
@@ -739,6 +784,7 @@ public sealed class OperationResponseData
         IReadOnlyList<MeetingStatisticRecord>? meetingStatistics,
         IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords,
         IReadOnlyList<AppNamedListCatalogRecord>? appNamedListCatalogRecords,
+        IReadOnlyList<SmallGroupAppNamedListCatalogRecord>? smallGroupAppNamedListCatalogRecords,
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification)
     {
@@ -760,6 +806,7 @@ public sealed class OperationResponseData
                            (meetingStatistics is null ? 0 : 1) +
                            (dedicationBookingRecords is null ? 0 : 1) +
                            (appNamedListCatalogRecords is null ? 0 : 1) +
+                           (smallGroupAppNamedListCatalogRecords is null ? 0 : 1) +
                            (authenticationContactReadRecords is null ? 0 : 1);
         var isValid = responseKind switch
         {
@@ -813,6 +860,7 @@ public sealed class OperationResponseData
                 IsValidMeetingStatistics(meetingStatistics),
             OperationResponseKind.Package01DedicationBookingRecords => branchCount == 1 && dedicationBookingRecords is not null,
             OperationResponseKind.AppNamedListCatalogRecords => branchCount == 1 && appNamedListCatalogRecords is not null,
+            OperationResponseKind.SmallGroupAppNamedListCatalogRecords => branchCount == 1 && smallGroupAppNamedListCatalogRecords is not null,
             OperationResponseKind.AuthenticationContactReadRecords =>
                 branchCount == 1 &&
                 authenticationContactReadRecords is not null &&
@@ -1379,6 +1427,67 @@ public sealed record AppNamedListCatalogRecord
     /// </summary>
     [JsonPropertyName("purpose")]
     public string? Purpose { get; init; }
+}
+
+/// <summary>
+/// P7.1 App-named 小組名單目錄的 immutable closed wire record。此 record 與一般 app-named catalog 明確分離，
+/// 只投影固定 template 可取得的七個 allowlisted scalar：list ID、名稱、created-from code、UTC last-used、purpose
+/// 及兩個 leader contact GUID。它不攜帶 CRM <c>Entity</c>、<c>EntityCollection</c>、<c>EntityReference.Name</c>、
+/// formatted values、QueryExpression、FetchXML、profile、credential、cookie、continuation 或 transport 資源。
+/// 每個實例只隨本次 response envelope 存活，集合 owner 會在 <see cref="OperationResponseData"/> 建構時 defensive-copy；
+/// connector 必須在建立 record 前完成 UTC 正規化、leader ID 複製與 page/byte/row bounds 驗證，並釋放 page、lease、
+/// stream。取消、逾時或 fault 不得發布 partial record 集合，也不得將資料存入 session、shared cache 或 static state。
+/// </summary>
+public sealed record SmallGroupAppNamedListCatalogRecord
+{
+    /// <summary>
+    /// 小組名單唯一識別碼。固定 projection 的有效列必須由 connector 驗證其非空；wire contract 使用 non-null GUID，
+    /// 使後續 consumer 不會從名稱、leader、profile 或 caller input 推導資料定位或授權範圍。
+    /// </summary>
+    [JsonPropertyName("listId")]
+    public Guid ListId { get; init; }
+
+    /// <summary>
+    /// 小組名單顯示名稱的純文字投影。它可為 null，以保留上游缺欄語意；UTF-8 byte budget、截斷拒絕與資料所屬
+    /// 隔離由 connector request scope 負責，record 不會將內容寫入 shared cache、log、session 或另一個 request。
+    /// </summary>
+    [JsonPropertyName("listName")]
+    public string? ListName { get; init; }
+
+    /// <summary>
+    /// CRM <c>createdfromcode</c> 的原始 option-set 數值。null 表示上游未提供值；禁止以 formatted label、
+    /// metadata graph 或 caller-selected locale 補值，避免 metadata/session state 越過封閉 response 邊界。
+    /// </summary>
+    [JsonPropertyName("createdFromCodeOption")]
+    public int? CreatedFromCodeOption { get; init; }
+
+    /// <summary>
+    /// CRM <c>lastusedon</c> 已正規化為 UTC 的時間值。null 保留上游缺值；connector 是唯一時區轉換 owner，
+    /// 必須在釋放 CRM page 前完成轉換，record 不保存時區快取、使用者 locale、session 或可變 DateTime graph。
+    /// </summary>
+    [JsonPropertyName("lastUsedOn")]
+    public DateTimeOffset? LastUsedOn { get; init; }
+
+    /// <summary>
+    /// CRM <c>purpose</c> 的純 scalar 投影。null 不代表 consumer 可補查或變更 server filter；固定 purpose 條件
+    /// 仍完全由 server-owned template 擁有，此欄位只用於安全呈現且不攜帶 Entity 或 query 資訊。
+    /// </summary>
+    [JsonPropertyName("purpose")]
+    public string? Purpose { get; init; }
+
+    /// <summary>
+    /// CRM <c>new_contact_race_leager_list</c> lookup 的純 GUID 投影。null 保留無 leader 語意；connector 只能複製
+    /// <c>EntityReference.Id</c>，不得保留名稱、EntityReference、本地快取或另一個 profile 的 contact graph。
+    /// </summary>
+    [JsonPropertyName("raceLeaderContactId")]
+    public Guid? RaceLeaderContactId { get; init; }
+
+    /// <summary>
+    /// CRM <c>new_contact_family_leader_list</c> lookup 的純 GUID 投影。null 保留無 leader 語意；它不提供聯絡人名稱、
+    /// 權限、session 或路由 authority，未來 consumer 如需資料必須在其已驗證的 request scope 另行授權讀取。
+    /// </summary>
+    [JsonPropertyName("familyLeaderContactId")]
+    public Guid? FamilyLeaderContactId { get; init; }
 }
 
 /// <summary>

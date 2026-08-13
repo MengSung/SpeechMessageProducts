@@ -89,6 +89,16 @@ public static class OperationIds
     /// </summary>
     public const string ListCatalogRetrieveAppNamed = "list.catalog.retrieve.app.named";
 
+    /// <summary>
+    /// 對應 ORG-CALL-00065：讀取 server-owned「App-named 小組名單」目錄的固定能力。
+    /// 此 ID 與 ORG-CALL-00014 完全獨立，不接受或推導 list ID、名稱、leader、purpose、排序、FetchXML、profile、
+    /// endpoint、credential、connector 或 caller 身分；固定條件、排除規則與分頁由 registry/connector 各自驗證。
+    /// 它只識別尚未切流的 immutable allowlist，不能視為 Data8 存取、產品 consumer、feature gate、cache、retry 或
+    /// CE 證據已啟用。任何未來 request 的 page、lease 與 transport 資源仍必須由其單一 scope owner 在完成、取消、
+    /// 逾時或 fault 時確定釋放，這個 process-static 常數絕不保存跨使用者／profile 的 mutable state。
+    /// </summary>
+    public const string ListCatalogRetrieveAppNamedSmallGroups = "list.catalog.retrieve.appnamed.smallgroups";
+
     // -------- P7.4：認證聯絡人唯讀邊界；僅供 disabled-by-default 的未來 consumer 使用 --------
 
     /// <summary>

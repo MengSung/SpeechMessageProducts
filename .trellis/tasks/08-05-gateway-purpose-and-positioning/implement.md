@@ -4,6 +4,18 @@
 
 **Goal:** 先在 Lenovo Legion 以可獨立驗證與回滾的 vertical slices 完成 P6 與 P7，將 ChurchReport 全部 D365 業務能力移至 ProductClient／Gateway 並移除產品端 ToolUtility；再由獨立 P8 將單一 ChurchReport 部署到雲端 Central Gateway。
 
+### 2026-08-13 現行 child 執行補充
+
+`ORG-CALL-00014` 已完成並封存；不得將它的 operation、template 或測試當作 `ORG-CALL-00065` 的完成證據。
+`08-13-08-13-p71-appnamed-smallgroups-list-catalog-typed-read` 已完成並封存。其後續獨立 child 必須按 TDD 依序完成：
+
+1. 從權威 matrix 選取沒有 write adjacency、shared mutable cache 或未解 authorization 的獨立 read-only candidate。
+2. 先 RED，再 GREEN 地建立該 candidate 的 registry、closed response branch 與 immutable scalar wire contract。
+3. 先 RED，再 GREEN 地建立完全固定、有界、零或明確 allowlisted caller parameter 的 Data8 query/executor 投影。
+4. 先 RED，再 GREEN 地建立 request-local immutable ProductClient DTO、DI 與 A/B isolation/cancellation/source-mutation tests。
+5. 只在 child 邊界更新 matrix local state，保留 consumer、CE、host、traffic、temporary-legacy、P7.5、P8 為 pending。
+6. 完成 targeted/full quality gates、bounded external review、scope-only commit/archive 後，才依 authoritative matrix 選下一個 local child。
+
 **Architecture:** 保留 P4 Embedded 與已封存的 P5 Dedicated 基礎；P6 完成 Official Worker Router／Pool／Lease 擴充點並把 live compatibility 如實記為 `evidence-pending`。P7.0～P7.5 以 Data8 完成可設定的 `Embedded + Data8` 與 `DedicatedGateway + Data8` capability migration、consumer cutover 與 removal。P8.0～P8.4 是後續獨立的 `CentralGateway + Data8` 雲端部署鏈，不包含第二、第三產品 onboarding。
 
 **Tech Stack:** .NET 10、ASP.NET Core Minimal API、`IHttpClientFactory`、SpeechMessage.Dynamics Abstractions／ProductClient／ControlPlane／Gateway／Embedded／Connectors.Data8、CE 8.2／9.1 Organization Service、xUnit。

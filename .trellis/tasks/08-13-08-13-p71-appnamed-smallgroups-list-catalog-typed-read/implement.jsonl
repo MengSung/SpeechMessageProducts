@@ -1,0 +1,6 @@
+{"phase":"implement","file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"所有 cache、DTO、profile/workload、lease 和 cancellation 路徑均須維持跨使用者隔離與 bounded lifecycle。"}
+{"phase":"implement","file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"Data8 executor/lease/permit/fault eviction 的 generation-owned ownership contract。"}
+{"phase":"implement","file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"deployment-owned profile、CE evidence 與 P7/P8 gate 不可由 local capability 越過。"}
+{"phase":"implement","file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00065 的權威 local/pending evidence state。"}
+{"phase":"implement","file":"ToolUtility/ListOperations/ListService.cs","reason":"legacy RetrieveSmallGroupLists fixed template 的唯讀研究來源；不可修改或接入 consumer。"}
+{"phase":"implement","file":".trellis/tasks/archive/2026-08/08-13-p71-appnamed-list-catalog-typed-read/design.md","reason":"相鄰但不同 ORG-CALL-00014 capability 的 isolation precedent；不可重用 operation/branch。"}

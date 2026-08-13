@@ -230,8 +230,13 @@ app-named filters、排序與 finite paging；CRM Entity 只存在於當前 conn
 wire record。ProductClient 只能驗證 operation/discriminator 後複製為 request-local DTO；不得保留 list、
 profile、workload、Entity、page、paging cookie、cache 或 transport state。
 
-`ORG-CALL-00065` 必須保持獨立：它的 fixed template 額外排除測試名稱並投影領袖 lookup，且現行 consumer
+`ORG-CALL-00065` 已保持獨立並完成 local-only contract：它的 fixed template 額外排除測試名稱並投影領袖 lookup，且現行 consumer
 使用沒有完整 isolation boundary 的 shared `EntityCollection` cache。兩者只能共用由 registry 施加的
 bounded query family 設計，不可共用 operation ID、response branch、cache key 或 consumer rollout。這可避免
+00014 的 completed local evidence 被誤當作 00065 的實作、consumer、CE 或切流證據。00065 的 Data8 lease stack
+只能將 lookup 映射為 nullable GUID；`EntityReference.Name`、Entity、formatted values、cookie、profile 與
+transport state 都不得跨出 connector。ProductClient 必須為每個 request 防禦性複製並發布不可變 DTO collection，
+所以 A/B interleaving 不會經由 list backing storage、cache、retry 或 background state 泄漏。這一 design 仍是
+local-only，沒有授權 CE mutation、feature enablement、traffic、P7.5 或 P8。
 將系統目錄資料錯誤宣稱為 universally-safe shared cache，並保留每個 consumer 的 authorization、locale、
 performance、rollback 與 CE evidence 責任。

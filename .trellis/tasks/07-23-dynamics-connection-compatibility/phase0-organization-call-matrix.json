@@ -4242,10 +4242,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "list.catalog.retrieve.appnamed.smallgroups",
+                                    "responseKind":  "SmallGroupAppNamedListCatalogRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "list.catalog.appnamed.smallgroups.v1",
-                                                                "templateHash":  "faa7441b5db8b330d0dfa02f0bb16c69f01ea1e5435f668f476d8d1f9eab9a19"
+                                                                "templateHash":  "857338acff03ea8173c6030e0f623aa8d171c316ecfc3a187386154916b44b53"
                                                             },
                                     "typedParameters":  [
 
@@ -4257,12 +4262,12 @@
                                                             "v8_2":  {
                                                                          "status":  "metadata-only",
                                                                          "evidenceId":  null,
-                                                                         "notes":  "Overlaps ORG-CALL-00014 family; registry should de-dupe static list catalog capabilities."
+                                                                         "notes":  "Independent fixed small-group catalog response contract; CE evidence remains pending."
                                                                      },
                                                             "v9_1":  {
                                                                          "status":  "metadata-only",
                                                                          "evidenceId":  null,
-                                                                         "notes":  "Overlaps ORG-CALL-00014 family; registry should de-dupe static list catalog capabilities."
+                                                                         "notes":  "Independent fixed small-group catalog response contract; CE evidence remains pending."
                                                                      }
                                                         },
                                     "smokeEvidence":  {

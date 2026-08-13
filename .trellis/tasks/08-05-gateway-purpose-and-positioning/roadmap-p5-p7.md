@@ -199,13 +199,12 @@ admission/drain boundary、固定分類 validator、drain-first/non-overlap runb
 它證明的是「沒有 durable binding 時保持 fail-closed」，不是 CE、cross-host durable coordinator、legacy
 coverage 或 traffic enablement 證據。
 
-下一步在 parent `08-12-churchreport-productclient-cutover` 依 authoritative 70-row matrix 建立下一個
-independently verifiable local-only capability sub-batch。優先研究 list catalog family 的
-`ORG-CALL-00014`（`list.catalog.retrieve.app.named`）與其相近但不同的
-`ORG-CALL-00065`（`list.catalog.retrieve.appnamed.smallgroups`）：先確認固定 FetchXML 的獨立 template、
-caller chain、server-owned authorization、bounded DTO 與 request-local projection。兩者只能共用 family
-research，不能合併 operation ID 或以 Entity/EntityCollection bridge 猜測遷移。若 consumer 連到 write、
-shared state、fallback 或無法證明 DTO-only boundary，即保持 legacy 並改選下一個獨立 candidate。
+`ORG-CALL-00014` 與 `ORG-CALL-00065` 都已完成並封存為相互獨立的 local-only typed reads；兩者的
+registry、Data8 fixed query、closed response 與 ProductClient 僅構成本機 capability 證據，consumer、CE、host
+與 traffic 仍為 pending。00065 固定額外排除既有「已退出」名稱並投影兩個 leader 的 nullable GUID；它沒有
+接入 ChurchReport shared `EntityCollection` consumer，也沒有改變其 temporary-legacy 狀態。下一步從權威 matrix
+選擇另一個可獨立驗證的 local P7 child。不得以 Entity/EntityCollection bridge 猜測遷移；若候選 consumer 連到
+write、shared state、fallback 或無法證明 DTO-only boundary，即保持 legacy 並改選另一個 candidate。
 `ORG-CALL-00005`、`00064`、`00066` 與 Package03 inventory 仍列為 temporary-legacy，除非其 own design
 先解決 authorization、write adjacency 或 DTO-only boundary。所有 `Package01FeeReadsEnabled` 設定
 （包括 DedicatedGateway F5 profile）維持 false。P7.5/P8 繼續不得提前啟動。
