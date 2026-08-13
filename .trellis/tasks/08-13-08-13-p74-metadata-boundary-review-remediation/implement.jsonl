@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Package02 profile/generation isolation、zero retained request state、fail-closed composition 與 deterministic cleanup 的強制契約。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"deployment-owned ProfileAlias、feature gate、Embedded/Dedicated/Central composition 與 P7/P8 evidence 邊界。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo tree action 的 server-derived authorization、metadata boundary、legacy connection ownership 與 contract test 規則。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"跨 user/profile/generation isolation 與 resource lifecycle 的 mandatory review checklist。"}
+{"file":".ccg/tasks/p74-memberinfo-commitment-metadata-read-boundary/review.md","reason":"已封存 child 的最終本機 review finding；本 child 只修正目前 HEAD 仍存在的文件與 composition ordering 缺口。"}

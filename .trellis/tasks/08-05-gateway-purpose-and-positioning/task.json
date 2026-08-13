@@ -1,46 +1,48 @@
 {
-  "id": "gateway-purpose-and-positioning",
-  "name": "gateway-purpose-and-positioning",
-  "title": "Dynamics Gateway P5-P8 roadmap and positioning",
-  "description": "Own the P5-P8 Dynamics Gateway roadmap. P3-P7.3 are archived baseline evidence; P7.4 is active and gate-disabled pending legacy/Gateway capacity proof, while P7.2 recurring payment-return work remains local-only. P7.5 awaits zero ToolUtility/CRM SDK product references, and P8 follows only after immutable P7.5 handoff and externally authorized deployment readiness.",
-  "currentBaseline": "2026-08-13: do not redo archived P4-P7.3 or retry the historical P7.2 Slice C cycle. P7.4 has disabled local read-boundary work but is incomplete. 08-13-p72-dedication-payment-return-write-boundary owns local-only financial write-boundary design; Package01FeeReadsEnabled remains false. The P7.5 prerequisite evidence child is complete: its deterministic report is no-go (70 temporary-legacy rows, legacy production/project/settings references and pending CE/host evidence), so P7.5 removal and P8 remain gated.",
-  "status": "planning",
-  "dev_type": null,
-  "scope": "P5-P8 roadmap parent; P7.2 financial-write boundary and P7.4 disabled local consumer children own implementation while P7.5/P8 retain prerequisite gates.",
-  "package": null,
-  "priority": "P2",
-  "creator": "codex",
-  "assignee": "codex",
-  "createdAt": "2026-08-05",
-  "completedAt": null,
-  "branch": null,
-  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
-  "worktree_path": null,
-  "commit": null,
-  "pr_url": null,
-  "nextAction": "Archive the completed 08-13-p75-prerequisite-evidence-zero-reference-gate with its no-go report, then create the next independently verifiable local-only P7 capability child from its stable backlog. Keep every checked-in feature gate false; P7.5 removal and P8 remain blocked until all temporary-legacy, zero-reference, CE/host, parity, soak, drain and rollback evidence is complete.",
-  "subtasks": [],
-  "children": [
-    "08-05-gateway-capability-inventory",
-    "08-07-p7-1-package01-data8-read",
-    "08-07-churchreport-write-action-function-migrations",
-    "08-12-p7-2-continuation-release-candidate",
-    "08-12-p7-remaining-work-rebaseline",
-    "08-12-process-boundary-cross-assembly-isolation",
-    "08-12-churchreport-special-resource-migrations",
-    "08-12-churchreport-productclient-cutover",
-    "08-13-p72-dedication-payment-return-write-boundary"
-  ],
-  "parent": null,
-  "relatedFiles": [
-    ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
-    ".trellis/tasks/08-12-churchreport-productclient-cutover/capacity-enablement-audit.md"
-  ],
-  "notes": "Canonical route: P5 archived -> P6 Official Worker Router extension archived with live compatibility evidence-pending -> P7.0-P7.5 local ChurchReport migration using configurable Embedded+Data8 and DedicatedGateway+Data8 -> ToolUtility removal -> independently authorized P8.0-P8.4 cloud CentralGateway+Data8 deployment. Historical P7.2 Slice C is permanently closed after write-not-committed no-go and exact cleanup. The P7.2 payment-return child separates dedup read, card update, fee create, owner assignment, booking completion and notification before any future governed fixture family can be considered. P7.5 prerequisite evidence is complete but correctly no-go: 70 temporary-legacy matrix rows, production legacy references, three project dependencies, one legacy settings key and pending CE/host evidence remain. The report can select the next local P7 child; it does not authorize ToolUtility removal or P8. Future products remain separate scope.",
-  "meta": {
-    "localExecutionHost": "Lenovo Legion",
-    "p7Sequence": "P7.0-P7.5",
-    "p8Sequence": "P8.0-P8.4",
-    "futureProductOnboarding": "independent"
-  }
+    "id":  "gateway-purpose-and-positioning",
+    "name":  "gateway-purpose-and-positioning",
+    "title":  "Dynamics Gateway P5-P8 roadmap and positioning",
+    "description":  "Own the P5-P8 Dynamics Gateway roadmap. P3-P7.3 are archived baseline evidence; P7.4 is active and gate-disabled pending legacy/Gateway capacity proof, while P7.2 recurring payment-return work remains local-only. P7.5 awaits zero ToolUtility/CRM SDK product references, and P8 follows only after immutable P7.5 handoff and externally authorized deployment readiness.",
+    "currentBaseline":  "2026-08-13: P7.0-P7.3 remain archived baseline; historical P7.2 Slice C is permanently closed. P7.4 remains disabled-by-default local migration. The 08-13 metadata-boundary remediation completed local quality verification: ProfileAlias is validated before injected facade or host composition; no CE, gate enablement or traffic cutover occurred. P7.5 prerequisite report remains no-go with temporary-legacy rows and zero-reference/CE/host/parity/soak/drain/rollback gaps.",
+    "status":  "planning",
+    "dev_type":  null,
+    "scope":  "P5-P8 roadmap parent; P7.2 financial-write boundary and P7.4 disabled local consumer children own implementation while P7.5/P8 retain prerequisite gates.",
+    "package":  null,
+    "priority":  "P2",
+    "creator":  "codex",
+    "assignee":  "codex",
+    "createdAt":  "2026-08-05",
+    "completedAt":  null,
+    "branch":  null,
+    "base_branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "worktree_path":  null,
+    "commit":  null,
+    "pr_url":  null,
+    "nextAction":  "Archive the completed P7.4 metadata-boundary remediation child, then create and start the next independently verifiable local-only P7.4 capability child from the authoritative 70-row matrix backlog. Keep all feature gates false; do not start P7.5 removal or P8 until their immutable handoff gates are green.",
+    "subtasks":  [
+
+                 ],
+    "children":  [
+                     "08-05-gateway-capability-inventory",
+                     "08-07-p7-1-package01-data8-read",
+                     "08-07-churchreport-write-action-function-migrations",
+                     "08-12-p7-2-continuation-release-candidate",
+                     "08-12-p7-remaining-work-rebaseline",
+                     "08-12-process-boundary-cross-assembly-isolation",
+                     "08-12-churchreport-special-resource-migrations",
+                     "08-12-churchreport-productclient-cutover",
+                     "08-13-p72-dedication-payment-return-write-boundary"
+                 ],
+    "parent":  null,
+    "relatedFiles":  [
+                         ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
+                         ".trellis/tasks/08-12-churchreport-productclient-cutover/capacity-enablement-audit.md"
+                     ],
+    "notes":  "Canonical route: P5 archived -\u003e P6 Router/Pool/Lease local completion with Official Worker live compatibility evidence-pending -\u003e P7.0-P7.5 ChurchReport migration -\u003e ToolUtility removal -\u003e independently authorized P8.0-P8.4 CentralGateway deployment. Historical P7.2 Slice C remains permanently closed after write-not-committed no-go and exact cleanup. P7.4 local-only disabled candidates and the metadata-boundary remediation are not CE/cutover evidence. P7.5 prerequisite evidence remains deterministic no-go: temporary-legacy matrix rows and legacy source/project/settings plus CE/host/parity/soak/drain/rollback gaps remain. P7.5 removal and P8 remain gated.",
+    "meta":  {
+                 "localExecutionHost":  "Lenovo Legion",
+                 "p7Sequence":  "P7.0-P7.5",
+                 "p8Sequence":  "P8.0-P8.4",
+                 "futureProductOnboarding":  "independent"
+             }
 }

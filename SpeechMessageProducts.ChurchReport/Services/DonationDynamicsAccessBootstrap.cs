@@ -229,9 +229,10 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// 嘗試建立 P7.2 Slice B typed client。flag=false 時在 host resolution 前回傳 null；flag=true 時只借用
-        /// process host 的單一 Embedded／Gateway executor generation，不建立第二個 provider、pool、credential graph
-        /// 或 session。此 helper 尚未接入 controller，因此不會自行切換 ChurchReport 流量；P7.4 才擁有 cutover。
+        /// 嘗試建立 P7.2 Slice B typed client。flag=false 時在 host resolution 前回傳 null；flag=true 時先驗證
+        /// deployment-owned ProfileAlias，才可借用 injected facade 或 process host 的單一 Embedded／Gateway executor
+        /// generation，不建立第二個 provider、pool、credential graph 或 session。injected facade 不是設定 authority，
+        /// 因此不得繞過 profile 驗證；此 helper 尚未接入 controller，不會自行切換 ChurchReport 流量；P7.4 才擁有 cutover。
         /// </summary>
         /// <param name="configuration">deployment-owned DynamicsAccess 設定；不能來自 HTTP request。</param>
         /// <param name="injectedClient">測試或正式 DI 已擁有的 stateless typed client；helper 不 Dispose。</param>
@@ -246,13 +247,18 @@ namespace ChurchReport.Services
                 return null;
             }
 
+            // ProfileAlias 是 deployment composition 的完整 isolation boundary 之一。即使 facade 由測試或 DI
+            // 注入，也必須先驗證它，否則錯誤設定可能讓呼叫端在沒有可證實 profile/generation 的情況下取得
+            // typed capability。這個純 options bind 不建立 host、provider、handler、pool 或 credential graph。
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package02 contact profile operations");
             if (injectedClient is not null)
             {
                 return injectedClient;
             }
 
             return new Package02ContactProfileClient(
-                CreatePackage02Executor(configuration),
+                CreatePackage02Executor(productOptions, configuration),
                 NullLogger<Package02ContactProfileClient>.Instance);
         }
 
@@ -394,6 +400,24 @@ namespace ChurchReport.Services
         private static IDynamicsOperationExecutor CreatePackage02Executor(IConfiguration configuration)
         {
             var productOptions = BindOptions(configuration);
+            return CreatePackage02Executor(productOptions, configuration);
+        }
+
+        /// <summary>
+        /// 以已完成 deployment validation 的 Package02 options 取得 process-host executor。呼叫者負責在此方法前
+        /// 驗證所屬 capability 的 profile 規則；本 overload 不重新 bind options，避免同一 composition path 在不同
+        /// 時點讀到不一致設定。process host 仍是 provider、handler、Data8 pool、credential graph 與 generation
+        /// cleanup 的唯一 owner；typed facade 只在當前呼叫中使用 executor，絕不保存 user、Session 或 profile state。
+        /// </summary>
+        /// <param name="productOptions">由 deployment configuration 產生且已通過呼叫者 profile 規則的不可變 options。</param>
+        /// <param name="configuration">僅供 Embedded composition 讀取既有 deployment 設定；不能由 HTTP request 取代。</param>
+        /// <returns>依固定 profile/generation 隔離、由 process host 唯一擁有的 executor。</returns>
+        private static IDynamicsOperationExecutor CreatePackage02Executor(
+            ProductDynamicsOptions productOptions,
+            IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(productOptions);
+            ArgumentNullException.ThrowIfNull(configuration);
             var processHost = GetStartedProcessHost();
             return productOptions.ConnectionMode switch
             {

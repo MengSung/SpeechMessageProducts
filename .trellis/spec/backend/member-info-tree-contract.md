@@ -59,6 +59,33 @@ bypass; it must not add a user/session cache, retain a DTO, or create a new
 resource owner. Malformed, duplicate, negative, cancelled, or faulted typed
 results fail closed before publishing a partial count map.
 
+The Package02 contact-profile bootstrap follows the same profile boundary even
+when a stateless facade is injected by DI or a test. With the base gate true,
+the factory must bind deployment options and validate a non-empty
+`DynamicsAccess:ProfileAlias` before returning the injected facade or resolving
+the process host. The facade is an executor dependency, not a source of
+routing authority. With the gate false, the factory returns `null` before
+binding options or composing a host/provider/pool/handler/credential graph.
+This ordering prevents an injected test double from masking an invalid
+deployment profile and keeps the enabled and process-host paths under the same
+`(ProfileAlias, GenerationId)` isolation contract.
+
+```csharp
+if (!IsPackage02ContactProfileOperationsEnabled(configuration))
+{
+    return null;
+}
+
+var options = BindOptions(configuration);
+EnsureNonEmptyProductProfile(options, "Package02 contact profile operations");
+return injectedClient ?? CreatePackage02Executor(options, configuration);
+```
+
+Direct lifecycle tests must cover the disabled short-circuit, a valid profile
+with an injected client, and a missing/blank profile that fails before host
+resolution. These tests are local contract evidence only; they do not enable a
+feature gate, issue CE traffic, or prove P7.5/P8 readiness.
+
 ### Disabled Package03 commitment-metadata consumer boundary
 
 #### 1. Scope / Trigger

@@ -1,0 +1,12 @@
+{
+  "id": "p74-metadata-boundary-review-remediation",
+  "title": "P7.4 metadata boundary review remediation",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend-integration-migration",
+  "currentPhase": "completed",
+  "nextAction": "Scope-only commit then archive the matching Trellis child; resume the P7.4 authoritative-matrix capability backlog.",
+  "createdAt": "2026-08-13T13:15:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

@@ -1,38 +1,44 @@
 {
-  "id": "churchreport-productclient-cutover",
-  "name": "churchreport-productclient-cutover",
-  "title": "P7.4 ChurchReport ProductClient cutover",
-  "description": "Migrate authoritative 70-row ChurchReport capabilities to typed ProductClient through disabled-by-default, independently rollbackable capability paths. Local implementation and verification do not authorize CE mutation, feature enablement, traffic cutover, P7.5, or P8.",
-  "status": "in_progress",
-  "dev_type": "backend-integration-migration",
-  "scope": "ChurchReport consumer capability cutover only; disabled-by-default local implementation and verification; no CE mutation, feature enablement, traffic cutover, P7.5 or P8.",
-  "package": "SpeechMessageProducts.ChurchReport",
-  "priority": "P1",
-  "creator": "codex",
-  "assignee": "codex",
-  "createdAt": "2026-08-12",
-  "completedAt": null,
-  "branch": null,
-  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
-  "worktree_path": null,
-  "commit": null,
-  "pr_url": null,
-  "subtasks": [],
-  "children": [
-    "08-13-p74-legacy-gateway-admission",
-    "08-13-08-13-p74-authorized-fee-contact-read",
-    "08-13-p74-fee-editor-read-boundary",
-    "08-13-08-13-p74-package03-contact-image-read-boundary",
-    "08-13-p75-prerequisite-evidence-zero-reference-gate",
-    "08-13-p74-ungrouped-commitment-read-boundary",
-    "08-13-p74-memberinfo-commitment-metadata-read-boundary"
-  ],
-  "parent": "08-05-gateway-purpose-and-positioning",
-  "relatedFiles": [
-    ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
-    ".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md",
-    ".trellis/spec/backend/cross-user-isolation-and-performance.md"
-  ],
-  "notes": "P7.4 Batch A/B are committed-disabled local candidates. Batch B cancellation audit, Batch C caller-shape inventory and Package03 consumer inventory are committed. Child 08-13-p74-authorized-fee-contact-read completes the local-only, disabled-by-default ORG-CALL-00005 consumer overlay: server-authorized browser locator, typed request-local immutable DTO result, no target Entity/fallback and full local quality evidence. Child 08-13-p74-ungrouped-commitment-read-boundary completes the local-only, disabled-by-default ORG-CALL-00024 non-empty commitment aggregate boundary with fixed profile/workload, cache-snapshot bypass, cancellation propagation, defensive DTO projection and direct specialized-factory lifecycle coverage. Child 08-13-p74-memberinfo-commitment-metadata-read-boundary completes the local-only, disabled-by-default ORG-CALL-00040 Package03 metadata overlay: one request-local typed snapshot owns search, configured order, row labels and the exact unique 結案 value; missing/duplicate 結案 fails closed without a legacy metadata lookup. Its focused/full/release checks pass; final 45-second CCG review is recorded as 雙模型未完成 (Gemini wrapper abnormal exit; no Claude usable output). Neither child is CE/cutover evidence and neither modifies the immutable authoritative matrix baseline; Dedicated evidence remains pending. Only MemberInfo/Equipment StorLesson projection consumers and ORG-CALL-00005/ORG-CALL-00024 are migrated-disabled; EntityCollection/SDK, financial-write-adjacent and Package03 consumers remain temporary-legacy/P7.5 blockers. The 2026-08-13 capacity audit remains exact enablement no-go: Dedicated/Embedded Data8 has only in-memory host-slot coordination, legacy ToolUtility is not bound to the same durable admission authority, and full legacy coverage is unproven. Child 08-13-p74-legacy-gateway-admission completed a fail-closed local admission/drain controller, runbook, validator and full local quality gate; it deliberately does not replace durable binding or enable any gate. All Package01 settings, including DedicatedGateway F5, remain false. Historical P7.2 Slice C remains closed and must not be retried. The archived P7.2 payment-return child confirms ORG-CALL-00064 remains a governed financial-write predecessor, not a P7.4 read candidate. P7.5 prerequisite evidence now has a deterministic no-go report: all 70 matrix rows remain temporary-legacy, and source/project/settings legacy references plus CE/host gaps remain. Use its stable capability-family backlog for the next independently verified local-only P7 child. P7.5 removal and P8 remain gated.",
-  "meta": {}
+    "id":  "churchreport-productclient-cutover",
+    "name":  "churchreport-productclient-cutover",
+    "title":  "P7.4 ChurchReport ProductClient cutover",
+    "description":  "Migrate authoritative 70-row ChurchReport capabilities to typed ProductClient through disabled-by-default, independently rollbackable capability paths. Local implementation and verification do not authorize CE mutation, feature enablement, traffic cutover, P7.5, or P8.",
+    "status":  "in_progress",
+    "dev_type":  "backend-integration-migration",
+    "scope":  "ChurchReport consumer capability cutover only; disabled-by-default local implementation and verification; no CE mutation, feature enablement, traffic cutover, P7.5 or P8.",
+    "package":  "SpeechMessageProducts.ChurchReport",
+    "priority":  "P1",
+    "creator":  "codex",
+    "assignee":  "codex",
+    "createdAt":  "2026-08-12",
+    "completedAt":  null,
+    "branch":  null,
+    "base_branch":  "1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "worktree_path":  null,
+    "commit":  null,
+    "pr_url":  null,
+    "subtasks":  [
+
+                 ],
+    "children":  [
+                     "08-13-p74-legacy-gateway-admission",
+                     "08-13-08-13-p74-authorized-fee-contact-read",
+                     "08-13-p74-fee-editor-read-boundary",
+                     "08-13-08-13-p74-package03-contact-image-read-boundary",
+                     "08-13-p75-prerequisite-evidence-zero-reference-gate",
+                     "08-13-p74-ungrouped-commitment-read-boundary",
+                     "08-13-p74-memberinfo-commitment-metadata-read-boundary",
+                     "08-13-08-13-p74-metadata-boundary-review-remediation"
+                 ],
+    "parent":  "08-05-gateway-purpose-and-positioning",
+    "relatedFiles":  [
+                         ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
+                         ".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md",
+                         ".trellis/spec/backend/cross-user-isolation-and-performance.md"
+                     ],
+    "notes":  "P7.4 Batch A/B are committed-disabled local candidates. Batch B cancellation audit, Batch C caller-shape inventory and Package03 consumer inventory are committed. ORG-CALL-00005, ORG-CALL-00024 and ORG-CALL-00040 have disabled local typed boundaries; 08-13-p74-metadata-boundary-review-remediation additionally closes the ProfileAlias composition bypass so Package02 contact-profile gate=true validates deployment-owned ProfileAlias before returning an injected facade or resolving the host. This is local-only quality evidence, not CE/cutover evidence. All Package01 settings remain false. The 2026-08-13 capacity audit remains enablement no-go: Dedicated/Embedded Data8 only has in-memory host-slot coordination, legacy ToolUtility is not bound to the same durable admission authority, and full legacy coverage is unproven. Historical P7.2 Slice C remains closed and must not be retried. P7.5 prerequisite evidence is deterministic no-go: all 70 matrix rows remain temporary-legacy, and legacy source/project/settings references plus CE/host/parity/soak/drain/rollback gaps remain. Select the next local P7.4 capability family from the stable backlog; P7.5 removal and P8 remain gated.",
+    "meta":  {
+
+             },
+    "nextAction":  "Archive the completed metadata-boundary remediation child, then plan and implement the next authoritative-matrix P7.4 capability family as a disabled local-only boundary. Do not enable gates, issue CE requests, cut traffic, start P7.5 removal or P8."
 }

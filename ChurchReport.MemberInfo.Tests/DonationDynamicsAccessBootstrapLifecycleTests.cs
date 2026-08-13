@@ -193,9 +193,11 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
-    /// 保護 reviewed flag 未來開啟時只借用主 DI 注入的 stateless Slice B typed client，不自行建立 provider 或
-    /// transport。故障注入是 in-memory injected client；決定性斷言是原物件被回傳且沒有執行 B1 write／B2 query、
-    /// CE operation、LINE call、timer、stream 或 background work。
+    /// 保護 reviewed gate 與完整 deployment ProfileAlias 都有效時，factory 才可借用主 DI 注入的 stateless
+    /// Slice B typed client，而不自行建立 provider 或 transport。故障注入是 resource-free in-memory injected client；
+    /// 決定性斷言是已驗證 profile 後原物件被回傳，且沒有執行 B1 write／B2 query、CE operation、LINE call、
+    /// timer、stream 或 background work。ProfileAlias 仍只由 deployment configuration 擁有，injected facade 不可提供
+    /// 或覆寫它，避免不同 request/profile 把同一 facade 當成 routing authority。
     /// </summary>
     [Fact]
     public void Package02_contact_profile_operations_accept_an_injected_client_only_when_flag_is_enabled()
@@ -203,7 +205,8 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["DynamicsAccess:Package02ContactProfileOperationsEnabled"] = "true"
+                ["DynamicsAccess:Package02ContactProfileOperationsEnabled"] = "true",
+                ["DynamicsAccess:ProfileAlias"] = "crm91"
             })
             .Build();
         var injected = new DisabledContactProfileClient();
@@ -284,6 +287,30 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
 
         Action create = () => DonationDynamicsAccessBootstrap
             .TryCreatePackage02UngroupedCommitmentReadClient(configuration);
+
+        create.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ProfileAlias*");
+    }
+
+    /// <summary>
+    /// 保護通用 Package02 contact-profile facade 在 base gate 開啟時，不能讓 injected fake 或 DI facade 繞過
+    /// deployment-owned ProfileAlias 驗證。故障注入是只開啟 base gate、刻意省略 ProfileAlias，並傳入完全不配置
+    /// connector、pool、handler、credential、timer 或背景工作的純記憶體替身；決定性斷言是 factory 必須在任何
+    /// process-host resolution 前回傳固定 ProfileAlias 驗證錯誤，而不是交還 facade 或以 host 未啟動錯誤掩蓋設定缺口。
+    /// 這個測試只在本機堆疊配置 input，測試結束後沒有跨 user、profile 或 request 保留的 mutable state 或資源。
+    /// </summary>
+    [Fact]
+    public void Package02_contact_profile_client_rejects_an_empty_deployment_profile_before_host_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package02ContactProfileOperationsEnabled"] = "true"
+            })
+            .Build();
+
+        Action create = () => DonationDynamicsAccessBootstrap
+            .TryCreatePackage02ContactProfileClient(configuration, new DisabledContactProfileClient());
 
         create.Should().Throw<InvalidOperationException>()
             .WithMessage("*ProfileAlias*");

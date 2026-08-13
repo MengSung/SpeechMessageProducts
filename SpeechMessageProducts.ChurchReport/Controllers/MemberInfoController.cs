@@ -414,12 +414,16 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 載入目前 Church scope 可見的未分組會員頁面。此 action 只接受既有的 page/search input，並先由
-        /// server session 還原使用者與授權範圍；browser 不可選擇 Dynamics profile、connector、owner、endpoint
-        /// 或 credential。ORG-CALL-00024 sub-gate 預設關閉；開啟時僅替換 non-empty commitment aggregate count，
-        /// typed fault 與取消不會 fallback/retry。legacy CRM connection 的 acquire/release 仍由 action finally
-        /// 唯一擁有，其他 metadata、empty count、segment page、relation 與 authorization capability 保持原 owner。
-        /// 此為 local-only candidate，並不代表 CE、流量切換、P7.5 或 P8 已完成。
+        /// 載入目前 Church scope 可見的未分組會員頁面。此 action 只接受既有 page/search input，並先由 server
+        /// session 還原使用者與授權範圍；browser 不可選擇 Dynamics profile、connector、owner、endpoint 或 credential。
+        /// ORG-CALL-00024 的 Package02 aggregate base/sub-gate 與 ORG-CALL-00040 的 Package03 metadata base/sub-gate
+        /// 都是 deployment-owned 且預設關閉：關閉時各自維持既有相容路徑且不建立 typed client／host／pool；開啟時，
+        /// aggregate 只替換 non-empty commitment count，而 metadata 只建立一次 request-local typed snapshot 供排序、
+        /// label 與 closed-status 使用。typed fault 或取消必須原樣離開，不得 fallback、retry 或混合 legacy metadata。
+        /// legacy CRM connection 的 acquire/release 仍由 action local <c>service</c> 與 <c>finally</c> 唯一擁有；
+        /// DTO、metadata、exception、cancellation token 與 response model 都不寫入 static、cache、Session、singleton
+        /// 或 background work，避免跨使用者、profile 或 generation 泄漏。此為 local-only candidate，並不代表 CE、
+        /// 流量切換、P7.5 或 P8 已完成。
         /// </summary>
         [HttpGet]
         [Route("/MemberInfo/LoadUngroupedMembers")]

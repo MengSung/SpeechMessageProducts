@@ -14,11 +14,13 @@ public class MemberInfoTreeControllerContractTests
         Path.Combine(FindRepositoryRoot(), "SpeechMessageProducts.ChurchReport", "Controllers", "MemberInfoController.cs"));
 
     /// <summary>
-    /// 保護 MemberInfo tree action 的公開 MVC 非同步契約。此測試直接讀取編譯前 controller source，故障注入是
-    /// 將任一 action 降回同步簽章或遺漏既有 route；決定性斷言是 LoadDistrictTree 保留既有同步讀取邊界，而其餘
-    /// action 以 <see cref="System.Threading.Tasks.Task"/> 回傳，使 request-local Package03 metadata 的取消可以
-    /// 由 ASP.NET Core 正確傳遞。測試不建立 CRM 連線、不保存 controller、session、profile 或 response，因此不會
-    /// 製造跨使用者狀態或資源所有權。
+    /// 保護 <c>LoadDistrictTree</c>、<c>SearchDistrictTree</c>、<c>LoadGroupMembers</c> 與
+    /// <c>LoadUngroupedMembers</c> 的公開 MVC 簽章契約。此測試直接讀取編譯前 controller source；故障注入是將
+    /// 任一已非同步 action 降回同步簽章，或讓既有 tree action 不再以正確公開簽章暴露。決定性斷言是
+    /// <c>LoadDistrictTree</c> 保留既有同步讀取邊界，而其餘三個 action 必須回傳
+    /// <see cref="System.Threading.Tasks.Task"/>，使 request-local Package03 metadata 的取消可由 ASP.NET Core 正確
+    /// 傳遞。測試不建立 CRM 連線、不保存 controller、Session、profile 或 response，因此不會製造跨使用者狀態或
+    /// 資源所有權。
     /// </summary>
     [Theory]
     [InlineData("LoadDistrictTree")]

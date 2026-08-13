@@ -1,0 +1,35 @@
+{
+  "id": "08-13-p74-metadata-boundary-review-remediation",
+  "name": "08-13-p74-metadata-boundary-review-remediation",
+  "title": "P7.4 metadata boundary review remediation",
+  "description": "修正 P7.4 MemberInfo metadata disabled local-only boundary 的審查文件與 fail-closed ProfileAlias pre-composition validation；不啟用 gate、不執行 CE 或切流。",
+  "status": "in_progress",
+  "dev_type": "backend-integration-migration",
+  "scope": "僅修正 Package02 contact-profile factory 的 deployment-owned ProfileAlias 驗證，以及對應 MemberInfo controller/test 文件與本機驗證；不變更 gate、CE、流量、P7.5 或 P8。",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-13",
+  "completedAt": null,
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    "SpeechMessageProducts.ChurchReport/Services/DonationDynamicsAccessBootstrap.cs",
+    "ChurchReport.MemberInfo.Tests/DonationDynamicsAccessBootstrapLifecycleTests.cs",
+    "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+    "ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs"
+  ],
+  "notes": "本機 remediation：base gate=true 時，在 injected facade 或 process-host resolution 前繫結並驗證 deployment-owned ProfileAlias；所有 feature gate 維持 false，無 CE、切流、P7.5 或 P8 動作。最終 CCG review 為 Gemini timeout、Claude quota blocked，記錄為雙模型未完成。",
+  "meta": {
+    "ceEvidence": "not-executed",
+    "featureGate": "false",
+    "trafficCutover": "not-authorized"
+  }
+}
