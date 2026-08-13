@@ -259,3 +259,17 @@ design；不得藉 P7.4 read consumer path 繞過 P7.2 governance。
 這些規則也限制 P7.2 的新 payment control plane：`CeDispatchAllowed=false` 與
 `ProductConsumerAllowed=false` 的 local state 可供未來 independent family 重用其治理概念，但不能改變
 歷史 Slice C non-replay，也不能當成 CE、consumer、P7.5 或 P8 authorization。
+
+### 2026-08-14 MemberInfo smallgroup tree authorization boundary
+
+00031／00032 不可由既有 `MemberInfoController` 的 Church／Shepherd tree path 直接抽取成 Gateway
+capability。Church branch 的 fixed descriptor query 雖可在未來形成受控 template，但 Shepherd branch 的 list
+assignment 來自 Session／`InMemoryContext`，並可能用保存 credential 啟動 shared `ListManager` loader；兩者
+不具同一個在 I/O 前建立的 immutable request-local scope。
+
+可接受的後續資料流必須先由另一個 child 建立：authenticated principal → server-derived MemberInfo scope →
+server-selected Church 或 Shepherd capability → request-local bounded list allowlist → fixed descriptor/membership
+template → Data8 projection → immutable DTO。scope 不得讀寫 Session、InMemoryContext、legacy ListManager、
+credential、shared authorization cache 或 browser locator；invalid、duplicate、stale 或 ambiguous scope 必須 fail
+closed。只有該前置 boundary 通過後，descriptor 與 membership 才可各自有 Data8/ProductClient、A/B isolation、
+cancellation/lease cleanup、disabled gate、CE 與 rollback evidence。

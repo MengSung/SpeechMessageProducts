@@ -404,3 +404,17 @@ legacy source/project/settings reference 與 CE/host/parity/soak/drain/rollback 
 removal 只能在 report=`prerequisite-ready`、完整 zero-reference 及所有實機／lifecycle gate 通過後建立；P8
 只能在 P7.5 scope-only commit/archive 的 immutable handoff，以及雲端 host、identity、TLS、secret provider、
 network、CE reachability 和 deployment authorization 都就緒後建立。所有 checked-in feature gate 繼續是 false。
+
+### 2026-08-14 MemberInfo 小組樹授權來源 checkpoint
+
+`ORG-CALL-00031`（小組 descriptor）與 `ORG-CALL-00032`（小組 membership）已完成獨立來源稽核，
+結論為 source-only local design no-go。現行 `GetAccess()` 優先使用 Session、並由 shared
+`InMemoryContext` 推導／回寫 access；Shepherd scope 還會在 authorization 之前透過
+`EnsureShepherdListsLoaded()` 使用保存 credential 載入 mutable `ListManager`。因此 legacy visible-list
+allowlist 不能直接作為 Gateway ProductClient 的 trusted scope，且 Church-only partial migration 不得宣稱完成
+既有 MemberInfo 小組樹 consumer。
+
+這個 no-go 僅停止 00031／00032 的 direct migration，不阻擋其他不依賴此 authorization chain 的 P7 family。
+恢復前必須先由專屬 child 證明 request-local、server-derived、immutable MemberInfo Church／Shepherd scope，
+並在 browser locator、cache、profile/client composition 與 CRM I/O 前產生 bounded allowlist。P7.5／P8 gate
+不因這份 local audit 改變。

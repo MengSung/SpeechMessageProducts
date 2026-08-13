@@ -252,3 +252,16 @@ read、list action 或 four-field contact update 都需各自先完成 DTO/autho
 review；只有通過 DTO-only、server authorization、isolation、lifecycle 與 rollback boundary 的 family 才能實作。
 任何 timeout、ambiguous、no-go、read-back mismatch 或 cleanup uncertainty 只停止其 mutation family，不得重試；
 不依賴它的本機 family 仍可繼續。
+
+## 16. 2026-08-14 MemberInfo smallgroup tree source-only no-go
+
+`ORG-CALL-00031`／`memberinfo.smallgroup.retrieve.descriptors` 與
+`ORG-CALL-00032`／`memberinfo.smallgroup.retrieve.memberships` 不是可直接從現有 MemberInfo tree 路徑切出的
+Gateway read capability。`GetAccess` 接受 Session cache 或從 shared `InMemoryContext` 推導；Shepherd assignment
+還會在 scope 建立前使用保存 credential 載入 mutable `ListManager`。Church 的 fixed descriptor query 不足以
+替代 Shepherd authorization，故不得只遷移 Church branch 或以 legacy visible-list allowlist 當 Gateway authority。
+
+後續恢復順序固定為：先以獨立 child 建立 request-local、server-derived、immutable MemberInfo scope，再由
+server 分別選擇 Church／Shepherd capability 並產生 bounded list allowlist，最後才可設計固定 descriptor／
+membership template、DTO、Data8/ProductClient、A/B isolation、resource cleanup、disabled gate、CE 與 rollback
+evidence。此 no-go 不影響不依賴該 chain 的 P7 family；所有 P7.5/P8 predecessor 維持不變。

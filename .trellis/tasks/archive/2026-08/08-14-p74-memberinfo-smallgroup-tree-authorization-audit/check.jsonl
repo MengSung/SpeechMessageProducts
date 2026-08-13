@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/08-14-p74-memberinfo-smallgroup-tree-authorization-audit/prd.md","reason":"驗收範圍、非目標與恢復條件。"}
+{"file":".trellis/tasks/08-14-p74-memberinfo-smallgroup-tree-authorization-audit/design.md","reason":"source-only no-go 設計、隔離邊界與禁止事項。"}
+{"file":".trellis/tasks/08-14-p74-memberinfo-smallgroup-tree-authorization-audit/source-audit.md","reason":"matrix 到 legacy source 的可追溯判定。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/task.json","reason":"P7.5/P8 gate 與 parent 現況一致性。"}

@@ -1,0 +1,5 @@
+{"file":"AGENTS.md","reason":"完整的隔離、資源生命週期、繁體中文文件、UTF-8 無 BOM 與 CRLF 強制規則。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Gateway 授權邊界、A/B 隔離、cache 與資源 owner 的必要契約。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo tree/list locator、Church/Shepherd 可見範圍與快取契約。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00031/00032 的唯一排程與 evidence baseline。"}
+{"file":"SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs","reason":"既有 route、Session/InMemoryContext access、Shepherd credential loader 與 legacy CRM query 的權威來源。"}

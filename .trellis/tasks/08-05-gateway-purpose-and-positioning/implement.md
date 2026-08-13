@@ -224,3 +224,14 @@ preflight、fixture、mutation、feature gate、traffic 或 cleanup，歷史 Sli
 此 family，必須另立 request-local QR authorization-boundary child，先以 TDD 建立 server-derived scope、
 fixed command、idempotency／ledger、read-back／reconcile 與 cleanup owner；在此之前繼續選取不依賴這條
 legacy QR path 的 independent matrix capability。
+
+## 2026-08-14 MemberInfo smallgroup tree source-only checkpoint
+
+1. [x] 以 child `08-14-p74-memberinfo-smallgroup-tree-authorization-audit` 對 00031／00032 完成 matrix、
+   route、Session/InMemoryContext、Church/Shepherd branch、legacy credential loader 與 SDK query trace。
+2. [x] 判定為 source-only local design no-go：不得把 Session access、shared ListManager 或保存 credential
+   loader 當作 Gateway scope，也不得只遷移 Church branch 或向 typed boundary 傳遞 raw legacy SDK state。
+3. [x] 限時 CCG architect run 在 45 秒內未產生 usable output，記錄「雙模型未完成」，以本機 evidence 完成
+   fail-closed decision；不重試等待。
+4. [x] child 已完成 scope-only commit/archive；從 matrix 選擇不依賴 MemberInfo tree authorization chain 的下一個
+   P7 capability。只有先完成另一個 server-derived MemberInfo scope child，才可重新評估 00031／00032。

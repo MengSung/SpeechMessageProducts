@@ -1,0 +1,12 @@
+{
+  "id": "p74-memberinfo-smallgroup-tree-authorization-audit",
+  "title": "P7.4 MemberInfo 小組樹授權來源稽核",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-security",
+  "currentPhase": "completed",
+  "nextAction": "已完成 source-only no-go 檢查與 parent checkpoint；等待 scope-only commit 後與對應 Trellis child 一併封存，雙模型未完成但本機驗證已完成",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
