@@ -221,3 +221,28 @@ boundary，明確分離 card update、fee create、owner assignment、booking co
 read-back/reconcile 與 deterministic cleanup。timeout、ambiguous、partial、mismatch 或 cleanup uncertainty
 停止該 family 並禁止 replay。它不解除 P7.5 zero-reference/parity/soak/drain/rollback gate，也不允許建立
 P8 parent。
+
+## 15. 2026-08-14 現況與下一步（現行權威）
+
+P3～P6、P7.0、P7.1、P7.2、P7.3 都是封存 baseline；Official Worker live compatibility 保持
+`evidence-pending`，不阻擋 Data8-first local work。歷史 P7.2 Slice C 為 `write-not-committed` no-go 且
+exact cleanup 完成，永久不可 replay。新封存的 P7.2 payment fresh-fixture control plane 維持
+`CeDispatchAllowed=false` 與 `ProductConsumerAllowed=false`，只代表 local planning/admission evidence。
+
+P7.4 已完成 15 個 local child，所有 checked-in gate 維持 false。這些成果不得誤稱為 consumer cutover、
+CE、Dedicated、Central 或 traffic evidence，也不能改寫 70-row matrix 的 legacy consumer 狀態。已確認
+`ORG-CALL-00066` fee-editor endpoint 已封存且不得重做；下一 child 必須從尚未安全分流的 capability family
+選取，而不是複製既有 endpoint：weekly statistics 的 paging-result、payment-adjacent read、credential/session
+read、list action 或 four-field contact update 都需各自先完成 DTO/authorization/resource/write governance
+設計。
+
+| 現行 P7.5/P8 gate | 實際狀態 | 允許動作 |
+| --- | --- | --- |
+| P7.5 prerequisite report | `no-go`；70 temporary-legacy、67 consumer-not-migrated、legacy references 與 CE/host/parity/soak/drain/rollback gap | 繼續 individual local capability family；不得建立 removal child。 |
+| P7.5 ToolUtility removal | 尚未達 prerequisite-ready | 不移除 project/DI/settings/SDK reference。 |
+| P8.0～P8.4 | P7.5 immutable handoff 與雲端 host/identity/TLS/secret/network/CE/deployment authorization 都尚缺 | 不建立或部署；僅在條件真正成立後進入獨立 P8 sequence。 |
+
+下一個 P7 child 的共同入口是：先做唯讀 source audit，再完成 task PRD/design/implement、TDD 與 bounded
+review；只有通過 DTO-only、server authorization、isolation、lifecycle 與 rollback boundary 的 family 才能實作。
+任何 timeout、ambiguous、no-go、read-back mismatch 或 cleanup uncertainty 只停止其 mutation family，不得重試；
+不依賴它的本機 family 仍可繼續。

@@ -374,3 +374,33 @@ scalar 與兩個 leader lookup 的 nullable GUID，並以有界 query、immutabl
 P8 仍不在 scope。最終 CCG reviewer 被限制在 45 秒：Gemini timeout、Claude session-limit，沒有 accepted usable
 output，紀錄為「雙模型未完成」。下一個 child 必須依 authoritative matrix 選取，且維持同樣的本機設計、TDD、build
 與 bounded review 規則。
+
+### 2026-08-14 P7/P8 現況校正 checkpoint（現行權威）
+
+封存 evidence 與目前 source 已再度核對：P3～P6、P7.0、P7.1、P7.2、P7.3 都只作為唯讀基準；
+P6 Official Worker live compatibility 保持 `evidence-pending`，不阻擋 Data8-first 本機能力工作。歷史
+P7.2 Slice C 是 `write-not-committed` no-go 且 exact cleanup 完成，任何舊 nonce、ledger、fixture、
+descriptor 或 evidence 都永久不可重試／復用。新封存的
+`08-14-p72-governed-recurring-payment-return-write-family` 僅新增 local payment control plane；
+其 `CeDispatchAllowed=false` 與 `ProductConsumerAllowed=false`，不是 CE 寫入、consumer、cutover、
+P7.5 或 P8 evidence。
+
+P7.4 至今已有 15 個封存 child，包含 disabled DTO-only boundary、local admission control-plane、
+read-only caller assessment 與 action/write consumer no-go。這些 child 可證明其 own local contract，
+但不會自行把 authoritative matrix 的 legacy consumer row 改為 migrated，也不允許 feature gate、CE request
+或 traffic enablement。尤其 `ORG-CALL-00066` 已由 `08-13-p74-fee-editor-read-boundary` 完成本機、
+預設關閉的 fee-editor DTO endpoint；它不能重做，亦不能灌回 `FeeList.FeeDataList`、`UpdateFeeData`
+或 `SaveBatch` 的 legacy mutable/write chain。
+
+本輪可安全候選稽核沒有找到尚未封存、同時具 DTO-only、server authorization、無 shared
+`Entity`／`EntityCollection` bridge、無 write adjacency、無 credential/session ambiguity、無 special-resource
+ownership gap 的 P7.4 consumer。`ORG-CALL-00064` 仍相鄰 payment writer；00055／00056 不得替代
+credential/session chain；00063 是有 `paging-result` ownership 的 weekly-report family；list action 與
+four-field contact update 也各需要獨立 writer-family design。下一 child 因此必須從這些 family 中選一條，
+先完成 source audit、PRD、design 與 test strategy；不得重複既有 endpoint 或把 read-new/write-legacy 混接。
+
+P7.5 prerequisite report 仍是 deterministic `no-go`：70 `temporary-legacy` rows、67 未遷移 consumer、
+legacy source/project/settings reference 與 CE/host/parity/soak/drain/rollback gap 都尚存。P7.5 ToolUtility
+removal 只能在 report=`prerequisite-ready`、完整 zero-reference 及所有實機／lifecycle gate 通過後建立；P8
+只能在 P7.5 scope-only commit/archive 的 immutable handoff，以及雲端 host、identity、TLS、secret provider、
+network、CE reachability 和 deployment authorization 都就緒後建立。所有 checked-in feature gate 繼續是 false。

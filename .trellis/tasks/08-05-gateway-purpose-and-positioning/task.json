@@ -32,7 +32,9 @@
     "08-13-p72-dedication-payment-return-write-boundary",
     "08-13-08-13-p71-dedication-booking-typed-read",
     "08-13-p71-appnamed-list-catalog-typed-read",
-    "08-13-08-13-p71-appnamed-smallgroups-list-catalog-typed-read"
+    "08-13-08-13-p71-appnamed-smallgroups-list-catalog-typed-read",
+    "08-14-p72-governed-recurring-payment-return-write-family",
+    "08-14-p7p8-parent-current-state-reconciliation"
   ],
   "parent": null,
   "relatedFiles": [

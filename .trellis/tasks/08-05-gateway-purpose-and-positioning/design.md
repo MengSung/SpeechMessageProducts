@@ -240,3 +240,22 @@ transport state 都不得跨出 connector。ProductClient 必須為每個 reques
 local-only，沒有授權 CE mutation、feature enablement、traffic、P7.5 或 P8。
 將系統目錄資料錯誤宣稱為 universally-safe shared cache，並保留每個 consumer 的 authorization、locale、
 performance、rollback 與 CE evidence 責任。
+
+### 2026-08-14 evidence hierarchy 與下一 family 選擇
+
+P7/P8 parent 一律按下列 hierarchy 判讀：registry／Data8 executor／typed ProductClient 只代表某 operation
+contract 已存在；disabled local boundary 只代表 gate=false 下的本機 DTO、authorization、A/B isolation、
+cancellation 與 lifecycle contract；matrix 的 consumer 欄才描述 legacy production consumer 是否實際被 own
+child 接管；CE evidence 僅限該 operation family、CE version 與證據 cycle；Embedded、Dedicated、Central host
+與 traffic cutover 分別需要額外的 deployment evidence。任何較低層證據不得推導成較高層完成。
+
+下一 child 的 source audit 必須先拒絕將 typed DTO rehydrate 成 `Entity`／`EntityCollection`，或寫入
+Session mutable graph／legacy write path。browser/request locator 只能在 server-owned authorization 後使用，
+且不可選 profile、connector、credential、owner 或 organization。disabled gate 必須在 I/O、client composition
+與 session mutation 前 short-circuit，並有 deployment rollback owner。write/action/function family 則必須另有
+idempotency、exact read-back/reconcile、fresh fixture、deterministic cleanup、timeout/no-replay 與 rollback
+design；不得藉 P7.4 read consumer path 繞過 P7.2 governance。
+
+這些規則也限制 P7.2 的新 payment control plane：`CeDispatchAllowed=false` 與
+`ProductConsumerAllowed=false` 的 local state 可供未來 independent family 重用其治理概念，但不能改變
+歷史 Slice C non-replay，也不能當成 CE、consumer、P7.5 或 P8 authorization。

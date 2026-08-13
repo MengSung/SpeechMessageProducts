@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"永久 A/B 隔離、資源所有權與 fail-closed 契約；所有 P7/P8 capability-family 排程與文件聲明都必須維持此界線。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Data8、Embedded/Dedicated/Central hosting、CE evidence 與 legacy-removal gate 的 domain contract。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"P7 剩餘能力與 P7.5 blocker 的權威 baseline。"}
+{"file":".trellis/tasks/archive/2026-08/08-13-p75-prerequisite-evidence-zero-reference-gate/p75-prerequisite-evidence-report.json","reason":"P7.5 deterministic no-go 的可重複 repository-side evidence。"}

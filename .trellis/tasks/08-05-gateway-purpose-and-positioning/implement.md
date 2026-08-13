@@ -193,3 +193,21 @@ rollback owner 與 no-SDK boundary；不允許以 Entity/EntityCollection bridge
    project/settings references 與 CE/host/parity/soak/drain/rollback gaps 尚存。因此不得建立 P7.5 removal
    child；P8.0～P8.4 仍等待 P7.5 scope-only commit/archive 的 immutable handoff，以及外部 host、DNS、TLS、
    service identity、secret provider、network、CE reachability 與 deployment authorization。
+
+## 2026-08-14 P7/P8 現況校正與下一 family 排程
+
+1. 已封存的 local read endpoint 或 registry/Data8/ProductClient contract 不得重做。`ORG-CALL-00066`
+   fee-editor boundary 已封存，且不可接入 `FeeList.FeeDataList`／`UpdateFeeData`／`SaveBatch`；00014／00065
+   的 shared legacy `EntityCollection` consumer 仍不具 DTO-only cutover 證據。
+2. 每個下一 candidate 先以 source audit 分類為 read consumer、special-resource，或 write/action/function
+   family。只有具 bounded DTO、server authorization、無 shared mutable bridge、無 write adjacency、明確
+   rollback owner、gate=false zero-work 與 testable lifecycle 的 read consumer，才能建立新的 P7.4 child。
+3. `ORG-CALL-00063` weekly meeting statistics 必須先處理 bounded `paging-result` 的 page/token/buffer/
+   cancellation/retention owner；00064 payment-adjacent、00055/00056 credential/session、list action 及
+   four-field contact update 皆必須使用自己的 family design，不得做 partial consumer wiring。
+4. 歷史 Slice C 維持 non-replay。`08-14-p72-governed-recurring-payment-return-write-family` 的 local
+   control plane 維持 `CeDispatchAllowed=false`／`ProductConsumerAllowed=false`；只有未來新 family 建立
+   fresh task-owned fixture、preflight=go、single dispatch、exact read-back/reconcile、cleanup 並符合
+   no-replay policy，才可獨立評估 CE evidence。
+5. P7.5 prerequisite 仍為 `no-go`，P8 仍不可建立。每個 child 結束後只更新其 own evidence 與 parent
+   checkpoint；matrix consumer status、feature gate、traffic 及 P7.5/P8 state 不得因 local evidence 自動升級。
