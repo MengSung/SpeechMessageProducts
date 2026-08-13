@@ -1,0 +1,32 @@
+{
+  "id": "p74-authentication-credential-policy-boundary",
+  "name": "p74-authentication-credential-policy-boundary",
+  "title": "P7.4 認證憑證策略安全邊界",
+  "description": "Document and enforce the security boundary between legacy account-password authentication and the non-secret, disabled local typed contact-read boundary; no runtime authentication migration, CE, traffic, P7.5 or P8 action.",
+  "status": "in_progress",
+  "dev_type": "backend-authentication-security",
+  "scope": "Task/documentation-only credential-policy decision. No C# or runtime configuration change, CE request/mutation, feature enablement, traffic switch, P7.5 removal, P8 deployment, push or PR.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    "SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Private.cs",
+    "SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs",
+    "SpeechMessage.Dynamics.ProductClient/Authentication/AuthenticationContactReadClient.cs",
+    ".trellis/tasks/archive/2026-08/08-13-p74-auth-contact-lookup-boundary/design.md",
+    ".trellis/tasks/archive/2026-08/08-13-p75-prerequisite-evidence-zero-reference-gate/p75-prerequisite-evidence-report.json"
+  ],
+  "notes": "Legacy account/password login reads new_app_pass and compares plaintext. The completed typed contact-read boundary contains no secret and must not be used to verify credentials or rehydrate a CRM Entity. A future auth.contact.credential.verify capability needs an approved secret-safe source model and independent authorization/session/isolation/lifecycle design. Gemini partial output recommended an unsafe LINE DTO-to-Entity rehydration and was rejected; Claude quota/session blocked. Record is 雙模型未完成, not a completed dual-model review.",
+  "meta": {}
+}

@@ -1,0 +1,12 @@
+{
+  "id": "p74-authentication-credential-policy-boundary",
+  "title": "P7.4 認證憑證策略安全邊界",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-authentication-security",
+  "currentPhase": "review",
+  "nextAction": "驗證安全決策 artifacts，完成 scope-only commit 與 Trellis/CCG archive；之後選擇下一個不依賴 credential/session migration 的 P7.4 local-only capability。",
+  "createdAt": "2026-08-13T19:08:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

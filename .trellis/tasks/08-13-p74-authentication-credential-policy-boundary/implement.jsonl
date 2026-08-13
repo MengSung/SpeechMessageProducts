@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"認證、Profile、Generation、Session handoff 與 connector 資源的 repository-wide isolation／cleanup contract。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Data8 ProductClient operation、deployment-owned routing、gate 與 legacy-removal evidence boundary。"}
+{"file":".trellis/tasks/archive/2026-08/08-13-p74-auth-contact-lookup-boundary/design.md","reason":"已封存的 non-secret authentication contact typed-read contract 與 consumer prerequisites。"}
+{"file":".trellis/tasks/archive/2026-08/08-13-p75-prerequisite-evidence-zero-reference-gate/p75-prerequisite-evidence-report.json","reason":"P7.5 currently no-go matrix/reference baseline；本 child 不能超前宣稱 removal readiness。"}

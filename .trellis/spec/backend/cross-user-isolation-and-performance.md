@@ -461,3 +461,104 @@ return File(result.GetImageBytes(), result.ContentType);
 ```
 
 The gate, scope and target are all server validated before the fixed-profile typed dispatch; bytes are request-local copies and failure cannot select a legacy or alternate transport path.
+
+## 10. Authentication Credential Verification Boundary Scenario
+
+### 1. Scope / Trigger
+
+Apply this scenario when migrating any account/password, PIN, secret, token, or other credential
+verification path from legacy CRM or application code to a typed ProductClient/Gateway capability.
+A contact/profile read is not a credential-verification capability. This scenario applies even when an
+existing read DTO contains a contact identifier or display fields.
+
+### 2. Signatures
+
+The future verification capability must use a fixed, server-owned operation and return only a fixed
+non-secret classification:
+
+```text
+CapabilityOperationId = "auth.contact.credential.verify"
+CredentialVerificationOutcome =
+  verified | invalid-credentials | ambiguous | profile-unavailable
+```
+
+The actual language signature may evolve in its owning task, but it must accept server-derived
+`ProfileAlias` and workload/authorization scope. Browser account/password values are untrusted inputs;
+they never choose an operation, credential, endpoint, connector, organization, owner or profile.
+
+### 3. Contracts
+
+1. The credential source, hash/upgrade policy and single secret owner are approved before implementation.
+   A legacy plaintext comparison is not an acceptable typed migration source.
+2. Secrets are compared only inside the controlled owner. Wire DTOs, ProductClient results, Session,
+   logs, task artifacts, exceptions and browser responses contain no plaintext, hash, salt, token,
+   cookie, raw CRM `Entity`, endpoint, credential or secret-presence detail.
+3. Contact-read and credential-verification operations remain separate. A read DTO must not be extended
+   with secret fields, rehydrated into a CRM `Entity`, or used to synthesize a successful login/session.
+4. The false deployment gate ends before profile resolution, client/handler/pool creation or outbound I/O.
+   Once a typed verification is dispatched, an ambiguous, failed, cancelled, timed-out or faulted result
+   fails closed without a legacy fallback or retry of uncertain transport state.
+5. A successful non-secret outcome does not itself authorize arbitrary contact retrieval. Any session
+   handoff or later projection is a separately authorized, request-local flow that preserves the complete
+   `IsolationBoundary` and has deterministic cleanup.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| No approved non-plaintext credential source/policy | Do not create or wire the verification capability. |
+| Gate false | Zero typed I/O; preserve the documented compatibility path without constructing typed resources. |
+| Secret, hash, token, CRM entity or raw upstream detail appears in result/log/artifact | Reject before publication; treat as a release-blocking secret/isolation defect. |
+| Zero, duplicate or ambiguous account match | Return the fixed `ambiguous`/failure classification; never select a first match. |
+| Cancellation, timeout, fault or cleanup uncertainty | Fail closed; evict uncertain transport resources, release ownership in `finally`, and do not retry/fallback. |
+| Session handoff lacks validated subject/profile/generation scope | Reject before session mutation, cache access, client allocation or data projection. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** A fixed, deployment-owned executor compares the secret internally and emits only
+  `verified`; a separately authorized request-local handoff creates no shared CRM entity, DTO, credential
+  or session cache.
+- **Base:** The gate is false. The future typed verification path performs no I/O and is not represented
+  as CE, traffic-cutover, ToolUtility-removal or P8 evidence.
+- **Bad:** A contact read returns a password/hash, a controller reconstructs a CRM `Entity` from a read
+  DTO, or a typed failure queries legacy CRM as a fallback. Each breaks the trust boundary and is a
+  release blocker.
+
+### 6. Tests Required
+
+1. Contract tests prove every result/log/task artifact excludes secret material, raw CRM entities and
+   upstream fault detail.
+2. Tests prove the false gate performs no profile/client/handler/pool/CE work; enabled execution uses
+   server-owned routing only and never selects a first duplicate match.
+3. Interleaved A/B tests use distinct account/session/profile markers and prove no cross-response,
+   cross-session, cross-cache or cross-log state.
+4. Fault-injection tests cover invalid credentials, ambiguous match, cancellation, timeout-after-dispatch
+   and cleanup failure. They prove no legacy fallback/retry and that uncertain resources are not reused.
+5. Any session handoff test proves validation occurs before session mutation and that a login outcome
+   cannot be converted into a caller-selected contact/entity projection.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var contact = await contactReadClient.RetrieveByAccountAsync(profile, subject, account, cancellationToken);
+if (contact.Found && contact.PasswordHash == Hash(password))
+{
+    return CreateSession(new Entity("contact", contact.ContactId));
+}
+```
+
+This copies or assumes secret material at a read boundary and synthesizes legacy entity/session state.
+
+#### Correct
+
+```text
+Validate server-owned authentication scope
+  -> fixed credential-verification operation owns secret comparison
+  -> emit only fixed non-secret outcome
+  -> independently authorize any request-local session handoff
+```
+
+The verification boundary is fail-closed, secret-free outside its owner and cannot silently select a
+legacy path after typed dispatch.

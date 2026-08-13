@@ -1,0 +1,4 @@
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"認證與 Session work 的 A/B isolation、fault eviction、cleanup checklist。"}
+{"file":".trellis/spec/guides/ccg-external-review-thinking-guide.md","reason":"45-second external review deadline、quota handling 與降級結論的驗證規則。"}
+{"file":".trellis/tasks/08-13-p74-authentication-credential-policy-boundary/prd.md","reason":"驗收範圍、non-goals 與 future credential verification prerequisites。"}
+{"file":".trellis/tasks/08-13-p74-authentication-credential-policy-boundary/design.md","reason":"方案比較、trust boundary、fixed outcome 與 rollback design。"}
