@@ -261,6 +261,20 @@ public sealed class Package01DedicationBookingReadClientTests
             OperationResponseData.ForPackage01DedicationBookingRecords(operationId, "9.1", records));
 
     /// <summary>
+    /// 保留單筆與多筆 row 的簡潔測試呼叫方式，同時委派至集合版本，避免測試資料在建立
+    /// envelope 前後的集合快照行為出現兩套實作。此 helper 不保存 row、executor 或任何跨測試狀態。
+    /// </summary>
+    /// <param name="operationId">測試欲建立的封閉 capability operation 識別碼。</param>
+    /// <param name="records">本次測試專屬、稍後會交由 response factory 防禦性複製的 wire rows。</param>
+    /// <returns>不含 CRM、connector 或 lease 的成功 response envelope。</returns>
+    private static OperationExecutionResult CreateDedicatedBookingResult(
+        string operationId,
+        params Package01DedicationBookingRecord[] records)
+        => CreateDedicatedBookingResult(
+            operationId,
+            (IEnumerable<Package01DedicationBookingRecord>)records);
+
+    /// <summary>
     /// 建立帶有可辨識 marker 的 immutable wire row。不同 marker 對應不同 category/status 顯示字串，供 A/B
     /// 隔離與來源集合 mutation 測試精確辨識；record 本身沒有外部資源、session 或可變集合所有權。
     /// </summary>

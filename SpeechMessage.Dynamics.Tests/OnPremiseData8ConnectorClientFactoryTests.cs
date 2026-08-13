@@ -607,6 +607,105 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 保護 ORG-CALL-00041 認獻單讀取只能透過 server-owned QueryExpression 執行一次有界的
+    /// <c>RetrieveMultiple</c>。測試故障注入擷取實際 query，精確驗證實體、allowlisted ColumnSet、
+    /// contact/status/state 三個條件、createdon/主鍵排序與第一頁上限；回應只投影為 dedicated
+    /// booking branch，CRM Entity 不會離開 connector scope，且 owned service 確定釋放一次。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_dedication_booking_read_with_its_fixed_query_contract()
+    {
+        var contactId = Guid.Parse("44444444-3333-2222-1111-000000000001");
+        var bookingId = Guid.Parse("55555555-3333-2222-1111-000000000002");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                expression.EntityName.Should().Be("new_dedication_booking");
+                expression.ColumnSet.Columns.Should().Equal(
+                    "new_dedication_bookingid",
+                    "createdon",
+                    "new_dedication_category",
+                    "new_dedication_booking_status",
+                    "new_amount_per_stage",
+                    "new_total_stages",
+                    "new_dedication_amount",
+                    "new_paid_period",
+                    "new_rollup_paid_fee",
+                    "new_dedication_start_date",
+                    "new_dedication_end_date");
+                expression.Criteria.Conditions.Should().HaveCount(3);
+                expression.Criteria.Conditions[0].AttributeName.Should()
+                    .Be("new_contact_new_dedication_booking");
+                expression.Criteria.Conditions[0].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[0].Values.Should().ContainSingle().Which.Should().Be(contactId);
+                expression.Criteria.Conditions[1].AttributeName.Should().Be("new_dedication_booking_status");
+                expression.Criteria.Conditions[1].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[1].Values.Should().ContainSingle().Which.Should().Be(100000001);
+                expression.Criteria.Conditions[2].AttributeName.Should().Be("statecode");
+                expression.Criteria.Conditions[2].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[2].Values.Should().ContainSingle().Which.Should().Be(0);
+                expression.Orders.Select(order => new { order.AttributeName, order.OrderType })
+                    .Should().Equal(
+                        new { AttributeName = "createdon", OrderType = OrderType.Descending },
+                        new { AttributeName = "new_dedication_bookingid", OrderType = OrderType.Ascending });
+                expression.PageInfo.PageNumber.Should().Be(1);
+                expression.PageInfo.Count.Should().Be(128);
+                expression.PageInfo.PagingCookie.Should().BeNull();
+
+                var row = new Entity("new_dedication_booking", bookingId)
+                {
+                    ["new_dedication_bookingid"] = bookingId,
+                    ["new_dedication_booking_status"] = new OptionSetValue(100000001),
+                    ["new_dedication_category"] = new OptionSetValue(100000003),
+                    ["new_total_stages"] = "12",
+                    ["new_paid_period"] = "2026-08"
+                };
+                row.FormattedValues["new_dedication_booking_status"] = "啟用中";
+                row.FormattedValues["new_dedication_category"] = "測試認獻";
+                return new EntityCollection([row]);
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.PaymentsDedicationRetrieveByContact,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["contactId"] = contactId,
+                ["contactName"] = "不得影響 query"
+            }
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.Package01DedicationBookingRecords);
+        result.Data.DedicationBookingRecords.Should().ContainSingle().Which.Should().BeEquivalentTo(
+            new Package01DedicationBookingRecord
+            {
+                DedicationBookingId = bookingId,
+                DedicationBookingStatusOption = 100000001,
+                DedicationBookingStatusLabel = "啟用中",
+                DedicationCategoryOption = 100000003,
+                DedicationCategoryLabel = "測試認獻",
+                AmountPerStage = 0m,
+                TotalStages = "12",
+                DedicationAmount = 0m,
+                PaidPeriod = "2026-08",
+                RollupPaidFee = 0m
+            });
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 驗證所有使用 stor-lesson executor 的 capability 都以 connector 擁有的 <c>lesson</c> inner link 讀取課程名稱、開課日期與
     /// 目前階段，並將 CRM 的 aliased UTC 日期與字串投影成純值 response。故障注入使用離線
     /// <see cref="IOrganizationService"/>，其 callback 會拒絕缺少 link 或遺漏欄位的 QueryExpression；決定性

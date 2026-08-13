@@ -2830,10 +2830,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "financial-data",
                                     "capabilityOperationId":  "payments.dedication.retrieve.by.contact",
+                                    "responseKind":  "Package01DedicationBookingRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "payments.dedication.by.contact.v1",
-                                                                "templateHash":  "93beb819e69138db45695902eeb7f2ec2bb7b2fce6d3f6fe7e926cb0a463a27f"
+                                                                "templateHash":  "d471675ce995f976870a801fc7a5a66cdfbcb03cee3cf4494e9723839d746d9c"
                                                             },
                                     "typedParameters":  [
                                                             {

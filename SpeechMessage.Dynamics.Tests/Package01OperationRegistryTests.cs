@@ -49,6 +49,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.FeeDedicationRetrieveByContact,
             OperationIds.FeeDedicationRetrieveByContactDateRange,
             OperationIds.FeesRetrieveByDedicationPeriod,
+            OperationIds.PaymentsDedicationRetrieveByContact,
             OperationIds.FeesEditorLoadByDiscipleLesson,
             OperationIds.LessonsStorRetrieveByContact,
             OperationIds.LessonsStorRetrieveByDiscipleLesson,
@@ -66,7 +67,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.StatsMeetingRetrieveBySunday
         });
 
-        ids.Should().HaveCount(21);
+        ids.Should().HaveCount(22);
     }
 
     /// <summary>

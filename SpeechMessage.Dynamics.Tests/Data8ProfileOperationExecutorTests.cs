@@ -175,6 +175,90 @@ public sealed class Data8ProfileOperationExecutorTests
     }
 
     /// <summary>
+    /// 保護 ORG-CALL-00041 的專用認獻單讀取在通過 registry 參數驗證後，才以單一 Data8 lease
+    /// 執行並投影 dedicated-booking branch。故障注入使用不持有 CRM、連線或 session 的 fixed connector
+    /// result；決定性斷言確認 operation、必要 contactId、response discriminator 與 permit/client 的
+    /// 釋放次數。這可防止新 capability 意外借用 fee branch、保留上一個 profile 的資料，或在完成後
+    /// 留下未釋放的 lease 資源。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_projects_registered_dedication_booking_read_through_a_lease_with_a_dedicated_branch()
+    {
+        var contactId = Guid.Parse("12121212-1212-1212-1212-121212121212");
+        var bookingId = Guid.Parse("34343434-3434-3434-3434-343434343434");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForPackage01DedicationBookingRecords(
+                operation.OperationId,
+                "9.1",
+                [new Package01DedicationBookingRecord
+                {
+                    DedicationBookingId = bookingId,
+                    DedicationBookingStatusOption = 100000001,
+                    DedicationBookingStatusLabel = "啟用中",
+                    DedicationCategoryLabel = "測試認獻"
+                }])
+        })
+        {
+            ExpectedOperationId = OperationIds.PaymentsDedicationRetrieveByContact
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.PaymentsDedicationRetrieveByContact,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["contactId"] = contactId,
+                    ["contactName"] = "僅供相容的顯示名稱"
+                }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.Package01DedicationBookingRecords);
+        result.Data.DedicationBookingRecords.Should().ContainSingle().Which.DedicationBookingId.Should().Be(bookingId);
+        factory.LastOperation!.Parameters.Should().ContainSingle();
+        factory.LastOperation.Parameters["contactId"].Should().Be(contactId);
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+
+        await pool.DrainAsync();
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護缺少認獻單 contactId 的請求必須在 Data8 pool admission、client 建立與任何 outbound work 前
+    /// fail closed。故障注入的 factory 一旦被使用便丟出例外；決定性斷言是固定 invalid-parameters
+    /// 分類及零 acquire／零 client，避免無效 locator 消耗共享 permit 或暴露舊 request 的 connector 狀態。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_dedication_booking_read_without_contact_id_before_admission()
+    {
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(_ =>
+            throw new InvalidOperationException("Invalid dedication-booking input must not create a connector client."));
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.PaymentsDedicationRetrieveByContact,
+                new Dictionary<string, object?>(StringComparer.Ordinal)),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("operation.invalid-parameters");
+        admission.AcquireCount.Should().Be(0);
+        admission.ReleaseCount.Should().Be(0);
+        factory.CreatedCount.Should().Be(0);
+        factory.DisposedCount.Should().Be(0);
+    }
+
+    /// <summary>
     /// 保護 P7.2 contact basic-info capability 只有在 CE 9.1 Data8 profile 下，才會以固定三個 scalar 取得一次
     /// connector lease；故障注入是尚未加入 executor allowlist 的 operation，決定性斷言是 typed response、copied
     /// parameters 與 permit exactly-once release。測試 factory 不建立 CRM、WCF、credential、token、session 或

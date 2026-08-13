@@ -116,7 +116,7 @@ public sealed class Package01DedicationBookingReadRegistryTests
 
         executorSource.Should().Contain("OperationIds.PaymentsDedicationRetrieveByContact => true");
         executorSource.Should().Contain("TryCopyValidatedParameters(");
-        executorSource.IndexOf("TryCopyValidatedParameters(", StringComparison.Ordinal)
+        executorSource.IndexOf("if (!TryCreateConnectorOperation(", StringComparison.Ordinal)
             .Should()
             .BeLessThan(
                 executorSource.IndexOf("_connectorRouter.Resolve(profile)", StringComparison.Ordinal),

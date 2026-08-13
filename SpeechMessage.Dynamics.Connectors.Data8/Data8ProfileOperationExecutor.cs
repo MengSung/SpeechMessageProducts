@@ -1311,6 +1311,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         {
             if (record is null || record.DedicationBookingId is not { } dedicationBookingId ||
                 dedicationBookingId == Guid.Empty ||
+                record.DedicationBookingStatusOption != 100000001 ||
                 !TryAddFixedBytes(ref bytes, 256, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.DedicationCategoryLabel, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.DedicationBookingStatusLabel, definition.MaximumCumulativeResponseBytes) ||
