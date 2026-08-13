@@ -587,3 +587,36 @@ Reconciled P7/P8 parent evidence hierarchy, preserved Slice C non-replay and P7.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 18: P7.4 認獻能力對應與隔離稽核
+
+**Date**: 2026-08-14
+**Task**: P7.4 認獻能力對應與隔離稽核
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成並封存 ORG-CALL-00059/00060 source-only audit：00059 去重至既有 00041 typed booking family；00060 因 Session/InMemoryContext/Entity/form 在 immutable authorization scope 前的鏈結判定 local design no-go。兩次 CCG 僅 Gemini 可用，Claude 未完成並記錄降級。未進行 runtime、CE、gate、traffic、P7.5 或 P8 操作。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4d3ddf2a` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

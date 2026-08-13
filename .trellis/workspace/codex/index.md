@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 17
+- **Total Sessions**: 18
 - **Last Active**: 2026-08-14
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~589 | Active |
+| `journal-1.md` | ~622 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 18 | 2026-08-14 | P7.4 認獻能力對應與隔離稽核 | `4d3ddf2a` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 17 | 2026-08-14 | P7.2 QR 出席寫入安全邊界稽核 | `b48bb651` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 16 | 2026-08-14 | P7/P8 parent current-state reconciliation | `aba60d72` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 15 | 2026-08-14 | P7.4 full contact-image local boundary | `70ff5d33`, `43ee6c18` | `1.0.0.3.Gateway&Embedded.Worktree` |
