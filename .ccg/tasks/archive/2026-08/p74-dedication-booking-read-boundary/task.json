@@ -1,7 +1,7 @@
 {
   "id": "p74-dedication-booking-read-boundary",
   "title": "P7.4 ChurchReport 認獻單讀取 disabled boundary",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "M",
   "risk": "medium",
   "domain": "backend-integration",
