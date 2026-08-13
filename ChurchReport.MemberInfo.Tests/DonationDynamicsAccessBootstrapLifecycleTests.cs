@@ -215,6 +215,81 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
+    /// 保護 P7.4 ORG-CALL-00024 sub-gate 預設是嚴格 no-op。故障注入是沒有 process host、endpoint、
+    /// credential 或 profile 的空設定，以及僅開啟 sub-gate 卻未開 base gate 的設定；決定性斷言是兩種情況
+    /// 都不允許 typed consumer，因而不會建立 executor、provider、handler、Data8 pool、Session 或任何 CE 流量。
+    /// </summary>
+    [Fact]
+    public void Package02_ungrouped_commitment_read_requires_both_base_and_sub_gates_before_host_resolution()
+    {
+        var disabledConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+        var subGateOnlyConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package02UngroupedCommitmentReadEnabled"] = "true"
+            })
+            .Build();
+
+        DonationDynamicsAccessBootstrap.IsPackage02UngroupedCommitmentReadEnabled(disabledConfiguration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.IsPackage02UngroupedCommitmentReadEnabled(subGateOnlyConfiguration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.TryCreatePackage02UngroupedCommitmentReadClient(disabledConfiguration)
+            .Should().BeNull();
+        DonationDynamicsAccessBootstrap.TryCreatePackage02UngroupedCommitmentReadClient(subGateOnlyConfiguration)
+            .Should().BeNull();
+    }
+
+    /// <summary>
+    /// 保護 base/sub-gate 都開啟時，aggregate child 仍只可借用主 DI 已擁有的 stateless Package02 client。
+    /// 故障注入是純記憶體 test double；決定性斷言是 bootstrap 不執行 count、LINE write、provider、pool、
+    /// handler 或 background work，只回傳原 injection，資源 ownership 保持在 process host。
+    /// </summary>
+    [Fact]
+    public void Package02_ungrouped_commitment_read_allows_only_a_reviewed_base_and_sub_gate_combination()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package02ContactProfileOperationsEnabled"] = "true",
+                ["DynamicsAccess:Package02UngroupedCommitmentReadEnabled"] = "true",
+                ["DynamicsAccess:ProfileAlias"] = "crm91"
+            })
+            .Build();
+        var injected = new DisabledContactProfileClient();
+
+        DonationDynamicsAccessBootstrap.IsPackage02UngroupedCommitmentReadEnabled(configuration)
+            .Should().BeTrue();
+        DonationDynamicsAccessBootstrap.TryCreatePackage02UngroupedCommitmentReadClient(configuration, injected)
+            .Should().BeSameAs(injected);
+    }
+
+    /// <summary>
+    /// 保護 ORG-CALL-00024 的 enabled composition 在解析 process host、provider、handler、pool 或 credential 前，
+    /// 先拒絕空白 deployment ProfileAlias。故障注入是 base/sub-gate 都開啟但沒有 ProfileAlias 的設定；決定性斷言
+    /// 是固定 profile 驗證錯誤先出現，而不是 host 未啟動或其他 composition 錯誤，避免無效部署設定延長資源生命週期。
+    /// </summary>
+    [Fact]
+    public void Package02_ungrouped_commitment_read_rejects_an_empty_deployment_profile_before_host_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package02ContactProfileOperationsEnabled"] = "true",
+                ["DynamicsAccess:Package02UngroupedCommitmentReadEnabled"] = "true"
+            })
+            .Build();
+
+        Action create = () => DonationDynamicsAccessBootstrap
+            .TryCreatePackage02UngroupedCommitmentReadClient(configuration);
+
+        create.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ProfileAlias*");
+    }
+
+    /// <summary>
     /// 保護 P7.4 Package03 圖片 consumer 在預設 gate 關閉時完全不解析 process host。故障注入是空白設定；
     /// 決定性斷言是 gate=false 且 helper 回傳 null，所以不會建立 provider、HTTP handler、Data8 pool、
     /// session、cache、timer 或任何圖片讀取流量。

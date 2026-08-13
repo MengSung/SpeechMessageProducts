@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"最終品質檢查必須覆蓋 A/B isolation、request-local DTO、profile/generation boundary 與 resource release。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"最終品質檢查必須確認未分組排序、cache 使用與既有 MemberInfo authorization 契約未被擴大。"}
+{"file":".trellis/tasks/08-13-p74-ungrouped-commitment-read-boundary/prd.md","reason":"以 child acceptance criteria 判斷 gate、typed count、fallback、測試與禁止範圍。"}
+{"file":".trellis/tasks/08-13-p74-ungrouped-commitment-read-boundary/design.md","reason":"以 child technical design 判斷 composition、cache snapshot 與 rollback boundary。"}
+{"file":".trellis/tasks/08-13-p74-ungrouped-commitment-read-boundary/implement.md","reason":"以執行清單核對測試、build、encoding、scope 與紀錄完成度。"}

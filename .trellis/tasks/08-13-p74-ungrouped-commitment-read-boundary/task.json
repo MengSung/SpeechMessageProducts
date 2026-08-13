@@ -1,0 +1,30 @@
+{
+  "id": "p74-ungrouped-commitment-read-boundary",
+  "name": "p74-ungrouped-commitment-read-boundary",
+  "title": "P7.4 未分組承諾 aggregate 讀取邊界",
+  "description": "將 ORG-CALL-00024 的非空未分組承諾 aggregate 計數，以獨立、預設關閉且 server-owned 的 Package02 typed ProductClient 路徑接入 MemberInfo；不改動其他 legacy matrix row、CE、流量或 P7.5/P8。",
+  "status": "in_progress",
+  "dev_type": "backend-integration-migration",
+  "scope": "ORG-CALL-00024 only: disabled-by-default MemberInfo non-empty ungrouped commitment aggregate read boundary; no CE, traffic, ToolUtility removal, P7.5 or P8.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
+    ".trellis/tasks/08-12-churchreport-productclient-cutover/package03-consumer-inventory.md",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md"
+  ],
+  "notes": "P7.5 prerequisite report selected ORG-CALL-00024 as the next candidate because its Registry/Data8 executor/ProductClient already exist and it is a bounded read aggregate. The migration remains limited to non-empty OptionSet value/counts. The existing empty-value count, metadata ordering and page query are separate legacy capability boundaries; they are not typed fallback and are not represented as migrated by this child. Historical P7.2 Slice C remains closed. Final local quality gate passed: focused lifecycle 18 passed, Package02 focused 9 passed, solution Release tests ChurchReport 589 passed/14 skipped and Dynamics 739 passed/7 skipped, Release build 0 warnings/0 errors, diff/encoding checks passed. Claude's initial Critical test mismatch was fixed and the postfix Gemini+Claude review completed with no remaining Critical/Warning. This child is local-only and disabled-by-default; no CE, traffic, P7.5 or P8 evidence.",
+  "meta": {}
+}

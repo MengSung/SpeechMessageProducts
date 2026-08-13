@@ -208,6 +208,27 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 讀取 P7.4 ORG-CALL-00024 未分組承諾 aggregate 的獨立 consumer gate。此 gate 必須同時依賴
+        /// Package02 base gate；任一缺失或 false 都在 controller 建立 typed client、process host、provider、
+        /// HTTP handler、Data8 pool 或 outbound I/O 前回傳 false。它不影響同一 Package02 的 LINE write，
+        /// 因此 deployment rollback 可只關閉 aggregate count，而不擴大或混合 mutation rollout 邊界。
+        /// </summary>
+        /// <param name="configuration">僅 deployment-owned configuration；不得由 HTTP、Session、browser 或 caller scalar 替代。</param>
+        /// <returns>base 與 ORG-CALL-00024 sub-gate 皆為明確 true／1 時才為 true；其他一律 fail closed。</returns>
+        public static bool IsPackage02UngroupedCommitmentReadEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage02ContactProfileOperationsEnabled(configuration))
+            {
+                return false;
+            }
+
+            var raw = configuration["DynamicsAccess:Package02UngroupedCommitmentReadEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// 嘗試建立 P7.2 Slice B typed client。flag=false 時在 host resolution 前回傳 null；flag=true 時只借用
         /// process host 的單一 Embedded／Gateway executor generation，不建立第二個 provider、pool、credential graph
         /// 或 session。此 helper 尚未接入 controller，因此不會自行切換 ChurchReport 流量；P7.4 才擁有 cutover。
@@ -225,6 +246,37 @@ namespace ChurchReport.Services
                 return null;
             }
 
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            return new Package02ContactProfileClient(
+                CreatePackage02Executor(configuration),
+                NullLogger<Package02ContactProfileClient>.Instance);
+        }
+
+        /// <summary>
+        /// 嘗試建立只供 P7.4 ORG-CALL-00024 使用的未分組承諾 aggregate typed client。此 helper 同時驗證
+        /// Package02 base/sub-gate 與 deployment-owned ProfileAlias；任何 gate 缺失或 profile 空白都在解析
+        /// process host、provider、HTTP handler、Data8 pool、credential 或 outbound I/O 前停止。它不接受 caller
+        /// profile、connector、owner、endpoint 或 credential，且 injected facade 的生命週期仍屬 DI/process host。
+        /// </summary>
+        /// <param name="configuration">唯一可提供 gate 與 profile 的 deployment-owned configuration。</param>
+        /// <param name="injectedClient">測試或 composition 已擁有的 stateless facade；helper 絕不 Dispose 它。</param>
+        /// <returns>gate=false 時為 null；gate=true 時為已先驗證 profile 的 Package02 typed client。</returns>
+        public static IPackage02ContactProfileClient? TryCreatePackage02UngroupedCommitmentReadClient(
+            IConfiguration configuration,
+            IPackage02ContactProfileClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage02UngroupedCommitmentReadEnabled(configuration))
+            {
+                return null;
+            }
+
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package02 ungrouped commitment read operations");
             if (injectedClient is not null)
             {
                 return injectedClient;

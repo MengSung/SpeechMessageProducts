@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"驗證 Package02 typed request 的 server-owned isolation boundary、cache bypass、取消傳播與 deterministic cleanup。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"驗證未分組會員排序、aggregate 分段與 MemberInfo controller 的跨層契約。"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"此變更跨 controller、bootstrap、ProductClient DTO 與測試，需檢查資料流與錯誤邊界。"}
+{"file":".trellis/tasks/08-13-p74-ungrouped-commitment-read-boundary/design.md","reason":"本 child 的 gate、typed-only coexistence、cache 一致性與生命週期設計。"}

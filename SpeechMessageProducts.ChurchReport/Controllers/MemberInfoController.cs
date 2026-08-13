@@ -373,11 +373,27 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 載入目前 Church scope 可見的未分組會員頁面。此 action 只接受既有的 page/search input，並先由
+        /// server session 還原使用者與授權範圍；browser 不可選擇 Dynamics profile、connector、owner、endpoint
+        /// 或 credential。ORG-CALL-00024 sub-gate 預設關閉；開啟時僅替換 non-empty commitment aggregate count，
+        /// typed fault 與取消不會 fallback/retry。legacy CRM connection 的 acquire/release 仍由 action finally
+        /// 唯一擁有，其他 metadata、empty count、segment page、relation 與 authorization capability 保持原 owner。
+        /// 此為 local-only candidate，並不代表 CE、流量切換、P7.5 或 P8 已完成。
+        /// </summary>
         [HttpGet]
         [Route("/MemberInfo/LoadUngroupedMembers")]
-        public IActionResult LoadUngroupedMembers(DataSourceLoadOptions loadOptions, string search)
+        public async Task<IActionResult> LoadUngroupedMembers(DataSourceLoadOptions loadOptions, string search)
         {
             IOrganizationService service = null;
+
+            // configuration 只屬 deployment composition，不包含使用者、Session、connector、credential 或 profile
+            // 選擇權。先讀 gate 只決定本 request 是否可嘗試 ORG-CALL-00024 typed count；false 仍走既有相容
+            // count，且不會建立 typed client/process host/pool。真正 Church scope、contact authorization 和 legacy
+            // page responsibility 仍在後方既有流程，避免 gate 本身成為 caller-controlled authority。
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var useTypedUngroupedCommitmentCount =
+                DonationDynamicsAccessBootstrap.IsPackage02UngroupedCommitmentReadEnabled(configuration);
 
             try
             {
@@ -391,12 +407,21 @@ namespace ChurchReport.Controllers
                 service = GetConnection();
                 var closedStatus = GetRequiredClosedCustomerTypeValue(service);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
-                var groupedIds = GetChurchGroupedCurrentIds(service, descriptors, closedStatus);
+                var usesCommitmentSort = TryGetCommitmentTypeSort(loadOptions, out var commitmentDescending);
+                // enabled typed count 本身使用 Data8 的即時 membership snapshot；為避免 legacy empty/page branch
+                // 讀到最長三分鐘前的 grouped-id cache，這個 request 一律重新取得同一 server-derived exclusion set。
+                // CRM 讀取本來就沒有跨多個獨立 query 的 transaction snapshot；完整 atomic page snapshot 必須由未來
+                // 同時遷移 empty/page capability 的 child 處理，尚未具備該證據前 gate 仍維持 false。
+                var groupedIds = GetChurchGroupedCurrentIds(
+                    service,
+                    descriptors,
+                    closedStatus,
+                    bypassCache: useTypedUngroupedCommitmentCount && usesCommitmentSort);
                 var statusValues = GetCustomerTypeValuesMatchingText(service, search);
                 UngroupedContactPage contactPage;
-                if (TryGetCommitmentTypeSort(loadOptions, out var commitmentDescending))
+                if (usesCommitmentSort)
                 {
-                    contactPage = LoadUngroupedCommitmentTypePage(
+                    contactPage = await LoadUngroupedCommitmentTypePageAsync(
                         service,
                         GetTreeContactColumns(),
                         search,
@@ -404,7 +429,10 @@ namespace ChurchReport.Controllers
                         closedStatus,
                         statusValues,
                         loadOptions,
-                        commitmentDescending);
+                        commitmentDescending,
+                        configuration,
+                        useTypedUngroupedCommitmentCount,
+                        HttpContext.RequestAborted).ConfigureAwait(false);
                 }
                 else
                 {
@@ -437,7 +465,9 @@ namespace ChurchReport.Controllers
                 var rows = BuildMemberRows(service, contacts, relations);
                 return Json(new { data = rows, totalCount = contactPage.TotalCount });
             }
-            catch (Exception ex)
+            // 取消必須原樣交給 ASP.NET Core 與 typed executor/lease owner；不可把取消轉成 legacy response、
+            // retry 或一般頁面錯誤，否則會掩蓋下游對不確定 transport 的 deterministic cleanup。
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 return HandleError(ex, "MemberInfo.LoadUngroupedMembers");
             }
@@ -1741,10 +1771,12 @@ namespace ChurchReport.Controllers
         private HashSet<Guid> GetChurchGroupedCurrentIds(
             IOrganizationService service,
             IReadOnlyCollection<SmallGroupDescriptor> descriptors,
-            int closedStatus)
+            int closedStatus,
+            bool bypassCache = false)
         {
             var memoryCache = GetMemberInfoMemoryCache();
-            if (memoryCache != null &&
+            if (!bypassCache &&
+                memoryCache != null &&
                 memoryCache.TryGetValue(
                     ChurchGroupedCurrentIdsCacheKey,
                     out HashSet<Guid> cachedIds) &&
@@ -1763,7 +1795,7 @@ namespace ChurchReport.Controllers
                 .Select(row => Guid.TryParse(row.ContactId, out var id) ? id : Guid.Empty)
                 .Where(id => id != Guid.Empty)
                 .ToHashSet();
-            if (memoryCache != null)
+            if (!bypassCache && memoryCache != null)
             {
                 SetTreeCache(
                     memoryCache,
@@ -1991,7 +2023,26 @@ namespace ChurchReport.Controllers
             return result;
         }
 
-        private UngroupedContactPage LoadUngroupedCommitmentTypePage(
+        /// <summary>
+        /// 依已存在的 metadata segment 順序組合未分組頁面。這個方法只可替換
+        /// `ORG-CALL-00024` 的「non-empty raw OptionSet value/count」來源：gate=false 時保留既有 local
+        /// aggregate count；gate=true 時由 typed ProductClient 提供同一個 bounded scalar 結果。empty count、
+        /// metadata、segment contact retrieve、關係 projection 與 contact authorization 是不同 matrix capability，
+        /// 繼續由既有 owner 處理；它們不是 typed fault fallback，也不能被本方法列為已遷移。
+        /// </summary>
+        /// <param name="service">目前 request 的既有 legacy connection；其 acquire/release 仍由 action finally 唯一擁有。</param>
+        /// <param name="columns">既有 contact page projection；不會跨入 Package02 DTO 邊界。</param>
+        /// <param name="search">既有 page search；typed operation 另以固定 byte bound 驗證，非 arbitrary FetchXML。</param>
+        /// <param name="groupedIds">既有 page 的 server-derived grouped contact exclusion；typed aggregate 不接受它作 caller input。</param>
+        /// <param name="closedStatus">既有 page closed status；typed aggregate 自行解析其固定 server-owned metadata。</param>
+        /// <param name="matchingStatusValues">既有 metadata label search 結果；typed aggregate 自行使用固定 metadata rule。</param>
+        /// <param name="loadOptions">既有 bounded page/sort options；不傳遞給 typed aggregate。</param>
+        /// <param name="descending">既有 commitment segment direction。</param>
+        /// <param name="configuration">deployment-owned 設定；只有 gate=true 時可用來組成固定 profile typed client。</param>
+        /// <param name="useTypedUngroupedCommitmentCount">早於 user/session/client composition 決定的 deployment gate 結果。</param>
+        /// <param name="cancellationToken">目前 HTTP request 的取消 token；必須原樣向唯一 typed count operation 傳遞。</param>
+        /// <returns>由既有 page owner 建立的 contacts/total count；不保存 SDK entity、DTO、token 或 resource。</returns>
+        private async Task<UngroupedContactPage> LoadUngroupedCommitmentTypePageAsync(
             IOrganizationService service,
             ColumnSet columns,
             string search,
@@ -1999,7 +2050,10 @@ namespace ChurchReport.Controllers
             int closedStatus,
             IReadOnlyCollection<int> matchingStatusValues,
             DataSourceLoadOptions loadOptions,
-            bool descending)
+            bool descending,
+            IConfiguration configuration,
+            bool useTypedUngroupedCommitmentCount,
+            CancellationToken cancellationToken)
         {
             var options = GetCommitmentTypeOptions(service);
             var configuredValues = options
@@ -2007,12 +2061,15 @@ namespace ChurchReport.Controllers
                 .Select(option => option.Value)
                 .Distinct()
                 .ToArray();
-            var countsByValue = CountUngroupedCommitmentValues(
+            var countsByValue = await LoadUngroupedCommitmentCountsAsync(
                 service,
+                configuration,
+                useTypedUngroupedCommitmentCount,
                 search,
                 groupedIds,
                 closedStatus,
-                matchingStatusValues);
+                matchingStatusValues,
+                cancellationToken).ConfigureAwait(false);
             var emptyCount = CountUngroupedEmptyCommitmentSegment(
                 service,
                 search,
@@ -2055,6 +2112,50 @@ namespace ChurchReport.Controllers
                 Contacts = contacts,
                 TotalCount = segments.Sum(segment => segment.Count)
             };
+        }
+
+        /// <summary>
+        /// 選擇 ORG-CALL-00024 的唯一 aggregate count implementation。gate=false 只執行既有 local legacy
+        /// aggregate，這是 rollback compatibility path；gate=true 則必須使用 Package02 typed client。若 typed
+        /// client 無法組成、transport/DTO 驗證失敗或 request 被取消，例外原樣向外傳播，絕不呼叫 legacy aggregate
+        /// 取得替代結果、retry 或發布 partial count。如此可避免一個 request 對同一 capability 混用兩條 CRM path。
+        /// </summary>
+        /// <param name="service">只在 gate=false legacy compatibility branch 使用的 request-scoped CRM service。</param>
+        /// <param name="configuration">deployment-owned configuration；不得由 search 或 HTTP caller 覆寫 profile/connector。</param>
+        /// <param name="useTypedUngroupedCommitmentCount">base/sub-gate 已驗證的 immutable request decision。</param>
+        /// <param name="search">既有 optional search；只送給 typed request 的 bounded text field。</param>
+        /// <param name="groupedIds">只屬 legacy compatibility query 的 server-derived exclusion set。</param>
+        /// <param name="closedStatus">只屬 legacy compatibility query 的 metadata result。</param>
+        /// <param name="matchingStatusValues">只屬 legacy compatibility query 的 metadata result。</param>
+        /// <param name="cancellationToken">HTTP cancellation；typed branch 不 catch、不保存、不註冊它。</param>
+        /// <returns>request-local value/count map；typed branch 的 map 是 service defensive copy。</returns>
+        private async Task<IReadOnlyDictionary<int, int>> LoadUngroupedCommitmentCountsAsync(
+            IOrganizationService service,
+            IConfiguration configuration,
+            bool useTypedUngroupedCommitmentCount,
+            string search,
+            IReadOnlyCollection<Guid> groupedIds,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues,
+            CancellationToken cancellationToken)
+        {
+            if (!useTypedUngroupedCommitmentCount)
+            {
+                return CountUngroupedCommitmentValues(
+                    service,
+                    search,
+                    groupedIds,
+                    closedStatus,
+                    matchingStatusValues);
+            }
+
+            var package02Client = DonationDynamicsAccessBootstrap.TryCreatePackage02UngroupedCommitmentReadClient(configuration)
+                ?? throw new InvalidOperationException(
+                    "The Package02 ungrouped commitment typed client was unavailable after the deployment gate was enabled.");
+            var countService = new Package02UngroupedCommitmentReadService(
+                package02Client,
+                DonationDynamicsAccessBootstrap.BindOptions(configuration).ProfileAlias);
+            return (await countService.RetrieveAsync(search, cancellationToken).ConfigureAwait(false)).GetCounts();
         }
 
         private static bool TryGetCommitmentTypeSort(

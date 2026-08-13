@@ -41,6 +41,24 @@ Tree DTO root fields are `Districts`, `Ungrouped`, and `Scope`. Member row field
 - Dataverse `IN` inputs are chunked with `CrmInClauseChunkSize` (500), including batch avatar image retrieval.
 - Visible grids share one nine-column factory. Avatar is fixed-left 72 px and non-resizable/non-sortable; name is fixed-left 62 px with no application `minWidth`.
 
+### Disabled typed aggregate consumer boundary
+
+When an ungrouped-member aggregate is migrated to a typed ProductClient, the
+consumer must remain a separate deployment-owned sub-gate with a checked-in
+`false` default. The bootstrap factory for that capability must be tested
+directly, not through a neighbouring Package02 factory: tests cover
+`gate=false`, base-gate-only, and `base=true + sub=true + non-empty
+ProfileAlias` before host/provider/pool resolution. The enabled branch uses a
+fixed workload and server-owned profile, forwards the request cancellation
+token, and never falls back to the legacy aggregate after typed dispatch.
+
+If the same request also uses a cached grouped-contact exclusion snapshot, a
+new typed aggregate snapshot must not be combined with a stale cache entry
+unless consistency is proven. The safe local pattern is a request-only cache
+bypass; it must not add a user/session cache, retain a DTO, or create a new
+resource owner. Malformed, duplicate, negative, cancelled, or faulted typed
+results fail closed before publishing a partial count map.
+
 ## 4. Validation & Error Matrix
 
 | Condition | Required result |

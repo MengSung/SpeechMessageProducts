@@ -13,8 +13,19 @@ public class MemberInfoTreeControllerContractTests
     [InlineData("SearchDistrictTree")]
     [InlineData("LoadGroupMembers")]
     [InlineData("LoadUngroupedMembers")]
+    /// <summary>
+    /// 保護 tree actions 的公開 MVC signature；故障注入是 ORG-CALL-00024 將未分組 action 改為 async 後仍用
+    /// 舊的同步字串契約。決定性斷言是只有該 action 可為 <see cref="Task{TResult}"/>，其餘 action 保持既有
+    /// synchronous signature，避免測試掩蓋無關路由或資源生命週期變更。
+    /// </summary>
     public void Controller_ExposesRequiredTreeActions(string action)
     {
+        if (string.Equals(action, "LoadUngroupedMembers", StringComparison.Ordinal))
+        {
+            Source.Should().Contain("public async Task<IActionResult> LoadUngroupedMembers(");
+            return;
+        }
+
         Source.Should().Contain("public IActionResult " + action + "(");
     }
 
@@ -93,7 +104,7 @@ public class MemberInfoTreeControllerContractTests
         Source.Should().Contain("MemberInfoCommitmentTypeCountQuery.CreateValueCountsFetch");
         Source.Should().Contain("MemberInfoCommitmentTypeCountQuery.ReadValueCounts");
         Source.Should().Contain("TryGetCommitmentTypeSort(");
-        Source.Should().Contain("LoadUngroupedCommitmentTypePage(");
+        Source.Should().Contain("LoadUngroupedCommitmentTypePageAsync(");
         Source.Should().Contain("MemberInfoCommitmentTypeSort.BuildSegments(");
         Source.Should().Contain("MemberInfoCommitmentTypeSort.PlanSlices(");
         Source.Should().NotContain("EnableRawChoiceOrdering");
