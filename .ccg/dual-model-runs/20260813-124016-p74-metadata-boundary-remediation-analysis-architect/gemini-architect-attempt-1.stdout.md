@@ -51,7 +51,7 @@
              {
                  return null;
              }
- 
+
 +            var productOptions = BindOptions(configuration);
 +            EnsureNonEmptyProductProfile(productOptions, "Package02 contact basic-info updates");
 +
@@ -59,7 +59,7 @@
              {
                  return injectedClient;
              }
- 
+
              var executor = CreatePackage02Executor(configuration);
 @@ -240,13 +243,16 @@
          {
@@ -68,7 +68,7 @@
              {
                  return null;
              }
- 
+
 +            var productOptions = BindOptions(configuration);
 +            EnsureNonEmptyProductProfile(productOptions, "Package02 contact profile operations");
 +
@@ -76,7 +76,7 @@
              {
                  return injectedClient;
              }
- 
+
              return new Package02ContactProfileClient(
 --- a/SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs
 +++ b/SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs
@@ -91,14 +91,14 @@
 -        /// </summary>
 +        /// <summary>
 +        /// 載入未分組的成員列表。此 Action 僅在 Church 權限範圍內可用。
-+        /// 
++        ///
 +        /// 【生命週期與 Gate 驗證】
 +        /// 1. 讀取部署層級的配置（IConfiguration），並檢查 Package02 與 Package03 相關的 Feature Gate。
-+        /// 2. 若 `IsPackage02UngroupedCommitmentReadEnabled` 為 true，則會透過 `DonationDynamicsAccessBootstrap` 
++        /// 2. 若 `IsPackage02UngroupedCommitmentReadEnabled` 為 true，則會透過 `DonationDynamicsAccessBootstrap`
 +        ///    建立 Package02 的 typed client，並在建立前強制驗證 `ProfileAlias` 是否非空（Fail-Closed）。
 +        /// 3. 若 Gate 為 false，則維持零 host/provider/pool/handler/credential graph 組合，並回退至 Legacy CRM 查詢。
 +        /// 4. 整個請求生命週期中，不新增任何 Session、快取、靜態可變狀態、重試或背景資源。
-+        /// 
++        ///
 +        /// 【業務行為約束】
 +        /// 1. 不改變此 Action 的查詢、授權、排序、回應或業務行為。
 +        /// 2. ProfileAlias 僅能從部署配置中取得，不可由請求、Session 或呼叫端傳入的值替代。
@@ -174,12 +174,12 @@
 -    /// </summary>
 +    /// <summary>
 +    /// 驗證 MemberInfoController 必須公開指定的樹狀結構 Action，且其簽章符合預期。
-+    /// 
++    ///
 +    /// 【測試合約 (Test Contract)】
 +    /// - 驗證控制器原始碼中是否包含指定的 Action 方法定義。
 +    /// - 對於 `LoadDistrictTree`，驗證其為同步方法（回傳 `IActionResult`）。
 +    /// - 對於其他 Action（如 `SearchDistrictTree`、`LoadGroupMembers`、`LoadUngroupedMembers`），驗證其為非同步方法（回傳 `Task&lt;IActionResult&gt;`）。
-+    /// 
++    ///
 +    /// 【異常處理與斷言 (Fault &amp; Assertion)】
 +    /// - 若控制器未公開指定的 Action，或方法簽章不正確，測試將會失敗。
 +    /// - 斷言控制器原始碼字串中必須包含預期的宣告特徵。

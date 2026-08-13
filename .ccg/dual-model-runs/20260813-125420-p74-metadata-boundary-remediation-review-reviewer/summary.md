@@ -8,7 +8,7 @@
 - DegradedFallback: False
 - FallbackAccepted: True
 - QuotaBlocked: True
-- CompletedBackends: 
+- CompletedBackends:
 - FailedBackends: gemini, claude
 
 Artifacts are stored in:
