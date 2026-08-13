@@ -1,12 +1,12 @@
 {
   "id": "p72-governed-recurring-payment-return-write-family",
   "title": "P7.2 受控定期奉獻付款回傳寫入家族",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "high",
   "domain": "backend-integration-payment-write",
-  "currentPhase": "review",
-  "nextAction": "已完成 payment cycle admission、payment fixture control plane 與 local-plan integration 的本機實作及 140 項 P72 測試；執行 task-owned final local review/record，保持 CE executor、consumer 與 mutation 全部未實作。",
+  "currentPhase": "completed",
+  "nextAction": "本機 control-plane child 已完成並等待 archive；CE executor、consumer 與 mutation 仍未實作，payment CE evidence 保持 pending。",
   "createdAt": "2026-08-14T00:00:00+08:00",
   "branch": "1.0.0.3.Gateway&Embedded.Worktree"
 }
