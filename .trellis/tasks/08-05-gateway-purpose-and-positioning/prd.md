@@ -324,3 +324,28 @@ child 僅可交付 immutable、DTO-only、zero-I/O 的 decision／plan／TDD 與
 所有 CE executor 與 consumer 維持 disabled；timeout、ambiguous、partial、read-back mismatch 或 cleanup
 uncertainty 必須 no-go/no-replay。歷史 Slice C nonce、ledger、fixture 與 descriptor 不可重試或復用。此工作
 不阻擋其他獨立 P7.4 read-only migration，但 P7.5/P8 gate 不會提前解除。
+
+### 2026-08-13 P7.5 前置證據閘門補充（現行權威）
+
+P7.4 已完成數個 disabled-by-default local consumer boundary，但權威 matrix 仍有 70 個
+`temporary-legacy` row，且 ChurchReport production source 仍有 ToolUtility／CRM SDK 依賴。因此建立
+child `08-13-p75-prerequisite-evidence-zero-reference-gate`，交付離線、deterministic、去識別化的
+matrix/source scanner、zero-reference enforcement gate 與 capability-family backlog。它只驗證目前
+不具備 P7.5 removal 條件，不能改 matrix、產品程式、setting、feature gate、CE 或 P8。
+
+真正 P7.5 removal child 只有在 report 顯示沒有 production temporary-legacy、ToolUtility／CRM SDK
+reference、pending CE/host evidence，且 parity、soak、drain、rollback gate 都綠時才可建立。P8 仍只在
+P7.5 commit/archive 產生 immutable handoff 後，並具雲端 host、identity、TLS、secret、network 與 deployment
+authorization 時才可開始。
+
+### 2026-08-13 P7.5 prerequisite evidence 完成結果（現行權威）
+
+child `08-13-p75-prerequisite-evidence-zero-reference-gate` 已完成並產出 deterministic、去識別化的
+離線報告。它的結論是正確的 `no-go`，不是工具失敗：70 個 matrix row 仍是
+`temporary-legacy`，67 個 consumer 未遷移，所有 70 row 的 CE/host evidence 尚待完成，且 production
+source、project dependency、settings key 各仍有 legacy reference。report 的所有靜態條件即使未來清除，
+也只能稱為 `prerequisite-ready`，不能稱為 P7.5 removal、CE、切流或 P8 ready。
+
+因此下一步是根據 capability-family backlog 建立下一個 independently verifiable local P7 child；所有
+checked-in feature flag 維持 false，歷史 Slice C 不重試，ToolUtility removal 與 P8 仍等待所有真實
+parity、soak、drain、rollback、commit/archive immutable handoff 先決條件。

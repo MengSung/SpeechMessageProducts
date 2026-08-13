@@ -1,0 +1,223 @@
+{
+  "analysisScope": "offline-allowlisted-production-source-only",
+  "capabilityFamilyBacklog": [
+    {
+      "callSiteCount": 1,
+      "capabilityFamily": "churchreport.appointments",
+      "consumerNotMigratedCount": 1,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 1,
+      "mixedBlockerCount": 1,
+      "pendingEvidenceCount": 1,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 1
+    },
+    {
+      "callSiteCount": 3,
+      "capabilityFamily": "churchreport.attendance",
+      "consumerNotMigratedCount": 3,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 2,
+      "mixedBlockerCount": 2,
+      "pendingEvidenceCount": 3,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 3
+    },
+    {
+      "callSiteCount": 2,
+      "capabilityFamily": "churchreport.authentication",
+      "consumerNotMigratedCount": 2,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 0,
+      "mixedBlockerCount": 0,
+      "pendingEvidenceCount": 2,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 2
+    },
+    {
+      "callSiteCount": 1,
+      "capabilityFamily": "churchreport.contact.onboarding",
+      "consumerNotMigratedCount": 1,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 1,
+      "mixedBlockerCount": 1,
+      "pendingEvidenceCount": 1,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 1
+    },
+    {
+      "callSiteCount": 9,
+      "capabilityFamily": "churchreport.donation.lifecycle",
+      "consumerNotMigratedCount": 9,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 6,
+      "mixedBlockerCount": 6,
+      "pendingEvidenceCount": 9,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 9
+    },
+    {
+      "callSiteCount": 10,
+      "capabilityFamily": "churchreport.fee.lessons",
+      "consumerNotMigratedCount": 7,
+      "legacyDependencyBlockerCount": 3,
+      "localOnlyCount": 3,
+      "mixedBlockerCount": 3,
+      "pendingEvidenceCount": 10,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 10
+    },
+    {
+      "callSiteCount": 23,
+      "capabilityFamily": "churchreport.list.membership",
+      "consumerNotMigratedCount": 23,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 0,
+      "mixedBlockerCount": 0,
+      "pendingEvidenceCount": 23,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 23
+    },
+    {
+      "callSiteCount": 8,
+      "capabilityFamily": "churchreport.member.profile",
+      "consumerNotMigratedCount": 8,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 0,
+      "mixedBlockerCount": 0,
+      "pendingEvidenceCount": 8,
+      "specialResourceCount": 3,
+      "temporaryLegacyCount": 8
+    },
+    {
+      "callSiteCount": 1,
+      "capabilityFamily": "churchreport.metadata",
+      "consumerNotMigratedCount": 1,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 0,
+      "mixedBlockerCount": 0,
+      "pendingEvidenceCount": 1,
+      "specialResourceCount": 1,
+      "temporaryLegacyCount": 1
+    },
+    {
+      "callSiteCount": 1,
+      "capabilityFamily": "churchreport.weekly.reporting",
+      "consumerNotMigratedCount": 1,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 0,
+      "mixedBlockerCount": 0,
+      "pendingEvidenceCount": 1,
+      "specialResourceCount": 1,
+      "temporaryLegacyCount": 1
+    },
+    {
+      "callSiteCount": 5,
+      "capabilityFamily": "platform.legacy.blocked",
+      "consumerNotMigratedCount": 5,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 0,
+      "mixedBlockerCount": 0,
+      "pendingEvidenceCount": 5,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 5
+    },
+    {
+      "callSiteCount": 6,
+      "capabilityFamily": "platform.shared.runtime",
+      "consumerNotMigratedCount": 6,
+      "legacyDependencyBlockerCount": 0,
+      "localOnlyCount": 0,
+      "mixedBlockerCount": 0,
+      "pendingEvidenceCount": 6,
+      "specialResourceCount": 0,
+      "temporaryLegacyCount": 6
+    }
+  ],
+  "matrix": {
+    "callSiteCount": 70,
+    "ceOrHostEvidencePendingCount": 70,
+    "closedHistoricalWriteFamilyCount": 1,
+    "consumerNotMigratedCount": 67,
+    "p75BlockerCounts": [
+      {
+        "category": "consumer-not-migrated",
+        "count": 49
+      },
+      {
+        "category": "legacy-sdk-dependency",
+        "count": 3
+      },
+      {
+        "category": "mixed",
+        "count": 13
+      },
+      {
+        "category": "special-resource-pending",
+        "count": 5
+      }
+    ],
+    "temporaryLegacyCount": 70
+  },
+  "productionLegacyReferences": [
+    {
+      "category": "organization-service",
+      "fileCount": 24,
+      "occurrenceCount": 89
+    },
+    {
+      "category": "sdk-model",
+      "fileCount": 90,
+      "occurrenceCount": 1460
+    },
+    {
+      "category": "toolutility-namespace",
+      "fileCount": 83,
+      "occurrenceCount": 151
+    },
+    {
+      "category": "toolutility-type",
+      "fileCount": 78,
+      "occurrenceCount": 202
+    },
+    {
+      "category": "xrm-sdk-namespace",
+      "fileCount": 101,
+      "occurrenceCount": 257
+    }
+  ],
+  "projectDependencies": [
+    {
+      "category": "crm-sdk-reference",
+      "count": 1
+    },
+    {
+      "category": "dataverse-client-package",
+      "count": 1
+    },
+    {
+      "category": "toolutility-project-reference",
+      "count": 1
+    }
+  ],
+  "readiness": {
+    "noGoReasons": [
+      "matrix-temporary-legacy",
+      "consumer-migration-pending",
+      "ce-or-host-evidence-pending",
+      "historical-write-family-closed",
+      "matrix-p75-blocker",
+      "production-legacy-reference",
+      "project-legacy-dependency",
+      "legacy-settings-key"
+    ],
+    "state": "no-go"
+  },
+  "schemaVersion": "p7.5.prerequisite-evidence.v1",
+  "settingsKeyReferences": [
+    {
+      "category": "legacy-settings-key",
+      "count": 1
+    }
+  ]
+}

@@ -48,6 +48,14 @@ P6 與 P7.0 位於不同 Trellis parent。執行者必須直接使用 `.trellis/
 | P7.5 | 尚未啟動 | 等待所有 temporary legacy rows、zero-reference、parity、soak、drain/rollback gate | P7.4 完整證據與 immutable handoff |
 | P8.0～P8.4 | 尚未建立／啟動 | 本文件只有路線定義 | P7.5 結案與獨立 P8 授權 |
 
+### 2026-08-13 P7.5 prerequisite evidence checkpoint
+
+`08-13-p75-prerequisite-evidence-zero-reference-gate` 已完成 P7.4 的 repository-side prerequisite child。它建立
+離線 report/validator，將 immutable 70-row matrix、production ToolUtility／CRM SDK source reference 與
+fixed capability-family aggregate 分開驗證。現況 report 是已驗證的 P7.5 `no-go`；不得用它改 matrix、重試
+Slice C、啟用 gate、移除 ToolUtility 或啟動 P8。封存後依 family backlog 完成尚未遷移 capability child；
+P7.5 removal/P8 gate 不變。
+
 ## 4. P6：Lenovo Legion Official Worker Router 擴充點
 
 ### P6.2A Historical deployment readiness
@@ -178,7 +186,8 @@ P6 closure gate 全綠後，整合 Goal 可一次授權：
 | P7 remaining rebaseline | 已完成品質閘門，待 scope-only commit/archive | authoritative 70-row gap matrix 是後續唯一排程基準。 |
 | P7.3 | 已封存 | special-resource local contracts；不是 CE/consumer/cutover evidence。 |
 | P7.4 | active | disabled local consumer batches、capacity no-go audit 與 legacy admission boundary local control-plane 已完成；所有 flags=false。 |
-| P7.5 | 尚未建立 | 僅在 matrix/zero-reference/parity/soak/drain/rollback 全綠後建立。 |
+| P7.5 prerequisite evidence | 已完成，結果=`no-go` | 已建立 deterministic matrix/source/project/settings report；70 temporary-legacy rows、legacy references 與 CE/host gaps 仍存在。 |
+| P7.5 ToolUtility removal | 尚未建立 | 僅在 matrix/zero-reference/parity/soak/drain/rollback 全綠且 prerequisite report=`prerequisite-ready` 後建立。 |
 | P8.0–P8.4 | 尚未建立 | 僅在 P7.5 immutable handoff 後建立。 |
 
 後續品質策略不變：一般變更執行 targeted tests；每一 child 邊界與 P7/P8 最終交付執行完整 solution tests、Release build、encoding／CRLF、scope、isolation、lifecycle 與 rollback gate。Gemini／Claude 每次等待上限 45 秒，逾時或 quota/session 限制即記錄降級並改採本機驗證，不得反覆等待。

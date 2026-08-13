@@ -3410,6 +3410,112 @@ consumer=migrated-disabled, ce91=succeeded, dedicated=evidence-pending
 The correct form preserves the missing evidence so later P7/P8 work cannot
 accidentally remove a legacy path or change traffic before its actual proof.
 
+## Scenario: P7.5 offline prerequisite evidence and zero-reference gate
+
+### 1. Scope / Trigger
+
+Use this scenario when P7 planning needs a repeatable answer to whether
+ChurchReport still has direct legacy CRM/ToolUtility dependencies. It applies
+to an offline prerequisite report before selecting the next capability family
+and before a future P7.5 removal claim. It is not a ToolUtility removal,
+consumer migration, CE evidence, feature-gate, traffic or P8 deployment
+authorization.
+
+### 2. Signatures
+
+The task-owned analyzer has only fixed local input paths and these commands:
+
+```text
+python build_p75_prerequisite_evidence.py --report p75-prerequisite-evidence-report.json
+python build_p75_prerequisite_evidence.py --validate p75-prerequisite-evidence-report.json
+python build_p75_prerequisite_evidence.py --enforce-p75
+```
+
+It accepts no caller-selected source root, profile, endpoint, identity,
+credential, connector, network or CE parameter. The only positive static state
+is `prerequisite-ready`; it is deliberately not named `ready` and does not
+replace the independent P7.5 removal/P8 gates.
+
+### 3. Contracts
+
+- The analyzer reads only the immutable gap matrix, allowlisted ChurchReport
+  production `.cs`, one project file and checked-in `appsettings*.json` key
+  names. It excludes tests, docs, generated/output/log paths, reparse points
+  and root escapes; invalid UTF-8, file-size excess, unknown lexical forms and
+  malformed metadata fail closed.
+- C# lexical scanning may count legacy tokens only while in code state. It
+  masks comments, character/regular/verbatim/interpolated literals and a
+  whitespace-prefixed line-start preprocessor directive such as `#region` or
+  `#pragma`. Raw strings, unmatched delimiters and unsupported interpolation
+  must reject the report rather than yield a false zero-reference result.
+- Settings scanning decodes only object key strings. JSONC comments are allowed
+  outside strings, while all string/array/object/scalar values are syntax-
+  checked and skipped without materializing, logging, hashing, classifying or
+  publishing them. Invalid escapes, unterminated comments and trailing syntax
+  fail closed.
+- Matrix temporary-legacy, consumer/CE/host gaps, every non-`none` matrix
+  blocker, production source reference, project dependency and legacy settings
+  key are independent no-go dimensions. Passing one dimension never offsets
+  another.
+- Output is a deterministic, de-identified count/category report. It contains
+  no path, line, source fragment, CRM identifier, name, endpoint, secret,
+  credential, token, cookie, setting value or raw exception.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| `#region`/`#pragma` label contains a quote or legacy word | Treat the whole directive as non-code; do not enter string parsing or count a reference. |
+| Raw C# string, unclosed literal/comment or unsupported interpolation | Return fixed scanner-input-invalid classification; do not emit zero-reference success. |
+| JSONC comment appears outside a setting string | Skip it and continue key-only structural parsing. |
+| JSONC value has an invalid escape, malformed number or incomplete structure | Reject the input; do not produce partial key counts. |
+| Any matrix non-`none` blocker, project dependency, settings key or source finding remains | `--enforce-p75` returns sanitized `no-go`/nonzero. |
+| All static dimensions are clear | Return only `prerequisite-ready`; separately require real consumer, CE/host, parity, soak, drain, rollback, commit/archive and immutable handoff evidence before P7.5/P8. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an offline scanner finds a production legacy category, project reference
+  and matrix gap, reports only their fixed counts, and blocks P7.5 while a
+  separate local P7 child proceeds from the ordered capability-family backlog.
+- Base: a `#region` label contains natural-language quotes, and a checked-in
+  `appsettings` file contains JSONC comments; both scan deterministically
+  without exposing values or changing a no-go result.
+- Bad: parse a whole settings object then publish/debug it, scan comment/string
+  text as code, ignore a malformed lexical shape, call a clean static result
+  `ready`, or use the report to remove ToolUtility, write CE or start P8.
+
+### 6. Tests Required
+
+- Assert comment/literal/character/preprocessor-only legacy tokens produce no
+  source finding while actual code tokens produce only fixed categories.
+- Assert raw strings, invalid UTF-8, root escape/reparse point, malformed
+  JSONC/comment/escape and report tampering fail closed.
+- Assert JSONC nested values are not materialized or returned, while matching
+  object keys still count correctly.
+- Assert matrix, production references, project dependencies and settings keys
+  each independently prevent `prerequisite-ready`.
+- Run report generation, strict validation and the expected current nonzero
+  `--enforce-p75`, then byte-check UTF-8 no-BOM/CRLF/final-CRLF and run the
+  complete Release solution tests/build before task completion.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+json.loads(appsettings) -> log/debug the object -> source count is zero -> declare P7.5 ready
+```
+
+#### Correct
+
+```text
+key-only JSONC scanner + fail-closed C# lexer + immutable matrix/dependency gate
+-> prerequisite-ready or sanitized no-go
+```
+
+The correct path has no credential-like value retention and cannot turn a
+static inspection into a product migration, CE or deployment claim.
+
 ## Scenario: P7.4 bounded UTC display projection
 
 ### 1. Scope / Trigger

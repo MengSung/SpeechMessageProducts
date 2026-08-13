@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"離線 scanner 必須避免 shared mutable state、敏感輸出與 resource retention，並 fail closed 保護所有產品邊界。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"P7.5 zero-reference、P7.4 disabled cutover 與 P8 immutable handoff 的產品／Gateway 邊界。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"要求 script、task artifact 和後續產品切換保持資料最小化、隔離與 lifecycle evidence。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"immutable 70-row P7 schedule baseline；只驗證/彙總，不能改寫或升格 local-only evidence。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/build_rebaseline.py","reason":"既有離線 matrix validation、comment/literal scanner 與 UTF-8 CRLF writer 的保守模式。"}
+{"file":".trellis/tasks/archive/2026-08/08-05-gateway-capability-inventory/reference-scan-baseline.json","reason":"P7.0 ChurchReport production reference baseline；P7.5 scanner 必須保留 source-only 性質並補強 category coverage。"}

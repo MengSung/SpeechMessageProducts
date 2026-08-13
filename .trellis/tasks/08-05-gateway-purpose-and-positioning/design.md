@@ -200,3 +200,24 @@ plan 不接受 Entity、Owner、raw card/token、profile、endpoint 或 credenti
 task-owned fresh fixture、preflight、single dispatch、exact read-back/reconcile 與 reverse-known-key cleanup。
 未具備這些證據前，Data8 executor 與 product consumer 都是 false，歷史 Slice C cycle 不能成為新 family
 authority。這可讓本機設計與 P7.4 獨立 readonly work 繼續，但不會將 read-new/write-legacy 混合成未受治理雙路徑。
+
+### 2026-08-13 P7.5 前置 evidence boundary
+
+P7.5 需要兩個獨立的真實 evidence：immutable gap matrix 不再有 temporary-legacy／consumer／
+special-resource／mixed／legacy-sdk blocker，且 ChurchReport production source/project/settings metadata
+通過 conservative zero-reference scanner。兩者不能互相推導，因此 P7.5 prerequisite child 以固定 schema
+分開報告。scanner 只讀 allowlisted production `.cs`、唯一 `.csproj`、settings key name 和 matrix；
+其輸出只含 bounded category/count/family。comment/string stripping 不完整、encoding/path 不安全、raw string
+不支援或 report 被竄改時一律 fail closed。它不保有 runtime client、profile、credential、request/session
+或 scanner cache，不能變成產品行為或 deploy state。
+
+### 2026-08-13 P7.5 prerequisite report 設計結論
+
+前置 evidence child 已證明 scanner 對現行 production source 可完整且保守地完成 lexical scan；C# line-start
+preprocessor directive 與 JSONC comments 是合法 metadata，不應造成 false invalid，但 raw string、未封閉
+literal/comment、invalid UTF-8/path/reparse、invalid JSONC escape 仍須 fail closed。settings parser 只 decode
+object key，所有 value 僅做嚴格語法 skip，不 materialize、log、hash 或輸出。
+
+這份 report 的 `no-go` 由 matrix、production source、project dependencies、settings keys 四類獨立 evidence
+共同決定；任一類清除都不抵消其他缺口。它提供可重複排程資料，不替代 server authorization、Data8 executor、
+ProductClient、consumer migration、CE/host parity、capacity admission 或 deployment evidence。

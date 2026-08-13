@@ -146,3 +146,12 @@ rollback owner 與 no-SDK boundary；不允許以 Entity/EntityCollection bridge
    callback、timeout/ambiguous、partial outcome、A/B isolation、allowlist 與 no partial plan。
 4. 完成 child quality gate 後，CE evidence 仍是 pending/no-go，除非另一個新 governed child 一次性通過
    preflight/provision/dispatch/read-back/cleanup。historical Slice C 永不重試。
+
+## 2026-08-13 P7.5 前置 evidence 執行順序
+
+1. `08-13-p75-prerequisite-evidence-zero-reference-gate` 已完成；其 report/validator 通過，而現況
+   `--enforce-p75` 的 sanitized nonzero `no-go` 是預期 release gate，不允許省略或重跑歷史 P7.2 cycle。
+2. 封存該 child 後，依 stable capability-family aggregate 選擇下一個可獨立驗收 P7.4/P7.2/P7.3 child；每個 child
+   仍須自有 DTO、authorization、executor/consumer、CE、lifecycle、rollback evidence。
+3. 只有未來 report=`prerequisite-ready` 且 full parity/soak/drain/rollback evidence 完成時才建立 P7.5 removal child；
+   commit/archive 產生 immutable handoff 後才能建立 P8.0–P8.4。
