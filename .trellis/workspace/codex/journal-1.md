@@ -454,3 +454,36 @@ Completed and archived P7.1: six fixed Package01 Data8 read capabilities passed 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 14: P7.4 static membership composite no-go
+
+**Date**: 2026-08-14
+**Task**: P7.4 static membership composite no-go
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成 ORG-CALL-00011/00012 的唯讀 consumer 可行性評估。確認 membership add/remove 與 ChurchReport legacy contact/list/attendance composite 不可局部 Gateway 化，避免 split-brain dual-write；新增 Gateway spec guardrail、更新 P7.4 parent nextAction，完成本機 scope/encoding/diff checks，Gemini architecture PASS、Claude session-limit fallback，最終 reviewer 未在 45 秒內產生結果。Trellis 與 CCG child 已封存。下一步是 ORG-CALL-00030 basic-info 的獨立 disabled-by-default child。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a46a4fe4` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

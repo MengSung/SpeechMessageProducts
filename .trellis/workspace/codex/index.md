@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 13
+- **Total Sessions**: 14
 - **Last Active**: 2026-08-14
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~456 | Active |
+| `journal-1.md` | ~489 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 14 | 2026-08-14 | P7.4 static membership composite no-go | `a46a4fe4` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 13 | 2026-08-14 | P7.4 MemberInfo 出席紀錄 typed read | `f88c8392`, `85b57b6e`, `dfc3d4bf` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 12 | 2026-08-13 | P7.4 認證聯絡人唯讀安全邊界 | `fa60f6fe` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 11 | 2026-08-13 | P7.4 legacy admission boundary | `0ee9eeab` | `1.0.0.3.Gateway&Embedded.Worktree` |
