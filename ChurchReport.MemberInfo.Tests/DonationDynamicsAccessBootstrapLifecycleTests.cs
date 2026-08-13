@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
+using SpeechMessage.Dynamics.ProductClient.SpecialResources;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests;
@@ -214,6 +215,46 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
     }
 
     /// <summary>
+    /// 保護 P7.4 Package03 圖片 consumer 在預設 gate 關閉時完全不解析 process host。故障注入是空白設定；
+    /// 決定性斷言是 gate=false 且 helper 回傳 null，所以不會建立 provider、HTTP handler、Data8 pool、
+    /// session、cache、timer 或任何圖片讀取流量。
+    /// </summary>
+    [Fact]
+    public void Package03_contact_image_read_remains_disabled_by_default_before_host_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+
+        DonationDynamicsAccessBootstrap.IsPackage03SpecialResourcesEnabled(configuration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.TryCreatePackage03SpecialResourceClient(configuration)
+            .Should().BeNull();
+    }
+
+    /// <summary>
+    /// 保護未來經審查的 Package03 gate 開啟時，只可借用 DI 已擁有的 stateless typed client。此測試替身
+    /// 不建立任何外部資源；決定性斷言是 helper 原樣回傳替身而沒有執行影像 read、write、metadata 或統計 operation。
+    /// </summary>
+    [Fact]
+    public void Package03_contact_image_read_accepts_an_injected_client_only_when_flag_is_enabled()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package03SpecialResourcesEnabled"] = "true",
+                ["DynamicsAccess:ProfileAlias"] = "crm91"
+            })
+            .Build();
+        var injected = new DisabledPackage03SpecialResourceClient();
+
+        DonationDynamicsAccessBootstrap.IsPackage03SpecialResourcesEnabled(configuration)
+            .Should().BeTrue();
+        DonationDynamicsAccessBootstrap.TryCreatePackage03SpecialResourceClient(configuration, injected)
+            .Should().BeSameAs(injected);
+    }
+
+    /// <summary>
     /// 保護實際 ChurchReport process host 可以由既有 CrmConnection 組成一個 Embedded adapter，而不要求或讀取
     /// Gateway endpoint。故障注入是缺少 Gateway 區段；決定性斷言是同設定只重用一個 adapter generation，尚未
     /// 執行 operation 前不會建立 Data8 client，且 host Dispose 後拒絕再次組成。測試使用 example.invalid 與
@@ -396,6 +437,43 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             UngroupedCommitmentCountRequest request,
             CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("Disabled Slice B composition test client must not execute.");
+    }
+
+    /// <summary>
+    /// 不擁有資源的 Package03 composition 替身。每一個 capability method 都明確拒絕執行，確保上述測試只驗證
+    /// gate 與 DI ownership，而不會意外啟動 connector、保留 image bytes 或跨 request 重用可變 state。
+    /// </summary>
+    private sealed class DisabledPackage03SpecialResourceClient : IPackage03SpecialResourceClient
+    {
+        /// <summary>禁止 disabled composition 測試執行 contact image read。</summary>
+        public Task<ContactImageResult> RetrieveContactImageAsync(
+            ContactImageRetrieveRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Package03 composition test client must not execute.");
+
+        /// <summary>禁止 disabled composition 測試執行 MemberInfo image write。</summary>
+        public Task<ContactImageUpdateResult> UpdateMemberInfoContactImageAsync(
+            ContactImageUpdateRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Package03 composition test client must not execute.");
+
+        /// <summary>禁止 disabled composition 測試執行 NewPerson image write。</summary>
+        public Task<ContactImageUpdateResult> UpdateNewPersonContactImageAsync(
+            ContactImageUpdateRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Package03 composition test client must not execute.");
+
+        /// <summary>禁止 disabled composition 測試執行 metadata read。</summary>
+        public Task<OptionSetRetrieveResult> RetrieveOptionSetAsync(
+            OptionSetRetrieveRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Package03 composition test client must not execute.");
+
+        /// <summary>禁止 disabled composition 測試執行 weekly statistics read。</summary>
+        public Task<MeetingStatisticsRetrieveResult> RetrieveMeetingStatisticsAsync(
+            MeetingStatisticsRetrieveRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Package03 composition test client must not execute.");
     }
 
     /// <summary>

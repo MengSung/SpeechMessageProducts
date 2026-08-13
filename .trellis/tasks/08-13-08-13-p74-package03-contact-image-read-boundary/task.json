@@ -1,0 +1,31 @@
+{
+  "id": "08-13-p74-package03-contact-image-read-boundary",
+  "name": "08-13-p74-package03-contact-image-read-boundary",
+  "title": "P7.4 Package03 contact-image read boundary",
+  "description": "Design and locally verify a disabled-by-default, server-authorized, DTO-only Package03 contact-image read boundary; no CE, traffic or legacy-route cutover.",
+  "status": "in_progress",
+  "dev_type": "backend-integration-migration",
+  "scope": "A disabled-by-default, server-authorized Package03 contact-image read boundary and its local contract tests only. No CE, traffic, legacy-route cutover, P7.5, P8, push or pull request.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    ".trellis/tasks/08-12-churchreport-productclient-cutover/package03-consumer-inventory.md",
+    ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md",
+    ".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md"
+  ],
+  "notes": "Planning re-baselined on 2026-08-13. The existing GetContactImage route combines image bytes, LINE redirect and gender-avatar semantics; it must remain unchanged. This child may only establish an independently routed, disabled-by-default, server-authorized and DTO-only Package03 image-read boundary. The authoritative matrix remains immutable and is not promoted by local tests. No CE, flag enablement, traffic cutover, P7.5 or P8 work is authorized by this child.",
+  "meta": {}
+}

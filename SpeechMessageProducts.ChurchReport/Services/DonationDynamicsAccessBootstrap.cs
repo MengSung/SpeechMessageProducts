@@ -32,6 +32,7 @@ using SpeechMessage.Dynamics.ProductClient.DependencyInjection;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
+using SpeechMessage.Dynamics.ProductClient.SpecialResources;
 using ToolUtilityNameSpace;
 
 namespace ChurchReport.Services
@@ -235,6 +236,52 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 讀取 P7.4 Package03 特殊資源的獨立 consumer gate。預設 false；因此 controller 在 parse locator、
+        /// session scope、typed client、process host、HTTP handler、Data8 pool 或任何 image I/O 前即可固定拒絕。
+        /// 這個 gate 不依附 Package01／Package02，讓圖片讀取可獨立 rollback，且本方法不會變更 CE 或網站流量。
+        /// </summary>
+        /// <param name="configuration">僅 deployment-owned configuration；不得由 HTTP、Session 或 browser 值替代。</param>
+        /// <returns>明確 true／1 時為 true；缺值、空白與其他值都 fail closed。</returns>
+        public static bool IsPackage03SpecialResourcesEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            var raw = configuration["DynamicsAccess:Package03SpecialResourcesEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 嘗試建立 P7.4 Package03 圖片唯讀所需的 stateless typed client。gate=false 時必須在 options bind、
+        /// host resolution、provider、handler、pool 與 credential graph 前回傳 null；gate=true 時則驗證非空
+        /// deployment profile，並只借用主 DI process host 的 executor generation，絕不 per-request 建立第二個 owner。
+        /// 此 helper 不接收 browser profile/workload，亦不 Dispose injected 或新 facade，資源仍由 process host 管理。
+        /// </summary>
+        /// <param name="configuration">deployment-owned DynamicsAccess 設定；不得由 request 值覆寫。</param>
+        /// <param name="injectedClient">測試或正式 DI 已擁有的 typed client；只在 gate 與 profile 都有效時可使用。</param>
+        /// <returns>gate=false 時 null；其他情況回傳借用既有 executor 的 stateless Package03 client。</returns>
+        public static IPackage03SpecialResourceClient? TryCreatePackage03SpecialResourceClient(
+            IConfiguration configuration,
+            IPackage03SpecialResourceClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage03SpecialResourcesEnabled(configuration))
+            {
+                return null;
+            }
+
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package03 special-resource operations");
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            return new Package03SpecialResourceClient(
+                CreatePackage03Executor(productOptions, configuration),
+                NullLogger<Package03SpecialResourceClient>.Instance);
+        }
+
+        /// <summary>
         /// 為所有已實作但尚未 cutover 的 Package02 typed clients 選取同一 process generation。ConnectionMode 只由
         /// deployment configuration 決定；request 不能切換 Embedded／Dedicated／Central、Profile 或 connector。
         /// 回傳 executor 由 process host 唯一擁有，typed client 與 helper 均不得 Dispose。
@@ -251,6 +298,49 @@ namespace ChurchReport.Services
                 _ => throw new InvalidOperationException(
                     "Package02 contact operations require a supported Dynamics connection mode.")
             };
+        }
+
+        /// <summary>
+        /// 為 Package03 特殊資源選取既有 process host 的唯一 executor generation。這個獨立 helper 不改變
+        /// Package02 原有 composition 行為；Package03 在取得 host 前先確認非空 deployment profile，避免空白
+        /// profile 觸發 provider、pool 或 credential graph 後才失敗。request 不能指定 mode、profile 或 connector。
+        /// </summary>
+        /// <param name="productOptions">已由 deployment configuration bind 的非秘密產品 options。</param>
+        /// <param name="configuration">只由 Embedded composition 使用的 deployment configuration。</param>
+        /// <returns>由主 process host 擁有且依 profile/generation 隔離的 executor。</returns>
+        private static IDynamicsOperationExecutor CreatePackage03Executor(
+            ProductDynamicsOptions productOptions,
+            IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(productOptions);
+            ArgumentNullException.ThrowIfNull(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package03 special-resource operations");
+            var processHost = GetStartedProcessHost();
+            return productOptions.ConnectionMode switch
+            {
+                ConnectionMode.Embedded => processHost.GetOrCreateEmbeddedExecutor(productOptions, configuration),
+                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway =>
+                    processHost.GetOrCreateGatewayExecutor(productOptions),
+                _ => throw new InvalidOperationException(
+                    "Package03 special-resource operations require a supported Dynamics connection mode.")
+            };
+        }
+
+        /// <summary>
+        /// 在取得 process host 前驗證 profile alias，避免空白設定導致 host、provider、pool 或 credential graph
+        /// 已建立後才失敗。alias 只能由 deployment configuration 提供；本方法不記錄值、不猜測 legacy profile。
+        /// </summary>
+        /// <param name="productOptions">只含產品可見 connection mode 與 profile alias 的 options。</param>
+        /// <param name="operationFamily">固定本機診斷分類，不含 caller 或秘密資料。</param>
+        private static void EnsureNonEmptyProductProfile(
+            ProductDynamicsOptions productOptions,
+            string operationFamily)
+        {
+            if (string.IsNullOrWhiteSpace(productOptions.ProfileAlias))
+            {
+                throw new InvalidOperationException(
+                    operationFamily + " require DynamicsAccess:ProfileAlias before client composition.");
+            }
         }
 
         /// <summary>

@@ -366,3 +366,98 @@ return Json(new { result.Fees, result.TotalAmount });
 The manager/service owns request-local typed mapping; its result makes a
 defensive copy and publishes a read-only wrapper. The flag remains a
 deployment-owned rollback boundary and is not live-cutover evidence.
+
+## 9. Disabled Package03 Contact-Image Read Boundary Scenario
+
+### 1. Scope / Trigger
+
+Apply this scenario when ChurchReport adds or changes the independent Package03 contact-image read endpoint. It applies to the disabled-by-default route, its deployment-owned feature gate, server authorization, typed ProductClient composition and response bytes. It does not replace the legacy `GetContactImage` route, authorize CE mutation, enable traffic, prove parity, remove ToolUtility or satisfy a P7.5/P8 gate.
+
+### 2. Signatures
+
+```csharp
+[HttpGet]
+[Route("/MemberInfo/Package03ContactImage")]
+public async Task<IActionResult> Package03ContactImage(string contactId);
+
+public static bool IsPackage03SpecialResourcesEnabled(IConfiguration configuration);
+
+public static IPackage03SpecialResourceClient? TryCreatePackage03SpecialResourceClient(
+    IConfiguration configuration,
+    IPackage03SpecialResourceClient? injectedClient = null);
+
+public Task<Package03ContactImageReadResult> RetrieveAsync(
+    Guid contactId,
+    CancellationToken cancellationToken = default);
+```
+
+The only deployment key is `DynamicsAccess:Package03SpecialResourcesEnabled`; checked-in base and development settings remain `false`. `DynamicsAccess:ProfileAlias` and the fixed workload `church-report-member-info-image-read` are server-owned scalars, never route, query, header, session or browser input.
+
+### 3. Contracts
+
+1. After safe retrieval of deployment `IConfiguration`, the gate is the first executable decision. When false, return a fixed 404 before session/user hydration, MemberInfo scope resolution, GUID parsing, target authorization, client/host construction, cache access or outbound I/O.
+2. When true, execute `EnsureCorrectUserData()` and validate `GetAccess()` for the server-side MemberInfo scope before parsing the browser locator. Parse `contactId` only as a locator, then call `CanViewContact(Guid)` before typed dispatch. The locator never selects profile, workload, connector, endpoint, credential, owner or organization.
+3. The enabled branch may create only the Package03 typed client from the deployment-owned process host and call `RetrieveContactImageAsync` with `HttpContext.RequestAborted`. It must not create a provider, handler, pool, credential graph or connector per request.
+4. The service maps only `ContactImageMediaKind.Png` to `image/png` and `ContactImageMediaKind.Jpeg` to `image/jpeg`; it rejects empty bytes, unknown media kinds, blank profile and incomplete upstream results before publishing response bytes. Result construction and every bytes getter make a defensive copy.
+5. The new action must not call `GetConnection`, use `IOrganizationService`, `Entity`, `IMemoryCache`, `ToolUtility`, redirect to LINE, call `GetDefaultImage`, use `GetContactImage`, retry or use a legacy fallback. Preserve the legacy route unchanged because its LINE redirect and gender-avatar behavior is outside the Package03 DTO contract.
+6. `OperationCanceledException` propagates unchanged. A generic controller catch filters it out; non-cancellation typed faults return only fixed 404 and never echo an upstream exception, endpoint, credential, token, contact data or image bytes.
+7. The service/result owns no stream, decoder, cache, client, lease, timer, subscription, static mutable state or background work. The existing profile/generation process host remains the single owner of reusable executor resources.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| `Package03SpecialResourcesEnabled` missing or false | Return 404 before session, locator parse, authorization, client/host creation or I/O. |
+| Scope invalid, locator invalid or target not visible | Return the same 404 before typed dispatch; do not infer contact existence. |
+| Gate true but profile is blank or typed client unavailable | Fail closed before outbound work; do not use legacy CRM or another profile. |
+| Typed result null, image bytes empty or media kind unknown | Reject before response publication; no partial bytes, fallback or retry. |
+| Request cancellation | Propagate cancellation unchanged; downstream owner releases its own uncertain transport/lease. |
+| Non-cancellation typed fault | Return fixed 404 without raw exception detail or a second data path. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** Two interleaved authorized requests receive separately allocated PNG/JPEG byte arrays after their own target authorization; neither response can mutate the other's bytes or profile context.
+- **Base:** The gate is false. The route returns 404 and the legacy image route retains its existing behavior; this local implementation remains neither CE evidence nor a traffic cutover.
+- **Bad:** Parse the GUID before server scope validation, allow a query profile, cache image bytes without the full isolation boundary, reuse legacy avatar/LINE fallback, catch cancellation as a normal 404, or construct a new product provider per request.
+
+### 6. Tests Required
+
+1. Source/controller contract tests assert gate ordering; scope before locator parse; target authorization before client creation; exact `RequestAborted` forwarding; no CRM SDK/cache/legacy/fallback/retry symbols; and unchanged cancellation filtering.
+2. Service tests assert fixed profile/workload, exact cancellation-token forwarding, PNG/JPEG MIME mapping, empty/unknown failure before publish and defensive output copying.
+3. An interleaved A/B fake-client test must use distinct markers and prove results, content types and arrays are independent.
+4. Bootstrap tests assert false gate returns null before host resolution and true gate requires a non-empty deployment profile even when a test client is injected.
+5. Run targeted tests, the full ChurchReport test project, full Release solution tests/build, UTF-8 no-BOM/CRLF/final-CRLF byte checks and `git diff --check`. Keep the gate false and do not run CE, traffic, P7.5 or P8 work as part of these local tests.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var contactId = Guid.Parse(Request.Query["contactId"]);
+var profile = Request.Query["profile"];
+return Redirect(GetContactImage(contactId.ToString()));
+```
+
+The caller controls routing, target parsing occurs before server authorization, and the typed boundary silently reuses legacy behavior.
+
+#### Correct
+
+```csharp
+if (!DonationDynamicsAccessBootstrap.IsPackage03SpecialResourcesEnabled(configuration))
+{
+    return NotFound();
+}
+
+EnsureCorrectUserData();
+if (GetAccess() is not (MemberInfoAccess.Church or MemberInfoAccess.ShepherdList) ||
+    !Guid.TryParse(contactId, out var target) ||
+    !CanViewContact(target))
+{
+    return NotFound();
+}
+
+var result = await service.RetrieveAsync(target, HttpContext.RequestAborted);
+return File(result.GetImageBytes(), result.ContentType);
+```
+
+The gate, scope and target are all server validated before the fixed-profile typed dispatch; bytes are request-local copies and failure cannot select a legacy or alternate transport path.

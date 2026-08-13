@@ -34,6 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -64,6 +65,63 @@ namespace ChurchReport.Controllers
         {
             memberInfoMemoryCache = memoryCache
                 ?? throw new ArgumentNullException(nameof(memoryCache));
+        }
+
+        /// <summary>
+        /// 讀取 Package03 contact image 的獨立、預設關閉 DTO-only 路徑。
+        ///
+        /// 這個 action 不取代 <see cref="GetContactImage"/>：舊路由仍包含 CRM entityimage、LINE redirect 與
+        /// gender avatar 語意，而 Package03 typed DTO 只允許 PNG/JPEG bytes。feature gate 是取得 deployment
+        /// configuration 後的第一個決策；關閉時不 parse contact locator、不讀取 session scope、不建立 typed
+        /// client 或 I/O。開啟後，先驗證 server-side MemberInfo scope，再 parse browser locator，最後以
+        /// <see cref="CanViewContact"/> 完成 target authorization。回應不使用 cache、legacy fallback 或 retry。
+        /// </summary>
+        /// <param name="contactId">browser 提供的 contact locator；它不是 profile、owner、connector 或權限依據。</param>
+        /// <returns>已授權 contact 的安全 PNG/JPEG bytes；拒絕、故障與無圖片均回傳固定 404。</returns>
+        [HttpGet]
+        [Route("/MemberInfo/Package03ContactImage")]
+        public async Task<IActionResult> Package03ContactImage(string contactId)
+        {
+            // IConfiguration 是 deployment-owned singleton，僅用來讀 gate/profile；不含 request identity、
+            // session、credential 或 connector。false gate 的判斷仍先於所有使用者資料與外部資源。
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            if (!DonationDynamicsAccessBootstrap.IsPackage03SpecialResourcesEnabled(configuration))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                EnsureCorrectUserData();
+                var access = GetAccess();
+                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
+                {
+                    return NotFound();
+                }
+
+                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
+                {
+                    return NotFound();
+                }
+
+                var package03Client = DonationDynamicsAccessBootstrap.TryCreatePackage03SpecialResourceClient(configuration);
+                if (package03Client is null)
+                {
+                    return NotFound();
+                }
+
+                var service = new Package03ContactImageReadService(
+                    package03Client,
+                    DonationDynamicsAccessBootstrap.BindOptions(configuration).ProfileAlias);
+                var result = await service.RetrieveAsync(contactGuid, HttpContext.RequestAborted).ConfigureAwait(false);
+                return File(result.GetImageBytes(), result.ContentType);
+            }
+            // 取消必須保留給 ASP.NET Core 與下游 executor owner；不可把已終止 request 轉為一般 404，
+            // 否則可能掩蓋 lease／transport 的確定性清理結果，或誘發上層重送。
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return NotFound();
+            }
         }
 
         [HttpGet]

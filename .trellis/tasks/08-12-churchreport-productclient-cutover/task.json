@@ -21,7 +21,8 @@
   "children": [
     "08-13-p74-legacy-gateway-admission",
     "08-13-08-13-p74-authorized-fee-contact-read",
-    "08-13-p74-fee-editor-read-boundary"
+    "08-13-p74-fee-editor-read-boundary",
+    "08-13-08-13-p74-package03-contact-image-read-boundary"
   ],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [

@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"新 request-local DTO/service 的跨使用者隔離、取消與資源生命週期契約。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"deployment-owned profile/workload、feature gate、typed ProductClient 與 P7/P8 rollout boundary。"}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/package03-consumer-inventory.md","reason":"ORG-CALL-00028 legacy semantics、禁止 request-time fallback 與 temporary-legacy state。"}
+{"file":"SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs","reason":"現有 GetContactImage/CanViewContact 授權與 legacy route 必須維持不變。"}
+{"file":"SpeechMessage.Dynamics.ProductClient/SpecialResources/IPackage03SpecialResourceClient.cs","reason":"唯一允許的 typed Package03 image-read DTO contract。"}
