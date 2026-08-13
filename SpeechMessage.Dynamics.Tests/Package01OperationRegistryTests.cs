@@ -33,7 +33,7 @@ public sealed class Package01OperationRegistryTests
     private const int ConservativeMaximumResultItemCount = 4096;
 
     /// <summary>
-    /// 確認目前二十四個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
+    /// 確認目前二十五個 registry capability 完整存在，避免 matrix、connector 與產品在 feature gate 尚未開啟前
     /// 各自發明未經審查的作業 ID。此檢查只讀取 immutable registry，不配置外部資源。
     /// </summary>
     [Fact]
@@ -53,6 +53,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.FeesEditorLoadByDiscipleLesson,
             OperationIds.LessonsStorRetrieveByContact,
             OperationIds.LessonsStorRetrieveByDiscipleLesson,
+            OperationIds.ListCatalogRetrieveAppNamed,
             OperationIds.AuthenticationContactRetrieveByAccount,
             OperationIds.AuthenticationContactRetrieveByLineId,
             OperationIds.MemberInfoContactUpdateBasicInfo,
@@ -69,7 +70,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.StatsMeetingRetrieveBySunday
         });
 
-        ids.Should().HaveCount(24);
+        ids.Should().HaveCount(25);
     }
 
     /// <summary>
@@ -377,6 +378,7 @@ public sealed class Package01OperationRegistryTests
     [InlineData(OperationIds.FeesEditorLoadByDiscipleLesson, OperationResponseKind.Package01StorLessonRecords)]
     [InlineData(OperationIds.LessonsStorRetrieveByContact, OperationResponseKind.Package01StorLessonRecords)]
     [InlineData(OperationIds.LessonsStorRetrieveByDiscipleLesson, OperationResponseKind.Package01StorLessonRecords)]
+    [InlineData(OperationIds.ListCatalogRetrieveAppNamed, OperationResponseKind.AppNamedListCatalogRecords)]
     [InlineData(OperationIds.MemberInfoContactUpdateBasicInfo, OperationResponseKind.ContactBasicInfoUpdate)]
     [InlineData(OperationIds.MemberInfoContactRetrieveImage, OperationResponseKind.ContactImage)]
     [InlineData(OperationIds.MemberInfoContactUpdateImage, OperationResponseKind.ContactImageUpdate)]

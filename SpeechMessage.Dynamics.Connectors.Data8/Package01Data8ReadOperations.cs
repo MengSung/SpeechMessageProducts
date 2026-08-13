@@ -45,6 +45,16 @@ internal static class Package01Data8ReadOperations
     private const string FeePayStatusAttribute = "new_pay_status";
     private const string StateCodeAttribute = "statecode";
 
+    private const string AppNamedListEntityName = "list";
+    private const string AppNamedListIdAttribute = "listid";
+    private const string AppNamedListNameAttribute = "listname";
+    private const string AppNamedListCreatedFromCodeAttribute = "createdfromcode";
+    private const string AppNamedListLastUsedOnAttribute = "lastusedon";
+    private const string AppNamedListPurposeAttribute = "purpose";
+    private const string AppNamedListFlagAttribute = "new_app_named";
+    private const string AppNamedListStatusCodeAttribute = "statuscode";
+    private const string AppNamedListPurpose = "小組名單";
+
     private const string DedicationBookingEntityName = "new_dedication_booking";
     private const string DedicationBookingIdAttribute = "new_dedication_bookingid";
     private const string DedicationBookingCreatedOnAttribute = "createdon";
@@ -140,8 +150,79 @@ internal static class Package01Data8ReadOperations
             OperationIds.FeesEditorLoadByDiscipleLesson => ExecuteStorLessonsByDiscipleLesson(service, operation, ceVersion),
             OperationIds.LessonsStorRetrieveByContact => ExecuteStorLessonsByContact(service, operation, ceVersion),
             OperationIds.LessonsStorRetrieveByDiscipleLesson => ExecuteStorLessonsByDiscipleLesson(service, operation, ceVersion),
+            OperationIds.ListCatalogRetrieveAppNamed => ExecuteAppNamedListCatalog(service, operation, ceVersion),
             _ => throw new InvalidOperationException("The Data8 Package01 operation is not permitted.")
         };
+    }
+
+    /// <summary>
+    /// 執行 ORG-CALL-00014 的固定 App-named 名單目錄讀取。此能力只接受空白參數集合；實體、欄位、篩選、排序及
+    /// paging 全由 connector 擁有，絕不採用 caller 提供的 FetchXML、ID、名稱、profile、endpoint 或 credential。
+    /// 每頁 CRM 資料會在目前 lease scope 內立即投影為 immutable 純值 record，任一頁、實體、型別、UTC 時間、
+    /// byte 或 paging 契約失效都會在建立 response 前拋出，避免發布 partial rows 或保留 Entity／cookie。
+    /// </summary>
+    /// <param name="service">由目前 Data8 lease 唯一擁有的 Organization service。</param>
+    /// <param name="operation">已由 executor allowlist 的零參數 catalog operation。</param>
+    /// <param name="ceVersion">由 deployment-owned profile 解析的固定 CE 版本。</param>
+    /// <returns>只含 App-named catalog branch 的 immutable response envelope。</returns>
+    private static OperationResponseData ExecuteAppNamedListCatalog(
+        IOrganizationService service,
+        ConnectorOperation operation,
+        string ceVersion)
+    {
+        var definition = GetDefinition(operation.OperationId, OperationResponseKind.AppNamedListCatalogRecords);
+        if (operation.Parameters is not { Count: 0 })
+        {
+            throw new InvalidOperationException("The Data8 App-named list catalog operation parameters are invalid.");
+        }
+
+        var query = CreateAppNamedListCatalogQuery();
+        var records = new List<AppNamedListCatalogRecord>(MaximumRowsPerPage);
+        var totalBytes = 0;
+        string? pagingCookie = null;
+
+        for (var pageNumber = 1; pageNumber <= definition.MaximumPageCount; pageNumber++)
+        {
+            var pageBytes = 0;
+            query.PageInfo.PageNumber = pageNumber;
+            query.PageInfo.PagingCookie = pagingCookie;
+            var page = service.RetrieveMultiple(query)
+                ?? throw new InvalidOperationException("The Data8 App-named list catalog query returned no page.");
+            if (page.Entities.Count > MaximumRowsPerPage ||
+                checked(records.Count + page.Entities.Count) > definition.MaximumResultItemCount)
+            {
+                throw new InvalidOperationException("The Data8 App-named list catalog query exceeded its result limit.");
+            }
+
+            foreach (var entity in page.Entities)
+            {
+                var record = ProjectAppNamedListCatalogRecord(entity);
+                if (!TryAddAppNamedListCatalogRecordBytes(ref pageBytes, record, definition.MaximumPageBytes) ||
+                    !TryAddAppNamedListCatalogRecordBytes(
+                        ref totalBytes,
+                        record,
+                        definition.MaximumCumulativeResponseBytes))
+                {
+                    throw new InvalidOperationException("The Data8 App-named list catalog query exceeded its response budget.");
+                }
+
+                records.Add(record);
+            }
+
+            if (!page.MoreRecords)
+            {
+                return OperationResponseData.ForAppNamedListCatalogRecords(operation.OperationId, ceVersion, records);
+            }
+
+            if (pageNumber == definition.MaximumPageCount || string.IsNullOrWhiteSpace(page.PagingCookie))
+            {
+                throw new InvalidOperationException("The Data8 App-named list catalog query paging contract is invalid.");
+            }
+
+            pagingCookie = page.PagingCookie;
+        }
+
+        throw new InvalidOperationException("The Data8 App-named list catalog query exceeded its page limit.");
     }
 
     /// <summary>
@@ -507,6 +588,34 @@ internal static class Package01Data8ReadOperations
         query.Criteria.AddCondition(StateCodeAttribute, ConditionOperator.Equal, 0);
         query.AddOrder(DedicationBookingCreatedOnAttribute, OrderType.Descending);
         query.AddOrder(DedicationBookingIdAttribute, OrderType.Ascending);
+        return query;
+    }
+
+    /// <summary>
+    /// 建立 ORG-CALL-00014 唯一允許的 App-named 名單目錄 QueryExpression。這個方法不接受任何外部值，因而
+    /// caller 無法改變 entity、目的、啟用條件、排序或分頁；list ID 的次要排序確保相同名稱跨頁時仍有穩定順序。
+    /// QueryExpression 只在呼叫者的 Data8 lease scope 內使用，後續 projection 不會把它、paging cookie 或 CRM
+    /// Entity 帶出 connector 邊界。
+    /// </summary>
+    /// <returns>固定欄位、篩選、排序及每頁 128 筆的 server-owned 查詢。</returns>
+    private static QueryExpression CreateAppNamedListCatalogQuery()
+    {
+        var query = new QueryExpression(AppNamedListEntityName)
+        {
+            ColumnSet = new ColumnSet(
+                AppNamedListIdAttribute,
+                AppNamedListNameAttribute,
+                AppNamedListCreatedFromCodeAttribute,
+                AppNamedListLastUsedOnAttribute,
+                AppNamedListPurposeAttribute),
+            Criteria = new FilterExpression(LogicalOperator.And),
+            PageInfo = CreateInitialPageInfo()
+        };
+        query.Criteria.AddCondition(AppNamedListStatusCodeAttribute, ConditionOperator.Equal, 0);
+        query.Criteria.AddCondition(AppNamedListPurposeAttribute, ConditionOperator.Equal, AppNamedListPurpose);
+        query.Criteria.AddCondition(AppNamedListFlagAttribute, ConditionOperator.Equal, true);
+        query.AddOrder(AppNamedListNameAttribute, OrderType.Descending);
+        query.AddOrder(AppNamedListIdAttribute, OrderType.Ascending);
         return query;
     }
 
@@ -887,6 +996,33 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 將一列固定 <c>list</c> Entity 投影為 App-named catalog 純值 record。主鍵、logical name、option-set、
+    /// 字串與 UTC 日期型別都在 CRM page 仍屬本次 connector scope 時驗證；不使用 formatted values、lookup、
+    /// metadata 或 <c>ToString</c> fallback，避免 SDK graph、locale 或其他請求狀態穿越 response 邊界。
+    /// </summary>
+    /// <param name="entity">目前 RetrieveMultiple page 中要立即消費的 list Entity。</param>
+    /// <returns>只含 allowlisted scalar 的 immutable catalog record。</returns>
+    private static AppNamedListCatalogRecord ProjectAppNamedListCatalogRecord(Entity entity)
+    {
+        ValidateEntityIdentity(entity, AppNamedListEntityName, AppNamedListIdAttribute);
+        var createdFromCode = ReadOptionalValue<OptionSetValue>(entity, AppNamedListCreatedFromCodeAttribute);
+        var purpose = ReadOptionalString(entity, AppNamedListPurposeAttribute);
+        if (purpose is not null && !string.Equals(purpose, AppNamedListPurpose, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The Data8 App-named list catalog purpose projection is invalid.");
+        }
+
+        return new AppNamedListCatalogRecord
+        {
+            ListId = entity.Id,
+            ListName = ReadOptionalString(entity, AppNamedListNameAttribute),
+            CreatedFromCodeOption = createdFromCode?.Value,
+            LastUsedOn = ReadOptionalStrictUtcDateTime(entity, AppNamedListLastUsedOnAttribute),
+            Purpose = purpose
+        };
+    }
+
+    /// <summary>
     /// 讀取 operation registry 定義並確認回應分支。registry 宣告本身不是 connector 實作授權；此檢查
     /// 防止未來錯將 fee query 投影成 stor branch，或因 registry 漂移而降低目前 operation 的資源上限。
     /// </summary>
@@ -1040,6 +1176,29 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 讀取 catalog 的 optional UTC 日期。此路徑比既有相容投影更嚴格：只有 <see cref="DateTimeKind.Utc"/>
+    /// 才可轉成 <see cref="DateTimeOffset"/>，<c>Unspecified</c> 或 local 值一律拒絕，避免不同 host timezone
+    /// 對相同 CRM scalar 產生不同結果。這個方法不保存 DateTime 或 Entity；轉換完成後只留下 request-local value。
+    /// </summary>
+    /// <param name="entity">目前 page 中已驗證的 list Entity。</param>
+    /// <param name="attributeName">固定 allowlisted UTC 日期欄位名稱。</param>
+    /// <returns>欄位缺少時為 null；存在時為 offset 為零的 UTC 值。</returns>
+    private static DateTimeOffset? ReadOptionalStrictUtcDateTime(Entity entity, string attributeName)
+    {
+        if (!entity.Attributes.TryGetValue(attributeName, out var value) || value is null)
+        {
+            return null;
+        }
+
+        if (value is not DateTime { Kind: DateTimeKind.Utc } dateTime)
+        {
+            throw new InvalidOperationException("The Data8 App-named list catalog date attribute is invalid.");
+        }
+
+        return new DateTimeOffset(dateTime, TimeSpan.Zero);
+    }
+
+    /// <summary>
     /// 讀取可選純文字欄位；不採 ToString fallback，因錯誤型別可能包含 SDK、session 或 metadata graph。
     /// </summary>
     private static string? ReadOptionalString(Entity entity, string attributeName)
@@ -1175,6 +1334,26 @@ internal static class Package01Data8ReadOperations
                TryAddStringBytes(ref totalBytes, record.DedicationBookingStatusLabel, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.TotalStages, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.PaidPeriod, maximumBytes);
+    }
+
+    /// <summary>
+    /// 將 catalog record 的保守 DTO overhead 與所有 allowlisted 文字欄位加入目前頁面或累積 UTF-8 預算。GUID、
+    /// option 與 UTC scalar 均由固定 overhead 涵蓋；名稱與 purpose 則以嚴格 UTF-8 計數，無效 UTF-16、overflow
+    /// 或超限立即回傳 false。呼叫端在 false 時不發布 partial records，並讓 lease fault path 處理 connector。
+    /// </summary>
+    /// <param name="totalBytes">目前 request-local 預算累積值。</param>
+    /// <param name="record">已投影且不含 CRM SDK graph 的 catalog record。</param>
+    /// <param name="maximumBytes">registry 宣告的 page 或 cumulative 上限。</param>
+    /// <returns>加入後仍在上限內時為 <see langword="true"/>。</returns>
+    private static bool TryAddAppNamedListCatalogRecordBytes(
+        ref int totalBytes,
+        AppNamedListCatalogRecord record,
+        int maximumBytes)
+    {
+        return record.ListId != Guid.Empty &&
+               TryAddBytes(ref totalBytes, 128, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.ListName, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.Purpose, maximumBytes);
     }
 
     /// <summary>

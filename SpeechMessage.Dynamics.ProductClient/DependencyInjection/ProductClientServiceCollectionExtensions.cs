@@ -20,6 +20,7 @@ using SpeechMessage.Dynamics.ProductClient.Authentication;
 using SpeechMessage.Dynamics.ProductClient.Configuration;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
+using SpeechMessage.Dynamics.ProductClient.ListCatalog;
 using SpeechMessage.Dynamics.ProductClient.ListManagement;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
 using SpeechMessage.Dynamics.ProductClient.SpecialResources;
@@ -78,6 +79,7 @@ public static class ProductClientServiceCollectionExtensions
 
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
+        services.TryAddSingleton<IAppNamedListCatalogReadClient, AppNamedListCatalogReadClient>();
         services.TryAddSingleton<IAuthenticationContactReadClient, AuthenticationContactReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
@@ -95,6 +97,22 @@ public static class ProductClientServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 註冊 ORG-CALL-00014 的 stateless app-named catalog ProductClient。
+    /// 此註冊不建立 consumer、feature gate、cache、retry 或 CE 流量；executor 仍由既有 Gateway/Embedded composition
+    /// 擁有。singleton 安全的前提是 client 不保留 profile、workload、request、DTO 或 response，所有這些資料都在
+    /// 每次呼叫建立並於完成後由 GC 回收，外部 transport/lease 則由 executor 的既有 deterministic cleanup 擁有。
+    /// </summary>
+    /// <param name="services">要加入封閉 catalog client 的 composition root service collection。</param>
+    /// <returns>同一個 service collection，供 composition root 繼續鏈結。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsAppNamedListCatalogReads(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IAppNamedListCatalogReadClient, AppNamedListCatalogReadClient>();
         return services;
     }
 

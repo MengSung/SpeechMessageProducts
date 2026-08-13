@@ -706,6 +706,168 @@ public sealed class OnPremiseData8ConnectorClientFactoryTests
     }
 
     /// <summary>
+    /// 驗證 ORG-CALL-00014 只會建立 server-owned 的名單目錄 <see cref="QueryExpression"/>，並且在同一個
+    /// connector request scope 內把 CRM 列投影為 immutable 純值 record。故障注入由 fake service 檢查每個
+    /// 固定欄位、篩選、排序與分頁設定；決定性斷言是成功結果只含 catalog branch，且 service 僅收到一次
+    /// <c>RetrieveMultiple</c>，沒有額外 <c>Retrieve</c>、FetchXML 或可逸出的 CRM page。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_executes_the_fixed_app_named_list_catalog_query_and_projects_safe_records()
+    {
+        var listId = Guid.Parse("66666666-3333-2222-1111-000000000003");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            query =>
+            {
+                var expression = query.Should().BeOfType<QueryExpression>().Subject;
+                expression.EntityName.Should().Be("list");
+                expression.ColumnSet.Columns.Should().Equal(
+                    "listid",
+                    "listname",
+                    "createdfromcode",
+                    "lastusedon",
+                    "purpose");
+                expression.Criteria.Conditions.Should().HaveCount(3);
+                expression.Criteria.Conditions[0].AttributeName.Should().Be("statuscode");
+                expression.Criteria.Conditions[0].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[0].Values.Should().ContainSingle().Which.Should().Be(0);
+                expression.Criteria.Conditions[1].AttributeName.Should().Be("purpose");
+                expression.Criteria.Conditions[1].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[1].Values.Should().ContainSingle().Which.Should().Be("小組名單");
+                expression.Criteria.Conditions[2].AttributeName.Should().Be("new_app_named");
+                expression.Criteria.Conditions[2].Operator.Should().Be(ConditionOperator.Equal);
+                expression.Criteria.Conditions[2].Values.Should().ContainSingle().Which.Should().Be(true);
+                expression.Orders.Select(order => new { order.AttributeName, order.OrderType })
+                    .Should().Equal(
+                        new { AttributeName = "listname", OrderType = OrderType.Descending },
+                        new { AttributeName = "listid", OrderType = OrderType.Ascending });
+                expression.PageInfo.PageNumber.Should().Be(1);
+                expression.PageInfo.Count.Should().Be(128);
+                expression.PageInfo.PagingCookie.Should().BeNull();
+
+                return new EntityCollection(
+                [
+                    new Entity("list", listId)
+                    {
+                        ["listid"] = listId,
+                        ["listname"] = "青年小組",
+                        ["createdfromcode"] = new OptionSetValue(1),
+                        ["lastusedon"] = new DateTime(2026, 8, 13, 12, 0, 0, DateTimeKind.Utc),
+                        ["purpose"] = "小組名單"
+                    }
+                ]);
+            });
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListCatalogRetrieveAppNamed,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+
+        ConnectorOperationResult result;
+        await using (var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None))
+        {
+            result = await client.ExecuteAsync(operation, CancellationToken.None);
+        }
+
+        result.Succeeded.Should().BeTrue();
+        result.Data!.ResponseKind.Should().Be(OperationResponseKind.AppNamedListCatalogRecords);
+        result.Data.AppNamedListCatalogRecords.Should().ContainSingle().Which.Should().BeEquivalentTo(
+            new AppNamedListCatalogRecord
+            {
+                ListId = listId,
+                ListName = "青年小組",
+                CreatedFromCodeOption = 1,
+                LastUsedOn = new DateTimeOffset(2026, 8, 13, 12, 0, 0, TimeSpan.Zero),
+                Purpose = "小組名單"
+            });
+        service.RetrieveMultipleCount.Should().Be(1);
+        service.RetrieveCount.Should().Be(0);
+        service.DisposeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 驗證 catalog page 內任何無效列都會使整個 operation fail closed。故障注入先放入一列可投影資料，再放入
+    /// <c>lastusedon</c> 為 local time 的列；決定性斷言是 client 拋出而非回傳第一列，證明 UTC 規則、列型別
+    /// 驗證與「不發布 partial results」在 CRM Entity 尚未越過 connector scope 時即被強制執行。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_rejects_a_catalog_page_with_a_non_utc_date_without_partial_records()
+    {
+        var firstListId = Guid.Parse("77777777-3333-2222-1111-000000000004");
+        var invalidListId = Guid.Parse("88888888-3333-2222-1111-000000000005");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            _ => new EntityCollection(
+            [
+                new Entity("list", firstListId)
+                {
+                    ["listid"] = firstListId,
+                    ["listname"] = "第一列",
+                    ["purpose"] = "小組名單"
+                },
+                new Entity("list", invalidListId)
+                {
+                    ["listid"] = invalidListId,
+                    ["lastusedon"] = new DateTime(2026, 8, 13, 12, 0, 0, DateTimeKind.Local),
+                    ["purpose"] = "小組名單"
+                }
+            ]));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListCatalogRetrieveAppNamed,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+
+        await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+        var action = async () => await client.ExecuteAsync(operation, CancellationToken.None);
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.RetrieveMultipleCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 驗證 App-named 文字投影超出每頁 64 KiB 預算時不會把先前已投影列發佈到 response。故障注入使用固定欄位
+    /// 與超長 <c>listname</c>，避免透過 caller parameter 影響 query；決定性斷言是 operation 失敗且未額外讀取，
+    /// 證明一頁的記憶體上限在 connector request scope 內有界而不會形成快取、重試或跨請求 retained state。
+    /// </summary>
+    [Fact]
+    public async Task Created_client_rejects_an_app_named_catalog_page_exceeding_its_byte_budget()
+    {
+        var listId = Guid.Parse("99999999-3333-2222-1111-000000000006");
+        var service = new FakeOrganizationService(
+            OrganizationId,
+            _ => new EntityCollection(
+            [
+                new Entity("list", listId)
+                {
+                    ["listid"] = listId,
+                    ["listname"] = new string('x', 64 * 1024),
+                    ["purpose"] = "小組名單"
+                }
+            ]));
+        var factory = new OnPremiseData8ConnectorClientFactory(CreateConnectionSettings(), _ => service);
+        var operation = new ConnectorOperation
+        {
+            OperationId = OperationIds.ListCatalogRetrieveAppNamed,
+            WorkloadSubjectId = "test",
+            DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(5),
+            Parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+
+        await using var client = await factory.CreateAsync(CreateProfile(), CancellationToken.None);
+        var action = async () => await client.ExecuteAsync(operation, CancellationToken.None);
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        service.RetrieveMultipleCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 驗證所有使用 stor-lesson executor 的 capability 都以 connector 擁有的 <c>lesson</c> inner link 讀取課程名稱、開課日期與
     /// 目前階段，並將 CRM 的 aliased UTC 日期與字串投影成純值 response。故障注入使用離線
     /// <see cref="IOrganizationService"/>，其 callback 會拒絕缺少 link 或遺漏欄位的 QueryExpression；決定性

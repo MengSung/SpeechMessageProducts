@@ -349,3 +349,17 @@ source、project dependency、settings key 各仍有 legacy reference。report �
 因此下一步是根據 capability-family backlog 建立下一個 independently verifiable local P7 child；所有
 checked-in feature flag 維持 false，歷史 Slice C 不重試，ToolUtility removal 與 P8 仍等待所有真實
 parity、soak、drain、rollback、commit/archive immutable handoff 先決條件。
+
+### 2026-08-13 ORG-CALL-00014 app-named list catalog read（現行權威）
+
+已建立 child `08-13-p71-appnamed-list-catalog-typed-read`，只處理權威 matrix 的
+`ORG-CALL-00014`／`list.catalog.retrieve.app.named`。此 operation 是無 caller parameter 的固定 list
+catalog read：legacy `ListService.RetrieveLists()` 對 `list` 固定投影 `listname`、`createdfromcode`、
+`lastusedon`、`purpose`、`listid`，並固定 status、purpose 與 app-named filter。child 必須建立有界、
+DTO-only、server-owned registry/Data8/ProductClient capability 與本機 isolation/lifecycle evidence；不接
+ChurchReport consumer、不開 feature gate、不執行 CE、切流、P7.5 或 P8。
+
+`ORG-CALL-00065` 雖同屬 list catalog family，卻有不同 operation ID、template、filter 和 consumer。
+其 ChurchReport consumer 目前持有共享 `EntityCollection` memory cache，尚未證明 request-local DTO 和完整
+isolation boundary；它維持 temporary-legacy，不能為了重用 registry 或加速交付而與 `00014` 合併、
+rehydrate Entity、共享 cache 或自動 cutover。

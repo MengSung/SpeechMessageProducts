@@ -53,6 +53,7 @@ class P7RebaselineContractTests(unittest.TestCase):
 
     def test_build_records_the_current_canonical_phase0_checksum(self) -> None:
         """輸出必須綁定目前可解析的 phase0 原始 70-row 基準，不能只重送封存 coverage 文件內的舊 hash 文字。"""
+        analyzer = load_analyzer_module()
         with tempfile.TemporaryDirectory() as temporary_directory:
             output = Path(temporary_directory) / "authoritative-gap-matrix.json"
             result = self.run_analyzer("--output", str(output))
@@ -61,7 +62,7 @@ class P7RebaselineContractTests(unittest.TestCase):
 
         self.assertEqual(70, matrix["sourceMatrix"]["callSiteCount"])
         self.assertEqual(
-            "f12a7fa3fb778a1e26018716fac55d78a4a03104c41a1e4f0a13f1532d573b8b",
+            analyzer.sha256(analyzer.P70_MATRIX),
             matrix["sourceMatrix"]["sha256"],
         )
 

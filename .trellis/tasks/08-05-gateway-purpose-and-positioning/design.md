@@ -221,3 +221,17 @@ object key，所有 value 僅做嚴格語法 skip，不 materialize、log、hash
 這份 report 的 `no-go` 由 matrix、production source、project dependencies、settings keys 四類獨立 evidence
 共同決定；任一類清除都不抵消其他缺口。它提供可重複排程資料，不替代 server authorization、Data8 executor、
 ProductClient、consumer migration、CE/host parity、capacity admission 或 deployment evidence。
+
+### 2026-08-13 fixed list catalog capability 分片
+
+`ORG-CALL-00014` 的零參數、固定 app-named list catalog 適合作為 P7.1 的資料層 capability，而非 P7.4
+consumer cutover。Data8 connector 應以 server-owned `QueryExpression` 固定 entity、ColumnSet、status/purpose/
+app-named filters、排序與 finite paging；CRM Entity 只存在於當前 connector lease stack，完成後只回傳封閉
+wire record。ProductClient 只能驗證 operation/discriminator 後複製為 request-local DTO；不得保留 list、
+profile、workload、Entity、page、paging cookie、cache 或 transport state。
+
+`ORG-CALL-00065` 必須保持獨立：它的 fixed template 額外排除測試名稱並投影領袖 lookup，且現行 consumer
+使用沒有完整 isolation boundary 的 shared `EntityCollection` cache。兩者只能共用由 registry 施加的
+bounded query family 設計，不可共用 operation ID、response branch、cache key 或 consumer rollout。這可避免
+將系統目錄資料錯誤宣稱為 universally-safe shared cache，並保留每個 consumer 的 authorization、locale、
+performance、rollback 與 CE evidence 責任。

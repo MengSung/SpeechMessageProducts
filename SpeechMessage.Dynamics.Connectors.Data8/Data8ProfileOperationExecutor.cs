@@ -436,6 +436,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.FeesEditorLoadByDiscipleLesson => true,
             OperationIds.LessonsStorRetrieveByContact => true,
             OperationIds.LessonsStorRetrieveByDiscipleLesson => true,
+            OperationIds.ListCatalogRetrieveAppNamed => true,
             OperationIds.MemberInfoContactUpdateBasicInfo => true,
             OperationIds.MemberInfoContactUpdateLineProfile => true,
             OperationIds.MemberInfoContactCountUngroupedCommitment => true,
@@ -1211,6 +1212,9 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationResponseKind.Package01DedicationBookingRecords =>
                 connectorData.DedicationBookingRecords is not null &&
                 TryValidateDedicationBookingRecords(connectorData.DedicationBookingRecords, definition),
+            OperationResponseKind.AppNamedListCatalogRecords =>
+                connectorData.AppNamedListCatalogRecords is not null &&
+                TryValidateAppNamedListCatalogRecords(connectorData.AppNamedListCatalogRecords, definition),
             OperationResponseKind.AuthenticationContactReadRecords =>
                 connectorData.AuthenticationContactReadRecords is not null &&
                 TryValidateAuthenticationContactReadRecords(
@@ -1408,6 +1412,42 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 !TryAddUtf8Bytes(ref bytes, record.DedicationBookingStatusLabel, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.TotalStages, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.PaidPeriod, definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 App-named catalog response 在 connector lease 離開前只包含有界的 allowlisted scalar。每一列需具有效
+    /// list GUID，日期若存在則必須是零 offset UTC；名稱與 purpose 以嚴格 UTF-8 加入 registry cumulative
+    /// budget。任何 null、超限或非 UTC 值都使整個 response 被拒絕，讓上層標記 lease faulted，絕不發布 partial
+    /// catalog 或把 CRM Entity、cookie、profile、session、cache 與 transport state 留給下一個請求。
+    /// </summary>
+    /// <param name="records">connector 在目前 request scope 建立的 immutable catalog rows。</param>
+    /// <param name="definition">registry 提供的固定列數與 byte 上限。</param>
+    /// <returns>所有列都符合封閉契約與 cumulative budget 時為 <see langword="true"/>。</returns>
+    private static bool TryValidateAppNamedListCatalogRecords(
+        IReadOnlyList<AppNamedListCatalogRecord> records,
+        OperationDefinition definition)
+    {
+        if (records.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var bytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null ||
+                record.ListId == Guid.Empty ||
+                (record.LastUsedOn is { Offset: var offset } && offset != TimeSpan.Zero) ||
+                (record.Purpose is not null && !string.Equals(record.Purpose, "小組名單", StringComparison.Ordinal)) ||
+                !TryAddFixedBytes(ref bytes, 128, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.ListName, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.Purpose, definition.MaximumCumulativeResponseBytes))
             {
                 return false;
             }

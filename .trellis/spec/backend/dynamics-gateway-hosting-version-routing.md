@@ -2329,6 +2329,114 @@ Registry -> matrix row -> schema enum/limits -> fixture source hash
          -> agreement tests -> only then live CE evidence
 ```
 
+## Scenario: Fixed Data8 App-named List Catalog DTO Read
+
+### 1. Scope / Trigger
+
+Apply this contract when implementing or changing
+`list.catalog.retrieve.app.named` / `ORG-CALL-00014`.  It is a server-owned,
+zero-parameter Data8 read capability for the app-named small-group list
+catalog.  It is not authorization for a ChurchReport consumer, a feature-gate
+change, CE evidence, traffic cutover, ToolUtility removal, or P8 deployment.
+
+### 2. Signatures
+
+```csharp
+Task<IReadOnlyList<AppNamedListCatalogRecordDto>> RetrieveAppNamedListCatalogAsync(
+    string profileAlias,
+    string workloadSubjectId,
+    CancellationToken cancellationToken = default);
+
+private static QueryExpression CreateAppNamedListCatalogQuery();
+```
+
+The ProductClient signature accepts only deployment/server-owned
+`profileAlias` and `workloadSubjectId`; it has no entity, attribute, filter,
+sort, list ID, owner, endpoint, credential, connector, cookie, or caller
+parameter-map argument.
+
+### 3. Contracts
+
+- `CreateAppNamedListCatalogQuery` is the only factory for this operation. It
+  uses entity `list`, columns `listid`, `listname`, `createdfromcode`,
+  `lastusedon`, and `purpose`; filters `statuscode = 0`,
+  `purpose = 小組名單`, and `new_app_named = true`; orders `listname`
+  descending then `listid` ascending; and begins with page size 128.
+- Attribute names are semantic per entity and factory. `list.statuscode` is
+  not interchangeable with `contact.statecode`, fee `statecode`, or
+  dedication-booking `statecode`. A mechanical cross-factory text replacement
+  is forbidden even where the scalar value is the same; change only the named
+  factory and prove the neighbouring query contracts remain unchanged.
+- The connector accepts an empty parameter map only, uses `RetrieveMultiple`
+  only, and applies registry page, row, page-byte, and cumulative-byte bounds.
+  A null page, invalid entity identity/type, non-UTC date, missing continuation
+  cookie, or bound excess fails closed before a partial record list is
+  published.
+- CRM `Entity`, `EntityCollection`, paging cookie, formatted values, query,
+  profile, credential, connection, and transport state stay within the current
+  connector lease. The closed wire branch and ProductClient make independent
+  copies and expose only immutable scalar DTOs in a non-array read-only
+  collection.
+- ProductClient validates profile/workload before executor I/O, forwards the
+  exact cancellation token, validates operation ID and response branch, and
+  never adds cache, retry, fallback, Entity rehydration, timer, subscription,
+  or background work.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Parameters are non-empty, profile/workload is invalid, or response operation/branch differs | Fail before executor or connector I/O; publish no DTO. |
+| Catalog query loses `statuscode`, purpose, app-named filter, fixed columns, order, or page bound | Query-contract test fails; do not substitute a different entity's active-state attribute. |
+| A neighbouring contact, fee, or dedication factory loses its `statecode` condition | Its existing query-contract regression fails; restore that factory only. |
+| Page/entity/date/paging/byte contract is invalid | Fault the connector path and publish no partial result; the lease owner performs disposal/permit cleanup. |
+| CE, consumer, gate, host, or rollout evidence is absent | Keep matrix states `not-migrated` / `evidence-pending`; local code never promotes them. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a server-composed request reaches one fixed `list` query and receives
+  freshly copied DTOs; concurrent A/B calls cannot observe each other's source
+  collection or DTO instances.
+- Base: the capability is locally complete while its consumer remains legacy
+  and all feature flags remain false.
+- Bad: reuse a `statecode` constant because another entity also has an active
+  condition; reuse `ORG-CALL-00065`; return a CRM `EntityCollection`; or
+  silently run a second legacy query when the typed response is invalid.
+
+### 6. Tests Required
+
+- Test exact registry/matrix/schema policy and the closed wire response branch.
+- Assert every query column, condition attribute/operator/value, order, page
+  size, `RetrieveMultiple` count, and zero `Retrieve` count.
+- Keep neighbouring authentication, fee, and dedication query tests in the
+  focused run so same-text replacement cannot silently alter their
+  `statecode` semantics.
+- Test non-empty parameters, invalid projection/date/paging/byte cases,
+  wrong response branch, cancellation forwarding, source mutation, published
+  collection immutability, and interleaved A/B isolation.
+- Run focused tests, full Dynamics and solution Release tests, Release build,
+  matrix rebaseline validation, byte-level UTF-8/no-BOM/CRLF/final-CRLF checks,
+  and `git diff --check`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+// Same scalar does not mean the CRM attribute has the same entity semantics.
+query.Criteria.AddCondition(StateCodeAttribute, ConditionOperator.Equal, 0);
+```
+
+#### Correct
+
+```csharp
+// The list factory owns the list-specific active-status attribute.
+query.Criteria.AddCondition(AppNamedListStatusCodeAttribute, ConditionOperator.Equal, 0);
+```
+
+The fix is limited to `CreateAppNamedListCatalogQuery`; existing factories and
+their contract tests retain their own entity-specific attributes.
+
 ## Scenario: P6.2 local IFD Official Worker profile input
 
 ### 1. Scope / Trigger

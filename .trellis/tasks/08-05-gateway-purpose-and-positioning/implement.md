@@ -111,9 +111,15 @@ authority，runbook 必須證明先 drain 舊路徑再啟用新路徑。不可�
 - [ ] P8.0～P8.4 文件明確承接 P7.5 artifact，並在獨立授權下完成 ChurchReport 雲端 Central Gateway deployment、cutover、monitoring、rollback 與 live evidence。
 - [ ] 第二、第三產品 onboarding 已明確移出本 parent 完成條件，日後另立獨立 task。
 
-## 8. 執行起點
+## 8. 執行起點（已校正）
 
-目前執行起點是 P6.1 document/quality closure baseline；不是重新啟動 P5、P6.2 live startup 或先執行 P7.0。使用者之後若提交整合 `/goal` 提示詞，代理先封存 P6 的離線擴充點與 `evidence-pending` 結論，再以 `.trellis/tasks/08-05-gateway-capability-inventory` 明確路徑啟動 P7.0。完成 inventory/validator 與 per-family evidence/fixture requirements 後，才建立各 P7.1～P7.5 child 的精確 code-level plan，並依 gate 執行。禁止在 capability 邊界尚未證實前一次性修改全部 ChurchReport CRM 呼叫，也不得由該 goal 啟動 P8。
+目前執行起點是 authoritative 70-row gap matrix 所列的下一個 independently verifiable P7 capability
+child；不是重新啟動已封存的 P3～P6、P7.0 或 P7.3，也不是重播歷史 P7.2 Slice C。P6 Official
+Worker live compatibility 仍為 `evidence-pending`，但不阻擋 Data8-first 的 local-only P7 read migration。
+每個 child 必須先從矩陣與現行 call chain 證明其 capability family、DTO、authorization、resource
+ownership、rollback owner 與 evidence scope，再依 Trellis 完成 Plan、Design、Implement、Check、
+scope-only commit 與 archive。禁止在 capability 邊界尚未證實前一次性修改全部 ChurchReport CRM 呼叫，
+也不得由此路線提前啟動 P7.5 或 P8。
 
 ## 2026-08-12 後續執行順序（取代過期 P6/P7.0 next action）
 
@@ -155,3 +161,23 @@ rollback owner 與 no-SDK boundary；不允許以 Entity/EntityCollection bridge
    仍須自有 DTO、authorization、executor/consumer、CE、lifecycle、rollback evidence。
 3. 只有未來 report=`prerequisite-ready` 且 full parity/soak/drain/rollback evidence 完成時才建立 P7.5 removal child；
    commit/archive 產生 immutable handoff 後才能建立 P8.0–P8.4。
+
+## 2026-08-13 P7/P8 現況校正與後續排程
+
+1. P7.4 已封存多個 disabled-by-default local consumer boundary，其中 authentication contact lookup
+   與 credential-policy child 已完成本機安全邊界；它們不是登入切換、CE、host parity、traffic cutover、
+   P7.5 或 P8 evidence。parent 的過期 next action 必須改為選取下一個 matrix-backed capability family，
+   不得重複封存已封存 child。
+2. 下一個優先研究項目是 list catalog family 的 `ORG-CALL-00014`
+   (`list.catalog.retrieve.app.named`) 與 `ORG-CALL-00065`
+   (`list.catalog.retrieve.appnamed.smallgroups`)。兩者均為 fixed FetchXML read，但矩陣明定其 template
+   與 operation ID 不同，只可共享受控 family 的 design/research，不能合併為同一 operation 或猜測
+   caller 的資料語意。先完成 caller-shape inventory；若任一 consumer 有 write、shared state、Entity bridge
+   或無法證明 DTO-only projection 的耦合，該 consumer 維持 legacy，另選取獨立 candidate。
+3. P7.2 舊 Slice C 的 `write-not-committed` no-go 與 exact cleanup 是 immutable historical evidence：不重試、
+   不復用 nonce／ledger／fixture／descriptor。任何新的寫入 family 必須有新 child、全新 governed fixture
+   cycle 與完整 preflight／single dispatch／read-back／reconcile／cleanup；否則只允許 local planning/tests。
+4. P7.5 prerequisite report 目前仍是 deterministic `no-go`：70 rows temporary-legacy、legacy source/
+   project/settings references 與 CE/host/parity/soak/drain/rollback gaps 尚存。因此不得建立 P7.5 removal
+   child；P8.0～P8.4 仍等待 P7.5 scope-only commit/archive 的 immutable handoff，以及外部 host、DNS、TLS、
+   service identity、secret provider、network、CE reachability 與 deployment authorization。

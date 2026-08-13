@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"P7.1 list catalog path 必須維持 request-local DTO、profile/workload isolation、fault eviction 與確定釋放。"}
+{"file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"Data8 fixed query 不得繞過既有 lease/admission/fault disposal owner。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"registry/matrix/template hash、CE evidence 分類與 P7/P8 rollout gate 的封閉契約。"}
+{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"ORG-CALL-00014 的 authoritative fixed template、typed parameter、operation/evidence metadata。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"現行 consumer、CE/host、rollback 與 P7.5 blocker 狀態的唯一排程基準。"}
+{"file":".trellis/tasks/archive/2026-08/08-13-08-13-p71-dedication-booking-typed-read/design.md","reason":"已驗證 P7.1 registry/Data8/ProductClient DTO boundary 的 local-only precedent。"}

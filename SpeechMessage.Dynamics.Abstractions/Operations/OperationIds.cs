@@ -78,6 +78,17 @@ public static class OperationIds
     /// <summary>對應 ORG-CALL-00062：依 disciple lesson 讀取 stor lessons。</summary>
     public const string LessonsStorRetrieveByDiscipleLesson = "lessons.stor.retrieve.by.disciplelesson";
 
+    // -------- P7.1：App-named 名單目錄唯讀能力；只建立 typed contract，不啟用 consumer 或 CE 流量 --------
+
+    /// <summary>
+    /// 對應 ORG-CALL-00014：讀取 server-owned「App-named」名單目錄的固定能力。
+    /// 此 ID 不接受或推導 list ID、名稱、purpose、排序、FetchXML、profile、endpoint、credential、connector 或
+    /// caller 身分；固定條件與分頁由 registry/connector 各自驗證。它只識別尚未切流的 allowlist，不能視為
+    /// Data8 存取、快取、重試、產品 consumer 或 feature gate 已啟用的授權。任何未來 request 資源仍必須由其
+    /// 單一 request scope owner 在取消、逾時、fault 或完成時確定釋放，不能以此 process-static 常數保留狀態。
+    /// </summary>
+    public const string ListCatalogRetrieveAppNamed = "list.catalog.retrieve.app.named";
+
     // -------- P7.4：認證聯絡人唯讀邊界；僅供 disabled-by-default 的未來 consumer 使用 --------
 
     /// <summary>

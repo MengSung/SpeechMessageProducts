@@ -183,7 +183,7 @@ P6 closure gate 全綠後，整合 Goal 可一次授權：
 | P7.0 | 已封存 70-row inventory／validator | 唯讀 baseline。 |
 | P7.1 | 六個 Package01 typed Data8 read 與 CE 9.1 read-only evidence 已完成；consumer disabled | 唯讀 evidence；未代表所有 read 完成。 |
 | P7.2 | 本機 RC 已封存；Slice C CE no-go 已 cleanup；D–H local-only | 舊 cycle 永不重試；不得當作 CE/cutover evidence。 |
-| P7 remaining rebaseline | 已完成品質閘門，待 scope-only commit/archive | authoritative 70-row gap matrix 是後續唯一排程基準。 |
+| P7 remaining rebaseline | 已完成並封存 | authoritative 70-row gap matrix 是後續唯一排程基準。 |
 | P7.3 | 已封存 | special-resource local contracts；不是 CE/consumer/cutover evidence。 |
 | P7.4 | active | disabled local consumer batches、capacity no-go audit 與 legacy admission boundary local control-plane 已完成；所有 flags=false。 |
 | P7.5 prerequisite evidence | 已完成，結果=`no-go` | 已建立 deterministic matrix/source/project/settings report；70 temporary-legacy rows、legacy references 與 CE/host gaps 仍存在。 |
@@ -200,11 +200,15 @@ admission/drain boundary、固定分類 validator、drain-first/non-overlap runb
 coverage 或 traffic enablement 證據。
 
 下一步在 parent `08-12-churchreport-productclient-cutover` 依 authoritative 70-row matrix 建立下一個
-independently verifiable local-only consumer sub-batch：優先處理可以移除 SDK bridge、具明確 typed DTO
-與 request-local response contract 的 read consumer；`ORG-CALL-00005`、`00064`、`00066` 與 Package03
-inventory 已明確列為 temporary-legacy，除非其 own design 先解決 authorization、write adjacency 或
-DTO-only boundary，不得猜測遷移。所有 `Package01FeeReadsEnabled` 設定（包括 DedicatedGateway F5 profile）
-維持 false。P7.5/P8 繼續不得提前啟動。
+independently verifiable local-only capability sub-batch。優先研究 list catalog family 的
+`ORG-CALL-00014`（`list.catalog.retrieve.app.named`）與其相近但不同的
+`ORG-CALL-00065`（`list.catalog.retrieve.appnamed.smallgroups`）：先確認固定 FetchXML 的獨立 template、
+caller chain、server-owned authorization、bounded DTO 與 request-local projection。兩者只能共用 family
+research，不能合併 operation ID 或以 Entity/EntityCollection bridge 猜測遷移。若 consumer 連到 write、
+shared state、fallback 或無法證明 DTO-only boundary，即保持 legacy 並改選下一個獨立 candidate。
+`ORG-CALL-00005`、`00064`、`00066` 與 Package03 inventory 仍列為 temporary-legacy，除非其 own design
+先解決 authorization、write adjacency 或 DTO-only boundary。所有 `Package01FeeReadsEnabled` 設定
+（包括 DedicatedGateway F5 profile）維持 false。P7.5/P8 繼續不得提前啟動。
 
 ## 14. 2026-08-13 P7.2 financial write-boundary 並行路線
 

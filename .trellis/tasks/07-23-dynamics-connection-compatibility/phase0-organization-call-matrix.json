@@ -1272,10 +1272,15 @@
                                     "operationKind":  "read",
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "list.catalog.retrieve.app.named",
+                                    "responseKind":  "AppNamedListCatalogRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  4096,
                                     "serverOwnedTemplate":  {
                                                                 "templateKind":  "fetchxml",
                                                                 "templateId":  "list.catalog.appnamed.v1",
-                                                                "templateHash":  "7433ba73e67a7d81459c3f4236e830799f3f621798ffb5b0014906098be41865"
+                                                                "templateHash":  "9e1ee3732ab7e68c612d6d196557268efe108e3ae6c7bec40f44231475e74b87"
                                                             },
                                     "typedParameters":  [
 

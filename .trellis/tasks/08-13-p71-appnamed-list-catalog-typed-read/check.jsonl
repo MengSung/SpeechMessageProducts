@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"檢查 A/B isolation、cancel/fault、不保存 list/profile/workload 和 resource baseline evidence。"}
+{"file":".trellis/spec/backend/data8-generation-owned-connector-pool.md","reason":"檢查 connector lease/permit/fault eviction 與 no partial response 行為。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"檢查 matrix/registry/template alignment 以及不宣稱 CE/cutover/P7.5/P8 evidence。"}
+{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"檢查 ORG-CALL-00014 response policy 是唯一且與 compiled registry 精確一致。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"檢查結案時 consumer、CE、host、temporary legacy 與 P7.5 blocker 未被錯誤升格。"}
