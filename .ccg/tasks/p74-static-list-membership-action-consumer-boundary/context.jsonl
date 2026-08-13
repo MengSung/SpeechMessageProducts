@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"權威 70-row matrix；ORG-CALL-00011/00012 仍是 consumer-not-migrated temporary-legacy。"}
+{"file":"SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs","reason":"現行 list membership、contact primary-list 和 attendance 交錯的 legacy composite。"}
+{"file":"SpeechMessage.Dynamics.ProductClient/ListManagement/IPackage02ListManagementClient.cs","reason":"已存在但不可局部套用的 bounded typed mutation contract。"}
+{"file":".trellis/tasks/archive/2026-08/08-07-churchreport-write-action-function-migrations/p7.2-fixture-activation-matrix.json","reason":"歷史 Slice C fixture/read-back/cleanup 前置，僅可唯讀，禁止重試。"}

@@ -3317,6 +3317,89 @@ The correct form preserves the full user/profile/generation boundary, makes
 the caller the single resource owner, and gives later P7.4/P7.5 work a
 testable condition instead of an unsafe migration shortcut.
 
+## Scenario: Partial capability replacement inside a legacy mutation composite
+
+### 1. Scope / Trigger
+
+Apply this scenario before a P7.4 consumer wires an already-implemented ProductClient operation into a
+ChurchReport workflow that also performs legacy ToolUtility/CRM SDK reads or writes. The existence of one typed
+operation does not prove it is an independently replaceable business transaction. This applies in particular to
+membership add/remove embedded in a contact primary-list, attendance, owner, list-field, or other multi-entity
+workflow.
+
+### 2. Signatures
+
+```csharp
+Task<StaticListMembershipMutationResult> AddMembersAsync(
+    StaticListMembersAddRequest request,
+    CancellationToken cancellationToken = default);
+
+void UpdateContactMemberManagementElement(string key, IDictionary<string, object> values);
+```
+
+The first signature is a bounded capability. The second represents a legacy composite caller. They are not
+interchangeable merely because the caller contains one matching membership sub-step.
+
+### 3. Contracts
+
+- A consumer may replace a sub-step only when the remaining workflow contains no legacy CRM mutation, or when the
+  whole business composite has its own server-authorized typed contract covering every read/write step.
+- Do not combine a ProductClient dispatch with ToolUtility `Create`/`Update`/`Delete`/`Assign`/relationship action
+  in one request as an incremental migration. That is dual-write even when the entity types differ.
+- A whole-composite typed operation requires a fixed DTO/allowlist, one validated subject/profile/generation context,
+  one bounded deadline, explicit idempotency, exact read-back/reconciliation, reverse-known-key cleanup for only
+  fresh task-owned fixtures, and one rollback owner.
+- Missing any of those conditions is `consumer-migration-no-go`: retain the capability's matrix row as
+  `temporary-legacy`, do not enable a gate, do not issue CE traffic, and select an independent capability instead.
+- A no-go record is scheduling evidence, not CE success, consumer migration, ToolUtility removal, P7.5 readiness,
+  or P8 deployment authorization.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| ProductClient covers one membership action but caller also mutates contact/list/attendance through ToolUtility | Do not wire the partial path; record consumer-migration-no-go. |
+| Whole composite has no server authorization or caller can select profile/owner/endpoint | Fail before any typed or legacy dispatch. |
+| A composite write reaches timeout, cancellation, ambiguous completion, read-back mismatch or uncertain cleanup | Stop that write family; never replay either sub-step. |
+| A future child has a complete typed composite and fresh fixture evidence | Independently plan/test it before deciding whether a disabled consumer may be added. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: an independent read-only DTO capability is placed behind its own disabled deployment gate, while the existing
+  legacy composite stays untouched.
+- Base: matrix records an available typed membership action as `consumer-not-migrated` because the caller is not yet
+  a safe single transaction.
+- Bad: replace only `RemoveMembersAsync`, then use ToolUtility to update the contact and attendance record; a failure
+  between those steps leaves two transports with incompatible evidence and no deterministic rollback.
+
+### 6. Tests Required
+
+- A source/call-chain contract test must identify all legacy mutations in the candidate caller before adding a typed
+  branch.
+- For a no-go result, verify the task change contains no runtime, settings, feature-gate, CE, fixture or product-data
+  mutation and that task output does not claim migration or deployment success.
+- For a future whole-composite implementation, test A/B isolation, authorization-before-dispatch, no fallback,
+  timeout-after-dispatch reconciliation, partial failure, exact read-back and reverse-order cleanup.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+await _listClient.RemoveMemberAsync(typedRequest, cancellationToken);
+_toolUtility.UpdateEntity(contact); // a second mutation transport in the same business operation
+```
+
+#### Correct
+
+```csharp
+// Keep the legacy composite intact until a separately reviewed typed composite owns every mutation,
+// read-back and rollback path. An independent capability can continue P7.4 work in the meantime.
+RecordConsumerMigrationNoGo("legacy-composite-not-atomically-replaceable");
+```
+
+The correct path avoids a split-brain transaction and makes the future migration preconditions executable.
+
 ## Scenario: Evidence-pending local-only capability gate
 
 ### 1. Scope / Trigger

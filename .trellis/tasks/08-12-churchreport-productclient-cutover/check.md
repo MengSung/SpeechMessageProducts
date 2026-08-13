@@ -218,3 +218,18 @@ permit。不得把元件存在或 isolated test 誤當成切流證據。
 改採本機 call-chain/configuration evidence。本 audit 狀態為「雙模型未完成」，不能稱為雙模型審查完成。
 恢復條件是把兩條路徑接到同一 durable authority 並以兩 host/path 證明 aggregate capacity/drain baseline，
 或由 deployment owner 演練並記錄 drain-first non-overlap runbook；在此之前只繼續 local-only P7 work。
+
+## ORG-CALL-00011／00012 靜態名單 member action consumer no-go
+
+child `08-14-p74-static-list-membership-action-consumer-boundary` 完成權威 matrix、typed contract 與
+`ListManagementDataManager` 的唯讀 cross-layer tracing。底層 `list.members.add.many` / `remove.one` 已有
+registry、Data8 executor 與 ProductClient，但產品 caller 將 member mutation 與 contact primary-list、
+attendance、legacy `Entity` retrieve/update 合併為同一 workflow。只替換兩個 action 會建立 Gateway write
+與 ToolUtility write 的 split-brain composite，沒有共同 read-back/reconcile、reverse-order cleanup 或 single
+rollback owner，故被正確判定為 consumer migration no-go。
+
+這個 child 沒有 runtime、setting、gate、ToolUtility、CE、fixture 或產品資料 mutation；兩 row 維持
+`temporary-legacy`。CCG architecture analysis 的 Gemini 為 PASS（Critical 0、Warning 0）；Claude 因 provider
+session limit 無 output，記錄為「雙模型未完成／single-model degraded fallback」。下一個獨立候選是
+`ORG-CALL-00030` MemberInfo basic-info，仍必須保持 gates=false 並經完整 planning 後才可接線。P7.5/P8
+前置條件沒有改變。

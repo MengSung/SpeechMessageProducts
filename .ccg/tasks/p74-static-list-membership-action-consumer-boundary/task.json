@@ -1,0 +1,12 @@
+{
+  "id": "p74-static-list-membership-action-consumer-boundary",
+  "title": "P7.4 靜態名單成員動作消費端邊界",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-migration",
+  "currentPhase": "review",
+  "nextAction": "完成範圍、編碼與 Git 檢查後封存 no-go task",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

@@ -1,0 +1,3 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"partial Gateway/ToolUtility composite write 會破壞 request/profile isolation、read-back 與 deterministic cleanup，必須 fail closed。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"P7.4 disabled consumer、P7.5 removal 與 P8 immutable handoff 的 capability boundary。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"所有產品與 task artifact 的跨使用者隔離、資源生命週期與 false-completion review checklist。"}
