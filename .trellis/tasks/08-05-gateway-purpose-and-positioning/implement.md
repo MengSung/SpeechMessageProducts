@@ -211,3 +211,16 @@ rollback owner 與 no-SDK boundary；不允許以 Entity/EntityCollection bridge
    no-replay policy，才可獨立評估 CE evidence。
 5. P7.5 prerequisite 仍為 `no-go`，P8 仍不可建立。每個 child 結束後只更新其 own evidence 與 parent
    checkpoint；matrix consumer status、feature gate、traffic 及 P7.5/P8 state 不得因 local evidence 自動升級。
+
+## 2026-08-14 QR weekly-attendance local design checkpoint
+
+`08-14-p72-weekly-attendance-write-family` 已完成本機 attendance reducer 的重驗、production QR mutation
+graph 稽核與品質檢查，結論是只限該 family 的 local design no-go：`QrCodeController` 將 browser／route
+locator 與 LINE/group/room/view 值寫入 process-wide `InMemoryContext`，再由 legacy utility 進行 CRM I/O；
+同一 QR call 又混合 present-record、relationship、weekly-report、recomputation 與 notification effects。
+
+這不是 CE Full-Text Search、測試資料庫寫入權限、P7 全域、P7.5 或 P8 的阻塞。此 child 未執行 CE
+preflight、fixture、mutation、feature gate、traffic 或 cleanup，歷史 Slice C 也沒有被重試。未來若要處理
+此 family，必須另立 request-local QR authorization-boundary child，先以 TDD 建立 server-derived scope、
+fixed command、idempotency／ledger、read-back／reconcile 與 cleanup owner；在此之前繼續選取不依賴這條
+legacy QR path 的 independent matrix capability。

@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"P7.2 attendance write family must prove server-derived isolation, fault eviction, no retained request state and lifecycle baselines."}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Defines Data8 CE routing, hosting evidence boundaries and legacy-removal gates."}
+{"file":".trellis/tasks/archive/2026-08/08-12-churchreport-special-resource-migrations/design.md","reason":"Existing bounded meeting-statistics read contract and resource limits; must not be mistaken for write/cutover evidence."}
+{"file":".trellis/tasks/08-12-churchreport-productclient-cutover/package03-consumer-inventory.md","reason":"Current ORG-CALL-00063 consumer is write-adjacent and explicitly not a DTO-only read cutover."}

@@ -661,3 +661,95 @@ Validate server-owned authentication scope
 
 The verification boundary is fail-closed, secret-free outside its owner and cannot silently select a
 legacy path after typed dispatch.
+
+## 12. QR／Browser Locator 的共享狀態拒絕情境
+
+### 1. Scope / Trigger
+
+當 browser POST、route、query string、QR code 或其他 caller-supplied locator 會進入 Dynamics read／write
+流程時套用。本情境特別適用於既有 Controller 以 `InMemoryContext`、static manager、singleton 或共享
+collection 保存 QR、LINE user、group、room、view type、contact、meeting 或 weekly-report context 的路徑。
+
+### 2. Signatures
+
+新的 typed path 必須先建立不可變的 server-validated request scope，再將 locator 當成待驗證的定位資訊：
+
+```text
+ValidatedRequestScope = server-authenticated subject + product + authorization scope + profile alias + generation
+TryNormalizeLocator(ValidatedRequestScope scope, string browserOrRouteLocator)
+    -> immutable, bounded command or fixed denial
+```
+
+locator 不得選擇 subject、owner、profile、credential、endpoint、organization、operation 或 mutable shared
+context。實際 type 可因產品不同而異，但 scope 的來源與生命週期必須是 request-local。
+
+### 3. Contracts
+
+1. 在解析 locator、讀取 CRM、解析 profile、建立 client／lease、快取查詢或執行 I/O 前，完成 server
+   authentication 與 authorization。
+2. 不得把 `UserLineId`、`GroupId`、`RoomId`、`ViewType`、QR 值或從它們導出的 target 寫入
+   `InMemoryContext`、static field、singleton、shared collection、跨 request closure 或 background work。
+3. QR 或 browser locator 只可在已驗證 scope 中作為 locator；missing、ambiguous、malformed 或 target
+   unauthorized 都在 I/O 前回傳固定去識別化拒絕。
+4. 已存在的 local reducer／plan 只能表達 local decision，不能證明 server authorization、ledger、fixture
+   ownership、CE dispatch、consumer cutover、traffic 或 rollback。把 reducer 直接接到 shared-context legacy
+   path 是 forbidden read-new/write-legacy bridge。
+5. 若一次 QR 操作混合 attendance create/update、relationship、weekly-report update、aggregate recomputation
+   或 notification，先拆成固定 command capability。每個 mutation family 都須有自己的 idempotency、ledger、
+   exact read-back、reconcile、rollback owner 與 deterministic cleanup；static `lock` 不可當成跨 host/process
+   concurrency authority。
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Browser／route locator 在 authorization 前被寫入 shared state | Reject the migration design; do not create ProductClient/CE wiring. |
+| Scope missing, expired, ambiguous or target is unauthorized | Fixed denial before locator parse, CRM read, client composition or any mutation. |
+| Local reducer is the only available evidence | Keep `CeDispatchAllowed=false` and consumer disabled; do not infer live capability. |
+| QR flow contains multiple mutation or notification side effects | Split into separate capability families and fail closed until each owns idempotency and cleanup. |
+| Timeout, ambiguous transport, read-back mismatch or cleanup uncertainty | Stop that mutation family, evict uncertain resources and do not retry it. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** A request-local, authenticated scope authorizes the scanner and target before the QR locator is parsed.
+  The resulting immutable command uses a fixed operation and never writes browser data to shared state.
+- **Base:** A legacy QR flow is preserved but its new typed gate remains false. The local plan is tested and no
+  client, profile resolution, CE operation or product traffic is started.
+- **Bad:** A controller stores a browser QR or LINE/group/room fields in `InMemoryContext`, then constructs a
+  utility that reads the same global object and performs CRM work. Concurrent users can overwrite the authority
+  boundary; the migration is a release blocker even if a single-user test passes.
+
+### 6. Tests Required
+
+1. Source/contract test proves authorization is evaluated before locator parsing, `InMemoryContext` access, client
+   composition, profile resolution and I/O.
+2. Interleaved A/B request tests with distinct QR/subject/profile markers prove neither command, response, ledger,
+   cache, log nor resource owner crosses the boundary.
+3. Tests cover missing/malformed/ambiguous/unauthorized locator, cancellation, timeout-after-dispatch, read-back
+   mismatch and cleanup failure; all fail closed and never retry/fallback.
+4. For multi-effect QR flows, a test proves each fixed command rejects undeclared relationship, weekly-report,
+   notification or owner mutation.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+// Browser input becomes process-wide authority before authorization.
+InMemoryContext.UserLineId = Request.Form["userLineId"];
+InMemoryContext.ListManager.QrCodeId = RouteData.Values["qr"]?.ToString();
+return legacyQrUtility.Sign();
+```
+
+#### Correct
+
+```text
+Validate request-local server scope
+  -> normalize browser QR only as a locator
+  -> authorize target within the validated scope
+  -> construct one immutable fixed command
+  -> dispatch only through the command's owned idempotency/cleanup boundary
+```
+
+The correct path has no browser-derived shared mutable authority. If the required command boundary is not yet
+implemented, it returns a fixed no-go rather than borrowing legacy global state.
