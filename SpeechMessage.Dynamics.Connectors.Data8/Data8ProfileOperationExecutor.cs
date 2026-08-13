@@ -44,6 +44,10 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private const int MaximumLinePictureUrlBytes = 1024;
     private const int MaximumLineProfileTextBytes = 512;
     private const int MaximumUngroupedSearchBytes = 256;
+    private const int MaximumAuthenticationLookupCharacters = 256;
+    private const int MaximumAuthenticationLookupBytes = 256;
+    private const int MaximumAuthenticationContactResponseTextBytes = 256;
+    private const int MaximumAuthenticationContactRecords = 2;
     private const int MaximumGuidArrayItems = 1000;
     private const int MaximumSliceCDispatchEnvelopeBytes = 64 * 1024;
     private const int MaximumSpecialResourceDispatchEnvelopeBytes = 64 * 1024;
@@ -423,6 +427,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         => operationId switch
         {
             OperationIds.RuntimeHealthWhoAmI => true,
+            OperationIds.AuthenticationContactRetrieveByAccount => true,
+            OperationIds.AuthenticationContactRetrieveByLineId => true,
             OperationIds.FeeDedicationRetrieveByContact => true,
             OperationIds.FeeDedicationRetrieveByContactDateRange => true,
             OperationIds.FeesRetrieveByDedicationPeriod => true,
@@ -833,6 +839,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private static int GetMaximumStringCharacters(string operationId, string parameterName)
         => operationId switch
         {
+            OperationIds.AuthenticationContactRetrieveByAccount => MaximumAuthenticationLookupCharacters,
+            OperationIds.AuthenticationContactRetrieveByLineId => MaximumAuthenticationLookupCharacters,
             OperationIds.MemberInfoContactUpdateLineProfile => parameterName switch
             {
                 "pictureUrl" => MaximumLinePictureUrlBytes,
@@ -850,6 +858,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private static int GetMaximumStringBytes(string operationId, string parameterName)
         => operationId switch
         {
+            OperationIds.AuthenticationContactRetrieveByAccount => MaximumAuthenticationLookupBytes,
+            OperationIds.AuthenticationContactRetrieveByLineId => MaximumAuthenticationLookupBytes,
             OperationIds.MemberInfoContactUpdateLineProfile => parameterName switch
             {
                 "pictureUrl" => MaximumLinePictureUrlBytes,
@@ -1201,6 +1211,11 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationResponseKind.Package01DedicationBookingRecords =>
                 connectorData.DedicationBookingRecords is not null &&
                 TryValidateDedicationBookingRecords(connectorData.DedicationBookingRecords, definition),
+            OperationResponseKind.AuthenticationContactReadRecords =>
+                connectorData.AuthenticationContactReadRecords is not null &&
+                TryValidateAuthenticationContactReadRecords(
+                    connectorData.AuthenticationContactReadRecords,
+                    definition),
             OperationResponseKind.ContactBasicInfoUpdate => connectorData.ContactBasicInfoUpdate is not null,
             OperationResponseKind.ContactLineProfileUpdate => connectorData.ContactLineProfileUpdate is not null,
             OperationResponseKind.UngroupedCommitmentCounts => connectorData.UngroupedCommitmentCounts is not null,
@@ -1224,6 +1239,82 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
 
         data = connectorData;
         return true;
+    }
+
+    /// <summary>
+    /// 驗證 ORG-CALL-00055／00056 的封閉 authentication contact response branch。
+    /// 上游 connector 只能交付最多兩筆 immutable wire record；兩筆是刻意保留 ambiguous 語意的硬上限，不能
+    /// 因產品目前只處理一筆而縮成一筆。每筆必須具有非空 contact ID、非空 account locator、非空顯示名稱與
+    /// active 狀態，並在嚴格 UTF-8 累積預算內。任何不符都在 lease scope 內回傳 false，使呼叫端 MarkFaulted
+    /// 並淘汰健康狀態未知的 client；不會發布部分資料、快取資料或重試另一個 connector。
+    /// </summary>
+    /// <param name="records">connector 在目前 request scope 投影的 authentication contact records。</param>
+    /// <param name="definition">server-owned registry 的固定 operation 定義與回應預算。</param>
+    /// <returns>所有記錄皆符合 non-secret、bounded 和 active 契約時為 <see langword="true"/>。</returns>
+    private static bool TryValidateAuthenticationContactReadRecords(
+        IReadOnlyList<AuthenticationContactReadRecord> records,
+        OperationDefinition definition)
+    {
+        if (records.Count > MaximumAuthenticationContactRecords ||
+            records.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var bytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null ||
+                record.ContactId == Guid.Empty ||
+                !record.IsActive ||
+                string.IsNullOrWhiteSpace(record.AccountLocator) ||
+                string.IsNullOrWhiteSpace(record.DisplayName) ||
+                !TryAddFixedBytes(ref bytes, 96, definition.MaximumCumulativeResponseBytes) ||
+                !TryAddBoundedAuthenticationContactText(
+                    ref bytes,
+                    record.AccountLocator,
+                    definition.MaximumCumulativeResponseBytes) ||
+                !TryAddBoundedAuthenticationContactText(
+                    ref bytes,
+                    record.DisplayName,
+                    definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 將單一公開 authentication contact scalar 納入嚴格 UTF-8 回應預算。
+    /// 此 helper 不會 trim、正規化或保留文字；它只在目前驗證呼叫中計數，以拒絕上游 schema 漂移造成的長字串
+    /// retention。無效 UTF-16、空白、超過單欄上限或 cumulative budget 都回傳 false，保持 fail-closed。
+    /// </summary>
+    /// <param name="total">目前 response 的 request-local 累積 byte 計數。</param>
+    /// <param name="value">已 allowlisted 的 account locator 或 display name。</param>
+    /// <param name="maximumBytes">registry 宣告的累積回應上限。</param>
+    /// <returns>文字與累積大小都符合契約時為 <see langword="true"/>。</returns>
+    private static bool TryAddBoundedAuthenticationContactText(
+        ref int total,
+        string value,
+        int maximumBytes)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        try
+        {
+            var valueBytes = StrictUtf8.GetByteCount(value);
+            return valueBytes <= MaximumAuthenticationContactResponseTextBytes &&
+                   TryAddFixedBytes(ref total, valueBytes, maximumBytes);
+        }
+        catch (EncoderFallbackException)
+        {
+            return false;
+        }
     }
 
     /// <summary>

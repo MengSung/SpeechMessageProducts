@@ -16,6 +16,7 @@ using System.Net;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.ProductClient.Authentication;
 using SpeechMessage.Dynamics.ProductClient.Configuration;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
@@ -77,6 +78,7 @@ public static class ProductClientServiceCollectionExtensions
 
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
+        services.TryAddSingleton<IAuthenticationContactReadClient, AuthenticationContactReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
         services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
@@ -93,6 +95,22 @@ public static class ProductClientServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 只註冊 P7.4 authentication contact read 的 stateless typed client。這個方法不啟用 deployment gate、
+    /// 不建立 executor、host、HttpClient、handler、pool、credential 或任何 CE I/O；caller 必須先由自己的
+    /// disabled-by-default composition root 驗證 gate、deployment profile 與 server-side authorization，且不得把
+    /// 這個 local-only registration 接入既有登入、Session、QR、付款或 legacy fallback 流程。
+    /// </summary>
+    /// <param name="services">目前 composition root 的 service collection。</param>
+    /// <returns>已加入但尚未解析下游資源的同一 service collection。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsAuthenticationContactReads(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IAuthenticationContactReadClient, AuthenticationContactReadClient>();
         return services;
     }
 

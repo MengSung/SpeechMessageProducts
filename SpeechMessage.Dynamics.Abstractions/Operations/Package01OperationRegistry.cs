@@ -49,6 +49,13 @@ public static class Package01OperationRegistry
     /// </summary>
     private const int ConservativeMaximumResultItemCount = 4096;
 
+    /// <summary>
+    /// 認證 contact lookup 的專屬結果列上限。兩個固定 QueryExpression 都以 <c>TopCount = 2</c>
+    /// 區分 zero、唯一與 duplicate，因此 registry 不能沿用一般 read 的 4096 列預算；否則未來
+    /// connector 或 transport 即使正確投影純值，也可能在 envelope 前 materialize 多餘的個資。
+    /// </summary>
+    private const int AuthenticationContactReadMaximumResultItemCount = 2;
+
     private static readonly IReadOnlyDictionary<string, OperationDefinition> Definitions =
         Build().ToDictionary(x => x.CapabilityOperationId, StringComparer.Ordinal);
 
@@ -301,6 +308,42 @@ public static class Package01OperationRegistry
                 Param("lessonName", "string", required: false, encoding: "fetchxml-attribute-value")
             ]);
 
+        // P7.4 authentication contact lookup：兩個 ID 均只允許一個 bounded lookup scalar。它們保持 local-only；
+        // registry 宣告不會啟用 deployment gate、建立 host/pool/handler 或將 typed API 接入既有登入 consumer。
+        // 帳號密碼驗證仍屬未來獨立 credential policy，故 password、hash、token、cookie、profile 與 query text
+        // 都不能成為 parameter；secret detection 只以空資料的安全分類傳達，不能把秘密投影到 wire/DTO。
+        yield return Def(
+            OperationIds.AuthenticationContactRetrieveByAccount,
+            package: "package-4-authentication-contact-reads-local-only",
+            kind: "read",
+            templateKind: "fetchxml",
+            templateId: "auth.contact.by.account.v1",
+            responseKind: OperationResponseKind.AuthenticationContactReadRecords,
+            data: "credential-or-secret",
+            audit: "security-audit",
+            idempotency: "read-only",
+            maximumResultItemCount: AuthenticationContactReadMaximumResultItemCount,
+            parameters:
+            [
+                Param("accountLookupValue", "string", required: true, encoding: "fetchxml-attribute-value")
+            ]);
+
+        yield return Def(
+            OperationIds.AuthenticationContactRetrieveByLineId,
+            package: "package-4-authentication-contact-reads-local-only",
+            kind: "read",
+            templateKind: "fetchxml",
+            templateId: "auth.contact.by.lineid.v1",
+            responseKind: OperationResponseKind.AuthenticationContactReadRecords,
+            data: "personal-data",
+            audit: "security-audit",
+            idempotency: "read-only",
+            maximumResultItemCount: AuthenticationContactReadMaximumResultItemCount,
+            parameters:
+            [
+                Param("lineIdLookupValue", "string", required: true, encoding: "fetchxml-attribute-value")
+            ]);
+
         // Package 2 member-info write：僅宣告固定五個 scalar，不開放 Entity、欄位 map 或 caller 選擇 template。
         // Data8 executor 尚未完成 operation template 時，registry 宣告本身不構成寫入權限；其 allowlist 仍會 fail closed。
         yield return Def(
@@ -465,6 +508,7 @@ public static class Package01OperationRegistry
         string data,
         string audit,
         string idempotency,
+        int maximumResultItemCount = ConservativeMaximumResultItemCount,
         IReadOnlyList<OperationParameterDefinition>? parameters = null)
     {
         var material = string.Join("|",
@@ -475,7 +519,7 @@ public static class Package01OperationRegistry
             ConservativeMaximumPageCount.ToString(CultureInfo.InvariantCulture),
             ConservativeMaximumPageBytes.ToString(CultureInfo.InvariantCulture),
             ConservativeMaximumCumulativeResponseBytes.ToString(CultureInfo.InvariantCulture),
-            ConservativeMaximumResultItemCount.ToString(CultureInfo.InvariantCulture));
+            maximumResultItemCount.ToString(CultureInfo.InvariantCulture));
         return new OperationDefinition
         {
             CapabilityOperationId = id,
@@ -488,7 +532,7 @@ public static class Package01OperationRegistry
             MaximumPageCount = ConservativeMaximumPageCount,
             MaximumPageBytes = ConservativeMaximumPageBytes,
             MaximumCumulativeResponseBytes = ConservativeMaximumCumulativeResponseBytes,
-            MaximumResultItemCount = ConservativeMaximumResultItemCount,
+            MaximumResultItemCount = maximumResultItemCount,
             DataClassification = data,
             AuditRequirement = audit,
             IdempotencyClass = idempotency,

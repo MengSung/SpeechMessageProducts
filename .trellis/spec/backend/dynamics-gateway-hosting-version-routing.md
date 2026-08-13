@@ -275,6 +275,121 @@ switch per request or silently fall back after a failure.
 - CE 8.2 and CE 9.1 workers remain independently version-pinned processes; this
   task does not plan consolidation.
 
+## Scenario: Disabled authentication-contact typed read boundary
+
+### 1. Scope / Trigger
+
+Apply this scenario when a ChurchReport capability needs a typed, read-only
+contact lookup as a prerequisite to a future authentication or LINE flow.  The
+capability can be introduced as a disabled local boundary, but it is not an
+authorization, password-validation, Session, claims, traffic-cutover, CE
+evidence, P7.5-removal, or P8-deployment claim.
+
+### 2. Signatures
+
+```csharp
+Task<AuthenticationContactReadResult> RetrieveByAccountAsync(
+    string profileAlias,
+    string workloadSubjectId,
+    string accountLookupValue,
+    CancellationToken cancellationToken = default);
+
+Task<AuthenticationContactReadResult> RetrieveByLineIdAsync(
+    string profileAlias,
+    string workloadSubjectId,
+    string lineIdLookupValue,
+    CancellationToken cancellationToken = default);
+```
+
+The only permitted operation IDs are
+`auth.contact.retrieve.by.account` and `auth.contact.retrieve.by.lineid`.
+Their Data8 queries are fixed `contact` QueryExpressions, include
+`statecode = 0`, use `TopCount = 2`, and project only contact ID, account
+locator, display name, and active state.  A caller cannot supply a query,
+entity, owner, connector, organization, endpoint, credential, or profile as
+routing authority.
+
+### 3. Contracts
+
+- The wire record, ProductClient DTO, result, JSON, log, and error category
+  must never include `new_app_pass`, any password/hash, token, cookie, raw CRM
+  `Entity`, raw response, endpoint, credential, or raw exception.
+- The response envelope itself must enforce the same maximum of two records as
+  the query.  The envelope must reject a third record before it reaches a
+  ProductClient or retained response object; do not rely on the current
+  connector's `TopCount` as the only retention bound.
+- The response operation ID must match the typed public method before zero,
+  one, or duplicate cardinality is classified.  A response-kind or operation-ID
+  mismatch is `ProfileUnavailable`, never `NotFound` or `Ambiguous`.
+- A disabled gate returns before option binding, ProfileAlias validation, host,
+  handler, client, pool, lease, or CE I/O.  Gate=false does not use a legacy
+  fallback.  The deployment-owned gate remains false until an independent,
+  approved rollout task proves authorization, parity, capacity, cleanup, and
+  rollback requirements.
+- Cancellation propagates unchanged.  Timeout, transport failure, malformed
+  response, secret detection, or ambiguity never retries or changes profile,
+  transport, or legacy path.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required result |
+| --- | --- |
+| Blank, malformed, or oversized lookup | `InvalidInput` before executor dispatch. |
+| Zero safe records | `NotFound` with no contact DTO. |
+| Two safe records | `Ambiguous` with no contact DTO. |
+| Third record at response-envelope boundary | Reject envelope immediately; do not retain it. |
+| Secret classification, response-kind mismatch, operation-ID mismatch, fault, or missing data | `SecretPresent` or `ProfileUnavailable`, no DTO and no raw detail. |
+| Gate is false | `null` composition result before profile/host/client/I/O; legacy consumer remains untouched. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** Interleaved A/B account and LINE requests create fresh immutable
+  DTOs, preserve their respective markers, and retain no contact/identity
+  state after the request.
+- **Base:** A disabled deployment returns no typed client and performs zero CE
+  work; a future owner can remove the registration to roll back the local
+  candidate.
+- **Bad:** Returning a password in a DTO, choosing the first duplicate contact,
+  classifying an operation mismatch as a normal miss, accepting more than two
+  records because a current connector happens to limit its query, or wiring the
+  read directly into a Session/login flow.
+
+### 6. Tests Required
+
+- Verify the fixed operation IDs, parameter names, active filter, `TopCount =
+  2`, safe projection, and envelope's third-record rejection.
+- Verify blank input avoids executor dispatch; zero/duplicate/secret/
+  response-kind/operation-ID outcomes fail closed; cancellation is forwarded
+  unchanged; no secret-named public property serializes.
+- Run interleaved A/B request-local isolation tests and gate=false source/
+  bootstrap tests proving no bind/profile/host/client/I/O or legacy fallback.
+- Before committing, run focused Dynamics and ChurchReport tests, the complete
+  Release solution tests/build, UTF-8-without-BOM/CRLF/final-CRLF byte checks,
+  and `git diff --check`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+// Query TopCount happens to be two, but a faulty transport can still retain
+// an arbitrarily large projected list in the cross-layer response envelope.
+return new OperationResponseData(records);
+```
+
+#### Correct
+
+```csharp
+// The wire envelope rejects the third record, matching the fixed query budget.
+if (records.Count > 2)
+{
+    throw new ArgumentException("Authentication contact response exceeded the fixed limit.");
+}
+```
+
+The second boundary prevents a later connector or test double from silently
+weakening the data-retention and duplicate-detection contract.
+
 ### Data8 boundary
 
 - `PowerPlatform.Dataverse.Client` in this repository is the third-party Data8 WS-Trust client, not Microsoft-owned source.

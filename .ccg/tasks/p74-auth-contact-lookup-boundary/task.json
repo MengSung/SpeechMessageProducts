@@ -1,0 +1,12 @@
+{
+  "id": "p74-auth-contact-lookup-boundary",
+  "title": "P7.4 認證聯絡人唯讀安全邊界",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-authentication-integration",
+  "currentPhase": "review",
+  "nextAction": "已完成本機品質閘門與 scope review；更新規格與任務紀錄後，進行 scope-only commit/archive。",
+  "createdAt": "2026-08-13T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

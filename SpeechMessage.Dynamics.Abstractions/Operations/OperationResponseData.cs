@@ -110,7 +110,13 @@ public enum OperationResponseKind
     MeetingStatistics = 14,
 
     /// <summary>Package 01 奉獻預約的 bounded read projection。</summary>
-    Package01DedicationBookingRecords = 15
+    Package01DedicationBookingRecords = 15,
+
+    /// <summary>
+    /// P7.4 認證聯絡人唯讀的安全投影。這個 discriminator 只容許 contact locator、顯示名稱、active 狀態與
+    /// 不含資料的安全分類；任何秘密、原始 Entity、例外、token、cookie 或 transport response 都不能成為 branch。
+    /// </summary>
+    AuthenticationContactReadRecords = 16
 }
 
 /// <summary>
@@ -123,8 +129,13 @@ public sealed class OperationResponseData
     private const int MaximumUngroupedCommitmentCountRecords = 4096;
     private const int MaximumOptionSetOptionRecords = 1024;
     private const int MaximumMeetingStatisticRecords = 4096;
+    // 與兩個固定 authentication QueryExpression 的 TopCount = 2 完全一致。這是跨層第二道
+    // retained-data 上限：即使未來 connector、測試替身或 transport 回傳錯誤的集合，envelope 也
+    // 不會 materialize 第三筆 contact 到 ProductClient 邊界，並保留 zero / one / duplicate 的唯一語意。
+    private const int MaximumAuthenticationContactReadRecords = 2;
     private const int MaximumOptionSetLabelCharacters = 512;
     private const int MaximumMeetingNameCharacters = 512;
+    private static readonly System.Text.UTF8Encoding StrictUtf8 = new(false, true);
 
     /// <summary>
     /// 建立封閉回應。JSON 反序列化也必須經過此驗證，故未知/錯配 branch 無法被悄悄保存在長生命週期的
@@ -149,7 +160,10 @@ public sealed class OperationResponseData
         ContactImageUpdateResponseData? contactImageUpdate = null,
         IReadOnlyList<OptionSetOptionRecord>? optionSetOptions = null,
         IReadOnlyList<MeetingStatisticRecord>? meetingStatistics = null,
-        IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords = null)
+        IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords = null,
+        IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords = null,
+        AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification =
+            AuthenticationContactReadSafetyClassification.Safe)
     {
         if (string.IsNullOrWhiteSpace(operationId))
         {
@@ -177,7 +191,9 @@ public sealed class OperationResponseData
             contactImageUpdate,
             optionSetOptions,
             meetingStatistics,
-            dedicationBookingRecords);
+            dedicationBookingRecords,
+            authenticationContactReadRecords,
+            authenticationContactReadSafetyClassification);
 
         OperationId = operationId;
         CeVersion = ceVersion;
@@ -197,6 +213,8 @@ public sealed class OperationResponseData
         OptionSetOptions = optionSetOptions?.ToArray();
         MeetingStatistics = meetingStatistics?.ToArray();
         DedicationBookingRecords = dedicationBookingRecords?.ToArray();
+        AuthenticationContactReadRecords = authenticationContactReadRecords?.ToArray();
+        AuthenticationContactReadSafetyClassification = authenticationContactReadSafetyClassification;
     }
 
     /// <summary>
@@ -331,6 +349,24 @@ public sealed class OperationResponseData
     public IReadOnlyList<MeetingStatisticRecord>? MeetingStatistics { get; }
 
     /// <summary>
+    /// P7.4 認證聯絡人查詢的 bounded、immutable records。constructor 會複製集合，並且只允許安全分類為
+    /// <see cref="AuthenticationContactReadSafetyClassification.Safe"/> 時含有資料；因此另一個 request、序列化器
+    /// 或 connector 不可能在 envelope 建立後加入 contact、秘密或可變 CRM graph。
+    /// </summary>
+    [JsonPropertyName("authenticationContactReadRecords")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<AuthenticationContactReadRecord>? AuthenticationContactReadRecords { get; }
+
+    /// <summary>
+    /// P7.4 專用的非敏感安全分類。<see cref="AuthenticationContactReadSafetyClassification.SecretPresent"/> 只說明
+    /// connector 偵測到禁止跨越邊界的資料，絕不攜帶其名稱、值、雜湊、來源 Entity 或原始 response；該分類時
+    /// records 必須為空，產品端只能回傳固定 fail-closed 狀態。
+    /// </summary>
+    [JsonPropertyName("authenticationContactReadSafetyClassification")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public AuthenticationContactReadSafetyClassification AuthenticationContactReadSafetyClassification { get; }
+
+    /// <summary>
     /// Package 01 奉獻預約的 immutable wire rows。建構時會複製輸入集合，避免上游 CRM
     /// collection 在 response 發布後被修改而跨請求或跨使用者洩漏資料。
     /// </summary>
@@ -399,6 +435,33 @@ public sealed class OperationResponseData
             ceVersion,
             OperationResponseKind.Package01DedicationBookingRecords,
             dedicationBookingRecords: dedicationBookingRecords.ToArray());
+    }
+
+    /// <summary>
+    /// 建立 P7.4 認證聯絡人唯讀 branch。輸入列舉會在目前 request scope 立刻 materialize，讓未來 Data8 connector
+    /// 可於釋放 EntityCollection、lease 與 transport response 後只留下 allowlisted pure values。安全分類為
+    /// <see cref="AuthenticationContactReadSafetyClassification.SecretPresent"/> 時，<paramref name="records"/> 必須為空；
+    /// factory 因而能傳達 fail-closed 原因而不投影或保存任何秘密。
+    /// </summary>
+    /// <param name="operationId">兩個 server-owned authentication capability 之一。</param>
+    /// <param name="ceVersion">已由 deployment profile 選定的 CE API 版本。</param>
+    /// <param name="records">只包含安全 contact scalar 的 request-local 投影。</param>
+    /// <param name="safetyClassification">不含秘密內容的封閉安全分類。</param>
+    /// <returns>具有唯一 authentication branch 的 immutable response envelope。</returns>
+    public static OperationResponseData ForAuthenticationContactReadRecords(
+        string operationId,
+        string ceVersion,
+        IEnumerable<AuthenticationContactReadRecord> records,
+        AuthenticationContactReadSafetyClassification safetyClassification =
+            AuthenticationContactReadSafetyClassification.Safe)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.AuthenticationContactReadRecords,
+            authenticationContactReadRecords: records.ToArray(),
+            authenticationContactReadSafetyClassification: safetyClassification);
     }
 
     /// <summary>
@@ -629,7 +692,9 @@ public sealed class OperationResponseData
         ContactImageUpdateResponseData? contactImageUpdate,
         IReadOnlyList<OptionSetOptionRecord>? optionSetOptions,
         IReadOnlyList<MeetingStatisticRecord>? meetingStatistics,
-        IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords)
+        IReadOnlyList<Package01DedicationBookingRecord>? dedicationBookingRecords,
+        IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords,
+        AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
         // 多 branch 讓資料跨 capability 混合。失敗時不保留任何集合或外部資源。
@@ -645,9 +710,10 @@ public sealed class OperationResponseData
                           (contactListTransfer is null ? 0 : 1) +
                           (contactImage is null ? 0 : 1) +
                           (contactImageUpdate is null ? 0 : 1) +
-                          (optionSetOptions is null ? 0 : 1) +
-                          (meetingStatistics is null ? 0 : 1) +
-                          (dedicationBookingRecords is null ? 0 : 1);
+                           (optionSetOptions is null ? 0 : 1) +
+                           (meetingStatistics is null ? 0 : 1) +
+                           (dedicationBookingRecords is null ? 0 : 1) +
+                           (authenticationContactReadRecords is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -699,6 +765,12 @@ public sealed class OperationResponseData
                 meetingStatistics is not null &&
                 IsValidMeetingStatistics(meetingStatistics),
             OperationResponseKind.Package01DedicationBookingRecords => branchCount == 1 && dedicationBookingRecords is not null,
+            OperationResponseKind.AuthenticationContactReadRecords =>
+                branchCount == 1 &&
+                authenticationContactReadRecords is not null &&
+                IsValidAuthenticationContactReadRecords(
+                    authenticationContactReadRecords,
+                    authenticationContactReadSafetyClassification),
             _ => false
         };
 
@@ -707,6 +779,54 @@ public sealed class OperationResponseData
             throw new ArgumentException(
                 "responseKind must select exactly one matching safe response branch.",
                 nameof(responseKind));
+        }
+    }
+
+    /// <summary>
+    /// 驗證 P7.4 authentication branch 的 bounded 純值列與安全分類配對。資料列上限使錯誤上游回應不能無界保留
+    /// contact DTO；秘密分類只允許空集合，讓任何偵測到的敏感欄位在 connector scope 釋放後僅留下固定分類。
+    /// 本方法不記錄、快取或複製原始 SDK/transport 資料。
+    /// </summary>
+    private static bool IsValidAuthenticationContactReadRecords(
+        IReadOnlyList<AuthenticationContactReadRecord> records,
+        AuthenticationContactReadSafetyClassification safetyClassification)
+    {
+        if (!Enum.IsDefined(safetyClassification) || records.Count > MaximumAuthenticationContactReadRecords)
+        {
+            return false;
+        }
+
+        if (safetyClassification == AuthenticationContactReadSafetyClassification.SecretPresent)
+        {
+            return records.Count == 0;
+        }
+
+        return records.All(record =>
+            record is not null &&
+            record.ContactId != Guid.Empty &&
+            IsBoundedAuthenticationContactText(record.AccountLocator) &&
+            IsBoundedAuthenticationContactText(record.DisplayName));
+    }
+
+    /// <summary>
+    /// 驗證 authentication contact 的 locator/display 是 bounded、非空且可嚴格編碼的文字。此限制只約束
+    /// immutable wire 值，沒有建立 shared cache、租用 buffer 或跨 request retained state。
+    /// </summary>
+    private static bool IsBoundedAuthenticationContactText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 512)
+        {
+            return false;
+        }
+
+        try
+        {
+            _ = StrictUtf8.GetByteCount(value);
+            return true;
+        }
+        catch (System.Text.EncoderFallbackException)
+        {
+            return false;
         }
     }
 

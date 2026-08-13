@@ -29,6 +29,7 @@ using SpeechMessage.Dynamics.Connectors.Data8;
 using SpeechMessage.Dynamics.ControlPlane.Guard;
 using SpeechMessage.Dynamics.Embedded.DependencyInjection;
 using SpeechMessage.Dynamics.ProductClient.DependencyInjection;
+using SpeechMessage.Dynamics.ProductClient.Authentication;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
@@ -218,6 +219,80 @@ namespace ChurchReport.Services
             return new Package01DedicationBookingReadClient(
                 executor,
                 NullLogger<Package01DedicationBookingReadClient>.Instance);
+        }
+
+        /// <summary>
+        /// 判斷認證聯絡人唯讀 capability 是否已由 deployment 明確開啟。
+        /// 此開關獨立於 Package01／Package02，且缺值、空白或任何非 true／1 值皆為 false；方法只讀取設定字串，
+        /// 不繫結 options、不解析 ProfileAlias、不取得 process host、不建立 ProductClient、HTTP handler、Data8 pool
+        /// 或 credential graph。因此 rollback 只需關閉本開關，並能在登入、Session、claims 或任何 CE I/O 前確定停止。
+        /// </summary>
+        /// <param name="configuration">唯一可提供 deployment-owned gate 的設定；不得以 request、Session 或 browser 值取代。</param>
+        /// <returns>只有明確 true／1 時為 <see langword="true"/>；其餘情況一律 fail closed。</returns>
+        public static bool IsAuthenticationContactReadEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            var raw = configuration["DynamicsAccess:AuthenticationContactReadEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 依獨立 deployment gate 建立認證聯絡人唯讀 typed client。
+        /// false gate 是第一個可執行決策，故不會碰觸 options、profile、process host、client 或 transport；true gate
+        /// 則先驗證 deployment-owned ProfileAlias，即使使用 DI／測試注入 facade 也不能省略 profile/generation
+        /// isolation boundary。方法不接入 AuthenticationController、不建立 legacy fallback，亦不擁有或 Dispose
+        /// injected facade；可重用 executor 的唯一 owner 仍是既有 process host，停止時由其統一 drain/dispose。
+        /// </summary>
+        /// <param name="configuration">只含 deployment-owned gate 與 DynamicsAccess 設定的來源。</param>
+        /// <param name="injectedClient">可選的已由 DI 或測試擁有的無狀態 facade；不得攜帶 request routing 或秘密。</param>
+        /// <returns>gate=false 時為 null；gate=true 時為固定 deployment profile 所組成的 typed client。</returns>
+        public static IAuthenticationContactReadClient? TryCreateAuthenticationContactReadClient(
+            IConfiguration configuration,
+            IAuthenticationContactReadClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsAuthenticationContactReadEnabled(configuration))
+            {
+                return null;
+            }
+
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Authentication contact read");
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            return new AuthenticationContactReadClient(
+                CreateAuthenticationContactReadExecutor(productOptions, configuration),
+                NullLogger<AuthenticationContactReadClient>.Instance);
+        }
+
+        /// <summary>
+        /// 以已驗證的 deployment options 取得認證唯讀 capability 共用的 executor。
+        /// 此 helper 只在 gate 已通過且 ProfileAlias 已驗證後呼叫；Embedded 與 Gateway 都重用 process host 的唯一
+        /// generation，故不會為單次 login lookup 建立第二個 provider、handler、pool、credential graph 或長生命週期
+        /// session。連線模式不是 caller input；未知模式立即 fail closed，且沒有 legacy 或另一 transport fallback。
+        /// </summary>
+        /// <param name="productOptions">已從 deployment configuration 繫結並完成非空 profile 驗證的產品設定。</param>
+        /// <param name="configuration">只有 Embedded composition 必需的既有 deployment 設定來源。</param>
+        /// <returns>由 process host 唯一擁有且不可由呼叫端 Dispose 的 operation executor。</returns>
+        private static IDynamicsOperationExecutor CreateAuthenticationContactReadExecutor(
+            ProductDynamicsOptions productOptions,
+            IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(productOptions);
+            ArgumentNullException.ThrowIfNull(configuration);
+            var processHost = GetStartedProcessHost();
+            return productOptions.ConnectionMode switch
+            {
+                ConnectionMode.Embedded => processHost.GetOrCreateEmbeddedExecutor(productOptions, configuration),
+                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway =>
+                    processHost.GetOrCreateGatewayExecutor(productOptions),
+                _ => throw new InvalidOperationException(
+                    "Authentication contact read requires a supported Dynamics connection mode.")
+            };
         }
 
         /// <summary>
@@ -895,7 +970,12 @@ namespace ChurchReport.Services
                         OperationIds.MemberInfoContactUpdateBasicInfo,
                         OperationIds.MemberInfoContactUpdateLineProfile,
                         OperationIds.MemberInfoContactCountUngroupedCommitment,
-                        OperationIds.PaymentsDedicationRetrieveByContact
+                        OperationIds.PaymentsDedicationRetrieveByContact,
+                        // 認證 lookup 仍保持 deployment gate=false 且未接入登入 consumer；此 allowlist 只讓未來經過
+                        // 完整 authentication migration 的固定 operation 通過同一個 server-owned Guard，不能讓 request
+                        // 選擇 entity、profile、credential、connector 或任意 CRM query。
+                        OperationIds.AuthenticationContactRetrieveByAccount,
+                        OperationIds.AuthenticationContactRetrieveByLineId
                     ]),
                     serviceProvider => serviceProvider.GetRequiredService<EmbeddedData8Runtime>().Executor);
             });

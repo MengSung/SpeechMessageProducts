@@ -383,7 +383,8 @@
             "ContactImage",
             "ContactImageUpdate",
             "OptionSetOptions",
-            "MeetingStatistics"
+            "MeetingStatistics",
+            "AuthenticationContactReadRecords"
           ]
         },
         "maximumPageCount": {
@@ -540,7 +541,9 @@
                   "memberinfo.contact.retrieve.image",
                   "memberinfo.contact.update.image",
                   "newperson.contact.update.image",
-                  "stats.meeting.retrieve.by.sunday"
+                  "stats.meeting.retrieve.by.sunday",
+                  "auth.contact.retrieve.by.account",
+                  "auth.contact.retrieve.by.lineid"
                 ]
               }
             }

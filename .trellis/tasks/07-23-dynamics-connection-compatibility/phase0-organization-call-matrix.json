@@ -3664,27 +3664,20 @@
                                     "dataClassification":  "credential-or-secret",
                                     "capabilityOperationId":  "auth.contact.retrieve.by.account",
                                     "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-route",
+                                                                "templateKind":  "fetchxml",
                                                                 "templateId":  "auth.contact.by.account.v1",
-                                                                "templateHash":  "25e9a1ebb5c09f37222e723243264851ecf9f8f5e8997b90fdd4efeeab48f58a"
+                                                                "templateHash":  "16b60e85dd2aa69c2155f730420c553fced7249222c7bb21886cec1eaa6cdd44"
                                                             },
                                     "typedParameters":  [
                                                             {
-                                                                "name":  "accountNumber",
+                                                                "name":  "accountLookupValue",
                                                                 "type":  "string",
                                                                 "required":  true,
-                                                                "encodingContext":  "odata-query-option"
-                                                            },
-                                                            {
-                                                                "name":  "password",
-                                                                "type":  "string",
-                                                                "required":  true,
-                                                                "encodingContext":  "none"
+                                                                "encodingContext":  "fetchxml-attribute-value"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-query-option",
-                                                             "none"
+                                                             "fetchxml-attribute-value"
                                                          ],
                                     "versionEvidence":  {
                                                             "v8_2":  {
@@ -3705,7 +3698,12 @@
                                                       },
                                     "auditRequirement":  "security-audit",
                                     "idempotencyClass":  "read-only",
-                                    "migrationStatus":  "temporary-legacy",
+                                    "responseKind":  "AuthenticationContactReadRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  2,
+                                    "migrationStatus":  "registry-defined",
                                     "temporaryLegacyOwner":  "platform-dynamics-gateway",
                                     "temporaryLegacyRemovalDeadline":  "2026-10-31"
                                 },
@@ -3721,20 +3719,20 @@
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "auth.contact.retrieve.by.lineid",
                                     "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-route",
+                                                                "templateKind":  "fetchxml",
                                                                 "templateId":  "auth.contact.by.lineid.v1",
-                                                                "templateHash":  "c13c55e388ebb3e272bf11151bb0c509f4f8d5aaa2342290899ffdc870674385"
+                                                                "templateHash":  "960a3500299fc8b2d3a696a0192553d2f00dee513df96d71c5303c53a811d3d9"
                                                             },
                                     "typedParameters":  [
                                                             {
-                                                                "name":  "lineId",
+                                                                "name":  "lineIdLookupValue",
                                                                 "type":  "string",
                                                                 "required":  true,
-                                                                "encodingContext":  "odata-query-option"
+                                                                "encodingContext":  "fetchxml-attribute-value"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-query-option"
+                                                             "fetchxml-attribute-value"
                                                          ],
                                     "versionEvidence":  {
                                                             "v8_2":  {
@@ -3755,7 +3753,12 @@
                                                       },
                                     "auditRequirement":  "security-audit",
                                     "idempotencyClass":  "read-only",
-                                    "migrationStatus":  "mapped-pending-evidence",
+                                    "responseKind":  "AuthenticationContactReadRecords",
+                                    "maximumPageCount":  4,
+                                    "maximumPageBytes":  65536,
+                                    "maximumCumulativeResponseBytes":  262144,
+                                    "maximumResultItemCount":  2,
+                                    "migrationStatus":  "registry-defined",
                                     "temporaryLegacyOwner":  "platform-dynamics-gateway",
                                     "temporaryLegacyRemovalDeadline":  "2026-10-31"
                                 },

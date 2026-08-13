@@ -73,6 +73,8 @@ internal static class Package01Data8ReadOperations
     private const string ContactIdAttribute = "contactid";
     private const string ContactNameAttribute = "fullname";
     private const string ContactMobileAttribute = "mobilephone";
+    private const string AuthenticationAccountLocatorAttribute = "new_app_acount";
+    private const string AuthenticationLineIdAttribute = "new_lineid";
     private const string DiscipleLessonEntityName = "new_disciple_lessons";
     private const string DiscipleLessonIdAttribute = "new_disciple_lessonsid";
     private const string DiscipleLessonNameAttribute = "new_name";
@@ -127,6 +129,10 @@ internal static class Package01Data8ReadOperations
 
         return operation.OperationId switch
         {
+            OperationIds.AuthenticationContactRetrieveByAccount =>
+                ExecuteAuthenticationContactByAccount /* server-owned account projection */ (service, operation, ceVersion),
+            OperationIds.AuthenticationContactRetrieveByLineId =>
+                ExecuteAuthenticationContactByLineId /* server-owned LINE projection */ (service, operation, ceVersion),
             OperationIds.FeeDedicationRetrieveByContact => ExecuteFeeDedicationByContact(service, operation, ceVersion),
             OperationIds.FeeDedicationRetrieveByContactDateRange => ExecuteFeeDedicationByContactDateRange(service, operation, ceVersion),
             OperationIds.FeesRetrieveByDedicationPeriod => ExecuteFeesByDedicationPeriod(service, operation, ceVersion),
@@ -136,6 +142,76 @@ internal static class Package01Data8ReadOperations
             OperationIds.LessonsStorRetrieveByDiscipleLesson => ExecuteStorLessonsByDiscipleLesson(service, operation, ceVersion),
             _ => throw new InvalidOperationException("The Data8 Package01 operation is not permitted.")
         };
+    }
+
+    /// <summary>
+    /// 以固定帳號 locator 執行 ORG-CALL-00055 的 contact 唯讀查詢。
+    /// 此方法只接收 executor 已複製且經嚴格 UTF-8 上限驗證的 request-local scalar；不接受呼叫端指定
+    /// entity、欄位、條件、排序、Profile、端點或認證資料。查詢永遠限定 active contact、最小 ColumnSet 與
+    /// <c>TopCount = 2</c>，讓上層能以零、一、兩筆以上分別判定 not-found、found、ambiguous，而不從多筆
+    /// 結果猜選登入主體。
+    /// </summary>
+    /// <param name="service">目前 Data8 lease 唯一持有的 Organization service；呼叫結束後不保留任何 Entity。</param>
+    /// <param name="operation">已完成 allowlist 與 schema 驗證的固定 account lookup operation。</param>
+    /// <param name="ceVersion">由 immutable Profile generation 決定的 CE 版本。</param>
+    /// <returns>只含 contact ID、帳號 locator、顯示名稱與 active 狀態的封閉 wire branch。</returns>
+    private static OperationResponseData ExecuteAuthenticationContactByAccount(
+        IOrganizationService service,
+        ConnectorOperation operation,
+        string ceVersion)
+    {
+        _ = GetDefinition(operation.OperationId, OperationResponseKind.AuthenticationContactReadRecords);
+        var accountLookupValue = ReadRequiredBoundedString(operation.Parameters, "accountLookupValue");
+        var page = service.RetrieveMultiple(CreateAuthenticationContactByAccountQuery(accountLookupValue))
+            ?? throw new InvalidOperationException("The Data8 authentication account query returned no page.");
+        if (page.Entities.Count > 2)
+        {
+            throw new InvalidOperationException("The Data8 authentication account query exceeded its result limit.");
+        }
+
+        var records = new List<AuthenticationContactReadRecord>(page.Entities.Count);
+        foreach (var entity in page.Entities)
+        {
+            records.Add(ProjectAuthenticationContactRecord(entity));
+        }
+
+        return OperationResponseData.ForAuthenticationContactReadRecords(operation.OperationId, ceVersion, records);
+    }
+
+    /// <summary>
+    /// 以固定 LINE 使用者識別碼執行 ORG-CALL-00056 的 contact 唯讀查詢。
+    /// 查詢條件不可由產品層覆寫，永遠是 <c>new_lineid</c> 加上 <c>statecode eq 0</c>；單次
+    /// <see cref="IOrganizationService.RetrieveMultiple(QueryBase)"/> 最多讀取兩筆，避免以 <c>TopCount = 1</c>
+    /// 掩蓋重複綁定。CRM Entity 只在這個同步呼叫堆疊存在，投影完成後只回傳 immutable wire record，沒有
+    /// Session、快取、背景工作或跨 request 狀態。
+    /// </summary>
+    /// <param name="service">目前 lease 專屬的 Organization service。</param>
+    /// <param name="operation">已由 executor 驗證的固定 LINE lookup operation。</param>
+    /// <param name="ceVersion">由 server-resolved Profile generation 固定的 CE 版本。</param>
+    /// <returns>零至兩筆 allowlisted authentication contact wire records。</returns>
+    private static OperationResponseData ExecuteAuthenticationContactByLineId(
+        IOrganizationService service,
+        ConnectorOperation operation,
+        string ceVersion)
+    {
+        _ = GetDefinition(operation.OperationId, OperationResponseKind.AuthenticationContactReadRecords);
+        var lineIdLookupValue = ReadRequiredBoundedString(operation.Parameters, "lineIdLookupValue");
+        // 固定 new_lineid 加 statecode eq 0；不得加入第二次查詢或以第一筆結果取代 ambiguous 判定。
+        // 保持此註解獨立成行，避免 C# 行尾註解將唯一 RetrieveMultiple 呼叫吞入註解而破壞查詢契約。
+        var page = service.RetrieveMultiple(CreateAuthenticationContactByLineIdQuery(lineIdLookupValue))
+            ?? throw new InvalidOperationException("The Data8 authentication LINE query returned no page.");
+        if (page.Entities.Count > 2)
+        {
+            throw new InvalidOperationException("The Data8 authentication LINE query exceeded its result limit.");
+        }
+
+        var records = new List<AuthenticationContactReadRecord>(page.Entities.Count);
+        foreach (var entity in page.Entities)
+        {
+            records.Add(ProjectAuthenticationContactRecord(entity));
+        }
+
+        return OperationResponseData.ForAuthenticationContactReadRecords(operation.OperationId, ceVersion, records);
     }
 
     /// <summary>
@@ -311,6 +387,59 @@ internal static class Package01Data8ReadOperations
         query.Criteria.AddCondition(FeeCategoryAttribute, ConditionOperator.NotNull);
         query.AddOrder(FeeNameAttribute, OrderType.Ascending);
         query.AddOrder(FeeIdAttribute, OrderType.Ascending);
+        return query;
+    }
+
+    /// <summary>
+    /// 建立 ORG-CALL-00055 專屬的 account locator QueryExpression。
+    /// 這個模板固定讀取 <c>contact</c>、active <c>statecode</c>、帳號 locator、contact ID 與顯示名稱；
+    /// 它不讀取、字串引用、投影或記錄任何密碼、雜湊或其他秘密欄位。<c>TopCount = 2</c> 是刻意的
+    /// bounded-cardinality 防線：它可保留 ambiguous 證據給上層，同時避免讀取無界 contact 集合。
+    /// </summary>
+    /// <param name="accountLookupValue">已由 executor 建立的 request-local、trimmed 與 UTF-8 有界帳號 locator。</param>
+    /// <returns>不可由 caller 修改條件、欄位或列數上限的固定查詢。</returns>
+    private static QueryExpression CreateAuthenticationContactByAccountQuery(string accountLookupValue)
+    {
+        var query = CreateAuthenticationContactQuery();
+        query.Criteria.AddCondition(AuthenticationAccountLocatorAttribute, ConditionOperator.Equal, accountLookupValue);
+        return query;
+    }
+
+    /// <summary>
+    /// 建立 ORG-CALL-00056 專屬的 LINE locator QueryExpression。
+    /// 此處以明確的 <c>statecode eq 0</c> 文字註記固定 active 語意；不得因舊登入相容性改成不限制狀態，
+    /// 也不得以額外補查、重試或第一筆排序來掩蓋重複綁定。查詢物件只由目前同步 connector 呼叫擁有。
+    /// </summary>
+    /// <param name="lineIdLookupValue">已由 executor 建立的 request-local、trimmed 與 UTF-8 有界 LINE locator。</param>
+    /// <returns>固定 <c>new_lineid</c>、<c>statecode eq 0</c> 與兩筆上限的查詢。</returns>
+    private static QueryExpression CreateAuthenticationContactByLineIdQuery(string lineIdLookupValue)
+    {
+        var query = CreateAuthenticationContactQuery();
+        query.Criteria.AddCondition(AuthenticationLineIdAttribute, ConditionOperator.Equal, lineIdLookupValue);
+        // statecode eq 0：只容許 active contact 成為認證 lookup 候選。
+        return query;
+    }
+
+    /// <summary>
+    /// 建立兩個 authentication lookup 共用的最小 contact projection。
+    /// 實體名稱、欄位集合、active 條件與兩筆硬上限都是 server-owned；不建立 paging cookie 或第二次查詢，因為
+    /// 零、一、兩筆結果已完整表達目前 child 所需的固定分類。回應 Entity 會立刻投影為純值 record，沒有進入
+    /// Pool、static cache、Session 或背景工作。
+    /// </summary>
+    /// <returns>固定 contact ID、fullname、account locator、active state 與 <c>TopCount = 2</c> 的查詢。</returns>
+    private static QueryExpression CreateAuthenticationContactQuery()
+    {
+        var query = new QueryExpression(ContactEntityName)
+        {
+            ColumnSet = new ColumnSet(
+                ContactIdAttribute,
+                ContactNameAttribute,
+                AuthenticationAccountLocatorAttribute),
+            Criteria = new FilterExpression(LogicalOperator.And),
+            TopCount = 2
+        };
+        query.Criteria.AddCondition(StateCodeAttribute, ConditionOperator.Equal, 0);
+        query.AddOrder(ContactIdAttribute, OrderType.Ascending);
         return query;
     }
 
@@ -615,6 +744,60 @@ internal static class Package01Data8ReadOperations
         }
 
         throw new InvalidOperationException("The Data8 stor-lesson query exceeded its page limit.");
+    }
+
+    /// <summary>
+    /// 將 authentication lookup 的單一 contact Entity 投影為秘密安全的 wire record。
+    /// 接受的 CRM 形狀只有固定 <c>contact</c> ID、<c>fullname</c> 與帳號 locator；active 狀態不是由
+    /// Entity 欄位猜測，而是由固定 <c>statecode eq 0</c> 查詢條件保證。任何 logical name、ID、已存在
+    /// 欄位型別或 UTF-8 大小不符都立即失敗，使 lease 依上層既有流程淘汰 client；方法不保留 Entity 或
+    /// 文字到呼叫結束後，也不接觸任何秘密欄位。
+    /// </summary>
+    /// <param name="entity">本次 RetrieveMultiple 回傳的 request-local contact Entity。</param>
+    /// <returns>僅含非敏感 locator、display 與 active 的 immutable authentication record。</returns>
+    private static AuthenticationContactReadRecord ProjectAuthenticationContactRecord(Entity entity)
+    {
+        ValidateEntityIdentity(entity, ContactEntityName, ContactIdAttribute);
+        var accountLocator = ReadOptionalString(entity, AuthenticationAccountLocatorAttribute);
+        var displayName = ReadOptionalString(entity, ContactNameAttribute);
+        if (!IsValidAuthenticationContactText(accountLocator) ||
+            !IsValidAuthenticationContactText(displayName))
+        {
+            throw new InvalidOperationException("The Data8 authentication contact projection is invalid.");
+        }
+
+        return new AuthenticationContactReadRecord
+        {
+            ContactId = entity.Id,
+            AccountLocator = accountLocator ?? string.Empty,
+            DisplayName = displayName ?? string.Empty,
+            IsActive = true
+        };
+    }
+
+    /// <summary>
+    /// 驗證 authentication contact 可公開文字仍在固定 UTF-8 回應預算內。
+    /// 這個方法不進行正規化或替換字元修復；回傳的 locator/display 保持 CRM 原值，避免兩個 request 對同一值
+    /// 形成不同鍵或不同呈現。無效 UTF-16、空白 locator、超長文字均 fail closed，防止輸入或上游 schema 漂移
+    /// 在 lease 作用域內造成非受限保留。
+    /// </summary>
+    /// <param name="value">從已 allowlisted Entity attribute 讀出的 nullable 純字串。</param>
+    /// <returns>文字非空且未超過嚴格 UTF-8 上限時為 <see langword="true"/>。</returns>
+    private static bool IsValidAuthenticationContactText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        try
+        {
+            return StrictUtf8.GetByteCount(value) <= MaximumStringParameterBytes;
+        }
+        catch (EncoderFallbackException)
+        {
+            return false;
+        }
     }
 
     /// <summary>

@@ -78,6 +78,22 @@ public static class OperationIds
     /// <summary>對應 ORG-CALL-00062：依 disciple lesson 讀取 stor lessons。</summary>
     public const string LessonsStorRetrieveByDiscipleLesson = "lessons.stor.retrieve.by.disciplelesson";
 
+    // -------- P7.4：認證聯絡人唯讀邊界；僅供 disabled-by-default 的未來 consumer 使用 --------
+
+    /// <summary>
+    /// 對應 ORG-CALL-00055：以已驗證伺服器流程提供的帳號定位值讀取 contact 安全投影。
+    /// 此常數不接受密碼、雜湊、profile、connector、organization、endpoint、credential 或任意查詢文字；
+    /// 既有登入流程在完成獨立 credential/session 設計前不得把它視為登入切換。
+    /// </summary>
+    public const string AuthenticationContactRetrieveByAccount = "auth.contact.retrieve.by.account";
+
+    /// <summary>
+    /// 對應 ORG-CALL-00056：以已驗證伺服器流程提供的 LINE ID 定位值讀取 active contact 安全投影。
+    /// active 條件、欄位 allowlist、基數判斷和 Data8 資源釋放皆屬 server-owned executor；呼叫端不能藉此
+    /// 選擇 CRM route、identity、tenant、profile 或任何認證狀態。
+    /// </summary>
+    public const string AuthenticationContactRetrieveByLineId = "auth.contact.retrieve.by.lineid";
+
     // -------- Package 2：會友具名寫入能力；P7.4 啟用產品流量前維持 fail-closed --------
 
     /// <summary>

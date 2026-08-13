@@ -245,6 +245,8 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
         // 不接受 request-time CRM metadata，且同步 SDK 呼叫、投影或 paging 發生例外時 Lease 會淘汰本 client。
         // 此 dispatch 不提供 generic CRUD、caller Entity／FetchXML 或 caller-selected routing；未知 operation
         // 仍由各 capability owner fail closed。
+        // 取消權杖只在同步 Data8 呼叫前後檢查，不註冊 callback 或保存它；若呼叫期間取消或發生傳輸例外，
+        // 例外會離開此方法，由外層 lease 標記 faulted 並釋放不確定的 WCF Session，避免跨 request 重用。
         Package03Data8OperationResult? specialResourceResult = operation.OperationId switch
         {
             OperationIds.MemberInfoContactRetrieveImage or
