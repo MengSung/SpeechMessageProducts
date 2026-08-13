@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"認獻單讀取 service、adapter 與 host composition 必須維持 request/profile 隔離、bounded ownership 與取消後零 partial publication。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Package01 capability 必須在 Embedded、DedicatedGateway、CentralGateway 使用同一 ProductClient operation contract，且不得由 request 改變 route。"}
+{"file":".trellis/spec/backend/error-handling.md","reason":"gate、ProfileAlias、response contract、fault 和 cancellation 均需 fail closed，禁止 fallback 或 retry。"}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"C# 文件、測試、UTF-8 no BOM、CRLF 與 Release 品質門檻。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"實作前後的 A/B isolation、resource lifecycle 與 cancellation review checklist。"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"沿用既有 Package01/Package02/Package03 gate 與 process host composition pattern，避免重複 lifecycle owner。"}

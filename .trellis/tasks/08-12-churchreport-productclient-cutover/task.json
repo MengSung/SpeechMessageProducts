@@ -28,7 +28,8 @@
                      "08-13-p75-prerequisite-evidence-zero-reference-gate",
                      "08-13-p74-ungrouped-commitment-read-boundary",
                      "08-13-p74-memberinfo-commitment-metadata-read-boundary",
-                     "08-13-08-13-p74-metadata-boundary-review-remediation"
+                     "08-13-08-13-p74-metadata-boundary-review-remediation",
+                     "08-13-08-13-p74-dedication-booking-read-boundary"
                  ],
     "parent":  "08-05-gateway-purpose-and-positioning",
     "relatedFiles":  [
@@ -36,9 +37,9 @@
                          ".trellis/tasks/08-05-gateway-purpose-and-positioning/roadmap-p5-p7.md",
                          ".trellis/spec/backend/cross-user-isolation-and-performance.md"
                      ],
-    "notes":  "P7.4 Batch A/B are committed-disabled local candidates. Batch B cancellation audit, Batch C caller-shape inventory and Package03 consumer inventory are committed. ORG-CALL-00005, ORG-CALL-00024 and ORG-CALL-00040 have disabled local typed boundaries; 08-13-p74-metadata-boundary-review-remediation additionally closes the ProfileAlias composition bypass so Package02 contact-profile gate=true validates deployment-owned ProfileAlias before returning an injected facade or resolving the host. This is local-only quality evidence, not CE/cutover evidence. All Package01 settings remain false. The 2026-08-13 capacity audit remains enablement no-go: Dedicated/Embedded Data8 only has in-memory host-slot coordination, legacy ToolUtility is not bound to the same durable admission authority, and full legacy coverage is unproven. Historical P7.2 Slice C remains closed and must not be retried. P7.5 prerequisite evidence is deterministic no-go: all 70 matrix rows remain temporary-legacy, and legacy source/project/settings references plus CE/host/parity/soak/drain/rollback gaps remain. Select the next local P7.4 capability family from the stable backlog; P7.5 removal and P8 remain gated.",
+    "notes":  "P7.4 Batch A/B are committed-disabled local candidates. Batch B cancellation audit, Batch C caller-shape inventory and Package03 consumer inventory are committed. ORG-CALL-00005, ORG-CALL-00024 and ORG-CALL-00040 have disabled local typed boundaries; 08-13-p74-metadata-boundary-review-remediation additionally closes the ProfileAlias composition bypass so Package02 contact-profile gate=true validates deployment-owned ProfileAlias before returning an injected facade or resolving the host. This is local-only quality evidence, not CE/cutover evidence. All Package01 settings remain false. The 2026-08-13 capacity audit remains enablement no-go: Dedicated/Embedded Data8 only has in-memory host-slot coordination, legacy ToolUtility is not bound to the same durable admission authority, and full legacy coverage is unproven. Historical P7.2 Slice C remains closed and must not be retried. P7.5 prerequisite evidence is deterministic no-go: all 70 matrix rows remain temporary-legacy, and legacy source/project/settings references plus CE/host/parity/soak/drain/rollback gaps remain. ORG-CALL-00041 now has a disabled-by-default async DTO-only dedication-booking local boundary with ProfileAlias-before-composition validation, A/B request-local projection tests and fresh full local verification; it is not CE, capacity, parity, traffic-cutover, P7.5 or P8 evidence. Select the next local P7.4 capability family from the stable backlog; P7.5 removal and P8 remain gated.",
     "meta":  {
 
              },
-    "nextAction":  "Archive the completed metadata-boundary remediation child, then plan and implement the next authoritative-matrix P7.4 capability family as a disabled local-only boundary. Do not enable gates, issue CE requests, cut traffic, start P7.5 removal or P8."
+    "nextAction":  "Archive the completed dedication-booking read boundary child, then plan and implement the next authoritative-matrix P7.4 capability family as a disabled local-only boundary. Do not enable gates, issue CE requests, cut traffic, start P7.5 removal or P8."
 }

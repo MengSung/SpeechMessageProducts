@@ -154,6 +154,73 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 判斷 P7.4 認獻單唯讀 ProductClient 是否可由 deployment 啟用。
+        /// 此 sub-gate 必須依賴 Package01 基礎 gate；任一設定缺漏或為 false 時一律 fail closed，讓
+        /// 舊有同步 ToolUtility 流程維持原狀，並確保 controller、Session、browser 或呼叫端資料無法
+        /// 將自己提升為 Dynamics routing authority。此方法僅讀取組態字串，不建立 options、host、
+        /// executor、HTTP handler、Data8 pool、credential graph、timer 或任何 outbound request。
+        /// </summary>
+        /// <param name="configuration">只允許 deployment-owned 組態；不得由 HTTP、Session、cookie 或表單值取代。</param>
+        /// <returns>基礎與認獻單 sub-gate 都明確啟用時為 <see langword="true"/>；其他情況皆為 <see langword="false"/>。</returns>
+        public static bool IsPackage01DedicationBookingReadEnabled(IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage01Enabled(configuration))
+            {
+                return false;
+            }
+
+            var raw = configuration["DynamicsAccess:Package01DedicationBookingReadEnabled"];
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 依 deployment-owned gate 建立 P7.4 認獻單唯讀 typed client。
+        /// gate=false 時在任何 options bind、ProcessHost 解析或 transport composition 前回傳
+        /// <see langword="null"/>，因此 disabled state 不會配置 ServiceProvider、connection pool、
+        /// socket、handler、token 或其他長生命週期資源。gate=true 時先驗證 deployment ProfileAlias，
+        /// 即使 client 由 DI 注入也不得跳過此 profile/generation isolation boundary；注入 facade 只用於
+        /// 已受 DI 控管的組態與測試，不能接受 caller 指定 endpoint、credential、connector 或 owner。
+        /// 若需要正式 transport，唯一 resource owner 是既有 process host；本 helper 不建立 static provider，
+        /// 也不擁有或 Dispose shared client，host 停止時仍由既有 lifecycle 統一 drain/dispose。
+        /// </summary>
+        /// <param name="configuration">deployment-owned DynamicsAccess 組態。</param>
+        /// <param name="injectedClient">可選的 DI/測試 typed facade；不攜帶或覆寫 profile、endpoint、credential 或 request state。</param>
+        /// <returns>未啟用時為 <see langword="null"/>；已啟用時為使用既有 host generation 的 stateless typed client。</returns>
+        public static IPackage01DedicationBookingReadClient? TryCreatePackage01DedicationBookingReadClient(
+            IConfiguration configuration,
+            IPackage01DedicationBookingReadClient? injectedClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            if (!IsPackage01DedicationBookingReadEnabled(configuration))
+            {
+                return null;
+            }
+
+            var productOptions = BindOptions(configuration);
+            EnsureNonEmptyProductProfile(productOptions, "Package01 dedication booking read");
+            if (injectedClient is not null)
+            {
+                return injectedClient;
+            }
+
+            var processHost = GetStartedProcessHost();
+            var executor = productOptions.ConnectionMode switch
+            {
+                ConnectionMode.Embedded => processHost.GetOrCreateEmbeddedExecutor(productOptions, configuration),
+                ConnectionMode.DedicatedGateway or ConnectionMode.CentralGateway =>
+                    processHost.GetOrCreateGatewayExecutor(productOptions),
+                _ => throw new InvalidOperationException(
+                    "Package01 dedication booking read requires a supported Dynamics connection mode.")
+            };
+
+            return new Package01DedicationBookingReadClient(
+                executor,
+                NullLogger<Package01DedicationBookingReadClient>.Instance);
+        }
+
+        /// <summary>
         /// 讀取 P7.2 contact basic-info 的獨立 consumer flag。預設為 false，故在 P7.4 之前不會建立
         /// ProductClient、provider、HTTP handler、Data8 pool 或任何 ChurchReport 寫入流量；此 flag 與
         /// Package01FeeReadsEnabled 分離，避免讀取與寫入能力意外形成同一個 rollout 邊界。
@@ -827,7 +894,8 @@ namespace ChurchReport.Services
                         OperationIds.RuntimeHealthWhoAmI,
                         OperationIds.MemberInfoContactUpdateBasicInfo,
                         OperationIds.MemberInfoContactUpdateLineProfile,
-                        OperationIds.MemberInfoContactCountUngroupedCommitment
+                        OperationIds.MemberInfoContactCountUngroupedCommitment,
+                        OperationIds.PaymentsDedicationRetrieveByContact
                     ]),
                     serviceProvider => serviceProvider.GetRequiredService<EmbeddedData8Runtime>().Executor);
             });

@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
 using SpeechMessage.Dynamics.ProductClient.SpecialResources;
 using Xunit;
@@ -151,6 +152,85 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             .Should().BeFalse();
         DonationDynamicsAccessBootstrap.TryCreatePackage02ContactBasicInfoClient(configuration)
             .Should().BeNull();
+    }
+
+    /// <summary>
+    /// 驗證認獻單 typed-read 的 capability gate 同時受 Package01 基礎 gate 與專屬 sub-gate 保護。
+    /// 此測試以沒有 ProcessHost 的組態呼叫 factory；因此任何非空 client 都代表 disabled 路徑錯誤地
+    /// 建立了 host、HTTP handler、Data8 pool 或 credential graph。兩個 gate 缺省或只有 sub-gate 時
+    /// 必須直接回傳 <see langword="null"/>，確保 rollback 僅需將 deployment 設定設回 false，且不殘留
+    /// request、session、profile 或 transport 資源。
+    /// </summary>
+    [Fact]
+    public void Package01_dedication_booking_read_requires_base_and_sub_gates_before_host_resolution()
+    {
+        var disabledConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+        var subGateOnlyConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package01DedicationBookingReadEnabled"] = "true"
+            })
+            .Build();
+
+        DonationDynamicsAccessBootstrap.IsPackage01DedicationBookingReadEnabled(disabledConfiguration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.IsPackage01DedicationBookingReadEnabled(subGateOnlyConfiguration)
+            .Should().BeFalse();
+        DonationDynamicsAccessBootstrap.TryCreatePackage01DedicationBookingReadClient(disabledConfiguration)
+            .Should().BeNull();
+        DonationDynamicsAccessBootstrap.TryCreatePackage01DedicationBookingReadClient(subGateOnlyConfiguration)
+            .Should().BeNull();
+    }
+
+    /// <summary>
+    /// 驗證唯有 deployment 組態同時啟用 base/sub gate 且設定完整 ProfileAlias 時，factory 才能接受
+    /// 由 DI 提供的無狀態 typed facade。injected facade 只讓測試避開真實 transport，不能取代 profile
+    /// isolation boundary；呼叫者無法藉此指定 endpoint、credential、connector 或其他 CRM routing 狀態。
+    /// </summary>
+    [Fact]
+    public void Package01_dedication_booking_read_accepts_an_injected_client_only_after_reviewed_gate_and_profile_validation()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package01FeeReadsEnabled"] = "true",
+                ["DynamicsAccess:Package01DedicationBookingReadEnabled"] = "true",
+                ["DynamicsAccess:ProfileAlias"] = "crm91"
+            })
+            .Build();
+        var injected = new DisabledPackage01DedicationBookingReadClient();
+
+        DonationDynamicsAccessBootstrap.IsPackage01DedicationBookingReadEnabled(configuration)
+            .Should().BeTrue();
+        DonationDynamicsAccessBootstrap.TryCreatePackage01DedicationBookingReadClient(configuration, injected)
+            .Should().BeSameAs(injected);
+    }
+
+    /// <summary>
+    /// 驗證啟用 gate 不會讓空白 deployment ProfileAlias 繞過隔離邊界。錯誤必須發生在 injected facade
+    /// 或 ProcessHost 解析之前，避免未分區的 client、lease 或 credential graph 因組態缺漏被建立後又
+    /// 被另一位使用者或 profile 重用。
+    /// </summary>
+    [Fact]
+    public void Package01_dedication_booking_read_rejects_empty_deployment_profile_before_client_or_host_resolution()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DynamicsAccess:Package01FeeReadsEnabled"] = "true",
+                ["DynamicsAccess:Package01DedicationBookingReadEnabled"] = "true"
+            })
+            .Build();
+
+        Action create = () => DonationDynamicsAccessBootstrap
+            .TryCreatePackage01DedicationBookingReadClient(
+                configuration,
+                new DisabledPackage01DedicationBookingReadClient());
+
+        create.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ProfileAlias*");
     }
 
     /// <summary>
@@ -596,6 +676,27 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
             ContactBasicInfoUpdateRequest request,
             CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("Disabled composition test client must not execute.");
+    }
+
+    /// <summary>
+    /// 為 bootstrap composition 測試提供不具 transport、快取、背景工作或可釋放資源的 typed facade。
+    /// 任一執行呼叫都代表本應 short-circuit 的測試錯誤，因此立即擲出；此 double 不保存 profile、
+    /// contact、DTO 或 cancellation state，避免測試本身製造跨案例洩漏。
+    /// </summary>
+    private sealed class DisabledPackage01DedicationBookingReadClient : IPackage01DedicationBookingReadClient
+    {
+        /// <summary>
+        /// 禁止 disabled composition 測試意外執行 read operation；factory contract 僅驗證注入與
+        /// deployment gate，並不授權任何 outbound I/O 或 CE 查詢。
+        /// </summary>
+        public Task<IReadOnlyList<SpeechMessage.Dynamics.ProductClient.Models.DedicationBookingRecordDto>>
+            RetrieveDedicationBookingsByContactAsync(
+                string profileAlias,
+                string workloadSubjectId,
+                Guid contactId,
+                string? contactName = null,
+                CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Disabled Package01 dedication-booking test client must not execute.");
     }
 
     /// <summary>

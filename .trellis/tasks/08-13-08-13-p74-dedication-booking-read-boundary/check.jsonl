@@ -1,0 +1,6 @@
+{"file":".trellis/tasks/08-13-08-13-p74-dedication-booking-read-boundary/prd.md","reason":"驗證 goal、範圍、非範圍與 acceptance criteria 已逐項覆蓋。"}
+{"file":".trellis/tasks/08-13-08-13-p74-dedication-booking-read-boundary/design.md","reason":"驗證 deployment gate、DTO-only flow、atomic adapter、isolation 及 rollback shape。"}
+{"file":".trellis/tasks/08-13-08-13-p74-dedication-booking-read-boundary/implement.md","reason":"驗證 TDD 順序、測試命令、風險檔案與回復點。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"檢查 service、fake、adapter 與 host composition 無 Session/Memory/Resource Leakage。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"檢查 Embedded/Dedicated/Central route、RequestGuard、ProfileAlias 與 resource owner 一致性。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"確認 A/B isolation、fault/cancellation、resource baseline 與正常路徑品質檢查。"}

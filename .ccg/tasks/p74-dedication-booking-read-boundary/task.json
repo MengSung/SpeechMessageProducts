@@ -1,0 +1,12 @@
+{
+  "id": "p74-dedication-booking-read-boundary",
+  "title": "P7.4 ChurchReport 認獻單讀取 disabled boundary",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend-integration",
+  "currentPhase": "completed",
+  "nextAction": "完成 scope-only work commit 後，封存 Trellis 與 CCG 子任務；再從權威 backlog 選擇下一個獨立的 P7 capability child",
+  "createdAt": "2026-08-13T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

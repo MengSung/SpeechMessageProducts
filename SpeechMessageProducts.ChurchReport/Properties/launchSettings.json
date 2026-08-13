@@ -24,7 +24,8 @@
         "DynamicsAccess__ConnectionMode": "DedicatedGateway",
         "DynamicsAccess__ProfileAlias": "sunnyvalechback",
         "DynamicsAccess__Gateway__Endpoint": "https://localhost:7244/",
-        "DynamicsAccess__Package01FeeReadsEnabled": "false"
+        "DynamicsAccess__Package01FeeReadsEnabled": "false",
+        "DynamicsAccess__Package01DedicationBookingReadEnabled": "false"
       }
     },
     "WSL": {
