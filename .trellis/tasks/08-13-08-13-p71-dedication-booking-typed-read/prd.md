@@ -69,16 +69,10 @@ DTO-only 的 `payments.dedication.retrieve.by.contact` 讀取 capability。它�
       consumer 或 CE evidence。
 - [ ] 本 child 的 Trellis/CCG artifacts、品質檢查、限時雙模型狀態、scope-only commit 與 archive 均完成。
 
-## Requirements
+## 完成條件
 
-- TBD
-
-## Acceptance Criteria
-
-- [ ] TBD
-
-## Notes
-
-- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
-- Lightweight tasks can remain PRD-only.
-- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+- `payments.dedication.retrieve.by.contact` 必須維持 server-owned operation、封閉 response kind、固定且有界的 `QueryExpression`，且只以 `contactId` 作為查詢 locator。
+- Data8 connector、registry、wire response、ProductClient DTO／client 與 DI 必須完整對齊；ProductClient 不得公開 CRM SDK、Entity、連線或 credential。
+- 缺少 locator、錯誤 operation／branch、取消、fault、來源集合變異與 A/B 交錯皆必須 fail closed，並保留 request-local DTO、lease／permit 的確定釋放契約。
+- Phase 0 matrix、schema、template hash 與 compiled registry 必須通過 agreement tests；本 child 不會建立 CE evidence、consumer cutover、feature enablement、P7.5 或 P8 completion claim。
+- 以 targeted tests、完整 Release test/build、UTF-8 無 BOM／CRLF／final CRLF、scope 與 `git diff --check` 證據完成 Trellis／CCG 記錄、scope-only commit 與 archive。

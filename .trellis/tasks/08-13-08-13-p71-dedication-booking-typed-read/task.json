@@ -3,7 +3,7 @@
   "name": "08-13-p71-dedication-booking-typed-read",
   "title": "P7.1 dedication booking typed read capability",
   "description": "Add a bounded, server-owned, DTO-only Data8 ProductClient read capability for ORG-CALL-00041 dedication bookings; no CE dispatch, consumer cutover, feature enablement, P7.5, or P8.",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-08-13",
-  "completedAt": null,
+  "completedAt": "2026-08-13",
   "branch": null,
   "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
   "worktree_path": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-08-13: ORG-CALL-00041 registry/Data8 fixed QueryExpression/closed response/ProductClient DTO and DI are locally verified. Fresh checks: P7.1 focused 138 passed; Dynamics Release 753 passed/7 controlled live-SQL skips; solution Release Dynamics 753 passed/7 skips and ChurchReport 601 passed/14 controlled live-environment skips; Release build 0 warnings/0 errors; context validation, forbidden executable SDK scan, UTF-8 no-BOM/CRLF/final-CRLF and git diff --check passed. Final CCG reviewer was bounded to 45 seconds and produced no usable complete dual-model output: 雙模型未完成. No CE request, fixture, consumer cutover, feature enablement, P7.5 or P8 action occurred.",
   "meta": {}
 }

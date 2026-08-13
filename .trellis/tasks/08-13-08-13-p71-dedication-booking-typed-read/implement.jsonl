@@ -1,2 +1,3 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
-{"file":".ccg\\dual-model-runs\\20260813-132647-p71-dedication-booking-read-analysis-architect","reason":"CCG architect run 超過 45 秒，僅 health/prompt artifact；雙模型未完成，改採本機分析。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"P7.1 專用讀取必須保持 request-local DTO、profile/generation 隔離，以及 lease／permit 確定釋放。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"P7.1 registry、Phase 0 matrix、schema、template hash 與有界 Data8 路由為同一封閉契約。"}
+{"file":".ccg/dual-model-runs/20260813-142802-p71-dedication-booking-final-review-reviewer/health-attempt-1.json","reason":"初始與最終外部分析均採 CCG self-healing runner；provider 未在 45 秒內交付可用完整雙模型結果，後續採本機驗證。"}
