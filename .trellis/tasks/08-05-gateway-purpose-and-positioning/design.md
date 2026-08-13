@@ -267,6 +267,14 @@ capability。Church branch 的 fixed descriptor query 雖可在未來形成受�
 assignment 來自 Session／`InMemoryContext`，並可能用保存 credential 啟動 shared `ListManager` loader；兩者
 不具同一個在 I/O 前建立的 immutable request-local scope。
 
+### 2026-08-14 MemberInfo relation-goal boundary
+
+00033 使用同一個 MemberInfo access chain，故即使它目前的 `connection` projection 是固定欄位，也不能在
+authorization boundary 未成立時由既有 `allowedIds` 建立 Gateway capability。它另有 response-boundary 缺口：
+共用 `RetrieveAllEntities` 在 `MoreRecords` 時沒有 capability-specific page/row/text/byte budget，且 relation
+helper 將所有查詢例外吞為空 display text。未來須讓 request-local immutable scope 在選擇 profile、取得 lease 或
+CRM I/O 前建立，並以封閉 error union 區分 empty、fault 與 partial；不能用 Church-only 或 legacy fallback 修補。
+
 可接受的後續資料流必須先由另一個 child 建立：authenticated principal → server-derived MemberInfo scope →
 server-selected Church 或 Shepherd capability → request-local bounded list allowlist → fixed descriptor/membership
 template → Data8 projection → immutable DTO。scope 不得讀寫 Session、InMemoryContext、legacy ListManager、

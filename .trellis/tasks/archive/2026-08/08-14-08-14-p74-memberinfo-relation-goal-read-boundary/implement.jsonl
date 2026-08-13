@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"定義 request-local server-derived authorization、A/B/profile isolation、bounded response 與 lease/resource lifecycle 的硬性合約。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"定義 MemberInfo tree/grid 的授權、DTO、paging 與 CRM batching 約束。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"權威 P7 remaining-work matrix，含 ORG-CALL-00033 的 temporary-legacy、evidence-pending 狀態。"}
+{"file":".trellis/tasks/archive/2026-08/08-14-p74-memberinfo-smallgroup-tree-authorization-audit/source-audit.md","reason":"前一個相依 MemberInfo tree authorization no-go；本 task 必須避免只遷移 Church branch。"}

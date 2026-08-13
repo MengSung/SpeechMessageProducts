@@ -1,0 +1,3 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"檢查 no-go 是否正確保留完整授權、隔離、資源與 fail-closed 約束。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"檢查 MemberInfo capability 沒有錯誤地把 browser/legacy/shared state 當授權來源。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"確認 task 結論不會升級 ORG-CALL-00033 的 matrix evidence 或 migration state。"}

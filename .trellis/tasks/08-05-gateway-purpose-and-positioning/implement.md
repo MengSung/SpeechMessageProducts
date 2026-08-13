@@ -235,3 +235,13 @@ legacy QR path 的 independent matrix capability。
    fail-closed decision；不重試等待。
 4. [x] child 已完成 scope-only commit/archive；從 matrix 選擇不依賴 MemberInfo tree authorization chain 的下一個
    P7 capability。只有先完成另一個 server-derived MemberInfo scope child，才可重新評估 00031／00032。
+
+## 2026-08-14 MemberInfo relation-goal source-only checkpoint
+
+1. [x] 以 child `08-14-08-14-p74-memberinfo-relation-goal-read-boundary` 對 00033 完成 matrix、三個 caller、
+   Session/InMemoryContext、Shepherd credential loader、connection paging、fault handling 與 formatter trace。
+2. [x] 判定為 source-only local design no-go：不得將 legacy `allowedIds`／Session／shared ListManager 當作
+   Gateway scope，也不得以無上限 page 或吞掉 fault 的 connection expansion 建立 typed response。
+3. [x] architect/reviewer CCG runs 都在 45 秒內未有 usable output，均標記「雙模型未完成」，採本機驗證且不重試等待。
+4. [x] child 已完成 scope-only commit/archive；從 matrix 選擇下一個不相依 P7 capability。唯有先完成 immutable
+   server-derived MemberInfo authorization boundary，才能重新評估 00033。

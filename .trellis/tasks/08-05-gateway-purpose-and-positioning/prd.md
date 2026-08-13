@@ -418,3 +418,16 @@ allowlist 不能直接作為 Gateway ProductClient 的 trusted scope，且 Churc
 恢復前必須先由專屬 child 證明 request-local、server-derived、immutable MemberInfo Church／Shepherd scope，
 並在 browser locator、cache、profile/client composition 與 CRM I/O 前產生 bounded allowlist。P7.5／P8 gate
 不因這份 local audit 改變。
+
+### 2026-08-14 MemberInfo 關係／目標 checkpoint
+
+`ORG-CALL-00033`（`memberinfo.connection.retrieve.relation.goals`）同樣完成獨立來源稽核，結論為
+source-only local design no-go。它的三個現有 caller 都在同一個 Session／`InMemoryContext`／Shepherd
+credential-backed `ListManager` authorization chain 後取得 contact IDs，不能將 legacy `allowedIds` 轉作
+Gateway trusted scope。此外，connection query 經 `RetrieveAllEntities` 無上限翻頁，且 blanket catch 把 fault、
+partial/unavailable 與實際空關係混為成功空字串，不能構成 bounded fail-closed DTO response。
+
+這個 no-go 只停止 00033 的 direct registry/Data8/ProductClient/consumer migration，不阻擋其他不相依 P7 family。
+恢復前同樣須先完成不可變、server-derived 的完整 MemberInfo Church／Shepherd authorization boundary；之後另行
+設計有 chunk/page/row/text/byte 上限、錯誤 union、A/B scope/profile isolation 與 deterministic lease cleanup 的
+relation-goal capability。P7.5／P8 gate 不因這份 local audit 改變。

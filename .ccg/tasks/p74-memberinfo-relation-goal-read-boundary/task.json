@@ -1,0 +1,12 @@
+{
+  "id": "p74-memberinfo-relation-goal-read-boundary",
+  "title": "P7.4 MemberInfo 關係／目標唯讀授權邊界稽核",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-security",
+  "currentPhase": "completed",
+  "nextAction": "已完成 source-only no-go、45 秒雙模型降級、本機檢查與歸檔前驗證；不得進入 runtime implementation。",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

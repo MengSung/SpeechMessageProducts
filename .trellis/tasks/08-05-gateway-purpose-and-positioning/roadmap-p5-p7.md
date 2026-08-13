@@ -261,6 +261,19 @@ Gateway read capability。`GetAccess` 接受 Session cache 或從 shared `InMemo
 還會在 scope 建立前使用保存 credential 載入 mutable `ListManager`。Church 的 fixed descriptor query 不足以
 替代 Shepherd authorization，故不得只遷移 Church branch 或以 legacy visible-list allowlist 當 Gateway authority。
 
+## 17. 2026-08-14 MemberInfo relation-goal source-only no-go
+
+`ORG-CALL-00033`／`memberinfo.connection.retrieve.relation.goals` 也不能由現有 MemberInfo consumer 直接切出。
+三個 caller 都在相同的 `GetAccess`／`CanViewContactsBatch` chain 後才呼叫 relation query，故 legacy contact
+allowlist 沒有獨立、immutable、server-derived Gateway authority。relation helper 又透過共用
+`RetrieveAllEntities` 翻完所有 `connection` page，沒有 operation-specific response budget，並把所有 exception
+格式化成一般空關係。這不能保證 fail-closed response，也不能分辨 CRM unavailable、partial、timeout 和 truly empty。
+
+恢復路徑是先完成完整 Church／Shepherd 的 request-local authorization-boundary child（Shepherd 不得再用保存帳密
+loader），再以 bounded authorized IDs、固定 projection、chunk/page/row/text/byte limits、immutable error union、
+A/B isolation 與 deterministic lease cleanup 建立新 capability。00033 no-go 不阻擋其他 P7 family；它不是 CE、
+consumer、host、P7.5 或 P8 evidence。
+
 後續恢復順序固定為：先以獨立 child 建立 request-local、server-derived、immutable MemberInfo scope，再由
 server 分別選擇 Church／Shepherd capability 並產生 bounded list allowlist，最後才可設計固定 descriptor／
 membership template、DTO、Data8/ProductClient、A/B isolation、resource cleanup、disabled gate、CE 與 rollback
