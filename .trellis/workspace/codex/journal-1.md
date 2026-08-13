@@ -521,3 +521,36 @@ Completed and archived the disabled-by-default ORG-CALL-00028 full contact-image
 ### Next Steps
 
 - None - task complete
+
+
+## Session 16: P7/P8 parent current-state reconciliation
+
+**Date**: 2026-08-14
+**Task**: P7/P8 parent current-state reconciliation
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+Reconciled P7/P8 parent evidence hierarchy, preserved Slice C non-replay and P7.5/P8 gates, recorded capability-family selection audit, completed local validation, and archived the documentation-only child.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `aba60d72` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
