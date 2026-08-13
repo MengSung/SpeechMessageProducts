@@ -1,6 +1,0 @@
-{"file":".trellis/tasks/08-14-p71-list-member-count-typed-read/prd.md","reason":"任務需求與驗收條件。"}
-{"file":".trellis/tasks/08-14-p71-list-member-count-typed-read/source-audit.md","reason":"來源追蹤與 no-go 結論。"}
-{"file":".trellis/tasks/08-14-p71-list-member-count-typed-read/design.md","reason":"安全邊界、禁止事項與恢復條件。"}
-{"file":"SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadListManager.cs","reason":"既有 consumer、service fallback 與計數呼叫來源。"}
-{"file":"ToolUtility/ListOperations/ListService.cs","reason":"static/dynamic list 的 query 執行分支。"}
-{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"ORG-CALL-00047 權威 capability 定義。"}
