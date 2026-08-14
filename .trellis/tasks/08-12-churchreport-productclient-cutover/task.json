@@ -56,5 +56,5 @@
       "evidence": "task-only local source audit; Gemini usable/Claude no-output and reviewer incomplete; no CE, feature gate, traffic, P7.5 or P8 evidence"
     }
   },
-  "nextAction": "Archive the ORG-CALL-00052 source-only no-go, then select a further matrix-backed local child only if it is DTO-only, server-authorized and free of shared mutable authorization state, stored query execution, unbounded response expansion and write adjacency; otherwise record the precise no-go and keep the parent active. Keep all feature gates false; do not issue CE requests, cut traffic, start P7.5 removal or P8."
+  "nextAction": "Select the next matrix-backed local child only if it is DTO-only, server-authorized and free of shared mutable authorization state, stored query execution, unbounded response expansion and write adjacency; otherwise record the precise no-go and keep the parent active. Keep all feature gates false; do not issue CE requests, cut traffic, start P7.5 removal or P8."
 }
