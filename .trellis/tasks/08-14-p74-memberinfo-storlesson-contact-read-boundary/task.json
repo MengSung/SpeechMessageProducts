@@ -1,0 +1,31 @@
+{
+  "id": "p74-memberinfo-storlesson-contact-read-boundary",
+  "name": "p74-memberinfo-storlesson-contact-read-boundary",
+  "title": "P7.4 MemberInfo 上課紀錄受控讀取邊界",
+  "description": "Audit ORG-CALL-00027 MemberInfo stor-lesson read authorization source. The only permitted deliverable is a source-only local design decision; no runtime, CE, gate, traffic, P7.5 or P8 action is authorized.",
+  "status": "in_progress",
+  "dev_type": "backend-integration-security-audit",
+  "scope": "Task records and source audit only; no runtime or external state change.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-14",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    ".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json",
+    "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+    "SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs",
+    "SpeechMessageProducts.ChurchReport/Services/StorLessonQueryService.cs"
+  ],
+  "notes": "Source trace establishes that GetAccess and CanViewContact rely on Session and InMemoryContext, while Shepherd scope may invoke a credential-backed shared ListManager loader. This task must fail closed as local-design-no-go unless an independent immutable MemberInfo authorization boundary is delivered first.",
+  "meta": {}
+}

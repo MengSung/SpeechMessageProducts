@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Mandatory backend isolation, lifecycle, cancellation, cache and profile-generation contract."}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"Mandatory cross-product review checklist for request authorization, A/B isolation and deterministic cleanup."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Controller, service, ProductClient and Data8 response-boundary data flow."}
+{"file":".trellis/tasks/08-14-p74-memberinfo-storlesson-contact-read-boundary/prd.md","reason":"Child requirements and acceptance criteria."}
+{"file":".trellis/tasks/08-14-p74-memberinfo-storlesson-contact-read-boundary/design.md","reason":"Approved local boundary and failure design."}
+{"file":".trellis/tasks/08-14-p74-memberinfo-storlesson-contact-read-boundary/implement.md","reason":"Ordered implementation and validation plan."}

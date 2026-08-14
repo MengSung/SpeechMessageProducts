@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Quality check against mandatory isolation and resource lifecycle contract."}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"Quality checklist for authorization-before-I/O, A/B isolation and cleanup."}
+{"file":".trellis/tasks/08-14-p74-memberinfo-storlesson-contact-read-boundary/prd.md","reason":"Child acceptance criteria."}
+{"file":".trellis/tasks/08-14-p74-memberinfo-storlesson-contact-read-boundary/design.md","reason":"Child boundary and no-go rules."}
+{"file":".trellis/tasks/08-14-p74-memberinfo-storlesson-contact-read-boundary/implement.md","reason":"Validation commands and scope constraints。"}

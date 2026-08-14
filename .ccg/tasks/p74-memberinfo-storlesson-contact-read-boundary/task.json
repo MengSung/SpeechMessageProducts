@@ -1,0 +1,12 @@
+{
+  "id": "p74-memberinfo-storlesson-contact-read-boundary",
+  "title": "P7.4 MemberInfo 上課紀錄讀取授權邊界稽核",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-security",
+  "currentPhase": "review",
+  "nextAction": "執行 task-only JSON、manifest、encoding、diff/scope 檢查後，scope-only commit 並 archive；不得進入 runtime implementation。",
+  "createdAt": "2026-08-14T08:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
