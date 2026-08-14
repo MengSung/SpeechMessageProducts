@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "p7.post-runtime-health.reconciliation.v1",
+  "source": {
+    "callSiteCount": 70,
+    "phase0Sha256": "52327c15e33a62fe64a59ee73c9adf9051a5e6648c41ae903fdb853138c9b503"
+  },
+  "counts": {
+    "registryDeclared": 28,
+    "data8ExecutorImplemented": 27,
+    "productClientImplemented": 27,
+    "consumerMigratedDisabled": 3,
+    "consumerNotMigrated": 67,
+    "temporaryLegacy": 70
+  },
+  "runtimeHealthWhoAmI": {
+    "callSiteId": "ORG-CALL-00003",
+    "registry": "declared",
+    "data8Executor": "implemented",
+    "productClient": "implemented",
+    "consumer": "not-migrated",
+    "ce91": "evidence-pending",
+    "embedded": "evidence-pending",
+    "dedicated": "evidence-pending",
+    "temporaryLegacy": "temporary-legacy"
+  },
+  "nextSelection": {
+    "outcome": "no-direct-product-client-gap",
+    "recommendedPrerequisite": "memberinfo.request-local.authorization.scope",
+    "reason": "existing safe data-plane rows lack a server-derived immutable consumer authorization boundary; no consumer, CE, host, rollout, P7.5, or P8 state is promoted"
+  },
+  "externalOperations": "none"
+}
