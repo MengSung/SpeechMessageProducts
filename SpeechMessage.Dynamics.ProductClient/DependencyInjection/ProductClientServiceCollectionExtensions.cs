@@ -87,6 +87,7 @@ public static class ProductClientServiceCollectionExtensions
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
         services.TryAddSingleton<IMemberInfoPresentRecordReadClient, MemberInfoPresentRecordReadClient>();
+        services.TryAddSingleton<IMemberInfoAuthorizationAssignmentReadClient, MemberInfoAuthorizationAssignmentReadClient>();
         services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
         services.TryAddSingleton<IPackage03SpecialResourceClient, Package03SpecialResourceClient>();
         services.TryAddSingleton<IRuntimeHealthWhoAmIClient, RuntimeHealthWhoAmIClient>();
@@ -227,6 +228,22 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IMemberInfoPresentRecordReadClient, MemberInfoPresentRecordReadClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 註冊 P7 MemberInfo server-owned assignment evidence 的無狀態 typed read client。
+    /// 此 extension 僅建立 DI descriptor，不建立 CRM client、connector、lease、cache、session、timer 或背景工作；
+    /// request 的 profile/workload/subject 仍必須由呼叫端在每次 dispatch 前提供並由 client 驗證。singleton 只能保存
+    /// DI 擁有的 executor/logger，因此不會將不同使用者、profile 或 request 的授權 evidence 交叉保留。
+    /// </summary>
+    /// <param name="services">產品 composition root 的 service collection。</param>
+    /// <returns>已加入 assignment read client descriptor 的同一 service collection。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsMemberInfoAuthorizationAssignmentReads(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IMemberInfoAuthorizationAssignmentReadClient, MemberInfoAuthorizationAssignmentReadClient>();
         return services;
     }
 

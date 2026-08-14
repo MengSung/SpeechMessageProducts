@@ -337,3 +337,25 @@ assignment 未出現在 server-issued claims；現有 controller 仍從 Session�
 I/O 前拒絕。新 seam 預設不接 controller、不建立 consumer/CE/traffic evidence；真正 descriptor、membership 與
 relation-goal migration 必須各自完成 operation、DTO、Data8、ProductClient、A/B isolation、read-back/rollback 與
 required CE evidence。這個設計保留 P7 其他 independent family 的前進空間，也不解除 P7.5/P8 gate。
+
+### 2026-08-14 MemberInfo scope 實作完成後的設計界線
+
+已完成的 `MemberInfoTargetAuthorizationScope` 只封裝 caller 不能偽造的 authenticated subject 與
+server-issued authorization evidence。它在 assembly boundary 內建立，回傳不可變 scope 與 bounded defensive copy，
+並在任何 source 不可用、subject 不符、list ID 重複或 assignment evidence 不完整時於 CRM I/O 前 fail closed。
+它不是 server-owned assignment source，也不能被用來把既有 Session／ListManager graph 接至 Gateway。
+
+因此下一個 P7 capability 必須獨立選取：只有 source audit 證明 authorization、request／response budget、
+cancellation、資源 owner 與 rollback boundary 都不會穿越上述 legacy graph，才可進入 Registry、Data8、
+ProductClient 與 disabled consumer 的 TDD。這條規則避免將局部 authorization seam 誤升格為 consumer migration
+或使 P7.5/P8 predecessor 漂移。
+## 2026-08-14 MemberInfo assignment-source local checkpoint
+
+新 local-only evidence path 為：唯一 Cookie subject → immutable `P7GatewayRequestScope` → fixed
+`memberinfo.authorization.assignment.resolve.by.subject` → Data8 contact/list projection → typed ProductClient →
+assembly-internal target evidence。每層只發布 scalar／readonly GUID snapshot；Data8 lease/transport 仍由 executor
+單一擁有。這個 path 不改變 legacy controller，故並未建立 feature enablement 或 consumer cutover。
+
+它只解除重新「設計與稽核」00031／00032／00033 的 source prerequisite，不解除 CE、capacity、parity、rollout、
+rollback、P7.5 或 P8 gate。下一個 capability 要在自己 child 中重新固定 response/query budgets、consumer admission
+與 rollback owner，禁止 request-time fallback 至 legacy authorization state。

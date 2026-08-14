@@ -163,6 +163,15 @@ public static class OperationIds
     /// </summary>
     public const string MemberInfoPresentRetrieveByContact = "memberinfo.present.retrieve.by.contact";
 
+    /// <summary>
+    /// P7 MemberInfo 授權資料面的固定讀取能力。它只接受已由伺服器驗證的 subject contact GUID，並以封閉的
+    /// Church-wide 或 assigned-list evidence 回覆；不得接受 browser list ID、role、日期、profile、endpoint、
+    /// credential、FetchXML、排序或任何 CRM SDK graph。實際查詢、租約、取消、fault eviction 與資源釋放由
+    /// Data8 executor 的單一 request owner 負責；此 immutable 常數不保存跨使用者、跨 profile 或跨 tenant 狀態。
+    /// </summary>
+    public const string MemberInfoAuthorizationAssignmentResolveBySubject =
+        "memberinfo.authorization.assignment.resolve.by.subject";
+
     // -------- Package 2：名單與小組固定操作；每個 ID 都有獨立的 fixture／reconciliation owner --------
 
     /// <summary>

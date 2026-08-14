@@ -17,6 +17,52 @@ namespace SpeechMessage.Dynamics.Tests;
 public sealed class Data8ProfileOperationExecutorTests
 {
     /// <summary>
+    /// 保護 MemberInfo assignment evidence 必須回應同一個 server request subject，否則 lease 不能回到 pool。
+    /// 故障注入是 connector 回傳格式正確、但屬於另一個 subject 的有效 evidence；決定性斷言是
+    /// <c>connector.invalid-response</c>、permit 恰好釋放一次且 client 被淘汰。這避免 A/B request 因只有
+    /// discriminator 正確就互相發布 allowlist，也證明 executor 不會在錯誤後重試或重用不可信 session。
+    /// </summary>
+    [Fact]
+    public async Task Execute_async_rejects_memberinfo_assignment_evidence_for_a_different_subject_and_evicts_client()
+    {
+        var requestSubjectId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+        var otherSubjectId = Guid.Parse("99999999-8888-7777-6666-555555555555");
+        var admission = new TrackingAdmissionManager();
+        var factory = new FixedResultFactory(operation => new ConnectorOperationResult(true)
+        {
+            Data = OperationResponseData.ForMemberInfoAuthorizationAssignmentEvidence(
+                operation.OperationId,
+                "9.1",
+                new MemberInfoAuthorizationAssignmentEvidenceResponseData(
+                    otherSubjectId,
+                    MemberInfoAuthorizationAssignmentAccessMode.AssignedLists,
+                    Array.Empty<Guid>()))
+        })
+        {
+            ExpectedOperationId = OperationIds.MemberInfoAuthorizationAssignmentResolveBySubject
+        };
+        await using var pool = new Data8ConnectorPool(
+            CreateResolvedProfile(), admission, factory, minSize: 0, maxSize: 1);
+        var executor = new Data8ProfileOperationExecutor(CreateResolver(), new Data8ConnectorRouter(pool));
+
+        var result = await executor.ExecuteAsync(
+            CreatePackage01Request(
+                OperationIds.MemberInfoAuthorizationAssignmentResolveBySubject,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["subjectContactId"] = requestSubjectId
+                }),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be("connector.invalid-response");
+        admission.AcquireCount.Should().Be(1);
+        admission.ReleaseCount.Should().Be(1);
+        factory.CreatedCount.Should().Be(1);
+        factory.DisposedCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 保護已解析的 Data8 Profile 必須先經 Router，再由 Data8 pool 取得 admission permit 與 client，最後在
     /// await using 退出時全部歸還。故障模型是 executor 漏掉其中一層；決定性斷言是成功 WhoAmI 結果、一次 client
     /// 建立，以及 permit 在回傳後立即回到零，沒有 timer、background task 或 session retained state。

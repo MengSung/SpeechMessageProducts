@@ -303,5 +303,23 @@ legacy QR path 的 independent matrix capability。
    source unavailable／incomplete 時於任何 I/O 前 fail closed。
 5. [x] 對此 child 執行 focused tests、Release build、必要 full tests、encoding／CRLF、scope check 與 bounded
    CCG review，完成 scope-only commit/archive。它不得改變 00031／00032／00033 consumer、CE、traffic、P7.5 或 P8。
-6. [ ] child 結束後以 post-runtime-health matrix 選取下一個不依賴未證明 MemberInfo target source 的 capability；
-   無安全 candidate 時記錄 source prerequisite，不重播 Slice C，不建立 P7.5/P8。
+6. [x] child 已完成 scope-only commit/archive：commit `bfc5aead` 為 scope 實作，`9369a3f7` 為 Trellis
+   archive，`be3c3b3f` 為 CCG archive；它沒有接 controller、CE、feature gate 或 traffic。
+7. [x] 執行 focused tests 9/9、ChurchReport tests 652 passed／14 skipped、Dynamics tests 885 passed／7 skipped、
+   完整 solution tests、Release build、encoding／CRLF 與 scope check。CCG final reviewer 在 45 秒內未完成：
+   Gemini timeout、Claude 無 usable output，記錄「雙模型未完成」並採本機審查。
+8. [ ] 以 post-runtime-health matrix 選取下一個不依賴未證明 MemberInfo target source 的 capability；只有
+   DTO-only、server-authorized、無 Session／InMemoryContext／credential bridge／stored query／無界回應／
+   Entity bridge 或 write adjacency 的 family 可進入 child planning。無安全 candidate 時記錄 source prerequisite，
+   不重播 Slice C，不建立 P7.5/P8。
+## 2026-08-14 MemberInfo assignment-source completion checkpoint
+
+1. [x] 建立固定 `memberinfo.authorization.assignment.resolve.by.subject` registry／Data8／ProductClient／security-adapter
+   local data plane；僅接受 server-derived subject，並以 512 list IDs、TopCount 513、single-page validation
+   與 immutable snapshots fail closed。
+2. [x] 執行 focused tests、full Release solution tests、Release build、byte-level encoding／CRLF 與 diff scope check。
+3. [x] 限時 CCG reviewer 在 45 秒內未形成 accepted dual result。後續 Gemini 的 UTF-8/BOM false positive 已以 strict
+   bytes、literal scan 與 mutation-proven tests 反證，Claude 無 usable output；記錄「雙模型未完成」並完成本機 review，
+   未將其稱為完整雙模型審查。
+4. [ ] scope-only archive 後，重新稽核 ORG-CALL-00031／00032／00033，另行建立能證明 consumer authorization、
+   DTO bound、rollback 與 disabled deployment gate 的 child。不得把本 checkpoint 視為 CE／traffic／P7.5／P8 evidence。

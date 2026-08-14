@@ -564,6 +564,61 @@
                                         "migrationStatus":  "registry-defined",
                                         "temporaryLegacyOwner":  "churchreport-memberinfo",
                                         "temporaryLegacyRemovalDeadline":  "2026-11-15"
+                                    },
+                                    {
+                                        "id":  "ORG-CALL-00031",
+                                        "product":  "SpeechMessageProducts.ChurchReport",
+                                        "file":  "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+                                        "member":  "ServerAssignmentEvidencePrerequisite",
+                                        "legacyEntryPoint":  "Derived local-only server-owned authorization-evidence mapping for ORG-CALL-00031/00032/00033; the immutable source inventory remains ORG-CALL-00031.",
+                                        "currentRequestShape":  "Fixed contact Retrieve plus a bounded six-lookup list QueryExpression yields only Church-wide or subject-assigned list GUID evidence; no controller wiring, write, or fallback.",
+                                        "entityOrAction":  "contact+list",
+                                        "operationKind":  "read",
+                                        "dataClassification":  "personal-data",
+                                        "capabilityOperationId":  "memberinfo.authorization.assignment.resolve.by.subject",
+                                        "responseKind":  "MemberInfoAssignmentEvidence",
+                                        "maximumPageCount":  1,
+                                        "maximumPageBytes":  65536,
+                                        "maximumCumulativeResponseBytes":  262144,
+                                        "maximumResultItemCount":  512,
+                                        "serverOwnedTemplate":  {
+                                                                    "templateKind":  "queryexpression",
+                                                                    "templateId":  "memberinfo.authorization.assignment.by.subject.v1",
+                                                                    "templateHash":  "438d3c57e074ee3fb7c8b59c28f002429207fce7d887e4a17a964a564b7fe946"
+                                                                },
+                                        "typedParameters":  [
+                                                                {
+                                                                    "name":  "subjectContactId",
+                                                                    "type":  "guid",
+                                                                    "required":  true,
+                                                                    "encodingContext":  "queryexpression-condition"
+                                                                }
+                                                            ],
+                                        "encodingContexts":  [
+                                                                 "queryexpression-condition"
+                                                             ],
+                                        "versionEvidence":  {
+                                                                "v8_2":  {
+                                                                             "status":  "unsupported",
+                                                                             "evidenceId":  null,
+                                                                             "notes":  "This local-only Data8 assignment-evidence contract is CE 9.1 only and must not be routed to CE 8.2."
+                                                                         },
+                                                                "v9_1":  {
+                                                                             "status":  "evidence-pending",
+                                                                             "evidenceId":  null,
+                                                                             "notes":  "Local registry, Data8, ProductClient and security-adapter evidence exists; no CE execution, consumer cutover, feature enablement, or traffic evidence is claimed."
+                                                                         }
+                                                            },
+                                        "smokeEvidence":  {
+                                                              "status":  "not-started",
+                                                              "evidenceId":  null,
+                                                              "notes":  "No CE smoke is authorized by this local-only prerequisite; future capability-specific evidence must use a separate governed task."
+                                                          },
+                                        "auditRequirement":  "security-audit",
+                                        "idempotencyClass":  "read-only",
+                                        "migrationStatus":  "registry-defined",
+                                        "temporaryLegacyOwner":  "churchreport-memberinfo",
+                                        "temporaryLegacyRemovalDeadline":  "2026-11-15"
                                     }
                                 ],
     "normalizedCallSites":  [

@@ -39,7 +39,8 @@
     "08-14-p74-dedication-capability-identity-audit",
     "08-14-p74-memberinfo-storlesson-contact-read-boundary",
     "08-14-08-14-p74-contact-current-group-read-boundary",
-    "08-14-p74-appnamed-membership-read-data-plane"
+    "08-14-p74-appnamed-membership-read-data-plane",
+    "08-14-p7-memberinfo-server-authorization-source"
   ],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [
@@ -51,11 +52,11 @@
   "meta": {
     "latestCheckpoint": {
       "row": "ORG-CALL-00057",
-      "state": "local-only-data-plane-complete",
+      "state": "local-only-data-plane-complete-and-archived",
       "reason": "App-named membership now has a bounded fixed-query registry/Data8/ProductClient DTO data plane, but each legacy caller remains a mutable Entity and write-adjacent flow without an immutable request-local authorization boundary.",
       "recovery": "Before any consumer cutover, create a separately governed principal-derived authorization scope and demonstrate capability-specific CE, capacity/parity, rollout, rollback and lifecycle evidence.",
-      "evidence": "child 08-14-p74-appnamed-membership-read-data-plane: targeted, Dynamics and solution local tests/build passed; no CE, feature gate, traffic, P7.5 or P8 operation; final dual-model review did not complete within 45 seconds."
+      "evidence": "archived child 08-14-p74-appnamed-membership-read-data-plane: targeted, Dynamics and solution local tests/build passed; no CE, feature gate, traffic, P7.5 or P8 operation; final dual-model review did not complete within 45 seconds."
     }
   },
-  "nextAction": "Archive the ORG-CALL-00057 local-only child, then select the next matrix-backed local child only if it is DTO-only, server-authorized and free of shared mutable authorization state, stored query execution, unbounded response expansion and write adjacency; otherwise record the precise no-go and keep the parent active. Keep all feature gates false; do not issue CE requests, cut traffic, start P7.5 removal or P8."
+  "nextAction": "Archive the completed child that derives complete MemberInfo assignment evidence from fixed server-owned contact/list fields, then re-audit ORG-CALL-00031/00032/00033 for a separately governed DTO-only consumer/data-plane child. The new candidate must still prove request-local authorization, bounds, cancellation, cleanup, no legacy fallback and a disabled rollout boundary. Keep all feature gates false; do not issue CE requests, cut traffic, start P7.5 removal or P8."
 }

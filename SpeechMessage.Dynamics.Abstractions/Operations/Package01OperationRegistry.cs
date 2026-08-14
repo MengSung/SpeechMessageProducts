@@ -81,6 +81,12 @@ public static class Package01OperationRegistry
     /// </summary>
     private const int AppNamedMembershipReadMaximumResultItemCount = 32;
 
+    /// <summary>
+    /// MemberInfo 指派證據最多發布 512 個唯一小組 GUID。Data8 query 必須以 TopCount 513 偵測 overflow；registry
+    /// 的 512 是可安全跨 boundary 發布的硬上限，不能由 caller、重試、paging 或第二個 request 擴大。
+    /// </summary>
+    private const int MemberInfoAuthorizationAssignmentMaximumResultItemCount = 512;
+
     private static readonly IReadOnlyDictionary<string, OperationDefinition> Definitions =
         Build().ToDictionary(x => x.CapabilityOperationId, StringComparer.Ordinal);
 
@@ -512,6 +518,26 @@ public static class Package01OperationRegistry
             parameters:
             [
                 Param("contactId", "guid", required: true, encoding: "queryexpression-condition")
+            ]);
+
+        // P7 MemberInfo assignment evidence：subject 只能由上層完成 Cookie scope 驗證後傳入。這個 registry
+        // 不接受 list、role、日期、profile、endpoint、credential 或 query；Data8 executor 必須固定 contact direct
+        // retrieve 與六個 assignment lookup，並在 duplicate、paging、partial response 或超過 512 IDs 時 fail closed。
+        yield return Def(
+            OperationIds.MemberInfoAuthorizationAssignmentResolveBySubject,
+            package: "package-2-memberinfo-authorization-reads-local-only",
+            kind: "read",
+            templateKind: "queryexpression",
+            templateId: "memberinfo.authorization.assignment.by.subject.v1",
+            responseKind: OperationResponseKind.MemberInfoAssignmentEvidence,
+            data: "personal-data",
+            audit: "security-audit",
+            idempotency: "read-only",
+            maximumPageCount: 1,
+            maximumResultItemCount: MemberInfoAuthorizationAssignmentMaximumResultItemCount,
+            parameters:
+            [
+                Param("subjectContactId", "guid", required: true, encoding: "queryexpression-condition")
             ]);
 
         // Slice C：static-list association 以固定 action 表達；memberIds 的 1,000 筆／distinct／non-empty

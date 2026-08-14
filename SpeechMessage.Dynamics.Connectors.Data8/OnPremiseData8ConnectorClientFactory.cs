@@ -271,6 +271,12 @@ internal sealed class OnPremiseData8ConnectorClient : IConnectorClient
             // lease 仍是 service 的唯一 owner，故 helper 不得保存或釋放 service。
             OperationIds.MemberInfoPresentRetrieveByContact =>
                 Package02Data8PresentRecordReadOperations.Execute(service, operation, _ceVersion, cancellationToken),
+            OperationIds.MemberInfoAuthorizationAssignmentResolveBySubject =>
+                Package02Data8MemberInfoAuthorizationAssignmentOperations.Execute(
+                    service,
+                    operation,
+                    _ceVersion,
+                    cancellationToken),
             OperationIds.ListMembersAddMany =>
                 Package02Data8ListManagementOperations.ExecuteAddMembers(service, operation, _ceVersion),
             OperationIds.ListMembersRemoveOne =>

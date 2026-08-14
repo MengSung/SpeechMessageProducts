@@ -153,7 +153,15 @@ public enum OperationResponseKind
     /// 重複 ID、超過 32 列、無效 UTF-8 或超過 32 KiB 的資料；此值只建立 local typed contract，不代表任何
     /// consumer、Data8 connector、CE 證據或 deployment gate 已啟用。
     /// </summary>
-    AppNamedMembershipRecords = 21
+    AppNamedMembershipRecords = 21,
+
+    /// <summary>
+    /// P7 MemberInfo 伺服器擁有的 subject assignment evidence。它只包含 subject GUID、封閉 access mode 與最多
+    /// 512 個 unique list GUID；不含 job title、CRM Entity、lookup name、query、profile、credential、Session、
+    /// cookie、cache、connector 或原始例外。此 branch 僅提供 disabled local data plane，不代表 consumer、CE、
+    /// traffic、P7.5 或 P8 已完成。
+    /// </summary>
+    MemberInfoAssignmentEvidence = 22
 }
 
 /// <summary>
@@ -181,6 +189,7 @@ public sealed class OperationResponseData
     private const int MaximumAppNamedMembershipRecords = 32;
     private const int MaximumAppNamedMembershipResponseBytes = 32 * 1024;
     private const int AppNamedMembershipFixedRowBytes = 32;
+    private const int MaximumMemberInfoAuthorizationAssignmentListIds = 512;
     private static readonly System.Text.UTF8Encoding StrictUtf8 = new(false, true);
 
     /// <summary>
@@ -213,6 +222,7 @@ public sealed class OperationResponseData
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords = null,
         IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords = null,
         IReadOnlyList<AppNamedMembershipRecord>? appNamedMembershipRecords = null,
+        MemberInfoAuthorizationAssignmentEvidenceResponseData? memberInfoAuthorizationAssignmentEvidence = null,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification =
             AuthenticationContactReadSafetyClassification.Safe)
     {
@@ -249,6 +259,7 @@ public sealed class OperationResponseData
             authenticationContactReadRecords,
             memberInfoPresentRecordReadRecords,
             appNamedMembershipRecords,
+            memberInfoAuthorizationAssignmentEvidence,
             authenticationContactReadSafetyClassification);
 
         OperationId = operationId;
@@ -277,6 +288,7 @@ public sealed class OperationResponseData
         AppNamedMembershipRecords = appNamedMembershipRecords is null
             ? null
             : Array.AsReadOnly(appNamedMembershipRecords.ToArray());
+        MemberInfoAuthorizationAssignmentEvidence = memberInfoAuthorizationAssignmentEvidence;
         AuthenticationContactReadSafetyClassification = authenticationContactReadSafetyClassification;
     }
 
@@ -445,6 +457,15 @@ public sealed class OperationResponseData
     [JsonPropertyName("appNamedMembershipRecords")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<AppNamedMembershipRecord>? AppNamedMembershipRecords { get; }
+
+    /// <summary>
+    /// P7 MemberInfo 的唯一 assignment evidence branch。它是已驗證 subject 對應的 request-local 純值快照；
+    /// constructor 會在 branch validation 後接受此 immutable record，且 record 本身再防禦性複製 list GUID。
+    /// 此 property 不能作為 profile、credential、connector、owner 或下一次 CRM 讀取的 caller-controlled authority。
+    /// </summary>
+    [JsonPropertyName("memberInfoAuthorizationAssignmentEvidence")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public MemberInfoAuthorizationAssignmentEvidenceResponseData? MemberInfoAuthorizationAssignmentEvidence { get; }
 
     /// <summary>
     /// P7.4 專用的非敏感安全分類。<see cref="AuthenticationContactReadSafetyClassification.SecretPresent"/> 只說明
@@ -889,6 +910,29 @@ public sealed class OperationResponseData
     }
 
     /// <summary>
+    /// 建立 P7 MemberInfo assignment evidence 的唯一成功 branch。呼叫端必須已在 Data8 lease scope 完成固定 subject
+    /// contact retrieve、Church-wide precedence、六個 assignment lookup、TopCount 513 overflow 偵測與 row validation；
+    /// cancellation、fault、paging、重複或不完整資料不得呼叫此 factory。此方法不配置 cache、connector、lease、
+    /// Session、timer 或背景工作，外部資源的 release 仍由 executor 的單一 owner 負責。
+    /// </summary>
+    /// <param name="operationId">固定 server-owned assignment evidence capability ID。</param>
+    /// <param name="ceVersion">由 deployment-owned profile 確定的 CE version。</param>
+    /// <param name="memberInfoAuthorizationAssignmentEvidence">已驗證且 immutable 的目前 subject evidence。</param>
+    /// <returns>只含 assignment evidence branch 的封閉 response envelope。</returns>
+    public static OperationResponseData ForMemberInfoAuthorizationAssignmentEvidence(
+        string operationId,
+        string ceVersion,
+        MemberInfoAuthorizationAssignmentEvidenceResponseData memberInfoAuthorizationAssignmentEvidence)
+    {
+        ArgumentNullException.ThrowIfNull(memberInfoAuthorizationAssignmentEvidence);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.MemberInfoAssignmentEvidence,
+            memberInfoAuthorizationAssignmentEvidence: memberInfoAuthorizationAssignmentEvidence);
+    }
+
+    /// <summary>
     /// 建立明確的 unsupported envelope。connector/Gateway 應把它轉成受控失敗，而不是把未投影 metadata、
     /// OData annotation 或 endpoint detail 回傳給產品；此值不擁有背景資源或可清理 handle。
     /// </summary>
@@ -918,6 +962,7 @@ public sealed class OperationResponseData
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords,
         IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords,
         IReadOnlyList<AppNamedMembershipRecord>? appNamedMembershipRecords,
+        MemberInfoAuthorizationAssignmentEvidenceResponseData? memberInfoAuthorizationAssignmentEvidence,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
@@ -941,8 +986,9 @@ public sealed class OperationResponseData
                            (appNamedListCatalogRecords is null ? 0 : 1) +
                            (smallGroupAppNamedListCatalogRecords is null ? 0 : 1) +
                            (authenticationContactReadRecords is null ? 0 : 1) +
-                           (memberInfoPresentRecordReadRecords is null ? 0 : 1) +
-                           (appNamedMembershipRecords is null ? 0 : 1);
+                          (memberInfoPresentRecordReadRecords is null ? 0 : 1) +
+                          (appNamedMembershipRecords is null ? 0 : 1) +
+                          (memberInfoAuthorizationAssignmentEvidence is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -1012,6 +1058,10 @@ public sealed class OperationResponseData
                 IsValidMemberInfoPresentRecordReadRecords(memberInfoPresentRecordReadRecords),
             OperationResponseKind.AppNamedMembershipRecords => branchCount == 1 && appNamedMembershipRecords is not null &&
                 IsValidAppNamedMembershipRecords(appNamedMembershipRecords),
+            OperationResponseKind.MemberInfoAssignmentEvidence =>
+                branchCount == 1 &&
+                memberInfoAuthorizationAssignmentEvidence is not null &&
+                IsValidMemberInfoAuthorizationAssignmentEvidence(memberInfoAuthorizationAssignmentEvidence),
             _ => false
         };
 
@@ -1110,6 +1160,32 @@ public sealed class OperationResponseData
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 驗證 P7 assignment evidence 的 subject、access mode 與 bounded list snapshot。HashSet 只在 constructor
+    /// validation 期間存活，不會把 user identity 或 authorization list 留在 static/cache/session；Church-wide 必須
+    /// 沒有 list，assigned-list 則必須由 0 至 512 個非空且唯一 GUID 組成。任何歧義都拒絕 envelope。
+    /// </summary>
+    /// <param name="evidence">由固定 Data8 operation 投影出的 immutable evidence。</param>
+    /// <returns>evidence 符合封閉 subject authorization contract 時為 <see langword="true"/>。</returns>
+    private static bool IsValidMemberInfoAuthorizationAssignmentEvidence(
+        MemberInfoAuthorizationAssignmentEvidenceResponseData evidence)
+    {
+        if (evidence.SubjectContactId == Guid.Empty ||
+            !Enum.IsDefined(evidence.AccessMode) ||
+            evidence.AssignedListIds.Count > MaximumMemberInfoAuthorizationAssignmentListIds)
+        {
+            return false;
+        }
+
+        if (evidence.AccessMode == MemberInfoAuthorizationAssignmentAccessMode.ChurchWide)
+        {
+            return evidence.AssignedListIds.Count == 0;
+        }
+
+        var unique = new HashSet<Guid>();
+        return evidence.AssignedListIds.All(id => id != Guid.Empty && unique.Add(id));
     }
 
     /// <summary>
@@ -1944,6 +2020,78 @@ public sealed record AppNamedMembershipRecord
     /// </summary>
     [JsonPropertyName("listName")]
     public string? ListName { get; init; }
+}
+
+/// <summary>
+/// P7 MemberInfo assignment evidence 的封閉存取模式。它只描述 executor 已從固定 contact/list schema 驗證的
+/// server-owned 結論，不能由 browser、Session、legacy login type、profile、credential 或 caller value 選取；
+/// 未定義數值與 list/mode 不一致會由 <see cref="OperationResponseData"/> fail closed。
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum MemberInfoAuthorizationAssignmentAccessMode
+{
+    /// <summary>
+    /// subject 具有固定 Church-wide 職務。這個模式不得攜帶 assigned list，避免將較窄或另一人的 allowlist
+    /// 混入全教會授權結果；它不是 feature gate、traffic enablement 或 CE evidence。
+    /// </summary>
+    ChurchWide = 1,
+
+    /// <summary>
+    /// subject 僅能以固定六個 lookup 查出的 active、app-named、有效日內小組 GUID 作為可見範圍。
+    /// 零筆 list 是合法的 denied scope；不會因此重新查詢 legacy manager、Session 或 browser 值。
+    /// </summary>
+    AssignedLists = 2
+}
+
+/// <summary>
+/// P7 MemberInfo 固定 operation 的 immutable subject assignment evidence。此型別只保留 subject GUID、封閉模式及
+/// 已複製的 list GUID snapshot；不包含 job title、CRM Entity、EntityReference、QueryExpression、profile、endpoint、
+/// credential、cookie、Session、cache、connector、lease、raw exception 或任何可釋放資源。它由目前 request 的
+/// Data8 executor 產生，constructor 立即複製 collection，避免呼叫端或 serializer 在 authorization 與 adapter mapping
+/// 間插入另一位使用者的 list；外部 lease/permit/client 仍由 executor owner 在 finally 中釋放。
+/// </summary>
+public sealed class MemberInfoAuthorizationAssignmentEvidenceResponseData
+{
+    /// <summary>
+    /// 建立封閉 evidence snapshot，並在此資料邊界防禦性複製 incoming list IDs。這裡不推論 Church-wide、
+    /// 不排序、不去重且不存取 CRM；完整 schema、重複、bound 與模式驗證屬 response union 的單一 fail-closed
+    /// 防線。constructor 沒有 cache、timer、stream 或 background work，因此沒有額外資源釋放責任。
+    /// </summary>
+    /// <param name="subjectContactId">固定 operation request 所對應的 server-validated subject GUID。</param>
+    /// <param name="accessMode">Data8 executor 已投影的封閉 server-owned access mode。</param>
+    /// <param name="assignedListIds">目前 request 取得、將被複製的 GUID collection。</param>
+    [JsonConstructor]
+    public MemberInfoAuthorizationAssignmentEvidenceResponseData(
+        Guid subjectContactId,
+        MemberInfoAuthorizationAssignmentAccessMode accessMode,
+        IReadOnlyList<Guid> assignedListIds)
+    {
+        ArgumentNullException.ThrowIfNull(assignedListIds);
+        SubjectContactId = subjectContactId;
+        AccessMode = accessMode;
+        AssignedListIds = Array.AsReadOnly(assignedListIds.ToArray());
+    }
+
+    /// <summary>
+    /// 已由伺服器驗證 Cookie scope 並傳至固定 operation 的 subject GUID。這是 response 與 request scope 的比對值，
+    /// 不是 browser target、owner、profile、organization 或 connector selector；空 GUID 會由 envelope 拒絕。
+    /// </summary>
+    [JsonPropertyName("subjectContactId")]
+    public Guid SubjectContactId { get; }
+
+    /// <summary>
+    /// Church-wide 或 assigned-list 的封閉 server evidence mode。未定義數值不能越過 response union，也不能由
+    /// legacy login type 或 consumer fallback 補正。
+    /// </summary>
+    [JsonPropertyName("accessMode")]
+    public MemberInfoAuthorizationAssignmentAccessMode AccessMode { get; }
+
+    /// <summary>
+    /// 防禦性複製後的目前 request list GUID snapshot。collection 不可由 caller 替換或加入元素；空集合僅在
+    /// Church-wide 或沒有有效 assignment 的確定語意下使用，絕不觸發 Session、cache、legacy ListManager 或第二條 CRM I/O。
+    /// </summary>
+    [JsonPropertyName("assignedListIds")]
+    public IReadOnlyList<Guid> AssignedListIds { get; }
 }
 
 /// <summary>

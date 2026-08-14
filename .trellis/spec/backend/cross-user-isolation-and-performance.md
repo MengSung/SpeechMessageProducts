@@ -753,3 +753,101 @@ Validate request-local server scope
 
 The correct path has no browser-derived shared mutable authority. If the required command boundary is not yet
 implemented, it returns a fixed no-go rather than borrowing legacy global state.
+
+## 13. MemberInfo Server-Owned Assignment Evidence Scenario
+
+### 1. Scope / Trigger
+
+Apply this scenario before a MemberInfo Church/Shepherd tree, membership or relation-goal consumer can be migrated
+away from a Session/`InMemoryContext`/credential-bearing `ListManager` authorization path. The prerequisite is a
+local-only read capability; it is not a controller cutover, CE evidence, feature enablement, traffic change,
+ToolUtility-removal result, P7.5 handoff or P8 result.
+
+### 2. Signatures
+
+```csharp
+Task<MemberInfoAuthorizationAssignmentReadResult> ResolveBySubjectAsync(
+    MemberInfoAuthorizationAssignmentReadRequest request,
+    CancellationToken cancellationToken = default);
+
+Task<MemberInfoTargetAuthorizationResolution> ResolveAsync(
+    P7GatewayRequestScope? requestScope,
+    CancellationToken cancellationToken = default);
+```
+
+The fixed capability is `memberinfo.authorization.assignment.resolve.by.subject`. Its only operation parameter is
+the server-derived `subjectContactId` GUID. It returns exactly one immutable union: `ChurchWide` with no list IDs, or
+`AssignedLists` with zero to 512 distinct non-empty list GUIDs. Profile alias and workload are deployment-owned
+composition values, never browser authority.
+
+### 3. Contracts
+
+1. A unique authenticated Cookie subject is converted to immutable `P7GatewayRequestScope` before profile resolution,
+   connector allocation, CRM I/O, locator parsing, cache access, Session access or legacy-manager access.
+2. The Data8 executor directly retrieves the subject contact job-title, gives Church-wide title precedence, and only
+   then issues one fixed CE 9.1 list query. The query has six fixed subject lookup predicates, active state, exact
+   `小組名單` purpose, app-named flag, a 513-row overflow sentinel and a single-page requirement.
+3. Each list row is identity-checked and validates fixed filter echoes, assignment lookup type/subject, and legacy
+   inclusive local date semantics before publication. Null/malformed identity, paging, more-records, duplicate IDs,
+   invalid type/date or more than 512 IDs fails closed without a partial allowlist.
+4. The wire and ProductClient boundaries publish only copied scalar GUIDs, a closed access mode and a read-only list.
+   They do not expose job titles, CRM `Entity`/`EntityReference`, query objects, endpoint, credential, Session, cookie,
+   principal, cache entry, connector, lease or raw exception.
+5. The ChurchReport adapter accepts only `P7GatewayRequestScope`, forwards the original cancellation token, maps a
+   non-cancellation typed fault to the existing de-identified source-unavailable resolution, and never retries,
+   falls back to `ListManager`, or retains a last result. Connector/lease fault eviction and disposal stay with the
+   executor owner.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Missing/ambiguous request scope or empty subject | Reject before typed-client dispatch, profile/connector composition or CRM I/O. |
+| Caller supplies role, list, date, profile, endpoint, owner, credential or query | It is not represented in the operation schema and cannot affect the query. |
+| Church-wide job title | Return only `ChurchWide` and an empty list; do not query assignments. |
+| Empty valid non-Church assignment result | Return `AssignedLists` with an empty immutable list; do not invoke legacy fallback. |
+| Paging, `MoreRecords`, overflow, duplicate, wrong entity/lookup/type/date or subject mismatch | Fail closed; publish no partial evidence and do not retry. |
+| Cancellation | Propagate unchanged; the executor marks uncertain transport ineligible for reuse and releases its lease/permit. |
+| Typed fault or malformed response | Return the fixed source-unavailable/invalid-evidence result without upstream detail, Session or legacy fallback. |
+
+### 5. Good / Base / Bad Cases
+
+- **Good:** Interleaved A/B requests use their own immutable scope and receive independent copied list snapshots;
+  completing B before A cannot publish B's ID to A.
+- **Base:** The source is registered only as local data-plane evidence. Existing MemberInfo controllers and deployment
+  gates are unchanged, so it has no live cutover or CE claim.
+- **Bad:** Build a Shepherd allowlist from saved credential `ListManager`, accept a browser list/profile, cache the
+  last subject result, treat a duplicate list as harmless, page beyond the one bounded response, or retry an uncertain
+  transport response.
+
+### 6. Tests Required
+
+1. Registry/response-union tests assert the exact operation, one subject GUID parameter, CE 9.1 branch and 512-item
+   publication bound.
+2. Data8 tests assert Church-wide short-circuit, six fixed lookup query, 513 sentinel, single-page failure, duplicate
+   and malformed lookup rejection, and cancellation between contact and list reads.
+3. ProductClient tests assert pre-I/O routing/subject validation, strict operation/version/branch/subject matching,
+   defensive copies, unchanged cancellation and A/B profile/result interleaving.
+4. ChurchReport tests assert null scope zero-I/O behavior, de-identified faults, no legacy/static request state and
+   A/B target-scope isolation. Run focused suites, full Release solution tests/build, UTF-8 no-BOM/CRLF/final-CRLF,
+   `git diff --check` and bounded external review; a 45-second review timeout is recorded as incomplete, not passed.
+
+### 7. Wrong vs Correct
+
+```csharp
+// Wrong: mutable legacy state and saved credentials become the authorization authority.
+var lists = InMemoryContext.ListManager.LoadForSavedCredentials();
+return lists.Where(list => list.LeaderId == Request.Query["contactId"]);
+```
+
+```csharp
+// Correct: the fixed server-owned source accepts only a validated request scope.
+var resolution = await assignmentEvidenceSource.ResolveAsync(requestScope, RequestAborted);
+if (resolution.Failure != MemberInfoTargetAuthorizationFailure.None)
+{
+    return FixedDenied();
+}
+```
+
+The correct form leaves consumer migration to a separate capability-specific child. It does not convert a local
+assignment-evidence contract into CE, traffic, ToolUtility-removal, P7.5 or P8 evidence.

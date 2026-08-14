@@ -509,3 +509,26 @@ principal 可安全證明 subject identity，但沒有 Church job-title 或完�
 因此它只可建立 disabled、immutable、request-local 的 target-authorization contract，source unavailable 或 evidence
 不完整時固定 fail closed；不得把 Session、`InMemoryContext`、credential-bearing `ListManager` 或 partial typed catalog
 當成 authority。該 child 不得接 controller、CE、feature gate 或 traffic；P7.5/P8 gate 維持不變。
+
+### 2026-08-14 MemberInfo scope 完成與下一個 capability 選擇
+
+`08-14-p7-memberinfo-request-local-authorization-scope` 已完成、提交並封存。它交付 immutable
+target-authorization scope、Church-wide／Shepherd access mode、bounded defensive-copy list ID 與
+source-unavailable／incomplete-evidence fail-closed contract；公開 consumer 無法自行建立 authorization evidence。
+focused tests 9/9、ChurchReport tests 652 passed／14 skipped、Dynamics tests 885 passed／7 skipped、完整 solution
+tests 與 Release build 均通過，且已完成 UTF-8、CRLF、scope 與 `git diff --check` 驗證。這只是一個
+disabled local authorization seam，沒有 consumer、CE、feature gate、traffic、P7.5 或 P8 evidence。
+
+下一步是以同一 authoritative 70-row matrix 選取新的獨立 capability；它必須是 DTO-only、server-authorized，且
+不依賴 Session、`InMemoryContext`、credential-bearing ListManager、shared mutable authorization state、stored query、
+unbounded response 或 write-adjacent legacy graph。限時 CCG architect analysis 沒有可用雙模型結論時，記錄
+「雙模型未完成」並以本機 source audit 繼續；這不會重播歷史 Slice C，也不解除 P7.5/P8 gate。
+## 2026-08-14 MemberInfo assignment-source local checkpoint
+
+`08-14-p7-memberinfo-server-authorization-source` 已完成本機的固定 contact/list Data8 read、typed ProductClient
+與 ChurchReport security adapter。這只提供由 Cookie request scope 所導出的 bounded immutable assignment evidence；
+它不接 MemberInfo controller、不啟用 gate、沒有 CE execution、traffic、ToolUtility removal、P7.5 或 P8 證據。
+
+後續必須先封存該 child，再重新稽核 ORG-CALL-00031／00032／00033。任何下一個 child 仍須各自證明
+server authorization、bounded DTO、A/B isolation、cancellation、cleanup、disabled rollback gate，以及其專屬
+CE／parity／rollout evidence；不得因 source prerequisite 已完成而推論 consumer 已可切換。

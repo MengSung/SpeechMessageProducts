@@ -60,6 +60,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.AuthenticationContactRetrieveByLineId,
             OperationIds.MemberInfoContactUpdateBasicInfo,
             OperationIds.MemberInfoPresentRetrieveByContact,
+            OperationIds.MemberInfoAuthorizationAssignmentResolveBySubject,
             "memberinfo.contact.update.line.profile",
             "memberinfo.contact.count.ungrouped.commitment",
             "list.members.add.many",
@@ -74,7 +75,7 @@ public sealed class Package01OperationRegistryTests
             OperationIds.StatsMeetingRetrieveBySunday
         });
 
-        ids.Should().HaveCount(29);
+        ids.Should().HaveCount(30);
     }
 
     /// <summary>

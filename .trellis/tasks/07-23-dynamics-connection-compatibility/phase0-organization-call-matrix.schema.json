@@ -397,7 +397,8 @@
             "SmallGroupAppNamedListCatalogRecords",
             "AppNamedMembershipRecords",
             "MemberInfoPresentRecordReadRecords",
-            "ContactImageDisplay"
+            "ContactImageDisplay",
+            "MemberInfoAssignmentEvidence"
           ]
         },
         "maximumPageCount": {
@@ -562,7 +563,8 @@
                   "list.catalog.retrieve.app.named",
                   "list.catalog.retrieve.appnamed.smallgroups",
                   "list.membership.retrieve.appnamed.by.contact",
-                  "memberinfo.present.retrieve.by.contact"
+                  "memberinfo.present.retrieve.by.contact",
+                  "memberinfo.authorization.assignment.resolve.by.subject"
                 ]
               }
             }

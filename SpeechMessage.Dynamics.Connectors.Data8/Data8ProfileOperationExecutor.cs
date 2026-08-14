@@ -452,6 +452,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.MemberInfoContactUpdateLineProfile => true,
             OperationIds.MemberInfoContactCountUngroupedCommitment => true,
             OperationIds.MemberInfoPresentRetrieveByContact => true,
+            OperationIds.MemberInfoAuthorizationAssignmentResolveBySubject => true,
             OperationIds.ListMembersAddMany => true,
             OperationIds.ListMembersRemoveOne => true,
             OperationIds.ListManagementSmallGroupUpdateFields => true,
@@ -1250,6 +1251,12 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 TryValidateMemberInfoPresentRecordReadRecords(
                     connectorData.MemberInfoPresentRecordReadRecords,
                     definition),
+            OperationResponseKind.MemberInfoAssignmentEvidence =>
+                connectorData.MemberInfoAuthorizationAssignmentEvidence is not null &&
+                TryValidateMemberInfoAuthorizationAssignmentEvidence(
+                    operation,
+                    connectorData.MemberInfoAuthorizationAssignmentEvidence,
+                    definition),
             OperationResponseKind.ContactBasicInfoUpdate => connectorData.ContactBasicInfoUpdate is not null,
             OperationResponseKind.ContactLineProfileUpdate => connectorData.ContactLineProfileUpdate is not null,
             OperationResponseKind.UngroupedCommitmentCounts => connectorData.UngroupedCommitmentCounts is not null,
@@ -1272,6 +1279,54 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         }
 
         data = connectorData;
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 MemberInfo 指派證據與目前 connector operation 的 subject 精確相符。
+    /// 這個檢查位於 lease 尚未釋放的 executor 邊界：若 response 屬於另一個使用者、mode 未定義、Church-wide
+    /// 攜帶 list、ID 重複／空白或超過 registry 512 上限，呼叫端會 MarkFaulted 並淘汰 client，而不是只讓上層
+    /// adapter 拒絕後將未知 transport/session 狀態放回 pool。方法只使用 request-local scalar/DTO，不保存
+    /// evidence、profile、connector、lease、token 或快取資料，也不進行 retry 或 legacy fallback。
+    /// </summary>
+    /// <param name="operation">目前 lease 已執行、只允許單一 subjectContactId 的固定 operation。</param>
+    /// <param name="evidence">connector 投影出的 immutable assignment evidence branch。</param>
+    /// <param name="definition">server-owned registry 的固定 page 與 result bound。</param>
+    /// <returns>response 可安全發布且 client health 仍可證明時為 <see langword="true"/>。</returns>
+    private static bool TryValidateMemberInfoAuthorizationAssignmentEvidence(
+        ConnectorOperation operation,
+        MemberInfoAuthorizationAssignmentEvidenceResponseData evidence,
+        OperationDefinition definition)
+    {
+        if (operation.Parameters is null ||
+            operation.Parameters.Count != 1 ||
+            !operation.Parameters.TryGetValue("subjectContactId", out var subjectValue) ||
+            subjectValue is not Guid requestedSubjectId ||
+            requestedSubjectId == Guid.Empty ||
+            evidence.SubjectContactId != requestedSubjectId ||
+            !Enum.IsDefined(evidence.AccessMode) ||
+            definition.MaximumPageCount != 1 ||
+            definition.MaximumResultItemCount != 512 ||
+            evidence.AssignedListIds.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        if (evidence.AccessMode == MemberInfoAuthorizationAssignmentAccessMode.ChurchWide)
+        {
+            return evidence.AssignedListIds.Count == 0;
+        }
+
+        var uniqueListIds = new HashSet<Guid>();
+        foreach (var listId in evidence.AssignedListIds)
+        {
+            if (listId == Guid.Empty || !uniqueListIds.Add(listId))
+            {
+                return false;
+            }
+        }
+
+        // 空集合是有效的 zero-assignment response，後續 resolver 會發布空 allowlist，絕不回退到 legacy state。
         return true;
     }
 

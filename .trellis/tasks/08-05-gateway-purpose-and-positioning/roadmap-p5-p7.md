@@ -355,3 +355,27 @@ scope。Cookie subject identity 已是可用 baseline，但 job title 與完整�
 server-owned evidence，故 child 只建立 disabled fail-closed contract；source unavailable、subject mismatch、
 invalid/duplicate list ID 或 incomplete assignment evidence 都在任何 I/O 前停止。這是 P7 的局部安全前置，
 不會解除 00031/00032/00033、P7.5 或 P8 的 gate。
+
+## 24. 2026-08-14 MemberInfo scope 完成與持續排程
+
+`08-14-p7-memberinfo-request-local-authorization-scope` 已在 `bfc5aead` 完成實作，並以
+`9369a3f7`／`be3c3b3f` 完成 Trellis／CCG archive。它提供不可偽造的 immutable authorization evidence
+seam，但沒有 server-owned Church／Shepherd assignment source，故既有 MemberInfo consumer 還不能接線。
+它不影響歷史 Slice C 的 closed／exact-cleanup 狀態，也不能被視為 CE、traffic、P7.5 或 P8 evidence。
+
+接續排程應先以 authoritative matrix 及現行 source audit 選下一個 independent P7 capability。每個候選先驗證
+DTO-only、server-derived authorization、bounded response、cancellation／cleanup 與無 shared mutable state；不符合者
+記錄為該 family 的 prerequisite/no-go 後繼續其他獨立 family。P7.5 仍等待 70 rows 與 67 consumers 的完整真實
+evidence；P8 仍等待 immutable P7.5 handoff 與外部 cloud readiness。
+## 25. 2026-08-14 MemberInfo assignment-source local completion
+
+`08-14-p7-memberinfo-server-authorization-source` 完成本機資料面：固定 contact job-title retrieve 與 six-lookup
+list query 產生 Church-wide／assigned-list evidence，經 typed ProductClient 與 ChurchReport security adapter 映射為
+request-local immutable target scope。它新增一個 `ORG-CALL-00031` derived mapping；70-row normalized source inventory
+不變。focused、full Release solution tests 與 build 都通過；CCG reviewer 在 45 秒內沒有 accepted dual result，
+後續 Gemini 的 UTF-8/BOM false positive 已被 byte-level evidence 反證，Claude 無 usable output，正確記錄為
+「雙模型未完成」。
+
+這不是 MemberInfo controller migration、CE evidence、feature gate、traffic、ToolUtility removal、P7.5 或 P8 evidence。
+接續只可建立新的 audit/design child，重新確認 00031／00032／00033 是否能各自形成 bounded、server-authorized、
+disabled-by-default consumer capability；不可回讀 Session、InMemoryContext、credential-bearing ListManager 或建立 fallback。
