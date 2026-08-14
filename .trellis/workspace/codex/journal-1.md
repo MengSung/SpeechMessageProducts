@@ -653,3 +653,36 @@ Reconciled P7/P8 parent evidence hierarchy, preserved Slice C non-replay and P7.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 20: P7 server-derived authorization boundary
+
+**Date**: 2026-08-14
+**Task**: P7 server-derived authorization boundary
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成並封存 P7 request-local immutable Cookie scope：嚴格 claim 投影、A/B isolation tests、Release build 與完整 solution tests；CE、consumer、traffic、P7.5/P8 維持未啟動。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f065eac5` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
