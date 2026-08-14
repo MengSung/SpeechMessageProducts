@@ -56,7 +56,13 @@
       "reason": "App-named membership now has a bounded fixed-query registry/Data8/ProductClient DTO data plane, but each legacy caller remains a mutable Entity and write-adjacent flow without an immutable request-local authorization boundary.",
       "recovery": "Before any consumer cutover, create a separately governed principal-derived authorization scope and demonstrate capability-specific CE, capacity/parity, rollout, rollback and lifecycle evidence.",
       "evidence": "archived child 08-14-p74-appnamed-membership-read-data-plane: targeted, Dynamics and solution local tests/build passed; no CE, feature gate, traffic, P7.5 or P8 operation; final dual-model review did not complete within 45 seconds."
+    },
+    "memberInfoAssignmentSourceCheckpoint": {
+      "state": "local-only-data-plane-complete-and-archived",
+      "rows": ["ORG-CALL-00031", "ORG-CALL-00032", "ORG-CALL-00033"],
+      "evidence": "archived child 08-14-p7-memberinfo-server-authorization-source: fixed server-owned subject contact/list assignment evidence, typed ProductClient and ChurchReport adapter; full local Release tests/build passed; no controller, CE, feature gate, traffic, P7.5 or P8 operation.",
+      "recovery": "Re-audit each row for a distinct DTO-only consumer/data-plane child; the immutable prerequisite removes only the prior source-authority no-go and does not authorize cutover."
     }
   },
-  "nextAction": "Archive the completed child that derives complete MemberInfo assignment evidence from fixed server-owned contact/list fields, then re-audit ORG-CALL-00031/00032/00033 for a separately governed DTO-only consumer/data-plane child. The new candidate must still prove request-local authorization, bounds, cancellation, cleanup, no legacy fallback and a disabled rollout boundary. Keep all feature gates false; do not issue CE requests, cut traffic, start P7.5 removal or P8."
+  "nextAction": "Re-audit ORG-CALL-00031/00032/00033 for separately governed DTO-only consumer/data-plane children now that the fixed server-owned contact/list assignment evidence prerequisite is archived. Each candidate must still prove request-local authorization, bounds, cancellation, cleanup, no legacy fallback and a disabled rollout boundary. Keep all feature gates false; do not issue CE requests, cut traffic, start P7.5 removal or P8."
 }
