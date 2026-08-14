@@ -1,0 +1,12 @@
+{
+  "id": "p7-post-runtime-health-reconciliation",
+  "title": "P7 post-runtime-health current matrix reconciliation",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "gateway-product-client",
+  "currentPhase": "completed",
+  "nextAction": "Offline matrix reconciliation, local checks, and bounded CCG attempts completed; archive task-owned records and select the MemberInfo request-local authorization-scope prerequisite.",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
