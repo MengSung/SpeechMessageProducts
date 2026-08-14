@@ -1,0 +1,12 @@
+{
+  "id": "p7-memberinfo-tree-consumer-reaudit",
+  "title": "P7 MemberInfo tree consumer authorization re-audit",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-security",
+  "currentPhase": "completed",
+  "nextAction": "已完成 source/consumer re-audit；封存本 task，接續建立 00031/00032 small-group snapshot data-plane child。",
+  "createdAt": "2026-08-14T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

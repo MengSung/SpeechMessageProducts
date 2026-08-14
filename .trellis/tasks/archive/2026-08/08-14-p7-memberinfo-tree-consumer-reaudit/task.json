@@ -1,0 +1,35 @@
+{
+  "id": "p7-memberinfo-tree-consumer-reaudit",
+  "name": "p7-memberinfo-tree-consumer-reaudit",
+  "title": "P7 MemberInfo tree consumer authorization re-audit",
+  "description": "依已封存的固定 server-owned MemberInfo assignment evidence，重新稽核 ORG-CALL-00031／00032／00033 是否存在可獨立驗證、DTO-only、request-local、disabled-by-default 的 consumer/data-plane child；不接線 Controller、不進行 CE、feature gate、traffic、P7.5 或 P8。",
+  "status": "completed",
+  "dev_type": "analysis",
+  "scope": "P7 MemberInfo 00031／00032／00033 source and consumer-boundary re-audit only",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-14",
+  "completedAt": "2026-08-14",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+    ".trellis/tasks/archive/2026-08/08-14-p7-memberinfo-server-authorization-source/",
+    "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs"
+  ],
+  "notes": "Planning is autonomous under the user's explicit authorization. CCG architecture analysis exceeded the 45-second budget without usable output and is recorded as 雙模型未完成. Local re-audit concludes 00031/00032 may proceed only as a new isolated small-group snapshot data-plane child; 00033 remains no-go.",
+  "meta": {
+    "externalModelBudgetSeconds": 45,
+    "ceOperationsAllowed": false,
+    "consumerCutoverAllowed": false,
+    "p75OrP8Allowed": false
+  }
+}
