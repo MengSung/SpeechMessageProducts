@@ -309,3 +309,16 @@ source/project/settings no-go evidence；它不能用來升格兩個新 local ro
 weekly-specific gate=false zero-work，因此不符合 immutable request-local authorization、DTO-only、無 write-adjacency
 的資格。此 no-go 只停止 direct consumer cutover；後續必須先建立可獨立驗收的 server-derived authorization
 boundary，才能重新評估依賴該 boundary 的 capability。
+
+## 2026-08-14 runtime.health.whoami 本機邊界
+
+`runtime.health.whoami` 不是 ChurchReport browser／Session consumer cutover，而是 deployment runtime
+health capability。其 request shape 固定為零 operation parameter、零 idempotency key；ProductClient 僅可把
+已驗證的 deployment-owned profile alias 與 workload subject scalar 交給既有 executor。client 不持有
+connector、lease、`HttpContext`、principal、cookie、credential、CRM SDK 型別、cache、timer、subscription 或
+background task；executor 維持 transport/lease 的唯一 owner 與 deterministic cleanup 責任。
+
+response 必須同時符合固定 operation ID、CE 9.1、WhoAmI response branch 與三個非空 GUID。任何 operation、
+version、branch 或 identity scalar 不一致均回傳 sanitized fail-closed result，不產生 fallback、重試或跨 profile
+狀態。A/B interleaving 與 cancellation tests 必須證明 request state 不被 retained。這個 child 僅建立本機
+data-plane contract，並不改變 P7.4 consumer、P7.5 removal 或 P8 deployment gate。

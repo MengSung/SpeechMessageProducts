@@ -316,3 +316,28 @@ P7.4 已有 20 個封存 capability child。最新 `ORG-CALL-00057` 只完成 de
 action 已是 direct consumer no-go。direct P7.4 safe candidate audit 目前為零；下一個可進行 child 是
 server-derived immutable authorization-boundary recovery prerequisite，或另一個經 matrix/source audit 證明不含
 Session、InMemoryContext、credential bridge、stored query、Entity bridge 與 write adjacency 的獨立 family。
+
+## 21. 2026-08-14 runtime health recovery lane
+
+已選定與 direct P7.4 ChurchReport consumer audit 不同的 independent matrix capability：
+`ORG-CALL-00003`／`runtime.health.whoami`。此 lane 只將既有 fixed WhoAmI registry/Data8 executor 補成
+stateless typed ProductClient 與 DI boundary，回傳 sanitized immutable health DTO；不會改變任何 ChurchReport
+consumer、feature gate、流量、fixture、CE evidence、P7.5 或 P8。
+
+執行後順序仍是：完成此 child 的本機品質與 task archive → 回到 70-row matrix 選下一個已證明
+server-authorized、DTO-only、無 mutable bridge／write adjacency 的 P7 capability → 所有 70 rows 和 67
+consumer 均具真實實作與證據後才 P7.5 → P7.5 scope-only commit/archive immutable handoff 後才 P8.0～P8.4。
+任何缺少 host、DNS、TLS、identity、secret provider、network、CE reachability 或 deployment authorization 的
+P8 前置條件只產生去識別化 repository-side readiness evidence／handoff，絕不猜測或假裝部署。
+
+## 22. 2026-08-14 P8 hard no-go 與未來 repository 工作
+
+P8 目前不可建立、部署或 cut over。除 P7.5 immutable handoff 和外部 cloud readiness 尚未具證外，source audit
+確認 Central branch 目前是 Official Worker composition，Data8 composition 只存在 Dedicated branch；故尚未有
+`CentralGateway + Data8` 的可部署基線。既有 health/ready endpoint、local tests、Official Worker deployment
+preflight 與 ChurchReport local publish script 都不得宣稱為此 P8 baseline。
+
+P7.5 完成前，任何 P8 相關工作僅能是 repository-side 的無秘密 manifest、validator、runbook 或 readiness
+handoff 設計；不得猜選 host、DNS、certificate、identity、secret、network/CE allowlist、monitoring destination
+或 deployment window。P7.5 scope-only commit/archive 產生 immutable handoff 後，才可建立 P8 parent，並先完成
+P8.0 readiness 的安全唯讀驗證。

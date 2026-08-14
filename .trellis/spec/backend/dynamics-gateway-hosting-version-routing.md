@@ -4343,3 +4343,90 @@ catch (IOException exception) when (IsExpectedEvidenceContention(exception))
 
 The correct form tolerates only the proven publication race while preserving fail-closed
 behavior for every unknown filesystem failure.
+
+## Scenario: Runtime-health WhoAmI typed ProductClient boundary
+
+### 1. Scope / Trigger
+
+Use this scenario when a product needs the existing `runtime.health.whoami` operation as a
+local, typed health boundary. It adds only a ProductClient projection; it is not a
+ChurchReport consumer migration, CE-evidence run, feature-gate change, traffic change,
+ToolUtility-removal claim, P7.5 handoff, or P8 readiness result.
+
+### 2. Signatures
+
+```csharp
+Task<RuntimeHealthWhoAmIIdentityDto> CheckAsync(
+    string profileAlias,
+    string workloadSubjectId,
+    CancellationToken cancellationToken = default);
+```
+
+The implementation sends exactly `OperationIds.RuntimeHealthWhoAmI`, CE `9.1`, an empty
+parameter map, and no idempotency key through the existing `IDynamicsOperationExecutor`.
+It returns only non-empty `UserId`, `BusinessUnitId`, and `OrganizationId` GUID scalars.
+
+### 3. Contracts
+
+- Profile alias and workload subject are deployment-/server-owned inputs. Reject blank,
+  invalid UTF-8, or over-budget values before executor dispatch; never accept an operation,
+  CE version, connector, endpoint, credential, owner, or organization from the caller.
+- The ProductClient has no cache, retry, fallback, timer, subscription, background work,
+  request/response retention, CRM SDK reference, or transport object. The executor remains
+  the sole owner of connector, lease, permit, cancellation, fault, drain, and cleanup.
+- A successful response must match the fixed operation, CE version, WhoAmI discriminator,
+  and all three non-empty GUIDs. Failure, mismatch, or partial identity emits only a bounded,
+  de-identified contract failure and never uses a legacy route.
+- Gateway or standalone DI registration is additive and must not resolve an executor, create
+  I/O, or enable a consumer/gate merely by registering the client.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Blank, invalid UTF-8, or oversized profile/workload | Reject before executor dispatch. |
+| Executor reports failure | Throw a fixed product-side failure without raw upstream text or retry. |
+| Operation, CE version, discriminator, branch, or GUID mismatch | Reject the entire response; do not publish a partial DTO. |
+| Cancellation | Forward the original token; do not create a linked source or background retry. |
+| DI registration/resolve | Add one stateless client and perform zero CE/HTTP/connector work. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: interleaved A/B requests produce two independent immutable GUID DTOs, while the
+  singleton retains only its DI-owned executor reference.
+- Base: the client is registered but no consumer calls it, so no deployment or CE action
+  occurs.
+- Bad: cache the last WhoAmI response, expose the executor response/SDK object, accept a
+  caller-selected version/profile as authority, or fall back to ToolUtility after a mismatch.
+
+### 6. Tests Required
+
+- Verify the fixed operation, empty parameters/idempotency key, strict scalar budgets, and
+  unchanged cancellation-token forwarding.
+- Verify operation/version/branch mismatches and each empty GUID fail closed without retry
+  or upstream-detail leakage.
+- Interleave distinguishable A/B results and assert fresh DTO instances with no cross-result
+  marker; verify standalone and Gateway DI registration do not dispatch.
+- Run the focused ProductClient tests, full Release solution tests/build, UTF-8-no-BOM/
+  CRLF/final-CRLF audit, and `git diff --check` before recording the capability as local-only.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+_lastWhoAmI = await _executor.ExecuteAsync(request, cancellationToken);
+return _lastWhoAmI.Data.WhoAmI;
+```
+
+This retains a mutable upstream graph and can return a prior profile's state.
+
+#### Correct
+
+```csharp
+var result = await _executor.ExecuteAsync(fixedRequest, cancellationToken);
+return new RuntimeHealthWhoAmIIdentityDto(userId, businessUnitId, organizationId);
+```
+
+The fixed request is validated per call, the response is checked before publication, and the
+DTO copies only allowlisted scalar values while executor-owned resources remain downstream.

@@ -1,0 +1,4 @@
+{"path":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"ProductClient request isolation、executor ownership與資源生命週期的強制契約。"}
+{"path":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Gateway／Embedded／Data8 與 CE 9.1 operation routing 的強制契約。"}
+{"path":".trellis/tasks/archive/2026-08/08-14-p7-current-state-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00003 的現行 authoritative matrix status。"}
+{"path":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"ORG-CALL-00003 的原始 source definition。"}

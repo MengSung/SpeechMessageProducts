@@ -467,3 +467,32 @@ deterministic cleanup 與單一 rollback owner 的 write/action family。
 P7.5／P8 fail closed。真正 P7.5 前仍須以 current matrix 重新執行完整 legacy source／project／settings
 scan、parity、soak、drain 與 rollback gate。P8 仍等待 P7.5 scope-only commit/archive 的 immutable handoff，
 以及具名 host、identity、TLS、secret provider、network、CE reachability 與 deployment authorization。
+
+### 2026-08-14 runtime health capability 選擇
+
+本 parent 已以 `08-14-p7-current-state-rebaseline` 完成「新的 P7 remaining-work child」要求；該 child 的
+70-row current matrix 是後續排程的權威基準，故不得建立內容重複的 rebaseline task。封存的 P3～P7.2
+任務一律只讀，舊 P7.2 Slice C 的 `write-not-committed`／exact-cleanup 終態也不得改寫成可重播工作。
+
+下一個選定 child 是 `08-14-p7-runtime-health-whoami-productclient-boundary`。它處理既有
+`ORG-CALL-00003`、固定 `runtime.health.whoami` operation 的本機 ProductClient 邊界：只接受
+deployment-owned profile/workload scalar，回傳 bounded immutable health DTO，並驗證 CE 9.1 WhoAmI branch
+及三個非空 GUID。它不遷移 ChurchReport consumer、不啟用 gate、不呼叫 CE、不建立 fixture，也不升格
+P7.5 或 P8 證據；因此是與 QR／weekly attendance legacy graph 無相依的安全本機前進項目。
+
+本目標取代早期「不使用外部模型」的 parent 記錄：M+ child 會以專案 CCG self-healing runner 嘗試
+Gemini 與 Claude，但每次最多等待 45 秒。若無 usable output，必須記錄「雙模型未完成」並採本機
+驗證繼續，不得重送或把降級結果稱作完整雙模型審查。
+
+### 2026-08-14 P8 repository-side readiness audit
+
+P8 仍是 hard no-go。P7.5 尚缺 current-source `prerequisite-ready`、scope-only commit/archive 與 immutable
+handoff；current matrix 同時仍有 70 temporary-legacy rows、67 未遷移 consumers 與 70 筆 pending／closed CE/host
+evidence。repository 內雖已有 `/health`、`/ready`、本機 readiness tests 與 drain-first runbook，但它們不是雲端
+deployment、CE reachability、monitoring 或 rollback-drill evidence。
+
+額外的 repository gap 是目前 Central branch 組成 Official Worker，而 Data8 只在 Dedicated branch 組成；因此
+尚不存在 P8 指定的 `CentralGateway + Data8` deployment composition。缺少 immutable handoff、可重現 combined
+Gateway/ChurchReport package、rollback package、具名 host、DNS、TLS、service identity、secret provider、network、
+CE/ADFS reachability、IP allowlist、deployment authorization、monitoring/alert destination 與 live baseline 時，
+只能準備受控 runbook/validator/handoff，不得建立、部署或切換 P8。

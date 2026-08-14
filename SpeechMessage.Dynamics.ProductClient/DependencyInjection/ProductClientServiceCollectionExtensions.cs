@@ -23,6 +23,7 @@ using SpeechMessage.Dynamics.ProductClient.Gateway;
 using SpeechMessage.Dynamics.ProductClient.ListCatalog;
 using SpeechMessage.Dynamics.ProductClient.ListManagement;
 using SpeechMessage.Dynamics.ProductClient.MemberInfo;
+using SpeechMessage.Dynamics.ProductClient.RuntimeHealth;
 using SpeechMessage.Dynamics.ProductClient.SpecialResources;
 
 namespace SpeechMessage.Dynamics.ProductClient.DependencyInjection;
@@ -88,6 +89,25 @@ public static class ProductClientServiceCollectionExtensions
         services.TryAddSingleton<IMemberInfoPresentRecordReadClient, MemberInfoPresentRecordReadClient>();
         services.TryAddSingleton<IPackage02ListManagementClient, Package02ListManagementClient>();
         services.TryAddSingleton<IPackage03SpecialResourceClient, Package03SpecialResourceClient>();
+        services.TryAddSingleton<IRuntimeHealthWhoAmIClient, RuntimeHealthWhoAmIClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 只註冊 ORG-CALL-00003 的 stateless runtime.health.whoami ProductClient。呼叫端必須已由 Embedded 或
+    /// Gateway composition 註冊唯一 <see cref="IDynamicsOperationExecutor"/>；此方法不建立或解析 executor、
+    /// HttpClient、connector、lease、permit、cache、timer、subscription、background task、feature gate 或 CE I/O。
+    /// singleton 只持有 DI-owned executor reference，profile/workload/WhoAmI GUID/response 都在每次呼叫短命建立，
+    /// 因此不會跨 request、profile、使用者或租戶保留 mutable state；transport 的 fault/cancellation/drain cleanup
+    /// 始終由 executor 的唯一 owner 確定執行。
+    /// </summary>
+    /// <param name="services">已含或稍後將含 executor registration 的 composition root service collection。</param>
+    /// <returns>加入 health client descriptor 的同一 service collection，供呼叫端繼續組成。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsRuntimeHealthWhoAmI(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IRuntimeHealthWhoAmIClient, RuntimeHealthWhoAmIClient>();
         return services;
     }
 

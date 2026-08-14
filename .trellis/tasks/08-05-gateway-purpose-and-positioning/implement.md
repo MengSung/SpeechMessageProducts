@@ -273,3 +273,18 @@ legacy QR path 的 independent matrix capability。
    不可重做 00057、00011／00012、00063 或 historical Slice C。
 5. [ ] current matrix 仍有 70 temporary-legacy rows，故不得建立 P7.5 removal child 或 P8。接近 P7.5 前，
    必須以 current matrix 建立新的 P7.5 source/project/settings reconciliation，而非復用 archived report 的 hash。
+
+## 2026-08-14 runtime health child 執行順序
+
+1. [x] 使用已封存 `08-14-p7-current-state-rebaseline` 的 current matrix 重新確認下一個 child；不重建
+   duplicate rebaseline task，不重開 P3～P7.2，也不重播 Slice C。
+2. [x] 為 `08-14-p7-runtime-health-whoami-productclient-boundary` 建立 Trellis／CCG planning artifacts，並以
+   CCG architect runner 嘗試雙模型；45 秒內無 usable output 時記錄「雙模型未完成」，不得重送。
+3. [x] review 並啟動此 child；以 TDD 新增 fixed operation、CE 9.1／WhoAmI branch、GUID validation、
+   DI、A/B isolation、cancellation 與無效 UTF-8 input tests，再實作 stateless typed ProductClient。
+4. [x] 對該 child 執行 focused tests、Release build、full solution tests、encoding／CRLF、`git diff --check`
+   與 scope check；沒有接線 consumer、CE、feature gate、traffic、P7.5 或 P8。CCG reviewer 在 45 秒上限內
+   未產生 usable output，已記錄「雙模型未完成」並以本機審查完成此 child 的 check。
+5. [ ] child scope-only commit/archive 後以同一 current matrix 選下一個 independently-verifiable capability；只在每個 P7.5
+   prerequisite 實證後才建立 ToolUtility removal child，並只在 immutable P7.5 handoff 與外部條件具備後建立
+   P8.0～P8.4。

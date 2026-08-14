@@ -1,0 +1,3 @@
+{"path":"SpeechMessage.Dynamics.ProductClient","reason":"ProductClient boundary、DI registration及避免transport/SDK type洩漏。"}
+{"path":"SpeechMessage.Dynamics.Tests","reason":"ProductClient contract、DI、A/B isolation與cancellation tests。"}
+{"path":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"跨使用者與資源生命週期 release gate。"}
