@@ -1,0 +1,6 @@
+{"path":".trellis/tasks/archive/2026-08/08-14-p7-post-runtime-health-reconciliation/authoritative-gap-matrix.json","reason":"權威 70-row matrix；00031/00032/00033 仍未實作且 temporary-legacy。"}
+{"path":".trellis/tasks/archive/2026-08/08-14-p74-memberinfo-smallgroup-tree-authorization-audit/source-audit.md","reason":"legacy Session/InMemoryContext/ListManager authorization graph 與 recovery precondition。"}
+{"path":"SpeechMessageProducts.ChurchReport/Security/P7GatewayRequestScope.cs","reason":"唯一合法 Cookie subject scope。"}
+{"path":"SpeechMessageProducts.ChurchReport/Security/MemberInfoTargetAuthorizationScope.cs","reason":"內部 evidence 到 immutable target scope 的既有 fail-closed seam。"}
+{"path":"SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadListManager.cs","reason":"六個 legacy assignment lookup 與有效日 semantics 的只讀來源證據。"}
+{"path":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"跨使用者隔離、資源生命週期與 A/B test 的強制契約。"}

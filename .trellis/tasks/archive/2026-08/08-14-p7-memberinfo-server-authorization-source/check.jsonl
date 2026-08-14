@@ -1,0 +1,3 @@
+{"check":"scope","requirement":"不得接線 MemberInfoController、Session、InMemoryContext、legacy ListManager、CE mutation、feature gate、traffic、P7.5 或 P8。"}
+{"check":"isolation","requirement":"A/B subject/profile interleaving、defensive copy、invalid/ambiguous source、cancellation/fault cleanup。"}
+{"check":"quality","requirement":"targeted tests、solution Release tests/build、UTF-8 no BOM、CRLF、final CRLF、git diff --check、CCG bounded review。"}

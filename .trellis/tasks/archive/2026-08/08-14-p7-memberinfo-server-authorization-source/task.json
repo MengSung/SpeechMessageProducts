@@ -1,0 +1,40 @@
+{
+  "id": "p7-memberinfo-server-authorization-source",
+  "name": "p7-memberinfo-server-authorization-source",
+  "title": "P7 MemberInfo server-owned assignment source prerequisite",
+  "description": "建立並驗證可供 MemberInfo 使用的伺服器擁有完整指派證據來源；先完成 source audit 與 fail-closed 設計，不接線 legacy Session/ListManager、CE 或 feature gate。",
+  "status": "completed",
+  "dev_type": "backend-integration-security-boundary",
+  "scope": "A fixed server-owned MemberInfo assignment-evidence data plane and ChurchReport security adapter only; no controller cutover, CE mutation, feature enablement, traffic, P7.5 or P8.",
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-14",
+  "completedAt": "2026-08-14",
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    ".trellis/tasks/archive/2026-08/08-14-p7-post-runtime-health-reconciliation/authoritative-gap-matrix.json",
+    ".trellis/tasks/archive/2026-08/08-14-p74-memberinfo-smallgroup-tree-authorization-audit/source-audit.md",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md"
+  ],
+  "notes": "Completed local-only fixed assignment-evidence data plane: registry, Data8 fixed contact/list query, typed ProductClient and ChurchReport security adapter. Focused tests, full Release solution tests and Release build passed; CCG reviewer remains dual-model incomplete because Claude produced no usable output. A later Gemini UTF-8/BOM Critical was refuted with strict byte-level decoding, source scan and mutation-proven tests, so no valid Critical remains. This child is a recovery prerequisite for ORG-CALL-00031/00032/00033 only: no controller, CE, feature gate, traffic, ToolUtility removal, P7.5 or P8 evidence exists. Existing app-named small-group catalog still lacks complete assignment and date fields and is not authorization authority.",
+  "meta": {
+    "candidateRows": [
+      "ORG-CALL-00031",
+      "ORG-CALL-00032",
+      "ORG-CALL-00033"
+    ],
+    "operationId": "memberinfo.authorization.assignment.resolve.by.subject",
+    "localOnly": true,
+    "externalModelStatus": "dual-model-incomplete; the 45-second wait elapsed without an accepted dual result; later Gemini output contained a byte-level-refuted UTF-8/BOM false positive, and Claude produced no usable output",
+    "localVerification": "focused 53 passed; full Release solution tests passed; Release build 0 warning/0 error; encoding/CRLF/diff scope checked"
+  }
+}
