@@ -1,0 +1,37 @@
+{
+    "schemaVersion":  "p7.current-state-rebaseline.summary.v1",
+    "callSiteCount":  70,
+    "registry":  {
+                     "declared":  28,
+                     "local-only":  13,
+                     "not-declared":  29
+                 },
+    "data8Executor":  {
+                          "implemented":  27,
+                          "local-only-rejected":  13,
+                          "not-implemented":  30
+                      },
+    "productClient":  {
+                          "implemented":  26,
+                          "not-implemented":  44
+                      },
+    "consumer":  {
+                     "migrated-disabled":  3,
+                     "not-migrated":  67
+                 },
+    "ce91":  {
+                 "evidence-pending":  50,
+                 "no-go-closed":  1,
+                 "not-executed":  13,
+                 "succeeded":  6
+             },
+    "temporaryLegacy":  {
+                            "temporary-legacy":  70
+                        },
+    "p75RemovalBlocker":  {
+                              "consumer-not-migrated":  49,
+                              "legacy-sdk-dependency":  3,
+                              "mixed":  13,
+                              "special-resource-pending":  5
+                          }
+}

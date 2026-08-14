@@ -1,0 +1,6 @@
+{"file":"AGENTS.md","reason":"全域隔離、資源生命週期、繁體中文文件、UTF-8 無 BOM 與 CRLF release blocker。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"確認 matrix 與後續 candidate 不得導入跨使用者、跨 profile 或共享可變狀態。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/build_rebaseline.py","reason":"封存、已驗證的離線 analyzer；新 child 僅可透過 wrapper 重用，不能修改其歷史內容。"}
+{"file":".trellis/tasks/archive/2026-08/08-13-p75-prerequisite-evidence-zero-reference-gate/p75-prerequisite-evidence-report.json","reason":"P7.5 deterministic no-go 的權威計數與 gate。"}
+{"file":".trellis/tasks/archive/2026-08/08-14-p74-appnamed-membership-read-data-plane/check.jsonl","reason":"最新 P7.4 local-only data-plane 驗證範圍與未升格 evidence。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/task.json","reason":"P7 parent 的現況、children 與待校正的 nextAction。"}

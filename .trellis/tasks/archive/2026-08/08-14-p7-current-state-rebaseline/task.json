@@ -1,0 +1,38 @@
+{
+  "id": "p7-current-state-rebaseline",
+  "name": "p7-current-state-rebaseline",
+  "title": "P7 current-state rebaseline",
+  "description": "依現行程式碼與封存證據重建 P7 權威差距矩陣，校正 parent 路線與 task metadata；不重播歷史 CE cycle、不變更 feature gate 或流量。",
+  "status": "completed",
+  "dev_type": "backend-integration-analysis",
+  "scope": "Task-owned offline rebaseline artifacts and required P7 parent documentation only; no CE, feature, traffic, P7.5 removal or P8 deployment.",
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-14",
+  "completedAt": "2026-08-14",
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-05-gateway-purpose-and-positioning",
+  "relatedFiles": [
+    "authoritative-gap-matrix.json",
+    "matrix-summary.json",
+    "rebaseline-summary.md",
+    "research/matrix-audit.md",
+    "research/parent-drift-audit.md",
+    "research/candidate-audit.md"
+  ],
+  "notes": "Current source hash differs from archived matrix. Current matrix independently proves P7.5 no-go (70 temporary legacy, 67 unmigrated consumers); archived P7.5 report remains historical source/project/settings evidence only. Direct P7.4 safe candidate audit is zero. Dual-model architect run was bounded at 45 seconds with no usable output and is recorded as incomplete.",
+  "meta": {
+    "sourceMatrixHash": "52327c15e33a62fe64a59ee73c9adf9051a5e6648c41ae903fdb853138c9b503",
+    "callSiteCount": 70,
+    "p75State": "no-go",
+    "p8State": "not-started"
+  }
+}

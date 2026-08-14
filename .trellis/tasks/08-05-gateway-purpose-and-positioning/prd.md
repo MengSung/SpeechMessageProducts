@@ -447,3 +447,23 @@ locator 會先經 Session、`InMemoryContext`、ListManager、mutable `DonationP
 不能替代這個 resolver。它是 source-only local design no-go，僅停止此 family 的 direct migration；未來須先由
 獨立 child 建立 authenticated principal → immutable authorization scope，並再分開證明 bounded contact DTO、
 A/B isolation、fault cleanup、CE／host parity 與 rollback。此結果不阻擋其他 P7 family；P7.5/P8 gate 不變。
+
+### 2026-08-14 current-state rebaseline checkpoint
+
+新的 task-owned current matrix 以目前 Phase-0 source hash
+`52327c15e33a62fe64a59ee73c9adf9051a5e6648c41ae903fdb853138c9b503` 重建 70 rows：
+registry declared 28、Data8 executor implemented 27、ProductClient implemented 26、consumer
+`migrated-disabled` 3、CE 9.1 succeeded 6。這些是彼此獨立的本機／唯讀 evidence；70 rows 仍全部
+`temporary-legacy`，67 個 consumer 仍未遷移，故 P7.5 由 current matrix 自身即為 no-go。
+
+P7.4 至今有 20 個封存 capability child。`ORG-CALL-00057` 已完成 default-disabled、fixed-query、DTO-only
+local data plane，但 current-group、NewPerson 與 DownloadListManager 的 mutable legacy graph 不得接線，
+consumer、CE、host、traffic 仍 pending。`ORG-CALL-00011`／`00012` list membership action 已是 source-only
+consumer no-go，必須另立具 server authorization、idempotency、exact read-back／reconciliation、fresh fixture、
+deterministic cleanup 與單一 rollback owner 的 write/action family。
+
+封存 P7.5 report 仍是歷史 no-go snapshot；因其 source hash 已過期，不能稱為目前 source 的重建報告。
+不過 current matrix 的 70 temporary-legacy、67 未遷移 consumer 與 pending／closed evidence 已足以維持
+P7.5／P8 fail closed。真正 P7.5 前仍須以 current matrix 重新執行完整 legacy source／project／settings
+scan、parity、soak、drain 與 rollback gate。P8 仍等待 P7.5 scope-only commit/archive 的 immutable handoff，
+以及具名 host、identity、TLS、secret provider、network、CE reachability 與 deployment authorization。

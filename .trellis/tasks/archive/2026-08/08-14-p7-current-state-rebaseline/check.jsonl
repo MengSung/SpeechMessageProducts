@@ -1,0 +1,7 @@
+{"file":".trellis/tasks/08-14-p7-current-state-rebaseline/Invoke-OfflineRebaseline.ps1","reason":"task-owned、offline-only matrix rebuild/validate wrapper；禁止越出 task 目錄。"}
+{"file":".trellis/tasks/08-14-p7-current-state-rebaseline/test_rebaseline_wrapper.py","reason":"wrapper 成功、歷史 Slice C、local-only、path containment、tamper fail-closed 與 summary regression tests。"}
+{"file":".trellis/tasks/08-14-p7-current-state-rebaseline/authoritative-gap-matrix.json","reason":"current-source 70-row machine-readable matrix 與 fixed evidence categories。"}
+{"file":".trellis/tasks/08-14-p7-current-state-rebaseline/matrix-summary.json","reason":"由 matrix 重算的 P7/P7.5 aggregate 計數。"}
+{"file":".trellis/tasks/08-14-p7-current-state-rebaseline/research/matrix-audit.md","reason":"source-hash drift、matrix authority、不可升格 evidence 的 research evidence。"}
+{"file":".trellis/tasks/08-14-p7-current-state-rebaseline/research/candidate-audit.md","reason":"direct P7.4 safe candidate=0 的 source audit 與 recovery prerequisite。"}
+{"file":".trellis/tasks/08-05-gateway-purpose-and-positioning/task.json","reason":"本 child 校正後的 parent checkpoint、P7.5/P8 gate 與 nextAction。"}

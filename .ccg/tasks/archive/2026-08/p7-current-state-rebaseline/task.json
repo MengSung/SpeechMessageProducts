@@ -1,0 +1,12 @@
+{
+  "id": "p7-current-state-rebaseline",
+  "title": "P7 current-state rebaseline",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-integration-migration",
+  "currentPhase": "review",
+  "nextAction": "本機檢查與 bounded reviewer fallback 已完成；僅 commit／archive task-owned rebaseline 與 parent checkpoint，之後規劃 server-derived immutable authorization-boundary prerequisite；不啟動 P7.5 或 P8。",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

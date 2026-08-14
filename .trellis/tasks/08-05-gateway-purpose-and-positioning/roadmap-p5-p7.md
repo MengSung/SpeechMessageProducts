@@ -303,3 +303,16 @@ request-local immutable authorization 或 duplicate-aware current-group semantic
 P7.4 read child、CE evidence 或 P7.5/P8 evidence。此 family 的恢復前置是獨立 principal scope、
 bounded `none/found/ambiguous` DTO read，以及各 effect 自有 idempotency/read-back/cleanup 的 command
 families；在此之前繼續排程不依賴該 graph 的 capability。
+
+## 20. 2026-08-14 current-state rebaseline
+
+current Phase-0 source hash 已更新，重新驗證仍恰有 70 rows。local implementation 計數為 registry 28、
+Data8 executor 27、ProductClient 26；consumer 只有 3 個 `migrated-disabled`，CE 9.1 僅 6 個 succeeded。
+70 rows 均是 `temporary-legacy`，故 P7.5 removal 與 P8 仍是 no-go。封存 P7.5 report 的 source hash 已過期，
+只保留歷史 no-go／legacy scan 證據；進入 P7.5 前必須產生 current-source successor report。
+
+P7.4 已有 20 個封存 capability child。最新 `ORG-CALL-00057` 只完成 default-disabled DTO data plane，
+不得接入 mutable current-group／NewPerson／DownloadListManager consumer；`ORG-CALL-00011`／`00012` list
+action 已是 direct consumer no-go。direct P7.4 safe candidate audit 目前為零；下一個可進行 child 是
+server-derived immutable authorization-boundary recovery prerequisite，或另一個經 matrix/source audit 證明不含
+Session、InMemoryContext、credential bridge、stored query、Entity bridge 與 write adjacency 的獨立 family。

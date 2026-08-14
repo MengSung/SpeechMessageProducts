@@ -257,3 +257,19 @@ legacy QR path 的 independent matrix capability。
    Session、mutable manager/form 或 Entity bridge 接到 Gateway。先建立 principal-to-scope child 才能恢復。
 4. [x] architect run 在 45 秒內僅 Gemini 有 usable output；Claude 未完成，記錄「雙模型未完成」，以本機
    evidence 覆核。完成 child scope check、commit/archive 後，繼續從 authoritative matrix 選取不相依 family。
+
+## 2026-08-14 current rebaseline follow-up
+
+1. [x] `08-14-p7-current-state-rebaseline` 以 current Phase-0 source hash 產生 70-row task-owned matrix，
+   並拒絕將 local-only、disabled gate、registry／executor／ProductClient implementation 升格為 consumer、CE、
+   host 或 traffic evidence。
+2. [x] 校正 P7.4 checkpoint：20 個封存 capability child；00057 為 local-only data plane；00011／00012 為
+   direct consumer no-go。所有 checked-in feature gate 繼續 false。
+3. [x] P7.4 direct local-only candidate audit 結果為零。00063 不得因既有 Package03 DTO data plane 而接到
+   QR／weekly legacy graph；它需要先完成 server-derived immutable authorization boundary、command-family
+   idempotency、read-back/reconcile、cleanup 與 rollback owner。
+4. [ ] 下一 child 必須只規劃該 authorization-boundary recovery prerequisite，或由 matrix 找到另一個
+   不依賴 Session、InMemoryContext、saved credential、stored FetchXML、Entity bridge 或 write adjacency 的 family。
+   不可重做 00057、00011／00012、00063 或 historical Slice C。
+5. [ ] current matrix 仍有 70 temporary-legacy rows，故不得建立 P7.5 removal child 或 P8。接近 P7.5 前，
+   必須以 current matrix 建立新的 P7.5 source/project/settings reconciliation，而非復用 archived report 的 hash。
