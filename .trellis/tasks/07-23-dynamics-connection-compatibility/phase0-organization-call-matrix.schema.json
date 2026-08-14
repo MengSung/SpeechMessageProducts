@@ -395,6 +395,7 @@
             "AuthenticationContactReadRecords",
             "AppNamedListCatalogRecords",
             "SmallGroupAppNamedListCatalogRecords",
+            "AppNamedMembershipRecords",
             "MemberInfoPresentRecordReadRecords",
             "ContactImageDisplay"
           ]
@@ -560,6 +561,7 @@
                   "auth.contact.retrieve.by.lineid",
                   "list.catalog.retrieve.app.named",
                   "list.catalog.retrieve.appnamed.smallgroups",
+                  "list.membership.retrieve.appnamed.by.contact",
                   "memberinfo.present.retrieve.by.contact"
                 ]
               }

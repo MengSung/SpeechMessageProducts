@@ -1,0 +1,7 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"強制 A/B 隔離、request-local DTO 與 lease/fault lifecycle contract。"}
+{"file":".trellis/spec/backend/dynamics-gateway-hosting-version-routing.md","reason":"Data8 operation registry、executor、ProductClient 與 disabled deployment routing contract。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"本 child 的跨層隔離、測試與資源釋放檢核表。"}
+{"file":".trellis/tasks/archive/2026-08/08-12-p7-remaining-work-rebaseline/authoritative-gap-matrix.json","reason":"ORG-CALL-00057 的現況證據與 P7.5 blocker。"}
+{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"ORG-CALL-00057 的原始 query/template/response inventory。"}
+{"file":"ToolUtility/QueryOperations/RelationshipQueryService.cs","reason":"Legacy AllColumns query 與固定 relationship filter 的來源證據。"}
+{"file":"SpeechMessage.Dynamics.ProductClient/ListCatalog/SmallGroupAppNamedListCatalogReadClient.cs","reason":"既有 stateless bounded list read ProductClient pattern。"}

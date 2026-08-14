@@ -1,0 +1,12 @@
+{
+  "id": "p74-appnamed-membership-read-data-plane",
+  "title": "P7.4 點名名單成員唯讀資料平面",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-integration",
+  "currentPhase": "review",
+  "nextAction": "完成一次 45 秒 bounded CCG review、byte-level/scope checks 與 task records；不遷移 consumer。",
+  "createdAt": "2026-08-14T08:50:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

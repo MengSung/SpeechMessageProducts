@@ -48,6 +48,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     private const int MaximumAuthenticationLookupBytes = 256;
     private const int MaximumAuthenticationContactResponseTextBytes = 256;
     private const int MaximumAuthenticationContactRecords = 2;
+    private const int MaximumAppNamedMembershipRecords = 32;
+    private const int MaximumAppNamedMembershipResponseBytes = 32 * 1024;
     private const int MaximumMemberInfoPresentRecordTextBytes = 512 * 4;
     private const int MaximumMemberInfoPresentRecordFixedBytes = 96;
     private const int MaximumGuidArrayItems = 1000;
@@ -109,7 +111,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
     /// </summary>
     /// <param name="request">已通過上游 RequestGuard 的封閉產品 operation；不得包含連線或認證資訊。</param>
     /// <param name="cancellationToken">由 request scope 擁有的取消訊號；只向 Pool／Client 傳遞且不被保存。</param>
-    /// <returns>僅含安全 WhoAmI、fee 或 stor-lesson 純值投影的成功結果，或不含 transport detail 的固定錯誤分類。</returns>
+    /// <returns>僅含已登錄封閉純量 response branch 的成功結果，或不含 transport detail 的固定錯誤分類。</returns>
     public Task<OperationExecutionResult> ExecuteAsync(
         OperationExecutionRequest request,
         CancellationToken cancellationToken = default)
@@ -445,6 +447,7 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
             OperationIds.LessonsStorRetrieveByDiscipleLesson => true,
             OperationIds.ListCatalogRetrieveAppNamed => true,
             OperationIds.ListCatalogRetrieveAppNamedSmallGroups => true,
+            OperationIds.ListMembershipRetrieveAppNamedByContact => true,
             OperationIds.MemberInfoContactUpdateBasicInfo => true,
             OperationIds.MemberInfoContactUpdateLineProfile => true,
             OperationIds.MemberInfoContactCountUngroupedCommitment => true,
@@ -1231,6 +1234,12 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 TryValidateSmallGroupAppNamedListCatalogRecords(
                     connectorData.SmallGroupAppNamedListCatalogRecords,
                     definition),
+            OperationResponseKind.AppNamedMembershipRecords =>
+                HasFixedAppNamedMembershipBounds(definition) &&
+                connectorData.AppNamedMembershipRecords is not null &&
+                TryValidateAppNamedMembershipRecords(
+                    connectorData.AppNamedMembershipRecords,
+                    definition),
             OperationResponseKind.AuthenticationContactReadRecords =>
                 connectorData.AuthenticationContactReadRecords is not null &&
                 TryValidateAuthenticationContactReadRecords(
@@ -1265,6 +1274,21 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         data = connectorData;
         return true;
     }
+
+    /// <summary>
+    /// 驗證 registry 沒有把 ORG-CALL-00057 的封閉單頁資源邊界放寬。
+    ///
+    /// Data8 query 與 wire response 都固定為一頁、32 rows、32 KiB；即使未來測試替身、registry edit 或 adapter
+    /// 意外提供較大的宣告，本 executor 仍在 lease scope 內 fail closed，而不讓過大結果進入產品或使未驗證 client
+    /// 被當作健康。此 helper 只讀 immutable definition，不配置或保留任何 request/profile/session 資源。
+    /// </summary>
+    /// <param name="definition">目前 operation 的 server-owned immutable registry definition。</param>
+    /// <returns>definition 精確維持既定單頁、列數與位元組上限時為 <see langword="true"/>。</returns>
+    private static bool HasFixedAppNamedMembershipBounds(OperationDefinition definition)
+        => definition.MaximumPageCount == 1 &&
+           definition.MaximumPageBytes == MaximumAppNamedMembershipResponseBytes &&
+           definition.MaximumCumulativeResponseBytes == MaximumAppNamedMembershipResponseBytes &&
+           definition.MaximumResultItemCount == MaximumAppNamedMembershipRecords;
 
     /// <summary>
     /// 驗證 ORG-CALL-00055／00056 的封閉 authentication contact response branch。
@@ -1324,7 +1348,8 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
         IReadOnlyList<MemberInfoPresentRecordReadRecord> records,
         OperationDefinition definition)
     {
-        if (records.Count > definition.MaximumResultItemCount)
+        if (records.Count > MaximumAppNamedMembershipRecords ||
+            records.Count > definition.MaximumResultItemCount)
         {
             return false;
         }
@@ -1588,6 +1613,44 @@ public sealed class Data8ProfileOperationExecutor : IDynamicsOperationExecutor
                 !TryAddFixedBytes(ref bytes, 192, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.ListName, definition.MaximumCumulativeResponseBytes) ||
                 !TryAddUtf8Bytes(ref bytes, record.Purpose, definition.MaximumCumulativeResponseBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 ORG-CALL-00057 的封閉 App-named membership response branch。
+    ///
+    /// connector、測試替身或未來 adapter 交出的 row 都必須是非空、具有唯一非空 list GUID，且僅以 list name
+    /// 的嚴格 UTF-8 scalar bytes 與 GUID 固定成本計入 registry 的 32 KiB 上限。HashSet、計數器與 records
+    /// 巡覽都只存在本次 lease scope，沒有 cache、session、profile 或 mutable static state；任一超限、重複、
+    /// 無效 UTF-16 或 schema 異常都回傳 false，使 caller 在 lease Dispose 前 MarkFaulted，而非發布 partial data
+    /// 或讓不可信 client 回到 pool。
+    /// </summary>
+    /// <param name="records">connector 已建立、預計交付的 immutable membership pure-value rows。</param>
+    /// <param name="definition">registry 宣告的固定列數與 cumulative response byte policy。</param>
+    /// <returns>所有 rows 都符合 identity、唯一性與固定 budget 時為 <see langword="true"/>。</returns>
+    private static bool TryValidateAppNamedMembershipRecords(
+        IReadOnlyList<AppNamedMembershipRecord> records,
+        OperationDefinition definition)
+    {
+        if (records.Count > definition.MaximumResultItemCount)
+        {
+            return false;
+        }
+
+        var listIds = new HashSet<Guid>();
+        var bytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null ||
+                record.ListId == Guid.Empty ||
+                !listIds.Add(record.ListId) ||
+                !TryAddFixedBytes(ref bytes, 32, MaximumAppNamedMembershipResponseBytes) ||
+                !TryAddUtf8Bytes(ref bytes, record.ListName, MaximumAppNamedMembershipResponseBytes))
             {
                 return false;
             }

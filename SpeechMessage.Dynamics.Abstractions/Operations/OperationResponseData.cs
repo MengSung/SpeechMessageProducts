@@ -144,7 +144,16 @@ public enum OperationResponseKind
     MemberInfoPresentRecordReadRecords = 19,
 
     /// <summary> P7.4 聯絡人顯示聯集：影像、LINE 重新導向或預設頭像。 </summary>
-    ContactImageDisplay = 20
+    ContactImageDisplay = 20,
+
+    /// <summary>
+    /// ORG-CALL-00057 已授權 contact 的 App-named 名單成員關係純量列。此分支只允許 list GUID 與 nullable
+    /// list name，不含 CRM Entity、EntityCollection、listmember、QueryExpression、排序、paging cookie、profile、
+    /// credential、session、cache 或原始 transport response。factory/constructor 會採取獨立唯讀快照並拒絕空白或
+    /// 重複 ID、超過 32 列、無效 UTF-8 或超過 32 KiB 的資料；此值只建立 local typed contract，不代表任何
+    /// consumer、Data8 connector、CE 證據或 deployment gate 已啟用。
+    /// </summary>
+    AppNamedMembershipRecords = 21
 }
 
 /// <summary>
@@ -169,6 +178,9 @@ public sealed class OperationResponseData
         MaximumMemberInfoPresentRecordTextCharacters * 4;
     private const int MaximumMemberInfoPresentRecordResponseBytes = 256 * 1024;
     private const int MemberInfoPresentRecordFixedRowBytes = 96;
+    private const int MaximumAppNamedMembershipRecords = 32;
+    private const int MaximumAppNamedMembershipResponseBytes = 32 * 1024;
+    private const int AppNamedMembershipFixedRowBytes = 32;
     private static readonly System.Text.UTF8Encoding StrictUtf8 = new(false, true);
 
     /// <summary>
@@ -200,6 +212,7 @@ public sealed class OperationResponseData
         IReadOnlyList<SmallGroupAppNamedListCatalogRecord>? smallGroupAppNamedListCatalogRecords = null,
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords = null,
         IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords = null,
+        IReadOnlyList<AppNamedMembershipRecord>? appNamedMembershipRecords = null,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification =
             AuthenticationContactReadSafetyClassification.Safe)
     {
@@ -235,6 +248,7 @@ public sealed class OperationResponseData
             smallGroupAppNamedListCatalogRecords,
             authenticationContactReadRecords,
             memberInfoPresentRecordReadRecords,
+            appNamedMembershipRecords,
             authenticationContactReadSafetyClassification);
 
         OperationId = operationId;
@@ -260,6 +274,9 @@ public sealed class OperationResponseData
         SmallGroupAppNamedListCatalogRecords = smallGroupAppNamedListCatalogRecords?.ToArray();
         AuthenticationContactReadRecords = authenticationContactReadRecords?.ToArray();
         MemberInfoPresentRecordReadRecords = memberInfoPresentRecordReadRecords?.ToArray();
+        AppNamedMembershipRecords = appNamedMembershipRecords is null
+            ? null
+            : Array.AsReadOnly(appNamedMembershipRecords.ToArray());
         AuthenticationContactReadSafetyClassification = authenticationContactReadSafetyClassification;
     }
 
@@ -419,6 +436,17 @@ public sealed class OperationResponseData
     public IReadOnlyList<MemberInfoPresentRecordReadRecord>? MemberInfoPresentRecordReadRecords { get; }
 
     /// <summary>
+    /// ORG-CALL-00057 的 immutable App-named membership rows。constructor 立即複製輸入集合並封裝為唯讀清單，
+    /// 因此 connector、測試替身或序列化前 caller 都不能在 envelope 發布後替換另一個 request 的列。row 僅包含
+    /// allowlisted list GUID 與 nullable 名稱，不保存 CRM Entity、listmember、QueryExpression、cookie、profile、
+    /// session、cache、stream、handle 或 cancellation registration；Data8 page、lease 與 transport 的唯一 owner
+    /// 必須在建立 envelope 前釋放它們，取消、逾時或 fault 也不得發布 partial rows。
+    /// </summary>
+    [JsonPropertyName("appNamedMembershipRecords")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<AppNamedMembershipRecord>? AppNamedMembershipRecords { get; }
+
+    /// <summary>
     /// P7.4 專用的非敏感安全分類。<see cref="AuthenticationContactReadSafetyClassification.SecretPresent"/> 只說明
     /// connector 偵測到禁止跨越邊界的資料，絕不攜帶其名稱、值、雜湊、來源 Entity 或原始 response；該分類時
     /// records 必須為空，產品端只能回傳固定 fail-closed 狀態。
@@ -562,6 +590,30 @@ public sealed class OperationResponseData
             ceVersion,
             OperationResponseKind.SmallGroupAppNamedListCatalogRecords,
             smallGroupAppNamedListCatalogRecords: smallGroupAppNamedListCatalogRecords.ToArray());
+    }
+
+    /// <summary>
+    /// 建立 ORG-CALL-00057 唯一成功 branch。<paramref name="appNamedMembershipRecords"/> 會在目前 request scope
+    /// 先 materialize，constructor 再建立獨立唯讀快照，故 caller 的可變 collection、CRM page 或另一個 request
+    /// 無法在 response 發布後插入或替換資料。呼叫端必須先完成固定 App-named/active/relationship filter、排序、
+    /// 單頁、32 列與 32 KiB 驗證，並釋放 Data8 page、lease 與 transport；取消、逾時、fault、MoreRecords、重複
+    /// 或 malformed ID 時不得以本 factory 發布 partial rows。
+    /// </summary>
+    /// <param name="operationId">固定的 server-owned ORG-CALL-00057 capability ID。</param>
+    /// <param name="ceVersion">由 deployment-owned profile 已選定的 CE API 版本。</param>
+    /// <param name="appNamedMembershipRecords">本次 operation 投影出的 list GUID 與 nullable 名稱純量列。</param>
+    /// <returns>只具有 App-named membership branch 的 immutable response envelope。</returns>
+    public static OperationResponseData ForAppNamedMembershipRecords(
+        string operationId,
+        string ceVersion,
+        IEnumerable<AppNamedMembershipRecord> appNamedMembershipRecords)
+    {
+        ArgumentNullException.ThrowIfNull(appNamedMembershipRecords);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.AppNamedMembershipRecords,
+            appNamedMembershipRecords: appNamedMembershipRecords.ToArray());
     }
 
     /// <summary>
@@ -865,6 +917,7 @@ public sealed class OperationResponseData
         IReadOnlyList<SmallGroupAppNamedListCatalogRecord>? smallGroupAppNamedListCatalogRecords,
         IReadOnlyList<AuthenticationContactReadRecord>? authenticationContactReadRecords,
         IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords,
+        IReadOnlyList<AppNamedMembershipRecord>? appNamedMembershipRecords,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
@@ -888,7 +941,8 @@ public sealed class OperationResponseData
                            (appNamedListCatalogRecords is null ? 0 : 1) +
                            (smallGroupAppNamedListCatalogRecords is null ? 0 : 1) +
                            (authenticationContactReadRecords is null ? 0 : 1) +
-                           (memberInfoPresentRecordReadRecords is null ? 0 : 1);
+                           (memberInfoPresentRecordReadRecords is null ? 0 : 1) +
+                           (appNamedMembershipRecords is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -956,6 +1010,8 @@ public sealed class OperationResponseData
                 branchCount == 1 &&
                 memberInfoPresentRecordReadRecords is not null &&
                 IsValidMemberInfoPresentRecordReadRecords(memberInfoPresentRecordReadRecords),
+            OperationResponseKind.AppNamedMembershipRecords => branchCount == 1 && appNamedMembershipRecords is not null &&
+                IsValidAppNamedMembershipRecords(appNamedMembershipRecords),
             _ => false
         };
 
@@ -1024,6 +1080,88 @@ public sealed class OperationResponseData
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 驗證 ORG-CALL-00057 row 的唯一純量合約。HashSet 與 byte counter 只存在於 constructor 驗證期間，完成後
+    /// 不保留 list identity、名稱或 response 狀態；因而可拒絕空白／重複 GUID、超過 32 列、無效 UTF-8 與超過
+    /// 32 KiB 的資料，同時避免把 request-local membership 資料變成跨 request cache。
+    /// </summary>
+    /// <param name="records">欲建立 response 的 request-local list membership 純量列。</param>
+    /// <returns>全部列皆符合數量、ID、唯一性與位元組預算時為 <see langword="true"/>。</returns>
+    private static bool IsValidAppNamedMembershipRecords(IReadOnlyList<AppNamedMembershipRecord> records)
+    {
+        if (records.Count > MaximumAppNamedMembershipRecords)
+        {
+            return false;
+        }
+
+        var ids = new HashSet<Guid>();
+        var totalBytes = 0;
+        foreach (var record in records)
+        {
+            if (record is null ||
+                record.ListId == Guid.Empty ||
+                !ids.Add(record.ListId) ||
+                !TryAddAppNamedMembershipRecordBytes(ref totalBytes, record))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 將固定 list GUID 結構成本與 nullable list name 的嚴格 UTF-8 byte 數加入 ORG-CALL-00057 封閉預算。
+    /// 此計數器只由目前 constructor 持有；checked overflow、無效 surrogate 或超限均立即失敗關閉，不會產生
+    /// partial envelope、shared buffer 或可跨 profile 重用的名稱集合。
+    /// </summary>
+    /// <param name="totalBytes">目前 request-local envelope 的累積估算位元組數。</param>
+    /// <param name="record">待驗證的 list membership 純量列。</param>
+    /// <returns>row 可在不超過 32 KiB response hard limit 時加入 envelope。</returns>
+    private static bool TryAddAppNamedMembershipRecordBytes(
+        ref int totalBytes,
+        AppNamedMembershipRecord record)
+    {
+        if (!TryAddAppNamedMembershipBytes(ref totalBytes, AppNamedMembershipFixedRowBytes))
+        {
+            return false;
+        }
+
+        if (record.ListName is null)
+        {
+            return true;
+        }
+
+        try
+        {
+            return TryAddAppNamedMembershipBytes(ref totalBytes, StrictUtf8.GetByteCount(record.ListName));
+        }
+        catch (System.Text.EncoderFallbackException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 以 checked 算術累加 ORG-CALL-00057 的固定 32 KiB response budget。數值只在單次 union 驗證內存活，
+    /// 不會成為 static/session/cache state；overflow 或超限一律回傳 false，使呼叫端不能發布部分 membership rows。
+    /// </summary>
+    /// <param name="totalBytes">目前 request-local 累積數。</param>
+    /// <param name="additionalBytes">欲加入的已驗證固定或 UTF-8 純量位元組數。</param>
+    /// <returns>累積後仍在 ORG-CALL-00057 安全上限內時為 <see langword="true"/>。</returns>
+    private static bool TryAddAppNamedMembershipBytes(ref int totalBytes, int additionalBytes)
+    {
+        try
+        {
+            totalBytes = checked(totalBytes + additionalBytes);
+            return totalBytes <= MaximumAppNamedMembershipResponseBytes;
+        }
+        catch (OverflowException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -1779,6 +1917,33 @@ public sealed record SmallGroupAppNamedListCatalogRecord
     /// </summary>
     [JsonPropertyName("familyLeaderContactId")]
     public Guid? FamilyLeaderContactId { get; init; }
+}
+
+/// <summary>
+/// ORG-CALL-00057 的 immutable closed wire row。這個 record 只投影固定 QueryExpression 已確認的 list GUID 與
+/// nullable list name，讓未來產品不用接觸 CRM <c>Entity</c>、<c>EntityCollection</c>、listmember、lookup、
+/// formatted values、QueryExpression、profile、credential、cookie、continuation 或 transport 資源即可呈現已授權
+/// contact 的 App-named membership。它不擁有或快取 request/user/profile state；<see cref="OperationResponseData"/>
+/// 會建立列集合的獨立唯讀快照，connector 則必須在建立本 record 前完成 App-named/active/relationship filter、
+/// 排序、single-page、列數、byte 與 duplicate-ID 驗證並釋放 page、lease 與 stream。取消、逾時或 fault 不得發布
+/// partial records，也不能將名稱或 list identity 寫入 session、shared cache 或 static state。
+/// </summary>
+public sealed record AppNamedMembershipRecord
+{
+    /// <summary>
+    /// 名單唯一識別碼。固定 projection 的有效列必須是非空 GUID，並在單一 response 中唯一；它是已授權 contact
+    /// relationship 的結果值，不是讓 caller 選取 profile、connector、endpoint、credential 或其他資料的路由 authority。
+    /// </summary>
+    [JsonPropertyName("listId")]
+    public Guid ListId { get; init; }
+
+    /// <summary>
+    /// 名單顯示名稱的 nullable 純文字投影。null 保留來源未提供名稱的語意，不能由 consumer 補查或以另一個
+    /// request 的資料 fallback；constructor 以嚴格 UTF-8 和 32 KiB response budget 驗證，record 本身不會
+    /// 將內容保存至 cache、session、log、queue 或任何需要 dispose 的資源。
+    /// </summary>
+    [JsonPropertyName("listName")]
+    public string? ListName { get; init; }
 }
 
 /// <summary>

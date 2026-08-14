@@ -1,6 +1,6 @@
 // ============================================================================
 // 檔案：SpeechMessage.Dynamics.Connectors.Data8/Package01Data8ReadOperations.cs
-// 責任：在 Data8 connector 內部將 P7.1 的六項固定讀取 capability 轉為受控
+// 責任：在 Data8 connector 內部將已登錄的 Package01 固定讀取 capability 轉為受控
 //       QueryExpression，並將 CRM EntityCollection 投影為不含 SDK 物件的 DTO。
 //
 // 此檔是 D365 查詢細節的唯一 owner。ProductClient、Embedded、Dedicated Gateway
@@ -20,7 +20,7 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 namespace SpeechMessage.Dynamics.Connectors.Data8;
 
 /// <summary>
-/// 集中擁有 P7.1 六項 Package01 唯讀 capability 的 Data8 查詢與投影。
+/// 集中擁有已登錄 Package01 唯讀 capability 的 Data8 查詢與投影。
 ///
 /// 此類別刻意不公開，也不接受泛型 CRM 指令；唯一入口以 operation allowlist 決定
 /// 固定 entity、欄位、條件、排序與回應分支。呼叫端提供的名稱只會在上游相容層驗證後
@@ -53,6 +53,9 @@ internal static class Package01Data8ReadOperations
     private const string AppNamedListPurposeAttribute = "purpose";
     private const string AppNamedListFlagAttribute = "new_app_named";
     private const string AppNamedListStatusCodeAttribute = "statuscode";
+    private const string AppNamedListMemberEntityName = "listmember";
+    private const string AppNamedListMemberListIdAttribute = "listid";
+    private const string AppNamedListMemberEntityIdAttribute = "entityid";
     private const string AppNamedListPurpose = "小組名單";
     private const string AppNamedSmallGroupRaceLeaderAttribute = "new_contact_race_leager_list";
     private const string AppNamedSmallGroupFamilyLeaderAttribute = "new_contact_family_leader_list";
@@ -97,6 +100,8 @@ internal static class Package01Data8ReadOperations
     private const string LessonAlias = "lesson";
 
     private const int MaximumRowsPerPage = 128;
+    private const int MaximumAppNamedMembershipRowsPerPage = 32;
+    private const int MaximumAppNamedMembershipResponseBytes = 32 * 1024;
     private const int MaximumStringParameterBytes = 256;
     private static readonly object[] AcceptedDateRangePayStatuses =
     [
@@ -127,7 +132,7 @@ internal static class Package01Data8ReadOperations
     /// <param name="service">目前 lease 專屬且由 connector 擁有的 Data8 Organization Service。</param>
     /// <param name="operation">只含 allowlisted operation 與已型別化 scalar 的短生命週期請求。</param>
     /// <param name="ceVersion">由 immutable resolved profile 決定的 CE 版本，不得由 request 改寫。</param>
-    /// <returns>只含 fee 或 stor-lesson 純值記錄的封閉 response branch。</returns>
+    /// <returns>只含目前固定 capability allowlisted 純量記錄的封閉 response branch。</returns>
     internal static OperationResponseData Execute(
         IOrganizationService service,
         ConnectorOperation operation,
@@ -156,8 +161,77 @@ internal static class Package01Data8ReadOperations
             OperationIds.ListCatalogRetrieveAppNamed => ExecuteAppNamedListCatalog(service, operation, ceVersion),
             OperationIds.ListCatalogRetrieveAppNamedSmallGroups =>
                 ExecuteAppNamedSmallGroupListCatalog(service, operation, ceVersion),
+            OperationIds.ListMembershipRetrieveAppNamedByContact =>
+                ExecuteAppNamedMembershipByContact(service, operation, ceVersion),
             _ => throw new InvalidOperationException("The Data8 Package01 operation is not permitted.")
         };
+    }
+
+    /// <summary>
+    /// 執行 ORG-CALL-00057 的 App-named 名單成員關係唯讀查詢。
+    ///
+    /// 本 operation 唯一接受已由上游複製的非空 contact GUID；它不接受 list ID、名稱、篩選、排序、FetchXML、
+    /// paging cookie、profile、endpoint、credential 或 connector。固定 query 僅讀取 active 且 App-named 的
+    /// <c>list</c>，並透過 <c>listmember</c> inner join 限定 contact 關係。CRM page、Entity 與 query 都只在
+    /// 目前 Data8 lease 的同步 scope 存活；遇到 MoreRecords、cookie、超過 32 列、重複 ID、型別／identity 不符
+    /// 或 32 KiB scalar budget 超限時，會在建立 response 前失敗，絕不發布 partial rows 或保存 continuation。
+    /// 外層 lease 會將例外視為不可信 transport/session 並依既有 owner 規則淘汰 client。
+    /// </summary>
+    /// <param name="service">目前 Data8 lease 唯一擁有的 Organization service。</param>
+    /// <param name="operation">只含 allowlisted operation 與 contact GUID 的短生命週期 connector operation。</param>
+    /// <param name="ceVersion">由 immutable resolved profile 決定的 CE 版本。</param>
+    /// <returns>只包含 list GUID 與 nullable 名稱的 immutable membership response branch。</returns>
+    private static OperationResponseData ExecuteAppNamedMembershipByContact(
+        IOrganizationService service,
+        ConnectorOperation operation,
+        string ceVersion)
+    {
+        var definition = GetDefinition(operation.OperationId, OperationResponseKind.AppNamedMembershipRecords);
+        if (definition.MaximumPageCount != 1 ||
+            definition.MaximumPageBytes != MaximumAppNamedMembershipResponseBytes ||
+            definition.MaximumCumulativeResponseBytes != MaximumAppNamedMembershipResponseBytes ||
+            definition.MaximumResultItemCount != MaximumAppNamedMembershipRowsPerPage)
+        {
+            throw new InvalidOperationException("The Data8 App-named membership registry bounds are invalid.");
+        }
+
+        var contactId = ReadRequiredGuid(operation.Parameters, "contactId");
+        var page = service.RetrieveMultiple(CreateAppNamedMembershipByContactQuery(contactId))
+            ?? throw new InvalidOperationException("The Data8 App-named membership query returned no page.");
+        if (page.MoreRecords || page.PagingCookie is not null)
+        {
+            throw new InvalidOperationException("The Data8 App-named membership paging contract is invalid.");
+        }
+
+        if (page.Entities.Count > MaximumAppNamedMembershipRowsPerPage ||
+            page.Entities.Count > definition.MaximumResultItemCount)
+        {
+            throw new InvalidOperationException("The Data8 App-named membership query exceeded its result limit.");
+        }
+
+        var records = new List<AppNamedMembershipRecord>(page.Entities.Count);
+        var listIds = new HashSet<Guid>();
+        var totalBytes = 0;
+        foreach (var entity in page.Entities)
+        {
+            var record = ProjectAppNamedMembershipRecord(entity);
+            if (!listIds.Add(record.ListId))
+            {
+                throw new InvalidOperationException("The Data8 App-named membership query returned duplicate list IDs.");
+            }
+
+            if (!TryAddAppNamedMembershipRecordBytes(
+                    ref totalBytes,
+                    record,
+                    MaximumAppNamedMembershipResponseBytes))
+            {
+                throw new InvalidOperationException("The Data8 App-named membership query exceeded its response budget.");
+            }
+
+            records.Add(record);
+        }
+
+        return OperationResponseData.ForAppNamedMembershipRecords(operation.OperationId, ceVersion, records);
     }
 
     /// <summary>
@@ -687,6 +761,43 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 建立 ORG-CALL-00057 唯一允許的 App-named membership <see cref="QueryExpression"/>。
+    ///
+    /// primary entity 固定為 <c>list</c>，只有 <c>listid</c> 與 <c>listname</c> 可離開 CRM；
+    /// <c>listmember</c> inner link 只作為 contact 關係篩選，並明確不投影任何 link 欄位。active、
+    /// App-named、contact GUID、名稱 ordinal ascending 與 ID ascending 的條件皆由此方法固定，不能被 caller
+    /// 改寫。單頁 32 列且沒有 caller paging cookie，因為任何 continuation 都會由執行路徑 fail closed。
+    /// </summary>
+    /// <param name="contactId">已完成型別與非空驗證、僅作固定 relation condition 的 contact GUID。</param>
+    /// <returns>固定 projection、filter、join、排序與 32-row page cap 的 server-owned query。</returns>
+    private static QueryExpression CreateAppNamedMembershipByContactQuery(Guid contactId)
+    {
+        var query = new QueryExpression(AppNamedListEntityName)
+        {
+            ColumnSet = new ColumnSet(AppNamedListIdAttribute, AppNamedListNameAttribute),
+            Criteria = new FilterExpression(LogicalOperator.And),
+            PageInfo = new PagingInfo
+            {
+                Count = MaximumAppNamedMembershipRowsPerPage,
+                PageNumber = 1,
+                PagingCookie = null
+            }
+        };
+        query.Criteria.AddCondition(StateCodeAttribute, ConditionOperator.Equal, 0);
+        query.Criteria.AddCondition(AppNamedListFlagAttribute, ConditionOperator.Equal, true);
+        var membership = query.AddLink(
+            AppNamedListMemberEntityName,
+            AppNamedListIdAttribute,
+            AppNamedListMemberListIdAttribute,
+            JoinOperator.Inner);
+        membership.Columns = new ColumnSet(false);
+        membership.LinkCriteria.AddCondition(AppNamedListMemberEntityIdAttribute, ConditionOperator.Equal, contactId);
+        query.AddOrder(AppNamedListNameAttribute, OrderType.Ascending);
+        query.AddOrder(AppNamedListIdAttribute, OrderType.Ascending);
+        return query;
+    }
+
+    /// <summary>
     /// 建立 ORG-CALL-00065 唯一允許的 App-named 小組名單 <see cref="QueryExpression"/>。欄位順序、active、
     /// purpose、App 點名、歷史「已退出」名稱排除、排序及單頁容量全部固定；caller 不能由 parameter 改寫 query，
     /// 也不能取得 FetchXML、paging cookie、profile、endpoint 或 credential。
@@ -1127,6 +1238,26 @@ internal static class Package01Data8ReadOperations
     }
 
     /// <summary>
+    /// 將固定 membership query 的單一 <c>list</c> Entity 立即投影為純量 wire record。
+    ///
+    /// entity logical name、主鍵與可選主鍵欄位必須一致；<c>listname</c> 若存在必須是 string，否則視為
+    /// CRM schema/materializer 漂移而失敗。此方法不讀取 formatted values、link 欄位、EntityReference 或
+    /// CRM graph，僅複製有效 list GUID 與 nullable 名稱；因此輸出不能攜帶 contact、profile、session、
+    /// credential、cookie 或 transport state 到另一個 request。
+    /// </summary>
+    /// <param name="entity">目前單頁 RetrieveMultiple 回傳、仍屬當前 connector scope 的 list Entity。</param>
+    /// <returns>只含 allowlisted list GUID 與 nullable 名稱的 immutable membership row。</returns>
+    private static AppNamedMembershipRecord ProjectAppNamedMembershipRecord(Entity entity)
+    {
+        ValidateEntityIdentity(entity, AppNamedListEntityName, AppNamedListIdAttribute);
+        return new AppNamedMembershipRecord
+        {
+            ListId = entity.Id,
+            ListName = ReadOptionalString(entity, AppNamedListNameAttribute)
+        };
+    }
+
+    /// <summary>
     /// 將固定 <c>list</c> Entity 投影為 ORG-CALL-00065 的小組目錄純值 record。每一欄都以精確 CLR 型別驗證；
     /// list identity、option set、UTC date、purpose 與兩個 lookup 任一不一致都立即 fail closed，不以 formatted
     /// values、<c>ToString</c>、裸 Guid 或 SDK graph 寬鬆修復 schema 漂移。
@@ -1520,6 +1651,27 @@ internal static class Package01Data8ReadOperations
                TryAddBytes(ref totalBytes, 128, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.ListName, maximumBytes) &&
                TryAddStringBytes(ref totalBytes, record.Purpose, maximumBytes);
+    }
+
+    /// <summary>
+    /// 將 ORG-CALL-00057 membership row 的唯一兩個 scalar 納入單頁 32 KiB 預算。
+    ///
+    /// GUID 與封閉 response record 結構以保守固定 32 bytes 計入，nullable 名稱以嚴格 UTF-8 bytes 計入；
+    /// checked 累加、無效 UTF-16 或 budget 超限皆回傳 false。累積器與 row 僅在目前 request-local loop 存活，呼叫端於 false 時不建立
+    /// response envelope，故無 partial collection、cache、continuation 或跨 profile/session retention。
+    /// </summary>
+    /// <param name="totalBytes">目前單頁 response 的 request-local scalar byte 累積值。</param>
+    /// <param name="record">已完成 CRM graph 隔離的 membership pure-value row。</param>
+    /// <param name="maximumBytes">registry 宣告、不可由 caller 擴張的 32 KiB cumulative 上限。</param>
+    /// <returns>row identity 合法且加入後仍在固定預算內時為 <see langword="true"/>。</returns>
+    private static bool TryAddAppNamedMembershipRecordBytes(
+        ref int totalBytes,
+        AppNamedMembershipRecord record,
+        int maximumBytes)
+    {
+        return record.ListId != Guid.Empty &&
+               TryAddBytes(ref totalBytes, 32, maximumBytes) &&
+               TryAddStringBytes(ref totalBytes, record.ListName, maximumBytes);
     }
 
     /// <summary>

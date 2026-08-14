@@ -81,6 +81,7 @@ public static class ProductClientServiceCollectionExtensions
         services.TryAddSingleton<IPackage01DedicationBookingReadClient, Package01DedicationBookingReadClient>();
         services.TryAddSingleton<IAppNamedListCatalogReadClient, AppNamedListCatalogReadClient>();
         services.TryAddSingleton<ISmallGroupAppNamedListCatalogReadClient, SmallGroupAppNamedListCatalogReadClient>();
+        services.TryAddSingleton<IAppNamedMembershipReadClient, AppNamedMembershipReadClient>();
         services.TryAddSingleton<IAuthenticationContactReadClient, AuthenticationContactReadClient>();
         services.TryAddSingleton<IPackage02ContactBasicInfoUpdateClient, Package02ContactBasicInfoUpdateClient>();
         services.TryAddSingleton<IPackage02ContactProfileClient, Package02ContactProfileClient>();
@@ -132,6 +133,22 @@ public static class ProductClientServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<ISmallGroupAppNamedListCatalogReadClient, SmallGroupAppNamedListCatalogReadClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// 註冊 ORG-CALL-00057 的 stateless app-named membership read client。
+    /// 此方法只加入 client descriptor，不建立 consumer、HTTP endpoint、feature gate、executor、connector、lease、cache、
+    /// retry、fallback、timer 或背景工作；呼叫端必須先由自己的 server authorization 完成 contact 驗證，再提供
+    /// deployment-owned profile/workload。singleton 只持有 DI-owned executor/logger，所有 request/response state 皆保持短命。
+    /// </summary>
+    /// <param name="services">要加入封閉 membership read client 的 composition root service collection。</param>
+    /// <returns>同一個 service collection，供 composition root 繼續鏈結。</returns>
+    public static IServiceCollection AddSpeechMessageDynamicsAppNamedMembershipReads(
+        this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IAppNamedMembershipReadClient, AppNamedMembershipReadClient>();
         return services;
     }
 

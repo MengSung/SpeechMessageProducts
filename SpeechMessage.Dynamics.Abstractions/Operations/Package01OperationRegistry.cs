@@ -63,6 +63,24 @@ public static class Package01OperationRegistry
     /// </summary>
     private const int MemberInfoPresentRecordReadMaximumPageCount = 1;
 
+    /// <summary>
+    /// ORG-CALL-00057 只允許讀取單一固定 QueryExpression page。connector 偵測到 <c>MoreRecords</c> 時必須在
+    /// 發布封閉 response 前失敗關閉，不能把第二頁延長到另一個 request 或將關聯列保留在 shared state。
+    /// </summary>
+    private const int AppNamedMembershipReadMaximumPageCount = 1;
+
+    /// <summary>
+    /// ORG-CALL-00057 的單頁及累積回應上限。固定 32 KiB 使 connector 能限制 list GUID 與 nullable 名稱的
+    /// request-local 純量投影；超限時必須釋放 page、lease 與 transport buffer 並拒絕 partial response。
+    /// </summary>
+    private const int AppNamedMembershipReadMaximumResponseBytes = 32 * 1024;
+
+    /// <summary>
+    /// ORG-CALL-00057 的列數 hard limit。32 筆是固定業務契約，不能由 caller parameter、cookie 或 retry 擴大，
+    /// 因而避免單一 contact relationship scan 在 connector request scope 內形成無界記憶體保留。
+    /// </summary>
+    private const int AppNamedMembershipReadMaximumResultItemCount = 32;
+
     private static readonly IReadOnlyDictionary<string, OperationDefinition> Definitions =
         Build().ToDictionary(x => x.CapabilityOperationId, StringComparer.Ordinal);
 
@@ -360,6 +378,28 @@ public static class Package01OperationRegistry
             audit: "read-audit",
             idempotency: "read-only");
 
+        // ORG-CALL-00057 的 contactId 僅能是上層完成 server authorization 後傳入的 locator。此 registry 不接受
+        // list ID、name、filter、sort、profile 或 query；Data8 connector 必須固定 new_app_named=true、statecode=0
+        // 與 listmember.entityid=contactId，並在 MoreRecords、重複 ID、無效列或 byte 超限時釋放資源後失敗關閉。
+        yield return Def(
+            OperationIds.ListMembershipRetrieveAppNamedByContact,
+            package: "package-1-list-membership-reads",
+            kind: "read",
+            templateKind: "queryexpression",
+            templateId: "list.membership.appnamed.by.contact.v1",
+            responseKind: OperationResponseKind.AppNamedMembershipRecords,
+            data: "personal-data",
+            audit: "read-audit",
+            idempotency: "read-only",
+            maximumPageCount: AppNamedMembershipReadMaximumPageCount,
+            maximumPageBytes: AppNamedMembershipReadMaximumResponseBytes,
+            maximumCumulativeResponseBytes: AppNamedMembershipReadMaximumResponseBytes,
+            maximumResultItemCount: AppNamedMembershipReadMaximumResultItemCount,
+            parameters:
+            [
+                Param("contactId", "guid", required: true, encoding: "queryexpression-condition")
+            ]);
+
         // P7.4 authentication contact lookup：兩個 ID 均只允許一個 bounded lookup scalar。它們保持 local-only；
         // registry 宣告不會啟用 deployment gate、建立 host/pool/handler 或將 typed API 接入既有登入 consumer。
         // 帳號密碼驗證仍屬未來獨立 credential policy，故 password、hash、token、cookie、profile 與 query text
@@ -580,6 +620,8 @@ public static class Package01OperationRegistry
         string audit,
         string idempotency,
         int maximumPageCount = ConservativeMaximumPageCount,
+        int maximumPageBytes = ConservativeMaximumPageBytes,
+        int maximumCumulativeResponseBytes = ConservativeMaximumCumulativeResponseBytes,
         int maximumResultItemCount = ConservativeMaximumResultItemCount,
         IReadOnlyList<OperationParameterDefinition>? parameters = null)
     {
@@ -589,8 +631,8 @@ public static class Package01OperationRegistry
             id,
             responseKind.ToString(),
             maximumPageCount.ToString(CultureInfo.InvariantCulture),
-            ConservativeMaximumPageBytes.ToString(CultureInfo.InvariantCulture),
-            ConservativeMaximumCumulativeResponseBytes.ToString(CultureInfo.InvariantCulture),
+            maximumPageBytes.ToString(CultureInfo.InvariantCulture),
+            maximumCumulativeResponseBytes.ToString(CultureInfo.InvariantCulture),
             maximumResultItemCount.ToString(CultureInfo.InvariantCulture));
         return new OperationDefinition
         {
@@ -602,8 +644,8 @@ public static class Package01OperationRegistry
             TemplateHash = Sha256Hex(material),
             ResponseKind = responseKind,
             MaximumPageCount = maximumPageCount,
-            MaximumPageBytes = ConservativeMaximumPageBytes,
-            MaximumCumulativeResponseBytes = ConservativeMaximumCumulativeResponseBytes,
+            MaximumPageBytes = maximumPageBytes,
+            MaximumCumulativeResponseBytes = maximumCumulativeResponseBytes,
             MaximumResultItemCount = maximumResultItemCount,
             DataClassification = data,
             AuditRequirement = audit,

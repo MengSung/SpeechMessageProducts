@@ -3841,20 +3841,20 @@
                                     "dataClassification":  "personal-data",
                                     "capabilityOperationId":  "list.membership.retrieve.appnamed.by.contact",
                                     "serverOwnedTemplate":  {
-                                                                "templateKind":  "odata-route",
+                                                                "templateKind":  "queryexpression",
                                                                 "templateId":  "list.membership.appnamed.by.contact.v1",
-                                                                "templateHash":  "deb094001a877044ffb94194529f80295473c531a06404737fda14da201fe87e"
+                                                                "templateHash":  "3566263c5e4edcc3e59ea60499b1c739bffc21f5c2603a730aed0f20a479afbb"
                                                             },
                                     "typedParameters":  [
                                                             {
                                                                 "name":  "contactId",
                                                                 "type":  "guid",
                                                                 "required":  true,
-                                                                "encodingContext":  "odata-query-option"
+                                                                "encodingContext":  "queryexpression-condition"
                                                             }
                                                         ],
                                     "encodingContexts":  [
-                                                             "odata-query-option"
+                                                             "queryexpression-condition"
                                                          ],
                                     "versionEvidence":  {
                                                             "v8_2":  {
@@ -3875,6 +3875,11 @@
                                                       },
                                     "auditRequirement":  "read-audit",
                                     "idempotencyClass":  "read-only",
+                                    "responseKind":  "AppNamedMembershipRecords",
+                                    "maximumPageCount":  1,
+                                    "maximumPageBytes":  32768,
+                                    "maximumCumulativeResponseBytes":  32768,
+                                    "maximumResultItemCount":  32,
                                     "migrationStatus":  "mapped-pending-evidence",
                                     "temporaryLegacyOwner":  "churchreport-lists",
                                     "temporaryLegacyRemovalDeadline":  "2026-11-15"

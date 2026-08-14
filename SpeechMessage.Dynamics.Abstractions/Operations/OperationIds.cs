@@ -104,6 +104,18 @@ public static class OperationIds
     /// </summary>
     public const string ListCatalogRetrieveAppNamedSmallGroups = "list.catalog.retrieve.appnamed.smallgroups";
 
+    // -------- P7.4：App-named 名單成員關係唯讀能力；僅建立 local-only typed contract，不啟用 consumer 或 CE 流量 --------
+
+    /// <summary>
+    /// 對應 ORG-CALL-00057：依已由伺服器授權的 contact 定位值讀取目前 active、App-named 名單成員關係。
+    /// 此 ID 只允許固定的 <c>contactId</c> 純 GUID 參數；名單篩選、關聯條件、排序、單頁、列數與位元組上限
+    /// 完全由 registry/connector 擁有，呼叫端不能傳入 list ID、名稱、FetchXML、QueryExpression、profile、endpoint、
+    /// credential、connector 或 caller 身分。它只宣告 local-only 的封閉資料面，不表示 Data8、產品 consumer、
+    /// feature gate 或 CE 流量已啟用；未來 request 的 page、lease、buffer 與 transport 資源仍須由唯一 request
+    /// scope owner 在完成、取消、逾時或 fault 時確定釋放，這個 process-static 常數絕不保留跨使用者／profile 的 mutable state。
+    /// </summary>
+    public const string ListMembershipRetrieveAppNamedByContact = "list.membership.retrieve.appnamed.by.contact";
+
     // -------- P7.4：認證聯絡人唯讀邊界；僅供 disabled-by-default 的未來 consumer 使用 --------
 
     /// <summary>
