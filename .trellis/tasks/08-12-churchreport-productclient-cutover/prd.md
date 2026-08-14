@@ -79,3 +79,12 @@ ProductClient 取得 D365 業務資料，讓既有 ToolUtility／CRM SDK 邊界�
 - [ ] P7.4 只有在所有適用 consumer 已遷移、所有 temporary legacy rows 已由其 owning capability
       task 清除、以及 rollout/rollback/evidence 全數具備後才能封存；否則保留 task active 並建立
       精確後續 child，不提前啟動 P7.5。
+
+## 2026-08-14 最新能力判定
+
+`ORG-CALL-00052`（`contact.current.group.retrieve`）已完成 source-only local design audit，
+結果為 no-go。現有 `GetContactCurrentGroup` 接收 mutable CRM `Entity`，在沒有 immutable
+request-local authorization 的情況下，以 first-match 方式選取 app-named membership，結果直接
+驅動加入／移除名單、出席、contact update、Owner assignment 與 LINE notification。它不能被
+拆成 Gateway read 後保留 legacy writes，也不能作為 P7.5／P8 證據。未來必須先建立
+principal-derived scope、bounded duplicate-aware DTO read 與獨立 command family，才可重評。

@@ -294,3 +294,12 @@ authority。現有 fee-audit typed read 不是 contact-resolver migration。恢�
 authenticated-principal → immutable policy scope，再針對 identity／auditor target 各建立 bounded DTO contact
 projection、A/B isolation、fault cleanup、CE／host parity 與 rollback evidence。此 no-go 只停止 00060，不影響
 其他獨立 P7 family；P7.5/P8 先決條件不變。
+
+## 19. 2026-08-14 current-group capability audit
+
+`ORG-CALL-00052` 的 source-only audit 已封閉直接遷移路徑：目前小組讀取與名單異動、出席、
+contact update、Owner assignment、LINE notification 同屬一個 legacy transaction graph，且沒有
+request-local immutable authorization 或 duplicate-aware current-group semantics。因此它不是 safe
+P7.4 read child、CE evidence 或 P7.5/P8 evidence。此 family 的恢復前置是獨立 principal scope、
+bounded `none/found/ambiguous` DTO read，以及各 effect 自有 idempotency/read-back/cleanup 的 command
+families；在此之前繼續排程不依賴該 graph 的 capability。

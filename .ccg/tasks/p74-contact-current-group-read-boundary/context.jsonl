@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json","reason":"Authoritative ORG-CALL-00052 operation metadata and evidence status."}
+{"file":"SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs","reason":"GetContactCurrentGroup caller, first-match query and write adjacency."}
+{"file":"ToolUtility","reason":"Legacy CRM query owner; must not cross the future DTO boundary."}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"Mandatory server-derived authorization, bounded response and cleanup contract."}

@@ -94,3 +94,12 @@ P7.4 本機實作與實際開啟 gate 是兩個明確階段。實際 gate enable
 P7.5 需要所有 ChurchReport production temporary-legacy row 清除、zero-reference scan、完整 test/
 parity/soak/drain/rollback evidence，故本 task 的單一 disabled read path 不足以啟動 P7.5。P8 只可在
 P7.5 commit/archive 產生 immutable handoff 後建立；本 task 不得建立 P8 task、雲端資源或流量。
+
+## ORG-CALL-00052 current-group transaction boundary
+
+目前 `ContactService.GetContactCurrentGroup` 不是可安全切出的 consumer read：它以 raw `Entity`
+作為 locator，取得並回傳第一筆 app-named list，且沒有多筆 ambiguous fail-closed policy。更重要的是，
+唯一 production caller 在同一控制流程內還擁有 membership transfer、present record、contact relation、
+Owner assignment 與 notification effects。P7.4 禁止 Gateway-read/legacy-write partial wiring；未來
+必須在 principal-derived immutable scope 之後，以 fixed query、bounded DTO、`none/found/ambiguous`
+union 與獨立 transaction command family 完成設計與證據。

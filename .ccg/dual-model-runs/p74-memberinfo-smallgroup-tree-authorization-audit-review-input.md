@@ -1,0 +1,14 @@
+﻿# P7.4 MemberInfo 小組樹授權來源稽核：文件與安全審查
+
+請審查目前尚未提交的 task/CCG/parent 路線文件變更。目標是記錄 ORG-CALL-00031/00032 的
+source-only local design no-go，而非改產品程式。
+
+必要結論：
+- 現有 GetAccess 使用 Session/InMemoryContext；Shepherd scope 可透過保存 credential 載入 shared ListManager，
+  因此不是在 cache/client/CRM I/O 前的 request-local server-derived scope。
+- Church fixed descriptor query 不能替代 Shepherd scope；禁止 Church-only partial migration 宣稱完成。
+- child 不得改 runtime、matrix、gate、CE、traffic、P7.5/P8。
+- 必須將結果寫為僅停止這個 family，且下一個不相依 P7 family 可繼續。
+
+請只輸出 Critical/Warning/Info，專注於：是否有錯誤的完成宣稱、放寬安全限制、漏掉恢復條件、parent/child
+記錄不一致，或文件格式/範圍風險。不要建議執行 CE、開 gate 或建立 P8。

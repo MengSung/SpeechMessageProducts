@@ -1,0 +1,800 @@
+﻿[
+    {
+        "callSiteId":  "ORG-CALL-00005",
+        "capabilityFamily":  "churchreport.fee.lessons",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "succeeded"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "succeeded"
+                         },
+        "operation":  {
+                          "id":  "fee.dedication.retrieve.by.contact",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00011",
+        "capabilityFamily":  "churchreport.list.membership",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "list.members.add.many",
+                          "kind":  "action"
+                      },
+        "operationKind":  "action",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00012",
+        "capabilityFamily":  "churchreport.list.membership",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "list.members.remove.one",
+                          "kind":  "action"
+                      },
+        "operationKind":  "action",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00014",
+        "capabilityFamily":  "churchreport.list.membership",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "list.catalog.retrieve.app.named",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00023",
+        "capabilityFamily":  "churchreport.member.profile",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "memberinfo.contact.update.line.profile",
+                          "kind":  "write"
+                      },
+        "operationKind":  "write",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00024",
+        "capabilityFamily":  "churchreport.member.profile",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "memberinfo.contact.count.ungrouped.commitment",
+                          "kind":  "function"
+                      },
+        "operationKind":  "function",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00028",
+        "capabilityFamily":  "churchreport.member.profile",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "memberinfo.contact.retrieve.image",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "special-resource-pending",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "attachment-stream",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00029",
+        "capabilityFamily":  "churchreport.member.profile",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "memberinfo.contact.update.image",
+                          "kind":  "write"
+                      },
+        "operationKind":  "write",
+        "p75RemovalBlocker":  "special-resource-pending",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "attachment-stream",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00030",
+        "capabilityFamily":  "churchreport.member.profile",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "memberinfo.contact.update.basic.info",
+                          "kind":  "write"
+                      },
+        "operationKind":  "write",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00034",
+        "capabilityFamily":  "churchreport.member.profile",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "newperson.contact.update.image",
+                          "kind":  "write"
+                      },
+        "operationKind":  "write",
+        "p75RemovalBlocker":  "special-resource-pending",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "attachment-stream",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00035",
+        "capabilityFamily":  "churchreport.list.membership",
+        "ceEvidence":  {
+                           "ce82":  "not-executed",
+                           "ce91":  "no-go-closed"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "not-executed",
+                             "embedded":  "not-executed"
+                         },
+        "operation":  {
+                          "id":  "listmanagement.smallgroup.update.fields",
+                          "kind":  "write"
+                      },
+        "operationKind":  "write",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00040",
+        "capabilityFamily":  "churchreport.metadata",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "metadata.optionset.retrieve.by.attribute",
+                          "kind":  "metadata"
+                      },
+        "operationKind":  "metadata",
+        "p75RemovalBlocker":  "special-resource-pending",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "metadata-cache",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00041",
+        "capabilityFamily":  "churchreport.donation.lifecycle",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "payments.dedication.retrieve.by.contact",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00045",
+        "capabilityFamily":  "churchreport.list.membership",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "contact.assign.owner",
+                          "kind":  "action"
+                      },
+        "operationKind":  "action",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00051",
+        "capabilityFamily":  "churchreport.list.membership",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "newperson.contact.transfer.between.lists",
+                          "kind":  "write"
+                      },
+        "operationKind":  "write",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00055",
+        "capabilityFamily":  "churchreport.authentication",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "auth.contact.retrieve.by.account",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00056",
+        "capabilityFamily":  "churchreport.authentication",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "auth.contact.retrieve.by.lineid",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00063",
+        "capabilityFamily":  "churchreport.weekly.reporting",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "stats.meeting.retrieve.by.sunday",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "special-resource-pending",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "paging-result",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00064",
+        "capabilityFamily":  "churchreport.fee.lessons",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "succeeded"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "succeeded"
+                         },
+        "operation":  {
+                          "id":  "fees.retrieve.by.dedication.period",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00065",
+        "capabilityFamily":  "churchreport.list.membership",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "evidence-pending"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "evidence-pending"
+                         },
+        "operation":  {
+                          "id":  "list.catalog.retrieve.appnamed.smallgroups",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    },
+    {
+        "callSiteId":  "ORG-CALL-00066",
+        "capabilityFamily":  "churchreport.fee.lessons",
+        "ceEvidence":  {
+                           "ce82":  "evidence-pending",
+                           "ce91":  "succeeded"
+                       },
+        "consumer":  {
+                         "status":  "not-migrated"
+                     },
+        "data8Executor":  {
+                              "status":  "implemented"
+                          },
+        "hostEvidence":  {
+                             "dedicated":  "evidence-pending",
+                             "embedded":  "succeeded"
+                         },
+        "operation":  {
+                          "id":  "fees.editor.load.by.disciplelesson",
+                          "kind":  "read"
+                      },
+        "operationKind":  "read",
+        "p75RemovalBlocker":  "consumer-not-migrated",
+        "productClient":  {
+                              "status":  "implemented"
+                          },
+        "registry":  {
+                         "status":  "declared"
+                     },
+        "rollback":  {
+                         "owner":  "p7.4-capability-owner"
+                     },
+        "rollout":  {
+                        "owner":  "p7.4-capability-owner"
+                    },
+        "specialResourceRequirement":  "none",
+        "temporaryLegacy":  "temporary-legacy"
+    }
+]

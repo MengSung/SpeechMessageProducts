@@ -1,0 +1,34 @@
+{
+  "id": "08-14-p74-contact-current-group-read-boundary",
+  "name": "08-14-p74-contact-current-group-read-boundary",
+  "title": "P7.4 聯絡人目前小組讀取邊界稽核",
+  "description": "Audit ORG-CALL-00052 contact.current.group.retrieve for an independently safe Gateway boundary. Scope is source/design evidence only until request-local server authorization, bounded DTO and write-adjacency separation are proven; no CE, gate, traffic, P7.5 or P8 action.",
+  "status": "in_progress",
+  "dev_type": "backend-integration-source-audit",
+  "scope": "ORG-CALL-00052 only: source/design decision for a current-group read boundary; no runtime, CE, feature gate, traffic, P7.5 or P8 action.",
+  "package": "SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-14",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-12-churchreport-productclient-cutover",
+  "relatedFiles": [
+    ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+    "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md"
+  ],
+  "notes": "Gemini architect output corroborates source-only local design no-go: mutable CRM Entity boundary, first-match query semantics without ambiguity handling, missing request-local authorization and multi-effect write adjacency. Claude returned no usable output in the 45-second bounded run; this is dual-model-incomplete and local source evidence remains authoritative. No runtime, CE, fixture, feature-gate, traffic, P7.5 or P8 action occurred.",
+  "meta": {
+    "row": "ORG-CALL-00052",
+    "decision": "source-only-local-design-no-go",
+    "externalAnalysis": "Gemini usable; Claude no-usable-output; dual-model-incomplete"
+  }
+}

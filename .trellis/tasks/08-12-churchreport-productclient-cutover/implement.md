@@ -117,3 +117,10 @@
       typed Package01；結果使用 defensive copy/read-only wrapper 的 immutable DTO rows；沒有 target Entity、
       form mutation、fallback 或 retry。完整 solution tests／Release build／encoding／diff check 均通過；
       Gemini-only final review 無 Critical/Warning，Claude 45 秒未完成。此非 CE、cutover、P7.5 或 P8 證據。
+
+## 2026-08-14 current-group capability checkpoint
+
+`ORG-CALL-00052` 已完成 source-only audit，判定為 local design no-go。不得建立 registry、
+executor、ProductClient、consumer route 或 CE family；不得以排序、傳入 login ID 或 DTO 包裝單獨
+修飾既有 method 當作 consumer migration。下一個 child 必須選擇不依賴此 transaction graph 的
+independent matrix capability，並先完成 same-scope authorization、DTO、lifecycle 與 write-adjacency audit。

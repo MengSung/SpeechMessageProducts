@@ -1,0 +1,12 @@
+{
+  "id": "p74-contact-current-group-read-boundary",
+  "title": "P7.4 ORG-CALL-00052 聯絡人目前小組讀取邊界稽核",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-integration-migration",
+  "currentPhase": "review",
+  "nextAction": "完成限時 CCG reviewer、Trellis Check、scope-only commit 與 archive；不得建立 runtime、CE 或 consumer route",
+  "createdAt": "2026-08-14T12:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
