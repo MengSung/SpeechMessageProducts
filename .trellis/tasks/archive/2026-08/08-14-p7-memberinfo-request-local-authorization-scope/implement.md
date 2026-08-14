@@ -30,7 +30,7 @@
 2. [x] 執行一次 45 秒 bounded CCG reviewer run；若無 usable output，記錄「雙模型未完成」並完成本機 review。
 3. [x] 更新 parent PRD/design/implement/roadmap/task metadata，以最新 70-row post-runtime-health
    matrix 的 27 ProductClient implemented、67 unmigrated consumer 與 P7.5/P8 gates 為準。
-4. [ ] 更新 CCG task/review 記錄、完成 scope-only commit/archive；不得 stage 既有 user change 或
+4. [x] 更新 CCG task/review 記錄、完成 scope-only commit/archive；不得 stage 既有 user change 或
    `.ccg/dual-model-runs/`。
 5. [ ] 用最新 matrix 選取下一個不依賴未證明 MemberInfo target source 的 P7 child；若不存在，
    記錄精確 source prerequisite，不重播 Slice C，也不啟動 P7.5/P8。
