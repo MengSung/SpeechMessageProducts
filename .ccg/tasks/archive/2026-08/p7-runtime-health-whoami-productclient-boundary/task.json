@@ -1,0 +1,12 @@
+{
+  "id": "p7-runtime-health-whoami-productclient-boundary",
+  "title": "P7 Runtime Health WhoAmI ProductClient Boundary",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "gateway-product-client",
+  "currentPhase": "completed",
+  "nextAction": "本機 implementation/check 已完成；CCG architect/reviewer 均因 45 秒上限未產生 usable output，已記錄雙模型未完成且不重送。下一步僅為 scope-only commit 與 archive；禁止 CE、consumer、gate 與流量操作。",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
