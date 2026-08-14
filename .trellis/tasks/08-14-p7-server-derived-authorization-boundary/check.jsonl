@@ -1,0 +1,12 @@
+{"file":".trellis/tasks/08-14-p7-server-derived-authorization-boundary/prd.md","reason":"驗收條件與禁止 consumer/CE/traffic/P7.5/P8 範圍。"}
+{"file":".trellis/tasks/08-14-p7-server-derived-authorization-boundary/design.md","reason":"scope/result 型別、完整 isolation boundary 與 lifecycle design。"}
+{"file":".trellis/tasks/08-14-p7-server-derived-authorization-boundary/implement.md","reason":"TDD、驗證、review 與封存順序。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"session/profile/credential/CRM isolation 與 resource cleanup release-blocker contract。"}
+{"file":"SpeechMessageProducts.ChurchReport/Security/DiagnosticsOperatorAuthorization.cs","reason":"嚴格 cookie principal extraction 的 code-review reference。"}
+{"file":"ChurchReport.MemberInfo.Tests/Security/LoginClaimsFactoryTests.cs","reason":"現有 ticket claim 契約及 password-key 不能流入新 scope 的 regression reference。"}
+{"file":"ChurchReport.MemberInfo.Tests/Security/GlobalAuthorizationFilterTests.cs","reason":"legacy Session fallback 與新的 P7 resolver 必須分離的 regression reference。"}
+{"check":"focused-test","command":"dotnet test .\\ChurchReport.MemberInfo.Tests\\ChurchReport.MemberInfo.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~P7GatewayRequestScopeResolverTests","result":"passed: 9/9","evidence":"Cookie scheme、claim 歧義、GUID D、login allowlist、legacy credential 忽略、A/B 交錯與無 static state。"}
+{"check":"release-build","command":"dotnet build .\\SpeechMessageProducts.sln --configuration Release --no-restore","result":"passed: 0 warnings, 0 errors"}
+{"check":"full-solution-test","command":"dotnet test .\\SpeechMessageProducts.sln --configuration Release --no-build --no-restore","result":"passed on second full run: ChurchReport 643 passed/14 skipped; Dynamics 877 passed/7 skipped; no failures","note":"首輪唯一 Kestrel boundary failure 無法單獨重現，隔離測試與第二輪 full run 均通過；本 child 未修改該測試或 Gateway 程式。"}
+{"check":"ccg-review","result":"dual-model-incomplete","evidence":"20260814-112139-p7-server-derived-authorization-boundary-reviewer：Gemini 無 Critical，Claude 無 usable output；Gemini 的 UTF-8 BOM warning 與 byte-level UTF-8 no-BOM／CRLF 實測衝突，判定為 false positive。"}
+{"check":"spec-update","result":"no-change","reason":"本 child 只是既有 cross-user isolation contract 的 ChurchReport 實作；具體 future capability 前置條件已完整保存於本 child PRD/design/implement 與 parent checkpoint，沒有可安全泛化而不過度擴大 backend spec 的新規範。"}

@@ -1,0 +1,12 @@
+{
+  "id": "p7-server-derived-authorization-boundary",
+  "title": "P7 server-derived immutable authorization boundary",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-authorization-isolation",
+  "currentPhase": "completed",
+  "nextAction": "Scope resolver、TDD、local checks 與 review 已完成；僅 archive task-owned records。後續由 parent matrix 選取明確依賴此 scope 的 capability child，不進行 consumer、CE、traffic、P7.5 或 P8 工作。",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

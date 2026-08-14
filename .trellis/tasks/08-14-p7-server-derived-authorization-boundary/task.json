@@ -1,0 +1,35 @@
+{
+  "id": "p7-server-derived-authorization-boundary",
+  "name": "p7-server-derived-authorization-boundary",
+  "title": "P7 server-derived immutable authorization boundary",
+  "description": "建立 P7 server-derived、immutable、request-local authorization boundary prerequisite；只做 shared local control plane，不做 consumer、CE、traffic、P7.5 或 P8。",
+  "status": "in_progress",
+  "dev_type": "backend-authorization-boundary",
+  "scope": "Task-owned authorization-boundary research, code, tests and parent records only; no direct consumer migration, CE, feature, traffic, P7.5 or P8.",
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-14",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-05-gateway-purpose-and-positioning",
+  "relatedFiles": [
+    ".trellis/tasks/archive/2026-08/08-14-p7-current-state-rebaseline/authoritative-gap-matrix.json",
+    ".trellis/spec/backend/cross-user-isolation-and-performance.md",
+    ".trellis/spec/backend/member-info-tree-contract.md"
+  ],
+  "notes": "Current matrix found zero direct P7.4 safe local candidates. Source audits identify only Cookie-middleware HttpContext.User as an eligible input, but it must be strictly projected because the existing ticket can contain a legacy working key and some issuers can produce empty contact claims. The new resolver will reject missing/ambiguous/mismatched claims and never read Session/InMemoryContext. Bounded dual-model architect analysis timed out without usable output and is recorded as incomplete. This prerequisite does not lift any CE, consumer, traffic, P7.5 or P8 gate.",
+  "meta": {
+    "sourceMatrixHash": "52327c15e33a62fe64a59ee73c9adf9051a5e6648c41ae903fdb853138c9b503",
+    "ceAllowed": false,
+    "consumerAllowed": false,
+    "trafficAllowed": false
+  }
+}

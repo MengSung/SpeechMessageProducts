@@ -1,0 +1,9 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"所有 identity、scope、cache、connector 與 lifecycle 的強制 isolation contract。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"A/B、fault/cancellation、resource baseline 的實作與核准清單。"}
+{"file":".trellis/tasks/08-14-p7-server-derived-authorization-boundary/research/principal-source-audit.md","reason":"Cookie principal 是唯一候選輸入、legacy authority path 與 empty-claim caveat。"}
+{"file":".trellis/tasks/08-14-p7-server-derived-authorization-boundary/research/safe-pattern-audit.md","reason":"可重用的 strict claim projection 與 defensive immutable snapshot pattern。"}
+{"file":".trellis/tasks/08-14-p7-server-derived-authorization-boundary/research/test-surface-audit.md","reason":"A/B、no-I/O、default-disabled 與 lifecycle test seam。"}
+{"file":"SpeechMessageProducts.ChurchReport/Security/DiagnosticsOperatorAuthorization.cs","reason":"唯一 cookie identity、GUID 正規化與 fail-closed principal extraction 的現有安全片段。"}
+{"file":"SpeechMessageProducts.ChurchReport/Security/LoginClaimsFactory.cs","reason":"新 resolver 必須忽略 account/password key，並驗證 contact/login claims 的既有 ticket contract。"}
+{"file":"SpeechMessageProducts.ChurchReport/Security/P7GatewayRequestScope.cs","reason":"本 child 新增的純 request-local resolver；只投影 allowlisted scalar，零 I/O、零 Session／cache／connector／CRM 依賴。"}
+{"file":"ChurchReport.MemberInfo.Tests/Security/P7GatewayRequestScopeResolverTests.cs","reason":"以 fail-first、A/B 交錯與 reflection contract 驗證 claim 歧義、跨使用者隔離與無 static retained state。"}

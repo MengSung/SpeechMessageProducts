@@ -19,7 +19,7 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Complete and archive 08-14-p7-current-state-rebaseline. Then plan only a server-derived immutable authorization-boundary recovery prerequisite or another matrix/source-audited independent capability family. Do not redo ORG-CALL-00057, 00011/00012, 00063 or historical Slice C; do not enable gates, issue CE requests, start P7.5 removal or create P8 until their separate immutable gates are proven.",
+  "nextAction": "Complete and archive 08-14-p7-server-derived-authorization-boundary. Then select only the first matrix-backed capability that explicitly uses the new server-derived immutable scope and independently proves bounded DTO, target authorization, no shared mutable bridge, no write adjacency, rollback owner and gate=false zero-work. Do not redo ORG-CALL-00057, 00011/00012, 00063 or historical Slice C; do not enable gates, issue CE requests, start P7.5 removal or create P8 until their separate immutable gates are proven.",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",
@@ -38,7 +38,8 @@
     "08-14-p7p8-parent-current-state-reconciliation",
     "08-14-p72-weekly-attendance-write-family",
     "08-14-p71-list-member-count-typed-read",
-    "08-14-p7-current-state-rebaseline"
+    "08-14-p7-current-state-rebaseline",
+    "08-14-p7-server-derived-authorization-boundary"
   ],
   "parent": null,
   "relatedFiles": [
