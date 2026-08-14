@@ -4,7 +4,7 @@
   "title": "Dynamics Gateway P5-P8 roadmap and positioning",
   "description": "Own the P5-P8 Dynamics Gateway roadmap. P3-P7.3 are archived baseline evidence; P7.4 continues as default-disabled local work, P7.5 remains no-go until every current matrix and lifecycle gate is proven, and P8 follows only after an immutable P7.5 handoff plus external deployment readiness.",
   "currentBaseline": "2026-08-14 current rebaseline: current Phase-0 hash is 52327c15e33a62fe64a59ee73c9adf9051a5e6648c41ae903fdb853138c9b503 with 70 rows. Local evidence is 28 declared registries, 27 Data8 executors, 26 ProductClients, 3 migrated-disabled consumers, and 6 CE 9.1 successes. All 70 rows remain temporary-legacy and 67 consumers remain unmigrated. Historical P7.2 Slice C stays write-not-committed/no-go-closed with exact cleanup and is never replayed. The archived P7.5 report is a historical no-go snapshot because its source hash is older; current matrix evidence independently keeps P7.5/P8 fail closed.",
-  "latestCheckpoint": "2026-08-14: ORG-CALL-00057 is archived as default-disabled local-only list-membership data plane; 00011/00012 list actions are source-only consumer no-go. P7.4 has 20 archived capability children. A current audit found zero direct P7.4 safe local-only candidates: 00063 is blocked by pre-authorization Session/InMemoryContext, stored FetchXML/Entity and attendance/weekly write adjacency. Next recovery prerequisite is a separately governed server-derived immutable authorization boundary; this is not consumer, CE, host, traffic, P7.5 or P8 evidence. The rebaseline architect run timed out at the approved 45-second boundary without usable output and is recorded as dual-model incomplete.",
+  "latestCheckpoint": "2026-08-14: ORG-CALL-00057 is archived as default-disabled local-only list-membership data plane; 00011/00012 list actions are source-only consumer no-go. P7.4 has 20 archived capability children. The separately governed server-derived immutable authorization scope is complete and archived, but QR attendance remains a separate local no-go because no server-issued, request-local immutable QR descriptor exists. Current QR routes write caller values into InMemoryContext before scope and invoke legacy utility with CRM/weekly-report write adjacency; no QR controller, CE, feature, traffic, consumer, P7.5 or P8 mutation occurred. This does not block another independent matrix-backed P7 family. The QR architect run has Gemini output but Claude no usable output and is recorded as dual-model incomplete.",
   "status": "planning",
   "dev_type": null,
   "scope": "P5-P8 roadmap parent; independently verifiable P7 children own implementation. P7.5/P8 remain fail-closed prerequisite gates.",
@@ -19,7 +19,7 @@
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
-  "nextAction": "Complete and archive 08-14-p7-server-derived-authorization-boundary. Then select only the first matrix-backed capability that explicitly uses the new server-derived immutable scope and independently proves bounded DTO, target authorization, no shared mutable bridge, no write adjacency, rollback owner and gate=false zero-work. Do not redo ORG-CALL-00057, 00011/00012, 00063 or historical Slice C; do not enable gates, issue CE requests, start P7.5 removal or create P8 until their separate immutable gates are proven.",
+  "nextAction": "Archive 08-14-p7-qr-attendance-command-authorization-boundary, then select the first independent matrix-backed P7 capability that proves a server-owned target authority, bounded DTO, no shared mutable bridge, no write adjacency, rollback owner and gate=false zero-work. If no source-backed candidate exists, record the precise authority-source prerequisite and continue another independent family; do not invent descriptors. Do not redo ORG-CALL-00057, 00011/00012, 00063 or historical Slice C; do not enable gates, issue CE requests, start P7.5 removal or create P8 until their separate immutable gates are proven.",
   "subtasks": [],
   "children": [
     "08-05-gateway-capability-inventory",
@@ -39,7 +39,8 @@
     "08-14-p72-weekly-attendance-write-family",
     "08-14-p71-list-member-count-typed-read",
     "08-14-p7-current-state-rebaseline",
-    "08-14-p7-server-derived-authorization-boundary"
+    "08-14-p7-server-derived-authorization-boundary",
+    "08-14-p7-qr-attendance-command-authorization-boundary"
   ],
   "parent": null,
   "relatedFiles": [

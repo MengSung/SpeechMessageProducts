@@ -1,0 +1,12 @@
+{
+  "id": "p7-qr-attendance-command-authorization-boundary",
+  "title": "P7 QR 出席指令授權邊界",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-authorization-write-boundary",
+  "currentPhase": "completed",
+  "nextAction": "無 server-issued QR descriptor，已記錄 local no-go；archive task-owned evidence，不修改 QR consumer、CE、traffic、P7.5 或 P8。",
+  "createdAt": "2026-08-14T00:00:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

@@ -1,0 +1,7 @@
+{"check":"source-audit","result":"no-go","evidence":"Current QR routes write caller input to InMemoryContext before scope and use shared QrCodeId; no server-issued descriptor exists."}
+{"check":"ccg-architect","result":"dual-model-incomplete","evidence":"20260814-113631-p7-qr-attendance-command-authorization-architect: Gemini reports no descriptor; Claude no usable output; no manual rerun after 45-second boundary."}
+{"check":"scope","result":"no-mutation","evidence":"No controller, utility, CE, feature, traffic, consumer, ToolUtility, P7.5 or P8 change."}
+{"check":"task-artifacts","result":"pass","evidence":"Task JSON and JSONL parse; task-owned artifacts are UTF-8 without BOM and end with a newline; git diff --check passes."}
+{"check":"focused-tests","result":"pass","evidence":"dotnet test ChurchReport.MemberInfo.Tests.csproj --no-restore --filter FullyQualifiedName~P7GatewayRequestScopeResolverTests: 9 passed, 0 failed."}
+{"check":"release-build","result":"pass","evidence":"dotnet build SpeechMessageProducts.sln -c Release --no-restore: 0 warnings, 0 errors."}
+{"check":"solution-tests","result":"pass","evidence":"dotnet test SpeechMessageProducts.sln -c Release --no-build: all test projects passed; ChurchReport 643 passed/14 skipped and Dynamics 877 passed/7 skipped, with other solution suites also green."}

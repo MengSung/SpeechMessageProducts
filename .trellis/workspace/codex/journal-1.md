@@ -686,3 +686,24 @@ Reconciled P7/P8 parent evidence hierarchy, preserved Slice C non-replay and P7.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 21: P7 QR 出席指令授權邊界 local no-go
+
+**Date**: 2026-08-14
+**Task**: P7 QR 出席指令授權邊界
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+完成 QR 出席 authority path 的 fail-closed 來源稽核。現行 Personal／Sunday QR POST 在驗證 scope 前把 caller supplied LINE、group、room 與 view 寫入 `InMemoryContext`，並交給同時含 CRM 寫入、週報與通知相鄰行為的 legacy utility。repository 沒有 server-issued、request-local、immutable QR descriptor，故本 child 僅交付精確 local no-go；沒有改動產品程式、CE、fixture、feature、流量、consumer、P7.5 或 P8。
+
+### Verification
+
+- [OK] task JSON／JSONL parse、task context validation 與 `git diff --check`。
+- [OK] `P7GatewayRequestScopeResolverTests`：9 passed。
+- [OK] 既有 CCG architect run：Gemini 有可用輸出；Claude 無 usable output，記錄為雙模型未完成且不重送。
+
+### Next Steps
+
+- Archive this task, then select a different matrix-backed P7 capability。QR family 必須等待真正的 server-issued descriptor，且不阻擋其他 independent local work。
