@@ -1,0 +1,12 @@
+{
+  "id": "create-evanai-worktree",
+  "title": "Create 1.0.0.5 EvanAi worktree branch",
+  "status": "in_progress",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "infrastructure",
+  "currentPhase": "implementation",
+  "nextAction": "Create and verify the requested Git worktree",
+  "createdAt": "2026-08-14T00:00:00Z",
+  "branch": "1.0.0.5.EvanAi"
+}
