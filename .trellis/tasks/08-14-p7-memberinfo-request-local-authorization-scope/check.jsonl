@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/08-14-p7-memberinfo-request-local-authorization-scope/prd.md","reason":"驗收條件、範圍與 no-go 分類。"}
+{"file":".trellis/tasks/08-14-p7-memberinfo-request-local-authorization-scope/design.md","reason":"target scope、source seam、fail-closed 與 lifecycle 設計。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"release-blocking A/B isolation 與 resource lifecycle contract。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo target allowlist 及 Church/Shepherd contract。"}

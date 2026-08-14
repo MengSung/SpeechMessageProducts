@@ -322,3 +322,18 @@ response 必須同時符合固定 operation ID、CE 9.1、WhoAmI response branch
 version、branch 或 identity scalar 不一致均回傳 sanitized fail-closed result，不產生 fallback、重試或跨 profile
 狀態。A/B interleaving 與 cancellation tests 必須證明 request state 不被 retained。這個 child 僅建立本機
 data-plane contract，並不改變 P7.4 consumer、P7.5 removal 或 P8 deployment gate。
+
+### 2026-08-14 MemberInfo target authorization continuation
+
+post-runtime-health reconciliation 的 70-row authoritative matrix 現為 27 個 ProductClient implemented、67 個
+consumer not-migrated 與 70 個 temporary-legacy rows。下一個 child 不重做 WhoAmI，也不把其 local evidence 延伸到
+MemberInfo。`P7GatewayRequestScope` 已安全投影 Cookie subject identity，但 Church job title 與完整 Shepherd
+assignment 未出現在 server-issued claims；現有 controller 仍從 Session、`InMemoryContext`、legacy `ListManager`
+與 CRM Entity 取得它們。`list.catalog.retrieve.appnamed.smallgroups` 只含部分 leader lookup，無法證明 legacy
+六種 relationship assignment。
+
+因此 MemberInfo target scope 採「server-owned evidence provider -> immutable bounded scope」的 future seam：沒有
+完整 provider 時回傳固定 `SourceUnavailable`／`IncompleteAssignmentEvidence`，在任何 locator、cache、client 或 CRM
+I/O 前拒絕。新 seam 預設不接 controller、不建立 consumer/CE/traffic evidence；真正 descriptor、membership 與
+relation-goal migration 必須各自完成 operation、DTO、Data8、ProductClient、A/B isolation、read-back/rollback 與
+required CE evidence。這個設計保留 P7 其他 independent family 的前進空間，也不解除 P7.5/P8 gate。

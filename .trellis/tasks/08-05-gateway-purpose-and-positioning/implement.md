@@ -288,3 +288,20 @@ legacy QR path 的 independent matrix capability。
 5. [ ] child scope-only commit/archive 後以同一 current matrix 選下一個 independently-verifiable capability；只在每個 P7.5
    prerequisite 實證後才建立 ToolUtility removal child，並只在 immutable P7.5 handoff 與外部條件具備後建立
    P8.0～P8.4。
+
+## 2026-08-14 post-runtime-health reconciliation 與 MemberInfo scope 執行順序
+
+1. [x] 封存 `08-14-p7-runtime-health-whoami-productclient-boundary`，以 stateless fixed WhoAmI ProductClient
+   完成 ORG-CALL-00003 的 ProductClient-only local gap；不接 ChurchReport consumer、CE、feature gate 或 traffic。
+2. [x] 封存 `08-14-p7-post-runtime-health-reconciliation`，以 task-owned matrix 將現行計數更新為 registry 28、
+   Data8 executor 27、ProductClient 27、consumer migrated-disabled 3、consumer not-migrated 67、temporary-legacy 70。
+3. [x] 建立 `08-14-p7-memberinfo-request-local-authorization-scope` planning child，稽核 Cookie principal、
+   LoginClaimsFactory、MemberInfo controller、legacy assignment graph 與 partial typed catalog；限時 45 秒
+   CCG architect run 逾時後終止 process tree，記錄「雙模型未完成」，不重送。
+4. [x] 以 TDD 實作只含 immutable server-derived subject、closed access mode、bounded defensive-copy list IDs
+   與固定 failure 的 disabled target-authorization seam。它不註冊 production source、不接 controller，並在
+   source unavailable／incomplete 時於任何 I/O 前 fail closed。
+5. [x] 對此 child 執行 focused tests、Release build、必要 full tests、encoding／CRLF、scope check 與 bounded
+   CCG review，完成 scope-only commit/archive。它不得改變 00031／00032／00033 consumer、CE、traffic、P7.5 或 P8。
+6. [ ] child 結束後以 post-runtime-health matrix 選取下一個不依賴未證明 MemberInfo target source 的 capability；
+   無安全 candidate 時記錄 source prerequisite，不重播 Slice C，不建立 P7.5/P8。

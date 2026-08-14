@@ -1,0 +1,12 @@
+{
+  "id": "p7-memberinfo-request-local-authorization-scope",
+  "title": "建立 MemberInfo request-local server-derived target authorization scope",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend-authorization",
+  "currentPhase": "completed",
+  "nextAction": "完成 scope-only commit，然後依 CCG archive 流程移至 2026-08 archive",
+  "createdAt": "2026-08-14T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

@@ -341,3 +341,17 @@ P7.5 完成前，任何 P8 相關工作僅能是 repository-side 的無秘密 ma
 handoff 設計；不得猜選 host、DNS、certificate、identity、secret、network/CE allowlist、monitoring destination
 或 deployment window。P7.5 scope-only commit/archive 產生 immutable handoff 後，才可建立 P8 parent，並先完成
 P8.0 readiness 的安全唯讀驗證。
+
+## 23. 2026-08-14 post-runtime-health reconciliation 與下一個 P7 child
+
+最新 authoritative matrix 位於封存 `08-14-p7-post-runtime-health-reconciliation`，並取代此 roadmap 先前
+26 個 ProductClient 的舊 checkpoint。現況是：70 rows、registry declared 28、Data8 executor implemented 27、
+ProductClient implemented 27、consumer migrated-disabled 3、consumer not-migrated 67、temporary-legacy 70；
+CE 9.1 為 6 succeeded、50 evidence-pending、13 not-executed、1 no-go-closed。所有層級仍須分開判讀。
+
+下一個 active child 是 `08-14-p7-memberinfo-request-local-authorization-scope`。它不可透過 Session、
+`InMemoryContext`、legacy `ListManager`、credential、CRM Entity 或 partial typed catalog 猜選 Church／Shepherd
+scope。Cookie subject identity 已是可用 baseline，但 job title 與完整六類 assignment relationship 尚無
+server-owned evidence，故 child 只建立 disabled fail-closed contract；source unavailable、subject mismatch、
+invalid/duplicate list ID 或 incomplete assignment evidence 都在任何 I/O 前停止。這是 P7 的局部安全前置，
+不會解除 00031/00032/00033、P7.5 或 P8 的 gate。

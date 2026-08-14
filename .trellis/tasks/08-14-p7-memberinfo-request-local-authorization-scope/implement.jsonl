@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"P7 target authorization 的跨使用者隔離、request-local lifecycle、cancellation、cache 與 resource baseline 強制契約。"}
+{"file":".trellis/spec/backend/member-info-tree-contract.md","reason":"MemberInfo Church/Shepherd visible descriptor、list validation、batch authorization 與 DTO 邊界。"}
+{"file":".trellis/spec/guides/cross-user-isolation-and-performance-review.md","reason":"跨產品實作前後必須完成的 isolation/lifecycle review checklist。"}
+{"file":".trellis/tasks/archive/2026-08/08-14-p7-server-derived-authorization-boundary/design.md","reason":"既有 Cookie subject identity baseline 與 target authorization 不可混用的前置設計。"}
+{"file":".trellis/tasks/archive/2026-08/08-14-p7-post-runtime-health-reconciliation/authoritative-gap-matrix.json","reason":"目前 P7 remaining-work 的 70-row authoritative matrix，確認 local contract 不得升格 consumer/CE evidence。"}

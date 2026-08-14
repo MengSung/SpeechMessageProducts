@@ -496,3 +496,16 @@ deployment、CE reachability、monitoring 或 rollback-drill evidence。
 Gateway/ChurchReport package、rollback package、具名 host、DNS、TLS、service identity、secret provider、network、
 CE/ADFS reachability、IP allowlist、deployment authorization、monitoring/alert destination 與 live baseline 時，
 只能準備受控 runbook/validator/handoff，不得建立、部署或切換 P8。
+
+### 2026-08-14 post-runtime-health reconciliation 與 MemberInfo scope child
+
+`08-14-p7-post-runtime-health-reconciliation` 已用固定、task-owned 70-row current matrix 完成更新：registry
+declared 28、Data8 executor implemented 27、ProductClient implemented 27、consumer `migrated-disabled` 3、
+consumer `not-migrated` 67，且全部 70 rows 仍是 `temporary-legacy`。這個 checkpoint 取代本 parent 較早
+「ProductClient 26」的現況敘述；任何 local contract 仍不得升格為 consumer、CE、host、traffic、P7.5 或 P8 evidence。
+
+目前 active child 為 `08-14-p7-memberinfo-request-local-authorization-scope`。其 source audit 已確認：Cookie
+principal 可安全證明 subject identity，但沒有 Church job-title 或完整 Shepherd assignment 的 server-derived source。
+因此它只可建立 disabled、immutable、request-local 的 target-authorization contract，source unavailable 或 evidence
+不完整時固定 fail closed；不得把 Session、`InMemoryContext`、credential-bearing `ListManager` 或 partial typed catalog
+當成 authority。該 child 不得接 controller、CE、feature gate 或 traffic；P7.5/P8 gate 維持不變。
