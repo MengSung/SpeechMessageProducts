@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 20
+- **Total Sessions**: 21
 - **Last Active**: 2026-08-14
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~688 | Active |
+| `journal-1.md` | ~742 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 21 | 2026-08-14 | P7 MemberInfo request-local authorization scope | `bfc5aead` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 20 | 2026-08-14 | P7 server-derived authorization boundary | `f065eac5` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 19 | 2026-08-14 | P7.4 app-named membership local data plane | `58e4357d` | `1.0.0.3.Gateway&Embedded.Worktree` |
 | 18 | 2026-08-14 | P7.4 認獻能力對應與隔離稽核 | `4d3ddf2a` | `1.0.0.3.Gateway&Embedded.Worktree` |

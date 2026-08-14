@@ -707,3 +707,36 @@ Reconciled P7/P8 parent evidence hierarchy, preserved Slice C non-replay and P7.
 ### Next Steps
 
 - Archive this task, then select a different matrix-backed P7 capability。QR family 必須等待真正的 server-issued descriptor，且不阻擋其他 independent local work。
+
+
+## Session 21: P7 MemberInfo request-local authorization scope
+
+**Date**: 2026-08-14
+**Task**: P7 MemberInfo request-local authorization scope
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+建立並封存 MemberInfo server-derived target authorization scope；evidence factory 改為 assembly-internal、9 項 focused 測試與完整 Release 驗證通過；CE、consumer、P7.5、P8 未變更，雙模型最終審查未完成。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `bfc5aead` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
