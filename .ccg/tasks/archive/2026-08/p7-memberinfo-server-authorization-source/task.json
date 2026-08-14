@@ -1,0 +1,12 @@
+{
+  "id": "p7-memberinfo-server-authorization-source",
+  "title": "P7 MemberInfo server-owned assignment evidence source",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-integration-security-boundary",
+  "currentPhase": "completed",
+  "nextAction": "完成 scope-only commit 後依 CCG workflow archive；本機 evidence 已完成。45 秒後的 Gemini UTF-8/BOM false positive 已以 byte-level evidence 反證，Claude 無 usable output，故仍記錄為雙模型未完成。",
+  "createdAt": "2026-08-14T14:40:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
