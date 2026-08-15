@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETFramework,Version=v4.8": {
+      "Microsoft.CrmSdk.CoreAssemblies": {
+        "type": "Direct",
+        "requested": "[8.2.0.2, )",
+        "resolved": "8.2.0.2",
+        "contentHash": "gFbY6//OhiUrc87HmwdqbRE/xNUNjydIusSHqwbVizcH/i39IYtXkwHDNbhYBq0fd5JvO3fJK66V3KfA3sI1mA==",
+        "dependencies": {
+          "Microsoft.IdentityModel": "6.1.7600.16394"
+        }
+      },
+      "Microsoft.CrmSdk.Deployment": {
+        "type": "Direct",
+        "requested": "[8.2.0.2, )",
+        "resolved": "8.2.0.2",
+        "contentHash": "U2IrAnVQCGCcGBFgxc4jUbpRZaBm7Ak4YaI2uhctcvjgOUoHxPaQlqyXsgDYoKvfuzc425U356mj2HVV2LKgOw==",
+        "dependencies": {
+          "Microsoft.CrmSdk.CoreAssemblies": "8.2.0"
+        }
+      },
+      "Microsoft.CrmSdk.Workflow": {
+        "type": "Direct",
+        "requested": "[8.2.0.2, )",
+        "resolved": "8.2.0.2",
+        "contentHash": "rBK2FZIFUEO/oM6JW9j+j3DVUVvcfvVp+QZdE/fteSyls4jQU0p7BnwRXsZTsMTGSK9OQFDB5N/HcL5OFPdYhg==",
+        "dependencies": {
+          "Microsoft.CrmSdk.CoreAssemblies": "8.2.0"
+        }
+      },
+      "Microsoft.CrmSdk.XrmTooling.CoreAssembly": {
+        "type": "Direct",
+        "requested": "[8.2.0.5, )",
+        "resolved": "8.2.0.5",
+        "contentHash": "lZCZQd7eiWac+Ehphf8OzVLGWVuYNTzAaLdn1QKJRidHCK8EWsSLATFupwL69KQvMZ5Te/E9yntv64fZAxQejg==",
+        "dependencies": {
+          "Microsoft.CrmSdk.CoreAssemblies": "8.2.0",
+          "Microsoft.CrmSdk.Deployment": "8.2.0",
+          "Microsoft.CrmSdk.Workflow": "8.2.0",
+          "Microsoft.IdentityModel.Clients.ActiveDirectory": "2.22.302111727"
+        }
+      },
+      "Microsoft.IdentityModel.Clients.ActiveDirectory": {
+        "type": "Direct",
+        "requested": "[2.29.0, )",
+        "resolved": "2.29.0",
+        "contentHash": "03BV0flBZfIHxs+IKJKd+vGJ7s6BS1m9UsVCP9yvTzHE3Wt4+zIRUnRpF3iJzu4m7Q74sGyGfnb2YqifzoV6eg=="
+      },
+      "Microsoft.NETFramework.ReferenceAssemblies.net48": {
+        "type": "Direct",
+        "requested": "[1.0.3, )",
+        "resolved": "1.0.3",
+        "contentHash": "zMk4D+9zyiEWByyQ7oPImPN/Jhpj166Ky0Nlla4eXlNL8hI/BtSJsgR8Inldd4NNpIAH3oh8yym0W2DrhXdSLQ=="
+      },
+      "Microsoft.IdentityModel": {
+        "type": "Transitive",
+        "resolved": "6.1.7600.16394",
+        "contentHash": "qsst2HALUxXdDVmOEk6GJ8U7LNbrQIpIiPesdD+k99TuRc5zy+J4zK4fNpiX+hiMd4cCGoY9WIT3f021Syocdw=="
+      },
+      "speechmessage.dynamics.workerhost": {
+        "type": "Project",
+        "dependencies": {
+          "SpeechMessage.Dynamics.WorkerProtocol": "[1.0.0, )"
+        }
+      },
+      "speechmessage.dynamics.workerprotocol": {
+        "type": "Project"
+      }
+    },
+    ".NETFramework,Version=v4.8/win-x86": {}
+  }
+}
