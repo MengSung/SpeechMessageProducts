@@ -40,7 +40,8 @@
     "08-14-p74-memberinfo-storlesson-contact-read-boundary",
     "08-14-08-14-p74-contact-current-group-read-boundary",
     "08-14-p74-appnamed-membership-read-data-plane",
-    "08-14-p7-memberinfo-server-authorization-source"
+    "08-14-p7-memberinfo-server-authorization-source",
+    "08-14-p7-memberinfo-tree-consumer-reaudit"
   ],
   "parent": "08-05-gateway-purpose-and-positioning",
   "relatedFiles": [
@@ -59,7 +60,11 @@
     },
     "memberInfoAssignmentSourceCheckpoint": {
       "state": "local-only-data-plane-complete-and-archived",
-      "rows": ["ORG-CALL-00031", "ORG-CALL-00032", "ORG-CALL-00033"],
+      "rows": [
+        "ORG-CALL-00031",
+        "ORG-CALL-00032",
+        "ORG-CALL-00033"
+      ],
       "evidence": "archived child 08-14-p7-memberinfo-server-authorization-source: fixed server-owned subject contact/list assignment evidence, typed ProductClient and ChurchReport adapter; full local Release tests/build passed; no controller, CE, feature gate, traffic, P7.5 or P8 operation.",
       "recovery": "Re-audit each row for a distinct DTO-only consumer/data-plane child; the immutable prerequisite removes only the prior source-authority no-go and does not authorize cutover."
     }

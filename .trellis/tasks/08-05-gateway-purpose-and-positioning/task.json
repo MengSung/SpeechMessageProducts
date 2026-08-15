@@ -43,7 +43,8 @@
     "08-14-p7-qr-attendance-command-authorization-boundary",
     "08-14-p7-runtime-health-whoami-productclient-boundary",
     "08-14-p7-post-runtime-health-reconciliation",
-    "08-14-p7-memberinfo-request-local-authorization-scope"
+    "08-14-p7-memberinfo-request-local-authorization-scope",
+    "08-15-p7-memberinfo-smallgroup-snapshot-data-plane"
   ],
   "parent": null,
   "relatedFiles": [

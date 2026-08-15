@@ -172,6 +172,16 @@ public static class OperationIds
     public const string MemberInfoAuthorizationAssignmentResolveBySubject =
         "memberinfo.authorization.assignment.resolve.by.subject";
 
+    /// <summary>
+    /// ORG-CALL-00031／00032 的單一 MemberInfo 小組快照讀取能力。這是 CE 9.1 local-only 的 composed operation；
+    /// 它只識別由 server-owned scope 轉換出的 subject、access mode 與 list allowlist，不能攜帶 browser locator、
+    /// 任意 query/filter、closed-status value、profile、endpoint、credential、owner、Session 或 CRM SDK graph。
+    /// descriptor 與 membership 必須在同一個固定 response branch 內完成 bounded、immutable projection，任何
+    /// cancellation、fault、paging、duplicate 或 overflow 都由 request owner fail closed 並釋放資源。
+    /// </summary>
+    public const string MemberInfoSmallGroupSnapshotRetrieveAuthorized =
+        "memberinfo.smallgroup.snapshot.retrieve.authorized";
+
     // -------- Package 2：名單與小組固定操作；每個 ID 都有獨立的 fixture／reconciliation owner --------
 
     /// <summary>

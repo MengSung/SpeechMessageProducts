@@ -1,0 +1,12 @@
+{
+  "id": "p7-memberinfo-smallgroup-snapshot-data-plane",
+  "title": "P7 MemberInfo small-group snapshot data plane",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-integration-security",
+  "currentPhase": "implementation",
+  "nextAction": "雙模型 architecture analysis 未在 45 秒完成；以本機已驗證的 scope/metadata/operation patterns 依 TDD 實作 00031/00032 local-only composed snapshot。",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}

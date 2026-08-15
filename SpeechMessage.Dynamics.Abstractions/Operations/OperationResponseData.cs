@@ -161,7 +161,14 @@ public enum OperationResponseKind
     /// cookie、cache、connector 或原始例外。此 branch 僅提供 disabled local data plane，不代表 consumer、CE、
     /// traffic、P7.5 或 P8 已完成。
     /// </summary>
-    MemberInfoAssignmentEvidence = 22
+    MemberInfoAssignmentEvidence = 22,
+
+    /// <summary>
+    /// ORG-CALL-00031／00032 的單一 MemberInfo 小組 descriptor／membership immutable snapshot。此 branch 只允許
+    /// subject、封閉 access mode 與已複製的純量列，不攜帶 CRM SDK、query、cookie、profile、credential、Session 或
+    /// 原始例外；它是 CE 9.1 local-only 的 disabled data-plane contract，不代表 consumer、traffic 或 CE 證據已啟用。
+    /// </summary>
+    MemberInfoSmallGroupSnapshot = 23
 }
 
 /// <summary>
@@ -190,6 +197,13 @@ public sealed class OperationResponseData
     private const int MaximumAppNamedMembershipResponseBytes = 32 * 1024;
     private const int AppNamedMembershipFixedRowBytes = 32;
     private const int MaximumMemberInfoAuthorizationAssignmentListIds = 512;
+    private const int MaximumMemberInfoSmallGroupDescriptorRecords = 512;
+    private const int MaximumMemberInfoSmallGroupMembershipRecords = 4096;
+    private const int MaximumMemberInfoSmallGroupTextCharacters = 512;
+    private const int MaximumMemberInfoSmallGroupTextBytes =
+        MaximumMemberInfoSmallGroupTextCharacters * 4;
+    private const int MaximumMemberInfoSmallGroupResponseBytes = 1024 * 1024;
+    private const int MemberInfoSmallGroupMembershipFixedRowBytes = 32;
     private static readonly System.Text.UTF8Encoding StrictUtf8 = new(false, true);
 
     /// <summary>
@@ -223,6 +237,7 @@ public sealed class OperationResponseData
         IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords = null,
         IReadOnlyList<AppNamedMembershipRecord>? appNamedMembershipRecords = null,
         MemberInfoAuthorizationAssignmentEvidenceResponseData? memberInfoAuthorizationAssignmentEvidence = null,
+        MemberInfoSmallGroupSnapshotResponseData? memberInfoSmallGroupSnapshot = null,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification =
             AuthenticationContactReadSafetyClassification.Safe)
     {
@@ -260,6 +275,7 @@ public sealed class OperationResponseData
             memberInfoPresentRecordReadRecords,
             appNamedMembershipRecords,
             memberInfoAuthorizationAssignmentEvidence,
+            memberInfoSmallGroupSnapshot,
             authenticationContactReadSafetyClassification);
 
         OperationId = operationId;
@@ -289,6 +305,13 @@ public sealed class OperationResponseData
             ? null
             : Array.AsReadOnly(appNamedMembershipRecords.ToArray());
         MemberInfoAuthorizationAssignmentEvidence = memberInfoAuthorizationAssignmentEvidence;
+        MemberInfoSmallGroupSnapshot = memberInfoSmallGroupSnapshot is null
+            ? null
+            : new MemberInfoSmallGroupSnapshotResponseData(
+                memberInfoSmallGroupSnapshot.SubjectContactId,
+                memberInfoSmallGroupSnapshot.AccessMode,
+                memberInfoSmallGroupSnapshot.Descriptors,
+                memberInfoSmallGroupSnapshot.Memberships);
         AuthenticationContactReadSafetyClassification = authenticationContactReadSafetyClassification;
     }
 
@@ -466,6 +489,16 @@ public sealed class OperationResponseData
     [JsonPropertyName("memberInfoAuthorizationAssignmentEvidence")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public MemberInfoAuthorizationAssignmentEvidenceResponseData? MemberInfoAuthorizationAssignmentEvidence { get; }
+
+    /// <summary>
+    /// ORG-CALL-00031／00032 的唯一小組快照 branch。它只保存 subject、封閉 access mode、descriptor 純量列與
+    /// membership 純量列；constructor 會在 branch validation 後再建立獨立 defensive copy。這個 property 不得被
+    /// 用作 profile、credential、connector、owner、Session 或下一次 CRM query 的 caller authority，外部 page、lease、
+    /// transport 與 cancellation registration 仍由 Data8 request owner 在建立 envelope 前確定釋放。
+    /// </summary>
+    [JsonPropertyName("memberInfoSmallGroupSnapshot")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public MemberInfoSmallGroupSnapshotResponseData? MemberInfoSmallGroupSnapshot { get; }
 
     /// <summary>
     /// P7.4 專用的非敏感安全分類。<see cref="AuthenticationContactReadSafetyClassification.SecretPresent"/> 只說明
@@ -933,6 +966,29 @@ public sealed class OperationResponseData
     }
 
     /// <summary>
+    /// 建立 ORG-CALL-00031／00032 的唯一 composed snapshot branch。呼叫端必須已在 CE 9.1 Data8 request scope 完成
+    /// scope、descriptor、membership、metadata、paging、duplicate、row、UTF-8 與 byte budget 驗證；factory 只接受
+    /// 三個 server-owned scalar 對應出的 immutable snapshot，並由 envelope 再複製 records。取消、逾時、fault 或
+    /// partial page 不得呼叫此方法，外部 transport／lease／permit 的 deterministic cleanup 仍由 executor 擁有。
+    /// </summary>
+    /// <param name="operationId">固定的 MemberInfo 小組快照 capability ID。</param>
+    /// <param name="ceVersion">部署 profile 已選定且由 executor 驗證的 CE 版本。</param>
+    /// <param name="memberInfoSmallGroupSnapshot">本次 request 的純量 descriptor／membership snapshot。</param>
+    /// <returns>只有 MemberInfo small-group snapshot branch 的 immutable response envelope。</returns>
+    public static OperationResponseData ForMemberInfoSmallGroupSnapshot(
+        string operationId,
+        string ceVersion,
+        MemberInfoSmallGroupSnapshotResponseData memberInfoSmallGroupSnapshot)
+    {
+        ArgumentNullException.ThrowIfNull(memberInfoSmallGroupSnapshot);
+        return new OperationResponseData(
+            operationId,
+            ceVersion,
+            OperationResponseKind.MemberInfoSmallGroupSnapshot,
+            memberInfoSmallGroupSnapshot: memberInfoSmallGroupSnapshot);
+    }
+
+    /// <summary>
     /// 建立明確的 unsupported envelope。connector/Gateway 應把它轉成受控失敗，而不是把未投影 metadata、
     /// OData annotation 或 endpoint detail 回傳給產品；此值不擁有背景資源或可清理 handle。
     /// </summary>
@@ -963,6 +1019,7 @@ public sealed class OperationResponseData
         IReadOnlyList<MemberInfoPresentRecordReadRecord>? memberInfoPresentRecordReadRecords,
         IReadOnlyList<AppNamedMembershipRecord>? appNamedMembershipRecords,
         MemberInfoAuthorizationAssignmentEvidenceResponseData? memberInfoAuthorizationAssignmentEvidence,
+        MemberInfoSmallGroupSnapshotResponseData? memberInfoSmallGroupSnapshot,
         AuthenticationContactReadSafetyClassification authenticationContactReadSafetyClassification)
     {
         // 先計算所有非 null branch，再比對 discriminator；這在反序列化入口也生效，避免使用者或上游資料透過
@@ -988,7 +1045,8 @@ public sealed class OperationResponseData
                            (authenticationContactReadRecords is null ? 0 : 1) +
                           (memberInfoPresentRecordReadRecords is null ? 0 : 1) +
                           (appNamedMembershipRecords is null ? 0 : 1) +
-                          (memberInfoAuthorizationAssignmentEvidence is null ? 0 : 1);
+                          (memberInfoAuthorizationAssignmentEvidence is null ? 0 : 1) +
+                          (memberInfoSmallGroupSnapshot is null ? 0 : 1);
         var isValid = responseKind switch
         {
             OperationResponseKind.Unsupported => branchCount == 0,
@@ -1062,6 +1120,10 @@ public sealed class OperationResponseData
                 branchCount == 1 &&
                 memberInfoAuthorizationAssignmentEvidence is not null &&
                 IsValidMemberInfoAuthorizationAssignmentEvidence(memberInfoAuthorizationAssignmentEvidence),
+            OperationResponseKind.MemberInfoSmallGroupSnapshot =>
+                branchCount == 1 &&
+                memberInfoSmallGroupSnapshot is not null &&
+                IsValidMemberInfoSmallGroupSnapshot(memberInfoSmallGroupSnapshot),
             _ => false
         };
 
@@ -1186,6 +1248,168 @@ public sealed class OperationResponseData
 
         var unique = new HashSet<Guid>();
         return evidence.AssignedListIds.All(id => id != Guid.Empty && unique.Add(id));
+    }
+
+    /// <summary>
+    /// 驗證 ORG-CALL-00031／00032 的 subject、mode、descriptor 與 membership closed union。descriptor identity 必須
+    /// 唯一且不超過 512；membership identity 以 list/contact pair 唯一、最多 4,096，且每一個 list ID 必須來自同一
+    /// response 的 descriptor set。HashSet 與 byte counter 只在目前 constructor frame 存活，不進入 static、cache、
+    /// Session 或下一個 request；任何不確定資料均在 publish 前 fail closed。
+    /// </summary>
+    /// <param name="snapshot">目前 Data8 request scope 投影出的純量小組快照。</param>
+    /// <returns>整個快照符合 bounded immutable contract 時為 <see langword="true"/>。</returns>
+    private static bool IsValidMemberInfoSmallGroupSnapshot(
+        MemberInfoSmallGroupSnapshotResponseData snapshot)
+    {
+        if (snapshot.SubjectContactId == Guid.Empty ||
+            !Enum.IsDefined(snapshot.AccessMode) ||
+            snapshot.Descriptors.Count > MaximumMemberInfoSmallGroupDescriptorRecords ||
+            snapshot.Memberships.Count > MaximumMemberInfoSmallGroupMembershipRecords)
+        {
+            return false;
+        }
+
+        var descriptorIds = new HashSet<Guid>();
+        var memberIds = new HashSet<(Guid ListId, Guid ContactId)>();
+        var totalBytes = 0;
+        foreach (var descriptor in snapshot.Descriptors)
+        {
+            if (descriptor is null ||
+                descriptor.ListId == Guid.Empty ||
+                !descriptorIds.Add(descriptor.ListId) ||
+                (descriptor.RaceLeaderContactId is Guid raceLeaderId && raceLeaderId == Guid.Empty) ||
+                !IsValidMemberInfoSmallGroupText(descriptor.ListName) ||
+                !IsValidMemberInfoSmallGroupText(descriptor.AreaName) ||
+                !IsValidMemberInfoSmallGroupText(descriptor.RaceLeaderName) ||
+                !IsValidMemberInfoSmallGroupText(descriptor.GroupLeaderName) ||
+                !IsValidMemberInfoSmallGroupText(descriptor.GroupTime) ||
+                !IsValidMemberInfoSmallGroupText(descriptor.GroupPlace) ||
+                !TryAddMemberInfoSmallGroupDescriptorBytes(ref totalBytes, descriptor))
+            {
+                return false;
+            }
+        }
+
+        foreach (var membership in snapshot.Memberships)
+        {
+            if (membership is null ||
+                membership.ListId == Guid.Empty ||
+                membership.ContactId == Guid.Empty ||
+                !descriptorIds.Contains(membership.ListId) ||
+                !memberIds.Add((membership.ListId, membership.ContactId)) ||
+                !TryAddMemberInfoSmallGroupMembershipBytes(ref totalBytes))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 驗證 descriptor／membership 使用的每一個文字 scalar。長度與 strict UTF-8 byte count 同時受限；無效
+    /// surrogate、超過 512 個 UTF-16 scalar 或無法以 UTF-8 編碼的文字都立即拒絕，避免序列化器替換字元、建立
+    /// 不可預期的 response 大小，或把另一個 request 的錯誤內容保留下來。
+    /// </summary>
+    /// <param name="value">已由 fixed projection 取得的 nullable display scalar。</param>
+    /// <returns>值為 null 或符合字元與 UTF-8 byte bound 時為 <see langword="true"/>。</returns>
+    private static bool IsValidMemberInfoSmallGroupText(string? value)
+    {
+        if (value is null || value.Length > MaximumMemberInfoSmallGroupTextCharacters)
+        {
+            return value is null;
+        }
+
+        try
+        {
+            return StrictUtf8.GetByteCount(value) <= MaximumMemberInfoSmallGroupTextBytes;
+        }
+        catch (System.Text.EncoderFallbackException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 將 descriptor 的固定 GUID 成本與六個 optional display scalar 累加到整體 snapshot byte budget。計數器
+    /// 僅屬於目前 union validation；checked overflow、無效 surrogate 或超過 1 MiB 都 fail closed，不能發布 partial
+    /// descriptors 或把暫存 buffer 交給長生命週期 caller。
+    /// </summary>
+    /// <param name="totalBytes">本次 response 的 request-local 累積 byte 計數。</param>
+    /// <param name="descriptor">要加入累積預算的 descriptor scalar。</param>
+    /// <returns>加入後仍符合整體 response budget 時為 <see langword="true"/>。</returns>
+    private static bool TryAddMemberInfoSmallGroupDescriptorBytes(
+        ref int totalBytes,
+        MemberInfoSmallGroupDescriptorRecord descriptor)
+    {
+        if (!TryAddMemberInfoSmallGroupBytes(ref totalBytes, 32))
+        {
+            return false;
+        }
+
+        foreach (var value in new[]
+        {
+            descriptor.ListName,
+            descriptor.AreaName,
+            descriptor.RaceLeaderName,
+            descriptor.GroupLeaderName,
+            descriptor.GroupTime,
+            descriptor.GroupPlace
+        })
+        {
+            if (value is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                if (!TryAddMemberInfoSmallGroupBytes(ref totalBytes, StrictUtf8.GetByteCount(value)))
+                {
+                    return false;
+                }
+            }
+            catch (System.Text.EncoderFallbackException)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 將固定 membership pair 成本加入 snapshot response budget。membership 沒有名稱、EntityReference、query 或
+    /// metadata，只保留 list/contact GUID；這個 helper 不保存 pair 或建立任何可釋放的資源。
+    /// </summary>
+    /// <param name="totalBytes">本次 response 的 request-local 累積 byte 計數。</param>
+    /// <returns>加入一列後仍在 1 MiB 上限內時為 <see langword="true"/>。</returns>
+    private static bool TryAddMemberInfoSmallGroupMembershipBytes(ref int totalBytes)
+        => TryAddMemberInfoSmallGroupBytes(ref totalBytes, MemberInfoSmallGroupMembershipFixedRowBytes);
+
+    /// <summary>
+    /// 以 checked 算術維持整個 composed snapshot 的 bounded byte budget。overflow、負值或累積值超過固定上限時
+    /// 回傳 false，使 caller 在建立 envelope 前停止，不會保留 partial response 或跨 request 共用 buffer。
+    /// </summary>
+    /// <param name="totalBytes">目前 request-local 累積值。</param>
+    /// <param name="additionalBytes">欲加入的已嚴格驗證 byte 數。</param>
+    /// <returns>累積值仍在 1 MiB 上限內時為 <see langword="true"/>。</returns>
+    private static bool TryAddMemberInfoSmallGroupBytes(ref int totalBytes, int additionalBytes)
+    {
+        if (additionalBytes < 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            totalBytes = checked(totalBytes + additionalBytes);
+            return totalBytes <= MaximumMemberInfoSmallGroupResponseBytes;
+        }
+        catch (OverflowException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -2099,6 +2323,103 @@ public sealed class MemberInfoAuthorizationAssignmentEvidenceResponseData
 /// lookup、日期與相容欄位都已是純值；它不攜帶 CRM logical property、formatted-value annotation、nextLink
 /// 或 Entity/SDK 參考，因此序列化後可安全在 Gateway 與產品之間傳遞。
 /// </summary>
+/// <summary>
+/// ORG-CALL-00031 的小組 descriptor 純量投影。此型別只承載固定查詢已投影的清單與顯示欄位，不保留 CRM
+/// <c>Entity</c>、lookup graph、query、metadata、cookie、profile、credential、Session 或 connector 狀態。
+/// response envelope 會以固定上限驗證所有值，避免未界定資料跨 request、使用者或 profile 存活。
+/// </summary>
+public sealed record MemberInfoSmallGroupDescriptorRecord
+{
+    /// <summary>固定 descriptor 查詢投影出的非空清單 GUID；它不是 caller 的 selector 或路由權限。</summary>
+    [JsonPropertyName("listId")]
+    public Guid ListId { get; init; }
+
+    /// <summary>清單顯示名稱；只可作目前 immutable view 的顯示資料。</summary>
+    [JsonPropertyName("listName")]
+    public string? ListName { get; init; }
+
+    /// <summary>小組區域顯示文字；不得用作授權、篩選或共享快取索引。</summary>
+    [JsonPropertyName("areaName")]
+    public string? AreaName { get; init; }
+
+    /// <summary>牧區長名稱純量；不攜帶 CRM lookup graph 或登入身分。</summary>
+    [JsonPropertyName("raceLeaderName")]
+    public string? RaceLeaderName { get; init; }
+
+    /// <summary>牧區長 contact 的可選 GUID；空 GUID 會使整個 snapshot fail closed。</summary>
+    [JsonPropertyName("raceLeaderContactId")]
+    public Guid? RaceLeaderContactId { get; init; }
+
+    /// <summary>小組長名稱純量，只在目前 request 的 immutable snapshot 中存活。</summary>
+    [JsonPropertyName("groupLeaderName")]
+    public string? GroupLeaderName { get; init; }
+
+    /// <summary>固定 projection 取得的聚會時間文字，不是 caller 指定的查詢條件。</summary>
+    [JsonPropertyName("groupTime")]
+    public string? GroupTime { get; init; }
+
+    /// <summary>固定 projection 取得的聚會地點文字，沒有快取或背景工作所有權。</summary>
+    [JsonPropertyName("groupPlace")]
+    public string? GroupPlace { get; init; }
+}
+
+/// <summary>
+/// ORG-CALL-00032 的清單成員關係純量投影。僅保留 descriptor list GUID 與 contact GUID，沒有 CRM relationship、
+/// query、Entity、Session、profile、credential 或 transport state；response 會確認 list GUID 來自同一 descriptor set。
+/// </summary>
+public sealed record MemberInfoSmallGroupMembershipRecord
+{
+    /// <summary>同一 snapshot descriptor set 中的非空清單 GUID。</summary>
+    [JsonPropertyName("listId")]
+    public Guid ListId { get; init; }
+
+    /// <summary>固定 relationship projection 的非空 contact GUID。</summary>
+    [JsonPropertyName("contactId")]
+    public Guid ContactId { get; init; }
+}
+
+/// <summary>
+/// ORG-CALL-00031／00032 的唯一 composed 小組快照 response。建構時複製兩個來源集合，將可變來源限制在呼叫
+/// frame 內；這個型別不擁有 connector、lease、permit、stream、timer 或 background work。
+/// </summary>
+public sealed class MemberInfoSmallGroupSnapshotResponseData
+{
+    /// <summary>
+    /// 以 server-validated subject、封閉 access mode 與純量列建立 request-local snapshot。語意完整性（GUID、mode、
+    /// subset、unique、UTF-8 與 byte/row bound）由 <see cref="OperationResponseData"/> 在發布 union branch 前驗證。
+    /// </summary>
+    [JsonConstructor]
+    public MemberInfoSmallGroupSnapshotResponseData(
+        Guid subjectContactId,
+        MemberInfoAuthorizationAssignmentAccessMode accessMode,
+        IReadOnlyList<MemberInfoSmallGroupDescriptorRecord> descriptors,
+        IReadOnlyList<MemberInfoSmallGroupMembershipRecord> memberships)
+    {
+        ArgumentNullException.ThrowIfNull(descriptors);
+        ArgumentNullException.ThrowIfNull(memberships);
+        SubjectContactId = subjectContactId;
+        AccessMode = accessMode;
+        Descriptors = Array.AsReadOnly(descriptors.ToArray());
+        Memberships = Array.AsReadOnly(memberships.ToArray());
+    }
+
+    /// <summary>server-derived subject GUID；不得由 browser、Session 或 caller profile 指定。</summary>
+    [JsonPropertyName("subjectContactId")]
+    public Guid SubjectContactId { get; }
+
+    /// <summary>只能由 server-owned authorization evidence 產生的封閉 access mode。</summary>
+    [JsonPropertyName("accessMode")]
+    public MemberInfoAuthorizationAssignmentAccessMode AccessMode { get; }
+
+    /// <summary>防禦性複製後的 descriptor 純量列。</summary>
+    [JsonPropertyName("descriptors")]
+    public IReadOnlyList<MemberInfoSmallGroupDescriptorRecord> Descriptors { get; }
+
+    /// <summary>防禦性複製後的 membership 純量列。</summary>
+    [JsonPropertyName("memberships")]
+    public IReadOnlyList<MemberInfoSmallGroupMembershipRecord> Memberships { get; }
+}
+
 public sealed record Package01StorLessonRecord
 {
     [JsonPropertyName("storLessonId")]

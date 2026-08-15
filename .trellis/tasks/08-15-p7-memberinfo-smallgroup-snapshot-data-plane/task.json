@@ -1,0 +1,37 @@
+{
+  "id": "p7-memberinfo-smallgroup-snapshot-data-plane",
+  "name": "p7-memberinfo-smallgroup-snapshot-data-plane",
+  "title": "P7 MemberInfo small-group snapshot data plane",
+  "description": "為 ORG-CALL-00031／00032 建立獨立、server-authorized、request-local、bounded、DTO-only 的 local snapshot read；不接線 Controller、不進行 CE、flag、traffic、P7.5 或 P8。",
+  "status": "in_progress",
+  "dev_type": "backend-integration-security",
+  "scope": "ORG-CALL-00031 and ORG-CALL-00032 only; local-only Data8/ProductClient/ChurchReport snapshot data plane.",
+  "package": "SpeechMessage.Dynamics + SpeechMessageProducts.ChurchReport",
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-08-15",
+  "completedAt": null,
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "base_branch": "1.0.0.3.Gateway&Embedded.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "08-05-gateway-purpose-and-positioning",
+  "relatedFiles": [
+    ".trellis/tasks/07-23-dynamics-connection-compatibility/phase0-organization-call-matrix.json",
+    "SpeechMessage.Dynamics.Connectors.Data8/Package02Data8MemberInfoAuthorizationAssignmentOperations.cs",
+    "SpeechMessageProducts.ChurchReport/Security/MemberInfoTargetAuthorizationScope.cs",
+    "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs"
+  ],
+  "notes": "User explicitly authorized autonomous planning and implementation. This task is local-only and must preserve all feature gates/traffic/CE/P7.5/P8 no-go boundaries.",
+  "meta": {
+    "externalModelBudgetSeconds": 45,
+    "ceOperationsAllowed": false,
+    "controllerCutoverAllowed": false,
+    "p75OrP8Allowed": false,
+    "relationGoalsIncluded": false
+  }
+}

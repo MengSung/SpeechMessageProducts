@@ -87,6 +87,16 @@ public static class Package01OperationRegistry
     /// </summary>
     private const int MemberInfoAuthorizationAssignmentMaximumResultItemCount = 512;
 
+    /// <summary>
+    /// ORG-CALL-00031／00032 的單頁 composed snapshot 上限。descriptor 與 membership 必須在同一 response branch
+    /// 內完成；遇到 continuation、MoreRecords、page metadata 或 transport 不確定時，connector 需釋放資源並拒絕
+    /// partial snapshot，而不是延長到下一個 request。
+    /// </summary>
+    private const int MemberInfoSmallGroupSnapshotMaximumPageCount = 1;
+    private const int MemberInfoSmallGroupSnapshotMaximumPageBytes = 512 * 1024;
+    private const int MemberInfoSmallGroupSnapshotMaximumCumulativeResponseBytes = 1024 * 1024;
+    private const int MemberInfoSmallGroupSnapshotMaximumResultItemCount = 4096;
+
     private static readonly IReadOnlyDictionary<string, OperationDefinition> Definitions =
         Build().ToDictionary(x => x.CapabilityOperationId, StringComparer.Ordinal);
 
@@ -538,6 +548,31 @@ public static class Package01OperationRegistry
             parameters:
             [
                 Param("subjectContactId", "guid", required: true, encoding: "queryexpression-condition")
+            ]);
+
+        // ORG-CALL-00031／00032 的唯一 composed read。subject、accessMode 與 visibleListIds 只能由 server-owned
+        // authorization scope 衍生；caller 不得提供任意 query、filter、closed status、profile、credential、owner
+        // 或 CRM SDK graph。Data8 9.1 executor 必須將 descriptor IDs 鎖定為同一次查詢結果，再讀 membership，遇到
+        // paging、duplicate、non-subset、metadata ambiguity、overflow、timeout、cancel 或 fault 時 fail closed。
+        yield return Def(
+            OperationIds.MemberInfoSmallGroupSnapshotRetrieveAuthorized,
+            package: "package-2-memberinfo-small-group-snapshot-local-only",
+            kind: "read",
+            templateKind: "queryexpression",
+            templateId: "memberinfo.smallgroup.snapshot.authorized.v1",
+            responseKind: OperationResponseKind.MemberInfoSmallGroupSnapshot,
+            data: "personal-data",
+            audit: "security-audit",
+            idempotency: "read-only",
+            maximumPageCount: MemberInfoSmallGroupSnapshotMaximumPageCount,
+            maximumPageBytes: MemberInfoSmallGroupSnapshotMaximumPageBytes,
+            maximumCumulativeResponseBytes: MemberInfoSmallGroupSnapshotMaximumCumulativeResponseBytes,
+            maximumResultItemCount: MemberInfoSmallGroupSnapshotMaximumResultItemCount,
+            parameters:
+            [
+                Param("subjectContactId", "guid", required: true, encoding: "queryexpression-condition"),
+                Param("accessMode", "enum", required: true, encoding: "server-enum"),
+                Param("visibleListIds", "guid-array", required: true, encoding: "guid-array-canonical")
             ]);
 
         // Slice C：static-list association 以固定 action 表達；memberIds 的 1,000 筆／distinct／non-empty

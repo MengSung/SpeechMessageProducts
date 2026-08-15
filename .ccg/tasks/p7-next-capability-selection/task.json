@@ -1,0 +1,12 @@
+{
+  "id": "p7-next-capability-selection",
+  "title": "P7 下一個獨立 capability 選擇與 parent 現況校正",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend-integration-migration",
+  "currentPhase": "completed",
+  "nextAction": "已建立 08-14-p7-memberinfo-server-authorization-source recovery child；封存本 selection task。",
+  "createdAt": "2026-08-14T14:20:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
