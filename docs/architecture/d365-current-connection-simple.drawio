@@ -1,0 +1,40 @@
+<mxfile host="app.diagrams.net" modified="2026-08-14T08:10:00Z" agent="Codex" version="24.7.17">
+  <diagram id="d365-current-connection" name="目前 D365 連線">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="church" value="ChurchReport\n目前多數 CRM 呼叫" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="190" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="factory" value="ToolUtilityFactory\nGetInstance()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="290" y="180" width="190" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="tool" value="ToolUtilityClass\nInitializeCrmConnection()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="540" y="180" width="220" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="service" value="CrmConnectionService\nCreateOnPremiseClient(url, user, password)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="820" y="180" width="260" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="sdk" value="PowerPlatform.Dataverse.Client 專案中的 OnPremiseClient\n目前此路徑不是 ServiceClient(connectionString)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="170" width="300" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="d365" value="D365 CE Organization Service\nhttps://sunnyvalechback.speechmessage.com.tw/XRMServices/2011/Organization.svc" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="170" width="330" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="config" value="設定／憑證來源\nappsettings.json:\nCrmConnection:Organization = sunnyvalechback\nCrmConnection:ServerUrl = Organization.svc\n帳號：程式目前固定為 SPEECHMESSAGE\\Administrator\n密碼：User Secrets CrmConnection:Password 或環境變數 CRM_PASSWORD" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="520" y="360" width="500" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="adapter" value="DataverseServiceClientAdapter\nServiceClient(connectionString)\n目前是可用元件／替代路徑，非上述 ToolUtility 初始化鏈" style="shape=note;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="360" width="300" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="church" target="factory"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="factory" target="tool"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="tool" target="service"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="service" target="sdk"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="sdk" target="d365"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="讀取設定／秘密" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;" edge="1" parent="1" source="config" target="tool"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
