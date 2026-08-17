@@ -15,7 +15,7 @@
     <RetainVMGarbageCollection>true</RetainVMGarbageCollection>
     
     <!-- 允許套件降級警告不影響建置 -->
-    <NoWarn>$(NoWarn);NU1605;NU1902;NU1903;ASPDEPR005;CA1416;CA2200;CS0105;CS0108;CS0114;CS0162;CS0168;CS0169;CS0219;CS0414;CS0472;CS0618;CS0649;CS8073;CS8632;CS8981;CS1717;CS4014;MVC1000;SYSLIB0014;SYSLIB0021</NoWarn>
+    <NoWarn>$(NoWarn);NU1605;ASPDEPR005;CA1416;CA2200;CS0105;CS0108;CS0114;CS0162;CS0168;CS0169;CS0219;CS0414;CS0472;CS0618;CS0649;CS8073;CS8632;CS8981;CS1717;CS4014;MVC1000;SYSLIB0014;SYSLIB0021</NoWarn>
     
     <!-- ✅ Phase 5: .NET 10 效能優化設定 -->
     <TieredPGO>true</TieredPGO>
@@ -60,7 +60,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.0" />
     <!-- ✅ SixLabors.ImageSharp - 用於處理圖片 EXIF Orientation，修正直拍照片旋轉問題 -->
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <!-- .NET 10 使用框架引用，不需要明確的 AspNetCore 套件 -->
     <!--
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
