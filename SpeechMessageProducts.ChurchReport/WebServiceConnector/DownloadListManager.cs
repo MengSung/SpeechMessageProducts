@@ -105,22 +105,18 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // ✅ 如果傳入了 organizationService 且 m_ToolUtilityClass 的服務為 null，則設定它
-                if (organizationService != null && this.m_ToolUtilityClass != null)
-                {
-                    if (this.m_ToolUtilityClass.m_Crm2011OrganizationService == null)
-                    {
-                        this.m_ToolUtilityClass.m_Crm2011OrganizationService = organizationService;
-                    }
-                    if (this.m_ToolUtilityClass.m_OrganizationService == null)
-                    {
-                        // 如果是 OrganizationServiceProxy 類型才設定
-                        if (organizationService is OrganizationServiceProxy)
-                        {
-                            this.m_ToolUtilityClass.m_OrganizationService = organizationService as OrganizationServiceProxy;
-                        }
-                    }
-                }
+                // 此處原本會把呼叫端傳入的 organizationService 寫進 m_ToolUtilityClass 的欄位。
+                // 該行為已移除，理由是生命週期不相符：
+                //   傳入的 organizationService 是「request 範圍」的租約（由 DI 於 request 結束時歸還），
+                //   而 m_ToolUtilityClass 來自 ToolUtilityFactory.GetInstance()，是程序級單一實例。
+                // 把短命的租約寫進長命的單例，會讓該連線在歸還、甚至被連線池銷毀之後，
+                // 仍被單例上的殘留參考使用，形成跨請求／跨使用者的連線共用與 ObjectDisposedException。
+                //
+                // 移除是安全的：ToolUtilityClass 的建構式無條件呼叫 InitializeCrmConnection()，
+                // 該方法一定會建立並指派自己的 m_Crm2011OrganizationService，
+                // 因此原本的 null 檢查在正常流程中不會成立，此段實為無效且有害的補強。
+                //
+                // 本方法內請一律使用參數 organizationService（request 範圍），不要改寫單例狀態。
 
                 #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
                 m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();

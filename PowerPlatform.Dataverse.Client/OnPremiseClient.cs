@@ -373,26 +373,25 @@ namespace PowerPlatform.Dataverse.Client
         /// 競爭時只會執行一次收尾。
         /// </summary>
         /// <remarks>
-        /// 目前刻意「不關閉」底層通道。這是已知且暫時的降級決定，不是遺漏，請勿逕行修正。
+        /// 兩條建立路徑的釋放語意不同，必須分開處理：
+        /// Federated 路徑（<c>ConnectFederated</c>）取得的是 WCF <see cref="ICommunicationObject"/>，
+        /// 故障時只能 Abort，其餘狀態在有限逾時內 Close，Close 失敗仍需 Abort，避免半開通道殘留；
+        /// ActiveDirectory 路徑（<c>ConnectAD</c>）取得的是 <c>ADAuthClient</c>，其網路資源皆由每次
+        /// 操作內部的 using 範圍擁有並立即釋放，沒有長壽通道可關閉，因此不虛構關閉步驟。
         ///
-        /// 原因：<c>ChurchReport.WebServiceConnector.DownloadListManager</c>（約第 109-113 行）
-        /// 會把「request 範圍借出」的 <see cref="IOrganizationService"/> 寫入程序級 singleton
-        /// <c>ToolUtilityClass.m_Crm2011OrganizationService</c>。該連線於 request 結束時歸還連線池、
-        /// 稍後被池銷毀；若此處真的關閉通道，singleton 上殘留的參考會在下一次使用時擲出
-        /// <see cref="ObjectDisposedException"/>（ServiceChannel 已關閉），實測會導致登入流程失敗。
+        /// 資源最大生命週期：等同呼叫端（連線池）對本物件的所有權期間。本方法回傳後傳輸層資源
+        /// 已確定性釋放，不依賴 GC 或終結程序。
         ///
-        /// 換言之：「request 範圍連線逃逸到程序級狀態」是既有缺陷，本方法確實關閉通道只是使其顯性。
-        /// 在該缺陷修好前，維持不關閉是較安全的一端；代價是 Federated 路徑的 WCF 通道無法被
-        /// 確定性關閉 —— 此行為與本次改動前完全相同，不構成新增的資源洩漏。
+        /// 重要歷史，請勿重蹈：本方法曾一度被改成「不關閉任何東西」，因為當時只要確實關閉通道，
+        /// 登入就會失敗。真正的原因不在本方法，而在呼叫端的生命週期錯誤 —— per-request 的
+        /// <c>BaseChurchController</c> 以及 operation 範圍的 <c>LineUtilityClass</c>、
+        /// <c>RecurringDonationPaymentProcessor</c> 會去 Dispose 程序級單例 <c>ToolUtilityClass</c>，
+        /// 連帶關閉該單例持有的連線；<c>DownloadListManager</c> 另外會把 request 範圍的連線寫進
+        /// 該單例。在本型別尚未實作 <see cref="IDisposable"/> 之前，那些 Dispose 全是空操作，
+        /// 錯誤因而被長期遮蔽。上述四處已修正，本方法才恢復確定性關閉。
         ///
-        /// 資源最大生命週期：目前等同於連線池中該連線物件的存活期；池銷毀物件後，作業系統層級的
-        /// 通道資源由 GC 與 WCF 自身的終結程序回收，非確定性。
-        ///
-        /// 重新啟用確定性關閉的前置條件（三項全部滿足，才可把 <see cref="CloseCommunicationObject"/>
-        /// 接回本方法）：
-        /// 1. <c>DownloadListManager</c> 不再把借出的連線寫入 <c>ToolUtilityClass</c>。
-        /// 2. 全專案不再有任何 request 範圍連線被存入 static、singleton 或 InMemoryContext。
-        /// 3. 於測試環境完成一輪含登入、名單載入與背景批次的完整回歸。
+        /// 若日後再出現 <see cref="ObjectDisposedException"/>（ServiceChannel 已關閉），
+        /// 應先檢查是否又有短命物件釋放了長命單例，而不是把本方法改回空實作。
         /// </remarks>
         public void Dispose()
         {
@@ -401,8 +400,23 @@ namespace PowerPlatform.Dataverse.Client
                 return;
             }
 
-            // 依上述 remarks，暫時不對 _service 執行任何關閉或 Dispose。
-            // CloseCommunicationObject 保留未刪，待前置條件滿足後直接接回即可。
+            if (_service is ICommunicationObject communicationObject)
+            {
+                CloseCommunicationObject(communicationObject);
+                return;
+            }
+
+            if (_service is ADAuthClient)
+            {
+                // ADAuthClient 不保存 WCF 通道，也未實作 IDisposable；網路資源皆由每次操作內部
+                // using 範圍擁有並立即釋放，故此處沒有可安全關閉的持久資源。
+                return;
+            }
+
+            if (_service is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
 
         private static void CloseCommunicationObject(ICommunicationObject communicationObject)

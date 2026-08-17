@@ -1086,30 +1086,32 @@ namespace ChurchReport.Controllers
         #region 鞈?? (Resource Disposal)
 
         /// <summary>
-        /// ?鞈? (Dispose Resources)
-        ///
-        /// ?飛隤芣?嚗?
-        /// 撖衣 IDisposable 隞?航憟賜?撖血???
-        /// ?瘜?拐辣鋡恍瘥???怒?
-        ///
-        /// ???皞?
-        /// - ToolUtility嚗極?琿??亦?鞈?
-        /// - ?粹?鞈?嚗??Controller ??Dispose
-        ///
-        /// ?箔?暻潮?閬?
-        /// - ?脫迫鞈?瘣拇?
-        /// - 蝣箔???甇?Ⅱ??
-        /// - 蝟餌絞鞈?敺???拍
-        ///
-        /// 瘜冽?嚗瘜?鋡怠??曉??嗅?芸??澆嚗?
-        /// ?隞交????using 隤??
+        /// 釋放本 Controller 自身的資源。本方法由 ASP.NET Core 於每個 request 結束時呼叫。
         /// </summary>
+        /// <remarks>
+        /// 重要：本方法「刻意不」釋放 <c>ToolUtility</c>，請勿還原該呼叫。
+        ///
+        /// 生命週期不相符是唯一理由：<c>ToolUtility</c> 取自
+        /// <c>IToolUtilityProvider.GetToolUtility()</c>，其實作 <c>ToolUtilityFactory.GetInstance()</c>
+        /// 回傳的是「程序級單一實例」（static 欄位，double-check locking 建立），
+        /// 存活期等同整個 Worker Process；而 Controller 是 per-request 物件，存活期僅一次請求。
+        /// 由短命物件去釋放長命物件，等同「一個請求結束時把整個程序共用的資源關掉」，
+        /// 之後所有請求都會操作到已釋放的物件。
+        ///
+        /// 歷史背景（避免日後有人順手補回來）：此處原本確實呼叫 <c>ToolUtility?.Dispose()</c>。
+        /// 它長期未造成可見故障，只因 <c>ToolUtilityClass.Dispose</c> 內的
+        /// <c>(m_Crm2011OrganizationService as IDisposable)?.Dispose()</c>，
+        /// 在 <c>OnPremiseClient</c> 尚未實作 <see cref="IDisposable"/> 之前是無作用的空操作。
+        /// 一旦該型別補上確定性釋放，這個既有的生命週期錯誤立即顯現為
+        /// <see cref="ObjectDisposedException"/>（ServiceChannel 已關閉），實測會使登入流程失敗。
+        ///
+        /// 釋放責任歸屬：程序級單例於程序結束時回收，不由任何 request 範圍或 operation 範圍物件負責。
+        /// 本 Controller 自身的 request 範圍資源（含注入的 IOrganizationService 租約），
+        /// 由基底類別與 DI 容器在 request scope 結束時確定性釋放，無須於此重複處理。
+        /// </remarks>
         public new void Dispose()
         {
-            // ?撌亙憿鞈?
-            ToolUtility?.Dispose();
-
-            // ?澆?箇?憿??Dispose
+            // 不得在此釋放 ToolUtility —— 它是程序級單例，理由見上方 remarks。
             base.Dispose();
         }
 
