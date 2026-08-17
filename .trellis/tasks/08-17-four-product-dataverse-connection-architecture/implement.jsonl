@@ -1,1 +1,7 @@
 {"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/index.md", "reason": "後端層規範索引，撰寫 ToolUtility/Dataverse 新型別前必讀"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "新增 ToolUtility/Dataverse/ 目錄需符合既有目錄慣例"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Fault 路徑、租借逾時、拒絕歸還的例外型別與訊息需依既有慣例"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "PoolStats 與租借逾時／健檢失敗／fault 淘汰的結構化日誌格式"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "遷移 23+70 個呼叫點時判斷可重用模式，避免重複樣板"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Gateway/Manager/Pool 三層邊界與 Controller→ToolUtility 資料流的跨層一致性"}
