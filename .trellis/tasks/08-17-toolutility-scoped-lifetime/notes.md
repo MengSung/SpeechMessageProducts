@@ -77,4 +77,4 @@ grep -c "CreateScope()" SpeechMessageProducts.ChurchReport/Controllers/SmallGrou
 ENCODING OK
 ```
 
-本 Run 的提交雜湊以提交完成後的 `git log -1 --format=%H` 為準。
+本 Run 的程式碼提交：`e5ed0c3e`（`fix(toolutility): 移除跨請求持有者，背景工作自建 DI scope`）。
