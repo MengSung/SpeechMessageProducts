@@ -428,7 +428,7 @@ namespace ChurchReport.Controllers
                     return Forbid();
                 }
 
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var contact = service.Retrieve("contact", contactGuid, GetContactDetailColumns());
                 // CRM 可能以 DateTime 的 Year=1 表示未填或無效日期；在 ViewModel 邊界正規化為 null，
                 // 讓 Razor 只需處理「有效生日／未設定」兩種狀態，不會顯示 0001/01/01。
@@ -483,7 +483,7 @@ namespace ChurchReport.Controllers
                     return DataSourceLoader.Load(new List<ContactPresentRecordRow>(), loadOptions);
                 }
 
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
                 var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
 
@@ -538,7 +538,7 @@ namespace ChurchReport.Controllers
                     return DataSourceLoader.Load(new List<MemberInfoStorLessonRow>(), loadOptions);
                 }
 
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
                 var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
 
@@ -2218,7 +2218,7 @@ namespace ChurchReport.Controllers
 
             return CanViewContactsBatch(
                 contactIds,
-                ToolUtility.m_Crm2011OrganizationService,
+                organizationService,
                 closedStatus.Value);
         }
 
@@ -2358,7 +2358,7 @@ namespace ChurchReport.Controllers
             EnsureShepherdListsLoaded();
 
             var resolveMembershipStatus = CreateMembershipStatusResolver();
-            var service = ToolUtility.m_Crm2011OrganizationService;
+            var service = organizationService;
             var groupRecords = InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData;
             if (groupRecords == null)
             {
@@ -2469,7 +2469,7 @@ namespace ChurchReport.Controllers
                 return LoadChurchMemberRowsInMemory(loadOptions, photoOnly);
             }
 
-            var service = ToolUtility.m_Crm2011OrganizationService;
+            var service = organizationService;
             var take = loadOptions?.Take > 0 ? Math.Min(loadOptions.Take, MaxPageSize) : DefaultPageSize;
             var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
             var pageNumber = skip / take + 1;
@@ -2640,7 +2640,7 @@ namespace ChurchReport.Controllers
         /// <summary>建立整份全教會清單：一次撈所有(過濾後)聯絡人 ＋ 一次撈所有小組成員，合併為資料列。</summary>
         private List<MemberInfoListRowViewModel> BuildAllChurchMemberRows(string searchValue, bool photoOnly)
         {
-            var service = ToolUtility.m_Crm2011OrganizationService;
+            var service = organizationService;
 
             var query = BuildCurrentContactQuery(
                 new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"),
@@ -2706,7 +2706,7 @@ namespace ChurchReport.Controllers
 
             try
             {
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var query = new QueryExpression("listmember")
                 {
                     ColumnSet = new ColumnSet("entityid", "listid")
@@ -2910,7 +2910,7 @@ namespace ChurchReport.Controllers
 
             try
             {
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var idList = contactIds.Distinct().ToList();
                 const int batchSize = 200;
 
@@ -2969,7 +2969,7 @@ namespace ChurchReport.Controllers
                 listLink.LinkCriteria.AddCondition("purpose", ConditionOperator.Equal, "小組名單");
                 query.LinkEntities.Add(listLink);
 
-                var listMembers = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                var listMembers = organizationService.RetrieveMultiple(query);
                 var names = new Dictionary<Guid, HashSet<string>>();
 
                 foreach (var listMember in listMembers.Entities)
@@ -3012,7 +3012,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var contact = ToolUtility.m_Crm2011OrganizationService.Retrieve(
+                var contact = organizationService.Retrieve(
                     "contact",
                     contactId,
                     new ColumnSet("statecode", "customertypecode"));
@@ -3066,7 +3066,7 @@ namespace ChurchReport.Controllers
         private OptionSetMetadataService GetSharedOptionSetService()
         {
             return new OptionSetMetadataService(
-                ToolUtility.m_Crm2011OrganizationService,
+                organizationService,
                 null,
                 memberInfoMemoryCache);
         }
@@ -3168,7 +3168,7 @@ namespace ChurchReport.Controllers
                     return string.Empty;
                 }
 
-                var service = new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService);
+                var service = new OptionSetMetadataService(organizationService);
                 return service.GetOptionSetText(entity.LogicalName, attributeName, value);
             }
             catch
@@ -3191,7 +3191,7 @@ namespace ChurchReport.Controllers
                 query.Criteria.AddCondition("record1id", ConditionOperator.Equal, contactId);
                 query.Criteria.AddCondition("record2id", ConditionOperator.Equal, contactId);
 
-                var connections = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                var connections = organizationService.RetrieveMultiple(query);
                 var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var connection in connections.Entities)
                 {

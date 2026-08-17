@@ -506,7 +506,7 @@ namespace ChurchReport.Controllers
                 EntityCollection contactCollection;
                 using (PerfPhase.Measure(HttpContext, phaseName))
                 {
-                    contactCollection = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                    contactCollection = OrganizationService.RetrieveMultiple(query);
                 }
 
                 foreach (var contactEntity in contactCollection.Entities)
@@ -588,7 +588,7 @@ namespace ChurchReport.Controllers
                 ?? FallbackOptionSetMetadataCache;
 
             _optionSetMetadataService = new ChurchReport.Services.OptionSetMetadataService(
-                ToolUtility.m_Crm2011OrganizationService,
+                OrganizationService,
                 null,
                 memoryCache);
 
