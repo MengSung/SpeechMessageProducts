@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- ´ú¸Õ®Ø¬[ -->
+    <!-- æ¸¬è©¦æ¡†æž¶ -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.6.6" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
@@ -17,13 +17,13 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     
-    <!-- Mock ®Ø¬[ -->
+    <!-- Mock æ¡†æž¶ -->
     <PackageReference Include="Moq" Version="4.20.70" />
     
-    <!-- Â_¨¥®w -->
+    <!-- æ–·è¨€åº« -->
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     
-    <!-- µ{¦¡½XÂÐ»\²v -->
+    <!-- ç¨‹å¼ç¢¼è¦†è“‹çŽ‡ -->
     <PackageReference Include="coverlet.collector" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -35,14 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- ±M®×°Ñ¦Ò -->
+    <!-- å°ˆæ¡ˆåƒè€ƒ -->
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- CRM SDK ®M¥ó¡]¥Î©ó´ú¸Õ¡^ -->
+    <!-- CRM SDK å¥—ä»¶ï¼ˆç”¨æ–¼æ¸¬è©¦ï¼‰ -->
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.56" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
   </ItemGroup>
 
 </Project>

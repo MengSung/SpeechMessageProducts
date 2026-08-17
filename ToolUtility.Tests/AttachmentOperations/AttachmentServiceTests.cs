@@ -27,11 +27,13 @@ namespace ToolUtility.Tests.AttachmentOperations
         public void DownloadAttachment_WhenCalled_ShouldReturnCollection()
         {
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrudClient = MockOrganizationServiceFactory.CreateMock();
 
             var service = new AttachmentService(mockLogger.Object, mockCrudClient.Object);
 
-            var crm = (IOrganizationService)null;
+            // ref 參數必須是可用連線：產品程式碼會直接對它呼叫 RetrieveMultiple/Create，
+            // 傳 null 會在產品內部產生 NullReferenceException，並非被保護的契約。
+            var crm = mockCrudClient.Object;
             var result = service.DownloadAttachment(ref crm, Guid.NewGuid());
 
             result.Should().NotBeNull();
@@ -42,11 +44,13 @@ namespace ToolUtility.Tests.AttachmentOperations
         public void UploadAttachment_WhenCalled_ShouldCreateAnnotation()
         {
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrudClient = MockOrganizationServiceFactory.CreateMock();
 
             var service = new AttachmentService(mockLogger.Object, mockCrudClient.Object);
 
-            var crm = (IOrganizationService)null;
+            // ref 參數必須是可用連線：產品程式碼會直接對它呼叫 RetrieveMultiple/Create，
+            // 傳 null 會在產品內部產生 NullReferenceException，並非被保護的契約。
+            var crm = mockCrudClient.Object;
 
             service.UploadAttachment(ref crm, "contact", "sub", "note", "file.txt", "text/plain", new byte[] {1,2,3}, Guid.NewGuid());
 
