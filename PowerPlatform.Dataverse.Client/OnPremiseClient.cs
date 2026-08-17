@@ -19,18 +19,22 @@ using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
+using System.Threading;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace PowerPlatform.Dataverse.Client
 {
     /// <summary>
-    /// Implements <see cref="IOrganizationService"/> using SOAP authenticated via WS-Trust username and password.
+    /// 以 WS-Trust 使用者名稱與密碼實作 SOAP <see cref="IOrganizationService"/>，並負責釋放
+    /// 其持有的底層傳輸資源。此 client 由連線池獨佔租借，最長只活到池的歸還或銷毀路徑；
+    /// Dispose 對故障 WCF 通道使用 Abort，對可正常關閉的通道採有限逾時 Close，避免通道、socket
+    /// 或跨 request 的可變驗證狀態殘留。
     /// </summary>
     /// <remarks>
     /// Claims-based authentication, IFD and Active Directory authentication are all supported.
     /// </remarks>
-    public class OnPremiseClient : IOrganizationService
+    public class OnPremiseClient : IOrganizationService, IDisposable
     {
         /// <summary>
         /// Adds headers into the SOAP requests
@@ -65,6 +69,7 @@ namespace PowerPlatform.Dataverse.Client
         }
 
         private readonly IOrganizationService _service;
+        private int _disposed;
 
         private static readonly string _sdkVersion;
         private static readonly int _sdkMajorVersion;
@@ -360,6 +365,65 @@ namespace PowerPlatform.Dataverse.Client
             using (StartScope())
             {
                 _service.Update(entity);
+            }
+        }
+
+        /// <summary>
+        /// 釋放底層 Dataverse 傳輸資源。Federated 路徑取得的是 <see cref="ICommunicationObject"/>，
+        /// 故障時必須 Abort，其他狀態則在有限時間內 Close，Close 失敗仍會 Abort；ADAuthClient
+        /// 只在操作期間使用其內部 HTTP 資源，沒有長壽 WCF channel 或 IDisposable 資源可關閉，
+        /// 因此不應虛構關閉步驟。其他可釋放型別才走其自身 Dispose。
+        /// 此方法為冪等，確保連線池、應用程式停止與例外清理競爭時只會執行一次收尾。
+        /// </summary>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+            if (_service is ICommunicationObject communicationObject)
+            {
+                CloseCommunicationObject(communicationObject);
+                return;
+            }
+
+            if (_service is ADAuthClient)
+            {
+                // ADAuthClient 不保存 WCF 通道，也未實作 IDisposable；網路資源皆由每次操作內部 using
+                // 範圍擁有並立即釋放，故此處沒有可安全關閉的持久資源。
+                return;
+            }
+
+            if (_service is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        private static void CloseCommunicationObject(ICommunicationObject communicationObject)
+        {
+            if (communicationObject.State == CommunicationState.Faulted)
+            {
+                communicationObject.Abort();
+                return;
+            }
+
+            try
+            {
+                communicationObject.Close(TimeSpan.FromSeconds(10));
+            }
+            catch (CommunicationException)
+            {
+                communicationObject.Abort();
+            }
+            catch (TimeoutException)
+            {
+                communicationObject.Abort();
+            }
+            catch
+            {
+                communicationObject.Abort();
             }
         }
     }

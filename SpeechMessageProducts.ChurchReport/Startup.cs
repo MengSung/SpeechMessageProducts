@@ -36,6 +36,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
@@ -299,7 +300,7 @@ namespace ChurchReport
             // ========================================
             // 註冊 CRM 連接池服務，使用 Singleton 模式確保全應用程式共用一個連接池實例。
             // 從配置中讀取 CRM 連接參數，包括伺服器 URL、認證資訊和連接池設定。
-            services.AddSingleton<ICrmConnectionPool>(sp =>
+            services.AddSingleton<CrmConnectionPool>(sp =>
             {
                 // 建立 CRM 連接服務實例。
                 var connectionService = new CrmConnectionService();
@@ -347,6 +348,14 @@ namespace ChurchReport
                     idleTimeout: TimeSpan.FromMinutes(idleTimeoutMinutes)         // 閒置超時：從配置讀取
                 );
             });
+
+            // 既有元件仍透過介面取得同一個 singleton；不可另建第二個池，否則連線上限與使用者
+            // 隔離邊界會分裂而無法正確釋放。
+            services.AddSingleton<ICrmConnectionPool>(sp => sp.GetRequiredService<CrmConnectionPool>());
+
+            // IOrganizationService 為 request scope 所有。包裝器在建構時租借，在 scope 結束時
+            // 正常歸還；若傳輸狀態不確定則由池銷毀，避免跨使用者、跨 request 重用可疑通道。
+            services.AddScoped<IOrganizationService, PooledOrganizationService>();
 
             // ========================================
             // 🆕 新增：Health Checks（健康檢查）

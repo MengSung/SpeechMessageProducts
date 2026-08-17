@@ -128,8 +128,12 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 {
                     if (IsConnectionHealthy(pooledConnection, now))
                     {
-                        pooledConnection.IsInUse = true;
-                        pooledConnection.LastUsedAt = now;
+                        lock (pooledConnection.SyncRoot)
+                        {
+                            pooledConnection.IsInUse = true;
+                            pooledConnection.LastUsedAt = now;
+                        }
+
                         service = pooledConnection.Service;
                         break;
                     }
@@ -144,8 +148,12 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 if (service == null)
                 {
                     pooledConnection = CreateConnection();
-                    pooledConnection.IsInUse = true;
-                    pooledConnection.LastUsedAt = now;
+                    lock (pooledConnection.SyncRoot)
+                    {
+                        pooledConnection.IsInUse = true;
+                        pooledConnection.LastUsedAt = now;
+                    }
+
                     service = pooledConnection.Service;
                 }
 
@@ -171,9 +179,9 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// 將連線歸還至連線池。
-        /// 若此連線原本不是由連線池建立，仍會暫時納入追蹤，
-        /// 以維持借還流程的一致性。
+        /// 將連線歸還至連線池。只接受由本池建立且目前仍為租借中的服務；外部服務或重複歸還
+        /// 會被拒絕並記錄，避免 _connectionLookup 無界成長或 semaphore 名額超賣。已標記故障的
+        /// 服務會先關閉底層資源、移除 lookup，再釋放租約名額，絕不被下一個 request 重用。
         /// </summary>
         public void ReleaseConnection(IOrganizationService service)
         {
@@ -183,26 +191,39 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             if (service == null)
                 throw new ArgumentNullException(nameof(service));
 
+            if (!_connectionLookup.TryGetValue(service, out var pooledConnection) || !pooledConnection.PoolOwned)
+            {
+                System.Diagnostics.Debug.WriteLine("Rejected CRM connection release because the service was not created by this pool.");
+                throw new InvalidOperationException("Only a service created by this CRM connection pool may be released.");
+            }
+
+            var releaseSemaphorePermit = false;
             try
             {
                 var now = DateTime.UtcNow;
-                if (!_connectionLookup.TryGetValue(service, out var pooledConnection))
+                bool isFaulted;
+                lock (pooledConnection.SyncRoot)
                 {
-                    pooledConnection = new PooledConnection
+                    if (!pooledConnection.IsInUse)
                     {
-                        Service = service,
-                        CreatedAt = now,
-                        LastUsedAt = now,
-                        LastValidatedAt = now,
-                        PoolOwned = false
-                    };
+                        System.Diagnostics.Debug.WriteLine("Rejected duplicate CRM connection release.");
+                        throw new InvalidOperationException("A CRM connection may be released only once per acquisition.");
+                    }
 
-                    _connectionLookup.TryAdd(service, pooledConnection);
+                    pooledConnection.IsInUse = false;
+                    pooledConnection.LastUsedAt = now;
+                    isFaulted = pooledConnection.IsFaulted;
+                    releaseSemaphorePermit = true;
                 }
 
-                pooledConnection.IsInUse = false;
-                pooledConnection.LastUsedAt = now;
-                _connections.Add(pooledConnection);
+                if (isFaulted)
+                {
+                    DisposeConnection(pooledConnection);
+                }
+                else
+                {
+                    _connections.Add(pooledConnection);
+                }
 
                 lock (_statsLock)
                 {
@@ -212,7 +233,42 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             finally
             {
-                _semaphore.Release();
+                if (releaseSemaphorePermit)
+                {
+                    _semaphore.Release();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 標記已租借服務為不可重用。此方法不立即釋放 semaphore；租約擁有者仍必須呼叫
+        /// <see cref="ReleaseConnection(IOrganizationService)"/>，使釋放與銷毀在同一條確定性路徑完成。
+        /// 標記僅接受本池建立的服務，因此不會將外部服務寫入 lookup 或跨 request 保留參考。
+        /// </summary>
+        /// <param name="service">發生不確定傳輸結果的本池服務。</param>
+        /// <exception cref="InvalidOperationException">服務不屬於本池時擲回，避免錯誤回收外部資源。</exception>
+        public void MarkConnectionFaulted(IOrganizationService service)
+        {
+            if (service == null)
+            {
+                throw new ArgumentNullException(nameof(service));
+            }
+
+            if (!_connectionLookup.TryGetValue(service, out var pooledConnection) || !pooledConnection.PoolOwned)
+            {
+                System.Diagnostics.Debug.WriteLine("Rejected CRM connection fault mark because the service was not created by this pool.");
+                throw new InvalidOperationException("Only a service created by this CRM connection pool may be marked as faulted.");
+            }
+
+            lock (pooledConnection.SyncRoot)
+            {
+                if (!pooledConnection.IsInUse)
+                {
+                    System.Diagnostics.Debug.WriteLine("Rejected CRM connection fault mark because the service is not currently leased.");
+                    throw new InvalidOperationException("Only a currently leased CRM connection may be marked as faulted.");
+                }
+
+                pooledConnection.IsFaulted = true;
             }
         }
 
@@ -405,22 +461,30 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         /// </summary>
         private void DisposeConnection(PooledConnection connection)
         {
+            PooledConnection trackedConnection = null;
+
             try
             {
-                if (connection?.Service != null)
+                if (connection?.Service == null ||
+                    !_connectionLookup.TryRemove(connection.Service, out trackedConnection))
                 {
-                    _connectionLookup.TryRemove(connection.Service, out _);
+                    return;
                 }
 
-                (connection?.Service as IDisposable)?.Dispose();
-                if (connection != null && connection.PoolOwned)
-                {
-                    Interlocked.Decrement(ref _currentSize);
-                }
+                (connection.Service as IDisposable)?.Dispose();
             }
             catch
             {
                 // 釋放失敗不再往外拋，避免清理流程中斷。
+            }
+            finally
+            {
+                // 即使底層 Dispose 本身擲例外，lookup 已移除且該通道不可再重用；必須歸還
+                // 容量計數，否則池會永久誤以為已滿並造成後續 request 無限等待或逾時。
+                if (trackedConnection != null && trackedConnection.PoolOwned)
+                {
+                    Interlocked.Decrement(ref _currentSize);
+                }
             }
         }
 
@@ -453,10 +517,19 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 return;
 
             _disposed = true;
+            // Timer 是此池唯一的背景資源擁有者；先停止排程，再排空連線，避免清理 callback
+            // 與 Dispose 競爭並讓服務參考在應用程式關閉後持續存活。
             _cleanupTimer?.Dispose();
             _semaphore?.Dispose();
 
             while (_connections.TryTake(out var connection))
+            {
+                DisposeConnection(connection);
+            }
+
+            // Bag 只包含閒置服務；仍在 request 中的服務只存在 lookup。停止時必須逐一關閉它們，
+            // 才能避免應用程式卸載後仍保留 WCF channel、socket 或驗證狀態。
+            foreach (var connection in _connectionLookup.Values)
             {
                 DisposeConnection(connection);
             }
@@ -467,6 +540,12 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         /// </summary>
         private class PooledConnection
         {
+            /// <summary>
+            /// 保護單一服務租約狀態的同步物件。池絕不把同一服務同時借給兩個 request；此鎖仍需
+            /// 防禦重複釋放與 fault 標記競爭，避免多次釋放 semaphore 造成容量上限失真。
+            /// </summary>
+            public object SyncRoot { get; } = new object();
+
             /// <summary>
             /// 實際的 CRM 服務連線。
             /// </summary>
@@ -491,6 +570,12 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             /// 是否正被外部使用中。
             /// </summary>
             public bool IsInUse { get; set; }
+
+            /// <summary>
+            /// 是否已遇到逾時、取消或通訊失敗等無法證明傳輸狀態的情況。旗標一旦設立，歸還時
+            /// 必須銷毀服務而非加入閒置集合，以防下一個 request 重用可能已受損的 WCF 通道。
+            /// </summary>
+            public bool IsFaulted { get; set; }
 
             /// <summary>
             /// 是否由連線池自行建立。
