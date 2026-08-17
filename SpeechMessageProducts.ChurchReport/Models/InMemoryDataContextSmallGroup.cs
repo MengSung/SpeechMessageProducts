@@ -60,11 +60,6 @@ namespace ChurchReport.Models
         IMemoryCache _memoryCache;
 
         /// <summary>
-        /// ToolUtilityClass 實例，用於 CRM 操作
-        /// </summary>
-        private ToolUtilityClass m_ToolUtilityClass;
-
-        /// <summary>
         /// 組長管理器
         /// </summary>
         public ListManager m_ListManager;
@@ -607,7 +602,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                String ContactIdString = m_ToolUtilityClass.RetrieveContactByAccountNumber(Account, Password);
+                String ContactIdString = ToolUtilityClass.RetrieveContactByAccountNumber(Account, Password);
 
                 SmallGroupDataList.SetupContactIdString(ContactIdString);
 
@@ -1283,55 +1278,16 @@ namespace ChurchReport.Models
         #region 工具區
 
         /// <summary>
-        /// ToolUtilityClass 屬性
+        /// ToolUtilityClass 屬性。
         ///
-        /// 使用記憶體快取管理 ToolUtilityClass 實例，
-        /// 快取鍵為 Session ID + "_ToolUtilityClass"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        ///
-        /// 若快取不存在，則使用 Factory 模式取得 ToolUtilityClass 單例並設定快取選項。
+        /// 本 Run 維持既有 Factory 單例行為，但不再以 Session ID 為鍵放入程序級
+        /// IMemoryCache。資料上下文不持有或釋放 ToolUtility；目前實例的最長生命週期
+        /// 仍由 Factory 管理。Run 2 改為 Scoped 後，這裡沒有快取持有者可讓已釋放的
+        /// CRM 連線跨 request 或跨使用者重用。
         /// </summary>
         public ToolUtilityClass ToolUtilityClass
         {
-            get
-            {
-                var key = GetCurrentSessionId() + "_ToolUtilityClass";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
-                {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    // 使用 Factory 模式取得 ToolUtilityClass 單例
-                    m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
-                    _memoryCache.Set<ToolUtilityClass>(key, m_ToolUtilityClass, options);
-
-                    SetSessionDirtyFlag();
-                }
-
-                return _memoryCache.Get<ToolUtilityClass>(key);
-            }
+            get => ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         }
 
         /// <summary>
