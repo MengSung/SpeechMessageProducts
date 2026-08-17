@@ -73,11 +73,9 @@ namespace ChurchReport.Controllers
                 if (validationResult != null)
                     return validationResult;
 
-                IOrganizationService service = null;
+                var service = _organizationService;
                 try
                 {
-                    service = GetConnection();
-
                     var existingBindingResult = await CheckExistingLineBinding(service, model.LineUserId);
                     if (existingBindingResult != null)
                         return existingBindingResult;
@@ -98,10 +96,6 @@ namespace ChurchReport.Controllers
                 catch (TimeoutException ex)
                 {
                     return HandleTimeoutException(ex);
-                }
-                finally
-                {
-                    ReleaseConnection(service);
                 }
             }
             catch (Exception e)

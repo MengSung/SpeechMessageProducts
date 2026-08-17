@@ -104,12 +104,10 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine("[SaveUserLineId] 步驟 4: 檢查用戶是否已在資料庫中綁定");
 
-                IOrganizationService service = null;
+                var service = _organizationService;
                 Entity foundContact = null;
                 try
                 {
-                    service = GetConnection();
-
                     var query = new QueryExpression("contact")
                     {
                         ColumnSet = new ColumnSet("contactid", "fullname"),
@@ -155,10 +153,6 @@ namespace ChurchReport.Controllers
                 catch (TimeoutException)
                 {
                     throw;
-                }
-                finally
-                {
-                    ReleaseConnection(service);
                 }
 
                 // ========================================
