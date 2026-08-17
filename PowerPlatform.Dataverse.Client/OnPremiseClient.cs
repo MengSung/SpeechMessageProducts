@@ -369,12 +369,31 @@ namespace PowerPlatform.Dataverse.Client
         }
 
         /// <summary>
-        /// 釋放底層 Dataverse 傳輸資源。Federated 路徑取得的是 <see cref="ICommunicationObject"/>，
-        /// 故障時必須 Abort，其他狀態則在有限時間內 Close，Close 失敗仍會 Abort；ADAuthClient
-        /// 只在操作期間使用其內部 HTTP 資源，沒有長壽 WCF channel 或 IDisposable 資源可關閉，
-        /// 因此不應虛構關閉步驟。其他可釋放型別才走其自身 Dispose。
-        /// 此方法為冪等，確保連線池、應用程式停止與例外清理競爭時只會執行一次收尾。
+        /// 釋放底層 Dataverse 傳輸資源。本方法為冪等，確保連線池、應用程式停止與例外清理
+        /// 競爭時只會執行一次收尾。
         /// </summary>
+        /// <remarks>
+        /// 目前刻意「不關閉」底層通道。這是已知且暫時的降級決定，不是遺漏，請勿逕行修正。
+        ///
+        /// 原因：<c>ChurchReport.WebServiceConnector.DownloadListManager</c>（約第 109-113 行）
+        /// 會把「request 範圍借出」的 <see cref="IOrganizationService"/> 寫入程序級 singleton
+        /// <c>ToolUtilityClass.m_Crm2011OrganizationService</c>。該連線於 request 結束時歸還連線池、
+        /// 稍後被池銷毀；若此處真的關閉通道，singleton 上殘留的參考會在下一次使用時擲出
+        /// <see cref="ObjectDisposedException"/>（ServiceChannel 已關閉），實測會導致登入流程失敗。
+        ///
+        /// 換言之：「request 範圍連線逃逸到程序級狀態」是既有缺陷，本方法確實關閉通道只是使其顯性。
+        /// 在該缺陷修好前，維持不關閉是較安全的一端；代價是 Federated 路徑的 WCF 通道無法被
+        /// 確定性關閉 —— 此行為與本次改動前完全相同，不構成新增的資源洩漏。
+        ///
+        /// 資源最大生命週期：目前等同於連線池中該連線物件的存活期；池銷毀物件後，作業系統層級的
+        /// 通道資源由 GC 與 WCF 自身的終結程序回收，非確定性。
+        ///
+        /// 重新啟用確定性關閉的前置條件（三項全部滿足，才可把 <see cref="CloseCommunicationObject"/>
+        /// 接回本方法）：
+        /// 1. <c>DownloadListManager</c> 不再把借出的連線寫入 <c>ToolUtilityClass</c>。
+        /// 2. 全專案不再有任何 request 範圍連線被存入 static、singleton 或 InMemoryContext。
+        /// 3. 於測試環境完成一輪含登入、名單載入與背景批次的完整回歸。
+        /// </remarks>
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -382,23 +401,8 @@ namespace PowerPlatform.Dataverse.Client
                 return;
             }
 
-            if (_service is ICommunicationObject communicationObject)
-            {
-                CloseCommunicationObject(communicationObject);
-                return;
-            }
-
-            if (_service is ADAuthClient)
-            {
-                // ADAuthClient 不保存 WCF 通道，也未實作 IDisposable；網路資源皆由每次操作內部 using
-                // 範圍擁有並立即釋放，故此處沒有可安全關閉的持久資源。
-                return;
-            }
-
-            if (_service is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+            // 依上述 remarks，暫時不對 _service 執行任何關閉或 Dispose。
+            // CloseCommunicationObject 保留未刪，待前置條件滿足後直接接回即可。
         }
 
         private static void CloseCommunicationObject(ICommunicationObject communicationObject)
