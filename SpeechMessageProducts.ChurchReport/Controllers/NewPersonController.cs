@@ -39,6 +39,14 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class NewPersonController : BaseChurchController
     {
+        /// <summary>
+        /// 取得目前 request scope 的 Dataverse 服務；DI 容器負責其最大生命週期與確定性釋放。
+        /// 控制器不自行借還或跨 request 保存連線，以維持使用者隔離並避免資源洩漏。
+        /// </summary>
+        private IOrganizationService OrganizationService =>
+            HttpContext?.RequestServices?.GetService(typeof(IOrganizationService)) as IOrganizationService
+            ?? throw new InvalidOperationException("目前 request 未註冊 Dataverse 服務。");
+
         #region 建構函式
 
         public NewPersonController(
@@ -446,7 +454,6 @@ namespace ChurchReport.Controllers
                 return;
             }
 
-            IOrganizationService service = null;
             try
             {
                 // ========================================
@@ -503,7 +510,7 @@ namespace ChurchReport.Controllers
                     }
                 }
 
-                service = GetConnection();
+                var service = OrganizationService;
 
                 var contactToUpdate = new Entity("contact", contactId);
                 contactToUpdate["entityimage"] = imageBytes;
@@ -512,10 +519,6 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] 圖片上傳失敗: {ex.Message}");
-            }
-            finally
-            {
-                ReleaseConnection(service);
             }
         }
 
