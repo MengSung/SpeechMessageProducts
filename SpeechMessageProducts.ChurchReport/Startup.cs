@@ -157,6 +157,14 @@ namespace ChurchReport
             // 設定 ToolUtilityFactory 的配置物件，確保後續使用 ToolUtility 時能正確讀取 appsettings.json
             ToolUtilityNameSpace.Factory.ToolUtilityFactory.SetConfiguration(Configuration);
 
+            // 追蹤資源（FileStream / TraceListener）為程序級：Trace.Listeners 是行程內的
+            // 靜態集合，若隨請求建立就會無界成長並使每行日誌重複輸出。
+            // 因此註冊為 Singleton，且刻意「由容器建立」而非傳入現成實例 ——
+            // DI 只會釋放自己建立的物件；傳入外部實例會導致應用程式關閉時不被 Dispose。
+            // 實際交給 ToolUtilityFactory 的動作在 Configure() 中進行（見該處說明）。
+            services.AddSingleton<ToolUtilityNameSpace.Diagnostics.IToolUtilityTracer,
+                                  ToolUtilityNameSpace.Diagnostics.FileToolUtilityTracer>();
+
             // ========================================
             // 註冊 HttpClientFactory (修復記憶體洩漏)
             // ========================================
@@ -666,6 +674,12 @@ namespace ChurchReport
         /// <param name="loggerFactory">日誌工廠，用於建立日誌記錄器。</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // 把容器建立的程序級追蹤器交給 ToolUtilityFactory。
+            // 必須在任何 GetInstance() 之前完成；放在 Configure 而非 ConfigureServices，
+            // 是因為此時服務容器已建置完成，可取得由容器擁有（並負責釋放）的實例。
+            ToolUtilityNameSpace.Factory.ToolUtilityFactory.SetTracer(
+                app.ApplicationServices.GetRequiredService<ToolUtilityNameSpace.Diagnostics.IToolUtilityTracer>());
+
 #if DEBUG
             using var __perfConfigure =
                 ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("Configure");

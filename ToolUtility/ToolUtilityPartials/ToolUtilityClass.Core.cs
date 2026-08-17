@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
 // 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
 // 主要型別：class ToolUtilityClass
-// 主要成員：InitializeTracing、InitializeCrmConnection、Dispose、TraceByLevel
+// 主要成員：InitializeCrmConnection、Dispose、TraceByLevel（委派給 IToolUtilityTracer）
 // 引用命名空間：Microsoft.Crm.Sdk.Messages、Microsoft.Extensions.Configuration、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Client、System、System.Diagnostics、System.IO、System.Text
 // 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -21,6 +21,8 @@ using System.IO;
 using System.Text;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.Core;
+
+using ToolUtilityNameSpace.Diagnostics;
 
 namespace ToolUtilityNameSpace
 {
@@ -67,33 +69,39 @@ namespace ToolUtilityNameSpace
         protected const int LEVEL_5 = 5;
         #endregion
 
-        #region 追蹤變數
-        private String m_TraceLogFile = "";
-        private Lazy<FileStream> _lazyXmlFileStream;
-        private Lazy<StreamWriter> _lazyXmlFileStreamWriter;
-        private Lazy<TextWriterTraceListener> _lazyListener;
-        private const String TRACE_DIRECTOR = @"D:\除錯追蹤\CHURCH_REPORT_TRACE.TXT";
+        #region 追蹤
+        /// <summary>
+        /// 程序級的追蹤資源擁有者。
+        /// </summary>
+        /// <remarks>
+        /// 本型別「不再」自行持有 FileStream、StreamWriter 或 TraceListener。
+        /// 原因：那些是程序級資源（Trace.Listeners 為行程內的靜態集合），若與本型別
+        /// 共用生命週期，本型別就無法安全地改為 request 範圍 —— 每建立一個實例都會
+        /// 再向全域集合加入一個 listener，造成無界成長與日誌重複。
+        /// 追蹤職責已移至 IToolUtilityTracer，其實作必須註冊為 Singleton。
+        /// </remarks>
+        private readonly IToolUtilityTracer _tracer;
         #endregion
 
         #region 建構式
-        internal ToolUtilityClass(IConfiguration configuration)
+        internal ToolUtilityClass(IConfiguration configuration, IToolUtilityTracer tracer)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
             _crmConnectionService = new CrmConnectionService();
 
-            InitializeTracing();
             InitializeCrmConnection();
 
             _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
         }
 
-        internal ToolUtilityClass(String DiscoveryServiceType, IConfiguration configuration)
+        internal ToolUtilityClass(String DiscoveryServiceType, IConfiguration configuration, IToolUtilityTracer tracer)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
             _crmConnectionService = new CrmConnectionService();
             m_DiscoveryServiceType = DiscoveryServiceType;
 
-            InitializeTracing();
             InitializeCrmConnection();
 
             _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
@@ -111,30 +119,6 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #region 初始化方法
-        private void InitializeTracing()
-        {
-            m_TraceLogFile = TRACE_DIRECTOR;
-
-            _lazyXmlFileStream = new Lazy<FileStream>(() =>
-                new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
-
-            _lazyXmlFileStreamWriter = new Lazy<StreamWriter>(() =>
-            {
-#if !NET462 && !NETFRAMEWORK
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-#endif
-                return new StreamWriter(_lazyXmlFileStream.Value, Encoding.GetEncoding("big5"));
-            });
-
-            _lazyListener = new Lazy<TextWriterTraceListener>(() =>
-            {
-                var listener = new TextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
-                Trace.AutoFlush = true;
-                Trace.Listeners.Add(listener);
-                return listener;
-            });
-        }
-
         private void InitializeCrmConnection()
         {
             var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
@@ -157,42 +141,8 @@ namespace ToolUtilityNameSpace
                 try { (m_Crm2011OrganizationService as IDisposable)?.Dispose(); } catch (ObjectDisposedException) { }
                 try { (m_OrganizationService as IDisposable)?.Dispose(); } catch (ObjectDisposedException) { }
 
-                if (_lazyListener?.IsValueCreated == true)
-                {
-                    try
-                    {
-                        var listener = _lazyListener.Value;
-                        Trace.Listeners.Remove(listener);
-                        listener.Flush();
-                        listener.Close();
-                        listener.Dispose();
-                    }
-                    catch (ObjectDisposedException) { }
-                }
-
-                if (_lazyXmlFileStreamWriter?.IsValueCreated == true)
-                {
-                    try
-                    {
-                        var writer = _lazyXmlFileStreamWriter.Value;
-                        writer.Flush();
-                        writer.Close();
-                        writer.Dispose();
-                    }
-                    catch (ObjectDisposedException) { }
-                }
-
-                if (_lazyXmlFileStream?.IsValueCreated == true)
-                {
-                    try
-                    {
-                        var stream = _lazyXmlFileStream.Value;
-                        stream.Flush();
-                        stream.Close();
-                        stream.Dispose();
-                    }
-                    catch (ObjectDisposedException) { }
-                }
+                // 追蹤資源不在此釋放：它由 Singleton 的 IToolUtilityTracer 擁有，
+                // 生命週期等同應用程式。短命物件不得釋放長命物件。
             }
 
             _disposed = true;
@@ -206,23 +156,18 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #region 工具方法
+        /// <summary>
+        /// 依層級輸出追蹤紀錄。簽章維持不變，既有 160 個呼叫點無須修改。
+        /// </summary>
+        /// <remarks>
+        /// 實際輸出委派給程序級的 <see cref="IToolUtilityTracer"/>。
+        /// 此處以 <c>new StackFrame(1, true)</c> 擷取「本方法的呼叫者」並往下傳，
+        /// 使輸出的 StackTrace 與重構前完全一致；若改由 tracer 內部擷取，
+        /// 框架深度會因多一層委派而位移，導致既有日誌內容改變。
+        /// </remarks>
         public void TraceByLevel(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)
         {
-            try
-            {
-                if (TotalLevel >= QualifiedLevel)
-                {
-                    var listener = _lazyListener.Value;
-                    Trace.WriteLine("Time            =" + DateTime.Now.ToString() + Environment.NewLine);
-                    Trace.WriteLine("StringToProcess =" + StringToProcess + Environment.NewLine);
-                    Trace.WriteLine("StackTrace      =" + new StackTrace(new StackFrame(1, true)).ToString() + Environment.NewLine);
-                    Trace.WriteLine("================================================================== " + Environment.NewLine);
-                }
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            _tracer.Write(TotalLevel, QualifiedLevel, StringToProcess, new StackFrame(1, true));
         }
 
         static public void TraceByLevelStatic(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)

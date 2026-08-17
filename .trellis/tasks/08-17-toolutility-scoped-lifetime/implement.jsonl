@@ -1,0 +1,5 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/index.md", "reason": "後端規範索引，新增 Diagnostics 型別前必讀"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "新增 ToolUtility/Diagnostics/ 需符合既有目錄慣例"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "追蹤 Singleton 的日誌格式與輸出規範"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Singleton/Scoped 邊界與跨層一致性"}

@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using System;
 using ToolUtilityNameSpace.ConnectionOperations;
+using ToolUtilityNameSpace.Diagnostics;
 
 namespace ToolUtilityNameSpace.Factory
 {
@@ -28,6 +29,16 @@ namespace ToolUtilityNameSpace.Factory
         private static ToolUtilityClass _instance;
         private static volatile bool _isInitialized = false;
         private static IConfiguration _configuration;
+
+        /// <summary>
+        /// 程序級的追蹤資源擁有者，由組合根於啟動時設定一次。
+        /// </summary>
+        /// <remarks>
+        /// 追蹤資源（FileStream / TraceListener）的生命週期等同整個 Worker Process，
+        /// 因此由 DI 以 Singleton 建立後注入此處，而非由每個 ToolUtilityClass 自行建立。
+        /// 本欄位僅供本工廠建構 ToolUtilityClass 時傳遞使用，不對外公開。
+        /// </remarks>
+        private static IToolUtilityTracer _tracer;
 
         // 私有建構函式防止外部建立實例
         private ToolUtilityFactory()
@@ -44,6 +55,24 @@ namespace ToolUtilityNameSpace.Factory
         }
 
         /// <summary>
+        /// 設定程序級的追蹤資源擁有者。必須在第一次 <see cref="GetInstance()"/> 之前呼叫。
+        /// </summary>
+        /// <param name="tracer">由 DI 容器以 Singleton 建立並負責釋放的追蹤器。</param>
+        /// <exception cref="ArgumentNullException">
+        /// 未提供追蹤器時擲回；若允許為 null，將建立出無法輸出診斷的實例，
+        /// 且錯誤要到執行期第一次追蹤時才會顯現，因此在此採取快速失敗。
+        /// </exception>
+        /// <remarks>
+        /// 追蹤資源（FileStream、TraceListener）的生命週期等同整個 Worker Process，
+        /// 不隨 ToolUtilityClass 的建立或釋放而變動。本方法只保存參照，不接管其釋放責任 ——
+        /// 釋放由建立它的 DI 容器於應用程式關閉時負責。
+        /// </remarks>
+        public static void SetTracer(IToolUtilityTracer tracer)
+        {
+            _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
+        }
+
+        /// <summary>
         /// 獲得 ToolUtilityClass 的單一實例 (Thread-Safe Double-Check Locking)
         /// </summary>
         /// <returns>ToolUtilityClass 實例</returns>
@@ -54,13 +83,18 @@ namespace ToolUtilityNameSpace.Factory
                 throw new InvalidOperationException("配置尚未設定。請先調用 SetConfiguration() 方法。");
             }
 
+            if (_tracer == null)
+            {
+                throw new InvalidOperationException("追蹤器尚未設定。請先調用 SetTracer() 方法。");
+            }
+
             if (!_isInitialized)
             {
                 lock (_lock)
                 {
                     if (!_isInitialized)
                     {
-                        _instance = new ToolUtilityClass(_configuration);
+                        _instance = new ToolUtilityClass(_configuration, _tracer);
                         _isInitialized = true;
                     }
                 }
@@ -80,13 +114,18 @@ namespace ToolUtilityNameSpace.Factory
                 throw new InvalidOperationException("配置尚未設定。請先調用 SetConfiguration() 方法。");
             }
 
+            if (_tracer == null)
+            {
+                throw new InvalidOperationException("追蹤器尚未設定。請先調用 SetTracer() 方法。");
+            }
+
             if (!_isInitialized)
             {
                 lock (_lock)
                 {
                     if (!_isInitialized)
                     {
-                        _instance = new ToolUtilityClass(discoveryServiceType, _configuration);
+                        _instance = new ToolUtilityClass(discoveryServiceType, _configuration, _tracer);
                         _isInitialized = true;
                     }
                 }
