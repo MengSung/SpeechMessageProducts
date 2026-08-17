@@ -1,0 +1,680 @@
+<mxfile host="app.diagrams.net" agent="Claude Code" version="24.0.0">
+  <diagram name="1 · 版本演進地圖" id="pg211">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n1" value="SpeechMessageProducts · 版本演進地圖" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=24;fontColor=#22252d;align=left;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1400" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="三個版本不是三套系統，是同一套系統「Dynamics 連線方式」的三個階段。1.0.0.3 幾乎是 1.0.0.2 的完整超集（只差 1.0.0.2 最後一個 commit）。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12.5;fontColor=#6b7280;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="56" width="1500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="① 分支拓樸（誰從誰長出來）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=14;fontColor=#22252d;align=left;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="400" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="分支關係" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fbfcfd;strokeColor=#c8ced6;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="128" width="1620" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="main&#10;26781fd 初始化" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="40" y="50" width="190" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="1.0.0.1.MemberInfo&#10;末端 648da646" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="300" y="50" width="230" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="1.0.0.2.IsolateConnector&#10;末端 8571562c" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="600" y="50" width="250" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="1.0.0.3.Gateway&amp;Embedded&#10;末端 94dcc556" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="920" y="50" width="260" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" value="1.0.0.4&#10;+Connectors.Data8" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="1250" y="50" width="150" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n10" value="1.0.0.5 EvanAi" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="1430" y="50" width="150" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n11" value="分岔點 c74d69b1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="300" y="116" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="n12" value="分岔點 54c6a65c" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n4">
+          <mxGeometry x="600" y="116" width="250" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="n13" value="★ 你目前的分支是 1.0.0.2" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;fontColor=#b03a35;" vertex="1" parent="n4">
+          <mxGeometry x="920" y="116" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#8c8c8c;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n5" target="n6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#8c8c8c;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n6" target="n7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#8c8c8c;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#8c8c8c;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n8" target="n9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#8c8c8c;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n9" target="n10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n19" value="1.0.0.1 · MemberInfo" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#5d8a4e;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="366" width="520" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="n20" value="純功能版：完全沒有任何 Dynamics 專案" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="n19">
+          <mxGeometry x="20" y="44" width="480" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n21" value="做了什麼&#10;· 會友樹狀介面、搜尋、頭像分塊載入&#10;· 可攜部署套件 portable kit&#10;&#10;Dynamics 怎麼連&#10;· ChurchReport 直接呼叫 ToolUtility&#10;· ToolUtility 抱著 Data8 的 CRM SDK&#10;· 整站共用一個 singleton 連線池&#10;· CRM 密碼放在產品設定裡&#10;&#10;痛點&#10;· 未來 5～10 個產品各抱一份 SDK 與密碼&#10;· 8.2 / 9.1 相容邏輯每個產品各寫一次" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12;fontColor=#4b5563;align=left;" vertex="1" parent="n19">
+          <mxGeometry x="20" y="104" width="480" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="n22" value="起點：連線器和產品綁在一起" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#5d8a4e;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="n19">
+          <mxGeometry x="20" y="442" width="480" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="n23" value="1.0.0.2 · IsolateConnector" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#4a72a8;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="366" width="520" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="n24" value="把連線器抽成 7 個獨立專案，但仍在同一個行程內" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="n23">
+          <mxGeometry x="20" y="44" width="480" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n25" value="做了什麼&#10;＋ 新增 7 個 .NET 10 專案&#10;＋ 連線改走純 HTTP OData v4（no-SDK）&#10;＋ 能力白名單 Package01OperationRegistry&#10;＋ CI 閘門 eng/Verify-NoDynamicsSdk.ps1&#10;&#10;Gateway / Embedded 在這版誕生&#10;· 同一套 runtime 的兩個「寄生位置」&#10;&#10;限制&#10;▲ 容量協調只有 InMemory&#10;▲ Package01FeeReadsEnabled = false（尚未上線）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12;fontColor=#4b5563;align=left;" vertex="1" parent="n23">
+          <mxGeometry x="20" y="104" width="480" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="n26" value="隔離「程式碼」，還沒隔離「行程」" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#4a72a8;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="n23">
+          <mxGeometry x="20" y="442" width="480" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="n27" value="1.0.0.3 · Gateway&amp;Embedded" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#7d5b96;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="366" width="520" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="n28" value="承認 8.2 必須用官方 SDK，於是把它關進獨立子行程" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="n27">
+          <mxGeometry x="20" y="44" width="480" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n29" value="刪掉&#10;－ SpeechMessage.Dynamics.WebApi&#10;－ SpeechMessage.Dynamics.SmokeTests&#10;&#10;新增&#10;＋ ControlPlane（原 WebApi 內容搬來並擴充）&#10;＋ WorkerProtocol / WorkerHost / WorkerSupervisor&#10;＋ Crm82Worker（net48＋官方 CrmServiceClient）、Crm91Worker&#10;＋ SqlRuntimeHostSlotCoordinator&#10;&#10;觀念轉向&#10;▲ 舊 SDK 不消滅，改隔離&#10;▲ Embedded 降級為僅測試參考" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12;fontColor=#4b5563;align=left;" vertex="1" parent="n27">
+          <mxGeometry x="20" y="104" width="480" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="n30" value="隔離「行程」，舊 SDK 被關進沙箱" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#7d5b96;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="n27">
+          <mxGeometry x="20" y="442" width="480" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="n31" value="一句話串起來：1.0.0.1「連線器住在產品裡」 → 1.0.0.2「連線器搬到隔壁專案，但還住同一棟樓」 → 1.0.0.3「危險的舊 SDK 搬去另一棟樓，用對講機溝通」" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#cbd5e1;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#22252d;" vertex="1" parent="1">
+          <mxGeometry x="40" y="900" width="1620" height="56" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="2 · 1.0.0.1 起點架構" id="pg212">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n32" value="1.0.0.1 · MemberInfo — 起點架構" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=24;fontColor=#22252d;align=left;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1400" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n33" value="連線器和產品綁在一起。ChurchReport 自己抱著 CRM SDK、自己存密碼、自己開連線池。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12.5;fontColor=#6b7280;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="56" width="1500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n34" value="作業系統行程 #1（唯一） — w3wp.exe / dotnet ChurchReport" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#f4faf2;strokeColor=#5d8a4e;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="130" width="860" height="620" as="geometry" />
+        </mxCell>
+        <mxCell id="n35" value="SpeechMessageProducts.ChurchReport&#10;Controllers / Services" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="n34">
+          <mxGeometry x="40" y="60" width="780" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n36" value="ToolUtility&#10;組 QueryExpression / FetchXML" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bd9a26;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n34">
+          <mxGeometry x="40" y="180" width="780" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n37" value="PowerPlatform.Dataverse.Client（Data8 版）&#10;IOrganizationService / OrganizationRequest — 底層 WS-Trust / SOAP" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n34">
+          <mxGeometry x="40" y="300" width="780" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="n38" value="singleton CrmConnectionPool（全站共用一個）" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n34">
+          <mxGeometry x="40" y="420" width="380" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n39" value="CrmConnection 設定：帳號 / 密碼 / Organization 由產品自己保管" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0c2;strokeColor=#cc7a2e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n34">
+          <mxGeometry x="40" y="510" width="780" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e40" value="直接呼叫，沒有任何契約限制" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#5d8a4e;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n35" target="n36">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e41" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#bd9a26;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n36" target="n37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e42" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b03a35;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n37" target="n39">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n43" value="D365 CE 8.2 IFD&#10;jesus" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="960" y="330" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n44" value="D365 CE 9.1 IFD&#10;sunnyvalechback" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="960" y="450" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e45" value="SOAP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b03a35;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n34" target="n43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e46" value="SOAP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b03a35;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n34" target="n44">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n47" value="這個架構的 4 個問題（就是 1.0.0.2 想解決的）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fff8f8;strokeColor=#b03a35;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="130" width="420" height="620" as="geometry" />
+        </mxCell>
+        <mxCell id="n48" value="1  誰都能對 CRM 下任意查詢&#10;&#10;任何一行程式碼都能組任意 FetchXML 直接送出去，沒有白名單、沒有審計、沒有上限。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f0c9c7;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=10;spacingTop=6;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n47">
+          <mxGeometry x="20" y="50" width="380" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="n49" value="2  密碼跟 SDK 綁在產品身上&#10;&#10;未來 5～10 個產品，就會有 5～10 份 CRM 密碼與 SDK DLL 各自散落。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f0c9c7;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=10;spacingTop=6;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n47">
+          <mxGeometry x="20" y="190" width="380" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="n50" value="3  一個 singleton 連線池管全部&#10;&#10;8.2 與 9.1、正式與測試都擠同一個池子，沒有 per-profile 隔離也沒有總量控管。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f0c9c7;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=10;spacingTop=6;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n47">
+          <mxGeometry x="20" y="330" width="380" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="n51" value="4  SDK 綁死執行環境&#10;&#10;舊 CRM SDK 屬於 .NET Framework 世界，擋住整個產品往 .NET 10 走。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f0c9c7;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=10;spacingTop=6;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n47">
+          <mxGeometry x="20" y="470" width="380" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="n52" value="怎麼記住這一版：「ChurchReport 這個網站，自己就是 CRM 客戶端。」ToolUtility 和 CRM SDK 只是它身上的兩層皮 — 沒有邊界、沒有契約、沒有第二個行程。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#cbd5e1;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontSize=13;align=left;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="40" y="790" width="1620" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="3 · 1.0.0.2 抽出連線器" id="pg213">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n53" value="1.0.0.2 · IsolateConnector — 你現在的版本" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=24;fontColor=#22252d;align=left;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1400" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n54" value="把連線器從產品身上剝下來，變成 7 個獨立專案，並用「誰可以參考誰」把邊界釘死。箭頭 = csproj 的 ProjectReference（A → B 表示 A 參考 B）。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12.5;fontColor=#6b7280;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="56" width="1500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n55" value="① 7 個新專案，以及允許的參考方向" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fbfcfd;strokeColor=#c8ced6;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="1040" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="n56" value="SpeechMessageProducts.ChurchReport&#10;只准參考 Abstractions / ProductClient / Embedded" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;fontSize=13;" vertex="1" parent="n55">
+          <mxGeometry x="60" y="60" width="480" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n57" value="ProductClient&#10;IPackage01FeeReadClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d4f0f0;strokeColor=#3d8b8b;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n55">
+          <mxGeometry x="60" y="180" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n58" value="Embedded&#10;內嵌宿主轉接器" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n55">
+          <mxGeometry x="320" y="180" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n59" value="WebApi（PRIVATE）&#10;no-SDK 連線器&#10;純 HTTP / OData v4" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n55">
+          <mxGeometry x="320" y="300" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n60" value="另一個作業系統行程" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#f8f5fa;strokeColor=#7d5b96;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="n55">
+          <mxGeometry x="600" y="160" width="380" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="n61" value="Gateway&#10;POST /v1/organizations/{alias}/operations/{id}" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n60">
+          <mxGeometry x="20" y="50" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n62" value="WebApi（同一份程式碼）" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n60">
+          <mxGeometry x="20" y="150" width="340" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n63" value="SpeechMessage.Dynamics.Abstractions&#10;DTO / IDynamicsOperationExecutor / Package01OperationRegistry（能力白名單）— 大家都參考它" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0c2;strokeColor=#cc7a2e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n55">
+          <mxGeometry x="60" y="420" width="940" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e64" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#5d8a4e;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n56" target="n57">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e65" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#5d8a4e;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n56" target="n58">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e66" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#4a72a8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n58" target="n59">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e67" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#7d5b96;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n61" target="n62">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e68" value="HTTP（不是 ProjectReference）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#3d8b8b;endArrow=block;endFill=1;fontSize=11;dashed=1;" edge="1" parent="1" source="n57" target="n60">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n69" value="✗ 產品禁止直接參考 WebApi" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;dashed=1;fontColor=#b03a35;fontStyle=1;" vertex="1" parent="n55">
+          <mxGeometry x="60" y="300" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n70" value="② 呼叫契約：這才是「隔離」真正的意思" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fbfcfd;strokeColor=#c8ced6;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="670" width="1040" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="n71" value="POST /v1/organizations/{alias}/operations/{capabilityOperationId}" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#0f172a;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontColor=#7dd3fc;fontFamily=Courier New;fontSize=15;" vertex="1" parent="n70">
+          <mxGeometry x="20" y="50" width="1000" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n72" value="呼叫端「只能」給這三樣&#10;&#10;· 邏輯環境別名 alias&#10;· 已註冊的能力代號 capabilityOperationId&#10;· 型別受限、有邊界的具名參數" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#eef7ec;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;" vertex="1" parent="n70">
+          <mxGeometry x="20" y="120" width="490" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="n73" value="呼叫端「不能」給這些&#10;&#10;· FetchXML 或任何片段（樣板寫死在伺服器端）&#10;· OData 查詢字串、CRM 資料表 / 欄位名稱&#10;· 實體 profile、CRM 網址、憑證、Authorization 標頭" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fdecec;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;" vertex="1" parent="n70">
+          <mxGeometry x="530" y="120" width="490" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="n74" value="③ 三道守門機制（邊界不是靠自律，是靠工具擋）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fbfcfd;strokeColor=#c8ced6;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="120" width="540" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="n75" value="1  csproj 宣告：WebApi.csproj 的 Description 直接寫死&#10;「Only Gateway and Embedded may reference this project.」" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dbe3ec;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n74">
+          <mxGeometry x="20" y="50" width="500" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="n76" value="2  單元測試守線：ProjectReferenceBoundaryTests.cs&#10;有人偷加參考，測試就紅。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dbe3ec;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n74">
+          <mxGeometry x="20" y="162" width="500" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="n77" value="3  CI 掃描：eng/Verify-NoDynamicsSdk.ps1 + no-sdk-source-roots.json&#10;掃 Microsoft.Xrm* / Microsoft.CrmSdk* / IOrganizationService 殘留。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dbe3ec;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n74">
+          <mxGeometry x="20" y="274" width="500" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="n78" value="④ 但是——現況要看清楚（程式碼到位 ≠ 已經上線）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fffdf5;strokeColor=#bd9a26;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="550" width="540" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="n79" value="appsettings.json&#10;DynamicsAccess:Package01FeeReadsEnabled = false" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bd9a26;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontFamily=Courier New;fontSize=12;" vertex="1" parent="n78">
+          <mxGeometry x="20" y="50" width="500" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n80" value="整套新路徑已接好線，但開關是關的。&#10;正式查詢仍走 1.0.0.1 的舊 ToolUtility / SOAP 路徑。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12;fontColor=#7c5c14;align=left;" vertex="1" parent="n78">
+          <mxGeometry x="20" y="134" width="500" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n81" value="為什麼還不能開？&#10;&#10;· 目標 CE 9.1 是 IFD，Web API 不能用 Windows NTLM（回 302）&#10;· 改走 ADFS OAuth，但 ADFS 回 MSIS9611：只支援 authorization_code / refresh_token&#10;· 現有 ClientId 沒有註冊在該台 on-prem ADFS 上&#10;&#10;→ 需要 ADFS 管理員先 Add-AdfsClient 註冊 client 與 redirect URI" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e8dfc4;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n78">
+          <mxGeometry x="20" y="200" width="500" height="180" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="4 · Gateway vs Embedded" id="pg214">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="950" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n82" value="Gateway 與 Embedded 到底差在哪？" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=24;fontColor=#22252d;align=left;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1400" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n83" value="它們在 1.0.0.2 同時誕生，但不是兩套系統、也不是兩個版本。同一份連線器程式碼放在「兩個不同的住處」執行——契約一樣、安全規則一樣，只有跑在誰的行程裡不一樣。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12.5;fontColor=#6b7280;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="56" width="1500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n84" value="Embedded 模式 — ExecutionMode = &quot;Embedded&quot;（VS 除錯 / 刻意隔離的單機部署）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#f7fafe;strokeColor=#4a72a8;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="130" width="790" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="n85" value="作業系統行程 #1（w3wp.exe / dotnet ChurchReport）" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#eaf1fb;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontStyle=1;fontColor=#4a72a8;" vertex="1" parent="n84">
+          <mxGeometry x="20" y="50" width="750" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="n86" value="SpeechMessageProducts.ChurchReport" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n84">
+          <mxGeometry x="60" y="100" width="670" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="n87" value="SpeechMessage.Dynamics.Embedded（轉接器）" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n84">
+          <mxGeometry x="60" y="180" width="670" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="n88" value="SpeechMessage.Dynamics.WebApi — 連線池 / token / 白名單都在這個行程" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n84">
+          <mxGeometry x="60" y="260" width="670" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e89" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#4a72a8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n86" target="n87">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e90" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#4a72a8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n87" target="n88">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n91" value="Dynamics 365 CE" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="300" y="580" width="270" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e92" value="HTTPS / OData v4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b03a35;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n84" target="n91">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n93" value="特徵：從產品到 CRM 全程行程內呼叫，中間沒有任何一次網路跳躍。CRM 憑證與連線池就在產品自己的行程裡。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bfdbfe;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontSize=11.5;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="650" width="790" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n94" value="Gateway 模式 — ExecutionMode = &quot;Gateway&quot;（正式環境預設，5～10 產品共用）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#faf7fc;strokeColor=#7d5b96;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="130" width="790" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="n95" value="ChurchReport" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n94">
+          <mxGeometry x="30" y="60" width="340" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="n96" value="ProductClient（只組 HTTP 請求）" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d4f0f0;strokeColor=#3d8b8b;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n94">
+          <mxGeometry x="30" y="140" width="340" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="n97" value="這個行程裡&#10;沒有 CRM 憑證、沒有連線池" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#eef7ec;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;fontColor=#3d6b4e;" vertex="1" parent="n94">
+          <mxGeometry x="30" y="220" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n98" value="Gateway（ASP.NET Core）" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n94">
+          <mxGeometry x="420" y="60" width="340" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="n99" value="WebApi（同一份程式碼）" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n94">
+          <mxGeometry x="420" y="140" width="340" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="n100" value="5～10 個產品共用&#10;一份憑證、一組連線池" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f4eef8;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;fontColor=#6a4a82;" vertex="1" parent="n94">
+          <mxGeometry x="420" y="220" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e101" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#5d8a4e;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n95" target="n96">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e102" value="HTTP  ← 行程邊界" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#cc7a2e;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n96" target="n98">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e103" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#7d5b96;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n98" target="n99">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n104" value="Dynamics 365 CE" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="580" width="270" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e105" value="HTTPS / OData v4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b03a35;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n94" target="n104">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n106" value="特徵：產品與 CRM 之間多一次 HTTP。換來的是憑證集中、連線池集中、總量控管集中，產品端變乾淨。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e3d3ee;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontSize=11.5;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="650" width="790" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="n107" value="逐項對照（綠底 = 兩邊完全相同，這正是「同一套 runtime」的證據）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fbfcfd;strokeColor=#c8ced6;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="716" width="1620" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="n108" value="相同：連線器程式碼（同一個 WebApi 專案）｜呼叫契約（operation ID + 具名參數）｜能力白名單 Package01OperationRegistry｜加入同一個 organization admission 容量計畫&#10;&#10;不同：執行位置（獨立行程 vs 產品行程內）｜網路跳躍（多一次 HTTP vs 無）｜CRM 憑證位置（只在 Gateway vs 在產品行程）｜連線池歸屬（共用 vs 各自一份）｜典型用途（正式環境 vs VS 除錯與隔離部署）&#10;&#10;重要：模式在啟動時由部署 JSON 決定，之後定案。不能由使用者、LINE ID、session 或請求欄位在執行期切換。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=14;spacingTop=10;verticalAlign=top;fontSize=12;" vertex="1" parent="n107">
+          <mxGeometry x="20" y="44" width="1580" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="5 · 1.0.0.3 子行程模型" id="pg215">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n109" value="1.0.0.3 · Gateway&amp;Embedded — 把舊 SDK 關進子行程" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=24;fontColor=#22252d;align=left;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1400" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n110" value="承認 CE 8.2 的 IFD 現場只有 WS-Trust/SOAP 走得通。既然消滅不了舊 SDK，就把它隔離到另一個行程。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12.5;fontColor=#6b7280;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="56" width="1500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n111" value="行程 A · 產品" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#eef7ec;strokeColor=#5d8a4e;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="130" width="300" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="n112" value="ChurchReport" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n111">
+          <mxGeometry x="20" y="50" width="260" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="n113" value="ProductClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d4f0f0;strokeColor=#3d8b8b;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n111">
+          <mxGeometry x="20" y="130" width="260" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="e114" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#5d8a4e;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n112" target="n113">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n115" value="跟 1.0.0.2 一模一樣&#10;產品端完全沒變" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;fontColor=#3d6b4e;fontSize=11.5;" vertex="1" parent="n111">
+          <mxGeometry x="20" y="210" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n116" value="行程 B · Gateway" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#f4eef8;strokeColor=#7d5b96;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="390" y="130" width="450" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="n117" value="Gateway（ASP.NET Core）&#10;指向中央 = Central；指向 localhost = Local" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n116">
+          <mxGeometry x="20" y="50" width="410" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n118" value="SpeechMessage.Dynamics.ControlPlane（原 WebApi 內容搬來並擴充）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#4a72a8;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="n116">
+          <mxGeometry x="20" y="130" width="410" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="n119" value="DynamicsProfileRuntimeManager&#10;每個 profile 一個獨立 runtime 世代" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n118">
+          <mxGeometry x="20" y="44" width="370" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="n120" value="OrganizationAdmissionManager&#10;同一個 CRM 的總併發上限" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n118">
+          <mxGeometry x="20" y="106" width="370" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="n121" value="ProfileRoutedOperationExecutor&#10;依 profile 決定送到哪個 worker" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n118">
+          <mxGeometry x="20" y="168" width="370" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="n122" value="WorkerSupervisor&#10;生出 / 看管 / 回收 worker 子行程" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n118">
+          <mxGeometry x="20" y="230" width="370" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="e123" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#7d5b96;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n117" target="n118">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n124" value="行程 C、D … · Worker 子行程（由 WorkerSupervisor 啟動）" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fff8ee;strokeColor=#cc7a2e;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="130" width="450" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="n125" value="SpeechMessage.Dynamics.Crm91Worker&#10;處理 CE 9.1&#10;Web API / 官方 ServiceClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bd9a26;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n124">
+          <mxGeometry x="20" y="50" width="410" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="n126" value="SpeechMessage.Dynamics.Crm82Worker&#10;.NET Framework 4.8 執行環境&#10;Microsoft 官方 CrmServiceClient — WS-Trust / SOAP" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n124">
+          <mxGeometry x="20" y="180" width="410" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="n127" value="重點：舊 CRM SDK 沒有被刪掉，而是關在這個獨立行程裡。&#10;它掛掉、記憶體漏、綁死 .NET Framework，都不會拖累主網站。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;fontSize=11.5;align=left;spacingLeft=10;verticalAlign=top;spacingTop=8;" vertex="1" parent="n124">
+          <mxGeometry x="20" y="320" width="410" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="e128" value="HTTP ← 行程邊界" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#cc7a2e;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n111" target="n116">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e129" value="WorkerProtocol ← 行程邊界" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#4a72a8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n118" target="n125">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e130" value="WorkerProtocol" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#4a72a8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n118" target="n126">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n131" value="外部 CRM" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#f7f7f8;strokeColor=#8c8c8c;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="130" width="270" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="n132" value="D365 CE 9.1&#10;sunnyvalechback" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n131">
+          <mxGeometry x="20" y="60" width="230" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n133" value="D365 CE 8.2&#10;jesus" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n131">
+          <mxGeometry x="20" y="200" width="230" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e134" value="Web API" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#bd9a26;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n125" target="n132">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e135" value="SOAP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b03a35;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n126" target="n133">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n136" value="② 容量控管落到 SQL" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#f2fafa;strokeColor=#3d8b8b;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="630" width="800" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="n137" value="SqlRuntimeHostSlotCoordinator：跨行程 / 跨主機的租約。&#10;1.0.0.2 只有 InMemory 版本，同一台機器起兩個行程就各算各的；1.0.0.3 把 host slot 租約寫進 SQL，Gateway / Worker / 藍綠部署才真的共用同一份併發預算。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3d8b8b;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n136">
+          <mxGeometry x="20" y="44" width="760" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n138" value="③ Embedded 在這一版的下場" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#fffdf5;strokeColor=#bd9a26;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="630" width="770" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="n139" value="沒有被刪除，但被降級：commit 58fa04bf 註明「Embedded 專案僅保留測試參考」，設計指南也寫「先保留、不再擴大」。&#10;Local Gateway（在本機另起一個 Gateway 行程）實際上取代了 Embedded 原本的定位。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bd9a26;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=12;spacingTop=8;verticalAlign=top;fontSize=11.5;" vertex="1" parent="n138">
+          <mxGeometry x="20" y="44" width="730" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n140" value="④ 相對於 1.0.0.2，本質上只改了三件事&#10;&#10;1  隔離的粒度：專案 → 行程。真正打 CRM 的動作被推到獨立子行程，中間用 WorkerProtocol 傳訊框。&#10;2  「完全不用 SDK」的教條鬆綁。現場證明 8.2 IFD 只有 SOAP 走得通，於是改用官方 CrmServiceClient，但關進 net48 的獨立 worker；Data8 版只當暫時橋接。&#10;3  治理從記憶體搬到持久化儲存。加上 SqlRuntimeHostSlotCoordinator，租約有 fencing、有 TTL、可跨主機。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=16;spacingTop=12;verticalAlign=top;fontSize=12.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="800" width="1620" height="130" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="6 · 同一動作三版路徑對照" id="pg216">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n141" value="同一個動作，三個版本各走什麼路" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=24;fontColor=#22252d;align=left;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1400" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n142" value="情境：使用者查「某人的奉獻費用清單」（Package 1 fee read）。把三版的呼叫鏈攤開並排。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=12.5;fontColor=#6b7280;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="56" width="1500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n143" value="1.0.0.1 · 唯一路徑　—　行程數 1" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#5d8a4e;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="1620" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="n144" value="DonationFee&#10;QueryService" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n143">
+          <mxGeometry x="20" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n145" value="ToolUtility" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bd9a26;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n143">
+          <mxGeometry x="216" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e146" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n144" target="n145">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n147" value="Data8&#10;CRM SDK" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n143">
+          <mxGeometry x="412" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e148" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n145" target="n147">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n149" value="singleton&#10;連線池" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n143">
+          <mxGeometry x="608" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e150" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n147" target="n149">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n151" value="WS-Trust&#10;/ SOAP" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n143">
+          <mxGeometry x="804" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e152" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n149" target="n151">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n153" value="D365 CE" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n143">
+          <mxGeometry x="1000" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e154" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n151" target="n153">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n155" value="沒有白名單、沒有排隊、沒有 profile 隔離。任何一行程式碼都能自己組查詢直接送出去。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=11.5;fontColor=#5d8a4e;align=left;" vertex="1" parent="n143">
+          <mxGeometry x="20" y="126" width="1560" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n156" value="1.0.0.2 · Embedded　—　行程數 1" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#4a72a8;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="296" width="1620" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="n157" value="DonationFee&#10;QueryService" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="20" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n158" value="IPackage01&#10;FeeReadClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d4f0f0;strokeColor=#3d8b8b;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="216" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e159" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n157" target="n158">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n160" value="Embedded&#10;轉接器" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="412" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e161" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n158" target="n160">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n162" value="能力白名單&#10;檢查" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0c2;strokeColor=#cc7a2e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="608" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e163" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n160" target="n162">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n164" value="Admission&#10;排隊" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0c2;strokeColor=#cc7a2e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="804" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e165" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n162" target="n164">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n166" value="DynamicsWeb&#10;ApiClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="1000" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e167" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n164" target="n166">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n168" value="HTTPS&#10;OData v4" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="1196" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e169" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n166" target="n168">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n170" value="D365 CE" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n156">
+          <mxGeometry x="1392" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e171" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n168" target="n170">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n172" value="第 4、5 步是 1.0.0.1 完全沒有的：先過白名單，再過總量控管，才准出去。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=11.5;fontColor=#4a72a8;align=left;" vertex="1" parent="n156">
+          <mxGeometry x="20" y="126" width="1560" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n173" value="1.0.0.2 · Gateway　—　行程數 2" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#7d5b96;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="472" width="1620" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="n174" value="DonationFee&#10;QueryService" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="20" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n175" value="IPackage01&#10;FeeReadClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d4f0f0;strokeColor=#3d8b8b;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="216" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e176" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n174" target="n175">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n177" value="Gateway&#10;端點" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="412" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e178" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n175" target="n177">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n179" value="" style="shape=line;direction=north;strokeColor=#cc7a2e;strokeWidth=2;dashed=1;html=1;" vertex="1" parent="n173">
+          <mxGeometry x="394" y="40" width="4" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="n180" value="能力白名單&#10;檢查" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0c2;strokeColor=#cc7a2e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="608" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e181" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n177" target="n180">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n182" value="Admission&#10;排隊" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0c2;strokeColor=#cc7a2e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="804" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e183" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n180" target="n182">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n184" value="DynamicsWeb&#10;ApiClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="1000" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e185" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n182" target="n184">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n186" value="HTTPS&#10;OData v4" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="1196" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e187" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n184" target="n186">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n188" value="D365 CE" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n173">
+          <mxGeometry x="1392" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e189" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n186" target="n188">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n190" value="跟上面那條完全相同，只差第 3 步跨過了一次 HTTP。這就是「同一套 runtime、兩個住處」。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=11.5;fontColor=#7d5b96;align=left;" vertex="1" parent="n173">
+          <mxGeometry x="20" y="126" width="1560" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n191" value="1.0.0.3 · Gateway + Worker　—　行程數 3+" style="swimlane;html=1;startSize=30;fontStyle=1;fontSize=13;rounded=1;arcSize=4;fillColor=#ffffff;strokeColor=#cc7a2e;strokeWidth=2;swimlaneFillColor=#ffffff;verticalAlign=middle;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="648" width="1620" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="n192" value="DonationFee&#10;QueryService" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5d8a4e;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="20" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n193" value="ProductClient" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d4f0f0;strokeColor=#3d8b8b;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="216" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e194" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n192" target="n193">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n195" value="Gateway&#10;端點" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7d5b96;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="412" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e196" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n193" target="n195">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n197" value="" style="shape=line;direction=north;strokeColor=#cc7a2e;strokeWidth=2;dashed=1;html=1;" vertex="1" parent="n191">
+          <mxGeometry x="394" y="40" width="4" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="n198" value="ControlPlane" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="608" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e199" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n195" target="n198">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n200" value="Worker&#10;Supervisor" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a72a8;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="804" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e201" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n198" target="n200">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n202" value="Crm91Worker&#10;或 Crm82Worker" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b03a35;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="1000" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e203" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n200" target="n202">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n204" value="" style="shape=line;direction=north;strokeColor=#cc7a2e;strokeWidth=2;dashed=1;html=1;" vertex="1" parent="n191">
+          <mxGeometry x="982" y="40" width="4" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="n205" value="Web API&#10;或 SOAP" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="1196" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e206" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n202" target="n205">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n207" value="D365 CE&#10;9.1 或 8.2" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#8c8c8c;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;" vertex="1" parent="n191">
+          <mxGeometry x="1392" y="46" width="176" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e208" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#94a3b8;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="n205" target="n207">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n209" value="多了第 5、6 步。8.2 與 9.1 從這裡開始走完全不同的實作，但第 1～4 步對產品完全一致。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=12;fontSize=11.5;fontColor=#cc7a2e;align=left;" vertex="1" parent="n191">
+          <mxGeometry x="20" y="126" width="1560" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n210" value="從這張圖要看懂的三件事&#10;&#10;1  產品端幾乎沒變：三版的第 1 步都是同一個 DonationFeeQueryService。1.0.0.2 之後產品只多認識一個 IPackage01FeeReadClient，其餘全部藏在連線器裡。&#10;2  真正的差別在「中間插了幾道關卡、跨了幾次行程」：1.0.0.1 是 0 道關卡 0 次跨行程；1.0.0.2 是 2 道關卡（Gateway 模式多 1 次跨行程）；1.0.0.3 同樣 2 道關卡但多 1 次跨行程去 worker，且容量控管改用 SQL。&#10;3  8.2 / 9.1 的分歧點被推得愈來愈後面：1.0.0.1 分歧在 SDK 內部；1.0.0.2 想用同一套 HTTP 打兩版（8.2 走不通）；1.0.0.3 承認要分開，分歧點被推到最後一步的 worker。" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;align=left;spacingLeft=16;spacingTop=12;verticalAlign=top;fontSize=12.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="830" width="1620" height="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
