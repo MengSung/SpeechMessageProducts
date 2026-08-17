@@ -67,6 +67,15 @@ namespace ChurchReport.Controllers
 
     {
 
+        /// <summary>
+        /// 取得目前 HTTP request scope 的 Dataverse 服務。服務由 DI 容器建立與釋放，
+        /// 最大生命週期限定於目前 request；此 partial 不自行借還或保存連線，避免跨使用者
+        /// 重用可變傳輸狀態。若在沒有 request scope 的情況呼叫，立即失敗而不建立臨時連線。
+        /// </summary>
+        private IOrganizationService OrganizationService =>
+            HttpContext?.RequestServices?.GetService(typeof(IOrganizationService)) as IOrganizationService
+            ?? throw new InvalidOperationException("目前 request 未註冊 Dataverse 服務。");
+
         #region 大頭照上傳與更新
 
 
@@ -91,7 +100,7 @@ namespace ChurchReport.Controllers
 
         {
 
-            IOrganizationService service = null;
+            
 
             try
 
@@ -365,7 +374,7 @@ namespace ChurchReport.Controllers
 
                 // ========================================
 
-                service = GetConnection();
+                var service = OrganizationService;
 
 
 
@@ -469,14 +478,6 @@ namespace ChurchReport.Controllers
 
             }
 
-            finally
-
-            {
-
-                ReleaseConnection(service);
-
-            }
-
         }
 
 
@@ -497,7 +498,7 @@ namespace ChurchReport.Controllers
         [Route("/Personal/GetContactImage")]
         public IActionResult GetContactImage(string contactId, int size = 80)
         {
-            IOrganizationService service = null;
+            
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[GetContactImage] 取得大頭照: {contactId}, size={size}");
@@ -534,7 +535,7 @@ namespace ChurchReport.Controllers
                     return File(cachedImageBytes, "image/jpeg");
                 }
 
-                service = GetConnection();
+                var service = OrganizationService;
 
                 // 只查詢 entityimage 欄位以提升效能
                 var contact = service.Retrieve("contact", contactGuid,
@@ -579,10 +580,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[GetContactImage] 錯誤: {ex.Message}");
                 return GetDefaultImage();
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
+            
         }
 
         private static byte[] CreateThumbnailIfNeeded(byte[] originalBytes, int size)
@@ -660,7 +658,7 @@ namespace ChurchReport.Controllers
         [Route("/Personal/GetContactImagesBatch")]
         public IActionResult GetContactImagesBatch([FromBody] BatchImageRequest request)
         {
-            IOrganizationService service = null;
+            
             try
             {
                 if (request?.ContactIds == null || request.ContactIds.Length == 0)
@@ -707,7 +705,7 @@ namespace ChurchReport.Controllers
                 if (uncachedGuids.Count > 0)
                 {
                     var swConn = System.Diagnostics.Stopwatch.StartNew();
-                    service = GetConnection();
+                    var service = OrganizationService;
                     swConn.Stop(); connMs = swConn.ElapsedMilliseconds; // [計時診斷] 連線池取得連線耗時
 
                     var query = new Microsoft.Xrm.Sdk.Query.QueryExpression("contact")
@@ -786,10 +784,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[GetContactImagesBatch] 錯誤: {ex.Message}");
                 return Json(new { success = false, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
+            
         }
 
         #endregion
