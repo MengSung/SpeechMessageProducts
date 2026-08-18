@@ -212,7 +212,7 @@ ToolUtility.Dataverse.Tests/**
 
 ## Run 2.5 / Run 3 — 依持有者生命週期遷移
 
-Run 3.0 調查確認 39 處文字出現中有 35 處實際呼叫，分類為 A 7、B 19（含
+Run 3.0 調查確認 39 處文字出現中有 35 處實際呼叫，分類為 A 6、B 20（含
 `InMemoryDataContextSmallGroup` 的 legacy static getter）、C 9。原本按目錄切分會把
 per-request、session cache 與未確認死碼混在一起；在沒有先處理 B 類 holder 的情況下，直接
 注入 scoped `ToolUtilityClass` 會重現 `ObjectDisposedException` 與跨請求共用連線。
@@ -222,7 +222,8 @@ per-request、session cache 與未確認死碼混在一起；在沒有先處理 
 
 - 重新查核 9 個 C 類項目：7 個零外部引用的死碼/死鏈已刪除，2 個活型別上的死建構式已
   刪除；B 類方向不在本 Run 決定。
-- 刪除後總文字出現由 39 降為 30（26 個可執行呼叫 + 4 個註解），A 7、B 19、C 0。
+- 刪除後總文字出現由 39 降為 30（26 個可執行呼叫 + 4 個註解）；本 Run 將 6 個 A 類
+  遷移後，預期保留 20 個 B 類可執行呼叫與 2 個註解文字。
 - 13 個 session cache 與所有 A/B 呼叫點均未修改。B 類方向仍待使用者決定。
 
 **Run 2.5a 完成判定**：死碼/死建構式查核輸出已附於 notes；NamingTests 未指涉刪除型別；
@@ -235,7 +236,7 @@ session key cache）中選擇其一；本計畫不替使用者決定。
 **Run 3-A — A 類 request holder**
 
 遷移 `DonationFeePaymentProcessor`、`RecurringDonationPaymentProcessor`、四個 QR utility
-與 `GalleryViewModel` 共 7 處。`InMemoryDataContextSmallGroup.ToolUtilityClass` 只有在
+與 `LineBindingViewModel` 共 20 處。`InMemoryDataContextSmallGroup.ToolUtilityClass` 只有在
 legacy Factory getter 改為注入的 scoped 實例後，才能加入本批；目前不得把它當成安全 A 類。
 
 **Run 3-A 完成判定**：本批 `ToolUtilityFactory.GetInstance` 為 0；建構式/Controller 只
@@ -275,7 +276,7 @@ legacy Factory getter 改為注入的 scoped 實例後，才能加入本批；�
 建構式。完成判定：
 
 ```bash
-grep -rn "ToolUtilityFactory.GetInstance" --include=*.cs SpeechMessageProducts.ChurchReport   # 0 行
+grep -rn "ToolUtilityFactory.GetInstance" --include=*.cs SpeechMessageProducts.ChurchReport/Tools   # 0 行
 grep -rn "m_Crm2011OrganizationService" --include=*.cs SpeechMessageProducts.ChurchReport | grep -v "///"   # 0 行
 ```
 

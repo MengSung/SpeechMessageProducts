@@ -20,5 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
+    <ProjectReference Include="..\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj" />
   </ItemGroup>
 </Project>

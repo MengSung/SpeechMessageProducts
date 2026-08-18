@@ -287,3 +287,134 @@ MARKDOWN ENCODING OK
 `git diff --name-only HEAD` 不列出未追蹤檔案；未追蹤 findings 已由同一次
 `git status --porcelain` 明確列出。沒有 `.cs` 變更。`grep` 由 Git for Windows 的
 `grep.exe` 執行，PowerShell 本身沒有 `grep` alias。
+
+## Run 3-A 結果（本任務結案）
+
+### A 類遷移結果
+
+1. `DonationFeePaymentProcessor.cs:119`：確認全 solution 沒有實際的
+   `new DonationFeePaymentProcessor()` 呼叫者，已刪除無參數 Factory fallback；其餘建構路徑由
+   `IToolUtilityProvider` 取得目前 request 的 ToolUtility。
+2. `RecurringDonationPaymentProcessor.cs:91`：建構式改接收 `IToolUtilityProvider`，Dispatcher
+   傳入自身 request scope 的 provider；Dispose 不釋放注入服務。
+3. `QrCodeUtility.cs:50`：改接收 `ToolUtilityClass`；`QrCodeController` 與
+   `PhoneBindingController` 均傳入 `BaseChurchController.ToolUtility`。
+4. `SmallGroupQrCodeUtility.cs:52`、`SundayQrCodeUtility.cs:38`、
+   `PersonalQrCodeUtility.cs:39`：均改接收目前 request 的 `ToolUtilityClass`，並由
+   `QrCodeController` 傳入。
+
+所有改動建構式均註明「ToolUtility 由呼叫端的 request scope 提供，本型別不擁有、不釋放」。
+`DonationFeePaymentProcessor`、`RecurringDonationPaymentProcessor` 與 `LineUtilityClass` 的
+Dispose guard 註解均已改為同一擁有權語意。
+
+`"DYNAMICS365-9.0"` 可隨這六處 Factory 呼叫一併移除：`m_DiscoveryServiceType` 只有宣告／
+寫入而沒有 ToolUtility 讀取點，`InitializeCrmConnection()` 使用的是
+`CrmConnection:Organization`，因此本 Run 沒有改變連線行為。
+
+### 20 個 B 類殘留清單
+
+本工作站的 Git for Windows GNU grep 不把交辦 regex 的 `\s` 視為空白，會額外留下兩個註解；
+以下用其 POSIX 等價 `[[:space:]]` 篩出可執行命中。這 20 行與下方 holder 對照一行不多、
+一行不少。
+
+```text
+SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs:59:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/Models/EquipmentDataManager.cs:51:            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/Models/InMemoryDataContextSmallGroup.cs:1290:            get => ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs:65:            m_ToolUtilityClass = ToolUtilityFactory.GetInstance();
+SpeechMessageProducts.ChurchReport/Models/PollManager.cs:53:            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/Models/WeeklyReportRecord.cs:53:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/ViewModels/GalleryViewModel.cs:47:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/AppointmentsDownUpLoader.cs:47:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/ChurchListDataProcessor.cs:46:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs:139:            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadEquipment.cs:41:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadHappyGroup.cs:43:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.Core.cs:37:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadListManager.cs:45:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs:43:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/LineNotifyUtility.cs:43:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs:42:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/PersonalInfomatioManager.cs:44:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Core.cs:34:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+SpeechMessageProducts.ChurchReport/WebServiceConnector/WeeklyReportManager.cs:43:        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+```
+
+| 殘留位置 | 所屬 session-cache holder |
+|---|---|
+| `Models/DonationPaymentManager.cs:59` | `DonationPaymentManager` |
+| `Models/EquipmentDataManager.cs:51` | `EquipmentDataManager` |
+| `Models/InMemoryDataContextSmallGroup.cs:1290` | legacy static getter |
+| `Models/ListManagementDataManager.cs:65` | `ListManagementDataManager` |
+| `Models/PollManager.cs:53` | `PollManager` |
+| `Models/WeeklyReportRecord.cs:53` | `ListManager` |
+| `ViewModels/GalleryViewModel.cs:47` | `LineBindingViewModel` |
+| `WebServiceConnector/AppointmentsDownUpLoader.cs:47` | `AppointmentsListManager` |
+| `WebServiceConnector/ChurchListDataProcessor.cs:46` | `ListManagementDataManager` |
+| `WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs:139` | `DonationPaymentManager` |
+| `WebServiceConnector/DownloadEquipment.cs:41` | `EquipmentDataManager` |
+| `WebServiceConnector/DownloadHappyGroup.cs:43` | `HappyGroupDataManager` |
+| `WebServiceConnector/DownloadIntegrateData.Core.cs:37` | `ListManager` |
+| `WebServiceConnector/DownloadListManager.cs:45` | `ListManager` |
+| `WebServiceConnector/FeeDownUpLoader.cs:43` | `FeeList` |
+| `WebServiceConnector/LineNotifyUtility.cs:43` | 多個 session holder |
+| `WebServiceConnector/NewPerson.cs:42` | `NewPersonModel` / `ListManagementDataManager` |
+| `WebServiceConnector/PersonalInfomatioManager.cs:44` | `PersonalInfomationModel` |
+| `WebServiceConnector/UploadIntegrateData.Core.cs:34` | `ListManager` |
+| `WebServiceConnector/WeeklyReportManager.cs:43` | `WeeklyReportData` |
+
+### PRD 驗收標準修訂
+
+- 修訂前：A1/A2 要求全專案 Factory 與 `m_Crm2011OrganizationService` 搜尋皆為零。
+- 修訂後：A1/A2 只保留上述已文件化的 20 個 B 類殘留，Tools 不得有執行 Factory 命中；
+  A9 要求精確殘留清單與後續票，13 個 session-key cache 重設計列為不在範圍。
+
+### 品質門檻與完成判定原始輸出
+
+```text
+dotnet build SpeechMessageProducts.sln -c Debug
+建置成功。
+    0 個警告
+    0 個錯誤
+
+dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj
+已通過! - 失敗:     0，通過:    63，略過:     0，總計:    63，持續時間: 148 ms - ToolUtility.Tests.dll (net10.0)
+EXIT=0
+
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj
+已通過! - 失敗:     0，通過:    13，略過:     0，總計:    13，持續時間: 275 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+EXIT=0
+
+dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj
+失敗! - 失敗:    22，通過:   304，略過:     0，總計:   326，持續時間: 1 s - ChurchReport.MemberInfo.Tests.dll (net10.0)
+EXIT=1
+
+G4 encoding
+ENCODING OK
+G4b line ending
+CRLF OK
+
+grep -rn "ToolUtilityFactory" --include=*.cs SpeechMessageProducts.ChurchReport/Tools/ | grep -vE ...
+(no output)
+EXIT=1
+
+git diff --check
+(no output)
+```
+
+MemberInfo 結果符合既有基準線（22 失敗 / 304 通過 / 326 總計），失敗為既有 Payments
+naming／repository-root 測試，沒有新增或惡化。
+
+### 後續票與人工回歸
+
+後續票草稿：`followup-session-cache.md`。它記錄 13 個 session cache、20 個 B 類點，以及
+「方法參數傳遞」與「先移除 cache」兩個方向的影響與風險；本任務不選擇、不實作任一方向。
+
+等待人工回歸：登入、會友查詢／編輯、奉獻、影像上傳、LINE 綁定、批次下載、QR Code 產生。
+
+### 外部審查
+
+CCG 自我修復入口已呼叫 Gemini 與 Claude 兩次。Gemini 兩次均回覆 PASS、無 Critical 或
+Warning；Claude CLI 每次均在產生內容前以 status 1 結束，未提供可用 finding。因此本次為
+Gemini 單模型降級審查；Gemini 第一輪唯一 Warning 是既有 `LineUtilityClass` 自建 LINE client
+與 Lazy configuration 的未來改善建議，與本 Run 範圍無關，未修改白名單外檔案。

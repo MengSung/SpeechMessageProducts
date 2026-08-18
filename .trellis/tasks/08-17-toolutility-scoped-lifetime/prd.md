@@ -81,14 +81,15 @@ Scoped 註冊、生命週期修正與測試修復；本任務接續處理最後�
 
 | # | 判定方式 |
 |---|---|
-| A1 | `grep -rn "ToolUtilityFactory.GetInstance" --include=*.cs SpeechMessageProducts.ChurchReport` 回傳 **0 行** |
-| A2 | `grep -rn "m_Crm2011OrganizationService" --include=*.cs SpeechMessageProducts.ChurchReport \| grep -v "///"` 回傳 **0 行** |
+| A1 | `ToolUtilityFactory.GetInstance` 僅存在於已文件化的 20 個 B 類殘留點；Tools 目錄不得再有執行命中。 |
+| A2 | `m_Crm2011OrganizationService` 的殘留僅存在於同一份 20 個 B 類持有鏈清單；本 Run 不處理該清單。 |
 | A3 | `grep -rn "Trace.Listeners.Add" --include=*.cs .` 只命中新的追蹤 Singleton，且該處在整個程序只執行一次（以測試斷言） |
 | A4 | 測試：連續建立 100 個 `ToolUtilityClass` scope 後，`Trace.Listeners.Count` 不成長 |
 | A5 | 測試：`ToolUtilityClass` 建構時不再建立任何 Dataverse 連線（以 mock 斷言 `CreateOnPremiseClient` 未被呼叫） |
 | A6 | `dotnet build SpeechMessageProducts.sln -c Debug` 建置成功 0 錯誤 |
-| A7 | `ToolUtility.Tests` 63 測試 ＋ `ToolUtility.Dataverse.Tests` 4 測試全綠 |
-| A8 | 人工回歸：登入、會友查詢／編輯、奉獻、影像上傳、LINE 綁定、批次下載 —— **不列為 agent 完成條件** |
+| A7 | `ToolUtility.Tests` 63 測試 ＋ `ToolUtility.Dataverse.Tests` 至少 13 測試全綠 |
+| A8 | 人工回歸：登入、會友查詢／編輯、奉獻、影像上傳、LINE 綁定、批次下載、QR Code 產生 —— **不列為 agent 完成條件** |
+| A9 | B 類殘留清單逐一列出精確 `檔案:行號` 與所屬 session-cache holder，且已建立後續票草稿。 |
 
 ## 不在範圍
 
@@ -96,6 +97,8 @@ Scoped 註冊、生命週期修正與測試修復；本任務接續處理最後�
 - `appsettings.Production.json` 孤立的 `ConnectionPool` 區段
 - `ToolUtilityClass` 的 API 介面重新設計（本任務只改生命週期與取得方式）
 - 產品 B / C / D
+- `InMemoryDataContextSmallGroup` 的 13 個 session-key `IMemoryCache` 項目重新設計或移除；
+  其 20 個 B 類呼叫點保留至後續票處理。
 
 ## 仍開放的問題
 

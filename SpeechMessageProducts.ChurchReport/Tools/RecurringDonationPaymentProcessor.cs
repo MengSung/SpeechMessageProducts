@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using ToolUtilityNameSpace;
-using ToolUtilityNameSpace.Factory;
+using ToolUtilityNameSpace.DependencyInjection;
 
 
 namespace ChurchReport.Tools
@@ -54,27 +54,28 @@ namespace ChurchReport.Tools
 
         private ReplyUtility m_ReplyUtility { get; }
 
-        // 透過 Factory 取得 ToolUtilityClass 單一實例
-        ToolUtilityClass m_ToolUtilityClass;
+        // 由目前 request scope 提供；本 operation 不擁有也不釋放此服務。
+        private readonly ToolUtilityClass m_ToolUtilityClass;
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
         #endregion
         #region 初始化
-        public RecurringDonationPaymentProcessor()
-            : this(null, null)
-        {
-        }
-
-        public RecurringDonationPaymentProcessor(ILineNotificationWorkflow? lineNotificationWorkflow)
-            : this(lineNotificationWorkflow, null)
-        {
-        }
-
+        /// <summary>
+        /// 建立定期奉獻付款處理器。ToolUtility 由目前 request scope 提供，
+        /// 本型別只在該 scope 內使用，不擁有、不釋放注入的 scoped 服務。
+        /// </summary>
+        /// <param name="toolUtilityProvider">目前 request scope 的 ToolUtility 提供者。</param>
+        /// <param name="lineNotificationWorkflow">付款後 LINE 通知流程。</param>
+        /// <param name="lineReplyWorkflow">付款後 LINE 回覆流程。</param>
         public RecurringDonationPaymentProcessor(
+            IToolUtilityProvider toolUtilityProvider,
             ILineNotificationWorkflow? lineNotificationWorkflow,
             ILineReplyWorkflow? lineReplyWorkflow)
         {
+            if (toolUtilityProvider == null)
+                throw new ArgumentNullException(nameof(toolUtilityProvider));
+
             // ✅ 從 appsettings.json 讀取 LINE Channel Access Token
             var channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
@@ -87,8 +88,9 @@ namespace ChurchReport.Tools
                 new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient),
                 lineReplyWorkflow);
 
-            // 透過 Factory 取得 ToolUtilityClass 單一實例
-            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+            m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
+            if (m_ToolUtilityClass == null)
+                throw new InvalidOperationException("ToolUtility provider 未提供目前 request 的服務。");
 
         }
 
@@ -101,11 +103,7 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // 不得在此釋放 m_ToolUtilityClass：它來自 ToolUtilityFactory.GetInstance()，
-                // 是程序級單一實例，存活期等同整個 Worker Process。本型別為短命的 operation
-                // 範圍物件，由短命物件釋放長命單例，會使之後所有使用者操作到已釋放的連線
-                // （ObjectDisposedException: ServiceChannel），實測會導致登入等流程失敗。
-                // 單例由程序結束時回收，不由此處負責。
+                // 不得釋放注入的 scoped ToolUtility；request scope 負責其 CRM 租約的確定性回收。
             }
 
             _disposed = true;

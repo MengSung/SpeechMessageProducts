@@ -135,12 +135,7 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // 釋放 ToolUtilityClass。
-                // 不得在此釋放 m_ToolUtilityClass：它來自 ToolUtilityFactory.GetInstance()，
-                // 是程序級單一實例，存活期等同整個 Worker Process。本型別為短命的 operation
-                // 範圍物件，由短命物件釋放長命單例，會使之後所有使用者操作到已釋放的連線
-                // （ObjectDisposedException: ServiceChannel），實測會導致登入等流程失敗。
-                // 單例由程序結束時回收，不由此處負責。
+                // 不得釋放注入的 scoped ToolUtility；request scope 負責其 CRM 租約的確定性回收。
 
                 // 釋放 LineMessagingClient。
                 m_LineMessagingClient?.Dispose();

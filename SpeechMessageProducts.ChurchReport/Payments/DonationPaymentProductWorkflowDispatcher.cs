@@ -89,7 +89,10 @@ public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentP
     {
         ArgumentNullException.ThrowIfNull(paymentResult);
 
-        using var processor = new RecurringDonationPaymentProcessor(_lineNotificationWorkflow);
+        using var processor = new RecurringDonationPaymentProcessor(
+            _toolUtilityProvider,
+            _lineNotificationWorkflow,
+            null);
         return processor.HandlePaymentReturn(
             shopNo,
             payToken,

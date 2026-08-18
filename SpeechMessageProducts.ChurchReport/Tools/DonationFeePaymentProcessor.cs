@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using ToolUtilityNameSpace;
-using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
 using SpeechMessage.Payments.Models;
 using SpeechMessage.Payments.Workflows;
@@ -94,38 +93,12 @@ namespace ChurchReport.Tools
 
         #region 建構函數
         /// <summary>
-        /// 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例
-        ///
-        /// 這條路徑主要服務舊程式碼：某些舊流程會直接 <c>new DonationFeePaymentProcessor()</c>，
-        /// 沒有透過 ASP.NET Core DI 容器建立物件。為了不破壞舊流程，這裡仍保留 Factory 取得 CRM 工具的方式。
-        ///
-        /// 重要：這條路徑使用 No-Op 的 <see cref="PaymentPostPaymentWorkflow"/>，
-        /// 避免舊流程在沒有完整 DI context 時重複觸發新的 CRM/LINE handler。
-        /// </summary>
-        public DonationFeePaymentProcessor()
-        {
-            // 從 appsettings.json 讀取 LINE Channel Access Token。
-            // PushUtility 需要這個 token 才能把付款結果推播給奉獻者或課程報名者。
-            var channelAccessToken = GetLineChannelAccessToken();
-            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
-
-            // PushUtility：主動推播付款成功/失敗訊息。
-            // ReplyUtility：保留給舊 LINE callback/回覆流程使用。
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
-            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
-
-            // 使用 Factory 模式取得 ToolUtilityClass 單例。
-            // "DYNAMICS365-9.0" 是舊 ChurchReport 專案既有的 CRM 連線識別。
-            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
-            m_PostPaymentWorkflow = CreateNoOpPostPaymentWorkflow();
-            m_ReturnPresenter = new DonationPaymentReturnPresenter();
-        }
-
         /// <summary>
         /// 建構函數，使用 Dependency Injection 模式
         ///
         /// 這是比預設建構子更容易測試的路徑：外部把 <see cref="IToolUtilityProvider"/> 傳進來，
         /// 本類別不用知道 ToolUtilityClass 要怎麼建立，只要跟 provider 要一個 CRM 工具即可。
+        /// 此 ToolUtility 由呼叫端的 request scope 提供，本型別不擁有、不釋放。
         /// 但這個建構子仍沒有注入完整付款後 workflow，所以也會使用 No-Op workflow。
         /// </summary>
         /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
@@ -197,8 +170,7 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // 不需要手動 Dispose ToolUtilityClass，由 Factory 統一管理生命週期
-                // m_ToolUtilityClass.Dispose();
+                // 不得釋放注入的 scoped ToolUtility；其生命週期由 request scope 擁有。
             }
 
             _disposed = true;
@@ -267,9 +239,9 @@ namespace ChurchReport.Tools
 
         private static PaymentPostPaymentWorkflow CreateNoOpPostPaymentWorkflow()
         {
-            // 舊程式仍可能直接 new DonationFeePaymentProcessor()；這些路徑沒有 DI 容器提供完整的 handler。
-            // 如果這裡硬塞真實 PaymentPostPaymentWorkflow，舊流程可能在不完整 context 下重複更新 CRM 或重複發 LINE。
-            // 因此預設與簡易 DI 建構子使用「空 workflow」：它不做任何 record updater / notifier。
+            // 簡易 DI 建構子沒有完整付款後 handler；若硬塞真實 workflow，
+            // 可能在不完整 context 下重複更新 CRM 或重複發 LINE。
+            // 因此簡易 DI 建構子使用「空 workflow」：它不做任何 record updater / notifier。
             // 正式 ASP.NET Core DI 路徑會透過完整建構子注入真正的 PaymentPostPaymentWorkflow。
             return new PaymentPostPaymentWorkflow(
                 Array.Empty<IPaymentRecordUpdater>(),
