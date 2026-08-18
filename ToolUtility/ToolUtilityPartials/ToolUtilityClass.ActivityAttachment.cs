@@ -48,18 +48,22 @@ namespace ToolUtilityNameSpace
             }
         }
 
+        /// <summary>
+        /// 將指定活動設為已完成，透過 gateway 代理在本次 CRM 操作期間租用 client。
+        /// </summary>
+        /// <param name="ActivityName">活動的實體名稱。</param>
+        /// <param name="aActivityId">要更新的活動識別碼。</param>
+        /// <remarks>
+        /// 舊 <c>OrganizationServiceProxy</c> 分支永遠無法執行：其判斷常數為
+        /// <c>DYNAMICS365-9.0</c>，卻比較 <c>DYNAMICS365</c>。保留原 else 路徑的
+        /// <c>m_Crm2011OrganizationService</c> 相容欄位；該欄位實際保存 gateway 代理，
+        /// 因此不會跨 request 保存 raw client 或 lease。
+        /// </remarks>
         public void SetActivityStatusToCompleted(String ActivityName, Guid aActivityId)
         {
             try
             {
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    _facade.SetActivityStatusToCompleted(ActivityName, aActivityId, m_OrganizationService);
-                }
-                else
-                {
-                    _facade.SetActivityStatusToCompleted(ActivityName, aActivityId, m_Crm2011OrganizationService);
-                }
+                _facade.SetActivityStatusToCompleted(ActivityName, aActivityId, m_Crm2011OrganizationService);
             }
             catch (Exception e)
             {
@@ -67,18 +71,20 @@ namespace ToolUtilityNameSpace
             }
         }
 
+        /// <summary>
+        /// 將指定約會設為已排程，透過 gateway 代理維持每次操作的租約邊界。
+        /// </summary>
+        /// <param name="aActivityId">要更新的約會識別碼。</param>
+        /// <remarks>
+        /// 此方法與活動完成流程同樣移除了恆假條件下的未指派 proxy 分支，只保留既有
+        /// 相容路徑。代理的 lease 由 Gateway 在呼叫完成或例外時確定性歸還／淘汰，
+        /// ToolUtilityClass 不擁有也不釋放底層 client。
+        /// </remarks>
         public void SetAppointmentStatusToScheduled(Guid aActivityId)
         {
             try
             {
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    _facade.SetAppointmentStatusToScheduled(aActivityId, m_OrganizationService);
-                }
-                else
-                {
-                    _facade.SetAppointmentStatusToScheduled(aActivityId, m_Crm2011OrganizationService);
-                }
+                _facade.SetAppointmentStatusToScheduled(aActivityId, m_Crm2011OrganizationService);
             }
             catch (Exception e)
             {

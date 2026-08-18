@@ -351,10 +351,6 @@ namespace ChurchReport.WebServiceConnector
             {
                 serviceToUse = this.m_ToolUtilityClass.m_Crm2011OrganizationService;
             }
-            else if (this.m_ToolUtilityClass.m_OrganizationService != null)
-            {
-                serviceToUse = this.m_ToolUtilityClass.m_OrganizationService;
-            }
 
             if (serviceToUse == null)
             {
@@ -370,40 +366,12 @@ namespace ChurchReport.WebServiceConnector
             if (ListType == false)
             {
                 // 靜態名單：批量取得成員（使用既有方法，但避免對 list 再次 Retrieve）
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    if (this.m_ToolUtilityClass.m_OrganizationService != null)
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
-                    }
-                    else
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                    }
-                }
-                else
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                }
+                MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
             }
             else
             {
                 // 動態名單
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    if (this.m_ToolUtilityClass.m_OrganizationService != null)
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
-                    }
-                    else
-                    {
-                        MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                    }
-                }
-                else
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                }
+                MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
             }
 
             return MemberCollection.Entities.Count;

@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using Moq;
+using PowerPlatform.Dataverse.Client;
+using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.Dataverse;
 using Xunit;
 
@@ -146,10 +151,213 @@ public sealed class BoundedClientPoolTests
         Assert.Equal(1, metrics.TotalReleases);
     }
 
+    /// <summary>
+    /// 保護 pooled OnPremiseClient 歸還前清除 CallerId 的隔離契約；先注入非空
+    /// impersonation 身分，再借還一次，決定性斷言是下一條 lease 觀察到 Guid.Empty。
+    /// </summary>
+    [Fact]
+    public void Returning_on_premise_client_clears_caller_id_before_idle()
+    {
+        var service = (OnPremiseClient)RuntimeHelpers.GetUninitializedObject(typeof(OnPremiseClient));
+        using var pool = CreatePool(
+            (_, _) => service,
+            new DataversePoolOptions { MinSize = 1, MaxN = 1 });
+
+        using (var lease = pool.Acquire(DefaultKey))
+        {
+            service.CallerId = Guid.NewGuid();
+        }
+
+        using var nextLease = pool.Acquire(DefaultKey);
+        Assert.Equal(Guid.Empty, service.CallerId);
+    }
+
+    /// <summary>
+    /// 保護 cleanup 選取 idle client 後、真正 Dispose 前若被重新租借的競態契約。
+    /// 故障注入是可控的 cleanup callback；決定性斷言是 lease 仍可取得且 service 在 lease 期間
+    /// 尚未 Dispose，歸還後才確定性淘汰，避免 cleanup 銷毀正交給呼叫端的 client。
+    /// </summary>
+    [Fact]
+    public void Cleanup_does_not_dispose_client_leased_after_selection()
+    {
+        var services = new List<TrackingOrganizationService>();
+        BoundedClientPool? pool = null;
+        IClientLease? racedLease = null;
+        pool = CreatePool(
+            (_, _) =>
+            {
+                var service = new TrackingOrganizationService();
+                services.Add(service);
+                return service;
+            },
+            new DataversePoolOptions
+            {
+                MinSize = 1,
+                MaxN = 2,
+                IdleTimeout = TimeSpan.FromMilliseconds(1)
+            },
+            _ => racedLease ??= pool!.Acquire(DefaultKey));
+
+        var initialLeases = new[] { pool.Acquire(DefaultKey), pool.Acquire(DefaultKey) };
+        foreach (var lease in initialLeases)
+            lease.Dispose();
+
+        Thread.Sleep(20);
+        pool.CleanupIdleClients();
+
+        Assert.NotNull(racedLease);
+        var leaseAcquiredDuringCleanup = racedLease!;
+        var serviceAcquiredDuringCleanup = Assert.IsType<TrackingOrganizationService>(leaseAcquiredDuringCleanup.Service);
+        Assert.False(serviceAcquiredDuringCleanup.IsDisposed);
+        leaseAcquiredDuringCleanup.Service.Execute(new OrganizationRequest());
+        leaseAcquiredDuringCleanup.Dispose();
+        Assert.True(serviceAcquiredDuringCleanup.IsDisposed);
+    }
+
+    /// <summary>
+    /// 保護 MinSize 保底：五條 idle 全部逾時時，cleanup 只能逐一淘汰到兩條，
+    /// 不得因固定 idleCount 導致子池跌到零。斷言直接讀取 Idle metrics。
+    /// </summary>
+    [Fact]
+    public void Cleanup_keeps_idle_count_at_min_size()
+    {
+        using var pool = CreatePool(
+            (_, _) => new TrackingOrganizationService(),
+            new DataversePoolOptions
+            {
+                MinSize = 2,
+                MaxN = 5,
+                IdleTimeout = TimeSpan.FromMilliseconds(1)
+            });
+
+        var leases = new[]
+        {
+            pool.Acquire(DefaultKey),
+            pool.Acquire(DefaultKey),
+            pool.Acquire(DefaultKey),
+            pool.Acquire(DefaultKey),
+            pool.Acquire(DefaultKey)
+        };
+        foreach (var lease in leases)
+            lease.Dispose();
+
+        Thread.Sleep(20);
+        pool.CleanupIdleClients();
+
+        Assert.Equal(2, pool.GetMetrics().Idle);
+    }
+
+    /// <summary>
+    /// 保護 URL 組態不可靜默切換環境的契約；缺少 ServerUrl 時必須在 Manager 建構時
+    /// 明確失敗，而不是回退到另一個產品環境的硬編碼端點。
+    /// </summary>
+    [Fact]
+    public void Manager_rejects_missing_server_url_instead_of_using_environment_fallback()
+    {
+        var configuration = CreateManagerConfiguration(serverUrl: null, username: "service-user");
+        var exception = Record.Exception(() =>
+        {
+            using var manager = new DataverseConnectionManager(
+                new Mock<ICrmConnectionService>(MockBehavior.Strict).Object,
+                configuration,
+                "ChurchReport",
+                "Test",
+                new DataversePoolOptions { MinSize = 1, MaxN = 1 });
+        });
+
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Contains("CrmConnection:ServerUrl", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 保護有效身分不可被靜默替換的契約；缺少 Username 時必須明確拒絕，
+    /// 避免以 service-account 連到未授權的環境或留下不可追蹤的身分漂移。
+    /// </summary>
+    [Fact]
+    public void Manager_rejects_missing_username_instead_of_using_service_account_fallback()
+    {
+        var configuration = CreateManagerConfiguration(
+            serverUrl: "https://org.test/XRMServices/2011/Organization.svc",
+            username: null);
+        var exception = Record.Exception(() =>
+        {
+            using var manager = new DataverseConnectionManager(
+                new Mock<ICrmConnectionService>(MockBehavior.Strict).Object,
+                configuration,
+                "ChurchReport",
+                "Test",
+                new DataversePoolOptions { MinSize = 1, MaxN = 1 });
+        });
+
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Contains("CrmConnection:Username", exception.Message, StringComparison.Ordinal);
+    }
+
     private static BoundedClientPool CreatePool(
         Func<DataverseConnectionKey, CancellationToken, IOrganizationService> factory,
-        DataversePoolOptions options)
+        DataversePoolOptions options,
+        Action<IOrganizationService>? beforeDispose = null)
     {
-        return new BoundedClientPool(factory, _ => true, options);
+        return new BoundedClientPool(factory, _ => true, options, beforeDispose);
+    }
+
+    private static IConfiguration CreateManagerConfiguration(string? serverUrl, string? username)
+    {
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["CrmConnection:ServerUrl"] = serverUrl,
+                ["CrmConnection:Username"] = username,
+                ["CrmConnection:Password"] = "test-secret"
+            })
+            .Build();
+    }
+
+    /// <summary>
+    /// 可觀測的測試 CRM service；Dispose 狀態代表 cleanup 是否錯誤銷毀仍在使用的 client。
+    /// Execute 保持可呼叫，讓競態測試能證明 lease 仍然可用，而不是只觀察旗標。
+    /// </summary>
+    private sealed class TrackingOrganizationService : IOrganizationService, IDisposable
+    {
+        /// <summary>
+        /// 取得底層資源是否已由 pool 的淘汰或關閉路徑釋放；競態測試以此確認
+        /// cleanup 不會提前銷毀已成功租借給另一個 request 的 service。
+        /// </summary>
+        public bool IsDisposed { get; private set; }
+
+        /// <summary>此測試 double 不保存關聯資料，因為測試的唯一契約是 lease 可安全使用。</summary>
+        public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) { }
+
+        /// <summary>回傳新的識別值，避免測試因建立作業的非核心行為而阻塞。</summary>
+        public Guid Create(Entity entity) => Guid.NewGuid();
+
+        /// <summary>此測試不持久化實體，因此刪除作業不保留任何跨測試狀態。</summary>
+        public void Delete(string entityName, Guid id) { }
+
+        /// <summary>此測試 double 不保存關聯資料，避免引入與 cleanup 競態無關的可變狀態。</summary>
+        public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) { }
+
+        /// <summary>
+        /// 在尚未釋放時回傳空回應；若 pool 錯誤提前釋放，明確擲出例外，
+        /// 使競態測試能以真實服務呼叫證明 lease 仍可用。
+        /// </summary>
+        public OrganizationResponse Execute(OrganizationRequest request)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(nameof(TrackingOrganizationService));
+            return new OrganizationResponse();
+        }
+
+        /// <summary>回傳空實體，因本測試不驗證資料存取內容。</summary>
+        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => new();
+
+        /// <summary>回傳空集合，確保 double 不快取任何 request 或使用者資料。</summary>
+        public EntityCollection RetrieveMultiple(QueryBase query) => new();
+
+        /// <summary>此測試不持久化實體，因此更新作業不保留任何跨測試狀態。</summary>
+        public void Update(Entity entity) { }
+
+        /// <summary>標記資源已釋放，供競態測試驗證 pool 的唯一 Dispose 所有權。</summary>
+        public void Dispose() => IsDisposed = true;
     }
 }

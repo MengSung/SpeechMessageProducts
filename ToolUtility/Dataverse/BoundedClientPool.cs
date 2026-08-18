@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
+using PowerPlatform.Dataverse.Client;
 
 namespace ToolUtilityNameSpace.Dataverse;
 
 /// <summary>
 /// Keyed、bounded、可觀測的 client pool。
-/// 每個 client 由本 pool 建立並最終 Dispose；租約 Dispose 只回報狀態並歸還 semaphore，
-/// 故不會讓短命 request 釋放長命 pooled client，也不會跨 key、request 或身分重用 client。
+/// 每個 client 由本 pool 建立並在閒置逾時、故障或 pool 關閉時最終 Dispose；租約 Dispose
+/// 只回報狀態並歸還 semaphore，故不會讓短命 request 釋放長命 pooled client。子池以完整
+/// <see cref="DataverseConnectionKey"/> 分割，並在每次歸還前清除可辨識的呼叫者身分，防止跨
+/// request、使用者、profile、tenant 或環境重用可變連線狀態。
 /// </summary>
 public sealed class BoundedClientPool : IBoundedClientPool
 {
@@ -34,13 +38,28 @@ public sealed class BoundedClientPool : IBoundedClientPool
         private readonly BoundedClientPool _owner;
         private readonly SubPool _subPool;
         private readonly PooledClient _client;
+        private readonly DataverseTrace _trace;
+        private readonly string _leaseId;
+        private readonly long _leaseStartedTimestamp;
+        private readonly IDisposable _leaseScope;
         private int _disposed;
 
-        internal ClientLease(BoundedClientPool owner, SubPool subPool, PooledClient client)
+        internal ClientLease(
+            BoundedClientPool owner,
+            SubPool subPool,
+            PooledClient client,
+            DataverseTrace trace,
+            string leaseId,
+            long leaseStartedTimestamp,
+            IDisposable leaseScope)
         {
             _owner = owner;
             _subPool = subPool;
             _client = client;
+            _trace = trace;
+            _leaseId = leaseId;
+            _leaseStartedTimestamp = leaseStartedTimestamp;
+            _leaseScope = leaseScope;
         }
 
         public IOrganizationService Service
@@ -64,7 +83,16 @@ public sealed class BoundedClientPool : IBoundedClientPool
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
                 return;
-            _owner.Return(_subPool, _client);
+            try
+            {
+                _owner.Return(_subPool, _client, _trace, _leaseId, _leaseStartedTimestamp);
+            }
+            finally
+            {
+                // pool.return 必須在 lease 關聯還存在時輸出；之後立即還原 AsyncLocal，
+                // 避免同一 request 後續作業誤把已歸還 client 的 leaseId 寫入 crm.op。
+                _leaseScope?.Dispose();
+            }
         }
     }
 
@@ -72,27 +100,35 @@ public sealed class BoundedClientPool : IBoundedClientPool
     private readonly Func<DataverseConnectionKey, CancellationToken, IOrganizationService> _clientFactory;
     private readonly Func<IOrganizationService, bool> _healthCheck;
     private readonly DataversePoolOptions _options;
+    private readonly Action<IOrganizationService> _beforeCleanupDispose;
     private readonly Timer _cleanupTimer;
+    private DataverseTrace _trace;
     private long _faulted;
     private long _acquireTimeouts;
     private long _created;
     private long _discarded;
     private long _totalAcquires;
     private long _totalReleases;
+    private long _nextLeaseId;
     private int _waiting;
     private int _disposed;
 
     /// <summary>
     /// 建立 keyed pool。factory 是唯一的 client 建立點；healthCheck 只執行 WhoAmI 類健康驗證。
+    /// Timer 只選取閒置 client，真正的網路或 Dispose I/O 一律在子池鎖外執行，避免阻塞租借；
+    /// <paramref name="beforeCleanupDispose"/> 僅供受控協調／測試在銷毀前建立交錯點，例外會被
+    /// 忽略，且不改變 pool 對 client 的唯一所有權與淘汰決策。
     /// </summary>
     public BoundedClientPool(
         Func<DataverseConnectionKey, CancellationToken, IOrganizationService> clientFactory,
         Func<IOrganizationService, bool> healthCheck,
-        DataversePoolOptions options)
+        DataversePoolOptions options,
+        Action<IOrganizationService> beforeCleanupDispose = null)
     {
         _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
         _healthCheck = healthCheck ?? throw new ArgumentNullException(nameof(healthCheck));
         _options = options ?? throw new ArgumentNullException(nameof(options));
+        _beforeCleanupDispose = beforeCleanupDispose;
         _options.Validate();
 
         var interval = _options.IdleTimeout <= TimeSpan.FromSeconds(1)
@@ -101,21 +137,35 @@ public sealed class BoundedClientPool : IBoundedClientPool
         _cleanupTimer = new Timer(CleanupTimerCallback, null, interval, interval);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 依完整隔離鍵取得唯一 lease。此方法在 semaphore 容量內等待，並只把已成功轉為
+    /// Leased、通過必要健康檢查的 client 交給呼叫端；超時、取消或健康失敗不會讓同一條
+    /// client 同時交給其他 request，故障 client 會被淘汰而非重用。
+    /// </summary>
     public IClientLease Acquire(DataverseConnectionKey key, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
+        var trace = GetTrace();
+        var traceEnabled = trace?.Enabled == true;
         var subPool = _subPools.GetOrAdd(key, value => new SubPool(value, _options.MaxN));
         Interlocked.Increment(ref _waiting);
         var entered = false;
+        var waitStartedTimestamp = traceEnabled ? Stopwatch.GetTimestamp() : 0;
         try
         {
             if (!subPool.Slots.Wait(_options.AcquireTimeout, cancellationToken))
             {
                 Interlocked.Increment(ref _acquireTimeouts);
+                if (traceEnabled)
+                {
+                    trace.PoolAcquireWait(GetElapsedMilliseconds(waitStartedTimestamp));
+                    trace.PoolAcquireTimeout();
+                }
                 throw new TimeoutException($"無法在 {_options.AcquireTimeout.TotalMilliseconds:0} 毫秒內取得 Dataverse client。");
             }
             entered = true;
+            if (traceEnabled)
+                trace.PoolAcquireWait(GetElapsedMilliseconds(waitStartedTimestamp));
         }
         finally
         {
@@ -137,22 +187,26 @@ public sealed class BoundedClientPool : IBoundedClientPool
                     try { healthy = _healthCheck(candidate.Service); } catch { healthy = false; }
                     if (!healthy)
                     {
+                        if (traceEnabled)
+                            trace.PoolHealth(candidate.ClientId, result: false);
                         Interlocked.Increment(ref _faulted);
-                        RemoveAndDispose(subPool, candidate);
+                        RemoveAndDispose(subPool, candidate, "faulted");
                         continue;
                     }
+                    if (traceEnabled)
+                        trace.PoolHealth(candidate.ClientId, result: true);
                     candidate.MarkValidated(now);
                 }
 
                 Interlocked.Increment(ref _totalAcquires);
-                return new ClientLease(this, subPool, candidate);
+                return CreateLease(subPool, candidate, key, hit: true, trace, traceEnabled);
             }
 
             // MinSize 可能因健康檢查淘汰而低於目前需求，此處補建一個新 client。
             var created = CreateClient(subPool, key, cancellationToken);
             created.TryLease(now);
             Interlocked.Increment(ref _totalAcquires);
-            return new ClientLease(this, subPool, created);
+            return CreateLease(subPool, created, key, hit: false, trace, traceEnabled);
         }
         catch
         {
@@ -162,7 +216,10 @@ public sealed class BoundedClientPool : IBoundedClientPool
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取得各子池彙總的 Idle、Leased、Faulted、等待與淘汰計數。只讀取受鎖保護的狀態，
+    /// 不取得 lease、不做網路 I/O，也不保留任何 request 或使用者資料。
+    /// </summary>
     public DataversePoolMetrics GetMetrics()
     {
         var idle = 0;
@@ -194,35 +251,59 @@ public sealed class BoundedClientPool : IBoundedClientPool
         };
     }
 
-    /// <summary>立即執行一次閒置淘汰，供 shutdown 與 deterministic 測試使用。</summary>
+    /// <summary>
+    /// 立即執行一次閒置淘汰，供 timer、shutdown 前 drain 與可重現測試使用。每個子池在選取時
+    /// 逐一遞減 idle 計數，絕不淘汰到 <see cref="DataversePoolOptions.MinSize"/> 以下；選取後若
+    /// Acquire 已把 client 轉為 Leased，<see cref="PooledClient.DisposeUnderlying"/> 會拒絕立即銷毀
+    /// 並標記它在歸還時淘汰，因此 cleanup 不會中斷正在使用中的 request，也不會讓已選中的
+    /// 過期 client 再回到 Idle。
+    /// </summary>
     public void CleanupIdleClients()
     {
         var now = DateTime.UtcNow;
         foreach (var subPool in _subPools.Values)
         {
-            List<PooledClient> expired;
+            var trace = GetTrace();
+            var traceEnabled = trace?.Enabled == true;
+            var expired = new List<PooledClient>();
+            var idleBefore = 0;
             lock (subPool.Sync)
             {
                 var idleCount = subPool.All.Count(client => client.State == PooledClientState.Idle);
-                expired = subPool.All
-                    .Where(client => idleCount > _options.MinSize && client.IsIdleExpired(now, _options.IdleTimeout))
-                    .ToList();
-                foreach (var client in expired)
-                    subPool.All.Remove(client);
+                if (traceEnabled)
+                    idleBefore = idleCount;
+                foreach (var client in subPool.All)
+                {
+                    if (idleCount <= _options.MinSize)
+                        break;
+                    if (!client.IsIdleExpired(now, _options.IdleTimeout))
+                        continue;
+                    expired.Add(client);
+                    idleCount--;
+                }
             }
 
             foreach (var client in expired)
             {
-                if (client.DisposeUnderlying())
-                {
-                    Interlocked.Increment(ref _discarded);
-                    subPool.Idle.TryDequeue(out _);
-                }
+                try { _beforeCleanupDispose?.Invoke(client.Service); } catch { }
+                RemoveAndDispose(subPool, client, "idle");
+            }
+
+            if (traceEnabled)
+            {
+                int idleAfter;
+                lock (subPool.Sync)
+                    idleAfter = subPool.All.Count(client => client.State == PooledClientState.Idle);
+                trace.PoolCleanup(idleBefore, idleAfter, _options.MinSize);
             }
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 停止 cleanup timer 並釋放由本 pool 建立的 idle／faulted client。已租借的 client 由
+    /// <see cref="PooledClient.DisposeUnderlying"/> 拒絕提前銷毀，避免短命 pool shutdown 流程
+    /// 破壞仍持有 lease 的呼叫端；所有可安全銷毀的資源均由此唯一所有者決定性處理。
+    /// </summary>
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -240,6 +321,7 @@ public sealed class BoundedClientPool : IBoundedClientPool
             }
             foreach (var client in clients)
             {
+                TraceDisposeAttempt(client, "shutdown");
                 if (client.DisposeUnderlying())
                     Interlocked.Increment(ref _discarded);
             }
@@ -289,37 +371,146 @@ public sealed class BoundedClientPool : IBoundedClientPool
             Interlocked.Increment(ref _faulted);
     }
 
-    private void Return(SubPool subPool, PooledClient client)
+    private ClientLease CreateLease(
+        SubPool subPool,
+        PooledClient client,
+        DataverseConnectionKey key,
+        bool hit,
+        DataverseTrace trace,
+        bool traceEnabled)
     {
+        if (!traceEnabled)
+            return new ClientLease(this, subPool, client, null, null, 0, null);
+
+        // 只有開啟觀測才建立 leaseId、格式化 poolKey 與建立 AsyncLocal scope；這些值不參與
+        // pool 決策，亦不會改變 Run F 的狀態機、semaphore 或底層連線生命週期。
+        var leaseId = "l-" + Interlocked.Increment(ref _nextLeaseId);
+        trace.PoolAcquire(leaseId, client.ClientId, FormatPoolKey(key), hit);
+        return new ClientLease(
+            this,
+            subPool,
+            client,
+            trace,
+            leaseId,
+            Stopwatch.GetTimestamp(),
+            trace.PushLease(leaseId));
+    }
+
+    private void Return(
+        SubPool subPool,
+        PooledClient client,
+        DataverseTrace trace,
+        string leaseId,
+        long leaseStartedTimestamp)
+    {
+        var traceEnabled = trace?.Enabled == true && !string.IsNullOrEmpty(leaseId);
+        var callerIdAtReturn = traceEnabled ? ReadCallerIdAtReturn(client) : string.Empty;
+        var returnState = "faulted";
         try
         {
-            if (Volatile.Read(ref _disposed) != 0 || client.State == PooledClientState.Faulted)
+            if (Volatile.Read(ref _disposed) != 0)
             {
-                RemoveAndDispose(subPool, client);
+                client.MarkFaulted();
+                RemoveAndDispose(subPool, client, "shutdown");
+                return;
+            }
+
+            if (client.State == PooledClientState.Faulted)
+            {
+                RemoveAndDispose(subPool, client, "faulted");
                 return;
             }
 
             if (!client.ReturnHealthy(DateTime.UtcNow))
             {
-                RemoveAndDispose(subPool, client);
+                if (client.State == PooledClientState.Faulted)
+                    Interlocked.Increment(ref _faulted);
+                RemoveAndDispose(subPool, client, "faulted");
                 return;
             }
             subPool.Idle.Enqueue(client);
             Interlocked.Increment(ref _totalReleases);
+            returnState = "healthy";
         }
         finally
         {
+            if (traceEnabled)
+                trace.PoolReturn(
+                    leaseId,
+                    client.ClientId,
+                    returnState,
+                    callerIdAtReturn,
+                    GetElapsedMilliseconds(leaseStartedTimestamp));
             if (Volatile.Read(ref _disposed) == 0)
                 subPool.Slots.Release();
         }
     }
 
-    private void RemoveAndDispose(SubPool subPool, PooledClient client)
+    private void RemoveAndDispose(SubPool subPool, PooledClient client, string reason)
     {
         lock (subPool.Sync)
             subPool.All.Remove(client);
+        TraceDisposeAttempt(client, reason);
         if (client.DisposeUnderlying())
             Interlocked.Increment(ref _discarded);
+    }
+
+    private static long GetElapsedMilliseconds(long startedTimestamp)
+    {
+        if (startedTimestamp == 0)
+            return 0;
+        return Math.Max(0, (long)Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds);
+    }
+
+    private static string FormatPoolKey(DataverseConnectionKey key)
+    {
+        var host = Uri.TryCreate(key.OrganizationUrl, UriKind.Absolute, out var organizationUri)
+            ? organizationUri.Host
+            : key.OrganizationUrl;
+        return $"{key.Product}|{key.Environment}|{host}|{key.EffectiveIdentity}";
+    }
+
+    private static string ReadCallerIdAtReturn(PooledClient client)
+    {
+        try
+        {
+            // Run F 的清除發生在 ReturnHealthy 內；此讀值必須緊鄰該呼叫之前，才能讓稽核
+            // 判定歸還時是否確實帶有 impersonation state。僅記錄 GUID，沒有 entity 或使用者欄位。
+            return client.Service is OnPremiseClient onPremiseClient && onPremiseClient.CallerId != Guid.Empty
+                ? onPremiseClient.CallerId.ToString("D")
+                : string.Empty;
+        }
+        catch
+        {
+            // Trace 讀取失敗不得影響歸還、CallerId 清除或 fault eviction 的既有決策。
+            return string.Empty;
+        }
+    }
+
+    private void TraceDisposeAttempt(PooledClient client, string reason)
+    {
+        var trace = GetTrace();
+        if (trace?.Enabled == true)
+        {
+            // 狀態緊鄰 DisposeUnderlying 取得，特別保留 Leased + idle 的 Run F 延後淘汰證據。
+            trace.PoolDispose(client.ClientId, client.State.ToString(), reason);
+        }
+    }
+
+    private DataverseTrace GetTrace()
+    {
+        var captured = Volatile.Read(ref _trace);
+        if (captured != null)
+            return captured;
+
+        var current = DataverseTrace.Current;
+        if (current == null)
+            return null;
+
+        // Pool 一經 request trace 綁定便只使用該實例；背景 cleanup 也因此不會因另一個產品
+        // Host 在同一 process 開始 request 而把 A 的 pool 事件寫入 B 的診斷檔。
+        Interlocked.CompareExchange(ref _trace, current, null);
+        return Volatile.Read(ref _trace);
     }
 
     private void CleanupTimerCallback(object state)

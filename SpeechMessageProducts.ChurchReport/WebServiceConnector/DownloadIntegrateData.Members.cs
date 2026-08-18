@@ -536,22 +536,15 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private EntityCollection GetMemberCollection(Guid ListEntityId, bool ListType)
         {
-            // ? 效能修復：CRM_TYPE 為 "DYNAMICS365-9.0"，使用 StartsWith 比對
-            bool isDynamics365 = CRM_TYPE.StartsWith("DYNAMICS365", StringComparison.OrdinalIgnoreCase);
-
             if (ListType == false)
             {
                 // 靜態名單
-                return isDynamics365
-                    ? this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId)
-                    : this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                return this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
             }
             else
             {
                 // 動態名單
-                return isDynamics365
-                    ? this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId)
-                    : this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                return this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
             }
         }
 
@@ -729,9 +722,7 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private IOrganizationService GetCurrentOrganizationService()
         {
-            return IsDynamics365Crm()
-                ? this.m_ToolUtilityClass?.m_OrganizationService
-                : this.m_ToolUtilityClass?.m_Crm2011OrganizationService;
+            return this.m_ToolUtilityClass?.m_Crm2011OrganizationService;
         }
 
         /// <summary>

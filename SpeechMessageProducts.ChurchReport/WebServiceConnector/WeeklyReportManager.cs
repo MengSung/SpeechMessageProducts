@@ -436,7 +436,7 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 // 改為一次條件查詢 + 分頁，避免逐筆比對
-                var optimizedQuery = new EntityOptimizedQueryService(new object(), this.m_ToolUtilityClass.m_OrganizationService);
+                var optimizedQuery = new EntityOptimizedQueryService(new object(), this.m_ToolUtilityClass.m_Crm2011OrganizationService);
                 var filter = new FilterExpression(LogicalOperator.And);
                 filter.AddCondition("new_sunday_date", ConditionOperator.Equal, this.m_Sunday.Date);
                 // 只取活躍

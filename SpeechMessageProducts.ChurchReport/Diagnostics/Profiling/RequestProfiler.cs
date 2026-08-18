@@ -155,7 +155,7 @@ namespace ChurchReport.Diagnostics.Profiling
                     lines.Add($"[Perf-Slow] path={path} {c.entity}.{c.op} {c.ms}ms");
             if (Gap > PerfThresholds.GapMs)
                 lines.Add($"[Perf-Gap] path={path} action={_actionMs}ms crm.ms={CrmMs} gap={Gap}ms "
-                        + "(未歸因:可能 m_OrganizationService proxy 路徑或非 CRM 運算)");
+                        + "(未歸因:可能 gateway 代理路徑或非 CRM 運算)");
             return lines;
         }
 

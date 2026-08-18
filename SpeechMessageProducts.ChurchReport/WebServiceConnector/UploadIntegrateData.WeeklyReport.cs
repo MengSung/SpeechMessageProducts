@@ -460,12 +460,8 @@ namespace ChurchReport.WebServiceConnector
             bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
 
             EntityCollection MemberCollection = ListType == false
-                ? (CRM_TYPE == "DYNAMICS365"
-                    ? this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId)
-                    : this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId))
-                : (CRM_TYPE == "DYNAMICS365"
-                    ? this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId)
-                    : this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId));
+                ? this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId)
+                : this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
 
             return MemberCollection.Entities.Count;
         }
