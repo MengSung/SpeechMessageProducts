@@ -31,7 +31,8 @@ public sealed class PooledClient
         Service = service ?? throw new ArgumentNullException(nameof(service));
         var timestamp = now ?? DateTime.UtcNow;
         LastUsedUtc = timestamp;
-        LastValidatedUtc = timestamp;
+        // 新建 client 尚未經過 WhoAmI；第一次出借必須先驗證，避免把未確認通道交給呼叫端。
+        LastValidatedUtc = DateTime.MinValue;
         _state = PooledClientState.Idle;
     }
 

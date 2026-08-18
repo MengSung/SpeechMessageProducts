@@ -77,3 +77,71 @@ dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --no-
 ### Commit
 
 Run A commit：待建立，訊息 `feat(dataverse): 新增 Keyed Bounded Pool 與 Lease 型別契約`。
+
+## Run B 結果
+
+### 實作
+
+- 新增 `IDataverseConnectionManager`／`DataverseConnectionManager`：集中解析 Product、Environment、ServerUrl、Username 四段 Pool Key；建立 client 的唯一 factory 與 WhoAmI 健康檢查均在 manager 的 pool 內部。
+- 新增 `IDataverseGateway`／`DataverseGateway`：Scoped、per-operation lease、巢狀 Execute 深度計數、例外標記故障、finally 歸還。
+- 新增 `GatewayOrganizationService`：八個 `IOrganizationService` 方法逐一透過 Gateway 委派。
+- 新增 `AmbientGatewayOrganizationService`：使用當前 request services；無 request 時建立短命 scope，用完立即釋放，作為 20 個 legacy session holder 的過渡橋樑。
+- 修正新建 client 首次健康驗證時間為 `DateTime.MinValue`，確保第一次出借一定執行 WhoAmI。
+- Run B 仍未接線；沒有修改 ChurchReport、Startup、ToolUtility DI 或既有上層呼叫點。
+
+### Run B 首次失敗與修正
+
+```text
+GatewayArchitectureTests.Connection_manager_builds_key_and_exposes_pool_metrics [FAIL]
+Moq.MockException: IOrganizationService.Execute(It.IsAny<OrganizationRequest>()) setup was not matched.
+```
+
+原因是新建 client 的 `LastValidatedUtc` 初始為現在，Manager 的首次 WhoAmI 沒有被觸發；已改為未驗證狀態並重跑通過。
+
+### Run B 品質門檻原文
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --no-restore --filter FullyQualifiedName~GatewayArchitectureTests
+已通過! - 失敗:     0，通過:     5，略過:     0，總計:     5，持續時間: 76 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet build SpeechMessageProducts.sln -c Debug
+建置成功。
+    0 個警告
+    0 個錯誤
+BUILD_EXIT=0
+```
+
+```text
+dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj
+已通過! - 失敗:     0，通過:    63，略過:     0，總計:    63，持續時間: 111 ms - ToolUtility.Tests.dll (net10.0)
+TOOLUTILITY_TEST_EXIT=0
+```
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj
+已通過! - 失敗:     0，通過:    23，略過:     0，總計:    23，持續時間: 510 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+DATAVERSE_TEST_EXIT=0
+```
+
+```text
+dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj
+失敗!  - 失敗:    22，通過:   305，略過:     0，總計:   327，持續時間: 1 s - ChurchReport.MemberInfo.Tests.dll (net10.0)
+MEMBERINFO_TEST_EXIT=1
+```
+
+```text
+ENCODING OK
+CRLF OK
+```
+
+```text
+G5：NO OUTPUT
+git diff --stat HEAD -- SpeechMessageProducts.ChurchReport/
+(no output)
+```
+
+### Commit
+
+Run B commit：待建立，訊息 `feat(dataverse): 新增 ConnectionManager、Gateway 與 per-operation 代理`。
