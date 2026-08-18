@@ -66,6 +66,8 @@ namespace ChurchReport.Controllers
     public partial class PersonalController
 
     {
+        private const int PersonalImageMinimumThumbnailSize = 32;
+        private const int PersonalImageMaximumThumbnailSize = 256;
 
         /// <summary>
         /// 取得目前 HTTP request scope 的 Dataverse 服務。服務由 DI 容器建立與釋放，
@@ -494,7 +496,7 @@ namespace ChurchReport.Controllers
         /// <param name="contactId">已由目前登入者解析並驗證的 Contact 識別碼。</param>
         /// <remarks>
         /// 個人照片同時以完整圖與 32 至 256 像素縮圖快取；尺寸範圍與讀取端的
-        /// <c>Math.Clamp(size, 32, 256)</c> 保持一致。這裡在 CRM 更新成功後同步移除
+        /// <c>Math.Clamp</c> 保持一致。這裡在 CRM 更新成功後同步移除
         /// 所有可能的鍵，讓下一次讀取重新建立最新影像，並避免舊 byte[] 在快取期限內
         /// 跨 request 保留。方法不持有、複製或延長任何 request、session 或連線資源。
         /// </remarks>
@@ -507,7 +509,9 @@ namespace ChurchReport.Controllers
 
             cache.Remove($"contact-image-full:{contactId:N}");
 
-            for (var size = 32; size <= 256; size++)
+            for (var size = PersonalImageMinimumThumbnailSize;
+                 size <= PersonalImageMaximumThumbnailSize;
+                 size++)
             {
                 cache.Remove($"contact-image-thumb:{contactId:N}:{size}");
             }
@@ -538,7 +542,9 @@ namespace ChurchReport.Controllers
 
                 // size <= 0 表示取得原始圖片（彈窗顯示用），不進行縮圖處理
                 var returnOriginal = (size <= 0);
-                var thumbSize = returnOriginal ? 0 : Math.Clamp(size, 32, 256);
+                var thumbSize = returnOriginal
+                    ? 0
+                    : Math.Clamp(size, PersonalImageMinimumThumbnailSize, PersonalImageMaximumThumbnailSize);
 
                 // 如果沒有提供 contactId，使用當前登入使用者
                 Guid contactGuid;
