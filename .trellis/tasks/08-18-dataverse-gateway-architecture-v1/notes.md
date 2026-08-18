@@ -526,3 +526,90 @@ git diff --check HEAD
 | E | 本節所在的 `docs(dataverse): Gateway 架構 v1 收斂與驗收紀錄` 提交；其最終 hash 由提交後的 `git log -1` 交付。 |
 
 結論：Run A～E 的程式、組態、架構文件與自動驗收均已收斂；等待使用者執行人工登入／CRM 回歸清單。
+
+## Run F 結果
+
+### 實作與隔離決策
+
+- F1：`PooledClient.ReturnHealthy()` 在狀態轉為 `Idle` 前，僅以既有組件參考的 `OnPremiseClient` 型別檢查處理 `CallerId`。它將值重設為 `Guid.Empty` 並回讀確認；任何例外或不一致一律 fail-closed，將 client 標為 Faulted 後由 pool 淘汰。未使用 `dynamic`，也沒有新增對 PowerPlatform 的專案參考。
+- F2：cleanup 先在子池鎖內選出候選項，鎖外才 Dispose。若在兩者之間被 Acquire 成功租借，`DisposeUnderlying()` 拒絕中斷 lease、記錄「歸還時淘汰」，而 `ReturnHealthy()` 會將它轉為 Faulted 讓 pool 確定性釋放。shutdown 時仍由相同歸還路徑處理已租借的 client。
+- F3：cleanup 改成每選取一條過期 idle client 就遞減局部 idle 計數，因此任何子池都不會被淘汰到 `MinSize` 以下。
+- F4：Manager 的 `CrmConnection:ServerUrl` 與 `CrmConnection:Username` 改為必要組態；缺漏時擲出包含設定鍵的 `InvalidOperationException`，不再靜默回退到硬編碼主機或 `service-account`。
+
+### TDD 紅燈原文
+
+首次加入 cleanup/acquire 交錯測試時，尚未提供控制交錯的建構式注入點：
+
+```text
+error CS1729: 'BoundedClientPool' 未包含使用 4 個引數的建構函式
+```
+
+補齊注入點後，歸還淘汰的契約先以單一失敗測試確認目前實作確實漏做：
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --filter FullyQualifiedName~Cleanup_does_not_dispose_client_leased_after_selection --no-restore
+[xUnit.net 00:00:00.15]     ToolUtility.Dataverse.Tests.BoundedClientPoolTests.Cleanup_does_not_dispose_client_leased_after_selection [FAIL]
+  失敗 ToolUtility.Dataverse.Tests.BoundedClientPoolTests.Cleanup_does_not_dispose_client_leased_after_selection [39 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ToolUtility.Dataverse.Tests.BoundedClientPoolTests.Cleanup_does_not_dispose_client_leased_after_selection() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\ToolUtility.Dataverse.Tests\BoundedClientPoolTests.cs:line 214
+
+失敗!  - 失敗:     1，通過:     0，略過:     0，總計:     1，持續時間: 39 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+### 綠燈與品質門檻原文
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --filter FullyQualifiedName~Cleanup_does_not_dispose_client_leased_after_selection --no-restore
+已通過! - 失敗:     0，通過:     1，略過:     0，總計:     1，持續時間: 39 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet build SpeechMessageProducts.sln -c Debug
+
+建置成功。
+    0 個警告
+    0 個錯誤
+
+經過時間 00:00:04.14
+```
+
+```text
+dotnet test ToolUtility.Tests
+
+已通過! - 失敗:     0，通過:    63，略過:     0，總計:    63，持續時間: 230 ms - ToolUtility.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ToolUtility.Dataverse.Tests
+
+已通過! - 失敗:     0，通過:    29，略過:     0，總計:    29，持續時間: 541 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ChurchReport.MemberInfo.Tests
+
+失敗!  - 失敗:    22，通過:   305，略過:     0，總計:   327，持續時間: 1 s - ChurchReport.MemberInfo.Tests.dll (net10.0)
+```
+
+`ToolUtility.Tests` 的完整終端輸出仍包含既有的 NU1701、重複 using 與 nullable warnings；solution build 為本 Run 的零警告門檻，已實際通過。本 Run 沒有修改該專案。MemberInfo 的 22 個失敗／305 個通過與既有基線相同，且本 Run 未修改 ChurchReport 原始碼。
+
+### 範圍、編碼與文件稽核原文
+
+```text
+git diff --stat HEAD -- SpeechMessageProducts.ChurchReport/
+(no output)
+
+git diff --check HEAD
+(no output)
+
+ENCODING OK
+CRLF OK
+```
+
+本 Run 的變更僅限 `ToolUtility/Dataverse/PooledClient.cs`、`ToolUtility/Dataverse/BoundedClientPool.cs`、`ToolUtility/Dataverse/DataverseConnectionManager.cs`、`ToolUtility.Dataverse.Tests/BoundedClientPoolTests.cs`，以及交付要求的本檔與 `docs/architecture/dataverse-gateway-v1.md`。四個變更的 C# 檔案均已重新以 UTF-8 without BOM、CRLF 與最終 CRLF 寫入，並補足 CallerId、Pool、Lease、Timer、Dispose、跨 request 隔離與測試 double 的繁體中文生命週期文件。
+
+`.ccg/tasks/design-four-product-dataverse-connection-architecture/.turns.json` 在 Run F 開始前即已由外部流程變更；本 Run 未讀寫、暫存或提交它。
