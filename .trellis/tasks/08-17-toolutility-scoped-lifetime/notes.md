@@ -228,3 +228,62 @@ CRLF OK
 ```
 
 缺口補正的獨立提交 hash 將於提交後填入；Run 2 不會與這些 `.cs` 修正混在同一個提交。
+
+## Run 3.0 結果
+
+### Q1 摘要
+
+完成 39 處文字出現的逐一盤點：35 處實際呼叫、4 處註解。實際呼叫按最長持有生命週期
+分類為 A 7、B 19、C 9。B 類包含 `IMemoryCache → ListManager →
+ListSmallGroupWeeklyReport → UploadIntegrateData/DownloadIntegrateData` 的傳遞鏈，以及
+13 個 session model/manager 的直接或間接持有；`InMemoryDataContextSmallGroup.ToolUtilityClass`
+目前回傳 Factory static，因此以 B（legacy static）處理。C 類已查三輪仍無可靠入口，均寫明
+卡點，沒有猜測。完整逐列依據在 `research/findings-run3-holder-lifetimes.md`。
+
+### Q2 摘要
+
+比較兩個方向：方向 1 方法參數傳遞，最小約 30 個檔案、可能擴至 35-45 個 call-site 檔案，
+保留 session model 狀態但有參數爆炸與 async scope 風險；方向 2 先移除 13 個 session key
+cache，最小 14 個檔案、預估需檢查 20-30 個 action/model 檔案，能直接消除 captive
+dependency 但必須補回登入、週報、奉獻、LINE 綁定等跨請求狀態。兩方向的狀態遺失與隔離
+風險已逐項列在 findings。
+
+### Q3 摘要
+
+計畫已由目錄切分改為生命週期切分：Run 2.5 先處理 C 類並選定 B 類設計；Run 3-A
+遷移 A 類；Run 3-B 先解除 13 個 cache 與直接 B holder；Run 3-C 按完整 holder chain
+遷移 connector；Run 3-D 最後才移除 Factory static singleton。每批均要求 Factory 呼叫為
+0、不得把 scoped instance 放入 cache、非同步工作有明確 scope，並保留 22 失敗/304 通過基準。
+
+### 未確認項目與卡點
+
+- `Models/ListManagementDataManager.cs:86`：未找到 `discoveryServiceType` 建構式的實際呼叫者；只找到快取使用的無參數建構式。
+- `DonationPaymentProcessor.Core.cs:135`：未找到此 adapter/workflow 建構式的實際呼叫者；快取付款 manager 使用的是四參數建構式 `:192`。
+- `DedicationInfo.cs:32`：未找到建立者、DI 或呼叫者，可能是死碼或外部入口。
+- `EquipmentStatusCalculator.cs:34`：未找到建立者、DI 或呼叫者，可能是死碼或外部入口。
+- `HappyGroupUtility.cs:42`：未找到建立者、DI 或呼叫者，可能是死碼或外部入口。
+- `LineBindingUtility.cs:45`：只找到同名 ViewModel 快取，未找到此 utility 的建立/欄位引用。
+- `RegisterConnector.cs:41`：找到 `RegisterManager` 內 local new，但未找到 `RegisterManager` 的可靠呼叫者。
+- `UploadData.cs:42`：未找到 `new UploadData()` 或 DI/Controller 呼叫。
+- `WebServiceConnector.cs:31`：未找到建立者、DI 或呼叫者，可能是死碼或外部入口。
+
+### Run 3.0 完成判定指令原文
+
+以下是完成判定執行當下的原始輸出（Run 3.0 免 G1-G4）：
+
+```text
+git status --porcelain
+ M .trellis/tasks/08-17-toolutility-scoped-lifetime/implement.md
+?? .trellis/tasks/08-17-toolutility-scoped-lifetime/research/findings-run3-holder-lifetimes.md
+grep -c
+187
+git diff --check
+git diff --name-only HEAD
+.trellis/tasks/08-17-toolutility-scoped-lifetime/implement.md
+markdown encoding
+MARKDOWN ENCODING OK
+```
+
+`git diff --name-only HEAD` 不列出未追蹤檔案；未追蹤 findings 已由同一次
+`git status --porcelain` 明確列出。沒有 `.cs` 變更。`grep` 由 Git for Windows 的
+`grep.exe` 執行，PowerShell 本身沒有 `grep` alias。

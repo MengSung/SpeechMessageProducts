@@ -210,32 +210,76 @@ ToolUtility.Dataverse.Tests/**
 
 ---
 
-## Run 3 — 遷移 35 個 GetInstance 呼叫點
+## Run 2.5 / Run 3 — 依持有者生命週期遷移
 
-**分批，每批一個 commit。** 依 Run 0 的結論決定批次順序；
-無 DI scope 的路徑另行設計，不在本 Run 硬幹。
+Run 3.0 調查確認 39 處文字出現中有 35 處實際呼叫，分類為 A 7、B 19（含
+`InMemoryDataContextSmallGroup` 的 legacy static getter）、C 9。原本按目錄切分會把
+per-request、session cache 與未確認死碼混在一起；在沒有先處理 B 類 holder 的情況下，直接
+注入 scoped `ToolUtilityClass` 會重現 `ObjectDisposedException` 與跨請求共用連線。
+詳細證據與兩種 B 類設計見 `research/findings-run3-holder-lifetimes.md`。
 
-建議批次（依目錄）：
-```
-3a  Models/         （5 檔）
-3b  Tools/          （7 檔）
-3c  ViewModels/     （1 檔）
-3d  WebServiceConnector/  （20 檔，再細分為 2～3 批）
-3e  刪除 ToolUtilityFactory 的靜態單例邏輯
-```
+**Run 2.5 — C 類與設計閘門（先於任何呼叫點遷移）**
 
-**每批完成判定**：G1、G4 全過，加上
-```bash
-grep -c "ToolUtilityFactory.GetInstance" <本批檔案>   # 必須 0
-```
+- 逐一處理 7 個 C 類：`DedicationInfo`、`EquipmentStatusCalculator`、`HappyGroupUtility`、
+  `LineBindingUtility`、`RegisterConnector`、`UploadData`、`WebServiceConnector`。每一個
+  必須找到實際入口並指定 request/scoped 依賴，或確認為死碼並建立移除票；未確認者不得
+  直接改成 constructor injection。
+- 在 13 個 session cache model 上完成方向選擇與狀態保留矩陣：方向 1（方法參數傳遞）或
+  方向 2（先移除 session key cache）。未選定前不得進入 B 類實作。
 
-**Run 3 全部完成判定**：
+**Run 2.5 完成判定**：C 類皆有明確處置；方向已選定；沒有新增
+`ToolUtilityFactory.GetInstance`；沒有 scoped ToolUtility 或包含它的 connector 寫入
+`IMemoryCache`；研究輸出與阻擋項寫入 notes。
+
+**Run 3-A — A 類 request holder**
+
+遷移 `DonationFeePaymentProcessor`、`RecurringDonationPaymentProcessor`、四個 QR utility
+與 `GalleryViewModel` 共 7 處。`InMemoryDataContextSmallGroup.ToolUtilityClass` 只有在
+legacy Factory getter 改為注入的 scoped 實例後，才能加入本批；目前不得把它當成安全 A 類。
+
+**Run 3-A 完成判定**：本批 `ToolUtilityFactory.GetInstance` 為 0；建構式/Controller 只
+持有當前 request 的 scoped 服務；async 工作在 scope 結束前完成；沒有 scoped instance
+寫入 cache；G1、G4 與聚焦測試輸出原文寫入 notes。
+
+**Run 3-B — B 類前置與直接 holder**
+
+先依選定方向處理 `InMemoryDataContextSmallGroup` 與直接 holder：
+`DonationPaymentManager`、`EquipmentDataManager`、`ListManagementDataManager`、
+`PollManager`，並處理 13 個 cache entry。方向 1 先把 ToolUtility 從 Controller/workflow
+沿方法鏈傳入；方向 2 先完成 model 重建與跨請求狀態轉移。
+
+**Run 3-B 完成判定**：`IMemoryCache` 不再持有 scoped ToolUtility 或含有它的 connector；
+本批所有 Factory 呼叫為 0；跨請求 A/B 隔離與 dispose/lifecycle 測試通過。
+
+**Run 3-C — B 類傳遞鏈 connector**
+
+按完整 holder chain 分批遷移：
+
+1. `ListManager` 鏈：`DownloadListManager`、`DownloadIntegrateData`、`UploadIntegrateData`、
+   `WeeklyReportRecord`。
+2. 付款/通知鏈：`DonationPaymentProcessor`、`LineNotifyUtility`。
+3. 其餘 cache 鏈：`ChurchListDataProcessor`、`DownloadHappyGroup`、`DownloadEquipment`、
+   `FeeDownUpLoader`、`AppointmentsDownUpLoader`、`NewPerson`、`PersonalInfomatioManager`、
+   `WeeklyReportManager`。
+
+每次只處理一條完整鏈，避免下層已改為 scoped 而上層仍把它放進 cache。每小批一個 commit。
+
+**Run 3-C 完成判定**：該鏈 Factory 呼叫為 0；所有 async/background 工作有明確 scope；
+沒有 `ObjectDisposedException` 或跨 request connection reuse；G1、G4、聚焦測試與
+`ChurchReport.MemberInfo.Tests` 的 22 失敗 / 304 通過基準不惡化。
+
+**Run 3-D — 全域清理（最後才做）**
+
+所有 A/B/C 可遷移路徑完成後，才移除 `ToolUtilityFactory` 的 static singleton/legacy
+建構式。完成判定：
+
 ```bash
 grep -rn "ToolUtilityFactory.GetInstance" --include=*.cs SpeechMessageProducts.ChurchReport   # 0 行
 grep -rn "m_Crm2011OrganizationService" --include=*.cs SpeechMessageProducts.ChurchReport | grep -v "///"   # 0 行
 ```
 
-**commit**：`refactor(toolutility): <目錄> 改由 DI 取得 ToolUtilityClass`
+全域 grep 兩條均為 0；G1-G4 與隔離/生命週期測試通過；每個生命週期批次均有獨立
+commit，且不修改調查白名單外檔案。
 
 ---
 
