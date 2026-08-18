@@ -7,9 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <!-- Microsoft.AspNetCore.App 提供現有 Microsoft.Extensions 套件的同名資產；保留既有
-         PackageReference 的相容版本，並只抑制此已知且無執行期風險的 NuGet 提示。 -->
-    <NoWarn>$(NoWarn);CA2200;CS0162;CS0169;CS8073;NU1510</NoWarn>
+    <NoWarn>$(NoWarn);CA2200;CS0162;CS0169;CS8073</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,12 +46,6 @@
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.0" NoWarn="NU1510" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Dataverse Trace middleware 位於共用工具層，需使用 ASP.NET Core HTTP 管道型別，
-         但不捕獲任何 request-scoped service；實際 request 狀態仍只由 middleware 暫時持有。 -->
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>

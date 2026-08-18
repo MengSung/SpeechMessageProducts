@@ -10,8 +10,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 
 namespace ToolUtilityNameSpace.Dataverse;
@@ -243,20 +241,25 @@ public sealed class DataverseTrace : IDisposable
     public bool Enabled { get; }
 
     /// <summary>
-    /// 開始目前 HTTP request 的追蹤範圍。使用者來源依序為已驗證名稱、Session Id、anon，
-    /// 並立即轉為每程序 salt 的 HMAC 假名；原始名稱、帳號、email、會友識別碼與 CRM 值均不會進入事件。
+    /// 開始目前執行單位的追蹤範圍。Host 層只提供關聯識別碼與原始身分來源；本方法依序選用
+    /// identityName、sessionId、anon，並在 ToolUtility 內立即轉為每程序 salt 的 HMAC 假名。
+    /// 原始名稱、帳號、email、會友識別碼與 CRM 值均不會進入佇列或 JSONL。
     /// </summary>
-    public IDisposable BeginRequest(HttpContext context)
+    /// <param name="traceId">由 Host 建立的單次工作關聯識別碼；只用於事件間關聯，不參與授權。</param>
+    /// <param name="identityName">由 Host 提供的已驗證身分名稱；空值時才退回 Session Id。</param>
+    /// <param name="sessionId">Host 的短期 Session 識別碼；只在沒有身分名稱時作為假名來源。</param>
+    /// <returns>結束時還原 AsyncLocal 並寫出 request.end 的範圍；停用或三個輸入皆為 null 時為無操作範圍。</returns>
+    public IDisposable BeginRequest(string traceId, string identityName, string sessionId)
     {
-        // 停用時必須只有一次布林判斷與分支，不讀取 HttpContext、Session 或配置任何 request 物件。
+        // 停用時必須只有一次布林判斷與分支，不檢查輸入或配置任何 request 物件。
         if (!Enabled)
             return NoopScope.Instance;
-        if (context == null)
+        // 舊 API 收到 null HttpContext 時不建立事件；三個 Host 輸入皆為 null 時維持相同行為。
+        if (traceId == null && identityName == null && sessionId == null)
             return NoopScope.Instance;
 
-        var sessionId = context.Features.Get<ISessionFeature>()?.Session?.Id;
-        var user = CreateUserPseudonym(context.User?.Identity?.Name, sessionId);
-        var current = new RequestContext(context.TraceIdentifier, user);
+        var user = CreateUserPseudonym(identityName, sessionId);
+        var current = new RequestContext(traceId, user);
         var previous = _requestContext.Value;
         var previousTrace = s_current.Value;
         _requestContext.Value = current;

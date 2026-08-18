@@ -833,7 +833,7 @@ namespace ChurchReport
 #endif
 
             app.UseAuthentication();  // 啟用身份驗證中間件
-            app.UseMiddleware<ToolUtilityNameSpace.Dataverse.DataverseTraceMiddleware>();
+            app.UseMiddleware<ChurchReport.Middleware.DataverseTraceMiddleware>();
 
             // ========================================
             // ✅ LINE Mini App 環境偵測中間件

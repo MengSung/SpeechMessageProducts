@@ -702,3 +702,94 @@ Trace 關閉的既有 29 個 Run F 測試執行時間為 478ms，未高於約 95
 - 本機稽核曾發現 AsyncLocal 所有權、停用 Trace 的 CTS 釋放與 writer I/O fault 清理問題；均已改為 request-flow 範圍、無條件釋放與 fail-closed cleanup，之後重新建置、測試與編碼檢查。
 - Gemini 最終審查為 PASS，無 Critical。Claude 依 self-healing runner 連續兩次均回報 `no-usable-output`，非 quota-blocked；因此本 Run 不宣稱完成雙模型審查。
 - `.ccg/tasks/design-four-product-dataverse-connection-architecture/.turns.json` 與 `.ccg/dual-model-runs/**` 均為外部流程狀態，不屬 Run G 白名單；未暫存或提交。
+
+## Run H 結果
+
+### 實作與相依方向
+
+- `ToolUtility/ToolUtility.csproj` 移除 `Microsoft.AspNetCore.App` FrameworkReference，並移除 Run G 為該 FrameworkReference 加入的 `NU1510` 全域抑制。移除後 solution build 仍為 0 warnings／0 errors，沒有以擴大 `NoWarn` 掩蓋新警告。
+- `DataverseTrace.BeginRequest` 改為只接受 `traceId`、`identityName`、`sessionId` 三個字串；HMAC-SHA256、程序內隨機 salt、假名優先序與 JSONL schema 仍完全由 ToolUtility 擁有。三個輸入皆為 null 時維持舊的 null HttpContext no-op 行為。
+- 刪除 ToolUtility 內的 ASP.NET middleware，新增 `SpeechMessageProducts.ChurchReport/Middleware/DataverseTraceMiddleware.cs`。產品層在 Trace 啟用時才讀取 `HttpContext` 的 TraceIdentifier、已驗證名稱與 Session Id，並以 using 還原 AsyncLocal；關閉時直接呼叫下一個 middleware，不讀 User／Session、不配置 request 物件。Startup 仍在 `UseAuthentication()` 後註冊且不在 `#if DEBUG` 內。
+- T7 驅動資料與事件名稱、欄位名稱、假名值來源、poolKey、callerIdAtReturn 與 stateAtDispose 均未變更；新增 H1 僅驗證 identity → session → anon 的來源回退與三個假名互異。
+
+### TDD 紅燈原文
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --filter FullyQualifiedName~DataverseTraceTests
+
+error CS1501: 方法 'BeginRequest' 沒有任何多載使用 3 個引數
+error CS1739: 最符合 'BeginRequest' 的多載，沒有名稱為 'identityName' 的參數
+```
+
+紅燈發生於只更新測試、尚未修改 ToolUtility 簽章時，證明測試確實要求新的 host-neutral API。
+
+### TDD 綠燈與品質門檻原文
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --filter FullyQualifiedName~DataverseTraceTests
+
+已通過! - 失敗:     0，通過:     8，略過:     0，總計:     8，持續時間: 285 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet build SpeechMessageProducts.sln -c Debug
+
+建置成功。
+    0 個警告
+    0 個錯誤
+
+經過時間 00:00:04.90
+```
+
+```text
+dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj
+
+已通過! - 失敗:     0，通過:    63，略過:     0，總計:    63，持續時間: 333 ms - ToolUtility.Tests.dll (net10.0)
+```
+
+ToolUtility.Tests 的終端輸出含既有 `NU1701`、重複 using 與 nullable warnings；這些只在該既有測試專案出現，solution build 仍是 0 warnings／0 errors，本 Run 沒有修改該專案。
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj
+
+已通過! - 失敗:     0，通過:    37，略過:     0，總計:    37，持續時間: 915 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj
+
+失敗!  - 失敗:    22，通過:   305，略過:     0，總計:   327，持續時間: 1 s - ChurchReport.MemberInfo.Tests.dll (net10.0)
+```
+
+MemberInfo 的 22 失敗／305 通過與既有基線相同，失敗仍為 Payments 命名與 repository-root 測試假設；本 Run 沒有修改 Controllers 或其他 ChurchReport 控制器。
+
+### H 核心稽核原文
+
+```text
+git diff --stat HEAD -- SpeechMessageProducts.ChurchReport/Controllers/
+(no output)
+
+rg -n "Microsoft\.AspNetCore" ToolUtility/ --glob '*.cs' --glob '!**/bin/**' --glob '!**/obj/**'
+NO OUTPUT
+
+rg -n "FrameworkReference" ToolUtility/ToolUtility.csproj
+NO OUTPUT
+
+rg -n "#if DEBUG" ToolUtility/Dataverse/
+NO OUTPUT
+
+rg -n "Trace\.Listeners|AutoFlush" ToolUtility/Dataverse/
+NO OUTPUT
+
+ENCODING OK
+CRLF OK
+
+WHITELIST OK
+DIFF CHECK OK
+```
+
+### 審查與範圍
+
+- 本地 `trellis-check` 稽核確認 ToolUtility 無 ASP.NET Core 引用、沒有 FrameworkReference、Controllers 零差異、JSONL 事件分類未改、所有變更檔案為 UTF-8 without BOM／CRLF，且只落在 Run H 白名單與交付文件。
+- 依 AGENTS.md 的高風險規則啟動 `Start-CcgDualModelRun.ps1` reviewer runner；Gemini 與 Claude 各完成兩次嘗試，均為 `no-usable-output`，`quotaBlocked=false`、`completedBackends=[]`，因此本 Run 不宣稱雙模型 review 通過。沒有因 runner 失敗修改任何 repository 檔案。
+- 架構文件已新增「產品層與工具層的相依方向」，明載 ToolUtility 不得依賴 Host／Web 框架，產品 B、C、D 由自己的組合根提供 adapter 後即可複用共用 Gateway、Manager、Pool、Lease 與 Trace 核心。

@@ -51,3 +51,16 @@
 ## 複用至產品 B、C、D
 
 後續產品只需在自己的組合根註冊相同 `AddToolUtility()` 服務圖，提供自己的固定 Product 值與受信任的組態／host environment。不得將 Gateway、Manager、Pool、Lease 或 Key 複製到產品專案，也不得把 user、tenant、profile 或 request 來源資料未驗證地寫入 Pool Key。套用後至少重跑 A5～A12 的等價測試、build 與產品自身的回歸測試。
+
+## 產品層與工具層的相依方向
+
+`ToolUtility` 是產品 B、C、D 與 ChurchReport 共用的 Host-neutral 工具層，不得參考 ASP.NET Core、
+Web Hosting、Windows Service、Function、Console 或桌面 UI 框架。共用 Trace 只接受 `traceId`、
+`identityName`、`sessionId` 三個字串，並在內部統一完成 HMAC 假名化、AsyncLocal 關聯、JSONL schema、
+佇列與檔案生命週期；任何 Host-specific API 都必須停留在產品組合根或 adapter。
+
+ChurchReport 的 `DataverseTraceMiddleware` 因此位於產品層：它在 Authentication 之後讀取
+`HttpContext.TraceIdentifier`、已驗證名稱與 Session Id，再把原始值交給 ToolUtility。產品 B、C、D
+可依自己的 Host 型態提供等價 adapter，而不必引入 `Microsoft.AspNetCore.App`。這個方向讓 Gateway、
+Manager、Pool、Lease 與 Trace 核心可被 Web、console、Windows service、Function 或桌面程序複用，
+同時把身分來源的信任邊界留在最了解該 Host 的產品層。

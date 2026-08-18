@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using ToolUtilityNameSpace.Dataverse;
@@ -62,8 +60,7 @@ public sealed class DataverseTraceTests
         {
             using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
             {
-                var context = CreateContext("schema-trace", "schema-user");
-                using (trace.BeginRequest(context))
+                using (trace.BeginRequest("schema-trace", "schema-user", sessionId: null))
                 {
                     trace.GatewayExecuteEnter(1);
                     trace.GatewayExecuteExit(1);
@@ -125,7 +122,7 @@ public sealed class DataverseTraceTests
         {
             using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
             {
-                using (trace.BeginRequest(CreateContext("timestamp-trace", "timestamp-user")))
+                using (trace.BeginRequest("timestamp-trace", "timestamp-user", sessionId: null))
                 {
                     trace.GatewayExecuteEnter(1);
                     trace.GatewayExecuteExit(1);
@@ -182,6 +179,47 @@ public sealed class DataverseTraceTests
     }
 
     /// <summary>
+    /// 保護產品層只提供原始身分來源、而假名化仍由 ToolUtility 集中負責的契約。
+    /// 測試依序注入已驗證名稱、只有 Session Id、以及兩者皆無的三種來源；決定性斷言是
+    /// BeginRequest 輸出的 user 分別等於既有 HMAC helper 的結果，且三個假名互不相同。
+    /// </summary>
+    [Fact]
+    public void Begin_request_falls_back_from_identity_to_session_then_anon()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            string expectedIdentity;
+            string expectedSession;
+            string expectedAnon;
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            {
+                using (trace.BeginRequest("identity-trace", "identity-user", sessionId: null)) { }
+                using (trace.BeginRequest("session-trace", identityName: null, sessionId: "session-user")) { }
+                using (trace.BeginRequest("anon-trace", identityName: null, sessionId: null)) { }
+
+                expectedIdentity = trace.CreateUserPseudonym("identity-user", sessionId: null);
+                expectedSession = trace.CreateUserPseudonym(identityName: null, sessionId: "session-user");
+                expectedAnon = trace.CreateUserPseudonym(identityName: null, sessionId: null);
+            }
+
+            var users = ReadRecords(directory)
+                .Where(record => record.GetProperty("ev").GetString() == "request.begin")
+                .ToDictionary(record => record.GetProperty("traceId").GetString()!,
+                    record => record.GetProperty("user").GetString()!);
+
+            Assert.Equal(expectedIdentity, users["identity-trace"]);
+            Assert.Equal(expectedSession, users["session-trace"]);
+            Assert.Equal(expectedAnon, users["anon-trace"]);
+            Assert.Equal(3, users.Values.Distinct(StringComparer.Ordinal).Count());
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
     /// 保護檔案輪替的容量上限。以極小測試檔案上限製造連續輪替，
     /// 決定性斷言是產生多個檔案且保留總數永遠不超過設定上限。
     /// </summary>
@@ -196,7 +234,7 @@ public sealed class DataverseTraceTests
             options.MaxRetainedFiles = 2;
             using (var trace = new DataverseTrace(options))
             {
-                using (trace.BeginRequest(CreateContext("rotation-trace", "rotation-user")))
+                using (trace.BeginRequest("rotation-trace", "rotation-user", sessionId: null))
                 {
                     for (var index = 0; index < 12; index++)
                         trace.CrmOperation(new string('x', 128));
@@ -229,7 +267,7 @@ public sealed class DataverseTraceTests
             var stopwatch = Stopwatch.StartNew();
             using (var trace = new DataverseTrace(options))
             {
-                using (trace.BeginRequest(CreateContext("drop-trace", "drop-user")))
+                using (trace.BeginRequest("drop-trace", "drop-user", sessionId: null))
                 {
                     for (var index = 0; index < 2000; index++)
                         trace.CrmOperation("Execute");
@@ -279,7 +317,7 @@ public sealed class DataverseTraceTests
                 var manager = new TestManager(pool);
                 var tasks = Enumerable.Range(0, 20).Select(index => Task.Run(() =>
                 {
-                    using var request = trace.BeginRequest(CreateContext($"trace-{index}", $"member-{index % 3}"));
+                    using var request = trace.BeginRequest($"trace-{index}", $"member-{index % 3}", sessionId: null);
                     using var gateway = new DataverseGateway(manager);
                     var service = new GatewayOrganizationService(gateway);
 
@@ -354,15 +392,6 @@ public sealed class DataverseTraceTests
             QueueCapacity = 1024,
             FlushInterval = TimeSpan.FromMilliseconds(50)
         };
-    }
-
-    private static DefaultHttpContext CreateContext(string traceIdentifier, string userName)
-    {
-        var context = new DefaultHttpContext { TraceIdentifier = traceIdentifier };
-        context.User = new ClaimsPrincipal(new ClaimsIdentity(
-            [new Claim(System.Security.Claims.ClaimTypes.Name, userName)],
-            authenticationType: "trace-test"));
-        return context;
     }
 
     private static List<JsonElement> ReadRecords(string directory)
