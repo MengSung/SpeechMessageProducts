@@ -254,10 +254,7 @@ namespace ChurchReport.WebServiceConnector
                 int WeekIndex = ConvertNumberToWeekIndex(WeekCounter);
                 this.m_ToolUtilityClass.SetOptionSetAttribute(PresentRecordEntity, "new_weeks", WeekIndex);
 
-                if (CRM_TYPE == "DYNAMICS365")
-                    this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, PresentRecordEntity);
-                else
-                    this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, PresentRecordEntity);
+                this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, PresentRecordEntity);
             }
             catch { }
         }
@@ -294,10 +291,7 @@ namespace ChurchReport.WebServiceConnector
 
         private void UpdateContactEntity(ref Entity aContact)
         {
-            if (CRM_TYPE == "DYNAMICS365")
-                this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
-            else
-                this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
         }
 
         #endregion

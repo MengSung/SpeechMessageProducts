@@ -4,22 +4,19 @@
 // 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
 // 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
 // 主要型別：class ToolUtilityClass
-// 主要成員：InitializeCrmConnection、Dispose、TraceByLevel（委派給 IToolUtilityTracer）
-// 引用命名空間：Microsoft.Crm.Sdk.Messages、Microsoft.Extensions.Configuration、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Client、System、System.Diagnostics、System.IO、System.Text
+// 主要成員：Dispose、TraceByLevel（委派給 IToolUtilityTracer）
+// 引用命名空間：Microsoft.Extensions.Configuration、Microsoft.Xrm.Sdk、System、System.Diagnostics、System.IO、System.Text
 // 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
 // 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
-using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Client;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.Core;
 
 using ToolUtilityNameSpace.Diagnostics;
@@ -33,17 +30,11 @@ namespace ToolUtilityNameSpace
     public partial class ToolUtilityClass : IDisposable
     {
         #region 私有欄位
-        private const String CRM_TYPE = "DYNAMICS365-9.0";
-        private String m_DiscoveryServiceType = "";
-
         public IOrganizationService m_Crm2011OrganizationService;
-        public OrganizationServiceProxy m_OrganizationService;
 
         private bool _disposed = false;
-        private readonly ICrmConnectionService _crmConnectionService;
         private readonly ToolUtilityFacade _facade;
         private readonly IConfiguration _configuration;
-        private readonly bool _ownsConnection;
         #endregion
 
         #region 設定屬性
@@ -87,53 +78,12 @@ namespace ToolUtilityNameSpace
         #region 建構式
 
         /// <summary>
-        /// 建立 legacy Factory 路徑的 ToolUtilityClass。
-        /// 這條路徑由 <see cref="ToolUtilityNameSpace.Factory.ToolUtilityFactory"/> 擁有，
-        /// 在 Run 3 的 35 個呼叫點完成遷移前保留。此建構式會自行建立連線，因此
-        /// <see cref="Dispose()"/> 由本型別負責釋放連線與連線服務；不得把 scoped
-        /// DI 連線傳入這條程序級過渡路徑。
-        /// </summary>
-        /// <param name="configuration">CRM 連線設定。</param>
-        /// <param name="tracer">程序級 Singleton 追蹤器；本型別只保存參照，不負責釋放。</param>
-        internal ToolUtilityClass(IConfiguration configuration, IToolUtilityTracer tracer)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
-            _crmConnectionService = new CrmConnectionService();
-            _ownsConnection = true;
-
-            InitializeCrmConnection();
-
-            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
-        }
-
-        /// <summary>
-        /// 建立指定 DiscoveryServiceType 的 legacy Factory 路徑實例。
-        /// 這是 Run 3 完成 Factory 呼叫點遷移前的過渡建構式；連線由本型別自行建立，
-        /// 因此本型別擁有連線與 <see cref="ICrmConnectionService"/>，並在 Dispose 時釋放。
-        /// </summary>
-        /// <param name="DiscoveryServiceType">legacy CRM Discovery Service 類型。</param>
-        /// <param name="configuration">CRM 連線設定。</param>
-        /// <param name="tracer">程序級 Singleton 追蹤器；本型別只保存參照，不負責釋放。</param>
-        internal ToolUtilityClass(String DiscoveryServiceType, IConfiguration configuration, IToolUtilityTracer tracer)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
-            _crmConnectionService = new CrmConnectionService();
-            _ownsConnection = true;
-            m_DiscoveryServiceType = DiscoveryServiceType;
-
-            InitializeCrmConnection();
-
-            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
-        }
-
-        /// <summary>
         /// 建立由 DI 管理的 request-scoped ToolUtilityClass。
-        /// 連線由目前 scope 注入並由 DI 容器擁有；本型別只使用該連線，絕不在
-        /// Dispose 路徑釋放它，避免短命工具與 Facade 重複釋放同一條池化租約。
+        /// 服務是 GatewayOrganizationService 或 AmbientGatewayOrganizationService；兩者都只在
+        /// 單次操作期間取得 lease。本型別與 legacy Factory 都只借用此代理，絕不在
+        /// Dispose 路徑釋放它，避免短命工具、Facade 或程序級單例重複釋放 scope 所擁有的資源。
         /// </summary>
-        /// <param name="organizationService">目前 request 的 scoped Dataverse 連線。</param>
+        /// <param name="organizationService">Gateway 支撐的 Dataverse 操作代理，不持有 raw client。</param>
         /// <param name="tracer">程序級 Singleton 追蹤器；由 DI 在應用程式關閉時釋放。</param>
         /// <param name="configuration">CRM 設定；此路徑不會用它自行建立連線。</param>
         public ToolUtilityClass(
@@ -145,18 +95,14 @@ namespace ToolUtilityNameSpace
                 ?? throw new ArgumentNullException(nameof(organizationService));
             _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _crmConnectionService = null;
-            _ownsConnection = false;
             _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
         }
 
         public ToolUtilityClass(ref bool ValidFlag)
         {
-            _crmConnectionService = null;
             _facade = null;
             _configuration = null;
             _tracer = null;
-            _ownsConnection = false;
             if (ExpireDate >= DateTime.Today)
             {
                 ValidFlag = false;
@@ -164,17 +110,6 @@ namespace ToolUtilityNameSpace
         }
 
         ~ToolUtilityClass() => Dispose(false);
-        #endregion
-
-        #region 初始化方法
-        private void InitializeCrmConnection()
-        {
-            var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
-            var adUsername = @"SPEECHMESSAGE\Administrator";
-            var adPassword = PASSWORD;
-
-            m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
-        }
         #endregion
 
         #region Dispose Pattern
@@ -186,18 +121,11 @@ namespace ToolUtilityNameSpace
             {
                 try { _facade?.Dispose(); } catch (ObjectDisposedException) { }
 
-                // legacy Factory 路徑自行建立連線，只有它擁有並釋放底層資源。
-                // DI 路徑的 IOrganizationService 屬於 request scope，由容器在 scope
-                // 結束時歸還池；短命 ToolUtility 與 Facade 不得重複 Dispose。
-                if (_ownsConnection)
-                {
-                    try { (_crmConnectionService as IDisposable)?.Dispose(); } catch (ObjectDisposedException) { }
-                    try { (m_Crm2011OrganizationService as IDisposable)?.Dispose(); } catch (ObjectDisposedException) { }
-                    try { (m_OrganizationService as IDisposable)?.Dispose(); } catch (ObjectDisposedException) { }
-                }
-
-                // 追蹤資源不在此釋放：它由 Singleton 的 IToolUtilityTracer 擁有，
-                // 生命週期等同應用程式。短命物件不得釋放長命物件。
+                // 組織服務是 gateway 代理：它不屬於 ToolUtilityClass，且可能是程序級
+                // Factory 長期持有的 ambient 代理。lease、raw client 與 fallback scope
+                // 分別由 Gateway、pool 與 AmbientGatewayOrganizationService 決定性釋放；
+                // 此處若 Dispose 代理，會讓其他 request 使用已失效服務，形成跨 request 泄漏。
+                // 追蹤資源亦由 DI Singleton 擁有，生命週期等同應用程式。
             }
 
             _disposed = true;

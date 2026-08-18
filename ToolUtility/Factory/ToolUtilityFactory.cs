@@ -4,17 +4,16 @@
 // 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
 // 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
 // 主要型別：class ToolUtilityFactory
-// 主要成員：SetConfiguration、GetInstance、ResetInstance
-// 引用命名空間：Microsoft.Extensions.Configuration、Microsoft.Xrm.Sdk、System、ToolUtilityNameSpace.ConnectionOperations
+// 主要成員：SetConfiguration、SetAmbientService、GetInstance、ResetInstance
+// 引用命名空間：Microsoft.Extensions.Configuration、System、ToolUtilityNameSpace.Dataverse、ToolUtilityNameSpace.Diagnostics
 // 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
 // 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using Microsoft.Extensions.Configuration;
-using Microsoft.Xrm.Sdk;
 using System;
-using ToolUtilityNameSpace.ConnectionOperations;
+using ToolUtilityNameSpace.Dataverse;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace ToolUtilityNameSpace.Factory
@@ -24,10 +23,10 @@ namespace ToolUtilityNameSpace.Factory
     /// 遵守 SOLID 的單一職責原則 (Single Responsibility Principle)
     /// </summary>
     /// <remarks>
-    /// 本工廠是 Run 3 完成 35 個呼叫點遷移前的 legacy 過渡路徑，維持程序級單例並
-    /// 使用 ToolUtilityClass 的「自行建立連線」建構式。工廠刻意不從 DI 解析
-    /// IOrganizationService，避免把 request-scoped 池化連線捕獲為 captive dependency。
-    /// Run 3 完成後才可移除這條路徑；ResetInstance 只釋放本工廠自行建立的實例。
+    /// 本工廠保留 legacy 程序級單例 API，但只保存不含 client、lease、scope 或 request
+    /// 身分的 <see cref="AmbientGatewayOrganizationService"/>。每次 CRM 操作才解析目前
+    /// request 的 Gateway；背景操作建立短命 scope 並立即釋放，因此單例不會跨 request
+    /// 共享可變 Dataverse 狀態。待 session cache 持有者完成重構後可移除此過渡路徑。
     /// </remarks>
     public sealed class ToolUtilityFactory
     {
@@ -35,6 +34,7 @@ namespace ToolUtilityNameSpace.Factory
         private static ToolUtilityClass _instance;
         private static volatile bool _isInitialized = false;
         private static IConfiguration _configuration;
+        private static AmbientGatewayOrganizationService _ambientService;
 
         /// <summary>
         /// 程序級的追蹤資源擁有者，由組合根於啟動時設定一次。
@@ -79,6 +79,24 @@ namespace ToolUtilityNameSpace.Factory
         }
 
         /// <summary>
+        /// 設定 legacy 單例使用的 ambient Dataverse 操作代理。必須在第一次
+        /// <see cref="GetInstance()"/> 前由組合根呼叫一次。
+        /// </summary>
+        /// <param name="ambientService">
+        /// 不保存 request scope 或 raw client 的操作代理；它會在每次呼叫時解析目前 scope，
+        /// 並在無 HTTP request 的背景工作建立與釋放短命 scope。
+        /// </param>
+        /// <exception cref="ArgumentNullException">未提供代理時擲回，避免單例回退為自行建立 raw client。</exception>
+        /// <remarks>
+        /// Factory 可以安全保存此代理，因為代理本身不保存 HttpContext、RequestServices、lease 或 client。
+        /// 實際資源所有權仍完全由 Scoped Gateway 與 Singleton pool 管理，防止跨 request／使用者重用。
+        /// </remarks>
+        public static void SetAmbientService(AmbientGatewayOrganizationService ambientService)
+        {
+            _ambientService = ambientService ?? throw new ArgumentNullException(nameof(ambientService));
+        }
+
+        /// <summary>
         /// 獲得 legacy 程序級單一實例（Thread-Safe Double-Check Locking）。
         /// </summary>
         /// <returns>ToolUtilityClass 實例</returns>
@@ -94,13 +112,18 @@ namespace ToolUtilityNameSpace.Factory
                 throw new InvalidOperationException("追蹤器尚未設定。請先調用 SetTracer() 方法。");
             }
 
+            if (_ambientService == null)
+            {
+                throw new InvalidOperationException("Ambient Dataverse 代理尚未設定。請先調用 SetAmbientService() 方法。");
+            }
+
             if (!_isInitialized)
             {
                 lock (_lock)
                 {
                     if (!_isInitialized)
                     {
-                        _instance = new ToolUtilityClass(_configuration, _tracer);
+                        _instance = new ToolUtilityClass(_ambientService, _tracer, _configuration);
                         _isInitialized = true;
                     }
                 }
@@ -109,8 +132,8 @@ namespace ToolUtilityNameSpace.Factory
         }
 
         /// <summary>
-        /// 獲得 legacy 程序級單一實例，使用指定的 DiscoveryServiceType。
-        /// 此方法維持自行建立連線的 Factory 路徑，不接觸 DI scope。
+        /// 獲得 legacy 程序級單一實例，保留指定 DiscoveryServiceType 的既有簽章。
+        /// DiscoveryServiceType 已不再用於自建連線；所有操作均透過 ambient gateway 執行。
         /// </summary>
         /// <param name="discoveryServiceType">服務類型</param>
         /// <returns>ToolUtilityClass 實例</returns>
@@ -126,13 +149,18 @@ namespace ToolUtilityNameSpace.Factory
                 throw new InvalidOperationException("追蹤器尚未設定。請先調用 SetTracer() 方法。");
             }
 
+            if (_ambientService == null)
+            {
+                throw new InvalidOperationException("Ambient Dataverse 代理尚未設定。請先調用 SetAmbientService() 方法。");
+            }
+
             if (!_isInitialized)
             {
                 lock (_lock)
                 {
                     if (!_isInitialized)
                     {
-                        _instance = new ToolUtilityClass(discoveryServiceType, _configuration, _tracer);
+                        _instance = new ToolUtilityClass(_ambientService, _tracer, _configuration);
                         _isInitialized = true;
                     }
                 }
@@ -141,7 +169,9 @@ namespace ToolUtilityNameSpace.Factory
         }
 
         /// <summary>
-        /// 重設實例 (僅供測試使用，生產環境不建議呼叫)
+        /// 重設實例 (僅供測試使用，生產環境不建議呼叫)。
+        /// 單例只釋放自身與已建立的 Facade；不釋放 ambient gateway、scope、pool 或 client，
+        /// 因為那些資源都由其建立者的 DI 生命週期負責。
         /// </summary>
         internal static void ResetInstance()
         {

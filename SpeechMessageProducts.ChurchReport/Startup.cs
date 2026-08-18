@@ -624,6 +624,18 @@ namespace ChurchReport
             ToolUtilityNameSpace.Factory.ToolUtilityFactory.SetTracer(
                 app.ApplicationServices.GetRequiredService<ToolUtilityNameSpace.Diagnostics.IToolUtilityTracer>());
 
+            // legacy Factory 是程序級單例，絕不可保存此刻 request 的 HttpContext、RequestServices、
+            // gateway、lease 或 raw CRM client。此 delegate 每次操作才讀取當前 HttpContext；背景
+            // 執行緒沒有 request 時 AmbientGatewayOrganizationService 會建立短命 scope 並在操作後
+            // 立即釋放，確保 session 快取中的 legacy 持有者不會跨 request 共用連線或身分狀態。
+            ToolUtilityNameSpace.Factory.ToolUtilityFactory.SetAmbientService(
+                new ToolUtilityNameSpace.Dataverse.AmbientGatewayOrganizationService(
+                    () => app.ApplicationServices
+                        .GetRequiredService<IHttpContextAccessor>()
+                        .HttpContext?
+                        .RequestServices,
+                    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>()));
+
 #if DEBUG
             using var __perfConfigure =
                 ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("Configure");
