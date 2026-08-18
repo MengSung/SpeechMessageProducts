@@ -390,6 +390,13 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? CRM Contact 更新成功");
 
+                // CRM 更新成功後立即清除目前 Contact 的所有個人照片快取。
+                // 快取鍵刻意只由已驗證的 contactId 與尺寸組成，不能把使用者提供的
+                // 任意路徑或 session 值當成快取隔離邊界；清除完整圖與所有支援縮圖後，
+                // 後續 request 才會重新從同一位 Contact 讀取最新影像，避免新圖被舊圖覆蓋。
+                var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+                InvalidatePersonalImageCache(memoryCache, contactId);
+
 
 
                 // ========================================
@@ -478,6 +485,32 @@ namespace ChurchReport.Controllers
 
             }
 
+        }
+
+        /// <summary>
+        /// 清除指定 Contact 的個人照片快取。
+        /// </summary>
+        /// <param name="cache">目前應用程式的記憶體快取；為 null 時不建立暫時快取，也不拋出例外。</param>
+        /// <param name="contactId">已由目前登入者解析並驗證的 Contact 識別碼。</param>
+        /// <remarks>
+        /// 個人照片同時以完整圖與 32 至 256 像素縮圖快取；尺寸範圍與讀取端的
+        /// <c>Math.Clamp(size, 32, 256)</c> 保持一致。這裡在 CRM 更新成功後同步移除
+        /// 所有可能的鍵，讓下一次讀取重新建立最新影像，並避免舊 byte[] 在快取期限內
+        /// 跨 request 保留。方法不持有、複製或延長任何 request、session 或連線資源。
+        /// </remarks>
+        private static void InvalidatePersonalImageCache(IMemoryCache cache, Guid contactId)
+        {
+            if (cache == null)
+            {
+                return;
+            }
+
+            cache.Remove($"contact-image-full:{contactId:N}");
+
+            for (var size = 32; size <= 256; size++)
+            {
+                cache.Remove($"contact-image-thumb:{contactId:N}:{size}");
+            }
         }
 
 
@@ -804,4 +837,3 @@ namespace ChurchReport.Controllers
     }
 
 }
-
