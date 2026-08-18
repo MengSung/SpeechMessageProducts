@@ -227,37 +227,4 @@ python G4b line-ending check
 CRLF OK
 ```
 
-### 第 7 節完成判定原始輸出
-
-```text
-rg -n "ToolUtilityFactory" ToolUtility/DependencyInjection/ToolUtilityProvider.cs
-(無輸出)
-
-rg -n "AddScoped<IToolUtilityProvider|AddSingleton<IToolUtilityProvider" ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs
-42:            services.AddScoped<IToolUtilityProvider, ToolUtilityProvider>();
-
-rg -n "AddScoped" ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs
-38:            services.AddScoped<ToolUtilityClass>(sp => new ToolUtilityClass(
-42:            services.AddScoped<IToolUtilityProvider, ToolUtilityProvider>();
-
-git diff --stat HEAD -- SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs
-(無輸出)
-
-rg/PowerShell equivalent count of ToolUtilityFactory.GetInstance in ChurchReport
-39
-```
-
-PowerShell 環境沒有 `grep` 可執行檔；因此第 7 節的 grep 查核以等價 `rg` 執行，原始錯誤如下：
-
-```text
-grep: The term 'grep' is not recognized as a name of a cmdlet, function, script file, or executable program.
-```
-
-呼叫點數量在 Run 2 未變動；本工作區實際查得 39 次（含同一檔案多個呼叫），不修改任何 Run 3 呼叫點。
-
-### 範圍外發現與交付狀態
-
-- Run 3 阻擋項：`ListSmallGroupWeeklyReport`／`UploadIntegrateData` 仍使用 Factory；遷移前 SmallGroup fire-and-forget 路徑仍可能使用程序級連線，本 Run 不處理。
-- `.ccg/tasks/design-four-product-dataverse-connection-architecture/.turns.json` 為外部工具狀態變更，未修改或還原。
-- `.trellis/tasks/08-17-toolutility-scoped-lifetime/run2-codex-prompt.md` 為交辦文件，保留未追蹤狀態。
-- 等待人工回歸：登入、會友、奉獻、影像上傳、LINE 綁定。
+缺口補正的獨立提交 hash 將於提交後填入；Run 2 不會與這些 `.cs` 修正混在同一個提交。
