@@ -12,7 +12,10 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Xrm.Sdk;
 using System;
+using ToolUtilityNameSpace.Diagnostics;
 
 namespace ToolUtilityNameSpace.DependencyInjection
 {
@@ -25,14 +28,18 @@ namespace ToolUtilityNameSpace.DependencyInjection
     {
         /// <summary>
         /// 註冊 ToolUtility 服務到 DI 容器
-        /// 使用 Singleton 生命週期
+        /// ToolUtilityClass 與其 Provider 都使用 Scoped 生命週期；每個 request
+        /// 取得自己的 Dataverse 連線租約，request 結束時由 DI 確定性釋放。
         /// </summary>
         /// <param name="services">服務集合</param>
         /// <returns>服務集合</returns>
         public static IServiceCollection AddToolUtility(this IServiceCollection services)
         {
-            // 註冊為 Singleton，確保整個應用程式生命週期只有一個實例
-            services.AddSingleton<IToolUtilityProvider, ToolUtilityProvider>();
+            services.AddScoped<ToolUtilityClass>(sp => new ToolUtilityClass(
+                sp.GetRequiredService<IOrganizationService>(),
+                sp.GetRequiredService<IToolUtilityTracer>(),
+                sp.GetRequiredService<IConfiguration>()));
+            services.AddScoped<IToolUtilityProvider, ToolUtilityProvider>();
             return services;
         }
     }

@@ -440,9 +440,11 @@ namespace ChurchReport
                 });
 
             // ========================================
-            // 註冊 ToolUtility 服務 (Singleton 模式)
+            // 註冊 ToolUtility 服務（request Scoped 模式）
             // ========================================
-            // 註冊 ToolUtility 相關服務，使用擴充方法進行批量註冊。
+            // AddToolUtility 在 ToolUtility 組件內以明確 factory 建立 ToolUtilityClass，
+            // 使其取得同一 request 的 IOrganizationService 租約；不得在此跨組件以
+            // Activator 解析 internal legacy 建構式，也不得把 scoped Provider 捕獲為 Singleton。
             services.AddToolUtility();
 
 #if DEBUG
