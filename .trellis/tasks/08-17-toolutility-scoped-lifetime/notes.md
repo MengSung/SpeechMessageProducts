@@ -78,3 +78,34 @@ ENCODING OK
 ```
 
 本 Run 的程式碼提交：`e5ed0c3e`（`fix(toolutility): 移除跨請求持有者，背景工作自建 DI scope`）。
+
+## Run 1.5 缺口補正（Run 2 前置）
+
+- 缺口 A：DONE。兩個背景工作的 catch 區塊改用
+  `ToolUtilityClass.TraceByLevelStatic(...)`；catch 位於 `using` scope 之外，
+  不再觸碰已釋放的 Scoped ToolUtility。
+- 缺口 B：維持原判斷。SmallGroup 的實際上傳仍由捕獲的
+  `weeklyReportRef.UploadIntegrateDataAsync(...)` 執行，內部 Factory 路徑是 Run 3
+  的阻擋項；本次不擴大修改 Models/WebServiceConnector。背景 scope 仍只負責其自身
+  scope 內的 DI 解析與生命週期邊界。
+- 缺口 C：測試延至 Run 2 一併涵蓋。Run 2 將以 scoped ToolUtility／連線生命週期
+  測試覆蓋背景 scope 不共用 request 連線的合約，避免在白名單外新增測試替身。
+- 缺口 D：四個 Run 1.5 `.cs` 檔案已重新寫成 UTF-8 無 BOM、完整 CRLF；Run 2
+  開始前會再次執行 G4/G4b。
+
+### Run 1.5 缺口補正實際驗證輸出
+
+```text
+dotnet build SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj -c Debug
+建置成功。
+    0 個警告
+    0 個錯誤
+
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --no-build
+已通過! - 失敗:     0，通過:     7，略過:     0，總計:     7
+
+ENCODING OK
+CRLF OK
+```
+
+缺口補正的獨立提交 hash 將於提交後填入；Run 2 不會與這些 `.cs` 修正混在同一個提交。

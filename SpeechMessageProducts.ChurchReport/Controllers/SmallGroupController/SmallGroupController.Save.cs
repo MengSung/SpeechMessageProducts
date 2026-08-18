@@ -165,7 +165,8 @@ namespace ChurchReport.Controllers
 
                         try
                         {
-                            toolUtility?.TraceByLevel(1, 1,
+                            // catch 位於 using scope 之外；不可再使用已釋放的 Scoped ToolUtility。
+                            ToolUtilityClass.TraceByLevelStatic(1, 1,
                                 $"SaveIntegrate 背景上傳失敗: {ex.Message}\n{ex.StackTrace}"); // 追蹤背景上傳失敗的細節
                         }
                         catch
