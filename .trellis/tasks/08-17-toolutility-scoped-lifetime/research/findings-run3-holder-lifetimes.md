@@ -30,7 +30,7 @@ expiration 均為 30 分鐘（行號 544、628、684、738、792、846、901、9
 | 1 | `Models/DonationPaymentManager.cs:59` | B | `IMemoryCache → DonationPaymentManager`（`InMemoryDataContextSmallGroup.cs:1175-1216`）→ `m_ToolUtilityClass`。付款 UI 狀態跨請求保留 30 分鐘。 |
 | 2 | `Models/EquipmentDataManager.cs:51` | B | `IMemoryCache → EquipmentDataManager`（`:955-993`）→ `m_ToolUtilityClass`；同類別另持有 `m_DownloadEquipment`。 |
 | 3 | `Models/ListManagementDataManager.cs:65` | B | `IMemoryCache → ListManagementDataManager`（`:901-938`）→ `m_ToolUtilityClass`；無參數建構式是快取建立路徑。 |
-| 4 | `Models/ListManagementDataManager.cs:86` | C | 未確認。三輪搜尋只找到快取使用的無參數建構式（`:933`），未找到此 `discoveryServiceType` 建構式的實際呼叫者；不能把另一個建構式的 B 路徑套用到此呼叫點。 |
+| 4 | `Models/ListManagementDataManager.cs:86` | 已刪除死建構式（型別保留） | 三輪搜尋只找到快取使用的無參數建構式（`:933`），未找到此 `discoveryServiceType` 建構式的實際呼叫者。 |
 | 5 | `Models/PollManager.cs:53` | B | `IMemoryCache → PollManager`（`:1234-1272`）→ `m_ToolUtilityClass`。`QrCodeController` 的三個 `new PollManager()` 是另一條 A 路徑，不能抵銷此 B 路徑。 |
 | 6 | `Models/WeeklyReportRecord.cs:53` | B | `IMemoryCache → ListManager`（`:544-582`）→ `m_MultiGroupList` → `List<WeeklyReportRecord>`（`ListManager.cs:124-188`）→ 欄位 `m_ToolUtilityClass`。 |
 | 7 | `Models/InMemoryDataContextSmallGroup.cs:1290` | B（legacy static） | 呼叫端 `IInMemoryDataContext` 通常是 Controller per-request，但 getter 目前回傳 `ToolUtilityFactory` 的程序級 `_instance`；因此實際持有者是跨請求 static。遷移前必須改為注入的 scoped 實例，不能把現況視為安全 A。 |
@@ -43,24 +43,24 @@ expiration 均為 30 分鐘（行號 544、628、684、738、792、846、901、9
 | 14 | `ViewModels/GalleryViewModel.cs:47` | A | `GalleryViewModel` 由 Controller model binding/`new GalleryViewModel`（`DonationPaymentLoginController:71` 等）建立，欄位只隨本次 request 傳遞給服務。 |
 | 15 | `WebServiceConnector/AppointmentsDownUpLoader.cs:47` | B | `IMemoryCache → AppointmentsListManager`（`InMemoryDataContextSmallGroup.cs:1120-1158`）→ `m_AppointmentsDownUpLoader` → ToolUtility 欄位。 |
 | 16 | `WebServiceConnector/ChurchListDataProcessor.cs:46` | B | `IMemoryCache → ListManagementDataManager`（`:901-938`）→ `m_ChurchListDataProcessor`（`ListManagementDataManager.cs:39`）→ ToolUtility。雖然 Startup `:647` scoped、HomeController `:410` 另有 per-request `new`，快取欄位使最長生命週期跨請求。 |
-| 17 | `WebServiceConnector/DedicationInfo.cs:32` | C | 未確認。三輪未找到 `new DedicationInfo`、DI 註冊、Controller/Service 呼叫或 partial/反射入口；卡點是可能存在未編譯死碼或外部組件入口。 |
-| 18 | `WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs:135` | C | 未確認。三輪搜尋只找到 `DonationPaymentManager.cs:182` 使用四參數建構式（對應 `:192`），未找到此 adapter/workflow 建構式的實際呼叫者；不能把同類別另一建構式的 B 路徑套用過來。 |
+| 17 | `WebServiceConnector/DedicationInfo.cs:32` | 已刪除（死碼） | 建立式、外部型別引用、非 `.cs` 引用與 NamingTests 均無外部命中；檔案已刪除。 |
+| 18 | `WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs:135` | 已刪除死建構式（型別保留） | 三輪搜尋只找到 `DonationPaymentManager.cs:182` 使用四參數建構式（對應 `:192`）；adapter/workflow 建構式與其兩個只轉送的 wrapper 均無呼叫者，已一併刪除死鏈。 |
 | 19 | `WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs:192` | B | 同一 `DonationPaymentManager` 快取持有鏈；另一個建構式呼叫點不改變最長生命週期。 |
 | 20 | `WebServiceConnector/DownloadHappyGroup.cs:43` | B | `IMemoryCache → HappyGroupDataManager`（`InMemoryDataContextSmallGroup.cs:846-884`）→ `m_DownloadHappyGroup`（`Models/HappyGroupDataManager.cs:47`）→ ToolUtility。`SpiritLeaderLookupController:47` 的直接 `new` 只是較短 A 路徑。 |
 | 21 | `WebServiceConnector/DownloadIntegrateData.Core.cs:37` | B | `IMemoryCache → ListManager`（`:544-582`）→ `m_DownloadIntegrateData`（`ListManager.cs:60`）→ ToolUtility 欄位。 |
 | 22 | `WebServiceConnector/DownloadEquipment.cs:41` | B | `IMemoryCache → EquipmentDataManager`（`:955-993`）→ `m_DownloadEquipment`（`EquipmentDataManager.cs:38`）→ ToolUtility。 |
-| 23 | `WebServiceConnector/EquipmentStatusCalculator.cs:34` | C | 未確認。三輪未找到建立者、DI 註冊、Controller/Service 呼叫或 partial/反射入口；卡點同為未編譯死碼或外部入口。 |
+| 23 | `WebServiceConnector/EquipmentStatusCalculator.cs:34` | 已刪除（死碼） | 建立式與跨專案引用查核無外部命中；檔案已刪除。 |
 | 24 | `WebServiceConnector/FeeDownUpLoader.cs:43` | B | `IMemoryCache → FeeList`（`InMemoryDataContextSmallGroup.cs:1010-1049`）→ `m_FeeDownUpLoader`（`Models/FeeList.cs:64`）→ ToolUtility。 |
 | 25 | `WebServiceConnector/DownloadListManager.cs:45` | B | `IMemoryCache → ListManager`（`:544-582`）→ `m_DownloadListManager`（`ListManager.cs:58`）→ ToolUtility。Startup `:649` 的 scoped 註冊不會消除 ListManager 快取路徑。 |
-| 26 | `WebServiceConnector/HappyGroupUtility.cs:42` | C | 未確認。三輪未找到 `new HappyGroupUtility`、DI 註冊或任何可靠呼叫者；卡點可能是死碼/外部組件。 |
-| 27 | `WebServiceConnector/LineBindingUtility.cs:45` | C | 未確認。`LineBindingViewModel` 被快取，但搜尋不到 `new LineBindingUtility()` 或欄位引用；不能因同名 ViewModel 快取而推測此 utility 也被持有。 |
+| 26 | `WebServiceConnector/HappyGroupUtility.cs:42` | 已刪除（死碼） | 建立式、DI 與跨專案引用查核無外部命中；檔案已刪除。 |
+| 27 | `WebServiceConnector/LineBindingUtility.cs:45` | 已刪除（死碼） | 型別無外部建立/欄位引用；6 個命中僅是 Debug 字串 `[LineBindingUtility.CopyVistorCardInfo]`，已保留呼叫檔案的字串並刪除型別檔。 |
 | 28 | `WebServiceConnector/LineNotifyUtility.cs:43` | B | `IMemoryCache → ListManager/WeeklyReportData/PersonalInfomationModel/NewPersonModel` 等快取 holder → 各 connector 的 `m_LineNotifyUtility`（`UploadIntegrateData.Core.cs:35`、`WeeklyReportManager.cs:45` 等）→ ToolUtility。`ContactService` 的 scoped `new` 是較短路徑。 |
 | 29 | `WebServiceConnector/NewPerson.cs:42` | B | 至少兩條鏈：`IMemoryCache → NewPersonModel`（`:738-775`）→ `m_NewPersonManager`（`Models/NewPersonModel.cs:29`），以及 `IMemoryCache → ListManagementDataManager` → `new NewPerson`（`ListManagementDataManager.cs:645,732`）。 |
 | 30 | `WebServiceConnector/PersonalInfomatioManager.cs:44` | B | `IMemoryCache → PersonalInfomationModel`（`:792-829`）→ `new PersonalInfomatioManager()`（`Models/PersonalInfomationModel.cs:72,92`）→ ToolUtility。 |
-| 31 | `WebServiceConnector/RegisterConnector.cs:41` | C | `RegisterManager.Register` 內有 local `new RegisterConnector()`，但全專案未找到 `RegisterManager` 的可靠呼叫者、DI 或快取 holder；三輪仍無法判定實際生命週期。 |
-| 32 | `WebServiceConnector/UploadData.cs:42` | C | 未找到 `new UploadData()`、DI 註冊或 Controller/Service 呼叫；`UploadIntegrateData` 的方法名稱不是此型別建立證據。三輪後仍未確認。 |
+| 31 | `WebServiceConnector/RegisterConnector.cs:41` | 已刪除（死鏈） | `RegisterManager` 是唯一建立者，但全 solution 無 `RegisterManager` 呼叫者；`RegisterConnector.cs` 與 `Models/RegisterManager.cs` 已一起刪除。 |
+| 32 | `WebServiceConnector/UploadData.cs:42` | 已刪除（死碼） | 5 個命中均為 `UploadIntegrateData.UploadData(...)` 方法名，不是 `UploadData` 型別；檔案已刪除。 |
 | 33 | `WebServiceConnector/UploadIntegrateData.Core.cs:34` | B | `IMemoryCache → ListManager`（`:544-582`）→ `m_ListSmallGroupWeeklyReport`（`ListManager.cs:53`）→ `m_UploadIntegrateData`（`ListSmallGroupWeeklyReport.cs:31`）→ ToolUtility；這是已驗證的傳遞性持有鏈。 |
-| 34 | `WebServiceConnector/WebServiceConnector.cs:31` | C | 未確認。三輪未找到 `new WebServiceConnector`、DI 註冊、Controller/Service 呼叫或 partial/反射入口；不能猜測為 request 範圍。 |
+| 34 | `WebServiceConnector/WebServiceConnector.cs:31` | 已刪除（死碼） | `new WebServiceConnector`、變數宣告與繼承均無命中；其他命中全是 `ChurchReport.WebServiceConnector` namespace；檔案已刪除。 |
 | 35 | `WebServiceConnector/WeeklyReportManager.cs:43` | B | `IMemoryCache → WeeklyReportData`（`InMemoryDataContextSmallGroup.cs:684-721`）→ `new WeeklyReportManager()`（`Models/WeeklyReportData.cs:37,57`）→ ToolUtility；另有 fire-and-forget 入口，仍須先建立背景 scope。 |
 
 ### 註解出現（4 處，非執行呼叫）
@@ -75,6 +75,16 @@ expiration 均為 30 分鐘（行號 544、628、684、738、792、846、901、9
 `C*` 僅表示「文字出現但沒有執行語意」，不計入 A/B/C 數量。對 35 處實際呼叫的數量為：
 **A 7、B 19（含 InMemoryDataContext 的 legacy static getter）、C 9**。C 類均已完成三輪查找，
 仍無可靠建立者/呼叫者，不能在後續批次直接注入。
+
+## Run 2.5a 解析後統計
+
+Run 2.5a 已依查核結果刪除 7 個死碼/死鏈型別檔案（其中 `RegisterConnector` 與
+`RegisterManager` 為同一死鏈，共刪 2 個檔案），並刪除兩個 C 類死建構式。為使
+`DonationPaymentProcessor` 的無呼叫者三參數建構式能合法移除，同時刪除其兩個只轉送到該
+建構式、全 solution 亦無呼叫者的 adapter wrapper；保留實際付款 manager 使用的四參數建構式。
+
+刪除後實際統計為：A 7、B 19、C 0；可執行 Factory 呼叫 26，另有 4 處註解文字，總出現數
+30。這與完成判定的 39 → 32 → 30 完全一致；沒有選擇或改動 B 類方向，也沒有遷移 A/B 呼叫點。
 
 ## Q2：B 類的兩個可行方向
 

@@ -218,18 +218,19 @@ per-request、session cache 與未確認死碼混在一起；在沒有先處理 
 注入 scoped `ToolUtilityClass` 會重現 `ObjectDisposedException` 與跨請求共用連線。
 詳細證據與兩種 B 類設計見 `research/findings-run3-holder-lifetimes.md`。
 
-**Run 2.5 — C 類與設計閘門（先於任何呼叫點遷移）**
+**Run 2.5a — C 類死碼清除（本 Run 已完成）**
 
-- 逐一處理 7 個 C 類：`DedicationInfo`、`EquipmentStatusCalculator`、`HappyGroupUtility`、
-  `LineBindingUtility`、`RegisterConnector`、`UploadData`、`WebServiceConnector`。每一個
-  必須找到實際入口並指定 request/scoped 依賴，或確認為死碼並建立移除票；未確認者不得
-  直接改成 constructor injection。
-- 在 13 個 session cache model 上完成方向選擇與狀態保留矩陣：方向 1（方法參數傳遞）或
-  方向 2（先移除 session key cache）。未選定前不得進入 B 類實作。
+- 重新查核 9 個 C 類項目：7 個零外部引用的死碼/死鏈已刪除，2 個活型別上的死建構式已
+  刪除；B 類方向不在本 Run 決定。
+- 刪除後總文字出現由 39 降為 30（26 個可執行呼叫 + 4 個註解），A 7、B 19、C 0。
+- 13 個 session cache 與所有 A/B 呼叫點均未修改。B 類方向仍待使用者決定。
 
-**Run 2.5 完成判定**：C 類皆有明確處置；方向已選定；沒有新增
-`ToolUtilityFactory.GetInstance`；沒有 scoped ToolUtility 或包含它的 connector 寫入
-`IMemoryCache`；研究輸出與阻擋項寫入 notes。
+**Run 2.5a 完成判定**：死碼/死建構式查核輸出已附於 notes；NamingTests 未指涉刪除型別；
+Factory 出現數符合 39 → 32 → 30；未有 scoped ToolUtility 或 connector 寫入
+`IMemoryCache`；G1、G2、G3、G4、G4b 全部通過。
+
+**後續 Run 2.5 設計閘門**：由使用者在方向 1（方法參數傳遞）與方向 2（移除 13 個
+session key cache）中選擇其一；本計畫不替使用者決定。
 
 **Run 3-A — A 類 request holder**
 

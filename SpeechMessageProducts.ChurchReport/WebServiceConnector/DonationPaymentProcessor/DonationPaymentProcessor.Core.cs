@@ -85,70 +85,17 @@ namespace ChurchReport.WebServiceConnector
         #region ===== 建構函式 =====
 
         /// <summary>
-        /// 主要建構函式（推薦使用）。
-        /// 新程式應注入 <see cref="DonationPaymentCreateGatewayAdapter"/>，
-        /// 讓奉獻付款流程維持產品中性命名，而不是再從 QPay adapter 開始。
+        /// 保留舊有單一 adapter 建構式的編譯相容簽章，但不再提供無 scope 的執行路徑。
+        /// 現行付款流程使用下方帶有 LINE 物件的四參數建構式；此簽章只供測試替身以
+        /// <see cref="System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(Type)"/>
+        /// 建立物件時讓衍生類別通過 C# base constructor 檢查。若實際執行此建構式，表示
+        /// 呼叫端仍依賴已移除的 legacy 生命週期，必須明確改用受管理的付款建構流程。
         /// </summary>
-        public DonationPaymentProcessor(
-            DonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
-            : this((IDonationPaymentCreateGatewayAdapter)donationPaymentCreateGatewayAdapter)
+        /// <param name="donationPaymentCreateGatewayAdapter">僅保留相容簽章的付款 adapter。</param>
+        /// <exception cref="NotSupportedException">此 legacy 建構式沒有受管理的 request scope。</exception>
+        public DonationPaymentProcessor(IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
         {
-        }
-
-        /// <summary>
-        /// 內部共用建構函式。
-        /// 測試或相容 wrapper 可以提供任何實作 <see cref="IDonationPaymentCreateGatewayAdapter"/> 的 adapter，
-        /// 但主要 DI 註冊仍應使用 <see cref="DonationPaymentCreateGatewayAdapter"/>。
-        /// </summary>
-        public DonationPaymentProcessor(
-            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
-            : this(donationPaymentCreateGatewayAdapter, null, null)
-        {
-        }
-
-        /// <summary>
-        /// DI-friendly constructor used by ChurchReport product flows that already have shared LINE workflows.
-        ///
-        /// DonationPaymentProcessor still owns ChurchReport-specific CRM and donation-payment orchestration.
-        /// The injected workflows own only the product-neutral LINE transport boundary. This keeps the
-        /// dependency direction simple: ChurchReport decides the business message, LineMessagingProcessor
-        /// sends it. Future ASP.NET Core products can reuse the same workflow classes without depending on
-        /// DonationPaymentProcessor, CRM entities, MVC result handling, or ChurchReport page state.
-        /// </summary>
-        public DonationPaymentProcessor(
-            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter,
-            ILineNotificationWorkflow? lineNotificationWorkflow,
-            ILineReplyWorkflow? lineReplyWorkflow)
-        {
-            // 初始化環境設定
-            RETURN_URL = m_Configuration["RETURN_URL"];
-            BACKEND_URL = m_Configuration["BACKEND_URL"];
-            PAYMENT_ORGANIZATION = ResolvePaymentOrganization();
-
-            // 初始化 LINE Bot
-            var channelAccessToken = GetLineChannelAccessToken();
-            m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
-            m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
-            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, lineReplyWorkflow);
-
-            // 初始化 CRM 工具
-            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
-
-            // 初始化金流建單 adapter。
-            // 這是 ChurchReport 與抽離後金流核心的唯一建立付款邊界；
-            // 不在 processor 內直接建立 provider request，避免未來新增產品時複製一套金流細節。
-            m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter
-                ?? throw new ArgumentNullException(nameof(donationPaymentCreateGatewayAdapter));
-
-            // 初始化 OptionSet 服務
-            _optionSetMetadataService = new OptionSetMetadataService(
-                m_ToolUtilityClass.m_Crm2011OrganizationService,
-                null,
-                new MemoryCache(new MemoryCacheOptions())
-            );
-
-            // 設定商店編號
-            InitializeShopNumber();
+            throw new NotSupportedException("未受管理的 DonationPaymentProcessor legacy 建構式已停用，請使用帶有 request 範圍依賴的建構式。");
         }
 
         /// <summary>
