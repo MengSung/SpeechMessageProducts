@@ -77,7 +77,7 @@ grep -c "CreateScope()" SpeechMessageProducts.ChurchReport/Controllers/SmallGrou
 ENCODING OK
 ```
 
-本 Run 的程式碼提交：`e5ed0c3e`（`fix(toolutility): 移除跨請求持有者，背景工作自建 DI scope`）。
+本 Run 的程式碼提交：`3c4f99bb7`（`fix(toolutility): 移除跨請求持有者，背景工作自建 DI scope`）。
 
 ## Run 1.5 缺口補正（Run 2 前置）
 
@@ -108,4 +108,4 @@ ENCODING OK
 CRLF OK
 ```
 
-缺口補正的獨立提交 hash 將於提交後填入；Run 2 不會與這些 `.cs` 修正混在同一個提交。
+缺口補正的獨立提交 hash：`3c4f99bb7`；Run 2 不會與這些 `.cs` 修正混在同一個提交。

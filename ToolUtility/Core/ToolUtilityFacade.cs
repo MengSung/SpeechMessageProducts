@@ -78,8 +78,13 @@ namespace ToolUtilityNameSpace.Core
         private bool _disposed = false;
 
         /// <summary>
-        /// 建構式: 僅接受 logger,organizationService 將透過連接服務方法設定
+        /// 建立委派至子服務的 ToolUtility Facade。
+        /// Facade 只借用呼叫端提供的 IOrganizationService；連線的擁有者是 legacy
+        /// ToolUtilityClass 或 ASP.NET Core DI scope，Facade Dispose 僅釋放自己建立的
+        /// 子服務與連線輔助物件，絕不釋放共用的組織服務。
         /// </summary>
+        /// <param name="aOrganizationService">供子服務使用的 CRM 組織服務。</param>
+        /// <param name="logger">選用的診斷物件；未提供時使用無狀態預設物件。</param>
         public ToolUtilityFacade( IOrganizationService aOrganizationService, object logger = null)
         {
             _logger = logger ?? new object();
@@ -123,7 +128,9 @@ namespace ToolUtilityNameSpace.Core
                 if (_entityAttributeUtilityService?.IsValueCreated == true) { var d = _entityAttributeUtilityService.Value as IDisposable; d?.Dispose(); }
                 if (_activityService?.IsValueCreated == true) { var d = _activityService.Value as IDisposable; d?.Dispose(); }
 
-                (_organizationService as IDisposable)?.Dispose();
+                // _organizationService 由 ToolUtilityClass legacy 路徑或 DI scope 擁有。
+                // Facade 與所有子服務都只是借用者；若在此 Dispose，request scope 結束時
+                // 會再次歸還同一條池化連線，可能造成跨 request 重用已失效租約。
             }
             _disposed = true;
         }

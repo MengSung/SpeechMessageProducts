@@ -23,6 +23,12 @@ namespace ToolUtilityNameSpace.Factory
     /// Factory 負責建立、管理及防護管理 ToolUtilityClass 的實例
     /// 遵守 SOLID 的單一職責原則 (Single Responsibility Principle)
     /// </summary>
+    /// <remarks>
+    /// 本工廠是 Run 3 完成 35 個呼叫點遷移前的 legacy 過渡路徑，維持程序級單例並
+    /// 使用 ToolUtilityClass 的「自行建立連線」建構式。工廠刻意不從 DI 解析
+    /// IOrganizationService，避免把 request-scoped 池化連線捕獲為 captive dependency。
+    /// Run 3 完成後才可移除這條路徑；ResetInstance 只釋放本工廠自行建立的實例。
+    /// </remarks>
     public sealed class ToolUtilityFactory
     {
         private static readonly object _lock = new object();
@@ -73,7 +79,7 @@ namespace ToolUtilityNameSpace.Factory
         }
 
         /// <summary>
-        /// 獲得 ToolUtilityClass 的單一實例 (Thread-Safe Double-Check Locking)
+        /// 獲得 legacy 程序級單一實例（Thread-Safe Double-Check Locking）。
         /// </summary>
         /// <returns>ToolUtilityClass 實例</returns>
         public static ToolUtilityClass GetInstance()
@@ -103,7 +109,8 @@ namespace ToolUtilityNameSpace.Factory
         }
 
         /// <summary>
-        /// 獲得 ToolUtilityClass 的單一實例，使用指定的 DiscoveryServiceType
+        /// 獲得 legacy 程序級單一實例，使用指定的 DiscoveryServiceType。
+        /// 此方法維持自行建立連線的 Factory 路徑，不接觸 DI scope。
         /// </summary>
         /// <param name="discoveryServiceType">服務類型</param>
         /// <returns>ToolUtilityClass 實例</returns>
