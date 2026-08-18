@@ -12,9 +12,12 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using System;
+using ToolUtilityNameSpace.ConnectionOperations;
+using ToolUtilityNameSpace.Dataverse;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace ToolUtilityNameSpace.DependencyInjection
@@ -35,12 +38,64 @@ namespace ToolUtilityNameSpace.DependencyInjection
         /// <returns>服務集合</returns>
         public static IServiceCollection AddToolUtility(this IServiceCollection services)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            // Manager 與 pool 都是程序級資源擁有者；它們只能依賴 Singleton，
+            // 絕不捕獲 request-scoped service。TryAdd 讓測試或其他產品可先提供
+            // 自己的假連線服務，而不會意外建立第二個組合根實例。
+            services.TryAddSingleton<ICrmConnectionService, CrmConnectionService>();
+            services.TryAddSingleton<DataversePoolOptions>(sp =>
+            {
+                var options = new DataversePoolOptions();
+                sp.GetRequiredService<IConfiguration>()
+                    .GetSection("Dataverse:Pool")
+                    .Bind(options);
+                options.Validate();
+                return options;
+            });
+            services.TryAddSingleton<DataverseConnectionManager>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                return new DataverseConnectionManager(
+                    sp.GetRequiredService<ICrmConnectionService>(),
+                    configuration,
+                    "ChurchReport",
+                    ResolveEnvironmentName(configuration),
+                    sp.GetRequiredService<DataversePoolOptions>());
+            });
+            services.TryAddSingleton<IDataverseConnectionManager>(sp =>
+                sp.GetRequiredService<DataverseConnectionManager>());
+            services.TryAddSingleton<IBoundedClientPool>(sp =>
+                sp.GetRequiredService<DataverseConnectionManager>().Pool);
+            services.TryAddSingleton<ICrmConnectionPool>(sp =>
+                new ConnectionPoolStatsAdapter(sp.GetRequiredService<IDataverseConnectionManager>()));
+            services.TryAddScoped<IDataverseGateway, DataverseGateway>();
+            services.TryAddScoped<IOrganizationService, GatewayOrganizationService>();
+
             services.AddScoped<ToolUtilityClass>(sp => new ToolUtilityClass(
                 sp.GetRequiredService<IOrganizationService>(),
                 sp.GetRequiredService<IToolUtilityTracer>(),
                 sp.GetRequiredService<IConfiguration>()));
             services.AddScoped<IToolUtilityProvider, ToolUtilityProvider>();
             return services;
+        }
+
+        /// <summary>
+        /// 解析主機環境名稱而不讓 ToolUtility 組件直接依賴 ASP.NET Core。
+        /// Web Host 會把環境名稱放入組態；測試與非 Web 組合根則使用明確的
+        /// DOTNET/ASPNETCORE 環境變數，最後才回到 Production。這個值只進入
+        /// Pool Key，不承載使用者身分，也不會使不同環境共用 client。
+        /// </summary>
+        private static string ResolveEnvironmentName(IConfiguration configuration)
+        {
+            return configuration["ASPNETCORE_ENVIRONMENT"]
+                ?? configuration["DOTNET_ENVIRONMENT"]
+                ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+                ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+                ?? "Production";
         }
     }
 }

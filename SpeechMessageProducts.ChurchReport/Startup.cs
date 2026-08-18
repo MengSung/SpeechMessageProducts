@@ -38,7 +38,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace.DependencyInjection;
-using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
 using LineMessagingProcessor.AspNetCore;
 using LineMessagingProcessor.RichMenus;
@@ -303,67 +302,10 @@ namespace ChurchReport
             Console.WriteLine("[Startup] ✅ Session 監控服務已註冊（DEBUG 模式）");
 #endif
 
-            // ========================================
-            // 註冊 CRM 連接池 (Singleton 模式)
-            // ========================================
-            // 註冊 CRM 連接池服務，使用 Singleton 模式確保全應用程式共用一個連接池實例。
-            // 從配置中讀取 CRM 連接參數，包括伺服器 URL、認證資訊和連接池設定。
-            services.AddSingleton<CrmConnectionPool>(sp =>
-            {
-                // 建立 CRM 連接服務實例。
-                var connectionService = new CrmConnectionService();
-
-                // 從配置中取得 CRM 連接相關設定區段。
-                var crmConfig = Configuration.GetSection("CrmConnection");
-
-                // 讀取伺服器 URL，若配置中未設定則使用預設值。
-                var serverUrl = crmConfig["ServerUrl"] ?? "https://jesus.speechmessage.com.tw/XRMServices/2011/Organization.svc";
-
-                // 讀取使用者名稱，若配置中未設定則使用預設值。
-                var username = crmConfig["Username"] ?? @"SPEECHMESSAGE\Administrator";
-
-                // 讀取密碼：避免硬編碼預設密碼（Hardcoded secret）。
-                // 建議來源：Environment Variables / Secret Manager / Key Vault
-                var password = crmConfig["Password"]
-                               ?? Environment.GetEnvironmentVariable("CRM_PASSWORD");
-                if (string.IsNullOrWhiteSpace(password))
-                {
-                    throw new InvalidOperationException(
-                        "CRM password is not configured. Set CrmConnection:Password or environment variable CRM_PASSWORD.");
-                }
-
-                // 讀取最小連接池大小，若配置中未設定則使用預設值 3。
-                var minPoolSize = int.TryParse(crmConfig["MinPoolSize"], out var minSize) ? minSize : 3;
-
-                // 讀取最大連接池大小，若配置中未設定則使用預設值 20。
-                var maxPoolSize = int.TryParse(crmConfig["MaxPoolSize"], out var maxSize) ? maxSize : 20;
-
-                // 讀取連接超時秒數，若配置中未設定則使用預設值 30。
-                var connectionTimeoutSeconds = int.TryParse(crmConfig["ConnectionTimeoutSeconds"], out var connTimeout) ? connTimeout : 30;
-
-                // 讀取閒置超時分鐘數，若配置中未設定則使用預設值 10。
-                var idleTimeoutMinutes = int.TryParse(crmConfig["IdleTimeoutMinutes"], out var idleTimeout) ? idleTimeout : 10;
-
-                // 建立並返回 CRM 連接池實例，使用讀取到的配置參數。
-                return new CrmConnectionPool(
-                    connectionService,
-                    serverUrl,
-                    username,
-                    password,
-                    minPoolSize: minPoolSize,      // 最小連接數：從配置讀取
-                    maxPoolSize: maxPoolSize,     // 最大連接數：從配置讀取
-                    connectionTimeout: TimeSpan.FromSeconds(connectionTimeoutSeconds),  // 連接超時：從配置讀取
-                    idleTimeout: TimeSpan.FromMinutes(idleTimeoutMinutes)         // 閒置超時：從配置讀取
-                );
-            });
-
-            // 既有元件仍透過介面取得同一個 singleton；不可另建第二個池，否則連線上限與使用者
-            // 隔離邊界會分裂而無法正確釋放。
-            services.AddSingleton<ICrmConnectionPool>(sp => sp.GetRequiredService<CrmConnectionPool>());
-
-            // IOrganizationService 為 request scope 所有。包裝器在建構時租借，在 scope 結束時
-            // 正常歸還；若傳輸狀態不確定則由池銷毀，避免跨使用者、跨 request 重用可疑通道。
-            services.AddScoped<IOrganizationService, PooledOrganizationService>();
+            // Dataverse Gateway、Singleton connection manager、keyed bounded pool、
+            // IOrganizationService 代理與 ICrmConnectionPool 相容 adapter 全部由
+            // ToolUtility 的組合根擴充方法註冊。這裡不再建立第二個舊池，避免
+            // 診斷計數、連線上限與 client 所屬權分裂；Startup 只保留產品層的配置來源。
 
             // ========================================
             // 🆕 新增：Health Checks（健康檢查）

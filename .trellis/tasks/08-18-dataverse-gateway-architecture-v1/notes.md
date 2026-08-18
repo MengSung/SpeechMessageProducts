@@ -76,7 +76,7 @@ dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --no-
 
 ### Commit
 
-Run A commit：待建立，訊息 `feat(dataverse): 新增 Keyed Bounded Pool 與 Lease 型別契約`。
+Run A commit：`7094489c`，訊息 `feat(dataverse): 新增 Keyed Bounded Pool 與 Lease 型別契約`。
 
 ## Run B 結果
 
@@ -144,4 +144,80 @@ git diff --stat HEAD -- SpeechMessageProducts.ChurchReport/
 
 ### Commit
 
-Run B commit：待建立，訊息 `feat(dataverse): 新增 ConnectionManager、Gateway 與 per-operation 代理`。
+Run B commit：`78d9bf38`，訊息 `feat(dataverse): 新增 ConnectionManager、Gateway 與 per-operation 代理`。
+
+## Run C 結果
+
+### 實作
+
+- `ServiceCollectionExtensions.AddToolUtility()` 現在註冊 Singleton `DataverseConnectionManager`、`IDataverseConnectionManager`、由 manager 擁有的 `IBoundedClientPool`、`ConnectionPoolStatsAdapter`，以及 Scoped `IDataverseGateway` 與 `GatewayOrganizationService`。
+- 池設定由 `Dataverse:Pool` 綁定五個參數；環境名稱優先取 Web Host 提供的 `ASPNETCORE_ENVIRONMENT`／`DOTNET_ENVIRONMENT` 組態，並進入 Pool Key。
+- `Startup.cs` 移除舊 `CrmConnectionPool`／`PooledOrganizationService` 建立路徑，不再建立第二個池；Controller 與 `ICrmConnectionPool` 注入契約維持不變。
+- 新增 `ConnectionPoolStatsAdapter`。它只映射 `GetStats()`，其餘 raw client API 明確拒絕，且不釋放不由它擁有的 Singleton manager。
+- 刪除 `ToolUtility/ConnectionOperations/PooledOrganizationService.cs` 及其已淘汰的測試；新增 `RunCServiceGraphTests.cs` 覆蓋 C1～C4。
+- 取捨理由：ToolUtility 不直接依賴 ASP.NET Hosting 套件，因此以 Host 組態提供的環境名稱解析值；不引入新的產品層參數或修改 Program.cs（不在 Run C 白名單）。
+
+### Run C TDD 紅燈原文
+
+```text
+RunCServiceGraphTests：4 個測試失敗
+System.InvalidOperationException: No service for type 'ToolUtilityNameSpace.Dataverse.IDataverseConnectionManager' has been registered.
+System.InvalidOperationException: No service for type 'Microsoft.Xrm.Sdk.IOrganizationService' has been registered.
+（失敗原因為 Run C 尚未註冊 Gateway／Manager 服務圖。）
+```
+
+### Run C C1～C4 原文
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --filter FullyQualifiedName~RunCServiceGraphTests --no-restore
+已通過! - 失敗:     0，通過:     4，略過:     0，總計:     4，持續時間: 89 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+### Run C 品質門檻原文
+
+```text
+dotnet build SpeechMessageProducts.sln -c Debug
+建置成功。
+    0 個警告
+    0 個錯誤
+經過時間 00:00:06.16
+```
+
+```text
+dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj
+已通過! - 失敗:     0，通過:    63，略過:     0，總計:    63，持續時間: 148 ms - ToolUtility.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj
+已通過! - 失敗:     0，通過:    23，略過:     0，總計:    23，持續時間: 316 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj
+失敗!  - 失敗:    22，通過:   305，略過:     0，總計:   327，持續時間: 1 s - ChurchReport.MemberInfo.Tests.dll (net10.0)
+```
+
+MemberInfo 維持既有基線，符合門檻（失敗不超過 22、通過不少於 305）。
+
+```text
+ENCODING OK
+CRLF OK
+```
+
+```text
+G5：NO OUTPUT
+```
+
+```text
+grep -rn "PooledOrganizationService" --include=*.cs . --exclude-dir=obj --exclude-dir=bin | grep -vE ":[0-9]+:\s*(//|///)"
+(no output)
+git diff --stat HEAD -- SpeechMessageProducts.ChurchReport/Controllers/
+(no output)
+```
+
+Run C 完成判定：C1、C2、C3、C4 全部通過；Controller 目錄無 diff；PooledOrganizationService 非註解命中為 0。
+
+### Commit
+
+Run C commit：訊息 `refactor(dataverse): 切換為 per-operation Gateway，淘汰 per-request 租約`。
