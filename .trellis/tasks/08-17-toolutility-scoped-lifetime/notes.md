@@ -457,3 +457,32 @@ session cache。人工回歸：等待人工回歸。
 
 範圍外發現：工作區原有 `.ccg/tasks/design-four-product-dataverse-connection-architecture/.turns.json`
 狀態檔變更，另有外部流程先行提交 `run3a-final-codex-prompt.md`；本 Run 未修改或回復它們。
+
+## Run 3-A 範圍阻擋紀錄（尚未開始實作）
+
+Run 3-A 的第 2.2 節將 `GalleryViewModel.cs:47` 視為「`GalleryViewModel` 未被 session
+快取」的 A 類呼叫點；實際原始碼顯示該前提不成立，且型別名稱亦有落差：
+
+- `GalleryViewModel.cs:21-32` 的 `GalleryViewModel` 不持有 `ToolUtilityClass`。
+- Factory 欄位位於同檔 `LineBindingViewModel` 的
+  `GalleryViewModel.cs:47`，不是 `GalleryViewModel`。
+- `Models/InMemoryDataContextSmallGroup.cs:1060-1103` 以
+  `SessionId + "_LineBindingViewModel"` 為鍵，將該 `LineBindingViewModel` 存入程序級
+  `IMemoryCache`；絕對與滑動過期均為 30 分鐘。
+
+因此，將 request-scoped `ToolUtilityClass` 以建構式或欄位注入該型別會形成 captive
+dependency，並使後續 request 取得已釋放的 CRM 租約；這違反本任務的跨使用者隔離與資源生命
+週期硬性規則。唯一安全的遷移形式是每次方法呼叫都接收目前 request 的
+`ToolUtilityClass` 參數，且絕不可存回 `LineBindingViewModel`。
+
+但此形式的既有呼叫端不只白名單內的
+`Controllers/AuthenticationController/AuthenticationController.LineBinding.cs:278,318`，還有白名單
+外的 `Controllers/HomeController.cs:532,576,616`（分別呼叫
+`GetContactInfomation` 與 `UpdateContactInfomation`）。移除 Factory 欄位後，這三個呼叫端都必須
+同步傳入目前 request 的 ToolUtility，否則無法編譯；保留無參數多載則會留下 Factory，不能滿足
+Run 3-A 第 7 節的 Tools/ViewModels 零命中要求。
+
+這是交辦分類與白名單的實際矛盾，而非可在白名單內安全修正的編譯問題。依本 Run「需要動白名單
+外檔案時，先寫入 notes.md 並停下來回報」的規則，尚未修改任何 Run 3-A `.cs`、測試、PRD 或
+後續票，亦未執行品質門檻或建立 commit。等待使用者決定是否授權將這個 session-cache 持有者
+重新分類為 B 類並調整後續範圍；本任務不自行提出或建立新的 Run。

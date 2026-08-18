@@ -12,7 +12,11 @@
 
 ## A. 登入（風險最高，先測）
 
-Run 2 改了連線生命週期，Run 3-A 改了 `GalleryViewModel`（登入用的 view model）。
+Run 2 改了連線生命週期 —— 登入路徑就是靠它取得 Dataverse 連線。
+
+> 註：原先以為 Run 3-A 會動到登入用的 `GalleryViewModel`，經查該檔案裡持有 Factory 的
+> 其實是同檔第 42 行的 `LineBindingViewModel`（B 類殘留，不遷移）。
+> 因此 Run 3-A **不會動到登入相關程式碼**，但 A 段仍要測 —— Run 2 已經改過連線生命週期。
 
 - [ ] **A1 帳密登入** —— 一般帳號密碼登入成功，進得了首頁
 - [ ] **A2 錯誤密碼** —— 出現正常的錯誤訊息，不是例外畫面
