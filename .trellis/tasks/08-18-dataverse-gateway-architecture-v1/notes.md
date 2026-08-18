@@ -221,3 +221,45 @@ Run C 完成判定：C1、C2、C3、C4 全部通過；Controller 目錄無 diff�
 ### Commit
 
 Run C commit：訊息 `refactor(dataverse): 切換為 per-operation Gateway，淘汰 per-request 租約`。
+
+## Run D 停止紀錄
+
+停止條件：**第 2 項——必須修改白名單以外的檔案才能繼續。**
+
+Run D 的完成判定要求移除 `ToolUtilityClass.Core.cs` 的 `m_OrganizationService` 欄位，並使全專案非註解 grep 為 0。但在動手前查核發現下列白名單外檔案仍含有實際程式碼參照或參數宣告；刪除欄位會直接造成編譯錯誤，改名或改走 `m_Crm2011OrganizationService` 也必須修改這些檔案：
+
+```text
+ToolUtility/ToolUtilityPartials/ToolUtilityClass.ActivityAttachment.cs:57,76
+ToolUtility/ToolUtilityPartials/ToolUtilityClass.List.cs:36,51,54
+ToolUtility/ToolUtilityPartials/ToolUtilityClass.Entity.cs:44,136,154
+ToolUtility/ToolUtilityPartials/ToolUtilityClass.Core.cs:40,192,196
+```
+
+查核原文：
+
+```text
+rg -n "OrganizationServiceProxy|m_OrganizationService|_crmConnectionService|_ownsConnection|InitializeCrmConnection|CreateOnPremiseClient" ToolUtility/ToolUtilityPartials ToolUtility --glob '*.cs' --glob '!**/bin/**' --glob '!**/obj/**'
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.ActivityAttachment.cs:57: _facade.SetActivityStatusToCompleted(ActivityName, aActivityId, m_OrganizationService);
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.ActivityAttachment.cs:76: _facade.SetAppointmentStatusToScheduled(aActivityId, m_OrganizationService);
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.List.cs:36: RetrieveMemberListCollectionByListIdDynamics365(ref OrganizationServiceProxy aOrganizationService, Guid aListId)
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.List.cs:51: RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, Guid strList)
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.List.cs:54: RetrieveDynamicMemberListDynamics365(ref OrganizationServiceProxy service, Guid aListId)
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.Entity.cs:44: CreateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeToCreate)
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.Entity.cs:136: UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, ref Entity aEntityTobeUpdated)
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.Entity.cs:154: UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeUpdated)
+```
+
+Run D 尚未修改任何檔案、尚未執行清除或提交。依憲章不得自行擴大白名單，因此本任務在此停止，等待白名單允許上述 ToolUtility partial 檔案後再繼續。
+
+### Run D 延續查核（未改動）
+
+```text
+目前 Run D 白名單（implement.md:260-270）未包含 ToolUtility/ToolUtilityPartials/ToolUtilityClass.ActivityAttachment.cs。
+rg -n "m_OrganizationService" ToolUtility/ToolUtilityPartials --glob '*.cs' --glob '!**/bin/**' --glob '!**/obj/**'
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.ActivityAttachment.cs:57: _facade.SetActivityStatusToCompleted(ActivityName, aActivityId, m_OrganizationService);
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.ActivityAttachment.cs:76: _facade.SetAppointmentStatusToScheduled(aActivityId, m_OrganizationService);
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.Core.cs:40: public OrganizationServiceProxy m_OrganizationService;
+ToolUtility/ToolUtilityPartials\ToolUtilityClass.Core.cs:196: try { (m_OrganizationService as IDisposable)?.Dispose(); } catch (ObjectDisposedException) { }
+```
+
+若不修改 `ToolUtilityClass.ActivityAttachment.cs`，A2 的全專案非註解 grep 不可能為 0；若保留欄位，Run D 的設計與 A2 又不成立。故停止條件 2 仍成立。
