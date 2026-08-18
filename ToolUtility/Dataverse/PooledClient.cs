@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Microsoft.Xrm.Sdk;
 using PowerPlatform.Dataverse.Client;
 
@@ -28,6 +29,7 @@ public enum PooledClientState
 /// </summary>
 public sealed class PooledClient
 {
+    private static long s_nextClientId;
     private readonly object _sync = new();
     private PooledClientState _state;
     private bool _disposeWhenReturned;
@@ -39,6 +41,7 @@ public sealed class PooledClient
     public PooledClient(IOrganizationService service, DateTime? now = null)
     {
         Service = service ?? throw new ArgumentNullException(nameof(service));
+        ClientId = "c-" + Interlocked.Increment(ref s_nextClientId);
         var timestamp = now ?? DateTime.UtcNow;
         LastUsedUtc = timestamp;
         // 新建 client 尚未經過 WhoAmI；第一次出借必須先驗證，避免把未確認通道交給呼叫端。
@@ -51,6 +54,12 @@ public sealed class PooledClient
     /// request 特有狀態都必須在歸還前移除，否則 client 會被標記 Faulted 並確定性淘汰。
     /// </summary>
     public IOrganizationService Service { get; }
+
+    /// <summary>
+    /// 取得由 pool 建立時指派且終生不變的非業務 client 識別碼。它不包含 URL、帳號、租戶或
+    /// CRM 資料，只用於 JSONL 稽核同一條實體連線的 lease 是否重疊；序號不會用作授權或路由依據。
+    /// </summary>
+    public string ClientId { get; }
 
     /// <summary>取得最後一次 WhoAmI 健康驗證時間，供 pool 判定下次租借是否需要重驗。</summary>
     public DateTime LastValidatedUtc { get; private set; }

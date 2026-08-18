@@ -21,14 +21,20 @@ public sealed class DataverseGateway : IDataverseGateway, IDisposable
         _manager = manager ?? throw new ArgumentNullException(nameof(manager));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 在目前 Gateway 範圍執行不回傳值的 Dataverse 操作。外層呼叫取得一次 lease，巢狀呼叫只增加深度；
+    /// Trace 僅記錄進出深度，絕不攔截、吞沒或改寫底層例外與 lease 的 faulted 決策。
+    /// </summary>
     public void Execute(Action<IOrganizationService> work)
     {
         if (work == null) throw new ArgumentNullException(nameof(work));
         Execute<object>(service => { work(service); return null; });
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 在目前 scope 的唯一 lease 上執行 Dataverse 操作。lease 會在最外層 finally 中歸還，例外則先標為
+    /// faulted；啟用 Trace 時只於這些既有邊界記錄 reentrant 深度，以驗證同一 request 不會重複租借 client。
+    /// </summary>
     public T Execute<T>(Func<IOrganizationService, T> work)
     {
         if (work == null) throw new ArgumentNullException(nameof(work));
@@ -37,6 +43,9 @@ public sealed class DataverseGateway : IDataverseGateway, IDisposable
         if (_depth == 0)
             _lease = _manager.Acquire();
         _depth++;
+        var trace = DataverseTrace.Current;
+        if (trace?.Enabled == true)
+            trace.GatewayExecuteEnter(_depth);
         try
         {
             return work(_lease.Service);
@@ -48,6 +57,8 @@ public sealed class DataverseGateway : IDataverseGateway, IDisposable
         }
         finally
         {
+            if (trace?.Enabled == true)
+                trace.GatewayExecuteExit(_depth);
             _depth--;
             if (_depth == 0)
             {

@@ -613,3 +613,92 @@ CRLF OK
 本 Run 的變更僅限 `ToolUtility/Dataverse/PooledClient.cs`、`ToolUtility/Dataverse/BoundedClientPool.cs`、`ToolUtility/Dataverse/DataverseConnectionManager.cs`、`ToolUtility.Dataverse.Tests/BoundedClientPoolTests.cs`，以及交付要求的本檔與 `docs/architecture/dataverse-gateway-v1.md`。四個變更的 C# 檔案均已重新以 UTF-8 without BOM、CRLF 與最終 CRLF 寫入，並補足 CallerId、Pool、Lease、Timer、Dispose、跨 request 隔離與測試 double 的繁體中文生命週期文件。
 
 `.ccg/tasks/design-four-product-dataverse-connection-architecture/.turns.json` 在 Run F 開始前即已由外部流程變更；本 Run 未讀寫、暫存或提交它。
+
+## Run G 結果
+
+### 實作、隔離與 schema 契約
+
+- 新增 `DataverseTrace`、HTTP middleware 與 T1～T7。開關預設為關閉，關閉熱路徑只有一次 `Enabled` 讀取及分支；啟用時由 singleton 背景工作以 UTF-8 無 BOM JSONL 非同步寫入、定期 flush，並以 64MB 單檔／最多 5 檔、有限佇列與丟棄最舊事件限制磁碟與記憶體保留。DI 關閉時會取消、drain、flush 並釋放 writer、CTS 與 HMAC salt。
+- `PooledClient.ClientId` 以程序遞增序號建立且終生不變。Pool/Gateway/兩個 service proxy 僅在既有邊界增加觀測，不攔截例外、不改變 lease、CallerId 清除、fault eviction、cleanup 或 fail-fast 行為。
+- 外部分析器契約逐字維持：`traceId` 取 `HttpContext.TraceIdentifier`，`user` 為程序內隨機 salt 的 HMAC-SHA256 前 8 碼，絕不寫入姓名、帳號、email、會友 ID 或 CRM 資料；`poolKey` 只保留 `Product|Environment|Host|EffectiveIdentity`，不含密碼；`callerIdAtReturn` 在 Run F 清除前讀取；`stateAtDispose` 緊鄰實際 Dispose 讀取；每次 acquire/return 與 crm.op 均以 leaseId 關聯。
+- 使用者本 Run 已將 `ToolUtility/ToolUtility.csproj` 納入白名單。為供共用工具層的 middleware 使用 ASP.NET Core HTTP 管道型別，加入 `Microsoft.AspNetCore.App` FrameworkReference；既有相容 PackageReference 與 shared-framework 資產重疊而產生的 NU1510，僅在此專案抑制，solution build 仍為 0 warnings／0 errors。
+
+### TDD 紅燈原文
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --filter FullyQualifiedName~DataverseTraceTests --no-restore
+[xUnit.net 00:00:00.51]     ToolUtility.Dataverse.Tests.DataverseTraceTests.End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction [FAIL]
+  失敗 ToolUtility.Dataverse.Tests.DataverseTraceTests.End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction [122 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 1
+Actual:   0
+  堆疊追蹤:
+     at ToolUtility.Dataverse.Tests.DataverseTraceTests.End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction() in ToolUtility.Dataverse.Tests\DataverseTraceTests.cs:line 335
+
+失敗!  - 失敗:     1，通過:     6，略過:     0，總計:     7，持續時間: 252 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+紅燈證明尚未接線時，端對端稽核確實看不到 pool.acquire 事件；補上既有邊界的觀測呼叫後，T1～T7 皆納入下列 36 個綠燈測試。
+
+### 品質門檻原文
+
+```text
+dotnet build SpeechMessageProducts.sln -c Debug
+
+建置成功。
+    0 個警告
+    0 個錯誤
+
+經過時間 00:00:02.55
+```
+
+```text
+dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj
+
+已通過! - 失敗:     0，通過:    63，略過:     0，總計:    63，持續時間: 55 ms - ToolUtility.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj
+
+已通過! - 失敗:     0，通過:    36，略過:     0，總計:    36，持續時間: 538 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj
+
+失敗!  - 失敗:    22，通過:   305，略過:     0，總計:   327，持續時間: 1 s - ChurchReport.MemberInfo.Tests.dll (net10.0)
+```
+
+```text
+git diff --stat HEAD -- SpeechMessageProducts.ChurchReport/Controllers/
+(no output)
+
+rg -n "#if DEBUG" ToolUtility/Dataverse/
+NO OUTPUT
+
+rg -n "Trace\.Listeners|AutoFlush" ToolUtility/Dataverse/
+NO OUTPUT
+
+git diff --check HEAD
+(no output)
+
+ENCODING OK
+CRLF OK
+```
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj --no-build --no-restore --filter FullyQualifiedName!~DataverseTraceTests
+
+已通過! - 失敗:     0，通過:    29，略過:     0，總計:    29，持續時間: 478 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+TRACE-DISABLED EXISTING-SUITE ELAPSED: 2389 ms
+```
+
+Trace 關閉的既有 29 個 Run F 測試執行時間為 478ms，未高於約 956ms 的基線。MemberInfo 的 22 失敗／305 通過是既有基線，失敗內容仍為 Payments 命名與 repository-root 假設；本 Run 沒有修改 Controllers。
+
+### 稽核結果
+
+- 本機稽核曾發現 AsyncLocal 所有權、停用 Trace 的 CTS 釋放與 writer I/O fault 清理問題；均已改為 request-flow 範圍、無條件釋放與 fail-closed cleanup，之後重新建置、測試與編碼檢查。
+- Gemini 最終審查為 PASS，無 Critical。Claude 依 self-healing runner 連續兩次均回報 `no-usable-output`，非 quota-blocked；因此本 Run 不宣稱完成雙模型審查。
+- `.ccg/tasks/design-four-product-dataverse-connection-architecture/.turns.json` 與 `.ccg/dual-model-runs/**` 均為外部流程狀態，不屬 Run G 白名單；未暫存或提交。

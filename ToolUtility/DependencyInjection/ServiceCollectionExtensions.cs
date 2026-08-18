@@ -47,6 +47,16 @@ namespace ToolUtilityNameSpace.DependencyInjection
             // 絕不捕獲 request-scoped service。TryAdd 讓測試或其他產品可先提供
             // 自己的假連線服務，而不會意外建立第二個組合根實例。
             services.TryAddSingleton<ICrmConnectionService, CrmConnectionService>();
+            services.TryAddSingleton<DataverseTraceOptions>(sp =>
+            {
+                var options = DataverseTraceOptions.FromConfiguration(
+                    sp.GetRequiredService<IConfiguration>());
+                options.Validate();
+                return options;
+            });
+            // Trace 是唯一擁有背景佇列、檔案與程序內 HMAC salt 的 singleton；它不依賴
+            // scoped service，也不保存 HttpContext，request 關聯只在 middleware 的 AsyncLocal 範圍內存在。
+            services.TryAddSingleton<DataverseTrace>();
             services.TryAddSingleton<DataversePoolOptions>(sp =>
             {
                 var options = new DataversePoolOptions();
