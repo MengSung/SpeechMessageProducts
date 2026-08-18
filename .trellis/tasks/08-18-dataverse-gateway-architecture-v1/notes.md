@@ -422,3 +422,107 @@ CRLF OK
 ```
 
 Run D 重新驗證維持 0 build error／0 build warning、ToolUtility 63 綠、Dataverse 24 綠、MemberInfo 22 失敗／305 通過基線；D1～D3、D4、A1、A2、G4、G5 均符合門檻。CCG 審查由 Gemini 完成且無 Critical；Claude runner 兩次均無可用輸出，未宣稱雙模型審查完成。審查唯一 Warning 為 Core.cs 未使用的歷史設定 getter，屬本 Run 範圍外清理，不修改。
+
+## Run E 結果
+
+### 實作與取捨
+
+- 在 base、Development、Production 三個 `appsettings*.json` 都建立 `Dataverse:Pool`，完整外部化 `MinSize`、`MaxN`、`AcquireTimeout`、`IdleTimeout`、`HealthInterval`。Development 保持較小容量以加速本機測試；Production 保留舊池的 5／30 容量並補上未曾外部化的 `HealthInterval`。
+- 已刪除 `appsettings.Production.json` 孤立的舊 `ConnectionPool` 區段，新的 `Dataverse:Pool` 是唯一 pool 調校來源；base `CrmConnection` 中的連線端點／認證相容設定沒有變動。
+- 新增 `docs/architecture/dataverse-gateway-v1.md`，逐格對照圖上 ①～⑩、實作型別、生命週期邊界與對應測試，並說明產品 B/C/D 的安全複用規則。
+- `prd.md` 的 A1～A14 已逐條標記達成並連結實際命令／測試證據；A15 仍明確標為等待人工回歸。
+- 本 Run 沒有新增或實質修改 `.cs`；G3 的繁中 XML 文件檢查不適用，既有 Run A～D 的程式文件驗證維持有效。
+
+### Run E 品質門檻原文
+
+```text
+dotnet build SpeechMessageProducts.sln -c Debug
+建置成功。
+    0 個警告
+    0 個錯誤
+經過時間 00:00:11.40
+```
+
+```text
+dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj
+已通過! - 失敗:     0，通過:    63，略過:     0，總計:    63，持續時間: 160 ms - ToolUtility.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj
+已通過! - 失敗:     0，通過:    24，略過:     0，總計:    24，持續時間: 737 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+```
+
+```text
+dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj
+失敗!  - 失敗:    22，通過:   305，略過:     0，總計:   327，持續時間: 1 s - ChurchReport.MemberInfo.Tests.dll (net10.0)
+```
+
+MemberInfo 的 22 個失敗／305 個通過與本任務基線相同；失敗仍是既有 Payments 命名／repository-root 測試，不因本 Run 的組態與文件變更而惡化。ToolUtility test 輸出的既有 NU1701／nullable warnings 未出現在 solution build；G1 所要求的 solution build 仍為 0 warnings／0 errors。
+
+```text
+ConvertFrom-Json（base／Development／Production）
+BASE JSON OK
+DEVELOPMENT JSON OK
+PRODUCTION JSON OK
+
+Dataverse:Pool 五個鍵檢查
+base POOL KEYS OK
+development POOL KEYS OK
+production POOL KEYS OK
+PRODUCTION LEGACY CONNECTIONPOOL ABSENT
+```
+
+```text
+A1 ToolUtilityClass CreateOnPremiseClient
+NO OUTPUT
+A2 m_OrganizationService non-comment
+NO OUTPUT
+A3 PooledOrganizationService non-comment
+NO OUTPUT
+G5 ChurchReport type ownership
+NO OUTPUT
+G4
+ENCODING OK
+CRLF OK
+git diff --check HEAD
+(no output)
+```
+
+### 範圍外發現
+
+- Run D 驗證期間的 CCG runner 由外部流程建立並被外部提交 `62e05a60` 一併納入 `.ccg/dual-model-runs/**` 與 `.ccg/tasks/**/.turns.json`；這些不屬 Run D 白名單。本 Run 沒有再加入、修改、暫存或提交 CCG 狀態。因該提交已存在於 `origin/feat/dataverse-scoped-connection`，未自行重寫共享分支歷史。
+- `ToolUtilityClass.Core.cs` 的未使用歷史設定 getter 仍保留，見 Run D 範圍外發現；本 Run 沒有擴大清理。
+
+## 本任務結案
+
+### 圖 ①～⑩ 的完成狀態
+
+| 圖上格 | 狀態 | 實作 |
+|---|---|---|
+| ① | 完成 | `ToolUtilityClass`／`ToolUtilityFacade` 維持既有 API，DI 取得 gateway 代理。 |
+| ② | 完成 | Scoped `GatewayOrganizationService` 與 `IDataverseGateway`。 |
+| ③ | 完成 | `IClientLease`、`DataverseConnectionManager`、`DataversePoolMetrics`。 |
+| ④ | 完成 | Keyed `BoundedClientPool` 與 `PooledClient` 狀態機。 |
+| ⑤ | 完成 | `DataverseConnectionKey` 的四段隔離鍵。 |
+| ⑥ | 完成 | Scoped `DataverseGateway` reentrant depth。 |
+| ⑦ | 完成 | 每次最外層 CRM 操作取得／歸還 lease，例外 fault eviction。 |
+| ⑧ | 完成 | `DataversePoolOptions` + 三份 `Dataverse:Pool` 五參數組態。 |
+| ⑨ | 完成 | 移除 legacy 自建連線、raw proxy 死碼，Factory 改 ambient gateway。 |
+| ⑩ | 完成 | Manager 以 Product／Environment／URL／服務帳號解析 key。 |
+
+### A1～A15 最終狀態
+
+`prd.md` 的 A1～A14 均已達成且附上實際證據；A15 是唯一保留的人工工作，不是 agent 完成條件。人工回歸請使用 `.trellis/tasks/08-17-toolutility-scoped-lifetime/regression-checklist.md`。
+
+### Run Commit 紀錄
+
+| Run | Commit |
+|---|---|
+| A | `7094489cc` — `feat(dataverse): 新增 Keyed Bounded Pool 與 Lease 型別契約` |
+| B | `78d9bf38c` — `feat(dataverse): 新增 ConnectionManager、Gateway 與 per-operation 代理` |
+| C | `0cf0fdf2b` — `refactor(dataverse): 切換為 per-operation Gateway，淘汰 per-request 租約` |
+| D | `62e05a60c` — 外部流程提交的 legacy 路徑清除（驗證結果見 Run D）。 |
+| E | 本節所在的 `docs(dataverse): Gateway 架構 v1 收斂與驗收紀錄` 提交；其最終 hash 由提交後的 `git log -1` 交付。 |
+
+結論：Run A～E 的程式、組態、架構文件與自動驗收均已收斂；等待使用者執行人工登入／CRM 回歸清單。

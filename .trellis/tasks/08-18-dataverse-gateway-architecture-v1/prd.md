@@ -107,6 +107,26 @@ Gateway、ConnectionManager、Keyed Bounded Pool、Lease、狀態機、Pool Key�
 | A14 | `ToolUtility.Tests` 63 全綠；`ToolUtility.Dataverse.Tests` 全綠（含本任務新增）；`ChurchReport.MemberInfo.Tests` 失敗 ≤ 22 且通過 ≥ 305 |
 | A15 | 人工回歸（沿用 `08-17` 任務的 `regression-checklist.md`）—— **不列為 agent 完成條件** |
 
+### Run E 實際驗收證據
+
+| # | 狀態 | 實際證據 |
+|---|---|---|
+| A1 | 達成 | Run D 的非註解等價 grep 輸出為 `NO OUTPUT`（`ToolUtilityClass` 及其 partials 無 `CreateOnPremiseClient`）；唯一建立位置是 `DataverseConnectionManager.CreateClient`。 |
+| A2 | 達成 | Run D 的 `m_OrganizationService` 非註解等價 grep 輸出為 `NO OUTPUT`。 |
+| A3 | 達成 | Run C 的 `PooledOrganizationService` 非註解 grep 輸出為空；Run C 已刪除型別及其測試。 |
+| A4 | 達成 | `ToolUtility/Dataverse/` 包含五個契約型別，Run A/B 的 `PoolArchitectureTests` 與 `GatewayArchitectureTests` 已通過。 |
+| A5 | 達成 | `GatewayArchitectureTests` 的三層巢狀 Execute 測試通過，斷言只取得一條 lease。 |
+| A6 | 達成 | `PoolArchitectureTests` 的同 client 不可同時由兩個 lease 持有測試通過。 |
+| A7 | 達成 | `PoolArchitectureTests` 的 `MarkFaulted` client 不回池且計數遞減測試通過。 |
+| A8 | 達成 | `PoolArchitectureTests` 的相同／不同 `DataverseConnectionKey` 子池分割測試通過；Manager 的 EffectiveIdentity 取服務帳號。 |
+| A9 | 達成 | `PoolArchitectureTests` 的 MaxN timeout 測試通過，並斷言 `AcquireTimeouts` 增加。 |
+| A10 | 達成 | Run C `RunCServiceGraphTests` C2 通過：三個並行 scope 結束後 Leased 為 0 且 pool 大小不超過 MaxN。 |
+| A11 | 達成 | Run B ambient fallback 測試及 Run D D2 通過：無 HttpContext 時建立一個 scope、操作後已釋放且 Leased 為 0。 |
+| A12 | 達成 | Run C `RunCServiceGraphTests` 的五參數組態覆寫測試通過；Run E 已將五項完整寫入 `Dataverse:Pool` 的 base、Development、Production 組態。 |
+| A13 | 達成 | Run E 最終 `dotnet build SpeechMessageProducts.sln -c Debug` 輸出為 0 warnings／0 errors；原文已記入 notes.md。 |
+| A14 | 達成 | Run E 最終輸出：ToolUtility 63 passed、Dataverse 24 passed、MemberInfo 22 failed／305 passed，符合既定基線；原文已記入 notes.md。 |
+| A15 | 等待人工回歸 | 非 agent 完成條件；沿用 `.trellis/tasks/08-17-toolutility-scoped-lifetime/regression-checklist.md`。 |
+
 ## 不在範圍（明確排除，不得中途擴大）
 
 - **產品 B / C / D 的實作。** 本任務只做 A，但所有新型別必須放在可被 B/C/D 直接引用的組件
