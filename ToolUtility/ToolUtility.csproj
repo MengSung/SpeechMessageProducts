@@ -28,8 +28,8 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.0" />
     
     <!-- Microsoft Identity -->
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.66.2" />
-    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.66.2" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.87.0" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.87.0" />
     
     <!-- JSON -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
@@ -37,7 +37,7 @@
     <!-- System Libraries -->
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
     <PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="10.0.652802" />
     

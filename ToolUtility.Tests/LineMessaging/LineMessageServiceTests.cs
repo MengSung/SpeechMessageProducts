@@ -27,14 +27,16 @@ namespace ToolUtility.Tests.LineMessaging
         [Fact]
         public void CreatePushMessage_ShouldCallCreateEntity()
         {
-            var mockCrud = new Mock<IEntityCrudService>();
+            // LineMessageService.CreatePushMessage 實際呼叫 IOrganizationService.Create，
+            // 因此替身與斷言都必須建立在該邊界上。
+            var mockCrud = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
             var service = new LineMessageService(mockLogger.Object, mockCrud.Object);
 
             service.CreatePushMessage("U123", "sub", "hello");
 
-            mockCrud.Verify(x => x.CreateEntity(It.IsAny<Entity>()), Times.Once);
+            mockCrud.Verify(x => x.Create(It.IsAny<Entity>()), Times.Once);
         }
     }
 }

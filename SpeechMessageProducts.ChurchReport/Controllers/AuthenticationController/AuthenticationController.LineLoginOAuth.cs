@@ -481,11 +481,8 @@ namespace ChurchReport.Controllers
                         return RedirectToAction("Login");
                     }
 
-                    IOrganizationService service = null;
-                    try
-                    {
-                        service = GetConnection();
-                        var query = new QueryExpression("contact")
+                    var service = _organizationService;
+                    var returnUrlQuery = new QueryExpression("contact")
                         {
                             ColumnSet = new ColumnSet("contactid", "fullname", "new_lineid"),
                             Criteria = new FilterExpression
@@ -499,18 +496,13 @@ namespace ChurchReport.Controllers
                             },
                             TopCount = 1
                         };
-                        var results = service.RetrieveMultiple(query);
-                        if (results.Entities.Count == 0)
-                        {
-                            System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 此 LINE ID 尚未綁定，重導向至綁定頁面");
-                            return Redirect(GetBindingPageUrl());
-                        }
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {results.Entities[0].GetAttributeValue<string>("fullname")}");
-                    }
-                    finally
+                    var results = service.RetrieveMultiple(returnUrlQuery);
+                    if (results.Entities.Count == 0)
                     {
-                        ReleaseConnection(service);
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 此 LINE ID 尚未綁定，重導向至綁定頁面");
+                        return Redirect(GetBindingPageUrl());
                     }
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {results.Entities[0].GetAttributeValue<string>("fullname")}");
 
                     try
                     {
@@ -532,11 +524,8 @@ namespace ChurchReport.Controllers
                 }
 
                 // 一般登入流程（無 returnUrl）
-                IOrganizationService service2 = null;
+                var service2 = _organizationService;
                 Entity foundContact2 = null;
-                try
-                {
-                    service2 = GetConnection();
                     var query = new QueryExpression("contact")
                     {
                         ColumnSet = new ColumnSet("contactid", "fullname", "new_lineid"),
@@ -551,19 +540,14 @@ namespace ChurchReport.Controllers
                         },
                         TopCount = 1
                     };
-                    var results = service2.RetrieveMultiple(query);
-                    if (results.Entities.Count == 0)
-                    {
-                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 此 LINE ID 尚未綁定，重導向至綁定頁面");
-                        return Redirect(GetBindingPageUrl());
-                    }
-                    foundContact2 = results.Entities[0];
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {foundContact2.GetAttributeValue<string>("fullname")}");
-                }
-                finally
+                var results2 = service2.RetrieveMultiple(query);
+                if (results2.Entities.Count == 0)
                 {
-                    ReleaseConnection(service2);
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 此 LINE ID 尚未綁定，重導向至綁定頁面");
+                    return Redirect(GetBindingPageUrl());
                 }
+                foundContact2 = results2.Entities[0];
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {foundContact2.GetAttributeValue<string>("fullname")}");
 
                 try
                 {

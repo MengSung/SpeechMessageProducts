@@ -13,10 +13,13 @@
 // ============================================================================
 using ChurchReport.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
@@ -83,8 +86,15 @@ namespace ChurchReport.Controllers
                 // - 不要在背景工作中存access HttpContext/Session：因此事先捕獲所需資料到區域變數（上方）。
                 _ = Task.Run(async () =>
                 {
+                    ToolUtilityClass toolUtility = null;
                     try
                     {
+                        // 背景工作不得捕獲 request scope 的 ToolUtility。此 scope 由背景工作
+                        // 擁有，並在工作完成時釋放，確保 CRM lease 不會跨 request 存活。
+                        using var scope = _scopeFactory.CreateScope();
+                        var toolUtilityProvider = scope.ServiceProvider.GetRequiredService<IToolUtilityProvider>();
+                        toolUtility = toolUtilityProvider.GetToolUtility();
+
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 開始背景上傳...");
                         // 開始背景上傳的調試訊息
 
@@ -155,7 +165,8 @@ namespace ChurchReport.Controllers
 
                         try
                         {
-                            ToolUtility?.TraceByLevel(1, 1,
+                            // catch 位於 using scope 之外；不可再使用已釋放的 Scoped ToolUtility。
+                            ToolUtilityClass.TraceByLevelStatic(1, 1,
                                 $"SaveIntegrate 背景上傳失敗: {ex.Message}\n{ex.StackTrace}"); // 追蹤背景上傳失敗的細節
                         }
                         catch

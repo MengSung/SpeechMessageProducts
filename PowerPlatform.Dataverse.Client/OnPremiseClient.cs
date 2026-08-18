@@ -19,18 +19,22 @@ using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
+using System.Threading;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace PowerPlatform.Dataverse.Client
 {
     /// <summary>
-    /// Implements <see cref="IOrganizationService"/> using SOAP authenticated via WS-Trust username and password.
+    /// 以 WS-Trust 使用者名稱與密碼實作 SOAP <see cref="IOrganizationService"/>，並負責釋放
+    /// 其持有的底層傳輸資源。此 client 由連線池獨佔租借，最長只活到池的歸還或銷毀路徑；
+    /// Dispose 對故障 WCF 通道使用 Abort，對可正常關閉的通道採有限逾時 Close，避免通道、socket
+    /// 或跨 request 的可變驗證狀態殘留。
     /// </summary>
     /// <remarks>
     /// Claims-based authentication, IFD and Active Directory authentication are all supported.
     /// </remarks>
-    public class OnPremiseClient : IOrganizationService
+    public class OnPremiseClient : IOrganizationService, IDisposable
     {
         /// <summary>
         /// Adds headers into the SOAP requests
@@ -65,6 +69,7 @@ namespace PowerPlatform.Dataverse.Client
         }
 
         private readonly IOrganizationService _service;
+        private int _disposed;
 
         private static readonly string _sdkVersion;
         private static readonly int _sdkMajorVersion;
@@ -360,6 +365,83 @@ namespace PowerPlatform.Dataverse.Client
             using (StartScope())
             {
                 _service.Update(entity);
+            }
+        }
+
+        /// <summary>
+        /// 釋放底層 Dataverse 傳輸資源。本方法為冪等，確保連線池、應用程式停止與例外清理
+        /// 競爭時只會執行一次收尾。
+        /// </summary>
+        /// <remarks>
+        /// 兩條建立路徑的釋放語意不同，必須分開處理：
+        /// Federated 路徑（<c>ConnectFederated</c>）取得的是 WCF <see cref="ICommunicationObject"/>，
+        /// 故障時只能 Abort，其餘狀態在有限逾時內 Close，Close 失敗仍需 Abort，避免半開通道殘留；
+        /// ActiveDirectory 路徑（<c>ConnectAD</c>）取得的是 <c>ADAuthClient</c>，其網路資源皆由每次
+        /// 操作內部的 using 範圍擁有並立即釋放，沒有長壽通道可關閉，因此不虛構關閉步驟。
+        ///
+        /// 資源最大生命週期：等同呼叫端（連線池）對本物件的所有權期間。本方法回傳後傳輸層資源
+        /// 已確定性釋放，不依賴 GC 或終結程序。
+        ///
+        /// 重要歷史，請勿重蹈：本方法曾一度被改成「不關閉任何東西」，因為當時只要確實關閉通道，
+        /// 登入就會失敗。真正的原因不在本方法，而在呼叫端的生命週期錯誤 —— per-request 的
+        /// <c>BaseChurchController</c> 以及 operation 範圍的 <c>LineUtilityClass</c>、
+        /// <c>RecurringDonationPaymentProcessor</c> 會去 Dispose 程序級單例 <c>ToolUtilityClass</c>，
+        /// 連帶關閉該單例持有的連線；<c>DownloadListManager</c> 另外會把 request 範圍的連線寫進
+        /// 該單例。在本型別尚未實作 <see cref="IDisposable"/> 之前，那些 Dispose 全是空操作，
+        /// 錯誤因而被長期遮蔽。上述四處已修正，本方法才恢復確定性關閉。
+        ///
+        /// 若日後再出現 <see cref="ObjectDisposedException"/>（ServiceChannel 已關閉），
+        /// 應先檢查是否又有短命物件釋放了長命單例，而不是把本方法改回空實作。
+        /// </remarks>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+            if (_service is ICommunicationObject communicationObject)
+            {
+                CloseCommunicationObject(communicationObject);
+                return;
+            }
+
+            if (_service is ADAuthClient)
+            {
+                // ADAuthClient 不保存 WCF 通道，也未實作 IDisposable；網路資源皆由每次操作內部
+                // using 範圍擁有並立即釋放，故此處沒有可安全關閉的持久資源。
+                return;
+            }
+
+            if (_service is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        private static void CloseCommunicationObject(ICommunicationObject communicationObject)
+        {
+            if (communicationObject.State == CommunicationState.Faulted)
+            {
+                communicationObject.Abort();
+                return;
+            }
+
+            try
+            {
+                communicationObject.Close(TimeSpan.FromSeconds(10));
+            }
+            catch (CommunicationException)
+            {
+                communicationObject.Abort();
+            }
+            catch (TimeoutException)
+            {
+                communicationObject.Abort();
+            }
+            catch
+            {
+                communicationObject.Abort();
             }
         }
     }

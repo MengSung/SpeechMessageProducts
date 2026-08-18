@@ -35,7 +35,10 @@ namespace ToolUtilityNameSpace.Utilities
             int lastIndexEnglish = stringToProcess.LastIndexOf(',');
             int lastIndex = Math.Max(lastIndexChinese, lastIndexEnglish);
 
-            if (lastIndex > 0)
+            // 使用 >= 0：當整個字串就是一個逗號（索引 0）時，結果應為空字串。
+            // 原本的 > 0 會讓 "，" 保持不變，屬 off-by-one。
+            // 影響範圍僅限「最後一個逗號位於索引 0」的字串，其餘行為不變。
+            if (lastIndex >= 0)
             {
                 stringToProcess = stringToProcess.Substring(0, lastIndex);
             }

@@ -36,6 +36,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
@@ -155,6 +156,14 @@ namespace ChurchReport
             // ========================================
             // 設定 ToolUtilityFactory 的配置物件，確保後續使用 ToolUtility 時能正確讀取 appsettings.json
             ToolUtilityNameSpace.Factory.ToolUtilityFactory.SetConfiguration(Configuration);
+
+            // 追蹤資源（FileStream / TraceListener）為程序級：Trace.Listeners 是行程內的
+            // 靜態集合，若隨請求建立就會無界成長並使每行日誌重複輸出。
+            // 因此註冊為 Singleton，且刻意「由容器建立」而非傳入現成實例 ——
+            // DI 只會釋放自己建立的物件；傳入外部實例會導致應用程式關閉時不被 Dispose。
+            // 實際交給 ToolUtilityFactory 的動作在 Configure() 中進行（見該處說明）。
+            services.AddSingleton<ToolUtilityNameSpace.Diagnostics.IToolUtilityTracer,
+                                  ToolUtilityNameSpace.Diagnostics.FileToolUtilityTracer>();
 
             // ========================================
             // 註冊 HttpClientFactory (修復記憶體洩漏)
@@ -299,7 +308,7 @@ namespace ChurchReport
             // ========================================
             // 註冊 CRM 連接池服務，使用 Singleton 模式確保全應用程式共用一個連接池實例。
             // 從配置中讀取 CRM 連接參數，包括伺服器 URL、認證資訊和連接池設定。
-            services.AddSingleton<ICrmConnectionPool>(sp =>
+            services.AddSingleton<CrmConnectionPool>(sp =>
             {
                 // 建立 CRM 連接服務實例。
                 var connectionService = new CrmConnectionService();
@@ -347,6 +356,14 @@ namespace ChurchReport
                     idleTimeout: TimeSpan.FromMinutes(idleTimeoutMinutes)         // 閒置超時：從配置讀取
                 );
             });
+
+            // 既有元件仍透過介面取得同一個 singleton；不可另建第二個池，否則連線上限與使用者
+            // 隔離邊界會分裂而無法正確釋放。
+            services.AddSingleton<ICrmConnectionPool>(sp => sp.GetRequiredService<CrmConnectionPool>());
+
+            // IOrganizationService 為 request scope 所有。包裝器在建構時租借，在 scope 結束時
+            // 正常歸還；若傳輸狀態不確定則由池銷毀，避免跨使用者、跨 request 重用可疑通道。
+            services.AddScoped<IOrganizationService, PooledOrganizationService>();
 
             // ========================================
             // 🆕 新增：Health Checks（健康檢查）
@@ -423,9 +440,11 @@ namespace ChurchReport
                 });
 
             // ========================================
-            // 註冊 ToolUtility 服務 (Singleton 模式)
+            // 註冊 ToolUtility 服務（request Scoped 模式）
             // ========================================
-            // 註冊 ToolUtility 相關服務，使用擴充方法進行批量註冊。
+            // AddToolUtility 在 ToolUtility 組件內以明確 factory 建立 ToolUtilityClass，
+            // 使其取得同一 request 的 IOrganizationService 租約；不得在此跨組件以
+            // Activator 解析 internal legacy 建構式，也不得把 scoped Provider 捕獲為 Singleton。
             services.AddToolUtility();
 
 #if DEBUG
@@ -657,6 +676,12 @@ namespace ChurchReport
         /// <param name="loggerFactory">日誌工廠，用於建立日誌記錄器。</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // 把容器建立的程序級追蹤器交給 ToolUtilityFactory。
+            // 必須在任何 GetInstance() 之前完成；放在 Configure 而非 ConfigureServices，
+            // 是因為此時服務容器已建置完成，可取得由容器擁有（並負責釋放）的實例。
+            ToolUtilityNameSpace.Factory.ToolUtilityFactory.SetTracer(
+                app.ApplicationServices.GetRequiredService<ToolUtilityNameSpace.Diagnostics.IToolUtilityTracer>());
+
 #if DEBUG
             using var __perfConfigure =
                 ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("Configure");

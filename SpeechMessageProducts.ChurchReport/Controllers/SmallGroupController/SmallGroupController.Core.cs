@@ -17,6 +17,7 @@ using ChurchReport.Tools;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -67,6 +68,27 @@ namespace ChurchReport.Controllers
         /// </summary>
         private readonly IChurchReportLineBindingNotificationService _lineBindingNotificationService;
 
+        /// <summary>
+        /// 建立背景工作專用 DI scope 的工廠。背景上傳可能在 HTTP request 結束後仍執行，
+        /// 因此 scope 必須由背景工作自行擁有並在工作完成時釋放，避免沿用 request scope
+        /// 的 ToolUtility、CRM 連線或其他可變狀態而造成跨 request 資源洩漏。
+        /// </summary>
+        private readonly IServiceScopeFactory _scopeFactory;
+
+        /// <summary>
+        /// 建立小組管理控制器。
+        /// HTTP request 的服務由基底控制器持有；背景上傳另以 scopeFactory 建立
+        /// operation scope，確保 request 結束後仍執行的工作不會持有已釋放的
+        /// ToolUtility 或 CRM 連線，且工作結束時資源一定歸還。
+        /// </summary>
+        /// <param name="httpContextAccessor">目前 HTTP request 的上下文存取器。</param>
+        /// <param name="memoryCache">網站共用的記憶體快取。</param>
+        /// <param name="toolUtilityProvider">目前 request scope 的 ToolUtility 提供者。</param>
+        /// <param name="connectionPool">CRM 連線池，負責租約的取得與歸還。</param>
+        /// <param name="inMemoryContext">目前 request 的小組資料上下文。</param>
+        /// <param name="cacheManager">小組畫面快取管理服務。</param>
+        /// <param name="lineBindingNotificationService">LINE 綁定通知工作流程服務。</param>
+        /// <param name="scopeFactory">建立背景工作獨立 DI scope 的工廠。</param>
         public SmallGroupController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
@@ -74,12 +96,14 @@ namespace ChurchReport.Controllers
             ICrmConnectionPool connectionPool,
             IInMemoryDataContext inMemoryContext,
             ChurchReport.Services.Caching.ISmallGroupCacheManager cacheManager,
-            IChurchReportLineBindingNotificationService lineBindingNotificationService)
+            IChurchReportLineBindingNotificationService lineBindingNotificationService,
+            IServiceScopeFactory scopeFactory)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool, inMemoryContext)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
             _lineBindingNotificationService = lineBindingNotificationService ?? throw new ArgumentNullException(nameof(lineBindingNotificationService));
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         }
 
         #endregion

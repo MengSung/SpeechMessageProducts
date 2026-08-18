@@ -1,3 +1,86 @@
+## Persistent ASP.NET Core Engineering Requirements
+
+- Work as a senior ASP.NET Core performance optimization expert with more than
+  18 years of experience. Base technical decisions on current Microsoft
+  official documentation and the latest applicable .NET version, including
+  .NET 10.
+- New or modified code must prevent Session Leakage, Memory Leakage, and
+  other Resource Leakage. Treat any credible or reproducible leakage as a
+  release blocker.
+- Optimize for maximum safe sustained performance. Performance improvements
+  must never weaken isolation, correctness, deterministic resource cleanup,
+  verification, maintainability, or security.
+
+## Persistent Traditional Chinese Documentation and UTF-8 Requirements
+
+- At the beginning of every task, read this complete `AGENTS.md` before
+  inspecting, generating, or modifying any `.cs` or `.cshtml` file. Treat these
+  documentation, encoding, isolation, lifecycle, and performance requirements
+  as release-blocking constraints throughout the task.
+- Every `.cs` and `.cshtml` file must contain complete, in-depth, maintainable
+  Traditional Chinese documentation appropriate to the code it owns. This rule
+  applies immediately to every newly created or substantively modified file and
+  to every changed region in an existing file.
+- Public and internal types, interfaces, constructors, methods, important
+  properties, Razor handlers/helpers, and lifecycle-owning test doubles must use
+  the language-appropriate documentation form, including C# XML documentation
+  comments and Razor comments where applicable. A translated symbol name,
+  one-line restatement, or `<inheritdoc />` alone is not sufficient.
+- Non-obvious implementation comments must explain why the implementation is
+  required and which invariants must not be broken. When applicable, document
+  trust boundaries, input validation, the single resource owner, concurrency and
+  race behavior, cancellation and timeout behavior, fail-closed behavior,
+  rollback/drain/dispose/cleanup order, performance trade-offs, and memory
+  retention limits.
+- Code involving Session, identity, token, credential, cache, connection pool,
+  queue, timer, subscription, stream, handle, cancellation registration, process,
+  IPC, or background work must document the maximum data/resource lifetime, the
+  deterministic release path, and how cross-request, cross-user, cross-profile,
+  and cross-tenant leakage is prevented.
+- Test documentation must state the protected contract, the failure or fault
+  injection used, and the decisive assertions, so a future maintainer can tell
+  which security, isolation, lifecycle, performance, or compatibility guarantee
+  failed.
+- All `.cs` and `.cshtml` files must be UTF-8 without BOM, use repository-required
+  CRLF line endings, and end with a final CRLF. Invalid UTF-8, BOM, mixed/LF-only
+  endings, mojibake, or materially misleading/out-of-date comments are
+  review/release blockers. Verify encoding and line endings at byte level before
+  reporting completion.
+
+## Permanent Cross-User Isolation and Sustainable Performance Rule
+
+This rule applies to every current and future product line, deployment mode,
+service, UI, background worker, test harness, and development tool in this
+repository. It is not limited to Dynamics or ChurchReport.
+
+- A request, session, or login for subject A must never reveal, reuse, mutate,
+  cache, log, or otherwise retain data, identity, authorization, credentials,
+  connection state, token, cookie, response, error detail, or mutable state
+  belonging to subject B. Cross-user, cross-tenant, cross-profile, and
+  cross-product leakage is a zero-tolerance release blocker.
+- Authentication and authorization scope must be derived and validated on the
+  server before data access. Caller-provided routing, tenant, identity,
+  credential, or profile values are never authority.
+- Any cache, pool, queue, singleton, static, background task, retry state, or
+  diagnostic buffer must either contain no user-/tenant-/profile-specific data
+  or be explicitly partitioned by the complete validated isolation boundary,
+  bounded in size and lifetime, and deterministically cleared or disposed.
+- Reusable connections and clients may be pooled only when they carry no
+  request/user session state and their ownership, fault eviction, drain, and
+  disposal paths are proven. A timeout, cancellation, or uncertain transport
+  state must not be reused by another request.
+- Isolation always wins over throughput. Small, predictable validation,
+  partitioning, and cleanup costs are acceptable. Do not introduce a large
+  performance regression, such as an unbounded scan, global serialization, or
+  a fresh expensive runtime per normal request, merely as a substitute for a
+  correct isolation design.
+- Before release, focused concurrent A/B isolation tests and lifecycle/soak
+  tests must prove that responses, caches, leases, permits, temporary data, and
+  resource counters return to their declared safe baseline. See
+  `.trellis/spec/backend/cross-user-isolation-and-performance.md` for the
+  executable contract and `.trellis/spec/guides/cross-user-isolation-and-performance-review.md`
+  for the mandatory review checklist.
+
 <!-- TRELLIS:START -->
 # Trellis Instructions
 

@@ -29,10 +29,10 @@ namespace ToolUtility.Tests.ListOperations
         public void AddMembers_ShouldCallCreateForEachMember()
         {
             var mockQuery = new Mock<IEntityQueryService>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrudClient = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var service = new ListService(mockLogger.Object, mockQuery.Object, mockCrudClient.Object);
+            var service = new ListService(mockLogger.Object, mockCrudClient.Object);
 
             var members = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
             var listId = Guid.NewGuid();
@@ -47,10 +47,10 @@ namespace ToolUtility.Tests.ListOperations
         public void RemoveMember_ShouldCallDelete()
         {
             var mockQuery = new Mock<IEntityQueryService>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrudClient = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var service = new ListService(mockLogger.Object, mockQuery.Object, mockCrudClient.Object);
+            var service = new ListService(mockLogger.Object, mockCrudClient.Object);
 
             var member = Guid.NewGuid();
             var listId = Guid.NewGuid();

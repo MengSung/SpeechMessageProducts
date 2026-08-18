@@ -66,6 +66,17 @@ namespace ChurchReport.Controllers
     public partial class PersonalController
 
     {
+        private const int PersonalImageMinimumThumbnailSize = 32;
+        private const int PersonalImageMaximumThumbnailSize = 256;
+
+        /// <summary>
+        /// 取得目前 HTTP request scope 的 Dataverse 服務。服務由 DI 容器建立與釋放，
+        /// 最大生命週期限定於目前 request；此 partial 不自行借還或保存連線，避免跨使用者
+        /// 重用可變傳輸狀態。若在沒有 request scope 的情況呼叫，立即失敗而不建立臨時連線。
+        /// </summary>
+        private IOrganizationService OrganizationService =>
+            HttpContext?.RequestServices?.GetService(typeof(IOrganizationService)) as IOrganizationService
+            ?? throw new InvalidOperationException("目前 request 未註冊 Dataverse 服務。");
 
         #region 大頭照上傳與更新
 
@@ -91,7 +102,7 @@ namespace ChurchReport.Controllers
 
         {
 
-            IOrganizationService service = null;
+            
 
             try
 
@@ -365,7 +376,7 @@ namespace ChurchReport.Controllers
 
                 // ========================================
 
-                service = GetConnection();
+                var service = OrganizationService;
 
 
 
@@ -380,6 +391,13 @@ namespace ChurchReport.Controllers
                 service.Update(contactToUpdate);
 
                 System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? CRM Contact 更新成功");
+
+                // CRM 更新成功後立即清除目前 Contact 的所有個人照片快取。
+                // 快取鍵刻意只由已驗證的 contactId 與尺寸組成，不能把使用者提供的
+                // 任意路徑或 session 值當成快取隔離邊界；清除完整圖與所有支援縮圖後，
+                // 後續 request 才會重新從同一位 Contact 讀取最新影像，避免新圖被舊圖覆蓋。
+                var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+                InvalidatePersonalImageCache(memoryCache, contactId);
 
 
 
@@ -469,14 +487,34 @@ namespace ChurchReport.Controllers
 
             }
 
-            finally
+        }
 
+        /// <summary>
+        /// 清除指定 Contact 的個人照片快取。
+        /// </summary>
+        /// <param name="cache">目前應用程式的記憶體快取；為 null 時不建立暫時快取，也不拋出例外。</param>
+        /// <param name="contactId">已由目前登入者解析並驗證的 Contact 識別碼。</param>
+        /// <remarks>
+        /// 個人照片同時以完整圖與 32 至 256 像素縮圖快取；尺寸範圍與讀取端的
+        /// <c>Math.Clamp</c> 保持一致。這裡在 CRM 更新成功後同步移除
+        /// 所有可能的鍵，讓下一次讀取重新建立最新影像，並避免舊 byte[] 在快取期限內
+        /// 跨 request 保留。方法不持有、複製或延長任何 request、session 或連線資源。
+        /// </remarks>
+        private static void InvalidatePersonalImageCache(IMemoryCache cache, Guid contactId)
+        {
+            if (cache == null)
             {
-
-                ReleaseConnection(service);
-
+                return;
             }
 
+            cache.Remove($"contact-image-full:{contactId:N}");
+
+            for (var size = PersonalImageMinimumThumbnailSize;
+                 size <= PersonalImageMaximumThumbnailSize;
+                 size++)
+            {
+                cache.Remove($"contact-image-thumb:{contactId:N}:{size}");
+            }
         }
 
 
@@ -497,14 +535,16 @@ namespace ChurchReport.Controllers
         [Route("/Personal/GetContactImage")]
         public IActionResult GetContactImage(string contactId, int size = 80)
         {
-            IOrganizationService service = null;
+            
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[GetContactImage] 取得大頭照: {contactId}, size={size}");
 
                 // size <= 0 表示取得原始圖片（彈窗顯示用），不進行縮圖處理
                 var returnOriginal = (size <= 0);
-                var thumbSize = returnOriginal ? 0 : Math.Clamp(size, 32, 256);
+                var thumbSize = returnOriginal
+                    ? 0
+                    : Math.Clamp(size, PersonalImageMinimumThumbnailSize, PersonalImageMaximumThumbnailSize);
 
                 // 如果沒有提供 contactId，使用當前登入使用者
                 Guid contactGuid;
@@ -534,7 +574,7 @@ namespace ChurchReport.Controllers
                     return File(cachedImageBytes, "image/jpeg");
                 }
 
-                service = GetConnection();
+                var service = OrganizationService;
 
                 // 只查詢 entityimage 欄位以提升效能
                 var contact = service.Retrieve("contact", contactGuid,
@@ -579,10 +619,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[GetContactImage] 錯誤: {ex.Message}");
                 return GetDefaultImage();
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
+            
         }
 
         private static byte[] CreateThumbnailIfNeeded(byte[] originalBytes, int size)
@@ -660,7 +697,7 @@ namespace ChurchReport.Controllers
         [Route("/Personal/GetContactImagesBatch")]
         public IActionResult GetContactImagesBatch([FromBody] BatchImageRequest request)
         {
-            IOrganizationService service = null;
+            
             try
             {
                 if (request?.ContactIds == null || request.ContactIds.Length == 0)
@@ -668,7 +705,10 @@ namespace ChurchReport.Controllers
                     return Json(new { success = true, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
                 }
 
-                var thumbSize = Math.Clamp(request.Size > 0 ? request.Size : 48, 32, 256);
+                var thumbSize = Math.Clamp(
+                    request.Size > 0 ? request.Size : 48,
+                    PersonalImageMinimumThumbnailSize,
+                    PersonalImageMaximumThumbnailSize);
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
                 var result = new Dictionary<string, string>();
                 var sources = new Dictionary<string, string>();
@@ -707,7 +747,7 @@ namespace ChurchReport.Controllers
                 if (uncachedGuids.Count > 0)
                 {
                     var swConn = System.Diagnostics.Stopwatch.StartNew();
-                    service = GetConnection();
+                    var service = OrganizationService;
                     swConn.Stop(); connMs = swConn.ElapsedMilliseconds; // [計時診斷] 連線池取得連線耗時
 
                     var query = new Microsoft.Xrm.Sdk.Query.QueryExpression("contact")
@@ -786,10 +826,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[GetContactImagesBatch] 錯誤: {ex.Message}");
                 return Json(new { success = false, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
+            
         }
 
         #endregion
@@ -809,4 +846,3 @@ namespace ChurchReport.Controllers
     }
 
 }
-

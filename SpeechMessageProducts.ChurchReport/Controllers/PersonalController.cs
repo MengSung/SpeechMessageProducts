@@ -20,6 +20,7 @@ using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
@@ -27,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
@@ -41,17 +43,37 @@ namespace ChurchReport.Controllers
         private static readonly IMemoryCache FallbackOptionSetMetadataCache =
             new MemoryCache(new MemoryCacheOptions());
 
+        /// <summary>
+        /// 建立背景工作專用的 DI scope。背景工作可能在 HTTP request 結束後仍執行，
+        /// 因此不得捕獲 request scope 的 ToolUtility 或 CRM 連線；scope 由背景工作
+        /// 擁有，並在工作結束時由 using 確定性釋放，以防止跨 request 資源洩漏。
+        /// </summary>
+        private readonly IServiceScopeFactory _scopeFactory;
+
         private ChurchReport.Services.OptionSetMetadataService _optionSetMetadataService;
 
         #region 幣構函式
 
+        /// <summary>
+        /// 建立個人資訊控制器。
+        /// 控制器本身只持有目前 request 的服務；長時間執行的背景工作會透過
+        /// <see cref="IServiceScopeFactory"/> 建立獨立 scope，讓 ToolUtility 與 CRM
+        /// 連線在背景工作結束時確定性釋放，不會跨 request 或跨使用者重用。
+        /// </summary>
+        /// <param name="httpContextAccessor">目前 HTTP request 的上下文存取器。</param>
+        /// <param name="memoryCache">網站共用的記憶體快取。</param>
+        /// <param name="toolUtilityProvider">目前 request scope 的 ToolUtility 提供者。</param>
+        /// <param name="connectionPool">CRM 連線池，負責租約的取得與歸還。</param>
+        /// <param name="scopeFactory">建立背景工作獨立 DI scope 的工廠。</param>
         public PersonalController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            IServiceScopeFactory scopeFactory)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         }
 
         #endregion
@@ -506,7 +528,7 @@ namespace ChurchReport.Controllers
                 EntityCollection contactCollection;
                 using (PerfPhase.Measure(HttpContext, phaseName))
                 {
-                    contactCollection = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                    contactCollection = OrganizationService.RetrieveMultiple(query);
                 }
 
                 foreach (var contactEntity in contactCollection.Entities)
@@ -588,7 +610,7 @@ namespace ChurchReport.Controllers
                 ?? FallbackOptionSetMetadataCache;
 
             _optionSetMetadataService = new ChurchReport.Services.OptionSetMetadataService(
-                ToolUtility.m_Crm2011OrganizationService,
+                OrganizationService,
                 null,
                 memoryCache);
 
@@ -955,23 +977,20 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 成功解析到 {members.Count} 筆資料");
 
-                // ✅ 關鍵修復：在進入背景任務前先取得 ToolUtility 實例
-                // 因為在背景執行緒中無法安全訪問 Controller 的實例成員
-                var toolUtility = ToolUtility;
-
-                if (toolUtility == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ToolUtility 為 null，無法執行上傳");
-                    return Json(new { status = "0", message = "系統錯誤：ToolUtility 未初始化" });
-                }
-
                 // ✅ Fire-and-Forget：在背景執行上傳，不等待完成
                 // 立即回應使用者，避免長時間等待
                 var memberCount = members.Count;
                 _ = Task.Run(() =>
                 {
+                    ToolUtilityClass toolUtility = null;
                     try
                     {
+                        // 背景工作擁有獨立 scope；request 結束後仍可安全使用自己的
+                        // ToolUtility 與 CRM lease，工作離開 using 範圍時由 DI 釋放。
+                        using var scope = _scopeFactory.CreateScope();
+                        var toolUtilityProvider = scope.ServiceProvider.GetRequiredService<IToolUtilityProvider>();
+                        toolUtility = toolUtilityProvider.GetToolUtility();
+
                         System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 開始背景上傳 {memberCount} 筆資料...");
 
                         int successCount = 0;
@@ -1125,7 +1144,8 @@ namespace ChurchReport.Controllers
                         // 記錄到追蹤日誌
                         try
                         {
-                            toolUtility?.TraceByLevel(1, 1,
+                            // catch 位於 using scope 之外；不可再使用已釋放的 Scoped ToolUtility。
+                            ToolUtilityClass.TraceByLevelStatic(1, 1,
                                 $"SaveMaintainPersonInfomation 背景上傳失敗: {ex.Message}\n{ex.StackTrace}");
                         }
                         catch

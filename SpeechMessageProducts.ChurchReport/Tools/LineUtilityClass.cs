@@ -135,8 +135,7 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // 釋放 ToolUtilityClass。
-                m_ToolUtilityClass?.Dispose();
+                // 不得釋放注入的 scoped ToolUtility；request scope 負責其 CRM 租約的確定性回收。
 
                 // 釋放 LineMessagingClient。
                 m_LineMessagingClient?.Dispose();

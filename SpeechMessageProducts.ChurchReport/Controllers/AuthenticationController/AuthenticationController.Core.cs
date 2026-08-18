@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,6 +35,12 @@ namespace ChurchReport.Controllers
     {
         private readonly IWebHostEnvironment _env;
 
+        /// <summary>
+        /// 由 DI request scope 擁有的 Dataverse 服務。其最大生命週期為目前 HTTP request，容器會在
+        /// 正常、例外或取消結束時確定性釋放；控制器不可自行歸還或快取，避免跨使用者狀態洩漏。
+        /// </summary>
+        private readonly IOrganizationService _organizationService;
+
         #region 建構函式
 
         /// <summary>
@@ -44,10 +51,14 @@ namespace ChurchReport.Controllers
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IOrganizationService organizationService = null)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
             _env = env;
+            _organizationService = organizationService
+                ?? httpContextAccessor?.HttpContext?.RequestServices?.GetService(typeof(IOrganizationService)) as IOrganizationService
+                ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
         #endregion

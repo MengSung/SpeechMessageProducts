@@ -77,14 +77,6 @@ namespace ChurchReport.Models
             m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
         }
 
-        /// <summary>
-        /// 建構函數，使用指定的 DiscoveryServiceType
-        /// </summary>
-        /// <param name="discoveryServiceType">服務類型</param>
-        public ListManagementDataManager(string discoveryServiceType)
-        {
-            m_ToolUtilityClass = ToolUtilityFactory.GetInstance(discoveryServiceType);
-        }
         #endregion
 
         #region 初始化成員資料

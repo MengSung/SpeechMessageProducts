@@ -30,9 +30,9 @@ namespace ToolUtility.Tests.ContactOperations
         {
             var expected = TestEntityFactory.CreateContact("U123456", "測試聯絡人");
 
-            var mockQueryService = new Mock<IEntityQueryService>();
-            mockQueryService.Setup(x => x.RetrieveMultiple(It.IsAny<QueryByAttribute>()))
-                .Returns(new EntityCollection(new[] { expected }));
+            // ContactService 直接以 IOrganizationService.RetrieveMultiple 查詢，故替身建立在該邊界上。
+            var mockQueryService = MockOrganizationServiceFactory.CreateMockWithCollection(
+                new EntityCollection(new[] { expected }));
 
             var mockLogger = MockLoggerFactory.CreateMock<object>();
             var service = new ContactService(mockLogger.Object, mockQueryService.Object);
@@ -52,9 +52,8 @@ namespace ToolUtility.Tests.ContactOperations
                 TestEntityFactory.CreateContact("U456", "B")
             });
 
-            var mockQueryService = new Mock<IEntityQueryService>();
-            mockQueryService.Setup(x => x.RetrieveMultiple(It.IsAny<QueryByAttribute>()))
-                .Returns(collection);
+            // 同上：受測邊界是 IOrganizationService，不是已淘汰的 IEntityQueryService。
+            var mockQueryService = MockOrganizationServiceFactory.CreateMockWithCollection(collection);
 
             var mockLogger = MockLoggerFactory.CreateMock<object>();
             var service = new ContactService(mockLogger.Object, mockQueryService.Object);

@@ -48,21 +48,12 @@ namespace ChurchReport.Controllers
                     InMemoryContext.LineBindingViewModel.FullName = DisplayName;
                 }
 
-                IOrganizationService service = null;
-                try
-                {
-                    service = GetConnection();
+                var service = _organizationService;
+                var existingBindingResult = await CheckExistingLineBinding(service, UserLineId);
+                if (existingBindingResult != null)
+                    return existingBindingResult;
 
-                    var existingBindingResult = await CheckExistingLineBinding(service, UserLineId);
-                    if (existingBindingResult != null)
-                        return existingBindingResult;
-
-                    return Json(new { status = "1", message = "請完成身分綁定註冊" });
-                }
-                finally
-                {
-                    ReleaseConnection(service);
-                }
+                return Json(new { status = "1", message = "請完成身分綁定註冊" });
             }
             catch (Exception e)
             {

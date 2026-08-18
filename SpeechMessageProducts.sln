@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineMessagingProcessor.Rich
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineMessagingProcessor.RichMenus.Tests", "LineMessagingProcessor.RichMenus.Tests\LineMessagingProcessor.RichMenus.Tests.csproj", "{17E471A6-6B5A-4543-9CEF-746A63A9D0BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolUtility.Dataverse.Tests", "ToolUtility.Dataverse.Tests\ToolUtility.Dataverse.Tests.csproj", "{2F17EA82-5E48-44B8-ADDB-75520E43DE70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_LearnCrm|Any CPU = Debug_LearnCrm|Any CPU
@@ -598,6 +600,36 @@ Global
 		{17E471A6-6B5A-4543-9CEF-746A63A9D0BA}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
 		{17E471A6-6B5A-4543-9CEF-746A63A9D0BA}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
 		{17E471A6-6B5A-4543-9CEF-746A63A9D0BA}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug_LearnCrm|x64.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug_LearnCrm|x64.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug_LearnCrm|x86.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug_LearnCrm|x86.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug|x64.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Debug|x86.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.DebugOracleConnector|x64.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.DebugOracleConnector|x64.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.DebugOracleConnector|x86.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.DebugOracleConnector|x86.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Release|x64.ActiveCfg = Release|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Release|x64.Build.0 = Release|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Release|x86.ActiveCfg = Release|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Release|x86.Build.0 = Release|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Test_Exchange_Service|x64.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
+		{2F17EA82-5E48-44B8-ADDB-75520E43DE70}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

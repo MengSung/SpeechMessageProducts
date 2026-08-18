@@ -38,6 +38,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
+    /// <summary>
+    /// 處理會友樹、搜尋、影像與同步作業的 HTTP 控制器。Dataverse 服務由建構式注入的 scoped
+    /// <see cref="IOrganizationService"/> 提供；服務的最大生命週期為目前 HTTP request，並由 DI scope
+    /// 在 request 結束時確定性釋放。控制器不保存 static、Session 或跨 request 的 CRM 參考，因此不同
+    /// 使用者、profile 與租戶不會共用此控制器擁有的可變連線狀態。
+    /// </summary>
     public class MemberInfoController : BaseChurchController
     {
         private const int DefaultPageSize = 50;
@@ -46,6 +52,11 @@ namespace ChurchReport.Controllers
         private const string ChurchTreeCacheKey = "member-info-tree:church";
         private const string ChurchGroupedCurrentIdsCacheKey = "member-info-tree:grouped-current-ids:church";
         private readonly IMemoryCache memberInfoMemoryCache;
+        /// <summary>
+        /// 本 request 唯一的 Dataverse 服務。其租借、故障淘汰與 Dispose 順序由 scoped
+        /// PooledOrganizationService 與 DI 容器共同擁有，控制器不得自行釋放或快取它。
+        /// </summary>
+        private readonly IOrganizationService organizationService;
 
         private sealed class UngroupedContactPage
         {
@@ -53,15 +64,27 @@ namespace ChurchReport.Controllers
             public int TotalCount { get; init; }
         }
 
+        /// <summary>
+        /// 建立會友控制器並接收 request 隔離的 Dataverse 服務。所有依賴皆由容器擁有；若 scope 在
+        /// 例外、取消或正常回應後結束，容器會釋放服務，避免手動借還遺漏造成的連線或跨使用者狀態洩漏。
+        /// </summary>
+        /// <param name="httpContextAccessor">提供目前 request 的 HTTP 上下文，僅在 request 生命週期內使用。</param>
+        /// <param name="memoryCache">產品共用快取；快取內容仍依既有授權鍵與過期策略隔離。</param>
+        /// <param name="toolUtilityProvider">既有工具層 provider，供 BaseChurchController 相容功能使用。</param>
+        /// <param name="connectionPool">既有池介面，供尚未遷移的 BaseChurchController 功能使用。</param>
+        /// <param name="organizationService">本 request 的 scoped Dataverse 服務；不可由控制器釋放。</param>
         public MemberInfoController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            IOrganizationService organizationService)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
             memberInfoMemoryCache = memoryCache
                 ?? throw new ArgumentNullException(nameof(memoryCache));
+            this.organizationService = organizationService
+                ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
         [HttpGet]
@@ -94,7 +117,7 @@ namespace ChurchReport.Controllers
         [Route("/MemberInfo/LoadDistrictTree")]
         public IActionResult LoadDistrictTree()
         {
-            IOrganizationService service = null;
+            var service = organizationService;
             var timing = System.Diagnostics.Stopwatch.StartNew();
 
             try
@@ -118,9 +141,7 @@ namespace ChurchReport.Controllers
                     return Json(cachedTree);
                 }
 
-                TraceMemberInfoTreePhase("LoadDistrictTree", "acquire-connection", timing);
-                service = GetConnection();
-                TraceMemberInfoTreePhase("LoadDistrictTree", "connection-acquired", timing);
+                TraceMemberInfoTreePhase("LoadDistrictTree", "scoped-service-ready", timing);
                 var closedStatus = GetRequiredClosedCustomerTypeValue(service);
                 TraceMemberInfoTreePhase("LoadDistrictTree", "closed-status-ready", timing);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
@@ -169,18 +190,13 @@ namespace ChurchReport.Controllers
                 TraceMemberInfoTreePhase("LoadDistrictTree", "error=" + ex.GetType().Name, timing);
                 return HandleError(ex, "MemberInfo.LoadDistrictTree");
             }
-            finally
-            {
-                ReleaseConnection(service);
-                TraceMemberInfoTreePhase("LoadDistrictTree", "connection-released", timing);
-            }
         }
 
         [HttpGet]
         [Route("/MemberInfo/SearchDistrictTree")]
         public IActionResult SearchDistrictTree(string search)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -196,7 +212,6 @@ namespace ChurchReport.Controllers
                     return Json(new MemberInfoTreeSearchResultViewModel());
                 }
 
-                service = GetConnection();
                 var closedStatus = GetRequiredClosedCustomerTypeValue(service);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
                 var memberships = FetchGroupMemberships(
@@ -246,17 +261,13 @@ namespace ChurchReport.Controllers
             {
                 return HandleError(ex, "MemberInfo.SearchDistrictTree");
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         [HttpGet]
         [Route("/MemberInfo/LoadGroupMembers")]
         public IActionResult LoadGroupMembers(string listId, string search)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -272,7 +283,6 @@ namespace ChurchReport.Controllers
                     return Forbid();
                 }
 
-                service = GetConnection();
                 var closedStatus = GetRequiredClosedCustomerTypeValue(service);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
                 var visibleListIds = descriptors.Select(group => group.ListId).ToList();
@@ -307,17 +317,13 @@ namespace ChurchReport.Controllers
             {
                 return HandleError(ex, "MemberInfo.LoadGroupMembers");
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         [HttpGet]
         [Route("/MemberInfo/LoadUngroupedMembers")]
         public IActionResult LoadUngroupedMembers(DataSourceLoadOptions loadOptions, string search)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -328,7 +334,6 @@ namespace ChurchReport.Controllers
                     return Forbid();
                 }
 
-                service = GetConnection();
                 var closedStatus = GetRequiredClosedCustomerTypeValue(service);
                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
                 var groupedIds = GetChurchGroupedCurrentIds(service, descriptors, closedStatus);
@@ -381,10 +386,6 @@ namespace ChurchReport.Controllers
             {
                 return HandleError(ex, "MemberInfo.LoadUngroupedMembers");
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         [HttpGet]
@@ -427,7 +428,7 @@ namespace ChurchReport.Controllers
                     return Forbid();
                 }
 
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var contact = service.Retrieve("contact", contactGuid, GetContactDetailColumns());
                 // CRM 可能以 DateTime 的 Year=1 表示未填或無效日期；在 ViewModel 邊界正規化為 null，
                 // 讓 Razor 只需處理「有效生日／未設定」兩種狀態，不會顯示 0001/01/01。
@@ -482,7 +483,7 @@ namespace ChurchReport.Controllers
                     return DataSourceLoader.Load(new List<ContactPresentRecordRow>(), loadOptions);
                 }
 
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
                 var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
 
@@ -537,7 +538,7 @@ namespace ChurchReport.Controllers
                     return DataSourceLoader.Load(new List<MemberInfoStorLessonRow>(), loadOptions);
                 }
 
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
                 var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
 
@@ -591,7 +592,7 @@ namespace ChurchReport.Controllers
         [Route("/MemberInfo/GetContactImage")]
         public IActionResult GetContactImage(string contactId, int size = 80, bool fit = false)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -617,7 +618,6 @@ namespace ChurchReport.Controllers
                     return File(cachedBytes, "image/jpeg");
                 }
 
-                service = GetConnection();
                 var contact = service.Retrieve("contact", contactGuid, new ColumnSet(
                     "entityimage",
                     "gendercode",
@@ -656,17 +656,13 @@ namespace ChurchReport.Controllers
             {
                 return GetDefaultImage();
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         [HttpPost]
         [Route("/MemberInfo/GetContactImagesBatch")]
         public IActionResult GetContactImagesBatch([FromBody] BatchImageRequest request)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -721,9 +717,8 @@ namespace ChurchReport.Controllers
 
                 if (uncachedGuids.Count > 0)
                 {
-                    var swConn = System.Diagnostics.Stopwatch.StartNew();
-                    service = GetConnection();
-                    swConn.Stop(); connMs = swConn.ElapsedMilliseconds; // [計時診斷] 連線池取得連線耗時
+                    // Scoped 服務在控制器建立時已租借；此 action 不再進行成對借還，故此欄位固定為
+                    // 零並保留在診斷輸出中，以避免改變既有效能記錄格式。
                     foreach (var chunk in uncachedGuids.Chunk(CrmInClauseChunkSize))
                     {
                         var query = new QueryExpression("contact")
@@ -802,10 +797,6 @@ namespace ChurchReport.Controllers
             {
                 return Json(new { success = false, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         /// <summary>
@@ -818,7 +809,7 @@ namespace ChurchReport.Controllers
         [Route("/MemberInfo/ResyncLineCandidateIds")]
         public IActionResult ResyncLineCandidateIds()
         {
-            IOrganizationService service = null;
+            var service = organizationService;
             try
             {
                 if (GetAccess() != MemberInfoAccess.Church)
@@ -826,7 +817,6 @@ namespace ChurchReport.Controllers
                     return Forbid();
                 }
 
-                service = GetConnection();
                 var query = new QueryExpression("contact")
                 {
                     ColumnSet = new ColumnSet("contactid"),
@@ -846,10 +836,6 @@ namespace ChurchReport.Controllers
             {
                 return HandleError(ex, "MemberInfo.ResyncLineCandidateIds");
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         /// <summary>
@@ -863,7 +849,7 @@ namespace ChurchReport.Controllers
         [Route("/MemberInfo/ResyncLineProfiles")]
         public async Task<IActionResult> ResyncLineProfiles([FromBody] BatchImageRequest request)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -890,8 +876,6 @@ namespace ChurchReport.Controllers
                 {
                     return Json(new { success = true, scanned = 0, okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0, reasons = new List<string>() });
                 }
-
-                service = GetConnection();
 
                 var query = new QueryExpression("contact")
                 {
@@ -1008,10 +992,6 @@ namespace ChurchReport.Controllers
             {
                 return HandleError(ex, "MemberInfo.ResyncLineProfiles");
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         /// <summary>
@@ -1076,7 +1056,7 @@ namespace ChurchReport.Controllers
         [Route("/MemberInfo/UploadContactImage")]
         public IActionResult UploadContactImage(string contactId, IFormFile imageFile)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -1110,7 +1090,6 @@ namespace ChurchReport.Controllers
 
                 var imageBytes = NormalizeUploadedImage(imageFile);
 
-                service = GetConnection();
                 var contactToUpdate = new Entity("contact", contactGuid);
                 contactToUpdate["entityimage"] = imageBytes;
                 service.Update(contactToUpdate);
@@ -1133,10 +1112,6 @@ namespace ChurchReport.Controllers
             {
                 return Json(new { success = false, message = "上傳失敗：" + ex.Message });
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         /// <summary>
@@ -1149,7 +1124,7 @@ namespace ChurchReport.Controllers
         [Route("/MemberInfo/UpdateContactInfo")]
         public IActionResult UpdateContactInfo(string contactId, string phone, string address, int? membershipStatusValue, int? spiritualIdentityValue)
         {
-            IOrganizationService service = null;
+            var service = organizationService;
 
             try
             {
@@ -1192,7 +1167,6 @@ namespace ChurchReport.Controllers
                     return Json(new { success = true, message = "無變更" });
                 }
 
-                service = GetConnection();
                 service.Update(contactToUpdate);
 
                 // 手機/會員身分也顯示在全教會清單列；清掉未搜尋的清單快取，讓預設清單即時反映變更。
@@ -1207,10 +1181,6 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "更新失敗：" + ex.Message });
-            }
-            finally
-            {
-                ReleaseConnection(service);
             }
         }
 
@@ -2248,7 +2218,7 @@ namespace ChurchReport.Controllers
 
             return CanViewContactsBatch(
                 contactIds,
-                ToolUtility.m_Crm2011OrganizationService,
+                organizationService,
                 closedStatus.Value);
         }
 
@@ -2388,7 +2358,7 @@ namespace ChurchReport.Controllers
             EnsureShepherdListsLoaded();
 
             var resolveMembershipStatus = CreateMembershipStatusResolver();
-            var service = ToolUtility.m_Crm2011OrganizationService;
+            var service = organizationService;
             var groupRecords = InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData;
             if (groupRecords == null)
             {
@@ -2499,7 +2469,7 @@ namespace ChurchReport.Controllers
                 return LoadChurchMemberRowsInMemory(loadOptions, photoOnly);
             }
 
-            var service = ToolUtility.m_Crm2011OrganizationService;
+            var service = organizationService;
             var take = loadOptions?.Take > 0 ? Math.Min(loadOptions.Take, MaxPageSize) : DefaultPageSize;
             var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
             var pageNumber = skip / take + 1;
@@ -2670,7 +2640,7 @@ namespace ChurchReport.Controllers
         /// <summary>建立整份全教會清單：一次撈所有(過濾後)聯絡人 ＋ 一次撈所有小組成員，合併為資料列。</summary>
         private List<MemberInfoListRowViewModel> BuildAllChurchMemberRows(string searchValue, bool photoOnly)
         {
-            var service = ToolUtility.m_Crm2011OrganizationService;
+            var service = organizationService;
 
             var query = BuildCurrentContactQuery(
                 new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"),
@@ -2736,7 +2706,7 @@ namespace ChurchReport.Controllers
 
             try
             {
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var query = new QueryExpression("listmember")
                 {
                     ColumnSet = new ColumnSet("entityid", "listid")
@@ -2940,7 +2910,7 @@ namespace ChurchReport.Controllers
 
             try
             {
-                var service = ToolUtility.m_Crm2011OrganizationService;
+                var service = organizationService;
                 var idList = contactIds.Distinct().ToList();
                 const int batchSize = 200;
 
@@ -2999,7 +2969,7 @@ namespace ChurchReport.Controllers
                 listLink.LinkCriteria.AddCondition("purpose", ConditionOperator.Equal, "小組名單");
                 query.LinkEntities.Add(listLink);
 
-                var listMembers = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                var listMembers = organizationService.RetrieveMultiple(query);
                 var names = new Dictionary<Guid, HashSet<string>>();
 
                 foreach (var listMember in listMembers.Entities)
@@ -3042,7 +3012,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var contact = ToolUtility.m_Crm2011OrganizationService.Retrieve(
+                var contact = organizationService.Retrieve(
                     "contact",
                     contactId,
                     new ColumnSet("statecode", "customertypecode"));
@@ -3096,7 +3066,7 @@ namespace ChurchReport.Controllers
         private OptionSetMetadataService GetSharedOptionSetService()
         {
             return new OptionSetMetadataService(
-                ToolUtility.m_Crm2011OrganizationService,
+                organizationService,
                 null,
                 memberInfoMemoryCache);
         }
@@ -3198,7 +3168,7 @@ namespace ChurchReport.Controllers
                     return string.Empty;
                 }
 
-                var service = new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService);
+                var service = new OptionSetMetadataService(organizationService);
                 return service.GetOptionSetText(entity.LogicalName, attributeName, value);
             }
             catch
@@ -3221,7 +3191,7 @@ namespace ChurchReport.Controllers
                 query.Criteria.AddCondition("record1id", ConditionOperator.Equal, contactId);
                 query.Criteria.AddCondition("record2id", ConditionOperator.Equal, contactId);
 
-                var connections = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                var connections = organizationService.RetrieveMultiple(query);
                 var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var connection in connections.Entities)
                 {

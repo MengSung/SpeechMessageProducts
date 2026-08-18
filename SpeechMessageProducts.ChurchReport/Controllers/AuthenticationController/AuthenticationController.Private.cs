@@ -42,11 +42,9 @@ namespace ChurchReport.Controllers
 
                 if (viewModel.Account != "")
                 {
-                    IOrganizationService service = null;
+                    var service = _organizationService;
                     try
                     {
-                        service = GetConnection();
-
                         var query = new QueryExpression("contact")
                         {
                             ColumnSet = new ColumnSet("contactid", "new_app_pass"),
@@ -88,10 +86,6 @@ namespace ChurchReport.Controllers
                     {
                         return (false, "", "系統連接超時，請稍後再試");
                     }
-                    finally
-                    {
-                        ReleaseConnection(service);
-                    }
                 }
                 else
                 {
@@ -113,11 +107,9 @@ namespace ChurchReport.Controllers
             Entity loginContact = null;
             string fullName = "";
 
-            IOrganizationService service = null;
+            var service = _organizationService;
             try
             {
-                service = GetConnection();
-
                 if (contactIdString != "透過Line Id 登入")
                 {
                     loginContact = service.Retrieve("contact", new Guid(contactIdString), new ColumnSet(true));
@@ -160,11 +152,6 @@ namespace ChurchReport.Controllers
             {
                 throw new Exception("取得使用者資料超時，請稍後再試", ex);
             }
-            finally
-            {
-                ReleaseConnection(service);
-            }
-
             return (loginContact, fullName);
         }
 
@@ -279,14 +266,7 @@ namespace ChurchReport.Controllers
         {
             using var perfPhase = PerfPhase.Measure(HttpContext, "Login.SetupSystemData");
 
-            IOrganizationService service = null;
-            try
-            {
-                using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.GetConnection"))
-                {
-                    service = GetConnection();
-                }
-
+            var service = _organizationService;
                 // ========================================
                 // ?? 關鍵修復：登入時載入 ListManager
                 // ========================================
@@ -372,11 +352,6 @@ namespace ChurchReport.Controllers
                 catch
                 {
                 }
-            }
-            finally
-            {
-                ReleaseConnection(service);
-            }
         }
 
         private string DetermineDisplayViewType()

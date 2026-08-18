@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using Xunit;
+using Microsoft.Crm.Sdk.Messages;
 using FluentAssertions;
 using Moq;
 using System;
@@ -29,13 +30,13 @@ namespace ToolUtility.Tests.Core
         [Fact]
         public void Create_Update_Delete_Entity_Via_Facade()
         {
-            var mockCrm = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
             var createdId = Guid.NewGuid();
             mockCrm.Setup(x => x.Create(It.IsAny<Entity>())).Returns(createdId);
 
-            var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
+            var facade = new ToolUtilityFacade(mockCrm.Object, mockLogger.Object);
 
             var entity = new Entity("account") { ["name"] = "TDD Test" };
 
@@ -56,11 +57,12 @@ namespace ToolUtility.Tests.Core
         [Fact]
         public void UploadAttachment_ShouldCallCreateAnnotation()
         {
-            var mockCrm = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
+            var facade = new ToolUtilityFacade(mockCrm.Object, mockLogger.Object);
 
-            var crmService = (IOrganizationService)null;
+            // 同理：ref 參數必須是可用連線。
+            var crmService = mockCrm.Object;
             facade.UploadAnAttachment(ref crmService, "contact", "sub", "note", "file.txt", "text/plain", new byte[] { 1,2,3 }, Guid.NewGuid());
 
             mockCrm.Verify(x => x.Create(It.Is<Entity>(a => a.LogicalName == "annotation" && a["filename"].ToString() == "file.txt")), Times.Once);
@@ -69,32 +71,34 @@ namespace ToolUtility.Tests.Core
         [Fact]
         public void AddAndRemoveMembersToMarketingList_ShouldCallListService()
         {
-            var mockCrm = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
+            var facade = new ToolUtilityFacade(mockCrm.Object, mockLogger.Object);
 
             var listId = Guid.NewGuid();
             var members = new System.Collections.Generic.List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
             facade.AddMembersToMarketingList(listId, members);
 
-            // Verify create called for each member (ListService calls ICrmClient.Create)
-            mockCrm.Verify(x => x.Create(It.Is<Entity>(e => e.LogicalName == "listmember")), Times.Exactly(members.Count));
+            // 保護的契約：AddMembers 以單一 AddListMembersListRequest 批次新增全部成員，
+            // 而非逐筆 Create listmember。一次 SDK 呼叫是刻意的效能設計，不可退回逐筆。
+            mockCrm.Verify(x => x.Execute(It.IsAny<AddListMembersListRequest>()), Times.Once);
 
             var memberToRemove = members[0];
             facade.RemoveMembersToMarketingList(listId, memberToRemove);
 
-            // Removal in our simple impl calls Delete on list entity - verify Delete called
-            mockCrm.Verify(x => x.Delete("list", It.IsAny<Guid>()), Times.AtLeastOnce);
+            // 保護的契約：RemoveMember 以 RemoveMemberListRequest 單次完成，
+            // 不先查詢再 Delete，避免多餘的往返。
+            mockCrm.Verify(x => x.Execute(It.IsAny<RemoveMemberListRequest>()), Times.Once);
         }
 
         [Fact]
         public void CreatePushLineMessage_ShouldCallCrudCreate()
         {
-            var mockCrm = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
+            var facade = new ToolUtilityFacade(mockCrm.Object, mockLogger.Object);
 
             facade.CreatePushLineMessage("U123", "sub", "hello");
 

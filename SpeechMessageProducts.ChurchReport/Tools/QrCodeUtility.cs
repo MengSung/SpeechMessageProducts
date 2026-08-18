@@ -20,7 +20,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using ToolUtilityNameSpace;
-using ToolUtilityNameSpace.Factory;
 using Microsoft.Extensions.Configuration;
 using ChurchReport.Services;
 
@@ -46,8 +45,8 @@ namespace ChurchReport.Tools
         // 掃描者
         private Entity m_Contact;
 
-        // 透過 Factory 取得 ToolUtilityClass 單一實例
-        private readonly ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+        // 目前 request scope 的 CRM 工具；本工具不擁有也不釋放它。
+        private readonly ToolUtilityClass m_ToolUtilityClass;
         private LineMessagingClient m_LineMessagingClient { get; set; }
         private PushUtility m_PushUtility { get; set; }
 
@@ -82,8 +81,15 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 初始化
-        public QrCodeUtility()
+        /// <summary>
+        /// 建立課程 QR Code 工具，使用呼叫端目前 request scope 的 ToolUtility。
+        /// 此 ToolUtility 由呼叫端的 request scope 提供，本型別不擁有、不釋放。
+        /// </summary>
+        /// <param name="toolUtility">目前 request scope 的 ToolUtility。</param>
+        public QrCodeUtility(ToolUtilityClass toolUtility)
         {
+            m_ToolUtilityClass = toolUtility ?? throw new ArgumentNullException(nameof(toolUtility));
+
             // 從配置讀取 LINE Channel Access Token
             string channelAccessToken = GetLineChannelAccessToken();
 
