@@ -705,7 +705,10 @@ namespace ChurchReport.Controllers
                     return Json(new { success = true, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
                 }
 
-                var thumbSize = Math.Clamp(request.Size > 0 ? request.Size : 48, 32, 256);
+                var thumbSize = Math.Clamp(
+                    request.Size > 0 ? request.Size : 48,
+                    PersonalImageMinimumThumbnailSize,
+                    PersonalImageMaximumThumbnailSize);
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
                 var result = new Dictionary<string, string>();
                 var sources = new Dictionary<string, string>();
