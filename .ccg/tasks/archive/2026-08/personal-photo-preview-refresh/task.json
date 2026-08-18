@@ -1,12 +1,12 @@
 {
   "id": "personal-photo-preview-refresh",
   "title": "修正個人相關資料照片選取後未立即更新",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "M",
   "risk": "medium",
   "domain": "frontend",
-  "currentPhase": "review",
-  "nextAction": "完成雙模型審查並確認測試結果",
+  "currentPhase": "completed",
+  "nextAction": "歸檔 CCG 任務資料",
   "createdAt": "2026-08-18T00:00:00Z",
   "branch": "codex/1.0.0.6.DesignNewArchitector.Worktree"
 }
