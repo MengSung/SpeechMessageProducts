@@ -1,0 +1,16 @@
+執行：
+powershell.exe `
+  -NoProfile `
+  -ExecutionPolicy Bypass `
+  -File ".\SpeechMessageProducts.ChurchReport\Tools\Diagnose-DataverseTrace.ps1" `
+  -TracePath "D:\dataverse-trace\dataverse-trace.jsonl"
+預設會產生：
+D:\dataverse-trace\dataverse-trace.diagnostic-report.md
+也可以指定報告檔案：
+powershell.exe `
+  -NoProfile `
+  -ExecutionPolicy Bypass `
+  -File ".\SpeechMessageProducts.ChurchReport\Tools\Diagnose-DataverseTrace.ps1" `
+  -TracePath "D:\dataverse-trace\dataverse-trace.jsonl" `
+  -ReportPath "D:\dataverse-trace\RunH-diagnostic-report.md"
+目前實際產生的報告：
