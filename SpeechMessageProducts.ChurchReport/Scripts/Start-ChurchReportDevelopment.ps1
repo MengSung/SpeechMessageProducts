@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Debug',
@@ -24,7 +24,6 @@ $OutputEncoding = $utf8
 
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectDirectory = (Resolve-Path (Join-Path $scriptDirectory '..')).Path
-$repositoryDirectory = (Resolve-Path (Join-Path $projectDirectory '..')).Path
 $projectPath = Join-Path $projectDirectory 'SpeechMessageProducts.ChurchReport.csproj'
 $serverProcess = $null
 
@@ -61,6 +60,72 @@ function Test-TcpPortReady {
     }
 }
 
+function Stop-ExistingChurchReportForPort {
+    param(
+        [int]$Port,
+        [string]$ProjectDirectory
+    )
+
+    $ownerProcessIds = @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction Stop |
+        Select-Object -ExpandProperty OwningProcess -Unique)
+    if ($ownerProcessIds.Count -eq 0) {
+        return
+    }
+
+    $normalizedProjectDirectory = [System.IO.Path]::GetFullPath($ProjectDirectory).TrimEnd('\')
+    $churchReportProcessIds = New-Object System.Collections.Generic.List[int]
+    $unknownProcessIds = New-Object System.Collections.Generic.List[int]
+
+    foreach ($ownerProcessId in $ownerProcessIds) {
+        $processInfo = Get-CimInstance Win32_Process `
+            -Filter ("ProcessId = {0}" -f $ownerProcessId) `
+            -ErrorAction SilentlyContinue
+        $commandLine = if ($null -ne $processInfo) { [string]$processInfo.CommandLine } else { '' }
+        $processName = if ($null -ne $processInfo) { [string]$processInfo.Name } else { '' }
+
+        # 只接受命令列能證明屬於本專案的程序。若命令列無法取得，
+        # 不能以「它剛好占用 5000 埠」推論其身分，避免誤終止其他服務。
+        $belongsToChurchReport =
+            (-not [string]::IsNullOrWhiteSpace($commandLine)) -and
+            (($commandLine.IndexOf($normalizedProjectDirectory, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) -or
+             ($commandLine.IndexOf('SpeechMessageProducts.ChurchReport', [System.StringComparison]::OrdinalIgnoreCase) -ge 0))
+
+        if ($belongsToChurchReport) {
+            $churchReportProcessIds.Add([int]$ownerProcessId)
+        }
+        else {
+            $unknownProcessIds.Add([int]$ownerProcessId)
+            Write-Host "無法確認程序 $ownerProcessId（$processName）是否屬於 ChurchReport。" -ForegroundColor Yellow
+        }
+    }
+
+    if ($unknownProcessIds.Count -gt 0) {
+        throw "連接埠 $Port 已被其他或無法辨識的程序使用；為避免誤殺，腳本不會自動終止。PID：$($unknownProcessIds -join ', ')"
+    }
+
+    foreach ($churchReportProcessId in $churchReportProcessIds) {
+        Write-Host "[0/3] 正在停止既有 ChurchReport 程序（PID $churchReportProcessId）..." -ForegroundColor Yellow
+        & taskkill.exe /PID $churchReportProcessId /T /F 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "無法停止 ChurchReport 程序（PID $churchReportProcessId），結束碼：$LASTEXITCODE"
+        }
+    }
+
+    $stopDeadline = (Get-Date).AddSeconds(10)
+    while ((Get-Date) -lt $stopDeadline) {
+        $remainingProcessIds = @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty OwningProcess -Unique)
+        if ($remainingProcessIds.Count -eq 0) {
+            Write-Host "[0/3] 既有 ChurchReport 已停止，連接埠 $Port 已釋放。" -ForegroundColor Green
+            return
+        }
+
+        Start-Sleep -Milliseconds 250
+    }
+
+    throw "既有 ChurchReport 已要求停止，但連接埠 $Port 仍被占用。"
+}
+
 try {
     $dotnetCommand = Get-Command dotnet -CommandType Application -ErrorAction Stop
 
@@ -78,7 +143,17 @@ try {
         throw "無法從網站網址取得有效的連接埠：$Url"
     }
 
+    if (Test-TcpPortReady -HostName $targetUri.DnsSafeHost -Port $port) {
+        if ($targetUri.Host -in @('localhost', '127.0.0.1', '::1')) {
+            Stop-ExistingChurchReportForPort -Port $port -ProjectDirectory $projectDirectory
+        }
+        else {
+            throw "網址目前已被其他程序使用：$Url；非本機網址不會自動終止程序。"
+        }
+    }
+
     $env:ASPNETCORE_ENVIRONMENT = 'Development'
+    $env:ASPNETCORE_URLS = $Url
 
     Write-Host '========================================' -ForegroundColor Magenta
     Write-Host 'ChurchReport 開發網站啟動器' -ForegroundColor Magenta
@@ -89,7 +164,9 @@ try {
     Write-Host ''
 
     Write-Host "[1/3] 編譯 $Configuration ..." -ForegroundColor Cyan
-    & $dotnetCommand.Source build $projectPath --configuration $Configuration --nologo
+    # 不產生可執行檔 apphost，避免另一個開發程序只因鎖定 apphost.exe 而阻塞編譯。
+    # 網站仍由 dotnet 啟動目標 DLL，行為與一般開發執行一致。
+    & $dotnetCommand.Source build $projectPath --configuration $Configuration --nologo --property:UseAppHost=false
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet build 失敗，結束碼：$LASTEXITCODE"
     }
@@ -102,8 +179,9 @@ try {
         '--no-build'
         '--configuration'
         $Configuration
+        '--property:UseAppHost=false'
         '--project'
-        ('"{0}"' -f $projectPath)
+        $projectPath
     )
     $serverProcess = Start-Process `
         -FilePath $dotnetCommand.Source `
