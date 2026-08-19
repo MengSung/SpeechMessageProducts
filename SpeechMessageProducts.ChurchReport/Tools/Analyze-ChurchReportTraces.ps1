@@ -54,8 +54,22 @@ $ErrorActionPreference = 'Stop'
 # Windows PowerShell 5.1 已內建 code page 950；PowerShell 7/.NET Core 則需註冊
 # CodePages provider 才能可靠建立 Big5 reader。註冊本身是程序級、無檔案副作用，
 # 且在 Framework 執行環境不存在 provider 時安全略過。
-if ($PSVersionTable.PSVersion.Major -ge 6) {
-    [System.Text.Encoding]::RegisterProvider([System.Text.CodePagesEncodingProvider]::Instance)
+Set-Variable -Name registerProvider -Value $null -Force
+Set-Variable -Name providerType -Value $null -Force
+try {
+    $registerProvider = (([System.Text.Encoding]).GetMethods() |
+        Where-Object { $_.Name -eq 'RegisterProvider' } |
+        Select-Object -First 1)
+    $providerAssembly = [System.Reflection.Assembly]::Load('System.Text.Encoding.CodePages')
+    $providerType = $providerAssembly.GetType('System.Text.CodePagesEncodingProvider', $false)
+}
+catch {
+    # Windows PowerShell 5.1 already exposes code page 950; older Framework runtimes
+    # may not expose the .NET Core provider and can continue without registration.
+}
+if ($null -ne $registerProvider -and $null -ne $providerType) {
+    $provider = $providerType.GetProperty('Instance').GetValue($null, $null)
+    [void]$registerProvider.Invoke($null, @($provider))
 }
 
 function Resolve-InputPath {
@@ -289,7 +303,7 @@ function Analyze-DataverseTrace {
     $result | Add-Member NoteProperty UniquePseudonyms ([long]0)
 
     if (-not [System.IO.File]::Exists($Path)) {
-        Add-Reason -Result $result -Severity WARN -Message 'File is missing; the three-file evidence set is incomplete.'
+        Add-Reason -Result $result -Severity WARN -Message '找不到檔案；三檔證據集合不完整。'
         return $result
     }
 
@@ -425,18 +439,18 @@ function Analyze-DataverseTrace {
         foreach ($id in $returned) { if (-not $acquired.Contains($id)) { $result.OrphanReturns++ } }
     }
 
-    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message 'The file could not be decoded or read completely.' }
-    if ($result.Parsed -eq 0) { Add-Reason -Result $result -Severity WARN -Message 'No parseable JSONL events; evidence is insufficient.' }
-    if ($result.ParseErrors -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ("{0} JSONL lines could not be parsed." -f $result.ParseErrors) }
-    if ($result.PairOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message 'Pair tracking exceeded the memory bound; pairing is partial evidence only.' }
+    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message '檔案無法完整解碼或讀取。' }
+    if ($result.Parsed -eq 0) { Add-Reason -Result $result -Severity WARN -Message '沒有可解析的 JSONL 事件；證據不足。' }
+    if ($result.ParseErrors -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ("{0} 行 JSONL 無法解析。" -f $result.ParseErrors) }
+    if ($result.PairOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message '配對追蹤超過記憶體上限；配對結果僅是部分證據。' }
     if (($result.MissingRequestEnds + $result.OrphanRequestEnds) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'request.begin/request.end events are not fully paired.' }
     if (($result.MissingReturns + $result.OrphanReturns) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'lease acquire/return events are not fully paired.' }
-    if ($result.HealthFailures -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'Pool health failures were detected.' }
-    if ($result.CallerStateViolations -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'A returned lease retained caller state.' }
+    if ($result.HealthFailures -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '偵測到 Pool 健康檢查失敗。' }
+    if ($result.CallerStateViolations -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '歸還的租約仍保留呼叫端狀態。' }
     if ($result.InvalidPseudonyms -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'A user value did not match the short-lived pseudonym format.' }
     if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'Potential sensitive-data patterns were found; raw values are omitted.' }
-    if ($result.Timeouts -gt 0) { Add-Reason -Result $result -Severity WARN -Message 'Pool acquire timeouts were detected.' }
-    if ($result.DroppedEvents -gt 0) { Add-Reason -Result $result -Severity WARN -Message 'Trace events were dropped; evidence may be incomplete.' }
+    if ($result.Timeouts -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到 Pool 取得逾時。' }
+    if ($result.DroppedEvents -gt 0) { Add-Reason -Result $result -Severity WARN -Message '有 Trace 事件被丟棄；證據可能不完整。' }
 
     return $result
 }
@@ -461,7 +475,7 @@ function Analyze-ApplicationTrace {
     $result | Add-Member NoteProperty Endpoints (New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::OrdinalIgnoreCase))
 
     if (-not [System.IO.File]::Exists($Path)) {
-        Add-Reason -Result $result -Severity WARN -Message 'File is missing; the three-file evidence set is incomplete.'
+        Add-Reason -Result $result -Severity WARN -Message '找不到檔案；三檔證據集合不完整。'
         return $result
     }
 
@@ -566,7 +580,7 @@ function Analyze-ToolUtilityTrace {
     $result | Add-Member NoteProperty Categories (New-Object 'System.Collections.Generic.Dictionary[string,long]' ([StringComparer]::OrdinalIgnoreCase))
 
     if (-not [System.IO.File]::Exists($Path)) {
-        Add-Reason -Result $result -Severity WARN -Message 'File is missing; the three-file evidence set is incomplete.'
+        Add-Reason -Result $result -Severity WARN -Message '找不到檔案；三檔證據集合不完整。'
         return $result
     }
 
@@ -627,10 +641,10 @@ function Analyze-ToolUtilityTrace {
         if ($null -ne $reader) { $reader.Dispose() }
     }
 
-    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message 'The file could not be decoded as Big5 or read completely.' }
-    if ($result.EntryCount -eq 0) { Add-Reason -Result $result -Severity WARN -Message 'No StringToProcess entries; evidence is insufficient or the format is unsupported.' }
+    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message '檔案無法以 Big5 完整解碼或讀取。' }
+    if ($result.EntryCount -eq 0) { Add-Reason -Result $result -Severity WARN -Message '沒有 StringToProcess 項目；證據不足或格式不受支援。' }
     if ($result.CategoryOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message 'Category cardinality exceeded the bounded aggregation limit.' }
-    if ($result.ErrorCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message 'English or Traditional Chinese error indicators were detected.' }
+    if ($result.ErrorCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到英文或繁體中文錯誤指標。' }
     if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'Potential sensitive-data patterns were found; raw values are omitted.' }
 
     return $result
@@ -654,7 +668,7 @@ function Add-ReasonsToReport {
         [Parameter(Mandatory = $true)]$Result
     )
     if ($Result.Reasons.Count -eq 0) {
-        [void]$Lines.Add('- No explicit violation was detected.')
+        [void]$Lines.Add('- 未偵測到明確違規。')
         return
     }
     foreach ($reason in $Result.Reasons) {
@@ -668,10 +682,10 @@ function Add-SensitiveTable {
         [Parameter(Mandatory = $true)]$Counts
     )
     if ($Counts.Count -eq 0) {
-        [void]$Lines.Add('- Potential sensitive-data pattern hits: 0')
+        [void]$Lines.Add('- 潛在敏感資料模式命中：0')
         return
     }
-    [void]$Lines.Add('| Pattern | Matched lines |')
+    [void]$Lines.Add('| 模式 | 命中的行數 |')
     [void]$Lines.Add('|---|---:|')
     foreach ($entry in ($Counts.GetEnumerator() | Sort-Object Name)) {
         [void]$Lines.Add(('| {0} | {1} |' -f $entry.Key, $entry.Value))
@@ -722,16 +736,16 @@ try {
     if ($crossStatus -eq 'WARN' -and $overall -eq 'PASS') { $overall = 'WARN' }
 
     $lines = New-Object 'System.Collections.Generic.List[string]'
-    [void]$lines.Add('# ChurchReport Three-File Trace Analysis Report')
+    [void]$lines.Add('# ChurchReport 三檔 Trace 分析報告')
     [void]$lines.Add('')
-    [void]$lines.Add(('- Generated: {0}' -f (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')))
-    [void]$lines.Add(('- Overall status: **{0}**' -f $overall))
-    [void]$lines.Add(('- Slow-request threshold: {0} ms' -f $SlowRequestThresholdMs))
-    [void]$lines.Add(('- Pair/aggregation memory bound: {0:N0} entries. Overflow is WARN and cannot become a false PASS.' -f $MaxPairEntries))
+    [void]$lines.Add(('- 產生時間：{0}' -f (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')))
+    [void]$lines.Add(('- 整體狀態：**{0}**' -f $overall))
+    [void]$lines.Add(('- 慢請求門檻：{0} 毫秒' -f $SlowRequestThresholdMs))
+    [void]$lines.Add(('- 配對／聚合記憶體上限：{0:N0} 筆。溢位會標記為 WARN，不會被誤判為 PASS。' -f $MaxPairEntries))
     [void]$lines.Add('')
-    [void]$lines.Add('## Executive Summary')
+    [void]$lines.Add('## 執行摘要')
     [void]$lines.Add('')
-    [void]$lines.Add('| File | Status | Lines | Size (bytes) | Time range |')
+    [void]$lines.Add('| 檔案 | 狀態 | 行數 | 大小（位元組） | 時間範圍 |')
     [void]$lines.Add('|---|---|---:|---:|---|')
     foreach ($result in $results) {
         $range = if ($null -eq $result.StartTime) { 'n/a' } else { (Format-NullableTime $result.StartTime) + ' to ' + (Format-NullableTime $result.EndTime) }
@@ -739,33 +753,33 @@ try {
     }
 
     [void]$lines.Add('')
-    [void]$lines.Add('## File Inventory and Read-Only Contract')
+    [void]$lines.Add('## 檔案清單與唯讀契約')
     [void]$lines.Add('')
-    [void]$lines.Add('| File | Path | Exists | Last modified |')
+    [void]$lines.Add('| 檔案 | 路徑 | 存在 | 最後修改時間 |')
     [void]$lines.Add('|---|---|---|---|')
     foreach ($result in $results) {
         $modified = if ($null -eq $result.LastWriteTime) { 'n/a' } else { $result.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss') }
         [void]$lines.Add(('| {0} | `{1}` | {2} | {3} |' -f $result.Name, ($result.Path -replace '\|', '\|'), $result.Exists, $modified))
     }
     [void]$lines.Add('')
-    [void]$lines.Add('All inputs are streamed with `FileMode.Open + FileAccess.Read + FileShare.ReadWrite/Delete`; the analyzer does not modify source traces.')
+    [void]$lines.Add('所有輸入均以 `FileMode.Open + FileAccess.Read + FileShare.ReadWrite/Delete` 串流讀取；分析器不會修改原始 Trace。')
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## Dataverse Management and Isolation ({0})' -f $dataverse.Status))
+    [void]$lines.Add(('## Dataverse 管理與隔離（{0}）' -f $dataverse.Status))
     [void]$lines.Add('')
-    [void]$lines.Add(('- JSONL: {0:N0} lines, {1:N0} parsed, {2:N0} parse errors' -f $dataverse.Lines, $dataverse.Parsed, $dataverse.ParseErrors))
-    [void]$lines.Add(('- Request pairing: {0:N0} missing end, {1:N0} orphan end' -f $dataverse.MissingRequestEnds, $dataverse.OrphanRequestEnds))
-    [void]$lines.Add(('- Lease pairing: {0:N0} missing return, {1:N0} orphan return' -f $dataverse.MissingReturns, $dataverse.OrphanReturns))
-    [void]$lines.Add(('- Request duration: {0:N0} samples, {1} ms average, {2:N0} ms maximum' -f $dataverse.RequestDurationCount, (Format-Average $dataverse.RequestDurationSum $dataverse.RequestDurationCount), $dataverse.RequestDurationMax))
-    [void]$lines.Add(('- Acquire wait: {0:N0} samples, {1} ms average, {2:N0} ms maximum, {3:N0} timeouts' -f $dataverse.AcquireWaitCount, (Format-Average $dataverse.AcquireWaitSum $dataverse.AcquireWaitCount), $dataverse.AcquireWaitMax, $dataverse.Timeouts))
-    [void]$lines.Add(('- Lease held: {0:N0} samples, {1} ms average, {2:N0} ms maximum' -f $dataverse.HeldCount, (Format-Average $dataverse.HeldSum $dataverse.HeldCount), $dataverse.HeldMax))
-    [void]$lines.Add(('- Pool: {0:N0} health failures, {1:N0} below-MinSize cleanup snapshots, {2:N0} uncleared caller states, {3:N0} dropped events' -f $dataverse.HealthFailures, $dataverse.CleanupBelowMinSnapshots, $dataverse.CallerStateViolations, $dataverse.DroppedEvents))
+    [void]$lines.Add(('- JSONL：{0:N0} 行，成功解析 {1:N0} 行，解析錯誤 {2:N0} 行' -f $dataverse.Lines, $dataverse.Parsed, $dataverse.ParseErrors))
+    [void]$lines.Add(('- 請求配對：缺少結束 {0:N0}，多出的結束 {1:N0}' -f $dataverse.MissingRequestEnds, $dataverse.OrphanRequestEnds))
+    [void]$lines.Add(('- 租約配對：缺少歸還 {0:N0}，多出的歸還 {1:N0}' -f $dataverse.MissingReturns, $dataverse.OrphanReturns))
+    [void]$lines.Add(('- 請求耗時：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒' -f $dataverse.RequestDurationCount, (Format-Average $dataverse.RequestDurationSum $dataverse.RequestDurationCount), $dataverse.RequestDurationMax))
+    [void]$lines.Add(('- 取得等待：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒，逾時 {3:N0} 次' -f $dataverse.AcquireWaitCount, (Format-Average $dataverse.AcquireWaitSum $dataverse.AcquireWaitCount), $dataverse.AcquireWaitMax, $dataverse.Timeouts))
+    [void]$lines.Add(('- 租約持有：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒' -f $dataverse.HeldCount, (Format-Average $dataverse.HeldSum $dataverse.HeldCount), $dataverse.HeldMax))
+    [void]$lines.Add(('- Pool：健康檢查失敗 {0:N0} 次、低於 MinSize 的清理快照 {1:N0} 次、未清除呼叫端狀態 {2:N0} 次、丟棄事件 {3:N0} 次' -f $dataverse.HealthFailures, $dataverse.CleanupBelowMinSnapshots, $dataverse.CallerStateViolations, $dataverse.DroppedEvents))
     [void]$lines.Add('- Cleanup interpretation: `idleAfter < minSize` is concurrency-sensitive because a request can lease an idle client after cleanup selection and before the trace snapshot. It is reported as an observation, not a violation, unless independent lease/total-count evidence proves cleanup removed too many live clients.')
-    [void]$lines.Add(('- User isolation: {0:N0} valid pseudonyms, {1:N0} format violations' -f $dataverse.UniquePseudonyms, $dataverse.InvalidPseudonyms))
+    [void]$lines.Add(('- 使用者隔離：有效虛擬識別碼 {0:N0} 個，格式違規 {1:N0} 次' -f $dataverse.UniquePseudonyms, $dataverse.InvalidPseudonyms))
     [void]$lines.Add('')
-    [void]$lines.Add('### Event Counts')
+    [void]$lines.Add('### 事件統計')
     [void]$lines.Add('')
-    [void]$lines.Add('| Event | Count |')
+    [void]$lines.Add('| 事件 | 次數 |')
     [void]$lines.Add('|---|---:|')
     foreach ($entry in ($dataverse.EventCounts.GetEnumerator() | Sort-Object Name)) {
         [void]$lines.Add(('| `{0}` | {1:N0} |' -f $entry.Key, $entry.Value))
@@ -776,14 +790,14 @@ try {
     Add-SensitiveTable -Lines $lines -Counts $dataverse.SensitiveCounts
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## Application and Performance Trace.log ({0})' -f $application.Status))
+    [void]$lines.Add(('## 應用程式與效能 Trace.log（{0}）' -f $application.Status))
     [void]$lines.Add('')
     [void]$lines.Add(('- `[Perf]` {0:N0}, `[Perf-N+1]` {1:N0}, `[Perf-Gap]` {2:N0}, `[Perf-Startup]` {3:N0}' -f $application.PerfCount, $application.NPlusOneCount, $application.GapCount, $application.StartupCount))
-    [void]$lines.Add(('- Slow requests {0:N0}, startup maximum {1:N0} ms, error/exception {2:N0}, warning {3:N0}' -f $application.SlowCount, $application.StartupMax, $application.ErrorCount, $application.WarningCount))
+    [void]$lines.Add(('- 慢請求 {0:N0} 次、啟動最大耗時 {1:N0} 毫秒、error／exception {2:N0} 次、警告 {3:N0} 次' -f $application.SlowCount, $application.StartupMax, $application.ErrorCount, $application.WarningCount))
     [void]$lines.Add('')
-    [void]$lines.Add(('### Slowest Endpoints (Top {0}; query, GUID, and long numbers are masked)' -f $Top))
+    [void]$lines.Add(('### 最慢端點（前 {0} 名；查詢、GUID 與長數字已遮罩）' -f $Top))
     [void]$lines.Add('')
-    [void]$lines.Add('| Endpoint | Hits | Avg total ms | Max total ms | CRM calls | CRM ms | Max crm.n | Avg gap ms | Max gap ms |')
+    [void]$lines.Add('| 端點 | 次數 | 平均總耗時（毫秒） | 最大總耗時（毫秒） | CRM 呼叫次數 | CRM 耗時（毫秒） | 最大 crm.n | 平均間隔（毫秒） | 最大間隔（毫秒） |')
     [void]$lines.Add('|---|---:|---:|---:|---:|---:|---:|---:|---:|')
     foreach ($endpoint in ($application.Endpoints.Values | Sort-Object MaxTotal -Descending | Select-Object -First $Top)) {
         [void]$lines.Add(('| `{0}` | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} |' -f $endpoint.Path, $endpoint.Hits, (Format-Average $endpoint.TotalSum $endpoint.Hits), $endpoint.MaxTotal, $endpoint.CrmCountSum, $endpoint.CrmMsSum, $endpoint.MaxCrmN, (Format-Average $endpoint.GapSum $endpoint.Hits), $endpoint.MaxGap))
@@ -794,13 +808,13 @@ try {
     Add-SensitiveTable -Lines $lines -Counts $application.SensitiveCounts
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## Legacy ToolUtility Trace ({0})' -f $toolUtility.Status))
+    [void]$lines.Add(('## 舊版 ToolUtility Trace（{0}）' -f $toolUtility.Status))
     [void]$lines.Add('')
     [void]$lines.Add(('- Encoding: {0}; {1:N0} lines; {2:N0} StringToProcess entries; {3:N0} error indicators' -f $toolUtility.EncodingUsed, $toolUtility.Lines, $toolUtility.EntryCount, $toolUtility.ErrorCount))
     [void]$lines.Add('')
-    [void]$lines.Add(('### Common Safe Categories (Top {0}; message text is omitted)' -f $Top))
+    [void]$lines.Add(('### 常見安全類別（前 {0} 名；已省略訊息內容）' -f $Top))
     [void]$lines.Add('')
-    [void]$lines.Add('| Category | Count |')
+    [void]$lines.Add('| 類別 | 次數 |')
     [void]$lines.Add('|---|---:|')
     foreach ($entry in ($toolUtility.Categories.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First $Top)) {
         [void]$lines.Add(('| `{0}` | {1:N0} |' -f $entry.Key, $entry.Value))
@@ -811,16 +825,16 @@ try {
     Add-SensitiveTable -Lines $lines -Counts $toolUtility.SensitiveCounts
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## Cross-File Correlation ({0})' -f $crossStatus))
+    [void]$lines.Add(('## 跨檔案關聯（{0}）' -f $crossStatus))
     [void]$lines.Add('')
     foreach ($note in $crossNotes) { [void]$lines.Add(('- {0}' -f $note)) }
     [void]$lines.Add('- The analyzer does not guess traceId/endpoint relationships from fuzzy text. Without a shared correlation id, only time-range and aggregate correlation is possible.')
 
     [void]$lines.Add('')
-    [void]$lines.Add('## Recommendations and Limitations')
+    [void]$lines.Add('## 建議與限制')
     [void]$lines.Add('')
-    [void]$lines.Add('- FAIL: repair pairing, pool isolation, parsing, or sensitive-data issues before collecting a new trace.')
-    [void]$lines.Add('- WARN: collect all three files from one Debug reproduction and inspect slow endpoints, N+1, Gap, timeout, and dropped indicators.')
+    [void]$lines.Add('- FAIL：重新收集 Trace 前，請先修正配對、Pool 隔離、解析或敏感資料問題。')
+    [void]$lines.Add('- WARN：請從同一次 Debug 重現收集三個檔案，並檢查慢端點、N+1、Gap、逾時與丟棄事件指標。')
     [void]$lines.Add('- This report alone cannot prove absence of memory/session leakage. Release still requires concurrent A/B isolation, handle-release, soak, and resource-baseline checks.')
     [void]$lines.Add('- Files may be appended during analysis. The report is a readable snapshot and may not include later events.')
     [void]$lines.Add('- Sensitive-pattern scanning is conservative. Verify hits in the source environment; raw matching text is intentionally never retained.')

@@ -6,7 +6,7 @@
   "risk": "medium",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "完成集中設定清理並建立三檔 PowerShell 分析器",
+  "nextAction": "完成驗證、更新規格並等待使用者確認提交",
   "createdAt": "2026-08-19T09:20:00+08:00",
   "branch": "feat/dataverse-scoped-connection"
 }
