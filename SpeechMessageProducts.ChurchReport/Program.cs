@@ -89,10 +89,6 @@ namespace ChurchReport
                 options.Limits.MaxConcurrentUpgradedConnections = 1000;
             });
 
-#if DEBUG
-            InitializeTraceListener(diagnosticTraceOptions);
-#endif
-
             // 使用 Startup 類別設定服務
             var startup = new Startup(builder.Configuration, diagnosticTraceOptions);
             startup.ConfigureServices(builder.Services);
@@ -100,40 +96,31 @@ namespace ChurchReport
             var app = builder.Build();
 
 #if DEBUG
+            // 只有服務容器成功建立後才取得 listener owner；若組態或 DI 建置失敗，
+            // 尚未建立檔案 writer，避免啟動例外留下未由 Host 接管的 handle。
+            InitializeTraceListener(diagnosticTraceOptions);
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
             if (diagnosticTraceOptions.Enabled)
             {
                 _gcMonitoringLifetime = DebugTraceMonitorLifetime.Start(StartGCMonitoringAsync);
             }
-#endif
-
-            // 使用 Startup 類別設定中介層
-            startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
-
-#if DEBUG
-            // ========================================
-            // 註冊應用程式停止事件，確保資源正確釋放（僅 Debug 組態）
-            // ========================================
-            lifetime.ApplicationStopping.Register(() =>
+            try
             {
-                try
-                {
-                    _gcMonitoringLifetime?.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    // 診斷監控停止失敗不得略過 listener 的 flush/Dispose，也不得阻止 Host 關機。
-                    Console.WriteLine($"[Trace Cleanup] GC monitor shutdown failed: {ex.Message}");
-                }
-                finally
-                {
-                    _gcMonitoringLifetime = null;
-                    CleanupTraceListener();
-                }
-            });
-#endif
-
+                // 使用 Startup 類別設定中介層；若此處失敗，外層 finally 仍會釋放 Debug 資源。
+                startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
+                lifetime.ApplicationStopping.Register(StopDebugTraceResources);
+                app.Run();
+            }
+            finally
+            {
+                // ApplicationStopping callback 與 app.Run 例外路徑共用冪等清理 owner。
+                StopDebugTraceResources();
+            }
+#else
+            // Release 沒有任何檔案 listener、GC monitor 或診斷 provider。
+            startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
             app.Run();
+#endif
         }
 
         private static void ConfigureSafeLogging(WebApplicationBuilder builder)
@@ -286,27 +273,38 @@ namespace ChurchReport
         {
             lock (_traceLock)
             {
-                if (_traceListener != null)
+                var listener = _traceListener;
+                _traceListener = null;
+                if (listener != null)
                 {
-                    try
-                    {
-                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Application shutting down. Cleaning up trace listener.");
-
-                        // 從 Listeners 集合移除
-                        Trace.Listeners.Remove(_traceListener);
-
-                        // 確保 Flush（將緩衝資料寫入檔案）
-                        _traceListener.Flush();
-
-                        // 釋放資源（FileStream, StreamWriter）
-                        _traceListener.Dispose();
-                        _traceListener = null;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to cleanup trace listener: {ex.Message}");
-                    }
+                    try { Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Application shutting down. Cleaning up trace listener."); } catch { }
+                    try { Trace.Listeners.Remove(listener); } catch { }
+                    try { listener.Flush(); } catch { }
+                    try { listener.Dispose(); } catch (Exception ex) { Console.WriteLine($"Failed to cleanup trace listener: {ex.Message}"); }
                 }
+            }
+        }
+
+        /// <summary>
+        /// 以唯一 owner 停止 Debug GC 監控並清理全域 Trace listener。此方法可由 Host 停止
+        /// callback 與 app.Run 的例外 finally 同時呼叫；Interlocked 交換確保監控只被停止一次，
+        /// 而 listener cleanup 即使重複執行也不會保留 writer、stream 或 task。
+        /// </summary>
+        private static void StopDebugTraceResources()
+        {
+            var monitor = Interlocked.Exchange(ref _gcMonitoringLifetime, null);
+            try
+            {
+                monitor?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                // 診斷監控停止失敗不得略過 listener 的 flush/Dispose，也不得阻止 Host 關機。
+                Console.WriteLine($"[Trace Cleanup] GC monitor shutdown failed: {ex.Message}");
+            }
+            finally
+            {
+                CleanupTraceListener();
             }
         }
 

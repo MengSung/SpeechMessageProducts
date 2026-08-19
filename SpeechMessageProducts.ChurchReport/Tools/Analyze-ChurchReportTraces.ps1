@@ -51,6 +51,13 @@ param(
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
+# Windows PowerShell 5.1 已內建 code page 950；PowerShell 7/.NET Core 則需註冊
+# CodePages provider 才能可靠建立 Big5 reader。註冊本身是程序級、無檔案副作用，
+# 且在 Framework 執行環境不存在 provider 時安全略過。
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+    [System.Text.Encoding]::RegisterProvider([System.Text.CodePagesEncodingProvider]::Instance)
+}
+
 function Resolve-InputPath {
     param(
         [string]$ExplicitPath,
