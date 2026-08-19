@@ -16,10 +16,16 @@ namespace ChurchReport.Diagnostics.Profiling
 {
     /// <summary>
     /// 剖析總開關。僅 Debug 編譯存在；再加 runtime 旗標（預設關）雙重保險，
-    /// 即使正式機誤以 Debug 部署，未開設定就不剖析。由 Startup 從 Profiling:Enabled 設定。
+    /// 即使正式機誤以 Debug 部署，未開統一 DiagnosticsTrace 設定就不剖析；
+    /// Release 編譯則由 Program 建立 disabled options，部署設定無法繞過。
     /// </summary>
     public static class ProfilingSwitch
     {
+        /// <summary>
+        /// 取得或設定目前程序是否允許建立 request/CRM 效能剖析事件。Startup 只會從已通過
+        /// Debug 編譯防線的 <c>DiagnosticTraceOptions.Enabled</c> 指派此值；volatile 確保各 request
+        /// 執行緒立即看見程序級開關，但此欄位不得承載任何 request、使用者或租戶狀態。
+        /// </summary>
         public static volatile bool Enabled = false;
     }
 }

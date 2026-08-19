@@ -47,10 +47,14 @@ namespace ToolUtilityNameSpace.DependencyInjection
             // 絕不捕獲 request-scoped service。TryAdd 讓測試或其他產品可先提供
             // 自己的假連線服務，而不會意外建立第二個組合根實例。
             services.TryAddSingleton<ICrmConnectionService, CrmConnectionService>();
+            // 未由產品組合根明確 opt-in 時，統一診斷一律 fail closed。這個 fallback
+            // 不讀取 appsettings 的 Enabled，避免共用 ToolUtility 被其他 Host 誤開檔案追蹤。
+            services.TryAddSingleton<DiagnosticTraceOptions>(_ =>
+                DiagnosticTraceOptions.CreateDisabled(Environment.CurrentDirectory));
             services.TryAddSingleton<DataverseTraceOptions>(sp =>
             {
-                var options = DataverseTraceOptions.FromConfiguration(
-                    sp.GetRequiredService<IConfiguration>());
+                var options = DataverseTraceOptions.FromDiagnosticOptions(
+                    sp.GetRequiredService<DiagnosticTraceOptions>());
                 options.Validate();
                 return options;
             });
@@ -80,6 +84,7 @@ namespace ToolUtilityNameSpace.DependencyInjection
                 sp.GetRequiredService<DataverseConnectionManager>());
             services.TryAddSingleton<IBoundedClientPool>(sp =>
                 sp.GetRequiredService<DataverseConnectionManager>().Pool);
+            services.TryAddSingleton<IToolUtilityTracer, NullToolUtilityTracer>();
             services.TryAddSingleton<ICrmConnectionPool>(sp =>
                 new ConnectionPoolStatsAdapter(sp.GetRequiredService<IDataverseConnectionManager>()));
             services.TryAddScoped<IDataverseGateway, DataverseGateway>();

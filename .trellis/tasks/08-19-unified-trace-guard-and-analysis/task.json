@@ -3,7 +3,7 @@
   "name": "unified-trace-guard-and-analysis",
   "title": "統一 Trace 兩層保護與三檔綜合分析",
   "description": "以 Release 編譯防線與集中設定開關統一控制三種 Trace，並提供同時分析 dataverse-trace.jsonl、Trace.log 與 CHURCH_REPORT_TRACE.TXT 的完整 PowerShell 報告工具。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

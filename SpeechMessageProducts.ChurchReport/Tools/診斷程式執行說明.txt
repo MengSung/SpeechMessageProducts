@@ -1,16 +1,70 @@
-執行：
+ChurchReport 三種 Trace 的開關與分析方式
+
+一、只需要修改一個設定位置
+
+開發除錯時，修改 SpeechMessageProducts.ChurchReport\appsettings.Development.json：
+
+  "DiagnosticsTrace": {
+    "Enabled": true,
+    "Directory": "D:\\除錯追蹤"
+  }
+
+Enabled=true：Debug build 才會啟用三種 Trace。
+Enabled=false：Debug build 也不建立或追加三種 Trace。
+變更設定後必須重新啟動程式，不支援執行中熱切換。
+
+Release build 具有第二層編譯期保護。即使 appsettings 或環境變數誤設
+DiagnosticsTrace__Enabled=true，仍然不會建立三種 Trace writer。
+
+固定檔名如下，三檔永遠使用同一個 Directory：
+
+  D:\除錯追蹤\dataverse-trace.jsonl
+  D:\除錯追蹤\Trace.log
+  D:\除錯追蹤\CHURCH_REPORT_TRACE.TXT
+
+二、一次分析三個 Trace 檔案
+
+在 worktree 根目錄執行：
+
 powershell.exe `
   -NoProfile `
   -ExecutionPolicy Bypass `
-  -File ".\SpeechMessageProducts.ChurchReport\Tools\Diagnose-DataverseTrace.ps1" `
-  -TracePath "D:\dataverse-trace\dataverse-trace.jsonl"
-預設會產生：
-D:\dataverse-trace\dataverse-trace.diagnostic-report.md
-也可以指定報告檔案：
+  -File ".\SpeechMessageProducts.ChurchReport\Tools\Analyze-ChurchReportTraces.ps1" `
+  -TraceDirectory "D:\除錯追蹤" `
+  -ReportPath "D:\除錯追蹤\ChurchReport-Trace-Report.md"
+
+分析器會同時處理：
+
+1. Dataverse request、gateway、lease 配對、pool health、timeout、cleanup、dispose、
+   dropped、使用者假名格式與敏感資料表面。
+2. Trace.log 的 [Perf]、[Perf-N+1]、[Perf-Gap]、[Perf-Startup]、慢端點、
+   CRM 次數／耗時、gap、error 與 warning。
+3. CHURCH_REPORT_TRACE.TXT 的 Big5 解碼、呼叫項目、時間範圍、錯誤線索、
+   安全分類與敏感資料表面。
+
+分析器只用唯讀共享模式逐行掃描，可在程式仍追加 Trace 時執行；不會修改、
+清空、旋轉或刪除原始檔。報告不重印原始敏感內容。
+
+三、個別覆寫封存檔路徑
+
 powershell.exe `
   -NoProfile `
   -ExecutionPolicy Bypass `
-  -File ".\SpeechMessageProducts.ChurchReport\Tools\Diagnose-DataverseTrace.ps1" `
-  -TracePath "D:\dataverse-trace\dataverse-trace.jsonl" `
-  -ReportPath "D:\dataverse-trace\RunH-diagnostic-report.md"
-目前實際產生的報告：
+  -File ".\SpeechMessageProducts.ChurchReport\Tools\Analyze-ChurchReportTraces.ps1" `
+  -DataverseTracePath "D:\封存\dataverse-trace.jsonl" `
+  -ApplicationTracePath "D:\封存\Trace.log" `
+  -ToolUtilityTracePath "D:\封存\CHURCH_REPORT_TRACE.TXT" `
+  -ReportPath "D:\封存\ChurchReport-Trace-Report.md" `
+  -Top 20
+
+四、結果與結束碼
+
+PASS：有足夠證據，且沒有發現明確違規。
+WARN：缺檔、資料不足、時間窗不重疊、慢請求、N+1、Gap、timeout 或 dropped。
+FAIL：解析錯誤、request／lease 不成對、pool 隔離違規或疑似敏感資料命中。
+
+exit 0：成功產生報告，總結為 PASS 或 WARN。
+exit 1：分析器本身或報告輸出失敗。
+exit 2：成功產生報告，但資料中有 FAIL。
+
+完整 PASS 必須三檔都存在且有足夠事件；「沒有事件」不會被判定為 PASS。

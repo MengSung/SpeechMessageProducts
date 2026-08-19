@@ -1,0 +1,10 @@
+{"ts":"2026-08-19T09:00:00.0000000Z","ev":"request.begin","traceId":"trace-fixture-1","user":"u_1234abcd"}
+{"ts":"2026-08-19T09:00:00.0100000Z","ev":"pool.acquire.wait","traceId":"trace-fixture-1","waitedMs":10}
+{"ts":"2026-08-19T09:00:00.0200000Z","ev":"pool.acquire.hit","traceId":"trace-fixture-1","user":"u_1234abcd","leaseId":"lease-fixture-1","clientId":"client-fixture-1","poolKey":"ChurchReport|Development"}
+{"ts":"2026-08-19T09:00:00.0300000Z","ev":"crm.op","traceId":"trace-fixture-1","op":"RetrieveMultiple","leaseId":"lease-fixture-1"}
+{"ts":"2026-08-19T09:00:00.0400000Z","ev":"pool.return","traceId":"trace-fixture-1","user":"u_1234abcd","leaseId":"lease-fixture-1","clientId":"client-fixture-1","state":"Ready","callerIdAtReturn":"","heldMs":20}
+{"ts":"2026-08-19T09:00:00.0500000Z","ev":"pool.health","clientId":"client-fixture-1","result":true}
+{"ts":"2026-08-19T09:00:00.0600000Z","ev":"pool.cleanup","idleBefore":3,"idleAfter":2,"minSize":2}
+{"ts":"2026-08-19T09:00:00.0650000Z","ev":"pool.cleanup","idleBefore":3,"idleAfter":1,"minSize":2}
+{"ts":"2026-08-19T09:00:00.0700000Z","ev":"pool.dispose","clientId":"client-fixture-old","stateAtDispose":"Idle","reason":"IdleTimeout"}
+{"ts":"2026-08-19T09:00:00.0800000Z","ev":"request.end","traceId":"trace-fixture-1","user":"u_1234abcd","durationMs":80}

@@ -97,6 +97,9 @@
     <ProjectReference Include="..\LineMessagingProcessor.RichMenus\LineMessagingProcessor.RichMenus.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="ToolUtility.Dataverse.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Views\Dedication\" />
     <Folder Include="文件\修正官網奉獻網頁\" />
   </ItemGroup>
