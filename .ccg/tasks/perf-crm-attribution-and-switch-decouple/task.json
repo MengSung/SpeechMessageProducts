@@ -1,0 +1,12 @@
+{
+  "id": "perf-crm-attribution-and-switch-decouple",
+  "title": "修復 Perf CRM 歸因與 Session 診斷開關耦合",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "以雙模型分析既有設計與執行計畫後開始 Step 1",
+  "createdAt": "2026-08-20T00:00:00+08:00",
+  "branch": "feat/dataverse-scoped-connection"
+}
