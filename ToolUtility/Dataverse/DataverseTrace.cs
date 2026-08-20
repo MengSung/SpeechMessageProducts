@@ -481,6 +481,31 @@ public sealed class DataverseTrace : IDisposable
     /// 避免捏造 HttpContext traceId；正常代理路徑的 leaseId 必定非空，可供稽核繞過 Gateway 的情況。
     /// </summary>
     public void CrmOperation(string operation)
+        => CrmOperation(operation, entity: string.Empty, elapsedMs: 0, ok: true, count: -1);
+
+    /// <summary>
+    /// 記錄一次 CRM 操作，含 entity、耗時與回傳筆數。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>可記錄什麼</b>：只有 schema 層級的識別與量測值 —— entity logical name、SDK 訊息名稱、
+    /// 毫秒數、筆數、成敗。這些與 op 名稱同級，描述的是「呼叫了什麼形狀的操作」。
+    /// </para>
+    /// <para>
+    /// <b>絕不可記錄什麼</b>：資料列 GUID、欄位值、ColumnSet 內容、QueryExpression 條件、FetchXML
+    /// 本文與任何 CRM 回應內容。FetchExpression 一律只以固定字串標示，不得解析其 XML。
+    /// </para>
+    /// <para>
+    /// 為什麼需要 entity 與 ms：沒有它們就無法分辨「一個慢查詢」與「同一張表被查了 20 次」，
+    /// 而這兩者的處置方式完全不同。這是唯一能指出該合併哪些查詢的資訊。
+    /// </para>
+    /// </remarks>
+    /// <param name="operation">操作種類，例如 RetrieveMultiple；Execute 則為 SDK 訊息名稱。</param>
+    /// <param name="entity">entity logical name；無法判定時為空字串。不含任何資料列識別。</param>
+    /// <param name="elapsedMs">該次 CRM 往返耗時毫秒。</param>
+    /// <param name="ok">操作是否成功完成。</param>
+    /// <param name="count">查詢回傳筆數；不適用的操作為 -1。只記數量，不記內容。</param>
+    public void CrmOperation(string operation, string entity, long elapsedMs, bool ok, int count)
     {
         if (!Enabled)
             return;
@@ -493,7 +518,11 @@ public sealed class DataverseTrace : IDisposable
             // crm.op 的 schema 固定含 leaseId；在尚未由 pool 接線的早期呼叫點以空字串
             // 表示「沒有可證明的 lease」，而非輸出 JSON null 讓分析器誤判為損毀紀錄。
             LeaseId = context.LeaseId ?? string.Empty,
-            Text = operation
+            Text = operation,
+            State = entity ?? string.Empty,
+            First = Math.Max(0, elapsedMs),
+            Second = count,
+            Result = ok
         });
     }
 
@@ -826,6 +855,10 @@ public sealed class DataverseTrace : IDisposable
                 json.WriteString("traceId", entry.TraceId);
                 json.WriteString("op", entry.Text);
                 json.WriteString("leaseId", entry.LeaseId);
+                json.WriteString("entity", entry.State);
+                json.WriteNumber("ms", entry.First);
+                json.WriteNumber("count", entry.Second);
+                json.WriteBoolean("ok", entry.Result);
                 break;
             case EventKind.TraceDropped:
                 json.WriteNumber("count", entry.First);

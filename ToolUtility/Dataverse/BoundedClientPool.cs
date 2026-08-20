@@ -26,6 +26,12 @@ public sealed class BoundedClientPool : IBoundedClientPool
         internal readonly List<PooledClient> All = new();
         internal readonly object Sync = new();
 
+        /// <summary>
+        /// 已保留名額但尚未完成建立的 client 數量，由 <see cref="Sync"/> 保護。
+        /// 建線移到鎖外之後，這個計數是避免多執行緒同時為同一個缺口重複建線的唯一依據。
+        /// </summary>
+        internal int Pending;
+
         internal SubPool(DataverseConnectionKey key, int maxSize)
         {
             Key = key;
@@ -343,16 +349,79 @@ public sealed class BoundedClientPool : IBoundedClientPool
         _subPools.Clear();
     }
 
+    /// <summary>
+    /// 補足子池的 MinSize。採「鎖內保留名額 → 鎖外建立 → 鎖內提交」三段式。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>為什麼不能在鎖內建線</b>：建立 client 是完整的網路驗證握手，而 <see cref="SubPool.Sync"/>
+    /// 同時被 Acquire、cleanup 與 metrics 共用。一旦在鎖內做這件事，CRM 變慢或失敗時，N 個併發
+    /// request 會被串列化成 N 倍延遲；實測曾出現三個同時到達的 request 以約 21 秒等差依序失敗
+    /// （21.9 / 41.6 / 61.3 秒），且 cleanup timer callback 在解鎖瞬間一次釋放 30 筆。
+    /// </para>
+    /// <para>
+    /// <b><see cref="SubPool.Pending"/> 的作用</b>：把建線移到鎖外之後，若只看 All 的數量，多個執行緒
+    /// 會各自算出同一個缺口並重複建線。先在鎖內保留名額，其他執行緒便會看到缺口已被認領。
+    /// </para>
+    /// <para>
+    /// <b>行為取捨</b>：其他執行緒不再被阻擋，但在保留期間它們會走 overflow 路徑自行建線，因此瞬間
+    /// 連線數可能高於 MinSize。此數量仍受 semaphore 的 MaxN 上限約束，並由閒置回收降回 MinSize；
+    /// 以少量額外連線換取不再被單一慢速握手鎖死整個子池。
+    /// </para>
+    /// <para>
+    /// 提交階段會重新檢查 pool 是否已關閉：若在鎖外建立期間 <see cref="Dispose"/> 已執行，新建的
+    /// client 不得掛進沒有擁有者的子池，必須就地釋放，否則會成為無人回收的連線。
+    /// </para>
+    /// </remarks>
     private void EnsureMinimum(SubPool subPool, DataverseConnectionKey key, CancellationToken cancellationToken)
     {
+        int reserved;
         lock (subPool.Sync)
         {
-            var missing = _options.MinSize - subPool.All.Count(client => client.State != PooledClientState.Disposed);
-            for (var index = 0; index < missing; index++)
+            var alive = subPool.All.Count(client => client.State != PooledClientState.Disposed);
+            reserved = _options.MinSize - alive - subPool.Pending;
+            if (reserved <= 0)
+                return;
+            subPool.Pending += reserved;
+        }
+
+        var created = new List<PooledClient>(reserved);
+        List<PooledClient> orphaned = null;
+        try
+        {
+            for (var index = 0; index < reserved; index++)
+                created.Add(CreateClientCore(key, cancellationToken, "ensureMin"));
+        }
+        finally
+        {
+            lock (subPool.Sync)
             {
-                var client = CreateClientCore(key, cancellationToken, "ensureMin");
-                subPool.All.Add(client);
-                subPool.Idle.Enqueue(client);
+                subPool.Pending -= reserved;
+
+                if (Volatile.Read(ref _disposed) != 0)
+                {
+                    // pool 已於鎖外建立期間關閉；這些 client 沒有擁有者，必須就地釋放。
+                    orphaned = created;
+                }
+                else
+                {
+                    // 即使中途失敗，已成功建立的 client 仍要入池，不浪費已付出的握手成本。
+                    foreach (var client in created)
+                    {
+                        subPool.All.Add(client);
+                        subPool.Idle.Enqueue(client);
+                    }
+                }
+            }
+
+            if (orphaned != null)
+            {
+                foreach (var client in orphaned)
+                {
+                    TraceDisposeAttempt(client, "shutdown");
+                    if (client.DisposeUnderlying())
+                        Interlocked.Increment(ref _discarded);
+                }
             }
         }
     }
