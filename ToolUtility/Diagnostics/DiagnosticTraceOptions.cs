@@ -44,10 +44,19 @@ namespace ToolUtilityNameSpace.Diagnostics
         /// <summary>固定的 legacy ToolUtility Trace 檔名。</summary>
         public const string ToolUtilityTraceFileName = "CHURCH_REPORT_TRACE.TXT";
 
-        private DiagnosticTraceOptions(string directory, bool enabled)
+        /// <summary>
+        /// 初始化不可變的程序級診斷設定；此建構式只接收已完成路徑解析與 fail-closed
+        /// 收斂的值，不建立檔案、listener、stream、timer 或背景工作，也不保存任何 request、
+        /// Session、使用者或租戶資料，因此物件可安全由 DI 以 singleton 共用。
+        /// </summary>
+        /// <param name="directory">已驗證的程序級診斷目錄。</param>
+        /// <param name="enabled">已經過組合根安全邊界收斂的一般診斷啟用值。</param>
+        /// <param name="sessionVerbose">已經過相同安全邊界收斂的 Session 詳細診斷啟用值。</param>
+        private DiagnosticTraceOptions(string directory, bool enabled, bool sessionVerbose)
         {
             Directory = directory;
             Enabled = enabled;
+            SessionVerbose = sessionVerbose;
             DataverseTracePath = Path.Combine(directory, DataverseTraceFileName);
             TraceLogPath = Path.Combine(directory, TraceLogFileName);
             ToolUtilityTracePath = Path.Combine(directory, ToolUtilityTraceFileName);
@@ -55,6 +64,18 @@ namespace ToolUtilityNameSpace.Diagnostics
 
         /// <summary>取得是否允許本次程序建立三種診斷 writer。</summary>
         public bool Enabled { get; }
+
+        /// <summary>
+        /// 取得是否允許本程序輸出高頻的 Session 詳細診斷。
+        /// </summary>
+        /// <remarks>
+        /// 此值只在啟動時由受信任組態與 <c>allowEnabled</c> 的 Release 防線決定，且不持有
+        /// request、Session、使用者、tenant、Claims 或 credential。它只控制 Debug 組件內的
+        /// 無狀態全域開關，並不擁有 writer、listener、stream 或背景工作；這些資源仍由既有
+        /// 程序級 owner 在應用程式停止時確定性釋放。當 Release 防線關閉時，此值必為 false，
+        /// 使部署組態無法意外恢復可能包含 Session 細節的高頻輸出。
+        /// </remarks>
+        public bool SessionVerbose { get; }
 
         /// <summary>取得已解析且未包含檔名的診斷資料夾。</summary>
         public string Directory { get; }
@@ -73,8 +94,30 @@ namespace ToolUtilityNameSpace.Diagnostics
         /// </summary>
         /// <param name="directory">可信任的程序級診斷目錄。</param>
         /// <param name="enabled">是否允許 writer；Release 組合根不得直接傳入 true。</param>
-        /// <returns>包含固定三個檔名的設定物件。</returns>
+        /// <returns>包含固定三個檔名且 SessionVerbose 固定為 false 的設定物件。</returns>
+        /// <remarks>
+        /// 保留此兩參數公開簽章，讓既有呼叫端在不知悉 Session 詳細診斷的情況下維持低雜訊
+        /// 安全預設。若需要由部署組態決定 SessionVerbose，必須使用
+        /// <see cref="FromConfiguration(IConfiguration, string, bool)"/>，以保留 allowEnabled 的
+        /// fail-closed 邊界；本方法本身不建立或擁有任何診斷資源。
+        /// </remarks>
         public static DiagnosticTraceOptions Create(string directory, bool enabled)
+        {
+            return Create(directory, enabled, sessionVerbose: false);
+        }
+
+        /// <summary>
+        /// 建立已明確指定 Session 詳細診斷狀態的設定，並集中完成目錄正規化。
+        /// </summary>
+        /// <param name="directory">可信任的程序級診斷目錄。</param>
+        /// <param name="enabled">是否允許一般診斷 writer 建立資源。</param>
+        /// <param name="sessionVerbose">是否允許 Debug Session 詳細診斷；呼叫端必須先套用 Release 防線。</param>
+        /// <returns>不建立檔案、listener 或背景工作的不可變程序級設定。</returns>
+        /// <remarks>
+        /// 此私有入口是唯一建立路徑，讓相對目錄只在啟動期解析一次。它不接受 request 或
+        /// 使用者輸入，也不保留可變 Session 狀態，因此不會跨請求、跨使用者或跨租戶傳遞資料。
+        /// </remarks>
+        private static DiagnosticTraceOptions Create(string directory, bool enabled, bool sessionVerbose)
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
@@ -87,7 +130,7 @@ namespace ToolUtilityNameSpace.Diagnostics
                 throw new ArgumentException("診斷目錄必須是可解析的檔案系統路徑。", nameof(directory));
             }
 
-            return new DiagnosticTraceOptions(fullDirectory, enabled);
+            return new DiagnosticTraceOptions(fullDirectory, enabled, sessionVerbose);
         }
 
         /// <summary>
@@ -97,6 +140,12 @@ namespace ToolUtilityNameSpace.Diagnostics
         /// <param name="contentRootPath">應用程式 content root，用於解析相對路徑。</param>
         /// <param name="allowEnabled">只有 Debug 組合根可傳入 true。</param>
         /// <returns>已解析的統一設定。</returns>
+        /// <remarks>
+        /// <c>Enabled</c> 與 <c>SessionVerbose</c> 分別讀取各自的組態鍵，兩者不互相推導；
+        /// 但兩者都必須以 <paramref name="allowEnabled"/> 收斂。故 SessionVerbose 的結果恆為
+        /// <c>allowEnabled &amp;&amp; configuredSessionVerbose</c>，使 Release 即使收到惡意或誤設的
+        /// 環境變數仍維持 false。組態只在啟動時讀取一次，不會保留 request 或 Session 資料。
+        /// </remarks>
         public static DiagnosticTraceOptions FromConfiguration(
             IConfiguration configuration,
             string contentRootPath,
@@ -124,14 +173,22 @@ namespace ToolUtilityNameSpace.Diagnostics
                 : Path.Combine(contentRootPath, configuredDirectory);
 
             var configuredEnabled = section.GetValue("Enabled", false);
-            return Create(directory, allowEnabled && configuredEnabled);
+            var configuredSessionVerbose = section.GetValue("SessionVerbose", false);
+            return Create(
+                directory,
+                allowEnabled && configuredEnabled,
+                allowEnabled && configuredSessionVerbose);
         }
 
         /// <summary>
         /// 建立明確停用的設定；不讀取外部啟用值，供 Release 組合根使用。
         /// </summary>
         /// <param name="contentRootPath">應用程式 content root；只用於相容的預設路徑解析。</param>
-        /// <returns>Enabled 永遠為 false 的設定。</returns>
+        /// <returns>Enabled 與 SessionVerbose 永遠為 false 的設定。</returns>
+        /// <remarks>
+        /// 此路徑不解析任何部署啟用旗標，並透過相容的兩參數 <see cref="Create(string, bool)"/>
+        /// 固定 SessionVerbose 為 false；因此不會建立診斷資源或保留 Session、使用者、租戶資料。
+        /// </remarks>
         public static DiagnosticTraceOptions CreateDisabled(string contentRootPath)
         {
             if (string.IsNullOrWhiteSpace(contentRootPath))

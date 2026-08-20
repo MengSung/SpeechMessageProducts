@@ -44,7 +44,7 @@ namespace ChurchReport.Diagnostics
         /// 取得或設定是否允許逐步 Session 診斷輸出；預設停用以避免量測污染與敏感資料留存。
         /// </summary>
         /// <remarks>
-        /// Startup 只可依受信任的 Debug <c>DiagnosticTraceOptions.Enabled</c> 同步此旗標；
+        /// Startup 只可依受信任的 Debug <c>DiagnosticTraceOptions.SessionVerbose</c> 同步此旗標；
         /// 不得從 request、Session、query string、form、cookie、租戶欄位或使用者輸入指派。
         /// Release 不會編譯此欄位，因此即使外部部署設定誤設 enabled，也沒有 runtime 路徑
         /// 可以重新建立這些逐步輸出。

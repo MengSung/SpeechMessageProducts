@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,74 @@ namespace ToolUtility.Dataverse.Tests;
 /// </summary>
 public sealed class ToolUtilityFactoryAmbientGatewayTests
 {
+    /// <summary>
+    /// 保護 legacy Factory 在 HTTP request 內不可以直接跳到 <see cref="IDataverseGateway"/>，
+    /// 必須回到目前 scope 已註冊的 <see cref="IOrganizationService"/>。故障注入是以真實
+    /// <see cref="ChurchReport.Startup"/> 建立 Debug 計時裝飾器，再由 Factory 單例呼叫
+    /// <see cref="IOrganizationService.Execute(OrganizationRequest)"/>；決定性斷言是目前
+    /// <see cref="ChurchReport.Diagnostics.Profiling.RequestProfiler"/> 的摘要含有
+    /// <c>crm{n=1,</c>。這可防止 Factory 持有的 ambient 代理繞過 DI decorator，讓 JSONL
+    /// 有 CRM 操作但同一 request 的 <c>[Perf]</c> 永遠為零。
+    /// </summary>
+    /// <remarks>
+    /// 測試的 <see cref="DefaultHttpContext"/>、DI scope、Factory 靜態設定與假的 CRM client
+    /// 都在 <c>finally</c>／<c>using</c> 路徑確定性釋放或重設。不存在真實網路、使用者、
+    /// Session、credential 或 tenant 資料；唯一的 HttpContext 只模擬本測試 scope，避免跨測試
+    /// 或跨 request 保留可變狀態。
+    /// </remarks>
+    [Fact]
+    public void Factory_legacy_organization_service_uses_current_scope_timed_decorator()
+    {
+        ResetFactory();
+        var configuration = CreateConfiguration();
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton(CreateConnectionService(new List<IOrganizationService>()));
+
+        var diagnosticOptions = DiagnosticTraceOptions.Create(
+            Environment.CurrentDirectory,
+            enabled: false);
+        var startup = new ChurchReport.Startup(configuration, diagnosticOptions);
+        startup.ConfigureServices(services);
+
+        // Startup 的完整 MVC 組裝需要 WebHost 才能啟用 ValidateOnBuild；本測試只驗證
+        // 已註冊的 CRM/Factory request 路徑，故沿用既有 Startup 組裝測試的正常容器建置。
+        using var provider = services.BuildServiceProvider();
+        var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+
+        try
+        {
+            using var requestScope = provider.CreateScope();
+            var context = new DefaultHttpContext
+            {
+                RequestServices = requestScope.ServiceProvider
+            };
+            var profiler = new ChurchReport.Diagnostics.Profiling.RequestProfiler();
+            context.Items[ChurchReport.Diagnostics.Profiling.RequestProfiler.ItemsKey] = profiler;
+            httpContextAccessor.HttpContext = context;
+
+            ToolUtilityFactory.SetConfiguration(configuration);
+            ToolUtilityFactory.SetTracer(provider.GetRequiredService<IToolUtilityTracer>());
+            ToolUtilityFactory.SetAmbientService(new AmbientGatewayOrganizationService(
+                () => httpContextAccessor.HttpContext?.RequestServices,
+                provider.GetRequiredService<IServiceScopeFactory>()));
+
+            ToolUtilityFactory.GetInstance()
+                .m_Crm2011OrganizationService
+                .Execute(new WhoAmIRequest());
+
+            Assert.Contains(
+                "crm{n=1,",
+                profiler.BuildSummaryLine("legacy-factory-test", totalMs: 1),
+                StringComparison.Ordinal);
+        }
+        finally
+        {
+            httpContextAccessor.HttpContext = null;
+            ResetFactory();
+        }
+    }
+
     /// <summary>
     /// 保護 Factory 單例不捕獲 request scope、也不在背景操作遺漏 scope 釋放的契約。
     /// 故障注入為可計數的 scope factory 和不連線網路的 CRM service；決定性斷言依序是：
