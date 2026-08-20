@@ -89,6 +89,9 @@ public sealed class DataverseTrace : IDisposable
         PoolAcquireHit,
         PoolAcquireMiss,
         PoolAcquireTimeout,
+        PoolAcquireFail,
+        PoolCreateBegin,
+        PoolCreateEnd,
         PoolHealth,
         PoolReturn,
         PoolDispose,
@@ -342,6 +345,79 @@ public sealed class DataverseTrace : IDisposable
         if (!TryGetRequest(out var context))
             return;
         Enqueue(new TraceEntry { Kind = EventKind.PoolAcquireTimeout, TraceId = context.TraceId });
+    }
+
+    /// <summary>
+    /// 記錄 Acquire 在取得 semaphore 之後失敗而未產生 lease 的情形。
+    /// </summary>
+    /// <remarks>
+    /// 沒有這個事件時，建線失敗的 request 只會留下一筆 <c>pool.acquire.wait</c> 而沒有任何 hit／miss，
+    /// 在稽核檔中形同消失；分析器因此無法解釋最慢的那些 request。有了本事件，
+    /// <c>wait == hit + miss + fail</c> 便成為可驗證的等式。
+    /// </remarks>
+    /// <param name="phase">失敗發生的階段：ensureMin、health、lease 或 create。</param>
+    /// <param name="waitedMs">在 semaphore 上等待的毫秒數。</param>
+    /// <param name="totalMs">自 Acquire 進入起算的總毫秒數，可直接對照 request 耗時。</param>
+    /// <param name="errorKind">例外型別名稱；刻意不記錄訊息內容，避免 URL、帳號或 CRM 資料進入稽核檔。</param>
+    public void PoolAcquireFail(string phase, long waitedMs, long totalMs, string errorKind)
+    {
+        if (!Enabled)
+            return;
+        TryGetRequest(out var context);
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.PoolAcquireFail,
+            TraceId = context?.TraceId ?? string.Empty,
+            Text = phase ?? string.Empty,
+            State = errorKind ?? string.Empty,
+            First = Math.Max(0, waitedMs),
+            Second = Math.Max(0, totalMs)
+        });
+    }
+
+    /// <summary>
+    /// 記錄一條實體連線開始建立。與 <see cref="PoolCreateEnd"/> 成對，用來量測建線耗時
+    /// —— 這段時間目前在子池鎖內執行，因此它同時是其他 request 被阻擋的時間下限。
+    /// </summary>
+    /// <param name="poolKey">已格式化的隔離鍵；不含密碼或呼叫端資料。</param>
+    /// <param name="reason">建立原因：ensureMin（補足 MinSize）或 overflow（idle 用盡時補建）。</param>
+    public void PoolCreateBegin(string poolKey, string reason)
+    {
+        if (!Enabled)
+            return;
+        TryGetRequest(out var context);
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.PoolCreateBegin,
+            TraceId = context?.TraceId ?? string.Empty,
+            PoolKey = poolKey,
+            Reason = reason
+        });
+    }
+
+    /// <summary>
+    /// 記錄一條實體連線建立結束，含耗時與成敗。失敗時 clientId 為空，因為 client 從未成立。
+    /// </summary>
+    /// <param name="clientId">成功時為新 client 的識別碼；失敗時為空字串。</param>
+    /// <param name="reason">與 <see cref="PoolCreateBegin"/> 相同的建立原因。</param>
+    /// <param name="elapsedMs">建立耗時毫秒。</param>
+    /// <param name="ok">是否成功建立。</param>
+    /// <param name="errorKind">失敗時的例外型別名稱；成功時為空字串。不記錄訊息內容。</param>
+    public void PoolCreateEnd(string clientId, string reason, long elapsedMs, bool ok, string errorKind)
+    {
+        if (!Enabled)
+            return;
+        TryGetRequest(out var context);
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.PoolCreateEnd,
+            TraceId = context?.TraceId ?? string.Empty,
+            ClientId = clientId ?? string.Empty,
+            Reason = reason,
+            State = errorKind ?? string.Empty,
+            First = Math.Max(0, elapsedMs),
+            Result = ok
+        });
     }
 
     /// <summary>記錄 WhoAmI 類健康檢查結果；此事件只包含 client ID 與布林結果，不含 CRM 回應內容。</summary>
@@ -661,6 +737,9 @@ public sealed class DataverseTrace : IDisposable
             EventKind.PoolAcquireHit => "pool.acquire.hit",
             EventKind.PoolAcquireMiss => "pool.acquire.miss",
             EventKind.PoolAcquireTimeout => "pool.acquire.timeout",
+            EventKind.PoolAcquireFail => "pool.acquire.fail",
+            EventKind.PoolCreateBegin => "pool.create.begin",
+            EventKind.PoolCreateEnd => "pool.create.end",
             EventKind.PoolHealth => "pool.health",
             EventKind.PoolReturn => "pool.return",
             EventKind.PoolDispose => "pool.dispose",
@@ -700,6 +779,26 @@ public sealed class DataverseTrace : IDisposable
                 break;
             case EventKind.PoolAcquireTimeout:
                 json.WriteString("traceId", entry.TraceId);
+                break;
+            case EventKind.PoolAcquireFail:
+                json.WriteString("traceId", entry.TraceId);
+                json.WriteString("phase", entry.Text);
+                json.WriteNumber("waitedMs", entry.First);
+                json.WriteNumber("totalMs", entry.Second);
+                json.WriteString("errKind", entry.State);
+                break;
+            case EventKind.PoolCreateBegin:
+                json.WriteString("traceId", entry.TraceId);
+                json.WriteString("poolKey", entry.PoolKey);
+                json.WriteString("reason", entry.Reason);
+                break;
+            case EventKind.PoolCreateEnd:
+                json.WriteString("traceId", entry.TraceId);
+                json.WriteString("clientId", entry.ClientId);
+                json.WriteString("reason", entry.Reason);
+                json.WriteNumber("ms", entry.First);
+                json.WriteBoolean("ok", entry.Result);
+                json.WriteString("errKind", entry.State);
                 break;
             case EventKind.PoolHealth:
                 json.WriteString("clientId", entry.ClientId);

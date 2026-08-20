@@ -700,12 +700,99 @@ namespace ChurchReport.WebServiceConnector
         #region CRM 查詢輔助
 
         /// <summary>
-        /// 建立成員 Contact 查詢欄位集合。
+        /// 每個 Contact 欄位在目前組織是否真實存在的快取。Key 為 logical name，值為存在與否。
+        /// 只在程序內存活，且 metadata 查詢每個 entity 只做一次，不會形成額外的 CRM 往返成本。
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, System.Collections.Generic.HashSet<string>>
+            s_existingAttributeCache = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// 建立成員 Contact 查詢欄位集合，並先以組織 metadata 濾掉本組織不存在的欄位。
         /// 每次回傳新實例，避免可變的 ColumnSet 在不同查詢間被共享。
         /// </summary>
-        private static ColumnSet CreateMemberContactColumnSet()
+        /// <remarks>
+        /// <para>
+        /// 為什麼需要過濾：ColumnSet 只要含有一個不存在的欄位，Dataverse 就會讓<b>整個查詢</b>失敗
+        /// （<c>'Contact' entity doesn't contain attribute with Name = '...'</c>）。此路徑原本使用全欄位
+        /// ColumnSet，不存在的欄位只會被忽略；改為「只撈必要欄位」的效能最佳化之後，同一個欄位就從
+        /// 無害變成硬錯誤，並且逐筆降級查詢用的是同一組欄位，因此批次失敗後 50 筆會全部再失敗一次，
+        /// 最終成員資料整批取不到。
+        /// </para>
+        /// <para>
+        /// 為什麼不直接把欄位從清單移除：各組織的自訂欄位不一致，某個欄位在開發組織不存在不代表正式
+        /// 組織也沒有。以 metadata 為準可讓同一份程式碼在所有組織都取到該組織實際擁有的欄位。
+        /// </para>
+        /// <para>
+        /// 失敗時採 fail-open：metadata 查不到就原樣使用既有欄位清單，維持修改前的行為，確保這段防護
+        /// 不會自己變成新的故障點。
+        /// </para>
+        /// </remarks>
+        private ColumnSet CreateMemberContactColumnSet()
         {
-            return new ColumnSet(MemberContactColumns);
+            var existing = GetExistingAttributeNames("contact");
+            if (existing == null || existing.Count == 0)
+                return new ColumnSet(MemberContactColumns);
+
+            var usable = MemberContactColumns.Where(existing.Contains).ToArray();
+
+            // 全部都被濾掉代表 metadata 結果不可信，寧可維持原行為也不要送出空欄位查詢。
+            if (usable.Length == 0)
+                return new ColumnSet(MemberContactColumns);
+
+            if (usable.Length != MemberContactColumns.Length)
+            {
+                var dropped = string.Join(", ", MemberContactColumns.Where(name => !existing.Contains(name)));
+                System.Diagnostics.Debug.WriteLine(
+                    $"[MemberContactColumns] 本組織不存在下列 Contact 欄位，已自查詢移除：{dropped}");
+            }
+
+            return new ColumnSet(usable);
+        }
+
+        /// <summary>
+        /// 取得指定 entity 在目前組織實際存在的欄位 logical name 集合，結果以程序級快取保存。
+        /// </summary>
+        /// <param name="entityLogicalName">要查詢 metadata 的 entity logical name。</param>
+        /// <returns>存在的欄位名稱集合；無法取得 metadata 時回傳 <see langword="null"/> 讓呼叫端 fail-open。</returns>
+        private System.Collections.Generic.HashSet<string> GetExistingAttributeNames(string entityLogicalName)
+        {
+            if (s_existingAttributeCache.TryGetValue(entityLogicalName, out var cached))
+                return cached;
+
+            try
+            {
+                var organizationService = GetCurrentOrganizationService();
+                if (organizationService == null)
+                    return null;
+
+                var response = (Microsoft.Xrm.Sdk.Messages.RetrieveEntityResponse)organizationService.Execute(
+                    new Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
+                    {
+                        LogicalName = entityLogicalName,
+                        EntityFilters = Microsoft.Xrm.Sdk.Metadata.EntityFilters.Attributes,
+                        RetrieveAsIfPublished = false
+                    });
+
+                var names = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var attribute in response.EntityMetadata?.Attributes ?? System.Array.Empty<Microsoft.Xrm.Sdk.Metadata.AttributeMetadata>())
+                {
+                    if (!string.IsNullOrEmpty(attribute.LogicalName))
+                        names.Add(attribute.LogicalName);
+                }
+
+                if (names.Count == 0)
+                    return null;
+
+                s_existingAttributeCache[entityLogicalName] = names;
+                return names;
+            }
+            catch (Exception ex)
+            {
+                // metadata 不可得時不阻斷查詢，維持既有欄位清單即可；只記錄一次供診斷。
+                System.Diagnostics.Debug.WriteLine(
+                    $"[MemberContactColumns] 無法取得 {entityLogicalName} metadata，沿用原欄位清單：{ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>

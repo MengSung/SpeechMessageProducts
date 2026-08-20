@@ -150,6 +150,7 @@ public sealed class BoundedClientPool : IBoundedClientPool
         var subPool = _subPools.GetOrAdd(key, value => new SubPool(value, _options.MaxN));
         Interlocked.Increment(ref _waiting);
         var entered = false;
+        var waitedMs = 0L;
         var waitStartedTimestamp = traceEnabled ? Stopwatch.GetTimestamp() : 0;
         try
         {
@@ -165,16 +166,22 @@ public sealed class BoundedClientPool : IBoundedClientPool
             }
             entered = true;
             if (traceEnabled)
-                trace.PoolAcquireWait(GetElapsedMilliseconds(waitStartedTimestamp));
+            {
+                waitedMs = GetElapsedMilliseconds(waitStartedTimestamp);
+                trace.PoolAcquireWait(waitedMs);
+            }
         }
         finally
         {
             Interlocked.Decrement(ref _waiting);
         }
 
+        // 失敗事件必須能指出是哪一段出問題；建線與健康檢查的處置方式完全不同。
+        var phase = "ensureMin";
         try
         {
             EnsureMinimum(subPool, key, cancellationToken);
+            phase = "lease";
             var now = DateTime.UtcNow;
             while (subPool.Idle.TryDequeue(out var candidate))
             {
@@ -183,6 +190,7 @@ public sealed class BoundedClientPool : IBoundedClientPool
 
                 if (NeedsHealthCheck(candidate, now))
                 {
+                    phase = "health";
                     var healthy = false;
                     try { healthy = _healthCheck(candidate.Service); } catch { healthy = false; }
                     if (!healthy)
@@ -203,13 +211,18 @@ public sealed class BoundedClientPool : IBoundedClientPool
             }
 
             // MinSize 可能因健康檢查淘汰而低於目前需求，此處補建一個新 client。
+            phase = "create";
             var created = CreateClient(subPool, key, cancellationToken);
             created.TryLease(now);
             Interlocked.Increment(ref _totalAcquires);
             return CreateLease(subPool, created, key, hit: false, trace, traceEnabled);
         }
-        catch
+        catch (Exception ex)
         {
+            // 沒有這一筆事件，建線失敗的 request 在稽核檔中只剩一筆 pool.acquire.wait，
+            // 既無 hit 也無 miss，最慢的那些 request 因此無法被解釋。
+            if (traceEnabled)
+                trace.PoolAcquireFail(phase, waitedMs, GetElapsedMilliseconds(waitStartedTimestamp), DescribeErrorKind(ex));
             if (entered)
                 subPool.Slots.Release();
             throw;
@@ -337,7 +350,7 @@ public sealed class BoundedClientPool : IBoundedClientPool
             var missing = _options.MinSize - subPool.All.Count(client => client.State != PooledClientState.Disposed);
             for (var index = 0; index < missing; index++)
             {
-                var client = CreateClientCore(key, cancellationToken);
+                var client = CreateClientCore(key, cancellationToken, "ensureMin");
                 subPool.All.Add(client);
                 subPool.Idle.Enqueue(client);
             }
@@ -346,20 +359,64 @@ public sealed class BoundedClientPool : IBoundedClientPool
 
     private PooledClient CreateClient(SubPool subPool, DataverseConnectionKey key, CancellationToken cancellationToken)
     {
-        var client = CreateClientCore(key, cancellationToken);
+        var client = CreateClientCore(key, cancellationToken, "overflow");
         lock (subPool.Sync)
             subPool.All.Add(client);
         return client;
     }
 
-    private PooledClient CreateClientCore(DataverseConnectionKey key, CancellationToken cancellationToken)
+    /// <summary>
+    /// 唯一的 client 建立點，並在此量測建線耗時。
+    /// </summary>
+    /// <remarks>
+    /// 本方法目前由 <see cref="EnsureMinimum"/> 在子池鎖內呼叫，因此 <c>pool.create.end</c> 的 ms
+    /// 同時也是其他 request 被這把鎖阻擋的時間下限；把它記下來，才有辦法量化建線序列化的實際成本。
+    /// </remarks>
+    private PooledClient CreateClientCore(DataverseConnectionKey key, CancellationToken cancellationToken, string reason)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var service = _clientFactory(key, cancellationToken);
-        if (service == null)
-            throw new InvalidOperationException("Dataverse client factory 不得回傳 null。");
+
+        var trace = GetTrace();
+        var traceEnabled = trace?.Enabled == true;
+        var startedTimestamp = traceEnabled ? Stopwatch.GetTimestamp() : 0;
+        if (traceEnabled)
+            trace.PoolCreateBegin(FormatPoolKey(key), reason);
+
+        IOrganizationService service;
+        try
+        {
+            service = _clientFactory(key, cancellationToken);
+            if (service == null)
+                throw new InvalidOperationException("Dataverse client factory 不得回傳 null。");
+        }
+        catch (Exception ex)
+        {
+            if (traceEnabled)
+                trace.PoolCreateEnd(string.Empty, reason, GetElapsedMilliseconds(startedTimestamp), ok: false, DescribeErrorKind(ex));
+            throw;
+        }
+
         Interlocked.Increment(ref _created);
-        return new PooledClient(service);
+        var client = new PooledClient(service);
+        if (traceEnabled)
+            trace.PoolCreateEnd(client.ClientId, reason, GetElapsedMilliseconds(startedTimestamp), ok: true, string.Empty);
+        return client;
+    }
+
+    /// <summary>
+    /// 取出最內層例外的型別名稱作為診斷用的錯誤種類。
+    /// </summary>
+    /// <remarks>
+    /// 只輸出型別名稱，絕不輸出 <see cref="Exception.Message"/>：連線失敗的訊息通常內嵌組織 URL、
+    /// 服務帳號或 CRM 回應內容，寫入稽核檔會讓診斷功能本身變成資料外洩管道。取最內層是因為外層
+    /// 常被包成一般 <see cref="Exception"/>，真正的原因（例如 WebException）只在鏈的末端。
+    /// </remarks>
+    private static string DescribeErrorKind(Exception exception)
+    {
+        var current = exception;
+        while (current?.InnerException != null)
+            current = current.InnerException;
+        return current?.GetType().Name ?? string.Empty;
     }
 
     private bool NeedsHealthCheck(PooledClient client, DateTime now)

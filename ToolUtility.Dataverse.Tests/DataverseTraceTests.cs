@@ -382,6 +382,62 @@ public sealed class DataverseTraceTests
         }
     }
 
+    /// <summary>
+    /// 釘住建線失敗的可觀測性契約。修改前，建線失敗的 request 在稽核檔中只留下一筆
+    /// pool.acquire.wait，既無 hit 也無 miss，最慢的那些 request 因此完全無法被解釋。
+    /// 本測試以必定失敗的 client factory 重現該情境，並斷言失敗路徑會留下完整證據。
+    /// </summary>
+    [Fact]
+    public void Failed_client_creation_emits_create_and_acquire_fail_events()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            using (trace.BeginRequest("create-fail-trace", "create-fail-user", sessionId: null))
+            {
+                // 外層包一般 Exception，模擬 CrmConnectionService 包裝底層傳輸錯誤的實際行為。
+                using var pool = new BoundedClientPool(
+                    (_, _) => throw new InvalidOperationException(
+                        "建立 OnPremiseClient 連線時發生錯誤", new System.Net.WebException("503")),
+                    _ => true,
+                    new DataversePoolOptions { MinSize = 1, MaxN = 2 });
+
+                Assert.Throws<InvalidOperationException>(() =>
+                    pool.Acquire(new DataverseConnectionKey("P", "Test", "https://org.test/x", "svc")));
+            }
+
+            var records = ReadRecords(directory);
+            Assert.All(records, AssertRecordHasRequiredFields);
+
+            var begin = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "pool.create.begin"));
+            Assert.Equal("ensureMin", begin.GetProperty("reason").GetString());
+
+            var end = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "pool.create.end"));
+            Assert.False(end.GetProperty("ok").GetBoolean());
+            // 取最內層例外型別，外層包裝不得遮蔽真正的傳輸失敗原因。
+            Assert.Equal("WebException", end.GetProperty("errKind").GetString());
+
+            var fail = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "pool.acquire.fail"));
+            Assert.Equal("ensureMin", fail.GetProperty("phase").GetString());
+            Assert.Equal("WebException", fail.GetProperty("errKind").GetString());
+            Assert.Equal("create-fail-trace", fail.GetProperty("traceId").GetString());
+
+            // 稽核檔絕不可出現例外訊息：其中內嵌組織 URL 與服務帳號。
+            Assert.DoesNotContain(records, r => r.ToString().Contains("OnPremiseClient", StringComparison.Ordinal));
+
+            // 核心不變量：等待數必須能被結果完整解釋，不再有無法交代的 acquire。
+            var waits = records.Count(r => r.GetProperty("ev").GetString() == "pool.acquire.wait");
+            var results = records.Count(r => r.GetProperty("ev").GetString()
+                is "pool.acquire.hit" or "pool.acquire.miss" or "pool.acquire.fail");
+            Assert.Equal(waits, results);
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
     private static DataverseTraceOptions CreateOptions(string directory, bool enabled)
     {
         return new DataverseTraceOptions
@@ -419,6 +475,9 @@ public sealed class DataverseTraceTests
             "pool.acquire.wait" => new[] { "traceId", "waitedMs" },
             "pool.acquire.hit" or "pool.acquire.miss" => new[] { "traceId", "user", "leaseId", "clientId", "poolKey" },
             "pool.acquire.timeout" => new[] { "traceId" },
+            "pool.acquire.fail" => new[] { "traceId", "phase", "waitedMs", "totalMs", "errKind" },
+            "pool.create.begin" => new[] { "traceId", "poolKey", "reason" },
+            "pool.create.end" => new[] { "traceId", "clientId", "reason", "ms", "ok", "errKind" },
             "pool.health" => new[] { "clientId", "result" },
             "pool.return" => new[] { "traceId", "user", "leaseId", "clientId", "state", "callerIdAtReturn", "heldMs" },
             "pool.dispose" => new[] { "clientId", "stateAtDispose", "reason" },
