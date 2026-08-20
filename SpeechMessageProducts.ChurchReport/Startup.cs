@@ -150,7 +150,12 @@ namespace ChurchReport
         public void ConfigureServices(IServiceCollection services)
         {
 #if DEBUG
+            // 兩個開關都只能由已驗證的程序級 DiagnosticsTrace 設定指派；不得從 request、
+            // Session、使用者或租戶資料推導。Profiling 與 Session 詳細診斷預設皆關閉，
+            // 因此不會在一般登入請求建立高頻 Debug 輸出或留下跨請求的敏感資料。
             ChurchReport.Diagnostics.Profiling.ProfilingSwitch.Enabled =
+                _diagnosticTraceOptions.Enabled;
+            ChurchReport.Diagnostics.SessionDiagnosticsSwitch.Enabled =
                 _diagnosticTraceOptions.Enabled;
             using var __perfConfigureServices =
                 ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("ConfigureServices");
