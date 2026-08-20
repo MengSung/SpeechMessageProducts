@@ -45,7 +45,13 @@ param(
 
     [Parameter()]
     [ValidateRange(1, 3600000)]
-    [int]$SlowRequestThresholdMs = 1000
+    [int]$SlowRequestThresholdMs = 1000,
+
+    # 單一 request 內同一張 entity 被查詢幾次即視為 N+1 徵兆。
+    # 預設 5：正常的表單頁面通常只會對同一張表查一到兩次，連續 5 次以上幾乎必然是迴圈查詢。
+    [Parameter()]
+    [ValidateRange(2, 1000)]
+    [int]$NPlusOneThreshold = 5
 )
 
 Set-StrictMode -Version 2.0
@@ -273,7 +279,10 @@ function New-BaseResult {
 function Analyze-DataverseTrace {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
-        [Parameter(Mandatory = $true)][int]$PairLimit
+        [Parameter(Mandatory = $true)][int]$PairLimit,
+        [Parameter(Mandatory = $true)][int]$SlowRequestMs,
+        [Parameter(Mandatory = $true)][int]$NPlusOneThreshold,
+        [Parameter(Mandatory = $true)][int]$EndpointLimit
     )
 
     $result = New-BaseResult -Name 'Dataverse JSONL' -Path $Path
@@ -302,6 +311,57 @@ function Analyze-DataverseTrace {
     $result | Add-Member NoteProperty InvalidPseudonyms ([long]0)
     $result | Add-Member NoteProperty UniquePseudonyms ([long]0)
 
+    # ---- 故障淘汰：例外分類是否生效的直接證據 ----
+    $result | Add-Member NoteProperty ReturnHealthy ([long]0)
+    $result | Add-Member NoteProperty ReturnFaulted ([long]0)
+    $result | Add-Member NoteProperty DisposeByReason (New-Object 'System.Collections.Generic.Dictionary[string,long]' ([StringComparer]::Ordinal))
+
+    # ---- 建線可觀測性：wait 必須能被 hit/miss/fail 完整解釋 ----
+    $result | Add-Member NoteProperty AcquireHits ([long]0)
+    $result | Add-Member NoteProperty AcquireMisses ([long]0)
+    $result | Add-Member NoteProperty AcquireFails ([long]0)
+    $result | Add-Member NoteProperty AcquireFailByPhase (New-Object 'System.Collections.Generic.Dictionary[string,long]' ([StringComparer]::Ordinal))
+    $result | Add-Member NoteProperty CreateOk ([long]0)
+    $result | Add-Member NoteProperty CreateFailed ([long]0)
+    $result | Add-Member NoteProperty CreateMsSum ([long]0)
+    $result | Add-Member NoteProperty CreateMsMax ([long]0)
+    $result | Add-Member NoteProperty ErrorKinds (New-Object 'System.Collections.Generic.Dictionary[string,long]' ([StringComparer]::Ordinal))
+
+    # ---- 效能歸因與 N+1 ----
+    $result | Add-Member NoteProperty CrmOpCount ([long]0)
+    $result | Add-Member NoteProperty CrmMsTotal ([long]0)
+    $result | Add-Member NoteProperty CrmFailures ([long]0)
+    $result | Add-Member NoteProperty RequestCrmMsSum ([long]0)
+    $result | Add-Member NoteProperty EntityStats (New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal))
+    $result | Add-Member NoteProperty EntityOverflow ([long]0)
+    $result | Add-Member NoteProperty NPlusOneRequests (New-Object 'System.Collections.Generic.List[object]')
+    $result | Add-Member NoteProperty SlowRequests (New-Object 'System.Collections.Generic.List[object]')
+
+    # ---- Session Leakage ----
+    $result | Add-Member NoteProperty LeaseOutstandingRequests ([long]0)
+    $result | Add-Member NoteProperty LeaseOutstandingMax ([long]0)
+    $result | Add-Member NoteProperty ConcurrentGatewayEvents ([long]0)
+    $result | Add-Member NoteProperty ConcurrentGatewayRequests ([long]0)
+    $result | Add-Member NoteProperty ConcurrentGatewayMax ([long]0)
+    $result | Add-Member NoteProperty ScopeEndLeaseHeld ([long]0)
+    $result | Add-Member NoteProperty MaxDepthObserved ([long]0)
+    $result | Add-Member NoteProperty LeaseOverlaps ([long]0)
+
+    # ---- 資源趨勢：記憶體洩漏的唯一證據來源 ----
+    $result | Add-Member NoteProperty ProcFirst $null
+    $result | Add-Member NoteProperty ProcLast $null
+    $result | Add-Member NoteProperty ProcSamples ([long]0)
+    $result | Add-Member NoteProperty PoolFirst $null
+    $result | Add-Member NoteProperty PoolLast $null
+    $result | Add-Member NoteProperty PoolSamples ([long]0)
+    $result | Add-Member NoteProperty PoolAliveMax ([long]0)
+    $result | Add-Member NoteProperty SubPoolsMax ([long]0)
+
+    # ---- 鎖競爭回歸哨兵 ----
+    $result | Add-Member NoteProperty LockWaitCount ([long]0)
+    $result | Add-Member NoteProperty LockWaitMax ([long]0)
+    $result | Add-Member NoteProperty CleanupEvicted ([long]0)
+
     if (-not [System.IO.File]::Exists($Path)) {
         Add-Reason -Result $result -Severity WARN -Message '找不到檔案；三檔證據集合不完整。'
         return $result
@@ -317,6 +377,10 @@ function Analyze-DataverseTrace {
     $acquired = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
     $returned = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
     $users = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    # clientId -> 目前未歸還的 leaseId。用於偵測同一條實體連線的租約時間區間重疊：
+    # 一旦重疊，就代表兩個 request 同時持有同一條連線，這是 Session Leakage 的終極判準。
+    $leasedClients = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([StringComparer]::Ordinal)
+    $leaseToClient = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([StringComparer]::Ordinal)
     $utf8 = New-Object System.Text.UTF8Encoding($false, $true)
     $reader = $null
 
@@ -381,16 +445,171 @@ function Analyze-DataverseTrace {
                     $result.RequestDurationCount++
                     $result.RequestDurationSum += $duration
                     if ($duration -gt $result.RequestDurationMax) { $result.RequestDurationMax = $duration }
+
+                    $crmMs = Convert-ToLong (Get-RecordValue -Record $record -Name 'crmMs')
+                    $result.RequestCrmMsSum += $crmMs
+
+                    # 租約洩漏：request 結束時仍未歸還的租約數，正常恆為 0。
+                    $outstanding = Convert-ToLong (Get-RecordValue -Record $record -Name 'leaseOutstanding')
+                    if ($outstanding -gt 0) {
+                        $result.LeaseOutstandingRequests++
+                        if ($outstanding -gt $result.LeaseOutstandingMax) { $result.LeaseOutstandingMax = $outstanding }
+                    }
+
+                    # 平行 Gateway：同一個 scoped Gateway 被多執行緒同時進入，是連線共用的前兆。
+                    if ((Convert-ToLong (Get-RecordValue -Record $record -Name 'concurrentGateway')) -gt 0) {
+                        $result.ConcurrentGatewayRequests++
+                    }
+
+                    $depth = Convert-ToLong (Get-RecordValue -Record $record -Name 'maxDepth')
+                    if ($depth -gt $result.MaxDepthObserved) { $result.MaxDepthObserved = $depth }
+
+                    $topCount = Convert-ToLong (Get-RecordValue -Record $record -Name 'topEntityCount')
+                    if ($topCount -ge $NPlusOneThreshold -and $result.NPlusOneRequests.Count -lt $EndpointLimit) {
+                        [void]$result.NPlusOneRequests.Add([pscustomobject]@{
+                            TraceId    = Convert-ToSafeLabel $traceId
+                            Entity     = Convert-ToSafeLabel ([string](Get-RecordValue -Record $record -Name 'topEntity'))
+                            TopCount   = $topCount
+                            CrmCount   = Convert-ToLong (Get-RecordValue -Record $record -Name 'crmCount')
+                            CrmMs      = $crmMs
+                            DurationMs = $duration
+                        })
+                    }
+
+                    if ($duration -ge $SlowRequestMs -and $result.SlowRequests.Count -lt $EndpointLimit) {
+                        [void]$result.SlowRequests.Add([pscustomobject]@{
+                            TraceId    = Convert-ToSafeLabel $traceId
+                            DurationMs = $duration
+                            CrmMs      = $crmMs
+                            AppMs      = [Math]::Max(0, $duration - $crmMs)
+                            CrmCount   = Convert-ToLong (Get-RecordValue -Record $record -Name 'crmCount')
+                            TopEntity  = Convert-ToSafeLabel ([string](Get-RecordValue -Record $record -Name 'topEntity'))
+                            TopCount   = $topCount
+                        })
+                    }
                 }
                 'pool.acquire.hit' {
+                    $result.AcquireHits++
                     if (-not [string]::IsNullOrWhiteSpace($leaseId)) {
                         if ($acquired.Count -lt $PairLimit) { [void]$acquired.Add($leaseId) } else { $result.PairOverflow++ }
+                        $clientId = [string](Get-RecordValue -Record $record -Name 'clientId')
+                        if (-not [string]::IsNullOrWhiteSpace($clientId)) {
+                            # 同一個 clientId 在前一條租約歸還前又被租出去，代表連線被兩個 request 共用。
+                            if ($leasedClients.ContainsKey($clientId)) { $result.LeaseOverlaps++ }
+                            $leasedClients[$clientId] = $leaseId
+                            if ($leaseToClient.Count -lt $PairLimit) { $leaseToClient[$leaseId] = $clientId }
+                        }
                     }
                 }
                 'pool.acquire.miss' {
+                    $result.AcquireMisses++
                     if (-not [string]::IsNullOrWhiteSpace($leaseId)) {
                         if ($acquired.Count -lt $PairLimit) { [void]$acquired.Add($leaseId) } else { $result.PairOverflow++ }
+                        $clientId = [string](Get-RecordValue -Record $record -Name 'clientId')
+                        if (-not [string]::IsNullOrWhiteSpace($clientId)) {
+                            if ($leasedClients.ContainsKey($clientId)) { $result.LeaseOverlaps++ }
+                            $leasedClients[$clientId] = $leaseId
+                            if ($leaseToClient.Count -lt $PairLimit) { $leaseToClient[$leaseId] = $clientId }
+                        }
                     }
+                }
+                'pool.acquire.fail' {
+                    # 建線失敗事件。加入之前，失敗的 acquire 只留下一筆 wait 而無任何結果，
+                    # 最慢的那些 request 在稽核檔中形同消失。
+                    $result.AcquireFails++
+                    $phase = Convert-ToSafeLabel ([string](Get-RecordValue -Record $record -Name 'phase'))
+                    if ([string]::IsNullOrWhiteSpace($phase)) { $phase = '(unknown)' }
+                    if ($result.AcquireFailByPhase.ContainsKey($phase)) { $result.AcquireFailByPhase[$phase]++ }
+                    else { $result.AcquireFailByPhase[$phase] = [long]1 }
+                    $kind = Convert-ToSafeLabel ([string](Get-RecordValue -Record $record -Name 'errKind'))
+                    if (-not [string]::IsNullOrWhiteSpace($kind)) {
+                        if ($result.ErrorKinds.ContainsKey($kind)) { $result.ErrorKinds[$kind]++ }
+                        else { $result.ErrorKinds[$kind] = [long]1 }
+                    }
+                }
+                'pool.create.end' {
+                    # 建線耗時。此段目前雖已移出子池鎖，數值仍是冷啟動延遲的主要成分。
+                    $ms = Convert-ToLong (Get-RecordValue -Record $record -Name 'ms')
+                    $result.CreateMsSum += $ms
+                    if ($ms -gt $result.CreateMsMax) { $result.CreateMsMax = $ms }
+                    if ((Get-RecordValue -Record $record -Name 'ok') -eq $true) { $result.CreateOk++ }
+                    else {
+                        $result.CreateFailed++
+                        $kind = Convert-ToSafeLabel ([string](Get-RecordValue -Record $record -Name 'errKind'))
+                        if (-not [string]::IsNullOrWhiteSpace($kind)) {
+                            if ($result.ErrorKinds.ContainsKey($kind)) { $result.ErrorKinds[$kind]++ }
+                            else { $result.ErrorKinds[$kind] = [long]1 }
+                        }
+                    }
+                }
+                'pool.lock.wait' {
+                    $result.LockWaitCount++
+                    $waited = Convert-ToLong (Get-RecordValue -Record $record -Name 'waitedMs')
+                    if ($waited -gt $result.LockWaitMax) { $result.LockWaitMax = $waited }
+                }
+                'gateway.concurrent' {
+                    $result.ConcurrentGatewayEvents++
+                    $active = Convert-ToLong (Get-RecordValue -Record $record -Name 'activeCalls')
+                    if ($active -gt $result.ConcurrentGatewayMax) { $result.ConcurrentGatewayMax = $active }
+                }
+                'gateway.scope.end' {
+                    if ((Get-RecordValue -Record $record -Name 'leaseStillHeld') -eq $true) { $result.ScopeEndLeaseHeld++ }
+                }
+                'crm.op' {
+                    # entity 與 ms 是分辨「一個慢查詢」與「同一張表被查很多次」的唯一依據，
+                    # 這兩者的處置方式完全相反。
+                    $result.CrmOpCount++
+                    $ms = Convert-ToLong (Get-RecordValue -Record $record -Name 'ms')
+                    $result.CrmMsTotal += $ms
+                    if ((Get-RecordValue -Record $record -Name 'ok') -eq $false) { $result.CrmFailures++ }
+                    $entity = Convert-ToSafeLabel ([string](Get-RecordValue -Record $record -Name 'entity'))
+                    if (-not [string]::IsNullOrWhiteSpace($entity)) {
+                        if ($result.EntityStats.ContainsKey($entity)) {
+                            $stat = $result.EntityStats[$entity]
+                            $stat.Count++
+                            $stat.Ms += $ms
+                            if ($ms -gt $stat.Max) { $stat.Max = $ms }
+                        }
+                        elseif ($result.EntityStats.Count -lt $PairLimit) {
+                            $result.EntityStats[$entity] = [pscustomobject]@{ Count = [long]1; Ms = [long]$ms; Max = [long]$ms }
+                        }
+                        else { $result.EntityOverflow++ }
+                    }
+                }
+                'proc.snapshot' {
+                    # 只保留首尾兩筆即可檢定單調成長，避免長時間執行時把整串樣本留在記憶體。
+                    $result.ProcSamples++
+                    $sample = [pscustomobject]@{
+                        Ts        = [string](Get-RecordValue -Record $record -Name 'ts')
+                        ManagedMb = Convert-ToLong (Get-RecordValue -Record $record -Name 'managedMb')
+                        HeapMb    = Convert-ToLong (Get-RecordValue -Record $record -Name 'heapMb')
+                        PrivateMb = Convert-ToLong (Get-RecordValue -Record $record -Name 'privateMb')
+                        Gen2      = Convert-ToLong (Get-RecordValue -Record $record -Name 'gen2')
+                        Handles   = Convert-ToLong (Get-RecordValue -Record $record -Name 'handles')
+                        Threads   = Convert-ToLong (Get-RecordValue -Record $record -Name 'threads')
+                        Pending   = Convert-ToLong (Get-RecordValue -Record $record -Name 'pendingWorkItems')
+                    }
+                    if ($null -eq $result.ProcFirst) { $result.ProcFirst = $sample }
+                    $result.ProcLast = $sample
+                }
+                'pool.snapshot' {
+                    $result.PoolSamples++
+                    $sample = [pscustomobject]@{
+                        Ts        = [string](Get-RecordValue -Record $record -Name 'ts')
+                        Idle      = Convert-ToLong (Get-RecordValue -Record $record -Name 'idle')
+                        Leased    = Convert-ToLong (Get-RecordValue -Record $record -Name 'leased')
+                        Alive     = Convert-ToLong (Get-RecordValue -Record $record -Name 'alive')
+                        Pending   = Convert-ToLong (Get-RecordValue -Record $record -Name 'pending')
+                        Created   = Convert-ToLong (Get-RecordValue -Record $record -Name 'created')
+                        Discarded = Convert-ToLong (Get-RecordValue -Record $record -Name 'discarded')
+                        Acquires  = Convert-ToLong (Get-RecordValue -Record $record -Name 'totalAcquires')
+                        Releases  = Convert-ToLong (Get-RecordValue -Record $record -Name 'totalReleases')
+                        SubPools  = Convert-ToLong (Get-RecordValue -Record $record -Name 'subPools')
+                    }
+                    if ($null -eq $result.PoolFirst) { $result.PoolFirst = $sample }
+                    $result.PoolLast = $sample
+                    if ($sample.Alive -gt $result.PoolAliveMax) { $result.PoolAliveMax = $sample.Alive }
+                    if ($sample.SubPools -gt $result.SubPoolsMax) { $result.SubPoolsMax = $sample.SubPools }
                 }
                 'pool.return' {
                     if (-not [string]::IsNullOrWhiteSpace($leaseId)) {
@@ -402,6 +621,14 @@ function Analyze-DataverseTrace {
                     if ($held -gt $result.HeldMax) { $result.HeldMax = $held }
                     if (-not [string]::IsNullOrWhiteSpace([string](Get-RecordValue -Record $record -Name 'callerIdAtReturn'))) {
                         $result.CallerStateViolations++
+                    }
+                    # faulted 歸還代表該連線被銷毀並重建。例外分類修正前，一個打錯的欄位名
+                    # 會讓 5.7% 的操作走上這條路徑，形成不必要的連線抖動。
+                    if ([string](Get-RecordValue -Record $record -Name 'state') -eq 'faulted') { $result.ReturnFaulted++ }
+                    else { $result.ReturnHealthy++ }
+                    if (-not [string]::IsNullOrWhiteSpace($leaseId) -and $leaseToClient.ContainsKey($leaseId)) {
+                        [void]$leasedClients.Remove($leaseToClient[$leaseId])
+                        [void]$leaseToClient.Remove($leaseId)
                     }
                 }
                 'pool.acquire.wait' {
@@ -416,9 +643,19 @@ function Analyze-DataverseTrace {
                     if ($health -ne $true) { $result.HealthFailures++ }
                 }
                 'pool.cleanup' {
+                    # 舊規則只看 idleAfter < minSize，但池中沒有閒置連線時（idle = 0）該條件恆為真，
+                    # 實測產生 158 筆假陽性。真正的越線形狀是「淘汰前高於保底、淘汰後低於保底」。
+                    $idleBefore = Convert-ToLong (Get-RecordValue -Record $record -Name 'idleBefore')
                     $idleAfter = Convert-ToLong (Get-RecordValue -Record $record -Name 'idleAfter')
                     $minSize = Convert-ToLong (Get-RecordValue -Record $record -Name 'minSize')
-                    if ($idleAfter -lt $minSize) { $result.CleanupBelowMinSnapshots++ }
+                    $result.CleanupEvicted += Convert-ToLong (Get-RecordValue -Record $record -Name 'evicted')
+                    if ($idleAfter -lt $minSize -and $idleBefore -gt $minSize) { $result.CleanupBelowMinSnapshots++ }
+                }
+                'pool.dispose' {
+                    $reason = Convert-ToSafeLabel ([string](Get-RecordValue -Record $record -Name 'reason'))
+                    if ([string]::IsNullOrWhiteSpace($reason)) { $reason = '(unknown)' }
+                    if ($result.DisposeByReason.ContainsKey($reason)) { $result.DisposeByReason[$reason]++ }
+                    else { $result.DisposeByReason[$reason] = [long]1 }
                 }
                 'trace.dropped' { $result.DroppedEvents += Convert-ToLong (Get-RecordValue -Record $record -Name 'count') }
             }
@@ -450,6 +687,77 @@ function Analyze-DataverseTrace {
     if ($result.InvalidPseudonyms -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '使用者欄位值不符合短期虛擬識別碼格式。' }
     if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '偵測到疑似敏感資料模式；報告已省略原始值。' }
     if ($result.Timeouts -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到 Pool 取得逾時。' }
+
+    # ================= Session Leakage：由重到輕 =================
+    if ($result.LeaseOverlaps -gt 0) {
+        Add-Reason -Result $result -Severity FAIL -Message ('同一條實體連線出現 {0:N0} 次租約區間重疊；曾有兩個 request 同時持有同一條連線。' -f $result.LeaseOverlaps)
+    }
+    if ($result.LeaseOutstandingRequests -gt 0) {
+        Add-Reason -Result $result -Severity FAIL -Message ('{0:N0} 個 request 結束時仍有未歸還租約（最多 {1:N0} 條）；租約洩漏。' -f $result.LeaseOutstandingRequests, $result.LeaseOutstandingMax)
+    }
+    if ($result.ConcurrentGatewayEvents -gt 0) {
+        Add-Reason -Result $result -Severity FAIL -Message ('偵測到 {0:N0} 次平行進入同一個 scoped Gateway（最高同時 {1:N0} 條）；Gateway 的 depth 與 lease 欄位無同步保護，此路徑可能造成跨 request 共用連線。' -f $result.ConcurrentGatewayEvents, $result.ConcurrentGatewayMax)
+    }
+    if ($result.ScopeEndLeaseHeld -gt 0) {
+        Add-Reason -Result $result -Severity WARN -Message ('{0:N0} 次 Gateway 釋放時仍持有租約；租約是靠 DI 回收 scope 才被救回，而非正常執行路徑。' -f $result.ScopeEndLeaseHeld)
+    }
+
+    # ================= 建線可觀測性不變量 =================
+    $acquireResults = $result.AcquireHits + $result.AcquireMisses + $result.AcquireFails
+    if ($result.AcquireWaitCount -ne $acquireResults) {
+        Add-Reason -Result $result -Severity WARN -Message ('取得等待 {0:N0} 筆無法被結果完整解釋（hit + miss + fail = {1:N0}）；有 acquire 未留下結果事件。' -f $result.AcquireWaitCount, $acquireResults)
+    }
+    if ($result.CreateFailed -gt 0) {
+        Add-Reason -Result $result -Severity WARN -Message ('建立連線失敗 {0:N0} 次；請檢視錯誤種類分佈。' -f $result.CreateFailed)
+    }
+
+    # ================= 故障淘汰比率 =================
+    $returnTotal = $result.ReturnHealthy + $result.ReturnFaulted
+    if ($returnTotal -gt 0) {
+        $faultRate = [double]$result.ReturnFaulted / [double]$returnTotal
+        if ($faultRate -ge 0.01) {
+            Add-Reason -Result $result -Severity WARN -Message ('租約以 faulted 歸還的比率為 {0:P1}（{1:N0}/{2:N0}）；每一次都會銷毀並重建一條連線。' -f $faultRate, $result.ReturnFaulted, $returnTotal)
+        }
+    }
+
+    # ================= 效能 =================
+    if ($result.NPlusOneRequests.Count -gt 0) {
+        Add-Reason -Result $result -Severity WARN -Message ('偵測到 N+1 徵兆：有 request 對同一張 entity 查詢達 {0:N0} 次以上。' -f $NPlusOneThreshold)
+    }
+    if ($result.LockWaitCount -gt 0) {
+        Add-Reason -Result $result -Severity WARN -Message ('偵測到 {0:N0} 次子池鎖等待（最長 {1:N0} 毫秒）；建線移出鎖之後此事件不應出現，屬回歸徵兆。' -f $result.LockWaitCount, $result.LockWaitMax)
+    }
+    if ($result.CrmFailures -gt 0) {
+        Add-Reason -Result $result -Severity WARN -Message ('{0:N0} 次 CRM 操作以失敗結束。' -f $result.CrmFailures)
+    }
+
+    # ================= 資源趨勢 =================
+    if ($result.ProcSamples -lt 2) {
+        Add-Reason -Result $result -Severity WARN -Message '程序資源快照少於兩筆；無法檢定記憶體或控制代碼是否單調成長，本次執行不構成無洩漏的證據。'
+    }
+    else {
+        $handleGrowth = $result.ProcLast.Handles - $result.ProcFirst.Handles
+        $privateGrowth = $result.ProcLast.PrivateMb - $result.ProcFirst.PrivateMb
+        if ($handleGrowth -ge 500) {
+            Add-Reason -Result $result -Severity WARN -Message ('控制代碼數成長 {0:N0}（{1:N0} 至 {2:N0}）；非受控資源可能未釋放。' -f $handleGrowth, $result.ProcFirst.Handles, $result.ProcLast.Handles)
+        }
+        if ($privateGrowth -ge 256) {
+            Add-Reason -Result $result -Severity WARN -Message ('私有記憶體成長 {0:N0} MB（{1:N0} 至 {2:N0}）。' -f $privateGrowth, $result.ProcFirst.PrivateMb, $result.ProcLast.PrivateMb)
+        }
+    }
+    if ($result.PoolSamples -ge 2) {
+        $aliveGrowth = $result.PoolLast.Alive - $result.PoolFirst.Alive
+        if ($aliveGrowth -ge 5) {
+            Add-Reason -Result $result -Severity WARN -Message ('存活連線數成長 {0:N0}（{1:N0} 至 {2:N0}）；連線可能只進不出。' -f $aliveGrowth, $result.PoolFirst.Alive, $result.PoolLast.Alive)
+        }
+        $unreturned = $result.PoolLast.Acquires - $result.PoolLast.Releases
+        if ($unreturned -gt 0) {
+            Add-Reason -Result $result -Severity WARN -Message ('最後一筆連線池快照顯示累計租借比歸還多 {0:N0} 次；可能有租約未歸還。' -f $unreturned)
+        }
+        if ($result.PoolLast.SubPools -gt $result.PoolFirst.SubPools) {
+            Add-Reason -Result $result -Severity WARN -Message ('子池數量由 {0:N0} 成長為 {1:N0}；子池目前沒有回收路徑，啟用 per-user 隔離後會單調累積。' -f $result.PoolFirst.SubPools, $result.PoolLast.SubPools)
+        }
+    }
     if ($result.DroppedEvents -gt 0) { Add-Reason -Result $result -Severity WARN -Message '有 Trace 事件被丟棄；證據可能不完整。' }
 
     return $result
@@ -702,7 +1010,7 @@ try {
     }
     $reportPathFull = [System.IO.Path]::GetFullPath($ReportPath)
 
-    $dataverse = Analyze-DataverseTrace -Path $dataversePath -PairLimit $MaxPairEntries
+    $dataverse = Analyze-DataverseTrace -Path $dataversePath -PairLimit $MaxPairEntries -SlowRequestMs $SlowRequestThresholdMs -NPlusOneThreshold $NPlusOneThreshold -EndpointLimit $Top
     $application = Analyze-ApplicationTrace -Path $applicationPath -EndpointLimit $MaxPairEntries -SlowThreshold $SlowRequestThresholdMs
     $toolUtility = Analyze-ToolUtilityTrace -Path $toolUtilityPath -CategoryLimit ([Math]::Min($MaxPairEntries, 10000))
     $results = @($dataverse, $application, $toolUtility)
@@ -775,7 +1083,23 @@ try {
     [void]$lines.Add(('- 取得等待：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒，逾時 {3:N0} 次' -f $dataverse.AcquireWaitCount, (Format-Average $dataverse.AcquireWaitSum $dataverse.AcquireWaitCount), $dataverse.AcquireWaitMax, $dataverse.Timeouts))
     [void]$lines.Add(('- 租約持有：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒' -f $dataverse.HeldCount, (Format-Average $dataverse.HeldSum $dataverse.HeldCount), $dataverse.HeldMax))
     [void]$lines.Add(('- 連線池（Pool）：健康檢查失敗 {0:N0} 次、低於 MinSize 的清理快照 {1:N0} 次、未清除呼叫端狀態 {2:N0} 次、丟棄事件 {3:N0} 次' -f $dataverse.HealthFailures, $dataverse.CleanupBelowMinSnapshots, $dataverse.CallerStateViolations, $dataverse.DroppedEvents))
-    [void]$lines.Add('- 清理判讀：`idleAfter < minSize` 會受並行執行影響，因為請求可能在清理選取後、Trace 快照前租用閒置用戶端。本項屬觀察結果，不直接視為違規；除非獨立的租約／總數證據證明清理移除了過多仍在使用的用戶端。')
+    [void]$lines.Add(('- 租約歸還狀態：healthy {0:N0}、faulted {1:N0}{2}' -f $dataverse.ReturnHealthy, $dataverse.ReturnFaulted, $(
+        if (($dataverse.ReturnHealthy + $dataverse.ReturnFaulted) -gt 0) {
+            '（faulted 比率 {0:P1}）' -f ([double]$dataverse.ReturnFaulted / [double]($dataverse.ReturnHealthy + $dataverse.ReturnFaulted))
+        } else { '' })))
+    [void]$lines.Add(('- 建立連線：成功 {0:N0}、失敗 {1:N0}、平均 {2} 毫秒、最長 {3:N0} 毫秒' -f $dataverse.CreateOk, $dataverse.CreateFailed, (Format-Average $dataverse.CreateMsSum ($dataverse.CreateOk + $dataverse.CreateFailed)), $dataverse.CreateMsMax))
+    [void]$lines.Add(('- 取得結果配對：wait {0:N0} = hit {1:N0} + miss {2:N0} + fail {3:N0}{4}' -f $dataverse.AcquireWaitCount, $dataverse.AcquireHits, $dataverse.AcquireMisses, $dataverse.AcquireFails, $(
+        if ($dataverse.AcquireWaitCount -eq ($dataverse.AcquireHits + $dataverse.AcquireMisses + $dataverse.AcquireFails)) { '　✔ 不變量成立' } else { '　✘ 不變量不成立' })))
+    [void]$lines.Add(('- 清理淘汰：{0:N0} 條；越過保底的清理 {1:N0} 次' -f $dataverse.CleanupEvicted, $dataverse.CleanupBelowMinSnapshots))
+    [void]$lines.Add('- 清理判讀：只有「淘汰前高於 MinSize、淘汰後低於 MinSize」才計為越線。舊規則單看 `idleAfter < minSize`，在池中沒有閒置連線（idle = 0）時恆為真，會產生大量假陽性。')
+    if ($dataverse.DisposeByReason.Count -gt 0) {
+        $disposeText = (($dataverse.DisposeByReason.GetEnumerator() | Sort-Object -Property Value -Descending | ForEach-Object { '{0} {1:N0}' -f $_.Key, $_.Value }) -join '、')
+        [void]$lines.Add(('- 連線淘汰原因：{0}' -f $disposeText))
+    }
+    if ($dataverse.ErrorKinds.Count -gt 0) {
+        $kindText = (($dataverse.ErrorKinds.GetEnumerator() | Sort-Object -Property Value -Descending | ForEach-Object { '{0} {1:N0}' -f $_.Key, $_.Value }) -join '、')
+        [void]$lines.Add(('- 錯誤種類（僅型別名稱，不含訊息內容）：{0}' -f $kindText))
+    }
     [void]$lines.Add(('- 使用者隔離：有效虛擬識別碼 {0:N0} 個，格式違規 {1:N0} 次' -f $dataverse.UniquePseudonyms, $dataverse.InvalidPseudonyms))
     [void]$lines.Add('')
     [void]$lines.Add('### 事件統計')
@@ -786,6 +1110,102 @@ try {
         [void]$lines.Add(('| `{0}` | {1:N0} |' -f $entry.Key, $entry.Value))
     }
     [void]$lines.Add('')
+
+    # ===================== 效能歸因 =====================
+    [void]$lines.Add('### 效能歸因')
+    [void]$lines.Add('')
+    $appMs = [Math]::Max(0, $dataverse.RequestDurationSum - $dataverse.RequestCrmMsSum)
+    [void]$lines.Add(('- CRM 操作 {0:N0} 次，累計 {1:N0} 毫秒；失敗 {2:N0} 次' -f $dataverse.CrmOpCount, $dataverse.CrmMsTotal, $dataverse.CrmFailures))
+    [void]$lines.Add(('- 全部請求耗時 {0:N0} 毫秒，其中 CRM {1:N0} 毫秒、應用程式自身 {2:N0} 毫秒' -f $dataverse.RequestDurationSum, $dataverse.RequestCrmMsSum, $appMs))
+    [void]$lines.Add('- 判讀：CRM 佔比高代表往返次數或查詢成本是瓶頸；應用程式自身佔比高則代表瓶頸在 CRM 之外（序列化、加密、Session 或本機運算）。')
+    [void]$lines.Add('')
+
+    if ($dataverse.EntityStats.Count -gt 0) {
+        [void]$lines.Add(('#### Entity 查詢分佈（前 {0} 名）' -f $Top))
+        [void]$lines.Add('')
+        [void]$lines.Add('| Entity | 次數 | 累計毫秒 | 平均毫秒 | 最長毫秒 |')
+        [void]$lines.Add('|---|---:|---:|---:|---:|')
+        foreach ($entry in ($dataverse.EntityStats.GetEnumerator() | Sort-Object -Property { $_.Value.Ms } -Descending | Select-Object -First $Top)) {
+            [void]$lines.Add(('| `{0}` | {1:N0} | {2:N0} | {3} | {4:N0} |' -f $entry.Key, $entry.Value.Count, $entry.Value.Ms, (Format-Average $entry.Value.Ms $entry.Value.Count), $entry.Value.Max))
+        }
+        if ($dataverse.EntityOverflow -gt 0) {
+            [void]$lines.Add(('' ))
+            [void]$lines.Add(('- Entity 種類超過聚合上限，另有 {0:N0} 次未計入。' -f $dataverse.EntityOverflow))
+        }
+        [void]$lines.Add('')
+    }
+
+    if ($dataverse.NPlusOneRequests.Count -gt 0) {
+        [void]$lines.Add(('#### N+1 徵兆（同一 entity 在單一請求內查詢 ≥ {0} 次）' -f $NPlusOneThreshold))
+        [void]$lines.Add('')
+        [void]$lines.Add('| TraceId | 重複最多的 Entity | 該 Entity 次數 | 請求內 CRM 次數 | CRM 毫秒 | 請求毫秒 |')
+        [void]$lines.Add('|---|---|---:|---:|---:|---:|')
+        foreach ($item in ($dataverse.NPlusOneRequests | Sort-Object -Property TopCount -Descending)) {
+            [void]$lines.Add(('| `{0}` | `{1}` | {2:N0} | {3:N0} | {4:N0} | {5:N0} |' -f $item.TraceId, $item.Entity, $item.TopCount, $item.CrmCount, $item.CrmMs, $item.DurationMs))
+        }
+        [void]$lines.Add('')
+        [void]$lines.Add('- 判讀：同一張表被重複查詢，通常是迴圈內逐筆查詢所致。合併為單次批次查詢的效益，約等於「次數 × 單次往返成本」。優化單一查詢對此無效。')
+        [void]$lines.Add('')
+    }
+
+    if ($dataverse.SlowRequests.Count -gt 0) {
+        [void]$lines.Add(('#### 慢請求歸因（≥ {0} 毫秒）' -f $SlowRequestThresholdMs))
+        [void]$lines.Add('')
+        [void]$lines.Add('| TraceId | 總毫秒 | CRM 毫秒 | 應用程式毫秒 | CRM 次數 | 重複最多的 Entity | 次數 |')
+        [void]$lines.Add('|---|---:|---:|---:|---:|---|---:|')
+        foreach ($item in ($dataverse.SlowRequests | Sort-Object -Property DurationMs -Descending)) {
+            [void]$lines.Add(('| `{0}` | {1:N0} | {2:N0} | {3:N0} | {4:N0} | `{5}` | {6:N0} |' -f $item.TraceId, $item.DurationMs, $item.CrmMs, $item.AppMs, $item.CrmCount, $item.TopEntity, $item.TopCount))
+        }
+        [void]$lines.Add('')
+    }
+
+    # ===================== Session Leakage =====================
+    [void]$lines.Add('### Session Leakage 判定')
+    [void]$lines.Add('')
+    [void]$lines.Add('| 判準 | 觀測值 | 說明 |')
+    [void]$lines.Add('|---|---:|---|')
+    [void]$lines.Add(('| 同一 client 的租約區間重疊 | {0:N0} | 終極判準；非零代表兩個請求同時持有同一條實體連線 |' -f $dataverse.LeaseOverlaps))
+    [void]$lines.Add(('| 請求結束時未歸還的租約 | {0:N0} 個請求 | 非零代表租約洩漏到請求邊界之外 |' -f $dataverse.LeaseOutstandingRequests))
+    [void]$lines.Add(('| 平行進入同一 Gateway | {0:N0} 次 / {1:N0} 個請求 | Gateway 的 depth 與 lease 欄位無同步保護，平行進入可能造成連線共用 |' -f $dataverse.ConcurrentGatewayEvents, $dataverse.ConcurrentGatewayRequests))
+    [void]$lines.Add(('| Gateway 釋放時仍持有租約 | {0:N0} 次 | 租約靠 DI 回收 scope 才被救回，而非正常執行路徑 |' -f $dataverse.ScopeEndLeaseHeld))
+    [void]$lines.Add(('| 歸還時仍帶呼叫端身分 | {0:N0} 次 | 非零代表 impersonation 狀態跨請求殘留 |' -f $dataverse.CallerStateViolations))
+    [void]$lines.Add(('| 觀測到的最大 reentrant 深度 | {0:N0} | 為 1 代表巢狀路徑未被觸發，reentrant 防線本次未受驗證 |' -f $dataverse.MaxDepthObserved))
+    [void]$lines.Add('')
+
+    # ===================== 資源趨勢 =====================
+    [void]$lines.Add('### 資源趨勢（記憶體與連線洩漏）')
+    [void]$lines.Add('')
+    if ($dataverse.ProcSamples -lt 2) {
+        [void]$lines.Add(('- 程序快照僅 {0:N0} 筆，不足以檢定趨勢。洩漏判定需要至少兩個時間點；請延長重現時間。' -f $dataverse.ProcSamples))
+    }
+    else {
+        [void]$lines.Add(('- 程序快照 {0:N0} 筆' -f $dataverse.ProcSamples))
+        [void]$lines.Add('')
+        [void]$lines.Add('| 指標 | 起始 | 結束 | 變化 | 判讀 |')
+        [void]$lines.Add('|---|---:|---:|---:|---|')
+        [void]$lines.Add(('| Managed 記憶體 (MB) | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 持續上升代表受控物件未釋放 |' -f $dataverse.ProcFirst.ManagedMb, $dataverse.ProcLast.ManagedMb, ($dataverse.ProcLast.ManagedMb - $dataverse.ProcFirst.ManagedMb)))
+        [void]$lines.Add(('| 私有記憶體 (MB) | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | Managed 平穩但此值上升，指向非受控資源 |' -f $dataverse.ProcFirst.PrivateMb, $dataverse.ProcLast.PrivateMb, ($dataverse.ProcLast.PrivateMb - $dataverse.ProcFirst.PrivateMb)))
+        [void]$lines.Add(('| 控制代碼數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 連線、檔案或 socket 未釋放的最直接指標 |' -f $dataverse.ProcFirst.Handles, $dataverse.ProcLast.Handles, ($dataverse.ProcLast.Handles - $dataverse.ProcFirst.Handles)))
+        [void]$lines.Add(('| 執行緒數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 上升代表執行緒洩漏或飢餓 |' -f $dataverse.ProcFirst.Threads, $dataverse.ProcLast.Threads, ($dataverse.ProcLast.Threads - $dataverse.ProcFirst.Threads)))
+        [void]$lines.Add(('| Gen2 回收次數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 持續上升代表物件不斷晉升到長命世代 |' -f $dataverse.ProcFirst.Gen2, $dataverse.ProcLast.Gen2, ($dataverse.ProcLast.Gen2 - $dataverse.ProcFirst.Gen2)))
+    }
+    [void]$lines.Add('')
+    if ($dataverse.PoolSamples -lt 2) {
+        [void]$lines.Add(('- 連線池快照僅 {0:N0} 筆，不足以檢定連線數趨勢。' -f $dataverse.PoolSamples))
+    }
+    else {
+        [void]$lines.Add(('- 連線池快照 {0:N0} 筆；存活連線峰值 {1:N0}、子池數峰值 {2:N0}' -f $dataverse.PoolSamples, $dataverse.PoolAliveMax, $dataverse.SubPoolsMax))
+        [void]$lines.Add('')
+        [void]$lines.Add('| 指標 | 起始 | 結束 | 變化 | 判讀 |')
+        [void]$lines.Add('|---|---:|---:|---:|---|')
+        [void]$lines.Add(('| 存活連線 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 穩定運行時應在 MinSize 附近震盪 |' -f $dataverse.PoolFirst.Alive, $dataverse.PoolLast.Alive, ($dataverse.PoolLast.Alive - $dataverse.PoolFirst.Alive)))
+        [void]$lines.Add(('| 累計建立 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 與淘汰數的差值應約等於存活數 |' -f $dataverse.PoolFirst.Created, $dataverse.PoolLast.Created, ($dataverse.PoolLast.Created - $dataverse.PoolFirst.Created)))
+        [void]$lines.Add(('| 累計淘汰 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 建立遠多於淘汰代表連線抖動 |' -f $dataverse.PoolFirst.Discarded, $dataverse.PoolLast.Discarded, ($dataverse.PoolLast.Discarded - $dataverse.PoolFirst.Discarded)))
+        [void]$lines.Add(('| 租借減歸還 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 非零代表有租約尚未歸還 |' -f ($dataverse.PoolFirst.Acquires - $dataverse.PoolFirst.Releases), ($dataverse.PoolLast.Acquires - $dataverse.PoolLast.Releases), (($dataverse.PoolLast.Acquires - $dataverse.PoolLast.Releases) - ($dataverse.PoolFirst.Acquires - $dataverse.PoolFirst.Releases))))
+        [void]$lines.Add(('| 子池數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 子池無回收路徑，啟用 per-user 隔離後會單調累積 |' -f $dataverse.PoolFirst.SubPools, $dataverse.PoolLast.SubPools, ($dataverse.PoolLast.SubPools - $dataverse.PoolFirst.SubPools)))
+    }
+    [void]$lines.Add('')
+
     Add-ReasonsToReport -Lines $lines -Result $dataverse
     [void]$lines.Add('')
     Add-SensitiveTable -Lines $lines -Counts $dataverse.SensitiveCounts
