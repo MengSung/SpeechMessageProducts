@@ -79,15 +79,26 @@ internal static class CrmOperationTrace
     };
 
     /// <summary>
-    /// 取出組織要求的訊息名稱作為 entity 欄位值。
+    /// 取出組織要求的訊息名稱，作為 entity 欄位的替代識別。
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// <c>Execute</c> 沒有單一目標 entity，因此改以 SDK 訊息名稱填入同一個欄位 —— 對 N+1 偵測而言
+    /// 兩者作用相同：都是「同一種東西被重複呼叫」的識別。
+    /// </para>
+    /// <para>
+    /// <b>加上 <c>msg:</c> 前綴的理由</b>：不加前綴時，訊息名稱（RetrieveEntity、Assign）會與真正的
+    /// entity logical name（contact、list）混在同一欄，下游報表無法分辨兩者，容易把 metadata 呼叫
+    /// 誤讀成資料表查詢。前綴讓兩種命名空間在同一欄內仍可區分，且不需要新增欄位破壞既有 schema。
+    /// </para>
+    /// <para>
     /// 只讀取 <see cref="OrganizationRequest.RequestName"/>；<c>Parameters</c> 內含實際資料，絕不取用。
+    /// </para>
     /// </remarks>
     /// <param name="request">要判定的組織要求。</param>
-    /// <returns>SDK 訊息名稱，未知時為空字串。</returns>
+    /// <returns>加上 <c>msg:</c> 前綴的 SDK 訊息名稱，未知時為空字串。</returns>
     internal static string DescribeRequest(OrganizationRequest request)
-        => request?.RequestName ?? string.Empty;
+        => string.IsNullOrEmpty(request?.RequestName) ? string.Empty : "msg:" + request.RequestName;
 
     /// <summary>取得自指定時間戳起算的毫秒數，不會回傳負值。</summary>
     private static long ElapsedMilliseconds(long startedTimestamp)
