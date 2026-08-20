@@ -1,0 +1,12 @@
+{
+  "id": "analyze-trace-performance-and-leakage",
+  "title": "分析 ChurchReport Trace 的效能、Session Leakage 與 Memory Leakage 改善需求",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "交付唯讀分析結果；未修改產品程式",
+  "createdAt": "2026-08-20T00:00:00+08:00",
+  "branch": "feat/dataverse-scoped-connection"
+}

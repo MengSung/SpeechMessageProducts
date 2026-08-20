@@ -44,6 +44,7 @@ using LineMessagingProcessor.RichMenus;
 using SpeechMessage.Payments.AspNetCore.DependencyInjection;
 using SpeechMessage.Payments.DependencyInjection;
 using SpeechMessage.Payments.Workflows;
+using ToolUtilityNameSpace.Diagnostics;
 
 namespace ChurchReport
 {
@@ -68,13 +69,21 @@ namespace ChurchReport
             "珊瑚橘"
         };
 
+        private readonly DiagnosticTraceOptions _diagnosticTraceOptions;
+
         /// <summary>
         /// 建構函式，注入配置物件。
         /// </summary>
         /// <param name="configuration">應用程式配置物件，用於讀取 appsettings.json 或其他配置來源。</param>
-        public Startup(IConfiguration configuration)
+        /// <param name="diagnosticTraceOptions">
+        /// 由 Program 依 Debug/Release 編譯邊界解析的統一 Trace 設定；Startup 不可重新讀取
+        /// 另一組開關，避免 Release 設定誤開與三個 writer 狀態分歧。
+        /// </param>
+        public Startup(IConfiguration configuration, DiagnosticTraceOptions diagnosticTraceOptions)
         {
-            Configuration = configuration;
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _diagnosticTraceOptions = diagnosticTraceOptions
+                ?? throw new ArgumentNullException(nameof(diagnosticTraceOptions));
 
             CurrentTheme = ResolveThemeName(configuration["Theme:Current"]);
             CurrentThemeCssClass = MapThemeCssClass(CurrentTheme);
@@ -142,7 +151,7 @@ namespace ChurchReport
         {
 #if DEBUG
             ChurchReport.Diagnostics.Profiling.ProfilingSwitch.Enabled =
-                Configuration.GetValue<bool>("Profiling:Enabled", false);
+                _diagnosticTraceOptions.Enabled;
             using var __perfConfigureServices =
                 ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("ConfigureServices");
 #endif
@@ -161,8 +170,20 @@ namespace ChurchReport
             // 因此註冊為 Singleton，且刻意「由容器建立」而非傳入現成實例 ——
             // DI 只會釋放自己建立的物件；傳入外部實例會導致應用程式關閉時不被 Dispose。
             // 實際交給 ToolUtilityFactory 的動作在 Configure() 中進行（見該處說明）。
-            services.AddSingleton<ToolUtilityNameSpace.Diagnostics.IToolUtilityTracer,
-                                  ToolUtilityNameSpace.Diagnostics.FileToolUtilityTracer>();
+            services.AddSingleton(_diagnosticTraceOptions);
+#if DEBUG
+            if (_diagnosticTraceOptions.Enabled)
+            {
+                services.AddSingleton<IToolUtilityTracer, FileToolUtilityTracer>();
+            }
+            else
+            {
+                services.AddSingleton<IToolUtilityTracer, NullToolUtilityTracer>();
+            }
+#else
+            // Release 只註冊零副作用實作，且不包含任何依設定分支建立檔案 tracer 的路徑。
+            services.AddSingleton<IToolUtilityTracer, NullToolUtilityTracer>();
+#endif
 
             // ========================================
             // 註冊 HttpClientFactory (修復記憶體洩漏)
@@ -663,8 +684,8 @@ namespace ChurchReport
             // 🆕 在 Development 環境或啟用 Trace 設定時註冊 Trace Logger Provider
             // 讓 ILogger 的輸出也能寫入 Trace.log
             // ========================================
-            var enableTrace = Configuration.GetValue<bool>("EnableTrace", env.IsDevelopment());
-            if (enableTrace)
+#if DEBUG
+            if (_diagnosticTraceOptions.Enabled)
             {
                 try
                 {
@@ -678,8 +699,11 @@ namespace ChurchReport
             }
             else
             {
-                Console.WriteLine("[Startup] ⚠️ TraceLoggerProvider 未啟用（Release 或 EnableTrace=false）");
+                Console.WriteLine("[Startup] ⚠️ 檔案 Trace 未啟用（DiagnosticsTrace:Enabled=false）");
             }
+#else
+            Console.WriteLine("[Startup] ⚠️ Release 編譯已硬性停用三種檔案 Trace");
+#endif
 
             // ========================================
             // ✅ Phase 3.0: 全站無快取中介軟體（Session Bleeding 防護 - 最優先執行）

@@ -1,0 +1,12 @@
+{
+  "id": "unified-trace-guard-and-analysis",
+  "title": "統一 Trace 兩層保護與三檔綜合分析",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "完成驗證、更新規格並等待使用者確認提交",
+  "createdAt": "2026-08-19T09:20:00+08:00",
+  "branch": "feat/dataverse-scoped-connection"
+}

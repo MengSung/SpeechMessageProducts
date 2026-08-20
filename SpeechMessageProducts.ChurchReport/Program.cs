@@ -21,10 +21,18 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using ChurchReport.Diagnostics;
+using ToolUtilityNameSpace.Diagnostics;
 
 namespace ChurchReport
 {
+    /// <summary>
+    /// ChurchReport ASP.NET Core 程序的組合根，負責建立 Host、集中診斷設定、服務註冊與
+    /// Debug-only Trace 資源生命週期；不保存任何 request、使用者、租戶或驗證狀態。
+    /// </summary>
     public class Program
     {
         // ⚠️【安全不變量】寫入 Logs\Trace.log 的 TextWriterTraceListener 必須永遠位於 #if DEBUG 內。
@@ -36,13 +44,41 @@ namespace ChurchReport
         // ========================================
         private static TextWriterTraceListener _traceListener;
         private static readonly object _traceLock = new object();
+        private static DebugTraceMonitorLifetime _gcMonitoringLifetime;
 #endif
 
+        /// <summary>
+        /// 建立並執行 ChurchReport Host。Release 組態固定建立停用的診斷設定，外部設定無法
+        /// 重新啟用檔案 writer；Debug 組態則由單一 <c>DiagnosticsTrace</c> 區段控制三種 Trace。
+        /// </summary>
+        /// <param name="args">傳給 ASP.NET Core 組態與 Host 的命令列參數。</param>
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             ConfigureSafeLogging(builder);
+
+#if DEBUG
+            DiagnosticTraceOptions diagnosticTraceOptions;
+            try
+            {
+                diagnosticTraceOptions = DiagnosticTraceOptions.FromConfiguration(
+                    builder.Configuration,
+                    builder.Environment.ContentRootPath,
+                    allowEnabled: true);
+            }
+            catch (Exception ex)
+            {
+                // 設定錯誤必須 fail closed：診斷功能不可阻止主程式啟動，也不可退回其他硬編碼路徑。
+                Console.WriteLine($"[Trace Init] 統一診斷設定無效，已停用檔案 Trace：{ex.Message}");
+                diagnosticTraceOptions = DiagnosticTraceOptions.CreateDisabled(
+                    builder.Environment.ContentRootPath);
+            }
+#else
+            // Release 永遠不讀取 Enabled=true；外部 appsettings／環境變數無法繞過此防線。
+            var diagnosticTraceOptions = DiagnosticTraceOptions.CreateDisabled(
+                builder.Environment.ContentRootPath);
+#endif
 
             // 設定 Kestrel
             builder.WebHost.ConfigureKestrel(options =>
@@ -53,47 +89,38 @@ namespace ChurchReport
                 options.Limits.MaxConcurrentUpgradedConnections = 1000;
             });
 
-#if DEBUG
-            InitializeTraceListener(builder.Environment.ContentRootPath);
-#endif
-
             // 使用 Startup 類別設定服務
-            var startup = new Startup(builder.Configuration);
+            var startup = new Startup(builder.Configuration, diagnosticTraceOptions);
             startup.ConfigureServices(builder.Services);
 
             var app = builder.Build();
 
 #if DEBUG
-            // ========================================
-            // 僅在 Debug 組態下初始化 Trace Listener
-            // 使用條件編譯確保 Release 組態完全移除此程式碼
-            // 命令： dotnet publish -c Debug   → 會寫入 Trace.log
-            //       dotnet publish -c Release → 不會寫入 Trace.log（程式碼被移除）
-            // ========================================
-            InitializeTraceListener(app.Environment.ContentRootPath);
-
-            // ========================================
-            // GC 監控設定（僅 Debug 組態）
-            // 每 10 分鐘記錄一次 GC 統計，幫助監控記憶體使用
-            // ========================================
-            StartGCMonitoring();
-#endif
-
-            // 使用 Startup 類別設定中介層
-            startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
-
-#if DEBUG
-            // ========================================
-            // 註冊應用程式停止事件，確保資源正確釋放（僅 Debug 組態）
-            // ========================================
+            // 只有服務容器成功建立後才取得 listener owner；若組態或 DI 建置失敗，
+            // 尚未建立檔案 writer，避免啟動例外留下未由 Host 接管的 handle。
+            InitializeTraceListener(diagnosticTraceOptions);
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
-            lifetime.ApplicationStopping.Register(() =>
+            if (diagnosticTraceOptions.Enabled)
             {
-                CleanupTraceListener();
-            });
-#endif
-
+                _gcMonitoringLifetime = DebugTraceMonitorLifetime.Start(StartGCMonitoringAsync);
+            }
+            try
+            {
+                // 使用 Startup 類別設定中介層；若此處失敗，外層 finally 仍會釋放 Debug 資源。
+                startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
+                lifetime.ApplicationStopping.Register(StopDebugTraceResources);
+                app.Run();
+            }
+            finally
+            {
+                // ApplicationStopping callback 與 app.Run 例外路徑共用冪等清理 owner。
+                StopDebugTraceResources();
+            }
+#else
+            // Release 沒有任何檔案 listener、GC monitor 或診斷 provider。
+            startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
             app.Run();
+#endif
         }
 
         private static void ConfigureSafeLogging(WebApplicationBuilder builder)
@@ -112,12 +139,20 @@ namespace ChurchReport
         /// 確保 TextWriterTraceListener 只建立一次，並且可以在應用程式停止時正確釋放
         ///
         /// 【自動建立機制】
-        /// - 若 Logs 目錄不存在，會自動建立
+        /// - 若統一設定指定的診斷目錄不存在，會自動建立
         /// - 若 Trace.log 檔案不存在，會自動建立
         /// - 若檔案已存在，會以 Append 模式追加寫入
         /// </summary>
-        private static void InitializeTraceListener(string contentRootPath)
+        /// <param name="options">
+        /// 已由 Debug 組合根驗證的程序級設定；停用時不建立目錄、stream、writer 或 listener。
+        /// </param>
+        private static void InitializeTraceListener(DiagnosticTraceOptions options)
         {
+            if (options == null || !options.Enabled)
+            {
+                return;
+            }
+
             lock (_traceLock)
             {
                 if (_traceListener != null)
@@ -126,24 +161,19 @@ namespace ChurchReport
                     return;
                 }
 
+                FileStream stream = null;
+                StreamWriter writer = null;
+                TextWriterTraceListener candidate = null;
                 try
                 {
-                    // ========================================
-                    // 步驟 1：確保 Logs 目錄存在（自動建立）
-                    // ========================================
-                    var logsDir = Path.Combine(contentRootPath, "Logs");
-
-                    // Directory.CreateDirectory 特性：
-                    // - 若目錄已存在，不會拋出例外
-                    // - 若目錄不存在，會自動建立（包含所有必要的父目錄）
-                    var dirInfo = Directory.CreateDirectory(logsDir);
+                    var dirInfo = Directory.CreateDirectory(options.Directory);
 
                     Console.WriteLine($"[Trace Init] Logs directory: {dirInfo.FullName}");
 
                     // ========================================
                     // 步驟 2：建立或開啟 Trace.log 檔案
                     // ========================================
-                    var tracePath = Path.Combine(logsDir, "Trace.log");
+                    var tracePath = options.TraceLogPath;
 
                     // 檢查檔案是否已存在（用於日誌記錄）
                     bool fileExists = File.Exists(tracePath);
@@ -151,10 +181,27 @@ namespace ChurchReport
                     // TextWriterTraceListener 建構函式特性：
                     // - 若檔案不存在，會自動建立
                     // - 若檔案已存在，會以 Append 模式開啟（追加寫入，不會覆蓋）
-                    _traceListener = new TextWriterTraceListener(tracePath)
+                    stream = new FileStream(
+                        tracePath,
+                        FileMode.Append,
+                        FileAccess.Write,
+                        FileShare.ReadWrite | FileShare.Delete);
+                    writer = new StreamWriter(
+                        stream,
+                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                        4096,
+                        leaveOpen: false)
+                    {
+                        AutoFlush = true
+                    };
+                    // StreamWriter 已接管 FileStream；後續例外由 writer 的清理路徑負責。
+                    stream = null;
+                    candidate = new TextWriterTraceListener(writer)
                     {
                         Name = "ChurchReportTraceListener"
                     };
+                    // candidate 已接管 writer；成功或失敗都只由一個 owner Dispose。
+                    writer = null;
 
                     Console.WriteLine($"[Trace Init] Trace file: {tracePath} (Exists: {fileExists})");
 
@@ -167,7 +214,9 @@ namespace ChurchReport
 
                     if (existingListener == null)
                     {
-                        Trace.Listeners.Add(_traceListener);
+                        Trace.Listeners.Add(candidate);
+                        _traceListener = candidate;
+                        candidate = null;
                         Trace.AutoFlush = true;
 
                         // 寫入初始化成功訊息
@@ -180,11 +229,34 @@ namespace ChurchReport
                     }
                     else
                     {
+                        // 已有同名 listener 時釋放本次候選 writer，避免重複初始化形成
+                        // 未掛接但仍持有檔案 handle 的 orphan listener。
+                        candidate.Dispose();
+                        candidate = null;
                         Console.WriteLine("[Trace Init] ?? Listener already exists, skipping registration");
                     }
                 }
                 catch (Exception ex)
                 {
+                    if (candidate != null)
+                    {
+                        try { Trace.Listeners.Remove(candidate); } catch { }
+                        try { candidate.Dispose(); } catch { }
+                    }
+                    if (_traceListener != null)
+                    {
+                        try { Trace.Listeners.Remove(_traceListener); } catch { }
+                        try { _traceListener.Dispose(); } catch { }
+                        _traceListener = null;
+                    }
+                    if (writer != null)
+                    {
+                        try { writer.Dispose(); } catch { }
+                    }
+                    if (stream != null)
+                    {
+                        try { stream.Dispose(); } catch { }
+                    }
                     // 初始化失敗，記錄到控制台（避免影響應用程式啟動）
                     Console.WriteLine($"[Trace Init] ? Failed to initialize trace listener: {ex.Message}");
                     Console.WriteLine($"[Trace Init] Stack trace: {ex.StackTrace}");
@@ -194,33 +266,45 @@ namespace ChurchReport
 
         /// <summary>
         /// 清理 Trace Listener（確保資源正確釋放，僅 Debug 組態）
-        /// 在應用程式停止時呼叫，關閉 FileStream 和 StreamWriter
+        /// 在應用程式停止時呼叫；先從全域集合停止接受事件，再 Flush 並 Dispose 其私有
+        /// writer/stream。方法以鎖保護且可重複呼叫，不保存 request 或使用者狀態。
         /// </summary>
         private static void CleanupTraceListener()
         {
             lock (_traceLock)
             {
-                if (_traceListener != null)
+                var listener = _traceListener;
+                _traceListener = null;
+                if (listener != null)
                 {
-                    try
-                    {
-                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Application shutting down. Cleaning up trace listener.");
-
-                        // 從 Listeners 集合移除
-                        Trace.Listeners.Remove(_traceListener);
-
-                        // 確保 Flush（將緩衝資料寫入檔案）
-                        _traceListener.Flush();
-
-                        // 釋放資源（FileStream, StreamWriter）
-                        _traceListener.Dispose();
-                        _traceListener = null;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to cleanup trace listener: {ex.Message}");
-                    }
+                    try { Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Application shutting down. Cleaning up trace listener."); } catch { }
+                    try { Trace.Listeners.Remove(listener); } catch { }
+                    try { listener.Flush(); } catch { }
+                    try { listener.Dispose(); } catch (Exception ex) { Console.WriteLine($"Failed to cleanup trace listener: {ex.Message}"); }
                 }
+            }
+        }
+
+        /// <summary>
+        /// 以唯一 owner 停止 Debug GC 監控並清理全域 Trace listener。此方法可由 Host 停止
+        /// callback 與 app.Run 的例外 finally 同時呼叫；Interlocked 交換確保監控只被停止一次，
+        /// 而 listener cleanup 即使重複執行也不會保留 writer、stream 或 task。
+        /// </summary>
+        private static void StopDebugTraceResources()
+        {
+            var monitor = Interlocked.Exchange(ref _gcMonitoringLifetime, null);
+            try
+            {
+                monitor?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                // 診斷監控停止失敗不得略過 listener 的 flush/Dispose，也不得阻止 Host 關機。
+                Console.WriteLine($"[Trace Cleanup] GC monitor shutdown failed: {ex.Message}");
+            }
+            finally
+            {
+                CleanupTraceListener();
             }
         }
 
@@ -229,37 +313,43 @@ namespace ChurchReport
         /// 每 10 分鐘記錄一次 GC 統計，幫助診斷記憶體問題
         /// 記錄內容：Gen0/Gen1/Gen2 回收次數、GC Memory、Private Memory
         /// </summary>
-        private static void StartGCMonitoring()
+        /// <param name="cancellationToken">
+        /// 由 <see cref="DebugTraceMonitorLifetime"/> 唯一擁有的專屬 token；取消後延遲立即結束，
+        /// 讓 Host 停止 callback 能先取消再 drain，不留下 task、timer 或 token registration。
+        /// </param>
+        /// <returns>監控完整生命週期工作；只在收到取消後正常完成。</returns>
+        private static async Task StartGCMonitoringAsync(CancellationToken cancellationToken)
         {
-            Task.Run(async () =>
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (true)
+                try
                 {
-                    try
-                    {
-                        await Task.Delay(TimeSpan.FromMinutes(10));
+                    await Task.Delay(TimeSpan.FromMinutes(10), cancellationToken).ConfigureAwait(false);
 
-                        var gen0 = GC.CollectionCount(0);
-                        var gen1 = GC.CollectionCount(1);
-                        var gen2 = GC.CollectionCount(2);
-                        var totalMemory = GC.GetTotalMemory(false) / 1024 / 1024; // MB
-                        var process = Process.GetCurrentProcess();
-                        var privateMemory = process.PrivateMemorySize64 / 1024 / 1024; // MB
+                    var gen0 = GC.CollectionCount(0);
+                    var gen1 = GC.CollectionCount(1);
+                    var gen2 = GC.CollectionCount(2);
+                    var totalMemory = GC.GetTotalMemory(false) / 1024 / 1024; // MB
+                    using var process = Process.GetCurrentProcess();
+                    var privateMemory = process.PrivateMemorySize64 / 1024 / 1024; // MB
 
-                        var message = $"[GC Monitor] " +
-                                    $"Gen0: {gen0}, Gen1: {gen1}, Gen2: {gen2}, " +
-                                    $"GC Memory: {totalMemory} MB, " +
-                                    $"Private Memory: {privateMemory} MB";
+                    var message = $"[GC Monitor] " +
+                                $"Gen0: {gen0}, Gen1: {gen1}, Gen2: {gen2}, " +
+                                $"GC Memory: {totalMemory} MB, " +
+                                $"Private Memory: {privateMemory} MB";
 
-                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}");
-                        Console.WriteLine(message);
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] GC Monitor Error: {ex.Message}");
-                    }
+                    Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}");
+                    Console.WriteLine(message);
                 }
-            });
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] GC Monitor Error: {ex.Message}");
+                }
+            }
         }
 #endif
     }

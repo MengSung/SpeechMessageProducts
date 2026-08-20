@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+using ToolUtilityNameSpace.Diagnostics;
 
 namespace ToolUtilityNameSpace.Dataverse;
 
@@ -40,19 +40,18 @@ public sealed class DataverseTraceOptions
     public TimeSpan FlushInterval { get; set; } = TimeSpan.FromMilliseconds(250);
 
     /// <summary>
-    /// 從 Dataverse:Trace 組態讀取啟用開關與路徑。容量與佇列採安全預設，避免部署設定遺漏時
-    /// 產生無界資源使用；不會讀取或記錄任何連線認證。
+    /// 從程序級統一診斷設定建立 Dataverse 專用選項。容量與佇列採安全預設，避免部署
+    /// 設定遺漏時產生無界資源使用；本方法不會讀取或記錄任何連線認證。
     /// </summary>
-    public static DataverseTraceOptions FromConfiguration(IConfiguration configuration)
+    public static DataverseTraceOptions FromDiagnosticOptions(DiagnosticTraceOptions diagnosticOptions)
     {
-        if (configuration == null)
-            throw new ArgumentNullException(nameof(configuration));
+        if (diagnosticOptions == null)
+            throw new ArgumentNullException(nameof(diagnosticOptions));
 
-        var section = configuration.GetSection("Dataverse:Trace");
         return new DataverseTraceOptions
         {
-            Enabled = section.GetValue("Enabled", false),
-            Path = section["Path"] ?? "logs/dataverse-trace.jsonl"
+            Enabled = diagnosticOptions.Enabled,
+            Path = diagnosticOptions.DataverseTracePath
         };
     }
 
@@ -613,7 +612,14 @@ public sealed class DataverseTrace : IDisposable
                 $"{System.IO.Path.GetFileNameWithoutExtension(configuredPath)}.{DateTime.UtcNow:yyyyMMddHHmmssfff}.{Interlocked.Increment(ref _fileSequence)}{System.IO.Path.GetExtension(configuredPath)}");
         PruneOldFiles(configuredPath, nextPath);
 
-        _writer = new StreamWriter(new FileStream(nextPath, FileMode.Create, FileAccess.Write, FileShare.Read), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), 64 * 1024);
+        _writer = new StreamWriter(
+            new FileStream(
+                nextPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.ReadWrite | FileShare.Delete),
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+            64 * 1024);
         _currentFilePath = nextPath;
         _currentFileBytes = 0;
     }
