@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -327,7 +328,7 @@ public sealed class DataverseTraceTests
                     }
                     else if (index == 1)
                     {
-                        Assert.Throws<InvalidOperationException>(() => service.Execute(new OrganizationRequest("throw")));
+                        Assert.Throws<CommunicationException>(() => service.Execute(new OrganizationRequest("throw")));
                     }
                     else
                     {
@@ -495,7 +496,8 @@ public sealed class DataverseTraceTests
         public OrganizationResponse Execute(OrganizationRequest request)
         {
             if (string.Equals(request.RequestName, "throw", StringComparison.Ordinal))
-                throw new InvalidOperationException("Trace test fault.");
+                // 必須是傳輸層例外：只有連線故障才會讓 lease 以 faulted 歸還並淘汰 client。
+                throw new CommunicationException("Trace test fault.");
             Thread.Sleep(4);
             return new OrganizationResponse();
         }
