@@ -40,6 +40,22 @@ public sealed class DataverseTraceOptions
     public TimeSpan FlushInterval { get; set; } = TimeSpan.FromMilliseconds(250);
 
     /// <summary>
+    /// 資源快照（proc.snapshot / pool.snapshot）的最小輸出間隔。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 這個值在兩個目標之間取捨：間隔太長會讓記憶體或連線的成長趨勢採樣不足而看不出斜率；
+    /// 太短則會讓快照淹沒稽核檔，並且每次都要付出讀取程序計量值的成本
+    /// （<c>Process.PrivateMemorySize64</c> 與 <c>HandleCount</c> 皆為系統呼叫）。
+    /// </para>
+    /// <para>
+    /// 預設 30 秒：一次十分鐘的除錯重現可得到約 20 個取樣點，足以分辨「持續上升」與「上下震盪」，
+    /// 而整段期間的額外事件量不到 50 筆，遠低於單一 request 的 crm.op 數量。
+    /// </para>
+    /// </remarks>
+    public TimeSpan SnapshotInterval { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
     /// 從程序級統一診斷設定建立 Dataverse 專用選項。容量與佇列採安全預設，避免部署
     /// 設定遺漏時產生無界資源使用；本方法不會讀取或記錄任何連線認證。
     /// </summary>
@@ -66,6 +82,8 @@ public sealed class DataverseTraceOptions
             throw new ArgumentOutOfRangeException(nameof(MaxRetainedFiles));
         if (QueueCapacity <= 0)
             throw new ArgumentOutOfRangeException(nameof(QueueCapacity));
+        if (SnapshotInterval <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(SnapshotInterval));
         if (FlushInterval <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(FlushInterval));
     }
@@ -96,6 +114,11 @@ public sealed class DataverseTrace : IDisposable
         PoolReturn,
         PoolDispose,
         PoolCleanup,
+        PoolSnapshot,
+        ProcessSnapshot,
+        PoolLockWait,
+        GatewayConcurrent,
+        GatewayScopeEnd,
         CrmOperation,
         TraceDropped
     }
@@ -114,21 +137,203 @@ public sealed class DataverseTrace : IDisposable
         internal long First;
         internal long Second;
         internal long Third;
+        internal long Fourth;
+        internal long Fifth;
+        internal long Sixth;
+        internal long Seventh;
+        internal long Eighth;
         internal bool Result;
+
+        /// <summary>
+        /// 只有 proc.snapshot 使用的資源量測承載。其餘事件維持 null，因此熱路徑事件仍是
+        /// 單一物件、零額外配置；快照每數十秒才產生一次，額外配置可忽略。
+        /// </summary>
+        internal ProcessSnapshotData Process;
+
+        /// <summary>只有 pool.snapshot 使用的連線池計數承載；其餘事件維持 null。</summary>
+        internal PoolSnapshotData Pool;
+    }
+
+    /// <summary>
+    /// 一次程序層級資源量測。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 存在理由：先前的分析報告只能寫出「本報告無法證明不存在記憶體洩漏」，因為整份 Trace 沒有
+    /// 任何一筆資源基準線。有了時間序列的這些值，「單調成長」才第一次成為可被檢定的命題，
+    /// 而不是靠感覺判斷。
+    /// </para>
+    /// <para>
+    /// 這些全部是程序自身的計量值，不含任何使用者、request 或 CRM 資料，因此不構成隱私風險。
+    /// </para>
+    /// </remarks>
+    public sealed class ProcessSnapshotData
+    {
+        /// <summary>Managed 堆目前配置量（MB）。不強制 GC，因此不影響被觀測程序的行為。</summary>
+        public long ManagedMb { get; init; }
+
+        /// <summary>GC 回報的堆大小（MB），含尚未回收的空間，可與 <see cref="ManagedMb"/> 對照出碎片化。</summary>
+        public long HeapMb { get; init; }
+
+        /// <summary>作業系統認定的私有記憶體（MB）。Managed 正常但此值持續上升，指向非受控資源洩漏。</summary>
+        public long PrivateMb { get; init; }
+
+        /// <summary>Gen0 累計回收次數。與 Gen2 的比例可看出配置壓力來自短命還是長命物件。</summary>
+        public int Gen0 { get; init; }
+
+        /// <summary>Gen1 累計回收次數。</summary>
+        public int Gen1 { get; init; }
+
+        /// <summary>Gen2 累計回收次數。持續上升代表有物件不斷晉升到長命世代，是洩漏的典型徵兆。</summary>
+        public int Gen2 { get; init; }
+
+        /// <summary>作業系統控制代碼數。連線、檔案與 socket 未釋放時此值單調上升，是非受控洩漏最直接的指標。</summary>
+        public int Handles { get; init; }
+
+        /// <summary>程序執行緒總數。與下列 ThreadPool 數值一起看，可辨識執行緒洩漏或飢餓。</summary>
+        public int Threads { get; init; }
+
+        /// <summary>ThreadPool 目前執行緒數。搭配 <see cref="PendingWorkItems"/> 可辨識執行緒池飢餓。</summary>
+        public int PoolThreads { get; init; }
+
+        /// <summary>ThreadPool 待處理工作項目數。持續 &gt; 0 代表工作進來的速度超過處理速度。</summary>
+        public long PendingWorkItems { get; init; }
+    }
+
+    /// <summary>
+    /// 一次連線池計數快照。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 存在理由：連線洩漏的判準是「建立數與銷毀數的差值隨時間單調成長」，而這需要時間序列，
+    /// 單筆事件無法證明。<see cref="Alive"/> 是核心指標：穩定運行下它應在 MinSize 附近震盪，
+    /// 若持續上升則代表 client 只進不出。
+    /// </para>
+    /// <para>
+    /// <see cref="SubPools"/> 是另一顆地雷的哨兵：子池字典目前只在 pool 關閉時清空，沒有空子池
+    /// 回收路徑。今天只有一個 poolKey 所以無害，但啟用 per-user impersonation 之後，每個使用者
+    /// 都會產生一個永不回收的子池，而每個子池各自持有一個 SemaphoreSlim。
+    /// </para>
+    /// </remarks>
+    public sealed class PoolSnapshotData
+    {
+        /// <summary>已格式化的隔離鍵；不含密碼或呼叫端資料。</summary>
+        public string PoolKey { get; init; }
+
+        /// <summary>目前可立即出借的 client 數。</summary>
+        public int Idle { get; init; }
+
+        /// <summary>目前已出借、正被某個 request 持有的 client 數。</summary>
+        public int Leased { get; init; }
+
+        /// <summary>尚未被銷毀的 client 總數（Idle + Leased + 其他非 Disposed 狀態）。洩漏偵測的主指標。</summary>
+        public int Alive { get; init; }
+
+        /// <summary>已保留名額但尚未完成建立的 client 數。長期不歸零代表有建線卡住。</summary>
+        public int Pending { get; init; }
+
+        /// <summary>程序啟動至今累計建立的 client 數。</summary>
+        public long Created { get; init; }
+
+        /// <summary>程序啟動至今累計銷毀的 client 數。與 <see cref="Created"/> 的差值應約等於 <see cref="Alive"/>。</summary>
+        public long Discarded { get; init; }
+
+        /// <summary>累計租借次數。</summary>
+        public long TotalAcquires { get; init; }
+
+        /// <summary>累計歸還次數。與 <see cref="TotalAcquires"/> 的差值等於目前未歸還的租約數。</summary>
+        public long TotalReleases { get; init; }
+
+        /// <summary>目前在 semaphore 上等待的呼叫端數。持續 &gt; 0 代表容量不足或持有時間過長。</summary>
+        public int Waiting { get; init; }
+
+        /// <summary>累計取得逾時次數。</summary>
+        public long AcquireTimeouts { get; init; }
+
+        /// <summary>累計故障淘汰次數。</summary>
+        public long Faulted { get; init; }
+
+        /// <summary>目前子池數量。啟用 per-key impersonation 後若單調成長，即為子池洩漏。</summary>
+        public int SubPools { get; init; }
+    }
+
+    /// <summary>
+    /// 單一 request 的跨 lease 聚合統計。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 為什麼不能放在 <see cref="RequestContext"/>：該型別刻意設計為不可變，且 <see cref="PushLease"/>
+    /// 每次都會建立新實例，因此放在其中的計數會隨 lease 進出而遺失。本物件以參考方式在所有
+    /// 衍生 context 之間共享，是唯一能涵蓋整個 request 的累積點。
+    /// </para>
+    /// <para>
+    /// 所有欄位皆以 Interlocked 更新：同一 request 可能透過 Task.Run 在多執行緒上發出 CRM 操作，
+    /// ExecutionContext 會把本物件的參考複製給每一條分支。
+    /// </para>
+    /// </remarks>
+    private sealed class RequestStats
+    {
+        internal long CrmCount;
+        internal long CrmMs;
+        internal long LeaseAcquires;
+        internal long LeaseReturns;
+        internal long MaxDepth;
+        internal long ConcurrentGateway;
+
+        /// <summary>
+        /// 每個 entity 被查詢的次數。這是判定 N+1 的關鍵：30 次呼叫散落在 30 張表是複雜流程，
+        /// 集中在同一張表則是應該合併的迴圈查詢。只存 logical name 與次數，不含任何資料列。
+        /// </summary>
+        internal readonly ConcurrentDictionary<string, int> EntityCounts = new(StringComparer.Ordinal);
+
+        /// <summary>以 CAS 迴圈記錄觀測到的最大深度，避免讀改寫競態低估巢狀層數。</summary>
+        internal void ObserveDepth(long depth)
+        {
+            long observed;
+            while (depth > (observed = Interlocked.Read(ref MaxDepth)))
+            {
+                if (Interlocked.CompareExchange(ref MaxDepth, depth, observed) == observed)
+                    return;
+            }
+        }
+
+        /// <summary>取出被查詢次數最多的 entity 與其次數；沒有任何查詢時回傳空字串與 0。</summary>
+        internal (string Entity, int Count) TopEntity()
+        {
+            var topEntity = string.Empty;
+            var topCount = 0;
+            foreach (var pair in EntityCounts)
+            {
+                if (pair.Value > topCount)
+                {
+                    topCount = pair.Value;
+                    topEntity = pair.Key;
+                }
+            }
+            return (topEntity, topCount);
+        }
     }
 
     private sealed class RequestContext
     {
-        internal RequestContext(string traceId, string user, string leaseId = "")
+        internal RequestContext(string traceId, string user, string leaseId = "", RequestStats stats = null)
         {
             TraceId = traceId;
             User = user;
             LeaseId = leaseId;
+            Stats = stats;
         }
 
         internal string TraceId { get; }
         internal string User { get; }
         internal string LeaseId { get; }
+
+        /// <summary>
+        /// 整個 request 共享的聚合統計。<see cref="PushLease"/> 建立新 context 時必須原樣傳遞這個
+        /// 參考，否則 lease 範圍內發生的 CRM 操作會累積到一個隨即被丟棄的物件上，request.end
+        /// 的聚合值將永遠是零。
+        /// </summary>
+        internal RequestStats Stats { get; }
     }
 
     private sealed class RequestScope : IDisposable
@@ -159,12 +364,29 @@ public sealed class DataverseTrace : IDisposable
                 return;
 
             var duration = Stopwatch.GetElapsedTime(_startedTimestamp).TotalMilliseconds;
+            var stats = _current.Stats;
+            var top = stats?.TopEntity() ?? (string.Empty, 0);
+
+            // 在 request 結束的唯一時點把聚合值寫出，讓「這個 request 的時間花在哪裡」成為單筆
+            // 可讀事件，而不需要下游分析器自行重組數千筆 crm.op。
             _owner.Enqueue(new TraceEntry
             {
                 Kind = EventKind.RequestEnd,
                 TraceId = _current.TraceId,
                 User = _current.User,
-                First = Math.Max(0, (long)duration)
+                First = Math.Max(0, (long)duration),
+                Second = stats != null ? Interlocked.Read(ref stats.CrmCount) : 0,
+                Third = stats != null ? Interlocked.Read(ref stats.CrmMs) : 0,
+                Fourth = stats != null ? Interlocked.Read(ref stats.LeaseAcquires) : 0,
+                // 未歸還租約數：request 結束時應恆為 0，非零即代表 lease 洩漏到 request 邊界之外。
+                Fifth = stats != null
+                    ? Interlocked.Read(ref stats.LeaseAcquires) - Interlocked.Read(ref stats.LeaseReturns)
+                    : 0,
+                Sixth = stats != null ? Interlocked.Read(ref stats.MaxDepth) : 0,
+                Seventh = stats != null ? Interlocked.Read(ref stats.ConcurrentGateway) : 0,
+                Eighth = top.Item2,
+                Text = top.Item1,
+                State = stats != null ? stats.EntityCounts.Count.ToString(CultureInfo.InvariantCulture) : "0"
             });
             _owner._requestContext.Value = _previous;
             s_current.Value = _previousTrace;
@@ -217,6 +439,7 @@ public sealed class DataverseTrace : IDisposable
     private int _disposed;
     private int _writerFaulted;
     private long _lastTimestampTicks;
+    private long _lastSnapshotTimestamp;
     private long _fileSequence;
 
     /// <summary>
@@ -261,7 +484,7 @@ public sealed class DataverseTrace : IDisposable
             return NoopScope.Instance;
 
         var user = CreateUserPseudonym(identityName, sessionId);
-        var current = new RequestContext(traceId, user);
+        var current = new RequestContext(traceId, user, leaseId: string.Empty, stats: new RequestStats());
         var previous = _requestContext.Value;
         var previousTrace = s_current.Value;
         _requestContext.Value = current;
@@ -296,6 +519,7 @@ public sealed class DataverseTrace : IDisposable
             return;
         if (!TryGetRequest(out var context))
             return;
+        context.Stats?.ObserveDepth(depth);
         Enqueue(new TraceEntry { Kind = EventKind.GatewayExecuteEnter, TraceId = context.TraceId, User = context.User, First = depth });
     }
 
@@ -326,6 +550,10 @@ public sealed class DataverseTrace : IDisposable
             return;
         if (!TryGetRequest(out var context))
             return;
+        // 與 PoolReturn 的計數配對，使 request.end 能直接回報「結束時仍未歸還的租約數」。
+        // 這是 lease 洩漏最早、最便宜的偵測點：不必等到連線池耗盡才發現。
+        if (context.Stats != null)
+            Interlocked.Increment(ref context.Stats.LeaseAcquires);
         Enqueue(new TraceEntry
         {
             Kind = hit ? EventKind.PoolAcquireHit : EventKind.PoolAcquireMiss,
@@ -420,6 +648,118 @@ public sealed class DataverseTrace : IDisposable
         });
     }
 
+    /// <summary>
+    /// 記錄同一個 scoped Gateway 同時被多個執行緒進入。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>這是目前架構中最嚴重的未防護 Session Leakage 風險。</b><c>DataverseGateway</c> 是 Scoped
+    /// （一個 request 一個實例），但其 <c>_depth</c> 與 <c>_lease</c> 是無同步保護的一般欄位；
+    /// 而產品程式碼中有十餘處 <c>Task.Run</c> / <c>Task.WhenAll</c> 會讓多條執行緒共用同一個實例。
+    /// </para>
+    /// <para>
+    /// 兩種競態後果：其一，兩條執行緒同時看到 <c>_depth == 0</c>，各自租一條 lease 而 <c>_lease</c>
+    /// 被覆寫，其中一條永遠不會歸還，連線池因此永久少一格；其二，先完成的執行緒把 <c>_depth</c>
+    /// 遞減為零並歸還連線，而另一條執行緒仍在使用它 —— 這正是整套架構要防止的跨 request 共用連線。
+    /// </para>
+    /// <para>
+    /// <b>本事件只負責觀測，不修正競態。</b>單元測試涵蓋的是單執行緒巢狀呼叫，實測 trace 中
+    /// depth 也恆為 1，代表平行路徑尚未被觸發過 —— 但一旦觸發，在本事件加入之前不會留下任何痕跡。
+    /// 先讓它可見，修正（將狀態改為 AsyncLocal）是獨立的變更。
+    /// </para>
+    /// </remarks>
+    /// <param name="activeCalls">觀測到的同時進行呼叫數；恆大於 1，等於 1 的情況不會產生事件。</param>
+    public void GatewayConcurrent(int activeCalls)
+    {
+        if (!Enabled)
+            return;
+        if (!TryGetRequest(out var context))
+            return;
+        if (context.Stats != null)
+            Interlocked.Increment(ref context.Stats.ConcurrentGateway);
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.GatewayConcurrent,
+            TraceId = context.TraceId,
+            User = context.User,
+            First = activeCalls
+        });
+    }
+
+    /// <summary>
+    /// 記錄 scoped Gateway 釋放時的狀態，特別是是否仍持有未歸還的 lease。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Gateway 的 <c>Dispose</c> 是 request scope 的最後一道防線：正常流程中 lease 已於最外層
+    /// <c>Execute</c> 的 finally 歸還，此時 <paramref name="leaseStillHeld"/> 應為 false。
+    /// 若為 true，代表有一條 lease 是靠 DI 容器回收 scope 才被救回來的，而不是靠正常的執行路徑。
+    /// </para>
+    /// <para>
+    /// 為什麼值得單獨記錄：這種情況本身不會造成錯誤（DI 仍會釋放），因此在既有 trace 中完全隱形；
+    /// 但它代表控制流有一條沒被預期的路徑，而在沒有 DI scope 保護的呼叫點（例如背景工作）
+    /// 同樣的控制流就會變成真正的連線洩漏。
+    /// </para>
+    /// </remarks>
+    /// <param name="depthAtDispose">釋放當下的 reentrant 深度；正常應為 0。</param>
+    /// <param name="leaseStillHeld">釋放當下是否仍持有 lease；正常應為 false。</param>
+    public void GatewayScopeEnd(int depthAtDispose, bool leaseStillHeld)
+    {
+        if (!Enabled)
+            return;
+        if (!TryGetRequest(out var context))
+            return;
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.GatewayScopeEnd,
+            TraceId = context.TraceId,
+            User = context.User,
+            First = depthAtDispose,
+            Result = leaseStillHeld
+        });
+    }
+
+    /// <summary>
+    /// 記錄取得子池同步鎖時的等待時間，只在超過門檻時輸出。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 建線移出鎖之後，鎖內只剩清單操作，等待時間應在微秒等級，因此本事件平時完全不會出現。
+    /// 它的價值在於回歸偵測：一旦有人再度把網路 I/O 放回鎖內，或鎖競爭因其他原因惡化，
+    /// 這個事件會立刻出現，而不必等到使用者回報延遲。
+    /// </para>
+    /// <para>
+    /// 只記錄超過門檻的樣本是刻意的取捨：無條件記錄會讓每次租借都多一筆事件，把稽核檔淹沒，
+    /// 反而讓真正的訊號更難被看見。
+    /// </para>
+    /// </remarks>
+    /// <param name="waitedMs">等待鎖的毫秒數。</param>
+    /// <param name="site">取鎖位置的固定識別字串，用於分辨是哪一段造成競爭。</param>
+    public void PoolLockWait(long waitedMs, string site)
+    {
+        if (!Enabled)
+            return;
+        TryGetRequest(out var context);
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.PoolLockWait,
+            TraceId = context?.TraceId ?? string.Empty,
+            Text = site ?? string.Empty,
+            First = Math.Max(0, waitedMs)
+        });
+    }
+
+    /// <summary>
+    /// 寫出一次連線池計數快照，供下游檢定連線是否只進不出。
+    /// </summary>
+    /// <param name="snapshot">已在呼叫端於鎖內一致取樣的計數集合。</param>
+    public void PoolSnapshot(PoolSnapshotData snapshot)
+    {
+        if (!Enabled || snapshot == null)
+            return;
+        Enqueue(new TraceEntry { Kind = EventKind.PoolSnapshot, Pool = snapshot });
+    }
+
     /// <summary>記錄 WhoAmI 類健康檢查結果；此事件只包含 client ID 與布林結果，不含 CRM 回應內容。</summary>
     public void PoolHealth(string clientId, bool result)
     {
@@ -438,6 +778,8 @@ public sealed class DataverseTrace : IDisposable
             return;
         if (!TryGetRequest(out var context))
             return;
+        if (context.Stats != null)
+            Interlocked.Increment(ref context.Stats.LeaseReturns);
         Enqueue(new TraceEntry
         {
             Kind = EventKind.PoolReturn,
@@ -468,12 +810,37 @@ public sealed class DataverseTrace : IDisposable
         });
     }
 
-    /// <summary>記錄 cleanup 前後的 idle 數量與 MinSize，下游可據此驗證 Run F 的保底不變量。</summary>
-    public void PoolCleanup(long idleBefore, long idleAfter, long minSize)
+    /// <summary>
+    /// 記錄一次確實淘汰了 client 的 cleanup。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>只在有淘汰時輸出。</b>先前版本無條件輸出，導致在開發組態（IdleTimeout 4 秒 → 每 2 秒觸發）
+    /// 下實測 866 筆事件中有 865 筆是 idleBefore == idleAfter 的空轉，佔整份稽核檔的 22.5%。
+    /// 診斷資料的價值在訊噪比：把空轉紀錄拿掉，真正的淘汰行為才看得見。
+    /// </para>
+    /// <para>
+    /// 另一個附帶效果是修正下游的誤判。舊的分析規則以 <c>idleAfter &lt; minSize</c> 判定「清理過度」，
+    /// 但池中沒有閒置連線時（idle = 0）該條件恆為真，實測產生 158 筆假陽性。
+    /// 只在真正淘汰時輸出，並附上 <paramref name="evicted"/>，判讀才有依據。
+    /// </para>
+    /// </remarks>
+    /// <param name="idleBefore">淘汰前的閒置數。</param>
+    /// <param name="idleAfter">淘汰後的閒置數。</param>
+    /// <param name="minSize">設定的保底數量。</param>
+    /// <param name="evicted">本次實際淘汰的 client 數；為 0 時不會產生事件。</param>
+    public void PoolCleanup(long idleBefore, long idleAfter, long minSize, long evicted)
     {
-        if (!Enabled)
+        if (!Enabled || evicted <= 0)
             return;
-        Enqueue(new TraceEntry { Kind = EventKind.PoolCleanup, First = idleBefore, Second = idleAfter, Third = minSize });
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.PoolCleanup,
+            First = idleBefore,
+            Second = idleAfter,
+            Third = minSize,
+            Fourth = evicted
+        });
     }
 
     /// <summary>
@@ -524,6 +891,16 @@ public sealed class DataverseTrace : IDisposable
             Second = count,
             Result = ok
         });
+
+        // 同步累積到 request 層級聚合。放在 Enqueue 之後是刻意的：即使佇列已滿而丟棄了個別
+        // crm.op，request.end 的總數與總毫秒仍然正確，聚合值不會因取樣遺失而失真。
+        var stats = context.Stats;
+        if (stats == null)
+            return;
+        Interlocked.Increment(ref stats.CrmCount);
+        Interlocked.Add(ref stats.CrmMs, Math.Max(0, elapsedMs));
+        if (!string.IsNullOrEmpty(entity))
+            stats.EntityCounts.AddOrUpdate(entity, 1, static (_, existing) => existing + 1);
     }
 
     /// <summary>
@@ -540,7 +917,7 @@ public sealed class DataverseTrace : IDisposable
         // 參考而非深複製物件。以新 context 取代目前值可讓每個 flow 各自還原 lease，避免把 A 的
         // leaseId 暫時寫入 B 的 flow；RequestScope 仍是唯一負責還原 request 身分的外層 owner。
         var previous = context;
-        _requestContext.Value = new RequestContext(previous.TraceId, previous.User, leaseId ?? string.Empty);
+        _requestContext.Value = new RequestContext(previous.TraceId, previous.User, leaseId ?? string.Empty, previous.Stats);
         return new LeaseScope(this, previous);
     }
 
@@ -575,6 +952,60 @@ public sealed class DataverseTrace : IDisposable
         _writerWakeup.Dispose();
         if (ReferenceEquals(s_current.Value, this))
             s_current.Value = null;
+    }
+
+    /// <summary>
+    /// 若距離上次取樣已超過設定間隔，寫出一筆程序資源快照。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 所有量測皆為唯讀且不干擾程序：<see cref="GC.GetTotalMemory(bool)"/> 傳入 false 以免強制回收
+    /// 而扭曲被觀測的行為，<see cref="GC.CollectionCount(int)"/> 與 <see cref="GC.GetGCMemoryInfo()"/>
+    /// 只讀取既有計數。
+    /// </para>
+    /// <para>
+    /// 取樣本身絕不能讓應用程式失敗：在受限環境中 <see cref="Process"/> 的部分屬性可能擲出例外，
+    /// 因此整段以 try/catch 包住，失敗時靜默略過本次取樣。診斷功能不得成為新的故障來源。
+    /// </para>
+    /// </remarks>
+    private void EmitProcessSnapshotIfDue()
+    {
+        var now = Stopwatch.GetTimestamp();
+        var last = Interlocked.Read(ref _lastSnapshotTimestamp);
+        if (last != 0 && Stopwatch.GetElapsedTime(last, now) < _options.SnapshotInterval)
+            return;
+        if (Interlocked.CompareExchange(ref _lastSnapshotTimestamp, now, last) != last)
+            return;
+
+        try
+        {
+            const long BytesPerMb = 1024L * 1024L;
+            var gcInfo = GC.GetGCMemoryInfo();
+            using var process = Process.GetCurrentProcess();
+
+            Enqueue(new TraceEntry
+            {
+                Kind = EventKind.ProcessSnapshot,
+                Process = new ProcessSnapshotData
+                {
+                    ManagedMb = GC.GetTotalMemory(forceFullCollection: false) / BytesPerMb,
+                    HeapMb = gcInfo.HeapSizeBytes / BytesPerMb,
+                    PrivateMb = process.PrivateMemorySize64 / BytesPerMb,
+                    Gen0 = GC.CollectionCount(0),
+                    Gen1 = GC.CollectionCount(1),
+                    Gen2 = GC.CollectionCount(2),
+                    Handles = process.HandleCount,
+                    Threads = process.Threads.Count,
+                    PoolThreads = ThreadPool.ThreadCount,
+                    PendingWorkItems = ThreadPool.PendingWorkItemCount
+                }
+            });
+        }
+        catch
+        {
+            // 受限執行環境可能拒絕存取程序計量值。略過本次取樣即可，
+            // 絕不可讓資源觀測本身中斷 writer 迴圈而導致所有 trace 停止輸出。
+        }
     }
 
     private bool TryGetRequest(out RequestContext context)
@@ -623,6 +1054,10 @@ public sealed class DataverseTrace : IDisposable
 
                 try
                 {
+                    // 快照在背景 writer 上取樣，不佔用任何 request 執行緒。這點很重要：
+                    // 讀取程序記憶體與控制代碼數是系統呼叫，放在熱路徑會讓觀測行為本身
+                    // 影響被觀測的效能數字。
+                    EmitProcessSnapshotIfDue();
                     DrainQueue();
                 }
                 catch
@@ -773,6 +1208,11 @@ public sealed class DataverseTrace : IDisposable
             EventKind.PoolReturn => "pool.return",
             EventKind.PoolDispose => "pool.dispose",
             EventKind.PoolCleanup => "pool.cleanup",
+            EventKind.PoolSnapshot => "pool.snapshot",
+            EventKind.ProcessSnapshot => "proc.snapshot",
+            EventKind.PoolLockWait => "pool.lock.wait",
+            EventKind.GatewayConcurrent => "gateway.concurrent",
+            EventKind.GatewayScopeEnd => "gateway.scope.end",
             EventKind.CrmOperation => "crm.op",
             EventKind.TraceDropped => "trace.dropped",
             _ => throw new ArgumentOutOfRangeException(nameof(kind))
@@ -789,6 +1229,19 @@ public sealed class DataverseTrace : IDisposable
             case EventKind.RequestEnd:
                 WriteTraceAndUser(json, entry);
                 json.WriteNumber("durationMs", entry.First);
+                // 以下聚合值讓「這個 request 的時間花在哪裡」成為單筆可讀事件：
+                // durationMs - crmMs 即為應用程式自身耗時，不需下游重組數千筆 crm.op。
+                json.WriteNumber("crmCount", entry.Second);
+                json.WriteNumber("crmMs", entry.Third);
+                json.WriteNumber("leaseCount", entry.Fourth);
+                // 非零即代表 request 結束時仍有租約未歸還 —— lease 洩漏的直接證據。
+                json.WriteNumber("leaseOutstanding", entry.Fifth);
+                json.WriteNumber("maxDepth", entry.Sixth);
+                // 非零即代表同一個 scoped Gateway 曾被多執行緒同時進入。
+                json.WriteNumber("concurrentGateway", entry.Seventh);
+                json.WriteString("topEntity", entry.Text);
+                json.WriteNumber("topEntityCount", entry.Eighth);
+                json.WriteString("distinctEntities", entry.State);
                 break;
             case EventKind.GatewayExecuteEnter:
             case EventKind.GatewayExecuteExit:
@@ -850,6 +1303,48 @@ public sealed class DataverseTrace : IDisposable
                 json.WriteNumber("idleBefore", entry.First);
                 json.WriteNumber("idleAfter", entry.Second);
                 json.WriteNumber("minSize", entry.Third);
+                json.WriteNumber("evicted", entry.Fourth);
+                break;
+            case EventKind.PoolLockWait:
+                json.WriteString("traceId", entry.TraceId);
+                json.WriteString("site", entry.Text);
+                json.WriteNumber("waitedMs", entry.First);
+                break;
+            case EventKind.GatewayConcurrent:
+                WriteTraceAndUser(json, entry);
+                json.WriteNumber("activeCalls", entry.First);
+                break;
+            case EventKind.GatewayScopeEnd:
+                WriteTraceAndUser(json, entry);
+                json.WriteNumber("depthAtDispose", entry.First);
+                json.WriteBoolean("leaseStillHeld", entry.Result);
+                break;
+            case EventKind.PoolSnapshot:
+                json.WriteString("poolKey", entry.Pool.PoolKey ?? string.Empty);
+                json.WriteNumber("idle", entry.Pool.Idle);
+                json.WriteNumber("leased", entry.Pool.Leased);
+                json.WriteNumber("alive", entry.Pool.Alive);
+                json.WriteNumber("pending", entry.Pool.Pending);
+                json.WriteNumber("created", entry.Pool.Created);
+                json.WriteNumber("discarded", entry.Pool.Discarded);
+                json.WriteNumber("totalAcquires", entry.Pool.TotalAcquires);
+                json.WriteNumber("totalReleases", entry.Pool.TotalReleases);
+                json.WriteNumber("waiting", entry.Pool.Waiting);
+                json.WriteNumber("acquireTimeouts", entry.Pool.AcquireTimeouts);
+                json.WriteNumber("faulted", entry.Pool.Faulted);
+                json.WriteNumber("subPools", entry.Pool.SubPools);
+                break;
+            case EventKind.ProcessSnapshot:
+                json.WriteNumber("managedMb", entry.Process.ManagedMb);
+                json.WriteNumber("heapMb", entry.Process.HeapMb);
+                json.WriteNumber("privateMb", entry.Process.PrivateMb);
+                json.WriteNumber("gen0", entry.Process.Gen0);
+                json.WriteNumber("gen1", entry.Process.Gen1);
+                json.WriteNumber("gen2", entry.Process.Gen2);
+                json.WriteNumber("handles", entry.Process.Handles);
+                json.WriteNumber("threads", entry.Process.Threads);
+                json.WriteNumber("poolThreads", entry.Process.PoolThreads);
+                json.WriteNumber("pendingWorkItems", entry.Process.PendingWorkItems);
                 break;
             case EventKind.CrmOperation:
                 json.WriteString("traceId", entry.TraceId);

@@ -116,6 +116,13 @@ public sealed class BoundedClientPool : IBoundedClientPool
     private long _totalAcquires;
     private long _totalReleases;
     private long _nextLeaseId;
+    private long _lastSnapshotTimestamp;
+
+    /// <summary>
+    /// 連線池快照的最小輸出間隔。與 <see cref="DataverseTraceOptions.SnapshotInterval"/> 的預設值
+    /// 一致；此處獨立保存，是為了讓 pool 不必依賴 Trace 的組態物件而仍能自行節流。
+    /// </summary>
+    private readonly TimeSpan _snapshotInterval = TimeSpan.FromSeconds(30);
     private int _waiting;
     private int _disposed;
 
@@ -308,14 +315,79 @@ public sealed class BoundedClientPool : IBoundedClientPool
                 RemoveAndDispose(subPool, client, "idle");
             }
 
-            if (traceEnabled)
+            if (traceEnabled && expired.Count > 0)
             {
                 int idleAfter;
                 lock (subPool.Sync)
                     idleAfter = subPool.All.Count(client => client.State == PooledClientState.Idle);
-                trace.PoolCleanup(idleBefore, idleAfter, _options.MinSize);
+                trace.PoolCleanup(idleBefore, idleAfter, _options.MinSize, expired.Count);
             }
+
+            // 借用 cleanup timer 作為快照節拍，避免為了觀測再開一條 timer。
+            // 節流由 Trace 的 SnapshotInterval 決定，因此開發組態下 timer 每 2 秒觸發也不會灌爆稽核檔。
+            if (traceEnabled)
+                EmitPoolSnapshotIfDue(subPool, trace);
         }
+    }
+
+    /// <summary>
+    /// 若距離上次取樣已超過設定間隔，寫出一筆本子池的計數快照。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>為什麼需要時間序列</b>：連線洩漏的判準是「建立數與銷毀數的差值隨時間單調成長」，
+    /// 任何單筆事件都無法證明或反證它。先前的分析報告只能聲明「本報告無法證明不存在記憶體洩漏」，
+    /// 正是因為整份稽核檔沒有任何一個可比較的基準點。
+    /// </para>
+    /// <para>
+    /// <b>一致性</b>：Idle、Leased、Alive、Pending 必須在同一把鎖內取樣，否則會得到彼此矛盾的
+    /// 組合（例如 alive 小於 leased），使下游誤判為狀態機錯誤。累計計數以 Interlocked 讀取，
+    /// 它們單調遞增，不需要與上述值嚴格同時。
+    /// </para>
+    /// <para>
+    /// 取樣在 cleanup timer 的背景執行緒上進行，不佔用 request 執行緒，也不執行任何網路 I/O。
+    /// </para>
+    /// </remarks>
+    private void EmitPoolSnapshotIfDue(SubPool subPool, DataverseTrace trace)
+    {
+        var now = Stopwatch.GetTimestamp();
+        var last = Interlocked.Read(ref _lastSnapshotTimestamp);
+        if (last != 0 && Stopwatch.GetElapsedTime(last, now) < _snapshotInterval)
+            return;
+        if (Interlocked.CompareExchange(ref _lastSnapshotTimestamp, now, last) != last)
+            return;
+
+        int idle = 0, leased = 0, alive = 0, pending;
+        lock (subPool.Sync)
+        {
+            foreach (var client in subPool.All)
+            {
+                var state = client.State;
+                if (state == PooledClientState.Disposed)
+                    continue;
+                alive++;
+                if (state == PooledClientState.Idle) idle++;
+                else if (state == PooledClientState.Leased) leased++;
+            }
+            pending = subPool.Pending;
+        }
+
+        trace.PoolSnapshot(new DataverseTrace.PoolSnapshotData
+        {
+            PoolKey = FormatPoolKey(subPool.Key),
+            Idle = idle,
+            Leased = leased,
+            Alive = alive,
+            Pending = pending,
+            Created = Interlocked.Read(ref _created),
+            Discarded = Interlocked.Read(ref _discarded),
+            TotalAcquires = Interlocked.Read(ref _totalAcquires),
+            TotalReleases = Interlocked.Read(ref _totalReleases),
+            Waiting = Volatile.Read(ref _waiting),
+            AcquireTimeouts = Interlocked.Read(ref _acquireTimeouts),
+            Faulted = Interlocked.Read(ref _faulted),
+            SubPools = _subPools.Count
+        });
     }
 
     /// <summary>

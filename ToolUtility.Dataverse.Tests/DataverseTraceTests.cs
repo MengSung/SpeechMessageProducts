@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using ToolUtilityNameSpace.Dataverse;
+using Moq;
 using Xunit;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
@@ -72,7 +73,17 @@ public sealed class DataverseTraceTests
                     trace.PoolHealth("c-schema", result: true);
                     trace.PoolReturn("l-schema-hit", "c-schema", state: "healthy", callerIdAtReturn: "", heldMs: 4);
                     trace.PoolDispose("c-schema", stateAtDispose: "Idle", reason: "idle");
-                    trace.PoolCleanup(idleBefore: 3, idleAfter: 2, minSize: 2);
+                    trace.PoolCleanup(idleBefore: 3, idleAfter: 2, minSize: 2, evicted: 1);
+                    trace.PoolLockWait(12, "ensureMin.commit");
+                    trace.GatewayConcurrent(2);
+                    trace.GatewayScopeEnd(depthAtDispose: 0, leaseStillHeld: false);
+                    trace.PoolSnapshot(new DataverseTrace.PoolSnapshotData
+                    {
+                        PoolKey = "ChurchReport|Test|org.test|service",
+                        Idle = 2, Leased = 1, Alive = 3, Pending = 0,
+                        Created = 5, Discarded = 2, TotalAcquires = 9, TotalReleases = 8,
+                        Waiting = 0, AcquireTimeouts = 0, Faulted = 1, SubPools = 1
+                    });
                     trace.CrmOperation("Execute");
                 }
             }
@@ -438,6 +449,218 @@ public sealed class DataverseTraceTests
         }
     }
 
+    /// <summary>
+    /// 釘住 request.end 的聚合契約：一個 request 的時間歸屬與 N+1 徵兆必須是單筆可讀事件，
+    /// 不需要下游自行重組數千筆 crm.op。
+    /// </summary>
+    /// <remarks>
+    /// topEntity / topEntityCount 是本次觀測性強化的核心：實測有一個登入 request 發出 30 次 CRM
+    /// 呼叫、耗時 5.7 秒，但當時無法分辨那是 30 張不同的表（複雜流程），還是同一張表被查了 30 次
+    /// （應合併的 N+1）—— 這兩者的處置方式完全相反。
+    /// </remarks>
+    [Fact]
+    public void Request_end_reports_crm_attribution_and_top_entity()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            {
+                using (trace.BeginRequest("agg-trace", "agg-user", sessionId: null))
+                {
+                    // 同一張表被查 3 次、另一張 1 次：典型 N+1 的形狀。
+                    trace.CrmOperation("RetrieveMultiple", "contact", 100, ok: true, count: 5);
+                    trace.CrmOperation("Retrieve", "contact", 50, ok: true, count: -1);
+                    trace.CrmOperation("Retrieve", "contact", 50, ok: true, count: -1);
+                    trace.CrmOperation("RetrieveMultiple", "account", 20, ok: true, count: 2);
+                }
+            }
+
+            var records = ReadRecords(directory);
+            Assert.All(records, AssertRecordHasRequiredFields);
+            var end = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "request.end"));
+
+            Assert.Equal(4, end.GetProperty("crmCount").GetInt32());
+            Assert.Equal(220, end.GetProperty("crmMs").GetInt32());
+            Assert.Equal("contact", end.GetProperty("topEntity").GetString());
+            Assert.Equal(3, end.GetProperty("topEntityCount").GetInt32());
+            Assert.Equal("2", end.GetProperty("distinctEntities").GetString());
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
+    /// 釘住租約洩漏偵測：request 結束時未歸還的租約數必須被回報，而不是等到連線池耗盡才發現。
+    /// </summary>
+    [Fact]
+    public void Request_end_reports_outstanding_leases_when_a_lease_is_never_returned()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            {
+                using (trace.BeginRequest("leak-trace", "leak-user", sessionId: null))
+                {
+                    trace.PoolAcquire("l-1", "c-1", "P|Test|host|svc", hit: true);
+                    trace.PoolReturn("l-1", "c-1", "healthy", string.Empty, 10);
+                    // 第二條租約刻意不歸還，模擬控制流漏掉 Dispose 的情形。
+                    trace.PoolAcquire("l-2", "c-2", "P|Test|host|svc", hit: true);
+                }
+            }
+
+            var end = Assert.Single(ReadRecords(directory)
+                .Where(r => r.GetProperty("ev").GetString() == "request.end"));
+            Assert.Equal(2, end.GetProperty("leaseCount").GetInt32());
+            Assert.Equal(1, end.GetProperty("leaseOutstanding").GetInt32());
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
+    /// 釘住平行 Gateway 偵測 —— 這是目前架構中唯一沒有防護的 Session Leakage 風險。
+    /// </summary>
+    /// <remarks>
+    /// DataverseGateway 是 Scoped，但 _depth 與 _lease 無同步保護；產品程式碼有十餘處 Task.Run
+    /// 會讓多執行緒共用同一個實例。本測試以 Barrier 強制兩條執行緒同時進入，斷言事件確實產生，
+    /// 並確認 request.end 的 concurrentGateway 有累計 —— 讓這個風險從隱形變成可稽核。
+    /// </remarks>
+    [Fact]
+    public async Task Concurrent_gateway_use_is_detected_and_reported()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            {
+                using (trace.BeginRequest("concurrent-trace", "concurrent-user", sessionId: null))
+                {
+                    var lease = new CountingLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+                    using var gateway = new DataverseGateway(new SingleLeaseManager(lease));
+                    var ready = new Barrier(2);
+
+                    await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => Task.Run(() =>
+                    {
+                        ready.SignalAndWait();
+                        gateway.Execute(_ => Thread.Sleep(120));
+                    })));
+                }
+            }
+
+            var records = ReadRecords(directory);
+            Assert.All(records, AssertRecordHasRequiredFields);
+
+            var concurrent = records.Where(r => r.GetProperty("ev").GetString() == "gateway.concurrent").ToArray();
+            Assert.NotEmpty(concurrent);
+            Assert.All(concurrent, r => Assert.True(r.GetProperty("activeCalls").GetInt32() > 1));
+
+            var end = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "request.end"));
+            Assert.True(end.GetProperty("concurrentGateway").GetInt32() > 0);
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>正常路徑不得產生平行告警，否則這個訊號會因為狼來了而失去價值。</summary>
+    [Fact]
+    public void Nested_gateway_calls_do_not_report_concurrency()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            {
+                using (trace.BeginRequest("nested-trace", "nested-user", sessionId: null))
+                {
+                    var lease = new CountingLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+                    using var gateway = new DataverseGateway(new SingleLeaseManager(lease));
+                    gateway.Execute(_ => gateway.Execute(__ => gateway.Execute(___ => { })));
+                }
+            }
+
+            var records = ReadRecords(directory);
+            Assert.DoesNotContain(records, r => r.GetProperty("ev").GetString() == "gateway.concurrent");
+
+            // 巢狀深度仍必須被如實回報，否則無法分辨「沒有巢狀」與「沒有量測」。
+            var end = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "request.end"));
+            Assert.Equal(3, end.GetProperty("maxDepth").GetInt32());
+
+            // scope 結束時不得仍持有租約：巢狀最外層的 finally 應已歸還。
+            var scopeEnd = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "gateway.scope.end"));
+            Assert.False(scopeEnd.GetProperty("leaseStillHeld").GetBoolean());
+            Assert.Equal(0, scopeEnd.GetProperty("depthAtDispose").GetInt32());
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
+    /// 釘住資源快照契約 —— 這是整份稽核檔中唯一能支撐「記憶體是否洩漏」這個命題的證據來源。
+    /// </summary>
+    [Fact]
+    public async Task Process_snapshot_is_emitted_periodically_with_resource_baseline()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var options = CreateOptions(directory, enabled: true);
+            options.SnapshotInterval = TimeSpan.FromMilliseconds(1);
+            using (var trace = new DataverseTrace(options))
+            {
+                using (trace.BeginRequest("snap-trace", "snap-user", sessionId: null))
+                    trace.CrmOperation("Retrieve", "contact", 5, ok: true, count: -1);
+                await Task.Delay(300);
+            }
+
+            var records = ReadRecords(directory);
+            Assert.All(records, AssertRecordHasRequiredFields);
+
+            var snapshots = records.Where(r => r.GetProperty("ev").GetString() == "proc.snapshot").ToArray();
+            Assert.NotEmpty(snapshots);
+
+            // 量測值必須是真實讀數而非佔位值，否則趨勢分析會建立在假資料上。
+            Assert.All(snapshots, snapshot =>
+            {
+                Assert.True(snapshot.GetProperty("privateMb").GetInt64() > 0);
+                Assert.True(snapshot.GetProperty("handles").GetInt32() > 0);
+                Assert.True(snapshot.GetProperty("threads").GetInt32() > 0);
+            });
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>只租一條 lease 的測試用 manager。</summary>
+    private sealed class SingleLeaseManager : IDataverseConnectionManager
+    {
+        private readonly IClientLease _lease;
+        internal SingleLeaseManager(IClientLease lease) => _lease = lease;
+        public IClientLease Acquire(CancellationToken cancellationToken = default) => _lease;
+        public DataversePoolMetrics GetMetrics() => new();
+        public void Dispose() { }
+    }
+
+    /// <summary>記錄歸還次數的測試用 lease；Dispose 冪等以容許平行測試重複釋放。</summary>
+    private sealed class CountingLease : IClientLease
+    {
+        internal CountingLease(IOrganizationService service) => Service = service;
+        public IOrganizationService Service { get; }
+        public void MarkFaulted() { }
+        public void Dispose() { }
+    }
+
     private static DataverseTraceOptions CreateOptions(string directory, bool enabled)
     {
         return new DataverseTraceOptions
@@ -470,7 +693,12 @@ public sealed class DataverseTraceTests
         var fields = eventName switch
         {
             "request.begin" => new[] { "traceId", "user" },
-            "request.end" => new[] { "traceId", "user", "durationMs" },
+            "request.end" => new[]
+            {
+                "traceId", "user", "durationMs", "crmCount", "crmMs", "leaseCount",
+                "leaseOutstanding", "maxDepth", "concurrentGateway", "topEntity",
+                "topEntityCount", "distinctEntities"
+            },
             "gateway.execute.enter" or "gateway.execute.exit" => new[] { "traceId", "user", "depth" },
             "pool.acquire.wait" => new[] { "traceId", "waitedMs" },
             "pool.acquire.hit" or "pool.acquire.miss" => new[] { "traceId", "user", "leaseId", "clientId", "poolKey" },
@@ -481,8 +709,21 @@ public sealed class DataverseTraceTests
             "pool.health" => new[] { "clientId", "result" },
             "pool.return" => new[] { "traceId", "user", "leaseId", "clientId", "state", "callerIdAtReturn", "heldMs" },
             "pool.dispose" => new[] { "clientId", "stateAtDispose", "reason" },
-            "pool.cleanup" => new[] { "idleBefore", "idleAfter", "minSize" },
-            "crm.op" => new[] { "traceId", "op", "leaseId" },
+            "pool.cleanup" => new[] { "idleBefore", "idleAfter", "minSize", "evicted" },
+            "pool.lock.wait" => new[] { "traceId", "site", "waitedMs" },
+            "gateway.concurrent" => new[] { "traceId", "user", "activeCalls" },
+            "gateway.scope.end" => new[] { "traceId", "user", "depthAtDispose", "leaseStillHeld" },
+            "pool.snapshot" => new[]
+            {
+                "poolKey", "idle", "leased", "alive", "pending", "created", "discarded",
+                "totalAcquires", "totalReleases", "waiting", "acquireTimeouts", "faulted", "subPools"
+            },
+            "proc.snapshot" => new[]
+            {
+                "managedMb", "heapMb", "privateMb", "gen0", "gen1", "gen2",
+                "handles", "threads", "poolThreads", "pendingWorkItems"
+            },
+            "crm.op" => new[] { "traceId", "op", "leaseId", "entity", "ms", "count", "ok" },
             "trace.dropped" => new[] { "count" },
             _ => throw new Xunit.Sdk.XunitException($"未知 trace event：{eventName}")
         };
