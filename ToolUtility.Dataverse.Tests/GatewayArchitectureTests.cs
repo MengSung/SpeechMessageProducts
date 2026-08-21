@@ -171,7 +171,17 @@ public sealed class GatewayArchitectureTests
         service.Verify(x => x.Update(It.IsAny<Entity>()), Times.Once);
     }
 
-    /// <summary>無 HttpContext 時 ambient 代理會建立短命 scope，工作完成即釋放 scoped gateway。</summary>
+    /// <summary>
+    /// 保護無 HttpContext 的 legacy fallback 必須建立短命 scope，並在 CRM 操作完成後釋放
+    /// scoped gateway；測試替身刻意重現正式 DI 圖的兩層邊界：
+    /// <see cref="IOrganizationService"/> 代理包住 scoped <see cref="IDataverseGateway"/>。
+    /// </summary>
+    /// <remarks>
+    /// 故障注入是刻意不提供 HttpContext，並以 <see cref="TrackingGateway"/> 記錄 scope
+    /// Dispose。決定性斷言是代理能完成 Retrieve、Gateway 確實被解析，以及 fallback scope
+    /// 返回後 gateway 已釋放；這同時防止未來把 ambient 代理改回保存 scope、直接保存 client，
+    /// 或新增一條不經由 <see cref="IOrganizationService"/> 的第二套 CRM 路徑。
+    /// </remarks>
     [Fact]
     public void Ambient_service_creates_and_releases_scope_without_http_context()
     {
@@ -179,6 +189,8 @@ public sealed class GatewayArchitectureTests
         TrackingGateway tracking = null!;
         using var root = new ServiceCollection()
             .AddScoped<IDataverseGateway>(_ => tracking = new TrackingGateway(service))
+            .AddScoped<IOrganizationService>(sp =>
+                new GatewayOrganizationService(sp.GetRequiredService<IDataverseGateway>()))
             .BuildServiceProvider();
         var ambient = new AmbientGatewayOrganizationService(
             () => null,

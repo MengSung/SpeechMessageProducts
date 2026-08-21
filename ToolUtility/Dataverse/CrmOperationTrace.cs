@@ -10,8 +10,12 @@ namespace ToolUtilityNameSpace.Dataverse;
 /// </summary>
 /// <remarks>
 /// <para>
-/// 此型別是 <see cref="GatewayOrganizationService"/> 與 <see cref="AmbientGatewayOrganizationService"/>
-/// 記錄 CRM 操作的唯一路徑，因此兩個代理的稽核輸出必然一致，不會因為某一邊漏改而產生盲區。
+/// 此型別只由 <see cref="GatewayOrganizationService"/> 在真正發出 CRM SDK 呼叫的邊界使用，
+/// 因此每一次介面操作只會產生一筆 <c>crm.op</c>。Legacy
+/// <see cref="AmbientGatewayOrganizationService"/> 的責任是解析目前 scope 的完整
+/// <see cref="IOrganizationService"/> 裝飾鏈並直接委派；它不得再次使用本型別，否則同一個
+/// SDK 呼叫會被 Ambient 與 Gateway 各計一次，令 JSONL 的 <c>request.end.crmCount</c>
+/// 與 Host <c>[Perf]</c> 歸因不再可逐請求比對。
 /// </para>
 /// <para>
 /// <b>隱私邊界</b>：只輸出 entity logical name、SDK 訊息名稱、耗時、筆數與成敗。資料列 GUID、

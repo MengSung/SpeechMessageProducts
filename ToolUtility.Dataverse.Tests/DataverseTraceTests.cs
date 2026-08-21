@@ -7,6 +7,7 @@ using System.ServiceModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using ToolUtilityNameSpace.Dataverse;
@@ -24,6 +25,69 @@ namespace ToolUtility.Dataverse.Tests;
 /// </summary>
 public sealed class DataverseTraceTests
 {
+    /// <summary>
+    /// 保護 legacy Ambient 代理的 CRM 歸因不可以重複計數。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 故障注入刻意重現正式 request 的解析鏈：Ambient 由目前 DI scope 解析
+    /// <see cref="IOrganizationService"/>，再委派給 <see cref="GatewayOrganizationService"/>。
+    /// 修正前 Ambient 與 Gateway 都以 <c>CrmOperationTrace.Measure</c> 包住同一個實際
+    /// Retrieve，導致一個 SDK 呼叫寫入兩筆 <c>crm.op</c>，而 Host 的
+    /// <c>TimedOrganizationService</c> 只會對同一呼叫計一次。
+    /// </para>
+    /// <para>
+    /// 決定性斷言是單一 Ambient Retrieve 後，JSONL 只有一筆 <c>crm.op</c> 且
+    /// <c>request.end.crmCount</c> 為一。這使 JSONL 與 Host profiler 能在同一 CRM
+    /// 介面呼叫邊界上做逐請求一對一比對。測試不連線 CRM、不保存 request scope、client、
+    /// lease、身分或租戶資料；所有 DI scope、Gateway、Trace writer 與暫存檔均由 using / finally
+    /// 在測試結束時確定釋放。
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Ambient_service_records_each_retrieve_once_in_request_trace()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var rawService = new Mock<IOrganizationService>(MockBehavior.Strict);
+            rawService
+                .Setup(service => service.Retrieve("account", It.IsAny<Guid>(), It.IsAny<ColumnSet>()))
+                .Returns(new Entity("account"));
+
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            {
+                using (var root = new ServiceCollection()
+                    .AddScoped<IDataverseGateway>(_ => new DataverseGateway(
+                        new SingleLeaseManager(new CountingLease(rawService.Object))))
+                    .AddScoped<IOrganizationService>(provider => new GatewayOrganizationService(
+                        provider.GetRequiredService<IDataverseGateway>()))
+                    .BuildServiceProvider())
+                using (var requestScope = root.CreateScope())
+                using (trace.BeginRequest("ambient-once", "test-user", sessionId: null))
+                {
+                    var ambient = new AmbientGatewayOrganizationService(
+                        () => requestScope.ServiceProvider,
+                        root.GetRequiredService<IServiceScopeFactory>());
+
+                    ambient.Retrieve("account", Guid.NewGuid(), new ColumnSet("name"));
+                }
+            }
+
+            var records = ReadRecords(directory);
+            var operations = records.Where(record => record.GetProperty("ev").GetString() == "crm.op").ToArray();
+            var requestEnd = Assert.Single(records.Where(record => record.GetProperty("ev").GetString() == "request.end"));
+
+            Assert.Single(operations);
+            Assert.Equal(1, requestEnd.GetProperty("crmCount").GetInt32());
+            rawService.VerifyAll();
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
     /// <summary>
     /// 保護關閉 trace 的零侵入契約。故障注入是直接呼叫最熱的 crm.op 觀測點；
     /// 決定性斷言是沒有建立輸出檔，且暖機後的一次呼叫不配置 managed 物件。

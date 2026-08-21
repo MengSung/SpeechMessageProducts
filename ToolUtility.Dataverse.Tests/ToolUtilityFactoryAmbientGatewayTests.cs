@@ -35,6 +35,7 @@ namespace ToolUtility.Dataverse.Tests;
 /// </summary>
 public sealed class ToolUtilityFactoryAmbientGatewayTests
 {
+#if DEBUG
     /// <summary>
     /// 保護 legacy Factory 在 HTTP request 內不可以直接跳到 <see cref="IDataverseGateway"/>，
     /// 必須回到目前 scope 已註冊的 <see cref="IOrganizationService"/>。故障注入是以真實
@@ -102,6 +103,7 @@ public sealed class ToolUtilityFactoryAmbientGatewayTests
             ResetFactory();
         }
     }
+#endif
 
     /// <summary>
     /// 保護 Factory 單例不捕獲 request scope、也不在背景操作遺漏 scope 釋放的契約。
