@@ -134,7 +134,7 @@ public sealed class DataverseTraceTests
                     trace.PoolAcquire("l-schema-hit", "c-schema", "ChurchReport|Test|org.test|service", hit: true);
                     trace.PoolAcquire("l-schema-miss", "c-schema-new", "ChurchReport|Test|org.test|service", hit: false);
                     trace.PoolAcquireTimeout();
-                    trace.PoolHealth("c-schema", result: true);
+                    trace.PoolHealth("c-schema", result: true, elapsedMs: 7);
                     trace.PoolReturn("l-schema-hit", "c-schema", state: "healthy", callerIdAtReturn: "", heldMs: 4);
                     trace.PoolDispose("c-schema", stateAtDispose: "Idle", reason: "idle");
                     trace.PoolCleanup(idleBefore: 3, idleAfter: 2, minSize: 2, evicted: 1);
@@ -163,7 +163,7 @@ public sealed class DataverseTraceTests
                 ["pool.acquire.hit"] = ["ts", "ev", "traceId", "user", "leaseId", "clientId", "poolKey"],
                 ["pool.acquire.miss"] = ["ts", "ev", "traceId", "user", "leaseId", "clientId", "poolKey"],
                 ["pool.acquire.timeout"] = ["ts", "ev", "traceId"],
-                ["pool.health"] = ["ts", "ev", "clientId", "result"],
+                ["pool.health"] = ["ts", "ev", "clientId", "result", "ms"],
                 ["pool.return"] = ["ts", "ev", "traceId", "user", "leaseId", "clientId", "state", "callerIdAtReturn", "heldMs"],
                 ["pool.dispose"] = ["ts", "ev", "clientId", "stateAtDispose", "reason"],
                 ["pool.cleanup"] = ["ts", "ev", "idleBefore", "idleAfter", "minSize"],
@@ -179,6 +179,72 @@ public sealed class DataverseTraceTests
                     Assert.NotEqual(JsonValueKind.Null, value.ValueKind);
                 }
             }
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
+    /// 保護健康檢查的成功與失敗路徑都會記錄實際單調時鐘耗時，且事件不會洩漏 CRM 回應內容。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 故障注入讓第一次 WhoAmI 類檢查成功、第二次檢查失敗；兩次都刻意短暫延遲，避免
+    /// 測試把小於一毫秒的量測誤判成「沒有埋點」。決定性斷言是兩筆 <c>pool.health</c> 的
+    /// <c>ms</c> 均為正數，且結果布林值仍分別保留成功與失敗語意。
+    /// </para>
+    /// <para>
+    /// 測試使用真實 <see cref="BoundedClientPool"/>、真實 trace writer 與測試用 mock service；
+    /// lease、pool、trace 與暫存檔均由 using／finally 確定釋放，不保存 request、身分或 CRM 資料。
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Health_check_elapsed_is_recorded_for_success_and_failure()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            var healthCall = 0;
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            using (trace.BeginRequest("health-probe-trace", "health-probe-user", sessionId: null))
+            using (var pool = new BoundedClientPool(
+                       (_, _) => new Mock<IOrganizationService>(MockBehavior.Loose).Object,
+                       _ =>
+                       {
+                           Thread.Sleep(5);
+                           return Interlocked.Increment(ref healthCall) == 1;
+                       },
+                       new DataversePoolOptions
+                       {
+                           MinSize = 1,
+                           MaxN = 2,
+                           AcquireTimeout = TimeSpan.FromSeconds(5),
+                           IdleTimeout = TimeSpan.FromMinutes(1),
+                           // Options 契約要求正值；5ms 健康檢查遠大於一個 tick，第二次租借仍會
+                           // 確定跨過此極短間隔並走進失敗注入的健康檢查分支。
+                           HealthInterval = TimeSpan.FromTicks(1)
+                       }))
+            {
+                using (pool.Acquire(new DataverseConnectionKey(
+                           "ChurchReport", "HealthProbe", "https://org.test/x", "service-account")))
+                {
+                }
+
+                using (pool.Acquire(new DataverseConnectionKey(
+                           "ChurchReport", "HealthProbe", "https://org.test/x", "service-account")))
+                {
+                }
+            }
+
+            var healthEvents = ReadRecords(directory)
+                .Where(record => record.GetProperty("ev").GetString() == "pool.health")
+                .ToArray();
+            Assert.Equal(2, healthEvents.Length);
+            Assert.Contains(healthEvents, record => record.GetProperty("result").GetBoolean());
+            Assert.Contains(healthEvents, record => !record.GetProperty("result").GetBoolean());
+            Assert.All(healthEvents, record => Assert.True(record.GetProperty("ms").GetInt64() > 0));
         }
         finally
         {
@@ -770,7 +836,7 @@ public sealed class DataverseTraceTests
             "pool.acquire.fail" => new[] { "traceId", "phase", "waitedMs", "totalMs", "errKind" },
             "pool.create.begin" => new[] { "traceId", "poolKey", "reason" },
             "pool.create.end" => new[] { "traceId", "clientId", "reason", "ms", "ok", "errKind" },
-            "pool.health" => new[] { "clientId", "result" },
+            "pool.health" => new[] { "clientId", "result", "ms" },
             "pool.return" => new[] { "traceId", "user", "leaseId", "clientId", "state", "callerIdAtReturn", "heldMs" },
             "pool.dispose" => new[] { "clientId", "stateAtDispose", "reason" },
             "pool.cleanup" => new[] { "idleBefore", "idleAfter", "minSize", "evicted" },

@@ -760,12 +760,37 @@ public sealed class DataverseTrace : IDisposable
         Enqueue(new TraceEntry { Kind = EventKind.PoolSnapshot, Pool = snapshot });
     }
 
-    /// <summary>記錄 WhoAmI 類健康檢查結果；此事件只包含 client ID 與布林結果，不含 CRM 回應內容。</summary>
-    public void PoolHealth(string clientId, bool result)
+    /// <summary>
+    /// 記錄一次 WhoAmI 類健康檢查的結果與呼叫端以單調時鐘量得的執行耗時。
+    /// </summary>
+    /// <param name="clientId">由 pool 配發的診斷用 client 識別字串；不是使用者或 CRM 身分。</param>
+    /// <param name="result">健康檢查是否成功；既有的成功／失敗語意不變。</param>
+    /// <param name="elapsedMs">
+    /// 僅包住健康檢查委派呼叫的毫秒數；包含該呼叫拋出例外前已消耗的時間，但不包含
+    /// pool 的租借、淘汰、建線或 trace 寫檔成本。
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// 此事件只新增 <c>ms</c> 欄位，不改變既有 <c>clientId</c> 與 <c>result</c> 的 JSONL
+    /// 名稱或語意，讓既有分析器仍可讀取舊欄位。耗時由呼叫端的 <c>Stopwatch</c> 單調時鐘
+    /// 提供，避免以背景 writer 寫檔時間推論遠端 CRM 操作時間。
+    /// </para>
+    /// <para>
+    /// trace 停用時會在配置任何佇列項目前立即返回；事件刻意不保存 WhoAmI 回應、使用者、
+    /// tenant、認證或其他 CRM 資料，因此診斷佇列不會延長跨 request 身分或敏感資料的生命週期。
+    /// </para>
+    /// </remarks>
+    public void PoolHealth(string clientId, bool result, long elapsedMs)
     {
         if (!Enabled)
             return;
-        Enqueue(new TraceEntry { Kind = EventKind.PoolHealth, ClientId = clientId, Result = result });
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.PoolHealth,
+            ClientId = clientId,
+            Result = result,
+            First = Math.Max(0, elapsedMs)
+        });
     }
 
     /// <summary>
@@ -1285,6 +1310,7 @@ public sealed class DataverseTrace : IDisposable
             case EventKind.PoolHealth:
                 json.WriteString("clientId", entry.ClientId);
                 json.WriteBoolean("result", entry.Result);
+                json.WriteNumber("ms", entry.First);
                 break;
             case EventKind.PoolReturn:
                 WriteTraceAndUser(json, entry);

@@ -204,18 +204,23 @@ public sealed class BoundedClientPool : IBoundedClientPool
                 if (NeedsHealthCheck(candidate, now))
                 {
                     phase = "health";
+                    // 只觀測既有的健康檢查委派，不改變租借、淘汰或補建決策。trace 停用時不讀取
+                    // 單調時鐘，維持正常路徑零量測成本；記錄的僅是 elapsed 與結果，不保留 WhoAmI
+                    // 回應、使用者或認證資料，避免診斷層跨 request 延長 CRM／身分資料生命週期。
+                    var healthStartedTimestamp = traceEnabled ? Stopwatch.GetTimestamp() : 0;
                     var healthy = false;
                     try { healthy = _healthCheck(candidate.Service); } catch { healthy = false; }
+                    var healthElapsedMs = traceEnabled ? GetElapsedMilliseconds(healthStartedTimestamp) : 0;
                     if (!healthy)
                     {
                         if (traceEnabled)
-                            trace.PoolHealth(candidate.ClientId, result: false);
+                            trace.PoolHealth(candidate.ClientId, result: false, elapsedMs: healthElapsedMs);
                         Interlocked.Increment(ref _faulted);
                         RemoveAndDispose(subPool, candidate, "faulted");
                         continue;
                     }
                     if (traceEnabled)
-                        trace.PoolHealth(candidate.ClientId, result: true);
+                        trace.PoolHealth(candidate.ClientId, result: true, elapsedMs: healthElapsedMs);
                     candidate.MarkValidated(now);
                 }
 
