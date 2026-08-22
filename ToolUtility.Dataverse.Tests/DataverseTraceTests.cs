@@ -115,6 +115,117 @@ public sealed class DataverseTraceTests
     }
 
     /// <summary>
+    /// 保護背景工作與父 request 的統計隔離契約。故障注入是在背景 scope 內寫入一次 CRM 事件；
+    /// 決定性斷言是父 request 結束仍為零次，而背景結束事件獨立記錄一次並保留來源 traceId。
+    /// </summary>
+    [Fact]
+    public void Background_scope_owns_crm_statistics_without_polluting_parent_request()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            {
+                using (trace.BeginRequest("request-trace", "trace-user", sessionId: null))
+                using (trace.BeginBackgroundOperation("Test.Background"))
+                    trace.CrmOperation("Retrieve", "contact", elapsedMs: 7, ok: true, count: 1);
+            }
+
+            var records = ReadRecords(directory);
+            var requestEnd = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "request.end"));
+            var backgroundBegin = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "bg.begin"));
+            var backgroundEnd = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "bg.end"));
+
+            Assert.All(records, AssertRecordHasRequiredFields);
+            Assert.Equal(0, requestEnd.GetProperty("crmCount").GetInt32());
+            Assert.Equal(1, backgroundEnd.GetProperty("crmCount").GetInt32());
+            Assert.Equal(7, backgroundEnd.GetProperty("crmMs").GetInt32());
+            Assert.Equal("Test.Background", backgroundBegin.GetProperty("op").GetString());
+            Assert.Equal(backgroundBegin.GetProperty("traceId").GetString(), backgroundEnd.GetProperty("traceId").GetString());
+            Assert.Equal("request-trace", backgroundEnd.GetProperty("parentTraceId").GetString());
+            Assert.StartsWith("request-trace#bg", backgroundEnd.GetProperty("traceId").GetString());
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
+    /// 保護巢狀及平行背景 scope 的父子關聯與統計不可互相覆寫契約。故障注入是兩條平行 flow
+    /// 各寫入一筆 CRM 事件，並在其中一條再建立巢狀 scope；決定性斷言是每個 bg.end 各自擁有
+    /// 正確 parentTraceId 與單筆統計，且沒有把另一條 flow 的事件合併進來。
+    /// </summary>
+    [Fact]
+    public async Task Parallel_and_nested_background_scopes_keep_independent_contexts()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            using (trace.BeginRequest("request-trace", "trace-user", sessionId: null))
+            {
+                await Task.WhenAll(
+                    Task.Run(() =>
+                    {
+                        using (trace.BeginBackgroundOperation("Test.ParentA"))
+                        {
+                            trace.CrmOperation("Retrieve", "account", 3, ok: true, count: 1);
+                            using (trace.BeginBackgroundOperation("Test.NestedA"))
+                                trace.CrmOperation("Retrieve", "contact", 5, ok: true, count: 1);
+                        }
+                    }),
+                    Task.Run(() =>
+                    {
+                        using (trace.BeginBackgroundOperation("Test.ParentB"))
+                            trace.CrmOperation("Retrieve", "lead", 11, ok: true, count: 1);
+                    }));
+            }
+
+            var records = ReadRecords(directory);
+            var backgroundEnds = records.Where(r => r.GetProperty("ev").GetString() == "bg.end").ToArray();
+            Assert.Equal(3, backgroundEnds.Length);
+
+            var parentEnds = backgroundEnds.Where(r => r.GetProperty("op").GetString() is "Test.ParentA" or "Test.ParentB").ToArray();
+            Assert.Equal(2, parentEnds.Length);
+            Assert.All(parentEnds, end => Assert.Equal("request-trace", end.GetProperty("parentTraceId").GetString()));
+            Assert.All(parentEnds, end => Assert.Equal(1, end.GetProperty("crmCount").GetInt32()));
+
+            var nestedEnd = Assert.Single(backgroundEnds.Where(r => r.GetProperty("op").GetString() == "Test.NestedA"));
+            Assert.StartsWith("request-trace#bg", nestedEnd.GetProperty("parentTraceId").GetString());
+            Assert.Equal(1, nestedEnd.GetProperty("crmCount").GetInt32());
+            Assert.NotEqual(nestedEnd.GetProperty("traceId").GetString(), nestedEnd.GetProperty("parentTraceId").GetString());
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
+    /// 保護停用 Trace 的零配置契約。故障注入是沒有 request context 時直接呼叫背景 API；
+    /// 決定性斷言是回傳共用無操作 scope、Dispose 後不建立輸出檔，且不要求 Host 型別。
+    /// </summary>
+    [Fact]
+    public void Disabled_trace_background_scope_is_a_noop()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using var trace = new DataverseTrace(CreateOptions(directory, enabled: false));
+            var scope = trace.BeginBackgroundOperation("Test.Disabled");
+
+            Assert.Same(trace.BeginBackgroundOperation("Test.Disabled"), scope);
+            scope.Dispose();
+            Assert.Empty(Directory.EnumerateFiles(directory, "*.jsonl"));
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
     /// 保護 JSONL schema 契約。以每種正式事件各寫一筆作為故障注入，
     /// 決定性斷言是每一行都可解析，且各事件具有分析器要求的共同與專屬欄位。
     /// </summary>
@@ -827,6 +938,13 @@ public sealed class DataverseTraceTests
             {
                 "traceId", "user", "durationMs", "crmCount", "crmMs", "leaseCount",
                 "leaseOutstanding", "maxDepth", "concurrentGateway", "topEntity",
+                "topEntityCount", "distinctEntities"
+            },
+            "bg.begin" => new[] { "traceId", "parentTraceId", "op", "user" },
+            "bg.end" => new[]
+            {
+                "traceId", "parentTraceId", "op", "user", "durationMs", "crmCount", "crmMs",
+                "leaseCount", "leaseOutstanding", "maxDepth", "concurrentGateway", "topEntity",
                 "topEntityCount", "distinctEntities"
             },
             "gateway.execute.enter" or "gateway.execute.exit" => new[] { "traceId", "user", "depth" },

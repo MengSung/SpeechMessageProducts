@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Dataverse;
 using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
@@ -89,6 +90,12 @@ namespace ChurchReport.Controllers
                     ToolUtilityClass toolUtility = null;
                     try
                     {
+                        // 背景 Trace 範圍必須在建立 DI scope 前最外層持有：它只複製父 request 的假名與
+                        // 關聯識別，改用新統計物件累計 CRM 耗時，並在工作 finally 離開時確定寫出 bg.end
+                        // 及還原 AsyncLocal。此處絕不保存 HttpContext、Session、lease 或 request scope；
+                        // 固定 op 名稱是受信任的程式碼 metadata，不能改為使用者輸入，避免診斷檔保留身分資料。
+                        using var traceScope = DataverseTrace.Current?.BeginBackgroundOperation("SaveIntegrate.Upload");
+
                         // 背景工作不得捕獲 request scope 的 ToolUtility。此 scope 由背景工作
                         // 擁有，並在工作完成時釋放，確保 CRM lease 不會跨 request 存活。
                         using var scope = _scopeFactory.CreateScope();

@@ -101,6 +101,8 @@ public sealed class DataverseTrace : IDisposable
     {
         RequestBegin,
         RequestEnd,
+        BackgroundBegin,
+        BackgroundEnd,
         GatewayExecuteEnter,
         GatewayExecuteExit,
         PoolAcquireWait,
@@ -393,6 +395,67 @@ public sealed class DataverseTrace : IDisposable
         }
     }
 
+    /// <summary>
+    /// 擁有一個背景工作的獨立統計範圍。背景工作結束時由此 scope 唯一負責寫出 <c>bg.end</c>，
+    /// 並還原建立前的 AsyncLocal context；即使呼叫端重複 Dispose，也不會重複計數或重複寫檔。
+    /// </summary>
+    private sealed class BackgroundScope : IDisposable
+    {
+        private readonly DataverseTrace _owner;
+        private readonly RequestContext _previous;
+        private readonly RequestContext _current;
+        private readonly string _parentTraceId;
+        private readonly string _operationName;
+        private readonly long _startedTimestamp;
+        private int _disposed;
+
+        internal BackgroundScope(
+            DataverseTrace owner,
+            RequestContext previous,
+            RequestContext current,
+            string parentTraceId,
+            string operationName)
+        {
+            _owner = owner;
+            _previous = previous;
+            _current = current;
+            _parentTraceId = parentTraceId;
+            _operationName = operationName;
+            _startedTimestamp = Stopwatch.GetTimestamp();
+        }
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
+
+            var duration = Stopwatch.GetElapsedTime(_startedTimestamp).TotalMilliseconds;
+            var stats = _current.Stats;
+            var top = stats?.TopEntity() ?? (string.Empty, 0);
+            _owner.Enqueue(new TraceEntry
+            {
+                Kind = EventKind.BackgroundEnd,
+                TraceId = _current.TraceId,
+                User = _current.User,
+                Reason = _parentTraceId,
+                Text = _operationName,
+                First = Math.Max(0, (long)duration),
+                Second = stats != null ? Interlocked.Read(ref stats.CrmCount) : 0,
+                Third = stats != null ? Interlocked.Read(ref stats.CrmMs) : 0,
+                Fourth = stats != null ? Interlocked.Read(ref stats.LeaseAcquires) : 0,
+                Fifth = stats != null
+                    ? Interlocked.Read(ref stats.LeaseAcquires) - Interlocked.Read(ref stats.LeaseReturns)
+                    : 0,
+                Sixth = stats != null ? Interlocked.Read(ref stats.MaxDepth) : 0,
+                Seventh = stats != null ? Interlocked.Read(ref stats.ConcurrentGateway) : 0,
+                Eighth = top.Item2,
+                ClientId = top.Item1,
+                State = stats != null ? stats.EntityCounts.Count.ToString(CultureInfo.InvariantCulture) : "0"
+            });
+            _owner._requestContext.Value = _previous;
+        }
+    }
+
     private sealed class LeaseScope : IDisposable
     {
         private readonly DataverseTrace _owner;
@@ -422,6 +485,7 @@ public sealed class DataverseTrace : IDisposable
     // Trace 的目前執行個體只存在於 request 的 ExecutionContext。它不使用程序全域 singleton，
     // 所以同一個 process 內的另一個產品 Host 不可能接手或寫入本 Host 的使用者軌跡。
     private static readonly AsyncLocal<DataverseTrace> s_current = new();
+    private static long _backgroundSequence;
 
     private readonly DataverseTraceOptions _options;
     private readonly AsyncLocal<RequestContext> _requestContext = new();
@@ -491,6 +555,48 @@ public sealed class DataverseTrace : IDisposable
         s_current.Value = this;
         Enqueue(new TraceEntry { Kind = EventKind.RequestBegin, TraceId = current.TraceId, User = current.User });
         return new RequestScope(this, previous, current, previousTrace);
+    }
+
+    /// <summary>
+    /// 為由目前 request 分支出的背景工作建立獨立觀測範圍，讓背景 CRM 統計不污染父 request 的
+    /// <c>request.end</c>。本方法只接受由產品程式碼提供的固定作業名稱；<paramref name="operationName"/>
+    /// 不得包含使用者、租戶、認證或 CRM 資料，因為它會寫入診斷檔並在背景工作整個生命週期內保留。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 背景 scope 建立全新的 <see cref="RequestStats"/> 與子 traceId，最長只存活到該背景工作
+    /// <see cref="IDisposable.Dispose"/>；Dispose 會先寫出 <c>bg.end</c>，再還原前一個 context，
+    /// 因此是資料與 AsyncLocal 狀態的唯一確定性釋放路徑。
+    /// </para>
+    /// <para>
+    /// <see cref="AsyncLocal{T}"/> 的 copy-on-write 讓背景 flow 只替換自己的 context 參考，父 request
+    /// 仍保有原本的統計物件，不會因背景的 CRM 次數或耗時而改變；巢狀與平行背景 flow 也各自擁有
+    /// 獨立統計。停用 Trace 或沒有可繼承的 request context 時回傳共用無操作 scope，不配置任何資料。
+    /// </para>
+    /// </remarks>
+    /// <param name="operationName">不含使用者資料的固定背景作業名稱，例如 <c>SaveIntegrate.Upload</c>。</param>
+    /// <returns>背景 scope；結束時寫出 <c>bg.end</c> 並復原先前 context。</returns>
+    public IDisposable BeginBackgroundOperation(string operationName)
+    {
+        if (!Enabled)
+            return NoopScope.Instance;
+        if (!TryGetRequest(out var previous))
+            return NoopScope.Instance;
+
+        var parentTraceId = previous.TraceId ?? string.Empty;
+        var operation = operationName ?? string.Empty;
+        var traceId = parentTraceId + "#bg" + Interlocked.Increment(ref _backgroundSequence).ToString(CultureInfo.InvariantCulture);
+        var current = new RequestContext(traceId, previous.User, leaseId: string.Empty, stats: new RequestStats());
+        _requestContext.Value = current;
+        Enqueue(new TraceEntry
+        {
+            Kind = EventKind.BackgroundBegin,
+            TraceId = current.TraceId,
+            User = current.User,
+            Reason = parentTraceId,
+            Text = operation
+        });
+        return new BackgroundScope(this, previous, current, parentTraceId, operation);
     }
 
     /// <summary>
@@ -1220,6 +1326,8 @@ public sealed class DataverseTrace : IDisposable
         {
             EventKind.RequestBegin => "request.begin",
             EventKind.RequestEnd => "request.end",
+            EventKind.BackgroundBegin => "bg.begin",
+            EventKind.BackgroundEnd => "bg.end",
             EventKind.GatewayExecuteEnter => "gateway.execute.enter",
             EventKind.GatewayExecuteExit => "gateway.execute.exit",
             EventKind.PoolAcquireWait => "pool.acquire.wait",
@@ -1267,6 +1375,26 @@ public sealed class DataverseTrace : IDisposable
                 json.WriteString("topEntity", entry.Text);
                 json.WriteNumber("topEntityCount", entry.Eighth);
                 json.WriteString("distinctEntities", entry.State);
+                break;
+            case EventKind.BackgroundBegin:
+                WriteTraceAndUser(json, entry);
+                json.WriteString("parentTraceId", entry.Reason ?? string.Empty);
+                json.WriteString("op", entry.Text ?? string.Empty);
+                break;
+            case EventKind.BackgroundEnd:
+                WriteTraceAndUser(json, entry);
+                json.WriteString("parentTraceId", entry.Reason ?? string.Empty);
+                json.WriteString("op", entry.Text ?? string.Empty);
+                json.WriteNumber("durationMs", entry.First);
+                json.WriteNumber("crmCount", entry.Second);
+                json.WriteNumber("crmMs", entry.Third);
+                json.WriteNumber("leaseCount", entry.Fourth);
+                json.WriteNumber("leaseOutstanding", entry.Fifth);
+                json.WriteNumber("maxDepth", entry.Sixth);
+                json.WriteNumber("concurrentGateway", entry.Seventh);
+                json.WriteString("topEntity", entry.ClientId ?? string.Empty);
+                json.WriteNumber("topEntityCount", entry.Eighth);
+                json.WriteString("distinctEntities", entry.State ?? "0");
                 break;
             case EventKind.GatewayExecuteEnter:
             case EventKind.GatewayExecuteExit:
