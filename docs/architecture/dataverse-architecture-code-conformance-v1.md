@@ -29,7 +29,7 @@ HTTP request／DI scope
 | Gateway 與組織服務代理不跨 request | `ServiceCollectionExtensions.cs:85-91` 將 `IDataverseGateway`、`IOrganizationService` 與 `ToolUtilityClass` 註冊為 Scoped | 已符合 |
 | 所有 `IOrganizationService` 操作經過 Gateway | `ToolUtility/Dataverse/GatewayOrganizationService.cs:11-50` 的八個介面方法皆呼叫 `IDataverseGateway.Execute` | 已符合 |
 | 巢狀呼叫只使用一條 lease | `ToolUtility/Dataverse/DataverseGateway.cs:38-68` 以 `_depth` 實作 reentrant lease，最外層 `finally` 才歸還；現有測試證明的是同一 scope 的序列巢狀呼叫 | 序列巢狀已符合；同一 Gateway 的並行呼叫尚未證明 |
-| 操作例外不得把不確定狀態 client 還給別人 | `DataverseGateway.cs:53-67` 先 `MarkFaulted`，再由 `finally` 歸還／淘汰 | 已符合 |
+| 操作例外不得把不確定狀態 client 還給別人 | `DataverseGateway.cs:121-128,201-213` 只對傳輸層例外先 `MarkFaulted`，商業層 `FaultException` 與未知應用程式例外均原樣擲回並保留健康連線，再由 `finally` 決定性歸還／淘汰 | 已符合 |
 | 完整隔離鍵 | `ToolUtility/Dataverse/DataverseConnectionManager.cs:47-75` 使用 Product、Environment、OrganizationUrl、EffectiveIdentity | 已符合目前 A 的固定服務帳號模式 |
 | Bounded pool | `ToolUtility/Dataverse/BoundedClientPool.cs:145-217` 以每個 key 的 `SemaphoreSlim(MaxN)`、slot wait 的 AcquireTimeout 與健康檢查控制租借；目前判定是「每 key bounded」，不是全域 sub-pool 數量上限 | 已符合目前 A 的固定 key 路徑 |
 | Idle cleanup 與 shutdown cleanup | `BoundedClientPool.cs:254-330` 保留 MinSize、不打斷 leased client，關閉時停止 timer 並釋放資源 | 已符合 |
