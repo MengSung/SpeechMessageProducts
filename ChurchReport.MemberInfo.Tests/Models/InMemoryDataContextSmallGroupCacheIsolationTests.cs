@@ -39,6 +39,7 @@ namespace ChurchReport.MemberInfo.Tests.Models;
 /// 請求外的短命資料不會被提升為跨 request、跨使用者可見的程序級狀態。<see cref="MemoryCache"/> 的
 /// 唯一 owner 是本測試的 <c>using</c> 範圍，結束時會同步 Dispose，避免測試本身留下資源或快取項目。
 /// </remarks>
+[Collection("LegacyToolUtilityFactory")]
 public sealed class InMemoryDataContextSmallGroupCacheIsolationTests
 {
     /// <summary>

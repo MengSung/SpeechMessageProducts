@@ -152,6 +152,40 @@ public sealed class DataverseTraceTests
     }
 
     /// <summary>
+    /// 保護背景 CRM scope 覆蓋不會切斷 F4 背景 trace 父子關聯。故障注入是在帶有 request
+    /// trace 的流程中設定明確背景服務提供者，隨後由巢狀 <see cref="Task.Run(Action)"/>
+    /// 讀取目前 trace；決定性斷言是子工作仍取得同一個 trace 實例。這確保修正 request
+    /// services 繼承洩漏時，只覆蓋 CRM DI 解析，而不會錯誤地 Suppress ExecutionContext。
+    /// </summary>
+    [Fact]
+    public async Task Background_service_override_preserves_dataverse_trace_context()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            using (var root = new ServiceCollection().BuildServiceProvider())
+            using (var backgroundScope = root.CreateScope())
+            using (trace.BeginRequest("background-scope-trace", "trace-user", sessionId: null))
+            {
+                var ambient = new AmbientGatewayOrganizationService(
+                    static () => null,
+                    root.GetRequiredService<IServiceScopeFactory>());
+
+                using (ambient.BeginBackgroundScope(backgroundScope.ServiceProvider))
+                {
+                    var observedTrace = await Task.Run(() => DataverseTrace.Current);
+                    Assert.Same(trace, observedTrace);
+                }
+            }
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
     /// 保護巢狀及平行背景 scope 的父子關聯與統計不可互相覆寫契約。故障注入是兩條平行 flow
     /// 各寫入一筆 CRM 事件，並在其中一條再建立巢狀 scope；決定性斷言是每個 bg.end 各自擁有
     /// 正確 parentTraceId 與單筆統計，且沒有把另一條 flow 的事件合併進來。

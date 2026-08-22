@@ -97,6 +97,39 @@ namespace ToolUtilityNameSpace.Factory
         }
 
         /// <summary>
+        /// 將 legacy Factory 的 CRM 解析暫時綁定到呼叫端已建立的背景 DI scope。
+        /// </summary>
+        /// <param name="serviceProvider">
+        /// 背景工作唯一擁有的 scope provider；必須在該 scope Dispose 前呼叫回傳值的
+        /// <see cref="IDisposable.Dispose"/>，本方法不保存或釋放這個 provider。
+        /// </param>
+        /// <returns>離開時還原前一個 ambient 解析來源的可釋放範圍。</returns>
+        /// <exception cref="InvalidOperationException">
+        /// ambient gateway 尚未由組合根設定時擲回，避免背景工作無聲回退到不明的 request scope。
+        /// </exception>
+        /// <remarks>
+        /// <para>
+        /// Task.Run 會流動 ExecutionContext，因而可能帶入已結束 request 的 HttpContextAccessor。
+        /// 此明確覆蓋必須包住整個背景 CRM 工作，讓 legacy <see cref="ToolUtilityClass"/> 一律從
+        /// 新建 scope 解析 IOrganizationService。這既保留 DataverseTrace 的 AsyncLocal 關聯，
+        /// 也阻止 request scope、Session 或 lease 被背景工作重新使用。
+        /// </para>
+        /// <para>
+        /// 回傳 scope 只保有目前非同步流程的短期 provider 參考；using 結束後它會確定還原，
+        /// 不會把背景 scope 提升成 Factory 靜態狀態或留給其他使用者／租戶。
+        /// </para>
+        /// </remarks>
+        public static IDisposable BeginBackgroundScope(IServiceProvider serviceProvider)
+        {
+            if (_ambientService == null)
+            {
+                throw new InvalidOperationException("Ambient Dataverse 代理尚未設定，無法建立背景 scope 覆蓋。");
+            }
+
+            return _ambientService.BeginBackgroundScope(serviceProvider);
+        }
+
+        /// <summary>
         /// 獲得 legacy 程序級單一實例（Thread-Safe Double-Check Locking）。
         /// </summary>
         /// <returns>ToolUtilityClass 實例</returns>

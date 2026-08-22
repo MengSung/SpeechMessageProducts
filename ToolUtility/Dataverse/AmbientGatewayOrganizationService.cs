@@ -17,6 +17,7 @@
 // 編碼要求：本檔案維持 UTF-8 無 BOM、CRLF，並以 final CRLF 結尾。
 // ============================================================================
 using System;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -55,6 +56,12 @@ namespace ToolUtilityNameSpace.Dataverse;
 public sealed class AmbientGatewayOrganizationService : IOrganizationService
 {
     /// <summary>
+    /// 背景作業目前明確指定的 DI 服務提供者。AsyncLocal 讓巢狀 Task.Run 繼承同一個
+    /// 背景 scope，但不把 request services 寫入程序級單例；每個 scope 結束時都會還原前值。
+    /// </summary>
+    private readonly AsyncLocal<IServiceProvider> _backgroundServiceProvider = new();
+
+    /// <summary>
     /// 取得目前執行流程所屬 request 的服務提供者；回傳值只在本次同步操作中使用，絕不儲存。
     /// </summary>
     private readonly Func<IServiceProvider> _requestServicesAccessor;
@@ -80,6 +87,37 @@ public sealed class AmbientGatewayOrganizationService : IOrganizationService
     {
         _requestServicesAccessor = requestServicesAccessor ?? throw new ArgumentNullException(nameof(requestServicesAccessor));
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+    }
+
+    /// <summary>
+    /// 建立目前非同步流程的背景服務解析覆蓋範圍。
+    /// </summary>
+    /// <param name="serviceProvider">
+    /// 由背景工作建立且擁有的 DI scope provider。呼叫端必須讓回傳的 scope override
+    /// 在同一背景 scope Dispose 前釋放；本方法不接管 provider 的 Dispose 責任。
+    /// </param>
+    /// <returns>離開時還原上一層背景 provider 的一次性 scope。</returns>
+    /// <remarks>
+    /// <para>
+    /// ASP.NET Core 的 HttpContextAccessor 以 AsyncLocal 流動 request services。若背景工作
+    /// 只建立新 scope 卻不設定此覆蓋，legacy Factory 會在 request 結束後仍解析原 scope，形成
+    /// disposed-scope race。覆蓋優先於 request accessor，確保每個 CRM 呼叫都由背景 scope 擁有。
+    /// </para>
+    /// <para>
+    /// 此 API 只保存目前流程的 provider 參考，生命週期由回傳的 disposable 與呼叫端 using
+    /// 綁定；不會把使用者、Session、HttpContext 或 provider 提升到另一個流程。
+    /// </para>
+    /// </remarks>
+    public IDisposable BeginBackgroundScope(IServiceProvider serviceProvider)
+    {
+        if (serviceProvider == null)
+        {
+            throw new ArgumentNullException(nameof(serviceProvider));
+        }
+
+        var previous = _backgroundServiceProvider.Value;
+        _backgroundServiceProvider.Value = serviceProvider;
+        return new BackgroundScopeOverride(_backgroundServiceProvider, previous);
     }
 
     /// <summary>
@@ -152,12 +190,21 @@ public sealed class AmbientGatewayOrganizationService : IOrganizationService
     /// </remarks>
     private T Run<T>(Func<IOrganizationService, T> work)
     {
+        var backgroundServices = _backgroundServiceProvider.Value;
+        if (backgroundServices != null)
+        {
+            return work(backgroundServices.GetRequiredService<IOrganizationService>());
+        }
+
         var requestServices = _requestServicesAccessor();
         if (requestServices != null)
         {
             return work(requestServices.GetRequiredService<IOrganizationService>());
         }
 
+        // 只有非 HTTP、且呼叫端未建立明確背景 scope 的 legacy 保底路徑才會到此；
+        // scope 僅涵蓋單次同步 CRM 操作，using 釋放 scoped service，避免把 fallback
+        // 資源提升為程序級或跨使用者狀態。SaveIntegrate 等正式背景流程必須使用上方 override。
         using var scope = _scopeFactory.CreateScope();
         return work(scope.ServiceProvider.GetRequiredService<IOrganizationService>());
     }
@@ -168,4 +215,30 @@ public sealed class AmbientGatewayOrganizationService : IOrganizationService
     /// <param name="work">只可在目前解析 service 的有效生命週期內執行的操作。</param>
     private void Run(Action<IOrganizationService> work)
         => Run<object>(service => { work(service); return null; });
+
+    /// <summary>
+    /// 還原建立背景覆蓋前的 provider；Dispose 冪等且不釋放 provider 本身。
+    /// </summary>
+    private sealed class BackgroundScopeOverride : IDisposable
+    {
+        private readonly AsyncLocal<IServiceProvider> _owner;
+        private readonly IServiceProvider _previous;
+        private int _disposed;
+
+        /// <summary>建立一個只負責還原 AsyncLocal 值的 scope。</summary>
+        public BackgroundScopeOverride(AsyncLocal<IServiceProvider> owner, IServiceProvider previous)
+        {
+            _owner = owner;
+            _previous = previous;
+        }
+
+        /// <summary>還原上一層 provider；scope 的實際 Dispose 仍由呼叫端負責。</summary>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) == 0)
+            {
+                _owner.Value = _previous;
+            }
+        }
+    }
 }

@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Extensions.Configuration;
@@ -175,6 +176,82 @@ public sealed class ToolUtilityFactoryAmbientGatewayTests
             currentRequestServices.Value = null;
             ResetFactory();
         }
+    }
+
+    /// <summary>
+    /// 保護背景工作即使繼承 request 的 ExecutionContext，也只能使用明確指定的背景 scope。
+    /// 故障注入建立兩個彼此獨立的服務提供者：request 服務回傳第一個識別碼，背景服務回傳
+    /// 第二個識別碼。決定性斷言是在 <see cref="Task.Run(Func{Task{Guid}})"/> 內仍取得背景
+    /// 識別碼，且離開 override 後恢復 request 服務；這可捕捉原本 ambient 代理優先使用
+    /// inherited HttpContext.RequestServices 的 lifecycle leak。
+    /// </summary>
+    [Fact]
+    public async Task Background_scope_override_flows_to_nested_task_and_restores_request_scope()
+    {
+        var requestId = Guid.NewGuid();
+        var backgroundId = Guid.NewGuid();
+        var requestService = CreateIdentifiedService(requestId);
+        var backgroundService = CreateIdentifiedService(backgroundId);
+        using var requestProvider = new ServiceCollection()
+            .AddScoped<IOrganizationService>(_ => requestService.Object)
+            .BuildServiceProvider();
+        using var backgroundProvider = new ServiceCollection()
+            .AddScoped<IOrganizationService>(_ => backgroundService.Object)
+            .BuildServiceProvider();
+
+        using var requestScope = requestProvider.CreateScope();
+        var currentRequestServices = new AsyncLocal<IServiceProvider?>
+        {
+            Value = requestScope.ServiceProvider
+        };
+        var ambient = new AmbientGatewayOrganizationService(
+            () => currentRequestServices.Value,
+            requestProvider.GetRequiredService<IServiceScopeFactory>());
+        ToolUtilityFactory.SetConfiguration(CreateConfiguration());
+        ToolUtilityFactory.SetTracer(new Mock<IToolUtilityTracer>().Object);
+        ToolUtilityFactory.SetAmbientService(ambient);
+
+        try
+        {
+            var legacyService = ToolUtilityFactory.GetInstance().m_Crm2011OrganizationService;
+            Assert.Equal(requestId, legacyService.Create(new Entity("account")));
+
+            using (var backgroundScope = backgroundProvider.CreateScope())
+            {
+                using (ToolUtilityFactory.BeginBackgroundScope(backgroundScope.ServiceProvider))
+                {
+                    var observedBackgroundId = await Task.Run(() =>
+                        legacyService.Create(new Entity("account")));
+                    Assert.Equal(backgroundId, observedBackgroundId);
+                }
+
+                backgroundService.As<IDisposable>()
+                    .Verify(candidate => candidate.Dispose(), Times.Never);
+            }
+
+            backgroundService.As<IDisposable>()
+                .Verify(candidate => candidate.Dispose(), Times.Once);
+            Assert.Equal(requestId, legacyService.Create(new Entity("account")));
+        }
+        finally
+        {
+            currentRequestServices.Value = null;
+            ResetFactory();
+        }
+    }
+
+    /// <summary>
+    /// 建立只回傳固定 GUID 的組織服務替身；它不建立連線、租約或背景資源，僅用來辨識
+    /// ambient 解析到哪一個 DI scope。
+    /// </summary>
+    /// <param name="id">此 scope 應回傳的識別碼。</param>
+    /// <returns>僅實作 Create 的嚴格組織服務替身。</returns>
+    private static Mock<IOrganizationService> CreateIdentifiedService(Guid id)
+    {
+        var service = new Mock<IOrganizationService>(MockBehavior.Strict);
+        service.Setup(candidate => candidate.Create(It.IsAny<Entity>())).Returns(id);
+        service.As<IDisposable>().Setup(candidate => candidate.Dispose());
+        return service;
     }
 
     /// <summary>

@@ -34,6 +34,15 @@ namespace ChurchReport.Models
 {
     public class SmallGroupDataList
     {
+        // 所有三組 Members 集合的唯一同步 owner。鎖只保護快照建立時的短暫讀取，
+        // 不在臨界區執行 CRM、網路或其他 I/O，避免阻塞前景請求及延長資源生命週期。
+        private readonly object _syncRoot = new();
+
+        /// <summary>
+        /// 供同一物件圖的協作者在替換集合參考時使用的同步根；不應跨物件圖保存或公開給請求外部。
+        /// </summary>
+        internal object SyncRoot => _syncRoot;
+
         public SmallGroupDataList()
         {
 
@@ -60,6 +69,64 @@ namespace ChurchReport.Models
         public SmallGroupData m_AllMemeberData = new SmallGroupData();
 
         public MemberInfomationPackage m_MemberInfomationPackage;
+
+        /// <summary>
+        /// 在短暫同步區間內建立完整的唯讀退路快照。
+        ///
+        /// 快照擁有三組全新的 List 與每一個 Member 的全新實例；背景工作後續清理
+        /// 只能改寫這份副本。鎖離開後才會交給背景流程執行，故不會把 CRM 或其他
+        /// I/O 帶入臨界區，也不會讓跨請求流程長期持有原始 Session 物件圖。此鎖只界定
+        /// SaveIntegrate 的快照建立邊界；既有其他寫入路徑尚未全面採用它，不能把本方法
+        /// 視為整個 legacy 物件圖的全域併發控制機制。
+        /// </summary>
+        /// <returns>與來源資料隔離的 SmallGroupDataList；來源集合為 null 時仍建立空 List。</returns>
+        public SmallGroupDataList CreateIsolatedSnapshot()
+        {
+            lock (_syncRoot)
+            {
+                return new SmallGroupDataList
+                {
+                    m_FullName = m_FullName,
+                    m_SelectDate = m_SelectDate,
+                    m_SundayDate = m_SundayDate,
+                    m_FirstLoginFlag = m_FirstLoginFlag,
+                    m_SmallGroupData = CloneSmallGroupData(m_SmallGroupData),
+                    m_NewPersonFollowUpData = CloneSmallGroupData(m_NewPersonFollowUpData),
+                    // 幸福小組集合不在 SaveIntegrate 的上傳／清理資料流；保留建構式建立的
+                    // 空白背景物件，避免把非必要的會員資料延長到背景工作生命週期。
+                    m_AllMemeberData = CloneSmallGroupData(m_AllMemeberData)
+                };
+            }
+        }
+
+        /// <summary>
+        /// 複製單一小組資料及其成員容器，確保 null 集合也會正規化為快照自有的空 List。
+        /// </summary>
+        /// <param name="source">要從同步區間內讀取的來源小組資料。</param>
+        /// <returns>不含來源 Members 或 Member 參考的新資料物件。</returns>
+        private static SmallGroupData CloneSmallGroupData(SmallGroupData source)
+        {
+            if (source == null)
+            {
+                return new SmallGroupData { Members = new List<Member>() };
+            }
+
+            return new SmallGroupData
+            {
+                LoginType = source.LoginType,
+                SmallGroupLeaderContactId = source.SmallGroupLeaderContactId,
+                SmallGroupLeaderFullName = source.SmallGroupLeaderFullName,
+                SundayPrayers = source.SundayPrayers,
+                SundayPrayersString = source.SundayPrayersString,
+                DataStatus = source.DataStatus,
+                ModifyFlag = source.ModifyFlag,
+                SundayPeriod = source.SundayPeriod,
+                DisplayFlag = source.DisplayFlag,
+                Members = source.Members == null
+                    ? new List<Member>()
+                    : source.Members.Select(member => member == null ? null : new Member(member)).ToList()
+            };
+        }
 
         public void SetupContactIdString(String ContactIdString)
         {
@@ -92,7 +159,7 @@ namespace ChurchReport.Models
         {
             foreach (MemberInfomation aMemberInfomation in m_MemberInfomationPackage.ListMemberInfomation)
             {
-                if (aMember.Group == aMemberInfomation.Group && aMember.FullName == aMemberInfomation.Name )
+                if (aMember.Group == aMemberInfomation.Group && aMember.FullName == aMemberInfomation.Name)
                 {
                     aMemberInfomation.Phone = aMember.Phone;
                     aMemberInfomation.HomePhone = aMember.HomePhone;
@@ -223,4 +290,3 @@ namespace ChurchReport.Models
         }
     }
 }
-

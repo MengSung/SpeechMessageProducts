@@ -86,7 +86,45 @@ namespace ChurchReport.Models
 
         #endregion
         #endregion
-        public void UploadIntegrateData( DateTime aSelectedDate, String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
+
+        /// <summary>
+        /// 建立供背景上傳專用的週報副本。
+        ///
+        /// m_SmallGroupDataList 透過其短鎖深拷貝建立，三組 Members 與每個 Member
+        /// 均不會與前景 Session 共享。只複製 UploadIntegrateDataAsync 會讀取的純量
+        /// 中繼資料；建構式會建立新的上傳器。圖表、個人回報 ViewModel、CRM Entity 與
+        /// GroupArray 不屬於此上傳資料流，刻意不複製以避免背景工作保留前景物件圖。
+        /// 副本的最長生命週期是上傳與清理完成前，且不保存 HttpContext、Session 或租約資源。
+        /// </summary>
+        /// <returns>完全隔離的背景上傳週報實例。</returns>
+        public ListSmallGroupWeeklyReport CreateBackgroundUploadCopy()
+        {
+            var copy = new ListSmallGroupWeeklyReport
+            {
+                LoadFlag = LoadFlag,
+                ListEntityId = ListEntityId,
+                WeeklyReportEntityId = WeeklyReportEntityId,
+                ListEntityName = ListEntityName,
+                LoginType = LoginType,
+                GroupType = GroupType,
+                SmallGroupLeaderContactId = SmallGroupLeaderContactId,
+                SmallGroupLeaderFullName = SmallGroupLeaderFullName,
+                SundayPrayers = SundayPrayers,
+                SundayPeriod = SundayPeriod,
+                m_SmallGroupDataList = m_SmallGroupDataList?.CreateIsolatedSnapshot() ?? new SmallGroupDataList(),
+                HappyWeekIndex = HappyWeekIndex,
+                HappyWeekTopic = HappyWeekTopic,
+                WeeklyReportData = WeeklyReportData,
+                WeeklyReportAnalysis = WeeklyReportAnalysis,
+                PauseCheckBox = PauseCheckBox,
+                ModifyFlag = ModifyFlag,
+                m_PresentRecordWithNoSmallGroupId = m_PresentRecordWithNoSmallGroupId
+            };
+
+            return copy;
+        }
+
+        public void UploadIntegrateData(DateTime aSelectedDate, String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             WeeklyReportData = aWeeklyReportData;
             HappyWeekIndex = HappyWeekIndex;
@@ -397,4 +435,3 @@ namespace ChurchReport.Models
     }
 
 }
-
