@@ -1,0 +1,7 @@
+  ToolUtility.Dataverse.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\ToolUtility.Dataverse.Tests\bin\Debug\net10.0\ToolUtility.Dataverse.Tests.dll
+
+建置成功。
+    0 個警告
+    0 個錯誤
+
+經過時間 00:00:01.66

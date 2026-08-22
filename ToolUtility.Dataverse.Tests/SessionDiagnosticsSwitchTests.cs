@@ -21,7 +21,7 @@ namespace ToolUtility.Dataverse.Tests
     /// <remarks>
     /// 故障注入方式是直接檢查產品原始碼：若未來有人在四個 Session 方法直接加入
     /// <c>Debug.WriteLine</c>、遺漏其中一個既有呼叫，或把 switch 預設改為 true，測試會失敗。
-    /// 決定性斷言是產品檔案只有 helper 內的一個 <c>Debug.WriteLine</c>，而 51 個既有輸出
+    /// 決定性斷言是產品檔案只有 helper 內的一個 <c>Debug.WriteLine</c>，而 50 個既有輸出
     /// 全部呼叫 helper；同時 helper 必須檢查開關。這比 .NET 10 無法攔截的 Debug listener
     /// 更能防止「測試看似通過、實際仍同步寫檔」的虛假成功。
     /// </remarks>
@@ -54,9 +54,9 @@ namespace ToolUtility.Dataverse.Tests
             Assert.Contains("public static volatile bool Enabled = false;", switchSource, StringComparison.Ordinal);
             Assert.Contains("[System.Diagnostics.Conditional(\"DEBUG\")]", contextSource, StringComparison.Ordinal);
             Assert.Equal(1, CountMatches(contextSource, @"System\.Diagnostics\.Debug\.WriteLine\("));
-            Assert.Equal(52, CountMatches(contextSource, @"WriteSessionDiagnostic\("));
+            Assert.Equal(51, CountMatches(contextSource, @"WriteSessionDiagnostic\("));
             Assert.Equal(1, CountMatches(contextSource, @"if \(SessionDiagnosticsSwitch\.Enabled\)"));
-            Assert.Equal(21, CountMatches(contextSource, "WriteSessionDiagnostic\\(\\$?\"\\[GetCurrentSessionId\\]"));
+            Assert.Equal(20, CountMatches(contextSource, "WriteSessionDiagnostic\\(\\$?\"\\[TryGetSessionCacheKey\\]"));
             Assert.Equal(18, CountMatches(contextSource, "WriteSessionDiagnostic\\(\\$?\"\\[GenerateCurrentRequestFingerprint\\]"));
             Assert.Equal(11, CountMatches(contextSource, "WriteSessionDiagnostic\\(\\$?\"\\[SetSessionDirtyFlag\\]"));
             Assert.Equal(1, CountMatches(contextSource, "WriteSessionDiagnostic\\(\\$?\"\\[InMemoryDataContext\\]"));

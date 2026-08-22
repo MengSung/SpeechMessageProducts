@@ -1,0 +1,4 @@
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\ToolUtility.Dataverse.Tests\bin\Debug\net10.0\ToolUtility.Dataverse.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+
+已通過! - 失敗:     0，通過:    69，略過:     0，總計:    69，持續時間: 1 s - ToolUtility.Dataverse.Tests.dll (net10.0)
