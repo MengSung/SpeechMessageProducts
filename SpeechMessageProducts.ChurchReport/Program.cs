@@ -45,6 +45,8 @@ namespace ChurchReport
         private static TextWriterTraceListener _traceListener;
         private static readonly object _traceLock = new object();
         private static DebugTraceMonitorLifetime _gcMonitoringLifetime;
+        private static bool _unhandledExceptionFlushRegistered;
+        private static bool? _previousTraceAutoFlush;
 #endif
 
         /// <summary>
@@ -102,6 +104,22 @@ namespace ChurchReport
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
             if (diagnosticTraceOptions.Enabled)
             {
+                // Program 是全域 Trace listener 的唯一 owner，因此也必須是唯一註冊未處理例外
+                // flush callback 的 owner。此 middleware 包住後續完整管線；不保存 HttpContext、
+                // identity、Session 或 tenant，finally 只 flush 程序級 listener 的已緩衝資料。
+                RegisterUnhandledExceptionTraceFlush();
+                app.Use(async (context, next) =>
+                {
+                    try
+                    {
+                        await next();
+                    }
+                    finally
+                    {
+                        FlushTraceListener();
+                    }
+                });
+
                 _gcMonitoringLifetime = DebugTraceMonitorLifetime.Start(StartGCMonitoringAsync);
             }
             try
@@ -192,7 +210,10 @@ namespace ChurchReport
                         4096,
                         leaveOpen: false)
                     {
-                        AutoFlush = true
+                        // 逐行同步 flush 會把每個 Debug.WriteLine 變成請求執行緒上的磁碟 I/O。
+                        // 因此批次寫入並由 request 結束、正常停止與未處理例外三個確定點 flush；
+                        // 這保留診斷資料的有限遺失風險邊界，同時不讓量測本身主導延遲數字。
+                        AutoFlush = false
                     };
                     // StreamWriter 已接管 FileStream；後續例外由 writer 的清理路徑負責。
                     stream = null;
@@ -217,7 +238,8 @@ namespace ChurchReport
                         Trace.Listeners.Add(candidate);
                         _traceListener = candidate;
                         candidate = null;
-                        Trace.AutoFlush = true;
+                        _previousTraceAutoFlush = Trace.AutoFlush;
+                        Trace.AutoFlush = false;
 
                         // 寫入初始化成功訊息
                         var initMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace listener initialized successfully (Debug build).";
@@ -282,7 +304,90 @@ namespace ChurchReport
                     try { listener.Flush(); } catch { }
                     try { listener.Dispose(); } catch (Exception ex) { Console.WriteLine($"Failed to cleanup trace listener: {ex.Message}"); }
                 }
+
+                if (_previousTraceAutoFlush.HasValue)
+                {
+                    Trace.AutoFlush = _previousTraceAutoFlush.Value;
+                    _previousTraceAutoFlush = null;
+                }
             }
+        }
+
+        /// <summary>
+        /// 將目前已緩衝的 Trace.log 資料送入唯一 listener，但不建立、移除或 Dispose 任何資源。
+        /// </summary>
+        /// <remarks>
+        /// 此方法由 request middleware 的 <c>finally</c> 與未處理例外 callback 共用。鎖只保護
+        /// listener 與 cleanup 的交接，避免停止期間對已 Dispose writer flush；它不保存 request、
+        /// Session、Claims、租戶、例外內容或其他使用者資料。I/O 只在每個 request 結束或故障邊界
+        /// 發生一次，而不是每一行診斷文字都同步發生一次。
+        /// </remarks>
+        private static void FlushTraceListener()
+        {
+            lock (_traceLock)
+            {
+                try
+                {
+                    _traceListener?.Flush();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Stop 與 exception callback 競態時 listener 已被唯一 owner 釋放；診斷不得影響主流程。
+                }
+                catch (IOException)
+                {
+                    // 診斷檔不可寫時不重試、不快取例外，避免形成背景工作或無界記憶體保留。
+                }
+            }
+        }
+
+        /// <summary>
+        /// 註冊程序級未處理例外 flush callback，確保非正常終止前盡量保留已緩衝的 Trace.log。
+        /// </summary>
+        /// <remarks>
+        /// <see cref="AppDomain.UnhandledException"/> 是程序級事件，必須只由 Program 註冊一次並在
+        /// 正常停止時解除訂閱；否則重複初始化會讓 static event 保留 callback。callback 不記錄例外
+        /// 原文，避免把 credential、Session 或使用者資料擴散到 trace，只執行既有 listener 的 flush。
+        /// </remarks>
+        private static void RegisterUnhandledExceptionTraceFlush()
+        {
+            lock (_traceLock)
+            {
+                if (_traceListener == null || _unhandledExceptionFlushRegistered)
+                {
+                    return;
+                }
+
+                AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+                _unhandledExceptionFlushRegistered = true;
+            }
+        }
+
+        /// <summary>
+        /// 移除程序級未處理例外 callback，讓關機後不再保留 Program 的 static event 訂閱。
+        /// </summary>
+        private static void UnregisterUnhandledExceptionTraceFlush()
+        {
+            lock (_traceLock)
+            {
+                if (!_unhandledExceptionFlushRegistered)
+                {
+                    return;
+                }
+
+                AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+                _unhandledExceptionFlushRegistered = false;
+            }
+        }
+
+        /// <summary>
+        /// 處理未處理例外通知時只 flush 已存在的 listener，絕不攔截或改寫例外傳播。
+        /// </summary>
+        /// <param name="sender">發出程序級例外通知的 AppDomain。</param>
+        /// <param name="eventArgs">未處理例外資訊；不得序列化或寫入其中可能含敏感資料的內容。</param>
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs eventArgs)
+        {
+            FlushTraceListener();
         }
 
         /// <summary>
@@ -304,6 +409,8 @@ namespace ChurchReport
             }
             finally
             {
+                // 先解除 static event，才釋放 listener；確定清理後不會再由例外 callback 觸碰 writer。
+                UnregisterUnhandledExceptionTraceFlush();
                 CleanupTraceListener();
             }
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading.Tasks;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Extensions.Configuration;
@@ -110,7 +111,8 @@ public sealed class RunCServiceGraphTests
                 if (created.IsEmpty)
                 {
                     mock.Setup(x => x.Retrieve(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<Microsoft.Xrm.Sdk.Query.ColumnSet>()))
-                        .Throws(new InvalidOperationException("injected operation failure"));
+                        // 傳輸層例外才代表通道不可信；商業 fault 不應淘汰連線。
+                        .Throws(new CommunicationException("injected transport failure"));
                 }
                 created.Enqueue(mock);
                 return mock.Object;
@@ -126,7 +128,7 @@ public sealed class RunCServiceGraphTests
         var service = scope.ServiceProvider.GetRequiredService<IOrganizationService>();
         var manager = scope.ServiceProvider.GetRequiredService<IDataverseConnectionManager>();
 
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<CommunicationException>(() =>
             service.Retrieve("account", Guid.NewGuid(), new Microsoft.Xrm.Sdk.Query.ColumnSet("name")));
 
         var afterFailure = manager.GetMetrics();

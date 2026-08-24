@@ -17,11 +17,76 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChurchReport.Models {
+namespace ChurchReport.Models
+{
     public class Member
     {
         public Member()
         { }
+
+        /// <summary>
+        /// 建立 Member 的獨立副本。
+        ///
+        /// 此建構式只複製成員本身的值，不保留指向原始週報或其他可變物件圖的參考；
+        /// 背景上傳快照因此可在自己的生命週期內清理欄位，而不會改寫前景 Session
+        /// 所持有的成員。字串與值型別可直接複製，ParentListSmallGroupWeeklyReport
+        /// 則刻意留空，避免把父物件圖重新連回共用狀態。
+        /// </summary>
+        /// <param name="source">要複製的來源成員；不可為 null。</param>
+        /// <exception cref="ArgumentNullException">來源成員為 null 時擲出。</exception>
+        public Member(Member source)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+
+            PresentRecordId = source.PresentRecordId;
+            ContactId = source.ContactId;
+            Id = source.Id;
+            Group = source.Group;
+            FullName = source.FullName;
+            Status = source.Status;
+            Phone = source.Phone;
+            HomePhone = source.HomePhone;
+            Address = source.Address;
+            BirthDate = source.BirthDate;
+            Industry = source.Industry;
+            EquipmentStatus = source.EquipmentStatus;
+            SpiritualIdentity = source.SpiritualIdentity;
+            BaptizedSituation = source.BaptizedSituation;
+            Description = source.Description;
+            SmallGroupName = source.SmallGroupName;
+            SectionName = source.SectionName;
+            PrayItem = source.PrayItem;
+            Visit = source.Visit;
+            Sunday = source.Sunday;
+            SmallGroup = source.SmallGroup;
+            PrayerMeeting = source.PrayerMeeting;
+            Child = source.Child;
+            BigDisciple = source.BigDisciple;
+            LeadershipSmallLecture = source.LeadershipSmallLecture;
+            LeadersGather = source.LeadersGather;
+            Decision = source.Decision;
+            StateID1 = source.StateID1;
+            Number1 = source.Number1;
+            StateID2 = source.StateID2;
+            Number2 = source.Number2;
+            FollowUpWeek = source.FollowUpWeek;
+            FollowUpOption = source.FollowUpOption;
+            FollowUp = source.FollowUp;
+            FollowUpResult = source.FollowUpResult;
+            FollowUpNextStep = source.FollowUpNextStep;
+            FollowUpNote = source.FollowUpNote;
+            NewComerNote = source.NewComerNote;
+            AssignedGroup = source.AssignedGroup;
+            SpiritualWork = source.SpiritualWork;
+            MorningPray = source.MorningPray;
+            GeneralCare = source.GeneralCare;
+            Picture = source.Picture;
+            Shepherd = source.Shepherd;
+            BestLeader = source.BestLeader;
+            BestIntroducer = source.BestIntroducer;
+            BestRelationship = source.BestRelationship;
+            ModifyFlag = source.ModifyFlag;
+        }
 
         ListSmallGroupWeeklyReport ParentListSmallGroupWeeklyReport { get; set; }
 

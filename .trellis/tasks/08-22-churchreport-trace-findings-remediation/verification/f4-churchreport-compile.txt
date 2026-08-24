@@ -1,0 +1,17 @@
+  Line.Messaging -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\Line.Messaging.dll
+  LineMessagingProcessor -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\LineMessagingProcessor.dll
+  LineMessagingProcessor.Workflows -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\LineMessagingProcessor.Workflows.dll
+  LineMessagingProcessor.RichMenus -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\LineMessagingProcessor.RichMenus.dll
+  LineMessagingProcessor.AspNetCore -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\LineMessagingProcessor.AspNetCore.dll
+  PowerPlatform.Dataverse.Client -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\PowerPlatform.Dataverse.Client.dll
+  ToolUtility -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\ToolUtility.dll
+  SpeechMessage.Payments -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\SpeechMessage.Payments.dll
+  SpeechMessage.Payments.Workflows -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\SpeechMessage.Payments.Workflows.dll
+  SpeechMessage.Payments.AspNetCore -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\SpeechMessage.Payments.AspNetCore.dll
+  SpeechMessageProducts.ChurchReport -> C:\Users\Administrator\AppData\Local\Temp\churchreport-f4-compile\SpeechMessageProducts.ChurchReport.dll
+
+建置成功。
+    0 個警告
+    0 個錯誤
+
+經過時間 00:00:05.51

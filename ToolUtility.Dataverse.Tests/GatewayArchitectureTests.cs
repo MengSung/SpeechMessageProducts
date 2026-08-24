@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;
+using System.ServiceModel;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.Dataverse;
 using Xunit;
@@ -43,16 +44,98 @@ public sealed class GatewayArchitectureTests
         Assert.Equal(0, lease.MarkFaultedCount);
     }
 
-    /// <summary>工作委派擲例外時 Gateway 必須標記故障、釋放 lease 並保留原例外。</summary>
+    /// <summary>傳輸層例外代表通道不可信，Gateway 必須標記故障、釋放 lease 並保留原例外。</summary>
     [Fact]
-    public void Gateway_marks_lease_faulted_and_rethrows_operation_exception()
+    public void Gateway_marks_lease_faulted_and_rethrows_connection_exception()
+    {
+        var lease = new TestLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+        using var gateway = new DataverseGateway(new TestManager(lease));
+
+        Assert.Throws<CommunicationException>(() => gateway.Execute(_ => throw new CommunicationException("channel down")));
+        Assert.Equal(1, lease.MarkFaultedCount);
+        Assert.Equal(1, lease.DisposeCount);
+    }
+
+    /// <summary>逾時同樣代表通道狀態不可信，必須淘汰連線。</summary>
+    [Fact]
+    public void Gateway_marks_lease_faulted_on_timeout()
+    {
+        var lease = new TestLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+        using var gateway = new DataverseGateway(new TestManager(lease));
+
+        Assert.Throws<TimeoutException>(() => gateway.Execute(_ => throw new TimeoutException("too slow")));
+        Assert.Equal(1, lease.MarkFaultedCount);
+    }
+
+    /// <summary>
+    /// 商業層 fault（欄位不存在、權限不足）代表伺服器已完整回覆，通道健康；例外必須原樣重擲，
+    /// 但連線不可被淘汰。這是本次修正的核心行為：一個打錯的欄位名不應該燒掉一條連線。
+    /// </summary>
+    [Fact]
+    public void Gateway_keeps_lease_reusable_when_business_fault_is_thrown()
+    {
+        var lease = new TestLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+        using var gateway = new DataverseGateway(new TestManager(lease));
+        var fault = new FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault { Message = "'Contact' entity doesn't contain attribute with Name = 'new_start_tracking_date'" });
+
+        Assert.Throws<FaultException<OrganizationServiceFault>>(() => gateway.Execute<object>(_ => throw fault));
+        Assert.Equal(0, lease.MarkFaultedCount);
+        Assert.Equal(1, lease.DisposeCount);
+    }
+
+    /// <summary>
+    /// <see cref="FaultException"/> 在 WCF 型別階層中是 <see cref="CommunicationException"/> 的子類別。
+    /// 本測試釘住判斷順序：若分類函式先比對 CommunicationException，此處會退化為淘汰連線。
+    /// </summary>
+    [Fact]
+    public void Business_fault_is_not_treated_as_communication_fault_despite_inheritance()
+    {
+        Assert.IsAssignableFrom<CommunicationException>(new FaultException<OrganizationServiceFault>(new OrganizationServiceFault()));
+
+        var lease = new TestLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+        using var gateway = new DataverseGateway(new TestManager(lease));
+
+        Assert.Throws<FaultException>(() => gateway.Execute(_ => throw new FaultException("business rule rejected")));
+        Assert.Equal(0, lease.MarkFaultedCount);
+    }
+
+    /// <summary>應用程式自身的錯誤不代表通道損毀，連線必須保留給後續 request 重用。</summary>
+    [Fact]
+    public void Gateway_keeps_lease_reusable_when_application_exception_is_thrown()
     {
         var lease = new TestLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
         using var gateway = new DataverseGateway(new TestManager(lease));
 
         Assert.Throws<InvalidOperationException>(() => gateway.Execute(_ => throw new InvalidOperationException("boom")));
-        Assert.Equal(1, lease.MarkFaultedCount);
+        Assert.Equal(0, lease.MarkFaultedCount);
         Assert.Equal(1, lease.DisposeCount);
+    }
+
+    /// <summary>上層組件把傳輸例外包起來時，仍必須沿 InnerException 追出並淘汰連線。</summary>
+    [Fact]
+    public void Gateway_marks_lease_faulted_when_connection_fault_is_wrapped()
+    {
+        var lease = new TestLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+        using var gateway = new DataverseGateway(new TestManager(lease));
+        var wrapped = new InvalidOperationException("wrapper", new CommunicationException("channel down"));
+
+        Assert.Throws<InvalidOperationException>(() => gateway.Execute(_ => throw wrapped));
+        Assert.Equal(1, lease.MarkFaultedCount);
+    }
+
+    /// <summary>被包起來的商業 fault 同樣要沿鏈判定為商業錯誤，不可淘汰連線。</summary>
+    [Fact]
+    public void Gateway_keeps_lease_reusable_when_business_fault_is_wrapped()
+    {
+        var lease = new TestLease(new Mock<IOrganizationService>(MockBehavior.Loose).Object);
+        using var gateway = new DataverseGateway(new TestManager(lease));
+        var wrapped = new InvalidOperationException(
+            "wrapper",
+            new FaultException<OrganizationServiceFault>(new OrganizationServiceFault { Message = "attribute not found" }));
+
+        Assert.Throws<InvalidOperationException>(() => gateway.Execute(_ => throw wrapped));
+        Assert.Equal(0, lease.MarkFaultedCount);
     }
 
     /// <summary>代理的八個 IOrganizationService 方法均透過同一個 Gateway 執行。</summary>
@@ -88,7 +171,17 @@ public sealed class GatewayArchitectureTests
         service.Verify(x => x.Update(It.IsAny<Entity>()), Times.Once);
     }
 
-    /// <summary>無 HttpContext 時 ambient 代理會建立短命 scope，工作完成即釋放 scoped gateway。</summary>
+    /// <summary>
+    /// 保護無 HttpContext 的 legacy fallback 必須建立短命 scope，並在 CRM 操作完成後釋放
+    /// scoped gateway；測試替身刻意重現正式 DI 圖的兩層邊界：
+    /// <see cref="IOrganizationService"/> 代理包住 scoped <see cref="IDataverseGateway"/>。
+    /// </summary>
+    /// <remarks>
+    /// 故障注入是刻意不提供 HttpContext，並以 <see cref="TrackingGateway"/> 記錄 scope
+    /// Dispose。決定性斷言是代理能完成 Retrieve、Gateway 確實被解析，以及 fallback scope
+    /// 返回後 gateway 已釋放；這同時防止未來把 ambient 代理改回保存 scope、直接保存 client，
+    /// 或新增一條不經由 <see cref="IOrganizationService"/> 的第二套 CRM 路徑。
+    /// </remarks>
     [Fact]
     public void Ambient_service_creates_and_releases_scope_without_http_context()
     {
@@ -96,6 +189,8 @@ public sealed class GatewayArchitectureTests
         TrackingGateway tracking = null!;
         using var root = new ServiceCollection()
             .AddScoped<IDataverseGateway>(_ => tracking = new TrackingGateway(service))
+            .AddScoped<IOrganizationService>(sp =>
+                new GatewayOrganizationService(sp.GetRequiredService<IDataverseGateway>()))
             .BuildServiceProvider();
         var ambient = new AmbientGatewayOrganizationService(
             () => null,

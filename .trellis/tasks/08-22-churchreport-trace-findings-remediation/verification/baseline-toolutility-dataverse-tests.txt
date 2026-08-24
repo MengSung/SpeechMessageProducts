@@ -1,0 +1,18 @@
+  正在判斷要還原的專案...
+  所有專案都在最新狀態，可進行還原。
+  Line.Messaging -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\Line.Messaging\bin\Debug\net10.0\Line.Messaging.dll
+  SpeechMessage.Payments -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\SpeechMessage.Payments\bin\Debug\net10.0\SpeechMessage.Payments.dll
+  PowerPlatform.Dataverse.Client -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\PowerPlatform.Dataverse.Client\bin\Debug\net10.0\PowerPlatform.Dataverse.Client.dll
+  LineMessagingProcessor -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\LineMessagingProcessor\bin\Debug\net10.0\LineMessagingProcessor.dll
+  SpeechMessage.Payments.Workflows -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\SpeechMessage.Payments.Workflows\bin\Debug\net10.0\SpeechMessage.Payments.Workflows.dll
+  ToolUtility -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\ToolUtility\bin\Debug\net10.0\ToolUtility.dll
+  LineMessagingProcessor.RichMenus -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\LineMessagingProcessor.RichMenus\bin\Debug\net10.0\LineMessagingProcessor.RichMenus.dll
+  LineMessagingProcessor.Workflows -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\LineMessagingProcessor.Workflows\bin\Debug\net10.0\LineMessagingProcessor.Workflows.dll
+  SpeechMessage.Payments.AspNetCore -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\SpeechMessage.Payments.AspNetCore\bin\Debug\net10.0\SpeechMessage.Payments.AspNetCore.dll
+  LineMessagingProcessor.AspNetCore -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\LineMessagingProcessor.AspNetCore\bin\Debug\net10.0\LineMessagingProcessor.AspNetCore.dll
+  SpeechMessageProducts.ChurchReport -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\SpeechMessageProducts.ChurchReport\bin\Debug\net10.0\SpeechMessageProducts.ChurchReport.dll
+  ToolUtility.Dataverse.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\ToolUtility.Dataverse.Tests\bin\Debug\net10.0\ToolUtility.Dataverse.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.6.DesignNewArchitector.Worktree\ToolUtility.Dataverse.Tests\bin\Debug\net10.0\ToolUtility.Dataverse.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+
+已通過! - 失敗:     0，通過:    66，略過:     0，總計:    66，持續時間: 3 s - ToolUtility.Dataverse.Tests.dll (net10.0)

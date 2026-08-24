@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -291,6 +292,79 @@ public sealed class BoundedClientPoolTests
 
         Assert.IsType<InvalidOperationException>(exception);
         Assert.Contains("CrmConnection:Username", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 釘住「建線不得在子池鎖內執行」的契約。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 斷言的是 factory 的<b>同時進行數</b>而非牆鐘時間，因此結果是決定性的、不受機器負載影響：
+    /// 只要建線仍在 <c>lock (subPool.Sync)</c> 內，同時進行數在定義上就恆為 1。
+    /// </para>
+    /// <para>
+    /// 這段行為的實測後果是三個同時到達的 request 以約 21 秒等差依序失敗（21.9 / 41.6 / 61.3 秒），
+    /// 因此本測試守的是延遲不會隨併發數線性放大的性質。
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task Client_creation_runs_outside_the_subpool_lock()
+    {
+        const int threads = 3;
+        var concurrent = 0;
+        var maxConcurrent = 0;
+        var totalCreated = 0;
+        var ready = new Barrier(threads);
+
+        using var pool = CreatePool(
+            (_, _) =>
+            {
+                var now = Interlocked.Increment(ref concurrent);
+                InterlockedMax(ref maxConcurrent, now);
+                Interlocked.Increment(ref totalCreated);
+                Thread.Sleep(150);
+                Interlocked.Decrement(ref concurrent);
+                return new Mock<IOrganizationService>(MockBehavior.Loose).Object;
+            },
+            new DataversePoolOptions { MinSize = 3, MaxN = 8, AcquireTimeout = TimeSpan.FromSeconds(30) });
+
+        var leases = await Task.WhenAll(Enumerable.Range(0, threads).Select(_ => Task.Run(() =>
+        {
+            ready.SignalAndWait();
+            return pool.Acquire(DefaultKey);
+        })));
+
+        try
+        {
+            // 核心斷言：建線若仍在鎖內，這個值在定義上恆為 1。
+            Assert.True(maxConcurrent > 1, $"建線仍被序列化，同時進行數只有 {maxConcurrent}。");
+
+            // Pending 名額保留必須生效：否則三個執行緒會各自補一次 MinSize，建出 9 條連線。
+            Assert.True(totalCreated <= _options_MinSizePlusOverflow(threads),
+                $"建立了 {totalCreated} 條連線，超過保留名額應允許的上限。");
+
+            // 隔離契約不得因此鬆動：每條租約仍必須是不同的 client。
+            Assert.Equal(threads, leases.Select(lease => lease.Service).Distinct().Count());
+        }
+        finally
+        {
+            foreach (var lease in leases)
+                lease.Dispose();
+        }
+    }
+
+    /// <summary>MinSize 補足 3 條，另外 threads-1 個執行緒最多各自補建一條 overflow。</summary>
+    private static int _options_MinSizePlusOverflow(int threads) => 3 + (threads - 1);
+
+    /// <summary>以 CAS 迴圈記錄觀測到的最大值，避免讀改寫競態低估同時進行數。</summary>
+    private static void InterlockedMax(ref int target, int candidate)
+    {
+        int observed;
+        while (candidate > (observed = Volatile.Read(ref target)))
+        {
+            if (Interlocked.CompareExchange(ref target, candidate, observed) == observed)
+                return;
+        }
     }
 
     private static BoundedClientPool CreatePool(

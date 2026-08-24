@@ -147,11 +147,22 @@ namespace ChurchReport
         /// 包括 HTTP 客戶端、快取、CRM 連接池、健康檢查、MVC 配置、身份驗證等服務的註冊。
         /// </summary>
         /// <param name="services">服務集合，用於註冊應用程式所需的服務。</param>
+        /// <remarks>
+        /// Debug 組態會在 ToolUtility 登記完成後，以原始生命週期重新登記
+        /// <see cref="IOrganizationService"/> 的計時裝飾器。裝飾必須在 DI 解析點完成，
+        /// 才能讓 <c>ToolUtilityClass</c> 及其 facade 在建構當下取得相同的已裝飾服務；
+        /// 絕不可在建構後置換欄位，否則已被 Lazy 子服務捕獲的原始參考會繞過量測。
+        /// </remarks>
         public void ConfigureServices(IServiceCollection services)
         {
 #if DEBUG
+            // 兩個開關都只能由已驗證的程序級 DiagnosticsTrace 設定指派；不得從 request、
+            // Session、使用者或租戶資料推導。Profiling 仍依一般 Trace 開關運作；Session 詳細
+            // 診斷則必須明確啟用 SessionVerbose，預設不建立高頻 Debug 輸出或留下跨請求敏感資料。
             ChurchReport.Diagnostics.Profiling.ProfilingSwitch.Enabled =
                 _diagnosticTraceOptions.Enabled;
+            ChurchReport.Diagnostics.SessionDiagnosticsSwitch.Enabled =
+                _diagnosticTraceOptions.SessionVerbose;
             using var __perfConfigureServices =
                 ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("ConfigureServices");
 #endif
@@ -411,40 +422,60 @@ namespace ChurchReport
             services.AddToolUtility();
 
 #if DEBUG
+            // CRM 計時必須在組合根的唯一 IOrganizationService 入口完成。這個 descriptor 是
+            // AddToolUtility 以 scoped gateway 所建立；我們只捕獲不可變的登記中繼資料，實際
+            // inner、IHttpContextAccessor 與任何 request/lease 都在下方 scope factory 內才解析，
+            // 因此 wrapper 不會把使用者、Session、身分或連線租約提升到其他 request。
+            var organizationServiceDescriptor = services.LastOrDefault(
+                descriptor => descriptor.ServiceType == typeof(IOrganizationService));
+            if (organizationServiceDescriptor == null)
             {
-                var providerDescriptor = services.LastOrDefault(d => d.ServiceType == typeof(IToolUtilityProvider));
-                if (providerDescriptor != null)
-                {
-                    services.Remove(providerDescriptor);
-                    services.Add(new ServiceDescriptor(
-                        typeof(IToolUtilityProvider),
-                        sp =>
-                        {
-                            IToolUtilityProvider inner;
-                            if (providerDescriptor.ImplementationFactory != null)
-                            {
-                                inner = (IToolUtilityProvider)providerDescriptor.ImplementationFactory(sp);
-                            }
-                            else if (providerDescriptor.ImplementationInstance != null)
-                            {
-                                inner = (IToolUtilityProvider)providerDescriptor.ImplementationInstance;
-                            }
-                            else if (providerDescriptor.ImplementationType != null)
-                            {
-                                inner = (IToolUtilityProvider)ActivatorUtilities.CreateInstance(
-                                    sp, providerDescriptor.ImplementationType);
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Unsupported IToolUtilityProvider registration.");
-                            }
-
-                            var http = sp.GetRequiredService<IHttpContextAccessor>();
-                            return new ChurchReport.Diagnostics.Profiling.TimedToolUtilityProvider(inner, http);
-                        },
-                        providerDescriptor.Lifetime));
-                }
+                // 找不到代表 ToolUtility 的組合根契約已被破壞；若靜默略過，Perf CRM 歸因會
+                // 重新固定為零並誤導診斷。此為啟動期 fail-closed：拒絕啟動比帶著不可信量測
+                // 繼續服務安全，且例外不含 request、Session、使用者、租戶或憑證資料。
+                throw new InvalidOperationException(
+                    "找不到 ToolUtility 註冊的 IOrganizationService；無法安全建立 Debug CRM 計時裝飾器。");
             }
+
+            services.Remove(organizationServiceDescriptor);
+            services.Add(new ServiceDescriptor(
+                typeof(IOrganizationService),
+                serviceProvider =>
+                {
+                    // 依原 descriptor 的三種合法形式重建 inner；不得以 GetRequiredService 重新
+                    // 解析同一 service type，否則會遞迴回到本 decorator。此 factory 的結果只由
+                    // 原 descriptor 的生命週期快取，沒有額外 Singleton 或跨 scope 可變狀態。
+                    IOrganizationService inner;
+                    if (organizationServiceDescriptor.ImplementationFactory != null)
+                    {
+                        inner = (IOrganizationService)organizationServiceDescriptor
+                            .ImplementationFactory(serviceProvider);
+                    }
+                    else if (organizationServiceDescriptor.ImplementationInstance != null)
+                    {
+                        inner = (IOrganizationService)organizationServiceDescriptor.ImplementationInstance;
+                    }
+                    else if (organizationServiceDescriptor.ImplementationType != null)
+                    {
+                        inner = (IOrganizationService)ActivatorUtilities.CreateInstance(
+                            serviceProvider,
+                            organizationServiceDescriptor.ImplementationType);
+                    }
+                    else
+                    {
+                        // 無實作形式不是可恢復狀態；繼續解析會產生沒有 inner 的 wrapper，讓
+                        // pool/lease 擁有權與 CRM 量測同時失真，因此明確 fail closed。
+                        throw new InvalidOperationException(
+                            "IOrganizationService 的原始 DI descriptor 未提供可重建的實作形式。");
+                    }
+
+                    var httpContextAccessor = serviceProvider
+                        .GetRequiredService<IHttpContextAccessor>();
+                    return new ChurchReport.Diagnostics.Profiling.TimedOrganizationService(
+                        inner,
+                        httpContextAccessor);
+                },
+                organizationServiceDescriptor.Lifetime));
 #endif
 
             // ========================================

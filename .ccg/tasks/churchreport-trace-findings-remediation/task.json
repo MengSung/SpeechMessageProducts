@@ -1,0 +1,12 @@
+{
+  "id": "churchreport-trace-findings-remediation",
+  "title": "ChurchReport Trace 實測缺陷修復",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "F1 已修正 inherited request scope Critical；完成最終差異、編碼與建置檢查後，僅提交 F1 source/test 變更",
+  "createdAt": "2026-08-22T02:01:33Z",
+  "branch": "feat/dataverse-scoped-connection"
+}

@@ -59,19 +59,17 @@ namespace ChurchReport.Models
         /// </summary>
         public void EnsureFormDefaults()
         {
-            if (String.IsNullOrWhiteSpace(Category))
+            if (DedicationCategoryList == null || DedicationCategoryList.Count == 0)
             {
-                Category = DefaultCategory;
+                DedicationCategoryList = new List<String>(s_defaultDedicationCategories);
             }
+
+            // 奉獻類別必須先跟實際可選清單對帳再寫回，順序不可調到清單初始化之前。
+            Category = ResolveCategoryAgainstList(Category, DedicationCategoryList);
 
             if (String.IsNullOrWhiteSpace(PayWay))
             {
                 PayWay = DefaultPayWay;
-            }
-
-            if (DedicationCategoryList == null || DedicationCategoryList.Count == 0)
-            {
-                DedicationCategoryList = new List<String>(s_defaultDedicationCategories);
             }
 
             OtherCategoryArray ??= new List<String>();
@@ -79,6 +77,51 @@ namespace ChurchReport.Models
             CreditCardList ??= new List<CreditCard>();
             DedicationFeeList ??= new List<DedicationFee>();
             DedicationBookingList ??= new List<DedicationBooking>();
+        }
+
+        /// <summary>
+        /// 把奉獻類別對帳回「畫面上真的選得到的清單」。
+        ///
+        /// 奉獻頁的 SelectBox DataSource 是 <see cref="DedicationCategoryList"/>，
+        /// 而它來自各教會自己的 CRM new_fee.new_category OptionSet，用字不一定是「十一奉獻」
+        /// （例如好牧人用「月定獻金」「禮拜獻金」）。若 Category 停在清單裡沒有的值，
+        /// DevExtreme SelectBox 找不到對應項就會退回顯示 placeholder「選擇...」，
+        /// 使用者必須自己下拉一次才能送出，這正是要防止的狀況。
+        ///
+        /// 對帳規則刻意分三層，避免改變既有教會的預設值：
+        /// 1. 現有值若存在於清單中就原樣保留（含使用者已選好的類別）。
+        /// 2. 否則優先採用 <see cref="DefaultCategory"/>，讓 OptionSet 有「十一奉獻」的教會行為不變。
+        /// 3. 都對不上才退回清單第一個有效項目。
+        ///
+        /// 比對時忽略前後空白與大小寫，但回傳清單裡的「原始字串」，
+        /// 因為 SelectBox 是用字串相等去比對 DataSource 項目的。
+        /// </summary>
+        private static String ResolveCategoryAgainstList(String category, List<String> categoryList)
+        {
+            String selected = FindCategoryInList(categoryList, category);
+            if (selected != null)
+            {
+                return selected;
+            }
+
+            return FindCategoryInList(categoryList, DefaultCategory)
+                ?? categoryList.FirstOrDefault(item => !String.IsNullOrWhiteSpace(item))
+                ?? DefaultCategory;
+        }
+
+        /// <summary>
+        /// 在奉獻類別清單中找出與指定文字相同的項目，找不到時回傳 null。
+        /// </summary>
+        private static String FindCategoryInList(List<String> categoryList, String category)
+        {
+            if (String.IsNullOrWhiteSpace(category))
+            {
+                return null;
+            }
+
+            return categoryList.FirstOrDefault(item =>
+                !String.IsNullOrWhiteSpace(item)
+                && String.Equals(item.Trim(), category.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>

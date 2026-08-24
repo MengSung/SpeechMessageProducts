@@ -103,7 +103,26 @@ namespace ChurchReport.Diagnostics.Profiling
 
         public long StopAndGetTotalMs() { _total.Stop(); return _total.ElapsedMilliseconds; }
 
+        /// <summary>
+        /// <c>Trace.log</c> 的 <c>[Perf] crm.ms</c> 外層耗時。
+        /// <para>
+        /// 此值由 <see cref="TimedOrganizationService"/> 在 DI 接縫包住整個
+        /// <c>GatewayOrganizationService</c> 呼叫而得，所以除 CRM 操作本身外，也包含租約取得、
+        /// Gateway 代理與首次建立池內連線等成本。它必須與同一 request 的 CRM 次數一起解讀，
+        /// 不能假定等同 JSONL 的內層時間。
+        /// </para>
+        /// <para>
+        /// JSONL <c>request.end.crmMs</c> 則由 <c>CrmOperationTrace</c> 僅累加 CRM 操作本身。
+        /// 兩者的差值正是 Gateway／連線層成本；這是刻意保留的兩個量測邊界，而非重複計數或漏計。
+        /// </para>
+        /// </summary>
         private long CrmMs => (long)(_crmTicks * TicksToMs);
+
+        /// <summary>
+        /// 控制器 action 耗時扣除 <see cref="CrmMs"/> 後的剩餘時間。
+        /// 由於 <see cref="CrmMs"/> 已包含 Gateway 與連線建立成本，<c>gap</c> 表示的只是該外層
+        /// CRM 路徑以外的 action 時間；它不能與 JSONL 的內層 <c>crmMs</c> 直接相減或互相比對。
+        /// </summary>
         private long Gap => (_actionMs - CrmMs) > 0 ? (_actionMs - CrmMs) : 0;
 
         public string BuildSummaryLine(string path, long totalMs)

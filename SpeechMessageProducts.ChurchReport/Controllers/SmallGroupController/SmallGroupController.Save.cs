@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
 // 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
 // 主要型別：class SmallGroupController
-// 主要成員：SaveIntegrate、ValidateHappyGroupFields、CleanupTransferredMembers、RemoveTransferredMembers、ShouldRemoveMember
+// 主要成員：SaveIntegrate、ValidateHappyGroupFields、RemoveTransferredMembers、ShouldRemoveMember
 // 引用命名空間：ChurchReport.Models、Microsoft.AspNetCore.Mvc、System、System.Collections.Generic、System.Threading、System.Threading.Tasks
 // 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -19,7 +19,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Dataverse;
 using ToolUtilityNameSpace.DependencyInjection;
+using ToolUtilityNameSpace.Factory;
 
 namespace ChurchReport.Controllers
 {
@@ -62,60 +64,65 @@ namespace ChurchReport.Controllers
                 // - 轉換後的布林值指示是否需要暫停上傳流程中的某些步驟。
                 bool pauseCheckBox = CheckBox == "true";
 
-                // 補充說明：這些變數在背景任務開始前就被捕獲（captured），
-                // 避免在 Task.Run 內部存access HttpContext 或 Session，防止 Session Bleeding 問題。
-                // Cause: 背景執行緒可能在請求結束後繼續執行，此時 HttpContext 已不可用。
+                // 背景工作絕不可持有 Session 快取物件圖或 HttpContext。此區只在 request 還活著時
+                // 讀取必要純量並建立深拷貝；背景 lambda 的唯一可變業務資料是 backgroundCopy，
+                // 因此不會把 A 使用者的 Session、profile 或可變 Members 留給後續背景執行緒。
                 var selectDate = InMemoryContext.ListManager.m_SelectDate;
                 var account = InMemoryContext.ListManager.m_Account;
+                // TODO(credential-lifecycle): 此 legacy 上傳契約仍要求明文 password 在背景作業期間存活；
+                // 不得寫入 Debug、Trace 或例外訊息。請在既有 appsettings.json 明文密碼與
+                // ToolUtilityClass legacy credential fallback 技術債完成時，改為可撤銷的受保護憑證流程。
                 var password = InMemoryContext.ListManager.m_Password;
                 var loginType = InMemoryContext.ListManager.LoginType;
                 var weeklyReportRef = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
-                var allMemberData = weeklyReportRef?.m_SmallGroupDataList?.m_AllMemeberData;
-                var activeListId = InMemoryContext.ListManager.ActiveListId; // 捕獲當前活動名單 ID，背景任務中使用
-                // 補充說明：
-                // - 此行代碼從 InMemoryContext 捕獲當前活動名單的 ID，並賦值給本地變數 activeListId。
-                // - 這樣做的目的是為了在隨後的背景任務中使用該 ID，而無需直接訪問 HttpContext 或 Session。
-                // - 捕獲的值會在 Task.Run 的背景執行緒中使用，確保不會受到請求結束後 HttpContext 不可用的問題影響。
-                // - 活動名單 ID 可能用於決定資料上傳的目標或篩選要處理的資料，具體取決於業務邏輯。
+                var backgroundCopy = weeklyReportRef?.CreateBackgroundUploadCopy();
+                var weeklyReportData = WeeklyReportData;
+                var happyWeekIndex = HappyWeekIndex;
+                var happyWeekTopic = HappyWeekTopic;
+                var scopeFactory = _scopeFactory;
 
                 // 補充說明：在此使用 Task.Run 啟動背景工作。
-                // - 傳入的 cancellationToken 會傳遞到 Task.Run，以便在需要時嘗試取消背景作業。
-                // - Task.Run 的 lambda 標示為 async，但內部呼叫的 UploadIntegrateData 可能為同步方法，
-                //   因此該呼叫會在執行緒池執行緒上同步執行並可能阻塞，若 UploadIntegrateData 有 I/O 工作，
-                //   建議改為真正的非同步實作以避免阻塞執行緒池。
-                // - 不要在背景工作中存access HttpContext/Session：因此事先捕獲所需資料到區域變數（上方）。
+                // - request cancellation 不會取消已接受的上傳；背景工作以 CancellationToken.None 完整結束。
+                // - scopeFactory 是此工作建立之 DI scope 的唯一 owner；using 會在上傳成功、失敗或取消時釋放它。
+                // - 不捕獲 Controller、InMemoryContext、weeklyReportRef 或 allMemberData，避免 request 結束後
+                //   Session 物件圖仍被背景 closure 保留。F4 的 ExecutionContext 只供 trace 關聯，並不授權讀取 Session。
                 _ = Task.Run(async () =>
                 {
-                    ToolUtilityClass toolUtility = null;
                     try
                     {
+                        // 背景 Trace 範圍必須在建立 DI scope 前最外層持有：它只複製父 request 的假名與
+                        // 關聯識別，改用新統計物件累計 CRM 耗時，並在工作 finally 離開時確定寫出 bg.end
+                        // 及還原 AsyncLocal。此處絕不保存 HttpContext、Session、lease 或 request scope；
+                        // 固定 op 名稱是受信任的程式碼 metadata，不能改為使用者輸入，避免診斷檔保留身分資料。
+                        using var traceScope = DataverseTrace.Current?.BeginBackgroundOperation("SaveIntegrate.Upload");
+
                         // 背景工作不得捕獲 request scope 的 ToolUtility。此 scope 由背景工作
                         // 擁有，並在工作完成時釋放，確保 CRM lease 不會跨 request 存活。
-                        using var scope = _scopeFactory.CreateScope();
+                        using var scope = scopeFactory.CreateScope();
+                        // IHttpContextAccessor 的 AsyncLocal 會隨 Task.Run 繼承原 request 的
+                        // RequestServices；若不先設定 override，legacy UploadIntegrateData 內的
+                        // ToolUtilityFactory 會誤用已結束的 request scope。此 override 流入上傳器
+                        // 的第二層 Task.Run，並在 scope Dispose 前還原，故背景 scope 是唯一 CRM owner。
+                        using var ambientScope = ToolUtilityFactory.BeginBackgroundScope(scope.ServiceProvider);
                         var toolUtilityProvider = scope.ServiceProvider.GetRequiredService<IToolUtilityProvider>();
-                        toolUtility = toolUtilityProvider.GetToolUtility();
+                        _ = toolUtilityProvider.GetToolUtility();
 
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 開始背景上傳...");
                         // 開始背景上傳的調試訊息
 
-                        // Use captured references to avoid accessing HttpContext/Session inside background thread
-                        // 呼叫上傳方法。
-                        // 注意：如果 UploadIntegrateData 是同步方法，這會在背景執行緒上同步執行並佔用該執行緒。
-                        // 若上傳流程包含網路或 I/O，請考慮將 UploadIntegrateData 改寫為 Task-based 非同步方法
-                        //（例如 UploadIntegrateDataAsync）並在此使用 await，以提升可伸縮性與執行緒使用效率。
-                        // 使用非同步版本以避免在執行緒池同步阻塞
-                        if (weeklyReportRef != null)
+                        // 只把背景專屬副本交給上傳器。UploadIntegrateDataAsync 及其第二層非同步 wrapper
+                        // 可能改寫 all-member 集合；該集合已屬於副本，絕不會是前景 Session 快取的 Members。
+                        if (backgroundCopy != null)
                         {
-                            // 背景任務使用 CancellationToken.None，避免 HTTP 請求結束後背景上傳被取消
-                            await weeklyReportRef.UploadIntegrateDataAsync(
+                            await backgroundCopy.UploadIntegrateDataAsync(
                                 selectDate,
                                 account,
                                 password,
                                 loginType,
-                                allMemberData,
-                                WeeklyReportData,
-                                HappyWeekIndex,
-                                HappyWeekTopic,
+                                backgroundCopy.m_SmallGroupDataList.m_AllMemeberData,
+                                weeklyReportData,
+                                happyWeekIndex,
+                                happyWeekTopic,
                                 pauseCheckBox,
                                 CancellationToken.None
                             ).ConfigureAwait(false);
@@ -124,17 +131,14 @@ namespace ChurchReport.Controllers
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳完成");
                         // 補充說明：背景上傳完成的調試訊息
 
-                        // 補充說明：背景清理直接在本地 weeklyReportRef 上執行，避免再度透過 InMemoryContext 存access Session，
-                        // 這樣可以減少跨執行緒對 HttpContext/Session 的存取風險。
-                        // 清理邏輯會直接修改記憶體中的成員清單（RemoveTransferredMembers），
-                        // 因此如果系統同時有其他執行緒也會修改同一集合，請確保有適當的同步機制（鎖定）或採用 thread-safe 的集合。
-                        // 在目前設計中，我們假設背景任務為唯一在該時刻修改清單的程式，且後續會再由使用者主流程或定期機制
-                        // 將變更持久化至資料庫（若有需要）。
+                        // 使用點盤點超過 30 處，因此採唯讀退路：清理只能修改 backgroundCopy，絕不回寫
+                        // Session 快取圖。這避免 14 秒上傳期間的舊快照覆蓋前景 CRUD，也避免 Clear/AddRange
+                        // 讓前景讀到半清空集合。副本在 lambda 結束時失去唯一持有者，無跨 request 保留路徑。
                         try
                         {
-                            if (weeklyReportRef != null)
+                            if (backgroundCopy != null)
                             {
-                                var dataList = weeklyReportRef.m_SmallGroupDataList;
+                                var dataList = backgroundCopy.m_SmallGroupDataList;
                                 if (dataList != null)
                                 {
                                     var smallGroupData = dataList.m_SmallGroupData;
@@ -155,19 +159,29 @@ namespace ChurchReport.Controllers
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景清理失敗: {ex.Message}");
+                            // 清理的是背景副本；失敗不得回寫前景資料，但 Release 仍須可觀測。只記錄
+                            // 例外型別，避免例外訊息把成員資料、帳號或其他受保護內容寫入診斷檔。
+                            System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景清理失敗: {ex.GetType().Name}");
+                            try
+                            {
+                                ToolUtilityClass.TraceByLevelStatic(1, 1,
+                                    $"SaveIntegrate 背景清理失敗: {ex.GetType().Name}");
+                            }
+                            catch
+                            {
+                                // 診斷系統本身失敗不可中斷已隔離的背景收尾；scope 與 trace scope 仍由 using 釋放。
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳失敗: {ex.Message}");
-                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 錯誤堆疊:\n{ex.StackTrace}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳失敗: {ex.GetType().Name}");
 
                         try
                         {
                             // catch 位於 using scope 之外；不可再使用已釋放的 Scoped ToolUtility。
                             ToolUtilityClass.TraceByLevelStatic(1, 1,
-                                $"SaveIntegrate 背景上傳失敗: {ex.Message}\n{ex.StackTrace}"); // 追蹤背景上傳失敗的細節
+                                $"SaveIntegrate 背景上傳失敗: {ex.GetType().Name}");
                         }
                         catch
                         {
@@ -177,7 +191,9 @@ namespace ChurchReport.Controllers
                 });
 
                 System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 立即回應使用者，背景處理中...");
-                return Json(new { status = "1", message = "資料已送出，正在背景上傳中..." });
+                // 相容欄位 status/message 維持不變；唯讀退路不把背景清理結果寫回目前 Session 快取，
+                // 前端收到標記後應重新載入資料，以 CRM／下一次受隔離的 request 為準。
+                return Json(new { status = "1", message = "資料已送出，正在背景上傳中...", requiresRefresh = true });
             }
             catch (OperationCanceledException)
             {
@@ -229,54 +245,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 清理已轉介或指派到其他小組的成員
-        /// </summary>
-        private void CleanupTransferredMembers()
-        {
-            // 補充說明：此方法用於清理已轉介或指派到其他小組的成員，
-            // 確保資料清單只包含當前小組的有效成員。
-            // 這個清理過程在 SaveIntegrate 的背景任務中執行，
-            // 以避免阻塞使用者界面並提升整體效能。
-            try
-            {
-                var weeklyReport = InMemoryContext?.ListManager?.m_ListSmallGroupWeeklyReport;
-                if (weeklyReport == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] weeklyReport 為 null，跳過清理");
-                    return;
-                }
-
-                var dataList = weeklyReport.m_SmallGroupDataList;
-                if (dataList == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] m_SmallGroupDataList 為 null，跳過清理");
-                    return;
-                }
-
-                var smallGroupData = dataList.m_SmallGroupData;
-                if (smallGroupData?.Members != null)
-                {
-                    RemoveTransferredMembers(smallGroupData.Members);
-                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] 已清理小組資料，剩餘 {smallGroupData.Members.Count} 筆");
-                }
-
-                var newPersonData = dataList.m_NewPersonFollowUpData;
-                if (newPersonData?.Members != null)
-                {
-                    RemoveTransferredMembers(newPersonData.Members);
-                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] 已清理新人跟進資料，剩餘 {newPersonData.Members.Count} 筆");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] 清理失敗: {ex.Message}");
-            }
-        }
-
-        /// <summary>
         /// 從清單中移除已轉介的成員
         /// </summary>
-        private void RemoveTransferredMembers(List<Member> members)
+        private static void RemoveTransferredMembers(List<Member> members)
         {
             // 補充說明：此方法使用手動迴圈移除成員，而不是使用 LINQ 或其他方法，
             // 因為在移除過程中需要修改原始清單，且避免建立新的集合以節省記憶體。
@@ -314,7 +285,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 判斷成員是否應該被移除
         /// </summary>
-        private bool ShouldRemoveMember(Member member)
+        private static bool ShouldRemoveMember(Member member)
         {
             // 補充說明：此方法根據業務邏輯判斷成員是否應該從清單中移除。
             // 條件1: AssignedGroup 不為空，表示成員已被指派到其他小組。

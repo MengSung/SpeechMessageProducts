@@ -26,6 +26,12 @@ public sealed class BoundedClientPool : IBoundedClientPool
         internal readonly List<PooledClient> All = new();
         internal readonly object Sync = new();
 
+        /// <summary>
+        /// 已保留名額但尚未完成建立的 client 數量，由 <see cref="Sync"/> 保護。
+        /// 建線移到鎖外之後，這個計數是避免多執行緒同時為同一個缺口重複建線的唯一依據。
+        /// </summary>
+        internal int Pending;
+
         internal SubPool(DataverseConnectionKey key, int maxSize)
         {
             Key = key;
@@ -110,6 +116,13 @@ public sealed class BoundedClientPool : IBoundedClientPool
     private long _totalAcquires;
     private long _totalReleases;
     private long _nextLeaseId;
+    private long _lastSnapshotTimestamp;
+
+    /// <summary>
+    /// 連線池快照的最小輸出間隔。與 <see cref="DataverseTraceOptions.SnapshotInterval"/> 的預設值
+    /// 一致；此處獨立保存，是為了讓 pool 不必依賴 Trace 的組態物件而仍能自行節流。
+    /// </summary>
+    private readonly TimeSpan _snapshotInterval = TimeSpan.FromSeconds(30);
     private int _waiting;
     private int _disposed;
 
@@ -150,6 +163,7 @@ public sealed class BoundedClientPool : IBoundedClientPool
         var subPool = _subPools.GetOrAdd(key, value => new SubPool(value, _options.MaxN));
         Interlocked.Increment(ref _waiting);
         var entered = false;
+        var waitedMs = 0L;
         var waitStartedTimestamp = traceEnabled ? Stopwatch.GetTimestamp() : 0;
         try
         {
@@ -165,16 +179,22 @@ public sealed class BoundedClientPool : IBoundedClientPool
             }
             entered = true;
             if (traceEnabled)
-                trace.PoolAcquireWait(GetElapsedMilliseconds(waitStartedTimestamp));
+            {
+                waitedMs = GetElapsedMilliseconds(waitStartedTimestamp);
+                trace.PoolAcquireWait(waitedMs);
+            }
         }
         finally
         {
             Interlocked.Decrement(ref _waiting);
         }
 
+        // 失敗事件必須能指出是哪一段出問題；建線與健康檢查的處置方式完全不同。
+        var phase = "ensureMin";
         try
         {
             EnsureMinimum(subPool, key, cancellationToken);
+            phase = "lease";
             var now = DateTime.UtcNow;
             while (subPool.Idle.TryDequeue(out var candidate))
             {
@@ -183,18 +203,24 @@ public sealed class BoundedClientPool : IBoundedClientPool
 
                 if (NeedsHealthCheck(candidate, now))
                 {
+                    phase = "health";
+                    // 只觀測既有的健康檢查委派，不改變租借、淘汰或補建決策。trace 停用時不讀取
+                    // 單調時鐘，維持正常路徑零量測成本；記錄的僅是 elapsed 與結果，不保留 WhoAmI
+                    // 回應、使用者或認證資料，避免診斷層跨 request 延長 CRM／身分資料生命週期。
+                    var healthStartedTimestamp = traceEnabled ? Stopwatch.GetTimestamp() : 0;
                     var healthy = false;
                     try { healthy = _healthCheck(candidate.Service); } catch { healthy = false; }
+                    var healthElapsedMs = traceEnabled ? GetElapsedMilliseconds(healthStartedTimestamp) : 0;
                     if (!healthy)
                     {
                         if (traceEnabled)
-                            trace.PoolHealth(candidate.ClientId, result: false);
+                            trace.PoolHealth(candidate.ClientId, result: false, elapsedMs: healthElapsedMs);
                         Interlocked.Increment(ref _faulted);
                         RemoveAndDispose(subPool, candidate, "faulted");
                         continue;
                     }
                     if (traceEnabled)
-                        trace.PoolHealth(candidate.ClientId, result: true);
+                        trace.PoolHealth(candidate.ClientId, result: true, elapsedMs: healthElapsedMs);
                     candidate.MarkValidated(now);
                 }
 
@@ -203,13 +229,18 @@ public sealed class BoundedClientPool : IBoundedClientPool
             }
 
             // MinSize 可能因健康檢查淘汰而低於目前需求，此處補建一個新 client。
+            phase = "create";
             var created = CreateClient(subPool, key, cancellationToken);
             created.TryLease(now);
             Interlocked.Increment(ref _totalAcquires);
             return CreateLease(subPool, created, key, hit: false, trace, traceEnabled);
         }
-        catch
+        catch (Exception ex)
         {
+            // 沒有這一筆事件，建線失敗的 request 在稽核檔中只剩一筆 pool.acquire.wait，
+            // 既無 hit 也無 miss，最慢的那些 request 因此無法被解釋。
+            if (traceEnabled)
+                trace.PoolAcquireFail(phase, waitedMs, GetElapsedMilliseconds(waitStartedTimestamp), DescribeErrorKind(ex));
             if (entered)
                 subPool.Slots.Release();
             throw;
@@ -289,14 +320,79 @@ public sealed class BoundedClientPool : IBoundedClientPool
                 RemoveAndDispose(subPool, client, "idle");
             }
 
-            if (traceEnabled)
+            if (traceEnabled && expired.Count > 0)
             {
                 int idleAfter;
                 lock (subPool.Sync)
                     idleAfter = subPool.All.Count(client => client.State == PooledClientState.Idle);
-                trace.PoolCleanup(idleBefore, idleAfter, _options.MinSize);
+                trace.PoolCleanup(idleBefore, idleAfter, _options.MinSize, expired.Count);
             }
+
+            // 借用 cleanup timer 作為快照節拍，避免為了觀測再開一條 timer。
+            // 節流由 Trace 的 SnapshotInterval 決定，因此開發組態下 timer 每 2 秒觸發也不會灌爆稽核檔。
+            if (traceEnabled)
+                EmitPoolSnapshotIfDue(subPool, trace);
         }
+    }
+
+    /// <summary>
+    /// 若距離上次取樣已超過設定間隔，寫出一筆本子池的計數快照。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>為什麼需要時間序列</b>：連線洩漏的判準是「建立數與銷毀數的差值隨時間單調成長」，
+    /// 任何單筆事件都無法證明或反證它。先前的分析報告只能聲明「本報告無法證明不存在記憶體洩漏」，
+    /// 正是因為整份稽核檔沒有任何一個可比較的基準點。
+    /// </para>
+    /// <para>
+    /// <b>一致性</b>：Idle、Leased、Alive、Pending 必須在同一把鎖內取樣，否則會得到彼此矛盾的
+    /// 組合（例如 alive 小於 leased），使下游誤判為狀態機錯誤。累計計數以 Interlocked 讀取，
+    /// 它們單調遞增，不需要與上述值嚴格同時。
+    /// </para>
+    /// <para>
+    /// 取樣在 cleanup timer 的背景執行緒上進行，不佔用 request 執行緒，也不執行任何網路 I/O。
+    /// </para>
+    /// </remarks>
+    private void EmitPoolSnapshotIfDue(SubPool subPool, DataverseTrace trace)
+    {
+        var now = Stopwatch.GetTimestamp();
+        var last = Interlocked.Read(ref _lastSnapshotTimestamp);
+        if (last != 0 && Stopwatch.GetElapsedTime(last, now) < _snapshotInterval)
+            return;
+        if (Interlocked.CompareExchange(ref _lastSnapshotTimestamp, now, last) != last)
+            return;
+
+        int idle = 0, leased = 0, alive = 0, pending;
+        lock (subPool.Sync)
+        {
+            foreach (var client in subPool.All)
+            {
+                var state = client.State;
+                if (state == PooledClientState.Disposed)
+                    continue;
+                alive++;
+                if (state == PooledClientState.Idle) idle++;
+                else if (state == PooledClientState.Leased) leased++;
+            }
+            pending = subPool.Pending;
+        }
+
+        trace.PoolSnapshot(new DataverseTrace.PoolSnapshotData
+        {
+            PoolKey = FormatPoolKey(subPool.Key),
+            Idle = idle,
+            Leased = leased,
+            Alive = alive,
+            Pending = pending,
+            Created = Interlocked.Read(ref _created),
+            Discarded = Interlocked.Read(ref _discarded),
+            TotalAcquires = Interlocked.Read(ref _totalAcquires),
+            TotalReleases = Interlocked.Read(ref _totalReleases),
+            Waiting = Volatile.Read(ref _waiting),
+            AcquireTimeouts = Interlocked.Read(ref _acquireTimeouts),
+            Faulted = Interlocked.Read(ref _faulted),
+            SubPools = _subPools.Count
+        });
     }
 
     /// <summary>
@@ -330,36 +426,143 @@ public sealed class BoundedClientPool : IBoundedClientPool
         _subPools.Clear();
     }
 
+    /// <summary>
+    /// 補足子池的 MinSize。採「鎖內保留名額 → 鎖外建立 → 鎖內提交」三段式。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>為什麼不能在鎖內建線</b>：建立 client 是完整的網路驗證握手，而 <see cref="SubPool.Sync"/>
+    /// 同時被 Acquire、cleanup 與 metrics 共用。一旦在鎖內做這件事，CRM 變慢或失敗時，N 個併發
+    /// request 會被串列化成 N 倍延遲；實測曾出現三個同時到達的 request 以約 21 秒等差依序失敗
+    /// （21.9 / 41.6 / 61.3 秒），且 cleanup timer callback 在解鎖瞬間一次釋放 30 筆。
+    /// </para>
+    /// <para>
+    /// <b><see cref="SubPool.Pending"/> 的作用</b>：把建線移到鎖外之後，若只看 All 的數量，多個執行緒
+    /// 會各自算出同一個缺口並重複建線。先在鎖內保留名額，其他執行緒便會看到缺口已被認領。
+    /// </para>
+    /// <para>
+    /// <b>行為取捨</b>：其他執行緒不再被阻擋，但在保留期間它們會走 overflow 路徑自行建線，因此瞬間
+    /// 連線數可能高於 MinSize。此數量仍受 semaphore 的 MaxN 上限約束，並由閒置回收降回 MinSize；
+    /// 以少量額外連線換取不再被單一慢速握手鎖死整個子池。
+    /// </para>
+    /// <para>
+    /// 提交階段會重新檢查 pool 是否已關閉：若在鎖外建立期間 <see cref="Dispose"/> 已執行，新建的
+    /// client 不得掛進沒有擁有者的子池，必須就地釋放，否則會成為無人回收的連線。
+    /// </para>
+    /// </remarks>
     private void EnsureMinimum(SubPool subPool, DataverseConnectionKey key, CancellationToken cancellationToken)
     {
+        int reserved;
         lock (subPool.Sync)
         {
-            var missing = _options.MinSize - subPool.All.Count(client => client.State != PooledClientState.Disposed);
-            for (var index = 0; index < missing; index++)
+            var alive = subPool.All.Count(client => client.State != PooledClientState.Disposed);
+            reserved = _options.MinSize - alive - subPool.Pending;
+            if (reserved <= 0)
+                return;
+            subPool.Pending += reserved;
+        }
+
+        var created = new List<PooledClient>(reserved);
+        List<PooledClient> orphaned = null;
+        try
+        {
+            for (var index = 0; index < reserved; index++)
+                created.Add(CreateClientCore(key, cancellationToken, "ensureMin"));
+        }
+        finally
+        {
+            lock (subPool.Sync)
             {
-                var client = CreateClientCore(key, cancellationToken);
-                subPool.All.Add(client);
-                subPool.Idle.Enqueue(client);
+                subPool.Pending -= reserved;
+
+                if (Volatile.Read(ref _disposed) != 0)
+                {
+                    // pool 已於鎖外建立期間關閉；這些 client 沒有擁有者，必須就地釋放。
+                    orphaned = created;
+                }
+                else
+                {
+                    // 即使中途失敗，已成功建立的 client 仍要入池，不浪費已付出的握手成本。
+                    foreach (var client in created)
+                    {
+                        subPool.All.Add(client);
+                        subPool.Idle.Enqueue(client);
+                    }
+                }
+            }
+
+            if (orphaned != null)
+            {
+                foreach (var client in orphaned)
+                {
+                    TraceDisposeAttempt(client, "shutdown");
+                    if (client.DisposeUnderlying())
+                        Interlocked.Increment(ref _discarded);
+                }
             }
         }
     }
 
     private PooledClient CreateClient(SubPool subPool, DataverseConnectionKey key, CancellationToken cancellationToken)
     {
-        var client = CreateClientCore(key, cancellationToken);
+        var client = CreateClientCore(key, cancellationToken, "overflow");
         lock (subPool.Sync)
             subPool.All.Add(client);
         return client;
     }
 
-    private PooledClient CreateClientCore(DataverseConnectionKey key, CancellationToken cancellationToken)
+    /// <summary>
+    /// 唯一的 client 建立點，並在此量測建線耗時。
+    /// </summary>
+    /// <remarks>
+    /// 本方法目前由 <see cref="EnsureMinimum"/> 在子池鎖內呼叫，因此 <c>pool.create.end</c> 的 ms
+    /// 同時也是其他 request 被這把鎖阻擋的時間下限；把它記下來，才有辦法量化建線序列化的實際成本。
+    /// </remarks>
+    private PooledClient CreateClientCore(DataverseConnectionKey key, CancellationToken cancellationToken, string reason)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var service = _clientFactory(key, cancellationToken);
-        if (service == null)
-            throw new InvalidOperationException("Dataverse client factory 不得回傳 null。");
+
+        var trace = GetTrace();
+        var traceEnabled = trace?.Enabled == true;
+        var startedTimestamp = traceEnabled ? Stopwatch.GetTimestamp() : 0;
+        if (traceEnabled)
+            trace.PoolCreateBegin(FormatPoolKey(key), reason);
+
+        IOrganizationService service;
+        try
+        {
+            service = _clientFactory(key, cancellationToken);
+            if (service == null)
+                throw new InvalidOperationException("Dataverse client factory 不得回傳 null。");
+        }
+        catch (Exception ex)
+        {
+            if (traceEnabled)
+                trace.PoolCreateEnd(string.Empty, reason, GetElapsedMilliseconds(startedTimestamp), ok: false, DescribeErrorKind(ex));
+            throw;
+        }
+
         Interlocked.Increment(ref _created);
-        return new PooledClient(service);
+        var client = new PooledClient(service);
+        if (traceEnabled)
+            trace.PoolCreateEnd(client.ClientId, reason, GetElapsedMilliseconds(startedTimestamp), ok: true, string.Empty);
+        return client;
+    }
+
+    /// <summary>
+    /// 取出最內層例外的型別名稱作為診斷用的錯誤種類。
+    /// </summary>
+    /// <remarks>
+    /// 只輸出型別名稱，絕不輸出 <see cref="Exception.Message"/>：連線失敗的訊息通常內嵌組織 URL、
+    /// 服務帳號或 CRM 回應內容，寫入稽核檔會讓診斷功能本身變成資料外洩管道。取最內層是因為外層
+    /// 常被包成一般 <see cref="Exception"/>，真正的原因（例如 WebException）只在鏈的末端。
+    /// </remarks>
+    private static string DescribeErrorKind(Exception exception)
+    {
+        var current = exception;
+        while (current?.InnerException != null)
+            current = current.InnerException;
+        return current?.GetType().Name ?? string.Empty;
     }
 
     private bool NeedsHealthCheck(PooledClient client, DateTime now)

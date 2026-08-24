@@ -1,0 +1,12 @@
+{
+  "id": "health-check-timing-probe",
+  "title": "健康檢查耗時觀測點與冷路徑歸因確認",
+  "status": "review",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "執行雙模型審查；任何新發現僅回報，不修改",
+  "createdAt": "2026-08-21T12:00:00+08:00",
+  "branch": "feat/dataverse-scoped-connection"
+}

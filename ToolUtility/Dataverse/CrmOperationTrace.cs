@@ -1,0 +1,110 @@
+using System;
+using System.Diagnostics;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+
+namespace ToolUtilityNameSpace.Dataverse;
+
+/// <summary>
+/// 供 IOrganizationService 代理共用的 crm.op 量測工具。
+/// </summary>
+/// <remarks>
+/// <para>
+/// 此型別只由 <see cref="GatewayOrganizationService"/> 在真正發出 CRM SDK 呼叫的邊界使用，
+/// 因此每一次介面操作只會產生一筆 <c>crm.op</c>。Legacy
+/// <see cref="AmbientGatewayOrganizationService"/> 的責任是解析目前 scope 的完整
+/// <see cref="IOrganizationService"/> 裝飾鏈並直接委派；它不得再次使用本型別，否則同一個
+/// SDK 呼叫會被 Ambient 與 Gateway 各計一次，令 JSONL 的 <c>request.end.crmCount</c>
+/// 與 Host <c>[Perf]</c> 歸因不再可逐請求比對。
+/// </para>
+/// <para>
+/// <b>隱私邊界</b>：只輸出 entity logical name、SDK 訊息名稱、耗時、筆數與成敗。資料列 GUID、
+/// 欄位值、ColumnSet、查詢條件與 FetchXML 本文一律不取用，因此稽核檔不會成為資料外洩管道。
+/// </para>
+/// <para>
+/// 關閉 Trace 時完全不進入量測路徑，直接執行原委派，維持零額外配置的熱路徑成本。
+/// </para>
+/// </remarks>
+internal static class CrmOperationTrace
+{
+    /// <summary>執行並量測有回傳值的 CRM 操作。</summary>
+    /// <typeparam name="T">CRM 操作的回傳型別。</typeparam>
+    /// <param name="operation">操作種類名稱。</param>
+    /// <param name="entity">entity logical name；未知時傳入空字串。</param>
+    /// <param name="work">實際的 CRM 呼叫。</param>
+    /// <param name="countSelector">自結果取出筆數的選擇器；不適用時為 <see langword="null"/>。</param>
+    /// <returns>原 CRM 操作的回傳值，內容不受量測影響。</returns>
+    internal static T Measure<T>(string operation, string entity, Func<T> work, Func<T, int> countSelector = null)
+    {
+        var trace = DataverseTrace.Current;
+        if (trace?.Enabled != true)
+            return work();
+
+        var startedTimestamp = Stopwatch.GetTimestamp();
+        var ok = false;
+        var result = default(T);
+        try
+        {
+            result = work();
+            ok = true;
+            return result;
+        }
+        finally
+        {
+            // 失敗也必須留下紀錄：慢而後失敗的呼叫正是最需要被看見的那一種。
+            var count = ok && countSelector != null ? countSelector(result) : -1;
+            trace.CrmOperation(operation, entity, ElapsedMilliseconds(startedTimestamp), ok, count);
+        }
+    }
+
+    /// <summary>執行並量測沒有回傳值的 CRM 操作。</summary>
+    /// <param name="operation">操作種類名稱。</param>
+    /// <param name="entity">entity logical name；未知時傳入空字串。</param>
+    /// <param name="work">實際的 CRM 呼叫。</param>
+    internal static void Measure(string operation, string entity, Action work)
+        => Measure<object>(operation, entity, () => { work(); return null; });
+
+    /// <summary>
+    /// 取出查詢的 entity logical name。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="FetchExpression"/> 只回傳固定標記：其 XML 內嵌欄位、條件與資料列識別，
+    /// 解析並輸出等同把查詢內容寫進稽核檔，因此刻意不做。
+    /// </remarks>
+    /// <param name="query">要判定的查詢。</param>
+    /// <returns>entity logical name、固定標記，或無法判定時的空字串。</returns>
+    internal static string DescribeQuery(QueryBase query) => query switch
+    {
+        QueryExpression expression => expression.EntityName ?? string.Empty,
+        QueryByAttribute byAttribute => byAttribute.EntityName ?? string.Empty,
+        FetchExpression => "(fetchxml)",
+        null => string.Empty,
+        _ => string.Empty
+    };
+
+    /// <summary>
+    /// 取出組織要求的訊息名稱，作為 entity 欄位的替代識別。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>Execute</c> 沒有單一目標 entity，因此改以 SDK 訊息名稱填入同一個欄位 —— 對 N+1 偵測而言
+    /// 兩者作用相同：都是「同一種東西被重複呼叫」的識別。
+    /// </para>
+    /// <para>
+    /// <b>加上 <c>msg:</c> 前綴的理由</b>：不加前綴時，訊息名稱（RetrieveEntity、Assign）會與真正的
+    /// entity logical name（contact、list）混在同一欄，下游報表無法分辨兩者，容易把 metadata 呼叫
+    /// 誤讀成資料表查詢。前綴讓兩種命名空間在同一欄內仍可區分，且不需要新增欄位破壞既有 schema。
+    /// </para>
+    /// <para>
+    /// 只讀取 <see cref="OrganizationRequest.RequestName"/>；<c>Parameters</c> 內含實際資料，絕不取用。
+    /// </para>
+    /// </remarks>
+    /// <param name="request">要判定的組織要求。</param>
+    /// <returns>加上 <c>msg:</c> 前綴的 SDK 訊息名稱，未知時為空字串。</returns>
+    internal static string DescribeRequest(OrganizationRequest request)
+        => string.IsNullOrEmpty(request?.RequestName) ? string.Empty : "msg:" + request.RequestName;
+
+    /// <summary>取得自指定時間戳起算的毫秒數，不會回傳負值。</summary>
+    private static long ElapsedMilliseconds(long startedTimestamp)
+        => Math.Max(0, (long)Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds);
+}

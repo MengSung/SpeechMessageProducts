@@ -1,0 +1,113 @@
+﻿{
+    "runId":  "20260820-231315-perf-crm-attribution-final-latest-diff-reviewer",
+    "role":  "reviewer",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree",
+    "taskFile":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.ccg\\dual-model-runs\\perf-crm-attribution-final-latest-diff-reviewer.md",
+    "runDirectory":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer",
+    "wrapperPath":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+    "toolchainEnvironment":  {
+                                 "ToolPathEntries":  [
+                                                         "C:\\Users\\Administrator\\AppData\\Roaming\\npm",
+                                                         "C:\\Users\\Administrator\\.claude\\bin",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\Scripts",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Launcher"
+                                                     ],
+                                 "ChangedProcessPath":  false,
+                                 "ChangedUserPath":  false,
+                                 "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                                 "CODEAGENT_LITE_MODE":  "true",
+                                 "PYTHONIOENCODING":  "utf-8",
+                                 "CLAUDE_MODEL":  "sonnet",
+                                 "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-29432-48bce7e4cc1e49c2a9b6d744396fbb76\\claude.cmd",
+                                 "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-29432-48bce7e4cc1e49c2a9b6d744396fbb76",
+                                 "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                             },
+    "healthBackendSmoke":  false,
+    "attempts":  [
+                     {
+                         "attempt":  1,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\health-attempt-1.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "gemini",
+                                              "ok":  true,
+                                              "exitCode":  0,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "ok",
+                                              "producedOutput":  true,
+                                              "outputLength":  2300,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\gemini-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\gemini-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\gemini-reviewer-attempt-1.stderr.md"
+                                          },
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  false,
+                                              "exitCode":  1,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "no-usable-output",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\claude-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\claude-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\claude-reviewer-attempt-1.stderr.md"
+                                          }
+                                      ]
+                     },
+                     {
+                         "attempt":  2,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\health-attempt-2.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "gemini",
+                                              "ok":  true,
+                                              "exitCode":  0,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "ok",
+                                              "producedOutput":  true,
+                                              "outputLength":  4891,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\gemini-reviewer-attempt-2.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\gemini-reviewer-attempt-2.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\gemini-reviewer-attempt-2.stderr.md"
+                                          },
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  false,
+                                              "exitCode":  1,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "no-usable-output",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\claude-reviewer-attempt-2.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\claude-reviewer-attempt-2.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260820-231315-perf-crm-attribution-final-latest-diff-reviewer\\claude-reviewer-attempt-2.stderr.md"
+                                          }
+                                      ]
+                     }
+                 ],
+    "ok":  false,
+    "degradedFallback":  false,
+    "fallbackAccepted":  true,
+    "quotaBlocked":  false,
+    "completedBackends":  [
+                              "gemini"
+                          ],
+    "failedBackends":  [
+                           "claude"
+                       ]
+}

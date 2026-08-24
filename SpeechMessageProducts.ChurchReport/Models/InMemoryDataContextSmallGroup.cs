@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Payments;
+using ChurchReport.Diagnostics;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using LineMessagingProcessor.Workflows;
@@ -169,31 +170,81 @@ namespace ChurchReport.Models
         private ISession CurrentSession => m_ContextAccessor?.HttpContext?.Session;
 
         /// <summary>
-        /// 安全地取得當前 Session ID
-        /// 若 Session 不存在，返回空字串（避免 NullReferenceException）
+        /// 將既有 Session 除錯訊息送入 Debug 管線，但只在程序級診斷開關明確啟用時執行。
         /// </summary>
-        private string GetCurrentSessionId()
+        /// <param name="message">由本檔案固定程式碼產生的診斷文字；不得帶入未遮罩的外部輸入。</param>
+        /// <remarks>
+        /// <para>
+        /// 這個 helper 是本檔 51 個既有 <c>Debug.WriteLine</c> 呼叫的唯一出口。它只控制
+        /// 診斷副作用，不包住或改寫 Session 存取、指紋雜湊、快取 key 組成、dirty flag 或
+        /// 其他產品行為；因此關閉開關不會改變資料結果，也不會引入跨使用者狀態共享。
+        /// </para>
+        /// <para>
+        /// 開關預設關閉時只做一次 volatile read，避免建立 writer、stream、task、timer 或
+        /// cancellation registration。Debug listener 的 flush 與 Dispose 由程序級 Program
+        /// owner 負責；本 request-scoped data context 不得擁有或釋放該 listener。
+        /// <see cref="System.Diagnostics.ConditionalAttribute"/> 讓 Release 編譯器連同呼叫點的
+        /// interpolated-string 參數評估一起移除，而不是只執行一個空方法；因此正式組態不會
+        /// 為已編譯移除的 Session 診斷付出字串配置或 GC 成本。
+        /// </para>
+        /// </remarks>
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void WriteSessionDiagnostic(string message)
         {
-            System.Diagnostics.Debug.WriteLine("[GetCurrentSessionId] 🔵 進入方法");
+#if DEBUG
+            if (SessionDiagnosticsSwitch.Enabled)
+            {
+                System.Diagnostics.Debug.WriteLine(message);
+            }
+#endif
+        }
+
+        /// <summary>
+        /// 嘗試從目前 HTTP request 即時取得 Session，建立只屬於該 Session 的快取 key。
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 此方法不得使用建構時快取的 HttpContext 或 Session；每次存取均經由
+        /// <see cref="CurrentSession"/> 取得當前 request，避免 scoped data context 因持有前一位
+        /// 使用者的 Session 而跨 request 或跨使用者讀寫快取。產出的 key 組合 Session ID、已驗證的
+        /// session bound user、請求指紋與 session-created timestamp，維持既有隔離語意不變。
+        /// </para>
+        /// <para>
+        /// 沒有 Session 時會回傳 <see langword="false"/>，而不是產生含有 Ticks 的一次性 key。
+        /// 呼叫端必須改用 data context 實例欄位持有的後備物件，且不得呼叫程序級
+        /// <see cref="IMemoryCache"/>。這個後備物件的最長生命週期由目前 Scoped context 決定，
+        /// scope 結束即失去唯一持有者，因此不會跨 request、使用者、profile 或 tenant 留存。
+        /// </para>
+        /// <para>
+        /// 只有取得 Session 時才會寫入 Session timestamp 並組成 key。關閉診斷開關不會略過
+        /// Session timestamp 寫入、例外傳播或 key 組成；也不會新增任何 cache、stream、listener
+        /// 或背景工作。因診斷文字可包含 Session GUID、BoundUserId 與 key 片段，預設不能輸出。
+        /// </para>
+        /// </remarks>
+        /// <param name="key">成功時為完整且已隔離的 Session 快取 key；失敗時為 <see langword="null"/>，禁止用於程序級快取。</param>
+        /// <returns>目前是否有可安全用於程序級快取的 Session 隔離邊界。</returns>
+        private bool TryGetSessionCacheKey(out string key)
+        {
+            WriteSessionDiagnostic("[TryGetSessionCacheKey] 🔵 進入方法");
 
             var session = CurrentSession;
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 📌 CurrentSession 是否為 null: {session == null}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] 📌 CurrentSession 是否為 null: {session == null}");
 
             if (session == null)
             {
-                // 在偵錯或非 HTTP 請求上下文 (例如 VS 立即視窗、除錯評估) 中存取時，避免丟出例外導致 Visual Studio 顯示不安全的中止情形。
-                // 改為回傳一個暫時性的唯一 key，並記錄警告。這能避免除錯時評估屬性引發中斷，但在正常請求流程中 Session 應可用。
-                System.Diagnostics.Debug.WriteLine("[GetCurrentSessionId] ❌ CurrentSession 為 null，回傳暫時性快取 key 以避免在除錯時中斷流程");
-                var tempKey = $"NOSESSION_{Environment.MachineName}_{Thread.CurrentThread.ManagedThreadId}_{DateTime.UtcNow.Ticks}";
-                System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ⚠️ 暫時性 Key: {tempKey}");
-                return tempKey;
+                // 背景工作、非 HTTP 執行緒及除錯評估都可能沒有 Session。過去以 Ticks 產生唯一 key
+                // 會使每次存取都寫入一筆無法命中的 30 分鐘快取，造成無界保留；此處刻意失敗關閉。
+                // 呼叫端改以本 Scoped context 的欄位保存後備物件，scope 結束時自然回收，不會跨使用者共用。
+                key = null;
+                WriteSessionDiagnostic("[TryGetSessionCacheKey] ⚠️ CurrentSession 為 null，已改用實例層級後備物件，未寫入行程快取");
+                return false;
             }
 
             var sessionId = session.Id;
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 📋 Session ID: {sessionId}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] 📋 Session ID: {sessionId}");
 
             var boundUserId = session.GetString("_SessionRegeneratedFor") ?? string.Empty;
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 👤 BoundUserId: {(string.IsNullOrEmpty(boundUserId) ? "(empty)" : boundUserId)}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] 👤 BoundUserId: {(string.IsNullOrEmpty(boundUserId) ? "(empty)" : boundUserId)}");
 
             // ========================================
             // ✅ 指紋策略：優先使用已綁定的 Session 指紋
@@ -210,7 +261,7 @@ namespace ChurchReport.Models
             /// 如果存在已儲存的指紋，表示使用者已登入並綁定。
             /// </summary>
             var storedFingerprint = session.GetString("_SessionFingerprint");
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: {!string.IsNullOrEmpty(storedFingerprint)}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🔐 StoredFingerprint 是否存在: {!string.IsNullOrEmpty(storedFingerprint)}");
             // 注意事項：
             // - storedFingerprint 若存在代表應用程式在某次登入或綁定時，
             //   已將穩定的指紋寫入 Session，這樣可以讓同一使用者在未來請求
@@ -228,7 +279,7 @@ namespace ChurchReport.Models
             string currentRequestFingerprint = string.IsNullOrEmpty(storedFingerprint)
                 ? GenerateCurrentRequestFingerprint()
                 : storedFingerprint;
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): {(currentRequestFingerprint?.Substring(0, Math.Min(16, currentRequestFingerprint.Length)) ?? "(empty)")}...");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🔐 CurrentRequestFingerprint (前16字): {(currentRequestFingerprint?.Substring(0, Math.Min(16, currentRequestFingerprint.Length)) ?? "(empty)")}...");
             // 補充說明：
             // - GenerateCurrentRequestFingerprint() 會使用 IP + User-Agent 做 SHA256 雜湊並以 Base64 回傳，
             //   這會在匿名使用者之間提供較低的碰撞機率，但也會受到 User-Agent 偽造或 NAT/代理的影響。
@@ -242,7 +293,7 @@ namespace ChurchReport.Models
             /// 如果不存在，將在首次存取時初始化。
             /// </summary>
             var sessionCreatedTime = session.GetString("_SessionCreatedTime");
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: {!string.IsNullOrEmpty(sessionCreatedTime)}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] ⏱️  SessionCreatedTime 是否存在: {!string.IsNullOrEmpty(sessionCreatedTime)}");
             // 補充說明：
             // - sessionCreatedTime 用來補強 key 的唯一性；它由 Ticks + 短 GUID 構成，
             //   可在極端情況下降低 Session ID 與指紋組合碰撞的風險。
@@ -260,18 +311,18 @@ namespace ChurchReport.Models
             {
                 // 使用 Ticks + GUID 的組合確保絕對唯一性
                 sessionCreatedTime = $"{DateTime.UtcNow.Ticks}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
-                System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🆕 生成新的 SessionCreatedTime: {sessionCreatedTime}");
+                WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🆕 生成新的 SessionCreatedTime: {sessionCreatedTime}");
 
                 try
                 {
                     session.SetString("_SessionCreatedTime", sessionCreatedTime);
-                    System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ✅ 首次存取，已初始化 Session 時間戳: {sessionCreatedTime}");
+                    WriteSessionDiagnostic($"[TryGetSessionCacheKey] ✅ 首次存取，已初始化 Session 時間戳: {sessionCreatedTime}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ❌ 無法寫入 Session 時間戳 - Exception: {ex.GetType().Name}");
-                    System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ❌ 異常詳情: {ex.Message}");
-                    System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ❌ StackTrace: {ex.StackTrace}");
+                    WriteSessionDiagnostic($"[TryGetSessionCacheKey] ❌ 無法寫入 Session 時間戳 - Exception: {ex.GetType().Name}");
+                    WriteSessionDiagnostic($"[TryGetSessionCacheKey] ❌ 異常詳情: {ex.Message}");
+                    WriteSessionDiagnostic($"[TryGetSessionCacheKey] ❌ StackTrace: {ex.StackTrace}");
                     throw new InvalidOperationException(
                         "無法寫入 Session 時間戳，無法產生安全的快取 key。" +
                         "請確保 Session 中介軟體已正確配置且可寫入。", ex);
@@ -279,7 +330,7 @@ namespace ChurchReport.Models
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: {sessionCreatedTime}");
+                WriteSessionDiagnostic($"[TryGetSessionCacheKey] ⏱️  使用既有的 SessionCreatedTime: {sessionCreatedTime}");
             }
 
             // ========================================
@@ -299,7 +350,7 @@ namespace ChurchReport.Models
             /// 但單獨使用可能會有碰撞風險，因此需要額外元件強化。
             /// </summary>
             var keyBuilder = new System.Text.StringBuilder(sessionId);
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: {sessionId}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🏗️  開始構建快取 Key，初始值: {sessionId}");
 
             /// <summary>
             /// 如果有已綁定的使用者 ID，加入到 key 中
@@ -310,7 +361,7 @@ namespace ChurchReport.Models
             if (!string.IsNullOrEmpty(boundUserId))
             {
                 keyBuilder.Append('_').Append(boundUserId);
-                System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  已添加 BoundUserId: {boundUserId}");
+                WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🏗️  已添加 BoundUserId: {boundUserId}");
             }
 
             /// <summary>
@@ -331,7 +382,7 @@ namespace ChurchReport.Models
                 // - 保留過短的片段會降低唯一性，若在高併發或大量匿名使用者環境，
                 //   可考慮改為取更多字元或使用其他穩定標識。
                 keyBuilder.Append('_').Append(shortFingerprint);
-                System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  已添加短指紋: {shortFingerprint}");
+                WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🏗️  已添加短指紋: {shortFingerprint}");
             }
 
             /// <summary>
@@ -350,7 +401,7 @@ namespace ChurchReport.Models
                 //   並且避免將整個長字串加入 key 造成過長。
                 // - 此片段並非用來表達時間的可讀形式，只是用作增加唯一性的標識。
                 keyBuilder.Append('_').Append(shortTimestamp);
-                System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  已添加時間戳: {shortTimestamp}");
+                WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🏗️  已添加時間戳: {shortTimestamp}");
             }
 
             /// <summary>
@@ -360,127 +411,160 @@ namespace ChurchReport.Models
             /// 同時防止資料洩漏和碰撞。
             /// </summary>
             var finalKey = keyBuilder.ToString();
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ✅ 最終快取 Key: {finalKey}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] ✅ 最終快取 Key: {finalKey}");
             // 補充說明：
             // - finalKey 的格式為：{SessionId}_{BoundUserId?}_{ShortFingerprint?}_{ShortTimestamp?}
             // - 這個 key 適用於記憶體快取（IMemoryCache）中作為索引。
             // - 請注意此 key 可能會包含特殊字元（來自 Base64），如果未來需要將其序列化到其他儲存或傳輸媒介，
             //   請先做安全字元處理。
-            System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🟢 方法返回，Key 長度: {finalKey.Length}");
+            WriteSessionDiagnostic($"[TryGetSessionCacheKey] 🟢 方法返回，Key 長度: {finalKey.Length}");
 
-            return finalKey;
+            key = finalKey;
+            return true;
         }
 
         /// <summary>
-        /// 生成當前請求的指紋（IP + UserAgent）
-        /// 不依賴 Session 中儲存的值，確保即時隔離
+        /// 取得既有相容呼叫端使用的 Session key。
         /// </summary>
+        /// <remarks>
+        /// 新增的六個資料管理器 getter 必須先呼叫 <see cref="TryGetSessionCacheKey"/>，並在沒有
+        /// Session 時完全避開 <see cref="IMemoryCache"/>。本包裝只保留給本階段範圍外的 legacy
+        /// getter，以固定 <c>NOSESSION</c> 取代曾經每次不同的 Ticks key，避免既有呼叫端再產生
+        /// 無界項目；它不是新程式碼可使用的 cache 授權。
+        /// </remarks>
+        /// <returns>有 Session 時的完整隔離 key；否則固定的相容字串 <c>NOSESSION</c>。</returns>
+        private string GetCurrentSessionId()
+        {
+            return TryGetSessionCacheKey(out var key) ? key : "NOSESSION";
+        }
+
+        /// <summary>
+        /// 依目前 HTTP request 的 forwarded IP 與 User-Agent 產生 Session 隔離用指紋。
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 本方法只讀取當前 <see cref="IHttpContextAccessor.HttpContext"/>，不保存 IP、header、
+        /// User-Agent、fingerprint 或任何 request 資料到 static/singleton 欄位。呼叫端只把雜湊結果
+        /// 用於當前 Session 的快取 key，避免不同使用者在相同 Session ID 或代理環境下混用資料。
+        /// </para>
+        /// <para>
+        /// X-Forwarded-For 與 User-Agent 的原始值屬敏感診斷資料；本次保留既有除錯能力但將所有輸出
+        /// 交給預設關閉的 <see cref="WriteSessionDiagnostic"/>。IP 取得失敗仍沿用既有的 Unknown fallback，
+        /// 外層例外仍回傳空字串，兩條行為路徑均沒有因診斷開關而改變。
+        /// </para>
+        /// </remarks>
         private string GenerateCurrentRequestFingerprint()
         {
-            System.Diagnostics.Debug.WriteLine("[GenerateCurrentRequestFingerprint] 🔵 進入方法");
+            WriteSessionDiagnostic("[GenerateCurrentRequestFingerprint] 🔵 進入方法");
 
             try
             {
                 var httpContext = m_ContextAccessor?.HttpContext;
-                System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: {httpContext == null}");
+                WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: {httpContext == null}");
 
                 if (httpContext == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("[GenerateCurrentRequestFingerprint] ⚠️  HttpContext 為 null，返回空字串");
+                    WriteSessionDiagnostic("[GenerateCurrentRequestFingerprint] ⚠️  HttpContext 為 null，返回空字串");
                     return string.Empty;
                 }
 
                 var ip = "Unknown";
                 try
                 {
-                    System.Diagnostics.Debug.WriteLine("[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址");
+                    WriteSessionDiagnostic("[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址");
 
                     var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].ToString();
-                    System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: {(string.IsNullOrEmpty(forwardedFor) ? "(empty)" : forwardedFor)}");
+                    WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: {(string.IsNullOrEmpty(forwardedFor) ? "(empty)" : forwardedFor)}");
 
                     if (!string.IsNullOrEmpty(forwardedFor))
                     {
                         var ips = forwardedFor.Split(',');
-                        System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For IP 列表數量: {ips.Length}");
+                        WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For IP 列表數量: {ips.Length}");
 
                         if (ips.Length > 0)
                         {
                             ip = ips[0].Trim();
-                            System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 🌐 使用 X-Forwarded-For 第一個 IP: {ip}");
+                            WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 🌐 使用 X-Forwarded-For 第一個 IP: {ip}");
                         }
                     }
                     else
                     {
                         ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-                        System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: {ip}");
+                        WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: {ip}");
                     }
                 }
                 catch (Exception ipEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] ⚠️  提取 IP 時發生異常: {ipEx.GetType().Name} - {ipEx.Message}");
-                    System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] ⚠️  IP 預設為: Unknown");
+                    WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] ⚠️  提取 IP 時發生異常: {ipEx.GetType().Name} - {ipEx.Message}");
+                    WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] ⚠️  IP 預設為: Unknown");
                 }
 
                 var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
-                System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): {(string.IsNullOrEmpty(userAgent) ? "(empty)" : userAgent.Substring(0, Math.Min(50, userAgent.Length)))}...");
+                WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): {(string.IsNullOrEmpty(userAgent) ? "(empty)" : userAgent.Substring(0, Math.Min(50, userAgent.Length)))}...");
 
                 var input = $"{ip}|{userAgent}";
-                System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: {input}");
+                WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: {input}");
 
                 using (var sha256 = System.Security.Cryptography.SHA256.Create())
                 {
                     var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
                     var fingerprint = Convert.ToBase64String(bytes);
-                    System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: {fingerprint}");
-                    System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] 🟢 方法返回成功");
+                    WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: {fingerprint}");
+                    WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] 🟢 方法返回成功");
 
                     return fingerprint;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] ❌ 方法異常 - Exception 類型: {ex.GetType().Name}");
-                System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] ❌ 異常訊息: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] ❌ StackTrace: {ex.StackTrace}");
-                System.Diagnostics.Debug.WriteLine($"[GenerateCurrentRequestFingerprint] ⚠️  返回空字串作為備用");
+                WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] ❌ 方法異常 - Exception 類型: {ex.GetType().Name}");
+                WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] ❌ 異常訊息: {ex.Message}");
+                WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] ❌ StackTrace: {ex.StackTrace}");
+                WriteSessionDiagnostic($"[GenerateCurrentRequestFingerprint] ⚠️  返回空字串作為備用");
 
                 return string.Empty;
             }
         }
 
         /// <summary>
-        /// 安全地設定 Session 值（dirty flag）
+        /// 在目前 Session 存在時設定 dirty flag，通知既有流程 Session 相關快取狀態已變更。
         /// </summary>
+        /// <remarks>
+        /// 此方法只透過 <see cref="CurrentSession"/> 取得當前 request 的 Session，絕不保留 Session
+        /// 實體供下一個 request 使用。寫入失敗仍沿用既有「不拋出、讓主流程繼續」語意；本次只關閉
+        /// 診斷副作用，沒有把失敗改為成功或改變 dirty 值。例外與 stack trace 可能含敏感內容，故預設
+        /// 不寫入 Trace.log；需要除錯時必須由受信任的程序級開關明確啟用。
+        /// </remarks>
         private void SetSessionDirtyFlag()
         {
-            System.Diagnostics.Debug.WriteLine("[SetSessionDirtyFlag] 🔵 進入方法");
+            WriteSessionDiagnostic("[SetSessionDirtyFlag] 🔵 進入方法");
 
             var session = CurrentSession;
-            System.Diagnostics.Debug.WriteLine($"[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: {session == null}");
+            WriteSessionDiagnostic($"[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: {session == null}");
 
             if (session != null)
             {
                 try
                 {
                     session.SetInt32("dirty", 1);
-                    System.Diagnostics.Debug.WriteLine("[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1");
-                    System.Diagnostics.Debug.WriteLine("[SetSessionDirtyFlag] 🟢 方法完成");
+                    WriteSessionDiagnostic("[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1");
+                    WriteSessionDiagnostic("[SetSessionDirtyFlag] 🟢 方法完成");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SetSessionDirtyFlag] ❌ 設定 dirty flag 時發生異常");
-                    System.Diagnostics.Debug.WriteLine($"[SetSessionDirtyFlag] ❌ Exception 類型: {ex.GetType().Name}");
-                    System.Diagnostics.Debug.WriteLine($"[SetSessionDirtyFlag] ❌ 異常訊息: {ex.Message}");
-                    System.Diagnostics.Debug.WriteLine($"[SetSessionDirtyFlag] ❌ StackTrace: {ex.StackTrace}");
+                    WriteSessionDiagnostic($"[SetSessionDirtyFlag] ❌ 設定 dirty flag 時發生異常");
+                    WriteSessionDiagnostic($"[SetSessionDirtyFlag] ❌ Exception 類型: {ex.GetType().Name}");
+                    WriteSessionDiagnostic($"[SetSessionDirtyFlag] ❌ 異常訊息: {ex.Message}");
+                    WriteSessionDiagnostic($"[SetSessionDirtyFlag] ❌ StackTrace: {ex.StackTrace}");
 
                     // 不拋出異常，只記錄警告
-                    System.Diagnostics.Debug.WriteLine("[SetSessionDirtyFlag] ⚠️  由於異常，dirty flag 設定可能失敗");
+                    WriteSessionDiagnostic("[SetSessionDirtyFlag] ⚠️  由於異常，dirty flag 設定可能失敗");
                 }
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("[SetSessionDirtyFlag] ⚠️  CurrentSession 為 null，無法設定 dirty flag");
-                System.Diagnostics.Debug.WriteLine("[SetSessionDirtyFlag] ⚠️  方法返回（不設定任何值）");
+                WriteSessionDiagnostic("[SetSessionDirtyFlag] ⚠️  CurrentSession 為 null，無法設定 dirty flag");
+                WriteSessionDiagnostic("[SetSessionDirtyFlag] ⚠️  方法返回（不設定任何值）");
             }
         }
 
@@ -489,7 +573,7 @@ namespace ChurchReport.Models
         #region 初始化
 
         /// <summary>
-        /// 建構函式 - 初始化記憶體資料上下文
+        /// 建構小組資料的 request-scoped 記憶體上下文，保存服務依賴但不捕獲任何當前 Session。
         ///
         /// 注入必要的依賴項：
         /// - IHttpContextAccessor: 用於安全存取 HTTP 上下文和 Session
@@ -499,10 +583,24 @@ namespace ChurchReport.Models
         ///
         /// 注意：不再在建構時捕獲 Session，以避免 Session Bleeding
         /// </summary>
-        /// <param name="contextAccessor">HTTP 上下文存取器</param>
-        /// <param name="memoryCache">記憶體快取</param>
-        /// <param name="PamentService">付款服務</param>
-        /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
+        /// <remarks>
+        /// <para>
+        /// <paramref name="contextAccessor"/> 可以是 singleton-safe accessor，但此型別只能在實際操作時
+        /// 讀取其目前 HttpContext；不可在建構式存下 HttpContext、ISession、ClaimsPrincipal 或任何使用者
+        /// 資料。這是避免 Session Leakage 的所有權邊界。快取 key 的隔離邏輯由
+        /// <see cref="TryGetSessionCacheKey"/> 在每次存取時重新建立。
+        /// </para>
+        /// <para>
+        /// 建構完成診斷本次會走預設關閉的 <see cref="WriteSessionDiagnostic"/>，所以一般請求不會因
+        /// 建構 data context 而同步寫檔。開關不影響任何相依性指派、資源 Dispose 或產品資料流程。
+        /// </para>
+        /// </remarks>
+        /// <param name="contextAccessor">可安全取得當前 request 的 HTTP 上下文 accessor；不可直接保存其 Session。</param>
+        /// <param name="memoryCache">由 DI 管理的程序級快取；所有 key 必須保留完整 Session 隔離邊界。</param>
+        /// <param name="toolUtilityProvider">由目前 scope 使用的 ToolUtility 提供者，不得提升為 singleton。</param>
+        /// <param name="donationPaymentCreateGatewayAdapter">奉獻付款建立邊界；可為 null 以保持既有相容呼叫端。</param>
+        /// <param name="lineNotificationWorkflow">可選的 LINE push workflow，不保存 reply token 或使用者身份。</param>
+        /// <param name="lineReplyWorkflow">可選的 LINE reply workflow，僅由目前產品流程使用。</param>
         public InMemoryDataContextSmallGroup(
             IHttpContextAccessor contextAccessor,
             IMemoryCache memoryCache,
@@ -525,7 +623,7 @@ namespace ChurchReport.Models
             _lineNotificationWorkflow = lineNotificationWorkflow;
             _lineReplyWorkflow = lineReplyWorkflow;
 
-            System.Diagnostics.Debug.WriteLine("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
+            WriteSessionDiagnostic("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
         }
 
         #endregion
@@ -541,11 +639,23 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// 有 Session 時才可使用程序級快取，完整 key 保留 Session、使用者、指紋與建立時間的隔離邊界。
+        /// 無 Session 時回傳由目前 Scoped data context 唯一持有的後備物件，絕不寫入 <see cref="IMemoryCache"/>；
+        /// 該物件最晚在 scope 結束後失去持有者，因此不會跨 request 或使用者留存。
+        /// </remarks>
         public ListManager ListManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_ListManager";
+                // 無 Session 時不具備可安全分割程序級快取的隔離邊界；後備物件只由目前 Scoped
+                // data context 持有，scope 結束即釋放，不會把背景或除錯狀態留給下一個 request。
+                if (!TryGetSessionCacheKey(out var sessionKey))
+                {
+                    return m_ListManager ??= new ListManager();
+                }
+
+                var key = sessionKey + "_ListManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -625,11 +735,22 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// 背景或除錯執行緒沒有 Session 時不可推定程序級快取的隔離鍵。此情況僅使用目前 data context 的
+        /// 實例欄位，scope 是唯一的生命週期 owner，確保可變小組資料不會跨 request、profile 或 tenant 外洩。
+        /// </remarks>
         public SmallGroupDataList SmallGroupDataList
         {
             get
             {
-                var key = GetCurrentSessionId() + "_SmallGroupDataList";
+                // 沒有 Session 時禁止碰 IMemoryCache；此欄位是目前 context 的唯一後備 owner，
+                // 因此不會跨 request、使用者、profile 或 tenant 殘留可變資料。
+                if (!TryGetSessionCacheKey(out var sessionKey))
+                {
+                    return m_SmallGroupDataList ??= new SmallGroupDataList();
+                }
+
+                var key = sessionKey + "_SmallGroupDataList";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_SmallGroupDataList))
@@ -681,11 +802,22 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// 無 Session 的週報資料屬暫時背景狀態，不能以一次性 key 提升為程序級物件圖。後備實例由目前
+        /// Scoped context 持有至 scope 釋放為止，且不會寫入或讀取其他 request 的快取項目。
+        /// </remarks>
         public WeeklyReportData WeeklyReportData
         {
             get
             {
-                var key = GetCurrentSessionId() + "_WeeklyReportData";
+                // 背景／非 HTTP 路徑沒有可驗證的 Session 隔離，改用實例欄位後備物件，
+                // 避免以每次唯一 key 寫入 30 分鐘的程序級快取。
+                if (!TryGetSessionCacheKey(out var sessionKey))
+                {
+                    return m_WeeklyReportData ??= new WeeklyReportData();
+                }
+
+                var key = sessionKey + "_WeeklyReportData";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_WeeklyReportData))
@@ -735,11 +867,22 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// 此 getter 只有驗證到 Session 隔離邊界時才使用 <see cref="IMemoryCache"/>。沒有 Session 時，
+        /// 後備模型的最長生命週期限制在目前 Scoped context，避免背景處理延長新人資料或身份相關狀態的保留。
+        /// </remarks>
         public NewPersonModel NewPersonModel
         {
             get
             {
-                var key = GetCurrentSessionId() + "_NewPersonModel";
+                // 後備物件的生命週期不超過目前 Scoped context；無 Session 時絕不寫入
+                // 程序級 cache，避免背景執行緒把資料帶到其他使用者。
+                if (!TryGetSessionCacheKey(out var sessionKey))
+                {
+                    return m_NewPersonModel ??= new NewPersonModel();
+                }
+
+                var key = sessionKey + "_NewPersonModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
@@ -789,11 +932,22 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// 個人資料模型不可因缺少 Session 而共享程序級後備 key。無 Session 路徑只使用目前 context 的欄位，
+        /// scope 結束即終止其可達性，防止個人資料在下一個 request、使用者或 tenant 重新出現。
+        /// </remarks>
         public PersonalInfomationModel PersonalInfomationModel
         {
             get
             {
-                var key = GetCurrentSessionId() + "_PersonalInfomationModel";
+                // 沒有 Session 時以 context-local 後備欄位取代 cache；scope disposal 是唯一
+                // 清理路徑，故不會產生跨 request 的 mutable profile 狀態。
+                if (!TryGetSessionCacheKey(out var sessionKey))
+                {
+                    return m_PersonalInfomationModel ??= new PersonalInfomationModel();
+                }
+
+                var key = sessionKey + "_PersonalInfomationModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
@@ -843,11 +997,23 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// 沒有 Session 時仍以目前 scope 注入的 <see cref="IToolUtilityProvider"/> 建立後備實例，但不寫入
+        /// <see cref="IMemoryCache"/>。provider 與後備資料同由目前 scope 擁有並在 scope 結束時釋放，避免
+        /// 快取保存跨 request 的服務參考或使用者特定可變狀態。
+        /// </remarks>
         public HappyGroupDataManager HappyGroupDataManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_HappyGroupDataManager";
+                // HappyGroupDataManager 仍必須由目前 scope 的 provider 建構；只有在沒有 Session
+                // 時略過程序級 cache，保留 provider 的資源所有權與跨使用者隔離。
+                if (!TryGetSessionCacheKey(out var sessionKey))
+                {
+                    return m_HappyGroupDataManager ??= new HappyGroupDataManager(_toolUtilityProvider);
+                }
+
+                var key = sessionKey + "_HappyGroupDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))

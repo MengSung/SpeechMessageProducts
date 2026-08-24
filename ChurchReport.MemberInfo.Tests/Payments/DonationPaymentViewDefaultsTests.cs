@@ -66,6 +66,89 @@ public sealed class DonationPaymentViewDefaultsTests
         model.DedicationBookingList.Should().NotBeNull();
     }
 
+    [Fact]
+    public void Qpay_model_falls_back_to_first_crm_category_when_hardcoded_default_is_absent()
+    {
+        // 好牧人這類教會的 new_fee.new_category OptionSet 用「獻金」命名，沒有「十一奉獻」。
+        // 硬編碼預設值不在 DataSource 裡時，DevExtreme SelectBox 會退回顯示 placeholder「選擇...」，
+        // 使用者必須自己下拉才能送出，因此 ViewModel 必須把預設值對帳回實際清單。
+        var model = new DonationPaymentFormModel
+        {
+            Category = "十一奉獻",
+            DedicationCategoryList = new List<string>
+            {
+                "月定獻金",
+                "禮拜獻金",
+                "感恩獻金",
+                "聖餐獻金"
+            }
+        };
+
+        model.EnsureFormDefaults();
+
+        model.Category.Should().Be("月定獻金");
+    }
+
+    [Fact]
+    public void Qpay_model_keeps_hardcoded_default_when_crm_category_list_contains_it()
+    {
+        // OptionSet 有「十一奉獻」的教會必須維持原本的預設值，不能被改成清單第一項。
+        var model = new DonationPaymentFormModel
+        {
+            Category = "十一奉獻",
+            DedicationCategoryList = new List<string>
+            {
+                "主日奉獻",
+                "十一奉獻",
+                "感恩奉獻"
+            }
+        };
+
+        model.EnsureFormDefaults();
+
+        model.Category.Should().Be("十一奉獻");
+    }
+
+    [Fact]
+    public void Qpay_model_keeps_selected_category_that_exists_in_crm_category_list()
+    {
+        // 對帳只負責修掉「清單裡沒有的值」，不能覆蓋使用者或流程已經選好的合法類別。
+        var model = new DonationPaymentFormModel
+        {
+            Category = "禮拜獻金",
+            DedicationCategoryList = new List<string>
+            {
+                "月定獻金",
+                "禮拜獻金",
+                "感恩獻金"
+            }
+        };
+
+        model.EnsureFormDefaults();
+
+        model.Category.Should().Be("禮拜獻金");
+    }
+
+    [Fact]
+    public void Qpay_model_matches_crm_category_ignoring_surrounding_whitespace()
+    {
+        // CRM OptionSet 標籤偶爾帶前後空白；比對必須容忍，且要回填清單裡的原始字串，
+        // 否則 SelectBox 的 value 仍然對不上 DataSource 項目。
+        var model = new DonationPaymentFormModel
+        {
+            Category = "月定獻金",
+            DedicationCategoryList = new List<string>
+            {
+                " 月定獻金 ",
+                "禮拜獻金"
+            }
+        };
+
+        model.EnsureFormDefaults();
+
+        model.Category.Should().Be(" 月定獻金 ");
+    }
+
     [Theory]
     [InlineData("", "D001", true)]
     [InlineData("胡夢嵩", "", true)]
