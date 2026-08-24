@@ -64,8 +64,15 @@ C1 涉及改寫 git 歷史，一定要第一個做，否則後續提交會被捲
 
 ### 要做的事
 
-1. 確認尚未 push（`git log origin/feat/dataverse-scoped-connection..HEAD` 應包含這五個提交）。
-   若已 push，**停下來問**，不要強制改寫遠端歷史。
+> **⚠️ 已知狀態：這個分支已經 push 到 origin 了。**
+> `git status -sb` 顯示本機與 `origin/feat/dataverse-scoped-connection` 完全同步，
+> 五個提交（含 `71b42c31`）都已在遠端。
+>
+> 因此重寫歷史需要 `git push --force-with-lease`。
+> **除非使用者明確授權 force push，否則本項只做步驟 3（`.gitignore`），跳過步驟 1、2、4。**
+> 詢問時要講清楚：若有其他人已經 pull 過這個分支，force push 會造成他們的本機歷史分岔。
+
+1. 先確認使用者是否授權 force push。未授權就只做步驟 3。
 2. 把 `SessionDiagnosticsSwitchTests.cs` 那 6 行併回 `3bf57fce`（F2），
    讓 F2 這個提交自身測試是綠的。可用互動式 rebase 之外的方式達成——
    **注意本環境不支援 `git rebase -i`**，請改用
@@ -109,28 +116,57 @@ C1 涉及改寫 git 歷史，一定要第一個做，否則後續提交會被捲
 需要說明的是：**改動前的行為也不乾淨**——那是背景執行緒無鎖改寫共用集合，
 同時有數十個請求在讀。所以這是「即時但有競態」換成「安全但過時」，方向對，只是停在一半。
 
+### ⛔ 絕對不可以這樣做：移除快取項
+
+一個看起來很自然的解法是「背景上傳成功後把 `ListManager` 的快取項移除，讓下一個請求重新載入」。
+**這會造成比過時資料嚴重得多的後果，禁止採用。**
+
+理由在 `InMemoryDataContextSmallGroup.cs` 的 `ListManager` getter：
+
+```csharp
+if (_memoryCache.Get(key) == null)
+{
+    ...
+    m_ListManager = new ListManager();          // ← 快取未命中時建立的是「空白物件」
+    _memoryCache.Set<ListManager>(key, m_ListManager, options);
+    SetSessionDirtyFlag();
+}
+return _memoryCache.Get<ListManager>(key);
+```
+
+快取未命中時建立的是**空白 `ListManager`，不會從 CRM 重新載入**。
+真正從 CRM 載入的是 `SetupListManager()`，而它只在登入
+（`AuthenticationController.Private.cs:275`）與切換日期
+（`SmallGroupController.Date.cs:87,134`）時被呼叫。
+
+所以移除快取項＝**把組長整個 session 的資料清空**，畫面會變成空白名單。
+
+另外提醒：`SetSessionDirtyFlag()` 寫入的 `session.SetInt32("dirty", 1)`
+**全 repo 沒有任何讀取端**（已掃描確認），是唯寫死碼，不可以拿來當重載機制。
+
 ### 要做的事
 
-三選一，選定後把決策與理由寫進 `implement.md`：
+二選一，選定後把決策與理由寫進 `implement.md`：
 
-- **(a) 讓快取失效（建議）**
-  背景上傳成功後，移除該 Session 的 `ListManager` 等快取項，讓下一個請求重新從 CRM 載入。
-  **關鍵限制**：快取鍵必須在 request 執行緒上、進入 `Task.Run` 之前就先取好並捕獲成區域變數，
-  **絕對不可以在背景執行緒讀 Session 或 HttpContext**——那正是 F1 要消除的東西。
-  另外要確認：移除快取項時是否有並行請求正在讀該項，會不會取到半初始化狀態。
-  這個選項同時拿到隔離性與即時性，是三者中最完整的。
+- **(c) 接受行為變化並誠實記錄（建議）**
+  刪掉沒有消費者的 `requiresRefresh` 欄位，或把它改成純提示用途——
+  在前端 `success` 分支顯示「資料已上傳，名單將於重新登入或切換日期後更新」之類的文字，
+  不做任何自動重載。同時在 `SaveIntegrate` 的 XML 註解明確記載：
+  「背景清理只作用於背景副本，不影響目前 Session 的顯示清單。」
 
-- **(b) 接上前端**
-  在 `Views/Home/IntegrateView.cshtml` 的 `success` 分支讀 `response.requiresRefresh`，
-  以配合實測上傳時間（約 14 秒）的延遲觸發重新載入。
-  注意現行 JS 已有 `setTimeout(function(){ grid.refresh(); }, 1000)`，
-  1 秒遠早於上傳完成，直接沿用沒有意義，必須另外設計。
+  理由：CRM 是真相來源且資料正確；改動前的『即時清理』本身帶著 14 秒的無鎖競態，
+  並不是一個值得復原的可靠行為。用一句誠實的提示換掉一個不可靠的副作用是合理取捨。
 
-- **(c) 移除欄位**
-  確認此行為變化可接受，刪掉 `requiresRefresh`，並在 `SaveIntegrate` 的 XML 註解
-  明確記載「背景清理不影響目前 Session 的顯示清單，需重新登入或切換日期才會更新」。
+- **(d) 背景完成後重新從 CRM 載入**
+  背景上傳成功後，在背景自己的 DI scope 內重新執行等同 `SetupListManager` 的載入，
+  再以整份替換的方式更新快取項。
 
-**三選一，不要三個都做，也不要留一個沒人讀的欄位。**
+  **這個選項工程量遠大於 (c)**，且必須解決三個問題：載入所需的參數要在 request 執行緒
+  先捕獲（不可在背景讀 Session）、重載期間前景請求讀到的是舊物件還是新物件要有明確語意、
+  以及重載本身失敗時不可讓 session 變成空白。
+  **除非使用者明確要求即時更新，否則不要選這個。**
+
+**二選一，不要兩個都做，也不要留一個沒人讀的欄位。**
 
 ---
 
@@ -153,14 +189,40 @@ SmallGroupDataList.cs:85  lock (_syncRoot)                          ← 唯一�
 | | 改動前 | 改動後 |
 |---|---|---|
 | 競態視窗 | **14 秒**（背景整個上傳期間） | **毫秒級**（只有建立快照那一瞬間） |
-| 失敗方式 | 靜默的資料錯亂／讀到半清空清單 | 擲 `InvalidOperationException`，fail-closed |
+| 結構性競態（新增／移除元素） | 有，且會擲 `InvalidOperationException` | 有，但視窗極短 |
+| **欄位層競態（靜默）** | 有 | **仍然有** |
 | 觸發條件 | 背景改寫 + 前景讀 | 前景改寫 + 建快照讀 |
 
-**改動後的風險嚴格小於改動前**，而且是 fail-closed（使用者看到錯誤、重按一次即可，
-不會寫壞資料）。所以這一項是收斂殘留風險，不是修 bug。
+### ⚠️ 這不是 fail-closed：主要失敗模式是「靜默的半新半舊快照」
 
-第一輪在註解裡誠實寫了「既有其他寫入路徑尚未全面採用它」——這點是對的，
-本項要做的就是把這句話變成不再需要寫。
+`SmallGroupData.UpdateMember(key, values)` **只修改既有 `Member` 的欄位，不改變
+`List<Member>` 的結構**：
+
+```csharp
+Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
+aUpdatedMember.ModifyFlag = true;
+// ...接著以 JSON 反序列化逐一寫入欄位
+```
+
+（注意第 54 行有一段被註解掉的 `//lock (m_MemberDataLocker)`——曾經有鎖，後來被拿掉了。）
+
+而 `Member` 的複製建構式是**逐一指派 48 個欄位**。所以：
+
+> 當 `CreateIsolatedSnapshot()` 正在複製某個 `Member` 的 48 個欄位時，
+> 若 `UpdateMember` 同時改寫同一個 `Member`，會得到**一半新值、一半舊值**的副本，
+> **而且不會擲出任何例外**——因為集合結構沒變。
+
+這份半新半舊的快照接著會被上傳到 CRM。**結果是 CRM 裡出現使用者從未輸入過的組合**
+（例如主日出席是新值、小組出席是舊值）。
+
+更麻煩的是 `UpdateSmallGroupPresentRecord` 本身用兩個**平行** `Task.Run` 同時改
+`m_SmallGroupData` 與 `m_AllMemeberData`（`SmallGroupController.Crud.cs:79`），
+所以連前景自己內部都沒有一致性保證。
+
+**因此不可以用「搜尋 log 有沒有 `InvalidOperationException`」來判斷要不要做這一項**——
+主要失敗模式根本不產生例外。
+
+第一輪在註解裡誠實寫了「既有其他寫入路徑尚未全面採用它」——這句話比它看起來更重要。
 
 ### 要做的事（範圍嚴格限定，不要擴散到全部 44 個使用點）
 
@@ -291,7 +353,7 @@ python .trellis/scripts/verify_trace_invariants.py "D:\除錯追蹤"
 ```
 ## 完成狀態
 C1 提交重整: 完成 / 未完成（原因）
-C2 requiresRefresh: 選了 (a)/(b)/(c) + 理由
+C2 requiresRefresh: 選了 (c)/(d) + 理由（絕不可移除快取項）
 C3 SyncRoot 採用: 完成 / 未完成（原因）
 C4 例外摘要: 完成 / 未完成（原因）
 C5 Trellis 收尾: 完成 / 未完成（原因）
