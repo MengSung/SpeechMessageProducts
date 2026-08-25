@@ -108,6 +108,50 @@ def main():
                 f"crmCount={r.get('crmCount')} crmMs={r.get('crmMs')} durationMs={r.get('durationMs')}",
             )
 
+    # ---- 背景業務結果（bg.accepted / bg.outcome）----
+    # bg.end 只代表 scope 已釋放，例外照樣會產生它，因此不能當作成功證據。
+    # 真正的成功證據是 stage=upload 且 outcome=succeeded 的 bg.outcome 事件。
+    accepted = [r for r in records if r["ev"] == "bg.accepted"]
+    outcomes = [r for r in records if r["ev"] == "bg.outcome"]
+
+    if not accepted and not outcomes:
+        report.note(
+            "背景結果事件",
+            "未觀測到 bg.accepted / bg.outcome。若本次建置已包含該功能，代表 SaveIntegrate 未被執行",
+        )
+    else:
+        report.check(
+            "每個 bg.accepted 都有對應的 bg.outcome",
+            {r.get("operationId") for r in accepted} <= {r.get("operationId") for r in outcomes},
+            f"accepted={len(accepted)}，outcome={len(outcomes)}",
+        )
+
+        uploads = [r for r in outcomes if r.get("stage") == "upload"]
+        report.check(
+            "上傳階段有明確結果",
+            bool(uploads),
+            f"stage=upload 的結果事件 {len(uploads)} 筆",
+        )
+        succeeded = [r for r in uploads if r.get("outcome") == "succeeded"]
+        report.check(
+            "上傳階段成功",
+            bool(uploads) and len(succeeded) == len(uploads),
+            f"成功 {len(succeeded)} / {len(uploads)}",
+        )
+
+        for r in outcomes:
+            mark = "" if r.get("outcome") == "succeeded" else f" errorClass={r.get('errorClass')}"
+            report.note(
+                "背景結果",
+                f"op={r.get('operationId')} stage={r.get('stage')} outcome={r.get('outcome')}{mark}",
+            )
+
+        failed_stages = collections.Counter(
+            r.get("stage") for r in outcomes if r.get("outcome") == "failed"
+        )
+        if failed_stages:
+            report.note("失敗階段分佈", dict(failed_stages))
+
     # ---- 既有租約不變量 ----
     acquires = [r for r in records if r["ev"] in ("pool.acquire.hit", "pool.acquire.miss")]
     returns = [r for r in records if r["ev"] == "pool.return"]

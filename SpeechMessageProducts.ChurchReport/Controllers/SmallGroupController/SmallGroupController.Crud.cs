@@ -47,13 +47,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 更新小組出席記錄（並行更新兩個資料集）
+        /// 更新小組出席記錄，並以資料圖同步根原子更新小組及全部成員資料。
         /// </summary>
         [HttpPut]
-        public async Task<IActionResult> UpdateSmallGroupPresentRecord(
-            string key,
-            string values,
-            CancellationToken cancellationToken = default)
+        public IActionResult UpdateSmallGroupPresentRecord(string key, string values)
         {
             try
             {
@@ -76,21 +73,11 @@ namespace ChurchReport.Controllers
                 var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList;
 
-                var task1 = Task.Run(() =>
-                    dataList.m_SmallGroupData.UpdateMember(key, values),
-                    cancellationToken);
-
-                var task2 = Task.Run(() =>
-                    dataList.m_AllMemeberData.UpdateMember(key, values),
-                    cancellationToken);
-
-                await Task.WhenAll(task1, task2).ConfigureAwait(false);
+                // 同一份 Session 資料圖不得用兩條 Task.Run 平行原地修改。此方法只在短暫
+                // 記憶體臨界區完成兩組資料更新；CRM 與其他 I/O 不在鎖內執行。
+                dataList.UpdateSmallGroupAndAllMember(key, values);
 
                 return Ok();
-            }
-            catch (OperationCanceledException)
-            {
-                return StatusCode(499);
             }
             catch (Exception e)
             {
@@ -109,7 +96,9 @@ namespace ChurchReport.Controllers
                 var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList;
 
-                Member deletedMember = dataList.m_AllMemeberData.DeleteMember(key);
+                // 先在單一同步區間取得及移除前景資料，再於鎖外進行 CRM 刪除，避免網路 I/O
+                // 延長快照鎖持有時間或阻塞同一使用者的其他前景更新。
+                Member deletedMember = dataList.DeleteMemberFromAllGroups(key);
 
                 if (deletedMember != null)
                 {
@@ -119,10 +108,6 @@ namespace ChurchReport.Controllers
                         deletedMember
                     );
                 }
-
-                dataList.m_SmallGroupData.DeleteMember(key);
-                dataList.m_NewPersonFollowUpData.DeleteMember(key);
-                dataList.m_HappyGroup.DeleteMember(key);
 
                 return Ok();
             }

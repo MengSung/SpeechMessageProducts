@@ -413,24 +413,30 @@ namespace ChurchReport.Models
         }
         public void GetPersonalReportViewModelResult(PersonalReportViewModel aPersonalReportViewModel)
         {
-            if (m_SmallGroupDataList.m_AllMemeberData.Members[0] != null && m_SmallGroupDataList.m_AllMemeberData.Members != null)
+            // 個人回報的六個欄位必須一次更新目前 Session 資料圖；否則 SaveIntegrate 逐欄複製時可能
+            // 取得不存在於任何前景時間點的混合 Member。此區不做 CRM、HTTP 或 Task I/O。
+            m_SmallGroupDataList.ExecuteSynchronized(() =>
             {
-                m_SmallGroupDataList.m_AllMemeberData.Members[0].Sunday = m_PersonalReportViewModel.SundayPresent = aPersonalReportViewModel.SundayPresent;
-                m_SmallGroupDataList.m_AllMemeberData.Members[0].SmallGroup = m_PersonalReportViewModel.SmallGroupPresent = aPersonalReportViewModel.SmallGroupPresent;
-                m_SmallGroupDataList.m_AllMemeberData.Members[0].SpiritualWork = m_PersonalReportViewModel.SpiritualWork = aPersonalReportViewModel.SpiritualWork;
-                m_SmallGroupDataList.m_AllMemeberData.Members[0].MorningPray = m_PersonalReportViewModel.MorningPray = aPersonalReportViewModel.MorningPray;
-                m_SmallGroupDataList.m_AllMemeberData.Members[0].GeneralCare = m_PersonalReportViewModel.GeneralCare = aPersonalReportViewModel.GeneralCare;
-                m_SmallGroupDataList.m_AllMemeberData.Members[0].PrayItem = m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
-            }
-            else
-            {
-                m_PersonalReportViewModel.SundayPresent = m_PersonalReportViewModel.SundayPresent = aPersonalReportViewModel.SundayPresent;
-                m_PersonalReportViewModel.SmallGroupPresent = m_PersonalReportViewModel.SmallGroupPresent = aPersonalReportViewModel.SmallGroupPresent;
-                m_PersonalReportViewModel.SpiritualWork = m_PersonalReportViewModel.SpiritualWork = aPersonalReportViewModel.SpiritualWork;
-                m_PersonalReportViewModel.MorningPray = m_PersonalReportViewModel.MorningPray = aPersonalReportViewModel.MorningPray;
-                m_PersonalReportViewModel.GeneralCare = m_PersonalReportViewModel.GeneralCare = aPersonalReportViewModel.GeneralCare;
-                m_PersonalReportViewModel.PrayItem = m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
-            }
+                var members = m_SmallGroupDataList.m_AllMemeberData.Members;
+                if (members != null && members.Count > 0 && members[0] != null)
+                {
+                    members[0].Sunday = m_PersonalReportViewModel.SundayPresent = aPersonalReportViewModel.SundayPresent;
+                    members[0].SmallGroup = m_PersonalReportViewModel.SmallGroupPresent = aPersonalReportViewModel.SmallGroupPresent;
+                    members[0].SpiritualWork = m_PersonalReportViewModel.SpiritualWork = aPersonalReportViewModel.SpiritualWork;
+                    members[0].MorningPray = m_PersonalReportViewModel.MorningPray = aPersonalReportViewModel.MorningPray;
+                    members[0].GeneralCare = m_PersonalReportViewModel.GeneralCare = aPersonalReportViewModel.GeneralCare;
+                    members[0].PrayItem = m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
+                }
+                else
+                {
+                    m_PersonalReportViewModel.SundayPresent = aPersonalReportViewModel.SundayPresent;
+                    m_PersonalReportViewModel.SmallGroupPresent = aPersonalReportViewModel.SmallGroupPresent;
+                    m_PersonalReportViewModel.SpiritualWork = aPersonalReportViewModel.SpiritualWork;
+                    m_PersonalReportViewModel.MorningPray = aPersonalReportViewModel.MorningPray;
+                    m_PersonalReportViewModel.GeneralCare = aPersonalReportViewModel.GeneralCare;
+                    m_PersonalReportViewModel.PrayItem = aPersonalReportViewModel.PrayItem;
+                }
+            });
         }
     }
 

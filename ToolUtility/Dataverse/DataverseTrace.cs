@@ -103,6 +103,8 @@ public sealed class DataverseTrace : IDisposable
         RequestEnd,
         BackgroundBegin,
         BackgroundEnd,
+        BackgroundAccepted,
+        BackgroundOutcome,
         GatewayExecuteEnter,
         GatewayExecuteExit,
         PoolAcquireWait,
@@ -136,6 +138,7 @@ public sealed class DataverseTrace : IDisposable
         internal string Text;
         internal string State;
         internal string Reason;
+        internal string OperationId;
         internal long First;
         internal long Second;
         internal long Third;
@@ -598,6 +601,71 @@ public sealed class DataverseTrace : IDisposable
         });
         return new BackgroundScope(this, previous, current, parentTraceId, operation);
     }
+
+    /// <summary>
+    /// 記錄 HTTP request 已接受並排程背景作業的事實。
+    ///
+    /// accepted 不表示 CRM 已成功；它只表示產品程式已建立可交付背景工作的資料。operationId
+    /// 必須由受信任程式碼產生的 opaque 識別碼，不得含使用者、Session、帳密、成員或 CRM 資料。
+    /// 沒有 request trace 時不輸出，避免捏造跨 request 關聯或讓診斷本身保存資料。
+    /// </summary>
+    /// <param name="operationId">程式產生的背景作業關聯識別碼。</param>
+    public void RecordBackgroundAccepted(string operationId)
+    {
+        RecordBackgroundOutcomeCore(operationId, "queue", "accepted", string.Empty);
+    }
+
+    /// <summary>
+    /// 記錄背景作業某個固定階段的安全結果。
+    ///
+    /// 此 API 只接受預先定義的 stage、outcome 與 errorClass，避免例外訊息或呼叫端字串把
+    /// 帳密、成員、CRM payload、stack trace 或身分資料寫入一般 JSONL 診斷檔。成功結果的
+    /// errorClass 必須為空字串；bg.end 仍僅表示 scope 已釋放，不能替代此業務結果事件。
+    /// </summary>
+    /// <param name="operationId">程式產生的背景作業關聯識別碼。</param>
+    /// <param name="stage">固定階段：scope-create、provider-resolve、toolutility-resolve、upload 或 cleanup。</param>
+    /// <param name="outcome">固定結果：succeeded 或 failed。</param>
+    /// <param name="errorClass">失敗時的固定粗粒度分類；成功時必須為空字串。</param>
+    public void RecordBackgroundOutcome(string operationId, string stage, string outcome, string errorClass)
+    {
+        if (!IsBackgroundStage(stage))
+            throw new ArgumentOutOfRangeException(nameof(stage));
+        if (outcome is not "succeeded" and not "failed")
+            throw new ArgumentOutOfRangeException(nameof(outcome));
+        if (!IsBackgroundErrorClass(errorClass))
+            throw new ArgumentOutOfRangeException(nameof(errorClass));
+        if (outcome == "succeeded" && !string.IsNullOrEmpty(errorClass))
+            throw new ArgumentException("成功的背景結果不得設定 errorClass。", nameof(errorClass));
+        if (outcome == "failed" && string.IsNullOrEmpty(errorClass))
+            throw new ArgumentException("失敗的背景結果必須設定固定 errorClass。", nameof(errorClass));
+
+        RecordBackgroundOutcomeCore(operationId, stage, outcome, errorClass);
+    }
+
+    private void RecordBackgroundOutcomeCore(string operationId, string stage, string outcome, string errorClass)
+    {
+        if (!Enabled || !TryGetRequest(out var context))
+            return;
+        if (string.IsNullOrWhiteSpace(operationId))
+            throw new ArgumentException("背景 operationId 不得空白。", nameof(operationId));
+
+        Enqueue(new TraceEntry
+        {
+            Kind = outcome == "accepted" ? EventKind.BackgroundAccepted : EventKind.BackgroundOutcome,
+            TraceId = context.TraceId,
+            User = context.User,
+            OperationId = operationId,
+            Text = stage,
+            State = outcome,
+            Reason = errorClass
+        });
+    }
+
+    private static bool IsBackgroundStage(string value)
+        => value is "scope-create" or "provider-resolve" or "toolutility-resolve" or "upload" or "cleanup" or "queue";
+
+    private static bool IsBackgroundErrorClass(string value)
+        => value is "" or "dependency-resolution" or "crm-fault" or "timeout" or "canceled" or "unexpected";
 
     /// <summary>
     /// 將識別來源轉成不可逆的短假名。salt 每個 Trace 實例隨機產生、僅留在記憶體且在 Dispose 時清零；
@@ -1328,6 +1396,8 @@ public sealed class DataverseTrace : IDisposable
             EventKind.RequestEnd => "request.end",
             EventKind.BackgroundBegin => "bg.begin",
             EventKind.BackgroundEnd => "bg.end",
+            EventKind.BackgroundAccepted => "bg.accepted",
+            EventKind.BackgroundOutcome => "bg.outcome",
             EventKind.GatewayExecuteEnter => "gateway.execute.enter",
             EventKind.GatewayExecuteExit => "gateway.execute.exit",
             EventKind.PoolAcquireWait => "pool.acquire.wait",
@@ -1395,6 +1465,14 @@ public sealed class DataverseTrace : IDisposable
                 json.WriteString("topEntity", entry.ClientId ?? string.Empty);
                 json.WriteNumber("topEntityCount", entry.Eighth);
                 json.WriteString("distinctEntities", entry.State ?? "0");
+                break;
+            case EventKind.BackgroundAccepted:
+            case EventKind.BackgroundOutcome:
+                WriteTraceAndUser(json, entry);
+                json.WriteString("operationId", entry.OperationId ?? string.Empty);
+                json.WriteString("stage", entry.Text ?? string.Empty);
+                json.WriteString("outcome", entry.State ?? string.Empty);
+                json.WriteString("errorClass", entry.Reason ?? string.Empty);
                 break;
             case EventKind.GatewayExecuteEnter:
             case EventKind.GatewayExecuteExit:

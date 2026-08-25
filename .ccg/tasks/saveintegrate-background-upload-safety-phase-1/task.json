@@ -1,0 +1,12 @@
+{
+  "id": "saveintegrate-background-upload-safety-phase-1",
+  "title": "SaveIntegrate 背景上傳安全修補第一階段",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "等待使用者執行人工 CRM 煙霧測試；依明確授權後再提交或封存",
+  "createdAt": "2026-08-24T00:00:00+08:00",
+  "branch": "feat/dataverse-scoped-connection"
+}

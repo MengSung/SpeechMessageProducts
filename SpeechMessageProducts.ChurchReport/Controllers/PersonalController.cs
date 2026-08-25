@@ -433,7 +433,12 @@ namespace ChurchReport.Controllers
                                     continue;
                                 }
 
-                                ApplyMaintainContactFields(member, contactEntity);
+                                // CRM 批次查詢與選項集文字解析都必須在鎖外完成；鎖內只能把已完成的
+                                // 純記憶體欄位投影到目前 Session 成員，避免 SaveIntegrate 讀到半更新 Member，
+                                // 也避免網路 I/O 延長資料圖同步區間。
+                                var fields = ReadMaintainContactFields(contactEntity);
+                                weeklyReport.m_SmallGroupDataList.ExecuteSynchronized(
+                                    () => ApplyMaintainContactFields(member, fields));
                                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     單一小組-成員: {member.FullName}");
                             }
                             catch (Exception memberEx)
@@ -548,55 +553,101 @@ namespace ChurchReport.Controllers
                 ContactId = contactId.ToString()
             };
 
-            ApplyMaintainContactFields(member, contactEntity);
+            ApplyMaintainContactFields(member, ReadMaintainContactFields(contactEntity));
             return member;
         }
 
-        private void ApplyMaintainContactFields(Member member, Entity contactEntity)
+        /// <summary>
+        /// 從已查得的 CRM 聯絡人建立唯讀欄位投影；此方法可能解析選項集，因此必須在資料圖鎖外執行。
+        /// </summary>
+        /// <param name="contactEntity">已由目前 request 以授權範圍查得的聯絡人實體。</param>
+        /// <returns>不含 Session、Member 或 Entity 參考的純欄位快照。</returns>
+        private MaintainContactFields ReadMaintainContactFields(Entity contactEntity)
         {
-            if (member == null || contactEntity == null)
+            if (contactEntity == null)
+            {
+                return MaintainContactFields.Empty;
+            }
+
+            var toolUtility = ToolUtility;
+            var fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
+            var phone = toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone");
+            var address = toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1");
+            var equipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
+
+            var status = contactEntity.Contains("customertypecode")
+                ? GetMembershipStatusText(toolUtility.GetOptionSetAttribute(contactEntity, "customertypecode"))
+                : string.Empty;
+
+            var spiritualIdentity = contactEntity.Contains("new_spiriitual_identity")
+                ? GetSpiritualIdentityText(toolUtility.GetOptionSetAttribute(contactEntity, "new_spiriitual_identity"))
+                : string.Empty;
+
+            var birthDate = contactEntity.Contains("birthdate")
+                ? toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate")
+                : DateTime.MinValue;
+
+            return new MaintainContactFields(
+                fullName,
+                phone,
+                address,
+                equipmentStatus,
+                status,
+                spiritualIdentity,
+                birthDate != DateTime.MinValue && birthDate.Year > 1 ? birthDate : DateTime.MinValue);
+        }
+
+        /// <summary>
+        /// 將已在鎖外完成的欄位快照一次套用至目前 Session 資料圖中的成員。
+        /// </summary>
+        /// <remarks>
+        /// 呼叫端必須持有 <see cref="SmallGroupDataList.ExecuteSynchronized"/> 的資料圖同步根。
+        /// 本方法只做受控 Member 屬性寫入，不解析 CRM、選項集、HTTP 或其他 I/O，因此快照可觀察到
+        /// 完整舊版本或完整新版本，不會因鎖內等待外部資源而形成跨 request 的長時間阻塞。
+        /// </remarks>
+        /// <param name="member">目前資料圖中要更新的既有成員。</param>
+        /// <param name="fields">鎖外建立且不保留 CRM 實體的純欄位快照。</param>
+        private static void ApplyMaintainContactFields(Member member, MaintainContactFields fields)
+        {
+            if (member == null)
             {
                 return;
             }
 
-            var toolUtility = ToolUtility;
+            member.FullName = fields.FullName;
+            member.Phone = fields.Phone;
+            member.Address = fields.Address;
+            member.EquipmentStatus = fields.EquipmentStatus;
+            member.Status = fields.Status;
+            member.SpiritualIdentity = fields.SpiritualIdentity;
+            member.BirthDate = fields.BirthDate;
+        }
 
-            member.FullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
-            member.Phone = toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone");
-            member.Address = toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1");
-            member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
-
-            if (contactEntity.Contains("customertypecode"))
-            {
-                var statusValue = toolUtility.GetOptionSetAttribute(contactEntity, "customertypecode");
-                member.Status = GetMembershipStatusText(statusValue);
-            }
-            else
-            {
-                member.Status = "";
-            }
-
-            if (contactEntity.Contains("new_spiriitual_identity"))
-            {
-                var spiritualValue = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiriitual_identity");
-                member.SpiritualIdentity = GetSpiritualIdentityText(spiritualValue);
-            }
-            else
-            {
-                member.SpiritualIdentity = "";
-            }
-
-            if (contactEntity.Contains("birthdate"))
-            {
-                var birthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
-                member.BirthDate = birthDate != DateTime.MinValue && birthDate.Year > 1
-                    ? birthDate
-                    : DateTime.MinValue;
-            }
-            else
-            {
-                member.BirthDate = DateTime.MinValue;
-            }
+        /// <summary>
+        /// 表示 CRM 聯絡人欄位的短命純記憶體快照，不保留 Entity、連線、Session 或使用者憑證。
+        /// </summary>
+        /// <remarks>
+        /// 建立後只在同一個 request 呼叫堆疊中傳入受鎖的 Member 套用步驟；方法返回後不會存入
+        /// cache、背景工作或靜態欄位，避免跨使用者保留與資源洩漏。
+        /// </remarks>
+        private sealed record MaintainContactFields(
+            string FullName,
+            string Phone,
+            string Address,
+            string EquipmentStatus,
+            string Status,
+            string SpiritualIdentity,
+            DateTime BirthDate)
+        {
+            /// <summary>代表不存在 CRM 實體時的安全空欄位投影。</summary>
+            public static MaintainContactFields Empty { get; } = new(
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                DateTime.MinValue);
         }
 
         private ChurchReport.Services.OptionSetMetadataService GetOptionSetMetadataService()
