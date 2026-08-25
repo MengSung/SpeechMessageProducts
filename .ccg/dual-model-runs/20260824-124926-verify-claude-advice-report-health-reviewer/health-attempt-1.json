@@ -1,0 +1,50 @@
+{
+    "generatedAt":  "2026-08-24T12:49:26.5887517+08:00",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree",
+    "changedUserPath":  false,
+    "environment":  {
+                        "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                        "CODEAGENT_LITE_MODE":  "true",
+                        "PYTHONIOENCODING":  "utf-8",
+                        "CLAUDE_MODEL":  "sonnet",
+                        "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-37236-04afc876c36b4506af337568b54fb7b4\\claude.cmd",
+                        "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-37236-04afc876c36b4506af337568b54fb7b4",
+                        "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                    },
+    "executables":  {
+                        "wrapper":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+                        "gemini":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\gemini.cmd",
+                        "claude":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-37236-04afc876c36b4506af337568b54fb7b4\\claude.cmd",
+                        "python":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\python.exe"
+                    },
+    "smoke":  [
+                  {
+                      "Backend":  "gemini",
+                      "Ok":  true,
+                      "ExitCode":  0,
+                      "TimedOut":  false,
+                      "QuotaBlocked":  false,
+                      "FailureReason":  "ok",
+                      "Diagnostic":  null,
+                      "Output":  "GEMINI_BACKEND_OK\n\n[codeagent-wrapper]\n  Backend: gemini\n  Command: gemini -o stream-json -y --include-directories D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\n  PID: 37836\n  Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-37836.log"
+                  },
+                  {
+                      "Backend":  "claude",
+                      "Ok":  false,
+                      "ExitCode":  1,
+                      "TimedOut":  false,
+                      "QuotaBlocked":  false,
+                      "FailureReason":  "backend-exit-1",
+                      "Diagnostic":  "Failed to authenticate: OAuth session expired and could not be refreshed",
+                      "Output":  "[codeagent-wrapper]\n  Backend: claude\n  Command: claude -p --dangerously-skip-permissions --setting-sources  --output-format stream-json --verbose -\n  PID: 34568\n  Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-34568.log\n  Session-ID: 63073f77-ec35-4bff-8f40-d6809bda7f9f\n\n=== Recent Errors ===\nUsing stdin mode for task due to: piped input, explicit \"-\", newline, backtick, length\u003e800\nclaude exited with status 1\nLog file: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-34568.log (deleted)"
+                  }
+              ],
+    "ok":  false,
+    "repairable":  true,
+    "notes":  [
+
+              ],
+    "wrapperVersion":  "codeagent-wrapper version 5.11.1",
+    "healthReport":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.6.DesignNewArchitector.Worktree\\.\\.ccg\\dual-model-runs\\20260824-124926-verify-claude-advice-report-health-reviewer\\ccg-health-20260824-124933.json"
+}
+

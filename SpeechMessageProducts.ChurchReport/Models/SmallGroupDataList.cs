@@ -45,7 +45,10 @@ namespace ChurchReport.Models
 
         public SmallGroupDataList()
         {
-
+            _smallGroupData.AttachSynchronizationRoot(_syncRoot);
+            _newPersonFollowUpData.AttachSynchronizationRoot(_syncRoot);
+            _happyGroup.AttachSynchronizationRoot(_syncRoot);
+            _allMemeberData.AttachSynchronizationRoot(_syncRoot);
         }
 
         public String m_FullName = "";
@@ -56,19 +59,169 @@ namespace ChurchReport.Models
         public DateTime m_SundayDate;
         private bool m_FirstLoginFlag;
 
-        // 小組長點名
-        public SmallGroupData m_SmallGroupData = new SmallGroupData();
+        private SmallGroupData _smallGroupData = new SmallGroupData();
+        private SmallGroupData _newPersonFollowUpData = new SmallGroupData();
+        private SmallGroupData _happyGroup = new SmallGroupData();
+        private SmallGroupData _allMemeberData = new SmallGroupData();
 
-        // 新人跟進關懷
-        public SmallGroupData m_NewPersonFollowUpData = new SmallGroupData();
+        /// <summary>小組長點名資料；替換時立即接入目前資料圖的共享同步根。</summary>
+        public SmallGroupData m_SmallGroupData
+        {
+            get => _smallGroupData;
+            set => ExecuteSynchronized(() => _smallGroupData = AttachToThisGraph(value));
+        }
 
-        // 幸福小組
-        public SmallGroupData m_HappyGroup = new SmallGroupData();
+        /// <summary>新人跟進資料；與其他集合共享同一份資料圖同步根。</summary>
+        public SmallGroupData m_NewPersonFollowUpData
+        {
+            get => _newPersonFollowUpData;
+            set => ExecuteSynchronized(() => _newPersonFollowUpData = AttachToThisGraph(value));
+        }
 
-        // 全部的名單，更新基本資料要用的
-        public SmallGroupData m_AllMemeberData = new SmallGroupData();
+        /// <summary>幸福小組資料；替換時不保留舊同步根或跨 request 可變參考。</summary>
+        public SmallGroupData m_HappyGroup
+        {
+            get => _happyGroup;
+            set => ExecuteSynchronized(() => _happyGroup = AttachToThisGraph(value));
+        }
+
+        /// <summary>全部成員資料；參與背景上傳，所有前景 CRUD 必須與快照共鎖。</summary>
+        public SmallGroupData m_AllMemeberData
+        {
+            get => _allMemeberData;
+            set => ExecuteSynchronized(() => _allMemeberData = AttachToThisGraph(value));
+        }
+
+        /// <summary>
+        /// 將新建或替換的 group 接入目前資料圖的同步根；此 setter 只執行記憶體參考綁定。
+        /// </summary>
+        private SmallGroupData AttachToThisGraph(SmallGroupData data)
+        {
+            var attached = data ?? new SmallGroupData();
+            attached.AttachSynchronizationRoot(_syncRoot);
+            return attached;
+        }
 
         public MemberInfomationPackage m_MemberInfomationPackage;
+
+        /// <summary>
+        /// 在目前資料圖唯一同步根內完成跨集合的小型記憶體異動。
+        ///
+        /// 委派不得進行 CRM、HTTP、DI、檔案、網路或等待背景 Task；這可讓快照只看到完整
+        /// 舊圖或完整新圖，又不把不同使用者的 Session 圖放進同一把全域鎖。
+        /// </summary>
+        /// <param name="mutation">只包含目前資料圖記憶體變更的委派。</param>
+        internal void ExecuteSynchronized(Action mutation)
+        {
+            ArgumentNullException.ThrowIfNull(mutation);
+            lock (_syncRoot)
+            {
+                mutation();
+            }
+        }
+
+        /// <summary>
+        /// 原子更新小組點名與全部成員中的同一筆資料，避免背景快照在兩次 JSON 原地更新之間
+        /// 取得語意不一致的資料圖。
+        /// </summary>
+        public void UpdateSmallGroupAndAllMember(string key, string values)
+        {
+            ExecuteSynchronized(() =>
+            {
+                m_SmallGroupData.UpdateMember(key, values);
+                m_AllMemeberData.UpdateMember(key, values);
+            });
+        }
+
+        /// <summary>
+        /// 原子更新新人跟進與全部成員中的同一筆資料；鎖內只更新 JSON 繫結結果，不執行 CRM。
+        /// </summary>
+        public void UpdateNewPersonAndAllMember(string key, string values)
+        {
+            ExecuteSynchronized(() =>
+            {
+                m_NewPersonFollowUpData.UpdateMember(key, values);
+                m_AllMemeberData.UpdateMember(key, values);
+            });
+        }
+
+        /// <summary>
+        /// 從四組前景集合移除同一筆成員，並回傳全部成員集合原本持有的資料供鎖外 CRM 刪除使用。
+        /// </summary>
+        public Member DeleteMemberFromAllGroups(string key)
+        {
+            Member deletedMember = null;
+            ExecuteSynchronized(() =>
+            {
+                deletedMember = m_AllMemeberData.DeleteMember(key);
+                m_SmallGroupData.DeleteMember(key);
+                m_NewPersonFollowUpData.DeleteMember(key);
+                m_HappyGroup.DeleteMember(key);
+            });
+            return deletedMember;
+        }
+
+        /// <summary>
+        /// 將下載或初始化後已完成建構的成員加入全部成員集合。
+        ///
+        /// CRM 查詢、聯絡人轉換與任何網路 I/O 必須在呼叫此方法前完成；本方法只在目前 Session
+        /// 資料圖的短暫同步區間加入完整 <see cref="Member"/>，因此 SaveIntegrate 快照不會取得
+        /// 正在變更的 <see cref="List{T}"/> 容器，也不會把同步根分享給其他使用者的資料圖。
+        /// </summary>
+        /// <param name="member">已完整建構且僅屬於目前資料圖的成員。</param>
+        public void AddMemberToAllMemberData(Member member)
+        {
+            ArgumentNullException.ThrowIfNull(member);
+            ExecuteSynchronized(() => m_AllMemeberData.AddMember(member));
+        }
+
+        /// <summary>
+        /// 由全部成員集合重建小組與新人跟進集合。
+        ///
+        /// 這是下載資料完成後的純記憶體分類步驟；整個讀取、分類與兩個集合參考替換共用一個
+        /// 同步邊界，使背景快照只會得到舊分類或完整新分類。不得將 CRM 查詢、HTTP 或 Task
+        /// 排程放進此方法。
+        /// </summary>
+        public void RebuildSmallGroupAndNewPersonDataFromAllMembers()
+        {
+            ExecuteSynchronized(() =>
+            {
+                var allMembers = m_AllMemeberData.Members ?? new List<Member>();
+                var smallGroupMembers = new List<Member>(allMembers.Count);
+                var newPersonMembers = new List<Member>(allMembers.Count);
+
+                foreach (var member in allMembers)
+                {
+                    var status = member?.Status ?? string.Empty;
+                    if (status.Contains("新朋友") || status.Contains("未入組"))
+                    {
+                        newPersonMembers.Add(member);
+                    }
+                    else if (!status.Contains("外教會") && !status.Contains("結案"))
+                    {
+                        smallGroupMembers.Add(member);
+                    }
+                }
+
+                _smallGroupData = AttachToThisGraph(new SmallGroupData { Members = smallGroupMembers });
+                _newPersonFollowUpData = AttachToThisGraph(new SmallGroupData { Members = newPersonMembers });
+            });
+        }
+
+        /// <summary>
+        /// 由全部成員集合重建幸福小組集合。
+        ///
+        /// 來源列舉與新集合發布在同一把資料圖鎖內完成，保證快照不會在舊集合已移除、新集合尚未
+        /// 建立的中間狀態讀取。此方法只複製清單容器；成員深拷貝仍由背景快照建立時負責。
+        /// </summary>
+        public void RebuildHappyGroupDataFromAllMembers()
+        {
+            ExecuteSynchronized(() =>
+            {
+                var allMembers = m_AllMemeberData.Members ?? new List<Member>();
+                _happyGroup = AttachToThisGraph(new SmallGroupData { Members = new List<Member>(allMembers) });
+            });
+        }
 
         /// <summary>
         /// 在短暫同步區間內建立完整的唯讀退路快照。
@@ -92,8 +245,8 @@ namespace ChurchReport.Models
                     m_FirstLoginFlag = m_FirstLoginFlag,
                     m_SmallGroupData = CloneSmallGroupData(m_SmallGroupData),
                     m_NewPersonFollowUpData = CloneSmallGroupData(m_NewPersonFollowUpData),
-                    // 幸福小組集合不在 SaveIntegrate 的上傳／清理資料流；保留建構式建立的
-                    // 空白背景物件，避免把非必要的會員資料延長到背景工作生命週期。
+                    // SaveIntegrate 需要全部成員作為 CRM 上傳輸入，因此必須完整深拷貝；幸福小組
+                    // 集合則維持新物件預設的空資料，避免把未參與上傳／清理流程的會員延長至背景生命週期。
                     m_AllMemeberData = CloneSmallGroupData(m_AllMemeberData)
                 };
             }
@@ -192,101 +345,87 @@ namespace ChurchReport.Models
 
         public void AddNewPersonToMember(PersonFormViewModel aPersonFormViewModel)
         {
-            String aGroupName = aPersonFormViewModel.Position;
-            if (aGroupName != null)
+            ArgumentNullException.ThrowIfNull(aPersonFormViewModel);
+            ExecuteSynchronized(() =>
             {
-                if (aGroupName.Contains("幸福"))
+                String aGroupName = aPersonFormViewModel.Position;
+                if (aGroupName != null)
                 {
-                    Member aMember = new Member
+                    if (aGroupName.Contains("幸福"))
                     {
-                        PresentRecordId = aPersonFormViewModel.PresentRecordId,
-                        Id = m_HappyGroup.Members.Count,
-                        Group = aGroupName,
-                        FullName = aPersonFormViewModel.LastName,
-                        Phone = aPersonFormViewModel.Phone,
-                        HomePhone = aPersonFormViewModel.HomePhone,
-                        Industry = aPersonFormViewModel.Industry,
-                        EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
-                        SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
-                        BaptizedSituation = aPersonFormViewModel.BaptizedSituation,// 洗禮狀態(長老教會專用)
-                        //BirthDate = aPersonFormViewModel.BirthDate,
-                        Address = aPersonFormViewModel.Address,
-                        //Gender = aPersonFormViewModel.Gender,
-                        Status = "幸福BEST",
-                        SmallGroupName = aGroupName,
-                        SectionName = aGroupName,
-                        PrayItem = aPersonFormViewModel.Notes,
-                        Sunday = false,
-                        SmallGroup = false,
-                        StateID1 = 2,
-                        Number1 = 4,
-                        StateID2 = 1,
-                        Number2 = 2,
-                        //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                        Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                                                                  //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
+                        Member aMember = new Member
+                        {
+                            PresentRecordId = aPersonFormViewModel.PresentRecordId,
+                            Id = m_HappyGroup.Members.Count,
+                            Group = aGroupName,
+                            FullName = aPersonFormViewModel.LastName,
+                            Phone = aPersonFormViewModel.Phone,
+                            HomePhone = aPersonFormViewModel.HomePhone,
+                            Industry = aPersonFormViewModel.Industry,
+                            EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+                            SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,
+                            BaptizedSituation = aPersonFormViewModel.BaptizedSituation,
+                            Address = aPersonFormViewModel.Address,
+                            Status = "幸福BEST",
+                            SmallGroupName = aGroupName,
+                            SectionName = aGroupName,
+                            PrayItem = aPersonFormViewModel.Notes,
+                            Sunday = false,
+                            SmallGroup = false,
+                            StateID1 = 2,
+                            Number1 = 4,
+                            StateID2 = 1,
+                            Number2 = 2,
+                            Picture = "../../images/employees/01.png"
+                        };
 
-                    };
-
-                    //m_SmallGroupData.Members.Add(aMember);
-                    m_HappyGroup.DisplayFlag = true;
-                    m_HappyGroup.Members.Add(aMember);
-                    m_AllMemeberData.Members.Add(aMember);
-                }
-                else
-                {
-                    Member aMember = new Member
-                    {
-                        PresentRecordId = aPersonFormViewModel.PresentRecordId,
-                        Id = m_SmallGroupData.Members.Count,
-                        Group = aGroupName,
-                        FullName = aPersonFormViewModel.LastName,
-                        Phone = aPersonFormViewModel.Phone,
-                        HomePhone = aPersonFormViewModel.HomePhone,
-                        Industry = aPersonFormViewModel.Industry,
-                        EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
-                        SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,// 受洗狀態
-                        BaptizedSituation = aPersonFormViewModel.BaptizedSituation,// 洗禮狀態(長老教會專用)
-                        //BirthDate = aPersonFormViewModel.BirthDate,
-                        Address = aPersonFormViewModel.Address,
-                        //Gender = aPersonFormViewModel.Gender,
-                        Status = aPersonFormViewModel.CustomerTypeCode,
-                        SmallGroupName = aGroupName,
-                        SectionName = aGroupName,
-                        PrayItem = aPersonFormViewModel.Notes,
-                        Sunday = false,
-                        SmallGroup = false,
-                        StateID1 = 2,
-                        Number1 = 4,
-                        StateID2 = 1,
-                        Number2 = 2,
-                        //Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                        Picture = "../../images/employees/01.png" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-                                                                  //Picture = "https://tpehoc.speechmessage.com.tw/image/download.aspx?attribute=entityimage&entity=contact&id=66cd8034-953f-e711-80d9-00155d00640b" //D:\暫存區\ASP.NET CORE 練習區\DevExtremeAspNetCoreApp1\DevExtremeAspNetCoreApp1\wwwroot\images\employees
-
-                    };
-
-                    if (aPersonFormViewModel.CustomerTypeCode == "小組組員")
-                    {
-                        // 新增新朋友時，導入階段希望先設定為"小組組員"
-                        m_SmallGroupData.DisplayFlag = true;
-                        m_SmallGroupData.Members.Add(aMember);
+                        m_HappyGroup.DisplayFlag = true;
+                        m_HappyGroup.Members.Add(aMember);
+                        m_AllMemeberData.Members.Add(aMember);
                     }
                     else
                     {
-                        // 新增新朋友時，導入成功後設定為"新朋友"
-                        m_NewPersonFollowUpData.DisplayFlag = true;
-                        m_NewPersonFollowUpData.Members.Add(aMember);
-                    }
-                    // 加入至"維護基本資料"用
-                    m_AllMemeberData.Members.Add(aMember);
+                        Member aMember = new Member
+                        {
+                            PresentRecordId = aPersonFormViewModel.PresentRecordId,
+                            Id = m_SmallGroupData.Members.Count,
+                            Group = aGroupName,
+                            FullName = aPersonFormViewModel.LastName,
+                            Phone = aPersonFormViewModel.Phone,
+                            HomePhone = aPersonFormViewModel.HomePhone,
+                            Industry = aPersonFormViewModel.Industry,
+                            EquipmentStatus = aPersonFormViewModel.EquipmentStatus,
+                            SpiritualIdentity = aPersonFormViewModel.SpiritualIdentity,
+                            BaptizedSituation = aPersonFormViewModel.BaptizedSituation,
+                            Address = aPersonFormViewModel.Address,
+                            Status = aPersonFormViewModel.CustomerTypeCode,
+                            SmallGroupName = aGroupName,
+                            SectionName = aGroupName,
+                            PrayItem = aPersonFormViewModel.Notes,
+                            Sunday = false,
+                            SmallGroup = false,
+                            StateID1 = 2,
+                            Number1 = 4,
+                            StateID2 = 1,
+                            Number2 = 2,
+                            Picture = "../../images/employees/01.png"
+                        };
 
+                        if (aPersonFormViewModel.CustomerTypeCode == "小組組員")
+                        {
+                            m_SmallGroupData.DisplayFlag = true;
+                            m_SmallGroupData.Members.Add(aMember);
+                        }
+                        else
+                        {
+                            m_NewPersonFollowUpData.DisplayFlag = true;
+                            m_NewPersonFollowUpData.Members.Add(aMember);
+                        }
+
+                        m_AllMemeberData.Members.Add(aMember);
+                    }
                 }
-            }
-            else
-            {
-                // 個人回報，而且沒加入小組
-            }
+            });
         }
     }
 }

@@ -152,6 +152,53 @@ public sealed class DataverseTraceTests
     }
 
     /// <summary>
+    /// 保護 SaveIntegrate 背景工作接受與完成結果可以安全關聯，且不把 scope 結束誤當成 CRM
+    /// 成功。故障注入是在 request／background scope 內寫入 accepted 與 succeeded 結果；
+    /// 決定性斷言是兩筆事件都含 opaque operationId、固定 stage/outcome/errorClass 欄位，
+    /// 且一般 JSONL 不含帳號、密碼、成員資料或例外文字。
+    /// </summary>
+    [Fact]
+    public void Background_outcome_events_record_safe_operation_contract()
+    {
+        var directory = CreateTemporaryDirectory();
+        try
+        {
+            using (var trace = new DataverseTrace(CreateOptions(directory, enabled: true)))
+            using (trace.BeginRequest("outcome-request", "outcome-user", sessionId: null))
+            {
+                trace.RecordBackgroundAccepted("operation-001");
+                using (trace.BeginBackgroundOperation("SaveIntegrate.Upload"))
+                {
+                    trace.RecordBackgroundOutcome(
+                        "operation-001",
+                        stage: "upload",
+                        outcome: "succeeded",
+                        errorClass: string.Empty);
+                }
+            }
+
+            var records = ReadRecords(directory);
+            var accepted = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "bg.accepted"));
+            var outcome = Assert.Single(records.Where(r => r.GetProperty("ev").GetString() == "bg.outcome"));
+
+            Assert.Equal("operation-001", accepted.GetProperty("operationId").GetString());
+            Assert.Equal("queue", accepted.GetProperty("stage").GetString());
+            Assert.Equal("accepted", accepted.GetProperty("outcome").GetString());
+            Assert.Equal(string.Empty, accepted.GetProperty("errorClass").GetString());
+            Assert.Equal("operation-001", outcome.GetProperty("operationId").GetString());
+            Assert.Equal("upload", outcome.GetProperty("stage").GetString());
+            Assert.Equal("succeeded", outcome.GetProperty("outcome").GetString());
+            Assert.Equal(string.Empty, outcome.GetProperty("errorClass").GetString());
+            Assert.DoesNotContain(records, r => r.ToString().Contains("Password", StringComparison.OrdinalIgnoreCase));
+            Assert.DoesNotContain(records, r => r.ToString().Contains("exception-text", StringComparison.Ordinal));
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    /// <summary>
     /// 保護背景 CRM scope 覆蓋不會切斷 F4 背景 trace 父子關聯。故障注入是在帶有 request
     /// trace 的流程中設定明確背景服務提供者，隨後由巢狀 <see cref="Task.Run(Action)"/>
     /// 讀取目前 trace；決定性斷言是子工作仍取得同一個 trace 實例。這確保修正 request

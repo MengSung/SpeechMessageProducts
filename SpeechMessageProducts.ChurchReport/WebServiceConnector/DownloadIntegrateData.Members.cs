@@ -298,7 +298,7 @@ namespace ChurchReport.WebServiceConnector
             // 排除結案成員
             if (member.Status != "10. 未入組結案")
             {
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.AddMemberToAllMemberData(member);
             }
         }
 
@@ -348,7 +348,7 @@ namespace ChurchReport.WebServiceConnector
             // 排除結案成員
             if (member.Status != "10. 未入組結案")
             {
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.AddMemberToAllMemberData(member);
             }
         }
 
@@ -467,7 +467,7 @@ namespace ChurchReport.WebServiceConnector
 
                         if (member.Status != "10. 未入組結案")
                         {
-                            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
+                            aListSmallGroupWeeklyReport.m_SmallGroupDataList.AddMemberToAllMemberData(member);
                         }
                     }
                 }
@@ -651,7 +651,7 @@ namespace ChurchReport.WebServiceConnector
 
             if (aIdentity != "10. 未入組結案")
             {
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(new Member
+                var member = new Member
                 {
                     PresentRecordId = DateTime.Now.ToLongTimeString(),
                     ContactId = m_ContactEntity.Id.ToString(),
@@ -691,7 +691,8 @@ namespace ChurchReport.WebServiceConnector
                     SpiritualWork = 0,
                     MorningPray = 0,
                     GeneralCare = 0,
-                });
+                };
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.AddMemberToAllMemberData(member);
             }
         }
 

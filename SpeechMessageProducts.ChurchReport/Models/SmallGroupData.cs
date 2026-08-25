@@ -24,6 +24,11 @@ namespace ChurchReport.Models
 {
     public class SmallGroupData
     {
+        // 獨立建構的資料使用本地鎖；掛入 SmallGroupDataList 後由資料圖 owner
+        // 接入該圖的共享鎖。不同 Session 不共享此物件或同步根。
+        private readonly object _localSyncRoot = new();
+        private object _syncRoot;
+
         public SmallGroupData()
         {
             ModifyFlag = false;
@@ -40,110 +45,140 @@ namespace ChurchReport.Models
         public List<Member> Members { get ; set ; } //
         public bool DisplayFlag { get; set; }
 
-        //private readonly object m_MemberDataLocker = new object();
+        /// <summary>
+        /// 將此資料集合接入所屬 SmallGroupDataList 的共享同步根。
+        /// 僅保護短暫記憶體更新，不得在該同步邊界執行 CRM、HTTP 或其他 I/O。
+        /// </summary>
+        /// <param name="syncRoot">目前資料圖的私有同步根。</param>
+        internal void AttachSynchronizationRoot(object syncRoot)
+        {
+            _syncRoot = syncRoot ?? throw new ArgumentNullException(nameof(syncRoot));
+        }
+
+        private object SynchronizationRoot => _syncRoot ?? _localSyncRoot;
 
         public void InsertMember( string values)
         {
-            var aNewMember = new Member();
-            JsonConvert.PopulateObject(values, aNewMember);
+            lock (SynchronizationRoot)
+            {
+                var aNewMember = new Member();
+                JsonConvert.PopulateObject(values, aNewMember);
+                Members.Add(aNewMember);
+            }
+        }
 
-            Members.Add(aNewMember);
+        /// <summary>
+        /// 以目前資料圖的同步根加入已建立的成員；此方法只修改記憶體集合。
+        /// </summary>
+        /// <param name="member">要加入的成員。</param>
+        public void AddMember(Member member)
+        {
+            ArgumentNullException.ThrowIfNull(member);
+            lock (SynchronizationRoot)
+            {
+                Members.Add(member);
+            }
         }
         public void UpdateMember(string key, string values)
         {
-            //lock (m_MemberDataLocker)
-            //{
-
-            // 修改資料
-            ModifyFlag = true; // 先修改旗標表示有被更新到
-
-            // 找到該會友的紀錄
-            Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
-
-            // 該會友的修改旗標設定唯有被修改過
-            aUpdatedMember.ModifyFlag = true;
-
-            var settings = new JsonSerializerSettings
+            lock (SynchronizationRoot)
             {
-                // 轉換成當地時間
-                DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                // 修改資料
+                ModifyFlag = true; // 先修改旗標表示有被更新到
 
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
-            };
+                // 找到該會友的紀錄
+                Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
 
-            // 會友資料被修改
-            JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+                // 該會友的修改旗標設定唯有被修改過
+                aUpdatedMember.ModifyFlag = true;
 
+                var settings = new JsonSerializerSettings
+                {
+                    // 轉換成當地時間
+                    DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore
+                };
+
+                // 會友資料被修改
+                JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+            }
         }
         public void PopulateObjectAndUpdateEntity(string key, string values)
         {
-            // 修改資料
-            ModifyFlag = true; // 先修改旗標表示有被更新到
-
-            // 找到該會友的紀錄
-            Member aUpdatedMember = Members.First(o => o.PresentRecordId == key);
-
-            aUpdatedMember.ModifyFlag = true;
-
-            var settings = new JsonSerializerSettings
+            lock (SynchronizationRoot)
             {
-                // 轉換成當地時間
-                //DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                // 修改資料
+                ModifyFlag = true; // 先修改旗標表示有被更新到
 
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
-            };
+                // 找到該會友的紀錄
+                Member aUpdatedMember = Members.First(o => o.PresentRecordId == key);
 
-            JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+                aUpdatedMember.ModifyFlag = true;
 
-            Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
-
-            List<string> KeyList = new List<string>(aDictionary.Keys);
-            List<string> ValueList = new List<string>(aDictionary.Values);
-
-            if (KeyList.Count > 0)
-            {
-                String Key = KeyList[0];
-
-                if (Key == "BirthDate" && ValueList[0] == null)
+                var settings = new JsonSerializerSettings
                 {
-                    String BirthDateValue = "{\"BirthDate\":\"" + DateTime.MinValue.ToUniversalTime().ToString("u") + "\"}";
-                    JsonConvert.PopulateObject(BirthDateValue, aUpdatedMember, settings);
+                    // 轉換成當地時間
+                    //DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                    DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore
+                };
+
+                JsonConvert.PopulateObject(values, aUpdatedMember, settings);
+
+                Dictionary<string, string> aDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(values);
+
+                List<string> KeyList = new List<string>(aDictionary.Keys);
+                List<string> ValueList = new List<string>(aDictionary.Values);
+
+                if (KeyList.Count > 0)
+                {
+                    String Key = KeyList[0];
+
+                    if (Key == "BirthDate" && ValueList[0] == null)
+                    {
+                        String BirthDateValue = "{\"BirthDate\":\"" + DateTime.MinValue.ToUniversalTime().ToString("u") + "\"}";
+                        JsonConvert.PopulateObject(BirthDateValue, aUpdatedMember, settings);
+                    }
                 }
             }
         }
         public Member DeleteMember(string key)
         {
-            try
+            lock (SynchronizationRoot)
             {
-                if (Members != null)
+                try
                 {
-                    if (Members.Count > 0)
+                    if (Members != null)
                     {
-                        //var aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
-                        Member aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
+                        if (Members.Count > 0)
+                        {
+                            //var aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
+                            Member aDeleteMember = Members.FirstOrDefault(o => o.PresentRecordId == key);
 
-                        Members.Remove(aDeleteMember);
+                            Members.Remove(aDeleteMember);
 
-                        return aDeleteMember;
+                            return aDeleteMember;
+                        }
+                        else
+                        {
+                            return null;
+                        }
                     }
                     else
                     {
                         return null;
                     }
                 }
-                else
+                catch (System.Exception e)
                 {
+                    string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                     return null;
                 }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                return null;
             }
         }
     }

@@ -189,11 +189,12 @@ namespace ChurchReport.Controllers
                     return BadRequest("缺少更新資料");
                 }
 
-                // 更新新人跟進資料
-                UpdateNewPersonFollowUpData(key, values);
+                var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    .m_SmallGroupDataList;
 
-                // 更新全部成員資料
-                UpdateAllMemberData(key, values);
+                // 兩個前景集合必須在同一份資料圖鎖內更新；不能讓 SaveIntegrate 在兩次
+                // Json.NET 原地繫結之間取得混合快照。
+                dataList.UpdateNewPersonAndAllMember(key, values);
 
                 return Ok();
             }
@@ -201,24 +202,6 @@ namespace ChurchReport.Controllers
             {
                 return HandleError(e, "UpdateNewPresentRecord");
             }
-        }
-
-        /// <summary>
-        /// 更新新人跟進關懷資料
-        /// </summary>
-        private void UpdateNewPersonFollowUpData(string key, string values)
-        {
-            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                .m_SmallGroupDataList.m_NewPersonFollowUpData.UpdateMember(key, values);
-        }
-
-        /// <summary>
-        /// 更新全部成員資料
-        /// </summary>
-        private void UpdateAllMemberData(string key, string values)
-        {
-            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                .m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
         }
 
         /// <summary>
@@ -234,10 +217,8 @@ namespace ChurchReport.Controllers
                 var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList;
 
-                // 從各個資料集中刪除
-                dataList.m_SmallGroupData.DeleteMember(key);
-                dataList.m_NewPersonFollowUpData.DeleteMember(key);
-                dataList.m_SmallGroupData.DeleteMember(key);
+                // 從同一份資料圖的所有前景集合一次移除，避免 snapshot 看到部分刪除狀態。
+                _ = dataList.DeleteMemberFromAllGroups(key);
 
                 return Ok();
             }

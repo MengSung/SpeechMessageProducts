@@ -36,6 +36,8 @@ public ListSmallGroupWeeklyReport CreateBackgroundUploadCopy();
 | --- | --- |
 | Any target source collection is null | Create an empty, copy-owned list; do not expose the source reference. |
 | Background upload or cleanup fails | Record only the exception type via release-capable tracing; do not log account, password, member content, stack data, or exception text; never write to the shared graph. |
+| A foreground write overlaps snapshot creation | Use the same private `SmallGroupDataList` synchronization root for snapshot construction and every published in-memory `Members`/`Member` mutation. Multi-collection changes stay in one short critical section; CRM, HTTP, DI and task scheduling remain outside it. |
+| A background stage fails | Emit `bg.outcome` with the opaque `operationId`, fixed stage (`scope-create`, `provider-resolve`, `toolutility-resolve`, `upload`, or `cleanup`), `outcome=failed`, and a fixed coarse `errorClass`. `bg.accepted` only means queued; `bg.end` only means trace-scope disposal. |
 | Background CRM resolution sees an inherited request `HttpContext` | Resolve from the explicit background provider override; never fall through to inherited request services while the background scope is active. |
 | Client disconnects after accepted response | Continue with `CancellationToken.None`, then dispose the background DI and trace scopes. |
 | Concurrent foreground CRUD occurs while upload runs | Preserve foreground graph unchanged; do not publish the background snapshot because it is stale. |

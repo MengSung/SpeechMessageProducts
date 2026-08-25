@@ -131,17 +131,29 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private static void SortAndCleanMemberStatus(ref ListSmallGroupWeeklyReport report)
         {
-            // 原地排序，無需建立新 List
-            report.m_SmallGroupDataList.m_AllMemeberData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
-            report.m_SmallGroupDataList.m_SmallGroupData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
-            report.m_SmallGroupDataList.m_NewPersonFollowUpData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
-            report.m_SmallGroupDataList.m_HappyGroup?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+            var dataList = report?.m_SmallGroupDataList;
+            if (dataList == null)
+            {
+                return;
+            }
 
-            // 去除數字、空白、逗號
-            RemoveNumericAndBlank(report.m_SmallGroupDataList.m_AllMemeberData?.Members);
-            RemoveNumericAndBlank(report.m_SmallGroupDataList.m_SmallGroupData?.Members);
-            RemoveNumericAndBlank(report.m_SmallGroupDataList.m_NewPersonFollowUpData?.Members);
-            RemoveNumericAndBlank(report.m_SmallGroupDataList.m_HappyGroup?.Members);
+            // 此階段會原地排序並逐筆改寫 Status；必須與 SaveIntegrate 快照及其他前景寫入
+            // 使用同一份 Session 資料圖同步根。鎖內只做記憶體排序／字串正規化，絕不執行 CRM、
+            // HTTP 或其他 I/O，避免延長鎖定時間或讓不同使用者共用可變資料。
+            dataList.ExecuteSynchronized(() =>
+            {
+                // 原地排序，無需建立新 List
+                dataList.m_AllMemeberData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+                dataList.m_SmallGroupData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+                dataList.m_NewPersonFollowUpData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+                dataList.m_HappyGroup?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+
+                // 去除數字、空白、逗號
+                RemoveNumericAndBlank(dataList.m_AllMemeberData?.Members);
+                RemoveNumericAndBlank(dataList.m_SmallGroupData?.Members);
+                RemoveNumericAndBlank(dataList.m_NewPersonFollowUpData?.Members);
+                RemoveNumericAndBlank(dataList.m_HappyGroup?.Members);
+            });
         }
 
         #endregion
@@ -270,28 +282,9 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private void SetSmallGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            var allMembers = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
-            int capacity = allMembers.Count;
-
-            var smallGroupMembers   = new List<Member>(capacity);
-            var newPersonMembers    = new List<Member>(capacity);
-
-            foreach (Member aMember in allMembers)
-            {
-                bool isNewComer = aMember.Status.Contains("新朋友") || aMember.Status.Contains("未入組");
-
-                if (isNewComer)
-                {
-                    newPersonMembers.Add(aMember);
-                }
-                else if (!aMember.Status.Contains("外教會") && !aMember.Status.Contains("結案"))
-                {
-                    smallGroupMembers.Add(aMember);
-                }
-            }
-
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData = new SmallGroupData { Members = smallGroupMembers };
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData { Members = newPersonMembers };
+            // CRM 查詢已在先前流程完成；分類與兩個集合發布必須是同一份短暫記憶體交易，
+            // 讓 SaveIntegrate 快照只能讀到完整的舊分類或完整的新分類。
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.RebuildSmallGroupAndNewPersonDataFromAllMembers();
         }
 
         /// <summary>
@@ -307,15 +300,8 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private void SetHappyGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup = new SmallGroupData
-            {
-                Members = new List<Member>()
-            };
-
-            foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
-            {
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members.Add(aMember);
-            }
+            // 只處理已下載完成的記憶體資料；不得把 CRM 或其他 I/O 放入資料圖同步區間。
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.RebuildHappyGroupDataFromAllMembers();
         }
 
         #endregion

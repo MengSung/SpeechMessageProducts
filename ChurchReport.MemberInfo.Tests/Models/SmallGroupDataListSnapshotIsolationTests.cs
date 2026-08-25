@@ -7,6 +7,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與 final CRLF。
 // ============================================================================
 using ChurchReport.Models;
+using ChurchReport.WebServiceConnector;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,6 +78,185 @@ public sealed class SmallGroupDataListSnapshotIsolationTests
     }
 
     /// <summary>
+    /// 保護來源週報圖的寫入端與 SaveIntegrate 快照必須共同持有同一同步根。
+    ///
+    /// 故障注入是由測試先持有來源 <see cref="SmallGroupDataList"/> 的內部同步根，再啟動會以
+    /// JSON 原地改寫姓名與電話兩個欄位的前景更新。修正前 <c>UpdateMember</c> 不持有該同步根，
+    /// 因而會在鎖仍被持有時完成；快照逐欄複製便可能取得不同時間點的欄位。決定性斷言是寫入在
+    /// 鎖釋放前必須等待，鎖內快照保持完整舊值，釋放後的新快照保持完整新值，不能出現混合狀態。
+    /// 測試只使用記憶體模型與受控同步原語，不建立 CRM、HTTP、Session 或長生命週期背景資源。
+    /// </summary>
+    [Fact]
+    public async Task UpdateMember_WaitsForSourceGraphLock_AndSnapshotsRemainWhole()
+    {
+        using var factoryScope = new LegacyToolUtilityFactoryScope();
+        var report = CreateReportWithMembers(1);
+        var dataList = report.m_SmallGroupDataList;
+        var sourceMember = dataList.m_AllMemeberData.Members[0];
+        sourceMember.PresentRecordId = "present-record-1";
+        sourceMember.FullName = "完整舊姓名";
+        sourceMember.Phone = "完整舊電話";
+
+        var syncRoot = GetSourceGraphSyncRoot(dataList);
+        using var writerEntered = new ManualResetEventSlim(false);
+        using var writerCompleted = new ManualResetEventSlim(false);
+        var writer = Task.Run(() =>
+        {
+            writerEntered.Set();
+            try
+            {
+                dataList.m_AllMemeberData.UpdateMember(
+                    "present-record-1",
+                    "{\"FullName\":\"完整新姓名\",\"Phone\":\"完整新電話\"}");
+            }
+            finally
+            {
+                writerCompleted.Set();
+            }
+        });
+
+        Monitor.Enter(syncRoot);
+        try
+        {
+            writerEntered.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue(
+                "測試必須先確認前景寫入已進入受測路徑，才能判定它是否遵守來源資料圖同步根");
+
+            writerCompleted.Wait(TimeSpan.FromMilliseconds(250)).Should().BeFalse(
+                "前景寫入在來源同步根被持有時必須等待，否則快照可與 Json.NET 原地多欄位更新重疊");
+
+            var oldSnapshot = report.CreateBackgroundUploadCopy();
+            AssertWholeMember(
+                oldSnapshot.m_SmallGroupDataList.m_AllMemeberData.Members[0],
+                "完整舊姓名",
+                "完整舊電話");
+        }
+        finally
+        {
+            Monitor.Exit(syncRoot);
+        }
+
+        await writer;
+
+        var newSnapshot = report.CreateBackgroundUploadCopy();
+        AssertWholeMember(
+            newSnapshot.m_SmallGroupDataList.m_AllMemeberData.Members[0],
+            "完整新姓名",
+            "完整新電話");
+    }
+
+    /// <summary>
+    /// 保護下載／初始化流程加入全部成員時也必須遵守來源資料圖同步根，避免快照在
+    /// 成員物件加入途中觀察到不完整的集合。故障注入是先持有同步根，再啟動新增工作；
+    /// 決定性斷言是工作在鎖內等待，釋放後才完成，且快照只看到完整加入前或完整加入後狀態。
+    /// </summary>
+    [Fact]
+    public async Task AddMemberToAllMemberData_WaitsForSourceGraphLock()
+    {
+        using var factoryScope = new LegacyToolUtilityFactoryScope();
+        var report = CreateReportWithMembers(1);
+        var dataList = report.m_SmallGroupDataList;
+        var syncRoot = GetSourceGraphSyncRoot(dataList);
+        var addedMember = new Member { PresentRecordId = "added", FullName = "新加入成員" };
+        using var completed = new ManualResetEventSlim(false);
+
+        Monitor.Enter(syncRoot);
+        try
+        {
+            var task = Task.Run(() =>
+            {
+                dataList.AddMemberToAllMemberData(addedMember);
+                completed.Set();
+            });
+
+            completed.Wait(TimeSpan.FromMilliseconds(250)).Should().BeFalse(
+                "全部成員加入必須與快照共用同步根，不能在來源鎖持有期間完成");
+            report.CreateBackgroundUploadCopy().m_SmallGroupDataList.m_AllMemeberData.Members
+                .Should().HaveCount(1);
+
+            Monitor.Exit(syncRoot);
+            await task;
+        }
+        finally
+        {
+            if (Monitor.IsEntered(syncRoot))
+            {
+                Monitor.Exit(syncRoot);
+            }
+        }
+
+        report.CreateBackgroundUploadCopy().m_SmallGroupDataList.m_AllMemeberData.Members
+            .Should().ContainSingle(member => member.PresentRecordId == "added");
+    }
+
+    /// <summary>
+    /// 保護下載完成後的排序與狀態正規化也必須加入來源資料圖同步協定。
+    ///
+    /// 故障注入先持有同一份 <see cref="SmallGroupDataList"/> 的同步根，再以反射呼叫下載流程
+    /// 的私有排序／正規化步驟；修正前該步驟直接排序並逐一改寫 <see cref="Member.Status"/>，會在
+    /// 鎖仍被持有時結束。決定性斷言是工作必須等待鎖釋放，且釋放後所有成員才完成正規化，防止
+    /// SaveIntegrate 快照取得一部分已排序或已清理、另一部分仍舊值的資料圖。測試不建立 CRM、
+    /// HTTP、Session 或背景長生命週期資源。
+    /// </summary>
+    [Fact]
+    public async Task SortAndCleanMemberStatus_WaitsForSourceGraphLock()
+    {
+        using var factoryScope = new LegacyToolUtilityFactoryScope();
+        var report = CreateReportWithMembers(2);
+        foreach (var members in new[]
+                 {
+                     report.m_SmallGroupDataList.m_SmallGroupData.Members,
+                     report.m_SmallGroupDataList.m_NewPersonFollowUpData.Members,
+                     report.m_SmallGroupDataList.m_AllMemeberData.Members
+                 })
+        {
+            members[0].Status = "2. 已委身";
+            members[1].Status = "1. 新朋友";
+        }
+
+        var sortAndClean = typeof(DownloadIntegrateData).GetMethod(
+            "SortAndCleanMemberStatus",
+            BindingFlags.Static | BindingFlags.NonPublic);
+        sortAndClean.Should().NotBeNull("下載完成後的狀態正規化是已發布資料圖的前景寫入端");
+
+        var syncRoot = GetSourceGraphSyncRoot(report.m_SmallGroupDataList);
+        using var completed = new ManualResetEventSlim(false);
+        Task task;
+        Monitor.Enter(syncRoot);
+        try
+        {
+            task = Task.Run(() =>
+            {
+                try
+                {
+                    sortAndClean!.Invoke(null, new object[] { report });
+                }
+                finally
+                {
+                    completed.Set();
+                }
+            });
+
+            completed.Wait(TimeSpan.FromMilliseconds(250)).Should().BeFalse(
+                "排序與狀態正規化必須與快照共用來源資料圖同步根，不能在來源鎖持有期間完成");
+
+            Monitor.Exit(syncRoot);
+        }
+        finally
+        {
+            if (Monitor.IsEntered(syncRoot))
+            {
+                Monitor.Exit(syncRoot);
+            }
+        }
+
+        await task;
+
+        report.m_SmallGroupDataList.m_AllMemeberData.Members
+            .Select(member => member.Status)
+            .Should().ContainInOrder("新朋友", "已委身");
+    }
+
+    /// <summary>
     /// 保護背景清理不能使前景列舉失敗或讀到半清空集合的契約。
     ///
     /// 故障注入是在背景 Task 內同時重複 Clear/Add 三組快照集合各 1,000 次；前景同步
@@ -141,6 +321,33 @@ public sealed class SmallGroupDataListSnapshotIsolationTests
         members.Should().HaveCount(5);
         members.Select(member => member.FullName)
             .Should().ContainInOrder("成員-0", "成員-1", "成員-2", "成員-3", "成員-4");
+    }
+
+    /// <summary>
+    /// 驗證快照中的兩個可同時被 JSON 更新的欄位屬於同一個完整版本；若姓名與電話分屬舊、新
+    /// 版本，代表同步邊界失效，背景上傳可能取得不曾存在於任何前景時間點的混合資料。
+    /// </summary>
+    private static void AssertWholeMember(Member member, string fullName, string phone)
+    {
+        member.FullName.Should().Be(fullName);
+        member.Phone.Should().Be(phone);
+    }
+
+    /// <summary>
+    /// 取得來源資料圖唯一的內部同步根，讓測試能以 lock ownership 而非不可靠的高頻迴圈，
+    /// 決定性驗證所有前景寫入端是否真的加入與快照相同的協定。
+    /// </summary>
+    private static object GetSourceGraphSyncRoot(SmallGroupDataList dataList)
+    {
+        var syncRootProperty = typeof(SmallGroupDataList).GetProperty(
+            "SyncRoot",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        syncRootProperty.Should().NotBeNull(
+            "SmallGroupDataList 必須維持每份來源資料圖私有的同步根，避免跨使用者共用鎖");
+
+        var syncRoot = syncRootProperty!.GetValue(dataList);
+        syncRoot.Should().NotBeNull();
+        return syncRoot!;
     }
 
     /// <summary>
