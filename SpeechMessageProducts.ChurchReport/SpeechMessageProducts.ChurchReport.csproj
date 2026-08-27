@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Dedication\" />
+    <Folder Include="文件\中華採購協會\" />
     <Folder Include="文件\修正官網奉獻網頁\" />
   </ItemGroup>
   <ItemGroup>
