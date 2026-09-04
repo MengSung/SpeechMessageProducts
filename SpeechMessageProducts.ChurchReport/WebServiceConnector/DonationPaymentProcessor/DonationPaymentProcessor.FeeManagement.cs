@@ -118,6 +118,11 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, DonationPaymentFormModel DonationPaymentFormModel, bool KeyinMode)
         {
+            // aContact 為 null 時，下方 aContact.Id 會丟出無法定位的 NullReferenceException。
+            // 在邊界明確指名缺少的輸入，讓呼叫端（身分還原流程）的缺陷立刻可辨識。
+            ArgumentNullException.ThrowIfNull(aContact);
+            ArgumentNullException.ThrowIfNull(aFeeToCreated);
+
             try
             {
                 // 基本資訊

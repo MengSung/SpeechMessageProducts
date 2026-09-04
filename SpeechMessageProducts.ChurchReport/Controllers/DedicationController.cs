@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
 // 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
 // 主要型別：class DedicationController
-// 主要成員：DonationPaymentView、IsWebLogin、RestoreWebLoginDonationPaymentModel、RestoreWebLoginDonationPaymentModelFromSession、SetupDonationPaymentViewBag、SaveDonationPaymentDedication、LoadCreditCardList、DeleteCreditCard、LoadDedicationBookingList、DeleteDedicationBooking
+// 主要成員：DonationPaymentView、IsWebLogin、RestoreWebLoginDonationPaymentModel、RestoreWebLoginDonationPaymentModelFromSession、TryRestoreDonationDonorIdentity、SetupDonationPaymentViewBag、SaveDonationPaymentDedication、LoadCreditCardList、DeleteCreditCard、LoadDedicationBookingList、DeleteDedicationBooking
 // 引用命名空間：ChurchReport.Models、ChurchReport.Payments、ChurchReport.Tools、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory
 // 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -207,6 +207,36 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 在奉獻交易 POST 內重新建立奉獻者身分。
+        ///
+        /// 根因說明：
+        /// DonationPaymentManager 由 scoped 的 IInMemoryDataContext 每個 request 重新建立，
+        /// GET 奉獻頁時設定的 m_Contact 不會延續到這個 POST。若不在此重新解析身分，
+        /// m_Contact 會是 null 並一路傳到 SetFeeParameter 的 aContact.Id，造成 NullReferenceException。
+        ///
+        /// 身分只從伺服器端 Session 還原（已驗證的 LINE user id，或網頁登入保存的 contact id），
+        /// 絕不接受表單或 route 傳入的身分值，維持既有的 Session 隔離保證。
+        /// </summary>
+        /// <returns>成功取得奉獻者 contact 時為 true。</returns>
+        private bool TryRestoreDonationDonorIdentity()
+        {
+            var manager = InMemoryContext.DonationPaymentManager;
+            if (manager.m_Contact != null)
+            {
+                return true;
+            }
+
+            var verifiedLineUserId = TryGetVerifiedLineUserId();
+            if (!string.IsNullOrEmpty(verifiedLineUserId)
+                && manager.TryRestoreDonorIdentityForLineUser(verifiedLineUserId))
+            {
+                return true;
+            }
+
+            return RestoreWebLoginDonationPaymentModelFromSession(manager) && manager.m_Contact != null;
+        }
+
+        /// <summary>
         /// 設定奉獻頁面的 ViewBag
         /// </summary>
         private void SetupDonationPaymentViewBag()
@@ -250,6 +280,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                if (!TryRestoreDonationDonorIdentity())
+                {
+                    return Json(new { status = "2", message = "登入狀態已失效，請重新登入或從 LINE 重新進入奉獻頁面後再送出。" });
+                }
+
                 return await InMemoryContext.DonationPaymentManager.SaveDonationPaymentDedicationAsync(DonationPaymentFormModel);
             }
             catch (Exception e)

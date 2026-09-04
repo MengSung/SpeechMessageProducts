@@ -371,6 +371,33 @@ namespace ChurchReport.Models
             SetDonationPaymentModel(contact);
             return true;
         }
+
+        /// <summary>
+        /// 只還原奉獻者身分，不重建整份奉獻表單模型。
+        /// </summary>
+        /// <param name="userLineId">已通過 LIFF ID Token 驗證的 LINE user id。</param>
+        /// <returns>查到 contact 並完成身分還原時為 true。</returns>
+        /// <remarks>
+        /// 用於奉獻交易 POST：DonationPaymentManager 由 scoped context 每個 request 重新建立，
+        /// GET 奉獻頁設定的 m_Contact 不會延續到送出請求，必須在同一個 request 內重新解析身分。
+        /// 與 <see cref="TrySetDonationPaymentModelForLineUser"/> 的差別是不呼叫
+        /// <see cref="SetDonationPaymentModel"/>：POST 已帶入自己的表單資料，不需要重跑
+        /// assembler 的 CRM 組裝，避免在付款路徑上多付一次不必要的往返成本。
+        /// 失敗時同樣清除 m_Contact、m_LoginContact，維持換人後不沿用前一位使用者身分的保證。
+        /// </remarks>
+        public bool TryRestoreDonorIdentityForLineUser(string userLineId)
+        {
+            if (!m_DonationDedicationFeeFormService.TryResolveLineContact(userLineId, out var contact))
+            {
+                m_Contact = null;
+                m_LoginContact = null;
+                return false;
+            }
+
+            m_Contact = contact;
+            m_LoginContact = contact;
+            return true;
+        }
         public DonationPaymentFormModel SetDedicationFeeList(Entity LineLoginContact)
         {
             try
@@ -423,6 +450,14 @@ namespace ChurchReport.Models
                 if (!string.IsNullOrWhiteSpace(validationMessage))
                 {
                     return Json(new { status = "2", message = validationMessage });
+                }
+
+                // m_Contact 由 Controller 在同一個 request 內從 Session 還原。
+                // 這裡 fail-closed：沒有奉獻者身分就不建立收費單，也不讓 null 一路流到
+                // SetFeeParameter 的 aContact.Id 變成 NullReferenceException。
+                if (m_Contact == null)
+                {
+                    return Json(new { status = "2", message = "登入狀態已失效，請重新登入或從 LINE 重新進入奉獻頁面後再送出。" });
                 }
 
                 string dedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);
