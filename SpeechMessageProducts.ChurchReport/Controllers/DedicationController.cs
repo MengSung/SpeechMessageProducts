@@ -214,8 +214,12 @@ namespace ChurchReport.Controllers
         /// GET 奉獻頁時設定的 m_Contact 不會延續到這個 POST。若不在此重新解析身分，
         /// m_Contact 會是 null 並一路傳到 SetFeeParameter 的 aContact.Id，造成 NullReferenceException。
         ///
-        /// 身分只從伺服器端 Session 還原（已驗證的 LINE user id，或網頁登入保存的 contact id），
-        /// 絕不接受表單或 route 傳入的身分值，維持既有的 Session 隔離保證。
+        /// 還原順序刻意與 GET 的 RestoreWebLoginDonationPaymentModel 一致，涵蓋三種登入入口：
+        /// 1. 已驗證的 LINE user id（LIFF 綁定，存於 Session）。
+        /// 2. 奉獻專用登入頁寫入的 WebLoginContactId（Session）。
+        /// 3. 主系統登入寫入的 PersonalInfomationModel.m_LoginContact（session-scoped 資料圖）。
+        /// 三個來源都是伺服器端 session 狀態；絕不接受表單或 route 傳入的身分值，
+        /// 維持既有的 Session 隔離保證。
         /// </summary>
         /// <returns>成功取得奉獻者 contact 時為 true。</returns>
         private bool TryRestoreDonationDonorIdentity()
@@ -233,7 +237,26 @@ namespace ChurchReport.Controllers
                 return true;
             }
 
-            return RestoreWebLoginDonationPaymentModelFromSession(manager) && manager.m_Contact != null;
+            if (RestoreWebLoginDonationPaymentModelFromSession(manager) && manager.m_Contact != null)
+            {
+                return true;
+            }
+
+            // 主系統登入（AuthenticationController.InitializeUserSession）只寫入
+            // PersonalInfomationModel.m_LoginContact，不會寫 WebLoginContactId；
+            // 後者只有奉獻專用登入頁 DonationPaymentLoginController 才會設定。
+            // GET 的 RestoreWebLoginDonationPaymentModel 已用同一段 fallback 兜住這條路徑，
+            // POST 必須比照，否則從主系統登入進來的使用者會在送出時被誤判為登入失效。
+            var loginContact = InMemoryContext.PersonalInfomationModel?.m_LoginContact;
+            if (loginContact == null)
+            {
+                return false;
+            }
+
+            // 與 GET 取用同一個 contact，避免畫面顯示 A、實際建單卻記到 B。
+            manager.m_Contact = loginContact;
+            manager.m_LoginContact = loginContact;
+            return true;
         }
 
         /// <summary>
