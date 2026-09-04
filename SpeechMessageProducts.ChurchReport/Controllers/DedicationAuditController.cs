@@ -57,8 +57,9 @@ namespace ChurchReport.Controllers
             {
                 SetupAuditViewBag(false);
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.LineBindingViewModel.LineUserId));
+                var manager = InMemoryContext.DonationPaymentManager;
+                EnsureAuditFormModel(manager);
+                return View(manager.SetDedicationFeeList(InMemoryContext.LineBindingViewModel.LineUserId));
             }
             catch (Exception e)
             {
@@ -109,7 +110,11 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = "行政同工";
                 ViewBag.DedicationType = "奉獻管理";
-                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.IsAOfficeWorker ? "是的" : "否";
+                // LINE 入口也可能在 legacy 狀態清理後先進入 ViewBag 設定；缺少表單模型時
+                // 應安全視為非行政同工，不能讓導覽列初始化再次因 NullReferenceException 當機。
+                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel?.IsAOfficeWorker == true
+                    ? "是的"
+                    : "否";
             }
         }
 
@@ -126,7 +131,7 @@ namespace ChurchReport.Controllers
         /// <c>PersonalInfomationModel.m_LoginContact</c>；若登入 contact 尚未可用，回傳清空且具安全
         /// 預設值的表單，不讀取或顯示任何可能屬於前一個使用者的奉獻資料。
         /// </remarks>
-        private DonationPaymentFormModel BuildAuditWebFormModel()
+        internal DonationPaymentFormModel BuildAuditWebFormModel()
         {
             var manager = InMemoryContext.DonationPaymentManager;
             var loginContact = InMemoryContext.PersonalInfomationModel?.m_LoginContact;
@@ -136,16 +141,35 @@ namespace ChurchReport.Controllers
                 return manager.SetDedicationFeeList(loginContact);
             }
 
-            var model = manager.m_DonationPaymentFormModel ?? new DonationPaymentFormModel();
-            model.EnsureFormDefaults();
+            var model = EnsureAuditFormModel(manager);
             model.FullName = string.Empty;
             model.Mobile = string.Empty;
             model.DedicationNumber = string.Empty;
             model.NationId = string.Empty;
             model.LastSixDigit = string.Empty;
+            model.DedicationFeeList ??= new System.Collections.Generic.List<DedicationFee>();
             model.DedicationFeeList.Clear();
+            model.SameNameList ??= new System.Collections.Generic.List<SameNameElement>();
             model.SameNameList.Clear();
             model.TotalAmount = 0;
+            return model;
+        }
+
+        /// <summary>
+        /// 取得目前 request 專屬且具完整預設值的稽核表單模型。
+        /// </summary>
+        /// <remarks>
+        /// Grid/AJAX 可能在主頁 View 尚未完成或 legacy 流程清空 manager 後直接抵達，
+        /// 因此所有讀取入口都必須先經過這個 helper。若狀態不存在，建立的新模型只由目前
+        /// request-scoped manager 持有並立即回存；不放入程序級快取，也不複製其他 Session 的資料。
+        /// </remarks>
+        internal static DonationPaymentFormModel EnsureAuditFormModel(DonationPaymentManager manager)
+        {
+            var model = manager.m_DonationPaymentFormModel ?? new DonationPaymentFormModel();
+            model.EnsureFormDefaults();
+            model.DedicationFeeList ??= new System.Collections.Generic.List<DedicationFee>();
+            model.SameNameList ??= new System.Collections.Generic.List<SameNameElement>();
+            manager.m_DonationPaymentFormModel = model;
             return model;
         }
 
@@ -194,7 +218,7 @@ namespace ChurchReport.Controllers
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
 
-                var tasks = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.DedicationFeeList;
+                var tasks = EnsureAuditFormModel(InMemoryContext.DonationPaymentManager).DedicationFeeList;
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
             catch (Exception e)
@@ -224,8 +248,7 @@ namespace ChurchReport.Controllers
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
 
-                var sameNameList = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.SameNameList
-                    ?? new System.Collections.Generic.List<SameNameElement>();
+                var sameNameList = EnsureAuditFormModel(InMemoryContext.DonationPaymentManager).SameNameList;
 
                 return DataSourceLoader.Load(sameNameList, loadOptions);
             }
@@ -384,10 +407,13 @@ namespace ChurchReport.Controllers
                 if (string.IsNullOrEmpty(id))
                     return Json(new { status = "0", message = "missing id", DedicationFeeList = new object[] { } });
 
-                var feeList = InMemoryContext.DonationPaymentManager.GetDedicationFeesByContactId(id);
+                var manager = InMemoryContext.DonationPaymentManager;
+                EnsureAuditFormModel(manager);
+                var feeList = manager.GetDedicationFeesByContactId(id);
 
                 // GetDedicationFeesByContactId 內部已透過 SetDedicationFeeList 算好總金額
-                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.TotalAmount });
+                var totalAmount = manager.m_DonationPaymentFormModel.TotalAmount;
+                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = totalAmount });
             }
             catch (Exception e)
             {

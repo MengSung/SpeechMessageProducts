@@ -14,8 +14,16 @@
 using ChurchReport.Controllers;
 using ChurchReport.Models;
 using ChurchReport.Payments;
+using ChurchReport.Tools;
+using ChurchReport.ViewModel;
+using DevExtreme.AspNet.Mvc;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using ToolUtilityNameSpace;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
@@ -37,6 +45,19 @@ public sealed class DonationPaymentViewDefaultsTests
         model.DedicationCategoryList.Should().Contain("十一奉獻");
         model.OtherCategoryArray.Should().NotBeNull();
         model.SpecialCategoryArray.Should().NotBeNull();
+    }
+
+    /// <summary>
+    /// 保護奉獻稽核查詢的開始日期必須隨建立表單時的年份動態落在該年一月一日，
+    /// 而不是固定某一年度或誤用當天日期；因此跨年後不需人工修改程式即可得到正確區間起點。
+    /// </summary>
+    [Fact]
+    public void New_donation_form_defaults_query_start_date_to_current_year_first_day()
+    {
+        var model = new DonationPaymentFormModel();
+        var expected = new DateTime(DateTime.Now.Year, 1, 1);
+
+        model.QueryStartDate.Should().Be(expected);
     }
 
     [Fact]
@@ -182,9 +203,9 @@ public sealed class DonationPaymentViewDefaultsTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var loginController = File.ReadAllText(
-            Path.Combine(repositoryRoot, "ChurchReport", "Controllers", "DonationPaymentLoginController.cs"));
+            Path.Combine(repositoryRoot, "SpeechMessageProducts.ChurchReport", "Controllers", "DonationPaymentLoginController.cs"));
         var dedicationController = File.ReadAllText(
-            Path.Combine(repositoryRoot, "ChurchReport", "Controllers", "DedicationController.cs"));
+            Path.Combine(repositoryRoot, "SpeechMessageProducts.ChurchReport", "Controllers", "DedicationController.cs"));
         var contactIdSessionKeyName = nameof(DonationPaymentSessionKeys.WebLoginContactId);
 
         loginController.Should().Contain(contactIdSessionKeyName,
@@ -196,12 +217,172 @@ public sealed class DonationPaymentViewDefaultsTests
         dedicationController.Should().Contain(contactIdSessionKeyName);
     }
 
+    /// <summary>
+    /// 保護網頁奉獻稽核入口在 request-scoped manager 尚未取得 contact 時仍能安全產生空白表單。
+    /// </summary>
+    /// <remarks>
+    /// 故障注入是讓 <see cref="PersonalInfomationModel.m_LoginContact"/> 保持 null，並在表單內預先放入
+    /// 「前一位使用者」的識別與清單資料。決定性斷言是建模流程不拋出
+    /// <see cref="ArgumentNullException"/>，且所有個資與奉獻清單都被清空；這固定了當機修正與
+    /// 跨使用者資料不可殘留的契約。測試使用未初始化的 manager/controller，沒有建立 CRM 連線、HTTP
+    /// client、計時器或背景工作，因此不會留下可達資源。
+    /// </remarks>
+    [Fact]
+    public void Dedication_audit_web_form_without_login_contact_returns_isolated_blank_model()
+    {
+        var staleModel = new DonationPaymentFormModel
+        {
+            FullName = "前一位使用者",
+            Mobile = "0912345678",
+            DedicationNumber = "OLD-001",
+            NationId = "A123456789",
+            LastSixDigit = "123456",
+            TotalAmount = 9999,
+            DedicationFeeList = new List<DedicationFee> { new DedicationFee { FullName = "前一位使用者", Amount = 9999 } },
+            SameNameList = new List<SameNameElement> { new SameNameElement() }
+        };
+
+        var manager = (DonationPaymentManager)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentManager));
+        manager.m_DonationPaymentFormModel = staleModel;
+
+        var context = new AuditControllerContext(manager);
+        var controller = (DedicationAuditController)RuntimeHelpers.GetUninitializedObject(typeof(DedicationAuditController));
+        var contextField = typeof(BaseChurchController).GetField(
+            "InMemoryContext",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        contextField.Should().NotBeNull();
+        contextField!.SetValue(controller, context);
+
+        var result = controller.BuildAuditWebFormModel();
+
+        result.FullName.Should().BeEmpty();
+        result.Mobile.Should().BeEmpty();
+        result.DedicationNumber.Should().BeEmpty();
+        result.NationId.Should().BeEmpty();
+        result.LastSixDigit.Should().BeEmpty();
+        result.DedicationFeeList.Should().BeEmpty();
+        result.SameNameList.Should().BeEmpty();
+        result.TotalAmount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護 manager 的表單狀態在 legacy 流程曾清成 null 時仍會回存同一個安全模型，
+    /// 讓後續 Grid/AJAX 請求不會再次解參考 null。
+    /// </summary>
+    [Fact]
+    public void Dedication_audit_web_form_reassigns_new_default_model_to_manager()
+    {
+        var manager = (DonationPaymentManager)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentManager));
+        manager.m_DonationPaymentFormModel = null!;
+
+        var context = new AuditControllerContext(manager);
+        var controller = (DedicationAuditController)RuntimeHelpers.GetUninitializedObject(typeof(DedicationAuditController));
+        var contextField = typeof(BaseChurchController).GetField("InMemoryContext", BindingFlags.Instance | BindingFlags.NonPublic);
+        contextField!.SetValue(controller, context);
+
+        var result = controller.BuildAuditWebFormModel();
+
+        manager.m_DonationPaymentFormModel.Should().BeSameAs(result);
+    }
+
+    /// <summary>
+    /// 保護奉獻稽核 Grid 在表單模型尚未建立時仍回傳空資料，而不是因 null manager 狀態當機。
+    /// </summary>
+    [Fact]
+    public void Dedication_audit_fee_grid_returns_empty_data_when_form_model_is_missing()
+    {
+        var manager = (DonationPaymentManager)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentManager));
+        manager.m_DonationPaymentFormModel = null!;
+        var controller = CreateUninitializedAuditController(manager);
+
+        var action = () => controller.LoadDedicationFeeList(string.Empty, new DataSourceLoadOptions());
+
+        action.Should().NotThrow();
+    }
+
+    /// <summary>
+    /// 保護同名奉獻者 Grid 與奉獻清單具有相同的 null-safe 行為，避免 AJAX 請求繞過主頁 render 時當機。
+    /// </summary>
+    [Fact]
+    public void Dedication_audit_same_name_grid_returns_empty_data_when_form_model_is_missing()
+    {
+        var manager = (DonationPaymentManager)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentManager));
+        manager.m_DonationPaymentFormModel = null!;
+        var controller = CreateUninitializedAuditController(manager);
+
+        var action = () => controller.LoadSameNameList(string.Empty, new DataSourceLoadOptions());
+
+        action.Should().NotThrow();
+    }
+
+    /// <summary>建立只供本測試使用的未初始化稽核控制器。</summary>
+    private static DedicationAuditController CreateUninitializedAuditController(DonationPaymentManager manager)
+    {
+        var context = new AuditControllerContext(manager);
+        var controller = (DedicationAuditController)RuntimeHelpers.GetUninitializedObject(typeof(DedicationAuditController));
+        var contextField = typeof(BaseChurchController).GetField("InMemoryContext", BindingFlags.Instance | BindingFlags.NonPublic);
+        contextField!.SetValue(controller, context);
+        return controller;
+    }
+
+    /// <summary>
+    /// 提供只給稽核建模測試使用的 request-local context；除付款 manager 與個人模型外，
+    /// 其他資料管理器不會被該建模流程讀取，因此以 null-forgiving 回傳避免建立任何外部資源。
+    /// </summary>
+    private sealed class AuditControllerContext : IInMemoryDataContext
+    {
+        /// <summary>建立稽核測試 context。</summary>
+        /// <param name="manager">測試擁有的短命奉獻 manager。</param>
+        public AuditControllerContext(DonationPaymentManager manager)
+        {
+            DonationPaymentManager = manager ?? throw new ArgumentNullException(nameof(manager));
+            PersonalInfomationModel = new PersonalInfomationModel();
+        }
+
+        /// <summary>未使用的清單管理器。</summary>
+        public ListManager ListManager => null!;
+        /// <summary>未使用的小組資料。</summary>
+        public SmallGroupDataList SmallGroupDataList => null!;
+        /// <summary>未使用的週報資料。</summary>
+        public WeeklyReportData WeeklyReportData => null!;
+        /// <summary>未使用的新人模型。</summary>
+        public NewPersonModel NewPersonModel => null!;
+        /// <summary>目前測試 request 的個人模型。</summary>
+        public PersonalInfomationModel PersonalInfomationModel { get; }
+        /// <summary>未使用的幸福小組管理器。</summary>
+        public HappyGroupDataManager HappyGroupDataManager => null!;
+        /// <summary>未使用的名單管理器。</summary>
+        public ListManagementDataManager ListManagementDataManager => null!;
+        /// <summary>未使用的裝備管理器。</summary>
+        public EquipmentDataManager EquipmentDataManager => null!;
+        /// <summary>未使用的收費清單。</summary>
+        public FeeList FeeList => null!;
+        /// <summary>未使用的 LINE 綁定模型。</summary>
+        public LineBindingViewModel LineBindingViewModel => null!;
+        /// <summary>未使用的行事曆管理器。</summary>
+        public AppointmentsListManager AppointmentsListManager => null!;
+        /// <summary>目前測試 request 的奉獻 manager。</summary>
+        public DonationPaymentManager DonationPaymentManager { get; }
+        /// <summary>未使用的問卷管理器。</summary>
+        public PollManager PollManager => null!;
+        /// <summary>未使用的工具實例。</summary>
+        public ToolUtilityClass ToolUtilityClass => null!;
+
+        /// <summary>測試 context 不執行外部資料初始化。</summary>
+        public void SetupSmallGroupData(string fullName, string account, string password, DateTime selectDate, bool displayDateFlag)
+            => throw new NotSupportedException();
+
+        /// <summary>測試 context 沒有可提交的持久化狀態。</summary>
+        public void SaveChanges() => throw new NotSupportedException();
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln"))
+                || File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
             {
                 return directory.FullName;
             }
@@ -209,6 +390,6 @@ public sealed class DonationPaymentViewDefaultsTests
             directory = directory.Parent;
         }
 
-        throw new DirectoryNotFoundException("找不到 ChurchReport.sln，無法定位測試要檢查的 Controller 原始碼。");
+        throw new DirectoryNotFoundException("找不到 SpeechMessageProducts.sln，無法定位測試要檢查的 Controller 原始碼。");
     }
 }

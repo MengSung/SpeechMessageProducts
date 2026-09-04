@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "修正 DedicationAuditController 網頁/LINE 稽核入口與 Grid 的 null model 當機；新增 4 個隔離與生命週期回歸測試。Gemini review 通過；Claude backend 三次均無 usable output，屬 degraded/incomplete external review。",
   "meta": {}
 }

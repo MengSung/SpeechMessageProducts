@@ -181,7 +181,12 @@ namespace ChurchReport.Models
         public List<DedicationBooking> DedicationBookingList { get; set; }//認獻清單
         public String SelectedDedicationBooking { get; set; }             //選取的認獻
 
-        public DateTime QueryStartDate { get; set; } = DateTime.Now;    //奉獻查詢開始日期
+        /// <summary>
+        /// 奉獻查詢開始日期；每次建立新表單時依當下本地年份動態設定為該年一月一日。
+        /// 這個初始化只提供新表單的安全起點，不會在 <see cref="EnsureFormDefaults"/> 中重設，
+        /// 因此不會覆蓋使用者在查詢畫面選取的日期，也不會把任何年份（例如 2026）硬編碼在模型內。
+        /// </summary>
+        public DateTime QueryStartDate { get; set; } = new DateTime(DateTime.Now.Year, 1, 1);
         public DateTime QueryEndDate { get; set; } = DateTime.Now;      //奉獻查詢結束日期
 
         public bool IsAOfficeWorker { get; set; } = false;              //是否符合輸入奉獻的行政人員
