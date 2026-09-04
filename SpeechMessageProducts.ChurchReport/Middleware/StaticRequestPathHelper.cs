@@ -76,6 +76,13 @@ namespace ChurchReport.Middleware
                 return false;
             }
 
+            // 靜態分流只接受沒有路徑穿越片段的 URL；否則後續若由動態路由處理，
+            // 上游可能已先套用公共長效快取標頭，形成跨使用者回應快取風險。
+            if (ContainsPathTraversal(value))
+            {
+                return false;
+            }
+
             foreach (var exactPath in ExactStaticPaths)
             {
                 if (string.Equals(value, exactPath, StringComparison.OrdinalIgnoreCase))
@@ -92,6 +99,45 @@ namespace ChurchReport.Middleware
             foreach (var prefix in StaticPathPrefixes)
             {
                 if (value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 判斷 URL 是否包含明文或百分比編碼的路徑穿越片段。
+        /// </summary>
+        /// <param name="value">待檢查的 request path。</param>
+        /// <returns>含有 <c>.</c>、<c>..</c> 或反斜線分隔片段時回傳 true。</returns>
+        /// <remarks>
+        /// 先解碼再分段可攔截 <c>%2e%2e</c>、編碼斜線與混合大小寫形式；
+        /// 解碼失敗採 fail closed，避免把不明路徑當成可長效快取的靜態資源。
+        /// </remarks>
+        private static bool ContainsPathTraversal(string value)
+        {
+            if (value.IndexOf('\\') >= 0)
+            {
+                return true;
+            }
+
+            string decoded;
+            try
+            {
+                decoded = Uri.UnescapeDataString(value);
+            }
+            catch (UriFormatException)
+            {
+                return true;
+            }
+
+            decoded = decoded.Replace('\\', '/');
+            var segments = decoded.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var segment in segments)
+            {
+                if (segment == "." || segment == "..")
                 {
                     return true;
                 }

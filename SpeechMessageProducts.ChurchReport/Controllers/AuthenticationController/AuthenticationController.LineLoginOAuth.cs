@@ -167,7 +167,8 @@ namespace ChurchReport.Controllers
                     return RedirectToAction("Login", new { error = "取得 LINE Access Token 失敗" });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] Access Token 前20字: {tokenResponse.access_token.Substring(0, Math.Min(20, tokenResponse.access_token.Length))}...");
+                // 不記錄 token 本文或前綴；即使在 Debug 輸出也不得留下可重播的憑證材料。
+                System.Diagnostics.Debug.WriteLine("[LineCallback] Access Token acquired.");
 
                 var userProfile = await GetLineUserProfile(tokenResponse.access_token);
                 if (userProfile == null || string.IsNullOrEmpty(userProfile.userId))
@@ -411,7 +412,7 @@ namespace ChurchReport.Controllers
                 // ✅ 由 IHttpClientFactory 提供，連線可重用且不可 Dispose（見 CreateLineApiHttpClient 說明）。
                 {
                     var httpClient = CreateLineApiHttpClient();
-                    var requestData = new FormUrlEncodedContent(new[]
+                    using var requestData = new FormUrlEncodedContent(new[]
                     {
                         new KeyValuePair<string, string>("grant_type", "authorization_code"),
                         new KeyValuePair<string, string>("code", code),
@@ -420,10 +421,12 @@ namespace ChurchReport.Controllers
                         new KeyValuePair<string, string>("client_secret", channelSecret)
                     });
 
-                    var response = await httpClient.PostAsync("https://api.line.me/oauth2/v2.1/token", requestData);
+                    using var response = await httpClient.PostAsync("https://api.line.me/oauth2/v2.1/token", requestData);
                     var responseBody = await response.Content.ReadAsStringAsync();
 
-                    System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] Response: {responseBody}");
+                    // OAuth 回應可能包含 access_token、refresh_token 與 id_token；只記錄狀態與長度。
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[ExchangeCodeForToken] HTTP {(int)response.StatusCode}; responseLength={responseBody?.Length ?? 0}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -434,7 +437,8 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] 錯誤: {response.StatusCode} - {responseBody}");
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[ExchangeCodeForToken] HTTP error {(int)response.StatusCode}; responseLength={responseBody?.Length ?? 0}");
                         return null;
                     }
                 }
@@ -468,7 +472,9 @@ namespace ChurchReport.Controllers
                     using var response = await httpClient.SendAsync(request);
                     var responseBody = await response.Content.ReadAsStringAsync();
 
-                    System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] Response: {responseBody}");
+                    // Profile 回應含有 LINE userId/displayName 等個人資料，不寫入原始內容。
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[GetLineUserProfile] HTTP {(int)response.StatusCode}; responseLength={responseBody?.Length ?? 0}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -479,7 +485,8 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] 錯誤: {response.StatusCode} - {responseBody}");
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[GetLineUserProfile] HTTP error {(int)response.StatusCode}; responseLength={responseBody?.Length ?? 0}");
                         return null;
                     }
                 }

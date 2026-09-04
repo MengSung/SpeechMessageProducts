@@ -152,7 +152,7 @@ namespace ChurchReport.Controllers
         /// <remarks>
         /// <para><b>結構</b></para>
         /// <list type="bullet">
-        /// <item>Key：<c>"{SessionId}_{密碼的 SHA256 前 8 碼}"</c></item>
+        /// <item>Key：<c>"{SessionId}_{密碼的完整 SHA256 十六進位雜湊}"</c></item>
         /// <item>Value：<c>(LastValidated 最後驗證時間, IsValid 是否通過, PasswordHash 當時的密碼雜湊)</c></item>
         /// </list>
         ///
@@ -167,11 +167,32 @@ namespace ChurchReport.Controllers
         /// 快取內只存「是否通過」的布林值與雜湊，不存密碼原文、姓名或任何個資。
         ///
         /// <para><b>記憶體上界</b></para>
-        /// 由 <c>CleanupOldCacheForSession</c> 以「30 秒節流 + 4096 筆硬上界」雙重機制回收，
-        /// 不會隨著線上人數無限成長。
+        /// 由寫入 helper 在每次新增前維持 4096 筆硬上界，並由
+        /// <c>CleanupOldCacheForSession</c> 以節流方式回收過期項目，不會隨著線上人數無限成長。
         /// </remarks>
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime LastValidated, bool IsValid, string PasswordHash)>
             _userValidationCache = new();
+
+        /// <summary>
+        /// 保護驗證快取的複合寫入與淘汰操作。
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="System.Collections.Concurrent.ConcurrentDictionary{TKey,TValue}"/> 的單次
+        /// 操作雖然是執行緒安全，卻無法單獨保證「檢查容量後寫入」這個複合不變量。
+        /// 所有新增與清掃都在此鎖內完成，避免高併發登入讓快取突破上限，或因競態留下舊身分項目。
+        /// </para>
+        /// <para>
+        /// 鎖只涵蓋最多 4096 筆的記憶體字典操作，不會包住 CRM、Session、網路或任何可阻塞的 I/O，
+        /// 因此不會把外部資源的生命週期綁在全域鎖上。
+        /// </para>
+        /// </remarks>
+        private static readonly object _userValidationCacheGate = new();
+
+        /// <summary>
+        /// 驗證快取允許保留的最大項目數；超過前會先淘汰一筆最舊項目。
+        /// </summary>
+        private const int ValidationCacheMaximumEntries = 4096;
 
         /// <summary>
         /// 取得 Dataverse/CRM 與各項後端服務的統一操作進入點。
@@ -738,7 +759,7 @@ namespace ChurchReport.Controllers
                     sessionPassword == listManagerPassword)
                 {
                     // 記錄本次驗證結果，讓接下來 30 秒內的請求都能走快取捷徑。
-                    _userValidationCache[cacheKey] = (DateTime.UtcNow, true, currentPasswordHash);
+                    SetValidationCacheEntry(cacheKey, (DateTime.UtcNow, true, currentPasswordHash));
 
                     // 順便清掉這個 Session 底下屬於舊密碼的項目。
                     CleanupOldCacheForSession(sessionId, cacheKey);
@@ -767,7 +788,7 @@ namespace ChurchReport.Controllers
                     // 身分已變更，必須用新密碼的雜湊重算快取鍵，不能沿用舊鍵。
                     var newPasswordHash = GetStableHash(sessionPassword);
                     var newCacheKey = $"{sessionId}_{newPasswordHash}";
-                    _userValidationCache[newCacheKey] = (DateTime.UtcNow, true, newPasswordHash);
+                    SetValidationCacheEntry(newCacheKey, (DateTime.UtcNow, true, newPasswordHash));
 
                     // 清掉同一 Session 底下屬於舊身分的快取項目。
                     CleanupOldCacheForSession(sessionId, newCacheKey);
@@ -807,7 +828,7 @@ namespace ChurchReport.Controllers
                         // 同樣記入驗證快取，讓後續請求不必重複這段恢復流程。
                         var linePasswordHash = GetStableHash(passwordKey);
                         var lineCacheKey = $"{sessionId}_{linePasswordHash}";
-                        _userValidationCache[lineCacheKey] = (DateTime.UtcNow, true, linePasswordHash);
+                        SetValidationCacheEntry(lineCacheKey, (DateTime.UtcNow, true, linePasswordHash));
                     }
                 }
             }
@@ -820,24 +841,19 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 計算字串的穩定短雜湊，用於組成驗證快取的鍵。
+        /// 計算字串的穩定完整 SHA-256 雜湊，用於組成驗證快取的鍵。
         /// </summary>
         /// <remarks>
         /// <para><b>為什麼要雜湊</b></para>
         /// 快取鍵需要能區分不同的密碼，但絕對不能包含密碼原文。
         /// 雜湊讓鍵具備區分能力，同時保證即使快取內容被傾印也無法還原出密碼。
         ///
-        /// <para><b>為什麼只取 8 個字元</b></para>
-        /// 完整的 Base64 SHA256 有 44 個字元，作為字典鍵過長。
-        /// 取前 8 個字元（48 位元）的碰撞機率極低，而且鍵中還包含 Session Id，
-        /// 即使雜湊碰撞也必須同時發生在同一個 Session 內才可能造成影響。
-        ///
         /// <para><b>穩定性</b></para>
         /// 相同輸入必定得到相同輸出，且與行程、機器、時間都無關。
-        /// 這是快取能跨請求運作的前提，因此輸出格式不可更動。
+        /// 這是快取能跨請求運作的前提，因此演算法與編碼不可任意更動。
         /// </remarks>
         /// <param name="input">要雜湊的字串，通常是登入密碼。</param>
-        /// <returns>Base64 編碼的前 8 個字元；輸入為空時回傳固定字串 <c>"EMPTY"</c>。</returns>
+        /// <returns>完整 SHA-256 的大寫十六進位字串；輸入為空時回傳固定字串 <c>"EMPTY"</c>。</returns>
         private static string GetStableHash(string input)
         {
             // 空字串以固定字面值代表，避免對空輸入做一次無意義的雜湊運算。
@@ -861,10 +877,9 @@ namespace ChurchReport.Controllers
             // SHA256.HashData 是 .NET 5 起提供的靜態一次性 API。它內部使用共用的實作，
             // 不配置任何需要 Dispose 的物件，也不會反覆開關 CNG 控制代碼。
             //
-            // 【相容性保證】
-            // 雜湊演算法、輸入位元組、Base64 編碼與「取前 8 個字元」的截斷方式全部保持不變，
-            // 因此產生的字串與修改前完全相同。既有的快取鍵格式與碰撞特性都不受影響，
-            // 執行中的行程即使新舊程式碼混用也不會有鍵不一致的問題。
+            // 雜湊輸入維持 UTF-8；鍵改用完整 SHA-256，避免短截雜湊在高併發或
+            // 惡意可控輸入下發生不必要的碰撞。驗證快取是程序記憶體，部署重啟後自然清空，
+            // 因此不需要相容舊版的八字元鍵。
             // ================================================================
 
             // 先算出 UTF-8 編碼所需的位元組數，才能決定要走堆疊還是租用緩衝區。
@@ -888,10 +903,8 @@ namespace ChurchReport.Controllers
                 Span<byte> hashBytes = stackalloc byte[32];
                 System.Security.Cryptography.SHA256.HashData(inputBytes, hashBytes);
 
-                // 轉成 Base64 後截斷為 8 個字元。這裡刻意沿用原本的做法，
-                // 因為快取鍵的格式必須維持不變（見上方相容性保證）。
-                var hash = Convert.ToBase64String(hashBytes);
-                return hash.Length > 8 ? hash.Substring(0, 8) : hash;
+                // 使用完整 SHA-256 十六進位值作為快取鍵的一部分，避免碰撞誤命中。
+                return Convert.ToHexString(hashBytes);
             }
             finally
             {
@@ -928,6 +941,69 @@ namespace ChurchReport.Controllers
         /// 這確保時間節流不會讓字典無限成長。
         /// </summary>
         private const int ValidationCacheForceSweepCount = 4096;
+
+        /// <summary>
+        /// 將一筆驗證結果寫入程序級快取，並在新增前以鎖定的方式維持硬上限。
+        /// </summary>
+        /// <param name="cacheKey">由 Session Id 與完整密碼雜湊組成的隔離鍵。</param>
+        /// <param name="entry">不含密碼明文或其他個資的驗證結果。</param>
+        /// <remarks>
+        /// <para>
+        /// 不能只在寫入後再檢查 Count：多個請求可同時通過檢查，造成快取短暫或永久超過上限。
+        /// 此 helper 在同一把鎖內先確認鍵是否已存在，必要時淘汰最舊項目，再寫入新值，
+        /// 因而對所有新增路徑提供真正的 4096 筆上界。
+        /// </para>
+        /// <para>
+        /// 淘汰只影響驗證捷徑，不影響 Session 的權威資料；被淘汰的請求會重新執行既有密碼比對。
+        /// 鎖內不執行任何 I/O、Session 存取或外部服務呼叫，避免資源生命週期與全域鎖互相牽連。
+        /// </para>
+        /// </remarks>
+        private static void SetValidationCacheEntry(
+            string cacheKey,
+            (DateTime LastValidated, bool IsValid, string PasswordHash) entry)
+        {
+            lock (_userValidationCacheGate)
+            {
+                if (!_userValidationCache.ContainsKey(cacheKey) &&
+                    _userValidationCache.Count >= ValidationCacheMaximumEntries)
+                {
+                    EvictOneValidationCacheEntryLocked();
+                }
+
+                _userValidationCache[cacheKey] = entry;
+            }
+        }
+
+        /// <summary>
+        /// 在已持有驗證快取鎖時淘汰一筆項目，優先移除最久未驗證的項目。
+        /// </summary>
+        private static void EvictOneValidationCacheEntryLocked()
+        {
+            var now = DateTime.UtcNow;
+            string selectedKey = null;
+            DateTime selectedTimestamp = DateTime.MaxValue;
+
+            foreach (var pair in _userValidationCache)
+            {
+                // 先淘汰已失效項目；若都仍新鮮，才選最舊項目，維持近似 LRU 行為。
+                if ((now - pair.Value.LastValidated).TotalMinutes > 5)
+                {
+                    selectedKey = pair.Key;
+                    break;
+                }
+
+                if (pair.Value.LastValidated < selectedTimestamp)
+                {
+                    selectedTimestamp = pair.Value.LastValidated;
+                    selectedKey = pair.Key;
+                }
+            }
+
+            if (selectedKey != null)
+            {
+                _userValidationCache.TryRemove(selectedKey, out _);
+            }
+        }
 
         private static void CleanupOldCacheForSession(string sessionId, string currentCacheKey)
         {
@@ -983,44 +1059,42 @@ namespace ChurchReport.Controllers
 
             try
             {
-                // 延遲配置：只有真的找到要移除的鍵時才建立清單。
-                // 穩定狀態下絕大多數清掃都不會找到任何項目，此時完全零配置。
                 System.Collections.Generic.List<string> keysToRemove = null;
                 var now = DateTime.UtcNow;
 
-                // 先把前綴字串算好，避免在迴圈裡每一圈都做一次字串串接。
-                var sessionPrefix = sessionId + "_";
-
-                foreach (var kvp in _userValidationCache)
+                // 複合清掃與新增共用同一把鎖，避免清掃走訪期間與容量淘汰交錯，
+                // 導致剛寫入的驗證結果被錯誤移除或容量上界短暫失效。
+                lock (_userValidationCacheGate)
                 {
-                    // 檢查 1：同一個 Session、但不是目前這組快取鍵的項目。
-                    // 這代表同一位使用者換過密碼，舊的雜湊鍵已經不會再被查詢，可以回收。
-                    // 使用 StringComparison.Ordinal 是最快的比較方式，
-                    // 而且 Session Id 與 Base64 雜湊都是 ASCII，不需要文化相關的比較規則。
-                    if (kvp.Key.StartsWith(sessionPrefix, StringComparison.Ordinal) && kvp.Key != currentCacheKey)
+                    // 延遲配置：穩定狀態下若沒有過期項目，完全不建立清單。
+                    var sessionPrefix = sessionId + "_";
+
+                    foreach (var kvp in _userValidationCache)
                     {
-                        (keysToRemove ??= new System.Collections.Generic.List<string>()).Add(kvp.Key);
+                        // 同一 Session 的舊密碼項目不再可被查詢，立即回收。
+                        if (kvp.Key.StartsWith(sessionPrefix, StringComparison.Ordinal) && kvp.Key != currentCacheKey)
+                        {
+                            (keysToRemove ??= new System.Collections.Generic.List<string>()).Add(kvp.Key);
+                        }
+                        // 快取有效期只有 30 秒；超過 5 分鐘的項目必定只是佔用記憶體。
+                        else if ((now - kvp.Value.LastValidated).TotalMinutes > 5)
+                        {
+                            (keysToRemove ??= new System.Collections.Generic.List<string>()).Add(kvp.Key);
+                        }
                     }
-                    // 檢查 2：任何超過 5 分鐘沒有更新的項目一律回收。
-                    // 快取本身的有效期只有 USER_VALIDATION_CACHE_SECONDS（30 秒），
-                    // 所以超過 5 分鐘的項目必定早已失效，留著只是佔用記憶體。
-                    else if ((now - kvp.Value.LastValidated).TotalMinutes > 5)
+
+                    if (keysToRemove != null)
                     {
-                        (keysToRemove ??= new System.Collections.Generic.List<string>()).Add(kvp.Key);
+                        foreach (var key in keysToRemove)
+                        {
+                            _userValidationCache.TryRemove(key, out _);
+                        }
                     }
                 }
 
-                // 沒有任何項目需要移除時直接返回，連清單都沒有配置過。
                 if (keysToRemove == null)
                 {
                     return;
-                }
-
-                // 走訪期間不可直接修改集合，因此在收集完成後才統一移除。
-                // TryRemove 失敗代表別的執行緒已經先移除，屬於正常情況，可以忽略。
-                foreach (var key in keysToRemove)
-                {
-                    _userValidationCache.TryRemove(key, out _);
                 }
 
 #if DEBUG

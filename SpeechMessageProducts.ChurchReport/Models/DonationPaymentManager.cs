@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
@@ -40,7 +41,7 @@ namespace ChurchReport.Models
     /// 這個類別留在 ChurchReport 專案，負責 UI 表單狀態、CRM 更新、LINE 通知與付款建單前後的產品流程。
     /// 可重用金流核心只處理 provider 協定，因此這裡透過 DonationPaymentProcessor 與 IDonationPaymentCreateGatewayAdapter 接到抽離後的金流模組。
     /// </summary>
-    public class DonationPaymentManager : Controller
+    public class DonationPaymentManager : Controller, IDisposable
     {
         #region 資料區
         static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
@@ -129,6 +130,7 @@ namespace ChurchReport.Models
         private PushUtility m_PushUtility { get; set; }
         private readonly ILineNotificationWorkflow? m_LineNotificationWorkflow;
         private readonly ILineReplyWorkflow? m_LineReplyWorkflow;
+        private int m_Disposed;
 
         #endregion
         #region 初始化
@@ -206,6 +208,29 @@ namespace ChurchReport.Models
 
         }
         #endregion
+
+        /// <summary>
+        /// 釋放本 manager 建立的 LINE client，避免 scoped request 結束後仍保留內部 HttpClient 與 socket。
+        /// </summary>
+        /// <remarks>
+        /// 此 manager 使用字串建構式建立 <see cref="LineMessagingClient"/>，因此 client 的 Dispose
+        /// 所有權屬於本 manager；注入的 ToolUtility、adapter、notification/reply workflow 則由目前
+        /// DI scope 擁有，本方法不會釋放它們。Interlocked 保證 MVC/DI 或 context 重複呼叫 Dispose
+        /// 時只會釋放一次，且不會在其他 request 重新使用已釋放的 client。
+        /// </remarks>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref m_Disposed, 1) != 0)
+            {
+                return;
+            }
+
+            m_LineMessagingClient?.Dispose();
+            m_LineMessagingClient = null;
+            m_PushUtility = null;
+            m_DonationPaymentProcessor = null;
+            GC.SuppressFinalize(this);
+        }
 
         #region 配置讀取方法
         /// <summary>

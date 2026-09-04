@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Concurrent;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -14,8 +14,6 @@ namespace ChurchReport.Filters
 {
     public sealed class GlobalAuthorizationFilter : IAsyncAuthorizationFilter
     {
-        private readonly IConfiguration _configuration;
-
         /// <summary>
         /// ✅ 效能：每個 Action 的 [AllowAnonymous] 判定結果快取。
         ///
@@ -23,16 +21,29 @@ namespace ChurchReport.Filters
         /// GetCustomAttributes(inherit: true)。這是完整的反射屬性掃描，會走訪整條繼承鏈、
         /// 具體化屬性實例並配置陣列，接著再各跑一次 LINQ OfType/Any。
         ///
-        /// 這個判定的輸入只有 Action 的型別中繼資料，在行程存活期間永不改變，
-        /// 因此以 ActionDescriptor.Id 為鍵快取是完全安全的。
+        /// 這個判定的輸入只有 Action 的型別中繼資料，在 descriptor 存活期間永不改變，
+        /// 因此以 descriptor 物件作弱鍵快取既安全又不會根住動態重載後的舊中繼資料。
         ///
         /// 【為何不含任何請求狀態】
         /// 快取的值是 bool，只由編譯期的屬性標註決定，
         /// 不含使用者、Session、租戶、Claims 或任何請求資料。
-        /// 鍵是 MVC 在啟動時產生的穩定 Action 識別碼，數量等於 Action 總數（有界），
-        /// 不隨請求數成長，因此不會造成記憶體洩漏。
+        /// ConditionalWeakTable 的鍵不會被快取本身強制保留；其數量隨 MVC descriptor
+        /// 生命週期而定，不隨請求數或重載次數無界成長，因此不會造成記憶體洩漏。
         /// </summary>
-        private static readonly ConcurrentDictionary<string, bool> AllowAnonymousCache = new(StringComparer.Ordinal);
+        private sealed class AllowAnonymousResult
+        {
+            public AllowAnonymousResult(bool value) => Value = value;
+
+            public bool Value { get; }
+        }
+
+        /// <summary>
+        /// 以 ActionDescriptor 物件作為弱鍵保存反射結果。
+        /// ConditionalWeakTable 不會以字串鍵永久根住動態重載後已淘汰的 descriptor，
+        /// 因此即使應用程式重新建立 MVC descriptor，也不會讓快取隨重載次數無界成長。
+        /// </summary>
+        private static readonly ConditionalWeakTable<ControllerActionDescriptor, AllowAnonymousResult>
+            AllowAnonymousCache = new();
 
         /// <summary>
         /// ✅ 效能：設定值在建構時讀取一次。
@@ -46,7 +57,10 @@ namespace ChurchReport.Filters
 
         public GlobalAuthorizationFilter(IConfiguration configuration)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
             _enforce = configuration.GetValue<bool?>("Security:EnforceGlobalAuthorization") ?? true;
             _allowSessionFallback = configuration.GetValue<bool?>("Security:AllowSessionIdentityFallback") ?? true;
         }
@@ -83,28 +97,21 @@ namespace ChurchReport.Filters
         {
             if (context.ActionDescriptor is ControllerActionDescriptor descriptor)
             {
-                // ✅ 效能：以 ActionDescriptor.Id 快取反射結果。
-                // ActionDescriptor 是 MVC 在啟動時建立的不可變中繼資料，Id 在行程存活期間穩定，
-                // 而 [AllowAnonymous] 的有無由編譯期的屬性標註決定，執行期不可能改變。
-                if (AllowAnonymousCache.TryGetValue(descriptor.Id, out var cached))
+                // ✅ 效能：以 ActionDescriptor 物件作弱鍵快取反射結果。
+                // descriptor 由 MVC 管理且不可變；descriptor 被淘汰時，ConditionalWeakTable 項目
+                // 也會隨之回收，不會因動態重載或測試建立大量 descriptor 而永久保留字串鍵。
+                var cached = AllowAnonymousCache.GetValue(descriptor, static actionDescriptor =>
                 {
-                    if (cached)
-                    {
-                        return true;
-                    }
-                }
-                else
+                    var methodAllowsAnonymous = actionDescriptor.MethodInfo
+                        .GetCustomAttributes(true).OfType<IAllowAnonymous>().Any();
+                    var controllerAllowsAnonymous = actionDescriptor.ControllerTypeInfo
+                        .GetCustomAttributes(true).OfType<IAllowAnonymous>().Any();
+                    return new AllowAnonymousResult(methodAllowsAnonymous || controllerAllowsAnonymous);
+                });
+
+                if (cached.Value)
                 {
-                    var methodAllowsAnonymous = descriptor.MethodInfo.GetCustomAttributes(true).OfType<IAllowAnonymous>().Any();
-                    var controllerAllowsAnonymous = descriptor.ControllerTypeInfo.GetCustomAttributes(true).OfType<IAllowAnonymous>().Any();
-                    var allows = methodAllowsAnonymous || controllerAllowsAnonymous;
-
-                    AllowAnonymousCache[descriptor.Id] = allows;
-
-                    if (allows)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 

@@ -36,6 +36,28 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// </summary>
 public sealed class DonationPaymentProcessorGatewayAdapterTests
 {
+    /// <summary>
+    /// 保護 QR 掃描 request 建立的 LINE client 具有明確的 Dispose 合約。
+    /// </summary>
+    /// <remarks>
+    /// 控制器每次掃描都會建立短命 QR 工具；若工具沒有 IDisposable，內部的 LINE client
+    /// 便無法在 action 結束時釋放其 HttpClient，長時間流量會累積 socket 與 managed memory。
+    /// 此型別契約測試不發送網路請求，只驗證每個工具都提供 deterministic cleanup 入口。
+    /// </remarks>
+    [Fact]
+    public void Request_scoped_qr_utilities_expose_deterministic_disposal_contract()
+    {
+        new[]
+        {
+            typeof(QrCodeUtility),
+            typeof(SmallGroupQrCodeUtility),
+            typeof(SundayQrCodeUtility),
+            typeof(PersonalQrCodeUtility)
+        }
+        .Should()
+        .OnlyContain(type => typeof(IDisposable).IsAssignableFrom(type));
+    }
+
     [Fact]
     public void ChurchReport_controllers_do_not_accept_legacy_ipayment_in_constructors()
     {
@@ -147,6 +169,45 @@ public sealed class DonationPaymentProcessorGatewayAdapterTests
         {
             ContextDictionary.Remove(sessionId);
         }
+    }
+
+    /// <summary>
+    /// 驗證相同 Session Id 在兩個獨立 HTTP request 中也不得重用同一個資料上下文。
+    /// 這是防止 static dictionary 回歸的隔離測試：兩個 request 各自擁有 Items，
+    /// 因此結果必須是不同實例，且測試結束後不應留下程序級項目。
+    /// </summary>
+    [Fact]
+    public void ContextDictionary_does_not_share_context_between_requests()
+    {
+        const string sessionId = "same-session-id";
+        var adapter = CreateAdapter(new RecordingPaymentGateway(new PaymentCreateResult()));
+        var firstHttpContext = new DefaultHttpContext
+        {
+            Session = new TestSession(sessionId),
+            RequestServices = new SingleServiceProvider(adapter)
+        };
+        var secondHttpContext = new DefaultHttpContext
+        {
+            Session = new TestSession(sessionId),
+            RequestServices = new SingleServiceProvider(adapter)
+        };
+        var accessor = new HttpContextAccessor();
+        using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+        accessor.HttpContext = firstHttpContext;
+        var first = ContextDictionary.GetInMemoryDataContextSmallGroup(
+            accessor,
+            memoryCache,
+            new ThrowingToolUtilityProvider());
+
+        accessor.HttpContext = secondHttpContext;
+        var second = ContextDictionary.GetInMemoryDataContextSmallGroup(
+            accessor,
+            memoryCache,
+            new ThrowingToolUtilityProvider());
+
+        second.Should().NotBeSameAs(first);
+        ContextDictionary.Count.Should().Be(0);
     }
 
     [Fact]

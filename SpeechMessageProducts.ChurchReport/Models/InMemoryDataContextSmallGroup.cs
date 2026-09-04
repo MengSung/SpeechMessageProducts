@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Security.Cryptography;
 using System.Text;
+using System.Runtime.CompilerServices;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -51,14 +52,36 @@ namespace ChurchReport.Models
     /// - 使用 IP + User-Agent 生成請求指紋，防止資料混淆
     /// - 支援已登入使用者的 Session 綁定
     /// </summary>
-    public class InMemoryDataContextSmallGroup : IInMemoryDataContext
+    public class InMemoryDataContextSmallGroup : IInMemoryDataContext, IDisposable
     {
         #region 資料區
 
         /// <summary>
+        /// 所有可跨 request 保存的 Session 資料圖合計可使用的最大程序級 cache entry 數。
+        /// </summary>
+        /// <remarks>
+        /// 絕對與滑動到期只能限制單一項目的最長存活時間，不能限制某段時間內湧入的大量新 Session。
+        /// 此硬上限補足該缺口；達到限制時只淘汰最早寫入的「同樣已完整 partition」資料圖，後續請求
+        /// 會安全地重建自己的資料，而不可能借用另一個 Session 的資料。容量帳本不保存 value、
+        /// HttpContext、scoped service 或 credential，僅保留受限數量的 opaque cache key 與世代編號。
+        /// </remarks>
+        private const int SessionDataCacheMaximumEntries = 4_096;
+
+        /// <summary>
+        /// 依實際 <see cref="IMemoryCache"/> 實例取得其 Session 資料圖容量帳本。
+        /// </summary>
+        /// <remarks>
+        /// <see cref="ConditionalWeakTable{TKey, TValue}"/> 不會強引用 DI 管理的 cache 實例；當測試或 Host
+        /// 釋放 cache 後，帳本也可一同回收。這避免使用 static dictionary 把 cache、request 或使用者資料
+        /// 變成 process root。帳本只協調本類別建立的七種純資料圖，不改變全站 IMemoryCache 的 SizeLimit，
+        /// 因此不會使既有未設定 Size 的條目在執行期失敗。
+        /// </remarks>
+        private static readonly ConditionalWeakTable<IMemoryCache, SessionDataCacheTracker> SessionDataCacheTrackers = new();
+
+        /// <summary>
         /// 記憶體快取實例，用於快取各種資料管理器
         /// </summary>
-        IMemoryCache _memoryCache;
+        private readonly IMemoryCache _memoryCache;
 
         /// <summary>
         /// 組長管理器
@@ -168,6 +191,163 @@ namespace ChurchReport.Models
         /// 這是修復 Session Bleeding 的關鍵：不再使用建構時捕獲的 Session
         /// </summary>
         private ISession CurrentSession => m_ContextAccessor?.HttpContext?.Session;
+
+        /// <summary>
+        /// 取得或建立一個已由完整 Session 邊界分割的純資料圖，並維持此類別的全域容量上限。
+        /// </summary>
+        /// <typeparam name="T">不保存 scoped DI、HttpContext、connection、stream 或 disposable owner 的可變資料圖型別。</typeparam>
+        /// <param name="key">由 <see cref="TryGetSessionCacheKey"/> 驗證成功後產生的完整隔離 key。</param>
+        /// <param name="factory">只在同 key 尚未存在且容量可用時建立資料圖的區域工廠。</param>
+        /// <param name="created">本呼叫實際建立並寫入新資料圖時為 <see langword="true"/>。</param>
+        /// <returns>只屬於 key 對應 Session 的資料圖。</returns>
+        /// <remarks>
+        /// 熱路徑命中時只進行 IMemoryCache 的讀取，不取得全域容量鎖。未命中時才由每個 cache 實例自己的
+        /// tracker 串行化「再次確認、必要淘汰與寫入」，避免併發 request 突破 4,096 筆限制或為同一 Session
+        /// 建立互相覆蓋的物件圖。資料圖仍有 30 分鐘絕對與滑動到期，且 eviction callback 只回收帳本中繼資料；
+        /// callback 不擷取本 data context、Session 或任何 scoped dependency。
+        /// </remarks>
+        private T GetOrCreateSessionDataGraph<T>(string key, Func<T> factory, out bool created)
+            where T : class
+        {
+            ArgumentException.ThrowIfNullOrEmpty(key);
+            ArgumentNullException.ThrowIfNull(factory);
+
+            if (_memoryCache.TryGetValue(key, out T cachedValue) && cachedValue != null)
+            {
+                created = false;
+                return cachedValue;
+            }
+
+            var tracker = SessionDataCacheTrackers.GetValue(
+                _memoryCache,
+                static _ => new SessionDataCacheTracker());
+            return tracker.GetOrCreate(_memoryCache, key, factory, out created);
+        }
+
+        /// <summary>
+        /// 建立 Session 資料圖的到期政策，禁止延長資料到已驗證 Session 之外。
+        /// </summary>
+        /// <param name="evictionState">只含 tracker、key 與 generation 的帳本清理狀態。</param>
+        /// <returns>同時含絕對與滑動 30 分鐘到期的 cache 選項。</returns>
+        private static MemoryCacheEntryOptions CreateSessionDataGraphCacheOptions(SessionDataCacheEvictionState evictionState)
+        {
+            var options = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(DateTimeOffset.UtcNow.AddMinutes(30))
+                .SetSlidingExpiration(TimeSpan.FromMinutes(30));
+
+            options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration
+            {
+                State = evictionState,
+                EvictionCallback = static (key, _, _, state) =>
+                {
+                    if (key is string cacheKey && state is SessionDataCacheEvictionState eviction)
+                    {
+                        eviction.Tracker.RemoveIfCurrent(cacheKey, eviction.Generation);
+                    }
+                }
+            });
+
+            return options;
+        }
+
+        /// <summary>
+        /// 每個 IMemoryCache 實例的受限 Session 資料圖帳本與寫入協調器。
+        /// </summary>
+        /// <remarks>
+        /// 唯一用途是讓七種已核可的 Session 純資料圖合計不超過固定筆數；它從不持有任何資料圖 value，
+        /// 也不接觸 Session、request services、tenant 或 credential。鎖只涵蓋 dictionary 與 cache 的短暫
+        /// Set/Remove，沒有 CRM、HTTP、檔案、計時器、等待或 callback 執行，因此不會成為長時間資源 owner。
+        /// </remarks>
+        private sealed class SessionDataCacheTracker
+        {
+            private readonly object _gate = new();
+            private readonly Dictionary<string, long> _generations = new(StringComparer.Ordinal);
+            private long _nextGeneration;
+
+            /// <summary>
+            /// 在容量控制下取得或建立資料圖；同 key 的併發未命中只能產生一個已發佈物件。
+            /// </summary>
+            internal T GetOrCreate<T>(IMemoryCache cache, string key, Func<T> factory, out bool created)
+                where T : class
+            {
+                lock (_gate)
+                {
+                    if (cache.TryGetValue(key, out T cachedValue) && cachedValue != null)
+                    {
+                        created = false;
+                        return cachedValue;
+                    }
+
+                    // 可能因非同步 eviction callback 尚未執行而留有舊帳本；本次未命中代表舊資料
+                    // 已不可用，先移除它再計算容量，避免過期 metadata 佔掉可用額度。
+                    _generations.Remove(key);
+
+                    while (_generations.Count >= SessionDataCacheMaximumEntries)
+                    {
+                        string? oldestKey = null;
+                        foreach (var pair in _generations)
+                        {
+                            oldestKey = pair.Key;
+                            break;
+                        }
+
+                        if (oldestKey == null)
+                        {
+                            break;
+                        }
+
+                        _generations.Remove(oldestKey);
+                        cache.Remove(oldestKey);
+                    }
+
+                    var value = factory() ?? throw new InvalidOperationException("Session 資料圖工廠不得回傳 null。");
+                    var generation = unchecked(++_nextGeneration);
+                    if (generation == 0)
+                    {
+                        generation = unchecked(++_nextGeneration);
+                    }
+
+                    cache.Set(key, value, CreateSessionDataGraphCacheOptions(
+                        new SessionDataCacheEvictionState(this, generation)));
+                    _generations[key] = generation;
+                    created = true;
+                    return value;
+                }
+            }
+
+            /// <summary>
+            /// 只移除仍屬於同一個寫入世代的帳本條目，避免舊 eviction callback 刪掉後來重建的同 key 資料圖。
+            /// </summary>
+            internal void RemoveIfCurrent(string key, long generation)
+            {
+                lock (_gate)
+                {
+                    if (_generations.TryGetValue(key, out var currentGeneration) && currentGeneration == generation)
+                    {
+                        _generations.Remove(key);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// eviction callback 所需的最小狀態；不保存 cache value 或任何 request 資源。
+        /// </summary>
+        private sealed class SessionDataCacheEvictionState
+        {
+            /// <summary>建立只供帳本清理使用的 callback 狀態。</summary>
+            internal SessionDataCacheEvictionState(SessionDataCacheTracker tracker, long generation)
+            {
+                Tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
+                Generation = generation;
+            }
+
+            /// <summary>只持有純 metadata tracker，供 callback 移除當前世代。</summary>
+            internal SessionDataCacheTracker Tracker { get; }
+
+            /// <summary>對應此次 cache 發佈的單調世代編號。</summary>
+            internal long Generation { get; }
+        }
 
         /// <summary>
         /// 將既有 Session 除錯訊息送入 Debug 管線，但只在程序級診斷開關明確啟用時執行。
@@ -424,21 +604,6 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
-        /// 取得既有相容呼叫端使用的 Session key。
-        /// </summary>
-        /// <remarks>
-        /// 新增的六個資料管理器 getter 必須先呼叫 <see cref="TryGetSessionCacheKey"/>，並在沒有
-        /// Session 時完全避開 <see cref="IMemoryCache"/>。本包裝只保留給本階段範圍外的 legacy
-        /// getter，以固定 <c>NOSESSION</c> 取代曾經每次不同的 Ticks key，避免既有呼叫端再產生
-        /// 無界項目；它不是新程式碼可使用的 cache 授權。
-        /// </remarks>
-        /// <returns>有 Session 時的完整隔離 key；否則固定的相容字串 <c>NOSESSION</c>。</returns>
-        private string GetCurrentSessionId()
-        {
-            return TryGetSessionCacheKey(out var key) ? key : "NOSESSION";
-        }
-
-        /// <summary>
         /// 依目前 HTTP request 的 forwarded IP 與 User-Agent 產生 Session 隔離用指紋。
         /// </summary>
         /// <remarks>
@@ -656,40 +821,14 @@ namespace ChurchReport.Models
                 }
 
                 var key = sessionKey + "_ListManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_ListManager))
+                var listManager = GetOrCreateSessionDataGraph(key, static () => new ListManager(), out var created);
+                if (created)
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_ListManager = new ListManager();
-                    _memoryCache.Set<ListManager>(key, m_ListManager, options);
-
                     SetSessionDirtyFlag();
                 }
 
-                return _memoryCache.Get<ListManager>(key);
+                m_ListManager = listManager;
+                return m_ListManager;
             }
         }
 
@@ -751,41 +890,14 @@ namespace ChurchReport.Models
                 }
 
                 var key = sessionKey + "_SmallGroupDataList";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_SmallGroupDataList))
+                var smallGroupDataList = GetOrCreateSessionDataGraph(key, static () => new SmallGroupDataList(), out var created);
+                if (created)
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_SmallGroupDataList = new SmallGroupDataList();
-
-                    _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, options);
-
                     SetSessionDirtyFlag();
                 }
 
-                return _memoryCache.Get<SmallGroupDataList>(key);
+                m_SmallGroupDataList = smallGroupDataList;
+                return m_SmallGroupDataList;
             }
         }
 
@@ -818,39 +930,14 @@ namespace ChurchReport.Models
                 }
 
                 var key = sessionKey + "_WeeklyReportData";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_WeeklyReportData))
+                var weeklyReportData = GetOrCreateSessionDataGraph(key, static () => new WeeklyReportData(), out var created);
+                if (created)
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_WeeklyReportData = new WeeklyReportData();
-                    _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, options);
-
                     SetSessionDirtyFlag();
                 }
-                return _memoryCache.Get<WeeklyReportData>(key);
+
+                m_WeeklyReportData = weeklyReportData;
+                return m_WeeklyReportData;
             }
         }
 
@@ -883,39 +970,14 @@ namespace ChurchReport.Models
                 }
 
                 var key = sessionKey + "_NewPersonModel";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
+                var newPersonModel = GetOrCreateSessionDataGraph(key, static () => new NewPersonModel(), out var created);
+                if (created)
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_NewPersonModel = new NewPersonModel();
-                    _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, options);
-
                     SetSessionDirtyFlag();
                 }
-                return _memoryCache.Get<NewPersonModel>(key);
+
+                m_NewPersonModel = newPersonModel;
+                return m_NewPersonModel;
             }
         }
 
@@ -948,39 +1010,14 @@ namespace ChurchReport.Models
                 }
 
                 var key = sessionKey + "_PersonalInfomationModel";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
+                var personalInformationModel = GetOrCreateSessionDataGraph(key, static () => new PersonalInfomationModel(), out var created);
+                if (created)
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_PersonalInfomationModel = new PersonalInfomationModel();
-                    _memoryCache.Set<PersonalInfomationModel>(key, m_PersonalInfomationModel, options);
-
                     SetSessionDirtyFlag();
                 }
-                return _memoryCache.Get<PersonalInfomationModel>(key);
+
+                m_PersonalInfomationModel = personalInformationModel;
+                return m_PersonalInfomationModel;
             }
         }
 
@@ -991,63 +1028,20 @@ namespace ChurchReport.Models
         /// <summary>
         /// 幸福小組資料管理器屬性
         ///
-        /// 使用記憶體快取管理 HappyGroupDataManager 實例，
-        /// 快取鍵為 Session ID + "_HappyGroupDataManager"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        ///
-        /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
+        /// 由目前 Scoped data context 管理 HappyGroupDataManager 實例。
+        /// 每個 request 至多建立一個，scope 結束後由 DI 所有權邊界一起釋放。
         /// </summary>
         /// <remarks>
-        /// 沒有 Session 時仍以目前 scope 注入的 <see cref="IToolUtilityProvider"/> 建立後備實例，但不寫入
-        /// <see cref="IMemoryCache"/>。provider 與後備資料同由目前 scope 擁有並在 scope 結束時釋放，避免
-        /// 快取保存跨 request 的服務參考或使用者特定可變狀態。
+        /// 此 manager 保存目前 scope 的 <see cref="IToolUtilityProvider"/>；即使快取 key 具有 Session
+        /// 隔離，程序級 <see cref="IMemoryCache"/> 也不能持有它，否則快取存活時間會超過 DI scope，並可能
+        /// 在下一個 request 使用已釋放的 CRM 資源。故 manager 僅由本 context 欄位持有，最長生命週期等於
+        /// 目前 request；跨 request 的頁面狀態必須以不含 scoped 服務的資料模型另行保存。
         /// </remarks>
         public HappyGroupDataManager HappyGroupDataManager
         {
             get
             {
-                // HappyGroupDataManager 仍必須由目前 scope 的 provider 建構；只有在沒有 Session
-                // 時略過程序級 cache，保留 provider 的資源所有權與跨使用者隔離。
-                if (!TryGetSessionCacheKey(out var sessionKey))
-                {
-                    return m_HappyGroupDataManager ??= new HappyGroupDataManager(_toolUtilityProvider);
-                }
-
-                var key = sessionKey + "_HappyGroupDataManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
-                {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    // 使用 DI 模式注入 ToolUtilityProvider
-                    m_HappyGroupDataManager = new HappyGroupDataManager(_toolUtilityProvider);
-                    _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, options);
-
-                    SetSessionDirtyFlag();
-                }
-                return _memoryCache.Get<HappyGroupDataManager>(key);
+                return m_HappyGroupDataManager ??= new HappyGroupDataManager(_toolUtilityProvider);
             }
         }
 
@@ -1058,50 +1052,18 @@ namespace ChurchReport.Models
         /// <summary>
         /// 名單管理資料管理器屬性
         ///
-        /// 使用記憶體快取管理 ListManagementDataManager 實例，
-        /// 快取鍵為 Session ID + "_ListManagementDataManager"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        ///
-        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// 由目前 Scoped data context 管理 ListManagementDataManager 實例；每個 request 至多建立一次。
+        /// 此 manager 會保存目前 scope 取得的 CRM 工具，因此不能跨 request 快取。
         /// </summary>
+        /// <remarks>
+        /// 不得以有 Session 為理由將此實例放入程序級快取；Session key 只能隔離資料，不能延長 scoped
+        /// ToolUtility 的生命週期。本欄位是唯一 owner，request 結束後便不再可達。
+        /// </remarks>
         public ListManagementDataManager ListManagementDataManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_ListManagementDataManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
-                {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_ListManagementDataManager = new ListManagementDataManager();
-                    _memoryCache.Set<ListManagementDataManager>(key, m_ListManagementDataManager, options);
-
-                    SetSessionDirtyFlag();
-                }
-                return _memoryCache.Get<ListManagementDataManager>(key);
+                return m_ListManagementDataManager ??= new ListManagementDataManager(_toolUtilityProvider);
             }
         }
 
@@ -1112,51 +1074,18 @@ namespace ChurchReport.Models
         /// <summary>
         /// 裝備資料管理器屬性
         ///
-        /// 使用記憶體快取管理 EquipmentDataManager 實例，
-        /// 快取鍵為 Session ID + "_EquipmentDataManager"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        ///
-        /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
+        /// 由目前 Scoped data context 管理 EquipmentDataManager 實例，每個 request 至多建立一次。
+        /// 此 manager 會保存目前 scope 的 ToolUtilityProvider，故不可寫入程序級快取。
         /// </summary>
+        /// <remarks>
+        /// Session 僅是資料隔離鍵，無法改變 DI scope 的釋放時間；本 context 欄位是唯一的資源擁有者，
+        /// scope 結束後不會有 cache entry 指向可能已 Dispose 的 CRM 工具。
+        /// </remarks>
         public EquipmentDataManager EquipmentDataManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_EquipmentDataManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
-                {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    // 使用 DI 模式注入 ToolUtilityProvider
-                    m_EquipmentDataManager = new EquipmentDataManager(_toolUtilityProvider);
-                    _memoryCache.Set<EquipmentDataManager>(key, m_EquipmentDataManager, options);
-
-                    SetSessionDirtyFlag();
-                }
-                return _memoryCache.Get<EquipmentDataManager>(key);
+                return m_EquipmentDataManager ??= new EquipmentDataManager(_toolUtilityProvider);
             }
         }
 
@@ -1167,52 +1096,18 @@ namespace ChurchReport.Models
         /// <summary>
         /// 繳費列表管理器屬性
         ///
-        /// 使用記憶體快取管理 FeeList 實例，
-        /// 快取鍵為 Session ID + "_FeeList"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        ///
-        /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
+        /// 由目前 Scoped data context 管理 FeeList 實例，每個 request 至多建立一次。
+        /// 此 manager 會保存目前 scope 的 ToolUtilityProvider，故不可寫入程序級快取。
         /// </summary>
+        /// <remarks>
+        /// 繳費清單含使用者資料與 scoped CRM 存取邊界；資料 context 是唯一 owner，不能將實例提升到
+        /// Session-keyed cache，否則快取到期前可能交給另一個 request 使用已釋放服務。
+        /// </remarks>
         public FeeList FeeList
         {
             get
             {
-                var key = GetCurrentSessionId() + "_FeeList";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_FeeList))
-                {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    // 使用 DI 模式注入 ToolUtilityProvider
-                    m_FeeList = new FeeList(_toolUtilityProvider);
-                    _memoryCache.Set<FeeList>(key, m_FeeList, options);
-
-                    SetSessionDirtyFlag();
-                }
-
-                return _memoryCache.Get<FeeList>(key);
+                return m_FeeList ??= new FeeList(_toolUtilityProvider);
             }
         }
 
@@ -1229,44 +1124,30 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// LineBindingViewModel 保存目前使用者的 contact 與表單資料，雖然其 legacy ToolUtility 是不捕獲
+        /// request scope 的 ambient gateway，仍只能在驗證到完整 Session partition 時保留跨頁狀態。沒有
+        /// Session 時使用本 context 的後備欄位，避免固定 <c>NOSESSION</c> key 讓不同背景工作或使用者
+        /// 共用可變個人資料；Session 快取保留既有 30 分鐘絕對及滑動到期上限。
+        /// </remarks>
         public LineBindingViewModel LineBindingViewModel
         {
             get
             {
-                var key = GetCurrentSessionId() + "_LineBindingViewModel";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_LineBindingViewModel))
+                if (!TryGetSessionCacheKey(out var sessionKey))
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
+                    return m_LineBindingViewModel ??= new LineBindingViewModel();
+                }
 
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_LineBindingViewModel = new LineBindingViewModel();
-                    _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, options);
-
+                var key = sessionKey + "_LineBindingViewModel";
+                var lineBindingViewModel = GetOrCreateSessionDataGraph(key, static () => new LineBindingViewModel(), out var created);
+                if (created)
+                {
                     SetSessionDirtyFlag();
                 }
-                return _memoryCache.Get<LineBindingViewModel>(key);
+
+                m_LineBindingViewModel = lineBindingViewModel;
+                return m_LineBindingViewModel;
             }
         }
 
@@ -1283,45 +1164,30 @@ namespace ChurchReport.Models
         ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
+        /// <remarks>
+        /// 行事曆資料圖只保存 Session 專屬的選取日期、帳號及 appointment 清單；其 loader 使用不保存
+        /// request scope 的 legacy ambient gateway。只有完整 Session key 可作為程序級資料 partition；沒有
+        /// Session 時 fallback 僅由目前 context 擁有，scope 結束後不會遺留帳號、密碼或預約資料。
+        /// 有 Session 的 cache 同時設定 30 分鐘絕對和滑動到期，防止閒置狀態無界保留。
+        /// </remarks>
         public AppointmentsListManager AppointmentsListManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_AppointmentsListManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
+                if (!TryGetSessionCacheKey(out var sessionKey))
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
+                    return m_AppointmentsListManager ??= new AppointmentsListManager();
+                }
 
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_AppointmentsListManager = new AppointmentsListManager();
-                    _memoryCache.Set<AppointmentsListManager>(key, m_AppointmentsListManager, options);
-
+                var key = sessionKey + "_AppointmentsListManager";
+                var appointmentsListManager = GetOrCreateSessionDataGraph(key, static () => new AppointmentsListManager(), out var created);
+                if (created)
+                {
                     SetSessionDirtyFlag();
                 }
 
-                return _memoryCache.Get<AppointmentsListManager>(key);
+                m_AppointmentsListManager = appointmentsListManager;
+                return m_AppointmentsListManager;
             }
         }
 
@@ -1332,54 +1198,23 @@ namespace ChurchReport.Models
         /// <summary>
         /// ChurchReport 奉獻付款管理器屬性。
         ///
-        /// 使用記憶體快取管理 DonationPaymentManager 實例，
-        /// 快取鍵為 Session ID + "_DonationPaymentManager"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        ///
-        /// 若快取不存在，則注入中性的付款建單 adapter 建立新實例並設定快取選項。
+        /// 由目前 Scoped data context 管理 DonationPaymentManager 實例，每個 request 至多建立一次。
+        /// 此 manager 會保存目前 request 的付款 adapter 與 LINE workflow，僅由本 context 建立與持有。
         /// </summary>
+        /// <remarks>
+        /// adapter/workflow 都可能是 scoped 服務；即使 key 含完整 Session 隔離資訊，也不能把 manager
+        /// 寫入程序級 <see cref="IMemoryCache"/>。否則 request 結束後 cache 仍會保留服務參考，下一個
+        /// request 可能使用已釋放的連線或通知資源。跨請求頁面狀態若需保存，必須另存不含 scoped
+        /// 服務的資料，而不是重用此 manager 實例。
+        /// </remarks>
         public DonationPaymentManager DonationPaymentManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_DonationPaymentManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_ListManager))
-                {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_DonationPaymentManager = new DonationPaymentManager(
-                        m_DonationPaymentCreateGatewayAdapter,
-                        _lineNotificationWorkflow,
-                        _lineReplyWorkflow);
-                    _memoryCache.Set<DonationPaymentManager>(key, m_DonationPaymentManager, options);
-
-                    SetSessionDirtyFlag();
-                }
-
-                return _memoryCache.Get<DonationPaymentManager>(key);
+                return m_DonationPaymentManager ??= new DonationPaymentManager(
+                    m_DonationPaymentCreateGatewayAdapter,
+                    _lineNotificationWorkflow,
+                    _lineReplyWorkflow);
             }
         }
 
@@ -1391,51 +1226,19 @@ namespace ChurchReport.Models
         /// <summary>
         /// 課程問卷調查管理器屬性
         ///
-        /// 使用記憶體快取管理 PollManager 實例，
-        /// 快取鍵為 Session ID + "_PollManager"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        ///
-        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// 由目前 Scoped data context 管理 PollManager 實例，每個 request 至多建立一次。
+        /// 此 manager 的 CRM 工具必須來自目前 scope，故只由本 context 欄位持有。
         /// </summary>
+        /// <remarks>
+        /// 使用 provider 建構式可確保 PollManager 不會退回 legacy Factory 的 request 外部狀態。程序級
+        /// cache 只適合不含 scoped 依賴的純資料；本 manager 含 ToolUtility 與可變問卷狀態，scope
+        /// 結束即失去唯一持有者，避免 disposed service 或跨使用者資料被重用。
+        /// </remarks>
         public PollManager PollManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_PollManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_ListManager))
-                {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
-
-                                localCallbackInvoked.Set();
-                            }
-
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
-                    m_PollManager = new PollManager();
-                    _memoryCache.Set<PollManager>(key, m_PollManager, options);
-
-                    SetSessionDirtyFlag();
-                }
-
-                return _memoryCache.Get<PollManager>(key);
+                return m_PollManager ??= new PollManager(_toolUtilityProvider);
             }
         }
 
@@ -1467,6 +1270,23 @@ namespace ChurchReport.Models
             //{
             //    employee.ID = DiscipleLessons.Max(a => a.ID) + 1;
             //}
+        }
+
+        /// <summary>
+        /// 釋放此 scoped data context 所建立且明確由它擁有的付款管理器。
+        /// </summary>
+        /// <remarks>
+        /// context 不擁有 DI 注入的 IMemoryCache、HttpContextAccessor、ToolUtilityProvider、付款 adapter 或
+        /// LINE workflow，故絕不可 Dispose 它們；它們分別由 DI scope 或組合根釋放。唯一需要明確清理的是
+        /// context 以 new 建立的 <see cref="DonationPaymentManager"/>：其中持有自建 LINE client，若 request
+        /// 完成後未釋放會使 client 的內部 HttpClient 與 socket 長時間可達。其他 context-local manager 不持有
+        /// disposable resource；程序級純資料圖的 owner 則是 IMemoryCache 到期政策與其 eviction callback。
+        /// </remarks>
+        public void Dispose()
+        {
+            m_DonationPaymentManager?.Dispose();
+            m_DonationPaymentManager = null;
+            GC.SuppressFinalize(this);
         }
 
         #endregion

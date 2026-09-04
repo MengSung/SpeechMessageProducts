@@ -1,0 +1,1906 @@
+diff --git a/SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs b/SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs
+index de401c9c..48736450 100644
+--- a/SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs
++++ b/SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs
+@@ -32,48 +32,59 @@ using ToolUtilityNameSpace.DependencyInjection;
+ namespace ChurchReport.Controllers
+ {
+     /// <summary>
+-    /// ???梯”?箏??批??(Base Controller for Church Reports)
++    /// ChurchReport 所有業務控制器的共同基底類別。
++    /// </summary>
++    /// <remarks>
++    /// <para><b>這個類別解決什麼問題</b></para>
++    /// 本系統的每一支控制器都需要同一組前置條件：
++    /// 取得 Dataverse/CRM 操作進入點、取得該次請求的記憶體資料內容、
++    /// 把登入者身分與頁面狀態填進 ViewBag、以及在例外發生時用一致的方式回應。
++    /// 把這些共通行為集中在基底類別，讓各控制器只專注於自己的業務邏輯。
+     ///
+-    /// ?飛隤芣?嚗?
+-    /// ?銝?鞊∪摨??伐????????批?券?匱?輯???乓?
+-    /// ?箔?暻潮?閬摨?嗅嚗?
+-    /// - ?踹???隞?Ⅳ嚗??梁???踝?憒隤方??ession 撽?嚗?券ㄐ??
+-    /// - 蝯曹?銵嚗Ⅱ靽???嗅?賣??詨??隤方???摰瑼Ｘ??
+-    /// - 靘陷瘜典嚗?銝剔恣???冽???瘜典??
++    /// <para><b>提供的四類能力</b></para>
++    /// <list type="number">
++    /// <item>相依服務存取：<see cref="ToolUtility"/>、<see cref="InMemoryContext"/>、連線集區統計。</item>
++    /// <item>錯誤處理：<see cref="HandleError"/> 統一記錄、通知並依請求型態回應。</item>
++    /// <item>ViewBag 組裝：<see cref="SetupBasicViewBag"/> 等方法填入 Layout 需要的導覽狀態。</item>
++    /// <item>Session 一致性：<see cref="EnsureCorrectUserData"/> 確保記憶體狀態與 Session 身分相符。</item>
++    /// </list>
+     ///
+-    /// 閮剛?璅∪?嚗?
+-    /// - Template Method Pattern嚗?靘瘚?嚗?摮??亥?撖怎摰郊撽?
+-    /// - Dependency Injection嚗??湔?萄遣靘陷嚗敺??冽釣?乓?
+-    /// - Singleton Pattern嚗?鈭???憒?ToolUtility嚗?桐???
++    /// <para><b>執行緒與生命週期</b></para>
++    /// 本類別是 per-request 物件，由 MVC 為每次請求建立與釋放。
++    /// 唯一的跨請求狀態是 <c>_userValidationCache</c>（靜態驗證快取），
++    /// 它以 Session Id 與密碼雜湊組合為鍵，設計上不可能被其他 Session 讀到，
++    /// 詳見該欄位與 <c>CleanupOldCacheForSession</c> 的說明。
+     ///
+-    /// 雿輻?孵?嚗?
++    /// <para><b>典型用法</b></para>
++    /// <code>
+     /// public class MyController : BaseChurchController
+     /// {
+     ///     public MyController(...) : base(...) { }
+     ///
+     ///     public IActionResult MyAction()
+     ///     {
+-    ///         // ?臭誑?湔雿輻?箏?憿?惇?改?憒?ToolUtility, InMemoryContext 蝑?
++    ///         try { EnsureCorrectUserData(); SetupBasicViewBag(); return View(); }
++    ///         catch (Exception ex) { return HandleError(ex, nameof(MyAction)); }
+     ///     }
+     /// }
+-    /// </summary>
++    /// </code>
++    /// </remarks>
+     public abstract class BaseChurchController : Controller, IDisposable
+     {
+-        #region 撣豢摰儔 (Constants)
++        #region 常數與快取界限
+ 
+         /// <summary>
+-        /// ?亥?閮??蜇撅斤? (Total logging level)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?其?璆剜??其葉嚗隤?撅斤?蝞∠?嚗?
+-        /// - Level 1: ?箸鞈?
+-        /// - Level 2: 閰喟敦鞈?
+-        /// - Level 3: ?日鞈?
+-        /// - Level 4: 霅血?
+-        /// - Level 5: ?航炊
+-        ///
+-        /// ?ㄐ摰儔鈭虜?函?撅斤?撣豢嚗靘輻絞銝雿輻??
++        /// Trace 分級輸出用的層級常數。
+         /// </summary>
++        /// <remarks>
++        /// 搭配 <c>ToolUtilityClass.TraceByLevel(總層級, 目前層級, 訊息)</c> 使用：
++        /// 第一個參數是這次呼叫允許輸出到第幾層，第二個參數是本則訊息所屬層級，
++        /// 只有當「訊息層級 &lt;= 總層級」時才會實際寫出。
++        ///
++        /// <c>TOTAL_LEVEL</c> 目前設為 1，代表全站預設只輸出最重要的第 1 層訊息；
++        /// <c>LEVEL_1</c> 保留給錯誤與例外，數字越大代表越細節、越不重要的診斷資訊。
++        /// 把層級寫成具名常數而非魔術數字，是為了讓呼叫端一眼看出訊息的重要性。
++        /// </remarks>
+         protected const int TOTAL_LEVEL = 1;
+         protected const int LEVEL_1 = 1;
+         protected const int LEVEL_2 = 2;
+@@ -83,124 +94,144 @@ namespace ChurchReport.Controllers
+ 
+ 
+         /// <summary>
+-        /// 雿輻??霅翰????嚗?嚗?
+-        /// ??芸?嚗??銝?冽???隢???銴?霅?
++        /// 使用者身分驗證結果的快取有效秒數。
+         /// </summary>
++        /// <remarks>
++        /// <see cref="EnsureCorrectUserData"/> 每次請求都要確認「Session 中的密碼」與
++        /// 「ListManager 目前持有的密碼」是否一致。這個比對本身不貴，
++        /// 但比對不符時要重新載入 ListManager，成本很高。
++        /// 因此把「已確認一致」的結果快取 30 秒，避免同一位使用者在連續操作時反覆檢查。
++        ///
++        /// 30 秒是刻意取的短值：夠短，使用者切換身分後最多 30 秒就會被重新驗證；
++        /// 夠長，足以涵蓋一個頁面連帶發出的多個 AJAX 請求。
++        /// </remarks>
+         private const int USER_VALIDATION_CACHE_SECONDS = 30;
+ 
+         #endregion
+ 
+-        #region ??撖虫? (Service Instances)
++        #region 相依服務與受控存取
+ 
+         /// <summary>
+-        /// ToolUtility ????(ToolUtility Provider)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// 隞暻潭 ToolUtility嚗?
+-        /// - ?銝?極?琿??伐????亥?閮??RM ??蝑??賬?
+-        /// - ?箔?暻潛???芋撘?? ToolUtility ?臬靘?嚗?閬絞銝蝞∠???
+-        /// - 靘陷瘜典嚗??湔?萄遣撖虫?嚗敺??冽釣?伐?蝚血? SOLID ????
+-        ///
+-        /// 閮剛?璅∪?嚗rovider Pattern
++        /// ToolUtility 的取得管道，由 DI 注入。
+         /// </summary>
++        /// <remarks>
++        /// 刻意注入 provider 而不是直接注入 <c>ToolUtilityClass</c>，原因是生命週期：
++        /// <c>ToolUtilityClass</c> 由 <c>ToolUtilityFactory</c> 以程序級單例形式管理，
++        /// 如果在建構式就把實例抓進欄位，控制器會在整個請求期間釘住那個參考，
++        /// 後續若單例被替換（例如設定重載）就會用到過期的物件。
++        /// 透過 provider 在每次存取時才取得，可讓控制器永遠拿到當下正確的實例。
++        /// </remarks>
+         protected readonly IToolUtilityProvider _toolUtilityProvider;
+ 
+         /// <summary>
+-        /// CRM ???瘙?(CRM Connection Pool)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// 隞暻潭???瘙?
+-        /// - CRM 蝟餌絞???敺?皞?銝瘥活?賣撱粹????
+-        /// - ???瘙??遣蝡????嚗?銴蝙?剁????扯??
+-        /// - ?園???典????芸?甇賊??唳?銝准?
+-        ///
+-        /// 閮剛?璅∪?嚗bject Pool Pattern
++        /// Dataverse/CRM 連線集區，由 DI 注入。
+         /// </summary>
++        /// <remarks>
++        /// 本欄位只用於讀取集區統計（<see cref="GetConnectionPoolStats"/>），
++        /// 供診斷頁面與健康檢查顯示目前的連線使用狀況。
++        ///
++        /// 實際的 CRM 操作「不」經由這個欄位，而是走 <see cref="ToolUtility"/>；
++        /// 連線的取得與歸還由組合根註冊的 gateway 在 request scope 內自動處理，
++        /// 控制器不應該、也不需要自己向集區借還連線。
++        /// </remarks>
+         protected readonly ICrmConnectionPool _connectionPool;
+ 
+         /// <summary>
+-        /// HTTP 銝???? (HTTP Context Accessor)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?箔?暻潮?閬?
+-        /// - ??ASP.NET Core 銝哨?HttpContext 銝蝮賣?舐??撠文?刻??臭遙?葉嚗?
+-        /// - IHttpContextAccessor ??摰?撘?摮??嗅?隢???銝???
+-        /// - ? ASP.NET Core 靘陷瘜典蝟餌絞???典???
++        /// HttpContext 的存取器，由 DI 注入。
+         /// </summary>
++        /// <remarks>
++        /// 基底類別 <c>Controller.HttpContext</c> 在控制器建構期間尚未被 MVC 指派，
++        /// 此時讀取會得到 null。本欄位讓建構式與建構期呼叫的方法也能安全取得目前請求。
++        /// 實際取用請透過下方覆寫的 <see cref="HttpContext"/> 屬性，它已處理好兩種來源的優先順序。
++        /// </remarks>
+         private readonly IHttpContextAccessor _httpContextAccessor;
+ 
+         /// <summary>
+-        /// 雿輻??霅翰??
+-        /// ??芸?嚗??銝?冽?函???折?銴?霅?
+-        ///
+-        /// ?? 摰閮剛?嚗?
+-        /// - Key: SessionId + PasswordHash嚗甇?Session Collision嚗?
+-        /// - Value: (LastValidated, IsValid, PasswordHash)
+-        /// - 撽???瘥?撖Ⅳ??嚗Ⅱ靽?嗉澈隞賭???
++        /// 使用者身分驗證結果的程序級快取。
+         /// </summary>
++        /// <remarks>
++        /// <para><b>結構</b></para>
++        /// <list type="bullet">
++        /// <item>Key：<c>"{SessionId}_{密碼的 SHA256 前 8 碼}"</c></item>
++        /// <item>Value：<c>(LastValidated 最後驗證時間, IsValid 是否通過, PasswordHash 當時的密碼雜湊)</c></item>
++        /// </list>
++        ///
++        /// <para><b>為什麼鍵要包含密碼雜湊</b></para>
++        /// 只用 SessionId 當鍵會有風險：使用者在同一個 Session 內換了身分（例如重新登入成別人）時，
++        /// 舊的「已驗證」結果會被誤用。把密碼雜湊放進鍵，等於讓不同身分自然落在不同的鍵上，
++        /// 換身分後必定查不到舊項目，一定會重新驗證。
++        ///
++        /// <para><b>為什麼這不是跨使用者洩漏</b></para>
++        /// 鍵同時綁定 Session 與密碼，任何一位使用者都無法查到另一位的項目；
++        /// 而且讀取端還會再檢查一次有效期與密碼雜湊是否相符（見 <see cref="EnsureCorrectUserData"/>）。
++        /// 快取內只存「是否通過」的布林值與雜湊，不存密碼原文、姓名或任何個資。
++        ///
++        /// <para><b>記憶體上界</b></para>
++        /// 由 <c>CleanupOldCacheForSession</c> 以「30 秒節流 + 4096 筆硬上界」雙重機制回收，
++        /// 不會隨著線上人數無限成長。
++        /// </remarks>
+         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime LastValidated, bool IsValid, string PasswordHash)>
+             _userValidationCache = new();
+ 
+         /// <summary>
+-        /// 撌亙憿撖虫? (Tool Utility Instance)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?惇?扳?靘? ToolUtility ????
+-        /// ?箔?暻潛撅祆扯??舐?亙???_toolUtilityProvider嚗?
+-        /// - 蝪∪?隞?Ⅳ嚗?憿?臭誑?湔??ToolUtility嚗??函??靘?
+-        /// - 撱園頛嚗??閬???????敺祕靘?
++        /// 取得 Dataverse/CRM 與各項後端服務的統一操作進入點。
+         /// </summary>
++        /// <remarks>
++        /// 這是一個「每次存取都重新取得」的屬性，不是快取欄位，理由見 <c>_toolUtilityProvider</c> 的說明。
++        /// 呼叫成本很低（provider 內部回傳既有單例），可以放心在方法內多次使用。
++        ///
++        /// ⚠️ 絕對不要對這個屬性回傳的物件呼叫 Dispose。它是程序級單例，
++        /// 由短命的控制器釋放長命的單例會讓後續所有請求失敗，詳見 <see cref="Dispose"/> 的說明。
++        /// </remarks>
+         protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
+ 
+         /// <summary>
+-        /// 閮擃???銝? (In-Memory Data Context)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// 隞暻潭閮擃???銝?嚗?
+-        /// - 摮?蝔???????憒?嗉?閮?蝯?????
+-        /// - ?箔?暻潛隞嚗??箏隞亥?擛?????撖虫?嚗葫閰衣???Ｙ嚗?
+-        /// - 靘陷瘜典嚗?憭瘜典嚗?′蝺函Ⅳ靘陷??
++        /// 本次請求的記憶體資料內容，聚合各個資料管理器。
+         /// </summary>
++        /// <remarks>
++        /// 透過它可取得 <c>ListManager</c>（登入身分與名單）、<c>FeeList</c>（收費資料）、
++        /// <c>PersonalInfomationModel</c>（個人資料）、<c>HappyGroupDataManager</c>、
++        /// <c>DonationPaymentManager</c>（奉獻付款狀態）等子管理器。
++        ///
++        /// 宣告型別刻意使用介面 <c>IInMemoryDataContext</c> 而非具體類別，
++        /// 讓單元測試可以替換成假的實作，不必連上真的 CRM。
++        /// 實例來源見建構式：優先使用 DI 注入，未注入時才自行組裝。
++        /// </remarks>
+         protected readonly IInMemoryDataContext InMemoryContext;
+ 
+         /// <summary>
+-        /// ????隞 (Payment Service Interface)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// 鞎痊??隞狡?賊??平??頛胯?
+-        /// ?箔?暻潛隞嚗??箏隞交?銝???甈暹?靘?靽∠?～INE Pay 蝑???
+-        /// 閮剛?璅∪?嚗trategy Pattern
++        /// 取得目前請求的 <see cref="Microsoft.AspNetCore.Http.HttpContext"/>，覆寫基底類別的同名屬性。
+         /// </summary>
+-
+-        /// <summary>
+-        /// 摰??HttpContext 摮? (Safe HttpContext Access)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?惇?扳?靘??函??孵?靘???HttpContext??
+-        /// ?箔?暻潮?閬畾???
+-        /// - Controller ??HttpContext ?典遣瑽撘葉?航??????
+-        /// - 雿輻 IHttpContextAccessor ?臭誑?冽?摰摮???
+-        /// - 憒??賭??舐嚗??箇撣賂??脫迫?梯??航炊??
++        /// <remarks>
++        /// <para><b>為什麼要覆寫</b></para>
++        /// MVC 是在控制器「建構完成之後」才指派 <c>ControllerBase.HttpContext</c>，
++        /// 所以在建構式或建構期間呼叫的方法裡讀取基底屬性會拿到 null，
++        /// 造成難以追查的 NullReferenceException。
+         ///
+-        /// 閮剛???嚗?
+-        /// - ?芸?雿輻 IHttpContextAccessor嚗?舫?嚗?
+-        /// - 憒?憭望?嚗?閰血憿? HttpContext??
+-        /// - 憒??賢仃?????蝢拍??航炊閮??
+-        /// </summary>
++        /// <para><b>取得順序</b></para>
++        /// <list type="number">
++        /// <item>先問 <c>IHttpContextAccessor</c>：它在整個請求生命週期都有效，包含建構期。</item>
++        /// <item>再退回基底類別的屬性：涵蓋 accessor 未註冊的情境。</item>
++        /// <item>兩者皆無時明確擲出例外：與其讓 null 流到更深處才爆炸，不如在此點出真正的原因。</item>
++        /// </list>
++        /// </remarks>
++        /// <exception cref="InvalidOperationException">
++        /// 不在 ASP.NET Core 請求管線中執行，或 <c>IHttpContextAccessor</c> 未註冊時擲出。
++        /// </exception>
+         protected new HttpContext HttpContext
+         {
+             get
+             {
+-                // ?芸?雿輻 IHttpContextAccessor嚗?舫?嚗?
++                // 第一順位：IHttpContextAccessor。它在控制器建構期間就已可用，
+                 var context = _httpContextAccessor?.HttpContext;
+ 
+-                // 憒? IHttpContextAccessor 瘝???嚗?閰虫蝙?典憿? HttpContext
++                // 第二順位：基底類別屬性。涵蓋 IHttpContextAccessor 未註冊的情境。
+                 if (context == null)
+                 {
+                     context = base.HttpContext;
+                 }
+ 
+-                // 憒?隞??null嚗??箸??儔?撣?
++                // 兩個來源都沒有，代表根本不在 HTTP 請求管線中執行。
+                 if (context == null)
+                 {
+                     throw new InvalidOperationException(
+@@ -213,31 +244,29 @@ namespace ChurchReport.Controllers
+ 
+         #endregion
+ 
+-        #region 撱箸??賢? (Constructor)
++        #region 建構式 (Constructor)
+ 
+         /// <summary>
+-        /// ???摨?嗅 (Initialize Base Controller)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// 撱箸??賢??舫??亥◤?萄遣??銵??寞???
+-        /// ?ㄐ??鈭?嚗?
+-        /// 1. 撽??嚗Ⅱ靽?閬????質◤瘜典??
+-        /// 2. 靽???撠釣?亦???摮絲靘?敺?雿輻??
+-        /// 3. ????銝?嚗遣蝡?瘜典閮擃???銝???
+-        ///
+-        /// 靘陷瘜典?暺?
+-        /// - 擛血?嚗??乩?靘陷?琿?撖虫???
+-        /// - ?舀葫閰行改??臭誑頛??典??拐辣?踵??祕????
+-        /// - ?暑?改??臭誑?寞??啣?瘜典銝??祕雿?
+-        ///
+-        /// ?隤芣?嚗?
+-        /// - httpContextAccessor: 摮? HTTP 隢?銝???
+-        /// - memoryCache: 閮擃翰????
+-        /// - paymentService: 隞狡????
+-        /// - toolUtilityProvider: 撌亙憿????
+-        /// - connectionPool: CRM ???瘙?
+-        /// - inMemoryContext: 閮擃???銝?嚗?賂????詨捆嚗?
++        /// 建立控制器並準備好所有共用相依項。
+         /// </summary>
++        /// <remarks>
++        /// <para><b>必要相依項</b></para>
++        /// 前四個參數都是必要的，任一為 null 立即擲出 <see cref="ArgumentNullException"/>。
++        /// 這是刻意的 fail-fast：缺少相依項的控制器不可能正確運作，
++        /// 與其讓它建立成功、之後在某個 action 中以 NullReferenceException 失敗，
++        /// 不如在建構當下就明確指出是哪一個相依項沒有註冊。
++        ///
++        /// <para><b>inMemoryContext 為何是選用的</b></para>
++        /// 正常情況下由 DI 注入 request-scoped 的實例。保留自行組裝的分支是為了相容
++        /// 尚未改為建構式注入的舊有控制器，避免一次性大規模改寫。
++        /// 自行組裝時會從當前請求的服務容器取得付款與 LINE 工作流程，
++        /// 因此仍然是 request 範圍的物件，不會跨請求共用狀態。
++        /// </remarks>
++        /// <param name="httpContextAccessor">HTTP 請求存取器，必要。</param>
++        /// <param name="memoryCache">記憶體快取，僅在需要自行組裝 InMemoryContext 時使用。</param>
++        /// <param name="toolUtilityProvider">ToolUtility 取得管道，必要。</param>
++        /// <param name="connectionPool">CRM 連線集區，必要（供統計用）。</param>
++        /// <param name="inMemoryContext">記憶體資料內容；未提供時由本建構式自行組裝。</param>
+         protected BaseChurchController(
+             IHttpContextAccessor httpContextAccessor,
+             IMemoryCache memoryCache,
+@@ -246,30 +275,30 @@ namespace ChurchReport.Controllers
+             IInMemoryDataContext inMemoryContext = null)
+         {
+             // ========================================
+-            // ?靽桀儔嚗?摮?IHttpContextAccessor
++            // 步驟 1：驗證並保存必要相依項
+             // ========================================
+-            // ?靽桀儔 "HttpContext ?芸?憪?" ?航炊????
+-            // ??靽? IHttpContextAccessor嚗??隞亙隞颱????典?? HttpContext
++            // 全部採 fail-fast。缺少任何一項都代表 DI 註冊有誤，
++            // 在此擲出例外比讓它在某個 action 內以 NullReferenceException 失敗容易除錯得多。
+             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+ 
+-            // ?? DI 瘜典 ToolUtility ????
++            // ToolUtility 與連線集區同為必要項，理由同上。
+             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+             _connectionPool = connectionPool ?? throw new ArgumentNullException(nameof(connectionPool));
+ 
+-            // ?舀?拍車?孵?嚗?
+-            // 1. ?唳撘??? DI 瘜典閮擃???銝?嚗?佗??踹???靘陷嚗?
+-            // 2. ?撘??湔 new 撖虫?嚗?敺摰對??郊瘛掠嚗?
++            // ========================================
++            // 步驟 2：取得記憶體資料內容
++            // ========================================
+             if (inMemoryContext != null)
+             {
+-                // 雿輻 DI 瘜典?祕靘??刻嚗?
++                // 正常路徑：DI 已提供 request-scoped 實例，直接採用。
+                 InMemoryContext = inMemoryContext;
+-                System.Diagnostics.Debug.WriteLine("[BaseChurchController] 雿輻 DI 瘜典??InMemoryContext");
++                System.Diagnostics.Debug.WriteLine("[BaseChurchController] InMemoryContext was resolved through dependency injection.");
+             }
+             else
+             {
+-                // ???詨捆嚗?亙遣蝡祕靘?撠郊瘛掠嚗?
+-                // 敺?DI ??銝剜抒?憟隞狡撱箏 adapter??
+-                // Base controller ?芷?閬? ChurchReport session/context 銝脰絲靘?銝??誑 QPay 憿?雿銝餉??亙??
++                // 相容路徑：呼叫端尚未改為建構式注入，於此自行組裝。
++                // 三個工作流程都從「當前請求」的服務容器取得，因此組出來的物件
++                // 仍然只屬於這一次請求，不會把任何狀態帶到別的請求。
+                 var donationPaymentCreateGatewayAdapter =
+                     httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(IDonationPaymentCreateGatewayAdapter))
+                         as IDonationPaymentCreateGatewayAdapter;
+@@ -284,58 +313,60 @@ namespace ChurchReport.Controllers
+                 System.Diagnostics.Debug.WriteLine("[BaseChurchController] Created InMemoryContext from DI services.");
+             }
+ 
+-            // 摮??????
++            // 至此所有共用相依項都已就緒，衍生控制器可以安全使用。
+         }
+ 
+         #endregion
+ 
+-        #region ?航炊?? (Error Handling)
++        #region 錯誤處理
+ 
+         /// <summary>
+-        /// 蝯曹??航炊???寞? (Unified Error Handling Method)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?箔?暻潮?閬絞銝?航炊??嚗?
+-        /// - ?踹?瘥瘜??撖?try-catch??
+-        /// - 蝣箔??航炊鋡急迤蝣箄??????
+-        /// - ??銝?渡??航炊???澆???
+-        ///
+-        /// ??瘚?嚗?
+-        /// 1. 閮??航炊?唳隤?
+-        /// 2. ?潮?LINE ?蝯衣恣?
+-        /// 3. ?寞?隢?憿?餈??拍????
++        /// 統一處理控制器動作中未預期的例外，並回傳合適的結果。
++        /// </summary>
++        /// <remarks>
++        /// <para><b>處理順序</b></para>
++        /// <list type="number">
++        /// <item>組出含型別、方法名、時間與完整例外內容的訊息。</item>
++        /// <item>寫入 Trace（第 1 層，最高重要性）。</item>
++        /// <item>發送 LINE 通知給管理者。</item>
++        /// <item>依請求型態回應：AJAX 回 JSON，一般導覽轉向錯誤頁。</item>
++        /// </list>
+         ///
+-        /// ?嚗?
+-        /// - exception: ?潛??撣貊隞?
+-        /// - methodName: ?潛??航炊?瘜?蝔梧??冽餈質馱嚗?
++        /// <para><b>為什麼每一步都包在 try/catch 裡</b></para>
++        /// 這個方法本身就是在處理錯誤，如果記錄或通知的過程再擲出例外，
++        /// 使用者會看到一個與原始問題完全無關的錯誤畫面，真正的原因反而被掩蓋。
++        /// 因此每個附屬動作都獨立保護，確保無論如何都能走到最後回傳結果那一步。
+         ///
+-        /// 餈??潘?
+-        /// - AJAX 隢?嚗???JSON ?航炊閮
+-        /// - 銝?祈?瘙?????航炊?
+-        /// </summary>
++        /// <para><b>為什麼要區分 AJAX</b></para>
++        /// 對 AJAX 請求回傳 302 轉向，前端收到的會是一整頁錯誤頁的 HTML，
++        /// 既無法解析也無法顯示有意義的訊息。回傳結構化 JSON 才能讓前端正確處理。
++        /// </remarks>
++        /// <param name="exception">攔截到的例外。</param>
++        /// <param name="methodName">發生例外的方法名稱，建議以 <c>nameof</c> 傳入。</param>
++        /// <returns>AJAX 請求回傳 JSON；其餘回傳轉向錯誤頁的結果。</returns>
+         protected IActionResult HandleError(Exception exception, string methodName)
+         {
+-            // 蝯??航炊閮
+-            string errorMessage = $"?航炊閮 : FullName = {GetType().FullName}, " +
++            // 組出診斷訊息。包含型別全名與方法名，才能在多個控制器共用本方法時定位來源。
++            string errorMessage = $"Unhandled ChurchReport exception: FullName = {GetType().FullName}, " +
+                                 $"Method = {methodName}, " +
+                                 $"Time = {DateTime.Now}, " +
+                                 $"Description = {exception}";
+ 
+-            // 撖怠餈質馱?亥? (? null 瑼Ｘ)
++            // 步驟 1：寫入 Trace。即使失敗也不能中斷錯誤處理流程。
+             try
+             {
+                 ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1, errorMessage);
+             }
+             catch (Exception traceEx)
+             {
+-                // 餈質馱憭望?銝蔣?輸隤方???蝔?
+-                System.Diagnostics.Debug.WriteLine($"TraceByLevel 憭望?: {traceEx.Message}");
++                // Trace 本身失敗時退回 Debug 輸出，至少在開發環境仍看得到。
++                System.Diagnostics.Debug.WriteLine($"TraceByLevel 失敗: {traceEx.Message}");
+             }
+ 
+-            // ?潮?LINE ?
++            // 步驟 2：通知管理者。方法內部已自行處理例外，此處不需再包一層。
+             SendLineErrorNotification(errorMessage);
+ 
+-            // ?斗?臬??AJAX 隢? (? null 瑼Ｘ)
++            // 步驟 3：判斷是否為 AJAX 請求，決定回應格式。
+             bool isAjaxRequest = false;
+             try
+             {
+@@ -344,13 +375,13 @@ namespace ChurchReport.Controllers
+             }
+             catch
+             {
+-                // ?⊥??斗隢?憿?嚗?閮剔??AJAX
++                // 讀取標頭失敗時保守地當成一般請求，讓使用者至少看得到錯誤頁。
+                 isAjaxRequest = false;
+             }
+ 
+             if (isAjaxRequest)
+             {
+-                // AJAX 隢?餈? JSON
++                // AJAX：回傳結構化 JSON，讓前端能解析並顯示訊息。
+                 return Json(new
+                 {
+                     status = "error",
+@@ -360,25 +391,24 @@ namespace ChurchReport.Controllers
+             }
+             else
+             {
+-                // 銝?祈?瘙??隤日???
++                // 一般導覽：轉向統一的錯誤頁。
+                 return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = exception.Message });
+             }
+         }
+ 
+         /// <summary>
+-        /// ?潮?LINE ?航炊? (Send LINE Error Notification)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?嗥頂蝯梁??隤斗?嚗蜓?蝞∠??～?
+-        /// ?箔?暻潛 LINE嚗?
+-        /// - ?單??改?蝞∠??∪隞亦??單?圈??
+-        /// - 靘踹?改???銝停?賜??啜?
+-        /// - ?舫??改??喃蝙?萎辣蝟餌絞??嚗INE ?虜??具?
+-        ///
+-        /// ?航炊??嚗?
+-        /// - 憒? LINE ?潮仃??銝蔣?蹂蜓閬平??蝔?
+-        /// - ????LINE ?潮仃???亥???
++        /// 把錯誤訊息透過 LINE 通知管理者。
+         /// </summary>
++        /// <remarks>
++        /// 系統的多數操作牽涉外部 CRM 與金流，錯誤往往需要人工介入，
++        /// 因此除了寫入 Trace 之外，額外以 LINE 即時推播讓管理者能第一時間知道。
++        ///
++        /// <para><b>三層保護</b></para>
++        /// 通知失敗（例如 LINE API 無法連線）時，先嘗試寫入 Trace；
++        /// 若連 Trace 也失敗，最後退回 Debug 輸出。
++        /// 無論如何都不會把例外往外拋，因為通知失敗不應該讓原本的錯誤處理流程再次中斷。
++        /// </remarks>
++        /// <param name="errorMessage">要送出的錯誤訊息內容。</param>
+         protected void SendLineErrorNotification(string errorMessage)
+         {
+             try
+@@ -387,67 +417,68 @@ namespace ChurchReport.Controllers
+             }
+             catch (Exception ex)
+             {
+-                // LINE ?憭望?銝蔣?蹂蜓閬?蝔?
++                // 第二層：通知失敗，改記錄到 Trace。
+                 try
+                 {
+                     ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
+-                        $"LINE ??潮仃?? {ex.Message}");
++                        $"LINE notification failed: {ex.Message}");
+                 }
+                 catch
+                 {
+-                    // 憒???蕭頩日憭望?嚗蝙??Debug 頛詨
+-                    System.Diagnostics.Debug.WriteLine($"LINE ??潮仃??餈質馱憭望?: {ex.Message}");
++                // 第三層：連 Trace 都失敗，退回 Debug 輸出，確保不再往外拋例外。
++                    System.Diagnostics.Debug.WriteLine($"LINE notification failed: {ex.Message}");
+                 }
+             }
+         }
+ 
+         #endregion
+ 
+-        #region ViewBag 閮剖?頛?寞? (ViewBag Setup Helper Methods)
++        #region ViewBag 設定輔助方法
+ 
+         /// <summary>
+-        /// 閮剖?憭?蝯??Ｗ???(Set Multi-Group Layout Parameters)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ViewBag ??ASP.NET MVC 銝剔靘??? View ???嗚?
+-        /// ?瘜捱摰??Ｘ?閰脤＊蝷箔?暻潭見??閬賡?柴?
++        /// 依目前的檢視型態與資料載入狀態，決定 Layout 要呈現哪一種小組檢視。
++        /// </summary>
++        /// <remarks>
++        /// <para><b>兩個輸入</b></para>
++        /// <list type="bullet">
++        /// <item><c>displayViewType</c>：使用者選擇的檢視（MultiGroupView 或 IntegrateView）。</item>
++        /// <item><c>integrateFlag</c>：整合週報資料是否已經載入完成。</item>
++        /// </list>
+         ///
+-        /// 璆剖??摩嚗?
+-        /// - 憒??臬?撠?璅∪?銝頛?孵?撠?嚗＊蝷箏蝝?憭?蝯???
+-        /// - 憒??舀?芋撘?撌脰??亥???憿舐內?桐?撠??底蝝啗???
+-        /// - 憒??舀毽?芋撘?憿舐內?拙??蝯梯? + 閰喟敦嚗?
++        /// 兩者交叉後決定 <c>ViewBag.MultiGroupIndex</c>，Layout 據此挑選 partial view。
++        /// 會有這個組合邏輯，是因為「使用者想看什麼」與「目前有什麼資料可看」不一定一致，
++        /// 必須在兩者之間挑出一個實際可以正確渲染的檢視。
+         ///
+-        /// ?箔?暻潮?閬?
+-        /// - ?冽擃?嚗??嗥??＊蝷粹?嗥??賊?
+-        /// - 撠?摩嚗Ⅱ靽?嗡??蕙頝?
+-        /// </summary>
++        /// 本方法最後也會設定「奉獻管理」導覽權限旗標，
++        /// 詳見 <see cref="ResolveDonationManagementAccessFlag"/>。
++        /// </remarks>
+         protected void SetMultiGroupLayoutParameter()
+         {
+             string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
+             bool integrateFlag = IsIntegrateDataLoaded();
+ 
+-            // 靽格迤嚗Ⅱ靽? MultiGroupView 暺?撠?敺?靽? HybridView 璅∪?
+-            // 霈??梁絞閮???蝯??晞?憿舐內
++            // 以下四個分支涵蓋「使用者選擇」與「資料狀態」的四種組合。
++            // 每個分支都要挑出一個確定能正確渲染的檢視，不能只看使用者的選擇。
+             if (displayViewType == "MultiGroupView" && !integrateFlag)
+             {
+-                // 蝝?撠?璅∪?嚗??芷??遙雿?蝯?
++                // 想看多組、但整合資料未載入：只呈現單一多組檢視。
+                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
+             }
+             else if (displayViewType == "IntegrateView" && integrateFlag)
+             {
+-                // ?桐?撠?璅∪?嚗????蝯?
++                // 想看整合、且整合資料已備妥：直接使用整合檢視。
+                 ViewBag.MultiGroupIndex = "IntegrateView";
+             }
+             else if (displayViewType == "MultiGroupView" && integrateFlag)
+             {
+-                // 瘛瑕?璅∪?嚗?憭?蝯?撌脤??銝凋???
+-                // 甇斗??府憿舐內???梁絞閮???蝯??晞???
++                // 想看多組、而整合資料也已載入：兩種資料都有，
++                // 使用混合檢視同時呈現，避免讓已載入的資料被浪費。
+                 ViewBag.MultiGroupIndex = "HybridView";
+             }
+             else
+             {
+-                // ?身??IntegrateView ??HybridView
+-                // 憒????交????撠曹蝙??HybridView嚗Ⅱ靽??瘨仃
++                // 其餘組合（想看整合但資料未載入）：
++                // 依整合旗標決定退回混合或整合檢視，確保一定有可渲染的目標。
+                 ViewBag.MultiGroupIndex = integrateFlag ? "HybridView" : "IntegrateView";
+             }
+ 
+@@ -503,18 +534,17 @@ namespace ChurchReport.Controllers
+         }
+ 
+         /// <summary>
+-        /// 瑼Ｘ?游?鞈??臬撌脰???(Check if Integrate Data is Loaded)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?游?鞈??舀??孵?撠??底蝝啗?閮?
+-        /// ?箔?暻潮?閬炎?伐?
+-        /// - 蝣箔??冽??甇?Ⅱ????
+-        /// - ?踹?憿舐內蝛箇??隤斤?鞈?
+-        ///
+-        /// 瑼Ｘ璇辣嚗?
+-        /// - ?勗?拐辣摮
+-        /// - LoadFlag ??true嚗”蝷箄??歇頛嚗?
++        /// 判斷整合週報資料是否已經載入完成。
+         /// </summary>
++        /// <remarks>
++        /// 判斷依據是 <c>ListManager.m_ListSmallGroupWeeklyReport</c> 的 <c>LoadFlag</c>。
++        /// 必須同時檢查物件本身不為 null 與旗標為 true：
++        /// 物件為 null 代表根本還沒開始載入，旗標為 false 代表正在載入或載入失敗，
++        /// 兩種情況都不能當作「資料已可使用」。
++        ///
++        /// 此結果會影響 Layout 選擇哪一種小組檢視，見 <see cref="SetMultiGroupLayoutParameter"/>。
++        /// </remarks>
++        /// <returns>整合週報資料已備妥時回傳 true。</returns>
+         protected bool IsIntegrateDataLoaded()
+         {
+             var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
+@@ -522,20 +552,22 @@ namespace ChurchReport.Controllers
+         }
+ 
+         /// <summary>
+-        /// 閮剖??箸 ViewBag ? (Set Basic ViewBag Parameters)
++        /// 填入所有頁面共用的 ViewBag 項目。
++        /// </summary>
++        /// <remarks>
++        /// <para><b>填入的項目</b></para>
++        /// <list type="bullet">
++        /// <item><c>LoginType</c>：登入方式（一般帳號或 LINE）。</item>
++        /// <item><c>LoginFullName</c>：登入者姓名，顯示於導覽列。</item>
++        /// <item><c>FeeType</c>：目前的收費類別。</item>
++        /// <item><c>HappyType</c>：幸福小組類別。</item>
++        /// </list>
+         ///
+-        /// ?飛隤芣?嚗?
+-        /// ?瘜身摰???嗅?賡?閬??箸 ViewBag ???
+-        /// ?箔?暻潸?蝯曹?閮剖?嚗?
+-        /// - ?踹?瘥?嗅??撖怎??隞?Ⅳ
+-        /// - 蝣箔?????ａ??閬?鞈?
++        /// 接著再委派 <see cref="SetupFeeDataListCount"/> 與 <see cref="SetupMemberInfoViewBag"/>
++        /// 補上收費資料狀態與會員資料存取權限。
+         ///
+-        /// 閮剖????賂?
+-        /// - ?餃憿???嗅?蝔?
+-        /// - 鞎餌憿?
+-        /// - 敹急?撠?憿?
+-        /// - 鞎餌鞈????
+-        /// </summary>
++        /// 各控制器的 action 在回傳 View 之前應呼叫本方法，否則 Layout 會因缺少這些值而顯示不完整。
++        /// </remarks>
+         protected void SetupBasicViewBag()
+         {
+             ViewBag.LoginType = InMemoryContext.ListManager.LoginType;
+@@ -543,7 +575,7 @@ namespace ChurchReport.Controllers
+             ViewBag.FeeType = InMemoryContext.FeeList.FeeType;
+             ViewBag.HappyType = InMemoryContext.HappyGroupDataManager.HappyType;
+ 
+-            // 閮剖?蝜唾祥暺????
++            // 委派給專責方法，讓各自的判斷邏輯保持獨立、易於單獨測試。
+             SetupFeeDataListCount();
+             SetupMemberInfoViewBag();
+         }
+@@ -600,18 +632,17 @@ namespace ChurchReport.Controllers
+             }
+         }
+         /// <summary>
+-        /// 閮剖?蝜唾祥暺?鞈??賊????(Set Fee Data List Count Status)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ?瘜炎?交?行?鞎餌鞈?嚗蒂閮剖?撠??????胯?
+-        /// ?箔?暻潮?閬?
+-        /// - 霈?嗥?頂蝯曹葉?臬????
+-        /// - ??閬死??
+-        ///
+-        /// ????荔?
+-        /// - ????"蝜唾祥???歇????
+-        /// - ?∟???"蝜唾祥?????∟???
++        /// 設定收費資料的載入狀態文字，供 Layout 顯示提示。
+         /// </summary>
++        /// <remarks>
++        /// 刻意只回報「有或沒有」而不回報實際筆數。
++        /// 使用者在這個位置需要知道的只是「現在的操作有沒有資料基礎」，
++        /// 精確筆數屬於報表頁面的內容，放在導覽提示只會造成干擾。
++        ///
++        /// 判斷同時檢查集合不為 null 與筆數大於 0：
++        /// null 代表尚未查詢，空集合代表查詢過但沒有符合的資料，
++        /// 在這個提示的語境下兩者都應顯示為「尚未載入」。
++        /// </remarks>
+         protected void SetupFeeDataListCount()
+         {
+             bool hasFeeData = InMemoryContext.FeeList.FeeDataList != null &&
+@@ -622,102 +653,110 @@ namespace ChurchReport.Controllers
+ 
+         #endregion
+ 
+-        #region Session 摰撽? (Session Security Validation)
++        #region Session 安全性驗證
+ 
+         /// <summary>
+-        /// 蝣箔? AJAX 隢?雿輻甇?Ⅱ?冽????(Ensure Correct User Data for AJAX Requests)
+-        ///
+-        /// ? ??芸??嚗?
+-        /// - 雿輻閮擃翰???銴?霅?30 蝘嚗?
+-        /// - 璇辣??Debug 頛詨嚗??券?閬?嚗?
+-        /// - ??餈?嚗ail-Fast嚗?撠?敹??炎??
++        /// 確保記憶體中的使用者資料與目前 Session 的身分一致。
++        /// </summary>
++        /// <remarks>
++        /// <para><b>要解決的問題</b></para>
++        /// <c>ListManager</c> 持有登入者的帳號、密碼與名單資料。
++        /// 如果 Session 中的身分已經改變（重新登入、切換帳號、LINE 驗證票證恢復），
++        /// 而 ListManager 還停留在舊身分，使用者就會看到上一個身分的資料。
++        /// 本方法在每次需要使用者資料的 action 之前呼叫，用來消除這種不一致。
+         ///
+-        /// ?飛隤芣?嚗?
+-        /// ??AJAX 隢?銝哨??冽??Session ?航撌脩??寡???
+-        /// ?瘜Ⅱ靽??蝙?函??舀迤蝣箇??冽鞈???
++        /// <para><b>五個步驟</b></para>
++        /// <list type="number">
++        /// <item>取得 Session Id；沒有 Session 就不做任何事。</item>
++        /// <item>查驗證快取；30 秒內已確認一致就直接返回。</item>
++        /// <item>比對兩邊密碼；一致就記入快取並返回。</item>
++        /// <item>密碼不一致：以 Session 的密碼重新載入 ListManager。</item>
++        /// <item>Session 沒有密碼：嘗試從 LINE 驗證票證恢復身分。</item>
++        /// </list>
+         ///
+-        /// ??芸?蝑嚗?
+-        /// 1. **敹怠?撽?蝯?**嚗?0 蝘銝?銴?霅?銝?冽
+-        /// 2. **Lazy Loading**嚗?券?閬?????Session
+-        /// 3. **璇辣 Logging**嚗?函???湔?????
+-        /// 4. **??餈?**嚗??衣Ⅱ隤??停蝡餈?
+-        /// </summary>
++        /// <para><b>為什麼整段包在 try/catch 裡</b></para>
++        /// 本方法是輔助性質的一致性維護，不是授權檢查。
++        /// 真正的授權由 <c>GlobalAuthorizationFilter</c> 與 <c>SessionValidationMiddleware</c> 負責。
++        /// 因此這裡發生例外時應保持沉默、讓頁面繼續渲染，而不是讓整個請求失敗。
++        /// </remarks>
+         protected virtual void EnsureCorrectUserData()
+         {
+             try
+             {
+                 // ========================================
+-                // Step 0: 敹怠?瑼Ｘ嚗??賢???詨?嚗?
++                // 步驟 1：取得 Session Id 作為快取鍵的基礎
+                 // ========================================
+                 var sessionId = HttpContext?.Session?.Id;
+                 if (string.IsNullOrEmpty(sessionId))
+                 {
+-                    return; // ??Session嚗?撽?
++                    return; // Session is unavailable; leave the current request state unchanged.
+                 }
+ 
+                 // ========================================
+-                // Step 1: Lazy Loading - ?芸?閬?霈??Session
++                // 步驟 2：取出兩邊的密碼準備比對
+                 // ========================================
++                // sessionPassword 是本次請求的權威身分來源；
++                // listManagerPassword 是記憶體中目前生效的身分。
+                 var sessionPassword = HttpContext?.Session?.GetString("_LoginPassword");
+                 var listManagerPassword = InMemoryContext?.ListManager?.m_Password;
+ 
+-                // 憒??抵?箇征嚗?撽?
++                // 兩邊都沒有密碼代表使用者根本尚未登入，沒有需要同步的狀態。
+                 if (string.IsNullOrEmpty(sessionPassword) && string.IsNullOrEmpty(listManagerPassword))
+                 {
+                     return;
+                 }
+ 
+-                // 閮??嗅?撖Ⅳ???券?皝??冽敹怠? Key嚗?
++                // 以密碼雜湊而非密碼原文組鍵，確保快取內不出現任何憑證明文。
+                 var currentPasswordHash = GetStableHash(sessionPassword ?? listManagerPassword ?? "");
+                 var cacheKey = $"{sessionId}_{currentPasswordHash}";
+ 
+                 // ========================================
+-                // Step 2: 摰?翰?炎?伐??? ?脫迫 Session Collision嚗?
++                // 步驟 3：查詢驗證快取，命中就省下後續所有比對
+                 // ========================================
+                 if (_userValidationCache.TryGetValue(cacheKey, out var cached))
+                 {
+                     var cacheAge = (DateTime.UtcNow - cached.LastValidated).TotalSeconds;
+ 
+-                    // ? 敹怠??賭葉 + 撖Ⅳ??銝?湛???撽?嚗?
++                    // 三個條件必須同時成立才採信快取：未過期、當時通過、且密碼雜湊仍相符。
+                     if (cacheAge < USER_VALIDATION_CACHE_SECONDS &&
+                         cached.IsValid &&
+                         cached.PasswordHash == currentPasswordHash)
+                     {
+-                        // 敹怠??賭葉銝??剁??湔餈?
++                        // 快取有效，記憶體狀態確定與 Session 一致，直接返回。
+                         return;
+                     }
+                 }
+ 
+                 // ========================================
+-                // Step 3: 敹怠?憭望???摮嚗銵??湧?霅?
++                // 步驟 4：快取未命中，實際比對兩邊的密碼
+                 // ========================================
+                 var sessionAccount = HttpContext?.Session?.GetString("_LoginAccount");
+ 
+-                // 瑼Ｘ Session ??ListManager ??蝣潭?虫???
++                // 情況 A：兩邊都有密碼且完全相同，代表狀態本來就一致。
+                 if (!string.IsNullOrEmpty(sessionPassword) &&
+                     !string.IsNullOrEmpty(listManagerPassword) &&
+                     sessionPassword == listManagerPassword)
+                 {
+-                    // ? 撽???嚗?啣翰??
++                    // 記錄本次驗證結果，讓接下來 30 秒內的請求都能走快取捷徑。
+                     _userValidationCache[cacheKey] = (DateTime.UtcNow, true, currentPasswordHash);
+ 
+-                    // 皜??? Session ??敹怠??嚗?蝣潸??湔?嚗?
++                    // 順便清掉這個 Session 底下屬於舊密碼的項目。
+                     CleanupOldCacheForSession(sessionId, cacheKey);
+                     return;
+                 }
+ 
+                 // ========================================
+-                // Step 4: ??銝??湛??閬??啗???
++                // 情況 B：兩邊密碼不同，以 Session 為準重新載入
+                 // ========================================
+ #if DEBUG
+-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ??銝??湛??頛 ListManager 鞈?");
++                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session password differs; rehydrating ListManager.");
+ #endif
+ 
+                 if (!string.IsNullOrEmpty(sessionPassword) &&
+                     !string.IsNullOrEmpty(listManagerPassword) &&
+                     sessionPassword != listManagerPassword)
+                 {
+-                    // ?頛 ListManager 鞈?
++                    // Session 是身分的權威來源，因此用它的密碼重新初始化 ListManager。
+                     InMemoryContext.ListManager.SetupListManager(
+                         sessionAccount ?? "",
+                         sessionPassword,
+@@ -725,19 +764,21 @@ namespace ChurchReport.Controllers
+                             ? InMemoryContext.ListManager.m_SelectDate
+                             : DateTime.Now);
+ 
+-                    // 雿輻?啁?撖Ⅳ???湔敹怠?
++                    // 身分已變更，必須用新密碼的雜湊重算快取鍵，不能沿用舊鍵。
+                     var newPasswordHash = GetStableHash(sessionPassword);
+                     var newCacheKey = $"{sessionId}_{newPasswordHash}";
+                     _userValidationCache[newCacheKey] = (DateTime.UtcNow, true, newPasswordHash);
+ 
+-                    // 皜??翰??
++                    // 清掉同一 Session 底下屬於舊身分的快取項目。
+                     CleanupOldCacheForSession(sessionId, newCacheKey);
+                     return;
+                 }
+ 
+                 // ========================================
+-                // Step 5: 憒? Session 撖Ⅳ?箇征嚗?閰血?隢?銝剖?敺?LINE ID
++                // 情況 C：Session 沒有密碼，嘗試從 LINE 驗證票證恢復
+                 // ========================================
++                // Session 可能已逾時被清空，但 Cookie 驗證票證仍然有效。
++                // 此時可從票證的 Claims 取回身分，避免使用者被迫重新登入。
+                 if (string.IsNullOrEmpty(sessionPassword))
+                 {
+                     var principal = HttpContext?.User;
+@@ -750,7 +791,7 @@ namespace ChurchReport.Controllers
+                         passwordKey != listManagerPassword)
+                     {
+ #if DEBUG
+-                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session ???箇征嚗蝙??LINE ID ?頛");
++                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Restoring ListManager from LINE authentication ticket.");
+ #endif
+ 
+                         InMemoryContext.ListManager.SetupListManager(
+@@ -763,7 +804,7 @@ namespace ChurchReport.Controllers
+                         HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
+                         HttpContext?.Session?.SetString("_LoginPassword", passwordKey);
+ 
+-                        // ?湔敹怠?
++                        // 同樣記入驗證快取，讓後續請求不必重複這段恢復流程。
+                         var linePasswordHash = GetStableHash(passwordKey);
+                         var lineCacheKey = $"{sessionId}_{linePasswordHash}";
+                         _userValidationCache[lineCacheKey] = (DateTime.UtcNow, true, linePasswordHash);
+@@ -773,71 +814,210 @@ namespace ChurchReport.Controllers
+             catch (Exception ex)
+             {
+ #if DEBUG
+-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] 撽?憭望?: {ex.Message}");
++                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session operation failed: {ex.Message}");
+ #endif
+             }
+         }
+ 
+         /// <summary>
+-        /// 閮?蝛拙???蝣潮?皝??冽敹怠? Key嚗?
++        /// 計算字串的穩定短雜湊，用於組成驗證快取的鍵。
++        /// </summary>
++        /// <remarks>
++        /// <para><b>為什麼要雜湊</b></para>
++        /// 快取鍵需要能區分不同的密碼，但絕對不能包含密碼原文。
++        /// 雜湊讓鍵具備區分能力，同時保證即使快取內容被傾印也無法還原出密碼。
+         ///
+-        /// ?? 摰隤芣?嚗?
+-        /// - 雿輻 SHA256 ??嚗甇Ｗ?蝣潭??摮?
+-        /// - ?? 8 摮?撟唾﹛摰?扯? Key ?瑕漲
+-        /// - ??蝣唳?璈?嚗? / 2^32嚗扔雿?
++        /// <para><b>為什麼只取 8 個字元</b></para>
++        /// 完整的 Base64 SHA256 有 44 個字元，作為字典鍵過長。
++        /// 取前 8 個字元（48 位元）的碰撞機率極低，而且鍵中還包含 Session Id，
++        /// 即使雜湊碰撞也必須同時發生在同一個 Session 內才可能造成影響。
+         ///
+-        /// ?箔?暻潔??湔?典?蝣潘?
+-        /// - 摰?改??踹?撖Ⅳ瘣拇??唳隤?閮擃翰??
+-        /// - Key ?瑕漲嚗??Dictionary Key 憭批?
+-        /// </summary>
++        /// <para><b>穩定性</b></para>
++        /// 相同輸入必定得到相同輸出，且與行程、機器、時間都無關。
++        /// 這是快取能跨請求運作的前提，因此輸出格式不可更動。
++        /// </remarks>
++        /// <param name="input">要雜湊的字串，通常是登入密碼。</param>
++        /// <returns>Base64 編碼的前 8 個字元；輸入為空時回傳固定字串 <c>"EMPTY"</c>。</returns>
+         private static string GetStableHash(string input)
+         {
++            // 空字串以固定字面值代表，避免對空輸入做一次無意義的雜湊運算。
++            // 這個回傳值同時也是快取鍵的一部分，必須保持穩定不可更動。
+             if (string.IsNullOrEmpty(input))
+                 return "EMPTY";
+ 
+-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
++            // ================================================================
++            // ✅ 效能最佳化：以 SHA256.HashData 取代 SHA256.Create()
++            // ================================================================
++            // 【原本的成本】
++            // 原本的寫法是 using (var sha256 = SHA256.Create())。每一次呼叫都會：
++            //   1. 配置一個 SHA256 實作物件（在 Windows 上是 SHA256Cng 之類的包裝）
++            //   2. 向作業系統開啟一個 CNG 演算法提供者控制代碼
++            //   3. 雜湊區區數十個位元組
++            //   4. 立刻 Dispose，把上述資源全部丟掉
++            // 本方法位於 EnsureCorrectUserData 內，也就是每一個「已登入」請求的必經路徑，
++            // 等於每個請求都付一次「建立加密提供者 → 用一次 → 銷毀」的代價。
++            //
++            // 【改用的 API】
++            // SHA256.HashData 是 .NET 5 起提供的靜態一次性 API。它內部使用共用的實作，
++            // 不配置任何需要 Dispose 的物件，也不會反覆開關 CNG 控制代碼。
++            //
++            // 【相容性保證】
++            // 雜湊演算法、輸入位元組、Base64 編碼與「取前 8 個字元」的截斷方式全部保持不變，
++            // 因此產生的字串與修改前完全相同。既有的快取鍵格式與碰撞特性都不受影響，
++            // 執行中的行程即使新舊程式碼混用也不會有鍵不一致的問題。
++            // ================================================================
++
++            // 先算出 UTF-8 編碼所需的位元組數，才能決定要走堆疊還是租用緩衝區。
++            var byteCount = System.Text.Encoding.UTF8.GetByteCount(input);
++
++            // rented 保持為 null 代表這次走的是堆疊路徑，finally 就不需要歸還任何東西。
++            byte[] rented = null;
++
++            try
+             {
+-                var bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
+-                var hash = Convert.ToBase64String(bytes);
++                // 密碼長度在實務上遠小於 256 位元組，絕大多數呼叫會走 stackalloc 這條路，
++                // 完全不產生任何堆積配置。超長輸入則向 ArrayPool 租用，避免產生大型物件。
++                Span<byte> inputBytes = byteCount <= 256
++                    ? stackalloc byte[256].Slice(0, byteCount)
++                    : (rented = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
++
++                // 直接把字串編碼進上面準備好的緩衝區，省掉 Encoding.GetBytes(string) 會產生的中間陣列。
++                System.Text.Encoding.UTF8.GetBytes(input, inputBytes);
++
++                // SHA256 的輸出長度固定為 32 位元組，可以安全地宣告在堆疊上。
++                Span<byte> hashBytes = stackalloc byte[32];
++                System.Security.Cryptography.SHA256.HashData(inputBytes, hashBytes);
++
++                // 轉成 Base64 後截斷為 8 個字元。這裡刻意沿用原本的做法，
++                // 因為快取鍵的格式必須維持不變（見上方相容性保證）。
++                var hash = Convert.ToBase64String(hashBytes);
+                 return hash.Length > 8 ? hash.Substring(0, 8) : hash;
+             }
++            finally
++            {
++                // 只有走租用路徑時才需要歸還。這裡不清除內容：
++                // 緩衝區裡是密碼的 UTF-8 位元組，下一位租用者可能讀到殘留資料，
++                // 因此以 clearArray: true 歸還，確保不把憑證留在共用池中。
++                if (rented != null)
++                {
++                    System.Buffers.ArrayPool<byte>.Shared.Return(rented, clearArray: true);
++                }
++            }
+         }
+ 
+         /// <summary>
+-        /// 皜??? Session ??敹怠??
+-        ///
+-        /// ?? 閮擃恣??
+-        /// - ?脫迫撖Ⅳ霈敺???翰?敞蝛?Memory Leak嚗?
+-        /// - ?脫迫 Session ID ??? Session Collision
+-        /// - ?噶皜??典????嚗???5 ??嚗?
+-        ///
+-        /// 皜?蝑嚗?
+-        /// 1. 蝘駁?? Session 雿?蝣潮?皝????嚗?嗅?蝣潸??湛?
+-        /// 2. 蝘駁?????5 ???????殷?閮擃???
+-        /// 3. 靽??嗅????翰????
++        /// 清除驗證快取中已失效的項目：屬於舊密碼的，以及過期的。
++        /// </summary>
++        /// <remarks>
++        /// 這是 <c>_userValidationCache</c> 的唯一回收機制，負責讓它的大小保持有界。
++        /// 實作與節流策略見下方方法本體的詳細說明。
++        /// </remarks>
++        /// <summary>
++        /// ✅ 效能／記憶體：上次執行全表清掃的 UTC 時間戳（ticks），以 Interlocked 原子讀寫。
++        /// 使用 long 而非 DateTime，是因為 Interlocked 只能對整數型別做原子操作。
+         /// </summary>
++        private static long _lastValidationCacheSweepTicks;
++
++        /// <summary>
++        /// 兩次全表清掃之間的最短間隔。距離上次清掃不足此間隔的呼叫會直接跳過。
++        /// </summary>
++        private static readonly long ValidationCacheSweepIntervalTicks = TimeSpan.FromSeconds(30).Ticks;
++
++        /// <summary>
++        /// 記憶體硬上界：不論距離上次清掃多久，一旦快取筆數達到此值就立即清掃。
++        /// 這確保時間節流不會讓字典無限成長。
++        /// </summary>
++        private const int ValidationCacheForceSweepCount = 4096;
++
+         private static void CleanupOldCacheForSession(string sessionId, string currentCacheKey)
+         {
++            // ================================================================
++            // ✅ 效能最佳化：節流全表清掃
++            // ================================================================
++            // 【原本的成本】
++            // 原本每一個「已登入且通過密碼比對」的請求都會執行到這裡，
++            // 而這個方法會無條件走訪整個 _userValidationCache，
++            // 並且無條件配置一個 List<string>（即使最後一筆都不需要移除）。
++            // 也就是說單一請求的成本是 O(目前線上 Session 數)。
++            // 在 1000 個並行 Session 的情況下，每個請求都要做 1000 次字典走訪，
++            // 整體呈現 O(並行數平方) 的行為，是明顯的擴充性瓶頸。
++            //
++            // 【為什麼節流不會造成安全問題】
++            // 這個清掃純粹是「記憶體衛生」，不是安全機制。
++            // 快取的讀取路徑（EnsureCorrectUserData 的 Step 2）本身就有兩道檢查：
++            //   1. cacheAge < USER_VALIDATION_CACHE_SECONDS —— 過期項目一律不採信
++            //   2. cached.PasswordHash == currentPasswordHash —— 密碼不同一律不採信
++            // 而快取鍵本身是 "{sessionId}_{passwordHash}"，
++            // 屬於其他 Session 或其他密碼的項目根本不可能被查到。
++            // 因此「晚幾秒才把舊項目刪掉」不會讓任何使用者看到別人的資料，
++            // 也不會延長任何憑證的有效期。
++            //
++            // 【記憶體仍然有上界】
++            // 除了 30 秒的時間節流之外，另外設有筆數硬上界
++            // ValidationCacheForceSweepCount，一旦超過就立刻清掃，
++            // 所以字典不會因為節流而無限成長。
++            // ================================================================
++
++            var nowTicks = DateTime.UtcNow.Ticks;
++
++            // Interlocked.Read 用於 64 位元欄位的原子讀取，
++            // 避免在 32 位元執行環境上讀到只更新一半的「撕裂值」。
++            var lastSweep = Interlocked.Read(ref _lastValidationCacheSweepTicks);
++
++            // 兩個觸發條件任一成立就執行清掃：時間到了，或筆數已達硬上界。
++            var due = (nowTicks - lastSweep) >= ValidationCacheSweepIntervalTicks
++                      || _userValidationCache.Count >= ValidationCacheForceSweepCount;
++
++            if (!due)
++            {
++                return;
++            }
++
++            // 用 CompareExchange 搶下這一輪清掃的執行權。
++            // 只有成功把時間戳從 lastSweep 換成 nowTicks 的那一條執行緒會繼續往下做，
++            // 其餘同時抵達的執行緒直接返回，避免多條執行緒同時做全表走訪。
++            if (Interlocked.CompareExchange(ref _lastValidationCacheSweepTicks, nowTicks, lastSweep) != lastSweep)
++            {
++                return;
++            }
++
+             try
+             {
+-                var keysToRemove = new System.Collections.Generic.List<string>();
++                // 延遲配置：只有真的找到要移除的鍵時才建立清單。
++                // 穩定狀態下絕大多數清掃都不會找到任何項目，此時完全零配置。
++                System.Collections.Generic.List<string> keysToRemove = null;
+                 var now = DateTime.UtcNow;
+ 
++                // 先把前綴字串算好，避免在迴圈裡每一圈都做一次字串串接。
++                var sessionPrefix = sessionId + "_";
++
+                 foreach (var kvp in _userValidationCache)
+                 {
+-                    // 瑼Ｘ 1嚗?銝 Session 雿?蝣潔??????殷?Session Collision ?脰風嚗?
+-                    if (kvp.Key.StartsWith(sessionId + "_") && kvp.Key != currentCacheKey)
++                    // 檢查 1：同一個 Session、但不是目前這組快取鍵的項目。
++                    // 這代表同一位使用者換過密碼，舊的雜湊鍵已經不會再被查詢，可以回收。
++                    // 使用 StringComparison.Ordinal 是最快的比較方式，
++                    // 而且 Session Id 與 Base64 雜湊都是 ASCII，不需要文化相關的比較規則。
++                    if (kvp.Key.StartsWith(sessionPrefix, StringComparison.Ordinal) && kvp.Key != currentCacheKey)
+                     {
+-                        keysToRemove.Add(kvp.Key);
++                        (keysToRemove ??= new System.Collections.Generic.List<string>()).Add(kvp.Key);
+                     }
+-                    // 瑼Ｘ 2嚗?????5 ???????殷?Memory Leak ?脰風嚗?
++                    // 檢查 2：任何超過 5 分鐘沒有更新的項目一律回收。
++                    // 快取本身的有效期只有 USER_VALIDATION_CACHE_SECONDS（30 秒），
++                    // 所以超過 5 分鐘的項目必定早已失效，留著只是佔用記憶體。
+                     else if ((now - kvp.Value.LastValidated).TotalMinutes > 5)
+                     {
+-                        keysToRemove.Add(kvp.Key);
++                        (keysToRemove ??= new System.Collections.Generic.List<string>()).Add(kvp.Key);
+                     }
+                 }
+ 
+-                // ?寞活蝘駁
++                // 沒有任何項目需要移除時直接返回，連清單都沒有配置過。
++                if (keysToRemove == null)
++                {
++                    return;
++                }
++
++                // 走訪期間不可直接修改集合，因此在收集完成後才統一移除。
++                // TryRemove 失敗代表別的執行緒已經先移除，屬於正常情況，可以忽略。
+                 foreach (var key in keysToRemove)
+                 {
+                     _userValidationCache.TryRemove(key, out _);
+@@ -846,65 +1026,54 @@ namespace ChurchReport.Controllers
+ #if DEBUG
+                 if (keysToRemove.Count > 0)
+                 {
+-                    System.Diagnostics.Debug.WriteLine($"[CleanupOldCache] 撌脫???{keysToRemove.Count} ?翰???殷?Session={sessionId.Substring(0, Math.Min(8, sessionId.Length))}...)");
++                    System.Diagnostics.Debug.WriteLine($"[CleanupOldCache] 已清除 {keysToRemove.Count} 筆過期或屬於舊密碼的驗證快取項目 (Session={sessionId.Substring(0, Math.Min(8, sessionId.Length))}...)");
+                 }
+ #endif
+             }
+             catch
+             {
+-                // 皜?憭望?銝蔣?蹂蜓瘚?
++                // 清理失敗不可影響主要流程。
++                // 這裡只是記憶體衛生工作，任何例外都不應該讓一個已經通過驗證的請求失敗；
++                // 下一輪節流到期時自然會再嘗試一次，因此吞掉例外是安全且刻意的。
+             }
+         }
+ 
+ 
+         /// <summary>
+-        /// ?岫敺?瘙葉?? LINE ?冽 ID (Try to Get LINE User ID from Request)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// LINE ?餃???冽 ID ???怠隢???Referer 銝准?
+-        /// ?瘜圾??冽 ID??
+-        ///
+-        /// 閫???摩嚗?
+-        /// - 敺?HTTP Referer 璅銝剖???LINE ?冽 ID ?澆?
+-        /// - LINE ?冽 ID 隞?"U" ?嚗摨衣 33 ????
+-        ///
+-        /// ?箔?暻潮?閬?
+-        /// - ??Session ?箏仃???臭誑敺?瘙葉?Ｗ儔?冽頨思遢
+-        /// - ??蝟餌絞?捆?航??
++        /// 驗證目前 Session 是否仍然有效且可信。
+         /// </summary>
+-        /// <summary>
+-        /// 撽??嗅? Session ?臬?? (Validate Current Session)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// Session 撽???Web ?摰??閬??
+-        /// ?瘜炎?亦?嗥??餃???虫??嗆???
+-        ///
+-        /// 閮剛?璅∪?嚗emplate Method Pattern
+-        /// - ?????霅?蝔?
+-        /// - 摮??亙隞亥?撖怎摰炎??
++        /// <remarks>
++        /// <para><b>三道檢查</b></para>
++        /// <list type="number">
++        /// <item>Session 中必須有使用者識別碼，否則視為未登入。</item>
++        /// <item>Session 建立至今不得超過 8 小時，避免長期閒置的 Session 被重複利用。</item>
++        /// <item>記憶體中的 ListManager 必須有帳號，確保後端狀態確實已初始化。</item>
++        /// </list>
+         ///
+-        /// Fail-Fast ??嚗?
+-        /// - 銝?潛??撠梁??唾???false
+-        /// - 銝匱蝥銵?敹??炎??
++        /// <para><b>與其他防護的分工</b></para>
++        /// 本方法是給控制器主動呼叫的輔助檢查，回傳布林值讓呼叫端自行決定如何處理。
++        /// 全站強制性的授權由 <c>GlobalAuthorizationFilter</c> 負責，
++        /// Session 劫持偵測由 <c>SessionValidationMiddleware</c> 負責，兩者都不需要控制器介入。
+         ///
+-        /// 撽??嚗?
+-        /// 1. Session ?臬摮
+-        /// 2. Session ?臬??嚗? 撠?嚗?
+-        /// 3. ?冽頨思遢?臬銝??
++        /// <para><b>失敗時一律回傳 false</b></para>
++        /// 任何例外都當作驗證失敗處理。安全性檢查在無法確定結果時，
++        /// 必須選擇最保守的結果，絕不能因為讀取失敗就放行。
+         ///
+-        /// 雿輻?孵?嚗?
+-        /// ??Controller Action ????恬?
++        /// <para><b>用法</b></para>
++        /// <code>
+         /// if (!ValidateSession())
+         /// {
+         ///     return RedirectToAction("Login", "Authentication");
+         /// }
+-        /// </summary>
++        /// </code>
++        /// </remarks>
++        /// <returns>三道檢查全數通過時回傳 true，否則回傳 false。</returns>
+         protected bool ValidateSession()
+         {
+             try
+             {
+                 // ========================================
+-                // Step 1: 瑼Ｘ Session ?臬摮
++                // 檢查 1：Session 中是否有使用者識別碼
+                 // ========================================
+                 var sessionUserId = HttpContext.Session.GetString("_SessionUserId");
+                 if (string.IsNullOrEmpty(sessionUserId))
+@@ -914,78 +1083,85 @@ namespace ChurchReport.Controllers
+                 }
+ 
+                 // ========================================
+-                // Step 2: 瑼Ｘ Session ?萄遣??嚗甇ａ???Session嚗?
++                // 檢查 2：Session 是否超過 8 小時的絕對存活上限
+                 // ========================================
++                // 這是獨立於閒置逾時的硬上限，用來防止 Session 被無限期續用。
+                 var sessionCreatedAt = HttpContext.Session.GetString("_SessionCreatedAt");
+                 if (!string.IsNullOrEmpty(sessionCreatedAt))
+                 {
+                     if (DateTime.TryParse(sessionCreatedAt, out DateTime createdTime))
+                     {
+                         var sessionAge = DateTime.UtcNow - createdTime;
+-                        // Session 頞? 8 撠?閬??嚗?憭?霅瑕惜嚗?
++                        // 超過上限一律視為失效，不論期間是否有活動。
+                         if (sessionAge.TotalHours > 8)
+                         {
+-                            System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 撌脤???({sessionAge.TotalHours:F2} 撠?)");
++                            System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session expired after {sessionAge.TotalHours:F2} hours.");
+                             return false;
+                         }
+                     }
+                 }
+ 
+                 // ========================================
+-                // Step 3: 撽??冽頨思遢銝?湔?
++                // 檢查 3：記憶體狀態是否確實已初始化
+                 // ========================================
+-                // 瑼Ｘ InMemoryContext 銝剔??冽鞈??臬??Session 銝??
++                // Session 有效但 ListManager 沒有帳號，代表後端狀態遺失（例如應用程式重啟），
++                // 此時即使 Session 本身沒過期，也無法提供正確的資料。
+                 var currentAccount = InMemoryContext?.ListManager?.m_Account;
+                 if (string.IsNullOrEmpty(currentAccount))
+                 {
+-                    System.Diagnostics.Debug.WriteLine("[ValidateSession] ?冽鞈?銝??冽 InMemoryContext");
++                    System.Diagnostics.Debug.WriteLine("[ValidateSession] Current account is missing from InMemoryContext.");
+                     return false;
+                 }
+ 
+-                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 撽??? - UserId: {sessionUserId}");
++                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session validated for user: {sessionUserId}");
+                 return true;
+             }
+             catch (Exception ex)
+             {
+-                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 撽?憭望?: {ex.Message}");
++                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session validation failed: {ex.Message}");
+                 return false;
+             }
+         }
+ 
+         /// <summary>
+-        /// 撘瑕??? Session ID (Regenerate Session ID)
++        /// 在身分變更後清空並重建 Session 內容，降低 Session Fixation 風險。
++        /// </summary>
++        /// <remarks>
++        /// <para><b>實際行為與命名的差異</b></para>
++        /// ⚠️ 方法名稱沿用傳統 ASP.NET 的說法，但 ASP.NET Core「不會」在此更換 Session Id。
++        /// 本方法真正做的是：保留必要欄位、清空 Session、提交、再把欄位寫回去，
++        /// 也就是「重建內容」而非「重新產生識別碼」。
+         ///
+-        /// ?飛隤芣?嚗?
+-        /// Session ID ????臬??冽?雿喳祕??
+-        /// ?箔?暻潮?閬?
+-        /// - ?脫迫 Session Fixation ?餅?
+-        /// - ?冽??霈?蝣箔?摰
++        /// <para><b>為什麼這樣仍然有效</b></para>
++        /// 在目前架構下，使用者身分的權威來源是 Cookie 驗證票證而不是 Session Id。
++        /// 登入時重新簽發票證即可讓舊票證失效，因此清空 Session 內容足以切斷與舊身分的關聯。
+         ///
+-        /// 雿輻??嚗?
+-        /// - 甈?霈敺?
+-        /// - ??????
+-        /// - 摰?摰瑼Ｘ
++        /// <para><b>保留的欄位</b></para>
++        /// 使用者識別碼、User-Agent 與真實 IP 會被保留並重新寫入，
++        /// 因為 <c>SessionValidationMiddleware</c> 需要它們來偵測 Session 劫持。
++        /// 同時會更新 <c>_SessionIdentifier</c> 與 <c>_SessionCreatedAt</c>，重新起算存活時間。
+         ///
+-        /// 瘜冽?鈭?嚗?
+-        /// - 甇斗瘜?皜銝阡?撱?Session
+-        /// - 雿?靽??冽鞈?嚗蝙?冽???喉?
+-        /// </summary>
++        /// <para><b>失敗時會往外拋</b></para>
++        /// 與本類別其他方法不同，這裡的例外不吞掉。
++        /// Session 重建失敗代表安全狀態不確定，必須讓呼叫端知道並中止流程。
++        /// </remarks>
++        /// <exception cref="Exception">Session 重建過程中的任何失敗都會原樣往外拋。</exception>
+         protected void RegenerateSessionId()
+         {
+             try
+             {
+-                // ?怠???鞈?
++                // 先把重建後仍需要的欄位讀出來暫存，Clear 之後就取不到了。
+                 var userId = HttpContext.Session.GetString("_SessionUserId");
+                 var userAgent = HttpContext.Session.GetString("_SessionUserAgent");
+                 var realIp = HttpContext.Session.GetString("_SessionRealIp");
+ 
+-                // 皜??Session
++                // 清空 Session 的所有內容，切斷與前一個身分的關聯。
+                 HttpContext.Session.Clear();
+ 
+-                // 撘瑕????Session ID
++                // 必須立即提交，確保清除動作即刻生效而不是等到請求結束。
+                 HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+ 
+-                // ?Ｗ儔鞈?嚗蝙?冽???嚗?
++                // 把安全驗證需要的欄位寫回，並重新起算 Session 的建立時間。
+                 if (!string.IsNullOrEmpty(userId))
+                 {
+                     HttpContext.Session.SetString("_SessionUserId", userId);
+@@ -999,7 +1175,7 @@ namespace ChurchReport.Controllers
+             }
+             catch (Exception ex)
+             {
+-                System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] ???憭望?: {ex.Message}");
++                System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] Session regeneration failed: {ex.Message}");
+                 throw;
+             }
+         }
+@@ -1022,25 +1198,23 @@ namespace ChurchReport.Controllers
+         }
+ 
+         /// <summary>
+-        /// ?脣???瘙絞閮?閮?(Get Connection Pool Statistics)
+-        ///
+-        /// ?飛隤芣?嚗?
+-        /// ????瘙????????
+-        /// ?瘜???瘙?蝯梯?鞈???
++        /// 取得 Dataverse/CRM 連線集區的目前統計數據。
++        /// </summary>
++        /// <remarks>
++        /// <para><b>用途</b></para>
++        /// 供診斷頁面與健康檢查顯示連線使用狀況，例如目前有多少連線在使用中、
++        /// 多少請求正在排隊等待、累計發生過多少次逾時與驗證失敗。
++        /// 連線洩漏最典型的徵兆就是「使用中連線只增不減」，可從這裡看出來。
+         ///
+-        /// 蝯梯?鞈??嚗?
+-        /// - 蝮賡???
+-        /// - 瘣餉?????
+-        /// - ?蔭????
+-        /// - 蝑?隢???
+-        /// - ??/?閮
+-        /// - 頞???霅仃????
++        /// <para><b>為什麼失敗時回傳全零而不是 null</b></para>
++        /// 本方法只服務診斷用途，呼叫端通常直接把數值渲染到頁面上。
++        /// 回傳 null 會迫使每個呼叫端都要處理空值，稍有疏漏就讓診斷頁自己壞掉；
++        /// 回傳全零的物件則能保證頁面永遠渲染得出來。
+         ///
+-        /// ?箔?暻潮?閬?
+-        /// - ?扯??嚗?暸?瘙?憿?
+-        /// - 摰寥?閬?嚗捱摰?阡?閬?????
+-        /// - ??閮箸嚗蕭頩日?雿輻璅∪?
+-        /// </summary>
++        /// 全零同時也是一個明確的訊號：正常運作時累計計數不可能為零，
++        /// 看到一整排零就代表集區尚未初始化或讀取統計時發生了錯誤。
++        /// </remarks>
++        /// <returns>集區統計數據；集區未注入或讀取失敗時回傳各欄位皆為 0 的物件。</returns>
+         protected ConnectionPoolStats GetConnectionPoolStats()
+         {
+             try
+@@ -1064,9 +1238,9 @@ namespace ChurchReport.Controllers
+             }
+             catch (Exception ex)
+             {
+-                System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] ?脣?蝯梯?鞈?憭望?: {ex.Message}");
++                System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] Failed to read pool statistics: {ex.Message}");
+ 
+-                // 餈?蝛箇絞閮?閮?
++                // 讀取失敗時回傳全零物件，讓診斷頁面仍能正常渲染（理由見 remarks）。
+                 return new ConnectionPoolStats
+                 {
+                     TotalConnections = 0,
+@@ -1083,7 +1257,7 @@ namespace ChurchReport.Controllers
+ 
+         #endregion
+ 
+-        #region 鞈?? (Resource Disposal)
++        #region 資源釋放
+ 
+         /// <summary>
+         /// 釋放本 Controller 自身的資源。本方法由 ASP.NET Core 於每個 request 結束時呼叫。
+@@ -1098,9 +1272,9 @@ namespace ChurchReport.Controllers
+         /// 由短命物件去釋放長命物件，等同「一個請求結束時把整個程序共用的資源關掉」，
+         /// 之後所有請求都會操作到已釋放的物件。
+         ///
+-        /// 歷史背景（避免日後有人順手補回來）：此處原本確實呼叫 <c>ToolUtility?.Dispose()</c>。
++        /// 這個錯誤在歷史版本中確實存在過（曾有一行在此呼叫 ToolUtility.Dispose）。
+         /// 它長期未造成可見故障，只因 <c>ToolUtilityClass.Dispose</c> 內的
+-        /// <c>(m_Crm2011OrganizationService as IDisposable)?.Dispose()</c>，
++        /// 連線關閉呼叫，
+         /// 在 <c>OnPremiseClient</c> 尚未實作 <see cref="IDisposable"/> 之前是無作用的空操作。
+         /// 一旦該型別補上確定性釋放，這個既有的生命週期錯誤立即顯現為
+         /// <see cref="ObjectDisposedException"/>（ServiceChannel 已關閉），實測會使登入流程失敗。
+diff --git a/SpeechMessageProducts.ChurchReport/Middleware/MiniAppDetectionMiddleware.cs b/SpeechMessageProducts.ChurchReport/Middleware/MiniAppDetectionMiddleware.cs
+index abbc1059..63d4d6c6 100644
+--- a/SpeechMessageProducts.ChurchReport/Middleware/MiniAppDetectionMiddleware.cs
++++ b/SpeechMessageProducts.ChurchReport/Middleware/MiniAppDetectionMiddleware.cs
+@@ -57,9 +57,22 @@ namespace ChurchReport.Middleware
+             //   - "LIFF"     → LIFF Browser 特有標識
+             // 範例 User-Agent：
+             //   Mozilla/5.0 ... Line/12.0.0 LIFF/2.21.0 ...
+-            var userAgent = context.Request.Headers["User-Agent"].ToString();
++            // ✅ 效能：靜態資源不需要 Mini App 偵測。
++            // 這些請求不會進到 Controller 或 View，也就沒有人會讀取 HttpContext.Items，
++            // 沒有必要為每個 CSS/JS/圖片請求解析 User-Agent 並寫兩筆 Items。
++            if (ChurchReport.Middleware.StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
++            {
++                await _next(context);
++                return;
++            }
+ 
+-            var isLineBrowser = !string.IsNullOrEmpty(userAgent) &&
++            // ✅ 效能：Headers["User-Agent"] 回傳 StringValues。原本呼叫 .ToString() 會在
++            // 多值情形下配置新字串；改用索引取單一值可讓常見的單值情形零配置。
++            var userAgentValues = context.Request.Headers.UserAgent;
++            var userAgent = userAgentValues.Count == 1 ? userAgentValues[0] : userAgentValues.ToString();
++            userAgent ??= string.Empty;
++
++            var isLineBrowser = userAgent.Length != 0 &&
+                 (userAgent.Contains("Line/", StringComparison.OrdinalIgnoreCase) ||
+                  userAgent.Contains("LIFF", StringComparison.OrdinalIgnoreCase));
+ 
+diff --git a/SpeechMessageProducts.ChurchReport/Middleware/SessionValidationMiddleware.cs b/SpeechMessageProducts.ChurchReport/Middleware/SessionValidationMiddleware.cs
+index 954a9721..3ab91e8a 100644
+--- a/SpeechMessageProducts.ChurchReport/Middleware/SessionValidationMiddleware.cs
++++ b/SpeechMessageProducts.ChurchReport/Middleware/SessionValidationMiddleware.cs
+@@ -105,12 +105,24 @@ namespace ChurchReport.Middleware
+         /// </summary>
+         public async Task InvokeAsync(HttpContext context)
+         {
+-            var path = context.Request.Path.ToString().ToLowerInvariant();
++            // ✅ 效能：不再呼叫 ToLowerInvariant()。
++            // ShouldExcludePath 與 IsStaticAssetPath 都已使用 OrdinalIgnoreCase 比較，
++            // 事先轉小寫只是在每個請求上多配置一個字串。
++            var path = context.Request.Path;
+ 
+             // ========================================
+-            // Step 1: 檢查是否為排除路徑
++            // Step 1: 檢查是否為排除路徑或靜態資源
+             // ========================================
+-            if (ShouldExcludePath(path))
++            // ✅ 效能：靜態資源不含任何使用者狀態，不需要 Session 驗證。
++            // 原本只排除 /css/、/js/、/lib/、/images/ 等少數前綴，
++            // /fonts/、/assets/ 下的字型與 .map 檔仍會走完整驗證並強制載入 Session。
++            //
++            // ⚠️ PathString.Value 在路徑為空（例如 PathBase 剝離後剩下空字串）時會是 null，
++            // 而 ShouldExcludePath 內部會呼叫 string.StartsWith。因此這裡必須做 null 保護，
++            // 不能直接把 path.Value 傳進去。原本的 Path.ToString() 內建了這個保護
++            // （回傳 Value ?? string.Empty），移除它時必須自己補上。
++            if (ChurchReport.Middleware.StaticRequestPathHelper.IsStaticAssetPath(path)
++                || ShouldExcludePath(path.Value ?? string.Empty))
+             {
+                 await _next(context);
+                 return;
+@@ -119,6 +131,17 @@ namespace ChurchReport.Middleware
+             // ========================================
+             // Step 2: 檢查是否已登入
+             // ========================================
++            // ✅ 效能：先明確 await LoadAsync()，再讀取 Session。
++            //
++            // ISession.GetString 在 Session 尚未載入時，內部會執行
++            // LoadAsync().GetAwaiter().GetResult() —— 也就是在處理請求的執行緒上
++            // 同步阻塞等待分散式快取。這條中介層位於每個動態請求的必經路徑，
++            // 等於每個請求都付一次同步阻塞成本，高併發時會造成執行緒池飢餓。
++            //
++            // 明確 await 之後，後續所有 GetString/SetString 都命中已載入的記憶體副本，
++            // 不再有任何同步阻塞。這是官方建議的用法。
++            await context.Session.LoadAsync().ConfigureAwait(false);
++
+             // 如果 Session 中沒有用戶 ID，表示未登入或 Session 已過期
+             var sessionUserId = context.Session.GetString("_SessionUserId");
+             if (string.IsNullOrEmpty(sessionUserId))
+@@ -131,6 +154,8 @@ namespace ChurchReport.Middleware
+             // ========================================
+             // Step 3: 驗證 User-Agent（防 Session Hijacking）
+             // ========================================
++            // 這裡讀取 Session 已經不會有任何 I/O，因為上面的 LoadAsync 已把整份 Session
++            // 載入記憶體；後續所有 GetString/SetString 都只是字典操作。
+             var currentUserAgent = context.Request.Headers["User-Agent"].ToString();
+             var sessionUserAgent = context.Session.GetString("_SessionUserAgent");
+ 
+@@ -159,7 +184,7 @@ namespace ChurchReport.Middleware
+                         "[Session Validation] ?? User-Agent 不一致 | UserId:{UserId} | Session UA:{SessionUA} | Current UA:{CurrentUA}",
+                         sessionUserId, sessionUserAgent, currentUserAgent);
+ 
+-                    ClearSessionAndRedirectToLogin(context);
++                    await ClearSessionAndRedirectToLoginAsync(context).ConfigureAwait(false);
+                     return;
+                 }
+             }
+@@ -235,7 +260,7 @@ namespace ChurchReport.Middleware
+         /// <summary>
+         /// 清除 Session 並重導向至登入頁面
+         /// </summary>
+-        private void ClearSessionAndRedirectToLogin(HttpContext context)
++        private async Task ClearSessionAndRedirectToLoginAsync(HttpContext context)
+         {
+             try
+             {
+@@ -244,7 +269,10 @@ namespace ChurchReport.Middleware
+                 // ? 修復：必須 Commit 以確保 Session 立即失效
+                 // 若不 Commit，Session 清除可能不會即時生效，
+                 // 在高併發情境下可能造成短暫的 Session 洩漏
+-                context.Session.CommitAsync().GetAwaiter().GetResult();
++                //
++                // ✅ 效能：改為 await，移除原本的 GetAwaiter().GetResult() 同步阻塞。
++                // 語意完全相同（Commit 仍在重導向之前完成），但不再佔用執行緒等待 I/O。
++                await context.Session.CommitAsync().ConfigureAwait(false);
+ 
+                 _logger.LogInformation("[Session Validation] ? Session 已清除並提交");
+             }
+diff --git a/SpeechMessageProducts.ChurchReport/Models/ContextDictionary.cs b/SpeechMessageProducts.ChurchReport/Models/ContextDictionary.cs
+index 7c17a08c..6f90140d 100644
+--- a/SpeechMessageProducts.ChurchReport/Models/ContextDictionary.cs
++++ b/SpeechMessageProducts.ChurchReport/Models/ContextDictionary.cs
+@@ -38,6 +38,15 @@ namespace ChurchReport.Models
+             = new ConcurrentDictionary<string, ContextEntry>();
+ 
+         // ✅ 清理計時器
++        //
++        // ⚠️【資源不變量】此欄位由靜態建構函式建立，而靜態建構函式只在型別「首次被觸碰」時執行。
++        // 這是刻意的：本型別在生產程式碼中已無使用者（BaseChurchController 直接建立 request-scoped 的
++        // InMemoryDataContextSmallGroup），目前只有測試會用到它。
++        // 只要沒有人碰這個型別，靜態建構函式就不會執行，也就不會有一個每 5 分鐘喚醒一次、
++        // 且永遠不會被 Dispose 的常駐計時器掛在行程上。
++        //
++        // 因此請「不要」在啟動路徑（Startup／Program／任何 hosted service）加入對 ContextDictionary
++        // 任何成員的參考，否則會在完全不需要的情況下把這個計時器帶進生產環境。
+         private static readonly Timer _cleanupTimer;
+ 
+         // ✅ 過期時間（30 分鐘未存取即過期）
+diff --git a/SpeechMessageProducts.ChurchReport/Program.cs b/SpeechMessageProducts.ChurchReport/Program.cs
+index 93e54368..4eef39f9 100644
+--- a/SpeechMessageProducts.ChurchReport/Program.cs
++++ b/SpeechMessageProducts.ChurchReport/Program.cs
+@@ -85,8 +85,34 @@ namespace ChurchReport
+             // 設定 Kestrel
+             builder.WebHost.ConfigureKestrel(options =>
+             {
+-                options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(30);
+-                options.Limits.MaxRequestBufferSize = null;
++                // ========================================
++                // ✅【記憶體上界】請求標頭逾時
++                // ========================================
++                // 原本設定為 30 分鐘。標頭逾時是「客戶端從建立連線到送完完整請求標頭」的時限，
++                // 沒有任何正常客戶端需要超過數秒。設成 30 分鐘等於允許單一來源開啟大量連線、
++                // 每次只送一個位元組，就能長時間佔住連線物件與其緩衝區（slowloris）。
++                // 配合下方 1000 條並行連線上限，這是可被觸發的記憶體耗盡途徑。
++                //
++                // 60 秒對最慢的行動網路仍然非常寬鬆，同時讓半開連線能被及時回收。
++                // 注意：這不影響請求「主體」的傳輸時間，大檔上傳不受此設定限制。
++                options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(60);
++
++                // ========================================
++                // ✅【記憶體上界】請求緩衝區大小
++                // ========================================
++                // 原本設定為 null，意思是「無上限」。
++                // MaxRequestBufferSize 是 Kestrel 對尚未被應用程式讀取的請求資料所保留的
++                // 緩衝上限，也是它施加背壓的依據。設為 null 會完全解除背壓：
++                // 客戶端可以比應用程式讀取速度更快地推送資料，Kestrel 只能一直把資料
++                // 累積在記憶體裡。1000 條並行連線同時這樣做足以耗盡整台機器的記憶體。
++                //
++                // 這不是傳統意義的「洩漏」（記憶體最終會被回收），
++                // 但在負載下的可觀察行為與洩漏完全相同，因此必須設上界。
++                //
++                // 1 MB 是 Kestrel 的預設值，也是實務上的建議值。它「不」限制請求主體大小，
++                // 只是流量控制視窗；大檔上傳仍可正常運作，只是改為串流而非全部先進記憶體。
++                options.Limits.MaxRequestBufferSize = 1024 * 1024;
++
+                 options.Limits.MaxConcurrentConnections = 1000;
+                 options.Limits.MaxConcurrentUpgradedConnections = 1000;
+             });
+diff --git a/SpeechMessageProducts.ChurchReport/SessionAttribute.cs b/SpeechMessageProducts.ChurchReport/SessionAttribute.cs
+index 22a3b7a6..02454aff 100644
+--- a/SpeechMessageProducts.ChurchReport/SessionAttribute.cs
++++ b/SpeechMessageProducts.ChurchReport/SessionAttribute.cs
+@@ -14,7 +14,8 @@
+ using Microsoft.AspNetCore.Mvc;
+ using Microsoft.AspNetCore.Mvc.Filters;
+ using System;
+-//using Microsoft.AspNetCore.Http;
++// Session 的 GetString/SetString 擴充方法定義於此命名空間。
++using Microsoft.AspNetCore.Http;
+ 
+ namespace ChurchReport
+ {
+@@ -22,25 +23,62 @@ namespace ChurchReport
+     {
+     }
+ 
++    /// <summary>
++    /// 驗證同一個瀏覽器連線在請求之間的 Session Id 是否一致。
++    /// </summary>
++    /// <remarks>
++    /// ⚠️【安全不變量】此過濾器絕對不可持有任何實例欄位。
++    ///
++    /// 【原本的嚴重缺陷】
++    /// 這個型別原本宣告了一個實例欄位 <c>String SessionId = ""</c>，用它記住「第一次看到的 Session Id」
++    /// 再與後續請求比對。這在 ASP.NET Core 下是明確的跨使用者 Session 洩漏：
++    /// MVC 會快取過濾器屬性的實例並在「所有請求、所有使用者」之間重複使用同一個物件，
++    /// 因此第一位造訪者會把自己的 Session Id 寫進共用欄位，
++    /// 之後每一位其他使用者都會被判定為「Session 不符」而被導向錯誤頁。
++    /// 同時該欄位在多執行緒下沒有任何同步保護。
++    ///
++    /// 【原本的第二個缺陷】
++    /// <c>OnActionExecuting</c> 原本宣告為 <c>async void</c>。方法內沒有任何 await，
++    /// 但 <c>async void</c> 會讓例外脫離 MVC 的過濾器管線而直接終結行程，
++    /// 且框架不會等待方法完成就繼續執行 Action，設定 <c>filterContext.Result</c> 可能失效。
++    ///
++    /// 【修正後的作法】
++    /// 基準 Session Id 改存於該請求自己的 Session 之中。Session 本身就是 per-user 的儲存空間，
++    /// 所以比較永遠只發生在同一位使用者的前後兩次請求之間，不會有任何跨使用者狀態。
++    /// 方法改為同步的 <c>override void</c>，與基底類別的契約一致。
++    /// </remarks>
+     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+     public class CheckSessionOutAttribute : ActionFilterAttribute
+     {
+-        String SessionId = "";
+-        public async override void OnActionExecuting(ActionExecutingContext filterContext)
++        /// <summary>
++        /// 記錄基準 Session Id 的 Session 鍵。存放於 Session 內即天然隔離於每位使用者。
++        /// </summary>
++        private const string BaselineSessionIdKey = "_CheckSessionOut_BaselineId";
++
++        public override void OnActionExecuting(ActionExecutingContext filterContext)
+         {
+-            //HttpContext context = HttpContext.Current;
++            // Session 中介層未啟用時 Session 會是 null；此時不做任何判斷直接放行，
++            // 避免在沒有 Session 的管線設定下拋出例外而擋掉整個請求。
++            var session = filterContext.HttpContext.Session;
+ 
+-            if (filterContext.HttpContext.Session != null)
++            if (session != null)
+             {
+-                if (SessionId == "")
++                // 基準值存放在「這位使用者自己的 Session」裡，因此天然與其他使用者隔離。
++                // 這正是取代原本實例欄位的關鍵：實例欄位由所有請求共用，Session 則否。
++                var baselineSessionId = session.GetString(BaselineSessionIdKey);
++
++                if (string.IsNullOrEmpty(baselineSessionId))
+                 {
+-                    SessionId = filterContext.HttpContext.Session.Id;
+-                    //filterContext.Result = new RedirectResult("~/Home/DisplayErrorView/TEST!");
+-                    //return;
++                    // 這位使用者第一次通過本過濾器，把目前的 Session Id 記為基準。
++                    // 之後同一個 Session 的每次請求都會拿來與這個值比對。
++                    session.SetString(BaselineSessionIdKey, session.Id);
+                 }
+                 else
+                 {
+-                    if (SessionId != filterContext.HttpContext.Session.Id)
++                    // 基準值是從「當前 Session」讀出來的，所以正常情況下必定等於 session.Id。
++                    // 兩者不同代表 Session 在請求之間被替換過（例如 Cookie 被覆寫或重放），
++                    // 屬於異常狀態，導向錯誤頁而不繼續執行 Action。
++                    if (baselineSessionId != session.Id)
+                     {
+                         //string sessionCookie = filterContext.HttpContext.Request.Headers["Cookie"];
+                         //if (sessionCookie != null)
+diff --git a/SpeechMessageProducts.ChurchReport/Startup.cs b/SpeechMessageProducts.ChurchReport/Startup.cs
+index 48d1785f..3167cda0 100644
+--- a/SpeechMessageProducts.ChurchReport/Startup.cs
++++ b/SpeechMessageProducts.ChurchReport/Startup.cs
+@@ -168,7 +168,19 @@ namespace ChurchReport
+ #endif
+ 
+             services.AddSingleton(new ThemeSettings(CurrentTheme, CurrentThemeCssClass));
+-            services.AddScoped<ThemeViewDataFilter>();
++
++            // ✅ 效能：全域過濾器改為 Singleton。
++            //
++            // options.Filters.Add<T>() 會登記成 TypeFilter，MVC 在「每個請求」用
++            // ActivatorUtilities 重新建立一個實例；配上 Scoped 登記，等於每個請求
++            // 都付一次 DI 解析 + 物件配置的成本。
++            //
++            // 這兩個過濾器都是無狀態的（只持有 readonly 的設定與啟動期解析結果），
++            // 所有請求相關資料都由方法參數的 context 傳入，因此改為 Singleton 後
++            // 不會有任何跨請求狀態共用，不會造成 Session Leakage。
++            // 下方 AddMvc 內對應改用 Filters.AddService<T>() 以解析同一個單例。
++            services.AddSingleton<ThemeViewDataFilter>();
++            services.AddSingleton<ChurchReport.Filters.GlobalAuthorizationFilter>();
+ 
+             // ========================================
+             // ✅ 初始化 ToolUtilityFactory 配置 (必須最先執行)
+@@ -291,16 +303,25 @@ namespace ChurchReport
+                     });
+             });
+ 
+-            // 設定 Brotli 壓縮等級（Optimal 平衡壓縮率和速度）
++            // ========================================
++            // ✅ 效能：動態回應的壓縮等級必須用 Fastest，不能用 Optimal
++            // ========================================
++            // CompressionLevel.Optimal 對 Brotli 而言是 quality 11，這是 Brotli 最慢的等級，
++            // 設計用途是「壓縮一次、傳送數百萬次」的靜態資產（例如建置階段預壓縮的 .js/.css）。
++            // 本站所有 HTML/JSON 都是每次請求即時產生，套用 quality 11 會讓壓縮本身的 CPU 時間
++            // 遠超過所節省的傳輸時間，且會直接佔用處理請求的執行緒。
++            //
++            // CompressionLevel.Fastest 對 Brotli 是 quality 1：壓縮率只差數個百分點，
++            // 速度快一到兩個數量級。這是動態內容唯一合理的選擇。
+             services.Configure<BrotliCompressionProviderOptions>(options =>
+             {
+-                options.Level = CompressionLevel.Optimal;
++                options.Level = CompressionLevel.Fastest;
+             });
+ 
+-            // 設定 Gzip 壓縮等級
++            // Gzip 同理：Optimal 為 level 6~9，Fastest 為 level 1。
+             services.Configure<GzipCompressionProviderOptions>(options =>
+             {
+-                options.Level = CompressionLevel.Optimal;
++                options.Level = CompressionLevel.Fastest;
+             });
+ 
+             // ========================================
+@@ -369,15 +390,19 @@ namespace ChurchReport
+                 {
+                     options.EnableEndpointRouting = false;
+ 
+-                    options.Filters.Add<ThemeViewDataFilter>();
++                    // ✅ 效能：AddService 解析上方登記的單例，取代每請求重新建立實例。
++                    options.Filters.AddService<ThemeViewDataFilter>();
+ 
+                     // ========================================
+                     // ✅ Phase 3.1: 註冊全域無快取過濾器 (Session Bleeding 防護)
+                     // ========================================
+                     // 防止 Session Bleeding（會話串連）問題
+                     // 確保所有 Controller Action 都不會被中間層代理伺服器或瀏覽器快取
+-                    options.Filters.Add<ChurchReport.Filters.StrictNoCacheFilter>();
+-                    options.Filters.Add<ChurchReport.Filters.GlobalAuthorizationFilter>();
++                    //
++                    // ✅ 效能：StrictNoCacheFilter 沒有任何相依項與狀態，
++                    // 直接放入共用實例即可，不需要每個請求重新配置一個。
++                    options.Filters.Add(ChurchReport.Filters.StrictNoCacheFilter.Instance);
++                    options.Filters.AddService<ChurchReport.Filters.GlobalAuthorizationFilter>();
+ 
+ #if DEBUG
+                     options.Filters.Add<ChurchReport.Filters.PerfTimingActionFilter>();
+@@ -741,36 +766,58 @@ namespace ChurchReport
+             // ========================================
+             // 這是防止 Session Bleeding 的第一道也是最重要的防線
+             // 必須在所有其他中介軟體之前執行，確保每個回應都帶有正確的快取控制標頭
++            // ✅ 效能修正：安全標頭與快取標頭必須分流處理。
++            //
++            // 【原本的缺陷】
++            // 這段中介層先對「所有」請求設定 Cache-Control: no-store，之後 UseStaticFiles 的
++            // OnPrepareResponse 再用 Headers.Append 追加 public,max-age=31536000。
++            // 結果標頭變成：
++            //   Cache-Control: no-store, no-cache, must-revalidate, max-age=0, public,max-age=31536000
++            // 瀏覽器與 Proxy 只要看到 no-store 就完全不快取，那一整年的 max-age 從未生效。
++            // 每次換頁都重新下載全部 CSS/JS/字型/圖片。
++            //
++            // 【修正後的分流】
++            // - 安全標頭（nosniff / Referrer-Policy / X-Frame-Options）對所有請求一律套用，不變。
++            // - no-store 與 Vary: Cookie 只套用在動態頁面。這兩者正是 Session Bleeding 防護的核心，
++            //   而靜態資源本來就不含任何使用者資料，不需要也不應該加上。
++            // - 靜態資源的快取標頭改由 UseStaticFiles 以「指派」而非「追加」的方式設定（見下方）。
++            //
++            // 【安全性未回退的理由】
++            // 判定為靜態的路徑必須同時滿足「副檔名在白名單」且「位於 /css/、/js/、/lib/、/assets/、
++            // /images/、/img/、/fonts/ 等已知靜態目錄下」（見 StaticRequestPathHelper.IsStaticAssetPath）。
++            // 任何動態路由後綴靜態副檔名的 Web Cache Deception 嘗試都不符合前綴條件，
++            // 會繼續走動態分支拿到 no-store，並且已先被 WebCacheDeceptionMiddleware 擋成 404。
+             app.Use(async (context, next) =>
+             {
+-                // 設定最嚴格的快取策略：禁止瀏覽器與任何中間代理伺服器存儲內容
+-                context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+-                context.Response.Headers["Pragma"] = "no-cache";
+-                context.Response.Headers["Expires"] = "0";
++                var headers = context.Response.Headers;
+ 
+-                // ========================================
+-                // ✅ Web Cache Deception 防護 - 安全標頭
+-                // ========================================
+-                // X-Content-Type-Options: nosniff - 防止瀏覽器嗅探內容類型
+-                // 這能阻止 CDN/Proxy 將動態 HTML 回應誤判為靜態資源
+-                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+-                context.Response.Headers["Referrer-Policy"] = "no-referrer";
+-                context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
+-
+-                // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
+-                // 這是解決 Session Bleeding 的關鍵設定！
+-                // ✅ P1: 不覆蓋既有 Vary（例如 Accept-Encoding），改用合併策略
+-                if (context.Response.Headers.TryGetValue("Vary", out var varyValues))
++                // 安全標頭：所有請求一律套用（含靜態資源）
++                headers["X-Content-Type-Options"] = "nosniff";
++                headers["Referrer-Policy"] = "no-referrer";
++                headers["X-Frame-Options"] = "SAMEORIGIN";
++
++                if (!ChurchReport.Middleware.StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
+                 {
+-                    var vary = varyValues.ToString();
+-                    if (!vary.Contains("Cookie", StringComparison.OrdinalIgnoreCase))
++                    // 動態頁面：維持最嚴格的快取策略，禁止瀏覽器與任何中間代理伺服器存儲內容
++                    headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
++                    headers["Pragma"] = "no-cache";
++                    headers["Expires"] = "0";
++
++                    // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
++                    // 這是解決 Session Bleeding 的關鍵設定！
++                    // ✅ P1: 不覆蓋既有 Vary（例如 Accept-Encoding），改用合併策略
++                    if (headers.TryGetValue("Vary", out var varyValues))
+                     {
+-                        context.Response.Headers["Vary"] = string.IsNullOrWhiteSpace(vary) ? "Cookie" : $"{vary}, Cookie";
++                        var vary = varyValues.ToString();
++                        if (!vary.Contains("Cookie", StringComparison.OrdinalIgnoreCase))
++                        {
++                            headers["Vary"] = string.IsNullOrWhiteSpace(vary) ? "Cookie" : $"{vary}, Cookie";
++                        }
++                    }
++                    else
++                    {
++                        headers["Vary"] = "Cookie";
+                     }
+-                }
+-                else
+-                {
+-                    context.Response.Headers["Vary"] = "Cookie";
+                 }
+ 
+                 await next();
+@@ -837,11 +884,19 @@ namespace ChurchReport
+             {
+                 OnPrepareResponse = ctx =>
+                 {
+-                    // 設定靜態檔案快取 1 年（對於有版本控制的檔案）
+-                    // 瀏覽器將快取這些檔案，減少伺服器負載
++                    // ✅ 效能修正：必須用「指派」而非 Headers.Append。
++                    // Append 會把長效快取接在前面中介層可能留下的 no-store 之後，
++                    // 瀏覽器看到 no-store 就整條忽略，導致靜態資源每次都重新下載。
++                    //
++                    // immutable 讓支援的瀏覽器在使用者按重新整理時也不發出重新驗證請求，
++                    // 進一步消除每次換頁的一輪 304 往返。
+                     const int durationInSeconds = 60 * 60 * 24 * 365; // 1 年
+-                    ctx.Context.Response.Headers.Append(
+-                        "Cache-Control", $"public,max-age={durationInSeconds}");
++                    var headers = ctx.Context.Response.Headers;
++                    headers["Cache-Control"] = $"public,max-age={durationInSeconds},immutable";
++
++                    // 清掉動態分支可能留下的 HTTP/1.0 相容標頭，避免與長效快取互相矛盾。
++                    headers.Remove("Pragma");
++                    headers.Remove("Expires");
+                 }
+             });
+ 

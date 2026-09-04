@@ -16,6 +16,9 @@ using FluentAssertions;
 using Line.Messaging;
 using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
+using Microsoft.Xrm.Sdk;
+using System.Net.Http;
+using System.Reflection;
 using ToolUtilityNameSpace;
 using Xunit;
 
@@ -30,6 +33,39 @@ namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
 public sealed class LineUtilityClassWorkflowTests
 {
     private const string LineUtilitySubjectPrefix = "\u004C\u0069\u006E\u0065\u63A8\u64AD\u7D71\u8A08:";
+
+    /// <summary>
+    /// 保護 token 切換時由 <see cref="LineUtilityClass"/> 建立的舊版內部 <see cref="HttpClient"/> 會被確定釋放。
+    /// </summary>
+    /// <remarks>
+    /// 故障注入使用向後相容的字串建構式，使第一個 client 明確由工具類別擁有；接著呼叫公開 token
+    /// 切換 API。決定性斷言是舊 client 內部 HttpClient 的下一次操作立即拋出
+    /// <see cref="ObjectDisposedException"/>，而非繼續持有 socket handler。這個測試不發送真實 LINE
+    /// 請求，且 using 會在測試結束釋放替換後的 client。
+    /// </remarks>
+    [Fact]
+    public async Task SetupChannelAccessToken_disposes_the_previously_owned_client_after_replacement()
+    {
+        var validFlag = true;
+        using var utility = new LineUtilityClass(new ToolUtilityClass(ref validFlag));
+        var clientField = typeof(LineUtilityClass).GetField(
+            "m_LineMessagingClient",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        clientField.Should().NotBeNull();
+        var oldClient = (LineMessagingClient)clientField!.GetValue(utility)!;
+
+        var httpClientField = typeof(LineMessagingClient).GetField(
+            "_client",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        httpClientField.Should().NotBeNull();
+        var oldHttpClient = (HttpClient)httpClientField!.GetValue(oldClient)!;
+
+        IOrganizationService crmService = null!;
+        utility.SetupChannelAccessToken(ref crmService);
+
+        Func<Task> operation = () => oldHttpClient.GetAsync("https://127.0.0.1:1/");
+        await operation.Should().ThrowAsync<ObjectDisposedException>();
+    }
 
     [Fact]
     public async Task SendMessage_with_sdk_messages_uses_shared_workflow_when_workflow_is_provided()

@@ -78,6 +78,12 @@ namespace ChurchReport.Tools
 
             LineMessagingClient m_LineMessagingClient;
 
+            /// <summary>
+            /// 指示目前 LINE client 是否由本類別以相容字串建構式建立並負責釋放。
+            /// 外部注入的 client 由呼叫端擁有，不能在此處 Dispose，避免破壞共享 HttpClient 的生命週期。
+            /// </summary>
+            private bool m_OwnsLineMessagingClient;
+
             private ILineNotificationWorkflow m_LineNotificationWorkflow;
 
             private ILineReplyWorkflow m_LineReplyWorkflow;
@@ -140,11 +146,18 @@ namespace ChurchReport.Tools
             {
                 // 不得釋放注入的 scoped ToolUtility；request scope 負責其 CRM 租約的確定性回收。
 
-                // 釋放 LineMessagingClient。
-                m_LineMessagingClient?.Dispose();
+                // LineMessagingClient 由這個相容工具類別建立並獨佔；在 request/service owner 結束時必須
+                // 釋放其內部 HttpClient，避免 socket handler 與 token 綁定的 client 留在 GC 才回收的路徑。
+                if (m_OwnsLineMessagingClient)
+                {
+                    m_LineMessagingClient?.Dispose();
+                }
+                m_LineMessagingClient = null;
 
-                // 釋放 ReplyUtility。
+                // ReplyUtility 不擁有 client 或 workflow，但若未來實作可釋放資源，仍將其釋放責任保留在
+                // 建立它的本類別。現行 ReplyUtility 不實作 IDisposable，這個分支為無副作用的相容保護。
                 (m_ReplyUtility as IDisposable)?.Dispose();
+                m_ReplyUtility = null;
             }
 
             _disposed = true;
@@ -190,6 +203,7 @@ namespace ChurchReport.Tools
                 m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
 
                 m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
+                m_OwnsLineMessagingClient = true;
                 m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
                 m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
                 m_UsesDefaultLineRichMenuWorkflow = true;
@@ -264,6 +278,7 @@ namespace ChurchReport.Tools
             {
                 m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
                 m_LineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
+                m_OwnsLineMessagingClient = false;
                 m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
                 m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
                 m_UsesDefaultLineRichMenuWorkflow = lineRichMenuWorkflow == null;
@@ -307,10 +322,22 @@ namespace ChurchReport.Tools
                     new ChurchReportLegacyRichMenuCatalog());
             }
 
+            /// <summary>
+            /// 依目前組織切換 LINE token，並以新 client 原子取代此工具類別先前擁有的 client。
+            /// </summary>
+            /// <param name="aCrmService">舊版呼叫端傳入的 CRM service；此方法不保存、使用或釋放它，資源 owner 仍是呼叫端 scope。</param>
+            /// <remarks>
+            /// Channel token 是組織隔離邊界，不能將前一組 token 的 client 或預設 workflow 留到下一個組織。
+            /// 方法會先在區域變數建構新 client 與相依 workflow；只有全部成功才替換欄位，接著釋放本類別
+            /// 建立的舊 client。替換失敗時舊 client 保持可用，新建資源立即釋放，避免半初始化、socket 或 token
+            /// retention。此 legacy 類別必須由 request/operation owner Dispose，不可被 singleton 共用。
+            /// </remarks>
             public void SetupChannelAccessToken(ref IOrganizationService aCrmService)
             {
                 try
                 {
+                    ThrowIfDisposed();
+
                     // 依組織代號對應到 appsettings.json 中的設定區段，
                     // 取出該組織專屬的 Channel Access Token。
                     if (this.m_OrganizationName == "jesus")
@@ -328,18 +355,67 @@ namespace ChurchReport.Tools
                         m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
                     }
 
-                    // 依目前 channel access token 建立 LineMessagingClient。
-                    // 若沒有外部注入 ILineNotificationWorkflow，後續會用這個 client 建立預設共用 workflow。
-                    // 重新建立預設 workflow 可避免切換 token 後，仍沿用舊 client 或舊 token。
-                    m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
-                    RebuildDefaultWorkflowsForCurrentClient();
-                    m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, m_LineReplyWorkflow);
-                }
-                catch (System.Exception e)
-                {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    // 新 client 必須完整建立後才可發佈，否則預設 workflow 建構失敗會讓既有欄位停在
+                    // 不可用或已 Dispose 的半初始化狀態。這個向後相容建構式建立內部 HttpClient，故本類別
+                    // 在成功替換後是唯一負責釋放舊 client 的 owner。
+                    var replacementClient = new LineMessagingClient(m_ChannelAccessToken);
+                    try
+                    {
+                        var replacementNotificationWorkflow = m_UsesDefaultLineNotificationWorkflow
+                            ? CreateDefaultNotificationWorkflow(replacementClient)
+                            : m_LineNotificationWorkflow;
+                        var replacementReplyWorkflow = m_UsesDefaultLineReplyWorkflow
+                            ? CreateDefaultReplyWorkflow(replacementClient)
+                            : m_LineReplyWorkflow;
+                        var replacementRichMenuWorkflow = m_UsesDefaultLineRichMenuWorkflow
+                            ? CreateDefaultRichMenuWorkflow(replacementClient)
+                            : m_LineRichMenuWorkflow;
+                        var replacementRichMenuAssignmentWorkflow = m_UsesDefaultLineRichMenuAssignmentWorkflow
+                            ? CreateDefaultRichMenuAssignmentWorkflow(replacementClient)
+                            : m_LineRichMenuAssignmentWorkflow;
+                        var replacementReplyUtility = new ReplyUtility(replacementClient, replacementReplyWorkflow);
 
-                    throw e;
+                        var previousClient = m_LineMessagingClient;
+                        var previousClientOwned = m_OwnsLineMessagingClient;
+                        var previousReplyUtility = m_ReplyUtility;
+
+                        m_LineMessagingClient = replacementClient;
+                        m_OwnsLineMessagingClient = true;
+                        m_LineNotificationWorkflow = replacementNotificationWorkflow;
+                        m_LineReplyWorkflow = replacementReplyWorkflow;
+                        m_LineRichMenuWorkflow = replacementRichMenuWorkflow;
+                        m_LineRichMenuAssignmentWorkflow = replacementRichMenuAssignmentWorkflow;
+                        m_ReplyUtility = replacementReplyUtility;
+
+                        // ReplyUtility 目前只借用 client；仍在這裡釋放未來可能加入的自有資源，但絕不
+                        // 釋放外部注入 workflow。client 的唯一 owner 是 LineUtilityClass。
+                        (previousReplyUtility as IDisposable)?.Dispose();
+                        if (previousClientOwned)
+                        {
+                            previousClient?.Dispose();
+                        }
+                    }
+                    catch
+                    {
+                        replacementClient.Dispose();
+                        throw;
+                    }
+                }
+                catch
+                {
+                    // 保留原始堆疊，讓呼叫端能辨識 token 組態或 client 建構的真正失敗位置；絕不記錄 token。
+                    throw;
+                }
+            }
+
+            /// <summary>
+            /// 在物件已釋放後拒絕建立或保存新的 token/client 資源。
+            /// </summary>
+            private void ThrowIfDisposed()
+            {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(nameof(LineUtilityClass));
                 }
             }
 

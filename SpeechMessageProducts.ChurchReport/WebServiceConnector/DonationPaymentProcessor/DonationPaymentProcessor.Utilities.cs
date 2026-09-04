@@ -14,6 +14,8 @@
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ChurchReport.WebServiceConnector
@@ -33,6 +35,20 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public partial class DonationPaymentProcessor
     {
+        /// <summary>
+        /// 財務中文大寫數字字元表。唯讀靜態資料不含 request 或使用者狀態，
+        /// 可安全由所有 processor 共用，避免每次金額轉換重複配置陣列。
+        /// </summary>
+        private static readonly string[] FinancialDigits =
+            { "零", "壹", "貳", "參", "肆", "伍", "陸", "柒", "捌", "玖" };
+
+        /// <summary>四位一組的財務位值單位；索引 0 代表個位。</summary>
+        private static readonly string[] FinancialPositions = { "仟", "佰", "拾", "" };
+
+        /// <summary>四位數群組的高位單位；索引 0 代表沒有群組單位。</summary>
+        private static readonly string[] FinancialGroupUnits =
+            { "", "萬", "億", "兆", "京", "垓", "秭", "穰" };
+
         #region ===== 連絡人查詢 =====
 
         /// <summary>
@@ -167,102 +183,139 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 阿拉伯數字轉大寫中文（金額專用）
         /// </summary>
+        /// <remarks>
+        /// 輸入會先以目前文化及不變文化嘗試解析，再以銀行收據慣例四捨五入至小數兩位。
+        /// 整數部分以四位一組處理萬、億、兆等節點，小數部分只輸出角與分；
+        /// 金額為整數時以「整」結尾，零值或無法解析時 fail closed 為「零圓整」。
+        /// 本方法只使用區域變數與區域 <see cref="StringBuilder"/>，不保存任何使用者、Session、
+        /// 租戶或金流資料，因此同一個 processor 被重用時不會發生跨請求狀態殘留。
+        /// </remarks>
+        /// <param name="lowerMoney">可含負號與小數的阿拉伯數字字串。</param>
+        /// <returns>繁體中文財務大寫金額。</returns>
         public string MoneyToChinese(string lowerMoney)
         {
-            if (string.IsNullOrWhiteSpace(lowerMoney)) return "零圓整";
-
-            bool isNegative = false;
-            if (lowerMoney.Trim().StartsWith("-"))
+            const string zeroResult = "零圓整";
+            if (string.IsNullOrWhiteSpace(lowerMoney))
             {
-                lowerMoney = lowerMoney.Trim().Substring(1);
-                isNegative = true;
+                return zeroResult;
             }
 
-            if (!double.TryParse(lowerMoney, out double parsed)) return "零圓整";
-
-            lowerMoney = Math.Round(parsed, 2).ToString();
-
-            if (lowerMoney.IndexOf('.') > 0)
+            var text = lowerMoney.Trim();
+            var isNegative = text.StartsWith("-", StringComparison.Ordinal);
+            if (isNegative)
             {
-                if (lowerMoney.IndexOf('.') == lowerMoney.Length - 2)
+                text = text[1..].Trim();
+            }
+
+            const NumberStyles amountStyles = NumberStyles.Float | NumberStyles.AllowThousands;
+            if (!decimal.TryParse(text, amountStyles, CultureInfo.CurrentCulture, out var amount) &&
+                !decimal.TryParse(text, amountStyles, CultureInfo.InvariantCulture, out amount))
+            {
+                return zeroResult;
+            }
+
+            amount = decimal.Round(Math.Abs(amount), 2, MidpointRounding.ToEven);
+            if (amount == decimal.Zero)
+            {
+                return zeroResult;
+            }
+
+            var integerPart = decimal.Truncate(amount);
+            var fraction = (int)((amount - integerPart) * 100m);
+            var result = new StringBuilder(32);
+
+            if (integerPart > decimal.Zero)
+            {
+                var integerText = integerPart.ToString("0", CultureInfo.InvariantCulture);
+                var groupCount = (integerText.Length + 3) / 4;
+                var pendingZero = false;
+                for (var groupIndex = groupCount - 1; groupIndex >= 0; groupIndex--)
                 {
-                    lowerMoney = lowerMoney + "0";
+                    var start = Math.Max(0, integerText.Length - ((groupIndex + 1) * 4));
+                    var length = integerText.Length - start - (groupIndex * 4);
+                    var groupValue = int.Parse(integerText.Substring(start, length), CultureInfo.InvariantCulture);
+
+                    if (groupValue == 0)
+                    {
+                        if (result.Length > 0)
+                        {
+                            pendingZero = true;
+                        }
+
+                        continue;
+                    }
+
+                    if (pendingZero)
+                    {
+                        result.Append('零');
+                        pendingZero = false;
+                    }
+
+                    var groupText = groupValue.ToString("D4", CultureInfo.InvariantCulture);
+                    var groupHasValue = false;
+                    // 低位節點小於 1000 時，前一個萬/億節點與本節點之間必須補一個零，
+                    // 例如 10001 應為「壹萬零壹圓」，但 10000 則不需補零。
+                    // 若前一個完整群組已是零，外層 pendingZero 已負責補零；
+                    // 不可再因本群組首位為零重複追加，否則 100000001 會變成「壹億零零壹」。
+                    var groupPendingZero = result.Length > 0
+                        && result[result.Length - 1] != '零'
+                        && groupText[0] == '0';
+
+                    for (var position = 0; position < 4; position++)
+                    {
+                        var digit = groupText[position] - '0';
+                        if (digit == 0)
+                        {
+                            if (groupHasValue)
+                            {
+                                groupPendingZero = true;
+                            }
+
+                            continue;
+                        }
+
+                        if (groupPendingZero)
+                        {
+                            result.Append('零');
+                            groupPendingZero = false;
+                        }
+
+                        result.Append(FinancialDigits[digit]);
+                        result.Append(FinancialPositions[position]);
+                        groupHasValue = true;
+                    }
+
+                    result.Append(groupIndex < FinancialGroupUnits.Length ? FinancialGroupUnits[groupIndex] : string.Empty);
                 }
+
+                result.Append('圓');
+            }
+
+            if (fraction == 0)
+            {
+                result.Append("整");
             }
             else
             {
-                lowerMoney = lowerMoney + ".00";
+                var jiao = fraction / 10;
+                var fen = fraction % 10;
+                if (jiao > 0)
+                {
+                    result.Append(FinancialDigits[jiao]).Append('角');
+                }
+
+                if (fen > 0)
+                {
+                    if (jiao == 0 && integerPart > decimal.Zero)
+                    {
+                        result.Append('零');
+                    }
+
+                    result.Append(FinancialDigits[fen]).Append('分');
+                }
             }
 
-            string strUpper = "";
-            int iTemp = 1;
-
-            while (iTemp <= lowerMoney.Length)
-            {
-                string strUpart = lowerMoney.Substring(lowerMoney.Length - iTemp, 1) switch
-                {
-                    "." => "壹",
-                    "0" => "零",
-                    "1" => "壹",
-                    "2" => "貳",
-                    "3" => "?",
-                    "4" => "肆",
-                    "5" => "壹",
-                    "6" => "壹",
-                    "7" => "柒",
-                    "8" => "壹",
-                    "9" => "玖",
-                    _ => ""
-                };
-
-                strUpart += iTemp switch
-                {
-                    1 => "壹",
-                    2 => "壹",
-                    5 => "拾",
-                    6 => "壹",
-                    7 => "仟",
-                    8 => "萬",
-                    9 => "拾",
-                    10 => "壹",
-                    11 => "仟",
-                    12 => "壹",
-                    13 => "拾",
-                    14 => "壹",
-                    15 => "仟",
-                    16 => "萬",
-                    _ => ""
-                };
-
-                strUpper = strUpart + strUpper;
-                iTemp++;
-            }
-
-            strUpper = strUpper.Replace("零拾", "零")
-                               .Replace("零分", "零")
-                               .Replace("零仟", "零")
-                               .Replace("零零零", "零")
-                               .Replace("零零", "零")
-                               .Replace("零角零分", "壹")
-                               .Replace("零分", "壹")
-                               .Replace("零分", "零")
-                               .Replace("零億零萬零圓", "億圓")
-                               .Replace("億零萬零圓", "億圓")
-                               .Replace("零億零萬", "壹")
-                               .Replace("零萬零圓", "萬圓")
-                               .Replace("零分", "壹")
-                               .Replace("零萬", "萬")
-                               .Replace("零分", "壹")
-                               .Replace("零零", "零");
-
-            if (strUpper.StartsWith("壹")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("零")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("壹")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("壹")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("壹")) strUpper = "零圓整";
-
-            string result = strUpper.Length == 0 ? "零圓整" : strUpper;
-            return isNegative ? ("負" + result) : result;
+            return isNegative ? "負" + result : result.ToString();
         }
 
         /// <summary>

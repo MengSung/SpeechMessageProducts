@@ -213,13 +213,23 @@ namespace ChurchReport.Middleware
         }
 
         /// <summary>
-        /// 判斷路徑是否應該排除驗證
+        /// 判斷路徑是否應該排除驗證。
+        ///
+        /// 精確路徑（例如 <c>/login</c>）只允許本身及其下一層路徑段，
+        /// 不得使用單純的前綴比對，否則 <c>/login-evil</c> 會被錯誤視為公開登入路徑，
+        /// 讓動態請求繞過 Session 驗證。以斜線結尾的目錄規則（例如 <c>/css/</c>）
+        /// 則維持目錄內所有檔案的快速排除行為。
         /// </summary>
         private bool ShouldExcludePath(string path)
         {
             foreach (var excludedPath in ExcludedPaths)
             {
-                if (path.StartsWith(excludedPath, StringComparison.OrdinalIgnoreCase))
+                var matches = excludedPath.EndsWith("/", StringComparison.Ordinal)
+                    ? path.StartsWith(excludedPath, StringComparison.OrdinalIgnoreCase)
+                    : path.Equals(excludedPath, StringComparison.OrdinalIgnoreCase)
+                        || path.StartsWith(excludedPath + "/", StringComparison.OrdinalIgnoreCase);
+
+                if (matches)
                 {
                     return true;
                 }
