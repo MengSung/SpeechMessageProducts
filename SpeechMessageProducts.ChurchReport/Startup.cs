@@ -215,6 +215,21 @@ namespace ChurchReport
             // 這是最佳實務，能夠重用連接並自動處理資源清理。
             services.AddHttpClient();
 
+            /*
+             * 註冊 LINE Login/LIFF 驗證專用的具名 HttpClient。
+             * 此客戶端只負責連線設定；LINE access token 或 ID token 一律由呼叫端
+             * 放在該次請求的 HttpRequestMessage，不能寫入 DefaultRequestHeaders、
+             * singleton、static 或任何跨 request 的快取。10 秒 timeout 是外部服務
+             * 呼叫的明確生命週期上限，避免 LINE API 失聯時長時間佔用 request、socket
+             * 或工作執行緒。實例與 handler 由 IHttpClientFactory 管理及輪替，呼叫端
+             * 不擁有底層 handler，也不建立需要自行回收的 process-wide 資源。
+             */
+            services.AddHttpClient("LineLoginApi", client =>
+            {
+                client.BaseAddress = new Uri("https://api.line.me/");
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
+
             // ========================================
             // 🔧 修復：MemoryCache 添加過期策略（不限制大小，避免登入卡住）
             // ========================================

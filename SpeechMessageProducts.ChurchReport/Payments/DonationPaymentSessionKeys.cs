@@ -32,5 +32,14 @@ namespace ChurchReport.Payments
         /// 重新建立姓名、奉獻編號、信用卡清單與認獻清單。
         /// </summary>
         public const string WebLoginContactId = "_DonationPaymentWebLoginContactId";
+
+        /// <summary>
+        /// LINE LIFF 登入成功後由伺服器保存的已驗證 LINE user id。
+        /// 收費清單與付款頁的 route segment 可由瀏覽器自行修改，因此只能在
+        /// Session 中存在同一個、已完成 CRM contact 驗證的值時接受該 route。
+        /// 此 key 不保存姓名、contact 或其他個資，並隨 Session 到期而失效。
+        /// </summary>
+        public const string LineUserId = "_DonationPaymentLineUserId";
+
     }
 }

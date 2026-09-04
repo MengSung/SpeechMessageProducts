@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Models;
+using ChurchReport.Payments;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -59,7 +60,15 @@ namespace ChurchReport.Controllers
 
                 var manager = InMemoryContext.DonationPaymentManager;
                 EnsureAuditFormModel(manager);
-                return View(manager.SetDedicationFeeList(InMemoryContext.LineBindingViewModel.LineUserId));
+                var lineUserId = HttpContext.Session.GetString(DonationPaymentSessionKeys.LineUserId);
+                if (!DedicationController.IsValidLineUserId(lineUserId)
+                    || !string.Equals(lineUserId, InMemoryContext.LineBindingViewModel?.LineUserId, StringComparison.Ordinal))
+                {
+                    ClearAuditLineState(manager);
+                    return View(EnsureAuditFormModel(manager));
+                }
+
+                return View(manager.SetDedicationFeeList(lineUserId));
             }
             catch (Exception e)
             {
@@ -171,6 +180,29 @@ namespace ChurchReport.Controllers
             model.SameNameList ??= new System.Collections.Generic.List<SameNameElement>();
             manager.m_DonationPaymentFormModel = model;
             return model;
+        }
+
+        /// <summary>
+        /// 清除 LINE 稽核頁在驗證失敗時可能殘留的 contact 與奉獻資料。
+        /// </summary>
+        /// <param name="manager">目前 request 擁有的奉獻 manager。</param>
+        /// <remarks>
+        /// 稽核頁與付款頁共用 manager 型別，但不共用跨 request 的實例；此處仍必須清空目前
+        /// request 的所有個資欄位，避免同一 Session 換 LINE 使用者後讀到前一位清單。
+        /// </remarks>
+        private static void ClearAuditLineState(DonationPaymentManager manager)
+        {
+            manager.m_Contact = null;
+            manager.m_LoginContact = null;
+            var model = EnsureAuditFormModel(manager);
+            model.FullName = string.Empty;
+            model.Mobile = string.Empty;
+            model.DedicationNumber = string.Empty;
+            model.NationId = string.Empty;
+            model.LastSixDigit = string.Empty;
+            model.DedicationFeeList.Clear();
+            model.SameNameList.Clear();
+            model.TotalAmount = 0;
         }
 
         #region 奉獻查詢

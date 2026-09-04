@@ -321,16 +321,55 @@ namespace ChurchReport.Models
         {
             try
             {
+                if (!m_DonationDedicationFeeFormService.TryResolveLineContact(UserLineId, out var lineLoginContact))
+                {
+                    // 無效或查無 contact 時，清除所有可被後續付款流程使用的身分參照，
+                    // 再由表單服務建立隔離的空白清單；不可保留前一個 LINE 使用者的 m_Contact。
+                    m_Contact = null;
+                    m_LoginContact = null;
+                    return m_DonationDedicationFeeFormService.FillFromLineId(
+                        m_DonationPaymentFormModel,
+                        null,
+                        null);
+                }
+
+                m_Contact = lineLoginContact;
+                m_LoginContact = lineLoginContact;
                 return m_DonationDedicationFeeFormService.FillFromLineId(
                     m_DonationPaymentFormModel,
-                    UserLineId,
-                    this.m_Contact);
+                    null,
+                    lineLoginContact);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
+        }
+
+        /// <summary>
+        /// 以已由 Controller 驗證的 LINE user id 建立完整奉獻付款模型。
+        /// </summary>
+        /// <param name="userLineId">已通過 LIFF ID Token 驗證的 LINE user id。</param>
+        /// <returns>成功建立模型時為 true；查無 contact 時為 false。</returns>
+        /// <remarks>
+        /// contact 查詢與 manager 參照更新在同一個 request 內完成；失敗會清除 m_Contact、
+        /// m_LoginContact，避免同一個 request/session 換人後沿用前一位使用者的付款身分。
+        /// 此方法不建立快取、背景工作或額外資源，manager 的生命週期仍由目前 scoped context 擁有。
+        /// </remarks>
+        public bool TrySetDonationPaymentModelForLineUser(string userLineId)
+        {
+            if (!m_DonationDedicationFeeFormService.TryResolveLineContact(userLineId, out var contact))
+            {
+                m_Contact = null;
+                m_LoginContact = null;
+                return false;
+            }
+
+            m_Contact = contact;
+            m_LoginContact = contact;
+            SetDonationPaymentModel(contact);
+            return true;
         }
         public DonationPaymentFormModel SetDedicationFeeList(Entity LineLoginContact)
         {

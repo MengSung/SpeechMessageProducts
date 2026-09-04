@@ -44,9 +44,22 @@ namespace ChurchReport.Services
         {
             ArgumentNullException.ThrowIfNull(model);
 
-            Entity lineLoginContact = userLineId != null
-                ? _utility.RetrieveContactByLineId(userLineId)
-                : fallbackContact ?? new Entity("contact");
+            Entity lineLoginContact = null;
+            if (!string.IsNullOrWhiteSpace(userLineId))
+            {
+                lineLoginContact = _utility.RetrieveContactByLineId(userLineId);
+            }
+            else
+            {
+                lineLoginContact = fallbackContact;
+            }
+
+            // CRM 查無 contact 時必須 fail-closed。不可建立假的 contact，也不可把 null
+            // 傳給 FillIdentity 或 FillFeeList，否則會拋例外，或把上一位使用者的模型留在畫面上。
+            if (lineLoginContact == null)
+            {
+                return ClearModelForMissingContact(model);
+            }
 
             FillIdentity(model, lineLoginContact, overwriteWhenClickTypeExists: true);
             model.NationId = _utility.GetEntityStringAttribute(ref lineLoginContact, "new_personal_id");
@@ -57,6 +70,28 @@ namespace ChurchReport.Services
 
             _feeQueryService.FillFeeList(model, lineLoginContact);
             return model;
+        }
+
+        /// <summary>
+        /// 嘗試以 LINE user id 查詢 CRM contact。
+        /// </summary>
+        /// <param name="userLineId">只接受來自目前已驗證 LINE 流程的 user id。</param>
+        /// <param name="contact">成功時為 CRM contact；失敗時為 null。</param>
+        /// <returns>查到有效 contact 時為 true。</returns>
+        /// <remarks>
+        /// 此方法只回傳查詢結果，不保存任何跨 request 狀態；呼叫端取得 contact 後仍須由自己的
+        /// request/session owner 管理其生命週期，避免把 scoped 資料提升到程序級快取。
+        /// </remarks>
+        public bool TryResolveLineContact(string userLineId, out Entity contact)
+        {
+            contact = null;
+            if (string.IsNullOrWhiteSpace(userLineId))
+            {
+                return false;
+            }
+
+            contact = _utility.RetrieveContactByLineId(userLineId);
+            return contact != null;
         }
 
         public DonationPaymentFormModel FillFromContact(DonationPaymentFormModel model, Entity lineLoginContact)
@@ -117,6 +152,28 @@ namespace ChurchReport.Services
             model.Ntbt = _utility.GetEntityBoolAttribute(ref contact, "new_ntbt_ornot")
                 ? "願意上傳國稅局"
                 : "不願意上傳國稅局";
+        }
+
+        /// <summary>
+        /// 清除查無 contact 時的所有使用者識別與奉獻清單欄位。
+        /// </summary>
+        /// <remarks>
+        /// 清除操作在同一個 request 內完成，並保留表單必要的非個資預設值；不建立背景工作、
+        /// cache entry、連線或其他需要額外釋放的資源。這是防止同一個 Session 換 LINE 帳號後
+        /// 沿用前一位使用者資料的最後一道防線。
+        /// </remarks>
+        private static DonationPaymentFormModel ClearModelForMissingContact(DonationPaymentFormModel model)
+        {
+            model.EnsureFormDefaults();
+            model.FullName = string.Empty;
+            model.Mobile = string.Empty;
+            model.DedicationNumber = string.Empty;
+            model.NationId = string.Empty;
+            model.LastSixDigit = string.Empty;
+            model.DedicationFeeList.Clear();
+            model.SameNameList.Clear();
+            model.TotalAmount = 0;
+            return model;
         }
     }
 }

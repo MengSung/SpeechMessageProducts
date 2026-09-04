@@ -22,7 +22,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
@@ -76,12 +78,17 @@ namespace ChurchReport.Controllers
                 // 處理 LINE 登入
                 if (!string.IsNullOrEmpty(LineId) && !IsWebLogin(LineId))
                 {
-                    HttpContext.Session.Remove(DonationPaymentSessionKeys.WebLoginContactId);
-
-                    // SetupUserLineId 會查詢 LINE 使用者對應的 CRM 連絡人，並填入
-                    // DonationPaymentManager.m_DonationPaymentFormModel 的奉獻類別、付款方式、奉獻編號等資料。
-                    // 必須等待它完成後再產生 View，否則畫面會先 render 出空白下拉選單。
-                    await SetupUserLineId(LineId, "", "", "");
+                    // LINE LIFF 已在 SetupUserLineId 完成 ID Token 驗證並寫入 Session；
+                    // 此頁只接受同一個 server-bound id，不能因 route segment 改變就替其他人查詢資料。
+                    var boundLineUserId = TryGetVerifiedLineUserId();
+                    if (!string.Equals(boundLineUserId, LineId, StringComparison.Ordinal))
+                    {
+                        ClearLineDonationState(InMemoryContext.DonationPaymentManager);
+                    }
+                    else if (!InMemoryContext.DonationPaymentManager.TrySetDonationPaymentModelForLineUser(LineId))
+                    {
+                        ClearLineDonationState(InMemoryContext.DonationPaymentManager);
+                    }
                 }
                 else if (IsWebLogin(LineId))
                 {
@@ -405,12 +412,168 @@ namespace ChurchReport.Controllers
             {
                 SetupDedicationFeeViewBag(false);
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.LineBindingViewModel.LineUserId));
+                // LINE 清單的日期查詢透過 AJAX POST 後會保存於目前 Session；
+                // 必須在重新建立清單模型前還原，才能保留使用者選取的跨年度區間。
+                // 此操作只讀寫目前 request 的 Session，不建立快取、背景工作或其他資源。
+                RestoreDedicationQueryDatesFromSession();
+                return View(BuildDedicationFeeLineFormModel());
             }
             catch (Exception e)
             {
                 return HandleError(e, "DedicationFeeView");
+            }
+        }
+
+        /// <summary>
+        /// 建立 LINE 登入的奉獻收費清單模型。
+        /// </summary>
+        /// <remarks>
+        /// LINE user id 只在 <see cref="DonationPaymentSessionKeys.LineUserId"/> 存有由伺服器驗證成功的值，
+        /// 且與目前 Session 的 LineBindingViewModel 完全一致時才可使用。route、query 或 form 參數不是
+        /// 身分來源；失敗時立即清除 manager 與 Session 的奉獻狀態，回傳隔離的空白模型，避免跨 LINE 使用者
+        /// 顯示前一位使用者的姓名、奉獻編號或收費清單。清理只操作目前 request/session owner，沒有背景工作、
+        /// cache entry、timer、subscription 或其他需要延後釋放的資源。
+        /// </remarks>
+        internal DonationPaymentFormModel BuildDedicationFeeLineFormModel()
+        {
+            var manager = InMemoryContext.DonationPaymentManager;
+            EnsureLineDonationFormModel(manager);
+            var lineUserId = TryGetVerifiedLineUserId();
+            if (lineUserId == null)
+            {
+                ClearLineDonationState(manager);
+                return EnsureLineDonationFormModel(manager);
+            }
+
+            try
+            {
+                var model = manager.SetDedicationFeeList(lineUserId);
+                if (manager.m_Contact == null || manager.m_LoginContact == null)
+                {
+                    ClearLineDonationState(manager);
+                    return EnsureLineDonationFormModel(manager);
+                }
+
+                return model;
+            }
+            catch
+            {
+                // CRM/查詢失敗時先清理所有身分參照，再把例外交給 action 的統一錯誤處理；
+                // 清理順序保證後續 request 不會取得半完成的舊模型。
+                ClearLineDonationState(manager);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 取得由 LINE 登入流程建立且與目前 Session 綁定的 user id。
+        /// </summary>
+        /// <returns>驗證成功的 LINE user id；任何缺失、不一致或 Session 無法讀取時回傳 null。</returns>
+        private string TryGetVerifiedLineUserId()
+        {
+            try
+            {
+                var sessionLineUserId = HttpContext.Session.GetString(DonationPaymentSessionKeys.LineUserId);
+                var bindingLineUserId = InMemoryContext.LineBindingViewModel?.LineUserId;
+                if (!IsValidLineUserId(sessionLineUserId)
+                    || !string.Equals(sessionLineUserId, bindingLineUserId, StringComparison.Ordinal))
+                {
+                    return null;
+                }
+
+                return sessionLineUserId;
+            }
+            catch
+            {
+                // Session middleware 尚未建立或已失效時採 fail-closed，絕不退回 route/client 值。
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 驗證 LINE user id 的固定格式，避免任意字串觸發 CRM 查詢或污染 Session 狀態。
+        /// </summary>
+        internal static bool IsValidLineUserId(string lineUserId)
+        {
+            if (string.IsNullOrWhiteSpace(lineUserId) || lineUserId.Length != 33 || lineUserId[0] != 'U')
+            {
+                return false;
+            }
+
+            for (var index = 1; index < lineUserId.Length; index++)
+            {
+                if (!char.IsLetterOrDigit(lineUserId[index]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 確保 LINE 收費清單在沒有有效登入者時仍有可序列化的空白表單。
+        /// </summary>
+        private static DonationPaymentFormModel EnsureLineDonationFormModel(DonationPaymentManager manager)
+        {
+            var model = manager.m_DonationPaymentFormModel ?? new DonationPaymentFormModel();
+            model.EnsureFormDefaults();
+            manager.m_DonationPaymentFormModel = model;
+            return model;
+        }
+
+        /// <summary>
+        /// 清除目前 manager 與 LINE Session 的奉獻身分狀態。
+        /// </summary>
+        /// <param name="manager">本次 request 擁有的付款 manager。</param>
+        /// <remarks>
+        /// 所有個資、清單與 contact 參照在同一個同步區段內清除；Session key 也立即移除，
+        /// 因此不會把失敗登入或前一位使用者狀態留給下一次導覽。
+        /// </remarks>
+        private void ClearLineDonationState(DonationPaymentManager manager)
+        {
+            manager.m_Contact = null;
+            manager.m_LoginContact = null;
+
+            var model = manager.m_DonationPaymentFormModel ?? new DonationPaymentFormModel();
+            model.EnsureFormDefaults();
+            model.FullName = string.Empty;
+            model.Mobile = string.Empty;
+            model.DedicationNumber = string.Empty;
+            model.NationId = string.Empty;
+            model.LastSixDigit = string.Empty;
+            model.DedicationFeeList.Clear();
+            model.SameNameList.Clear();
+            model.TotalAmount = 0;
+            manager.m_DonationPaymentFormModel = model;
+
+            // LineBindingViewModel 也可能被 Session cache 保留；清除其 user/profile 欄位，
+            // 避免失敗登入後下一次頁面仍顯示前一位 LINE 使用者的暱稱或識別資訊。
+            var lineBinding = InMemoryContext.LineBindingViewModel;
+            if (lineBinding != null)
+            {
+                lineBinding.LineUserId = string.Empty;
+                lineBinding.DisplayId = string.Empty;
+                lineBinding.DisplayName = string.Empty;
+                lineBinding.UserDisplayName = string.Empty;
+                lineBinding.FullName = string.Empty;
+                lineBinding.OtherName = string.Empty;
+                lineBinding.Mobile = string.Empty;
+                lineBinding.PictureUrl = string.Empty;
+                lineBinding.StatusMessage = string.Empty;
+                lineBinding.GroupId = string.Empty;
+                lineBinding.RoomId = string.Empty;
+                lineBinding.ViewType = string.Empty;
+            }
+
+            try
+            {
+                HttpContext.Session.Remove(DonationPaymentSessionKeys.LineUserId);
+                HttpContext.Session.Remove(DonationPaymentSessionKeys.WebLoginContactId);
+            }
+            catch
+            {
+                // Session 不可用時 manager 清理仍已完成；不可用的 Session 不得阻止 fail-closed。
             }
         }
 
@@ -428,12 +591,128 @@ namespace ChurchReport.Controllers
                 // 必須在 SetDedicationFeeList 之前還原，才能依「收費日期(new_pay_date)」正確過濾跨年度紀錄。
                 RestoreDedicationQueryDatesFromSession();
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.DonationPaymentManager.m_Contact));
+                // Layout 導覽可直接進入本頁，這時 request-scoped manager 尚未必有 m_Contact。
+                // 先嘗試用既有網頁登入恢復流程補齊 contact，再由 builder 在缺少 contact 時回傳
+                // 隔離的空白模型；不可把 null 傳入 FillFromContact，否則會拋出
+                // ArgumentNullException(lineLoginContact) 並將使用者導向錯誤頁。
+                RestoreWebLoginDonationPaymentModel();
+                return View(BuildDedicationFeeWebFormModel());
             }
             catch (Exception e)
             {
                 return HandleError(e, "DedicationFeeViewWeb");
+            }
+        }
+
+        /// <summary>
+        /// 建立網頁登入的奉獻收費清單模型，並確保 contact 缺失時不會讓頁面當機。
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 正常路徑會使用伺服器登入模型、驗證 Cookie claim 或已驗證的 Session contact id 查詢 CRM；
+        /// 只有確定取得非 null contact 才呼叫 <c>SetDedicationFeeList(Entity)</c>。
+        /// </para>
+        /// <para>
+        /// 若登入狀態尚未完成、Session 已失效或 CRM 暫時沒有 contact，回傳的新模型會清除
+        /// 姓名、奉獻編號、個資與奉獻清單，避免把任何前一個身分的資料留在目前回應中。
+        /// 模型只由目前 request 的 manager 持有，不寫入程序級快取，也不建立背景工作或外部資源。
+        /// </para>
+        /// </remarks>
+        internal DonationPaymentFormModel BuildDedicationFeeWebFormModel()
+        {
+            var manager = InMemoryContext.DonationPaymentManager;
+            EnsureLineDonationFormModel(manager);
+            var contact = ResolveAuthenticatedWebDonationContact();
+
+            if (contact != null)
+            {
+                // SetDedicationFeeList 只負責組裝畫面清單，不會改寫 manager 的 m_Contact。
+                // 這裡明確同步目前已驗證的 contact，避免同一個長生命週期狀態容器在登出/換人
+                // 後仍保留舊身分，讓後續付款或更新流程誤用前一位使用者的 CRM entity。
+                manager.m_Contact = contact;
+                manager.m_LoginContact = contact;
+                return manager.SetDedicationFeeList(contact);
+            }
+
+            var model = manager.m_DonationPaymentFormModel ?? new DonationPaymentFormModel();
+            model.EnsureFormDefaults();
+            model.FullName = string.Empty;
+            model.Mobile = string.Empty;
+            model.DedicationNumber = string.Empty;
+            model.NationId = string.Empty;
+            model.LastSixDigit = string.Empty;
+            model.DedicationFeeList ??= new System.Collections.Generic.List<DedicationFee>();
+            model.DedicationFeeList.Clear();
+            model.SameNameList ??= new System.Collections.Generic.List<SameNameElement>();
+            model.SameNameList.Clear();
+            model.TotalAmount = 0;
+            // 找不到目前登入者時連 manager 內的 contact 參照也一併清除，
+            // 避免下一個流程誤用前一個身分的 CRM entity。
+            manager.m_Contact = null;
+            manager.m_LoginContact = null;
+            manager.m_DonationPaymentFormModel = model;
+            return model;
+        }
+
+        /// <summary>
+        /// 依伺服器建立的登入狀態取得目前網頁使用者的奉獻 contact。
+        /// </summary>
+        /// <remarks>
+        /// 取得順序是 request-local 的登入模型、驗證 Cookie 的 contact-id claim，最後才是奉獻登入流程
+        /// 專用的 Session contact id；三者都必須先通過 GUID 解析與 CRM 讀取，絕不接受 query/form 的 contact id。
+        /// 找不到或讀取失敗時回傳 null，由呼叫端清除模型並安全呈現空白清單，避免 null 例外與跨使用者資料殘留。
+        /// </remarks>
+        private Entity ResolveAuthenticatedWebDonationContact()
+        {
+            try
+            {
+                var httpContext = HttpContext;
+                var contactIdText = httpContext.User?.FindFirst(ChurchReport.Security.LoginClaimsFactory.ContactIdClaim)?.Value;
+                if (Guid.TryParse(contactIdText, out var contactId))
+                {
+                    var contact = ToolUtility.RetrieveEntity("contact", contactId);
+                    if (contact != null)
+                    {
+                        if (InMemoryContext.PersonalInfomationModel != null)
+                        {
+                            InMemoryContext.PersonalInfomationModel.m_LoginContact = contact;
+                        }
+                        return contact;
+                    }
+                }
+
+                // 奉獻專用網頁登入目前以 Session 保存 contact id；只有 GUID 可解析且 CRM
+                // 查得到實體時才接受，絕不採用 query/form 的 client-controllable 值。
+                contactIdText = httpContext.Session.GetString(DonationPaymentSessionKeys.WebLoginContactId);
+                if (Guid.TryParse(contactIdText, out contactId))
+                {
+                    var contact = ToolUtility.RetrieveEntity("contact", contactId);
+                    if (contact != null)
+                    {
+                        if (InMemoryContext.PersonalInfomationModel != null)
+                        {
+                            InMemoryContext.PersonalInfomationModel.m_LoginContact = contact;
+                        }
+                        return contact;
+                    }
+                }
+
+                // 舊版一般登入流程可能已建立 request/session-scoped PersonalInfomationModel，
+                // 但若沒有現行 Cookie claim 或奉獻登入 Session，就不能把它當成權限來源。
+                // 只有在 ASP.NET 已確認目前請求為 authenticated 時，才允許此相容 fallback；
+                // 否則回傳 null 並清空表單，避免跨使用者殘留資料被重新帶出。
+                if (httpContext.User?.Identity?.IsAuthenticated == true)
+                {
+                    return InMemoryContext.PersonalInfomationModel?.m_LoginContact;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[DedicationController] 網頁奉獻 contact 恢復失敗：{ex.Message}");
+                return null;
             }
         }
 
@@ -678,10 +957,25 @@ namespace ChurchReport.Controllers
             string GroupId,
             string RoomId,
             string ViewType,
+            string IdToken,
             CancellationToken cancellationToken = default)
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsValidLineUserId(UserLineId))
+                {
+                    ClearLineDonationState(InMemoryContext.DonationPaymentManager);
+                    return Json(new { status = "0", message = "LINE 使用者識別無效" });
+                }
+
+                if (!await VerifyLineIdTokenAsync(IdToken, UserLineId, cancellationToken).ConfigureAwait(false))
+                {
+                    ClearLineDonationState(InMemoryContext.DonationPaymentManager);
+                    return Json(new { status = "0", message = "LINE 身分驗證失敗，請重新登入" });
+                }
+
                 // 設定 LINE 綁定資訊
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = RoomId;
@@ -700,30 +994,112 @@ namespace ChurchReport.Controllers
                 InMemoryContext.DonationPaymentManager.LoginType = "Line線上登入";
                 HttpContext.Session.Remove(DonationPaymentSessionKeys.WebLoginContactId);
 
-                // ? 使用非同步查詢載入登入使用者資料
-                var loginContactTask = Task.Run(() =>
-                    ToolUtility.RetrieveContactByLineId(UserLineId),
-                    cancellationToken);
-
-                var loginContact = await loginContactTask.ConfigureAwait(false);
-
-                if (loginContact != null)
+                // ToolUtility 目前是同步 CRM API；Task.Run 只會額外佔用 ThreadPool，且取消時無法停止
+                // 底層同步呼叫。這裡在同一個 request 內直接查詢，並在查詢前後檢查取消狀態，避免產生
+                // 未被 await、無法取消或延後寫入使用者狀態的背景工作。
+                var loginContact = ToolUtility.RetrieveContactByLineId(UserLineId);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (loginContact == null)
                 {
-                    await Task.Run(() =>
-                        InMemoryContext.DonationPaymentManager.SetDonationPaymentModel(loginContact),
-                        cancellationToken).ConfigureAwait(false);
+                    ClearLineDonationState(InMemoryContext.DonationPaymentManager);
+                    return Json(new { status = "0", message = "找不到 LINE 對應的奉獻者資料" });
                 }
+
+                InMemoryContext.DonationPaymentManager.m_Contact = loginContact;
+                InMemoryContext.DonationPaymentManager.m_LoginContact = loginContact;
+                InMemoryContext.DonationPaymentManager.SetDonationPaymentModel(loginContact);
+                HttpContext.Session.SetString(DonationPaymentSessionKeys.LineUserId, UserLineId);
 
                 return Json(new { status = "1" });
             }
             catch (OperationCanceledException)
             {
+                ClearLineDonationState(InMemoryContext.DonationPaymentManager);
                 return Json(new { status = "0", message = "操作已取消" });
             }
             catch (Exception e)
             {
+                ClearLineDonationState(InMemoryContext.DonationPaymentManager);
                 return HandleError(e, "SetupUserLineId");
             }
+        }
+
+        /// <summary>
+        /// 向 LINE 驗證 LIFF ID Token，並確認 token 內的 subject 就是本次送出的 user id。
+        /// </summary>
+        /// <param name="idToken">LIFF SDK 取得的短命 ID Token；不寫入 Session、cache 或 log。</param>
+        /// <param name="expectedUserId">本次 request 的 LINE user id。</param>
+        /// <param name="cancellationToken">請求取消訊號。</param>
+        /// <returns>token 由 LINE 驗證成功且 subject/audience/issuer/期限均符合時為 true。</returns>
+        /// <remarks>
+        /// LINE user id 本身是 client-controlled，不能單獨當作身份憑證。驗證使用 IHttpClientFactory
+        /// 提供的共用 client；token 只放在單一 HttpRequestMessage，避免任何可達的 DefaultRequestHeaders
+        /// 帶著前一位使用者憑證。request、content 與 response 都 deterministic dispose，取消時不建立
+        /// 未受控的背景工作。
+        /// </remarks>
+        private async Task<bool> VerifyLineIdTokenAsync(
+            string idToken,
+            string expectedUserId,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(idToken) || !IsValidLineUserId(expectedUserId))
+            {
+                return false;
+            }
+
+            var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+            var channelId = configuration?["LineLogin:ChannelId"];
+            var factory = HttpContext.RequestServices.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+            if (string.IsNullOrWhiteSpace(channelId) || factory == null)
+            {
+                return false;
+            }
+
+            using var content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("id_token", idToken),
+                new KeyValuePair<string, string>("client_id", channelId)
+            });
+            using var response = await factory.CreateClient("LineLoginApi")
+                .PostAsync("oauth2/v2.1/verify", content, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return false;
+            }
+
+            var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            var verifiedToken = System.Text.Json.JsonSerializer.Deserialize<LineIdTokenVerificationResponse>(body);
+            if (verifiedToken == null
+                || !string.Equals(verifiedToken.Issuer, "https://access.line.me", StringComparison.Ordinal)
+                || !string.Equals(verifiedToken.Subject, expectedUserId, StringComparison.Ordinal)
+                || !string.Equals(verifiedToken.Audience, channelId, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return verifiedToken.ExpiresAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+
+        /// <summary>LINE ID Token 驗證 API 回應；只保存驗證所需欄位。</summary>
+        private sealed class LineIdTokenVerificationResponse
+        {
+            /// <summary>Token issuer。</summary>
+            [System.Text.Json.Serialization.JsonPropertyName("iss")]
+            public string Issuer { get; set; }
+
+            /// <summary>LINE user id。</summary>
+            [System.Text.Json.Serialization.JsonPropertyName("sub")]
+            public string Subject { get; set; }
+
+            /// <summary>Token audience/channel id。</summary>
+            [System.Text.Json.Serialization.JsonPropertyName("aud")]
+            public string Audience { get; set; }
+
+            /// <summary>Unix seconds 過期時間。</summary>
+            [System.Text.Json.Serialization.JsonPropertyName("exp")]
+            public long ExpiresAt { get; set; }
         }
 
         /// <summary>

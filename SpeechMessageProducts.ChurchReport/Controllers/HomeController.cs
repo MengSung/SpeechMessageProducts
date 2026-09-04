@@ -211,7 +211,12 @@ namespace ChurchReport.Controllers
         /// </summary>
         [HttpPost]
         [Route("/Home/SetupUserLineId")]
-        public async Task<IActionResult> SetupUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
+        public async Task<IActionResult> SetupUserLineIdRedirect(
+            string UserLineId,
+            string GroupId,
+            string RoomId,
+            string ViewType,
+            string IdToken)
         {
             // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
             using (var dedicationController = new DedicationController(
@@ -222,7 +227,7 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration))
             {
                 // ? 使用 await 調用非同步方法
-                return await dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
+                return await dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType, IdToken);
             }
         }
 

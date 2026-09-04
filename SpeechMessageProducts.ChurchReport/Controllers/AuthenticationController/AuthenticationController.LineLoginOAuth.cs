@@ -421,7 +421,7 @@ namespace ChurchReport.Controllers
                         new KeyValuePair<string, string>("client_secret", channelSecret)
                     });
 
-                    using var response = await httpClient.PostAsync("https://api.line.me/oauth2/v2.1/token", requestData);
+                    using var response = await httpClient.PostAsync("oauth2/v2.1/token", requestData);
                     var responseBody = await response.Content.ReadAsStringAsync();
 
                     // OAuth 回應可能包含 access_token、refresh_token 與 id_token；只記錄狀態與長度。
@@ -465,7 +465,7 @@ namespace ChurchReport.Controllers
                     // DefaultRequestHeaders 屬於 HttpClient 實例；一旦有人日後把這個 client 快取起來重用，
                     // 前一位使用者的 Bearer 權杖就會跟著送出，形成跨使用者的身分洩漏。
                     // 用 HttpRequestMessage 攜帶授權標頭可讓這個錯誤在結構上不可能發生。
-                    using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.line.me/v2/profile");
+                    using var request = new HttpRequestMessage(HttpMethod.Get, "v2/profile");
                     request.Headers.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 

@@ -248,6 +248,9 @@ font-weight: 600;
         var RoomId = "";
         var DisplayName = "";
         var ViewType = "";
+        // 同一個 LIFF 頁面只允許一個登入 AJAX 在途；此為頁面區域旗標，
+        // 不會寫入 Session、localStorage 或任何程序級狀態，因此不可能跨使用者共用。
+        var lineLoginRequestInFlight = false;
 
         // ========================================
         // 頁面載入初始化（優化版）
@@ -426,7 +429,12 @@ font-weight: 600;
                 console.log('[DediationLogin] 準備調用 UpdateLineUserId');
                 
                 // 呼叫後端 API 設定用戶
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+                var idToken = typeof liff.getIDToken === 'function' ? liff.getIDToken() : null;
+                if (!idToken) {
+                    throw new Error('LINE 身分 Token 無法取得，請重新開啟登入頁面');
+                }
+
+                UpdateLineUserId(UserId, GroupId, RoomId, ViewType, idToken);
             }
             catch (error) {
                 console.error("❌ [DediationLogin] initializeApp 錯誤:", error);
@@ -450,7 +458,7 @@ font-weight: 600;
         //   - 確保 jQuery 已載入
         //   - 確保 AJAX URL 正確
         // ========================================
-        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType) {
+        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType, aIdToken) {
             console.log('[DediationLogin] ========== 開始更新 LINE UserId ==========');
             console.log('[DediationLogin] 參數:', {
                 UserLineId: aUserLineId,
@@ -486,6 +494,23 @@ font-weight: 600;
             }
             
             console.log('[DediationLogin] 準備發送 AJAX 請求...');
+
+            // ID Token 是可用來代表目前 LINE 身分的短命憑證，絕不能隨 AJAX
+            // 序列化字串寫入瀏覽器主控台。保留非機密欄位供除錯，並明確以遮罩值
+            // 取代 Token；此物件不會被送到伺服器，也不會跨請求保存。
+            var requestLogData = {
+                UserLineId: aUserLineId,
+                GroupId: aGroupId,
+                RoomId: aRoomId,
+                ViewType: aViewType,
+                IdToken: "[REDACTED]"
+            };
+
+            if (lineLoginRequestInFlight) {
+                console.warn('[DediationLogin] 登入請求仍在處理中，忽略重複提交');
+                return;
+            }
+            lineLoginRequestInFlight = true;
             
             // ========================================
             // ✅ Step 3: 發送 AJAX 請求
@@ -496,7 +521,8 @@ font-weight: 600;
                     UserLineId: aUserLineId, 
                     GroupId: aGroupId, 
                     RoomId: aRoomId, 
-                    ViewType: aViewType
+                    ViewType: aViewType,
+                    IdToken: aIdToken
                 },
                 type: 'POST',
                 
@@ -504,7 +530,7 @@ font-weight: 600;
                     console.log('[DediationLogin] === AJAX beforeSend ===');
                     console.log('[DediationLogin] URL:', settings.url);
                     console.log('[DediationLogin] Type:', settings.type);
-                    console.log('[DediationLogin] Data:', settings.data);
+                    console.log('[DediationLogin] Data:', requestLogData);
                 },
                 
                 success: function (data) {
@@ -516,17 +542,30 @@ font-weight: 600;
                         console.log('[DediationLogin] Status:', data.status);
                     }
                     
-                    // ========================================
-                    // ✅ P0: 重導向到奉獻頁面（DonationPaymentView）
-                    // ========================================
-                    console.log('[DediationLogin] 準備重導向到 DonationPaymentView:', "/Dedication/DonationPaymentView/" + aUserLineId);
-                    
-                    // 使用 LINE 自己的網頁瀏覽器，比較快，但是 Apple Pay 不成功
-                    // 架構師註解：
-                    //   - 在 LINE 內建瀏覽器中開啟，保持用戶體驗流暢
-                    //   - 缺點：Apple Pay 可能無法使用
-                    //   - 考慮：根據支付方式選擇是否使用外部瀏覽器
-                    window.location.href = "/Dedication/DonationPaymentView/" + aUserLineId;
+                    // 後端只有在 ID Token、LINE subject、channel 與 CRM contact
+                    // 全部驗證成功時才回傳 status=1。任何失敗都必須停在登入頁，
+                    // 不可把空白或前一個 Session 的模型誤導向成已登入的付款頁。
+                    if (data && String(data.status) === "1") {
+                        // ========================================
+                        // ✅ P0: 重導向到奉獻頁面（DonationPaymentView）
+                        // ========================================
+                        console.log('[DediationLogin] 準備重導向到 DonationPaymentView:', "/Dedication/DonationPaymentView/" + aUserLineId);
+
+                        // 使用 LINE 自己的網頁瀏覽器，比較快，但是 Apple Pay 不成功
+                        // 架構師註解：
+                        //   - 在 LINE 內建瀏覽器中開啟，保持用戶體驗流暢
+                        //   - 缺點：Apple Pay 可能無法使用
+                        //   - 考慮：根據支付方式選擇是否使用外部瀏覽器
+                        window.location.href = "/Dedication/DonationPaymentView/" + aUserLineId;
+                    }
+                    else {
+                        getLoadPanelInstance().hide();
+                        var failureMessage = data && data.message
+                            ? String(data.message)
+                            : "LINE 身分驗證失敗，請重新開啟登入頁面";
+                        document.getElementById('displaynamefield').textContent = failureMessage;
+                        ShowToast(failureMessage, "error", 5000);
+                    }
                 },
                 
                 error: function (xhr, status, error) {
@@ -575,6 +614,7 @@ font-weight: 600;
                 complete: function(xhr, status) {
                     console.log('[DediationLogin] === AJAX Complete ===');
                     console.log('[DediationLogin] Final Status:', status);
+                    lineLoginRequestInFlight = false;
                 }
             });
             

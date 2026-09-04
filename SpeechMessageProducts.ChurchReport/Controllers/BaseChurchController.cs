@@ -221,6 +221,16 @@ namespace ChurchReport.Controllers
         protected readonly IInMemoryDataContext InMemoryContext;
 
         /// <summary>
+        /// 指示本控制器是否擁有建構式自行建立的 data context。
+        /// DI 注入的 context 由 DI scope 負責釋放，控制器不得重複 Dispose；
+        /// 相容路徑自行建立的 context 則由本控制器在 request 結束時確定性釋放。
+        /// </summary>
+        private readonly bool _ownsInMemoryContext;
+
+        /// <summary>避免 MVC、手動 using 與測試重複釋放同一個 context。</summary>
+        private int _disposed;
+
+        /// <summary>
         /// 取得目前請求的 <see cref="Microsoft.AspNetCore.Http.HttpContext"/>，覆寫基底類別的同名屬性。
         /// </summary>
         /// <remarks>
@@ -313,6 +323,7 @@ namespace ChurchReport.Controllers
             {
                 // 正常路徑：DI 已提供 request-scoped 實例，直接採用。
                 InMemoryContext = inMemoryContext;
+                _ownsInMemoryContext = false;
                 System.Diagnostics.Debug.WriteLine("[BaseChurchController] InMemoryContext was resolved through dependency injection.");
             }
             else
@@ -331,6 +342,7 @@ namespace ChurchReport.Controllers
                         as ILineReplyWorkflow;
                 InMemoryContext = new InMemoryDataContextSmallGroup(
                     httpContextAccessor, memoryCache, toolUtilityProvider, donationPaymentCreateGatewayAdapter, lineNotificationWorkflow, lineReplyWorkflow);
+                _ownsInMemoryContext = true;
                 System.Diagnostics.Debug.WriteLine("[BaseChurchController] Created InMemoryContext from DI services.");
             }
 
@@ -1360,6 +1372,15 @@ namespace ChurchReport.Controllers
         public new void Dispose()
         {
             // 不得在此釋放 ToolUtility —— 它是程序級單例，理由見上方 remarks。
+            if (Interlocked.Exchange(ref _disposed, 1) == 0
+                && _ownsInMemoryContext
+                && InMemoryContext is IDisposable ownedContext)
+            {
+                // 只有相容路徑由本控制器擁有 context；DI 注入的 scoped context 交回容器，
+                // 避免雙重 Dispose 或把其他控制器仍在使用的 manager 提前關閉。
+                ownedContext.Dispose();
+            }
+
             base.Dispose();
         }
 

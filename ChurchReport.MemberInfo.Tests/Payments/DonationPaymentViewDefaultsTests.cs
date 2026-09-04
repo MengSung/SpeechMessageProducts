@@ -218,6 +218,176 @@ public sealed class DonationPaymentViewDefaultsTests
     }
 
     /// <summary>
+    /// 固定 LINE 查不到 CRM contact 時，表單服務必須在查詢奉獻清單前 fail-closed，
+    /// 不得把 null 傳給欄位投影，也不得沿用上一位使用者的資料。
+    /// </summary>
+    [Fact]
+    public void Line_fee_form_service_clears_model_when_line_contact_is_missing()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var service = File.ReadAllText(Path.Combine(
+            repositoryRoot, "SpeechMessageProducts.ChurchReport", "Services", "DonationDedicationFeeFormService.cs"));
+
+        service.Should().Contain("lineLoginContact == null");
+        service.Should().Contain("ClearModelForMissingContact");
+        service.IndexOf("if (lineLoginContact == null)", StringComparison.Ordinal)
+            .Should().BeLessThan(service.IndexOf("FillIdentity(model, lineLoginContact", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// 固定 LINE 登入初始化的成功條件必須是非空 ID 且 CRM contact 已驗證；
+    /// 查無 contact、取消或例外都不可回報 status=1，並須清除本次 Session 的舊奉獻狀態。
+    /// </summary>
+    [Fact]
+    public void Line_setup_requires_verified_contact_and_clears_stale_state_on_failure()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var controller = File.ReadAllText(Path.Combine(
+            repositoryRoot, "SpeechMessageProducts.ChurchReport", "Controllers", "DedicationController.cs"));
+
+        controller.Should().Contain("IsValidLineUserId(UserLineId)");
+        controller.Should().Contain("VerifyLineIdTokenAsync");
+        controller.Should().Contain("DonationPaymentSessionKeys.LineUserId");
+        controller.Should().Contain("ClearLineDonationState");
+        controller.Should().Contain("status = \"0\"");
+        controller.Should().NotContain("if (loginContact != null)\n                {\n                    await Task.Run");
+    }
+
+    /// <summary>
+    /// 保護 LINE 登入 AJAX 在後端拒絕 Token 或找不到 CRM contact 時不會誤導向付款頁，
+    /// 並確保除錯輸出不會把短命 ID Token 寫入瀏覽器主控台。
+    /// </summary>
+    /// <remarks>
+    /// 故障注入是模擬 <c>SetupUserLineId</c> 回傳 <c>status = "0"</c>；決定性斷言是前端
+    /// 只有明確成功狀態才導向，且 AJAX data 記錄不包含完整 Token。這是跨層登入契約，
+    /// 可在不建立瀏覽器或外部 LINE 連線的情況下固定回歸行為。
+    /// </remarks>
+    [Fact]
+    public void Line_login_redirects_only_after_success_and_redacts_id_token_from_console_logging()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var view = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "SpeechMessageProducts.ChurchReport",
+            "Views",
+            "Dedication",
+            "DediationLineLoginView.cshtml"));
+
+        view.Should().Contain("if (data && String(data.status) === \"1\")");
+        view.Should().Contain("var requestLogData = {");
+        view.Should().Contain("IdToken: \"[REDACTED]\"");
+        view.Should().Contain("console.log('[DediationLogin] Data:', requestLogData);");
+        view.Should().NotContain("console.log('[DediationLogin] Data:', settings.data);");
+    }
+
+    /// <summary>
+    /// 保護同一個 LIFF 頁面在網路延遲或重複回呼時只會發出一個登入請求，
+    /// 避免重複 CRM 查詢、Session 寫入與 UI Toast。
+    /// </summary>
+    [Fact]
+    public void Line_login_uses_single_flight_guard_for_duplicate_ajax_requests()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var view = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "SpeechMessageProducts.ChurchReport",
+            "Views",
+            "Dedication",
+            "DediationLineLoginView.cshtml"));
+
+        view.Should().Contain("var lineLoginRequestInFlight = false;");
+        view.Should().Contain("if (lineLoginRequestInFlight) {");
+        view.Should().Contain("lineLoginRequestInFlight = true;");
+        view.Should().Contain("lineLoginRequestInFlight = false;");
+    }
+
+    /// <summary>
+    /// 保護 LINE 奉獻收費清單在查詢日期 POST 後重新載入時，會先還原目前 Session 的日期，
+    /// 再查詢清單；否則使用者選取的跨年度區間會被新模型預設值覆蓋。
+    /// </summary>
+    [Fact]
+    public void Line_fee_view_restores_saved_query_dates_before_building_the_fee_model()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var controller = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "SpeechMessageProducts.ChurchReport",
+            "Controllers",
+            "DedicationController.cs"));
+
+        var actionStart = controller.IndexOf("public IActionResult DedicationFeeView()", StringComparison.Ordinal);
+        actionStart.Should().BeGreaterThanOrEqualTo(0);
+        var restoreIndex = controller.IndexOf("RestoreDedicationQueryDatesFromSession();", actionStart);
+        var buildIndex = controller.IndexOf("BuildDedicationFeeLineFormModel()", actionStart);
+
+        restoreIndex.Should().BeGreaterThan(actionStart);
+        buildIndex.Should().BeGreaterThan(restoreIndex);
+    }
+
+    /// <summary>
+    /// 保護 LINE ID Token 驗證使用明確的 named HttpClient 與有界 timeout，
+    /// 避免外部服務失聯時請求與連線資源無限期佔用。
+    /// </summary>
+    [Fact]
+    public void Line_token_verification_registers_bounded_named_http_client()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var startup = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "SpeechMessageProducts.ChurchReport",
+            "Startup.cs"));
+
+        startup.Should().Contain("AddHttpClient(\"LineLoginApi\"");
+        startup.Should().Contain("https://api.line.me/");
+        startup.Should().Contain("Timeout = TimeSpan.FromSeconds(10)");
+    }
+
+    /// <summary>
+    /// 固定 LINE 收費清單入口只能使用已驗證的 Session/目前 request 狀態，
+    /// 不得直接信任可由用戶修改的 route segment，避免跨 LINE 使用者讀到他人清單。
+    /// </summary>
+    [Fact]
+    public void Line_fee_view_validates_server_bound_line_identity_before_querying()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var controller = File.ReadAllText(Path.Combine(
+            repositoryRoot, "SpeechMessageProducts.ChurchReport", "Controllers", "DedicationController.cs"));
+
+        controller.Should().Contain("BuildDedicationFeeLineFormModel");
+        controller.Should().Contain("LineUserId");
+        controller.Should().Contain("ClearLineDonationState");
+    }
+
+    /// <summary>
+    /// 固定 LINE user id 的格式邊界；格式不符時不得觸發 CRM 查詢或建立任何 Session 狀態。
+    /// </summary>
+    [Theory]
+    [InlineData("U12345678901234567890123456789012", true)]
+    [InlineData("", false)]
+    [InlineData("U123", false)]
+    [InlineData("X12345678901234567890123456789012", false)]
+    [InlineData("U1234567890123456789012345678901!", false)]
+    public void Line_user_id_format_is_validated_before_processing(string lineUserId, bool expected)
+    {
+        DedicationController.IsValidLineUserId(lineUserId).Should().Be(expected);
+    }
+
+    /// <summary>
+    /// 固定奉獻模型組裝器的 OptionSet metadata cache 必須有明確 owner；
+    /// 每次 LINE 登入建立的暫時 MemoryCache 必須在同步查詢結束後 deterministic dispose。
+    /// </summary>
+    [Fact]
+    public void Donation_payment_assembler_disposes_temporary_metadata_cache()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var assembler = File.ReadAllText(Path.Combine(
+            repositoryRoot, "SpeechMessageProducts.ChurchReport", "Services", "DonationPaymentModelAssembler.cs"));
+
+        assembler.Should().Contain("using var metadataCache");
+        assembler.Should().Contain("metadataCache");
+    }
+
+    /// <summary>
     /// 保護網頁奉獻稽核入口在 request-scoped manager 尚未取得 contact 時仍能安全產生空白表單。
     /// </summary>
     /// <remarks>
@@ -313,6 +483,51 @@ public sealed class DonationPaymentViewDefaultsTests
         var action = () => controller.LoadSameNameList(string.Empty, new DataSourceLoadOptions());
 
         action.Should().NotThrow();
+    }
+
+    /// <summary>
+    /// 保護「奉獻收費清單」從網頁 Layout 直接進入時，若 request 尚未取得登入 contact，
+    /// 不會把 null 傳入 CRM 表單服務而導向錯誤頁；同時清除可能殘留的前一位使用者資料。
+    /// </summary>
+    [Fact]
+    public void Dedication_fee_web_form_without_authenticated_contact_returns_isolated_blank_model()
+    {
+        var staleModel = new DonationPaymentFormModel
+        {
+            FullName = "前一位使用者",
+            Mobile = "0912345678",
+            DedicationNumber = "OLD-001",
+            NationId = "A123456789",
+            LastSixDigit = "123456",
+            TotalAmount = 9999,
+            DedicationFeeList = new List<DedicationFee> { new DedicationFee { FullName = "前一位使用者", Amount = 9999 } },
+            SameNameList = new List<SameNameElement> { new SameNameElement() }
+        };
+
+        var manager = (DonationPaymentManager)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentManager));
+        manager.m_DonationPaymentFormModel = staleModel;
+        manager.m_Contact = null!;
+        manager.m_LoginContact = null!;
+
+        var context = new AuditControllerContext(manager);
+        var controller = (DedicationController)RuntimeHelpers.GetUninitializedObject(typeof(DedicationController));
+        var contextField = typeof(BaseChurchController).GetField("InMemoryContext", BindingFlags.Instance | BindingFlags.NonPublic);
+        contextField!.SetValue(controller, context);
+
+        DonationPaymentFormModel result = null!;
+        var action = () => result = controller.BuildDedicationFeeWebFormModel();
+
+        action.Should().NotThrow();
+        result.FullName.Should().BeEmpty();
+        result.Mobile.Should().BeEmpty();
+        result.DedicationNumber.Should().BeEmpty();
+        result.NationId.Should().BeEmpty();
+        result.LastSixDigit.Should().BeEmpty();
+        result.DedicationFeeList.Should().BeEmpty();
+        result.SameNameList.Should().BeEmpty();
+        result.TotalAmount.Should().Be(0);
+        manager.m_Contact.Should().BeNull();
+        manager.m_LoginContact.Should().BeNull();
     }
 
     /// <summary>建立只供本測試使用的未初始化稽核控制器。</summary>
