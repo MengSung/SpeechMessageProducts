@@ -447,7 +447,8 @@ namespace ChurchReport.Tools
 
                 if (SEND_LINE_NOTIFICATION == true)
                 {
-                    m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+                    // 同步 legacy action 必須等通知完成後才可釋放 request-owned LINE client。
+                    m_PushUtility.SendMessage(m_UserLineId, NotifyMessage).GetAwaiter().GetResult();
                 }
             }
             catch (System.Exception Exception)

@@ -274,7 +274,9 @@ namespace ChurchReport.Tools
                 else
                 {
                     m_OnboardTypeInfo = m_UserName + "您還沒有報名" + m_ClassName + Environment.NewLine + "所以無法簽到!";
-                    m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo);
+                    // 此 legacy API 是同步 action；等待通知完成後才能 Dispose client，避免 using
+                    // 提前關閉 HTTP 傳輸而遺失通知。
+                    m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo).GetAwaiter().GetResult();
                 }
 
                 return false;
@@ -366,7 +368,8 @@ namespace ChurchReport.Tools
             m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
 
             string notifyMessage = GetNotifyMessageString();
-            m_PushUtility.SendMessage(m_UserLineId, notifyMessage);
+            // 必須等送出完成，才能讓 action 結束時的 using 正確釋放 client。
+            m_PushUtility.SendMessage(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
         }
 
         private void SetStorLessonsEnrollTimeAttribute(Entity aRetrievedStorLessons, string SigningTimeAttribute)
@@ -376,7 +379,8 @@ namespace ChurchReport.Tools
             m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
 
             string notifyMessage = GetEnrollNotifyMessageString();
-            m_PushUtility.SendMessage(m_UserLineId, notifyMessage);
+            // 必須等送出完成，才能讓 action 結束時的 using 正確釋放 client。
+            m_PushUtility.SendMessage(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
         }
 
         public string GetStorLessonsTimeAttribute(string ClassIndex, string OnboardType)

@@ -77,8 +77,7 @@ namespace ChurchReport.Controllers
             {
                 SetupAuditViewBag(true);
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.DonationPaymentManager.m_Contact));
+                return View(BuildAuditWebFormModel());
             }
             catch (Exception e)
             {
@@ -115,6 +114,40 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+
+        /// <summary>
+        /// 建立網頁稽核頁所需的表單模型，並以伺服器端登入 contact 作為唯一身分來源。
+        /// </summary>
+        /// <remarks>
+        /// <c>DonationPaymentManager</c> 現在是 request-scoped；它的 <c>m_Contact</c> 只在奉獻付款
+        /// 流程內設定，從 Layout 點入稽核頁時可能仍為 null。直接把該欄位傳給
+        /// <c>SetDedicationFeeList(Entity)</c> 會觸發 <c>ArgumentNullException(lineLoginContact)</c>，
+        /// 也就是畫面看到的錯誤。這裡改用已由伺服器登入流程建立的
+        /// <c>PersonalInfomationModel.m_LoginContact</c>；若登入 contact 尚未可用，回傳清空且具安全
+        /// 預設值的表單，不讀取或顯示任何可能屬於前一個使用者的奉獻資料。
+        /// </remarks>
+        private DonationPaymentFormModel BuildAuditWebFormModel()
+        {
+            var manager = InMemoryContext.DonationPaymentManager;
+            var loginContact = InMemoryContext.PersonalInfomationModel?.m_LoginContact;
+
+            if (loginContact != null)
+            {
+                return manager.SetDedicationFeeList(loginContact);
+            }
+
+            var model = manager.m_DonationPaymentFormModel ?? new DonationPaymentFormModel();
+            model.EnsureFormDefaults();
+            model.FullName = string.Empty;
+            model.Mobile = string.Empty;
+            model.DedicationNumber = string.Empty;
+            model.NationId = string.Empty;
+            model.LastSixDigit = string.Empty;
+            model.DedicationFeeList.Clear();
+            model.SameNameList.Clear();
+            model.TotalAmount = 0;
+            return model;
+        }
 
         #region 奉獻查詢
 
