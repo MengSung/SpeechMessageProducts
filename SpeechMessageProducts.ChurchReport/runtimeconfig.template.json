@@ -1,0 +1,10 @@
+{
+  "//": "執行期設定範本。GC 相關旋鈕由 .csproj 的 ServerGarbageCollection / ConcurrentGarbageCollection / RetainVMGarbageCollection / TieredPGO 產生，此處只放沒有對應 MSBuild 屬性的設定。",
+  "configProperties": {
+    "//ThreadPool": "執行緒池最小工作者執行緒數。低於此數量時，執行緒會立即注入而不受 500ms 節流限制；超過後才開始節流。本專案仍有多處同步等待非同步的呼叫（例如 ListManagementDataManager、SessionAttribute），提高下限可避免冷啟動與突發流量時的執行緒池飢餓。執行緒為延遲建立，設定較高的下限不會在閒置時預先配置。",
+    "System.Threading.ThreadPool.MinThreads": 64,
+
+    "//IOThreads": "最小 I/O 完成埠執行緒數，理由同上。",
+    "System.Threading.ThreadPool.MinIOCompletionThreads": 64
+  }
+}

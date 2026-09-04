@@ -32,12 +32,12 @@ using LineMessagingProcessor.Workflows;
 namespace ChurchReport.Tools
 {
     /// <summary>
-    /// LINE 閮撌亙憿
-    /// ??Phase 5: 甇?Ⅱ撖衣 IDisposable Pattern 隞仿甇Ｚ??園?瘣拇?
+    /// LINE 通訊工具類別。封裝與 LINE Messaging API 往來所需的組態、
+    /// Channel Access Token 取得與訊息組裝，並以 IDisposable Pattern 確保資源正確釋放。
     /// </summary>
     public class LineUtilityClass : IDisposable
     {
-            #region 蝟餌絞?
+            #region 系統層級欄位
             //IServiceProvider m_ServiceProvider;
             //ITracingService m_TracingService;
             //IPluginExecutionContext m_Context;
@@ -45,26 +45,27 @@ namespace ChurchReport.Tools
             //IOrganizationServiceFactory m_ServiceFactory;
             IOrganizationService m_CrmService;
 
-            // 蝟餌絞?喃???蝜?蝔?
+            // 目前請求所屬的組織代號，決定要使用哪一組 LINE 頻道設定。
             public String m_OrganizationName = "";
 
             ReplyUtility m_ReplyUtility;
 
-            #region Channel Access Token 閮剖?
+            #region Channel Access Token 組態
 
-            // ?蔭撱箸??刻?撖虫?
+            // 組態建構器與組態實例。宣告為 static readonly，讓整個行程共用一份，
             private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
             private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
-            // 敺?蝵株???Channel Access Token
+            // 依組織代號從 appsettings.json 取出對應的 Channel Access Token。
             private static string GetChannelAccessToken(string organization)
             {
                 string token = m_Configuration[$"LineMessaging:{organization}:ChannelAccessToken"];
                 if (string.IsNullOrEmpty(token))
                 {
-                    // 憒??曆??唳?摰?蝜?閮剖?嚗蝙?券?閮剔?蝜?
+                    // 找不到該組織的設定時，退回預設組織的設定，
+                    // 避免因為新增組織卻漏設定而讓通知整個發不出去。
                     string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                     token = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
                 }
@@ -113,20 +114,22 @@ namespace ChurchReport.Tools
 
             private const String DEVELOPER_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
 
-            // Line ?詨?耦瑼?雿蔭
+            // LINE 圖文選單圖檔的本機路徑。
+            // ⚠️ 下一行的路徑字串在早期編碼轉換中損毀，且此常數在整個方案中沒有任何使用者。
+            //    因為是字面值，猜測原文等同修改行為，故保留原樣不動。若要啟用請先確認正確路徑。
             private const String LINE_MENU_PATH = @"D:\Line ?詨\";
 
 
-            // 璅⊥?身????
+            // 預設的訊息縮圖網址，未指定組織時使用。
             private const String m_Default_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 璆??釦?芋?輸?閮剔???
+            // 楊梅堂專用的訊息縮圖網址。
             private const String m_Yangmeillc_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 憟賜鈭箸芋?輸?閮剔???
+            // 台北堂專用的訊息縮圖網址。
             private const String m_TpeHoc_ThumbnailImageUrl = "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg";
 
             #endregion
 
-            #region ?閮擃?
+            #region 資源釋放
         private bool _disposed = false;
 
         protected virtual void Dispose(bool disposing)
@@ -182,7 +185,7 @@ namespace ChurchReport.Tools
             {
                 m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
 
-                // ????雿輻?身蝯???Token
+                // 依目前組織取得對應的 Channel Access Token。
                 string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                 m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
 
@@ -308,7 +311,8 @@ namespace ChurchReport.Tools
             {
                 try
                 {
-                    // ?寞?蝯??迂敺?蝵格?霈???? Channel Access Token
+                    // 依組織代號對應到 appsettings.json 中的設定區段，
+                    // 取出該組織專屬的 Channel Access Token。
                     if (this.m_OrganizationName == "jesus")
                     {
                         m_ChannelAccessToken = GetChannelAccessToken("Jesus");
@@ -362,7 +366,7 @@ namespace ChurchReport.Tools
                 }
             }
 
-            #region 撌亙?
+            #region 工具方法
             #region Line Messagin Api SDK?喲?
             private async Task SendBestEffortSdkMessagesAsync(
                 string userId,
@@ -446,7 +450,8 @@ namespace ChurchReport.Tools
                     MessageToSend,
                     "ChurchReport.LineUtilityClass.SendMessageAsync");
 
-                //this.m_ToolUtilityClass.TraceByLevel(5, 1, "?喲???" + aHttpResponseMessage);
+                //（已停用的診斷輸出；原本的訊息字串在編碼轉換中損毀，保留供追溯）
+                //this.m_ToolUtilityClass.TraceByLevel(5, 1, "<字串已遺失>" + aHttpResponseMessage);
 
                 return;
             }
@@ -724,7 +729,7 @@ namespace ChurchReport.Tools
             #endregion
             #endregion
 
-            #region 閮剖???澆?
+            #region 設定與組態存取
 
             public void SetupActionList(Entity aLetterEntity, ref TemplateMessageClass aTemplateMessageClass)
             {
@@ -792,7 +797,7 @@ namespace ChurchReport.Tools
             }
             #endregion
 
-            #region ??撖?
+            #region 訊息組裝
 
             public Entity GetLineSender(Entity aLetterEntity)
             {
@@ -802,7 +807,7 @@ namespace ChurchReport.Tools
 
                     for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
                     {
-                        #region ?? LINE 閮撖?
+                        #region 組裝 LINE 訊息內容
                         EntityReference aContactEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
 
                         Guid aContactId = aContactEntityReference.Id;
@@ -832,7 +837,7 @@ namespace ChurchReport.Tools
 
                     for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
                     {
-                        #region ?? LINE 閮?嗡辣???典??LINE ID
+                        #region 從 LINE 事件物件取出 LINE ID
                         LineId = "";
                         ContactFullName = GetContactPartyFullName(aFromEntityCollection.Entities[i], ref LineId);
                         #endregion
@@ -864,7 +869,9 @@ namespace ChurchReport.Tools
 
                     Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactId);
 
-                    //if (aContactName.StartsWith("Line?啣??亥?))
+                    // 以下是已停用的舊有姓名比對邏輯，保留供追溯。
+                    // 原本的字串常值在早期的編碼轉換中損毀，內容已無法還原，故以本說明取代。
+                    //if (aContactName.StartsWith("<字串常值已遺失>"))
                     //if (aContactName.EndsWith("(Line)"))
                     //{
                     //    aContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedContact, "new_line_displayname");
@@ -1037,7 +1044,7 @@ namespace ChurchReport.Tools
 
         #endregion
 
-        #region 撖LINE????Class
+        #region LINE 訊息資料傳輸類別
 
         public class MessageContent
         {

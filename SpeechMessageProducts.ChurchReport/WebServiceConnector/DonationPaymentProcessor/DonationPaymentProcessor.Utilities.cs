@@ -19,24 +19,24 @@ using System.Threading.Tasks;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ���y�B�z�� - �u���k�Ҳ�
+    /// 金流處理器 - 工具方法模組
     ///
-    /// �i¾�d�j
-    /// - �s���H�d��
-    /// - ���B�ഫ
-    /// - LINE �q��
-    /// - �������
+    /// 【職責】
+    /// - 連絡人查詢
+    /// - 金額轉換
+    /// - LINE 敬收
+    /// - 資料驗證
     ///
-    /// �i�]�p��h�j
-    /// - ��@¾�d�G�C�Ӥ�k�M�`���@�\��
-    /// - DRY�G�קK���Ƶ{���X
+    /// 【設計原則】
+    /// - 單一職責：每個方法專注於單一功能
+    /// - DRY：避免重複程式碼
     /// </summary>
     public partial class DonationPaymentProcessor
     {
-        #region ===== �s���H�d�� =====
+        #region ===== 連絡人查詢 =====
 
         /// <summary>
-        /// �ھ� DonationPaymentFormModel ���o�s���H
+        /// 根據 DonationPaymentFormModel 取得連絡人
         /// </summary>
         public Entity GetContact(DonationPaymentFormModel DonationPaymentFormModel)
         {
@@ -123,10 +123,10 @@ namespace ChurchReport.WebServiceConnector
 
                 #endregion
 
-        #region ===== LINE �q�� =====
+        #region ===== LINE 敬收 =====
 
         /// <summary>
-        /// �o�e�P�©^�m LINE �T��
+        /// 發送感謝奉獻 LINE 訊息
         /// </summary>
         public async Task SendGratitudeLineMessage(Entity aContact, DonationPaymentFormModel DonationPaymentFormModel)
         {
@@ -144,32 +144,32 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] �o�e LINE �T������: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 發送 LINE 訊息失敗: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// �إ߷P�°T��
+        /// 建立感謝訊息
         /// </summary>
         private string BuildGratitudeMessage(string fullName, DonationPaymentFormModel DonationPaymentFormModel)
         {
-            return $"�q�� {fullName} �^�m{Environment.NewLine}" +
-                   $"��� : {DonationPaymentFormModel.DedicationDate.ToShortDateString()}{Environment.NewLine}" +
-                   $"���O : {DonationPaymentFormModel.Category}  {DonationPaymentFormModel.Others}{Environment.NewLine}" +
-                   $"�I�ڤ覡: {DonationPaymentFormModel.PayWay}{Environment.NewLine}" +
-                   $"���B : {DonationPaymentFormModel.Amount}";
+            return $"敬收 {fullName} 奉獻{Environment.NewLine}" +
+                   $"日期 : {DonationPaymentFormModel.DedicationDate.ToShortDateString()}{Environment.NewLine}" +
+                   $"類別 : {DonationPaymentFormModel.Category}  {DonationPaymentFormModel.Others}{Environment.NewLine}" +
+                   $"付款方式: {DonationPaymentFormModel.PayWay}{Environment.NewLine}" +
+                   $"金額 : {DonationPaymentFormModel.Amount}";
         }
 
         #endregion
 
-        #region ===== ���B�ഫ =====
+        #region ===== 金額轉換 =====
 
         /// <summary>
-        /// ���ԧB�Ʀr��j�g����]���B�M�Ρ^
+        /// 阿拉伯數字轉大寫中文（金額專用）
         /// </summary>
         public string MoneyToChinese(string lowerMoney)
         {
-            if (string.IsNullOrWhiteSpace(lowerMoney)) return "�s���";
+            if (string.IsNullOrWhiteSpace(lowerMoney)) return "零圓整";
 
             bool isNegative = false;
             if (lowerMoney.Trim().StartsWith("-"))
@@ -178,7 +178,7 @@ namespace ChurchReport.WebServiceConnector
                 isNegative = true;
             }
 
-            if (!double.TryParse(lowerMoney, out double parsed)) return "�s���";
+            if (!double.TryParse(lowerMoney, out double parsed)) return "零圓整";
 
             lowerMoney = Math.Round(parsed, 2).ToString();
 
@@ -201,36 +201,36 @@ namespace ChurchReport.WebServiceConnector
             {
                 string strUpart = lowerMoney.Substring(lowerMoney.Length - iTemp, 1) switch
                 {
-                    "." => "��",
-                    "0" => "�s",
-                    "1" => "��",
-                    "2" => "�L",
+                    "." => "壹",
+                    "0" => "零",
+                    "1" => "壹",
+                    "2" => "貳",
                     "3" => "?",
-                    "4" => "�v",
-                    "5" => "��",
-                    "6" => "��",
-                    "7" => "�m",
-                    "8" => "��",
-                    "9" => "�h",
+                    "4" => "肆",
+                    "5" => "壹",
+                    "6" => "壹",
+                    "7" => "柒",
+                    "8" => "壹",
+                    "9" => "玖",
                     _ => ""
                 };
 
                 strUpart += iTemp switch
                 {
-                    1 => "��",
-                    2 => "��",
-                    5 => "�B",
-                    6 => "��",
-                    7 => "�a",
-                    8 => "�U",
-                    9 => "�B",
-                    10 => "��",
-                    11 => "�a",
-                    12 => "��",
-                    13 => "�B",
-                    14 => "��",
-                    15 => "�a",
-                    16 => "�U",
+                    1 => "壹",
+                    2 => "壹",
+                    5 => "拾",
+                    6 => "壹",
+                    7 => "仟",
+                    8 => "萬",
+                    9 => "拾",
+                    10 => "壹",
+                    11 => "仟",
+                    12 => "壹",
+                    13 => "拾",
+                    14 => "壹",
+                    15 => "仟",
+                    16 => "萬",
                     _ => ""
                 };
 
@@ -238,45 +238,45 @@ namespace ChurchReport.WebServiceConnector
                 iTemp++;
             }
 
-            strUpper = strUpper.Replace("�s�B", "�s")
-                               .Replace("�s��", "�s")
-                               .Replace("�s�a", "�s")
-                               .Replace("�s�s�s", "�s")
-                               .Replace("�s�s", "�s")
-                               .Replace("�s���s��", "��")
-                               .Replace("�s��", "��")
-                               .Replace("�s��", "�s")
-                               .Replace("�s���s�U�s��", "����")
-                               .Replace("���s�U�s��", "����")
-                               .Replace("�s���s�U", "��")
-                               .Replace("�s�U�s��", "�U��")
-                               .Replace("�s��", "��")
-                               .Replace("�s�U", "�U")
-                               .Replace("�s��", "��")
-                               .Replace("�s�s", "�s");
+            strUpper = strUpper.Replace("零拾", "零")
+                               .Replace("零分", "零")
+                               .Replace("零仟", "零")
+                               .Replace("零零零", "零")
+                               .Replace("零零", "零")
+                               .Replace("零角零分", "壹")
+                               .Replace("零分", "壹")
+                               .Replace("零分", "零")
+                               .Replace("零億零萬零圓", "億圓")
+                               .Replace("億零萬零圓", "億圓")
+                               .Replace("零億零萬", "壹")
+                               .Replace("零萬零圓", "萬圓")
+                               .Replace("零分", "壹")
+                               .Replace("零萬", "萬")
+                               .Replace("零分", "壹")
+                               .Replace("零零", "零");
 
-            if (strUpper.StartsWith("��")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("�s")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("��")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("��")) strUpper = strUpper.Substring(1);
-            if (strUpper.StartsWith("��")) strUpper = "�s���";
+            if (strUpper.StartsWith("壹")) strUpper = strUpper.Substring(1);
+            if (strUpper.StartsWith("零")) strUpper = strUpper.Substring(1);
+            if (strUpper.StartsWith("壹")) strUpper = strUpper.Substring(1);
+            if (strUpper.StartsWith("壹")) strUpper = strUpper.Substring(1);
+            if (strUpper.StartsWith("壹")) strUpper = "零圓整";
 
-            string result = strUpper.Length == 0 ? "�s���" : strUpper;
-            return isNegative ? ("�t" + result) : result;
+            string result = strUpper.Length == 0 ? "零圓整" : strUpper;
+            return isNegative ? ("負" + result) : result;
         }
 
         /// <summary>
-        /// �ഫ�w���w�B�`���Ʀr�ꬰ�Ʀr
+        /// 轉換定期定額總期數字串為數字
         /// </summary>
         private int TransferToDeductTotalNum(string deductTotalNumber)
         {
             return deductTotalNumber switch
             {
-                "3�Ӥ�" => 3,
-                "6�Ӥ�" => 6,
-                "12�Ӥ�" => 12,
-                "18�Ӥ�" => 18,
-                "24�Ӥ�" => 24,
+                "3個月" => 3,
+                "6個月" => 6,
+                "12個月" => 12,
+                "18個月" => 18,
+                "24個月" => 24,
                 _ => 0
             };
         }

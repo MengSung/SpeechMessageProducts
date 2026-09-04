@@ -38,6 +38,15 @@ namespace ChurchReport.Models
             = new ConcurrentDictionary<string, ContextEntry>();
 
         // ✅ 清理計時器
+        //
+        // ⚠️【資源不變量】此欄位由靜態建構函式建立，而靜態建構函式只在型別「首次被觸碰」時執行。
+        // 這是刻意的：本型別在生產程式碼中已無使用者（BaseChurchController 直接建立 request-scoped 的
+        // InMemoryDataContextSmallGroup），目前只有測試會用到它。
+        // 只要沒有人碰這個型別，靜態建構函式就不會執行，也就不會有一個每 5 分鐘喚醒一次、
+        // 且永遠不會被 Dispose 的常駐計時器掛在行程上。
+        //
+        // 因此請「不要」在啟動路徑（Startup／Program／任何 hosted service）加入對 ContextDictionary
+        // 任何成員的參考，否則會在完全不需要的情況下把這個計時器帶進生產環境。
         private static readonly Timer _cleanupTimer;
 
         // ✅ 過期時間（30 分鐘未存取即過期）

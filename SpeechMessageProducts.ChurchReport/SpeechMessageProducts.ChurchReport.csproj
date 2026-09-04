@@ -2,11 +2,15 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <!-- ✅ 效能：本專案未註冊 AddRazorRuntimeCompilation，不需要保留編譯期中繼資料參考。
+         設為 false 可讓 publish 不再輸出 refs\ 目錄與龐大的 .deps.json 編譯區段，
+         縮短發佈時間與冷啟動時的相依解析成本。 -->
+    <PreserveCompilationContext>false</PreserveCompilationContext>
     <AssemblyName>SpeechMessageProducts.ChurchReport</AssemblyName>
     <RootNamespace>ChurchReport</RootNamespace>
     <OutputType>Exe</OutputType>
-    <BuildInParallel>false</BuildInParallel>
+    <!-- ✅ 效能：移除 BuildInParallel=false，恢復 MSBuild 平行建置相依專案。
+         本專案有 9 個 ProjectReference，序列化建置會浪費多核心資源。 -->
     <!-- 移除 RuntimeIdentifier，.NET 10 不支援 win7-x86 -->
     
     <!-- ✅ Phase 5.1: GC 優化設定 -->
@@ -53,6 +57,32 @@
     <None Remove="wwwroot\js\FeeDataGridAjax.js" />
     <Content Include="bower.json" />
     <Content Include="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <!-- ============================================================================
+       ✅ 效能：把從未被引用的靜態資產排除在建置與發佈輸出之外
+       ============================================================================
+       wwwroot 目前共約 202 MB，其中有 123 MB 是不會被任何頁面載入的檔案：
+
+         *.bak       142 個檔案，約 73 MB
+                     DevExtreme 主題 CSS 的備份副本（dx.carmine.css.bak 之類）。
+                     沒有任何 View 或 CSS 引用它們。
+
+         *.debug.js   6 個檔案，約 50 MB
+                     DevExtreme 的未壓縮偵錯版（dx.all.debug.js 就有 16.8 MB）。
+                     所有 View 引用的都是壓縮版 dx.all.js，沒有任何地方載入 debug 版。
+
+       把這些排除可同時改善三件事：
+         1. 發佈時間：dotnet publish 少複製 123 MB
+         2. 佈署體積：上傳與磁碟佔用同步下降
+         3. 靜態檔案中介層：目錄監看與檔案探查的項目數大幅減少
+
+       ⚠️ 這只影響「輸出」，檔案仍然保留在原始碼與版本控制中。
+       若日後真的需要偵錯版 DevExtreme，把對應的 Remove 註解掉即可。
+       ============================================================================ -->
+  <ItemGroup>
+    <Content Remove="wwwroot\**\*.bak" />
+    <Content Remove="wwwroot\**\*.debug.js" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DevExtreme.AspNet.Core" Version="23.1.5" />
@@ -104,11 +134,12 @@
     <Folder Include="文件\中華採購協會\" />
     <Folder Include="文件\修正官網奉獻網頁\" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="DevExtreme.AspNet.Core">
-      <HintPath>C:\Users\Administrator\.nuget\packages\devextreme.aspnet.core\23.1.5\lib\net6.0\DevExtreme.AspNet.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+  <!-- ✅ 已移除硬編碼絕對路徑的 <Reference Include="DevExtreme.AspNet.Core">。
+       同一組件已由上方的 <PackageReference Include="DevExtreme.AspNet.Core" Version="23.1.5" /> 解析，
+       原本的 HintPath 指向特定機器的 NuGet 全域快取，會造成：
+         1. 組件被解析兩次（PackageReference + 直接 Reference），增加還原與編譯的解析成本
+         2. 專案綁死單一開發機，其他機器或 CI 上路徑不存在
+       DevExtreme.AspNet.Core 23.1.5 的 lib/net6.0 與 net10.0 相容，PackageReference 可正常解析。 -->
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>

@@ -358,6 +358,42 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 從 DI 取得由 IHttpClientFactory 管理的 HttpClient。
+        /// </summary>
+        /// <remarks>
+        /// ⚠️【資源不變量】此檔案內絕對不可再出現 <c>new HttpClient()</c>。
+        ///
+        /// 【原本的缺陷】
+        /// 原本兩個方法各自使用 <c>using (var httpClient = new HttpClient())</c>。
+        /// HttpClient 的 Dispose 並不會立即關閉底層的 TCP 連線，連線會停留在
+        /// TIME_WAIT 狀態約 240 秒。每一次 LINE 登入都會建立兩條新連線，
+        /// 在登入尖峰時可耗盡通訊埠而出現 SocketException（通訊埠耗盡）。
+        /// 反過來若改成靜態 HttpClient，又會因為快取 DNS 而無法感知 api.line.me 的位址變更。
+        ///
+        /// 【修正後的作法】
+        /// 改用 <c>IHttpClientFactory</c>。它會集中管理並輪替 HttpMessageHandler，
+        /// 讓連線得以重用（消除通訊埠耗盡），同時定期回收 handler（解決 DNS 陳舊問題）。
+        /// 由 factory 取得的 HttpClient 刻意「不」Dispose，這是官方建議的用法。
+        /// <c>services.AddHttpClient()</c> 已於 Startup.ConfigureServices 註冊。
+        /// </remarks>
+        private HttpClient CreateLineApiHttpClient()
+        {
+            var factory = HttpContext.RequestServices.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+            if (factory == null)
+            {
+                throw new InvalidOperationException(
+                    "IHttpClientFactory 未註冊。請確認 Startup.ConfigureServices 中的 services.AddHttpClient()。");
+            }
+
+            return factory.CreateClient(LineApiHttpClientName);
+        }
+
+        /// <summary>
+        /// IHttpClientFactory 的具名客戶端名稱，讓 LINE API 呼叫共用同一組連線池。
+        /// </summary>
+        private const string LineApiHttpClientName = "LineLoginApi";
+
+        /// <summary>
         /// 以授權碼換取 Access Token
         /// </summary>
         private async Task<LineTokenResponse> ExchangeCodeForToken(string code)
@@ -372,8 +408,9 @@ namespace ChurchReport.Controllers
                 var callbackUrl = HttpContext.Session.GetString(LineLoginCallbackUrlSessionKey)
                     ?? ResolveLineLoginCallbackUrl(configuration);
 
-                using (var httpClient = new HttpClient())
+                // ✅ 由 IHttpClientFactory 提供，連線可重用且不可 Dispose（見 CreateLineApiHttpClient 說明）。
                 {
+                    var httpClient = CreateLineApiHttpClient();
                     var requestData = new FormUrlEncodedContent(new[]
                     {
                         new KeyValuePair<string, string>("grant_type", "authorization_code"),
@@ -416,12 +453,19 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                using (var httpClient = new HttpClient())
+                // ✅ 由 IHttpClientFactory 提供，連線可重用且不可 Dispose（見 CreateLineApiHttpClient 說明）。
                 {
-                    httpClient.DefaultRequestHeaders.Authorization =
+                    var httpClient = CreateLineApiHttpClient();
+
+                    // ⚠️【安全不變量】存取權杖必須掛在「單一請求」上，不可寫入 DefaultRequestHeaders。
+                    // DefaultRequestHeaders 屬於 HttpClient 實例；一旦有人日後把這個 client 快取起來重用，
+                    // 前一位使用者的 Bearer 權杖就會跟著送出，形成跨使用者的身分洩漏。
+                    // 用 HttpRequestMessage 攜帶授權標頭可讓這個錯誤在結構上不可能發生。
+                    using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.line.me/v2/profile");
+                    request.Headers.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-                    var response = await httpClient.GetAsync("https://api.line.me/v2/profile");
+                    using var response = await httpClient.SendAsync(request);
                     var responseBody = await response.Content.ReadAsStringAsync();
 
                     System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] Response: {responseBody}");

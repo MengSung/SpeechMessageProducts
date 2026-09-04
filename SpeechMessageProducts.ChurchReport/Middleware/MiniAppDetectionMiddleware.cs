@@ -57,9 +57,22 @@ namespace ChurchReport.Middleware
             //   - "LIFF"     → LIFF Browser 特有標識
             // 範例 User-Agent：
             //   Mozilla/5.0 ... Line/12.0.0 LIFF/2.21.0 ...
-            var userAgent = context.Request.Headers["User-Agent"].ToString();
+            // ✅ 效能：靜態資源不需要 Mini App 偵測。
+            // 這些請求不會進到 Controller 或 View，也就沒有人會讀取 HttpContext.Items，
+            // 沒有必要為每個 CSS/JS/圖片請求解析 User-Agent 並寫兩筆 Items。
+            if (ChurchReport.Middleware.StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
+            {
+                await _next(context);
+                return;
+            }
 
-            var isLineBrowser = !string.IsNullOrEmpty(userAgent) &&
+            // ✅ 效能：Headers["User-Agent"] 回傳 StringValues。原本呼叫 .ToString() 會在
+            // 多值情形下配置新字串；改用索引取單一值可讓常見的單值情形零配置。
+            var userAgentValues = context.Request.Headers.UserAgent;
+            var userAgent = userAgentValues.Count == 1 ? userAgentValues[0] : userAgentValues.ToString();
+            userAgent ??= string.Empty;
+
+            var isLineBrowser = userAgent.Length != 0 &&
                 (userAgent.Contains("Line/", StringComparison.OrdinalIgnoreCase) ||
                  userAgent.Contains("LIFF", StringComparison.OrdinalIgnoreCase));
 
