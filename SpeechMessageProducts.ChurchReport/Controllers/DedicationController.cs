@@ -214,12 +214,19 @@ namespace ChurchReport.Controllers
         /// GET 奉獻頁時設定的 m_Contact 不會延續到這個 POST。若不在此重新解析身分，
         /// m_Contact 會是 null 並一路傳到 SetFeeParameter 的 aContact.Id，造成 NullReferenceException。
         ///
-        /// 還原順序刻意與 GET 的 RestoreWebLoginDonationPaymentModel 一致，涵蓋三種登入入口：
-        /// 1. 已驗證的 LINE user id（LIFF 綁定，存於 Session）。
-        /// 2. 奉獻專用登入頁寫入的 WebLoginContactId（Session）。
-        /// 3. 主系統登入寫入的 PersonalInfomationModel.m_LoginContact（session-scoped 資料圖）。
-        /// 三個來源都是伺服器端 session 狀態；絕不接受表單或 route 傳入的身分值，
-        /// 維持既有的 Session 隔離保證。
+        /// 【還原來源】全部都是伺服器端 session 狀態，絕不接受表單、query 或 route 傳入的身分值：
+        /// A. LINE 情境：Session 內已通過 LIFF ID Token 驗證的 LINE user id。
+        /// B. 網頁情境之一：奉獻專用登入頁寫入的 WebLoginContactId（Session 字串）。
+        /// C. 網頁情境之二：主系統登入寫入的 PersonalInfomationModel.m_LoginContact（session 資料圖）。
+        ///
+        /// 【這不是單純的依序 fallback】
+        /// A 與 (B, C) 是互斥的兩種情境，不是同一條退化鏈：只要判定為 LINE 情境就完全交給 A 決定
+        /// 成敗，不會再試 B/C；只有非 LINE 情境才依序嘗試 B 再 C。理由詳見方法內對應註解，
+        /// 重點是避免同一個 Session 先帳密登入、後從 LINE 進入時，把奉獻記到錯誤的人身上。
+        ///
+        /// 【與 GET 的關係】
+        /// 可接受的身分來源與 GET 的 RestoreWebLoginDonationPaymentModel 對齊 —— GET 能認的身分，
+        /// POST 就必須能認，否則會出現「頁面正常顯示、送出卻說登入失效」的矛盾。
         /// </summary>
         /// <returns>成功取得奉獻者 contact 時為 true。</returns>
         private bool TryRestoreDonationDonorIdentity()
@@ -230,11 +237,24 @@ namespace ChurchReport.Controllers
                 return true;
             }
 
+            // 【LINE 奉獻 session 一律走 LINE 身分，且不得跨越到網頁登入身分】
+            // TryGetVerifiedLineUserId 有值，代表這個 Session 曾經通過 LIFF ID Token 驗證，
+            // 目前正處於「LINE 奉獻」情境。此時身分只能由 LINE 綁定解析出來：
+            //
+            // 解析成功 → 用 LINE contact 建單。
+            // 解析失敗 → 必須 fail-closed 直接回 false，絕對不可以往下掉到網頁登入的
+            //            fallback。原因是同一個瀏覽器 Session 完全可能先用帳號密碼登入主系統
+            //            （PersonalInfomationModel.m_LoginContact 因此留著 A 的 contact），
+            //            之後才從 LINE 進入奉獻頁（LINE 身分是 B）。若 B 的 CRM 查詢在送出當下
+            //            失敗就改用 A，畫面顯示的是 B、收費單卻會記到 A 身上，屬於嚴重的
+            //            跨使用者記帳錯誤。寧可請使用者重新進入奉獻頁，也不能記錯人。
+            //
+            // 另注意 SetupUserLineId 進入 LINE 情境時已主動移除 WebLoginContactId，
+            // 這裡的提前返回讓該項隔離設計在 POST 路徑上同樣成立。
             var verifiedLineUserId = TryGetVerifiedLineUserId();
-            if (!string.IsNullOrEmpty(verifiedLineUserId)
-                && manager.TryRestoreDonorIdentityForLineUser(verifiedLineUserId))
+            if (!string.IsNullOrEmpty(verifiedLineUserId))
             {
-                return true;
+                return manager.TryRestoreDonorIdentityForLineUser(verifiedLineUserId);
             }
 
             if (RestoreWebLoginDonationPaymentModelFromSession(manager) && manager.m_Contact != null)
@@ -527,16 +547,68 @@ namespace ChurchReport.Controllers
         /// 取得由 LINE 登入流程建立且與目前 Session 綁定的 user id。
         /// </summary>
         /// <returns>驗證成功的 LINE user id；任何缺失、不一致或 Session 無法讀取時回傳 null。</returns>
+        /// <remarks>
+        /// 【身分權威來源】
+        /// <see cref="DonationPaymentSessionKeys.LineUserId"/> 這個 Session 值只會在
+        /// <see cref="SetupUserLineId"/> 內、且 <c>VerifyLineIdTokenAsync</c> 對 LIFF ID Token
+        /// 驗證成功之後才寫入。它是伺服器端狀態，瀏覽器無法直接改寫，因此它——而不是
+        /// LineBindingViewModel——才是 LINE 奉獻身分的權威來源。
+        ///
+        /// 【為什麼還要比對 LineBindingViewModel】
+        /// AppointmentController、QrCodeController、PhoneBindingController 與 AuthenticationController
+        /// 的多條 LINE 流程都會改寫 LineBindingViewModel.LineUserId，但都不會同步更新奉獻專用的
+        /// Session key。若同一個 Session 中途被改綁到另一位 LINE 使用者，兩者就會不一致；
+        /// 此時必須拒絕，否則畫面顯示 A、實際卻用 B 的身分建立收費單。這個比對要保留。
+        ///
+        /// 【為什麼「空白」不能當成不一致】
+        /// LineBindingViewModel 是由 InMemoryDataContextSmallGroup 以 IMemoryCache 保存的
+        /// session 資料圖，其到期政策是「絕對 30 分鐘 + 滑動 30 分鐘」，而且 GetOrCreateSessionDataGraph
+        /// 在快取命中時只做讀取、不會重新 Set，所以「絕對 30 分鐘」是從建立起算的硬上限，不會因為
+        /// 使用者持續操作而延長。相對地 Session cookie 用的是 IdleTimeout 30 分鐘的滑動逾時，只要
+        /// 使用者還在操作就會一直續命。
+        ///
+        /// 兩者到期基準不同，於是必然出現這個時間窗：Session 仍然有效、LineUserId 仍在，
+        /// 但 LineBindingViewModel 已被絕對到期（或 4096 筆上限的容量淘汰、應用程式回收）清掉，
+        /// getter 因此回傳一個全新的空白實例。舊寫法把「空白」和「不同人」一律視為不一致，
+        /// 導致合法使用者在開啟奉獻頁超過 30 分鐘後送出時被誤判為登入失效，無法完成奉獻。
+        ///
+        /// 【空白可以安全地重新植入的理由】
+        /// 真正的登出／驗證失敗一律走 <see cref="ClearLineDonationState"/>，而它會「同時」把
+        /// LineBindingViewModel.LineUserId 設為空字串「並且」移除 Session 的 LineUserId。
+        /// 換句話說，刻意失效之後 Session 值必定不存在，走不到下面的重新植入邏輯，不可能被復活。
+        /// 因此「Session 有合法值、binding 卻空白」只可能來自快取蒸發；此時 binding 攜帶的是
+        /// 『沒有資訊』而非『不同的身分』，用權威來源重建它是回復既有不變式，不是放寬檢查。
+        /// </remarks>
         private string TryGetVerifiedLineUserId()
         {
             try
             {
                 var sessionLineUserId = HttpContext.Session.GetString(DonationPaymentSessionKeys.LineUserId);
-                var bindingLineUserId = InMemoryContext.LineBindingViewModel?.LineUserId;
-                if (!IsValidLineUserId(sessionLineUserId)
-                    || !string.Equals(sessionLineUserId, bindingLineUserId, StringComparison.Ordinal))
+
+                // 第一道：Session 沒有合法格式的值就直接 fail-closed。
+                // 這也涵蓋了 ClearLineDonationState 之後的狀態（該方法會移除此 key）。
+                if (!IsValidLineUserId(sessionLineUserId))
                 {
                     return null;
+                }
+
+                var lineBinding = InMemoryContext.LineBindingViewModel;
+                var bindingLineUserId = lineBinding?.LineUserId;
+
+                // 第二道：binding 有值但與 Session 不同 —— 這是貨真價實的「同一 Session 換綁他人」，
+                // 必須拒絕。此處行為與修改前完全一致，未放寬任何跨使用者隔離保證。
+                if (!string.IsNullOrWhiteSpace(bindingLineUserId)
+                    && !string.Equals(sessionLineUserId, bindingLineUserId, StringComparison.Ordinal))
+                {
+                    return null;
+                }
+
+                // 第三道：binding 空白 = 快取已蒸發，不帶任何身分資訊。
+                // 以權威的 Session 值重新植入，讓後續同一個 Session 的請求可以再次命中比對，
+                // 不必每個 request 都重走一次這條修復路徑。
+                if (lineBinding != null && string.IsNullOrWhiteSpace(bindingLineUserId))
+                {
+                    lineBinding.LineUserId = sessionLineUserId;
                 }
 
                 return sessionLineUserId;
