@@ -54,6 +54,15 @@ namespace ChurchReport.Filters
     public class StrictNoCacheFilter : IActionFilter
     {
         /// <summary>
+        /// ✅ 效能：共用實例。
+        ///
+        /// 本過濾器沒有任何相依項、沒有任何欄位，所有輸入都由 context 參數傳入，
+        /// 因此在所有請求之間共用單一實例是安全的，且不含任何跨請求狀態。
+        /// 這讓全域註冊不必在每個請求重新配置一個過濾器物件。
+        /// </summary>
+        public static readonly StrictNoCacheFilter Instance = new StrictNoCacheFilter();
+
+        /// <summary>
         /// Action 執行前的處理（此過濾器不需要在執行前處理）
         /// </summary>
         /// <param name="context">Action 執行前的上下文</param>

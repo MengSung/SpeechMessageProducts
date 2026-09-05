@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
@@ -40,7 +41,7 @@ namespace ChurchReport.Models
     /// 這個類別留在 ChurchReport 專案，負責 UI 表單狀態、CRM 更新、LINE 通知與付款建單前後的產品流程。
     /// 可重用金流核心只處理 provider 協定，因此這裡透過 DonationPaymentProcessor 與 IDonationPaymentCreateGatewayAdapter 接到抽離後的金流模組。
     /// </summary>
-    public class DonationPaymentManager : Controller
+    public class DonationPaymentManager : Controller, IDisposable
     {
         #region 資料區
         static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
@@ -129,6 +130,7 @@ namespace ChurchReport.Models
         private PushUtility m_PushUtility { get; set; }
         private readonly ILineNotificationWorkflow? m_LineNotificationWorkflow;
         private readonly ILineReplyWorkflow? m_LineReplyWorkflow;
+        private int m_Disposed;
 
         #endregion
         #region 初始化
@@ -206,6 +208,29 @@ namespace ChurchReport.Models
 
         }
         #endregion
+
+        /// <summary>
+        /// 釋放本 manager 建立的 LINE client，避免 scoped request 結束後仍保留內部 HttpClient 與 socket。
+        /// </summary>
+        /// <remarks>
+        /// 此 manager 使用字串建構式建立 <see cref="LineMessagingClient"/>，因此 client 的 Dispose
+        /// 所有權屬於本 manager；注入的 ToolUtility、adapter、notification/reply workflow 則由目前
+        /// DI scope 擁有，本方法不會釋放它們。Interlocked 保證 MVC/DI 或 context 重複呼叫 Dispose
+        /// 時只會釋放一次，且不會在其他 request 重新使用已釋放的 client。
+        /// </remarks>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref m_Disposed, 1) != 0)
+            {
+                return;
+            }
+
+            m_LineMessagingClient?.Dispose();
+            m_LineMessagingClient = null;
+            m_PushUtility = null;
+            m_DonationPaymentProcessor = null;
+            GC.SuppressFinalize(this);
+        }
 
         #region 配置讀取方法
         /// <summary>
@@ -296,16 +321,82 @@ namespace ChurchReport.Models
         {
             try
             {
+                if (!m_DonationDedicationFeeFormService.TryResolveLineContact(UserLineId, out var lineLoginContact))
+                {
+                    // 無效或查無 contact 時，清除所有可被後續付款流程使用的身分參照，
+                    // 再由表單服務建立隔離的空白清單；不可保留前一個 LINE 使用者的 m_Contact。
+                    m_Contact = null;
+                    m_LoginContact = null;
+                    return m_DonationDedicationFeeFormService.FillFromLineId(
+                        m_DonationPaymentFormModel,
+                        null,
+                        null);
+                }
+
+                m_Contact = lineLoginContact;
+                m_LoginContact = lineLoginContact;
                 return m_DonationDedicationFeeFormService.FillFromLineId(
                     m_DonationPaymentFormModel,
-                    UserLineId,
-                    this.m_Contact);
+                    null,
+                    lineLoginContact);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
+        }
+
+        /// <summary>
+        /// 以已由 Controller 驗證的 LINE user id 建立完整奉獻付款模型。
+        /// </summary>
+        /// <param name="userLineId">已通過 LIFF ID Token 驗證的 LINE user id。</param>
+        /// <returns>成功建立模型時為 true；查無 contact 時為 false。</returns>
+        /// <remarks>
+        /// contact 查詢與 manager 參照更新在同一個 request 內完成；失敗會清除 m_Contact、
+        /// m_LoginContact，避免同一個 request/session 換人後沿用前一位使用者的付款身分。
+        /// 此方法不建立快取、背景工作或額外資源，manager 的生命週期仍由目前 scoped context 擁有。
+        /// </remarks>
+        public bool TrySetDonationPaymentModelForLineUser(string userLineId)
+        {
+            if (!m_DonationDedicationFeeFormService.TryResolveLineContact(userLineId, out var contact))
+            {
+                m_Contact = null;
+                m_LoginContact = null;
+                return false;
+            }
+
+            m_Contact = contact;
+            m_LoginContact = contact;
+            SetDonationPaymentModel(contact);
+            return true;
+        }
+
+        /// <summary>
+        /// 只還原奉獻者身分，不重建整份奉獻表單模型。
+        /// </summary>
+        /// <param name="userLineId">已通過 LIFF ID Token 驗證的 LINE user id。</param>
+        /// <returns>查到 contact 並完成身分還原時為 true。</returns>
+        /// <remarks>
+        /// 用於奉獻交易 POST：DonationPaymentManager 由 scoped context 每個 request 重新建立，
+        /// GET 奉獻頁設定的 m_Contact 不會延續到送出請求，必須在同一個 request 內重新解析身分。
+        /// 與 <see cref="TrySetDonationPaymentModelForLineUser"/> 的差別是不呼叫
+        /// <see cref="SetDonationPaymentModel"/>：POST 已帶入自己的表單資料，不需要重跑
+        /// assembler 的 CRM 組裝，避免在付款路徑上多付一次不必要的往返成本。
+        /// 失敗時同樣清除 m_Contact、m_LoginContact，維持換人後不沿用前一位使用者身分的保證。
+        /// </remarks>
+        public bool TryRestoreDonorIdentityForLineUser(string userLineId)
+        {
+            if (!m_DonationDedicationFeeFormService.TryResolveLineContact(userLineId, out var contact))
+            {
+                m_Contact = null;
+                m_LoginContact = null;
+                return false;
+            }
+
+            m_Contact = contact;
+            m_LoginContact = contact;
+            return true;
         }
         public DonationPaymentFormModel SetDedicationFeeList(Entity LineLoginContact)
         {
@@ -359,6 +450,14 @@ namespace ChurchReport.Models
                 if (!string.IsNullOrWhiteSpace(validationMessage))
                 {
                     return Json(new { status = "2", message = validationMessage });
+                }
+
+                // m_Contact 由 Controller 在同一個 request 內從 Session 還原。
+                // 這裡 fail-closed：沒有奉獻者身分就不建立收費單，也不讓 null 一路流到
+                // SetFeeParameter 的 aContact.Id 變成 NullReferenceException。
+                if (m_Contact == null)
+                {
+                    return Json(new { status = "2", message = "登入狀態已失效，請重新登入或從 LINE 重新進入奉獻頁面後再送出。" });
                 }
 
                 string dedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);

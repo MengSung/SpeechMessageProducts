@@ -168,7 +168,19 @@ namespace ChurchReport
 #endif
 
             services.AddSingleton(new ThemeSettings(CurrentTheme, CurrentThemeCssClass));
-            services.AddScoped<ThemeViewDataFilter>();
+
+            // ✅ 效能：全域過濾器改為 Singleton。
+            //
+            // options.Filters.Add<T>() 會登記成 TypeFilter，MVC 在「每個請求」用
+            // ActivatorUtilities 重新建立一個實例；配上 Scoped 登記，等於每個請求
+            // 都付一次 DI 解析 + 物件配置的成本。
+            //
+            // 這兩個過濾器都是無狀態的（只持有 readonly 的設定與啟動期解析結果），
+            // 所有請求相關資料都由方法參數的 context 傳入，因此改為 Singleton 後
+            // 不會有任何跨請求狀態共用，不會造成 Session Leakage。
+            // 下方 AddMvc 內對應改用 Filters.AddService<T>() 以解析同一個單例。
+            services.AddSingleton<ThemeViewDataFilter>();
+            services.AddSingleton<ChurchReport.Filters.GlobalAuthorizationFilter>();
 
             // ========================================
             // ✅ 初始化 ToolUtilityFactory 配置 (必須最先執行)
@@ -202,6 +214,21 @@ namespace ChurchReport
             // 使用 HttpClientFactory 來管理 HttpClient 實例，避免記憶體洩漏問題。
             // 這是最佳實務，能夠重用連接並自動處理資源清理。
             services.AddHttpClient();
+
+            /*
+             * 註冊 LINE Login/LIFF 驗證專用的具名 HttpClient。
+             * 此客戶端只負責連線設定；LINE access token 或 ID token 一律由呼叫端
+             * 放在該次請求的 HttpRequestMessage，不能寫入 DefaultRequestHeaders、
+             * singleton、static 或任何跨 request 的快取。10 秒 timeout 是外部服務
+             * 呼叫的明確生命週期上限，避免 LINE API 失聯時長時間佔用 request、socket
+             * 或工作執行緒。實例與 handler 由 IHttpClientFactory 管理及輪替，呼叫端
+             * 不擁有底層 handler，也不建立需要自行回收的 process-wide 資源。
+             */
+            services.AddHttpClient("LineLoginApi", client =>
+            {
+                client.BaseAddress = new Uri("https://api.line.me/");
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
 
             // ========================================
             // 🔧 修復：MemoryCache 添加過期策略（不限制大小，避免登入卡住）
@@ -291,16 +318,25 @@ namespace ChurchReport
                     });
             });
 
-            // 設定 Brotli 壓縮等級（Optimal 平衡壓縮率和速度）
+            // ========================================
+            // ✅ 效能：動態回應的壓縮等級必須用 Fastest，不能用 Optimal
+            // ========================================
+            // CompressionLevel.Optimal 對 Brotli 而言是 quality 11，這是 Brotli 最慢的等級，
+            // 設計用途是「壓縮一次、傳送數百萬次」的靜態資產（例如建置階段預壓縮的 .js/.css）。
+            // 本站所有 HTML/JSON 都是每次請求即時產生，套用 quality 11 會讓壓縮本身的 CPU 時間
+            // 遠超過所節省的傳輸時間，且會直接佔用處理請求的執行緒。
+            //
+            // CompressionLevel.Fastest 對 Brotli 是 quality 1：壓縮率只差數個百分點，
+            // 速度快一到兩個數量級。這是動態內容唯一合理的選擇。
             services.Configure<BrotliCompressionProviderOptions>(options =>
             {
-                options.Level = CompressionLevel.Optimal;
+                options.Level = CompressionLevel.Fastest;
             });
 
-            // 設定 Gzip 壓縮等級
+            // Gzip 同理：Optimal 為 level 6~9，Fastest 為 level 1。
             services.Configure<GzipCompressionProviderOptions>(options =>
             {
-                options.Level = CompressionLevel.Optimal;
+                options.Level = CompressionLevel.Fastest;
             });
 
             // ========================================
@@ -369,15 +405,19 @@ namespace ChurchReport
                 {
                     options.EnableEndpointRouting = false;
 
-                    options.Filters.Add<ThemeViewDataFilter>();
+                    // ✅ 效能：AddService 解析上方登記的單例，取代每請求重新建立實例。
+                    options.Filters.AddService<ThemeViewDataFilter>();
 
                     // ========================================
                     // ✅ Phase 3.1: 註冊全域無快取過濾器 (Session Bleeding 防護)
                     // ========================================
                     // 防止 Session Bleeding（會話串連）問題
                     // 確保所有 Controller Action 都不會被中間層代理伺服器或瀏覽器快取
-                    options.Filters.Add<ChurchReport.Filters.StrictNoCacheFilter>();
-                    options.Filters.Add<ChurchReport.Filters.GlobalAuthorizationFilter>();
+                    //
+                    // ✅ 效能：StrictNoCacheFilter 沒有任何相依項與狀態，
+                    // 直接放入共用實例即可，不需要每個請求重新配置一個。
+                    options.Filters.Add(ChurchReport.Filters.StrictNoCacheFilter.Instance);
+                    options.Filters.AddService<ChurchReport.Filters.GlobalAuthorizationFilter>();
 
 #if DEBUG
                     options.Filters.Add<ChurchReport.Filters.PerfTimingActionFilter>();
@@ -741,36 +781,58 @@ namespace ChurchReport
             // ========================================
             // 這是防止 Session Bleeding 的第一道也是最重要的防線
             // 必須在所有其他中介軟體之前執行，確保每個回應都帶有正確的快取控制標頭
+            // ✅ 效能修正：安全標頭與快取標頭必須分流處理。
+            //
+            // 【原本的缺陷】
+            // 這段中介層先對「所有」請求設定 Cache-Control: no-store，之後 UseStaticFiles 的
+            // OnPrepareResponse 再用 Headers.Append 追加 public,max-age=31536000。
+            // 結果標頭變成：
+            //   Cache-Control: no-store, no-cache, must-revalidate, max-age=0, public,max-age=31536000
+            // 瀏覽器與 Proxy 只要看到 no-store 就完全不快取，那一整年的 max-age 從未生效。
+            // 每次換頁都重新下載全部 CSS/JS/字型/圖片。
+            //
+            // 【修正後的分流】
+            // - 安全標頭（nosniff / Referrer-Policy / X-Frame-Options）對所有請求一律套用，不變。
+            // - no-store 與 Vary: Cookie 只套用在動態頁面。這兩者正是 Session Bleeding 防護的核心，
+            //   而靜態資源本來就不含任何使用者資料，不需要也不應該加上。
+            // - 靜態資源的快取標頭改由 UseStaticFiles 以「指派」而非「追加」的方式設定（見下方）。
+            //
+            // 【安全性未回退的理由】
+            // 判定為靜態的路徑必須同時滿足「副檔名在白名單」且「位於 /css/、/js/、/lib/、/assets/、
+            // /images/、/img/、/fonts/ 等已知靜態目錄下」（見 StaticRequestPathHelper.IsStaticAssetPath）。
+            // 任何動態路由後綴靜態副檔名的 Web Cache Deception 嘗試都不符合前綴條件，
+            // 會繼續走動態分支拿到 no-store，並且已先被 WebCacheDeceptionMiddleware 擋成 404。
             app.Use(async (context, next) =>
             {
-                // 設定最嚴格的快取策略：禁止瀏覽器與任何中間代理伺服器存儲內容
-                context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
-                context.Response.Headers["Pragma"] = "no-cache";
-                context.Response.Headers["Expires"] = "0";
+                var headers = context.Response.Headers;
 
-                // ========================================
-                // ✅ Web Cache Deception 防護 - 安全標頭
-                // ========================================
-                // X-Content-Type-Options: nosniff - 防止瀏覽器嗅探內容類型
-                // 這能阻止 CDN/Proxy 將動態 HTML 回應誤判為靜態資源
-                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-                context.Response.Headers["Referrer-Policy"] = "no-referrer";
-                context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
+                // 安全標頭：所有請求一律套用（含靜態資源）
+                headers["X-Content-Type-Options"] = "nosniff";
+                headers["Referrer-Policy"] = "no-referrer";
+                headers["X-Frame-Options"] = "SAMEORIGIN";
 
-                // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
-                // 這是解決 Session Bleeding 的關鍵設定！
-                // ✅ P1: 不覆蓋既有 Vary（例如 Accept-Encoding），改用合併策略
-                if (context.Response.Headers.TryGetValue("Vary", out var varyValues))
+                if (!ChurchReport.Middleware.StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
                 {
-                    var vary = varyValues.ToString();
-                    if (!vary.Contains("Cookie", StringComparison.OrdinalIgnoreCase))
+                    // 動態頁面：維持最嚴格的快取策略，禁止瀏覽器與任何中間代理伺服器存儲內容
+                    headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+                    headers["Pragma"] = "no-cache";
+                    headers["Expires"] = "0";
+
+                    // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
+                    // 這是解決 Session Bleeding 的關鍵設定！
+                    // ✅ P1: 不覆蓋既有 Vary（例如 Accept-Encoding），改用合併策略
+                    if (headers.TryGetValue("Vary", out var varyValues))
                     {
-                        context.Response.Headers["Vary"] = string.IsNullOrWhiteSpace(vary) ? "Cookie" : $"{vary}, Cookie";
+                        var vary = varyValues.ToString();
+                        if (!vary.Contains("Cookie", StringComparison.OrdinalIgnoreCase))
+                        {
+                            headers["Vary"] = string.IsNullOrWhiteSpace(vary) ? "Cookie" : $"{vary}, Cookie";
+                        }
                     }
-                }
-                else
-                {
-                    context.Response.Headers["Vary"] = "Cookie";
+                    else
+                    {
+                        headers["Vary"] = "Cookie";
+                    }
                 }
 
                 await next();
@@ -837,11 +899,19 @@ namespace ChurchReport
             {
                 OnPrepareResponse = ctx =>
                 {
-                    // 設定靜態檔案快取 1 年（對於有版本控制的檔案）
-                    // 瀏覽器將快取這些檔案，減少伺服器負載
+                    // ✅ 效能修正：必須用「指派」而非 Headers.Append。
+                    // Append 會把長效快取接在前面中介層可能留下的 no-store 之後，
+                    // 瀏覽器看到 no-store 就整條忽略，導致靜態資源每次都重新下載。
+                    //
+                    // immutable 讓支援的瀏覽器在使用者按重新整理時也不發出重新驗證請求，
+                    // 進一步消除每次換頁的一輪 304 往返。
                     const int durationInSeconds = 60 * 60 * 24 * 365; // 1 年
-                    ctx.Context.Response.Headers.Append(
-                        "Cache-Control", $"public,max-age={durationInSeconds}");
+                    var headers = ctx.Context.Response.Headers;
+                    headers["Cache-Control"] = $"public,max-age={durationInSeconds},immutable";
+
+                    // 清掉動態分支可能留下的 HTTP/1.0 相容標頭，避免與長效快取互相矛盾。
+                    headers.Remove("Pragma");
+                    headers.Remove("Expires");
                 }
             });
 

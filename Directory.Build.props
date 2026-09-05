@@ -1,0 +1,71 @@
+<Project>
+
+  <!-- ============================================================================
+       方案層級共用建置設定
+       責任：集中所有專案共用的建置與最佳化旋鈕，避免各 .csproj 分散設定造成漂移。
+       行為保護：本檔只調整「建置產物如何產生」，不改變任何執行流程、序列化結果或外部 API 契約。
+       套用範圍：本目錄以下所有 .csproj（個別專案仍可覆寫任一屬性）。
+       ============================================================================ -->
+
+  <PropertyGroup>
+    <!-- ========================================
+         增量建置
+         ======================================== -->
+    <!-- 產生參考組件：下游專案比對公開簽章而非實作內文。
+         只改方法內文時，相依此專案的下游專案不需要重新編譯。
+         .NET SDK 預設已啟用，此處明示以防未來預設值變動。 -->
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+
+    <!-- Visual Studio 增量建置加速：跳過已是最新狀態的專案。 -->
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+
+    <!-- 使用 Roslyn 編譯器伺服器（常駐程序），避免每次建置重新啟動編譯器。 -->
+    <UseSharedCompilation>true</UseSharedCompilation>
+
+    <!-- 還原時使用靜態相依圖評估，多專案方案的還原明顯較快。 -->
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+
+    <!-- ========================================
+         輸出瘦身
+         ======================================== -->
+    <!-- 只保留英文的當地語系化資源組件。
+         這些 satellite assembly 只影響「框架與 NuGet 套件例外訊息的語言」，
+         不影響應用程式自身的繁體中文內容、CultureInfo、日期格式或字串比較行為。
+         目前輸出目錄有 15 個語系子目錄，排除後可明顯縮短複製時間與佈署大小。 -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <!-- ========================================
+         編譯時間
+         ======================================== -->
+    <!-- 停用 .NET 內建程式碼品質分析器（CAxxxx）。
+         本方案已於各專案的 NoWarn 明確抑制 CA1416、CA2200 等規則，
+         代表分析器輸出並未被用於決策，卻仍在每次編譯耗用 Roslyn 時間。
+         編譯器本身的診斷（CSxxxx）不受影響，仍會照常回報。
+         若日後要恢復分析，將此值改為 true 即可。 -->
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <AnalysisMode>None</AnalysisMode>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+
+    <!-- ========================================
+         可重現性
+         ======================================== -->
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!-- ============================================================================
+       Release 專屬最佳化
+       ============================================================================ -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Optimize>true</Optimize>
+
+    <!-- 分層 PGO：以實際執行剖析資料重新最佳化熱路徑。
+         .NET 8 起預設啟用，此處明示以確保所有專案一致。 -->
+    <TieredPGO>true</TieredPGO>
+
+    <!-- 分層編譯 + 快速 JIT：縮短冷啟動，熱路徑仍會被重新最佳化為完整品質的機器碼。 -->
+    <TieredCompilation>true</TieredCompilation>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+    <TieredCompilationQuickJitForLoops>true</TieredCompilationQuickJitForLoops>
+  </PropertyGroup>
+
+</Project>

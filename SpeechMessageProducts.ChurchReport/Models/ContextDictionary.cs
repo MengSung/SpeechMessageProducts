@@ -17,59 +17,42 @@ using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ToolUtilityNameSpace.DependencyInjection;
-using LineMessagingProcessor.Workflows;
 
 namespace ChurchReport.Models
 {
     /// <summary>
-    /// 管理 InMemoryDataContextSmallGroup 的靜態字典
-    /// ✅ Phase 4: 增加自動清理機制，避免記憶體洩漏
+    /// 管理目前 HTTP request 的 InMemoryDataContextSmallGroup。
+    ///
+    /// <para>
+    /// 舊版以程序級 static dictionary 按 Session Id 保存 context，並以 static Timer 清理。
+    /// 那個設計會把 scoped adapter/workflow 及可變使用者資料延長到 request 之外；當 DI scope
+    /// 結束後，字典仍可能重用已 Dispose 的物件，亦可能在同一 Session 重新登入另一個帳號時
+    /// 讀到前一個帳號的 ListManager。這是 Session/Resource Leakage，不可接受。
+    /// </para>
+    /// <para>
+    /// 現在只把 context 放入 <see cref="HttpContext.Items"/>。Items 的 owner 是目前 request，
+    /// request 結束即與其 scoped 相依項一併失去唯一持有者；因此不需要 Timer、背景工作或
+    /// 行程級集合，也不會跨 request、使用者、租戶或 profile 重用可變狀態。
+    /// </para>
     /// </summary>
     public static class ContextDictionary
     {
-        // ✅ 使用 ConcurrentDictionary 確保執行緒安全
-        private static readonly ConcurrentDictionary<string, ContextEntry> _contextDictionary
-            = new ConcurrentDictionary<string, ContextEntry>();
-
-        // ✅ 清理計時器
-        private static readonly Timer _cleanupTimer;
-
-        // ✅ 過期時間（30 分鐘未存取即過期）
-        private static readonly TimeSpan _expirationTime = TimeSpan.FromMinutes(30);
-
-        // ✅ 清理間隔（每 5 分鐘清理一次）
-        private static readonly TimeSpan _cleanupInterval = TimeSpan.FromMinutes(5);
-
-        // ✅ 最大項目數限制
-        private const int MaxItems = 1000;
+        /// <summary>在目前 request 的 Items 中保存 context 的私有鍵；不含使用者資料。</summary>
+        private static readonly object ContextItemKey = new object();
 
         /// <summary>
-        /// 靜態建構函式 - 初始化清理計時器
-        /// </summary>
-        static ContextDictionary()
-        {
-            _cleanupTimer = new Timer(CleanupExpiredEntries, null, _cleanupInterval, _cleanupInterval);
-        }
-
-        /// <summary>
-        /// 向後相容的靜態屬性（已標記為過時）
+        /// 向後相容的靜態屬性（已標記為過時）。
+        /// 只回傳目前 request 的 context 快照；沒有 current request 時回傳空字典。
+        /// 不再建立程序級集合，避免把 scoped 使用者狀態留在 static root。
         /// </summary>
         [Obsolete("請使用 GetInMemoryDataContextSmallGroup 方法，此屬性將在未來版本移除")]
         public static Dictionary<String, InMemoryDataContextSmallGroup> StaticContextDictionary
         {
             get
             {
-                // 轉換為 Dictionary 以保持向後相容
-                return _contextDictionary.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Context
-                );
+                return new Dictionary<String, InMemoryDataContextSmallGroup>();
             }
         }
 
@@ -83,13 +66,21 @@ namespace ChurchReport.Models
         {
             try
             {
-                var session = httpContextAccessor.HttpContext?.Session;
+                var httpContext = httpContextAccessor?.HttpContext;
+                var session = httpContext?.Session;
                 if (session == null)
                 {
                     throw new InvalidOperationException("Session is not available");
                 }
 
-                var key = session.Id;
+                // Items 只存活於目前 request，確保 scoped 相依項不會被 static root 延長生命週期。
+                // 同一 request 內重複呼叫仍可重用 context，保留原本的 request 內快取效益。
+                if (httpContext.Items.TryGetValue(ContextItemKey, out var existing)
+                    && existing is InMemoryDataContextSmallGroup existingContext)
+                {
+                    return existingContext;
+                }
+
                 // 從 ASP.NET Core DI 取得中性的奉獻付款建單 adapter。
                 // ContextDictionary 只負責把每個 session 的 manager 串起來，不應直接依賴 QPay 命名的相容 adapter。
                 var donationPaymentCreateGatewayAdapter =
@@ -102,39 +93,15 @@ namespace ChurchReport.Models
                     httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(ILineReplyWorkflow))
                         as ILineReplyWorkflow;
 
-                // ✅ 使用 GetOrAdd 確保執行緒安全
-                var entry = _contextDictionary.GetOrAdd(key, k =>
-                {
-                    // ✅ 檢查是否超過最大項目數
-                    if (_contextDictionary.Count >= MaxItems)
-                    {
-                        // 強制清理過期項目
-                        CleanupExpiredEntries(null);
-
-                        // 如果仍然超過限制，清理最舊的項目
-                        if (_contextDictionary.Count >= MaxItems)
-                        {
-                            RemoveOldestEntries(_contextDictionary.Count - MaxItems + 100);
-                        }
-                    }
-
-                    return new ContextEntry
-                    {
-                        Context = new InMemoryDataContextSmallGroup(
-                            httpContextAccessor,
-                            memoryCache,
-                            toolUtilityProvider,
-                            donationPaymentCreateGatewayAdapter,
-                            lineNotificationWorkflow,
-                            lineReplyWorkflow),
-                        LastAccessTime = DateTime.UtcNow
-                    };
-                });
-
-                // ✅ 更新最後存取時間
-                entry.LastAccessTime = DateTime.UtcNow;
-
-                return entry.Context;
+                var context = new InMemoryDataContextSmallGroup(
+                    httpContextAccessor,
+                    memoryCache,
+                    toolUtilityProvider,
+                    donationPaymentCreateGatewayAdapter,
+                    lineNotificationWorkflow,
+                    lineReplyWorkflow);
+                httpContext.Items[ContextItemKey] = context;
+                return context;
             }
             catch (System.Exception e)
             {
@@ -144,84 +111,19 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
-        /// 清理過期的項目
-        /// </summary>
-        private static void CleanupExpiredEntries(object state)
-        {
-            try
-            {
-                var now = DateTime.UtcNow;
-                var keysToRemove = _contextDictionary
-                    .Where(kvp => (now - kvp.Value.LastAccessTime) > _expirationTime)
-                    .Select(kvp => kvp.Key)
-                    .ToList();
-
-                foreach (var key in keysToRemove)
-                {
-                    if (_contextDictionary.TryRemove(key, out var removed))
-                    {
-                        // ✅ 釋放資源
-                        (removed.Context as IDisposable)?.Dispose();
-                        System.Diagnostics.Debug.WriteLine($"[ContextDictionary] Removed expired entry: {key}");
-                    }
-                }
-
-                if (keysToRemove.Count > 0)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[ContextDictionary] Cleaned up {keysToRemove.Count} expired entries. Current count: {_contextDictionary.Count}");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[ContextDictionary] Cleanup error: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 移除最舊的項目
-        /// </summary>
-        private static void RemoveOldestEntries(int count)
-        {
-            var oldestEntries = _contextDictionary
-                .OrderBy(kvp => kvp.Value.LastAccessTime)
-                .Take(count)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            foreach (var key in oldestEntries)
-            {
-                if (_contextDictionary.TryRemove(key, out var removed))
-                {
-                    (removed.Context as IDisposable)?.Dispose();
-                }
-            }
-
-            System.Diagnostics.Debug.WriteLine($"[ContextDictionary] Removed {oldestEntries.Count} oldest entries");
-        }
-
-        /// <summary>
-        /// 手動移除指定的 Session
+        /// 手動移除目前 request 的 context。request 結束時 Items 會自動清空，因此不需要 Dispose static 資源。
         /// </summary>
         public static void Remove(string sessionId)
         {
-            if (_contextDictionary.TryRemove(sessionId, out var removed))
-            {
-                (removed.Context as IDisposable)?.Dispose();
-            }
+            // sessionId 僅作為相容簽章保留；不可用呼叫端字串決定要清除另一個 session 的資料。
+            // ContextDictionary 不再擁有程序級資料，因此沒有需要由 sessionId 尋找並刪除的集合。
+            // request 結束時 Items 會由 ASP.NET Core 清空；此相容方法刻意為 no-op，避免
+            // 引入 AsyncLocal 或其他 static root 重新延長 request 狀態生命週期。
         }
 
         /// <summary>
         /// 取得目前的項目數
         /// </summary>
-        public static int Count => _contextDictionary.Count;
-
-        /// <summary>
-        /// 內部類別：包含 Context 和最後存取時間
-        /// </summary>
-        private class ContextEntry
-        {
-            public InMemoryDataContextSmallGroup Context { get; set; }
-            public DateTime LastAccessTime { get; set; }
-        }
+        public static int Count => 0;
     }
 }

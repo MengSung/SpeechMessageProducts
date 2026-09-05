@@ -126,7 +126,7 @@ namespace ChurchReport.Controllers
                 TempData["ClassName"] = "從相信到堅信";
 
                 // 使用 QrCodeUtility 處理 QR Code 邏輯
-                QrCodeUtility aQrCodeUtility = new QrCodeUtility(ToolUtility);
+                using var aQrCodeUtility = new QrCodeUtility(ToolUtility);
 
                 string UserName = "";
                 string OnboardType = "";

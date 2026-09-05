@@ -85,8 +85,34 @@ namespace ChurchReport
             // 設定 Kestrel
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(30);
-                options.Limits.MaxRequestBufferSize = null;
+                // ========================================
+                // ✅【記憶體上界】請求標頭逾時
+                // ========================================
+                // 原本設定為 30 分鐘。標頭逾時是「客戶端從建立連線到送完完整請求標頭」的時限，
+                // 沒有任何正常客戶端需要超過數秒。設成 30 分鐘等於允許單一來源開啟大量連線、
+                // 每次只送一個位元組，就能長時間佔住連線物件與其緩衝區（slowloris）。
+                // 配合下方 1000 條並行連線上限，這是可被觸發的記憶體耗盡途徑。
+                //
+                // 60 秒對最慢的行動網路仍然非常寬鬆，同時讓半開連線能被及時回收。
+                // 注意：這不影響請求「主體」的傳輸時間，大檔上傳不受此設定限制。
+                options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(60);
+
+                // ========================================
+                // ✅【記憶體上界】請求緩衝區大小
+                // ========================================
+                // 原本設定為 null，意思是「無上限」。
+                // MaxRequestBufferSize 是 Kestrel 對尚未被應用程式讀取的請求資料所保留的
+                // 緩衝上限，也是它施加背壓的依據。設為 null 會完全解除背壓：
+                // 客戶端可以比應用程式讀取速度更快地推送資料，Kestrel 只能一直把資料
+                // 累積在記憶體裡。1000 條並行連線同時這樣做足以耗盡整台機器的記憶體。
+                //
+                // 這不是傳統意義的「洩漏」（記憶體最終會被回收），
+                // 但在負載下的可觀察行為與洩漏完全相同，因此必須設上界。
+                //
+                // 1 MB 是 Kestrel 的預設值，也是實務上的建議值。它「不」限制請求主體大小，
+                // 只是流量控制視窗；大檔上傳仍可正常運作，只是改為串流而非全部先進記憶體。
+                options.Limits.MaxRequestBufferSize = 1024 * 1024;
+
                 options.Limits.MaxConcurrentConnections = 1000;
                 options.Limits.MaxConcurrentUpgradedConnections = 1000;
             });

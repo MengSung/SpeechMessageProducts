@@ -103,7 +103,13 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // 不得釋放注入的 scoped ToolUtility；request scope 負責其 CRM 租約的確定性回收。
+                // 本 processor 以 token 建立 LINE client，因此由本 processor 擁有並在 using
+                // 範圍結束時釋放；注入的 workflow 與 ToolUtility 仍由 request scope 擁有，
+                // 絕不能在此處釋放，避免跨元件重複 Dispose 或讓同一 scope 的其他流程失效。
+                m_LineMessagingClient?.Dispose();
+
+                // helper 只持有上述 client 的 managed 參考，沒有獨立 unmanaged resource；
+                // processor 本身離開 using 範圍後整個 graph 即可回收。
             }
 
             _disposed = true;

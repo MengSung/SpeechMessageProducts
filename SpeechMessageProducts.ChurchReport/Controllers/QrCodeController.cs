@@ -92,7 +92,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                QrCodeUtility qrCodeUtility = new QrCodeUtility(ToolUtility);
+                using var qrCodeUtility = new QrCodeUtility(ToolUtility);
 
                 string className = "";
                 string userName = "";
@@ -261,7 +261,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                SmallGroupQrCodeUtility qrCodeUtility = new SmallGroupQrCodeUtility(ToolUtility);
+                using var qrCodeUtility = new SmallGroupQrCodeUtility(ToolUtility);
 
                 string smallGroupName = "";
                 string userName = "";
@@ -336,7 +336,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                SundayQrCodeUtility qrCodeUtility = new SundayQrCodeUtility(ToolUtility);
+                using var qrCodeUtility = new SundayQrCodeUtility(ToolUtility);
 
                 string sundayName = "";
                 string categoryName = "";
@@ -414,7 +414,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                PersonalQrCodeUtility qrCodeUtility = new PersonalQrCodeUtility(ToolUtility);
+                using var qrCodeUtility = new PersonalQrCodeUtility(ToolUtility);
 
                 string sundayName = "";
                 string categoryName = "";

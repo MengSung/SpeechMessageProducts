@@ -162,10 +162,14 @@ namespace ChurchReport.Services
         {
             try
             {
+                // 這個 metadata cache 只服務本次模型組裝，不能讓每次 LINE 登入都遺留一個
+                // 永遠可達的 MemoryCache。using 讓 cache 及其 eviction 資源在查詢完成後立即釋放；
+                // 不把任何 contact、token 或 scoped service 放進程序級快取。
+                using var metadataCache = new MemoryCache(new MemoryCacheOptions());
                 var optionSetService = new OptionSetMetadataService(
                     _utility.m_Crm2011OrganizationService,
                     null,
-                    new MemoryCache(new MemoryCacheOptions()));
+                    metadataCache);
 
                 var categoryMapping = optionSetService.GetOptionSetMapping("new_fee", "new_category");
                 var categoryList = categoryMapping.Keys.ToList();

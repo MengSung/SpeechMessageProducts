@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Threading;
 using ToolUtilityNameSpace;
 using Microsoft.Extensions.Configuration;
 
@@ -37,7 +38,7 @@ using Line.Messaging;
 
 namespace ChurchReport.Tools
 {
-    public class SmallGroupQrCodeUtility
+    public class SmallGroupQrCodeUtility : IDisposable
     {
         #region 資料區
         #region 參數資料
@@ -52,6 +53,7 @@ namespace ChurchReport.Tools
         private LineMessagingClient m_LineMessagingClient { get; set; }
 
         private PushUtility m_PushUtility { get; set; }
+        private int m_Disposed;
 
         private String m_UserLineId = "";
         private String m_UserName = "";
@@ -76,6 +78,22 @@ namespace ChurchReport.Tools
         private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         #endregion
+
+        /// <summary>
+        /// 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
+        /// </summary>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref m_Disposed, 1) != 0)
+            {
+                return;
+            }
+
+            m_LineMessagingClient?.Dispose();
+            m_LineMessagingClient = null;
+            m_PushUtility = null;
+            GC.SuppressFinalize(this);
+        }
         #endregion
 
         #region 初始化
@@ -330,7 +348,8 @@ namespace ChurchReport.Tools
 
                 // 送出 LINE 訊息
                 String NotifyMessage = GetNotifyMessageString();
-                m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+                // 同步 legacy action 必須等通知完成後才可釋放 request-owned LINE client。
+                m_PushUtility.SendMessage(m_UserLineId, NotifyMessage).GetAwaiter().GetResult();
             }
             catch (System.Exception Exception)
             {

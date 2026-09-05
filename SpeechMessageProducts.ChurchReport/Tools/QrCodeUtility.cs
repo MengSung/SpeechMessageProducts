@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using ToolUtilityNameSpace;
 using Microsoft.Extensions.Configuration;
 using ChurchReport.Services;
@@ -39,7 +40,7 @@ using Line.Messaging;
 namespace ChurchReport.Tools
 {
     #region 課程 QR Code 簽到及簽退掃描
-    public class QrCodeUtility
+    public class QrCodeUtility : IDisposable
     {
         #region 資料區
         // 掃描者
@@ -49,6 +50,7 @@ namespace ChurchReport.Tools
         private readonly ToolUtilityClass m_ToolUtilityClass;
         private LineMessagingClient m_LineMessagingClient { get; set; }
         private PushUtility m_PushUtility { get; set; }
+        private int m_Disposed;
 
         private string m_UserLineId = string.Empty;
         private string m_UserName = string.Empty;
@@ -79,6 +81,22 @@ namespace ChurchReport.Tools
         private const int LEVEL_4 = 4;
         private const int LEVEL_5 = 5;
         #endregion
+
+        /// <summary>
+        /// 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
+        /// </summary>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref m_Disposed, 1) != 0)
+            {
+                return;
+            }
+
+            m_LineMessagingClient?.Dispose();
+            m_LineMessagingClient = null;
+            m_PushUtility = null;
+            GC.SuppressFinalize(this);
+        }
 
         #region 初始化
         /// <summary>
@@ -256,7 +274,9 @@ namespace ChurchReport.Tools
                 else
                 {
                     m_OnboardTypeInfo = m_UserName + "您還沒有報名" + m_ClassName + Environment.NewLine + "所以無法簽到!";
-                    m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo);
+                    // 此 legacy API 是同步 action；等待通知完成後才能 Dispose client，避免 using
+                    // 提前關閉 HTTP 傳輸而遺失通知。
+                    m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo).GetAwaiter().GetResult();
                 }
 
                 return false;
@@ -348,7 +368,8 @@ namespace ChurchReport.Tools
             m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
 
             string notifyMessage = GetNotifyMessageString();
-            m_PushUtility.SendMessage(m_UserLineId, notifyMessage);
+            // 必須等送出完成，才能讓 action 結束時的 using 正確釋放 client。
+            m_PushUtility.SendMessage(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
         }
 
         private void SetStorLessonsEnrollTimeAttribute(Entity aRetrievedStorLessons, string SigningTimeAttribute)
@@ -358,7 +379,8 @@ namespace ChurchReport.Tools
             m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
 
             string notifyMessage = GetEnrollNotifyMessageString();
-            m_PushUtility.SendMessage(m_UserLineId, notifyMessage);
+            // 必須等送出完成，才能讓 action 結束時的 using 正確釋放 client。
+            m_PushUtility.SendMessage(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
         }
 
         public string GetStorLessonsTimeAttribute(string ClassIndex, string OnboardType)

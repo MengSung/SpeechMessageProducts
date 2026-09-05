@@ -24,7 +24,7 @@ namespace ChurchReport.Tools
 {
     public class PushUtility
     {
-        #region ???身摰?
+        #region 欄位與設定
         private LineMessagingClient m_LineMessagingClient { get; }
         private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
         /// <summary>
@@ -502,7 +502,7 @@ namespace ChurchReport.Tools
 
         #endregion
 
-        #region 撌亙?
+        #region 工具方法
         private string GetFileExtension(string mediaType)
         {
             switch (mediaType)

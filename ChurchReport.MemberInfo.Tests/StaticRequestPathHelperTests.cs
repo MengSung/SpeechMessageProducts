@@ -49,6 +49,18 @@ public class StaticRequestPathHelperTests
         StaticRequestPathHelper.IsStaticAssetPath(new PathString(path)).Should().BeFalse();
     }
 
+    /// <summary>
+    /// 靜態資源分類不得接受路徑穿越片段，避免動態路由在快取標頭分流時被誤判為公共資源。
+    /// </summary>
+    [Theory]
+    [InlineData("/css/../Home/Index.css")]
+    [InlineData("/assets/./Home/Index.js")]
+    [InlineData("/fonts/%2e%2e/Home/Index.woff2")]
+    public void IsStaticAssetPath_rejects_path_traversal_segments(string path)
+    {
+        StaticRequestPathHelper.IsStaticAssetPath(new PathString(path)).Should().BeFalse();
+    }
+
     [Theory]
     [InlineData("/Home/ProcessLogin/fake.css")]
     [InlineData("/FeeManagement/LessonList/fake.js")]

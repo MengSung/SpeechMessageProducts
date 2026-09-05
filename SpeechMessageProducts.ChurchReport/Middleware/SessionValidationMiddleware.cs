@@ -105,12 +105,24 @@ namespace ChurchReport.Middleware
         /// </summary>
         public async Task InvokeAsync(HttpContext context)
         {
-            var path = context.Request.Path.ToString().ToLowerInvariant();
+            // ✅ 效能：不再呼叫 ToLowerInvariant()。
+            // ShouldExcludePath 與 IsStaticAssetPath 都已使用 OrdinalIgnoreCase 比較，
+            // 事先轉小寫只是在每個請求上多配置一個字串。
+            var path = context.Request.Path;
 
             // ========================================
-            // Step 1: 檢查是否為排除路徑
+            // Step 1: 檢查是否為排除路徑或靜態資源
             // ========================================
-            if (ShouldExcludePath(path))
+            // ✅ 效能：靜態資源不含任何使用者狀態，不需要 Session 驗證。
+            // 原本只排除 /css/、/js/、/lib/、/images/ 等少數前綴，
+            // /fonts/、/assets/ 下的字型與 .map 檔仍會走完整驗證並強制載入 Session。
+            //
+            // ⚠️ PathString.Value 在路徑為空（例如 PathBase 剝離後剩下空字串）時會是 null，
+            // 而 ShouldExcludePath 內部會呼叫 string.StartsWith。因此這裡必須做 null 保護，
+            // 不能直接把 path.Value 傳進去。原本的 Path.ToString() 內建了這個保護
+            // （回傳 Value ?? string.Empty），移除它時必須自己補上。
+            if (ChurchReport.Middleware.StaticRequestPathHelper.IsStaticAssetPath(path)
+                || ShouldExcludePath(path.Value ?? string.Empty))
             {
                 await _next(context);
                 return;
@@ -119,6 +131,17 @@ namespace ChurchReport.Middleware
             // ========================================
             // Step 2: 檢查是否已登入
             // ========================================
+            // ✅ 效能：先明確 await LoadAsync()，再讀取 Session。
+            //
+            // ISession.GetString 在 Session 尚未載入時，內部會執行
+            // LoadAsync().GetAwaiter().GetResult() —— 也就是在處理請求的執行緒上
+            // 同步阻塞等待分散式快取。這條中介層位於每個動態請求的必經路徑，
+            // 等於每個請求都付一次同步阻塞成本，高併發時會造成執行緒池飢餓。
+            //
+            // 明確 await 之後，後續所有 GetString/SetString 都命中已載入的記憶體副本，
+            // 不再有任何同步阻塞。這是官方建議的用法。
+            await context.Session.LoadAsync().ConfigureAwait(false);
+
             // 如果 Session 中沒有用戶 ID，表示未登入或 Session 已過期
             var sessionUserId = context.Session.GetString("_SessionUserId");
             if (string.IsNullOrEmpty(sessionUserId))
@@ -131,6 +154,8 @@ namespace ChurchReport.Middleware
             // ========================================
             // Step 3: 驗證 User-Agent（防 Session Hijacking）
             // ========================================
+            // 這裡讀取 Session 已經不會有任何 I/O，因為上面的 LoadAsync 已把整份 Session
+            // 載入記憶體；後續所有 GetString/SetString 都只是字典操作。
             var currentUserAgent = context.Request.Headers["User-Agent"].ToString();
             var sessionUserAgent = context.Session.GetString("_SessionUserAgent");
 
@@ -159,7 +184,7 @@ namespace ChurchReport.Middleware
                         "[Session Validation] ?? User-Agent 不一致 | UserId:{UserId} | Session UA:{SessionUA} | Current UA:{CurrentUA}",
                         sessionUserId, sessionUserAgent, currentUserAgent);
 
-                    ClearSessionAndRedirectToLogin(context);
+                    await ClearSessionAndRedirectToLoginAsync(context).ConfigureAwait(false);
                     return;
                 }
             }
@@ -188,13 +213,23 @@ namespace ChurchReport.Middleware
         }
 
         /// <summary>
-        /// 判斷路徑是否應該排除驗證
+        /// 判斷路徑是否應該排除驗證。
+        ///
+        /// 精確路徑（例如 <c>/login</c>）只允許本身及其下一層路徑段，
+        /// 不得使用單純的前綴比對，否則 <c>/login-evil</c> 會被錯誤視為公開登入路徑，
+        /// 讓動態請求繞過 Session 驗證。以斜線結尾的目錄規則（例如 <c>/css/</c>）
+        /// 則維持目錄內所有檔案的快速排除行為。
         /// </summary>
         private bool ShouldExcludePath(string path)
         {
             foreach (var excludedPath in ExcludedPaths)
             {
-                if (path.StartsWith(excludedPath, StringComparison.OrdinalIgnoreCase))
+                var matches = excludedPath.EndsWith("/", StringComparison.Ordinal)
+                    ? path.StartsWith(excludedPath, StringComparison.OrdinalIgnoreCase)
+                    : path.Equals(excludedPath, StringComparison.OrdinalIgnoreCase)
+                        || path.StartsWith(excludedPath + "/", StringComparison.OrdinalIgnoreCase);
+
+                if (matches)
                 {
                     return true;
                 }
@@ -235,7 +270,7 @@ namespace ChurchReport.Middleware
         /// <summary>
         /// 清除 Session 並重導向至登入頁面
         /// </summary>
-        private void ClearSessionAndRedirectToLogin(HttpContext context)
+        private async Task ClearSessionAndRedirectToLoginAsync(HttpContext context)
         {
             try
             {
@@ -244,7 +279,10 @@ namespace ChurchReport.Middleware
                 // ? 修復：必須 Commit 以確保 Session 立即失效
                 // 若不 Commit，Session 清除可能不會即時生效，
                 // 在高併發情境下可能造成短暫的 Session 洩漏
-                context.Session.CommitAsync().GetAwaiter().GetResult();
+                //
+                // ✅ 效能：改為 await，移除原本的 GetAwaiter().GetResult() 同步阻塞。
+                // 語意完全相同（Commit 仍在重導向之前完成），但不再佔用執行緒等待 I/O。
+                await context.Session.CommitAsync().ConfigureAwait(false);
 
                 _logger.LogInformation("[Session Validation] ? Session 已清除並提交");
             }

@@ -32,12 +32,12 @@ using LineMessagingProcessor.Workflows;
 namespace ChurchReport.Tools
 {
     /// <summary>
-    /// LINE 閮撌亙憿
-    /// ??Phase 5: 甇?Ⅱ撖衣 IDisposable Pattern 隞仿甇Ｚ??園?瘣拇?
+    /// LINE 通訊工具類別。封裝與 LINE Messaging API 往來所需的組態、
+    /// Channel Access Token 取得與訊息組裝，並以 IDisposable Pattern 確保資源正確釋放。
     /// </summary>
     public class LineUtilityClass : IDisposable
     {
-            #region 蝟餌絞?
+            #region 系統層級欄位
             //IServiceProvider m_ServiceProvider;
             //ITracingService m_TracingService;
             //IPluginExecutionContext m_Context;
@@ -45,26 +45,27 @@ namespace ChurchReport.Tools
             //IOrganizationServiceFactory m_ServiceFactory;
             IOrganizationService m_CrmService;
 
-            // 蝟餌絞?喃???蝜?蝔?
+            // 目前請求所屬的組織代號，決定要使用哪一組 LINE 頻道設定。
             public String m_OrganizationName = "";
 
             ReplyUtility m_ReplyUtility;
 
-            #region Channel Access Token 閮剖?
+            #region Channel Access Token 組態
 
-            // ?蔭撱箸??刻?撖虫?
+            // 組態建構器與組態實例。宣告為 static readonly，讓整個行程共用一份，
             private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
             private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
-            // 敺?蝵株???Channel Access Token
+            // 依組織代號從 appsettings.json 取出對應的 Channel Access Token。
             private static string GetChannelAccessToken(string organization)
             {
                 string token = m_Configuration[$"LineMessaging:{organization}:ChannelAccessToken"];
                 if (string.IsNullOrEmpty(token))
                 {
-                    // 憒??曆??唳?摰?蝜?閮剖?嚗蝙?券?閮剔?蝜?
+                    // 找不到該組織的設定時，退回預設組織的設定，
+                    // 避免因為新增組織卻漏設定而讓通知整個發不出去。
                     string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                     token = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
                 }
@@ -76,6 +77,12 @@ namespace ChurchReport.Tools
             String m_ChannelAccessToken = string.Empty;
 
             LineMessagingClient m_LineMessagingClient;
+
+            /// <summary>
+            /// 指示目前 LINE client 是否由本類別以相容字串建構式建立並負責釋放。
+            /// 外部注入的 client 由呼叫端擁有，不能在此處 Dispose，避免破壞共享 HttpClient 的生命週期。
+            /// </summary>
+            private bool m_OwnsLineMessagingClient;
 
             private ILineNotificationWorkflow m_LineNotificationWorkflow;
 
@@ -113,20 +120,22 @@ namespace ChurchReport.Tools
 
             private const String DEVELOPER_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
 
-            // Line ?詨?耦瑼?雿蔭
+            // LINE 圖文選單圖檔的本機路徑。
+            // ⚠️ 下一行的路徑字串在早期編碼轉換中損毀，且此常數在整個方案中沒有任何使用者。
+            //    因為是字面值，猜測原文等同修改行為，故保留原樣不動。若要啟用請先確認正確路徑。
             private const String LINE_MENU_PATH = @"D:\Line ?詨\";
 
 
-            // 璅⊥?身????
+            // 預設的訊息縮圖網址，未指定組織時使用。
             private const String m_Default_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 璆??釦?芋?輸?閮剔???
+            // 楊梅堂專用的訊息縮圖網址。
             private const String m_Yangmeillc_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 憟賜鈭箸芋?輸?閮剔???
+            // 台北堂專用的訊息縮圖網址。
             private const String m_TpeHoc_ThumbnailImageUrl = "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg";
 
             #endregion
 
-            #region ?閮擃?
+            #region 資源釋放
         private bool _disposed = false;
 
         protected virtual void Dispose(bool disposing)
@@ -137,11 +146,18 @@ namespace ChurchReport.Tools
             {
                 // 不得釋放注入的 scoped ToolUtility；request scope 負責其 CRM 租約的確定性回收。
 
-                // 釋放 LineMessagingClient。
-                m_LineMessagingClient?.Dispose();
+                // LineMessagingClient 由這個相容工具類別建立並獨佔；在 request/service owner 結束時必須
+                // 釋放其內部 HttpClient，避免 socket handler 與 token 綁定的 client 留在 GC 才回收的路徑。
+                if (m_OwnsLineMessagingClient)
+                {
+                    m_LineMessagingClient?.Dispose();
+                }
+                m_LineMessagingClient = null;
 
-                // 釋放 ReplyUtility。
+                // ReplyUtility 不擁有 client 或 workflow，但若未來實作可釋放資源，仍將其釋放責任保留在
+                // 建立它的本類別。現行 ReplyUtility 不實作 IDisposable，這個分支為無副作用的相容保護。
                 (m_ReplyUtility as IDisposable)?.Dispose();
+                m_ReplyUtility = null;
             }
 
             _disposed = true;
@@ -182,11 +198,12 @@ namespace ChurchReport.Tools
             {
                 m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
 
-                // ????雿輻?身蝯???Token
+                // 依目前組織取得對應的 Channel Access Token。
                 string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                 m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
 
                 m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
+                m_OwnsLineMessagingClient = true;
                 m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
                 m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
                 m_UsesDefaultLineRichMenuWorkflow = true;
@@ -261,6 +278,7 @@ namespace ChurchReport.Tools
             {
                 m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
                 m_LineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
+                m_OwnsLineMessagingClient = false;
                 m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
                 m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
                 m_UsesDefaultLineRichMenuWorkflow = lineRichMenuWorkflow == null;
@@ -304,11 +322,24 @@ namespace ChurchReport.Tools
                     new ChurchReportLegacyRichMenuCatalog());
             }
 
+            /// <summary>
+            /// 依目前組織切換 LINE token，並以新 client 原子取代此工具類別先前擁有的 client。
+            /// </summary>
+            /// <param name="aCrmService">舊版呼叫端傳入的 CRM service；此方法不保存、使用或釋放它，資源 owner 仍是呼叫端 scope。</param>
+            /// <remarks>
+            /// Channel token 是組織隔離邊界，不能將前一組 token 的 client 或預設 workflow 留到下一個組織。
+            /// 方法會先在區域變數建構新 client 與相依 workflow；只有全部成功才替換欄位，接著釋放本類別
+            /// 建立的舊 client。替換失敗時舊 client 保持可用，新建資源立即釋放，避免半初始化、socket 或 token
+            /// retention。此 legacy 類別必須由 request/operation owner Dispose，不可被 singleton 共用。
+            /// </remarks>
             public void SetupChannelAccessToken(ref IOrganizationService aCrmService)
             {
                 try
                 {
-                    // ?寞?蝯??迂敺?蝵格?霈???? Channel Access Token
+                    ThrowIfDisposed();
+
+                    // 依組織代號對應到 appsettings.json 中的設定區段，
+                    // 取出該組織專屬的 Channel Access Token。
                     if (this.m_OrganizationName == "jesus")
                     {
                         m_ChannelAccessToken = GetChannelAccessToken("Jesus");
@@ -324,18 +355,67 @@ namespace ChurchReport.Tools
                         m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
                     }
 
-                    // 依目前 channel access token 建立 LineMessagingClient。
-                    // 若沒有外部注入 ILineNotificationWorkflow，後續會用這個 client 建立預設共用 workflow。
-                    // 重新建立預設 workflow 可避免切換 token 後，仍沿用舊 client 或舊 token。
-                    m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
-                    RebuildDefaultWorkflowsForCurrentClient();
-                    m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, m_LineReplyWorkflow);
-                }
-                catch (System.Exception e)
-                {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    // 新 client 必須完整建立後才可發佈，否則預設 workflow 建構失敗會讓既有欄位停在
+                    // 不可用或已 Dispose 的半初始化狀態。這個向後相容建構式建立內部 HttpClient，故本類別
+                    // 在成功替換後是唯一負責釋放舊 client 的 owner。
+                    var replacementClient = new LineMessagingClient(m_ChannelAccessToken);
+                    try
+                    {
+                        var replacementNotificationWorkflow = m_UsesDefaultLineNotificationWorkflow
+                            ? CreateDefaultNotificationWorkflow(replacementClient)
+                            : m_LineNotificationWorkflow;
+                        var replacementReplyWorkflow = m_UsesDefaultLineReplyWorkflow
+                            ? CreateDefaultReplyWorkflow(replacementClient)
+                            : m_LineReplyWorkflow;
+                        var replacementRichMenuWorkflow = m_UsesDefaultLineRichMenuWorkflow
+                            ? CreateDefaultRichMenuWorkflow(replacementClient)
+                            : m_LineRichMenuWorkflow;
+                        var replacementRichMenuAssignmentWorkflow = m_UsesDefaultLineRichMenuAssignmentWorkflow
+                            ? CreateDefaultRichMenuAssignmentWorkflow(replacementClient)
+                            : m_LineRichMenuAssignmentWorkflow;
+                        var replacementReplyUtility = new ReplyUtility(replacementClient, replacementReplyWorkflow);
 
-                    throw e;
+                        var previousClient = m_LineMessagingClient;
+                        var previousClientOwned = m_OwnsLineMessagingClient;
+                        var previousReplyUtility = m_ReplyUtility;
+
+                        m_LineMessagingClient = replacementClient;
+                        m_OwnsLineMessagingClient = true;
+                        m_LineNotificationWorkflow = replacementNotificationWorkflow;
+                        m_LineReplyWorkflow = replacementReplyWorkflow;
+                        m_LineRichMenuWorkflow = replacementRichMenuWorkflow;
+                        m_LineRichMenuAssignmentWorkflow = replacementRichMenuAssignmentWorkflow;
+                        m_ReplyUtility = replacementReplyUtility;
+
+                        // ReplyUtility 目前只借用 client；仍在這裡釋放未來可能加入的自有資源，但絕不
+                        // 釋放外部注入 workflow。client 的唯一 owner 是 LineUtilityClass。
+                        (previousReplyUtility as IDisposable)?.Dispose();
+                        if (previousClientOwned)
+                        {
+                            previousClient?.Dispose();
+                        }
+                    }
+                    catch
+                    {
+                        replacementClient.Dispose();
+                        throw;
+                    }
+                }
+                catch
+                {
+                    // 保留原始堆疊，讓呼叫端能辨識 token 組態或 client 建構的真正失敗位置；絕不記錄 token。
+                    throw;
+                }
+            }
+
+            /// <summary>
+            /// 在物件已釋放後拒絕建立或保存新的 token/client 資源。
+            /// </summary>
+            private void ThrowIfDisposed()
+            {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(nameof(LineUtilityClass));
                 }
             }
 
@@ -362,7 +442,7 @@ namespace ChurchReport.Tools
                 }
             }
 
-            #region 撌亙?
+            #region 工具方法
             #region Line Messagin Api SDK?喲?
             private async Task SendBestEffortSdkMessagesAsync(
                 string userId,
@@ -446,7 +526,8 @@ namespace ChurchReport.Tools
                     MessageToSend,
                     "ChurchReport.LineUtilityClass.SendMessageAsync");
 
-                //this.m_ToolUtilityClass.TraceByLevel(5, 1, "?喲???" + aHttpResponseMessage);
+                //（已停用的診斷輸出；原本的訊息字串在編碼轉換中損毀，保留供追溯）
+                //this.m_ToolUtilityClass.TraceByLevel(5, 1, "<字串已遺失>" + aHttpResponseMessage);
 
                 return;
             }
@@ -724,7 +805,7 @@ namespace ChurchReport.Tools
             #endregion
             #endregion
 
-            #region 閮剖???澆?
+            #region 設定與組態存取
 
             public void SetupActionList(Entity aLetterEntity, ref TemplateMessageClass aTemplateMessageClass)
             {
@@ -792,7 +873,7 @@ namespace ChurchReport.Tools
             }
             #endregion
 
-            #region ??撖?
+            #region 訊息組裝
 
             public Entity GetLineSender(Entity aLetterEntity)
             {
@@ -802,7 +883,7 @@ namespace ChurchReport.Tools
 
                     for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
                     {
-                        #region ?? LINE 閮撖?
+                        #region 組裝 LINE 訊息內容
                         EntityReference aContactEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
 
                         Guid aContactId = aContactEntityReference.Id;
@@ -832,7 +913,7 @@ namespace ChurchReport.Tools
 
                     for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
                     {
-                        #region ?? LINE 閮?嗡辣???典??LINE ID
+                        #region 從 LINE 事件物件取出 LINE ID
                         LineId = "";
                         ContactFullName = GetContactPartyFullName(aFromEntityCollection.Entities[i], ref LineId);
                         #endregion
@@ -864,7 +945,9 @@ namespace ChurchReport.Tools
 
                     Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactId);
 
-                    //if (aContactName.StartsWith("Line?啣??亥?))
+                    // 以下是已停用的舊有姓名比對邏輯，保留供追溯。
+                    // 原本的字串常值在早期的編碼轉換中損毀，內容已無法還原，故以本說明取代。
+                    //if (aContactName.StartsWith("<字串常值已遺失>"))
                     //if (aContactName.EndsWith("(Line)"))
                     //{
                     //    aContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedContact, "new_line_displayname");
@@ -1037,7 +1120,7 @@ namespace ChurchReport.Tools
 
         #endregion
 
-        #region 撖LINE????Class
+        #region LINE 訊息資料傳輸類別
 
         public class MessageContent
         {

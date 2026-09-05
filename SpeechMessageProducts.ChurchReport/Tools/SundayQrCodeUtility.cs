@@ -23,11 +23,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using Line.Messaging;
 using System.Collections.Generic;
+using System.Threading;
 #endregion
 
 namespace ChurchReport.Tools
 {
-    public class SundayQrCodeUtility
+    public class SundayQrCodeUtility : IDisposable
     {
         #region 資料區
         #region 參數資料
@@ -38,6 +39,7 @@ namespace ChurchReport.Tools
         private LineMessagingClient m_LineMessagingClient { get; set; }
 
         private PushUtility m_PushUtility { get; set; }
+        private int m_Disposed;
 
         private String m_QrCodeIdString = "";
         private String m_UserLineId = "";
@@ -66,6 +68,22 @@ namespace ChurchReport.Tools
         private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         #endregion
+
+        /// <summary>
+        /// 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
+        /// </summary>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref m_Disposed, 1) != 0)
+            {
+                return;
+            }
+
+            m_LineMessagingClient?.Dispose();
+            m_LineMessagingClient = null;
+            m_PushUtility = null;
+            GC.SuppressFinalize(this);
+        }
         #endregion
 
         #region 初始化
@@ -429,7 +447,8 @@ namespace ChurchReport.Tools
 
                 if (SEND_LINE_NOTIFICATION == true)
                 {
-                    m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+                    // 同步 legacy action 必須等通知完成後才可釋放 request-owned LINE client。
+                    m_PushUtility.SendMessage(m_UserLineId, NotifyMessage).GetAwaiter().GetResult();
                 }
             }
             catch (System.Exception Exception)
