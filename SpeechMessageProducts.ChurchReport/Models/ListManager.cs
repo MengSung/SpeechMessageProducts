@@ -98,26 +98,76 @@ namespace ChurchReport.Models
 
         public void SetupListManager(String Account, String Password, DateTime aSelectDate, IOrganizationService organizationService = null)
         {
-            try
+            // 登入身分、日期、可見小組與整合快照共同形成同一份 Session 資料圖。
+            // 必須和候選載入使用同一個 instance gate，避免 EnsureCorrectUserData 或日期切換
+            // 在另一個 request 建立候選時改掉 credential/list/date，產生跨 scope 混合資料。
+            lock (m_IntegratePublicationGate)
             {
-                // 先把登入的帳號密碼存下來
-                m_Account = Account;
-                m_Password = Password;
-
-                m_SelectDate = aSelectDate;
-
-                m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref UserType, ref LoginFullName, ref ActiveListId, organizationService);
+                SetupListManagerCore(Account, Password, aSelectDate, organizationService);
             }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+        }
 
-                throw e;
+        /// <summary>
+        /// 在呼叫端已持有整合資料 gate 時重建登入者的可見小組與圖表索引。
+        /// 所有欄位只在同一同步邊界內更新；例外保留原始 stack trace，禁止使用 throw e。
+        /// </summary>
+        private void SetupListManagerCore(string account, string password, DateTime selectDate, IOrganizationService organizationService)
+        {
+            // 先在方法區域建立完整候選。DownloadListManager 若在 CRM I/O 中途失敗，任何欄位都不會
+            // 寫回目前 Session holder；這避免新身分搭配舊清單，或舊身分資料在錯誤後被當成新結果。
+            var candidateMultiGroupList = new MultiGroupList();
+            var candidateChartDataList = new MultiGroupChartDataList();
+            string candidateLoginType = string.Empty;
+            string candidateUserType = string.Empty;
+            string candidateLoginFullName = string.Empty;
+            string candidateActiveListId = string.Empty;
+            m_DownloadListManager.GetListManager(account, password, selectDate,
+                ref candidateMultiGroupList, ref candidateChartDataList, ref candidateLoginType,
+                ref candidateUserType, ref candidateLoginFullName, ref candidateActiveListId, organizationService);
+
+            m_Account = account;
+            m_Password = password;
+            m_SelectDate = selectDate;
+            m_MultiGroupList = candidateMultiGroupList;
+            m_MultiGroupChartDataList = candidateChartDataList;
+            LoginType = candidateLoginType;
+            UserType = candidateUserType;
+            LoginFullName = candidateLoginFullName;
+            ActiveListId = candidateActiveListId;
+            m_PublishedIntegrateLoadKey = null;
+        }
+
+        /// <summary>
+        /// 將日期切換、可見小組重建與整合候選發布合併為單一 Session 原子操作。
+        /// 若原小組在新日期仍可見則保留；否則使用 server 重新授權後的 ActiveListId。
+        /// </summary>
+        /// <param name="account">目前 Session 已驗證的帳號。</param>
+        /// <param name="password">目前 Session 已驗證的 credential；只在本 holder 生命週期內使用。</param>
+        /// <param name="selectDate">已通過 Controller 格式驗證的新日期。</param>
+        /// <param name="preferredListEntityId">切換前的小組 ID，不具授權效力，必須在新清單中再次驗證。</param>
+        /// <returns>新日期、新授權 scope 的 detached 完整週報。</returns>
+        internal ListSmallGroupWeeklyReport ReloadDateAndGetIntegrateDetachedRead(
+            string account,
+            string password,
+            DateTime selectDate,
+            string preferredListEntityId)
+        {
+            lock (m_IntegratePublicationGate)
+            {
+                SetupListManagerCore(account, password, selectDate, null);
+                var authorizedListId = m_MultiGroupList?.m_WeeklyReportRecordListData?
+                    .Any(item => string.Equals(item.ListEntityId, preferredListEntityId, StringComparison.Ordinal)) == true
+                    ? preferredListEntityId
+                    : ActiveListId;
+                return EnsureAndGetIntegrateDetachedRead(authorizedListId);
             }
         }
         public void SetSelectDate( DateTime aSelectDate)
         {
-            m_SelectDate = aSelectDate;
+            lock (m_IntegratePublicationGate)
+            {
+                m_SelectDate = aSelectDate;
+            }
         }
 
         public void SetupListManager()
@@ -346,6 +396,7 @@ namespace ChurchReport.Models
             var dataList = candidate.m_SmallGroupDataList ?? throw new InvalidOperationException("整合資料缺少資料集合。");
             ValidateUniqueRowKeys(dataList.m_SmallGroupData?.Members, "小組成員");
             ValidateUniqueRowKeys(dataList.m_NewPersonFollowUpData?.Members, "新人跟進");
+            ValidateUniqueRowKeys(dataList.m_HappyGroup?.Members, "幸福小組成員");
             ValidateUniqueRowKeys(dataList.m_AllMemeberData?.Members, "全部成員");
         }
 

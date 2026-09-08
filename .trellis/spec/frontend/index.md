@@ -21,6 +21,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
 | [MemberInfo Tree And Grid Contract](../backend/member-info-tree-contract.md) | Shared MemberInfo API, grid, responsive, sorting, and touch contract | Established |
+| [Duplicate Row Publication Contract](../backend/duplicate-row-publication-contract.md) | Shared server/UI stable-key, same-name preservation, and atomic publication contract | Established |
 
 ---
 

@@ -82,8 +82,8 @@ namespace ChurchReport.Controllers
                 ClearMultiGroupCache();
                 System.Diagnostics.Debug.WriteLine($"[UpdateDate] 已清除多小組快取，新日期: {selectedDateTime:yyyy/M/d}");
 
-                InMemoryContext.ListManager.m_SelectDate = selectedDateTime;
-
+                // SetupListManager 會在 ListManager 的 Session 專屬 gate 內一次更新日期、登入 scope
+                // 與可見清單；不可先在鎖外寫 m_SelectDate，否則另一個 AJAX 可能用新日期搭配舊清單。
                 InMemoryContext.ListManager.SetupListManager(
                     InMemoryContext.ListManager.m_Account,
                     InMemoryContext.ListManager.m_Password,
@@ -129,25 +129,15 @@ namespace ChurchReport.Controllers
                 ClearIntegrateCache(currentListId);
                 System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 已清除快取");
 
-                InMemoryContext.ListManager.m_SelectDate = selectedDateTime;
-
-                InMemoryContext.ListManager.SetupListManager(
+                // 日期、可見清單、原小組再授權與整合候選發布必須是同一個原子操作。
+                // preferredListId 只是切換前提示；ListManager 會在新日期的 server-side 可見清單中
+                // 再次驗證，失效時採用新的 ActiveListId，避免 caller 值越權或跨日期沿用舊快照。
+                var snapshot = InMemoryContext.ListManager.ReloadDateAndGetIntegrateDetachedRead(
                     InMemoryContext.ListManager.m_Account,
                     InMemoryContext.ListManager.m_Password,
-                    selectedDateTime);
-
-                if (!string.IsNullOrEmpty(currentListId))
-                {
-                    InMemoryContext.ListManager.ActiveListId = currentListId;
-                    System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 恢復小組 ID: {currentListId}");
-                }
-                else
-                {
-                    currentListId = InMemoryContext.ListManager.ActiveListId;
-                    System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 使用新的小組 ID: {currentListId}");
-                }
-
-                InMemoryContext.ListManager.SetupIntegrateData(currentListId);
+                    selectedDateTime,
+                    currentListId);
+                currentListId = snapshot.ListEntityId;
 
                 System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 完成載入小組: {currentListId}");
 

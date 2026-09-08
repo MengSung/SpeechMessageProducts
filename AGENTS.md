@@ -81,6 +81,59 @@ repository. It is not limited to Dynamics or ChurchReport.
   executable contract and `.trellis/spec/guides/cross-user-isolation-and-performance-review.md`
   for the mandatory review checklist.
 
+## Permanent Duplicate-Row Prevention and Publication Rule
+
+This rule applies permanently to every current and future product line added to
+this Solution, including ChurchReport, procurement-association products,
+construction-company products, and any later website, API, worker, integration,
+test harness, or development tool. It covers every server-rendered table, JSON
+collection, API result, grid, tree, report, export, cache projection, background
+result, and future UI data source in this repository. Product-specific code,
+deployment mode, tenant count, or UI framework never exempts a component from
+these requirements.
+
+- Every repeatable row must have a stable, server-owned identity derived from
+  the authoritative record or business event. Display text such as name,
+  telephone, label, list position, or a client-supplied index is not identity.
+- Legitimate records that share the same display name must remain separate when
+  their stable identities differ. Never use `Distinct`, `GroupBy`, dictionary
+  overwrite, or client-side filtering by display name to hide duplicates.
+- Before publication, validate stable identities within the exact collection
+  consumed by each UI component. A repeated non-empty identity is a data or
+  assembly conflict and must fail closed with a diagnosable error; it must not
+  be silently dropped, merged, or handed to a UI library with duplicate keys.
+- Build mutable results in an operation-local candidate. Publish only after all
+  I/O, mapping, authorization, scope checks, and identity validation succeed.
+  Readers may observe the previous complete snapshot or the next complete
+  snapshot, never an object being populated in place.
+- Shared snapshots must be partitioned by the complete validated isolation
+  boundary, including the applicable user/contact, tenant/organization,
+  authorization role, list/report/business scope, date/version/generation, and
+  authentication epoch. A cache hit never replaces server-side authorization.
+- Do not expose mutable Session/cache collections directly to serializers,
+  grid loaders, background jobs, or callbacks. Return detached immutable values
+  or deep-enough request-owned copies, with bounded lifetime and no references
+  to Session, HttpContext, credentials, CRM clients, connections, or disposables.
+- All writers for the same business event must use one server-generated
+  idempotency/alternate key and atomic create-or-update semantics. Application
+  locks are not a substitute for database/Dataverse uniqueness across
+  processes. Existing conflicts must stop further creation and enter an
+  auditable remediation path.
+- Every affected feature must add tests for: legitimate same-name records,
+  exact duplicate stable identities, concurrent same-scope publication,
+  scope/date/user changes, loader failure and retry, caller mutation isolation,
+  and resource drain. A known duplicate-key, cross-session, partial-publication,
+  or retained-resource failure is a release blocker.
+- Duplicate or missing stable row identities, cross-session/cross-user data,
+  unbounded retained memory, and unreleased tasks, timers, subscriptions,
+  cancellation registrations, streams, handles, connections, leases, or other
+  resources are release-blocking defects in every product. They must be fixed
+  and verified before delivery; they cannot be deferred as cosmetic UI cleanup
+  or accepted in exchange for throughput.
+
+The executable implementation and review contract is
+`.trellis/spec/backend/duplicate-row-publication-contract.md`.
+
 <!-- TRELLIS:START -->
 # Trellis Instructions
 

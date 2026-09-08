@@ -253,6 +253,34 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
+        /// 建立供同步 HTTP 回應使用的完整 detached 資料圖，包含一般小組、新人、幸福小組與全部成員。
+        /// </summary>
+        /// <remarks>
+        /// 與背景上傳快照不同，Razor/JSON 讀取可能需要幸福小組集合，因此必須在同一個短暫
+        /// <c>_syncRoot</c> 區間一次複製四個集合。鎖內只配置純值物件，不執行 CRM、
+        /// 檔案或網路 I/O；回傳後 Controller 不再持有來源 Session Members 的任何參考，
+        /// 下一個 request 可安全發布新世代，舊回應也不會被後續 CRUD 改寫。
+        /// </remarks>
+        /// <returns>四個 Members 集合與來源完全隔離、只存活於目前讀取操作的資料圖。</returns>
+        internal SmallGroupDataList CreateDetachedReadSnapshot()
+        {
+            lock (_syncRoot)
+            {
+                return new SmallGroupDataList
+                {
+                    m_FullName = m_FullName,
+                    m_SelectDate = m_SelectDate,
+                    m_SundayDate = m_SundayDate,
+                    m_FirstLoginFlag = m_FirstLoginFlag,
+                    m_SmallGroupData = CloneSmallGroupData(m_SmallGroupData),
+                    m_NewPersonFollowUpData = CloneSmallGroupData(m_NewPersonFollowUpData),
+                    m_HappyGroup = CloneSmallGroupData(m_HappyGroup),
+                    m_AllMemeberData = CloneSmallGroupData(m_AllMemeberData)
+                };
+            }
+        }
+
+        /// <summary>
         /// 複製單一小組資料及其成員容器，確保 null 集合也會正規化為快照自有的空 List。
         /// </summary>
         /// <param name="source">要從同步區間內讀取的來源小組資料。</param>

@@ -132,6 +132,7 @@ namespace ChurchReport.Models
         internal ListSmallGroupWeeklyReport CreateDetachedReadCopy()
         {
             var copy = CreateBackgroundUploadCopy();
+            copy.m_SmallGroupDataList = m_SmallGroupDataList?.CreateDetachedReadSnapshot() ?? new SmallGroupDataList();
             copy.GroupArray = GroupArray == null ? new List<string>() : new List<string>(GroupArray);
             copy.m_WeeklyReportChart = new ChartDataList
             {
