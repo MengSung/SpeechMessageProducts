@@ -18,6 +18,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ChurchReport.Models
@@ -40,8 +42,8 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 最近一次成功發布的完整隔離鍵。此值只存在於單一 Session 的 ListManager 生命週期，
-        /// 不會進入程序級 cache key、log 或回應；密碼欄位只保留既有字串參考以辨識同一 holder
-        /// 是否已換登入者，不建立額外明文副本，也不延長超過 ListManager 的保存時間。
+        /// 不會進入程序級 cache key、log 或回應；隔離鍵只保存不可逆的 credential fingerprint，
+        /// 絕不把密碼明文複製到 record struct、例外訊息或可被除錯器列印的 ToString 結果。
         /// </summary>
         private IntegrateLoadKey? m_PublishedIntegrateLoadKey;
 
@@ -336,7 +338,7 @@ namespace ChurchReport.Models
 
                 var requestedKey = new IntegrateLoadKey(
                     m_Account ?? string.Empty,
-                    m_Password ?? string.Empty,
+                    CreateCredentialFingerprint(m_Password),
                     LoginType ?? string.Empty,
                     m_SelectDate,
                     listEntityId,
@@ -427,12 +429,38 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
+        /// 將目前登入憑證轉為固定長度的不可逆指紋，只供同一 Session 的快照世代比對。
+        /// 指紋不具驗證或還原密碼的用途；其生命週期僅隨本次 ListManager 存活，且不寫入
+        /// Session 以外的 cache、log、回應或背景工作，避免因 record 的自動 ToString 造成秘密外洩。
+        /// </summary>
+        private static string CreateCredentialFingerprint(string credential)
+        {
+            // Encoding 與 HashData 都會配置暫存 byte[]；必須在 finally 內確定清零，避免明文密碼
+            // 或雜湊位元組等待 GC 時仍殘留於 managed heap。唯一保留值是固定長度十六進位指紋。
+            var bytes = Encoding.UTF8.GetBytes(credential ?? string.Empty);
+            byte[] hash = null;
+            try
+            {
+                hash = SHA256.HashData(bytes);
+                return Convert.ToHexString(hash);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(bytes);
+                if (hash != null)
+                {
+                    CryptographicOperations.ZeroMemory(hash);
+                }
+            }
+        }
+
+        /// <summary>
         /// 定義一份整合快照的完整 Session 內隔離邊界。任何登入者、登入憑證、角色、日期、
         /// 小組或週報變化都會強制建立新候選，禁止只憑 LoadFlag 或 ListEntityId 沿用舊資料。
         /// </summary>
         private readonly record struct IntegrateLoadKey(
             string Account,
-            string Credential,
+            string CredentialFingerprint,
             string LoginType,
             DateTime SelectDate,
             string ListEntityId,

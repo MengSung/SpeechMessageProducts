@@ -139,6 +139,32 @@ public sealed class ListManagerIntegratePublicationTests
     }
 
     /// <summary>
+    /// 驗證同一帳號更新 credential 後，完整隔離鍵一定失效並建立新的候選快照。
+    /// 故障注入是在第一次發布後替換 holder 的密碼；決勝斷言為 loader 再執行一次，
+    /// 且第二次讀取只包含新 credential 世代的資料，禁止沿用舊登入狀態或舊授權結果。
+    /// 測試不讀取或輸出 fingerprint，也不把測試 credential 保存到 static 狀態。
+    /// </summary>
+    [Fact]
+    public void EnsureAndGetIntegrateDetachedRead_CredentialChanges_RebuildsCompleteScope()
+    {
+        using var factoryScope = new LegacyToolUtilityFactoryScope();
+        var invocationCount = 0;
+        var manager = CreateManager(_ =>
+        {
+            var generation = Interlocked.Increment(ref invocationCount);
+            return CreateReport("list-a", ($"credential-row-{generation}", $"憑證世代-{generation}"));
+        });
+
+        manager.EnsureAndGetIntegrateDetachedRead("list-a");
+        manager.m_Password = "credential-b";
+        var second = manager.EnsureAndGetIntegrateDetachedRead("list-a");
+
+        invocationCount.Should().Be(2, "credential 改變必須讓舊快照鍵失效");
+        second.m_SmallGroupDataList.m_SmallGroupData.Members.Should()
+            .ContainSingle(member => member.FullName == "憑證世代-2");
+    }
+
+    /// <summary>
     /// 驗證 CRM loader 的暫時性例外不會發布半成品或永久卡住 holder，下一次呼叫可以重試成功。
     /// 故障注入為第一次 loader 主動擲出 timeout；決勝斷言為第二次 loader 被呼叫且成功發布完整資料。
     /// </summary>
