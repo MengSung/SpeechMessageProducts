@@ -113,14 +113,18 @@ namespace ChurchReport.Controllers
                 // 教學說明：
                 // 資料可能還沒有載入，或者已經過期。
                 // 這個方法會檢查並在需要時重新載入資料。
-                EnsureIntegrateDataLoaded(id);
+                // ListManager 在單一 Session holder 的發布 gate 內完成候選載入、scope 驗證與
+                // exact PresentRecordId 防重後，回傳深複製的 detached snapshot。Controller 只在
+                // request 生命週期內持有這份純值資料，不會把 Session 的可變 Members 直接交給
+                // DataSourceLoader；因此排序、分頁與同時發生的下一世代載入不會互相污染。
+                var snapshot = InMemoryContext.ListManager.EnsureAndGetIntegrateDetachedRead(id);
 
                 // 取得小組成員清單
                 // 教學說明：
                 // InMemoryContext 是記憶體中的資料容器。
                 // 透過這個物件，我們可以存取已經載入的資料。
                 // 這種設計模式稱為 Repository Pattern（倉儲模式）。
-                var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                var tasks = snapshot
                     .m_SmallGroupDataList.m_SmallGroupData.Members;
 
                 // 使用 DevExtreme 的 DataSourceLoader 處理資料
@@ -180,14 +184,18 @@ namespace ChurchReport.Controllers
                 // ========================================
                 EnsureCorrectUserData();
 
+                // 圖表與會員 Grid 必須取自同一個完整發布契約。WeeklyReportId 在目前 Razor 呼叫端
+                // 實際傳入的是可見 ListId；ListManager 會再次驗證它屬於目前登入者，並回傳不共享
+                // ChartData List 的 detached snapshot，避免另一 request 重載圖表時改變本回應。
+                var snapshot = InMemoryContext.ListManager.EnsureAndGetIntegrateDetachedRead(WeeklyReportId);
+
                 // 檢查資料是否存在
                 // 教學說明：
                 // 使用 Null-Coalescing 檢查（?.）來避免 NullReferenceException。
                 // 如果任何一層為 null，就返回空的圖表資料。
                 // 這種防禦性編程（Defensive Programming）很重要。
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null ||
-                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_WeeklyReportChart == null ||
-                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList == null)
+                if (snapshot.m_WeeklyReportChart == null ||
+                    snapshot.m_WeeklyReportChart.m_ChartDataList == null)
                 {
                     // 返回空清單，而不是 null
                     // 教學說明：
@@ -199,7 +207,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 取得圖表資料
-                var chartData = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                var chartData = snapshot
                     .m_WeeklyReportChart.m_ChartDataList;
 
                 return DataSourceLoader.Load(chartData, loadOptions);

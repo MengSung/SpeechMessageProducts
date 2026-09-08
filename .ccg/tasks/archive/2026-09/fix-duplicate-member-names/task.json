@@ -1,0 +1,12 @@
+{
+  "id": "fix-duplicate-member-names",
+  "title": "修正小組回報頁面重複會友姓名",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "雙模型複審、測試與編碼驗證已完成，依 CCG 流程歸檔",
+  "createdAt": "2026-09-08T00:00:00+08:00",
+  "branch": "1.0.0.8.FixDuplicateName.Worktree"
+}

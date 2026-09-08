@@ -113,9 +113,12 @@ namespace ChurchReport.Controllers
                 // ========================================
                 EnsureCorrectUserData();
 
-                EnsureNewPersonDataLoaded(id);
+                // 新人 Grid 與小組 Grid 共用同一個 ListManager 發布入口，確保同一 scope 只建立
+                // 一份完整候選。回傳值是深複製 detached snapshot，request 結束後即可回收，且
+                // DataSourceLoader 不會列舉正在被另一個 request 修改的 Session Members 集合。
+                var snapshot = InMemoryContext.ListManager.EnsureAndGetIntegrateDetachedRead(id);
 
-                var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                var tasks = snapshot
                     .m_SmallGroupDataList.m_NewPersonFollowUpData.Members;
 
                 return DataSourceLoader.Load(tasks, loadOptions);
