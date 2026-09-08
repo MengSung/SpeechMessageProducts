@@ -131,6 +131,11 @@ namespace ChurchReport.WebServiceConnector
 
             // 設定週報圖表資料
             this.SetupWeeklyReportChartData(ref aListSmallGroupWeeklyReport);
+
+            // LoadFlag 是「整份候選已完成」的發布前置條件，不是載入已開始的訊號。
+            // 只有所有 CRM 讀取、資料組裝與排序都成功返回後才設為 true；任何例外都會讓
+            // ListManager 保留上一份完整快照，避免其他 request 看到半完成資料。
+            aListSmallGroupWeeklyReport.LoadFlag = true;
         }
 
         #endregion

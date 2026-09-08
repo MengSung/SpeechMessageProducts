@@ -47,7 +47,10 @@ namespace ChurchReport.WebServiceConnector
                 return; // 沒找到就回傳
             }
 
-            aListSmallGroupWeeklyReport.LoadFlag = true;
+            // 此處只完成 header 的第一階段載入，絕對不能提早把 LoadFlag 設為 true。
+            // 後續仍有成員、週報與圖表等多次 CRM 查詢；任何一步失敗時，候選都必須維持未完成，
+            // 由 ListManager 丟棄並保留上一份完整快照。LoadFlag 只會在主協調方法最後成功時設定，
+            // 避免另一個同 Session request 把半完成物件誤認為可序列化資料。
             this.m_ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId));
 
             aListSmallGroupWeeklyReport.ListEntityName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ListEntity, "listname");

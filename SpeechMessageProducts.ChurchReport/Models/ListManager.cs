@@ -24,6 +24,45 @@ namespace ChurchReport.Models
 {
     public class ListManager
     {
+        /// <summary>
+        /// 同一 Session holder 內整合資料的同步根。由於現有 CRM SDK 入口是同步 API，
+        /// 使用 instance lock 可在整個候選快照建立期間阻擋同一 holder 的第二個 writer，
+        /// 且不引入需要跨 cache eviction 額外 Dispose 的 SemaphoreSlim。此鎖不在 static、
+        /// Session 或跨使用者 registry 中，因此不會把不同使用者的 request 串在一起。
+        /// </summary>
+        private readonly object m_IntegratePublicationGate = new object();
+
+        /// <summary>
+        /// 測試用的區域候選建立器；正式建構式保持原有行為並建立新的 DownloadIntegrateData。
+        /// 委派只在 gate 內暫時使用，不得保存 HttpContext、Session、CRM 連線或測試同步原語。
+        /// </summary>
+        private readonly Func<string, ListSmallGroupWeeklyReport> m_IntegrateCandidateFactory;
+
+        /// <summary>
+        /// 最近一次成功發布的完整隔離鍵。此值只存在於單一 Session 的 ListManager 生命週期，
+        /// 不會進入程序級 cache key、log 或回應；密碼欄位只保留既有字串參考以辨識同一 holder
+        /// 是否已換登入者，不建立額外明文副本，也不延長超過 ListManager 的保存時間。
+        /// </summary>
+        private IntegrateLoadKey? m_PublishedIntegrateLoadKey;
+
+        /// <summary>
+        /// 建立具有正式 CRM 載入行為的 ListManager。所有可變資料仍由此 instance 擁有，
+        /// 不會透過 static 欄位或跨 request singleton 共用。
+        /// </summary>
+        public ListManager()
+        {
+            m_IntegrateCandidateFactory = BuildIntegrateCandidate;
+        }
+
+        /// <summary>
+        /// 建立可注入候選建立器的 ListManager，僅供隔離測試驗證併發發布契約。
+        /// </summary>
+        /// <param name="candidateFactory">依小組 ID 建立獨立候選週報的函式。</param>
+        internal ListManager(Func<string, ListSmallGroupWeeklyReport> candidateFactory)
+        {
+            m_IntegrateCandidateFactory = candidateFactory ?? throw new ArgumentNullException(nameof(candidateFactory));
+        }
+
         public DateTime m_SelectDate { get; set; } // 小組日期
         public String LoginType; //{ get; set; }
         public String LoginFullName; //{ get; set; }
@@ -56,8 +95,6 @@ namespace ChurchReport.Models
         public MultiGroupChartDataList m_MultiGroupChartDataList = new MultiGroupChartDataList();
 
         DownloadListManager m_DownloadListManager = new DownloadListManager();
-
-        DownloadIntegrateData m_DownloadIntegrateData = new DownloadIntegrateData();
 
         public void SetupListManager(String Account, String Password, DateTime aSelectDate, IOrganizationService organizationService = null)
         {
@@ -219,29 +256,136 @@ namespace ChurchReport.Models
         }
         public void SetupIntegrateData( String ListEntityId )
         {
-            //WeeklyReportRecord aWeeklyReportRecord = m_MultiGroupList.m_WeeklyReportRecordListData.Where(e => e.ListEntityId == ListEntityId).FirstOrDefault();
-            WeeklyReportRecord aWeeklyReportRecord = m_MultiGroupList.m_WeeklyReportRecordListData.FirstOrDefault(e => e.ListEntityId == ListEntityId);
+            EnsureAndGetIntegrateDetachedRead(ListEntityId);
+        }
 
-            if ( aWeeklyReportRecord != null )
+        /// <summary>
+        /// 以同一個 Session holder 的同步根建立並發布完整整合快照，再回傳呼叫端可任意修改的深複製。
+        /// 快速路徑與 gate 內都重新檢查小組 ID 與 LoadFlag；候選建立或 row-key 驗證失敗時，
+        /// 既有完整快照保持不變，避免半成品、舊小組資料或失敗資料覆蓋目前畫面。
+        /// </summary>
+        /// <param name="listEntityId">已由目前登入 scope 決定、且必須存在於可見小組清單的 ID。</param>
+        /// <returns>不含 Session 可變集合與 CRM Entity 參考的 detached 週報。</returns>
+        /// <exception cref="ArgumentException">小組 ID 空白或不存在於目前可見清單。</exception>
+        /// <exception cref="InvalidOperationException">候選資料缺少完整 row key，或同一資料集有 exact duplicate row key。</exception>
+        internal ListSmallGroupWeeklyReport EnsureAndGetIntegrateDetachedRead(string listEntityId)
+        {
+            if (string.IsNullOrWhiteSpace(listEntityId))
             {
-                if (m_ListSmallGroupWeeklyReport == null)
+                throw new ArgumentException("整合資料的小組 ID 不得為空白。", nameof(listEntityId));
+            }
+
+            lock (m_IntegratePublicationGate)
+            {
+                var record = m_MultiGroupList?.m_WeeklyReportRecordListData?
+                    .FirstOrDefault(item => string.Equals(item.ListEntityId, listEntityId, StringComparison.Ordinal));
+                if (record == null)
                 {
-                    m_ListSmallGroupWeeklyReport = new ListSmallGroupWeeklyReport();
-
-                    m_ListSmallGroupWeeklyReport.LoadFlag = true;
+                    throw new ArgumentException("要求的小組不在目前登入者的可見清單中。", nameof(listEntityId));
                 }
-                else
-                { }
 
-                m_ListSmallGroupWeeklyReport.ListEntityId = ListEntityId;
-                m_ListSmallGroupWeeklyReport.LoginType = m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.LoginType = LoginType;
+                var requestedKey = new IntegrateLoadKey(
+                    m_Account ?? string.Empty,
+                    m_Password ?? string.Empty,
+                    LoginType ?? string.Empty,
+                    m_SelectDate,
+                    listEntityId,
+                    record.WeeklyReportEntityId ?? string.Empty);
 
-                // 關鍵修正: 更新 ActiveListId 以確保與當前載入的小組 ID 一致
-                ActiveListId = ListEntityId;
+                if (m_ListSmallGroupWeeklyReport == null ||
+                    !m_ListSmallGroupWeeklyReport.LoadFlag ||
+                    m_PublishedIntegrateLoadKey != requestedKey)
+                {
+                    var candidate = m_IntegrateCandidateFactory(listEntityId)
+                        ?? throw new InvalidOperationException("整合資料 loader 不得回傳 null 候選。");
+                    ValidateIntegrateCandidate(candidate, listEntityId);
+                    m_ListSmallGroupWeeklyReport = candidate;
+                    m_PublishedIntegrateLoadKey = requestedKey;
+                    ActiveListId = listEntityId;
+                }
 
-                m_DownloadIntegrateData.SetupIntegrateData( m_Account, m_Password, LoginType, this.m_SelectDate, ListEntityId, aWeeklyReportRecord.WeeklyReportEntityId, ref m_ListSmallGroupWeeklyReport);
+                return m_ListSmallGroupWeeklyReport.CreateDetachedReadCopy();
             }
         }
+
+        /// <summary>
+        /// 以新的 loader 與新的候選週報執行同步 CRM 載入；候選在呼叫端驗證完成前不會放入共享欄位。
+        /// 新 loader 的 mutable fields 僅存活於本次 gate 內，避免兩個小組或兩個 request 互相覆寫。
+        /// </summary>
+        private ListSmallGroupWeeklyReport BuildIntegrateCandidate(string listEntityId)
+        {
+            var record = m_MultiGroupList?.m_WeeklyReportRecordListData?
+                .FirstOrDefault(item => string.Equals(item.ListEntityId, listEntityId, StringComparison.Ordinal));
+            if (record == null)
+            {
+                throw new ArgumentException("要求的小組不在目前登入者的可見清單中。", nameof(listEntityId));
+            }
+
+            var candidate = new ListSmallGroupWeeklyReport
+            {
+                ListEntityId = listEntityId,
+                LoginType = LoginType
+            };
+            var loader = new DownloadIntegrateData();
+            loader.SetupIntegrateData(m_Account, m_Password, LoginType, m_SelectDate,
+                listEntityId, record.WeeklyReportEntityId, ref candidate);
+            return candidate;
+        }
+
+        /// <summary>
+        /// 驗證候選已完成載入，並在每個前端資料集內拒絕重複的穩定 row key。
+        /// FullName、電話與 ContactId 都不是唯一性依據，因為同名會友可能是不同 CRM 記錄。
+        /// </summary>
+        private static void ValidateIntegrateCandidate(ListSmallGroupWeeklyReport candidate, string expectedListEntityId)
+        {
+            if (!candidate.LoadFlag || !string.Equals(candidate.ListEntityId, expectedListEntityId, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("整合資料尚未完成，或候選小組 scope 不一致。");
+            }
+
+            var dataList = candidate.m_SmallGroupDataList ?? throw new InvalidOperationException("整合資料缺少資料集合。");
+            ValidateUniqueRowKeys(dataList.m_SmallGroupData?.Members, "小組成員");
+            ValidateUniqueRowKeys(dataList.m_NewPersonFollowUpData?.Members, "新人跟進");
+            ValidateUniqueRowKeys(dataList.m_AllMemeberData?.Members, "全部成員");
+        }
+
+        /// <summary>
+        /// 只對非空 PresentRecordId 做 exact duplicate 檢查；空 key 直接拒絕發布，避免前端產生不穩定 row。
+        /// </summary>
+        private static void ValidateUniqueRowKeys(IEnumerable<Member> members, string dataSetName)
+        {
+            if (members == null)
+            {
+                return;
+            }
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var member in members)
+            {
+                if (member == null || string.IsNullOrWhiteSpace(member.PresentRecordId))
+                {
+                    throw new InvalidOperationException($"{dataSetName} 存在空白 PresentRecordId，拒絕發布不穩定資料。");
+                }
+
+                if (!seen.Add(member.PresentRecordId.Trim()))
+                {
+                    throw new InvalidOperationException(
+                        $"{dataSetName} 發現重複 PresentRecordId '{member.PresentRecordId.Trim()}'，拒絕發布候選資料。");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 定義一份整合快照的完整 Session 內隔離邊界。任何登入者、登入憑證、角色、日期、
+        /// 小組或週報變化都會強制建立新候選，禁止只憑 LoadFlag 或 ListEntityId 沿用舊資料。
+        /// </summary>
+        private readonly record struct IntegrateLoadKey(
+            string Account,
+            string Credential,
+            string LoginType,
+            DateTime SelectDate,
+            string ListEntityId,
+            string WeeklyReportEntityId);
         public void SetupIntegrateDataDemo(String ListEntityId)
         {
             switch (ListEntityId)

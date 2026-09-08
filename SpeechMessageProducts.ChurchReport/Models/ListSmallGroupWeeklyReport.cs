@@ -124,6 +124,30 @@ namespace ChurchReport.Models
             return copy;
         }
 
+        /// <summary>
+        /// 建立供 Controller/序列化使用的 detached read copy。除資料圖外也複製圖表與小組名稱，
+        /// 讓讀取端不會持有 Session holder 的可變 List；複製完成後來源可安全被下一世代交換。
+        /// </summary>
+        /// <returns>不含原始 Member、ChartData 與 GroupArray 參考的讀取快照。</returns>
+        internal ListSmallGroupWeeklyReport CreateDetachedReadCopy()
+        {
+            var copy = CreateBackgroundUploadCopy();
+            copy.GroupArray = GroupArray == null ? new List<string>() : new List<string>(GroupArray);
+            copy.m_WeeklyReportChart = new ChartDataList
+            {
+                m_ChartDataList = m_WeeklyReportChart?.m_ChartDataList == null
+                    ? new List<ChartData>()
+                    : m_WeeklyReportChart.m_ChartDataList.Select(item => new ChartData
+                    {
+                        WeeklyReportEntityId = item.WeeklyReportEntityId,
+                        SundayDate = item.SundayDate,
+                        SundayNumber = item.SundayNumber,
+                        SmallNumber = item.SmallNumber
+                    }).ToList()
+            };
+            return copy;
+        }
+
         public void UploadIntegrateData(DateTime aSelectedDate, String Account, String Password, String LoginType, SmallGroupData aSmallGroupData, String aWeeklyReportData, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)
         {
             WeeklyReportData = aWeeklyReportData;
