@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ChurchReport.Diagnostics;
+using ChurchReport.Logging;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace ChurchReport
@@ -50,15 +51,60 @@ namespace ChurchReport
 #endif
 
         /// <summary>
-        /// 建立並執行 ChurchReport Host。Release 組態固定建立停用的診斷設定，外部設定無法
-        /// 重新啟用檔案 writer；Debug 組態則由單一 <c>DiagnosticsTrace</c> 區段控制三種 Trace。
+        /// 建立並執行 Host；Debug／Release 都依 ExceptionNotifications 的啟動快照選擇例外目的地。
+        /// 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr
+        /// 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。
+        /// 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。
         /// </summary>
         /// <param name="args">傳給 ASP.NET Core 組態與 Host 的命令列參數。</param>
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            ExceptionDiagnostics diagnostics = null;
+            IDisposable registration = null;
+            ChurchReport.Services.LineExceptionSender sender = null;
+            Microsoft.Extensions.Configuration.ConfigurationManager configuration = null;
+            try
+            {
+                var builder = WebApplication.CreateBuilder(args);
+                configuration = builder.Configuration;
+                var outputOptions = ExceptionOutputOptions.FromConfiguration(builder.Configuration);
+                diagnostics = new ExceptionDiagnostics(Path.Combine(AppContext.BaseDirectory, "Logs"), outputOptions: outputOptions);
+                registration = ExceptionReporting.Attach(diagnostics);
+                if (outputOptions.SendLine)
+                {
+                    sender = new ChurchReport.Services.LineExceptionSender(builder.Configuration);
+                    diagnostics.StartNotifications(sender.SendAsync);
+                }
+                RunApplication(builder, diagnostics);
+            }
+            catch (Exception exception)
+            {
+                if (diagnostics != null) diagnostics.Report(exception, "Program.Fatal");
+                else
+                {
+                    try { Console.Error.WriteLine("[ExceptionDiagnostics] InitializationFailed"); } catch { }
+                }
+                throw;
+            }
+            finally
+            {
+                registration?.Dispose();
+                if (diagnostics != null) diagnostics.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                sender?.Dispose();
+                // 即使選項解析或 Build 失敗，也釋放 builder 的組態監聽器；不跨 Host 保留設定。
+                (configuration as IDisposable)?.Dispose();
+            }
+        }
 
-            ConfigureSafeLogging(builder);
+        /// <summary>
+        /// 建立正常 Host 管線，借用最外層管理的 Exception.log owner；錯誤 provider 在所有組態啟用。
+        /// 原本三個診斷 Trace 檔仍遵守 Release 關閉契約，與正式錯誤紀錄完全獨立。
+        /// </summary>
+        private static void RunApplication(WebApplicationBuilder builder, ExceptionDiagnostics diagnostics)
+        {
+
+            ConfigureSafeLogging(builder, diagnostics);
+            builder.Services.AddSingleton(diagnostics);
 
 #if DEBUG
             DiagnosticTraceOptions diagnosticTraceOptions;
@@ -121,7 +167,7 @@ namespace ChurchReport
             var startup = new Startup(builder.Configuration, diagnosticTraceOptions);
             startup.ConfigureServices(builder.Services);
 
-            var app = builder.Build();
+            using var app = builder.Build();
 
 #if DEBUG
             // 只有服務容器成功建立後才取得 listener owner；若組態或 DI 建置失敗，
@@ -167,7 +213,8 @@ namespace ChurchReport
 #endif
         }
 
-        private static void ConfigureSafeLogging(WebApplicationBuilder builder)
+        /// <summary>註冊只擷取安全 metadata 的正式錯誤 provider；不沿用會複製原始訊息的舊 FileLogger。</summary>
+        private static void ConfigureSafeLogging(WebApplicationBuilder builder, ExceptionDiagnostics diagnostics)
         {
             // Windows EventLog provider can fail under non-admin local runs and prevent Kestrel from starting.
             builder.Logging.ClearProviders();
@@ -175,6 +222,8 @@ namespace ChurchReport
             builder.Logging.AddConsole();
             builder.Logging.AddDebug();
             builder.Logging.AddEventSourceLogger();
+            builder.Logging.AddProvider(new ExceptionLoggerProvider(diagnostics));
+            builder.Logging.AddFilter<ExceptionLoggerProvider>(null, LogLevel.Error);
         }
 
 #if DEBUG

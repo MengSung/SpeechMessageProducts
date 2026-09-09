@@ -263,27 +263,37 @@ namespace ChurchReport.Models
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[DonationPaymentManager] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
+                // 配置讀取失敗影響 LINE 功能；只轉交原例外與固定操作，絕不傳送 token 或配置值。
+                // 共用 owner 先 flush 再通知，且會隔離通知自身失敗以保留既有空字串 fallback。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(DonationPaymentManager) + "." + nameof(GetLineChannelAccessToken), ex);
                 return string.Empty;
             }
         }
 
         /// <summary>
-        /// 保留既有錯誤通知行為，讓拆出去的 ChurchReport service 可以共用同一個通知出口。
-        /// 這不是通用金流錯誤處理；它含有 ChurchReport 既有 LINE 管理者通知對象。
+        /// 將手動奉獻流程的原例外轉交共用告警 owner，不重建例外或傳送付款內容。
         /// </summary>
-        private static void NotifyDonationPaymentError(string errorString)
+        /// <param name="exception">服務 catch 捕捉的同一例外，供共用入口以弱參照鍵去重。</param>
+        /// <remarks>
+        /// owner 先寫入並 flush Exception.log 才允許 LINE 入列；此同步轉交不保存 manager、
+        /// Session 或例外物件圖，通知資料與背景派送資源皆由有界的共用 owner 擁有。
+        /// </remarks>
+        private static void NotifyDonationPaymentError(Exception exception)
         {
-            ChurchReportLineAdminNotificationService.NotifyDefaultError("好牧人", errorString);
+            ChurchReportLineAdminNotificationService.ReportException(nameof(DonationKeyInDedicationService), exception);
         }
 
         /// <summary>
-        /// 保留查無新人建立 contact 失敗時的舊管理者通知文字。
-        /// 這個通知是 ChurchReport 後台維運流程，不屬於通用金流核心。
+        /// 將新人註冊失敗的原例外送交既有管理者告警 owner，保留服務操作定位且不傳送姓名等個資。
         /// </summary>
-        private static void NotifyDonationRegistrationError(string errorString)
+        /// <param name="exception">註冊服務捕捉的例外；不另包裝，以維持同一 incident 的去重依據。</param>
+        /// <remarks>
+        /// 共用入口負責 Exception.log flush 成功後才排入 LINE，並隔離通知失敗；
+        /// callback 不捕捉 request 或 manager，服務釋放後不會透過此委派延長其生命週期。
+        /// </remarks>
+        private static void NotifyDonationRegistrationError(Exception exception)
         {
-            ChurchReportLineAdminNotificationService.NotifyDefaultError("好牧人", "註冊錯誤", errorString);
+            ChurchReportLineAdminNotificationService.ReportException(nameof(DonationContactCreationService), exception);
         }
         #endregion
         #region Line 單獨登入
@@ -442,6 +452,14 @@ namespace ChurchReport.Models
             return SetDonationPaymentModel(aContact);
         }
 
+        /// <summary>
+        /// 驗證目前請求的奉獻表單與登入 contact，再交由付款流程建立收費單並回傳既有 JSON 契約。
+        /// </summary>
+        /// <param name="donationModel">本次請求擁有的表單；不保存至告警或共用背景狀態。</param>
+        /// <remarks>
+        /// 預期的表單拒絕與登入失效直接回傳業務結果；實際建單例外才通知並以原始堆疊向外傳播。
+        /// LINE 與落檔的生命週期由共用 owner 管理，本入口不配置 client 或排入付款資料。
+        /// </remarks>
         public async Task<IActionResult> SaveDonationPaymentDedicationAsync(DonationPaymentFormModel donationModel)
         {
             try
@@ -478,11 +496,10 @@ namespace ChurchReport.Models
             }
             catch (System.Exception e)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                NotifyDonationPaymentError(ErrorString);
-
-                throw e;
+                // 建單是真正失敗；保留原例外供外層去重，安全摘要落檔並 flush 後才由共用 owner 排入 LINE。
+                // 不可將表單、付款資料或原始例外文字拼入通知，也不在 request 留下背景工作。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(DonationPaymentManager) + "." + nameof(SaveDonationPaymentDedicationAsync), e);
+                throw;
             }
         }
 
@@ -770,8 +787,11 @@ namespace ChurchReport.Models
             {
                 return m_DonationDedicationFeeFormService.GetFeesByContactId(contactId, m_DonationPaymentFormModel);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                // 此處維持空集合回應，但查詢失敗仍須落檔並通知；不把 contactId 或結果集合送入共用佇列。
+                // 共用 owner 負責相同例外去重、先 flush 後 LINE，且不延長目前使用者資料的生命週期。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(DonationPaymentManager) + "." + nameof(GetDedicationFeesByContactId), exception);
                 return new List<object>();
             }
         }

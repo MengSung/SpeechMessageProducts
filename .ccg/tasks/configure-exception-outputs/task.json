@@ -1,0 +1,11 @@
+{
+  "nextAction": "實作四種輸出組合並驗證",
+  "currentPhase": "analysis",
+  "createdAt": "2026-09-09T05:37:54.8742760Z",
+  "risk": "medium",
+  "id": "configure-exception-outputs",
+  "title": "例外日誌與 LINE 獨立設定",
+  "complexity": "M",
+  "branch": "1.0.0.8.FixDuplicateName.Worktree",
+  "status": "in_progress"
+}

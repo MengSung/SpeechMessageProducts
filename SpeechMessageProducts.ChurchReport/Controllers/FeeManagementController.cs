@@ -268,6 +268,9 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
+                // 此 catch 會吸收失敗，須在回應前以原例外通知；共用 owner 先 flush 落檔並去重，
+                // 不傳集合、付款資料或 Session，也不在此建立背景工作或保存例外。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(FeeManagementController) + "." + nameof(GetLessons), ex);
                 System.Diagnostics.Debug.WriteLine($"[GetLessons] 發生錯誤: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[GetLessons] 錯誤堆疊: {ex.StackTrace}");
 
@@ -328,6 +331,9 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
+                // 此 catch 會吸收失敗，須在回應前以原例外通知；共用 owner 先 flush 落檔並去重，
+                // 不傳集合、付款資料或 Session，也不在此建立背景工作或保存例外。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(FeeManagementController) + "." + nameof(GetFeeData), ex);
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] 發生錯誤: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] 錯誤堆疊: {ex.StackTrace}");
 
@@ -380,6 +386,9 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
+                // 此 catch 會吸收失敗，須在回應前以原例外通知；共用 owner 先 flush 落檔並去重，
+                // 不傳集合、付款資料或 Session，也不在此建立背景工作或保存例外。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(FeeManagementController) + "." + nameof(UpdateFeeData), ex);
                 System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] 發生錯誤: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] 錯誤堆疊: {ex.StackTrace}");
 
@@ -422,6 +431,9 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
+                // 此 catch 會吸收失敗，須在回應前以原例外通知；共用 owner 先 flush 落檔並去重，
+                // 不傳集合、付款資料或 Session，也不在此建立背景工作或保存例外。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(FeeManagementController) + "." + nameof(SaveBatch), ex);
                 System.Diagnostics.Debug.WriteLine($"[SaveBatch] 發生錯誤: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[SaveBatch] 錯誤堆疊: {ex.StackTrace}");
 
@@ -525,6 +537,13 @@ namespace ChurchReport.Controllers
             ViewBag.Colume42 = "";
             ViewBag.Colume43 = "";
         }
+        /// <summary>
+        /// 將目前請求的課程與作業名稱填入 ViewBag；未載入時使用空白標題，避免渲染缺欄。
+        /// </summary>
+        /// <remarks>
+        /// 真正組裝失敗會先交給共用告警 owner 再原樣拋出，保留堆疊供上層處理；
+        /// 本方法不把 ViewBag、課程內容或 Session 交給通知佇列，也不建立長期資源。
+        /// </remarks>
         public void SetFeeManagerViewBag()
         {
             try
@@ -587,14 +606,10 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                ToolUtility.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                ChurchReportLineAdminNotificationService.NotifyDefaultError("新莊靈糧堂", ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
+                // 保留同一例外供外層去重；共用 owner 先完成 Exception.log flush 再排入 LINE，
+                // 通知只取受信任操作與安全例外摘要，不建立含付款或 Session 資料的字串。
+                ChurchReportLineAdminNotificationService.ReportException(nameof(FeeManagementController) + "." + nameof(SetFeeManagerViewBag), e);
+                throw;
             }
         }
 

@@ -52,6 +52,18 @@ Questions to answer:
 
 ## Unified ChurchReport Diagnostic Trace Contract
 
+例外輸出由 `ExceptionNotifications:WriteExceptionLog`／`SendLine` 獨立控制，缺省皆 true；單開只執行該項，全關停用，重啟生效。LINE-only 的通知狀態只送固定 stderr，不能產生檔案。
+
+正式錯誤紀錄是獨立契約：兩種例外輸出皆啟用時，所有組態都先寫入並 flush `Logs/Exception.log`，再排入 LINE。
+下方 Release 禁寫規則只涵蓋既有三個 Trace 檔，不適用 `Exception.log`，也不得用
+`DiagnosticsTrace:Enabled` 停用錯誤紀錄。詳見 [Error Handling](./error-handling.md)。
+
+`Exception.log` 使用 UTF-8 JSONL，每筆含安全的例外型別、程式位置、UTC 與 IncidentId。
+正常上限為 5 MiB 並保留五份備份；外部讀取鎖阻止輪替時可有界附加至 10 MiB，
+解鎖後恢復輪替。讀取工具須允許 `FileShare.ReadWrite | FileShare.Delete`。
+達硬上限、磁碟滿或權限失敗時只輸出固定 stderr 狀態，不得先發送 LINE。
+LINE queue 滿載／發送失敗以同 IncidentId 追加本地狀態，不再觸發通知。
+
 ### 1. Scope / Trigger
 
 This contract applies when ChurchReport diagnostics write any of the three files:
