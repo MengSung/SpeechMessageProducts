@@ -1,12 +1,12 @@
 {
   "id": "implement-cross-product-publication-guard",
   "title": "實作跨產品資料唯一 ID 與網路時序防護",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L+",
   "risk": "high",
   "domain": "fullstack",
-  "currentPhase": "implementation",
-  "nextAction": "依雙模型分析先建立後端重複 ID 與寫入生命週期 RED 測試",
+  "currentPhase": "completed",
+  "nextAction": "完成雙模型審查與本機驗證；待使用者決定提交或合併",
   "createdAt": "2026-09-09T00:00:00+08:00",
   "branch": "1.0.0.8.FixDuplicateName.Worktree"
 }

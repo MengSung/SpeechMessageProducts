@@ -33,6 +33,18 @@ internal static class RowPublicationGuard
     /// </summary>
     internal const string NewPersonGridConsumerName = "ChurchReport.WeeklyReport.NewPersonGrid";
 
+    /// <summary>快取候選驗證所使用的小組資料集名稱，與 Grid consumer 命名保持可追蹤關聯。</summary>
+    internal const string SmallGroupDatasetName = SmallGroupGridConsumerName;
+
+    /// <summary>快取候選驗證所使用的新人資料集名稱。</summary>
+    internal const string NewPersonDatasetName = NewPersonGridConsumerName;
+
+    /// <summary>快取候選驗證所使用的幸福小組資料集名稱。</summary>
+    internal const string HappyGroupDatasetName = "ChurchReport.WeeklyReport.HappyGroup";
+
+    /// <summary>快取候選驗證所使用的全會友資料集名稱。</summary>
+    internal const string AllMembersDatasetName = "ChurchReport.WeeklyReport.AllMembers";
+
     /// <summary>
     /// 目前 ChurchReport 完整週報 consumer 的預設安全容量；產品可在未來 consumer
     /// contract 以明確設定覆寫，但不得用無界集合取代上限。

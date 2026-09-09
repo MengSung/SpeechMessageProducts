@@ -413,10 +413,10 @@ namespace ChurchReport.Models
             }
 
             var dataList = candidate.m_SmallGroupDataList ?? throw new InvalidOperationException("整合資料缺少資料集合。");
-            ValidateUniqueRowKeys(dataList.m_SmallGroupData?.Members, "ChurchReport.WeeklyReport.SmallGroup");
-            ValidateUniqueRowKeys(dataList.m_NewPersonFollowUpData?.Members, "ChurchReport.WeeklyReport.NewPerson");
-            ValidateUniqueRowKeys(dataList.m_HappyGroup?.Members, "ChurchReport.WeeklyReport.HappyGroup");
-            ValidateUniqueRowKeys(dataList.m_AllMemeberData?.Members, "ChurchReport.WeeklyReport.AllMembers");
+            ValidateUniqueRowKeys(dataList.m_SmallGroupData?.Members, RowPublicationGuard.SmallGroupDatasetName);
+            ValidateUniqueRowKeys(dataList.m_NewPersonFollowUpData?.Members, RowPublicationGuard.NewPersonDatasetName);
+            ValidateUniqueRowKeys(dataList.m_HappyGroup?.Members, RowPublicationGuard.HappyGroupDatasetName);
+            ValidateUniqueRowKeys(dataList.m_AllMemeberData?.Members, RowPublicationGuard.AllMembersDatasetName);
         }
 
         /// <summary>
