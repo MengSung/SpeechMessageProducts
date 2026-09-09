@@ -2,7 +2,12 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Models/ListManager.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
+// 檔案責任：擁有單一 Session 的登入 scope、可見小組與整合週報發布生命週期。候選資料必須
+//           在 instance gate 內完整建立、依 PresentRecordId 驗證後原子發布；每次讀取再建立
+//           detached snapshot 並驗證實際交付集合，防止快取命中後的 legacy 寫入洩漏重複列。
+// 隔離與效能：本檔案不得使用 static 使用者狀態或跨 Session lock registry。同步區間只涵蓋
+//             目前 holder 的 scope／快照，CRM 同步載入雖受 gate 保護，但不建立額外背景 Task；
+//             stable-ID 檢查為有界 O(n)，失敗時保留上一份完整 snapshot 而不發布半成品。
 // 主要型別：class ListManager
 // 主要成員：SetupListManager、SetSelectDate、SetupOnlyOneListManager、GetDisplayViewType、SetupIntegrateData、SetupIntegrateDataDemo、GetMarkers、m_SelectDate、SchedulerView、DisplayNavigation
 // 引用命名空間：ChurchReport.WebServiceConnector、Microsoft.AspNetCore.Mvc、Microsoft.Xrm.Sdk、Newtonsoft.Json、System、System.Collections.Generic、System.Linq、System.Threading.Tasks
@@ -26,6 +31,12 @@ namespace ChurchReport.Models
 {
     public class ListManager
     {
+        /// <summary>
+        /// ChurchReport 週報單次完整快照允許的最大資料列數。此上限同時限制 stable-ID HashSet
+        /// 與序列化工作量，避免異常查詢或重試造成無界記憶體配置；超量必須明確失敗，不可截斷。
+        /// </summary>
+        private const int MaximumPublishedIntegrateRows = 10000;
+
         /// <summary>
         /// 同一 Session holder 內整合資料的同步根。由於現有 CRM SDK 入口是同步 API，
         /// 使用 instance lock 可在整個候選快照建立期間阻擋同一 holder 的第二個 writer，
@@ -356,7 +367,12 @@ namespace ChurchReport.Models
                     ActiveListId = listEntityId;
                 }
 
-                return m_ListSmallGroupWeeklyReport.CreateDetachedReadCopy();
+                // 先透過 SmallGroupDataList 自己的同步根建立完整 detached snapshot，再驗證這次真正
+                // 要交付給 Controller 的資料。這個順序避免 Validate 與 legacy CRUD 寫入交錯，也讓
+                // 快取命中路徑重新受到 stable-ID 防線保護；驗證失敗時不會重新載入或改寫已發布圖。
+                var detachedSnapshot = m_ListSmallGroupWeeklyReport.CreateDetachedReadCopy();
+                ValidateIntegrateCandidate(detachedSnapshot, listEntityId);
+                return detachedSnapshot;
             }
         }
 
@@ -385,8 +401,9 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
-        /// 驗證候選已完成載入，並在每個前端資料集內拒絕重複的穩定 row key。
+        /// 驗證候選或 detached read 已完成載入，並在每個前端資料集內拒絕重複的穩定 row key。
         /// FullName、電話與 ContactId 都不是唯一性依據，因為同名會友可能是不同 CRM 記錄。
+        /// 此方法不刪除、合併或排序資料；任一 consumer 失敗即擲出，呼叫端不得發布該集合。
         /// </summary>
         private static void ValidateIntegrateCandidate(ListSmallGroupWeeklyReport candidate, string expectedListEntityId)
         {
@@ -396,14 +413,15 @@ namespace ChurchReport.Models
             }
 
             var dataList = candidate.m_SmallGroupDataList ?? throw new InvalidOperationException("整合資料缺少資料集合。");
-            ValidateUniqueRowKeys(dataList.m_SmallGroupData?.Members, "小組成員");
-            ValidateUniqueRowKeys(dataList.m_NewPersonFollowUpData?.Members, "新人跟進");
-            ValidateUniqueRowKeys(dataList.m_HappyGroup?.Members, "幸福小組成員");
-            ValidateUniqueRowKeys(dataList.m_AllMemeberData?.Members, "全部成員");
+            ValidateUniqueRowKeys(dataList.m_SmallGroupData?.Members, "ChurchReport.WeeklyReport.SmallGroup");
+            ValidateUniqueRowKeys(dataList.m_NewPersonFollowUpData?.Members, "ChurchReport.WeeklyReport.NewPerson");
+            ValidateUniqueRowKeys(dataList.m_HappyGroup?.Members, "ChurchReport.WeeklyReport.HappyGroup");
+            ValidateUniqueRowKeys(dataList.m_AllMemeberData?.Members, "ChurchReport.WeeklyReport.AllMembers");
         }
 
         /// <summary>
         /// 只對非空 PresentRecordId 做 exact duplicate 檢查；空 key 直接拒絕發布，避免前端產生不穩定 row。
+        /// 驗證器只使用方法區域 HashSet，最大列數固定為有界值，結束後不保留 Member 或 Session 參考。
         /// </summary>
         private static void ValidateUniqueRowKeys(IEnumerable<Member> members, string dataSetName)
         {
@@ -412,20 +430,15 @@ namespace ChurchReport.Models
                 return;
             }
 
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var member in members)
-            {
-                if (member == null || string.IsNullOrWhiteSpace(member.PresentRecordId))
-                {
-                    throw new InvalidOperationException($"{dataSetName} 存在空白 PresentRecordId，拒絕發布不穩定資料。");
-                }
-
-                if (!seen.Add(member.PresentRecordId.Trim()))
-                {
-                    throw new InvalidOperationException(
-                        $"{dataSetName} 發現重複 PresentRecordId '{member.PresentRecordId.Trim()}'，拒絕發布候選資料。");
-                }
-            }
+            // Dataverse GUID 的十六進位大小寫沒有身份差異，因此明確採 OrdinalIgnoreCase；
+            // 不使用姓名、ContactId 或其他內容補救缺少的 PresentRecordId，也不刪除衝突列。
+            RowPublicationGuard.ValidateRows(
+                members,
+                member => member.PresentRecordId,
+                dataSetName,
+                MaximumPublishedIntegrateRows,
+                nameof(Member.PresentRecordId),
+                StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>

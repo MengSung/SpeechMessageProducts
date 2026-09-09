@@ -1,7 +1,11 @@
-﻿@*
+@*
     ===================================================================
     好牧人 - 綜合報表檢視頁面 (IntegrateView)
     ===================================================================
+    資料發布與生命週期：Controller 只傳入 detached 週報；Grid 使用資料庫 PresentRecordId
+    作 row key。日期請求與 Grid refresh 必須由有界 coordinator 管理，舊 response callback
+    不得導向或改寫新世代；pagehide 時必須 abort transport 並釋放 callback／DOM closure。
+    本頁不得保存跨 Session、跨使用者或跨租戶的 mutable response data。
 *@
 @using ChurchReport.Models
 @using Microsoft.Extensions.Configuration
@@ -15,6 +19,63 @@
     var chartSecondaryColor = Configuration[$"Theme:Presets:{chartThemeName}:Secondary"] ?? "#4f8df1";
     var chartTextColor = Configuration[$"Theme:Presets:{chartThemeName}:Text"] ?? "#1d2a44";
 }
+
+@* 必須在 DateBox 與 Grid 事件可能觸發前載入；模組不保存 rows、Session 或 credential。 *@
+<script src="~/js/collection-load-coordinator.js"></script>
+<script>
+    // 此 coordinator 只屬於目前完整頁面。日期切換完成會導向新頁，pagehide 會先 dispose；
+    // 不放入 sessionStorage/localStorage，也不在跨頁 static collection 保存使用者或回應資料。
+    var integrateDateLoadCoordinator = window.CollectionLoadCoordinator
+        .createCollectionLoadCoordinator();
+
+    /**
+     * 以單一 active request 與 generation token 執行日期切換。
+     * 新操作會 abort 舊 jqXHR；即使舊 success/error 晚到，只有最新世代可導向或顯示錯誤。
+     */
+    function requestIntegrateDateChange(selectedDate) {
+        var loadPanel = $("#loadPanel").dxLoadPanel("instance");
+        if (loadPanel) {
+            loadPanel.show();
+        }
+
+        integrateDateLoadCoordinator.runLoad(function sendCurrentDateRequest() {
+            return $.ajax({
+                url: '@Url.Action("UpdateIntegrateDate", "SmallGroup")',
+                data: { SelectedDate: getODataLocalDateFilter(selectedDate) },
+                type: 'GET'
+            });
+        }).then(function publishCurrentDateResponse(response) {
+            if (loadPanel) {
+                loadPanel.hide();
+            }
+            if (response.success) {
+                window.location.href = "/SmallGroup/IntegrateView/" + response.ActiveListId;
+            } else {
+                ShowToast(response.message || "日期更新失敗", "error", 5000);
+            }
+        }).catch(function handleCurrentDateFailure(error) {
+            // 過期世代屬預期取消，不得隱藏新世代 load panel 或顯示舊錯誤。
+            if (error && error.isStaleGeneration) {
+                return;
+            }
+            if (loadPanel) {
+                loadPanel.hide();
+            }
+            ShowToast("日期更新失敗: " + (error && error.message ? error.message : "網路錯誤"), "error", 5000);
+        });
+    }
+
+    /**
+     * 頁面離開時確定釋放日期 transport 與 pending callback；once 避免 handler 重複執行。
+     */
+    function disposeIntegratePageLoadCoordinator() {
+        if (integrateDateLoadCoordinator) {
+            integrateDateLoadCoordinator.dispose();
+            integrateDateLoadCoordinator = null;
+        }
+    }
+    window.addEventListener('pagehide', disposeIntegratePageLoadCoordinator, { once: true });
+</script>
 
 @* 小組狀態標題 *@
 <div class="group-status-header">
@@ -74,24 +135,7 @@
                             .CalendarOptions(k => k.FirstDayOfWeek(0))
                             .OnValueChanged(@<text>
                                 function(arg) {
-                                    $("#loadPanel").dxLoadPanel("instance").show();
-                                    $.ajax({
-                                        url: '@Url.Action("UpdateIntegrateDate", "SmallGroup")',
-                                        data: { SelectedDate: getODataLocalDateFilter(arg.value) },
-                                        type: 'GET',
-                                        success: function(response) {
-                                            $("#loadPanel").dxLoadPanel("instance").hide();
-                                            if (response.success) {
-                                                window.location.href = "/SmallGroup/IntegrateView/" + response.ActiveListId;
-                                            } else {
-                                                ShowToast(response.message || "日期更新失敗", "error", 5000);
-                                            }
-                                        },
-                                        error: function(xhr, status, error) {
-                                            $("#loadPanel").dxLoadPanel("instance").hide();
-                                            ShowToast("日期更新失敗: " + error, "error", 5000);
-                                        }
-                                    });
+                                    requestIntegrateDateChange(arg.value);
                                 }
                             </text>)
                         )
@@ -144,7 +188,11 @@
 
                                                         Object.values(grids).forEach(function(grid) {
                                                             if (grid && grid.refresh) {
-                                                                setTimeout(function() { grid.refresh(); }, 1000);
+                                                                if (typeof requestWeeklyReportGridRefresh === 'function') {
+                                                                    requestWeeklyReportGridRefresh(grid);
+                                                                } else {
+                                                                    grid.refresh();
+                                                                }
                                                             }
                                                         });
                                                     },
@@ -157,7 +205,11 @@
 
                                                             Object.values(grids).forEach(function(grid) {
                                                                 if (grid && grid.refresh) {
-                                                                    setTimeout(function() { grid.refresh(); }, 2000);
+                                                                    if (typeof requestWeeklyReportGridRefresh === 'function') {
+                                                                        requestWeeklyReportGridRefresh(grid);
+                                                                    } else {
+                                                                        grid.refresh();
+                                                                    }
                                                                 }
                                                             });
                                                         } else {

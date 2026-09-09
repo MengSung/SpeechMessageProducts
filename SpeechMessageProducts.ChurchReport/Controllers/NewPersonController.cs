@@ -2,7 +2,12 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Controllers/NewPersonController.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 檔案責任：處理新人跟進 Grid 與 CRM 新人建立流程。讀取只發布 detached snapshot 並在
+//           DataSourceLoader 前依 PresentRecordId 驗證；新增成功後的純記憶體 publication 必須
+//           在目前 request 內同步完成，不能用 LongRunning fire-and-forget Task 捕獲 Session graph。
+// 隔離與資源：IOrganizationService 只從目前 request scope 取得，不跨 request 保存。圖片 stream
+//             依既有 using 路徑釋放；Grid callback、ViewModel、credential 與 Session collection
+//             都不得進入 static cache、未觀察 Task 或無界佇列。
 // 主要型別：class NewPersonController
 // 主要成員：NewPersonFollowUpView、SetupNewPersonFollowUpViewBag、LoadNewPersonFollowUp、EnsureNewPersonDataLoaded、InsertNewPresentRecord、UpdateNewPresentRecord、UpdateNewPersonFollowUpData、UpdateAllMemberData、DeleteNewPresentRecord、SaveNewPersonFollowUp
 // 引用命名空間：ChurchReport.Models、ChurchReport.Tools、ChurchReport.ViewModels、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory
@@ -98,8 +103,9 @@ namespace ChurchReport.Controllers
         #region 資料載入
 
         /// <summary>
-        /// 載入新人跟進資料
-        /// 用於 DevExtreme DataGrid 的資料來源
+        /// 載入新人跟進資料，供 DevExtreme DataGrid 使用。
+        /// 每次 request 都重新驗證 Session scope、取得 detached snapshot，並在 consumer boundary
+        /// 依 PresentRecordId fail closed；合法同名不同 ID 的新人仍全部保留。
         /// </summary>
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
@@ -120,6 +126,17 @@ namespace ChurchReport.Controllers
 
                 var tasks = snapshot
                     .m_SmallGroupDataList.m_NewPersonFollowUpData.Members;
+
+                // 新人 Grid 也有自己的 consumer collection，因此即使它與小組 Grid 共享
+                // 同一 detached snapshot，仍要在真正交給 DataSourceLoader 前獨立驗證 stable ID。
+                // 不可用 FullName 去重，因為不同 PresentRecordId 的合法同名新人必須全部保留。
+                RowPublicationGuard.ValidateRows(
+                    tasks,
+                    member => member.PresentRecordId,
+                    "ChurchReport.WeeklyReport.NewPersonGrid",
+                    RowPublicationGuard.DefaultMaximumRowCount,
+                    nameof(Member.PresentRecordId),
+                    StringComparer.OrdinalIgnoreCase);
 
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
@@ -147,16 +164,20 @@ namespace ChurchReport.Controllers
         #region CRUD 操作
 
         /// <summary>
-        /// 新增新人跟進記錄
+        /// 新增新人跟進記錄；重送 request 會在同一 instance lock 內依 PresentRecordId 原子拒絕，
+        /// 不會用姓名或內容相似度刪除資料，也不會在失敗時留下半加入集合。
         /// </summary>
         /// <param name="values">JSON 格式的資料</param>
         [HttpPost]
-        public IActionResult InsertNewPresentRecord(string values)
+    public IActionResult InsertNewPresentRecord(string values)
+    {
+        try
         {
-            try
-            {
-                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    .m_SmallGroupDataList.m_NewPersonFollowUpData.InsertMember(values);
+            // 先驗證目前 Session，再由 SmallGroupData 的 instance synchronization root 解析 JSON
+            // 並以同一臨界區拒絕重複 stable ID；這樣重送 POST 不會把同一權威記錄 append 兩次。
+            EnsureCorrectUserData();
+            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                .m_SmallGroupDataList.m_NewPersonFollowUpData.InsertMember(values);
 
                 return Ok();
             }
@@ -518,20 +539,21 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 處理新人新增成功後的邏輯
+        /// 處理新人新增成功後的記憶體發布。CRM 已在呼叫前完成，本方法只做短暫同步異動，
+        /// 不建立背景 Task；因此回應結束後不會仍有工作捕獲 Session、ViewModel 或 credential。
         /// </summary>
         private void HandleSuccessfulNewPersonCreation(PersonFormViewModel viewModel)
         {
-            // 如果有指派小組，則加入到小組成員清單
+            // 此動作只修改目前 Session 的記憶體資料圖，執行時間短且不含 CRM／HTTP I/O，
+            // 因此必須在目前 request 內同步完成，不能用未被 owner 管理的 LongRunning task
+            // 捕獲 ListManager、Session 或 viewModel。同步完成也讓 SaveNewPerson 回應送出前，
+            // 下一個初始 GET 只會看見完整舊圖或完整新圖，不會看見背景 append 的中間狀態。
             if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null &&
                 viewModel.Position != "0")
             {
                 viewModel.PresentRecordId = InMemoryContext.NewPersonModel.m_NewContact.PresentRecordId;
-
-                Task.Factory.StartNew(() =>
-                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList
-                        .AddNewPersonToMember(viewModel),
-                    TaskCreationOptions.LongRunning);
+                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList
+                    .AddNewPersonToMember(viewModel);
             }
         }
 

@@ -97,6 +97,37 @@ public sealed class ListManagerIntegratePublicationTests
     }
 
     /// <summary>
+    /// 驗證候選成功發布後，即使 legacy 寫入路徑把相同 PresentRecordId 再次放入活的 Session
+    /// 物件圖，下一次快取命中也必須重新驗證實際交付集合並 fail closed。故障注入先完成一次
+    /// 正常發布，再直接模擬舊 CRUD 的 append；決勝斷言為 loader 不會重跑、讀取會擲出重複
+    /// ID 例外，而且 guard 不會用姓名或內容選擇其中一列來掩蓋衝突。
+    /// </summary>
+    [Fact]
+    public void EnsureAndGetIntegrateDetachedRead_CacheHitAfterDuplicateWrite_RejectsConflictingSnapshot()
+    {
+        using var factoryScope = new LegacyToolUtilityFactoryScope();
+        var invocationCount = 0;
+        var manager = CreateManager(_ =>
+        {
+            Interlocked.Increment(ref invocationCount);
+            return CreateReport("list-a", ("record-a", "原始列"));
+        });
+
+        manager.EnsureAndGetIntegrateDetachedRead("list-a");
+
+        // 這一筆只模擬已知 legacy 寫入缺口，不代表允許正式程式直接修改公開欄位。
+        // 測試刻意使用相同資料庫 ID、不同顯示內容，確保判定依據只有 PresentRecordId。
+        manager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(
+            new Member { PresentRecordId = "record-a", FullName = "意外重複列" });
+
+        var action = () => manager.EnsureAndGetIntegrateDetachedRead("list-a");
+
+        action.Should().Throw<InvalidOperationException>()
+            .WithMessage("*PresentRecordId*record-a*");
+        invocationCount.Should().Be(1, "相同 scope 的 cache hit 不應為了驗證輸出而重新執行 CRM loader");
+    }
+
+    /// <summary>
     /// 驗證呼叫端改寫 detached snapshot 不會反向污染 Session holder 中已發布的資料。
     /// 故障注入直接清空第一份回傳集合；決勝斷言為第二次讀取仍保有原始 row 與名稱。
     /// </summary>
@@ -162,6 +193,32 @@ public sealed class ListManagerIntegratePublicationTests
         invocationCount.Should().Be(2, "credential 改變必須讓舊快照鍵失效");
         second.m_SmallGroupDataList.m_SmallGroupData.Members.Should()
             .ContainSingle(member => member.FullName == "憑證世代-2");
+    }
+
+    /// <summary>
+    /// 驗證兩個 Session 各自建立的 ListManager 不會共用 snapshot、gate、credential 或 Member。
+    /// 故障注入讓 A/B 使用相同 list id 但不同帳號及資料；決勝斷言為兩邊只看見自己的姓名，
+    /// 且改寫 A 的 detached result 不影響 A 的下一次讀取或 B 的任何讀取。
+    /// </summary>
+    [Fact]
+    public void EnsureAndGetIntegrateDetachedRead_DifferentSessionOwners_DoNotShareMutableState()
+    {
+        using var factoryScope = new LegacyToolUtilityFactoryScope();
+        var managerA = CreateManager(_ => CreateReport("list-a", ("record-a", "使用者 A")));
+        var managerB = CreateManager(_ => CreateReport("list-a", ("record-b", "使用者 B")));
+        managerB.m_Account = "account-b";
+        managerB.m_Password = "credential-b";
+
+        var readA = managerA.EnsureAndGetIntegrateDetachedRead("list-a");
+        var readB = managerB.EnsureAndGetIntegrateDetachedRead("list-a");
+        readA.m_SmallGroupDataList.m_SmallGroupData.Members[0].FullName = "只改 detached A";
+
+        managerA.EnsureAndGetIntegrateDetachedRead("list-a")
+            .m_SmallGroupDataList.m_SmallGroupData.Members.Should()
+            .ContainSingle(member => member.FullName == "使用者 A");
+        readB.m_SmallGroupDataList.m_SmallGroupData.Members.Should()
+            .ContainSingle(member => member.FullName == "使用者 B");
+        managerA.m_ListSmallGroupWeeklyReport.Should().NotBeSameAs(managerB.m_ListSmallGroupWeeklyReport);
     }
 
     /// <summary>

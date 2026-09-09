@@ -15,6 +15,8 @@
 - [ ] 在 `ChurchReport.MemberInfo.Tests` 先新增 consumer-boundary RED tests：合法同名不同 ID 保留、同 ID 重複拒絕、缺 ID 拒絕、容量超限拒絕及 caller mutation isolation。
 - [ ] 執行 targeted test，確認測試因 `RowPublicationGuard`／API boundary 尚不存在或未驗證而以預期理由失敗。
 - [ ] 新增無狀態 `RowPublicationGuard`，以 O(n) HashSet 驗證資料庫 ID 與容量；在 API／Razor 實際 publication boundary 套用，且不保存 caller graph。
+- [ ] 新增快取命中後重複 ID 的 RED 測試，具體覆蓋 `InsertPresentRecord`、`InsertNewPresentRecord` 與 `HandleSuccessfulNewPersonCreation` 等價寫入；確認同一 ID 無法第二次加入已發布集合。
+- [ ] 將上述寫入統一納入 `SmallGroupDataList` 既有同步根與 stable-ID 驗證；移除捕獲活 Session graph 的 fire-and-forget `Task.Factory.StartNew`，改成具有明確 owner、可觀察完成／錯誤且不延長 request graph 的流程。
 - [ ] 重新執行 backend targeted tests，確認 GREEN；再執行既有 `ListManagerIntegratePublicationTests` 與 `SmallGroupDataListSnapshotIsolationTests`。
 - [ ] 找出現有可執行的 JavaScript 測試方式；若 repository 沒有 runner，新增最小、專案內可重複執行且不需瀏覽器常駐程序的 Node 測試入口，不引入長生命週期 watcher。
 - [ ] 先新增前端 RED tests：舊 success 晚到、舊 error 晚到、重複 refresh 合併、重複 mount 單一 owner、abort 無效仍拒絕舊世代、dispose 後 active/pending/timer/handler 回到零。

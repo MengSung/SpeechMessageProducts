@@ -2,7 +2,11 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Models/SmallGroupData.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
+// 檔案責任：擁有單一 consumer 的 Member 集合與短暫記憶體 CRUD。掛入 SmallGroupDataList 後
+//           共用該 Session 資料圖的 instance synchronization root；新增資料必須在同一鎖內
+//           完成 JSON 解析、PresentRecordId 檢查與 Add，避免重送競態產生相同 ID 兩列。
+// 隔離與生命週期：本型別不執行 CRM／HTTP I/O、不建立背景 Task 或 static cache；同步根只隨
+//                 所屬資料圖存活。相同姓名不同 ID 必須保留，相同 ID 失敗時集合維持原狀。
 // 主要型別：class SmallGroupData
 // 主要成員：InsertMember、UpdateMember、PopulateObjectAndUpdateEntity、DeleteMember、LoginType、SmallGroupLeaderContactId、SmallGroupLeaderFullName、SundayPrayers、SundayPrayersString、DataStatus
 // 引用命名空間：ChurchReport.Models.CrmTransmitModule、ChurchReport.WebServiceConnector、Newtonsoft.Json、System、System.Collections.Generic、System.Linq、System.Text、System.Threading.Tasks
@@ -57,12 +61,38 @@ namespace ChurchReport.Models
 
         private object SynchronizationRoot => _syncRoot ?? _localSyncRoot;
 
-        public void InsertMember( string values)
+        /// <summary>
+        /// 在所屬資料圖的唯一同步根內解析 DevExtreme 新增 payload，並以 PresentRecordId 原子防重。
+        /// </summary>
+        /// <param name="values">目前 request 提供的 JSON 欄位；身份仍須由 server／資料庫流程建立與驗證。</param>
+        /// <exception cref="InvalidOperationException">ID 缺少或已存在時擲出；不會修改原集合。</exception>
+        /// <remarks>
+        /// 方法只做短暫記憶體操作，不得在鎖內加入 CRM、HTTP、檔案 I/O 或等待 Task。姓名及其他
+        /// 顯示內容不參與比較，避免誤刪合法同名資料；例外也不包含姓名、credential 或 Session ID。
+        /// </remarks>
+        public void InsertMember(string values)
         {
             lock (SynchronizationRoot)
             {
                 var aNewMember = new Member();
                 JsonConvert.PopulateObject(values, aNewMember);
+
+                // 此方法是單一 consumer collection 的寫入邊界。解析完成後立即用資料庫
+                // PresentRecordId 比對既有列；不得因姓名相同就拒絕不同 ID，也不得以取第一筆
+                // 或覆蓋字典值掩蓋同一 ID 的重送。鎖內沒有 I/O，例外發生時集合維持原狀。
+                if (aNewMember == null || string.IsNullOrWhiteSpace(aNewMember.PresentRecordId))
+                {
+                    throw new InvalidOperationException("新增出席資料缺少有效 PresentRecordId，拒絕發布。");
+                }
+
+                var normalizedId = aNewMember.PresentRecordId.Trim();
+                if (Members?.Any(member => member != null &&
+                        string.Equals(member.PresentRecordId?.Trim(), normalizedId, StringComparison.OrdinalIgnoreCase)) == true)
+                {
+                    throw new InvalidOperationException(
+                        $"新增出席資料偵測到重複 PresentRecordId '{normalizedId}'，拒絕重送。");
+                }
+
                 Members.Add(aNewMember);
             }
         }

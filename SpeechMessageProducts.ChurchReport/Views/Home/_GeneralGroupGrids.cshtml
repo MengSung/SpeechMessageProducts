@@ -10,10 +10,98 @@
     更新記錄：
     - 在 SmallGroupgridContainer 和 NewPersonGridContainer 最左側加入聯絡人照片欄位
     - 照片來源：CRM contact.entityimage，透過 ContactId 動態載入
+    - 每個 Grid 掛載一個 WeakMap-owned 載入協調器，包裝既有 WebApi store.load；不建立第二條
+      AJAX 管線。舊回應由 generation token 拒絕，重複 mount 會先 dispose 舊 Grid 與 transport。
+    - Grid row key 固定使用資料庫 PresentRecordId；姓名、電話與顯示內容不得用來去重。
+      coordinator 不保存 response data、Session、credential 或跨使用者狀態。
     ====================================================================================================
 *@
 @using ChurchReport.Models
 @model ChurchReport.Models.ListSmallGroupWeeklyReport
+
+@* IntegrateView 已在任何元件建立前載入協調器；此處只定義 DevExtreme adapter。 *@
+<script>
+    /**
+     * 在 Grid 建立時發布此 DOM owner 的唯一載入世代。
+     * 此 adapter 僅包裝 DevExtreme 已存在的 WebApi store.load，不發出第二條 AJAX；原始 store
+     * 仍負責 paging、sorting、CRUD 與認證 cookie。Coordinator 只保存 transport 與純量 generation，
+     * 不保存 rows、Session 或 credential，因此 view dispose 後不會延長使用者資料生命週期。
+     */
+    function initializeWeeklyReportGridPublicationGuard(e) {
+        if (!e || !e.component || !window.CollectionLoadCoordinator) {
+            throw new Error('週報 Grid 載入協調器初始化失敗，拒絕在無世代防護下發布資料。');
+        }
+
+        var component = e.component;
+        var element = component.element && component.element();
+        var owner = element && element.length ? element[0] : null;
+        if (!owner) {
+            throw new Error('週報 Grid 缺少 DOM owner，無法建立有界載入生命週期。');
+        }
+
+        var dataSource = component.getDataSource();
+        var store = dataSource && dataSource.store ? dataSource.store() : null;
+        if (!store || typeof store.load !== 'function') {
+            throw new Error('週報 Grid 缺少既有 WebApi store.load，拒絕建立第二條取數管線。');
+        }
+
+        var originalLoad = store.load.bind(store);
+        var coordinator = window.CollectionLoadCoordinator.mount(owner, function disposeOwnedGrid() {
+            // duplicate mount 時只釋放上一個 component。正常 DevExtreme OnDisposing 會先標記旗標，
+            // 避免 disposer 再呼叫 component.dispose 造成遞迴；所有 closure 隨後由 adapter 清除。
+            if (component && !component.__weeklyReportIsDisposing && typeof component.dispose === 'function') {
+                component.dispose();
+            }
+        });
+
+        store.load = function loadWithGenerationGuard(loadOptions) {
+            return coordinator.runLoad(function invokeExistingWebApiStore() {
+                return originalLoad(loadOptions);
+            });
+        };
+        component.__weeklyReportLoadCoordinator = coordinator;
+        component.__weeklyReportLoadOwner = owner;
+    }
+
+    /**
+     * 在 DevExtreme 銷毀 Grid 時先使所有晚到 callback 失效，再清除 WeakMap owner 與 component
+     * 上的本地參考。此方法不等待網路，不建立 timer，重複呼叫是安全 no-op。
+     */
+    function disposeWeeklyReportGridPublicationGuard(e) {
+        if (!e || !e.component || !window.CollectionLoadCoordinator) {
+            return;
+        }
+
+        var component = e.component;
+        component.__weeklyReportIsDisposing = true;
+        var owner = component.__weeklyReportLoadOwner;
+        if (owner) {
+            window.CollectionLoadCoordinator.disposeOwner(owner);
+        }
+        component.__weeklyReportLoadCoordinator = null;
+        component.__weeklyReportLoadOwner = null;
+    }
+
+    /**
+     * 將外部儲存流程的 refresh 合併成此 Grid 最多一個 pending intent；沒有 coordinator 的
+     * 非週報 Grid 才直接使用原有 refresh，避免改變其他產品或頁面的生命週期契約。
+     */
+    function requestWeeklyReportGridRefresh(grid) {
+        if (!grid || typeof grid.refresh !== 'function') {
+            return;
+        }
+
+        var coordinator = grid.__weeklyReportLoadCoordinator;
+        if (coordinator) {
+            coordinator.requestRefresh(function refreshCurrentGridGeneration() {
+                grid.refresh();
+            });
+            return;
+        }
+
+        grid.refresh();
+    }
+</script>
 
 <style>
     /* 小組回報網格大頭照：載入時於綠色剪影上疊「轉圈等待」，照片到位後移除 is-loading 即停止旋轉。 */
@@ -282,6 +370,8 @@
                                 }
                             }
                         </text>)
+                        .OnInitialized("initializeWeeklyReportGridPublicationGuard")
+                        .OnDisposing("disposeWeeklyReportGridPublicationGuard")
                         .OnCellPrepared("cell_prepared")
                 )
             </div>
@@ -503,6 +593,8 @@
                             }
                         </text>)
                         .OnCellPrepared("cell_prepared")
+                        .OnInitialized("initializeWeeklyReportGridPublicationGuard")
+                        .OnDisposing("disposeWeeklyReportGridPublicationGuard")
                 )
             </div>
         </div>

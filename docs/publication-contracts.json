@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "consumers": [
+    {
+      "product": "ChurchReport",
+      "consumer": "WeeklyReport.SmallGroup",
+      "endpoint": "GET /SmallGroup/LoadIntegrate",
+      "view": "SpeechMessageProducts.ChurchReport/Views/Home/_GeneralGroupGrids.cshtml",
+      "identity": "PresentRecordId",
+      "identityKind": "persisted-guid",
+      "scopeFields": [
+        "product",
+        "subject",
+        "tenant",
+        "authorizationEpoch",
+        "list",
+        "report",
+        "date"
+      ],
+      "publicationMode": "snapshot-replace",
+      "adapter": "DevExtreme",
+      "maxRows": 10000,
+      "overflowBehavior": "reject-with-explicit-error",
+      "contractTestSuite": "RowPublicationGuardTests"
+    },
+    {
+      "product": "ChurchReport",
+      "consumer": "WeeklyReport.NewPerson",
+      "endpoint": "GET /NewPerson/LoadNewPersonFollowUp",
+      "view": "SpeechMessageProducts.ChurchReport/Views/Home/_GeneralGroupGrids.cshtml",
+      "identity": "PresentRecordId",
+      "identityKind": "persisted-guid",
+      "scopeFields": [
+        "product",
+        "subject",
+        "tenant",
+        "authorizationEpoch",
+        "list",
+        "report",
+        "date"
+      ],
+      "publicationMode": "snapshot-replace",
+      "adapter": "DevExtreme",
+      "maxRows": 10000,
+      "overflowBehavior": "reject-with-explicit-error",
+      "contractTestSuite": "RowPublicationGuardTests"
+    }
+  ]
+}

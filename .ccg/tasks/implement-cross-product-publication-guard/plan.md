@@ -35,6 +35,8 @@
 - [ ] Add tests for same-name/different-ID preservation, exact duplicate rejection, missing-ID rejection, capacity rejection, and no retained caller graph.
 - [ ] Run tests and capture expected RED caused by the missing guard or missing boundary call.
 - [ ] Implement the minimum O(n) local HashSet validation and boundary integration.
+- [ ] Add cache-hit and concurrent-write RED tests for `InsertPresentRecord`, `InsertNewPresentRecord`, and `HandleSuccessfulNewPersonCreation` equivalent paths.
+- [ ] Route those writes through the existing `SmallGroupDataList` synchronization owner and stable-ID validation; remove the unowned fire-and-forget task that captures the live Session graph.
 - [ ] Run targeted and existing snapshot isolation tests to GREEN.
 
 ## Task 3: Frontend generation coordinator

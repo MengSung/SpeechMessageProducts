@@ -8,6 +8,7 @@
 // ============================================================================
 using ChurchReport.Models;
 using ChurchReport.WebServiceConnector;
+using ChurchReport.ViewModels;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -186,6 +187,75 @@ public sealed class SmallGroupDataListSnapshotIsolationTests
 
         report.CreateBackgroundUploadCopy().m_SmallGroupDataList.m_AllMemeberData.Members
             .Should().ContainSingle(member => member.PresentRecordId == "added");
+    }
+
+    /// <summary>
+    /// 保護 DevExtreme 或代理重送同一筆新增 payload 時，不會把相同資料庫 ID append 兩次。
+    /// 故障注入對同一集合連續送入相同 PresentRecordId、不同姓名的 JSON；決勝斷言為第二次
+    /// 寫入 fail closed，而且原集合只保留第一列。姓名刻意不同，用來證明身份判斷不依內容。
+    /// </summary>
+    [Fact]
+    public void InsertMember_DuplicateStableId_RejectsWithoutMutatingPublishedCollection()
+    {
+        var data = new SmallGroupData { Members = new List<Member>() };
+
+        data.InsertMember("{\"PresentRecordId\":\"record-a\",\"FullName\":\"第一筆\"}");
+        var action = () => data.InsertMember(
+            "{\"PresentRecordId\":\"record-a\",\"FullName\":\"重送內容\"}");
+
+        action.Should().Throw<InvalidOperationException>()
+            .WithMessage("*PresentRecordId*record-a*");
+        data.Members.Should().ContainSingle(member =>
+            member.PresentRecordId == "record-a" && member.FullName == "第一筆");
+    }
+
+    /// <summary>
+    /// 保護同一新人建立結果遭 32 個並行 callback 重送時，只能由一個 writer 原子加入。
+    /// 故障注入讓所有工作使用相同 PresentRecordId；決勝斷言為一個成功、其餘明確失敗，
+    /// 小組與全部成員兩個 consumer 各只有一列，沒有 partial publication 或無界背景工作。
+    /// </summary>
+    [Fact]
+    public async Task AddNewPersonToMember_ConcurrentDuplicateStableId_PublishesExactlyOncePerConsumer()
+    {
+        var dataList = new SmallGroupDataList
+        {
+            m_SmallGroupData = new SmallGroupData { Members = new List<Member>() },
+            m_NewPersonFollowUpData = new SmallGroupData { Members = new List<Member>() },
+            m_HappyGroup = new SmallGroupData { Members = new List<Member>() },
+            m_AllMemeberData = new SmallGroupData { Members = new List<Member>() }
+        };
+        var successCount = 0;
+        var failureCount = 0;
+
+        var writers = Enumerable.Range(0, 32).Select(index => Task.Run(() =>
+        {
+            try
+            {
+                dataList.AddNewPersonToMember(new PersonFormViewModel
+                {
+                    PresentRecordId = "record-a",
+                    Position = "測試小組",
+                    CustomerTypeCode = "小組組員",
+                    LastName = $"同一資料庫列-{index}"
+                });
+                Interlocked.Increment(ref successCount);
+            }
+            catch (InvalidOperationException)
+            {
+                Interlocked.Increment(ref failureCount);
+            }
+        })).ToArray();
+
+        await Task.WhenAll(writers);
+
+        successCount.Should().Be(1);
+        failureCount.Should().Be(31);
+        dataList.m_SmallGroupData.Members.Should()
+            .ContainSingle(member => member.PresentRecordId == "record-a");
+        dataList.m_AllMemeberData.Members.Should()
+            .ContainSingle(member => member.PresentRecordId == "record-a");
+        dataList.m_NewPersonFollowUpData.Members.Should().BeEmpty();
+        dataList.m_HappyGroup.Members.Should().BeEmpty();
     }
 
     /// <summary>

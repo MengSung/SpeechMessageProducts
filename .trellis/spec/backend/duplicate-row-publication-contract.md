@@ -49,6 +49,20 @@ their row key.
   still held or awaited.
 - Application single-flight prevents in-process duplicate builds. Database or
   Dataverse alternate/idempotency keys prevent cross-process duplicate writes.
+- Cache-hit paths are publication paths too: the exact collection handed to a
+  serializer or grid must be detached and revalidated after the cache read. A
+  validation performed only while the cache entry was first built is
+  insufficient because legacy writers, callbacks, or mutable holders may have
+  changed the live object graph afterward.
+- Legacy write paths must join the same instance synchronization root and
+  duplicate-key guard as the primary writer. A second guard that uses a
+  different lock, or an append performed after snapshot publication, can still
+  create a repeated stable identity or expose a partial collection.
+- Never use fire-and-forget or unobserved long-running work that captures a
+  live Session-owned graph, request service, CRM client, or credential. Complete
+  the mutation inside the bounded request, or hand off only detached immutable
+  input to a separately owned, cancellable, observable worker with deterministic
+  drain and disposal.
 
 ## 4. Validation & Error Matrix
 

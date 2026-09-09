@@ -12,6 +12,8 @@
 
 每個 API action 在呼叫 `DataSourceLoader.Load` 前，對「實際將被該 Grid 消費的集合」再執行 `RowPublicationGuard`。這層是 defense in depth：即使候選發布後的 mapping、selection 或未來維護修改意外重複列，仍不會把 duplicate key 交給 UI library。錯誤訊息包含 consumer 名稱與不敏感的衝突 ID，不包含姓名、token 或 credential。
 
+分析已確認 `InsertPresentRecord`、`InsertNewPresentRecord` 與 `HandleSuccessfulNewPersonCreation` 可能在候選發布後直接修改活的 Session 物件圖，其中背景 `Task.Factory.StartNew` 還會延長 Session graph 的保留時間，且例外與結束時間缺乏明確 owner。這三條寫入路徑必須統一經過 `SmallGroupDataList` 既有同步根或改成 request-owned／明確受管的操作；不得另建第二把互不協調的鎖。寫入完成前要驗證 stable ID，重複 ID 必須拒絕，不得把 guard 當成只在輸出端隱藏根因的工具。
+
 初始 Razor 路徑只接收 detached view model。Controller 不把 Session holder 內的可變 list 或 member reference 直接交給 View，確保 Razor 列舉期間不會與另一個 request 同時修改同一物件圖。
 
 ## 3. 前端載入協調器

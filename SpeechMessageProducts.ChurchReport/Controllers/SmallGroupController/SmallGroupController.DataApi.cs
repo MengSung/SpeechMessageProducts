@@ -2,7 +2,12 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 檔案責任：提供週報 Grid／圖表的 HTTP 讀取邊界。每個 request 先驗證目前 Session scope，
+//           再取得 ListManager detached snapshot；實際交給 DataSourceLoader 的集合會依資料庫
+//           PresentRecordId 再做一次有界 fail-closed 驗證，絕不依姓名或顯示內容去重。
+// 隔離與生命週期：Controller 不保存 response、Session collection、CRM client 或 credential 到
+//                 static/cache/background callback；request 完成後 detached graph 可回收，no-store
+//                 端點也不得被中介快取當成跨使用者授權替代品。
 // 主要型別：class SmallGroupController
 // 主要成員：LoadIntegrate、GetChartDataList、GetMultiGroupChartDataList、AssignSmallGroupGet
 // 引用命名空間：ChurchReport.Models、ChurchReport.Tools、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory、System
@@ -126,6 +131,17 @@ namespace ChurchReport.Controllers
                 // 這種設計模式稱為 Repository Pattern（倉儲模式）。
                 var tasks = snapshot
                     .m_SmallGroupDataList.m_SmallGroupData.Members;
+
+                // 這是交給 DataSourceLoader 的最後一個 consumer boundary。即使來源快照在
+                // 未來維護中被某個 CRUD 路徑錯誤 append，仍必須在 serializer／Grid 之前拒絕
+                // 重複 PresentRecordId；這裡只驗證 stable ID，不以姓名或內容刪除合法同名資料。
+                RowPublicationGuard.ValidateRows(
+                    tasks,
+                    member => member.PresentRecordId,
+                    "ChurchReport.WeeklyReport.SmallGroupGrid",
+                    RowPublicationGuard.DefaultMaximumRowCount,
+                    nameof(Member.PresentRecordId),
+                    StringComparer.OrdinalIgnoreCase);
 
                 // 使用 DevExtreme 的 DataSourceLoader 處理資料
                 // 教學說明：

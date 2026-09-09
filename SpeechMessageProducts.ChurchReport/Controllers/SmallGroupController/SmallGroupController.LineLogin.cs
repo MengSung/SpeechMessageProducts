@@ -2,7 +2,11 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.LineLogin.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 檔案責任：依序完成 LINE Contact 查詢、Authentication ticket、Session 身分、小組授權與週報
+//           初始發布。步驟不得平行化，且最後只把 detached snapshot 傳給 Razor，避免不同登入
+//           世代的 ActiveListId、ViewBag 與 Members 混合。
+// 取消與資源：同步 Dataverse API 不包入 Task.Run；request cancellation 只在安全邊界檢查，
+//             非同步通知會 await 完成。方法不留下捕獲 HttpContext、Session 或 credential 的工作。
 // 主要型別：class SmallGroupController
 // 主要成員：HandleLineLogin
 // 引用命名空間：Microsoft.AspNetCore.Mvc、System、System.Threading、System.Threading.Tasks
@@ -97,8 +101,11 @@ namespace ChurchReport.Controllers
                     // 造成格式錯誤。ListManager 會在自己的發布 gate 內再次驗證此 ID 確實可見。
                     EnsureIntegrateDataLoaded(InMemoryContext.ListManager.ActiveListId);
 
-                    return View("~/Views/Home/IntegrateView.cshtml",
-                        InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
+                    // 登入初始化完成後再次取得同一授權 scope 的 detached read，讓 Razor 永遠
+                    // 只持有 request-owned 物件，不會捕獲 Session holder、credential 或共享 Members。
+                    var detachedRead = InMemoryContext.ListManager
+                        .EnsureAndGetIntegrateDetachedRead(InMemoryContext.ListManager.ActiveListId);
+                    return View("~/Views/Home/IntegrateView.cshtml", detachedRead);
                 }
             }
             catch (OperationCanceledException)
