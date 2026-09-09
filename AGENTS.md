@@ -226,3 +226,5 @@ Required recovery behavior:
 - LINE 發送失敗不得覆蓋原始例外、不得遞迴通知；所有 queue、task、timer、stream 與 cancellation registration 必須有上限、逾時、drain 與 Dispose。詳細契約與測試要求見 `.trellis/spec/backend/error-handling.md` 的「LINE 管理者例外告警契約」。
 - Debug 與 Release 都必須把 `ILogger` 的 Error/Critical（含 Exception）寫入應用程式 `Logs\Exception.log`；檔案 writer 由 Host/DI 擁有並在停止時 Dispose。禁止以 request、Session、使用者輸入或機密值組成檔名或路徑。
 - **固定順序：先將事件寫入 `Exception.log` 並成功 flush，再排入／發送 LINE。** LINE 與日誌共用事件 ID。落檔失敗不得先送 LINE 或假稱已記錄，必須走獨立 stderr／主機監控；LINE 失敗只追加本地通知狀態，不遞迴通知。
+- catch 必須傳遞真實 `Exception` 至共用入口，保留型別、程式位置與同一事件的去重依據；禁止只傳 `ToString()` 後丟棄例外。內部逾時 token 已取消仍屬失敗；正常取消只能由呼叫端明確提供的 token 判定。
+- 檔案輪替受外部鎖定阻擋時，只可有界降級寫入 `Exception.log`（最多正常容量兩倍），仍須成功 flush 才通知；達硬上限或無法寫入時走 stderr／主機監控，解除鎖定後恢復輪替。不得截斷既有證據或無界增加檔案。

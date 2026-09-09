@@ -34,13 +34,17 @@ namespace ChurchReport.Services
         private readonly ToolUtilityClass _utility;
         private readonly Func<object, JsonResult> _json;
         private readonly Func<string, object, RedirectToActionResult> _redirectToAction;
-        private readonly Action<string> _notifyRegistrationError;
+        private readonly Action<Exception> _notifyRegistrationError;
 
+        /// <summary>
+        /// 注入 request 內的 CRM 與 MVC 轉接器；診斷 callback 必須同步交付例外且不得保留 request。
+        /// 共用 owner 負責先 flush Exception.log 再排入 LINE，保留型別與堆疊並排除敏感文字。
+        /// </summary>
         public DonationContactCreationService(
             ToolUtilityClass utility,
             Func<object, JsonResult> json,
             Func<string, object, RedirectToActionResult> redirectToAction,
-            Action<string> notifyRegistrationError)
+            Action<Exception> notifyRegistrationError)
         {
             _utility = utility ?? throw new ArgumentNullException(nameof(utility));
             _json = json ?? throw new ArgumentNullException(nameof(json));
@@ -74,11 +78,8 @@ namespace ChurchReport.Services
             }
             catch (Exception exception)
             {
-                string errorString = "錯誤訊息 : FullName = " + GetType().FullName +
-                    " , Time = " + DateTime.Now +
-                    " , Description = " + exception;
-
-                _notifyRegistrationError(errorString);
+                // 建立失敗雖轉為既有錯誤頁，仍需落檔與告警；不得因 catch 而遺失真實例外。
+                _notifyRegistrationError(exception);
                 return _redirectToAction("DisplayErrorView", new { ErrorMessage = exception.Message });
             }
         }

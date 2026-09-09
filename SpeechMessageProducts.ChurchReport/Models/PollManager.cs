@@ -18,6 +18,7 @@ using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -67,6 +68,14 @@ namespace ChurchReport.Models
         #endregion
 
         #region 電腦網頁登入
+        /// <summary>
+        /// 儲存目前 LINE 使用者的問卷，依 QR 課程查詢紀錄後依序更新課程與聯絡人的回覆。
+        /// </summary>
+        /// <remarks>
+        /// 同一原始例外會交給共用 owner 先寫入並 flush Exception.log，再排入 LINE；
+        /// 再次經過外層 catch 時以同一例外去重。不得傳送 QR、姓名、表單或 CRM 實體；
+        /// 本入口不建立通知背景工作、不保存例外，維持目前 request 的資料與資源邊界。
+        /// </remarks>
         public async Task<IActionResult> SavePoll(PollModel PollModel, String QrCodeIdString, String LineUserId)
         {
             try
@@ -95,15 +104,10 @@ namespace ChurchReport.Models
                 return Json(new { status = "1", message = "謝謝" + m_UserName + "的參與，牧區及事工單位的同工將主動與" + m_UserName + "接洽！" });
 
             }
-            catch (System.Exception e)
+            catch (System.Exception exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-                NotifyPollError(ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
+                NotifyPollError(exception);
+                throw;
             }
         }
 
@@ -136,6 +140,14 @@ namespace ChurchReport.Models
             }
         }
 
+        /// <summary>
+        /// 依 QR 所指課程名稱建立問卷顯示旗標；結果只屬於本次操作，不發布為共用快取。
+        /// </summary>
+        /// <remarks>
+        /// 同一原始例外會交給共用 owner 先寫入並 flush Exception.log，再排入 LINE；
+        /// 再次經過外層 catch 時以同一例外去重。不得傳送 QR、姓名、表單或 CRM 實體；
+        /// 本入口不建立通知背景工作、不保存例外，維持目前 request 的資料與資源邊界。
+        /// </remarks>
         public PollModel SetDisplayFlag(String QrCodeIdString)
         {
             try
@@ -174,17 +186,20 @@ namespace ChurchReport.Models
                 }
                 return aPollModel;
             }
-            catch (System.Exception e)
+            catch (System.Exception exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-                NotifyPollError(ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
+                NotifyPollError(exception);
+                throw;
             }
         }
+        /// <summary>
+        /// 查詢 QR 所指課程並回傳顯示名稱；CRM 讀取失敗保持失敗語意，不以空名稱掩蓋。
+        /// </summary>
+        /// <remarks>
+        /// 同一原始例外會交給共用 owner 先寫入並 flush Exception.log，再排入 LINE；
+        /// 再次經過外層 catch 時以同一例外去重。不得傳送 QR、姓名、表單或 CRM 實體；
+        /// 本入口不建立通知背景工作、不保存例外，維持目前 request 的資料與資源邊界。
+        /// </remarks>
         public String GetClassName(String QrCodeIdString)
         {
             try
@@ -195,17 +210,20 @@ namespace ChurchReport.Models
                 m_Lesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
                 return this.m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
             }
-            catch (System.Exception e)
+            catch (System.Exception exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-                NotifyPollError(ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
+                NotifyPollError(exception);
+                throw;
             }
         }
+        /// <summary>
+        /// 將本次表單的服事項目轉成既有 CRM 問卷文字；表單內容不進入告警佇列。
+        /// </summary>
+        /// <remarks>
+        /// 同一原始例外會交給共用 owner 先寫入並 flush Exception.log，再排入 LINE；
+        /// 再次經過外層 catch 時以同一例外去重。不得傳送 QR、姓名、表單或 CRM 實體；
+        /// 本入口不建立通知背景工作、不保存例外，維持目前 request 的資料與資源邊界。
+        /// </remarks>
         public String GetPollResult(PollModel PollModel)
         {
             try
@@ -271,17 +289,20 @@ namespace ChurchReport.Models
                 }
                 return PollResult;
             }
-            catch (System.Exception e)
+            catch (System.Exception exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-                NotifyPollError(ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
+                NotifyPollError(exception);
+                throw;
             }
         }
+        /// <summary>
+        /// 將此次新增的服事意願寫入目前聯絡人，保留既有選項且由 CRM 更新決定成功與否。
+        /// </summary>
+        /// <remarks>
+        /// 同一原始例外會交給共用 owner 先寫入並 flush Exception.log，再排入 LINE；
+        /// 再次經過外層 catch 時以同一例外去重。不得傳送 QR、姓名、表單或 CRM 實體；
+        /// 本入口不建立通知背景工作、不保存例外，維持目前 request 的資料與資源邊界。
+        /// </remarks>
         public void UpdateContactPollResult(PollModel PollModel)
         {
             try
@@ -393,17 +414,20 @@ namespace ChurchReport.Models
                 m_ToolUtilityClass.UpdateEntity(ref m_Contact);
 
             }
-            catch (System.Exception e)
+            catch (System.Exception exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-                NotifyPollError(ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
+                NotifyPollError(exception);
+                throw;
             }
         }
+        /// <summary>
+        /// 將本次問卷內容與結果寫入指定課程紀錄；任一步 CRM 更新失敗都交回呼叫端處理。
+        /// </summary>
+        /// <remarks>
+        /// 同一原始例外會交給共用 owner 先寫入並 flush Exception.log，再排入 LINE；
+        /// 再次經過外層 catch 時以同一例外去重。不得傳送 QR、姓名、表單或 CRM 實體；
+        /// 本入口不建立通知背景工作、不保存例外，維持目前 request 的資料與資源邊界。
+        /// </remarks>
         public void UpdateStorLesson(PollModel PollModel, Entity StorLessonEntity)
         {
             try
@@ -414,24 +438,36 @@ namespace ChurchReport.Models
                 m_ToolUtilityClass.UpdateEntity(ref StorLessonEntity);
 
             }
-            catch (System.Exception e)
+            catch (System.Exception exception)
             {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-                NotifyPollError(ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
+                NotifyPollError(exception);
+                throw;
             }
         }
 
-        private static void NotifyPollError(string errorString)
+        /// <summary>
+        /// 以實際例外交由共用告警服務，避免字串重新包裝破壞同一 incident 的去重依據。
+        /// </summary>
+        /// <param name="exception">catch 原始例外；owner 只投影安全摘要，不把例外物件圖留在佇列。</param>
+        /// <param name="operation">編譯器提供的呼叫端方法名稱；只能由程式碼指定，不得使用 request 輸入。</param>
+        /// <remarks>
+        /// 共用 owner 負責先完成 Exception.log flush 再排入 LINE，使用弱鍵去重且不延長 request 壽命。
+        /// 此同步轉交不保存 manager、Session、憑證或 CRM 實體，通知失敗也不得取代原始失敗。
+        /// </remarks>
+        private static void NotifyPollError(Exception exception, [CallerMemberName] string operation = null)
         {
-            ChurchReportLineAdminNotificationService.NotifyDefaultError("好牧人", errorString);
+            ChurchReportLineAdminNotificationService.ReportException(nameof(PollManager) + "." + operation, exception);
         }
         #endregion
         #region 新增、修改課程記錄
+        /// <summary>
+        /// 建立聯絡人的課程紀錄並嘗試指派負責人；建立成功後即保留 ID，指派失敗只通知而不重建記錄。
+        /// </summary>
+        /// <remarks>
+        /// 同一原始例外會交給共用 owner 先寫入並 flush Exception.log，再排入 LINE；
+        /// 再次經過外層 catch 時以同一例外去重。不得傳送 QR、姓名、表單或 CRM 實體；
+        /// 本入口不建立通知背景工作、不保存例外，維持目前 request 的資料與資源邊界。
+        /// </remarks>
         public Guid CreateNewStorLesson(Entity aContact, ref Entity aDiscepleLessons)
         {
             try
@@ -456,7 +492,9 @@ namespace ChurchReport.Models
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    // 記錄已建立，重試整段會新增第二筆；維持既有 ID 回傳並通知指派失敗，
+                    // 不把聯絡人、owner ID 或 CRM 資料送入通知，亦不在此啟動重試工作。
+                    NotifyPollError(e, nameof(CreateNewStorLesson));
                 }
 
                 return aNewStorLessonsEntityId;
@@ -491,6 +529,14 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
+        /// <summary>
+        /// 將來源課程的欄位、費用與課程名稱複製到此次新建的上課紀錄，不共用可變候選資料。
+        /// </summary>
+        /// <remarks>
+        /// 選項欄位 setter 會處理缺欄，真正寫入例外仍保留既有繼續組裝行為並明確告警；
+        /// 告警僅傳同一例外與固定方法名，由共用 owner 去重並在 Exception.log flush 後排入 LINE。
+        /// 本方法不把聯絡人、課程內容或 CRM 實體傳給通知佇列，也不建立額外資源或背景工作。
+        /// </remarks>
         private void CopyDisceipleAttributes(ref Entity aRetrievedContact, ref Entity aNewStorLessonsEntity, ref Entity aDiscipleLessons)
         {
             try
@@ -556,7 +602,12 @@ namespace ChurchReport.Models
                 if (ClassificationValue != EMPTY_VALUE)
                 {
                     try { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_classification", ClassificationValue); }
-                    catch (System.Exception e) { }
+                    catch (System.Exception e)
+                    {
+                        // Setter 會自行新增缺少的欄位；抵達 catch 代表實際欄位寫入失敗，不能當作正常缺欄。
+                        // 維持既有繼續組裝語意，但把同一例外交給有界 owner 先落檔 flush 後通知。
+                        NotifyPollError(e, nameof(CopyDisceipleAttributes));
+                    }
                 }
                 #endregion
                 #region 學期
@@ -565,7 +616,12 @@ namespace ChurchReport.Models
                 if (SemesterValue != EMPTY_VALUE)
                 {
                     try { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_semester", SemesterValue); }
-                    catch (System.Exception e) { }
+                    catch (System.Exception e)
+                    {
+                        // Setter 會自行新增缺少的欄位；抵達 catch 代表實際欄位寫入失敗，不能當作正常缺欄。
+                        // 維持既有繼續組裝語意，但把同一例外交給有界 owner 先落檔 flush 後通知。
+                        NotifyPollError(e, nameof(CopyDisceipleAttributes));
+                    }
                 }
 
                 #endregion

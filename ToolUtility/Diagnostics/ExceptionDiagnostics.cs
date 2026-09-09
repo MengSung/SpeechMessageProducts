@@ -68,7 +68,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
 
     /// <summary>
     /// 在功能確定失敗的邊界呼叫。相同例外實例以 weak key 去重，不延長例外生命；
-    /// 只有取消 token 已取消的 OperationCanceledException 視為正常取消，逾時仍須記錄。
+    /// 只有呼叫者 token 已取消的 OperationCanceledException 視為正常取消，內部逾時仍須記錄。
     /// 不讀 Message、Data、原始 StackTrace 或任何使用者值。成功回傳表示落檔完成，
     /// 不代表 LINE 已送達；磁碟失敗時不發送 LINE，也不把原例外換成記錄例外。
     /// </summary>
@@ -177,10 +177,12 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
                 }
                 catch
                 {
-                    // 外部讀取器未開放 delete share 時無法輪替；保留原始證據並回報 stderr。
-                    // 下次事件會重新嘗試，讀取器釋放後自動恢復。禁止截斷原檔或無界 append。
+                    // 外部讀取器未開放 delete share 時無法輪替；先保留原始證據，
+                    // 只允許在兩倍正常上限內降級附加。每次新事件仍會重試輪替，
+                    // 讀取器釋放後即恢復五份備份策略；達硬上限則拒絕寫入，
+                    // 避免以無界檔案成長換取告警，且不會在未 flush 時入列 LINE。
                     Emergency("ExceptionLogRotationFailed");
-                    return false;
+                    return AppendWithinDegradedCap(path, bytes);
                 }
             }
             using var stream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.Read);
@@ -190,6 +192,35 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
         }
         catch { Emergency("ExceptionLogWriteFailed"); return false; }
         finally { if (acquired) _fileMutex.ReleaseMutex(); }
+    }
+
+    /// <summary>
+    /// 輪替遭外部讀取器拒絕時的有限降級路徑。允許檔案暫時成長至正常上限兩倍，
+    /// 使用允許其他讀取器且禁止並行寫入的短生命串流，並以 flush(true) 確保證據已落盤。
+    /// 下一筆事件會再次嘗試輪替；硬上限內無法開啟或寫入時回傳 false，呼叫端不得通知 LINE。
+    /// </summary>
+    private bool AppendWithinDegradedCap(string path, byte[] bytes)
+    {
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.Read);
+            var currentLength = stream.Length;
+            var hardCap = _maximumFileBytes > long.MaxValue / 2 ? long.MaxValue : _maximumFileBytes * 2;
+            if (currentLength > hardCap - bytes.Length)
+            {
+                Emergency("ExceptionLogDegradedCapReached");
+                return false;
+            }
+
+            stream.Write(bytes);
+            stream.Flush(flushToDisk: true);
+            return true;
+        }
+        catch
+        {
+            Emergency("ExceptionLogWriteFailed");
+            return false;
+        }
     }
 
     /// <summary>通知基礎設施狀態只落本地，關聯既有事件 ID；不包含 provider 回應或再次入列。</summary>

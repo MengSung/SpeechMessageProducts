@@ -1,4 +1,5 @@
 
+using System;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace ChurchReport.Services;
@@ -18,6 +19,13 @@ public static class ChurchReportLineAdminNotificationService
     public static void NotifyDefaultError(string source, string errorMessage)
     {
         ExceptionReporting.Report(null, source + ".LegacyAdminError");
+    }
+
+    /// <summary>以真實例外保留型別與可定位堆疊；共用 owner 仍先落檔 flush 再排入 LINE。</summary>
+    public static void ReportException(string source, Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        ExceptionReporting.Report(exception, source + ".Exception");
     }
 
     /// <summary>保留指定分類的舊三參數呼叫；不以動態分類或原始文字決定收件人或診斷路徑。</summary>

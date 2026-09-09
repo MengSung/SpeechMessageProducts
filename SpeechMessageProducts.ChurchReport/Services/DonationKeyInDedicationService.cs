@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
 // 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
 // 主要型別：class DonationKeyInDedicationService、record DonationContactQuery
-// 主要成員：SaveAsync、QueryAsync、AuditQueryAsync、UpdateAsync、BuildQuery、QueryContacts、FillSameNameList、ContactNotFound、ResolvePhoneNumber、NotifyAndThrow
+// 主要成員：SaveAsync、QueryAsync、AuditQueryAsync、UpdateAsync、BuildQuery、QueryContacts、FillSameNameList、ContactNotFound、ResolvePhoneNumber、NotifyFailure
 // 引用命名空間：System、System.Linq、System.Threading.Tasks、ChurchReport.Models、ChurchReport.WebServiceConnector、LineMessagingProcessor、Microsoft.AspNetCore.Mvc、Microsoft.Xrm.Sdk
 // 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -37,14 +37,18 @@ namespace ChurchReport.Services
         private readonly DonationPaymentFormModel _formModel;
         private readonly DonationPaymentProcessor _paymentProcessor;
         private readonly Func<object, JsonResult> _json;
-        private readonly Action<string> _notifyError;
+        private readonly Action<Exception> _notifyError;
 
+        /// <summary>
+        /// request 所有者注入既有 CRM／表單與同步診斷轉接器；callback 不得保留例外或 request。
+        /// 診斷轉接器必須先 flush Exception.log 再排入 LINE，並以真實例外實例去重。
+        /// </summary>
         public DonationKeyInDedicationService(
             ToolUtilityClass utility,
             DonationPaymentFormModel formModel,
             DonationPaymentProcessor paymentProcessor,
             Func<object, JsonResult> json,
-            Action<string> notifyError)
+            Action<Exception> notifyError)
         {
             _utility = utility ?? throw new ArgumentNullException(nameof(utility));
             _formModel = formModel ?? throw new ArgumentNullException(nameof(formModel));
@@ -116,7 +120,7 @@ namespace ChurchReport.Services
             }
             catch (Exception e)
             {
-                NotifyAndThrow(e);
+                NotifyFailure(e);
                 throw;
             }
         }
@@ -182,7 +186,7 @@ namespace ChurchReport.Services
             }
             catch (Exception e)
             {
-                NotifyAndThrow(e);
+                NotifyFailure(e);
                 throw;
             }
         }
@@ -209,7 +213,7 @@ namespace ChurchReport.Services
             }
             catch (Exception e)
             {
-                NotifyAndThrow(e);
+                NotifyFailure(e);
                 throw;
             }
         }
@@ -280,13 +284,13 @@ namespace ChurchReport.Services
             return mobile != string.Empty ? mobile : homePhone;
         }
 
-        private void NotifyAndThrow(Exception exception)
+        /// <summary>
+        /// 僅同步交付真實例外，不把可能含個資的 ToString 轉成通知文字。
+        /// 呼叫端仍以 throw 保留原堆疊，外層再次上報時共用 owner 會去重。
+        /// </summary>
+        private void NotifyFailure(Exception exception)
         {
-            string errorString = "錯誤訊息 : FullName = " + GetType().FullName +
-                " , Time = " + DateTime.Now +
-                " , Description = " + exception;
-
-            _notifyError(errorString);
+            _notifyError(exception);
         }
 
         private sealed record DonationContactQuery(

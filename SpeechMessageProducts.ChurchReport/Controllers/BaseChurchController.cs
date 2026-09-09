@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
 // 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
 // 主要型別：class BaseChurchController
-// 主要成員：HandleError、SendLineErrorNotification、SetMultiGroupLayoutParameter、ResolveDonationManagementAccessFlag、IsIntegrateDataLoaded、SetupBasicViewBag、SetupMemberInfoViewBag、SetupFeeDataListCount、EnsureCorrectUserData、GetStableHash
+// 主要成員：HandleError、SetMultiGroupLayoutParameter、ResolveDonationManagementAccessFlag、IsIntegrateDataLoaded、SetupBasicViewBag、SetupMemberInfoViewBag、SetupFeeDataListCount、EnsureCorrectUserData、GetStableHash
 // 引用命名空間：ChurchReport.Models、ChurchReport.Payments、ChurchReport.Services.Donation、ChurchReport.Services.MemberInfo、ChurchReport.Tools、ChurchReport.Services、LineMessagingProcessor.Workflows、Microsoft.AspNetCore.Http
 // 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -432,40 +432,6 @@ namespace ChurchReport.Controllers
             }
         }
 
-        /// <summary>
-        /// 把錯誤訊息透過 LINE 通知管理者。
-        /// </summary>
-        /// <remarks>
-        /// 系統的多數操作牽涉外部 CRM 與金流，錯誤往往需要人工介入，
-        /// 因此除了寫入 Trace 之外，額外以 LINE 即時推播讓管理者能第一時間知道。
-        ///
-        /// <para><b>三層保護</b></para>
-        /// 通知失敗（例如 LINE API 無法連線）時，先嘗試寫入 Trace；
-        /// 若連 Trace 也失敗，最後退回 Debug 輸出。
-        /// 無論如何都不會把例外往外拋，因為通知失敗不應該讓原本的錯誤處理流程再次中斷。
-        /// </remarks>
-        /// <param name="errorMessage">要送出的錯誤訊息內容。</param>
-        protected void SendLineErrorNotification(string errorMessage)
-        {
-            try
-            {
-                ChurchReportLineAdminNotificationService.NotifyDefaultError("BaseChurchController", errorMessage);
-            }
-            catch (Exception ex)
-            {
-                // 第二層：通知失敗，改記錄到 Trace。
-                try
-                {
-                    ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
-                        $"LINE notification failed: {ex.Message}");
-                }
-                catch
-                {
-                // 第三層：連 Trace 都失敗，退回 Debug 輸出，確保不再往外拋例外。
-                    System.Diagnostics.Debug.WriteLine($"LINE notification failed: {ex.Message}");
-                }
-            }
-        }
 
         #endregion
 

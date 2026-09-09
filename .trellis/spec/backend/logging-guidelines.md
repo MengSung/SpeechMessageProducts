@@ -56,6 +56,12 @@ Questions to answer:
 下方 Release 禁寫規則只涵蓋既有三個 Trace 檔，不適用 `Exception.log`，也不得用
 `DiagnosticsTrace:Enabled` 停用錯誤紀錄。詳見 [Error Handling](./error-handling.md)。
 
+`Exception.log` 使用 UTF-8 JSONL，每筆含安全的例外型別、程式位置、UTC 與 IncidentId。
+正常上限為 5 MiB 並保留五份備份；外部讀取鎖阻止輪替時可有界附加至 10 MiB，
+解鎖後恢復輪替。讀取工具須允許 `FileShare.ReadWrite | FileShare.Delete`。
+達硬上限、磁碟滿或權限失敗時只輸出固定 stderr 狀態，不得先發送 LINE。
+LINE queue 滿載／發送失敗以同 IncidentId 追加本地狀態，不再觸發通知。
+
 ### 1. Scope / Trigger
 
 This contract applies when ChurchReport diagnostics write any of the three files:
