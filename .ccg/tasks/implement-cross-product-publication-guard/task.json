@@ -1,0 +1,12 @@
+{
+  "id": "implement-cross-product-publication-guard",
+  "title": "實作跨產品資料唯一 ID 與網路時序防護",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "fullstack",
+  "currentPhase": "analysis",
+  "nextAction": "執行 Gemini 與 Claude 雙模型架構及安全分析",
+  "createdAt": "2026-09-09T00:00:00+08:00",
+  "branch": "1.0.0.8.FixDuplicateName.Worktree"
+}
