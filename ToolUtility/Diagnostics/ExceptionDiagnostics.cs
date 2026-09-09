@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 namespace ToolUtilityNameSpace.Diagnostics;
 
 /// <summary>
-/// Debug／Release 共用的錯誤紀錄 owner。先同步完成有限大小 JSONL 落檔及 flush，
-/// 再將純文字摘要放入最多 64 筆的 LINE 佇列；不保存例外、請求、身分或驗證資料。
+/// Debug／Release 共用的錯誤輸出 owner，依啟動快照獨立啟用檔案與 LINE。
+/// 雙開先完成 JSONL 落檔及 flush 再放入最多 64 筆的 LINE 佇列；LINE-only 不寫檔。
+/// 不保存例外、請求、身分或驗證資料。
 /// 每個部署目錄最多保留目前檔與五份備份，單筆不超過 4 KiB；正常路徑不執行任何 I/O。
 /// </summary>
 public sealed class ExceptionDiagnostics : IAsyncDisposable
@@ -24,6 +25,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     private readonly string _directory;
     private readonly long _maximumFileBytes;
     private readonly Mutex _fileMutex;
+    private readonly ExceptionOutputOptions _outputOptions;
     private readonly ConditionalWeakTable<Exception, object> _reported = new();
     private readonly Channel<string> _notifications = Channel.CreateBounded<string>(
         new BoundedChannelOptions(64) { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
@@ -37,14 +39,18 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     /// 建立獨立 owner。directory 必須由部署組合根提供，不能來自 request。
     /// 命名 mutex 讓相同目錄的多程序輪替不會互相覆寫；只在錯誤落檔期間持有。
     /// </summary>
-    public ExceptionDiagnostics(string directory, long maximumFileBytes = 5 * 1024 * 1024)
+    public ExceptionDiagnostics(string directory, long maximumFileBytes = 5 * 1024 * 1024,
+        ExceptionOutputOptions outputOptions = null)
     {
         if (maximumFileBytes < 4096) throw new ArgumentOutOfRangeException(nameof(maximumFileBytes));
         _directory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory));
         _maximumFileBytes = maximumFileBytes;
+        _outputOptions = outputOptions ?? new ExceptionOutputOptions();
         var normalized = OperatingSystem.IsWindows() ? _directory.ToUpperInvariant() : _directory;
         var identity = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalized)));
-        _fileMutex = new Mutex(false, (OperatingSystem.IsWindows() ? "Global\\" : "") + "ExceptionLog-" + identity);
+        // 關閉檔案輸出時不取得具名 mutex，LINE-only 不依賴檔案／跨程序物件權限。
+        if (_outputOptions.WriteExceptionLog)
+            _fileMutex = new Mutex(false, (OperatingSystem.IsWindows() ? "Global\\" : "") + "ExceptionLog-" + identity);
     }
 
     /// <summary>
@@ -57,6 +63,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
         lock (_gate)
         {
             ObjectDisposedException.ThrowIf(_closed, this);
+            if (!_outputOptions.SendLine) return;
             if (_consumer != null) throw new InvalidOperationException("Notification consumer already started.");
             if (ExecutionContext.IsFlowSuppressed()) _consumer = Task.Run(() => ConsumeAsync(sender));
             else
@@ -69,8 +76,8 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     /// <summary>
     /// 在功能確定失敗的邊界呼叫。相同例外實例以 weak key 去重，不延長例外生命；
     /// 只有呼叫者 token 已取消的 OperationCanceledException 視為正常取消，內部逾時仍須記錄。
-    /// 不讀 Message、Data、原始 StackTrace 或任何使用者值。成功回傳表示落檔完成，
-    /// 不代表 LINE 已送達；磁碟失敗時不發送 LINE，也不把原例外換成記錄例外。
+    /// 不讀 Message、Data、原始 StackTrace 或使用者值。true 表示已落檔，或 LINE-only 已入列，
+    /// 不代表 LINE 已送達。雙開時磁碟失敗不發送 LINE；全關回傳 false，且無檔案／通知副作用。
     /// </summary>
     public bool Report(Exception exception, string operation, CancellationToken cancellationToken = default,
         bool notify = true)
@@ -78,6 +85,8 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
         lock (_gate)
         {
             if (_closed || (exception != null && _reported.TryGetValue(exception, out _))) return false;
+            var sendLine = _outputOptions.SendLine && notify && !_sending.Value;
+            if (!_outputOptions.WriteExceptionLog && !sendLine) return false;
             if (exception is OperationCanceledException && cancellationToken.IsCancellationRequested)
             {
                 // middleware 已確認正常取消時仍留 weak marker，避免外層 framework logger 再次上報。
@@ -98,10 +107,14 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
                     HResult = exception?.HResult ?? 0,
                     Stack = StackSymbols(exception)
                 }, JsonOptions);
-                if (!Write(record)) return false;
+                // 雙開時 flush 成功才可入列；LINE-only 明確跳過磁碟，而不是誤稱已落檔。
+                if (_outputOptions.WriteExceptionLog && !Write(record)) return false;
                 if (exception != null) _reported.Add(exception, new object());
-                if (notify && !_sending.Value && !_notifications.Writer.TryWrite(record))
+                if (sendLine && !_notifications.Writer.TryWrite(record))
+                {
                     WriteStatus("LineQueueFull", incidentId);
+                    return _outputOptions.WriteExceptionLog;
+                }
                 return true;
             }
             catch
@@ -223,10 +236,13 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
         }
     }
 
-    /// <summary>通知基礎設施狀態只落本地，關聯既有事件 ID；不包含 provider 回應或再次入列。</summary>
+    /// <summary>通知狀態按檔案開關寫本地或固定 stderr；不包含 provider 回應、不再次入列。</summary>
     private void WriteStatus(string status, string incident)
     {
-        Write(JsonSerializer.Serialize(new { Utc = DateTimeOffset.UtcNow, Status = status, Incident = incident }));
+        // LINE-only 的發送失敗、滿載與關機狀態只能輸出固定 stderr，不能繞過檔案開關。
+        if (_outputOptions.WriteExceptionLog)
+            Write(JsonSerializer.Serialize(new { Utc = DateTimeOffset.UtcNow, Status = status, Incident = incident }));
+        else Emergency(status);
     }
 
     /// <summary>最後保底不讀原例外，避免磁碟錯誤把機密路徑或例外文字送到 stdout。</summary>
@@ -298,7 +314,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
             _reported.Clear();
             _consumer = null;
             _stop.Dispose();
-            _fileMutex.Dispose();
+            _fileMutex?.Dispose();
         }
     }
 }

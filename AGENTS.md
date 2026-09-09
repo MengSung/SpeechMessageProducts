@@ -218,13 +218,24 @@ Required recovery behavior:
 
 ## 永久例外 LINE 通知規則
 
-所有未來新增或修改的產品、API、MVC、背景工作、queue callback 與共用服務，都必須把真正失敗、未處理或影響功能的 exception 送到既有的管理者 LINE 告警入口。正常取消、client disconnect、成功恢復的 retry 與預期業務拒絕不通知。
+所有未來新增或修改的產品、API、MVC、背景工作、queue callback 與共用服務，都必須把真正失敗、未處理或影響功能的 exception 交給共用告警入口，由部署設定決定輸出目的地。正常取消、client disconnect、成功恢復的 retry 與預期業務拒絕不通知。
 
 - 例外通知必須集中在可注入的共用 notifier；不得在各處自行 new LINE client、保存 `HttpContext`／Session／credential，或建立無界背景佇列。
 - 通知內容只可包含產品／模組、例外型別、穩定 incident id、UTC 時間與 operation／route；不得傳送 token、cookie、密碼、完整 request body、付款資料或未驗證個資。
 - HTTP 未處理例外要在標準錯誤處理器內側攔截後重新拋出；catch 後仍回傳失敗的流程也要明確呼叫 notifier。單靠全域 middleware 不代表所有例外都已覆蓋。
 - LINE 發送失敗不得覆蓋原始例外、不得遞迴通知；所有 queue、task、timer、stream 與 cancellation registration 必須有上限、逾時、drain 與 Dispose。詳細契約與測試要求見 `.trellis/spec/backend/error-handling.md` 的「LINE 管理者例外告警契約」。
-- Debug 與 Release 都必須把 `ILogger` 的 Error/Critical（含 Exception）寫入應用程式 `Logs\Exception.log`；檔案 writer 由 Host/DI 擁有並在停止時 Dispose。禁止以 request、Session、使用者輸入或機密值組成檔名或路徑。
-- **固定順序：先將事件寫入 `Exception.log` 並成功 flush，再排入／發送 LINE。** LINE 與日誌共用事件 ID。落檔失敗不得先送 LINE 或假稱已記錄，必須走獨立 stderr／主機監控；LINE 失敗只追加本地通知狀態，不遞迴通知。
+- 啟用 `ExceptionNotifications:WriteExceptionLog` 時，Debug 與 Release 都必須把 `ILogger` 的 Error/Critical（含 Exception）寫入應用程式 `Logs\Exception.log`；檔案 writer 由 Host/DI 擁有並在停止時 Dispose。禁止以 request、Session、使用者輸入或機密值組成檔名或路徑。
+- **兩個輸出皆啟用時固定順序：先將事件寫入 `Exception.log` 並成功 flush，再排入／發送 LINE。** LINE 與日誌共用事件 ID。落檔失敗不得先送 LINE 或假稱已記錄，必須走獨立 stderr／主機監控；LINE 失敗只追加本地通知狀態，不遞迴通知。
 - catch 必須傳遞真實 `Exception` 至共用入口，保留型別、程式位置與同一事件的去重依據；禁止只傳 `ToString()` 後丟棄例外。內部逾時 token 已取消仍屬失敗；正常取消只能由呼叫端明確提供的 token 判定。
 - 檔案輪替受外部鎖定阻擋時，只可有界降級寫入 `Exception.log`（最多正常容量兩倍），仍須成功 flush 才通知；達硬上限或無法寫入時走 stderr／主機監控，解除鎖定後恢復輪替。不得截斷既有證據或無界增加檔案。
+
+### 例外輸出開關（使用者明確授權的獨立組合）
+
+`SpeechMessageProducts.ChurchReport/appsettings.json` 的 `ExceptionNotifications:WriteExceptionLog` 與 `ExceptionNotifications:SendLine` 各自獨立，缺省皆為 `true`；Debug／Release 都讀取啟動快照，修改後須重啟。
+
+- true／true：先寫入並 flush `Exception.log` 成功，再排入 LINE；寫檔失敗不可發 LINE。
+- true／false：只寫 `Exception.log`，不建立 LINE client／consumer。
+- false／true：只發 LINE，不寫任何例外檔案；通知失敗／滿載／關機狀態只用固定 stderr。
+- false／false：不寫 `Exception.log`、不發 LINE。
+
+此四種組合優先於上方原有雙開預設敘述；正常取消分類、資料隔離與有界生命週期規則不變。

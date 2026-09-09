@@ -51,35 +51,48 @@ namespace ChurchReport
 #endif
 
         /// <summary>
-        /// 建立並執行 ChurchReport Host。Release 組態固定建立停用的診斷設定，外部設定無法
-        /// 重新啟用檔案 writer；Debug 組態則由單一 <c>DiagnosticsTrace</c> 區段控制三種 Trace。
+        /// 建立並執行 Host；Debug／Release 都依 ExceptionNotifications 的啟動快照選擇例外目的地。
+        /// 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr
+        /// 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。
+        /// 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。
         /// </summary>
         /// <param name="args">傳給 ASP.NET Core 組態與 Host 的命令列參數。</param>
         public static void Main(string[] args)
         {
-            // Exception.log 不受 DEBUG 或 DiagnosticsTrace 開關控制，早於 Host 建置建立 owner。
-            // 只從部署目錄決定路徑，原始例外不進通知佇列；先落檔 flush 後才排入 LINE。
-            var diagnostics = new ExceptionDiagnostics(Path.Combine(AppContext.BaseDirectory, "Logs"));
+            ExceptionDiagnostics diagnostics = null;
             IDisposable registration = null;
             ChurchReport.Services.LineExceptionSender sender = null;
+            Microsoft.Extensions.Configuration.ConfigurationManager configuration = null;
             try
             {
-                registration = ExceptionReporting.Attach(diagnostics);
                 var builder = WebApplication.CreateBuilder(args);
-                sender = new ChurchReport.Services.LineExceptionSender(builder.Configuration);
-                diagnostics.StartNotifications(sender.SendAsync);
+                configuration = builder.Configuration;
+                var outputOptions = ExceptionOutputOptions.FromConfiguration(builder.Configuration);
+                diagnostics = new ExceptionDiagnostics(Path.Combine(AppContext.BaseDirectory, "Logs"), outputOptions: outputOptions);
+                registration = ExceptionReporting.Attach(diagnostics);
+                if (outputOptions.SendLine)
+                {
+                    sender = new ChurchReport.Services.LineExceptionSender(builder.Configuration);
+                    diagnostics.StartNotifications(sender.SendAsync);
+                }
                 RunApplication(builder, diagnostics);
             }
             catch (Exception exception)
             {
-                diagnostics.Report(exception, "Program.Fatal");
+                if (diagnostics != null) diagnostics.Report(exception, "Program.Fatal");
+                else
+                {
+                    try { Console.Error.WriteLine("[ExceptionDiagnostics] InitializationFailed"); } catch { }
+                }
                 throw;
             }
             finally
             {
                 registration?.Dispose();
-                diagnostics.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                if (diagnostics != null) diagnostics.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 sender?.Dispose();
+                // 即使選項解析或 Build 失敗，也釋放 builder 的組態監聽器；不跨 Host 保留設定。
+                (configuration as IDisposable)?.Dispose();
             }
         }
 
@@ -154,7 +167,7 @@ namespace ChurchReport
             var startup = new Startup(builder.Configuration, diagnosticTraceOptions);
             startup.ConfigureServices(builder.Services);
 
-            var app = builder.Build();
+            using var app = builder.Build();
 
 #if DEBUG
             // 只有服務容器成功建立後才取得 listener owner；若組態或 DI 建置失敗，

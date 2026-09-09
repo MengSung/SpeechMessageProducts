@@ -1,0 +1,1 @@
+使用者明確授權兩個獨立開關，允許 LINE only、log only、both、off。預設均 true，啟動 snapshot；both 先 flush 成功後才 LINE。log 關閉時通知失敗只 stderr，不建立檔案。共用 owner 管理，測試四組合、取消、去重、通知失敗與滿載。
