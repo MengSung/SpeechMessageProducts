@@ -1,11 +1,11 @@
 {
   "title": "將真正失敗與未處理例外統一通知 LINE",
-  "currentPhase": "implementation",
+  "currentPhase": "review",
   "createdAt": "2026-09-09T04:34:18.3649668Z",
   "complexity": "L+",
   "domain": "backend",
   "status": "in_progress",
-  "nextAction": "實作共用 Exception.log 與 LINE 管線",
+  "nextAction": "完成 catch 覆蓋稽核、雙模型審查與提交",
   "risk": "medium",
   "branch": "1.0.0.8.FixDuplicateName.Worktree",
   "id": "line-actionable-exceptions"

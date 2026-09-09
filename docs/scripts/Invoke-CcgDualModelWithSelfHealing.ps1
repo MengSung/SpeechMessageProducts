@@ -223,6 +223,7 @@ function Invoke-ProcessCapture {
     $startInfo.FileName = $FilePath
     $startInfo.WorkingDirectory = $WorkingDirectory
     $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
     $startInfo.RedirectStandardInput = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
@@ -258,21 +259,43 @@ function Invoke-ProcessCapture {
     $stdin.Close()
 
     if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
-        try { $process.Kill($true) } catch { }
+        # Windows PowerShell 5.1 的 .NET Framework 沒有 Kill(bool)；原先吞掉
+        # overload 失敗後等待 stdout，會讓逾時程序永遠卡住。只終止本函式建立的
+        # PID 及其子程序，不得依名稱關閉使用者其他 Claude／Gemini 工作。
+        if (-not $process.HasExited) {
+            $killInfo = [System.Diagnostics.ProcessStartInfo]::new()
+            $killInfo.FileName = Join-Path $env:SystemRoot 'System32\taskkill.exe'
+            $killInfo.Arguments = "/PID $($process.Id) /T /F"
+            $killInfo.UseShellExecute = $false
+            $killInfo.CreateNoWindow = $true
+            $killer = [System.Diagnostics.Process]::Start($killInfo)
+            try {
+                if (-not $killer.WaitForExit(5000)) { $killer.Kill() }
+            } finally { $killer.Dispose() }
+        }
+        if (-not $process.WaitForExit(5000)) {
+            $process.Dispose()
+            throw 'CCG child process did not terminate after timeout cleanup.'
+        }
+        $capturedOut = if ($stdoutTask.Wait(5000)) { $stdoutTask.GetAwaiter().GetResult() } else { '' }
+        $capturedErr = if ($stderrTask.Wait(5000)) { $stderrTask.GetAwaiter().GetResult() } else { 'CCG output drain timed out.' }
+        $process.Dispose()
         return [pscustomobject]@{
             ExitCode = 124
             TimedOut = $true
-            StdOut = $stdoutTask.GetAwaiter().GetResult()
-            StdErr = $stderrTask.GetAwaiter().GetResult()
+            StdOut = $capturedOut
+            StdErr = $capturedErr
         }
     }
 
-    return [pscustomobject]@{
+    $capture = [pscustomobject]@{
         ExitCode = $process.ExitCode
         TimedOut = $false
         StdOut = $stdoutTask.GetAwaiter().GetResult()
         StdErr = $stderrTask.GetAwaiter().GetResult()
     }
+    $process.Dispose()
+    return $capture
 }
 
 function Get-RoleFile {
