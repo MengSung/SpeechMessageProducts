@@ -2,7 +2,11 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.Crud.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 檔案責任：承接週報 Grid 的新增、更新與刪除 HTTP mutation。所有 action 必須先驗證目前
+//           Session scope，再由 SmallGroupDataList／SmallGroupData 的 instance synchronization
+//           owner 原子修改；重送新增只能依 PresentRecordId 拒絕，不得按姓名隱藏合法資料。
+// 資源生命週期：鎖內只做短暫記憶體異動，CRM 刪除在鎖外同步完成；不建立 fire-and-forget
+//               Task、timer、static queue 或跨 request closure，避免 Session graph 與連線被延長保留。
 // 主要型別：class SmallGroupController
 // 主要成員：InsertPresentRecord、UpdateSmallGroupPresentRecord、DeletePresentRecord
 // 引用命名空間：ChurchReport.Models、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、System、System.Threading、System.Threading.Tasks
@@ -28,13 +32,17 @@ namespace ChurchReport.Controllers
         #region CRUD 操作
 
         /// <summary>
-        /// 新增出席記錄
+        /// 新增出席記錄；先驗證目前 Session，再由模型在 instance lock 內以 PresentRecordId 防止重送。
+        /// 相同 ID 會 fail closed 且不改動集合，不同 ID 即使姓名相同仍可加入。
         /// </summary>
         [HttpPost]
         public IActionResult InsertPresentRecord(string values)
         {
             try
             {
+                // 重送 POST 不能繞過 Session scope 驗證；InsertMember 會在所屬資料圖的
+                // instance lock 內解析並檢查 PresentRecordId，避免同一資料庫記錄被重複 append。
+                EnsureCorrectUserData();
                 InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList.m_SmallGroupData.InsertMember(values);
 

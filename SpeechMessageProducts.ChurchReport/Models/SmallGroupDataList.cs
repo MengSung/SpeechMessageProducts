@@ -2,7 +2,12 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Models/SmallGroupDataList.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
+// 檔案責任：擁有單一 Session 週報的四組 Member collection 與唯一 instance synchronization root。
+//           跨集合新增、更新、刪除、分類與快照必須在同一短暫臨界區原子完成，讀取端只取得
+//           deep-enough detached copy，不直接持有活的 Session Members。
+// 身份與資源：各 consumer 依 PresentRecordId 獨立驗證；同一資料可合法存在於「所屬小組」與
+//             「全部成員」兩個不同 consumer，但每個集合內不得重複。鎖內禁止 CRM／HTTP I/O、
+//             Task 排程與等待，因此沒有跨 request 背景 owner 或無界資源保留。
 // 主要型別：class SmallGroupDataList
 // 主要成員：SetupContactIdString、SetSmallGroupDateOfWeeklyReport、TransferToMemberInfomationPackage、MappingMembers、AddNewPersonToMember
 // 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks、ToolUtilityNameSpace、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、Microsoft.Xrm.Sdk.Client
@@ -371,11 +376,45 @@ namespace ChurchReport.Models
             }
         }
 
+        /// <summary>
+        /// 將已由 CRM 建立完成的新人，以同一 PresentRecordId 原子加入所屬 consumer 與全部成員集合。
+        /// </summary>
+        /// <param name="aPersonFormViewModel">只屬於目前 request 的表單值，必須含資料庫 PresentRecordId。</param>
+        /// <exception cref="InvalidOperationException">ID 缺少或任一目標集合已存在同 ID 時擲出。</exception>
+        /// <remarks>
+        /// 驗證四個集合必須先於任何 Add，確保失敗不留下 partial publication。方法不排程背景 Task、
+        /// 不保存 ViewModel，也不執行 I/O；離開 instance lock 後，呼叫端即可釋放 request graph。
+        /// </remarks>
         public void AddNewPersonToMember(PersonFormViewModel aPersonFormViewModel)
         {
             ArgumentNullException.ThrowIfNull(aPersonFormViewModel);
             ExecuteSynchronized(() =>
             {
+                if (string.IsNullOrWhiteSpace(aPersonFormViewModel.PresentRecordId))
+                {
+                    throw new InvalidOperationException("新增新人資料缺少有效 PresentRecordId，拒絕發布。");
+                }
+
+                var normalizedPresentRecordId = aPersonFormViewModel.PresentRecordId.Trim();
+                var allCollections = new[]
+                {
+                    m_SmallGroupData?.Members,
+                    m_NewPersonFollowUpData?.Members,
+                    m_HappyGroup?.Members,
+                    m_AllMemeberData?.Members
+                };
+
+                // 新人建立成功後會同時進入「所屬 consumer」與「全部成員 consumer」。
+                // 在同一份資料圖鎖內先檢查四組集合，再開始任何 Add，確保失敗時不會出現
+                // 只加入一半的 partial publication；不同姓名不能繞過相同資料庫 ID 的衝突。
+                if (allCollections.Any(collection => collection?.Any(member => member != null &&
+                        string.Equals(member.PresentRecordId?.Trim(), normalizedPresentRecordId,
+                            StringComparison.OrdinalIgnoreCase)) == true))
+                {
+                    throw new InvalidOperationException(
+                        $"新增新人偵測到重複 PresentRecordId '{normalizedPresentRecordId}'，拒絕重送。");
+                }
+
                 String aGroupName = aPersonFormViewModel.Position;
                 if (aGroupName != null)
                 {

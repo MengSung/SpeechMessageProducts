@@ -2,7 +2,11 @@
 // AI-繁體中文檔案註解
 // 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.IntegrateView.cs
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 檔案責任：組裝週報初始頁面與已授權小組 scope。Razor model 必須來自 ListManager 的
+//           detached read，不得直接傳入 Session holder 的活週報；如此即使同 Session 另一個
+//           request 正在 CRUD 或換日期，View 也只會列舉一個完整世代。
+// 生命週期：同步 CRM 載入由目前 request 擁有，取消在可安全中止的步驟前檢查；不建立捕獲
+//           HttpContext、Session、credential 或 mutable Members 的背景 Task。
 // 主要型別：class SmallGroupController
 // 主要成員：IntegrateView、SetupIntegrateViewData、ShouldLoadIntegrateData、HandleIntegrateViewLogin、EnsureIntegrateDataLoaded
 // 引用命名空間：Microsoft.AspNetCore.Mvc、System、System.Threading、System.Threading.Tasks
@@ -98,7 +102,8 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 處理整合式頁面登入
+        /// 處理整合式頁面登入並建立 request-owned Razor model。伺服器重新驗證 ActiveListId，
+        /// detached snapshot 在回應完成後可回收，不會把 Session graph 暴露給 Razor callback。
         /// </summary>
         private IActionResult HandleIntegrateViewLogin(string loginParameter)
         {
@@ -107,7 +112,12 @@ namespace ChurchReport.Controllers
                 return RedirectToAction("PersonalInfomationView", "Personal");
             }
 
-            return View("~/Views/Home/IntegrateView.cshtml", InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
+            // Razor 只接收目前授權 scope 的 detached snapshot；不可把 Session holder 內的
+            // 可變週報物件圖直接交給 View，避免另一個 request 的 CRUD 或日期切換在 Razor
+            // 列舉期間改寫同一份 Members，也避免跨世代資料被當成目前頁面的 fallback。
+            var detachedRead = InMemoryContext.ListManager
+                .EnsureAndGetIntegrateDetachedRead(InMemoryContext.ListManager.ActiveListId);
+            return View("~/Views/Home/IntegrateView.cshtml", detachedRead);
         }
 
         /// <summary>
