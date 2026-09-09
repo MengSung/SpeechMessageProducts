@@ -134,6 +134,14 @@ these requirements.
 The executable implementation and review contract is
 `.trellis/spec/backend/duplicate-row-publication-contract.md`.
 
+供應商端的具體實作手冊為
+`docs/跨產品資料不重複與網路時序防護實作手冊.md`，適用於本 Solution 的所有現有與
+未來產品。正式資料列必須依據資料庫的唯一 ID 區分，不得按姓名、電話或其他內容相同
+就刪除、合併、覆蓋或隱藏資料。不同 ID 的資料即使所有欄位完全相同，也必須完整保留；
+同一消費集合中的重複 ID 必須拒絕發布並診斷，不得靜默刪除其中一筆。
+操作重試鍵、請求 token、暫存編輯鍵不能取代資料庫 ID；臨時 draft key 不得被拿來
+讓欠缺資料庫 ID 的正式記錄通過發布驗證。
+
 <!-- TRELLIS:START -->
 # Trellis Instructions
 
