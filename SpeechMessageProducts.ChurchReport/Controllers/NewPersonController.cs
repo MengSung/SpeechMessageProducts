@@ -133,7 +133,7 @@ namespace ChurchReport.Controllers
                 RowPublicationGuard.ValidateRows(
                     tasks,
                     member => member.PresentRecordId,
-                    "ChurchReport.WeeklyReport.NewPersonGrid",
+                    RowPublicationGuard.NewPersonGridConsumerName,
                     RowPublicationGuard.DefaultMaximumRowCount,
                     nameof(Member.PresentRecordId),
                     StringComparer.OrdinalIgnoreCase);

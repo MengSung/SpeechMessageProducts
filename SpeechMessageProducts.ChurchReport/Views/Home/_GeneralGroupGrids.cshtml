@@ -28,39 +28,53 @@
      * 不保存 rows、Session 或 credential，因此 view dispose 後不會延長使用者資料生命週期。
      */
     function initializeWeeklyReportGridPublicationGuard(e) {
-        if (!e || !e.component || !window.CollectionLoadCoordinator) {
-            throw new Error('週報 Grid 載入協調器初始化失敗，拒絕在無世代防護下發布資料。');
-        }
+        var component = e && e.component;
+        var coordinator = null;
 
-        var component = e.component;
-        var element = component.element && component.element();
-        var owner = element && element.length ? element[0] : null;
-        if (!owner) {
-            throw new Error('週報 Grid 缺少 DOM owner，無法建立有界載入生命週期。');
-        }
-
-        var dataSource = component.getDataSource();
-        var store = dataSource && dataSource.store ? dataSource.store() : null;
-        if (!store || typeof store.load !== 'function') {
-            throw new Error('週報 Grid 缺少既有 WebApi store.load，拒絕建立第二條取數管線。');
-        }
-
-        var originalLoad = store.load.bind(store);
-        var coordinator = window.CollectionLoadCoordinator.mount(owner, function disposeOwnedGrid() {
-            // duplicate mount 時只釋放上一個 component。正常 DevExtreme OnDisposing 會先標記旗標，
-            // 避免 disposer 再呼叫 component.dispose 造成遞迴；所有 closure 隨後由 adapter 清除。
-            if (component && !component.__weeklyReportIsDisposing && typeof component.dispose === 'function') {
-                component.dispose();
+        try {
+            if (!component || !window.CollectionLoadCoordinator) {
+                throw new Error('週報 Grid 載入協調器初始化失敗，拒絕在無世代防護下發布資料。');
             }
-        });
 
-        store.load = function loadWithGenerationGuard(loadOptions) {
-            return coordinator.runLoad(function invokeExistingWebApiStore() {
-                return originalLoad(loadOptions);
+            var element = component.element && component.element();
+            var owner = element && element.length ? element[0] : null;
+            if (!owner) {
+                throw new Error('週報 Grid 缺少 DOM owner，無法建立有界載入生命週期。');
+            }
+
+            var dataSource = component.getDataSource();
+            var store = dataSource && dataSource.store ? dataSource.store() : null;
+            if (!store || typeof store.load !== 'function') {
+                throw new Error('週報 Grid 缺少既有 WebApi store.load，拒絕建立第二條取數管線。');
+            }
+
+            var originalLoad = store.load.bind(store);
+            coordinator = window.CollectionLoadCoordinator.mount(owner, function disposeOwnedGrid() {
+                // duplicate mount 時只釋放上一個 component。正常 DevExtreme OnDisposing 會先標記旗標，
+                // 避免 disposer 再呼叫 component.dispose 造成遞迴；所有 closure 隨後由 adapter 清除。
+                if (component && !component.__weeklyReportIsDisposing && typeof component.dispose === 'function') {
+                    component.dispose();
+                }
             });
-        };
-        component.__weeklyReportLoadCoordinator = coordinator;
-        component.__weeklyReportLoadOwner = owner;
+
+            store.load = function loadWithGenerationGuard(loadOptions) {
+                return coordinator.runLoad(function invokeExistingWebApiStore() {
+                    return originalLoad(loadOptions);
+                });
+            };
+            component.__weeklyReportLoadCoordinator = coordinator;
+            component.__weeklyReportLoadOwner = owner;
+        } catch (error) {
+            // 初始化契約不成立時必須 fail closed：記錄不含資料列、Session 或 credential 的診斷，
+            // 釋放已建立的 coordinator，並讓 DevExtreme 知道 Grid 不可在未受保護狀態下繼續發布。
+            if (coordinator) {
+                coordinator.dispose();
+            }
+            if (typeof console !== 'undefined' && typeof console.error === 'function') {
+                console.error('週報 Grid 發布防護初始化失敗，已拒絕未受保護的資料載入。', error);
+            }
+            throw error;
+        }
     }
 
     /**

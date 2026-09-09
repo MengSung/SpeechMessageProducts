@@ -3,7 +3,7 @@
   "consumers": [
     {
       "product": "ChurchReport",
-      "consumer": "WeeklyReport.SmallGroup",
+      "consumer": "ChurchReport.WeeklyReport.SmallGroupGrid",
       "endpoint": "GET /SmallGroup/LoadIntegrate",
       "view": "SpeechMessageProducts.ChurchReport/Views/Home/_GeneralGroupGrids.cshtml",
       "identity": "PresentRecordId",
@@ -25,7 +25,7 @@
     },
     {
       "product": "ChurchReport",
-      "consumer": "WeeklyReport.NewPerson",
+      "consumer": "ChurchReport.WeeklyReport.NewPersonGrid",
       "endpoint": "GET /NewPerson/LoadNewPersonFollowUp",
       "view": "SpeechMessageProducts.ChurchReport/Views/Home/_GeneralGroupGrids.cshtml",
       "identity": "PresentRecordId",

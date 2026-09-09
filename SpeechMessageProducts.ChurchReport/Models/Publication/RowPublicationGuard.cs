@@ -21,6 +21,19 @@ namespace ChurchReport.Models;
 internal static class RowPublicationGuard
 {
     /// <summary>
+    /// 小組週報 Grid 的固定診斷／契約名稱；它不是資料列身份，也不得被拿來
+    /// 取代 <c>PresentRecordId</c>。集中管理可避免 manifest、API 與測試在重構後
+    /// 各自保留不同文字，導致錯誤診斷無法對應到實際 consumer。
+    /// </summary>
+    internal const string SmallGroupGridConsumerName = "ChurchReport.WeeklyReport.SmallGroupGrid";
+
+    /// <summary>
+    /// 新人跟進 Grid 的固定診斷／契約名稱；同樣只用於可觀測性與契約對照，
+    /// 不參與任何資料去重、授權或 Session 判斷。
+    /// </summary>
+    internal const string NewPersonGridConsumerName = "ChurchReport.WeeklyReport.NewPersonGrid";
+
+    /// <summary>
     /// 目前 ChurchReport 完整週報 consumer 的預設安全容量；產品可在未來 consumer
     /// contract 以明確設定覆寫，但不得用無界集合取代上限。
     /// </summary>

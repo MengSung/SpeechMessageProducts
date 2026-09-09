@@ -38,11 +38,11 @@ public sealed class PublicationContractManifestTests
 
         consumers.Should().Contain(item =>
             item.GetProperty("product").GetString() == "ChurchReport" &&
-            item.GetProperty("consumer").GetString() == "WeeklyReport.SmallGroup" &&
+            item.GetProperty("consumer").GetString() == "ChurchReport.WeeklyReport.SmallGroupGrid" &&
             item.GetProperty("identity").GetString() == "PresentRecordId");
         consumers.Should().Contain(item =>
             item.GetProperty("product").GetString() == "ChurchReport" &&
-            item.GetProperty("consumer").GetString() == "WeeklyReport.NewPerson" &&
+            item.GetProperty("consumer").GetString() == "ChurchReport.WeeklyReport.NewPersonGrid" &&
             item.GetProperty("identity").GetString() == "PresentRecordId");
 
         foreach (var consumer in consumers)

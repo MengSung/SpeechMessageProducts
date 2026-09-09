@@ -138,7 +138,7 @@ namespace ChurchReport.Controllers
                 RowPublicationGuard.ValidateRows(
                     tasks,
                     member => member.PresentRecordId,
-                    "ChurchReport.WeeklyReport.SmallGroupGrid",
+                    RowPublicationGuard.SmallGroupGridConsumerName,
                     RowPublicationGuard.DefaultMaximumRowCount,
                     nameof(Member.PresentRecordId),
                     StringComparer.OrdinalIgnoreCase);
