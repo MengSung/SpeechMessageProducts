@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ChurchReport.Diagnostics;
+using ChurchReport.Logging;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace ChurchReport
@@ -56,9 +57,41 @@ namespace ChurchReport
         /// <param name="args">傳給 ASP.NET Core 組態與 Host 的命令列參數。</param>
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            // Exception.log 不受 DEBUG 或 DiagnosticsTrace 開關控制，早於 Host 建置建立 owner。
+            // 只從部署目錄決定路徑，原始例外不進通知佇列；先落檔 flush 後才排入 LINE。
+            var diagnostics = new ExceptionDiagnostics(Path.Combine(AppContext.BaseDirectory, "Logs"));
+            IDisposable registration = null;
+            ChurchReport.Services.LineExceptionSender sender = null;
+            try
+            {
+                registration = ExceptionReporting.Attach(diagnostics);
+                var builder = WebApplication.CreateBuilder(args);
+                sender = new ChurchReport.Services.LineExceptionSender(builder.Configuration);
+                diagnostics.StartNotifications(sender.SendAsync);
+                RunApplication(builder, diagnostics);
+            }
+            catch (Exception exception)
+            {
+                diagnostics.Report(exception, "Program.Fatal");
+                throw;
+            }
+            finally
+            {
+                registration?.Dispose();
+                diagnostics.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                sender?.Dispose();
+            }
+        }
 
-            ConfigureSafeLogging(builder);
+        /// <summary>
+        /// 建立正常 Host 管線，借用最外層管理的 Exception.log owner；錯誤 provider 在所有組態啟用。
+        /// 原本三個診斷 Trace 檔仍遵守 Release 關閉契約，與正式錯誤紀錄完全獨立。
+        /// </summary>
+        private static void RunApplication(WebApplicationBuilder builder, ExceptionDiagnostics diagnostics)
+        {
+
+            ConfigureSafeLogging(builder, diagnostics);
+            builder.Services.AddSingleton(diagnostics);
 
 #if DEBUG
             DiagnosticTraceOptions diagnosticTraceOptions;
@@ -167,7 +200,8 @@ namespace ChurchReport
 #endif
         }
 
-        private static void ConfigureSafeLogging(WebApplicationBuilder builder)
+        /// <summary>註冊只擷取安全 metadata 的正式錯誤 provider；不沿用會複製原始訊息的舊 FileLogger。</summary>
+        private static void ConfigureSafeLogging(WebApplicationBuilder builder, ExceptionDiagnostics diagnostics)
         {
             // Windows EventLog provider can fail under non-admin local runs and prevent Kestrel from starting.
             builder.Logging.ClearProviders();
@@ -175,6 +209,8 @@ namespace ChurchReport
             builder.Logging.AddConsole();
             builder.Logging.AddDebug();
             builder.Logging.AddEventSourceLogger();
+            builder.Logging.AddProvider(new ExceptionLoggerProvider(diagnostics));
+            builder.Logging.AddFilter<ExceptionLoggerProvider>(null, LogLevel.Error);
         }
 
 #if DEBUG

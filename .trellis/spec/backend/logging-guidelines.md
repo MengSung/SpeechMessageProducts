@@ -52,6 +52,10 @@ Questions to answer:
 
 ## Unified ChurchReport Diagnostic Trace Contract
 
+正式錯誤紀錄是獨立契約：所有組態都先寫入並 flush `Logs/Exception.log`，再排入 LINE。
+下方 Release 禁寫規則只涵蓋既有三個 Trace 檔，不適用 `Exception.log`，也不得用
+`DiagnosticsTrace:Enabled` 停用錯誤紀錄。詳見 [Error Handling](./error-handling.md)。
+
 ### 1. Scope / Trigger
 
 This contract applies when ChurchReport diagnostics write any of the three files:

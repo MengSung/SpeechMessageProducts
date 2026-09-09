@@ -379,6 +379,9 @@ namespace ChurchReport.Controllers
         /// <returns>AJAX 請求回傳 JSON；其餘回傳轉向錯誤頁的結果。</returns>
         protected IActionResult HandleError(Exception exception, string methodName)
         {
+            // 先由程序 owner 完成 Exception.log flush，再排入 LINE；只傳開發者方法名稱與例外型別。
+            // weak key 去重避免同一例外再被 ILogger／middleware 接收時重複通知，不保留 request。
+            ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(exception, methodName);
             // 組出診斷訊息。包含型別全名與方法名，才能在多個控制器共用本方法時定位來源。
             string errorMessage = $"Unhandled ChurchReport exception: FullName = {GetType().FullName}, " +
                                 $"Method = {methodName}, " +
@@ -397,7 +400,7 @@ namespace ChurchReport.Controllers
             }
 
             // 步驟 2：通知管理者。方法內部已自行處理例外，此處不需再包一層。
-            SendLineErrorNotification(errorMessage);
+            // LINE 已由共用 owner 在落檔後排入；不可再傳送包含原始例外文字的 errorMessage。
 
             // 步驟 3：判斷是否為 AJAX 請求，決定回應格式。
             bool isAjaxRequest = false;

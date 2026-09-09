@@ -857,6 +857,9 @@ namespace ChurchReport
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            // 標準錯誤頁內側先記錄並排入 LINE；不得放在外側，否則例外會先被錯誤頁吃掉。
+            app.UseMiddleware<ChurchReport.Middleware.UnhandledExceptionLineNotificationMiddleware>();
+
             // ========================================
             // ✅ Web Cache Deception 防護中間件
             // ========================================
