@@ -5,7 +5,8 @@
 @model DonationPaymentFormModel
 
 @{
-    ViewBag.Title = "線上奉獻 - 好牧人";
+    var churchDisplayName = Configuration["ChurchInfo:DisplayName"] ?? "教會";
+    ViewBag.Title = "線上奉獻 - " + churchDisplayName;
 
     // 金流提供商：高鉅金流只支援信用卡，沒有記憶卡片與定期定額。
     var payProvider = Configuration["PAY_PROVIDER"] ?? "永豐金流";
@@ -15,11 +16,11 @@
         : new[] { "信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay", "行動支付" };
 
     // 教會聯絡資訊（appsettings.json: ChurchInfo）
-    var churchAddress = Configuration["ChurchInfo:Address"] ?? "桃園市楊梅區三民路二段157號";
-    var churchPhone = Configuration["ChurchInfo:Phone"] ?? "03-4316679";
-    var churchEmail = Configuration["ChurchInfo:Email"] ?? "mengsunghu@gmail.com";
-    var churchTaxId = Configuration["ChurchInfo:TaxId"] ?? "13054485";
-    var churchContactPerson = Configuration["ChurchInfo:ContactPerson"] ?? "胡夢嵩弟兄";
+    var churchAddress = Configuration["ChurchInfo:Address"] ?? "";
+    var churchPhone = Configuration["ChurchInfo:Phone"] ?? "";
+    var churchEmail = Configuration["ChurchInfo:Email"] ?? "";
+    var churchTaxId = Configuration["ChurchInfo:TaxId"] ?? "";
+    var churchContactPerson = Configuration["ChurchInfo:ContactPerson"] ?? "教會辦公室";
 
     var savedCards = isMyPay ? new List<CreditCard>() : (Model.CreditCardList ?? new List<CreditCard>());
     var recurringBookings = isMyPay ? new List<DedicationBooking>() : (Model.DedicationBookingList ?? new List<DedicationBooking>());
@@ -846,7 +847,7 @@
                         </details>
                         <details class="gv-acc">
                             <summary><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1" /><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M11 21v-3h2v3" /></svg><span>建堂奉獻</span><svg class="gv-ico gv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
-                            <p>因著神的憐憫，「好牧人」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。為了滿足場地以及相關軟硬體等財務需求，邀請好牧人的弟兄姊妹們，透過「建堂奉獻」一起支持、建造神國的家。</p>
+                            <p>感謝弟兄姊妹以奉獻支持教會事工。若選擇建堂奉獻，款項將依教會既定用途與財務制度管理。</p>
                         </details>
                         <details class="gv-acc">
                             <summary><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z" /></svg><span>感恩奉獻</span><svg class="gv-ico gv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
@@ -1142,6 +1143,7 @@
             if (s && s.required && !l.sub) out.push('「' + l.cat + '」請選擇' + s.label);
         });
         if (isRecurring() && act.length > 1) out.push('定期定額一次只能設定一個類別');
+        if (state.pay === 'ATM轉帳/匯款' && act.length > 1) out.push('ATM 多類別付款尚未開放，請分開建立奉獻或改用信用卡');
         return out;
     }
 

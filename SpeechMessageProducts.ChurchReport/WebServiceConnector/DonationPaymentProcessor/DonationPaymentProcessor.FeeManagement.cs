@@ -86,12 +86,40 @@ namespace ChurchReport.WebServiceConnector
             }
 
             var created = new List<(Guid, Entity, DonationLineItemInput)>(lines.Count);
-            foreach (var line in lines)
+            try
             {
-                var feeId = CreateFee(contact, model.CloneForLine(line), false);
-                created.Add((feeId, ToolUtility.RetrieveEntity("new_fee", feeId), line));
+                foreach (var line in lines)
+                {
+                    var feeId = CreateFee(contact, model.CloneForLine(line), false);
+                    created.Add((feeId, ToolUtility.RetrieveEntity("new_fee", feeId), line));
+                }
+
+                return created;
             }
-            return created;
+            catch (Exception creationException)
+            {
+                // 多類別必須全部建立後才可送金流。若中途失敗，反向刪除本次已建立的暫存收費單，
+                // 避免 CRM 留下沒有金流訂單的部分群組；補償失敗會保留原始例外並交由共用告警追查。
+                Exception cleanupException = null;
+                for (var index = created.Count - 1; index >= 0; index--)
+                {
+                    try
+                    {
+                        ToolUtility.DeleteEntity("new_fee", created[index].Item1);
+                    }
+                    catch (Exception exception)
+                    {
+                        cleanupException ??= exception;
+                    }
+                }
+
+                if (cleanupException != null)
+                {
+                    throw new AggregateException("多類別收費單建立失敗，且補償刪除未全部完成。", creationException, cleanupException);
+                }
+
+                throw;
+            }
         }
 
         /// <summary>將同一金流訂單資訊寫入群組內每張收費單，確保 callback 可依鍵找齊。</summary>
