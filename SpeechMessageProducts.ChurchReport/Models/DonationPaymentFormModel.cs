@@ -59,19 +59,16 @@ namespace ChurchReport.Models
         /// </summary>
         public void EnsureFormDefaults()
         {
-            if (String.IsNullOrWhiteSpace(Category))
+            if (DedicationCategoryList == null || DedicationCategoryList.Count == 0)
             {
-                Category = DefaultCategory;
+                DedicationCategoryList = new List<String>(s_defaultDedicationCategories);
             }
+
+            Category = ResolveCategoryAgainstList(Category, DedicationCategoryList);
 
             if (String.IsNullOrWhiteSpace(PayWay))
             {
                 PayWay = DefaultPayWay;
-            }
-
-            if (DedicationCategoryList == null || DedicationCategoryList.Count == 0)
-            {
-                DedicationCategoryList = new List<String>(s_defaultDedicationCategories);
             }
 
             OtherCategoryArray ??= new List<String>();
@@ -82,6 +79,27 @@ namespace ChurchReport.Models
             CreditCardList ??= new List<CreditCard>();
             DedicationFeeList ??= new List<DedicationFee>();
             DedicationBookingList ??= new List<DedicationBooking>();
+        }
+
+        /// <summary>
+        /// 將目前類別對帳回 CRM 提供的可選清單，避免不同教會的 OptionSet 造成畫面選取值失效。
+        /// 只回傳清單中的原始字串，不接受瀏覽器自行捏造的類別文字作為預設值。
+        /// </summary>
+        private static String ResolveCategoryAgainstList(String category, List<String> categoryList)
+        {
+            var selected = FindCategoryInList(categoryList, category);
+            if (selected != null) return selected;
+            return FindCategoryInList(categoryList, DefaultCategory)
+                ?? categoryList.FirstOrDefault(item => !String.IsNullOrWhiteSpace(item))
+                ?? DefaultCategory;
+        }
+
+        /// <summary>在類別清單中以不分大小寫且忽略前後空白的方式尋找項目。</summary>
+        private static String FindCategoryInList(List<String> categoryList, String category)
+        {
+            if (String.IsNullOrWhiteSpace(category)) return null;
+            return categoryList.FirstOrDefault(item => !String.IsNullOrWhiteSpace(item)
+                && String.Equals(item.Trim(), category.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -176,7 +194,7 @@ namespace ChurchReport.Models
         public List<DedicationBooking> DedicationBookingList { get; set; }//認獻清單
         public String SelectedDedicationBooking { get; set; }             //選取的認獻
 
-        public DateTime QueryStartDate { get; set; } = DateTime.Now;    //奉獻查詢開始日期
+        public DateTime QueryStartDate { get; set; } = new DateTime(DateTime.Now.Year, 1, 1); //奉獻查詢開始日期
         public DateTime QueryEndDate { get; set; } = DateTime.Now;      //奉獻查詢結束日期
 
         public bool IsAOfficeWorker { get; set; } = false;              //是否符合輸入奉獻的行政人員

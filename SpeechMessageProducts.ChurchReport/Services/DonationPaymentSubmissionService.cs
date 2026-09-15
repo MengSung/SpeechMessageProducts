@@ -46,6 +46,14 @@ namespace ChurchReport.Services
                 return "未輸入奉獻金額";
             if (string.Equals(donationModel.PayWay, "信用卡定期定額(每個月)", StringComparison.Ordinal) && lines.Count > 1)
                 return "定期定額一次只能設定一個類別";
+            if (string.Equals(donationModel.PayWay, "ATM轉帳/匯款", StringComparison.Ordinal) && lines.Count > 1)
+                return "ATM 多類別付款尚未開放，請分開建立奉獻或改用信用卡";
+            var duplicateCategory = lines
+                .Where(x => !string.IsNullOrWhiteSpace(x.Category))
+                .GroupBy(x => x.Category.Trim(), StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault(group => group.Count() > 1);
+            if (duplicateCategory != null)
+                return $"奉獻類別不可重複：{duplicateCategory.Key}";
             foreach (var line in lines)
             {
                 if (line.Amount < 0) return "奉獻金額不可為負數";
