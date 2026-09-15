@@ -1,0 +1,1 @@
+最終修正後審查：請審查 codex/donation-operation-page 相對 d276ea270 的變更。確認上一輪指出的 DonationFeePaymentProcessor 硬編碼 LINE ID 與繞過 Exception.log 問題已移除；另檢查多類別奉獻頁、CRM 收費單付款金額/狀態同步、Callback 冪等與 Param1 fail-closed。只回報 Critical/Warning/Info 與檔案行號。
