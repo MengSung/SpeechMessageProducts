@@ -18,6 +18,7 @@ using ChurchReport.Payments;
 using Microsoft.Xrm.Sdk;
 
 using System;
+using System.Collections.Generic;
 
 
 using System.Threading.Tasks;
@@ -72,12 +73,13 @@ namespace ChurchReport.WebServiceConnector
             int DeductFreq,
             string CreditCategory,
             Entity LineLoginContact,
-            string CCToken = null)
+            string CCToken = null,
+            IReadOnlyList<SpeechMessage.Payments.Models.PaymentLineItem> items = null)
         {
             // DonationPaymentProcessor 是 ChurchReport 既有費用/奉獻流程的入口。
             // 這裡只擷取 CRM contact 顯示名稱，實際 provider 建單交給中性 adapter 與通用金流核心。
             var customerName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-            return await CreateDonationPaymentOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, customerName, CCToken);
+            return await CreateDonationPaymentOrderWithItems(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, customerName, CCToken, items);
         }
 
         /// <summary>
@@ -88,7 +90,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="OrderDate">訂單日期字串</param>
         /// <param name="FeeId">收費單 ID</param>
         /// <returns>CreOrder 物件，包含 ATM 付款資訊</returns>
-        public async Task<CreOrder> CreateOrderATM(int Amount, string ProductName, string OrderDate, string FeeId)
+        public async Task<CreOrder> CreateOrderATM(int Amount, string ProductName, string OrderDate, string FeeId, IReadOnlyList<SpeechMessage.Payments.Models.PaymentLineItem> items = null)
         {
             // ATM/轉帳的 provider protocol 已移到 SpeechMessage.Payments.Sinopac。
             // ChurchReport 只提供產品訂單、fee id、回呼 URL 與到期日，並接收 legacy CreOrder 相容結果。
@@ -105,6 +107,7 @@ namespace ChurchReport.WebServiceConnector
                     ReturnUrl = ReturnUrl,
                     BackendUrl = BackendUrl,
                     ExpireDate = DateTime.Now.AddDays(10).ToLocalTime().ToString("yyyyMMdd")
+                    ,Items = items ?? Array.Empty<SpeechMessage.Payments.Models.PaymentLineItem>()
                 });
         }
 
@@ -143,7 +146,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="CreditCategory">信用卡類別</param>
         /// <param name="CCToken">信用卡 Token</param>
         /// <returns>CreOrder 物件</returns>
-        private async Task<CreOrder> CreateDonationPaymentOrder(
+        private async Task<CreOrder> CreateDonationPaymentOrderWithItems(
             int Amount,
             string ProductName,
             string OrderDate,
@@ -156,7 +159,8 @@ namespace ChurchReport.WebServiceConnector
             int DeductFreq,
             string CreditCategory,
             string CustomerName,
-            string CCToken)
+            string CCToken,
+            IReadOnlyList<SpeechMessage.Payments.Models.PaymentLineItem> items)
         {
             // 將 ChurchReport 舊 UI 傳入的分散參數包成產品層 input。
             // adapter 再轉成 PaymentCreateRequest，provider-specific payload 由核心決定。
@@ -182,9 +186,14 @@ namespace ChurchReport.WebServiceConnector
                     {
                         Name = CustomerName
                     },
-                    CreditCardToken = CCToken
+                    CreditCardToken = CCToken,
+                    Items = items ?? Array.Empty<SpeechMessage.Payments.Models.PaymentLineItem>()
                 });
         }
+
+        // 保留舊版反射／測試所使用的私有簽章，避免既有呼叫端因新增明細參數而失效。
+        private Task<CreOrder> CreateDonationPaymentOrder(int Amount, string ProductName, string OrderDate, string FeeId, string PayType, string PayTypeSub, string Staging, int DeductTotalNum, string PeriodType, int DeductFreq, string CreditCategory, string CustomerName, string CCToken)
+            => CreateDonationPaymentOrderWithItems(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, CustomerName, CCToken, null);
 
         #endregion
     }

@@ -64,7 +64,6 @@ namespace ChurchReport.Models
                 DedicationCategoryList = new List<String>(s_defaultDedicationCategories);
             }
 
-            // 奉獻類別必須先跟實際可選清單對帳再寫回，順序不可調到清單初始化之前。
             Category = ResolveCategoryAgainstList(Category, DedicationCategoryList);
 
             if (String.IsNullOrWhiteSpace(PayWay))
@@ -73,6 +72,9 @@ namespace ChurchReport.Models
             }
 
             OtherCategoryArray ??= new List<String>();
+            // Lines 是請求所屬的可變集合；若舊流程或 CRM 初始化曾將它設為 null，
+            // 只補回新的空集合，絕不重用其他會友或其他請求的集合實例。
+            Lines ??= new List<DonationLineItemInput>();
             SpecialCategoryArray ??= new List<String>();
             CreditCardList ??= new List<CreditCard>();
             DedicationFeeList ??= new List<DedicationFee>();
@@ -80,47 +82,23 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
-        /// 把奉獻類別對帳回「畫面上真的選得到的清單」。
-        ///
-        /// 奉獻頁的 SelectBox DataSource 是 <see cref="DedicationCategoryList"/>，
-        /// 而它來自各教會自己的 CRM new_fee.new_category OptionSet，用字不一定是「十一奉獻」
-        /// （例如好牧人用「月定獻金」「禮拜獻金」）。若 Category 停在清單裡沒有的值，
-        /// DevExtreme SelectBox 找不到對應項就會退回顯示 placeholder「選擇...」，
-        /// 使用者必須自己下拉一次才能送出，這正是要防止的狀況。
-        ///
-        /// 對帳規則刻意分三層，避免改變既有教會的預設值：
-        /// 1. 現有值若存在於清單中就原樣保留（含使用者已選好的類別）。
-        /// 2. 否則優先採用 <see cref="DefaultCategory"/>，讓 OptionSet 有「十一奉獻」的教會行為不變。
-        /// 3. 都對不上才退回清單第一個有效項目。
-        ///
-        /// 比對時忽略前後空白與大小寫，但回傳清單裡的「原始字串」，
-        /// 因為 SelectBox 是用字串相等去比對 DataSource 項目的。
+        /// 將目前類別對帳回 CRM 提供的可選清單，避免不同教會的 OptionSet 造成畫面選取值失效。
+        /// 只回傳清單中的原始字串，不接受瀏覽器自行捏造的類別文字作為預設值。
         /// </summary>
         private static String ResolveCategoryAgainstList(String category, List<String> categoryList)
         {
-            String selected = FindCategoryInList(categoryList, category);
-            if (selected != null)
-            {
-                return selected;
-            }
-
+            var selected = FindCategoryInList(categoryList, category);
+            if (selected != null) return selected;
             return FindCategoryInList(categoryList, DefaultCategory)
                 ?? categoryList.FirstOrDefault(item => !String.IsNullOrWhiteSpace(item))
                 ?? DefaultCategory;
         }
 
-        /// <summary>
-        /// 在奉獻類別清單中找出與指定文字相同的項目，找不到時回傳 null。
-        /// </summary>
+        /// <summary>在類別清單中以不分大小寫且忽略前後空白的方式尋找項目。</summary>
         private static String FindCategoryInList(List<String> categoryList, String category)
         {
-            if (String.IsNullOrWhiteSpace(category))
-            {
-                return null;
-            }
-
-            return categoryList.FirstOrDefault(item =>
-                !String.IsNullOrWhiteSpace(item)
+            if (String.IsNullOrWhiteSpace(category)) return null;
+            return categoryList.FirstOrDefault(item => !String.IsNullOrWhiteSpace(item)
                 && String.Equals(item.Trim(), category.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
@@ -160,6 +138,41 @@ namespace ChurchReport.Models
         public String PayWay { get; set; }                              //付款方式
         public String DeductTotalNumber { get; set; }                   //定期定額總期數
         public String Others { get; set; }                              //其他奉獻
+        /// <summary>
+        /// 多類別奉獻明細。空集合表示呼叫端仍使用相容的單一 Category／Amount／Others 欄位。
+        /// 這個集合只屬於目前表單物件，禁止放入 static 或跨請求快取，以免會友資料互相洩漏。
+        /// </summary>
+        public List<DonationLineItemInput> Lines { get; set; } = new List<DonationLineItemInput>();
+
+        /// <summary>
+        /// 建立目前表單的淺層副本，並只替換指定明細的類別、金額與說明。
+        /// 建單流程會為每一列呼叫此方法，再交給既有 SetFeeParameter；
+        /// 因此可以沿用舊簽章，同時確保下一列不會讀到上一列被改寫的值。
+        /// Lines 會重設成新的空集合，避免複製後再次被正規化成多筆而重複建單。
+        /// </summary>
+        public DonationPaymentFormModel CloneForLine(DonationLineItemInput line)
+        {
+            // 明細是建單必要輸入；null 代表程式呼叫錯誤，立即失敗比建立不完整收費單安全。
+            if (line == null) throw new ArgumentNullException(nameof(line));
+            // MemberwiseClone 不會修改原始表單；Lines 額外建立新集合，隔離複製物件的可變狀態。
+            var clone = (DonationPaymentFormModel)MemberwiseClone();
+            clone.Category = line.Category;
+            clone.Amount = line.Amount;
+            clone.Others = line.Others;
+            clone.Lines = new List<DonationLineItemInput>();
+            // MemberwiseClone 對集合欄位只會複製參考；若直接沿用，任一列建單流程修改集合就會
+            // 污染原始表單，甚至把一位會友的暫存資料帶到下一列或下一個請求。每個可變集合都
+            // 建立新的容器，讓副本擁有自己的集合生命週期；集合元素本身是既有流程的資料快照，
+            // 建單階段只讀取，不在此處註冊事件、配置 timer、開啟 stream 或保留外部資源。
+            clone.DedicationCategoryList = DedicationCategoryList?.ToList() ?? new List<String>();
+            clone.OtherCategoryArray = OtherCategoryArray?.ToList() ?? new List<String>();
+            clone.SpecialCategoryArray = SpecialCategoryArray?.ToList() ?? new List<String>();
+            clone.CreditCardList = CreditCardList?.ToList() ?? new List<CreditCard>();
+            clone.DedicationFeeList = DedicationFeeList?.ToList() ?? new List<DedicationFee>();
+            clone.DedicationBookingList = DedicationBookingList?.ToList() ?? new List<DedicationBooking>();
+            clone.SameNameList = SameNameList?.ToList() ?? new List<SameNameElement>();
+            return clone;
+        }
         public String DedicateLocation { get; set; }                    //奉獻分堂
         public String Explain { get; set; }                             //備註
         public String WeeklyNote { get; set; }                          //週報專用備註
@@ -181,12 +194,7 @@ namespace ChurchReport.Models
         public List<DedicationBooking> DedicationBookingList { get; set; }//認獻清單
         public String SelectedDedicationBooking { get; set; }             //選取的認獻
 
-        /// <summary>
-        /// 奉獻查詢開始日期；每次建立新表單時依當下本地年份動態設定為該年一月一日。
-        /// 這個初始化只提供新表單的安全起點，不會在 <see cref="EnsureFormDefaults"/> 中重設，
-        /// 因此不會覆蓋使用者在查詢畫面選取的日期，也不會把任何年份（例如 2026）硬編碼在模型內。
-        /// </summary>
-        public DateTime QueryStartDate { get; set; } = new DateTime(DateTime.Now.Year, 1, 1);
+        public DateTime QueryStartDate { get; set; } = new DateTime(DateTime.Now.Year, 1, 1); //奉獻查詢開始日期
         public DateTime QueryEndDate { get; set; } = DateTime.Now;      //奉獻查詢結束日期
 
         public bool IsAOfficeWorker { get; set; } = false;              //是否符合輸入奉獻的行政人員

@@ -13,6 +13,7 @@
 // ============================================================================
 using System;
 using ChurchReport.Models;
+using System.Linq;
 
 namespace ChurchReport.Services
 {
@@ -38,17 +39,30 @@ namespace ChurchReport.Services
                 return "未輸入奉獻金額";
             }
 
-            if (donationModel.Category == "節期獻金" && string.IsNullOrWhiteSpace(donationModel.Others))
+            var lines = DonationLineItemNormalizer.Normalize(donationModel);
+            if (lines.Count > DonationLineItemNormalizer.MaxLines)
+                return $"一次最多只能奉獻 {DonationLineItemNormalizer.MaxLines} 個類別";
+            if (lines.Count == 0)
+                return "未輸入奉獻金額";
+            if (string.Equals(donationModel.PayWay, "信用卡定期定額(每個月)", StringComparison.Ordinal) && lines.Count > 1)
+                return "定期定額一次只能設定一個類別";
+            if (string.Equals(donationModel.PayWay, "ATM轉帳/匯款", StringComparison.Ordinal) && lines.Count > 1)
+                return "ATM 多類別付款尚未開放，請分開建立奉獻或改用信用卡";
+            var duplicateCategory = lines
+                .Where(x => !string.IsNullOrWhiteSpace(x.Category))
+                .GroupBy(x => x.Category.Trim(), StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault(group => group.Count() > 1);
+            if (duplicateCategory != null)
+                return $"奉獻類別不可重複：{duplicateCategory.Key}";
+            foreach (var line in lines)
             {
-                return "錯誤:沒有選擇節期!";
+                if (line.Amount < 0) return "奉獻金額不可為負數";
+                if (line.Category == "節期獻金" && string.IsNullOrWhiteSpace(line.Others)) return "錯誤:沒有選擇節期!";
+                if (line.Category == "特別奉獻" && string.IsNullOrWhiteSpace(line.Others)) return "錯誤:沒有選擇特別奉獻的項目!";
             }
+            if (lines.All(x => x.Amount <= 0)) return "未輸入奉獻金額";
+            return string.Empty;
 
-            if (donationModel.Category == "特別奉獻" && string.IsNullOrWhiteSpace(donationModel.Others))
-            {
-                return "錯誤:沒有選擇特別奉獻的項目!";
-            }
-
-            return donationModel.Amount > 0 ? string.Empty : "未輸入奉獻金額";
         }
 
         /// <summary>

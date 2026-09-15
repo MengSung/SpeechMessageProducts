@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
 // 檔案責任：此檔案位於付款相關流程，註解重點在說明 provider 邊界、金流狀態、錯誤處理與不可改變的外部契約。
 // 主要型別：class DonationPaymentProcessor
-// 主要成員：ProcessCreditCardPayment、ProcessRecurringPayment、ProcessMobilePayment、ProcessLinePayPayment、ProcessAtmPayment、ProcessAtm、ResolveAtmNotificationLineIds、AddDistinctLineId、TrySendAtmPaymentInstructionsAsync、BuildAtmPaymentLineRetryKey
+// 主要成員：ProcessCreditCardPayment、ProcessRecurringPayment、ProcessMobilePayment、ProcessLinePayPayment、ProcessAtmPayment、ProcessAtm、ResolveAtmNotificationLineIds、AddDistinctLineId、TrySendAtmPaymentInstructionsAsync、BuildAtmPaymentLineRetryKey、EncodeProviderFeeIds
 // 引用命名空間：ChurchReport.Models、Microsoft.Xrm.Sdk、System、System.Collections.Generic、System.Threading.Tasks
 // 閱讀路徑：閱讀此檔案時應先確認金額、訂單編號、付款狀態、provider profile、callback acknowledgement 與錯誤訊息是否跨層保持一致。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Models;
+using ChurchReport.Services;
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
@@ -37,24 +38,40 @@ namespace ChurchReport.WebServiceConnector
     {
         private static readonly TimeSpan AtmLineNotificationDisplayTimeout = TimeSpan.FromMilliseconds(500);
 
+        /// <summary>
+        /// 把同一次付款建立的所有收費單 Id 編成永豐 Param1（格式見 <see cref="DonationFeeIdList"/>）。
+        /// 付款完成時 callback 依這份清單逐張把收費單標記已付款，實收金額＝各自的應收金額。
+        /// </summary>
+        private static string EncodeProviderFeeIds(List<(Guid FeeId, Entity Fee, DonationLineItemInput Line)> fees)
+        {
+            var feeIds = new List<Guid>(fees.Count);
+            foreach (var fee in fees)
+            {
+                feeIds.Add(fee.FeeId);
+            }
+
+            return DonationFeeIdList.Encode(feeIds);
+        }
+
         #region ===== 信用卡付款 =====
 
         /// <summary>
         /// 處理信用卡/銀聯卡付款
         /// </summary>
-        private async Task<string> ProcessCreditCardPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
+        private async Task<string> ProcessCreditCardPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, IReadOnlyList<DonationLineItemInput> lines, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
-            var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
+            var fees = CreateFeesForLines(LineLoginContact, DonationPaymentFormModel, lines);
+            // 永豐 Param1 放入這次建立的所有收費單 Id，付款完成時 callback 依清單逐張入帳。
+            var providerFeeIds = EncodeProviderFeeIds(fees);
 
             // 判斷信用卡類型
             var payTypeSub = DonationPaymentFormModel.PayWay == "銀聯卡" ? "CUP" : "ONE";
 
             var createdCardOrder = await CreOrderCard(
-                DonationPaymentFormModel.Amount,
-                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
+                DonationFeeGroupText.Total(lines),
+                DonationFeeGroupText.ProviderProductName(lines, DonationPaymentFormModel.FullName),
                 orderDate,
-                feeId.ToString(),
+                providerFeeIds,
                 "C", // 信用卡
                 payTypeSub,
                 "",
@@ -63,12 +80,13 @@ namespace ChurchReport.WebServiceConnector
                 1,
                 "收費單",
                 LineLoginContact,
-                DonationPaymentFormModel.SelectedCreditCard
+                DonationPaymentFormModel.SelectedCreditCard,
+                DonationFeeGroupText.ProviderItems(lines)
             );
 
             if (createdCardOrder?.CardParam?.CardPayURL != null)
             {
-                UpdateFee(ref feeEntity, createdCardOrder.OrderNo, "C" + orderDate, "", "");
+                UpdateFees(fees, createdCardOrder.OrderNo, "C" + orderDate, "", "");
                 return createdCardOrder.CardParam.CardPayURL;
             }
 
@@ -82,8 +100,10 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理信用卡定期定額扣款
         /// </summary>
-        private async Task<string> ProcessRecurringPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
+        private async Task<string> ProcessRecurringPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, IReadOnlyList<DonationLineItemInput> lines, string orderDate)
         {
+            if (lines.Count != 1) return "信用卡定期定額建立失敗! 定期定額一次只能設定一個類別";
+            DonationPaymentFormModel = DonationPaymentFormModel.CloneForLine(lines[0]);
             // 建立認獻單
             var dedicationBookingId = CreateDedicationBooking(LineLoginContact, DonationPaymentFormModel);
             var dedicationBookingEntity = ToolUtility.RetrieveEntity("new_dedication_booking", dedicationBookingId);
@@ -135,16 +155,14 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理行動支付
         /// </summary>
-        private async Task<string> ProcessMobilePayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
+        private async Task<string> ProcessMobilePayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, IReadOnlyList<DonationLineItemInput> lines, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
-            var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
+            var fees = CreateFeesForLines(LineLoginContact, DonationPaymentFormModel, lines); var providerFeeIds = EncodeProviderFeeIds(fees);
 
             var createdMobileOrder = await CreOrderCard(
-                DonationPaymentFormModel.Amount,
-                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
+                DonationFeeGroupText.Total(lines), DonationFeeGroupText.ProviderProductName(lines, DonationPaymentFormModel.FullName),
                 orderDate,
-                feeId.ToString(),
+                providerFeeIds,
                 "M", // 行動支付
                 "ONE",
                 "",
@@ -153,16 +171,16 @@ namespace ChurchReport.WebServiceConnector
                 1,
                 "收費單",
                 LineLoginContact,
-                DonationPaymentFormModel.SelectedCreditCard
+                DonationPaymentFormModel.SelectedCreditCard, DonationFeeGroupText.ProviderItems(lines)
             );
 
             if (createdMobileOrder?.MobileParam?.MobilePayURL != null)
             {
-                UpdateFee(ref feeEntity, createdMobileOrder.OrderNo, "C" + orderDate, "", "");
+                UpdateFees(fees, createdMobileOrder.OrderNo, "C" + orderDate, "", "");
                 return createdMobileOrder.MobileParam.MobilePayURL;
             }
 
-            UpdateFee(ref feeEntity, createdMobileOrder.Description, "C" + orderDate, "", "");
+            UpdateFees(fees, createdMobileOrder.Description, "C" + orderDate, "", "");
             return $"行動支付付款失敗! {createdMobileOrder?.Description}";
         }
 
@@ -173,16 +191,14 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理 LinePay 付款
         /// </summary>
-        private async Task<string> ProcessLinePayPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
+        private async Task<string> ProcessLinePayPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, IReadOnlyList<DonationLineItemInput> lines, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
-            var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
+            var fees = CreateFeesForLines(LineLoginContact, DonationPaymentFormModel, lines); var providerFeeIds = EncodeProviderFeeIds(fees);
 
             var createdLinePayOrder = await CreOrderCard(
-                DonationPaymentFormModel.Amount,
-                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
+                DonationFeeGroupText.Total(lines), DonationFeeGroupText.ProviderProductName(lines, DonationPaymentFormModel.FullName),
                 DateTime.Now.ToString("yyyyMMddhhmmssfff"),
-                feeId.ToString(),
+                providerFeeIds,
                 "L", // LinePay
                 "ONE",
                 "",
@@ -191,16 +207,16 @@ namespace ChurchReport.WebServiceConnector
                 1,
                 "收費單",
                 LineLoginContact,
-                DonationPaymentFormModel.SelectedCreditCard
+                DonationPaymentFormModel.SelectedCreditCard, DonationFeeGroupText.ProviderItems(lines)
             );
 
             if (createdLinePayOrder?.MobileParam?.MobilePayURL != null)
             {
-                UpdateFee(ref feeEntity, createdLinePayOrder.OrderNo, "C" + orderDate, "", "");
+                UpdateFees(fees, createdLinePayOrder.OrderNo, "C" + orderDate, "", "");
                 return createdLinePayOrder.MobileParam.MobilePayURL;
             }
 
-            UpdateFee(ref feeEntity, createdLinePayOrder.Description, "C" + orderDate, "", "");
+            UpdateFees(fees, createdLinePayOrder.Description, "C" + orderDate, "", "");
             return $"LinePay付款失敗! {createdLinePayOrder?.Description}";
         }
 
@@ -211,12 +227,10 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理 ATM 轉帳/匯款
         /// </summary>
-        private async Task<string> ProcessAtmPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
+        private async Task<string> ProcessAtmPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, IReadOnlyList<DonationLineItemInput> lines, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
-            var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
-
-            return await ProcessAtm(feeId, feeEntity, DonationPaymentFormModel, "C" + orderDate, "", LineLoginContact);
+            var fees = CreateFeesForLines(LineLoginContact, DonationPaymentFormModel, lines);
+            return await ProcessAtmGroup(fees, lines, DonationPaymentFormModel, "C" + orderDate, "", LineLoginContact);
         }
 
         /// <summary>
@@ -230,6 +244,28 @@ namespace ChurchReport.WebServiceConnector
             string LineId,
             Entity LineLoginContact)
         {
+            var line = new DonationLineItemInput { Category = DonationPaymentFormModel.Category, Amount = DonationPaymentFormModel.Amount, Others = DonationPaymentFormModel.Others };
+            return await ProcessAtmGroup(new List<(Guid, Entity, DonationLineItemInput)> { (aCreatedFeeId, aFeeToUpdate, line) }, new[] { line }, DonationPaymentFormModel, OrderId, LineId, LineLoginContact);
+        }
+
+        private async Task<string> ProcessAtmGroup(List<(Guid FeeId, Entity Fee, DonationLineItemInput Line)> fees, IReadOnlyList<DonationLineItemInput> lines, DonationPaymentFormModel model, string orderId, string lineId, Entity contact)
+        {
+            try
+            {
+                model.FullName = ToolUtility.GetEntityStringAttribute(ref contact, "fullname");
+                var createdAtmOrder = await CreateOrderATM(DonationFeeGroupText.Total(lines), DonationFeeGroupText.ProviderProductName(lines, model.FullName), DateTime.Now.ToString("yyyyMMddhhmmssfff"), EncodeProviderFeeIds(fees), DonationFeeGroupText.ProviderItems(lines));
+                if (createdAtmOrder?.ATMParam == null || string.IsNullOrWhiteSpace(createdAtmOrder.ATMParam.AtmPayNo)) throw new InvalidOperationException("ATM order creation did not return a virtual account.");
+                UpdateFees(fees, "", createdAtmOrder.OrderNo, orderId, createdAtmOrder.ATMParam.AtmPayNo);
+                var atmInfo = DonationFeeGroupText.AtmInfo(model.FullName, lines, createdAtmOrder.ATMParam.AtmPayNo, DateTime.Now.AddDays(10).ToLocalTime().ToShortDateString());
+                var lineIds = ResolveAtmNotificationLineIds(lineId, contact);
+                var notificationResult = await TrySendAtmPaymentInstructionsAsync(lineIds, atmInfo.LineMessage, BuildAtmPaymentLineRetryKey(fees[0].FeeId, createdAtmOrder.OrderNo, createdAtmOrder.ATMParam.AtmPayNo), contact.Id);
+                return atmInfo.HtmlMessage + notificationResult;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"處理 ATM 轉帳失敗: {ex.Message}", ex);
+            }
+            /*
             try
             {
                 DonationPaymentFormModel.FullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
@@ -266,6 +302,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 throw new InvalidOperationException($"處理 ATM 轉帳失敗: {ex.Message}", ex);
             }
+            */
         }
 
         /// <summary>
