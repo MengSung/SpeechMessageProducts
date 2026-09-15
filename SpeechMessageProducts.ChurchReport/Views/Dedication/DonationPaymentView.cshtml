@@ -1,1269 +1,1961 @@
+@using System.Linq
 @using ChurchReport.Models
-@using DevExtreme.AspNet.Mvc
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 @model DonationPaymentFormModel
 
 @{
     ViewBag.Title = "線上奉獻 - 好牧人";
-    
-    // 讀取金流提供商設定
-    var payProvider = Configuration["PAY_PROVIDER"] ?? "永豐金流";
-    
-    // 判斷是否為高鉅金流（高鉅金流時隱藏付款方式選項）
-    var isMyPay = payProvider == "高鉅金流";
-    
-    // 根據金流提供商設定不同的付款方式選項
-    string[] payWayOptions;
-    if (isMyPay)
-    {
-        // 高鉅金流只支援信用卡
-        payWayOptions = new string[] { "信用卡" };
-    }
-    else
-    {
-        // 永豐金流或其他金流支援的付款方式（包含信用卡定期定額）
-        payWayOptions = new string[] { "信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay", "行動支付" };
-    }
 
-    // 讀取教會聯絡資訊（來自 appsettings.json: ChurchInfo）
+    // 金流提供商：高鉅金流只支援信用卡，沒有記憶卡片與定期定額。
+    var payProvider = Configuration["PAY_PROVIDER"] ?? "永豐金流";
+    var isMyPay = payProvider == "高鉅金流";
+    string[] payWayOptions = isMyPay
+        ? new[] { "信用卡" }
+        : new[] { "信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay", "行動支付" };
+
+    // 教會聯絡資訊（appsettings.json: ChurchInfo）
     var churchAddress = Configuration["ChurchInfo:Address"] ?? "桃園市楊梅區三民路二段157號";
     var churchPhone = Configuration["ChurchInfo:Phone"] ?? "03-4316679";
     var churchEmail = Configuration["ChurchInfo:Email"] ?? "mengsunghu@gmail.com";
     var churchTaxId = Configuration["ChurchInfo:TaxId"] ?? "13054485";
     var churchContactPerson = Configuration["ChurchInfo:ContactPerson"] ?? "胡夢嵩弟兄";
+
+    var savedCards = isMyPay ? new List<CreditCard>() : (Model.CreditCardList ?? new List<CreditCard>());
+    var recurringBookings = isMyPay ? new List<DedicationBooking>() : (Model.DedicationBookingList ?? new List<DedicationBooking>());
+
+    // 前端需要的資料一次序列化成 JSON；Json.Serialize 會跳脫 HTML 特殊字元，可安全放進 script。
+    var pageData = new
+    {
+        categories = Model.DedicationCategoryList ?? new List<string>(),
+        specialItems = Model.SpecialCategoryArray ?? new List<string>(),
+        missionTargets = Model.OtherCategoryArray ?? new List<string>(),
+        payWays = payWayOptions,
+        isMyPay = isMyPay,
+        // 一次最多幾個類別：與伺服器驗證相同（永豐 Param1 最多放 7 張收費單 Id）。
+        maxLines = ChurchReport.Services.DonationLineItemNormalizer.MaxLines,
+        cards = savedCards.Select(card => new
+        {
+            token = card.CCToken ?? "",
+            number = card.CreditCardNumber ?? "",
+            expire = card.ExpireDate ?? ""
+        }).ToList(),
+        selectedCard = Model.SelectedCreditCard ?? "",
+        bookings = recurringBookings.Select(booking => new
+        {
+            id = booking.EntityId ?? "",
+            category = booking.DedicationCategory ?? "",
+            status = booking.DedicationBookingStatus ?? "",
+            amount = booking.AmountPerStage ?? "",
+            totalStages = booking.TotalStages ?? "",
+            paidPeriod = booking.PaidPeriod ?? "",
+            start = booking.StartDate ?? "",
+            end = booking.EndDate ?? ""
+        }).ToList(),
+        yearStart = new DateTime(DateTime.Today.Year, 1, 1).ToString("yyyy-MM-dd"),
+        today = DateTime.Today.ToString("yyyy-MM-dd")
+    };
 }
 
 <!-- ==================== 頁面頭部 ==================== -->
 <head>
     <meta charset="UTF-8">
-     @*<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">*@
-     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
-    
-    <!-- 外部 CSS 庫（只保留不影響 navbar 的 icon） -->
-    <link rel="stylesheet" href="~/assets/web-assets/mobirise-icons/mobirise-icons.css">
-    
-    <!-- DevExtreme & 自定義 CSS -->
     <link href="~/css/devextreme/dx.generic.custom-scheme.css" rel="stylesheet">
     <link href="~/css/Gallery.css" rel="stylesheet">
     <link href="~/css/WeeklyReport.css" rel="stylesheet">
     <link href="~/css/Scheduler.css" rel="stylesheet">
     <link href="~/css/Site.css" rel="stylesheet">
-    
-<!-- DonationPaymentView 專屬樣式 -->
-<link href="~/css/DonationPaymentView.css?v=20251024" rel="stylesheet">
+    <!-- 奉獻頁字型：Manrope（數字與拉丁字）＋ Noto Sans TC（中文）；載入失敗時退回系統字型 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght%40500;600;700;800&amp;family=Noto+Sans+TC:wght%40400;500;700&amp;display=swap">
 </head>
 
 <style>
-.donation-payment-page {
-    --theme-primary: #0f766e;
-    --theme-border: #d9e6f2;
-    --theme-surface: #ffffff;
-    --theme-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  }
-
-.donation-payment-container {
-    max-width: 1024px;
-    margin: 0 auto;
-  }
-
-.donation-payment-card {
-    background: var(--theme-surface);
-    border: 1px solid var(--theme-border);
-    border-radius: 16px;
-    box-shadow: var(--theme-shadow);
-    padding: 14px 16px;
-    margin-bottom: 12px;
-  }
-
-  .section-title {
-    color: var(--theme-primary);
-    margin: 0 0 14px;
-    font-weight: 700;
-    font-size: 1.12rem;
-  }
-
-  .section-subtitle {
-    color: #64748b;
-    margin: 0 0 14px;
-    font-size: .92rem;
+  /* ==================== 奉獻頁設計系統（gv-*） ====================
+     版面依 2026-09-14 奉獻流程原型：奉獻者標題列 → 我要奉獻／奉獻清單分頁 →
+     1 奉獻內容（常用優先／完整清單／逐筆新增）→ 2 付款方式 → 3 確認與送出 → 參考資訊。
+     一律使用 gv- 前綴，避免與 Bootstrap（.row、.card、.btn）或站台樣式互相覆蓋。
+     對話框與提示會在載入時移到 body 底下，所以設計變數同時定義在 .gv-layer。 */
+  .gv-page,
+  .gv-layer {
+    --gv-ground: #f4f3f9;
+    --gv-card: #ffffff;
+    --gv-card-2: #f7f6fb;
+    --gv-ink: #22243a;
+    --gv-ink-2: #5b5d75;
+    --gv-muted: #8a8ba3;
+    --gv-line: #e4e3ee;
+    --gv-line-2: #cfcde0;
+    --gv-brand: #6b4fc9;
+    --gv-brand-soft: #efeafc;
+    --gv-teal: #159a8b;
+    --gv-teal-soft: #e2f4f1;
+    --gv-teal-ink: #0f7a6e;
+    --gv-go: #25a35f;
+    --gv-go-ink: #ffffff;
+    --gv-warn: #b8501a;
+    --gv-warn-soft: #fdeee6;
+    --gv-danger: #c73b3b;
+    --gv-focus: #6b4fc9;
+    --gv-shadow: 0 1px 2px rgba(34, 36, 58, 0.06), 0 8px 24px rgba(34, 36, 58, 0.07);
+    --gv-donor-grad: linear-gradient(100deg, #12a294, #3aafc4);
+    font-family: "Manrope", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    font-size: 15px;
     line-height: 1.5;
+    color: var(--gv-ink);
+    -webkit-font-smoothing: antialiased;
   }
 
-.donation-payment-page .dx-texteditor.dx-state-focused,
-.donation-payment-page .dx-texteditor.dx-state-hover {
-    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.14);
-    border-radius: 8px;
+  .gv-page {
+    background: var(--gv-ground);
+    margin-left: -20px;
+    margin-right: -20px;
+    padding: 12px 20px 36px;
+    min-height: 100vh;
   }
 
-  /* 放大 ATM 資訊區域字體 */
-  #atmfield { font-size: 150%; }
-  
-  /* 信用卡列表區域重新設計 */
-  .card-list {
-    background: #ffffff;
-    border: 1px solid #e6e6e6;
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-top: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-  
-  .card-list h5 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 8px 0;
-    font-weight: 600;
-    color: #2f4f4f;
-  }
-  
-  .card-list .section-subtitle {
-    color: #666;
-    margin: 0 0 16px 0;
-    font-size: 0.95rem;
-  }
-  
-  .card-list .grid-wrapper {
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 8px;
-    background: #fafafa;
-  }
-  
-  /* DevExtreme Grid 視覺優化 - 響應式設計 */
-  #CreditCardGrid.dx-datagrid {
-    --row-height: 48px;
-    border-radius: 8px;
-    overflow: hidden;
-    width: 100% !important;
-    max-width: 100%;
-  }
-  
-  /* 確保 Grid 容器不會溢出 */
-  #CreditCardGrid .dx-datagrid-rowsview {
-    overflow-x: auto !important;
-  }
-  
-  #CreditCardGrid .dx-data-row > td {
-    padding: 12px 16px;
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-  
-  #CreditCardGrid .dx-datagrid-headers {
-    background: #e6f6f4;
-    font-weight: 600;
-  }
-  
-  #CreditCardGrid .dx-header-row > td {
-    padding: 12px 16px;
-    border-bottom: 2px solid #dee2e6;
-    white-space: nowrap;
-  }
-  
-  /* 信用卡號欄位樣式 - 響應式字體 */
-  #CreditCardGrid .card-number-column {
-    font-family: 'Courier New', monospace;
-    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
-    font-weight: 600;
-    letter-spacing: 0.8px;
-    color: #2c3e50;
-  }
-  
-  /* 到期日欄位樣式 - 響應式字體 */
-  #CreditCardGrid .expire-date-column {
-    font-family: 'Courier New', monospace;
-    font-size: clamp(1rem, 2.2vw, 1.3rem);
-    font-weight: 600;
-    color: #2c3e50;
-  }
-  
-  /* 刪除按鈕樣式優化 */
-  #CreditCardGrid .dx-link-delete {
-    color: #dc3545;
-    font-weight: 500;
-    padding: 6px 12px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    font-size: clamp(0.85rem, 1.8vw, 1rem);
-  }
-  
-  #CreditCardGrid .dx-link-delete:hover {
-    background-color: #dc3545;
-    color: white;
-  }
-  
-  /* 選中行的樣式 */
-  #CreditCardGrid .dx-selection.dx-row {
-    background-color: #e3f2fd;
-  }
-  
-  #CreditCardGrid .dx-row:hover {
-    background-color: #f5f5f5;
-    cursor: pointer;
-  }
+  .gv { max-width: 980px; margin: 0 auto; }
 
-  #DedicationBookingGrid .dx-datagrid-headers .dx-header-row td {
-    background: #e6f6f4;
-    font-weight: 700;
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
+  .gv-page *, .gv-page *::before, .gv-page *::after,
+  .gv-layer, .gv-layer *, .gv-layer *::before, .gv-layer *::after { box-sizing: border-box; }
+  /* 基礎重設用 :where() 讓特異度只有一個 class，後面的元件樣式（.gv-add、.gv-cta、.gv-sub…）才能正常覆蓋顏色與間距；
+     同時仍高於 Bootstrap reboot 的元素選擇器。 */
+  .gv-page :where(button, input, select, textarea),
+  .gv-layer :where(button, input, select, textarea) { font: inherit; color: inherit; letter-spacing: normal; }
+  .gv-page :where(button), .gv-layer :where(button) { cursor: pointer; }
+  .gv-page :focus-visible, .gv-layer :focus-visible { outline: 2px solid var(--gv-focus); outline-offset: 2px; }
+  .gv-page [hidden], .gv-layer[hidden], .gv-layer [hidden] { display: none !important; }
+  .gv-page :where(h2, h3, h4), .gv-layer :where(h2, h3, h4) { margin: 0; color: inherit; font-family: inherit; text-wrap: balance; }
+  .gv-page :where(p, ul), .gv-layer :where(p, ul) { margin: 0; }
+  .gv-page :where(label), .gv-layer :where(label) { margin: 0; }
+  html.gv-lock, html.gv-lock body { overflow: hidden; }
 
-  #DedicationBookingGrid .dx-datagrid-rowsview .dx-row > td {
-    padding-top: 9px;
-    padding-bottom: 9px;
-    vertical-align: middle;
-  }
+  .gv-num { font-variant-numeric: tabular-nums; }
+  .gv-ico { width: 18px; height: 18px; flex: none; color: var(--gv-teal); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .gv-ico--w { color: #fff; opacity: 0.9; }
 
-  #DedicationBookingGrid .dx-datagrid-rowsview .dx-data-row:hover > td {
-    background-color: #f0fdf4;
-  }
+  /* ---------- 奉獻者標題列 ---------- */
+  .gv-donor { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--gv-donor-grad); color: #fff; border-radius: 14px; padding: 14px 18px; margin-bottom: 12px; font-weight: 700; font-size: 15px; box-shadow: var(--gv-shadow); }
+  .gv-donor__sep { opacity: 0.55; font-weight: 400; }
 
-  .atm-info {
-    background: #fff7ed;
-    border: 1px solid #fed7aa;
-    border-radius: 12px;
-    padding: 12px;
-    margin-top: 10px;
-  }
+  /* ---------- 分段切換 ---------- */
+  .gv-seg { display: flex; gap: 4px; background: var(--gv-card-2); border: 1px solid var(--gv-line); padding: 4px; border-radius: 12px; flex-wrap: wrap; }
+  .gv-seg button { border: 0; background: transparent; padding: 8px 12px; border-radius: 9px; font-weight: 700; font-size: 13px; color: var(--gv-ink-2); line-height: 1.4; }
+  .gv-seg button.is-on { background: var(--gv-card); color: var(--gv-ink); box-shadow: var(--gv-shadow); }
+  .gv-seg--view { width: 100%; margin-bottom: 14px; }
+  .gv-seg--view button { flex: 1; padding: 10px 12px; font-size: 14px; }
+  .gv-seg--sm { padding: 3px; }
+  .gv-seg--sm button { padding: 6px 10px; font-size: 13px; }
 
-  /* ATM/匯款資訊複製按鈕：維持醒目對比，方便奉獻者在手機上直接複製虛擬帳號資訊。 */
-  .atm-copy-button {
-    margin-top: 12px;
-    border: 1px solid #c2410c;
-    border-radius: 8px;
-    background: #c2410c;
-    color: #fff;
-    font-weight: 700;
-    padding: 8px 14px;
-    cursor: pointer;
-  }
+  /* ---------- 卡片 ---------- */
+  .gv-card { background: var(--gv-card); border-radius: 14px; padding: 16px; box-shadow: var(--gv-shadow); }
+  .gv-card + .gv-card { margin-top: 16px; }
+  .gv-card__head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .gv-step { width: 24px; height: 24px; border-radius: 50%; background: var(--gv-ink); color: var(--gv-card); display: grid; place-items: center; font-weight: 800; font-size: 12px; flex: none; }
+  .gv-card__head h2 { font-size: 16px; font-weight: 700; line-height: 1.4; }
+  .gv-hint { margin-left: auto; font-size: 12px; color: var(--gv-muted); text-align: right; }
+  .gv-subhint { font-size: 12px; color: var(--gv-muted); margin: 0 0 12px !important; }
+  .gv-mode { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 2px 0 10px; }
+  .gv-mode__label { font-size: 12px; color: var(--gv-muted); letter-spacing: 0.06em; flex: none; }
 
-  .atm-copy-button:hover {
-    background: #9a3412;
-  }
+  /* ---------- 同上次奉獻 ---------- */
+  .gv-repeat { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--gv-brand); background: var(--gv-brand-soft); color: var(--gv-brand); border-radius: 12px; padding: 12px; margin-bottom: 12px; font-weight: 700; font-size: 15px; }
+  .gv-repeat:hover { background: var(--gv-card); }
+  .gv-repeat .gv-ico { color: currentColor; width: 17px; height: 17px; }
 
-  .atm-copy-button:focus-visible {
-    outline: 3px solid #fdba74;
-    outline-offset: 2px;
-  }
+  /* ---------- 奉獻明細列 ---------- */
+  .gv-row { border: 1px solid var(--gv-line); border-radius: 12px; padding: 10px 12px; background: var(--gv-card); transition: border-color 0.15s, background 0.15s; }
+  .gv-row + .gv-row { margin-top: 8px; }
+  .gv-row.is-active { border-color: var(--gv-teal); background: var(--gv-teal-soft); }
+  .gv-row__main { display: flex; align-items: center; gap: 10px; }
+  .gv-row__name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .gv-row__nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gv-tag { font-size: 11px; font-weight: 700; color: var(--gv-teal-ink); background: var(--gv-card); border: 1px solid var(--gv-teal); border-radius: 999px; padding: 0 7px; letter-spacing: 0.04em; flex: none; line-height: 1.6; }
+  .gv-amt { display: flex; align-items: center; gap: 6px; background: var(--gv-card); border: 1px solid var(--gv-line-2); border-radius: 10px; padding: 0 10px; height: 42px; width: 148px; flex: none; margin: 0; cursor: text; }
+  .gv-amt:focus-within { border-color: var(--gv-brand); box-shadow: 0 0 0 3px rgba(107, 79, 201, 0.22); }
+  .gv-amt__cur { font-size: 12px; font-weight: 700; color: var(--gv-muted); }
+  .gv-amt__input { border: 0; background: transparent; width: 100%; text-align: right; font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; min-width: 0; outline: none; padding: 0; height: auto; box-shadow: none; }
+  .gv-amt__input::placeholder { color: var(--gv-line-2); }
+  .gv-row__x { border: 0; background: transparent; color: var(--gv-muted); font-size: 20px; line-height: 1; width: 32px; height: 32px; border-radius: 8px; flex: none; padding: 0; }
+  .gv-row__x:hover { background: var(--gv-card-2); color: var(--gv-danger); }
+  .gv-chips { display: none; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .gv-row.is-focused .gv-chips { display: flex; }
+  .gv-chip { border: 1px solid var(--gv-line-2); background: var(--gv-card); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gv-ink-2); line-height: 1.4; }
+  .gv-chip:hover { border-color: var(--gv-teal); color: var(--gv-teal-ink); }
+  .gv-sub { display: none; margin: 8px 0 0; align-items: center; gap: 8px; font-size: 13px; }
+  .gv-row.is-active .gv-sub { display: flex; }
+  .gv-sub span { color: var(--gv-ink-2); flex: none; }
+  .gv-sub select, .gv-sub input { flex: 1; min-width: 0; height: 36px; border: 1px solid var(--gv-line-2); border-radius: 8px; background: var(--gv-card); padding: 0 10px; color: var(--gv-ink); }
+  .gv-sub__empty { font-style: normal; color: var(--gv-muted); font-size: 12px; }
+  .gv-catsel { flex: 1; min-width: 0; height: 42px; border: 1px solid var(--gv-line-2); border-radius: 10px; background: var(--gv-card); padding: 0 8px; font-weight: 600; color: var(--gv-ink); }
 
-  .booking-list {
-    border: 1px solid #e8eef6;
-    border-radius: 12px;
-    padding: 12px;
-    background: #fcfdff;
-  }
+  .gv-add { width: 100%; margin-top: 10px; border: 1px dashed var(--gv-line-2); background: transparent; border-radius: 12px; padding: 12px; font-weight: 700; color: var(--gv-brand); }
+  .gv-add:hover { background: var(--gv-brand-soft); border-color: var(--gv-brand); }
+  .gv-add:disabled { color: var(--gv-muted); cursor: not-allowed; background: transparent; border-color: var(--gv-line); }
+  .gv-field { margin-top: 14px; display: grid; gap: 4px; }
+  .gv-field label { font-size: 12px; color: var(--gv-ink-2); }
+  .gv-field input { height: 40px; border: 1px solid var(--gv-line-2); border-radius: 10px; background: var(--gv-card); padding: 0 12px; color: var(--gv-ink); }
 
-  .church-info .info-card {
-    border-radius: 14px;
-    border: 1px solid #dbe7f4;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
-  }
-  
-  /* 響應式設計 - 平板尺寸 (768px) */
-  @@media (max-width: 768px) {
-    .card-list {
-      padding: 12px 15px;
-    }
-    
-    #CreditCardGrid .dx-data-row > td,
-    #CreditCardGrid .dx-header-row > td {
-      padding: 10px 12px;
-    }
-    
-    #CreditCardGrid .card-number-column {
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      font-weight: 600;
-      letter-spacing: 0.6px;
-    }
-    
-    #CreditCardGrid .expire-date-column {
-      font-size: clamp(0.95rem, 2.8vw, 1.15rem);
-      font-weight: 600;
-    }
-    
-    #CreditCardGrid .dx-link-delete {
-      padding: 5px 10px;
-      font-size: clamp(0.8rem, 2vw, 0.95rem);
-    }
-  }
-  
-  /* 響應式設計 - 手機尺寸 (576px) */
-  @@media (max-width: 576px) {
-    #CreditCardGrid .dx-data-row > td,
-    #CreditCardGrid .dx-header-row > td {
-      padding: 8px 8px;
-    }
-    
-    #CreditCardGrid .card-number-column {
-      font-size: clamp(0.9rem, 3.5vw, 1.15rem);
-      font-weight: 600;
-      letter-spacing: 0.4px;
-    }
-    
-    #CreditCardGrid .expire-date-column {
-      font-size: clamp(0.85rem, 3.2vw, 1.05rem);
-      font-weight: 600;
-    }
-    
-    #CreditCardGrid .dx-link-delete {
-      padding: 4px 8px;
-      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
-    }
-    
-    /* 減少表格高度以適應小螢幕 */
-    #CreditCardGrid.dx-datagrid {
-      --row-height: 42px;
-    }
+  /* ---------- 付款方式 ---------- */
+  .gv-fieldrow { display: flex; align-items: center; gap: 12px; }
+  .gv-fieldrow label { flex: none; font-size: 14px; font-weight: 600; color: var(--gv-ink-2); }
+  .gv-select { flex: 1; min-width: 0; max-width: 360px; height: 42px; border: 1px solid var(--gv-line-2); border-radius: 10px; background: var(--gv-card); padding: 0 10px; font-weight: 600; color: var(--gv-ink); }
+  .gv-select:disabled { opacity: 1; background: var(--gv-card-2); }
+  .gv-paydetail { margin-top: 12px; }
+  .gv-paydetail:empty { display: none; }
+  .gv-paydetail .gv-fieldrow { margin-bottom: 12px; }
+  .gv-cards { display: grid; gap: 6px; }
+  .gv-cardopt { display: flex; align-items: center; gap: 10px; border: 1px solid var(--gv-line); border-radius: 10px; padding: 10px 12px; cursor: pointer; background: var(--gv-card); }
+  .gv-cardopt input { accent-color: var(--gv-teal); margin: 0; }
+  .gv-cardopt.is-on { border-color: var(--gv-teal); background: var(--gv-teal-soft); }
+  .gv-cardopt__exp { margin-left: auto; font-size: 12px; color: var(--gv-muted); font-variant-numeric: tabular-nums; flex: none; }
+  .gv-cardopt__del { border: 0; background: transparent; color: var(--gv-muted); font-size: 12px; padding: 2px 4px; border-radius: 6px; flex: none; text-decoration: underline; }
+  .gv-cardopt__del:hover { color: var(--gv-danger); }
+  .gv-brandmark { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; border: 1px solid var(--gv-line-2); border-radius: 4px; padding: 1px 5px; color: var(--gv-ink-2); flex: none; }
+  .gv-info { font-size: 13px; color: var(--gv-ink-2); background: var(--gv-card-2); border-radius: 10px; padding: 10px 12px; }
+  .gv-notice { display: flex; gap: 10px; align-items: center; background: var(--gv-warn-soft); color: var(--gv-warn); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-top: 10px; flex-wrap: wrap; }
+  .gv-notice span { flex: 1; min-width: 200px; }
+  .gv-notice button { flex: none; border: 1px solid currentColor; background: transparent; border-radius: 8px; padding: 5px 10px; font-weight: 700; font-size: 12px; color: inherit; }
+  .gv-bookings { margin-top: 14px; }
+  .gv-bookings h4 { font-size: 11px; letter-spacing: 0.08em; color: var(--gv-muted); font-weight: 700; margin-bottom: 6px; }
+  .gv-booking { display: flex; align-items: center; gap: 10px; border: 1px solid var(--gv-line); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+  .gv-booking + .gv-booking { margin-top: 6px; }
+  .gv-booking__main { flex: 1; min-width: 0; }
+  .gv-booking__main b { display: block; font-size: 14px; }
+  .gv-booking__main small { color: var(--gv-muted); }
+  .gv-booking__cancel { flex: none; border: 1px solid var(--gv-line-2); background: var(--gv-card); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; color: var(--gv-ink-2); }
+  .gv-booking__cancel:hover { border-color: var(--gv-danger); color: var(--gv-danger); }
 
-.donation-payment-card,
-    .card-list,
-    .booking-list {
-      border-radius: 12px;
-      padding: 10px;
-    }
+  /* ---------- 確認與送出 ---------- */
+  .gv-checkout { display: flex; flex-direction: column; align-items: stretch; }
+  .gv-sumlines { list-style: none; padding: 0; }
+  .gv-sumlines li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--gv-line); font-size: 14px; }
+  .gv-sumlines li span:last-child { font-variant-numeric: tabular-nums; font-weight: 700; flex: none; }
+  .gv-sumlines li small { display: block; color: var(--gv-muted); font-size: 12px; font-weight: 400; }
+  .gv-sumlines li.is-empty { color: var(--gv-muted); font-size: 13px; border: 0; justify-content: flex-start; }
+  .gv-sumpay { margin-top: 10px; font-size: 13px; color: var(--gv-ink-2); }
+  .gv-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 10px; padding-top: 12px; border-top: 2px solid var(--gv-ink); }
+  .gv-total__lbl { font-size: 13px; color: var(--gv-ink-2); flex: none; }
+  .gv-total__num { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .gv-sumcnt { font-size: 12px; color: var(--gv-muted); text-align: right; margin-top: 2px; min-height: 18px; }
+  .gv-warn { margin-top: 10px; font-size: 13px; color: var(--gv-warn); background: var(--gv-warn-soft); border-radius: 8px; padding: 8px 12px; }
+  .gv-cta { margin-top: 16px; width: 100%; border: 0; background: var(--gv-go); color: var(--gv-go-ink); border-radius: 12px; padding: 0 24px; height: 52px; font-weight: 800; font-size: 17px; }
+  .gv-cta:disabled { background: var(--gv-line-2); color: var(--gv-muted); cursor: not-allowed; }
 
-    .button-area {
-      position: static;
-      margin-top: 10px;
-      z-index: auto;
-    }
+  /* ---------- 參考資訊 ---------- */
+  .gv-divider { display: flex; align-items: center; gap: 10px; margin: 24px 0 14px; color: var(--gv-muted); font-size: 11px; letter-spacing: 0.1em; font-weight: 700; }
+  .gv-divider::after { content: ""; flex: 1; height: 1px; background: var(--gv-line-2); }
+  .gv-infogrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+  .gv-infogrid .gv-card { margin: 0; }
+  .gv-infotitle { display: flex; align-items: center; gap: 8px; color: var(--gv-teal-ink); font-weight: 700; font-size: 14px; margin: 0 0 14px !important; }
+  .gv-contact { list-style: none; padding: 0; display: grid; gap: 12px; }
+  .gv-contact li { display: flex; align-items: center; gap: 12px; color: var(--gv-ink-2); font-size: 14px; }
+  .gv-contact li span { min-width: 0; overflow-wrap: anywhere; }
+  .gv-acclist { display: grid; gap: 10px; }
+  .gv-acc { border: 1px solid var(--gv-line); border-radius: 12px; background: var(--gv-card); padding: 0 14px; }
+  .gv-acc summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 14px 0; font-weight: 700; cursor: pointer; }
+  .gv-acc summary::-webkit-details-marker { display: none; }
+  .gv-acc summary:focus-visible { outline: 2px solid var(--gv-focus); outline-offset: 2px; border-radius: 8px; }
+  .gv-acc .gv-chev { margin-left: auto; color: var(--gv-muted); transition: transform 0.2s; }
+  .gv-acc[open] .gv-chev { transform: rotate(180deg); }
+  .gv-acc p { margin: 0 0 14px; font-size: 13px; color: var(--gv-ink-2); line-height: 1.7; }
 
-    #creditcardlistcontainer,
-    #dedicationbookinglistcontainer {
-      padding-bottom: 6px;
-    }
-  }
-  
-  /* 響應式設計 - 極小螢幕 (400px) */
-  @@media (max-width: 400px) {
-    #CreditCardGrid .dx-data-row > td,
-    #CreditCardGrid .dx-header-row > td {
-      padding: 6px 6px;
-    }
-    
-    #CreditCardGrid .card-number-column {
-      font-size: clamp(0.8rem, 4vw, 1rem);
-      font-weight: 600;
-      letter-spacing: 0.3px;
-    }
-    
-    #CreditCardGrid .expire-date-column {
-      font-size: clamp(0.75rem, 3.8vw, 0.95rem);
-      font-weight: 600;
-    }
-    
-    #CreditCardGrid .dx-link-delete {
-      padding: 3px 6px;
-      font-size: clamp(0.7rem, 3vw, 0.85rem);
-    }
-    
-    #CreditCardGrid.dx-datagrid {
-      --row-height: 38px;
-    }
+  /* ---------- 奉獻清單 ---------- */
+  .gv-query { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .gv-query__fld { display: grid; gap: 4px; flex: 1; min-width: 132px; }
+  .gv-query label { font-size: 12px; color: var(--gv-muted); }
+  .gv-query input { height: 42px; border: 1px solid var(--gv-line-2); border-radius: 10px; background: var(--gv-card); padding: 0 10px; color: var(--gv-ink); font-variant-numeric: tabular-nums; width: 100%; }
+  .gv-query button { flex: none; height: 42px; border: 0; border-radius: 10px; background: var(--gv-brand); color: #fff; font-weight: 700; padding: 0 20px; }
+  .gv-query button:disabled { opacity: 0.6; cursor: wait; }
+  .gv-tablewrap { overflow-x: auto; border: 1px solid var(--gv-line); border-radius: 12px; }
+  .gv-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; margin: 0; }
+  .gv-table th { text-align: left; font-size: 12px; letter-spacing: 0.04em; color: var(--gv-muted); font-weight: 700; padding: 10px 12px; background: var(--gv-card-2); white-space: nowrap; border: 0; }
+  .gv-table td { padding: 11px 12px; border: 0; border-top: 1px solid var(--gv-line); vertical-align: top; color: var(--gv-ink); }
+  .gv-table .gv-amtcell { text-align: right; font-weight: 700; white-space: nowrap; }
+  .gv-table th.gv-amtcell { font-weight: 700; }
+  .gv-table .gv-date { white-space: nowrap; color: var(--gv-ink-2); }
+  .gv-table small { display: block; color: var(--gv-muted); font-size: 12px; }
+  .gv-table tbody tr:hover td { background: var(--gv-card-2); }
+  .gv-pill { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 2px 9px; white-space: nowrap; background: var(--gv-teal-soft); color: var(--gv-teal-ink); border: 1px solid var(--gv-teal); }
+  .gv-empty { padding: 28px 12px !important; text-align: center; color: var(--gv-muted) !important; font-size: 14px; }
+  .gv-empty.is-error { color: var(--gv-warn) !important; }
+  .gv-feefoot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 2px 0; font-size: 14px; color: var(--gv-ink-2); flex-wrap: wrap; }
+  .gv-feefoot b { font-size: 20px; color: var(--gv-ink); font-variant-numeric: tabular-nums; }
 
-    .section-title {
-      font-size: 1rem;
-    }
-  }
+  /* ---------- 對話框（加入類別／確認／完成） ---------- */
+  .gv-sheet { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 2000; background: rgba(20, 20, 40, 0.48); display: grid; align-items: end; justify-items: center; }
+  .gv-sheet__panel { width: 100%; max-width: 560px; max-height: 88vh; overflow: auto; background: var(--gv-card); border-radius: 20px 20px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25); animation: gv-up 0.22s ease-out; }
+  @@keyframes gv-up { from { transform: translateY(24px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+  .gv-sheet__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 10px; }
+  .gv-sheet__head h3 { font-size: 17px; font-weight: 700; }
+  .gv-iconbtn { border: 0; background: var(--gv-card-2); width: 34px; height: 34px; border-radius: 50%; font-size: 16px; flex: none; padding: 0; }
+  .gv-search { width: 100%; height: 44px; border: 1px solid var(--gv-line-2); border-radius: 12px; padding: 0 14px; background: var(--gv-card-2); margin-bottom: 6px; color: var(--gv-ink); }
+  .gv-pnote { font-size: 12px; color: var(--gv-warn); min-height: 18px; margin-bottom: 4px; }
+  .gv-pgroup { margin-top: 10px; }
+  .gv-pgroup h4 { margin: 0 0 6px; font-size: 11px; letter-spacing: 0.08em; color: var(--gv-muted); font-weight: 700; }
+  .gv-plist { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+  .gv-pitem { border: 1px solid var(--gv-line); background: var(--gv-card); border-radius: 10px; padding: 10px 12px; text-align: left; display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; min-height: 44px; }
+  .gv-pitem:hover { border-color: var(--gv-teal); }
+  .gv-pitem:disabled { opacity: 0.55; cursor: not-allowed; }
+  .gv-pitem__added { margin-left: auto; font-size: 11px; color: var(--gv-teal-ink); font-weight: 700; flex: none; }
+  .gv-pempty { color: var(--gv-muted); padding: 12px 0; font-size: 13px; }
+  .gv-conflines { list-style: none; padding: 0; }
+  .gv-conflines li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--gv-line); font-size: 15px; }
+  .gv-conflines li span:last-child { font-variant-numeric: tabular-nums; font-weight: 700; flex: none; }
+  .gv-conflines li small { display: block; color: var(--gv-muted); font-size: 12px; }
+  .gv-confmeta { display: grid; gap: 6px; margin-top: 10px; font-size: 13px; }
+  .gv-confmeta div { display: flex; justify-content: space-between; gap: 12px; }
+  .gv-confmeta span { color: var(--gv-ink-2); flex: none; }
+  .gv-confmeta b { text-align: right; overflow-wrap: anywhere; }
+  .gv-conftotal { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--gv-ink); }
+  .gv-conftotal b { font-size: 24px; font-variant-numeric: tabular-nums; }
+  .gv-btnrow { display: flex; gap: 8px; margin-top: 14px; }
+  .gv-btn { flex: 1; height: 48px; border-radius: 12px; font-weight: 700; border: 1px solid var(--gv-line-2); background: var(--gv-card); color: var(--gv-ink); }
+  .gv-btn--go { background: var(--gv-go); color: var(--gv-go-ink); border-color: transparent; }
+  .gv-btn:disabled { opacity: 0.6; cursor: wait; }
+  .gv-done { text-align: center; }
+  .gv-done > div > h3 { margin: 0 0 4px; font-size: 18px; }
+  .gv-done > div > p { color: var(--gv-ink-2); font-size: 13px; margin: 0 0 14px; }
+  .gv-done__mark { width: 56px; height: 56px; border-radius: 50%; background: var(--gv-teal-soft); display: grid; place-items: center; margin: 4px auto 10px; color: var(--gv-teal-ink); font-size: 26px; font-weight: 800; }
+  .gv-done #atm-info { text-align: left; margin-bottom: 12px; }
+  .gv-spinner { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--gv-line); border-top-color: var(--gv-teal); margin: 12px auto 14px; animation: gv-spin 0.8s linear infinite; }
+  @@keyframes gv-spin { to { transform: rotate(360deg); } }
+  .gv-lineresult { font-size: 13px; color: var(--gv-warn); background: var(--gv-warn-soft); border-radius: 10px; padding: 8px 12px; text-align: left; }
+  .gv-lineresult.is-ok { color: var(--gv-teal-ink); background: var(--gv-teal-soft); }
+
+  .gv-toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--gv-ink); color: var(--gv-card); padding: 10px 14px; border-radius: 10px; font-size: 13px; z-index: 2100; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90%; text-align: center; }
+  .gv-toast.is-show { opacity: 1; }
 
   @@media (max-width: 430px) {
-.donation-payment-page {
-      padding-left: 4px;
-      padding-right: 4px;
+    .gv-amt { width: 112px; padding: 0 8px; }
+    .gv-amt__input { font-size: 16px; }
+    .gv-tag { display: none; }
+    .gv-row__main { gap: 6px; }
+    .gv-row__name { gap: 6px; }
+    .gv-row__x { width: 26px; }
+    .gv-row { padding: 10px; }
+    .gv-cardopt__exp { display: none; }
+  }
+
+  @@media (min-width: 560px) {
+    .gv-cta { width: auto; min-width: 240px; align-self: flex-start; }
+  }
+
+  @@media (min-width: 700px) {
+    .gv-sheet { align-items: center; padding: 24px; }
+    .gv-sheet__panel { border-radius: 20px; }
+  }
+
+  @@media (prefers-reduced-motion: reduce) {
+    .gv-page *, .gv-layer, .gv-layer * { animation: none !important; transition: none !important; }
+  }
+
+  /* ==================== ATM 轉帳資訊卡（沿用既有設計，範圍為 #atm-info，放在完成對話框內也能套用） ==================== */
+  /* ==================== ATM 轉帳資訊卡 ==================== */
+  #atm-info {
+    --atm-ink: #12302d;
+    --atm-teal: #0f766e;
+    --atm-teal-deep: #115e59;
+    --atm-teal-soft: #eaf6f3;
+    --atm-line: #d6e9e4;
+    --atm-muted: #58706c;
+    --atm-amber: #9a4a06;
+    --atm-amber-soft: #fff1dc;
+    --atm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    background: #fcfefd;
+    border: 1px solid var(--atm-line);
+    border-radius: 18px;
+    box-shadow: 0 14px 34px rgba(18, 48, 45, 0.08);
+    padding: 0;
+    min-height: 0;
+    margin: 0 0 32px;
+    overflow: hidden;
+    scroll-margin: 16px;
+    transition: box-shadow 220ms ease;
+  }
+
+  #atm-info.is-revealed {
+    animation: atm-panel-in 440ms var(--atm-ease) both;
+  }
+
+  /* 錯誤或無法解析時的純文字訊息 */
+  #atm-info #atmfield {
+    margin: 0;
+    padding: 18px 24px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.7;
+    color: var(--atm-ink) !important;
+    white-space: pre-line;
+  }
+
+  #atm-info #atmfield.is-error {
+    background: #fdf0ee;
+    color: #9b1c1c !important;
+  }
+
+  .atm-card {
+    color: var(--atm-ink);
+  }
+
+  /* 虛擬帳號主視覺：帳號與複製按鈕置頂 */
+  .atm-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 20px 24px 22px;
+    background: var(--atm-teal-soft);
+    border-bottom: 1px solid var(--atm-line);
+  }
+
+  .atm-hero::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.7) 50%, transparent 62%);
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+
+  .atm-hero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-bottom: 14px;
+  }
+
+  .atm-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--atm-teal-deep);
+  }
+
+  .atm-deadline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--atm-amber-soft);
+    color: var(--atm-amber);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .atm-hero__label {
+    margin-bottom: 2px;
+    font-size: 0.86rem;
+    color: var(--atm-muted);
+  }
+
+  .atm-hero__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 24px;
+  }
+
+  .atm-account {
+    display: block;
+    margin-left: -6px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: clamp(1.75rem, 5vw, 2.35rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--atm-ink);
+    transition: background-color 700ms var(--atm-ease);
+  }
+
+  .atm-account__group {
+    display: inline-block;
+  }
+
+  .atm-account__group:not(:last-child) {
+    margin-right: 0.42em;
+  }
+
+  .atm-account.is-flash {
+    background-color: rgba(15, 118, 110, 0.16);
+    transition-duration: 120ms;
+  }
+
+  #copy-atm-account {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 10px 22px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--atm-teal);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(15, 118, 110, 0.28);
+    transition: transform 140ms var(--atm-ease), background-color 220ms ease, box-shadow 220ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #copy-atm-account:active {
+    transform: scale(0.97);
+  }
+
+  #copy-atm-account:focus-visible {
+    outline: 3px solid #5eead4;
+    outline-offset: 3px;
+  }
+
+  #copy-atm-account.is-copied {
+    background: #15803d;
+    box-shadow: 0 6px 16px rgba(21, 128, 61, 0.28);
+  }
+
+  .atm-copy__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 1.1em;
+    height: 1.1em;
+  }
+
+  .atm-copy__icon i {
+    grid-area: 1 / 1;
+    transition: opacity 180ms ease, transform 280ms var(--atm-ease);
+  }
+
+  .atm-copy__icon .fa-check,
+  #copy-atm-account.is-copied .fa-copy {
+    opacity: 0;
+    transform: scale(0.4) rotate(-25deg);
+  }
+
+  #copy-atm-account.is-copied .fa-check {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* 到 ATM 操作時最需要的三項資訊 */
+  .atm-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    border-bottom: 1px solid var(--atm-line);
+  }
+
+  .atm-fact {
+    min-width: 0;
+    padding: 16px 24px;
+  }
+
+  .atm-fact + .atm-fact {
+    border-left: 1px solid var(--atm-line);
+  }
+
+  .atm-card dt {
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--atm-muted);
+  }
+
+  .atm-card dd {
+    margin: 0;
+    color: var(--atm-ink);
+    overflow-wrap: anywhere;
+  }
+
+  .atm-fact dd {
+    margin-top: 4px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .atm-fact__sub {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--atm-muted);
+  }
+
+  .atm-fact--amount dd {
+    color: var(--atm-teal-deep);
+  }
+
+  /* 奉獻明細 */
+  .atm-details {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 8px 20px;
+    margin: 0;
+    padding: 16px 24px 4px;
+    font-size: 1rem;
+  }
+
+  .atm-details dt {
+    font-size: 0.92rem;
+  }
+
+  .atm-details dd {
+    font-weight: 600;
+  }
+
+  .atm-note {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 24px 18px;
+    font-size: 0.9rem;
+    color: var(--atm-muted);
+  }
+
+  /* 進場動畫：卡片滑入 → 各區塊依序浮現 → 帳號逐組出現 → 光澤掃過 */
+  #atm-info.is-revealed .atm-reveal {
+    animation: atm-rise 460ms var(--atm-ease) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+
+  #atm-info.is-revealed .atm-account__group {
+    animation: atm-rise 420ms var(--atm-ease) both;
+    animation-delay: calc(200ms + var(--i, 0) * 70ms);
+  }
+
+  #atm-info.is-revealed .atm-hero::after {
+    animation: atm-shine 1200ms 700ms var(--atm-ease) both;
+  }
+
+  @@keyframes atm-panel-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @@keyframes atm-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @@keyframes atm-shine {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+
+  @@media (hover: hover) {
+    #copy-atm-account:hover {
+      background: var(--atm-teal-deep);
+      box-shadow: 0 10px 22px rgba(15, 118, 110, 0.32);
+      transform: translateY(-1px);
     }
 
-    #save-button3, #save-button2 {
-      min-height: 44px;
+    #copy-atm-account.is-copied:hover {
+      background: #166534;
     }
   }
 
-  /* Button responsive fixes for mobile */
-  /* Make the button container wrap and stack buttons on small screens */
-  #buttonContainer {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 10px;
+  /* 輕量互動僅限定於 ATM 卡片，不移動帳號或金額；純 CSS 隨元素隱藏／移除停止，無計時器或事件訂閱。
+     成功回饋沿用既有 is-copied 狀態；後方 reduced-motion 規則統一停用動畫與轉場。 */
+  #atm-info .atm-fact { transition: background-color 240ms ease; }
+  #copy-atm-account .atm-copy__icon { transition: transform 240ms var(--atm-ease); }
+  #copy-atm-account:focus-visible .atm-copy__icon { transform: translateY(-2px) rotate(-8deg); }
+  #copy-atm-account.is-copied .atm-copy__icon { animation: atm-copy-pop 420ms var(--atm-ease); }
+  @@keyframes atm-copy-pop {
+    0%, 100% { transform: none; }
+    45% { transform: translateY(-3px) scale(1.18); }
+    75% { transform: translateY(1px) scale(0.96); }
+  }
+  @@keyframes atm-hover-shine {
+    from { transform: translateX(-100%); opacity: 0; }
+    20%, 70% { opacity: 0.45; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  @@media (hover: hover) and (pointer: fine) {
+    #atm-info .atm-fact:hover { background-color: var(--atm-teal-soft); }
+    #copy-atm-account:not(.is-copied):hover .atm-copy__icon { transform: translateY(-2px) rotate(-8deg); }
+    /* 每次滑入僅掃光一次，保留閱讀穩定性；離開後可再次觸發，不持續佔用繪製資源。 */
+    #atm-info.is-revealed .atm-hero:hover::after { animation: atm-hover-shine 1100ms ease-out both; }
   }
 
   @@media (max-width: 576px) {
-    /* Stack buttons vertically and ensure full width */
-    #buttonContainer {
-      flex-direction: column !important;
-      align-items: center !important;
-      gap: 8px;
+    .atm-hero {
+      padding: 16px 16px 18px;
     }
-    /* DevExtreme buttons render inside elements with the given ID; reduce width to 70% and center */
-    #save-button3, #save-button2 {
-      width: 70% !important;
-      min-width: 0 !important;
-      margin: 0 auto !important;
+
+    .atm-hero__row {
+      flex-direction: column;
+      align-items: stretch;
     }
-    /* Ensure the button text wraps and doesn't overflow */
-    #save-button3 .dx-button-content, #save-button2 .dx-button-content {
-      white-space: normal !important;
-      overflow: visible !important;
+
+    #copy-atm-account {
+      width: 100%;
+      min-height: 52px;
+    }
+
+    .atm-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .atm-fact {
+      padding: 14px 16px;
+    }
+
+    .atm-fact--amount {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--atm-line);
+      border-left: 0 !important;
+    }
+
+    .atm-details {
+      gap: 6px 14px;
+      padding: 14px 16px 2px;
+    }
+
+    .atm-note {
+      padding: 10px 16px 16px;
+    }
+
+    #atm-info #atmfield {
+      padding: 16px;
     }
   }
 
-  /* Button corner rounding for save buttons */
-#save-button2 .dx-button-content,
-#save-button3 .dx-button-content,
-#save-button2 .dx-button,
-#save-button3 .dx-button,
-#save-button2,
-#save-button3 {
-  border-radius: 10px !important;
-}
-
-/* Ensure inner clickable area follows rounded corners */
-#save-button2 .dx-button-content,
-#save-button3 .dx-button-content {
-  overflow: hidden;
-  border-radius: 10px !important;
-}
-
-/* Slight shadow to match visual style */
-#save-button2 .dx-button,
-#save-button3 .dx-button {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-/* Maintain roundedness on small screens */
-@@media (max-width: 576px) {
-  #save-button2, #save-button3 {
-    border-radius: 10px !important;
+  @@media (prefers-reduced-motion: reduce) {
+    #atm-info,
+    #atm-info *,
+    #atm-info *::after {
+      animation: none !important;
+      transition: none !important;
+    }
   }
-  #save-button2 .dx-button-content, #save-button3 .dx-button-content {
-    border-radius: 10px !important;
-  }
-}
 </style>
 
-<!-- ==================== 頁面主容器 ==================== -->
-<div class="donation-payment-page">
-    <div class="donation-payment-container">
-        <!-- ==================== 奉獻者資訊 ==================== -->
-        <div class="dedication-header">
-            <h4 id="displaynamefield">
-                <i class="mbri-user" style="margin-right: 10px;"></i>
-                @Model.FullName 
-                <span style="margin: 0 15px;">|</span> 
-                <i class="mbri-numbered-list" style="margin-right: 10px;"></i>
-                奉獻編號: @Model.DedicationNumber
-            </h4>
+<script type="application/json" id="gvData">@Json.Serialize(pageData)</script>
+
+<!-- ==================== 奉獻頁 ==================== -->
+<div class="gv-page">
+    <div class="gv" id="gv">
+        <div class="gv-donor">
+            <svg class="gv-ico gv-ico--w" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" /></svg>
+            <span>@Model.FullName</span>
+            <span class="gv-donor__sep" aria-hidden="true">|</span>
+            <svg class="gv-ico gv-ico--w" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+            <span>奉獻編號：<span class="gv-num">@Model.DedicationNumber</span></span>
         </div>
 
-        <!-- ==================== 奉獻表單 ==================== -->
-        <form data-ajax="true" 
-              data-ajax-begin="onBegin" 
-              data-ajax-success="onSuccess" 
-                  asp-action="SaveDonationPaymentDedication"
-              asp-controller="Dedication" 
-              method="post">
-            
-            <div id="form-container" class="donation-payment-card">
-                <h5 class="section-title">
-                    <i class="mbri-edit" style="margin-right: 10px;"></i>奉獻資訊
-                </h5>
-                
-                @(Html.DevExtreme().Form<DonationPaymentFormModel>()
-                    .ID("form")
-                    .ColCount(1)
-                    .FormData(Model)
-                    .OnContentReady(@<text>
-                        function(e) {
-                            e.component.validate();
-                        }
-                    </text>)
-                    .Items(items =>
-                    {
-                        // 奉獻類別
-                        items.AddSimpleFor(m => m.Category)
-                            .Label(l => l.Text("奉獻類別"))
-                            .Editor(e => e
-                                .SelectBox()
-                                .Width(200)
-                                .DataSource(Model.DedicationCategoryList) // ✅ 改為使用動態清單
-                                .OnValueChanged("OnCategorySelectBoxValueChanged")
-                            );
+        <div class="gv-seg gv-seg--view" id="gvViewSeg" role="tablist" aria-label="切換畫面">
+            <button type="button" role="tab" data-view="give" class="is-on" aria-selected="true">我要奉獻</button>
+            <button type="button" role="tab" data-view="list" aria-selected="false">奉獻清單</button>
+        </div>
 
-                        // 宣教對象
-                        items.AddSimpleFor(m => m.Others)
-                            .Label(l => l.Text("宣教對象"))
-                            .Visible(false)
-                            .Name("OtherDedicationSelectionBox")
-                            .Editor(e => e
-                                .SelectBox()
-                                .Width(200)
-                                .DataSource(Model.OtherCategoryArray)
-                                .Placeholder("請選擇宣教對象")
-                            );
-
-                        // 特別奉獻項目
-                        items.AddSimpleFor(m => m.Others)
-                            .Label(l => l.Text("特別奉獻項目"))
-                            .Visible(false)
-                            .Name("SpecialDedicationSelectionBox")
-                            .Editor(e => e
-                                .SelectBox()
-                                .Width(200)
-                                .DataSource(Model.SpecialCategoryArray)
-                                .Placeholder("請選擇特別奉獻項目")
-                            );
-
-                        // 其他奉獻內容
-                        items.AddSimpleFor(m => m.Others)
-                            .Label(l => l.Text("其他奉獻內容"))
-                            .Visible(false)
-                            .Name("OtherDedication")
-                            .Editor(e => e
-                                .Autocomplete()
-                                .Width(200)
-                                .DataSource(Model.OtherCategoryArray)
-                                .Placeholder("請輸入其他奉獻內容")
-                            );
-
-                        // 節期選項
-                        items.AddSimpleFor(m => m.Others)
-                            .Label(l => l.Text("節期"))
-                            .Visible(false)
-                            .Name("HolidayDedicationSelectionBox")
-                            .Editor(e => e
-                                .SelectBox()
-                                .Width(250)
-                                .DataSource(new string[] {
-                                    "元旦", "新春", "清明節", "復活節", "母親節",
-                                    "父親節", "重陽節", "感恩節", "聖誕節"
-                                })
-                                .Placeholder("請選擇節期")
-                            );
-
-                        // 奉獻金額
-                        items.AddSimpleFor(m => m.Amount)
-                            .Label(l => l.Text("奉獻金額"))
-                            .Name("DedicationAmount")
-                            .Editor(e => e
-                                .NumberBox()
-                                .Width(200)
-                                .OnContentReady("OnAmountContentReady")
-                                .Placeholder("請輸入奉獻金額")
-                            );
-
-                        // 付款方式 - 高鉅金流時隱藏此欄位
-                        items.AddSimpleFor(m => m.PayWay)
-                            .Label(l => l.Text("付款方式"))
-                            .Name("PayWaySelectBox")
-                            .Visible(!isMyPay)
-                            .Editor(e => e
-                                .SelectBox()
-                                .Width(200)
-                                .DataSource(payWayOptions)
-                                .OnValueChanged("OnPayWaySelectBoxValueChanged")
-                            );
-
-                        // 定期定額總期數 - 高鉅金流時隱藏此欄位
-                        items.AddSimpleFor(m => m.DeductTotalNumber)
-                            .Label(l => l.Text("總期數"))
-                            .Visible(false)
-                            .Name("DeductTotalNumberSelectionBox")
-                            .Editor(e => e
-                                .SelectBox()
-                                .Width(200)
-                                .DataSource(new string[] {
-                                    "3個月", "6個月", "12個月", "18個月", "24個月"
-                                })
-                                .Value("12個月")
-                            );
-
-                        // 選取的信用卡（隱藏欄位）
-                        items.AddSimpleFor(m => m.SelectedCreditCard)
-                            .Label(l => l.Text("選取的信用卡").Visible(false))
-                            .Editor(e => e
-                                .TextBox()
-                                .Width(120)
-                                .Visible(false)
-                                .Placeholder("選取的信用卡")
-                            );
-
-                        // 附註
-                        items.AddSimpleFor(m => m.Explain)
-                            .Label(l => l.Text("備註說明"))
-                            .Editor(e => e
-                                .TextArea()
-                                .Width(200)
-                                .Height(60)
-                                .Placeholder("您可以在此輸入特別說明或留言")
-                            );
-                    })
-                )
-            </div>
-
-            <!-- ==================== 信用卡列表 ==================== -->
-        <div id="creditcardlistcontainer" class="card-list donation-payment-card">
-                <h4 class="section-title">
-                    <i class="mbri-credit-card" style="margin-right: 15px;"></i>
-                    我的信用卡
-                </h4>
-                <p class="section-subtitle" style="font-size: 1rem;">
-                    <i class="mbri-info" style="margin-right: 5px;"></i>
-                    您可以刪除不想使用的信用卡，並選擇本次要使用的信用卡進行奉獻
-                </p>
-                
-                @(Html.DevExtreme().DataGrid<CreditCard>()
-                    .ID("CreditCardGrid")
-                    .Width("100%")
-                    .ShowBorders(true)
-                    .ColumnAutoWidth(false)
-                    .Paging(paging => paging.Enabled(false))
-                    .AllowColumnResizing(true)
-                    .ColumnResizingMode(ColumnResizingMode.Widget)
-                    .ColumnFixing(c => c.Enabled(false))
-                    .LoadPanel(l => l.Text("Loading...").Enabled(false))
-                    .ShowColumnLines(true)
-                    .ShowRowLines(true)
-                    .ShowBorders(true)
-                    .Selection(selection => selection.Mode(SelectionMode.Single))
-                    .OnRowClick("OnRowClick")
-                    .OnSelectionChanged("OnRowSelectionChanged")
-                    .OnInitialized("DataGridOnInitialized")
-                    .OnContentReady("onCreditCardGridContentReady")
-                    .OnRowRemoving("onCreditCardRowRemoving")
-                    .OnRowRemoved("onCreditCardRowRemoved")
-                    .OnDataErrorOccurred("onCreditCardDataError")
-                    .HoverStateEnabled(true)
-                    .Editing(editing => {
-                        editing.AllowDeleting(true);
-                        editing.Texts(a => a
-                            .DeleteRow("刪除")
-                            .ConfirmDeleteMessage("您是否確定要刪除此信用卡?")
-                        );
-                    })
-                    .Columns(columns => {
-                        columns.AddFor(m => m.CreditCardNumber)
-                            .Caption("信用卡號")
-                            .Width("60%")
-                            .Alignment(HorizontalAlignment.Left)
-                            .CssClass("card-number-column");
-                        columns.AddFor(m => m.ExpireDate)
-                            .Caption("到期日")
-                            .Width("25%")
-                            .Alignment(HorizontalAlignment.Center)
-                            .CssClass("expire-date-column");
-                    })
-                    .DataSource(d => d
-                        .WebApi()
-                        .Controller("Dedication")
-                        .LoadAction("LoadCreditCardList")
-                        .DeleteAction("DeleteCreditCard")
-                        .Key("CCToken")
-                    )
-                    .SelectedRowKeys(new int[] { 1 })
-                )
-            </div>
-
-            <!-- ==================== 按鈕區域 ==================== -->
-            <div class="button-area dx-field">
-                <div id="buttonContainer" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap:10px;">
-                    @(Html.DevExtreme().Button()
-                        .Text("確認奉獻")
-                        .Icon("check")
-                        .Type(ButtonType.Success)
-                        .ID("save-button2")
-                        .Width(180)
-                        .UseSubmitBehavior(true)
-                        .OnClick("ShowLoadPanel")
-                    )
-                    @(Html.DevExtreme().Button()
-                        .Text("使用其他信用卡")
-                        .Icon("fa-solid fa-shield-halved")
-                        .Type(ButtonType.Default)
-                        .ID("save-button3")
-                        .Width(240)
-                        .UseSubmitBehavior(true)
-                        .StylingMode(ButtonStylingMode.Contained)
-                        .OnClick("UseOtherCreditCard")
-                    )
+        <!-- ==================== 我要奉獻 ==================== -->
+        <main id="gvViewGive">
+            <section class="gv-card" aria-labelledby="gvItemsTitle">
+                <div class="gv-card__head">
+                    <span class="gv-step" aria-hidden="true">1</span>
+                    <h2 id="gvItemsTitle">奉獻內容</h2>
+                    <span class="gv-hint" id="gvItemsHint"></span>
                 </div>
-            </div>
-            
-            <!-- ==================== ATM資訊區域 ==================== -->
-            <div id="atm-info" class="atm-info" style="display: none;">
-                <h5 id="atmfield"></h5>
-                @* 此按鈕只在 ATM/匯款或後端回傳「虛擬帳號」結果時顯示，避免信用卡錯誤訊息出現無關複製操作。 *@
-                <button id="copy-atm-info-button" type="button" class="atm-copy-button" onclick="CopyAtmPaymentInfo()" style="display: none;">
-                    複製 ATM/匯款資訊
-                </button>
-            </div>
-
-                        <!-- ==================== 定期定額清單 ==================== -->
-        <div id="dedicationbookinglistcontainer" class="booking-list donation-payment-card">
-                <h5 class="section-title">
-                    <i class="mbri-timer" style="margin-right: 10px;"></i>
-                    定期定額奉獻清單
-                </h5>
-                <p class="section-subtitle" style="margin-bottom: 16px;">
-                    <i class="mbri-info" style="margin-right: 5px;"></i>
-                    您可以在此查看和管理您的定期定額奉獻項目
-                </p>
-                
-                @(Html.DevExtreme().DataGrid<DedicationBooking>()
-                    .ID("DedicationBookingGrid")
-                    .Width("auto")
-                    .ColumnWidth(5)
-                    .LoadPanel(l => l.Text("Loading...").Enabled(false))
-                    .ShowColumnLines(true)
-                    .ShowRowLines(true)
-                    .ShowBorders(true)
-                    .Selection(selection => selection.Mode(SelectionMode.Single))
-                    .OnSelectionChanged("OnRowSelectionChanged")
-                    .OnContentReady("onDedicationBookingGridContentReady")
-                    .Editing(editing => {
-                        editing.Mode(GridEditMode.Cell);
-                        editing.RefreshMode(GridEditRefreshMode.Reshape);
-                        editing.AllowDeleting(true);
-                        editing.Texts(a => a
-                            .DeleteRow("Cancel")
-                            .ConfirmDeleteMessage("Are you sure to cancel this subscription?")
-                            .ConfirmDeleteTitle("Cancel Subscription")
-                        );
-                    })
-                    .Columns(columns => {
-                        columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
-                        columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    })
-                    .DataSource(d => d
-                        .WebApi()
-                        .Controller("Dedication")
-                        .LoadAction("LoadDedicationBookingList")
-                        .DeleteAction("DeleteDedicationBooking")
-                        .Key("EntityId")
-                    )
-                    .SelectedRowKeys(new int[] { 1 })
-                )
-            </div>
-
-            <!-- ==================== 教會資訊與奉獻說明 ==================== -->
-            <section class="church-info" id="church-info">
-                <div class="container">
-                    <div class="info-grid">
-                        <!-- 聯絡資訊卡 -->
-                        <div class="info-card contact-card">
-                            <h5><i class="fas fa-church" aria-hidden="true"></i> 教會聯絡資訊</h5>
-                            <ul class="contact-list">
-                                <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span>地址：@churchAddress</span></li>
-                                <li><i class="fas fa-phone" aria-hidden="true"></i><span>電話：@churchPhone</span></li>
-                                <li><i class="fas fa-envelope" aria-hidden="true"></i><span>信箱：@churchEmail</span></li>
-                                <li><i class="fas fa-id-card" aria-hidden="true"></i><span>統編：@churchTaxId</span></li>
-                                <li><i class="fas fa-info-circle" aria-hidden="true"></i><span>若有任何奉獻問題，請洽詢 @churchContactPerson</span></li>
-                            </ul>
-                        </div>
-
-                        <!-- 奉獻說明卡（原生手風琴） -->
-                        <div class="info-card">
-                            <h5><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> 奉獻說明</h5>
-                            <div class="accordion-clean">
-                                <details>
-                                    <summary>
-                                        <span><i class="fas fa-seedling"></i> 十一奉獻</span>
-                                        <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
-                                    </summary>
-                                    <div class="content">
-                                        <p>
-                                            十一奉獻是基督徒應盡的責任和義務。
-                                            所以上帝挑戰我們，當我們願意將十分之一奉獻給上帝時，
-                                            上帝將會傾倒更大的祝福在我們的身上。
-
-                                            萬軍之耶和華說：你們要將當納的十分之一全然送入倉庫，使我家有糧，
-                                            以此試試我，是否為你們敞開天上的窗戶，傾福與你們，甚至無處可容。
-                                            ─ 瑪拉基書3:10
-                                        </p>
-                                    </div>
-                                </details>
-
-                                <details>
-                                    <summary>
-                                        <span><i class="fas fa-building"></i> 建堂奉獻</span>
-                                        <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
-                                    </summary>
-                                    <div class="content">
-                                        <p>
-                                            因著神的憐憫，「好牧人」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。
-                                            為了滿足場地以及相關軟硬體等財務需求，邀請好牧人的弟兄姊妹們，透過「建堂奉獻」一起支持、建造神國的家。
-                                        </p>
-                                    </div>
-                                </details>
-
-                                <details>
-                                    <summary>
-                                        <span><i class="fas fa-heart"></i> 感恩奉獻</span>
-                                        <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
-                                    </summary>
-                                    <div class="content">
-                                        <p>
-                                            上帝的祝福讓我們學習凡事謝恩，而獻上財物則是我們感謝上帝的一種方式。
-                                            我們鼓勵每個人都應該照自己心裡所願來奉獻，不猶豫、不勉強，因為上帝喜愛樂意奉獻的人。
-                                        </p>
-                                    </div>
-                                </details>
-
-                                <details>
-                                    <summary>
-                                        <span><i class="fas fa-globe-asia"></i> 宣教奉獻</span>
-                                        <i class="fas fa-chevron-down chevron" aria-hidden="true"></i>
-                                    </summary>
-                                    <div class="content">
-                                        <p>
-                                            「使萬民成為主的門徒」是上帝的心意，也是託付給教會的大使命。
-                                            根據統計，目前全球仍有31億、約41%的未得之民（缺乏基督教會、宣教士、聖經等信仰資源，而從未接觸福音者），宣教的需要永遠都是刻不容緩！
-                                            也許不是每個人都會被上帝呼召成為「宣教士」，但每個人都可以透過奉獻來做「宣教事」。
-                                        </p>
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
+                <div class="gv-mode">
+                    <span class="gv-mode__label">輸入方式</span>
+                    <div class="gv-seg gv-seg--sm" id="gvModeSeg" role="radiogroup" aria-label="輸入方式">
+                        <button type="button" role="radio" data-mode="A">常用優先</button>
+                        <button type="button" role="radio" data-mode="B">完整清單</button>
+                        <button type="button" role="radio" data-mode="C">逐筆新增</button>
                     </div>
                 </div>
+                <p class="gv-subhint" id="gvItemsSubHint"></p>
+                <button type="button" class="gv-repeat" id="gvRepeat" hidden>
+                    <svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5" /></svg>
+                    同上次奉獻 <span class="gv-num" id="gvRepeatTotal"></span>
+                </button>
+                <div id="gvRows"></div>
+                <button type="button" class="gv-add" id="gvAdd">＋ 加入其他類別</button>
+                <div class="gv-field">
+                    <label for="gvNote">備註（選填）</label>
+                    <input id="gvNote" autocomplete="off" placeholder="例：為父親手術感恩">
+                </div>
             </section>
-        </form>
 
-        <!-- ==================== 通知元件 ==================== -->
-        <div class="notification-area dx-field">
-            <div id="ToastContainer">
-                @(Html.DevExtreme().Toast()
-                    .ID("toast")
-                    .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
-                    .Message("Upload success")
-                    .DisplayTime(20000)
-                    .MaxWidth(200)
-                )
-            </div>
-            
-            <div id="LoadPanel">
-                @(Html.DevExtreme().LoadPanel()
-                    .ID("loadPanel")
-                    .ShadingColor("rgba(0,0,0,0.4)")
-                    .Position(p => p.Of("#form-container"))
-                    .Visible(false)
-                    .ShowIndicator(true)
-                    .ShowPane(true)
-                    .Shading(true)
-                    .CloseOnOutsideClick(false)
-                    .Message("Processing...")
-                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
-                )
-            </div>
-        </div>
+            <section class="gv-card" aria-labelledby="gvPayTitle">
+                <div class="gv-card__head">
+                    <span class="gv-step" aria-hidden="true">2</span>
+                    <h2 id="gvPayTitle">付款方式</h2>
+                </div>
+                <div class="gv-fieldrow">
+                    <label for="gvPay">付款方式</label>
+                    <select id="gvPay" class="gv-select"></select>
+                </div>
+                <div class="gv-paydetail" id="gvPayDetail"></div>
+            </section>
 
-        
+            <section class="gv-card gv-checkout" aria-labelledby="gvCheckoutTitle">
+                <div class="gv-card__head">
+                    <span class="gv-step" aria-hidden="true">3</span>
+                    <h2 id="gvCheckoutTitle">確認與送出</h2>
+                </div>
+                <ul class="gv-sumlines" id="gvSumLines"></ul>
+                <div class="gv-sumpay" id="gvSumPay"></div>
+                <div class="gv-total">
+                    <span class="gv-total__lbl" id="gvSumLbl">總計</span>
+                    <span class="gv-total__num" id="gvSumNum">NT$ 0</span>
+                </div>
+                <div class="gv-sumcnt" id="gvSumCnt"></div>
+                <div class="gv-warn" id="gvSumWarn" role="status" aria-live="polite" hidden></div>
+                <button type="button" class="gv-cta" id="gvCta">確認奉獻</button>
+            </section>
+
+            <div class="gv-divider">參考資訊</div>
+            <div class="gv-infogrid">
+                <section class="gv-card" aria-labelledby="gvContactTitle">
+                    <h3 class="gv-infotitle" id="gvContactTitle">
+                        <svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4M10 4h4M4 22V12l8-5 8 5v10M9 22v-5a3 3 0 0 1 6 0v5" /></svg>教會聯絡資訊
+                    </h3>
+                    <ul class="gv-contact">
+                        <li><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg><span>地址：@churchAddress</span></li>
+                        <li><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z" /></svg><span>電話：@churchPhone</span></li>
+                        <li><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg><span>信箱：@churchEmail</span></li>
+                        <li><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="12" r="2" /><path d="M14 10h4M14 14h4M6 17c0-1.7 1.3-3 3-3s3 1.3 3 3" /></svg><span>統編：@churchTaxId</span></li>
+                        <li><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg><span>若有任何奉獻問題，請洽詢 @churchContactPerson</span></li>
+                    </ul>
+                </section>
+                <section class="gv-card" aria-labelledby="gvGuideTitle">
+                    <h3 class="gv-infotitle" id="gvGuideTitle">
+                        <svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z" /></svg>奉獻說明
+                    </h3>
+                    <div class="gv-acclist">
+                        <details class="gv-acc">
+                            <summary><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22v-8M12 14c0-4 3-7 8-7 0 4-3 7-8 7zM12 14c0-3-2.5-5-6-5 0 3 2.5 5 6 5z" /></svg><span>十一奉獻</span><svg class="gv-ico gv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
+                            <p>十一奉獻是基督徒應盡的責任和義務。所以上帝挑戰我們，當我們願意將十分之一奉獻給上帝時，上帝將會傾倒更大的祝福在我們的身上。萬軍之耶和華說：你們要將當納的十分之一全然送入倉庫，使我家有糧，以此試試我，是否為你們敞開天上的窗戶，傾福與你們，甚至無處可容。─ 瑪拉基書3:10</p>
+                        </details>
+                        <details class="gv-acc">
+                            <summary><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1" /><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M11 21v-3h2v3" /></svg><span>建堂奉獻</span><svg class="gv-ico gv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
+                            <p>因著神的憐憫，「好牧人」從恩典到奇蹟的這段旅程，讓我們著實看見神奇妙又信實的作為。為了滿足場地以及相關軟硬體等財務需求，邀請好牧人的弟兄姊妹們，透過「建堂奉獻」一起支持、建造神國的家。</p>
+                        </details>
+                        <details class="gv-acc">
+                            <summary><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z" /></svg><span>感恩奉獻</span><svg class="gv-ico gv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
+                            <p>上帝的祝福讓我們學習凡事謝恩，而獻上財物則是我們感謝上帝的一種方式。我們鼓勵每個人都應該照自己心裡所願來奉獻，不猶豫、不勉強，因為上帝喜愛樂意奉獻的人。</p>
+                        </details>
+                        <details class="gv-acc">
+                            <summary><svg class="gv-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></svg><span>宣教奉獻</span><svg class="gv-ico gv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
+                            <p>「使萬民成為主的門徒」是上帝的心意，也是託付給教會的大使命。根據統計，目前全球仍有31億、約41%的未得之民（缺乏基督教會、宣教士、聖經等信仰資源，而從未接觸福音者），宣教的需要永遠都是刻不容緩！也許不是每個人都會被上帝呼召成為「宣教士」，但每個人都可以透過奉獻來做「宣教事」。</p>
+                        </details>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- ==================== 奉獻清單 ==================== -->
+        <section id="gvViewList" hidden>
+            <div class="gv-card">
+                <div class="gv-card__head">
+                    <h2>奉獻清單</h2>
+                    <span class="gv-hint" id="gvFeeCount"></span>
+                </div>
+                <p class="gv-subhint">查詢你已完成付款的奉獻紀錄。</p>
+                <div class="gv-query">
+                    <div class="gv-query__fld"><label for="gvQStart">開始日期</label><input type="date" id="gvQStart"></div>
+                    <div class="gv-query__fld"><label for="gvQEnd">結束日期</label><input type="date" id="gvQEnd"></div>
+                    <button type="button" id="gvQBtn">查詢</button>
+                </div>
+                <div class="gv-tablewrap">
+                    <table class="gv-table">
+                        <thead>
+                            <tr><th>付款日期</th><th>奉獻類別</th><th>付款方式</th><th class="gv-amtcell">金額</th><th>狀態</th></tr>
+                        </thead>
+                        <tbody id="gvFeeBody"></tbody>
+                    </table>
+                </div>
+                <div class="gv-feefoot"><span id="gvFeeRange"></span><span>合計 <b id="gvFeeTotal">NT$ 0</b></span></div>
+            </div>
+        </section>
     </div>
 </div>
 
-<!-- ==================== 外部腳本 ==================== -->
-<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-<script src="~/js/devextreme/devextreme-intl.min.js"></script>
-<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
-<!-- 移除會與全域 Bootstrap 衝突的外部 JS：Popper/Tether/Bootstrap/Mobirise -->
-
-<!-- ==================== DonationPaymentView 自定義腳本 ==================== -->
-<script>
-    // ==================== 工具函數 ====================
-    // 獲取 LoadPanel 實例
-    function getLoadPanelInstance() { 
-        return $("#loadPanel").dxLoadPanel("instance"); 
-    }
-    
-    // 獲取 Form 實例
-    function getFormInstance() { 
-        return $("#form").dxForm("instance"); 
-    }
-    
-    // 獲取 Toast 實例
-    function getToastInstance() { 
-        return $("#toast").dxToast("instance"); 
-    }
-    
-    // 顯示 LoadPanel
-    function ShowLoadPanel() { 
-        getLoadPanelInstance().show(); 
-    }
-    
-    // 使用其他信用卡
-    function UseOtherCreditCard() { 
-        ShowLoadPanel(); 
-        getFormInstance().updateData('SelectedCreditCard', ""); 
-    }
-    
-    // 顯示 Toast 通知
-    function ShowToast(message, type, displayTime) {
-        var toast = getToastInstance();
-        toast.option({ message: message, type: type, displayTime: displayTime, 'white-space': 'pre-line', closeOnClick: true });
-        toast.show();
-    }
-
-    // ==================== 表單欄位處理 ====================
-    // 隱藏所有奉獻欄位
-    function hideAllDedicationFields() {
-        var form = getFormInstance();
-        form.itemOption("OtherDedicationSelectionBox", 'visible', false);
-        form.itemOption("HolidayDedicationSelectionBox", 'visible', false);
-        form.itemOption("SpecialDedicationSelectionBox", 'visible', false);
-        form.itemOption("OtherDedication", 'visible', false);
-    }
-
-    // 奉獻類別選擇變更事件
-    function OnCategorySelectBoxValueChanged(e) {
-        hideAllDedicationFields();
-        var form = getFormInstance();
-        if (e.value == "節期獻金") {
-            form.itemOption("HolidayDedicationSelectionBox", 'visible', true);
-        } else if (e.value == "特別奉獻") {
-            form.itemOption("SpecialDedicationSelectionBox", 'visible', true);
-        }
-        form.itemOption('DedicationAmount', { editorOptions: { width: 200 } });
-    }
-
-    // 奉獻金額內容準備事件
-    function OnAmountContentReady(e) {
-        if (e.component.option("value") == 0) {
-            e.component.option("value", "");
-        }
-    }
-
-    // ==================== 付款方式處理 ====================
-    // 重置付款 UI
-    function resetPaymentUI() {
-        var form = getFormInstance();
-        document.getElementById('atmfield').innerHTML = "";
-        document.getElementById('atm-info').style.display = 'none';  // 隱藏 ATM 資訊
-        setAtmCopyButtonVisible(false);
-        form.itemOption('DedicationAmount', { editorOptions: { width: 200 } });
-        form.itemOption("DedicationAmount", "label", { text: "奉獻金額" });
-        form.itemOption("DedicationAmount", "editorOptions", { placeholder: "請輸入奉獻金額" });
-        form.itemOption("DeductTotalNumberSelectionBox", 'visible', false);
-    }
-
-    function setAtmCopyButtonVisible(isVisible) {
-        // 集中管理按鈕顯示狀態，避免 reset、成功分支、錯誤分支各自操作造成狀態殘留。
-        var button = document.getElementById('copy-atm-info-button');
-        if (button) {
-            button.style.display = isVisible ? 'inline-block' : 'none';
-        }
-    }
-
-    function getAtmPaymentInfoText() {
-        // 從畫面上的 ATM 資訊區直接取文字，確保複製內容與使用者看到的付款資訊一致。
-        var atmField = document.getElementById('atmfield');
-        if (!atmField) {
-            return "";
-        }
-
-        var text = (atmField.innerText || atmField.textContent || "").trim();
-        // LINE 發送結果是狀態提示，不是匯款必要資訊；複製給奉獻者時只保留付款資訊本體。
-        var lineResultIndex = text.indexOf("LINE 發送結果");
-        if (lineResultIndex >= 0) {
-            text = text.substring(0, lineResultIndex).trim();
-        }
-
-        return text;
-    }
-
-    function CopyAtmPaymentInfo() {
-        var text = getAtmPaymentInfoText();
-        if (!text) {
-            ShowToast("目前沒有可複製的 ATM/匯款資訊", "warning", 3000);
-            return;
-        }
-
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text)
-                .then(function () {
-                    ShowToast("已複製 ATM/匯款資訊", "success", 2000);
-                })
-                .catch(function () {
-                    copyAtmPaymentInfoWithFallback(text);
-                });
-            return;
-        }
-
-        copyAtmPaymentInfoWithFallback(text);
-    }
-
-    function copyAtmPaymentInfoWithFallback(text) {
-        // 非 HTTPS 或舊版 WebView 可能沒有 navigator.clipboard；
-        // 使用隱藏 textarea 保留舊瀏覽器與內嵌瀏覽器的複製能力。
-        var textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.setAttribute('readonly', 'readonly');
-        textarea.style.position = 'fixed';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-
-        var copied = false;
-        try {
-            copied = document.execCommand('copy');
-        } finally {
-            document.body.removeChild(textarea);
-        }
-
-        ShowToast(copied ? "已複製 ATM/匯款資訊" : "複製失敗，請手動選取資訊複製", copied ? "success" : "error", copied ? 2000 : 4000);
-    }
-    
-    // 更新 save-button2 文字，根據是否有信用卡決定顯示內容
-    function updateSaveButtonTextForCardAvailability() {
-        try {
-            var grid = $("#CreditCardGrid").dxDataGrid("instance");
-            var hasCards = false;
-            if (grid && grid.getDataSource) {
-                var items = grid.getDataSource().items();
-                hasCards = items && items.length > 0;
-            }
-            if (hasCards) {
-                try { $("#save-button2").dxButton("instance").option("text", "透過選擇的信用卡奉獻"); } catch(e) {}
-            } else {
-                try { $("#save-button2").dxButton("instance").option("text", "奉獻"); } catch(e) {}
-            }
-        } catch (ex) {
-            // fallback
-            try { $("#save-button2").dxButton("instance").option("text", "奉獻"); } catch(e) {}
-        }
-    }
-
-    // 處理信用卡付款
-    function handleCreditCardPayment() {
-        var creditcards = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
-        var creditCardContainer = document.getElementById("creditcardlistcontainer");
-        var bookingContainer = document.getElementById("dedicationbookinglistcontainer");
-        
-        if (creditcards.length > 0) {
-            creditCardContainer.style.display = "";
-            $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
-            $("#save-button3").dxButton("instance").option("visible", true);
-        } else {
-            creditCardContainer.style.display = "none";
-            $("#save-button3").dxButton("instance").option("visible", false);
-        }
-        // 更新按鈕文字（有信用卡則顯示透過選擇的信用卡奉獻，否則顯示奉獻）
-        updateSaveButtonTextForCardAvailability();
-        bookingContainer.style.display = "none";
-    }
-    
-    // 處理信用卡定期定額
-    function handleCreditCardSubscription() {
-        // 對於定期定額，按鈕文字與信用卡相同規則
-        handleCreditCardPayment();
-        var form = getFormInstance();
-        var bookings = $("#DedicationBookingGrid").dxDataGrid("instance").getDataSource().items();
-        if (bookings.length > 0) {
-            document.getElementById("dedicationbookinglistcontainer").style.display = "";
-        }
-        form.itemOption("DeductTotalNumberSelectionBox", 'visible', true);
-        form.itemOption("DedicationAmount", "label", { text: "每月金額" });
-        form.itemOption("DedicationAmount", "editorOptions", { placeholder: "請輸入每月的奉獻金額" });
-    }
-    
-    // 處理其他付款方式
-    function handleOtherPayment() {
-        document.getElementById("creditcardlistcontainer").style.display = "none";
-        document.getElementById("dedicationbookinglistcontainer").style.display = "none";
-        $("#save-button3").dxButton("instance").option("visible", false);
-        // 非信用卡付款一律顯示「奉獻」
-        try { $("#save-button2").dxButton("instance").option("text", "奉獻"); } catch(e) {}
-    }
-
-    // 付款方式選擇變更事件
-    function OnPayWaySelectBoxValueChanged(e) {
-        resetPaymentUI();
-        switch(e.value) {
-            case "信用卡": 
-                handleCreditCardPayment(); 
-                break;
-            case "信用卡定期定額(每個月)": 
-                handleCreditCardSubscription(); 
-                break;
-            default: 
-                handleOtherPayment(); 
-                break;
-        }
-    }
-
-    // 頁面載入時，根據表單目前的付款方式初始化按鈕文字
-    $(function(){
-        try {
-            var form = getFormInstance();
-            if (form) {
-                var formData = form.option('formData') || {};
-                var payWayVal = formData.PayWay;
-                // 如果 editor 已初始化，使用 editor 值以保證一致
-                try {
-                    var editor = form.getEditor('PayWay');
-                    if (editor) payWayVal = editor.option('value');
-                } catch(ex) {}
-
-                OnPayWaySelectBoxValueChanged({ value: payWayVal });
-            }
-        } catch(err) {}
-    });
-    
-    // ==================== 資料網格事件處理 ====================
-    // 資料網格初始化事件
-    function DataGridOnInitialized(e) { 
-        e.component.columnOption("command:edit", {
-            width: 80,
-            minWidth: 70,
-            caption: "操作",
-            alignment: "center"
-        }); 
-    }
-    
-    // 行點擊事件
-    function OnRowClick(selectedItems) {
-        var data = selectedItems.selectedRowsData[0];
-        if (data) { 
-            getFormInstance().updateData('SelectedCreditCard', data.CCToken); 
-        }
-    }
-    
-    // 行選擇變更事件
-    function OnRowSelectionChanged(selectedItems) {
-        var data = selectedItems.selectedRowsData[0];
-        if (data) { 
-            getFormInstance().updateData('SelectedCreditCard', data.CCToken); 
-        }
-    }
-
-    // 信用卡網格內容準備事件
-    function onCreditCardGridContentReady(e) {
-        var items = e.component.getDataSource().items();
-        var creditCardContainer = document.getElementById("creditcardlistcontainer");
-        var bookingContainer = document.getElementById("dedicationbookinglistcontainer");
-        
-        if (items.length > 0) {
-            creditCardContainer.style.display = "";
-            bookingContainer.style.display = "none";
-            e.component.selectRows('@(Model.SelectedCreditCard)', true);
-            try { $("#save-button3").dxButton("instance").option("visible", true); } catch(e) {}
-        } else {
-            creditCardContainer.style.display = "none";
-            bookingContainer.style.display = "none";
-            try { $("#save-button3").dxButton("instance").option("visible", false); } catch(e) {}
-        }
-        // 更新按鈕文字，適用於信用卡或定期定額情境
-        updateSaveButtonTextForCardAvailability();
-    }
-
-    // 奉獻預訂網格內容準備事件
-    function onDedicationBookingGridContentReady(e) {
-        e.component.columnOption("command:edit", { visibleIndex: -1, width: 50 });
-    }
-
-    // 刪除信用卡時顯示/隱藏 LoadPanel
-    function onCreditCardRowRemoving(e) {
-        // 開始刪除時顯示載入面板
-        ShowLoadPanel();
-    }
-    function onCreditCardRowRemoved(e) {
-        // 刪除完成後隱藏載入面板
-        getLoadPanelInstance().hide();
-        ShowToast("已刪除信用卡", "success", 1500);
-    }
-    function onCreditCardDataError(e) {
-        // 發生錯誤時隱藏載入面板並提示
-        getLoadPanelInstance().hide();
-        ShowToast("刪除信用卡發生錯誤: " + (e.error && e.error.message ? e.error.message : ''), "error", 3000);
-    }
-
-    // ==================== AJAX 回調處理 ====================
-    // AJAX 開始事件
-    function onBegin() {}
-    
-    // AJAX 成功事件
-    function onSuccess(data) {
-        getLoadPanelInstance().hide();
-        if (data.status == 1) {
-            var payWay = data.PayWay || data.payWay || "";
-            var paymentUrl = getPaymentRedirectUrl(data, payWay == "信用卡");
-            if (paymentUrl) {
-                ShowToast(data.message, "success", 2000);
-                window.location.href = paymentUrl;
-            } else if (payWay == "信用卡") {
-                ShowToast("金流未回傳信用卡付款頁，請稍後再試或聯絡教會同工。", "error", 3000);
-                document.getElementById('atmfield').innerHTML = data.message || "金流未回傳信用卡付款頁";
-                document.getElementById('atm-info').style.display = 'block';
-            } else {
-                ShowToast(data.message, "success", 2000);
-                document.getElementById('atmfield').innerHTML = data.DedicationResult;
-                document.getElementById('atm-info').style.display = 'block';  // 顯示 ATM 資訊
-                setAtmCopyButtonVisible(payWay == "ATM轉帳/匯款" || payWay == "虛擬帳號");
-            }
-        } else {
-            ShowToast(data.message, "error", 3000);
-            document.getElementById('atmfield').innerHTML = data.message;
-            document.getElementById('atm-info').style.display = 'block';  // 顯示錯誤訊息
-            setAtmCopyButtonVisible(false);
-        }
-    }
-
-    function getPaymentRedirectUrl(data, allowLegacyDedicationResult) {
-        if (!data) {
-            return "";
-        }
-
-        var candidate = data.PaymentPageUrl ||
-            data.paymentPageUrl ||
-            data.RedirectUrl ||
-            data.redirectUrl ||
-            "";
-        if (!candidate && allowLegacyDedicationResult) {
-            candidate = data.DedicationResult ||
-                data.dedicationResult ||
-                "";
-        }
-        if (typeof candidate !== "string") {
-            return "";
-        }
-
-        candidate = candidate.trim();
-        return /^https?:\/\//i.test(candidate) ? candidate : "";
-    }
-
-    // ==================== DevExtreme 本地化設定 ====================
-    // 初始化本地化
-    (function initializeLocalization() {
-        var dictionary = {
-            "zh-tw": {
-                "dxScheduler-switcherAgenda": "會議內容",
-                "Month": "月",
-                "Subject": "主題",
-                "Company": "Company",
-                "Amount": "Amount",
-                "PaymentDate": "Payment Date",
-                "dxDataGrid-editingConfirmDeleteMessage": "您確定要刪除這張信用卡嗎?",
-            }
-        };
-        DevExpress.localization.loadMessages(dictionary);
-        var locale = "zh-tw";
-        sessionStorage.setItem("locale", locale);
-        DevExpress.localization.locale(locale);
-    })();
-</script>
-
-@if (Configuration["PAY_PROVIDER"] != "高鉅金流")
-{
-    <!-- 信用卡選擇區塊 -->
-    <div id="creditCardSection">
-        <!-- 信用卡相關 UI -->
+<!-- ==================== 對話框：加入其他類別 ==================== -->
+<div class="gv-layer gv-sheet" id="gvPicker" hidden role="dialog" aria-modal="true" aria-labelledby="gvPickerTitle">
+    <div class="gv-sheet__panel">
+        <div class="gv-sheet__head">
+            <h3 id="gvPickerTitle">加入奉獻類別</h3>
+            <button type="button" class="gv-iconbtn" data-close aria-label="關閉">✕</button>
+        </div>
+        <input class="gv-search" id="gvPickerSearch" autocomplete="off" placeholder="搜尋類別，例如：宣教、建堂">
+        <div class="gv-pnote" id="gvPickerNote"></div>
+        <div id="gvPickerList"></div>
     </div>
-}
+</div>
+
+<!-- ==================== 對話框：確認奉獻內容 ==================== -->
+<div class="gv-layer gv-sheet" id="gvConfirm" hidden role="dialog" aria-modal="true" aria-labelledby="gvConfirmTitle">
+    <div class="gv-sheet__panel">
+        <div class="gv-sheet__head">
+            <h3 id="gvConfirmTitle">確認奉獻內容</h3>
+            <button type="button" class="gv-iconbtn" data-close aria-label="關閉">✕</button>
+        </div>
+        <ul class="gv-conflines" id="gvConfLines"></ul>
+        <div class="gv-confmeta" id="gvConfMeta"></div>
+        <div class="gv-conftotal" id="gvConfTotal"></div>
+        <div class="gv-warn" id="gvConfirmError" role="alert" hidden></div>
+        <div class="gv-btnrow">
+            <button type="button" class="gv-btn" id="gvConfirmBack">返回修改</button>
+            <button type="button" class="gv-btn gv-btn--go" id="gvConfirmGo">確認送出</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 對話框：送出結果 ==================== -->
+<div class="gv-layer gv-sheet" id="gvDone" hidden role="dialog" aria-modal="true" aria-labelledby="gvDoneTitle">
+    <div class="gv-sheet__panel gv-done">
+        <div id="gvRedirect" hidden>
+            <div class="gv-spinner" aria-hidden="true"></div>
+            <h3>正在前往付款頁…</h3>
+            <p>請勿關閉此頁面。</p>
+        </div>
+        <div id="gvAtmResult" hidden>
+            <div class="gv-done__mark" aria-hidden="true">✓</div>
+            <h3 id="gvDoneTitle">虛擬帳號已產生</h3>
+            <p>請於期限內完成轉帳，入帳後系統會自動更新奉獻紀錄。</p>
+
+            <!-- ATM 轉帳資訊卡：沿用既有欄位解析與「複製虛擬帳號」按鈕 -->
+            <div id="atm-info" class="atm-info" style="display: none;">
+                <div id="atm-card" class="atm-card" style="display: none;">
+                    <div class="atm-hero atm-reveal" style="--d: 60">
+                        <div class="atm-hero__top">
+                            <span class="atm-eyebrow"><i class="fas fa-university" aria-hidden="true"></i>ATM 轉帳 / 匯款資訊</span>
+                            <span class="atm-deadline"><i class="far fa-clock" aria-hidden="true"></i>繳費期限 <strong data-atm-field="deadline"></strong></span>
+                        </div>
+                        <div class="atm-hero__label">虛擬帳號</div>
+                        <div class="atm-hero__row">
+                            <div id="atm-account-number" class="atm-account"></div>
+                            <button id="copy-atm-account" type="button">
+                                <span class="atm-copy__icon" aria-hidden="true"><i class="fas fa-copy"></i><i class="fas fa-check"></i></span>
+                                <span class="atm-copy__label" aria-live="polite">複製虛擬帳號</span>
+                            </button>
+                        </div>
+                    </div>
+                    <dl class="atm-facts">
+                        <div class="atm-fact atm-reveal" style="--d: 180">
+                            <dt>銀行代碼</dt>
+                            <dd><span data-atm-field="bank-code"></span><span class="atm-fact__sub" data-atm-field="bank-name"></span></dd>
+                        </div>
+                        <div class="atm-fact atm-reveal" style="--d: 240">
+                            <dt>分行代號</dt>
+                            <dd><span data-atm-field="branch-code"></span><span class="atm-fact__sub" data-atm-field="branch-name"></span></dd>
+                        </div>
+                        <div class="atm-fact atm-fact--amount atm-reveal" style="--d: 300">
+                            <dt>轉帳金額</dt>
+                            <dd data-atm-field="amount"></dd>
+                        </div>
+                    </dl>
+                    <dl class="atm-details atm-reveal" style="--d: 380">
+                        <dt>戶名</dt><dd data-atm-field="account-name"></dd>
+                        <dt>奉獻人</dt><dd data-atm-field="donor"></dd>
+                        <dt>奉獻項目</dt><dd data-atm-field="category"></dd>
+                    </dl>
+                    <p class="atm-note atm-reveal" style="--d: 440"><i class="fas fa-info-circle" aria-hidden="true"></i><span>請依照以上資訊，於繳費期限前透過 ATM 或網路銀行完成轉帳。</span></p>
+                </div>
+                <h5 id="atmfield"></h5>
+            </div>
+
+            <p class="gv-lineresult" id="gvLineResult" hidden></p>
+            <div class="gv-btnrow">
+                <button type="button" class="gv-btn gv-btn--go" id="gvDoneClose">完成</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="gv-layer gv-toast" id="gvToast" role="status" aria-live="polite"></div>
+
+<!-- ==================== 奉獻頁腳本 ==================== -->
+<script>
+(function () {
+    'use strict';
+
+    // ==================== 資料與常數 ====================
+    var DATA = {};
+    try {
+        DATA = JSON.parse(document.getElementById('gvData').textContent || '{}') || {};
+    } catch (e) {
+        DATA = {};
+    }
+
+    var CATEGORIES = (DATA.categories || []).filter(function (c) { return typeof c === 'string' && c.trim().length > 0; });
+    var PAY_WAYS = DATA.payWays && DATA.payWays.length ? DATA.payWays : ['信用卡'];
+    var HOLIDAYS = ['元旦', '新春', '清明節', '復活節', '母親節', '父親節', '重陽節', '感恩節', '聖誕節'];
+    var REGULAR = ['主日奉獻', '十一奉獻', '感恩奉獻', '愛心奉獻', '建堂奉獻', '宣教奉獻'];
+    var GROUPS = ['常規奉獻', '事工與專案', '特別與其他'];
+    var DEFAULT_PINNED = ['十一奉獻', '感恩奉獻', '建堂奉獻', '宣教奉獻'];
+    var MAX = DATA.maxLines > 0 ? DATA.maxLines : 7;
+    var PINNED_COUNT = 4;
+    var CARD = '信用卡';
+    var ATM = 'ATM轉帳/匯款';
+    var RECURRING = '信用卡定期定額(每個月)';
+    var PERIODS = [3, 6, 12, 18, 24];
+    var CHIPS = [500, 1000, 2000, 3000, 5000];
+    var PAY_LABEL = { '信用卡': '信用卡', 'ATM轉帳/匯款': 'ATM 轉帳／匯款', '信用卡定期定額(每個月)': '信用卡定期定額（每月）', 'LinePay': 'LINE Pay', '行動支付': '行動支付' };
+    var PAY_INFO = {
+        'ATM轉帳/匯款': '送出後會產生一組專屬虛擬帳號，請於 10 天內完成轉帳。',
+        'LinePay': '送出後開啟 LINE Pay 付款頁，完成後自動返回。',
+        '行動支付': '送出後前往行動支付付款頁，完成後自動返回。'
+    };
+    var LAST_PAY_MAP = { '信用卡': CARD, 'ATM轉帳': ATM, 'LinePay': 'LinePay', '行動支付': '行動支付' };
+    var MODES = {
+        A: { name: '常用優先', hint: '常用類別依你近 12 個月的奉獻紀錄排在最上面；直接填寫金額即可，其他類別用「加入其他類別」搜尋加入。' },
+        B: { name: '完整清單', hint: '所有類別一次列出，直接填寫金額即可。' },
+        C: { name: '逐筆新增', hint: '一筆一筆選類別、填金額。' }
+    };
+    var MODE_KEY = 'gv-donation-input-mode';
+    var AJAX_HEADERS = { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' };
+    var SHEETS = ['gvPicker', 'gvConfirm', 'gvDone'];
+
+    // ==================== 小工具 ====================
+    function byId(id) { return document.getElementById(id); }
+    function fmt(n) { return Number(n || 0).toLocaleString('zh-TW'); }
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function hasCat(name) { return CATEGORIES.indexOf(name) >= 0; }
+    function loadMode() {
+        try { var v = window.localStorage.getItem(MODE_KEY); return MODES[v] ? v : null; } catch (e) { return null; }
+    }
+    function saveMode(v) {
+        try { window.localStorage.setItem(MODE_KEY, v); } catch (e) { }
+    }
+    function readJson(response) {
+        return response.text().then(function (text) {
+            var data = null;
+            try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+            return { ok: response.ok, status: response.status, data: data };
+        });
+    }
+
+    var toastTimer = null;
+    function toast(message, ms) {
+        var t = byId('gvToast');
+        t.textContent = message;
+        t.classList.add('is-show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.classList.remove('is-show'); }, ms || 2400);
+    }
+
+    // ==================== 類別規則 ====================
+    function groupFor(name) {
+        if (REGULAR.indexOf(name) >= 0) return '常規奉獻';
+        if (/特別|節期|其他|代收|代轉/.test(name)) return '特別與其他';
+        return '事工與專案';
+    }
+    function subFor(name) {
+        if (name === '節期獻金') return { type: 'select', label: '節期', required: true, options: HOLIDAYS };
+        if (name === '特別奉獻') return { type: 'select', label: '特別奉獻項目', required: true, options: DATA.specialItems || [] };
+        if (name === '宣教奉獻' && (DATA.missionTargets || []).length) return { type: 'select', label: '宣教對象', required: false, options: DATA.missionTargets };
+        if (name === '其他奉獻') return { type: 'text', label: '其他奉獻內容', required: false, placeholder: '請說明用途' };
+        return null;
+    }
+    function defaultPinned() {
+        var list = DEFAULT_PINNED.filter(hasCat);
+        CATEGORIES.forEach(function (c) { if (list.length < PINNED_COUNT && list.indexOf(c) < 0) list.push(c); });
+        return list;
+    }
+
+    // ==================== 狀態 ====================
+    var keySeq = 1;
+    function mk(cat, extra) {
+        var line = { key: keySeq++, cat: cat, amount: 0, sub: '', pinned: false };
+        if (extra) { for (var k in extra) { if (Object.prototype.hasOwnProperty.call(extra, k)) line[k] = extra[k]; } }
+        return line;
+    }
+
+    var state = {
+        variant: loadMode() || 'A',
+        pinned: defaultPinned(),
+        lines: [],
+        pay: PAY_WAYS[0],
+        cards: (DATA.cards || []).slice(),
+        card: 'new',
+        period: 12,
+        note: '',
+        lastGift: null,
+        bookings: (DATA.bookings || []).slice(),
+        pending: false,
+        redirecting: false,
+        historyLoaded: false
+    };
+    state.card = (function () {
+        var tokens = state.cards.map(function (c) { return c.token; });
+        if (DATA.selectedCard && tokens.indexOf(DATA.selectedCard) >= 0) return DATA.selectedCard;
+        return tokens.length ? tokens[0] : 'new';
+    })();
+
+    function freshLines(v) {
+        if (v === 'A') return state.pinned.map(function (c) { return mk(c, { pinned: true }); });
+        if (v === 'B') return CATEGORIES.map(function (c) { return mk(c); });
+        return [mk(CATEGORIES[0] || '')];
+    }
+    // 切換輸入方式或帶入「同上次」時，以類別→金額對照表重建明細，已輸入的金額與子項目會保留。
+    function linesFromMap(map, v, order) {
+        function take(c) { return map[c] ? { amount: map[c].amount, sub: map[c].sub } : {}; }
+        if (v === 'A') {
+            var lines = state.pinned.map(function (c) { var t = take(c); t.pinned = true; return mk(c, t); });
+            order.forEach(function (c) { if (state.pinned.indexOf(c) < 0) lines.push(mk(c, take(c))); });
+            return lines;
+        }
+        if (v === 'B') return CATEGORIES.map(function (c) { return mk(c, take(c)); });
+        return order.length ? order.map(function (c) { return mk(c, take(c)); }) : [mk(CATEGORIES[0] || '')];
+    }
+    function currentMap() {
+        var map = {}, order = [];
+        state.lines.forEach(function (l) {
+            if (l.amount > 0 && !map[l.cat]) { map[l.cat] = { amount: l.amount, sub: l.sub }; order.push(l.cat); }
+        });
+        return { map: map, order: order };
+    }
+    function activeLines() { return state.lines.filter(function (l) { return l.amount > 0; }); }
+    function total() { return activeLines().reduce(function (s, l) { return s + l.amount; }, 0); }
+    function isRecurring() { return state.pay === RECURRING; }
+    function usesCard() { return state.pay === CARD || isRecurring(); }
+    function findLine(key) { key = Number(key); return state.lines.filter(function (l) { return l.key === key; })[0]; }
+    function issues() {
+        var act = activeLines(), out = [];
+        if (!act.length) out.push('請至少輸入一個類別的金額');
+        if (act.length > MAX) out.push('一次最多 ' + MAX + ' 個類別');
+        act.forEach(function (l) {
+            var s = subFor(l.cat);
+            if (s && s.required && !l.sub) out.push('「' + l.cat + '」請選擇' + s.label);
+        });
+        if (isRecurring() && act.length > 1) out.push('定期定額一次只能設定一個類別');
+        return out;
+    }
+
+    // ==================== 奉獻內容 ====================
+    function subHtml(l) {
+        var s = subFor(l.cat);
+        if (!s) return '';
+        var optional = s.required ? '' : '（選填）';
+        if (s.type === 'select') {
+            if (!s.options.length) {
+                return '<div class="gv-sub"><span>' + esc(s.label) + '</span><em class="gv-sub__empty">目前沒有開放的項目</em></div>';
+            }
+            return '<label class="gv-sub"><span>' + esc(s.label) + optional + '</span><select data-sub="' + l.key + '">' +
+                '<option value="">' + (s.required ? '請選擇' : '不指定') + '</option>' +
+                s.options.map(function (o) { return '<option value="' + esc(o) + '"' + (l.sub === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') +
+                '</select></label>';
+        }
+        return '<label class="gv-sub"><span>' + esc(s.label) + optional + '</span><input data-sub="' + l.key + '" autocomplete="off" value="' + esc(l.sub) + '" placeholder="' + esc(s.placeholder || '') + '"></label>';
+    }
+    function chipsHtml(key) {
+        return '<div class="gv-chips" aria-hidden="true">' + CHIPS.map(function (n) {
+            return '<button type="button" class="gv-chip" data-chip="' + n + '" data-key="' + key + '" tabindex="-1">' + fmt(n) + '</button>';
+        }).join('') + '</div>';
+    }
+    function amtHtml(l) {
+        return '<label class="gv-amt"><span class="gv-amt__cur">NT$</span><input class="gv-amt__input" data-key="' + l.key + '" inputmode="numeric" autocomplete="off" placeholder="0" value="' +
+            (l.amount ? fmt(l.amount) : '') + '" aria-label="' + esc(l.cat) + '金額"></label>';
+    }
+    // 常用與完整清單直接以金額決定是否計入；不另存勾選狀態，避免清空後仍送出舊金額。
+    function rowA(l) {
+        var on = l.amount > 0;
+        return '<div class="gv-row' + (on ? ' is-active' : '') + '" data-key="' + l.key + '"><div class="gv-row__main">' +
+            '<div class="gv-row__name"><span class="gv-row__nm">' + esc(l.cat) + '</span>' + (l.pinned ? '<span class="gv-tag">常用</span>' : '') + '</div>' +
+            amtHtml(l) +
+            '<button type="button" class="gv-row__x" data-act="' + (l.pinned ? 'clear' : 'remove') + '" data-key="' + l.key + '" aria-label="' + (l.pinned ? '清除金額' : '移除此類別') + '"' + (l.pinned && !on ? ' hidden' : '') + '>×</button>' +
+            '</div>' + chipsHtml(l.key) + subHtml(l) + '</div>';
+    }
+    function rowB(l) {
+        var on = l.amount > 0;
+        return '<div class="gv-row' + (on ? ' is-active' : '') + '" data-key="' + l.key + '"><div class="gv-row__main">' +
+            '<div class="gv-row__name"><span class="gv-row__nm">' + esc(l.cat) + '</span></div>' + amtHtml(l) +
+            '</div>' + subHtml(l) + '</div>';
+    }
+    function rowC(l, index) {
+        var on = l.amount > 0;
+        var used = state.lines.filter(function (x) { return x !== l; }).map(function (x) { return x.cat; });
+        var options = GROUPS.map(function (g) {
+            var items = CATEGORIES.filter(function (c) { return groupFor(c) === g; });
+            if (!items.length) return '';
+            return '<optgroup label="' + g + '">' + items.map(function (c) {
+                return '<option value="' + esc(c) + '"' + (c === l.cat ? ' selected' : '') + (used.indexOf(c) >= 0 ? ' disabled' : '') + '>' + esc(c) + '</option>';
+            }).join('') + '</optgroup>';
+        }).join('');
+        return '<div class="gv-row' + (on ? ' is-active' : '') + '" data-key="' + l.key + '"><div class="gv-row__main">' +
+            '<select class="gv-catsel" data-key="' + l.key + '" aria-label="第 ' + (index + 1) + ' 筆類別">' + options + '</select>' + amtHtml(l) +
+            '<button type="button" class="gv-row__x" data-act="remove" data-key="' + l.key + '" aria-label="移除此筆"' + (state.lines.length === 1 ? ' hidden' : '') + '>×</button>' +
+            '</div>' + chipsHtml(l.key) + subHtml(l) + '</div>';
+    }
+    function renderRows() {
+        var v = state.variant;
+        byId('gvRows').innerHTML = state.lines.map(function (l, i) {
+            return v === 'A' ? rowA(l) : v === 'B' ? rowB(l) : rowC(l, i);
+        }).join('');
+        var add = byId('gvAdd');
+        add.hidden = v === 'B';
+        add.textContent = v === 'A' ? '＋ 加入其他類別' : '＋ 再加一筆';
+        add.disabled = v === 'C' && (state.lines.length >= MAX || state.lines.length >= CATEGORIES.length);
+        byId('gvItemsHint').textContent = v === 'B' ? CATEGORIES.length + ' 個類別全部列出' : '一次最多 ' + MAX + ' 個類別';
+        byId('gvItemsSubHint').textContent = MODES[v].hint;
+        renderRepeat();
+    }
+    function renderRepeat() {
+        var gift = state.lastGift;
+        byId('gvRepeat').hidden = !gift;
+        if (gift) byId('gvRepeatTotal').textContent = 'NT$ ' + fmt(gift.total);
+    }
+
+    // ==================== 付款方式 ====================
+    function cardDigits(card) { return String(card.number || '').replace(/\D/g, ''); }
+    function cardBrand(digits) {
+        if (/^4/.test(digits)) return 'VISA';
+        if (/^(5[1-5]|2[2-7])/.test(digits)) return 'MC';
+        if (/^35/.test(digits)) return 'JCB';
+        if (/^3[47]/.test(digits)) return 'AMEX';
+        if (/^62/.test(digits)) return '銀聯';
+        return '卡片';
+    }
+    function cardText(card) {
+        var last4 = cardDigits(card).slice(-4);
+        return '•••• ' + (last4 || '----');
+    }
+    function cardsHtml() {
+        if (!state.cards.length) {
+            return '<div class="gv-info">送出後前往刷卡頁面輸入卡號。</div>';
+        }
+        return '<div class="gv-cards" role="radiogroup" aria-label="選擇信用卡">' + state.cards.map(function (c) {
+            var on = state.card === c.token;
+            return '<label class="gv-cardopt' + (on ? ' is-on' : '') + '">' +
+                '<input type="radio" name="gvCard" value="' + esc(c.token) + '"' + (on ? ' checked' : '') + '>' +
+                '<span class="gv-brandmark">' + esc(cardBrand(cardDigits(c))) + '</span>' +
+                '<span class="gv-num">' + esc(cardText(c)) + '</span>' +
+                '<span class="gv-cardopt__exp">到期 ' + esc(c.expire) + '</span>' +
+                '<button type="button" class="gv-cardopt__del" data-del-card="' + esc(c.token) + '" aria-label="刪除卡號結尾 ' + esc(cardDigits(c).slice(-4)) + ' 的信用卡">刪除</button>' +
+                '</label>';
+        }).join('') +
+            '<label class="gv-cardopt' + (state.card === 'new' ? ' is-on' : '') + '"><input type="radio" name="gvCard" value="new"' + (state.card === 'new' ? ' checked' : '') + '><span>＋ 使用其他信用卡</span></label>' +
+            '</div>';
+    }
+    function bookingsHtml() {
+        if (!state.bookings.length) return '';
+        return '<div class="gv-bookings"><h4>目前的定期定額</h4>' + state.bookings.map(function (b) {
+            var detail = [b.status, b.paidPeriod ? '已扣 ' + b.paidPeriod + ' 期' : '', b.totalStages ? '共 ' + b.totalStages : '', b.start && b.end ? b.start + '～' + b.end : '']
+                .filter(function (x) { return x; }).map(esc).join(' · ');
+            return '<div class="gv-booking"><div class="gv-booking__main"><b>' + esc(b.category) + (b.amount ? '　每期 NT$ ' + esc(b.amount) : '') + '</b><small>' + detail + '</small></div>' +
+                '<button type="button" class="gv-booking__cancel" data-cancel-booking="' + esc(b.id) + '">取消扣款</button></div>';
+        }).join('') + '</div>';
+    }
+    function renderPay() {
+        var select = byId('gvPay');
+        if (!select.options.length) {
+            select.innerHTML = PAY_WAYS.map(function (p) { return '<option value="' + esc(p) + '">' + esc(PAY_LABEL[p] || p) + '</option>'; }).join('');
+            select.disabled = PAY_WAYS.length === 1;
+        }
+        select.value = state.pay;
+        var detail = byId('gvPayDetail'), act = activeLines();
+        if (state.pay === CARD) {
+            detail.innerHTML = cardsHtml();
+        } else if (isRecurring()) {
+            var periods = '<div class="gv-fieldrow"><label for="gvPeriod">扣款期數</label><select id="gvPeriod" class="gv-select">' +
+                PERIODS.map(function (n) { return '<option value="' + n + '"' + (state.period === n ? ' selected' : '') + '>' + n + ' 個月</option>'; }).join('') +
+                '</select></div>';
+            var notice = act.length > 1
+                ? '<div class="gv-notice"><span>定期定額一次只能設定一個類別；多類別請用單次奉獻，或分別建立定期定額。</span><button type="button" data-act="keepFirst">只保留「' + esc(act[0].cat) + '」</button></div>'
+                : '';
+            detail.innerHTML = periods + cardsHtml() + notice + bookingsHtml();
+        } else {
+            detail.innerHTML = '<div class="gv-info">' + esc(PAY_INFO[state.pay] || '') + '</div>';
+        }
+    }
+    function payText() {
+        var name = PAY_LABEL[state.pay] || state.pay;
+        if (!usesCard()) return name;
+        if (!state.cards.length || state.card === 'new') return name + '（其他信用卡）';
+        var card = state.cards.filter(function (c) { return c.token === state.card; })[0];
+        return card ? name + ' ' + cardText(card) : name;
+    }
+
+    // ==================== 確認與送出 ====================
+    function renderSummary() {
+        var act = activeLines(), sum = total(), list = issues(), rec = isRecurring();
+        byId('gvSumLines').innerHTML = act.length
+            ? act.map(function (l) {
+                return '<li><span>' + esc(l.cat) + (l.sub ? '<small>' + esc(l.sub) + '</small>' : '') + '</span><span>' + fmt(l.amount) + '</span></li>';
+            }).join('')
+            : '<li class="is-empty">尚未輸入金額</li>';
+        byId('gvSumPay').textContent = '付款：' + payText() + (rec ? ' · ' + state.period + ' 期' : '');
+        byId('gvSumLbl').textContent = rec ? '每月總計' : '總計';
+        byId('gvSumNum').textContent = 'NT$ ' + fmt(sum);
+        byId('gvSumCnt').textContent = act.length
+            ? act.length + ' 個類別' + (rec ? ' · ' + state.period + ' 期共 NT$ ' + fmt(sum * state.period) : '')
+            : '';
+        var warn = byId('gvSumWarn'), show = list.length > 0 && act.length > 0;
+        warn.hidden = !show;
+        warn.textContent = show ? list[0] : '';
+        byId('gvCta').disabled = list.length > 0 || state.pending;
+    }
+    function renderChrome() {
+        [].forEach.call(document.querySelectorAll('#gvModeSeg button'), function (b) {
+            var on = b.getAttribute('data-mode') === state.variant;
+            b.classList.toggle('is-on', on);
+            b.setAttribute('aria-checked', on ? 'true' : 'false');
+        });
+        byId('gvNote').value = state.note;
+    }
+    function renderAll() { renderChrome(); renderRows(); renderPay(); renderSummary(); }
+
+    // 金額僅更新本頁 state；沿用既有上限與驗證，不新增跨使用者狀態或事件訂閱。
+    function setAmount(key, value, sourceInput) {
+        var l = findLine(key);
+        if (!l) return;
+        l.amount = Math.max(0, Math.min(Number(value) || 0, 99999999));
+        var row = byId('gvRows').querySelector('.gv-row[data-key="' + l.key + '"]');
+        if (row) {
+            row.classList.toggle('is-active', l.amount > 0);
+            var clear = row.querySelector('.gv-row__x[data-act="clear"]');
+            if (clear) clear.hidden = l.amount === 0;
+            var input = row.querySelector('.gv-amt__input');
+            if (input && input !== sourceInput) {
+                input.value = l.amount ? (document.activeElement === input ? String(l.amount) : fmt(l.amount)) : '';
+            }
+        }
+        renderSummary();
+        if (isRecurring()) renderPay();
+    }
+    function addLine(cat) {
+        var line = mk(cat);
+        state.lines.push(line);
+        renderRows();
+        renderSummary();
+        var input = byId('gvRows').querySelector('.gv-amt__input[data-key="' + line.key + '"]');
+        if (input) input.focus();
+        toast('已加入「' + cat + '」，請輸入金額');
+    }
+    function removeLine(key) {
+        key = Number(key);
+        state.lines = state.lines.filter(function (l) { return l.key !== key; });
+        if (!state.lines.length) state.lines = freshLines(state.variant);
+        renderRows();
+        renderSummary();
+        if (isRecurring()) renderPay();
+    }
+    function applyLast() {
+        var gift = state.lastGift;
+        if (!gift) return;
+        var map = {}, order = [];
+        (gift.lines || []).forEach(function (l) {
+            if (!hasCat(l.category) || !(l.amount > 0) || map[l.category] || order.length >= MAX) return;
+            var s = subFor(l.category), sub = l.others || '';
+            if (s && s.type === 'select' && s.options.indexOf(sub) < 0) sub = '';
+            map[l.category] = { amount: l.amount, sub: sub };
+            order.push(l.category);
+        });
+        if (!order.length) return;
+        state.lines = linesFromMap(map, state.variant, order);
+        var mapped = LAST_PAY_MAP[gift.payWay];
+        if (mapped && PAY_WAYS.indexOf(mapped) >= 0) state.pay = mapped;
+        renderAll();
+        toast('已帶入：' + order.map(function (c) { return c + ' ' + fmt(map[c].amount); }).join('、') + '，可直接修改');
+    }
+
+    // ==================== 對話框 ====================
+    var lastFocus = null;
+    function openSheet(id) {
+        if (SHEETS.every(function (x) { return byId(x).hidden; })) lastFocus = document.activeElement;
+        byId(id).hidden = false;
+        document.documentElement.classList.add('gv-lock');
+    }
+    function closeSheet(id) {
+        byId(id).hidden = true;
+        if (SHEETS.some(function (x) { return !byId(x).hidden; })) return;
+        document.documentElement.classList.remove('gv-lock');
+        if (lastFocus && document.body.contains(lastFocus) && typeof lastFocus.focus === 'function') {
+            try { lastFocus.focus({ preventScroll: true }); } catch (e) { }
+        }
+        lastFocus = null;
+    }
+
+    function openPicker() {
+        byId('gvPickerSearch').value = '';
+        renderPicker('');
+        openSheet('gvPicker');
+        setTimeout(function () { byId('gvPickerSearch').focus(); }, 60);
+    }
+    function renderPicker(query) {
+        query = (query || '').trim();
+        var present = state.lines.map(function (l) { return l.cat; });
+        var full = activeLines().length >= MAX;
+        var html = '';
+        GROUPS.forEach(function (g) {
+            var items = CATEGORIES.filter(function (c) { return groupFor(c) === g && (!query || c.indexOf(query) >= 0); });
+            if (!items.length) return;
+            html += '<div class="gv-pgroup"><h4>' + g + '</h4><div class="gv-plist">' + items.map(function (c) {
+                var has = present.indexOf(c) >= 0;
+                return '<button type="button" class="gv-pitem" data-pick="' + esc(c) + '"' + (has || full ? ' disabled' : '') + '><span>' + esc(c) + '</span>' +
+                    (has ? '<span class="gv-pitem__added">已在清單</span>' : '') + '</button>';
+            }).join('') + '</div></div>';
+        });
+        byId('gvPickerNote').textContent = full ? '已達 ' + MAX + ' 個類別上限，請先清除一個再加入。' : '';
+        byId('gvPickerList').innerHTML = html ||
+            '<div class="gv-pempty">找不到「' + esc(query) + '」。' + (hasCat('其他奉獻') ? '試試其他關鍵字，或選「其他奉獻」並說明用途。' : '試試其他關鍵字。') + '</div>';
+    }
+
+    function confirmLabel() {
+        if (state.pay === ATM) return '確認送出，取得虛擬帳號';
+        if (isRecurring()) return '確認建立定期定額';
+        return '確認送出並前往付款';
+    }
+    function openConfirm() {
+        if (issues().length) { renderSummary(); return; }
+        var rec = isRecurring();
+        byId('gvConfLines').innerHTML = activeLines().map(function (l) {
+            return '<li><span>' + esc(l.cat) + (l.sub ? '<small>' + esc(l.sub) + '</small>' : '') + '</span><span>NT$ ' + fmt(l.amount) + '</span></li>';
+        }).join('');
+        byId('gvConfMeta').innerHTML = '<div><span>付款方式</span><b>' + esc(payText()) + '</b></div>' +
+            (rec ? '<div><span>期數</span><b>' + state.period + ' 期，每月扣款</b></div>' : '') +
+            (state.note ? '<div><span>備註</span><b>' + esc(state.note) + '</b></div>' : '');
+        byId('gvConfTotal').innerHTML = '<span>' + (rec ? '每月總計' : '總計') + '</span><b>NT$ ' + fmt(total()) + '</b>';
+        byId('gvConfirmError').hidden = true;
+        var go = byId('gvConfirmGo');
+        go.disabled = false;
+        go.textContent = confirmLabel();
+        openSheet('gvConfirm');
+    }
+
+    function paymentUrl(data) {
+        var candidate = data.PaymentPageUrl || data.paymentPageUrl || data.RedirectUrl || data.redirectUrl || data.DedicationResult || data.dedicationResult || '';
+        if (typeof candidate !== 'string') return '';
+        candidate = candidate.trim();
+        return /^https?:\/\//i.test(candidate) ? candidate : '';
+    }
+    function showSubmitError(message) {
+        var box = byId('gvConfirmError');
+        box.textContent = message;
+        box.hidden = false;
+        if (byId('gvConfirm').hidden) openSheet('gvConfirm');
+        toast(message, 3200);
+    }
+    function showRedirect() {
+        state.redirecting = true;
+        closeSheet('gvConfirm');
+        byId('gvAtmResult').hidden = true;
+        byId('gvRedirect').hidden = false;
+        openSheet('gvDone');
+    }
+    function showAtmResult(html) {
+        closeSheet('gvConfirm');
+        byId('gvRedirect').hidden = true;
+        byId('gvAtmResult').hidden = false;
+        openSheet('gvDone');
+        var parsed = showAtmPaymentInfo(html);
+        byId('gvDoneTitle').textContent = parsed ? '虛擬帳號已產生' : '付款資訊';
+        // 收費單已建立：清空已送出的金額，避免重複送出同一筆奉獻。
+        var mode = state.variant;
+        state.lines = freshLines(mode);
+        state.note = '';
+        renderAll();
+    }
+    function handleSubmitResult(res) {
+        var data = res.data || {};
+        if (res.status === 409 && data.redirectUrl) { window.location.href = data.redirectUrl; return; }
+        if (res.status === 401) { showSubmitError('登入已逾時，請重新登入後再奉獻。'); return; }
+        if (!res.ok || !res.data) { showSubmitError(data.message || '系統發生錯誤，請稍後再試。'); return; }
+        if (String(data.status) !== '1') { showSubmitError(data.message || '送出失敗，請稍後再試。'); return; }
+        var payWay = data.PayWay || data.payWay || '';
+        var url = paymentUrl(data);
+        if (url) { showRedirect(); window.location.href = url; return; }
+        if (payWay === CARD) { showSubmitError('金流未回傳信用卡付款頁，請稍後再試或聯絡教會同工。'); return; }
+        showAtmResult(data.DedicationResult || data.dedicationResult || '');
+    }
+    function submitDonation() {
+        if (state.pending || issues().length) return;
+        state.pending = true;
+        var go = byId('gvConfirmGo'), back = byId('gvConfirmBack');
+        go.disabled = true;
+        back.disabled = true;
+        go.textContent = '送出中…';
+        byId('gvConfirmError').hidden = true;
+
+        // 欄位名稱是 DonationPaymentFormModel 的 MVC 繫結契約（Lines[i].*、PayWay、SelectedCreditCard、DeductTotalNumber、Explain）。
+        var body = new URLSearchParams();
+        activeLines().forEach(function (l, i) {
+            body.append('Lines[' + i + '].Category', l.cat);
+            body.append('Lines[' + i + '].Amount', String(l.amount));
+            body.append('Lines[' + i + '].Others', l.sub || '');
+        });
+        body.append('PayWay', state.pay);
+        body.append('SelectedCreditCard', state.card && state.card !== 'new' ? state.card : '');
+        body.append('DeductTotalNumber', state.period + '個月');
+        body.append('Explain', state.note || '');
+
+        fetch('/Dedication/SaveDonationPaymentDedication', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: body.toString()
+        })
+            .then(readJson)
+            .then(handleSubmitResult)
+            .catch(function () { showSubmitError('網路連線失敗，請確認網路後再試一次。'); })
+            .then(function () {
+                state.pending = false;
+                if (state.redirecting) return;
+                go.disabled = false;
+                back.disabled = false;
+                go.textContent = confirmLabel();
+                renderSummary();
+            });
+    }
+
+    // ==================== 信用卡與定期定額管理 ====================
+    function deleteCard(token) {
+        if (!window.confirm('確定要刪除這張信用卡嗎？')) return;
+        fetch('/Dedication/DeleteCreditCard', {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest' },
+            body: 'key=' + encodeURIComponent(token)
+        })
+            .then(function (r) {
+                if (!r.ok) throw new Error('delete failed');
+                state.cards = state.cards.filter(function (c) { return c.token !== token; });
+                if (state.card === token) state.card = state.cards.length ? state.cards[0].token : 'new';
+                renderPay();
+                renderSummary();
+                toast('已刪除信用卡');
+            })
+            .catch(function () { toast('刪除信用卡失敗，請稍後再試'); });
+    }
+    function cancelBooking(id) {
+        if (!window.confirm('確定要取消這筆定期定額扣款嗎？取消後將不再自動扣款。')) return;
+        fetch('/Dedication/DeleteDedicationBooking', {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest' },
+            body: 'key=' + encodeURIComponent(id)
+        })
+            .then(function (r) {
+                if (!r.ok) throw new Error('cancel failed');
+                state.bookings = state.bookings.filter(function (b) { return b.id !== id; });
+                renderPay();
+                toast('已送出取消定期定額');
+            })
+            .catch(function () { toast('取消定期定額失敗，請稍後再試'); });
+    }
+
+    // ==================== ATM 轉帳資訊（沿用既有卡片與複製按鈕） ====================
+    var atmAccountNumber = '';
+    var atmCopyResetTimer = null;
+
+    // 將後端回傳的 HTML 字串依 <br/> 拆行並轉為純文字，避免直接以 innerHTML 插入頁面
+    function htmlToPlainLines(html) {
+        return String(html || '').split(/<br\s*\/?>/i).map(function (line) {
+            return new DOMParser().parseFromString(line, 'text/html').body.textContent || '';
+        });
+    }
+    // 解析「標籤 : 值」格式的 ATM 付款資訊（標籤內空白會移除，例如「帳號     」→「帳號」）
+    function parseAtmPaymentInfo(html) {
+        var fields = {};
+        htmlToPlainLines(html).forEach(function (line) {
+            var match = line.trim().match(/^([^:：]+?)\s*[:：]\s*(.+)$/);
+            if (match) fields[match[1].replace(/\s+/g, '')] = match[2].trim();
+        });
+        return fields;
+    }
+    // 「807 永豐商業銀行」→ { code: "807", name: "永豐商業銀行" }
+    function splitCodeAndName(value) {
+        var match = String(value || '').match(/^(\d+)\s*(.*)$/);
+        return match ? { code: match[1], name: match[2] } : { code: value || '', name: '' };
+    }
+    // 「1000元」→「1,000 元」；非數字格式則原樣顯示
+    function formatAtmAmount(value) {
+        var number = String(value || '').replace(/[,\s元]/g, '');
+        return /^\d+(\.\d+)?$/.test(number) ? Number(number).toLocaleString('zh-TW') + ' 元' : (value || '');
+    }
+    function setAtmField(name, value) {
+        var element = document.querySelector('#atm-card [data-atm-field="' + name + '"]');
+        if (element) element.textContent = value || '';
+    }
+    // 帳號每 4 碼一組顯示，方便在 ATM 前核對
+    function renderAtmAccountNumber(account) {
+        var container = byId('atm-account-number');
+        container.textContent = '';
+        (account.match(/\d{1,4}/g) || []).forEach(function (group, index) {
+            var span = document.createElement('span');
+            span.className = 'atm-account__group';
+            span.style.setProperty('--i', index);
+            span.textContent = group;
+            container.appendChild(span);
+        });
+    }
+    function revealAtmPanel() {
+        var panel = byId('atm-info');
+        var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        panel.style.display = 'block';
+        panel.classList.remove('is-revealed');
+        void panel.offsetWidth;
+        panel.classList.add('is-revealed');
+        panel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+    }
+    // LINE 發送結果附在付款資訊之後；只顯示狀態與原因，不影響虛擬帳號解析。
+    function renderLineResult(html) {
+        var box = byId('gvLineResult');
+        var lines = htmlToPlainLines(html).map(function (l) { return l.trim(); }).filter(function (l) { return l.length > 0; });
+        box.hidden = true;
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i].indexOf('LINE 發送結果') === 0) {
+                var status = lines[i].replace(/^LINE 發送結果\s*[:：]\s*/, '');
+                box.textContent = 'LINE 通知：' + status + (lines[i + 1] ? '。' + lines[i + 1] : '');
+                box.classList.toggle('is-ok', status.indexOf('成功') >= 0);
+                box.hidden = false;
+                return;
+            }
+        }
+    }
+    // 取得虛擬帳號時以結構化卡片呈現；解析不到帳號則退回純文字顯示
+    function showAtmPaymentInfo(html) {
+        renderLineResult(html);
+        var fields = parseAtmPaymentInfo(html);
+        var account = (fields['帳號'] || '').replace(/\D/g, '');
+        if (!account) {
+            showAtmMessage(html, false);
+            return false;
+        }
+        var bank = splitCodeAndName(fields['銀行代碼']);
+        var branch = splitCodeAndName(fields['分行代號']);
+        atmAccountNumber = account;
+        renderAtmAccountNumber(account);
+        setAtmField('deadline', fields['付款到期日']);
+        setAtmField('bank-code', bank.code);
+        setAtmField('bank-name', bank.name);
+        setAtmField('branch-code', branch.code);
+        setAtmField('branch-name', branch.name);
+        setAtmField('amount', formatAtmAmount(fields['金額']));
+        setAtmField('account-name', fields['戶名']);
+        setAtmField('donor', fields['姓名']);
+        setAtmField('category', fields['名稱']);
+        document.querySelector('#atm-card .atm-deadline').style.display = fields['付款到期日'] ? '' : 'none';
+        resetCopyButton();
+        byId('atmfield').style.display = 'none';
+        byId('atm-card').style.display = '';
+        revealAtmPanel();
+        return true;
+    }
+    // 顯示錯誤或無法解析的訊息（純文字）
+    function showAtmMessage(html, isError) {
+        var field = byId('atmfield');
+        atmAccountNumber = '';
+        byId('atm-card').style.display = 'none';
+        field.textContent = htmlToPlainLines(html).join('\n');
+        field.classList.toggle('is-error', !!isError);
+        field.style.display = '';
+        revealAtmPanel();
+    }
+    function copyAtmAccount() {
+        if (!atmAccountNumber) {
+            toast('找不到可複製的虛擬帳號', 2500);
+            return;
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(atmAccountNumber).then(onAtmAccountCopied, function () {
+                copyAtmAccountWithFallback(atmAccountNumber);
+            });
+        } else {
+            copyAtmAccountWithFallback(atmAccountNumber);
+        }
+    }
+    // 支援未啟用 Clipboard API 的瀏覽器與舊版手機瀏覽器
+    function copyAtmAccountWithFallback(account) {
+        var textArea = document.createElement('textarea');
+        textArea.value = account;
+        textArea.setAttribute('readonly', '');
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        var copied = false;
+        try { copied = document.execCommand('copy'); } catch (e) { copied = false; } finally { document.body.removeChild(textArea); }
+        if (copied) onAtmAccountCopied();
+        else toast('無法複製虛擬帳號，請長按帳號後手動複製', 3000);
+    }
+    // 複製成功回饋：按鈕切換為「已複製」、帳號短暫亮起
+    function onAtmAccountCopied() {
+        var button = byId('copy-atm-account');
+        var number = byId('atm-account-number');
+        clearTimeout(atmCopyResetTimer);
+        button.classList.add('is-copied');
+        button.querySelector('.atm-copy__label').textContent = '已複製';
+        number.classList.add('is-flash');
+        setTimeout(function () { number.classList.remove('is-flash'); }, 450);
+        atmCopyResetTimer = setTimeout(resetCopyButton, 2200);
+        toast('虛擬帳號已複製', 2000);
+    }
+    function resetCopyButton() {
+        clearTimeout(atmCopyResetTimer);
+        var button = byId('copy-atm-account');
+        button.classList.remove('is-copied');
+        button.querySelector('.atm-copy__label').textContent = '複製虛擬帳號';
+        byId('atm-account-number').classList.remove('is-flash');
+    }
+
+    // ==================== 奉獻清單 ====================
+    function setView(view) {
+        var give = view === 'give';
+        byId('gvViewGive').hidden = !give;
+        byId('gvViewList').hidden = give;
+        [].forEach.call(document.querySelectorAll('#gvViewSeg button'), function (b) {
+            var on = b.getAttribute('data-view') === view;
+            b.classList.toggle('is-on', on);
+            b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        if (!give && !state.historyLoaded) loadHistory();
+    }
+    function renderHistory(data) {
+        var rows = data.rows || [];
+        byId('gvFeeBody').innerHTML = rows.length
+            ? rows.map(function (r) {
+                var detail = [];
+                if (r.others) detail.push(esc(r.others));
+                if (r.period) detail.push(/^\d+$/.test(r.period) ? '定期定額第 ' + esc(r.period) + ' 期' : '定期定額 ' + esc(r.period));
+                return '<tr><td class="gv-date gv-num">' + esc(r.date) + '</td>' +
+                    '<td>' + esc(r.category) + (detail.length ? '<small>' + detail.join(' · ') + '</small>' : '') + '</td>' +
+                    '<td>' + esc(r.payWay) + '</td>' +
+                    '<td class="gv-amtcell gv-num">' + fmt(r.amount) + '</td>' +
+                    '<td><span class="gv-pill">已完成</span></td></tr>';
+            }).join('')
+            : '<tr><td colspan="5" class="gv-empty">這段期間沒有奉獻紀錄。</td></tr>';
+        byId('gvFeeCount').textContent = rows.length + ' 筆';
+        byId('gvFeeRange').textContent = (data.start || '') + ' ～ ' + (data.end || '');
+        byId('gvFeeTotal').textContent = 'NT$ ' + fmt(data.total);
+    }
+    function loadHistory() {
+        var start = byId('gvQStart').value, end = byId('gvQEnd').value;
+        if (start && end && start > end) { toast('開始日期不能晚於結束日期'); return; }
+        state.historyLoaded = true;
+        var button = byId('gvQBtn');
+        button.disabled = true;
+        byId('gvFeeBody').innerHTML = '<tr><td colspan="5" class="gv-empty">查詢中…</td></tr>';
+        fetch('/Dedication/GivingHistory?start=' + encodeURIComponent(start) + '&end=' + encodeURIComponent(end), {
+            credentials: 'same-origin',
+            headers: AJAX_HEADERS
+        })
+            .then(readJson)
+            .then(function (res) {
+                if (!res.ok || !res.data || !res.data.ok) throw new Error('history failed');
+                renderHistory(res.data);
+            })
+            .catch(function () {
+                state.historyLoaded = false;
+                byId('gvFeeBody').innerHTML = '<tr><td colspan="5" class="gv-empty is-error">查詢失敗，請稍後再試。</td></tr>';
+                byId('gvFeeCount').textContent = '';
+                byId('gvFeeRange').textContent = '';
+                byId('gvFeeTotal').textContent = 'NT$ 0';
+            })
+            .then(function () { button.disabled = false; });
+    }
+
+    // ==================== 常用類別與同上次（非同步載入，不影響奉獻操作） ====================
+    function loadSummary() {
+        fetch('/Dedication/GivingSummary', { credentials: 'same-origin', headers: AJAX_HEADERS })
+            .then(readJson)
+            .then(function (res) {
+                var d = res.data;
+                if (!res.ok || !d) return;
+                var pinned = (d.pinned || []).filter(hasCat).slice(0, PINNED_COUNT);
+                if (pinned.length && pinned.join('|') !== state.pinned.join('|')) {
+                    state.pinned = pinned;
+                    var typing = byId('gvRows').contains(document.activeElement);
+                    if (state.variant === 'A' && !activeLines().length && !typing) {
+                        state.lines = freshLines('A');
+                        renderRows();
+                        renderSummary();
+                    }
+                }
+                var gift = d.lastGift;
+                if (gift && (gift.lines || []).some(function (l) { return hasCat(l.category) && l.amount > 0; })) {
+                    state.lastGift = gift;
+                    renderRepeat();
+                }
+            })
+            .catch(function () { });
+    }
+
+    // ==================== 事件 ====================
+    function bind() {
+        byId('gvViewSeg').addEventListener('click', function (e) {
+            var b = e.target.closest('button[data-view]');
+            if (b) setView(b.getAttribute('data-view'));
+        });
+
+        byId('gvModeSeg').addEventListener('click', function (e) {
+            var b = e.target.closest('button[data-mode]');
+            if (!b) return;
+            var mode = b.getAttribute('data-mode');
+            if (mode === state.variant) return;
+            var current = currentMap();
+            state.variant = mode;
+            state.lines = linesFromMap(current.map, mode, current.order);
+            saveMode(mode);
+            renderAll();
+            toast('輸入方式已改為「' + MODES[mode].name + '」，下次進來會記住');
+        });
+
+        byId('gvNote').addEventListener('input', function (e) { state.note = e.target.value; });
+        byId('gvRepeat').addEventListener('click', applyLast);
+        byId('gvAdd').addEventListener('click', function () {
+            if (state.variant === 'A') { openPicker(); return; }
+            var used = state.lines.map(function (l) { return l.cat; });
+            var next = CATEGORIES.filter(function (c) { return used.indexOf(c) < 0; })[0];
+            if (next && state.lines.length < MAX) addLine(next);
+        });
+
+        var rows = byId('gvRows');
+        rows.addEventListener('input', function (e) {
+            var t = e.target;
+            if (t.classList.contains('gv-amt__input')) {
+                var digits = t.value.replace(/\D/g, '').slice(0, 8);
+                t.value = digits;
+                setAmount(t.getAttribute('data-key'), Number(digits) || 0, t);
+            } else if (t.hasAttribute('data-sub')) {
+                var line = findLine(t.getAttribute('data-sub'));
+                if (line) { line.sub = t.value; renderSummary(); }
+            }
+        });
+        rows.addEventListener('change', function (e) {
+            var t = e.target, line;
+            if (t.classList.contains('gv-catsel')) {
+                line = findLine(t.getAttribute('data-key'));
+                if (!line) return;
+                line.cat = t.value;
+                line.sub = '';
+                renderRows();
+                renderSummary();
+                if (isRecurring()) renderPay();
+            } else if (t.hasAttribute('data-sub')) {
+                line = findLine(t.getAttribute('data-sub'));
+                if (line) { line.sub = t.value; renderSummary(); }
+            }
+        });
+        rows.addEventListener('focusin', function (e) {
+            var t = e.target;
+            if (!t.classList.contains('gv-amt__input')) return;
+            var line = findLine(t.getAttribute('data-key'));
+            t.value = line && line.amount ? String(line.amount) : '';
+            var row = t.closest('.gv-row');
+            if (row) row.classList.add('is-focused');
+            setTimeout(function () { try { t.select(); } catch (err) { } }, 0);
+        });
+
+        // 指標按住期間不收合快速金額列：收合會讓下方按鈕在 mousedown 與 mouseup 之間位移，造成要點兩次。
+        var pointerHeld = false, deferredCollapse = null;
+        function releasePointer() {
+            pointerHeld = false;
+            if (deferredCollapse) { var fn = deferredCollapse; deferredCollapse = null; fn(); }
+        }
+        document.addEventListener('pointerdown', function () { pointerHeld = true; }, true);
+        document.addEventListener('pointerup', function () { setTimeout(releasePointer, 0); }, true);
+        document.addEventListener('pointercancel', function () { setTimeout(releasePointer, 0); }, true);
+
+        rows.addEventListener('focusout', function (e) {
+            var t = e.target;
+            if (!t.classList.contains('gv-amt__input')) return;
+            var line = findLine(t.getAttribute('data-key'));
+            t.value = line && line.amount ? fmt(line.amount) : '';
+            var row = t.closest('.gv-row');
+            var collapse = function () { if (row) row.classList.remove('is-focused'); };
+            if (pointerHeld) deferredCollapse = collapse; else collapse();
+        });
+        rows.addEventListener('mousedown', function (e) { if (e.target.closest('.gv-chip')) e.preventDefault(); });
+        rows.addEventListener('click', function (e) {
+            var chip = e.target.closest('.gv-chip');
+            if (chip) {
+                var line = findLine(chip.getAttribute('data-key'));
+                if (line && line.amount === 0 && activeLines().length >= MAX) { toast('一次最多 ' + MAX + ' 個類別'); return; }
+                setAmount(chip.getAttribute('data-key'), Number(chip.getAttribute('data-chip')));
+                return;
+            }
+            var x = e.target.closest('.gv-row__x');
+            if (!x) return;
+            if (x.getAttribute('data-act') === 'clear') setAmount(x.getAttribute('data-key'), 0);
+            else removeLine(x.getAttribute('data-key'));
+        });
+
+        byId('gvPay').addEventListener('change', function (e) {
+            state.pay = e.target.value;
+            renderPay();
+            renderSummary();
+        });
+        var detail = byId('gvPayDetail');
+        detail.addEventListener('change', function (e) {
+            var t = e.target;
+            if (t.name === 'gvCard') { state.card = t.value; renderPay(); renderSummary(); }
+            else if (t.id === 'gvPeriod') { state.period = Number(t.value) || 12; renderSummary(); }
+        });
+        detail.addEventListener('click', function (e) {
+            var del = e.target.closest('[data-del-card]');
+            if (del) { e.preventDefault(); e.stopPropagation(); deleteCard(del.getAttribute('data-del-card')); return; }
+            var cancel = e.target.closest('[data-cancel-booking]');
+            if (cancel) { e.preventDefault(); cancelBooking(cancel.getAttribute('data-cancel-booking')); return; }
+            if (e.target.closest('[data-act="keepFirst"]')) {
+                activeLines().slice(1).forEach(function (l) { l.amount = 0; });
+                renderRows();
+                renderPay();
+                renderSummary();
+            }
+        });
+
+        byId('gvCta').addEventListener('click', openConfirm);
+        byId('gvConfirmBack').addEventListener('click', function () { if (!state.pending) closeSheet('gvConfirm'); });
+        byId('gvConfirmGo').addEventListener('click', submitDonation);
+        byId('gvDoneClose').addEventListener('click', function () { closeSheet('gvDone'); });
+        byId('copy-atm-account').addEventListener('click', copyAtmAccount);
+
+        byId('gvPickerSearch').addEventListener('input', function (e) { renderPicker(e.target.value); });
+        byId('gvPickerList').addEventListener('click', function (e) {
+            var b = e.target.closest('.gv-pitem');
+            if (!b || b.disabled) return;
+            closeSheet('gvPicker');
+            addLine(b.getAttribute('data-pick'));
+        });
+        ['gvPicker', 'gvConfirm'].forEach(function (id) {
+            byId(id).addEventListener('click', function (e) {
+                if (state.pending) return;
+                if (e.target === byId(id) || e.target.closest('[data-close]')) closeSheet(id);
+            });
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape' || state.pending || state.redirecting) return;
+            ['gvPicker', 'gvConfirm'].forEach(function (id) { if (!byId(id).hidden) closeSheet(id); });
+        });
+
+        byId('gvQBtn').addEventListener('click', loadHistory);
+    }
+
+    // ==================== 啟動 ====================
+    // 對話框與提示移到 body 底下，避免任何祖先元素的 transform／overflow 影響固定定位。
+    ['gvPicker', 'gvConfirm', 'gvDone', 'gvToast'].forEach(function (id) {
+        var el = byId(id);
+        if (el) document.body.appendChild(el);
+    });
+    byId('gvQStart').value = DATA.yearStart || '';
+    byId('gvQEnd').value = DATA.today || '';
+    state.lines = freshLines(state.variant);
+    bind();
+    renderAll();
+    loadSummary();
+})();
+</script>

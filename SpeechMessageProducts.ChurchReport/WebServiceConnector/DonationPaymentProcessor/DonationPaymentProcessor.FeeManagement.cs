@@ -12,9 +12,11 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Models;
+using ChurchReport.Services;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ChurchReport.WebServiceConnector
@@ -47,15 +49,20 @@ namespace ChurchReport.WebServiceConnector
                 // 設定產品名稱
                 DonationPaymentFormModel.FullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
                 var orderDate = DateTime.Now.ToString("yyyyMMddhhmmssfff");
+                var lines = DonationLineItemNormalizer.Normalize(DonationPaymentFormModel);
+                if (lines.Count == 0)
+                {
+                    return "未輸入奉獻金額";
+                }
 
                 // 根據付款方式路由到對應處理方法
                 return DonationPaymentFormModel.PayWay switch
                 {
-                    "信用卡" or "銀聯卡" or null => await ProcessCreditCardPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
-                    "信用卡定期定額(每個月)" => await ProcessRecurringPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
-                    "行動支付" => await ProcessMobilePayment(LineLoginContact, DonationPaymentFormModel, orderDate),
-                    "LinePay" => await ProcessLinePayPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
-                    "ATM轉帳/匯款" => await ProcessAtmPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
+                    "信用卡" or "銀聯卡" or null => await ProcessCreditCardPayment(LineLoginContact, DonationPaymentFormModel, lines, orderDate),
+                    "信用卡定期定額(每個月)" => await ProcessRecurringPayment(LineLoginContact, DonationPaymentFormModel, lines, orderDate),
+                    "行動支付" => await ProcessMobilePayment(LineLoginContact, DonationPaymentFormModel, lines, orderDate),
+                    "LinePay" => await ProcessLinePayPayment(LineLoginContact, DonationPaymentFormModel, lines, orderDate),
+                    "ATM轉帳/匯款" => await ProcessAtmPayment(LineLoginContact, DonationPaymentFormModel, lines, orderDate),
                     _ => "不支援的付款方式!"
                 };
             }
@@ -68,6 +75,34 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
+
+        /// <summary>依明細逐張建立收費單；所有收費單 Id 會一起放進金流 Param1（第一張是 primary）。</summary>
+        private List<(Guid FeeId, Entity Fee, DonationLineItemInput Line)> CreateFeesForLines(Entity contact, DonationPaymentFormModel model, IReadOnlyList<DonationLineItemInput> lines)
+        {
+            // 先檢查再建單：超過永豐 Param1 可容納的收費單張數時一張都不建立，避免 CRM 留下無法付款的收費單。
+            if (lines.Count > DonationFeeIdList.MaxIds)
+            {
+                throw new InvalidOperationException($"一次最多只能奉獻 {DonationFeeIdList.MaxIds} 個類別");
+            }
+
+            var created = new List<(Guid, Entity, DonationLineItemInput)>(lines.Count);
+            foreach (var line in lines)
+            {
+                var feeId = CreateFee(contact, model.CloneForLine(line), false);
+                created.Add((feeId, ToolUtility.RetrieveEntity("new_fee", feeId), line));
+            }
+            return created;
+        }
+
+        /// <summary>將同一金流訂單資訊寫入群組內每張收費單，確保 callback 可依鍵找齊。</summary>
+        private void UpdateFees(List<(Guid FeeId, Entity Fee, DonationLineItemInput Line)> fees, string cardOrderNo, string orderId, string atmOrderNo, string atmPayNo)
+        {
+            foreach (var item in fees)
+            {
+                var fee = item.Fee;
+                UpdateFee(ref fee, cardOrderNo, orderId, atmOrderNo, atmPayNo);
+            }
+        }
 
         #region ===== 建立收費單核心方法 =====
 
@@ -118,11 +153,6 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, DonationPaymentFormModel DonationPaymentFormModel, bool KeyinMode)
         {
-            // aContact 為 null 時，下方 aContact.Id 會丟出無法定位的 NullReferenceException。
-            // 在邊界明確指名缺少的輸入，讓呼叫端（身分還原流程）的缺陷立刻可辨識。
-            ArgumentNullException.ThrowIfNull(aContact);
-            ArgumentNullException.ThrowIfNull(aFeeToCreated);
-
             try
             {
                 // 基本資訊

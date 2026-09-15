@@ -20,8 +20,10 @@ using Microsoft.Xrm.Sdk;
 using ChurchReport.Payments;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
 using SpeechMessage.Payments.Models;
 using SpeechMessage.Payments.Workflows;
@@ -93,12 +95,38 @@ namespace ChurchReport.Tools
 
         #region 建構函數
         /// <summary>
+        /// 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例
+        ///
+        /// 這條路徑主要服務舊程式碼：某些舊流程會直接 <c>new DonationFeePaymentProcessor()</c>，
+        /// 沒有透過 ASP.NET Core DI 容器建立物件。為了不破壞舊流程，這裡仍保留 Factory 取得 CRM 工具的方式。
+        ///
+        /// 重要：這條路徑使用 No-Op 的 <see cref="PaymentPostPaymentWorkflow"/>，
+        /// 避免舊流程在沒有完整 DI context 時重複觸發新的 CRM/LINE handler。
+        /// </summary>
+        public DonationFeePaymentProcessor()
+        {
+            // 從 appsettings.json 讀取 LINE Channel Access Token。
+            // PushUtility 需要這個 token 才能把付款結果推播給奉獻者或課程報名者。
+            var channelAccessToken = GetLineChannelAccessToken();
+            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
+
+            // PushUtility：主動推播付款成功/失敗訊息。
+            // ReplyUtility：保留給舊 LINE callback/回覆流程使用。
+            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+
+            // 使用 Factory 模式取得 ToolUtilityClass 單例。
+            // "DYNAMICS365-9.0" 是舊 ChurchReport 專案既有的 CRM 連線識別。
+            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+            m_PostPaymentWorkflow = CreateNoOpPostPaymentWorkflow();
+            m_ReturnPresenter = new DonationPaymentReturnPresenter();
+        }
+
         /// <summary>
         /// 建構函數，使用 Dependency Injection 模式
         ///
         /// 這是比預設建構子更容易測試的路徑：外部把 <see cref="IToolUtilityProvider"/> 傳進來，
         /// 本類別不用知道 ToolUtilityClass 要怎麼建立，只要跟 provider 要一個 CRM 工具即可。
-        /// 此 ToolUtility 由呼叫端的 request scope 提供，本型別不擁有、不釋放。
         /// 但這個建構子仍沒有注入完整付款後 workflow，所以也會使用 No-Op workflow。
         /// </summary>
         /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
@@ -170,13 +198,8 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // 本 processor 以 token 建立 LINE client，因此由本 processor 擁有並在 using
-                // 範圍結束時釋放；注入的 workflow 與 ToolUtility 仍由 request scope 擁有，
-                // 絕不能在此處釋放，避免跨元件重複 Dispose 或讓同一 scope 的其他流程失效。
-                m_LineMessagingClient?.Dispose();
-
-                // helper 只持有上述 client 的 managed 參考，沒有獨立 unmanaged resource；
-                // processor 本身離開 using 範圍後整個 graph 即可回收。
+                // 不需要手動 Dispose ToolUtilityClass，由 Factory 統一管理生命週期
+                // m_ToolUtilityClass.Dispose();
             }
 
             _disposed = true;
@@ -245,9 +268,9 @@ namespace ChurchReport.Tools
 
         private static PaymentPostPaymentWorkflow CreateNoOpPostPaymentWorkflow()
         {
-            // 簡易 DI 建構子沒有完整付款後 handler；若硬塞真實 workflow，
-            // 可能在不完整 context 下重複更新 CRM 或重複發 LINE。
-            // 因此簡易 DI 建構子使用「空 workflow」：它不做任何 record updater / notifier。
+            // 舊程式仍可能直接 new DonationFeePaymentProcessor()；這些路徑沒有 DI 容器提供完整的 handler。
+            // 如果這裡硬塞真實 PaymentPostPaymentWorkflow，舊流程可能在不完整 context 下重複更新 CRM 或重複發 LINE。
+            // 因此預設與簡易 DI 建構子使用「空 workflow」：它不做任何 record updater / notifier。
             // 正式 ASP.NET Core DI 路徑會透過完整建構子注入真正的 PaymentPostPaymentWorkflow。
             return new PaymentPostPaymentWorkflow(
                 Array.Empty<IPaymentRecordUpdater>(),
@@ -325,11 +348,11 @@ namespace ChurchReport.Tools
         /// - <paramref name="correlationId"/> / <paramref name="requestContext"/>：除錯追蹤用資料。
         ///
         /// 【主要流程】
-        /// 1. 依付款結果中的 ProductEntityId 找到 CRM 收費單 new_fee。
+        /// 1. 解析付款結果中的 ProductEntityId（永豐 Param1）：一個或多個收費單 Id，第一張是 primary，逐張取回同一次付款的收費單。
         /// 2. 判斷付款成功或失敗，並組成中性的 <see cref="PaymentWorkflowResult"/>。
         /// 3. 查付款人 contact、姓名、LINE ID。
         /// 4. 判斷這筆收費單是奉獻還是課程繳費，決定通知文案與結果頁文字。
-        /// 5. 成功且未處理過時：更新收費單付款欄位、付款紀錄、課程報名狀態、信用卡資料，並推播成功 LINE。
+        /// 5. 成功且未處理過時：逐張更新每張收費單的付款狀態、實收金額（＝各自應收）與付款紀錄；primary 第一次入帳時才更新課程報名狀態、信用卡資料並推播成功 LINE。
         /// 6. 成功但已處理過時：避免 RETURN_URL / BACKEND_URL 重複回傳造成 CRM 重複入帳，只顯示成功結果頁。
         /// 7. 失敗時：將失敗描述寫回收費單、推播失敗 LINE，並顯示失敗結果頁。
         /// </summary>
@@ -337,9 +360,18 @@ namespace ChurchReport.Tools
         {
             try
             {
-                // paymentResult.ProductEntityId 對應 ChurchReport CRM 的 new_fee 收費單 Id。
-                // 後續所有 CRM 更新都以這張收費單為中心：付款狀態、實收金額、描述、付款紀錄都寫回它。
-                Entity aFeeEntity = this.m_ToolUtilityClass.RetrieveEntity("new_fee", new Guid(paymentResult.ProductEntityId));
+                // paymentResult.ProductEntityId 就是建單時送給永豐的 Param1（格式見 ChurchReport.Services.DonationFeeIdList）：
+                // - 一個類別：一個收費單 Guid，與改版前相同。
+                // - 多個類別：這次付款建立的所有收費單 Id，以逗號分隔，第一張是 primary。
+                // 付款人、LINE 通知、課程報名與信用卡資料以 primary 為準；付款狀態與實收金額則逐張寫回每一張收費單。
+                IReadOnlyList<Guid> param1FeeIds = ChurchReport.Services.DonationFeeIdList.Parse(paymentResult.ProductEntityId);
+                if (param1FeeIds.Count == 0)
+                {
+                    // 與改版前 new Guid(Param1) 解析失敗時相同：交給最外層 catch 顯示錯誤頁並通知維護者。
+                    throw new FormatException("Param1 不是有效的收費單 Id（長度 " + (paymentResult.ProductEntityId ?? string.Empty).Length + "）。");
+                }
+
+                Entity aFeeEntity = this.m_ToolUtilityClass.RetrieveEntity("new_fee", param1FeeIds[0]);
 
                 // 將 provider/adapter 回傳的狀態轉成產品流程使用的 bool 與可讀文字。
                 // IsPaymentSuccess 決定走成功或失敗分支；paymentStatusText 會出現在 CRM 描述、LINE 訊息與結果頁。
@@ -415,6 +447,16 @@ namespace ChurchReport.Tools
                 // - LINE 訊息中顯示「類別」或「項目」。
                 // - 結尾文案是感謝奉獻，還是課程報名繳費成功。
                 // - 結果頁 ViewBag.DedicationCategory 顯示的文字。
+                // 同一次付款可能有多張收費單（多類別奉獻）：
+                // - 新訂單：Param1 帶齊所有收費單 Id，逐張取回；只保留與 primary 同會友、未綁定其他訂單的收費單。
+                // - 改版前建立的訂單：Param1 只有 primary，退回以訂單編號／虛擬帳號找齊其他收費單。
+                // 課程繳費永遠只有一張。
+                bool isParam1FeeList = param1FeeIds.Count > 1;
+                List<Entity> groupFees = isParam1FeeList
+                    ? RetrieveParam1GroupFees(aFeeEntity, param1FeeIds, paymentResult.OrderNo)
+                    : DonationFeeGroupLocator.Locate(this.m_ToolUtilityClass, aFeeEntity);
+                bool isMultiFeeGroup = groupFees.Count > 1;
+
                 string categoryText = "";
                 bool isCoursePayment = false;
                 try
@@ -441,8 +483,9 @@ namespace ChurchReport.Tools
                     {
                         // 非課程繳費就依 new_category OptionSet 判斷奉獻類別。
                         // 這裡只做 ChurchReport 顯示文字對應，不涉及任何 provider 狀態。
-                        int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
-                        categoryText = GetDedicationCategoryText(categoryOption);
+                        categoryText = isMultiFeeGroup
+                            ? BuildGroupCategoryText(groupFees)
+                            : GetDedicationCategoryText(this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"));
                     }
                 }
                 catch { categoryText = "繳費"; }
@@ -481,6 +524,20 @@ namespace ChurchReport.Tools
                 int currentPayStatus = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aFeeEntity, "new_pay_status");
                 bool hasProcessedOrder = existingPaymentRecords.Contains(paymentResult.OrderNo);
 
+                // 群組內每張收費單各自判斷是否入帳。只有一張時規則與舊流程完全相同：
+                // 狀態仍為新建立且付款紀錄未含此訂單編號才處理，實收＝原實收＋本次付款金額。
+                // 多張時每張實收＝自己的應收金額，不可把整筆付款寫進 primary。
+                int paidAmount = (int)(Convert.ToUInt32(paymentResult.AmountMinorUnits) / 100);
+                DonationFeeGroupPaidPlan paidPlan = DonationFeeGroupPaidPlanner.Plan(
+                    groupFees.Select(groupFee => new DonationFeePaidSnapshot(
+                        groupFee.Id,
+                        Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(groupFee, "new_fee_shoud_pay")?.Value ?? 0m),
+                        Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(groupFee, "new_fee_really_paid")?.Value ?? 0m),
+                        this.m_ToolUtilityClass.GetOptionSetAttribute(groupFee, "new_pay_status"),
+                        this.m_ToolUtilityClass.GetEntityStringAttribute(groupFee, "new_payment_records") ?? string.Empty)).ToList(),
+                    paymentResult.OrderNo,
+                    paidAmount);
+
                 // 信用卡付款常會有兩種回傳：
                 // - RETURN_URL：使用者瀏覽器付款後被導回網站。
                 // - BACKEND_URL：金流平台從伺服器背景通知網站。
@@ -491,7 +548,7 @@ namespace ChurchReport.Tools
                 // currentPayStatus == 100000000 代表舊流程中的「尚未繳費」狀態；
                 // 只有成功且尚未繳費且訂單未處理過，才允許真正更新收費單。
                 string branchName = isPaymentSuccess
-                    ? (hasProcessedOrder || currentPayStatus != 100000000 ? "SuccessAlreadyProcessed" : "SuccessProcessing")
+                    ? (paidPlan.AnyChange ? "SuccessProcessing" : "SuccessAlreadyProcessed")
                     : "FailureProcessing";
 
                 if (isPaymentDebugLogEnabled)
@@ -512,174 +569,152 @@ namespace ChurchReport.Tools
                         ";HasProcessedOrder=" + hasProcessedOrder +
                         ";ContactId=" + aContact.Id +
                         ";IsCoursePayment=" + isCoursePayment +
-                        ";CategoryText=" + categoryText,
+                        ";CategoryText=" + categoryText +
+                        ";GroupFeeCount=" + groupFees.Count +
+                        ";Param1FeeCount=" + param1FeeIds.Count +
+                        ";GroupSource=" + (isParam1FeeList ? "Param1" : "Locator") +
+                        ";AnyToCorrect=" + paidPlan.AnyToCorrect +
+                        ";AmountMismatch=" + paidPlan.AmountMismatch,
                         correlationId,
                         requestContext);
                 }
 
                 if (isPaymentSuccess)
                 {
-                    if (hasProcessedOrder != true && currentPayStatus == 100000000)
+                    if (paidPlan.AnyChange)
                     {
                         #region 信用卡會回傳2次，一次是RETURN_URL、一次是BACKEND_URL，為免收費單紀錄信用卡兩次，所以如果這裡已經有信用卡訂單編號，就不再處理了
-                        // 收費單付款日期。
-                        // 使用本機時間寫入 CRM，代表 ChurchReport 何時完成產品端入帳處理。
-                        this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeEntity, "new_pay_date", DateTime.Now.ToLocalTime());
-
-                        // 收費單總共實收金額。
-                        // 舊流程不是直接覆蓋金額，而是用原本 new_fee_really_paid 加上這次付款金額。
-                        // 這代表同一張收費單可能支援部分付款或多次付款，但也更需要上方的重複回傳防護。
-                        Money aTotalPaid = new Money(Convert.ToUInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid").Value + new Money((int)Convert.ToUInt32(paymentResult.AmountMinorUnits) / 100).Value));
-                        this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFeeEntity, "new_fee_really_paid", aTotalPaid);
-
-                        // 將本次付款金額轉成大寫中文金額，寫入 CRM new_big_chinese_number。
-                        // 這通常是為了收據、財務列印或人工對帳時顯示正式金額文字。
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_big_chinese_number", MoneyToChinese((Convert.ToUInt32(paymentResult.AmountMinorUnits) / 100).ToString()));
-
-                        // 如果收費單付款方式是「未知」，才改成「信用卡」。
-                        // 如果前面流程已經設定成其他付款方式，這裡不覆蓋，避免破壞人工或其他流程已設定的付款方式。
-                        if (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way") == 100000004)
-                        {   // 信用卡
-                            this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000001);// 100000001 = 信用卡
-                        }
-                        else
+                        // 逐張套用付款結果；每張收費單各自冪等（狀態仍為新建立且付款紀錄未含此訂單編號）。
+                        // 只有一張時寫入內容與舊流程相同；多類別時每張實收＝自己的應收金額（未繳金額由 CRM 算成 0）。
+                        // 已入帳但實收被舊程式寫成付款總額的收費單，只把實收校正回自己的應收金額。
+                        for (int feeIndex = 0; feeIndex < paidPlan.Decisions.Count; feeIndex++)
                         {
-                            // 如果收費單付款方式不是"未知"，則不改變
+                            DonationFeePaidDecision decision = paidPlan.Decisions[feeIndex];
+                            Entity paidFee = groupFees[feeIndex];
+                            if (decision.MarkPaid)
+                            {
+                                ApplyPaidDecision(ref paidFee, decision, paymentResult, PayToken, Description, paidPlan);
+                            }
+                            else if (decision.CorrectAmount)
+                            {
+                                ApplyAmountCorrection(ref paidFee, decision, paymentResult, paidPlan);
+                            }
+                            else
+                            {
+                                continue;
+                            }
+
+                            groupFees[feeIndex] = paidFee;
                         }
 
-                        // 收費單付款狀態改成「信用卡已繳費」。
-                        // 這是 ChurchReport CRM 的 OptionSet 值，不是金流 provider 狀態碼。
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFeeEntity, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
+                        // 後續課程報名、會友卡片與 LINE 通知都以 primary（Param1）為準。
+                        aFeeEntity = groupFees[0];
 
-
-                        // 收費單說明欄追加成功紀錄。
-                        // 不覆蓋舊描述，而是把本次付款結果附加在後面，保留歷史客服備註與對帳資訊。
-                        String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + "信用卡付款結果成功!" + Environment.NewLine + Description);
-
-                        // 付款紀錄欄 new_payment_records 是本流程的防重依據之一。
-                        // 這裡寫入訂單編號、金額、PayToken；下一次相同訂單回來時，
-                        // hasProcessedOrder 會從這個欄位判斷已處理過。
-                        String aPaymentRecords =
-                                this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records") +
-                                DateTime.Now.ToString() +
-                                ": ReturnUrl => 信用卡訂單編號= " + paymentResult.OrderNo +
-                                "，金額:" + ((int)Convert.ToUInt32(paymentResult.AmountMinorUnits) / 100).ToString() +
-                                "，PayToken = " + PayToken +
-                                Environment.NewLine;
-
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_payment_records", aPaymentRecords);
-
-                        if (paymentResult.OrderNo.StartsWith("C"))
+                        // primary 若在先前的回呼就已入帳（這次只補齊或校正其他收費單），
+                        // 課程報名、信用卡資料與 LINE 成功通知都已做過，不可重複。
+                        if (paidPlan.PrimaryNewlyPaid)
                         {
-                            // 已付款信用卡訂單編號。
-                            // 舊流程用 C 開頭判斷信用卡訂單，並寫入 new_q_paid_card_order_no 供後續查詢。
-                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_q_paid_card_order_no", paymentResult.OrderNo);
-                        }
+                            #region// 取得上課紀錄單，更新報名狀態
+                            // 如果這張收費單連到上課紀錄單 new_stor_lessons，付款成功後也要把報名狀態改成成功。
+                            // 這是 ChurchReport 課程報名流程的產品規則，不能放進共用金流核心。
+                            Guid aStorLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_stor_lessons_new_fee");
+                            if (aStorLessonsId != Guid.Empty)
+                            {
+                                Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
 
-                        // 更新收費單，把前面設定的付款日期、實收金額、付款方式、付款狀態、描述、付款紀錄一次寫回 CRM。
-                        this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
+                                #region 報名狀態
+                                // 100000008 = 報名成功。
+                                // 註解中的「好牧人」是既有業務語境，代表有審核流程的教會完成報名。
+                                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
+                                #endregion
 
-                        #region// 取得上課紀錄單，更新報名狀態
-                        // 如果這張收費單連到上課紀錄單 new_stor_lessons，付款成功後也要把報名狀態改成成功。
-                        // 這是 ChurchReport 課程報名流程的產品規則，不能放進共用金流核心。
-                        Guid aStorLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_stor_lessons_new_fee");
-                        if (aStorLessonsId != Guid.Empty)
-                        {
-                            Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
-
-                            #region 報名狀態
-                            // 100000008 = 報名成功。
-                            // 註解中的「好牧人」是既有業務語境，代表有審核流程的教會完成報名。
-                            this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
+                                this.m_ToolUtilityClass.UpdateEntity(ref aStorLessons);
+                            }
                             #endregion
 
-                            this.m_ToolUtilityClass.UpdateEntity(ref aStorLessons);
-                        }
-                        #endregion
-
-                        #region// 設定連絡人信用卡資訊
-                        // 如果金流結果有回傳 CCToken，代表這張卡可被保存為下次付款使用的 token。
-                        // 儲存時不是只看 token，而是用卡號前段、後段與效期做去重，避免同一張卡重複寫入 contact。
-                        if (paymentResult.CCToken != "")
-                        {
-                            String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
-
-                            if (IsCreditCardInList(aContact, paymentResult) != true)
+                            #region// 設定連絡人信用卡資訊
+                            // 如果金流結果有回傳 CCToken，代表這張卡可被保存為下次付款使用的 token。
+                            // 儲存時不是只看 token，而是用卡號前段、後段與效期做去重，避免同一張卡重複寫入 contact。
+                            if (paymentResult.CCToken != "")
                             {
-                                // new_visa_info 的舊格式：
-                                // CCToken，卡號前段，卡號後段，效期|下一張卡...
-                                // 這是 ChurchReport 舊版信用卡清單格式，為了相容既有 UI 暫時保留。
-                                VisaInfo =
-                                        paymentResult.CCToken + "，" +
-                                        paymentResult.LeftCCNo + "，" +
-                                        paymentResult.RightCCNo + "，" +
-                                        // AuthCode is not part of the reusable payment core result. +
-                                        paymentResult.CCExpDate +
-                                        "|" + VisaInfo;
+                                String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
 
-                                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_visa_info", VisaInfo);
-
-                                this.m_ToolUtilityClass.UpdateEntity(ref aContact);
-                            }
-                        }
-                        #endregion
-
-                        #region LINE 通知付款人
-
-                        // 建立成功 LINE 訊息。
-                        // Description 已包含交易資訊，這裡再依課程/奉獻加上不同結尾：
-                        // - 課程：提醒報名繳費成功，必要時附課程 LINE 群組邀請。
-                        // - 奉獻：感謝奉獻並回覆祝福語。
-                        string successMessage =
-                            "✨════════════✨" + Environment.NewLine +
-                            "🎉 交易成功通知 🎉" + Environment.NewLine +
-                            "✨════════════✨" + Environment.NewLine +
-                            Environment.NewLine +
-                            Description +
-                            Environment.NewLine +
-                            "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
-                            (isCoursePayment
-                                ? "📚 感謝您的報名繳費！" + Environment.NewLine + "祝您學習愉快，願神賜福與您！"
-                                : "💝 感謝您的奉獻！" + Environment.NewLine + "願神賜福與您！") + Environment.NewLine;
-
-                        // 取得收費單的課程 Lookup 是否有值。
-                        // 有值代表這筆付款與課程相關，可能需要附上課程 LINE 群組邀請連結。
-                        Guid aDiscipleLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_disciple_lessons_new_fee");
-
-                        if (aDiscipleLessonsId == Guid.Empty)
-                        {
-                            // 一般奉獻或非課程付款：直接推播成功訊息。
-                            this.m_PushUtility.SendMessage(UserLineId, successMessage);
-                        }
-                        else
-                        {
-                            // 課程付款：讀取課程資料，若有 LINE 群組邀請網址就附加在訊息後面。
-                            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aDiscipleLessonsId);
-
-                            if (aDiscipleLessonsEntity != null)
-                            {
-                                // 課程 LINE 群組邀請網址由課程 Entity 維護。
-                                // 付款成功後附上網址，可以讓報名者直接加入課程群組。
-                                String LineGroupInviteAddress = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_line_group_invite_address");
-
-                                if (!string.IsNullOrEmpty(LineGroupInviteAddress))
+                                if (IsCreditCardInList(aContact, paymentResult) != true)
                                 {
-                                    // 只有在 CRM 有設定邀請網址時才附加，避免訊息中出現空白連結。
-                                    successMessage += Environment.NewLine +
-                                        "🔔 課程通知" + Environment.NewLine +
-                                        "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
-                                        "📱 請點擊以下連結" + Environment.NewLine +
-                                        "   加入課程 LINE 群組：" + Environment.NewLine +
-                                        Environment.NewLine +
-                                        LineGroupInviteAddress + Environment.NewLine +
-                                        "═══════════════════════" + Environment.NewLine;
+                                    // new_visa_info 的舊格式：
+                                    // CCToken，卡號前段，卡號後段，效期|下一張卡...
+                                    // 這是 ChurchReport 舊版信用卡清單格式，為了相容既有 UI 暫時保留。
+                                    VisaInfo =
+                                            paymentResult.CCToken + "，" +
+                                            paymentResult.LeftCCNo + "，" +
+                                            paymentResult.RightCCNo + "，" +
+                                            // AuthCode is not part of the reusable payment core result. +
+                                            paymentResult.CCExpDate +
+                                            "|" + VisaInfo;
+
+                                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_visa_info", VisaInfo);
+
+                                    this.m_ToolUtilityClass.UpdateEntity(ref aContact);
                                 }
                             }
+                            #endregion
 
-                            this.m_PushUtility.SendMessage(UserLineId, successMessage);
+                            #region LINE 通知付款人
+
+                            // 建立成功 LINE 訊息。
+                            // Description 已包含交易資訊，這裡再依課程/奉獻加上不同結尾：
+                            // - 課程：提醒報名繳費成功，必要時附課程 LINE 群組邀請。
+                            // - 奉獻：感謝奉獻並回覆祝福語。
+                            string successMessage =
+                                "✨════════════✨" + Environment.NewLine +
+                                "🎉 交易成功通知 🎉" + Environment.NewLine +
+                                "✨════════════✨" + Environment.NewLine +
+                                Environment.NewLine +
+                                Description +
+                                Environment.NewLine +
+                                "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                                (isCoursePayment
+                                    ? "📚 感謝您的報名繳費！" + Environment.NewLine + "祝您學習愉快，願神賜福與您！"
+                                    : "💝 感謝您的奉獻！" + Environment.NewLine + "願神賜福與您！") + Environment.NewLine;
+
+                            // 取得收費單的課程 Lookup 是否有值。
+                            // 有值代表這筆付款與課程相關，可能需要附上課程 LINE 群組邀請連結。
+                            Guid aDiscipleLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_disciple_lessons_new_fee");
+
+                            if (aDiscipleLessonsId == Guid.Empty)
+                            {
+                                // 一般奉獻或非課程付款：直接推播成功訊息。
+                                this.m_PushUtility.SendMessage(UserLineId, successMessage);
+                            }
+                            else
+                            {
+                                // 課程付款：讀取課程資料，若有 LINE 群組邀請網址就附加在訊息後面。
+                                Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aDiscipleLessonsId);
+
+                                if (aDiscipleLessonsEntity != null)
+                                {
+                                    // 課程 LINE 群組邀請網址由課程 Entity 維護。
+                                    // 付款成功後附上網址，可以讓報名者直接加入課程群組。
+                                    String LineGroupInviteAddress = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_line_group_invite_address");
+
+                                    if (!string.IsNullOrEmpty(LineGroupInviteAddress))
+                                    {
+                                        // 只有在 CRM 有設定邀請網址時才附加，避免訊息中出現空白連結。
+                                        successMessage += Environment.NewLine +
+                                            "🔔 課程通知" + Environment.NewLine +
+                                            "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                                            "📱 請點擊以下連結" + Environment.NewLine +
+                                            "   加入課程 LINE 群組：" + Environment.NewLine +
+                                            Environment.NewLine +
+                                            LineGroupInviteAddress + Environment.NewLine +
+                                            "═══════════════════════" + Environment.NewLine;
+                                    }
+                                }
+
+                                this.m_PushUtility.SendMessage(UserLineId, successMessage);
+                            }
+                            #endregion
                         }
-                        #endregion
 
                         // 設定 ViewBag 並返回付款結果頁。
                         // 這是舊 MVC View 使用的資料傳遞方式；目前保留 ViewBag contract，畫面檔名已改為中性的 PaymentReturn。
@@ -727,11 +762,14 @@ namespace ChurchReport.Tools
                 {
                     // 付款失敗時不更新付款狀態為已繳費，也不增加實收金額。
                     // 只把失敗結果寫進描述欄，保留客服與工程查核資訊。
-                    String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + "信用卡付款結果失敗!" + Environment.NewLine + Description);
-
-                    // 更新收費單描述，讓 CRM 端能看到這次失敗嘗試。
-                    this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
+                    // 同一次付款的每張收費單都追加失敗紀錄，CRM 端才看得到完整的失敗嘗試。
+                    for (int feeIndex = 0; feeIndex < groupFees.Count; feeIndex++)
+                    {
+                        Entity failedFee = groupFees[feeIndex];
+                        String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref failedFee, "new_description");
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref failedFee, "new_description", aOriginalDescription + "信用卡付款結果失敗!" + Environment.NewLine + Description);
+                        this.m_ToolUtilityClass.UpdateEntity(ref failedFee);
+                    }
 
                     // LINE 通知付款人 - 失敗訊息美化版。
                     // 這裡直接提醒使用者檢查信用卡資訊、額度或稍後再試。
@@ -794,6 +832,170 @@ namespace ChurchReport.Tools
                     StatusCode = 200
                 };
             }
+        }
+
+        /// <summary>
+        /// 把同一筆付款結果套用到群組內的一張收費單。
+        /// 只有一張收費單時寫入內容與舊流程逐字相同；多張時實收＝該單應收，並在付款紀錄註記本單實收。
+        /// </summary>
+        private void ApplyPaidDecision(
+            ref Entity fee,
+            DonationFeePaidDecision decision,
+            DonationPaymentWorkflowResult paymentResult,
+            string payToken,
+            string description,
+            DonationFeeGroupPaidPlan plan)
+        {
+            bool isGroup = plan.Decisions.Count > 1;
+
+            this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref fee, "new_pay_date", DateTime.Now.ToLocalTime());
+            this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref fee, "new_fee_really_paid", new Money(decision.ReallyPaid));
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_big_chinese_number", MoneyToChinese(decision.BigNumberAmount.ToString()));
+
+            // 付款方式為「未知」才改成「信用卡」，不覆蓋其他流程已設定的付款方式。
+            if (this.m_ToolUtilityClass.GetOptionSetAttribute(fee, "new_pay_way") == 100000004)
+            {
+                this.m_ToolUtilityClass.SetOptionSetAttribute(fee, "new_pay_way", 100000001); // 100000001 = 信用卡
+            }
+
+            this.m_ToolUtilityClass.SetOptionSetAttribute(ref fee, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
+
+            string mismatchNote = plan.AmountMismatch
+                ? "群組應收 " + plan.ExpectedTotal + " 與付款金額 " + plan.PaidAmount + " 不符，請稽核。" + Environment.NewLine
+                : string.Empty;
+            String originalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref fee, "new_description");
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_description",
+                originalDescription + "信用卡付款結果成功!" + Environment.NewLine + mismatchNote + description);
+
+            // 付款紀錄是冪等判斷依據：必須寫入訂單編號。
+            String paymentRecords =
+                this.m_ToolUtilityClass.GetEntityStringAttribute(fee, "new_payment_records") +
+                DateTime.Now.ToString() +
+                ": ReturnUrl => 信用卡訂單編號= " + paymentResult.OrderNo +
+                "，金額:" + plan.PaidAmount.ToString() +
+                (isGroup ? "，本單實收:" + decision.ReallyPaid.ToString() : string.Empty) +
+                "，PayToken = " + payToken +
+                Environment.NewLine;
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_payment_records", paymentRecords);
+
+            if (!string.IsNullOrEmpty(paymentResult.OrderNo) && paymentResult.OrderNo.StartsWith("C"))
+            {
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_q_paid_card_order_no", paymentResult.OrderNo);
+            }
+
+            this.m_ToolUtilityClass.UpdateEntity(ref fee);
+
+            if (plan.AmountMismatch)
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    "[DonationFeePaymentProcessor] group amount mismatch: fee=" + fee.Id +
+                    ", expected=" + plan.ExpectedTotal + ", paid=" + plan.PaidAmount + ", order=" + paymentResult.OrderNo);
+            }
+        }
+
+        /// <summary>
+        /// Param1 帶多張收費單 Id 時逐張取回收費單，primary 固定在第一個。
+        /// 其他收費單取不到（例如已被刪除）時略過並留下追查紀錄，不影響其餘收費單入帳；
+        /// 只保留與 primary 同會友、且未綁定其他訂單的收費單（規則見 DonationFeeIdList.SelectGroupMembers）。
+        /// 結果只存在本次 callback 的區域變數，不寫入 Session 或任何快取。
+        /// </summary>
+        private List<Entity> RetrieveParam1GroupFees(Entity primaryFee, IReadOnlyList<Guid> feeIds, string orderNo)
+        {
+            var feesById = new Dictionary<Guid, Entity> { [primaryFee.Id] = primaryFee };
+            var members = new List<ChurchReport.Services.DonationFeeParamMember> { ToParamMember(primaryFee) };
+
+            for (int index = 1; index < feeIds.Count; index++)
+            {
+                Guid feeId = feeIds[index];
+                if (feesById.ContainsKey(feeId))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    Entity fee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", feeId);
+                    if (fee == null)
+                    {
+                        System.Diagnostics.Trace.WriteLine("[DonationFeePaymentProcessor] Param1 fee not found. FeeId=" + feeId + ", OrderNo=" + orderNo);
+                        continue;
+                    }
+
+                    feesById[fee.Id] = fee;
+                    members.Add(ToParamMember(fee));
+                }
+                catch (Exception exception)
+                {
+                    System.Diagnostics.Trace.WriteLine("[DonationFeePaymentProcessor] Param1 fee retrieve failed. FeeId=" + feeId + ", OrderNo=" + orderNo + ", Error=" + exception.Message);
+                }
+            }
+
+            IReadOnlyList<Guid> acceptedIds = ChurchReport.Services.DonationFeeIdList.SelectGroupMembers(members, orderNo);
+            if (acceptedIds.Count != members.Count)
+            {
+                System.Diagnostics.Trace.WriteLine("[DonationFeePaymentProcessor] Param1 fees skipped (other contact or other order). Accepted=" + acceptedIds.Count + ", Retrieved=" + members.Count + ", OrderNo=" + orderNo);
+            }
+
+            var result = new List<Entity>(acceptedIds.Count);
+            foreach (Guid acceptedId in acceptedIds)
+            {
+                result.Add(feesById[acceptedId]);
+            }
+
+            return result;
+        }
+
+        /// <summary>取出過濾收費單所需的最小欄位：Id、會友與信用卡訂單編號。</summary>
+        private ChurchReport.Services.DonationFeeParamMember ToParamMember(Entity fee)
+        {
+            return new ChurchReport.Services.DonationFeeParamMember(
+                fee.Id,
+                this.m_ToolUtilityClass.GetEntityLookupAttribute(fee, "new_contact_new_fee"),
+                this.m_ToolUtilityClass.GetEntityStringAttribute(fee, "new_q_pay_card_order_no") ?? string.Empty);
+        }
+
+        /// <summary>
+        /// 校正先前回呼（改版前的舊程式）把「整筆付款金額」寫進單一收費單的實收金額：
+        /// 實收改為本單應收金額，未繳金額（CRM 以應收－實收計算）因此回到 0。
+        /// 付款狀態、付款日期與描述維持不變，只在付款紀錄留下校正軌跡。
+        /// </summary>
+        private void ApplyAmountCorrection(
+            ref Entity fee,
+            DonationFeePaidDecision decision,
+            DonationPaymentWorkflowResult paymentResult,
+            DonationFeeGroupPaidPlan plan)
+        {
+            int previousReallyPaid = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(fee, "new_fee_really_paid")?.Value ?? 0m);
+
+            this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref fee, "new_fee_really_paid", new Money(decision.ReallyPaid));
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_big_chinese_number", MoneyToChinese(decision.BigNumberAmount.ToString()));
+
+            String paymentRecords =
+                this.m_ToolUtilityClass.GetEntityStringAttribute(fee, "new_payment_records") +
+                DateTime.Now.ToString() +
+                ": 多類別實收校正 => 信用卡訂單編號= " + paymentResult.OrderNo +
+                "，付款總額:" + plan.PaidAmount.ToString() +
+                "，本單實收由 " + previousReallyPaid.ToString() + " 改為 " + decision.ReallyPaid.ToString() +
+                Environment.NewLine;
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_payment_records", paymentRecords);
+
+            this.m_ToolUtilityClass.UpdateEntity(ref fee);
+
+            System.Diagnostics.Trace.WriteLine(
+                "[DonationFeePaymentProcessor] corrected group fee really-paid amount. FeeId=" + fee.Id +
+                ", From=" + previousReallyPaid + ", To=" + decision.ReallyPaid + ", OrderNo=" + paymentResult.OrderNo);
+        }
+
+        /// <summary>多類別群組的類別文字，例如「十一奉獻 3,000元、感恩奉獻 500元」，供 LINE 與結果頁顯示。</summary>
+        private string BuildGroupCategoryText(List<Entity> groupFees)
+        {
+            return ChurchReport.Services.DonationFeeGroupText.CategorySummary(groupFees
+                .Select(groupFee => new ChurchReport.Models.DonationLineItemInput
+                {
+                    Category = GetDedicationCategoryText(this.m_ToolUtilityClass.GetOptionSetAttribute(groupFee, "new_category")),
+                    Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(groupFee, "new_fee_shoud_pay")?.Value ?? 0m)
+                })
+                .ToList());
         }
 
         #region 工具區
