@@ -76,6 +76,36 @@ public sealed class DonationMultiCategoryTests
     }
 
     [Fact]
+    public void ValidateDonationForm_RejectsDuplicateCategories_AndMultiCategoryAtm()
+    {
+        var duplicate = new DonationPaymentFormModel
+        {
+            PayWay = "信用卡",
+            Lines = new List<DonationLineItemInput>
+            {
+                new() { Category = "十一奉獻", Amount = 100 },
+                new() { Category = " 十一奉獻 ", Amount = 200 }
+            }
+        };
+
+        DonationPaymentSubmissionService.ValidateDonationForm(duplicate)
+            .Should().Be("奉獻類別不可重複：十一奉獻");
+
+        var atm = new DonationPaymentFormModel
+        {
+            PayWay = "ATM轉帳/匯款",
+            Lines = new List<DonationLineItemInput>
+            {
+                new() { Category = "十一奉獻", Amount = 100 },
+                new() { Category = "感恩奉獻", Amount = 200 }
+            }
+        };
+
+        DonationPaymentSubmissionService.ValidateDonationForm(atm)
+            .Should().Be("ATM 多類別付款尚未開放，請分開建立奉獻或改用信用卡");
+    }
+
+    [Fact]
     public void GroupText_SumsLines_AndPreservesAtmLabels()
     {
         IReadOnlyList<DonationLineItemInput> lines = new[]

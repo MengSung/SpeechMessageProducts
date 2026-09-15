@@ -73,7 +73,10 @@ public sealed class DonationFeeIdListTests
 
         DonationFeeIdList.Parse(" {" + first.ToString("D") + "} , " + second.ToString("N").ToUpperInvariant() + " ")
             .Should().Equal(first, second);
-        DonationFeeIdList.Parse(first.ToString("N") + "," + first.ToString("N")).Should().Equal(first);
+        DonationFeeIdList.Parse(first.ToString("N") + "," + first.ToString("N")).Should().BeEmpty();
+        DonationFeeIdList.Parse(first.ToString("N") + ",," + second.ToString("N")).Should().BeEmpty();
+        DonationFeeIdList.Parse(string.Join(",", Enumerable.Range(0, DonationFeeIdList.MaxIds + 1).Select(_ => Guid.NewGuid().ToString("N"))))
+            .Should().BeEmpty();
         DonationFeeIdList.Parse(first.ToString("N") + ",not-a-guid").Should().BeEmpty();
         DonationFeeIdList.Parse(string.Empty).Should().BeEmpty();
         DonationFeeIdList.Parse(null!).Should().BeEmpty();

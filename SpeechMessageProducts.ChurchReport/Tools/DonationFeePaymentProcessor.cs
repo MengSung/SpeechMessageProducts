@@ -456,6 +456,9 @@ namespace ChurchReport.Tools
                     ? RetrieveParam1GroupFees(aFeeEntity, param1FeeIds, paymentResult.OrderNo)
                     : DonationFeeGroupLocator.Locate(this.m_ToolUtilityClass, aFeeEntity);
                 bool isMultiFeeGroup = groupFees.Count > 1;
+                bool isAtmPayment = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way") == 100000002;
+                string paymentMethodText = isAtmPayment ? "ATM轉帳/匯款" : "信用卡";
+                string paymentMethodIcon = isAtmPayment ? "🏧" : "💳";
 
                 string categoryText = "";
                 bool isCoursePayment = false;
@@ -499,7 +502,7 @@ namespace ChurchReport.Tools
                 // 因此它刻意包含：付款人、類別/項目、金額、付款時間、訂單編號、付款方式、處理狀態。
                 String Description =
                     "╔════════════╗" + Environment.NewLine +
-                    "║   💳 信用卡交易通知   ║" + Environment.NewLine +
+                    "║   " + paymentMethodIcon + " " + paymentMethodText + "交易通知   ║" + Environment.NewLine +
                     "╚════════════╝" + Environment.NewLine +
                     Environment.NewLine +
                     "📌 交易資訊" + Environment.NewLine +
@@ -514,7 +517,7 @@ namespace ChurchReport.Tools
                     "📋 訂單資訊" + Environment.NewLine +
                     "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
                     $"  訂單編號：{paymentResult.OrderNo}" + Environment.NewLine +
-                    $"  付款方式：💳 信用卡" + Environment.NewLine +
+                    $"  付款方式：{paymentMethodIcon} {paymentMethodText}" + Environment.NewLine +
                     Environment.NewLine +
                     "📝 處理狀態" + Environment.NewLine +
                     "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
@@ -727,7 +730,7 @@ namespace ChurchReport.Tools
                         ViewBag.PaymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
                         ViewBag.OrderId = paymentResult.OrderNo;
                         ViewBag.TransactionId = paymentResult.OrderNo;
-                        ViewBag.PaymentMethod = "信用卡";
+                        ViewBag.PaymentMethod = paymentMethodText;
 
                         // 使用已判斷的類別文字（奉獻類別或課程名稱）
                         ViewBag.DedicationCategory = categoryText;
@@ -750,7 +753,7 @@ namespace ChurchReport.Tools
                         ViewBag.PaymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
                         ViewBag.OrderId = paymentResult.OrderNo;
                         ViewBag.TransactionId = paymentResult.OrderNo;
-                        ViewBag.PaymentMethod = "信用卡";
+                        ViewBag.PaymentMethod = paymentMethodText;
 
                         // 使用已判斷的類別文字（奉獻類別或課程名稱）
                         ViewBag.DedicationCategory = categoryText;
@@ -767,7 +770,7 @@ namespace ChurchReport.Tools
                     {
                         Entity failedFee = groupFees[feeIndex];
                         String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref failedFee, "new_description");
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref failedFee, "new_description", aOriginalDescription + "信用卡付款結果失敗!" + Environment.NewLine + Description);
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref failedFee, "new_description", aOriginalDescription + paymentMethodText + "付款結果失敗!" + Environment.NewLine + Description);
                         this.m_ToolUtilityClass.UpdateEntity(ref failedFee);
                     }
 
@@ -782,8 +785,9 @@ namespace ChurchReport.Tools
                         Environment.NewLine +
                         "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
                         "🔄 建議處理方式：" + Environment.NewLine +
-                        "  • 請檢查信用卡資訊" + Environment.NewLine +
-                        "  • 確認信用額度是否足夠" + Environment.NewLine +
+                        (isAtmPayment
+                            ? "  • 請確認轉帳帳號、金額與付款期限" + Environment.NewLine
+                            : "  • 請檢查信用卡資訊" + Environment.NewLine + "  • 確認信用額度是否足夠" + Environment.NewLine) +
                         "  • 稍後重新嘗試付款" + Environment.NewLine +
                         Environment.NewLine +
                         "📞 需要協助？" + Environment.NewLine +
@@ -847,31 +851,36 @@ namespace ChurchReport.Tools
             DonationFeeGroupPaidPlan plan)
         {
             bool isGroup = plan.Decisions.Count > 1;
+            int existingPayWay = this.m_ToolUtilityClass.GetOptionSetAttribute(fee, "new_pay_way");
+            bool isAtmPayment = existingPayWay == 100000002;
+            string paymentMethodText = isAtmPayment ? "ATM轉帳/匯款" : "信用卡";
+            int paidStatus = isAtmPayment ? 100000002 : 100000001;
 
             this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref fee, "new_pay_date", DateTime.Now.ToLocalTime());
             this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref fee, "new_fee_really_paid", new Money(decision.ReallyPaid));
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_big_chinese_number", MoneyToChinese(decision.BigNumberAmount.ToString()));
 
             // 付款方式為「未知」才改成「信用卡」，不覆蓋其他流程已設定的付款方式。
-            if (this.m_ToolUtilityClass.GetOptionSetAttribute(fee, "new_pay_way") == 100000004)
+            if (existingPayWay == 100000004)
             {
                 this.m_ToolUtilityClass.SetOptionSetAttribute(fee, "new_pay_way", 100000001); // 100000001 = 信用卡
             }
 
-            this.m_ToolUtilityClass.SetOptionSetAttribute(ref fee, "new_pay_status", 100000001); // 100000001 = 信用卡已繳費
+            // ATM 收費單保留 ATM 付款方式並寫入 ATM 已繳費狀態；其他既有 callback 沿用信用卡狀態。
+            this.m_ToolUtilityClass.SetOptionSetAttribute(ref fee, "new_pay_status", paidStatus);
 
             string mismatchNote = plan.AmountMismatch
                 ? "群組應收 " + plan.ExpectedTotal + " 與付款金額 " + plan.PaidAmount + " 不符，請稽核。" + Environment.NewLine
                 : string.Empty;
             String originalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref fee, "new_description");
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref fee, "new_description",
-                originalDescription + "信用卡付款結果成功!" + Environment.NewLine + mismatchNote + description);
+                originalDescription + paymentMethodText + "付款結果成功!" + Environment.NewLine + mismatchNote + description);
 
             // 付款紀錄是冪等判斷依據：必須寫入訂單編號。
             String paymentRecords =
                 this.m_ToolUtilityClass.GetEntityStringAttribute(fee, "new_payment_records") +
                 DateTime.Now.ToString() +
-                ": ReturnUrl => 信用卡訂單編號= " + paymentResult.OrderNo +
+                ": ReturnUrl => " + paymentMethodText + "訂單編號= " + paymentResult.OrderNo +
                 "，金額:" + plan.PaidAmount.ToString() +
                 (isGroup ? "，本單實收:" + decision.ReallyPaid.ToString() : string.Empty) +
                 "，PayToken = " + payToken +
@@ -895,8 +904,7 @@ namespace ChurchReport.Tools
 
         /// <summary>
         /// Param1 帶多張收費單 Id 時逐張取回收費單，primary 固定在第一個。
-        /// 其他收費單取不到（例如已被刪除）時略過並留下追查紀錄，不影響其餘收費單入帳；
-        /// 只保留與 primary 同會友、且未綁定其他訂單的收費單（規則見 DonationFeeIdList.SelectGroupMembers）。
+        /// 任何收費單取不到、跨會友或已綁定其他訂單時都拒絕整筆 callback，避免成功付款只更新部分收費單。
         /// 結果只存在本次 callback 的區域變數，不寫入 Session 或任何快取。
         /// </summary>
         private List<Entity> RetrieveParam1GroupFees(Entity primaryFee, IReadOnlyList<Guid> feeIds, string orderNo)
@@ -917,8 +925,7 @@ namespace ChurchReport.Tools
                     Entity fee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", feeId);
                     if (fee == null)
                     {
-                        System.Diagnostics.Trace.WriteLine("[DonationFeePaymentProcessor] Param1 fee not found. FeeId=" + feeId + ", OrderNo=" + orderNo);
-                        continue;
+                        throw new InvalidOperationException("Param1 收費單不存在，拒絕部分入帳。FeeId=" + feeId);
                     }
 
                     feesById[fee.Id] = fee;
@@ -926,14 +933,14 @@ namespace ChurchReport.Tools
                 }
                 catch (Exception exception)
                 {
-                    System.Diagnostics.Trace.WriteLine("[DonationFeePaymentProcessor] Param1 fee retrieve failed. FeeId=" + feeId + ", OrderNo=" + orderNo + ", Error=" + exception.Message);
+                    throw new InvalidOperationException("Param1 收費單讀取失敗，拒絕部分入帳。FeeId=" + feeId, exception);
                 }
             }
 
             IReadOnlyList<Guid> acceptedIds = ChurchReport.Services.DonationFeeIdList.SelectGroupMembers(members, orderNo);
             if (acceptedIds.Count != members.Count)
             {
-                System.Diagnostics.Trace.WriteLine("[DonationFeePaymentProcessor] Param1 fees skipped (other contact or other order). Accepted=" + acceptedIds.Count + ", Retrieved=" + members.Count + ", OrderNo=" + orderNo);
+                throw new InvalidOperationException("Param1 收費單的會友或訂單不一致，拒絕部分入帳。");
             }
 
             var result = new List<Entity>(acceptedIds.Count);

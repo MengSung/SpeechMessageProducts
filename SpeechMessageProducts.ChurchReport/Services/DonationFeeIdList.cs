@@ -97,23 +97,31 @@ namespace ChurchReport.Services
             }
 
             var result = new List<Guid>();
-            foreach (var part in param1.Split(Separator))
+            var parts = param1.Split(Separator);
+            if (parts.Length > MaxIds)
+            {
+                return Array.Empty<Guid>();
+            }
+
+            foreach (var part in parts)
             {
                 var text = part.Trim();
                 if (text.Length == 0)
                 {
-                    continue;
+                    return Array.Empty<Guid>();
                 }
 
-                if (!Guid.TryParse(text, out var feeId))
+                if (!Guid.TryParse(text, out var feeId) || feeId == Guid.Empty)
                 {
                     return Array.Empty<Guid>();
                 }
 
-                if (feeId != Guid.Empty && !result.Contains(feeId))
+                if (result.Contains(feeId))
                 {
-                    result.Add(feeId);
+                    return Array.Empty<Guid>();
                 }
+
+                result.Add(feeId);
             }
 
             return result;
