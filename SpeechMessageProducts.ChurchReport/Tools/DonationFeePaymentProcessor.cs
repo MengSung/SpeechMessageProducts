@@ -89,10 +89,6 @@ namespace ChurchReport.Tools
         // 負責把付款結果轉成顯示用模型或結果頁邏輯；目前本類別仍保留舊 ViewBag 回傳流程。
         private readonly DonationPaymentReturnPresenter m_ReturnPresenter;
 
-        // 發生未預期例外時通知維護者的 LINE ID。
-        // 注意：這是 ChurchReport 的營運監控資訊，不屬於共用金流核心設定。
-        private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
-
         #region 建構函數
         /// <summary>
         /// 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例
@@ -817,8 +813,11 @@ namespace ChurchReport.Tools
                 System.Diagnostics.Trace.WriteLine(ErrorString);
                 System.Diagnostics.Trace.WriteLine($"StackTrace: {e.StackTrace}");
 
-                // 發送錯誤通知給維護者，但通知失敗不應再造成第二個例外。
-                try { m_PushUtility.SendMessage(MENGSUNG_LINE_ID, ErrorString); } catch { }
+                // 統一交給 Host 擁有的例外入口；依設定先寫入並 flush Exception.log，再排入 LINE。
+                // 不把 PayToken、付款資料或原始 request 放入通知，避免敏感資訊跨出診斷邊界。
+                ChurchReport.Services.ChurchReportLineAdminNotificationService.ReportException(
+                    nameof(DonationFeePaymentProcessor) + "." + nameof(HandlePaymentReturn),
+                    e);
 
                 // 返回錯誤內容而不是拋出例外。
                 // StatusCode 保持 200 是舊流程行為，可能是為了避免金流端把回傳視為完全失敗後重送。
@@ -827,10 +826,8 @@ namespace ChurchReport.Tools
                     Content = $"<html><body>" +
                              $"<h1>處理付款時發生錯誤</h1>" +
                              $"<p>系統處理時發生錯誤，請稍後再試或聯繫客服</p>" +
-                             $"<p>ShopNo: {ShopNo}</p>" +
-                             $"<p>PayToken: {PayToken}</p>" +
-                             $"<p>錯誤訊息: {e.Message}</p>" +
-                             $"<p>時間: {DateTime.Now}</p>" +
+                             $"<p>系統已記錄事件，請提供發生時間給客服。</p>" +
+                             $"<p>時間: {DateTime.UtcNow:O}</p>" +
                              $"</body></html>",
                     ContentType = "text/html",
                     StatusCode = 200
