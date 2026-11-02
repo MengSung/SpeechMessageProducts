@@ -1,0 +1,190 @@
+using System.Text;
+using System.Text.Json;
+using System.Xml;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace I18nCheck;
+
+/// <summary>
+/// 協調單一離線命令；來源只在命令區域持有，輸出只有計數、路徑及固定錯誤代碼。
+/// 不建構服務 client、不載入產品設定，不使用背景佇列、使用者快取或程序文化狀態。
+/// </summary>
+internal static class CommandRunner
+{
+    /// <summary>固定基準位置，與 verify／CI 使用同一份已審核計數。</summary>
+    private const string DefaultBaseline = "tools/I18nCheck/baselines/cjk-literals.json";
+
+    /// <summary>只含固定格式的共用序列化設定，首次使用後由 System.Text.Json 凍結，無使用者資料。</summary>
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
+
+    /// <summary>執行且封閉處理可預期的輸入錯誤，不將任何來源文字或資料值寫入診斷。</summary>
+    /// <param name="root">明確選定的方案根，不在缺檔時向父 worktree 尋找。</param>
+    /// <param name="args">scan、generate、verify 及其選項。</param>
+    /// <param name="output">呼叫者擁有的輸出；本工具不保留也不釋放。</param>
+    /// <returns>成功為零，棘輪／產生檔差異為一，輸入／檔案驗證錯誤為二。</returns>
+    internal static int Run(string root, string[] args, TextWriter output)
+    {
+        try
+        {
+            if (args.Length == 0) throw new InvalidDataException("I18N401: command is required.");
+            root = Path.GetFullPath(root);
+            return args[0] switch
+            {
+                "scan" => Scan(root, Parse(args, ["--baseline", "--write-baseline"]), output),
+                "generate" => Generate(root, Parse(args, ["--resx", "--namespace", "--class", "--out", "--check"]), output),
+                "verify" when args.Length == 1 => Verify(root, output),
+                _ => throw new InvalidDataException("I18N402: command or options are invalid.")
+            };
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException or UnauthorizedAccessException or ArgumentException or XmlException or JsonException)
+        {
+            // 這些是檔案／命令的預期拒絕，不發外部告警；不輸出含來源值的 Exception.Message。
+            output.WriteLine("I18nCheck rejected input: " + exception.GetType().Name);
+            return 2;
+        }
+    }
+
+    /// <summary>嚴格解析本命令允許的選項，拒絕拼錯、重複或缺值，不默默忽略輸入。</summary>
+    /// <param name="args">原命令列。</param>
+    /// <param name="allowed">此指令的固定白名單。</param>
+    /// <returns>命令區域的選項字典；check 是唯一無值旗標。</returns>
+    private static Dictionary<string, string> Parse(string[] args, string[] allowed)
+    {
+        var options = new Dictionary<string, string>(StringComparer.Ordinal);
+        for (var index = 1; index < args.Length; index++)
+        {
+            var name = args[index];
+            if (!allowed.Contains(name, StringComparer.Ordinal) || options.ContainsKey(name)) throw new InvalidDataException("I18N403: unknown or repeated option.");
+            if (name == "--check") { options.Add(name, string.Empty); continue; }
+            if (++index == args.Length || args[index].StartsWith("--", StringComparison.Ordinal)) throw new InvalidDataException("I18N404: option value is missing.");
+            options.Add(name, args[index]);
+        }
+        return options;
+    }
+
+    /// <summary>完整掃描後才寫基準或比較；每個專案獨立判定，不使用全方案總數相抵。</summary>
+    /// <param name="root">本次根目錄。</param>
+    /// <param name="options">已驗證的選項。</param>
+    /// <param name="output">只接收中繼資料的輸出。</param>
+    /// <returns>基準建立或棘輪判定。</returns>
+    private static int Scan(string root, Dictionary<string, string> options, TextWriter output)
+    {
+        if (options.ContainsKey("--baseline") && options.ContainsKey("--write-baseline")) throw new InvalidDataException("I18N405: baseline modes are mutually exclusive.");
+        var snapshot = RepositoryScanner.Scan(root);
+        Validate(snapshot);
+        foreach (var project in snapshot.Projects)
+        {
+            output.WriteLine($"PROJECT {project.Project}: {project.Count}");
+            foreach (var file in project.Files) output.WriteLine($"  FILE {file.Path}: {file.Count}");
+        }
+        if (options.TryGetValue("--write-baseline", out var destination))
+        {
+            var path = LocalFiles.Resolve(root, destination);
+            if (!path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("I18N406: baseline output must be JSON.");
+            var json = JsonSerializer.Serialize(snapshot, JsonOptions).Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\n", "\r\n", StringComparison.Ordinal) + "\r\n";
+            LocalFiles.WriteAtomic(path, new UTF8Encoding(false, true).GetBytes(json));
+            return 0;
+        }
+        var baselinePath = LocalFiles.Resolve(root, options.GetValueOrDefault("--baseline", DefaultBaseline));
+        LocalFiles.CheckFile(baselinePath);
+        var baseline = JsonSerializer.Deserialize<ScanSnapshot>(File.ReadAllBytes(baselinePath), JsonOptions) ?? throw new InvalidDataException("I18N407: baseline is empty.");
+        Validate(baseline);
+        var result = CjkRatchet.Compare(snapshot.Projects.ToDictionary(project => project.Project, project => project.Count, StringComparer.OrdinalIgnoreCase), baseline.Projects.ToDictionary(project => project.Project, project => project.Count, StringComparer.OrdinalIgnoreCase));
+        foreach (var project in result.Improvements) output.WriteLine("IMPROVEMENT " + project);
+        output.WriteLine(result.Passed ? "CJK ratchet: passed" : "CJK ratchet: count increased");
+        return result.Passed ? 0 : 1;
+    }
+
+    /// <summary>拒絕重複／缺失身分及不一致總數，避免 JSON 或字典覆寫掩蓋基準衝突。</summary>
+    /// <param name="snapshot">完整掃描結果或讀回的基準。</param>
+    private static void Validate(ScanSnapshot snapshot)
+    {
+        if (snapshot.Version != 1 || snapshot.Projects is null || snapshot.Projects.Count == 0) throw new InvalidDataException("I18N408: baseline schema is invalid.");
+        var projects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var project in snapshot.Projects)
+        {
+            if (project is null || string.IsNullOrWhiteSpace(project.Project) || !projects.Add(project.Project) || project.Count < 0 || project.Files is null)
+                throw new InvalidDataException("I18N409: baseline project identity is invalid or duplicated.");
+            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var file in project.Files)
+                if (file is null || string.IsNullOrWhiteSpace(file.Path) || file.Count < 0 || !files.Add(file.Path)) throw new InvalidDataException("I18N410: baseline file identity is invalid or duplicated.");
+            if (project.Files.Sum(file => (long)file.Count) != project.Count) throw new InvalidDataException("I18N411: baseline total differs from file counts.");
+        }
+    }
+
+    /// <summary>可明確產生一個檔，或在 check 模式巡檢方案內全部中性資源；check 永不寫檔。</summary>
+    /// <param name="root">選定根目錄。</param>
+    /// <param name="options">已驗證的產生器選項。</param>
+    /// <param name="output">只輸出檔名與判定。</param>
+    /// <returns>所有產生檔均一致時為零，否則一。</returns>
+    private static int Generate(string root, Dictionary<string, string> options, TextWriter output)
+    {
+        if (options.Count == 1 && options.ContainsKey("--check")) return CheckAllGenerated(root, output);
+        foreach (var name in new[] { "--resx", "--namespace", "--class", "--out" })
+            if (!options.ContainsKey(name)) throw new InvalidDataException("I18N412: explicit generation requires resx, namespace, class and out.");
+        var source = LocalFiles.Resolve(root, options["--resx"]);
+        var destination = LocalFiles.Resolve(root, options["--out"]);
+        if (!source.EndsWith(".resx", StringComparison.OrdinalIgnoreCase) || !destination.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("I18N413: generation file extensions are invalid.");
+        var bytes = ResourceGenerator.Generate(ResourceCatalog.Load(source), options["--namespace"], options["--class"]);
+        if (options.ContainsKey("--check")) return CompareGenerated(destination, bytes, output);
+        LocalFiles.WriteAtomic(destination, bytes);
+        output.WriteLine("GENERATED " + RepositoryScanner.Relative(root, destination));
+        return 0;
+    }
+
+    /// <summary>只檢查中性 resx；語系檔由 ResourceCatalog 一次驗證，不重複當成新來源。</summary>
+    /// <param name="root">固定方案邊界。</param>
+    /// <param name="output">判定輸出。</param>
+    /// <returns>任一輸出缺失或差異時為一。</returns>
+    private static int CheckAllGenerated(string root, TextWriter output)
+    {
+        var passed = true;
+        var count = 0;
+        foreach (var project in RepositoryScanner.ProjectPaths(root))
+        foreach (var source in RepositoryScanner.Files(root, Path.GetDirectoryName(project)!).Where(path => path.EndsWith(".resx", StringComparison.OrdinalIgnoreCase)))
+        {
+            var stem = Path.GetFileNameWithoutExtension(source);
+            var split = stem.LastIndexOf('.');
+            if (split > 0 && File.Exists(Path.Combine(Path.GetDirectoryName(source)!, stem[..split] + ".resx"))) continue;
+            count++;
+            var destination = LocalFiles.Resolve(root, Path.ChangeExtension(source, ".g.cs"));
+            var catalog = ResourceCatalog.Load(source);
+            if (!File.Exists(destination)) { output.WriteLine("GENERATED MISSING " + RepositoryScanner.Relative(root, destination)); passed = false; continue; }
+            var syntax = CSharpSyntaxTree.ParseText(LocalFiles.ReadSource(destination)).GetRoot();
+            var namespaceName = syntax.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().SingleOrDefault()?.Name.ToString();
+            var className = syntax.DescendantNodes().OfType<ClassDeclarationSyntax>().SingleOrDefault()?.Identifier.ValueText;
+            if (namespaceName is null || className is null) throw new InvalidDataException("I18N414: generated file namespace or class is missing.");
+            if (CompareGenerated(destination, ResourceGenerator.Generate(catalog, namespaceName, className), output) != 0) passed = false;
+        }
+        output.WriteLine($"Generated resource check: files={count}, passed={passed}");
+        return passed ? 0 : 1;
+    }
+
+    /// <summary>逐位元組比較候選，不修正差異，也不在診斷印出資源文字。</summary>
+    /// <param name="destination">生成檔路徑。</param>
+    /// <param name="expected">本次重新產生的候選。</param>
+    /// <param name="output">只記錄一致或不同。</param>
+    /// <returns>相等零，缺檔或不同一。</returns>
+    private static int CompareGenerated(string destination, byte[] expected, TextWriter output)
+    {
+        if (File.Exists(destination))
+        {
+            LocalFiles.CheckFile(destination);
+            if (File.ReadAllBytes(destination).AsSpan().SequenceEqual(expected)) return 0;
+        }
+        output.WriteLine("Generated resource check: missing or stale output");
+        return 1;
+    }
+
+    /// <summary>每包及 CI 的一致入口，固定執行專案棘輪、resx 契約與產生檔比較。</summary>
+    /// <param name="root">本次根。</param>
+    /// <param name="output">呼叫者輸出。</param>
+    /// <returns>所有檢查通過才回傳零。</returns>
+    private static int Verify(string root, TextWriter output)
+    {
+        var scan = Scan(root, new Dictionary<string, string>(StringComparer.Ordinal), output);
+        var generated = CheckAllGenerated(root, output);
+        return scan == 0 && generated == 0 ? 0 : 1;
+    }
+}

@@ -1,0 +1,7 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test tools/I18nCheck.Tests -c Release --no-restore --nologo --filter FullyQualifiedName~Cli_ProjectDtd
+  Failed 專案 XML 不允許 DTD [362 ms]
+Expected: 2
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 362 ms - I18nCheck.Tests.dll (net10.0)
+[xUnit.net 00:00:00.59]     專案 XML 不允許 DTD [FAIL]
+EXIT_CODE=1

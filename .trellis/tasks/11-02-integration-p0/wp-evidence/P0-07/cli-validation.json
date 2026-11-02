@@ -1,0 +1,174 @@
+[
+  {
+    "label": "baseline-write-final",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "scan",
+      "--write-baseline",
+      "tools/I18nCheck/baselines/cjk-literals.json"
+    ],
+    "exitCode": 0,
+    "expectedExitCode": 0,
+    "elapsedSeconds": 7.6,
+    "summary": []
+  },
+  {
+    "label": "baseline-compare-final",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "scan",
+      "--baseline",
+      "tools/I18nCheck/baselines/cjk-literals.json"
+    ],
+    "exitCode": 0,
+    "expectedExitCode": 0,
+    "elapsedSeconds": 6.05,
+    "summary": [
+      "CJK ratchet: passed"
+    ]
+  },
+  {
+    "label": "generate-first",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "generate",
+      "--resx",
+      ".ccg/tmp/p007-generation/Probe.resx",
+      "--namespace",
+      "PhaseZero.Probe",
+      "--class",
+      "ProbeData",
+      "--out",
+      ".ccg/tmp/p007-generation/Probe.g.cs"
+    ],
+    "exitCode": 0,
+    "expectedExitCode": 0,
+    "elapsedSeconds": 3.13,
+    "summary": [
+      "GENERATED .ccg/tmp/p007-generation/Probe.g.cs"
+    ]
+  },
+  {
+    "label": "generate-repeat",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "generate",
+      "--resx",
+      ".ccg/tmp/p007-generation/Probe.resx",
+      "--namespace",
+      "PhaseZero.Probe",
+      "--class",
+      "ProbeData",
+      "--out",
+      ".ccg/tmp/p007-generation/Probe.g.cs"
+    ],
+    "exitCode": 0,
+    "expectedExitCode": 0,
+    "elapsedSeconds": 3.09,
+    "summary": [
+      "GENERATED .ccg/tmp/p007-generation/Probe.g.cs"
+    ]
+  },
+  {
+    "label": "generate-explicit-check",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "generate",
+      "--resx",
+      ".ccg/tmp/p007-generation/Probe.resx",
+      "--namespace",
+      "PhaseZero.Probe",
+      "--class",
+      "ProbeData",
+      "--out",
+      ".ccg/tmp/p007-generation/Probe.g.cs",
+      "--check"
+    ],
+    "exitCode": 0,
+    "expectedExitCode": 0,
+    "elapsedSeconds": 3.14,
+    "summary": []
+  },
+  {
+    "label": "generate-stale-rejected",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "generate",
+      "--resx",
+      ".ccg/tmp/p007-generation/Probe.resx",
+      "--namespace",
+      "PhaseZero.Probe",
+      "--class",
+      "ProbeData",
+      "--out",
+      ".ccg/tmp/p007-generation/Probe.g.cs",
+      "--check"
+    ],
+    "exitCode": 1,
+    "expectedExitCode": 1,
+    "elapsedSeconds": 2.89,
+    "summary": [
+      "Generated resource check: missing or stale output"
+    ]
+  },
+  {
+    "label": "generate-discovery-check",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "generate",
+      "--check"
+    ],
+    "exitCode": 0,
+    "expectedExitCode": 0,
+    "elapsedSeconds": 3.21,
+    "summary": [
+      "Generated resource check: files=0, passed=True"
+    ]
+  },
+  {
+    "label": "verify-final",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "verify"
+    ],
+    "exitCode": 0,
+    "expectedExitCode": 0,
+    "elapsedSeconds": 7.41,
+    "summary": [
+      "CJK ratchet: passed",
+      "Generated resource check: files=0, passed=True"
+    ]
+  }
+]

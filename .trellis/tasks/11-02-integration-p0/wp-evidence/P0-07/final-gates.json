@@ -1,0 +1,22 @@
+{
+  "package": "P0-07",
+  "base": "73b6e6cf",
+  "releaseBuildErrors": 0,
+  "releaseBuildWarnings": 77,
+  "releaseTestsPassed": 771,
+  "debugTracerPassed": 7,
+  "toolTestsPassed": 75,
+  "packageGuardFailures": 0,
+  "duplicateGroups": 0,
+  "duplicateNew": 0,
+  "duplicateStale": 0,
+  "finalStaticChecksPending": false,
+  "encodingSummary": "Text encoding: scope=Changed checked=227 excluded=74 filesWithIssues=0",
+  "progressTestsPassed": 3,
+  "byteCheckedFiles": 61,
+  "frozenV32Unchanged": 8,
+  "workingAndStagedDiffCheckPassed": true,
+  "noRawTrxOrKeysAdded": true,
+  "progressApprovedDataOnly": true,
+  "checkoutComparison": "git cat-file --filters (repository line ending conversion applied)"
+}

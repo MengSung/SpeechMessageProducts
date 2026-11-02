@@ -1,0 +1,32 @@
+[
+  {
+    "project": "I18nCheck",
+    "properties": {
+      "SpeechMessageStrictCode": "true",
+      "GenerateDocumentationFile": "true",
+      "DocumentationFile": "obj\\Release\\net10.0\\I18nCheck.xml",
+      "TreatWarningsAsErrors": "true",
+      "EnableNETAnalyzers": "true",
+      "AnalysisMode": "Recommended",
+      "Nullable": "enable",
+      "LangVersion": "latest",
+      "NoWarn": "1701;1702"
+    },
+    "binXmlPresent": true
+  },
+  {
+    "project": "I18nCheck.Tests",
+    "properties": {
+      "SpeechMessageStrictCode": "true",
+      "GenerateDocumentationFile": "true",
+      "DocumentationFile": "obj\\Release\\net10.0\\I18nCheck.Tests.xml",
+      "TreatWarningsAsErrors": "true",
+      "EnableNETAnalyzers": "true",
+      "AnalysisMode": "Recommended",
+      "Nullable": "enable",
+      "LangVersion": "latest",
+      "NoWarn": "1701;1702;CA1707"
+    },
+    "binXmlPresent": true
+  }
+]

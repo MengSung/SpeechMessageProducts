@@ -1,0 +1,11 @@
+{
+  "restoreExitCode": 0,
+  "evidence": "restore command completed successfully; resolved versions read from project.assets.json",
+  "resolvedPackages": [
+    "Microsoft.CodeAnalysis.CSharp/5.9.0",
+    "Microsoft.NET.Test.Sdk/17.8.0",
+    "xunit/2.6.6"
+  ],
+  "changedVersions": false,
+  "changedFramework": false
+}

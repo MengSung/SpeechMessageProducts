@@ -350,38 +350,30 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-02（P0-06 已提交；P0-07 規格核對停止）",
+  "snapshot": "2026-11-03（P0-07 驗證完成）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "階段 0 已完成並提交至 <strong>P0-06（18e901b1）</strong>，含 P0-SEC 與 P0-ENV。P0-07 發現偽語系例子的補字數與附錄公式不一致，依停止條件等待核定；尚未開始 TDD 或套件還原。",
-  "alert": {
-    "title": "P0-07 待核定：偽語系範例應補 2 個或 3 個 ǂ",
-    "body": "附錄公式排除參數後，5 字 × 40% 向上取整為 2；P0-07 範例卻寫 3。v3.3 Word 的四字範例也寫 3。",
-    "steps": [
-      "建議保留精確公式，兩個範例都更正成補 2 個 ǂ。",
-      "核定前不改測試期望、不寫功能實作；P0-06 的完成結果不受影響。",
-      "仍不連線任何 D365／LINE，不需提供帳密或 token。"
-    ]
-  },
+  "headline": "P0-07 的 <strong>I18nCheck</strong> 已驗證：工具 <strong>75／75</strong>、完整 Release <strong>771／771</strong>、Debug tracer <strong>7／7</strong>。CJK 基準 11 專案、817 檔，編碼與進度頁檢查通過；下一包為 P0-08，仍不連線 D365／LINE。",
+  "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "8",
+      "value": "9",
       "unit": "/ 80 工作包",
       "sub": "依 3.3 計畫，含 P0-SEC、P0-ENV 與新增佈署工作包",
       "meter": {
-        "done": 8,
+        "done": 9,
         "active": 0,
         "total": 80
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "8",
+      "value": "9",
       "unit": "/ 15 工作包",
-      "sub": "P0-07 實作前規格核對停止",
+      "sub": "P0-07 全部驗證通過，下一包 P0-08",
       "meter": {
-        "done": 8,
+        "done": 9,
         "active": 0,
         "total": 15
       }
@@ -463,9 +455,9 @@ const DATA = {
     {
       "id": "P0-07",
       "name": "I18nCheck 第一版：中文字串棘輪＋resx 產生器",
-      "status": "you",
-      "note": "附錄 E.3 算式得 2 個 ǂ，P0-07／Word 範例寫 3；依 §9.6 停止，全部 12 個原測試保留，尚未建立專案或還原套件。",
-      "flag": "偽語系範例待核定"
+      "status": "done",
+      "note": "75／75、工具覆蓋率超過 96%；11 專案 817 檔共 3895 CJK 片段。scan／generate／check／verify、Release 771／771、Debug 7／7 與編碼全通過。",
+      "commit": "本次提交"
     },
     {
       "id": "P0-08",
@@ -516,7 +508,7 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 15,
-      "done": 8,
+      "done": 9,
       "active": 0,
       "current": true
     },
@@ -633,6 +625,12 @@ const DATA = {
       "before": "未建立",
       "after": "0 新增／14 測試",
       "note": "19 專案 851 檔；PS 5.1／7 各 14／14"
+    },
+    {
+      "item": "I18nCheck 工具與基準",
+      "before": "未建立",
+      "after": "75／75；11 專案",
+      "note": "817 來源檔、3895 CJK 片段；產出重複相同、竄改唯讀拒絕，工具覆蓋率超過 96%。"
     }
   ],
   "conduct": [
@@ -784,6 +782,26 @@ const DATA = {
       "t": "本次核對",
       "text": "P0-06 已提交 18e901b1；P0-07 偽語系兩個範例與精確公式不一致，依 §9.6 停止。",
       "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "使用者明確核定偽語系公式例外；設計範例留待下一版勘誤，P0-07 從 TDD 接續。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "停：新嚴格測試專案的 CA1707 拒絕原列十二個測試名稱；保留全部名稱及嚴格規則，等待窄範圍例外核定。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 原 18／邊界 58 紅燈轉綠，補充邊界後 75／75；Release 771／771、Debug 7／7、CLI 全範圍通過。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 提交前全部守門通過；包含新檔的全階段編碼無問題，3.2 凍結副本不變。",
+      "cls": "ok"
     }
   ],
   "decisions": [
@@ -820,6 +838,14 @@ const DATA = {
     {
       "text": "使用者核定以實作計畫 3.3 執行，3.2 凍結",
       "sub": "部署改用 Solution 內佈署專案，環境順序依網站現有規則；原兩項待決均已解除"
+    },
+    {
+      "text": "P0-07 補字數以附錄 E.3 精確公式為準",
+      "sub": "使用者 2026-11-03 核定；排除參數後以 Rune 計數，設計中四字補三個為筆誤，不改設計原檔。"
+    },
+    {
+      "text": "僅 I18nCheck.Tests 允許 CA1707 命名例外",
+      "sub": "使用者 2026-11-03 明確核定；保留十二個方法名，工具本體及其他分析器維持嚴格。"
     }
   ],
   "prep": [
@@ -851,9 +877,9 @@ const DATA = {
   ],
   "risks": [
     {
-      "level": "warn",
-      "text": "偽語系補字數驗收不一致",
-      "sub": "兩個範例寫 3 個 ǂ，附錄 E.3 均計算為 2；等待使用者核定公式優先並修正例子。"
+      "level": "info",
+      "text": "設計勘誤留待下一版",
+      "sub": "Word §5.9、HTML d09_s2 兩處、drawio d09_s2 一處的課程報名應補 2 個 ǂ；核定後不再阻擋實作。"
     },
     {
       "level": "warn",
@@ -866,9 +892,9 @@ const DATA = {
       "sub": "P0-10 移除 LinePayCSharp 與 Trace 的舊金鑰追蹤，保留本機檔；nsspi key.snk 不動"
     },
     {
-      "level": "warn",
-      "text": "Development 的 LINE 靜態設定繞過環境覆寫",
-      "sub": "使用者交付 Claude 補核為 17 處／15 檔；由已核定的 P0-SEC 處理，尚未實作完成。"
+      "level": "info",
+      "text": "Development token 來源防護已於 P0-SEC 完成",
+      "sub": "24cca555 已驗證 25 個安全契約；goodshepherdback 尚未回報清理完成，仍禁止連線。"
     },
     {
       "level": "info",

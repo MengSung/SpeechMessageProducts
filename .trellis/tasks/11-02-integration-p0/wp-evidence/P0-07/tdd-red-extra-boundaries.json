@@ -1,0 +1,30 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "tools/I18nCheck.Tests",
+    "-c",
+    "Release",
+    "--no-restore",
+    "--nologo",
+    "--filter",
+    "FullyQualifiedName~Pseudo_UnicodeOrNumericPlaceholder|FullyQualifiedName~Cli_UppercaseSourceExtensions|FullyQualifiedName~Cli_ExcludedProjectDirectory"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 2.46,
+  "consoleSummary": [
+    "  Failed I18nCheck.Tests.BoundaryTests.Pseudo_UnicodeOrNumericPlaceholder_IsNotCounted(text: \"{1234567890}\") [212 ms]",
+    "Expected: \"［{1234567890}ǂ］\"",
+    "  Failed I18nCheck.Tests.BoundaryTests.Pseudo_UnicodeOrNumericPlaceholder_IsNotCounted(text: \"{這是參數名稱}\") [< 1 ms]",
+    "Expected: \"［{這是參數名稱}ǂ］\"",
+    "  Failed I18nCheck.Tests.BoundaryTests.Cli_UppercaseSourceExtensions_AreCounted [176 ms]",
+    "Expected: 2",
+    "  Failed I18nCheck.Tests.BoundaryTests.Cli_ExcludedProjectDirectory_IsRejected [26 ms]",
+    "Expected: Not 0",
+    "Failed!  - Failed:     4, Passed:     0, Skipped:     0, Total:     4, Duration: 411 ms - I18nCheck.Tests.dll (net10.0)",
+    "[xUnit.net 00:00:00.40]     I18nCheck.Tests.BoundaryTests.Pseudo_UnicodeOrNumericPlaceholder_IsNotCounted(text: \"{1234567890}\") [FAIL]",
+    "[xUnit.net 00:00:00.41]     I18nCheck.Tests.BoundaryTests.Pseudo_UnicodeOrNumericPlaceholder_IsNotCounted(text: \"{這是參數名稱}\") [FAIL]",
+    "[xUnit.net 00:00:00.57]     I18nCheck.Tests.BoundaryTests.Cli_UppercaseSourceExtensions_AreCounted [FAIL]",
+    "[xUnit.net 00:00:00.60]     I18nCheck.Tests.BoundaryTests.Cli_ExcludedProjectDirectory_IsRejected [FAIL]"
+  ]
+}

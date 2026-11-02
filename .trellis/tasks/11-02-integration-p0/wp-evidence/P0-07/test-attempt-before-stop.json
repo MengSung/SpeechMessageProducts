@@ -1,0 +1,15 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "tools/I18nCheck.Tests",
+    "-c",
+    "Release",
+    "--no-restore",
+    "--nologo"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 4.56,
+  "consoleSummary": [],
+  "classification": "Compilation gate failed; this is NOT functional red evidence"
+}

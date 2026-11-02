@@ -1,0 +1,9 @@
+{
+  "project": "I18nCheck",
+  "linesCovered": 326,
+  "linesValid": 337,
+  "lineCoveragePercent": 96.73,
+  "branchCoveragePercent": 81.65,
+  "requiredPercent": 80,
+  "passed": true
+}

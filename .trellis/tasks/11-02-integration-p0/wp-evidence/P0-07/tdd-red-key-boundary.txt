@@ -1,0 +1,7 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test tools/I18nCheck.Tests -c Release --no-restore --nologo --filter FullyQualifiedName~Resx_InvalidKeyBoundaries
+  Failed resx 鍵格式必須完整匹配整個名稱(key: "A.Text\n") [15 ms]
+Expected: typeof(System.IO.InvalidDataException)
+Failed!  - Failed:     1, Passed:     7, Skipped:     0, Total:     8, Duration: 319 ms - I18nCheck.Tests.dll (net10.0)
+[xUnit.net 00:00:00.50]     resx 鍵格式必須完整匹配整個名稱(key: "A.Text\n") [FAIL]
+EXIT_CODE=1

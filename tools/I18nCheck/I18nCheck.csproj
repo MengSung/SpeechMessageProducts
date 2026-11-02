@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <!-- 文件開關必須在 SDK 決定 DocumentationFile 之前啟用，避免嚴格模式假綠燈。 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <!-- 用真實 ILogger 符號辨識訊息樣板，避免僅按 logger 名稱造成假排除；版本沿用中央表。 -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <InternalsVisibleTo Include="I18nCheck.Tests" />
+  </ItemGroup>
+</Project>

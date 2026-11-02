@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-06 已提交 18e901b1；P0-07 規格核對發現偽語系範例與公式矛盾，依 §9.6 停止。",
+  "description": "P0-07 75／75、CLI、完整方案與守門均通過，收尾提交後接續 P0-08。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -25,12 +25,12 @@
   "meta": {
     "currentWorkPackage": "P0-07",
     "userRequestedStop": false,
-    "gatePassed": false,
+    "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-07.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": "核定偽語系依附錄 E.3 公式計算，兩個例子改補 2 個 ǂ。",
+    "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -39,7 +39,8 @@
       "P0-05": "ba565a55",
       "P0-SEC": "24cca555",
       "P0-ENV": "aa1de29d",
-      "P0-06": "18e901b1"
+      "P0-06": "18e901b1",
+      "P0-07": "完成（本次 P0-07 提交）"
     }
   }
 }

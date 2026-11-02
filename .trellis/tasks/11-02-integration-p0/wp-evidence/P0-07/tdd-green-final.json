@@ -1,0 +1,19 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "tools/I18nCheck.Tests",
+    "-c",
+    "Release",
+    "--no-restore",
+    "--nologo",
+    "--collect:XPlat Code Coverage",
+    "--results-directory",
+    ".ccg/tmp/p007-complete-coverage"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 4.22,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    75, Skipped:     0, Total:    75, Duration: 581 ms - I18nCheck.Tests.dll (net10.0)"
+  ]
+}

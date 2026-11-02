@@ -1,0 +1,15 @@
+{
+  "id": "integration-p007",
+  "title": "P0-07 I18nCheck 第一版",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "tools",
+  "currentPhase": "completed",
+  "nextAction": "接續 P0-08，不提前其他階段。",
+  "branch": "1.0.0.11.Integration.P0",
+  "approval": "使用者 2026-11-03 核定 Rune 公式、七筆資料及僅 I18nCheck.Tests 的 CA1707 例外。",
+  "stopReason": null,
+  "completedAt": "2026-11-03",
+  "validation": "75 tests; 771 solution tests; 7 Debug tracer tests; Release 0 errors/77 baseline warnings; CLI and byte gates passed."
+}

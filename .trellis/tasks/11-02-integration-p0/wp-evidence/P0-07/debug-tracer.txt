@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test ToolUtility.Dataverse.Tests -c Debug --filter FullyQualifiedName~FileToolUtilityTracerTests --nologo
+Passed!  - Failed:     0, Passed:     7, Skipped:     0, Total:     7, Duration: 217 ms - ToolUtility.Dataverse.Tests.dll (net10.0)
+EXIT_CODE=0

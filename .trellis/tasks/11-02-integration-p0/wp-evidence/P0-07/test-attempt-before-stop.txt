@@ -1,0 +1,6 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test tools/I18nCheck.Tests -c Release --no-restore --nologo
+
+EXIT_CODE=1
+
+CLASSIFICATION: Compilation gate failed; this is NOT functional red evidence

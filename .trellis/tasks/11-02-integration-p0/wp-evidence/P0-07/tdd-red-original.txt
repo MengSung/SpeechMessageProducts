@@ -1,0 +1,43 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test tools/I18nCheck.Tests -c Release --no-restore --nologo
+  Failed 偽語系保留參數並依核定公式補字(input: "小組", expected: "［小組ǂ］") [106 ms]
+  Failed 偽語系保留參數並依核定公式補字(input: "目前語系：{culture}", expected: "［目前語系：{culture}ǂǂ］") [< 1 ms]
+  Failed 偽語系保留參數並依核定公式補字(input: "{churchName}小幫手", expected: "［{churchName}小幫手ǂǂ］") [< 1 ms]
+  Failed 偽語系保留參數並依核定公式補字(input: "連線測試成功", expected: "［連線測試成功ǂǂǂ］") [< 1 ms]
+  Failed 偽語系保留參數並依核定公式補字(input: "{name}，報名成功", expected: "［{name}，報名成功ǂǂ］") [< 1 ms]
+  Failed 偽語系保留參數並依核定公式補字(input: "課程報名", expected: "［課程報名ǂǂ］") [< 1 ms]
+  Failed 偽語系保留參數並依核定公式補字(input: "{name}", expected: "［{name}ǂ］") [< 1 ms]
+  Failed CJK 字串常值必須納入計數 [< 1 ms]
+  Failed resx 重複鍵拒絕載入 [7 ms]
+Expected: typeof(System.IO.InvalidDataException)
+  Failed resx 鍵必須符合分層格式 [1 ms]
+Expected: typeof(System.IO.InvalidDataException)
+  Failed 有理由的 I18nIgnore 僅排除其成員 [< 1 ms]
+  Failed 跨語系參數名稱集合必須一致 [1 ms]
+Expected: typeof(System.IO.InvalidDataException)
+  Failed 減少中文字串通過並回報改善 [< 1 ms]
+  Failed ILogger 訊息樣板不增加顯示文字棘輪 [< 1 ms]
+  Failed 中文註解不當成字串 [< 1 ms]
+  Failed 專案中文字串數增加必須拒絕 [< 1 ms]
+  Failed 產出符合無 BOM UTF-8 與 CRLF [1 ms]
+  Failed 相同資源的產生結果逐位元組相同 [1 ms]
+Failed!  - Failed:    18, Passed:     0, Skipped:     0, Total:    18, Duration: 140 ms - I18nCheck.Tests.dll (net10.0)
+[xUnit.net 00:00:00.58]     偽語系保留參數並依核定公式補字(input: "小組", expected: "［小組ǂ］") [FAIL]
+[xUnit.net 00:00:00.58]     偽語系保留參數並依核定公式補字(input: "目前語系：{culture}", expected: "［目前語系：{culture}ǂǂ］") [FAIL]
+[xUnit.net 00:00:00.58]     偽語系保留參數並依核定公式補字(input: "{churchName}小幫手", expected: "［{churchName}小幫手ǂǂ］") [FAIL]
+[xUnit.net 00:00:00.58]     偽語系保留參數並依核定公式補字(input: "連線測試成功", expected: "［連線測試成功ǂǂǂ］") [FAIL]
+[xUnit.net 00:00:00.58]     偽語系保留參數並依核定公式補字(input: "{name}，報名成功", expected: "［{name}，報名成功ǂǂ］") [FAIL]
+[xUnit.net 00:00:00.58]     偽語系保留參數並依核定公式補字(input: "課程報名", expected: "［課程報名ǂǂ］") [FAIL]
+[xUnit.net 00:00:00.58]     偽語系保留參數並依核定公式補字(input: "{name}", expected: "［{name}ǂ］") [FAIL]
+[xUnit.net 00:00:00.58]     CJK 字串常值必須納入計數 [FAIL]
+[xUnit.net 00:00:00.59]     resx 重複鍵拒絕載入 [FAIL]
+[xUnit.net 00:00:00.61]     resx 鍵必須符合分層格式 [FAIL]
+[xUnit.net 00:00:00.61]     有理由的 I18nIgnore 僅排除其成員 [FAIL]
+[xUnit.net 00:00:00.61]     跨語系參數名稱集合必須一致 [FAIL]
+[xUnit.net 00:00:00.61]     減少中文字串通過並回報改善 [FAIL]
+[xUnit.net 00:00:00.61]     ILogger 訊息樣板不增加顯示文字棘輪 [FAIL]
+[xUnit.net 00:00:00.61]     中文註解不當成字串 [FAIL]
+[xUnit.net 00:00:00.61]     專案中文字串數增加必須拒絕 [FAIL]
+[xUnit.net 00:00:00.61]     產出符合無 BOM UTF-8 與 CRLF [FAIL]
+[xUnit.net 00:00:00.61]     相同資源的產生結果逐位元組相同 [FAIL]
+EXIT_CODE=1

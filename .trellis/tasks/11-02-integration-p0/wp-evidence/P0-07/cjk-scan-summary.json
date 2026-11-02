@@ -1,0 +1,56 @@
+{
+  "projectCount": 11,
+  "fileCount": 817,
+  "totalCount": 3895,
+  "projects": [
+    {
+      "project": "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj",
+      "count": 3685
+    },
+    {
+      "project": "ToolUtility/ToolUtility.csproj",
+      "count": 188
+    },
+    {
+      "project": "SpeechMessage.Payments/SpeechMessage.Payments.csproj",
+      "count": 10
+    },
+    {
+      "project": "LineMessagingProcessor/LineMessagingProcessor.csproj",
+      "count": 9
+    },
+    {
+      "project": "Line.Messaging/Line.Messaging.csproj",
+      "count": 3
+    },
+    {
+      "project": "LineMessagingProcessor.AspNetCore/LineMessagingProcessor.AspNetCore.csproj",
+      "count": 0
+    },
+    {
+      "project": "LineMessagingProcessor.RichMenus/LineMessagingProcessor.RichMenus.csproj",
+      "count": 0
+    },
+    {
+      "project": "LineMessagingProcessor.Workflows/LineMessagingProcessor.Workflows.csproj",
+      "count": 0
+    },
+    {
+      "project": "PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj",
+      "count": 0
+    },
+    {
+      "project": "SpeechMessage.Payments.AspNetCore/SpeechMessage.Payments.AspNetCore.csproj",
+      "count": 0
+    },
+    {
+      "project": "SpeechMessage.Payments.Workflows/SpeechMessage.Payments.Workflows.csproj",
+      "count": 0
+    }
+  ],
+  "baselineSha256": "24cab69fa613a9fd8207e0df9c6bfb292693c82898f813537af36687f3e077a6",
+  "generationSha256": "e940486e1e4ac5210a399e7eeadd068522baebd9646274b83d55b8a7fb9891db",
+  "repeatedGenerationByteIdentical": true,
+  "staleCheckDidNotWrite": true,
+  "noD365OrLineConnections": true
+}
