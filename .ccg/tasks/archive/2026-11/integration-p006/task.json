@@ -1,0 +1,12 @@
+{
+  "id": "integration-p006",
+  "title": "P0-06 重複程式掃描",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "tools",
+  "currentPhase": "completed",
+  "nextAction": "14 個雙引擎測試、基準與完整驗證通過，隨 P0-06 提交歸檔。",
+  "branch": "1.0.0.11.Integration.P0",
+  "approval": "使用者核定依 3.3 一次一個工作包接續。"
+}

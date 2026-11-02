@@ -1,0 +1,78 @@
+{
+  "engineVersion": "7.6.5",
+  "total": 14,
+  "passed": 14,
+  "failed": 0,
+  "tests": [
+    {
+      "Name": "SameContent_DifferentProjects_IsRecorded",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "CommentsAndWhitespace_DifferentFormatting_IsRecorded",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "ExistingBaseline_Duplicate_DoesNotFail",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "NewDuplicate_OutsideBaseline_Fails",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "ExistingGroup_AdditionalProject_Fails",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "ResolvedDuplicate_RemindsWithoutFailure",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "SameNamespaceType_DifferentContent_IsRecorded",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "SameProjectOnly_Duplicates_AreNotRecorded",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "Scope_OutsideProjectsGeneratedAndExcludedPaths_AreNotRead",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "Scope_ProjectOutsideRepository_IsRejected",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "Scope_Junction_IsNotTraversed",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "Scope_EmptySolution_FailsInsteadOfFalseGreen",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "Baseline_DuplicateGroupIdentity_IsRejected",
+      "Result": "Passed",
+      "FailureMessage": ""
+    },
+    {
+      "Name": "Baseline_DuplicateLocation_IsRejected",
+      "Result": "Passed",
+      "FailureMessage": ""
+    }
+  ]
+}

@@ -23,6 +23,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Strict Analyzer Contract](./strict-analyzer-contract.md) | Late opt-in evaluation, exact diagnostic probes, legacy isolation, and net48 polyfills | Established |
 | [Text Encoding Contract](./text-encoding-contract.md) | Tracked-file boundaries, byte/token checks, lossless conversion, and safe output ownership | Established |
 | [Development Configuration Safety](./development-configuration-safety.md) | Development-only providers, baseline token rejection, test organization guard and Production compatibility | Established |
+| [Duplicate Source Ratchet](./duplicate-source-ratchet.md) | Solution-scoped content/type duplicates, baseline identity validation and no parent-worktree traversal | Established |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels, and unified diagnostic trace contract | Established |
 | [MemberInfo Tree And Grid Contract](./member-info-tree-contract.md) | Cross-layer MemberInfo authorization, DTO, paging, sorting, cache, and CRM batching rules | Established |
 | [Small Group Background Upload Isolation](./small-group-background-upload-isolation.md) | SaveIntegrate background snapshot, refresh response, resource ownership, and regression contract | Established |

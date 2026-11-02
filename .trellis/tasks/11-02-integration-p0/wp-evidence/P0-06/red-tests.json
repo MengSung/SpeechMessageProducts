@@ -1,0 +1,68 @@
+{
+    "engineVersion":  "5.1.26100.9818",
+    "total":  12,
+    "passed":  0,
+    "failed":  12,
+    "tests":  [
+                  {
+                      "Name":  "SameContent_DifferentProjects_IsRecorded",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "CommentsAndWhitespace_DifferentFormatting_IsRecorded",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "ExistingBaseline_Duplicate_DoesNotFail",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "NewDuplicate_OutsideBaseline_Fails",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "ExistingGroup_AdditionalProject_Fails",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "ResolvedDuplicate_RemindsWithoutFailure",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "SameNamespaceType_DifferentContent_IsRecorded",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "SameProjectOnly_Duplicates_AreNotRecorded",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "Scope_OutsideProjectsGeneratedAndExcludedPaths_AreNotRead",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "Scope_ProjectOutsideRepository_IsRejected",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {NotImplemented: duplicate scanner} to match the expression {UnsafePath}"
+                  },
+                  {
+                      "Name":  "Scope_Junction_IsNotTraversed",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {0}\nBut was:  {1}"
+                  },
+                  {
+                      "Name":  "Scope_EmptySolution_FailsInsteadOfFalseGreen",
+                      "Result":  "Failed",
+                      "FailureMessage":  "Expected: {NotImplemented: duplicate scanner} to match the expression {NoProjects}"
+                  }
+              ]
+}
