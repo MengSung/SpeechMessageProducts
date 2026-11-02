@@ -130,6 +130,61 @@ Describe 'Repository text encoding and lossless conversion contracts' {
         $result.ExitCode | Should Be 0
         [IO.File]::ReadAllText((Join-Path $script:caseDirectory 'report.md')) | Should Match 'NonCrlfLineEndings'
     }
+    It 'AllScope_DoesNotReadOutsideRepository' {
+        $outside = Join-Path $script:fixtureBase ('outside-' + [guid]::NewGuid().ToString('N') + '.cs')
+        try {
+            [IO.File]::WriteAllText($outside, "outside`n", $script:utf8)
+            [IO.File]::WriteAllText($script:sample, "inside`n", $script:utf8)
+            $result = Invoke-EncodingCheck -Scope All
+            $result.ExitCode | Should Be 0
+            $report = [IO.File]::ReadAllText((Join-Path $script:caseDirectory 'report.md'))
+            $report | Should Match 'sample.cs'
+            $report | Should Not Match ([IO.Path]::GetFileName($outside))
+        }
+        finally {
+            if ([IO.File]::Exists($outside)) { [IO.File]::Delete($outside) }
+        }
+    }
+    It 'AllScope_TrackedAndExcludedPaths_OnlyScansAllowedTrackedSource' {
+        [IO.File]::WriteAllText((Join-Path $script:caseRepo 'untracked.cs'), "untracked`n", $script:utf8)
+        $referenceName = '.' + [string][char]0x5176 + [char]0x4ED6 + [char]0x89E3 + [char]0x6C7A + [char]0x65B9 + [char]0x6848
+        foreach ($directory in @('bin','obj','.worktrees',$referenceName)) {
+            $folder = Join-Path $script:caseRepo $directory
+            [void][IO.Directory]::CreateDirectory($folder)
+            [IO.File]::WriteAllText((Join-Path $folder 'excluded.cs'), "excluded`n", $script:utf8)
+            & git -c core.longpaths=true -C $script:caseRepo add -f -- ($directory + '/excluded.cs')
+        }
+        $result = Invoke-EncodingCheck -Scope All
+        $result.ExitCode | Should Be 0
+        $result.Output | Should Match 'checked=1 '
+        $report = [IO.File]::ReadAllText((Join-Path $script:caseDirectory 'report.md'))
+        $report | Should Not Match 'excluded.cs|untracked.cs'
+    }
+    It 'AllScope_TrackedPathCrossesJunction_RejectsBeforeReadingExternalContent' {
+        $linked = Join-Path $script:caseRepo 'linked'
+        $external = Join-Path $script:caseDirectory 'outside'
+        [void][IO.Directory]::CreateDirectory($linked)
+        [void][IO.Directory]::CreateDirectory($external)
+        [IO.File]::WriteAllText((Join-Path $linked 'foreign.cs'), "tracked`r`n", $script:utf8)
+        [IO.File]::WriteAllText((Join-Path $external 'foreign.cs'), "outside`n", $script:utf8)
+        & git -c core.longpaths=true -C $script:caseRepo add linked/foreign.cs
+        [IO.File]::Delete((Join-Path $linked 'foreign.cs'))
+        [IO.Directory]::Delete($linked)
+        try {
+            [void](New-Item -ItemType Junction -Path $linked -Target $external)
+            $result = Invoke-EncodingCheck -Scope All
+            $result.ExitCode | Should Be 0
+            $report = [IO.File]::ReadAllText((Join-Path $script:caseDirectory 'report.md'))
+            $report | Should Match 'UnsafePath'
+            $report | Should Not Match 'NonCrlfLineEndings'
+        }
+        finally {
+            # 只移除已確認屬於本案例的 junction 本身，不遞迴處理它指向的目錄。
+            $expected = [IO.Path]::GetFullPath((Join-Path $script:caseRepo 'linked'))
+            if ([IO.Path]::GetFullPath($linked) -ne $expected) { throw 'Unsafe junction cleanup target.' }
+            if ([IO.Directory]::Exists($linked)) { [IO.Directory]::Delete($linked) }
+        }
+    }
     It 'ChangedScope_UnchangedBadFile_IsNotScanned' {
         [IO.File]::WriteAllText($script:sample, "bad`n", $script:utf8)
         & git -c core.longpaths=true -C $script:caseRepo add sample.cs

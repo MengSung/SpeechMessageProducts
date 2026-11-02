@@ -27,7 +27,12 @@ try {
     $utf8 = New-Object Text.UTF8Encoding($false, $true)
     $records = New-Object 'Collections.Generic.List[object]'
     $failures = 0
-    foreach ($sourcePath in $Path) {
+    $normalizedSources = @($Path | ForEach-Object { [IO.Path]::GetFullPath($_) })
+    if (@($normalizedSources | Sort-Object -Unique).Count -ne $normalizedSources.Count) {
+        throw 'DuplicateSourcePath: the same source path was supplied more than once.'
+    }
+    if ($normalizedSources -contains $manifestFile) { throw 'ManifestPath cannot overwrite a source file.' }
+    foreach ($sourcePath in $normalizedSources) {
         $fullPath = [IO.Path]::GetFullPath($sourcePath)
         if ($fullPath.Equals($manifestFile, [StringComparison]::OrdinalIgnoreCase)) { throw 'ManifestPath cannot overwrite a source file.' }
         $record = [ordered]@{ path = $fullPath; originalEncoding = $null; beforeSha256 = $null; afterSha256 = $null; chineseStringLiteralCount = 0; chineseStringLiteralsUnchanged = $false; stringLiteralsUnchanged = $false; status = 'failed'; error = $null }

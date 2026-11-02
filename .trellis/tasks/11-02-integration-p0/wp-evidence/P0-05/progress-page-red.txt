@@ -1,0 +1,52 @@
+✖ No alert hides the warning region and still renders the page (5.8654ms)
+✖ Alert without prompt omits copy button and full prompt area (3.2045ms)
+✔ Alert with prompt preserves escaped prompt and copy handler (3.1198ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 115.8176
+
+✖ failing tests:
+
+test at tools\RepoQuality\Tests\Test-ProgressPage.cjs:43:1
+✖ No alert hides the warning region and still renders the page (5.8654ms)
+  evalmachine.<anonymous>:40
+    <div class="title">${ICON.alert.replace('aria-hidden="true"', 'aria-hidden="true" width="22" height="22"')}<span>${esc(D.alert.title)}</span></div>
+                                                                                                                                   ^
+
+  TypeError: Cannot read properties of null (reading 'title')
+      at evalmachine.<anonymous>:40:130
+      at Script.runInContext (node:vm:149:12)
+      at Script.runInNewContext (node:vm:154:17)
+      at Object.runInNewContext (node:vm:310:38)
+      at render (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:39:6)
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:44:20)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+
+test at tools\RepoQuality\Tests\Test-ProgressPage.cjs:51:1
+✖ Alert without prompt omits copy button and full prompt area (3.2045ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:55:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

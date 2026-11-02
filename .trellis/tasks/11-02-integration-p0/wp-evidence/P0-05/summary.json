@@ -1,0 +1,140 @@
+{
+  "workPackage": "P0-05",
+  "encodingTests": {
+    "powershell51": {
+      "passed": 21,
+      "failed": 0
+    },
+    "powershell7": {
+      "passed": 21,
+      "failed": 0
+    }
+  },
+  "progressPageTests": {
+    "passed": 3,
+    "failed": 0
+  },
+  "build": {
+    "exitCode": 0,
+    "errors": 0,
+    "warnings": 77,
+    "warningCodes": {
+      "NU1902": 20,
+      "NU1903": 56,
+      "CS1572": 1
+    }
+  },
+  "release": {
+    "projects": [
+      {
+        "project": "ChurchReport.MemberInfo.Tests",
+        "passed": 471,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "Line.Messaging.Tests",
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "LineMessagingProcessor.AspNetCore.Tests",
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "LineMessagingProcessor.RichMenus.Tests",
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "LineMessagingProcessor.Tests",
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "LineMessagingProcessor.Workflows.Tests",
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "SpeechMessage.Payments.Tests",
+        "passed": 55,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "ToolUtility.Dataverse.Tests",
+        "passed": 79,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "passed": 741,
+    "failed": 0,
+    "skipped": 0
+  },
+  "debugTracer": {
+    "projects": [
+      {
+        "project": "ToolUtility.Dataverse.Tests",
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "allInventory": {
+    "checked": 2358,
+    "excluded": 1607,
+    "filesWithIssues": 675,
+    "issueCounts": {
+      "MissingFinalCrlf": 291,
+      "Bom": 159,
+      "InvalidUtf8": 268,
+      "NonCrlfLineEndings": 4,
+      "NonAsciiExecutablePowerShell": 12,
+      "PowerShellParseError": 6,
+      "ReplacementCharacter": 2
+    },
+    "mainAreas": {
+      ".ccg": 230,
+      ".opencode": 1,
+      ".trellis": 19,
+      "Line.Messaging": 25,
+      "LineMessagingProcessor.AspNetCore": 1,
+      "LinePayCSharp": 1,
+      "PowerPlatform.Dataverse.Client": 35,
+      "SpeechMessage.Dynamics.Crm82Worker.Tests": 1,
+      "SpeechMessage.Dynamics.Crm82Worker": 1,
+      "SpeechMessage.Dynamics.Crm91Worker.Tests": 1,
+      "SpeechMessage.Dynamics.Crm91Worker": 1,
+      "SpeechMessage.Payments.Workflows": 1,
+      "SpeechMessageProducts.ChurchReport": 325,
+      "ToolUtility.Tests": 1,
+      "ToolUtility": 19,
+      "Trace": 3,
+      "docs": 10
+    }
+  },
+  "history": {
+    "redEvidenceCommit": "6b7d5c4b",
+    "initialImplementationCommit": "06a4b102",
+    "historyRewritten": false
+  },
+  "changed": {
+    "base": "73b6e6cf",
+    "checked": 113,
+    "excluded": 74,
+    "filesWithIssues": 0,
+    "exitCode": 0
+  }
+}

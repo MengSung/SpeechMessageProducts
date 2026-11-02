@@ -1,0 +1,6 @@
+Release solution: passed=741 failed=0 skipped=0; exit=0.
+Debug tracer: passed=7 failed=0 skipped=0; exit=0.
+Encoding tests: PowerShell 5.1=21/21; PowerShell 7=21/21.
+Progress page: 3/3 (null alert, alert without prompt, alert with prompt).
+Package guard: projects=28 references=107 excluded=2 failures=0.
+Local TRX counters were summarized; raw TRX is not committed.

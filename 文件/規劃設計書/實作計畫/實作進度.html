@@ -350,159 +350,448 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  snapshot: "2026-11-02 15:45（台北時間）",
-  branch: "1.0.0.11.Integration.P0",
-  worker: "實作：Codex　查核：Claude",
-
-  headline: "目前在<strong>階段 0</strong>：12 個工作包已完成 3 個；第 4 個（P0-04）的程式已寫好、Codex 自己的檢查全部通過，但<strong>還沒提交，而且有一個缺口要先補</strong>。",
-
-  alert: {
-    title: "請在 Codex 提交 P0-04 之前，把補充提示詞貼給它",
-    body: "P0-04 要讓新專案「強制寫 XML 說明」，但這項設定放的位置太晚被讀到，實際上沒有生效。Codex 的檢查只看設定值，沒看實際有沒有產生說明檔，所以顯示全部通過，其實是假的通過。Claude 已在它目前的檔案上重現：設定值是 true，說明檔路徑卻是空的。",
-    steps: [
-      "按下方「複製提示詞」。",
-      "貼到 Codex 的對話框送出。",
-      "它會先補測試（先失敗）、再修正，之後才提交 P0-04。"
-    ],
-    prompt: [
-      "P0-04 補充核對（Claude 以 SDK 10.0.403 實測，並已在目前的 AnalyzerProbe 上重現），請在提交 P0-04 前處理。本訊息即為使用者核定，可直接更新 01 的 P0-04、P0-10 文字，不必再停下來。",
-      "",
-      "1. GenerateDocumentationFile 放在 Directory.Build.targets 不會生效；目前自檢 13/13 在這一點是假綠燈",
-      "   - 重現：dotnet msbuild tools/RepoQuality/AnalyzerProbe/AnalyzerProbe.csproj -p:TargetFramework=net10.0 -getProperty:GenerateDocumentationFile -getProperty:DocumentationFile",
-      "     結果：GenerateDocumentationFile=true，但 DocumentationFile 為空。",
-      "   - 原因：Microsoft.NET.Sdk.BeforeCommon.targets（約 301-313 行）依 GenerateDocumentationFile 決定 DocumentationFile；Microsoft.Common.targets 第 22 行先匯入 Microsoft.Common.CurrentVersion.targets（第 185 行決定 _DocumentationFileProduced），第 60 行才匯入 Directory.Build.targets。",
-      "   - 影響：不產生 XML，未寫說明的 public 成員不會出現 CS1591。Test-AnalyzerProbe.ps1 約 72-79 行只檢查 GenerateDocumentationFile 的值，所以沒抓到。",
-      "   - 補設 DocumentationFile 後 CS1591 會生效，但 XML 只留在 obj，不會複製到 bin。",
-      "   - 另外五項（EnableNETAnalyzers、AnalysisMode、TreatWarningsAsErrors、Nullable、LangVersion）放在 targets 實測有效。",
-      "   - 修法：",
-      "     a. 從 targets 的條件區段移除 GenerateDocumentationFile；",
-      "     b. 嚴格專案（含 AnalyzerProbe）在 csproj 本體同時設定 SpeechMessageStrictCode=true 與 GenerateDocumentationFile=true；",
-      "     c. Directory.Build.targets 新增一個在 CoreCompile 之前執行的檢查 target：SpeechMessageStrictCode=true 但 DocumentationFile 為空時，以 <Error> 直接失敗（附繁中說明），不得靜默；",
-      "     d. 不得硬改私有屬性 _DocumentationFileProduced。",
-      "   - 依此更新 01 的 P0-04 第 1 步文字，並附繁中註解說明原因。",
-      "",
-      "2. 擴充 AnalyzerProbe 守門（先留紅燈證據，再修）",
-      "   - 保留現有 13 項檢查。",
-      "   - 新增：未寫 XML 說明的 public 成員必須出現 CS1591。",
-      "   - 新增：只設 StrictCode、沒設 GenerateDocumentationFile 的專案必須被檢查 target 擋下。",
-      "   - 設定回歸檢查改看 DocumentationFile 的實際值，並斷言建置輸出資料夾有 XML 說明檔。",
-      "",
-      "3. 只記錄、本包不修",
-      "   - .gitignore 的 *.snk 只擋新檔。版控中仍追蹤：LinePayCSharp/SpeechMessageCrmKey.snk、Trace/SpeechMessageCrmKey.snk、PowerPlatform.Dataverse.Client/NSspi/nsspi key.snk（三個專案都不在方案內）。",
-      "   - 寫進 P0-04 回報的「風險與待決」，並在 01 的 P0-10 步驟加註：建立新金鑰時，用 git rm --cached 把舊的 SpeechMessageCrmKey.snk 移出版控，舊金鑰視為已外洩。",
-      "",
-      "其餘照原規則繼續，一次一個 WP，遇到停止條件就停。"
-    ].join("\n")
-  },
-
-  tiles: [
-    { label: "全計畫進度", value: "3", unit: "/ 77 工作包", sub: "約 4%（依工作包數）", meter: { done: 3, active: 1, total: 77 } },
-    { label: "階段 0 進度", value: "3", unit: "/ 12 工作包", sub: "P0-04 進行中；預估 5～8 天，今天是第 1 天", meter: { done: 3, active: 1, total: 12 } },
-    { label: "測試", value: "741", unit: "/ 741 通過", sub: "開工時：714 通過、24 失敗" },
-    { label: "Release 建置", value: "0", unit: "錯誤", sub: "77 個警告，與開工時相同，沒有變多" }
+  "snapshot": "2026-11-02（P0-05 本機驗證完成）",
+  "branch": "1.0.0.11.Integration.P0",
+  "worker": "實作：Codex　查核：Claude",
+  "headline": "目前在<strong>階段 0</strong>：P0-01～P0-05 已完成本機驗證，P0-05 隨本次收尾提交。接著先做 <strong>P0-ENV</strong>；目前不連線任何 D365 組織，尚未進入人工驗收。",
+  "alert": null,
+  "tiles": [
+    {
+      "label": "全計畫進度",
+      "value": "5",
+      "unit": "/ 78 工作包",
+      "sub": "含使用者新增的 P0-ENV",
+      "meter": {
+        "done": 5,
+        "active": 0,
+        "total": 78
+      }
+    },
+    {
+      "label": "階段 0 進度",
+      "value": "5",
+      "unit": "/ 13 工作包",
+      "sub": "下一包 P0-ENV；尚未進入 D365 人工驗收",
+      "meter": {
+        "done": 5,
+        "active": 0,
+        "total": 13
+      }
+    },
+    {
+      "label": "完整 Release 測試",
+      "value": "741",
+      "unit": "/ 741 通過",
+      "sub": "P0-05 本包重跑，0 失敗、0 略過"
+    },
+    {
+      "label": "Release 建置",
+      "value": "0",
+      "unit": "錯誤",
+      "sub": "P0-05 本包 77 警告，未高於原基準"
+    }
   ],
-
-  wps: [
-    { id: "P0-01", name: "開分支、Trellis 任務、基準記錄", status: "done", commit: "90799969", time: "14:45",
-      note: "記錄開工基準；經你授權修好 24 個原本就失敗的測試（測試找錯名稱和路徑，產品程式沒動）；完成 Claude 審查要求的修正。" },
-    { id: "P0-02", name: ".gitignore、global.json", status: "done", commit: "bc13efe7", time: "14:53",
-      note: "固定使用 .NET SDK 10.0.403；不讓舊方案資料夾、.snk 私鑰、.trx 測試原始檔進入版控。" },
-    { id: "P0-03", name: "套件版本集中管理與版本統一", status: "done", commit: "d1c92d83", time: "15:24",
-      note: "51 個套件改由一個檔案管理版本；Microsoft.Extensions 全部升到 10.0.0、Newtonsoft.Json 統一 13.0.4；套件降版警告重新看得見。" },
-    { id: "P0-04", name: "新程式的分析器與禁用 API 設定", status: "active", flag: "有缺口", time: "15:43 自檢通過",
-      note: "已建立嚴格設定、禁用 API 清單（例如不准用 DateTime.Now）、net48 補丁與探測專案；自檢 13/13 通過，尚未提交。XML 說明強制沒有真的生效，見最上方警示。" },
-    { id: "P0-05", name: "編碼檢查與編碼轉換工具", status: "todo",
-      note: "檢查 UTF-8 無 BOM、CRLF；把舊的 Big5 檔安全轉成 UTF-8，並確認中文字串沒變。" },
-    { id: "P0-06", name: "重複程式掃描", status: "todo",
-      note: "找出複製貼上的程式，建立基準，之後只准變少。" },
-    { id: "P0-07", name: "I18nCheck 第一版：中文字串棘輪＋resx 產生器", status: "todo",
-      note: "記錄程式裡寫死的中文字串數量，之後只准變少。" },
-    { id: "P0-08", name: "骨架：SpeechMessage.Localization（雙目標）", status: "todo",
-      note: "多語字典的第一版，同時支援 .NET 10 與 D365 用的 .NET Framework 4.8。" },
-    { id: "P0-09", name: "骨架：LineMessagingProcessor.Core（雙目標，單人推播）", status: "todo",
-      note: "共用的 LINE 推播核心，先做單人推播。" },
-    { id: "P0-10", name: "骨架：Dynamics Plugins（net48）＋ILRepack＋簽章＋打包檢查", status: "todo",
-      note: "把程式合併成一個 Plugin DLL 並簽章；需要你準備的新金鑰。" },
-    { id: "P0-11", name: "方案層級 CI", status: "todo",
-      note: "GitHub 上每次提交自動建置、測試，並跑上面所有守門檢查。" },
-    { milestone: true, name: "階段 0 外部審查（Claude 單模型，只做一次）", status: "review",
-      note: "Codex 準備審查包，由你轉交給 Claude；Critical／High 問題修完才進入 P0-12。" },
-    { id: "P0-12", name: "使用者驗收：在 D365 測試組織註冊並觸發骨架", status: "you",
-      note: "由你用 Plugin Registration Tool 在測試組織註冊、觸發，確認 LINE 收得到訊息。" }
+  "wps": [
+    {
+      "id": "P0-01",
+      "name": "開分支、Trellis 任務、基準記錄",
+      "status": "done",
+      "commit": "90799969",
+      "time": "14:45",
+      "note": "記錄開工基準；經你授權修好 24 個原本就失敗的測試（測試找錯名稱和路徑，產品程式沒動）；完成 Claude 審查要求的修正。"
+    },
+    {
+      "id": "P0-02",
+      "name": ".gitignore、global.json",
+      "status": "done",
+      "commit": "bc13efe7",
+      "time": "14:53",
+      "note": "固定使用 .NET SDK 10.0.403；不讓舊方案資料夾、.snk 私鑰、.trx 測試原始檔進入版控。"
+    },
+    {
+      "id": "P0-03",
+      "name": "套件版本集中管理與版本統一",
+      "status": "done",
+      "commit": "d1c92d83",
+      "time": "15:24",
+      "note": "51 個套件改由一個檔案管理版本；Microsoft.Extensions 全部升到 10.0.0、Newtonsoft.Json 統一 13.0.4；套件降版警告重新看得見。"
+    },
+    {
+      "id": "P0-04",
+      "name": "新程式的分析器與禁用 API 設定",
+      "status": "done",
+      "note": "含原始實作 1cf66341 與文件產出補修 c4e1f294；CS1591、SMQ0001、bin XML 與原有守門共 16／16。",
+      "commit": "c4e1f294"
+    },
+    {
+      "id": "P0-05",
+      "name": "編碼檢查與編碼轉換工具",
+      "status": "done",
+      "note": "編碼測試在 PowerShell 5.1／7 各 21／21，進度頁 3／3；Release 741／741、Debug tracer 7／7、編碼與套件守門通過。",
+      "commit": "本次收尾提交"
+    },
+    {
+      "id": "P0-ENV",
+      "name": "指定 goodshepherdback 為開發測試組織",
+      "status": "todo",
+      "note": "P0-05 後處理；只做本機設定／測試，不連線任何 D365。若需改產品程式阻止正式 LINE token，即停下回報。"
+    },
+    {
+      "id": "P0-06",
+      "name": "重複程式掃描",
+      "status": "todo",
+      "note": "找出複製貼上的程式，建立基準，之後只准變少。"
+    },
+    {
+      "id": "P0-07",
+      "name": "I18nCheck 第一版：中文字串棘輪＋resx 產生器",
+      "status": "todo",
+      "note": "記錄程式裡寫死的中文字串數量，之後只准變少。"
+    },
+    {
+      "id": "P0-08",
+      "name": "骨架：SpeechMessage.Localization（雙目標）",
+      "status": "todo",
+      "note": "多語字典的第一版，同時支援 .NET 10 與 D365 用的 .NET Framework 4.8。"
+    },
+    {
+      "id": "P0-09",
+      "name": "骨架：LineMessagingProcessor.Core（雙目標，單人推播）",
+      "status": "todo",
+      "note": "共用的 LINE 推播核心，先做單人推播。"
+    },
+    {
+      "id": "P0-10",
+      "name": "骨架：Dynamics Plugins（net48）＋ILRepack＋簽章＋打包檢查",
+      "status": "todo",
+      "note": "把程式合併成一個 Plugin DLL 並簽章；需要你準備的新金鑰。"
+    },
+    {
+      "id": "P0-11",
+      "name": "方案層級 CI",
+      "status": "todo",
+      "note": "GitHub 上每次提交自動建置、測試，並跑上面所有守門檢查。"
+    },
+    {
+      "milestone": true,
+      "name": "階段 0 外部審查（Claude 單模型，只做一次）",
+      "status": "review",
+      "note": "P0-11 提交後由自癒入口執行 ClaudeOnly；逾時或失敗時才準備人工審查包並停止。"
+    },
+    {
+      "id": "P0-12",
+      "name": "使用者驗收：在 D365 測試組織註冊並觸發骨架",
+      "status": "you",
+      "note": "由使用者在完成清理的 goodshepherdback 操作；先寫驗收步驟再停止等候，不代為連線。"
+    }
   ],
-
-  phases: [
-    { id: "階段 0", name: "準備、守門與可行性驗證", est: "5～8 天", total: 12, done: 3, active: 1, current: true },
-    { id: "階段 1", name: "基礎層與國際化地基", est: "12～16 天", total: 12, done: 0, active: 0 },
-    { id: "階段 2", name: "共用送訊＋對外待辦", est: "10～13 天", total: 12, done: 0, active: 0 },
-    { id: "階段 3", name: "LINE Webhook 主機", est: "12～17 天", total: 9, done: 0, active: 0 },
-    { id: "階段 4", name: "金流＋幣別", est: "6～8 天", total: 6, done: 0, active: 0 },
-    { id: "階段 5", name: "Plugin／Workflow 重建（36 個 DLL → 2 個）", est: "20～27 天", total: 13, done: 0, active: 0 },
-    { id: "階段 6", name: "ChurchReport 改用共用層", est: "6～8 天", total: 6, done: 0, active: 0 },
-    { id: "階段 7", name: "D365 9.1 切換（逐組織）", est: "每個組織 1～2 天＋觀察 1 週", total: 2, done: 0, active: 0 },
-    { id: "階段 8", name: "收尾、偽語系驗收、教會設定網頁", est: "4～6 天", total: 5, done: 0, active: 0 }
+  "phases": [
+    {
+      "id": "階段 0",
+      "name": "準備、守門與可行性驗證",
+      "est": "5～8 天",
+      "total": 13,
+      "done": 5,
+      "active": 0,
+      "current": true
+    },
+    {
+      "id": "階段 1",
+      "name": "基礎層與國際化地基",
+      "est": "12～16 天",
+      "total": 12,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 2",
+      "name": "共用送訊＋對外待辦",
+      "est": "10～13 天",
+      "total": 12,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 3",
+      "name": "LINE Webhook 主機",
+      "est": "12～17 天",
+      "total": 9,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 4",
+      "name": "金流＋幣別",
+      "est": "6～8 天",
+      "total": 6,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 5",
+      "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
+      "est": "20～27 天",
+      "total": 13,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 6",
+      "name": "ChurchReport 改用共用層",
+      "est": "6～8 天",
+      "total": 6,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 7",
+      "name": "D365 9.1 切換（逐組織）",
+      "est": "每個組織 1～2 天＋觀察 1 週",
+      "total": 2,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 8",
+      "name": "收尾、偽語系驗收、教會設定網頁",
+      "est": "4～6 天",
+      "total": 5,
+      "done": 0,
+      "active": 0
+    }
   ],
-
-  quality: [
-    { item: "既有測試", before: "714 過／24 失敗", after: "741 過／0 失敗", note: "修好 24 個，另新增 3 個" },
-    { item: "Release 建置警告", before: "77", after: "77", note: "沒有變多" },
-    { item: "套件版本違規", before: "113 項", after: "0 項", note: "P0-03 守門腳本" },
-    { item: "隱藏降版警告的設定", before: "7 處", after: "0 處", note: "NU1605 重新看得見" },
-    { item: "Debug 追蹤測試", before: "未納入", after: "7／7", note: "P0-01 新增的守門" },
-    { item: "新程式分析器探測", before: "未建立", after: "13／13", note: "尚缺 XML 說明檢查", warn: true }
+  "quality": [
+    {
+      "item": "既有測試",
+      "before": "714 過／24 失敗",
+      "after": "741 過／0 失敗",
+      "note": "P0-05 本包完整重跑"
+    },
+    {
+      "item": "Release 建置警告",
+      "before": "77",
+      "after": "77",
+      "note": "未降低檢查，未增加警告"
+    },
+    {
+      "item": "套件版本違規",
+      "before": "113 項",
+      "after": "0 項",
+      "note": "本包套件守門重跑通過"
+    },
+    {
+      "item": "Debug 追蹤測試",
+      "before": "未納入",
+      "after": "7／7",
+      "note": "本包重跑通過"
+    },
+    {
+      "item": "新程式分析器探測",
+      "before": "未建立",
+      "after": "16／16",
+      "note": "P0-04 含實際 XML 產出，已由使用者轉交 Claude 核對"
+    },
+    {
+      "item": "編碼／轉換測試",
+      "before": "16 項紅燈",
+      "after": "21／21",
+      "note": "PowerShell 5.1、7 各自通過"
+    },
+    {
+      "item": "進度頁警示容錯",
+      "before": "空值會出錯",
+      "after": "3／3",
+      "note": "無警示隱藏、缺提示詞不顯示複製區"
+    }
   ],
-
-  conduct: [
-    { ok: true, text: "一次只做一個工作包，做完才提交" },
-    { ok: true, text: "先寫會失敗的測試、再寫程式", sub: "每包都留有紅燈、綠燈證據" },
-    { ok: true, text: "發現計畫和程式對不上就停下來問你", sub: "P0-01、P0-03、P0-04 各停過一次，都等你核定才繼續" },
-    { ok: true, text: "沒有推送、沒有合併" },
-    { ok: true, text: "沒有提交機密或測試原始檔", sub: "Claude 掃描三個提交，未發現密碼或 token" },
-    { ok: true, text: "沒有改動產品程式" },
-    { ok: true, text: "Claude 獨立重建結果一致", sub: "建置 0 錯誤、77 警告；測試 735 通過，另 6 個因 Claude 暫存資料夾路徑太長無法執行，與程式無關，在 Codex 的正式資料夾都通過" },
-    { ok: false, text: "P0-04 的 XML 說明檢查是假的通過", sub: "只看設定值、沒看實際結果；已有補充提示詞" }
+  "conduct": [
+    {
+      "ok": true,
+      "text": "一次只做一個工作包，做完才提交"
+    },
+    {
+      "ok": true,
+      "text": "先寫會失敗的測試、再寫程式",
+      "sub": "每包都留有紅燈、綠燈證據"
+    },
+    {
+      "ok": true,
+      "text": "發現計畫和程式對不上就停下來問你",
+      "sub": "P0-01、P0-03、P0-04 各停過一次，都等你核定才繼續"
+    },
+    {
+      "ok": true,
+      "text": "沒有推送、沒有合併"
+    },
+    {
+      "ok": true,
+      "text": "沒有提交機密或測試原始檔",
+      "sub": "Claude 掃描三個提交，未發現密碼或 token"
+    },
+    {
+      "ok": true,
+      "text": "沒有改動產品程式"
+    },
+    {
+      "ok": true,
+      "text": "Claude 獨立重建結果一致",
+      "sub": "建置 0 錯誤、77 警告；測試 735 通過，另 6 個因 Claude 暫存資料夾路徑太長無法執行，與程式無關，在 Codex 的正式資料夾都通過"
+    },
+    {
+      "ok": false,
+      "text": "P0-04 的 XML 說明檢查是假的通過",
+      "sub": "只看設定值、沒看實際結果；已有補充提示詞"
+    }
   ],
-
-  timeline: [
-    { t: "12:30", text: "Codex 建立階段 0 任務與工作資料夾" },
-    { t: "12:48–13:15", text: "自動外部審查試了 8 次，都逾時或登入失效", cls: "bad" },
-    { t: "—", text: "停：發現 24 個原本就失敗的測試 → 你授權先修", cls: "stop" },
-    { t: "—", text: "改由你人工轉交審查包給 Claude；Claude 審查無 Critical" },
-    { t: "14:45", text: "P0-01 提交", cls: "ok" },
-    { t: "14:53", text: "P0-02 提交", cls: "ok" },
-    { t: "—", text: "停：計畫有 2 處和程式對不上 → 你核定修正", cls: "stop" },
-    { t: "15:24", text: "P0-03 提交", cls: "ok" },
-    { t: "15:26", text: "停：計畫指定的設定位置讀不到專案開關 → 你核定改放 targets", cls: "stop" },
-    { t: "15:32", text: "P0-04 測試先失敗（紅燈）" },
-    { t: "15:43", text: "P0-04 自檢 13/13 通過，尚未提交" },
-    { t: "15:45", text: "Claude 查核：XML 說明強制沒有真的生效", cls: "bad" }
+  "timeline": [
+    {
+      "t": "12:30",
+      "text": "Codex 建立階段 0 任務與工作資料夾"
+    },
+    {
+      "t": "12:48–13:15",
+      "text": "自動外部審查試了 8 次，都逾時或登入失效",
+      "cls": "bad"
+    },
+    {
+      "t": "—",
+      "text": "停：發現 24 個原本就失敗的測試 → 你授權先修",
+      "cls": "stop"
+    },
+    {
+      "t": "—",
+      "text": "改由你人工轉交審查包給 Claude；Claude 審查無 Critical"
+    },
+    {
+      "t": "14:45",
+      "text": "P0-01 提交",
+      "cls": "ok"
+    },
+    {
+      "t": "14:53",
+      "text": "P0-02 提交",
+      "cls": "ok"
+    },
+    {
+      "t": "—",
+      "text": "停：計畫有 2 處和程式對不上 → 你核定修正",
+      "cls": "stop"
+    },
+    {
+      "t": "15:24",
+      "text": "P0-03 提交",
+      "cls": "ok"
+    },
+    {
+      "t": "15:26",
+      "text": "停：計畫指定的設定位置讀不到專案開關 → 你核定改放 targets",
+      "cls": "stop"
+    },
+    {
+      "t": "15:32",
+      "text": "P0-04 測試先失敗（紅燈）"
+    },
+    {
+      "t": "15:43",
+      "text": "P0-04 自檢 13/13 通過，尚未提交"
+    },
+    {
+      "t": "15:45",
+      "text": "Claude 查核：XML 說明強制沒有真的生效",
+      "cls": "bad"
+    },
+    {
+      "t": "已核對",
+      "text": "P0-04 文件產出補修 c4e1f294，16／16 可信；原急件已解決",
+      "cls": "ok"
+    },
+    {
+      "t": "本次",
+      "text": "P0-05 保存歷史紅燈與實作提交，新增排除目錄／junction 與空警示容錯測試後轉綠"
+    },
+    {
+      "t": "本次收尾",
+      "text": "P0-05 編碼與轉換 21／21（兩個 PowerShell 版本）、進度頁 3／3、完整方案與 Debug tracer 通過",
+      "cls": "ok"
+    }
   ],
-
-  decisions: [
-    { text: "先修好 24 個原本就失敗的測試，再繼續階段 0" },
-    { text: "外部審查只用 Claude，不用 Gemini" },
-    { text: "外部審查只在階段結束時做一次", sub: "階段 0 在 P0-11 之後、P0-12 之前" },
-    { text: "P0-01 審查的修正項目照做", sub: "已全部處理並提交" },
-    { text: "P0-03 只管實際程式專案；舊的 ASP.NET Core 2.2 套件維持停用" },
-    { text: "P0-04 嚴格設定改放 Directory.Build.targets", sub: "方向正確，但 XML 說明這一項要另外處理" }
+  "decisions": [
+    {
+      "text": "先修好原有 24 個失敗測試，再繼續階段 0"
+    },
+    {
+      "text": "外部審查只使用 Claude，階段末做一次",
+      "sub": "P0-11 提交後、P0-12 前；失敗就準備審查包並等待使用者"
+    },
+    {
+      "text": "P0-04 文件開關放在 csproj 本體，其餘嚴格設定放 targets",
+      "sub": "以實際文件路徑、CS1591、SMQ0001 與 bin XML 驗收，16／16"
+    },
+    {
+      "text": "保留 6b7d5c4b 與 06a4b102 歷史",
+      "sub": "P0-05 正式收尾提交記錄紅燈、實作與最新完整驗證"
+    },
+    {
+      "text": "P0-05 之後先做 P0-ENV，才進入 P0-06"
+    },
+    {
+      "text": "goodshepherdback 清理完成且使用者回報前，任何工具都不得連線",
+      "sub": "P0-ENV 僅處理本機設定、測試與計畫，不連線任何 D365 組織"
+    }
   ],
-
-  prep: [
-    { state: "done", text: "D365 測試組織", sub: "已建立 goodshepherdback（2026-11-02），是正式組織的複本；使用前須先完成「已知風險」第一項的停用與清理" },
-    { state: "todo", text: "測試用 LINE 官方帳號（channel）", sub: "驗收推播時用，不可用教會正式帳號" },
-    { state: "todo", text: "新的強式名稱金鑰", sub: "用 sn -k 產生，放在 repo 外，設定環境變數 SPEECHMESSAGE_PLUGIN_KEYFILE；P0-10 需要" },
-    { state: "todo", text: "輪替已外洩的機密", sub: "CRM 管理員密碼、LINE token、永豐 QPay 金鑰等" },
-    { state: "todo", text: "P0-11 之後轉交階段審查包給 Claude" }
+  "prep": [
+    {
+      "state": "done",
+      "text": "唯一開發測試組織已指定 goodshepherdback",
+      "sub": "使用者確認為正式資料複本；尚未授權任何工具連線"
+    },
+    {
+      "state": "todo",
+      "text": "回報 goodshepherdback 清理完成",
+      "sub": "先停用舊 Plugin／Workflow、取消等候作業、清除正式 LINE token 或換成測試 channel"
+    },
+    {
+      "state": "todo",
+      "text": "測試 LINE channel 與自己的測試帳號",
+      "sub": "不得使用正式 channel／正式收件者做驗收"
+    },
+    {
+      "state": "todo",
+      "text": "新的強式名稱金鑰",
+      "sub": "由使用者產生，置於 repo 外；缺少時 P0-10 僅先驗 Debug，不自行產生"
+    },
+    {
+      "state": "todo",
+      "text": "階段末 ClaudeOnly 審查及 P0-12 人工操作",
+      "sub": "P0-12 步驟寫好後停止等待回報"
+    }
   ],
-
-  risks: [
-    { level: "warn", text: "測試組織 goodshepherdback 是正式組織的複本", sub: "含真實會友個資；舊 Plugin 把聖谷的正式 LINE token 寫死在程式裡，必須先取消系統作業、停用舊 Plugin 步驟與工作流程，否則測試時可能推播給真實會友" },
-    { level: "warn", text: "3 個 .snk 私鑰仍在版控裡", sub: ".gitignore 只擋新檔；舊金鑰視為已外洩，P0-10 換新金鑰時移出" },
-    { level: "warn", text: "ChurchReport 本機開發預設連到 sunnyvalechback", sub: "看起來是正式組織；應改連測試組織，帳密改放 User Secrets" },
-    { level: "info", text: "76 個套件弱點警告（NU1902 ×20、NU1903 ×56）", sub: "開工前就有，本階段不處理" },
-    { level: "info", text: "Trace 專案有 3 個 Big5 編碼檔", sub: "P0-05 編碼盤點時處理" },
-    { level: "info", text: "ChurchReport 的 NuGet.config 指向本機 DevExpress 路徑", sub: "其他電腦可能還原失敗" },
-    { level: "info", text: "PowerShell 5.1 讀無 BOM 腳本時，中文註解會變亂碼", sub: "不影響執行；P0-05 加檢查" }
+  "risks": [
+    {
+      "level": "warn",
+      "text": "goodshepherdback 是正式資料複本，尚未回報清理完成",
+      "sub": "含真實個資與正式 LINE token；本次所有驗證均只在本機，不連線 D365"
+    },
+    {
+      "level": "warn",
+      "text": "三個舊 .snk 仍受追蹤",
+      "sub": "P0-10 移除 LinePayCSharp 與 Trace 的舊金鑰追蹤，保留本機檔；nsspi key.snk 不動"
+    },
+    {
+      "level": "warn",
+      "text": "Development 的 LINE token 退回邏輯尚待 P0-ENV 調查",
+      "sub": "若必須改產品程式才能阻止使用正式 token，依核定停止回報"
+    },
+    {
+      "level": "info",
+      "text": "既有套件弱點與 CS1572 警告保留",
+      "sub": "先前 Release 77 個警告；本包不升級其他套件或降低檢查"
+    },
+    {
+      "level": "info",
+      "text": "舊檔編碼問題只建立基準",
+      "sub": "不批次改寫 Trace、Line.Messaging 或 ChurchReport；CCG 原始機器紀錄保留原始位元組"
+    }
   ]
 };
 
@@ -537,14 +826,19 @@ document.getElementById("meta").innerHTML =
   `<span>資料快照：${esc(D.snapshot)}</span><span>分支 ${esc(D.branch)}</span><span>${esc(D.worker)}</span>`;
 document.getElementById("headline").innerHTML = D.headline;
 
-document.getElementById("alert").innerHTML = `
+const alertRegion = document.getElementById("alert");
+alertRegion.hidden = !D.alert;
+if (D.alert) {
+  const hasPrompt = typeof D.alert.prompt === "string" && D.alert.prompt.trim().length > 0;
+  const alertSteps = Array.isArray(D.alert.steps) ? D.alert.steps : [];
+  alertRegion.innerHTML = `
   <div class="title">${ICON.alert.replace('aria-hidden="true"', 'aria-hidden="true" width="22" height="22"')}<span>${esc(D.alert.title)}</span></div>
-  <p>${esc(D.alert.body)}</p>
-  <ol>${D.alert.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
-  <div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
-  <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>`;
+  <p>${esc(D.alert.body || "")}</p>
+  <ol>${alertSteps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
+  ${hasPrompt ? `<div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
+  <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>` : ""}`;
 
-document.getElementById("copyBtn").addEventListener("click", async () => {
+if (hasPrompt) document.getElementById("copyBtn").addEventListener("click", async () => {
   const text = D.alert.prompt;
   const done = msg => { document.getElementById("copied").textContent = msg; };
   try {
@@ -563,6 +857,7 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
     done(ok ? "已複製，可以貼到 Codex 了" : "無法自動複製，請展開全文後手動選取");
   }
 });
+}
 
 document.getElementById("tiles").innerHTML = D.tiles.map(t => `
   <div class="tile card">

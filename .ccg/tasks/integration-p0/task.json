@@ -6,11 +6,11 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P0-04 文件產生補修驗證通過，另作修正提交後接續 P0-05。",
+  "nextAction": "提交 P0-05 收尾後執行 P0-ENV；只做本機設定與調查，不連線任何 D365。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
-  "currentWorkPackage": "P0-04",
+  "currentWorkPackage": "P0-05",
   "stopReason": null,
   "reviewPolicy": "Only one stage-end review after P0-11; user selected Claude-only; P0-01 manual review delivered and accepted.",
   "reviewBlocker": null

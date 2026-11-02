@@ -1,0 +1,29 @@
+
+
+
+
+
+Describing Repository text encoding and lossless conversion contracts
+ [+] Utf8NoBomCrlf_ChangedFile_Passes 1.08s
+ [+] Utf8Bom_ChangedFile_FailsWithBom 819ms
+ [+] LfOnly_ChangedFile_FailsWithLineEndings 664ms
+ [+] Cp950_ChangedFile_FailsWithInvalidUtf8 740ms
+ [+] MissingFinalNewline_ChangedFile_Fails 649ms
+ [+] ReplacementCharacter_ChangedFile_Fails 650ms
+ [+] PowerShell_ChineseOnlyInComment_Passes 668ms
+ [+] PowerShell_ChineseInString_Fails 682ms
+ [+] AllScope_InvalidFile_ReportsWithoutFailingBuild 662ms
+ [+] AllScope_DoesNotReadOutsideRepository 633ms
+ [+] AllScope_TrackedAndExcludedPaths_OnlyScansAllowedTrackedSource 787ms
+ [+] AllScope_TrackedPathCrossesJunction_RejectsBeforeReadingExternalContent 753ms
+ [+] ChangedScope_UnchangedBadFile_IsNotScanned 730ms
+ [+] ConvertCp950_Apply_PreservesChineseAndWritesUtf8 678ms
+ [+] Convert_DefaultDryRun_DoesNotWriteSource 628ms
+ [+] Convert_ExplicitDryRun_DoesNotWriteSource 632ms
+ [+] Convert_InvalidEncoding_LeavesOriginalUntouched 649ms
+ [+] Convert_MultilineChineseLiteralWouldChange_RefusesWrite 588ms
+ [+] Convert_Utf16Bom_ProducesExpectedUtf8Bytes 619ms
+ [+] Convert_ManifestMatchesLaterInput_RejectsBeforeAnyWrite 565ms
+ [+] Convert_DuplicateStablePath_RejectsBeforeAnyWrite 522ms
+Tests completed in 14.4s
+Passed: 21 Failed: 0 Skipped: 0 Pending: 0 Inconclusive: 0

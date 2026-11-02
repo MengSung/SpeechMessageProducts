@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "依既有計畫執行階段 0；P0-01～P0-03 已提交，P0-04 targets 修正已核定，繼續 TDD。",
+  "description": "階段 0 已完成 P0-01～P0-05 本機驗證；本次為 P0-05 收尾提交，接著處理 P0-ENV。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -21,20 +21,22 @@
   "children": [],
   "parent": "11-02-integration-v32",
   "relatedFiles": [],
-  "notes": "P0-04 文件產生補修驗證通過（16／16），待補修提交後繼續 P0-05；P0-05 紅燈已保留。",
+  "notes": "P0-05 完整驗證通過；保留 6b7d5c4b／06a4b102 歷史。提交後才啟動 P0-ENV，本次沒有任何 D365 連線。",
   "meta": {
-    "currentWorkPackage": "P0-04",
+    "currentWorkPackage": "P0-05",
     "userRequestedStop": false,
     "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-04.md",
+    "report": "wp-reports/P0-05.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
     "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
-      "P0-03": "d1c92d83"
+      "P0-03": "d1c92d83",
+      "P0-04": "c4e1f294",
+      "P0-05": "本次 P0-05 收尾提交（初版實作 06a4b102；紅燈 6b7d5c4b）"
     }
   }
 }

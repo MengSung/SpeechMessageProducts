@@ -1,0 +1,40 @@
+
+
+
+
+
+Describing Repository text encoding and lossless conversion contracts
+ [+] Utf8NoBomCrlf_ChangedFile_Passes 1.14s
+ [+] Utf8Bom_ChangedFile_FailsWithBom 622ms
+ [+] LfOnly_ChangedFile_FailsWithLineEndings 587ms
+ [+] Cp950_ChangedFile_FailsWithInvalidUtf8 563ms
+ [+] MissingFinalNewline_ChangedFile_Fails 588ms
+ [+] ReplacementCharacter_ChangedFile_Fails 566ms
+ [+] PowerShell_ChineseOnlyInComment_Passes 595ms
+ [+] PowerShell_ChineseInString_Fails 647ms
+ [+] AllScope_InvalidFile_ReportsWithoutFailingBuild 558ms
+ [+] AllScope_DoesNotReadOutsideRepository 572ms
+ [-] AllScope_TrackedAndExcludedPaths_OnlyScansAllowedTrackedSource 741ms
+   Expected: {Text encoding: scope=All checked=5 excluded=0 filesWithIssues=4} to match the expression {checked=1 }
+   159:         $result.Output | Should Match 'checked=1 '
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 159
+ [-] AllScope_TrackedPathCrossesJunction_RejectsBeforeReadingExternalContent 653ms
+   Expected: {# Text encoding inventory
+   Scope: All; checked=2; excluded=0; filesWithIssues=1.
+   | File | Issues |
+   | --- | --- |
+   | linked/foreign.cs | NonCrlfLineEndings, MissingFinalCrlf |
+   } to match the expression {UnsafePath}
+   178:             $report | Should Match 'UnsafePath'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 178
+ [+] ChangedScope_UnchangedBadFile_IsNotScanned 604ms
+ [+] ConvertCp950_Apply_PreservesChineseAndWritesUtf8 616ms
+ [+] Convert_DefaultDryRun_DoesNotWriteSource 540ms
+ [+] Convert_ExplicitDryRun_DoesNotWriteSource 581ms
+ [+] Convert_InvalidEncoding_LeavesOriginalUntouched 524ms
+ [+] Convert_MultilineChineseLiteralWouldChange_RefusesWrite 519ms
+ [+] Convert_Utf16Bom_ProducesExpectedUtf8Bytes 528ms
+ [+] Convert_ManifestMatchesLaterInput_RejectsBeforeAnyWrite 469ms
+ [+] Convert_DuplicateStablePath_RejectsBeforeAnyWrite 892ms
+Tests completed in 13.11s
+Passed: 19 Failed: 2 Skipped: 0 Pending: 0 Inconclusive: 0

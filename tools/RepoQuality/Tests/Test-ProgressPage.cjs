@@ -1,0 +1,64 @@
+// 驗證真實進度頁的渲染程式；小型 DOM 測試替身只記錄可見內容與事件，不執行外部連線。
+// 注入無警示、無提示詞與正常提示詞三種資料，保護空值容錯與既有複製功能。
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const root = path.resolve(__dirname, '../../..');
+const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫/實作進度.html'), 'utf8');
+const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
+const dataStart = script.indexOf('const DATA = {');
+const dataEnd = script.indexOf('\n};', dataStart) + 3;
+const original = vm.runInNewContext(script.slice(dataStart, dataEnd) + '\nDATA;');
+
+// 每個案例持有自己的 DOM 與資料副本，避免警示事件或內容從上一個案例滲入。
+function render(alert) {
+  const elements = new Map();
+  class Element {
+    constructor(id) { this.id = id; this.hidden = false; this.listeners = new Map(); this.children = []; this.content = ''; }
+    set innerHTML(value) {
+      for (const id of this.children) elements.delete(id);
+      this.children = [];
+      this.content = String(value);
+      for (const match of this.content.matchAll(/\bid="([^"]+)"/g)) {
+        elements.set(match[1], new Element(match[1]));
+        this.children.push(match[1]);
+      }
+    }
+    get innerHTML() { return this.content; }
+    addEventListener(name, listener) { this.listeners.set(name, listener); }
+  }
+  for (const match of html.slice(0, html.lastIndexOf('<script>')).matchAll(/\bid="([^"]+)"/g)) {
+    elements.set(match[1], new Element(match[1]));
+  }
+  const data = JSON.parse(JSON.stringify(original));
+  data.alert = alert;
+  const source = script.slice(0, dataStart) + 'const DATA = ' + JSON.stringify(data) + ';' + script.slice(dataEnd);
+  vm.runInNewContext(source, { document: { getElementById: id => elements.get(id) || null }, navigator: {} });
+  return elements;
+}
+
+test('No alert hides the warning region and still renders the page', () => {
+  const elements = render(null);
+  assert.equal(elements.get('alert').hidden, true);
+  assert.equal(elements.has('copyBtn'), false);
+  assert.match(elements.get('meta').innerHTML, /1\.0\.0\.11\.Integration\.P0/);
+  assert.match(elements.get('wps').innerHTML, /P0-05/);
+});
+
+test('Alert without prompt omits copy button and full prompt area', () => {
+  const elements = render({ title: 'Pending input', body: 'Local check only', steps: [] });
+  assert.equal(elements.get('alert').hidden, false);
+  assert.match(elements.get('alert').innerHTML, /Pending input/);
+  assert.equal(elements.has('copyBtn'), false);
+  assert.equal(elements.has('promptText'), false);
+});
+
+test('Alert with prompt preserves escaped prompt and copy handler', () => {
+  const elements = render({ title: 'Review', body: 'Synthetic text', steps: [], prompt: '<sample>' });
+  assert.equal(elements.get('alert').hidden, false);
+  assert.equal(elements.get('copyBtn').listeners.has('click'), true);
+  assert.match(elements.get('alert').innerHTML, /&lt;sample&gt;/);
+});

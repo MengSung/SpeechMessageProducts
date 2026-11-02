@@ -3,7 +3,7 @@
 檢查差異檔案的 UTF-8 無 BOM、CRLF 與 PowerShell 非 ASCII 邊界，或唯讀產生全量盤點。
 .DESCRIPTION
 Changed 只採 git diff 的新增／修改／重新命名路徑；未追蹤新檔須先暫存，避免把本機診斷封包混入發布差異。
-All 讀取已追蹤及未忽略新檔，只輸出舊問題報告、不因既有格式問題讓建置失敗。
+All 只讀取此工作樹的 Git 追蹤檔，不沿 reparse point 讀取外部內容；只輸出舊問題報告。
 報告只保存路徑與原因，不保存來源文字、個資或憑證；每檔讀取完成即釋放區域參照。
 .PARAMETER Scope
 Changed 作為發布守門，All 僅供盤點。
@@ -31,27 +31,43 @@ try {
     }
     else {
         if (-not $ReportPath) { throw 'All scope requires ReportPath.' }
-        [string]$listing = Invoke-TextQualityGit -Root $root -Arguments @('ls-files','--cached','--others','--exclude-standard','-z')
+        # All 只代表版控中的來源快照；未追蹤檔可能是外部工具輸出或機密，禁止被全量盤點吸入。
+        [string]$listing = Invoke-TextQualityGit -Root $root -Arguments @('ls-files','--cached','-z')
     }
     [string[]]$paths = @($listing.Split([char]0) | Where-Object { $_ })
     [array]::Sort($paths, [StringComparer]::Ordinal)
     $extensions = @('.cs','.cshtml','.csproj','.props','.targets','.json','.md','.ps1','.resx','.xml','.yml')
     $violations = New-Object 'Collections.Generic.List[object]'
     $checked = 0
+    $excluded = 0
     foreach ($relative in $paths) {
         $extension = [IO.Path]::GetExtension($relative).ToLowerInvariant()
         if ($extensions -notcontains $extension) { continue }
+        # 即使誤被追蹤，也不讀取其他工作樹、參考舊方案或建置產物。
+        if ($relative -match '(^|/)(\.worktrees|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848|bin|obj)(/|$)') { $excluded++; continue }
+        # 僅排除具時間戳記的 CCG 原始執行目錄；手寫提示詞與審查包仍須接受編碼守門。
+        # 機器產出的 prompt/stdout/stderr 保留原始位元組，不以修格式改寫診斷證據。
+        if ($relative -match '^\.ccg/dual-model-runs/[0-9]{8}-[0-9]{6}-[^/]+/') { $excluded++; continue }
         $path = Join-Path $root $relative
         if (-not [IO.File]::Exists($path)) { continue }
         $checked++
-        $issues = @(Get-TextByteIssues -Bytes ([IO.File]::ReadAllBytes($path)) -Extension $extension)
+        $rootPrefix = [IO.Path]::GetFullPath($root).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+        $safe = [IO.Path]::GetFullPath($path).StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)
+        $cursor = $root
+        foreach ($segment in $relative.Split([char]'/')) {
+            if (-not $safe) { break }
+            $cursor = Join-Path $cursor $segment
+            if (([IO.File]::GetAttributes($cursor) -band [IO.FileAttributes]::ReparsePoint) -ne 0) { $safe = $false }
+        }
+        if (-not $safe) { $issues = @('UnsafePath') }
+        else { $issues = @(Get-TextByteIssues -Bytes ([IO.File]::ReadAllBytes($path)) -Extension $extension) }
         if ($issues.Count -gt 0) { $violations.Add([pscustomobject]@{ Path = $relative; Issues = $issues }) }
     }
     if ($ReportPath) {
         $report = New-Object 'Collections.Generic.List[string]'
         $report.Add('# Text encoding inventory')
         $report.Add('')
-        $report.Add("Scope: $Scope; checked=$checked; filesWithIssues=$($violations.Count).")
+        $report.Add("Scope: $Scope; checked=$checked; excluded=$excluded; filesWithIssues=$($violations.Count).")
         $report.Add('')
         $report.Add('| File | Issues |')
         $report.Add('| --- | --- |')
@@ -61,7 +77,7 @@ try {
         [IO.File]::WriteAllText($destination, ($report -join "`r`n") + "`r`n", (New-Object Text.UTF8Encoding($false)))
     }
     if ($Scope -eq 'Changed') { foreach ($violation in $violations) { Write-Output ("FAIL $($violation.Path): " + ($violation.Issues -join ', ')) } }
-    Write-Output "Text encoding: scope=$Scope checked=$checked filesWithIssues=$($violations.Count)"
+    Write-Output "Text encoding: scope=$Scope checked=$checked excluded=$excluded filesWithIssues=$($violations.Count)"
     if ($Scope -eq 'Changed' -and $violations.Count -gt 0) { exit 1 }
     exit 0
 }
