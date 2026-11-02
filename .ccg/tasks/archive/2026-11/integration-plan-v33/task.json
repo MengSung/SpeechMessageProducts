@@ -1,0 +1,13 @@
+{
+  "id": "integration-plan-v33",
+  "title": "實作計畫改版為 3.3，保留 3.2 凍結副本",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "docs",
+  "currentPhase": "completed",
+  "nextAction": "本次文件已核對與驗證，隨獨立文件提交歸檔；接續既有 P0-SEC 任務。",
+  "createdAt": "2026-11-02T12:38:22.972281+00:00",
+  "branch": "1.0.0.11.Integration.P0",
+  "approval": "使用者已指定 3.3 並明確核定獨立文件提交。"
+}

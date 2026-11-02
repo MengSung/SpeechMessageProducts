@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../../..');
-const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫/實作進度.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.3/實作進度.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
 const dataStart = script.indexOf('const DATA = {');
 const dataEnd = script.indexOf('\n};', dataStart) + 3;

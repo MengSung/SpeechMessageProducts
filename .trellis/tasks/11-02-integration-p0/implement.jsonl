@@ -1,5 +1,5 @@
 {"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
 {"file": "AGENTS.md", "reason": "發布阻擋規則"}
 {"file": ".trellis/spec/backend/index.md", "reason": "後端規範入口"}
-{"file": "文件/規劃設計書/實作計畫/00_總覽與執行規則.md", "reason": "跨 WP 執行及停止規則"}
-{"file": "文件/規劃設計書/實作計畫/01_階段0_準備守門與可行性驗證.md", "reason": "階段 0 工作包與測試清單"}
+{"file": "文件/規劃設計書/實作計畫-3.3/00_總覽與執行規則.md", "reason": "跨 WP 執行及停止規則"}
+{"file": "文件/規劃設計書/實作計畫-3.3/01_階段0_準備守門與可行性驗證.md", "reason": "階段 0 工作包與測試清單"}
