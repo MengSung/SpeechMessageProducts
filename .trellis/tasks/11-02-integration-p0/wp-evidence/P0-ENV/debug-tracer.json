@@ -1,0 +1,17 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "ToolUtility.Dataverse.Tests",
+    "-c",
+    "Debug",
+    "--filter",
+    "FullyQualifiedName~FileToolUtilityTracerTests",
+    "--nologo"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 11.61,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:     7, Skipped:     0, Total:     7, Duration: 46 ms - ToolUtility.Dataverse.Tests.dll (net10.0)"
+  ]
+}

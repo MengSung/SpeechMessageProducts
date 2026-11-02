@@ -1,0 +1,8 @@
+{
+  "comparisonBase": "24cca555",
+  "comparisonMethod": "git cat-file --filters versus working bytes (honors CRLF checkout conversion)",
+  "filesUnchanged": {
+    "SpeechMessageProducts.ChurchReport/appsettings.json": true,
+    "SpeechMessageProducts.ChurchReport/appsettings.Production.json": true
+  }
+}

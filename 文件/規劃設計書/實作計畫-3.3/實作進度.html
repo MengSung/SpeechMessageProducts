@@ -350,45 +350,45 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-02（P0-SEC 本機驗證完成）",
+  "snapshot": "2026-11-02（P0-ENV 本機驗證完成）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "依<strong>實作計畫 3.3</strong>執行階段 0：P0-01～P0-05 已提交，P0-SEC 已完成 25 紅→綠與 Release 766／766；本次收尾提交後接續 <strong>P0-ENV</strong>。3.2 凍結，不連線 D365／LINE。",
+  "headline": "依<strong>實作計畫 3.3</strong>執行階段 0：P0-SEC 已提交 24cca555；P0-ENV 五個設定契約紅→綠、Release 771／771，收尾提交後接續 <strong>P0-06</strong>。不連線 D365／LINE，3.2 凍結。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "6",
+      "value": "7",
       "unit": "/ 80 工作包",
       "sub": "依 3.3 計畫，含 P0-SEC、P0-ENV 與新增佈署工作包",
       "meter": {
-        "done": 6,
+        "done": 7,
         "active": 0,
         "total": 80
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "6",
+      "value": "7",
       "unit": "/ 15 工作包",
-      "sub": "P0-SEC 收尾提交後接續 P0-ENV",
+      "sub": "P0-ENV 收尾後接續 P0-06",
       "meter": {
-        "done": 6,
+        "done": 7,
         "active": 0,
         "total": 15
       }
     },
     {
       "label": "完整 Release 測試",
-      "value": "766",
-      "unit": "/ 766 通過",
-      "sub": "P0-SEC：原 741 全保留，加 25 新案例"
+      "value": "771",
+      "unit": "/ 771 通過",
+      "sub": "P0-ENV：原 766 加 5 個設定契約"
     },
     {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "P0-SEC 增量建置 76 警告，0 錯誤"
+      "sub": "P0-ENV 增量建置 76 警告，0 錯誤"
     }
   ],
   "wps": [
@@ -436,13 +436,14 @@ const DATA = {
       "name": "防止 Development 使用正式 LINE token 與非測試組織",
       "status": "done",
       "note": "11＋1 讀取點接上 Development 覆寫，Production 不增加 provider；25／25、Release 766／766、Debug tracer 7／7。P0-ENV 前 CRM 尚未覆寫，開發啟動預期拒絕。",
-      "commit": "本次收尾提交"
+      "commit": "24cca555"
     },
     {
       "id": "P0-ENV",
       "name": "指定 goodshepherdback 為開發測試組織",
-      "status": "todo",
-      "note": "P0-SEC 提交後處理 goodshepherdback／User Secrets／Web API 停用設定與有效設定盤點，只做本機測試。"
+      "status": "done",
+      "note": "CRM／QPAY 指向 goodshepherdback，帳密由 secrets 提供，基底憑證空白遮蔽，Web API 關閉；5／5、Release 771／771、Debug tracer 7／7；22 個端點鍵已盤點，付款實測待 P4。",
+      "commit": "本次收尾提交"
     },
     {
       "id": "P0-06",
@@ -505,7 +506,7 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 15,
-      "done": 6,
+      "done": 7,
       "active": 0,
       "current": true
     },
@@ -578,8 +579,8 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "766 過／0 失敗",
-      "note": "P0-SEC 完整重跑，原 741 加 25"
+      "after": "771 過／0 失敗",
+      "note": "P0-ENV 完整重跑，原 766 加 5"
     },
     {
       "item": "Release 建置警告",
@@ -751,6 +752,11 @@ const DATA = {
     {
       "t": "本次",
       "text": "P0-SEC 25 個功能紅燈轉綠；Release 766／766、Debug tracer 7／7，未連線外部系統。",
+      "cls": "ok"
+    },
+    {
+      "t": "本次",
+      "text": "P0-ENV 五個設定紅燈轉綠，Release 771／771；正式回呼保留並記錄限制，不進行付款或外部連線。",
       "cls": "ok"
     }
   ],

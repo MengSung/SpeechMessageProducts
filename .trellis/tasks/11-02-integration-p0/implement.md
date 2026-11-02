@@ -7,8 +7,8 @@
 - [x] P0-03 CPM 與版本統一；套件守門紅燈 113 項、綠燈 0 項，完整驗證通過。
 - [x] P0-04 新專案分析器與禁用 API；原 13 項守門加 3 項 XML 文件檢查，共 16 項，Release 與 Debug tracer 全數通過。
 - [x] P0-05 編碼工具；編碼測試 21／21（PS 5.1／7）、進度頁 3／3、All 基準及全階段 Changed 驗證通過，已提交 ba565a55。
-- [x] P0-SEC 已完成 25 紅→綠、Release 766／766、Debug tracer 7／7；接續完整收尾提交。
-- [ ] P0-ENV 安全阻擋已由 P0-SEC 處理；P0-SEC 提交後接續本機設定 TDD，不連線 D365。
+- [x] P0-SEC 已提交 24cca555；25 紅→綠、Release 766／766、Debug tracer 7／7。
+- [x] P0-ENV 五個設定紅→綠、Release 771／771、Debug tracer 7／7；端點盤點完成，收尾後提交。
 - [ ] P0-06 重複程式掃描；先跑跨專案副本與基準棘輪測試。
 - [ ] P0-07 I18nCheck；先跑原計畫全部 Roslyn、resx、偽語系與產生器測試。
 - [ ] P0-08 Localization 骨架；先跑雙目標取字、不可變與併行配置測試。

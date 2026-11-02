@@ -1,0 +1,117 @@
+{
+  "configurationSources": "repo base + Development JSON only; no real User Secrets or environment values read",
+  "networkAccess": false,
+  "hostInventory": [
+    {
+      "key": "LineLogin:CallbackUrl",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged production callback/entrypoint; do not exercise as Development acceptance target"
+    },
+    {
+      "key": "MiniApp:EndpointBaseUrl",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged production callback/entrypoint; do not exercise as Development acceptance target"
+    },
+    {
+      "key": "MiniApp:PrivacyPolicyUrl",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged production callback/entrypoint; do not exercise as Development acceptance target"
+    },
+    {
+      "key": "Payment:Profiles:JesusTest:Endpoints:ApiBaseUrl",
+      "host": "sandbox.sinopac.com",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "Payment:Profiles:MyPayProduction:Endpoints:ApiBaseUrl",
+      "host": "ka.usecase.cc",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "Payment:Profiles:TaishinSandbox:Endpoints:ApiBaseUrl",
+      "host": "tspg-t.taishinbank.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "Sinopac:Site",
+      "host": "api.sinopac.com",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "Sandbox:Site_Xkey",
+      "host": "apisbx.sinopac.com",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "Sandbox:Site",
+      "host": "sandbox.sinopac.com",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "MyPay:Url",
+      "host": "ka.usecase.cc",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "MyPay:NotifyUrl",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "MyPay:SuccessReturl",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "MyPay:FailureReturl",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "RETURN_URL",
+      "host": "sunnyvalechback.speechmessage.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "BACKEND_URL",
+      "host": "qpaybackend.speechmessage.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "TSPG:ApiBaseUrl",
+      "host": "tspg-t.taishinbank.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "TSPG:TestApiRoot",
+      "host": "tspg-t.taishinbank.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "TSPG:POST_BACK_URL",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "TSPG:RESULT_URL",
+      "host": "jesus.speechmessage.com.tw",
+      "handling": "Unchanged; no Development payment testing before P4"
+    },
+    {
+      "key": "DynamicsAccess:Embedded:OrganizationWebApiBaseUri",
+      "host": "sunnyvalechback.speechmessage.com.tw",
+      "handling": "Package01FeeReadsEnabled=false; inactive until ADFS validation"
+    },
+    {
+      "key": "DynamicsAccess:Embedded:AuthorityUri",
+      "host": "adfsdev91.speechmessage.com.tw",
+      "handling": "Package01FeeReadsEnabled=false; inactive until ADFS validation"
+    },
+    {
+      "key": "DynamicsAccess:Embedded:ResourceUri",
+      "host": "sunnyvalechback.speechmessage.com.tw",
+      "handling": "Package01FeeReadsEnabled=false; inactive until ADFS validation"
+    }
+  ],
+  "otherNonTestOrganizationStringKeys": []
+}

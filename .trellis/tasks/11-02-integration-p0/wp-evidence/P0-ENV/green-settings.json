@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "ChurchReport.MemberInfo.Tests",
+    "-c",
+    "Release",
+    "--no-build",
+    "--filter",
+    "FullyQualifiedName~DevelopmentOrganizationSettingsTests",
+    "--nologo"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 1.6,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:     5, Skipped:     0, Total:     5, Duration: 39 ms - ChurchReport.MemberInfo.Tests.dll (net10.0)"
+  ]
+}
