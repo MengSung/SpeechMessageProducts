@@ -1,0 +1,40 @@
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.AspNetCore.Tests\bin\Release\net10.0\LineMessagingProcessor.AspNetCore.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\Line.Messaging.Tests\bin\Release\net10.0\Line.Messaging.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Tests\bin\Release\net10.0\LineMessagingProcessor.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Workflows.Tests\bin\Release\net10.0\LineMessagingProcessor.Workflows.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.RichMenus.Tests\bin\Release\net10.0\LineMessagingProcessor.RichMenus.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility.Dataverse.Tests\bin\Release\net10.0\ToolUtility.Dataverse.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Payments.Tests\bin\Release\net10.0\SpeechMessage.Payments.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_31_net10.0.trx
+
+已通過! - 失敗:     0，通過:    33，略過:     0，總計:    33，持續時間: 31 ms - LineMessagingProcessor.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_31_net10.0[1].trx
+
+已通過! - 失敗:     0，通過:    32，略過:     0，總計:    32，持續時間: 123 ms - Line.Messaging.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_31_net10.0[2].trx
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_31_net10.0[3].trx
+
+
+已通過! - 失敗:     0，通過:    33，略過:     0，總計:    33，持續時間: 238 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)
+已通過! - 失敗:     0，通過:    34，略過:     0，總計:    34，持續時間: 102 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_31_net10.0[4].trx
+
+已通過! - 失敗:     0，通過:    55，略過:     0，總計:    55，持續時間: 151 ms - SpeechMessage.Payments.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_31_net10.0[5].trx
+
+已通過! - 失敗:     0，通過:     4，略過:     0，總計:     4，持續時間: 235 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_32_net10.0.trx
+
+已通過! - 失敗:     0，通過:    79，略過:     0，總計:    79，持續時間: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\wp-evidence\P0-03\trx-release\Administrator_LENOVO-LEGION_2026-11-02_15_17_32_net10.0[1].trx
+
+已通過! - 失敗:     0，通過:   471，略過:     0，總計:   471，持續時間: 6 s - ChurchReport.MemberInfo.Tests.dll (net10.0)

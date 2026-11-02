@@ -1,0 +1,584 @@
+{
+  "trackedCsprojCount": 29,
+  "solutionProjectCount": 19,
+  "projects": [
+    {
+      "project": ".ccg/tasks/archive/2026-11/subagent-goal-word-tutorial/docx-generator/SubagentGoalDocx.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        }
+      ]
+    },
+    {
+      "project": "Line.Messaging.Tests/Line.Messaging.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.EnvironmentVariables",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.Json",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "Line.Messaging/Line.Messaging.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "Line.Messaging/Line.Messaging_Net10.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessor.AspNetCore.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        }
+      ]
+    },
+    {
+      "project": "LineMessagingProcessor.AspNetCore/LineMessagingProcessor.AspNetCore.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "LineMessagingProcessor.RichMenus.Tests/LineMessagingProcessor.RichMenus.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "LineMessagingProcessor.RichMenus/LineMessagingProcessor.RichMenus.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "LineMessagingProcessor.Workflows.Tests/LineMessagingProcessor.Workflows.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "LineMessagingProcessor.Workflows/LineMessagingProcessor.Workflows.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "LineMessagingProcessor/LineMessagingProcessor.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.Extensions.Configuration",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.Abstractions",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.EnvironmentVariables",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.Json",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        },
+        {
+          "Include": "RestSharp",
+          "Version": "112.1.0"
+        }
+      ]
+    },
+    {
+      "project": "LineMessagingProcessor/LineMessagingProcessor_Net10.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        },
+        {
+          "Include": "RestSharp",
+          "Version": "112.1.0"
+        }
+      ]
+    },
+    {
+      "project": "LinePayCSharp/LinePayCSharp.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.4"
+        }
+      ]
+    },
+    {
+      "project": "PowerPlatform.Dataverse.Client/NSspi/NSspi.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "System.Security.Principal.Windows",
+          "Version": "4.5.1"
+        }
+      ]
+    },
+    {
+      "project": "PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.IdentityModel.Protocols.WsTrust",
+          "Version": "6.8.0"
+        },
+        {
+          "Include": "Microsoft.PowerPlatform.Dataverse.Client",
+          "Version": "1.1.32"
+        },
+        {
+          "Include": "System.Security.Cryptography.Xml",
+          "Version": "10.0.11"
+        },
+        {
+          "Include": "System.ServiceModel.Federation",
+          "Version": "10.0.652802"
+        },
+        {
+          "Include": "System.ServiceModel.Http",
+          "Version": "10.0.652802"
+        },
+        {
+          "Include": "System.ServiceModel.Primitives",
+          "Version": "10.0.652802"
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessage.Payments.AspNetCore/SpeechMessage.Payments.AspNetCore.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "SpeechMessage.Payments.Tests/SpeechMessage.Payments.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.Json",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.DependencyInjection",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Http",
+          "Version": "10.0.0"
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessage.Payments.Workflows/SpeechMessage.Payments.Workflows.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "SpeechMessage.Payments/SpeechMessage.Payments.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.Extensions.DependencyInjection.Abstractions",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Http",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Logging.Abstractions",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Options",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Options.ConfigurationExtensions",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "DevExtreme.AspNet.Core",
+          "Version": "23.1.5"
+        },
+        {
+          "Include": "DevExtreme.AspNet.Data",
+          "Version": "5.1.0"
+        },
+        {
+          "Include": "Microsoft.AspNet.WebApi.Client",
+          "Version": "6.0.0"
+        },
+        {
+          "Include": "Microsoft.AspNetCore.Mvc.NewtonsoftJson",
+          "Version": "10.0.0"
+        },
+        {
+          "Include": "SixLabors.ImageSharp",
+          "Version": "3.1.12"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.3"
+        }
+      ]
+    },
+    {
+      "project": "ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "Moq",
+          "Version": "4.20.70"
+        }
+      ]
+    },
+    {
+      "project": "ToolUtility.Tests/ToolUtility.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "Moq",
+          "Version": "4.20.70"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        },
+        {
+          "Include": "coverlet.collector",
+          "Version": "6.0.0"
+        },
+        {
+          "Include": "coverlet.msbuild",
+          "Version": "6.0.0"
+        },
+        {
+          "Include": "Microsoft.CrmSdk.CoreAssemblies",
+          "Version": "9.0.2.56"
+        },
+        {
+          "Include": "Microsoft.Extensions.Logging.Abstractions",
+          "Version": "9.0.0"
+        }
+      ]
+    },
+    {
+      "project": "ToolUtility/ToolUtility.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.Extensions.Caching.Abstractions",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Caching.Memory",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.Abstractions",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Configuration.Binder",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.DependencyInjection",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.DependencyInjection.Abstractions",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Http",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Logging",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Logging.Abstractions",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Options",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Extensions.Primitives",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "Microsoft.Identity.Client",
+          "Version": "4.87.0"
+        },
+        {
+          "Include": "Microsoft.Identity.Client.Extensions.Msal",
+          "Version": "4.87.0"
+        },
+        {
+          "Include": "Newtonsoft.Json",
+          "Version": "13.0.4"
+        },
+        {
+          "Include": "System.ComponentModel.Annotations",
+          "Version": "5.0.0"
+        },
+        {
+          "Include": "System.IO.FileSystem.AccessControl",
+          "Version": "5.0.0"
+        },
+        {
+          "Include": "System.Security.Cryptography.ProtectedData",
+          "Version": "10.0.11"
+        },
+        {
+          "Include": "System.ServiceModel.Http",
+          "Version": "10.0.652802"
+        },
+        {
+          "Include": "System.ServiceModel.Primitives",
+          "Version": "10.0.652802"
+        },
+        {
+          "Include": "System.DirectoryServices",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "System.DirectoryServices.AccountManagement",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "System.Drawing.Common",
+          "Version": "9.0.0"
+        },
+        {
+          "Include": "System.Text.Encoding.CodePages",
+          "Version": "9.0.0",
+          "NoWarn": "NU1510"
+        }
+      ]
+    },
+    {
+      "project": "Trace/Trace.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "Trace/Trace_Fixed.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "Trace/Trace_Net10.csproj",
+      "activePackageReferences": []
+    },
+    {
+      "project": "docs/portable/member-info-portable-kit/reference-implementation/tests/ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj",
+      "activePackageReferences": [
+        {
+          "Include": "Microsoft.NET.Test.Sdk",
+          "Version": "17.8.0"
+        },
+        {
+          "Include": "xunit",
+          "Version": "2.6.6"
+        },
+        {
+          "Include": "xunit.runner.visualstudio",
+          "Version": "2.5.6"
+        },
+        {
+          "Include": "FluentAssertions",
+          "Version": "6.12.0"
+        }
+      ]
+    }
+  ],
+  "packageFilesModified": false
+}

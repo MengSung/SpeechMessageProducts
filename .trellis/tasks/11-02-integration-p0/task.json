@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "依既有計畫執行階段 0；已保存 P0-01 基準，使用者要求停止並另行處理既有測試失敗。",
+  "description": "依既有計畫執行階段 0；P0-01、P0-02 已提交，使用者已核定 P0-03 範圍修正。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -21,18 +21,19 @@
   "children": [],
   "parent": "11-02-integration-v32",
   "relatedFiles": [],
-  "notes": "P0-01 已提交；P0-02 進行中。",
+  "notes": "P0-03 CPM 與套件守門已通過，待本包提交後繼續 P0-04。",
   "meta": {
-    "currentWorkPackage": "P0-02",
+    "currentWorkPackage": "P0-03",
     "userRequestedStop": false,
     "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-01.md",
+    "report": "wp-reports/P0-03.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
     "waitingFor": null,
     "completedWorkPackages": {
-      "P0-01": "90799969"
+      "P0-01": "90799969",
+      "P0-02": "bc13efe7"
     }
   }
 }

@@ -1,0 +1,102 @@
+{
+  "workPackage": "P0-03",
+  "guard": {
+    "projects": 27,
+    "references": 106,
+    "excluded": 2,
+    "redFailures": 113,
+    "greenFailures": 0
+  },
+  "build": {
+    "exitCode": 0,
+    "errors": 0,
+    "warnings": 77,
+    "baselineWarnings": 77
+  },
+  "restore": {
+    "exitCode": 0,
+    "NU1605": 0,
+    "NU1608": 0
+  },
+  "release": {
+    "projects": [
+      {
+        "project": "LineMessagingProcessor.Tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "Line.Messaging.Tests",
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "LineMessagingProcessor.Workflows.Tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "LineMessagingProcessor.RichMenus.Tests",
+        "total": 34,
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "SpeechMessage.Payments.Tests",
+        "total": 55,
+        "passed": 55,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "LineMessagingProcessor.AspNetCore.Tests",
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "ToolUtility.Dataverse.Tests",
+        "total": 79,
+        "passed": 79,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "ChurchReport.MemberInfo.Tests",
+        "total": 471,
+        "passed": 471,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "total": 741,
+    "passed": 741,
+    "failed": 0,
+    "skipped": 0
+  },
+  "debugTracer": {
+    "projects": [
+      {
+        "project": "ToolUtility.Dataverse.Tests",
+        "total": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "packageMetadataPreserved": true,
+  "snapshotsAndNugetConfigByteIdenticalToCheckout": true
+}

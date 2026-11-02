@@ -1,0 +1,5 @@
+Command: dotnet test ToolUtility.Dataverse.Tests -c Debug --filter "FullyQualifiedName~FileToolUtilityTracerTests"
+Exit code: 0
+Passed: 7; failed: 0; skipped: 0.
+Counters read from the local TRX output; no raw TRX is committed.
+Native build diagnostic output had mixed console encodings and is retained only under ignored .ccg/tmp/.

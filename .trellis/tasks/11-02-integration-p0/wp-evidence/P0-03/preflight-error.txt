@@ -1,0 +1,8 @@
+Join-Path : Cannot bind argument to parameter 'Path' because it is an empty string.
+At D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integrati
+on.P0.Worktree\tools\RepoQuality\Test-PackageVersions.ps1:16 char:42
++     [string]$RepositoryPath = (Join-Path $PSScriptRoot '..\..')
++                                          ~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Join-Path], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Microsoft.PowerShell.Commands.Join
+   PathCommand

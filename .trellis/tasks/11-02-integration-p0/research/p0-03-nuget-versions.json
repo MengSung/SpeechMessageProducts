@@ -1,0 +1,44 @@
+[
+  {
+    "id": "microsoft.netframework.referenceassemblies",
+    "latestStable": "1.0.3",
+    "has_9_0_2_56": false,
+    "latest_9_0_2": null,
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.netframework.referenceassemblies/index.json"
+  },
+  {
+    "id": "microsoft.crmsdk.coreassemblies",
+    "latestStable": "9.0.2.60",
+    "has_9_0_2_56": true,
+    "latest_9_0_2": "9.0.2.60",
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.crmsdk.coreassemblies/index.json"
+  },
+  {
+    "id": "microsoft.crmsdk.workflow",
+    "latestStable": "9.0.2.60",
+    "has_9_0_2_56": true,
+    "latest_9_0_2": "9.0.2.60",
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.crmsdk.workflow/index.json"
+  },
+  {
+    "id": "ilrepack.lib.msbuild.task",
+    "latestStable": "2.0.48",
+    "has_9_0_2_56": false,
+    "latest_9_0_2": null,
+    "source": "https://api.nuget.org/v3-flatcontainer/ilrepack.lib.msbuild.task/index.json"
+  },
+  {
+    "id": "microsoft.codeanalysis.bannedapianalyzers",
+    "latestStable": "5.6.0",
+    "has_9_0_2_56": false,
+    "latest_9_0_2": null,
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.bannedapianalyzers/index.json"
+  },
+  {
+    "id": "microsoft.codeanalysis.csharp",
+    "latestStable": "5.9.0",
+    "has_9_0_2_56": false,
+    "latest_9_0_2": null,
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.csharp/index.json"
+  }
+]

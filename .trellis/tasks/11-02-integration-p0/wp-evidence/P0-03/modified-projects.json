@@ -1,0 +1,26 @@
+{
+  "projects": [
+    "ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj",
+    "Line.Messaging.Tests/Line.Messaging.Tests.csproj",
+    "Line.Messaging/Line.Messaging.csproj",
+    "Line.Messaging/Line.Messaging_Net10.csproj",
+    "LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessor.AspNetCore.Tests.csproj",
+    "LineMessagingProcessor.RichMenus.Tests/LineMessagingProcessor.RichMenus.Tests.csproj",
+    "LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj",
+    "LineMessagingProcessor.Workflows.Tests/LineMessagingProcessor.Workflows.Tests.csproj",
+    "LineMessagingProcessor/LineMessagingProcessor.csproj",
+    "LineMessagingProcessor/LineMessagingProcessor_Net10.csproj",
+    "LinePayCSharp/LinePayCSharp.csproj",
+    "PowerPlatform.Dataverse.Client/NSspi/NSspi.csproj",
+    "PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj",
+    "SpeechMessage.Payments.Tests/SpeechMessage.Payments.Tests.csproj",
+    "SpeechMessage.Payments/SpeechMessage.Payments.csproj",
+    "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj",
+    "ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj",
+    "ToolUtility.Tests/ToolUtility.Tests.csproj",
+    "ToolUtility/ToolUtility.csproj"
+  ],
+  "inlineVersionsRemoved": 106,
+  "suppressionsRemoved": 7,
+  "centralPackageCount": 51
+}
