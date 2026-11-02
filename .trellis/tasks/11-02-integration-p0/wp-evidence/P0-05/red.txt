@@ -1,0 +1,83 @@
+
+
+
+
+
+Describing Repository text encoding and lossless conversion contracts
+ [-] Utf8NoBomCrlf_ChangedFile_Passes 966ms
+   Expected: {0}
+   But was:  {1}
+   69:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 69
+ [-] Utf8Bom_ChangedFile_FailsWithBom 627ms
+   Expected: {FAIL NotImplemented: text encoding guard is not implemented.} to match the expression {Bom}
+   76:         $result.Output | Should Match 'Bom'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 76
+ [-] LfOnly_ChangedFile_FailsWithLineEndings 432ms
+   Expected: {FAIL NotImplemented: text encoding guard is not implemented.} to match the expression {NonCrlfLineEndings}
+   82:         $result.Output | Should Match 'NonCrlfLineEndings'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 82
+ [-] Cp950_ChangedFile_FailsWithInvalidUtf8 386ms
+   Expected: {FAIL NotImplemented: text encoding guard is not implemented.} to match the expression {InvalidUtf8}
+   88:         $result.Output | Should Match 'InvalidUtf8'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 88
+ [-] MissingFinalNewline_ChangedFile_Fails 413ms
+   Expected: {FAIL NotImplemented: text encoding guard is not implemented.} to match the expression {MissingFinalCrlf}
+   94:         $result.Output | Should Match 'MissingFinalCrlf'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 94
+ [-] ReplacementCharacter_ChangedFile_Fails 440ms
+   Expected: {FAIL NotImplemented: text encoding guard is not implemented.} to match the expression {ReplacementCharacter}
+   100:         $result.Output | Should Match 'ReplacementCharacter'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 100
+ [-] PowerShell_ChineseOnlyInComment_Passes 496ms
+   Expected: {0}
+   But was:  {1}
+   107:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 107
+ [-] PowerShell_ChineseInString_Fails 425ms
+   Expected: {FAIL NotImplemented: text encoding guard is not implemented.} to match the expression {NonAsciiExecutablePowerShell}
+   115:         $result.Output | Should Match 'NonAsciiExecutablePowerShell'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 115
+ [-] AllScope_InvalidFile_ReportsWithoutFailingBuild 379ms
+   Expected: {0}
+   But was:  {1}
+   120:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 120
+ [-] ChangedScope_UnchangedBadFile_IsNotScanned 489ms
+   Expected: {0}
+   But was:  {1}
+   128:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 128
+ [-] ConvertCp950_Apply_PreservesChineseAndWritesUtf8 504ms
+   Expected: {0}
+   But was:  {1}
+   136:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 136
+ [-] Convert_DefaultDryRun_DoesNotWriteSource 404ms
+   Expected: {0}
+   But was:  {1}
+   148:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 148
+ [-] Convert_ExplicitDryRun_DoesNotWriteSource 476ms
+   Expected: {0}
+   But was:  {1}
+   158:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 158
+ [-] Convert_InvalidEncoding_LeavesOriginalUntouched 459ms
+   Expected string length 6 but was 15. Strings differ at index 0.
+   Expected: {failed}
+   But was:  {not-implemented}
+   -----------^
+   168:         $manifest.files[0].status | Should Be 'failed'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 168
+ [-] Convert_MultilineChineseLiteralWouldChange_RefusesWrite 388ms
+   Expected: {NotImplemented} to match the expression {StringLiteralChanged}
+   180:         $manifest.files[0].error | Should Match 'StringLiteralChanged'
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 180
+ [-] Convert_Utf16Bom_ProducesExpectedUtf8Bytes 462ms
+   Expected: {0}
+   But was:  {1}
+   186:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 186
+Tests completed in 7.75s
+Passed: 0 Failed: 16 Skipped: 0 Pending: 0 Inconclusive: 0

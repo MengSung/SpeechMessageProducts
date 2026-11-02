@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>實作進度</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --surface-2: #f3f2ee;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #6f6e69;
+    --hair: #e1e0d9;
+    --base: #c3c2b7;
+    --ring: rgba(11, 11, 11, 0.10);
+    --good: #0ca30c;
+    --good-text: #006300;
+    --good-wash: #eaf6ea;
+    --warn: #fab219;
+    --warn-text: #7a4f00;
+    --warn-wash: #fff6e0;
+    --crit: #d03b3b;
+    --crit-text: #a52a2a;
+    --crit-wash: #fcefee;
+    --prog: #2a78d6;
+    --prog-text: #1c5cab;
+    --prog-wash: #edf4fd;
+    --todo: #c3c2b7;
+    --code-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --surface-2: #232321;
+      --ink: #f0efec;
+      --ink-2: #c3c2b7;
+      --muted: #9a9890;
+      --hair: #2c2c2a;
+      --base: #383835;
+      --ring: rgba(255, 255, 255, 0.10);
+      --good-text: #3fc23f;
+      --good-wash: rgba(12, 163, 12, 0.14);
+      --warn-text: #fab219;
+      --warn-wash: rgba(250, 178, 25, 0.12);
+      --crit-text: #f08080;
+      --crit-wash: rgba(208, 59, 59, 0.16);
+      --prog: #3987e5;
+      --prog-text: #6da7ec;
+      --prog-wash: rgba(57, 135, 229, 0.14);
+      --todo: #4a4a46;
+      --code-bg: #232321;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #232321;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #9a9890;
+    --hair: #2c2c2a;
+    --base: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --good-text: #3fc23f;
+    --good-wash: rgba(12, 163, 12, 0.14);
+    --warn-text: #fab219;
+    --warn-wash: rgba(250, 178, 25, 0.12);
+    --crit-text: #f08080;
+    --crit-wash: rgba(208, 59, 59, 0.16);
+    --prog: #3987e5;
+    --prog-text: #6da7ec;
+    --prog-wash: rgba(57, 135, 229, 0.14);
+    --todo: #4a4a46;
+    --code-bg: #232321;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Microsoft JhengHei UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 16px 56px; }
+  header .eyebrow { color: var(--ink-2); font-size: 13px; margin: 0 0 4px; }
+  header h1 { font-size: 28px; line-height: 1.25; margin: 0 0 6px; }
+  header .meta { color: var(--muted); font-size: 13px; margin: 0; }
+  header .meta span + span::before { content: "｜"; margin: 0 6px; color: var(--base); }
+
+  section { margin-top: 28px; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  h2 small { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 8px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--ring);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+
+  /* 一句話總結 */
+  .headline { margin-top: 20px; font-size: 17px; }
+  .headline strong { font-weight: 700; }
+
+  /* 急件警示 */
+  .alert {
+    border-left: 4px solid var(--crit);
+    background: var(--crit-wash);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .alert .title { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; color: var(--crit-text); }
+  .alert p { margin: 8px 0 0; }
+  .alert ol { margin: 8px 0 0; padding-left: 22px; }
+  .alert .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+  button.copy {
+    font: inherit;
+    font-weight: 700;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: var(--crit);
+    color: #ffffff;
+    cursor: pointer;
+  }
+  button.copy:focus-visible { outline: 3px solid var(--prog); outline-offset: 2px; }
+  .copied { color: var(--good-text); font-weight: 700; font-size: 14px; }
+  details.prompt { margin-top: 10px; }
+  details.prompt summary { cursor: pointer; color: var(--ink-2); font-size: 14px; }
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--code-bg);
+    border: 1px solid var(--ring);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    font-family: Consolas, "Cascadia Mono", "Microsoft JhengHei", monospace;
+    max-height: 420px;
+    overflow: auto;
+  }
+
+  /* 數字磚 */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 16px; }
+  .tile .label { color: var(--ink-2); font-size: 13px; }
+  .tile .value { font-size: 30px; font-weight: 700; line-height: 1.2; margin-top: 4px; }
+  .tile .value small { font-size: 15px; font-weight: 400; color: var(--ink-2); margin-left: 4px; }
+  .tile .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .tile .meter { margin-top: 10px; }
+
+  /* 進度條：完成（綠）＋進行中（藍）＋未開始（底軌），段與段之間留 2px 間隔 */
+  .meter { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; background: var(--surface-2); }
+  .meter i { display: block; height: 100%; }
+  .meter i.done { background: var(--good); }
+  .meter i.active { background: var(--prog); }
+  .meter i.rest { background: var(--surface-2); flex: 1; }
+  .meter i:first-child { border-radius: 5px 0 0 5px; }
+  .meter i:last-child { border-radius: 0 5px 5px 0; }
+
+  /* 狀態標籤：一律圖示＋文字，顏色不單獨表達意義 */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 700; white-space: nowrap;
+    border-radius: 999px; padding: 2px 10px 2px 6px;
+  }
+  .chip svg { width: 16px; height: 16px; flex: none; }
+  .chip.done { color: var(--good-text); background: var(--good-wash); }
+  .chip.active { color: var(--prog-text); background: var(--prog-wash); }
+  .chip.todo { color: var(--ink-2); background: var(--surface-2); }
+  .chip.you { color: var(--warn-text); background: var(--warn-wash); }
+  .chip.review { color: var(--ink-2); background: var(--surface-2); }
+  .chip.flag { color: var(--crit-text); background: var(--crit-wash); }
+
+  /* 階段 0 工作包清單 */
+  .wps { list-style: none; margin: 0; padding: 0; }
+  .wp {
+    display: grid;
+    grid-template-columns: 26px 64px 1fr auto;
+    gap: 4px 12px;
+    align-items: start;
+    padding: 12px 4px;
+    border-top: 1px solid var(--hair);
+  }
+  .wp:first-child { border-top: 0; }
+  .wp .dot { width: 22px; height: 22px; margin-top: 1px; }
+  .wp .id { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .wp .name { font-weight: 700; }
+  .wp .note { grid-column: 3 / 5; color: var(--ink-2); font-size: 14px; }
+  .wp .right { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
+  .wp .commit { font-family: Consolas, monospace; font-size: 12px; color: var(--muted); }
+  .wp.is-todo .name { color: var(--ink-2); font-weight: 400; }
+  .wp.is-milestone { background: var(--surface-2); border-radius: 8px; border-top: 0; margin: 4px 0; }
+  .wp.is-milestone + .wp { border-top: 0; }
+
+  /* 路線圖 */
+  .phases { display: grid; gap: 4px; }
+  .phase {
+    display: grid;
+    grid-template-columns: 74px 1fr 220px;
+    gap: 4px 14px;
+    align-items: center;
+    padding: 10px 4px;
+    border-top: 1px solid var(--hair);
+  }
+  .phase:first-child { border-top: 0; }
+  .phase .pid { font-weight: 700; color: var(--ink-2); }
+  .phase .pname { font-weight: 700; }
+  .phase .pmeta { color: var(--muted); font-size: 13px; }
+  .phase .pbar .count { font-size: 13px; color: var(--ink-2); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .phase.is-current { background: var(--prog-wash); border-radius: 8px; border-top: 0; }
+  .phase.is-current + .phase { border-top: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--ink-2); font-size: 13px; margin-bottom: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend b { display: inline-block; width: 14px; height: 10px; border-radius: 3px; }
+
+  /* 兩欄區塊 */
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 12px; }
+  .two > div { min-width: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-top: 1px solid var(--hair); vertical-align: top; }
+  th { color: var(--ink-2); font-weight: 700; font-size: 13px; border-top: 0; }
+  td.num { font-variant-numeric: tabular-nums; }
+  td .arrow { color: var(--muted); margin: 0 4px; }
+
+  ul.checks { list-style: none; margin: 0; padding: 0; }
+  ul.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 6px 0; border-top: 1px solid var(--hair); }
+  ul.checks li:first-child { border-top: 0; }
+  ul.checks svg { width: 18px; height: 18px; margin-top: 3px; }
+  ul.checks .sub { color: var(--muted); font-size: 13px; display: block; }
+
+  /* 時間軸 */
+  ol.timeline { list-style: none; margin: 0; padding: 0; }
+  ol.timeline li { display: grid; grid-template-columns: 92px 1fr; gap: 10px; padding: 7px 0; border-top: 1px solid var(--hair); }
+  ol.timeline li:first-child { border-top: 0; }
+  ol.timeline .t { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; padding-top: 1px; }
+  ol.timeline .stop { color: var(--warn-text); font-weight: 700; }
+  ol.timeline .bad { color: var(--crit-text); font-weight: 700; }
+  ol.timeline .ok { color: var(--good-text); font-weight: 700; }
+
+  footer { margin-top: 36px; color: var(--muted); font-size: 13px; }
+  footer p { margin: 4px 0; }
+  code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.92em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 24px; }
+    .wp { grid-template-columns: 26px 1fr; }
+    .wp .id { grid-column: 2; }
+    .wp .name { grid-column: 2; }
+    .wp .right { grid-column: 2; justify-content: flex-start; }
+    .wp .note { grid-column: 2; }
+    .phase { grid-template-columns: 1fr; }
+    ol.timeline li { grid-template-columns: 1fr; gap: 0; }
+    /* 窄螢幕把表格每一列改成一張小卡，避免橫向捲動 */
+    #quality thead { display: none; }
+    #quality, #quality tbody, #quality tr, #quality td { display: block; width: 100%; }
+    #quality tr { border-top: 1px solid var(--hair); padding: 6px 0; }
+    #quality tr:first-child { border-top: 0; }
+    #quality td { border-top: 0; padding: 2px 0; }
+    #quality td:first-child { font-weight: 700; }
+  }
+  @media print {
+    .alert .actions, details.prompt { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">方案整合、.NET 10 升級與國際化（設計 v3.2、實作計畫 v1.0）</p>
+    <h1>實作進度</h1>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <p class="headline card" id="headline"></p>
+
+  <div class="alert" role="alert" id="alert"></div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section>
+    <h2>階段 0 工作包<small>一次做一個；每個都要先寫會失敗的測試、再寫程式</small></h2>
+    <div class="card"><ol class="wps" id="wps"></ol></div>
+  </section>
+
+  <section>
+    <h2>整體路線圖<small>9 個階段、77 個工作包；百分比依工作包數計算，不代表工時</small></h2>
+    <div class="card">
+      <div class="legend" aria-hidden="true">
+        <span><b style="background:var(--good)"></b>已完成</span>
+        <span><b style="background:var(--prog)"></b>進行中</span>
+        <span><b style="background:var(--surface-2);outline:1px solid var(--hair)"></b>未開始</span>
+      </div>
+      <div class="phases" id="phases"></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>品質守門<small>修改前 → 目前</small></h2>
+      <div class="card"><table id="quality"></table></div>
+    </div>
+    <div>
+      <h2>Codex 有沒有守規矩</h2>
+      <div class="card"><ul class="checks" id="conduct"></ul></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>今天發生的事<small>2026-11-02</small></h2>
+      <div class="card"><ol class="timeline" id="timeline"></ol></div>
+    </div>
+    <div>
+      <h2>你已拍板的決定</h2>
+      <div class="card"><ul class="checks" id="decisions"></ul></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>P0-12 之前你要準備的事</h2>
+      <div class="card"><ul class="checks" id="prep"></ul></div>
+    </div>
+    <div>
+      <h2>已知風險與待追蹤</h2>
+      <div class="card"><ul class="checks" id="risks"></ul></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>本頁是快照，不會自動更新。資料來源：P0 worktree 的 git 提交紀錄、<code>.trellis/tasks/11-02-integration-p0/</code> 的任務狀態、工作包回報與證據，以及 Claude 的獨立查核。</p>
+    <p>要更新時，請 Claude「重新產生實作進度頁」；或直接修改本檔下方 <code>DATA</code> 區塊的內容。</p>
+  </footer>
+</div>
+
+<script>
+/*
+ * 本頁所有內容都來自下面的 DATA。更新進度時只改 DATA，不必改版面程式。
+ * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
+ */
+const DATA = {
+  snapshot: "2026-11-02 15:45（台北時間）",
+  branch: "1.0.0.11.Integration.P0",
+  worker: "實作：Codex　查核：Claude",
+
+  headline: "目前在<strong>階段 0</strong>：12 個工作包已完成 3 個；第 4 個（P0-04）的程式已寫好、Codex 自己的檢查全部通過，但<strong>還沒提交，而且有一個缺口要先補</strong>。",
+
+  alert: {
+    title: "請在 Codex 提交 P0-04 之前，把補充提示詞貼給它",
+    body: "P0-04 要讓新專案「強制寫 XML 說明」，但這項設定放的位置太晚被讀到，實際上沒有生效。Codex 的檢查只看設定值，沒看實際有沒有產生說明檔，所以顯示全部通過，其實是假的通過。Claude 已在它目前的檔案上重現：設定值是 true，說明檔路徑卻是空的。",
+    steps: [
+      "按下方「複製提示詞」。",
+      "貼到 Codex 的對話框送出。",
+      "它會先補測試（先失敗）、再修正，之後才提交 P0-04。"
+    ],
+    prompt: [
+      "P0-04 補充核對（Claude 以 SDK 10.0.403 實測，並已在目前的 AnalyzerProbe 上重現），請在提交 P0-04 前處理。本訊息即為使用者核定，可直接更新 01 的 P0-04、P0-10 文字，不必再停下來。",
+      "",
+      "1. GenerateDocumentationFile 放在 Directory.Build.targets 不會生效；目前自檢 13/13 在這一點是假綠燈",
+      "   - 重現：dotnet msbuild tools/RepoQuality/AnalyzerProbe/AnalyzerProbe.csproj -p:TargetFramework=net10.0 -getProperty:GenerateDocumentationFile -getProperty:DocumentationFile",
+      "     結果：GenerateDocumentationFile=true，但 DocumentationFile 為空。",
+      "   - 原因：Microsoft.NET.Sdk.BeforeCommon.targets（約 301-313 行）依 GenerateDocumentationFile 決定 DocumentationFile；Microsoft.Common.targets 第 22 行先匯入 Microsoft.Common.CurrentVersion.targets（第 185 行決定 _DocumentationFileProduced），第 60 行才匯入 Directory.Build.targets。",
+      "   - 影響：不產生 XML，未寫說明的 public 成員不會出現 CS1591。Test-AnalyzerProbe.ps1 約 72-79 行只檢查 GenerateDocumentationFile 的值，所以沒抓到。",
+      "   - 補設 DocumentationFile 後 CS1591 會生效，但 XML 只留在 obj，不會複製到 bin。",
+      "   - 另外五項（EnableNETAnalyzers、AnalysisMode、TreatWarningsAsErrors、Nullable、LangVersion）放在 targets 實測有效。",
+      "   - 修法：",
+      "     a. 從 targets 的條件區段移除 GenerateDocumentationFile；",
+      "     b. 嚴格專案（含 AnalyzerProbe）在 csproj 本體同時設定 SpeechMessageStrictCode=true 與 GenerateDocumentationFile=true；",
+      "     c. Directory.Build.targets 新增一個在 CoreCompile 之前執行的檢查 target：SpeechMessageStrictCode=true 但 DocumentationFile 為空時，以 <Error> 直接失敗（附繁中說明），不得靜默；",
+      "     d. 不得硬改私有屬性 _DocumentationFileProduced。",
+      "   - 依此更新 01 的 P0-04 第 1 步文字，並附繁中註解說明原因。",
+      "",
+      "2. 擴充 AnalyzerProbe 守門（先留紅燈證據，再修）",
+      "   - 保留現有 13 項檢查。",
+      "   - 新增：未寫 XML 說明的 public 成員必須出現 CS1591。",
+      "   - 新增：只設 StrictCode、沒設 GenerateDocumentationFile 的專案必須被檢查 target 擋下。",
+      "   - 設定回歸檢查改看 DocumentationFile 的實際值，並斷言建置輸出資料夾有 XML 說明檔。",
+      "",
+      "3. 只記錄、本包不修",
+      "   - .gitignore 的 *.snk 只擋新檔。版控中仍追蹤：LinePayCSharp/SpeechMessageCrmKey.snk、Trace/SpeechMessageCrmKey.snk、PowerPlatform.Dataverse.Client/NSspi/nsspi key.snk（三個專案都不在方案內）。",
+      "   - 寫進 P0-04 回報的「風險與待決」，並在 01 的 P0-10 步驟加註：建立新金鑰時，用 git rm --cached 把舊的 SpeechMessageCrmKey.snk 移出版控，舊金鑰視為已外洩。",
+      "",
+      "其餘照原規則繼續，一次一個 WP，遇到停止條件就停。"
+    ].join("\n")
+  },
+
+  tiles: [
+    { label: "全計畫進度", value: "3", unit: "/ 77 工作包", sub: "約 4%（依工作包數）", meter: { done: 3, active: 1, total: 77 } },
+    { label: "階段 0 進度", value: "3", unit: "/ 12 工作包", sub: "P0-04 進行中；預估 5～8 天，今天是第 1 天", meter: { done: 3, active: 1, total: 12 } },
+    { label: "測試", value: "741", unit: "/ 741 通過", sub: "開工時：714 通過、24 失敗" },
+    { label: "Release 建置", value: "0", unit: "錯誤", sub: "77 個警告，與開工時相同，沒有變多" }
+  ],
+
+  wps: [
+    { id: "P0-01", name: "開分支、Trellis 任務、基準記錄", status: "done", commit: "90799969", time: "14:45",
+      note: "記錄開工基準；經你授權修好 24 個原本就失敗的測試（測試找錯名稱和路徑，產品程式沒動）；完成 Claude 審查要求的修正。" },
+    { id: "P0-02", name: ".gitignore、global.json", status: "done", commit: "bc13efe7", time: "14:53",
+      note: "固定使用 .NET SDK 10.0.403；不讓舊方案資料夾、.snk 私鑰、.trx 測試原始檔進入版控。" },
+    { id: "P0-03", name: "套件版本集中管理與版本統一", status: "done", commit: "d1c92d83", time: "15:24",
+      note: "51 個套件改由一個檔案管理版本；Microsoft.Extensions 全部升到 10.0.0、Newtonsoft.Json 統一 13.0.4；套件降版警告重新看得見。" },
+    { id: "P0-04", name: "新程式的分析器與禁用 API 設定", status: "active", flag: "有缺口", time: "15:43 自檢通過",
+      note: "已建立嚴格設定、禁用 API 清單（例如不准用 DateTime.Now）、net48 補丁與探測專案；自檢 13/13 通過，尚未提交。XML 說明強制沒有真的生效，見最上方警示。" },
+    { id: "P0-05", name: "編碼檢查與編碼轉換工具", status: "todo",
+      note: "檢查 UTF-8 無 BOM、CRLF；把舊的 Big5 檔安全轉成 UTF-8，並確認中文字串沒變。" },
+    { id: "P0-06", name: "重複程式掃描", status: "todo",
+      note: "找出複製貼上的程式，建立基準，之後只准變少。" },
+    { id: "P0-07", name: "I18nCheck 第一版：中文字串棘輪＋resx 產生器", status: "todo",
+      note: "記錄程式裡寫死的中文字串數量，之後只准變少。" },
+    { id: "P0-08", name: "骨架：SpeechMessage.Localization（雙目標）", status: "todo",
+      note: "多語字典的第一版，同時支援 .NET 10 與 D365 用的 .NET Framework 4.8。" },
+    { id: "P0-09", name: "骨架：LineMessagingProcessor.Core（雙目標，單人推播）", status: "todo",
+      note: "共用的 LINE 推播核心，先做單人推播。" },
+    { id: "P0-10", name: "骨架：Dynamics Plugins（net48）＋ILRepack＋簽章＋打包檢查", status: "todo",
+      note: "把程式合併成一個 Plugin DLL 並簽章；需要你準備的新金鑰。" },
+    { id: "P0-11", name: "方案層級 CI", status: "todo",
+      note: "GitHub 上每次提交自動建置、測試，並跑上面所有守門檢查。" },
+    { milestone: true, name: "階段 0 外部審查（Claude 單模型，只做一次）", status: "review",
+      note: "Codex 準備審查包，由你轉交給 Claude；Critical／High 問題修完才進入 P0-12。" },
+    { id: "P0-12", name: "使用者驗收：在 D365 測試組織註冊並觸發骨架", status: "you",
+      note: "由你用 Plugin Registration Tool 在測試組織註冊、觸發，確認 LINE 收得到訊息。" }
+  ],
+
+  phases: [
+    { id: "階段 0", name: "準備、守門與可行性驗證", est: "5～8 天", total: 12, done: 3, active: 1, current: true },
+    { id: "階段 1", name: "基礎層與國際化地基", est: "12～16 天", total: 12, done: 0, active: 0 },
+    { id: "階段 2", name: "共用送訊＋對外待辦", est: "10～13 天", total: 12, done: 0, active: 0 },
+    { id: "階段 3", name: "LINE Webhook 主機", est: "12～17 天", total: 9, done: 0, active: 0 },
+    { id: "階段 4", name: "金流＋幣別", est: "6～8 天", total: 6, done: 0, active: 0 },
+    { id: "階段 5", name: "Plugin／Workflow 重建（36 個 DLL → 2 個）", est: "20～27 天", total: 13, done: 0, active: 0 },
+    { id: "階段 6", name: "ChurchReport 改用共用層", est: "6～8 天", total: 6, done: 0, active: 0 },
+    { id: "階段 7", name: "D365 9.1 切換（逐組織）", est: "每個組織 1～2 天＋觀察 1 週", total: 2, done: 0, active: 0 },
+    { id: "階段 8", name: "收尾、偽語系驗收、教會設定網頁", est: "4～6 天", total: 5, done: 0, active: 0 }
+  ],
+
+  quality: [
+    { item: "既有測試", before: "714 過／24 失敗", after: "741 過／0 失敗", note: "修好 24 個，另新增 3 個" },
+    { item: "Release 建置警告", before: "77", after: "77", note: "沒有變多" },
+    { item: "套件版本違規", before: "113 項", after: "0 項", note: "P0-03 守門腳本" },
+    { item: "隱藏降版警告的設定", before: "7 處", after: "0 處", note: "NU1605 重新看得見" },
+    { item: "Debug 追蹤測試", before: "未納入", after: "7／7", note: "P0-01 新增的守門" },
+    { item: "新程式分析器探測", before: "未建立", after: "13／13", note: "尚缺 XML 說明檢查", warn: true }
+  ],
+
+  conduct: [
+    { ok: true, text: "一次只做一個工作包，做完才提交" },
+    { ok: true, text: "先寫會失敗的測試、再寫程式", sub: "每包都留有紅燈、綠燈證據" },
+    { ok: true, text: "發現計畫和程式對不上就停下來問你", sub: "P0-01、P0-03、P0-04 各停過一次，都等你核定才繼續" },
+    { ok: true, text: "沒有推送、沒有合併" },
+    { ok: true, text: "沒有提交機密或測試原始檔", sub: "Claude 掃描三個提交，未發現密碼或 token" },
+    { ok: true, text: "沒有改動產品程式" },
+    { ok: true, text: "Claude 獨立重建結果一致", sub: "建置 0 錯誤、77 警告；測試 735 通過，另 6 個因 Claude 暫存資料夾路徑太長無法執行，與程式無關，在 Codex 的正式資料夾都通過" },
+    { ok: false, text: "P0-04 的 XML 說明檢查是假的通過", sub: "只看設定值、沒看實際結果；已有補充提示詞" }
+  ],
+
+  timeline: [
+    { t: "12:30", text: "Codex 建立階段 0 任務與工作資料夾" },
+    { t: "12:48–13:15", text: "自動外部審查試了 8 次，都逾時或登入失效", cls: "bad" },
+    { t: "—", text: "停：發現 24 個原本就失敗的測試 → 你授權先修", cls: "stop" },
+    { t: "—", text: "改由你人工轉交審查包給 Claude；Claude 審查無 Critical" },
+    { t: "14:45", text: "P0-01 提交", cls: "ok" },
+    { t: "14:53", text: "P0-02 提交", cls: "ok" },
+    { t: "—", text: "停：計畫有 2 處和程式對不上 → 你核定修正", cls: "stop" },
+    { t: "15:24", text: "P0-03 提交", cls: "ok" },
+    { t: "15:26", text: "停：計畫指定的設定位置讀不到專案開關 → 你核定改放 targets", cls: "stop" },
+    { t: "15:32", text: "P0-04 測試先失敗（紅燈）" },
+    { t: "15:43", text: "P0-04 自檢 13/13 通過，尚未提交" },
+    { t: "15:45", text: "Claude 查核：XML 說明強制沒有真的生效", cls: "bad" }
+  ],
+
+  decisions: [
+    { text: "先修好 24 個原本就失敗的測試，再繼續階段 0" },
+    { text: "外部審查只用 Claude，不用 Gemini" },
+    { text: "外部審查只在階段結束時做一次", sub: "階段 0 在 P0-11 之後、P0-12 之前" },
+    { text: "P0-01 審查的修正項目照做", sub: "已全部處理並提交" },
+    { text: "P0-03 只管實際程式專案；舊的 ASP.NET Core 2.2 套件維持停用" },
+    { text: "P0-04 嚴格設定改放 Directory.Build.targets", sub: "方向正確，但 XML 說明這一項要另外處理" }
+  ],
+
+  prep: [
+    { state: "done", text: "D365 測試組織", sub: "已建立 goodshepherdback（2026-11-02），是正式組織的複本；使用前須先完成「已知風險」第一項的停用與清理" },
+    { state: "todo", text: "測試用 LINE 官方帳號（channel）", sub: "驗收推播時用，不可用教會正式帳號" },
+    { state: "todo", text: "新的強式名稱金鑰", sub: "用 sn -k 產生，放在 repo 外，設定環境變數 SPEECHMESSAGE_PLUGIN_KEYFILE；P0-10 需要" },
+    { state: "todo", text: "輪替已外洩的機密", sub: "CRM 管理員密碼、LINE token、永豐 QPay 金鑰等" },
+    { state: "todo", text: "P0-11 之後轉交階段審查包給 Claude" }
+  ],
+
+  risks: [
+    { level: "warn", text: "測試組織 goodshepherdback 是正式組織的複本", sub: "含真實會友個資；舊 Plugin 把聖谷的正式 LINE token 寫死在程式裡，必須先取消系統作業、停用舊 Plugin 步驟與工作流程，否則測試時可能推播給真實會友" },
+    { level: "warn", text: "3 個 .snk 私鑰仍在版控裡", sub: ".gitignore 只擋新檔；舊金鑰視為已外洩，P0-10 換新金鑰時移出" },
+    { level: "warn", text: "ChurchReport 本機開發預設連到 sunnyvalechback", sub: "看起來是正式組織；應改連測試組織，帳密改放 User Secrets" },
+    { level: "info", text: "76 個套件弱點警告（NU1902 ×20、NU1903 ×56）", sub: "開工前就有，本階段不處理" },
+    { level: "info", text: "Trace 專案有 3 個 Big5 編碼檔", sub: "P0-05 編碼盤點時處理" },
+    { level: "info", text: "ChurchReport 的 NuGet.config 指向本機 DevExpress 路徑", sub: "其他電腦可能還原失敗" },
+    { level: "info", text: "PowerShell 5.1 讀無 BOM 腳本時，中文註解會變亂碼", sub: "不影響執行；P0-05 加檢查" }
+  ]
+};
+
+/* ---- 圖示：狀態一律搭配文字，不只靠顏色 ---- */
+const ICON = {
+  done: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--good)"/><path d="M6.5 11.3l3 3 6-6.3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  active: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="var(--prog)" stroke-width="2.2"/><path d="M11 4a7 7 0 0 1 0 14z" fill="var(--prog)"/></svg>',
+  todo: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="var(--todo)" stroke-width="2.2"/></svg>',
+  you: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--warn)"/><circle cx="11" cy="8.2" r="3" fill="#0b0b0b"/><path d="M5.8 16.6c.9-2.7 3-4 5.2-4s4.3 1.3 5.2 4" fill="none" stroke="#0b0b0b" stroke-width="2" stroke-linecap="round"/></svg>',
+  review: '<svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2l9 9-9 9-9-9z" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-linejoin="round"/><circle cx="11" cy="11" r="2.4" fill="var(--ink-2)"/></svg>',
+  alert: '<svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2.5l9.2 16H1.8z" fill="var(--crit)" stroke="var(--crit)" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 8.2v5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="15.9" r="1.3" fill="#fff"/></svg>',
+  warn: '<svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2.5l9.2 16H1.8z" fill="var(--warn)" stroke="var(--warn)" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 8.2v5" stroke="#0b0b0b" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="15.9" r="1.3" fill="#0b0b0b"/></svg>',
+  info: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="var(--muted)" stroke-width="2"/><path d="M11 10v5.5" stroke="var(--muted)" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="6.8" r="1.3" fill="var(--muted)"/></svg>'
+};
+const LABEL = { done: "已完成", active: "進行中", todo: "未開始", you: "由你操作", review: "階段審查" };
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const chip = (status, text) => `<span class="chip ${status}">${ICON[status === "flag" ? "alert" : status] || ""}${esc(text || LABEL[status])}</span>`;
+
+function meter(done, active, total) {
+  const pct = n => (n / total * 100).toFixed(2) + "%";
+  const label = `已完成 ${done}、進行中 ${active}、共 ${total}`;
+  let html = `<div class="meter" role="img" aria-label="${label}" title="${label}">`;
+  if (done) html += `<i class="done" style="width:${pct(done)}"></i>`;
+  if (active) html += `<i class="active" style="width:${pct(active)}"></i>`;
+  if (done + active < total) html += `<i class="rest"></i>`;
+  return html + "</div>";
+}
+
+const D = DATA;
+document.getElementById("meta").innerHTML =
+  `<span>資料快照：${esc(D.snapshot)}</span><span>分支 ${esc(D.branch)}</span><span>${esc(D.worker)}</span>`;
+document.getElementById("headline").innerHTML = D.headline;
+
+document.getElementById("alert").innerHTML = `
+  <div class="title">${ICON.alert.replace('aria-hidden="true"', 'aria-hidden="true" width="22" height="22"')}<span>${esc(D.alert.title)}</span></div>
+  <p>${esc(D.alert.body)}</p>
+  <ol>${D.alert.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
+  <div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
+  <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>`;
+
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const text = D.alert.prompt;
+  const done = msg => { document.getElementById("copied").textContent = msg; };
+  try {
+    await navigator.clipboard.writeText(text);
+    done("已複製，可以貼到 Codex 了");
+  } catch (e) {
+    // 檔案直接開啟時某些瀏覽器不允許 Clipboard API，改用選取後複製。
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    done(ok ? "已複製，可以貼到 Codex 了" : "無法自動複製，請展開全文後手動選取");
+  }
+});
+
+document.getElementById("tiles").innerHTML = D.tiles.map(t => `
+  <div class="tile card">
+    <div class="label">${esc(t.label)}</div>
+    <div class="value">${esc(t.value)}<small>${esc(t.unit)}</small></div>
+    ${t.meter ? `<div class="meter-wrap">${meter(t.meter.done, t.meter.active, t.meter.total)}</div>` : ""}
+    <div class="sub">${esc(t.sub)}</div>
+  </div>`).join("");
+
+document.getElementById("wps").innerHTML = D.wps.map(w => {
+  if (w.milestone) {
+    return `<li class="wp is-milestone">
+      <span class="dot">${ICON.review}</span><span class="id">審查</span>
+      <span class="name">${esc(w.name)}</span>
+      <span class="right">${chip("review")}</span>
+      <span class="note">${esc(w.note)}</span></li>`;
+  }
+  const right = [
+    w.flag ? chip("flag", w.flag) : "",
+    chip(w.status),
+    w.commit ? `<span class="commit">${esc(w.commit)}</span>` : "",
+    w.time ? `<span class="commit">${esc(w.time)}</span>` : ""
+  ].join("");
+  return `<li class="wp is-${w.status}">
+    <span class="dot">${ICON[w.status]}</span><span class="id">${esc(w.id)}</span>
+    <span class="name">${esc(w.name)}</span>
+    <span class="right">${right}</span>
+    ${w.note ? `<span class="note">${esc(w.note)}</span>` : ""}</li>`;
+}).join("");
+
+document.getElementById("phases").innerHTML = D.phases.map(p => `
+  <div class="phase${p.current ? " is-current" : ""}">
+    <div class="pid">${esc(p.id)}</div>
+    <div><div class="pname">${esc(p.name)}${p.current ? "　" + chip("active", "目前階段") : ""}</div><div class="pmeta">預估 ${esc(p.est)}</div></div>
+    <div class="pbar">${meter(p.done, p.active, p.total)}<div class="count">${p.done} / ${p.total} 完成${p.active ? `，${p.active} 進行中` : ""}</div></div>
+  </div>`).join("");
+
+document.getElementById("quality").innerHTML =
+  `<thead><tr><th>項目</th><th>修改前 → 目前</th><th>說明</th></tr></thead><tbody>` +
+  D.quality.map(q => `<tr><td>${esc(q.item)}</td><td class="num">${esc(q.before)}<span class="arrow">→</span><strong>${esc(q.after)}</strong></td><td>${q.warn ? chip("flag", q.note) : esc(q.note)}</td></tr>`).join("") +
+  `</tbody>`;
+
+const checkItem = (icon, text, sub) =>
+  `<li>${icon}<span>${esc(text)}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</span></li>`;
+document.getElementById("conduct").innerHTML = D.conduct.map(c => checkItem(c.ok ? ICON.done : ICON.alert, c.text, c.sub)).join("");
+document.getElementById("decisions").innerHTML = D.decisions.map(d => checkItem(ICON.done, d.text, d.sub)).join("");
+document.getElementById("prep").innerHTML = D.prep.map(p => checkItem(p.state === "done" ? ICON.done : ICON.todo, (p.state === "done" ? "已準備：" : "待準備：") + p.text, p.sub)).join("");
+document.getElementById("risks").innerHTML = D.risks.map(r => checkItem(ICON[r.level], (r.level === "warn" ? "注意：" : "記錄：") + r.text, r.sub)).join("");
+document.getElementById("timeline").innerHTML = D.timeline.map(e =>
+  `<li><span class="t">${esc(e.t)}</span><span class="${e.cls || ""}">${esc(e.text)}</span></li>`).join("");
+</script>
+</body>
+</html>
