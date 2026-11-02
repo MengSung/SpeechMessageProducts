@@ -1,0 +1,18 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test ChurchReport.MemberInfo.Tests -c Release --no-restore --filter FullyQualifiedName~DevelopmentOrganizationSettingsTests --nologo
+  Failed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_ActualMergedSettings_PassExistingSafetyGuard [63 ms]
+  Failed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_CrmOrganizationAndServer_AreGoodshepherdback [3 ms]
+   Expected configuration["CrmConnection:Organization"] to be "goodshepherdback" with a length of 16, but "sunnyvalechback" has a length of 15, differs near "sun" (index 0).
+  Failed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_EmbeddedFeeReads_AreDisabledBeforeAdfsValidation [3 ms]
+   Expected configuration.GetValue<bool>("DynamicsAccess:Package01FeeReadsEnabled") to be false, but found True.
+  Failed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_Credentials_AreUnavailableUntilUserSecretsOverrides [1 ms]
+   Expected string.IsNullOrEmpty(configuration["CrmConnection:" + key]) to be true because repo 的開發設定不可沿用基底帳密, but found False.
+  Failed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_LineAliasesAndQpayOrganization_StayWithinTestBoundary [1 ms]
+   Expected configuration["QPAY_ORGANIZATION"] to be "goodshepherdback" with a length of 16, but "sunnyvalechback" has a length of 15, differs near "sun" (index 0).
+Failed!  - Failed:     5, Passed:     0, Skipped:     0, Total:     5, Duration: 70 ms - ChurchReport.MemberInfo.Tests.dll (net10.0)
+[xUnit.net 00:00:00.94]     ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_ActualMergedSettings_PassExistingSafetyGuard [FAIL]
+[xUnit.net 00:00:00.95]     ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_CrmOrganizationAndServer_AreGoodshepherdback [FAIL]
+[xUnit.net 00:00:00.95]     ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_EmbeddedFeeReads_AreDisabledBeforeAdfsValidation [FAIL]
+[xUnit.net 00:00:00.95]     ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_Credentials_AreUnavailableUntilUserSecretsOverrides [FAIL]
+[xUnit.net 00:00:00.95]     ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_LineAliasesAndQpayOrganization_StayWithinTestBoundary [FAIL]
+EXIT_CODE=1
