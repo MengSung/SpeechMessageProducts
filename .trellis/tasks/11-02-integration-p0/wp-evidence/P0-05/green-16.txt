@@ -1,0 +1,24 @@
+
+
+
+
+
+Describing Repository text encoding and lossless conversion contracts
+ [+] Utf8NoBomCrlf_ChangedFile_Passes 1.11s
+ [+] Utf8Bom_ChangedFile_FailsWithBom 728ms
+ [+] LfOnly_ChangedFile_FailsWithLineEndings 542ms
+ [+] Cp950_ChangedFile_FailsWithInvalidUtf8 594ms
+ [+] MissingFinalNewline_ChangedFile_Fails 629ms
+ [+] ReplacementCharacter_ChangedFile_Fails 548ms
+ [+] PowerShell_ChineseOnlyInComment_Passes 648ms
+ [+] PowerShell_ChineseInString_Fails 605ms
+ [+] AllScope_InvalidFile_ReportsWithoutFailingBuild 664ms
+ [+] ChangedScope_UnchangedBadFile_IsNotScanned 784ms
+ [+] ConvertCp950_Apply_PreservesChineseAndWritesUtf8 695ms
+ [+] Convert_DefaultDryRun_DoesNotWriteSource 544ms
+ [+] Convert_ExplicitDryRun_DoesNotWriteSource 590ms
+ [+] Convert_InvalidEncoding_LeavesOriginalUntouched 574ms
+ [+] Convert_MultilineChineseLiteralWouldChange_RefusesWrite 566ms
+ [+] Convert_Utf16Bom_ProducesExpectedUtf8Bytes 544ms
+Tests completed in 10.38s
+Passed: 16 Failed: 0 Skipped: 0 Pending: 0 Inconclusive: 0

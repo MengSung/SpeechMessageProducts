@@ -1,0 +1,36 @@
+
+
+
+
+
+Describing Repository text encoding and lossless conversion contracts
+ [+] Utf8NoBomCrlf_ChangedFile_Passes 1.02s
+ [+] Utf8Bom_ChangedFile_FailsWithBom 653ms
+ [+] LfOnly_ChangedFile_FailsWithLineEndings 574ms
+ [+] Cp950_ChangedFile_FailsWithInvalidUtf8 612ms
+ [+] MissingFinalNewline_ChangedFile_Fails 585ms
+ [+] ReplacementCharacter_ChangedFile_Fails 584ms
+ [+] PowerShell_ChineseOnlyInComment_Passes 615ms
+ [+] PowerShell_ChineseInString_Fails 649ms
+ [+] AllScope_InvalidFile_ReportsWithoutFailingBuild 602ms
+ [+] ChangedScope_UnchangedBadFile_IsNotScanned 644ms
+ [+] ConvertCp950_Apply_PreservesChineseAndWritesUtf8 647ms
+ [+] Convert_DefaultDryRun_DoesNotWriteSource 543ms
+ [+] Convert_ExplicitDryRun_DoesNotWriteSource 556ms
+ [+] Convert_InvalidEncoding_LeavesOriginalUntouched 492ms
+ [+] Convert_MultilineChineseLiteralWouldChange_RefusesWrite 547ms
+ [+] Convert_Utf16Bom_ProducesExpectedUtf8Bytes 580ms
+ [-] Convert_ManifestMatchesLaterInput_RejectsBeforeAnyWrite 704ms
+   String lengths are both 64. Strings differ at index 0.
+   Expected: {6BB2223B8E8E079AE9716902B06E6CD74D2C37C9DB8094B855D3A5A37F0CCACF}
+   But was:  {3B4706696C842FE551F078C5B62096F824DD49C5965A95A5BA4BC1F8ECC94D29}
+   -----------^
+   206:         (Get-FileHash -LiteralPath $script:sample -Algorithm SHA256).Hash | Should Be $before
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 206
+ [-] Convert_DuplicateStablePath_RejectsBeforeAnyWrite 2.31s
+   Expected: {1}
+   But was:  {0}
+   212:         $result.ExitCode | Should Be 1
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 212
+Tests completed in 12.93s
+Passed: 16 Failed: 2 Skipped: 0 Pending: 0 Inconclusive: 0

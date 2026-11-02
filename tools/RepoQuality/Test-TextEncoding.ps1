@@ -1,4 +1,68 @@
+<#
+.SYNOPSIS
+檢查差異檔案的 UTF-8 無 BOM、CRLF 與 PowerShell 非 ASCII 邊界，或唯讀產生全量盤點。
+.DESCRIPTION
+Changed 只採 git diff 的新增／修改／重新命名路徑；未追蹤新檔須先暫存，避免把本機診斷封包混入發布差異。
+All 讀取已追蹤及未忽略新檔，只輸出舊問題報告、不因既有格式問題讓建置失敗。
+報告只保存路徑與原因，不保存來源文字、個資或憑證；每檔讀取完成即釋放區域參照。
+.PARAMETER Scope
+Changed 作為發布守門，All 僅供盤點。
+.PARAMETER Base
+Changed 的 Git 比對起點，不可省略；與階段分支起點比較。
+.PARAMETER RepositoryPath
+目前工作樹根目錄，預設為本腳本上兩層，不能指向父工作樹作為後備來源。
+.PARAMETER ReportPath
+可選的 Markdown 報告路徑；All 必須明確指定。
+#>
 [CmdletBinding()]
-param([string]$RepositoryPath, [string]$Scope, [string]$Base, [string]$ReportPath)
-Write-Output 'FAIL NotImplemented: text encoding guard is not implemented.'
-exit 1
+param([ValidateSet('Changed','All')][string]$Scope = 'Changed', [string]$Base, [string]$RepositoryPath, [string]$ReportPath)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'TextEncoding.Common.ps1')
+try {
+    if (-not $RepositoryPath) { $RepositoryPath = Join-Path $PSScriptRoot '..\..' }
+    $root = (Resolve-Path -LiteralPath $RepositoryPath).Path
+    $actualRoot = (Invoke-TextQualityGit -Root $root -Arguments @('rev-parse','--show-toplevel')).Trim()
+    if (-not [IO.Path]::GetFullPath($actualRoot).Equals([IO.Path]::GetFullPath($root), [StringComparison]::OrdinalIgnoreCase)) { throw 'RepositoryPath must identify this Git worktree root.' }
+    if ($Scope -eq 'Changed') {
+        if ([string]::IsNullOrWhiteSpace($Base) -or $Base.StartsWith('-')) { throw 'Changed scope requires a valid Base revision.' }
+        [string]$listing = Invoke-TextQualityGit -Root $root -Arguments @('diff','--name-only','--diff-filter=AMR','-z',$Base,'--')
+    }
+    else {
+        if (-not $ReportPath) { throw 'All scope requires ReportPath.' }
+        [string]$listing = Invoke-TextQualityGit -Root $root -Arguments @('ls-files','--cached','--others','--exclude-standard','-z')
+    }
+    [string[]]$paths = @($listing.Split([char]0) | Where-Object { $_ })
+    [array]::Sort($paths, [StringComparer]::Ordinal)
+    $extensions = @('.cs','.cshtml','.csproj','.props','.targets','.json','.md','.ps1','.resx','.xml','.yml')
+    $violations = New-Object 'Collections.Generic.List[object]'
+    $checked = 0
+    foreach ($relative in $paths) {
+        $extension = [IO.Path]::GetExtension($relative).ToLowerInvariant()
+        if ($extensions -notcontains $extension) { continue }
+        $path = Join-Path $root $relative
+        if (-not [IO.File]::Exists($path)) { continue }
+        $checked++
+        $issues = @(Get-TextByteIssues -Bytes ([IO.File]::ReadAllBytes($path)) -Extension $extension)
+        if ($issues.Count -gt 0) { $violations.Add([pscustomobject]@{ Path = $relative; Issues = $issues }) }
+    }
+    if ($ReportPath) {
+        $report = New-Object 'Collections.Generic.List[string]'
+        $report.Add('# Text encoding inventory')
+        $report.Add('')
+        $report.Add("Scope: $Scope; checked=$checked; filesWithIssues=$($violations.Count).")
+        $report.Add('')
+        $report.Add('| File | Issues |')
+        $report.Add('| --- | --- |')
+        foreach ($violation in $violations) { $report.Add('| ' + $violation.Path.Replace('|','\|') + ' | ' + ($violation.Issues -join ', ') + ' |') }
+        $destination = [IO.Path]::GetFullPath($ReportPath)
+        [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination))
+        [IO.File]::WriteAllText($destination, ($report -join "`r`n") + "`r`n", (New-Object Text.UTF8Encoding($false)))
+    }
+    if ($Scope -eq 'Changed') { foreach ($violation in $violations) { Write-Output ("FAIL $($violation.Path): " + ($violation.Issues -join ', ')) } }
+    Write-Output "Text encoding: scope=$Scope checked=$checked filesWithIssues=$($violations.Count)"
+    if ($Scope -eq 'Changed' -and $violations.Count -gt 0) { exit 1 }
+    exit 0
+}
+catch { Write-Output "FAIL Text encoding: $($_.Exception.Message)"; exit 1 }

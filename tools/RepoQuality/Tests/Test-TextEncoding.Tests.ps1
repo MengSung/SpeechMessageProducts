@@ -39,6 +39,16 @@ Describe 'Repository text encoding and lossless conversion contracts' {
             $output = & $script:engine @arguments 2>&1
             return @{ ExitCode = $LASTEXITCODE; Output = ($output -join "`n") }
         }
+
+        function Invoke-EncodingArrayConversion {
+            <# 以編碼命令保留 Unicode 路徑及陣列參數；每個路徑先做單引號引用，不經字串展開執行。 #>
+            param([string[]]$SourcePaths, [string]$AuditPath)
+            $quotedPaths = @($SourcePaths | ForEach-Object { "'" + $_.Replace("'", "''") + "'" })
+            $command = "& '" + $script:converter.Replace("'", "''") + "' -Path @(" + ($quotedPaths -join ',') + ") -ManifestPath '" + $AuditPath.Replace("'", "''") + "' -Apply"
+            $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+            $output = & $script:engine -NoProfile -EncodedCommand $encoded 2>&1
+            return @{ ExitCode = $LASTEXITCODE; Output = ($output -join "`n") }
+        }
     }
 
     BeforeEach {
@@ -185,5 +195,22 @@ Describe 'Repository text encoding and lossless conversion contracts' {
         $result = Invoke-EncodingConversion -Apply
         $result.ExitCode | Should Be 0
         [Convert]::ToBase64String([IO.File]::ReadAllBytes($script:sample)) | Should Be ([Convert]::ToBase64String($script:utf8.GetBytes($script:validSource)))
+    }
+    It 'Convert_ManifestMatchesLaterInput_RejectsBeforeAnyWrite' {
+        $second = Join-Path $script:caseRepo 'second.cs'
+        [IO.File]::WriteAllBytes($script:sample, $script:cp950.GetBytes($script:validSource))
+        [IO.File]::WriteAllBytes($second, $script:cp950.GetBytes($script:validSource))
+        $before = (Get-FileHash -LiteralPath $script:sample -Algorithm SHA256).Hash
+        $result = Invoke-EncodingArrayConversion -SourcePaths @($script:sample, $second) -AuditPath $second
+        $result.ExitCode | Should Be 1
+        (Get-FileHash -LiteralPath $script:sample -Algorithm SHA256).Hash | Should Be $before
+    }
+    It 'Convert_DuplicateStablePath_RejectsBeforeAnyWrite' {
+        [IO.File]::WriteAllBytes($script:sample, $script:cp950.GetBytes($script:validSource))
+        $before = (Get-FileHash -LiteralPath $script:sample -Algorithm SHA256).Hash
+        $result = Invoke-EncodingArrayConversion -SourcePaths @($script:sample, $script:sample) -AuditPath $script:manifest
+        $result.ExitCode | Should Be 1
+        $result.Output | Should Match 'DuplicateSourcePath'
+        (Get-FileHash -LiteralPath $script:sample -Algorithm SHA256).Hash | Should Be $before
     }
 }

@@ -1,0 +1,32 @@
+
+
+
+
+
+Describing Repository text encoding and lossless conversion contracts
+ [+] Utf8NoBomCrlf_ChangedFile_Passes 1.03s
+ [+] Utf8Bom_ChangedFile_FailsWithBom 609ms
+ [+] LfOnly_ChangedFile_FailsWithLineEndings 572ms
+ [+] Cp950_ChangedFile_FailsWithInvalidUtf8 552ms
+ [+] MissingFinalNewline_ChangedFile_Fails 624ms
+ [+] ReplacementCharacter_ChangedFile_Fails 607ms
+ [+] PowerShell_ChineseOnlyInComment_Passes 660ms
+ [+] PowerShell_ChineseInString_Fails 622ms
+ [+] AllScope_InvalidFile_ReportsWithoutFailingBuild 604ms
+ [+] ChangedScope_UnchangedBadFile_IsNotScanned 663ms
+ [-] ConvertCp950_Apply_PreservesChineseAndWritesUtf8 677ms
+   Expected: {0}
+   But was:  {1}
+   136:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 136
+ [+] Convert_DefaultDryRun_DoesNotWriteSource 661ms
+ [+] Convert_ExplicitDryRun_DoesNotWriteSource 504ms
+ [+] Convert_InvalidEncoding_LeavesOriginalUntouched 530ms
+ [+] Convert_MultilineChineseLiteralWouldChange_RefusesWrite 535ms
+ [-] Convert_Utf16Bom_ProducesExpectedUtf8Bytes 615ms
+   Expected: {0}
+   But was:  {1}
+   186:         $result.ExitCode | Should Be 0
+   at <ScriptBlock>, D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\tools\RepoQuality\Tests\Test-TextEncoding.Tests.ps1: line 186
+Tests completed in 10.07s
+Passed: 14 Failed: 2 Skipped: 0 Pending: 0 Inconclusive: 0
