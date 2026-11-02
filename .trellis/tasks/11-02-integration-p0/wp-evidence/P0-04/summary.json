@@ -1,7 +1,11 @@
 {
   "workPackage": "P0-04",
-  "analyzerChecks": 13,
+  "supplement": "Claude single-model manual documentation review delivered by user",
+  "initialAnalyzerChecks": 13,
+  "analyzerChecks": 16,
   "analyzerFailures": 0,
+  "documentationRegressionRedFailures": 4,
+  "documentationOutputVerified": true,
   "build": {
     "exitCode": 0,
     "errors": 0,

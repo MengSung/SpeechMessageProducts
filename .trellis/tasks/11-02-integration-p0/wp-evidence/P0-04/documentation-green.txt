@@ -1,0 +1,1 @@
+Analyzer probe: checks=16 failures=0 buildExit=1 errors=RS0030

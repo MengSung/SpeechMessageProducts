@@ -1,0 +1,5 @@
+FAIL StrictOptIn_ProjectBody_EnablesAllRequiredSettings: effective properties do not match.
+FAIL PublicMember_NoXmlComment_FailsWithCS1591: exit=0
+FAIL DocumentedBuild_OutputContainsXml: exit=0 exists=False
+FAIL StrictProject_NoDocumentationSetting_FailsBeforeCompile: exit=0
+Analyzer probe: checks=16 failures=4 buildExit=1 errors=RS0030

@@ -2,7 +2,7 @@
 .SYNOPSIS
 以真實建置驗證禁用時間 API 與嚴格模式的載入時點。
 .DESCRIPTION
-探測專案故意違規，因此建置必須失敗且僅出現 RS0030 錯誤。
+預設探測分支故意違規，必須只出現 RS0030；文件與其他故障分支依各自的實際診斷判斷。
 不以命令列強制啟用嚴格模式；同時評估新舊專案屬性，防止 props 載入順序造成假綠燈。
 子程序與重新導向串流由本腳本每次呼叫擁有；停用建置伺服器重用，逾時終止程序樹。
 輸出只存於呼叫者指定的證據目錄，預設放在被忽略的 artifacts，不保存使用者或教會狀態。
@@ -69,14 +69,15 @@ try {
     if ($build.ExitCode -eq 0 -or $errorCodes.Count -ne 1 -or $errorCodes[0] -ne 'RS0030') {
         $failures.Add("BannedTimeApi_MustFailWithRS0030: exit=$($build.ExitCode) errors=$($errorCodes -join ',')")
     }
-    $properties = 'SpeechMessageStrictCode,EnableNETAnalyzers,AnalysisMode,TreatWarningsAsErrors,Nullable,LangVersion,GenerateDocumentationFile,WarningsAsErrors'
-    $strict = Invoke-AnalyzerDotNet -Arguments ('msbuild "' + $probe + '" -nologo -getProperty:' + $properties) -LogName 'strict-properties.log'
+    $properties = 'SpeechMessageStrictCode,EnableNETAnalyzers,AnalysisMode,TreatWarningsAsErrors,Nullable,LangVersion,GenerateDocumentationFile,DocumentationFile,TargetDir,WarningsAsErrors'
+    $strict = Invoke-AnalyzerDotNet -Arguments ('msbuild "' + $probe + '" -nologo -p:TargetFramework=net10.0 -p:Configuration=Release -getProperty:' + $properties) -LogName 'strict-properties.log'
     if ($strict.ExitCode -ne 0) { throw 'Strict project property evaluation failed.' }
     $settings = ($strict.Output | ConvertFrom-Json).Properties
     if ($settings.SpeechMessageStrictCode -ne 'true' -or $settings.EnableNETAnalyzers -ne 'true' -or
         $settings.AnalysisMode -ne 'Recommended' -or $settings.TreatWarningsAsErrors -ne 'true' -or
         $settings.Nullable -ne 'enable' -or $settings.LangVersion -ne 'latest' -or
-        $settings.GenerateDocumentationFile -ne 'true' -or $settings.WarningsAsErrors -notmatch 'CA1307' -or
+        $settings.GenerateDocumentationFile -ne 'true' -or [string]::IsNullOrWhiteSpace($settings.DocumentationFile) -or
+        $settings.WarningsAsErrors -notmatch 'CA1307' -or
         $settings.WarningsAsErrors -notmatch 'CA1309' -or $settings.WarningsAsErrors -notmatch 'CA1310') {
         $failures.Add('StrictOptIn_ProjectBody_EnablesAllRequiredSettings: effective properties do not match.')
     }
@@ -110,6 +111,28 @@ try {
     if ($compatibility.ExitCode -eq 0 -or $compatibilityCodes.Count -ne 1 -or $compatibilityCodes[0] -ne 'RS0030') {
         $failures.Add("Net48_PolyfillsCompile_OnlyBannedApiFails: exit=$($compatibility.ExitCode) errors=$($compatibilityCodes -join ',')")
     }
+    # 用編譯器真正的缺漏診斷驗證文件產生，不能僅相信 GenerateDocumentationFile 開關值。
+    $missingXml = Invoke-AnalyzerDotNet -Arguments ('build "' + $probe + '" -c Release -f net10.0 --nologo --disable-build-servers -t:Rebuild -p:DefineConstants=PROBE_MISSING_XML') -LogName 'missing-xml.log'
+    $checks++
+    if ($missingXml.ExitCode -eq 0 -or $missingXml.Output -notmatch '\berror CS1591:') {
+        $failures.Add("PublicMember_NoXmlComment_FailsWithCS1591: exit=$($missingXml.ExitCode)")
+    }
+    # 先移除舊產物，再用完全有文件且無禁用 API 的分支建置，證明本次真的複製 XML 到輸出目錄。
+    $xmlOutput = Join-Path $settings.TargetDir 'AnalyzerProbe.xml'
+    [System.IO.File]::Delete($xmlOutput)
+    $documented = Invoke-AnalyzerDotNet -Arguments ('build "' + $probe + '" -c Release -f net10.0 --nologo --disable-build-servers -t:Rebuild -p:DefineConstants=PROBE_DOCUMENTED') -LogName 'documented-output.log'
+    $checks++
+    if ($documented.ExitCode -ne 0 -or -not [System.IO.File]::Exists($xmlOutput)) {
+        $failures.Add("DocumentedBuild_OutputContainsXml: exit=$($documented.ExitCode) exists=$([System.IO.File]::Exists($xmlOutput))")
+    }
+    else {
+        $xml = New-Object System.Xml.XmlDocument
+        $xml.XmlResolver = $null
+        $xml.Load($xmlOutput)
+        if (-not $xml.SelectSingleNode("/doc/members/member[@name='T:SpeechMessage.RepoQuality.AnalyzerProbe.ClockProbe']")) {
+            $failures.Add('DocumentedBuild_OutputContainsXml: output does not document the probe type.')
+        }
+    }
     # 每次呼叫擁有獨立 Plugin 名稱的編譯樣本，測試命名空間禁令後才刪除；不與並行呼叫共用可變目錄。
     $fixtureBase = [System.IO.Path]::GetFullPath((Join-Path $root 'artifacts/quality/analyzer-probe-fixtures'))
     $fixtureDirectory = Join-Path $fixtureBase ([guid]::NewGuid().ToString('N'))
@@ -117,12 +140,20 @@ try {
     try {
         $sourcePath = [System.Security.SecurityElement]::Escape((Join-Path $root 'tools/RepoQuality/AnalyzerProbe/ClockProbe.cs'))
         $fixtureProject = Join-Path $fixtureDirectory 'SpeechMessage.Dynamics.Plugins.csproj'
-        $fixtureXml = '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><SpeechMessageStrictCode>true</SpeechMessageStrictCode><DefineConstants>PROBE_DRAWING</DefineConstants></PropertyGroup><ItemGroup><Compile Include="' + $sourcePath + '" /></ItemGroup></Project>'
+        $fixtureXml = '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><SpeechMessageStrictCode>true</SpeechMessageStrictCode><GenerateDocumentationFile>true</GenerateDocumentationFile><DefineConstants>PROBE_DRAWING</DefineConstants></PropertyGroup><ItemGroup><Compile Include="' + $sourcePath + '" /></ItemGroup></Project>'
         [System.IO.File]::WriteAllText($fixtureProject, $fixtureXml + "`r`n", $utf8)
         $drawing = Invoke-AnalyzerDotNet -Arguments ('build "' + $fixtureProject + '" -c Release --nologo --disable-build-servers') -LogName 'plugin-drawing.log'
         $checks++
         if ($drawing.ExitCode -eq 0 -or $drawing.Output -notmatch '\berror RS0030:.*System.Drawing') {
             $failures.Add("Plugin_SystemDrawing_FailsWithRS0030: exit=$($drawing.ExitCode)")
+        }
+        $missingProject = Join-Path $fixtureDirectory 'StrictWithoutDocumentation.csproj'
+        $missingProjectXml = '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><SpeechMessageStrictCode>true</SpeechMessageStrictCode><DefineConstants>PROBE_DOCUMENTED</DefineConstants></PropertyGroup><ItemGroup><Compile Include="' + $sourcePath + '" /></ItemGroup></Project>'
+        [System.IO.File]::WriteAllText($missingProject, $missingProjectXml + "`r`n", $utf8)
+        $missingSetting = Invoke-AnalyzerDotNet -Arguments ('build "' + $missingProject + '" -c Release --nologo --disable-build-servers -t:Rebuild') -LogName 'missing-documentation-setting.log'
+        $checks++
+        if ($missingSetting.ExitCode -eq 0 -or $missingSetting.Output -notmatch '\berror SMQ0001:') {
+            $failures.Add("StrictProject_NoDocumentationSetting_FailsBeforeCompile: exit=$($missingSetting.ExitCode)")
         }
     }
     finally {

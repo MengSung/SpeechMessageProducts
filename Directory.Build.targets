@@ -8,9 +8,15 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarningsAsErrors>$(WarningsAsErrors);CA1307;CA1309;CA1310;RS0030</WarningsAsErrors>
   </PropertyGroup>
+
+  <!-- SDK 在匯入本檔之前已依文件開關決定 DocumentationFile 與輸出複製行為。
+       因此 GenerateDocumentationFile 必須在 csproj 本體與嚴格模式一同啟用，
+       不能在此補設開關或改寫 SDK 私有屬性；編譯前拒絕空的實際文件路徑，避免假綠燈。 -->
+  <Target Name="ValidateSpeechMessageDocumentation" BeforeTargets="CoreCompile" Condition="'$(SpeechMessageStrictCode)' == 'true'">
+    <Error Condition="'$(DocumentationFile)' == ''" Code="SMQ0001" Text="嚴格專案必須在 csproj 本體同時設定 SpeechMessageStrictCode=true 與 GenerateDocumentationFile=true；目前 DocumentationFile 為空，無法驗證 XML 文件。" />
+  </Target>
 
   <ItemGroup Condition="'$(SpeechMessageStrictCode)' == 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />

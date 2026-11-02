@@ -20,7 +20,14 @@ the intentionally invalid probe builds themselves must fail.
 ## 3. Contracts
 
 - Strict projects enable NET analyzers, Recommended analysis, nullable, latest
-  language version, XML documentation, and warnings as errors.
+  language version, and warnings as errors in Directory.Build.targets.
+- Every strict csproj must set both SpeechMessageStrictCode=true and
+  GenerateDocumentationFile=true in its project body. The SDK derives
+  DocumentationFile and XML output copying before Directory.Build.targets is
+  imported; setting only the flag there gives a false success. Never set SDK
+  private properties such as _DocumentationFileProduced. The
+  ValidateSpeechMessageDocumentation target fails with SMQ0001 before
+  CoreCompile when a strict project has an empty DocumentationFile.
 - `build/StrictCode.globalconfig` actually enables CA1307, CA1309, CA1310 and
   RS0030. WarningsAsErrors alone does not enable a disabled analyzer rule.
 - BannedApiAnalyzers is a private development dependency. Root BannedSymbols
@@ -46,6 +53,9 @@ the intentionally invalid probe builds themselves must fail.
 | Plugin namespace probe uses System.Drawing | RS0030 |
 | Strict opt-in supplied only in project body | All strict properties enabled |
 | Existing ToolUtility project without opt-in | Original settings preserved |
+| Public member intentionally missing XML comments | CS1591 error |
+| Strict project missing the project-body documentation setting | SMQ0001 before compilation |
+| Documented positive build after deleting stale output XML | Successful build; output bin XML contains the documented type |
 | Restore, framework or unexpected compiler failure | Fail the guard; never count it as the expected rejection |
 
 ## 5. Good / Base / Bad Cases
@@ -58,7 +68,10 @@ the intentionally invalid probe builds themselves must fail.
 
 ## 6. Tests Required
 
-Run Test-AnalyzerProbe's 13 checks. Preserve the initial missing-analyzer red
+Run Test-AnalyzerProbe's 16 checks, retaining the original 13 and adding the
+three documentation cases. Check the actual nonempty DocumentationFile and
+the newly emitted XML in the output directory, rather than trusting only the
+GenerateDocumentationFile flag. Preserve the initial missing-analyzer red
 evidence and the final summary, then run the complete Release solution build,
 Release tests, Debug FileToolUtilityTracerTests, and the package-version guard.
 The probe is deliberately outside the solution and is not production code.
@@ -69,6 +82,7 @@ Wrong: a condition in Directory.Build.props reads a value first assigned later
 in the csproj, or a net10-only project is built with a net48 override and its
 NETSDK1005 failure is accepted as proof of the banned API rule.
 
-Correct: evaluate the opt-in in Directory.Build.targets; declare both probe
-frameworks and build each declared framework explicitly. Reject unexpected
-diagnostic codes and keep the original project-body opt-in unmodified.
+Correct: evaluate the opt-in in Directory.Build.targets while setting the XML
+documentation flag earlier in each csproj body. Declare both probe frameworks
+and build each explicitly. Reject unexpected diagnostic codes and verify both
+missing-comment rejection and a fresh successful XML output.

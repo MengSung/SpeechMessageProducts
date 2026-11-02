@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P0-04 驗證通過，完成提交後依序執行 P0-05。",
+  "nextAction": "P0-04 文件產生補修驗證通過，另作修正提交後接續 P0-05。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",

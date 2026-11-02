@@ -21,7 +21,7 @@
   "children": [],
   "parent": "11-02-integration-v32",
   "relatedFiles": [],
-  "notes": "P0-04 targets 修正與 13 項守門完成，完整方案及 Debug 驗證通過，待提交。",
+  "notes": "P0-04 文件產生補修驗證通過（16／16），待補修提交後繼續 P0-05；P0-05 紅燈已保留。",
   "meta": {
     "currentWorkPackage": "P0-04",
     "userRequestedStop": false,

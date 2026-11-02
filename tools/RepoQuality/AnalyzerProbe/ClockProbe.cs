@@ -32,8 +32,17 @@ public static class ClockProbe
         _ = "haystack".Contains("needle");
 #elif PROBE_DRAWING
         _ = System.Drawing.Point.Empty;
+#elif PROBE_DOCUMENTED || PROBE_MISSING_XML
+        // 文件測試只驗證編譯契約，避免其他故障注入遮蔽 XML 診斷或阻止正常輸出。
 #else
         _ = System.DateTime.Now;
 #endif
     }
+
+#if PROBE_MISSING_XML
+    // 此成員刻意缺少 XML 說明，測試必須以 CS1591 拒絕；不可補上 XML 讓故障消失。
+    public static void UndocumentedMember()
+    {
+    }
+#endif
 }

@@ -1,0 +1,14 @@
+{
+  "Properties": {
+    "SpeechMessageStrictCode": "true",
+    "EnableNETAnalyzers": "true",
+    "AnalysisMode": "Recommended",
+    "TreatWarningsAsErrors": "true",
+    "Nullable": "enable",
+    "LangVersion": "latest",
+    "GenerateDocumentationFile": "true",
+    "DocumentationFile": "obj\\Release\\net10.0\\AnalyzerProbe.xml",
+    "TargetDir": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\tools\\RepoQuality\\AnalyzerProbe\\bin\\Release\\net10.0\\",
+    "WarningsAsErrors": ";NU1605;CA1307;CA1309;CA1310;RS0030;SYSLIB0011"
+  }
+}

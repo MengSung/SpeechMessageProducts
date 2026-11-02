@@ -5,7 +5,7 @@
 - [x] P0-01 開分支、Trellis 任務、保存 SDK／建置／測試基準與已授權修復；驗證已通過。
 - [x] P0-02 gitignore 與 global.json；設定及完整驗證已通過。
 - [x] P0-03 CPM 與版本統一；套件守門紅燈 113 項、綠燈 0 項，完整驗證通過。
-- [x] P0-04 新專案分析器與禁用 API；13 項守門、Release 與 Debug tracer 全數通過。
+- [x] P0-04 新專案分析器與禁用 API；原 13 項守門加 3 項 XML 文件檢查，共 16 項，Release 與 Debug tracer 全數通過。
 - [ ] P0-05 編碼工具；先跑所有不合法樣本與無損轉換測試。
 - [ ] P0-06 重複程式掃描；先跑跨專案副本與基準棘輪測試。
 - [ ] P0-07 I18nCheck；先跑原計畫全部 Roslyn、resx、偽語系與產生器測試。
@@ -48,3 +48,6 @@ M+ 分析／審查使用 Start-CcgDualModelRun.ps1 自癒入口；依使用者�
 ## P0-04 載入時點修正（已核定）
 P0-03 已提交 d1c92d83。P0-04 在 Directory.Build.props 載入時讀不到 csproj 內的 SpeechMessageStrictCode 啟用值；已保存隔離 MSBuild 證據，使用者已核定修正。
 修正提案：將受開關控制的嚴格設定放到 Directory.Build.targets，其他範圍及驗收不變；已先更新權威計畫，接續原 TDD 流程。
+
+## P0-04 文件產生補核修正
+使用者已核定 Claude 單模型人工補充核對；初版 13 項漏驗 XML 產出，已先留 4 項紅燈、修正為 16／16，另做 P0-04 提交保留 1cf66341 歷史。P0-05 只有 16 項紅燈與未實作空殼先保留，本次不提交。

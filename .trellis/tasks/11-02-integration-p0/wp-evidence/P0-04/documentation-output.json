@@ -1,0 +1,11 @@
+{
+  "documentationFile": "obj\\Release\\net10.0\\AnalyzerProbe.xml",
+  "outputXml": "tools/RepoQuality/AnalyzerProbe/bin/Release/net10.0/AnalyzerProbe.xml",
+  "outputXmlExists": true,
+  "outputXmlBytes": 1095,
+  "staleOutputDeletedBeforeBuild": true,
+  "missingCommentDiagnostic": "CS1591",
+  "missingSettingDiagnostic": "SMQ0001",
+  "checks": 16,
+  "failures": 0
+}

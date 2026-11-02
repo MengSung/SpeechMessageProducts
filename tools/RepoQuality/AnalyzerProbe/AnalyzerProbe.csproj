@@ -2,6 +2,8 @@
   <PropertyGroup>
     <TargetFrameworks>net48;net10.0</TargetFrameworks>
     <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <!-- SDK 在載入 Directory.Build.targets 前已決定文件路徑與輸出複製，故文件開關必須在本體設定。 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
