@@ -25,33 +25,49 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// </summary>
 public sealed class DonationPaymentReturnProcessorNamingTests
 {
+    /// <summary>
+    /// 保護收費單付款完成的中性 MVC 入口。
+    /// 在實際產品組件查詢指定型別，偵測入口遭刪除或搬移；斷言存在且繼承 Controller，不建立付款或使用者狀態。
+    /// </summary>
     [Fact]
     public void New_donation_fee_payment_processor_exists_as_primary_fee_return_processor()
     {
-        var processorType = Type.GetType("ChurchReport.Tools.DonationFeePaymentProcessor, ChurchReport");
+        var processorType = typeof(global::ChurchReport.Models.DonationPaymentManager).Assembly.GetType("ChurchReport.Tools.DonationFeePaymentProcessor");
 
         processorType.Should().NotBeNull("收費單付款完成流程應由 DonationFeePaymentProcessor 作為主要入口");
         processorType!.IsAssignableTo(typeof(Controller)).Should().BeTrue();
     }
 
+    /// <summary>
+    /// 保護定期奉獻回傳的中性 MVC 入口。
+    /// 查詢實際產品組件以偵測型別遺失，斷言入口存在且可作為 Controller；不觸發實際扣款或對外通知。
+    /// </summary>
     [Fact]
     public void New_recurring_donation_payment_processor_exists_as_primary_recurring_return_processor()
     {
-        var processorType = Type.GetType("ChurchReport.Tools.RecurringDonationPaymentProcessor, ChurchReport");
+        var processorType = typeof(global::ChurchReport.Models.DonationPaymentManager).Assembly.GetType("ChurchReport.Tools.RecurringDonationPaymentProcessor");
 
         processorType.Should().NotBeNull("定期定額付款完成流程應由 RecurringDonationPaymentProcessor 作為主要入口");
         processorType!.IsAssignableTo(typeof(Controller)).Should().BeTrue();
     }
 
+    /// <summary>
+    /// 保護付款結果與除錯工具保持中性公開入口。
+    /// 對實際產品組件查詢兩個完整名稱，以刪除任一工具為故障情境；斷言兩者存在，不執行日誌寫入。
+    /// </summary>
     [Fact]
     public void New_payment_result_helper_and_debug_logger_exist()
     {
-        Type.GetType("ChurchReport.Tools.DonationPaymentResultHelper, ChurchReport")
+        typeof(global::ChurchReport.Models.DonationPaymentManager).Assembly.GetType("ChurchReport.Tools.DonationPaymentResultHelper")
             .Should().NotBeNull("付款結果判斷 helper 應使用中性命名");
-        Type.GetType("ChurchReport.Tools.DonationPaymentDebugLogger, ChurchReport")
+        typeof(global::ChurchReport.Models.DonationPaymentManager).Assembly.GetType("ChurchReport.Tools.DonationPaymentDebugLogger")
             .Should().NotBeNull("付款除錯記錄 helper 應使用中性命名");
     }
 
+    /// <summary>
+    /// 保護既定移除四個舊付款包裝型別的契約。
+    /// 在真實產品組件逐項查詢可能被重新加入的完整名稱；斷言命中集合為空，避免舊入口與共用流程並存。
+    /// </summary>
     [Fact]
     public void ChurchReport_assembly_does_not_expose_legacy_qpay_payment_workflow_wrappers()
     {

@@ -20,8 +20,17 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
 
+/// <summary>
+/// 保護虛構信用卡資料解析與序列化、固定日期分類、表單驗證，以及認獻狀態與付款方式的既有映射。
+/// 使用固定假資料驗證成功、錯誤輸入及未知選項，並讀取本 worktree 的 manager 區段守住服務委派邊界。
+/// 不建立 CRM、付款或 LINE 連線；解析結果及來源文字由單一案例擁有，不跨案例保存。
+/// </summary>
 public sealed class DonationPaymentServiceExtractionTests
 {
+    /// <summary>
+    /// 保護既有信用卡顯示資料的解析契約。
+    /// 注入兩筆虛構卡片記錄，驗證遮罩、到期年月與 token 對應；斷言筆數及兩筆欄位逐一相符，不接觸真實付款資料。
+    /// </summary>
     [Fact]
     public void ParseCreditCards_should_convert_legacy_visa_info_into_display_cards()
     {
@@ -37,6 +46,10 @@ public sealed class DonationPaymentServiceExtractionTests
         cards[1].ExpireDate.Should().Be("25/12");
     }
 
+    /// <summary>
+    /// 保護 CRM 舊格式的讀寫相容性。
+    /// 使用固定虛構卡片資料解析後序列化，偵測分隔字元或欄位順序改變；斷言輸出逐字等於原始格式。
+    /// </summary>
     [Fact]
     public void SerializeCreditCards_should_preserve_legacy_crm_storage_format()
     {
@@ -47,6 +60,10 @@ public sealed class DonationPaymentServiceExtractionTests
             .Be("tok_1，1234，5678，2607|");
     }
 
+    /// <summary>
+    /// 保護日期區間內的特別奉獻分類。
+    /// 注入固定日期及跨月區間以避免系統時鐘依賴；斷言回傳指定分類名稱。
+    /// </summary>
     [Fact]
     public void ResolveSpecialCategory_should_return_name_when_today_is_inside_range()
     {
@@ -59,6 +76,10 @@ public sealed class DonationPaymentServiceExtractionTests
             .Be("暑期特別奉獻");
     }
 
+    /// <summary>
+    /// 保護日期區間外不發布已過期分類。
+    /// 注入固定的區間外日期，模擬活動結束；斷言回傳空字串而非沿用先前分類。
+    /// </summary>
     [Fact]
     public void ResolveSpecialCategory_should_return_empty_when_today_is_outside_range()
     {
@@ -71,6 +92,10 @@ public sealed class DonationPaymentServiceExtractionTests
             .BeEmpty();
     }
 
+    /// <summary>
+    /// 保護不合法日期設定的可預期拒絕行為。
+    /// 注入兩端皆無法解析的日期文字，斷言不丟例外且分類為空，避免錯誤設定變成有效分類。
+    /// </summary>
     [Fact]
     public void ResolveSpecialCategory_should_ignore_malformed_date_text_without_throwing()
     {
@@ -88,6 +113,10 @@ public sealed class DonationPaymentServiceExtractionTests
             .BeEmpty();
     }
 
+    /// <summary>
+    /// 保護未填金額不得進入付款流程。
+    /// 注入金額為零的操作區域模型，斷言回傳既有拒絕訊息；不建立付款或跨請求狀態。
+    /// </summary>
     [Fact]
     public void ValidateDonationForm_should_reject_empty_amount()
     {
@@ -99,6 +128,10 @@ public sealed class DonationPaymentServiceExtractionTests
         result.Should().Be("未輸入奉獻金額");
     }
 
+    /// <summary>
+    /// 保護節期奉獻必填節期選項。
+    /// 注入有金額但未選節期的模型，斷言回傳既有驗證訊息而非接受表單。
+    /// </summary>
     [Fact]
     public void ValidateDonationForm_should_require_festival_selection_for_festival_dedication()
     {
@@ -112,6 +145,10 @@ public sealed class DonationPaymentServiceExtractionTests
         result.Should().Be("錯誤:沒有選擇節期!");
     }
 
+    /// <summary>
+    /// 保護 ATM 付款指示的既有分類。
+    /// 注入固定虛構銀行與帳號文字，模擬成功取得虛擬帳號；斷言狀態及付款方式正確。
+    /// </summary>
     [Fact]
     public void ClassifyCreatePaymentResult_should_mark_payment_instruction_as_virtual_account()
     {
@@ -122,6 +159,10 @@ public sealed class DonationPaymentServiceExtractionTests
         result.PayWay.Should().Be("虛擬帳號");
     }
 
+    /// <summary>
+    /// 保護信用卡建立付款失敗不得被分類為成功。
+    /// 注入既有失敗訊息，斷言錯誤狀態與原始顯示訊息均保留。
+    /// </summary>
     [Fact]
     public void ClassifyCreatePaymentResult_should_return_error_for_credit_card_failure()
     {
@@ -132,6 +173,12 @@ public sealed class DonationPaymentServiceExtractionTests
         result.Message.Should().Be("信用卡繳費失敗! 資料輸入有誤");
     }
 
+    /// <summary>
+    /// 保護認獻狀態選項對顯示文字的既有映射。
+    /// 表格注入所有已知狀態與未知值，偵測錯誤分支或後備文字變更；逐案斷言固定期望值。
+    /// </summary>
+    /// <param name="optionSetValue">固定的已知或未知認獻選項值。</param>
+    /// <param name="expected">獨立列出的既有顯示文字。</param>
     [Theory]
     [InlineData(100000000, "尚未啟動")]
     [InlineData(100000001, "進行中")]
@@ -144,6 +191,12 @@ public sealed class DonationPaymentServiceExtractionTests
         DonationBookingService.ConvertStatus(optionSetValue).Should().Be(expected);
     }
 
+    /// <summary>
+    /// 保護既有付款方式選項與未知值後備。
+    /// 使用固定選項表注入各種付款方式，偵測漏列或錯誤映射；逐案斷言顯示文字。
+    /// </summary>
+    /// <param name="optionSetValue">固定的付款方式選項值。</param>
+    /// <param name="expected">獨立列出的既有顯示文字。</param>
     [Theory]
     [InlineData(100000000, "現金")]
     [InlineData(100000001, "信用卡")]
@@ -159,13 +212,17 @@ public sealed class DonationPaymentServiceExtractionTests
         DonationFeeQueryService.ConvertPayWay(optionSetValue).Should().Be(expected);
     }
 
+    /// <summary>
+    /// 保護會友映射集中在 contact service 的既有架構邊界。
+    /// 讀取目前方案的 manager 區段，偵測重新內嵌 CRM 建立或欄位映射；斷言服務委派完整且無直接建立實體的程式。
+    /// </summary>
     [Fact]
     public void DonationPaymentManager_should_delegate_contact_mapping_to_contact_service()
     {
         // 這個測試刻意檢查原始碼結構，而不是測 CRM 行為。
         // 目的在於鎖住本次重構邊界：DonationPaymentManager 只能協調流程，
         // ChurchReport CRM contact 的建立、比對、補欄位細節必須集中在 DonationContactService。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string contactSection = ExtractSourceSection(
             managerSource,
             "public Entity CreateDonationContact",
@@ -180,12 +237,16 @@ public sealed class DonationPaymentServiceExtractionTests
         contactSection.Should().NotContain("SetOptionSetAttribute(ref aContactToCreate");
     }
 
+    /// <summary>
+    /// 保護手動奉獻流程由產品服務擁有。
+    /// 讀取目前方案的指定方法區段，偵測 CRM 查詢重新散回 manager；斷言有服務委派且沒有舊查詢入口。
+    /// </summary>
     [Fact]
     public void DonationPaymentManager_should_delegate_key_in_dedication_workflow()
     {
         // 手動奉獻查詢/更新是 ChurchReport 產品流程，manager 應只保留公開入口，
         // CRM 查詢與 JSON payload 組裝要集中在 DonationKeyInDedicationService。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string keyInSection = ExtractSourceSection(
             managerSource,
             "public async Task<IActionResult> SaveKeyInDedication",
@@ -195,12 +256,16 @@ public sealed class DonationPaymentServiceExtractionTests
         keyInSection.Should().NotContain("QueryDediccationContatsByFetchXml");
     }
 
+    /// <summary>
+    /// 保護認獻清單及取消流程的服務邊界。
+    /// 讀取目前方案的 booking 區段，偵測直接查詢認獻實體的退化；斷言委派服務且未內嵌 CRM 邏輯。
+    /// </summary>
     [Fact]
     public void DonationPaymentManager_should_delegate_booking_workflow()
     {
         // 認獻清單與取消認獻會碰 CRM、LINE 與舊金流取消流程，
         // 這些流程應移到 ChurchReport service，不能留在大型 manager 裡。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string bookingSection = ExtractSourceSection(
             managerSource,
             "public void ProcessDedicationBooking()",
@@ -211,12 +276,16 @@ public sealed class DonationPaymentServiceExtractionTests
         bookingSection.Should().NotContain("new_dedication_booking");
     }
 
+    /// <summary>
+    /// 保護新增會友與奉獻編號集中在產品服務。
+    /// 讀取目前方案的建立區段，偵測 manager 直接新增實體或計算編號；斷言存在服務委派並排除直接查詢。
+    /// </summary>
     [Fact]
     public void DonationPaymentManager_should_delegate_contact_creation_numbering_workflow()
     {
         // 查無新人時建立 contact 以及奉獻編號規則是 ChurchReport 資料規則，
         // manager 不應直接建立 contact 或計算 pager 編號。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string creationSection = ExtractSourceSection(
             managerSource,
             "public async Task<IActionResult> CreateContact",
@@ -227,12 +296,16 @@ public sealed class DonationPaymentServiceExtractionTests
         creationSection.Should().NotContain("QueryContatsByStartedDedicationNumber");
     }
 
+    /// <summary>
+    /// 保護付款表單組裝集中在 assembler。
+    /// 讀取目前方案的模型組裝區段，偵測 task 查詢與 OptionSet 細節重新回流；斷言有 assembler 委派且無底層映射細節。
+    /// </summary>
     [Fact]
     public void DonationPaymentManager_should_delegate_payment_model_assembly()
     {
         // 奉獻表單初始化牽涉 CRM 欄位、OptionSet、信用卡清單與認獻清單，
         // manager 應把組裝細節交給 assembler，避免 UI model 規則散在大型協調器。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string modelSection = ExtractSourceSection(
             managerSource,
             "public DonationPaymentFormModel SetDonationPaymentModel",
@@ -243,12 +316,16 @@ public sealed class DonationPaymentServiceExtractionTests
         modelSection.Should().NotContain("OptionSetMetadataService");
     }
 
+    /// <summary>
+    /// 保護奉獻登入的會友比對由專用服務負責。
+    /// 讀取目前方案的登入區段，偵測依姓名或證號的查詢重新回流；斷言委派登入服務且無直接 CRM 查詢。
+    /// </summary>
     [Fact]
     public void DonationPaymentManager_should_delegate_donation_login_contact_workflow()
     {
         // 官網奉獻登入會處理身分證、姓名、同名資料與新 contact 建立，
         // 這是 ChurchReport contact workflow，manager 不應保留大段 CRM 查詢判斷。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string loginSection = ExtractSourceSection(
             managerSource,
             "public Entity GetDonationPaymentLoginContact",
@@ -259,12 +336,16 @@ public sealed class DonationPaymentServiceExtractionTests
         loginSection.Should().NotContain("RetrieveContactCollectionByName");
     }
 
+    /// <summary>
+    /// 保護奉獻查詢表單刷新由產品服務負責。
+    /// 讀取目前方案的表單刷新區段，偵測 manager 直接查詢會友或自行建立費用服務；斷言保留專用服務委派。
+    /// </summary>
     [Fact]
     public void DonationPaymentManager_should_delegate_dedication_fee_form_refresh()
     {
         // 奉獻查詢表單刷新包含 contact 欄位投影與 new_fee 查詢，屬於 ChurchReport 產品表單流程。
         // manager 只應保留 public wrapper，讓 service 負責欄位填值與 fee list refresh。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string feeListSection = ExtractSourceSection(
             managerSource,
             "public DonationPaymentFormModel SetDedicationFeeList(String UserLineId)",
@@ -275,24 +356,39 @@ public sealed class DonationPaymentServiceExtractionTests
         feeListSection.Should().NotContain("new DonationFeeQueryService");
     }
 
+    /// <summary>
+    /// 只讀取最近方案根目錄內的指定檔案；方案找到後不得退回父 worktree 搜尋另一份程式。
+    /// 檔案由固定測試案例指定，缺檔即失敗；讀取完成即關閉檔案，文字只保留於該次測試。
+    /// </summary>
+    /// <param name="pathSegments">由可信任測試定義提供的方案相對路徑片段。</param>
+    /// <returns>當次測試擁有的完整來源文字。</returns>
     private static string ReadRepositoryFile(params string[] pathSegments)
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
 
-        while (directory != null)
+        // 一旦找到本 worktree 的方案即停止向上尋找，避免讀到父 worktree 的其他版本。
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
         {
-            string candidate = Path.Combine(directory.FullName, Path.Combine(pathSegments));
-            if (File.Exists(candidate))
-            {
-                return File.ReadAllText(candidate);
-            }
-
             directory = directory.Parent;
         }
 
-        throw new FileNotFoundException("找不到測試需要讀取的專案原始碼檔案。", Path.Combine(pathSegments));
+        if (directory == null)
+        {
+            throw new DirectoryNotFoundException("找不到目前 worktree 的 SpeechMessageProducts.sln。");
+        }
+
+        string candidate = Path.Combine(directory.FullName, Path.Combine(pathSegments));
+        return File.ReadAllText(candidate);
     }
 
+    /// <summary>
+    /// 取得既有架構測試指定的來源區段；起訖標記缺失必須直接失敗，不能改用空字串略過檢查。
+    /// 傳入文字只屬於本次檢查，方法不保存跨測試狀態。
+    /// </summary>
+    /// <param name="source">目前方案檔案的完整來源文字。</param>
+    /// <param name="startMarker">區段起點的既有方法簽章。</param>
+    /// <param name="endMarker">區段終點的既有方法或區域標記。</param>
+    /// <returns>不含終點標記的來源區段。</returns>
     private static string ExtractSourceSection(string source, string startMarker, string endMarker)
     {
         int start = source.IndexOf(startMarker, StringComparison.Ordinal);

@@ -1,4 +1,4 @@
-﻿param(
+param(
     [Parameter(Mandatory = $true)]
     [ValidateScript({ Test-Path -LiteralPath $_ })]
     [string]$TaskFile,
@@ -11,7 +11,9 @@
     [int]$TimeoutSeconds = 900,
     [int]$MaxAttempts = 2,
     [switch]$RunHealthBackendSmoke,
-    [switch]$AllowSingleModelWhenQuotaBlocked
+    [switch]$AllowSingleModelWhenQuotaBlocked,
+    # 選用單模型是使用者的執行策略，不得標示為雙模型成功或配額降級。
+    [switch]$ClaudeOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -500,6 +502,42 @@ function Invoke-GeminiDirectQuotaProbe {
     }
 }
 
+function Get-CcgReviewCompletion {
+    param([switch]$ClaudeOnly, [string[]]$CompletedBackends = @())
+    # 僅彙整本次已驗證完成的後端名稱，不保留提示、帳號或其他可變會話狀態。
+    # ok 是要求是否完成；雙模型完成是獨立契約，不能由成功結束碼推導。
+    $required = if ($ClaudeOnly) { @('claude') } else { @('gemini', 'claude') }
+    $missing = @($required | Where-Object { $CompletedBackends -notcontains $_ })
+    return [pscustomobject]@{
+        ok = ($missing.Count -eq 0)
+        reviewMode = $(if ($ClaudeOnly) { 'claude-only' } else { 'dual' })
+        dualModelComplete = ($CompletedBackends -contains 'gemini' -and $CompletedBackends -contains 'claude')
+    }
+}
+
+function ConvertTo-CcgRunMarkdown {
+    param([Parameter(Mandatory = $true)]$Summary)
+    # 文字摘要與 JSON 使用相同欄位；兩個完成指標都必須公開，避免人工或自動流程誤判。
+    return ((@(
+        $(if ($Summary.reviewMode -eq 'claude-only') { '# CCG Claude-only Run Summary' } else { '# CCG Dual Model Run Summary' }),
+        '',
+        "- RunId: $($Summary.runId)",
+        "- Role: $($Summary.role)",
+        "- ReviewMode: $($Summary.reviewMode)",
+        "- DualModelComplete: $($Summary.dualModelComplete)",
+        "- RequestedBackends: $($Summary.requestedBackends -join ', ')",
+        "- Repository: $($Summary.repositoryPath)",
+        "- TaskFile: $($Summary.taskFile)",
+        "- OK: $($Summary.ok)",
+        "- DegradedFallback: $($Summary.degradedFallback)",
+        "- FallbackAccepted: $($Summary.fallbackAccepted)",
+        "- QuotaBlocked: $($Summary.quotaBlocked)",
+        "- CompletedBackends: $($Summary.completedBackends -join ', ')",
+        "- FailedBackends: $($Summary.failedBackends -join ', ')",
+        '', 'Artifacts are stored in:', '', $Summary.runDirectory
+    ) | ForEach-Object { ([string]$_).TrimEnd() }) -join [Environment]::NewLine)
+}
+
 $toolchainEnvironment = Initialize-CcgToolchainEnvironment
 
 $repositoryFullPath = (Resolve-Path -LiteralPath $RepositoryPath).Path
@@ -527,15 +565,21 @@ if (-not (Test-Path -LiteralPath $healthScript)) {
     throw "Missing health script: $healthScript"
 }
 
+$requestedBackends = if ($ClaudeOnly) { @("claude") } else { @("gemini", "claude") }
+$initialCompletion = Get-CcgReviewCompletion -ClaudeOnly:$ClaudeOnly
 $summary = [ordered]@{
     runId = $runId
     role = $Role
+    requestedBackends = @($requestedBackends)
+    claudeOnly = [bool]$ClaudeOnly
+    reviewMode = $initialCompletion.reviewMode
+    dualModelComplete = $false
     repositoryPath = $repositoryFullPath
     taskFile = $resolvedTaskFile
     runDirectory = $runDirectory
     wrapperPath = $wrapperPath
     toolchainEnvironment = $toolchainEnvironment
-    healthBackendSmoke = [bool]$RunHealthBackendSmoke
+    healthBackendSmoke = [bool]($RunHealthBackendSmoke -and -not $ClaudeOnly)
     attempts = @()
     ok = $false
     degradedFallback = $false
@@ -551,7 +595,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
 
     $healthOutputPath = Join-Path $runDirectory "health-attempt-$attempt.json"
     $healthArguments = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $healthScript, "-RepositoryPath", $repositoryFullPath, "-OutputDirectory", $runDirectory)
-    if (-not $RunHealthBackendSmoke) {
+    # 舊健康檢查的 smoke 會呼叫兩個供應商；單模型模式只檢查本機工具鏈。
+    if (-not $RunHealthBackendSmoke -or $ClaudeOnly) {
         $healthArguments += "-SkipBackendSmoke"
     }
 
@@ -611,7 +656,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
         break
     }
 
-    foreach ($backend in @("gemini", "claude")) {
+    foreach ($backend in $requestedBackends) {
         $prompt = New-BackendPrompt -Backend $backend -Role $Role -TaskText $taskText
         $promptPath = Join-Path $runDirectory "$backend-$Role-attempt-$attempt.prompt.md"
         $stdoutPath = Join-Path $runDirectory "$backend-$Role-attempt-$attempt.stdout.md"
@@ -630,7 +675,11 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
         [System.IO.File]::WriteAllText($stderrPath, $result.StdErr, [System.Text.UTF8Encoding]::new($false))
 
         $combined = (($result.StdOut + "`n" + $result.StdErr) -replace "`r", "")
-        $diagnostic = $null
+        $diagnostic = if ($result.ExitCode -ne 0 -or $result.TimedOut) {
+            Get-ShortDiagnostic -Text $result.StdErr -Fallback 'Backend produced no diagnostic.'
+        } else { $null }
+        $probeDiagnostic = $null
+        $probePath = $null
         $quotaBlocked = Test-BackendQuotaBlocked -Result $result -Diagnostic $diagnostic
 
         if ($backend -eq "gemini" -and -not $quotaBlocked -and $result.ExitCode -ne 0) {
@@ -639,9 +688,11 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
             # exhaustion. Probe directly so quota/billing blocks are not
             # misclassified as local toolchain failures.
             $directProbe = Invoke-GeminiDirectQuotaProbe -WorkingDirectory $repositoryFullPath
+            $probePath = Join-Path $runDirectory "gemini-probe-attempt-$attempt.stdout.md"
+            [System.IO.File]::WriteAllText($probePath, $directProbe.Output, [System.Text.UTF8Encoding]::new($false))
+            $probeDiagnostic = Get-ShortDiagnostic -Text $directProbe.Output -Fallback 'Gemini probe produced no diagnostic.'
             if ($directProbe.QuotaBlocked) {
                 $quotaBlocked = $true
-                $diagnostic = $directProbe.Output
             }
         }
 
@@ -651,9 +702,12 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
             # direct probe so the pipeline can stop as "external quota blocked"
             # instead of repeatedly trying local repairs that cannot help.
             $directProbe = Invoke-ClaudeDirectQuotaProbe -WorkingDirectory $repositoryFullPath
+            # wrapper 有時只回傳 exit 1；保存既有 probe 的實際診斷，才能修復登入／參數問題。
+            $probePath = Join-Path $runDirectory "claude-probe-attempt-$attempt.stdout.md"
+            [System.IO.File]::WriteAllText($probePath, $directProbe.Output, [System.Text.UTF8Encoding]::new($false))
+            $probeDiagnostic = Get-ShortDiagnostic -Text $directProbe.Output -Fallback "Claude probe produced no diagnostic."
             if ($directProbe.QuotaBlocked) {
                 $quotaBlocked = $true
-                $diagnostic = $directProbe.Output
             }
         }
 
@@ -674,6 +728,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
             producedOutput = $producedOutput
             outputLength = (Get-ModelResponseText -StdOut $result.StdOut).Length
             diagnostic = $diagnostic
+            probeDiagnostic = $probeDiagnostic
+            probe = $probePath
             prompt = $promptPath
             stdout = $stdoutPath
             stderr = $stderrPath
@@ -685,7 +741,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $failed = @($attemptRecord.backends | Where-Object { -not $_.ok })
     if ($failed.Count -eq 0) {
         $summary.ok = $true
-        $summary.completedBackends = @("gemini", "claude")
+        $summary.completedBackends = @($requestedBackends)
         break
     }
 
@@ -708,28 +764,15 @@ if (-not $summary.ok -and -not $summary.failedBackends.Count) {
     $summary.failedBackends = @($lastAttempt.backends | Where-Object { -not $_.ok } | ForEach-Object { $_.backend })
 }
 
+$completion = Get-CcgReviewCompletion -ClaudeOnly:$ClaudeOnly -CompletedBackends @($summary.completedBackends)
+$summary.ok = $completion.ok
+$summary.dualModelComplete = $completion.dualModelComplete
 $summaryPath = Join-Path $runDirectory "summary.json"
 $markdownPath = Join-Path $runDirectory "summary.md"
-$summary | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $summaryPath -Encoding UTF8
+$summaryJson = ($summary | ConvertTo-Json -Depth 10) + [Environment]::NewLine
+[System.IO.File]::WriteAllText($summaryPath, $summaryJson, [System.Text.UTF8Encoding]::new($false))
 
-$markdown = @(
-    "# CCG Dual Model Run Summary",
-    "",
-    "- RunId: $runId",
-    "- Role: $Role",
-    "- Repository: $repositoryFullPath",
-    "- TaskFile: $resolvedTaskFile",
-    "- OK: $($summary.ok)",
-    "- DegradedFallback: $($summary.degradedFallback)",
-    "- FallbackAccepted: $($summary.fallbackAccepted)",
-    "- QuotaBlocked: $($summary.quotaBlocked)",
-    "- CompletedBackends: $($summary.completedBackends -join ', ')",
-    "- FailedBackends: $($summary.failedBackends -join ', ')",
-    "",
-    "Artifacts are stored in:",
-    "",
-    $runDirectory
-) -join [Environment]::NewLine
+$markdown = (ConvertTo-CcgRunMarkdown -Summary $summary) + [Environment]::NewLine
 [System.IO.File]::WriteAllText($markdownPath, $markdown, [System.Text.UTF8Encoding]::new($false))
 
 $summary | ConvertTo-Json -Depth 10

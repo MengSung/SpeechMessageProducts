@@ -13,7 +13,9 @@ param(
     [int]$TimeoutSeconds = 900,
     [int]$MaxAttempts = 2,
     [switch]$AllowSingleModelWhenQuotaBlocked,
-    [switch]$RunHealthBackendSmoke
+    [switch]$RunHealthBackendSmoke,
+    # 使用者明確選擇時只執行 Claude；預設仍保留原有雙模型流程。
+    [switch]$ClaudeOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -113,6 +115,10 @@ if ($RunHealthBackendSmoke) {
     $runnerArgs += '-RunHealthBackendSmoke'
 }
 
+if ($ClaudeOnly) {
+    $runnerArgs += '-ClaudeOnly'
+}
+
 & powershell.exe @runnerArgs
 $runnerExitCode = $LASTEXITCODE
 
@@ -121,7 +127,7 @@ $runnerExitCode = $LASTEXITCODE
 # 底層 runner 在 `-AllowSingleModelWhenQuotaBlocked` 啟用時，若一個模型成功、
 # 另一個模型只是 quota/session 被擋，會以 exit code 0 讓任務不中斷。
 # 但是 exit code 0 不代表一定是完整雙模型成功；呼叫端仍必須看 summary.json 的
-# `ok`、`degradedFallback`、`quotaBlocked` 欄位。
+# `dualModelComplete`、`reviewMode`、`degradedFallback`、`quotaBlocked` 欄位。
 #
 # 這裡刻意用本次 task 檔名 stem 比對 run folder，而不是單純抓最新 summary.json。
 # 原因是 CCG run 可能連續執行，若只依 LastWriteTime 取最新資料夾，未來在並行或
@@ -143,7 +149,9 @@ if ($latestSummaryDirectory) {
         $summary = Get-Content -LiteralPath $summaryPath -Encoding UTF8 -Raw | ConvertFrom-Json
         if ($summary.degradedFallback) {
             Write-Warning "CCG completed with DEGRADED FALLBACK. At least one backend succeeded, but this is not a completed dual-model review. Read: $summaryPath"
-        } elseif ($summary.ok) {
+        } elseif ($summary.ok -and $summary.reviewMode -eq 'claude-only') {
+            Write-Host "CCG completed with requested Claude-only success. Read: $summaryPath"
+        } elseif ($summary.dualModelComplete) {
             Write-Host "CCG completed with full dual-model success. Read: $summaryPath"
         } elseif ($summary.quotaBlocked) {
             Write-Warning "CCG stopped on provider quota/session state and did not produce an accepted fallback. Read: $summaryPath"

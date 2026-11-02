@@ -1,0 +1,150 @@
+{
+  "manualReview": {
+    "kind": "Claude 單模型人工審查（使用者交付）",
+    "reviewedDiffSha256": "9098504f6265f682fb32334239d8ca3be21da41c7b18aef8dd627e44fa510418",
+    "hashVerifiedBeforeEdits": true,
+    "entrypointRun": false,
+    "geminiResult": false,
+    "dualModelComplete": false,
+    "critical": 0,
+    "correctionsRequireNewExternalReview": false,
+    "items": [
+      {
+        "id": "W1",
+        "status": "已修",
+        "result": "新增 reviewMode／dualModelComplete，保留 ok 的要求完成語意；JSON、Markdown、AGENTS 指定段落、指南與 00 §6.4 一致。PowerShell 6 案例紅轉綠。"
+      },
+      {
+        "id": "W2",
+        "status": "已修",
+        "result": "00 §8 每包驗證與 01 P0-11 CI 步驟都加入 Debug tracer 命令；本次 Debug 7／7，之後 P0-11 必須實際納入 workflow。"
+      },
+      {
+        "id": "W3",
+        "status": "已修",
+        "result": "manifest helper 先定位最近的 SpeechMessageProducts.sln，只在該根目錄查檔，缺檔直接失敗；View defaults 移除舊方案後備標記。"
+      },
+      {
+        "id": "I1",
+        "status": "僅記錄／需求已列",
+        "result": "原 Invoke 腳本 BOM 移除符合 repo 編碼規則；PowerShell 5.1 可能將非 ASCII 註解顯示為亂碼。P0-05 已追加 ps1 非 ASCII 字元僅可出現在註解的 token 檢查需求。"
+      },
+      {
+        "id": "I2",
+        "status": "已修",
+        "result": "diagnostic 保留 wrapper 自身 stderr 診斷，另記 probeDiagnostic 與 probe 路徑；獨立 probe 成功不代表原呼叫成功。"
+      },
+      {
+        "id": "I3",
+        "status": "僅記錄",
+        "result": "反射查詢區分大小寫且固定命名空間；QpayManager 不涵蓋 QPayManager，現有原始碼掃描補防。組件錨點重複，主 manager 存在性由強型別錨點保證；Controller 斷言仍有意義。本次不重構。"
+      },
+      {
+        "id": "I4",
+        "status": "已修",
+        "result": "兩個重複案例的 XML remarks 已互相標註，保留全部歷史案例與原有測試數。"
+      },
+      {
+        "id": "I5",
+        "status": "已修",
+        "result": "四個類別摘要依 DTO、Controller、依賴組件邊界、解析／序列化／驗證／分類及服務委派等實際內容分別重寫。"
+      },
+      {
+        "id": "I6",
+        "status": "已修",
+        "result": "同一 fixture 第二次配置路徑立即丟 InvalidOperationException；清理最多 5 次、等待最多 4×100ms，逾限明確失敗。新增 3 案例先紅後綠。"
+      },
+      {
+        "id": "I7",
+        "status": "已處理提交範圍",
+        "result": "不提交任何 .trx 原始檔，只保存 md／json／txt 摘要與文字證據。P0-02 依使用者指示再加入附繁中註解的 *.trx 忽略規則。"
+      }
+    ]
+  },
+  "release": {
+    "total": 741,
+    "passed": 741,
+    "failed": 0,
+    "skipped": 0,
+    "projects": [
+      {
+        "project": "churchreport.memberinfo.tests",
+        "total": 471,
+        "passed": 471,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "line.messaging.tests",
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.aspnetcore.tests",
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.richmenus.tests",
+        "total": 34,
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.workflows.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "speechmessage.payments.tests",
+        "total": 55,
+        "passed": 55,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "toolutility.dataverse.tests",
+        "total": 79,
+        "passed": 79,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "debugTracer": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "projects": [
+      {
+        "project": "toolutility.dataverse.tests",
+        "total": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "summaryContractTests": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0
+  },
+  "addedXunitTests": 3,
+  "deletedTests": 0
+}

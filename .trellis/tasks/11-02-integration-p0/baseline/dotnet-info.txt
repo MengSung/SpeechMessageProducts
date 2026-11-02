@@ -1,0 +1,80 @@
+.NET SDK:
+ Version:           10.0.403
+ Commit:            5a2162bea6
+ Workload version:  10.0.400-manifests.899c35d8
+ MSBuild version:   18.9.15+5a2162bea
+
+執行階段環境:
+ OS Name:     Windows
+ OS Version:  10.0.26300
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\10.0.403\
+
+安裝的 .NET 工作負載:
+ [wasm-tools-net6]
+   安裝來源: VS 17.14.37827.9
+   資訊清單版本:    10.0.114/10.0.100
+   資訊清單路徑:       C:\Program Files\dotnet\sdk-manifests\10.0.100\microsoft.net.workload.mono.toolchain.net6\10.0.114\WorkloadManifest.json
+   安裝類型:              Msi
+
+ [wasm-tools-net7]
+   安裝來源: VS 17.14.37827.9
+   資訊清單版本:    10.0.114/10.0.100
+   資訊清單路徑:       C:\Program Files\dotnet\sdk-manifests\10.0.100\microsoft.net.workload.mono.toolchain.net7\10.0.114\WorkloadManifest.json
+   安裝類型:              Msi
+
+ [wasm-tools-net8]
+   安裝來源: VS 17.14.37827.9
+   資訊清單版本:    10.0.114/10.0.100
+   資訊清單路徑:       C:\Program Files\dotnet\sdk-manifests\10.0.100\microsoft.net.workload.mono.toolchain.net8\10.0.114\WorkloadManifest.json
+   安裝類型:              Msi
+
+ [wasm-tools]
+   安裝來源: VS 17.14.37827.9
+   資訊清單版本:    10.0.114/10.0.100
+   資訊清單路徑:       C:\Program Files\dotnet\sdk-manifests\10.0.100\microsoft.net.workload.mono.toolchain.current\10.0.114\WorkloadManifest.json
+   安裝類型:              Msi
+
+設為在安裝新資訊清單時使用 workload sets。
+未安裝任何工作負載集合。執行 "dotnet workload restore" 以安裝工作負載集合。
+
+Host:
+  Version:      10.0.14
+  Architecture: x64
+  Commit:       0427b9abbe
+
+.NET SDKs installed:
+  9.0.318 [C:\Program Files\dotnet\sdk]
+  9.0.320 [C:\Program Files\dotnet\sdk]
+  10.0.403 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 8.0.33 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 9.0.22 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.14 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 8.0.33 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 9.0.22 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.14 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 8.0.33 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 9.0.22 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 10.0.14 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download

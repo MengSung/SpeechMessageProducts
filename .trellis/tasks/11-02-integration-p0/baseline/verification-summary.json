@@ -1,0 +1,80 @@
+{
+  "build": {
+    "command": "dotnet build SpeechMessageProducts.sln -c Release -warnaserror:NU1605",
+    "exitCode": 0,
+    "errors": 0,
+    "warnings": 76
+  },
+  "test": {
+    "command": "dotnet test SpeechMessageProducts.sln -c Release --no-build --logger trx --results-directory <baseline>/gate-test-results",
+    "exitCode": 1,
+    "total": 738,
+    "passed": 714,
+    "failed": 24,
+    "skipped": 0,
+    "projects": [
+      {
+        "project": "churchreport.memberinfo.tests",
+        "total": 471,
+        "passed": 450,
+        "failed": 21,
+        "skipped": 0
+      },
+      {
+        "project": "line.messaging.tests",
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.aspnetcore.tests",
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.richmenus.tests",
+        "total": 34,
+        "passed": 33,
+        "failed": 1,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.workflows.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "speechmessage.payments.tests",
+        "total": 55,
+        "passed": 55,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "toolutility.dataverse.tests",
+        "total": 76,
+        "passed": 74,
+        "failed": 2,
+        "skipped": 0
+      }
+    ]
+  },
+  "newFailedTests": [],
+  "resolvedFailedTests": [],
+  "failureNamesUnchanged": true,
+  "userDecision": "先停在 P0-01，另行處理既有測試失敗",
+  "workPackageCompleted": false,
+  "committed": false
+}

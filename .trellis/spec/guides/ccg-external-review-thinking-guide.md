@@ -31,7 +31,7 @@ When a dual-model analysis/review fails:
    was typed directly.
 2. Run `Start-CcgDualModelRun.ps1` with the same role and repository path.
 3. Read the generated `summary.json`.
-4. If `ok=true`, continue the task from Gemini + Claude outputs.
+4. If `ok=true`, every requested backend completed. Only `dualModelComplete=true` confirms both Gemini and Claude completed; never infer this from `ok` or exit code 0. For `reviewMode=claude-only`, report 「單模型（使用者指定 ClaudeOnly）」 and use only the Claude output.
 5. If exit code is `2`, repair the local issue shown in the run folder and rerun the same runner.
 6. If `quotaBlocked=true`, stop calling it a tool failure; this is provider/session state.
    In this project, the owner has approved `-AllowSingleModelWhenQuotaBlocked` when one backend
@@ -92,7 +92,11 @@ Do not use Gemini with `--progress` on Windows unless the wrapper/Gemini crash p
 
 ## Failure Classification
 
-- `ok=true`: both backends completed.
+The executable metadata contract and regression command are in [CCG Review Summary Contract](../backend/ccg-review-summary-contract.md).
+
+- `ok=true`: all requested backends completed; this does not imply dual-model completion.
+- `dualModelComplete=true`: both Gemini and Claude completed with usable output; this is the sole dual-model completion indicator.
+- `reviewMode`: `dual` or `claude-only`. Report the latter as 「單模型（使用者指定 ClaudeOnly）」; it is not quota fallback or dual-model success.
 - `quotaBlocked=true`: external provider quota/session limit; not locally repairable.
 - `degradedFallback=true`: one backend completed, another backend was quota/session blocked,
   and `-AllowSingleModelWhenQuotaBlocked` was enabled. Continue the task, but report this as

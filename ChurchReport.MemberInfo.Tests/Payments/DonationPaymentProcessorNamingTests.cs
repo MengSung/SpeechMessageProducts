@@ -28,27 +28,39 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// </summary>
 public sealed class DonationPaymentProcessorNamingTests
 {
+    /// <summary>
+    /// 保護奉獻付款後流程的中性處理器入口。
+    /// 以完整名稱查詢實際產品組件，讓刪除或錯誤搬移型別確實造成失敗；斷言處理器存在，不呼叫銀行、CRM 或 LINE。
+    /// </summary>
     [Fact]
     public void New_donation_payment_processor_exists_as_primary_product_workflow_processor()
     {
-        var processorType = Type.GetType("ChurchReport.WebServiceConnector.DonationPaymentProcessor, ChurchReport");
+        var processorType = typeof(global::ChurchReport.Models.DonationPaymentManager).Assembly.GetType("ChurchReport.WebServiceConnector.DonationPaymentProcessor");
 
         processorType.Should().NotBeNull(
             "ChurchReport 產品層付款後流程應由 DonationPaymentProcessor 作為主要類別名稱");
     }
 
+    /// <summary>
+    /// 保護舊供應商處理器相容包裝已移除的架構契約。
+    /// 在已載入的產品組件查詢舊型別，模擬未來誤加回舊入口；斷言不存在，不能因組件查詢失敗而假綠燈。
+    /// </summary>
     [Fact]
     public void Legacy_qpay_processor_alias_should_not_remain()
     {
-        Type.GetType("ChurchReport.WebServiceConnector.QPayProcessor, ChurchReport").Should().BeNull(
+        typeof(global::ChurchReport.Models.DonationPaymentManager).Assembly.GetType("ChurchReport.WebServiceConnector.QPayProcessor").Should().BeNull(
             "QPayProcessor 是產品層舊 alias；重構後應直接使用 DonationPaymentProcessor，" +
             "舊外部 URL 可由 route 保留，但 C# 類別名稱不應再保留 QPay alias");
     }
 
+    /// <summary>
+    /// 保護產品處理器必須注入中性付款建立轉接器。
+    /// 反射實際公開建構式，偵測移除依賴或把依賴改為可選參數的退化；斷言轉接器參數存在且沒有預設值。
+    /// </summary>
     [Fact]
     public void Donation_payment_processor_constructors_require_neutral_gateway_create_adapter()
     {
-        var processorType = Type.GetType("ChurchReport.WebServiceConnector.DonationPaymentProcessor, ChurchReport");
+        var processorType = typeof(global::ChurchReport.Models.DonationPaymentManager).Assembly.GetType("ChurchReport.WebServiceConnector.DonationPaymentProcessor");
 
         processorType.Should().NotBeNull();
         var adapterParameters = processorType!

@@ -1,0 +1,7 @@
+PASS Dual_AllRequestedCompleted_IsDualComplete
+PASS ClaudeOnly_Completed_IsOkButNotDual
+PASS Dual_OneCompleted_IsIncomplete
+PASS ClaudeOnly_NoOutput_IsIncomplete
+PASS Json_ContainsExplicitModeAndCompletion
+PASS Markdown_ContainsModeAndDualCompletion
+Summary tests: 6/6

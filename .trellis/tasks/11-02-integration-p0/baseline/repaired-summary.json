@@ -1,0 +1,263 @@
+{
+  "original": {
+    "total": 738,
+    "passed": 714,
+    "failed": 24
+  },
+  "repaired": {
+    "total": 738,
+    "passed": 738,
+    "failed": 0,
+    "skipped": 0,
+    "projects": [
+      {
+        "project": "churchreport.memberinfo.tests",
+        "total": 471,
+        "passed": 471,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "line.messaging.tests",
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.aspnetcore.tests",
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.richmenus.tests",
+        "total": 34,
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.workflows.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "speechmessage.payments.tests",
+        "total": 55,
+        "passed": 55,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "toolutility.dataverse.tests",
+        "total": 76,
+        "passed": 76,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "debugTracer": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0
+  },
+  "testCaseCountPreserved": true,
+  "renamedTest": {
+    "from": "ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.Legacy_qpay_manager_remains_as_compatibility_alias",
+    "to": "ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.Legacy_qpay_manager_does_not_remain_as_compatibility_alias"
+  },
+  "deletedTests": [],
+  "checkedSourceFiles": [
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentManagerNamingTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentNamingCompatibilityTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorNamingTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentReturnProcessorNamingTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentReturnWorkflowNamingTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/PaymentPostPaymentArchitectureTests.cs",
+    "ChurchReport.MemberInfo.Tests/Payments/PaymentProductServiceNamingTests.cs",
+    "LineMessagingProcessor.RichMenus.Tests/Boundary/RichMenuProjectBoundaryTests.cs",
+    "ToolUtility.Dataverse.Tests/FileToolUtilityTracerTests.cs",
+    "docs/scripts/Invoke-CcgDualModelWithSelfHealing.ps1",
+    "docs/scripts/Start-CcgDualModelRun.ps1"
+  ],
+  "xmlDocumentationWellFormed": true,
+  "reviewPolicy": "Claude only, explicitly requested by user",
+  "reviewCompleted": true,
+  "reviewBlocker": null,
+  "sourceSha256": {
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs": "8b233e33e4f1d66fa5846135c7680608e60aca946a8f24d2f3da4f8252649c66",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentManagerNamingTests.cs": "c85fa83bde6c3639d826edec1ebf744cdefc8906c226827b6459b357a32e2223",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentNamingCompatibilityTests.cs": "4524682470427262cdf88e364f68fb59d5caffe6559a0860d9368d581fe864a9",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorNamingTests.cs": "26371b52299a2e461087ced4ef2f8065cf9d27801c713b7660b05c4c802dfe5f",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentReturnProcessorNamingTests.cs": "ecf8e25c9fca17e48a602ad263eff8653eefcdde4429566e8f7546d5862571bc",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentReturnWorkflowNamingTests.cs": "f9cdb07ea4734b0f96890c46cf6352c21fa695db1a71572fe2f4f34d7a5f73a3",
+    "ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs": "e173567d27e243e5b314b5e27e6e261a4ac0c8c6eaa916560de75f495548cb7b",
+    "ChurchReport.MemberInfo.Tests/Payments/PaymentPostPaymentArchitectureTests.cs": "608ad63ac43e2cc2f4e16c0fc1fb73e0c6d1be8aee20900973f76343ad74be60",
+    "ChurchReport.MemberInfo.Tests/Payments/PaymentProductServiceNamingTests.cs": "24ab4701c79cda02d33b3c8ab19fbe7f97edef3101e6282db02a4f9d6ea25091",
+    "LineMessagingProcessor.RichMenus.Tests/Boundary/RichMenuProjectBoundaryTests.cs": "396f357968b4331f270c691cda5c2c6f41020a6cb9b5b2af972e0c108ba27de0",
+    "ToolUtility.Dataverse.Tests/FileToolUtilityTracerTests.cs": "2b8c239cf29cd0d99dcd7b6dbfdcf8fbff2fc83c2de08d79c330137e0a030255",
+    "docs/scripts/Invoke-CcgDualModelWithSelfHealing.ps1": "c470185b980851802eb363c11e385df7e838c20207e036450ba51a6ce909df6c",
+    "docs/scripts/Start-CcgDualModelRun.ps1": "1ed0e7eb74c01838f5504aeea4e1b09c36efb5482ce67419f0b9cab98ee3f56b"
+  },
+  "reviewDiffSha256": "9098504f6265f682fb32334239d8ca3be21da41c7b18aef8dd627e44fa510418",
+  "finalReleaseResults": "p01-final-results",
+  "finalDebugResults": "p01-final-debug-results",
+  "manualReview": {
+    "kind": "Claude 單模型人工審查（使用者交付）",
+    "reviewedDiffSha256": "9098504f6265f682fb32334239d8ca3be21da41c7b18aef8dd627e44fa510418",
+    "hashVerifiedBeforeEdits": true,
+    "entrypointRun": false,
+    "geminiResult": false,
+    "dualModelComplete": false,
+    "critical": 0,
+    "correctionsRequireNewExternalReview": false,
+    "items": [
+      {
+        "id": "W1",
+        "status": "已修",
+        "result": "新增 reviewMode／dualModelComplete，保留 ok 的要求完成語意；JSON、Markdown、AGENTS 指定段落、指南與 00 §6.4 一致。PowerShell 6 案例紅轉綠。"
+      },
+      {
+        "id": "W2",
+        "status": "已修",
+        "result": "00 §8 每包驗證與 01 P0-11 CI 步驟都加入 Debug tracer 命令；本次 Debug 7／7，之後 P0-11 必須實際納入 workflow。"
+      },
+      {
+        "id": "W3",
+        "status": "已修",
+        "result": "manifest helper 先定位最近的 SpeechMessageProducts.sln，只在該根目錄查檔，缺檔直接失敗；View defaults 移除舊方案後備標記。"
+      },
+      {
+        "id": "I1",
+        "status": "僅記錄／需求已列",
+        "result": "原 Invoke 腳本 BOM 移除符合 repo 編碼規則；PowerShell 5.1 可能將非 ASCII 註解顯示為亂碼。P0-05 已追加 ps1 非 ASCII 字元僅可出現在註解的 token 檢查需求。"
+      },
+      {
+        "id": "I2",
+        "status": "已修",
+        "result": "diagnostic 保留 wrapper 自身 stderr 診斷，另記 probeDiagnostic 與 probe 路徑；獨立 probe 成功不代表原呼叫成功。"
+      },
+      {
+        "id": "I3",
+        "status": "僅記錄",
+        "result": "反射查詢區分大小寫且固定命名空間；QpayManager 不涵蓋 QPayManager，現有原始碼掃描補防。組件錨點重複，主 manager 存在性由強型別錨點保證；Controller 斷言仍有意義。本次不重構。"
+      },
+      {
+        "id": "I4",
+        "status": "已修",
+        "result": "兩個重複案例的 XML remarks 已互相標註，保留全部歷史案例與原有測試數。"
+      },
+      {
+        "id": "I5",
+        "status": "已修",
+        "result": "四個類別摘要依 DTO、Controller、依賴組件邊界、解析／序列化／驗證／分類及服務委派等實際內容分別重寫。"
+      },
+      {
+        "id": "I6",
+        "status": "已修",
+        "result": "同一 fixture 第二次配置路徑立即丟 InvalidOperationException；清理最多 5 次、等待最多 4×100ms，逾限明確失敗。新增 3 案例先紅後綠。"
+      },
+      {
+        "id": "I7",
+        "status": "已處理提交範圍",
+        "result": "不提交任何 .trx 原始檔，只保存 md／json／txt 摘要與文字證據。P0-02 依使用者指示再加入附繁中註解的 *.trx 忽略規則。"
+      }
+    ]
+  },
+  "afterManualReviewCorrections": {
+    "release": {
+      "total": 741,
+      "passed": 741,
+      "failed": 0,
+      "skipped": 0,
+      "projects": [
+        {
+          "project": "churchreport.memberinfo.tests",
+          "total": 471,
+          "passed": 471,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "project": "line.messaging.tests",
+          "total": 32,
+          "passed": 32,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "project": "linemessagingprocessor.aspnetcore.tests",
+          "total": 4,
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "project": "linemessagingprocessor.richmenus.tests",
+          "total": 34,
+          "passed": 34,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "project": "linemessagingprocessor.tests",
+          "total": 33,
+          "passed": 33,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "project": "linemessagingprocessor.workflows.tests",
+          "total": 33,
+          "passed": 33,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "project": "speechmessage.payments.tests",
+          "total": 55,
+          "passed": 55,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "project": "toolutility.dataverse.tests",
+          "total": 79,
+          "passed": 79,
+          "failed": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "debugTracer": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "projects": [
+        {
+          "project": "toolutility.dataverse.tests",
+          "total": 7,
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "summaryContractTests": 6
+  }
+}

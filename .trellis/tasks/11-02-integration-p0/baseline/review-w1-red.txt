@@ -1,0 +1,7 @@
+FAIL Dual_AllRequestedCompleted_IsDualComplete: Review completion metadata is not implemented.
+FAIL ClaudeOnly_Completed_IsOkButNotDual: Review completion metadata is not implemented.
+FAIL Dual_OneCompleted_IsIncomplete: Review completion metadata is not implemented.
+FAIL ClaudeOnly_NoOutput_IsIncomplete: Review completion metadata is not implemented.
+FAIL Json_ContainsExplicitModeAndCompletion: Review completion metadata is not implemented.
+FAIL Markdown_ContainsModeAndDualCompletion: Review summary rendering is not implemented.
+Summary tests: 0/6

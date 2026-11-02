@@ -23,7 +23,8 @@ namespace LineMessagingProcessor.RichMenus.Tests.Boundary;
 public sealed class RichMenuProjectBoundaryTests
 {
     /// <summary>
-    /// 掃描 RichMenu 共用專案原始碼，若出現產品名稱或上層框架關鍵字就視為邊界破壞。
+    /// 保護 RichMenu 不依賴產品、CRM 或 MVC 層；掃描最近 worktree 方案下的真實來源。
+    /// 注入的退化情境是重新加入任一禁止依賴；決定性斷言是完整命中集合為空，不能因找錯方案而漏掃。
     /// </summary>
     [Fact]
     public void RichMenu_project_does_not_reference_product_specific_dependencies()
@@ -53,12 +54,14 @@ public sealed class RichMenuProjectBoundaryTests
     }
 
     /// <summary>
-    /// 從測試輸出目錄往上找 solution root，讓測試可在 IDE、CLI 與 CI 中穩定定位專案檔。
+    /// 從測試輸出目錄尋找最近的 SpeechMessageProducts.sln，界定本次 worktree 的來源範圍。
+    /// 找不到方案就明確失敗；不使用其他名稱或目前目錄作為後備，以免驗證到另一份程式。
     /// </summary>
+    /// <returns>含目前方案標記的最近上層目錄。</returns>
     private static string FindProjectRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
         {
             directory = directory.Parent;
         }

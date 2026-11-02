@@ -591,13 +591,18 @@ public sealed class DonationPaymentViewDefaultsTests
         public void SaveChanges() => throw new NotSupportedException();
     }
 
+    /// <summary>
+    /// 以最近的目前方案標記界定測試來源；只接受 SpeechMessageProducts.sln，避免舊名稱把檢查導向父 worktree。
+    /// 找不到根目錄即明確失敗，不從工作目錄或其他版本補檔；路徑只在本次測試使用且不持有檔案資源。
+    /// </summary>
+    /// <returns>最近上層目前方案的根目錄。</returns>
+    /// <exception cref="DirectoryNotFoundException">沒有找到目前方案標記。</exception>
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln"))
-                || File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
             {
                 return directory.FullName;
             }

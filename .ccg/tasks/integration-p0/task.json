@@ -1,0 +1,17 @@
+{
+  "id": "integration-p0",
+  "title": "階段 0 準備守門與可行性驗證",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "P0-01 指定修正及本機驗證完成，核對提交清單後提交並開始 P0-02。",
+  "createdAt": "2026-11-02T04:30:50.6975253Z",
+  "branch": "1.0.0.11.Integration.P0",
+  "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
+  "currentWorkPackage": "P0-01",
+  "stopReason": null,
+  "reviewPolicy": "Only one stage-end review after P0-11; user selected Claude-only; P0-01 manual review delivered and accepted.",
+  "reviewBlocker": null
+}

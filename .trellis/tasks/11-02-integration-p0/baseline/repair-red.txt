@@ -1,0 +1,338 @@
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.AspNetCore.Tests\bin\Release\net10.0\LineMessagingProcessor.AspNetCore.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Payments.Tests\bin\Release\net10.0\SpeechMessage.Payments.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Workflows.Tests\bin\Release\net10.0\LineMessagingProcessor.Workflows.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Tests\bin\Release\net10.0\LineMessagingProcessor.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\Line.Messaging.Tests\bin\Release\net10.0\Line.Messaging.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.RichMenus.Tests\bin\Release\net10.0\LineMessagingProcessor.RichMenus.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility.Dataverse.Tests\bin\Release\net10.0\ToolUtility.Dataverse.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:00.13]     LineMessagingProcessor.RichMenus.Tests.Boundary.RichMenuProjectBoundaryTests.RichMenu_project_does_not_reference_product_specific_dependencies [FAIL]
+  失敗 LineMessagingProcessor.RichMenus.Tests.Boundary.RichMenuProjectBoundaryTests.RichMenu_project_does_not_reference_product_specific_dependencies [2 ms]
+  錯誤訊息:
+   System.InvalidOperationException : Could not locate solution root.
+  堆疊追蹤:
+     at LineMessagingProcessor.RichMenus.Tests.Boundary.RichMenuProjectBoundaryTests.FindProjectRoot() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.RichMenus.Tests\Boundary\RichMenuProjectBoundaryTests.cs:line 66
+   at LineMessagingProcessor.RichMenus.Tests.Boundary.RichMenuProjectBoundaryTests.RichMenu_project_does_not_reference_product_specific_dependencies() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.RichMenus.Tests\Boundary\RichMenuProjectBoundaryTests.cs:line 31
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0.trx
+
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0[1].trx
+
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0[2].trx
+
+失敗!  - 失敗:     1，通過:    33，略過:     0，總計:    34，持續時間: 60 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)
+已通過! - 失敗:     0，通過:     4，略過:     0，總計:     4，持續時間: 34 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)
+已通過! - 失敗:     0，通過:    33，略過:     0，總計:    33，持續時間: 43 ms - LineMessagingProcessor.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0[3].trx
+
+已通過! - 失敗:     0，通過:    32，略過:     0，總計:    32，持續時間: 89 ms - Line.Messaging.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0[4].trx
+
+已通過! - 失敗:     0，通過:    33，略過:     0，總計:    33，持續時間: 134 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)
+[xUnit.net 00:00:00.27]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_booking_workflow [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_booking_workflow [1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : 找不到測試需要讀取的專案原始碼檔案。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.ReadRepositoryFile(String[] pathSegments) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 293
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_booking_workflow() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 203
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.27]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_dedication_fee_form_refresh [FAIL]
+[xUnit.net 00:00:00.27]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_payment_model_assembly [FAIL]
+[xUnit.net 00:00:00.27]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_contact_mapping_to_contact_service [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_dedication_fee_form_refresh [< 1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : 找不到測試需要讀取的專案原始碼檔案。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.ReadRepositoryFile(String[] pathSegments) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 293
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_dedication_fee_form_refresh() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 267
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_payment_model_assembly [< 1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : 找不到測試需要讀取的專案原始碼檔案。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.ReadRepositoryFile(String[] pathSegments) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 293
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_payment_model_assembly() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 235
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.27]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_key_in_dedication_workflow [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_contact_mapping_to_contact_service [< 1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : 找不到測試需要讀取的專案原始碼檔案。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.ReadRepositoryFile(String[] pathSegments) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 293
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_contact_mapping_to_contact_service() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 168
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_key_in_dedication_workflow [< 1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : 找不到測試需要讀取的專案原始碼檔案。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.ReadRepositoryFile(String[] pathSegments) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 293
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_key_in_dedication_workflow() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 188
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0[5].trx
+
+已通過! - 失敗:     0，通過:    55，略過:     0，總計:    55，持續時間: 117 ms - SpeechMessage.Payments.Tests.dll (net10.0)
+[xUnit.net 00:00:00.34]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_donation_login_contact_workflow [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_donation_login_contact_workflow [< 1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : 找不到測試需要讀取的專案原始碼檔案。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.ReadRepositoryFile(String[] pathSegments) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 293
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_donation_login_contact_workflow() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 251
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.34]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_contact_creation_numbering_workflow [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_contact_creation_numbering_workflow [< 1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : 找不到測試需要讀取的專案原始碼檔案。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.ReadRepositoryFile(String[] pathSegments) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 293
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentServiceExtractionTests.DonationPaymentManager_should_delegate_contact_creation_numbering_workflow() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentServiceExtractionTests.cs:line 219
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.35]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentProcessorNamingTests.New_donation_payment_processor_exists_as_primary_product_workflow_processor [FAIL]
+[xUnit.net 00:00:00.35]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Donation_payment_form_model_is_the_primary_churchreport_form_state_type [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentProcessorNamingTests.New_donation_payment_processor_exists_as_primary_product_workflow_processor [68 ms]
+  錯誤訊息:
+   Expected processorType not to be <null> because ChurchReport 產品層付款後流程應由 DonationPaymentProcessor 作為主要類別名稱.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentProcessorNamingTests.New_donation_payment_processor_exists_as_primary_product_workflow_processor() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentProcessorNamingTests.cs:line 36
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Donation_payment_form_model_is_the_primary_churchreport_form_state_type [134 ms]
+  錯誤訊息:
+   Expected formModelType not to be <null> because 奉獻付款表單是 ChurchReport 的產品層狀態，應使用 DonationPaymentFormModel 這種中性名稱，讓信用卡、ATM、高鉅、台新與未來產品都不需要依附單一 provider 名稱.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Donation_payment_form_model_is_the_primary_churchreport_form_state_type() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentFormModelNamingTests.cs:line 48
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.35]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_payment_result_helper_and_debug_logger_exist [FAIL]
+[xUnit.net 00:00:00.35]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentNamingCompatibilityTests.New_payment_return_controller_exists_after_rename [FAIL]
+[xUnit.net 00:00:00.35]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.Legacy_qpay_manager_remains_as_compatibility_alias [FAIL]
+[xUnit.net 00:00:00.35]     ChurchReport.MemberInfo.Tests.Payments.PaymentPostPaymentArchitectureTests.ChurchReport_specific_handlers_do_not_move_to_reusable_workflow_project [FAIL]
+[xUnit.net 00:00:00.35]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnWorkflowNamingTests.New_donation_payment_workflow_result_exists_after_rename [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_payment_result_helper_and_debug_logger_exist [66 ms]
+  錯誤訊息:
+   Expected Type.GetType("ChurchReport.Tools.DonationPaymentResultHelper, ChurchReport") not to be <null> because 付款結果判斷 helper 應使用中性命名.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_payment_result_helper_and_debug_logger_exist() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentReturnProcessorNamingTests.cs:line 49
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentNamingCompatibilityTests.New_payment_return_controller_exists_after_rename [107 ms]
+  錯誤訊息:
+   Expected newType not to be <null> because 新的主要回傳 Controller 應該使用 provider-neutral 命名.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentNamingCompatibilityTests.New_payment_return_controller_exists_after_rename() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentNamingCompatibilityTests.cs:line 39
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.Legacy_qpay_manager_remains_as_compatibility_alias [108 ms]
+  錯誤訊息:
+   Expected managerType not to be <null>.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.Legacy_qpay_manager_remains_as_compatibility_alias() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentManagerNamingTests.cs:line 43
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.PaymentPostPaymentArchitectureTests.ChurchReport_specific_handlers_do_not_move_to_reusable_workflow_project [67 ms]
+  錯誤訊息:
+   Expected typeof(ChurchReportPaymentRecordUpdater).Assembly.GetName().Name to be "ChurchReport" with a length of 12, but "SpeechMessageProducts.ChurchReport" has a length of 34, differs near "Spe" (index 0).
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Primitives.StringEqualityValidator.ValidateAgainstLengthDifferences()
+   at FluentAssertions.Primitives.StringValidator.Validate()
+   at FluentAssertions.Primitives.StringAssertions`1.Be(String expected, String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.PaymentPostPaymentArchitectureTests.ChurchReport_specific_handlers_do_not_move_to_reusable_workflow_project() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\PaymentPostPaymentArchitectureTests.cs:line 62
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.36]     ChurchReport.MemberInfo.Tests.Payments.PaymentProductServiceNamingTests.Product_payment_services_use_provider_neutral_names [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnWorkflowNamingTests.New_donation_payment_workflow_result_exists_after_rename [113 ms]
+  錯誤訊息:
+   Expected resultType not to be <null> because 新的產品中性 DTO 會成為 ChurchReport 付款回傳流程的主要型別.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+[xUnit.net 00:00:00.36]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.New_donation_payment_manager_exists_as_primary_ui_payment_state_manager [FAIL]
+[xUnit.net 00:00:00.36]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_donation_fee_payment_processor_exists_as_primary_fee_return_processor [FAIL]
+[xUnit.net 00:00:00.36]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentProcessorNamingTests.Donation_payment_processor_constructors_require_neutral_gateway_create_adapter [FAIL]
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnWorkflowNamingTests.New_donation_payment_workflow_result_exists_after_rename() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentReturnWorkflowNamingTests.cs:line 37
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.36]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Provider_specific_names_are_confined_to_provider_code_or_legacy_route_templates [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.PaymentProductServiceNamingTests.Product_payment_services_use_provider_neutral_names [85 ms]
+  錯誤訊息:
+   Expected Type.GetType(expectedServiceName) not to be <null> because ChurchReport 付款後流程服務應以 provider-neutral 名稱呈現，避免把 CRM/LINE/收費單流程誤認為 MyPay 協定實作.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.PaymentProductServiceNamingTests.Product_payment_services_use_provider_neutral_names() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\PaymentProductServiceNamingTests.cs:line 40
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.New_donation_payment_manager_exists_as_primary_ui_payment_state_manager [< 1 ms]
+  錯誤訊息:
+   Expected managerType not to be <null> because ChurchReport 奉獻付款的 UI 狀態管理應以 DonationPaymentManager 作為主要名稱.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentManagerNamingTests.New_donation_payment_manager_exists_as_primary_ui_payment_state_manager() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentManagerNamingTests.cs:line 32
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_donation_fee_payment_processor_exists_as_primary_fee_return_processor [< 1 ms]
+  錯誤訊息:
+   Expected processorType not to be <null> because 收費單付款完成流程應由 DonationFeePaymentProcessor 作為主要入口.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_donation_fee_payment_processor_exists_as_primary_fee_return_processor() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentReturnProcessorNamingTests.cs:line 33
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentProcessorNamingTests.Donation_payment_processor_constructors_require_neutral_gateway_create_adapter [< 1 ms]
+  錯誤訊息:
+   Expected processorType not to be <null>.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentProcessorNamingTests.Donation_payment_processor_constructors_require_neutral_gateway_create_adapter() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentProcessorNamingTests.cs:line 53
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Provider_specific_names_are_confined_to_provider_code_or_legacy_route_templates [< 1 ms]
+  錯誤訊息:
+   System.IO.DirectoryNotFoundException : 找不到 ChurchReport.sln，無法判斷 repository root。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.FindRepositoryRoot() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentFormModelNamingTests.cs:line 223
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Provider_specific_names_are_confined_to_provider_code_or_legacy_route_templates() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentFormModelNamingTests.cs:line 108
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.36]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_recurring_donation_payment_processor_exists_as_primary_recurring_return_processor [FAIL]
+[xUnit.net 00:00:00.36]     ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Product_layer_file_names_should_not_contain_provider_brand_names [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_recurring_donation_payment_processor_exists_as_primary_recurring_return_processor [< 1 ms]
+  錯誤訊息:
+   Expected processorType not to be <null> because 定期定額付款完成流程應由 RecurringDonationPaymentProcessor 作為主要入口.
+  堆疊追蹤:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
+   at FluentAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentReturnProcessorNamingTests.New_recurring_donation_payment_processor_exists_as_primary_recurring_return_processor() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentReturnProcessorNamingTests.cs:line 42
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Product_layer_file_names_should_not_contain_provider_brand_names [< 1 ms]
+  錯誤訊息:
+   System.IO.DirectoryNotFoundException : 找不到 ChurchReport.sln，無法判斷 repository root。
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.FindRepositoryRoot() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentFormModelNamingTests.cs:line 223
+   at ChurchReport.MemberInfo.Tests.Payments.DonationPaymentFormModelNamingTests.Product_layer_file_names_should_not_contain_provider_brand_names() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Payments\DonationPaymentFormModelNamingTests.cs:line 68
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:02.21]     ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Write_uses_culture_invariant_legacy_timestamp_format [FAIL]
+[xUnit.net 00:00:02.21]     ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Dispose_RemovesListenerFromGlobalCollection [FAIL]
+  失敗 ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Write_uses_culture_invariant_legacy_timestamp_format [2 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : Could not find file 'C:\Users\Administrator\AppData\Local\Temp\toolutility-trace-48c37d098d0b4f62b6685769ba4edf09.log'.
+  堆疊追蹤:
+     at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Int32 bufferSize)
+   at System.IO.File.ReadAllText(String path, Encoding encoding)
+   at ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Write_uses_culture_invariant_legacy_timestamp_format() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility.Dataverse.Tests\FileToolUtilityTracerTests.cs:line 130
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Dispose_RemovesListenerFromGlobalCollection [< 1 ms]
+  錯誤訊息:
+   System.IO.FileNotFoundException : Could not find file 'C:\Users\Administrator\AppData\Local\Temp\toolutility-trace-0b9367c607fd4751a349980a2443978c.log'.
+  堆疊追蹤:
+     at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share)
+   at ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Dispose_RemovesListenerFromGlobalCollection() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility.Dataverse.Tests\FileToolUtilityTracerTests.cs:line 91
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0[6].trx
+
+失敗!  - 失敗:     2，通過:    74，略過:     0，總計:    76，持續時間: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\.trellis\tasks\11-02-integration-p0\baseline\repair-red-results\Administrator_LENOVO-LEGION_2026-11-02_12_47_55_net10.0[7].trx
+
+失敗!  - 失敗:    21，通過:   450，略過:     0，總計:   471，持續時間: 6 s - ChurchReport.MemberInfo.Tests.dll (net10.0)

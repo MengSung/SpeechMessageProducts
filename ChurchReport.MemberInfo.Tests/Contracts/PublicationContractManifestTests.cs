@@ -63,23 +63,33 @@ public sealed class PublicationContractManifestTests
     }
 
     /// <summary>
-    /// 從測試輸出目錄向上尋找 Solution root；方法只讀檔案系統且不保存路徑或檔案內容，
-    /// 搜尋完成後不留下 watcher、handle 或其他資源，因此不會造成測試生命週期洩漏。
+    /// 先從測試輸出定位最近的 SpeechMessageProducts.sln，再限定於該 worktree 查詢指定檔案。
+    /// 缺少方案或檔案必須立即失敗，不得讀取父 worktree 的舊副本或退回輸出目錄使缺檔測試假通過。
+    /// 方法僅查詢檔案資訊，路徑只屬於當次測試，不保存內容、watcher、handle 或跨案例狀態。
     /// </summary>
+    /// <param name="relativeSegments">可信任 manifest 或測試定義提供的方案相對路徑。</param>
+    /// <returns>最近方案根目錄內已確認存在的檔案路徑。</returns>
+    /// <exception cref="DirectoryNotFoundException">無法定位目前 worktree 的方案。</exception>
+    /// <exception cref="FileNotFoundException">指定檔案不在目前 worktree 中。</exception>
     private static string FindRepositoryFile(params string[] relativeSegments)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory != null)
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
         {
-            var candidate = relativeSegments.Aggregate(directory.FullName, Path.Combine);
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-
             directory = directory.Parent;
         }
 
-        return Path.Combine(AppContext.BaseDirectory, Path.Combine(relativeSegments));
+        if (directory == null)
+        {
+            throw new DirectoryNotFoundException("找不到目前 worktree 的 SpeechMessageProducts.sln。");
+        }
+
+        var candidate = Path.Combine(directory.FullName, Path.Combine(relativeSegments));
+        if (!File.Exists(candidate))
+        {
+            throw new FileNotFoundException("目前 worktree 缺少 publication contract 檔案。", candidate);
+        }
+
+        return candidate;
     }
 }

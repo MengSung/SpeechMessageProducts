@@ -1,0 +1,128 @@
+[
+  {
+    "run": "20261102-124852-p01-a-analyzer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 1,
+        "timedOut": false,
+        "failureReason": "no-usable-output",
+        "diagnostic": null
+      },
+      {
+        "backend": "claude",
+        "exitCode": 1,
+        "timedOut": false,
+        "failureReason": "no-usable-output",
+        "diagnostic": null
+      }
+    ]
+  },
+  {
+    "run": "20261102-125036-p01-a-analyzer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 1,
+        "timedOut": false,
+        "failureReason": "no-usable-output",
+        "diagnostic": "Failed to authenticate: OAuth session expired and could not be refreshed"
+      }
+    ]
+  },
+  {
+    "run": "20261102-125446-p01-a-analyzer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 124,
+        "timedOut": true,
+        "failureReason": "timeout",
+        "diagnostic": "CLAUDE_DIRECT_QUOTA_PROBE_OK"
+      },
+      {
+        "backend": "claude",
+        "exitCode": 124,
+        "timedOut": true,
+        "failureReason": "timeout",
+        "diagnostic": "CLAUDE_DIRECT_QUOTA_PROBE_OK"
+      }
+    ]
+  },
+  {
+    "run": "20261102-130152-p01-r-reviewer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 124,
+        "timedOut": true,
+        "failureReason": "timeout",
+        "diagnostic": "CLAUDE_DIRECT_QUOTA_PROBE_OK"
+      }
+    ]
+  },
+  {
+    "run": "20261102-130615-p01-rt-reviewer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 124,
+        "timedOut": true,
+        "failureReason": "timeout",
+        "diagnostic": "CLAUDE_DIRECT_QUOTA_PROBE_OK"
+      }
+    ]
+  },
+  {
+    "run": "20261102-131115-p01-sm-analyzer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 124,
+        "timedOut": true,
+        "failureReason": "timeout",
+        "diagnostic": "CLAUDE_DIRECT_QUOTA_PROBE_OK"
+      }
+    ]
+  },
+  {
+    "run": "20261102-131301-p01-sm-analyzer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 124,
+        "timedOut": true,
+        "failureReason": "timeout",
+        "diagnostic": "CLAUDE_DIRECT_QUOTA_PROBE_OK"
+      }
+    ]
+  },
+  {
+    "run": "20261102-131450-p01-sm-analyzer",
+    "ok": false,
+    "quotaBlocked": false,
+    "attempts": [
+      {
+        "backend": "claude",
+        "exitCode": 124,
+        "timedOut": true,
+        "failureReason": "timeout",
+        "diagnostic": "CLAUDE_DIRECT_QUOTA_PROBE_OK"
+      }
+    ]
+  }
+]

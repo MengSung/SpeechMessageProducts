@@ -204,7 +204,10 @@ Required recovery behavior:
 1. Put the analysis/review request into UTF-8 text, preferably a prompt file
    under `.ccg/dual-model-runs/`.
 2. Invoke `Start-CcgDualModelRun.ps1` with the correct `-Role`.
-3. If the runner exits with `ok=true`, continue the task using both model outputs.
+3. If the runner exits with `ok=true`, all requested backends completed. Only
+   `dualModelComplete=true` confirms both Gemini and Claude completed; never infer
+   this from `ok` or exit code 0. For `reviewMode=claude-only`, report
+   「單模型（使用者指定 ClaudeOnly）」 and use only the Claude output.
 4. If the runner exits with code `2`, inspect the generated run folder, fix the
    local toolchain issue, then run the same entrypoint again instead of switching
    to ad-hoc Gemini/Claude commands.

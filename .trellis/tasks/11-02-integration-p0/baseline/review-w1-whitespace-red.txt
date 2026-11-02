@@ -1,0 +1,7 @@
+PASS Dual_AllRequestedCompleted_IsDualComplete
+PASS ClaudeOnly_Completed_IsOkButNotDual
+PASS Dual_OneCompleted_IsIncomplete
+PASS ClaudeOnly_NoOutput_IsIncomplete
+PASS Json_ContainsExplicitModeAndCompletion
+FAIL Markdown_ContainsModeAndDualCompletion: Markdown must not contain trailing whitespace.
+Summary tests: 5/6
