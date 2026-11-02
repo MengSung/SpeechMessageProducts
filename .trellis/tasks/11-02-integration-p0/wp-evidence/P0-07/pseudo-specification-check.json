@@ -1,0 +1,26 @@
+{
+  "sourceRevision": "18e901b1",
+  "rule": "max(1, ceil(characterCountExcludingParameters * 0.4))",
+  "cases": [
+    {
+      "input": "{name}，報名成功",
+      "withoutParameters": "，報名成功",
+      "characterCount": 5,
+      "formulaPadding": 2,
+      "documentExamplePadding": 3,
+      "formulaOutput": "［{name}，報名成功ǂǂ］"
+    },
+    {
+      "input": "課程報名",
+      "withoutParameters": "課程報名",
+      "characterCount": 4,
+      "formulaPadding": 2,
+      "documentExamplePadding": 3,
+      "formulaOutput": "［課程報名ǂǂ］"
+    }
+  ],
+  "isTddRedEvidence": false,
+  "nugetRestoreAttempted": false,
+  "productCodeModified": false,
+  "networkConnectionsAttempted": false
+}
