@@ -3,7 +3,7 @@
 依原計畫執行；一次只開始一個 WP，前一包驗證及提交後才開始下一包。
 
 - [x] P0-01 開分支、Trellis 任務、保存 SDK／建置／測試基準與已授權修復；驗證已通過。
-- [ ] P0-02 gitignore 與 global.json。
+- [x] P0-02 gitignore 與 global.json；設定及完整驗證已通過。
 - [ ] P0-03 CPM 與版本統一；先跑套件檢查紅燈。
 - [ ] P0-04 新專案分析器與禁用 API；先跑 probe。
 - [ ] P0-05 編碼工具；先跑所有不合法樣本與無損轉換測試。
@@ -33,8 +33,8 @@ M+ 分析／審查使用 Start-CcgDualModelRun.ps1 自癒入口；依使用者�
 - [x] 保存原始 24 個失敗；重跑 Release 紅燈。
 - [x] 以實際產品組件修復正向與負向型別查詢，對齊方案及產品來源路徑。
 - [x] 保留既有四個 tracer 案例，分別驗證 Debug 寫檔釋放與 Release 無檔案副作用。
-- [ ] §8 完整 Release 建置／測試、Debug tracer 測試、編碼與範圍檢查全部通過。
-- [ ] Claude 審查與 P0-01 回報完成後提交，再開始 P0-02。
+- [x] §8 完整 Release 建置／測試、Debug tracer 測試、編碼與範圍檢查全部通過。
+- [x] Claude 人工審查與 P0-01 回報完成，已提交 90799969；接續 P0-02。
 
 一個歷史案例由 Legacy_qpay_manager_remains_as_compatibility_alias 改名為 Legacy_qpay_manager_does_not_remain_as_compatibility_alias；案例數不變。
 原案例因大量改名而把 manager 與自己比較；本次依既有移除相容包裝的決策與同專案唯一 manager 測試，改為確認舊 QpayManager 不存在。

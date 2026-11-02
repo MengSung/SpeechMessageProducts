@@ -21,15 +21,18 @@
   "children": [],
   "parent": "11-02-integration-v32",
   "relatedFiles": [],
-  "notes": "Claude 單模型人工審查（使用者交付）已處理；Release 741、Debug tracer 7、摘要契約 6 全通過，待提交 P0-01。",
+  "notes": "P0-01 已提交；P0-02 進行中。",
   "meta": {
-    "currentWorkPackage": "P0-01",
+    "currentWorkPackage": "P0-02",
     "userRequestedStop": false,
     "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-01.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": null
+    "waitingFor": null,
+    "completedWorkPackages": {
+      "P0-01": "90799969"
+    }
   }
 }

@@ -1,0 +1,89 @@
+{
+  "sdk": "10.0.403",
+  "settingsTests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "build": {
+    "errors": 0,
+    "warnings": 77
+  },
+  "release": {
+    "passed": 741,
+    "failed": 0,
+    "skipped": 0,
+    "projects": [
+      {
+        "project": "linemessagingprocessor.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "line.messaging.tests",
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.richmenus.tests",
+        "total": 34,
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "speechmessage.payments.tests",
+        "total": 55,
+        "passed": 55,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.aspnetcore.tests",
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "linemessagingprocessor.workflows.tests",
+        "total": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "toolutility.dataverse.tests",
+        "total": 79,
+        "passed": 79,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "project": "churchreport.memberinfo.tests",
+        "total": 471,
+        "passed": 471,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "debugTracer": {
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "projects": [
+      {
+        "project": "toolutility.dataverse.tests",
+        "total": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "rawTrxCommitted": false
+}

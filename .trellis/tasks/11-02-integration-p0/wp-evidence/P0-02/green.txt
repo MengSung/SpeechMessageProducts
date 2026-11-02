@@ -1,0 +1,3 @@
+PASS SdkSettings_SelectInstalledNet10WithLatestFeature
+PASS IgnoreRules_ExcludeReferenceArtifactsKeysAndRawTrx
+P0-02 settings tests: 2/2

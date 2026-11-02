@@ -1,0 +1,3 @@
+FAIL SdkSettings_SelectInstalledNet10WithLatestFeature: global.json is missing.
+FAIL IgnoreRules_ExcludeReferenceArtifactsKeysAndRawTrx: Missing ignore coverage: .其他解決方案/p0-ignore-probe.txt, p0-ignore-probe.snk, p0-ignore-probe.trx
+P0-02 settings tests: 0/2
