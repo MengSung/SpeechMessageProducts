@@ -350,32 +350,40 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-02（P0-05 本機驗證完成）",
+  "snapshot": "2026-11-02（P0-SEC 環境優先順序核對停止）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "目前在<strong>階段 0</strong>：P0-01～P0-05 已完成本機驗證，P0-05 隨本次收尾提交。接著先做 <strong>P0-ENV</strong>；目前不連線任何 D365 組織，尚未進入人工驗收。",
-  "alert": null,
+  "headline": "P0-01～P0-05 已提交。你已核定新增 <strong>P0-SEC</strong>，但實作前探針發現環境優先順序與目前 Host 不一致，依停止條件等待單行修正核定；尚未修改產品程式，也未開始 P0-ENV 設定或 P0-06。",
+  "alert": {
+    "title": "P0-SEC 停止：環境優先順序需修正為與 Host 一致",
+    "body": "SDK 10.0.403 實測 WebApplication 先採 DOTNET_ENVIRONMENT，再採 ASPNETCORE_ENVIRONMENT。核定文字的順序相反，可能使 Development 舊讀取點略過安全覆寫，或改變 Production 設定。",
+    "steps": [
+      "建議只核定改為 DOTNET_ENVIRONMENT → ASPNETCORE_ENVIRONMENT → Production，其餘 P0-SEC 範圍不變。",
+      "取得核定後才接續設定層 TDD；不改 Host 原有優先順序。",
+      "仍不連線任何 D365／LINE；goodshepherdback 清理完成回報仍待使用者提供。"
+    ]
+  },
   "tiles": [
     {
       "label": "全計畫進度",
       "value": "5",
-      "unit": "/ 78 工作包",
-      "sub": "含使用者新增的 P0-ENV",
+      "unit": "/ 79 工作包",
+      "sub": "含已核定 P0-SEC 與 P0-ENV；目前等待優先順序核定",
       "meter": {
         "done": 5,
         "active": 0,
-        "total": 78
+        "total": 79
       }
     },
     {
       "label": "階段 0 進度",
       "value": "5",
-      "unit": "/ 13 工作包",
-      "sub": "下一包 P0-ENV；尚未進入 D365 人工驗收",
+      "unit": "/ 14 工作包",
+      "sub": "P0-SEC 實作前停止；P0-ENV 依序等待",
       "meter": {
         "done": 5,
         "active": 0,
-        "total": 13
+        "total": 14
       }
     },
     {
@@ -428,13 +436,21 @@ const DATA = {
       "name": "編碼檢查與編碼轉換工具",
       "status": "done",
       "note": "編碼測試在 PowerShell 5.1／7 各 21／21，進度頁 3／3；Release 741／741、Debug tracer 7／7、編碼與套件守門通過。",
-      "commit": "本次收尾提交"
+      "commit": "ba565a55",
+      "time": "18:01"
+    },
+    {
+      "id": "P0-SEC",
+      "name": "防止 Development 使用正式 LINE token 與非測試組織",
+      "status": "you",
+      "flag": "環境優先順序待核定",
+      "note": "安全工作包範圍已核定；五案隔離探針有兩案證明原文字與 Host 矛盾。依 §9.6 停止，未開始產品修改或設定 TDD。"
     },
     {
       "id": "P0-ENV",
       "name": "指定 goodshepherdback 為開發測試組織",
       "status": "todo",
-      "note": "P0-05 後處理；只做本機設定／測試，不連線任何 D365。若需改產品程式阻止正式 LINE token，即停下回報。"
+      "note": "使用者已核定以 P0-SEC 先完成安全防護。P0-SEC 提交後，才接續 goodshepherdback、User Secrets 與 Web API 停用設定；仍禁止外部連線。"
     },
     {
       "id": "P0-06",
@@ -490,7 +506,7 @@ const DATA = {
       "id": "階段 0",
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
-      "total": 13,
+      "total": 14,
       "done": 5,
       "active": 0,
       "current": true
@@ -577,13 +593,13 @@ const DATA = {
       "item": "套件版本違規",
       "before": "113 項",
       "after": "0 項",
-      "note": "本包套件守門重跑通過"
+      "note": "P0-05 套件守門重跑通過"
     },
     {
       "item": "Debug 追蹤測試",
       "before": "未納入",
       "after": "7／7",
-      "note": "本包重跑通過"
+      "note": "P0-05 重跑通過"
     },
     {
       "item": "新程式分析器探測",
@@ -713,6 +729,21 @@ const DATA = {
       "t": "本次收尾",
       "text": "P0-05 編碼與轉換 21／21（兩個 PowerShell 版本）、進度頁 3／3、完整方案與 Debug tracer 通過",
       "cls": "ok"
+    },
+    {
+      "t": "18:01",
+      "text": "P0-05 已提交 ba565a55；完整驗證結果保存在 P0-05 回報",
+      "cls": "ok"
+    },
+    {
+      "t": "本次調查",
+      "text": "停：P0-ENV 發現舊 LINE 靜態設定繞過 Development，必須改產品程式才能保障 token 來源；依使用者規則等待核定",
+      "cls": "stop"
+    },
+    {
+      "t": "本次核對",
+      "text": "P0-SEC 已獲核定；環境衝突五案探針有兩案與核定順序不一致，依 §9.6 停止等待單行修正",
+      "cls": "stop"
     }
   ],
   "decisions": [
@@ -737,9 +768,22 @@ const DATA = {
     {
       "text": "goodshepherdback 清理完成且使用者回報前，任何工具都不得連線",
       "sub": "P0-ENV 僅處理本機設定、測試與計畫，不連線任何 D365 組織"
+    },
+    {
+      "text": "依 P0-ENV(c) 停止，不擅自提前實作 P2-01",
+      "sub": "只保存本機調查與停止紀錄；等待使用者安排安全修復"
+    },
+    {
+      "text": "使用者已核定先做獨立 P0-SEC，再接續 P0-ENV",
+      "sub": "安全修復範圍已明確；僅環境優先順序與實際 Host 矛盾需核定修正"
     }
   ],
   "prep": [
+    {
+      "state": "todo",
+      "text": "核定 P0-SEC 環境順序與 Host 一致",
+      "sub": "DOTNET_ENVIRONMENT 優先，再 ASPNETCORE_ENVIRONMENT；都未設定則 Production，其餘範圍不變"
+    },
     {
       "state": "done",
       "text": "唯一開發測試組織已指定 goodshepherdback",
@@ -769,6 +813,11 @@ const DATA = {
   "risks": [
     {
       "level": "warn",
+      "text": "核定文字的環境優先順序與實際 Host 相反",
+      "sub": "兩個環境名稱衝突時會破壞 Development 防護或 Production 不變性；實作前已停止"
+    },
+    {
+      "level": "warn",
       "text": "goodshepherdback 是正式資料複本，尚未回報清理完成",
       "sub": "含真實個資與正式 LINE token；本次所有驗證均只在本機，不連線 D365"
     },
@@ -779,8 +828,8 @@ const DATA = {
     },
     {
       "level": "warn",
-      "text": "Development 的 LINE token 退回邏輯尚待 P0-ENV 調查",
-      "sub": "若必須改產品程式才能阻止使用正式 token，依核定停止回報"
+      "text": "Development 的 LINE 靜態設定繞過環境覆寫",
+      "sub": "使用者交付 Claude 補核為 17 處／15 檔；已核定 P0-SEC 先處理安全讀取層，現因環境優先順序矛盾停止"
     },
     {
       "level": "info",

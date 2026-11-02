@@ -1,0 +1,15 @@
+{
+  "id": "integration-p0-sec",
+  "title": "P0-SEC 防止 Development 使用正式 LINE token 與非測試組織",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "核定僅修正環境優先順序為 DOTNET_ENVIRONMENT → ASPNETCORE_ENVIRONMENT → Production，其餘 P0-SEC 不變。",
+  "createdAt": "2026-11-02T11:47:18.421163+00:00",
+  "branch": "1.0.0.11.Integration.P0",
+  "parentTask": "integration-p0",
+  "approval": "使用者交付 P0-ENV 停止回報核定全文，明確核定獨立 P0-SEC 與後續順序。",
+  "stopReason": "00 §9.6：核定的 ASPNETCORE_ENVIRONMENT 優先與 .NET 10 WebApplication 實際 DOTNET_ENVIRONMENT 優先矛盾。"
+}

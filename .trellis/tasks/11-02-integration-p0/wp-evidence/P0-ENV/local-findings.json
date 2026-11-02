@@ -1,0 +1,91 @@
+{
+  "workPackage": "P0-ENV",
+  "sourceRevision": "ba565a55",
+  "networkConnectionsAttempted": false,
+  "applicationStarted": false,
+  "productCodeModified": false,
+  "settingsModified": false,
+  "fallbackMatchCount": 16,
+  "fallbackFileCount": 14,
+  "fallbackLocations": [
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+      "line": 1018
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs",
+      "line": 256
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Services/LineExceptionSender.cs",
+      "line": 33
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs",
+      "line": 325
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Startup.cs",
+      "line": 558
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs",
+      "line": 248
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs",
+      "line": 69
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs",
+      "line": 202
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs",
+      "line": 354
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs",
+      "line": 152
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs",
+      "line": 164
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs",
+      "line": 156
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/SmallGroupQrCodeUtility.cs",
+      "line": 162
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs",
+      "line": 152
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs",
+      "line": 197
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/LineNotifyUtility.cs",
+      "line": 85
+    }
+  ],
+  "legacyConfiguration": {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs",
+    "baseFileOnly": true,
+    "loadsDevelopmentFile": false,
+    "loadsUserSecrets": false,
+    "baseAliasesWithNonemptyToken": [
+      "Jesus",
+      "JesusBack"
+    ]
+  },
+  "developmentConfiguration": {
+    "hasCrmConnectionOverride": false,
+    "hasLineMessagingOverride": false
+  },
+  "stopCondition": "User-approved P0-ENV(c): enforcing safe Development LINE token selection requires product-code protection belonging to P2-01."
+}

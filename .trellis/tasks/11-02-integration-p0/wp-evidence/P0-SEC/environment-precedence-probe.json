@@ -1,0 +1,59 @@
+{
+  "workPackage": "P0-SEC",
+  "sourceRevision": "ba565a55",
+  "sdkVersion": "10.0.403",
+  "buildExitCode": 0,
+  "probeCases": 5,
+  "matchingCases": 3,
+  "conflictingCases": 2,
+  "rows": [
+    {
+      "aspnetcoreEnvironment": "Development",
+      "dotnetEnvironment": "Production",
+      "actualWebApplicationEnvironment": "Production",
+      "prescribedAspnetcoreFirstResult": "Development",
+      "matches": false,
+      "probeExitCode": 0
+    },
+    {
+      "aspnetcoreEnvironment": "Production",
+      "dotnetEnvironment": "Development",
+      "actualWebApplicationEnvironment": "Development",
+      "prescribedAspnetcoreFirstResult": "Production",
+      "matches": false,
+      "probeExitCode": 0
+    },
+    {
+      "aspnetcoreEnvironment": "Development",
+      "dotnetEnvironment": null,
+      "actualWebApplicationEnvironment": "Development",
+      "prescribedAspnetcoreFirstResult": "Development",
+      "matches": true,
+      "probeExitCode": 0
+    },
+    {
+      "aspnetcoreEnvironment": null,
+      "dotnetEnvironment": "Development",
+      "actualWebApplicationEnvironment": "Development",
+      "prescribedAspnetcoreFirstResult": "Development",
+      "matches": true,
+      "probeExitCode": 0
+    },
+    {
+      "aspnetcoreEnvironment": null,
+      "dotnetEnvironment": null,
+      "actualWebApplicationEnvironment": "Production",
+      "prescribedAspnetcoreFirstResult": "Production",
+      "matches": true,
+      "probeExitCode": 0
+    }
+  ],
+  "isProductTddEvidence": false,
+  "productCodeModified": false,
+  "applicationStarted": false,
+  "d365OrLineConnectionsAttempted": false,
+  "parentWorkingDirectoryChanged": false,
+  "parentProcessEnvironmentModified": false,
+  "isolation": "Fresh child process per case; only child environment supplied; temporary content root with no product settings or UserSecretsId.",
+  "resourceCleanup": "ConfigurationManager disposed before each child exits; build and all child processes awaited. No Host built or started."
+}
