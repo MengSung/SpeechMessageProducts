@@ -1,0 +1,105 @@
+{
+  "checks": 13,
+  "failures": 0,
+  "diagnostics": [
+    {
+      "case": "net48",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(36,13): error RS0030: The symbol 'DateTime.Now' is banned in this project: 改用 IChurchClock 或 IClock (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net48]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    },
+    {
+      "case": "plugin-drawing",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(34,13): error RS0030: The symbol 'System.Drawing' is banned in this project: 沙箱不支援 GDI (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\artifacts\\quality\\analyzer-probe-fixtures\\55d592392bef444f9adfb193e10c8761\\SpeechMessage.Dynamics.Plugins.csproj]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    },
+    {
+      "case": "probe-build",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(36,13): error RS0030: The symbol 'DateTime.Now' is banned in this project: 改用 IChurchClock 或 IClock (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    },
+    {
+      "case": "PROBE_COMPARISON",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(28,47): error CA1309: Use ordinal string comparison (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1309) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "CA1309"
+      ]
+    },
+    {
+      "case": "PROBE_CULTURE",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(24,9): error RS0030: The symbol 'CultureInfo.DefaultThreadCurrentCulture' is banned in this project: 不得讀寫程序全域預設文化 (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    },
+    {
+      "case": "PROBE_LOCAL_TIME",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(20,13): error RS0030: The symbol 'DateTime.ToLocalTime()' is banned in this project: 改用 IChurchClock.ToChurchTime (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    },
+    {
+      "case": "PROBE_ORDINAL_OVERLOAD",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(32,13): error CA1307: 'string.Contains(string)' has a method overload that takes a 'StringComparison' parameter. Replace this call in 'SpeechMessage.RepoQuality.AnalyzerProbe.ClockProbe.Trigger()' with a call to 'string.Contains(string, System.StringComparison)' for clarity of intent. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1307) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "CA1307"
+      ]
+    },
+    {
+      "case": "PROBE_SEARCH",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(30,13): error CA1310: The behavior of 'string.IndexOf(string)' could vary based on the current user's locale settings. Replace this call in 'SpeechMessage.RepoQuality.AnalyzerProbe.ClockProbe.Trigger()' with a call to 'string.IndexOf(string, System.StringComparison)'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1310) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "CA1310"
+      ]
+    },
+    {
+      "case": "PROBE_TIME_ZONE",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(22,13): error RS0030: The symbol 'TimeZoneInfo.Local' is banned in this project: 不得依賴伺服器時區 (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    },
+    {
+      "case": "PROBE_TODAY",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(18,13): error RS0030: The symbol 'DateTime.Today' is banned in this project: 改用 IChurchClock.TodayInChurch (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    },
+    {
+      "case": "PROBE_UI_CULTURE",
+      "diagnostics": [
+        "[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\ClockProbe.cs(26,9): error RS0030: The symbol 'CultureInfo.DefaultThreadCurrentUICulture' is banned in this project: 不得讀寫程序全域預設介面文化 (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) [[worktree]\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj::TargetFramework=net10.0]"
+      ],
+      "codes": [
+        "RS0030"
+      ]
+    }
+  ]
+}

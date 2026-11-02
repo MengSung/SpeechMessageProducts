@@ -1,0 +1,5 @@
+FAIL BannedApi_PROBE_CULTURE_FailsWithRS0030: exit=0
+FAIL BannedApi_PROBE_UI_CULTURE_FailsWithRS0030: exit=0
+FAIL StringComparison_PROBE_SEARCH_FailsWithCA1307: exit=1
+FAIL Net48_PolyfillsCompile_OnlyBannedApiFails: exit=1 errors=NETSDK1005
+Analyzer probe: checks=11 failures=4 buildExit=1 errors=RS0030

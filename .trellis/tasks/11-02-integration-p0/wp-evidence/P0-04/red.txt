@@ -1,0 +1,3 @@
+FAIL BannedTimeApi_MustFailWithRS0030: exit=0 errors=
+FAIL StrictOptIn_ProjectBody_EnablesAllRequiredSettings: effective properties do not match.
+Analyzer probe: checks=3 failures=2 buildExit=0 errors=

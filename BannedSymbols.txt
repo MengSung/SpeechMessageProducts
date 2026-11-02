@@ -1,0 +1,7 @@
+P:System.DateTime.Now;改用 IChurchClock 或 IClock
+P:System.DateTime.Today;改用 IChurchClock.TodayInChurch
+M:System.DateTime.ToLocalTime;改用 IChurchClock.ToChurchTime
+P:System.TimeZoneInfo.Local;不得依賴伺服器時區
+// 分析器使用屬性的文件識別碼；setter 的方法識別碼不會命中屬性存取，故同時禁止全域預設文化讀寫。
+P:System.Globalization.CultureInfo.DefaultThreadCurrentCulture;不得讀寫程序全域預設文化
+P:System.Globalization.CultureInfo.DefaultThreadCurrentUICulture;不得讀寫程序全域預設介面文化

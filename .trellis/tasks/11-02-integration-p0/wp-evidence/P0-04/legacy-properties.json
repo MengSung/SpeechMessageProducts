@@ -1,0 +1,12 @@
+{
+  "Properties": {
+    "SpeechMessageStrictCode": "",
+    "EnableNETAnalyzers": "false",
+    "AnalysisMode": "None",
+    "TreatWarningsAsErrors": "false",
+    "Nullable": "disable",
+    "LangVersion": "latest",
+    "GenerateDocumentationFile": "false",
+    "WarningsAsErrors": ";NU1605;SYSLIB0011"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "workPackage": "P0-04",
+  "analyzerChecks": 13,
+  "analyzerFailures": 0,
+  "build": {
+    "exitCode": 0,
+    "errors": 0,
+    "warnings": 77,
+    "warningCodes": {
+      "NU1902": 20,
+      "NU1903": 56,
+      "CS1572": 1
+    }
+  },
+  "release": {
+    "projects": [
+      {
+        "project": "ChurchReport.MemberInfo.Tests",
+        "passed": 471,
+        "failed": 0,
+        "skipped": 0,
+        "total": 471
+      },
+      {
+        "project": "Line.Messaging.Tests",
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0,
+        "total": 32
+      },
+      {
+        "project": "LineMessagingProcessor.AspNetCore.Tests",
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "total": 4
+      },
+      {
+        "project": "LineMessagingProcessor.RichMenus.Tests",
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0,
+        "total": 34
+      },
+      {
+        "project": "LineMessagingProcessor.Tests",
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0,
+        "total": 33
+      },
+      {
+        "project": "LineMessagingProcessor.Workflows.Tests",
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0,
+        "total": 33
+      },
+      {
+        "project": "SpeechMessage.Payments.Tests",
+        "passed": 55,
+        "failed": 0,
+        "skipped": 0,
+        "total": 55
+      },
+      {
+        "project": "ToolUtility.Dataverse.Tests",
+        "passed": 79,
+        "failed": 0,
+        "skipped": 0,
+        "total": 79
+      }
+    ],
+    "passed": 741,
+    "failed": 0,
+    "skipped": 0,
+    "total": 741
+  },
+  "debugTracer": {
+    "projects": [
+      {
+        "project": "ToolUtility.Dataverse.Tests",
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "total": 7
+      }
+    ],
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "total": 7
+  },
+  "packageGuard": {
+    "projects": 28,
+    "references": 107,
+    "excluded": 2,
+    "failures": 0
+  }
+}

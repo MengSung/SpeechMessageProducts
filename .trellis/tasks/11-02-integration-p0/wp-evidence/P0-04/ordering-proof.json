@@ -1,0 +1,19 @@
+{
+  "workPackage": "P0-04",
+  "kind": "pre-implementation-plan-feasibility-check",
+  "command": "dotnet msbuild <ignored ordering probe> -nologo -getProperty:_P004StrictAtPropsEnd,SpeechMessageStrictCode,EnableNETAnalyzers,AnalysisMode,TreatWarningsAsErrors,Nullable,GenerateDocumentationFile",
+  "exitCode": 0,
+  "evaluatedProperties": {
+    "_P004StrictAtPropsEnd": "",
+    "SpeechMessageStrictCode": "true",
+    "EnableNETAnalyzers": "false",
+    "AnalysisMode": "None",
+    "TreatWarningsAsErrors": "false",
+    "Nullable": "",
+    "GenerateDocumentationFile": "false"
+  },
+  "plannedStrictBlock": "  <PropertyGroup>\n    <_P004StrictAtPropsEnd>$(SpeechMessageStrictCode)</_P004StrictAtPropsEnd>\n  </PropertyGroup>\n  <PropertyGroup Condition=\"'$(SpeechMessageStrictCode)' == 'true'\">\n    <EnableNETAnalyzers>true</EnableNETAnalyzers>\n    <AnalysisMode>Recommended</AnalysisMode>\n    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>\n    <Nullable>enable</Nullable>\n    <LangVersion>latest</LangVersion>\n    <GenerateDocumentationFile>true</GenerateDocumentationFile>\n  </PropertyGroup>\n",
+  "probeProject": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>\n  </PropertyGroup>\n</Project>\n",
+  "productionFilesModified": false,
+  "conclusion": "Directory.Build.props is evaluated before the project-body opt-in; the planned strict conditional does not apply."
+}

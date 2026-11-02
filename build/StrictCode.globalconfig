@@ -1,0 +1,8 @@
+# 只由 SpeechMessageStrictCode 啟用的新專案載入；三項比較規則必須實際執行。
+is_global = true
+global_level = 100
+
+dotnet_diagnostic.CA1307.severity = error
+dotnet_diagnostic.CA1309.severity = error
+dotnet_diagnostic.CA1310.severity = error
+dotnet_diagnostic.RS0030.severity = error
