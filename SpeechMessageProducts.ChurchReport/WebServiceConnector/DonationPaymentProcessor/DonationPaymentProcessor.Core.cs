@@ -21,6 +21,7 @@ using LineMessagingProcessor.Workflows;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
+using ChurchReport.Configuration;
 using System;
 using System.IO;
 using ToolUtilityNameSpace;
@@ -47,11 +48,16 @@ namespace ChurchReport.WebServiceConnector
         #region ===== 私有成員 =====
 
         // 配置管理（延遲初始化，線程安全）
+        /// <summary>
+        /// DonationPaymentProcessor.Core 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。
+        /// Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試 token 不得退回基底正式值。
+        /// 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
+        /// </summary>
         private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddChurchReportDevelopmentOverrides();
             return builder.Build();
         });
 

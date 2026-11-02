@@ -67,6 +67,10 @@ namespace ChurchReport
             {
                 var builder = WebApplication.CreateBuilder(args);
                 configuration = builder.Configuration;
+                // 先拒絕不安全的 Development 設定，才建立日誌／LINE sender 與後續 CRM 服務；
+                // Production 完全略過。失敗沿既有初始化 catch 的固定 stderr 路徑，不把憑證帶進通知。
+                ChurchReport.Configuration.ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(
+                    builder.Environment.ContentRootPath, builder.Environment.EnvironmentName, builder.Configuration);
                 var outputOptions = ExceptionOutputOptions.FromConfiguration(builder.Configuration);
                 diagnostics = new ExceptionDiagnostics(Path.Combine(AppContext.BaseDirectory, "Logs"), outputOptions: outputOptions);
                 registration = ExceptionReporting.Attach(diagnostics);

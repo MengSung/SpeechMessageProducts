@@ -1,0 +1,63 @@
+{
+  "readPoints": [
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/SmallGroupQrCodeUtility.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/WebServiceConnector/LineNotifyUtility.cs",
+      "baseJsonOptionsUnchanged": true,
+      "developmentHookCount": 1
+    }
+  ],
+  "sharedDefaultConstructorCallers": [],
+  "longCredentialLiteralCandidateCount": 0,
+  "productionProviderAndValueTests": "25/25 focused tests passed before comment/cleanup refactor",
+  "networkAccess": false
+}

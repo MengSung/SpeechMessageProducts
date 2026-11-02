@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.WebServiceConnector;
+using ChurchReport.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -68,9 +69,14 @@ namespace ChurchReport.Tools
         private const string SAVED_FLAG_FIELD = "new_saved_flag";
 
         // 配置管理
+        /// <summary>
+        /// QrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。
+        /// Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試 token 不得退回基底正式值。
+        /// 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
+        /// </summary>
         private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false).AddChurchReportDevelopmentOverrides();
         private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         // 追蹤等級

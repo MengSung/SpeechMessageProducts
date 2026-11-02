@@ -87,15 +87,33 @@ namespace LineMessagingProcessor
                 : channelAccessToken;
         }
 
+        /// <summary>
+        /// 解析舊預設建構路徑的一次性部署 token；Lazy 每行程只保存此部署憑證，不含使用者或教會動態狀態。
+        /// Development 先遮蔽基底正式別名，再依既有順序套用環境變數；不引用 ChurchReport 或載入其 User Secrets。
+        /// 不開 reload watcher，讀完立即 Dispose 區域組態根；Production 的 provider 順序及值保持不變。
+        /// </summary>
+        /// <returns>部署設定的 token，未提供測試 token 時為空，後續發送入口會拒絕；不退回其他正式別名。</returns>
         private static string ResolveDefaultChannelAccessToken()
         {
-            var configuration = new ConfigurationBuilder()
+            var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-                .AddEnvironmentVariables()
-                .Build();
-
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+            AddDevelopmentOverrides(builder, Directory.GetCurrentDirectory(),
+                Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production");
+            using var configuration = (ConfigurationRoot)builder.AddEnvironmentVariables().Build();
             return ResolveChannelAccessToken(configuration);
+        }
+
+        /// <summary>只追加 Development JSON 的獨立接點；可由呼叫端明確提供目錄與環境，不修改任何程序全域狀態。</summary>
+        /// <param name="builder">已加入原基底來源的建構器；非 Development 直接保留，新增來源不啟用監聽。</param>
+        /// <param name="basePath">部署者控制的設定根，不接受使用者請求內容。</param>
+        /// <param name="environmentName">與主機相同規則解析的環境；大小寫不影響 Development 判斷。</param>
+        /// <returns>原建構器；不加入 ChurchReport User Secrets，不引入主機相依或共用可變請求狀態。</returns>
+        private static IConfigurationBuilder AddDevelopmentOverrides(IConfigurationBuilder builder, string basePath, string environmentName)
+        {
+            if (string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase))
+                builder.SetBasePath(basePath).AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false);
+            return builder;
         }
 
         private static string ResolveChannelAccessToken(IConfiguration configuration)

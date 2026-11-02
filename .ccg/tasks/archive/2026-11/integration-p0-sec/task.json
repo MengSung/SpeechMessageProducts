@@ -1,0 +1,15 @@
+{
+  "id": "integration-p0-sec",
+  "title": "P0-SEC 防止 Development 使用正式 LINE token 與非測試組織",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "P0-SEC 已驗證，隨完成提交歸檔；接續 P0-ENV。",
+  "createdAt": "2026-11-02T11:47:18.421163+00:00",
+  "branch": "1.0.0.11.Integration.P0",
+  "parentTask": "integration-p0",
+  "approval": "使用者交付 P0-ENV 停止回報核定全文，明確核定獨立 P0-SEC 與後續順序。",
+  "reviewPolicy": "One ClaudeOnly review after P0-12, before P0-13, per implementation plan 3.3."
+}

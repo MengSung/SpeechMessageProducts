@@ -1,7 +1,5 @@
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using ChurchReport.Configuration;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +16,7 @@ namespace ChurchReport.MemberInfo.Tests.Contracts;
 public sealed class DevelopmentSafetyTests
 {
     /// <summary>注入兩種 Development 大小寫；斷言每個既有別名都遮蔽基底假 token，且預設選到測試別名。</summary>
+    /// <param name="environment">大小寫不同的開發環境名稱，用來注入相同隔離契約。</param>
     [Theory]
     [InlineData("Development")]
     [InlineData("development")]
@@ -34,6 +33,7 @@ public sealed class DevelopmentSafetyTests
     }
 
     /// <summary>注入 Production、Staging 與缺省環境；斷言零新增 provider 且所有鍵和值與原基底相同。</summary>
+    /// <param name="environment">正式、其他或缺省環境；均不得新增開發來源。</param>
     [Theory]
     [InlineData("Production")]
     [InlineData("Staging")]
@@ -51,6 +51,9 @@ public sealed class DevelopmentSafetyTests
     }
 
     /// <summary>注入衝突與缺省名稱，斷言 DOTNET 優先、其次 ASPNETCORE，皆未指定才採 Production。</summary>
+    /// <param name="dotnet">假 DOTNET 環境名稱，不寫入程序環境。</param>
+    /// <param name="aspnetcore">假 ASPNETCORE 名稱，不寫入程序環境。</param>
+    /// <param name="expected">獨立由 Host 規則決定的字面期望值。</param>
     [Theory]
     [InlineData("Production", "Development", "Production")]
     [InlineData("Development", "Production", "Development")]
@@ -71,6 +74,8 @@ public sealed class DevelopmentSafetyTests
     }
 
     /// <summary>逐一注入正式 token、錯誤預設別名、CRM 與 Embedded 主機；拒絕時只回報鍵名，不洩露任何假機密。</summary>
+    /// <param name="key">本案例要破壞的設定鍵。</param>
+    /// <param name="value">固定假值，絕非真實 token、帳密或個資。</param>
     [Theory]
     [InlineData("LineMessaging:Jesus:ChannelAccessToken", "PROD-FAKE")]
     [InlineData("LineMessaging:DefaultOrganization", "Jesus")]
@@ -94,6 +99,7 @@ public sealed class DevelopmentSafetyTests
     }
 
     /// <summary>Production 與未設定環境即使有不安全鍵和不存在的基底路徑，也必須完全略過 Development 守門。</summary>
+    /// <param name="environment">不啟用開發守門的環境或 null。</param>
     [Theory]
     [InlineData("Production")]
     [InlineData(null)]
@@ -202,6 +208,13 @@ public sealed class DevelopmentSafetyTests
         internal IConfigurationBuilder BaseBuilder() => new ConfigurationBuilder().SetBasePath(Root).AddJsonFile("appsettings.json", false, false);
 
         /// <summary>所有組態根已先 Dispose；只刪除此 fixture 已知的絕對暫存目錄，防止跨案例清除或保留假機密。</summary>
-        public void Dispose() => Directory.Delete(Root, recursive: true);
+        public void Dispose()
+        {
+            var actual = Path.GetFullPath(Root);
+            var tempRoot = Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            if (!actual.StartsWith(tempRoot, StringComparison.OrdinalIgnoreCase) || !Path.GetFileName(actual).StartsWith("p0-sec-", StringComparison.Ordinal))
+                throw new InvalidOperationException("拒絕清理 fixture 以外的目錄。");
+            Directory.Delete(actual, recursive: true);
+        }
     }
 }

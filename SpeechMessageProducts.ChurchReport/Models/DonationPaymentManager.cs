@@ -22,6 +22,7 @@ using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
+using ChurchReport.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -44,7 +45,12 @@ namespace ChurchReport.Models
     public class DonationPaymentManager : Controller, IDisposable
     {
         #region 資料區
-        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        /// <summary>
+        /// DonationPaymentManager 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。
+        /// Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試 token 不得退回基底正式值。
+        /// 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
+        /// </summary>
+        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddChurchReportDevelopmentOverrides();
         static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         // 商店編號

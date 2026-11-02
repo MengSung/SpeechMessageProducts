@@ -1,3 +1,52 @@
+# P0-SEC　防止 Development 使用正式 LINE token 與非測試組織（完成實作與本機驗證）
+
+## 範圍
+- 新增：ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs — internal 覆寫層、可注入參數的純環境解析及啟動守門，不保存全域機密或 request 狀態。
+- 新增：ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs — 25 個假設定／來源契約案例。
+- 修改：已盤點的 11 個 ChurchReport LINE 設定讀取點 — 接上覆寫層；原 optional、reloadOnChange、static／Lazy 結構逐一核對未變，詳 source-audit.json。
+- 修改：LineMessagingProcessorClass 的預設設定讀取 — Development 只加 optional JSON，不參考 ChurchReport、不加主機 User Secrets；原環境變數來源順序不變，區域組態根讀完 Dispose。
+- 修改：Program、ChurchReport.csproj、appsettings.Development.json — 守門先於任何 LINE sender／CRM 服務；固定 UserSecretsId、DevTest 預設別名、兩個正式 token 空白覆寫。
+- 修改：Trellis／CCG 執行記錄、3.3 進度 DATA、Development 設定安全規範 — 實際狀態及 3.3 的 P0-12／P0-13 順序；3.2 凍結及已完成 WP 歷史回報不動。
+- 未做：DI 重構、17 處 Jesus 退回統一、收件者白名單、基底正式機密移除、付款回呼變更；未修改 Startup 或清理 D365。
+
+## TDD 紀錄
+- 原清單全部保留，測試刪除 0。包含 Development 大小寫、Production／Staging／缺省環境逐鍵相同且零新 provider、兩組環境衝突與缺省、11＋1 來源路徑、UserSecretsId、正確／錯誤 LINE／CRM／Embedded 設定與 Production 完全略過守門。
+- 追加拒絕測試：把基底 token 移到測試別名、同值 LINE_CHANNEL_ACCESS_TOKEN、非法布林開關，避免已知設定來源的繞過。
+- 紅燈：25／25 失敗，功能空殼 NotImplementedException、UserSecretsId 缺少與接點缺少；red-tests.txt 保存方法名稱與訊息。最初測試字串跳脫造成的編譯錯誤已先修正，未冒充功能紅燈。
+- 綠燈：25／25；重構僅補精確文件、驗證 fixture 清理路徑與保留基底選項，全方案最新 766／766 通過。
+- 測試皆用 PROD-FAKE／PROD-B-FAKE，無實值機密；組態來源測試使用沒有 UserSecretsId 的測試組件，不讀使用者真實 secrets、不改程序環境或目前目錄。
+- 黃金檔變更：無。
+- 歷史：執行期間出現外部提交 a7604add，已包含測試空殼與紅燈等當時檔案；保留歷史，不 reset／rebase／amend。本次 P0-SEC 提交包含完成實作與綠燈證據，不把空殼提交當完成。
+
+## 驗證
+- Release 建置：0 錯誤、76 警告（增量建置；基準 77，既有 CS1572 不一定重報，未加 NoWarn 或降低檢查）。
+- Release 全方案：766 通過、0 失敗、0 略過（原 741 加本包 25）。LineMessagingProcessor.Tests 的既有 33 個完整保留。
+- Debug tracer：7／7。
+- 來源核對：11 個基底 AddJsonFile 選項未變，每處一個 Development 接點；長憑證形狀字面值候選 0。現有方案來源未找到參數為空的 new LineMessagingProcessorClass() 呼叫者；此相容預設入口仍受測試，ChurchReport 實際呼叫者以 token 或既有 client 明確傳入。
+- 進度頁 3／3；git diff --check 及暫存差異檢查通過。編碼首次守門發現 a7604add 已帶入的 v3.3 討論紀錄為 LF；本次只轉成 CRLF 並補檔尾 CRLF，逐行文字完全相同，不動 3.2 凍結副本。最終 Changed（Base=73b6e6cf）159 檔、排除 74 檔、0 問題；本次 36 個新增／修改檔均通過逐位元組檢查。
+- 新專案覆蓋率：不適用；沒有新增產品專案。
+- 沒有啟動 ChurchReport、查詢 D365、呼叫 LINE 或讀取 User Secrets 實值。
+
+## AGENTS.md 檢查
+- 新設定層及測試、實際修改的設定欄位與接點均補繁中 XML 文件；說明 Production 不變、fail closed、部署狀態與 request／教會狀態的分界。
+- 新增層不建立長生命週期快取、事件或背景工作；既有 static／Lazy 限行程部署設定，新增 provider 不 reload；守門的基底串流與組態根均在當次結束前 Dispose。
+- 守門放在例外通知 owner 建立前；失敗沿 Program 原有初始化固定 stderr 路徑處理，不發 LINE、不記錄設定值，也不改通知管線。
+- 只比較記憶體中的 token，錯誤僅含鍵名與固定原因；不把 token／密碼／個資帶到日誌、證據或回報。
+
+## 風險與待決
+- P0-SEC 提交後、P0-ENV 完成前，Development 因 CRM 仍指向舊組織而拒絕啟動，屬預期 fail closed；不以實際啟動網站驗證。
+- 本包保留基底正式機密及舊金流回呼；輪替由使用者處理，P4 前 Development 不得實測付款。
+- 3.3 與 DOTNET_ENVIRONMENT 優先順序已核定，先前兩個待決已解除。
+- goodshepherdback 清理尚未回報完成；任何 D365／LINE 連線仍禁止。即使清理完成，Codex 只可執行 D24 的不寫入指令。
+- 外部審查依最新規則留在 P0-12 後、P0-13 前，使用單模型（使用者指定 ClaudeOnly），P0-SEC 列為重點；本包不另做外部審查。
+
+## 需要使用者做的事
+- 無。本包提交後接續 P0-ENV；goodshepherdback 清理完成仍須另行回報，不在本包連線。
+
+---
+
+## 先前停止時的歷史紀錄（原文保留；待決均已由後續核定解除）
+
 # P0-SEC　防止 Development 使用正式 LINE token 與非測試組織（實作前停止）
 
 ## 範圍

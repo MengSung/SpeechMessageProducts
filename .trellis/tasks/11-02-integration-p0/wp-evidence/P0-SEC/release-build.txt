@@ -1,0 +1,6 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet build .\SpeechMessageProducts.sln -c Release -warnaserror:NU1605 --nologo
+Build succeeded.
+    76 Warning(s)
+    0 Error(s)
+EXIT_CODE=0

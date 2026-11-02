@@ -11,6 +11,7 @@
 // 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
+using ChurchReport.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,11 +41,16 @@ namespace ChurchReport.Services
         private readonly PaymentFeeTypeHelper _feeTypeHelper;
         private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
 
+        /// <summary>
+        /// PaymentNotificationService 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。
+        /// Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試 token 不得退回基底正式值。
+        /// 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
+        /// </summary>
         private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddChurchReportDevelopmentOverrides();
             return builder.Build();
         });
 

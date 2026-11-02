@@ -1,0 +1,30 @@
+P0-SEC focused TDD green attempt. Console summary only.
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentLayer_NonDevelopment_PreservesProvidersAndEveryValue(environment: null) [40 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentLayer_NonDevelopment_PreservesProvidersAndEveryValue(environment: "Staging") [3 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentLayer_NonDevelopment_PreservesProvidersAndEveryValue(environment: "Production") [3 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "DynamicsAccess:Embedded:ResourceUri", value: "https://sunnyvalechback.speechmessage.com.tw") [108 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "LINE_CHANNEL_ACCESS_TOKEN", value: "PROD-FAKE") [2 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "CrmConnection:ServerUrl", value: "https://sunnyvalechback.speechmessage.com.tw") [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "CrmConnection:Organization", value: "sunnyvalechback") [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "LineMessaging:DefaultOrganization", value: "") [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "LineMessaging:DefaultOrganization", value: "Jesus") [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "LineMessaging:DevTest:ChannelAccessToken", value: "PROD-FAKE") [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "DynamicsAccess:Embedded:OrganizationWebApiBaseUri", value: "https://sunnyvalechback.speechmessage.com.tw/api/d"···) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "LineMessaging:Jesus:ChannelAccessToken", value: "PROD-FAKE") [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret(key: "DynamicsAccess:Package01FeeReadsEnabled", value: "invalid") [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentLayer_Development_HidesEveryBaseToken(environment: "development") [3 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentLayer_Development_HidesEveryBaseToken(environment: "Development") [2 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.Environment_ConflictingInputs_UsesHostPrecedence(dotnet: "Development", aspnetcore: "Production", expected: "Development") [< 1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.Environment_ConflictingInputs_UsesHostPrecedence(dotnet: "Production", aspnetcore: "Development", expected: "Production") [< 1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.Environment_ConflictingInputs_UsesHostPrecedence(dotnet: null, aspnetcore: "Development", expected: "Development") [< 1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.Environment_ConflictingInputs_UsesHostPrecedence(dotnet: null, aspnetcore: null, expected: "Production") [< 1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.SharedDefaultPath_DevelopmentWithoutSecrets_CannotReturnBaseToken [107 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.SourceBuilders_AllLineConfigurationPaths_UseDevelopmentLayer [23 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_NonDevelopment_DoesNotInspectOrReject(environment: null) [< 1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_NonDevelopment_DoesNotInspectOrReject(environment: "Production") [< 1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.HostAssembly_UserSecretsId_IsAvailableToDevelopmentLoader [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentSafetyTests.DevelopmentGuard_SafeSettingsWithoutToken_PassesWithoutFallback [2 ms]
+Test Run Successful.
+Total tests: 25
+     Passed: 25
+EXIT_CODE=0
