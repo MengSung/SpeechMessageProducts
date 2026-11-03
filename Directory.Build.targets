@@ -5,6 +5,10 @@
   <PropertyGroup Condition="'$(SpeechMessageStrictCode)' == 'true'">
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>Recommended</AnalysisMode>
+    <!-- SDK 只為 .NETCoreApp 自動選分析層級；net48 空值會讓 Recommended 規則集不載入。
+         使用者 2026-11-03 核定：嚴格模式只在空值時明確採 latest，使雙目標確實同規則；
+         net10 原有層級不變，舊專案不啟用嚴格模式也不受影響。 -->
+    <AnalysisLevel Condition="'$(AnalysisLevel)' == ''">latest</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>

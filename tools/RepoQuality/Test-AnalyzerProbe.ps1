@@ -69,7 +69,7 @@ try {
     if ($build.ExitCode -eq 0 -or $errorCodes.Count -ne 1 -or $errorCodes[0] -ne 'RS0030') {
         $failures.Add("BannedTimeApi_MustFailWithRS0030: exit=$($build.ExitCode) errors=$($errorCodes -join ',')")
     }
-    $properties = 'SpeechMessageStrictCode,EnableNETAnalyzers,AnalysisMode,TreatWarningsAsErrors,Nullable,LangVersion,GenerateDocumentationFile,DocumentationFile,TargetDir,WarningsAsErrors'
+    $properties = 'SpeechMessageStrictCode,EnableNETAnalyzers,AnalysisMode,AnalysisLevel,EffectiveAnalysisLevel,TreatWarningsAsErrors,Nullable,LangVersion,GenerateDocumentationFile,DocumentationFile,TargetDir,WarningsAsErrors'
     $strict = Invoke-AnalyzerDotNet -Arguments ('msbuild "' + $probe + '" -nologo -p:TargetFramework=net10.0 -p:Configuration=Release -getProperty:' + $properties) -LogName 'strict-properties.log'
     if ($strict.ExitCode -ne 0) { throw 'Strict project property evaluation failed.' }
     $settings = ($strict.Output | ConvertFrom-Json).Properties
@@ -89,6 +89,16 @@ try {
         $failures.Add('LegacyProject_NoOptIn_PreservesExistingSettings: effective properties changed.')
     }
     $checks = 3
+    # 必須查實際生效層級，而非只看 Recommended 字串；net48 的 SDK 不會自動補此屬性。
+    foreach ($framework in @('net48', 'net10.0')) {
+        $level = Invoke-AnalyzerDotNet -Arguments ('msbuild "' + $probe + '" -nologo -p:TargetFramework=' + $framework + ' -getProperty:AnalysisLevel,EffectiveAnalysisLevel') -LogName ($framework + '-analysis-level.log')
+        $checks++
+        if ($level.ExitCode -ne 0) { throw 'Analysis level property evaluation failed.' }
+        $effective = ($level.Output | ConvertFrom-Json).Properties
+        if ([string]::IsNullOrWhiteSpace($effective.AnalysisLevel) -or [string]::IsNullOrWhiteSpace($effective.EffectiveAnalysisLevel)) {
+            $failures.Add("EffectiveAnalysisLevel_${framework}_MustNotBeEmpty: analysis=$($effective.AnalysisLevel) effective=$($effective.EffectiveAnalysisLevel)")
+        }
+    }
     foreach ($symbol in @('PROBE_TODAY', 'PROBE_LOCAL_TIME', 'PROBE_TIME_ZONE', 'PROBE_CULTURE', 'PROBE_UI_CULTURE')) {
         $result = Invoke-AnalyzerDotNet -Arguments ('build "' + $probe + '" -c Release -f net10.0 --nologo --disable-build-servers -t:Rebuild -p:DefineConstants=' + $symbol) -LogName ($symbol + '.log')
         $checks++
@@ -178,6 +188,24 @@ try {
             }
             elseif ($naming.ExitCode -eq 0 -or $namingCodes.Count -ne 1 -or $namingCodes[0] -ne 'CA1707') {
                 $failures.Add("Naming_$($case.Name)_MustFailOnlyCA1707: exit=$($naming.ExitCode) errors=$($namingCodes -join ',')")
+            }
+        }
+        # 兩個新 net48 樣本必須靠一般 Recommended 規則失敗，不是靠強制的時間／文化禁令。
+        $interfaceSource = [System.Security.SecurityElement]::Escape((Join-Path $root 'tools/RepoQuality/AnalyzerProbe/InterfaceNamingProbe.cs'))
+        foreach ($case in @(
+            @{ Name = 'Net48NamingProduct'; Source = $namingSource; Symbol = 'PROBE_NAMING'; Code = 'CA1707' },
+            @{ Name = 'Net48InterfaceProduct'; Source = $interfaceSource; Symbol = 'PROBE_INTERFACE_KEYWORD'; Code = 'CA1716' }
+        )) {
+            $caseDirectory = Join-Path $fixtureDirectory $case.Name
+            [void][System.IO.Directory]::CreateDirectory($caseDirectory)
+            $caseProject = Join-Path $caseDirectory ($case.Name + '.csproj')
+            $caseXml = '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net48</TargetFramework><SpeechMessageStrictCode>true</SpeechMessageStrictCode><GenerateDocumentationFile>true</GenerateDocumentationFile><DefineConstants>' + $case.Symbol + '</DefineConstants></PropertyGroup><ItemGroup><PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" /><Compile Include="' + $case.Source + '" /></ItemGroup></Project>'
+            [System.IO.File]::WriteAllText($caseProject, $caseXml + "`r`n", $utf8)
+            $result = Invoke-AnalyzerDotNet -Arguments ('build "' + $caseProject + '" -c Release --nologo --disable-build-servers -t:Rebuild') -LogName ($case.Name + '.log')
+            $checks++
+            $codes = @([regex]::Matches($result.Output, '\berror ([A-Z]+[0-9]+):') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+            if ($result.ExitCode -eq 0 -or $codes.Count -ne 1 -or $codes[0] -ne $case.Code) {
+                $failures.Add("Recommended_$($case.Name)_MustFailOnly$($case.Code): exit=$($result.ExitCode) errors=$($codes -join ',')")
             }
         }
     }

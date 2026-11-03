@@ -1,0 +1,22 @@
+{
+  "red": {
+    "net48": {
+      "AnalysisLevel": "",
+      "EffectiveAnalysisLevel": ""
+    },
+    "net10.0": {
+      "AnalysisLevel": "latest",
+      "EffectiveAnalysisLevel": "10.0"
+    }
+  },
+  "green": {
+    "net48": {
+      "AnalysisLevel": "latest",
+      "EffectiveAnalysisLevel": "10.0"
+    },
+    "net10.0": {
+      "AnalysisLevel": "latest",
+      "EffectiveAnalysisLevel": "10.0"
+    }
+  }
+}

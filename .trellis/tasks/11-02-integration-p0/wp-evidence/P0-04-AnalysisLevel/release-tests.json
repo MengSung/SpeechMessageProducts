@@ -1,0 +1,23 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "SpeechMessageProducts.sln",
+    "-c",
+    "Release",
+    "--no-build",
+    "--nologo"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 9.56,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 36 ms - LineMessagingProcessor.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32, Duration: 84 ms - Line.Messaging.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    34, Skipped:     0, Total:    34, Duration: 83 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 178 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    55, Skipped:     0, Total:    55, Duration: 108 ms - SpeechMessage.Payments.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 175 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    79, Skipped:     0, Total:    79, Duration: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:   501, Skipped:     0, Total:   501, Duration: 7 s - ChurchReport.MemberInfo.Tests.dll (net10.0)"
+  ]
+}

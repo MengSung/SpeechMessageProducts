@@ -1,0 +1,18 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/RepoQuality/Test-AnalyzerProbe.ps1",
+    "-EvidenceDirectory",
+    "artifacts/quality/p004-level-red"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 60.42,
+  "consoleSummary": [
+    "FAIL EffectiveAnalysisLevel_net48_MustNotBeEmpty: analysis= effective=",
+    "FAIL Recommended_Net48NamingProduct_MustFailOnlyCA1707: exit=0 errors=",
+    "FAIL Recommended_Net48InterfaceProduct_MustFailOnlyCA1716: exit=0 errors=",
+    "Analyzer probe: checks=24 failures=3 buildExit=1 errors=RS0030"
+  ]
+}

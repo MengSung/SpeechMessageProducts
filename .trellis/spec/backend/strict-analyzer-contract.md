@@ -21,6 +21,12 @@ the intentionally invalid probe builds themselves must fail.
 
 - Strict projects enable NET analyzers, Recommended analysis, nullable, latest
   language version, and warnings as errors in Directory.Build.targets.
+- Explicitly default an empty AnalysisLevel to latest inside the strict group.
+  The SDK otherwise leaves this empty for net48, so AnalysisMode=Recommended
+  alone never loads that framework's Recommended rules. This was reproduced and
+  repaired on 2026-11-03: before repair net48 naming violations compiled, while
+  net10 rejected them. Check nonempty EffectiveAnalysisLevel for both targets
+  and real net48 CA1707/CA1716 diagnostics, never merely the property label.
 - The user approved one permanent naming exception on 2026-11-03: only projects
   with SpeechMessageStrictCode=true, IsTestProject=true, and an ordinal .Tests
   project-name suffix receive NoWarn CA1707. Directory.Build.targets is the only
@@ -65,6 +71,9 @@ the intentionally invalid probe builds themselves must fail.
 | Strict test with IsTestProject=true and .Tests name uses underscores | Successful build |
 | IsTestProject=true but project name has no .Tests suffix | Only CA1707 errors |
 | .Tests suffix but IsTestProject=false | Only CA1707 errors |
+| net48 strict product uses underscores | Only CA1707 errors |
+| net48 public interface member is named Get | Only CA1716 errors |
+| net48 or net10.0 effective analysis level | Both AnalysisLevel and EffectiveAnalysisLevel are nonempty |
 | Restore, framework or unexpected compiler failure | Fail the guard; never count it as the expected rejection |
 
 ## 5. Good / Base / Bad Cases
@@ -77,8 +86,8 @@ the intentionally invalid probe builds themselves must fail.
 
 ## 6. Tests Required
 
-Run Test-AnalyzerProbe's 20 checks, retaining the original 16 (including all
-three documentation cases) and adding the four naming-boundary cases.
+Run Test-AnalyzerProbe's 24 checks, retaining all previous 20 checks and adding
+two net48 naming probes plus the two effective-analysis-level checks.
 Check the actual nonempty DocumentationFile and
 the newly emitted XML in the output directory, rather than trusting only the
 GenerateDocumentationFile flag. Preserve the initial missing-analyzer red

@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: powershell -NoProfile -File tools/RepoQuality/Test-AnalyzerProbe.ps1 -EvidenceDirectory artifacts/quality/p004-level-green
+Analyzer probe: checks=24 failures=0 buildExit=1 errors=RS0030
+EXIT_CODE=0

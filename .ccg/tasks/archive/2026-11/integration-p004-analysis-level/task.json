@@ -1,0 +1,12 @@
+{
+  "id": "integration-p004-analysis-level",
+  "title": "P0-04 補修 net48 Recommended 規則",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "build",
+  "branch": "1.0.0.11.Integration.P0",
+  "currentPhase": "completed",
+  "approval": "使用者 2026-11-03 核定先紅後綠、獨立提交，不混入 P0-08。",
+  "nextAction": "依指定訊息獨立提交後接續 P0-08。"
+}

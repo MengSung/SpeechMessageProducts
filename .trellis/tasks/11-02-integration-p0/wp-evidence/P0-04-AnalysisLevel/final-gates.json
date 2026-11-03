@@ -1,0 +1,16 @@
+{
+  "checks": 24,
+  "failures": 0,
+  "i18nTests": 75,
+  "releaseTests": 771,
+  "debugTracerTests": 7,
+  "buildErrors": 0,
+  "buildWarnings": 77,
+  "p008SourceAndReportHashesPreserved": 8,
+  "staticPending": false,
+  "encodingSummary": "Text encoding: scope=Changed checked=260 excluded=74 filesWithIssues=0",
+  "byteCheckedFiles": 29,
+  "progressTests": 3,
+  "frozenV32Unchanged": 8,
+  "p008ExcludedFromCommit": true
+}

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/RepoQuality/Test-AnalyzerProbe.ps1",
+    "-EvidenceDirectory",
+    "artifacts/quality/p004-level-green"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 72.51,
+  "consoleSummary": [
+    "Analyzer probe: checks=24 failures=0 buildExit=1 errors=RS0030"
+  ]
+}
