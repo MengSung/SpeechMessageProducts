@@ -5,8 +5,8 @@
   "complexity": "M",
   "risk": "medium",
   "domain": "frontend",
-  "currentPhase": "analysis",
-  "nextAction": "依使用者追加修復授權，先重現 Deferred 契約失敗，再實作最小相容修正。",
+  "currentPhase": "review",
+  "nextAction": "Claude 修正審查兩次逾時；審查包已備妥，待完成審查後收尾，不推進 P0-12A。",
   "createdAt": "2026-11-03",
   "branch": "1.0.0.11.Integration.P0",
   "constraints": [
@@ -14,5 +14,8 @@
     "保留 P0-12A 工作",
     "只使用合成假資料",
     "不推送、不合併、不改寫歷史"
-  ]
+  ],
+  "reviewPacket": ".ccg/dual-model-runs/small-group-report-blank-review-packet.md",
+  "manualImplementationCommit": "96487ea2",
+  "verificationReport": ".trellis/tasks/11-03-small-group-report-blank/research/fix-report.md"
 }

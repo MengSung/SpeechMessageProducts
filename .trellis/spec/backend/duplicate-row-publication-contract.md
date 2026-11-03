@@ -6,6 +6,8 @@ Apply this contract whenever code creates, caches, transforms, serializes, rende
 exports, or mutates a repeatable data collection. It covers ASP.NET Core actions,
 DevExtreme grids, Razor tables, trees, reports, JSON DTOs, background results,
 Dataverse projections, and any future list-like UI.
+Client adapters must preserve the actual consumer's asynchronous completion
+contract while enforcing the publication generation.
 
 The protected failure is not merely two equal display names. The failure is two
 rows representing one authoritative record/business event, a partially published
@@ -24,6 +26,11 @@ GetOrBuildDetachedRead(
     DateOrVersion generation,
     CancellationToken requestCancellation)
     -> DetachedReadSnapshot
+```
+
+```javascript
+coordinator.runLoad(loadFactory);              // Native Promise for date navigation.
+coordinator.runLoad(loadFactory, $.Deferred);  // jQuery promise for DevExtreme Grid.
 ```
 
 Each repeatable row exposes one server-owned stable identity such as
@@ -63,6 +70,17 @@ their row key.
   the mutation inside the bounded request, or hand off only detached immutable
   input to a separately owned, cancellable, observable worker with deterministic
   drain and disposal.
+- DevExtreme's existing jQuery store adapter must return a read-only jQuery
+  promise with `done`, `fail`, and `always`. Forward every original completion
+  argument and context, including `(data, extra)` where `extra` carries
+  `totalCount`, `summary`, and `groupCount`. Do not assimilate that transport
+  through a native Promise, which discards extra arguments.
+- Both completion paths validate generation. Clear the active transport before
+  invoking jQuery callbacks because jQuery 2.x invokes them synchronously and
+  consumers may reenter or throw. Preserve the native Promise default for
+  existing `.then().catch()` date navigation.
+- Version the coordinator script URL when the layout serves immutable static
+  assets. A new Razor adapter must not silently run against cached old JS.
 
 ## 4. Validation & Error Matrix
 
@@ -76,6 +94,9 @@ their row key.
 | Caller mutates returned list | Published snapshot remains unchanged |
 | Concurrent same-scope requests | At most one build; all successful readers see one complete generation |
 | Concurrent different-scope requests | No mutable state, credential, row, or authorization decision crosses scopes |
+| jQuery store resolves `(rows, extra)` | Deliver both arguments through the guarded promise; preserve paging metadata |
+| Deferred consumer throws or synchronously starts another load | Old active transport is already released; keep the new generation active |
+| Old owner completes after disposal | Reject with stale cancellation; never publish the old rows |
 | Existing database/Dataverse conflict count > 1 | Stop creating; report conflict for auditable remediation |
 
 ## 5. Good / Base / Bad Cases
@@ -90,6 +111,8 @@ their row key.
   while silently deleting a legitimate person.
 - Bad: an in-process semaphore is treated as the uniqueness guarantee for two IIS
   workers writing the same Dataverse business event.
+- Bad: returning a native Promise from a jQuery-based store adapter makes
+  DevExtreme's `.load(...).done(...)` throw before the grid can render.
 
 ## 6. Tests Required
 
@@ -110,6 +133,14 @@ their row key.
   retained memory does not trend upward under repeated generations.
 - Cross-process writer test where applicable: repeated idempotency key from two
   application instances yields one canonical active business record.
+- Execute the actual Razor adapter with the repository's real jQuery
+  Callbacks/Deferred implementation. Assert consumer-visible completion,
+  metadata, original errors, synchronous reentry, late success/error,
+  independent owners, and repeated dispose/drain. CI runs:
+
+```text
+node --test ChurchReport.MemberInfo.Tests/JavaScript/collection-load-coordinator.test.js ChurchReport.MemberInfo.Tests/JavaScript/weekly-report-load-adapter.test.js
+```
 
 ## 7. Wrong vs Correct
 
@@ -135,3 +166,8 @@ return DataSourceLoader.Load(candidate.CreateDetachedRows(), options);
 The real implementation may use a scoped holder, immutable snapshot, or another
 equivalent mechanism, but it must preserve the same isolation, atomic publication,
 stable identity, retry, cleanup, and performance contracts.
+
+For the existing jQuery Grid, return
+`coordinator.runLoad(() => originalLoad(options), $.Deferred)`, rather than
+wrapping the native result in `$.when(...)`: a late wrapper restores `.done`
+but cannot restore metadata already lost during native Promise assimilation.

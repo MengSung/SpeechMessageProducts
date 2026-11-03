@@ -1,39 +1,109 @@
 {
   "date": "2026-11-03",
+  "scope": "frontend compatibility fix; review pending",
   "baseline": "d42b6d3f",
-  "comparisonBase": "73b6e6cf",
-  "scope": "read-only triage",
-  "productChanged": false,
-  "testProjectsChanged": false,
+  "manualImplementationCommit": "96487ea2",
+  "productChanged": true,
   "externalD365OrLineConnections": false,
   "userSecretsRead": false,
-  "probeTests": {
-    "passed": 11,
+  "frontendRed": {
+    "total": 10,
+    "passed": 0,
+    "failed": 10
+  },
+  "frontendGreen": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "disposeCycles": 200
+  },
+  "releaseBuild": {
+    "passed": true,
+    "warnings": 37,
+    "errors": 0
+  },
+  "releaseTests": {
+    "passed": 1049,
+    "failed": 8,
+    "total": 1057,
+    "failureScope": "P0-12A personal image characterization; unchanged by this task"
+  },
+  "debugTracer": {
+    "rebuilt": false,
+    "buildBlockedByRunningWebsite": true,
+    "existingBinariesNoBuildPassed": 7,
     "failed": 0
   },
-  "existingFocusedTests": {
-    "passed": 30,
-    "failed": 0
+  "guards": {
+    "encodingPassed": true,
+    "duplicateProjects": 26,
+    "duplicateFiles": 876,
+    "duplicateNewGroups": 0,
+    "i18nVerifyPassed": true,
+    "generatedFilesChecked": 1,
+    "diffCheckPassed": true
   },
-  "combinedFocusedTests": {
-    "passed": 41,
-    "failed": 0
+  "userConfirmedTablesRecovered": true,
+  "chartsFullyVerified": false,
+  "morningRuntimeAndCacheDifferenceProven": false,
+  "analysis": {
+    "dualModelComplete": true,
+    "run": "20261103-201904-small-group-deferred-analysis-retry-analyzer"
   },
-  "normalTestAssemblyRestored": true,
-  "scripts": {
-    "ajaxReadyCallbacksExecuted": false,
-    "globalSymbolsDefined": 7,
-    "razorWidgetInitializationExecuted": false,
-    "parsed": 6
+  "review": {
+    "dualModelComplete": false,
+    "ok": false,
+    "quotaBlocked": false,
+    "degradedFallback": false,
+    "completedBackends": [
+      "gemini"
+    ],
+    "failedBackends": [
+      "claude"
+    ],
+    "claudeTimeoutAttempts": 2,
+    "run": "20261103-202623-small-group-deferred-fix-review-reviewer",
+    "packet": ".ccg/dual-model-runs/small-group-report-blank-review-packet.md",
+    "diffSha256": "7b8d05655ac332ef8612c3b124642cfd0410bcd7da26e7c6d2973a056ce6cab9"
   },
-  "assets": {
-    "actualHttpResponsesObserved": false,
-    "references": 35,
-    "missingPhysicalReferences": 14
-  },
-  "baselineTextComparisons": {
-    "equalFiles": 7,
-    "lineEndingsNormalizedForComparison": true
-  },
-  "outcome": "Await user browser evidence; root cause not determined."
+  "outcome": "Tables recovered; independent fix review remains pending. P0-12A not resumed.",
+  "initialTriage": {
+    "date": "2026-11-03",
+    "baseline": "d42b6d3f",
+    "comparisonBase": "73b6e6cf",
+    "scope": "read-only triage",
+    "productChanged": false,
+    "testProjectsChanged": false,
+    "externalD365OrLineConnections": false,
+    "userSecretsRead": false,
+    "probeTests": {
+      "passed": 11,
+      "failed": 0
+    },
+    "existingFocusedTests": {
+      "passed": 30,
+      "failed": 0
+    },
+    "combinedFocusedTests": {
+      "passed": 41,
+      "failed": 0
+    },
+    "normalTestAssemblyRestored": true,
+    "scripts": {
+      "ajaxReadyCallbacksExecuted": false,
+      "globalSymbolsDefined": 7,
+      "razorWidgetInitializationExecuted": false,
+      "parsed": 6
+    },
+    "assets": {
+      "actualHttpResponsesObserved": false,
+      "references": 35,
+      "missingPhysicalReferences": 14
+    },
+    "baselineTextComparisons": {
+      "equalFiles": 7,
+      "lineEndingsNormalizedForComparison": true
+    },
+    "outcome": "Await user browser evidence; root cause not determined."
+  }
 }

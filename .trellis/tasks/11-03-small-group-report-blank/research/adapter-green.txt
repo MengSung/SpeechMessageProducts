@@ -1,23 +1,24 @@
-✔ 晚到的舊成功回應不能覆蓋新世代 (1.2603ms)
-✔ 晚到的舊錯誤不能覆蓋新世代成功狀態 (0.1437ms)
-✔ active load 期間重複 refresh 只合併成一次 (2.1082ms)
-✔ dispose 後會清除 transport 與 pending refresh 並拒絕晚到回應 (0.4015ms)
-✔ 同一 owner 重複 mount 會先完整釋放舊世代 (0.1501ms)
-✔ 實際週報 adapter 保留 done/fail 與分頁完成參數 (4.1667ms)
-✔ 實際週報 adapter 原樣傳遞當前失敗與多個失敗參數 (2.1693ms)
-✔ Deferred 相容修正仍拒絕舊世代 resolve (1.8504ms)
-✔ Deferred 相容修正仍拒絕舊世代 reject (2.2284ms)
-✔ 兩個 Grid owner 的取消與資料完全隔離 (3.0337ms)
-✔ 同步載入例外仍符合 Deferred 失敗契約 (0.9603ms)
-✔ Deferred resolve 消費者拋錯仍已釋放 active transport (1.2342ms)
-✔ Deferred reject 消費者拋錯仍已釋放 active transport (0.8834ms)
-✔ 重複 200 次 Deferred 載入與 dispose 均回到零資源基準 (9.618ms)
-✔ 小組回報主版面的本機腳本與樣式均有部署來源 (0.7019ms)
-ℹ tests 15
+✔ 晚到的舊成功回應不能覆蓋新世代 (1.4749ms)
+✔ 晚到的舊錯誤不能覆蓋新世代成功狀態 (0.1465ms)
+✔ active load 期間重複 refresh 只合併成一次 (2.2487ms)
+✔ dispose 後會清除 transport 與 pending refresh 並拒絕晚到回應 (0.4557ms)
+✔ 同一 owner 重複 mount 會先完整釋放舊世代 (0.1577ms)
+✔ 實際週報 adapter 保留 done/fail 與分頁完成參數 (4.9821ms)
+✔ 實際週報 adapter 原樣傳遞當前失敗與多個失敗參數 (2.3382ms)
+✔ Deferred 相容修正仍拒絕舊世代 resolve (1.6138ms)
+✔ Deferred 相容修正仍拒絕舊世代 reject (2.3476ms)
+✔ 兩個 Grid owner 的取消與資料完全隔離 (2.8855ms)
+✔ done 同步重入載入時已歸還舊 transport 且保留新世代 (1.6477ms)
+✔ 同步載入例外仍符合 Deferred 失敗契約 (1.0273ms)
+✔ Deferred resolve 消費者拋錯仍已釋放 active transport (1.7005ms)
+✔ Deferred reject 消費者拋錯仍已釋放 active transport (0.9539ms)
+✔ 重複 200 次 Deferred 載入與 dispose 均回到零資源基準 (8.3602ms)
+✔ 小組回報主版面的本機腳本與樣式均有部署來源 (1.4685ms)
+ℹ tests 16
 ℹ suites 0
-ℹ pass 15
+ℹ pass 16
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 99.6788
+ℹ duration_ms 92.0919

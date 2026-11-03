@@ -1,1 +1,4 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/duplicate-row-publication-contract.md", "reason": "資料列身份、完整發布、非同步世代與 Deferred 的跨層契約"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "保留真實錯誤、正常取消與例外通知邊界"}
+{"file": ".trellis/tasks/11-03-small-group-report-blank/design.md", "reason": "最小相容修正設計與不可改版本的限制"}
+{"file": ".trellis/tasks/11-03-small-group-report-blank/research/fix-report.md", "reason": "已驗證結果、外部審查逾時、P0-12A 與圖表限制"}
