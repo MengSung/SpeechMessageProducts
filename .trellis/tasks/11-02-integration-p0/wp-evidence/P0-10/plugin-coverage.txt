@@ -1,0 +1,7 @@
+Test run for <repo>\SpeechMessage.Dynamics.Plugins.Tests\bin\Release\net48\SpeechMessage.Dynamics.Plugins.Tests.dll (.NETFramework,Version=v4.8)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 1 s - SpeechMessage.Dynamics.Plugins.Tests.dll (net48)
+
+Attachments:
+  <repo>\artifacts\test-results\P0-10-plugin-final\1ec46572-7819-4a51-b2aa-d3f57235edd1\coverage.cobertura.xml

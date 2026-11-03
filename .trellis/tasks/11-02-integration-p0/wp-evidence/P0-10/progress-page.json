@@ -1,0 +1,8 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "tools/RepoQuality/Tests/Test-ProgressPage.cjs"
+  ],
+  "exitCode": 0
+}

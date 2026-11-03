@@ -1,0 +1,7 @@
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.34
+{"ok":true,"checks":{"readable":true,"strongName":true,"targetFramework":true,"allowedReferences":true,"noDrawing":true,"diagnosticsPlugin":true,"size":true},"assemblyVersion":"1.0.0.0","references":["mscorlib","Microsoft.Xrm.Sdk","System","System.Core","System.Net.Http","System.Numerics","System.Xml","System.Xml.Linq","System.Runtime.Serialization","System.Data"],"sizeBytes":723456}

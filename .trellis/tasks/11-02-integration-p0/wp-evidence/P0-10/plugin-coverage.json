@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "SpeechMessage.Dynamics.Plugins.Tests",
+    "-c",
+    "Release",
+    "--no-build",
+    "--collect:XPlat Code Coverage",
+    "--results-directory",
+    "artifacts/test-results/P0-10-plugin-final"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 5.85,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 1 s - SpeechMessage.Dynamics.Plugins.Tests.dll (net48)"
+  ]
+}

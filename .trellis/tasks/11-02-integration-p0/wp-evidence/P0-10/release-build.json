@@ -1,0 +1,16 @@
+{
+  "command": [
+    "dotnet",
+    "build",
+    "SpeechMessageProducts.sln",
+    "-c",
+    "Release",
+    "-warnaserror:NU1605"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 4.27,
+  "consoleSummary": [
+    "    76 Warning(s)",
+    "    0 Error(s)"
+  ]
+}

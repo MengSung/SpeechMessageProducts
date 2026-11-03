@@ -1,0 +1,84 @@
+Test run for <repo>\LineMessagingProcessor.Tests\bin\Release\net48\LineMessagingProcessor.Tests.dll (.NETFramework,Version=v4.8)
+Test run for <repo>\LineMessagingProcessor.Workflows.Tests\bin\Release\net10.0\LineMessagingProcessor.Workflows.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\ToolUtility.Dataverse.Tests\bin\Release\net10.0\ToolUtility.Dataverse.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\LineMessagingProcessor.RichMenus.Tests\bin\Release\net10.0\LineMessagingProcessor.RichMenus.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\Line.Messaging.Tests\bin\Release\net10.0\Line.Messaging.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\LineMessagingProcessor.AspNetCore.Tests\bin\Release\net10.0\LineMessagingProcessor.AspNetCore.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\SpeechMessage.Payments.Tests\bin\Release\net10.0\SpeechMessage.Payments.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\SpeechMessage.Localization.Tests\bin\Release\net10.0\SpeechMessage.Localization.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Test run for <repo>\LineMessagingProcessor.Tests\bin\Release\net10.0\LineMessagingProcessor.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for <repo>\SpeechMessage.Localization.Tests\bin\Release\net48\SpeechMessage.Localization.Tests.dll (.NETFramework,Version=v4.8)
+Test run for <repo>\SpeechMessage.Dynamics.Plugins.Tests\bin\Release\net48\SpeechMessage.Dynamics.Plugins.Tests.dll (.NETFramework,Version=v4.8)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+  Failed 未知語系重用既有後備快照 [2 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 3
+Actual:   6
+  Stack Trace:
+[xUnit.net 00:00:00.20]     未知語系重用既有後備快照 [FAIL]
+     at SpeechMessage.Localization.Tests.SystemTextCatalogTests.Table_UnknownCultures_ReuseFixedFallback() in <repo>\SpeechMessage.Localization.Tests\SystemTextCatalogTests.cs:line 241
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.22]     呼叫者不能修改任何已發布語系表 [FAIL]
+  Failed 呼叫者不能修改任何已發布語系表 [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 3
+Actual:   6
+  Stack Trace:
+     at SpeechMessage.Localization.Tests.SystemTextCatalogTests.Table_IsImmutable_CallerCannotMutate() in <repo>\SpeechMessage.Localization.Tests\SystemTextCatalogTests.cs:line 85
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+Passed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32, Duration: 92 ms - Line.Messaging.Tests.dll (net10.0)
+Failed!  - Failed:     2, Passed:    31, Skipped:     0, Total:    33, Duration: 55 ms - SpeechMessage.Localization.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 178 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    34, Skipped:     0, Total:    34, Duration: 85 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 171 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    55, Skipped:     0, Total:    55, Duration: 109 ms - SpeechMessage.Payments.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    78, Skipped:     0, Total:    78, Duration: 57 ms - LineMessagingProcessor.Tests.dll (net10.0)
+[xUnit.net 00:00:01.19]     未知語系重用既有後備快照 [FAIL]
+  Failed 未知語系重用既有後備快照 [10 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 3
+Actual:   6
+  Stack Trace:
+     at SpeechMessage.Localization.Tests.SystemTextCatalogTests.Table_UnknownCultures_ReuseFixedFallback() in <repo>\SpeechMessage.Localization.Tests\SystemTextCatalogTests.cs:line 242
+[xUnit.net 00:00:01.24]     呼叫者不能修改任何已發布語系表 [FAIL]
+  Failed 呼叫者不能修改任何已發布語系表 [1 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 3
+Actual:   6
+  Stack Trace:
+     at SpeechMessage.Localization.Tests.SystemTextCatalogTests.Table_IsImmutable_CallerCannotMutate() in <repo>\SpeechMessage.Localization.Tests\SystemTextCatalogTests.cs:line 85
+
+Failed!  - Failed:     2, Passed:    31, Skipped:     0, Total:    33, Duration: 288 ms - SpeechMessage.Localization.Tests.dll (net48)
+
+Passed!  - Failed:     0, Passed:    45, Skipped:     0, Total:    45, Duration: 694 ms - LineMessagingProcessor.Tests.dll (net48)
+
+Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 1 s - SpeechMessage.Dynamics.Plugins.Tests.dll (net48)
+
+Passed!  - Failed:     0, Passed:    79, Skipped:     0, Total:    79, Duration: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:   501, Skipped:     0, Total:   501, Duration: 6 s - ChurchReport.MemberInfo.Tests.dll (net10.0)

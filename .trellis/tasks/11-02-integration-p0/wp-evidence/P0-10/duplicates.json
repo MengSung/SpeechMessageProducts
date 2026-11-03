@@ -1,0 +1,15 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/RepoQuality/Find-DuplicateCode.ps1",
+    "-Baseline",
+    "tools/RepoQuality/duplicate-baseline.json"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 1.75,
+  "consoleSummary": [
+    "Duplicate scan: projects=24 files=865 groups=0 new=0 stale=0 baselineCreated=False"
+  ]
+}

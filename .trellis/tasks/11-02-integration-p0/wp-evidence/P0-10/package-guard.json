@@ -1,0 +1,13 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/RepoQuality/Test-PackageVersions.ps1"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 0.63,
+  "consoleSummary": [
+    "Package guard: projects=37 references=139 excluded=2 failures=0"
+  ]
+}

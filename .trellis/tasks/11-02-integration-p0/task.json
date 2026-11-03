@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-09 取消邊界補修已驗證：雙目標 45／45、覆蓋率 93.87%／98.88%、方案 927／927；準備獨立提交。",
+  "description": "P0-10 本機驗證全綠：方案 969／969、Plugin 24／24、打包工具 11／11；等待使用者清理兩個遭工具拒刪的測試暫存資料夾，尚未提交。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -23,14 +23,14 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-09",
+    "currentWorkPackage": "P0-10",
     "userRequestedStop": false,
     "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-09.md",
+    "report": "wp-reports/P0-10.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": null,
+    "waitingFor": "使用者清除兩個早期測試暫存資料夾（刪除遭自動核准審查拒絕）",
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -44,8 +44,8 @@
       "P0-04-CA1707": "cea2958d",
       "P0-04-AnalysisLevel": "58245c6f",
       "P0-08": "92cfa180",
-      "P0-09": "取消邊界補修已驗證（本次獨立提交）"
+      "P0-09": "6b559da5"
     },
-    "stopReason": null
+    "stopReason": "測試暫存資料夾與一次性測試金鑰尚待清除；自動核准審查拒絕刪除，未繞過。"
   }
 }

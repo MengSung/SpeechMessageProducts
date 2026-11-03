@@ -350,11 +350,19 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-09 取消邊界補修驗證完成）",
+  "snapshot": "2026-11-03（P0-10 本機全綠，暫存清理待處理）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-09</strong> 取消邊界補修後兩目標各 <strong>45／45</strong>，覆蓋率 <strong>93.87%／98.88%</strong>；原 33 案例保留，完整方案 <strong>927／927</strong>、Debug <strong>7／7</strong>。收到回應後保留分類結果，非 caller 取消視為可重試傳輸失敗。",
-  "alert": null,
+  "headline": "<strong>P0-10</strong> Plugin <strong>24／24</strong>、工具 <strong>11／11</strong>，正式簽章與六項打包檢查通過；完整方案 <strong>969／969</strong>、Debug <strong>7／7</strong>。尚待清除兩個早期測試暫存資料夾，本包未提交。",
+  "alert": {
+    "title": "P0-10 等待測試暫存清理",
+    "body": "本機驗證已通過；自動核准審查拒絕刪除兩個早期測試遺留目錄（內含一次性測試金鑰，不是正式金鑰）。請依 P0-10 回報刪除後回覆已清除。",
+    "steps": [
+      "以檔案總管刪除 P0-10 回報列出的兩個完整暫存資料夾。",
+      "不要刪除正式金鑰；無須提供帳密、Token 或金鑰內容。",
+      "回覆已清除後，Codex 核對、提交 P0-10，再接續 P0-11。"
+    ]
+  },
   "tiles": [
     {
       "label": "全計畫進度",
@@ -363,7 +371,7 @@ const DATA = {
       "sub": "依 3.3 計畫，含 P0-SEC、P0-ENV 與新增佈署工作包",
       "meter": {
         "done": 11,
-        "active": 0,
+        "active": 1,
         "total": 80
       }
     },
@@ -371,24 +379,24 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "11",
       "unit": "/ 15 工作包",
-      "sub": "P0-09 驗證完成，下一包 P0-10",
+      "sub": "P0-10 本機驗證通過，等待暫存清理後提交",
       "meter": {
         "done": 11,
-        "active": 0,
+        "active": 1,
         "total": 15
       }
     },
     {
       "label": "完整 Release 測試",
-      "value": "927",
-      "unit": "/ 927 通過",
-      "sub": "原 837 加 Core 雙目標各 45"
+      "value": "969",
+      "unit": "/ 969 通過",
+      "sub": "P0-09 的 927 加 Plugin 24 與資源資料雙目標各 9"
     },
     {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "P0-09 建置 76 警告，不超過原 77"
+      "sub": "P0-10 最後建置 76 警告，不超過原 77"
     }
   ],
   "wps": [
@@ -471,13 +479,13 @@ const DATA = {
       "name": "骨架：LineMessagingProcessor.Core（雙目標，單人推播）",
       "status": "done",
       "note": "原 21 方法保留並新增 2 方法；雙目標各 45／45、覆蓋率 93.87%／98.88%，原 net10 33 全保留；方案 927／927，全部守門通過。",
-      "commit": "本次提交"
+      "commit": "6b559da5"
     },
     {
       "id": "P0-10",
       "name": "骨架：Dynamics Plugins（net48）＋ILRepack＋簽章＋打包檢查",
-      "status": "todo",
-      "note": "把程式合併成一個 Plugin DLL 並簽章；需要你準備的新金鑰。"
+      "status": "active",
+      "note": "Plugin 24／24、工具 11／11、打包樣本 9／9、流程 3／3；覆蓋率 91.93%／98.30%，正式簽章通過。等待清理兩個暫存目錄，尚未提交。"
     },
     {
       "id": "P0-11",
@@ -511,7 +519,7 @@ const DATA = {
       "est": "5～8 天",
       "total": 15,
       "done": 11,
-      "active": 0,
+      "active": 1,
       "current": true
     },
     {
@@ -583,8 +591,8 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "921 過／0 失敗",
-      "note": "原 837 全保留，新增 Core 兩目標各 42"
+      "after": "969 過／0 失敗",
+      "note": "原案例保留；新增 Plugin 24 及 Localization 雙目標各 9"
     },
     {
       "item": "Release 建置警告",
@@ -596,13 +604,13 @@ const DATA = {
       "item": "套件版本違規",
       "before": "113 項",
       "after": "0 項",
-      "note": "P0-05 套件守門重跑通過"
+      "note": "P0-10 37 專案、139 引用、零違規"
     },
     {
       "item": "Debug 追蹤測試",
       "before": "未納入",
       "after": "7／7",
-      "note": "P0-05 重跑通過"
+      "note": "P0-10 重跑通過"
     },
     {
       "item": "新程式分析器探測",
@@ -626,7 +634,7 @@ const DATA = {
       "item": "重複程式守門",
       "before": "未建立",
       "after": "0 新增／14 測試",
-      "note": "19 專案 851 檔；PS 5.1／7 各 14／14"
+      "note": "P0-10 實掃 24 專案 865 檔，groups／new／stale 均為 0"
     },
     {
       "item": "I18nCheck 工具與基準",
@@ -637,14 +645,20 @@ const DATA = {
     {
       "item": "Localization 雙目標",
       "before": "未建立",
-      "after": "33＋33 全通過",
-      "note": "覆蓋率 94.87%／100%，SharedText 真實產生檔檢查 1 檔，無衛星組件。"
+      "after": "42＋42 全通過",
+      "note": "保留原 33 案例，新加三個診斷鍵在繁中／偽語系／英文後備各 3 筆"
     },
     {
       "item": "LINE Core 雙目標",
       "before": "未建立",
-      "after": "42＋42 全通過",
-      "note": "覆蓋率 93.93%／98.90%；五十並行憑證隔離與排空、逾時及原始例外契約通過。"
+      "after": "45＋45 全通過",
+      "note": "取消補修 6b559da5 已提交；覆蓋率 93.87%／98.88%，原 33 案例保留"
+    },
+    {
+      "item": "Plugin 與離線打包",
+      "before": "未建立",
+      "after": "24／24；工具 11／11",
+      "note": "行覆蓋率 91.93%／98.30%；簽章與六項檢查通過、樣本 9／9、流程 3／3"
     }
   ],
   "conduct": [
@@ -861,6 +875,11 @@ const DATA = {
       "t": "2026-11-03",
       "text": "依核定補修取消邊界：新案例兩目標紅 3／綠 6；雙目標測試各 45／45、方案 927／927、覆蓋率 93.87%／98.88%。",
       "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-09 補修已提交 6b559da5；P0-10 全部本機守門通過，兩個早期測試暫存目錄刪除遭工具拒絕，待使用者清理後提交。",
+      "cls": "stop"
     }
   ],
   "decisions": [
@@ -936,17 +955,27 @@ const DATA = {
       "sub": "不得使用正式 channel／正式收件者做驗收"
     },
     {
-      "state": "todo",
+      "state": "done",
       "text": "新的強式名稱金鑰",
-      "sub": "由使用者產生，置於 repo 外；缺少時 P0-10 僅先驗 Debug，不自行產生"
+      "sub": "目前程序讀得到指定環境變數；正式 Release 簽章與打包檢查已通過，未讀取或輸出金鑰內容"
     },
     {
       "state": "todo",
       "text": "階段末 ClaudeOnly 審查及 P0-13 人工操作",
       "sub": "P0-13 步驟寫好後停止等待回報"
+    },
+    {
+      "state": "todo",
+      "text": "清除兩個早期 P0-10 測試暫存資料夾",
+      "sub": "位置見 wp-reports/P0-10.md；自動核准審查拒絕刪除，等待使用者操作後提交"
     }
   ],
   "risks": [
+    {
+      "level": "warn",
+      "text": "兩個早期測試暫存目錄待清理",
+      "sub": "只含合成樣本與一次性測試金鑰；刪除遭自動核准審查拒絕，未繞過，本包未提交。"
+    },
     {
       "level": "info",
       "text": "階段 0～4 的 Plugin 失敗由系統作業與追蹤查看",
@@ -964,8 +993,8 @@ const DATA = {
     },
     {
       "level": "warn",
-      "text": "三個舊 .snk 仍受追蹤",
-      "sub": "P0-10 移除 LinePayCSharp 與 Trace 的舊金鑰追蹤，保留本機檔；nsspi key.snk 不動"
+      "text": "兩個舊 SpeechMessageCrmKey.snk 已暫存移除追蹤，尚未提交",
+      "sub": "LinePayCSharp 與 Trace 本機檔保留；nsspi key.snk 不動。歷史不改寫，舊金鑰仍視為外洩。"
     },
     {
       "level": "info",

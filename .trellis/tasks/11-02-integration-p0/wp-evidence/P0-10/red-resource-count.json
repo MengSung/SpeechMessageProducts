@@ -1,0 +1,32 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "SpeechMessageProducts.sln",
+    "-c",
+    "Release",
+    "--no-build"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 9.8,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32, Duration: 92 ms - Line.Messaging.Tests.dll (net10.0)",
+    "Failed!  - Failed:     2, Passed:    31, Skipped:     0, Total:    33, Duration: 55 ms - SpeechMessage.Localization.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 178 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    34, Skipped:     0, Total:    34, Duration: 85 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 171 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    55, Skipped:     0, Total:    55, Duration: 109 ms - SpeechMessage.Payments.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:    78, Skipped:     0, Total:    78, Duration: 57 ms - LineMessagingProcessor.Tests.dll (net10.0)",
+    "[xUnit.net 00:00:01.19]     未知語系重用既有後備快照 [FAIL]",
+    "  Failed 未知語系重用既有後備快照 [10 ms]",
+    "   Assert.Equal() Failure: Values differ",
+    "[xUnit.net 00:00:01.24]     呼叫者不能修改任何已發布語系表 [FAIL]",
+    "  Failed 呼叫者不能修改任何已發布語系表 [1 ms]",
+    "   Assert.Equal() Failure: Values differ",
+    "Failed!  - Failed:     2, Passed:    31, Skipped:     0, Total:    33, Duration: 288 ms - SpeechMessage.Localization.Tests.dll (net48)",
+    "Passed!  - Failed:     0, Passed:    45, Skipped:     0, Total:    45, Duration: 694 ms - LineMessagingProcessor.Tests.dll (net48)",
+    "Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 1 s - SpeechMessage.Dynamics.Plugins.Tests.dll (net48)",
+    "Passed!  - Failed:     0, Passed:    79, Skipped:     0, Total:    79, Duration: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)",
+    "Passed!  - Failed:     0, Passed:   501, Skipped:     0, Total:   501, Duration: 6 s - ChurchReport.MemberInfo.Tests.dll (net10.0)"
+  ]
+}

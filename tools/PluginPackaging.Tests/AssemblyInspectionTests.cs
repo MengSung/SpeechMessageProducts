@@ -1,0 +1,117 @@
+using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text.Json;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using SpeechMessage.Tools.PluginPackaging;
+using Xunit;
+
+namespace SpeechMessage.Tools.PluginPackaging.Tests;
+
+/// <summary>
+/// 使用 Roslyn 及一次性測試金鑰編譯惰性 PE，驗證真實 MetadataReader 與確定性關檔。
+/// 樣本不載入執行，不讀正式金鑰或外部服務；各案例的輸出、金鑰與資料夾完全隔離。
+/// </summary>
+public sealed class AssemblyInspectionTests
+{
+    /// <summary>逐項注入錯誤框架、未簽章、未公開型別及禁用相依，正樣本必須通過全部檢查。</summary>
+    /// <param name="fault">固定故障代碼，不接受外部輸入。</param>
+    /// <param name="expected">預期接受或拒絕。</param>
+    [Theory(DisplayName = "檢查器拒絕不符合沙箱契約的中繼資料")]
+    [InlineData("valid", true)]
+    [InlineData("unsigned", false)]
+    [InlineData("framework", false)]
+    [InlineData("no-framework", false)]
+    [InlineData("private", false)]
+    [InlineData("reference", false)]
+    [InlineData("drawing", false)]
+    public void Inspect_MetadataFaults_ReturnsContractResult(string fault, bool expected)
+    {
+        using var fixture = new Fixture();
+        var path = fixture.Emit(fault);
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        Assert.Equal(expected ? 0 : 1, Program.Run(new[] { path }, output));
+        using var result = JsonDocument.Parse(output.ToString());
+        Assert.Equal(expected, result.RootElement.GetProperty("ok").GetBoolean());
+        // 不等程序結束或 GC：返回後立即以獨佔讀寫開啟，證明 PE reader／stream 已確定性釋放。
+        using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(exclusive.Length > 0);
+    }
+
+    /// <summary>損毀、過大、缺檔與缺參數皆 fail closed，輸出固定原因且不能包含原始本機路徑。</summary>
+    /// <param name="fault">只供案例選擇的錯誤種類。</param>
+    /// <param name="reason">固定安全拒絕原因。</param>
+    [Theory(DisplayName = "不完整輸入以固定原因拒絕且不洩漏路徑")]
+    [InlineData("arguments", "InvalidArguments")]
+    [InlineData("missing", "InvalidImage")]
+    [InlineData("invalid", "InvalidImage")]
+    [InlineData("oversize", "SizeLimit")]
+    public void Inspect_InvalidInput_FailsClosedWithoutPath(string fault, string reason)
+    {
+        using var fixture = new Fixture();
+        var path = Path.Combine(fixture.Root, "synthetic-sensitive-path.dll");
+        if (fault == "invalid") File.WriteAllBytes(path, new byte[] { 1, 2, 3, 4 });
+        if (fault == "oversize")
+        {
+            using var stream = File.Create(path);
+            stream.SetLength(16 * 1024 * 1024);
+        }
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        var args = fault == "arguments" ? Array.Empty<string>() : new[] { path };
+        Assert.Equal(1, Program.Run(args, output));
+        using var result = JsonDocument.Parse(output.ToString());
+        Assert.Equal(reason, result.RootElement.GetProperty("reason").GetString());
+        Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>獨佔暫存目錄及測試金鑰的唯一 owner；只產生惰性 DLL，Dispose 刪除所有測試資源。</summary>
+    private sealed class Fixture : IDisposable
+    {
+        /// <summary>以隨機識別切分測試邊界，不從待測檔或外部資料推算清理目標。</summary>
+        public string Root { get; } = Path.Combine(Path.GetTempPath(), "speechmessage-inspection-" + Guid.NewGuid().ToString("N"));
+        /// <summary>僅在此 fixture 有效的測試金鑰路徑。</summary>
+        private readonly string key;
+        /// <summary>一次性產生測試 RSA key，匯出後立即釋放 CSP，不碰正式環境變數。</summary>
+        public Fixture()
+        {
+            Directory.CreateDirectory(Root);
+            key = Path.Combine(Root, "test.snk");
+            using var rsa = new RSACryptoServiceProvider(2048) { PersistKeyInCsp = false };
+            File.WriteAllBytes(key, rsa.ExportCspBlob(true));
+        }
+        /// <summary>以 net48 參考組件離線編譯指定故障；編譯失敗是測試錯誤，不當作檢查器成功拒絕。</summary>
+        /// <param name="fault">固定測試故障種類。</param>
+        /// <returns>尚未被載入的測試 DLL 路徑。</returns>
+        public string Emit(string fault)
+        {
+            var reference = MetadataReference.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "Framework", "mscorlib.dll"));
+            var framework = fault == "no-framework" ? "" :
+                "[assembly: System.Runtime.Versioning.TargetFramework(\"" + (fault == "framework" ? ".NETCoreApp,Version=v10.0" : ".NETFramework,Version=v4.8") + "\")]";
+            var source = framework + "namespace SpeechMessage.Dynamics.Plugins.Diagnostics { " +
+                (fault == "private" ? "internal" : "public") + " sealed class DiagnosticsPingPlugin { } }";
+            var references = new[] { reference }.AsEnumerable();
+            if (fault is "reference" or "drawing")
+            {
+                var name = fault == "reference" ? "UnexpectedDependency" : "System.Drawing";
+                var dependency = Path.Combine(Root, name + ".dll");
+                var dependencyCompilation = CSharpCompilation.Create(name, new[] { CSharpSyntaxTree.ParseText("public class RequiredType { }") },
+                    references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                Assert.True(dependencyCompilation.Emit(dependency).Success);
+                references = references.Append(MetadataReference.CreateFromFile(dependency));
+                source += "public class DependencyOwner : RequiredType { }";
+            }
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            if (fault != "unsigned") options = options.WithCryptoKeyFile(key).WithStrongNameProvider(new DesktopStrongNameProvider());
+            var compilation = CSharpCompilation.Create("InspectionFixture", new[] { CSharpSyntaxTree.ParseText(source) }, references, options);
+            var path = Path.Combine(Root, "fixture.dll");
+            var result = compilation.Emit(path);
+            Assert.True(result.Success, string.Join("\n", result.Diagnostics.Select(value => value.ToString())));
+            return path;
+        }
+        /// <summary>Roslyn 已完成並釋放檔案後，在已宣告的獨佔根目錄內刪除一次性 key 與 PE。</summary>
+        public void Dispose() => Directory.Delete(Root, recursive: true);
+    }
+}

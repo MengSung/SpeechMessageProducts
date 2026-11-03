@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "tools/PluginPackaging.Tests",
+    "-c",
+    "Release",
+    "--no-build",
+    "--collect:XPlat Code Coverage",
+    "--results-directory",
+    "artifacts/test-results/P0-10-packaging-final"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 4.03,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    11, Skipped:     0, Total:    11, Duration: 1 s - PluginPackaging.Tests.dll (net10.0)"
+  ]
+}

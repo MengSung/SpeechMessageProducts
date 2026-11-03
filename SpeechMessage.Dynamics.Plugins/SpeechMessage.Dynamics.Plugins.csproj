@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <!-- 嚴格開關與 XML 文件開關必須同在專案本體，避免 SDK 載入時點造成假綠燈。 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <!-- 建置端以 -p:SpeechMessageBuildNumber 提供單調序號；本機首版預設一，不改 AssemblyVersion。 -->
+    <SpeechMessageBuildNumber Condition="'$(SpeechMessageBuildNumber)' == ''">1</SpeechMessageBuildNumber>
+    <FileVersion>1.0.0.$(SpeechMessageBuildNumber)</FileVersion>
+    <InformationalVersion>1.0.0-p0.$(SpeechMessageBuildNumber)</InformationalVersion>
+    <!-- 使用自訂目標隔離打包與原始測試組件；套件預設會覆寫 bin 並併入整個輸出資料夾。 -->
+    <ILRepackTargetsFile>$(MSBuildThisFileDirectory)../build/PluginMerge.targets</ILRepackTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" PrivateAssets="all" />
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" PrivateAssets="all" />
+    <ProjectReference Include="../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
+    <ProjectReference Include="../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
+    <InternalsVisibleTo Include="SpeechMessage.Dynamics.Plugins.Tests" />
+  </ItemGroup>
+</Project>

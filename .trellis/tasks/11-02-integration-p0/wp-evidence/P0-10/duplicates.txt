@@ -1,0 +1,1 @@
+Duplicate scan: projects=24 files=865 groups=0 new=0 stale=0 baselineCreated=False

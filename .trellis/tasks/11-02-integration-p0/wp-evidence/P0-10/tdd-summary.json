@@ -1,0 +1,53 @@
+{
+  "baseHead": "6b559da5",
+  "red": {
+    "plugin": {
+      "methods": 9,
+      "cases": 15,
+      "message": "NotImplementedException",
+      "evidenceSource": "續接工作摘要：前一段實作已執行，原始主控台未存入 repo；預設合併造成的 MissingMethodException 不計入。"
+    },
+    "packagingInitial": {
+      "cases": 8,
+      "evidenceSource": "續接工作摘要，原始主控台未存入 repo；原兩樣本均保留。"
+    },
+    "buildFlow": {
+      "command": "powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1",
+      "cases": 3,
+      "failed": 3,
+      "messages": [
+        "FAIL release-unset: packaging contract not satisfied",
+        "FAIL debug-unset: packaging contract not satisfied",
+        "FAIL release-signed: packaging contract not satisfied"
+      ]
+    },
+    "tool": {
+      "command": "dotnet test tools/PluginPackaging.Tests -c Release",
+      "cases": 11,
+      "failed": 11,
+      "message": "System.NotImplementedException at Program.Run(String[] args, TextWriter output)"
+    },
+    "mixedDirectory": {
+      "failed": 1,
+      "message": "FAIL mixed-directory: every DLL must be inspected"
+    },
+    "defaultPath": {
+      "evidence": "red-default-path.txt",
+      "message": "Join-Path: Path is an empty string"
+    },
+    "resourceCount": {
+      "evidence": "red-resource-count.json",
+      "failedPerTarget": 2,
+      "message": "Expected: 3; Actual: 6"
+    }
+  },
+  "green": {
+    "plugin": 24,
+    "tool": 11,
+    "packagingSamples": 9,
+    "buildSamples": 3,
+    "localizationPerTarget": 42
+  },
+  "removedMethods": 0,
+  "externalConnections": 0
+}

@@ -13,22 +13,28 @@ namespace SpeechMessage.Localization.Tests;
 /// </summary>
 public sealed class SystemTextCatalogTests
 {
-    /// <summary>三個固定資源都須由真實生成表返回原文，不可只在測試硬編碼替代字典。</summary>
+    /// <summary>六個固定資源都須由真實生成表返回原文，包含 P0-10 診斷鍵，不可以替身字典略過產生器。</summary>
     /// <param name="key">resx 的穩定鍵。</param>
     /// <param name="expected">核定的原始繁中文字串。</param>
     [Theory(DisplayName = "繁中取字使用真實系統資源")]
     [InlineData("Common.Diagnostics.Ping", "連線測試成功")]
     [InlineData("Common.Diagnostics.Culture", "目前語系：{culture}")]
     [InlineData("Line.Sender.Template", "{churchName}小幫手")]
+    [InlineData("Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。")]
+    [InlineData("Common.Diagnostics.PushTest", "P0 推播測試 {utc}")]
+    [InlineData("Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}")]
     public void Get_ZhTw_ReturnsChineseText(string key, string expected) => Assert.Equal(expected, new SystemTextTable().GetText("zh-TW", new TextKey(key)));
 
-    /// <summary>逐項採附錄 E.3 核定輸出，參數保持原樣，6 字補 3、5 字補 2、3 字補 2。</summary>
+    /// <summary>逐項採附錄 E.3 核定算式，參數保持原樣；P0-10 新鍵包含標點、空白及拉丁字元的完整 Rune 計數。</summary>
     /// <param name="key">真實資源鍵。</param>
     /// <param name="expected">完整偽語系答案。</param>
     [Theory(DisplayName = "偽語系取字符合核定對照表")]
     [InlineData("Common.Diagnostics.Ping", "［連線測試成功ǂǂǂ］")]
     [InlineData("Common.Diagnostics.Culture", "［目前語系：{culture}ǂǂ］")]
     [InlineData("Line.Sender.Template", "［{churchName}小幫手ǂǂ］")]
+    [InlineData("Common.Diagnostics.InvalidConfiguration", "［診斷外掛設定格式錯誤。ǂǂǂǂǂ］")]
+    [InlineData("Common.Diagnostics.PushTest", "［P0 推播測試 {utc}ǂǂǂǂ］")]
+    [InlineData("Common.Diagnostics.Retryable", "［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］")]
     public void Get_PseudoLocale_ReturnsWrappedText(string key, string expected) => Assert.Equal(expected, new SystemTextTable().GetText("qps-ploc", new TextKey(key)));
 
     /// <summary>未知、空字串或空值都回同一繁中快照，不按外部語系字串建立永久快取。</summary>
@@ -46,6 +52,9 @@ public sealed class SystemTextCatalogTests
     [InlineData("Common.Diagnostics.Ping", "連線測試成功")]
     [InlineData("Common.Diagnostics.Culture", "目前語系：{culture}")]
     [InlineData("Line.Sender.Template", "{churchName}小幫手")]
+    [InlineData("Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。")]
+    [InlineData("Common.Diagnostics.PushTest", "P0 推播測試 {utc}")]
+    [InlineData("Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}")]
     public void Get_EnShellMissingKey_FallsBackToZhTw(string key, string expected) => Assert.Equal(expected, new SystemTextTable().GetText("en", new TextKey(key)));
 
     /// <summary>合法格式但未宣告的鍵必須拋 KeyNotFoundException，不吞掉程式錯誤或回傳鍵本身。</summary>
@@ -71,7 +80,7 @@ public sealed class SystemTextCatalogTests
     [InlineData("A.Key Value")]
     public void TextKey_InvalidFormat_Throws(string value) => Assert.Throws<ArgumentException>(() => new TextKey(value));
 
-    /// <summary>回傳的三個表均不能轉回可變 Dictionary，IDictionary 介面若存在也必須拒絕寫入。</summary>
+    /// <summary>三個語系表都完整保留六個資源鍵；不能轉回可變 Dictionary，IDictionary 若存在也必須拒絕寫入。</summary>
     [Fact(DisplayName = "呼叫者不能修改任何已發布語系表")]
     public void Table_IsImmutable_CallerCannotMutate()
     {
@@ -82,7 +91,7 @@ public sealed class SystemTextCatalogTests
             Assert.False(table is Dictionary<string, string>);
             if (table is IDictionary<string, string> mutable)
                 Assert.Throws<NotSupportedException>(() => mutable["Common.Diagnostics.Ping"] = "caller-change");
-            Assert.Equal(3, table.Count);
+            Assert.Equal(6, table.Count);
         }
         Assert.Equal("連線測試成功", catalog.GetText("zh-TW", new TextKey("Common.Diagnostics.Ping")));
     }
@@ -230,7 +239,7 @@ public sealed class SystemTextCatalogTests
         Assert.Throws<KeyNotFoundException>(() => new SystemTextTable().GetText("zh-TW", default));
     }
 
-    /// <summary>未知語系與大小寫變化只選擇既有表，不能在每次呼叫增加表或建立暫存翻譯。</summary>
+    /// <summary>未知語系與大小寫變化只重用既有六鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量不變。</summary>
     [Fact(DisplayName = "未知語系重用既有後備快照")]
     public void Table_UnknownCultures_ReuseFixedFallback()
     {
@@ -238,6 +247,6 @@ public sealed class SystemTextCatalogTests
         var original = catalog.GetTable("zh-TW");
         for (var index = 0; index < 1000; index++) Assert.Same(original, catalog.GetTable("unrecognized-" + index));
         Assert.Same(original, catalog.GetTable("ZH-tw"));
-        Assert.Equal(3, original.Count);
+        Assert.Equal(6, original.Count);
     }
 }

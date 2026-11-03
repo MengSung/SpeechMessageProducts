@@ -1,0 +1,16 @@
+[
+  {
+    "assembly": "SpeechMessage.Dynamics.Plugins",
+    "lineCoveragePercent": 91.93,
+    "branchCoveragePercent": 79.76,
+    "requiredLinePercent": 80,
+    "passed": true
+  },
+  {
+    "assembly": "PluginPackaging",
+    "lineCoveragePercent": 98.3,
+    "branchCoveragePercent": 92.85,
+    "requiredLinePercent": 80,
+    "passed": true
+  }
+]

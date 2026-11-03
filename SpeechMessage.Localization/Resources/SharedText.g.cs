@@ -11,7 +11,10 @@ namespace SpeechMessage.Localization.Resources
         internal static readonly string?[][] Rows =
         {
             new string?[] { "Common.Diagnostics.Culture", "目前語系：{culture}", null, "［目前語系：{culture}ǂǂ］" },
+            new string?[] { "Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。", null, "［診斷外掛設定格式錯誤。ǂǂǂǂǂ］" },
             new string?[] { "Common.Diagnostics.Ping", "連線測試成功", null, "［連線測試成功ǂǂǂ］" },
+            new string?[] { "Common.Diagnostics.PushTest", "P0 推播測試 {utc}", null, "［P0 推播測試 {utc}ǂǂǂǂ］" },
+            new string?[] { "Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}", null, "［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］" },
             new string?[] { "Line.Sender.Template", "{churchName}小幫手", null, "［{churchName}小幫手ǂǂ］" },
         };
     }

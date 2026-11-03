@@ -1,0 +1,30 @@
+{
+  "solutionPassed": 969,
+  "solutionFailed": 0,
+  "debugTracerPassed": 7,
+  "coverage": [
+    {
+      "assembly": "SpeechMessage.Dynamics.Plugins",
+      "lineCoveragePercent": 91.93,
+      "branchCoveragePercent": 79.76,
+      "requiredLinePercent": 80,
+      "passed": true
+    },
+    {
+      "assembly": "PluginPackaging",
+      "lineCoveragePercent": 98.3,
+      "branchCoveragePercent": 92.85,
+      "requiredLinePercent": 80,
+      "passed": true
+    }
+  ],
+  "temporaryCleanupComplete": false,
+  "committed": false,
+  "nextWorkPackageStarted": false,
+  "formalSigning": "Passed using only process environment key; no key contents recorded.",
+  "legacyKeyTracking": {
+    "LinePayCSharp/SpeechMessageCrmKey.snk": "staged removal, local retained",
+    "Trace/SpeechMessageCrmKey.snk": "staged removal, local retained",
+    "PowerPlatform.Dataverse.Client/NSspi/nsspi key.snk": "unchanged"
+  }
+}

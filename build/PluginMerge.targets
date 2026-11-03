@@ -1,0 +1,33 @@
+<Project>
+  <!-- 套件預設會覆寫 bin 並併入所有相依；此自訂入口只產生獨立的沙箱部署組件。
+       正式金鑰只能讀取程序環境變數，不複製內容、不設後備、不由 MSBuild 同名屬性冒充。 -->
+  <Target Name="PackageSpeechMessagePlugin" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_SpeechMessagePluginKeyFile>$([System.Environment]::GetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE'))</_SpeechMessagePluginKeyFile>
+      <SpeechMessagePluginOutputDirectory Condition="'$(SpeechMessagePluginOutputDirectory)' == ''">$(MSBuildThisFileDirectory)../artifacts/plugins</SpeechMessagePluginOutputDirectory>
+      <_SpeechMessagePluginOutput>$(SpeechMessagePluginOutputDirectory)/$(TargetFileName)</_SpeechMessagePluginOutput>
+    </PropertyGroup>
+    <Error Condition="'$(_SpeechMessagePluginKeyFile)' == '' And '$(Configuration)' == 'Release'"
+           Code="SMP0001" Text="Release 外掛打包必須設定 SPEECHMESSAGE_PLUGIN_KEYFILE；請由使用者準備 repo 外的正式強式名稱金鑰。" />
+    <Error Condition="'$(_SpeechMessagePluginKeyFile)' != '' And !Exists('$(_SpeechMessagePluginKeyFile)')"
+           Code="SMP0003" Text="SPEECHMESSAGE_PLUGIN_KEYFILE 指定的金鑰不存在；禁止改用其他金鑰或產生正式金鑰。" />
+    <Warning Condition="'$(_SpeechMessagePluginKeyFile)' == '' And '$(Configuration)' != 'Release'"
+             Code="SMP0002" Text="未設定 SPEECHMESSAGE_PLUGIN_KEYFILE；本次 Debug 只產生未簽章診斷組件，不可部署。" />
+    <ItemGroup>
+      <!-- 第一個輸入是唯一公開外殼；其餘型別全部內部化，SDK 仍由 D365 沙箱提供。 -->
+      <_SpeechMessageMergeInput Include="$(TargetPath)" />
+      <_SpeechMessageMergeInput Include="$(TargetDir)SpeechMessage.Localization.dll" />
+      <_SpeechMessageMergeInput Include="$(TargetDir)LineMessagingProcessor.Core.dll" />
+      <_SpeechMessageMergeInput Include="$(TargetDir)Newtonsoft.Json.dll" />
+    </ItemGroup>
+    <MakeDir Directories="$(SpeechMessagePluginOutputDirectory)" />
+    <ILRepack InputAssemblies="@(_SpeechMessageMergeInput)"
+              OutputFile="$(_SpeechMessagePluginOutput)"
+              TargetKind="Dll"
+              Internalize="true"
+              KeyFile="$(_SpeechMessagePluginKeyFile)"
+              LibraryPath="$(TargetDir);$(TargetFrameworkDirectory)"
+              DebugInfo="false"
+              Parallel="true" />
+  </Target>
+</Project>

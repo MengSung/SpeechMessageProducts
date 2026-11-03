@@ -1,0 +1,9 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/PluginPackaging/Tests/Test-PluginAssembly.Tests.ps1"
+  ],
+  "exitCode": 0
+}
