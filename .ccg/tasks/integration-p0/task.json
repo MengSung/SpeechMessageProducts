@@ -6,14 +6,14 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "review",
-  "nextAction": "等待使用者恢復 Claude 額度或人工轉交剩餘審查包；解除停止後從 03 接續，完成 Critical／High 修正、完整 §8 與修正複審，才可 P0-13。",
+  "nextAction": "依使用者 2026-11-04 核定續行 03～08 審查、分主題 TDD 修正與 CI 過渡；本機仍完整方案驗證，另備 09 修正複審。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
   "currentWorkPackage": "P0-stage-review",
   "reviewPolicy": "One ClaudeOnly review after user-approved P0-12A and before P0-13.",
-  "reviewBlocker": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
-  "stopReason": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
+  "reviewBlocker": null,
+  "stopReason": null,
   "approval": "使用者 2026-11-03 核定：Core 保留原始 TransportException，不通知；Plugin 追蹤後拋出，最終通知依階段 2／5 排程。",
   "resumeCommit": "54e0a4d0",
   "completedWorkPackages": {
@@ -22,19 +22,24 @@
   },
   "stageReview": {
     "mode": "claude-only",
-    "state": "stopped",
+    "state": "resumed",
     "completedParts": [
       "01a",
       "01b",
       "01c",
-      "02"
+      "02",
+      "03"
     ],
     "failedPart": "03",
     "resumePart": "03",
-    "quotaBlocked": true,
-    "criticalOpen": 1,
-    "highPendingValidation": 1,
+    "quotaBlocked": false,
+    "criticalOpen": 0,
+    "highPendingValidation": 0,
     "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
-    "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit"
+    "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit",
+    "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
+    "locallyFixedPendingReview": [
+      "C-01"
+    ]
   }
 }

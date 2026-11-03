@@ -350,25 +350,17 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（階段 0 審查完成 4／11 份；第 03 份額度限制停止）",
+  "snapshot": "2026-11-04（階段審查續行；C-01 本機修正已驗證）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "P0-12A A、B 已提交 <strong>eb7ff61f／ae29cb40</strong>。ClaudeOnly 審查完成 <strong>4／11 份</strong>，第 03 份因額度限制停止。仍有 <strong>1 項 Critical、1 項待核對 High</strong>；Razor 候選修正尚未通過完整 verify，未進入 P0-13。",
-  "alert": {
-    "title": "階段審查暫停：Claude 工作階段額度限制",
-    "body": "第 03 份兩次嘗試均無輸出，這次不是逾時。依核定備妥審查包後停止，等待使用者處理。",
-    "steps": [
-      "審查包：.ccg/dual-model-runs/20261103-232143-integration-p0-review-pack.zip。",
-      "可恢復 Claude 額度後指示繼續，或人工轉交剩餘提示檔；接續點為 03。",
-      "Critical／High 解決、完整驗證與修正複審通過前，不進入 P0-13；小組回報維持 review。"
-    ]
-  },
+  "headline": "保留使用者提交 <strong>d25fd2cc</strong>。第 03 份 ClaudeOnly 已完成，續行剩餘分份；Razor 修正工具測試 <strong>108／108</strong>、完整 verify 通過，CJK 無增加。套件路徑、tracer 與 CI 過渡依核定處理。",
+  "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
       "value": "17",
       "unit": "/ 83 工作包",
-      "sub": "階段審查 4／11 份；額度限制停止，等待使用者",
+      "sub": "階段審查續行；C-01 本機通過，待修正複審",
       "meter": {
         "done": 17,
         "active": 1,
@@ -379,7 +371,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "17",
       "unit": "/ 18 工作包",
-      "sub": "階段審查 4／11 份；額度限制停止，等待使用者",
+      "sub": "階段審查續行；C-01 本機通過，待修正複審",
       "meter": {
         "done": 17,
         "active": 1,
@@ -525,7 +517,7 @@ const DATA = {
       "milestone": true,
       "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
       "status": "review",
-      "note": "單模型（使用者指定 ClaudeOnly），4／11 份完成；03 額度限制停止，1 項 Critical 未修完、1 項 High 待核對，審查包已備妥。"
+      "note": "單模型（使用者指定 ClaudeOnly）：03 已完成，04～08 續行；C-01 本機修正已過，仍須修正複審與完整 §8。"
     },
     {
       "id": "P0-13",
@@ -661,8 +653,8 @@ const DATA = {
     {
       "item": "I18nCheck 工具與基準",
       "before": "未建立",
-      "after": "87／87；verify 未過",
-      "note": "審查修正未提交：單元案例通過但 40 個既有 Razor 模板觸發 I18N415，不能取代完整守門；未提高基準。"
+      "after": "108／108；verify 通過",
+      "note": "84 個 Razor 零 I18N415；ChurchReport 3682→3636，逐檔原因已記錄；基準未提高；生成檔實查 2 檔。"
     },
     {
       "item": "Localization 雙目標",
@@ -697,8 +689,8 @@ const DATA = {
     {
       "item": "階段 0 外部審查",
       "before": "待執行",
-      "after": "4／11；停止",
-      "note": "第 03 份工作階段額度限制；Critical／High 尚未解決，不視為審查通過。"
+      "after": "5／11；續行中",
+      "note": "第 03 份無 Critical／High；其餘續行，第 09 份另審修正差異。"
     }
   ],
   "conduct": [
@@ -975,6 +967,11 @@ const DATA = {
       "t": "2026-11-03 23:48",
       "cls": "stop",
       "text": "ClaudeOnly 第 03 份因工作階段額度限制失敗；01a、01b、01c、02 已有結果，完整審查包已準備，依核定停止。Razor 修正仍未通過完整 verify。"
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "依核定保留 d25fd2cc、接續 ClaudeOnly；C-01 混合語法 14 項功能紅燈後轉工具 108／108，完整 repo verify 通過，CJK 基準未提高。"
     }
   ],
   "decisions": [
@@ -1089,8 +1086,8 @@ const DATA = {
   "risks": [
     {
       "level": "warn",
-      "text": "階段審查未完成，Critical／High 仍待解決",
-      "sub": "Razor 漏掃已重現但候選修正未過完整 verify；套件掃描 junction 邊界 High 尚待本機核對。第 03 份額度限制後依核定停止。"
+      "text": "階段審查及修正複審尚未完成",
+      "sub": "C-01 本機通過；H-01 經使用者確認改列 Medium，仍依核定修正；第 03～08 份與第 09 份完成後才可 P0-13。"
     },
     {
       "level": "info",

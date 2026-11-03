@@ -27,6 +27,34 @@ public sealed class RazorLexicalBoundaryTests
         Assert.Equal(expected, SourceScanner.CountRazor(source));
 
     /// <summary>
+    /// C# 詞法與 Razor 轉換各自擁有邊界；模板內的引號、英文撇號、JavaScript
+    /// 括號與遞迴運算式都不得終止外層程式區塊。程式內模板仍不計數，只保留後續 HTML。
+    /// </summary>
+    /// <param name="source">只含合成標記與固定顯示文字的混合語法。</param>
+    /// <param name="expected">依既有計數範圍明列的顯示片段數。</param>
+    [Theory]
+    [InlineData("""@{ var code = $@"C:\{(true ? "}" : "{")}\"; }<p>顯示</p>""", 1)]
+    [InlineData("""@{ var code = @$"C:\{(true ? "}" : "{")}\"; }<p>顯示</p>""", 1)]
+    [InlineData("""@{ var quote = '\''; var close = '}'; }<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<text>don't " } ) <span>忽略</span></text>))<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<div><div>忽略</div>don't }</div>))<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<input value="忽略" />))<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<div><br><img src='fake'><input value="忽略"></div>))<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<text>const x = "}"; // " ) { <span>忽略</span></text>))<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<text>/* " ) { */ @(new { Value = "}" })</text>))<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<text>@(Nested(@<div>@Model.Name</div>))</text>))<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<div title="@(")")">@{ var x = @"C:\Logs\"; }@Model.Name</div>))<p>顯示</p>""", 1)]
+    [InlineData("@{ @:don't \" } ) <b>忽略</b>\r\n var x = 1; }<p>顯示</p>", 1)]
+    [InlineData("@{ var template = @<text>\r\n@:don't \" } )\r\n<span>忽略</span></text>; }<p>顯示</p>", 1)]
+    [InlineData("""@{ <div>don't " } ) <span>忽略</span></div> var x = 1; }<p>顯示</p>""", 1)]
+    [InlineData("""@{ <input value="忽略" /> <br> <div><div>don't }</div></div> }<p>顯示</p>""", 1)]
+    [InlineData("""@{ var test = a<b && b>c; var list = new List<string>(); }<p>顯示</p>""", 1)]
+    [InlineData("""@(Template(@<text>@if (Model.Ready) { <div>don't }</div> }</text>))<p title="提示">顯示</p>""", 2)]
+    [InlineData("""@(Template(@<text><div data-value=">">@(Model.Get(")"))</div></text>))<p>顯示</p>""", 1)]
+    public void Scan_RazorTemplatesAndCode_KeepExistingCountingScope(string source, int expected) =>
+        Assert.Equal(expected, SourceScanner.CountRazor(source));
+
+    /// <summary>
     /// 不完整區塊或字串不能被當成「其餘內容皆非顯示」而回傳零；
     /// 固定輸入錯誤直接失敗，不附帶模板內容或假路徑。
     /// </summary>
@@ -35,6 +63,9 @@ public sealed class RazorLexicalBoundaryTests
     [InlineData("@{ var path = @\"unterminated; }<p>中文</p>")]
     [InlineData("@{ var value = 1;")]
     [InlineData("@(1 + \"unterminated)")]
+    [InlineData("@(Template(@<text>unclosed))<p>中文</p>")]
+    [InlineData("@(Template(@<div><span>mismatch</div>))<p>中文</p>")]
+    [InlineData("@{ <div title=\"unterminated> }<p>中文</p>")]
     public void Scan_RazorUnclosedCode_FailsClosed(string source) =>
         Assert.Throws<InvalidDataException>(() => SourceScanner.CountRazor(source));
 

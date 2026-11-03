@@ -1,8 +1,6 @@
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace I18nCheck;
 
@@ -68,29 +66,12 @@ internal static class RazorScanner
     }
 
     /// <summary>
-    /// 由既有 Roslyn 詞法器略過一組括號，讓一般、逐字、原始及插值字串與註解
-    /// 各自遵循 C# 語法；不可把逐字字串的反斜線當成逸出而吞掉後續 HTML。
+    /// 分別辨識 C# 與 Razor 標記邊界；程式內的範本仍整段排除，不擴大顯示計數。
+    /// C# 字串與註解由 Roslyn 處理，不能把 Razor 範本委派當成純 C# 語法錯誤。
     /// </summary>
     /// <param name="source">本次 Razor 文字。</param>
     /// <param name="start">左括號位置。</param>
     /// <returns>匹配右括號後的絕對位置；只掃描到此邊界，不解析或執行模板。</returns>
     /// <exception cref="InvalidDataException">程式片段不完整，不能安全判定顯示文字邊界。</exception>
-    private static int SkipBalanced(string source, int start)
-    {
-        var open = source[start] == '(' ? SyntaxKind.OpenParenToken : SyntaxKind.OpenBraceToken;
-        var close = open == SyntaxKind.OpenParenToken ? SyntaxKind.CloseParenToken : SyntaxKind.CloseBraceToken;
-        var depth = 0;
-        // 逐 token 列舉只在本次呼叫持有來源；foreach 的確定性清理也涵蓋提前 return。
-        // offset 與 initialTokenPosition 同為 start，Span.End 才能直接用於原模板的位置。
-        foreach (var token in SyntaxFactory.ParseTokens(source, offset: start, initialTokenPosition: start))
-        {
-            if (token.ContainsDiagnostics)
-                throw new InvalidDataException("I18N415: Razor code boundary is invalid.");
-            if (token.IsKind(open)) depth++;
-            if (token.IsKind(close) && --depth == 0) return token.Span.End;
-        }
-        // 無法判定邊界即拒絕，不得把整個檔案餘段靜默當成程式碼而漏算顯示文字。
-        throw new InvalidDataException("I18N415: Razor code boundary is incomplete.");
-    }
-
+    private static int SkipBalanced(string source, int start) => RazorCodeBoundary.Skip(source, start);
 }

@@ -24,13 +24,13 @@
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
     "currentWorkPackage": "P0-stage-review",
-    "userRequestedStop": true,
+    "userRequestedStop": false,
     "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-stage-review.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": true,
-    "waitingFor": "user-review-resumption",
+    "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -55,7 +55,7 @@
       "P0-12A": "eb7ff61f",
       "P0-12A-license-CI": "ae29cb40"
     },
-    "stopReason": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
+    "stopReason": null,
     "observedExternalCommit": "cf3595db",
     "observedExternalCommits": [
       "cf3595db",
@@ -70,29 +70,35 @@
       "d42b6d3f",
       "96487ea2",
       "0f3d6a82",
-      "022079e2"
+      "022079e2",
+      "d25fd2cc"
     ],
     "characterizationVerified": true
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-stage-review",
-  "nextAction": "等待使用者恢復 Claude 額度或人工轉交剩餘審查包；解除停止後從 03 接續，完成 Critical／High 修正、完整 §8 與修正複審，才可 P0-13。",
-  "stopReason": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
+  "nextAction": "依使用者 2026-11-04 核定續行 03～08 審查、分主題 TDD 修正與 CI 過渡；本機仍完整方案驗證，另備 09 修正複審。",
+  "stopReason": null,
   "stageReview": {
     "mode": "claude-only",
-    "state": "stopped",
+    "state": "resumed",
     "completedParts": [
       "01a",
       "01b",
       "01c",
-      "02"
+      "02",
+      "03"
     ],
     "failedPart": "03",
     "resumePart": "03",
-    "quotaBlocked": true,
-    "criticalOpen": 1,
-    "highPendingValidation": 1,
+    "quotaBlocked": false,
+    "criticalOpen": 0,
+    "highPendingValidation": 0,
     "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
-    "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit"
+    "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit",
+    "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
+    "locallyFixedPendingReview": [
+      "C-01"
+    ]
   }
 }
