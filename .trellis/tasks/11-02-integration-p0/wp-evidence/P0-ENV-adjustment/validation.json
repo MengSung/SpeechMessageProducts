@@ -1,0 +1,113 @@
+[
+  {
+    "name": "release-build",
+    "command": [
+      "dotnet",
+      "build",
+      "SpeechMessageProducts.sln",
+      "-c",
+      "Release",
+      "-warnaserror:NU1605"
+    ],
+    "exitCode": 0,
+    "seconds": 7.46,
+    "summary": [
+      "    76 Warning(s)",
+      "    0 Error(s)"
+    ]
+  },
+  {
+    "name": "release-tests",
+    "command": [
+      "dotnet",
+      "test",
+      "SpeechMessageProducts.sln",
+      "-c",
+      "Release",
+      "--no-build"
+    ],
+    "exitCode": 0,
+    "seconds": 9.04,
+    "summary": [
+      "Passed!  - Failed:     0, Passed:    42, Skipped:     0, Total:    42, Duration: 79 ms - SpeechMessage.Localization.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32, Duration: 90 ms - Line.Messaging.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:    34, Skipped:     0, Total:    34, Duration: 86 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:    78, Skipped:     0, Total:    78, Duration: 67 ms - LineMessagingProcessor.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 178 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 168 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:    55, Skipped:     0, Total:    55, Duration: 124 ms - SpeechMessage.Payments.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:    42, Skipped:     0, Total:    42, Duration: 257 ms - SpeechMessage.Localization.Tests.dll (net48)",
+      "Passed!  - Failed:     0, Passed:    45, Skipped:     0, Total:    45, Duration: 797 ms - LineMessagingProcessor.Tests.dll (net48)",
+      "Passed!  - Failed:     0, Passed:    79, Skipped:     0, Total:    79, Duration: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)",
+      "Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 1 s - SpeechMessage.Dynamics.Plugins.Tests.dll (net48)",
+      "Passed!  - Failed:     0, Passed:   503, Skipped:     0, Total:   503, Duration: 6 s - ChurchReport.MemberInfo.Tests.dll (net10.0)"
+    ]
+  },
+  {
+    "name": "debug-tracer",
+    "command": [
+      "dotnet",
+      "test",
+      "ToolUtility.Dataverse.Tests",
+      "-c",
+      "Debug",
+      "--filter",
+      "FullyQualifiedName~FileToolUtilityTracerTests"
+    ],
+    "exitCode": 0,
+    "seconds": 11.66,
+    "summary": [
+      "Passed!  - Failed:     0, Passed:     7, Skipped:     0, Total:     7, Duration: 45 ms - ToolUtility.Dataverse.Tests.dll (net10.0)"
+    ]
+  },
+  {
+    "name": "encoding",
+    "command": [
+      "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "-NoProfile",
+      "-File",
+      "tools/RepoQuality/Test-TextEncoding.ps1",
+      "-Scope",
+      "Changed",
+      "-Base",
+      "73b6e6cf"
+    ],
+    "exitCode": 0,
+    "seconds": 0.97,
+    "summary": [
+      "Text encoding: scope=Changed checked=382 excluded=74 filesWithIssues=0"
+    ]
+  },
+  {
+    "name": "duplicates",
+    "command": [
+      "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "-NoProfile",
+      "-File",
+      "tools/RepoQuality/Find-DuplicateCode.ps1",
+      "-Baseline",
+      "tools/RepoQuality/duplicate-baseline.json"
+    ],
+    "exitCode": 0,
+    "seconds": 1.76,
+    "summary": [
+      "Duplicate scan: projects=24 files=865 groups=0 new=0 stale=0 baselineCreated=False"
+    ]
+  },
+  {
+    "name": "i18n",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "verify"
+    ],
+    "exitCode": 0,
+    "seconds": 5.28,
+    "summary": [
+      "  FILE Line.Messaging/LineObjects/GroupSummary.cs: 0"
+    ]
+  }
+]

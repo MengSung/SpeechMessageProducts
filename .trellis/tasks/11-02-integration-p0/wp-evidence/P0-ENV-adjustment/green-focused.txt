@@ -1,0 +1,3 @@
+Command: focused Development organization and safety tests
+ExitCode: 0
+Passed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32, Duration: 154 ms - ChurchReport.MemberInfo.Tests.dll (net10.0)

@@ -350,10 +350,10 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-11 本機 CI 驗證通過）",
+  "snapshot": "2026-11-03（P0-ENV 核定調整驗證通過）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-11</strong> CI 檔已建立，本機逐步驗證通過；完整方案 <strong>969／969</strong>、Debug <strong>7／7</strong>，七組新模組覆蓋率皆超過 80%。<strong>未在 GitHub 實跑（依規定不推送）</strong>；沒有 secret 時跳過正式打包。",
+  "headline": "<strong>P0-ENV 契約調整</strong>已依使用者核定完成；完整服務網址與 User Secrets 覆寫納入回歸，Development 相關 <strong>32／32</strong>、完整方案 <strong>971／971</strong>、Debug <strong>7／7</strong>。提交後接續 P0-12；所有驗證離線。",
   "alert": null,
   "tiles": [
     {
@@ -380,15 +380,15 @@ const DATA = {
     },
     {
       "label": "完整 Release 測試",
-      "value": "969",
-      "unit": "/ 969 通過",
-      "sub": "P0-09 的 927 加 Plugin 24 與資源資料雙目標各 9"
+      "value": "971",
+      "unit": "/ 971 通過",
+      "sub": "P0-ENV 新增完整服務網址與 secrets 覆寫兩案例；其他既有案例保留"
     },
     {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "P0-11 完整 Release 77 個既有警告，未新增抑制"
+      "sub": "本次 Release 建置 76 個既有警告，未新增抑制"
     }
   ],
   "wps": [
@@ -442,8 +442,8 @@ const DATA = {
       "id": "P0-ENV",
       "name": "指定 goodshepherdback 為開發測試組織",
       "status": "done",
-      "note": "CRM／QPAY 指向 goodshepherdback，帳密由 secrets 提供，基底憑證空白遮蔽，Web API 關閉；5／5、Release 771／771、Debug tracer 7／7；22 個端點鍵已盤點，付款實測待 P4。",
-      "commit": "aa1de29d"
+      "note": "依使用者 2026-11-03 核定，Development 可存放帳密，User Secrets 仍可覆寫；HTTPS／主機／Organization.svc 完整路徑回歸與其他防護維持通過。",
+      "commit": "aa1de29d；核定調整見本次提交"
     },
     {
       "id": "P0-06",
@@ -485,7 +485,7 @@ const DATA = {
       "name": "方案層級 CI",
       "status": "done",
       "note": "本機逐步執行 CI：Release 969／969、Debug 7／7，七組覆蓋率過門檻；沒有 secret 跳過打包，暫存金鑰 always 清理。未在 GitHub 實跑。",
-      "commit": "本次提交"
+      "commit": "9b59a4f4"
     },
     {
       "id": "P0-12",
@@ -585,14 +585,14 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "969 過／0 失敗",
-      "note": "原案例保留；新增 Plugin 24 及 Localization 雙目標各 9"
+      "after": "971 過／0 失敗",
+      "note": "P0-ENV 兩個回歸案例新增；舊空白斷言依使用者核定改為鍵存在"
     },
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "77",
-      "note": "P0-11 完整建置不超過原 77，沒有新增抑制"
+      "after": "76",
+      "note": "本次 Release 建置 0 錯誤；未新增任何警告抑制"
     },
     {
       "item": "套件版本違規",
@@ -895,6 +895,11 @@ const DATA = {
       "t": "2026-11-03",
       "cls": "ok",
       "text": "P0-11 本機逐步 CI 通過；覆蓋率七組皆過門檻，保留啟動器故障與修正證據，不推送、不建立 GitHub secret。"
+    },
+    {
+      "text": "P0-ENV 核定調整：保留 01f3c03e；舊空白契約與舊網址故障各有紅燈，相關 32／32、方案 971／971，未連線外部服務。",
+      "t": "2026-11-03",
+      "cls": "ok"
     }
   ],
   "decisions": [
@@ -951,6 +956,10 @@ const DATA = {
     {
       "text": "P0-09／P0-10 例外責任依既有設計核定",
       "sub": "2026-11-03：Core 原始 TransportException 交 caller；net48 Plugin 追蹤後拋出，不用 notifier；最終通知依設計 10.5／10.9、04 §5.4。"
+    },
+    {
+      "text": "ChurchReport Development 帳密存放例外已核定",
+      "sub": "僅調整 ChurchReport；User Secrets 仍可覆寫。P0-12 佈署帳密仍只讀 User Secrets；證據不含機密值。"
     }
   ],
   "prep": [

@@ -1,0 +1,19 @@
+Test run for [repository]\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_CrmServerUrl_UsesHttpsAndFullOrganizationServicePath [75 ms]
+  Error Message:
+   Expected string.Equals(uri.AbsolutePath, "/XRMServices/2011/Organization.svc", StringComparison.Ordinal) to be true, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_CrmServerUrl_UsesHttpsAndFullOrganizationServicePath() in [repository]\ChurchReport.MemberInfo.Tests\Contracts\DevelopmentOrganizationSettingsTests.cs:line 41
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 75 ms - ChurchReport.MemberInfo.Tests.dll (net10.0)
+[xUnit.net 00:00:00.21]     ChurchReport.MemberInfo.Tests.Contracts.DevelopmentOrganizationSettingsTests.Development_CrmServerUrl_UsesHttpsAndFullOrganizationServicePath [FAIL]

@@ -1,0 +1,13 @@
+{
+  "id": "integration-p0-env-adjustment",
+  "title": "P0-ENV 使用者核定帳密契約調整與服務網址回歸",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "已通過本機守門，與本次修正一併提交後接續 P0-12",
+  "createdAt": "2026-11-03",
+  "branch": "1.0.0.11.Integration.P0",
+  "trellisTask": ".trellis/tasks/11-02-integration-p0"
+}
