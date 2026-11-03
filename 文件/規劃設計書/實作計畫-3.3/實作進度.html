@@ -350,53 +350,45 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-09 實作前契約核對停止）",
+  "snapshot": "2026-11-03（P0-09 驗證完成）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-08 已提交 92cfa180</strong>；P0-09 發現雙目標共用例外通知的相依／責任缺口，依 00 §9.6 停止。尚未修改本包產品程式，等待核定後接續 TDD。",
-  "alert": {
-    "title": "P0-09：需核定跨框架例外回報契約",
-    "body": "目前共用通知入口僅支援 net10，雙目標核心不能參考。計畫尚未定義內部逾時轉結果後的原始 Exception 所有權、最終回報責任與 net48 接入方式。",
-    "steps": [
-      "閱讀 P0-09 停止回報及研究紀錄。",
-      "建議先補 P0-09／P0-10 的跨框架共用回報契約，再接續原 11 個測試。",
-      "本問題不需提供帳密或操作 D365；仍禁止任何 D365／LINE 連線。"
-    ]
-  },
+  "headline": "<strong>P0-09</strong> 兩目標各 <strong>42／42</strong>，覆蓋率 <strong>93.93%／98.90%</strong>；原 33 案例保留，完整方案 <strong>921／921</strong>、Debug <strong>7／7</strong>。依既有設計分工保留原始例外、不在 Core 通知，接著依序進入 P0-10。",
+  "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "10",
+      "value": "11",
       "unit": "/ 80 工作包",
       "sub": "依 3.3 計畫，含 P0-SEC、P0-ENV 與新增佈署工作包",
       "meter": {
-        "done": 10,
+        "done": 11,
         "active": 0,
         "total": 80
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "10",
+      "value": "11",
       "unit": "/ 15 工作包",
-      "sub": "P0-08 已提交；P0-09 於契約核對停止",
+      "sub": "P0-09 驗證完成，下一包 P0-10",
       "meter": {
-        "done": 10,
+        "done": 11,
         "active": 0,
         "total": 15
       }
     },
     {
       "label": "完整 Release 測試",
-      "value": "837",
-      "unit": "/ 837 通過",
-      "sub": "原 771 加 Localization 雙目標各 33"
+      "value": "921",
+      "unit": "/ 921 通過",
+      "sub": "原 837 加 Core 雙目標各 42"
     },
     {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "P0-06 建置 77 警告，0 錯誤"
+      "sub": "P0-09 建置 76 警告，不超過原 77"
     }
   ],
   "wps": [
@@ -477,8 +469,9 @@ const DATA = {
     {
       "id": "P0-09",
       "name": "骨架：LineMessagingProcessor.Core（雙目標，單人推播）",
-      "status": "you",
-      "note": "實作前發現共用通知僅 net10，雙目標相依與最終失敗回報責任未定；依 §9.6 停止，尚無功能紅燈。"
+      "status": "done",
+      "note": "原 11 方法保留，兩目標各 42／42、覆蓋率 93.93%／98.90%，原 net10 33 全保留；方案 921／921，全部守門通過。",
+      "commit": "本次提交"
     },
     {
       "id": "P0-10",
@@ -517,7 +510,7 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 15,
-      "done": 10,
+      "done": 11,
       "active": 0,
       "current": true
     },
@@ -590,14 +583,14 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "837 過／0 失敗",
-      "note": "原 771 全保留，新增 Localization 兩目標各 33"
+      "after": "921 過／0 失敗",
+      "note": "原 837 全保留，新增 Core 兩目標各 42"
     },
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "77",
-      "note": "P0-06 與原基準相同，未新增抑制"
+      "after": "76",
+      "note": "本次不超過原 77，沒有新增抑制"
     },
     {
       "item": "套件版本違規",
@@ -646,6 +639,12 @@ const DATA = {
       "before": "未建立",
       "after": "33＋33 全通過",
       "note": "覆蓋率 94.87%／100%，SharedText 真實產生檔檢查 1 檔，無衛星組件。"
+    },
+    {
+      "item": "LINE Core 雙目標",
+      "before": "未建立",
+      "after": "42＋42 全通過",
+      "note": "覆蓋率 93.93%／98.90%；五十並行憑證隔離與排空、逾時及原始例外契約通過。"
     }
   ],
   "conduct": [
@@ -847,6 +846,16 @@ const DATA = {
       "t": "2026-11-03",
       "text": "P0-08 提交 92cfa180；P0-09 核對發現跨框架共用例外回報契約缺口，依 §9.6 停止，沒有產品變更或外部連線。",
       "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "使用者釐清既有設計責任分工；Core 兩目標各 41 個功能紅燈，補取消競爭後各 42／42，全方案驗證中。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-09 完成功能及重構：雙目標各 42／42、方案 921／921、Debug 7／7、重複掃描 22 專案 863 檔無重複，沒有外部連線。",
+      "cls": "ok"
     }
   ],
   "decisions": [
@@ -899,6 +908,10 @@ const DATA = {
     {
       "text": "嚴格 net48 明確設定分析層級；新 API 可依 CA1716 語意改名",
       "sub": "2026-11-03 核定：AnalysisLevel 空白補 latest；GetText／richMenuAlias 不需警告抑制，原測試名不改。"
+    },
+    {
+      "text": "P0-09／P0-10 例外責任依既有設計核定",
+      "sub": "2026-11-03：Core 原始 TransportException 交 caller；net48 Plugin 追蹤後拋出，不用 notifier；最終通知依設計 10.5／10.9、04 §5.4。"
     }
   ],
   "prep": [
@@ -930,9 +943,9 @@ const DATA = {
   ],
   "risks": [
     {
-      "level": "warn",
-      "text": "P0-09 等待跨框架共用例外回報契約核定",
-      "sub": "ToolUtility 入口僅 net10；需明定原始 Exception 傳遞、可恢復重試與最終失敗通知責任，不以 no-op 或提前搬 P2-01 繞過。"
+      "level": "info",
+      "text": "階段 0～4 的 Plugin 失敗由系統作業與追蹤查看",
+      "sub": "依設計排程，階段 5 LineWebhook 彙總器才通知管理者；P0-13 會說明追蹤查看方式。"
     },
     {
       "level": "info",

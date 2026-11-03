@@ -1,0 +1,18 @@
+{
+  "id": "integration-p009",
+  "title": "P0-09 LINE 單人推播雙目標核心",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "branch": "1.0.0.11.Integration.P0",
+  "baseCommit": "92cfa180",
+  "currentWorkPackage": "P0-09",
+  "stopReason": null,
+  "nextAction": "提交 P0-09 後依原順序進入 P0-10。",
+  "report": ".trellis/tasks/11-02-integration-p0/wp-reports/P0-09.md",
+  "approval": "使用者 2026-11-03 核定：Core 保留原始 TransportException，不通知；Plugin 追蹤後拋出，最終通知依階段 2／5 排程。",
+  "resumeCommit": "54e0a4d0",
+  "validation": "Core 42/42 per target, legacy 33/33 retained; coverage 93.93%/98.90%; solution 921/921; Debug tracer 7/7; all gates passed."
+}

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj",
+    "-c",
+    "Release",
+    "-f",
+    "net10.0",
+    "--filter",
+    "FullyQualifiedName~LinePushClientTests",
+    "--collect",
+    "XPlat Code Coverage",
+    "--settings",
+    ".ccg/tmp/P0-09-coverage.runsettings",
+    "--results-directory",
+    ".ccg/tmp/P0-09-coverage-net10"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 5.86,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    42, Skipped:     0, Total:    42, Duration: 97 ms - LineMessagingProcessor.Tests.dll (net10.0)"
+  ]
+}

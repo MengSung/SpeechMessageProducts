@@ -1,0 +1,157 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj -c Release -f net10.0 --filter FullyQualifiedName~LinePushClientTests
+  Failed 回傳前釋放 HTTP 訊息且不接管外部客戶端(status: 200) [104 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 回傳前釋放 HTTP 訊息且不接管外部客戶端(status: 500) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 502, expected: Retryable) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 404, expected: Permanent) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 400, expected: Permanent) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 403, expected: Permanent) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 299, expected: Success) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 204, expected: Success) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 201, expected: Success) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 429, expected: Retryable) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 409, expected: AlreadyAccepted) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 599, expected: Retryable) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed HTTP 結果不攜帶傳輸例外(status: 401, expected: Permanent) [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 傳輸故障診斷不加入憑證內文或收件 ID [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 401 屬永久失敗 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 非法單人 ID 在 HTTP 前拒絕(invalid: "G00000000000000000000000000000000") [1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 非法單人 ID 在 HTTP 前拒絕(invalid: "U00000000000000000000000000000000\n") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 非法單人 ID 在 HTTP 前拒絕(invalid: null) [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 非法單人 ID 在 HTTP 前拒絕(invalid: "") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 非法單人 ID 在 HTTP 前拒絕(invalid: "Ushort") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 非法單人 ID 在 HTTP 前拒絕(invalid: "U00000000000000000000000000000000 ") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 非法單人 ID 在 HTTP 前拒絕(invalid: "U0000000000000000000000000000000A") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 網路失敗保留原始傳輸例外 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 無效憑證不進入 HTTP 標頭解析器(invalid: "") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 無效憑證不進入 HTTP 標頭解析器(invalid: "synthetic\r\nsecret") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 無效憑證不進入 HTTP 標頭解析器(invalid: null) [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 無效憑證不進入 HTTP 標頭解析器(invalid: "synthetic secret") [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 成功推播使用當次 Bearer 與 Retry Key [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed caller 取消不誤判可重試故障(inFlight: False) [1 ms]
+Expected: typeof(System.OperationCanceledException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed caller 取消不誤判可重試故障(inFlight: True) [< 1 ms]
+Expected: typeof(System.OperationCanceledException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 429 可重試且一次只送一次 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 憑證字串永遠只回傳固定遮罩 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 五十個並行憑證的標頭及結果不互串 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 不合法文字數量長度或事件鍵在傳輸前拒絕 [< 1 ms]
+Expected: typeof(System.ArgumentException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 500 分類為可重試 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 409 視為相同事件已接受 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 內部十秒逾時保留例外並釋放取消來源 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 公開能力無法表示多人推播 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 單人文字 JSON 與黃金檔完全一致 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+  Failed 非預期例外直接往外拋 [< 1 ms]
+Expected: typeof(System.InvalidOperationException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  Failed 訊息集合完整複製並唯讀發布 [< 1 ms]
+   System.NotImplementedException : The method or operation is not implemented.
+Failed!  - Failed:    41, Passed:     0, Skipped:     0, Total:    41, Duration: 137 ms - LineMessagingProcessor.Tests.dll (net10.0)
+[xUnit.net 00:00:00.52]     回傳前釋放 HTTP 訊息且不接管外部客戶端(status: 200) [FAIL]
+[xUnit.net 00:00:00.52]     回傳前釋放 HTTP 訊息且不接管外部客戶端(status: 500) [FAIL]
+[xUnit.net 00:00:00.52]     HTTP 結果不攜帶傳輸例外(status: 502, expected: Retryable) [FAIL]
+[xUnit.net 00:00:00.52]     HTTP 結果不攜帶傳輸例外(status: 404, expected: Permanent) [FAIL]
+[xUnit.net 00:00:00.52]     HTTP 結果不攜帶傳輸例外(status: 400, expected: Permanent) [FAIL]
+[xUnit.net 00:00:00.52]     HTTP 結果不攜帶傳輸例外(status: 403, expected: Permanent) [FAIL]
+[xUnit.net 00:00:00.52]     HTTP 結果不攜帶傳輸例外(status: 299, expected: Success) [FAIL]
+[xUnit.net 00:00:00.52]     HTTP 結果不攜帶傳輸例外(status: 204, expected: Success) [FAIL]
+[xUnit.net 00:00:00.52]     HTTP 結果不攜帶傳輸例外(status: 201, expected: Success) [FAIL]
+[xUnit.net 00:00:00.54]     HTTP 結果不攜帶傳輸例外(status: 429, expected: Retryable) [FAIL]
+[xUnit.net 00:00:00.54]     HTTP 結果不攜帶傳輸例外(status: 409, expected: AlreadyAccepted) [FAIL]
+[xUnit.net 00:00:00.54]     HTTP 結果不攜帶傳輸例外(status: 599, expected: Retryable) [FAIL]
+[xUnit.net 00:00:00.54]     HTTP 結果不攜帶傳輸例外(status: 401, expected: Permanent) [FAIL]
+[xUnit.net 00:00:00.54]     傳輸故障診斷不加入憑證內文或收件 ID [FAIL]
+[xUnit.net 00:00:00.54]     401 屬永久失敗 [FAIL]
+[xUnit.net 00:00:00.54]     非法單人 ID 在 HTTP 前拒絕(invalid: "G00000000000000000000000000000000") [FAIL]
+[xUnit.net 00:00:00.54]     非法單人 ID 在 HTTP 前拒絕(invalid: "U00000000000000000000000000000000\n") [FAIL]
+[xUnit.net 00:00:00.54]     非法單人 ID 在 HTTP 前拒絕(invalid: null) [FAIL]
+[xUnit.net 00:00:00.54]     非法單人 ID 在 HTTP 前拒絕(invalid: "") [FAIL]
+[xUnit.net 00:00:00.54]     非法單人 ID 在 HTTP 前拒絕(invalid: "Ushort") [FAIL]
+[xUnit.net 00:00:00.55]     非法單人 ID 在 HTTP 前拒絕(invalid: "U00000000000000000000000000000000 ") [FAIL]
+[xUnit.net 00:00:00.55]     非法單人 ID 在 HTTP 前拒絕(invalid: "U0000000000000000000000000000000A") [FAIL]
+[xUnit.net 00:00:00.55]     網路失敗保留原始傳輸例外 [FAIL]
+[xUnit.net 00:00:00.55]     無效憑證不進入 HTTP 標頭解析器(invalid: "") [FAIL]
+[xUnit.net 00:00:00.55]     無效憑證不進入 HTTP 標頭解析器(invalid: "synthetic\r\nsecret") [FAIL]
+[xUnit.net 00:00:00.55]     無效憑證不進入 HTTP 標頭解析器(invalid: null) [FAIL]
+[xUnit.net 00:00:00.55]     無效憑證不進入 HTTP 標頭解析器(invalid: "synthetic secret") [FAIL]
+[xUnit.net 00:00:00.55]     成功推播使用當次 Bearer 與 Retry Key [FAIL]
+[xUnit.net 00:00:00.55]     caller 取消不誤判可重試故障(inFlight: False) [FAIL]
+[xUnit.net 00:00:00.55]     caller 取消不誤判可重試故障(inFlight: True) [FAIL]
+[xUnit.net 00:00:00.55]     429 可重試且一次只送一次 [FAIL]
+[xUnit.net 00:00:00.55]     憑證字串永遠只回傳固定遮罩 [FAIL]
+[xUnit.net 00:00:00.55]     五十個並行憑證的標頭及結果不互串 [FAIL]
+[xUnit.net 00:00:00.55]     不合法文字數量長度或事件鍵在傳輸前拒絕 [FAIL]
+[xUnit.net 00:00:00.55]     500 分類為可重試 [FAIL]
+[xUnit.net 00:00:00.55]     409 視為相同事件已接受 [FAIL]
+[xUnit.net 00:00:00.55]     內部十秒逾時保留例外並釋放取消來源 [FAIL]
+[xUnit.net 00:00:00.55]     公開能力無法表示多人推播 [FAIL]
+[xUnit.net 00:00:00.55]     單人文字 JSON 與黃金檔完全一致 [FAIL]
+[xUnit.net 00:00:00.55]     非預期例外直接往外拋 [FAIL]
+[xUnit.net 00:00:00.55]     訊息集合完整複製並唯讀發布 [FAIL]
+EXIT_CODE=1

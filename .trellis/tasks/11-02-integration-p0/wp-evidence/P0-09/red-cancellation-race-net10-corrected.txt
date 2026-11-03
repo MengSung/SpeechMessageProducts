@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj -c Release -f net10.0 --filter FullyQualifiedName~Push_CallerCanceledDuringNetworkFailure
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 11 ms - LineMessagingProcessor.Tests.dll (net10.0)
+EXIT_CODE=0

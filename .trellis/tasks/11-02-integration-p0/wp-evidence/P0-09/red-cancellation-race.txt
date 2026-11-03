@@ -1,0 +1,7 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj -c Release -f net48 --filter FullyQualifiedName~Push_CallerCanceledDuringNetworkFailure
+  Failed caller 取消優先於同時發生的網路故障 [438 ms]
+Expected: typeof(System.OperationCanceledException)
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 438 ms - LineMessagingProcessor.Tests.dll (net48)
+[xUnit.net 00:00:01.75]     caller 取消優先於同時發生的網路故障 [FAIL]
+EXIT_CODE=1

@@ -1,0 +1,7 @@
+{
+  "to": "U00000000000000000000000000000000",
+  "messages": [
+    { "type": "text", "text": "hello" },
+    { "type": "text", "text": "quoted \"text\"" }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "originalMethods": [
+    "Push_Success_SendsBearerAndRetryKeyHeaders",
+    "Push_409_TreatedAsAlreadyAccepted",
+    "Push_429_IsRetryable",
+    "Push_500_IsRetryable",
+    "Push_Timeout_IsRetryableAndDisposesCts",
+    "Push_401_IsPermanent",
+    "Push_InvalidUserId_ThrowsBeforeHttp",
+    "Push_MoreThanOneRecipientNotPossible",
+    "Credential_ToString_NeverContainsToken",
+    "Push_RequestBody_MatchesGoldenJson",
+    "Push_ConcurrentDifferentTokens_HeadersNotMixed"
+  ],
+  "addedMethods": [
+    "Push_CallerCanceled_ThrowsOperationCanceled_NotRetryable",
+    "Push_CallerCanceledDuringNetworkFailure_ThrowsCancellation",
+    "Push_NetworkFailure_IsRetryableAndKeepsOriginalException",
+    "Push_HttpStatusFailure_HasNoTransportException",
+    "Push_FailureDetails_NeverContainTokenOrBody",
+    "Push_UnexpectedException_IsNotConverted",
+    "Push_ResultDoesNotRetainHttpResources",
+    "Request_MessagesAreDetachedAndBounded",
+    "Request_InvalidMessagesOrRetryKey_ThrowsBeforeHttp",
+    "Credential_InvalidToken_RejectsWithoutEcho"
+  ],
+  "deletedMethods": [],
+  "coreCasesPerTarget": 42,
+  "legacyCasesNet10": 33,
+  "legacySourceFilesByteIdentical": true
+}

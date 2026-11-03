@@ -1,0 +1,16 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj",
+    "-c",
+    "Release",
+    "-f",
+    "net10.0"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 3.85,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    75, Skipped:     0, Total:    75, Duration: 45 ms - LineMessagingProcessor.Tests.dll (net10.0)"
+  ]
+}

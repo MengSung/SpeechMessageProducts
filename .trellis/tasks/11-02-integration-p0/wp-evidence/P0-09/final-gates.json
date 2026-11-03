@@ -1,0 +1,54 @@
+{
+  "workPackage": "P0-09",
+  "baseHead": "54e0a4d0",
+  "releaseBuild": {
+    "errors": 0,
+    "warnings": 76,
+    "baselineMaximum": 77
+  },
+  "releasePassed": 921,
+  "coreCasesPerTarget": 42,
+  "legacyNet10CasesRetained": 33,
+  "debugTracerPassed": 7,
+  "coverage": [
+    {
+      "framework": "net48",
+      "assembly": "LineMessagingProcessor.Core",
+      "lineCoveragePercent": 93.93,
+      "branchCoveragePercent": 91.42,
+      "requiredPercent": 80,
+      "passed": true
+    },
+    {
+      "framework": "net10",
+      "assembly": "LineMessagingProcessor.Core",
+      "lineCoveragePercent": 98.9,
+      "branchCoveragePercent": 93.75,
+      "requiredPercent": 80,
+      "passed": true
+    }
+  ],
+  "encoding": {
+    "checked": 326,
+    "excluded": 74,
+    "issues": 0
+  },
+  "byteCheckedFiles": 63,
+  "progressTests": "3/3",
+  "duplicateScan": {
+    "projects": 22,
+    "files": 863,
+    "groups": 0,
+    "new": 0,
+    "stale": 0
+  },
+  "packageGuard": {
+    "projects": 33,
+    "references": 123,
+    "failures": 0
+  },
+  "i18nVerify": true,
+  "frozen32AndAgentsUnchanged": true,
+  "htmlChanges": "approved DATA fields only",
+  "externalConnections": 0
+}

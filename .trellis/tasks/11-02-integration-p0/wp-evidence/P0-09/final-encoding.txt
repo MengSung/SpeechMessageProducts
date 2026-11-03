@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: powershell -NoProfile -File tools/RepoQuality/Test-TextEncoding.ps1 -Scope Changed -Base 73b6e6cf
+Text encoding: scope=Changed checked=326 excluded=74 filesWithIssues=0
+EXIT_CODE=0

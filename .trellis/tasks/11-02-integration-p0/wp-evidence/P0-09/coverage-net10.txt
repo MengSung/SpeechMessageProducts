@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj -c Release -f net10.0 --filter FullyQualifiedName~LinePushClientTests --collect XPlat Code Coverage --settings .ccg/tmp/P0-09-coverage.runsettings --results-directory .ccg/tmp/P0-09-coverage-net10
+Passed!  - Failed:     0, Passed:    42, Skipped:     0, Total:    42, Duration: 97 ms - LineMessagingProcessor.Tests.dll (net10.0)
+EXIT_CODE=0

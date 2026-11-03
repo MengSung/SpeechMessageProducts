@@ -1,10 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net48;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,10 +19,22 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- 舊 SDK 與處理器在階段一才支援 net48；保留既有四類共 33 案例在 net10 執行，
+       不讓 net48 參考 net10 專案，也不修改、刪除或重命名任何既有測試。 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
+    <None Update="Golden/push-text.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <Reference Include="System.Net.Http" />
+    <Compile Remove="LineMessagingProcessorSendMessageTests.cs;LineMessagingProcessorReliableNotificationTests.cs;LineMessagingProcessorIdentityProfileTests.cs;LineMessagingProcessorGroupRoomProfileTests.cs" />
   </ItemGroup>
 </Project>

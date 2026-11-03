@@ -1,0 +1,7 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj -c Release -f net48 --filter FullyQualifiedName~LinePushClientTests
+  Failed 內部十秒逾時保留例外並釋放取消來源 [21 ms]
+Expected: System.Threading.Tasks.TaskCanceledException: Synthetic timeout.
+Failed!  - Failed:     1, Passed:    40, Skipped:     0, Total:    41, Duration: 1 s - LineMessagingProcessor.Tests.dll (net48)
+[xUnit.net 00:00:03.15]     內部十秒逾時保留例外並釋放取消來源 [FAIL]
+EXIT_CODE=1

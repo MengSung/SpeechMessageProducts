@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-08 已提交 92cfa180；P0-09 實作前核對發現雙目標共用例外通知契約缺口，依 00 §9.6 停止。",
+  "description": "P0-09 雙目標各 42／42、覆蓋率 93.93%／98.90%、方案 921／921；提交收尾。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -25,12 +25,12 @@
   "meta": {
     "currentWorkPackage": "P0-09",
     "userRequestedStop": false,
-    "gatePassed": false,
+    "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-09.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": "使用者核定 P0-09／P0-10 跨框架共用例外回報契約",
+    "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -43,8 +43,9 @@
       "P0-07": "f0f0360f",
       "P0-04-CA1707": "cea2958d",
       "P0-04-AnalysisLevel": "58245c6f",
-      "P0-08": "92cfa180"
+      "P0-08": "92cfa180",
+      "P0-09": "完成（本次 P0-09 提交）"
     },
-    "stopReason": "P0-09 需捕捉內部逾時並回傳 Retryable，但 AGENTS 要求失敗 catch 接入共用 notifier；目前共用入口僅 net10，雙目標核心禁止參考，計畫未定義跨框架契約與回報時機。依 00 §9.6 停止。"
+    "stopReason": null
   }
 }

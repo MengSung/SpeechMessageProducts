@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj",
+    "-c",
+    "Release",
+    "-f",
+    "net10.0",
+    "--filter",
+    "FullyQualifiedName~Push_CallerCanceledDuringNetworkFailure"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 5.09,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 11 ms - LineMessagingProcessor.Tests.dll (net10.0)"
+  ]
+}

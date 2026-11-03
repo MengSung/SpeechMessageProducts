@@ -5,14 +5,15 @@
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "analysis",
-  "nextAction": "P0-08 已提交 92cfa180。等待核定 P0-09／P0-10 的跨框架共用例外回報契約。",
+  "currentPhase": "implementation",
+  "nextAction": "P0-09 完整驗證通過，提交後開始 P0-10。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
   "currentWorkPackage": "P0-09",
   "reviewPolicy": "One ClaudeOnly review after P0-12, before P0-13, per implementation plan 3.3.",
   "reviewBlocker": null,
-  "stopReason": "P0-09 需捕捉內部逾時並回傳 Retryable，但 AGENTS 要求失敗 catch 接入共用 notifier；目前共用入口僅 net10，雙目標核心禁止參考，計畫未定義跨框架契約與回報時機。依 00 §9.6 停止。",
-  "approval": "使用者 2026-11-03 核定先做 net48 分析層級獨立補修（58245c6f），再改 GetText／richMenuAlias；未實作新 API 的 CA1716 可語意改名，禁止抑制或縮小可見性，既有 API 除外。"
+  "stopReason": null,
+  "approval": "使用者 2026-11-03 核定：Core 保留原始 TransportException，不通知；Plugin 追蹤後拋出，最終通知依階段 2／5 排程。",
+  "resumeCommit": "54e0a4d0"
 }

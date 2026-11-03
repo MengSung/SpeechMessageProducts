@@ -95,3 +95,13 @@ catch (Exception ex)
     throw;
 }
 ```
+
+## 雙目標程式庫與 net48 Plugin
+
+依使用者 2026-11-03 核定，出處設計 v3.3 10.5／10.9、計畫 04 §5.4：
+- LineMessagingProcessor.Core 不是最終失敗邊界，不參考 ToolUtility 或 notifier，不新增未接入的 callback／no-op。無 HTTP 回應的內部逾時／HttpRequestException 以 Retryable 結果保留原始 TransportException；caller 取消及非預期例外往外拋。有 HTTP 回應不製造 TransportException。
+- 結果與例外只屬於這次操作，不存 static／快取，不持有 request／response／credential；回應先 Dispose。Core 自產訊息與 ToString 不含 Token、內文或 userId，禁止把原始 Exception 直接序列化或寫進診斷輸出。
+- net48 Plugin 沙箱不寫 Exception.log、不呼叫 notifier、不另外發管理者 LINE。Retryable 先以 ITracingService 追蹤安全欄位，再拋 InvalidPluginExecutionException；有原始傳輸例外時保留為 InnerException。Permanent 只追蹤；非預期例外追蹤型別後 `throw;`。
+- D365 端最終通知由階段 5 LineWebhook 每五分鐘彙總、依門檻交給共用入口；階段 0～4 只能從系統作業與 Plugin 追蹤查看，屬排定的過渡期。
+- net10 主機呼叫 Core，重試用盡後才經 ExceptionReporting 上報一次，屬階段 2 以後；正常 caller 取消與成功恢復的重試不上報，通知管道自身失敗不遞迴通知。
+- 日後遇到階段段落省略責任時，先查設計 Word 第十章及計畫 02～04；已有答案就按出處執行並在 WP 回報註明，不能只因本段未重複敘述而判定缺少架構。
