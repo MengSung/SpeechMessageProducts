@@ -61,3 +61,31 @@ Run Pester 3.4.0 for the existing encoding and duplicate tests, the relocated
 Test-P002Settings.ps1, progress rendering, CCG summary semantics, analyzer probes,
 central package guard, Debug tracer, I18n verification and plugin fixture tests.
 Do not treat zero discovered tests or an arbitrary failure as a successful guard.
+
+## Six Labors general license (user approved 2026-11-03)
+
+SIXLABORS_LICENSE is a required, user-configured repository secret for this
+workflow. This specific authorization is separate from the future Environment
+restriction on the Plugin signing key. Pass it only through the preparation
+step environment, never by interpolating its value into run script text.
+Missing or whitespace content fails with a clear message before building.
+
+The preparation block creates a unique speechmessage-sixlabors-<guid>.lic in
+RUNNER_TEMP with CreateNew and UTF-8 without BOM. Dispose the writer and stream
+before publishing only its path through GITHUB_ENV as SixLaborsLicenseFile.
+Clear the preparation process secret in finally; do not print its content or
+write it to summaries, GITHUB_ENV, or artifacts. A preparation/publication fault
+removes the file it created and emits a fixed diagnostic without raw messages.
+
+A separate if: always() block deletes the published file after success or
+failure. Validate the direct runner directory and workflow-owned filename
+before deleting; never follow an arbitrary environment path or delete another
+file. Cleanup is idempotent and clears the local process path. Only coverage
+XML is uploaded. Local tests execute these actual workflow blocks with synthetic
+license text, including missing secret, publication failure and unowned-path
+rejection. They do not read or copy the real local license.
+
+Local product builds may use the user-level SixLaborsLicenseFile path only in
+the current process, after Test-Path confirms existence. Do not commit that
+path, inspect license contents, alter persistent environment settings, or claim
+hosted Actions execution from local verification.

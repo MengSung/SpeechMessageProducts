@@ -19,6 +19,7 @@ jobs:
       DOTNET_CLI_UI_LANGUAGE: en-US
       VSLANG: '1033'
       BASE_COMMIT: 73b6e6cf409daa7559fd3c11d482e3efc542c0d7
+      SixLaborsLicenseFile: ''
     steps:
       - name: Checkout full history
         uses: actions/checkout@v4
@@ -32,6 +33,37 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Prepare Six Labors license
+        env:
+          SIXLABORS_LICENSE: ${{ secrets.SIXLABORS_LICENSE }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # 使用者核定的一般金鑰只經步驟環境傳入，不插入腳本文字，也不輸出內容。
+          if ([string]::IsNullOrWhiteSpace($env:SIXLABORS_LICENSE)) {
+            $env:SIXLABORS_LICENSE = $null
+            throw 'SIXLABORS_LICENSE is required for Solution CI.'
+          }
+          $created = $false
+          $licensePath = $null
+          try {
+            if ([string]::IsNullOrWhiteSpace($env:RUNNER_TEMP) -or [string]::IsNullOrWhiteSpace($env:GITHUB_ENV)) {
+              throw 'Runner environment is unavailable.'
+            }
+            $licensePath = Join-Path $env:RUNNER_TEMP ('speechmessage-sixlabors-' + [Guid]::NewGuid().ToString('N') + '.lic')
+            # CreateNew 不覆寫既有檔。單一步驟擁有 stream，寫入故障與成功均先關閉才進行清理。
+            $stream = [IO.File]::Open($licensePath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+            $created = $true
+            try {
+              $writer = [IO.StreamWriter]::new($stream, [Text.UTF8Encoding]::new($false), 1024, $true)
+              try { $writer.Write($env:SIXLABORS_LICENSE); $writer.Flush() }
+              finally { $writer.Dispose() }
+            } finally { $stream.Dispose() }
+            # 後續建置只取得 runner 路徑；不把內容寫到 GITHUB_ENV、摘要或 artifact。
+            [IO.File]::AppendAllText($env:GITHUB_ENV, "SixLaborsLicenseFile=$licensePath`n", [Text.UTF8Encoding]::new($false))
+          } catch {
+            if ($created -and [IO.File]::Exists($licensePath)) { Remove-Item -LiteralPath $licensePath -Force }
+            throw 'Six Labors license preparation failed.'
+          } finally { $env:SIXLABORS_LICENSE = $null }
       - name: Restore
         run: |
           dotnet restore SpeechMessageProducts.sln
@@ -104,6 +136,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'SDK and ignore settings failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-Coverage.Tests.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Coverage gate tests failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Tests/Test-SixLaborsCiLicense.Tests.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Six Labors CI license contracts failed.' }
           node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Progress page tests failed.' }
           # 直接驗證實際 Razor adapter 與既有 jQuery Deferred，避免只跑伺服器測試卻漏掉表格初始化錯誤。
@@ -158,6 +192,22 @@ jobs:
           # 單一固定暫存檔，禁止遞迴刪除，也不接收外部指定路徑。
           $keyPath = Join-Path $env:RUNNER_TEMP 'speechmessage-plugin-signing.snk'
           if (Test-Path -LiteralPath $keyPath) { Remove-Item -LiteralPath $keyPath -Force }
+      - name: Delete Six Labors license
+        if: always()
+        run: |
+          $ErrorActionPreference = 'Stop'
+          try {
+            if (-not [string]::IsNullOrWhiteSpace($env:SixLaborsLicenseFile)) {
+              # 只清除本步驟發布於 runner 根目錄的特定格式檔名；不得依任意路徑刪檔。
+              $runnerRoot = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\', '/')
+              $licensePath = [IO.Path]::GetFullPath($env:SixLaborsLicenseFile)
+              if (-not [string]::Equals([IO.Path]::GetDirectoryName($licensePath), $runnerRoot, [StringComparison]::OrdinalIgnoreCase) -or
+                  [IO.Path]::GetFileName($licensePath) -cnotmatch '^speechmessage-sixlabors-[0-9a-f]{32}\.lic$') {
+                throw 'Refusing to delete an unowned license path.'
+              }
+              if ([IO.File]::Exists($licensePath)) { Remove-Item -LiteralPath $licensePath -Force }
+            }
+          } finally { $env:SixLaborsLicenseFile = $null }
       - name: Upload coverage reports
         if: always()
         uses: actions/upload-artifact@v4

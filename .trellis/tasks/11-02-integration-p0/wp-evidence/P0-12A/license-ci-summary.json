@@ -1,0 +1,32 @@
+{
+  "workPackage": "P0-12A-license-CI",
+  "date": "2026-11-03",
+  "aCommit": "eb7ff61f",
+  "red": {
+    "assertions": 22,
+    "functionalFailures": 15
+  },
+  "green": {
+    "windowsPowerShell": {
+      "assertions": 23,
+      "failed": 0
+    },
+    "powerShell7": {
+      "assertions": 23,
+      "failed": 0
+    }
+  },
+  "releaseSolution": {
+    "total": 1089,
+    "executed": 1089,
+    "passed": 1089,
+    "failed": 0
+  },
+  "debugTracerPassed": 7,
+  "realLocalLicenseContentRead": false,
+  "syntheticLicenseOnlyInTests": true,
+  "hostedActionsExecuted": false,
+  "networkToD365OrLine": false,
+  "workflowSha256": "0c568e8495f4ce5709bb14637279a666cedd46c12668084bf15967de01e6cfca",
+  "testsSha256": "e0798a3a815b8558d72d80df006d5602611f1925ec6978e7fe2acb1eea170904"
+}

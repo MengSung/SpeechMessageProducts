@@ -29,7 +29,7 @@
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-12A.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
-    "reviewPending": false,
+    "reviewPending": true,
     "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
@@ -52,7 +52,8 @@
       "P0-04-NuGetAudit": "9214d26b",
       "P0-12": "a6a20905",
       "P0-12A-characterization": "f0574f41",
-      "P0-12A": "本次提交（圖片防護；一般金鑰 CI 接續獨立提交）"
+      "P0-12A": "eb7ff61f",
+      "P0-12A-license-CI": "本次提交"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",
@@ -73,8 +74,8 @@
     ],
     "characterizationVerified": true
   },
-  "currentPhase": "implementation",
+  "currentPhase": "review",
   "currentWorkPackage": "P0-12A",
-  "nextAction": "P0-12A 圖片防護驗證完成；本次提交後接一般金鑰 CI B 段，再做八批 ClaudeOnly 階段審查。",
+  "nextAction": "P0-12A 一般金鑰 CI B 段提交後，準備 73b6e6cf..HEAD 的八批遮罩審查包，依序由 ClaudeOnly 自癒入口審查。",
   "stopReason": null
 }

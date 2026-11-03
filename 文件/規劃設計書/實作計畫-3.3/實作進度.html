@@ -350,17 +350,17 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-12A 圖片防護驗證完成，接續一般金鑰 CI）",
+  "snapshot": "2026-11-03（P0-12A 與一般金鑰 CI 本機驗證完成；準備階段審查）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "ImageSharp 已升至 <strong>3.2.0</strong>；六個解碼位置共用格式與尺寸檢查。圖片 <strong>76／76</strong>、全方案 Release <strong>1089／1089</strong>，本機授權建置通過；接續一般金鑰 CI，再做八批 ClaudeOnly 階段審查。",
+  "headline": "圖片防護已提交 <strong>eb7ff61f</strong>；一般金鑰 CI 合成測試在兩種 PowerShell 均 <strong>23／23</strong>。全方案 Release <strong>1089／1089</strong>、Debug <strong>7／7</strong>；接續八批 ClaudeOnly 階段審查。CI 未在 GitHub 實跑。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
       "value": "17",
       "unit": "/ 83 工作包",
-      "sub": "P0-12A 圖片防護完成；一般金鑰 CI 接續處理",
+      "sub": "P0-12A 與授權 CI 本機驗證完成；接續八批階段審查",
       "meter": {
         "done": 17,
         "active": 1,
@@ -371,7 +371,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "17",
       "unit": "/ 18 工作包",
-      "sub": "P0-12A 圖片防護完成；一般金鑰 CI 接續處理",
+      "sub": "P0-12A 與授權 CI 本機驗證完成；接續八批階段審查",
       "meter": {
         "done": 17,
         "active": 1,
@@ -510,8 +510,8 @@ const DATA = {
       "id": "P0-12A",
       "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
       "status": "done",
-      "note": "特徵 f0574f41；30 個功能紅燈→76 個圖片案例全綠。3.2.0 無弱點列項，完整 Release 1089／1089；一般金鑰 CI 接續獨立提交。",
-      "commit": "本次提交"
+      "note": "圖片 76／76、全方案 1089／1089；一般金鑰 CI 兩種 PowerShell 各 23／23。缺 secret 失敗、runner 暫存、always 清理；未在 GitHub 實跑。",
+      "commit": "eb7ff61f；授權 CI 本次提交"
     },
     {
       "milestone": true,
@@ -951,6 +951,11 @@ const DATA = {
       "text": "P0-12A 一般金鑰已備妥：76 個圖片案例、Release 1089／1089、Debug 7／7；CJK 訊息移入資源檔，兩個生成檔逐位元組一致。",
       "t": "2026-11-03",
       "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "ok",
+      "text": "P0-12A B 段：一般金鑰 CI 23／23（PowerShell 5.1、7）；完整 §8 再通過，準備八批 ClaudeOnly 審查。"
     }
   ],
   "decisions": [
@@ -1066,7 +1071,7 @@ const DATA = {
     {
       "level": "info",
       "text": "本機 Six Labors 授權阻擋已解除",
-      "sub": "使用者完成設定，Release 建置已通過；一般金鑰 CI 接續本機假資料驗證，不讀取本機授權內容。"
+      "sub": "Release 建置已通過；一般金鑰 CI 的準備、缺失與清理用合成文字驗證，未讀取本機授權內容，GitHub 尚未實跑。"
     },
     {
       "level": "info",
