@@ -1,0 +1,12 @@
+{
+  "id": "integration-p004-test-naming",
+  "title": "P0-04 補充嚴格測試命名規則",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "build",
+  "currentPhase": "completed",
+  "branch": "1.0.0.11.Integration.P0",
+  "approval": "使用者 2026-11-03 明確核定永久三條件 CA1707 例外與獨立提交。",
+  "nextAction": "獨立提交後接續 P0-08 TDD。"
+}

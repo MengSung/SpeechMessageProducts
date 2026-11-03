@@ -1,0 +1,13 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/RepoQuality/Test-AnalyzerProbe.ps1",
+    "-EvidenceDirectory",
+    "artifacts/quality/p004-naming-red"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 52.0,
+  "consoleSummary": []
+}

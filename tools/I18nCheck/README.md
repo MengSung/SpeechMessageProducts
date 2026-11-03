@@ -45,4 +45,4 @@ dotnet test tools/I18nCheck.Tests -c Release
 所有 reader 立即 Dispose；原子寫入使用同目錄的唯一次暫存檔，成功替換或失敗都清理；`--check` 全程不寫檔。
 
 工具與測試的 csproj 本體均啟用 `SpeechMessageStrictCode` 及 `GenerateDocumentationFile`。
-使用者 2026-11-03 明確核定：**僅 I18nCheck.Tests 的 CA1707 命名例外**，以保留計畫的底線方法名稱；其他分析器、警告視為錯誤、XML、文化比較及禁用 API 規則維持啟用。
+使用者 2026-11-03 明確核定永久規則：同時為嚴格模式、IsTestProject=true 且名稱以 `.Tests` 結尾的專案，由 Directory.Build.targets 統一允許 CA1707 底線測試命名。個別專案不設定此例外；產品／工具本體及其他分析器、警告視為錯誤、XML、文化比較及禁用 API 規則維持不變。

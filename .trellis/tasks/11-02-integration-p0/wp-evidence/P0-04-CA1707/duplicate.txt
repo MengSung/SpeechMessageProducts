@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: powershell -NoProfile -File tools/RepoQuality/Find-DuplicateCode.ps1 -Baseline tools/RepoQuality/duplicate-baseline.json
+Duplicate scan: projects=19 files=851 groups=0 new=0 stale=0 baselineCreated=False
+EXIT_CODE=0

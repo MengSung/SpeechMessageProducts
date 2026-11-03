@@ -1,0 +1,40 @@
+{
+  "runnerExitCode": 1,
+  "expectedProbeChecks": 20,
+  "namingCases": [
+    {
+      "case": "NamingProduct",
+      "actualBuildPassed": false,
+      "diagnosticCodes": [
+        "CA1707"
+      ],
+      "expectedBuildPassed": false
+    },
+    {
+      "case": "NamingProbe.Tests",
+      "actualBuildPassed": false,
+      "diagnosticCodes": [
+        "CA1707"
+      ],
+      "expectedBuildPassed": true
+    },
+    {
+      "case": "PretendProduct",
+      "actualBuildPassed": false,
+      "diagnosticCodes": [
+        "CA1707"
+      ],
+      "expectedBuildPassed": false
+    },
+    {
+      "case": "SuffixOnly.Tests",
+      "actualBuildPassed": false,
+      "diagnosticCodes": [
+        "CA1707"
+      ],
+      "expectedBuildPassed": false
+    }
+  ],
+  "redReason": "Qualified strict test still fails CA1707 before central exception is implemented.",
+  "diagnostic": "error CA1707: Remove the underscores from member name SpeechMessage.RepoQuality.AnalyzerProbe.NamingProbe.Operation_Condition_ExpectedResult()"
+}

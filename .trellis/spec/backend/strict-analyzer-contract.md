@@ -21,6 +21,11 @@ the intentionally invalid probe builds themselves must fail.
 
 - Strict projects enable NET analyzers, Recommended analysis, nullable, latest
   language version, and warnings as errors in Directory.Build.targets.
+- The user approved one permanent naming exception on 2026-11-03: only projects
+  with SpeechMessageStrictCode=true, IsTestProject=true, and an ordinal .Tests
+  project-name suffix receive NoWarn CA1707. Directory.Build.targets is the only
+  configuration source for that exception. Product projects and every other
+  diagnostic remain unchanged; do not repeat the setting in test csproj files.
 - Every strict csproj must set both SpeechMessageStrictCode=true and
   GenerateDocumentationFile=true in its project body. The SDK derives
   DocumentationFile and XML output copying before Directory.Build.targets is
@@ -56,6 +61,10 @@ the intentionally invalid probe builds themselves must fail.
 | Public member intentionally missing XML comments | CS1591 error |
 | Strict project missing the project-body documentation setting | SMQ0001 before compilation |
 | Documented positive build after deleting stale output XML | Successful build; output bin XML contains the documented type |
+| Strict product has a public method with underscores | Only CA1707 errors |
+| Strict test with IsTestProject=true and .Tests name uses underscores | Successful build |
+| IsTestProject=true but project name has no .Tests suffix | Only CA1707 errors |
+| .Tests suffix but IsTestProject=false | Only CA1707 errors |
 | Restore, framework or unexpected compiler failure | Fail the guard; never count it as the expected rejection |
 
 ## 5. Good / Base / Bad Cases
@@ -68,8 +77,9 @@ the intentionally invalid probe builds themselves must fail.
 
 ## 6. Tests Required
 
-Run Test-AnalyzerProbe's 16 checks, retaining the original 13 and adding the
-three documentation cases. Check the actual nonempty DocumentationFile and
+Run Test-AnalyzerProbe's 20 checks, retaining the original 16 (including all
+three documentation cases) and adding the four naming-boundary cases.
+Check the actual nonempty DocumentationFile and
 the newly emitted XML in the output directory, rather than trusting only the
 GenerateDocumentationFile flag. Preserve the initial missing-analyzer red
 evidence and the final summary, then run the complete Release solution build,

@@ -155,6 +155,31 @@ try {
         if ($missingSetting.ExitCode -eq 0 -or $missingSetting.Output -notmatch '\berror SMQ0001:') {
             $failures.Add("StrictProject_NoDocumentationSetting_FailsBeforeCompile: exit=$($missingSetting.ExitCode)")
         }
+        # 三項使用者指定案例加上「只有名稱後綴」的反例，證明 IsTestProject 也不可省略。
+        # 每案獨佔來源輸出目錄，避免相同 obj 檔讓不同條件互相污染；命令結束後統一清理。
+        $namingSource = [System.Security.SecurityElement]::Escape((Join-Path $root 'tools/RepoQuality/AnalyzerProbe/NamingProbe.cs'))
+        $namingCases = @(
+            @{ Name = 'NamingProduct'; IsTest = 'false'; Allowed = $false },
+            @{ Name = 'NamingProbe.Tests'; IsTest = 'true'; Allowed = $true },
+            @{ Name = 'PretendProduct'; IsTest = 'true'; Allowed = $false },
+            @{ Name = 'SuffixOnly.Tests'; IsTest = 'false'; Allowed = $false }
+        )
+        foreach ($case in $namingCases) {
+            $caseDirectory = Join-Path $fixtureDirectory $case.Name
+            [void][System.IO.Directory]::CreateDirectory($caseDirectory)
+            $caseProject = Join-Path $caseDirectory ($case.Name + '.csproj')
+            $caseXml = '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><SpeechMessageStrictCode>true</SpeechMessageStrictCode><IsTestProject>' + $case.IsTest + '</IsTestProject><GenerateDocumentationFile>true</GenerateDocumentationFile><DefineConstants>PROBE_NAMING</DefineConstants></PropertyGroup><ItemGroup><Compile Include="' + $namingSource + '" /></ItemGroup></Project>'
+            [System.IO.File]::WriteAllText($caseProject, $caseXml + "`r`n", $utf8)
+            $naming = Invoke-AnalyzerDotNet -Arguments ('build "' + $caseProject + '" -c Release --nologo --disable-build-servers -t:Rebuild') -LogName ($case.Name + '.log')
+            $checks++
+            $namingCodes = @([regex]::Matches($naming.Output, '\berror ([A-Z]+[0-9]+):') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+            if ($case.Allowed) {
+                if ($naming.ExitCode -ne 0) { $failures.Add("Naming_QualifiedTest_MustBuild: exit=$($naming.ExitCode) errors=$($namingCodes -join ',')") }
+            }
+            elseif ($naming.ExitCode -eq 0 -or $namingCodes.Count -ne 1 -or $namingCodes[0] -ne 'CA1707') {
+                $failures.Add("Naming_$($case.Name)_MustFailOnlyCA1707: exit=$($naming.ExitCode) errors=$($namingCodes -join ',')")
+            }
+        }
     }
     finally {
         $resolvedFixture = [System.IO.Path]::GetFullPath($fixtureDirectory)

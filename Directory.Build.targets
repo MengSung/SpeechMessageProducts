@@ -11,6 +11,14 @@
     <WarningsAsErrors>$(WarningsAsErrors);CA1307;CA1309;CA1310;RS0030</WarningsAsErrors>
   </PropertyGroup>
 
+  <!-- 使用者 2026-11-03 核定的永久規則，適用本計畫所有階段：
+       只有嚴格模式、明確測試標記、專案名稱以 .Tests 結尾三者同時成立，
+       才允許計畫要求的底線測試命名；僅排除 CA1707，其他分析器與警告視為錯誤不變。
+       必須集中在此設定，不得在個別測試專案重複加入其他 NoWarn。 -->
+  <PropertyGroup Condition="'$(SpeechMessageStrictCode)' == 'true' And '$(IsTestProject)' == 'true' And $([System.String]::Copy('$(MSBuildProjectName)').EndsWith('.Tests', System.StringComparison.Ordinal))">
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
   <!-- SDK 在匯入本檔之前已依文件開關決定 DocumentationFile 與輸出複製行為。
        因此 GenerateDocumentationFile 必須在 csproj 本體與嚴格模式一同啟用，
        不能在此補設開關或改寫 SDK 私有屬性；編譯前拒絕空的實際文件路徑，避免假綠燈。 -->

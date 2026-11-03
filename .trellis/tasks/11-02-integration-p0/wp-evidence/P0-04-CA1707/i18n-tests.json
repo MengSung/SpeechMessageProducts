@@ -1,0 +1,15 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "tools/I18nCheck.Tests",
+    "-c",
+    "Release",
+    "--nologo"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 4.52,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    75, Skipped:     0, Total:    75, Duration: 902 ms - I18nCheck.Tests.dll (net10.0)"
+  ]
+}

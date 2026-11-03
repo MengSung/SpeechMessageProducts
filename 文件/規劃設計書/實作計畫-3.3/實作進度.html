@@ -350,10 +350,10 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-07 驗證完成）",
+  "snapshot": "2026-11-03（永久測試命名規則補充完成）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "P0-07 的 <strong>I18nCheck</strong> 已驗證：工具 <strong>75／75</strong>、完整 Release <strong>771／771</strong>、Debug tracer <strong>7／7</strong>。CJK 基準 11 專案、817 檔，編碼與進度頁檢查通過；下一包為 P0-08，仍不連線 D365／LINE。",
+  "headline": "P0-04 補充已驗證永久測試命名規則：三項條件同時成立才允許底線，<strong>20／20</strong> 探測通過。工具 <strong>75／75</strong>、方案 <strong>771／771</strong>、Debug tracer <strong>7／7</strong>，下一步接續 P0-08，無需再核定 CA1707。",
   "alert": null,
   "tiles": [
     {
@@ -371,7 +371,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "9",
       "unit": "/ 15 工作包",
-      "sub": "P0-07 全部驗證通過，下一包 P0-08",
+      "sub": "先獨立提交永久命名規則補充，再接續 P0-08",
       "meter": {
         "done": 9,
         "active": 0,
@@ -420,7 +420,7 @@ const DATA = {
       "id": "P0-04",
       "name": "新程式的分析器與禁用 API 設定",
       "status": "done",
-      "note": "含原始實作 1cf66341 與文件產出補修 c4e1f294；CS1591、SMQ0001、bin XML 與原有守門共 16／16。",
+      "note": "原 c4e1f294 的 16 項保留；本次新增四個命名邊界共 20／20，三條件 CA1707 例外集中，其他規則不變。",
       "commit": "c4e1f294"
     },
     {
@@ -456,14 +456,14 @@ const DATA = {
       "id": "P0-07",
       "name": "I18nCheck 第一版：中文字串棘輪＋resx 產生器",
       "status": "done",
-      "note": "75／75、工具覆蓋率超過 96%；11 專案 817 檔共 3895 CJK 片段。scan／generate／check／verify、Release 771／771、Debug 7／7 與編碼全通過。",
-      "commit": "本次提交"
+      "note": "已提交 f0f0360f；75／75、覆蓋率 96.73%，11 專案 817 檔共 3895 CJK 片段，完整方案與全部守門通過。",
+      "commit": "f0f0360f"
     },
     {
       "id": "P0-08",
       "name": "骨架：SpeechMessage.Localization（雙目標）",
       "status": "todo",
-      "note": "多語字典的第一版，同時支援 .NET 10 與 D365 用的 .NET Framework 4.8。"
+      "note": "使用者已核定永久三條件命名例外，原停止條件解除；補充提交後從原八個測試開始 TDD。"
     },
     {
       "id": "P0-09",
@@ -605,8 +605,8 @@ const DATA = {
     {
       "item": "新程式分析器探測",
       "before": "未建立",
-      "after": "16／16",
-      "note": "P0-04 含實際 XML 產出，已由使用者轉交 Claude 核對"
+      "after": "20／20",
+      "note": "原 16 項加 4 命名邊界，產品／偽測試仍拒絕；合格測試通過。"
     },
     {
       "item": "編碼／轉換測試",
@@ -802,6 +802,16 @@ const DATA = {
       "t": "2026-11-03",
       "text": "P0-07 提交前全部守門通過；包含新檔的全階段編碼無問題，3.2 凍結副本不變。",
       "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 已提交 f0f0360f；P0-08 核對發現同一命名衝突，但目前例外僅限上一測試專案，停下等待核定。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "永久規則補充：原探測加四例 20／20；工具 75／75、方案 771／771、Debug 7／7。P0-08 命名待決解除。",
+      "cls": "ok"
     }
   ],
   "decisions": [
@@ -846,6 +856,10 @@ const DATA = {
     {
       "text": "僅 I18nCheck.Tests 允許 CA1707 命名例外",
       "sub": "使用者 2026-11-03 明確核定；保留十二個方法名，工具本體及其他分析器維持嚴格。"
+    },
+    {
+      "text": "永久集中允許合格嚴格測試的底線命名",
+      "sub": "2026-11-03 核定所有階段：StrictCode、IsTestProject、.Tests 名稱三者同時成立，僅 CA1707；取代先前單專案例外。"
     }
   ],
   "prep": [

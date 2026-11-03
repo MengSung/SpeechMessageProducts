@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: powershell -NoProfile -File tools/RepoQuality/Test-AnalyzerProbe.ps1 -EvidenceDirectory artifacts/quality/p004-naming-red
+
+EXIT_CODE=1

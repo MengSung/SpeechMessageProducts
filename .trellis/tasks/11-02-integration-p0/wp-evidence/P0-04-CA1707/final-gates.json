@@ -1,0 +1,19 @@
+{
+  "checks": 20,
+  "failures": 0,
+  "i18nTests": 75,
+  "releaseTests": 771,
+  "debugTracerTests": 7,
+  "buildErrors": 0,
+  "buildWarnings": 77,
+  "singleExceptionConfiguration": [
+    "Directory.Build.targets"
+  ],
+  "scope": "StrictCode=true AND IsTestProject=true AND ordinal .Tests suffix",
+  "staticChecksPending": false,
+  "encodingSummary": "Text encoding: scope=Changed checked=242 excluded=74 filesWithIssues=0",
+  "byteCheckedFiles": 34,
+  "frozenV32Unchanged": 8,
+  "progressTestsPassed": 3,
+  "diffCheckPassed": true
+}

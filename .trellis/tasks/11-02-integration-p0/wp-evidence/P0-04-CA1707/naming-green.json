@@ -1,0 +1,15 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/RepoQuality/Test-AnalyzerProbe.ps1",
+    "-EvidenceDirectory",
+    "artifacts/quality/p004-naming-green"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 55.21,
+  "consoleSummary": [
+    "Analyzer probe: checks=20 failures=0 buildExit=1 errors=RS0030"
+  ]
+}

@@ -7,8 +7,6 @@
     <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
     <!-- 與工具同樣在本體開啟文件產出，測試文件也受嚴格模式保護。 -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- 使用者 2026-11-03 核定僅本測試專案保留計畫指定底線名稱；其餘嚴格診斷不變。 -->
-    <NoWarn>$(NoWarn);CA1707</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

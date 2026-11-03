@@ -1,0 +1,34 @@
+{
+  "checks": 20,
+  "failures": 0,
+  "cases": [
+    {
+      "projectName": "NamingProduct",
+      "buildSucceeded": false,
+      "errors": [
+        "CA1707"
+      ]
+    },
+    {
+      "projectName": "NamingProbe.Tests",
+      "buildSucceeded": true,
+      "errors": []
+    },
+    {
+      "projectName": "PretendProduct",
+      "buildSucceeded": false,
+      "errors": [
+        "CA1707"
+      ]
+    },
+    {
+      "projectName": "SuffixOnly.Tests",
+      "buildSucceeded": false,
+      "errors": [
+        "CA1707"
+      ]
+    }
+  ],
+  "oldChecksRetained": 16,
+  "newCases": 4
+}
