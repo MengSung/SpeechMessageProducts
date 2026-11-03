@@ -50,7 +50,7 @@ function Get-SourceText {
 }
 
 function Get-SourceTypeNames {
-    <# 遮罩註解與字串後，追蹤 namespace 大括號與檔案範圍 namespace，避免把訊息文字當型別。
+    <# 遮罩註解與字串後，追蹤 namespace 與外層型別作用域，避免把訊息或不同 owner 當同一型別。
        此為來源宣告掃描，不載入組件或執行程式；只回傳型別名稱，本文不跨檔保存。 #>
     param([string]$Source)
     $maskPattern = @'
@@ -58,10 +58,13 @@ function Get-SourceTypeNames {
 '@
     $code = [regex]::Replace($Source, $maskPattern.Trim(), ' ')
     $identifier = '@?[\p{L}_][\p{L}\p{Nd}_]*'
-    $pattern = '(?<ns>\bnamespace\s+(?<nsname>' + $identifier + '(?:\s*\.\s*' + $identifier + ')*)\s*(?<term>[;{]))|(?<type>\b(?:class|struct|record(?:\s+(?:class|struct))?)\s+(?<typename>' + $identifier + '))|(?<open>\{)|(?<close>\})'
+    $pattern = '(?<ns>\bnamespace\s+(?<nsname>' + $identifier + '(?:\s*\.\s*' + $identifier + ')*)\s*(?<term>[;{]))|(?<type>\b(?:class|struct|record(?:\s+(?:class|struct))?)\s+(?<typename>' + $identifier + '))|(?<open>\{)|(?<close>\})|(?<semicolon>;)'
     $namespace = ''
     $level = 0
     $frames = New-Object 'Collections.Generic.List[object]'
+    $typeFrames = New-Object 'Collections.Generic.List[object]'
+    $owners = New-Object 'Collections.Generic.List[string]'
+    $pendingType = $null
     foreach ($token in [regex]::Matches($code, $pattern)) {
         if ($token.Groups['ns'].Success) {
             $name = ($token.Groups['nsname'].Value -replace '\s', '') -replace '@', ''
@@ -72,9 +75,21 @@ function Get-SourceTypeNames {
             }
             else { $namespace = $name }
         }
-        elseif ($token.Groups['open'].Success) { $level++ }
+        elseif ($token.Groups['open'].Success) {
+            if ($null -ne $pendingType) {
+                $typeFrames.Add(@{ Level = $level; OwnerCount = $owners.Count })
+                $owners.Add($pendingType)
+                $pendingType = $null
+            }
+            $level++
+        }
         elseif ($token.Groups['close'].Success) {
             $level--
+            if ($typeFrames.Count -gt 0 -and $typeFrames[$typeFrames.Count - 1].Level -eq $level) {
+                $count = $typeFrames[$typeFrames.Count - 1].OwnerCount
+                $owners.RemoveRange($count, $owners.Count - $count)
+                $typeFrames.RemoveAt($typeFrames.Count - 1)
+            }
             if ($frames.Count -gt 0 -and $frames[$frames.Count - 1].Level -eq $level) {
                 $namespace = $frames[$frames.Count - 1].Parent
                 $frames.RemoveAt($frames.Count - 1)
@@ -82,8 +97,15 @@ function Get-SourceTypeNames {
         }
         elseif ($token.Groups['type'].Success) {
             $name = $token.Groups['typename'].Value.TrimStart([char]'@')
-            if ($namespace) { $namespace + '.' + $name } else { $name }
+            $parts = @()
+            if ($namespace) { $parts += $namespace }
+            $parts += @($owners.ToArray())
+            $parts += $name
+            $parts -join '.'
+            $pendingType = $name
         }
+        # 無本體 record／struct 的分號終止宣告，不能讓下一個大括號錯歸 owner。
+        elseif ($token.Groups['semicolon'].Success) { $pendingType = $null }
     }
 }
 

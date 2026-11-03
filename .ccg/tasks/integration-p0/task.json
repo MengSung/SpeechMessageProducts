@@ -42,9 +42,11 @@
     "locallyFixedPendingReview": [
       "C-01",
       "H-01 (Medium)",
-      "M-01"
+      "M-01",
+      "M-02"
     ],
     "c01Commit": "6588902",
-    "h01Commit": "1fde6020"
+    "h01Commit": "1fde6020",
+    "m01Commit": "c9ed44d3"
   }
 }

@@ -110,6 +110,39 @@ Describe 'Solution duplicate code contracts' {
         $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
         @($baseline.entries).Count | Should Be 0
     }
+    # 不同外層型別的同名巢狀型別有不同身分，不能以 N.Inner 誤併為跨專案重複。
+    It 'NestedTypes_DifferentOwners_AreSeparate' {
+        Set-Source 'A/A.cs' 'namespace N { class OuterA { class Inner { int A = 1; } } }'
+        Set-Source 'B/B.cs' 'namespace N { class OuterB { class Inner { int B = 2; } } }'
+        (Invoke-DuplicateScan).ExitCode | Should Be 0
+        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
+        @($baseline.entries).Count | Should Be 0
+    }
+    # 真正相同外層與巢狀身分仍須記錄，不能因新增 owner 追蹤而漏掉重複。
+    It 'NestedTypes_SameOwner_DifferentContent_AreRecorded' {
+        Set-Source 'A/A.cs' 'namespace N { class Outer { class Inner { int A = 1; } } }'
+        Set-Source 'B/B.cs' 'namespace N { class Outer { class Inner { int B = 2; } } }'
+        (Invoke-DuplicateScan).ExitCode | Should Be 0
+        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
+        @($baseline.entries | Where-Object { $_.kind -eq 'type' -and $_.key -eq 'N.Outer.Inner' }).Count | Should Be 1
+        @($baseline.entries | Where-Object { $_.key -eq 'N.Inner' }).Count | Should Be 0
+    }
+    # 關閉巢狀作用域後必須還原 owner，不讓前一個兄弟型別或方法大括號汙染後續鍵。
+    It 'NestedTypes_SiblingScopes_RestoreOwner' {
+        Set-Source 'A/A.cs' 'namespace N { class OuterA { class First { class Inner { int A = 1; } } class Second { class Inner { int A = 2; } } } }'
+        Set-Source 'B/B.cs' 'namespace N { class OuterB { class Inner { int B = 3; } } }'
+        (Invoke-DuplicateScan).ExitCode | Should Be 0
+        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
+        @($baseline.entries).Count | Should Be 0
+    }
+    # 無本體 record 的分號不能把下一個型別錯當成其巢狀成員。
+    It 'NestedTypes_RecordWithoutBody_DoesNotOwnFollowingType' {
+        Set-Source 'A/A.cs' 'namespace N; record Marker; class OuterA { class Inner { int A = 1; } }'
+        Set-Source 'B/B.cs' 'namespace N; class OuterB { class Inner { int B = 2; } }'
+        (Invoke-DuplicateScan).ExitCode | Should Be 0
+        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
+        @($baseline.entries).Count | Should Be 0
+    }
     It 'Scope_OutsideProjectsGeneratedAndExcludedPaths_AreNotRead' {
         foreach ($file in @('Outside/old.cs','A/bin/old.cs','A/obj/old.cs','A/.worktrees/old.cs','A/docs/old.cs','A/.ccg/tasks/old.cs','A/old.g.cs','A/old.Designer.cs')) {
             Set-Source $file 'namespace N { internal class Alpha { internal int Value = 1; } }'
