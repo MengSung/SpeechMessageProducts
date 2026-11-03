@@ -350,30 +350,30 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-10 收尾驗證通過）",
+  "snapshot": "2026-11-03（P0-11 本機 CI 驗證通過）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-10</strong> 一般 Release 不再依賴金鑰；打包六樣本全過，完整方案 <strong>969／969</strong>、Debug <strong>7／7</strong>，正式明確打包檢查通過。使用者已清除暫存資料夾並確認手動提交，收尾提交後接續 P0-11。",
+  "headline": "<strong>P0-11</strong> CI 檔已建立，本機逐步驗證通過；完整方案 <strong>969／969</strong>、Debug <strong>7／7</strong>，七組新模組覆蓋率皆超過 80%。<strong>未在 GitHub 實跑（依規定不推送）</strong>；沒有 secret 時跳過正式打包。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "12",
+      "value": "13",
       "unit": "/ 80 工作包",
       "sub": "依 3.3 計畫，含 P0-SEC、P0-ENV 與新增佈署工作包",
       "meter": {
-        "done": 12,
+        "done": 13,
         "active": 0,
         "total": 80
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "12",
+      "value": "13",
       "unit": "/ 15 工作包",
-      "sub": "P0-10 收尾驗證通過，提交後接續 P0-11",
+      "sub": "P0-11 本機 CI 命令通過；下一包 P0-12 佈署專案最小版",
       "meter": {
-        "done": 12,
+        "done": 13,
         "active": 0,
         "total": 15
       }
@@ -388,7 +388,7 @@ const DATA = {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "P0-10 最後建置 76 警告，不超過原 77"
+      "sub": "P0-11 完整 Release 77 個既有警告，未新增抑制"
     }
   ],
   "wps": [
@@ -478,13 +478,14 @@ const DATA = {
       "name": "骨架：Dynamics Plugins（net48）＋ILRepack＋簽章＋打包檢查",
       "status": "done",
       "note": "一般建置不讀打包金鑰；兩紅轉六綠。子程序無金鑰 Release 與正式明確打包皆通過；兩個暫存資料夾已由使用者清除。",
-      "commit": "cf3595db＋本次收尾"
+      "commit": "7881177a（主體 cf3595db）"
     },
     {
       "id": "P0-11",
       "name": "方案層級 CI",
-      "status": "todo",
-      "note": "GitHub 上每次提交自動建置、測試，並跑上面所有守門檢查。"
+      "status": "done",
+      "note": "本機逐步執行 CI：Release 969／969、Debug 7／7，七組覆蓋率過門檻；沒有 secret 跳過打包，暫存金鑰 always 清理。未在 GitHub 實跑。",
+      "commit": "本次提交"
     },
     {
       "id": "P0-12",
@@ -511,8 +512,8 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 15,
-      "done": 11,
-      "active": 1,
+      "done": 13,
+      "active": 0,
       "current": true
     },
     {
@@ -590,8 +591,8 @@ const DATA = {
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "76",
-      "note": "本次不超過原 77，沒有新增抑制"
+      "after": "77",
+      "note": "P0-11 完整建置不超過原 77，沒有新增抑制"
     },
     {
       "item": "套件版本違規",
@@ -603,7 +604,7 @@ const DATA = {
       "item": "Debug 追蹤測試",
       "before": "未納入",
       "after": "7／7",
-      "note": "P0-10 重跑通過"
+      "note": "P0-11 本機 CI 重跑通過"
     },
     {
       "item": "新程式分析器探測",
@@ -651,7 +652,13 @@ const DATA = {
       "item": "Plugin 與離線打包",
       "before": "未建立",
       "after": "24／24；工具 11／11",
-      "note": "行覆蓋率 91.93%／98.30%；簽章與六項檢查通過、樣本 9／9、流程 3／3"
+      "note": "行覆蓋率 91.93%／98.30%；樣本 9／9、流程 6／6；正式簽章已在 P0-10 驗證。"
+    },
+    {
+      "item": "方案 CI 與覆蓋率門檻",
+      "before": "僅舊 .NET 8 workflow",
+      "after": "本機全過；七組 ≥80%",
+      "note": "覆蓋率測試 11／11；GitHub 未實跑，沒有 secret 時跳過正式打包。"
     }
   ],
   "conduct": [
@@ -883,6 +890,11 @@ const DATA = {
       "t": "2026-11-03",
       "text": "P0-10 收尾核定：使用者清除暫存並確認 cf3595db；一般建置改為不打包，六樣本及無金鑰 Release／正式明確打包通過。",
       "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "ok",
+      "text": "P0-11 本機逐步 CI 通過；覆蓋率七組皆過門檻，保留啟動器故障與修正證據，不推送、不建立 GitHub secret。"
     }
   ],
   "decisions": [

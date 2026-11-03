@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-10 收尾已提交 7881177a，P0-11 CI 依序實作中，尚未連線外部系統。",
+  "description": "P0-11 本機逐步 CI 與 00 §8 全數通過，未在 GitHub 實跑；提交後接續 P0-12。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -25,7 +25,7 @@
   "meta": {
     "currentWorkPackage": "P0-11",
     "userRequestedStop": false,
-    "gatePassed": false,
+    "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-11.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
@@ -45,9 +45,17 @@
       "P0-04-AnalysisLevel": "58245c6f",
       "P0-08": "92cfa180",
       "P0-09": "6b559da5",
-      "P0-10": "7881177a（主體 cf3595db）"
+      "P0-10": "7881177a（主體 cf3595db）",
+      "P0-11": "7641a206（主體）；fc5df488（搬移）；本次提交（收尾）"
     },
     "stopReason": null,
-    "observedExternalCommit": "cf3595db"
+    "observedExternalCommit": "cf3595db",
+    "observedExternalCommits": [
+      "cf3595db",
+      "52078897",
+      "4c54edfa",
+      "fc5df488",
+      "7641a206"
+    ]
   }
 }

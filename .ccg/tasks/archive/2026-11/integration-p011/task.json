@@ -1,0 +1,19 @@
+{
+  "id": "integration-p011",
+  "title": "P0-11 方案 CI 與離線覆蓋率守門",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "build",
+  "currentPhase": "completed",
+  "branch": "1.0.0.11.Integration.P0",
+  "baseCommit": "7881177a",
+  "nextAction": "P0-11 提交後接續 P0-12；不推送、不合併、不在本包外審。",
+  "reviewPolicy": "主會話 inline；依使用者核定 P0-12 後才做 ClaudeOnly 階段審查。",
+  "localVerificationPassed": true,
+  "observedExternalCommits": [
+    "fc5df488",
+    "7641a206"
+  ],
+  "contentMatchesVerifiedFiles": true
+}
