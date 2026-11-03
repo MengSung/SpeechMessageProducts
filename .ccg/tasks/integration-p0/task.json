@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "先修正特徵測試搭建並鎖三個縮圖回退，完整本機驗證後單獨提交；再依核定實作 JPEG／PNG／GIF 內容白名單與尺寸防護。",
+  "nextAction": "P0-12A 圖片防護驗證完成；本次提交後接一般金鑰 CI B 段，再做八批 ClaudeOnly 階段審查。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
@@ -15,5 +15,8 @@
   "reviewBlocker": null,
   "stopReason": null,
   "approval": "使用者 2026-11-03 核定：Core 保留原始 TransportException，不通知；Plugin 追蹤後拋出，最終通知依階段 2／5 排程。",
-  "resumeCommit": "54e0a4d0"
+  "resumeCommit": "54e0a4d0",
+  "completedWorkPackages": {
+    "P0-12A": "本次提交（圖片防護）"
+  }
 }

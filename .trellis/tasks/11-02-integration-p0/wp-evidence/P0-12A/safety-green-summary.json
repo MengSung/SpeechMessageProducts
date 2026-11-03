@@ -1,0 +1,115 @@
+{
+  "workPackage": "P0-12A",
+  "date": "2026-11-03",
+  "sourceHead": "f0574f41",
+  "license": {
+    "userConfirmedGeneralKey": true,
+    "fileExistsChecked": true,
+    "releaseLicenseValidationPassed": true,
+    "contentsReadCopiedOrPrinted": false
+  },
+  "red": {
+    "imageSharp": "3.1.12",
+    "tests": 30,
+    "failed": 30,
+    "evidence": "safety-red.txt"
+  },
+  "green": {
+    "imageSharp": "3.2.0",
+    "imageCases": 76,
+    "characterizationCases": 39,
+    "safetyCases": 37,
+    "solutionPassed": 1089,
+    "solutionFailed": 0,
+    "solutionSkipped": 0,
+    "churchReportPassed": 579,
+    "debugTracerPassed": 7
+  },
+  "gates": {
+    "releaseRebuildWarnings": 1,
+    "releaseRebuildErrors": 0,
+    "existingWarning": "Line.Messaging CS1572",
+    "vulnerableProjects": 0,
+    "vulnerabilityScannedProjects": 26,
+    "duplicateProjects": 26,
+    "duplicateFiles": 879,
+    "duplicateNew": 0,
+    "duplicateStale": 0,
+    "packageProjects": 39,
+    "packageReferences": 149,
+    "packageFailures": 0,
+    "analyzerChecks": 26,
+    "analyzerFailures": 0,
+    "cjkChurchReport": 3682,
+    "cjkBaselineChurchReport": 3685,
+    "generatedResourceFiles": 2,
+    "progressPassed": 3,
+    "frontEndPassed": 16,
+    "encodingIssues": 0
+  },
+  "lifecycle": {
+    "realPathSoakOperations": 175,
+    "newUndisposedAllocations": 0,
+    "activeInputStreamsAfterEachOperation": 0,
+    "concurrentMixedOperations": 12,
+    "networkConnections": 0
+  },
+  "artifacts": [
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_40_net10.0.trx",
+      "sha256": "a04e363d3773d4699e4a6c2376affd7b7af5ab3e2796d018cbd2d69a9d3f7dca"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_40_net10.0[1].trx",
+      "sha256": "d5220a08bbd91b9a7510bc07db14263a747cda656cf10f793c4c1a6e14cce149"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_40_net10.0[2].trx",
+      "sha256": "7150188a11a8be7e100c4bbfc1b96227ef0b63c076ae36a0a1a05041fd8e99ce"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_40_net10.0[3].trx",
+      "sha256": "b470a35ce2f11805974bc938a7a1b85a394b3600586738dffc4dde606340d6e1"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_40_net10.0[4].trx",
+      "sha256": "878c3b7e5018575b8fccf9a4c2a1dc3d153393a8a1bb67eecc9e0782eafd5df0"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_40_net10.0[5].trx",
+      "sha256": "9fd95d0b2100b11c430625339262094e242e9ae9253649d7156f0cab43102860"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_40_net10.0[6].trx",
+      "sha256": "68c36994b1ae294c99e51cffc934a93adec23e80dbc7d1b294b2578ddcd7b6bc"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_41_net10.0.trx",
+      "sha256": "7d34559c302d2a59984503743b5846050e5bd0cdfd07dda79138d040001ba581"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_41_net10.0[1].trx",
+      "sha256": "24bec8820a0ab138f3dd5564f9590669bff2d9f0daf9678d93466889321a3df0"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_41_net10.0[2].trx",
+      "sha256": "26e82afde3c02c638a83bbe8eabd45c54a501a100cfb76dc5131ba7adb55a6c0"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_41_net48.trx",
+      "sha256": "4fb87f95b215bf09a3f5a33dfbd1142872179d029e7251a6a5d2c37656d4a753"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_41_net48[1].trx",
+      "sha256": "ec4bc10e30fb0f3c9b435753622087f6506a032d4659482ab3465a8fcbd52f07"
+    },
+    {
+      "file": "artifacts/p0-12a/solution-tests-final/Administrator_LENOVO-LEGION_2026-11-03_23_02_42_net48.trx",
+      "sha256": "a1e9be74b4319c1bcd7e10e533da4972f1a12e71ae37488321daed7f6b15302f"
+    },
+    {
+      "file": "artifacts/p0-12a/debug-final/Administrator_LENOVO-LEGION_2026-11-03_23_03_00_net10.0.trx",
+      "sha256": "25c34c9b729810e1adbc5b7e987f645020aaca9462eadfc9a95ff7f96c1b70c6"
+    }
+  ]
+}

@@ -350,45 +350,45 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-12A 升級前特徵測試 50／50，全方案已恢復全綠）",
+  "snapshot": "2026-11-03（P0-12A 圖片防護驗證完成，接續一般金鑰 CI）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "P0-12A 已修正測試依賴，現有 ImageSharp 3.1.12 的圖片特徵測試 <strong>50／50</strong>，完整 Release <strong>1063／1063</strong>。接續 JPEG／PNG／GIF 格式與尺寸防護；小組回報維持 review，併階段 0 第 ⑧ 批。",
+  "headline": "ImageSharp 已升至 <strong>3.2.0</strong>；六個解碼位置共用格式與尺寸檢查。圖片 <strong>76／76</strong>、全方案 Release <strong>1089／1089</strong>，本機授權建置通過；接續一般金鑰 CI，再做八批 ClaudeOnly 階段審查。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "16",
+      "value": "17",
       "unit": "/ 83 工作包",
-      "sub": "P0-12 離線驗證完成；接續 P0-12A",
+      "sub": "P0-12A 圖片防護完成；一般金鑰 CI 接續處理",
       "meter": {
-        "done": 16,
+        "done": 17,
         "active": 1,
         "total": 83
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "16",
+      "value": "17",
       "unit": "/ 18 工作包",
-      "sub": "佈署最小版驗證通過；尚未進行 D365 使用者驗收",
+      "sub": "P0-12A 圖片防護完成；一般金鑰 CI 接續處理",
       "meter": {
-        "done": 16,
+        "done": 17,
         "active": 1,
         "total": 18
       }
     },
     {
-      "label": "完整 Release 測試",
-      "value": "1063",
-      "unit": "/ 1063 通過",
-      "sub": "ChurchReport 553／553；圖片特徵 50／50；Debug tracer 7／7"
+      "label": "最近完整 Release",
+      "value": "1089",
+      "unit": "/ 1089 通過",
+      "sub": "ChurchReport 579／579；其中圖片案例 76／76"
     },
     {
-      "label": "Release 建置",
-      "value": "0",
-      "unit": "錯誤",
-      "sub": "Release 36 個既有警告；尚未升級 ImageSharp，未新增抑制"
+      "label": "目前 Release 建置",
+      "value": "通過",
+      "unit": "0 錯誤",
+      "sub": "完整重建 1 個既有 CS1572 警告；本機有效授權檢查通過"
     }
   ],
   "wps": [
@@ -509,8 +509,9 @@ const DATA = {
     {
       "id": "P0-12A",
       "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
-      "status": "active",
-      "note": "升級前特徵 50／50：補齊 Personal 工具提供者，鎖三種縮圖回退；此子步驟先單獨提交，再做套件與內容格式／尺寸防護。"
+      "status": "done",
+      "note": "特徵 f0574f41；30 個功能紅燈→76 個圖片案例全綠。3.2.0 無弱點列項，完整 Release 1089／1089；一般金鑰 CI 接續獨立提交。",
+      "commit": "本次提交"
     },
     {
       "milestone": true,
@@ -531,7 +532,7 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 18,
-      "done": 16,
+      "done": 17,
       "active": 1,
       "current": true
     },
@@ -604,20 +605,20 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "1013 過／0 失敗",
-      "note": "ChurchReport 503／503；原案例全部保留"
+      "after": "1089 過／0 失敗",
+      "note": "ChurchReport 579／579；圖片 76／76；無跳過"
     },
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "36",
-      "note": "0 錯誤；剩餘 ImageSharp 弱點排入 P0-12A"
+      "after": "1",
+      "note": "完整重建 0 錯誤；僅原有 Line.Messaging CS1572，未新增警告"
     },
     {
       "item": "套件版本違規",
       "before": "113 項",
       "after": "0 項",
-      "note": "P0-10 37 專案、139 引用、零違規"
+      "note": "39 專案、149 引用、零違規"
     },
     {
       "item": "Debug 追蹤測試",
@@ -647,7 +648,7 @@ const DATA = {
       "item": "重複程式守門",
       "before": "未建立",
       "after": "0 新增／14 測試",
-      "note": "P0-10 實掃 24 專案 865 檔，groups／new／stale 均為 0"
+      "note": "26 專案 879 檔，groups／new／stale 均為 0"
     },
     {
       "item": "I18nCheck 工具與基準",
@@ -940,6 +941,16 @@ const DATA = {
       "t": "2026-11-03",
       "cls": "ok",
       "text": "P0-12A 特徵測試修復：補齊 Personal 測試工具依賴，現有 3.1.12 圖片 50／50、Release 1063／1063，未改產品。"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "stop",
+      "text": "P0-12A 新增 30 個功能紅燈後開始實作；3.2.0 還原成功，但編譯前缺有效授權，停止等待使用者。"
+    },
+    {
+      "text": "P0-12A 一般金鑰已備妥：76 個圖片案例、Release 1089／1089、Debug 7／7；CJK 訊息移入資源檔，兩個生成檔逐位元組一致。",
+      "t": "2026-11-03",
+      "cls": "ok"
     }
   ],
   "decisions": [
@@ -1008,9 +1019,18 @@ const DATA = {
     {
       "text": "P0-12A 維持既有 JPEG／PNG／GIF 白名單，不新增 WebP",
       "sub": "使用者 2026-11-03 更正；先把 3.1.12 特徵測試修到全綠，再拒絕偽裝 WebP。"
+    },
+    {
+      "text": "Six Labors 使用一般金鑰；本機與 GitHub 設定已由使用者完成",
+      "sub": "只以程序環境提供本機路徑，不讀內容；B 段將 secret 暫存至 runner，缺少即失敗並 always 清理。"
     }
   ],
   "prep": [
+    {
+      "state": "done",
+      "text": "Six Labors 一般金鑰已由使用者備妥",
+      "sub": "本機只確認檔案存在並傳入程序環境；Release 授權檢查通過。GitHub secret 由使用者回報已建立，CI 尚待本包 B 段。"
+    },
     {
       "state": "done",
       "text": "唯一開發測試組織已指定 goodshepherdback",
@@ -1045,6 +1065,11 @@ const DATA = {
   "risks": [
     {
       "level": "info",
+      "text": "本機 Six Labors 授權阻擋已解除",
+      "sub": "使用者完成設定，Release 建置已通過；一般金鑰 CI 接續本機假資料驗證，不讀取本機授權內容。"
+    },
+    {
+      "level": "info",
       "text": "階段 0～4 的 Plugin 失敗由系統作業與追蹤查看",
       "sub": "依設計排程，階段 5 LineWebhook 彙總器才通知管理者；P0-13 會說明追蹤查看方式。"
     },
@@ -1065,8 +1090,8 @@ const DATA = {
     },
     {
       "level": "warn",
-      "text": "ChurchReport ImageSharp 3.1.12 有 High／Moderate 弱點",
-      "sub": "排入 P0-12A 升至 3.2.0，並限制上傳格式與解碼尺寸。"
+      "text": "ImageSharp 與加密套件修補須重新發佈才生效",
+      "sub": "本分支 ImageSharp 3.2.0 已通過驗證且弱點掃描不再列出；正式站尚未因本次提交自動更新。"
     },
     {
       "level": "warn",
@@ -1080,8 +1105,8 @@ const DATA = {
     },
     {
       "level": "info",
-      "text": "既有套件弱點與 CS1572 警告保留",
-      "sub": "先前 Release 77 個警告；本包不升級其他套件或降低檢查"
+      "text": "本機弱點掃描未列出弱點；保留既有 CS1572",
+      "sub": "26 個方案專案未列出弱點；完整重建僅 1 個既有 XML 參數註解警告。"
     },
     {
       "level": "info",

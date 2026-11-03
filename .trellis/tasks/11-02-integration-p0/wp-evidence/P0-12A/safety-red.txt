@@ -1,0 +1,152 @@
+P0-12A safety red: ImageSharp 3.1.12, before product changes.
+Source: artifacts/p0-12a/red/safety-red.trx
+Result: 30 failed / 0 passed / 0 skipped.
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_UnexpectedFailure_ReportsOriginalExceptionWithoutPrivateMessage(route: "personal")
+Assert.DoesNotContain() Failure: Sub-string found
+               ↓ (pos 6)
+String: "上傳失敗: synthetic-private-value"
+Found:  "synthetic-private-value"
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Thumbnail_DisallowedFormat_KeepsExistingFallback(route: "member-crop", format: "webp")
+Assert.Same() Failure: Values are not the same instance
+Expected: [82, 73, 70, 70, 68, ···]
+Actual:   [255, 216, 255, 224, 0, ···]
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_OversizedDimensions_RejectedBeforeFullDecode(route: "member", width: 8193, height: 1)
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_CorruptFile_ReturnsExpectedRejection(route: "new-direct")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_TiffFile_RejectedBeforeDecode(route: "new-direct")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_DisguisedWebpAsJpg_Rejected(route: "member")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_DisguisedWebpAsJpg_Rejected(route: "new-direct")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_OversizedDimensions_RejectedBeforeFullDecode(route: "new-direct", width: 8000, height: 5001)
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_TiffFile_RejectedBeforeDecode(route: "member")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_CorruptFile_ReturnsExpectedRejection(route: "new-attached")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_DisguisedWebpAsJpg_Rejected(route: "personal")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_DisguisedWebpAsJpg_Rejected(route: "new-attached")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_UnsupportedFormat_Rejected(route: "new-attached")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_OversizedDimensions_RejectedBeforeFullDecode(route: "new-attached", width: 8000, height: 5001)
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_UnsupportedFormat_Rejected(route: "personal")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_ConcurrentInputs_DrainStreamsAndKeepResultsIsolated(route: "new-direct")
+Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_UnexpectedFailure_ReportsOriginalExceptionWithoutPrivateMessage(route: "new-direct")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_UnsupportedFormat_Rejected(route: "member")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Thumbnail_DisallowedFormat_KeepsExistingFallback(route: "member-fit", format: "tiff")
+Assert.Same() Failure: Values are not the same instance
+Expected: [73, 73, 42, 0, 8, ···]
+Actual:   [255, 216, 255, 224, 0, ···]
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_ConcurrentInputs_DrainStreamsAndKeepResultsIsolated(route: "personal")
+Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_UnsupportedFormat_Rejected(route: "new-direct")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_TiffFile_RejectedBeforeDecode(route: "personal")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_AllCallSites_UseSharedValidator
+Assert.NotNull() Failure: Value is null
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_ConcurrentInputs_DrainStreamsAndKeepResultsIsolated(route: "member")
+Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Thumbnail_DisallowedFormat_KeepsExistingFallback(route: "personal-crop", format: "bmp")
+Assert.Same() Failure: Values are not the same instance
+Expected: [66, 77, 54, 72, 0, ···]
+Actual:   [255, 216, 255, 224, 0, ···]
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_ConcurrentInputs_DrainStreamsAndKeepResultsIsolated(route: "new-attached")
+Assert.Equal() Failure: Values differ
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_OversizedDimensions_RejectedBeforeFullDecode(route: "personal", width: 1, height: 8193)
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_CorruptFile_ReturnsExpectedRejection(route: "member")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_TiffFile_RejectedBeforeDecode(route: "new-attached")
+Assert.False() Failure
+Expected: False
+Actual:   True
+
+ChurchReport.MemberInfo.Tests.Images.ImageUploadSafetyTests.Upload_CorruptFile_ReturnsExpectedRejection(route: "personal")
+Assert.False() Failure
+Expected: False
+Actual:   True

@@ -11,6 +11,8 @@ using Microsoft.Xrm.Sdk;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.Formats.Tiff;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Webp;
@@ -30,10 +32,10 @@ namespace ChurchReport.MemberInfo.Tests.Images;
 /// </summary>
 public sealed class ImageUploadCharacterizationTests
 {
-    /// <summary>四條上傳路徑各測四種格式及 EXIF；GIF 不承載 EXIF，另保護其不旋轉行為。</summary>
+    /// <summary>四條上傳路徑各測三種允許格式及 EXIF；偽裝 WebP 改由安全拒絕案例保護；GIF 不承載 EXIF，另保護其不旋轉行為。</summary>
     public static IEnumerable<object[]> UploadCases =>
         from route in new[] { "member", "personal", "new-attached", "new-direct" }
-        from format in new[] { "jpeg", "png", "gif", "webp" }
+        from format in new[] { "jpeg", "png", "gif" }
         from orientation in new[] { false, true }
         select new object[] { route, format, orientation };
 
@@ -67,9 +69,9 @@ public sealed class ImageUploadCharacterizationTests
     /// <param name="route">縮圖種類。</param>
     /// <param name="format">合成來源格式。</param>
     [Theory]
-    [InlineData("member-crop", "jpeg")][InlineData("member-crop", "png")][InlineData("member-crop", "gif")][InlineData("member-crop", "webp")]
-    [InlineData("member-fit", "jpeg")][InlineData("member-fit", "png")][InlineData("member-fit", "gif")][InlineData("member-fit", "webp")]
-    [InlineData("personal-crop", "jpeg")][InlineData("personal-crop", "png")][InlineData("personal-crop", "gif")][InlineData("personal-crop", "webp")]
+    [InlineData("member-crop", "jpeg")][InlineData("member-crop", "png")][InlineData("member-crop", "gif")]
+    [InlineData("member-fit", "jpeg")][InlineData("member-fit", "png")][InlineData("member-fit", "gif")]
+    [InlineData("personal-crop", "jpeg")][InlineData("personal-crop", "png")][InlineData("personal-crop", "gif")]
     public void Thumbnail_AllowedFormats_PreserveDimensionsPixelsAndSize(string route, string format)
     {
         var result = ImageFixture.Thumbnail(route, ImageFixture.CreateSample(format), 80);
@@ -162,7 +164,7 @@ internal static class ImageFixture
         IImageEncoder encoder = format switch
         {
             "jpeg" => new JpegEncoder { Quality = 95 }, "png" => new PngEncoder(),
-            "gif" => new GifEncoder(), "webp" => new WebpEncoder { FileFormat = WebpFileFormatType.Lossless },
+            "gif" => new GifEncoder(), "bmp" => new BmpEncoder(), "tiff" => new TiffEncoder(), "webp" => new WebpEncoder { FileFormat = WebpFileFormatType.Lossless },
             _ => throw new ArgumentException("Unknown synthetic format.")
         };
         using var output = new MemoryStream(); image.Save(output, encoder); return output.ToArray();
@@ -174,15 +176,38 @@ internal static class ImageFixture
     /// </summary>
     internal static async Task<byte[]> NormalizeThroughExistingPath(string route, byte[] bytes)
     {
+        var attempt = await AttemptUpload(route, bytes);
+        Assert.True(attempt.Success, attempt.Message ?? attempt.Error?.GetType().Name);
+        return Assert.IsType<byte[]>(attempt.Bytes);
+    }
+
+    /// <summary>
+    /// 同時觀察實際 action／純正常化 sink 的拒絕結果與 SDK 寫入，不讓測試替身自行判斷圖片是否合法。
+    /// 全部依賴由此呼叫擁有並確定釋放；可注入 SDK 真正失敗以檢驗最終 catch 的通知責任。
+    /// </summary>
+    internal static async Task<ImageUploadAttempt> AttemptUpload(string route, byte[] bytes,
+        Exception? updateFailure = null, IFormFile? suppliedFile = null)
+    {
         using var input = new MemoryStream(bytes);
-        // 所有格式刻意宣告 synthetic.jpg／image/jpeg：證明舊白名單只驗宣告的檔名與類型，
-        // PNG、GIF、WebP 等偽裝內容仍會進入 Image.Load。後續另以拒絕測試保護 WebP 行為變更，
-        // 不能把這裡換成真實副檔名而失去對既有信任邊界的特徵鎖定。
-        var file = new FormFile(input, 0, bytes.Length, "imageFile", "synthetic.jpg") { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
+        // 刻意讓每種實際格式都宣告為 JPG，驗證信任邊界必須檢查內容而非只相信檔名與 Content-Type。
+        var file = suppliedFile ?? new FormFile(input, 0, bytes.Length, "imageFile", "synthetic.jpg")
+            { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
         if (route == "member")
-            return (byte[])typeof(MemberInfoController).GetMethod("NormalizeUploadedImage", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { file })!;
+        {
+            try
+            {
+                var normalized = (byte[])typeof(MemberInfoController).GetMethod("NormalizeUploadedImage", BindingFlags.NonPublic | BindingFlags.Static)!
+                    .Invoke(null, new object[] { file })!;
+                return new(true, normalized, null, null);
+            }
+            catch (TargetInvocationException exception)
+            {
+                return new(false, null, exception.InnerException?.Message, exception.InnerException);
+            }
+        }
         var service = DispatchProxy.Create<IOrganizationService, ImageServiceProxy>();
         var serviceState = (ImageServiceProxy)(object)service;
+        serviceState.UpdateFailure = updateFailure;
         using var provider = new ServiceCollection().AddSingleton(service).BuildServiceProvider();
         using var tracer = new NullToolUtilityTracer();
         using var utility = new ToolUtilityClass(service, tracer, new ConfigurationBuilder().Build());
@@ -190,24 +215,30 @@ internal static class ImageFixture
         var controllerType = route == "personal" ? typeof(PersonalController) : typeof(NewPersonController);
         using var controller = (BaseChurchController)RuntimeHelpers.GetUninitializedObject(controllerType);
         typeof(BaseChurchController).GetField("InMemoryContext", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(controller, context);
-        // 未初始化控制器不會執行基底建構式；Personal 取 fullname 時會先呼叫 provider。
-        // 補回真實工具的 request 自有依賴，僅 SDK 邊界使用假服務，避免 NullReferenceException
-        // 被 action 包成 success=false。工具由本次呼叫 using 釋放，不讀設定檔或建立連線。
         typeof(BaseChurchController).GetField("_toolUtilityProvider", BindingFlags.NonPublic | BindingFlags.Instance)!
             .SetValue(controller, new ImageToolUtilityProvider(utility));
         controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { RequestServices = provider } };
-        if (route == "personal")
+        try
         {
-            var result = Assert.IsType<JsonResult>(await ((PersonalController)controller).UploadContactImage(file));
-            Assert.True((bool)result.Value!.GetType().GetProperty("success")!.GetValue(result.Value)!,
-                (string?)result.Value.GetType().GetProperty("message")!.GetValue(result.Value));
+            JsonResult? result = null;
+            if (route == "personal")
+                result = Assert.IsType<JsonResult>(await ((PersonalController)controller).UploadContactImage(file));
+            else if (route == "new-direct")
+                result = Assert.IsType<JsonResult>(await ((NewPersonController)controller).UploadNewPersonImage(file));
+            else
+                await (Task)typeof(NewPersonController).GetMethod("TryUploadNewPersonImageAsync", BindingFlags.NonPublic | BindingFlags.Instance)!
+                    .Invoke(controller, new object[] { file })!;
+            var success = result == null || (bool)result.Value!.GetType().GetProperty("success")!.GetValue(result.Value)!;
+            var message = (string?)result?.Value?.GetType().GetProperty("message")?.GetValue(result.Value);
+            return new(success, serviceState.Updated?.GetAttributeValue<byte[]>("entityimage"), message, null);
         }
-        else if (route == "new-direct")
-            await ((NewPersonController)controller).UploadNewPersonImage(file);
-        else
-            await (Task)typeof(NewPersonController).GetMethod("TryUploadNewPersonImageAsync", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(controller, new object[] { file })!;
-        return Assert.IsType<byte[]>(serviceState.Updated?["entityimage"]);
+        catch (Exception exception)
+        {
+            var error = exception is TargetInvocationException reflected ? reflected.InnerException! : exception;
+            return new(false, serviceState.Updated?.GetAttributeValue<byte[]>("entityimage"), error.Message, error);
+        }
     }
+
 }
 
 /// <summary>
@@ -225,10 +256,16 @@ public class ImageServiceProxy : DispatchProxy
 {
     /// <summary>只屬當次測試的照片更新快照，沒有 static 或真實 credential。</summary>
     public Entity? Updated { get; private set; }
+    /// <summary>只在當次 SDK Update 注入故障，不保存至任何共用狀態。</summary>
+    public Exception? UpdateFailure { get; set; }
     /// <summary>攔截 SDK 邊界而保留真實影像處理；不建立任何網路資源。</summary>
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
-        if (targetMethod!.Name == "Update") { Updated = (Entity)args![0]!; return null; }
+        if (targetMethod!.Name == "Update")
+        {
+            if (UpdateFailure != null) throw UpdateFailure;
+            Updated = (Entity)args![0]!; return null;
+        }
         if (targetMethod.Name == "Retrieve") return new Entity("contact", (Guid)args![1]!);
         throw new NotSupportedException("Unexpected synthetic service call.");
     }
@@ -248,3 +285,6 @@ public class ImageContextProxy : DispatchProxy
         _ => throw new NotSupportedException("Unexpected synthetic context call.")
     };
 }
+
+/// <summary>實際產品路徑的觀察結果；沒有 Session、SDK client 或 stream 參考，僅存本案例的輸出。</summary>
+internal sealed record ImageUploadAttempt(bool Success, byte[]? Bytes, string? Message, Exception? Error);

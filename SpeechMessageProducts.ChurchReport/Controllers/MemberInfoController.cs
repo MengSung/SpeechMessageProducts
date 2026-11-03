@@ -26,6 +26,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using SixLabors.ImageSharp;
+using ChurchReport.Services.Images;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -1050,6 +1051,7 @@ namespace ChurchReport.Controllers
         /// 上傳並更新「指定會友」的大頭照（會友細節彈窗用）。
         /// 與 /Personal/UploadContactImage(只改登入者自己)不同：這裡可改「其他會友」，
         /// 因此先用 CanViewContact 把關——能在清單看到/開啟該會友細節的人才可變更其照片。
+        /// 格式或尺寸不符是預期拒絕；其他失敗經共用入口上報，JSON 不洩漏原始例外訊息。
         /// POST: /MemberInfo/UploadContactImage
         /// </summary>
         [HttpPost]
@@ -1104,13 +1106,19 @@ namespace ChurchReport.Controllers
                     imageVersion = DateTime.Now.Ticks
                 });
             }
+            catch (ImageInputRejectedException rejected)
+            {
+                return Json(new { success = false, message = rejected.Message });
+            }
             catch (System.ServiceModel.FaultException faultEx)
             {
-                return Json(new { success = false, message = "CRM 更新失敗：" + faultEx.Message });
+                ChurchReportLineAdminNotificationService.ReportException("MemberInfo.UploadContactImage", faultEx);
+                return Json(new { success = false, message = "CRM 更新失敗，請稍後再試" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "上傳失敗：" + ex.Message });
+                ChurchReportLineAdminNotificationService.ReportException("MemberInfo.UploadContactImage", ex);
+                return Json(new { success = false, message = "上傳失敗，請稍後再試" });
             }
         }
 
@@ -1185,47 +1193,27 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 讀取上傳圖片並依 EXIF 自動轉正(解決手機直拍旋轉)，再「置中補邊成正方形」(補白、不裁切)，轉存 JPEG。
-        /// 補正方形的原因：CRM 的 entityimage 以正方形顯示大頭照，直接存直式照片會被裁掉頭頂與下方；
-        /// 先補成正方形後，存進 CRM 不會切到上下，完整人像在 CRM、清單、會友細節都看得到。處理失敗時退回原始位元組。
+        /// 以共用限定格式與尺寸守門讀取上傳，再依 EXIF 轉正、補白為正方形及 JPEG90。
+        /// 每次呼叫獨占 input、Image 與 output 並在回傳前釋放；只回傳新陣列，不保存於 static。
+        /// 解碼拒絕必須交回 action，不再回退保存未驗證的原始內容。
         /// </summary>
         private static byte[] NormalizeUploadedImage(IFormFile imageFile)
         {
-            byte[] raw;
-            using (var read = imageFile.OpenReadStream())
-            using (var buffer = new MemoryStream())
+            using var input = imageFile.OpenReadStream();
+            using var image = ImageInputValidator.Load(input);
+            image.Mutate(x => x.AutoOrient());
+            // 保留會友照片補白而非裁切的契約，防止 CRM 正方形顯示裁掉人像。
+            if (image.Width != image.Height)
             {
-                read.CopyTo(buffer);
-                raw = buffer.ToArray();
-            }
-
-            try
-            {
-                using var input = new MemoryStream(raw);
-                using var image = Image.Load(input);
-                image.Mutate(x => x.AutoOrient());
-
-                // 置中補邊成正方形(補白、完全不裁切)，避免 CRM 正方形大頭照裁掉頭頂/下方。
-                if (image.Width != image.Height)
+                var side = Math.Max(image.Width, image.Height);
+                image.Mutate(x => x.Resize(new ResizeOptions
                 {
-                    var side = Math.Max(image.Width, image.Height);
-                    image.Mutate(x => x.Resize(new ResizeOptions
-                    {
-                        Size = new Size(side, side),
-                        Mode = ResizeMode.BoxPad,
-                        PadColor = Color.White
-                    }));
-                }
-
-                using var output = new MemoryStream();
-                image.Save(output, new JpegEncoder { Quality = 90 });
-                return output.ToArray();
+                    Size = new Size(side, side), Mode = ResizeMode.BoxPad, PadColor = Color.White
+                }));
             }
-            catch
-            {
-                // 影像處理失敗 → 至少存原始檔，不讓上傳整個失敗。
-                return raw;
-            }
+            using var output = new MemoryStream();
+            image.Save(output, new JpegEncoder { Quality = 90 });
+            return output.ToArray();
         }
 
         /// <summary>會友照片更新後，清掉本控制器各尺寸的影像快取(全尺寸＋常用縮圖)。</summary>
@@ -3332,12 +3320,13 @@ namespace ChurchReport.Controllers
             return entity[alias]?.ToString() ?? string.Empty;
         }
 
+        /// <summary>以共用守門解碼，裁切 JPEG82；來源與影像由當次 using 擁有，拒絕時回原陣列，不讓頁面拋錯。</summary>
         private static byte[] CreateThumbnailIfNeeded(byte[] originalBytes, int size)
         {
             try
             {
                 using var input = new MemoryStream(originalBytes);
-                using var image = Image.Load(input);
+                using var image = ImageInputValidator.Load(input);
 
                 if (image.Width <= size && image.Height <= size)
                 {
@@ -3355,19 +3344,24 @@ namespace ChurchReport.Controllers
                 image.Save(output, new JpegEncoder { Quality = 82 });
                 return output.ToArray();
             }
-            catch
+            catch (ImageInputRejectedException)
             {
+                return originalBytes;
+            }
+            catch (Exception exception)
+            {
+                ChurchReportLineAdminNotificationService.ReportException("MemberInfo.Thumbnail", exception);
                 return originalBytes;
             }
         }
 
-        /// <summary>等比縮放使整張照片「完整塞入」size×size(不裁切，保留完整頭部)；原圖較小則回原圖。供會友細節大圖使用。</summary>
+        /// <summary>共用守門後等比縮放為 JPEG85；原圖較小或輸入被拒絕時回原陣列。所有解碼資源在當次 using 釋放，不改既有 EXIF 行為。</summary>
         private static byte[] CreateFitThumbnail(byte[] originalBytes, int size)
         {
             try
             {
                 using var input = new MemoryStream(originalBytes);
-                using var image = Image.Load(input);
+                using var image = ImageInputValidator.Load(input);
 
                 if (image.Width <= size && image.Height <= size)
                 {
@@ -3384,8 +3378,13 @@ namespace ChurchReport.Controllers
                 image.Save(output, new JpegEncoder { Quality = 85 });
                 return output.ToArray();
             }
-            catch
+            catch (ImageInputRejectedException)
             {
+                return originalBytes;
+            }
+            catch (Exception exception)
+            {
+                ChurchReportLineAdminNotificationService.ReportException("MemberInfo.Thumbnail", exception);
                 return originalBytes;
             }
         }

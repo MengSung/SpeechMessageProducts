@@ -1,0 +1,13 @@
+P0-12A build blocker, 2026-11-03
+HEAD before work: f0574f41
+ImageSharp requested and restored: 3.2.0
+Command: dotnet restore ChurchReport.MemberInfo.Tests --source https://api.nuget.org/v3/index.json --verbosity minimal
+Restore exit: 0
+Command: dotnet test ChurchReport.MemberInfo.Tests -c Release --no-restore --filter FullyQualifiedName~Tests.Images
+Build exit: 1, before CoreCompile; no tests ran.
+Error: No Six Labors license found. Set $(SixLaborsLicenseKey), set $(SixLaborsLicenseFile), or add a 'sixlabors.lic' file to the project/workspace.
+Error: Please obtain a license from https://sixlabors.com/pricing/
+Package target: SixLabors_ValidateLicense (SixLabors.ImageSharp.targets, BeforeTargets=CoreCompile).
+Raw output: artifacts/p0-12a/console/images-green.log (ignored console capture).
+The earlier filename indicates an intended green run, not a successful result.
+Product edits are uncommitted and unverified. No bypass, downgrade, push, merge, D365 or LINE access.

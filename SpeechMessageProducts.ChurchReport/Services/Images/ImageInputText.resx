@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <!-- 固定輸入拒絕與故障說明由 I18nCheck 產生資料表；不含檔名、帳密或影像內容。 -->
+  <data name="Image.Input.UnsupportedFormat" xml:space="preserve"><value>圖片內容格式不符，只支援 JPG、PNG、GIF 格式的圖片</value></data>
+  <data name="Image.Input.CorruptContent" xml:space="preserve"><value>圖片內容損壞，請重新選擇圖片</value></data>
+  <data name="Image.Input.InvalidDimensions" xml:space="preserve"><value>圖片尺寸過大，單邊不得超過 8192 像素且總像素不得超過 40,000,000</value></data>
+  <data name="Image.Input.InvalidSize" xml:space="preserve"><value>圖片檔案過大，請選擇小於 5MB 的圖片</value></data>
+  <data name="Image.Upload.Failed" xml:space="preserve"><value>上傳失敗，請稍後再試</value></data>
+  <data name="Image.Upload.UpdateFailed" xml:space="preserve"><value>CRM 更新失敗，請稍後再試</value></data>
+  <data name="Image.Upload.PhotoFailed" xml:space="preserve"><value>大頭照上傳失敗，請稍後再試</value></data>
+  <data name="Image.Upload.AttachmentRejected" xml:space="preserve"><value>（照片未上傳：{reason}）</value></data>
+  <data name="Image.Upload.AttachmentFailed" xml:space="preserve"><value>（照片未上傳，請稍後再試）</value></data>
+</root>

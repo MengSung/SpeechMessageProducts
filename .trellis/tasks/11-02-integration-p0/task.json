@@ -25,7 +25,7 @@
   "meta": {
     "currentWorkPackage": "P0-12A",
     "userRequestedStop": false,
-    "gatePassed": false,
+    "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-12A.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
@@ -51,7 +51,8 @@
       "P0-04-Cryptography": "cdc09d10",
       "P0-04-NuGetAudit": "9214d26b",
       "P0-12": "a6a20905",
-      "P0-12A-characterization": "升級前特徵 50／50；獨立提交（見 Git 紀錄）"
+      "P0-12A-characterization": "f0574f41",
+      "P0-12A": "本次提交（圖片防護；一般金鑰 CI 接續獨立提交）"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",
@@ -74,5 +75,6 @@
   },
   "currentPhase": "implementation",
   "currentWorkPackage": "P0-12A",
-  "nextAction": "先修正特徵測試搭建並鎖三個縮圖回退，完整本機驗證後單獨提交；再依核定實作 JPEG／PNG／GIF 內容白名單與尺寸防護。"
+  "nextAction": "P0-12A 圖片防護驗證完成；本次提交後接一般金鑰 CI B 段，再做八批 ClaudeOnly 階段審查。",
+  "stopReason": null
 }

@@ -17,6 +17,8 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Models;
+using ChurchReport.Services;
+using ChurchReport.Services.Images;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
 using DevExtreme.AspNet.Data;
@@ -352,7 +354,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 儲存新增的新人資料
+        /// 儲存新人；附圖拒絕只追加固定提示，不回滾已建立的新人或誘發重送。
         /// </summary>
         /// <param name="aPersonFormViewModel">新人表單 ViewModel</param>
         [HttpPost]
@@ -374,13 +376,31 @@ namespace ChurchReport.Controllers
                     // 新增成功後的處理
                     HandleSuccessfulNewPersonCreation(aPersonFormViewModel);
 
-                    // 嘗試上傳新人照片（若有選擇檔案）
-                    await TryUploadNewPersonImageAsync(imageFile);
+                    // 新人已建立，照片拒絕不能改回建立失敗，避免使用者重送造成重複新人。
+                    // 只有未儲存的照片被拒絕；資料建立結果維持成功，並在原訊息欄位提示。
+                    var imageWarning = string.Empty;
+                    try
+                    {
+                        await TryUploadNewPersonImageAsync(imageFile);
+                    }
+                    catch (ImageInputRejectedException rejected)
+                    {
+                        imageWarning = ImageInputText.AttachmentRejected(rejected);
+                    }
+                    catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        ChurchReportLineAdminNotificationService.ReportException("NewPerson.SaveNewPersonImage", exception);
+                        imageWarning = ImageInputText.GetText("Image.Upload.AttachmentFailed");
+                    }
 
                     // 重設表單
                     ResetNewPersonForm();
 
-                    return Json(new { status = "1", message = result });
+                    return Json(new { status = "1", message = result + imageWarning });
                 }
                 else
                 {
@@ -390,6 +410,11 @@ namespace ChurchReport.Controllers
                     return Json(new { status = "2", message = result });
                 }
             }
+            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                // 已明確取消的 caller 不進共用失敗通知，保留正常取消語意。
+                throw;
+            }
             catch (Exception e)
             {
                 return HandleError(e, "SaveNewPerson");
@@ -397,8 +422,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 上傳新人照片（由前端在新增成功後呼叫）
+        /// 新人建立後獨立上傳照片，維持 success／message 回應。
+        /// 內容拒絕不通知；其他故障傳真實 Exception 至共用入口，固定回應不洩漏解析或連線訊息。
         /// </summary>
+        /// <param name="imageFile">當次請求的未受信任圖片。</param>
         [HttpPost]
         [Route("/NewPerson/UploadNewPersonImage")]
         public async Task<IActionResult> UploadNewPersonImage(IFormFile imageFile)
@@ -406,125 +433,52 @@ namespace ChurchReport.Controllers
             try
             {
                 await TryUploadNewPersonImageAsync(imageFile);
-
-                return Json(new
-                {
-                    success = true,
-                    message = "大頭照上傳成功"
-                });
+                return Json(new { success = true, message = "大頭照上傳成功" });
             }
-            catch (Exception ex)
+            catch (ImageInputRejectedException rejected)
             {
-                return Json(new
-                {
-                    success = false,
-                    message = $"大頭照上傳失敗: {ex.Message}"
-                });
+                return Json(new { success = false, message = rejected.Message });
+            }
+            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                ChurchReportLineAdminNotificationService.ReportException("NewPerson.UploadNewPersonImage", exception);
+                return Json(new { success = false, message = ImageInputText.GetText("Image.Upload.PhotoFailed") });
             }
         }
 
         /// <summary>
-        /// 上傳新人照片到新人記錄
-        /// ✅ 支援 EXIF Orientation 自動修正（解決直拍照片旋轉問題）
+        /// 新人兩個上傳入口共用的照片處理；保留既有宣告白名單、5 MiB 限制與無檔略過行為。
+        /// 限定解碼、EXIF 轉正後才更新 entityimage，不再於解碼失敗時保存原檔。
+        /// 每次呼叫獨占並釋放所有串流與 Image，SDK 服務只借用目前 request scope；
+        /// 不保存影像、Session 或 credential 至 static，拒絕及其他例外交由各 action 的最終邊界處理。
         /// </summary>
         private async Task TryUploadNewPersonImageAsync(IFormFile imageFile)
         {
-            if (imageFile == null || imageFile.Length == 0)
-            {
-                return;
-            }
-
-            const long maxFileSize = 5 * 1024 * 1024; // 5MB
-            if (imageFile.Length > maxFileSize)
-            {
-                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] 圖片上傳失敗: 檔案過大");
-                return;
-            }
-
+            if (imageFile == null || imageFile.Length == 0) return;
+            if (imageFile.Length > 5 * 1024 * 1024) return;
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
             var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" };
             var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
             var contentType = imageFile.ContentType.ToLowerInvariant();
-
-            if (!Array.Exists(allowedExtensions, ext => ext == fileExtension) ||
-                !Array.Exists(allowedContentTypes, type => type == contentType))
+            if (!Array.Exists(allowedExtensions, ext => ext == fileExtension)
+                || !Array.Exists(allowedContentTypes, type => type == contentType)) return;
+            if (!Guid.TryParse(InMemoryContext.NewPersonModel.m_NewContact.PresentRecordId, out var contactId)) return;
+            byte[] imageBytes;
+            using (var input = imageFile.OpenReadStream())
+            using (var image = await ImageInputValidator.LoadAsync(input, HttpContext.RequestAborted))
+            using (var output = new MemoryStream())
             {
-                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] 圖片上傳失敗: 檔案格式錯誤");
-                return;
+                image.Mutate(x => x.AutoOrient());
+                image.Metadata.ExifProfile?.RemoveValue(ExifTag.Orientation);
+                await image.SaveAsync(output, new JpegEncoder { Quality = 90 }, HttpContext.RequestAborted);
+                imageBytes = output.ToArray();
             }
-
-            if (!Guid.TryParse(InMemoryContext.NewPersonModel.m_NewContact.PresentRecordId, out var contactId))
-            {
-                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] 圖片上傳失敗: 新人 ContactId 無效");
-                return;
-            }
-
-            try
-            {
-                // ========================================
-                // ✅ 修正 EXIF Orientation（解決直拍照片旋轉問題）
-                // ========================================
-                byte[] imageBytes;
-                using (var inputStream = imageFile.OpenReadStream())
-                using (var outputStream = new MemoryStream())
-                {
-                    try
-                    {
-                        // 使用 ImageSharp 載入並修正圖片方向
-                        using (var image = await Image.LoadAsync(inputStream))
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] 📐 原始圖片尺寸: {image.Width}x{image.Height}");
-
-                            // 檢查 EXIF Orientation
-                            var exifProfile = image.Metadata.ExifProfile;
-                            if (exifProfile != null && exifProfile.TryGetValue(ExifTag.Orientation, out IExifValue<ushort> orientationValue))
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] 📱 EXIF Orientation: {orientationValue.Value}");
-                            }
-
-                            // ✅ 自動修正旋轉（根據 EXIF 資訊）
-                            image.Mutate(x => x.AutoOrient());
-
-                            // 移除 EXIF Orientation 標記（避免重複旋轉）
-                            if (image.Metadata.ExifProfile != null)
-                            {
-                                image.Metadata.ExifProfile.RemoveValue(ExifTag.Orientation);
-                            }
-
-                            System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ✅ EXIF 方向已修正");
-
-                            // 儲存為高品質 JPEG
-                            var encoder = new JpegEncoder { Quality = 90 };
-                            await image.SaveAsync(outputStream, encoder);
-                        }
-
-                        imageBytes = outputStream.ToArray();
-                        System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ✅ 圖片已處理: {imageBytes.Length} bytes");
-                    }
-                    catch (Exception imageProcessEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ⚠️ ImageSharp 處理失敗，使用原始檔案: {imageProcessEx.Message}");
-
-                        // 降級方案：如果 ImageSharp 處理失敗，使用原始檔案
-                        inputStream.Position = 0;
-                        using (var fallbackStream = new MemoryStream())
-                        {
-                            imageFile.CopyTo(fallbackStream);
-                            imageBytes = fallbackStream.ToArray();
-                        }
-                    }
-                }
-
-                var service = OrganizationService;
-
-                var contactToUpdate = new Entity("contact", contactId);
-                contactToUpdate["entityimage"] = imageBytes;
-                service.Update(contactToUpdate);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] 圖片上傳失敗: {ex.Message}");
-            }
+            var contactToUpdate = new Entity("contact", contactId) { ["entityimage"] = imageBytes };
+            OrganizationService.Update(contactToUpdate);
         }
 
         /// <summary>
