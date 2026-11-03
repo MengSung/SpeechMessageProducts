@@ -100,8 +100,10 @@
     "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
     "locallyFixedPendingReview": [
       "C-01",
-      "H-01 (Medium)"
+      "H-01 (Medium)",
+      "M-01"
     ],
-    "c01Commit": "6588902"
+    "c01Commit": "6588902",
+    "h01Commit": "1fde6020"
   }
 }

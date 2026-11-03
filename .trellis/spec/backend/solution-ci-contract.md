@@ -89,3 +89,13 @@ Local product builds may use the user-level SixLaborsLicenseFile path only in
 the current process, after Test-Path confirms existence. Do not commit that
 path, inspect license contents, alter persistent environment settings, or claim
 hosted Actions execution from local verification.
+
+## Tracer execution evidence
+
+The Debug tracer block writes a fresh tracer.trx, then Test-TrxExecution.ps1
+requires positive executed count, all passed, no failed results and agreement
+with actual result rows. Reject empty discovery even if dotnet exits zero. XML
+is bounded to 4 MiB with DTD and external resolution disabled; dispose readers
+on every path and never print raw XML or exception messages. Synthetic tests
+execute the real workflow block with only dotnet replaced. Keep them active
+even while the tracer step is temporarily disabled for a dependency source.

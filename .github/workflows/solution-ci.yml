@@ -87,8 +87,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Release solution tests failed.' }
       - name: Debug tracer contracts
         run: |
-          dotnet test ToolUtility.Dataverse.Tests -c Debug --filter "FullyQualifiedName~FileToolUtilityTracerTests"
+          $tracerResults = 'artifacts/ci/debug-tracer'
+          if (Test-Path -LiteralPath $tracerResults) { throw 'Tracer results must be fresh.' }
+          dotnet test ToolUtility.Dataverse.Tests -c Debug --filter "FullyQualifiedName~FileToolUtilityTracerTests" --logger "trx;LogFileName=tracer.trx" --results-directory $tracerResults
           if ($LASTEXITCODE -ne 0) { throw 'Debug tracer tests failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Test-TrxExecution.ps1 -ReportPath (Join-Path $tracerResults 'tracer.trx')
+          if ($LASTEXITCODE -ne 0) { throw 'Debug tracer tests were not actually executed successfully.' }
       - name: Coverage for each new module and target
         run: |
           # 各目標分開收集，禁止 net10 報告或其他測試的相依模組掩蓋 net48 的缺口。
@@ -138,6 +142,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Coverage gate tests failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Package path boundary contracts failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Tests/Test-TracerCi.Tests.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Tracer CI contracts failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-SixLaborsCiLicense.Tests.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Six Labors CI license contracts failed.' }
           node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs
