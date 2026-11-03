@@ -16,8 +16,8 @@ $cases = [ordered]@{
     IgnoreRules_ExcludeReferenceArtifactsKeysAndRawTrx = {
         # 以字碼產生非 ASCII 目錄資料，保持 PowerShell 可執行內容為 ASCII。
         $legacyName = '.' + (-join (@(0x5176,0x4ed6,0x89e3,0x6c7a,0x65b9,0x6848) | ForEach-Object { [char]$_ }))
-        $probes = @(($legacyName + '/p0-ignore-probe.txt'), 'artifacts/p0-ignore-probe.txt', 'p0-ignore-probe.snk', 'p0-ignore-probe.trx')
-        if ($probes.Count -ne 4) { throw 'The test fixture must exercise all four independent paths.' }
+        $probes = @(($legacyName + '/p0-ignore-probe.txt'), 'artifacts/p0-ignore-probe.txt', 'p0-ignore-probe.snk', 'p0-ignore-probe.trx', 'sixlabors.lic', 'nested/sixlabors.lic')
+        if ($probes.Count -ne 6) { throw 'The test fixture must exercise all six independent paths.' }
         $missing = @()
         foreach ($probe in $probes) {
             $null = & git -c core.longpaths=true check-ignore --no-index -- $probe

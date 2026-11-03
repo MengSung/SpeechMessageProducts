@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-12A A／B 已提交；階段 0 ClaudeOnly 已完成 4／11 份，第 03 份額度限制停止，尚有 Critical／High 待解決。",
+  "description": "階段 0 審查續行 7／11 份；C-01、H-01、M-01、M-02 已分題提交，待第 09 份複審。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -54,7 +54,11 @@
       "P0-12A-characterization": "f0574f41",
       "P0-12A": "eb7ff61f",
       "P0-12A-license-CI": "ae29cb40",
-      "P0-review-C01": "6588902"
+      "P0-review-C01": "6588902",
+      "P0-review-H01": "1fde6020",
+      "P0-review-M01": "c9ed44d3",
+      "P0-review-M02": "edd953ec",
+      "P0-review-license-ignore": "本次提交"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",
@@ -88,15 +92,16 @@
       "01b",
       "01c",
       "02",
-      "03"
+      "03",
+      "04",
+      "05a"
     ],
-    "failedPart": "03",
-    "resumePart": "03",
+    "failedPart": null,
+    "resumePart": "05b",
     "quotaBlocked": false,
     "criticalOpen": 0,
     "highPendingValidation": 0,
     "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
-    "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit",
     "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
     "locallyFixedPendingReview": [
       "C-01",
@@ -106,6 +111,7 @@
     ],
     "c01Commit": "6588902",
     "h01Commit": "1fde6020",
-    "m01Commit": "c9ed44d3"
+    "m01Commit": "c9ed44d3",
+    "m02Commit": "edd953ec"
   }
 }
