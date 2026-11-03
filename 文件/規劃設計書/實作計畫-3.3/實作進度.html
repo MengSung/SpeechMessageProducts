@@ -350,11 +350,19 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-08 雙目標驗證完成）",
+  "snapshot": "2026-11-03（P0-09 實作前契約核對停止）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-08</strong> 兩目標各 <strong>33／33</strong>，覆蓋率 net48 <strong>94.87%</strong>、net10 <strong>100%</strong>。真實 SharedText 生成檔檢查 <strong>1 檔</strong>；方案 <strong>837／837</strong>、Debug <strong>7／7</strong>，接著依序進入 P0-09。",
-  "alert": null,
+  "headline": "<strong>P0-08 已提交 92cfa180</strong>；P0-09 發現雙目標共用例外通知的相依／責任缺口，依 00 §9.6 停止。尚未修改本包產品程式，等待核定後接續 TDD。",
+  "alert": {
+    "title": "P0-09：需核定跨框架例外回報契約",
+    "body": "目前共用通知入口僅支援 net10，雙目標核心不能參考。計畫尚未定義內部逾時轉結果後的原始 Exception 所有權、最終回報責任與 net48 接入方式。",
+    "steps": [
+      "閱讀 P0-09 停止回報及研究紀錄。",
+      "建議先補 P0-09／P0-10 的跨框架共用回報契約，再接續原 11 個測試。",
+      "本問題不需提供帳密或操作 D365；仍禁止任何 D365／LINE 連線。"
+    ]
+  },
   "tiles": [
     {
       "label": "全計畫進度",
@@ -371,7 +379,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "10",
       "unit": "/ 15 工作包",
-      "sub": "P0-08 驗證完成，下一包 P0-09",
+      "sub": "P0-08 已提交；P0-09 於契約核對停止",
       "meter": {
         "done": 10,
         "active": 0,
@@ -464,13 +472,13 @@ const DATA = {
       "name": "骨架：SpeechMessage.Localization（雙目標）",
       "status": "done",
       "note": "兩目標各 33／33，覆蓋率 94.87%／100%；真實 resx 及生成檔 1 檔驗證，百執行緒讀取與排空、net10 零配置通過。",
-      "commit": "本次提交"
+      "commit": "92cfa180"
     },
     {
       "id": "P0-09",
       "name": "骨架：LineMessagingProcessor.Core（雙目標，單人推播）",
-      "status": "todo",
-      "note": "共用的 LINE 推播核心，先做單人推播。"
+      "status": "you",
+      "note": "實作前發現共用通知僅 net10，雙目標相依與最終失敗回報責任未定；依 §9.6 停止，尚無功能紅燈。"
     },
     {
       "id": "P0-10",
@@ -834,6 +842,11 @@ const DATA = {
       "t": "2026-11-03",
       "text": "分析層級補修 58245c6f 獨立提交後，P0-08 兩目標各 33 紅燈轉綠，完整方案 837／837。",
       "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-08 提交 92cfa180；P0-09 核對發現跨框架共用例外回報契約缺口，依 §9.6 停止，沒有產品變更或外部連線。",
+      "cls": "stop"
     }
   ],
   "decisions": [
@@ -916,6 +929,11 @@ const DATA = {
     }
   ],
   "risks": [
+    {
+      "level": "warn",
+      "text": "P0-09 等待跨框架共用例外回報契約核定",
+      "sub": "ToolUtility 入口僅 net10；需明定原始 Exception 傳遞、可恢復重試與最終失敗通知責任，不以 no-op 或提前搬 P2-01 繞過。"
+    },
     {
       "level": "info",
       "text": "設計勘誤留待下一版",

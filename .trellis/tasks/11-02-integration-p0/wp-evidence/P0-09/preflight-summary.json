@@ -1,0 +1,18 @@
+{
+  "observedHead": "92cfa180",
+  "workPackage": "P0-09",
+  "state": "stopped-before-implementation",
+  "sourceFilesChanged": 0,
+  "byteCheckedFiles": 9,
+  "progressTests": "3/3",
+  "encoding": {
+    "checked": 288,
+    "excluded": 74,
+    "issues": 0
+  },
+  "htmlChanges": "approved DATA fields only",
+  "frozen32": "unchanged",
+  "externalConnections": 0,
+  "fullSection8Run": false,
+  "committed": false
+}

@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-08 雙目標各 33／33、實際生成檔 1、完整方案 837／837，提交收尾。",
+  "description": "P0-08 已提交 92cfa180；P0-09 實作前核對發現雙目標共用例外通知契約缺口，依 00 §9.6 停止。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -23,14 +23,14 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-08",
+    "currentWorkPackage": "P0-09",
     "userRequestedStop": false,
-    "gatePassed": true,
+    "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-08.md",
+    "report": "wp-reports/P0-09.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": null,
+    "waitingFor": "使用者核定 P0-09／P0-10 跨框架共用例外回報契約",
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -43,7 +43,8 @@
       "P0-07": "f0f0360f",
       "P0-04-CA1707": "cea2958d",
       "P0-04-AnalysisLevel": "58245c6f",
-      "P0-08": "完成（本次 P0-08 提交）"
-    }
+      "P0-08": "92cfa180"
+    },
+    "stopReason": "P0-09 需捕捉內部逾時並回傳 Retryable，但 AGENTS 要求失敗 catch 接入共用 notifier；目前共用入口僅 net10，雙目標核心禁止參考，計畫未定義跨框架契約與回報時機。依 00 §9.6 停止。"
   }
 }
