@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -192,6 +193,9 @@ internal sealed class DeploymentEngine
                 case "CreateStep":
                     CreateStep(operation.Key, manifest);
                     break;
+                case "UpdateStepConfiguration":
+                    UpdateStepConfiguration(operation.Key, manifest);
+                    break;
                 case "UpdateStepState":
                     UpdateStepState(operation.Key, manifest, plan.Organization);
                     break;
@@ -332,6 +336,7 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>只查受管理組件與清單中的穩定步驟身份，建立操作候選；不解析秘密、不寫入資料，完成後才發布計畫。</summary>
     private Inspection Inspect(RegistrationManifest manifest, AssemblyImage image)
     {
         var assembly = FindAssembly(manifest.AssemblyName);
@@ -390,6 +395,11 @@ internal sealed class DeploymentEngine
                 continue;
             }
 
+            if (!ConfigurationMatches(existingStep, step))
+            {
+                operations.Add(new DeploymentOperation("UpdateStepConfiguration", StepKey(step)));
+            }
+
             var shouldEnable = IsEnabled(step, AllowedOrganization);
             if ((ReadOption(existingStep, "statecode") == 0) != shouldEnable)
             {
@@ -400,6 +410,7 @@ internal sealed class DeploymentEngine
         return new Inspection(CalculateFingerprint(manifest.AssemblyName), operations);
     }
 
+    /// <summary>建立 Sandbox／Database 組件；輸入內容只屬本次經雜湊驗證的 DLL，不接受任意外部部署模式。</summary>
     private void CreateAssembly(AssemblyImage image)
     {
         var assembly = new Entity(AssemblyLogicalName)
@@ -414,6 +425,7 @@ internal sealed class DeploymentEngine
         service.Create(assembly);
     }
 
+    /// <summary>更新內容前再次確認公鑰及主次版本相容；保留組件 ID，避免破壞既有步驟關聯。</summary>
     private void UpdateAssembly(AssemblyImage image)
     {
         var existing = FindAssembly(image.Name) ?? throw new InvalidDataException("Plan 所需組件已不存在。");
@@ -425,6 +437,7 @@ internal sealed class DeploymentEngine
         });
     }
 
+    /// <summary>只為已通過 PE 與清單一致性驗證的型別建立組件關聯；不載入執行待部署程式。</summary>
     private void CreatePluginType(string typeName, RegistrationManifest manifest, AssemblyImage image)
     {
         var assembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("Plan 所需組件不存在。");
@@ -443,6 +456,7 @@ internal sealed class DeploymentEngine
         });
     }
 
+    /// <summary>以服務生成的穩定 ID 建立步驟；秘密只在寫入框架內解析，secure 建立後若步驟失敗則確定清理。</summary>
     private void CreateStep(string stepKey, RegistrationManifest manifest)
     {
         var registration = FindStepRegistration(manifest, stepKey);
@@ -503,6 +517,104 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>
+    /// 比對既有步驟的公開模式與文化欄位，不讀取秘密來源或 secureconfig 值。
+    /// lineUserId 僅檢查已解析且非空；回傳值與 plan 不保存該值，避免個資落檔。
+    /// </summary>
+    private static bool ConfigurationMatches(Entity existing, StepRegistration desired)
+    {
+        var hasSecure = ReadReferenceId(existing, "secureconfigid").HasValue;
+        if (hasSecure != (desired.SecureConfig.Length > 0))
+        {
+            return false;
+        }
+
+        try
+        {
+            var current = JsonNode.Parse(existing.GetAttributeValue<string>("configuration") ?? "") as JsonObject;
+            var expected = JsonNode.Parse(desired.UnsecureConfig)!.AsObject();
+            if (current is null)
+            {
+                return false;
+            }
+
+            if (expected.ContainsKey("lineUserId"))
+            {
+                if (current["lineUserId"] is not JsonValue value ||
+                    !value.TryGetValue<string>(out var userId) || string.IsNullOrWhiteSpace(userId))
+                {
+                    return false;
+                }
+
+                // 不解析 User Secrets；只在此比較框架內暫用既有值，方法返回即不再保留。
+                expected["lineUserId"] = userId;
+            }
+
+            return JsonNode.DeepEquals(current, expected);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 以原資料庫 ID 更新設定。秘密僅在本次寫入解析，secure 列先建後連結；
+    /// 連結失敗清理新列，成功切回 trace 後才刪除舊 secure 列，不留下無主秘密。
+    /// </summary>
+    private void UpdateStepConfiguration(string stepKey, RegistrationManifest manifest)
+    {
+        var registration = FindStepRegistration(manifest, stepKey);
+        var assembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("Plan 所需組件不存在。");
+        var pluginType = ReadPluginTypes(assembly.Id).Single(type =>
+            string.Equals(type.GetAttributeValue<string>("typename"), registration.Type, StringComparison.Ordinal));
+        var message = FindMessage(registration.Message) ?? throw new InvalidDataException("Plan 所需訊息不存在。");
+        var filter = FindMessageFilter(message.Id, registration.Entity) ?? throw new InvalidDataException("Plan 所需篩選器不存在。");
+        var step = FindStep(pluginType.Id, message.Id, filter.Id, ReadStage(registration.Stage), ReadMode(registration.Mode), registration.Rank)
+            ?? throw new InvalidDataException("Plan 所需步驟不存在。");
+        var oldSecureId = ReadReferenceId(step, "secureconfigid");
+        var configuration = JsonNode.Parse(registration.UnsecureConfig)!.AsObject();
+        if (configuration.ContainsKey("lineUserId"))
+        {
+            // 以 JSON API 寫入字串，避免 secrets 中的引號或反斜線破壞 JSON 結構。
+            configuration["lineUserId"] = ResolvePlaceholders(configuration["lineUserId"]!.GetValue<string>());
+        }
+
+        Guid? newSecureId = null;
+        if (registration.SecureConfig.Length > 0)
+        {
+            newSecureId = service.Create(new Entity("sdkmessageprocessingstepsecureconfig")
+            {
+                ["secureconfig"] = ResolvePlaceholders(registration.SecureConfig)
+            });
+        }
+
+        try
+        {
+            service.Update(new Entity(StepLogicalName, step.Id)
+            {
+                ["configuration"] = configuration.ToJsonString(),
+                ["secureconfigid"] = newSecureId.HasValue
+                    ? new EntityReference("sdkmessageprocessingstepsecureconfig", newSecureId.Value) : null
+            });
+        }
+        catch
+        {
+            if (newSecureId.HasValue)
+            {
+                service.Delete("sdkmessageprocessingstepsecureconfig", newSecureId.Value);
+            }
+
+            throw;
+        }
+
+        if (oldSecureId.HasValue)
+        {
+            service.Delete("sdkmessageprocessingstepsecureconfig", oldSecureId.Value);
+        }
+    }
+
+    /// <summary>依完整穩定身份重新找步驟，只更新啟用狀態；不以顯示名稱合併或重建資料列。</summary>
     private void UpdateStepState(string stepKey, RegistrationManifest manifest, string organization)
     {
         var registration = FindStepRegistration(manifest, stepKey);
@@ -523,6 +635,7 @@ internal sealed class DeploymentEngine
         });
     }
 
+    /// <summary>以受管理組件為查詢邊界建立獨立匯出候選；組件內容供還原，設定只保留雜湊與存在性，絕不匯出原始 token 或 userId。</summary>
     private DeploymentExport CaptureExport(string organization)
     {
         var assembly = FindAssembly("SpeechMessage.Dynamics.Plugins");
@@ -560,6 +673,7 @@ internal sealed class DeploymentEngine
             Array.AsReadOnly(types), Array.AsReadOnly(steps), string.Empty));
     }
 
+    /// <summary>把單一步驟轉成脫離 SDK Entity 的純值摘要；secure 只記有無，unsecure 只記雜湊。</summary>
     private PluginStepExport ToStepExport(Entity step, IReadOnlyList<Entity> types)
     {
         var typeId = ReadReferenceId(step, "eventhandler");
@@ -582,12 +696,14 @@ internal sealed class DeploymentEngine
             !string.IsNullOrEmpty(step.GetAttributeValue<string>("configuration")));
     }
 
+    /// <summary>對全部可序列化欄位計算完整性雜湊；雜湊欄位本身先清空，避免自我參照。</summary>
     private static DeploymentExport SealExport(DeploymentExport export)
     {
         var hash = HashText(JsonSerializer.Serialize(export with { Sha256 = string.Empty }));
         return export with { Sha256 = hash };
     }
 
+    /// <summary>只讀有大小上限的本機匯出，解析失敗使用固定錯誤；串流在返回前關閉。</summary>
     private static DeploymentExport ReadExport(string path)
     {
         var file = new FileInfo(path);
@@ -601,6 +717,7 @@ internal sealed class DeploymentEngine
         return export ?? throw new InvalidDataException("Export 格式無效。");
     }
 
+    /// <summary>在任何還原寫入前確認格式、唯一組織與內容雜湊，拒絕跨組織或遭修改的備份。</summary>
     private static void ValidateExport(DeploymentExport export, string organization)
     {
         if (export.SchemaVersion != 1 ||
@@ -611,6 +728,7 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>只以匯出中允許的組件欄位還原，資料庫 ID 由既有列或 SDK 決定，不混入步驟機密。</summary>
     private static Entity ToAssemblyEntity(PluginAssemblyExport snapshot, Guid? id = null)
     {
         var entity = id.HasValue
@@ -625,6 +743,7 @@ internal sealed class DeploymentEngine
         return entity;
     }
 
+    /// <summary>只清理由本工具擁有的組件關聯資料；依步驟、secure、型別、組件順序刪除，避免孤兒設定。</summary>
     private void DeleteManagedRows(Guid assemblyId)
     {
         var types = ReadPluginTypes(assemblyId);
@@ -681,6 +800,7 @@ internal sealed class DeploymentEngine
         return null;
     }
 
+    /// <summary>只以固定成功標記判定本次 smoke；不輸出或保存追蹤原文，推播另須具備成功狀態。</summary>
     private static bool IsExpectedSmokeTrace(string trace, string scenario)
     {
         if (trace.Length == 0 ||
@@ -696,6 +816,7 @@ internal sealed class DeploymentEngine
              trace.Contains("Status=200", StringComparison.Ordinal));
     }
 
+    /// <summary>只讀指定組件的型別集合並驗證資料庫 ID；重複或空 ID 必須失敗，不能任選一列。</summary>
     private Entity[] ReadPluginTypes(Guid assemblyId)
     {
         return RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression(TypeLogicalName)
@@ -705,6 +826,7 @@ internal sealed class DeploymentEngine
         }).Entities, "Plugin 型別");
     }
 
+    /// <summary>只讀已驗證型別 ID 所屬步驟；結果物化後驗證唯一性，不將 SDK 可變集合發布給外部。</summary>
     private Entity[] ReadSteps(HashSet<Guid> typeIds)
     {
         if (typeIds.Count == 0)
@@ -745,6 +867,7 @@ internal sealed class DeploymentEngine
         return rows;
     }
 
+    /// <summary>以精確組件名稱查詢且拒絕多筆或重複 ID；禁止同名衝突被任意排序掩蓋。</summary>
     private Entity? FindAssembly(string name)
     {
         var matches = RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression(AssemblyLogicalName)
@@ -760,6 +883,7 @@ internal sealed class DeploymentEngine
         return matches.SingleOrDefault();
     }
 
+    /// <summary>以精確 SDK 訊息查詢唯一中繼資料；不存在或衝突時由呼叫端拒絕後續寫入。</summary>
     private Entity? FindMessage(string messageName)
     {
         var matches = RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression("sdkmessage")
@@ -775,6 +899,7 @@ internal sealed class DeploymentEngine
         return matches.SingleOrDefault();
     }
 
+    /// <summary>以訊息 ID 與實體名共同限定唯一篩選器，避免將其他實體步驟誤當目前註冊。</summary>
     private Entity? FindMessageFilter(Guid messageId, string entityName)
     {
         var matches = RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression("sdkmessagefilter")
@@ -790,6 +915,7 @@ internal sealed class DeploymentEngine
         return matches.SingleOrDefault();
     }
 
+    /// <summary>以型別、訊息、實體篩選器、階段、模式與順序共同查詢；衝突列直接失敗，保留資料庫身份。</summary>
     private Entity? FindStep(Guid typeId, Guid messageId, Guid filterId, int stage, int mode, int rank)
     {
         var matches = RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression(StepLogicalName)
@@ -813,11 +939,13 @@ internal sealed class DeploymentEngine
         return matches.SingleOrDefault();
     }
 
+    /// <summary>還原只依精確資料庫 ID 讀取，不按名稱尋找替代列，避免回復到其他步驟。</summary>
     private Entity? FindStepById(Guid id)
     {
         return ReadById(StepLogicalName, id);
     }
 
+    /// <summary>缺少有效資料庫 ID 時不送 SDK 查詢；存在時取得本次操作的獨立實體資料。</summary>
     private Entity? ReadById(string entityName, Guid? id)
     {
         if (!id.HasValue || id.Value == Guid.Empty)
@@ -828,6 +956,7 @@ internal sealed class DeploymentEngine
         return service.Retrieve(entityName, id.Value, new ColumnSet(true));
     }
 
+    /// <summary>只把受管理組件及步驟的穩定排序摘要納入指紋；設定使用雜湊，原始秘密不落檔。</summary>
     private string CalculateFingerprint(string assemblyName)
     {
         var assembly = FindAssembly(assemblyName);
@@ -882,6 +1011,7 @@ internal sealed class DeploymentEngine
         return HashText(JsonSerializer.Serialize(rows));
     }
 
+    /// <summary>固定清單與字典排序，使同一有效清單產生相同雜湊；內容仍為佔位範本，從不解析秘密。</summary>
     private static string CanonicalManifest(RegistrationManifest manifest)
     {
         var normalized = new
@@ -910,12 +1040,14 @@ internal sealed class DeploymentEngine
         return JsonSerializer.Serialize(normalized);
     }
 
+    /// <summary>計算計畫完整性時排除雜湊欄位本身，其餘核准欄位全部納入。</summary>
     private static string HashPlan(DeploymentPlan plan)
     {
         var unsigned = plan with { Sha256 = string.Empty };
         return HashText(JsonSerializer.Serialize(unsigned));
     }
 
+    /// <summary>套用前驗證支援的 schema 與完整計畫雜湊，任何不符均在寫入前拒絕。</summary>
     private static void ValidatePlanHash(DeploymentPlan plan)
     {
         if (plan.SchemaVersion != 1 ||
@@ -925,6 +1057,7 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>驗證 P0 唯一支援的範圍及穩定身份唯一性；不支援欄位不可靜默忽略。</summary>
     private static void ValidateManifest(RegistrationManifest manifest, AssemblyImage image)
     {
         if (manifest.SchemaVersion != 1 ||
@@ -954,6 +1087,7 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>只允許固定模式、語系與秘密佔位；拒絕原始收件者及 token，使 plan 和版控安全。</summary>
     private static void ValidateConfigurationTemplate(StepRegistration step)
     {
         if (string.IsNullOrWhiteSpace(step.UnsecureConfig) ||
@@ -1004,6 +1138,7 @@ internal sealed class DeploymentEngine
         _ = ExtractSecretNames(step.SecureConfig);
     }
 
+    /// <summary>要求完整字串恰為一個受限秘密佔位，禁止額外前後綴造成未驗證內容。</summary>
     private static bool IsSingleSecretPlaceholder(string? value)
     {
         if (string.IsNullOrEmpty(value))
@@ -1015,6 +1150,7 @@ internal sealed class DeploymentEngine
         return match.Success && match.Length == value.Length;
     }
 
+    /// <summary>只抽取受限名稱供人工審核，不接觸秘密值；格式異常時以固定錯誤拒絕。</summary>
     private static string[] ExtractSecretNames(string value)
     {
         if (string.IsNullOrEmpty(value))
@@ -1032,6 +1168,7 @@ internal sealed class DeploymentEngine
         return matches.Select(match => match.Groups[1].Value).Distinct(StringComparer.Ordinal).ToArray();
     }
 
+    /// <summary>僅由 apply 寫入框架呼叫；解析後值不快取、不進計畫或日誌，缺值則停止寫入。</summary>
     private string ResolvePlaceholders(string template)
     {
         return SecretPlaceholderRegex.Replace(template, match =>
@@ -1046,6 +1183,7 @@ internal sealed class DeploymentEngine
         });
     }
 
+    /// <summary>以完整穩定鍵找唯一受管理清單項目；不存在時不容許計畫注入額外操作。</summary>
     private static StepRegistration FindStepRegistration(RegistrationManifest manifest, string stepKey)
     {
         var step = manifest.Steps.SingleOrDefault(candidate =>
@@ -1053,28 +1191,34 @@ internal sealed class DeploymentEngine
         return step ?? throw new InvalidDataException("Plan 指定步驟不在註冊清單中。");
     }
 
+    /// <summary>組合型別與註冊語意成穩定鍵，不使用顯示名稱或清單順序當作身份。</summary>
     private static string StepKey(StepRegistration step) =>
         string.Join("|", step.Type, step.Message, step.Entity, step.Stage, step.Mode,
             step.Rank.ToString(CultureInfo.InvariantCulture));
 
+    /// <summary>只從固定清單產生可辨識的顯示標籤；此標籤不作資料庫身份或授權依據。</summary>
     private static string StepDisplayName(StepRegistration step) =>
         "SpeechMessage " + step.Entity + " " + step.Message + " " + step.Type[(step.Type.LastIndexOf('.') + 1)..];
 
+    /// <summary>只轉換 P0 已核定的 PostOperation；未知值必須明確拒絕。</summary>
     private static int ReadStage(string stage) => stage switch
     {
         "PostOperation" => 40,
         _ => throw new InvalidDataException("Plugin 註冊階段不在 P0 白名單中。")
     };
 
+    /// <summary>只轉換 P0 已核定的非同步模式；禁止默認為其他執行模式。</summary>
     private static int ReadMode(string mode) => mode switch
     {
         "Asynchronous" => 1,
         _ => throw new InvalidDataException("Plugin 執行模式不在 P0 白名單中。")
     };
 
+    /// <summary>只有該組織明確 true 才啟用；缺少設定一律停用以避免意外推播。</summary>
     private static bool IsEnabled(StepRegistration step, string organization) =>
         step.EnabledByOrganization.TryGetValue(organization, out var enabled) && enabled;
 
+    /// <summary>所有核心入口再驗唯一開發組織，防止繞過 CLI 後跨組織使用。</summary>
     private static void ValidateOrganization(string organization)
     {
         if (!string.Equals(organization, AllowedOrganization, StringComparison.OrdinalIgnoreCase))
@@ -1083,6 +1227,7 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>同公鑰及主次版本且為 Sandbox／Database 才容許更新；避免同名不同身份被覆寫。</summary>
     private static void ValidateAssemblyCompatibility(Entity assembly, AssemblyImage image)
     {
         var existingVersion = assembly.GetAttributeValue<string>("version");
@@ -1099,17 +1244,20 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>只以 Dataverse 已讀取的 statecode 判定啟用，不從顯示文字推測。</summary>
     private static bool IsEnabledFromState(Entity entity) => ReadOption(entity, "statecode") == 0;
 
     private static int ReadOption(Entity entity, string attributeName) =>
         entity.GetAttributeValue<OptionSetValue>(attributeName)?.Value ?? -1;
 
+    /// <summary>只接受非空 SDK 參照 ID，避免空 GUID 進入跨列查詢或資料庫操作。</summary>
     private static Guid? ReadReferenceId(Entity entity, string attributeName)
     {
         var reference = entity.GetAttributeValue<EntityReference>(attributeName);
         return reference is null || reference.Id == Guid.Empty ? null : reference.Id;
     }
 
+    /// <summary>建立單一精確等值的 SDK 查詢條件，不拼接 FetchXML 或使用者字串。</summary>
     private static FilterExpression Equal(string attributeName, object value)
     {
         var filter = new FilterExpression(LogicalOperator.And);
@@ -1117,6 +1265,7 @@ internal sealed class DeploymentEngine
         return filter;
     }
 
+    /// <summary>以 AND 合併固定身份條件，保持所有隔離條件同時成立。</summary>
     private static FilterExpression And(params FilterExpression[] conditions)
     {
         var filter = new FilterExpression(LogicalOperator.And);
@@ -1131,6 +1280,7 @@ internal sealed class DeploymentEngine
         return filter;
     }
 
+    /// <summary>以解碼後 DLL bytes 計算內容雜湊；無效 Base64 使用固定錯誤，不展開原文。</summary>
     private static string HashBase64(string content)
     {
         if (content.Length == 0)
@@ -1148,9 +1298,11 @@ internal sealed class DeploymentEngine
         }
     }
 
+    /// <summary>以固定 UTF-8 與 SHA-256 建立可跨程序重現的摘要，不依目前文化格式化。</summary>
     private static string HashText(string content) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content)));
 
+    /// <summary>在同目錄唯一暫存檔寫入並 flush 後原子發布；finally 刪除殘留暫存，避免讀者看到半份備份。</summary>
     private static void WriteJsonAtomically<T>(string path, T value)
     {
         var fullPath = Path.GetFullPath(path);

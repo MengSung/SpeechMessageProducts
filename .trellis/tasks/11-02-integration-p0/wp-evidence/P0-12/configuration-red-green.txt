@@ -1,0 +1,10 @@
+P0-12 configuration update regression (2026-11-03)
+
+RED: Apply_ConfigurationChanged_UpdatesSameStepAndRemainsIdempotent
+Failed: Assert.Single() Failure: The collection was empty.
+The planner returned no operations after changing an existing trace step to push.
+
+GREEN: The same test passed after adding UpdateStepConfiguration.
+It checks trace -> push -> trace with the original database ID, secret reads only
+in apply, idempotent repeat plans, secure-row cleanup and redacted export.
+All data and service calls are synthetic and in-memory; no D365/LINE connection.

@@ -350,45 +350,45 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-04 套件弱點補修 2/2 通過；接續 P0-12）",
+  "snapshot": "2026-11-03（P0-12 離線驗證通過；下一包 P0-12A）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-04 套件弱點補修 2/2</strong>已讓 net48 嚴格專案於還原時稽核全部相依，並將 Plugin 與測試專案的 System.Text.Json 升至 6.0.11。弱點清單只剩排入 P0-12A 的 ImageSharp；Release <strong>971／971</strong>、建置 0 錯誤／37 警告。接續 P0-12；驗證皆離線。",
+  "headline": "<strong>P0-12</strong>離線佈署工具通過：Deployment <strong>42／42</strong>、覆蓋率 <strong>81.80%</strong>；Release <strong>1013／1013</strong>、建置 0 錯誤／36 警告。接續 P0-12A 圖片上傳防護；尚未連線 D365／LINE，階段審查在 P0-12A 之後。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "15",
+      "value": "16",
       "unit": "/ 83 工作包",
-      "sub": "含兩項使用者核定的套件弱點補修",
+      "sub": "P0-12 離線驗證完成；接續 P0-12A",
       "meter": {
-        "done": 15,
+        "done": 16,
         "active": 1,
         "total": 83
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "14",
+      "value": "16",
       "unit": "/ 18 工作包",
-      "sub": "Xml／Pkcs 與 net48 間接套件弱點補修通過；接續 P0-12",
+      "sub": "佈署最小版驗證通過；尚未進行 D365 使用者驗收",
       "meter": {
-        "done": 15,
+        "done": 16,
         "active": 1,
         "total": 18
       }
     },
     {
       "label": "完整 Release 測試",
-      "value": "971",
-      "unit": "/ 971 通過",
-      "sub": "P0-ENV 新增完整服務網址與 secrets 覆寫兩案例；其他既有案例保留"
+      "value": "1013",
+      "unit": "/ 1013 通過",
+      "sub": "ChurchReport 503／503；Deployment 42／42"
     },
     {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "本次 Release 建置 37 個警告；低於原 77 個基準，未新增警告抑制"
+      "sub": "Release 36 個既有警告；ImageSharp 排入 P0-12A，未新增抑制"
     }
   ],
   "wps": [
@@ -502,8 +502,9 @@ const DATA = {
     {
       "id": "P0-12",
       "name": "佈署專案最小版：SpeechMessage.Dynamics.Deployment",
-      "status": "todo",
-      "note": "佈署骨架已在 12cae6bc 提交；套件弱點補修完成後，依核定的 17 個測試紅燈→綠燈完成本包；全程不連線 D365。"
+      "status": "done",
+      "note": "原 17 方法保留，Deployment 42／42、覆蓋率 81.80%；方案 1013／1013、Debug 7／7。只讀 User Secrets，每命令獨立連線並釋放，全部離線。",
+      "commit": "12cae6bc／e1e10b7a／c1bda2e0＋本次收尾"
     },
     {
       "id": "P0-12A",
@@ -530,7 +531,7 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 18,
-      "done": 15,
+      "done": 16,
       "active": 1,
       "current": true
     },
@@ -603,14 +604,14 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "971 過／0 失敗",
-      "note": "P0-ENV 兩個回歸案例新增；舊空白斷言依使用者核定改為鍵存在"
+      "after": "1013 過／0 失敗",
+      "note": "ChurchReport 503／503；原案例全部保留"
     },
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "37",
-      "note": "本次 Release 建置 0 錯誤；未新增任何警告抑制"
+      "after": "36",
+      "note": "0 錯誤；剩餘 ImageSharp 弱點排入 P0-12A"
     },
     {
       "item": "套件版本違規",
@@ -627,7 +628,7 @@ const DATA = {
     {
       "item": "新程式分析器探測",
       "before": "未建立",
-      "after": "24／24",
+      "after": "26／26",
       "note": "含 net48 CA1707／CA1716 與兩目標 EffectiveAnalysisLevel；原先 net48 Recommended 缺口已修正。"
     },
     {
@@ -651,8 +652,8 @@ const DATA = {
     {
       "item": "I18nCheck 工具與基準",
       "before": "未建立",
-      "after": "75／75；11 專案",
-      "note": "817 來源檔、3895 CJK 片段；產出重複相同、竄改唯讀拒絕，工具覆蓋率超過 96%。"
+      "after": "75／75；15 專案",
+      "note": "新 Deployment 初始 91 個固定中文字串；既有專案無增量，SharedText.g.cs 實查 1 檔"
     },
     {
       "item": "Localization 雙目標",
@@ -677,6 +678,12 @@ const DATA = {
       "before": "僅舊 .NET 8 workflow",
       "after": "本機全過；七組 ≥80%",
       "note": "覆蓋率測試 11／11；GitHub 未實跑，沒有 secret 時跳過正式打包。"
+    },
+    {
+      "item": "Deployment 離線 L1／L2",
+      "before": "未建立",
+      "after": "42／42；81.80%",
+      "note": "同組織寫入鎖、連線釋放、秘密遮罩、smoke 清理與設定切換；未連 D365"
     }
   ],
   "conduct": [
@@ -921,6 +928,11 @@ const DATA = {
     },
     {
       "text": "P0-04 net48 全相依稽核及 System.Text.Json 修補通過；還原成功、弱點清單只剩 ImageSharp，Release 971／971、建置 37 警告。",
+      "t": "2026-11-03",
+      "cls": "ok"
+    },
+    {
+      "text": "P0-12 離線佈署工具通過：42／42、覆蓋率 81.80%；方案 1013／1013、建置 36 警告。新增設定切換紅→綠並修正八個新檔換行。",
       "t": "2026-11-03",
       "cls": "ok"
     }

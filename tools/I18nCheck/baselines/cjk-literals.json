@@ -1161,7 +1161,7 @@
     },
     {
       "project": "SpeechMessage.Dynamics.Deployment/SpeechMessage.Dynamics.Deployment.csproj",
-      "count": 87,
+      "count": 91,
       "files": [
         {
           "path": "SpeechMessage.Dynamics.Deployment/AssemblyCatalog.cs",
@@ -1181,7 +1181,7 @@
         },
         {
           "path": "SpeechMessage.Dynamics.Deployment/DeploymentEngine.cs",
-          "count": 63
+          "count": 67
         },
         {
           "path": "SpeechMessage.Dynamics.Deployment/OrganizationWriteLock.cs",

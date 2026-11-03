@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "check": "build",
+      "command": "dotnet build SpeechMessageProducts.sln -c Release -warnaserror:NU1605",
+      "exitCode": 0
+    },
+    {
+      "check": "release",
+      "command": "dotnet test SpeechMessageProducts.sln -c Release --no-build",
+      "exitCode": 0,
+      "passed": 1013
+    },
+    {
+      "check": "debug-tracer",
+      "command": "dotnet test ToolUtility.Dataverse.Tests -c Debug --filter FullyQualifiedName~FileToolUtilityTracerTests",
+      "exitCode": 0
+    },
+    {
+      "check": "encoding",
+      "command": "powershell -NoProfile -File tools/RepoQuality/Test-TextEncoding.ps1 -Scope Changed -Base 73b6e6cf",
+      "exitCode": 1
+    },
+    {
+      "check": "encoding",
+      "exitCode": 0,
+      "command": "powershell -NoProfile -File tools/RepoQuality/Test-TextEncoding.ps1 -Scope Changed -Base 73b6e6cf"
+    },
+    {
+      "check": "duplicate",
+      "exitCode": 0,
+      "command": "powershell -NoProfile -File tools/RepoQuality/Find-DuplicateCode.ps1 -Baseline tools/RepoQuality/duplicate-baseline.json"
+    },
+    {
+      "check": "i18n",
+      "exitCode": 0,
+      "command": "dotnet run --project tools/I18nCheck -- verify"
+    },
+    {
+      "check": "progress",
+      "exitCode": 0,
+      "command": "node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs"
+    },
+    {
+      "check": "coverage",
+      "exitCode": 0,
+      "command": "dotnet test SpeechMessage.Dynamics.Deployment.Tests -c Release --no-build \"--collect:XPlat Code Coverage\" --results-directory artifacts\\p012-final-verification\\coverage-9c73019940184498aa0cf93e5ea1abcd -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=[SpeechMessage.Dynamics.Deployment]*"
+    },
+    {
+      "check": "packages",
+      "exitCode": 0,
+      "command": "powershell -NoProfile -File tools/RepoQuality/Test-PackageVersions.ps1"
+    }
+  ],
+  "deploymentTests": 42,
+  "solutionTests": 1013,
+  "churchReportTests": 503,
+  "debugTracerTests": 7,
+  "deploymentLineCoveragePercent": 81.8,
+  "d365OrLineConnections": 0
+}

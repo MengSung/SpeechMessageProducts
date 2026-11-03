@@ -22,6 +22,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Central Package Management](./central-package-management.md) | Actual project scope, snapshot opt-out, XML-aware version guard, and restore validation | Established |
 | [Strict Analyzer Contract](./strict-analyzer-contract.md) | Late opt-in evaluation, exact diagnostic probes, legacy isolation, and net48 polyfills | Established |
 | [Solution CI Contract](./solution-ci-contract.md) | Offline Windows checks, per-target coverage, optional signing and temp-key cleanup | Established |
+| [Deployment CLI Contract](./deployment-contract.md) | User Secrets-only isolated commands, metadata plans, safe diagnostics and offline verification | Established |
 | [Plugin Packaging Contract](./plugin-packaging-contract.md) | Separate four-input merge, process-environment signing, offline metadata checks and sandbox exception ownership | Established |
 | [Text Encoding Contract](./text-encoding-contract.md) | Tracked-file boundaries, byte/token checks, lossless conversion, and safe output ownership | Established |
 | [Development Configuration Safety](./development-configuration-safety.md) | Development-only providers, baseline token rejection, test organization guard and Production compatibility | Established |
