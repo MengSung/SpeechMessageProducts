@@ -1,0 +1,19 @@
+{
+  "workPackage": "P0-04-Cryptography",
+  "red": {
+    "exitCode": 1,
+    "expectedFailures": 3,
+    "contracts": [
+      "System.Security.Cryptography.Xml central version must be 10.0.14",
+      "System.Security.Cryptography.Pkcs central version must be 10.0.14",
+      "PowerPlatform.Dataverse.Client must directly reference System.Security.Cryptography.Pkcs"
+    ]
+  },
+  "green": {
+    "command": "powershell -NoProfile -File tools/RepoQuality/Test-PackageVersions.ps1",
+    "projects": 39,
+    "references": 147,
+    "excludedSnapshots": 2,
+    "failures": 0
+  }
+}

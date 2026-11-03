@@ -2,6 +2,9 @@
 
 依原計畫執行；一次只開始一個 WP，前一包驗證及提交後才開始下一包。
 
+- [x] P0-04 補修 1：System.Security.Cryptography.Xml／Pkcs 升至 10.0.14；Release 971／971、建置 0 錯誤／36 警告、00 §8 守門通過。
+- [ ] P0-04 補修 2：net48 嚴格專案 NuGetAuditMode=all，先證明還原階段生效，再修復揭露的間接弱點。
+
 - [x] P0-01 開分支、Trellis 任務、保存 SDK／建置／測試基準與已授權修復；驗證已通過。
 - [x] P0-02 gitignore 與 global.json；設定及完整驗證已通過。
 - [x] P0-03 CPM 與版本統一；套件守門紅燈 113 項、綠燈 0 項，完整驗證通過。

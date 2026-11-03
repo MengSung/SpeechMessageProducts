@@ -1,0 +1,24 @@
+{
+  "workPackage": "P0-04-Cryptography",
+  "verification": [
+    { "name": "restore", "command": "dotnet restore SpeechMessageProducts.sln", "exitCode": 0 },
+    { "name": "vulnerability-list", "command": "dotnet list SpeechMessageProducts.sln package --vulnerable --include-transitive", "exitCode": 0, "cryptographyPackagesRemaining": 0 },
+    { "name": "package-resolution", "command": "dotnet list SpeechMessageProducts.sln package --include-transitive", "exitCode": 0, "resolvedCryptographyVersion": "10.0.14" },
+    { "name": "release-build", "command": "dotnet build SpeechMessageProducts.sln -c Release -warnaserror:NU1605", "exitCode": 0, "errors": 0, "warnings": 36 },
+    { "name": "release-tests", "command": "dotnet test SpeechMessageProducts.sln -c Release --no-build", "exitCode": 0, "passed": 971, "failed": 0, "skipped": 0, "churchReportPassed": 503 },
+    { "name": "debug-tracer", "command": "dotnet test ToolUtility.Dataverse.Tests -c Debug --filter FullyQualifiedName~FileToolUtilityTracerTests", "exitCode": 0, "passed": 7 },
+    { "name": "package-guard", "command": "powershell -NoProfile -File tools/RepoQuality/Test-PackageVersions.ps1", "exitCode": 0, "projects": 39, "references": 147, "excludedSnapshots": 2, "failures": 0 },
+    { "name": "analyzer-probe", "command": "powershell -NoProfile -File tools/RepoQuality/Test-AnalyzerProbe.ps1", "exitCode": 0, "checks": 24, "failures": 0 },
+    { "name": "encoding", "command": "powershell -NoProfile -File tools/RepoQuality/Test-TextEncoding.ps1 -Scope Changed -Base 73b6e6cf", "exitCode": 0, "checked": 392, "filesWithIssues": 0 },
+    { "name": "duplicate-scan", "command": "powershell -NoProfile -File tools/RepoQuality/Find-DuplicateCode.ps1 -Baseline tools/RepoQuality/duplicate-baseline.json", "exitCode": 0, "projects": 24, "files": 865, "new": 0 },
+    { "name": "i18n-verify", "command": "dotnet run --project tools/I18nCheck -- verify", "exitCode": 0, "generatedFilesChecked": 1 },
+    { "name": "progress-page", "command": "node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs", "exitCode": 0, "passed": 3, "failed": 0 },
+    { "name": "diff-check", "command": "git diff --check", "exitCode": 0 }
+  ],
+  "constraints": {
+    "d365OrLineConnections": false,
+    "formalSigningKeyRead": false,
+    "secretsWrittenToEvidence": false,
+    "warningSuppressionsAdded": false
+  }
+}

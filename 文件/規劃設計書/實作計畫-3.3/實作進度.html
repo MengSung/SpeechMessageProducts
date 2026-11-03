@@ -350,32 +350,32 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-ENV 核定調整驗證通過）",
+  "snapshot": "2026-11-03（P0-04 套件弱點補修 1/2 通過）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-ENV 契約調整</strong>已依使用者核定完成；完整服務網址與 User Secrets 覆寫納入回歸，Development 相關 <strong>32／32</strong>、完整方案 <strong>971／971</strong>、Debug <strong>7／7</strong>。提交後接續 P0-12；所有驗證離線。",
+  "headline": "<strong>P0-04 套件弱點補修 1/2</strong>已將 WCF／WS-Trust 的 Xml／Pkcs 升至 10.0.14；弱點清單不再列出這兩個套件。Release <strong>971／971</strong>、建置 0 錯誤／36 警告；接著補修 net48 間接相依稽核，再進 P0-12。驗證皆離線。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "13",
-      "unit": "/ 80 工作包",
-      "sub": "依 3.3 計畫，含 P0-SEC、P0-ENV 與新增佈署工作包",
+      "value": "14",
+      "unit": "/ 82 工作包",
+      "sub": "含兩項使用者核定的套件弱點補修",
       "meter": {
-        "done": 13,
-        "active": 0,
-        "total": 80
+        "done": 14,
+        "active": 1,
+        "total": 82
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "13",
-      "unit": "/ 15 工作包",
-      "sub": "P0-11 本機 CI 命令通過；下一包 P0-12 佈署專案最小版",
+      "value": "14",
+      "unit": "/ 17 工作包",
+      "sub": "Xml／Pkcs 補修通過；net48 間接套件稽核進行中",
       "meter": {
-        "done": 13,
-        "active": 0,
-        "total": 15
+        "done": 14,
+        "active": 1,
+        "total": 17
       }
     },
     {
@@ -388,7 +388,7 @@ const DATA = {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "本次 Release 建置 76 個既有警告，未新增抑制"
+      "sub": "本次 Release 建置 36 個警告；相較原 77 個基準未新增警告"
     }
   ],
   "wps": [
@@ -422,6 +422,18 @@ const DATA = {
       "status": "done",
       "note": "原 c4e1f294、命名補充 cea2958d 保留；分析層級補修 58245c6f 使 net48 真正載入 Recommended，探測 24／24。",
       "commit": "c4e1f294"
+    },
+    {
+      "id": "P0-04-Cryptography",
+      "name": "補修：System.Security.Cryptography.Xml／Pkcs 弱點",
+      "status": "done",
+      "note": "中央版本與地端連線來源直接相依升至 10.0.14；弱點清單已清除此兩項，Release 971／971、建置 36 警告。"
+    },
+    {
+      "id": "P0-04-NuGetAudit",
+      "name": "補修：net48 嚴格專案稽核間接套件",
+      "status": "active",
+      "note": "先驗證 NuGetAuditMode=all 在還原階段生效，再處理揭露的修正版弱點。"
     },
     {
       "id": "P0-05",
@@ -491,13 +503,13 @@ const DATA = {
       "id": "P0-12",
       "name": "佈署專案最小版：SpeechMessage.Dynamics.Deployment",
       "status": "todo",
-      "note": "新增 Solution 內主控台與離線測試，涵蓋 plan／apply／verify／export／rollback／smoke；本包不連線 D365。"
+      "note": "佈署骨架已在 12cae6bc 提交；套件弱點補修完成後，依核定的 17 個測試紅燈→綠燈完成本包；全程不連線 D365。"
     },
     {
       "milestone": true,
       "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
       "status": "review",
-      "note": "P0-12 提交後、P0-13 前，由自癒入口審查 73b6e6cf..HEAD；P0-SEC 為重點，逾時或失敗準備人工包後停止。"
+      "note": "P0-12A 提交後、P0-13 前，由自癒入口分批審查 73b6e6cf..HEAD；含 P0-SEC 與套件／圖片防護，逾時或失敗準備人工包後停止。"
     },
     {
       "id": "P0-13",
@@ -511,9 +523,9 @@ const DATA = {
       "id": "階段 0",
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
-      "total": 15,
-      "done": 13,
-      "active": 0,
+      "total": 17,
+      "done": 14,
+      "active": 1,
       "current": true
     },
     {
@@ -908,7 +920,7 @@ const DATA = {
     },
     {
       "text": "外部審查只使用 Claude，階段末做一次",
-      "sub": "P0-12 提交後、P0-13 前；失敗就準備審查包並等待使用者"
+      "sub": "P0-12A 提交後、P0-13 前；失敗就準備審查包並等待使用者"
     },
     {
       "text": "P0-04 文件開關放在 csproj 本體，其餘嚴格設定放 targets",
@@ -960,6 +972,10 @@ const DATA = {
     {
       "text": "ChurchReport Development 帳密存放例外已核定",
       "sub": "僅調整 ChurchReport；User Secrets 仍可覆寫。P0-12 佈署帳密仍只讀 User Secrets；證據不含機密值。"
+    },
+    {
+      "text": "P0-12 前置套件弱點修補與 P0-12A 已核定",
+      "sub": "Xml／Pkcs 先升 10.0.14；net48 全相依稽核先於 P0-12；ImageSharp 3.2.0 與圖片格式／尺寸防護列入 P0-12A，階段審查移至其後。"
     }
   ],
   "prep": [
@@ -1009,6 +1025,16 @@ const DATA = {
       "level": "warn",
       "text": "goodshepherdback 是正式資料複本，尚未回報清理完成",
       "sub": "含真實個資與正式 LINE token；本次所有驗證均只在本機，不連線 D365"
+    },
+    {
+      "level": "warn",
+      "text": "net48 Plugin 的 System.Text.Json 6.0.8 有 High 弱點",
+      "sub": "依核定先讓 net48 嚴格專案稽核全部相依，再直接參考修正版 6.0.11。"
+    },
+    {
+      "level": "warn",
+      "text": "ChurchReport ImageSharp 3.1.12 有 High／Moderate 弱點",
+      "sub": "排入 P0-12A 升至 3.2.0，並限制上傳格式與解碼尺寸。"
     },
     {
       "level": "warn",

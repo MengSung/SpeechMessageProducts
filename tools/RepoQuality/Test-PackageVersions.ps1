@@ -87,6 +87,32 @@ try {
             }
         }
     }
+    $centralPath = Join-Path $root 'Directory.Packages.props'
+    if (-not [System.IO.File]::Exists($centralPath)) { throw 'Central package version table is missing.' }
+    $central = New-Object System.Xml.XmlDocument
+    $central.XmlResolver = $null
+    $central.Load($centralPath)
+    foreach ($package in @('System.Security.Cryptography.Xml', 'System.Security.Cryptography.Pkcs')) {
+        $version = $central.SelectSingleNode("//*[local-name()='PackageVersion' and @Include='$package']")
+        if ($null -eq $version -or $version.GetAttribute('Version') -ne '10.0.14') {
+            $failures.Add("CryptographySecurityFix: Directory.Packages.props [$package] must be 10.0.14")
+        }
+    }
+    $connectionProjectPath = Join-Path $root 'PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj'
+    if (-not [System.IO.File]::Exists($connectionProjectPath)) { throw 'On-premises connection project is missing.' }
+    $connectionProject = New-Object System.Xml.XmlDocument
+    $connectionProject.XmlResolver = $null
+    $connectionProject.Load($connectionProjectPath)
+    foreach ($package in @('System.Security.Cryptography.Xml', 'System.Security.Cryptography.Pkcs')) {
+        $reference = $connectionProject.SelectSingleNode("//*[local-name()='PackageReference' and @Include='$package']")
+        if ($null -eq $reference -or $reference.HasAttribute('Version') -or
+            $reference.SelectSingleNode("*[local-name()='Version']")) {
+            $failures.Add("CryptographyDirectDependency: PowerPlatform.Dataverse.Client [$package] must directly reference its centrally managed version")
+        }
+    }
+    if ($central.SelectSingleNode("//*[local-name()='PropertyGroup']/*[local-name()='CentralPackageTransitivePinningEnabled' and translate(text(),'TRUE','true')='true']")) {
+        $failures.Add('CryptographyCentralPinning: CentralPackageTransitivePinningEnabled must not be enabled.')
+    }
     foreach ($failure in $failures) { Write-Output "FAIL $failure" }
     Write-Output "Package guard: projects=$checked references=$references excluded=$excluded failures=$($failures.Count)"
     if ($checked -eq 0) { throw 'No program projects found; refusing an empty package check.' }

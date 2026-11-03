@@ -48,6 +48,8 @@ void CreateRecord(IOrganizationService svc)
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" />
     <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" />
+    <!-- WCF／WS-Trust 的傳遞相依曾帶入有弱點的舊版；直接參考由中央版本表升級的安全修補版。 -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
     <PackageReference Include="System.ServiceModel.Federation" />
     <PackageReference Include="System.ServiceModel.Http" />
