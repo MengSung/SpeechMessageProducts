@@ -1,0 +1,12 @@
+{
+  "runId": "20261103-234826-integration-p0-stage0-03-reviewer",
+  "reviewMode": "claude-only",
+  "dualModelComplete": false,
+  "ok": false,
+  "quotaBlocked": true,
+  "degradedFallback": false,
+  "completedBackends": [],
+  "failedBackends": [
+    "claude"
+  ]
+}

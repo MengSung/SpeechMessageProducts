@@ -350,17 +350,25 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-12A 與一般金鑰 CI 本機驗證完成；準備階段審查）",
+  "snapshot": "2026-11-03（階段 0 審查完成 4／11 份；第 03 份額度限制停止）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "圖片防護已提交 <strong>eb7ff61f</strong>；一般金鑰 CI 合成測試在兩種 PowerShell 均 <strong>23／23</strong>。全方案 Release <strong>1089／1089</strong>、Debug <strong>7／7</strong>；接續八批 ClaudeOnly 階段審查。CI 未在 GitHub 實跑。",
-  "alert": null,
+  "headline": "P0-12A A、B 已提交 <strong>eb7ff61f／ae29cb40</strong>。ClaudeOnly 審查完成 <strong>4／11 份</strong>，第 03 份因額度限制停止。仍有 <strong>1 項 Critical、1 項待核對 High</strong>；Razor 候選修正尚未通過完整 verify，未進入 P0-13。",
+  "alert": {
+    "title": "階段審查暫停：Claude 工作階段額度限制",
+    "body": "第 03 份兩次嘗試均無輸出，這次不是逾時。依核定備妥審查包後停止，等待使用者處理。",
+    "steps": [
+      "審查包：.ccg/dual-model-runs/20261103-232143-integration-p0-review-pack.zip。",
+      "可恢復 Claude 額度後指示繼續，或人工轉交剩餘提示檔；接續點為 03。",
+      "Critical／High 解決、完整驗證與修正複審通過前，不進入 P0-13；小組回報維持 review。"
+    ]
+  },
   "tiles": [
     {
       "label": "全計畫進度",
       "value": "17",
       "unit": "/ 83 工作包",
-      "sub": "P0-12A 與授權 CI 本機驗證完成；接續八批階段審查",
+      "sub": "階段審查 4／11 份；額度限制停止，等待使用者",
       "meter": {
         "done": 17,
         "active": 1,
@@ -371,7 +379,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "17",
       "unit": "/ 18 工作包",
-      "sub": "P0-12A 與授權 CI 本機驗證完成；接續八批階段審查",
+      "sub": "階段審查 4／11 份；額度限制停止，等待使用者",
       "meter": {
         "done": 17,
         "active": 1,
@@ -379,16 +387,16 @@ const DATA = {
       }
     },
     {
-      "label": "最近完整 Release",
+      "label": "最近完整 Release（B 段）",
       "value": "1089",
       "unit": "/ 1089 通過",
       "sub": "ChurchReport 579／579；其中圖片案例 76／76"
     },
     {
-      "label": "目前 Release 建置",
+      "label": "最近完整建置（B 段）",
       "value": "通過",
       "unit": "0 錯誤",
-      "sub": "完整重建 1 個既有 CS1572 警告；本機有效授權檢查通過"
+      "sub": "B 段完整重建 1 個既有 CS1572；目前審查修正的完整 verify 尚未通過"
     }
   ],
   "wps": [
@@ -511,13 +519,13 @@ const DATA = {
       "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
       "status": "done",
       "note": "圖片 76／76、全方案 1089／1089；一般金鑰 CI 兩種 PowerShell 各 23／23。缺 secret 失敗、runner 暫存、always 清理；未在 GitHub 實跑。",
-      "commit": "eb7ff61f；授權 CI 本次提交"
+      "commit": "eb7ff61f；授權 CI ae29cb40"
     },
     {
       "milestone": true,
       "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
       "status": "review",
-      "note": "P0-12A 提交後，ClaudeOnly 分八批審查；第 ⑧ 批含小組回報修正。逾時或失敗準備包後停止。"
+      "note": "單模型（使用者指定 ClaudeOnly），4／11 份完成；03 額度限制停止，1 項 Critical 未修完、1 項 High 待核對，審查包已備妥。"
     },
     {
       "id": "P0-13",
@@ -653,8 +661,8 @@ const DATA = {
     {
       "item": "I18nCheck 工具與基準",
       "before": "未建立",
-      "after": "75／75；15 專案",
-      "note": "新 Deployment 初始 91 個固定中文字串；既有專案無增量，SharedText.g.cs 實查 1 檔"
+      "after": "87／87；verify 未過",
+      "note": "審查修正未提交：單元案例通過但 40 個既有 Razor 模板觸發 I18N415，不能取代完整守門；未提高基準。"
     },
     {
       "item": "Localization 雙目標",
@@ -685,6 +693,12 @@ const DATA = {
       "before": "未建立",
       "after": "42／42；81.80%",
       "note": "同組織寫入鎖、連線釋放、秘密遮罩、smoke 清理與設定切換；未連 D365"
+    },
+    {
+      "item": "階段 0 外部審查",
+      "before": "待執行",
+      "after": "4／11；停止",
+      "note": "第 03 份工作階段額度限制；Critical／High 尚未解決，不視為審查通過。"
     }
   ],
   "conduct": [
@@ -956,6 +970,11 @@ const DATA = {
       "t": "2026-11-03",
       "cls": "ok",
       "text": "P0-12A B 段：一般金鑰 CI 23／23（PowerShell 5.1、7）；完整 §8 再通過，準備八批 ClaudeOnly 審查。"
+    },
+    {
+      "t": "2026-11-03 23:48",
+      "cls": "stop",
+      "text": "ClaudeOnly 第 03 份因工作階段額度限制失敗；01a、01b、01c、02 已有結果，完整審查包已準備，依核定停止。Razor 修正仍未通過完整 verify。"
     }
   ],
   "decisions": [
@@ -1059,7 +1078,7 @@ const DATA = {
     {
       "state": "todo",
       "text": "階段末 ClaudeOnly 審查及 P0-13 人工操作",
-      "sub": "P0-13 步驟寫好後停止等待回報"
+      "sub": "已備妥 11 份安全輸入；4 份完成，03 額度限制停止，等待使用者恢復額度或轉交。"
     },
     {
       "state": "done",
@@ -1068,6 +1087,11 @@ const DATA = {
     }
   ],
   "risks": [
+    {
+      "level": "warn",
+      "text": "階段審查未完成，Critical／High 仍待解決",
+      "sub": "Razor 漏掃已重現但候選修正未過完整 verify；套件掃描 junction 邊界 High 尚待本機核對。第 03 份額度限制後依核定停止。"
+    },
     {
       "level": "info",
       "text": "本機 Six Labors 授權阻擋已解除",

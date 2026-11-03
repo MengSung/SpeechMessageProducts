@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-12 離線佈署工具驗證收尾；接續使用者核定的 P0-12A 圖片上傳防護，之後才做階段審查。",
+  "description": "P0-12A A／B 已提交；階段 0 ClaudeOnly 已完成 4／11 份，第 03 份額度限制停止，尚有 Critical／High 待解決。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -23,14 +23,14 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-12A",
-    "userRequestedStop": false,
-    "gatePassed": true,
+    "currentWorkPackage": "P0-stage-review",
+    "userRequestedStop": true,
+    "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-12A.md",
+    "report": "wp-reports/P0-stage-review.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": true,
-    "waitingFor": null,
+    "waitingFor": "user-review-resumption",
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -53,9 +53,9 @@
       "P0-12": "a6a20905",
       "P0-12A-characterization": "f0574f41",
       "P0-12A": "eb7ff61f",
-      "P0-12A-license-CI": "本次提交"
+      "P0-12A-license-CI": "ae29cb40"
     },
-    "stopReason": null,
+    "stopReason": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
     "observedExternalCommit": "cf3595db",
     "observedExternalCommits": [
       "cf3595db",
@@ -75,7 +75,24 @@
     "characterizationVerified": true
   },
   "currentPhase": "review",
-  "currentWorkPackage": "P0-12A",
-  "nextAction": "P0-12A 一般金鑰 CI B 段提交後，準備 73b6e6cf..HEAD 的八批遮罩審查包，依序由 ClaudeOnly 自癒入口審查。",
-  "stopReason": null
+  "currentWorkPackage": "P0-stage-review",
+  "nextAction": "等待使用者恢復 Claude 額度或人工轉交剩餘審查包；解除停止後從 03 接續，完成 Critical／High 修正、完整 §8 與修正複審，才可 P0-13。",
+  "stopReason": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
+  "stageReview": {
+    "mode": "claude-only",
+    "state": "stopped",
+    "completedParts": [
+      "01a",
+      "01b",
+      "01c",
+      "02"
+    ],
+    "failedPart": "03",
+    "resumePart": "03",
+    "quotaBlocked": true,
+    "criticalOpen": 1,
+    "highPendingValidation": 1,
+    "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
+    "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit"
+  }
 }

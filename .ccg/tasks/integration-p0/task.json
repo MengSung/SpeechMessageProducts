@@ -6,18 +6,35 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "review",
-  "nextAction": "P0-12A 一般金鑰 CI B 段提交後，準備 73b6e6cf..HEAD 的八批遮罩審查包，依序由 ClaudeOnly 自癒入口審查。",
+  "nextAction": "等待使用者恢復 Claude 額度或人工轉交剩餘審查包；解除停止後從 03 接續，完成 Critical／High 修正、完整 §8 與修正複審，才可 P0-13。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
-  "currentWorkPackage": "P0-12A",
+  "currentWorkPackage": "P0-stage-review",
   "reviewPolicy": "One ClaudeOnly review after user-approved P0-12A and before P0-13.",
-  "reviewBlocker": null,
-  "stopReason": null,
+  "reviewBlocker": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
+  "stopReason": "ClaudeOnly 第 03 份因工作階段額度限制失敗（兩次無輸出）；依 00 §6.4 備妥審查包後停止。",
   "approval": "使用者 2026-11-03 核定：Core 保留原始 TransportException，不通知；Plugin 追蹤後拋出，最終通知依階段 2／5 排程。",
   "resumeCommit": "54e0a4d0",
   "completedWorkPackages": {
     "P0-12A": "eb7ff61f",
-    "P0-12A-license-CI": "本次提交"
+    "P0-12A-license-CI": "ae29cb40"
+  },
+  "stageReview": {
+    "mode": "claude-only",
+    "state": "stopped",
+    "completedParts": [
+      "01a",
+      "01b",
+      "01c",
+      "02"
+    ],
+    "failedPart": "03",
+    "resumePart": "03",
+    "quotaBlocked": true,
+    "criticalOpen": 1,
+    "highPendingValidation": 1,
+    "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
+    "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit"
   }
 }

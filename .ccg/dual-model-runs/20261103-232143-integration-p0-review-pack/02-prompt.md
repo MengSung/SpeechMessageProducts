@@ -1,0 +1,675 @@
+# 階段0 第2批：SpeechMessage.Localization
+
+你是唯讀外部審查者。本輪為「單模型（使用者指定 ClaudeOnly）」，不是雙模型或配額降級。只審查，不改檔、不提交、不執行產品／工具／測試，不建立任何網路或 D365／LINE 連線。
+審查重點：跨使用者／跨教會隔離、資源釋放、機密外洩、例外責任（設計10.5／10.9）、net48/net10行為一致、守門假綠燈。所有真實連線驗收仍由使用者負責。
+機密欄位已遮罩；遮罩值不可用來推斷實際設定正確性。不得讀取 appsettings*、User Secrets、環境變數、Logs、金鑰／授權檔，或以 git show 取未遮罩版本。只以所附安全差異審查；如需上下文，可只查明確的非機密程式來源。不要開啟 .ccg/dual-model-runs 的其他歷史輸出或 research 原始紀錄。
+輸出只列可驗證的 Critical／High／Medium／Low，包含檔案、行號、觸發條件、具體影響及最小修法；測試不足須說明可重現的缺口，不把純猜測當發現。沒有問題請明寫。不得聲稱實跑測試。
+已核定例外：嚴格 .Tests 測試專案僅 CA1707 放寬；未實作 API 的 CA1716 可改語意近名；Core 不通知，Plugin 僅追蹤，最終告警在 net10 重試用盡／階段5；正式金鑰只程序環境且不讀內容；本階段不存在業務 Rejected。小組頁面由使用者確認恢復，圖表未逐項驗證，之前審查兩次為逾時。
+
+範圍：73b6e6cf409daa7559fd3c11d482e3efc542c0d7..ae29cb40aa5c395f83c169068d7ca40e7094c509
+安全差異 SHA256：25bbda0716d6693a1ce5888ebf2031049c669a4b77563a72c18ae04de6ce386d
+同批其他分份須一併審查後才算完成，本份不可代表全批。
+專項：net48/net10 相同的資源鍵、語系後備、偽語系、不可變發布；Unicode Rune 與參數契約；不可保留使用者狀態。
+
+```diff
+diff --git a/SpeechMessage.Localization.Tests/SpeechMessage.Localization.Tests.csproj b/SpeechMessage.Localization.Tests/SpeechMessage.Localization.Tests.csproj
+new file mode 100644
+index 00000000..75828301
+--- /dev/null
++++ b/SpeechMessage.Localization.Tests/SpeechMessage.Localization.Tests.csproj
+@@ -0,0 +1,22 @@
++<Project Sdk="Microsoft.NET.Sdk">
++  <PropertyGroup>
++    <TargetFrameworks>net48;net10.0</TargetFrameworks>
++    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
++    <IsTestProject>true</IsTestProject>
++    <IsPackable>false</IsPackable>
++    <!-- 文件設定須早於 targets；命名例外由三條件集中規則處理，不加個別 NoWarn。 -->
++    <GenerateDocumentationFile>true</GenerateDocumentationFile>
++    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
++    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
++  </PropertyGroup>
++  <ItemGroup>
++    <PackageReference Include="Microsoft.NET.Test.Sdk" />
++    <PackageReference Include="xunit" />
++    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
++    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
++    <ProjectReference Include="../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
++  </ItemGroup>
++  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
++    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
++  </ItemGroup>
++</Project>
+
+diff --git a/SpeechMessage.Localization.Tests/SystemTextCatalogTests.cs b/SpeechMessage.Localization.Tests/SystemTextCatalogTests.cs
+new file mode 100644
+index 00000000..20fd94c1
+--- /dev/null
++++ b/SpeechMessage.Localization.Tests/SystemTextCatalogTests.cs
+@@ -0,0 +1,252 @@
++using System;
++using System.Collections.Generic;
++using System.IO;
++using System.Linq;
++using System.Threading;
++using Xunit;
++
++namespace SpeechMessage.Localization.Tests;
++
++/// <summary>
++/// 以真實生成資料保護雙目標取字、後備、鍵格式與不可變快照；以假陣列注入衝突及呼叫者修改。
++/// 全部測試離線，不依賴主機文化或時間；並行測試的執行緒、閘門及故障槽由單一案例擁有並確定排空。
++/// </summary>
++public sealed class SystemTextCatalogTests
++{
++    /// <summary>六個固定資源都須由真實生成表返回原文，包含 P0-10 診斷鍵，不可以替身字典略過產生器。</summary>
++    /// <param name="key">resx 的穩定鍵。</param>
++    /// <param name="expected">核定的原始繁中文字串。</param>
++    [Theory(DisplayName = "繁中取字使用真實系統資源")]
++    [InlineData("Common.Diagnostics.Ping", "連線測試成功")]
++    [InlineData("Common.Diagnostics.Culture", "目前語系：{culture}")]
++    [InlineData("Line.Sender.Template", "{churchName}小幫手")]
++    [InlineData("Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。")]
++    [InlineData("Common.Diagnostics.PushTest", "P0 推播測試 {utc}")]
++    [InlineData("Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}")]
++    public void Get_ZhTw_ReturnsChineseText(string key, string expected) => Assert.Equal(expected, new SystemTextTable().GetText("zh-TW", new TextKey(key)));
++
++    /// <summary>逐項採附錄 E.3 核定算式，參數保持原樣；P0-10 新鍵包含標點、空白及拉丁字元的完整 Rune 計數。</summary>
++    /// <param name="key">真實資源鍵。</param>
++    /// <param name="expected">完整偽語系答案。</param>
++    [Theory(DisplayName = "偽語系取字符合核定對照表")]
++    [InlineData("Common.Diagnostics.Ping", "［連線測試成功ǂǂǂ］")]
++    [InlineData("Common.Diagnostics.Culture", "［目前語系：{culture}ǂǂ］")]
++    [InlineData("Line.Sender.Template", "［{churchName}小幫手ǂǂ］")]
++    [InlineData("Common.Diagnostics.InvalidConfiguration", "［診斷外掛設定格式錯誤。ǂǂǂǂǂ］")]
++    [InlineData("Common.Diagnostics.PushTest", "［P0 推播測試 {utc}ǂǂǂǂ］")]
++    [InlineData("Common.Diagnostics.Retryable", "［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］")]
++    public void Get_PseudoLocale_ReturnsWrappedText(string key, string expected) => Assert.Equal(expected, new SystemTextTable().GetText("qps-ploc", new TextKey(key)));
++
++    /// <summary>未知、空字串或空值都回同一繁中快照，不按外部語系字串建立永久快取。</summary>
++    /// <param name="culture">不在系統固定清單的語系。</param>
++    [Theory(DisplayName = "未知語系確定回繁中")]
++    [InlineData("fr-FR")]
++    [InlineData("")]
++    [InlineData(null)]
++    public void Get_UnknownCulture_FallsBackToZhTw(string? culture) => Assert.Equal("連線測試成功", new SystemTextTable().GetText(culture, new TextKey("Common.Diagnostics.Ping")));
++
++    /// <summary>英文空殼沒有翻譯的每個鍵在建立時就補齊，查詢不可回 null 或重複配置後備。</summary>
++    /// <param name="key">需要中性後備的真實鍵。</param>
++    /// <param name="expected">繁中中性值。</param>
++    [Theory(DisplayName = "英文空殼缺字回繁中")]
++    [InlineData("Common.Diagnostics.Ping", "連線測試成功")]
++    [InlineData("Common.Diagnostics.Culture", "目前語系：{culture}")]
++    [InlineData("Line.Sender.Template", "{churchName}小幫手")]
++    [InlineData("Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。")]
++    [InlineData("Common.Diagnostics.PushTest", "P0 推播測試 {utc}")]
++    [InlineData("Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}")]
++    public void Get_EnShellMissingKey_FallsBackToZhTw(string key, string expected) => Assert.Equal(expected, new SystemTextTable().GetText("en", new TextKey(key)));
++
++    /// <summary>合法格式但未宣告的鍵必須拋 KeyNotFoundException，不吞掉程式錯誤或回傳鍵本身。</summary>
++    [Fact(DisplayName = "缺少系統鍵直接失敗")]
++    public void Get_UnknownKey_ThrowsKeyNotFound()
++    {
++        var catalog = new SystemTextTable();
++        Assert.Throws<KeyNotFoundException>(() => catalog.GetText("zh-TW", new TextKey("Unknown.System.Key")));
++    }
++
++    /// <summary>注入沒有分層、錯誤段首、空段、尾端換行及非允許字元，必須拒絕整個鍵。</summary>
++    /// <param name="value">刻意不合法的鍵。</param>
++    [Theory(DisplayName = "文字鍵完整驗證分層格式")]
++    [InlineData("")]
++    [InlineData("Single")]
++    [InlineData("lower.Key")]
++    [InlineData("A.lower")]
++    [InlineData("A..Key")]
++    [InlineData(".A.Key")]
++    [InlineData("A.Key.")]
++    [InlineData("A.Key\n")]
++    [InlineData("A.文字")]
++    [InlineData("A.Key Value")]
++    public void TextKey_InvalidFormat_Throws(string value) => Assert.Throws<ArgumentException>(() => new TextKey(value));
++
++    /// <summary>三個語系表都完整保留六個資源鍵；不能轉回可變 Dictionary，IDictionary 若存在也必須拒絕寫入。</summary>
++    [Fact(DisplayName = "呼叫者不能修改任何已發布語系表")]
++    public void Table_IsImmutable_CallerCannotMutate()
++    {
++        var catalog = new SystemTextTable();
++        foreach (var culture in new[] { "zh-TW", "en", "qps-ploc" })
++        {
++            var table = catalog.GetTable(culture);
++            Assert.False(table is Dictionary<string, string>);
++            if (table is IDictionary<string, string> mutable)
++                Assert.Throws<NotSupportedException>(() => mutable["Common.Diagnostics.Ping"] = "caller-change");
++            Assert.Equal(6, table.Count);
++        }
++        Assert.Equal("連線測試成功", catalog.GetText("zh-TW", new TextKey("Common.Diagnostics.Ping")));
++    }
++
++    /// <summary>
++    /// 一百個實際執行緒各讀一萬次，語系交錯且每個結果都必須一致；全部 finally 釋放閘門並 join。
++    /// 故障槽至多每個執行緒一筆，不使用無界佇列；排空後活躍計數必須為零。
++    /// net10 在預熱後另外量測十萬次命中零配置，net48 沒有該 GC API，不偽造配置數據。
++    /// </summary>
++    [Fact(DisplayName = "百執行緒讀取一致並排空且 net10 零配置")]
++    public void Table_ConcurrentReads_NoAllocationGrowth()
++    {
++        var catalog = new SystemTextTable();
++        var key = new TextKey("Common.Diagnostics.Ping");
++        const int workerCount = 100;
++        var failures = new Exception?[workerCount];
++        var threads = new List<Thread>(workerCount);
++        var active = 0;
++        using (var ready = new CountdownEvent(workerCount))
++        using (var start = new ManualResetEventSlim(false))
++        {
++            var readyInTime = false;
++            var allJoined = true;
++            try
++            {
++                for (var worker = 0; worker < workerCount; worker++)
++                {
++                    var index = worker;
++                    var thread = new Thread(() =>
++                    {
++                        Interlocked.Increment(ref active);
++                        try
++                        {
++                            ready.Signal();
++                            start.Wait();
++                            var culture = index % 2 == 0 ? "zh-TW" : "qps-ploc";
++                            var expected = index % 2 == 0 ? "連線測試成功" : "［連線測試成功ǂǂǂ］";
++                            for (var read = 0; read < 10_000; read++)
++                                if (!string.Equals(expected, catalog.GetText(culture, key), StringComparison.Ordinal)) throw new InvalidOperationException("Concurrent text mismatch.");
++                        }
++                        catch (Exception exception) { failures[index] = exception; }
++                        finally { Interlocked.Decrement(ref active); }
++                    }) { IsBackground = true };
++                    thread.Start();
++                    threads.Add(thread);
++                }
++                readyInTime = ready.Wait(TimeSpan.FromSeconds(30));
++            }
++            finally
++            {
++                start.Set();
++                foreach (var thread in threads) allJoined &= thread.Join(TimeSpan.FromSeconds(10));
++            }
++            Assert.True(readyInTime);
++            Assert.True(allJoined);
++            Assert.Equal(0, active);
++            Assert.All(failures, failure => Assert.Null(failure));
++        }
++#if NET10_0_OR_GREATER
++        var expectedValue = catalog.GetText("zh-TW", key);
++        for (var warm = 0; warm < 10_000; warm++) _ = catalog.GetText("zh-TW", key);
++        var before = GC.GetAllocatedBytesForCurrentThread();
++        for (var read = 0; read < 100_000; read++)
++            if (!ReferenceEquals(expectedValue, catalog.GetText("zh-TW", key))) throw new InvalidOperationException("Text reference changed.");
++        Assert.Equal(0L, GC.GetAllocatedBytesForCurrentThread() - before);
++#endif
++    }
++
++    /// <summary>兩個不同穩定鍵可使用相同顯示值，不能按文字去重或覆寫其中一筆。</summary>
++    [Fact(DisplayName = "相同顯示文字的不同鍵完整保留")]
++    public void Table_SameTextDifferentKeys_PreservesBoth()
++    {
++        var catalog = new SystemTextTable(["zh-TW", "en"], [["A.First", "same", null], ["A.Second", "same", null]]);
++        Assert.Equal(2, catalog.GetTable("zh-TW").Count);
++        Assert.Equal("same", catalog.GetText("zh-TW", new TextKey("A.First")));
++        Assert.Equal("same", catalog.GetText("en", new TextKey("A.Second")));
++    }
++
++    /// <summary>注入重複穩定鍵時整個建構失敗，不由字典索引覆寫或靜默丟掉一列。</summary>
++    [Fact(DisplayName = "重複資源鍵拒絕發布")]
++    public void Table_DuplicateKey_RejectsCandidate() => Assert.Throws<InvalidDataException>(() => new SystemTextTable(["zh-TW", "en"], [["A.First", "one", null], ["A.First", "two", null]]));
++
++    /// <summary>建構完成後修改來源語系／列／值陣列，已發布表仍必須保持原結果及完整後備。</summary>
++    [Fact(DisplayName = "來源陣列修改不影響已發布表")]
++    public void Table_SourceArraysMutated_DoesNotChangeSnapshot()
++    {
++        string[] cultures = ["zh-TW", "en"];
++        string?[][] rows = [["A.First", "original", null]];
++        var catalog = new SystemTextTable(cultures, rows);
++        cultures[0] = "changed";
++        rows[0][1] = "changed";
++        rows[0] = ["B.Other", "changed", "changed"];
++        Assert.Equal("original", catalog.GetText("zh-TW", new TextKey("A.First")));
++        Assert.Equal("original", catalog.GetText("en", new TextKey("A.First")));
++    }
++
++    /// <summary>語系名稱大小寫等價，重複欄位、缺中性值或列長度錯誤均必須在發布前失敗。</summary>
++    [Fact(DisplayName = "錯誤語系與不完整列拒絕發布")]
++    public void Table_InvalidMetadata_FailsClosed()
++    {
++        Assert.Throws<InvalidDataException>(() => new SystemTextTable(["zh-TW", "ZH-tw"], [["A.First", "one", "two"]]));
++        Assert.Throws<InvalidDataException>(() => new SystemTextTable(["en"], [["A.First", "one"]]));
++        Assert.Throws<InvalidDataException>(() => new SystemTextTable(["zh-TW", "en"], [["A.First", "one"]]));
++        Assert.Throws<InvalidDataException>(() => new SystemTextTable(["zh-TW", "en"], [["A.First", null, "two"]]));
++    }
++
++    /// <summary>固定清單包含三種明確狀態，不能從清單介面修改，亦不自動開放英文或偽語系。</summary>
++    [Fact(DisplayName = "支援語系中繼資料固定且唯讀")]
++    public void SupportedCultures_Metadata_IsImmutable()
++    {
++        var all = SupportedCultures.All;
++        Assert.Equal(3, all.Count);
++        Assert.Equal(CultureReleaseStatus.Released, all.Single(culture => culture.Name == "zh-TW").Status);
++        Assert.Equal(CultureReleaseStatus.Shell, all.Single(culture => culture.Name == "en").Status);
++        Assert.Equal(CultureReleaseStatus.Pseudo, all.Single(culture => culture.Name == "qps-ploc").Status);
++        if (all is IList<SupportedCulture> mutable) Assert.Throws<NotSupportedException>(() => mutable[0] = all[1]);
++        Assert.Same(all, SupportedCultures.All);
++    }
++
++    /// <summary>相同鍵雜湊與相等運算必須一致；不同鍵及不同型別不能因顯示值相同而相等。</summary>
++    [Fact(DisplayName = "文字鍵相等與雜湊遵守 Ordinal 契約")]
++    public void TextKey_EqualityAndHash_AreConsistent()
++    {
++        var first = new TextKey("A.First");
++        var same = new TextKey("A.First");
++        var other = new TextKey("A.Second");
++        Assert.True(first == same);
++        Assert.False(first != same);
++        Assert.True(first != other);
++        Assert.False(first == other);
++        Assert.Equal(first.GetHashCode(), same.GetHashCode());
++        Assert.True(first.Equals((object)same));
++        Assert.False(first.Equals("A.First"));
++        Assert.Equal("A.First", first.Value);
++        Assert.Equal("A.First", first.ToString());
++    }
++
++    /// <summary>預設 struct 不可能繞過鍵驗證命中合法資源；空參數建構則明確拒絕。</summary>
++    [Fact(DisplayName = "預設文字鍵與空參數不會偽裝成合法鍵")]
++    public void TextKey_DefaultAndNull_AreHandledExplicitly()
++    {
++        Assert.Throws<ArgumentNullException>(() => new TextKey(null!));
++        Assert.Equal(string.Empty, default(TextKey).Value);
++        Assert.Equal(default, default(TextKey));
++        Assert.Throws<KeyNotFoundException>(() => new SystemTextTable().GetText("zh-TW", default));
++    }
++
++    /// <summary>未知語系與大小寫變化只重用既有六鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量不變。</summary>
++    [Fact(DisplayName = "未知語系重用既有後備快照")]
++    public void Table_UnknownCultures_ReuseFixedFallback()
++    {
++        var catalog = new SystemTextTable();
++        var original = catalog.GetTable("zh-TW");
++        for (var index = 0; index < 1000; index++) Assert.Same(original, catalog.GetTable("unrecognized-" + index));
++        Assert.Same(original, catalog.GetTable("ZH-tw"));
++        Assert.Equal(6, original.Count);
++    }
++}
+
+diff --git a/SpeechMessage.Localization/ISystemTextCatalog.cs b/SpeechMessage.Localization/ISystemTextCatalog.cs
+new file mode 100644
+index 00000000..7909f12b
+--- /dev/null
++++ b/SpeechMessage.Localization/ISystemTextCatalog.cs
+@@ -0,0 +1,15 @@
++namespace SpeechMessage.Localization;
++
++/// <summary>
++/// 僅解析編譯時系統文字的共用介面，net48 與 net10 使用同一份契約。
++/// 不讀取教會覆寫、成員語言、身分或連線；選擇語系不代表通過任何授權。
++/// </summary>
++public interface ISystemTextCatalog
++{
++    /// <summary>未知語系回 zh-TW，缺鍵直接失敗；不以動態快取保留呼叫者語系。</summary>
++    /// <param name="culture">文字語系，未知或空值均採中性繁體中文。</param>
++    /// <param name="key">已驗證的固定鍵；預設值不會命中資源。</param>
++    /// <returns>不可變的系統文字，參數保持原樣，格式化留待後續階段。</returns>
++    /// <exception cref="System.Collections.Generic.KeyNotFoundException">系統字典沒有指定鍵。</exception>
++    string GetText(string? culture, TextKey key);
++}
+
+diff --git a/SpeechMessage.Localization/Resources/SharedText.resx b/SpeechMessage.Localization/Resources/SharedText.resx
+new file mode 100644
+index 00000000..92358721
+--- /dev/null
++++ b/SpeechMessage.Localization/Resources/SharedText.resx
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="utf-8"?>
++<root>
++  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
++  <resheader name="version"><value>2.0</value></resheader>
++  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
++  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
++  <!-- 唯一文字來源；只供 I18nCheck 讀取，不由主機反序列化型別或嵌入衛星資源。 -->
++  <data name="Common.Diagnostics.Ping" xml:space="preserve"><value>連線測試成功</value></data>
++  <data name="Common.Diagnostics.Culture" xml:space="preserve"><value>目前語系：{culture}</value></data>
++  <data name="Common.Diagnostics.InvalidConfiguration" xml:space="preserve"><value>診斷外掛設定格式錯誤。</value></data>
++  <data name="Common.Diagnostics.PushTest" xml:space="preserve"><value>P0 推播測試 {utc}</value></data>
++  <data name="Common.Diagnostics.Retryable" xml:space="preserve"><value>診斷推播暫時失敗；RetryKey={retryKey}</value></data>
++  <data name="Line.Sender.Template" xml:space="preserve"><value>{churchName}小幫手</value></data>
++</root>
+
+diff --git a/SpeechMessage.Localization/SpeechMessage.Localization.csproj b/SpeechMessage.Localization/SpeechMessage.Localization.csproj
+new file mode 100644
+index 00000000..d9595e7d
+--- /dev/null
++++ b/SpeechMessage.Localization/SpeechMessage.Localization.csproj
+@@ -0,0 +1,16 @@
++<Project Sdk="Microsoft.NET.Sdk">
++  <PropertyGroup>
++    <TargetFrameworks>net48;net10.0</TargetFrameworks>
++    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
++    <!-- SDK 在匯入 targets 前決定文件產出，必須於本體啟用以通過 SMQ0001／CS1591 守門。 -->
++    <GenerateDocumentationFile>true</GenerateDocumentationFile>
++  </PropertyGroup>
++  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
++    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
++  </ItemGroup>
++  <ItemGroup>
++    <!-- resx 是唯一來源，由 I18nCheck 產生程式碼；不重複嵌入資源，也不建立衛星組件。 -->
++    <EmbeddedResource Remove="Resources/**/*.resx" />
++    <InternalsVisibleTo Include="SpeechMessage.Localization.Tests" />
++  </ItemGroup>
++</Project>
+
+diff --git a/SpeechMessage.Localization/SupportedCultures.cs b/SpeechMessage.Localization/SupportedCultures.cs
+new file mode 100644
+index 00000000..af896d45
+--- /dev/null
++++ b/SpeechMessage.Localization/SupportedCultures.cs
+@@ -0,0 +1,46 @@
++using System;
++using System.Collections.Generic;
++
++namespace SpeechMessage.Localization;
++
++/// <summary>宣告系統語系的發布狀態；只提供中繼資料，不代替主機開放或授權檢查。</summary>
++public enum CultureReleaseStatus
++{
++    /// <summary>完整發布的基礎語系。</summary>
++    Released,
++    /// <summary>只有結構的英文空殼，缺字回繁中，目前不開放。</summary>
++    Shell,
++    /// <summary>僅供測試環境驗收的偽語系。</summary>
++    Pseudo
++}
++
++/// <summary>單一語系的不可變發布資訊，沒有設定覆寫、使用者或教會狀態。</summary>
++public sealed class SupportedCulture
++{
++    /// <summary>標準語系代碼，字串不可變。</summary>
++    public string Name { get; }
++
++    /// <summary>固定發布狀態，不提供公開 setter。</summary>
++    public CultureReleaseStatus Status { get; }
++
++    /// <summary>只供本組件以固定常值建立，不接受外部可變設定來源。</summary>
++    /// <param name="name">語系代碼。</param>
++    /// <param name="status">固定發布狀態。</param>
++    internal SupportedCulture(string name, CultureReleaseStatus status)
++    {
++        Name = name;
++        Status = status;
++    }
++}
++
++/// <summary>固定且唯讀的三語系清單，容量不隨請求、使用者或語系查詢增加。</summary>
++public static class SupportedCultures
++{
++    /// <summary>回傳已發布繁中、英文空殼及偽語系的不可變清單，不暴露可變陣列。</summary>
++    public static IReadOnlyList<SupportedCulture> All { get; } = Array.AsReadOnly(new[]
++    {
++        new SupportedCulture("zh-TW", CultureReleaseStatus.Released),
++        new SupportedCulture("en", CultureReleaseStatus.Shell),
++        new SupportedCulture("qps-ploc", CultureReleaseStatus.Pseudo)
++    });
++}
+
+diff --git a/SpeechMessage.Localization/SystemTextTable.cs b/SpeechMessage.Localization/SystemTextTable.cs
+new file mode 100644
+index 00000000..67f29a50
+--- /dev/null
++++ b/SpeechMessage.Localization/SystemTextTable.cs
+@@ -0,0 +1,103 @@
++using System;
++using System.Collections.Generic;
++using System.IO;
++using SpeechMessage.Localization.Resources;
++#if NET10_0_OR_GREATER
++using System.Collections.Frozen;
++#else
++using System.Collections.ObjectModel;
++#endif
++
++namespace SpeechMessage.Localization;
++
++/// <summary>
++/// 持有每個語系的完整唯讀系統文字快照；建立時補齊 zh-TW 後備，再一次發布。
++/// 沒有 I/O、教會覆寫或可變 request 狀態；每個實例只持有固定資源，生命週期由消費者擁有。
++/// </summary>
++public sealed class SystemTextTable : ISystemTextCatalog
++{
++#if NET10_0_OR_GREATER
++    /// <summary>建立完成後才賦值的凍結語系表；容量只取決於固定資源，不保留查詢參數或外部陣列。</summary>
++    private readonly FrozenDictionary<string, IReadOnlyDictionary<string, string>> tables;
++#else
++    /// <summary>包住本實例獨佔且不再修改的候選字典；不公開或保留其他可變擁有者。</summary>
++    private readonly ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> tables;
++#endif
++
++    /// <summary>從生成的固定資料建立全部語系，建立失敗不發布半成品。</summary>
++    public SystemTextTable() : this(SharedTextData.Cultures, SharedTextData.Rows) { }
++
++    /// <summary>驗證及複製生成資料；不保留外部陣列，重複鍵／語系或不完整列直接拒絕。</summary>
++    /// <param name="cultures">每欄的固定語系識別，必須包含 zh-TW。</param>
++    /// <param name="rows">每列依序為鍵及各語系文字；缺翻譯為 null。</param>
++    internal SystemTextTable(IReadOnlyList<string> cultures, IReadOnlyList<string?[]> rows)
++    {
++#if NET10_0_OR_GREATER
++        ArgumentNullException.ThrowIfNull(cultures);
++        ArgumentNullException.ThrowIfNull(rows);
++#else
++        if (cultures is null) throw new ArgumentNullException(nameof(cultures));
++        if (rows is null) throw new ArgumentNullException(nameof(rows));
++#endif
++        var names = new string[cultures.Count];
++        var cultureIdentities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++        var values = new Dictionary<string, string>[cultures.Count];
++        var neutralIndex = -1;
++        for (var index = 0; index < cultures.Count; index++)
++        {
++            var culture = cultures[index];
++            if (string.IsNullOrWhiteSpace(culture) || !cultureIdentities.Add(culture)) throw new InvalidDataException("Duplicate or empty system text culture.");
++            names[index] = culture;
++            values[index] = new Dictionary<string, string>(StringComparer.Ordinal);
++            if (string.Equals(culture, "zh-TW", StringComparison.OrdinalIgnoreCase)) neutralIndex = index;
++        }
++        if (neutralIndex < 0) throw new InvalidDataException("System text requires a neutral zh-TW culture.");
++        var identities = new HashSet<string>(StringComparer.Ordinal);
++        foreach (var row in rows)
++        {
++            if (row is null || row.Length != names.Length + 1) throw new InvalidDataException("System text row width is invalid.");
++            var keyValue = row[0];
++            var neutral = row[neutralIndex + 1];
++            if (keyValue is null || neutral is null) throw new InvalidDataException("System text row has no key or neutral value.");
++            var key = new TextKey(keyValue);
++            if (!identities.Add(key.Value)) throw new InvalidDataException("Duplicate system text key.");
++            for (var index = 0; index < names.Length; index++) values[index].Add(key.Value, row[index + 1] ?? neutral);
++        }
++        // 先完成全部列與身分驗證，再封裝內層及外層；失敗時不會有任何可觀察的半成品。
++        var candidate = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
++        for (var index = 0; index < names.Length; index++) candidate.Add(names[index], Seal(values[index]));
++        tables = Seal(candidate);
++    }
++
++    /// <summary>取得已展開後備的完整文字；命中路徑不配置物件或修改字典。</summary>
++    /// <param name="culture">文字語系；未知／空值回 zh-TW。</param>
++    /// <param name="key">固定資源鍵。</param>
++    /// <returns>唯讀資源中的原始字串。</returns>
++    /// <exception cref="KeyNotFoundException">鍵不存在。</exception>
++    public string GetText(string? culture, TextKey key)
++    {
++        if (GetTable(culture).TryGetValue(key.Value, out var text)) return text;
++        throw new KeyNotFoundException("Unknown system text key: " + key.Value);
++    }
++
++    /// <summary>回傳無法由呼叫者修改的語系表，所有值都是不可變字串，不暴露生成陣列。</summary>
++    /// <param name="culture">已知語系或任意未知值；未知時共用既有 zh-TW 表，不新增快取。</param>
++    /// <returns>本實例生命週期內不變的完整字典。</returns>
++    public IReadOnlyDictionary<string, string> GetTable(string? culture) => culture is not null && tables.TryGetValue(culture, out var selected) ? selected : tables["zh-TW"];
++
++#if NET10_0_OR_GREATER
++    /// <summary>將本次建構獨佔的候選轉為 FrozenDictionary，讀取路徑不再配置或鎖定。</summary>
++    /// <typeparam name="TKey">不可為 null 的穩定鍵型別。</typeparam>
++    /// <typeparam name="TValue">已建立完成且不再修改的值。</typeparam>
++    /// <param name="candidate">單一建構式擁有的字典，呼叫後不再寫入。</param>
++    /// <returns>沿用相同比較器的不可變字典。</returns>
++    private static FrozenDictionary<TKey, TValue> Seal<TKey, TValue>(Dictionary<TKey, TValue> candidate) where TKey : notnull => candidate.ToFrozenDictionary(candidate.Comparer);
++#else
++    /// <summary>net48 以 ReadOnlyDictionary 封裝單一擁有者的候選，底層字典不再暴露或修改。</summary>
++    /// <typeparam name="TKey">不可為 null 的穩定鍵型別。</typeparam>
++    /// <typeparam name="TValue">不可變文字或已封裝的內層快照。</typeparam>
++    /// <param name="candidate">本建構式獨佔且已完成的候選。</param>
++    /// <returns>與 net10 共用公開唯讀介面的字典。</returns>
++    private static ReadOnlyDictionary<TKey, TValue> Seal<TKey, TValue>(Dictionary<TKey, TValue> candidate) where TKey : notnull => new(candidate);
++#endif
++}
+
+diff --git a/SpeechMessage.Localization/TextKey.cs b/SpeechMessage.Localization/TextKey.cs
+new file mode 100644
+index 00000000..febe882f
+--- /dev/null
++++ b/SpeechMessage.Localization/TextKey.cs
+@@ -0,0 +1,85 @@
++using System;
++
++namespace SpeechMessage.Localization;
++
++/// <summary>
++/// 以 Ordinal 識別固定系統文字的穩定鍵，不以翻譯後顯示文字判斷身分。
++/// 值不可變，不含教會、使用者或憑證；建立時驗證分層格式，預設值不會命中合法資源。
++/// </summary>
++public readonly struct TextKey : IEquatable<TextKey>
++{
++    /// <summary>只保留不可變的原始鍵，預設 struct 的 null 不會成為合法資源身分。</summary>
++    private readonly string? value;
++
++    /// <summary>取得原始鍵；不建立翻譯、快取或任何呼叫者狀態。</summary>
++    public string Value => value ?? string.Empty;
++
++    /// <summary>要求至少兩個以大寫開頭的英數分段，確保資源鍵格式可由工具與程式共同驗證。</summary>
++    /// <param name="value">例如 Common.Diagnostics.Ping 的穩定鍵。</param>
++    /// <exception cref="ArgumentException">輸入不符合鍵格式。</exception>
++    public TextKey(string value)
++    {
++#if NET10_0_OR_GREATER
++        ArgumentNullException.ThrowIfNull(value);
++#else
++        if (value is null) throw new ArgumentNullException(nameof(value));
++#endif
++        if (!IsValid(value)) throw new ArgumentException("Text key must contain uppercase-led alphanumeric segments separated by dots.", nameof(value));
++        this.value = value;
++    }
++
++    /// <summary>只按鍵值作 Ordinal 比較，不參照顯示語系或程序文化。</summary>
++    /// <param name="other">另一個不可變文字鍵。</param>
++    /// <returns>兩個原始鍵完全相同時為真。</returns>
++    public bool Equals(TextKey other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
++
++    /// <summary>只允許與另一個 TextKey 比較，避免其他型別的顯示字串冒充鍵。</summary>
++    /// <param name="obj">待比較的物件。</param>
++    /// <returns>同型別且同鍵時為真。</returns>
++    public override bool Equals(object? obj) => obj is TextKey other && Equals(other);
++
++    /// <summary>使用與相等契約一致的 Ordinal 雜湊，不輸出或保存外部狀態。</summary>
++    /// <returns>只供本程序字典使用的雜湊值。</returns>
++    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
++
++    /// <summary>回傳穩定鍵本身，便於診斷，不包含翻譯或使用者資料。</summary>
++    /// <returns>原始資源鍵。</returns>
++    public override string ToString() => Value;
++
++    /// <summary>以與 Equals 相同的 Ordinal 規則判定相等。</summary>
++    /// <param name="left">左鍵。</param>
++    /// <param name="right">右鍵。</param>
++    /// <returns>兩鍵相同時為真。</returns>
++    public static bool operator ==(TextKey left, TextKey right) => left.Equals(right);
++
++    /// <summary>相等運算的反向，不使用顯示文字或文化排序。</summary>
++    /// <param name="left">左鍵。</param>
++    /// <param name="right">右鍵。</param>
++    /// <returns>兩鍵不同時為真。</returns>
++    public static bool operator !=(TextKey left, TextKey right) => !left.Equals(right);
++
++    /// <summary>線性掃描完整鍵，不使用文化分類或會容許尾端換行的正則行尾語意，也不配置集合。</summary>
++    /// <param name="candidate">已排除 null 的完整輸入。</param>
++    /// <returns>至少兩段且每段首字大寫、其餘英數時為真。</returns>
++    private static bool IsValid(string candidate)
++    {
++        var segmentStart = true;
++        var hasSeparator = false;
++        foreach (var character in candidate)
++        {
++            if (character == '.')
++            {
++                if (segmentStart) return false;
++                hasSeparator = true;
++                segmentStart = true;
++            }
++            else if (segmentStart)
++            {
++                if (character is < 'A' or > 'Z') return false;
++                segmentStart = false;
++            }
++            else if (character is not (>= 'A' and <= 'Z') and not (>= 'a' and <= 'z') and not (>= '0' and <= '9')) return false;
++        }
++        return hasSeparator && !segmentStart;
++    }
++}
+
+diff --git a/src-shared/Polyfills/IsExternalInit.cs b/src-shared/Polyfills/IsExternalInit.cs
+new file mode 100644
+index 00000000..0fe5fec4
+--- /dev/null
++++ b/src-shared/Polyfills/IsExternalInit.cs
+@@ -0,0 +1,11 @@
++namespace System.Runtime.CompilerServices
++{
++    /// <summary>
++    /// 提供 net48 缺少的唯初始化成員中繼資料標記，讓共用原始碼能使用 init 與 record。
++    /// 此定義僅由嚴格模式的 net48 專案連結編譯，不覆蓋 net10 的框架型別。
++    /// 標記沒有執行期狀態、配置或資源生命週期，不保存任何使用者或教會資料。
++    /// </summary>
++    internal static class IsExternalInit
++    {
++    }
++}
+
+diff --git a/src-shared/Polyfills/NotNullWhenAttribute.cs b/src-shared/Polyfills/NotNullWhenAttribute.cs
+new file mode 100644
+index 00000000..2af0bd11
+--- /dev/null
++++ b/src-shared/Polyfills/NotNullWhenAttribute.cs
+@@ -0,0 +1,27 @@
++namespace System.Diagnostics.CodeAnalysis
++{
++    /// <summary>
++    /// 為 net48 提供條件式非空值契約，讓雙目標 API 可向編譯器描述 Try 模式的輸出狀態。
++    /// 此屬性只描述中繼資料，不在執行期驗證輸入，也不得用來略過真正的資料檢查。
++    /// 僅 net48 連結編譯，避免與 net10 內建型別重複；每個實例只有一個不可變布林值。
++    /// </summary>
++    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
++    internal sealed class NotNullWhenAttribute : Attribute
++    {
++        /// <summary>
++        /// 指定方法回傳哪個布林結果時，被標註的參數可以視為非空值。
++        /// 這個宣告須與方法真正的分支行為一致，否則會讓呼叫端錯誤相信空值安全性。
++        /// </summary>
++        /// <param name="returnValue">保證參數非空值時的方法回傳結果。</param>
++        public NotNullWhenAttribute(bool returnValue)
++        {
++            ReturnValue = returnValue;
++        }
++
++        /// <summary>
++        /// 取得使被標註參數成立非空值契約的方法回傳結果。
++        /// 建構後不可變，沒有跨請求或跨使用者的可變狀態。
++        /// </summary>
++        public bool ReturnValue { get; }
++    }
++}
+```
