@@ -1,0 +1,13 @@
+FAIL Exactly80_Passes: coverage contract not satisfied
+FAIL Above80_Passes: coverage contract not satisfied
+FAIL Below80_Fails: coverage contract not satisfied
+FAIL WrongModule_Fails: coverage contract not satisfied
+FAIL DuplicateModule_Fails: coverage contract not satisfied
+FAIL MissingReport_Fails: coverage contract not satisfied
+FAIL MalformedXml_Fails: coverage contract not satisfied
+FAIL ExternalEntity_Fails: coverage contract not satisfied
+FAIL NaN_Fails: coverage contract not satisfied
+FAIL Over100_Fails: coverage contract not satisfied
+FAIL CommaRate_Fails: coverage contract not satisfied
+Coverage tests: total=11 failed=11
+Exit code: 1

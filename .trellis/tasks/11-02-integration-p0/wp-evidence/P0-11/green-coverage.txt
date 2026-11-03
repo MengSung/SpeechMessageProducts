@@ -1,0 +1,13 @@
+PASS Exactly80_Passes
+PASS Above80_Passes
+PASS Below80_Fails
+PASS WrongModule_Fails
+PASS DuplicateModule_Fails
+PASS MissingReport_Fails
+PASS MalformedXml_Fails
+PASS ExternalEntity_Fails
+PASS NaN_Fails
+PASS Over100_Fails
+PASS CommaRate_Fails
+Coverage tests: total=11 failed=0
+Exit code: 0

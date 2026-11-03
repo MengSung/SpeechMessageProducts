@@ -1,0 +1,164 @@
+name: Solution CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  solution:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: powershell
+    env:
+      DOTNET_CLI_UI_LANGUAGE: en-US
+      VSLANG: '1033'
+      BASE_COMMIT: 73b6e6cf409daa7559fd3c11d482e3efc542c0d7
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select SDK from global.json
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Select Node for progress page tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore
+        run: |
+          dotnet restore SpeechMessageProducts.sln
+          if ($LASTEXITCODE -ne 0) { throw 'Solution restore failed.' }
+          foreach ($project in @('tools/I18nCheck.Tests', 'tools/PluginPackaging.Tests')) {
+            dotnet restore $project
+            if ($LASTEXITCODE -ne 0) { throw 'Tool restore failed.' }
+          }
+      - name: Build without signing key
+        run: |
+          # 一般 Release 建置不讀金鑰、不打包；只有獨立正式打包步驟可以取得 secret。
+          dotnet build SpeechMessageProducts.sln -c Release --no-restore -warnaserror:NU1605
+          if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
+          foreach ($project in @('tools/I18nCheck.Tests', 'tools/PluginPackaging.Tests')) {
+            dotnet build $project -c Release --no-restore -warnaserror:NU1605
+            if ($LASTEXITCODE -ne 0) { throw 'Tool build failed.' }
+          }
+      - name: Release solution tests and coverage
+        run: |
+          dotnet test SpeechMessageProducts.sln -c Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/ci/solution-tests
+          if ($LASTEXITCODE -ne 0) { throw 'Release solution tests failed.' }
+      - name: Debug tracer contracts
+        run: |
+          dotnet test ToolUtility.Dataverse.Tests -c Debug --filter "FullyQualifiedName~FileToolUtilityTracerTests"
+          if ($LASTEXITCODE -ne 0) { throw 'Debug tracer tests failed.' }
+      - name: Coverage for each new module and target
+        run: |
+          # 各目標分開收集，禁止 net10 報告或其他測試的相依模組掩蓋 net48 的缺口。
+          $cases = @(
+            @{ Project='SpeechMessage.Localization.Tests'; Framework='net48'; Module='SpeechMessage.Localization' },
+            @{ Project='SpeechMessage.Localization.Tests'; Framework='net10.0'; Module='SpeechMessage.Localization' },
+            @{ Project='LineMessagingProcessor.Tests'; Framework='net48'; Module='LineMessagingProcessor.Core' },
+            @{ Project='LineMessagingProcessor.Tests'; Framework='net10.0'; Module='LineMessagingProcessor.Core' },
+            @{ Project='SpeechMessage.Dynamics.Plugins.Tests'; Framework='net48'; Module='SpeechMessage.Dynamics.Plugins' },
+            @{ Project='tools/I18nCheck.Tests'; Framework='net10.0'; Module='I18nCheck' },
+            @{ Project='tools/PluginPackaging.Tests'; Framework='net10.0'; Module='PluginPackaging' }
+          )
+          foreach ($case in $cases) {
+            $results = Join-Path 'artifacts/ci/coverage' ($case.Module + '/' + $case.Framework)
+            if (Test-Path -LiteralPath $results) { throw 'Coverage output must be fresh for every run.' }
+            $include = 'DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=[' + $case.Module + ']*'
+            dotnet test $case.Project -c Release -f $case.Framework --no-build --collect:"XPlat Code Coverage" --results-directory $results -- $include
+            if ($LASTEXITCODE -ne 0) { throw 'Module coverage tests failed.' }
+            $reports = @(Get-ChildItem -LiteralPath $results -Filter coverage.cobertura.xml -File -Recurse)
+            if ($reports.Count -ne 1) { throw 'Expected exactly one fresh report for this module and target.' }
+            $coverage = & powershell -NoProfile -File tools/RepoQuality/Test-Coverage.ps1 -ReportPath $reports[0].FullName -Module $case.Module
+            if ($LASTEXITCODE -ne 0) { throw 'Module coverage is below the required threshold or invalid.' }
+            $coverage | Write-Output
+            ($case.Framework + ' ' + ($coverage -join ' ')) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+      - name: Repository quality gates
+        run: |
+          powershell -NoProfile -File tools/RepoQuality/Test-TextEncoding.ps1 -Scope Changed -Base $env:BASE_COMMIT
+          if ($LASTEXITCODE -ne 0) { throw 'Text encoding failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Find-DuplicateCode.ps1 -Baseline tools/RepoQuality/duplicate-baseline.json
+          if ($LASTEXITCODE -ne 0) { throw 'Duplicate source ratchet failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Test-PackageVersions.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Package version guard failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Test-AnalyzerProbe.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Analyzer probes failed.' }
+          dotnet run --project tools/I18nCheck -- verify
+          if ($LASTEXITCODE -ne 0) { throw 'I18n verification failed.' }
+      - name: Repository quality tests
+        run: |
+          Import-Module Pester -RequiredVersion 3.4.0 -ErrorAction Stop
+          $result = Invoke-Pester -Script @('tools/RepoQuality/Tests/Test-TextEncoding.Tests.ps1', 'tools/RepoQuality/Tests/Find-DuplicateCode.Tests.ps1') -PassThru
+          if ($result.TotalCount -lt 35 -or $result.FailedCount -ne 0) { throw 'Repository quality tests failed or were not discovered.' }
+          powershell -NoProfile -File tools/RepoQuality/Tests/Test-P002Settings.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'SDK and ignore settings failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Tests/Test-Coverage.Tests.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Coverage gate tests failed.' }
+          node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Progress page tests failed.' }
+          powershell -NoProfile -File docs/scripts/Tests/Test-CcgReviewSummary.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'CCG summary contracts failed.' }
+      - name: Offline plugin packaging tests
+        run: |
+          # 此處只建立與銷毀一次性測試金鑰，從不需要 GitHub 正式 secret。
+          powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginAssembly.Tests.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Plugin metadata samples failed.' }
+          powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1 -UseEphemeralTestKey
+          if ($LASTEXITCODE -ne 0) { throw 'Plugin build samples failed.' }
+      - name: Prepare optional signing key
+        id: signing
+        env:
+          PLUGIN_SNK_BASE64: ${{ secrets.PLUGIN_SNK_BASE64 }}
+        run: |
+          # 無 secret 時只標示跳過，不能影響一般建置；本計畫不要求建立 GitHub secret。
+          if ([string]::IsNullOrWhiteSpace($env:PLUGIN_SNK_BASE64)) {
+            'Plugin packaging: skipped (PLUGIN_SNK_BASE64 is not configured).' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            'enabled=false' | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            # 僅在 runner 暫存目錄還原；內容不輸出、不上傳。清理步驟以固定路徑獨立執行。
+            $keyPath = Join-Path $env:RUNNER_TEMP 'speechmessage-plugin-signing.snk'
+            if (Test-Path -LiteralPath $keyPath) { throw 'Signing key destination is unexpectedly occupied.' }
+            $bytes = $null
+            try {
+              $bytes = [Convert]::FromBase64String($env:PLUGIN_SNK_BASE64)
+              [IO.File]::WriteAllBytes($keyPath, $bytes)
+            } finally {
+              if ($null -ne $bytes) { [Array]::Clear($bytes, 0, $bytes.Length) }
+              $env:PLUGIN_SNK_BASE64 = $null
+            }
+            'enabled=true' | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          }
+      - name: Explicit signed plugin packaging
+        if: steps.signing.outputs.enabled == 'true'
+        run: |
+          $env:SPEECHMESSAGE_PLUGIN_KEYFILE = Join-Path $env:RUNNER_TEMP 'speechmessage-plugin-signing.snk'
+          try {
+            dotnet build SpeechMessage.Dynamics.Plugins -c Release -p:SpeechMessagePackagePlugin=true
+            if ($LASTEXITCODE -ne 0) { throw 'Explicit plugin packaging failed.' }
+            powershell -NoProfile -File tools/PluginPackaging/Test-PluginAssembly.ps1
+            if ($LASTEXITCODE -ne 0) { throw 'Signed plugin assembly validation failed.' }
+            'Plugin packaging: signed assembly validation passed.' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          } finally { $env:SPEECHMESSAGE_PLUGIN_KEYFILE = $null }
+      - name: Delete optional signing key
+        if: always()
+        run: |
+          # 單一固定暫存檔，禁止遞迴刪除，也不接收外部指定路徑。
+          $keyPath = Join-Path $env:RUNNER_TEMP 'speechmessage-plugin-signing.snk'
+          if (Test-Path -LiteralPath $keyPath) { Remove-Item -LiteralPath $keyPath -Force }
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: artifacts/ci/**/coverage.cobertura.xml
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Restore",
+    "exitCode": 0,
+    "elapsedSeconds": 4.81,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Build without signing key",
+    "exitCode": 0,
+    "elapsedSeconds": 10.99,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Release solution tests and coverage",
+    "exitCode": 0,
+    "elapsedSeconds": 10.68,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Debug tracer contracts",
+    "exitCode": 0,
+    "elapsedSeconds": 14.81,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Coverage for each new module and target",
+    "exitCode": 0,
+    "elapsedSeconds": 38.27,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Repository quality gates",
+    "exitCode": 0,
+    "elapsedSeconds": 86.91,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Repository quality tests",
+    "exitCode": 1,
+    "elapsedSeconds": 19.42,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Delete optional signing key",
+    "exitCode": 0,
+    "elapsedSeconds": 0.23,
+    "formalKeyEnvironmentUnset": true
+  },
+  {
+    "name": "Repository quality tests",
+    "exitCode": 1,
+    "elapsedSeconds": 0.37,
+    "formalKeyEnvironmentUnset": true,
+    "windowsPowerShellModulePathOnly": true
+  },
+  {
+    "name": "Delete optional signing key",
+    "exitCode": 0,
+    "elapsedSeconds": 0.33,
+    "formalKeyEnvironmentUnset": true,
+    "windowsPowerShellModulePathOnly": true
+  },
+  {
+    "name": "Repository quality tests",
+    "exitCode": 0,
+    "elapsedSeconds": 28.91,
+    "formalKeyEnvironmentUnset": true,
+    "modulePath": "native Windows PowerShell paths; case-insensitive environment key normalized"
+  },
+  {
+    "name": "Offline plugin packaging tests",
+    "exitCode": 0,
+    "elapsedSeconds": 48.41,
+    "formalKeyEnvironmentUnset": true,
+    "modulePath": "native Windows PowerShell paths; case-insensitive environment key normalized"
+  },
+  {
+    "name": "Prepare optional signing key",
+    "exitCode": 0,
+    "elapsedSeconds": 0.24,
+    "formalKeyEnvironmentUnset": true,
+    "modulePath": "native Windows PowerShell paths; case-insensitive environment key normalized"
+  },
+  {
+    "name": "Delete optional signing key",
+    "exitCode": 0,
+    "elapsedSeconds": 0.2,
+    "formalKeyEnvironmentUnset": true,
+    "modulePath": "native Windows PowerShell paths; case-insensitive environment key normalized"
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "module": "I18nCheck",
+    "framework": "net10.0",
+    "linePercent": 96.73,
+    "requiredPercent": 80,
+    "passed": true
+  },
+  {
+    "module": "LineMessagingProcessor.Core",
+    "framework": "net10.0",
+    "linePercent": 98.88,
+    "requiredPercent": 80,
+    "passed": true
+  },
+  {
+    "module": "LineMessagingProcessor.Core",
+    "framework": "net48",
+    "linePercent": 93.87,
+    "requiredPercent": 80,
+    "passed": true
+  },
+  {
+    "module": "PluginPackaging",
+    "framework": "net10.0",
+    "linePercent": 98.3,
+    "requiredPercent": 80,
+    "passed": true
+  },
+  {
+    "module": "SpeechMessage.Dynamics.Plugins",
+    "framework": "net48",
+    "linePercent": 91.93,
+    "requiredPercent": 80,
+    "passed": true
+  },
+  {
+    "module": "SpeechMessage.Localization",
+    "framework": "net10.0",
+    "linePercent": 100.0,
+    "requiredPercent": 80,
+    "passed": true
+  },
+  {
+    "module": "SpeechMessage.Localization",
+    "framework": "net48",
+    "linePercent": 95.06,
+    "requiredPercent": 80,
+    "passed": true
+  }
+]

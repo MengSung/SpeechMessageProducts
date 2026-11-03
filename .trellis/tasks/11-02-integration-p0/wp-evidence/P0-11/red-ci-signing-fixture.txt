@@ -1,0 +1,4 @@
+Command: Test-PluginBuild.Tests.ps1 -UseEphemeralTestKey (child key environment unset)
+Expected functional failure: True
+Reason: Ephemeral signing fixture not implemented.
+Exit code: 1

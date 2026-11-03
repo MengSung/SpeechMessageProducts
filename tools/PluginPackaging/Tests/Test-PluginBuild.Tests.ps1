@@ -1,24 +1,37 @@
 <#
 故障注入只改測試程序的環境變數，finally 恢復；不讀取、複製或輸出正式金鑰內容。
 驗證一般 Debug／Release 不打包；明確要求打包才檢查金鑰、警告或輸出簽章 DLL。
+CI 明確傳入 UseEphemeralTestKey 才生成一次性測試金鑰；不依賴正式 secret，不作正式部署。
 所有輸出隔離於本次暫存資料夾，結束時檢查絕對路徑邊界後刪除，不改寫正式 artifacts。
 #>
 [CmdletBinding()]
-param()
+param([switch]$UseEphemeralTestKey)
 $ErrorActionPreference = 'Stop'
+$originalKey = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE')
+if (-not $UseEphemeralTestKey -and [string]::IsNullOrWhiteSpace($originalKey)) {
+    throw 'Formal key environment is unavailable; restart Codex before running this suite.'
+}
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
 $projectPath = Join-Path $repoRoot 'SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj'
 $checker = Join-Path $PSScriptRoot '../Test-PluginAssembly.ps1'
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $fixtureRoot = [IO.Path]::GetFullPath((Join-Path $tempRoot ('speechmessage-build-' + [Guid]::NewGuid().ToString('N'))))
 $null = New-Item -ItemType Directory -Path $fixtureRoot
-$originalKey = [Environment]::GetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE')
-if ([string]::IsNullOrWhiteSpace($originalKey)) { throw 'Formal key environment is unavailable; restart Codex before running this suite.' }
 $failures = 0
 try {
+    $signingKey = $originalKey
+    if ($UseEphemeralTestKey) {
+        # 金鑰只存在本次測試專屬暫存目錄；RSA 與檔案各有確定的釋放／刪除路徑。
+        $signingKey = Join-Path $fixtureRoot 'ephemeral.snk'
+        $rsa = New-Object Security.Cryptography.RSACryptoServiceProvider(2048)
+        try {
+            $rsa.PersistKeyInCsp = $false
+            [IO.File]::WriteAllBytes($signingKey, $rsa.ExportCspBlob($true))
+        } finally { $rsa.Dispose() }
+    }
     foreach ($sample in @('release-unset-no-package', 'debug-unset-no-package', 'release-unset', 'debug-unset', 'release-signed', 'release-invalid')) {
         $configuration = if ($sample.StartsWith('debug-', [StringComparison]::Ordinal)) { 'Debug' } else { 'Release' }
-        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE', $(if ($sample -eq 'release-signed') { $originalKey } elseif ($sample -eq 'release-invalid') { Join-Path $fixtureRoot 'missing.snk' } else { $null }))
+        [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE', $(if ($sample -eq 'release-signed') { $signingKey } elseif ($sample -eq 'release-invalid') { Join-Path $fixtureRoot 'missing.snk' } else { $null }))
         $outputDirectory = Join-Path $fixtureRoot $sample
         # 未要求打包的案例不得進入合併目標；即使沒有金鑰，也不能建立 artifacts 目錄。
         $packageArguments = @()

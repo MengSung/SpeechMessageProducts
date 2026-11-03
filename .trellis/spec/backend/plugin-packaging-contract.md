@@ -12,6 +12,8 @@ dotnet build SpeechMessage.Dynamics.Plugins -c Release -p:SpeechMessagePackagePl
 powershell -NoProfile -File tools/PluginPackaging/Test-PluginAssembly.ps1
 powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginAssembly.Tests.ps1
 powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1
+# CI sample mode (temporary test key only):
+powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1 -UseEphemeralTestKey
 dotnet test tools/PluginPackaging.Tests -c Release
 ```
 

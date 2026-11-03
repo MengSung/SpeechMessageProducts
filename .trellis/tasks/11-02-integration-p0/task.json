@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-10 收尾驗證通過：普通 Release 不依賴金鑰，明確打包仍驗證簽章；提交後接續 P0-11。",
+  "description": "P0-10 收尾已提交 7881177a，P0-11 CI 依序實作中，尚未連線外部系統。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -23,11 +23,11 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-10",
+    "currentWorkPackage": "P0-11",
     "userRequestedStop": false,
-    "gatePassed": true,
+    "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-10.md",
+    "report": "wp-reports/P0-11.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
     "waitingFor": null,
@@ -45,7 +45,7 @@
       "P0-04-AnalysisLevel": "58245c6f",
       "P0-08": "92cfa180",
       "P0-09": "6b559da5",
-      "P0-10": "cf3595db（實作主體）；本次提交（明確打包收尾）"
+      "P0-10": "7881177a（主體 cf3595db）"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db"

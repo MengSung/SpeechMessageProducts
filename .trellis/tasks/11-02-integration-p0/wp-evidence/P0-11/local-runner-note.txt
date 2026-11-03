@@ -1,0 +1,5 @@
+Initial local attempt: Pester 28 passed / 7 failed because Python inherited PowerShell 7 module paths into Windows PowerShell 5.1.
+A launcher retry cleared all paths accidentally because a copied Python dict uses case-sensitive keys, unlike Windows environment access; Pester then could not be located.
+Confirmed probe: both Get-FileHash and Invoke-Pester resolve after preserving only native WindowsPowerShell module paths and normalizing the environment key.
+Only the local child-process launcher was corrected; repository tests and CI checks were not relaxed.
+Both launcher failures remain recorded in local-ci-steps.json.
