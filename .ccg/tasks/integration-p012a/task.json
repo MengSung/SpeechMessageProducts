@@ -1,0 +1,13 @@
+{
+  "id": "integration-p012a",
+  "title": "P0-12A ImageSharp 弱點修補與上傳圖片防護",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "升級前以合成圖片鎖定四個上傳路徑與三個縮圖方法的既有輸出，再補拒絕紅燈。",
+  "branch": "1.0.0.11.Integration.P0",
+  "createdAt": "2026-11-03",
+  "trellisTask": ".trellis/tasks/11-02-integration-p0"
+}

@@ -23,11 +23,11 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-12",
+    "currentWorkPackage": "P0-12A",
     "userRequestedStop": false,
-    "gatePassed": true,
+    "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-12.md",
+    "report": "wp-reports/P0-12A.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
     "waitingFor": null,
@@ -50,7 +50,7 @@
       "P0-ENV-adjustment": "56226579",
       "P0-04-Cryptography": "cdc09d10",
       "P0-04-NuGetAudit": "9214d26b",
-      "P0-12": "本次收尾提交（骨架 12cae6bc；主體 e1e10b7a；測試 c1bda2e0）"
+      "P0-12": "a6a20905"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",

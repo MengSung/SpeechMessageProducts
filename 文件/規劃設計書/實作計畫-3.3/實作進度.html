@@ -350,10 +350,10 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-12 離線驗證通過；下一包 P0-12A）",
+  "snapshot": "2026-11-03（P0-12 已提交 a6a20905；P0-12A 實作中）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-12</strong>離線佈署工具通過：Deployment <strong>42／42</strong>、覆蓋率 <strong>81.80%</strong>；Release <strong>1013／1013</strong>、建置 0 錯誤／36 警告。接續 P0-12A 圖片上傳防護；尚未連線 D365／LINE，階段審查在 P0-12A 之後。",
+  "headline": "P0-12 已提交 <strong>a6a20905</strong>，接續 <strong>P0-12A</strong>。先鎖住四個上傳路徑及既有縮圖行為，再升 ImageSharp 3.2.0、限制格式與尺寸；全程離線。",
   "alert": null,
   "tiles": [
     {
@@ -504,13 +504,13 @@ const DATA = {
       "name": "佈署專案最小版：SpeechMessage.Dynamics.Deployment",
       "status": "done",
       "note": "原 17 方法保留，Deployment 42／42、覆蓋率 81.80%；方案 1013／1013、Debug 7／7。只讀 User Secrets，每命令獨立連線並釋放，全部離線。",
-      "commit": "12cae6bc／e1e10b7a／c1bda2e0＋本次收尾"
+      "commit": "a6a20905（收尾）"
     },
     {
       "id": "P0-12A",
       "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
-      "status": "todo",
-      "note": "P0-12 後先鎖住四種既有圖片正規化結果，再升至 3.2.0，拒絕不支援格式與超限尺寸；完成後才做階段審查。"
+      "status": "active",
+      "note": "使用者已核定；正在升級前鎖定四個上傳路徑與既有縮圖的合成圖片行為。"
     },
     {
       "milestone": true,
