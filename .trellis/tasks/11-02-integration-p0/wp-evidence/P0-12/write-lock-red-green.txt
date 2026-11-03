@@ -1,0 +1,12 @@
+P0-12 organization write lock contract
+
+RED
+- Added OrganizationWriteLock_ExclusiveLeaseCanBeReacquiredAfterDispose.
+- Before implementation, the test failed with NotImplementedException at Acquire.
+- Added Cli_WriteCommand_WaitsForOrganizationLockBeforeConnect.
+- With the lock implemented but not connected to the CLI, the test failed because the connector was called once instead of zero times.
+
+GREEN
+- OrganizationWriteLock_ExclusiveLeaseCanBeReacquiredAfterDispose passed.
+- After wiring apply, rollback, and smoke to acquire the lock before connecting, the targeted deployment contract run passed 14/14.
+- The tests use a local temporary directory and synthetic connectors only; no D365 or LINE connection was made.

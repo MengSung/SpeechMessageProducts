@@ -66,6 +66,7 @@ jobs:
             @{ Project='LineMessagingProcessor.Tests'; Framework='net48'; Module='LineMessagingProcessor.Core' },
             @{ Project='LineMessagingProcessor.Tests'; Framework='net10.0'; Module='LineMessagingProcessor.Core' },
             @{ Project='SpeechMessage.Dynamics.Plugins.Tests'; Framework='net48'; Module='SpeechMessage.Dynamics.Plugins' },
+            @{ Project='SpeechMessage.Dynamics.Deployment.Tests'; Framework='net10.0'; Module='SpeechMessage.Dynamics.Deployment' },
             @{ Project='tools/I18nCheck.Tests'; Framework='net10.0'; Module='I18nCheck' },
             @{ Project='tools/PluginPackaging.Tests'; Framework='net10.0'; Module='PluginPackaging' }
           )

@@ -43,6 +43,12 @@ if: always() step. Only the signed packaging step sets the process variable
 SPEECHMESSAGE_PLUGIN_KEYFILE and explicitly opts into SpeechMessagePackagePlugin.
 Only coverage XML is uploaded, never runner temp, DLLs or keys.
 
+If `PLUGIN_SNK_BASE64` is configured in the future, it must be a GitHub
+Environment secret restricted to protected branches and requiring approval.
+Never place it in repository secrets: this workflow runs on pushes to all
+branches, so a repository secret would be available to any branch workflow.
+Whether to create that Environment secret remains a user decision.
+
 Offline build contract samples use -UseEphemeralTestKey explicitly. This mode
 creates a disposable RSA fixture in a unique temp directory, never reads the
 formal key contents, restores the caller environment, and deletes the fixture.

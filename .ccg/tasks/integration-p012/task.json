@@ -5,8 +5,8 @@
   "complexity": "L",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "planning",
-  "nextAction": "依核定計畫列完整離線測試與檔案責任",
+  "currentPhase": "implementation",
+  "nextAction": "依 P0-04 補修提交後的順序，先執行原 17 個離線契約測試取得功能紅燈。",
   "branch": "1.0.0.11.Integration.P0",
   "createdAt": "2026-11-03",
   "trellisTask": ".trellis/tasks/11-02-integration-p0"

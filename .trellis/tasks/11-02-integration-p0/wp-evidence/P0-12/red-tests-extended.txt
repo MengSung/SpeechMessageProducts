@@ -1,0 +1,377 @@
+  Line.Messaging -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\Line.Messaging\bin\Release\net10.0\Line.Messaging.dll
+  PowerPlatform.Dataverse.Client -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\PowerPlatform.Dataverse.Client\bin\Release\net10.0\PowerPlatform.Dataverse.Client.dll
+  ToolUtility -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility\bin\Release\net10.0\ToolUtility.dll
+  SpeechMessage.Dynamics.Deployment -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\bin\Release\net10.0\SpeechMessage.Dynamics.Deployment.dll
+  SpeechMessage.Dynamics.Deployment.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\bin\Release\net10.0\SpeechMessage.Dynamics.Deployment.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\bin\Release\net10.0\SpeechMessage.Dynamics.Deployment.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)
+[xUnit.net 00:00:00.06]   Discovering: SpeechMessage.Dynamics.Deployment.Tests
+[xUnit.net 00:00:00.09]   Discovered:  SpeechMessage.Dynamics.Deployment.Tests
+[xUnit.net 00:00:00.10]   Starting:    SpeechMessage.Dynamics.Deployment.Tests
+[xUnit.net 00:00:00.60]       Assert.Throws() Failure: Exception type was not an exact match
+[xUnit.net 00:00:00.60]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.60]       Actual:   typeof(System.NotImplementedException)
+[xUnit.net 00:00:00.60]       ---- System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.60]     清單類型不存在 DLL 時拒絕 [FAIL]
+[xUnit.net 00:00:00.60]       Stack Trace:
+[xUnit.net 00:00:00.60]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(256,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Manifest_TypeNotInBuiltDll_Fails()
+[xUnit.net 00:00:00.60]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.60]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.60]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:00.60]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(112,0): at SpeechMessage.Dynamics.Deployment.AssemblyCatalog.Read(String path, RegistrationManifest manifest)
+[xUnit.net 00:00:00.60]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(256,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass21_0.<Manifest_TypeNotInBuiltDll_Fails>b__0()
+[xUnit.net 00:00:00.60]     空組織產生三層註冊計畫且不寫入 [FAIL]
+[xUnit.net 00:00:00.60]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.60]       Stack Trace:
+[xUnit.net 00:00:00.60]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.60]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(40,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_EmptyOrganization_CreatesAssemblyTypeAndStep()
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.61]     smoke 逾時仍刪除並回傳失敗 [FAIL]
+[xUnit.net 00:00:00.61]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.61]       Stack Trace:
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(104,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.SmokeAsync(String scenario, CancellationToken ct)
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(183,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Smoke_Timeout_DeletesTestRecordAndReturnsFailure()
+[xUnit.net 00:00:00.61]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.61]     回復備份恢復組件內容及步驟啟用狀態 [FAIL]
+[xUnit.net 00:00:00.61]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.61]       Stack Trace:
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(137,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Rollback_RestoresExportedStepStateAndAssemblyContent()
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.61]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.61]       Stack Trace:
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.61]     任何寫入前先完成備份 [FAIL]
+[xUnit.net 00:00:00.61]     命令列密碼參數拒絕且不回顯 [FAIL]
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(115,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_ExportsCurrentStateBeforeAnyWrite()
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.61]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.61]       Stack Trace:
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(122,0): at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report)
+[xUnit.net 00:00:00.61]     新步驟預設停用，明確啟用才開啟(enabled: True) [FAIL]
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(163,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Cli_PasswordArgument_Rejected()
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.61]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.61]       Stack Trace:
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(127,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_NewStep_DefaultDisabledUnlessManifestEnables(Boolean enabled)
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.61]     新步驟預設停用，明確啟用才開啟(enabled: False) [FAIL]
+[xUnit.net 00:00:00.61]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.61]       Stack Trace:
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(127,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_NewStep_DefaultDisabledUnlessManifestEnables(Boolean enabled)
+[xUnit.net 00:00:00.61]            at InvokeStub_DeploymentContractTests.Apply_NewStep_DefaultDisabledUnlessManifestEnables(Object, Span`1)
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:00.61]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.61]       Stack Trace:
+[xUnit.net 00:00:00.61]     smoke 斷言失敗仍刪除測試資料 [FAIL]
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(104,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.SmokeAsync(String scenario, CancellationToken ct)
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(173,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Smoke_AssertionFails_StillDeletesTestRecord()
+[xUnit.net 00:00:00.61]         --- End of stack trace from previous location ---
+  失敗 清單類型不存在 DLL 時拒絕 [471 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.IO.InvalidDataException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Manifest_TypeNotInBuiltDll_Fails() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 256
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+----- Inner Stack Trace -----
+   at SpeechMessage.Dynamics.Deployment.AssemblyCatalog.Read(String path, RegistrationManifest manifest) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 112
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass21_0.<Manifest_TypeNotInBuiltDll_Fails>b__0() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 256
+  失敗 空組織產生三層註冊計畫且不寫入 [1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_EmptyOrganization_CreatesAssemblyTypeAndStep() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 40
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 smoke 逾時仍刪除並回傳失敗 [1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.SmokeAsync(String scenario, CancellationToken ct) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 104
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Smoke_Timeout_DeletesTestRecordAndReturnsFailure() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 183
+--- End of stack trace from previous location ---
+  失敗 回復備份恢復組件內容及步驟啟用狀態 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Rollback_RestoresExportedStepStateAndAssemblyContent() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 137
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 任何寫入前先完成備份 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_ExportsCurrentStateBeforeAnyWrite() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 115
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 命令列密碼參數拒絕且不回顯 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 122
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Cli_PasswordArgument_Rejected() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 163
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 新步驟預設停用，明確啟用才開啟(enabled: True) [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_NewStep_DefaultDisabledUnlessManifestEnables(Boolean enabled) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 127
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失敗 新步驟預設停用，明確啟用才開啟(enabled: False) [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_NewStep_DefaultDisabledUnlessManifestEnables(Boolean enabled) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 127
+   at InvokeStub_DeploymentContractTests.Apply_NewStep_DefaultDisabledUnlessManifestEnables(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 smoke 斷言失敗仍刪除測試資料 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.SmokeAsync(String scenario, CancellationToken ct) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 104
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Smoke_AssertionFails_StillDeletesTestRecord() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 173
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:00.62]       Assert.Throws() Failure: Exception type was not an exact match
+[xUnit.net 00:00:00.62]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.62]       Actual:   typeof(System.NotImplementedException)
+[xUnit.net 00:00:00.62]     公鑰身份改變停止 [FAIL]
+[xUnit.net 00:00:00.62]       ---- System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(71,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_AssemblyPublicKeyTokenChanged_Stops()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(71,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass6_0.<Plan_AssemblyPublicKeyTokenChanged_Stops>b__0()
+[xUnit.net 00:00:00.62]       Assert.Throws() Failure: Exception type was not an exact match
+[xUnit.net 00:00:00.62]     DLL 中每個外掛都必須有註冊 [FAIL]
+[xUnit.net 00:00:00.62]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.62]       Actual:   typeof(System.NotImplementedException)
+[xUnit.net 00:00:00.62]       ---- System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(247,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Manifest_EveryPluginTypeInBuiltDll_IsRegistered()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]     命令完成後釋放唯一連線租約 [FAIL]
+[xUnit.net 00:00:00.62]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(112,0): at SpeechMessage.Dynamics.Deployment.AssemblyCatalog.Read(String path, RegistrationManifest manifest)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(247,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass20_0.<Manifest_EveryPluginTypeInBuiltDll_IsRegistered>b__0()
+[xUnit.net 00:00:00.62]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(122,0): at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(210,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Cli_ExportCommand_DisposesCommandLease()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]     相同清單重跑沒有變更 [FAIL]
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(52,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_SameState_NoOperations()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]     計畫與 Markdown 保留佔位且不讀秘密 [FAIL]
+[xUnit.net 00:00:00.62]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(80,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_SecretPlaceholders_NeverResolvedIntoPlanOrMarkdown()
+[xUnit.net 00:00:00.62]     組織現況已變拒絕套用 [FAIL]
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(91,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_OrganizationChangedSincePlan_Refuses()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]     主次版本衝突停止 [FAIL]
+[xUnit.net 00:00:00.62]       Assert.Throws() Failure: Exception type was not an exact match
+[xUnit.net 00:00:00.62]       Expected: typeof(System.IO.InvalidDataException)
+[xUnit.net 00:00:00.62]       Actual:   typeof(System.NotImplementedException)
+[xUnit.net 00:00:00.62]       ---- System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(62,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_AssemblyMajorMinorChanged_Stops()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(62,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass5_0.<Plan_AssemblyMajorMinorChanged_Stops>b__0()
+[xUnit.net 00:00:00.62]     計畫遭竄改拒絕套用 [FAIL]
+[xUnit.net 00:00:00.62]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(100,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_TamperedPlanHash_Refuses()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.62]     連線錯誤所有輸出不含秘密且保留例外身份 [FAIL]
+[xUnit.net 00:00:00.62]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.62]       Stack Trace:
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(122,0): at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report)
+[xUnit.net 00:00:00.62]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(195,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Logs_NeverContainSecretValues()
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 公鑰身份改變停止 [1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.IO.InvalidDataException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_AssemblyPublicKeyTokenChanged_Stops() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 71
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+----- Inner Stack Trace -----
+   at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass6_0.<Plan_AssemblyPublicKeyTokenChanged_Stops>b__0() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 71
+  失敗 DLL 中每個外掛都必須有註冊 [10 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.IO.InvalidDataException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Manifest_EveryPluginTypeInBuiltDll_IsRegistered() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 247
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+----- Inner Stack Trace -----
+   at SpeechMessage.Dynamics.Deployment.AssemblyCatalog.Read(String path, RegistrationManifest manifest) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 112
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass20_0.<Manifest_EveryPluginTypeInBuiltDll_IsRegistered>b__0() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 247
+  失敗 命令完成後釋放唯一連線租約 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 122
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Cli_ExportCommand_DisposesCommandLease() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 210
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 相同清單重跑沒有變更 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_SameState_NoOperations() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 52
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 計畫與 Markdown 保留佔位且不讀秘密 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_SecretPlaceholders_NeverResolvedIntoPlanOrMarkdown() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 80
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 組織現況已變拒絕套用 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_OrganizationChangedSincePlan_Refuses() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 91
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 主次版本衝突停止 [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.IO.InvalidDataException)
+Actual:   typeof(System.NotImplementedException)
+---- System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Plan_AssemblyMajorMinorChanged_Stops() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 62
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+----- Inner Stack Trace -----
+   at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.<>c__DisplayClass5_0.<Plan_AssemblyMajorMinorChanged_Stops>b__0() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 62
+  失敗 計畫遭竄改拒絕套用 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_TamperedPlanHash_Refuses() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 100
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 連線錯誤所有輸出不含秘密且保留例外身份 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 122
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Logs_NeverContainSecretValues() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 195
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.63]     佔位秘密只在套用時解析且不落入輸出 [FAIL]
+[xUnit.net 00:00:00.63]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.63]       Stack Trace:
+[xUnit.net 00:00:00.63]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(91,0): at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization)
+[xUnit.net 00:00:00.63]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(328,0): at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan()
+[xUnit.net 00:00:00.63]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(227,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_SecretPlaceholdersResolvedOnlyForWrites()
+[xUnit.net 00:00:00.63]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.63]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.63]     非白名單組織在連線前拒絕 [FAIL]
+[xUnit.net 00:00:00.63]       System.NotImplementedException : The method or operation is not implemented.
+[xUnit.net 00:00:00.63]       Stack Trace:
+[xUnit.net 00:00:00.63]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs(122,0): at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report)
+[xUnit.net 00:00:00.63]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs(154,0): at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Org_NotInAllowlist_Refused()
+[xUnit.net 00:00:00.63]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.63]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.63]   Finished:    SpeechMessage.Dynamics.Deployment.Tests
+  失敗 佔位秘密只在套用時解析且不落入輸出 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentEngine.Plan(RegistrationManifest manifest, AssemblyImage image, String organization) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 91
+   at SpeechMessage.Dynamics.Deployment.Tests.Fixture.Plan() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 328
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Apply_SecretPlaceholdersResolvedOnlyForWrites() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 227
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 非白名單組織在連線前拒絕 [< 1 ms]
+  錯誤訊息:
+   System.NotImplementedException : The method or operation is not implemented.
+  堆疊追蹤:
+     at SpeechMessage.Dynamics.Deployment.DeploymentCli.Run(String[] args, IOrganizationConnector connector, TextWriter output, Action`1 report) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment\Contracts.cs:line 122
+   at SpeechMessage.Dynamics.Deployment.Tests.DeploymentContractTests.Org_NotInAllowlist_Refused() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\DeploymentContractTests.cs:line 154
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+測試數總計: 20
+     失敗: 20
+測試回合失敗。
+ 時間總計: 0.9138 秒

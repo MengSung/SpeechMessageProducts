@@ -642,6 +642,36 @@
       ]
     },
     {
+      "project": "LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj",
+      "count": 0,
+      "files": [
+        {
+          "path": "LineMessagingProcessor.Core/ILinePushClient.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/LineChannelCredential.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/LinePushClient.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/LinePushOutcome.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/LinePushRequest.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/LinePushResult.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
       "project": "LineMessagingProcessor.RichMenus/LineMessagingProcessor.RichMenus.csproj",
       "count": 0,
       "files": [
@@ -1125,6 +1155,80 @@
         },
         {
           "path": "PowerPlatform.Dataverse.Client/Wsdl.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessage.Dynamics.Deployment/SpeechMessage.Dynamics.Deployment.csproj",
+      "count": 87,
+      "files": [
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/AssemblyCatalog.cs",
+          "count": 8
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Contracts.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/DeploymentCli.cs",
+          "count": 6
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/DeploymentConfiguration.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/DeploymentEngine.cs",
+          "count": 63
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/OrganizationWriteLock.cs",
+          "count": 1
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Program.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/RegistrationManifestLoader.cs",
+          "count": 3
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/UserSecretsOrganizationConnector.cs",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj",
+      "count": 0,
+      "files": [
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Diagnostics/DiagnosticsPingPlugin.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessage.Localization/SpeechMessage.Localization.csproj",
+      "count": 0,
+      "files": [
+        {
+          "path": "SpeechMessage.Localization/ISystemTextCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/SupportedCultures.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/SystemTextTable.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/TextKey.cs",
           "count": 0
         }
       ]
