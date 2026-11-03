@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-ENV 核定調整與 §8 全數通過；獨立提交後接續 P0-12。",
+  "description": "P0-ENV 調整 56226579 已提交，開始 P0-12 佈署專案最小版與離線測試。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -23,11 +23,11 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-ENV-adjustment",
+    "currentWorkPackage": "P0-12",
     "userRequestedStop": false,
-    "gatePassed": true,
+    "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-ENV-adjustment.md",
+    "report": "wp-reports/P0-12.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
     "waitingFor": null,
@@ -47,7 +47,7 @@
       "P0-09": "6b559da5",
       "P0-10": "7881177a（主體 cf3595db）",
       "P0-11": "7641a206（主體）；fc5df488（搬移）；9b59a4f4（收尾）",
-      "P0-ENV-adjustment": "本次提交"
+      "P0-ENV-adjustment": "56226579"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",

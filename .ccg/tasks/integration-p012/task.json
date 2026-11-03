@@ -1,0 +1,13 @@
+{
+  "id": "integration-p012",
+  "title": "P0-12 佈署專案最小版與離線契約測試",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "依核定計畫列完整離線測試與檔案責任",
+  "branch": "1.0.0.11.Integration.P0",
+  "createdAt": "2026-11-03",
+  "trellisTask": ".trellis/tasks/11-02-integration-p0"
+}
