@@ -1,0 +1,23 @@
+{
+  "workPackage": "P0-10",
+  "localGatePassed": true,
+  "releasePassed": 969,
+  "releaseFailed": 0,
+  "debugTracerPassed": 7,
+  "pluginPassed": 24,
+  "toolPassed": 11,
+  "packageSamplesPassed": 9,
+  "buildSamplesPassed": 3,
+  "generatedFilesChecked": 1,
+  "progressPagePassed": 3,
+  "changedTextByteChecks": {
+    "checked": 3,
+    "issues": 0,
+    "encoding": "UTF-8 without BOM",
+    "lineEndings": "CRLF and final CRLF"
+  },
+  "signedAssemblyChecksPassed": 6,
+  "temporaryCleanupComplete": false,
+  "commitCreated": false,
+  "nextWorkPackageStarted": false
+}

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "powershell",
+    "-NoProfile",
+    "-File",
+    "tools/RepoQuality/Test-TextEncoding.ps1",
+    "-Scope",
+    "Changed",
+    "-Base",
+    "73b6e6cf"
+  ],
+  "exitCode": 0
+}

@@ -1,9 +1,3 @@
 Join-Path : Cannot bind argument to parameter 'Path' because it is an empty string.
-At D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integrati
-on.P0.Worktree\tools\PluginPackaging\Test-PluginAssembly.ps1:8 char:40
-+     [string]$AssemblyPath = (Join-Path $PSScriptRoot '../../artifacts ...
-+                                        ~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Join-Path], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Microsoft.PowerShell.Commands.Join 
-   PathCommand
- 
+Context: Windows PowerShell 5.1 default parameter binding of AssemblyPath.
+Source: Test-PluginAssembly.ps1 default Join-Path PSScriptRoot expression.
