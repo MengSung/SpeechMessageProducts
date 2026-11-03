@@ -19,12 +19,14 @@
     }
   ],
   "temporaryCleanupComplete": false,
-  "committed": false,
   "nextWorkPackageStarted": false,
   "formalSigning": "Passed using only process environment key; no key contents recorded.",
   "legacyKeyTracking": {
     "LinePayCSharp/SpeechMessageCrmKey.snk": "staged removal, local retained",
     "Trace/SpeechMessageCrmKey.snk": "staged removal, local retained",
     "PowerPlatform.Dataverse.Client/NSspi/nsspi key.snk": "unchanged"
-  }
+  },
+  "observedImplementationCommit": "cf3595db",
+  "commitCreatedByThisSession": false,
+  "workPackageComplete": false
 }

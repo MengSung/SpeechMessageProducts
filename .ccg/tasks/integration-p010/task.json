@@ -9,8 +9,9 @@
   "baseCommit": "6b559da5",
   "branch": "1.0.0.11.Integration.P0",
   "approval": "依使用者 2026-11-03 核定及實作計畫 3.3 P0-10 執行；只使用指定環境變數金鑰，不連線任何 D365／LINE。",
-  "nextAction": "使用者清理兩個早期測試暫存資料夾後，核對不存在、完成收尾並提交 P0-10；不開始 P0-11。",
+  "nextAction": "等待使用者清理兩個測試暫存資料夾並確認 cf3595db 來源；保留歷史，未開始 P0-11。",
   "reviewPolicy": "WP 間本機驗證；P0-12 後才做 ClaudeOnly 階段審查。",
   "localVerificationPassed": true,
-  "waitingFor": "temporary-test-fixture-cleanup"
+  "waitingFor": "temporary-test-fixture-cleanup-and-observed-commit-source",
+  "observedExternalCommit": "cf3595db"
 }

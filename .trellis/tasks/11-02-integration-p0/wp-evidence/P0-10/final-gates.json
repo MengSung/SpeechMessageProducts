@@ -11,13 +11,16 @@
   "generatedFilesChecked": 1,
   "progressPagePassed": 3,
   "changedTextByteChecks": {
-    "checked": 3,
+    "checked": 60,
     "issues": 0,
     "encoding": "UTF-8 without BOM",
-    "lineEndings": "CRLF and final CRLF"
+    "lineEndings": "CRLF and final CRLF",
+    "comparisonBase": "6b559da5 (entire P0-10, including observed committed files)"
   },
   "signedAssemblyChecksPassed": 6,
   "temporaryCleanupComplete": false,
-  "commitCreated": false,
-  "nextWorkPackageStarted": false
+  "nextWorkPackageStarted": false,
+  "observedImplementationCommit": "cf3595db",
+  "commitCreatedByThisSession": false,
+  "workPackageComplete": false
 }
