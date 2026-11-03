@@ -1,0 +1,35 @@
+{
+  "reason": "機器原始入口副本依既有證據契約歸入對應時間戳目錄；不改位元組、不擴張編碼排除規則。",
+  "files": [
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-01a-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261103-232301-integration-p0-stage0-01a-reviewer/entry-original-task.raw.md",
+      "sha256": "e40da474c26f9f9b611c271bdee79223d06c7e17d5fb95b2ca52c4c02c4246a2",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-01b-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261103-233034-integration-p0-stage0-01b-reviewer/entry-original-task.raw.md",
+      "sha256": "bbd2294cc50f771781f67712b4586e863f8ef3786438ea560f268fa56000b3c8",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-01c-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261103-233818-integration-p0-stage0-01c-reviewer/entry-original-task.raw.md",
+      "sha256": "85c1ba68dcc72f5756b37ee2cbf9fa298a542d69325b84319437f8dd113827f5",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-02-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261103-234412-integration-p0-stage0-02-reviewer/entry-original-task.raw.md",
+      "sha256": "82bb6f2520b7bf1d504b06f23a993770a220e0d232dc7b85f715d5fdb0ca489a",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-03-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261103-234826-integration-p0-stage0-03-reviewer/entry-original-task.raw.md",
+      "sha256": "ff97c3301a42f95482dc76a9247adb42dc3ebc5b57cb32969ebf27c0459d2df9",
+      "bytesUnchanged": true
+    }
+  ]
+}
