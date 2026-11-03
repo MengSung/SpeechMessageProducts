@@ -1,0 +1,20 @@
+{
+  "releaseBuildErrors": 0,
+  "releaseBuildWarnings": 77,
+  "releaseTests": 837,
+  "net48Tests": 33,
+  "net10Tests": 33,
+  "debugTracerTests": 7,
+  "generatedFilesChecked": 1,
+  "duplicateGroups": 0,
+  "newDuplicateGroups": 0,
+  "packageVersionFailures": 0,
+  "staticPending": false,
+  "encodingChecked": 288,
+  "encodingExcluded": 74,
+  "encodingIssues": 0,
+  "stagedByteChecks": 53,
+  "frozenV32Unchanged": 8,
+  "progressTestsPassed": 3,
+  "diffChecksPassed": true
+}

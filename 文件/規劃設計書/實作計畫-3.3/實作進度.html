@@ -350,39 +350,39 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（net48 分析規則補修完成）",
+  "snapshot": "2026-11-03（P0-08 雙目標驗證完成）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "P0-04 補修已確認 net48 原先沒有實際載入 Recommended；補上空白 AnalysisLevel 後，<strong>24／24</strong> 探測通過。工具 <strong>75／75</strong>、方案 <strong>771／771</strong>、Debug <strong>7／7</strong>；補修獨立提交後重做 P0-08。",
+  "headline": "<strong>P0-08</strong> 兩目標各 <strong>33／33</strong>，覆蓋率 net48 <strong>94.87%</strong>、net10 <strong>100%</strong>。真實 SharedText 生成檔檢查 <strong>1 檔</strong>；方案 <strong>837／837</strong>、Debug <strong>7／7</strong>，接著依序進入 P0-09。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "9",
+      "value": "10",
       "unit": "/ 80 工作包",
       "sub": "依 3.3 計畫，含 P0-SEC、P0-ENV 與新增佈署工作包",
       "meter": {
-        "done": 9,
+        "done": 10,
         "active": 0,
         "total": 80
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "9",
+      "value": "10",
       "unit": "/ 15 工作包",
-      "sub": "先獨立提交 net48 分析層級補修，再接續已核定的 GetText",
+      "sub": "P0-08 驗證完成，下一包 P0-09",
       "meter": {
-        "done": 9,
+        "done": 10,
         "active": 0,
         "total": 15
       }
     },
     {
       "label": "完整 Release 測試",
-      "value": "771",
-      "unit": "/ 771 通過",
-      "sub": "P0-ENV：原 766 加 5 個設定契約"
+      "value": "837",
+      "unit": "/ 837 通過",
+      "sub": "原 771 加 Localization 雙目標各 33"
     },
     {
       "label": "Release 建置",
@@ -420,7 +420,7 @@ const DATA = {
       "id": "P0-04",
       "name": "新程式的分析器與禁用 API 設定",
       "status": "done",
-      "note": "命名補充 cea2958d 保留；本次補 net48 AnalysisLevel 並加四項守門，共 24／24，真正啟用兩目標 Recommended。",
+      "note": "原 c4e1f294、命名補充 cea2958d 保留；分析層級補修 58245c6f 使 net48 真正載入 Recommended，探測 24／24。",
       "commit": "c4e1f294"
     },
     {
@@ -462,8 +462,9 @@ const DATA = {
     {
       "id": "P0-08",
       "name": "骨架：SpeechMessage.Localization（雙目標）",
-      "status": "todo",
-      "note": "GetText 與 richMenuAlias 改名已核定；net48 分析層級補修提交後，兩個目標重新取得功能紅燈，再實作。"
+      "status": "done",
+      "note": "兩目標各 33／33，覆蓋率 94.87%／100%；真實 resx 及生成檔 1 檔驗證，百執行緒讀取與排空、net10 零配置通過。",
+      "commit": "本次提交"
     },
     {
       "id": "P0-09",
@@ -508,7 +509,7 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 15,
-      "done": 9,
+      "done": 10,
       "active": 0,
       "current": true
     },
@@ -581,8 +582,8 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "771 過／0 失敗",
-      "note": "P0-ENV 完整重跑，原 766 加 5"
+      "after": "837 過／0 失敗",
+      "note": "原 771 全保留，新增 Localization 兩目標各 33"
     },
     {
       "item": "Release 建置警告",
@@ -631,6 +632,12 @@ const DATA = {
       "before": "未建立",
       "after": "75／75；11 專案",
       "note": "817 來源檔、3895 CJK 片段；產出重複相同、竄改唯讀拒絕，工具覆蓋率超過 96%。"
+    },
+    {
+      "item": "Localization 雙目標",
+      "before": "未建立",
+      "after": "33＋33 全通過",
+      "note": "覆蓋率 94.87%／100%，SharedText 真實產生檔檢查 1 檔，無衛星組件。"
     }
   ],
   "conduct": [
@@ -821,6 +828,11 @@ const DATA = {
     {
       "t": "2026-11-03",
       "text": "net48 規則補修先紅 3 項，綠燈 24／24；本補修與 P0-08 分開提交，沒有修改尚未提交的 P0-08 來源。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "分析層級補修 58245c6f 獨立提交後，P0-08 兩目標各 33 紅燈轉綠，完整方案 837／837。",
       "cls": "ok"
     }
   ],

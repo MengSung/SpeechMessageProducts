@@ -1,0 +1,16 @@
+[
+  {
+    "framework": "net48",
+    "lineCoveragePercent": 94.87,
+    "branchCoveragePercent": 94.73,
+    "requiredPercent": 80,
+    "passed": true
+  },
+  {
+    "framework": "net10.0",
+    "lineCoveragePercent": 100.0,
+    "branchCoveragePercent": 97.14,
+    "requiredPercent": 80,
+    "passed": true
+  }
+]

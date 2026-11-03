@@ -1,0 +1,21 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "SpeechMessage.Localization.Tests",
+    "-c",
+    "Release",
+    "-f",
+    "net10.0",
+    "--no-restore",
+    "--nologo",
+    "--collect:XPlat Code Coverage",
+    "--results-directory",
+    ".ccg/tmp/p008-coverage-net10"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 3.53,
+  "consoleSummary": [
+    "Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 264 ms - SpeechMessage.Localization.Tests.dll (net10.0)"
+  ]
+}

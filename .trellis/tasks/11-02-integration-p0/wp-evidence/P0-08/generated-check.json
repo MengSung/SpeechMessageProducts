@@ -1,0 +1,14 @@
+{
+  "command": [
+    "dotnet",
+    "run",
+    "--project",
+    "tools/I18nCheck",
+    "--",
+    "generate",
+    "--check"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 2.6,
+  "consoleSummary": []
+}

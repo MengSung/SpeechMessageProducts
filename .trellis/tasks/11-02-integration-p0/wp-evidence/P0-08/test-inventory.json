@@ -1,0 +1,29 @@
+{
+  "originalMethods": 8,
+  "addedMethods": 8,
+  "deletedMethods": 0,
+  "casesPerFramework": 33,
+  "methods": [
+    "Get_ZhTw_ReturnsChineseText",
+    "Get_PseudoLocale_ReturnsWrappedText",
+    "Get_UnknownCulture_FallsBackToZhTw",
+    "Get_EnShellMissingKey_FallsBackToZhTw",
+    "Get_UnknownKey_ThrowsKeyNotFound",
+    "TextKey_InvalidFormat_Throws",
+    "Table_IsImmutable_CallerCannotMutate",
+    "Table_ConcurrentReads_NoAllocationGrowth",
+    "Table_SameTextDifferentKeys_PreservesBoth",
+    "Table_DuplicateKey_RejectsCandidate",
+    "Table_SourceArraysMutated_DoesNotChangeSnapshot",
+    "Table_InvalidMetadata_FailsClosed",
+    "SupportedCultures_Metadata_IsImmutable",
+    "TextKey_EqualityAndHash_AreConsistent",
+    "TextKey_DefaultAndNull_AreHandledExplicitly",
+    "Table_UnknownCultures_ReuseFixedFallback"
+  ],
+  "concurrencyWorkersPerFramework": 100,
+  "readsPerWorker": 10000,
+  "net10MeasuredHitReads": 100000,
+  "net10AllocatedBytesForMeasuredHits": 0,
+  "allWorkersJoined": true
+}

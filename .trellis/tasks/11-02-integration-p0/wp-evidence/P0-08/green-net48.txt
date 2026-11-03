@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: dotnet test SpeechMessage.Localization.Tests -c Release -f net48 --no-restore --nologo --collect:XPlat Code Coverage --results-directory .ccg/tmp/p008-coverage-net48
+Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 620 ms - SpeechMessage.Localization.Tests.dll (net48)
+EXIT_CODE=0

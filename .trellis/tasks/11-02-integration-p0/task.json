@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-04 永久命名補充已提交 cea2958d；P0-08 net48 33 功能紅燈，net10 被 CA1716 的 Get 介面名稱擋下。",
+  "description": "P0-08 雙目標各 33／33、實際生成檔 1、完整方案 837／837，提交收尾。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -23,11 +23,11 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-04-AnalysisLevel",
+    "currentWorkPackage": "P0-08",
     "userRequestedStop": false,
     "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
-    "report": "wp-reports/P0-04-AnalysisLevel.md",
+    "report": "wp-reports/P0-08.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
     "waitingFor": null,
@@ -42,7 +42,8 @@
       "P0-06": "18e901b1",
       "P0-07": "f0f0360f",
       "P0-04-CA1707": "cea2958d",
-      "P0-04-AnalysisLevel": "完成（本次補修提交）"
+      "P0-04-AnalysisLevel": "58245c6f",
+      "P0-08": "完成（本次 P0-08 提交）"
     }
   }
 }

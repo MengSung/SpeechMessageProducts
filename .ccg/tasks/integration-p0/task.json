@@ -6,13 +6,13 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "先完成 net48 Recommended 補修的獨立提交，再回 P0-08 改名／重做紅燈。",
+  "nextAction": "P0-08 全部功能與方案驗證通過，編碼／回報收尾後提交，再讀 P0-09。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
-  "currentWorkPackage": "P0-04-AnalysisLevel",
+  "currentWorkPackage": "P0-08",
   "reviewPolicy": "One ClaudeOnly review after P0-12, before P0-13, per implementation plan 3.3.",
   "reviewBlocker": null,
   "stopReason": null,
-  "approval": "使用者 2026-11-03 核定 Rune 公式、七筆資料及僅 I18nCheck.Tests 的 CA1707 例外。"
+  "approval": "使用者 2026-11-03 核定先做 net48 分析層級獨立補修（58245c6f），再改 GetText／richMenuAlias；未實作新 API 的 CA1716 可語意改名，禁止抑制或縮小可見性，既有 API 除外。"
 }

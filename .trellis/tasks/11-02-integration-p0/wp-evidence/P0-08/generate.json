@@ -1,0 +1,21 @@
+{
+  "command": [
+    "dotnet",
+    "run",
+    "--project",
+    "tools/I18nCheck",
+    "--",
+    "generate",
+    "--resx",
+    "SpeechMessage.Localization/Resources/SharedText.resx",
+    "--namespace",
+    "SpeechMessage.Localization.Resources",
+    "--class",
+    "SharedTextData",
+    "--out",
+    "SpeechMessage.Localization/Resources/SharedText.g.cs"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 2.77,
+  "consoleSummary": []
+}

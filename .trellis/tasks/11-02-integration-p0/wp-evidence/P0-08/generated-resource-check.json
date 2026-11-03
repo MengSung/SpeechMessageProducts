@@ -1,0 +1,9 @@
+{
+  "command": "dotnet run --project tools/I18nCheck --no-build -- generate --check",
+  "exitCode": 0,
+  "checkedFiles": 1,
+  "source": "SpeechMessage.Localization/Resources/SharedText.resx",
+  "output": "SpeechMessage.Localization/Resources/SharedText.g.cs",
+  "generatedSha256": "e7e846af140f472e8c280b82832d9eccf52dd8193e6e03eaa90091a0871cad8e",
+  "summary": "Generated resource check: files=1, passed=True"
+}

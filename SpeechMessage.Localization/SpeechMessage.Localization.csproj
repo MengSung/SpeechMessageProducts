@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net48;net10.0</TargetFrameworks>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <!-- SDK 在匯入 targets 前決定文件產出，必須於本體啟用以通過 SMQ0001／CS1591 守門。 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- resx 是唯一來源，由 I18nCheck 產生程式碼；不重複嵌入資源，也不建立衛星組件。 -->
+    <EmbeddedResource Remove="Resources/**/*.resx" />
+    <InternalsVisibleTo Include="SpeechMessage.Localization.Tests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,4 @@
+Console summary; warning/source-path noise omitted.
+COMMAND: powershell -NoProfile -File tools/RepoQuality/Test-PackageVersions.ps1
+Package guard: projects=32 references=119 excluded=2 failures=0
+EXIT_CODE=0

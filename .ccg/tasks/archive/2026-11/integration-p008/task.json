@@ -1,0 +1,17 @@
+{
+  "id": "integration-p008",
+  "title": "P0-08 Localization 雙目標骨架",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "branch": "1.0.0.11.Integration.P0",
+  "baseCommit": "cea2958d",
+  "approval": "使用者 2026-11-03 核定先做 net48 分析層級獨立補修（58245c6f），再改 GetText／richMenuAlias；未實作新 API 的 CA1716 可語意改名，禁止抑制或縮小可見性，既有 API 除外。",
+  "stopReason": null,
+  "nextAction": "提交後接續 P0-09。",
+  "observedHead": "f85bddb0",
+  "currentWorkPackage": "P0-08",
+  "validation": "net48 33/33, net10 33/33; coverage 94.87%/100%; generated check 1 file; solution 837/837."
+}
