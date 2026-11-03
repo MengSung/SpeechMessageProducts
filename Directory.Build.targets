@@ -5,6 +5,8 @@
   <PropertyGroup Condition="'$(SpeechMessageStrictCode)' == 'true'">
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>Recommended</AnalysisMode>
+    <!-- net48 預設只稽核直接相依；嚴格專案須在還原時稽核全部相依，與 net10 保持一致。 -->
+    <NuGetAuditMode>all</NuGetAuditMode>
     <!-- SDK 只為 .NETCoreApp 自動選分析層級；net48 空值會讓 Recommended 規則集不載入。
          使用者 2026-11-03 核定：嚴格模式只在空值時明確採 latest，使雙目標確實同規則；
          net10 原有層級不變，舊專案不啟用嚴格模式也不受影響。 -->

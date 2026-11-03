@@ -6,7 +6,7 @@
 P0-02～P0-07 建立 SDK、CPM、分析器、編碼、重複程式與國際化守門工具。
 P0-08 Localization 與 P0-09 LineMessagingProcessor.Core 只建立原計畫列出的雙目標骨架。
 P0-10 Plugin 為 net48，僅併入指定共用組件與 Newtonsoft.Json，不併入 Xrm SDK。
-P0-11 統整 Windows CI；P0-12 建立 net10 佈署專案及離線測試，其後做 ClaudeOnly 階段審查；P0-13 提供 goodshepherdback 人工驗收文件。
+P0-11 統整 Windows CI；P0-12 建立 net10 佈署專案及離線測試；使用者 2026-11-03 核定插入 P0-12A 圖片安全修補；之後才做 ClaudeOnly 階段審查，再由 P0-13 提供 goodshepherdback 人工驗收文件。
 
 ## 相容性與生命週期
 維持 ChurchReport 既有行為；不得藉抑制新警告或降低守門標準通過建置。

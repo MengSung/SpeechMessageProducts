@@ -3,4 +3,4 @@
 Trellis 子任務：.trellis/tasks/11-02-integration-p0。
 逐包 TDD、驗證、回報、提交；不推送、不合併，遇停止條件立即回報。
 
-順序：P0-SEC → P0-ENV → P0-06～P0-12 → ClaudeOnly 階段審查 → P0-13。goodshepherdback 清理回報前不連線；清理後 Codex 僅只讀，寫入由使用者執行。3.2 凍結、歷史 WP 回報不改寫。
+順序：P0-SEC → P0-ENV → P0-06～P0-12 → P0-12A（使用者 2026-11-03 核定插入）→ ClaudeOnly 階段審查 → P0-13。goodshepherdback 清理回報前不連線；清理後 Codex 僅只讀，寫入由使用者執行。3.2 凍結、歷史 WP 回報不改寫。

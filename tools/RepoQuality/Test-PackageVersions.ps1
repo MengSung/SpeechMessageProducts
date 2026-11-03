@@ -113,6 +113,26 @@ try {
     if ($central.SelectSingleNode("//*[local-name()='PropertyGroup']/*[local-name()='CentralPackageTransitivePinningEnabled' and translate(text(),'TRUE','true')='true']")) {
         $failures.Add('CryptographyCentralPinning: CentralPackageTransitivePinningEnabled must not be enabled.')
     }
+    $systemTextJsonVersion = $central.SelectSingleNode("//*[local-name()='PackageVersion' and @Include='System.Text.Json']")
+    if ($null -eq $systemTextJsonVersion -or $systemTextJsonVersion.GetAttribute('Version') -ne '6.0.11') {
+        $failures.Add('PluginJsonSecurityFix: Directory.Packages.props [System.Text.Json] must be 6.0.11')
+    }
+    foreach ($pluginProjectRelativePath in @(
+        'SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj',
+        'SpeechMessage.Dynamics.Plugins.Tests/SpeechMessage.Dynamics.Plugins.Tests.csproj'
+    )) {
+        $pluginProjectPath = Join-Path $root $pluginProjectRelativePath
+        if (-not [System.IO.File]::Exists($pluginProjectPath)) { throw "Dynamics plugin project is missing: $pluginProjectRelativePath" }
+        $pluginProject = New-Object System.Xml.XmlDocument
+        $pluginProject.XmlResolver = $null
+        $pluginProject.Load($pluginProjectPath)
+        $pluginJsonReference = $pluginProject.SelectSingleNode("//*[local-name()='PackageReference' and @Include='System.Text.Json']")
+        if ($null -eq $pluginJsonReference -or $pluginJsonReference.HasAttribute('Version') -or
+            $pluginJsonReference.SelectSingleNode("*[local-name()='Version']") -or
+            $pluginJsonReference.GetAttribute('PrivateAssets') -ne 'all') {
+            $failures.Add("PluginJsonPrivateReference: $pluginProjectRelativePath must directly reference centrally managed System.Text.Json with PrivateAssets=all")
+        }
+    }
     foreach ($failure in $failures) { Write-Output "FAIL $failure" }
     Write-Output "Package guard: projects=$checked references=$references excluded=$excluded failures=$($failures.Count)"
     if ($checked -eq 0) { throw 'No program projects found; refusing an empty package check.' }

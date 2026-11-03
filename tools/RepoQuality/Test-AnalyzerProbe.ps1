@@ -89,6 +89,16 @@ try {
         $failures.Add('LegacyProject_NoOptIn_PreservesExistingSettings: effective properties changed.')
     }
     $checks = 3
+    # 還原階段兩個嚴格目標都必須稽核轉移相依；net48 預設只檢查直接相依，會漏掉傳遞套件弱點。
+    foreach ($framework in @('net48', 'net10.0')) {
+        $audit = Invoke-AnalyzerDotNet -Arguments ('msbuild "' + $probe + '" -nologo -p:TargetFramework=' + $framework + ' -getProperty:NuGetAuditMode,TargetFramework') -LogName ($framework + '-nuget-audit-mode.log')
+        $checks++
+        if ($audit.ExitCode -ne 0) { throw "NuGet audit property evaluation failed for $framework." }
+        $auditMode = ($audit.Output | ConvertFrom-Json).Properties.NuGetAuditMode
+        if ($auditMode -ne 'all') {
+            $failures.Add("StrictNuGetAudit_${framework}_MustAuditTransitive: mode=$auditMode")
+        }
+    }
     # 必須查實際生效層級，而非只看 Recommended 字串；net48 的 SDK 不會自動補此屬性。
     foreach ($framework in @('net48', 'net10.0')) {
         $level = Invoke-AnalyzerDotNet -Arguments ('msbuild "' + $probe + '" -nologo -p:TargetFramework=' + $framework + ' -getProperty:AnalysisLevel,EffectiveAnalysisLevel') -LogName ($framework + '-analysis-level.log')

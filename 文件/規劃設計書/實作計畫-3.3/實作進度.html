@@ -350,32 +350,32 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-04 套件弱點補修 1/2 通過）",
+  "snapshot": "2026-11-03（P0-04 套件弱點補修 2/2 通過；接續 P0-12）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-04 套件弱點補修 1/2</strong>已將 WCF／WS-Trust 的 Xml／Pkcs 升至 10.0.14；弱點清單不再列出這兩個套件。Release <strong>971／971</strong>、建置 0 錯誤／36 警告；接著補修 net48 間接相依稽核，再進 P0-12。驗證皆離線。",
+  "headline": "<strong>P0-04 套件弱點補修 2/2</strong>已讓 net48 嚴格專案於還原時稽核全部相依，並將 Plugin 與測試專案的 System.Text.Json 升至 6.0.11。弱點清單只剩排入 P0-12A 的 ImageSharp；Release <strong>971／971</strong>、建置 0 錯誤／37 警告。接續 P0-12；驗證皆離線。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "14",
-      "unit": "/ 82 工作包",
+      "value": "15",
+      "unit": "/ 83 工作包",
       "sub": "含兩項使用者核定的套件弱點補修",
       "meter": {
-        "done": 14,
+        "done": 15,
         "active": 1,
-        "total": 82
+        "total": 83
       }
     },
     {
       "label": "階段 0 進度",
       "value": "14",
-      "unit": "/ 17 工作包",
-      "sub": "Xml／Pkcs 補修通過；net48 間接套件稽核進行中",
+      "unit": "/ 18 工作包",
+      "sub": "Xml／Pkcs 與 net48 間接套件弱點補修通過；接續 P0-12",
       "meter": {
-        "done": 14,
+        "done": 15,
         "active": 1,
-        "total": 17
+        "total": 18
       }
     },
     {
@@ -388,7 +388,7 @@ const DATA = {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "本次 Release 建置 36 個警告；相較原 77 個基準未新增警告"
+      "sub": "本次 Release 建置 37 個警告；低於原 77 個基準，未新增警告抑制"
     }
   ],
   "wps": [
@@ -432,8 +432,8 @@ const DATA = {
     {
       "id": "P0-04-NuGetAudit",
       "name": "補修：net48 嚴格專案稽核間接套件",
-      "status": "active",
-      "note": "先驗證 NuGetAuditMode=all 在還原階段生效，再處理揭露的修正版弱點。"
+      "status": "done",
+      "note": "net48 與 net10 還原皆為 NuGetAuditMode=all；Plugin／測試升 System.Text.Json 6.0.11；方案 971／971、Debug 7／7，剩餘弱點僅 ImageSharp，排入 P0-12A。"
     },
     {
       "id": "P0-05",
@@ -506,6 +506,12 @@ const DATA = {
       "note": "佈署骨架已在 12cae6bc 提交；套件弱點補修完成後，依核定的 17 個測試紅燈→綠燈完成本包；全程不連線 D365。"
     },
     {
+      "id": "P0-12A",
+      "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
+      "status": "todo",
+      "note": "P0-12 後先鎖住四種既有圖片正規化結果，再升至 3.2.0，拒絕不支援格式與超限尺寸；完成後才做階段審查。"
+    },
+    {
       "milestone": true,
       "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
       "status": "review",
@@ -523,8 +529,8 @@ const DATA = {
       "id": "階段 0",
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
-      "total": 17,
-      "done": 14,
+      "total": 18,
+      "done": 15,
       "active": 1,
       "current": true
     },
@@ -603,7 +609,7 @@ const DATA = {
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "76",
+      "after": "37",
       "note": "本次 Release 建置 0 錯誤；未新增任何警告抑制"
     },
     {
@@ -912,6 +918,11 @@ const DATA = {
       "text": "P0-ENV 核定調整：保留 01f3c03e；舊空白契約與舊網址故障各有紅燈，相關 32／32、方案 971／971，未連線外部服務。",
       "t": "2026-11-03",
       "cls": "ok"
+    },
+    {
+      "text": "P0-04 net48 全相依稽核及 System.Text.Json 修補通過；還原成功、弱點清單只剩 ImageSharp，Release 971／971、建置 37 警告。",
+      "t": "2026-11-03",
+      "cls": "ok"
     }
   ],
   "decisions": [
@@ -975,7 +986,7 @@ const DATA = {
     },
     {
       "text": "P0-12 前置套件弱點修補與 P0-12A 已核定",
-      "sub": "Xml／Pkcs 先升 10.0.14；net48 全相依稽核先於 P0-12；ImageSharp 3.2.0 與圖片格式／尺寸防護列入 P0-12A，階段審查移至其後。"
+      "sub": "Xml／Pkcs 升至 10.0.14、net48 全相依稽核及 System.Text.Json 6.0.11 已通過；ImageSharp 3.2.0 與圖片格式／尺寸防護列入 P0-12A，階段審查移至其後。"
     }
   ],
   "prep": [
@@ -1027,9 +1038,9 @@ const DATA = {
       "sub": "含真實個資與正式 LINE token；本次所有驗證均只在本機，不連線 D365"
     },
     {
-      "level": "warn",
-      "text": "net48 Plugin 的 System.Text.Json 6.0.8 有 High 弱點",
-      "sub": "依核定先讓 net48 嚴格專案稽核全部相依，再直接參考修正版 6.0.11。"
+      "level": "info",
+      "text": "net48 Plugin 的 System.Text.Json 弱點已修正",
+      "sub": "嚴格專案改為 NuGetAuditMode=all；Plugin 與測試專案私有直接參考 6.0.11，弱點清單不再列出。"
     },
     {
       "level": "warn",

@@ -23,7 +23,7 @@
   "relatedFiles": [],
   "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
   "meta": {
-    "currentWorkPackage": "P0-04-Cryptography",
+    "currentWorkPackage": "P0-12",
     "userRequestedStop": false,
     "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
@@ -48,7 +48,8 @@
       "P0-10": "7881177a（主體 cf3595db）",
       "P0-11": "7641a206（主體）；fc5df488（搬移）；9b59a4f4（收尾）",
       "P0-ENV-adjustment": "56226579",
-      "P0-04-Cryptography": "驗證通過，納入本次提交"
+      "P0-04-Cryptography": "cdc09d10",
+      "P0-04-NuGetAudit": "驗證通過，納入本次提交"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",

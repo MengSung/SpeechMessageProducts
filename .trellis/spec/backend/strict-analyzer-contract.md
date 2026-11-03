@@ -21,6 +21,11 @@ the intentionally invalid probe builds themselves must fail.
 
 - Strict projects enable NET analyzers, Recommended analysis, nullable, latest
   language version, and warnings as errors in Directory.Build.targets.
+- Strict projects set `NuGetAuditMode=all` in `Directory.Build.targets`, including
+  net48 restore evaluation. The SDK default for net48 checks only direct
+  dependencies, which leaves transitive vulnerabilities outside the strict gate.
+  Probe both net48 and net10.0 evaluated values and perform a real restore to
+  prove the property takes effect before package auditing.
 - Explicitly default an empty AnalysisLevel to latest inside the strict group.
   The SDK otherwise leaves this empty for net48, so AnalysisMode=Recommended
   alone never loads that framework's Recommended rules. This was reproduced and
@@ -86,8 +91,9 @@ the intentionally invalid probe builds themselves must fail.
 
 ## 6. Tests Required
 
-Run Test-AnalyzerProbe's 24 checks, retaining all previous 20 checks and adding
-two net48 naming probes plus the two effective-analysis-level checks.
+Run Test-AnalyzerProbe's 26 checks, retaining all previous checks and adding
+two net48 naming probes, two effective-analysis-level checks, and the
+net48/net10.0 NuGetAuditMode checks.
 Check the actual nonempty DocumentationFile and
 the newly emitted XML in the output directory, rather than trusting only the
 GenerateDocumentationFile flag. Preserve the initial missing-analyzer red
