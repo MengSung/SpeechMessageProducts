@@ -103,19 +103,46 @@
         return {
             /**
              * 包裝既有 DevExtreme store.load 回傳的 thenable；本方法不建立第二條 HTTP 管線。
-             * 每次呼叫先使前一世代失效並嘗試 abort，只有最新世代的 success/error 可完成外層 Promise。
+             * 每次呼叫先使前一世代失效並嘗試 abort，只有最新世代的 success/error 可完成結果。
+             * Grid 可注入既有 jQuery Deferred factory，保留 done/fail 與 data、totalCount 等多個
+             * 完成參數；未注入時仍回傳原生 Promise，供日期切換使用。不得用 Promise.resolve
+             * 同化 Deferred，否則第二個 metadata 參數會遺失。所有參考只存活於本次載入。
+             * @param {Function} loadFactory 既有 transport 的建立函式。
+             * @param {Function=} deferredFactory Grid 使用的 Deferred factory，不存入 coordinator。
              */
-            runLoad: function runLoad(loadFactory) {
+            runLoad: function runLoad(loadFactory, deferredFactory) {
+                var deferred = typeof deferredFactory === 'function' ? deferredFactory() : null;
+                var resolveNative;
+                var rejectNative;
+                var result = deferred ? deferred.promise() : new Promise(function captureCompletion(resolve, reject) {
+                    resolveNative = resolve;
+                    rejectNative = reject;
+                });
+
+                /**
+                 * 同步驗證失敗也使用呼叫端選定的回傳型別，不把 Deferred 呼叫意外轉成原生 Promise。
+                 */
+                function rejectBeforeLoad(error) {
+                    if (deferred) {
+                        deferred.reject(error);
+                    } else {
+                        rejectNative(error);
+                    }
+                    return result;
+                }
+
                 if (disposed) {
-                    return Promise.reject(createStaleGenerationError());
+                    return rejectBeforeLoad(createStaleGenerationError());
                 }
                 if (typeof loadFactory !== 'function') {
-                    return Promise.reject(new TypeError('loadFactory 必須是函式。'));
+                    return rejectBeforeLoad(new TypeError('loadFactory 必須是函式。'));
                 }
 
                 generation += 1;
                 if (activeRequest) {
-                    abortTransport(activeRequest.transport);
+                    var previousTransport = activeRequest.transport;
+                    activeRequest = null;
+                    abortTransport(previousTransport);
                 }
 
                 var requestGeneration = generation;
@@ -123,7 +150,7 @@
                 try {
                     transport = loadFactory();
                 } catch (error) {
-                    return Promise.reject(error);
+                    return rejectBeforeLoad(error);
                 }
 
                 activeRequest = {
@@ -131,25 +158,41 @@
                     transport: transport
                 };
 
-                return new Promise(function settleOnlyCurrent(resolve, reject) {
-                    Promise.resolve(transport).then(
-                        function resolveCurrent(value) {
-                            if (disposed || requestGeneration !== generation) {
-                                reject(createStaleGenerationError());
-                            } else {
-                                resolve(value);
-                            }
-                            completeIfCurrent(requestGeneration);
-                        },
-                        function rejectCurrent(error) {
-                            if (disposed || requestGeneration !== generation) {
-                                reject(createStaleGenerationError());
-                            } else {
-                                reject(error);
-                            }
-                            completeIfCurrent(requestGeneration);
-                        });
-                });
+                /**
+                 * 在呼叫消費者前先歸還 active transport；jQuery 2.x callback 可同步擲出例外，
+                 * 因此不能把清理排在 resolve/reject 後面。context 與 arguments 不寫入共用欄位。
+                 */
+                function settleCurrent(succeeded, context, args) {
+                    var stale = disposed || requestGeneration !== generation;
+                    completeIfCurrent(requestGeneration);
+                    if (stale) {
+                        rejectBeforeLoad(createStaleGenerationError());
+                    } else if (deferred) {
+                        deferred[succeeded ? 'resolveWith' : 'rejectWith'](context, args);
+                    } else if (succeeded) {
+                        resolveNative(args[0]);
+                    } else {
+                        rejectNative(args[0]);
+                    }
+                }
+
+                function resolveCurrent() {
+                    settleCurrent(true, this, arguments);
+                }
+
+                function rejectCurrent() {
+                    settleCurrent(false, this, arguments);
+                }
+
+                if (deferred && transport && typeof transport.done === 'function' &&
+                    typeof transport.fail === 'function') {
+                    // 直接觀察原 Deferred 才能保留多參數；回傳的是新的受世代保護結果，不能直接
+                    // 返回原 transport，否則晚到資料會繞過 generation 驗證。
+                    transport.done(resolveCurrent).fail(rejectCurrent);
+                } else {
+                    Promise.resolve(transport).then(resolveCurrent, rejectCurrent);
+                }
+                return result;
             },
 
             /**

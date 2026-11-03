@@ -1,0 +1,6 @@
+<Project>
+  <!-- 僅把研究探測加入既有測試組件，不修改產品或 csproj，也不觸發網站啟動。 -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'ChurchReport.MemberInfo.Tests'">
+    <Compile Include="$(MSBuildThisFileDirectory)ApiResponseProbes.cs" />
+  </ItemGroup>
+</Project>

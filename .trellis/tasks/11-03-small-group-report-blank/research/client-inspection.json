@@ -1,0 +1,261 @@
+{
+  "assets": [
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/bootstrap/dist/css/bootstrap.css",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "css/site.css",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "css/devextreme/dx.common.css",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "css/devextreme/dx.light.compact.css",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "css/mini-app-safe-area.css",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/jquery/dist/jquery.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/bootstrap/dist/js/bootstrap.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "js/devextreme/dx.all.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "js/devextreme/vectormap-data/world.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme-aspnet-data/js/dx.aspnet.data.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "js/devextreme/aspnet/dx.aspnet.mvc.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/css/dx.common.css",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/css/dx.spa.css",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "css/demo-template.css",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/cldr.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/cldr/event.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/cldr/supplemental.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/cldr/unresolved.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/globalize.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/globalize/number.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/globalize/currency.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/globalize/date.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/globalize/message.min.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/jszip/dist/jszip.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "path": "lib/devextreme/js/vectormap-data/usa.js",
+      "exists": false,
+      "trackedAtBaseline": false
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "js/collection-load-coordinator.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "js/devextreme/devextreme-intl.min.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "js/devextreme/localization/dx.messages.zh-tw.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "js/DataGridAjax.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "js/SelectDate.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "js/DropDownBox.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "js/LoadPanel.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "css/SmallGroupReportController.css",
+      "exists": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "path": "css/WeeklyReport.css",
+      "exists": true
+    }
+  ],
+  "inlineScripts": [
+    {
+      "view": "Views/Shared/_Layout.cshtml",
+      "index": 1,
+      "parses": true,
+      "definesWithoutNetwork": true
+    },
+    {
+      "view": "Views/Shared/_MemberInfoDetailPopupHost.cshtml",
+      "index": 1,
+      "parses": true,
+      "definesWithoutNetwork": true
+    },
+    {
+      "view": "Views/Home/_GeneralGroupGrids.cshtml",
+      "index": 1,
+      "parses": true,
+      "definesWithoutNetwork": true
+    },
+    {
+      "view": "Views/Home/_GeneralGroupGrids.cshtml",
+      "index": 2,
+      "parses": true,
+      "definesWithoutNetwork": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "index": 1,
+      "parses": true,
+      "definesWithoutNetwork": true
+    },
+    {
+      "view": "Views/Home/IntegrateView.cshtml",
+      "index": 2,
+      "parses": true,
+      "definesWithoutNetwork": true
+    }
+  ],
+  "globals": {
+    "contactImageCellTemplate": "function",
+    "memberInfoDetailNameCellTemplate": "function",
+    "membershipStatusDataSource": "array",
+    "spiritualIdentityDataSource": "array",
+    "visitDataSource": "array",
+    "initializeWeeklyReportGridPublicationGuard": "function",
+    "openMemberInfoDetailPopup": "function"
+  },
+  "lifecycle": {
+    "dataSourceMissing": {
+      "succeeds": false,
+      "errorType": "Error",
+      "reason": "週報 Grid 缺少既有 WebApi store.load，拒絕建立第二條取數管線。"
+    },
+    "dataSourceReady": {
+      "succeeds": true
+    }
+  },
+  "baseline": {
+    "Views/Shared/_Layout.cshtml": true,
+    "Views/Home/IntegrateView.cshtml": true,
+    "Views/Home/_GeneralGroupGrids.cshtml": true,
+    "Views/Shared/_MemberInfoDetailPopupHost.cshtml": true,
+    "js/devextreme/dx.all.js": true,
+    "js/devextreme/aspnet/dx.aspnet.mvc.js": true,
+    "js/collection-load-coordinator.js": true
+  },
+  "readyCallbacksNotExecuted": 2,
+  "noAjaxExecuted": true
+}

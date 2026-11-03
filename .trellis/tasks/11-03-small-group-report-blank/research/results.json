@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-03",
+  "baseline": "d42b6d3f",
+  "comparisonBase": "73b6e6cf",
+  "scope": "read-only triage",
+  "productChanged": false,
+  "testProjectsChanged": false,
+  "externalD365OrLineConnections": false,
+  "userSecretsRead": false,
+  "probeTests": {
+    "passed": 11,
+    "failed": 0
+  },
+  "existingFocusedTests": {
+    "passed": 30,
+    "failed": 0
+  },
+  "combinedFocusedTests": {
+    "passed": 41,
+    "failed": 0
+  },
+  "normalTestAssemblyRestored": true,
+  "scripts": {
+    "ajaxReadyCallbacksExecuted": false,
+    "globalSymbolsDefined": 7,
+    "razorWidgetInitializationExecuted": false,
+    "parsed": 6
+  },
+  "assets": {
+    "actualHttpResponsesObserved": false,
+    "references": 35,
+    "missingPhysicalReferences": 14
+  },
+  "baselineTextComparisons": {
+    "equalFiles": 7,
+    "lineEndingsNormalizedForComparison": true
+  },
+  "outcome": "Await user browser evidence; root cause not determined."
+}

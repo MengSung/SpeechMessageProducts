@@ -26,6 +26,9 @@
      * 此 adapter 僅包裝 DevExtreme 已存在的 WebApi store.load，不發出第二條 AJAX；原始 store
      * 仍負責 paging、sorting、CRUD 與認證 cookie。Coordinator 只保存 transport 與純量 generation，
      * 不保存 rows、Session 或 credential，因此 view dispose 後不會延長使用者資料生命週期。
+     * Grid 必須保留 jQuery Deferred 的 done/fail 與多參數完成契約；原生 Promise 會令現行
+     * DevExtreme 在初始化時中斷，也會遺失 data 以外的分頁總筆數。此處注入既有 factory，
+     * 仍由相同 coordinator 驗證世代，不得為相容性而直接放行未驗證的原 transport。
      */
     function initializeWeeklyReportGridPublicationGuard(e) {
         var component = e && e.component;
@@ -60,7 +63,7 @@
             store.load = function loadWithGenerationGuard(loadOptions) {
                 return coordinator.runLoad(function invokeExistingWebApiStore() {
                     return originalLoad(loadOptions);
-                });
+                }, $.Deferred);
             };
             component.__weeklyReportLoadCoordinator = coordinator;
             component.__weeklyReportLoadOwner = owner;

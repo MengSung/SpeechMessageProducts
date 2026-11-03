@@ -106,6 +106,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Coverage gate tests failed.' }
           node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Progress page tests failed.' }
+          # 直接驗證實際 Razor adapter 與既有 jQuery Deferred，避免只跑伺服器測試卻漏掉表格初始化錯誤。
+          node --test ChurchReport.MemberInfo.Tests/JavaScript/collection-load-coordinator.test.js ChurchReport.MemberInfo.Tests/JavaScript/weekly-report-load-adapter.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Weekly report JavaScript contracts failed.' }
           powershell -NoProfile -File docs/scripts/Tests/Test-CcgReviewSummary.ps1
           if ($LASTEXITCODE -ne 0) { throw 'CCG summary contracts failed.' }
       - name: Offline plugin packaging tests

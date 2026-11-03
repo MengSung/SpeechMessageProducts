@@ -1,0 +1,132 @@
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\bin\Release\net10.0\SpeechMessage.Dynamics.Deployment.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Tests\bin\Release\net48\LineMessagingProcessor.Tests.dll 的測試回合 (.NETFramework,Version=v4.8)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Localization.Tests\bin\Release\net48\SpeechMessage.Localization.Tests.dll 的測試回合 (.NETFramework,Version=v4.8)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Workflows.Tests\bin\Release\net10.0\LineMessagingProcessor.Workflows.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Payments.Tests\bin\Release\net10.0\SpeechMessage.Payments.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.AspNetCore.Tests\bin\Release\net10.0\LineMessagingProcessor.AspNetCore.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Tests\bin\Release\net10.0\LineMessagingProcessor.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.RichMenus.Tests\bin\Release\net10.0\LineMessagingProcessor.RichMenus.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility.Dataverse.Tests\bin\Release\net10.0\ToolUtility.Dataverse.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\Line.Messaging.Tests\bin\Release\net10.0\Line.Messaging.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Plugins.Tests\bin\Release\net48\SpeechMessage.Dynamics.Plugins.Tests.dll 的測試回合 (.NETFramework,Version=v4.8)
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Localization.Tests\bin\Release\net10.0\SpeechMessage.Localization.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+總共有 1 個測試檔案與指定的模式相符。
+
+已通過! - 失敗:     0，通過:    42，略過:     0，總計:    42，持續時間: 104 ms - SpeechMessage.Localization.Tests.dll (net10.0)
+
+已通過! - 失敗:     0，通過:    32，略過:     0，總計:    32，持續時間: 93 ms - Line.Messaging.Tests.dll (net10.0)
+
+已通過! - 失敗:     0，通過:    33，略過:     0，總計:    33，持續時間: 224 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)
+
+已通過! - 失敗:     0，通過:    55，略過:     0，總計:    55，持續時間: 131 ms - SpeechMessage.Payments.Tests.dll (net10.0)
+
+
+已通過! - 失敗:     0，通過:    78，略過:     0，總計:    78，持續時間: 72 ms - LineMessagingProcessor.Tests.dll (net10.0)
+已通過! - 失敗:     0，通過:    34，略過:     0，總計:    34，持續時間: 98 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)
+
+已通過! - 失敗:     0，通過:     4，略過:     0，總計:     4，持續時間: 229 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)
+[xUnit.net 00:00:01.18]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: False) [FAIL]
+[xUnit.net 00:00:01.19]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: False) [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: False) [10 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: False) [3 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:01.22]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: True) [FAIL]
+[xUnit.net 00:00:01.23]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: False) [FAIL]
+[xUnit.net 00:00:01.23]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: False) [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: True) [< 1 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: False) [1 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: False) [< 1 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:01.24]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: True) [FAIL]
+[xUnit.net 00:00:01.26]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: True) [FAIL]
+
+已通過! - 失敗:     0，通過:    42，略過:     0，總計:    42，持續時間: 1 s - SpeechMessage.Dynamics.Deployment.Tests.dll (net10.0)
+[xUnit.net 00:00:01.28]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: True) [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: True) [< 1 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: True) [2 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  失敗 ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: True) [1 ms]
+  錯誤訊息:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+
+已通過! - 失敗:     0，通過:    42，略過:     0，總計:    42，持續時間: 278 ms - SpeechMessage.Localization.Tests.dll (net48)
+
+已通過! - 失敗:     0，通過:    45，略過:     0，總計:    45，持續時間: 853 ms - LineMessagingProcessor.Tests.dll (net48)
+
+已通過! - 失敗:     0，通過:    24，略過:     0，總計:    24，持續時間: 1 s - SpeechMessage.Dynamics.Plugins.Tests.dll (net48)
+
+已通過! - 失敗:     0，通過:    79，略過:     0，總計:    79，持續時間: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)
+
+失敗!  - 失敗:     8，通過:   539，略過:     0，總計:   547，持續時間: 7 s - ChurchReport.MemberInfo.Tests.dll (net10.0)

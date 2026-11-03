@@ -1,0 +1,18 @@
+{
+  "id": "small-group-report-blank",
+  "title": "小組回報空白問題修復",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "frontend",
+  "currentPhase": "analysis",
+  "nextAction": "依使用者追加修復授權，先重現 Deferred 契約失敗，再實作最小相容修正。",
+  "createdAt": "2026-11-03",
+  "branch": "1.0.0.11.Integration.P0",
+  "constraints": [
+    "禁止 D365 或 LINE 連線",
+    "保留 P0-12A 工作",
+    "只使用合成假資料",
+    "不推送、不合併、不改寫歷史"
+  ]
+}

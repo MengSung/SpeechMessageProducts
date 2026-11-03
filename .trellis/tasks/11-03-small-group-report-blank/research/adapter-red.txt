@@ -1,0 +1,263 @@
+✖ 實際週報 adapter 保留 done/fail 與分頁完成參數 (4.2973ms)
+✖ 實際週報 adapter 原樣傳遞當前失敗與多個失敗參數 (1.9351ms)
+✖ Deferred 相容修正仍拒絕舊世代 resolve (2.1173ms)
+✖ Deferred 相容修正仍拒絕舊世代 reject (2.3914ms)
+✖ 兩個 Grid owner 的取消與資料完全隔離 (3.029ms)
+✖ 同步載入例外仍符合 Deferred 失敗契約 (1.035ms)
+✖ Deferred resolve 消費者拋錯仍已釋放 active transport (1.1068ms)
+✖ Deferred reject 消費者拋錯仍已釋放 active transport (0.9684ms)
+✖ 重複 200 次 Deferred 載入與 dispose 均回到零資源基準 (1.6053ms)
+✖ 小組回報主版面的本機腳本與樣式均有部署來源 (1.4137ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 0
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 84.7364
+
+✖ failing tests:
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:97:1
+✖ 實際週報 adapter 保留 done/fail 與分頁完成參數 (4.2973ms)
+  AssertionError [ERR_ASSERTION]: DevExtreme 直接呼叫 store.load(...).done(...)
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:104:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:125:1
+✖ 實際週報 adapter 原樣傳遞當前失敗與多個失敗參數 (1.9351ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:129:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:147:5
+✖ Deferred 相容修正仍拒絕舊世代 resolve (2.1173ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:153:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:147:5
+✖ Deferred 相容修正仍拒絕舊世代 reject (2.3914ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:153:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:171:1
+✖ 兩個 Grid owner 的取消與資料完全隔離 (3.029ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:178:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:193:1
+✖ 同步載入例外仍符合 Deferred 失敗契約 (1.035ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:199:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:213:5
+✖ Deferred resolve 消費者拋錯仍已釋放 active transport (1.1068ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:219:20)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:213:5
+✖ Deferred reject 消費者拋錯仍已釋放 active transport (0.9684ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:219:20)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:234:1
+✖ 重複 200 次 Deferred 載入與 dispose 均回到零資源基準 (1.6053ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:240:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:256:1
+✖ 小組回報主版面的本機腳本與樣式均有部署來源 (1.4137ms)
+  AssertionError [ERR_ASSERTION]: 不能引用 repo/部署輸出都不存在的靜態檔案
+  + actual - expected
+  
+  + [
+  +   'lib/devextreme/css/dx.common.css',
+  +   'lib/devextreme/css/dx.spa.css',
+  +   'css/demo-template.css',
+  +   'lib/devextreme/js/cldr.min.js',
+  +   'lib/devextreme/js/cldr/event.min.js',
+  +   'lib/devextreme/js/cldr/supplemental.min.js',
+  +   'lib/devextreme/js/cldr/unresolved.min.js',
+  +   'lib/devextreme/js/globalize.min.js',
+  +   'lib/devextreme/js/globalize/number.min.js',
+  +   'lib/devextreme/js/globalize/currency.min.js',
+  +   'lib/devextreme/js/globalize/date.min.js',
+  +   'lib/devextreme/js/globalize/message.min.js',
+  +   'lib/jszip/dist/jszip.js',
+  +   'lib/devextreme/js/vectormap-data/usa.js'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\JavaScript\weekly-report-load-adapter.test.js:262:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'lib/devextreme/css/dx.common.css', 'lib/devextreme/css/dx.spa.css', 'css/demo-template.css', 'lib/devextreme/js/cldr.min.js', 'lib/devextreme/js/cldr/event.min.js', 'lib/devextreme/js/cldr/supplemental.min.js', 'lib/devextreme/js/cldr/unresolved.min.js', 'lib/devextreme/js/globalize.min.js', 'lib/devextreme/js/globalize/number.min.js', 'lib/devextreme/js/globalize/currency.min.js', 'lib/devextreme/js/globalize/date.min.js', 'lib/devextreme/js/globalize/message.min.js', 'lib/jszip/dist/jszip.js', 'lib/devextreme/js/vectormap-data/usa.js' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

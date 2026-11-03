@@ -257,20 +257,9 @@
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="~/lib/devextreme/css/dx.common.css" />
-    <link rel="stylesheet" href="~/lib/devextreme/css/dx.spa.css" />
-    <link rel="stylesheet" href="~/css/demo-template.css" />
-    <script src="~/lib/devextreme/js/cldr.min.js"></script>
-    <script src="~/lib/devextreme/js/cldr/event.min.js"></script>
-    <script src="~/lib/devextreme/js/cldr/supplemental.min.js"></script>
-    <script src="~/lib/devextreme/js/cldr/unresolved.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/number.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/currency.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/date.min.js"></script>
-    <script src="~/lib/devextreme/js/globalize/message.min.js"></script>
-    <script src="~/lib/jszip/dist/jszip.js"></script>
-    <script src="~/lib/devextreme/js/vectormap-data/usa.js"></script>
+    @* DevExtreme 樣式已由上方 wwwroot/css/devextreme 載入。舊範本重複引用的 lib 路徑、
+       CLDR/Globalize、JSZip 與 usa.js 均無部署檔案，實際回傳 404 並遭 MIME 檢查拒絕。
+       移除這些從未成功載入的引用，保留既有版本與實際使用的資源，不切換本地化引擎。 *@
 
     <script>
         $(document).ready(function() {

@@ -20,8 +20,9 @@
     var chartTextColor = Configuration[$"Theme:Presets:{chartThemeName}:Text"] ?? "#1d2a44";
 }
 
-@* 必須在 DateBox 與 Grid 事件可能觸發前載入；模組不保存 rows、Session 或 credential。 *@
-<script src="~/js/collection-load-coordinator.js"></script>
+@* 必須在 DateBox 與 Grid 事件可能觸發前載入；模組不保存 rows、Session 或 credential。
+   靜態檔案使用長期快取，必須附內容版本，避免新版 Razor adapter 搭配舊版協調器。 *@
+<script src="~/js/collection-load-coordinator.js" asp-append-version="true"></script>
 <script>
     // 此 coordinator 只屬於目前完整頁面。日期切換完成會導向新頁，pagehide 會先 dispose；
     // 不放入 sessionStorage/localStorage，也不在跨頁 static collection 保存使用者或回應資料。
