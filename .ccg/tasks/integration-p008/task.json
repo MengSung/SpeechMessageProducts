@@ -1,0 +1,14 @@
+{
+  "id": "integration-p008",
+  "title": "P0-08 Localization 雙目標骨架",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "branch": "1.0.0.11.Integration.P0",
+  "baseCommit": "f0f0360f",
+  "approval": "原計畫已授權逐包執行；目前 CA1707 例外只限 I18nCheck.Tests。",
+  "stopReason": "00 §9.5／§9.6：P0-08 新嚴格測試專案的八個固定底線名稱與 CA1707 衝突；使用者現有例外僅限 I18nCheck.Tests，不能自行擴用。",
+  "nextAction": "核定前不修改分析器、不改名／刪除測試、不建立新 C# 或還原套件。"
+}

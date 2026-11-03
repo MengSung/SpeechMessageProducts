@@ -1,0 +1,24 @@
+{
+  "lastCompletedWorkPackage": "P0-07",
+  "lastCompletedCommit": "f0f0360f",
+  "currentWorkPackage": "P0-08",
+  "condition": "00 §9.5／§9.6：P0-08 新嚴格測試專案的八個固定底線名稱與 CA1707 衝突；使用者現有例外僅限 I18nCheck.Tests，不能自行擴用。",
+  "approvedExceptionProject": "I18nCheck.Tests",
+  "requestedNewTestProject": "SpeechMessage.Localization.Tests",
+  "plannedTestMethods": [
+    "Get_ZhTw_ReturnsChineseText",
+    "Get_PseudoLocale_ReturnsWrappedText",
+    "Get_UnknownCulture_FallsBackToZhTw",
+    "Get_EnShellMissingKey_FallsBackToZhTw",
+    "Get_UnknownKey_ThrowsKeyNotFound",
+    "TextKey_InvalidFormat_Throws",
+    "Table_IsImmutable_CallerCannotMutate",
+    "Table_ConcurrentReads_NoAllocationGrowth"
+  ],
+  "newProjectCreated": false,
+  "nugetRestoreAttempted": false,
+  "tddExecuted": false,
+  "isTddRedEvidence": false,
+  "previousRuleEvidence": "../P0-07/compilation-stop.json",
+  "noD365OrLineConnections": true
+}
