@@ -350,10 +350,10 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-09 驗證完成）",
+  "snapshot": "2026-11-03（P0-09 取消邊界補修驗證完成）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "<strong>P0-09</strong> 兩目標各 <strong>42／42</strong>，覆蓋率 <strong>93.93%／98.90%</strong>；原 33 案例保留，完整方案 <strong>921／921</strong>、Debug <strong>7／7</strong>。依既有設計分工保留原始例外、不在 Core 通知，接著依序進入 P0-10。",
+  "headline": "<strong>P0-09</strong> 取消邊界補修後兩目標各 <strong>45／45</strong>，覆蓋率 <strong>93.87%／98.88%</strong>；原 33 案例保留，完整方案 <strong>927／927</strong>、Debug <strong>7／7</strong>。收到回應後保留分類結果，非 caller 取消視為可重試傳輸失敗。",
   "alert": null,
   "tiles": [
     {
@@ -380,9 +380,9 @@ const DATA = {
     },
     {
       "label": "完整 Release 測試",
-      "value": "921",
-      "unit": "/ 921 通過",
-      "sub": "原 837 加 Core 雙目標各 42"
+      "value": "927",
+      "unit": "/ 927 通過",
+      "sub": "原 837 加 Core 雙目標各 45"
     },
     {
       "label": "Release 建置",
@@ -470,7 +470,7 @@ const DATA = {
       "id": "P0-09",
       "name": "骨架：LineMessagingProcessor.Core（雙目標，單人推播）",
       "status": "done",
-      "note": "原 11 方法保留，兩目標各 42／42、覆蓋率 93.93%／98.90%，原 net10 33 全保留；方案 921／921，全部守門通過。",
+      "note": "原 21 方法保留並新增 2 方法；雙目標各 45／45、覆蓋率 93.87%／98.88%，原 net10 33 全保留；方案 927／927，全部守門通過。",
       "commit": "本次提交"
     },
     {
@@ -855,6 +855,11 @@ const DATA = {
     {
       "t": "2026-11-03",
       "text": "P0-09 完成功能及重構：雙目標各 42／42、方案 921／921、Debug 7／7、重複掃描 22 專案 863 檔無重複，沒有外部連線。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "依核定補修取消邊界：新案例兩目標紅 3／綠 6；雙目標測試各 45／45、方案 927／927、覆蓋率 93.87%／98.88%。",
       "cls": "ok"
     }
   ],

@@ -55,7 +55,7 @@ public sealed class LinePushClient : ILinePushClient
     /// <summary>以逐請求標頭與快照內容推播；只轉換已核定的傳輸失敗，其他例外往外拋。</summary>
     /// <param name="credential">當次頻道憑證。</param>
     /// <param name="request">當次不可變請求。</param>
-    /// <param name="ct">明確 caller 取消，優先於內部逾時分類。</param>
+    /// <param name="ct">明確 caller 取消；只在尚未收到 HTTP 回應時生效，回應抵達後以狀態碼分類結果。</param>
     /// <returns>不持有 request／response／credential 的結果。</returns>
     public async Task<LinePushResult> PushAsync(LineChannelCredential credential, LinePushRequest request, CancellationToken ct)
     {
@@ -85,7 +85,6 @@ public sealed class LinePushClient : ILinePushClient
             // 只需要標頭；不緩衝、不讀取也不保留錯誤本文，回傳前釋放回應及內容串流。
             using var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, linked.Token)
                 .ConfigureAwait(false);
-            ct.ThrowIfCancellationRequested();
             var status = (int)response.StatusCode;
             var outcome = status switch
             {
@@ -97,9 +96,10 @@ public sealed class LinePushClient : ILinePushClient
             var requestId = response.Headers.TryGetValues("x-line-request-id", out var values) ? values.FirstOrDefault() : null;
             return new LinePushResult(outcome, response.StatusCode, requestId, null);
         }
-        catch (OperationCanceledException exception) when (!ct.IsCancellationRequested && timeout.IsCancellationRequested)
+        catch (OperationCanceledException exception)
         {
-            // 只將本操作內部期限轉成結果；caller 取消及來源不明的取消保持原始拋出行為。
+            // caller 取消只在沒有收到 HTTP 回應時中止操作；其他取消來源都是無回應的傳輸失敗。
+            // 一旦 SendAsync 已回傳 response，狀態碼結果優先，避免丟失服務端已知的接受／拒絕資訊。
             ct.ThrowIfCancellationRequested();
             return new LinePushResult(LinePushOutcome.Retryable, null, null, exception);
         }

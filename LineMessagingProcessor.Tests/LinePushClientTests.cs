@@ -216,6 +216,67 @@ public sealed class LinePushClientTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => fixture.Client.PushAsync(new(Token), Request(), caller.Token));
     }
 
+    /// <summary>
+    /// 假傳輸先建立完整 HTTP 回應，再於交回回應前取消 caller；驗證已知狀態仍依 2xx／429 分類，
+    /// 並確認 request、response、連結取消來源與 handler 在途計數均已確定性釋放。
+    /// </summary>
+    [Theory(DisplayName = "回應抵達後 caller 取消仍回傳狀態分類")]
+    [InlineData(200, LinePushOutcome.Success)]
+    [InlineData(429, LinePushOutcome.Retryable)]
+    public async Task Push_CallerCanceledAfterResponse_ReturnsClassifiedResult(int status, LinePushOutcome expected)
+    {
+        using var caller = new CancellationTokenSource();
+        using var fixture = new Fixture(status);
+        using var timeout = new CancellationTokenSource();
+        var createResponse = fixture.Handler.Reply;
+        fixture.Handler.Reply = async (request, transportToken) =>
+        {
+            var response = await createResponse(request, transportToken).ConfigureAwait(false);
+            caller.Cancel();
+            return response;
+        };
+        var client = new LinePushClient(fixture.Http, _ => timeout);
+
+        var result = await client.PushAsync(new(Token), Request(), caller.Token);
+
+        Assert.True(caller.IsCancellationRequested);
+        Assert.Equal(expected, result.Outcome);
+        Assert.Equal((HttpStatusCode)status, result.StatusCode);
+        Assert.Null(result.TransportException);
+        Assert.True(fixture.Handler.ResponseContent!.Disposed);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Handler.RequestContent!.ReadAsStringAsync());
+        Assert.Equal(0, fixture.Handler.Active);
+        Assert.Throws<ObjectDisposedException>(() => timeout.Cancel());
+        Assert.Throws<ObjectDisposedException>(() => _ = fixture.Handler.SentToken.WaitHandle);
+    }
+
+    /// <summary>
+    /// 注入 caller 與 Core 逾時來源都未取消的 TaskCanceledException；驗證這不是正常 caller 取消，
+    /// 必須成為 Retryable，TransportException 保留傳輸邊界實際收到的取消例外型別，且 handler 排空。
+    /// </summary>
+    [Fact(DisplayName = "非 caller 取消視為可重試傳輸失敗")]
+    public async Task Push_NonCallerCancellation_IsRetryableAndKeepsOriginalException()
+    {
+        var original = new TaskCanceledException("Synthetic transport cancellation.");
+        using var fixture = new Fixture();
+        using var caller = new CancellationTokenSource();
+        using var timeout = new CancellationTokenSource();
+        fixture.Handler.Reply = (_, _) => throw original;
+        var client = new LinePushClient(fixture.Http, _ => timeout);
+
+        var result = await client.PushAsync(new(Token), Request(), caller.Token);
+
+        Assert.False(caller.IsCancellationRequested);
+        Assert.False(timeout.IsCancellationRequested);
+        Assert.Equal(LinePushOutcome.Retryable, result.Outcome);
+        Assert.NotNull(result.TransportException);
+        Assert.IsType<TaskCanceledException>(result.TransportException);
+        Assert.Null(result.StatusCode);
+        Assert.Null(result.RequestId);
+        Assert.Equal(0, fixture.Handler.Active);
+        Assert.Throws<ObjectDisposedException>(() => timeout.Cancel());
+    }
+
     /// <summary>模擬 DNS／連線類故障；傳回原始例外同一實例，不能轉文字、包裝或虛構 HTTP 狀態。</summary>
     [Fact(DisplayName = "網路失敗保留原始傳輸例外")]
     public async Task Push_NetworkFailure_IsRetryableAndKeepsOriginalException()

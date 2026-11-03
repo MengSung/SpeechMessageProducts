@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P0-09 完整驗證通過，提交後開始 P0-10。",
+  "nextAction": "P0-09 取消邊界補修已全綠；完成獨立提交後檢查簽章金鑰環境變數，再開始 P0-10。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",

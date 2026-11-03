@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-09 雙目標各 42／42、覆蓋率 93.93%／98.90%、方案 921／921；提交收尾。",
+  "description": "P0-09 取消邊界補修已驗證：雙目標 45／45、覆蓋率 93.87%／98.88%、方案 927／927；準備獨立提交。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -44,7 +44,7 @@
       "P0-04-CA1707": "cea2958d",
       "P0-04-AnalysisLevel": "58245c6f",
       "P0-08": "92cfa180",
-      "P0-09": "完成（本次 P0-09 提交）"
+      "P0-09": "取消邊界補修已驗證（本次獨立提交）"
     },
     "stopReason": null
   }

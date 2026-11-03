@@ -1,0 +1,15 @@
+{
+  "id": "integration-p009-cancellation",
+  "title": "P0-09 取消邊界核定補修",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "branch": "1.0.0.11.Integration.P0",
+  "baseCommit": "eae3f91e",
+  "approval": "使用者 2026-11-03 核定先完成取消補修獨立提交，再開始 P0-10；WP 之間只做本機驗證。",
+  "nextAction": "提交後檢查程序可否看見 SPEECHMESSAGE_PLUGIN_KEYFILE；不可見即停止請使用者重開 Codex。",
+  "report": ".trellis/tasks/11-02-integration-p0/wp-reports/P0-09.md",
+  "validation": "net48/net10 red 3 each, green cancellation 6 each, Core 45 each; solution 927/927; coverage 93.87%/98.88%; gates passed."
+}

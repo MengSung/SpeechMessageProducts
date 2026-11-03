@@ -1,0 +1,59 @@
+{
+  "approvalDate": "2026-11-03",
+  "baseHead": "eae3f91e",
+  "newMethods": [
+    "Push_CallerCanceledAfterResponse_ReturnsClassifiedResult",
+    "Push_NonCallerCancellation_IsRetryableAndKeepsOriginalException"
+  ],
+  "redCommand": "dotnet test LineMessagingProcessor.Tests -c Debug -f <net48|net10.0> --filter \"FullyQualifiedName~Push_CallerCanceledAfterResponse_ReturnsClassifiedResult|FullyQualifiedName~Push_NonCallerCancellation_IsRetryableAndKeepsOriginalException\"",
+  "red": {
+    "net48": {
+      "failed": 3,
+      "passed": 0
+    },
+    "net10.0": {
+      "failed": 3,
+      "passed": 0
+    },
+    "messages": [
+      "200/429: System.OperationCanceledException at response-after-cancellation check.",
+      "Non-caller cancellation: System.Threading.Tasks.TaskCanceledException escaped."
+    ]
+  },
+  "greenCancellation": {
+    "net48": 6,
+    "net10.0": 6
+  },
+  "releaseBuild": {
+    "errors": 0,
+    "warnings": 76
+  },
+  "releaseSolution": {
+    "passed": 927,
+    "failed": 0,
+    "skipped": 0
+  },
+  "debugTracerPassed": 7,
+  "corePassedPerTarget": 45,
+  "legacyNet10Passed": 33,
+  "lineCoveragePercent": {
+    "net48": 93.87,
+    "net10.0": 98.88
+  },
+  "branchCoveragePercent": {
+    "net48": 91.42,
+    "net10.0": 93.75
+  },
+  "duplicateScan": {
+    "projects": 22,
+    "files": 863,
+    "groups": 0,
+    "new": 0,
+    "stale": 0
+  },
+  "i18nVerify": {
+    "passed": true,
+    "generatedFilesChecked": 1
+  },
+  "externalConnections": 0
+}
