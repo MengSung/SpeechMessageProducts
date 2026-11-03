@@ -1,0 +1,105 @@
+[
+  {
+    "check": "characterization-release-build",
+    "command": [
+      "dotnet",
+      "build",
+      "SpeechMessageProducts.sln",
+      "-c",
+      "Release",
+      "-warnaserror:NU1605"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "characterization-release-tests",
+    "command": [
+      "dotnet",
+      "test",
+      "SpeechMessageProducts.sln",
+      "-c",
+      "Release",
+      "--no-build"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "characterization-debug-tracer",
+    "command": [
+      "dotnet",
+      "test",
+      "ToolUtility.Dataverse.Tests",
+      "-c",
+      "Debug",
+      "--filter",
+      "FullyQualifiedName~FileToolUtilityTracerTests"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "encoding",
+    "command": [
+      "powershell",
+      "-NoProfile",
+      "-File",
+      "tools/RepoQuality/Test-TextEncoding.ps1",
+      "-Scope",
+      "Changed",
+      "-Base",
+      "73b6e6cf"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "duplicate",
+    "command": [
+      "powershell",
+      "-NoProfile",
+      "-File",
+      "tools/RepoQuality/Find-DuplicateCode.ps1",
+      "-Baseline",
+      "tools/RepoQuality/duplicate-baseline.json"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "i18n",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/I18nCheck",
+      "--",
+      "verify"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "progress",
+    "command": [
+      "node",
+      "--test",
+      "tools/RepoQuality/Tests/Test-ProgressPage.cjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "frontend",
+    "command": [
+      "node",
+      "--test",
+      "ChurchReport.MemberInfo.Tests/JavaScript/collection-load-coordinator.test.js",
+      "ChurchReport.MemberInfo.Tests/JavaScript/weekly-report-load-adapter.test.js"
+    ],
+    "exitCode": 0
+  },
+  {
+    "check": "diff",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0
+  }
+]

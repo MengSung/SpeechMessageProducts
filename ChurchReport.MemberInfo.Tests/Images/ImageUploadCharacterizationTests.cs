@@ -6,6 +6,7 @@ using ChurchReport.Models.CrmTransmitModule;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
@@ -15,6 +16,9 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.PixelFormats;
+using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
+using ToolUtilityNameSpace.Diagnostics;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Images;
@@ -68,12 +72,44 @@ public sealed class ImageUploadCharacterizationTests
     [InlineData("personal-crop", "jpeg")][InlineData("personal-crop", "png")][InlineData("personal-crop", "gif")][InlineData("personal-crop", "webp")]
     public void Thumbnail_AllowedFormats_PreserveDimensionsPixelsAndSize(string route, string format)
     {
-        var type = route == "personal-crop" ? typeof(PersonalController) : typeof(MemberInfoController);
-        var method = type.GetMethod(route == "member-fit" ? "CreateFitThumbnail" : "CreateThumbnailIfNeeded", BindingFlags.NonPublic | BindingFlags.Static)!;
-        var result = (byte[])method.Invoke(null, new object[] { ImageFixture.CreateSample(format), 80 })!;
+        var result = ImageFixture.Thumbnail(route, ImageFixture.CreateSample(format), 80);
         Assert.InRange(result.Length, 500, 15000);
         using var decoded = Image.Load<Rgb24>(result);
         Assert.Equal("JPEG", decoded.Metadata.DecodedImageFormat!.Name);
+        Assert.Equal(80, decoded.Width);
+        Assert.Equal(route == "member-fit" ? 53 : 80, decoded.Height);
+        AssertColors(decoded, rotated: false);
+    }
+
+    /// <summary>
+    /// 三個既有縮圖方法遇到無法解碼的內容，都回傳原始陣列且不向頁面拋錯；
+    /// 此測試鎖住回退契約，後續安全限制拒絕其他格式時仍必須維持相同行為。
+    /// </summary>
+    /// <param name="route">三個真實縮圖入口之一。</param>
+    [Theory]
+    [InlineData("member-crop")]
+    [InlineData("member-fit")]
+    [InlineData("personal-crop")]
+    public void Thumbnail_CorruptContent_ReturnsOriginalWithoutThrowing(string route)
+    {
+        var original = new byte[] { 1, 2, 3, 4, 5 };
+        Assert.Same(original, ImageFixture.Thumbnail(route, original, 80));
+    }
+
+    /// <summary>
+    /// 原圖尺寸已小於縮圖目標時不重新編碼，保留原始內容；
+    /// 帶 EXIF 的大圖則維持原有不自動旋轉的縮圖行為，避免升級誤改畫面方向。
+    /// </summary>
+    /// <param name="route">三個真實縮圖入口之一。</param>
+    [Theory]
+    [InlineData("member-crop")]
+    [InlineData("member-fit")]
+    [InlineData("personal-crop")]
+    public void Thumbnail_SmallImageAndExif_KeepExistingBehavior(string route)
+    {
+        var original = ImageFixture.CreateSample("jpeg", orientation: true);
+        Assert.Same(original, ImageFixture.Thumbnail(route, original, 100));
+        using var decoded = Image.Load<Rgb24>(ImageFixture.Thumbnail(route, original, 80));
         Assert.Equal(80, decoded.Width);
         Assert.Equal(route == "member-fit" ? 53 : 80, decoded.Height);
         AssertColors(decoded, rotated: false);
@@ -98,6 +134,18 @@ public sealed class ImageUploadCharacterizationTests
 /// <summary>只建立合成圖片及記憶體控制器依賴，所有 stream、DI scope 與 controller 都只屬一次測試呼叫。</summary>
 internal static class ImageFixture
 {
+    /// <summary>
+    /// 呼叫實際縮圖方法；測試不另外實作縮放或例外回退，不會以替身掩蓋解碼結果。
+    /// 呼叫僅使用記憶體圖片，所有解碼與串流由產品方法在返回前釋放。
+    /// </summary>
+    internal static byte[] Thumbnail(string route, byte[] bytes, int size)
+    {
+        var type = route == "personal-crop" ? typeof(PersonalController) : typeof(MemberInfoController);
+        var method = type.GetMethod(route == "member-fit" ? "CreateFitThumbnail" : "CreateThumbnailIfNeeded",
+            BindingFlags.NonPublic | BindingFlags.Static)!;
+        return (byte[])method.Invoke(null, new object[] { bytes, size })!;
+    }
+
     /// <summary>產生 96×64 四色測試圖；沒有檔名、照片、個資或外部輸入，所有影像與輸出串流立即釋放。</summary>
     internal static byte[] CreateSample(string format, bool orientation = false)
     {
@@ -127,22 +175,32 @@ internal static class ImageFixture
     internal static async Task<byte[]> NormalizeThroughExistingPath(string route, byte[] bytes)
     {
         using var input = new MemoryStream(bytes);
-        // 舊版只檢查 MIME/副檔名，故以既有可接受中繼資料測實際編碼內容；新版另測 WebP 入口。
+        // 所有格式刻意宣告 synthetic.jpg／image/jpeg：證明舊白名單只驗宣告的檔名與類型，
+        // PNG、GIF、WebP 等偽裝內容仍會進入 Image.Load。後續另以拒絕測試保護 WebP 行為變更，
+        // 不能把這裡換成真實副檔名而失去對既有信任邊界的特徵鎖定。
         var file = new FormFile(input, 0, bytes.Length, "imageFile", "synthetic.jpg") { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
         if (route == "member")
             return (byte[])typeof(MemberInfoController).GetMethod("NormalizeUploadedImage", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { file })!;
         var service = DispatchProxy.Create<IOrganizationService, ImageServiceProxy>();
         var serviceState = (ImageServiceProxy)(object)service;
         using var provider = new ServiceCollection().AddSingleton(service).BuildServiceProvider();
+        using var tracer = new NullToolUtilityTracer();
+        using var utility = new ToolUtilityClass(service, tracer, new ConfigurationBuilder().Build());
         var context = DispatchProxy.Create<IInMemoryDataContext, ImageContextProxy>();
         var controllerType = route == "personal" ? typeof(PersonalController) : typeof(NewPersonController);
         using var controller = (BaseChurchController)RuntimeHelpers.GetUninitializedObject(controllerType);
         typeof(BaseChurchController).GetField("InMemoryContext", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(controller, context);
+        // 未初始化控制器不會執行基底建構式；Personal 取 fullname 時會先呼叫 provider。
+        // 補回真實工具的 request 自有依賴，僅 SDK 邊界使用假服務，避免 NullReferenceException
+        // 被 action 包成 success=false。工具由本次呼叫 using 釋放，不讀設定檔或建立連線。
+        typeof(BaseChurchController).GetField("_toolUtilityProvider", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(controller, new ImageToolUtilityProvider(utility));
         controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { RequestServices = provider } };
         if (route == "personal")
         {
             var result = Assert.IsType<JsonResult>(await ((PersonalController)controller).UploadContactImage(file));
-            Assert.True((bool)result.Value!.GetType().GetProperty("success")!.GetValue(result.Value)!);
+            Assert.True((bool)result.Value!.GetType().GetProperty("success")!.GetValue(result.Value)!,
+                (string?)result.Value.GetType().GetProperty("message")!.GetValue(result.Value));
         }
         else if (route == "new-direct")
             await ((NewPersonController)controller).UploadNewPersonImage(file);
@@ -150,6 +208,16 @@ internal static class ImageFixture
             await (Task)typeof(NewPersonController).GetMethod("TryUploadNewPersonImageAsync", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(controller, new object[] { file })!;
         return Assert.IsType<byte[]>(serviceState.Updated?["entityimage"]);
     }
+}
+
+/// <summary>
+/// 借用單次測試建立的真實工具；工具的 owner 是 NormalizeThroughExistingPath，
+/// 本轉接不保存 static、Session 或憑證，也不建立額外工具或外部連線。
+/// </summary>
+internal sealed class ImageToolUtilityProvider(ToolUtilityClass utility) : IToolUtilityProvider
+{
+    /// <summary>提供當次控制器所需的工具，生命週期由外層 using 確定性釋放。</summary>
+    public ToolUtilityClass GetToolUtility() => utility;
 }
 
 /// <summary>此測試服務只接受照片 Update 與目前 contact Retrieve，任何其他 SDK 存取立即失敗，避免假綠燈。</summary>

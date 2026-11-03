@@ -350,10 +350,10 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-03（P0-12 已提交 a6a20905；P0-12A 實作中）",
+  "snapshot": "2026-11-03（P0-12A 升級前特徵測試 50／50，全方案已恢復全綠）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "P0-12 已提交 <strong>a6a20905</strong>，接續 <strong>P0-12A</strong>。先鎖住四個上傳路徑及既有縮圖行為，再升 ImageSharp 3.2.0、限制格式與尺寸；全程離線。",
+  "headline": "P0-12A 已修正測試依賴，現有 ImageSharp 3.1.12 的圖片特徵測試 <strong>50／50</strong>，完整 Release <strong>1063／1063</strong>。接續 JPEG／PNG／GIF 格式與尺寸防護；小組回報維持 review，併階段 0 第 ⑧ 批。",
   "alert": null,
   "tiles": [
     {
@@ -380,15 +380,15 @@ const DATA = {
     },
     {
       "label": "完整 Release 測試",
-      "value": "1013",
-      "unit": "/ 1013 通過",
-      "sub": "ChurchReport 503／503；Deployment 42／42"
+      "value": "1063",
+      "unit": "/ 1063 通過",
+      "sub": "ChurchReport 553／553；圖片特徵 50／50；Debug tracer 7／7"
     },
     {
       "label": "Release 建置",
       "value": "0",
       "unit": "錯誤",
-      "sub": "Release 36 個既有警告；ImageSharp 排入 P0-12A，未新增抑制"
+      "sub": "Release 36 個既有警告；尚未升級 ImageSharp，未新增抑制"
     }
   ],
   "wps": [
@@ -510,13 +510,13 @@ const DATA = {
       "id": "P0-12A",
       "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
       "status": "active",
-      "note": "使用者已核定；正在升級前鎖定四個上傳路徑與既有縮圖的合成圖片行為。"
+      "note": "升級前特徵 50／50：補齊 Personal 工具提供者，鎖三種縮圖回退；此子步驟先單獨提交，再做套件與內容格式／尺寸防護。"
     },
     {
       "milestone": true,
       "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
       "status": "review",
-      "note": "P0-12A 提交後、P0-13 前，由自癒入口分批審查 73b6e6cf..HEAD；含 P0-SEC 與套件／圖片防護，逾時或失敗準備人工包後停止。"
+      "note": "P0-12A 提交後，ClaudeOnly 分八批審查；第 ⑧ 批含小組回報修正。逾時或失敗準備包後停止。"
     },
     {
       "id": "P0-13",
@@ -935,6 +935,11 @@ const DATA = {
       "text": "P0-12 離線佈署工具通過：42／42、覆蓋率 81.80%；方案 1013／1013、建置 36 警告。新增設定切換紅→綠並修正八個新檔換行。",
       "t": "2026-11-03",
       "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "ok",
+      "text": "P0-12A 特徵測試修復：補齊 Personal 測試工具依賴，現有 3.1.12 圖片 50／50、Release 1063／1063，未改產品。"
     }
   ],
   "decisions": [
@@ -999,6 +1004,10 @@ const DATA = {
     {
       "text": "P0-12 前置套件弱點修補與 P0-12A 已核定",
       "sub": "Xml／Pkcs 升至 10.0.14、net48 全相依稽核及 System.Text.Json 6.0.11 已通過；ImageSharp 3.2.0 與圖片格式／尺寸防護列入 P0-12A，階段審查移至其後。"
+    },
+    {
+      "text": "P0-12A 維持既有 JPEG／PNG／GIF 白名單，不新增 WebP",
+      "sub": "使用者 2026-11-03 更正；先把 3.1.12 特徵測試修到全綠，再拒絕偽裝 WebP。"
     }
   ],
   "prep": [

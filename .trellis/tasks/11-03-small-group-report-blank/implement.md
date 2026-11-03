@@ -8,6 +8,6 @@
 - [x] 執行 .NET 測試、Release 建置、編碼及差異檢查，如實記錄 P0-12A 的 8 個失敗及 Debug 鎖檔限制。
 - [x] 更新 research/fix-report.md、results.json，記錄使用者確認表格恢復與實際驗證限制。
 - [ ] 完成 Gemini／Claude 修正審查。自癒入口中 Claude 兩次逾時，已準備審查包，不能標示雙模型完成。
-- [ ] 待審查完成後收尾提交／封存，再回到 P0-12A；目前不推進下一工作包。
+- [ ] 依使用者 2026-11-03 核定併階段 0 第 ⑧ 批，通過後收尾／封存；P0-12A 現在可續行。
 
 不啟動連向實際組織的網站，不讀 User Secrets，不輸出真實設定、token、ID 或會員資料。新測試不增加第三方套件；使用 Node 內建 runner 與 repo 現有 jQuery 的 Deferred 實作。

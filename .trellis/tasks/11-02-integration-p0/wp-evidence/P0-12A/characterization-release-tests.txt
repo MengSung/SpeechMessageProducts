@@ -1,0 +1,52 @@
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Deployment.Tests\bin\Release\net10.0\SpeechMessage.Dynamics.Deployment.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.RichMenus.Tests\bin\Release\net10.0\LineMessagingProcessor.RichMenus.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Tests\bin\Release\net48\LineMessagingProcessor.Tests.dll (.NETFramework,Version=v4.8)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.AspNetCore.Tests\bin\Release\net10.0\LineMessagingProcessor.AspNetCore.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Payments.Tests\bin\Release\net10.0\SpeechMessage.Payments.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility.Dataverse.Tests\bin\Release\net10.0\ToolUtility.Dataverse.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Localization.Tests\bin\Release\net48\SpeechMessage.Localization.Tests.dll (.NETFramework,Version=v4.8)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\Line.Messaging.Tests\bin\Release\net10.0\Line.Messaging.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Workflows.Tests\bin\Release\net10.0\LineMessagingProcessor.Workflows.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Localization.Tests\bin\Release\net10.0\SpeechMessage.Localization.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Tests\bin\Release\net10.0\LineMessagingProcessor.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Dynamics.Plugins.Tests\bin\Release\net48\SpeechMessage.Dynamics.Plugins.Tests.dll (.NETFramework,Version=v4.8)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    42, Skipped:     0, Total:    42, Duration: 48 ms - SpeechMessage.Localization.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    34, Skipped:     0, Total:    34, Duration: 81 ms - LineMessagingProcessor.RichMenus.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32, Duration: 89 ms - Line.Messaging.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 169 ms - LineMessagingProcessor.AspNetCore.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    55, Skipped:     0, Total:    55, Duration: 128 ms - SpeechMessage.Payments.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    33, Skipped:     0, Total:    33, Duration: 191 ms - LineMessagingProcessor.Workflows.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    78, Skipped:     0, Total:    78, Duration: 73 ms - LineMessagingProcessor.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    42, Skipped:     0, Total:    42, Duration: 1 s - SpeechMessage.Dynamics.Deployment.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    42, Skipped:     0, Total:    42, Duration: 199 ms - SpeechMessage.Localization.Tests.dll (net48)
+
+Passed!  - Failed:     0, Passed:    45, Skipped:     0, Total:    45, Duration: 733 ms - LineMessagingProcessor.Tests.dll (net48)
+
+Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 1 s - SpeechMessage.Dynamics.Plugins.Tests.dll (net48)
+
+Passed!  - Failed:     0, Passed:    79, Skipped:     0, Total:    79, Duration: 2 s - ToolUtility.Dataverse.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:   553, Skipped:     0, Total:   553, Duration: 6 s - ChurchReport.MemberInfo.Tests.dll (net10.0)

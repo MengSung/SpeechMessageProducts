@@ -50,7 +50,8 @@
       "P0-ENV-adjustment": "56226579",
       "P0-04-Cryptography": "cdc09d10",
       "P0-04-NuGetAudit": "9214d26b",
-      "P0-12": "a6a20905"
+      "P0-12": "a6a20905",
+      "P0-12A-characterization": "升級前特徵 50／50；獨立提交（見 Git 紀錄）"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",
@@ -63,7 +64,15 @@
       "01f3c03e",
       "12cae6bc",
       "e1e10b7a",
-      "c1bda2e0"
-    ]
-  }
+      "c1bda2e0",
+      "d42b6d3f",
+      "96487ea2",
+      "0f3d6a82",
+      "022079e2"
+    ],
+    "characterizationVerified": true
+  },
+  "currentPhase": "implementation",
+  "currentWorkPackage": "P0-12A",
+  "nextAction": "先修正特徵測試搭建並鎖三個縮圖回退，完整本機驗證後單獨提交；再依核定實作 JPEG／PNG／GIF 內容白名單與尺寸防護。"
 }

@@ -1,0 +1,1 @@
+Text encoding: scope=Changed checked=436 excluded=115 filesWithIssues=0

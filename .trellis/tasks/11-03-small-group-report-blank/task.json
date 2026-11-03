@@ -24,8 +24,9 @@
   "notes": "使用者已確認兩表格恢復；前端 16／16。全方案仍有 P0-12A 的 8 個圖片測試失敗；不混修。禁止 D365／LINE；不推送、不合併、不改寫歷史。",
   "meta": {},
   "currentPhase": "review",
-  "nextAction": "Claude 修正審查兩次逾時；審查包已備妥，待完成審查後收尾，不推進 P0-12A。",
+  "nextAction": "依使用者 2026-11-03 核定併階段 0 第 ⑧ 批 ClaudeOnly 審查；通過後才收尾封存，P0-12A 可接續。",
   "reviewPacket": ".ccg/dual-model-runs/small-group-report-blank-review-packet.md",
   "manualImplementationCommit": "96487ea2",
-  "verificationReport": ".trellis/tasks/11-03-small-group-report-blank/research/fix-report.md"
+  "verificationReport": ".trellis/tasks/11-03-small-group-report-blank/research/fix-report.md",
+  "stageReviewBatch": 8
 }

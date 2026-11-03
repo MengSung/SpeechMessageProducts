@@ -1,0 +1,169 @@
+Console evidence summary: 14 undecodable restore preamble lines omitted.
+Original capture retained locally under ignored artifacts/p0-12a/console/characterization-personal-before.log.
+The test/build results and failures below are preserved from the capture.
+
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj : warning NU1902: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 中度 嚴重性弱點，https://github.com/advisories/GHSA-gwg2-r3hj-4w44。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-j3p4-wp97-rph4。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-j9gm-c75j-xc9q。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-jjfr-hcj7-qf5w。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-v76p-62qx-wwq2。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj : warning NU1902: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 中度 嚴重性弱點，https://github.com/advisories/GHSA-wmxv-xphr-5c9g。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj : warning NU1902: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 中度 嚴重性弱點，https://github.com/advisories/GHSA-gwg2-r3hj-4w44。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-j3p4-wp97-rph4。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-j9gm-c75j-xc9q。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-jjfr-hcj7-qf5w。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj : warning NU1903: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 高 嚴重性弱點，https://github.com/advisories/GHSA-v76p-62qx-wwq2。
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj : warning NU1902: 套件 'SixLabors.ImageSharp' 3.1.12 具有已知的 中度 嚴重性弱點，https://github.com/advisories/GHSA-wmxv-xphr-5c9g。
+  Line.Messaging -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\Line.Messaging\bin\Release\net10.0\Line.Messaging.dll
+  SpeechMessage.Payments -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Payments\bin\Release\net10.0\SpeechMessage.Payments.dll
+  PowerPlatform.Dataverse.Client -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\PowerPlatform.Dataverse.Client\bin\Release\net10.0\PowerPlatform.Dataverse.Client.dll
+  LineMessagingProcessor -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor\bin\Release\net10.0\LineMessagingProcessor.dll
+  SpeechMessage.Payments.Workflows -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Payments.Workflows\bin\Release\net10.0\SpeechMessage.Payments.Workflows.dll
+  ToolUtility -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ToolUtility\bin\Release\net10.0\ToolUtility.dll
+  LineMessagingProcessor.Workflows -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.Workflows\bin\Release\net10.0\LineMessagingProcessor.Workflows.dll
+  LineMessagingProcessor.RichMenus -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.RichMenus\bin\Release\net10.0\LineMessagingProcessor.RichMenus.dll
+  SpeechMessage.Payments.AspNetCore -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessage.Payments.AspNetCore\bin\Release\net10.0\SpeechMessage.Payments.AspNetCore.dll
+  LineMessagingProcessor.AspNetCore -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\LineMessagingProcessor.AspNetCore\bin\Release\net10.0\LineMessagingProcessor.AspNetCore.dll
+  SpeechMessageProducts.ChurchReport -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\SpeechMessageProducts.ChurchReport\bin\Release\net10.0\SpeechMessageProducts.ChurchReport.dll
+  ChurchReport.MemberInfo.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll
+Test run for D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)
+[xUnit.net 00:00:00.11]   Discovering: ChurchReport.MemberInfo.Tests
+[xUnit.net 00:00:00.23]   Discovered:  ChurchReport.MemberInfo.Tests
+[xUnit.net 00:00:00.24]   Starting:    ChurchReport.MemberInfo.Tests
+[xUnit.net 00:00:00.66]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: False) [FAIL]
+[xUnit.net 00:00:00.66]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.66]       Stack Trace:
+[xUnit.net 00:00:00.66]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.66]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.66]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.67]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: False) [FAIL]
+[xUnit.net 00:00:00.67]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.67]       Stack Trace:
+[xUnit.net 00:00:00.67]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.67]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.67]         --- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "png", orientation: False) [211 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "webp", orientation: True) [97 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "webp", orientation: False) [10 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "gif", orientation: True) [25 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "jpeg", orientation: False) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "gif", orientation: False) [17 ms]
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: False) [3 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "gif", orientation: True) [7 ms]
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: False) [2 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:00.70]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: True) [FAIL]
+[xUnit.net 00:00:00.70]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.70]       Stack Trace:
+[xUnit.net 00:00:00.70]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.70]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.70]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.70]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: False) [FAIL]
+[xUnit.net 00:00:00.70]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.70]       Stack Trace:
+[xUnit.net 00:00:00.70]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.70]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.70]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.70]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: False) [FAIL]
+[xUnit.net 00:00:00.70]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.70]       Stack Trace:
+[xUnit.net 00:00:00.70]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.70]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.70]         --- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "webp", orientation: False) [2 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "png", orientation: True) [3 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "png", orientation: True) [17 ms]
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: True) [< 1 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "jpeg", orientation: False) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "png", orientation: False) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "png", orientation: False) [1 ms]
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: False) [< 1 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "jpeg", orientation: False) [< 1 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:00.71]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: True) [FAIL]
+[xUnit.net 00:00:00.71]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.71]       Stack Trace:
+[xUnit.net 00:00:00.71]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.71]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.71]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.72]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: True) [FAIL]
+[xUnit.net 00:00:00.72]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.72]       Stack Trace:
+[xUnit.net 00:00:00.72]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.72]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.72]         --- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "gif", orientation: False) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "jpeg", orientation: True) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "jpeg", orientation: True) [1 ms]
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "png", orientation: True) [< 1 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "webp", orientation: True) [15 ms]
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "webp", orientation: True) [2 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "gif", orientation: True) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "webp", orientation: True) [12 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "webp", orientation: False) [3 ms]
+[xUnit.net 00:00:00.74]     ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: True) [FAIL]
+[xUnit.net 00:00:00.74]       上傳失敗: Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.74]       Stack Trace:
+[xUnit.net 00:00:00.74]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(145,0): at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes)
+[xUnit.net 00:00:00.74]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs(48,0): at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation)
+[xUnit.net 00:00:00.74]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.76]   Finished:    ChurchReport.MemberInfo.Tests
+  Failed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "personal", format: "gif", orientation: True) [1 ms]
+  Error Message:
+   上傳失敗: Object reference not set to an instance of an object.
+  Stack Trace:
+     at ChurchReport.MemberInfo.Tests.Images.ImageFixture.NormalizeThroughExistingPath(String route, Byte[] bytes) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 145
+   at ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(String route, String format, Boolean orientation) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree\ChurchReport.MemberInfo.Tests\Images\ImageUploadCharacterizationTests.cs:line 48
+--- End of stack trace from previous location ---
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-direct", format: "png", orientation: True) [2 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "member", format: "gif", orientation: False) [6 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "jpeg", orientation: False) [1 ms]
+  Passed ChurchReport.MemberInfo.Tests.Images.ImageUploadCharacterizationTests.Upload_AllowedFormats_MatchGoldenAfterUpgrade(route: "new-attached", format: "jpeg", orientation: True) [1 ms]
+
+Test Run Failed.
+Total tests: 32
+     Passed: 24
+     Failed: 8
+ Total time: 1.2896 Seconds
