@@ -63,6 +63,35 @@ public sealed class DeploymentContractTests
         Assert.Single(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstep"));
     }
 
+    /// <summary>
+    /// 已註冊的追蹤步驟切成推播、再切回追蹤時，必須更新原資料庫 ID 而非重建。
+    /// 用會計數的假 secrets 驗證 plan 不解析秘密，apply 才解析，完成後同清單沒有差異，
+    /// 且停用推播會移除不再使用的 secure 記錄；輸出不保留解析後內容。
+    /// </summary>
+    [Fact(DisplayName = "既有步驟可切換追蹤與推播而不重建或洩漏秘密")]
+    public void Apply_ConfigurationChanged_UpdatesSameStepAndRemainsIdempotent()
+    {
+        using var f = new Fixture();
+        using var push = new Fixture(push: true);
+        f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
+        var stepId = Assert.Single(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstep")).Id;
+        var plan = f.Engine.Plan(push.Manifest, f.Image, Fixture.Organization);
+        Assert.Equal("UpdateStepConfiguration", Assert.Single(plan.Operations).Kind);
+        Assert.Equal(0, f.SecretReads);
+        f.Engine.Apply(plan, push.Manifest, f.Image);
+        var step = Assert.Single(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstep"));
+        Assert.Equal(stepId, step.Id);
+        Assert.Contains("\"mode\":\"push\"", step.GetAttributeValue<string>("configuration"), StringComparison.Ordinal);
+        Assert.Equal(2, f.SecretReads);
+        Assert.Empty(f.Engine.Plan(push.Manifest, f.Image, Fixture.Organization).Operations);
+        Assert.Single(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstepsecureconfig"));
+        f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
+        Assert.Equal(stepId, Assert.Single(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstep")).Id);
+        Assert.Empty(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstepsecureconfig"));
+        Assert.Empty(f.Plan().Operations);
+        Assert.DoesNotContain(Fixture.SecretValue, File.ReadAllText(Path.Combine(f.Root, "export.json")), StringComparison.Ordinal);
+    }
+
     /// <summary>既有組件主次版本不同，須在任何寫入之前拒絕。</summary>
     [Fact(DisplayName = "主次版本衝突停止")]
     public void Plan_AssemblyMajorMinorChanged_Stops()
