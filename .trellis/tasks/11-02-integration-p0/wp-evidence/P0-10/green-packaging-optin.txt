@@ -1,0 +1,9 @@
+Command: powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1
+Exit code: 0
+PASS release-unset-no-package
+PASS debug-unset-no-package
+PASS release-unset
+PASS debug-unset
+PASS release-signed
+PASS release-invalid
+Plugin build samples: total=6 failed=0

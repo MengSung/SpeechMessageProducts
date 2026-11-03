@@ -18,15 +18,18 @@
       "passed": true
     }
   ],
-  "temporaryCleanupComplete": false,
+  "temporaryCleanupComplete": true,
   "nextWorkPackageStarted": false,
   "formalSigning": "Passed using only process environment key; no key contents recorded.",
   "legacyKeyTracking": {
-    "LinePayCSharp/SpeechMessageCrmKey.snk": "staged removal, local retained",
-    "Trace/SpeechMessageCrmKey.snk": "staged removal, local retained",
+    "LinePayCSharp/SpeechMessageCrmKey.snk": "removed from Git in cf3595db; local retained",
+    "Trace/SpeechMessageCrmKey.snk": "removed from Git in cf3595db; local retained",
     "PowerPlatform.Dataverse.Client/NSspi/nsspi key.snk": "unchanged"
   },
   "observedImplementationCommit": "cf3595db",
   "commitCreatedByThisSession": false,
-  "workPackageComplete": false
+  "workPackageComplete": true,
+  "implementationCommitOwner": "使用者手動提交",
+  "closeout": "本次提交；明確要求才打包",
+  "buildSamplesPassed": 6
 }

@@ -8,7 +8,7 @@ All verification is offline. No package test or build connects to D365 or LINE.
 ## 2. Signatures
 
 ```powershell
-dotnet build SpeechMessage.Dynamics.Plugins -c Release -p:SpeechMessageBuildNumber=37
+dotnet build SpeechMessage.Dynamics.Plugins -c Release -p:SpeechMessagePackagePlugin=true -p:SpeechMessageBuildNumber=37
 powershell -NoProfile -File tools/PluginPackaging/Test-PluginAssembly.ps1
 powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginAssembly.Tests.ps1
 powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1
@@ -29,6 +29,12 @@ It emits one JSON result per DLL and fails the whole run if any DLL fails.
 - Read the formal key only from process environment
   `SPEECHMESSAGE_PLUGIN_KEYFILE`. Do not read, copy, print, or record its contents.
   Never generate a replacement formal key.
+- Packaging is opt-in (user approval 2026-11-03): only
+  `SpeechMessagePackagePlugin=true` executes the merge target. Ordinary Debug
+  and Release builds never enter it, read the signing key, or create artifacts.
+  CI without a signing secret must build and test normally, then report packaging
+  as skipped. CI with a secret restores it only to runner temp and always cleans
+  it in a separate `if: always()` step; never print or upload the key.
 - Missing key: Release packaging fails with SMP0001; Debug emits SMP0002 and an
   unsigned output. A configured missing file fails with SMP0003.
 - AssemblyVersion remains 1.0.0.0. FileVersion and InformationalVersion carry
@@ -69,7 +75,8 @@ It emits one JSON result per DLL and fails the whole run if any DLL fails.
 Preserve the seven planned plugin methods and two approved exception methods.
 Add bounded A/B registration reuse with a shared HTTP client, drain counters,
 configuration rejection, and synchronization-context tests.
-Keep signed/unsigned samples and independently inject framework, dependency,
+Keep ordinary Debug/Release-without-key builds, opt-in missing/invalid-key
+failures, and signed/unsigned samples and independently inject framework, dependency,
 visibility, drawing, size, image and mixed-directory faults. Temporary test
 keys belong to a unique fixture, are never formal keys, and must be deleted.
 The in-process helper suite must also prove immediate exclusive file reopening;

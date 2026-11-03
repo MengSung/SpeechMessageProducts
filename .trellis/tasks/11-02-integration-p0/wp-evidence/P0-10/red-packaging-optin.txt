@@ -1,0 +1,10 @@
+Command: powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1
+Exit code: 1
+FAIL release-unset-no-package: packaging contract not satisfied
+FAIL debug-unset-no-package: packaging contract not satisfied
+PASS release-unset
+PASS debug-unset
+PASS release-signed
+PASS release-invalid
+Plugin build samples: total=6 failed=2
+Reason: the existing AfterTargets=Build target packages without explicit opt-in.

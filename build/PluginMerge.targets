@@ -1,7 +1,8 @@
 <Project>
   <!-- 套件預設會覆寫 bin 並併入所有相依；此自訂入口只產生獨立的沙箱部署組件。
+       只有明確指定 SpeechMessagePackagePlugin=true 才打包；一般建置不讀金鑰、不建立 artifacts。
        正式金鑰只能讀取程序環境變數，不複製內容、不設後備、不由 MSBuild 同名屬性冒充。 -->
-  <Target Name="PackageSpeechMessagePlugin" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+  <Target Name="PackageSpeechMessagePlugin" AfterTargets="Build" Condition="'$(SpeechMessagePackagePlugin)' == 'true' And '$(DesignTimeBuild)' != 'true'">
     <PropertyGroup>
       <_SpeechMessagePluginKeyFile>$([System.Environment]::GetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE'))</_SpeechMessagePluginKeyFile>
       <SpeechMessagePluginOutputDirectory Condition="'$(SpeechMessagePluginOutputDirectory)' == ''">$(MSBuildThisFileDirectory)../artifacts/plugins</SpeechMessagePluginOutputDirectory>

@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-10 本機驗證全綠；收尾觀察到非本次會話建立的 cf3595db，產品內容一致。待使用者清理兩個暫存資料夾與確認提交來源，本包未完成。",
+  "description": "P0-10 收尾驗證通過：普通 Release 不依賴金鑰，明確打包仍驗證簽章；提交後接續 P0-11。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -30,7 +30,7 @@
     "report": "wp-reports/P0-10.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": "使用者清除兩個測試暫存資料夾，並確認 cf3595db 是否為手動提交",
+    "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -44,9 +44,10 @@
       "P0-04-CA1707": "cea2958d",
       "P0-04-AnalysisLevel": "58245c6f",
       "P0-08": "92cfa180",
-      "P0-09": "6b559da5"
+      "P0-09": "6b559da5",
+      "P0-10": "cf3595db（實作主體）；本次提交（明確打包收尾）"
     },
-    "stopReason": "暫存刪除遭自動核准審查拒絕；收尾發現非本次會話建立且格式不符規則的 cf3595db，保留歷史並停止。",
+    "stopReason": null,
     "observedExternalCommit": "cf3595db"
   }
 }

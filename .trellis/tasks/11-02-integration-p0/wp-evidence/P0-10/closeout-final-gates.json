@@ -1,0 +1,33 @@
+{
+  "releaseWithoutKey": {
+    "errors": 0,
+    "warnings": 77,
+    "childProcessOnly": true
+  },
+  "release": {
+    "passed": 969,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 76
+  },
+  "debugTracer": 7,
+  "packagingSamples": 6,
+  "formalAssemblyCheck": true,
+  "temporaryCleanup": "使用者已清除；Test-Path 均為 False",
+  "progressPage": {
+    "passed": 3,
+    "failed": 0
+  },
+  "textEncoding": {
+    "scope": "Changed",
+    "base": "73b6e6cf",
+    "checked": 365,
+    "issues": 0
+  },
+  "byteCheck": {
+    "base": "6b559da5",
+    "checked": 64,
+    "issues": []
+  },
+  "diffCheck": true
+}

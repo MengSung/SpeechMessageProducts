@@ -1,17 +1,18 @@
 {
   "id": "integration-p010",
   "title": "P0-10 net48 診斷外掛、簽章與離線打包守門",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
+  "currentPhase": "completed",
   "baseCommit": "6b559da5",
   "branch": "1.0.0.11.Integration.P0",
   "approval": "依使用者 2026-11-03 核定及實作計畫 3.3 P0-10 執行；只使用指定環境變數金鑰，不連線任何 D365／LINE。",
-  "nextAction": "等待使用者清理兩個測試暫存資料夾並確認 cf3595db 來源；保留歷史，未開始 P0-11。",
+  "nextAction": "收尾提交後接續 P0-11；外部審查依既定時點。",
   "reviewPolicy": "WP 間本機驗證；P0-12 後才做 ClaudeOnly 階段審查。",
   "localVerificationPassed": true,
-  "waitingFor": "temporary-test-fixture-cleanup-and-observed-commit-source",
-  "observedExternalCommit": "cf3595db"
+  "waitingFor": null,
+  "observedExternalCommit": "cf3595db",
+  "cleanupConfirmed": "使用者已清除；兩個指定暫存資料夾 Test-Path 均為 False。"
 }
