@@ -19,9 +19,28 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Get-SafePackagePath {
+    <# 任何專案、中央表與固定依賴檢查都先逐段拒絕 reparse point，包含 NTFS junction。
+       先驗證本工作樹絕對前綴，再檢查元件屬性；不讓 XML 讀取越過索引宣告的邊界。 #>
+    param([string]$Relative)
+    $full = [IO.Path]::GetFullPath((Join-Path $script:packageRoot $Relative))
+    if (-not $full.StartsWith($script:packageRootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'UnsafePath: package source is outside this worktree.' }
+    $cursor = $script:packageRoot
+    foreach ($segment in $full.Substring($script:packageRootPrefix.Length).Split([IO.Path]::DirectorySeparatorChar)) {
+        $cursor = Join-Path $cursor $segment
+        if (([IO.File]::Exists($cursor) -or [IO.Directory]::Exists($cursor)) -and
+            (([IO.File]::GetAttributes($cursor) -band [IO.FileAttributes]::ReparsePoint) -ne 0)) {
+            throw 'UnsafePath: package source contains a reparse point.'
+        }
+    }
+    return $full
+}
+
 try {
     if (-not $RepositoryPath) { $RepositoryPath = Join-Path $PSScriptRoot '..\..' }
     $root = (Resolve-Path -LiteralPath $RepositoryPath).Path
+    $script:packageRoot = $root
+    $script:packageRootPrefix = [IO.Path]::GetFullPath($root).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
     $utf8 = New-Object System.Text.UTF8Encoding($false, $true)
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = 'git'
@@ -59,7 +78,9 @@ try {
     $files = @($fileList.Split([char]0) | Where-Object { $_ } | Sort-Object -Unique)
     foreach ($relativePath in $files) {
         if ($relativePath -match '^(docs/|\.ccg/tasks/)') { $excluded++; continue }
-        $path = Join-Path $root $relativePath
+        # 與編碼／重複掃描共用已核定的排除邊界；實際孤兒專案仍在盤點範圍內。
+        if ($relativePath -match '(^|/)(\.worktrees|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848|bin|obj)(/|$)') { $excluded++; continue }
+        $path = Get-SafePackagePath $relativePath
         if (-not [System.IO.File]::Exists($path)) { continue }
         $bytes = [System.IO.File]::ReadAllBytes($path)
         try { $source = $utf8.GetString($bytes) }
@@ -87,7 +108,7 @@ try {
             }
         }
     }
-    $centralPath = Join-Path $root 'Directory.Packages.props'
+    $centralPath = Get-SafePackagePath 'Directory.Packages.props'
     if (-not [System.IO.File]::Exists($centralPath)) { throw 'Central package version table is missing.' }
     $central = New-Object System.Xml.XmlDocument
     $central.XmlResolver = $null
@@ -98,7 +119,7 @@ try {
             $failures.Add("CryptographySecurityFix: Directory.Packages.props [$package] must be 10.0.14")
         }
     }
-    $connectionProjectPath = Join-Path $root 'PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj'
+    $connectionProjectPath = Get-SafePackagePath 'PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj'
     if (-not [System.IO.File]::Exists($connectionProjectPath)) { throw 'On-premises connection project is missing.' }
     $connectionProject = New-Object System.Xml.XmlDocument
     $connectionProject.XmlResolver = $null
@@ -121,7 +142,7 @@ try {
         'SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj',
         'SpeechMessage.Dynamics.Plugins.Tests/SpeechMessage.Dynamics.Plugins.Tests.csproj'
     )) {
-        $pluginProjectPath = Join-Path $root $pluginProjectRelativePath
+        $pluginProjectPath = Get-SafePackagePath $pluginProjectRelativePath
         if (-not [System.IO.File]::Exists($pluginProjectPath)) { throw "Dynamics plugin project is missing: $pluginProjectRelativePath" }
         $pluginProject = New-Object System.Xml.XmlDocument
         $pluginProject.XmlResolver = $null

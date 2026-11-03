@@ -65,3 +65,13 @@ program project, or suppressing NU1605 after dependency changes.
 
 Correct: `<PackageReference Include="Newtonsoft.Json" />`, with version `13.0.4`
 in the central table, while leaving the two excluded snapshots unchanged.
+
+## Reparse-point boundary (review correction 2026-11-04)
+
+Validate the repository prefix and each existing path component before every
+project, central-table or fixed security-reference XML read. Reject reparse
+points, including junctions, with UnsafePath before decoding. Exclude other
+worktrees/reference solutions and bin/obj at any depth; actual orphan projects
+and docs-like prefixes remain checked. Test-PackageVersions.Tests.ps1 uses a
+tracked path whose parent is replaced with a real junction and proves outside
+content stays unchanged and unlocked. Run on PowerShell 5.1 and 7.

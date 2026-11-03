@@ -136,6 +136,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'SDK and ignore settings failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-Coverage.Tests.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Coverage gate tests failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Package path boundary contracts failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-SixLaborsCiLicense.Tests.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Six Labors CI license contracts failed.' }
           node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs

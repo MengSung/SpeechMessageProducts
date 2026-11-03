@@ -53,7 +53,8 @@
       "P0-12": "a6a20905",
       "P0-12A-characterization": "f0574f41",
       "P0-12A": "eb7ff61f",
-      "P0-12A-license-CI": "ae29cb40"
+      "P0-12A-license-CI": "ae29cb40",
+      "P0-review-C01": "6588902"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",
@@ -98,7 +99,9 @@
     "uncommittedFixStatus": "I18nCheck unit tests 87/87; repository verify failed; not ready to commit",
     "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
     "locallyFixedPendingReview": [
-      "C-01"
-    ]
+      "C-01",
+      "H-01 (Medium)"
+    ],
+    "c01Commit": "6588902"
   }
 }
