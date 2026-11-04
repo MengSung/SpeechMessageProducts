@@ -184,3 +184,38 @@ net462 正式遷移與 facade 修正已提交，完整離線 §8 及第 10 份 C
 ### Next Steps
 
 - 使用者從驗收文件第 2 步重新打包，再依序重新 plan／apply／verify=0／smoke 與停用收尾；舊 net48 plan 不可重用。
+
+
+## Session 6: P0-13 實機驗收通過，收尾文件審查逾時待續
+
+**Date**: 2026-11-04
+**Task**: P0-13 實機驗收通過，收尾文件審查逾時待續
+**Branch**: `1.0.0.11.Integration.P0`
+
+### Summary
+
+依使用者全權授權完成 goodshepherdback trace smoke、五項追蹤、停用 apply／verify=0、追蹤恢復例外與本次 task 清除。Deployment56／56、進度頁3／3、文件語法與編碼通過；完整§8沿用既有有效證據。指定兩份文件已更新。額外 ClaudeOnly 收尾審查逾時而非配額，已備包，Trellis／CCG保留review，不封存、不開P1、不再新增線上操作；保留使用者途中提交。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f664c685` | (see git log) |
+| `39e58b30` | (see git log) |
+| `d4871b4e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
