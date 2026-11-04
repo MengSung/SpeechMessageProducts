@@ -86,9 +86,23 @@
       "d25fd2cc",
       "4d84d45e",
       "507062e9",
-      "dd3b75ed"
+      "dd3b75ed",
+      "714465fd",
+      "160553b9",
+      "d3c2f4c3"
     ],
-    "characterizationVerified": true
+    "characterizationVerified": true,
+    "net462Migration": {
+      "workCommit": "69803bf1",
+      "offlineValidationPassed": true,
+      "reviewMode": "claude-only",
+      "dualModelComplete": false,
+      "quotaBlocked": false,
+      "unresolvedCritical": 0,
+      "unresolvedHigh": 0,
+      "serverRegistrationConfirmed": false,
+      "report": ".ccg/tasks/archive/2026-11/p013-net462-migration/review.md"
+    }
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-13",

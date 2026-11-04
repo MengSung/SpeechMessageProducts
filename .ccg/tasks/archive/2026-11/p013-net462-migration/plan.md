@@ -19,7 +19,7 @@
 - [x] 跑 Plugins、Core、Localization、Deployment 相關測試、PluginPackaging 測試、Release 簽章打包及檢查。
 - [x] 跑完整本機 00 §8：全方案 Release build/test（含 ChurchReport）、Debug tracer、編碼、重複碼、I18n、套件與分析器守門。
 - [x] 依既有規定以自癒入口完成第 10 份 ClaudeOnly 初審與 High 修正獨立複審；修正後重跑相關及完整驗證，無未處理 Critical／High。
-- [ ] 驗證、審查通過後以核定訊息提交；把重建、重新 plan、apply、verify、smoke 與收尾交由使用者操作。
+- [x] 驗證、審查通過後以核定訊息提交（69803bf1）；把重建、重新 plan、apply、verify、smoke 與收尾交由使用者操作。
 
 ## 審查輸入
 

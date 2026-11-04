@@ -1,12 +1,12 @@
 {
   "id": "p013-net462-migration",
   "title": "依 D21 正式改用 net462 並完成第 10 份審查",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "medium",
   "domain": "backend",
-  "currentPhase": "review",
-  "nextAction": "完整離線驗證與第 10 份 ClaudeOnly 獨立複審通過；依核定訊息提交，實機驗收仍待使用者",
+  "currentPhase": "completed",
+  "nextAction": "離線遷移及第 10 份獨立複審已完成；實機 P0-13 由既有 Trellis 主任務等待使用者",
   "createdAt": "2026-11-04",
   "branch": "1.0.0.11.Integration.P0",
   "authorization": "使用者 2026-11-04 正式核定取代隔離試做；ClaudeOnly 第 10 份審查；inline 執行",
@@ -15,5 +15,7 @@
     "不讀取帳密、User Secrets、金鑰或授權內容",
     "不推送、不合併、不改寫歷史",
     "沿用現有 Trellis 任務"
-  ]
+  ],
+  "completedAt": "2026-11-04",
+  "workCommit": "69803bf1"
 }
