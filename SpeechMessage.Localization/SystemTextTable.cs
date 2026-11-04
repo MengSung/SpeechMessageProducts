@@ -93,7 +93,7 @@ public sealed class SystemTextTable : ISystemTextCatalog
     /// <returns>沿用相同比較器的不可變字典。</returns>
     private static FrozenDictionary<TKey, TValue> Seal<TKey, TValue>(Dictionary<TKey, TValue> candidate) where TKey : notnull => candidate.ToFrozenDictionary(candidate.Comparer);
 #else
-    /// <summary>net48 以 ReadOnlyDictionary 封裝單一擁有者的候選，底層字典不再暴露或修改。</summary>
+    /// <summary>net462 以 ReadOnlyDictionary 封裝單一擁有者的候選，底層字典不再暴露或修改。</summary>
     /// <typeparam name="TKey">不可為 null 的穩定鍵型別。</typeparam>
     /// <typeparam name="TValue">不可變文字或已封裝的內層快照。</typeparam>
     /// <param name="candidate">本建構式獨佔且已完成的候選。</param>

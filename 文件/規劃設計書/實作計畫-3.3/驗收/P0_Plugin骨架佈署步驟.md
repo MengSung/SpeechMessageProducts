@@ -101,9 +101,9 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 **已完成的唯讀查核：** Codex 經使用者核定直接查看虛擬機 GUI 的上述事件，以及 `Microsoft.Crm.ObjectModel.dll` 的詳細資料，版本為 `9.1.49.21825`。續查 `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorlib.dll` 的詳細資料，檔案與產品版本均為 **4.8.4795.0**；這證明該檔案存在，不能直接當成沙箱程序實際載入版本或第 5 步 smoke 的驗收結果。本次沒有產品程式修改，也沒有執行新的 plan／apply。
 
-**目前處置（使用者 2026-11-04 核定）：** 依 D21 改為正式採用 .NET Framework 4.6.2（`net462`），不再只是隔離試做。Plugin 目標為 `net462`；Core 與 Localization 為 `net462;net10.0`；測試執行器可維持 `net48`，但必須確認引用的是 `net462` 產品輸出。使用者最新核定取代本節前一版「保留正式 net48、只做隔離試做」的決定。離線建置、套件資產、合併與測試尚待完成，完成並提交前不要重跑部署；Codex 不連線 D365／LINE、不執行 plan／apply／verify／smoke。
+**目前處置（使用者 2026-11-04 核定）：** 依 D21 正式採用 .NET Framework 4.6.2（`net462`）：Plugin 目標為 `net462`；Core 與 Localization 為 `net462;net10.0`；測試執行器可維持 `net48`，但必須確認引用的是 `net462` 產品輸出。使用者最新核定取代前一版「保留正式 net48、只做隔離試做」的決定。Codex 已完成 net462 程式與測試調整，正在重跑完整本機驗證；第 10 份 ClaudeOnly 審查通過前，使用者先不要重建或重跑部署。Codex 不連線 D365／LINE、不執行 plan／apply／verify／smoke。
 
-現場 `Microsoft.Crm.ObjectModel.dll` 檔案版本為 `9.1.49.21825`，事件指出目標框架驗證器內的 `FormatException`，因此框架不相容是高度可信的假設，仍不是已證實的最終根因。`mscorlib.dll` 檔案版本 `4.8.4795.0` 與 smoke 欄位 `FrameworkFileVersion=4.8.x` 描述伺服器執行環境，不代表 Plugin 的 `TargetFramework`；smoke 仍預期看到 `4.8.x`。只有使用者重新註冊 net462 組件的結果，才能確認該 D365 主機是否接受它。
+現場 `Microsoft.Crm.ObjectModel.dll` 檔案版本為 `9.1.49.21825`，事件指出 `TargetFrameworkVersionValidator.ValidateInternal()` 內的 `String.Format` 發生 `FormatException`。Microsoft KB 4345239 描述此驗證器會拒絕不相容的 Plugin 目標框架；公開案例也記錄相同格式化多載並以 net462 解決。因此「net48 目標遭拒，格式化例外遮住原訊息」是高度可信推論，但原拒絕訊息與格式化失敗的具體原因未取得。官方地端文件列出 4.6.2～4.8，未指出 4.8 沙箱支援的最低伺服器組建，不能只憑現場 DLL 版本宣稱缺少哪個更新。`mscorlib.dll` 檔案版本 `4.8.4795.0` 與 smoke 欄位 `FrameworkFileVersion=4.8.x` 描述伺服器執行環境，不代表 Plugin 的 `TargetFramework`；smoke 仍預期看到 `4.8.x`。只有使用者重新註冊 net462 組件的結果，才能確認該 D365 主機是否接受它。更多依據與限制見[部署失敗調查報告](P0-13_部署失敗調查報告_供Claude複核.md)。
 
 兩個相同的數字碼沒有指出失敗的是哪一項建立操作，也不能證明沒有部分寫入。後續若需重試，先重新 plan 並審核目前狀態，不重用失敗的 plan，也不要在 apply 後重新以「最新目錄」改寫 `$plan`。
 
@@ -187,7 +187,7 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 - 本次補修另經自癒入口分析與審查；兩次皆為 `reviewMode=dual`、`dualModelComplete=true`、`quotaBlocked=false`，沒有未處理的 Critical／High。這是本次補修的新審查，不冒稱由先前階段 0 審查涵蓋。
 - 本機證據位於 `artifacts/p013-apply-fault-tests/`；全方案各測試組的完整摘要保留於 `validation/release-test.log`。這些結果不等於 apply、verify 或 smoke 已通過。
 
-**net462 變更後的下一步：** 使用者已核定正式採用 `net462`，目前先完成離線建置、測試與打包檢查。全部通過且提交後，使用者依第 2～6 步重新建置、產生並審核新 plan、apply、verify=0、smoke 與停用收尾；不得重用舊 net48 plan。若新的 net462 apply 仍出現相同 `FormatException`／`0x80040216`，停止並回報，不改回 Plugin Registration Tool、不修改伺服器。所有失敗回報仍只保留安全的數字錯誤碼與固定摘要，不貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。
+**net462 變更後的下一步：** 先完成全方案 Release、測試、打包及守門，再以自癒入口執行第 10 份 ClaudeOnly 審查。審查通過並提交後，使用者依第 2～6 步重新建置、產生並審核新 plan、apply、verify=0、smoke 與停用收尾；不得重用舊 net48 plan。若新的 net462 apply 仍在目標框架驗證階段出現相同 `FormatException`／`0x80040216`，停止並回報，表示本次框架推論未解決問題；不改回 Plugin Registration Tool、不修改伺服器。所有失敗回報仍只保留安全的數字錯誤碼與固定摘要，不貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。
 
 **不對時怎麼辦：** 連線、權限、簽章或沙箱錯誤就停下回報並做第 6 步，不改回手動註冊。trace 的 verify=1 或 3 都未通過，不能略過。
 

@@ -1,7 +1,7 @@
 namespace SpeechMessage.Localization;
 
 /// <summary>
-/// 僅解析編譯時系統文字的共用介面，net48 與 net10 使用同一份契約。
+/// 僅解析編譯時系統文字的共用介面，net462 與 net10 使用同一份契約。
 /// 不讀取教會覆寫、成員語言、身分或連線；選擇語系不代表通過任何授權。
 /// </summary>
 public interface ISystemTextCatalog

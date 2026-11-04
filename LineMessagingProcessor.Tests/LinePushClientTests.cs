@@ -27,18 +27,25 @@ public sealed class LinePushClientTests
     private static readonly Guid RetryKey = new("11111111-2222-3333-4444-555555555555");
 
     /// <summary>
-    /// 保護 Plugin 使用的 Core 必須來自 net462 編譯輸出，並確認該輸出包含 .NET Framework 專用的無參數客戶端。
-    /// 測試透過組件參考的實際載入中繼資料斷言，不以測試專案的目標框架推定產品分支已正確選取。
+    /// 保護雙目標參考依測試宿主選出正確產品輸出：net48 宿主必須載入 Plugin 使用的 net462
+    /// 及 Framework 專用無參數客戶端；net10 宿主則載入 net10 與注入 HttpClient 的公開建構式。
+    /// 測試檢查實際載入組件和建構式，不能只由測試專案的目標框架推定產品分支。
     /// </summary>
-    [Fact(DisplayName = "Plugin Core 專案參考選取 net462 Framework 實作")]
-    public void Assembly_TargetFramework_AndFrameworkClientBranch_AreNet462()
+    [Fact(DisplayName = "Plugin Core 專案參考選取宿主對應產品實作")]
+    public void Assembly_TargetFramework_AndClientBranch_MatchHost()
     {
         var assembly = typeof(LinePushClient).Assembly;
         var attribute = assembly.GetCustomAttributes(typeof(TargetFrameworkAttribute), false)
             .Cast<TargetFrameworkAttribute>().Single();
 
+#if NETFRAMEWORK
         Assert.Equal(".NETFramework,Version=v4.6.2", attribute.FrameworkName);
         Assert.NotNull(typeof(LinePushClient).GetConstructor(Type.EmptyTypes));
+#else
+        Assert.Equal(".NETCoreApp,Version=v10.0", attribute.FrameworkName);
+        Assert.Null(typeof(LinePushClient).GetConstructor(Type.EmptyTypes));
+        Assert.NotNull(typeof(LinePushClient).GetConstructor(new[] { typeof(HttpClient) }));
+#endif
     }
 
     /// <summary>成功回應注入固定 ID；斷言 URL、方法、兩個逐請求標頭及共用標頭沒有被污染。</summary>

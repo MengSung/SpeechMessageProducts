@@ -7,9 +7,6 @@
       <_SpeechMessagePluginKeyFile>$([System.Environment]::GetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE'))</_SpeechMessagePluginKeyFile>
       <SpeechMessagePluginOutputDirectory Condition="'$(SpeechMessagePluginOutputDirectory)' == ''">$(MSBuildThisFileDirectory)../artifacts/plugins</SpeechMessagePluginOutputDirectory>
       <_SpeechMessagePluginOutput>$(SpeechMessagePluginOutputDirectory)/$(TargetFileName)</_SpeechMessagePluginOutput>
-      <_SpeechMessagePluginPackagingIntermediateOutputPath Condition="'$(SpeechMessagePluginPackagingIntermediateOutputPath)' == ''">obj/</_SpeechMessagePluginPackagingIntermediateOutputPath>
-      <_SpeechMessagePluginPackagingExtensionsPath Condition="'$(SpeechMessagePluginPackagingIntermediateOutputPath)' == ''">$(MSBuildThisFileDirectory)../tools/PluginPackaging/obj/</_SpeechMessagePluginPackagingExtensionsPath>
-      <_SpeechMessagePluginPackagingExtensionsPath Condition="'$(SpeechMessagePluginPackagingIntermediateOutputPath)' != ''">$(MSBuildThisFileDirectory)../tools/PluginPackaging/$(SpeechMessagePluginPackagingIntermediateOutputPath)</_SpeechMessagePluginPackagingExtensionsPath>
     </PropertyGroup>
     <Error Condition="'$(_SpeechMessagePluginKeyFile)' == '' And '$(Configuration)' == 'Release'"
            Code="SMP0001" Text="Release 外掛打包必須設定 SPEECHMESSAGE_PLUGIN_KEYFILE；請由使用者準備 repo 外的正式強式名稱金鑰。" />
@@ -25,11 +22,10 @@
       <_SpeechMessageMergeInput Include="$(TargetDir)Newtonsoft.Json.dll" />
     </ItemGroup>
     <!-- 每個被合併輸入都必須先證明目標不高於伺服器核定的 v4.6.2；
-         檢查器以 PE metadata 工作，不載入或執行組件；工具明確以 net10 建置。 -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)../tools/PluginPackaging/PluginPackaging.csproj"
-             Targets="Restore;Build"
-             Properties="Configuration=Release;TargetFramework=net10.0;BaseIntermediateOutputPath=$(_SpeechMessagePluginPackagingIntermediateOutputPath);MSBuildProjectExtensionsPath=$(_SpeechMessagePluginPackagingExtensionsPath)"
-             BuildInParallel="false" />
+         檢查器以 PE metadata 工作，不載入或執行組件。使用 dotnet build 的標準 restore/build 流程，
+         並強制還原，避免依賴方案或其他工具先前留下的 assets；此工具沒有方案相依，不用靜態圖還原。 -->
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)../tools/PluginPackaging/PluginPackaging.csproj&quot; --configuration Release --framework net10.0 --nologo -p:RestoreUseStaticGraphEvaluation=false -p:RestoreForce=true"
+          WorkingDirectory="$(MSBuildThisFileDirectory)../tools/PluginPackaging" />
     <Exec Command="dotnet &quot;$(MSBuildThisFileDirectory)../tools/PluginPackaging/bin/Release/net10.0/PluginPackaging.dll&quot; --validate-net462-input &quot;%(_SpeechMessageMergeInput.Identity)&quot;"
           WorkingDirectory="$(MSBuildThisFileDirectory).." />
     <MakeDir Directories="$(SpeechMessagePluginOutputDirectory)" />

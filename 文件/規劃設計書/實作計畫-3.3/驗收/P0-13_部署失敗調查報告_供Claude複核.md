@@ -8,15 +8,15 @@ P0-13 是 goodshepherdback 的最小 trace 骨架驗收：註冊／啟用 Diagno
 
 目前第二次 apply 仍失敗。plan 成功不代表已註冊；verify、smoke、追蹤復原與停用收尾尚未完成，P0-13／階段 0 未通過。
 
-使用者已核定先離線試做 .NET Framework 4.6.2 相容候選；截至本報告初稿尚未執行試做，不能宣稱候選能建置、通過檢查或註冊。
+本報告初稿時，使用者先核定隔離離線試做 .NET Framework 4.6.2。其後使用者於 2026-11-04 依 D21 核定將 net462 改為正式產品目標，詳見第 8 節；本地驗證不能代替 D365 註冊結果。
 
 ## 2. 已確認的本機與使用者操作證據
 
-- 既定 D21：Plugin 專案的 TargetFramework=net48；Core 與 Localization 為 net48;net10.0。
+- 發生失敗時的既定 D21：Plugin 專案 TargetFramework=net48；Core 與 Localization 為 net48;net10.0。使用者於 2026-11-04 另核定正式改用 net462／net462;net10.0，取代舊決定。
 - Plugin 原 Release 已明確打包成功：四個輸入合併、強式名稱簽章，AssemblyVersion=1.0.0.0，大小 723456 bytes。
 - 原 Test-PluginAssembly.ps1 回報 ok=true；readable、strongName、targetFramework、allowedReferences、noDrawing、diagnosticsPlugin、size 均為 true。
 - 部署 DLL 的 SHA-256：70D18A13830116F2DFB967AA3DD25A659DF221949955B18C6F92BB6324776B24。
-- 原檢查器只讀 PE／Metadata，不載入或執行 Plugin；其 targetFramework 契約固定為 net48。這是本機政策檢查，不是 D365 相容性證明。
+- 失敗當時的檢查器只讀 PE／Metadata、不載入或執行 Plugin，且只接受 net48。net462 改版已將檢查器契約改為只接受 v4.6.2；任何本機中繼資料檢查都不是 D365 相容性證明。
 - 使用者已停用舊自訂步驟／流程、取消 3 筆待處理舊作業，並把 Plugin 追蹤設為「全部」。舊 LINE token 與會友 LINE ID 依使用者另行核定保留；不宣稱資料已清除。
 - 清單唯一 Plugin：DiagnosticsPingPlugin，Create／task／PostOperation／Asynchronous／rank 1；mode=trace，secureConfig 空白，goodshepherdback=true。
 - 最新經審核 plan：2026-11-04T06:14:02.6994698+00:00（台灣時間 14:14），只列 CreateAssembly、CreateType、CreateStep，沒有秘密佔位。
@@ -65,24 +65,28 @@ PluginAssemblyServiceInternal.ValidateAssemblyMetadata
 
 ## 4. 可以下的結論與仍未知事項
 
-**已定位：** 本次事件顯示 Plugin 組件建立流程，在 D365 的目標框架驗證器內發生格式化例外；不能將這筆錯誤當成 DiagnosticsPingPlugin.Execute 的業務邏輯失敗。
+**高度可信的根因推論：** 本次事件 18176 發生於 Plugin 組件建立的目標框架驗證器，呼叫鏈包含 `TargetFrameworkVersionValidator.ValidateInternal()`、`String.Format` 與 `PluginValidatorBase.Validate()`。Microsoft KB 4345239 記錄同一驗證器在 Plugin 目標框架不相容時拒絕組件，並以兩個格式參數說明所需／目前框架；因此最符合現有證據的解釋是伺服器拒絕 net48 目標，而格式化拒絕訊息時另發生 `FormatException`，外層只留下通用錯誤碼。這仍是推論，不能寫成已由伺服器原始拒絕訊息證實，也不能將事件當成 `DiagnosticsPingPlugin.Execute` 的業務邏輯失敗。
 
 **尚未證實：**
 
-1. 驗證器正在處理哪一個具體條件，及其原本欲回報的錯誤。
-2. 該 D365 元件版本實際接受的 Plugin 目標框架上限、相關設定或所需支援更新。
-3. 是否有本地化資源格式問題遮蔽另一個錯誤。String.Format 堆疊只支持調查這項假設，尚無資源內容或程式碼證據。
-4. 改成 net462 是否能成功註冊；尚未做實機比較，離線試做也不能證明這一點。
-5. 伺服器上沙箱程序實際載入的 .NET 版本。
+1. 原本拒絕的精確條件與伺服器預期回傳的拒絕訊息；本次沒有保存該訊息內容。
+2. `Microsoft.Crm.ObjectModel.dll` 9.1.49.21825 對應哪個 4.8 沙箱支援更新。Microsoft 地端文件列出 4.6.2～4.8，並註明 4.8 沙箱支援已加入，但沒有公布適用的最低伺服器組建；不能僅憑檔案版本斷言現場缺少哪個更新。
+3. `FormatException` 是資源格式、錯誤格式字串或其他格式化輸入造成；事件證據目前只保存堆疊方法名稱，未保留或核對 `String.Format` 的具體多載。
+4. 改為 net462 是否能在該主機註冊；離線建置、簽章和 PE 檢查都不能證明這一點。
+5. 沙箱程序實際載入的 .NET Framework 執行環境及部分信任限制。
 
 不能寫成「伺服器沒有 .NET 4.8」或「D365 9.1 一律只支援 4.6.2」。目前 Microsoft 地端文件列出 4.6.2～4.8，但相關段落沒有最低伺服器更新，不能直接套用到上述特定 DLL 版本。
 
 官方參考：
+- [Microsoft KB 4345239：Assembly version error importing Dynamics 365 solution](https://learn.microsoft.com/en-us/troubleshoot/power-platform/dataverse/working-with-solutions/assembly-version-error-importing-dynamics-365-solution)（描述不相容框架的驗證呼叫鏈與兩參數拒絕訊息；該文章不是現場 9.1.49.21825 的組建對照表）
 - https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/visual-studio-dot-net-framework?view=op-9-1
 - https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/supported-extensions?view=op-9-1
 - https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/web-service-error-codes
+- [社群案例：String.Format 雙參數多載與 Plugin 註冊 FormatException](https://nishantrana.me/2020/11/11/system-formatexception-input-string-was-not-in-a-correct-format-exception-while-registering-plugin-in-dynamics-365/)（不同伺服器版本的佐證案例，不能證明本次環境的版本門檻）
 
-## 5. 已核定的離線試驗
+## 5. 已核定的離線試驗（歷史紀錄，已由第 8 節正式決定取代）
+
+本節記錄使用者最初只允許隔離試做時的限制。2026-11-04 正式 net462 核定已取代「保留正式 net48、只在副本試做」要求；目前操作以第 8 節為準。
 
 1. 保留正式產品專案的 net48 與原部署 DLL；在隔離暫存副本對 Plugin／Core／Localization 試做 net462。
 2. 保留既有程式、測試與套件版本，跑相關既有測試；不放寬分析器、弱點稽核或原組件檢查器。

@@ -14,14 +14,19 @@ if (-not $UseEphemeralTestKey -and [string]::IsNullOrWhiteSpace($originalKey)) {
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
 $projectPath = Join-Path $repoRoot 'SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj'
 $checker = Join-Path $PSScriptRoot '../Test-PluginAssembly.ps1'
+$mergeTargetsPath = Join-Path $repoRoot 'build/PluginMerge.targets'
+$toolProjectRoot = Join-Path $repoRoot 'tools/PluginPackaging'
+$toolAssets = Join-Path $toolProjectRoot 'obj/project.assets.json'
+[xml]$mergeTargets = [IO.File]::ReadAllText($mergeTargetsPath)
+$toolBuildTarget = $mergeTargets.SelectSingleNode("/Project/Target[@Name='PackageSpeechMessagePlugin']/Exec[contains(@Command, 'dotnet build') and contains(@Command, 'RestoreUseStaticGraphEvaluation=false') and contains(@Command, 'RestoreForce=true')]")
+if ($null -eq $toolBuildTarget) {
+    throw 'Plugin packaging must force a standard validator restore during build with static-graph restore disabled.'
+}
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $fixtureRoot = [IO.Path]::GetFullPath((Join-Path $tempRoot ('speechmessage-build-' + [Guid]::NewGuid().ToString('N'))))
-$toolProjectRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot 'tools/PluginPackaging'))
-$toolIntermediateRelativePath = Join-Path 'obj' ('p013-' + [Guid]::NewGuid().ToString('N'))
-$toolIntermediatePath = [IO.Path]::GetFullPath((Join-Path $toolProjectRoot $toolIntermediateRelativePath))
-$toolObjRoot = [IO.Path]::GetFullPath((Join-Path $toolProjectRoot 'obj'))
 $null = New-Item -ItemType Directory -Path $fixtureRoot
 $failures = 0
+Write-Output 'PASS validator-standard-build-forces-restore'
 try {
     $signingKey = $originalKey
     if ($UseEphemeralTestKey) {
@@ -42,49 +47,69 @@ try {
         if (-not $sample.EndsWith('-no-package', [StringComparison]::Ordinal)) { $packageArguments = @('-p:SpeechMessagePackagePlugin=true') }
         $output = @(& dotnet build $projectPath -c $configuration @packageArguments --no-restore `
             "-p:SpeechMessagePluginOutputDirectory=$outputDirectory" `
-            "-p:SpeechMessagePluginPackagingIntermediateOutputPath=$toolIntermediateRelativePath" `
             -p:SpeechMessageBuildNumber=37 --nologo -v minimal 2>&1)
         $code = $LASTEXITCODE
         $assemblyPath = Join-Path $outputDirectory 'SpeechMessage.Dynamics.Plugins.dll'
         $text = $output -join "`n"
+        $assemblyExists = Test-Path -LiteralPath $assemblyPath
+        $toolAssetsPresent = $null
+        $failureDetail = $null
         if ($sample.EndsWith('-no-package', [StringComparison]::Ordinal)) {
             $passed = $code -eq 0 -and -not (Test-Path -LiteralPath $outputDirectory) -and
                 -not $text.Contains('SMP0001') -and -not $text.Contains('SMP0002') -and -not $text.Contains('SMP0003')
+            if (-not $passed) { $failureDetail = 'ordinary-build-packaging-contract-failed' }
         } elseif ($sample -eq 'release-invalid') {
             $passed = $code -ne 0 -and $text.Contains('SMP0003') -and -not (Test-Path -LiteralPath $outputDirectory)
+            if (-not $passed) { $failureDetail = 'invalid-key-rejection-contract-failed' }
         } elseif ($sample -eq 'release-unset') {
             $passed = $code -ne 0 -and $text.Contains('SMP0001') -and -not (Test-Path -LiteralPath $assemblyPath)
+            if (-not $passed) { $failureDetail = 'missing-key-rejection-contract-failed' }
         } elseif ($sample -eq 'debug-unset') {
             $passed = $code -eq 0 -and $text.Contains('SMP0002') -and (Test-Path -LiteralPath $assemblyPath)
-            # 唯一工具子建置必須在本案例的新中繼資料目錄自行 Restore，不能借用 repo 既有 obj。
-            $toolAssets = Join-Path $toolIntermediatePath 'project.assets.json'
-            $passed = $passed -and (Test-Path -LiteralPath $toolAssets)
+            $toolAssetsPresent = Test-Path -LiteralPath $toolAssets
+            if (-not $passed) { $failureDetail = 'debug-build-or-warning-contract-failed' }
+            if ($passed -and -not $toolAssetsPresent) {
+                $passed = $false
+                $failureDetail = 'tool-restore-assets-missing'
+            }
             if ($passed) {
                 $inspection = @(& powershell -NoProfile -File $checker -AssemblyPath $assemblyPath 2>&1)
                 $inspectCode = $LASTEXITCODE
                 $jsonLine = $inspection | Where-Object { $_.ToString().StartsWith('{', [StringComparison]::Ordinal) } | Select-Object -Last 1
                 $result = $jsonLine.ToString() | ConvertFrom-Json
                 $passed = $inspectCode -eq 1 -and $result.checks.strongName -eq $false -and $result.checks.targetFramework -eq $true
+                if (-not $passed) { $failureDetail = 'unsigned-debug-assembly-contract-failed' }
             }
         } else {
             $passed = $code -eq 0 -and (Test-Path -LiteralPath $assemblyPath)
+            if (-not $passed) { $failureDetail = 'release-build-or-output-missing' }
             if ($passed) {
-                $null = & powershell -NoProfile -File $checker -AssemblyPath $assemblyPath
-                $passed = $LASTEXITCODE -eq 0
+                $inspection = @(& powershell -NoProfile -File $checker -AssemblyPath $assemblyPath 2>&1)
+                $inspectCode = $LASTEXITCODE
+                $jsonLine = $inspection | Where-Object { $_.ToString().StartsWith('{', [StringComparison]::Ordinal) } | Select-Object -Last 1
+                $result = $jsonLine.ToString() | ConvertFrom-Json
+                $references = @($result.references | ForEach-Object { $_.ToString() })
+                $passed = $inspectCode -eq 0 -and $result.checks.targetFramework -eq $true -and
+                    $result.assemblyVersion -eq '1.0.0.0' -and
+                    $references -notcontains 'System.Runtime' -and $references -notcontains 'netstandard'
+                if (-not $passed) { $failureDetail = 'release-assembly-check-failed' }
                 # 版本資源的唯讀查詢不載入執行 DLL；建置序號不改 AssemblyVersion 的穩定身分。
                 $version = [Diagnostics.FileVersionInfo]::GetVersionInfo($assemblyPath)
                 $passed = $passed -and $version.FileVersion -eq '1.0.0.37' -and
                     $version.ProductVersion.StartsWith('1.0.0-p0.37', [StringComparison]::Ordinal)
+                if (-not $passed -and $null -eq $failureDetail) { $failureDetail = 'release-version-resource-mismatch' }
             }
         }
         if ($passed) { Write-Output ('PASS ' + $sample) }
         else {
             $failures++
-            $errorCodes = [Regex]::Matches($text, '(?:NETSDK|MSB|SMP)[0-9]{4}') |
+            $errorCodes = [Regex]::Matches($text, '\b[A-Z]{2,}[0-9]{4}\b') |
                 ForEach-Object { $_.Value } | Sort-Object -Unique
             $codeSummary = if ($errorCodes.Count -gt 0) { ' codes=' + ($errorCodes -join ',') } else { '' }
-            Write-Output ('FAIL ' + $sample + ': packaging contract not satisfied' + $codeSummary)
-            $text -split "`r?`n" | Where-Object { $_ -match 'MSB5029' } | ForEach-Object { Write-Output $_ }
+            $detailSummary = if ($null -ne $failureDetail) { ' reason=' + $failureDetail } else { '' }
+            $stateSummary = ' exit=' + $code + ' assembly=' + $assemblyExists.ToString().ToLowerInvariant()
+            if ($null -ne $toolAssetsPresent) { $stateSummary += ' restoreAssets=' + $toolAssetsPresent.ToString().ToLowerInvariant() }
+            Write-Output ('FAIL ' + $sample + ': packaging contract not satisfied' + $codeSummary + $detailSummary + $stateSummary)
         }
     }
 } finally {
@@ -93,18 +118,6 @@ try {
     if (-not $resolvedFixture.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase) -or
         -not ([IO.Path]::GetFileName($resolvedFixture)).StartsWith('speechmessage-build-', [StringComparison]::Ordinal)) {
         throw 'Refused cleanup outside the owned build fixture directory.'
-    }
-    $toolObjPrefix = $toolObjRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-    if (-not $toolIntermediatePath.StartsWith($toolObjPrefix, [StringComparison]::OrdinalIgnoreCase) -or
-        -not ([IO.Path]::GetFileName($toolIntermediatePath)).StartsWith('p013-', [StringComparison]::Ordinal)) {
-        throw 'Refused cleanup outside the owned PluginPackaging intermediate directory.'
-    }
-    if (Test-Path -LiteralPath $toolIntermediatePath) {
-        $attributes = [IO.File]::GetAttributes($toolIntermediatePath)
-        if (($attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
-            throw 'Refused cleanup of a reparse-point PluginPackaging intermediate directory.'
-        }
-        Remove-Item -LiteralPath $toolIntermediatePath -Force -Recurse
     }
     Remove-Item -LiteralPath $resolvedFixture -Force -Recurse
 }

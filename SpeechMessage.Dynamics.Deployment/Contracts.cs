@@ -50,7 +50,7 @@ internal sealed record StepRegistration
 }
 
 /// <summary>
-/// 從有界 PE 讀出的單次組件描述。保留 DLL bytes 只供本次 apply，從不載入或執行 net48 程式碼，
+/// 從有界 PE 讀出的單次組件描述。保留 DLL bytes 只供本次 apply，從不載入或執行待驗證組件的程式碼，
 /// 也不將此物件放入 static、快取或跨命令狀態。
 /// </summary>
 internal sealed record AssemblyImage(string Name, string Version, string PublicKeyToken, string Content, string Sha256, IReadOnlyList<string> PluginTypes);

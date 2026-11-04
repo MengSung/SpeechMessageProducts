@@ -1,9 +1,9 @@
 namespace System.Diagnostics.CodeAnalysis
 {
     /// <summary>
-    /// 為 net48 提供條件式非空值契約，讓雙目標 API 可向編譯器描述 Try 模式的輸出狀態。
+    /// 為 .NET Framework 目標提供條件式非空值契約，讓雙目標 API 可向編譯器描述 Try 模式的輸出狀態。
     /// 此屬性只描述中繼資料，不在執行期驗證輸入，也不得用來略過真正的資料檢查。
-    /// 僅 net48 連結編譯，避免與 net10 內建型別重複；每個實例只有一個不可變布林值。
+    /// 只在 net462 與保留的 net48 測試目標連結編譯，避免與 net10 內建型別重複；每個實例只有一個不可變布林值。
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
     internal sealed class NotNullWhenAttribute : Attribute

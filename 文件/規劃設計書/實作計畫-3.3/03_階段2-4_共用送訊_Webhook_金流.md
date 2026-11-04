@@ -8,7 +8,7 @@
 
 - 估時：10～13 天（國際化＋2～3 天）。
 - 目標：
-  - LINE 送訊只剩一份。單人推播放在 `LineMessagingProcessor.Core`（`net462;net10.0`），Plugin 可以直接推播；net462 沙箱的 TLS／推播實機驗收仍須依下方 P2-04 前置完成；
+  - LINE 送訊只剩一份。單人推播放在 `LineMessagingProcessor.Core`（`net462;net10.0`），Plugin 可以直接推播；依使用者 2026-11-04 核定的 D21，所有部署至 D365 沙箱的 Plugin／Workflow 均以 net462 為目標；net462 沙箱的 TLS／推播實機驗收仍須依下方 P2-04 前置完成；
   - `new_linechannel` 加密存放 Token；
   - 對外待辦只處理宮格圖、QR 圖片、撥款查詢三種，可由 D365 建立、由 .NET 10 執行。
 - 前提（使用者 2026-11-04 核定）：沙箱對 `api.line.me` 的推播驗收已移出 P0-13，改在本檔「P2-04 前置驗收」完成；未通過不得開始 P2-04 以後的推播工作。

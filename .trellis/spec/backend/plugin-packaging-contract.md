@@ -30,6 +30,12 @@ It emits one JSON result per DLL and fails the whole run if any DLL fails.
 - Merge exactly the primary DLL, Localization, Core, and Newtonsoft.Json.
   Internalize dependencies, leave Xrm SDK external, and write only the dedicated
   `artifacts/plugins` deployment output. Never overwrite the original test DLL.
+- The standalone .NET 10 metadata validator must be built with the ordinary
+  `dotnet build` restore/build flow and a forced restore when invoked by the
+  packaging target. Disable static-graph restore for this nested tool build so
+  it cannot accidentally depend on another project's `obj/project.assets.json`
+  or intermediate-path calculation. Do not invoke nested `MSBuild` targets as
+  `Restore;Build` from the active solution build.
 - The primary Plugin, Localization, Core, and Newtonsoft.Json merge inputs must
   each declare a .NET Framework target no higher than v4.6.2; the merged
   deployment assembly must declare v4.6.2. The metadata checker reads PE

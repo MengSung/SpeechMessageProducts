@@ -15,16 +15,20 @@ namespace SpeechMessage.Localization.Tests;
 public sealed class SystemTextCatalogTests
 {
     /// <summary>
-    /// 保護 Plugin 取得的 Localization 專案輸出為 net462，而非舊 net48 或僅適用主機的 net10。
-    /// 讀取實際載入組件上的 TargetFrameworkAttribute，避免建置設定與引用資產不一致時誤報通過。
+    /// 保護雙目標參考依測試宿主選出正確產品輸出：net48 宿主必須載入供 Plugin 使用的 net462，
+    /// net10 宿主則載入 net10。讀取實際組件屬性，避免把測試專案 TFM 誤當成產品輸出 TFM。
     /// </summary>
-    [Fact(DisplayName = "Localization 專案參考選取 Framework 4.6.2 輸出")]
-    public void Assembly_TargetFramework_IsNet462()
+    [Fact(DisplayName = "Localization 專案參考選取宿主對應產品輸出")]
+    public void Assembly_TargetFramework_MatchesNearestProductAsset()
     {
         var attribute = typeof(SystemTextTable).Assembly.GetCustomAttributes(typeof(TargetFrameworkAttribute), false)
             .Cast<TargetFrameworkAttribute>().Single();
 
+#if NETFRAMEWORK
         Assert.Equal(".NETFramework,Version=v4.6.2", attribute.FrameworkName);
+#else
+        Assert.Equal(".NETCoreApp,Version=v10.0", attribute.FrameworkName);
+#endif
     }
 
     /// <summary>六個固定資源都須由真實生成表返回原文，包含 P0-10 診斷鍵，不可以替身字典略過產生器。</summary>
