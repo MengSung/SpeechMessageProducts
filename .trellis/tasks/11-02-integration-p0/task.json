@@ -91,7 +91,8 @@
       "714465fd",
       "160553b9",
       "d3c2f4c3",
-      "39e58b30"
+      "39e58b30",
+      "fc989418"
     ],
     "characterizationVerified": true,
     "net462Migration": {
@@ -215,7 +216,7 @@
     "remainingSmokeTasks": 0,
     "oldLineDataCleared": false,
     "evidence": "wp-evidence/P0-13-live-acceptance.json",
-    "completedAt": "2026-11-04T12:41:18.2820756+00:00",
+    "completedAt": "2026-11-04T20:41:18.2820756+08:00",
     "workPackagesCompleted": 18,
     "closeoutReview": {
       "runId": "20261104-204858-p013-live-acceptance-closeout-reviewer",
