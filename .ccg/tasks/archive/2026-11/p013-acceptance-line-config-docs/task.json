@@ -1,0 +1,29 @@
+{
+  "id": "p013-acceptance-line-config-docs",
+  "title": "P0-13 驗收文件補充 LINE 設定分離與下一步",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "docs",
+  "currentPhase": "completed",
+  "nextAction": "文件補充已完成；P0-13 實機驗收仍等待使用者檢查金鑰、確認清理並逐步操作",
+  "createdAt": "2026-11-04T12:31:03.6790209+08:00",
+  "branch": "1.0.0.11.Integration.P0",
+  "scope": [
+    "文件/規劃設計書/實作計畫-3.3/驗收/P0_Plugin骨架佈署步驟.md"
+  ],
+  "constraints": [
+    "不新增 Trellis 任務，不修改產品程式",
+    "不連線 D365 或 LINE，不讀取或輸出秘密",
+    "保留使用者已回報清理紀錄；未確認項目不勾選",
+    "不推送、不合併、不改寫歷史"
+  ],
+  "completedAt": "2026-11-04T12:33:09.4385104+08:00",
+  "verification": [
+    "8 個 PowerShell 區塊只做語法解析，未執行命令",
+    "保留未確認清理項目為未勾選",
+    "UTF-8 無 BOM、CRLF、檔尾 CRLF 通過",
+    "git diff --check 通過",
+    "僅文件補充；未執行 D365 或 LINE 連線"
+  ]
+}

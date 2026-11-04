@@ -3,6 +3,12 @@
 > 使用者 2026-11-04 核定。清理完成後預留約 1 小時；全部由使用者執行，Codex 不連線 D365／LINE。
 > **只連 goodshepherdback；不要貼出密碼、token、金鑰、User Secrets 或追蹤全文。**
 
+> **LINE 憑證分離補充（2026-11-04）：** ChurchReport 的 `appsettings.json` 已清空 LINE token；正式環境改由專用環境變數提供，Development 的 `DevTest` token 只接受 User Secrets。
+>
+> P0-13 使用 trace，不需要 LINE channel、`TestLineUserId`、`TestChannelToken` 或任何 LINE token。Deployment 的 User Secrets 只填下面三個 Dataverse 值；本次 `secureConfig` 保持空白。
+>
+> **程式設定分離不等於 goodshepherdback 資料清理完成。** 舊 Plugin／工作流程相關資料中的 LINE token 與會友 `new_lineid` 仍須由使用者確認清理；尚未回報的項目保持未勾選。
+
 本次只確認：以佈署專案註冊、啟用 net48 Plugin，在沙箱看到版本與雙語文字，最後停用並清理。
 不需要測試 LINE channel，也不需要 Six Labors 授權：Plugins 與 Deployment 的直接、間接相依均無 ImageSharp。
 推播移至 03 的「P2-04 前置驗收」；Plugin 自身 FileVersion 追蹤、更新與回復移至 04 階段 5，現在不改 Plugin。
@@ -54,7 +60,7 @@ Username **必須含網域**，建議使用上方 UPN。部署工具以 `ClientC
 JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一條會導致設定讀取失敗。
 依據：[CreateOnPremiseClient 快速參考：使用者名稱格式](../../../../ToolUtility/文件/CreateOnPremiseClient快速參考.md#使用者名稱格式)。
 
-**預期看到什麼：** 組織為 goodshepherdback，UserSecretsId 是 `SpeechMessage.Dynamics.Deployment.P0`。trace 只需要這三個值，不要求 `TestLineUserId`、`TestChannelToken`，也不讀 ChurchReport 設定。
+**預期看到什麼：** 組織為 goodshepherdback，UserSecretsId 是 `SpeechMessage.Dynamics.Deployment.P0`。trace 只需要這三個 Dataverse 值，不要求 `TestLineUserId`、`TestChannelToken`，不要求任何 LINE token，也不讀 ChurchReport 設定。
 
 **不對時怎麼辦：** 清理未完成就不連線。金鑰無法使用、User Secrets 找不到或要求額外 LINE 值時，回報固定錯誤型別／代碼，不填假值、不換金鑰。
 
@@ -73,11 +79,21 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 **不對時怎麼辦：** 找不到清單、無法判斷來源或取消失敗就停在該畫面回報。取消後無法恢復該作業，不改用暫停或延後冒充取消，也不刪除歷史記錄。
 操作依據：[Microsoft：監視及管理系統作業](https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/admin/monitor-manage-system-jobs?view=op-9-1)。
 
-### 0.2 目前下一步：確認 LINE token 的存放位置
+### 0.2 待確認：舊 LINE token 與會友資料清理
 
 **做什麼：** 先確認舊 Plugin／自訂流程的 LINE token 當初在哪個畫面或檔案設定，再依實際位置引導清理。只回報畫面名稱、欄位名稱或檔名，不貼出 token 或設定內容；位置尚未確認前，不猜測資料表、不修改正式頻道或正式組織。
 
+**已完成的程式工作：** `86ca8bf83` 已完成 ChurchReport LINE 設定分離；離線測試 ChurchReport.MemberInfo.Tests 597／597、Line.Messaging.Tests 32／32 通過。這只證明程式設定與守門，不代表曾連線確認 goodshepherdback，不能據此勾選資料清理或 P0-13 實機項目。
+
 **完成條件：** 使用者在 goodshepherdback 清除或替換相關資料中的 token，並回報完成後，才勾選上方 token 項目。目前 token 與會友 `new_lineid` 均尚未回報清理完成，整體清理仍未完成。
+
+### 0.3 現在先做的一小步：檢查本機金鑰是否備妥
+
+**做什麼：** 按 Windows「開始」，輸入 `PowerShell`，開啟一個全新視窗；只貼上並執行 `Test-Path $env:SPEECHMESSAGE_PLUGIN_KEYFILE`。這個檢查可在等待資料清理確認時先做，不會連線 D365／LINE，也不會讀取金鑰內容。
+
+**預期看到什麼：** 顯示 `True`，保留這個視窗。只回報 `True`，不要貼路徑或金鑰內容；收到結果後再進行下一小步，不要一次貼上第 1～6 步的全部命令。
+
+**不對時怎麼辦：** 顯示 `False` 或紅色錯誤就先停在這一步，只回報 `False` 或遮罩後的錯誤代碼；不產生替代金鑰。即使顯示 `True`，仍須完成第 0 步所有未勾選項目，才開始第 1～6 步的實機驗收。
 
 ## 1. 開啟 Plugin 追蹤
 
