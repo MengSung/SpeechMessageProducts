@@ -5,8 +5,8 @@
   "complexity": "M",
   "risk": "low",
   "domain": "backend",
-  "currentPhase": "review",
-  "nextAction": "安全數字診斷已驗證與雙模型審查通過；等待使用者重新 plan 審核，再以實機輸出判定 apply 根因；P0-13 未完成",
+  "currentPhase": "analysis",
+  "nextAction": "第二份 plan 的 apply 失敗，實際兩層代碼均為 0x80040216（官方 UnExpected）；先確認使用者能否登入 D365 伺服器桌面，逐步取得約 14:16 的既有伺服器診斷；不重試 apply，不推定根因；verify、smoke 與 P0-13 均未完成",
   "createdAt": "2026-11-04",
   "branch": "1.0.0.11.Integration.P0",
   "constraints": [
@@ -29,5 +29,21 @@
     "reviewMode": "dual",
     "dualModelComplete": true,
     "quotaBlocked": false
+  },
+  "lastReviewedUserPlan": {
+    "utc": "2026-11-04T06:14:02.6994698+00:00",
+    "sha256": "C7C599656278D8E1A6BFB06894D5EC7D16BA182427FA6BBE55C9749D4B84DDDA",
+    "organization": "goodshepherdback",
+    "operations": [
+      "CreateAssembly",
+      "CreateType",
+      "CreateStep"
+    ],
+    "secretPlaceholders": 0,
+    "applyResult": "failed",
+    "faultCodes": [
+      "0x80040216",
+      "0x80040216"
+    ]
   }
 }

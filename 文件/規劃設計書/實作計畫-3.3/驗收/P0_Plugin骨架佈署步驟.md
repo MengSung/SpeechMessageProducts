@@ -97,19 +97,11 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 **已完成（使用者 2026-11-04 回報）：** 前置確認、第 1 步追蹤設為「全部」並儲存、第 2 步建置與打包檢查，以及第 3 步清單改為 true 和 plan 審核。plan 只列出 CreateAssembly／CreateType／CreateStep，符合本次 trace 骨架的預期。
 
-**目前卡在第 4 步：** 使用者執行 apply，回報 ``Command failed (FaultException`1). Sensitive details are not shown.``。尚未取得 Dataverse 數字錯誤碼，伺服器根因未明；verify、smoke 與停用收尾皆未完成。Codex 僅在本機檢查程式與安全診斷，不連線 D365／LINE。
+**目前卡在第 4 步：** 使用者在第二份 plan 審核後再次執行 apply，回報 `Dataverse fault code[0]: 0x80040216`、`Dataverse fault code[1]: 0x80040216`，以及 ``Command failed (FaultException`1). Sensitive details are not shown.``。已取得實際數字錯誤碼，但伺服器根因仍未明；verify、smoke 與停用收尾皆未完成。Codex 僅在本機檢查程式與安全診斷，不連線 D365／LINE。
 
-**下一小步：** 數字錯誤碼診斷補修已建置並通過離線驗證與修正審查。現在只由使用者在原本的 P0 根目錄 PowerShell 視窗執行以下區塊，重新 plan 並開啟剛產生的 plan.md；先回報「操作」區塊，核對後才執行 apply：
+**下一小步：** 先確認使用者能否登入**安裝 Dynamics 365 的伺服器 Windows 桌面**（可使用遠端桌面）；只回覆能／不能登入，不提供位址、帳密或日誌全文。確認可登入後，再逐步查看本次 apply 時段（2026-11-04 台灣時間約 14:16）的既有伺服器錯誤紀錄；此時先不改伺服器設定、不重啟服務，也不再次執行 apply。
 
-```powershell
-dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- plan --org goodshepherdback
-if ($LASTEXITCODE -eq 0) {
-    $plan = Join-Path (Get-ChildItem .\artifacts\d365\goodshepherdback -Directory | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1).FullName 'plan.json'
-    notepad (Join-Path (Split-Path $plan) 'plan.md')
-}
-```
-
-apply 可能已完成部分寫入，不能直接重用舊 plan，也不能將此次失敗記為完全沒有寫入。新 plan 若與首次不同，先核對是否為同一骨架的部分註冊；不要自行修改 hash 或先重試 apply。verify、smoke 與停用收尾仍待完成。
+兩個相同的數字碼沒有指出失敗的是哪一項建立操作，也不能證明沒有部分寫入。後續若需重試，先重新 plan 並審核目前狀態，不重用失敗的 plan，也不要在 apply 後重新以「最新目錄」改寫 `$plan`。
 
 **紀錄原則（使用者 2026-11-04 要求）：** 每有修正、完成事項或新阻礙，都同步更新本文件的目前進度、對應步驟與文末結果表；離線測試通過不等於實機驗收通過。
 
@@ -161,6 +153,8 @@ plan 成功後，**立刻執行取得 `$plan` 與開啟 plan.md 的兩行，在�
 
 **使用者執行結果（2026-11-04）：** 清單已改為 true 並儲存；plan 成功，只列 CreateAssembly、DiagnosticsPingPlugin 的 CreateType，以及 Create／task／PostOperation／Asynchronous／rank 1 的 CreateStep，秘密佔位為無。此為首次 plan 結果；第 4 步 apply 失敗後須重新 plan，不保證新 plan 仍為三項建立。
 
+**重新 plan 核對結果（2026-11-04）：** 使用者回報 UTC `2026-11-04T06:14:02.6994698+00:00`（台灣時間 14:14）的新計畫，目標仍為 goodshepherdback，只有同一骨架的 CreateAssembly／CreateType／CreateStep，秘密佔位為無；組織指紋、清單與組件雜湊均與首次一致。新 Plan SHA-256 為 `C7C599656278D8E1A6BFB06894D5EC7D16BA182427FA6BBE55C9749D4B84DDDA`，核對符合預期；使用者已執行這份新 plan 的 apply，但仍失敗（見第 4 步），不能將 plan 成功當成註冊成功。
+
 **不對時怎麼辦：** 出現其他組織、步驟、push 模式或未預期更新就不套用，回報操作種類。不得手改 plan hash；清單或 DLL 改過就重新 plan。
 
 ## 4. 套用並確認 verify=0
@@ -174,7 +168,9 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 
 **預期看到什麼：** apply 結束碼 0、測試步驟已註冊並啟用；verify 結束碼 **0**、無差異。apply 先在**該次 apply 目錄**保存 export.json；留在本機 artifacts，不上傳。
 
-**使用者執行結果（2026-11-04）：** 首次 apply 回報 ``Command failed (FaultException`1). Sensitive details are not shown.``，尚未通過。現有安全日誌未包含 SDK 的數字錯誤碼，不能據此判定為權限、框架或其他伺服器原因，也不能排除部分寫入。verify 尚未執行；暫不進入 smoke。診斷補修已加入：SDK fault 只額外顯示最多四個八位十六進位錯誤碼（例如 `Dataverse fault code[0]: 0x80040220`，此處僅為格式示例，並非本次伺服器實際代碼）。不輸出原始訊息、追蹤全文或秘密。離線先紅後綠：新增案例原先 5 失敗、1 通過，補修後 Deployment 全套 52／52 通過；完整 §8 與修正審查結果見下方紀錄。這只補足診斷，尚未修復或驗證伺服器端拒絕原因。
+**使用者執行結果（2026-11-04）：** 首次 apply 只有固定失敗摘要；數字診斷補修後，第二份 plan 的 apply 仍失敗，實際回報為 `Dataverse fault code[0]: 0x80040216`、`Dataverse fault code[1]: 0x80040216`，以及 ``Command failed (FaultException`1). Sensitive details are not shown.``。這兩個是本次實際代碼，不是範例。不能據此判定為權限、框架或其他特定原因，也不能排除部分寫入。verify 尚未執行；暫不進入 smoke。診斷只輸出最多四個八位十六進位數字碼，不輸出原始訊息、追蹤全文或秘密；本機驗證見下方。這只補足診斷，尚未修復或驗證伺服器端拒絕原因。
+
+**錯誤碼判讀與下一項證據：** Microsoft 官方將 `0x80040216`（`-2147220970`）列為 `UnExpected`，訊息為「An unexpected error occurred.」；這是通用錯誤，仍需伺服器端的具體錯誤紀錄。先依 §0.3 確認使用者可否登入 D365 伺服器桌面，再引導查看既有紀錄；不預先要求開啟額外追蹤或修改登錄。原始日誌可能包含機密或個資，不整份貼出或加入 repo。依據：[Microsoft：Web service error codes](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/web-service-error-codes)、[地端伺服器監控與疑難排解](https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/deploy/monitor-and-troubleshoot-dynamics-365?view=op-9-1)。
 
 **診斷補修的本機驗證（2026-11-04，Codex 離線執行）：**
 
@@ -183,7 +179,7 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 - 本次補修另經自癒入口分析與審查；兩次皆為 `reviewMode=dual`、`dualModelComplete=true`、`quotaBlocked=false`，沒有未處理的 Critical／High。這是本次補修的新審查，不冒稱由先前階段 0 審查涵蓋。
 - 本機證據位於 `artifacts/p013-apply-fault-tests/`；全方案各測試組的完整摘要保留於 `validation/release-test.log`。這些結果不等於 apply、verify 或 smoke 已通過。
 
-**重試若仍失敗：** 只回報 `Dataverse fault code[...]` 的數字行與固定失敗摘要；不要貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。若仍只有型別而沒有數字碼，也照實回報，不能將範例碼當成實際結果。
+**目前先不重試：** 先取得伺服器端的具體診斷，再決定修法。後續若經判定需要新一輪 plan／apply，失敗時仍只回報數字行與固定失敗摘要，不貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。
 
 **不對時怎麼辦：** 連線、權限、簽章或沙箱錯誤就停下回報並做第 6 步，不改回手動註冊。trace 的 verify=1 或 3 都未通過，不能略過。
 
@@ -253,7 +249,7 @@ git status --short -- .\d365\registration\plugins.registration.json
 | 第 0 步前置與準備 | 使用者已回報舊步驟／流程停用、3 筆作業取消、金鑰存在及 User Secrets 儲存；舊 token 與會友 LINE ID 核定保留，免除本次清理前置 |
 | 建置與打包檢查 | 已由使用者執行通過；Deployment 有 1 個 CS1572 警告，詳第 2 步 |
 | Plugin 追蹤設定 | 使用者已設為全部並儲存；收尾復原尚未完成 |
-| 一輪 plan／apply／verify=0 | 首次 plan 符合預期；apply 回報 ``FaultException`1``；數字診斷補修已完成本機驗證，待使用者重新 plan 審核；根因未明，verify 未執行 |
+| 一輪 plan／apply／verify=0 | 第二份 plan 已審核並執行 apply，仍失敗：fault code[0]、[1] 均為 `0x80040216`；根因未明，待確認伺服器診斷方式，verify 未執行 |
 | trace smoke 與五項人工追蹤 | 未驗證 |
 | 停用、收尾 verify=0、追蹤復原及資料清除 | 未驗證 |
 

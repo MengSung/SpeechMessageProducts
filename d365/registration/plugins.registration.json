@@ -14,7 +14,7 @@
       "unsecureConfig": "{\"mode\":\"trace\",\"culture\":\"zh-TW\"}",
       "secureConfig": "",
       "enabledByOrganization": {
-        "goodshepherdback": false
+        "goodshepherdback": true
       }
     }
   ]
