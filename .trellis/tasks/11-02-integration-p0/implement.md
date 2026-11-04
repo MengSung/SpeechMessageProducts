@@ -161,3 +161,10 @@ P0-11 收尾時核對外部提交 fc5df488 與 7641a206，內容與已驗證檔�
 - [x] 完整本機 00 §8、1121 方案測試、離線正式簽章打包、套件／facade 盤點通過。
 - [x] 第 10 份 ClaudeOnly 初審 High 已修正，獨立複審 Critical 0／High 0；修正後完整 §8 通過，驗收文件已同步，本次依核定訊息提交。
 - [ ] 使用者以新 DLL 重新 plan／apply／verify／smoke／停用收尾；Codex 不連線。
+
+## P0-13 verify 欄位修復（2026-11-04）
+
+- [x] 使用者 net462 apply 成功；verify 0x80041103 已離線定位為安全設定查閱邏輯名稱錯誤。
+- [x] 獨立 schema 回歸 5 功能紅燈後修正八處；Deployment 56／56、覆蓋率 84.95%，完整 §8 全綠（方案 1125／1125）。
+- [x] 本次 ClaudeOnly 新審查通過、無缺陷，Deployment Release 已重建；完成提交後請使用者直接重試 verify，不重打 Plugin、不重複 apply，Codex 不連線。
+- [ ] smoke 與停用收尾仍由使用者執行，P0-13 尚未完成。

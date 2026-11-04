@@ -53,6 +53,28 @@ this machine; release it after the connection is disposed. Smoke only creates
 its own marked task, polls its correlated async/trace metadata for up to three
 minutes and deletes the task in finally. Caller cancellation is not notified.
 
+## Step secure-configuration lookup (P0-13 correction, 2026-11-04)
+
+Use the official `sdkmessageprocessingstepsecureconfigid` logical attribute on
+`sdkmessageprocessingstep`; `secureconfigid` is not an alias. Queries, creates,
+updates, presence checks, export and fingerprints share one product constant.
+The separate secure-configuration entity still uses `secureconfig` for its
+content; do not retrieve that content during plan, verify or export.
+
+The offline SDK double must independently validate step column names and filter
+attributes, plus create/update attribute keys, against a fixed official schema.
+Never derive this schema from product constants. Exercise a fresh registration
+followed by verification, existing secure lookup export/cleanup and trace/push
+transitions. A first-install-only test misses queries that start only after a
+Plugin type exists. The real CLI lifecycle test uses a unique temporary solution,
+a generated unsigned net462 PE and an exclusively scheduled working-directory
+scope restored in finally; every command releases its injected fake lease.
+
+Primary references: Microsoft Learn `sdkmessageprocessingstep` entity reference
+(`SdkMessageProcessingStepSecureConfigId`) and web-service error codes
+(`QueryBuilderNoAttribute`, `0x80041103`). Live retry is user-operated; successful
+offline checks do not establish the current organization's state.
+
 ## Offline verification
 
 Keep all original 17 test methods and every subsequently added case; 17 is the original contract list, not the current suite total. L1 uses operation-local in-memory SDK services;

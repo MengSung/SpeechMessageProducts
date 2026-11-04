@@ -6,7 +6,7 @@
 
 P0-13 是 goodshepherdback 的最小 trace 骨架驗收：註冊／啟用 DiagnosticsPingPlugin → verify=0 → smoke trace → 停用收尾。Plugin trace 模式不發 LINE。
 
-目前第二次 apply 仍失敗。plan 成功不代表已註冊；verify、smoke、追蹤復原與停用收尾尚未完成，P0-13／階段 0 未通過。
+初稿記錄 net48 apply 失敗；其後使用者已回報 net462 apply 成功。最新阻礙為 verify 0x80041103，離線查詢欄位修正與驗證見第 8 節末。smoke、追蹤復原與停用收尾尚未完成，P0-13／階段 0 未通過。
 
 本報告初稿時，使用者先核定隔離離線試做 .NET Framework 4.6.2。其後使用者於 2026-11-04 依 D21 核定將 net462 改為正式產品目標，詳見第 8 節；本地驗證不能代替 D365 註冊結果。
 
@@ -166,3 +166,9 @@ Core 的套件為 BannedApiAnalyzers 5.6.0、ReferenceAssemblies 1.0.3、Referen
 **第 10 份 ClaudeOnly 初審：** `reviewMode=claude-only`、`dualModelComplete=false`、`quotaBlocked=false`、`ok=true`；此處 ok 只代表模型成功回傳，初審實際有 1 項 High。facade 參考／自身身分未由共同 PE 檢查器阻擋的缺口，已以 11 個合成案例取得功能紅燈，修復後工具全套 27／27；固定 net462 參考套件的 53 個 facade 名稱加 netstandard，共 54 個不可變名稱，兩個檢查入口皆檢查組件身分與參考，並以 `checks.noNetStandardFacade` 回報。原 allowedReferences、簽章、框架、診斷型別、GDI 與大小條件不放寬。合法 System.Net.Http 與僅前綴相似的名稱另有通過案例。Info 的冗餘版本條件僅記錄；不能把初審當成通過。
 
 **修正後的獨立複審（2026-11-04）：** 同一自癒入口的 `20261104-191800-integration-p0-review-net462-10-fix-reviewer` 確認 High 已關閉，Critical 0、High 0、Medium 0、Low 0，批准修正。初審與複審皆為單模型（使用者指定 ClaudeOnly）：`reviewMode=claude-only`、`dualModelComplete=false`、`quotaBlocked=false`、`ok=true`、`degradedFallback=false`；沒有以逾時或配額降級冒充完成。修正後完整 00 §8 已重跑通過，現在只等待使用者從驗收文件第 2 步重新打包與實機驗收；P0-13／階段 0 尚未完成。
+
+**使用者實機續報（2026-11-04，取代上述尚無 net462 註冊結果的狀態）：** 使用者已完成 net462 打包、部署 DLL 全項檢查與 Deployment Release 重建，並以 UTC `2026-11-04T12:06:26.9763980+00:00` 的新 plan 執行 apply，回報 `Plan applied. Current state export: export.json`。本輪未再出現原錯誤，支持目標框架相容性的根因推論；這不補足原始拒絕訊息或伺服器支援組建門檻的證據。verify、trace smoke 與停用收尾仍未回報，不能宣稱 P0-13 完成。所有實機指令由使用者執行，Codex 未連線、未讀取 export 或任何秘密。
+
+**後續 verify 新阻礙（使用者 2026-11-04）：** net462 apply 成功後，verify 回報兩層 `0x80041103` 與結束碼 1；尚不進 smoke、不重複 apply。Microsoft 官方錯誤碼為 QueryBuilderNoAttribute（查詢欄位不存在）；程式離線檢查發現步驟欄位誤用 secureconfigid，官方查閱欄位為 sdkmessageprocessingstepsecureconfigid。正補記憶體服務的欄位邊界與回歸測試；現場根因仍待使用者重試驗證。
+
+**查詢修復進度（2026-11-04）：** 已修正 DeploymentEngine 全部 8 處查閱名稱並集中常數，未更改 secureconfig 內容欄位、Plugin、框架或清單。獨立 schema 替身讓 5 個案例先取得功能紅燈（含真正 CLI 首次 verify 回傳 1），修正後保留原 52 例並新增 4 例，56／56 全綠。補測既有官方查閱的安全匯出與原安全列清理；只使用合成秘密。完整 00 §8 全綠：Release 建置 0 警告／0 錯誤、方案 1125／1125（ChurchReport 596／596）、Debug tracer 7／7、編碼／重複碼／I18n 守門通過。Deployment 56／56、行覆蓋率 84.95%；未改 Plugin 或清單。 本次新修正另經自癒入口 ClaudeOnly 審查通過（20261104-202450-p013-verify-schema-review-reviewer），無 Critical／High 或其他缺陷。分析與審查皆為單模型（使用者指定 ClaudeOnly）：reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=true。 不冒稱第 10 份已涵蓋。Deployment 已在本 P0 工作區重建，使用者直接重試 verify，不重打 Plugin 或再次 apply。

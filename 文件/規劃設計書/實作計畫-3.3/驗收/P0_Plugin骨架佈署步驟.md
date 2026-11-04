@@ -97,11 +97,13 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 **已完成（使用者 2026-11-04 回報）：** 前置確認、第 1 步追蹤設為「全部」並儲存、第 2 步建置與打包檢查，以及第 3 步清單改為 true 和 plan 審核。plan 只列出 CreateAssembly／CreateType／CreateStep，符合本次 trace 骨架的預期。
 
-**目前卡在第 4 步：** 第二份 plan 的 apply 回報兩層 `0x80040216`。使用者隨後核定由 Codex 操作已開啟的 D365-9.1 虛擬機查看紀錄；已在 2026-11-04 台灣時間 14:16:19 的 `MSCRMWebService` 事件 18176，確認故障位於 `pluginassembly` 的 Create／Stage 30：`System.FormatException` 發生在 `TargetFrameworkVersionValidator.ValidateInternal()`，呼叫鏈包含 `PluginValidatorBase.Validate()` 與 `ValidateAssemblyMetadata(...)`。已定位目標框架驗證階段，但尚未取得伺服器可接受的框架版本上限；verify、smoke 與停用收尾皆未完成。
+**先前阻礙（net48，已由後續 net462 apply 成功取代）：** 第二份 plan 的 apply 回報兩層 `0x80040216`。使用者隨後核定由 Codex 操作已開啟的 D365-9.1 虛擬機查看紀錄；已在 2026-11-04 台灣時間 14:16:19 的 `MSCRMWebService` 事件 18176，確認故障位於 `pluginassembly` 的 Create／Stage 30：`System.FormatException` 發生在 `TargetFrameworkVersionValidator.ValidateInternal()`，呼叫鏈包含 `PluginValidatorBase.Validate()` 與 `ValidateAssemblyMetadata(...)`。已定位目標框架驗證階段，但尚未取得伺服器可接受的框架版本上限；verify、smoke 與停用收尾皆未完成。
 
 **已完成的唯讀查核：** Codex 經使用者核定直接查看虛擬機 GUI 的上述事件，以及 `Microsoft.Crm.ObjectModel.dll` 的詳細資料，版本為 `9.1.49.21825`。續查 `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorlib.dll` 的詳細資料，檔案與產品版本均為 **4.8.4795.0**；這證明該檔案存在，不能直接當成沙箱程序實際載入版本或第 5 步 smoke 的驗收結果。本次沒有產品程式修改，也沒有執行新的 plan／apply。
 
 **目前處置（使用者 2026-11-04 核定）：** 依 D21 正式採用 .NET Framework 4.6.2（`net462`）：Plugin 目標為 `net462`；Core 與 Localization 為 `net462;net10.0`；測試執行器可維持 `net48`，但必須確認引用的是 `net462` 產品輸出。使用者最新核定取代前一版「保留正式 net48、只做隔離試做」的決定。Codex 已完成 net462 離線建置、套件／框架檢查、簽章打包、測試與 00 §8；第 10 份 ClaudeOnly 初審的 High 已修正，獨立複審通過，沒有未處理 Critical／High。使用者現在從第 2 步重新打包，再依第 3～6 步驗收。Codex 不連線 D365／LINE、不執行 plan／apply／verify／smoke。
+
+**net462 重驗目前進度（使用者 2026-11-04 回報）：** 第 2 步全部通過；第 3 步 net462 新 plan 已審核，第 4 步 apply 已回報成功，未再出現先前的 `0x80040216`。使用者隨後執行 verify，回報兩層 `0x80041103`、固定 FaultException 摘要及結束碼 1；尚未通過。查詢欄位已離線修正，完整 §8 與本次新 ClaudeOnly 審查通過，Deployment 已重建；等待使用者重試 verify。暫不重跑 apply，也不進 smoke；停用收尾未完成，P0-13 尚未完成。
 
 現場 `Microsoft.Crm.ObjectModel.dll` 檔案版本為 `9.1.49.21825`，事件指出 `TargetFrameworkVersionValidator.ValidateInternal()` 內的 `String.Format` 發生 `FormatException`。Microsoft KB 4345239 描述此驗證器會拒絕不相容的 Plugin 目標框架；公開案例也記錄相同格式化多載並以 net462 解決。因此「net48 目標遭拒，格式化例外遮住原訊息」是高度可信推論，但原拒絕訊息與格式化失敗的具體原因未取得。官方地端文件列出 4.6.2～4.8，未指出 4.8 沙箱支援的最低伺服器組建，不能只憑現場 DLL 版本宣稱缺少哪個更新。`mscorlib.dll` 檔案版本 `4.8.4795.0` 與 smoke 欄位 `FrameworkFileVersion=4.8.x` 描述伺服器執行環境，不代表 Plugin 的 `TargetFramework`；smoke 仍預期看到 `4.8.x`。只有使用者重新註冊 net462 組件的結果，才能確認該 D365 主機是否接受它。更多依據與限制見[部署失敗調查報告](P0-13_部署失敗調查報告_供Claude複核.md)。
 
@@ -127,6 +129,16 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 **做什麼：** 逐行執行，每行成功才執行下一行。
 
+**中文亂碼的處理（2026-11-04）：** 使用者回報建置訊息與路徑中的中文出現亂碼，JSON 檢查仍全數通過；目前推測為 PowerShell 與原生建置工具間的編碼不一致，尚未取得使用者視窗的實際碼頁，不能宣稱已修復。在目前視窗先執行以下設定，再繼續尚未完成的 Deployment 建置，以新輸出確認；設定只影響目前視窗及後續子程序，未修改永久環境變數或產品檔案。依據：[Microsoft：CLI console output uses UTF-8](https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/8.0/console-encoding)。
+
+```powershell
+chcp 65001 > $null
+[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Console]::InputEncoding
+$OutputEncoding = [Console]::InputEncoding
+$env:DOTNET_CLI_UI_LANGUAGE = 'zh-TW'
+```
+
 ```powershell
 dotnet build .\SpeechMessage.Dynamics.Plugins -c Release -p:SpeechMessagePackagePlugin=true
 powershell -NoProfile -File .\tools\PluginPackaging\Test-PluginAssembly.ps1 -AssemblyPath .\artifacts\plugins\SpeechMessage.Dynamics.Plugins.dll
@@ -136,6 +148,12 @@ dotnet build .\SpeechMessage.Dynamics.Deployment -c Release
 **預期看到什麼：** 建置成功，已簽章 DLL 通過檢查，AssemblyVersion 固定 `1.0.0.0`，Plugin 與合併輸入符合核定的 `net462` 目標契約；Deployment Release 建置成功。這次使用者重新打包會更新部署工具預設讀取的 artifacts/plugins/SpeechMessage.Dynamics.Plugins.dll；先前 net48 plan 不可重用。
 
 **使用者執行結果（2026-11-04）：** Plugin Release 打包成功，0 錯誤、0 警告；組件檢查 `ok=true`，各項檢查均為 true，AssemblyVersion=`1.0.0.0`，大小 723456 bytes。Deployment Release 建置成功，0 錯誤、1 個 `CS1572` 警告（`Line.Messaging/LineMessagingClient.cs:840` 的 `chatId` XML 註解）；此處只記錄使用者提供的輸出，不將該警告宣稱為已驗證的既有基準。
+
+**使用者 net462 重新打包結果（2026-11-04）：** 第一條命令成功，0 警告、0 錯誤，ILRepack 顯示 Merge succeeded，已更新預設部署 DLL。四個合併輸入的 targetFramework／noNetStandardFacade 均為 true：Plugins、Localization、Core 為 v4.6.2，Newtonsoft.Json 為 v4.5。這是合併前檢查；合併後 DLL 的完整檢查與本輪 Deployment 建置尚待執行，不能據此宣稱 D365 註冊成功。
+
+**使用者 net462 合併後 DLL 檢查結果（2026-11-04）：** 第二條命令成功，`ok=true`；readable、strongName、targetFramework、allowedReferences、noNetStandardFacade、noDrawing、diagnosticsPlugin、size 全為 true，AssemblyVersion 為 `1.0.0.0`，大小 723456 bytes。已通過本輪部署 DLL 的完整離線檢查；Deployment 重建與 D365 實機註冊仍待執行。
+
+**使用者 Deployment 重建與編碼調整結果（2026-11-04）：** 已在同一視窗套用上述編碼設定並執行第三條命令，Release 建置成功，0 個警告、0 個錯誤。中文路徑、「建置成功」及結尾統計恢復正常，開頭兩行還原訊息仍有亂碼；這只證實部分輸出改善，不能宣稱編碼問題已完全修復。第 2 步現已全部通過，接續重新 plan；D365 註冊與 smoke 仍未驗證。
 
 **Codex 離線驗證（2026-11-04）：** net462 正式簽章打包及組件檢查成功，0 錯誤；AssemblyVersion=`1.0.0.0`、FileVersion=`1.0.0.37`、大小 723456 bytes，各項檢查均為 true。產物位置為 `artifacts/plugins/net462-p0-13-20261104/SpeechMessage.Dynamics.Plugins.dll`。Release 全方案建置 0 警告、0 錯誤；細項與套件資產記錄於[部署失敗調查報告第 8 節](P0-13_部署失敗調查報告_供Claude複核.md)。尚未連線 D365；net462 能否註冊待使用者重驗。
 
@@ -167,6 +185,8 @@ plan 成功後，**立刻執行取得 `$plan` 與開啟 plan.md 的兩行，在�
 
 **net462 重新驗收規則（使用者 2026-11-04 核定）：** 舊計畫綁定 net48 組件雜湊，不能重用。待本機 net462 Release 打包檢查通過並由使用者取得新部署 DLL 後，重新執行第 3 步 plan，立即取得該次 `$plan` 並審核 `plan.md`。預期仍只有 CreateAssembly／CreateType／CreateStep；如果出現其他操作或新 plan 的內容與 trace 骨架不符，停止，不要 apply。
 
+**net462 新 plan 核對結果（2026-11-04）：** 使用者提供 UTC `2026-11-04T12:06:26.9763980+00:00`（台灣時間 20:06）的新計畫，組織為 goodshepherdback，只有 CreateAssembly、DiagnosticsPingPlugin 的 CreateType，以及 Create／task／PostOperation／Asynchronous／rank 1 的 CreateStep；User Secrets 佔位為無，符合本次 trace 骨架預期。清單與組織指紋沿用既定值，組件 SHA-256 已改為 `4F70115499412056FD84A2DDCFE0A853CEED11E55050594266A877D785E74B11`；本次 Plan SHA-256 為 `CC89D4891576FA9579257C22583D60C10002A0CFF6A88BD38BF14D5E1D7D2E51`。本項依使用者貼出的計畫審核；此份 plan 後續 apply 已成功（見第 4 步），verify 尚待修正後重試；Codex 未連線 D365。
+
 **不對時怎麼辦：** 出現其他組織、步驟、push 模式或未預期更新就不套用，回報操作種類。不得手改 plan hash；清單或 DLL 改過就重新 plan。
 
 ## 4. 套用並確認 verify=0
@@ -179,6 +199,10 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 ```
 
 **預期看到什麼：** apply 結束碼 0、測試步驟已註冊並啟用；verify 結束碼 **0**、無差異。apply 先在**該次 apply 目錄**保存 export.json；留在本機 artifacts，不上傳。
+
+**使用者 net462 apply 結果（2026-11-04）：** 沿用第 3 步已審核的新 `$plan` 執行 apply，工具回報 `Plan applied. Current state export: export.json`，本次未再回報先前的 `0x80040216`。這是本輪套用成功的使用者回報，支持改用 net462 已越過原註冊阻礙；尚須 verify=0 確認清單一致，smoke 才能確認沙箱執行。Codex 未連線 D365，未讀取 export.json；P0-13 不因此直接完成。
+
+**使用者 net462 verify 結果（2026-11-04）：** apply 成功後執行 verify，回報 `Dataverse fault code[0]: 0x80041103`、`Dataverse fault code[1]: 0x80041103`，以及固定 FaultException 摘要，`$LASTEXITCODE` 為 1。這是查詢階段的新阻礙，不等於 net462 註冊再次失敗。官方將此碼列為 `QueryBuilderNoAttribute`。離線檢查發現部署工具將步驟安全設定查閱欄位誤寫為 `secureconfigid`；官方名稱為 `sdkmessageprocessingstepsecureconfigid`。已先取得 5 個功能紅燈，再用共用常數改正全部 8 處查閱讀寫；Deployment 56／56 離線通過，包含真正 CLI 假資料生命周期及既有安全查閱的存在性匯出／清理。完整 00 §8 全綠：Release 建置 0 警告／0 錯誤、方案 1125／1125（ChurchReport 596／596）、Debug tracer 7／7、編碼／重複碼／I18n 守門通過。Deployment 56／56、行覆蓋率 84.95%；未改 Plugin 或清單。 本次新修正另經自癒入口 ClaudeOnly 審查通過（20261104-202450-p013-verify-schema-review-reviewer），無 Critical／High 或其他缺陷。分析與審查皆為單模型（使用者指定 ClaudeOnly）：reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=true。 實機尚未重試。暫不重跑 apply、不進 smoke，不讀取原始 fault 或 export。
 
 **使用者執行結果（2026-11-04）：** 首次 apply 只有固定失敗摘要；數字診斷補修後，第二份 plan 的 apply 仍失敗，實際回報為 `Dataverse fault code[0]: 0x80040216`、`Dataverse fault code[1]: 0x80040216`，以及 ``Command failed (FaultException`1). Sensitive details are not shown.``。這兩個是本次實際代碼，不是範例。不能據此判定為權限、框架或其他特定原因，也不能排除部分寫入。verify 尚未執行；暫不進入 smoke。診斷只輸出最多四個八位十六進位數字碼，不輸出原始訊息、追蹤全文或秘密；本機驗證見下方。這只補足診斷，尚未修復或驗證伺服器端拒絕原因。
 
@@ -194,6 +218,25 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 **net462 變更後的下一步：** 全方案 Release、測試、打包、守門與第 10 份 ClaudeOnly 獨立複審均已通過。使用者依第 2～6 步重新建置、產生並審核新 plan、apply、verify=0、smoke 與停用收尾；不得重用舊 net48 plan。若新的 net462 apply 仍在目標框架驗證階段出現相同 `FormatException`／`0x80040216`，停止並回報，表示本次框架推論未解決問題；不改回 Plugin Registration Tool、不修改伺服器。所有失敗回報仍只保留安全的數字錯誤碼與固定摘要，不貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。
 
 **不對時怎麼辦：** 連線、權限、簽章或沙箱錯誤就停下回報並做第 6 步，不改回手動註冊。trace 的 verify=1 或 3 都未通過，不能略過。
+
+### 4.1 verify 查詢欄位修正後的重試
+
+**已定位的程式缺陷（2026-11-04）：** 步驟安全查閱誤用 `secureconfigid`；已改為官方的 `sdkmessageprocessingstepsecureconfigid`。首次建立前不查既有步驟，本次 trace 又不寫安全設定，故 apply 成功後的 verify 才遇到不存在的欄位。假 SDK 原本未檢查欄位，現已補獨立 schema 守門及先紅後綠回歸。
+
+**已完成：** 完整 00 §8 全綠：Release 建置 0 警告／0 錯誤、方案 1125／1125（ChurchReport 596／596）、Debug tracer 7／7、編碼／重複碼／I18n 守門通過。Deployment 56／56、行覆蓋率 84.95%；未改 Plugin 或清單。 本次新修正另經自癒入口 ClaudeOnly 審查通過（20261104-202450-p013-verify-schema-review-reviewer），無 Critical／High 或其他缺陷。分析與審查皆為單模型（使用者指定 ClaudeOnly）：reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=true。
+
+**做什麼：** Codex 已在本 P0 工作區重建 Deployment Release；使用者在原本同一工作區的 PowerShell 直接重試下面兩行即可。不重新打包 Plugin、不再次 apply，仍以本次現有註冊狀態為準。若日後改用另一份工作區，須先重建該處 Deployment Release。
+
+```powershell
+dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- verify --org goodshepherdback
+$LASTEXITCODE
+```
+
+**預期看到什麼：** `Deployment state matches the registration manifest.`，下一行為 `0`。由使用者回報後才進第 5 步 smoke；Codex 不執行此命令。
+
+**不對時怎麼辦：** 保留固定摘要、數字錯誤碼及結束碼，停下回報；不貼原始 fault、export 或設定。若後續確實需要寫入，須重新 plan 並審核，不重用先前已 apply 的 plan。
+
+依據：[Microsoft 步驟欄位](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/entities/sdkmessageprocessingstep#sdkmessageprocessingstepsecureconfigid)、[Microsoft 錯誤碼](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/web-service-error-codes)。
 
 ## 5. smoke trace，人工看五項追蹤
 
@@ -259,9 +302,9 @@ git status --short -- .\d365\registration\plugins.registration.json
 | 項目 | 請填成功／未通過及固定錯誤碼 |
 | --- | --- |
 | 第 0 步前置與準備 | 使用者已回報舊步驟／流程停用、3 筆作業取消、金鑰存在及 User Secrets 儲存；舊 token 與會友 LINE ID 核定保留，免除本次清理前置 |
-| 建置與打包檢查 | 舊 net48 已由使用者執行通過；net462 已由 Codex 離線驗證，第 10 份獨立複審通過，現在由使用者從第 2 步重新打包 |
+| 建置與打包檢查 | 第 2 步全部通過：使用者 net462 Release 打包、合併後 DLL 完整檢查及 Deployment Release 重建成功；兩次建置皆 0 警告／0 錯誤，DLL AssemblyVersion 1.0.0.0、723456 bytes |
 | Plugin 追蹤設定 | 使用者已設為全部並儲存；收尾復原尚未完成 |
-| 一輪 plan／apply／verify=0 | 舊 net48 組件的 apply 失敗：兩層 `0x80040216`；事件 18176 指向目標框架驗證器，根因仍待驗證。net462 離線驗證與第 10 份獨立複審通過；使用者須重新 plan，verify 尚未執行 |
+| 一輪 plan／apply／verify=0 | net462 新 plan（台灣時間 20:06）已審核；使用者 apply 回報 Plan applied，未再出現先前的 `0x80040216`。本輪 verify 回報兩層 `0x80041103`、結束碼 1，欄位錯字已修正，完整 §8 與本次 ClaudeOnly 審查通過、Deployment 已重建，等待使用者重試 verify；smoke 與收尾仍待完成 |
 | trace smoke 與五項人工追蹤 | 未驗證 |
 | 停用、收尾 verify=0、追蹤復原及資料清除 | 未驗證 |
 

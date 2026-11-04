@@ -25,6 +25,11 @@ internal sealed class DeploymentEngine
     private const string AssemblyLogicalName = "pluginassembly";
     private const string TypeLogicalName = "plugintype";
     private const string StepLogicalName = "sdkmessageprocessingstep";
+    /// <summary>
+    /// 步驟安全設定查閱的官方邏輯名稱；不可縮寫成 secureconfigid，否則已註冊步驟的查詢會被拒絕。
+    /// 所有讀寫、存在性比對、指紋與匯出共用此欄位；只持有本次查閱 ID，不讀取安全設定內容。
+    /// </summary>
+    private const string StepSecureConfigurationLookup = "sdkmessageprocessingstepsecureconfigid";
     private const string TraceLogicalName = "plugintracelog";
     private const string AsyncOperationLogicalName = "asyncoperation";
     private const string TaskLogicalName = "task";
@@ -507,7 +512,7 @@ internal sealed class DeploymentEngine
             };
             if (secureConfigurationReference is not null)
             {
-                step["secureconfigid"] = secureConfigurationReference;
+                step[StepSecureConfigurationLookup] = secureConfigurationReference;
             }
 
             service.Create(step);
@@ -531,7 +536,7 @@ internal sealed class DeploymentEngine
     /// </summary>
     private static bool NonSecretConfigurationMatches(Entity existing, StepRegistration desired)
     {
-        var hasSecure = ReadReferenceId(existing, "secureconfigid").HasValue;
+        var hasSecure = ReadReferenceId(existing, StepSecureConfigurationLookup).HasValue;
         if (hasSecure != (desired.SecureConfig.Length > 0))
         {
             return false;
@@ -581,7 +586,7 @@ internal sealed class DeploymentEngine
         var filter = FindMessageFilter(message.Id, registration.Entity) ?? throw new InvalidDataException("Plan 所需篩選器不存在。");
         var step = FindStep(pluginType.Id, message.Id, filter.Id, ReadStage(registration.Stage), ReadMode(registration.Mode), registration.Rank)
             ?? throw new InvalidDataException("Plan 所需步驟不存在。");
-        var oldSecureId = ReadReferenceId(step, "secureconfigid");
+        var oldSecureId = ReadReferenceId(step, StepSecureConfigurationLookup);
         var configuration = JsonNode.Parse(registration.UnsecureConfig)!.AsObject();
         if (configuration.ContainsKey("lineUserId"))
         {
@@ -603,7 +608,7 @@ internal sealed class DeploymentEngine
             service.Update(new Entity(StepLogicalName, step.Id)
             {
                 ["configuration"] = configuration.ToJsonString(),
-                ["secureconfigid"] = newSecureId.HasValue
+                [StepSecureConfigurationLookup] = newSecureId.HasValue
                     ? new EntityReference("sdkmessageprocessingstepsecureconfig", newSecureId.Value) : null
             });
         }
@@ -691,7 +696,7 @@ internal sealed class DeploymentEngine
         var filterId = ReadReferenceId(step, "sdkmessagefilterid");
         var message = ReadById("sdkmessage", messageId);
         var filter = ReadById("sdkmessagefilter", filterId);
-        var secureConfigurationId = ReadReferenceId(step, "secureconfigid");
+        var secureConfigurationId = ReadReferenceId(step, StepSecureConfigurationLookup);
         return new PluginStepExport(
             step.Id,
             typeName,
@@ -847,7 +852,7 @@ internal sealed class DeploymentEngine
             .Select(typeId => service.RetrieveMultiple(new QueryExpression(StepLogicalName)
             {
                 ColumnSet = new ColumnSet("name", "eventhandler", "sdkmessageid", "sdkmessagefilterid",
-                    "stage", "mode", "rank", "filteringattributes", "configuration", "secureconfigid",
+                    "stage", "mode", "rank", "filteringattributes", "configuration", StepSecureConfigurationLookup,
                     "statecode", "statuscode"),
                 Criteria = Equal("eventhandler", typeId)
             }).Entities)
@@ -930,7 +935,7 @@ internal sealed class DeploymentEngine
         var matches = RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression(StepLogicalName)
         {
             ColumnSet = new ColumnSet("name", "eventhandler", "sdkmessageid", "sdkmessagefilterid",
-                "stage", "mode", "rank", "filteringattributes", "configuration", "secureconfigid",
+                "stage", "mode", "rank", "filteringattributes", "configuration", StepSecureConfigurationLookup,
                 "statecode", "statuscode"),
             Criteria = And(
                 Equal("eventhandler", typeId),
@@ -1010,7 +1015,7 @@ internal sealed class DeploymentEngine
                     Rank = step.GetAttributeValue<int>("rank"),
                     FilteringAttributes = step.GetAttributeValue<string>("filteringattributes"),
                     ConfigurationHash = HashText(step.GetAttributeValue<string>("configuration") ?? string.Empty),
-                    HasSecureConfig = ReadReferenceId(step, "secureconfigid").HasValue,
+                    HasSecureConfig = ReadReferenceId(step, StepSecureConfigurationLookup).HasValue,
                     State = ReadOption(step, "statecode"),
                     Status = ReadOption(step, "statuscode")
                 });
