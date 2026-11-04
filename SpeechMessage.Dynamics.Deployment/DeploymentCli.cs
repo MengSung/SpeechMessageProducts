@@ -111,6 +111,11 @@ internal static class DeploymentCli
                     var plan = engine.Plan(manifest, image, command.Organization);
                     WritePlan(operationRoot, plan);
                     output.WriteLine("Plan created.");
+                    if (plan.SecretPlaceholders.Count != 0)
+                    {
+                        output.WriteLine("Secret values are not compared. This is not a secret-rotation plan.");
+                    }
+
                     return 0;
                 }
                 case "apply":
@@ -126,14 +131,7 @@ internal static class DeploymentCli
                 {
                     var image = AssemblyCatalog.Read(assemblyPath, manifest);
                     var plan = engine.Plan(manifest, image, command.Organization);
-                    if (plan.Operations.Count != 0)
-                    {
-                        output.WriteLine("Deployment state differs from the registration manifest.");
-                        return 1;
-                    }
-
-                    output.WriteLine("Deployment state matches the registration manifest.");
-                    return 0;
+                    return WriteVerificationResult(plan, output);
                 }
                 case "export":
                 {
@@ -177,6 +175,33 @@ internal static class DeploymentCli
             output.WriteLine("Command failed (" + exception.GetType().Name + "). Sensitive details are not shown.");
             return 1;
         }
+    }
+
+    /// <summary>
+    /// 將規劃結果轉成 verify 的固定輸出與程序結束碼；純輸出步驟不持有服務、秘密或可變跨命令狀態。
+    /// 與 CLI 共用同一實作，離線測試可以直接用記憶體組織的實際計畫檢查輸出契約。
+    /// </summary>
+    /// <param name="plan">本次命令的不可變計畫，不含秘密實值。</param>
+    /// <param name="output">由呼叫端持有並釋放的固定摘要 writer。</param>
+    /// <returns>公開設定一致且沒有秘密佔位時為 0；metadata 有差異為 1；秘密未比對而不能完整驗證為 3。</returns>
+    internal static int WriteVerificationResult(DeploymentPlan plan, TextWriter output)
+    {
+        if (plan.Operations.Count != 0)
+        {
+            output.WriteLine("Deployment state differs from the registration manifest.");
+            return 1;
+        }
+
+        if (plan.SecretPlaceholders.Count != 0)
+        {
+            // 不為了取得綠燈讀取 secrets，也不能把部分驗證冒充完整一致；此為預期未完成，不送例外告警。
+            output.WriteLine("Non-secret metadata matches. Secret values were not compared; verification is incomplete (exit 3).");
+            output.WriteLine("This is not a secret-rotation plan. Validate test delivery separately; secret changes are not detected or applied by this plan.");
+            return 3;
+        }
+
+        output.WriteLine("Deployment state matches the registration manifest.");
+        return 0;
     }
 
     /// <summary>解析唯一命令、允許選項與其值；未知參數的實際內容不會進入回應。</summary>

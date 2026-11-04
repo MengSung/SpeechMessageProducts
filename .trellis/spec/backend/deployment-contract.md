@@ -28,7 +28,13 @@ step identities use type/message/entity/stage/mode/rank, and duplicate database
 IDs fail closed. Existing step configuration changes update the original ID;
 trace/push transitions retain idempotency, parse secrets only for writes, and
 remove obsolete secure configuration records. Plan does not compare secret
-values and therefore is not a credential-rotation tool.
+values and therefore is not a credential-rotation tool. Both CLI and Markdown
+must disclose this scope whenever placeholders exist. If metadata matches but
+secret placeholders exist, verify returns 3 (incomplete), never full success.
+Metadata differences still return 1; trace-only complete equality returns 0.
+Do not add secret resolution, hashes of actual secrets, new rotation commands
+or raw exports to obtain a successful verification result. Secret-value
+changes require separately authorized rotation work and user test delivery.
 
 A bounded OS file-handle lease serializes same-organization write commands on
 this machine; release it after the connection is disposed. Smoke only creates
@@ -37,7 +43,7 @@ minutes and deletes the task in finally. Caller cancellation is not notified.
 
 ## Offline verification
 
-Keep all original 17 test methods. L1 uses operation-local in-memory SDK services;
+Keep all original 17 test methods and every subsequently added case; 17 is the original contract list, not the current suite total. L1 uses operation-local in-memory SDK services;
 L2 emits an unsigned net48 PE into the test's unique temporary folder and reads
 metadata without Assembly.Load. Dispose readers, timers, locks and temp fixtures.
 CI includes the Deployment project and a separate >=80% coverage report.

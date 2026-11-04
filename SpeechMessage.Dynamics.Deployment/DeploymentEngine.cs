@@ -129,6 +129,12 @@ internal sealed class DeploymentEngine
 
         builder.AppendLine();
         builder.AppendLine("## User Secrets 佔位名稱");
+        if (plan.SecretPlaceholders.Count != 0)
+        {
+            builder.AppendLine("Secret values are not compared. This is not a secret-rotation plan.");
+            builder.AppendLine("Verify cannot establish full equality for these values; unchanged metadata yields incomplete exit 3.");
+        }
+
         if (plan.SecretPlaceholders.Count == 0)
         {
             builder.AppendLine("- 無");
@@ -395,7 +401,7 @@ internal sealed class DeploymentEngine
                 continue;
             }
 
-            if (!ConfigurationMatches(existingStep, step))
+            if (!NonSecretConfigurationMatches(existingStep, step))
             {
                 operations.Add(new DeploymentOperation("UpdateStepConfiguration", StepKey(step)));
             }
@@ -519,9 +525,11 @@ internal sealed class DeploymentEngine
 
     /// <summary>
     /// 比對既有步驟的公開模式與文化欄位，不讀取秘密來源或 secureconfig 值。
-    /// lineUserId 僅檢查已解析且非空；回傳值與 plan 不保存該值，避免個資落檔。
+    /// lineUserId 僅檢查已解析且非空後，從比較候選移除；true 只代表公開 metadata 相同，不是秘密值相同。
+    /// CLI 對任何秘密佔位回報驗證未完成（非零），計畫摘要也明列不支援秘密輪替，避免守門假綠燈。
+    /// 所有 JSON 與值只屬本次呼叫，回傳值及 plan 不保存該值，避免個資落檔。
     /// </summary>
-    private static bool ConfigurationMatches(Entity existing, StepRegistration desired)
+    private static bool NonSecretConfigurationMatches(Entity existing, StepRegistration desired)
     {
         var hasSecure = ReadReferenceId(existing, "secureconfigid").HasValue;
         if (hasSecure != (desired.SecureConfig.Length > 0))
@@ -546,8 +554,9 @@ internal sealed class DeploymentEngine
                     return false;
                 }
 
-                // 不解析 User Secrets；只在此比較框架內暫用既有值，方法返回即不再保留。
-                expected["lineUserId"] = userId;
+                // 明確排除未驗證的秘密欄位，不能用既有值回填 expected 來暗示相等。
+                expected.Remove("lineUserId");
+                current.Remove("lineUserId");
             }
 
             return JsonNode.DeepEquals(current, expected);

@@ -92,6 +92,64 @@ public sealed class DeploymentContractTests
         Assert.DoesNotContain(Fixture.SecretValue, File.ReadAllText(Path.Combine(f.Root, "export.json")), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// 同一推播模板在假秘密保留或輪替後，都不得以唯讀 metadata 計畫宣稱秘密已驗證。
+    /// 注入新的假 reader，斷言不被讀取、不寫資料、回傳未完成碼、租用輸出不含任何秘密；不是連線驗收。
+    /// </summary>
+    /// <param name="rotated">是否將本次假秘密來源換成不同值。</param>
+    [Theory(DisplayName = "推播秘密未比對不能回報完整成功")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Verify_SecretValuesUnchecked_ReturnsIncompleteAndDisclosesScope(bool rotated)
+    {
+        using var f = new Fixture(push: true);
+        f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
+        var readCount = 0;
+        var writes = f.Service.Writes.Count;
+        const string rotatedValue = "ROTATED-SYNTHETIC-NOT-A-CREDENTIAL";
+        var engine = new DeploymentEngine(f.Service, f.Root, f.Clock, _ =>
+        {
+            readCount++;
+            return rotated ? rotatedValue : Fixture.SecretValue;
+        });
+        var plan = engine.Plan(f.Manifest, f.Image, Fixture.Organization);
+        Assert.Empty(plan.Operations);
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+
+        Assert.Equal(3, DeploymentCli.WriteVerificationResult(plan, output));
+
+        Assert.Equal(0, readCount);
+        Assert.Equal(writes, f.Service.Writes.Count);
+        var text = output.ToString();
+        Assert.Contains("Secret values were not compared", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Deployment state matches", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(Fixture.SecretValue, text, StringComparison.Ordinal);
+        Assert.DoesNotContain(rotatedValue, text, StringComparison.Ordinal);
+    }
+
+    /// <summary>含秘密佔位的 Markdown 必須揭露不比較值與不處理輪替，且既有佔位不解析契約仍成立。</summary>
+    [Fact(DisplayName = "計畫明列秘密值未比對與輪替限制")]
+    public void Plan_WithSecrets_DisclosesVerificationAndRotationLimits()
+    {
+        using var f = new Fixture(push: true);
+        var text = DeploymentEngine.Markdown(f.Plan());
+        Assert.Contains("Secret values are not compared", text, StringComparison.Ordinal);
+        Assert.Contains("not a secret-rotation plan", text, StringComparison.Ordinal);
+        Assert.Equal(0, f.SecretReads);
+        Assert.DoesNotContain(Fixture.SecretValue, text, StringComparison.Ordinal);
+    }
+
+    /// <summary>不含秘密的追蹤清單可完整驗證；確實存在 metadata 操作時仍回傳差異碼，不會被未完成碼掩蓋。</summary>
+    [Fact(DisplayName = "公開設定相同成功而 metadata 差異仍失敗")]
+    public void Verify_TraceMetadata_PreservesSuccessAndDifferenceCodes()
+    {
+        using var f = new Fixture();
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        Assert.Equal(1, DeploymentCli.WriteVerificationResult(f.Plan(), output));
+        f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
+        Assert.Equal(0, DeploymentCli.WriteVerificationResult(f.Plan(), output));
+    }
+
     /// <summary>既有組件主次版本不同，須在任何寫入之前拒絕。</summary>
     [Fact(DisplayName = "主次版本衝突停止")]
     public void Plan_AssemblyMajorMinorChanged_Stops()
