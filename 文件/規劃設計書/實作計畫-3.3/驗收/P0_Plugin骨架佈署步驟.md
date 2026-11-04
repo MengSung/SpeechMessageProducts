@@ -1,13 +1,13 @@
 # P0-13　Plugin 骨架最小驗收
 
-> 使用者 2026-11-04 核定。清理完成後預留約 1 小時；全部由使用者執行，Codex 不連線 D365／LINE。
+> 使用者 2026-11-04 核定。前置備妥後預留約 1 小時；全部由使用者執行，Codex 不連線 D365／LINE。
 > **只連 goodshepherdback；不要貼出密碼、token、金鑰、User Secrets 或追蹤全文。**
 
 > **LINE 憑證分離補充（2026-11-04）：** ChurchReport 的 `appsettings.json` 已清空 LINE token；正式環境改由專用環境變數提供，Development 的 `DevTest` token 只接受 User Secrets。
 >
 > P0-13 使用 trace，不需要 LINE channel、`TestLineUserId`、`TestChannelToken` 或任何 LINE token。Deployment 的 User Secrets 只填下面三個 Dataverse 值；本次 `secureConfig` 保持空白。
 >
-> **程式設定分離不等於 goodshepherdback 資料清理完成。** 舊 Plugin／工作流程相關資料中的 LINE token 與會友 `new_lineid` 仍須由使用者確認清理；尚未回報的項目保持未勾選。
+> **使用者 2026-11-04 追加核定：** 本次 P0-13 trace 驗收保留資料中的舊 LINE token 與會友 `new_lineid`，免除這兩項清理前置，不再等待清空才繼續。這記錄為使用者核定保留資料，不能宣稱資料已清理；舊 Plugin／工作流程維持停用。此例外限本次 trace 驗收，後續階段另依該階段規則執行。
 
 本次只確認：以佈署專案註冊、啟用 net48 Plugin，在沙箱看到版本與雙語文字，最後停用並清理。
 不需要測試 LINE channel，也不需要 Six Labors 授權：Plugins 與 Deployment 的直接、間接相依均無 ImageSharp。
@@ -17,17 +17,17 @@
 
 ## 0. 前置確認
 
-**做什麼：** 全部確認後才執行部署命令；以下依使用者 2026-11-04 回報更新，尚未確認的項目維持未勾選，整體清理仍未完成。
+**做什麼：** 以下依使用者 2026-11-04 回報與追加核定更新；舊步驟／流程停用、待處理作業取消及本機準備均已有回報，可繼續第 1 步追蹤設定。token 與會友 LINE ID 資料保留，免除本次清理前置。
 
 - [x] goodshepherdback 的舊自訂 Plugin 步驟已停用（使用者 2026-11-04 回報）。
 - [x] goodshepherdback 的自訂工作流程已停用（使用者 2026-11-04 回報）。
 - [x] 等候中、可重試、排程中的舊自訂流程系統作業已取消（使用者 2026-11-04 回報取消篩選後的 3 筆）。
-- [ ] 資料中的 LINE token 已清除或換成測試 channel。
-- [ ] 會友 `new_lineid` 已清空。P1-12 仍用此組織，不能省略上述清理。
+- 本次免除：清除或替換資料中的舊 LINE token（使用者 2026-11-04 追加核定保留）。
+- 本次免除：清空會友 `new_lineid`（同上）。這兩項不標記為清理完成，亦不自動放寬後續階段。
 
 **停用確認依據：** 使用者提供的截圖可見 4 筆 `TwoWingsPlugIn` 步驟皆為「已停用」；其餘舊自訂 Plugin 步驟與自訂工作流程依使用者回報記錄。截圖只涵蓋部分步驟，不代表 Codex 已逐筆核對全部 105 筆，也未由 Codex 連線查驗；Microsoft 系統內建項目維持原狀。
 
-- [ ] 開一個**環境變數設定後才開的全新 PowerShell 視窗**，執行下列檢查，顯示 `True`；之後在這個視窗執行建置與部署命令。只確認檔案存在，不讀取、複製或貼出金鑰內容。
+- [x] 使用者已在新 PowerShell 執行下列檢查並回報 `True`；只確認檔案存在，未讀取金鑰內容。之後沿用該視窗執行命令，重開視窗時再確認一次。
 
 ```powershell
 Test-Path $env:SPEECHMESSAGE_PLUGIN_KEYFILE
@@ -35,7 +35,7 @@ Test-Path $env:SPEECHMESSAGE_PLUGIN_KEYFILE
 
 已開著的 PowerShell 視窗與 Visual Studio 看不到後來新增的環境變數；請重新開啟。
 
-- [ ] 在 Visual Studio 對 **SpeechMessage.Dynamics.Deployment** 選「管理使用者密碼」，填好以下三個值；填完關閉檔案，不提交。
+- [x] 使用者已在 **SpeechMessage.Dynamics.Deployment** 的「管理使用者密碼」儲存以下三個值；內容未由 Codex 讀取，尚未驗證登入成功。
 
 ```json
 {
@@ -62,7 +62,7 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 **預期看到什麼：** 組織為 goodshepherdback，UserSecretsId 是 `SpeechMessage.Dynamics.Deployment.P0`。trace 只需要這三個 Dataverse 值，不要求 `TestLineUserId`、`TestChannelToken`，不要求任何 LINE token，也不讀 ChurchReport 設定。
 
-**不對時怎麼辦：** 清理未完成就不連線。金鑰無法使用、User Secrets 找不到或要求額外 LINE 值時，回報固定錯誤型別／代碼，不填假值、不換金鑰。
+**不對時怎麼辦：** 舊步驟／流程未停用或待處理舊作業未取消時，先停止部署。金鑰無法使用、User Secrets 找不到或要求額外 LINE 值時，回報固定錯誤型別／代碼，不填假值、不換金鑰。
 
 ### 0.1 系統作業清理（使用者已回報完成）
 
@@ -79,21 +79,27 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 **不對時怎麼辦：** 找不到清單、無法判斷來源或取消失敗就停在該畫面回報。取消後無法恢復該作業，不改用暫停或延後冒充取消，也不刪除歷史記錄。
 操作依據：[Microsoft：監視及管理系統作業](https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/admin/monitor-manage-system-jobs?view=op-9-1)。
 
-### 0.2 待確認：舊 LINE token 與會友資料清理
+### 0.2 本次核定：保留舊 LINE token 與會友 LINE ID
 
-**做什麼：** 先確認舊 Plugin／自訂流程的 LINE token 當初在哪個畫面或檔案設定，再依實際位置引導清理。只回報畫面名稱、欄位名稱或檔名，不貼出 token 或設定內容；位置尚未確認前，不猜測資料表、不修改正式頻道或正式組織。
+**已找到的來源（本機舊程式，2026-11-04）：** 舊 webhook 會把 LINE token 複製到「信件」資料表（`letter`）的 `new_channel_access_token` 欄位，舊 LineMessagePlugIn 再從該欄位讀取。因此清空網站設定，並不會清掉已存在資料庫中的值。小組週報舊 Plugin 也會讀取 `new_group_present_weekly_report` 的同名欄位。這是本機原始碼的證據，尚未確認 goodshepherdback 的實際資料或已部署 DLL 版本。
 
-**已完成的程式工作：** `86ca8bf83` 已完成 ChurchReport LINE 設定分離；離線測試 ChurchReport.MemberInfo.Tests 597／597、Line.Messaging.Tests 32／32 通過。這只證明程式設定與守門，不代表曾連線確認 goodshepherdback，不能據此勾選資料清理或 P0-13 實機項目。
+**來源檔：** 上層工作區 `.其他解決方案` 內的 `LineApiWebhook\Crm2011Processor\Dynamics365ProcessorClass\Dynamics365ProcessorClass.MessageStore.cs`、`Dynamics365Line\LineMessagePlugIn\LineMessagePlugInClass.cs`、`Dynamics365Line\WeeklyReportLinePlugIn\WeeklyReportLinePlugInClass.cs`。只記錄檔名與欄位名稱，不記錄 token 值。
 
-**完成條件：** 使用者在 goodshepherdback 清除或替換相關資料中的 token，並回報完成後，才勾選上方 token 項目。目前 token 與會友 `new_lineid` 均尚未回報清理完成，整體清理仍未完成。
+**保持停用：** 舊 `Dynamics365Line\LineUtility\LineUtilityClass.cs` 還有程式內預設 token 的回退邏輯；清空資料欄位不能證明舊程式不會發送。先前停用的舊 Plugin／工作流程必須保持停用，本次不修改、重建或重新啟用它們。
 
-### 0.3 現在先做的一小步：檢查本機金鑰是否備妥
+**使用者 2026-11-04 追加核定：** 本次保留既有資料，不再進行資料查詢、清空或替換的引導，直接續行 trace 驗收。舊步驟／流程保持停用；本次只註冊清單內的 DiagnosticsPingPlugin，維持 trace 與空白 secureConfig。
 
-**做什麼：** 按 Windows「開始」，輸入 `PowerShell`，開啟一個全新視窗；只貼上並執行 `Test-Path $env:SPEECHMESSAGE_PLUGIN_KEYFILE`。這個檢查可在等待資料清理確認時先做，不會連線 D365／LINE，也不會讀取金鑰內容。
+**已完成的程式工作：** `86ca8bf83` 已完成 ChurchReport LINE 設定分離；離線測試 ChurchReport.MemberInfo.Tests 597／597、Line.Messaging.Tests 32／32 通過。這只證明程式設定與守門，不能據此勾選 P0-13 實機項目。
 
-**預期看到什麼：** 顯示 `True`，保留這個視窗。只回報 `True`，不要貼路徑或金鑰內容；收到結果後再進行下一小步，不要一次貼上第 1～6 步的全部命令。
+**完成條件：** 本次兩項資料清理已核定免除。P0-13 仍須由使用者完成追蹤設定、plan／apply／verify、trace smoke 與停用收尾，不能以核定免除取代實機驗收。
 
-**不對時怎麼辦：** 顯示 `False` 或紅色錯誤就先停在這一步，只回報 `False` 或遮罩後的錯誤代碼；不產生替代金鑰。即使顯示 `True`，仍須完成第 0 步所有未勾選項目，才開始第 1～6 步的實機驗收。
+### 0.3 目前進度與下一小步
+
+**已完成：** 使用者已確認金鑰存在、儲存 Deployment User Secrets，並完成第 2 步的三個離線命令；本次資料清理前置已核定免除。接著進入第 1 步追蹤設定，尚未執行部署或 smoke。
+
+**現在只做：** 回到 goodshepherdback 主畫面，點「設定 → 系統管理」，先停在該畫面；回報「已開啟系統管理」後，再繼續找到系統設定中的 Plugin 追蹤選項。
+
+**不對時怎麼辦：** 找不到「系統管理」就停下，回報看見的選單名稱；如需截圖，先遮住帳號與個資。追蹤設定完成後，再依第 3 步進行 plan。
 
 ## 1. 開啟 Plugin 追蹤
 
@@ -114,6 +120,8 @@ dotnet build .\SpeechMessage.Dynamics.Deployment -c Release
 ```
 
 **預期看到什麼：** 建置成功，已簽章 DLL 通過檢查，AssemblyVersion 固定 `1.0.0.0`，目標為 net48。
+
+**使用者執行結果（2026-11-04）：** Plugin Release 打包成功，0 錯誤、0 警告；組件檢查 `ok=true`，各項檢查均為 true，AssemblyVersion=`1.0.0.0`，大小 723456 bytes。Deployment Release 建置成功，0 錯誤、1 個 `CS1572` 警告（`Line.Messaging/LineMessagingClient.cs:840` 的 `chatId` XML 註解）；此處只記錄使用者提供的輸出，不將該警告宣稱為已驗證的既有基準。
 
 **不對時怎麼辦：** 回報失敗命令與錯誤碼；不產生替代金鑰、不跳過簽章檢查，也不為此提供 Six Labors 授權。
 
@@ -215,8 +223,9 @@ git status --short -- .\d365\registration\plugins.registration.json
 
 | 項目 | 請填成功／未通過及固定錯誤碼 |
 | --- | --- |
-| 第 0 步清理與準備 | 進行中：舊自訂 Plugin 步驟、自訂工作流程已回報停用，3 筆待處理系統作業已回報取消；其餘待確認 |
-| 追蹤設定、建置與打包檢查 | 待使用者執行 |
+| 第 0 步前置與準備 | 使用者已回報舊步驟／流程停用、3 筆作業取消、金鑰存在及 User Secrets 儲存；舊 token 與會友 LINE ID 核定保留，免除本次清理前置 |
+| 建置與打包檢查 | 已由使用者執行通過；Deployment 有 1 個 CS1572 警告，詳第 2 步 |
+| Plugin 追蹤設定 | 待確認 |
 | 一輪 plan／apply／verify=0 | 未驗證 |
 | trace smoke 與五項人工追蹤 | 未驗證 |
 | 停用、收尾 verify=0、追蹤復原及資料清除 | 未驗證 |
@@ -225,4 +234,4 @@ git status --short -- .\d365\registration\plugins.registration.json
 來源：[LINE 官方重試說明](https://developers.line.biz/en/docs/messaging-api/retrying-api-request/)。
 
 GitHub CI 的 23／26 專案過渡範圍已由使用者 2026-11-04 接受；DevExpress 來源在階段 1 開始後優先處理，本機 §8 仍驗證全方案。
-**文件已備妥就停下，等使用者回報清理與最小驗收成功；P0-13 和階段 0 目前尚未完成，也不開 P1 分支。**
+**文件已備妥，依使用者回報逐步續行最小驗收；P0-13 和階段 0 目前尚未完成，也不開 P1 分支。Codex 不連線 D365／LINE。**

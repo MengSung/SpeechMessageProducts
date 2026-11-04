@@ -1,0 +1,17 @@
+{
+  "id": "p013-legacy-line-token-source",
+  "title": "P0-13 查明舊 LINE token 來源並同步使用者核定的 trace 前置例外",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "documentation",
+  "currentPhase": "completed",
+  "nextAction": "本次來源調查與核定文件同步已完成；P0-13 未完成，等待使用者逐步回報追蹤設定、部署、smoke 與停用收尾",
+  "branch": "1.0.0.11.Integration.P0",
+  "constraints": [
+    "不新增 Trellis 任務，不修改產品程式",
+    "不連線 D365 或 LINE",
+    "不讀取授權檔或金鑰內容，不輸出 token、帳密或個資",
+    "不推送、不合併、不改寫歷史"
+  ]
+}
