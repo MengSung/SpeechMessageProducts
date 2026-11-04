@@ -3,9 +3,11 @@
 ## Scope and connection boundary
 
 P0-12 is an offline implementation and test package. No D365 or LINE connection
-is permitted until the user reports goodshepherdback cleanup complete. Afterwards,
-Codex may only run the read-only commands authorized by D24; apply, rollback and
-smoke remain user operations. Credentials come only from the Deployment User
+is permitted until the user reports goodshepherdback cleanup complete. Earlier P0-13 guidance reserved writes for the user. On 2026-11-04 the user
+explicitly authorized Codex to finish this goodshepherdback trace acceptance,
+including smoke, the reviewed disable plan/apply, verification and restoration of
+exception-only tracing. This authorization is scoped to that acceptance and does
+not authorize other organizations or future LINE pushes. Credentials come only from the Deployment User
 Secrets provider; Windows Credential Manager is a future option. Do not modify
 ToolUtility or accept passwords on the command line.
 
@@ -72,7 +74,7 @@ scope restored in finally; every command releases its injected fake lease.
 
 Primary references: Microsoft Learn `sdkmessageprocessingstep` entity reference
 (`SdkMessageProcessingStepSecureConfigId`) and web-service error codes
-(`QueryBuilderNoAttribute`, `0x80041103`). Live retry is user-operated; successful
+(`QueryBuilderNoAttribute`, `0x80041103`). A live retry requires explicit user authorization; successful
 offline checks do not establish the current organization's state.
 
 ## Offline verification
@@ -88,10 +90,11 @@ acceptance, not a claim made by the offline suite.
 
 ## Minimal P0-13 acceptance (user approved 2026-11-04)
 
-P0-13 is user-operated trace-only sandbox acceptance. The Plugin deployment
+P0-13 is user-approved trace-only sandbox acceptance; the user explicitly
+authorized Codex to finish the remaining live operations on 2026-11-04. The Plugin deployment
 assembly targets .NET Framework 4.6.2 per the user's 2026-11-04 D21
-authorization; successful registration on the target D365 host remains to be
-confirmed by the user. The smoke field `FrameworkFileVersion=4.8.x` describes
+authorization. Registration, trace smoke and disabled-state verification on the
+target D365 host were confirmed on 2026-11-04. The smoke field `FrameworkFileVersion=4.8.x` describes
 the server's loaded `mscorlib` runtime file, not the Plugin target framework.
 Only OrganizationUrl,
 Username and Password under the Deployment organization User Secrets are needed;
@@ -109,4 +112,13 @@ the source-record-ID retry-key unit contract and LINE's 24-hour retry-key validi
 contract, as accepted by the user; this is not a claim of observed delivery or
 an assurance beyond the retry-key validity window. Transitional CI scope is
 accepted; prioritize DevExpress source resolution once phase 1 begins and retain
-full-solution local checks. Cleanup and real P0 acceptance remain unreported.
+full-solution local checks. The 2026-11-04 live run passed all five trace checks, reported runtime
+FrameworkFileVersion 4.8.4795.0, left zero run-scoped smoke tasks, disabled the
+diagnostic step with a single UpdateStepState plan and verify=0, and restored
+exception-only tracing (value 1). Keep only fixed results, counts and validated
+versions as evidence; never persist or print the raw message block. The temporary
+audit uses the existing fixed-endpoint connector, owns and disposes its
+configuration and connection, and queries only the exact diagnostic type, run
+time window and correlation. Old LINE data was retained under the user's explicit
+P0-only exception; do not describe it as cleared or extend that exception to later
+phases. This acceptance did not exercise LINE delivery or prove hosted CI success.

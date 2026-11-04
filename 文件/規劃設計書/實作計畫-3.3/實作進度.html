@@ -350,53 +350,45 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-04（net462 離線驗證及第 10 份獨立複審通過；等待使用者實機重驗）",
+  "snapshot": "2026-11-04 20:41（P0-13 實機通過並完成停用收尾；階段 0 完成）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "階段 0 原審查、第 09 份與第 10 份 ClaudeOnly 獨立複審已通過，無未處理 Critical／High。P0-13 已依使用者核定精簡為 <strong>trace 沙箱最小驗收</strong>；FileVersion／回復移至階段 5，推播移至 P2-04 前。net48 註冊失敗後，使用者已核定依 D21 正式改用 net462；離線建置、簽章打包、資產盤點、測試與修正後完整 00 §8 已通過，等待使用者重新實機驗收。",
-  "alert": {
-    "title": "net462 已通過離線驗證與複審，請從第 2 步重新驗收",
-    "body": "使用者 2026-11-04 核定依 D21 正式改用 net462，取代隔離試做。第 10 份初審 High 已修正，獨立複審 Critical 0／High 0，修正後完整 00 §8 通過。審查為單模型（使用者指定 ClaudeOnly），dualModelComplete=false、quotaBlocked=false；net462 是否可註冊仍須使用者實機證實。",
-    "steps": [
-      "由使用者從第 2 步重新打包，再產生並審核新 plan；預期只有 CreateAssembly／CreateType／CreateStep，舊 net48 plan 不可重用。",
-      "apply 成功後 verify=0，再做 smoke；若仍是相同 FormatException／0x80040216 就停下回報，不改伺服器或改用手動註冊。",
-      "停用測試步驟、verify=0、追蹤恢復例外狀況並確認資料清理，再回報結果。"
-    ]
-  },
+  "headline": "階段 0 已完成 <strong>18／18 工作包</strong>。net462 已在 goodshepherdback 註冊並執行成功；使用者回報啟用 verify=0 後，Codex 依最新全權授權完成 smoke=0、五項追蹤、停用 verify=0、追蹤恢復例外狀況及測試 task 清除。原審查、第 09／10 份與 verify 修正審查無未處理 Critical／High；GitHub CI 維持使用者已接受的過渡範圍。本次未開 P1。",
+  "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "17",
+      "value": "18",
       "unit": "/ 83 工作包",
-      "sub": "17／18；待使用者完成最小驗收，未開 P1",
+      "sub": "階段 0 18／18 完成；尚未開 P1",
       "meter": {
-        "done": 17,
-        "active": 1,
+        "done": 18,
+        "active": 0,
         "total": 83
       }
     },
     {
       "label": "階段 0 進度",
-      "value": "17",
+      "value": "18",
       "unit": "/ 18 工作包",
-      "sub": "17／18；待使用者完成最小驗收，未開 P1",
+      "sub": "階段 0 18／18 完成；尚未開 P1",
       "meter": {
-        "done": 17,
-        "active": 1,
+        "done": 18,
+        "active": 0,
         "total": 18
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "1104",
-      "unit": "/ 1104 通過",
-      "sub": "ChurchReport 590／590；零失敗／跳過；Debug tracer 7／7"
+      "value": "1125",
+      "unit": "/ 1125 通過",
+      "sub": "a4649e3b 前完整本機 §8；ChurchReport 596／596，Debug tracer 7／7"
     },
     {
       "label": "最新完整本機建置",
       "value": "通過",
-      "unit": "0 錯誤",
-      "sub": "1 個既有 CS1572；GitHub 過渡實跑結果尚待使用者確認"
+      "unit": "0 警告／0 錯誤",
+      "sub": "a4649e3b 前完整本機 Release；GitHub 過渡實跑結果仍待確認"
     }
   ],
   "wps": [
@@ -529,10 +521,10 @@ const DATA = {
     },
     {
       "id": "P0-13",
-      "name": "使用者最小驗收：trace 沙箱註冊與清理",
-      "status": "you",
-      "note": "net48 apply 失敗後，使用者 2026-11-04 核定正式改用 net462。離線建置、套件／facade 盤點、簽章打包、測試、修正後完整 §8 與第 10 份 ClaudeOnly 獨立複審通過；由使用者重新打包、plan／apply／verify／smoke 及停用收尾。net462 註冊尚未實機證實。",
-      "commit": "9f87187c（精簡）；本次操作文件補充，未實機驗收"
+      "name": "最小驗收：trace 沙箱註冊、執行與清理",
+      "status": "done",
+      "note": "使用者 net462 apply／verify=0；Codex 依 2026-11-04 全權授權完成 smoke=0，P0-PING／Assembly 1.0.0.0／Framework 4.8.4795.0／雙語五項追蹤全通過。單項 UpdateStepState 停用、verify=0、追蹤回復例外狀況，smoke task 殘留 0；不發 LINE。",
+      "commit": "69803bf1（net462）；a4649e3b（verify）；f664c685（清單停用）"
     }
   ],
   "phases": [
@@ -541,9 +533,9 @@ const DATA = {
       "name": "準備、守門與可行性驗證",
       "est": "5～8 天",
       "total": 18,
-      "done": 17,
-      "active": 1,
-      "current": true
+      "done": 18,
+      "active": 0,
+      "current": false
     },
     {
       "id": "階段 1",
@@ -692,8 +684,8 @@ const DATA = {
     {
       "item": "Deployment 離線 L1／L2",
       "before": "未建立",
-      "after": "46／46；82.12%",
-      "note": "含秘密時 verify 為 3 未完成，不比較或輸出實值；無 D365 連線"
+      "after": "56／56；84.95%",
+      "note": "安全欄位 schema 回歸及命令租約釋放通過；P0-13 已另外完成實機 trace 驗收，推播未驗收。"
     },
     {
       "item": "階段 0 外部審查",
@@ -728,7 +720,8 @@ const DATA = {
     },
     {
       "ok": true,
-      "text": "沒有改動產品程式"
+      "text": "本輪實機驗收未修改產品程式",
+      "sub": "沿用既有 Deployment；清單停用另以新提交保存。前面工作包的產品修正仍保留。"
     },
     {
       "ok": true,
@@ -1030,6 +1023,11 @@ const DATA = {
       "t": "2026-11-04",
       "text": "舊 net48 組件在 D365 目標框架驗證器發生 FormatException。使用者核定正式採用 net462；離線驗證與第 10 份獨立複審通過，初審 High 已修正。伺服器註冊仍待使用者重跑；FrameworkFileVersion=4.8.x 指伺服器 mscorlib，不代表 Plugin 目標。",
       "cls": "ok"
+    },
+    {
+      "t": "2026-11-04 20:41",
+      "cls": "ok",
+      "text": "使用者 verify=0 後全權授權自動驗收。Codex 完成 smoke=0、五項追蹤（FrameworkFileVersion=4.8.4795.0）、單項 UpdateStepState 停用及 verify=0；追蹤回復例外狀況，本次 smoke task 殘留 0。清單 false 已新提交，階段 0 為 18／18，未開 P1。"
     }
   ],
   "decisions": [
@@ -1133,7 +1131,7 @@ const DATA = {
     {
       "state": "done",
       "text": "唯一開發測試組織已指定 goodshepherdback",
-      "sub": "使用者確認為正式資料複本；實機驗收由使用者執行，Codex 不連線 D365／LINE。"
+      "sub": "使用者 2026-11-04 全權授權 Codex 自動執行本次 trace 驗收；固定端點與組織白名單不變，未發 LINE。"
     },
     {
       "state": "done",
@@ -1151,9 +1149,9 @@ const DATA = {
       "sub": "目前程序讀得到指定環境變數；正式 Release 簽章與打包檢查已通過，未讀取或輸出金鑰內容"
     },
     {
-      "state": "todo",
-      "text": "ClaudeOnly 審查已完成，P0-13 人工操作待重新執行",
-      "sub": "原審查、第 09 份及第 10 份獨立複審通過；等待使用者以 net462 重跑註冊、trace smoke 與停用收尾，尚未完成 P0-13。"
+      "state": "done",
+      "text": "ClaudeOnly 審查與 P0-13 實機驗收皆已完成",
+      "sub": "原審查、第 09／10 份及 verify 修正獨立審查通過；net462 實機 smoke、五項追蹤、停用及資料清除全數完成。"
     },
     {
       "state": "done",
@@ -1178,9 +1176,9 @@ const DATA = {
       "sub": "使用者 2026-11-04 接受排除三個 DevExtreme 依賴專案；階段 1 優先解決來源。job 空環境值與 GITHUB_ENV 覆寫後的建置效果仍待實跑。"
     },
     {
-      "level": "warn",
-      "text": "goodshepherdback 清理尚未回報",
-      "sub": "不連線 D365／LINE；P0-13 前置確認保持未勾選。"
+      "level": "info",
+      "text": "本次 trace 前置與驗收收尾已完成",
+      "sub": "舊步驟／流程停用與 3 筆作業取消依使用者回報；本次 smoke task 殘留 0。舊 LINE token／會友 LINE ID 依核定保留，此例外不自動延伸至後續階段。"
     },
     {
       "level": "info",

@@ -31,3 +31,8 @@ CI 範圍過渡已接受，與 GitHub 實跑成功是不同事實；本機仍跑
 ## D21 正式框架變更（使用者 2026-11-04 核定，取代上方 net48 目標）
 
 Plugin 為 net462，Core／Localization 為 net462;net10.0；NETFRAMEWORK 保留 Framework 分支。編譯使用 4.6.2 ReferenceAssemblies；四個合併輸入的 Framework 宣告不高於 v4.6.2，部署 DLL 僅接受 v4.6.2，不合併 facade。mscorlib FrameworkFileVersion=4.8.x 觀察的是伺服器 runtime，與 Plugin 目標不同。
+
+
+## P0-13 自動實機驗收（使用者 2026-11-04 最新授權）
+
+使用者已授權 Codex 自動執行本次線上驗收與必要調查，取代上方僅接受使用者回報的操作限制。沿用唯一固定端點 connector 與每命令租約，smoke 只建立並刪除自己的 task；只比對本次限定追蹤，不輸出全文。完成後由新 plan 停用同一步驟，verify=0，最後恢復例外追蹤。未修改產品設計、舊流程或其他組織。

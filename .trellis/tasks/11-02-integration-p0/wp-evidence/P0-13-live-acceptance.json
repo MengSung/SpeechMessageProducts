@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-04",
+  "organization": "goodshepherdback",
+  "result": "passed",
+  "authorization": "使用者全權授權 Codex 自動執行本次 P0-13 與必要 D365-9.1 調查，取代原僅由使用者操作限制。",
+  "userReportedRegistrationVerifyExitCode": 0,
+  "smoke": {
+    "organization": "goodshepherdback",
+    "scenario": "p0-ping-trace",
+    "startUtc": "2026-11-04T12:36:38.5012298+00:00",
+    "endUtc": "2026-11-04T12:37:18.3714897+00:00",
+    "exitCode": 0,
+    "authorization": "使用者 2026-11-04 全權授權 Codex 自動操作本次驗收"
+  },
+  "traceCheck": {
+    "organization": "goodshepherdback",
+    "checkedUtc": "2026-11-04T12:40:19.2045172+00:00",
+    "operation": "Inspect",
+    "matchingTraceCount": 1,
+    "checks": {
+      "pingOk": true,
+      "assemblyVersion": true,
+      "framework48": true,
+      "traditionalChinese": true,
+      "pseudoLocale": true,
+      "noPluginException": true,
+      "noPushAttempt": true
+    },
+    "frameworkFileVersion": "4.8.4795.0",
+    "onlyDiagnosticInCorrelation": true,
+    "remainingSmokeTasks": 0,
+    "diagnosticStepDisabled": false,
+    "traceModeWithoutSecureConfiguration": true,
+    "traceSettingBefore": 2,
+    "traceSettingAfter": 2
+  },
+  "cleanup": {
+    "organization": "goodshepherdback",
+    "checkedUtc": "2026-11-04T12:41:18.2820756+00:00",
+    "operation": "RestoreTrace",
+    "matchingTraceCount": 1,
+    "checks": {
+      "pingOk": true,
+      "assemblyVersion": true,
+      "framework48": true,
+      "traditionalChinese": true,
+      "pseudoLocale": true,
+      "noPluginException": true,
+      "noPushAttempt": true
+    },
+    "frameworkFileVersion": "4.8.4795.0",
+    "onlyDiagnosticInCorrelation": true,
+    "remainingSmokeTasks": 0,
+    "diagnosticStepDisabled": true,
+    "traceModeWithoutSecureConfiguration": true,
+    "traceSettingBefore": 2,
+    "traceSettingAfter": 1
+  },
+  "disablePlan": {
+    "organization": "goodshepherdback",
+    "checkedUtc": "2026-11-04T12:41:09.4479963+00:00",
+    "operationCount": 1,
+    "operationKind": "UpdateStepState",
+    "onlyExpectedStep": true,
+    "applyExitCode": 0,
+    "verifyExitCode": 0,
+    "planSha256": "D0EF5639F4BF7C16E645BCE2667083D82B08B7974283266B37030D2521121154"
+  },
+  "manifestDisabledCommit": "f664c685",
+  "manifestStatusAfterCommit": "clean",
+  "deploymentRegression": {
+    "executed": 56,
+    "passed": 56,
+    "failed": 0,
+    "skipped": 0
+  },
+  "priorFullLocalValidation": {
+    "sourceCommit": "a4649e3b",
+    "releasePassed": 1125,
+    "releaseFailed": 0,
+    "churchReportPassed": 596,
+    "debugTracerPassed": 7,
+    "buildErrors": 0,
+    "buildWarnings": 0,
+    "rerunInThisAcceptance": false
+  },
+  "scope": {
+    "linePushExecuted": false,
+    "oldLineDataCleared": false,
+    "oldLineDataRetentionApproved": true,
+    "otherOrganizationChanged": false,
+    "phase1Started": false,
+    "githubCiSuccessClaimed": false
+  },
+  "dataPolicy": "只保存固定結果、計數與版本；不保存原始追蹤、export、record ID、帳密、金鑰、授權或會友個資。"
+}

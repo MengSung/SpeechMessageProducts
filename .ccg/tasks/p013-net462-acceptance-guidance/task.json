@@ -1,18 +1,18 @@
 {
   "id": "p013-net462-acceptance-guidance",
-  "title": "P0-13 net462 使用者驗收引導與文件進度",
+  "title": "P0-13 net462 自動驗收、停用收尾與文件同步",
   "status": "in_progress",
   "complexity": "M",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "verify 欄位修正、完整§8與ClaudeOnly審查均通過，Deployment Release已重建；等待使用者重試verify=0，再引導smoke及停用收尾。P0-13未完成，沿用主任務。",
+  "currentPhase": "review",
+  "nextAction": "smoke、五項追蹤與停用收尾已通過；查核文件／DATA 並完成獨立 ClaudeOnly 審查後封存。",
   "createdAt": "2026-11-04",
   "branch": "1.0.0.11.Integration.P0",
   "constraints": [
     "沿用既有 Trellis 主任務",
-    "Codex 不連線 D365／LINE",
-    "不讀取秘密",
+    "使用者 2026-11-04 授權 Codex 自動操作本次 goodshepherdback trace 驗收與必要 D365-9.1 調查",
+    "不發 LINE，不讀取或輸出秘密內容",
     "不推送、不合併、不改寫歷史"
   ]
 }

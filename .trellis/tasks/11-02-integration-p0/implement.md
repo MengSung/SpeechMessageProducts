@@ -168,3 +168,13 @@ P0-11 收尾時核對外部提交 fc5df488 與 7641a206，內容與已驗證檔�
 - [x] 獨立 schema 回歸 5 功能紅燈後修正八處；Deployment 56／56、覆蓋率 84.95%，完整 §8 全綠（方案 1125／1125）。
 - [x] 本次 ClaudeOnly 新審查通過、無缺陷，Deployment Release 已重建；完成提交後請使用者直接重試 verify，不重打 Plugin、不重複 apply，Codex 不連線。
 - [ ] smoke 與停用收尾仍由使用者執行，P0-13 尚未完成。
+
+
+## P0-13 全權自動驗收收尾（2026-11-04）
+
+- [x] 使用者回報 net462 註冊 verify=0；最新授權允許 Codex 直接操作本次驗收。
+- [x] smoke=0、唯一當次追蹤五項全通過，FrameworkFileVersion=4.8.4795.0。
+- [x] 新 plan 單項 UpdateStepState，停用 apply=0、verify=0，清單 false 新提交 f664c685。
+- [x] 追蹤恢復例外狀況並回讀；本次 smoke task 殘留 0。
+- [x] 本輪 Deployment 56／56；驗收文件、進度 DATA、去識別證據與完成狀態同步。
+- [ ] 本輪文件／收尾獨立審查、提交與任務封存。

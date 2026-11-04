@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "依使用者 2026-11-04 核定正式改用 net462；完整離線驗證、簽章打包與第 10 份 ClaudeOnly 獨立複審通過，等待使用者重跑 P0-13。未執行 D365／LINE 連線。",
+  "description": "P0-13 net462 實機註冊、smoke、五項追蹤與停用清理全部通過，階段 0 完成；本次依使用者全權授權由 Codex 自動收尾。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -21,16 +21,16 @@
   "children": [],
   "parent": "11-02-integration-v32",
   "relatedFiles": [],
-  "notes": "環境順序及 3.3 版本待決均已解除；不連線任何 D365／LINE。",
+  "notes": "本次 P0-13 已全權授權 Codex 自動操作 goodshepherdback；不發 LINE，不推送、不合併、不改寫歷史。",
   "meta": {
     "currentWorkPackage": "P0-13",
-    "userRequestedStop": true,
-    "gatePassed": false,
+    "userRequestedStop": false,
+    "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-13.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": "使用者以 net462 重新打包、plan／apply／verify／smoke 及停用收尾；舊 token／LINE ID 依核定保留",
+    "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -65,9 +65,10 @@
       "P0-stage-review": "56f4e0ab",
       "P0-13-document": "cb137099（歷史初版文件；原 FileVersion 停止已由使用者 2026-11-04 核定解除）",
       "P0-13-document-minimal": "9f87187c（僅文件精簡，P0-13 實機驗收未完成）",
-      "P0-13-document-usage": "本次提交（僅操作說明補充，實機驗收未完成）"
+      "P0-13-document-usage": "本次提交（僅操作說明補充，實機驗收未完成）",
+      "P0-13": "f664c685（停用清單）；2026-11-04 實機 smoke／追蹤／停用 verify=0 通過"
     },
-    "stopReason": "net462 離線驗證與第 10 份獨立複審通過；實機驗收尚未完成，提交後交使用者重試，不開 P1、不連線 D365／LINE。",
+    "stopReason": null,
     "observedExternalCommit": "cf3595db",
     "observedExternalCommits": [
       "cf3595db",
@@ -100,14 +101,14 @@
       "quotaBlocked": false,
       "unresolvedCritical": 0,
       "unresolvedHigh": 0,
-      "serverRegistrationConfirmed": false,
+      "serverRegistrationConfirmed": true,
       "report": ".ccg/tasks/archive/2026-11/p013-net462-migration/review.md"
     }
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-13",
-  "nextAction": "由使用者從驗收文件第 2 步重建 net462 打包，接著重新 plan／apply／verify／smoke 及停用收尾；不得重用舊 net48 plan。",
-  "stopReason": "net462 離線驗證與第 10 份獨立複審通過；實機驗收尚未完成，提交後交使用者重試，不開 P1、不連線 D365／LINE。",
+  "nextAction": "核對驗收文件、進度 DATA 與本次獨立審查後提交並封存；不開 P1。",
+  "stopReason": null,
   "stageReview": {
     "mode": "claude-only",
     "state": "passed",
@@ -177,12 +178,12 @@
   "acceptance": {
     "document": "文件/規劃設計書/實作計畫-3.3/驗收/P0_Plugin骨架佈署步驟.md",
     "documentPrepared": true,
-    "prerequisitesChecked": false,
-    "realAcceptanceCompleted": false,
+    "prerequisitesChecked": true,
+    "realAcceptanceCompleted": true,
     "fileVersionTraceAvailable": false,
     "sameEventRetryVerified": false,
-    "cleanupReported": false,
-    "stage0Completed": false,
+    "cleanupReported": true,
+    "stage0Completed": true,
     "smallGroupArchiveCommit": "53df63f3",
     "scopeApproval": "使用者 2026-11-04 核定最小驗收；FileVersion 追蹤移至階段 5，實機重送改用單元測試與 LINE 官方重試契約。",
     "ciTransitionAccepted": true,
@@ -201,7 +202,19 @@
     "pushAcceptanceStage": "P2-04 前置驗收",
     "fileVersionAcceptanceStage": "階段 5 首個正式 Plugin 佈署 goodshepherdback 前",
     "sameEventRetryVerificationBasis": "使用者接受來源記錄 ID Retry Key 單元測試及 LINE 官方 24 小時有效期契約，取消 P0 實機重送；未聲稱實機驗證。",
-    "hostedCiSuccessVerified": false
+    "hostedCiSuccessVerified": false,
+    "userReportedRegistrationVerified": true,
+    "automatedAcceptanceAuthorized": true,
+    "smokePassed": true,
+    "fiveTraceChecksPassed": true,
+    "serverFrameworkFileVersion": "4.8.4795.0",
+    "diagnosticStepDisabled": true,
+    "finalVerifyExitCode": 0,
+    "traceSettingRestoredToExceptions": true,
+    "remainingSmokeTasks": 0,
+    "oldLineDataCleared": false,
+    "evidence": "wp-evidence/P0-13-live-acceptance.json",
+    "completedAt": "2026-11-04T12:41:18.2820756+00:00"
   },
   "futureWork": [
     {
