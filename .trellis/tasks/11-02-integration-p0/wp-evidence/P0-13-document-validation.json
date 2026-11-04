@@ -1,0 +1,17 @@
+{
+  "sourceHead": "e3f89eb6",
+  "productSourceUnchangedAfterFullVerification": true,
+  "document": "文件/規劃設計書/實作計畫-3.3/驗收/P0_Plugin骨架佈署步驟.md",
+  "sha256": "4a9006d9a25f84ef3ca95dea8e63a2248adde0c877894b9a0f7c3139f86a1afe",
+  "jsonBlocksValid": 2,
+  "allCliCommandsHaveFixedOrganization": 11,
+  "prerequisitesUnchecked": true,
+  "allChecklistItemsUnchecked": true,
+  "fileVersionConflictDisclosed": true,
+  "externalConnectionsMade": false,
+  "powershellCodeBlocksParsedWithoutExecution": 9,
+  "progressTestsPassed": 3,
+  "encodingChangedChecked": 476,
+  "encodingIssues": 0,
+  "diffCheckPassed": true
+}

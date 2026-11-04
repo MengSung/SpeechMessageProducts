@@ -58,7 +58,7 @@ reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=true�
 - 00 §8：完整方案 Release 建置 0 錯誤、1 個既有 Line.Messaging CS1572；1104／1104，零失敗／跳過。
   ChurchReport 590／590；沒有因 CI 過渡縮小本機範圍。
 - Debug tracer TRX executed=7／passed=7，真實結果列一致。
-- 編碼 Changed／Base 73b6e6cf 在最後文件整理後再確認；先前來源皆 UTF-8 無 BOM、CRLF、檔尾 CRLF。
+- 編碼 Changed／Base 73b6e6cf 在最終文件整理後通過；所檢文字為 UTF-8 無 BOM、CRLF、檔尾 CRLF。機器原始紀錄保留 bytes。
 - 重複掃描 26 專案／879 檔，groups／new／stale 全零，未改基準。
 - I18n verify 通過、零 I18N415、generate --check 實查 2 檔。
 - AnalyzerProbe 26／26；套件守門 39 專案／149 相依、0 違規。
@@ -102,14 +102,14 @@ reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=true�
 - 機器入口副本缺 final CRLF：原封不動移到對應時間戳執行目錄的 entry-original-task.raw.md，
   不改位元組、不放寬編碼規則；移位 SHA256 對照在 evidence。
 - GitHub 過去 12 次均停 Restore；使用者證實 Six Labors 授權準備與 always 清理已成功。
-  新過渡 workflow 尚未推送；job 層空 SixLaborsLicenseFile 與 GITHUB_ENV 發布路徑在後續建置的實際生效，
+  Codex 未推送，尚未取得新過渡 workflow 的 GitHub 執行結果；job 層空 SixLaborsLicenseFile 與 GITHUB_ENV 發布路徑在後續建置的實際生效，
   仍須使用者推送後第一次越過 Restore 的 CI 證實。不能將授權準備成功說成完整 CI 成功。
 - DevExpress 來源仍待使用者決定；階段 0 結束前須完整含 ChurchReport CI 全綠，或使用者另行明確接受過渡狀態。
 - 冷還原暫存目錄刪除遭自動核准審查拒絕（blocked by policy、未提供細因），保留在使用者 Temp，
   名稱 speechmessage-filter-restore-0940c118e5d84a60bbbf40e1f229fe69，只含公開套件、無授權／金鑰；未繞過刪除限制。
 - 第 08 與 09 均無未處理 Critical／High；小組回報任務已依核定封存：
   .trellis/tasks/archive/2026-11/11-03-small-group-report-blank，CCG 對應 archive/2026-11/small-group-report-blank。
-  本次再跑實際前端兩檔 16／16；圖表未逐項驗證、正式線移植與既有 Excel 匯出風險均保留。接續撰寫 P0-13 文件。
+  本次再跑實際前端兩檔 16／16；圖表未逐項驗證、正式線移植與既有 Excel 匯出風險均保留。P0-13 文件已準備，因 Plugin FileVersion 追蹤缺口依 00 §9.6 停止，詳見 P0-13.md。
   清理尚未回報，前置確認保持未勾選；尚未實際驗收，不宣稱階段 0 結案。
 - cross-user-isolation-and-performance.md 依核定不搬移；遵守 AGENTS.md 的既有隔離／生命週期要求。
   沒有 D365／LINE 連線、推送、合併、改寫歷史或讀取授權／金鑰內容。

@@ -350,11 +350,19 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-04（原 11 份及獨立第 09 份複審通過）",
+  "snapshot": "2026-11-04（審查通過、小組任務已封存；P0-13 文件交付後停止）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "原 <strong>11／11</strong> 份與獨立第 09 份 ClaudeOnly 複審已完成，無未處理 Critical／High。完整本機 <strong>1104／1104</strong>、Debug <strong>7／7</strong>、八組覆蓋率皆 ≥80%。小組任務已依核定封存，接續撰寫 P0-13；完整 GitHub CI、清理與人工驗收仍待使用者。",
-  "alert": null,
+  "headline": "原 <strong>11／11</strong> 份與獨立第 09 份 ClaudeOnly 複審通過；小組任務已封存。完整本機 <strong>1104／1104</strong>、Debug <strong>7／7</strong>。P0-13 步驟已寫好，因 <strong>Plugin FileVersion 追蹤缺口</strong> 依 §9.6 停止；清理、完整 CI 與人工驗收仍待使用者。",
+  "alert": {
+    "title": "P0-13 文件已寫好，等待使用者處理",
+    "body": "計畫要求沙箱追蹤新的 Plugin FileVersion，但目前程式沒有輸出該欄位；依 00 §9.6 停止，不把組件或 .NET 版本當作替代證據。",
+    "steps": [
+      "核定 Plugin 自身 FileVersion 追蹤的最小補修及對應驗證。",
+      "決定 DevExpress 來源，或明確接受 GitHub CI 目前的過渡範圍。",
+      "清理 goodshepherdback 後回報；目前第 0 步全部未勾選，不連線 D365／LINE。"
+    ]
+  },
   "tiles": [
     {
       "label": "全計畫進度",
@@ -388,7 +396,7 @@ const DATA = {
       "label": "最新完整本機建置",
       "value": "通過",
       "unit": "0 錯誤",
-      "sub": "1 個既有 CS1572；GitHub 過渡尚待使用者推送驗證"
+      "sub": "1 個既有 CS1572；GitHub 過渡實跑結果尚待使用者確認"
     }
   ],
   "wps": [
@@ -523,7 +531,7 @@ const DATA = {
       "id": "P0-13",
       "name": "使用者驗收：以佈署專案註冊並觸發骨架",
       "status": "you",
-      "note": "goodshepherdback 清理回報及階段審查通過後，Codex 寫好步驟即停下；apply／smoke／rollback 由使用者執行，不使用 PRT 註冊。"
+      "note": "操作文件已準備，實際驗收未完成；Plugin 尚未輸出自身 FileVersion，依 §9.6 停止。清理前置確認全部未勾選，apply／smoke／rollback 由使用者執行。"
     }
   ],
   "phases": [
@@ -678,7 +686,7 @@ const DATA = {
       "item": "方案 CI 與覆蓋率門檻",
       "before": "僅舊 .NET 8 workflow",
       "after": "本機全過；八組 ≥80%",
-      "note": "過渡 CI 保留 23／26 專案；空快取還原通過，GitHub 新流程待使用者推送。"
+      "note": "過渡 CI 保留 23／26 專案；空快取還原通過，GitHub 新流程實跑結果尚待使用者確認。"
     },
     {
       "item": "Deployment 離線 L1／L2",
@@ -1001,6 +1009,11 @@ const DATA = {
       "t": "2026-11-04",
       "text": "小組回報第 ⑧ 批與第 09 份審查通過，前端再次 16／16；依核定完成 Trellis／CCG 封存。",
       "cls": ""
+    },
+    {
+      "t": "2026-11-04",
+      "text": "P0-13 驗收步驟文件已寫好，第 0 步全未勾選；發現 Plugin FileVersion 追蹤與計畫不符，依 §9.6 停止等待使用者。",
+      "cls": ""
     }
   ],
   "decisions": [
@@ -1104,7 +1117,7 @@ const DATA = {
     {
       "state": "todo",
       "text": "ClaudeOnly 審查已完成，P0-13 人工操作待執行",
-      "sub": "原 11 份及修正第 09 份通過；清理尚未回報，不連線、不執行驗收。"
+      "sub": "原 11 份及第 09 份通過；文件已寫好，FileVersion 缺口待核定；清理未回報，不連線、不執行驗收。"
     },
     {
       "state": "done",
@@ -1113,6 +1126,11 @@ const DATA = {
     }
   ],
   "risks": [
+    {
+      "level": "crit",
+      "text": "P0-13 的 Plugin FileVersion 追蹤未實作",
+      "sub": "現有 Assembly 為固定組件版本，FrameworkFileVersion 為 mscorlib；無法證明沙箱載入新的 Plugin FileVersion，依 §9.6 停止等待核定。"
+    },
     {
       "level": "warn",
       "text": "GitHub CI 仍為過渡範圍，待使用者決定",
@@ -1132,6 +1150,11 @@ const DATA = {
       "level": "info",
       "text": "冷還原套件暫存目錄待使用者清理",
       "sub": "自動核准審查拒絕刪除；僅有公開套件，無授權／金鑰。"
+    },
+    {
+      "level": "warn",
+      "text": "同一事件重送尚未驗證",
+      "sub": "smoke 會刪除測試 task；若原系統作業不允許重試，須回報另訂方式，不得以新 task／新 smoke 代替。"
     }
   ]
 };
