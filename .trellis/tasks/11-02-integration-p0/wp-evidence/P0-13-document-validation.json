@@ -11,7 +11,8 @@
   "externalConnectionsMade": false,
   "powershellCodeBlocksParsedWithoutExecution": 9,
   "progressTestsPassed": 3,
-  "encodingChangedChecked": 476,
+  "encodingChangedChecked": 479,
   "encodingIssues": 0,
-  "diffCheckPassed": true
+  "diffCheckPassed": true,
+  "encodingCountScope": "Final check after new acceptance files were added to Git tracking; earlier unstaged check covered 476."
 }

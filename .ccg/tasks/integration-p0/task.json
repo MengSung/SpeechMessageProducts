@@ -28,7 +28,7 @@
     "P0-review-development": "039033ec",
     "P0-review-deployment-scope": "e3f89eb6",
     "P0-stage-review": "56f4e0ab",
-    "P0-13-document": "本次提交：僅文件交付；實際驗收未完成，FileVersion 缺口依 §9.6 停止"
+    "P0-13-document": "cb137099（僅文件交付；實際驗收未完成，FileVersion 缺口依 §9.6 停止）"
   },
   "stageReview": {
     "mode": "claude-only",
