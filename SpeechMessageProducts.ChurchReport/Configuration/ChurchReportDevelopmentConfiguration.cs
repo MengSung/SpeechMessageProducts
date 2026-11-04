@@ -3,12 +3,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 
 namespace ChurchReport.Configuration;
 
 /// <summary>
 /// 讓舊式行程級設定讀取點在 Development 套用與主機相同的檔案及 secrets，並在任何 CRM／LINE client 建立前驗證安全邊界。
-/// 不保存請求、使用者、教會、設定值或憑證；非 Development 完全不新增 provider、不讀基底檔也不改變正式設定。
+/// 不保存請求、使用者、教會、設定值或憑證；非 Development 只追加專用 LINE__ provider，
+/// Development 不追加正式環境 provider。
 /// </summary>
 /// <remarks>
 /// 呼叫端的 static／Lazy 設定仍各行程一份，只包含部署設定，不得放入使用者狀態。
@@ -26,7 +28,7 @@ internal static class ChurchReportDevelopmentConfiguration
 
     /// <summary>既有靜態讀取點的唯一轉接；只讀部署環境名稱，不保存 request 或教會狀態，也不改目前目錄。</summary>
     /// <param name="builder">已加入原基底檔與原 optional／reload 選項的建構器；生命週期仍由原呼叫端擁有。</param>
-    /// <returns>相同建構器；只有 Development 會追加環境檔及主機 secrets。</returns>
+    /// <returns>相同建構器；Development 追加環境檔及主機 secrets，其他環境追加 LINE__ provider。</returns>
     internal static IConfigurationBuilder AddChurchReportDevelopmentOverrides(this IConfigurationBuilder builder)
         => builder.AddChurchReportDevelopmentOverrides(Directory.GetCurrentDirectory(),
             ResolveEnvironmentName(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"), Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")),
@@ -41,11 +43,29 @@ internal static class ChurchReportDevelopmentConfiguration
     internal static IConfigurationBuilder AddChurchReportDevelopmentOverrides(this IConfigurationBuilder builder,
         string basePath, string environmentName, Assembly secretsAssembly)
     {
-        if (!IsDevelopment(environmentName)) return builder;
+        if (!IsDevelopment(environmentName))
+            return builder.AddChurchReportDeploymentLineEnvironmentOverrides(environmentName);
+
         return builder.SetBasePath(basePath)
             .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false)
             .AddUserSecrets(secretsAssembly, optional: true, reloadOnChange: false);
     }
+
+    /// <summary>
+    /// 在非 Development 組態建構器最後加入專用的 LINE__ 環境變數 provider。
+    /// 後加入的 provider 具有較高優先權，讓正式主機可覆寫已清空的基底 JSON，
+    /// 同時不把 LINE token 放回版本控制；Development 不加入此來源，避免把正式部署
+    /// 的命名慣例誤當成測試秘密來源。provider 不啟用 reload，生命週期由呼叫端組態根擁有。
+    /// </summary>
+    /// <param name="builder">已加入 JSON 或既有環境來源的組態建構器。</param>
+    /// <param name="environmentName">Host 已解析的環境名稱。</param>
+    /// <returns>同一個建構器。</returns>
+    internal static IConfigurationBuilder AddChurchReportDeploymentLineEnvironmentOverrides(
+        this IConfigurationBuilder builder,
+        string environmentName)
+        => IsDevelopment(environmentName)
+            ? builder
+            : builder.AddEnvironmentVariables(prefix: "LINE__");
 
     /// <summary>
     /// 在 Development 驗證有效 LINE／CRM／Embedded 設定；任何違反邊界立即失敗，不建立外部 client 或通知。
@@ -61,20 +81,25 @@ internal static class ChurchReportDevelopmentConfiguration
         // 使用串流直接讀基底快照，避免架構掃描把安全比較用的基底讀取當成對外 token 的來源。
         // 基底串流在 ReadBaseline 返回前關閉，組態根在本次檢查結束前 Dispose，兩者均不跨請求保存。
         using var baseline = ReadBaseline(basePath);
-        // 別名與憑證比較分開：即使基底 token 已清空，正式別名仍不可成為開發預設。
+        // 別名與憑證來源分開：即使基底 token 已清空，正式別名仍不可成為開發預設，
+        // 任何正式別名只要在合併組態中出現非空 token 就拒絕，不依賴基底仍保存秘密。
         // 此陣列只屬本次啟動檢查，由 using 擁有的基底根供應，不跨請求或存入快取。
         var baselineAliases = baseline.GetSection("LineMessaging").GetChildren().ToArray();
-        var baseChannels = baselineAliases.Where(s => !string.IsNullOrWhiteSpace(s["ChannelAccessToken"])).ToArray();
         foreach (var channel in configuration.GetSection("LineMessaging").GetChildren())
         {
             var value = channel["ChannelAccessToken"];
-            // 也拒絕把基底正式 token 搬到另一個別名，避免僅改別名就繞過檢查。
-            if (!string.IsNullOrWhiteSpace(value) && baseChannels.Any(s => string.Equals(value, s["ChannelAccessToken"], StringComparison.Ordinal)))
-                throw UnsafeKey(channel.Path + ":ChannelAccessToken", "不可沿用基底的正式憑證。");
+            if (string.IsNullOrWhiteSpace(value))
+                continue;
+
+            if (!string.Equals(channel.Key, "DevTest", StringComparison.OrdinalIgnoreCase))
+                throw UnsafeKey(channel.Path + ":ChannelAccessToken", "Development 不得使用正式 LINE 別名憑證。");
+
+            if (!IsValueFromUserSecrets(configuration, channel.Path + ":ChannelAccessToken"))
+                throw UnsafeKey(channel.Path + ":ChannelAccessToken", "Development 測試憑證必須來自 User Secrets。");
         }
         var environmentToken = configuration["LINE_CHANNEL_ACCESS_TOKEN"];
-        if (!string.IsNullOrWhiteSpace(environmentToken) && baseChannels.Any(s => string.Equals(environmentToken, s["ChannelAccessToken"], StringComparison.Ordinal)))
-            throw UnsafeKey("LINE_CHANNEL_ACCESS_TOKEN", "不可沿用基底的正式憑證。");
+        if (!string.IsNullOrWhiteSpace(environmentToken))
+            throw UnsafeKey("LINE_CHANNEL_ACCESS_TOKEN", "Development 不得使用通用 LINE 環境憑證。");
         var defaultOrganization = configuration["LineMessaging:DefaultOrganization"];
         if (string.IsNullOrWhiteSpace(defaultOrganization) || baselineAliases.Any(s => string.Equals(s.Key, defaultOrganization, StringComparison.OrdinalIgnoreCase)))
             throw UnsafeKey("LineMessaging:DefaultOrganization", "必須選擇獨立的測試別名。");
@@ -95,6 +120,36 @@ internal static class ChurchReportDevelopmentConfiguration
     /// <param name="name">呼叫端傳入的環境名稱；null 不視為 Development。</param>
     /// <returns>僅 Development 回傳 true。</returns>
     private static bool IsDevelopment(string name) => string.Equals(name, "Development", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 以組態 provider 的覆寫順序判定 DevTest token 是否由 User Secrets 提供。
+    /// 反向尋找第一個真正提供該鍵的 JSON provider，容忍 Host 與自訂擴充重複註冊
+    /// secrets provider；判斷只使用固定檔名，不保存或輸出 token。
+    /// </summary>
+    /// <param name="configuration">Host 或測試建立的組態根。</param>
+    /// <param name="key">固定的組態鍵名。</param>
+    /// <returns>只有最後覆寫該鍵的 provider 是 secrets.json 才回傳 true。</returns>
+    private static bool IsValueFromUserSecrets(IConfiguration configuration, string key)
+    {
+        if (configuration is not IConfigurationRoot root)
+            return false;
+
+        var providers = root.Providers.ToArray();
+        for (var index = providers.Length - 1; index >= 0; index--)
+        {
+            var provider = providers[index];
+            if (!provider.TryGet(key, out var value) || string.IsNullOrWhiteSpace(value))
+                continue;
+
+            return provider is JsonConfigurationProvider jsonProvider &&
+                string.Equals(
+                    Path.GetFileName(jsonProvider.Source.Path),
+                    "secrets.json",
+                    StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
 
     /// <summary>讀取一次基底設定供憑證比較；解析失敗改成固定安全訊息，避免原例外包含來源路徑或機密內容。</summary>
     /// <param name="basePath">部署者擁有的根目錄。</param>

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Xunit;
 
@@ -56,6 +57,22 @@ public sealed class DevelopmentOrganizationSettingsTests
     }
 
     /// <summary>
+    /// 實際 User Secrets provider 提供 DevTest token 時，Development 啟動守門應允許；
+    /// 只斷言不拋出例外，不輸出或比較 token 內容。
+    /// </summary>
+    [Fact]
+    public void Development_UserSecrets_DevTestToken_PassesSafetyGuard()
+    {
+        using var secrets = new SecretsScope();
+        using var settings = new SettingsScope(ProductRoot(), secrets.Assembly);
+
+        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(
+            settings.Root, "Development", settings.Configuration);
+
+        action.Should().NotThrow();
+    }
+
+    /// <summary>
     /// 依使用者 2026-11-03 核定，Development 可以存放帳密，故只檢查三個設定鍵存在，不限制值是否空白。
     /// 若設定鍵被刪除，本案必須失敗；不比對或輸出真實值，其他組織、LINE 與 Web API 防護由原案例繼續守門。
     /// </summary>
@@ -88,6 +105,30 @@ public sealed class DevelopmentOrganizationSettingsTests
         string.IsNullOrEmpty(configuration["LineMessaging:Jesus:ChannelAccessToken"]).Should().BeTrue();
         string.IsNullOrEmpty(configuration["LineMessaging:JesusBack:ChannelAccessToken"]).Should().BeTrue();
         configuration["QPAY_ORGANIZATION"].Should().Be("goodshepherdback");
+    }
+
+    /// <summary>
+    /// 受追蹤的基底設定不得再保存任何 LINE channel access token；
+    /// 只驗證欄位為空，不讀取、不輸出其他設定值。
+    /// </summary>
+    [Fact]
+    public void TrackedBaseSettings_LineChannelAccessTokens_AreEmpty()
+    {
+        var root = ProductRoot();
+        var json = JsonNode.Parse(
+            File.ReadAllText(Path.Combine(root, "appsettings.json")),
+            documentOptions: new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            })!.AsObject();
+        var line = json["LineMessaging"]!.AsObject();
+
+        foreach (var alias in new[] { "Jesus", "JesusBack" })
+        {
+            var token = line[alias]?["ChannelAccessToken"]?.GetValue<string>();
+            string.IsNullOrEmpty(token).Should().BeTrue("追蹤設定不得保存 LINE channel access token");
+        }
     }
 
     /// <summary>P0-SEC 後舊 CRM 設定預期被擋；本包完成後同一份實際檔案合併結果必須通過該守門，且不需 secrets 或網路。</summary>
@@ -177,7 +218,7 @@ public sealed class DevelopmentOrganizationSettingsTests
             {
                 Directory.CreateDirectory(_root);
                 File.WriteAllText(Path.Combine(_root, "secrets.json"),
-                    """{"CrmConnection":{"Domain":"SECRETS-FAKE","Username":"SECRETS-FAKE","Password":"SECRETS-FAKE"}}""",
+                    """{"CrmConnection":{"Domain":"SECRETS-FAKE","Username":"SECRETS-FAKE","Password":"SECRETS-FAKE"},"LineMessaging":{"DevTest":{"ChannelAccessToken":"DEV-FAKE"}}}""",
                     new System.Text.UTF8Encoding(false));
                 var assembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(_id), AssemblyBuilderAccess.RunAndCollect);
                 assembly.SetCustomAttribute(new CustomAttributeBuilder(

@@ -8,12 +8,12 @@
 
 ## Ordered Work
 
-- [ ] Add tests that confirm tracked base LINE token fields are empty without exposing configured values.
-- [ ] Add a test proving Development User Secrets can supply the DevTest token and that the real source is the test-owned User Secrets provider.
-- [ ] Add tests proving Development rejects nonempty production aliases, generic LINE token fallback, and DevTest values supplied by another provider.
-- [ ] Run the targeted test project and confirm the new contract tests fail for the intended reasons.
-- [ ] Clear only the two base JSON token values through a JSON-aware edit.
-- [ ] Add the `LINE__` environment provider to non-Development ChurchReport configuration builders and the host configuration before startup validation; keep Development provider order unchanged.
-- [ ] Verify all existing ChurchReport LINE config builders use the shared environment override and the shared processor remains independent of User Secrets.
-- [ ] Update the Development configuration safety spec with production variable names, Development source restrictions, and no-secret test requirements.
+- [x] Add tests that confirm tracked base LINE token fields are empty without exposing configured values.
+- [x] Add a test proving Development User Secrets can supply the DevTest token and that the real source is the test-owned User Secrets provider.
+- [x] Add tests proving Development rejects nonempty production aliases, generic LINE token fallback, and DevTest values supplied by another provider.
+- [x] Run the targeted test project and confirm the new contract tests fail for the intended reasons.
+- [x] Clear only the two base JSON token values through a JSON-aware edit.
+- [x] Add the `LINE__` environment provider to non-Development ChurchReport configuration builders and the host configuration before startup validation; keep Development provider order unchanged.
+- [x] Verify all existing ChurchReport LINE config builders use the shared environment override and the shared processor remains independent of User Secrets.
+- [x] Update the Development configuration safety spec with production variable names, Development source restrictions, and no-secret test requirements.
 - [ ] Run targeted tests, ChurchReport build, encoding and diff checks; do not run D365 or LINE operations.

@@ -3,11 +3,11 @@
 The active implementation plan is `文件/規劃設計書/實作計畫-3.3/`. Version 3.2 and completed WP reports are historical snapshots.
 
 - Resolve DOTNET_ENVIRONMENT before ASPNETCORE_ENVIRONMENT, then default to Production. Development matching is ordinal case-insensitive. Never change process environment or current directory in unit tests.
-- `ChurchReportDevelopmentConfiguration` appends optional Development JSON and optional host User Secrets only in Development. Other environments add zero providers and preserve every existing key and value. Preserve each legacy base JSON optional/reload setting and static/Lazy ownership.
-- The shared LineMessagingProcessor default path can append Development JSON but cannot reference ChurchReport or read its secrets. Keep the original environment-variable provider precedence.
-- Validate the merged host configuration before constructing exception LINE senders or CRM services. Reject reused baseline tokens, unsafe default aliases, CRM outside goodshepherdback, and enabled Embedded endpoints outside its host. Failures contain key names and fixed reasons, never values.
+- `ChurchReportDevelopmentConfiguration` appends optional Development JSON and optional host User Secrets only in Development. Other environments append one `LINE__`-prefixed environment provider after JSON so production aliases can be injected without tracked token values. Preserve each legacy base JSON optional/reload setting and static/Lazy ownership.
+- The shared LineMessagingProcessor default path can append Development JSON but cannot reference ChurchReport or read its secrets. In non-Development it loads ordinary environment variables first and the `LINE__` provider last; Development does not load environment token sources.
+- Validate the merged host configuration before constructing exception LINE senders or CRM services. Development rejects every non-`DevTest` LINE alias with a nonempty token, rejects `LINE_CHANNEL_ACCESS_TOKEN`, and accepts a nonempty DevTest token only when the last provider supplying it is the User Secrets JSON provider. Also reject unsafe default aliases, CRM outside goodshepherdback, and enabled Embedded endpoints outside its host. Failures contain key names and fixed reasons, never values.
 - Do not retain baseline configuration or secrets in new static state. Dispose baseline streams and roots within the guard; new providers do not enable reload watchers. Existing deployment snapshots never contain request/user/tenant mutable state.
-- Tests use synthetic tokens and isolated temporary directories. Passing the test assembly without a UserSecretsId prevents real secrets access. Production compatibility tests assert both provider count and the complete key/value sequence; source architecture tests cover all 11+1 read points and startup ordering.
+- Tests use synthetic tokens and isolated temporary directories. Passing the test assembly without a UserSecretsId prevents real secrets access. Tests assert tracked base LINE aliases are empty, the `LINE__` provider has the expected prefix, User Secrets provenance is required for DevTest, and production compatibility preserves the complete non-secret key/value sequence. Source architecture tests cover all 11+1 read points and startup ordering.
 - D365 and LINE connections are prohibited before the user confirms test-organization cleanup. After cleanup, Codex can execute only the D24 read-only commands. Write commands remain user-operated.
 
 ## User-approved ChurchReport credential storage exception
@@ -23,7 +23,10 @@ provider with a unique fixture identity and deterministically delete its files.
 The Development organization remains goodshepherdback. Its ServerUrl must use
 HTTPS, the exact goodshepherdback.speechmessage.com.tw host, and the complete
 /XRMServices/2011/Organization.svc path. Preserve all existing LINE-token
-masking, DevTest-secret-only and Package01FeeReads guards.
+masking, DevTest-secret-only and Package01FeeReads guards. Production channel
+tokens are supplied only through `LINE__LineMessaging__Jesus__ChannelAccessToken`
+and `LINE__LineMessaging__JesusBack__ChannelAccessToken` environment variables;
+the tracked base JSON keeps those alias values empty.
 
 This exception applies only to ChurchReport settings. Deployment credentials
 remain User-Secrets-only in P0-12; command-line passwords are forbidden.

@@ -24,6 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ChurchReport.Configuration;
 using ChurchReport.Diagnostics;
 using ChurchReport.Logging;
 using ToolUtilityNameSpace.Diagnostics;
@@ -67,6 +68,9 @@ namespace ChurchReport
             {
                 var builder = WebApplication.CreateBuilder(args);
                 configuration = builder.Configuration;
+                // 正式環境的 LINE token 只由部署環境的專用前綴 provider 注入；
+                // Development 不加入此來源，測試 token 僅能由 User Secrets 提供。
+                builder.Configuration.AddChurchReportDeploymentLineEnvironmentOverrides(builder.Environment.EnvironmentName);
                 // 先拒絕不安全的 Development 設定，才建立日誌／LINE sender 與後續 CRM 服務；
                 // Production 完全略過。失敗沿既有初始化 catch 的固定 stderr 路徑，不把憑證帶進通知。
                 ChurchReport.Configuration.ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(

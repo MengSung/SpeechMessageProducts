@@ -89,8 +89,8 @@ namespace LineMessagingProcessor
 
         /// <summary>
         /// 解析舊預設建構路徑的一次性部署 token；Lazy 每行程只保存此部署憑證，不含使用者或教會動態狀態。
-        /// Development 先遮蔽基底正式別名，再依既有順序套用環境變數；不引用 ChurchReport 或載入其 User Secrets。
-        /// 不開 reload watcher，讀完立即 Dispose 區域組態根；Production 的 provider 順序及值保持不變。
+        /// Development 只套用遮蔽後的 Development JSON，不讀取環境 token；不引用 ChurchReport 或載入其 User Secrets。
+        /// 非 Development 先套用一般環境來源，再由 LINE__ provider 覆寫；不開 reload watcher，完成後 Dispose 區域組態根。
         /// </summary>
         /// <returns>部署設定的 token，未提供測試 token 時為空，後續發送入口會拒絕；不退回其他正式別名。</returns>
         private static string ResolveDefaultChannelAccessToken()
@@ -98,9 +98,18 @@ namespace LineMessagingProcessor
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-            AddDevelopmentOverrides(builder, Directory.GetCurrentDirectory(),
-                Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production");
-            using var configuration = (ConfigurationRoot)builder.AddEnvironmentVariables().Build();
+            var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            AddDevelopmentOverrides(builder, Directory.GetCurrentDirectory(), environmentName);
+            // Development 不讀取通用環境 token，避免無法經 ChurchReport 啟動守門的舊建構路徑
+            // 取得正式憑證；正式環境先保留既有相容性，再由專用 LINE__ provider 覆寫，
+            // 讓正式 token 的明確命名優先於其他環境變數來源。
+            if (!string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.AddEnvironmentVariables();
+                builder.AddEnvironmentVariables(prefix: "LINE__");
+            }
+            using var configuration = (ConfigurationRoot)builder.Build();
             return ResolveChannelAccessToken(configuration);
         }
 

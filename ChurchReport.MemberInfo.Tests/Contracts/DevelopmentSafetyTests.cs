@@ -3,6 +3,7 @@ using System.Text;
 using ChurchReport.Configuration;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using Xunit;
 
@@ -32,8 +33,8 @@ public sealed class DevelopmentSafetyTests
         configuration.AsEnumerable().Should().NotContain(p => p.Value == "PROD-FAKE" || p.Value == "PROD-B-FAKE");
     }
 
-    /// <summary>注入 Production、Staging 與缺省環境；斷言零新增 provider 且所有鍵和值與原基底相同。</summary>
-    /// <param name="environment">正式、其他或缺省環境；均不得新增開發來源。</param>
+    /// <summary>注入 Production、Staging 與缺省環境；只追加專用 LINE 環境來源，且保留所有基底鍵和值。</summary>
+    /// <param name="environment">正式、其他或缺省環境；不得新增 Development JSON 或 User Secrets。</param>
     [Theory]
     [InlineData("Production")]
     [InlineData("Staging")]
@@ -45,7 +46,9 @@ public sealed class DevelopmentSafetyTests
         var sourceCount = builder.Sources.Count;
         using var baseline = (ConfigurationRoot)fixture.BaseBuilder().Build();
         builder.AddChurchReportDevelopmentOverrides(fixture.Root, environment!, typeof(DevelopmentSafetyTests).Assembly);
-        builder.Sources.Count.Should().Be(sourceCount);
+        builder.Sources.Count.Should().Be(sourceCount + 1);
+        builder.Sources.Last().Should().BeOfType<EnvironmentVariablesConfigurationSource>()
+            .Which.Prefix.Should().Be("LINE__");
         using var effective = (ConfigurationRoot)builder.Build();
         effective.AsEnumerable().Should().BeEquivalentTo(baseline.AsEnumerable());
     }
@@ -120,6 +123,85 @@ public sealed class DevelopmentSafetyTests
     }
 
     /// <summary>
+    /// 基底正式 token 已清空時，Development 仍不得接受任何正式別名的非空值。
+    /// 這個案例故意使用與基底不同的固定假值，避免測試只驗證舊有的「值相等」比較。
+    /// </summary>
+    [Fact]
+    public void DevelopmentGuard_EmptyBaselineTokens_RejectsAnyProductionAliasToken()
+    {
+        using var fixture = new SettingsFixture();
+        File.WriteAllText(Path.Combine(fixture.Root, "appsettings.json"),
+            """{"LineMessaging":{"DefaultOrganization":"Jesus","Jesus":{"ChannelAccessToken":""},"JesusBack":{"ChannelAccessToken":""}}}""");
+        var values = SafeValues();
+        values["LineMessaging:Jesus:ChannelAccessToken"] = "UNRELATED-FAKE";
+        using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+
+        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(
+            fixture.Root, "Development", configuration);
+
+        var exception = action.Should().Throw<InvalidOperationException>().Which;
+        exception.Message.Should().Contain("LineMessaging:Jesus:ChannelAccessToken")
+            .And.NotContain("UNRELATED-FAKE");
+    }
+
+    /// <summary>
+    /// 基底正式 token 清空後，Development 仍不得接受通用 LINE 環境 token；
+    /// 使用與基底無關的假值證明拒絕條件不依賴憑證相等比較。
+    /// </summary>
+    [Fact]
+    public void DevelopmentGuard_EmptyBaselineTokens_RejectsGenericEnvironmentToken()
+    {
+        using var fixture = new SettingsFixture();
+        File.WriteAllText(Path.Combine(fixture.Root, "appsettings.json"),
+            """{"LineMessaging":{"DefaultOrganization":"Jesus","Jesus":{"ChannelAccessToken":""},"JesusBack":{"ChannelAccessToken":""}}}""");
+        var values = SafeValues();
+        values["LINE_CHANNEL_ACCESS_TOKEN"] = "UNRELATED-FAKE";
+        using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+
+        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(
+            fixture.Root, "Development", configuration);
+
+        var exception = action.Should().Throw<InvalidOperationException>().Which;
+        exception.Message.Should().Contain("LINE_CHANNEL_ACCESS_TOKEN")
+            .And.NotContain("UNRELATED-FAKE");
+    }
+
+    /// <summary>
+    /// Development 的 DevTest token 必須由 User Secrets provider 提供；
+    /// 以記憶體 provider 注入同名值時必須 fail closed，且錯誤不得回顯假 token。
+    /// </summary>
+    [Fact]
+    public void DevelopmentGuard_DevTestTokenFromNonSecretProvider_IsRejected()
+    {
+        using var fixture = new SettingsFixture();
+        var values = SafeValues();
+        values["LineMessaging:DevTest:ChannelAccessToken"] = "DEV-FAKE";
+        using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+
+        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(
+            fixture.Root, "Development", configuration);
+
+        var exception = action.Should().Throw<InvalidOperationException>().Which;
+        exception.Message.Should().Contain("LineMessaging:DevTest:ChannelAccessToken")
+            .And.NotContain("DEV-FAKE");
+    }
+
+    /// <summary>
+    /// 非 Development 的舊式組態建構器必須加入專用 LINE__ 環境變數 provider，
+    /// 讓正式 token 不必回到受追蹤的 JSON；測試只檢查 provider 類型，不碰程序環境。
+    /// </summary>
+    [Fact]
+    public void NonDevelopmentLayer_AddsPrefixedLineEnvironmentProvider()
+    {
+        using var fixture = new SettingsFixture();
+        var builder = fixture.BaseBuilder();
+
+        builder.AddChurchReportDevelopmentOverrides(fixture.Root, "Production", typeof(DevelopmentSafetyTests).Assembly);
+
+        builder.Sources.Should().ContainSingle(source => source is EnvironmentVariablesConfigurationSource);
+    }
+
+    /// <summary>
     /// 以正確測試主機搭配不安全協定、錯誤服務路徑或額外 URI 成分注入有效組態；守門須在建線前拒絕。
     /// 測試直接執行安全入口而非只檢查 JSON，目前端點全部為字面假資料；例外僅可含鍵名與固定原因。
     /// </summary>
@@ -191,7 +273,14 @@ public sealed class DevelopmentSafetyTests
         count.Should().Be(11);
         var library = File.ReadAllText(Path.Combine(root, "LineMessagingProcessor", "LineMessagingProcessorClass.cs"));
         library.Should().Contain("AddDevelopmentOverrides(");
+        library.Should().Contain("AddEnvironmentVariables(prefix: \"LINE__\")");
+        library.Should().Contain("string.Equals(environmentName, \"Development\", StringComparison.OrdinalIgnoreCase)");
+        library.IndexOf("builder.AddEnvironmentVariables();", StringComparison.Ordinal)
+            .Should().BeLessThan(library.IndexOf("builder.AddEnvironmentVariables(prefix: \"LINE__\")", StringComparison.Ordinal));
         var program = File.ReadAllText(Path.Combine(root, "SpeechMessageProducts.ChurchReport", "Program.cs"));
+        var lineEnvironment = program.IndexOf("AddChurchReportDeploymentLineEnvironmentOverrides(", StringComparison.Ordinal);
+        lineEnvironment.Should().BeGreaterThan(0);
+        lineEnvironment.Should().BeLessThan(program.IndexOf("ValidateDevelopmentConfiguration(", StringComparison.Ordinal));
         var guard = program.IndexOf("ValidateDevelopmentConfiguration(", StringComparison.Ordinal);
         guard.Should().BeGreaterThan(0);
         guard.Should().BeLessThan(program.IndexOf("ExceptionOutputOptions.FromConfiguration", StringComparison.Ordinal));
