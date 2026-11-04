@@ -1,0 +1,56 @@
+{
+  "sourceHead": "e3f89eb6",
+  "release": {
+    "passed": 1104,
+    "failed": 0,
+    "skipped": 0
+  },
+  "churchReport": {
+    "passed": 590
+  },
+  "build": {
+    "errors": 0,
+    "warnings": 1,
+    "existingWarning": "CS1572"
+  },
+  "debugTracer": {
+    "executed": 7,
+    "passed": 7
+  },
+  "analyzerProbe": 26,
+  "pester": 39,
+  "packageGuard": {
+    "projects": 39,
+    "references": 149,
+    "violations": 0
+  },
+  "duplicates": {
+    "projects": 26,
+    "files": 879,
+    "groups": 0,
+    "new": 0,
+    "stale": 0
+  },
+  "i18n": {
+    "tests": 108,
+    "boundaryDiagnostics": 0,
+    "generatedFilesChecked": 2,
+    "baselineChanged": false
+  },
+  "pluginPackagingTests": 11,
+  "pluginMetadataFixtures": 9,
+  "pluginBuildFixtures": 6,
+  "javascript": 16,
+  "coverage": {
+    "Localization-net48": 95.06,
+    "Localization-net10": 100.0,
+    "Core-net48": 93.87,
+    "Core-net10": 98.88,
+    "Plugins-net48": 91.93,
+    "Deployment-net10": 82.12,
+    "I18nCheck-net10": 96.55,
+    "PluginPackaging-net10": 98.3
+  },
+  "externalServicesConnected": false,
+  "hostedCIClaimed": false
+}

@@ -1,0 +1,1604 @@
+# CCG reviewer Task: integration-p0-stage0-fixes-09
+
+## Repository
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P0.Worktree
+
+## Request
+# 第 09 份：階段 0 審查修正複審
+
+單模型（使用者指定 ClaudeOnly）。請唯讀審查，不修改檔案、不啟動網站、不連線 D365／LINE／DevExpress，不讀取 appsettings、User Secrets、授權、環境變數、任何金鑰內容或歷史審查原始輸出。
+
+固定差異：ae29cb40aa5c395f83c169068d7ca40e7094c509..e3f89eb6a77aca4265d248a91b0858346ee9c312。共 27 個產品／測試／工具／CI／spec 檔，差異 SHA256：6812478bc2dc40fcb7defcece5258622e76fd65a5967f8856a34e50286f0ab49。
+原 01a～08 審查只涵蓋 73b6e6cf..ae29cb40，本份獨立補審其後修正，不能宣稱原包涵蓋新修正。
+排除證據、research、進度頁、任務封存、生成檔與二進位；NuGet.config 已移除失效來源，無私人來源網址。
+
+審查重點：跨使用者／教會隔離、資源確定釋放、機密外洩、例外責任（設計 10.5／10.9）、net48／net10 一致、守門假綠燈。
+- C-01：C# 單 token 交 Roslyn，Razor 範本另行配對；範本內標記仍不計數。原 75＋新增案例共 108／108；完整 repo verify 零 I18N415、生成檔 2。84 Razor 逐檔比舊版僅 9 檔下降，無增加、未調 baseline。請驗證邊界正確，不能把純 C# lexer 延伸到 Razor 模板。
+- H-01（使用者改列 Medium）：所有 XML 讀取前逐段拒絕 reparse point，包括真 junction；PS5.1／7 各 5／5。
+- M-01：真 workflow 的 tracer 區塊以合成 TRX 測試零執行等拒絕，6／6；真 Debug 7／7。CI 過渡時暫停實際 tracer，但保留區塊、守門與合成測試。
+- M-02：已重現不同 Outer.Inner 誤判；型別鍵包含所有外層、正確還原 sibling 與 body-less record，18／18。
+- .gitignore 補 sixlabors.lic，根與子目錄實際 git check-ignore 測試。
+- CI 過渡為使用者明確核定：26 專案依賴閉包只有 3 個 DevExtreme 依賴專案，slnf 保留 23 個。Restore／Build／Test 用 slnf，always 摘要明列範圍、未代表完整方案。新電腦來源由使用者層設定，禁止 nupkg 入repo、升版或嘗試私有feed。新測試實際執行 workflow 命令／摘要，5／5；空快取 nuget.org restore 及本機篩選方案 build/test 通過。完整 00 §8 本機仍含 ChurchReport。
+- 06 兩項 Critical：基底 token 清空後仍拒絕正式別名；有效 CRM／Embedded URI 強制 HTTPS，CRM 完整服務路徑。11 功能紅燈→43／43。沒有改真實 appsettings、provider 順序、Development 帳密例外或 Production。
+- 05b-C1：原契約明訂 plan 不解析／比較秘密，不是輪替工具。保留此邊界，改明確排除未驗證欄位；CLI／Markdown 宣告不支援秘密輪替；verify 有 metadata 差異為 1、含未比對秘密時為 3（未完成），無秘密且相同才為 0。假秘密相同／輪替情境先功能紅燈再轉綠，Deployment 46／46。請確認不會再將未驗證秘密回報完整綠燈，且不洩漏秘密或增加未核定輪替功能。
+
+最新完整本機證據（模型不必重新執行）：Release 1104／1104，Debug tracer executed=7／passed=7，建置 0 error／1 個既有 CS1572。AnalyzerProbe26／26；Pester39／39；所有八個模組/框架覆蓋率至少82.12%；I18n工具108／108、PluginPackaging11／11；PackageGuard0違規；duplicate0；I18n verify通過。
+這是本機證據，不是 GitHub 成功宣稱。GitHub 先前授權準備／清理已成功，建置／測試一直未越過 Restore；新過渡 CI 待使用者推送後確認。最終完整 CI 仍需使用者決定來源或明確接受過渡狀態。
+
+請以 Critical／High／Medium／Low／Info 分級列出可驗證問題、檔案與觸發條件；對上述修正是否可放行給明確結論。不要重述已核定過渡/秘密責任為缺陷，若新修正仍有真實漏洞則指出。其他既有 Warning 僅記錄不擴大實作。
+
+```diff
+diff --git a/.github/workflows/solution-ci.yml b/.github/workflows/solution-ci.yml
+index 8a3789f6..238a1e28 100644
+--- a/.github/workflows/solution-ci.yml
++++ b/.github/workflows/solution-ci.yml
+@@ -66,7 +66,7 @@ jobs:
+           } finally { $env:SIXLABORS_LICENSE = $null }
+       - name: Restore
+         run: |
+-          dotnet restore SpeechMessageProducts.sln
++          dotnet restore SpeechMessageProducts.CI.slnf
+           if ($LASTEXITCODE -ne 0) { throw 'Solution restore failed.' }
+           foreach ($project in @('tools/I18nCheck.Tests', 'tools/PluginPackaging.Tests')) {
+             dotnet restore $project
+@@ -75,7 +75,7 @@ jobs:
+       - name: Build without signing key
+         run: |
+           # 一般 Release 建置不讀金鑰、不打包；只有獨立正式打包步驟可以取得 secret。
+-          dotnet build SpeechMessageProducts.sln -c Release --no-restore -warnaserror:NU1605
++          dotnet build SpeechMessageProducts.CI.slnf -c Release --no-restore -warnaserror:NU1605
+           if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
+           foreach ($project in @('tools/I18nCheck.Tests', 'tools/PluginPackaging.Tests')) {
+             dotnet build $project -c Release --no-restore -warnaserror:NU1605
+@@ -83,12 +83,18 @@ jobs:
+           }
+       - name: Release solution tests and coverage
+         run: |
+-          dotnet test SpeechMessageProducts.sln -c Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/ci/solution-tests
++          dotnet test SpeechMessageProducts.CI.slnf -c Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/ci/solution-tests
+           if ($LASTEXITCODE -ne 0) { throw 'Release solution tests failed.' }
+       - name: Debug tracer contracts
++        # 過渡期間依賴被排除的 ChurchReport；DevExtreme 來源核定並恢復完整 CI 後移除此條件。
++        if: ${{ false }}
+         run: |
+-          dotnet test ToolUtility.Dataverse.Tests -c Debug --filter "FullyQualifiedName~FileToolUtilityTracerTests"
++          $tracerResults = 'artifacts/ci/debug-tracer'
++          if (Test-Path -LiteralPath $tracerResults) { throw 'Tracer results must be fresh.' }
++          dotnet test ToolUtility.Dataverse.Tests -c Debug --filter "FullyQualifiedName~FileToolUtilityTracerTests" --logger "trx;LogFileName=tracer.trx" --results-directory $tracerResults
+           if ($LASTEXITCODE -ne 0) { throw 'Debug tracer tests failed.' }
++          powershell -NoProfile -File tools/RepoQuality/Test-TrxExecution.ps1 -ReportPath (Join-Path $tracerResults 'tracer.trx')
++          if ($LASTEXITCODE -ne 0) { throw 'Debug tracer tests were not actually executed successfully.' }
+       - name: Coverage for each new module and target
+         run: |
+           # 各目標分開收集，禁止 net10 報告或其他測試的相依模組掩蓋 net48 的缺口。
+@@ -136,6 +142,12 @@ jobs:
+           if ($LASTEXITCODE -ne 0) { throw 'SDK and ignore settings failed.' }
+           powershell -NoProfile -File tools/RepoQuality/Tests/Test-Coverage.Tests.ps1
+           if ($LASTEXITCODE -ne 0) { throw 'Coverage gate tests failed.' }
++          powershell -NoProfile -File tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1
++          if ($LASTEXITCODE -ne 0) { throw 'Package path boundary contracts failed.' }
++          powershell -NoProfile -File tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1
++          if ($LASTEXITCODE -ne 0) { throw 'CI transition scope contracts failed.' }
++          powershell -NoProfile -File tools/RepoQuality/Tests/Test-TracerCi.Tests.ps1
++          if ($LASTEXITCODE -ne 0) { throw 'Tracer CI contracts failed.' }
+           powershell -NoProfile -File tools/RepoQuality/Tests/Test-SixLaborsCiLicense.Tests.ps1
+           if ($LASTEXITCODE -ne 0) { throw 'Six Labors CI license contracts failed.' }
+           node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs
+@@ -208,6 +220,20 @@ jobs:
+               if ([IO.File]::Exists($licensePath)) { Remove-Item -LiteralPath $licensePath -Force }
+             }
+           } finally { $env:SixLaborsLicenseFile = $null }
++      - name: CI transition scope
++        if: always()
++        run: |
++          $ErrorActionPreference = 'Stop'
++          # 摘要直接依篩選檔列出省略專案，避免維護兩份排除清單造成假綠燈。
++          $filter = Get-Content -LiteralPath SpeechMessageProducts.CI.slnf -Raw | ConvertFrom-Json
++          $included = @($filter.solution.projects | ForEach-Object { $_.Replace('\', '/') })
++          $solution = Get-Content -LiteralPath $filter.solution.path -Raw
++          $all = @([regex]::Matches($solution, '(?m)^Project\([^\r\n]+?= "[^"]+", "(?<path>[^"]+\.csproj)"') | ForEach-Object { $_.Groups['path'].Value.Replace('\', '/') })
++          $excluded = @($all | Where-Object { $included -notcontains $_ } | Sort-Object)
++          $lines = @('### Transitional CI scope', '', 'This is not a full solution verification.', 'DevExtreme 23.1.5 source is pending user confirmation. Excluded projects:')
++          $lines += @($excluded | ForEach-Object { '- ' + $_ })
++          $lines += @('', 'Debug tracer is temporarily disabled because it depends on ChurchReport.', 'Restore full CI and tracer after the user approves a DevExtreme source. Local validation still covers the full solution.')
++          $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+       - name: Upload coverage reports
+         if: always()
+         uses: actions/upload-artifact@v4
+diff --git a/.gitignore b/.gitignore
+index 2309d535..c60b9a31 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -274,3 +274,6 @@ __pycache__/
+ *.snk
+ # 原始測試結果含機器名稱與本機路徑，只提交整理後的文字摘要。
+ *.trx
++
++# 授權檔保存在 repo 外；防止同名檔案意外進入任何子目錄。
++sixlabors.lic
+diff --git a/.trellis/spec/backend/central-package-management.md b/.trellis/spec/backend/central-package-management.md
+index 2c980cc1..b23ec37f 100644
+--- a/.trellis/spec/backend/central-package-management.md
++++ b/.trellis/spec/backend/central-package-management.md
+@@ -65,3 +65,13 @@ program project, or suppressing NU1605 after dependency changes.
+ 
+ Correct: `<PackageReference Include="Newtonsoft.Json" />`, with version `13.0.4`
+ in the central table, while leaving the two excluded snapshots unchanged.
++
++## Reparse-point boundary (review correction 2026-11-04)
++
++Validate the repository prefix and each existing path component before every
++project, central-table or fixed security-reference XML read. Reject reparse
++points, including junctions, with UnsafePath before decoding. Exclude other
++worktrees/reference solutions and bin/obj at any depth; actual orphan projects
++and docs-like prefixes remain checked. Test-PackageVersions.Tests.ps1 uses a
++tracked path whose parent is replaced with a real junction and proves outside
++content stays unchanged and unlocked. Run on PowerShell 5.1 and 7.
+diff --git a/.trellis/spec/backend/deployment-contract.md b/.trellis/spec/backend/deployment-contract.md
+index d4f994f8..67b66421 100644
+--- a/.trellis/spec/backend/deployment-contract.md
++++ b/.trellis/spec/backend/deployment-contract.md
+@@ -28,7 +28,13 @@ step identities use type/message/entity/stage/mode/rank, and duplicate database
+ IDs fail closed. Existing step configuration changes update the original ID;
+ trace/push transitions retain idempotency, parse secrets only for writes, and
+ remove obsolete secure configuration records. Plan does not compare secret
+-values and therefore is not a credential-rotation tool.
++values and therefore is not a credential-rotation tool. Both CLI and Markdown
++must disclose this scope whenever placeholders exist. If metadata matches but
++secret placeholders exist, verify returns 3 (incomplete), never full success.
++Metadata differences still return 1; trace-only complete equality returns 0.
++Do not add secret resolution, hashes of actual secrets, new rotation commands
++or raw exports to obtain a successful verification result. Secret-value
++changes require separately authorized rotation work and user test delivery.
+ 
+ A bounded OS file-handle lease serializes same-organization write commands on
+ this machine; release it after the connection is disposed. Smoke only creates
+@@ -37,7 +43,7 @@ minutes and deletes the task in finally. Caller cancellation is not notified.
+ 
+ ## Offline verification
+ 
+-Keep all original 17 test methods. L1 uses operation-local in-memory SDK services;
++Keep all original 17 test methods and every subsequently added case; 17 is the original contract list, not the current suite total. L1 uses operation-local in-memory SDK services;
+ L2 emits an unsigned net48 PE into the test's unique temporary folder and reads
+ metadata without Assembly.Load. Dispose readers, timers, locks and temp fixtures.
+ CI includes the Deployment project and a separate >=80% coverage report.
+diff --git a/.trellis/spec/backend/development-configuration-safety.md b/.trellis/spec/backend/development-configuration-safety.md
+index d891be5c..8b67262b 100644
+--- a/.trellis/spec/backend/development-configuration-safety.md
++++ b/.trellis/spec/backend/development-configuration-safety.md
+@@ -29,3 +29,19 @@ This exception applies only to ChurchReport settings. Deployment credentials
+ remain User-Secrets-only in P0-12; command-line passwords are forbidden.
+ Base appsettings.json cleanup remains in P2/P4. Never copy credential values
+ into reports, evidence, test output or commit messages.
++
++## Stage 0 review boundary corrections (2026-11-04)
++
++Reject every baseline LINE alias as the Development default even when all its
++tokens have been cleared. Token-value reuse checks still compare only nonempty
++tokens; alias validation must not share that filter. Baseline keys remain
++operation-local and the configuration root is disposed before returning.
++
++Validate the effective URI, not just the tracked JSON: all CRM and enabled
++Embedded endpoints require HTTPS and the exact test host, default port, no URI
++userinfo, query or fragment. CRM additionally requires the complete
++/XRMServices/2011/Organization.svc path. Test synthetic empty baseline tokens
++and unsafe same-host URLs through the actual startup guard, without connecting.
++Provider precedence, credential-storage exception and Production behavior stay
++as approved. Architectural warnings about independent legacy readers remain
++recorded for later work, not silently refactored in this correction.
+diff --git a/.trellis/spec/backend/duplicate-source-ratchet.md b/.trellis/spec/backend/duplicate-source-ratchet.md
+index d57b1355..11ceee19 100644
+--- a/.trellis/spec/backend/duplicate-source-ratchet.md
++++ b/.trellis/spec/backend/duplicate-source-ratchet.md
+@@ -3,7 +3,13 @@
+ Run `powershell -NoProfile -File tools/RepoQuality/Find-DuplicateCode.ps1 -Baseline tools/RepoQuality/duplicate-baseline.json` from the current worktree after P0-06.
+ 
+ - Enumerate only C# projects declared in the selected solution. Validate absolute repository boundaries before reading; never search parent worktrees or traverse reparse points. Exclude build output, generated C#, documentation/reference snapshots and other worktrees.
+-- Content identity is normalized SHA256. Type identity is namespace plus class/record/struct declaration, with comment/string masking and block/file-scoped namespace tracking. Only cross-project groups count.
++- Content identity is normalized SHA256. Type identity is namespace plus the complete enclosing type chain and class/record/struct declaration, with comment/string masking and block/file-scoped namespace tracking. Only cross-project groups count.
+ - Baseline entries are stable kind/key identities with unique source locations. Reject repeated baseline group identities and locations before using the dictionary. New groups or additional locations fail; removed locations produce BaselineStale reminders.
+ - CLI invocation owns all scan state. Keep only one source text at a time (16 MiB limit), then retain metadata only. Existing legacy encodings may be decoded strictly for read-only inventory; the encoding gate owns publishing rules.
+ - Tests use isolated synthetic solutions and both PowerShell engines. Assert specific diagnostics, not merely any nonzero exit. Never change products to satisfy the scanner or rewrite existing source as part of baseline creation.
++
++Nested types with different enclosing types are distinct identities. Track type
++frames separately from namespace frames; restore siblings on closing braces and
++clear body-less record declarations at semicolons. Keep positive same-owner and
++negative different-owner fixtures. Do not regenerate the baseline to hide a
++parser mistake.
+diff --git a/.trellis/spec/backend/i18n-scanner-contract.md b/.trellis/spec/backend/i18n-scanner-contract.md
+new file mode 100644
+index 00000000..e7bc1fbf
+--- /dev/null
++++ b/.trellis/spec/backend/i18n-scanner-contract.md
+@@ -0,0 +1,19 @@
++# I18n Razor boundary contract
++
++The scanner counts HTML text and title/placeholder/alt/value attributes after
++removing expressions, pure code blocks, comments and script/style. Markup inside
++a code block or expression remains excluded; a boundary repair must not enlarge
++this scope or silently consume following display text.
++
++Use Roslyn for one C# token at a time, including string and trivia semantics.
++At Razor transitions, use dedicated markup matching: @<tag>, nested same-name
++tags, self-closing/void tags, attribute expressions, @: lines, recursive Razor
++expressions and direct HTML at a code statement boundary. Pure C# lexing cannot
++interpret Razor template delegates. Uncertain/truncated boundaries fail closed
++with I18N415, without source values. Each call owns its source and stacks; no
++source cache. Mixed recursion is bounded at 96, stacks at 512.
++
++Keep the original tests plus RazorLexicalBoundaryTests. Verify the actual repo
++with zero I18N415. Compare old/new counts on identical tracked sources and report
++every changed file. Baseline increases require the user's explicit allowed cause;
++never update a baseline merely to hide a parser regression.
+diff --git a/.trellis/spec/backend/index.md b/.trellis/spec/backend/index.md
+index 5515a713..6b2b38d6 100644
+--- a/.trellis/spec/backend/index.md
++++ b/.trellis/spec/backend/index.md
+@@ -28,6 +28,7 @@ This directory contains guidelines for backend development. Fill in each file wi
+ | [Development Configuration Safety](./development-configuration-safety.md) | Development-only providers, baseline token rejection, test organization guard and Production compatibility | Established |
+ | [Duplicate Source Ratchet](./duplicate-source-ratchet.md) | Solution-scoped content/type duplicates, baseline identity validation and no parent-worktree traversal | Established |
+ | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels, and unified diagnostic trace contract | Established |
++| [I18n Scanner Contract](./i18n-scanner-contract.md) | Separate C# tokens from Razor template boundaries without widening count scope | Established |
+ | [Image Input Contract](./image-input-contract.md) | Restricted image formats, pre-decode size limits, safe rejection and bounded ownership | Established |
+ | [MemberInfo Tree And Grid Contract](./member-info-tree-contract.md) | Cross-layer MemberInfo authorization, DTO, paging, sorting, cache, and CRM batching rules | Established |
+ | [Small Group Background Upload Isolation](./small-group-background-upload-isolation.md) | SaveIntegrate background snapshot, refresh response, resource ownership, and regression contract | Established |
+diff --git a/.trellis/spec/backend/solution-ci-contract.md b/.trellis/spec/backend/solution-ci-contract.md
+index ce6365e6..346e6265 100644
+--- a/.trellis/spec/backend/solution-ci-contract.md
++++ b/.trellis/spec/backend/solution-ci-contract.md
+@@ -89,3 +89,47 @@ Local product builds may use the user-level SixLaborsLicenseFile path only in
+ the current process, after Test-Path confirms existence. Do not commit that
+ path, inspect license contents, alter persistent environment settings, or claim
+ hosted Actions execution from local verification.
++
++## Tracer execution evidence
++
++The Debug tracer block writes a fresh tracer.trx, then Test-TrxExecution.ps1
++requires positive executed count, all passed, no failed results and agreement
++with actual result rows. Reject empty discovery even if dotnet exits zero. XML
++is bounded to 4 MiB with DTD and external resolution disabled; dispose readers
++on every path and never print raw XML or exception messages. Synthetic tests
++execute the real workflow block with only dotnet replaced. Keep them active
++even while the tracer step is temporarily disabled for a dependency source.
++
++## Transitional DevExtreme dependency scope (user approved 2026-11-04)
++
++SpeechMessageProducts.CI.slnf retains 23 of the solution's 26 projects. Exclude
++SpeechMessageProducts.ChurchReport, ChurchReport.MemberInfo.Tests and
++ToolUtility.Dataverse.Tests because they directly or transitively require
++DevExtreme.AspNet.Core 23.1.5, whose approved package source is still pending.
++Restore, build and Release test use this filter. The Debug tracer step keeps
++its run block and positive-TRX guard but is temporarily disabled; synthetic
++tracer checks stay active. The always-run scope summary derives the exclusions
++from the filter and must state that this is not full solution verification.
++
++Test-CiTransition.Tests.ps1 checks the real dependency closure and executes
++actual command/summary blocks with only dotnet replaced. No unrelated project
++may be silently omitted. Per-module coverage and offline JavaScript checks
++remain enabled. Local 00 section 8 validation still uses the full solution,
++including ChurchReport and Debug tracer.
++
++The obsolete machine-specific DevExpress 19.1 source is removed from the
++ChurchReport NuGet.config. It inherits user-level package sources. On a new
++computer, install the licensed DevExpress 23.1 tools, locate their local
++DevExtreme AspNetCore package folder, and add that folder to the user's NuGet
++package sources (Visual Studio package-source settings or user-level NuGet
++configuration). Keep the actual machine path outside the repository. Existing
++machines may restore from their populated cache. Do not add nupkg files,
++private source URLs or credentials to the repository, upgrade DevExtreme, or
++try an unapproved remote feed.
++
++After user approval of a DevExtreme source, restore the full solution commands
++and tracer, then prove the complete hosted CI passes. Stage 0 cannot be closed
++on this transitional CI alone without explicit user acceptance. Per the user's
++hosted audit, Six Labors preparation/always-cleanup have succeeded, while past
++runs stopped at Restore before builds/tests. Local checks do not establish a
++subsequent hosted result.
+diff --git a/ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs b/ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs
+index 50cd85f5..f60a2114 100644
+--- a/ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs
++++ b/ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs
+@@ -98,6 +98,53 @@ public sealed class DevelopmentSafetyTests
+         exception.Message.Should().Contain(key).And.NotContain("PROD-FAKE").And.NotContain("PROD-B-FAKE").And.NotContain("DEV-FAKE");
+     }
+ 
++    /// <summary>
++    /// 基底假 token 全部清空後仍不得以既有正式別名當預設；斷言守門拒絕且不回顯設定內容。
++    /// 每案只覆寫自己的合成 JSON，證明別名邊界獨立於 token 是否存在，不觸碰產品設定或外部服務。
++    /// </summary>
++    /// <param name="alias">刻意選用的既有正式別名，包含大小寫變體。</param>
++    [Theory]
++    [InlineData("Jesus")]
++    [InlineData("JesusBack")]
++    [InlineData("jesus")]
++    public void DevelopmentGuard_EmptyBaselineTokens_StillRejectsProductionAlias(string alias)
++    {
++        using var fixture = new SettingsFixture();
++        File.WriteAllText(Path.Combine(fixture.Root, "appsettings.json"),
++            """{"LineMessaging":{"DefaultOrganization":"Jesus","Jesus":{"ChannelAccessToken":""},"JesusBack":{"ChannelAccessToken":""}}}""");
++        var values = SafeValues();
++        values["LineMessaging:DefaultOrganization"] = alias;
++        using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
++        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(fixture.Root, "Development", configuration);
++        action.Should().Throw<InvalidOperationException>().Which.Message.Should().Contain("LineMessaging:DefaultOrganization");
++    }
++
++    /// <summary>
++    /// 以正確測試主機搭配不安全協定、錯誤服務路徑或額外 URI 成分注入有效組態；守門須在建線前拒絕。
++    /// 測試直接執行安全入口而非只檢查 JSON，目前端點全部為字面假資料；例外僅可含鍵名與固定原因。
++    /// </summary>
++    /// <param name="key">受測 CRM 或 Embedded 設定鍵。</param>
++    /// <param name="uri">主機正確但其他部分錯誤的合成網址。</param>
++    [Theory]
++    [InlineData("CrmConnection:ServerUrl", "http://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc")]
++    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw/")]
++    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc?synthetic=1")]
++    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc#synthetic")]
++    [InlineData("CrmConnection:ServerUrl", "https://synthetic@goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc")]
++    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw:8443/XRMServices/2011/Organization.svc")]
++    [InlineData("DynamicsAccess:Embedded:OrganizationWebApiBaseUri", "http://goodshepherdback.speechmessage.com.tw/api/data/v9.1")]
++    [InlineData("DynamicsAccess:Embedded:ResourceUri", "http://goodshepherdback.speechmessage.com.tw")]
++    public void DevelopmentGuard_UnsafeEndpoint_RejectsBeforeConnection(string key, string uri)
++    {
++        using var fixture = new SettingsFixture();
++        var values = SafeValues();
++        values[key] = uri;
++        using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
++        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(fixture.Root, "Development", configuration);
++        var exception = action.Should().Throw<InvalidOperationException>().Which;
++        exception.Message.Should().Contain(key).And.NotContain(uri);
++    }
++
+     /// <summary>Production 與未設定環境即使有不安全鍵和不存在的基底路徑，也必須完全略過 Development 守門。</summary>
+     /// <param name="environment">不啟用開發守門的環境或 null。</param>
+     [Theory]
+@@ -172,7 +219,7 @@ public sealed class DevelopmentSafetyTests
+         ["LineMessaging:Jesus:ChannelAccessToken"] = "",
+         ["LineMessaging:JesusBack:ChannelAccessToken"] = "",
+         ["CrmConnection:Organization"] = "goodshepherdback",
+-        ["CrmConnection:ServerUrl"] = "https://goodshepherdback.speechmessage.com.tw",
++        ["CrmConnection:ServerUrl"] = "https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc",
+         ["DynamicsAccess:Package01FeeReadsEnabled"] = "true",
+         ["DynamicsAccess:Embedded:OrganizationWebApiBaseUri"] = "https://goodshepherdback.speechmessage.com.tw/api/data/v9.1",
+         ["DynamicsAccess:Embedded:ResourceUri"] = "https://goodshepherdback.speechmessage.com.tw"
+diff --git a/SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs b/SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs
+index 89f3eb2e..eb5b48ac 100644
+--- a/SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs
++++ b/SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs
+@@ -92,6 +92,64 @@ public sealed class DeploymentContractTests
+         Assert.DoesNotContain(Fixture.SecretValue, File.ReadAllText(Path.Combine(f.Root, "export.json")), StringComparison.Ordinal);
+     }
+ 
++    /// <summary>
++    /// 同一推播模板在假秘密保留或輪替後，都不得以唯讀 metadata 計畫宣稱秘密已驗證。
++    /// 注入新的假 reader，斷言不被讀取、不寫資料、回傳未完成碼、租用輸出不含任何秘密；不是連線驗收。
++    /// </summary>
++    /// <param name="rotated">是否將本次假秘密來源換成不同值。</param>
++    [Theory(DisplayName = "推播秘密未比對不能回報完整成功")]
++    [InlineData(false)]
++    [InlineData(true)]
++    public void Verify_SecretValuesUnchecked_ReturnsIncompleteAndDisclosesScope(bool rotated)
++    {
++        using var f = new Fixture(push: true);
++        f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
++        var readCount = 0;
++        var writes = f.Service.Writes.Count;
++        const string rotatedValue = "ROTATED-SYNTHETIC-NOT-A-CREDENTIAL";
++        var engine = new DeploymentEngine(f.Service, f.Root, f.Clock, _ =>
++        {
++            readCount++;
++            return rotated ? rotatedValue : Fixture.SecretValue;
++        });
++        var plan = engine.Plan(f.Manifest, f.Image, Fixture.Organization);
++        Assert.Empty(plan.Operations);
++        using var output = new StringWriter(CultureInfo.InvariantCulture);
++
++        Assert.Equal(3, DeploymentCli.WriteVerificationResult(plan, output));
++
++        Assert.Equal(0, readCount);
++        Assert.Equal(writes, f.Service.Writes.Count);
++        var text = output.ToString();
++        Assert.Contains("Secret values were not compared", text, StringComparison.Ordinal);
++        Assert.DoesNotContain("Deployment state matches", text, StringComparison.Ordinal);
++        Assert.DoesNotContain(Fixture.SecretValue, text, StringComparison.Ordinal);
++        Assert.DoesNotContain(rotatedValue, text, StringComparison.Ordinal);
++    }
++
++    /// <summary>含秘密佔位的 Markdown 必須揭露不比較值與不處理輪替，且既有佔位不解析契約仍成立。</summary>
++    [Fact(DisplayName = "計畫明列秘密值未比對與輪替限制")]
++    public void Plan_WithSecrets_DisclosesVerificationAndRotationLimits()
++    {
++        using var f = new Fixture(push: true);
++        var text = DeploymentEngine.Markdown(f.Plan());
++        Assert.Contains("Secret values are not compared", text, StringComparison.Ordinal);
++        Assert.Contains("not a secret-rotation plan", text, StringComparison.Ordinal);
++        Assert.Equal(0, f.SecretReads);
++        Assert.DoesNotContain(Fixture.SecretValue, text, StringComparison.Ordinal);
++    }
++
++    /// <summary>不含秘密的追蹤清單可完整驗證；確實存在 metadata 操作時仍回傳差異碼，不會被未完成碼掩蓋。</summary>
++    [Fact(DisplayName = "公開設定相同成功而 metadata 差異仍失敗")]
++    public void Verify_TraceMetadata_PreservesSuccessAndDifferenceCodes()
++    {
++        using var f = new Fixture();
++        using var output = new StringWriter(CultureInfo.InvariantCulture);
++        Assert.Equal(1, DeploymentCli.WriteVerificationResult(f.Plan(), output));
++        f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
++        Assert.Equal(0, DeploymentCli.WriteVerificationResult(f.Plan(), output));
++    }
++
+     /// <summary>既有組件主次版本不同，須在任何寫入之前拒絕。</summary>
+     [Fact(DisplayName = "主次版本衝突停止")]
+     public void Plan_AssemblyMajorMinorChanged_Stops()
+diff --git a/SpeechMessage.Dynamics.Deployment/DeploymentCli.cs b/SpeechMessage.Dynamics.Deployment/DeploymentCli.cs
+index 9c18c411..f427da74 100644
+--- a/SpeechMessage.Dynamics.Deployment/DeploymentCli.cs
++++ b/SpeechMessage.Dynamics.Deployment/DeploymentCli.cs
+@@ -111,6 +111,11 @@ internal static class DeploymentCli
+                     var plan = engine.Plan(manifest, image, command.Organization);
+                     WritePlan(operationRoot, plan);
+                     output.WriteLine("Plan created.");
++                    if (plan.SecretPlaceholders.Count != 0)
++                    {
++                        output.WriteLine("Secret values are not compared. This is not a secret-rotation plan.");
++                    }
++
+                     return 0;
+                 }
+                 case "apply":
+@@ -126,14 +131,7 @@ internal static class DeploymentCli
+                 {
+                     var image = AssemblyCatalog.Read(assemblyPath, manifest);
+                     var plan = engine.Plan(manifest, image, command.Organization);
+-                    if (plan.Operations.Count != 0)
+-                    {
+-                        output.WriteLine("Deployment state differs from the registration manifest.");
+-                        return 1;
+-                    }
+-
+-                    output.WriteLine("Deployment state matches the registration manifest.");
+-                    return 0;
++                    return WriteVerificationResult(plan, output);
+                 }
+                 case "export":
+                 {
+@@ -179,6 +177,33 @@ internal static class DeploymentCli
+         }
+     }
+ 
++    /// <summary>
++    /// 將規劃結果轉成 verify 的固定輸出與程序結束碼；純輸出步驟不持有服務、秘密或可變跨命令狀態。
++    /// 與 CLI 共用同一實作，離線測試可以直接用記憶體組織的實際計畫檢查輸出契約。
++    /// </summary>
++    /// <param name="plan">本次命令的不可變計畫，不含秘密實值。</param>
++    /// <param name="output">由呼叫端持有並釋放的固定摘要 writer。</param>
++    /// <returns>公開設定一致且沒有秘密佔位時為 0；metadata 有差異為 1；秘密未比對而不能完整驗證為 3。</returns>
++    internal static int WriteVerificationResult(DeploymentPlan plan, TextWriter output)
++    {
++        if (plan.Operations.Count != 0)
++        {
++            output.WriteLine("Deployment state differs from the registration manifest.");
++            return 1;
++        }
++
++        if (plan.SecretPlaceholders.Count != 0)
++        {
++            // 不為了取得綠燈讀取 secrets，也不能把部分驗證冒充完整一致；此為預期未完成，不送例外告警。
++            output.WriteLine("Non-secret metadata matches. Secret values were not compared; verification is incomplete (exit 3).");
++            output.WriteLine("This is not a secret-rotation plan. Validate test delivery separately; secret changes are not detected or applied by this plan.");
++            return 3;
++        }
++
++        output.WriteLine("Deployment state matches the registration manifest.");
++        return 0;
++    }
++
+     /// <summary>解析唯一命令、允許選項與其值；未知參數的實際內容不會進入回應。</summary>
+     /// <param name="args">原始命令列參數。</param>
+     /// <param name="command">驗證後固定命令資料。</param>
+diff --git a/SpeechMessage.Dynamics.Deployment/DeploymentEngine.cs b/SpeechMessage.Dynamics.Deployment/DeploymentEngine.cs
+index 1e2012f7..edf85961 100644
+--- a/SpeechMessage.Dynamics.Deployment/DeploymentEngine.cs
++++ b/SpeechMessage.Dynamics.Deployment/DeploymentEngine.cs
+@@ -129,6 +129,12 @@ internal sealed class DeploymentEngine
+ 
+         builder.AppendLine();
+         builder.AppendLine("## User Secrets 佔位名稱");
++        if (plan.SecretPlaceholders.Count != 0)
++        {
++            builder.AppendLine("Secret values are not compared. This is not a secret-rotation plan.");
++            builder.AppendLine("Verify cannot establish full equality for these values; unchanged metadata yields incomplete exit 3.");
++        }
++
+         if (plan.SecretPlaceholders.Count == 0)
+         {
+             builder.AppendLine("- 無");
+@@ -395,7 +401,7 @@ internal sealed class DeploymentEngine
+                 continue;
+             }
+ 
+-            if (!ConfigurationMatches(existingStep, step))
++            if (!NonSecretConfigurationMatches(existingStep, step))
+             {
+                 operations.Add(new DeploymentOperation("UpdateStepConfiguration", StepKey(step)));
+             }
+@@ -519,9 +525,11 @@ internal sealed class DeploymentEngine
+ 
+     /// <summary>
+     /// 比對既有步驟的公開模式與文化欄位，不讀取秘密來源或 secureconfig 值。
+-    /// lineUserId 僅檢查已解析且非空；回傳值與 plan 不保存該值，避免個資落檔。
++    /// lineUserId 僅檢查已解析且非空後，從比較候選移除；true 只代表公開 metadata 相同，不是秘密值相同。
++    /// CLI 對任何秘密佔位回報驗證未完成（非零），計畫摘要也明列不支援秘密輪替，避免守門假綠燈。
++    /// 所有 JSON 與值只屬本次呼叫，回傳值及 plan 不保存該值，避免個資落檔。
+     /// </summary>
+-    private static bool ConfigurationMatches(Entity existing, StepRegistration desired)
++    private static bool NonSecretConfigurationMatches(Entity existing, StepRegistration desired)
+     {
+         var hasSecure = ReadReferenceId(existing, "secureconfigid").HasValue;
+         if (hasSecure != (desired.SecureConfig.Length > 0))
+@@ -546,8 +554,9 @@ internal sealed class DeploymentEngine
+                     return false;
+                 }
+ 
+-                // 不解析 User Secrets；只在此比較框架內暫用既有值，方法返回即不再保留。
+-                expected["lineUserId"] = userId;
++                // 明確排除未驗證的秘密欄位，不能用既有值回填 expected 來暗示相等。
++                expected.Remove("lineUserId");
++                current.Remove("lineUserId");
+             }
+ 
+             return JsonNode.DeepEquals(current, expected);
+diff --git a/SpeechMessageProducts.CI.slnf b/SpeechMessageProducts.CI.slnf
+new file mode 100644
+index 00000000..53d8ee09
+--- /dev/null
++++ b/SpeechMessageProducts.CI.slnf
+@@ -0,0 +1,30 @@
++{
++  "solution": {
++    "path": "SpeechMessageProducts.sln",
++    "projects": [
++      "Line.Messaging.Tests\\Line.Messaging.Tests.csproj",
++      "Line.Messaging\\Line.Messaging.csproj",
++      "LineMessagingProcessor.AspNetCore.Tests\\LineMessagingProcessor.AspNetCore.Tests.csproj",
++      "LineMessagingProcessor.AspNetCore\\LineMessagingProcessor.AspNetCore.csproj",
++      "LineMessagingProcessor.Core\\LineMessagingProcessor.Core.csproj",
++      "LineMessagingProcessor.RichMenus.Tests\\LineMessagingProcessor.RichMenus.Tests.csproj",
++      "LineMessagingProcessor.RichMenus\\LineMessagingProcessor.RichMenus.csproj",
++      "LineMessagingProcessor.Tests\\LineMessagingProcessor.Tests.csproj",
++      "LineMessagingProcessor.Workflows.Tests\\LineMessagingProcessor.Workflows.Tests.csproj",
++      "LineMessagingProcessor.Workflows\\LineMessagingProcessor.Workflows.csproj",
++      "LineMessagingProcessor\\LineMessagingProcessor.csproj",
++      "PowerPlatform.Dataverse.Client\\PowerPlatform.Dataverse.Client.csproj",
++      "SpeechMessage.Dynamics.Deployment.Tests\\SpeechMessage.Dynamics.Deployment.Tests.csproj",
++      "SpeechMessage.Dynamics.Deployment\\SpeechMessage.Dynamics.Deployment.csproj",
++      "SpeechMessage.Dynamics.Plugins.Tests\\SpeechMessage.Dynamics.Plugins.Tests.csproj",
++      "SpeechMessage.Dynamics.Plugins\\SpeechMessage.Dynamics.Plugins.csproj",
++      "SpeechMessage.Localization.Tests\\SpeechMessage.Localization.Tests.csproj",
++      "SpeechMessage.Localization\\SpeechMessage.Localization.csproj",
++      "SpeechMessage.Payments.AspNetCore\\SpeechMessage.Payments.AspNetCore.csproj",
++      "SpeechMessage.Payments.Tests\\SpeechMessage.Payments.Tests.csproj",
++      "SpeechMessage.Payments.Workflows\\SpeechMessage.Payments.Workflows.csproj",
++      "SpeechMessage.Payments\\SpeechMessage.Payments.csproj",
++      "ToolUtility\\ToolUtility.csproj"
++    ]
++  }
++}
+diff --git a/SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs b/SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs
+index 3ccfd5f9..88577ee0 100644
+--- a/SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs
++++ b/SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs
+@@ -61,8 +61,10 @@ internal static class ChurchReportDevelopmentConfiguration
+         // 使用串流直接讀基底快照，避免架構掃描把安全比較用的基底讀取當成對外 token 的來源。
+         // 基底串流在 ReadBaseline 返回前關閉，組態根在本次檢查結束前 Dispose，兩者均不跨請求保存。
+         using var baseline = ReadBaseline(basePath);
+-        var baseChannels = baseline.GetSection("LineMessaging").GetChildren()
+-            .Where(s => !string.IsNullOrWhiteSpace(s["ChannelAccessToken"])).ToArray();
++        // 別名與憑證比較分開：即使基底 token 已清空，正式別名仍不可成為開發預設。
++        // 此陣列只屬本次啟動檢查，由 using 擁有的基底根供應，不跨請求或存入快取。
++        var baselineAliases = baseline.GetSection("LineMessaging").GetChildren().ToArray();
++        var baseChannels = baselineAliases.Where(s => !string.IsNullOrWhiteSpace(s["ChannelAccessToken"])).ToArray();
+         foreach (var channel in configuration.GetSection("LineMessaging").GetChildren())
+         {
+             var value = channel["ChannelAccessToken"];
+@@ -74,7 +76,7 @@ internal static class ChurchReportDevelopmentConfiguration
+         if (!string.IsNullOrWhiteSpace(environmentToken) && baseChannels.Any(s => string.Equals(environmentToken, s["ChannelAccessToken"], StringComparison.Ordinal)))
+             throw UnsafeKey("LINE_CHANNEL_ACCESS_TOKEN", "不可沿用基底的正式憑證。");
+         var defaultOrganization = configuration["LineMessaging:DefaultOrganization"];
+-        if (string.IsNullOrWhiteSpace(defaultOrganization) || baseChannels.Any(s => string.Equals(s.Key, defaultOrganization, StringComparison.OrdinalIgnoreCase)))
++        if (string.IsNullOrWhiteSpace(defaultOrganization) || baselineAliases.Any(s => string.Equals(s.Key, defaultOrganization, StringComparison.OrdinalIgnoreCase)))
+             throw UnsafeKey("LineMessaging:DefaultOrganization", "必須選擇獨立的測試別名。");
+         if (!string.Equals(configuration["CrmConnection:Organization"], "goodshepherdback", StringComparison.OrdinalIgnoreCase))
+             throw UnsafeKey("CrmConnection:Organization", "開發模式只能使用指定的測試組織。");
+@@ -110,14 +112,22 @@ internal static class ChurchReportDevelopmentConfiguration
+         }
+     }
+ 
+-    /// <summary>限制 CRM／Embedded URI 的主機，使用解析後的精確主機比較，不接受相似網域或路徑中的偽裝名稱。</summary>
++    /// <summary>
++    /// CRM／Embedded 只接受測試主機的標準 HTTPS；拒絕 URI 內帳密、額外埠號及 query／fragment。
++    /// CRM 另限制完整 Organization.svc 路徑，避免錯誤端點在建線時才發現或明文傳輸憑證。
++    /// 只解析一次當次借用值，不建立連線、不記錄或保留原始設定。
++    /// </summary>
+     /// <param name="configuration">只借用當次啟動設定，不保存於 static。</param>
+     /// <param name="key">原始碼固定的鍵名，不可含使用者提供的值。</param>
+     private static void ValidateTestHost(IConfiguration configuration, string key)
+     {
+         if (!Uri.TryCreate(configuration[key], UriKind.Absolute, out var uri) ||
+-            !string.Equals(uri.Host, "goodshepherdback.speechmessage.com.tw", StringComparison.OrdinalIgnoreCase))
+-            throw UnsafeKey(key, "開發模式只能使用指定測試組織的主機。");
++            !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal) ||
++            !string.Equals(uri.Host, "goodshepherdback.speechmessage.com.tw", StringComparison.OrdinalIgnoreCase) ||
++            !uri.IsDefaultPort || uri.UserInfo.Length != 0 || uri.Query.Length != 0 || uri.Fragment.Length != 0 ||
++            (string.Equals(key, "CrmConnection:ServerUrl", StringComparison.Ordinal) &&
++             !string.Equals(uri.AbsolutePath, "/XRMServices/2011/Organization.svc", StringComparison.Ordinal)))
++            throw UnsafeKey(key, "開發模式只能使用指定測試組織的安全 HTTPS 端點。");
+     }
+ 
+     /// <summary>建立只含可信鍵名與固定原因的拒絕結果；不串接設定值、不保存原始敏感例外。</summary>
+diff --git a/SpeechMessageProducts.ChurchReport/NuGet.config b/SpeechMessageProducts.ChurchReport/NuGet.config
+index e3934b29..4373221d 100644
+--- a/SpeechMessageProducts.ChurchReport/NuGet.config
++++ b/SpeechMessageProducts.ChurchReport/NuGet.config
+@@ -1,6 +1,5 @@
+-﻿<?xml version="1.0" encoding="utf-8"?>
++<?xml version="1.0" encoding="utf-8"?>
+ <configuration>
+-  <packageSources>
+-    <add key="devextreme-controls-netcore" value="C:\Program Files (x86)\DevExpress 19.1\DevExtreme\System\DevExtreme\Bin\AspNetCore" />
+-  </packageSources>
+-</configuration>
+\ No newline at end of file
++  <!-- 私有或本機 DevExpress 來源由使用者層級設定管理；此處繼承可用的 NuGet 來源。 -->
++  <packageSources />
++</configuration>
+diff --git a/tools/I18nCheck.Tests/RazorLexicalBoundaryTests.cs b/tools/I18nCheck.Tests/RazorLexicalBoundaryTests.cs
+new file mode 100644
+index 00000000..d5abc300
+--- /dev/null
++++ b/tools/I18nCheck.Tests/RazorLexicalBoundaryTests.cs
+@@ -0,0 +1,93 @@
++using Xunit;
++
++namespace I18nCheck.Tests;
++
++/// <summary>
++/// 保護 Razor 程式區塊與後續顯示文字的詞法邊界。所有輸入都是合成模板，
++/// 不執行 Razor；斷言實際顯示片段及 CLI 棘輪拒絕，避免引號誤判造成假綠燈。
++/// </summary>
++public sealed class RazorLexicalBoundaryTests
++{
++    /// <summary>
++    /// 注入逐字、原始、插值字串及註解中的括號；程式內容不計數，
++    /// 後續 HTML 必須完整保留，不能由反斜線或假括號吞掉檔案餘段。
++    /// </summary>
++    /// <param name="source">只含假路徑、假字串與固定顯示文字的模板。</param>
++    /// <param name="expected">逐一明列的顯示片段數。</param>
++    [Theory]
++    [InlineData("""@{ var path = @"C:\Logs\"; }<p>顯示</p>""", 1)]
++    [InlineData("""@{ var path = @"C:\A""}B\"; }<p>顯示</p>""", 1)]
++    [InlineData("""@if (Model.Path == @"C:\Logs\") { <p title="提示">顯示</p> }""", 2)]
++    [InlineData(""""@{ var code = """brace } and " and \ """; }<p>顯示</p>"""", 1)]
++    [InlineData("""@{ var code = $"{(true ? "}" : "{")}"; }<p>顯示</p>""", 1)]
++    [InlineData("""@{ /* } " */ var x = 1; }<p>顯示</p>""", 1)]
++    [InlineData("@{ // } \"\r\n var x = 1; }<p>顯示</p>", 1)]
++    [InlineData("""@{ var value = new { Path = @"C:\Logs\", Nested = new { X = 1 } }; }<p>顯示</p>""", 1)]
++    public void Scan_RazorLexicalBoundary_KeepsFollowingDisplay(string source, int expected) =>
++        Assert.Equal(expected, SourceScanner.CountRazor(source));
++
++    /// <summary>
++    /// C# 詞法與 Razor 轉換各自擁有邊界；模板內的引號、英文撇號、JavaScript
++    /// 括號與遞迴運算式都不得終止外層程式區塊。程式內模板仍不計數，只保留後續 HTML。
++    /// </summary>
++    /// <param name="source">只含合成標記與固定顯示文字的混合語法。</param>
++    /// <param name="expected">依既有計數範圍明列的顯示片段數。</param>
++    [Theory]
++    [InlineData("""@{ var code = $@"C:\{(true ? "}" : "{")}\"; }<p>顯示</p>""", 1)]
++    [InlineData("""@{ var code = @$"C:\{(true ? "}" : "{")}\"; }<p>顯示</p>""", 1)]
++    [InlineData("""@{ var quote = '\''; var close = '}'; }<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<text>don't " } ) <span>忽略</span></text>))<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<div><div>忽略</div>don't }</div>))<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<input value="忽略" />))<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<div><br><img src='fake'><input value="忽略"></div>))<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<text>const x = "}"; // " ) { <span>忽略</span></text>))<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<text>/* " ) { */ @(new { Value = "}" })</text>))<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<text>@(Nested(@<div>@Model.Name</div>))</text>))<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<div title="@(")")">@{ var x = @"C:\Logs\"; }@Model.Name</div>))<p>顯示</p>""", 1)]
++    [InlineData("@{ @:don't \" } ) <b>忽略</b>\r\n var x = 1; }<p>顯示</p>", 1)]
++    [InlineData("@{ var template = @<text>\r\n@:don't \" } )\r\n<span>忽略</span></text>; }<p>顯示</p>", 1)]
++    [InlineData("""@{ <div>don't " } ) <span>忽略</span></div> var x = 1; }<p>顯示</p>""", 1)]
++    [InlineData("""@{ <input value="忽略" /> <br> <div><div>don't }</div></div> }<p>顯示</p>""", 1)]
++    [InlineData("""@{ var test = a<b && b>c; var list = new List<string>(); }<p>顯示</p>""", 1)]
++    [InlineData("""@(Template(@<text>@if (Model.Ready) { <div>don't }</div> }</text>))<p title="提示">顯示</p>""", 2)]
++    [InlineData("""@(Template(@<text><div data-value=">">@(Model.Get(")"))</div></text>))<p>顯示</p>""", 1)]
++    public void Scan_RazorTemplatesAndCode_KeepExistingCountingScope(string source, int expected) =>
++        Assert.Equal(expected, SourceScanner.CountRazor(source));
++
++    /// <summary>
++    /// 不完整區塊或字串不能被當成「其餘內容皆非顯示」而回傳零；
++    /// 固定輸入錯誤直接失敗，不附帶模板內容或假路徑。
++    /// </summary>
++    /// <param name="source">刻意截斷的合成模板。</param>
++    [Theory]
++    [InlineData("@{ var path = @\"unterminated; }<p>中文</p>")]
++    [InlineData("@{ var value = 1;")]
++    [InlineData("@(1 + \"unterminated)")]
++    [InlineData("@(Template(@<text>unclosed))<p>中文</p>")]
++    [InlineData("@(Template(@<div><span>mismatch</div>))<p>中文</p>")]
++    [InlineData("@{ <div title=\"unterminated> }<p>中文</p>")]
++    public void Scan_RazorUnclosedCode_FailsClosed(string source) =>
++        Assert.Throws<InvalidDataException>(() => SourceScanner.CountRazor(source));
++
++    /// <summary>
++    /// 從零計數基準加入「逐字字串後的中文」；真正 scan 與 verify 都必須非零失敗。
++    /// 每案例獨占假方案與輸出 writer，Dispose 後立即刪除，沒有來源或計數跨案例保留。
++    /// </summary>
++    [Fact]
++    public void Cli_RazorVerbatimThenNewDisplay_RejectsRatchetIncrease()
++    {
++        using var repo = new RepositoryFixture();
++        repo.AddProject("App", false);
++        using var baselineOutput = new StringWriter();
++        Assert.Equal(0, CommandRunner.Run(repo.Root,
++            ["scan", "--write-baseline", "tools/I18nCheck/baselines/cjk-literals.json"], baselineOutput));
++        repo.Write("App/View.cshtml", """@{ var path = @"C:\Logs\"; }<p>新增中文</p>""");
++        foreach (var command in new[] { "scan", "verify" })
++        {
++            using var output = new StringWriter();
++            Assert.Equal(1, CommandRunner.Run(repo.Root, [command], output));
++            Assert.Contains("CJK ratchet: count increased", output.ToString(), StringComparison.Ordinal);
++            Assert.DoesNotContain("新增中文", output.ToString(), StringComparison.Ordinal);
++        }
++    }
++}
+diff --git a/tools/I18nCheck/RazorCodeBoundary.cs b/tools/I18nCheck/RazorCodeBoundary.cs
+new file mode 100644
+index 00000000..1d894d0c
+--- /dev/null
++++ b/tools/I18nCheck/RazorCodeBoundary.cs
+@@ -0,0 +1,242 @@
++using System.Collections.Frozen;
++using Microsoft.CodeAnalysis.CSharp;
++
++namespace I18nCheck;
++
++/// <summary>
++/// 在離線文字掃描中分離 C# token 與 Razor 標記；只回傳程式區塊終點，不執行模板。
++/// 每次呼叫獨占來源、括號與標籤堆疊，沒有跨檔快取；混合遞迴最多九十六層，
++/// 單一堆疊最多五百一十二層，無法確定邊界即以固定代碼拒絕，避免漏算及堆疊耗盡。
++/// </summary>
++internal static class RazorCodeBoundary
++{
++    /// <summary>固定 HTML void 元素不需要結束標籤；凍結集合不承載來源或使用者狀態。</summary>
++    private static readonly FrozenSet<string> VoidElements = new[]
++    {
++        "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
++        "meta", "param", "source", "track", "wbr"
++    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
++
++    /// <summary>
++    /// 由已確認的左括號開始定位匹配終點；C# 字串的反斜線、雙引號、
++    /// 插值與原始字串交給 Roslyn，遇到 Razor 轉換再切回專用標記掃描。
++    /// </summary>
++    /// <param name="source">生命週期僅限本次計數的完整來源。</param>
++    /// <param name="start">左圓括號或左大括號的絕對位置。</param>
++    /// <returns>匹配右括號之後的位置，不吞掉其後 HTML。</returns>
++    internal static int Skip(string source, int start) => SkipCode(source, start, 0);
++
++    /// <summary>
++    /// 逐 token 推進，只有語句起點的直接 HTML 與明確 @ 轉換走標記規則，
++    /// 避免把 C# 比較運算子或泛型當成標籤。單一呼叫的堆疊不跨來源保存。
++    /// </summary>
++    /// <param name="source">本次來源。</param>
++    /// <param name="start">起始括號。</param>
++    /// <param name="recursion">目前混合語法遞迴深度。</param>
++    /// <returns>程式區塊終點。</returns>
++    private static int SkipCode(string source, int start, int recursion)
++    {
++        CheckDepth(recursion);
++        var closers = new Stack<SyntaxKind>();
++        var statementStart = source[start] == '{';
++        for (var index = start; index < source.Length;)
++        {
++            // 單 token 的 Span 相對本次 offset；leading trivia 包含 C# 註解，
++            // trailing trivia 也只由此區域 token 短暫持有，不把詞法器延伸進 Razor 標記。
++            var token = SyntaxFactory.ParseToken(source, offset: index);
++            var tokenStart = index + token.SpanStart;
++            if (tokenStart >= source.Length) break;
++            if (source.AsSpan(tokenStart).StartsWith("@<", StringComparison.Ordinal))
++            {
++                index = SkipMarkup(source, tokenStart + 1, recursion + 1);
++                statementStart = true;
++                continue;
++            }
++            if (source.AsSpan(tokenStart).StartsWith("@:", StringComparison.Ordinal))
++            {
++                index = SkipLine(source, tokenStart + 2);
++                statementStart = true;
++                continue;
++            }
++            if (statementStart && IsTagStart(source, tokenStart))
++            {
++                index = SkipMarkup(source, tokenStart, recursion + 1);
++                continue;
++            }
++            if (token.ContainsDiagnostics || token.Span.Length == 0) throw InvalidBoundary();
++            var kind = token.Kind();
++            var closer = kind switch
++            {
++                SyntaxKind.OpenParenToken => SyntaxKind.CloseParenToken,
++                SyntaxKind.OpenBraceToken => SyntaxKind.CloseBraceToken,
++                SyntaxKind.OpenBracketToken => SyntaxKind.CloseBracketToken,
++                _ => SyntaxKind.None
++            };
++            if (closer != SyntaxKind.None)
++            {
++                if (closers.Count == 512) throw InvalidBoundary();
++                closers.Push(closer);
++            }
++            else if (kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken)
++            {
++                if (closers.Count == 0 || closers.Pop() != kind) throw InvalidBoundary();
++                if (closers.Count == 0) return index + token.Span.End;
++            }
++            statementStart = kind is SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken or SyntaxKind.SemicolonToken or SyntaxKind.ColonToken;
++            index += token.FullSpan.Length;
++        }
++        throw InvalidBoundary();
++    }
++
++    /// <summary>
++    /// 完整配對範本根標籤及同名巢狀標籤；標記文字中的撇號、引號、括號不是 C#。
++    /// void 與自閉合標籤立即結束，模板內 @ 轉換遞迴處理；整段仍屬排除計數範圍。
++    /// </summary>
++    /// <param name="source">本次來源。</param>
++    /// <param name="start">已確認標籤起點。</param>
++    /// <param name="recursion">混合語法深度。</param>
++    /// <returns>根標籤結束位置。</returns>
++    private static int SkipMarkup(string source, int start, int recursion)
++    {
++        CheckDepth(recursion);
++        var root = ReadTag(source, start, recursion);
++        if (root.Closing) throw InvalidBoundary();
++        if (root.Empty) return root.End;
++        var tags = new Stack<string>();
++        tags.Push(root.Name);
++        for (var index = root.End; index < source.Length;)
++        {
++            if (source[index] == '@') { index = SkipTransition(source, index, recursion + 1); continue; }
++            // DevExtreme 的用戶端樣板區段不是 HTML 標籤；其中字串不能變成標籤配對。
++            if (source.AsSpan(index).StartsWith("<%", StringComparison.Ordinal))
++            {
++                var end = source.IndexOf("%>", index + 2, StringComparison.Ordinal);
++                if (end < 0) throw InvalidBoundary();
++                index = end + 2;
++                continue;
++            }
++            if (!IsTagStart(source, index)) { index++; continue; }
++            var tag = ReadTag(source, index, recursion);
++            if (tag.Closing)
++            {
++                if (tags.Count == 0 || !string.Equals(tags.Pop(), tag.Name, StringComparison.OrdinalIgnoreCase)) throw InvalidBoundary();
++                if (tags.Count == 0) return tag.End;
++            }
++            else if (!tag.Empty)
++            {
++                if (tags.Count == 512) throw InvalidBoundary();
++                tags.Push(tag.Name);
++            }
++            index = tag.End;
++        }
++        throw InvalidBoundary();
++    }
++
++    /// <summary>
++    /// 讀取一個標籤並尊重屬性引號及其中 Razor 運算式；只有真正未被引號包住的
++    /// 大於符號才結束標籤。回傳值只保留標籤名稱與位置，不保存屬性或顯示內容。
++    /// </summary>
++    /// <param name="source">本次來源。</param>
++    /// <param name="start">小於符號位置。</param>
++    /// <param name="recursion">遞迴深度。</param>
++    /// <returns>本次標籤的不可變中繼資料。</returns>
++    private static Tag ReadTag(string source, int start, int recursion)
++    {
++        var index = start + 1;
++        var closing = source[index] == '/';
++        if (closing) index++;
++        var nameStart = index;
++        while (index < source.Length && (char.IsLetterOrDigit(source[index]) || source[index] is '-' or ':' or '_')) index++;
++        if (index == nameStart) throw InvalidBoundary();
++        var name = source[nameStart..index];
++        var quote = '\0';
++        for (; index < source.Length; index++)
++        {
++            if (source[index] == '@') { index = SkipTransition(source, index, recursion + 1) - 1; continue; }
++            var character = source[index];
++            if (quote != '\0') { if (character == quote) quote = '\0'; continue; }
++            if (character is '\'' or '"') { quote = character; continue; }
++            if (character != '>') continue;
++            var previous = index - 1;
++            while (previous > start && char.IsWhiteSpace(source[previous])) previous--;
++            return new Tag(name, closing, source[previous] == '/' || VoidElements.Contains(name), index + 1);
++        }
++        throw InvalidBoundary();
++    }
++
++    /// <summary>
++    /// 模板標記內的 Razor 轉換獨立判定，支援明確區塊、隱含成員呼叫、
++    /// 範本委派及單行文字。以來源位置推進，所有遞迴由共同上限限制。
++    /// </summary>
++    /// <param name="source">本次來源。</param>
++    /// <param name="start">@ 的絕對位置。</param>
++    /// <param name="recursion">遞迴深度。</param>
++    /// <returns>轉換後位置。</returns>
++    private static int SkipTransition(string source, int start, int recursion)
++    {
++        CheckDepth(recursion);
++        var index = start + 1;
++        if (index >= source.Length) return index;
++        if (source[index] == '@') return index + 1;
++        if (source[index] == ':') return SkipLine(source, index + 1);
++        if (source[index] is '(' or '{') return SkipCode(source, index, recursion + 1);
++        if (IsTagStart(source, index)) return SkipMarkup(source, index, recursion + 1);
++        var identifierStart = index;
++        while (index < source.Length && (char.IsLetterOrDigit(source[index]) || source[index] is '_' or '.')) index++;
++        var identifier = source[identifierStart..index];
++        while (index < source.Length)
++        {
++            if (source[index] is '(' or '[') { index = SkipCode(source, index, recursion + 1); continue; }
++            if (source[index] == '.' || source[index] == '?') { index++; continue; }
++            if (char.IsLetterOrDigit(source[index]) || source[index] == '_') { index++; continue; }
++            break;
++        }
++        if (identifier is "if" or "for" or "foreach" or "while" or "switch" or "using" or "lock")
++        {
++            while (index < source.Length && char.IsWhiteSpace(source[index])) index++;
++            if (index < source.Length && source[index] == '(') index = SkipCode(source, index, recursion + 1);
++            while (index < source.Length && char.IsWhiteSpace(source[index])) index++;
++            if (index < source.Length && source[index] == '{') index = SkipCode(source, index, recursion + 1);
++        }
++        return index;
++    }
++
++    /// <summary>只有標籤名稱開頭可進入配對；一般文字的小於符號維持文字語義。</summary>
++    /// <param name="source">本次來源。</param>
++    /// <param name="index">待檢查位置。</param>
++    /// <returns>是否是開啟或關閉標籤的起點。</returns>
++    private static bool IsTagStart(string source, int index)
++    {
++        if (index + 1 >= source.Length || source[index] != '<') return false;
++        var name = source[index + 1] == '/' ? index + 2 : index + 1;
++        return name < source.Length && char.IsAsciiLetter(source[name]);
++    }
++
++    /// <summary>Razor 單行文字只到換行；其內假括號及引號不參與外層 C# 配對。</summary>
++    /// <param name="source">本次來源。</param>
++    /// <param name="start">行內容起點。</param>
++    /// <returns>換行位置或來源終點。</returns>
++    private static int SkipLine(string source, int start)
++    {
++        var end = source.IndexOf('\n', start);
++        return end < 0 ? source.Length : end + 1;
++    }
++
++    /// <summary>來源可由 repo 提供；超深混合語法須固定拒絕，不讓遞迴耗盡程序堆疊。</summary>
++    /// <param name="depth">本次遞迴深度。</param>
++    private static void CheckDepth(int depth)
++    {
++        if (depth >= 96) throw InvalidBoundary();
++    }
++
++    /// <summary>拒絕只帶固定代碼，不把來源、路徑、屬性或使用者文字帶入診斷。</summary>
++    /// <returns>由命令邊界轉為非零結束碼的輸入例外。</returns>
++    private static InvalidDataException InvalidBoundary() => new("I18N415: Razor code boundary is incomplete or invalid.");
++
++    /// <summary>只在本次標記掃描中使用的值，不持有來源或屬性內容。</summary>
++    /// <param name="Name">標籤名稱。</param>
++    /// <param name="Closing">是否為結束標籤。</param>
++    /// <param name="Empty">是否為自閉合或 void 元素。</param>
++    /// <param name="End">標籤之後的絕對位置。</param>
++    private readonly record struct Tag(string Name, bool Closing, bool Empty, int End);
++}
+diff --git a/tools/I18nCheck/RazorScanner.cs b/tools/I18nCheck/RazorScanner.cs
+index 15e871ca..3412b473 100644
+--- a/tools/I18nCheck/RazorScanner.cs
++++ b/tools/I18nCheck/RazorScanner.cs
+@@ -65,30 +65,13 @@ internal static class RazorScanner
+         return result.ToString();
+     }
+ 
+-    /// <summary>有界線性略過一組括號，字串中的括號與逸出字元不影響深度。</summary>
++    /// <summary>
++    /// 分別辨識 C# 與 Razor 標記邊界；程式內的範本仍整段排除，不擴大顯示計數。
++    /// C# 字串與註解由 Roslyn 處理，不能把 Razor 範本委派當成純 C# 語法錯誤。
++    /// </summary>
+     /// <param name="source">本次 Razor 文字。</param>
+     /// <param name="start">左括號位置。</param>
+-    /// <returns>匹配右括號後的位置；不完整輸入則略過至檔尾。</returns>
+-    private static int SkipBalanced(string source, int start)
+-    {
+-        var open = source[start];
+-        var close = open == '(' ? ')' : '}';
+-        var depth = 0;
+-        var quote = '\0';
+-        for (var index = start; index < source.Length; index++)
+-        {
+-            var character = source[index];
+-            if (quote != '\0')
+-            {
+-                if (character == '\\') index++;
+-                else if (character == quote) quote = '\0';
+-                continue;
+-            }
+-            if (character is '\'' or '"') { quote = character; continue; }
+-            if (character == open) depth++;
+-            if (character == close && --depth == 0) return index + 1;
+-        }
+-        return source.Length;
+-    }
+-
++    /// <returns>匹配右括號後的絕對位置；只掃描到此邊界，不解析或執行模板。</returns>
++    /// <exception cref="InvalidDataException">程式片段不完整，不能安全判定顯示文字邊界。</exception>
++    private static int SkipBalanced(string source, int start) => RazorCodeBoundary.Skip(source, start);
+ }
+diff --git a/tools/RepoQuality/Find-DuplicateCode.ps1 b/tools/RepoQuality/Find-DuplicateCode.ps1
+index 90bd44fc..bffc4152 100644
+--- a/tools/RepoQuality/Find-DuplicateCode.ps1
++++ b/tools/RepoQuality/Find-DuplicateCode.ps1
+@@ -50,7 +50,7 @@ function Get-SourceText {
+ }
+ 
+ function Get-SourceTypeNames {
+-    <# 遮罩註解與字串後，追蹤 namespace 大括號與檔案範圍 namespace，避免把訊息文字當型別。
++    <# 遮罩註解與字串後，追蹤 namespace 與外層型別作用域，避免把訊息或不同 owner 當同一型別。
+        此為來源宣告掃描，不載入組件或執行程式；只回傳型別名稱，本文不跨檔保存。 #>
+     param([string]$Source)
+     $maskPattern = @'
+@@ -58,10 +58,13 @@ function Get-SourceTypeNames {
+ '@
+     $code = [regex]::Replace($Source, $maskPattern.Trim(), ' ')
+     $identifier = '@?[\p{L}_][\p{L}\p{Nd}_]*'
+-    $pattern = '(?<ns>\bnamespace\s+(?<nsname>' + $identifier + '(?:\s*\.\s*' + $identifier + ')*)\s*(?<term>[;{]))|(?<type>\b(?:class|struct|record(?:\s+(?:class|struct))?)\s+(?<typename>' + $identifier + '))|(?<open>\{)|(?<close>\})'
++    $pattern = '(?<ns>\bnamespace\s+(?<nsname>' + $identifier + '(?:\s*\.\s*' + $identifier + ')*)\s*(?<term>[;{]))|(?<type>\b(?:class|struct|record(?:\s+(?:class|struct))?)\s+(?<typename>' + $identifier + '))|(?<open>\{)|(?<close>\})|(?<semicolon>;)'
+     $namespace = ''
+     $level = 0
+     $frames = New-Object 'Collections.Generic.List[object]'
++    $typeFrames = New-Object 'Collections.Generic.List[object]'
++    $owners = New-Object 'Collections.Generic.List[string]'
++    $pendingType = $null
+     foreach ($token in [regex]::Matches($code, $pattern)) {
+         if ($token.Groups['ns'].Success) {
+             $name = ($token.Groups['nsname'].Value -replace '\s', '') -replace '@', ''
+@@ -72,9 +75,21 @@ function Get-SourceTypeNames {
+             }
+             else { $namespace = $name }
+         }
+-        elseif ($token.Groups['open'].Success) { $level++ }
++        elseif ($token.Groups['open'].Success) {
++            if ($null -ne $pendingType) {
++                $typeFrames.Add(@{ Level = $level; OwnerCount = $owners.Count })
++                $owners.Add($pendingType)
++                $pendingType = $null
++            }
++            $level++
++        }
+         elseif ($token.Groups['close'].Success) {
+             $level--
++            if ($typeFrames.Count -gt 0 -and $typeFrames[$typeFrames.Count - 1].Level -eq $level) {
++                $count = $typeFrames[$typeFrames.Count - 1].OwnerCount
++                $owners.RemoveRange($count, $owners.Count - $count)
++                $typeFrames.RemoveAt($typeFrames.Count - 1)
++            }
+             if ($frames.Count -gt 0 -and $frames[$frames.Count - 1].Level -eq $level) {
+                 $namespace = $frames[$frames.Count - 1].Parent
+                 $frames.RemoveAt($frames.Count - 1)
+@@ -82,8 +97,15 @@ function Get-SourceTypeNames {
+         }
+         elseif ($token.Groups['type'].Success) {
+             $name = $token.Groups['typename'].Value.TrimStart([char]'@')
+-            if ($namespace) { $namespace + '.' + $name } else { $name }
++            $parts = @()
++            if ($namespace) { $parts += $namespace }
++            $parts += @($owners.ToArray())
++            $parts += $name
++            $parts -join '.'
++            $pendingType = $name
+         }
++        # 無本體 record／struct 的分號終止宣告，不能讓下一個大括號錯歸 owner。
++        elseif ($token.Groups['semicolon'].Success) { $pendingType = $null }
+     }
+ }
+ 
+diff --git a/tools/RepoQuality/Test-PackageVersions.ps1 b/tools/RepoQuality/Test-PackageVersions.ps1
+index 5715c007..f6808f53 100644
+--- a/tools/RepoQuality/Test-PackageVersions.ps1
++++ b/tools/RepoQuality/Test-PackageVersions.ps1
+@@ -19,9 +19,28 @@ param(
+ Set-StrictMode -Version Latest
+ $ErrorActionPreference = 'Stop'
+ 
++function Get-SafePackagePath {
++    <# 任何專案、中央表與固定依賴檢查都先逐段拒絕 reparse point，包含 NTFS junction。
++       先驗證本工作樹絕對前綴，再檢查元件屬性；不讓 XML 讀取越過索引宣告的邊界。 #>
++    param([string]$Relative)
++    $full = [IO.Path]::GetFullPath((Join-Path $script:packageRoot $Relative))
++    if (-not $full.StartsWith($script:packageRootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'UnsafePath: package source is outside this worktree.' }
++    $cursor = $script:packageRoot
++    foreach ($segment in $full.Substring($script:packageRootPrefix.Length).Split([IO.Path]::DirectorySeparatorChar)) {
++        $cursor = Join-Path $cursor $segment
++        if (([IO.File]::Exists($cursor) -or [IO.Directory]::Exists($cursor)) -and
++            (([IO.File]::GetAttributes($cursor) -band [IO.FileAttributes]::ReparsePoint) -ne 0)) {
++            throw 'UnsafePath: package source contains a reparse point.'
++        }
++    }
++    return $full
++}
++
+ try {
+     if (-not $RepositoryPath) { $RepositoryPath = Join-Path $PSScriptRoot '..\..' }
+     $root = (Resolve-Path -LiteralPath $RepositoryPath).Path
++    $script:packageRoot = $root
++    $script:packageRootPrefix = [IO.Path]::GetFullPath($root).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+     $utf8 = New-Object System.Text.UTF8Encoding($false, $true)
+     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+     $startInfo.FileName = 'git'
+@@ -59,7 +78,9 @@ try {
+     $files = @($fileList.Split([char]0) | Where-Object { $_ } | Sort-Object -Unique)
+     foreach ($relativePath in $files) {
+         if ($relativePath -match '^(docs/|\.ccg/tasks/)') { $excluded++; continue }
+-        $path = Join-Path $root $relativePath
++        # 與編碼／重複掃描共用已核定的排除邊界；實際孤兒專案仍在盤點範圍內。
++        if ($relativePath -match '(^|/)(\.worktrees|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848|bin|obj)(/|$)') { $excluded++; continue }
++        $path = Get-SafePackagePath $relativePath
+         if (-not [System.IO.File]::Exists($path)) { continue }
+         $bytes = [System.IO.File]::ReadAllBytes($path)
+         try { $source = $utf8.GetString($bytes) }
+@@ -87,7 +108,7 @@ try {
+             }
+         }
+     }
+-    $centralPath = Join-Path $root 'Directory.Packages.props'
++    $centralPath = Get-SafePackagePath 'Directory.Packages.props'
+     if (-not [System.IO.File]::Exists($centralPath)) { throw 'Central package version table is missing.' }
+     $central = New-Object System.Xml.XmlDocument
+     $central.XmlResolver = $null
+@@ -98,7 +119,7 @@ try {
+             $failures.Add("CryptographySecurityFix: Directory.Packages.props [$package] must be 10.0.14")
+         }
+     }
+-    $connectionProjectPath = Join-Path $root 'PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj'
++    $connectionProjectPath = Get-SafePackagePath 'PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj'
+     if (-not [System.IO.File]::Exists($connectionProjectPath)) { throw 'On-premises connection project is missing.' }
+     $connectionProject = New-Object System.Xml.XmlDocument
+     $connectionProject.XmlResolver = $null
+@@ -121,7 +142,7 @@ try {
+         'SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj',
+         'SpeechMessage.Dynamics.Plugins.Tests/SpeechMessage.Dynamics.Plugins.Tests.csproj'
+     )) {
+-        $pluginProjectPath = Join-Path $root $pluginProjectRelativePath
++        $pluginProjectPath = Get-SafePackagePath $pluginProjectRelativePath
+         if (-not [System.IO.File]::Exists($pluginProjectPath)) { throw "Dynamics plugin project is missing: $pluginProjectRelativePath" }
+         $pluginProject = New-Object System.Xml.XmlDocument
+         $pluginProject.XmlResolver = $null
+diff --git a/tools/RepoQuality/Test-TrxExecution.ps1 b/tools/RepoQuality/Test-TrxExecution.ps1
+new file mode 100644
+index 00000000..6a92f5bf
+--- /dev/null
++++ b/tools/RepoQuality/Test-TrxExecution.ps1
+@@ -0,0 +1,47 @@
++<#
++.SYNOPSIS
++確認 TRX 確實執行成功測試，拒絕 dotnet test 零測試仍回傳零的假綠燈。
++.DESCRIPTION
++只讀取有界 TRX，禁止 DTD／外部解析；reader 由本次呼叫擁有並在成功及例外路徑 Dispose。
++計數必須為非負整數、實際執行大於零、全部通過，且與真實結果列數相符。
++輸出只有固定診斷與筆數，不輸出 XML、測試內容、帳密或原始例外。
++#>
++[CmdletBinding()]
++param([Parameter(Mandatory=$true)][string]$ReportPath)
++Set-StrictMode -Version Latest
++$ErrorActionPreference = 'Stop'
++$diagnostic = 'InvalidTrx'
++try {
++    if ([IO.Path]::GetExtension($ReportPath) -ine '.trx' -or -not [IO.File]::Exists($ReportPath)) { throw 'Invalid TRX path.' }
++    $settings = New-Object Xml.XmlReaderSettings
++    $settings.DtdProcessing = [Xml.DtdProcessing]::Prohibit
++    $settings.XmlResolver = $null
++    $settings.MaxCharactersInDocument = 4194304
++    $document = New-Object Xml.XmlDocument
++    $document.XmlResolver = $null
++    $reader = [Xml.XmlReader]::Create([IO.Path]::GetFullPath($ReportPath), $settings)
++    try { $document.Load($reader) } finally { $reader.Dispose() }
++    $counters = @($document.SelectNodes("/*[local-name()='TestRun']/*[local-name()='ResultSummary']/*[local-name()='Counters']"))
++    if ($counters.Count -ne 1) { throw 'Expected exactly one counter set.' }
++    $values = @{}
++    foreach ($name in @('total','executed','passed','failed')) {
++        $value = 0
++        if (-not [int]::TryParse($counters[0].GetAttribute($name), [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$value)) { throw 'Invalid counter.' }
++        $values[$name] = $value
++    }
++    if ($values.executed -eq 0) { $diagnostic = 'ZeroExecutedTests'; throw 'No tests executed.' }
++    if ($values.executed -gt $values.total -or $values.passed -ne $values.executed -or $values.failed -ne 0) {
++        $diagnostic = 'FailedOrInconsistentExecution'
++        throw 'Execution did not fully pass.'
++    }
++    $results = @($document.SelectNodes("/*[local-name()='TestRun']/*[local-name()='Results']/*[local-name()='UnitTestResult']"))
++    if ($results.Count -ne $values.executed -or @($results | Where-Object { $_.GetAttribute('outcome') -cne 'Passed' }).Count -ne 0) {
++        $diagnostic = 'MissingOrInconsistentResults'
++        throw 'Counter and result rows differ.'
++    }
++    Write-Output ('TRX contract: executed=' + $values.executed + ' passed=' + $values.passed)
++    exit 0
++} catch {
++    Write-Output ('FAIL TRX contract: ' + $diagnostic)
++    exit 1
++}
+diff --git a/tools/RepoQuality/Tests/Find-DuplicateCode.Tests.ps1 b/tools/RepoQuality/Tests/Find-DuplicateCode.Tests.ps1
+index 84dadb5b..46e9cd5b 100644
+--- a/tools/RepoQuality/Tests/Find-DuplicateCode.Tests.ps1
++++ b/tools/RepoQuality/Tests/Find-DuplicateCode.Tests.ps1
+@@ -110,6 +110,39 @@ Describe 'Solution duplicate code contracts' {
+         $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
+         @($baseline.entries).Count | Should Be 0
+     }
++    # 不同外層型別的同名巢狀型別有不同身分，不能以 N.Inner 誤併為跨專案重複。
++    It 'NestedTypes_DifferentOwners_AreSeparate' {
++        Set-Source 'A/A.cs' 'namespace N { class OuterA { class Inner { int A = 1; } } }'
++        Set-Source 'B/B.cs' 'namespace N { class OuterB { class Inner { int B = 2; } } }'
++        (Invoke-DuplicateScan).ExitCode | Should Be 0
++        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
++        @($baseline.entries).Count | Should Be 0
++    }
++    # 真正相同外層與巢狀身分仍須記錄，不能因新增 owner 追蹤而漏掉重複。
++    It 'NestedTypes_SameOwner_DifferentContent_AreRecorded' {
++        Set-Source 'A/A.cs' 'namespace N { class Outer { class Inner { int A = 1; } } }'
++        Set-Source 'B/B.cs' 'namespace N { class Outer { class Inner { int B = 2; } } }'
++        (Invoke-DuplicateScan).ExitCode | Should Be 0
++        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
++        @($baseline.entries | Where-Object { $_.kind -eq 'type' -and $_.key -eq 'N.Outer.Inner' }).Count | Should Be 1
++        @($baseline.entries | Where-Object { $_.key -eq 'N.Inner' }).Count | Should Be 0
++    }
++    # 關閉巢狀作用域後必須還原 owner，不讓前一個兄弟型別或方法大括號汙染後續鍵。
++    It 'NestedTypes_SiblingScopes_RestoreOwner' {
++        Set-Source 'A/A.cs' 'namespace N { class OuterA { class First { class Inner { int A = 1; } } class Second { class Inner { int A = 2; } } } }'
++        Set-Source 'B/B.cs' 'namespace N { class OuterB { class Inner { int B = 3; } } }'
++        (Invoke-DuplicateScan).ExitCode | Should Be 0
++        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
++        @($baseline.entries).Count | Should Be 0
++    }
++    # 無本體 record 的分號不能把下一個型別錯當成其巢狀成員。
++    It 'NestedTypes_RecordWithoutBody_DoesNotOwnFollowingType' {
++        Set-Source 'A/A.cs' 'namespace N; record Marker; class OuterA { class Inner { int A = 1; } }'
++        Set-Source 'B/B.cs' 'namespace N; class OuterB { class Inner { int B = 2; } }'
++        (Invoke-DuplicateScan).ExitCode | Should Be 0
++        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
++        @($baseline.entries).Count | Should Be 0
++    }
+     It 'Scope_OutsideProjectsGeneratedAndExcludedPaths_AreNotRead' {
+         foreach ($file in @('Outside/old.cs','A/bin/old.cs','A/obj/old.cs','A/.worktrees/old.cs','A/docs/old.cs','A/.ccg/tasks/old.cs','A/old.g.cs','A/old.Designer.cs')) {
+             Set-Source $file 'namespace N { internal class Alpha { internal int Value = 1; } }'
+diff --git a/tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1 b/tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1
+new file mode 100644
+index 00000000..c9c8babb
+--- /dev/null
++++ b/tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1
+@@ -0,0 +1,99 @@
++<#
++.SYNOPSIS
++以真實方案依賴與 workflow 執行區塊驗證 DevExtreme 來源未定時的過渡範圍。
++.DESCRIPTION
++省略篩選檔、漏掉間接依賴、把不相關專案排除、使用完整方案、隱藏摘要或誤啟動 tracer 都必須失敗。
++只替換 dotnet 執行邊界以記錄實際命令參數，不連線或讀取設定中的機密。摘要使用合成暫存檔，確定清理。
++#>
++$ErrorActionPreference = 'Stop'
++Set-StrictMode -Version Latest
++$root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
++$workflow = [IO.File]::ReadAllText((Join-Path $root '.github/workflows/solution-ci.yml'))
++$filterName = 'SpeechMessageProducts.CI.slnf'
++$script:calls = New-Object 'System.Collections.Generic.List[string[]]'
++function dotnet {
++    # 只記錄 workflow 真正傳入的命令參數；不執行建置或測試，也不接受任何帳密。
++    $script:calls.Add([string[]]$args)
++    $global:LASTEXITCODE = 0
++}
++function Get-RunBlock([string]$Name) {
++    # 保留實際 run 內容；除 dotnet 外不替換任何指令，摘要會寫入測試自有檔案。
++    $match = [regex]::Match($script:workflow, '(?ms)^      - name: ' + [regex]::Escape($Name) + '\r?\n(?<meta>.*?)        run: \|\r?\n(?<run>.*?)(?=^      - name:|\z)')
++    if (-not $match.Success) { throw ('Workflow block missing: ' + $Name) }
++    return $match
++}
++$cases = [ordered]@{
++    Filter_ExcludesExactlyDependencyClosure = {
++        $filter = [IO.File]::ReadAllText((Join-Path $root $filterName)) | ConvertFrom-Json
++        if ($filter.solution.path -ne 'SpeechMessageProducts.sln') { throw 'Unexpected parent solution.' }
++        $solution = [IO.File]::ReadAllText((Join-Path $root 'SpeechMessageProducts.sln'))
++        $projects = @([regex]::Matches($solution, '(?m)^Project\([^\r\n]+?= "[^"]+", "(?<path>[^"]+\.csproj)"') | ForEach-Object { $_.Groups['path'].Value.Replace('\', '/') })
++        $graph = @{}
++        $excluded = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
++        foreach ($project in $projects) {
++            $path = Join-Path $root $project
++            [xml]$xml = [IO.File]::ReadAllText($path)
++            $graph[$project] = @($xml.SelectNodes('//ProjectReference') | ForEach-Object {
++                $include = $_.GetAttribute('Include')
++                if ($include.Contains('$')) { throw 'Unresolved dependency cannot be classified.' }
++                [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetDirectoryName($path)) $include)).Substring($root.Length + 1).Replace('\', '/')
++            })
++            if (@($xml.SelectNodes('//PackageReference') | Where-Object { $_.GetAttribute('Include') -eq 'DevExtreme.AspNet.Core' }).Count -gt 0) { [void]$excluded.Add($project) }
++        }
++        do {
++            $changed = $false
++            foreach ($project in $projects) {
++                if (@($graph[$project] | Where-Object { $excluded.Contains($_) }).Count -gt 0) { if ($excluded.Add($project)) { $changed = $true } }
++            }
++        } while ($changed)
++        $known = @('ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj', 'SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj', 'ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj')
++        if (@(Compare-Object @($excluded | Sort-Object) ($known | Sort-Object)).Count -gt 0) { throw 'Dependency closure changed; review the transition scope.' }
++        $expected = @($projects | Where-Object { -not $excluded.Contains($_) } | Sort-Object)
++        $actual = @($filter.solution.projects | ForEach-Object { $_.Replace('\', '/') } | Sort-Object)
++        if ($actual.Count -ne 23 -or @($actual | Select-Object -Unique).Count -ne $actual.Count -or @(Compare-Object $expected $actual).Count -gt 0) { throw 'Filter does not preserve exactly the eligible projects.' }
++    }
++    Commands_UseFilteredSolution = {
++        foreach ($name in @('Restore', 'Build without signing key', 'Release solution tests and coverage')) {
++            $script:calls.Clear()
++            $run = (Get-RunBlock $name).Groups['run'].Value -replace '(?m)^          ', ''
++            & ([scriptblock]::Create($run))
++            if ($script:calls.Count -eq 0 -or $script:calls[0][1] -ne $filterName) { throw ('Wrong solution executed by ' + $name) }
++        }
++    }
++    Tracer_DisabledButRetainsExecutableGuard = {
++        $block = Get-RunBlock 'Debug tracer contracts'
++        if ($block.Groups['meta'].Value -notmatch 'if:.*false' -or $block.Groups['run'].Value -notmatch 'Test-TrxExecution') { throw 'Dependent tracer must remain disabled with its guard preserved.' }
++    }
++    Summary_DisclosesAllExcludedProjects = {
++        $block = Get-RunBlock 'CI transition scope'
++        if ($block.Groups['meta'].Value -notmatch 'if: always\(\)') { throw 'Scope must be visible even on failure.' }
++        $previous = $env:GITHUB_STEP_SUMMARY
++        $temporary = Join-Path ([IO.Path]::GetTempPath()) ('speechmessage-ci-summary-' + [Guid]::NewGuid().ToString('N') + '.md')
++        try {
++            $env:GITHUB_STEP_SUMMARY = $temporary
++            & ([scriptblock]::Create(($block.Groups['run'].Value -replace '(?m)^          ', '')))
++            $text = [IO.File]::ReadAllText($temporary)
++            foreach ($name in @('SpeechMessageProducts.ChurchReport', 'ChurchReport.MemberInfo.Tests', 'ToolUtility.Dataverse.Tests')) { if (-not $text.Contains($name)) { throw 'Excluded project missing from summary.' } }
++            if ($text -notmatch 'Transitional' -or $text -notmatch 'not a full solution') { throw 'Partial coverage must be explicit.' }
++        } finally {
++            $env:GITHUB_STEP_SUMMARY = $previous
++            if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
++        }
++    }
++    NugetConfig_DoesNotDeclareMachineSpecificSource = {
++        [xml]$config = [IO.File]::ReadAllText((Join-Path $root 'SpeechMessageProducts.ChurchReport/NuGet.config'))
++        if (@($config.SelectNodes('//packageSources/add')).Count -ne 0) { throw 'Repository must not declare a private or machine-specific source.' }
++    }
++}
++$previousLocation = (Get-Location).Path
++$failed = 0
++try {
++    Set-Location -LiteralPath $root
++    foreach ($case in $cases.GetEnumerator()) {
++        try { & $case.Value; Write-Output ('PASS ' + $case.Key) }
++        catch { $failed++; Write-Output ('FAIL ' + $case.Key + ': ' + $_.Exception.GetType().Name) }
++    }
++} finally { Set-Location -LiteralPath $previousLocation }
++Write-Output ('CI transition tests: ' + ($cases.Count - $failed) + '/' + $cases.Count)
++if ($failed -gt 0) { exit 1 }
++exit 0
+diff --git a/tools/RepoQuality/Tests/Test-P002Settings.ps1 b/tools/RepoQuality/Tests/Test-P002Settings.ps1
+index d907cc10..babcb5c6 100644
+--- a/tools/RepoQuality/Tests/Test-P002Settings.ps1
++++ b/tools/RepoQuality/Tests/Test-P002Settings.ps1
+@@ -16,8 +16,8 @@ $cases = [ordered]@{
+     IgnoreRules_ExcludeReferenceArtifactsKeysAndRawTrx = {
+         # 以字碼產生非 ASCII 目錄資料，保持 PowerShell 可執行內容為 ASCII。
+         $legacyName = '.' + (-join (@(0x5176,0x4ed6,0x89e3,0x6c7a,0x65b9,0x6848) | ForEach-Object { [char]$_ }))
+-        $probes = @(($legacyName + '/p0-ignore-probe.txt'), 'artifacts/p0-ignore-probe.txt', 'p0-ignore-probe.snk', 'p0-ignore-probe.trx')
+-        if ($probes.Count -ne 4) { throw 'The test fixture must exercise all four independent paths.' }
++        $probes = @(($legacyName + '/p0-ignore-probe.txt'), 'artifacts/p0-ignore-probe.txt', 'p0-ignore-probe.snk', 'p0-ignore-probe.trx', 'sixlabors.lic', 'nested/sixlabors.lic')
++        if ($probes.Count -ne 6) { throw 'The test fixture must exercise all six independent paths.' }
+         $missing = @()
+         foreach ($probe in $probes) {
+             $null = & git -c core.longpaths=true check-ignore --no-index -- $probe
+diff --git a/tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1 b/tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1
+new file mode 100644
+index 00000000..68e56e6f
+--- /dev/null
++++ b/tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1
+@@ -0,0 +1,115 @@
++<#
++.SYNOPSIS
++以獨占的假 Git 工作樹驗證套件掃描邊界，不讀取外部專案或執行還原。
++.DESCRIPTION
++先追蹤檔案，再以真正 NTFS junction 取代父目錄；工具必須在 XML 解碼前回報 UnsafePath。
++所有外部內容皆為合成文字，清理先解除本案 junction，再刪除經絕對前綴驗證的自有根。
++不輸出來源內容；每個案例結束後外部假檔案雜湊必須不變，且可立即獨佔開啟。
++#>
++$ErrorActionPreference = 'Stop'
++Set-StrictMode -Version Latest
++$tool = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../Test-PackageVersions.ps1'))
++$engine = Join-Path $PSHOME 'powershell.exe'
++if (-not [IO.File]::Exists($engine)) { $engine = Join-Path $PSHOME 'pwsh.exe' }
++$utf8 = New-Object Text.UTF8Encoding($false)
++$fixtureBase = [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetTempPath()) ('speechmessage-package-path-' + [Guid]::NewGuid().ToString('N'))))
++$links = New-Object 'Collections.Generic.List[string]'
++
++function Set-FixtureFile {
++    <# 只寫本案工作樹固定相對路徑；每次寫入即關閉檔案，不保留來源 writer。 #>
++    param([string]$Relative, [string]$Text)
++    $path = Join-Path $script:caseRepo $Relative
++    [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($path))
++    [IO.File]::WriteAllText($path, $Text, $script:utf8)
++}
++
++function Set-TrackedJunction {
++    <# 先加入索引使 Git 必然回報該路徑，再替換空父目錄；不倚賴 Git 是否走訪未追蹤 junction。 #>
++    param([string]$RelativeDirectory)
++    Set-FixtureFile ($RelativeDirectory + '/Foreign.csproj') '<Project />'
++    & git -C $script:caseRepo add -- ($RelativeDirectory + '/Foreign.csproj')
++    if ($LASTEXITCODE -ne 0) { throw 'Fixture git add failed.' }
++    $link = [IO.Path]::GetFullPath((Join-Path $script:caseRepo $RelativeDirectory))
++    if (-not $link.StartsWith($script:caseRepo + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe fixture link path.' }
++    Remove-Item -LiteralPath (Join-Path $link 'Foreign.csproj')
++    [IO.Directory]::Delete($link)
++    [void](New-Item -ItemType Junction -Path $link -Target $script:external)
++    $script:links.Add($link)
++}
++
++function Invoke-PackageGuard {
++    <# 子程序擁有工具的所有 Git／XML 資源，等候完成後只回傳代碼與固定診斷。 #>
++    $output = & $script:engine -NoProfile -File $script:tool -RepositoryPath $script:caseRepo 2>&1
++    return @{ ExitCode = $LASTEXITCODE; Output = ($output -join "`n") }
++}
++
++function Assert-Result {
++    <# 斷言指定診斷，避免任意環境失敗冒充安全拒絕；不輸出假來源或工具原始訊息。 #>
++    param($Result, [int]$Exit, [string]$Pattern)
++    if ($Result.ExitCode -ne $Exit -or $Result.Output -notmatch $Pattern) { throw 'Package path contract failed.' }
++    if ($Result.Output.Contains('SYNTHETIC_EXTERNAL_XML')) { throw 'Source content leaked.' }
++}
++
++$cases = [ordered]@{
++    SafeProjects_Pass = { Assert-Result (Invoke-PackageGuard) 0 'failures=0' }
++    TrackedProjectJunction_RejectedBeforeXml = {
++        Set-TrackedJunction 'Linked'
++        Assert-Result (Invoke-PackageGuard) 1 'UnsafePath'
++    }
++    ExcludedWorktreeJunction_DoesNotReadOutside = {
++        Set-TrackedJunction '.worktrees'
++        Assert-Result (Invoke-PackageGuard) 0 'failures=0'
++    }
++    NestedBuildArtifacts_AreExcluded = {
++        Set-FixtureFile 'A/bin/Bad.csproj' '<Project><ItemGroup><PackageReference Include="Fake" Version="1" /></ItemGroup></Project>'
++        Assert-Result (Invoke-PackageGuard) 0 'failures=0'
++    }
++    DocsLikePrefix_IsStillChecked = {
++        Set-FixtureFile 'docs-like/Bad.csproj' '<Project><ItemGroup><PackageReference Include="Fake" Version="1" /></ItemGroup></Project>'
++        Assert-Result (Invoke-PackageGuard) 1 'InlineVersion'
++    }
++}
++$failed = 0
++try {
++    foreach ($case in $cases.GetEnumerator()) {
++        $caseDirectory = Join-Path $fixtureBase ([Guid]::NewGuid().ToString('N'))
++        $script:caseRepo = Join-Path $caseDirectory 'repo'
++        $script:external = Join-Path $caseDirectory 'external'
++        [void][IO.Directory]::CreateDirectory($script:caseRepo)
++        [void][IO.Directory]::CreateDirectory($script:external)
++        $outsideFile = Join-Path $script:external 'Foreign.csproj'
++        [IO.File]::WriteAllText($outsideFile, 'SYNTHETIC_EXTERNAL_XML', $utf8)
++        $before = (Get-FileHash -LiteralPath $outsideFile -Algorithm SHA256).Hash
++        & git -C $script:caseRepo init --quiet
++        if ($LASTEXITCODE -ne 0) { throw 'Fixture git init failed.' }
++        Set-FixtureFile 'Directory.Packages.props' '<Project><ItemGroup><PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.14" /><PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" /><PackageVersion Include="System.Text.Json" Version="6.0.11" /></ItemGroup></Project>'
++        Set-FixtureFile 'PowerPlatform.Dataverse.Client/PowerPlatform.Dataverse.Client.csproj' '<Project><ItemGroup><PackageReference Include="System.Security.Cryptography.Xml" /><PackageReference Include="System.Security.Cryptography.Pkcs" /></ItemGroup></Project>'
++        foreach ($project in @('SpeechMessage.Dynamics.Plugins','SpeechMessage.Dynamics.Plugins.Tests')) {
++            Set-FixtureFile ($project + '/' + $project + '.csproj') '<Project><ItemGroup><PackageReference Include="System.Text.Json" PrivateAssets="all" /></ItemGroup></Project>'
++        }
++        Set-FixtureFile 'A/A.csproj' '<Project />'
++        try {
++            & $case.Value
++            if ((Get-FileHash -LiteralPath $outsideFile -Algorithm SHA256).Hash -ne $before) { throw 'External fixture changed.' }
++            $handle = [IO.File]::Open($outsideFile, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
++            $handle.Dispose()
++            Write-Output ('PASS ' + $case.Key)
++        } catch {
++            $failed++
++            Write-Output ('FAIL ' + $case.Key)
++        } finally {
++            foreach ($link in $links) {
++                if (-not [IO.Path]::GetFullPath($link).StartsWith($caseDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe junction cleanup path.' }
++                if ([IO.Directory]::Exists($link)) { [IO.Directory]::Delete($link) }
++            }
++            $links.Clear()
++        }
++    }
++} finally {
++    $expected = [IO.Path]::GetFullPath($fixtureBase)
++    $tempPrefix = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
++    if (-not $expected.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($expected) -notlike 'speechmessage-package-path-*') { throw 'Unsafe fixture cleanup path.' }
++    if ([IO.Directory]::Exists($expected)) { Remove-Item -LiteralPath $expected -Recurse -Force }
++}
++Write-Output ('Package path tests: ' + ($cases.Count - $failed) + '/' + $cases.Count)
++if ($failed -gt 0) { exit 1 }
+diff --git a/tools/RepoQuality/Tests/Test-TracerCi.Tests.ps1 b/tools/RepoQuality/Tests/Test-TracerCi.Tests.ps1
+new file mode 100644
+index 00000000..4f371104
+--- /dev/null
++++ b/tools/RepoQuality/Tests/Test-TracerCi.Tests.ps1
+@@ -0,0 +1,69 @@
++<#
++.SYNOPSIS
++執行真實 workflow 的 tracer 區塊，以合成 TRX 證明零測試不得假綠燈。
++.DESCRIPTION
++只取代 dotnet 測試執行端，讓它回傳成功並產生指定假 TRX；真正的 CI 區塊與 TRX 守門照常執行。
++各案例擁有自己的暫存工作樹，沒有產品、網路或憑證；所有固定路徑均限制在自有根內再清理。
++#>
++$ErrorActionPreference = 'Stop'
++Set-StrictMode -Version Latest
++$root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
++$workflow = [IO.File]::ReadAllText((Join-Path $root '.github/workflows/solution-ci.yml'))
++$match = [regex]::Match($workflow, '(?ms)^      - name: Debug tracer contracts\r?\n.*?        run: \|\r?\n(?<run>.*?)(?=^      - name:|\z)')
++if (-not $match.Success) { throw 'The actual tracer workflow block is missing.' }
++$block = [scriptblock]::Create(($match.Groups['run'].Value -replace '(?m)^          ', ''))
++$base = [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetTempPath()) ('speechmessage-tracer-ci-' + [Guid]::NewGuid().ToString('N'))))
++$originalLocation = (Get-Location).Path
++$utf8 = New-Object Text.UTF8Encoding($false)
++
++function dotnet {
++    <# 假測試端固定 exit=0，真正的拒絕必須由實際 CI 區塊讀取 TRX 得出，不能靠程序失敗。 #>
++    $destination = Join-Path (Get-Location).Path 'artifacts/ci/debug-tracer/tracer.trx'
++    [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination))
++    [IO.File]::WriteAllText($destination, $script:syntheticTrx, $script:utf8)
++    $global:LASTEXITCODE = 0
++}
++
++$cases = @(
++    @{ Name='SevenExecuted_Passes'; Executed=7; Failed=0; Results=7; Expected=$true },
++    @{ Name='ZeroExecuted_Fails'; Executed=0; Failed=0; Results=0; Expected=$false },
++    @{ Name='FailedExecution_Fails'; Executed=7; Failed=1; Results=7; Expected=$false },
++    @{ Name='CountersWithoutResults_Fails'; Executed=7; Failed=0; Results=0; Expected=$false },
++    @{ Name='MalformedTrx_Fails'; Raw='<broken'; Expected=$false },
++    @{ Name='ExternalEntity_Fails'; Raw='<!DOCTYPE TestRun [<!ENTITY x SYSTEM "file:///synthetic-never-read">]><TestRun>&x;</TestRun>'; Expected=$false }
++)
++$failed = 0
++try {
++    foreach ($case in $cases) {
++        $fixture = Join-Path $base ([Guid]::NewGuid().ToString('N'))
++        [void][IO.Directory]::CreateDirectory((Join-Path $fixture 'tools/RepoQuality'))
++        $guardSource = Join-Path $root 'tools/RepoQuality/Test-TrxExecution.ps1'
++        if (Test-Path -LiteralPath $guardSource) {
++            Copy-Item -LiteralPath $guardSource -Destination (Join-Path $fixture 'tools/RepoQuality/Test-TrxExecution.ps1')
++        }
++        if ($case.ContainsKey('Raw')) { $script:syntheticTrx = $case.Raw }
++        else {
++            $results = ''
++            for ($index = 0; $index -lt $case.Results; $index++) {
++                $outcome = 'Passed'
++                if ($index -lt $case.Failed) { $outcome = 'Failed' }
++                $results += '<UnitTestResult outcome="' + $outcome + '" />'
++            }
++            $script:syntheticTrx = '<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010"><Results>' + $results + '</Results><ResultSummary><Counters total="' + $case.Executed + '" executed="' + $case.Executed + '" passed="' + ($case.Executed - $case.Failed) + '" failed="' + $case.Failed + '" /></ResultSummary></TestRun>'
++        }
++        Set-Location -LiteralPath $fixture
++        $passed = $true
++        try { $null = & $block 2>&1 } catch { $passed = $false }
++        if ($passed -eq $case.Expected) { Write-Output ('PASS ' + $case.Name) }
++        else { $failed++; Write-Output ('FAIL ' + $case.Name) }
++    }
++} finally {
++    Set-Location -LiteralPath $originalLocation
++    $actual = [IO.Path]::GetFullPath($base)
++    $tempPrefix = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
++    if (-not $actual.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($actual) -notlike 'speechmessage-tracer-ci-*') { throw 'Unsafe tracer fixture cleanup path.' }
++    if (Test-Path -LiteralPath $actual) { Remove-Item -LiteralPath $actual -Recurse -Force }
++}
++Write-Output ('Tracer CI tests: ' + ($cases.Count - $failed) + '/' + $cases.Count)
++if ($failed -gt 0) { exit 1 }
++exit 0
+
+```
+
+
+## Required Recovery Behavior
+- Run through the self-healing CCG entrypoint, not direct Gemini/Claude commands.
+- If Gemini, Claude, or codeagent-wrapper fails before usable output, repair local toolchain issues and retry.
+- Preserve prompts, stdout, stderr, health reports, and summary files under .ccg/dual-model-runs.
+- If provider quota/session blocks one backend, classify it as degraded fallback only when -AllowSingleModelWhenQuotaBlocked is enabled and the other backend produced usable output.

@@ -1,64 +1,104 @@
-# 階段 0 外部審查停止回報
+# 階段 0 外部審查續行回報（2026-11-04）
 
-## 模式與範圍
+## 模式與固定範圍
 
-單模型（使用者指定 ClaudeOnly）；73b6e6cf..ae29cb40。八個邏輯批次拆成 11 份，安全差異、提示檔及各份 SHA256 均已備妥。排除證據、基準、進度頁、封存任務、生成 C# 與二進位；敏感欄位已遮罩。本次沒有完成全階段審查，也不是雙模型審查或單模型降級完成。
+單模型（使用者指定 ClaudeOnly）。原 01a～08 共 11 份固定為 73b6e6cf..ae29cb40，
+沒有重跑已完成 01a～02。03、04、05a、05b、06、07、08 七份續行已全部取得可用輸出。
+原 03 於 2026-11-03 曾因 quotaBlocked=true 停止，這次各份都沒有額度阻擋；不把前次失敗改寫成成功。
+小組回報先前兩次是逾時，不是額度降級。所有成功份均 dualModelComplete=false，不宣稱雙模型完成。
 
-P0-12A A 段 eb7ff61f、B 段 ae29cb40 已提交。B 段提交前的完整驗證紀錄仍在 P0-12A-license-CI.md；不能把該次 1089／1089 套用到目前含未完成審查修正的工作區。
+| 分份 | reviewMode | dualModelComplete | quotaBlocked | 入口結果 |
+| --- | --- | --- | --- | --- |
+| 03 | claude-only | false | false | 完成，exit 0 |
+| 04 | claude-only | false | false | 完成，exit 0 |
+| 05a | claude-only | false | false | 完成，exit 0 |
+| 05b | claude-only | false | false | 完成，exit 0 |
+| 06 | claude-only | false | false | 完成，exit 0 |
+| 07 | claude-only | false | false | 完成，exit 0 |
+| 08 | claude-only | false | false | 完成，exit 0 |
 
-## 停止原因
+原始結果見對應 .ccg/dual-model-runs/20261104-*-integration-p0-stage0-resume-*/，
+安全摘要在 wp-evidence/P0-stage-review/resume-results.json。模型靜態審查不等於模型執行過本機測試。
 
-第 ③ 批 LineMessagingProcessor.Core 的自癒入口於 2026-11-03 23:48 啟動，兩次嘗試均因 Claude session limit 失敗。summary.json 為 ok=false、quotaBlocked=true、degradedFallback=false、dualModelComplete=false，沒有 completedBackends，入口結束碼 3；兩份 stdout 均為空，timedOut=false。這次是工作階段額度限制，與小組回報先前兩次逾時不同。
+## 修正與提交
 
-原始 probe 回覆額度於 Asia/Taipei 12:30am 重設。若按本次執行日換算，是 2026-11-04 00:30；這只是供應商提示，尚未驗證屆時可用，沒有排程或自動重試。依 00 §6.4 及使用者核定，已停止後續入口、程式修補與 P0-13，等待使用者處理。
-
-## 分份狀態
-
-| 分份 | 區域 | 結果 |
+| 發現 | 本機處置 | 提交 |
 | --- | --- | --- |
-| 01a | 守門工具與 CI，第一份 | 入口完成；沒有 Critical／High，1 項 Medium 已本機證實 |
-| 01b | 守門工具與 CI，第二份 | 入口完成；1 項 Critical 已重現，修正未完成；另 1 項 Warning 待核對 |
-| 01c | 守門工具與 CI，第三份 | 入口完成；1 項 High 尚待本機核對，1 項 Medium 及 2 項 Info 已記錄 |
-| 02 | SpeechMessage.Localization | 入口完成；無 Critical／High／Medium，Low／Info 已記錄 |
-| 03 | LineMessagingProcessor.Core | 額度限制，兩次皆無可用輸出，未完成 |
-| 04 | SpeechMessage.Dynamics.Plugins | 已備包，未呼叫 |
-| 05a、05b | SpeechMessage.Dynamics.Deployment | 已備包，未呼叫 |
-| 06 | Development 防護 | 已備包，未呼叫 |
-| 07 | 套件補修與圖片防護 | 已備包，未呼叫 |
-| 08 | 小組回報修正 | 已備包，未呼叫 |
+| C-01 Razor 邊界 | 單 token Roslyn＋獨立 Razor 標籤配對；108／108、全 repo 零 I18N415 | 65889022 |
+| H-01（使用者改列 Medium） | XML 讀取前逐段拒絕 reparse／junction，真 junction 紅→綠 5／5 | 1fde6020 |
+| M-01 tracer 零執行 | 實際 TRX 結果與計數一致且大於零；合成 6／6、真實 7／7 | c9ed44d3 |
+| M-02 巢狀型別 | 先重現，型別鍵加入完整外層與範圍恢復；18／18 | edd953ec |
+| 授權檔忽略遺漏 | sixlabors.lic 根與子目錄忽略；原四條斷言保留，2／2 | 6dc04ab7 |
+| CI 過渡 | 26 專案閉包排除正好 3 個，slnf 保留 23；5／5、冷還原與篩選建置測試通過 | faf7873d |
+| 06-C1／C2 | 基底 token 全空仍拒絕正式別名；有效 HTTPS 與 CRM 完整路徑守門；11 紅→43 綠 | 039033ec |
+| 05b-C1 | 未比較秘密不能宣稱完整一致；verify 為 3 未完成，plan 明列不支援秘密輪替；3 紅→46 綠 | e3f89eb6 |
 
-共 4／11 份產生可用結果；已完成入口均為 ok=true、reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false。「入口完成」不表示發現已修復或整體審查通過。
+每題細節與紅→綠見同目錄 P0-stage-review-C01／H01／M01／M02／license-ignore／CI-transition／development／deployment-scope.md。
+CJK 前後逐檔九筆在 C01 回報：相同 84 個 Razor，合計 467→421、ChurchReport 3682→3636；全部下降、未提高基準。
+產品模板沒有因掃描修正而變更。原 75 工具測試保留，新增混合邊界案例後 108／108。
 
-## Critical／High 與未完成修正
+05b-C1 保留原契約「plan 不讀／不比較秘密，並非輪替工具」，不新增秘密解析、實值雜湊或輪替指令。
+公開 metadata 有差異仍為 1；公開相同而含秘密佔位為 3（未完成）；無秘密且完整一致為 0。
+這是避免驗證假綠燈，不代表能偵測、套用或還原秘密輪替。
 
-- C-01（01b）：RazorScanner.SkipBalanced 將逐字字串尾端反斜線誤認為逸出，會漏算後續 HTML 的中文顯示文字，造成 CJK 守門假綠燈。已取得功能紅燈：新 12 案例中 9 失敗、3 通過。改用 Roslyn token 邊界辨識後，工具單元測試為 87／87（保留原 75）；但完整 repo verify 仍失敗，唯讀探針列出 40 個既有 Razor 模板的 I18N415。目前懷疑候選修法對混合 Razor／HTML 的診斷判斷過嚴，尚未完成根因確認與相容性修正，不可提交或宣稱修復。停止時保留 RazorScanner.cs 與 RazorLexicalBoundaryTests.cs 的未提交變更，未提高 CJK 基準。
-- H-01（01c）：外部審查指出 Test-PackageVersions.ps1 未逐段拒絕 reparse point／junction，可能違反工作樹讀取邊界。入口停止時尚未進行本機重現、修補或測試，現列為待核對的 High，不能視為已確認修復。
-- C-01 本機證據位於 ignored artifacts/p0-review-fixes/razor/：red.trx 為 12／3／9，green.trx 為 87／87／0，probe.log 結尾為 Boundary failures: 40。87／87 只能證明工具單元案例，不能取代完整 verify 或 00 §8。
+## 第 09 份獨立複審
 
-## Medium 以下與本機核對
+固定修正差異 ae29cb40..e3f89eb6，27 個來源／測試／工具／CI／spec 檔、1565 行。
+差異 SHA256：6812478bc2dc40fcb7defcece5258622e76fd65a5967f8856a34e50286f0ab49。
+包在 .ccg/dual-model-runs/20261104-081836-integration-p0-review-fixes-09/。
+排除證據、原始 research、進度頁、封存任務、生成檔與二進位；不包含任何真實設定檔秘密。
+同一自癒入口 ClaudeOnly 複審執行中，尚未聲稱通過；原審查包沒有涵蓋本輪修正。
 
-- M-01（01a）：Debug tracer CI 只看結束碼，缺少零測試防護。用不命中任何案例的合成 filter、本機 --no-build 探測，確認 SDK 10.0.403 回傳 exit=0 並產生零測試 TRX；此發現成立。原正常 tracer 仍為 7／7。證據位於 ignored artifacts/p0-review-zero-probe/，未修改 CI。
-- M-02（01c）：Find-DuplicateCode.ps1 的型別重名鍵未包含外層型別，可能把不同外層下的同名巢狀型別誤判重複。只有靜態審查發現，尚未本機重現。
-- W-01（01b）：CommandRunner 未知例外可能穿透而輸出訊息。審查提供的是依賴其他未來程式錯誤的假設，尚無當前可觸發的案例；不直接增加 catch 吞掉錯誤。
-- L-01（02）：精確零配置斷言可能受執行環境影響而假紅；目前沒有已觀察的偶發失敗，不放寬測試。
-- I-01（01a）：BASE_COMMIT 固定為階段起點是明確核定行為，下一階段再更新，非本階段缺陷。
-- I-02（01c）：刪除重複基準後首次執行會接受當下結果；是目前棘輪行為，須由基準審查把關。套件掃描排除清單與其他工具不一致，併 H-01 核對。
-- I-03（02）：生成檔依使用者指示排除於審查輸入；既有雙目標測試及 generate --check 有本機證據，但不能將靜態審查擴大為模型實測。
+## 完整本機驗證（來源 HEAD e3f89eb6）
 
-## 審查包與接續方式
+- 00 §8：完整方案 Release 建置 0 錯誤、1 個既有 Line.Messaging CS1572；1104／1104，零失敗／跳過。
+  ChurchReport 590／590；沒有因 CI 過渡縮小本機範圍。
+- Debug tracer TRX executed=7／passed=7，真實結果列一致。
+- 編碼 Changed／Base 73b6e6cf 在最後文件整理後再確認；先前來源皆 UTF-8 無 BOM、CRLF、檔尾 CRLF。
+- 重複掃描 26 專案／879 檔，groups／new／stale 全零，未改基準。
+- I18n verify 通過、零 I18N415、generate --check 實查 2 檔。
+- AnalyzerProbe 26／26；套件守門 39 專案／149 相依、0 違規。
+- Pester 39／39；套件路徑 5／5、tracer 合成 6／6、Six Labors 合成 23／23、CI 過渡 5／5、覆蓋率守門 11／11、SDK／忽略 2／2。
+- 進度頁 3／3、前端 JS 16／16、CCG 摘要契約 6／6。
+- I18nCheck 108／108、PluginPackaging 11／11；離線 Plugin 中繼資料 9／9、明確打包樣本 6／6（只用一次性測試金鑰）。
+- 八個獨立模組／目標覆蓋率：Localization 95.06%／100%；Core 93.87%／98.88%；Plugins 91.93%；
+  Deployment 82.12%；I18nCheck 96.55%；PluginPackaging 98.30%，全部 ≥80%。
 
-- 目錄：.ccg/dual-model-runs/20261103-232143-integration-p0-review-pack/。
-- 壓縮包：同目錄旁的 20261103-232143-integration-p0-review-pack.zip。
-- manifest.json 記錄固定 base／head、11 份差異與提示檔 SHA256、完成／失敗／待執行狀態；results/ 保留已完成模型輸出、失敗摘要與 probe 原始副本；STOP-REPORT.md 為本回報副本。原始執行目錄內容不改寫。
-- 使用者恢復額度並指示繼續後，從 03 接續，避免重跑已完成的 01a、01b、01c、02；也可由使用者人工轉交剩餘安全提示檔。人工結果必須另註「Claude 單模型人工審查」。
-- 解除停止後先核對並修完 Critical／High，重跑完整 00 §8。原包固定至 ae29cb40，新修正須另備差異及 SHA256，經同一 ClaudeOnly 入口複審，不能聲稱舊包已涵蓋。
-- 第 ⑧ 批尚未執行；小組回報任務維持 review，不封存。使用者已確認頁面正常，圖表未逐項驗證。
-- P0-13 尚未開始；goodshepherdback 清理前置確認保持未勾選。全程沒有 D365／LINE 連線，沒有讀取正式金鑰或 Six Labors 授權內容，沒有推送、合併或改寫歷史。
+原始建置／測試／覆蓋率輸出僅在 ignored artifacts/p0-stage-review-20261104/。
+安全摘要見 wp-evidence/P0-stage-review/validation-20261104.json，不能替代真正 GitHub 執行證據。
 
-## 停止整理驗證
+## Medium 以下：記錄、不擴大修正
 
-- 進度頁測試 3／3；僅修改 3.3 進度頁 DATA，版面程式與 3.2 凍結副本未動。
-- Test-TextEncoding.ps1 -Scope Changed -Base 73b6e6cf：451 檔、115 排除、0 違規。任務計數檔 .turns.json 原缺檔尾 CRLF，只補換行並確認 JSON 值完全相同；不改原始模型紀錄。
-- 本次修改及新增的來源／報告另逐位元組檢查 UTF-8 無 BOM、CRLF、檔尾 CRLF；git diff --check 通過。
-- 11 份原差異 SHA256 未改變，提示檔與原始輸出副本均有雜湊；ZIP 已核對 CRC 及解壓內容與來源逐位元組相同。
-- 本次只保存停止狀態，沒有新增提交，也沒有再執行後續審查或完整 §8；目前 Razor 候選修正未通過完整 verify 的狀態保持明示。
+- 原 W-01：未知程式錯誤假設可能穿透 CommandRunner；沒有當前可重現觸發，未加 catch 吞錯。
+- 原 L-01：精確零配置可能受環境影響；沒有已觀察失敗，不放寬測試。
+- I-01 及 08-Low：BASE_COMMIT 固定階段起點是已核定行為，未改 merge-base。
+- I-02：首次基準可能接受當下重複需審核；排除清單確定錯誤部分已併 H-01，未擴大排除。
+- I-03：生成檔依要求排除外部差異；雙目標測試與 generate --check 提供本機證據，不冒充模型實跑。
+- 03：net48 static client 安全選項及 null 防呆缺測試；JsonConvert.DefaultSettings 被未來程式改動的風險，目前 repo 未設定它。
+- 04：同一 Plugin instance 真正交錯併發的測試可補強；低頻診斷 sync-over-async 的執行緒成本與 SDK 服務非 null 假設記錄。
+- 05a：同一 Plugin 型別多步驟會被 AssemblyCatalog 誤拒（目前單一步驟未觸發）；部分 apply 故障／回復覆蓋可補強。
+  文件「原 17 個方法」是必須保留的原始清單，非總數，已澄清含後續新增案例，不刪測試。
+- 05b Warning：rollback 只恢復組件與步驟啟用狀態，不能復原設定／秘密；apply 失敗後備份位置可更清楚。
+  Info：不可 Dispose client 的死碼與清理例外可能遮蔽原例外記錄保留，不在本輪擴大更動。
+- 06 Warning：獨立 legacy reader 的 CWD／Host 根與環境來源一致性為後續架構議題。
+- 07 Warning：MemberInfo 真 action 例外通知測試缺口、兩段訊息尚未統一到既有資源鍵；目前 CJK 棘輪通過，未提高基準。
+- 08 Medium：Node test runner 尚未加零測試／跳過數量下限；目前兩檔真實 16／16，列後續改善。
+  JSZip 本來不存在、相關 Excel 匯出可能早已失效，依核定只記錄；圖表未逐項驗證。
+
+## 稽核、外部提交與待使用者事項
+
+- d25fd2cc 保留；掃描其 87 個新增檔，含 ZIP 37 entries、123 份可讀文字，44 次已知敏感欄位出現，
+  沒有未遮罩候選值或私鑰／token 形態命中。報告只保存檔名／欄位分類，沒有值；靜態格式掃描不宣稱涵蓋所有未知格式。
+- 另觀察非本會話提交 4d84d45e：36 檔全部為審查產物，依 Git 屬性正規化後 blob hash 與目前檔案／已移位原始副本相同。
+  無產品程式差異，依既有核定保留並繼續，不改寫歷史。
+- 機器入口副本缺 final CRLF：原封不動移到對應時間戳執行目錄的 entry-original-task.raw.md，
+  不改位元組、不放寬編碼規則；移位 SHA256 對照在 evidence。
+- GitHub 過去 12 次均停 Restore；使用者證實 Six Labors 授權準備與 always 清理已成功。
+  新過渡 workflow 尚未推送；job 層空 SixLaborsLicenseFile 與 GITHUB_ENV 發布路徑在後續建置的實際生效，
+  仍須使用者推送後第一次越過 Restore 的 CI 證實。不能將授權準備成功說成完整 CI 成功。
+- DevExpress 來源仍待使用者決定；階段 0 結束前須完整含 ChurchReport CI 全綠，或使用者另行明確接受過渡狀態。
+- 冷還原暫存目錄刪除遭自動核准審查拒絕（blocked by policy、未提供細因），保留在使用者 Temp，
+  名稱 speechmessage-filter-restore-0940c118e5d84a60bbbf40e1f229fe69，只含公開套件、無授權／金鑰；未繞過刪除限制。
+- 第 08 已無 Critical／High；小組任務仍等待 09 通過後才封存。P0-13 尚未開始，清理前置確認保持未勾選。
+- cross-user-isolation-and-performance.md 依核定不搬移；遵守 AGENTS.md 的既有隔離／生命週期要求。
+  沒有 D365／LINE 連線、推送、合併、改寫歷史或讀取授權／金鑰內容。

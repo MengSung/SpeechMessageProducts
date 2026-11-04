@@ -350,17 +350,17 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-04（階段審查續行；C-01 本機修正已驗證）",
+  "snapshot": "2026-11-04（原 11 份完成；第 09 份修正複審中）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "保留使用者提交 <strong>d25fd2cc</strong>。第 03～06 分份 ClaudeOnly 已完成，續行 07／08；Razor 修正工具測試 <strong>108／108</strong>、完整 verify 通過，CJK 無增加。套件路徑、tracer 與巢狀型別鍵已分題提交；授權檔忽略已提交；CI 過渡保留 23／26 專案，完整本機驗證不縮減。Development 新增 11 個紅燈後，相關測試 43／43；佈署測試 46／46：含秘密時 verify 回傳未完成，修正另列第 09 份複審。",
+  "headline": "原 <strong>11／11</strong> 份 ClaudeOnly 已取得結果；已分題修正本機確認的重大問題，修正另送第 09 份。完整本機 <strong>1104／1104</strong>、Debug <strong>7／7</strong>、八組覆蓋率皆 ≥80%。CI 過渡保留 23／26 專案，完整 GitHub CI 與清理回報仍待使用者。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
       "value": "17",
       "unit": "/ 83 工作包",
-      "sub": "階段審查續行；C-01 本機通過，待修正複審",
+      "sub": "原審查 11／11；修正第 09 份複審中",
       "meter": {
         "done": 17,
         "active": 1,
@@ -371,7 +371,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "17",
       "unit": "/ 18 工作包",
-      "sub": "階段審查續行；C-01 本機通過，待修正複審",
+      "sub": "原審查 11／11；修正第 09 份複審中",
       "meter": {
         "done": 17,
         "active": 1,
@@ -379,16 +379,16 @@ const DATA = {
       }
     },
     {
-      "label": "最近完整 Release（B 段）",
-      "value": "1089",
-      "unit": "/ 1089 通過",
-      "sub": "ChurchReport 579／579；其中圖片案例 76／76"
+      "label": "最新完整本機 Release",
+      "value": "1104",
+      "unit": "/ 1104 通過",
+      "sub": "ChurchReport 590／590；零失敗／跳過；Debug tracer 7／7"
     },
     {
-      "label": "最近完整建置（B 段）",
+      "label": "最新完整本機建置",
       "value": "通過",
       "unit": "0 錯誤",
-      "sub": "B 段完整重建 1 個既有 CS1572；Razor 修正 verify 已通過，最終完整 §8 待執行"
+      "sub": "1 個既有 CS1572；GitHub 過渡尚待使用者推送驗證"
     }
   ],
   "wps": [
@@ -510,14 +510,14 @@ const DATA = {
       "id": "P0-12A",
       "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
       "status": "done",
-      "note": "圖片 76／76、全方案 1089／1089；一般金鑰 CI 兩種 PowerShell 各 23／23。缺 secret 失敗、runner 暫存、always 清理；未在 GitHub 實跑。",
+      "note": "圖片 76／76、A／B 已提交；一般金鑰 CI 合成測試 23／23。使用者證實 GitHub 授權準備與清理成功，但過去均停 Restore；本輪過渡 CI 未推送。",
       "commit": "eb7ff61f；授權 CI ae29cb40"
     },
     {
       "milestone": true,
       "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
       "status": "review",
-      "note": "單模型（使用者指定 ClaudeOnly）：03 已完成，04～08 續行；C-01 本機修正已過，仍須修正複審與完整 §8。"
+      "note": "原 11／11 份均為 ClaudeOnly，非雙模型；已修正本機確認問題，完整 §8 通過。ae29cb40..e3f89eb6 的第 09 份複審中。"
     },
     {
       "id": "P0-13",
@@ -605,8 +605,8 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "1089 過／0 失敗",
-      "note": "ChurchReport 579／579；圖片 76／76；無跳過"
+      "after": "1104 過／0 失敗",
+      "note": "完整方案含 ChurchReport 590／590；零跳過"
     },
     {
       "item": "Release 建置警告",
@@ -624,7 +624,7 @@ const DATA = {
       "item": "Debug 追蹤測試",
       "before": "未納入",
       "after": "7／7",
-      "note": "P0-11 本機 CI 重跑通過"
+      "note": "真實 TRX executed=7／passed=7；CI 暫停期間合成 6／6 仍啟用"
     },
     {
       "item": "新程式分析器探測",
@@ -647,7 +647,7 @@ const DATA = {
     {
       "item": "重複程式守門",
       "before": "未建立",
-      "after": "0 新增／14 測試",
+      "after": "0 新增／18 測試",
       "note": "26 專案 879 檔，groups／new／stale 均為 0"
     },
     {
@@ -677,20 +677,20 @@ const DATA = {
     {
       "item": "方案 CI 與覆蓋率門檻",
       "before": "僅舊 .NET 8 workflow",
-      "after": "本機全過；七組 ≥80%",
-      "note": "覆蓋率測試 11／11；GitHub 未實跑，沒有 secret 時跳過正式打包。"
+      "after": "本機全過；八組 ≥80%",
+      "note": "過渡 CI 保留 23／26 專案；空快取還原通過，GitHub 新流程待使用者推送。"
     },
     {
       "item": "Deployment 離線 L1／L2",
       "before": "未建立",
-      "after": "42／42；81.80%",
-      "note": "同組織寫入鎖、連線釋放、秘密遮罩、smoke 清理與設定切換；未連 D365"
+      "after": "46／46；82.12%",
+      "note": "含秘密時 verify 為 3 未完成，不比較或輸出實值；無 D365 連線"
     },
     {
       "item": "階段 0 外部審查",
       "before": "待執行",
-      "after": "5／11；續行中",
-      "note": "第 03 份無 Critical／High；其餘續行，第 09 份另審修正差異。"
+      "after": "11／11；09 複審中",
+      "note": "單模型（使用者指定 ClaudeOnly），原份皆 dualModelComplete=false；新修正未冒充原包已審。"
     }
   ],
   "conduct": [
@@ -987,6 +987,10 @@ const DATA = {
       "t": "2026-11-04",
       "cls": "ok",
       "text": "M-02 本機重現巢狀型別 owner 誤判：新增 4 案紅→綠，兩種 PowerShell 各 18／18；完整方案重複掃描仍零新增，未改基準。"
+    },
+    {
+      "t": "11/04",
+      "text": "03～08 七份續行完成；重大問題分題修正，全方案 1104／1104，修正另送第 09 份 ClaudeOnly。"
     }
   ],
   "decisions": [
@@ -1101,58 +1105,28 @@ const DATA = {
   "risks": [
     {
       "level": "warn",
-      "text": "階段審查及修正複審尚未完成",
-      "sub": "C-01 本機通過；H-01 經使用者確認改列 Medium，仍依核定修正；第 03～08 份與第 09 份完成後才可 P0-13。"
-    },
-    {
-      "level": "info",
-      "text": "本機 Six Labors 授權阻擋已解除",
-      "sub": "Release 建置已通過；一般金鑰 CI 的準備、缺失與清理用合成文字驗證，未讀取本機授權內容，GitHub 尚未實跑。"
-    },
-    {
-      "level": "info",
-      "text": "階段 0～4 的 Plugin 失敗由系統作業與追蹤查看",
-      "sub": "依設計排程，階段 5 LineWebhook 彙總器才通知管理者；P0-13 會說明追蹤查看方式。"
-    },
-    {
-      "level": "info",
-      "text": "設計勘誤留待下一版",
-      "sub": "Word §5.9、HTML d09_s2 兩處、drawio d09_s2 一處的課程報名應補 2 個 ǂ；核定後不再阻擋實作。"
+      "text": "第 09 份修正複審尚未完成",
+      "sub": "原 11 份已完成；複審通過後才封存小組回報並寫 P0-13。"
     },
     {
       "level": "warn",
-      "text": "goodshepherdback 是正式資料複本，尚未回報清理完成",
-      "sub": "含真實個資與正式 LINE token；本次所有驗證均只在本機，不連線 D365"
-    },
-    {
-      "level": "info",
-      "text": "net48 Plugin 的 System.Text.Json 弱點已修正",
-      "sub": "嚴格專案改為 NuGetAuditMode=all；Plugin 與測試專案私有直接參考 6.0.11，弱點清單不再列出。"
+      "text": "GitHub CI 仍為過渡範圍，待使用者決定",
+      "sub": "僅排除三個 DevExtreme 依賴專案；完整 ChurchReport CI 全綠或另行接受過渡狀態前，階段 0 不結案。授權準備／清理已在 GitHub 成功，後續建置讀到發布路徑仍待實跑。"
     },
     {
       "level": "warn",
-      "text": "ImageSharp 與加密套件修補須重新發佈才生效",
-      "sub": "本分支 ImageSharp 3.2.0 已通過驗證且弱點掃描不再列出；正式站尚未因本次提交自動更新。"
-    },
-    {
-      "level": "warn",
-      "text": "兩個舊 SpeechMessageCrmKey.snk 已在 cf3595db 移除追蹤",
-      "sub": "LinePayCSharp 與 Trace 本機檔保留；nsspi key.snk 不動。歷史不改寫，舊金鑰仍視為外洩。"
+      "text": "goodshepherdback 清理尚未回報",
+      "sub": "不連線 D365／LINE；P0-13 前置確認保持未勾選。"
     },
     {
       "level": "info",
-      "text": "Development token 來源防護已於 P0-SEC 完成",
-      "sub": "24cca555 已驗證 25 個安全契約；goodshepherdback 尚未回報清理完成，仍禁止連線。"
+      "text": "小組回報頁面已由使用者確認恢復",
+      "sub": "圖表未逐項驗證；正式線移植及既有 Excel 匯出風險保留，未修改其他分支。"
     },
     {
       "level": "info",
-      "text": "本機弱點掃描未列出弱點；保留既有 CS1572",
-      "sub": "26 個方案專案未列出弱點；完整重建僅 1 個既有 XML 參數註解警告。"
-    },
-    {
-      "level": "info",
-      "text": "舊檔編碼問題只建立基準",
-      "sub": "不批次改寫 Trace、Line.Messaging 或 ChurchReport；CCG 原始機器紀錄保留原始位元組"
+      "text": "冷還原套件暫存目錄待使用者清理",
+      "sub": "自動核准審查拒絕刪除；僅有公開套件，無授權／金鑰。"
     }
   ]
 };

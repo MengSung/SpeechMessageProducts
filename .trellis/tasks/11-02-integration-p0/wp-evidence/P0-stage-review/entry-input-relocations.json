@@ -30,6 +30,48 @@
       "to": ".ccg/dual-model-runs/20261103-234826-integration-p0-stage0-03-reviewer/entry-original-task.raw.md",
       "sha256": "ff97c3301a42f95482dc76a9247adb42dc3ebc5b57cb32969ebf27c0459d2df9",
       "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-resume-03-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-073032-integration-p0-stage0-resume-03-reviewer/entry-original-task.raw.md",
+      "sha256": "5f50dc890f5cf9673659cf98f4495ce272a3bc3f8e095436b57f9c4c1eeac6ce",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-resume-04-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-073911-integration-p0-stage0-resume-04-reviewer/entry-original-task.raw.md",
+      "sha256": "932b3d092ea97917d3f01a7692baabf9b34e8d309839726b5e6b708dfc528323",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-resume-05a-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-074352-integration-p0-stage0-resume-05a-reviewer/entry-original-task.raw.md",
+      "sha256": "52b13c8fa4195b057576164b71f63c48ec87d212a3ab481973f4b066d1b2a883",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-resume-05b-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-075034-integration-p0-stage0-resume-05b-reviewer/entry-original-task.raw.md",
+      "sha256": "954bdb3351bb05bc83f07fc330b44b6f3dc33b57f6e9fd125e28b472f13df443",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-resume-06-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-075728-integration-p0-stage0-resume-06-reviewer/entry-original-task.raw.md",
+      "sha256": "cb38155fa58ac70c61d667b229fcc818e405be042dd4d4141b50b0c0e9b91b78",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-resume-07-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-080253-integration-p0-stage0-resume-07-reviewer/entry-original-task.raw.md",
+      "sha256": "94b0d559c5df1ab503eb07ca1e6d2cd97dd4af764c840dcc45fd6d6ed8e7d4b1",
+      "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-resume-08-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-081149-integration-p0-stage0-resume-08-reviewer/entry-original-task.raw.md",
+      "sha256": "85769aa64a10dc95cb99bb81bba117166c1e4cd7f569f64f75d62c3b2ffb84e2",
+      "bytesUnchanged": true
     }
   ]
 }

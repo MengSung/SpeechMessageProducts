@@ -1,0 +1,65 @@
+[
+  {
+    "part": "03",
+    "runId": "20261104-073032-integration-p0-stage0-resume-03-reviewer",
+    "exitCode": 0,
+    "ok": true,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false
+  },
+  {
+    "part": "04",
+    "runId": "20261104-073911-integration-p0-stage0-resume-04-reviewer",
+    "exitCode": 0,
+    "ok": true,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false
+  },
+  {
+    "part": "05a",
+    "runId": "20261104-074352-integration-p0-stage0-resume-05a-reviewer",
+    "exitCode": 0,
+    "ok": true,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false
+  },
+  {
+    "part": "05b",
+    "runId": "20261104-075034-integration-p0-stage0-resume-05b-reviewer",
+    "exitCode": 0,
+    "ok": true,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false
+  },
+  {
+    "part": "06",
+    "runId": "20261104-075728-integration-p0-stage0-resume-06-reviewer",
+    "exitCode": 0,
+    "ok": true,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false
+  },
+  {
+    "part": "07",
+    "runId": "20261104-080253-integration-p0-stage0-resume-07-reviewer",
+    "exitCode": 0,
+    "ok": true,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false
+  },
+  {
+    "part": "08",
+    "runId": "20261104-081149-integration-p0-stage0-resume-08-reviewer",
+    "exitCode": 0,
+    "ok": true,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false
+  }
+]
