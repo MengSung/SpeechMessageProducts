@@ -1,9 +1,11 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.ServiceModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Xrm.Sdk;
 
 namespace SpeechMessage.Dynamics.Deployment;
 
@@ -172,8 +174,40 @@ internal static class DeploymentCli
                 WriteFixedError(output);
             }
 
+            WriteDataverseFaultCodes(exception, output);
             output.WriteLine("Command failed (" + exception.GetType().Name + "). Sensitive details are not shown.");
             return 1;
+        }
+    }
+
+    /// <summary>
+    /// 原例外交給共用回報入口後，僅補充 SDK fault 的數字碼；不讀取任何訊息、Reason、
+    /// TraceText、ErrorDetails 或 Data。最多迭代四個節點，循環鏈也會停止，不跨命令保留 fault。
+    /// 此補充輸出失敗不覆蓋原例外、不遞迴回報，也不改變命令的失敗結果或既有資源釋放順序。
+    /// </summary>
+    /// <param name="exception">已交給共用回報入口的原始例外；只辨識 SDK 的強型別 fault。</param>
+    /// <param name="output">由呼叫端持有的摘要 writer，本方法不取得其所有權。</param>
+    private static void WriteDataverseFaultCodes(Exception exception, TextWriter output)
+    {
+        if (exception is not FaultException<OrganizationServiceFault> fault)
+        {
+            return;
+        }
+
+        try
+        {
+            var current = fault.Detail;
+            for (var index = 0; index < 4 && current is not null; index++)
+            {
+                // 在 Int32 本身格式化，負數保持八位而不因提升成 Int64 產生符號延伸。
+                output.WriteLine("Dataverse fault code[" + index.ToString(CultureInfo.InvariantCulture) +
+                    "]: 0x" + current.ErrorCode.ToString("X8", CultureInfo.InvariantCulture));
+                current = current.InnerFault;
+            }
+        }
+        catch
+        {
+            // 原始失敗已先上報；補充診斷不可另起告警或中斷既有固定失敗摘要。
         }
     }
 

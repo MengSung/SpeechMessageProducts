@@ -35,7 +35,7 @@ Test-Path $env:SPEECHMESSAGE_PLUGIN_KEYFILE
 
 已開著的 PowerShell 視窗與 Visual Studio 看不到後來新增的環境變數；請重新開啟。
 
-- [x] 使用者已在 **SpeechMessage.Dynamics.Deployment** 的「管理使用者密碼」儲存以下三個值；內容未由 Codex 讀取，尚未驗證登入成功。
+- [x] 使用者已在 **SpeechMessage.Dynamics.Deployment** 的「管理使用者密碼」儲存以下三個值；內容未由 Codex 讀取。後續第 3 步 plan 已成功讀取組織狀態，但不代表具有註冊 Plugin 的寫入權限。
 
 ```json
 {
@@ -95,17 +95,31 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 ### 0.3 目前進度與下一小步
 
-**已完成：** 使用者已確認金鑰存在、儲存 Deployment User Secrets，並完成第 2 步的三個離線命令；本次資料清理前置已核定免除。接著進入第 1 步追蹤設定，尚未執行部署或 smoke。
+**已完成（使用者 2026-11-04 回報）：** 前置確認、第 1 步追蹤設為「全部」並儲存、第 2 步建置與打包檢查，以及第 3 步清單改為 true 和 plan 審核。plan 只列出 CreateAssembly／CreateType／CreateStep，符合本次 trace 骨架的預期。
 
-**現在只做：** 回到 goodshepherdback 主畫面，點「設定 → 系統管理」，先停在該畫面；回報「已開啟系統管理」後，再繼續找到系統設定中的 Plugin 追蹤選項。
+**目前卡在第 4 步：** 使用者執行 apply，回報 ``Command failed (FaultException`1). Sensitive details are not shown.``。尚未取得 Dataverse 數字錯誤碼，伺服器根因未明；verify、smoke 與停用收尾皆未完成。Codex 僅在本機檢查程式與安全診斷，不連線 D365／LINE。
 
-**不對時怎麼辦：** 找不到「系統管理」就停下，回報看見的選單名稱；如需截圖，先遮住帳號與個資。追蹤設定完成後，再依第 3 步進行 plan。
+**下一小步：** 數字錯誤碼診斷補修已建置並通過離線驗證與修正審查。現在只由使用者在原本的 P0 根目錄 PowerShell 視窗執行以下區塊，重新 plan 並開啟剛產生的 plan.md；先回報「操作」區塊，核對後才執行 apply：
+
+```powershell
+dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- plan --org goodshepherdback
+if ($LASTEXITCODE -eq 0) {
+    $plan = Join-Path (Get-ChildItem .\artifacts\d365\goodshepherdback -Directory | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1).FullName 'plan.json'
+    notepad (Join-Path (Split-Path $plan) 'plan.md')
+}
+```
+
+apply 可能已完成部分寫入，不能直接重用舊 plan，也不能將此次失敗記為完全沒有寫入。新 plan 若與首次不同，先核對是否為同一骨架的部分註冊；不要自行修改 hash 或先重試 apply。verify、smoke 與停用收尾仍待完成。
+
+**紀錄原則（使用者 2026-11-04 要求）：** 每有修正、完成事項或新阻礙，都同步更新本文件的目前進度、對應步驟與文末結果表；離線測試通過不等於實機驗收通過。
 
 ## 1. 開啟 Plugin 追蹤
 
-**做什麼：** 在 goodshepherdback「設定 → 系統管理 → 系統設定 → 自訂」，把「啟用外掛程式追蹤記錄」設為「全部」。
+**做什麼：** 在 goodshepherdback 開啟「設定」，於「系統」區塊點「管理 → 系統設定 → 自訂」，把「啟用外掛程式追蹤記錄」設為「全部」。實際選單名稱是「管理」。
 
 **預期看到什麼：** 儲存成功；稍後可在「Plugin 追蹤記錄」與「系統作業」查看本次執行。階段 0～4 的 Plugin 失敗由這兩處查看。
+
+**使用者執行結果（2026-11-04）：** 已設為「全部」並儲存；驗收收尾時仍須改回「例外狀況」。
 
 **不對時怎麼辦：** 無權限或找不到選項就停下回報，請管理員確認；驗收後改回「例外狀況」。
 
@@ -145,6 +159,8 @@ plan 成功後，**立刻執行取得 `$plan` 與開啟 plan.md 的兩行，在�
 
 **預期看到什麼：** 全新安裝只列 CreateAssembly／CreateType／CreateStep，沒有秘密佔位。CreateStep 會直接建立為啟用狀態，不必先停用註冊再跑第二輪；trace 不發出 LINE HTTP 請求。若已安裝同一骨架，可能只有啟用狀態更新或無差異，須確認為預期的同一個測試步驟。
 
+**使用者執行結果（2026-11-04）：** 清單已改為 true 並儲存；plan 成功，只列 CreateAssembly、DiagnosticsPingPlugin 的 CreateType，以及 Create／task／PostOperation／Asynchronous／rank 1 的 CreateStep，秘密佔位為無。此為首次 plan 結果；第 4 步 apply 失敗後須重新 plan，不保證新 plan 仍為三項建立。
+
 **不對時怎麼辦：** 出現其他組織、步驟、push 模式或未預期更新就不套用，回報操作種類。不得手改 plan hash；清單或 DLL 改過就重新 plan。
 
 ## 4. 套用並確認 verify=0
@@ -157,6 +173,17 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 ```
 
 **預期看到什麼：** apply 結束碼 0、測試步驟已註冊並啟用；verify 結束碼 **0**、無差異。apply 先在**該次 apply 目錄**保存 export.json；留在本機 artifacts，不上傳。
+
+**使用者執行結果（2026-11-04）：** 首次 apply 回報 ``Command failed (FaultException`1). Sensitive details are not shown.``，尚未通過。現有安全日誌未包含 SDK 的數字錯誤碼，不能據此判定為權限、框架或其他伺服器原因，也不能排除部分寫入。verify 尚未執行；暫不進入 smoke。診斷補修已加入：SDK fault 只額外顯示最多四個八位十六進位錯誤碼（例如 `Dataverse fault code[0]: 0x80040220`，此處僅為格式示例，並非本次伺服器實際代碼）。不輸出原始訊息、追蹤全文或秘密。離線先紅後綠：新增案例原先 5 失敗、1 通過，補修後 Deployment 全套 52／52 通過；完整 §8 與修正審查結果見下方紀錄。這只補足診斷，尚未修復或驗證伺服器端拒絕原因。
+
+**診斷補修的本機驗證（2026-11-04，Codex 離線執行）：**
+
+- 00 §8：Release 全方案建置成功（本次增量建置 0 錯誤、0 警告）；Release 全方案 1116／1116 通過，含 ChurchReport 596／596；Debug tracer 7／7 通過；Changed 編碼、重複程式與 I18n 守門均通過。曾有 5 份先前工作紀錄的換行不符規範，僅整理換行後編碼守門通過，未放寬守門。
+- Deployment 原 46 例保留，新增 6 例，全套 52／52 通過；模組覆蓋率 **82.62%**。驗證原例外只上報一次、連線先釋放、回報故障、深層／循環 fault、缺失 Detail，以及主控台和共用日誌皆不含合成秘密。
+- 本次補修另經自癒入口分析與審查；兩次皆為 `reviewMode=dual`、`dualModelComplete=true`、`quotaBlocked=false`，沒有未處理的 Critical／High。這是本次補修的新審查，不冒稱由先前階段 0 審查涵蓋。
+- 本機證據位於 `artifacts/p013-apply-fault-tests/`；全方案各測試組的完整摘要保留於 `validation/release-test.log`。這些結果不等於 apply、verify 或 smoke 已通過。
+
+**重試若仍失敗：** 只回報 `Dataverse fault code[...]` 的數字行與固定失敗摘要；不要貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。若仍只有型別而沒有數字碼，也照實回報，不能將範例碼當成實際結果。
 
 **不對時怎麼辦：** 連線、權限、簽章或沙箱錯誤就停下回報並做第 6 步，不改回手動註冊。trace 的 verify=1 或 3 都未通過，不能略過。
 
@@ -225,8 +252,8 @@ git status --short -- .\d365\registration\plugins.registration.json
 | --- | --- |
 | 第 0 步前置與準備 | 使用者已回報舊步驟／流程停用、3 筆作業取消、金鑰存在及 User Secrets 儲存；舊 token 與會友 LINE ID 核定保留，免除本次清理前置 |
 | 建置與打包檢查 | 已由使用者執行通過；Deployment 有 1 個 CS1572 警告，詳第 2 步 |
-| Plugin 追蹤設定 | 待確認 |
-| 一輪 plan／apply／verify=0 | 未驗證 |
+| Plugin 追蹤設定 | 使用者已設為全部並儲存；收尾復原尚未完成 |
+| 一輪 plan／apply／verify=0 | 首次 plan 符合預期；apply 回報 ``FaultException`1``；數字診斷補修已完成本機驗證，待使用者重新 plan 審核；根因未明，verify 未執行 |
 | trace smoke 與五項人工追蹤 | 未驗證 |
 | 停用、收尾 verify=0、追蹤復原及資料清除 | 未驗證 |
 

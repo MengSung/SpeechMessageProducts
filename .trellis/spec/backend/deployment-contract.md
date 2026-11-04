@@ -22,6 +22,18 @@ settings use presence bits or hashes. Never export trace text, token or userId.
 Report real exceptions through the shared diagnostic owner, which writes only
 safe type/stack metadata; never print raw exception messages or CLI values.
 
+P0-13 diagnostic correction (2026-11-04): after reporting the original exception
+once, the CLI may print only `ErrorCode` from a typed
+`FaultException<OrganizationServiceFault>` and its SDK `InnerFault` chain. Format
+each Int32 as eight uppercase hexadecimal digits with invariant culture, and
+iterate at most four nodes including the outer detail, even for a cyclic chain.
+A missing detail prints no codes. Never read or serialize Message, Reason,
+TraceText, ErrorDetails, Data or raw stack for this supplemental output. Its
+failure must not prevent original reporting or change exit 1. Keep command-local
+lease disposal and caller-cancellation classification unchanged. Offline fault
+injection must cover secret-bearing fields, reporter failure, deep/cyclic chains,
+missing detail, release-before-report and actual shared-log redaction.
+
 Plan hashes cover manifest, DLL and current organization fingerprint. Apply
 revalidates these, exports and flushes the current state before writing. Stable
 step identities use type/message/entity/stage/mode/rank, and duplicate database

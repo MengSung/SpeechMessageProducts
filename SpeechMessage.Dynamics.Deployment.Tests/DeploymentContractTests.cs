@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -656,6 +657,148 @@ public sealed class DeploymentContractTests
         Assert.DoesNotContain(Fixture.SecretValue, output.ToString(), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// SDK fault 的各文字欄位及回報故障均注入假秘密；只有兩層數字碼可跨越輸出邊界。
+    /// 斷言原例外只上報一次、上報前租約已釋放，且回報失敗也不改變失敗碼或遺失數字診斷。
+    /// </summary>
+    /// <param name="reporterFails">是否讓既有共用回報入口在接收原例外後故障。</param>
+    [Theory(DisplayName = "Dataverse 失敗只顯示數字碼且保留原始回報與釋放")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Cli_DataverseFault_ShowsOnlyCodesAndReportsOriginalOnce(bool reporterFails)
+    {
+        using var f = new Fixture();
+        var detail = CreateSensitiveFault(unchecked((int)0x80040220),
+            CreateSensitiveFault(unchecked((int)0x80040217)));
+        var failure = new FaultException<OrganizationServiceFault>(detail, new FaultReason(Fixture.SecretValue));
+        f.Service.RetrieveFailure = failure;
+        var connector = new TrackingConnector(f.Service);
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        var reportCount = 0;
+        Exception? reported = null;
+        var disposedBeforeReport = false;
+
+        var exitCode = DeploymentCli.Run(
+            new[] { "export", "--org", Fixture.Organization },
+            connector,
+            output,
+            exception =>
+            {
+                reportCount++;
+                reported = exception;
+                disposedBeforeReport = connector.DisposeCount == 1;
+                if (reporterFails) throw new InvalidOperationException(Fixture.SecretValue);
+            },
+            artifactRoot: f.Root);
+
+        Assert.Equal(1, exitCode);
+        Assert.Equal(1, reportCount);
+        Assert.Same(failure, reported);
+        Assert.True(disposedBeforeReport);
+        Assert.Equal(1, connector.ConnectCount);
+        Assert.Equal(1, connector.DisposeCount);
+        Assert.Empty(f.Service.Writes);
+        var text = output.ToString();
+        Assert.Contains("Dataverse fault code[0]: 0x80040220", text, StringComparison.Ordinal);
+        Assert.Contains("Dataverse fault code[1]: 0x80040217", text, StringComparison.Ordinal);
+        Assert.Contains("Sensitive details are not shown.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(Fixture.SecretValue, text, StringComparison.Ordinal);
+        if (reporterFails)
+            Assert.Contains("Diagnostic reporting was unavailable.", text, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 注入五層 fault 或回指第一層的循環；輸出至多四個固定八位數字碼，不可無界走訪。
+    /// 人工列出的正負整數期待值同時保護符號位、零值與前導零，案例結束必須釋放唯一租約。
+    /// </summary>
+    /// <param name="cyclic">是否在第四層後回指第一層，取代第五層。</param>
+    [Theory(DisplayName = "Dataverse 內層與循環 fault 最多輸出四碼")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Cli_DataverseFault_NestedOrCyclicChain_IsBounded(bool cyclic)
+    {
+        using var f = new Fixture();
+        var fourth = CreateSensitiveFault(int.MaxValue, CreateSensitiveFault(42));
+        var first = CreateSensitiveFault(int.MinValue,
+            CreateSensitiveFault(0, CreateSensitiveFault(1, fourth)));
+        if (cyclic) fourth.InnerFault = first;
+        f.Service.RetrieveFailure = new FaultException<OrganizationServiceFault>(first);
+        var connector = new TrackingConnector(f.Service);
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+
+        var exitCode = DeploymentCli.Run(
+            new[] { "export", "--org", Fixture.Organization },
+            connector, output, _ => { }, artifactRoot: f.Root);
+
+        Assert.Equal(1, exitCode);
+        var lines = output.ToString().Split(Environment.NewLine)
+            .Where(line => line.StartsWith("Dataverse fault code[", StringComparison.Ordinal)).ToArray();
+        Assert.Collection(lines,
+            line => Assert.Equal("Dataverse fault code[0]: 0x80000000", line),
+            line => Assert.Equal("Dataverse fault code[1]: 0x00000000", line),
+            line => Assert.Equal("Dataverse fault code[2]: 0x00000001", line),
+            line => Assert.Equal("Dataverse fault code[3]: 0x7FFFFFFF", line));
+        Assert.DoesNotContain(Fixture.SecretValue, output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(1, connector.DisposeCount);
+    }
+
+    /// <summary>缺失 Detail 的 SDK fault 仍須上報原例外並釋放租約；不能為取得數字診斷再拋空參考例外。</summary>
+    [Fact(DisplayName = "Dataverse fault 沒有 Detail 時維持安全失敗")]
+    public void Cli_DataverseFault_NullDetail_PreservesFailure()
+    {
+        using var f = new Fixture();
+        var failure = new FaultException<OrganizationServiceFault>(null!, new FaultReason(Fixture.SecretValue));
+        f.Service.RetrieveFailure = failure;
+        var connector = new TrackingConnector(f.Service);
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        var reports = new List<Exception>();
+
+        Assert.Equal(1, DeploymentCli.Run(
+            new[] { "export", "--org", Fixture.Organization },
+            connector, output, reports.Add, artifactRoot: f.Root));
+
+        Assert.Same(failure, Assert.Single(reports));
+        Assert.Equal(1, connector.DisposeCount);
+        Assert.Contains("Sensitive details are not shown.", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Dataverse fault code[", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(Fixture.SecretValue, output.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 經真正程序診斷 owner 注入含假秘密的 SDK fault，檢查 stdout 與全部暫存日誌。
+    /// 同時要求數字碼可見及共用日誌已建立，防止以跳過回報或完全隱藏診斷取得假綠燈。
+    /// </summary>
+    [Fact(DisplayName = "Dataverse fault 的控制台與共用日誌皆不含秘密")]
+    public void Logs_DataverseFault_NeverContainSecretValues()
+    {
+        var run = typeof(Program).GetMethod("RunCommand", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(run);
+        using var f = new Fixture();
+        f.Service.RetrieveFailure = new FaultException<OrganizationServiceFault>(
+            CreateSensitiveFault(unchecked((int)0x80040220), CreateSensitiveFault(1)),
+            new FaultReason(Fixture.SecretValue));
+        var connector = new TrackingConnector(f.Service);
+        var configuration = CreateConnectorConfiguration();
+        using var configurationOwner = (IDisposable)configuration;
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+
+        var exitCode = (int)run!.Invoke(null, new object?[]
+        {
+            new[] { "export", "--org", Fixture.Organization },
+            connector, output, configuration, Path.Combine(f.Root, "Logs"), CancellationToken.None
+        })!;
+
+        Assert.Equal(1, exitCode);
+        Assert.Equal(1, connector.DisposeCount);
+        Assert.False(ExceptionReporting.IsActive);
+        Assert.True(File.Exists(Path.Combine(f.Root, "Logs", "Exception.log")));
+        var combined = string.Join(Environment.NewLine,
+            Directory.EnumerateFiles(f.Root, "*", SearchOption.AllDirectories)
+                .Select(File.ReadAllText).Append(output.ToString()));
+        Assert.DoesNotContain(Fixture.SecretValue, combined, StringComparison.Ordinal);
+        Assert.Contains("Dataverse fault code[0]: 0x80040220", output.ToString(), StringComparison.Ordinal);
+    }
+
     /// <summary>plan 不讀取佔位；apply 才把假值送入假服務，備份與輸出仍不得保存該值。</summary>
     [Fact(DisplayName = "佔位秘密只在套用時解析且不落入輸出")]
     public void Apply_SecretPlaceholdersResolvedOnlyForWrites()
@@ -740,6 +883,23 @@ public sealed class DeploymentContractTests
 
         Assert.Equal(f.Manifest.Steps[0].Type, Assert.Single(image.PluginTypes));
     }
+
+    /// <summary>
+    /// 建立只屬當前案例的 SDK fault；各文字與字典鍵值都注入假秘密，不保留真實連線資訊。
+    /// 只允許其數字碼輸出；InnerFault 可供深度與循環故障注入，不涉及任何背景資源。
+    /// </summary>
+    /// <param name="errorCode">人工指定、可獨立核對格式的數字碼。</param>
+    /// <param name="innerFault">本案例的內層 fault；不跨案例共用。</param>
+    /// <returns>含多個敏感文字欄位的合成 fault。</returns>
+    private static OrganizationServiceFault CreateSensitiveFault(int errorCode, OrganizationServiceFault? innerFault = null) =>
+        new()
+        {
+            ErrorCode = errorCode,
+            Message = Fixture.SecretValue,
+            TraceText = Fixture.SecretValue,
+            ErrorDetails = { [Fixture.SecretValue] = Fixture.SecretValue },
+            InnerFault = innerFault
+        };
 
     /// <summary>
     /// 建立只含合成 connector 設定的記憶體組態；所有憑證樣本均為假值，

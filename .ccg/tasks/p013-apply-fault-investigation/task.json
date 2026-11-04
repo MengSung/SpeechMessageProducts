@@ -1,0 +1,33 @@
+{
+  "id": "p013-apply-fault-investigation",
+  "title": "P0-13 調查 apply 的 Dataverse FaultException",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "安全數字診斷已驗證與雙模型審查通過；等待使用者重新 plan 審核，再以實機輸出判定 apply 根因；P0-13 未完成",
+  "createdAt": "2026-11-04",
+  "branch": "1.0.0.11.Integration.P0",
+  "constraints": [
+    "不新增 Trellis 任務",
+    "Codex 不連線 D365／LINE",
+    "不讀取或輸出 User Secrets、帳密、token、金鑰或授權內容",
+    "保留使用者將清單 goodshepherdback 改為 true 的未提交變更",
+    "不推送、不合併、不改寫歷史"
+  ],
+  "verification": {
+    "baselinePassed": 46,
+    "redFailed": 5,
+    "redPassed": 1,
+    "deploymentPassed": 52,
+    "solutionPassed": 1116,
+    "churchReportPassed": 596,
+    "debugTracerPassed": 7,
+    "coveragePercent": 82.62,
+    "section8": "passed",
+    "reviewMode": "dual",
+    "dualModelComplete": true,
+    "quotaBlocked": false
+  }
+}
