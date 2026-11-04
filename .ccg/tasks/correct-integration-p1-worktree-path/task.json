@@ -1,0 +1,22 @@
+{
+  "id": "correct-integration-p1-worktree-path",
+  "title": "更正 P1 工作目錄並刪除誤建的 SpeechMessageProducts.worktrees 目錄",
+  "status": "in_progress",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "repository",
+  "currentPhase": "implementation",
+  "nextAction": "工作目錄已更正；誤建的空目錄刪除被自動核准政策拒絕，待外部處理",
+  "createdAt": "2026-11-04T23:51:36.1741331Z",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "originalP1Commit": "952e33ca4b5a0cc59c9263a9924ff11d355a680a",
+  "p0Commit": "c914580e1fe976758ee8bdb45af5a47c0bfd57bb",
+  "oldWorktree": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree.worktrees\\1.0.0.11.Integration.P1.Worktree",
+  "newWorktree": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree",
+  "cleanupRoot": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts.worktrees",
+  "trellisTaskCreated": false,
+  "relocationCompleted": true,
+  "cleanupCompleted": false,
+  "cleanupBlockReason": "遞迴刪除及逐一刪除已確認為空的目錄，兩種指令均於執行前被自動核准政策以 blocked by policy 拒絕；未改用其他刪除方式。",
+  "verification": "正確 worktree 路徑、P1 分支及搬移前提交皆已核對；P0 未改，產品檔案未改；誤建根目錄僅餘空的中介資料夾。"
+}
