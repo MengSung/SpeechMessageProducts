@@ -3,7 +3,7 @@
   "name": "small-group-report-blank",
   "title": "小組回報空白問題修復",
   "description": "使用者追加核定修復；查證 Deferred 與原生 Promise 的相容問題，保留世代與資源防護。",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": "frontend-compatibility-fix",
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-03",
-  "completedAt": null,
+  "completedAt": "2026-11-04",
   "branch": "1.0.0.11.Integration.P0",
   "base_branch": "1.0.0.11.Integration.P0",
   "worktree_path": null,
@@ -21,12 +21,24 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "使用者已確認兩表格恢復；前端 16／16。全方案仍有 P0-12A 的 8 個圖片測試失敗；不混修。禁止 D365／LINE；不推送、不合併、不改寫歷史。",
+  "notes": "使用者確認頁面恢復；圖表未逐項驗證。前端16/16，完整階段Release1104/1104、Debug7/7。舊失敗證據保留；正式線移植與JSZip既有匯出風險未處理。",
   "meta": {},
-  "currentPhase": "review",
-  "nextAction": "依使用者 2026-11-03 核定併階段 0 第 ⑧ 批 ClaudeOnly 審查；通過後才收尾封存，P0-12A 可接續。",
+  "currentPhase": "completed",
+  "nextAction": "已依使用者核定完成並封存；圖表逐項驗證及正式線移植仍待使用者決定。",
   "reviewPacket": ".ccg/dual-model-runs/small-group-report-blank-review-packet.md",
   "manualImplementationCommit": "96487ea2",
-  "verificationReport": ".trellis/tasks/11-03-small-group-report-blank/research/fix-report.md",
-  "stageReviewBatch": 8
+  "verificationReport": ".trellis/tasks/archive/2026-11/11-03-small-group-report-blank/research/fix-report.md",
+  "stageReviewBatch": 8,
+  "review": {
+    "mode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false,
+    "batches": [
+      "08",
+      "09"
+    ],
+    "criticalOpen": 0,
+    "highOpen": 0,
+    "stageReviewCommit": "56f4e0ab"
+  }
 }

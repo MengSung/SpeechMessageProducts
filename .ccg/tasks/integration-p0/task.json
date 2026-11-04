@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "review",
-  "nextAction": "第 08、09 份通過；封存小組回報任務，撰寫 P0-13 使用者步驟後停止；不宣稱階段 0 已結案。",
+  "nextAction": "小組回報已封存；撰寫 P0-13 使用者步驟後停止，清理回報與完整 hosted CI 仍待使用者。",
   "createdAt": "2026-11-02T04:30:50.6975253Z",
   "branch": "1.0.0.11.Integration.P0",
   "baseCommit": "73b6e6cf409daa7559fd3c11d482e3efc542c0d7",
@@ -27,7 +27,7 @@
     "P0-CI-transition": "faf7873d",
     "P0-review-development": "039033ec",
     "P0-review-deployment-scope": "e3f89eb6",
-    "P0-stage-review": "原 11 份與獨立第 09 份完成；ClaudeOnly，無未處理 Critical／High"
+    "P0-stage-review": "56f4e0ab"
   },
   "stageReview": {
     "mode": "claude-only",
@@ -92,6 +92,7 @@
         "Regex-based duplicate type scanning has theoretical language edge cases."
       ],
       "originalPacketPreserved": true
-    }
+    },
+    "smallGroupTaskArchived": ".trellis/tasks/archive/2026-11/11-03-small-group-report-blank"
   }
 }

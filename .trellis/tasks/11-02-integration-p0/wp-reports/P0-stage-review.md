@@ -107,7 +107,9 @@ reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=true�
 - DevExpress 來源仍待使用者決定；階段 0 結束前須完整含 ChurchReport CI 全綠，或使用者另行明確接受過渡狀態。
 - 冷還原暫存目錄刪除遭自動核准審查拒絕（blocked by policy、未提供細因），保留在使用者 Temp，
   名稱 speechmessage-filter-restore-0940c118e5d84a60bbbf40e1f229fe69，只含公開套件、無授權／金鑰；未繞過刪除限制。
-- 第 08 與 09 均無未處理 Critical／High；下一步依核定封存小組任務，再撰寫 P0-13 文件。
+- 第 08 與 09 均無未處理 Critical／High；小組回報任務已依核定封存：
+  .trellis/tasks/archive/2026-11/11-03-small-group-report-blank，CCG 對應 archive/2026-11/small-group-report-blank。
+  本次再跑實際前端兩檔 16／16；圖表未逐項驗證、正式線移植與既有 Excel 匯出風險均保留。接續撰寫 P0-13 文件。
   清理尚未回報，前置確認保持未勾選；尚未實際驗收，不宣稱階段 0 結案。
 - cross-user-isolation-and-performance.md 依核定不搬移；遵守 AGENTS.md 的既有隔離／生命週期要求。
   沒有 D365／LINE 連線、推送、合併、改寫歷史或讀取授權／金鑰內容。
