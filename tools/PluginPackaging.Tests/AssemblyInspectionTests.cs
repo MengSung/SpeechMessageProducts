@@ -101,6 +101,64 @@ public sealed class AssemblyInspectionTests
         Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// 合成真實的 facade 名稱參考，重現 System.* 前綴把它誤判為安全相依的缺口；
+    /// 合併前與部署 DLL 檢查兩個入口都必須拒絕，普通 Framework 名稱則維持可用。
+    /// 每次建立獨立惰性 PE，不載入執行；返回後獨佔重開確認讀取資源已釋放。
+    /// </summary>
+    /// <param name="dependencyName">由案例固定的組件簡名，不從外部設定取得。</param>
+    /// <param name="expected">人工依 net462 facade 目錄分類的預期結果。</param>
+    [Theory(DisplayName = "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考")]
+    [InlineData("System.Runtime", false)]
+    [InlineData("System.Collections", false)]
+    [InlineData("System.Runtime.Extensions", false)]
+    [InlineData("System.ServiceModel.Primitives", false)]
+    [InlineData("System.runtime", false)]
+    [InlineData("netstandard", false)]
+    [InlineData("System.Net.Http", true)]
+    [InlineData("System.Runtime.CustomLibrary", true)]
+    public void Inspect_FacadeReferences_BothEntryPointsReject(string dependencyName, bool expected)
+    {
+        using var fixture = new Fixture();
+        var path = fixture.Emit("facade-reference", dependencyName);
+        foreach (var args in new[] { new[] { path }, new[] { "--validate-net462-input", path } })
+        {
+            using var output = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(expected ? 0 : 1, Program.Run(args, output));
+            using var result = JsonDocument.Parse(output.ToString());
+            Assert.Equal(expected, result.RootElement.GetProperty("ok").GetBoolean());
+            Assert.True(result.RootElement.GetProperty("checks").GetProperty("targetFramework").GetBoolean());
+            Assert.Equal(expected, result.RootElement.GetProperty("checks").GetProperty("noNetStandardFacade").GetBoolean());
+            Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
+        }
+        using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(exclusive.Length > 0);
+    }
+
+    /// <summary>
+    /// 以 facade 自身的組件身分注入合併輸入，避免只檢查其相依名稱而允許直接合併 facade；
+    /// 即使它宣告 v4.6.2 且已簽章，兩個入口仍須以獨立 facade 欄位拒絕。
+    /// </summary>
+    /// <param name="assemblyName">固定的 facade 組件身分。</param>
+    [Theory(DisplayName = "facade 本身即使宣告正確框架也不得合併")]
+    [InlineData("System.Runtime")]
+    [InlineData("System.Collections")]
+    [InlineData("netstandard")]
+    public void Inspect_FacadeAssemblyIdentity_BothEntryPointsReject(string assemblyName)
+    {
+        using var fixture = new Fixture();
+        var path = fixture.Emit("valid", assemblyName: assemblyName);
+        foreach (var args in new[] { new[] { path }, new[] { "--validate-net462-input", path } })
+        {
+            using var output = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(1, Program.Run(args, output));
+            using var result = JsonDocument.Parse(output.ToString());
+            Assert.False(result.RootElement.GetProperty("ok").GetBoolean());
+            Assert.True(result.RootElement.GetProperty("checks").GetProperty("targetFramework").GetBoolean());
+            Assert.False(result.RootElement.GetProperty("checks").GetProperty("noNetStandardFacade").GetBoolean());
+        }
+    }
+
     /// <summary>獨佔暫存目錄及測試金鑰的唯一 owner；只產生惰性 DLL，Dispose 刪除所有測試資源。</summary>
     private sealed class Fixture : IDisposable
     {
@@ -118,8 +176,10 @@ public sealed class AssemblyInspectionTests
         }
         /// <summary>以 net462 參考組件離線編譯指定故障；編譯失敗是測試錯誤，不當作檢查器成功拒絕。</summary>
         /// <param name="fault">固定測試故障種類。</param>
+        /// <param name="dependencyName">可選的合成相依名稱，只用來注入 facade 參考。</param>
+        /// <param name="assemblyName">可選的合成組件身分，用來驗證 facade 本身也必須拒絕。</param>
         /// <returns>尚未被載入的測試 DLL 路徑。</returns>
-        public string Emit(string fault)
+        public string Emit(string fault, string? dependencyName = null, string assemblyName = "InspectionFixture")
         {
             var reference = MetadataReference.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "Framework", "mscorlib.dll"));
             var framework = fault == "no-framework" ? "" :
@@ -127,9 +187,11 @@ public sealed class AssemblyInspectionTests
             var source = framework + "namespace SpeechMessage.Dynamics.Plugins.Diagnostics { " +
                 (fault == "private" ? "internal" : "public") + " sealed class DiagnosticsPingPlugin { } }";
             var references = new[] { reference }.AsEnumerable();
-            if (fault is "reference" or "drawing")
+            if (fault is "reference" or "drawing" or "facade-reference")
             {
-                var name = fault == "reference" ? "UnexpectedDependency" : "System.Drawing";
+                var name = fault == "facade-reference"
+                    ? dependencyName ?? throw new ArgumentException("A fixture dependency name is required.", nameof(dependencyName))
+                    : fault == "reference" ? "UnexpectedDependency" : "System.Drawing";
                 var dependency = Path.Combine(Root, name + ".dll");
                 var dependencyCompilation = CSharpCompilation.Create(name, new[] { CSharpSyntaxTree.ParseText("public class RequiredType { }") },
                     references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -139,7 +201,7 @@ public sealed class AssemblyInspectionTests
             }
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             if (fault != "unsigned") options = options.WithCryptoKeyFile(key).WithStrongNameProvider(new DesktopStrongNameProvider());
-            var compilation = CSharpCompilation.Create("InspectionFixture", new[] { CSharpSyntaxTree.ParseText(source) }, references, options);
+            var compilation = CSharpCompilation.Create(assemblyName, new[] { CSharpSyntaxTree.ParseText(source) }, references, options);
             var path = Path.Combine(Root, "fixture.dll");
             var result = compilation.Emit(path);
             Assert.True(result.Success, string.Join("\n", result.Diagnostics.Select(value => value.ToString())));

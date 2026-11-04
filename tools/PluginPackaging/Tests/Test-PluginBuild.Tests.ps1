@@ -77,7 +77,7 @@ try {
                 $inspectCode = $LASTEXITCODE
                 $jsonLine = $inspection | Where-Object { $_.ToString().StartsWith('{', [StringComparison]::Ordinal) } | Select-Object -Last 1
                 $result = $jsonLine.ToString() | ConvertFrom-Json
-                $passed = $inspectCode -eq 1 -and $result.checks.strongName -eq $false -and $result.checks.targetFramework -eq $true
+                $passed = $inspectCode -eq 1 -and $result.checks.strongName -eq $false -and $result.checks.targetFramework -eq $true -and $result.checks.noNetStandardFacade -eq $true
                 if (-not $passed) { $failureDetail = 'unsigned-debug-assembly-contract-failed' }
             }
         } else {
@@ -89,7 +89,7 @@ try {
                 $jsonLine = $inspection | Where-Object { $_.ToString().StartsWith('{', [StringComparison]::Ordinal) } | Select-Object -Last 1
                 $result = $jsonLine.ToString() | ConvertFrom-Json
                 $references = @($result.references | ForEach-Object { $_.ToString() })
-                $passed = $inspectCode -eq 0 -and $result.checks.targetFramework -eq $true -and
+                $passed = $inspectCode -eq 0 -and $result.checks.targetFramework -eq $true -and $result.checks.noNetStandardFacade -eq $true -and
                     $result.assemblyVersion -eq '1.0.0.0' -and
                     $references -notcontains 'System.Runtime' -and $references -notcontains 'netstandard'
                 if (-not $passed) { $failureDetail = 'release-assembly-check-failed' }

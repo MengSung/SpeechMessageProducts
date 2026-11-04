@@ -40,7 +40,14 @@ It emits one JSON result per DLL and fails the whole run if any DLL fails.
   each declare a .NET Framework target no higher than v4.6.2; the merged
   deployment assembly must declare v4.6.2. The metadata checker reads PE
   metadata without loading the files. Do not merge .NET Standard facades,
-  including `System.Runtime`.
+  including `System.Runtime`. The common PE checker rejects both facade assembly
+  identities and facade references before merging and when validating the final
+  DLL, through a separate `checks.noNetStandardFacade` field. The bounded,
+  immutable name set consists of the Facades directory names from the fixed
+  net462 ReferenceAssemblies 1.0.3 package plus `netstandard`; compare exact
+  assembly simple names case-insensitively, without blocking all `System.*`
+  references or consulting the runtime machine. Keep the original allowed-reference
+  and other checks independently active.
 - `net48` may remain a test-host target, but tests that reference product
   projects must resolve and verify their actual `net462` product outputs.
 - Read the formal key only from process environment
@@ -76,6 +83,7 @@ It emits one JSON result per DLL and fails the whole run if any DLL fails.
 | Wrong/missing TargetFrameworkAttribute | targetFramework=false, exit 1 |
 | Reference outside mscorlib, System, System.*, Xrm SDK/Proxy | allowedReferences=false, exit 1 |
 | System.Drawing or a child reference | noDrawing=false, exit 1 |
+| Framework facade identity or reference, including System.Runtime, System.Collections or netstandard | noNetStandardFacade=false, exit 1 in both entry points |
 | Missing/private diagnostic type | diagnosticsPlugin=false, exit 1 |
 | Length at least 16 MiB, corrupt PE, unavailable input | Fail closed with fixed reason, no original path/message |
 | Mixed directory containing valid and invalid DLLs | Inspect every DLL; aggregate exit 1 |

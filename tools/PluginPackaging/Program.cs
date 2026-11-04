@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Frozen;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +17,70 @@ internal static class Program
 {
     /// <summary>部署沙箱目前核定的最高組件目標框架；更高版本即使本機可執行也不得送入合併。</summary>
     private static readonly Version MaximumMergeInputFramework = new(4, 6, 2);
+
+    /// <summary>
+    /// 以固定 Microsoft.NETFramework.ReferenceAssemblies.net462 1.0.3 的 Facades 清單加 netstandard
+    /// 區分相容轉送組件，避免原有 System.* 允許規則讓 facade 參考假通過。
+    /// 集合在程序啟動後不可變且大小固定，不讀取執行主機／呼叫者的目錄或設定，不保存任何操作狀態。
+    /// 組件身分依 CLR 簡名以 OrdinalIgnoreCase 比對；只拒絕完整名稱，不誤拒合法的 System.Net.Http 等框架參考。
+    /// </summary>
+    private static readonly FrozenSet<string> FrameworkFacadeNames = new[]
+    {
+        "System.Collections",
+        "System.Collections.Concurrent",
+        "System.ComponentModel",
+        "System.ComponentModel.Annotations",
+        "System.ComponentModel.EventBasedAsync",
+        "System.Diagnostics.Contracts",
+        "System.Diagnostics.Debug",
+        "System.Diagnostics.Tools",
+        "System.Diagnostics.Tracing",
+        "System.Dynamic.Runtime",
+        "System.Globalization",
+        "System.IO",
+        "System.Linq",
+        "System.Linq.Expressions",
+        "System.Linq.Parallel",
+        "System.Linq.Queryable",
+        "System.Net.NetworkInformation",
+        "System.Net.Primitives",
+        "System.Net.Requests",
+        "System.Net.WebHeaderCollection",
+        "System.ObjectModel",
+        "System.Reflection",
+        "System.Reflection.Emit",
+        "System.Reflection.Emit.ILGeneration",
+        "System.Reflection.Emit.Lightweight",
+        "System.Reflection.Extensions",
+        "System.Reflection.Primitives",
+        "System.Resources.ResourceManager",
+        "System.Runtime",
+        "System.Runtime.Extensions",
+        "System.Runtime.Handles",
+        "System.Runtime.InteropServices",
+        "System.Runtime.InteropServices.WindowsRuntime",
+        "System.Runtime.Numerics",
+        "System.Runtime.Serialization.Json",
+        "System.Runtime.Serialization.Primitives",
+        "System.Runtime.Serialization.Xml",
+        "System.Security.Principal",
+        "System.ServiceModel.Duplex",
+        "System.ServiceModel.Http",
+        "System.ServiceModel.NetTcp",
+        "System.ServiceModel.Primitives",
+        "System.ServiceModel.Security",
+        "System.Text.Encoding",
+        "System.Text.Encoding.Extensions",
+        "System.Text.RegularExpressions",
+        "System.Threading",
+        "System.Threading.Tasks",
+        "System.Threading.Tasks.Parallel",
+        "System.Threading.Timer",
+        "System.Xml.ReaderWriter",
+        "System.Xml.XDocument",
+        "System.Xml.XmlSerializer",
+        "netstandard",
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>輸出固定 JSON 檢查結果；未完成檢查時不得以結束碼零假稱通過。</summary>
     /// <param name="args">受檢 DLL 的本機路徑，不含憑證或連線資訊。</param>
@@ -60,11 +125,12 @@ internal static class Program
                     string.Equals(metadata.GetString(type.Namespace), "SpeechMessage.Dynamics.Plugins.Diagnostics", StringComparison.Ordinal) &&
                     string.Equals(metadata.GetString(type.Name), "DiagnosticsPingPlugin", StringComparison.Ordinal);
             });
-            var ok = strongName && targetFramework && allowed && noDrawing && plugin;
+            var noNetStandardFacade = HasNoFrameworkFacade(metadata, assembly);
+            var ok = strongName && targetFramework && allowed && noDrawing && plugin && noNetStandardFacade;
             output.WriteLine(JsonSerializer.Serialize(new
             {
                 ok,
-                checks = new { readable = true, strongName, targetFramework, allowedReferences = allowed, noDrawing, diagnosticsPlugin = plugin, size = true },
+                checks = new { readable = true, strongName, targetFramework, allowedReferences = allowed, noNetStandardFacade, noDrawing, diagnosticsPlugin = plugin, size = true },
                 assemblyVersion = assembly.Version.ToString(),
                 references,
                 sizeBytes = stream.Length
@@ -108,15 +174,16 @@ internal static class Program
     }
 
     /// <summary>
-    /// 在 ILRepack 前逐一驗證輸入組件宣告了不高於 v4.6.2 的 .NET Framework 目標。
+    /// 在 ILRepack 前逐一驗證輸入組件宣告了不高於 v4.6.2 的 .NET Framework 目標，且沒有 facade 身分或參考。
     /// 僅輸出固定 JSON，不回顯路徑；讀取仍由單一 PE reader 操作擁有並在返回時釋放。
     /// </summary>
     /// <param name="path">本次合併的單一輸入組件路徑。</param>
     /// <param name="output">呼叫端擁有的操作專屬輸出。</param>
-    /// <returns>只有 PE 可讀且框架版本符合上限時回傳零。</returns>
+    /// <returns>只有 PE 可讀、框架版本符合上限且未含 facade 時回傳零。</returns>
     private static int ValidateMergeInputFramework(string path, TextWriter output)
     {
         string? frameworkName;
+        bool noNetStandardFacade;
         try
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -125,7 +192,9 @@ internal static class Program
             if (!pe.HasMetadata) return Reject("InvalidImage", output);
             var metadata = pe.GetMetadataReader();
             if (!metadata.IsAssembly) return Reject("InvalidImage", output);
-            frameworkName = ReadFrameworkName(metadata, metadata.GetAssemblyDefinition());
+            var assembly = metadata.GetAssemblyDefinition();
+            frameworkName = ReadFrameworkName(metadata, assembly);
+            noNetStandardFacade = HasNoFrameworkFacade(metadata, assembly);
         }
         catch (Exception exception) when (exception is BadImageFormatException or IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -136,13 +205,25 @@ internal static class Program
         var valid = IsFrameworkAtOrBelowLimit(frameworkName);
         output.WriteLine(JsonSerializer.Serialize(new
         {
-            ok = valid,
-            checks = new { targetFramework = valid },
+            ok = valid && noNetStandardFacade,
+            checks = new { targetFramework = valid, noNetStandardFacade },
             frameworkName,
             maximumTargetFramework = ".NETFramework,Version=v4.6.2"
         }));
-        return valid ? 0 : 1;
+        return valid && noNetStandardFacade ? 0 : 1;
     }
+
+    /// <summary>
+    /// 共用於部署 DLL 與合併前輸入檢查：組件自身及其全部參考都不得是固定清單中的 facade。
+    /// 只讀同一操作擁有的 MetadataReader，不載入組件、不追蹤磁碟相依，也不持有 reader 或參考名稱快照。
+    /// </summary>
+    /// <param name="metadata">由呼叫端 PE reader 控制生命週期的唯讀中繼資料。</param>
+    /// <param name="assembly">已確認為組件的定義。</param>
+    /// <returns>自身與所有 assembly references 都不是 facade 時才為 true。</returns>
+    private static bool HasNoFrameworkFacade(MetadataReader metadata, AssemblyDefinition assembly)
+        => !FrameworkFacadeNames.Contains(metadata.GetString(assembly.Name)) &&
+            metadata.AssemblyReferences.All(handle =>
+                !FrameworkFacadeNames.Contains(metadata.GetString(metadata.GetAssemblyReference(handle).Name)));
 
     /// <summary>只接受明確 .NET Framework 版本，並以數值版本比較拒絕高於 v4.6.2 的輸入。</summary>
     /// <param name="frameworkName">PE 中繼資料的 TargetFrameworkAttribute 值。</param>
@@ -166,7 +247,7 @@ internal static class Program
         {
             ok = false,
             reason,
-            checks = new { readable = false, strongName = false, targetFramework = false, allowedReferences = false, noDrawing = false, diagnosticsPlugin = false, size = false }
+            checks = new { readable = false, strongName = false, targetFramework = false, allowedReferences = false, noNetStandardFacade = false, noDrawing = false, diagnosticsPlugin = false, size = false }
         }));
         return 1;
     }

@@ -27,3 +27,7 @@ P0-SEC 在原 11＋1 部署設定讀取點追加 Development 來源與安全啟�
 P0-13 使用現有 trace 能力，不變更 Plugin 或部署工具程式。新步驟明確 enabled=true 可在建立時啟用，trace 無秘密佔位，因此一輪 plan／apply／verify=0 即可；最後以新 plan 停用並 verify=0。
 推播沙箱連通性移至 P2-04 前置；Plugin 自身 FileVersion 追蹤與更新／回復移至階段 5 正式 Plugin 初次佈署前。實機同事件重送由使用者接受單元測試及官方重試契約代替。
 CI 範圍過渡已接受，與 GitHub 實跑成功是不同事實；本機仍跑全方案。任何實機成功仍須使用者回報，文件交付不使任務完成。
+
+## D21 正式框架變更（使用者 2026-11-04 核定，取代上方 net48 目標）
+
+Plugin 為 net462，Core／Localization 為 net462;net10.0；NETFRAMEWORK 保留 Framework 分支。編譯使用 4.6.2 ReferenceAssemblies；四個合併輸入的 Framework 宣告不高於 v4.6.2，部署 DLL 僅接受 v4.6.2，不合併 facade。mscorlib FrameworkFileVersion=4.8.x 觀察的是伺服器 runtime，與 Plugin 目標不同。

@@ -88,7 +88,7 @@ namespace SpeechMessage.Dynamics.Plugins.Diagnostics
         if ($sample -eq 'signed') {
             $passed = $code -eq 0 -and $result.ok -eq $true -and $result.checks.strongName -eq $true -and
                 $result.checks.targetFramework -eq $true -and $result.checks.allowedReferences -eq $true -and
-                $result.checks.noDrawing -eq $true -and $result.checks.diagnosticsPlugin -eq $true -and $result.checks.size -eq $true
+                $result.checks.noNetStandardFacade -eq $true -and $result.checks.noDrawing -eq $true -and $result.checks.diagnosticsPlugin -eq $true -and $result.checks.size -eq $true
         } else {
             $passed = $code -eq 1 -and $result.ok -eq $false -and $result.checks.$failedCheck -eq $false
         }

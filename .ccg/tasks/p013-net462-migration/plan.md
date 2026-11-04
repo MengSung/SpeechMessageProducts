@@ -13,12 +13,12 @@
 - [x] 三個產品專案已改為 Plugins `net462`、Core／Localization `net462;net10.0`；net48 測試專案保留並檢查引用的實際組件。
 - [x] Framework 條件已由 `NET48` 改用 `NETFRAMEWORK`；實際載入測試確認 Core 的 net462 Framework 專用建構式可用。
 - [x] 打包檢查器只接受 net462，且以反向樣本拒絕 net48；四個合併輸入另有 v4.6.2 上限檢查。
-- [ ] 修正 PluginPackaging 子建置先 Restore 再 Build，並用 Release 打包實證，不依賴方案還原留下的工具資產。
-- [ ] 還原三個產品專案並盤點 net462 的每個套件編譯／執行資產；記錄四個合併輸入的框架版本及 facade 判斷，不合併 facade。
-- [ ] 同步 00／D21、01～04、90、Trellis 套件規範、驗收步驟、進度頁與調查報告第 8 節；歷史事件與已提交決策保留為當時紀錄。
-- [ ] 跑 Plugins、Core、Localization、Deployment 相關測試、PluginPackaging 測試、Release 簽章打包及檢查。
-- [ ] 跑完整本機 00 §8：全方案 Release build/test（含 ChurchReport）、Debug tracer、編碼、重複碼、I18n、套件與分析器守門。
-- [ ] 依既有規定以自癒入口完成第 10 份 ClaudeOnly 審查；Critical／High 修正後重跑相關及完整驗證。
+- [x] 修正 PluginPackaging 子建置先 Restore 再 Build，並用 Release 打包實證，不依賴方案還原留下的工具資產。
+- [x] 還原三個產品專案並盤點 net462 的每個套件編譯／執行資產；記錄四個合併輸入的框架版本及 facade 判斷，不合併 facade。
+- [x] 同步 00／D21、01～04、90、Trellis 套件規範、驗收步驟、進度頁與調查報告第 8 節；歷史事件與已提交決策保留為當時紀錄。
+- [x] 跑 Plugins、Core、Localization、Deployment 相關測試、PluginPackaging 測試、Release 簽章打包及檢查。
+- [x] 跑完整本機 00 §8：全方案 Release build/test（含 ChurchReport）、Debug tracer、編碼、重複碼、I18n、套件與分析器守門。
+- [x] 依既有規定以自癒入口完成第 10 份 ClaudeOnly 初審與 High 修正獨立複審；修正後重跑相關及完整驗證，無未處理 Critical／High。
 - [ ] 驗證、審查通過後以核定訊息提交；把重建、重新 plan、apply、verify、smoke 與收尾交由使用者操作。
 
 ## 審查輸入

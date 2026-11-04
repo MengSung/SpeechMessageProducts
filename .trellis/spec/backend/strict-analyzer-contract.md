@@ -52,7 +52,8 @@ the intentionally invalid probe builds themselves must fail.
 - Use property documentation IDs for CultureInfo default-culture properties.
   Accessor method IDs did not match real assignments in version 5.6.0. The
   property ban intentionally rejects both reads and writes of global defaults.
-- IsExternalInit and NotNullWhenAttribute are linked only for net48. Their
+- IsExternalInit and NotNullWhenAttribute are linked only for .NET Framework
+  targets: net462 products and retained net48 test hosts. Their
   source files are shared; they introduce no state or runtime dependency.
 - Probe projects never execute. Per-run plugin fixtures are deleted after their
   build process drains; the cleanup target must remain beneath the owned root.

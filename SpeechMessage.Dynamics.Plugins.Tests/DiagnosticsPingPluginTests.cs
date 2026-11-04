@@ -28,7 +28,7 @@ public sealed class DiagnosticsPingPluginTests
     private const string UserId = "U11111111111111111111111111111111";
 
     /// <summary>
-    /// 保護部署外殼只能以伺服器已接受的 .NET Framework 4.6.2 為目標；
+    /// 保護部署外殼只能以使用者依 D21 核定的 .NET Framework 4.6.2 為目標；
     /// 直接讀取測試實際載入的 Plugin 組件屬性，避免只看專案設定或測試專案本身而產生假綠燈。
     /// </summary>
     [Fact(DisplayName = "Plugin 參考的正式組件目標為 Framework 4.6.2")]

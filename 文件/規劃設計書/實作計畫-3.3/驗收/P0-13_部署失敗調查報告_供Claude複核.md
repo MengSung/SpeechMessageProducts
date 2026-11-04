@@ -125,6 +125,44 @@ PluginAssemblyServiceInternal.ValidateAssemblyMetadata
 
 **根因狀態：** 事件 18176 位於 `TargetFrameworkVersionValidator.ValidateInternal()`，使 net48 組件框架不相容成為高度可信假設；尚未證實伺服器接受 net462。現場 `Microsoft.Crm.ObjectModel.dll` 檔案版本 `9.1.49.21825` 與 `mscorlib.dll` 檔案版本 `4.8.4795.0` 都保留為觀察證據，不代表特定更新已提供 4.8 Plugin 沙箱支援。smoke 的 `FrameworkFileVersion=4.8.x` 驗證的是伺服器載入的 mscorlib 執行環境，與 Plugin 組件宣告的 net462 目標不同。
 
-**離線驗證狀態：** 本次遷移的 restore、net462 套件 compile/runtime 資產盤點、四個合併輸入的框架中繼資料、條件編譯、測試、簽章打包及完整 00 §8 驗證尚待完成；在結果產生前不得引用先前 net48 的綠燈作為遷移成功證據。任何 `.NET Standard` facade（包含 `System.Runtime`）都不得加入 Plugin 合併輸入；若套件資產落在 `netstandard2.0`，須逐項說明其解析與執行需求。
+**net462 套件資產盤點（2026-11-04）：** 三個產品專案已還原為 net462。Plugin 的全部套件 compile/runtime 資產如下；ILRepack、分析器與 ReferenceAssemblies 僅作建置用途，不是 ILRepack 合併輸入：
+
+| 套件 | Compile 資產 | Runtime 資產 | 說明 |
+|---|---|---|---|
+| ILRepack.Lib.MSBuild.Task 2.0.48 | 無 | 無 | 建置工具 |
+| Microsoft.CodeAnalysis.BannedApiAnalyzers 5.6.0 | 無 | 無 | 分析器 |
+| Microsoft.NETFramework.ReferenceAssemblies 1.0.3 | 無 | 無 | 參考組件建置套件 |
+| Microsoft.NETFramework.ReferenceAssemblies.net462 1.0.3 | 無 | 無 | 4.6.2 參考組件，不使用本機 4.8 API 編譯 |
+| Microsoft.Bcl.AsyncInterfaces 6.0.0 | `lib/net461` | `lib/net461` | .NET Framework 相容資產 |
+| Microsoft.CrmSdk.CoreAssemblies 9.0.2.56 | `lib/net462` | `lib/net462` | Xrm SDK 外部參考，不合併 |
+| Newtonsoft.Json 13.0.4 | `lib/net45` | `lib/net45` | 四個合併輸入之一；v4.5 低於 v4.6.2 上限 |
+| System.Buffers 4.5.1 | `ref/net45` | `lib/net461` | Framework 資產 |
+| System.Memory 4.5.4 | `lib/net461` | `lib/net461` | Framework 資產 |
+| System.Numerics.Vectors 4.5.0 | `ref/net46` | `lib/net46` | Framework 資產 |
+| System.Runtime.CompilerServices.Unsafe 6.0.0 | `lib/net461` | `lib/net461` | Framework 資產 |
+| System.ServiceModel.Http 4.10.3 | `ref/net461` | `lib/net461` | Framework 資產 |
+| System.ServiceModel.Primitives 4.10.3 | `ref/net461` | `lib/net461` | Framework 資產 |
+| System.Text.Encodings.Web 6.0.1 | `lib/net461` | `lib/net461` | Framework 資產 |
+| System.Text.Json 6.0.11 | `lib/net461` | `lib/net461` | Framework 資產 |
+| System.Threading.Tasks.Extensions 4.5.4 | `lib/net461` | `lib/net461` | Framework 資產 |
+| System.ValueTuple 4.5.0 | `ref/net461` | `lib/net461` | Framework 資產 |
+
+Core 的套件為 BannedApiAnalyzers 5.6.0、ReferenceAssemblies 1.0.3、ReferenceAssemblies.net462 1.0.3（均無 compile/runtime 資產）及 Newtonsoft.Json 13.0.4（compile/runtime 均為 lib/net45）。Localization 僅有上述三個無 compile/runtime 資產的建置套件。兩個產品專案由 Plugin 的 `ProjectReference` 解析至 net462 輸出。上述 net462 目標未解析到 `netstandard2.0` compile/runtime 資產。Metadata 檢查器確認四個實際合併輸入的 `TargetFrameworkAttribute` 為 Plugins `v4.6.2`、Localization `v4.6.2`、Core `v4.6.2`、Newtonsoft.Json `v4.5`；合併後部署 DLL 為 `v4.6.2`。簽章 DLL 檢查器結果為 `ok=true`、AssemblyVersion `1.0.0.0`、FileVersion `1.0.0.37`、大小 723456 bytes、10 個 assembly references，且沒有 `System.Runtime` 或 `netstandard` facade 參考。外部 Xrm SDK 由 D365 提供；這些離線檢查不證明伺服器註冊或沙箱執行相容。
+
+**離線驗證結果（2026-11-04）：**
+
+- Release 全方案建置成功，0 錯誤、0 警告；Release 全方案測試 1121／1121 通過，涵蓋 net462 相依產品的 net48 測試執行器、net10.0 目標及 ChurchReport 596／596。
+- 方案外 I18nCheck.Tests 108／108、`ToolUtility.Tests` 63／63 通過，建置出現該舊測試專案既有的 NU1701、nullable 與重複 using 警告；PluginPackaging.Tests 16／16、Plugin 組件樣本 10／10、Plugin 打包契約樣本 6／6 通過。
+- 正式金鑰只以存在性檢查確認後，Release net462 簽章打包與組件檢查通過；輸出留在被 `.gitignore` 排除的 `artifacts/plugins/net462-p0-13-20261104` 專屬目錄，未覆寫舊版 `artifacts/plugins/SpeechMessage.Dynamics.Plugins.dll`。
+- Debug tracer 7／7 通過；首次程序缺少授權環境變數時出現 ImageSharp Debug 提示，改由使用者環境變數取得路徑、僅確認檔案存在並設給該程序後重跑，沒有授權警告，仍為 7／7。Changed 編碼檢查 514 檔、0 問題；重複碼掃描 26 專案／879 檔、0 新增；I18n verify 通過；套件版本守門 39 專案／149 引用、0 失敗，隔離路徑測試 5／5；分析器探測 26 項、0 失敗，預期由 `RS0030` 阻擋違規；全方案易受攻擊套件查詢未列出弱點。
+- 本機 PluginPackaging 與 ToolUtility 測試沒有連線 D365／LINE。這些結果只證明離線建置、打包契約與測試，不等於 net462 已被現場 D365 接受。
+
+**根因判斷界線：** Microsoft KB 4345239 記載不受支援的 Plugin 目標框架會由 `TargetFrameworkVersionValidator.ValidateInternal()` 拒絕，並展示相同驗證呼叫鏈；這支持「net48 目標可能遭拒」的高度可信推論，但該 KB 的錯誤是正常的框架不符訊息，沒有證明本次伺服器 `String.Format` 本身如何失敗，也沒有證明現場 `9.1.49.21825` 的 4.8 沙箱支援門檻。官方地端文件列出 net462 至 net48，並說明 4.8 沙箱支援已加入、net462 仍受支援，但未列現場組建對應的最低更新。是否接受 net462 仍須由使用者重跑註冊確認。
 
 **實機驗證狀態：** Codex 不執行 D365／LINE 操作。離線驗證與審查完成後，由使用者以新 net462 DLL 重新建置、重新 plan 並審核，再依序 apply、verify=0、smoke 和停用收尾。舊 net48 plan 綁定舊組件雜湊，不得重用；新 plan 預期仍只有 CreateAssembly／CreateType／CreateStep。直到使用者回報註冊、trace smoke 與收尾成功，不能宣稱 net462 被伺服器接受或 P0-13 完成。
+
+本次最終 00 §8 再次全數通過：Release build 0 warnings／0 errors、Release 13 個測試目標共 1121／1121、Debug tracer 7／7、編碼 514 檔零問題、重複碼零新增、CJK ratchet 與兩個生成資源檢查通過。安全的機器可讀證據位於 `artifacts/plugins/net462-p0-13-20261104/offline-validation.json`；不含帳密、金鑰或授權路徑。
+
+**第 10 份 ClaudeOnly 初審：** `reviewMode=claude-only`、`dualModelComplete=false`、`quotaBlocked=false`、`ok=true`；此處 ok 只代表模型成功回傳，初審實際有 1 項 High。facade 參考／自身身分未由共同 PE 檢查器阻擋的缺口，已以 11 個合成案例取得功能紅燈，修復後工具全套 27／27；固定 net462 參考套件的 53 個 facade 名稱加 netstandard，共 54 個不可變名稱，兩個檢查入口皆檢查組件身分與參考，並以 `checks.noNetStandardFacade` 回報。原 allowedReferences、簽章、框架、診斷型別、GDI 與大小條件不放寬。合法 System.Net.Http 與僅前綴相似的名稱另有通過案例。Info 的冗餘版本條件僅記錄；不能把初審當成通過。
+
+**修正後的獨立複審（2026-11-04）：** 同一自癒入口的 `20261104-191800-integration-p0-review-net462-10-fix-reviewer` 確認 High 已關閉，Critical 0、High 0、Medium 0、Low 0，批准修正。初審與複審皆為單模型（使用者指定 ClaudeOnly）：`reviewMode=claude-only`、`dualModelComplete=false`、`quotaBlocked=false`、`ok=true`、`degradedFallback=false`；沒有以逾時或配額降級冒充完成。修正後完整 00 §8 已重跑通過，現在只等待使用者從驗收文件第 2 步重新打包與實機驗收；P0-13／階段 0 尚未完成。

@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-13 最小驗收操作文件已補齊；階段 1 smoke 輪詢待辦已登錄。等待使用者清理與 trace 實機結果。",
+  "description": "依使用者 2026-11-04 核定正式改用 net462；完整離線驗證、簽章打包與第 10 份 ClaudeOnly 獨立複審通過，等待使用者重跑 P0-13。未執行 D365／LINE 連線。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -30,7 +30,7 @@
     "report": "wp-reports/P0-13.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": "使用者回報 goodshepherdback 清理及 P0-13 最小驗收結果",
+    "waitingFor": "使用者以 net462 重新打包、plan／apply／verify／smoke 及停用收尾；舊 token／LINE ID 依核定保留",
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -67,7 +67,7 @@
       "P0-13-document-minimal": "9f87187c（僅文件精簡，P0-13 實機驗收未完成）",
       "P0-13-document-usage": "本次提交（僅操作說明補充，實機驗收未完成）"
     },
-    "stopReason": "依使用者 2026-11-04 核定，文件修正提交後停下；清理與實機驗收未回報，不開 P1，不連線 D365／LINE。",
+    "stopReason": "net462 離線驗證與第 10 份獨立複審通過；實機驗收尚未完成，提交後交使用者重試，不開 P1、不連線 D365／LINE。",
     "observedExternalCommit": "cf3595db",
     "observedExternalCommits": [
       "cf3595db",
@@ -92,8 +92,8 @@
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-13",
-  "nextAction": "停止等待使用者回報 goodshepherdback 清理及 P0-13 最小驗收結果；操作文件已補帳號格式、金鑰新視窗、plan 審核與清單復原。",
-  "stopReason": "依使用者 2026-11-04 核定，文件修正提交後停下；清理與實機驗收未回報，不開 P1，不連線 D365／LINE。",
+  "nextAction": "由使用者從驗收文件第 2 步重建 net462 打包，接著重新 plan／apply／verify／smoke 及停用收尾；不得重用舊 net48 plan。",
+  "stopReason": "net462 離線驗證與第 10 份獨立複審通過；實機驗收尚未完成，提交後交使用者重試，不開 P1、不連線 D365／LINE。",
   "stageReview": {
     "mode": "claude-only",
     "state": "passed",
