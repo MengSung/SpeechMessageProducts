@@ -1,0 +1,18 @@
+{
+  "id": "recreate-integration-p1-from-p0",
+  "title": "舊 P1 分支刪除後，依使用者指定從 P0 最新提交重建 P1",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "repository",
+  "currentPhase": "completed",
+  "nextAction": "全新 P1 分支及指定工作目錄已就緒",
+  "createdAt": "2026-11-04T23:44:25.8861380Z",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "baseCommit": "c914580e1fe976758ee8bdb45af5a47c0bfd57bb",
+  "previousDetachedCommit": "be19f53f99c8ab9246ccda03c9754686f4319050",
+  "destination": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree.worktrees\\1.0.0.11.Integration.P1.Worktree",
+  "trellisTaskCreated": false,
+  "completedAt": "2026-11-04T23:44:26.0881056Z",
+  "verification": "建立時 P1 HEAD 與 P0 最新提交完全相同；舊 P1 的三筆紀錄提交未帶入；只新增本次建立紀錄，產品檔案與 P0 相同。"
+}
