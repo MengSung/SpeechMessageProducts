@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-13 最小驗收文件已精簡；FileVersion 停止解除，CI 過渡範圍已接受。等待使用者清理與 trace 實機驗收。",
+  "description": "P0-13 最小驗收操作文件已補齊；階段 1 smoke 輪詢待辦已登錄。等待使用者清理與 trace 實機結果。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -64,9 +64,10 @@
       "P0-review-deployment-scope": "e3f89eb6",
       "P0-stage-review": "56f4e0ab",
       "P0-13-document": "cb137099（歷史初版文件；原 FileVersion 停止已由使用者 2026-11-04 核定解除）",
-      "P0-13-document-minimal": "本次提交（僅文件精簡，P0-13 實機驗收未完成）"
+      "P0-13-document-minimal": "9f87187c（僅文件精簡，P0-13 實機驗收未完成）",
+      "P0-13-document-usage": "本次提交（僅操作說明補充，實機驗收未完成）"
     },
-    "stopReason": "依使用者 2026-11-04 核定，文件提交後停下；清理與最小實機驗收尚未回報。FileVersion 移至階段 5，CI 過渡範圍已接受。",
+    "stopReason": "依使用者 2026-11-04 核定，文件修正提交後停下；清理與實機驗收未回報，不開 P1，不連線 D365／LINE。",
     "observedExternalCommit": "cf3595db",
     "observedExternalCommits": [
       "cf3595db",
@@ -91,8 +92,8 @@
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-13",
-  "nextAction": "停止等待使用者回報 goodshepherdback 清理與 P0-13 第 0～6 步最小驗收結果；通過後才結束階段 0、開 P1。",
-  "stopReason": "依使用者 2026-11-04 核定，文件提交後停下；清理與最小實機驗收尚未回報。FileVersion 移至階段 5，CI 過渡範圍已接受。",
+  "nextAction": "停止等待使用者回報 goodshepherdback 清理及 P0-13 最小驗收結果；操作文件已補帳號格式、金鑰新視窗、plan 審核與清單復原。",
+  "stopReason": "依使用者 2026-11-04 核定，文件修正提交後停下；清理與實機驗收未回報，不開 P1，不連線 D365／LINE。",
   "stageReview": {
     "mode": "claude-only",
     "state": "passed",
@@ -187,5 +188,14 @@
     "fileVersionAcceptanceStage": "階段 5 首個正式 Plugin 佈署 goodshepherdback 前",
     "sameEventRetryVerificationBasis": "使用者接受來源記錄 ID Retry Key 單元測試及 LINE 官方 24 小時有效期契約，取消 P0 實機重送；未聲稱實機驗證。",
     "hostedCiSuccessVerified": false
-  }
+  },
+  "futureWork": [
+    {
+      "phase": "階段 1 第一批",
+      "item": "DeploymentEngine.SmokeAsync 輪詢從 100 毫秒改為約 2 秒，最多 3 分鐘並補可控時鐘測試。",
+      "dueBefore": "P2-04 推播前置驗收",
+      "status": "not_started",
+      "approval": "使用者 2026-11-04 核定；本次僅記錄，不改程式。"
+    }
+  ]
 }

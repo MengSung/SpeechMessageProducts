@@ -15,7 +15,14 @@
 
 - [ ] goodshepherdback 的舊 Plugin 步驟、自訂工作流程已停用。
 - [ ] 等候中、可重試、排程中的系統作業已取消；資料中的 LINE token 已清除或換成測試 channel；會友 `new_lineid` 已清空。P1-12 仍用此組織，不能省略。
-- [ ] `SPEECHMESSAGE_PLUGIN_KEYFILE` 已設定且目前程序可使用原金鑰；只確認檔案存在，不讀取、複製或貼出內容。
+- [ ] 開一個**環境變數設定後才開的全新 PowerShell 視窗**，執行下列檢查，顯示 `True`；之後在這個視窗執行建置與部署命令。只確認檔案存在，不讀取、複製或貼出金鑰內容。
+
+```powershell
+Test-Path $env:SPEECHMESSAGE_PLUGIN_KEYFILE
+```
+
+已開著的 PowerShell 視窗與 Visual Studio 看不到後來新增的環境變數；請重新開啟。
+
 - [ ] 在 Visual Studio 對 **SpeechMessage.Dynamics.Deployment** 選「管理使用者密碼」，填好以下三個值；填完關閉檔案，不提交。
 
 ```json
@@ -24,13 +31,22 @@
     "Organizations": {
       "goodshepherdback": {
         "OrganizationUrl": "https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc",
-        "Username": "<自行填入>",
+        "Username": "<帳號>@speechmessage.com.tw",
         "Password": "<自行填入>"
       }
     }
   }
 }
 ```
+
+Username **必須含網域**，建議使用上方 UPN。部署工具以 `ClientCredentials.UserName` 登入，與 ChurchReport 的 Domain＋NetworkCredential 不同，不可只填不含網域的帳號。也可用以下 JSON 欄位寫法：
+
+```json
+"Username": "<網域>\\<帳號>"
+```
+
+JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一條會導致設定讀取失敗。
+依據：[CreateOnPremiseClient 快速參考：使用者名稱格式](../../../../ToolUtility/文件/CreateOnPremiseClient快速參考.md#使用者名稱格式)。
 
 **預期看到什麼：** 組織為 goodshepherdback，UserSecretsId 是 `SpeechMessage.Dynamics.Deployment.P0`。trace 只需要這三個值，不要求 `TestLineUserId`、`TestChannelToken`，也不讀 ChurchReport 設定。
 
@@ -60,7 +76,7 @@ dotnet build .\SpeechMessage.Dynamics.Deployment -c Release
 
 ## 3. 一次規劃：trace 模式、建立時就啟用
 
-**做什麼：** 開啟 `d365\registration\plugins.registration.json`，保留唯一的 DiagnosticsPingPlugin：Create／task／PostOperation／Asynchronous／rank 1。第一次 plan **之前**確認以下三個欄位片段：
+**做什麼：** 開啟 `d365\registration\plugins.registration.json`，保留唯一的 DiagnosticsPingPlugin：Create／task／PostOperation／Asynchronous／rank 1。第一次 plan **之前**，把此檔的 `enabledByOrganization.goodshepherdback` **從 false 改為 true**，並確認以下三個欄位片段。**驗收期間不要提交清單為 true 的版本。**
 
 ```json
 "unsecureConfig": "{\"mode\":\"trace\",\"culture\":\"zh-TW\"}",
@@ -70,21 +86,22 @@ dotnet build .\SpeechMessage.Dynamics.Deployment -c Release
 
 ```powershell
 dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- plan --org goodshepherdback
+$plan = Join-Path (Get-ChildItem .\artifacts\d365\goodshepherdback -Directory | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1).FullName 'plan.json'
+notepad (Join-Path (Split-Path $plan) 'plan.md')
 ```
 
-查看 `artifacts\d365\goodshepherdback\<本次時間與GUID>\plan.md` 與 plan.json，記下**剛審核過**的 plan.json 路徑。
+plan 成功後，**立刻執行取得 `$plan` 與開啟 plan.md 的兩行，在下一個部署指令之前完成**；apply 也會建立新目錄，不能等 apply 後才找最新目錄。plan 失敗就不要執行後兩行。審核開啟的 plan.md，內容不符預期就**不要 apply**。
 
-**預期看到什麼：** 全新安裝只列 CreateAssembly／CreateType／CreateStep，沒有秘密佔位。工具支援 CreateStep 時直接啟用，不必先停用註冊再跑第二輪；trace 不發出 LINE HTTP 請求。若已安裝同一骨架，可能只有啟用狀態更新或無差異，須確認為預期的同一個測試步驟。
+**預期看到什麼：** 全新安裝只列 CreateAssembly／CreateType／CreateStep，沒有秘密佔位。CreateStep 會直接建立為啟用狀態，不必先停用註冊再跑第二輪；trace 不發出 LINE HTTP 請求。若已安裝同一骨架，可能只有啟用狀態更新或無差異，須確認為預期的同一個測試步驟。
 
 **不對時怎麼辦：** 出現其他組織、步驟、push 模式或未預期更新就不套用，回報操作種類。不得手改 plan hash；清單或 DLL 改過就重新 plan。
 
 ## 4. 套用並確認 verify=0
 
-**做什麼：** 尖括號換成第 3 步剛審核過的實際目錄，再逐行執行。
+**做什麼：** 確認第 3 步 plan.md 內容符合預期，再在**同一個 PowerShell 視窗**逐行執行，沿用剛取得的 `$plan`。
 
 ```powershell
-$tracePlan = '.\artifacts\d365\goodshepherdback\<本次plan目錄>\plan.json'
-dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- apply --org goodshepherdback --plan $tracePlan
+dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- apply --org goodshepherdback --plan $plan
 dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- verify --org goodshepherdback
 ```
 
@@ -100,7 +117,7 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- smoke --org goodshepherdback --scenario p0-ping-trace
 ```
 
-在「系統作業」找本次 UTC 時段的骨架作業，對照「Plugin 追蹤記錄」確認：
+開啟「**設定 → 自訂 → 外掛程式追蹤記錄**」，依建立時間找最新一筆 **DiagnosticsPingPlugin**，打開查看「**訊息區塊**」。以本次 smoke 時段核對，必要時對照「系統作業」，不要把舊記錄當成本次成功；確認：
 
 - [ ] `P0-PING OK`。
 - [ ] `Assembly=` 為 SpeechMessage.Dynamics.Plugins，版本 `1.0.0.0`。
@@ -124,16 +141,28 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 
 ```powershell
 dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- plan --org goodshepherdback
-$disablePlan = '.\artifacts\d365\goodshepherdback\<本次停用plan目錄>\plan.json'
-dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- apply --org goodshepherdback --plan $disablePlan
+$plan = Join-Path (Get-ChildItem .\artifacts\d365\goodshepherdback -Directory | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1).FullName 'plan.json'
+notepad (Join-Path (Split-Path $plan) 'plan.md')
+```
+
+同第 3 步：plan 成功後立刻取得 `$plan` 並開啟 plan.md，必須在下一個部署指令前完成，因為 apply 也會建立新目錄。**預期只有一項 UpdateStepState，對象為同一個測試步驟**；內容不符就不要 apply，不沿用第 4 步舊 plan。審核符合後，在同一個視窗執行：
+
+```powershell
+dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- apply --org goodshepherdback --plan $plan
 dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- verify --org goodshepherdback
 ```
 
-先審核本次停用 plan 再填路徑，不沿用第 4 步舊 plan。把追蹤改回「例外狀況」，確認本次 smoke task 已清除。
+把追蹤改回「例外狀況」，確認本次 smoke task 已清除。最後再次確認 `plugins.registration.json` 的 `enabledByOrganization.goodshepherdback` 已回到 **false**，執行：
+
+```powershell
+git status --short -- .\d365\registration\plugins.registration.json
+```
+
+預期沒有輸出，表示此檔沒有已暫存或未暫存的未提交變更。若有輸出，先核對清單是否確實恢復原設定；不要為了消除輸出而提交 true 的版本，也不要覆寫不屬於本次驗收的修改。
 
 **預期看到什麼：**
 
-- [ ] 測試步驟停用、清單 false，收尾 verify=0。
+- [ ] 同一測試步驟已停用、清單回到 false，收尾 verify=0；git 顯示清單沒有未提交變更。
 - [ ] Plugin 追蹤設定已改回「例外狀況」。
 - [ ] smoke 資料已清除，沒有觸發其他舊流程或通知。
 
