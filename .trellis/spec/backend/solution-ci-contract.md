@@ -99,3 +99,37 @@ is bounded to 4 MiB with DTD and external resolution disabled; dispose readers
 on every path and never print raw XML or exception messages. Synthetic tests
 execute the real workflow block with only dotnet replaced. Keep them active
 even while the tracer step is temporarily disabled for a dependency source.
+
+## Transitional DevExtreme dependency scope (user approved 2026-11-04)
+
+SpeechMessageProducts.CI.slnf retains 23 of the solution's 26 projects. Exclude
+SpeechMessageProducts.ChurchReport, ChurchReport.MemberInfo.Tests and
+ToolUtility.Dataverse.Tests because they directly or transitively require
+DevExtreme.AspNet.Core 23.1.5, whose approved package source is still pending.
+Restore, build and Release test use this filter. The Debug tracer step keeps
+its run block and positive-TRX guard but is temporarily disabled; synthetic
+tracer checks stay active. The always-run scope summary derives the exclusions
+from the filter and must state that this is not full solution verification.
+
+Test-CiTransition.Tests.ps1 checks the real dependency closure and executes
+actual command/summary blocks with only dotnet replaced. No unrelated project
+may be silently omitted. Per-module coverage and offline JavaScript checks
+remain enabled. Local 00 section 8 validation still uses the full solution,
+including ChurchReport and Debug tracer.
+
+The obsolete machine-specific DevExpress 19.1 source is removed from the
+ChurchReport NuGet.config. It inherits user-level package sources. On a new
+computer, install the licensed DevExpress 23.1 tools, locate their local
+DevExtreme AspNetCore package folder, and add that folder to the user's NuGet
+package sources (Visual Studio package-source settings or user-level NuGet
+configuration). Keep the actual machine path outside the repository. Existing
+machines may restore from their populated cache. Do not add nupkg files,
+private source URLs or credentials to the repository, upgrade DevExtreme, or
+try an unapproved remote feed.
+
+After user approval of a DevExtreme source, restore the full solution commands
+and tracer, then prove the complete hosted CI passes. Stage 0 cannot be closed
+on this transitional CI alone without explicit user acceptance. Per the user's
+hosted audit, Six Labors preparation/always-cleanup have succeeded, while past
+runs stopped at Restore before builds/tests. Local checks do not establish a
+subsequent hosted result.

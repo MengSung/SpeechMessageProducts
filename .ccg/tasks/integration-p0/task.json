@@ -23,7 +23,8 @@
     "P0-review-H01": "1fde6020",
     "P0-review-M01": "c9ed44d3",
     "P0-review-M02": "edd953ec",
-    "P0-review-license-ignore": "本次提交"
+    "P0-review-license-ignore": "6dc04ab7",
+    "P0-CI-transition": "本次提交"
   },
   "stageReview": {
     "mode": "claude-only",
@@ -35,12 +36,14 @@
       "02",
       "03",
       "04",
-      "05a"
+      "05a",
+      "05b",
+      "06"
     ],
     "failedPart": null,
-    "resumePart": "05b",
+    "resumePart": "07",
     "quotaBlocked": false,
-    "criticalOpen": 0,
+    "criticalOpen": 3,
     "highPendingValidation": 0,
     "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
     "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
@@ -53,6 +56,7 @@
     "c01Commit": "6588902",
     "h01Commit": "1fde6020",
     "m01Commit": "c9ed44d3",
-    "m02Commit": "edd953ec"
+    "m02Commit": "edd953ec",
+    "ciScope": "23/26 projects; 3 DevExtreme dependents excluded; full hosted CI remains user decision"
   }
 }

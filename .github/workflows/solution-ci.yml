@@ -66,7 +66,7 @@ jobs:
           } finally { $env:SIXLABORS_LICENSE = $null }
       - name: Restore
         run: |
-          dotnet restore SpeechMessageProducts.sln
+          dotnet restore SpeechMessageProducts.CI.slnf
           if ($LASTEXITCODE -ne 0) { throw 'Solution restore failed.' }
           foreach ($project in @('tools/I18nCheck.Tests', 'tools/PluginPackaging.Tests')) {
             dotnet restore $project
@@ -75,7 +75,7 @@ jobs:
       - name: Build without signing key
         run: |
           # 一般 Release 建置不讀金鑰、不打包；只有獨立正式打包步驟可以取得 secret。
-          dotnet build SpeechMessageProducts.sln -c Release --no-restore -warnaserror:NU1605
+          dotnet build SpeechMessageProducts.CI.slnf -c Release --no-restore -warnaserror:NU1605
           if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
           foreach ($project in @('tools/I18nCheck.Tests', 'tools/PluginPackaging.Tests')) {
             dotnet build $project -c Release --no-restore -warnaserror:NU1605
@@ -83,9 +83,11 @@ jobs:
           }
       - name: Release solution tests and coverage
         run: |
-          dotnet test SpeechMessageProducts.sln -c Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/ci/solution-tests
+          dotnet test SpeechMessageProducts.CI.slnf -c Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/ci/solution-tests
           if ($LASTEXITCODE -ne 0) { throw 'Release solution tests failed.' }
       - name: Debug tracer contracts
+        # 過渡期間依賴被排除的 ChurchReport；DevExtreme 來源核定並恢復完整 CI 後移除此條件。
+        if: ${{ false }}
         run: |
           $tracerResults = 'artifacts/ci/debug-tracer'
           if (Test-Path -LiteralPath $tracerResults) { throw 'Tracer results must be fresh.' }
@@ -142,6 +144,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Coverage gate tests failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Package path boundary contracts failed.' }
+          powershell -NoProfile -File tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'CI transition scope contracts failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-TracerCi.Tests.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Tracer CI contracts failed.' }
           powershell -NoProfile -File tools/RepoQuality/Tests/Test-SixLaborsCiLicense.Tests.ps1
@@ -216,6 +220,20 @@ jobs:
               if ([IO.File]::Exists($licensePath)) { Remove-Item -LiteralPath $licensePath -Force }
             }
           } finally { $env:SixLaborsLicenseFile = $null }
+      - name: CI transition scope
+        if: always()
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # 摘要直接依篩選檔列出省略專案，避免維護兩份排除清單造成假綠燈。
+          $filter = Get-Content -LiteralPath SpeechMessageProducts.CI.slnf -Raw | ConvertFrom-Json
+          $included = @($filter.solution.projects | ForEach-Object { $_.Replace('\', '/') })
+          $solution = Get-Content -LiteralPath $filter.solution.path -Raw
+          $all = @([regex]::Matches($solution, '(?m)^Project\([^\r\n]+?= "[^"]+", "(?<path>[^"]+\.csproj)"') | ForEach-Object { $_.Groups['path'].Value.Replace('\', '/') })
+          $excluded = @($all | Where-Object { $included -notcontains $_ } | Sort-Object)
+          $lines = @('### Transitional CI scope', '', 'This is not a full solution verification.', 'DevExtreme 23.1.5 source is pending user confirmation. Excluded projects:')
+          $lines += @($excluded | ForEach-Object { '- ' + $_ })
+          $lines += @('', 'Debug tracer is temporarily disabled because it depends on ChurchReport.', 'Restore full CI and tracer after the user approves a DevExtreme source. Local validation still covers the full solution.')
+          $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
       - name: Upload coverage reports
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,0 +1,30 @@
+{
+  "solution": {
+    "path": "SpeechMessageProducts.sln",
+    "projects": [
+      "Line.Messaging.Tests\\Line.Messaging.Tests.csproj",
+      "Line.Messaging\\Line.Messaging.csproj",
+      "LineMessagingProcessor.AspNetCore.Tests\\LineMessagingProcessor.AspNetCore.Tests.csproj",
+      "LineMessagingProcessor.AspNetCore\\LineMessagingProcessor.AspNetCore.csproj",
+      "LineMessagingProcessor.Core\\LineMessagingProcessor.Core.csproj",
+      "LineMessagingProcessor.RichMenus.Tests\\LineMessagingProcessor.RichMenus.Tests.csproj",
+      "LineMessagingProcessor.RichMenus\\LineMessagingProcessor.RichMenus.csproj",
+      "LineMessagingProcessor.Tests\\LineMessagingProcessor.Tests.csproj",
+      "LineMessagingProcessor.Workflows.Tests\\LineMessagingProcessor.Workflows.Tests.csproj",
+      "LineMessagingProcessor.Workflows\\LineMessagingProcessor.Workflows.csproj",
+      "LineMessagingProcessor\\LineMessagingProcessor.csproj",
+      "PowerPlatform.Dataverse.Client\\PowerPlatform.Dataverse.Client.csproj",
+      "SpeechMessage.Dynamics.Deployment.Tests\\SpeechMessage.Dynamics.Deployment.Tests.csproj",
+      "SpeechMessage.Dynamics.Deployment\\SpeechMessage.Dynamics.Deployment.csproj",
+      "SpeechMessage.Dynamics.Plugins.Tests\\SpeechMessage.Dynamics.Plugins.Tests.csproj",
+      "SpeechMessage.Dynamics.Plugins\\SpeechMessage.Dynamics.Plugins.csproj",
+      "SpeechMessage.Localization.Tests\\SpeechMessage.Localization.Tests.csproj",
+      "SpeechMessage.Localization\\SpeechMessage.Localization.csproj",
+      "SpeechMessage.Payments.AspNetCore\\SpeechMessage.Payments.AspNetCore.csproj",
+      "SpeechMessage.Payments.Tests\\SpeechMessage.Payments.Tests.csproj",
+      "SpeechMessage.Payments.Workflows\\SpeechMessage.Payments.Workflows.csproj",
+      "SpeechMessage.Payments\\SpeechMessage.Payments.csproj",
+      "ToolUtility\\ToolUtility.csproj"
+    ]
+  }
+}
