@@ -16,6 +16,7 @@
 | 06 | claude-only | false | false | 完成，exit 0 |
 | 07 | claude-only | false | false | 完成，exit 0 |
 | 08 | claude-only | false | false | 完成，exit 0 |
+| 09（修正複審） | claude-only | false | false | 完成，exit 0；無 Critical／High |
 
 原始結果見對應 .ccg/dual-model-runs/20261104-*-integration-p0-stage0-resume-*/，
 安全摘要在 wp-evidence/P0-stage-review/resume-results.json。模型靜態審查不等於模型執行過本機測試。
@@ -47,7 +48,10 @@ CJK 前後逐檔九筆在 C01 回報：相同 84 個 Razor，合計 467→421、
 差異 SHA256：6812478bc2dc40fcb7defcece5258622e76fd65a5967f8856a34e50286f0ab49。
 包在 .ccg/dual-model-runs/20261104-081836-integration-p0-review-fixes-09/。
 排除證據、原始 research、進度頁、封存任務、生成檔與二進位；不包含任何真實設定檔秘密。
-同一自癒入口 ClaudeOnly 複審執行中，尚未聲稱通過；原審查包沒有涵蓋本輪修正。
+同一自癒入口 ClaudeOnly 複審已完成，無 Critical／High／新增 Medium，可放行。
+reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=true、exit 0。
+結果在 20261104-081853-integration-p0-stage0-fixes-09-reviewer；安全摘要為 review-09-result.json。
+原審查包沒有涵蓋本輪修正；原 09 差異／提示／manifest／ZIP 保留為送審快照，不改寫。
 
 ## 完整本機驗證（來源 HEAD e3f89eb6）
 
@@ -84,6 +88,8 @@ CJK 前後逐檔九筆在 C01 回報：相同 84 個 Razor，合計 467→421、
 - 07 Warning：MemberInfo 真 action 例外通知測試缺口、兩段訊息尚未統一到既有資源鍵；目前 CJK 棘輪通過，未提高基準。
 - 08 Medium：Node test runner 尚未加零測試／跳過數量下限；目前兩檔真實 16／16，列後續改善。
   JSZip 本來不存在、相關 Excel 匯出可能早已失效，依核定只記錄；圖表未逐項驗證。
+- 09 Info：本機路徑檢查與讀取之間仍有既有 TOCTOU 窗口，防範意外 junction，未承諾抵禦敵對本機程序；
+  型別 regex 掃描的理論語法邊界依核定只記錄，不擴大本輪修正。
 
 ## 稽核、外部提交與待使用者事項
 
@@ -91,6 +97,8 @@ CJK 前後逐檔九筆在 C01 回報：相同 84 個 Razor，合計 467→421、
   沒有未遮罩候選值或私鑰／token 形態命中。報告只保存檔名／欄位分類，沒有值；靜態格式掃描不宣稱涵蓋所有未知格式。
 - 另觀察非本會話提交 4d84d45e：36 檔全部為審查產物，依 Git 屬性正規化後 blob hash 與目前檔案／已移位原始副本相同。
   無產品程式差異，依既有核定保留並繼續，不改寫歷史。
+- 另觀察 507062e9（41 檔）及 dd3b75ed（1 個 ZIP）：均為本會話已有審查與進度產物，
+  逐檔 Git 正規化 blob hash 一致；ZIP 三個 entry 與固定送審包逐位元組相同。沒有新的產品／測試／建置差異，保留。
 - 機器入口副本缺 final CRLF：原封不動移到對應時間戳執行目錄的 entry-original-task.raw.md，
   不改位元組、不放寬編碼規則；移位 SHA256 對照在 evidence。
 - GitHub 過去 12 次均停 Restore；使用者證實 Six Labors 授權準備與 always 清理已成功。
@@ -99,6 +107,7 @@ CJK 前後逐檔九筆在 C01 回報：相同 84 個 Razor，合計 467→421、
 - DevExpress 來源仍待使用者決定；階段 0 結束前須完整含 ChurchReport CI 全綠，或使用者另行明確接受過渡狀態。
 - 冷還原暫存目錄刪除遭自動核准審查拒絕（blocked by policy、未提供細因），保留在使用者 Temp，
   名稱 speechmessage-filter-restore-0940c118e5d84a60bbbf40e1f229fe69，只含公開套件、無授權／金鑰；未繞過刪除限制。
-- 第 08 已無 Critical／High；小組任務仍等待 09 通過後才封存。P0-13 尚未開始，清理前置確認保持未勾選。
+- 第 08 與 09 均無未處理 Critical／High；下一步依核定封存小組任務，再撰寫 P0-13 文件。
+  清理尚未回報，前置確認保持未勾選；尚未實際驗收，不宣稱階段 0 結案。
 - cross-user-isolation-and-performance.md 依核定不搬移；遵守 AGENTS.md 的既有隔離／生命週期要求。
   沒有 D365／LINE 連線、推送、合併、改寫歷史或讀取授權／金鑰內容。

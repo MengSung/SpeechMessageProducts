@@ -72,6 +72,12 @@
       "to": ".ccg/dual-model-runs/20261104-081149-integration-p0-stage0-resume-08-reviewer/entry-original-task.raw.md",
       "sha256": "85769aa64a10dc95cb99bb81bba117166c1e4cd7f569f64f75d62c3b2ffb84e2",
       "bytesUnchanged": true
+    },
+    {
+      "from": ".ccg/dual-model-runs/integration-p0-stage0-fixes-09-reviewer.md",
+      "to": ".ccg/dual-model-runs/20261104-081853-integration-p0-stage0-fixes-09-reviewer/entry-original-task.raw.md",
+      "sha256": "708fc5d0f1d02347079ce12a788611f8fd3c17028345c8f6ebd01b35fb2a01c1",
+      "bytesUnchanged": true
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "part": "09",
+  "runId": "20261104-081853-integration-p0-stage0-fixes-09-reviewer",
+  "base": "ae29cb40aa5c395f83c169068d7ca40e7094c509",
+  "head": "e3f89eb6a77aca4265d248a91b0858346ee9c312",
+  "exitCode": 0,
+  "ok": true,
+  "reviewMode": "claude-only",
+  "dualModelComplete": false,
+  "quotaBlocked": false,
+  "critical": 0,
+  "high": 0,
+  "newMedium": 0,
+  "reviewScope": "27 files; 1565 diff lines; source-only scope fixed before review",
+  "diffSha256": "6812478bc2dc40fcb7defcece5258622e76fd65a5967f8856a34e50286f0ab49",
+  "residualInfo": [
+    "Existing local-tool check/read TOCTOU window; accidental-junction guard, not hostile-process protection.",
+    "Regex-based duplicate type scanning has theoretical language edge cases."
+  ],
+  "originalPacketPreserved": true
+}

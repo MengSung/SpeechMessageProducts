@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "階段 0 原 11 份已完成；本機完整驗證 1104／1104；修正另送第 09 份複審。",
+  "description": "階段 0 原 11 份與第 09 份複審通過；本機完整 1104／1104，待 P0-13 文件與人工驗收。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -29,7 +29,7 @@
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-stage-review.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
-    "reviewPending": true,
+    "reviewPending": false,
     "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
@@ -61,7 +61,8 @@
       "P0-review-license-ignore": "6dc04ab7",
       "P0-CI-transition": "faf7873d",
       "P0-review-development": "039033ec",
-      "P0-review-deployment-scope": "e3f89eb6"
+      "P0-review-deployment-scope": "e3f89eb6",
+      "P0-stage-review": "原 11 份與獨立第 09 份完成；ClaudeOnly，無未處理 Critical／High"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",
@@ -80,17 +81,19 @@
       "0f3d6a82",
       "022079e2",
       "d25fd2cc",
-      "4d84d45e"
+      "4d84d45e",
+      "507062e9",
+      "dd3b75ed"
     ],
     "characterizationVerified": true
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-stage-review",
-  "nextAction": "等待第 09 份 ClaudeOnly 複審；通過後封存小組回報任務，寫 P0-13 步驟即停；完整 GitHub CI 仍待使用者決定。",
+  "nextAction": "第 08、09 份通過；封存小組回報任務，撰寫 P0-13 使用者步驟後停止；不宣稱階段 0 已結案。",
   "stopReason": null,
   "stageReview": {
     "mode": "claude-only",
-    "state": "fixes-09-review-running",
+    "state": "passed",
     "completedParts": [
       "01a",
       "01b",
@@ -102,7 +105,8 @@
       "05b",
       "06",
       "07",
-      "08"
+      "08",
+      "09"
     ],
     "failedPart": null,
     "resumePart": null,
@@ -111,7 +115,17 @@
     "highPendingValidation": 0,
     "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
     "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
-    "locallyFixedPendingReview": [
+    "locallyFixedPendingReview": [],
+    "c01Commit": "6588902",
+    "h01Commit": "1fde6020",
+    "m01Commit": "c9ed44d3",
+    "m02Commit": "edd953ec",
+    "ciScope": "23/26 projects; 3 DevExtreme dependents excluded; full hosted CI remains user decision",
+    "fixesBase": "ae29cb40",
+    "fixesHead": "e3f89eb6",
+    "fullLocalVerification": "Release1104/1104;Debug7/7;8moduleCoverage>=80%;26analyzers;zeroI18N415",
+    "dualModelComplete": false,
+    "reviewedFixes": [
       "C-01",
       "H-01 (Medium)",
       "M-01",
@@ -120,13 +134,26 @@
       "06-C2",
       "05b-C1"
     ],
-    "c01Commit": "6588902",
-    "h01Commit": "1fde6020",
-    "m01Commit": "c9ed44d3",
-    "m02Commit": "edd953ec",
-    "ciScope": "23/26 projects; 3 DevExtreme dependents excluded; full hosted CI remains user decision",
-    "fixesBase": "ae29cb40",
-    "fixesHead": "e3f89eb6",
-    "fullLocalVerification": "Release1104/1104;Debug7/7;8moduleCoverage>=80%;26analyzers;zeroI18N415"
+    "review09": {
+      "part": "09",
+      "runId": "20261104-081853-integration-p0-stage0-fixes-09-reviewer",
+      "base": "ae29cb40aa5c395f83c169068d7ca40e7094c509",
+      "head": "e3f89eb6a77aca4265d248a91b0858346ee9c312",
+      "exitCode": 0,
+      "ok": true,
+      "reviewMode": "claude-only",
+      "dualModelComplete": false,
+      "quotaBlocked": false,
+      "critical": 0,
+      "high": 0,
+      "newMedium": 0,
+      "reviewScope": "27 files; 1565 diff lines; source-only scope fixed before review",
+      "diffSha256": "6812478bc2dc40fcb7defcece5258622e76fd65a5967f8856a34e50286f0ab49",
+      "residualInfo": [
+        "Existing local-tool check/read TOCTOU window; accidental-junction guard, not hostile-process protection.",
+        "Regex-based duplicate type scanning has theoretical language edge cases."
+      ],
+      "originalPacketPreserved": true
+    }
   }
 }

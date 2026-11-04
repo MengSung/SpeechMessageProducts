@@ -350,17 +350,17 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-04（原 11 份完成；第 09 份修正複審中）",
+  "snapshot": "2026-11-04（原 11 份及獨立第 09 份複審通過）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "原 <strong>11／11</strong> 份 ClaudeOnly 已取得結果；已分題修正本機確認的重大問題，修正另送第 09 份。完整本機 <strong>1104／1104</strong>、Debug <strong>7／7</strong>、八組覆蓋率皆 ≥80%。CI 過渡保留 23／26 專案，完整 GitHub CI 與清理回報仍待使用者。",
+  "headline": "原 <strong>11／11</strong> 份與獨立第 09 份 ClaudeOnly 複審已完成，無未處理 Critical／High。完整本機 <strong>1104／1104</strong>、Debug <strong>7／7</strong>、八組覆蓋率皆 ≥80%。接續封存小組任務、撰寫 P0-13；完整 GitHub CI、清理與人工驗收仍待使用者。",
   "alert": null,
   "tiles": [
     {
       "label": "全計畫進度",
       "value": "17",
       "unit": "/ 83 工作包",
-      "sub": "原審查 11／11；修正第 09 份複審中",
+      "sub": "原審查 11／11；修正第 09 份亦通過",
       "meter": {
         "done": 17,
         "active": 1,
@@ -371,7 +371,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "17",
       "unit": "/ 18 工作包",
-      "sub": "原審查 11／11；修正第 09 份複審中",
+      "sub": "原審查 11／11；修正第 09 份亦通過",
       "meter": {
         "done": 17,
         "active": 1,
@@ -516,8 +516,8 @@ const DATA = {
     {
       "milestone": true,
       "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
-      "status": "review",
-      "note": "原 11／11 份均為 ClaudeOnly，非雙模型；已修正本機確認問題，完整 §8 通過。ae29cb40..e3f89eb6 的第 09 份複審中。"
+      "status": "done",
+      "note": "單模型（使用者指定 ClaudeOnly）；原 11 份與 ae29cb40..e3f89eb6 的獨立第 09 份均已完成，無未處理 Critical／High；不等於 GitHub 或 D365 驗收。"
     },
     {
       "id": "P0-13",
@@ -689,8 +689,8 @@ const DATA = {
     {
       "item": "階段 0 外部審查",
       "before": "待執行",
-      "after": "11／11；09 複審中",
-      "note": "單模型（使用者指定 ClaudeOnly），原份皆 dualModelComplete=false；新修正未冒充原包已審。"
+      "after": "11／11＋09 通過",
+      "note": "單模型（使用者指定 ClaudeOnly），dualModelComplete=false、quotaBlocked=false；修正獨立複審，無未處理 Critical／High。"
     }
   ],
   "conduct": [
@@ -991,6 +991,11 @@ const DATA = {
     {
       "t": "11/04",
       "text": "03～08 七份續行完成；重大問題分題修正，全方案 1104／1104，修正另送第 09 份 ClaudeOnly。"
+    },
+    {
+      "text": "第 09 份複審完成，無 Critical／High；單模型（使用者指定 ClaudeOnly），未受額度阻擋。",
+      "t": "2026-11-04",
+      "cls": ""
     }
   ],
   "decisions": [
@@ -1093,8 +1098,8 @@ const DATA = {
     },
     {
       "state": "todo",
-      "text": "階段末 ClaudeOnly 審查及 P0-13 人工操作",
-      "sub": "已備妥 11 份安全輸入；4 份完成，03 額度限制停止，等待使用者恢復額度或轉交。"
+      "text": "ClaudeOnly 審查已完成，P0-13 人工操作待執行",
+      "sub": "原 11 份及修正第 09 份通過；清理尚未回報，不連線、不執行驗收。"
     },
     {
       "state": "done",
@@ -1103,11 +1108,6 @@ const DATA = {
     }
   ],
   "risks": [
-    {
-      "level": "warn",
-      "text": "第 09 份修正複審尚未完成",
-      "sub": "原 11 份已完成；複審通過後才封存小組回報並寫 P0-13。"
-    },
     {
       "level": "warn",
       "text": "GitHub CI 仍為過渡範圍，待使用者決定",
