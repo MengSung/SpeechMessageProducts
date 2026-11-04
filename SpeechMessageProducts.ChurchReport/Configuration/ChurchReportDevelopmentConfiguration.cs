@@ -61,8 +61,10 @@ internal static class ChurchReportDevelopmentConfiguration
         // 使用串流直接讀基底快照，避免架構掃描把安全比較用的基底讀取當成對外 token 的來源。
         // 基底串流在 ReadBaseline 返回前關閉，組態根在本次檢查結束前 Dispose，兩者均不跨請求保存。
         using var baseline = ReadBaseline(basePath);
-        var baseChannels = baseline.GetSection("LineMessaging").GetChildren()
-            .Where(s => !string.IsNullOrWhiteSpace(s["ChannelAccessToken"])).ToArray();
+        // 別名與憑證比較分開：即使基底 token 已清空，正式別名仍不可成為開發預設。
+        // 此陣列只屬本次啟動檢查，由 using 擁有的基底根供應，不跨請求或存入快取。
+        var baselineAliases = baseline.GetSection("LineMessaging").GetChildren().ToArray();
+        var baseChannels = baselineAliases.Where(s => !string.IsNullOrWhiteSpace(s["ChannelAccessToken"])).ToArray();
         foreach (var channel in configuration.GetSection("LineMessaging").GetChildren())
         {
             var value = channel["ChannelAccessToken"];
@@ -74,7 +76,7 @@ internal static class ChurchReportDevelopmentConfiguration
         if (!string.IsNullOrWhiteSpace(environmentToken) && baseChannels.Any(s => string.Equals(environmentToken, s["ChannelAccessToken"], StringComparison.Ordinal)))
             throw UnsafeKey("LINE_CHANNEL_ACCESS_TOKEN", "不可沿用基底的正式憑證。");
         var defaultOrganization = configuration["LineMessaging:DefaultOrganization"];
-        if (string.IsNullOrWhiteSpace(defaultOrganization) || baseChannels.Any(s => string.Equals(s.Key, defaultOrganization, StringComparison.OrdinalIgnoreCase)))
+        if (string.IsNullOrWhiteSpace(defaultOrganization) || baselineAliases.Any(s => string.Equals(s.Key, defaultOrganization, StringComparison.OrdinalIgnoreCase)))
             throw UnsafeKey("LineMessaging:DefaultOrganization", "必須選擇獨立的測試別名。");
         if (!string.Equals(configuration["CrmConnection:Organization"], "goodshepherdback", StringComparison.OrdinalIgnoreCase))
             throw UnsafeKey("CrmConnection:Organization", "開發模式只能使用指定的測試組織。");
@@ -110,14 +112,22 @@ internal static class ChurchReportDevelopmentConfiguration
         }
     }
 
-    /// <summary>限制 CRM／Embedded URI 的主機，使用解析後的精確主機比較，不接受相似網域或路徑中的偽裝名稱。</summary>
+    /// <summary>
+    /// CRM／Embedded 只接受測試主機的標準 HTTPS；拒絕 URI 內帳密、額外埠號及 query／fragment。
+    /// CRM 另限制完整 Organization.svc 路徑，避免錯誤端點在建線時才發現或明文傳輸憑證。
+    /// 只解析一次當次借用值，不建立連線、不記錄或保留原始設定。
+    /// </summary>
     /// <param name="configuration">只借用當次啟動設定，不保存於 static。</param>
     /// <param name="key">原始碼固定的鍵名，不可含使用者提供的值。</param>
     private static void ValidateTestHost(IConfiguration configuration, string key)
     {
         if (!Uri.TryCreate(configuration[key], UriKind.Absolute, out var uri) ||
-            !string.Equals(uri.Host, "goodshepherdback.speechmessage.com.tw", StringComparison.OrdinalIgnoreCase))
-            throw UnsafeKey(key, "開發模式只能使用指定測試組織的主機。");
+            !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal) ||
+            !string.Equals(uri.Host, "goodshepherdback.speechmessage.com.tw", StringComparison.OrdinalIgnoreCase) ||
+            !uri.IsDefaultPort || uri.UserInfo.Length != 0 || uri.Query.Length != 0 || uri.Fragment.Length != 0 ||
+            (string.Equals(key, "CrmConnection:ServerUrl", StringComparison.Ordinal) &&
+             !string.Equals(uri.AbsolutePath, "/XRMServices/2011/Organization.svc", StringComparison.Ordinal)))
+            throw UnsafeKey(key, "開發模式只能使用指定測試組織的安全 HTTPS 端點。");
     }
 
     /// <summary>建立只含可信鍵名與固定原因的拒絕結果；不串接設定值、不保存原始敏感例外。</summary>

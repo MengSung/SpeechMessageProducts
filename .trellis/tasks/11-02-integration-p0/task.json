@@ -59,7 +59,8 @@
       "P0-review-M01": "c9ed44d3",
       "P0-review-M02": "edd953ec",
       "P0-review-license-ignore": "6dc04ab7",
-      "P0-CI-transition": "本次提交"
+      "P0-CI-transition": "faf7873d",
+      "P0-review-development": "本次提交"
     },
     "stopReason": null,
     "observedExternalCommit": "cf3595db",
@@ -102,7 +103,7 @@
     "failedPart": null,
     "resumePart": "07",
     "quotaBlocked": false,
-    "criticalOpen": 3,
+    "criticalOpen": 1,
     "highPendingValidation": 0,
     "packet": ".ccg/dual-model-runs/20261103-232143-integration-p0-review-pack",
     "candidateStatus": "C-01: 108/108; full verify passed, 84 Razor files have no I18N415; no baseline increase",
@@ -110,7 +111,9 @@
       "C-01",
       "H-01 (Medium)",
       "M-01",
-      "M-02"
+      "M-02",
+      "06-C1",
+      "06-C2"
     ],
     "c01Commit": "6588902",
     "h01Commit": "1fde6020",

@@ -29,3 +29,19 @@ This exception applies only to ChurchReport settings. Deployment credentials
 remain User-Secrets-only in P0-12; command-line passwords are forbidden.
 Base appsettings.json cleanup remains in P2/P4. Never copy credential values
 into reports, evidence, test output or commit messages.
+
+## Stage 0 review boundary corrections (2026-11-04)
+
+Reject every baseline LINE alias as the Development default even when all its
+tokens have been cleared. Token-value reuse checks still compare only nonempty
+tokens; alias validation must not share that filter. Baseline keys remain
+operation-local and the configuration root is disposed before returning.
+
+Validate the effective URI, not just the tracked JSON: all CRM and enabled
+Embedded endpoints require HTTPS and the exact test host, default port, no URI
+userinfo, query or fragment. CRM additionally requires the complete
+/XRMServices/2011/Organization.svc path. Test synthetic empty baseline tokens
+and unsafe same-host URLs through the actual startup guard, without connecting.
+Provider precedence, credential-storage exception and Production behavior stay
+as approved. Architectural warnings about independent legacy readers remain
+recorded for later work, not silently refactored in this correction.

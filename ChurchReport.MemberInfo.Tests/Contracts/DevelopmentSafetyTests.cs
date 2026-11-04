@@ -98,6 +98,53 @@ public sealed class DevelopmentSafetyTests
         exception.Message.Should().Contain(key).And.NotContain("PROD-FAKE").And.NotContain("PROD-B-FAKE").And.NotContain("DEV-FAKE");
     }
 
+    /// <summary>
+    /// 基底假 token 全部清空後仍不得以既有正式別名當預設；斷言守門拒絕且不回顯設定內容。
+    /// 每案只覆寫自己的合成 JSON，證明別名邊界獨立於 token 是否存在，不觸碰產品設定或外部服務。
+    /// </summary>
+    /// <param name="alias">刻意選用的既有正式別名，包含大小寫變體。</param>
+    [Theory]
+    [InlineData("Jesus")]
+    [InlineData("JesusBack")]
+    [InlineData("jesus")]
+    public void DevelopmentGuard_EmptyBaselineTokens_StillRejectsProductionAlias(string alias)
+    {
+        using var fixture = new SettingsFixture();
+        File.WriteAllText(Path.Combine(fixture.Root, "appsettings.json"),
+            """{"LineMessaging":{"DefaultOrganization":"Jesus","Jesus":{"ChannelAccessToken":""},"JesusBack":{"ChannelAccessToken":""}}}""");
+        var values = SafeValues();
+        values["LineMessaging:DefaultOrganization"] = alias;
+        using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(fixture.Root, "Development", configuration);
+        action.Should().Throw<InvalidOperationException>().Which.Message.Should().Contain("LineMessaging:DefaultOrganization");
+    }
+
+    /// <summary>
+    /// 以正確測試主機搭配不安全協定、錯誤服務路徑或額外 URI 成分注入有效組態；守門須在建線前拒絕。
+    /// 測試直接執行安全入口而非只檢查 JSON，目前端點全部為字面假資料；例外僅可含鍵名與固定原因。
+    /// </summary>
+    /// <param name="key">受測 CRM 或 Embedded 設定鍵。</param>
+    /// <param name="uri">主機正確但其他部分錯誤的合成網址。</param>
+    [Theory]
+    [InlineData("CrmConnection:ServerUrl", "http://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc")]
+    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw/")]
+    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc?synthetic=1")]
+    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc#synthetic")]
+    [InlineData("CrmConnection:ServerUrl", "https://synthetic@goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc")]
+    [InlineData("CrmConnection:ServerUrl", "https://goodshepherdback.speechmessage.com.tw:8443/XRMServices/2011/Organization.svc")]
+    [InlineData("DynamicsAccess:Embedded:OrganizationWebApiBaseUri", "http://goodshepherdback.speechmessage.com.tw/api/data/v9.1")]
+    [InlineData("DynamicsAccess:Embedded:ResourceUri", "http://goodshepherdback.speechmessage.com.tw")]
+    public void DevelopmentGuard_UnsafeEndpoint_RejectsBeforeConnection(string key, string uri)
+    {
+        using var fixture = new SettingsFixture();
+        var values = SafeValues();
+        values[key] = uri;
+        using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+        Action action = () => ChurchReportDevelopmentConfiguration.ValidateDevelopmentConfiguration(fixture.Root, "Development", configuration);
+        var exception = action.Should().Throw<InvalidOperationException>().Which;
+        exception.Message.Should().Contain(key).And.NotContain(uri);
+    }
+
     /// <summary>Production 與未設定環境即使有不安全鍵和不存在的基底路徑，也必須完全略過 Development 守門。</summary>
     /// <param name="environment">不啟用開發守門的環境或 null。</param>
     [Theory]
@@ -172,7 +219,7 @@ public sealed class DevelopmentSafetyTests
         ["LineMessaging:Jesus:ChannelAccessToken"] = "",
         ["LineMessaging:JesusBack:ChannelAccessToken"] = "",
         ["CrmConnection:Organization"] = "goodshepherdback",
-        ["CrmConnection:ServerUrl"] = "https://goodshepherdback.speechmessage.com.tw",
+        ["CrmConnection:ServerUrl"] = "https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc",
         ["DynamicsAccess:Package01FeeReadsEnabled"] = "true",
         ["DynamicsAccess:Embedded:OrganizationWebApiBaseUri"] = "https://goodshepherdback.speechmessage.com.tw/api/data/v9.1",
         ["DynamicsAccess:Embedded:ResourceUri"] = "https://goodshepherdback.speechmessage.com.tw"
