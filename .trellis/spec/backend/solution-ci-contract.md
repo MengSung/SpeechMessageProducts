@@ -133,3 +133,8 @@ on this transitional CI alone without explicit user acceptance. Per the user's
 hosted audit, Six Labors preparation/always-cleanup have succeeded, while past
 runs stopped at Restore before builds/tests. Local checks do not establish a
 subsequent hosted result.
+
+User approval on 2026-11-04 explicitly accepts the 23/26 transitional CI scope
+for phase 0 completion. Resolve the DevExpress package source as a priority after
+phase 1 starts; this scope decision is not evidence of a successful hosted run.
+Full-solution local section 8 checks remain mandatory.

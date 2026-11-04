@@ -350,17 +350,17 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-04（審查通過、小組任務已封存；P0-13 文件交付後停止）",
+  "snapshot": "2026-11-04（使用者核定 P0-13 最小驗收；等待清理與實機結果）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "原 <strong>11／11</strong> 份與獨立第 09 份 ClaudeOnly 複審通過；小組任務已封存。完整本機 <strong>1104／1104</strong>、Debug <strong>7／7</strong>。P0-13 步驟已寫好，因 <strong>Plugin FileVersion 追蹤缺口</strong> 依 §9.6 停止；清理、完整 CI 與人工驗收仍待使用者。",
+  "headline": "階段 0 原審查與第 09 份 ClaudeOnly 複審已通過，無未處理 Critical／High。P0-13 已依使用者核定精簡為 <strong>trace 沙箱最小驗收</strong>；FileVersion／回復移至階段 5，推播移至 P2-04 前。GitHub CI 過渡範圍已接受，仍待<strong>清理與使用者實際驗收</strong>。",
   "alert": {
-    "title": "P0-13 文件已寫好，等待使用者處理",
-    "body": "計畫要求沙箱追蹤新的 Plugin FileVersion，但目前程式沒有輸出該欄位；依 00 §9.6 停止，不把組件或 .NET 版本當作替代證據。",
+    "title": "請完成清理，再執行 P0-13 最小驗收",
+    "body": "使用者 2026-11-04 核定：FileVersion 停止事項解除，P0 不需測試 LINE channel 或 Six Labors 授權。文件已精簡，實際驗收尚未完成。",
     "steps": [
-      "核定 Plugin 自身 FileVersion 追蹤的最小補修及對應驗證。",
-      "決定 DevExpress 來源，或明確接受 GitHub CI 目前的過渡範圍。",
-      "清理 goodshepherdback 後回報；目前第 0 步全部未勾選，不連線 D365／LINE。"
+      "回報 goodshepherdback 安全清理完成；第 0 步前置確認目前全部未勾選。",
+      "依驗收文件完成 trace 註冊、啟用、smoke 與五項追蹤確認。",
+      "停用測試步驟、verify=0、追蹤恢復例外狀況並確認資料清理，再回報結果。"
     ]
   },
   "tiles": [
@@ -368,7 +368,7 @@ const DATA = {
       "label": "全計畫進度",
       "value": "17",
       "unit": "/ 83 工作包",
-      "sub": "原審查 11／11；修正第 09 份亦通過",
+      "sub": "17／18；待使用者完成最小驗收，未開 P1",
       "meter": {
         "done": 17,
         "active": 1,
@@ -379,7 +379,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "17",
       "unit": "/ 18 工作包",
-      "sub": "原審查 11／11；修正第 09 份亦通過",
+      "sub": "17／18；待使用者完成最小驗收，未開 P1",
       "meter": {
         "done": 17,
         "active": 1,
@@ -529,10 +529,10 @@ const DATA = {
     },
     {
       "id": "P0-13",
-      "name": "使用者驗收：以佈署專案註冊並觸發骨架",
+      "name": "使用者最小驗收：trace 沙箱註冊與清理",
       "status": "you",
-      "note": "操作文件已準備，實際驗收未完成；Plugin 尚未輸出自身 FileVersion，依 §9.6 停止。清理前置確認全部未勾選，apply／smoke／rollback 由使用者執行。",
-      "commit": "cb137099（文件；未驗收）"
+      "note": "使用者 2026-11-04 核定：第 0～6 步；只需三個部署 secrets，一輪註冊即啟用。推播移 P2-04 前，更新／回復／自身 FileVersion 移階段 5；清理與實機驗收未回報。",
+      "commit": "本次文件精簡；實際驗收未完成"
     }
   ],
   "phases": [
@@ -687,7 +687,7 @@ const DATA = {
       "item": "方案 CI 與覆蓋率門檻",
       "before": "僅舊 .NET 8 workflow",
       "after": "本機全過；八組 ≥80%",
-      "note": "過渡 CI 保留 23／26 專案；空快取還原通過，GitHub 新流程實跑結果尚待使用者確認。"
+      "note": "過渡 CI 為 23／26 專案，使用者 2026-11-04 已接受範圍；GitHub 新流程成功結果仍待確認，本機維持全方案。"
     },
     {
       "item": "Deployment 離線 L1／L2",
@@ -1015,6 +1015,11 @@ const DATA = {
       "t": "2026-11-04",
       "text": "P0-13 驗收步驟文件已寫好，第 0 步全未勾選；發現 Plugin FileVersion 追蹤與計畫不符，依 §9.6 停止等待使用者。",
       "cls": ""
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "使用者核定 P0-13 最小驗收及 CI 過渡範圍；解除 FileVersion 停止事項，以離線 Retry Key 測試與官方契約為依據，不改 Plugin。精簡文件後等待清理與使用者結果。"
     }
   ],
   "decisions": [
@@ -1087,13 +1092,29 @@ const DATA = {
     {
       "text": "Six Labors 使用一般金鑰；本機與 GitHub 設定已由使用者完成",
       "sub": "只以程序環境提供本機路徑，不讀內容；B 段將 secret 暫存至 runner，缺少即失敗並 always 清理。"
+    },
+    {
+      "text": "P0-13 改為 trace 沙箱最小驗收",
+      "sub": "使用者 2026-11-04 核定；一輪建立即啟用，只需三個 User Secrets 值，不需 LINE channel 或 Six Labors 授權；完成後停用、verify=0、恢復追蹤並清理。"
+    },
+    {
+      "text": "推播前置移至 P2-04；更新／回復與 Plugin FileVersion 追蹤移至階段 5",
+      "sub": "使用者 2026-11-04 核定；後者須在首個正式 Plugin 佈署 goodshepherdback 前驗收，現在不改 Plugin。"
+    },
+    {
+      "text": "接受 Retry Key 單元測試及 LINE 官方 24 小時有效期契約",
+      "sub": "使用者 2026-11-04 核定，取消 P0 同事件實機重送；不宣稱實機重送通過，也不保證送達。"
+    },
+    {
+      "text": "GitHub CI 過渡範圍已接受",
+      "sub": "使用者 2026-11-04 核定；排除三個 DevExtreme 依賴專案，階段 1 優先解決來源，本機 §8 仍為全方案。"
     }
   ],
   "prep": [
     {
       "state": "done",
       "text": "Six Labors 一般金鑰已由使用者備妥",
-      "sub": "本機只確認檔案存在並傳入程序環境；Release 授權檢查通過。GitHub secret 由使用者回報已建立，CI 尚待本包 B 段。"
+      "sub": "P0-12A 與 B 段已提交；使用者證實 GitHub 授權準備／清理成功。P0-13 的 Plugins／Deployment 無 ImageSharp 相依，不需要此授權。"
     },
     {
       "state": "done",
@@ -1103,12 +1124,12 @@ const DATA = {
     {
       "state": "todo",
       "text": "回報 goodshepherdback 清理完成",
-      "sub": "先停用舊 Plugin／Workflow、取消等候作業、清除正式 LINE token 或換成測試 channel"
+      "sub": "停用舊 Plugin／Workflow，取消等候／可重試／排程作業，清除或替換 LINE token，清空會友 new_lineid；未回報前不連線。"
     },
     {
       "state": "todo",
-      "text": "測試 LINE channel 與自己的測試帳號",
-      "sub": "不得使用正式 channel／正式收件者做驗收"
+      "text": "P2-04 前再準備測試 LINE channel 與自己的測試帳號",
+      "sub": "P0-13 不需要；推播前置驗收時才需 TestLineUserId／TestChannelToken，禁止正式 channel。"
     },
     {
       "state": "done",
@@ -1118,7 +1139,7 @@ const DATA = {
     {
       "state": "todo",
       "text": "ClaudeOnly 審查已完成，P0-13 人工操作待執行",
-      "sub": "原 11 份及第 09 份通過；文件已寫好，FileVersion 缺口待核定；清理未回報，不連線、不執行驗收。"
+      "sub": "原審查及第 09 份通過；最小驗收文件已精簡，FileVersion 停止事項解除，仍等待清理與使用者 trace 實測結果。"
     },
     {
       "state": "done",
@@ -1128,14 +1149,14 @@ const DATA = {
   ],
   "risks": [
     {
-      "level": "crit",
-      "text": "P0-13 的 Plugin FileVersion 追蹤未實作",
-      "sub": "現有 Assembly 為固定組件版本，FrameworkFileVersion 為 mscorlib；無法證明沙箱載入新的 Plugin FileVersion，依 §9.6 停止等待核定。"
+      "level": "info",
+      "text": "自身 FileVersion 追蹤與更新／回復已排入階段 5",
+      "sub": "使用者 2026-11-04 核定，解除 P0 停止事項；首個正式 Plugin 佈署 goodshepherdback 前才實作與驗收，現在不改 Plugin。"
     },
     {
       "level": "warn",
-      "text": "GitHub CI 仍為過渡範圍，待使用者決定",
-      "sub": "僅排除三個 DevExtreme 依賴專案；完整 ChurchReport CI 全綠或另行接受過渡狀態前，階段 0 不結案。授權準備／清理已在 GitHub 成功，後續建置讀到發布路徑仍待實跑。"
+      "text": "GitHub CI 過渡範圍已接受，實跑結果仍待確認",
+      "sub": "使用者 2026-11-04 接受排除三個 DevExtreme 依賴專案；階段 1 優先解決來源。job 空環境值與 GITHUB_ENV 覆寫後的建置效果仍待實跑。"
     },
     {
       "level": "warn",
@@ -1153,9 +1174,9 @@ const DATA = {
       "sub": "自動核准審查拒絕刪除；僅有公開套件，無授權／金鑰。"
     },
     {
-      "level": "warn",
-      "text": "同一事件重送尚未驗證",
-      "sub": "smoke 會刪除測試 task；若原系統作業不允許重試，須回報另訂方式，不得以新 task／新 smoke 代替。"
+      "level": "info",
+      "text": "P0 不做同一事件重送實機驗收",
+      "sub": "使用者 2026-11-04 接受來源記錄 ID Retry Key 單元測試與官方 24 小時有效期契約；不是實機去重或保證送達的結果。"
     }
   ]
 };

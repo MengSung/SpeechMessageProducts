@@ -36,3 +36,12 @@
 
 ## 實作計畫 3.3 核定
 本任務依設計 v3.3 與實作計畫-3.3 執行。實作計畫-3.2 凍結，不修改歷史回報；佈署由 Solution 內 SpeechMessage.Dynamics.Deployment 執行，不要求使用者以 Plugin Registration Tool 註冊。
+
+## P0-13 驗收精簡核定（使用者 2026-11-04）
+
+- 核心驗收只留清理、追蹤、建置打包、一輪啟用註冊、trace smoke 與停用清理；由使用者執行，Codex 只改文件。
+- Deployment trace 只需 OrganizationUrl／Username／Password；不要求 LINE 測試值，Plugins／Deployment 不需要 Six Labors 授權。
+- 推播移至 P2-04 前；自身 FileVersion 追蹤、更新與回復移至階段 5 首個正式 Plugin 佈署前，原停止事項解除，現在不改 Plugin。
+- 取消同事件實機重送；使用者接受來源記錄 ID Retry Key 單元測試與 LINE 官方 24 小時有效期重試契約。
+- CI 過渡範圍已接受；DevExpress 來源在階段 1 開始後優先解決，本機 §8 仍全方案。
+- 文件提交後停下。清理與最小實機驗收未回報，P0-13／階段 0 未完成，不開 P1。

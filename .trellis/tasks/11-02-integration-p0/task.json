@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "階段審查與小組封存完成；P0-13 文件已寫好，依 §9.6 停在 FileVersion 追蹤缺口及待使用者操作。",
+  "description": "P0-13 最小驗收文件已精簡；FileVersion 停止解除，CI 過渡範圍已接受。等待使用者清理與 trace 實機驗收。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -30,7 +30,7 @@
     "report": "wp-reports/P0-13.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
     "reviewPending": false,
-    "waitingFor": "使用者核定 FileVersion 缺口、完整 CI／接受過渡決定、清理及人工驗收回報",
+    "waitingFor": "使用者回報 goodshepherdback 清理及 P0-13 最小驗收結果",
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -63,9 +63,10 @@
       "P0-review-development": "039033ec",
       "P0-review-deployment-scope": "e3f89eb6",
       "P0-stage-review": "56f4e0ab",
-      "P0-13-document": "cb137099（僅文件交付；實際驗收未完成，FileVersion 缺口依 §9.6 停止）"
+      "P0-13-document": "cb137099（歷史初版文件；原 FileVersion 停止已由使用者 2026-11-04 核定解除）",
+      "P0-13-document-minimal": "本次提交（僅文件精簡，P0-13 實機驗收未完成）"
     },
-    "stopReason": "00 §9.6：P0-13 要求 Plugin FileVersion 追蹤，但目前程式未輸出；文件已寫好，清理未回報及完整 hosted CI 亦待使用者。",
+    "stopReason": "依使用者 2026-11-04 核定，文件提交後停下；清理與最小實機驗收尚未回報。FileVersion 移至階段 5，CI 過渡範圍已接受。",
     "observedExternalCommit": "cf3595db",
     "observedExternalCommits": [
       "cf3595db",
@@ -90,8 +91,8 @@
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-13",
-  "nextAction": "停止等待使用者：核定 FileVersion 追蹤補修、決定完整 CI／過渡狀態，並回報 goodshepherdback 清理及人工驗收。",
-  "stopReason": "00 §9.6：P0-13 要求 Plugin FileVersion 追蹤，但目前程式未輸出；文件已寫好，清理未回報及完整 hosted CI 亦待使用者。",
+  "nextAction": "停止等待使用者回報 goodshepherdback 清理與 P0-13 第 0～6 步最小驗收結果；通過後才結束階段 0、開 P1。",
+  "stopReason": "依使用者 2026-11-04 核定，文件提交後停下；清理與最小實機驗收尚未回報。FileVersion 移至階段 5，CI 過渡範圍已接受。",
   "stageReview": {
     "mode": "claude-only",
     "state": "passed",
@@ -121,7 +122,7 @@
     "h01Commit": "1fde6020",
     "m01Commit": "c9ed44d3",
     "m02Commit": "edd953ec",
-    "ciScope": "23/26 projects; 3 DevExtreme dependents excluded; full hosted CI remains user decision",
+    "ciScope": "23/26 projects; 3 DevExtreme dependents excluded; user accepted transitional CI scope on 2026-11-04; feed priority in phase 1; hosted result unverified",
     "fixesBase": "ae29cb40",
     "fixesHead": "e3f89eb6",
     "fullLocalVerification": "Release1104/1104;Debug7/7;8moduleCoverage>=80%;26analyzers;zeroI18N415",
@@ -167,6 +168,24 @@
     "sameEventRetryVerified": false,
     "cleanupReported": false,
     "stage0Completed": false,
-    "smallGroupArchiveCommit": "53df63f3"
+    "smallGroupArchiveCommit": "53df63f3",
+    "scopeApproval": "使用者 2026-11-04 核定最小驗收；FileVersion 追蹤移至階段 5，實機重送改用單元測試與 LINE 官方重試契約。",
+    "ciTransitionAccepted": true,
+    "fileVersionRequiredInP0": false,
+    "sameEventLiveRetryRequiredInP0": false,
+    "minimalDocumentPrepared": true,
+    "minimalDocumentDate": "2026-11-04",
+    "requiredUserSecretKeys": [
+      "OrganizationUrl",
+      "Username",
+      "Password"
+    ],
+    "testLineSecretsRequiredInP0": false,
+    "sixLaborsLicenseRequiredInP0": false,
+    "createEnabledSupported": true,
+    "pushAcceptanceStage": "P2-04 前置驗收",
+    "fileVersionAcceptanceStage": "階段 5 首個正式 Plugin 佈署 goodshepherdback 前",
+    "sameEventRetryVerificationBasis": "使用者接受來源記錄 ID Retry Key 單元測試及 LINE 官方 24 小時有效期契約，取消 P0 實機重送；未聲稱實機驗證。",
+    "hostedCiSuccessVerified": false
   }
 }

@@ -65,6 +65,16 @@
 - **判定：** 差異為 0 才可以切換（設計第十七章）。
 - **先寫的測試：** 以假資料測解析與比對邏輯，包括欄位相同、不同、只存在一邊三種情況。
 
+### 更新與回復前置驗收：首個正式 Plugin 佈署 goodshepherdback 之前
+
+**使用者 2026-11-04 核定：** 原 P0-13 第 8、9 步移至階段 5。先以骨架完成下列驗收，再佈署第一個正式 Plugin；現在不補改 P0 Plugin。所有連線／寫入／smoke 由使用者執行，唯一組織 goodshepherdback。
+
+1. **先補自身 FileVersion 追蹤：** 以 TDD 讓 Plugin 追蹤輸出自身組件的 FileVersion，不能拿固定 AssemblyVersion 或 mscorlib FrameworkFileVersion 代替。測試確認數值確實來自 Plugin 組件、無秘密；經該階段守門及必要審查後才交使用者驗收。
+2. **保存第一版：** 清理與 trace 驗收前提仍成立；以 trace、secureConfig 空白、enabled=true 註冊骨架，verify=0、smoke trace 通過。於 repo 外保存第一版已合併 DLL 與清單，記下原步驟資料庫 ID、追蹤中的 Plugin FileVersion；不複製金鑰。
+3. **只更新 FileVersion：** AssemblyVersion 固定 `1.0.0.0`，沿用相同名稱、簽章及步驟；只遞增 SpeechMessageBuildNumber，Release 明確打包並通過 Test-PluginAssembly。plan 必須只有 UpdateAssembly，不能重建步驟。apply 前保存該次自動產生的 export.json（是本次更新的 apply 目錄，不是初次安裝前的空備份）。verify=0、smoke trace 後人工確認原步驟 ID 不變且沙箱追蹤顯示新的 Plugin FileVersion。
+4. **回復第一版：** 以 `rollback --org goodshepherdback --from <本次更新apply前的export.json>` 還原；rollback 只還原組件內容與既有步驟啟用狀態，不還原 unsecure／secure 設定或秘密，因此全程維持相同 trace 設定。將本機比較用 DLL 換回保存的第一版，再 verify=0、smoke trace，確認步驟 ID 不變及追蹤回到第一版 Plugin FileVersion。
+5. **收尾：** 清單設回停用，plan → 審核 → apply → verify=0，追蹤改回「例外狀況」，確認測試資料清理；失敗則停下回報，不把本機檔案版本當作沙箱證據。
+
 ## 5.2 每個模組的固定做法（P5-04～P5-13 都套用）
 
 1. **盤點：** 寫成 `wp-reports\P5-xx-inventory.md`，內容包括：
@@ -139,6 +149,7 @@
 
 ## 階段 5 完成判準
 
+- 使用者 2026-11-04 核定：首個正式 Plugin 佈署 goodshepherdback 前，已完成自身 FileVersion 追蹤及上述更新／回復驗收。
 - 5.3 表每一列都有：外殼、規則、雙目標測試、外殼測試、註冊清單、影子模式差異 0 的報告。
 - `Test-PluginAssembly.ps1` 對兩個 DLL 都通過。
 - 搬入的程式：`I18nCheck` 中文字串為 0，BannedApi 0 違規。

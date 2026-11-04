@@ -49,3 +49,23 @@ metadata without Assembly.Load. Dispose readers, timers, locks and temp fixtures
 CI includes the Deployment project and a separate >=80% coverage report.
 Actual WCF/WS-Trust connectivity and D365 sandbox behavior remain P0-13 user
 acceptance, not a claim made by the offline suite.
+
+## Minimal P0-13 acceptance (user approved 2026-11-04)
+
+P0-13 is user-operated trace-only sandbox acceptance. Only OrganizationUrl,
+Username and Password under the Deployment organization User Secrets are needed;
+no test LINE identity or token is required. Plugins and Deployment have no direct
+or transitive ImageSharp dependency, so these project builds need no Six Labors
+license. A manifest explicitly enabling goodshepherdback creates the new step
+in enabled state; one plan/apply/verify=0 registration pass is sufficient.
+Always disable the step with a new plan/apply/verify=0, restore exception-only
+tracing and confirm smoke task cleanup afterwards.
+
+Sandbox push acceptance moves to the prerequisite of P2-04. Own Plugin FileVersion
+tracing and update/rollback acceptance move to phase 5 before the first production
+Plugin is deployed to goodshepherdback. P0 live same-event retry is replaced by
+the source-record-ID retry-key unit contract and LINE's 24-hour retry-key validity
+contract, as accepted by the user; this is not a claim of observed delivery or
+an assurance beyond the retry-key validity window. Transitional CI scope is
+accepted; prioritize DevExpress source resolution once phase 1 begins and retain
+full-solution local checks. Cleanup and real P0 acceptance remain unreported.

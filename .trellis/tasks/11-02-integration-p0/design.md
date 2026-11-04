@@ -21,3 +21,9 @@ P0-11 統整 Windows CI；P0-12 建立 net10 佈署專案及離線測試；使�
 
 ## 3.3 開發環境安全子集
 P0-SEC 在原 11＋1 部署設定讀取點追加 Development 來源與安全啟動守門；Production provider／逐鍵值不變，部署設定不承載 request 狀態。P0-ENV 後續覆寫 CRM 與停用尚未驗證的 Embedded Web API。新 D22～D27 與附錄 G 以實作計畫-3.3 為準；不再建立舊三個 D365 工具目錄。
+
+## 最小驗收範圍（使用者 2026-11-04 核定）
+
+P0-13 使用現有 trace 能力，不變更 Plugin 或部署工具程式。新步驟明確 enabled=true 可在建立時啟用，trace 無秘密佔位，因此一輪 plan／apply／verify=0 即可；最後以新 plan 停用並 verify=0。
+推播沙箱連通性移至 P2-04 前置；Plugin 自身 FileVersion 追蹤與更新／回復移至階段 5 正式 Plugin 初次佈署前。實機同事件重送由使用者接受單元測試及官方重試契約代替。
+CI 範圍過渡已接受，與 GitHub 實跑成功是不同事實；本機仍跑全方案。任何實機成功仍須使用者回報，文件交付不使任務完成。

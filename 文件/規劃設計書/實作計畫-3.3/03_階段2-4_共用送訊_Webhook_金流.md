@@ -11,7 +11,7 @@
   - LINE 送訊只剩一份。單人推播放在 `LineMessagingProcessor.Core`（雙目標），Plugin 可以直接推播；
   - `new_linechannel` 加密存放 Token；
   - 對外待辦只處理宮格圖、QR 圖片、撥款查詢三種，可由 D365 建立、由 .NET 10 執行。
-- 前提：階段 0 的 P0-13 第 6 步成功，也就是沙箱能連到 `api.line.me`。不成立就不得開始 P2-04 以後的推播工作。
+- 前提（使用者 2026-11-04 核定）：沙箱對 `api.line.me` 的推播驗收已移出 P0-13，改在本檔「P2-04 前置驗收」完成；未通過不得開始 P2-04 以後的推播工作。
 - D365 端的註冊與結構一律由佈署專案執行（D22）；推播相關的步驟加進 `d365\registration\plugins.registration.json`，在 goodshepherdback 以 `smoke` 驗證。
 
 ## 階段 2 的 WP 一覽
@@ -96,6 +96,18 @@
 - `WrongKey_Throws`、`UnknownVersion_Throws`
 - `Exception_NeverContainsSecret`
 - `Mac_CompareIsConstantTime`：以程式碼審查加測試確認使用固定時間比較。
+
+## P2-04 前置驗收：沙箱對 LINE 的測試推播
+
+**使用者 2026-11-04 核定：** 從 P0-13 原第 6 步移至此處。在 P2-04 開工前由使用者操作，Codex 只準備步驟；P0-13 不需要 LINE channel 或以下兩個 secrets。
+
+1. 確認 goodshepherdback 已完成原安全清理，骨架 trace 驗收通過。準備**測試 channel** 與**使用者自己的測試帳號**，在 Deployment 同組織 User Secrets 加入 `TestChannelToken`、`TestLineUserId`；不使用正式 channel，不把值寫入 repo／命令列／回報。
+2. 開追蹤「全部」，清單保持同一個 DiagnosticsPingPlugin、同一個步驟身份、enabled=true；將 unsecureConfig 設為 `{"mode":"push","culture":"zh-TW","lineUserId":"${secret:TestLineUserId}"}`，secureConfig 為 `${secret:TestChannelToken}`。只保存佔位名稱。
+3. 執行 `dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -- plan --org goodshepherdback`，審核只有預期的設定／啟用變更；以同一入口 `apply --org goodshepherdback --plan <剛審核的plan.json>` 套用，再 `verify --org goodshepherdback`。含秘密的 verify=3 表示 metadata 相同但秘密未比對，不能稱完整成功；verify=1 則停下處理差異。工具不偵測同模板的秘密輪替，只改 User Secrets 不保證已更新部署秘密，需輪替時另行核定。
+4. 同一入口執行 `smoke --org goodshepherdback --scenario p0-ping-push`。手機實收一則「P0 推播測試 …」，smoke=0，追蹤有 Outcome=Accepted、Status=200、有效 RequestId（x-line-request-id），沒有 token、內文或 lineUserId；確認測試 task 已刪除。至此才成立沙箱可直接推播的前提。
+5. 成功或失敗都改回 trace、secureConfig 空白、enabled=false，重新 plan → 審核 → apply → verify=0；追蹤改回「例外狀況」，確認資料清理。不能連 `api.line.me` 時請使用者確認防火牆／Proxy，未通過前不得開始 P2-04 推播工作。
+
+**重送依據（使用者 2026-11-04 核定）：** 不另做 P0 實機重送；以「Retry Key＝來源記錄 ID」單元測試及 LINE 官方 24 小時有效期內同 Retry Key 抑制重複受理為據。重試內容、收件者維持一致；此契約不保證送達，也不涵蓋超過有效期的重送。來源：[LINE 官方重試說明](https://developers.line.biz/en/docs/messaging-api/retrying-api-request/)。
 
 ## P2-04　`LineMessagingProcessor.Core` 完整版
 

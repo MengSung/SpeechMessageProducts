@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-04",
+  "baseHead": "5a3bb064",
+  "document": "文件/規劃設計書/實作計畫-3.3/驗收/P0_Plugin骨架佈署步驟.md",
+  "documentSha256": "047cd9cbacb7901570450d9b3cb9530f9c9061787baafd686feecb52e24e49e2",
+  "steps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "documentLines": 156,
+  "jsonBlocksValid": 2,
+  "powershellBlocksParsedWithoutExecution": 5,
+  "cliCommandsWithFixedOrganization": 7,
+  "requiredSecretKeys": [
+    "OrganizationUrl",
+    "Username",
+    "Password"
+  ],
+  "testLineSecretsRequired": false,
+  "imageSharpDependency": {
+    "Plugins": false,
+    "Deployment": false
+  },
+  "createEnabledSupported": true,
+  "prerequisitesUnchecked": true,
+  "allChecklistItemsUnchecked": true,
+  "progressOnlyDataChanged": true,
+  "productAndTestSourceUnchanged": true,
+  "externalConnectionsMade": false,
+  "realSecretsRead": false,
+  "keyOrLicenseContentsReadByAgent": false,
+  "build": {
+    "errors": 0,
+    "warnings": 1,
+    "existingWarning": "CS1572"
+  },
+  "release": {
+    "assemblies": 13,
+    "executed": 1104,
+    "passed": 1104,
+    "failed": 0,
+    "skipped": 0,
+    "churchReportPassed": 590
+  },
+  "debugTracer": {
+    "executed": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "focusedDeployment": 46,
+  "focusedPlugins": 24,
+  "progressTestsPassed": 3,
+  "duplicateScan": {
+    "projects": 26,
+    "files": 879,
+    "groups": 0,
+    "new": 0,
+    "stale": 0
+  },
+  "i18nVerifyPassed": true,
+  "generatedFilesActuallyChecked": 2,
+  "ciTransitionAccepted": true,
+  "hostedCiSuccessVerified": false,
+  "fileVersionStopReleased": true,
+  "realAcceptanceCompleted": false,
+  "stage0Completed": false,
+  "retryAcceptanceBasis": "使用者核定來源記錄 ID Retry Key 單元測試及官方 24 小時有效期契約，取消 P0 實機重送；不保證送達。",
+  "officialRetryDocumentation": "https://developers.line.biz/en/docs/messaging-api/retrying-api-request/",
+  "encodingChangedChecked": 480,
+  "encodingIssues": 0,
+  "diffCheckPassed": true,
+  "nextAction": "等待使用者回報清理與最小驗收；不開 P1。"
+}
