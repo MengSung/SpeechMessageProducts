@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.Versioning;
 using System.Text;
 using LineMessagingProcessor.Core;
 using Newtonsoft.Json;
@@ -24,6 +25,21 @@ public sealed class LinePushClientTests
     private const string Token = "synthetic-channel-secret";
     /// <summary>固定業務事件鍵，保證黃金 JSON／標頭不依賴亂數或時間。</summary>
     private static readonly Guid RetryKey = new("11111111-2222-3333-4444-555555555555");
+
+    /// <summary>
+    /// 保護 Plugin 使用的 Core 必須來自 net462 編譯輸出，並確認該輸出包含 .NET Framework 專用的無參數客戶端。
+    /// 測試透過組件參考的實際載入中繼資料斷言，不以測試專案的目標框架推定產品分支已正確選取。
+    /// </summary>
+    [Fact(DisplayName = "Plugin Core 專案參考選取 net462 Framework 實作")]
+    public void Assembly_TargetFramework_AndFrameworkClientBranch_AreNet462()
+    {
+        var assembly = typeof(LinePushClient).Assembly;
+        var attribute = assembly.GetCustomAttributes(typeof(TargetFrameworkAttribute), false)
+            .Cast<TargetFrameworkAttribute>().Single();
+
+        Assert.Equal(".NETFramework,Version=v4.6.2", attribute.FrameworkName);
+        Assert.NotNull(typeof(LinePushClient).GetConstructor(Type.EmptyTypes));
+    }
 
     /// <summary>成功回應注入固定 ID；斷言 URL、方法、兩個逐請求標頭及共用標頭沒有被污染。</summary>
     [Fact(DisplayName = "成功推播使用當次 Bearer 與 Retry Key")]

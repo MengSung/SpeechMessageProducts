@@ -67,6 +67,31 @@ public sealed class AssemblyInspectionTests
         Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// 保護 ILRepack 的每一個輸入都不得宣告高於伺服器核定的 v4.6.2；
+    /// 以離線合成 PE 注入 v4.6.2、v4.5、v4.8 與非 Framework 屬性，斷言只接受不高於上限的明確 .NET Framework 目標。
+    /// </summary>
+    [Theory(DisplayName = "合併輸入僅接受不高於 Framework 4.6.2 的明確目標")]
+    [InlineData("net462", true)]
+    [InlineData("net45", true)]
+    [InlineData("net48", false)]
+    [InlineData("framework", false)]
+    [InlineData("no-framework", false)]
+    public void ValidateMergeInputFramework_EnforcesNet462Ceiling(string target, bool expected)
+    {
+        using var fixture = new Fixture();
+        var path = fixture.Emit(target);
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+
+        var exitCode = Program.Run(new[] { "--validate-net462-input", path }, output);
+
+        Assert.Equal(expected ? 0 : 1, exitCode);
+        using var result = JsonDocument.Parse(output.ToString());
+        Assert.Equal(expected, result.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal(expected, result.RootElement.GetProperty("checks").GetProperty("targetFramework").GetBoolean());
+        Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
+    }
+
     /// <summary>獨佔暫存目錄及測試金鑰的唯一 owner；只產生惰性 DLL，Dispose 刪除所有測試資源。</summary>
     private sealed class Fixture : IDisposable
     {
@@ -82,14 +107,14 @@ public sealed class AssemblyInspectionTests
             using var rsa = new RSACryptoServiceProvider(2048) { PersistKeyInCsp = false };
             File.WriteAllBytes(key, rsa.ExportCspBlob(true));
         }
-        /// <summary>以 net48 參考組件離線編譯指定故障；編譯失敗是測試錯誤，不當作檢查器成功拒絕。</summary>
+        /// <summary>以 net462 參考組件離線編譯指定故障；編譯失敗是測試錯誤，不當作檢查器成功拒絕。</summary>
         /// <param name="fault">固定測試故障種類。</param>
         /// <returns>尚未被載入的測試 DLL 路徑。</returns>
         public string Emit(string fault)
         {
             var reference = MetadataReference.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "Framework", "mscorlib.dll"));
             var framework = fault == "no-framework" ? "" :
-                "[assembly: System.Runtime.Versioning.TargetFramework(\"" + (fault == "framework" ? ".NETCoreApp,Version=v10.0" : ".NETFramework,Version=v4.8") + "\")]";
+                "[assembly: System.Runtime.Versioning.TargetFramework(\"" + GetFrameworkName(fault) + "\")]";
             var source = framework + "namespace SpeechMessage.Dynamics.Plugins.Diagnostics { " +
                 (fault == "private" ? "internal" : "public") + " sealed class DiagnosticsPingPlugin { } }";
             var references = new[] { reference }.AsEnumerable();
@@ -111,6 +136,18 @@ public sealed class AssemblyInspectionTests
             Assert.True(result.Success, string.Join("\n", result.Diagnostics.Select(value => value.ToString())));
             return path;
         }
+
+        /// <summary>依固定測試案例產生框架屬性，分別覆蓋低於、等於、超過上限及非 Framework 情境。</summary>
+        /// <param name="fault">測試內部控制的合成故障標籤。</param>
+        /// <returns>編入惰性 PE 的框架名稱。</returns>
+        private static string GetFrameworkName(string fault) => fault switch
+        {
+            "framework" => ".NETCoreApp,Version=v10.0",
+            "net45" => ".NETFramework,Version=v4.5",
+            "net48" => ".NETFramework,Version=v4.8",
+            _ => ".NETFramework,Version=v4.6.2"
+        };
+
         /// <summary>Roslyn 已完成並釋放檔案後，在已宣告的獨佔根目錄內刪除一次性 key 與 PE。</summary>
         public void Dispose() => Directory.Delete(Root, recursive: true);
     }

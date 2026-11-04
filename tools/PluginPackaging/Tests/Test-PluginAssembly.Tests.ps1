@@ -1,5 +1,5 @@
 <#
-兩個樣本各自建置於本次暫存資料夾：未簽章必須失敗、簽章完整的 net48 樣本必須通過。
+多個樣本各自建置於本次暫存資料夾：簽章完整的 net462 樣本必須通過，net48 樣本必須被拒絕。
 一次性 RSA 測試金鑰不讀正式環境變數，不輸出內容，完成或失敗均釋放並刪除整個專屬資料夾。
 樣本只供 PE 解析，絕不載入執行；斷言結果內容而非只看結束碼，避免任意失敗造成假綠燈。
 #>
@@ -22,7 +22,7 @@ try {
     $project = @"
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$escapedKey</AssemblyOriginatorKeyFile>
@@ -42,7 +42,7 @@ namespace SpeechMessage.Dynamics.Plugins.Diagnostics
     $projectPath = Join-Path $fixtureRoot 'Fixture.csproj'
     [IO.File]::WriteAllText($projectPath, ($project -replace "`r?`n", "`r`n") + "`r`n", $utf8)
     [IO.File]::WriteAllText((Join-Path $fixtureRoot 'Fixture.cs'), ($source -replace "`r?`n", "`r`n") + "`r`n", $utf8)
-    $samples = @('signed', 'unsigned', 'wrong-framework', 'missing-plugin', 'unexpected-reference', 'drawing', 'oversize', 'invalid-image')
+    $samples = @('signed', 'unsigned', 'wrong-framework', 'legacy-net48', 'missing-plugin', 'unexpected-reference', 'drawing', 'oversize', 'invalid-image')
     foreach ($sample in $samples) {
         $signed = $sample -ne 'unsigned'
         $sampleOutput = Join-Path $fixtureRoot $sample
@@ -51,13 +51,15 @@ namespace SpeechMessage.Dynamics.Plugins.Diagnostics
         $failedCheck = switch ($sample) {
             'unsigned' { 'strongName' }
             'wrong-framework' { 'targetFramework' }
+            'legacy-net48' { 'targetFramework' }
             'missing-plugin' { 'diagnosticsPlugin' }
             'unexpected-reference' { 'allowedReferences' }
             'drawing' { 'noDrawing' }
             'oversize' { 'size' }
             'invalid-image' { 'readable' }
         }
-        if ($sample -eq 'wrong-framework') { $sampleProject = $sampleProject.Replace('<TargetFramework>net48</TargetFramework>', '<TargetFramework>net10.0</TargetFramework>') }
+        if ($sample -eq 'wrong-framework') { $sampleProject = $sampleProject.Replace('<TargetFramework>net462</TargetFramework>', '<TargetFramework>net10.0</TargetFramework>') }
+        if ($sample -eq 'legacy-net48') { $sampleProject = $sampleProject.Replace('<TargetFramework>net462</TargetFramework>', '<TargetFramework>net48</TargetFramework>') }
         if ($sample -eq 'missing-plugin') { $sampleSource = $sampleSource.Replace('DiagnosticsPingPlugin', 'OtherType') }
         if ($sample -eq 'unexpected-reference') {
             $sampleProject = $sampleProject.Replace('<ItemGroup>', '<ItemGroup><Reference Include="Microsoft.CSharp" />')

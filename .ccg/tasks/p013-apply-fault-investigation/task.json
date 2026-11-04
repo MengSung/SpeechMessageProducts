@@ -6,14 +6,14 @@
   "risk": "low",
   "domain": "backend",
   "currentPhase": "analysis",
-  "nextAction": "第二份 plan 的 apply 失敗，實際兩層代碼均為 0x80040216（官方 UnExpected）；先確認使用者能否登入 D365 伺服器桌面，逐步取得約 14:16 的既有伺服器診斷；不重試 apply，不推定根因；verify、smoke 與 P0-13 均未完成",
+  "nextAction": "使用者已核定先離線試做 net462；交由 p013-net462-offline-spike 記錄，產品預設與原 DLL 仍為 net48，不部署；驗證器具體條件與 P0-13 實機仍待確認",
   "createdAt": "2026-11-04",
   "branch": "1.0.0.11.Integration.P0",
   "constraints": [
     "不新增 Trellis 任務",
     "Codex 不連線 D365／LINE",
     "不讀取或輸出 User Secrets、帳密、token、金鑰或授權內容",
-    "保留使用者將清單 goodshepherdback 改為 true 的未提交變更",
+    "保留使用者手動提交 714465fd（含清單 goodshepherdback=true）；不改寫歷史，驗收收尾時另以新提交保存 false",
     "不推送、不合併、不改寫歷史"
   ],
   "verification": {
@@ -30,6 +30,19 @@
     "dualModelComplete": true,
     "quotaBlocked": false
   },
+  "serverEvidence": {
+    "authorization": "使用者核定接手操作已開啟的虛擬機，唯讀查看事件與元件版本；不呼叫 D365／LINE API",
+    "localEventTime": "2026-11-04T14:16:19+08:00",
+    "source": "MSCRMWebService",
+    "eventId": 18176,
+    "operation": "pluginassembly Create Stage 30",
+    "exceptionType": "System.FormatException",
+    "method": "Microsoft.Crm.ObjectModel.TargetFrameworkVersionValidator.ValidateInternal",
+    "componentVersion": "9.1.49.21825",
+    "remainingUnknown": "已見伺服器 .NET 核心檔案版本 4.8.4795.0；仍未確認 D365 驗證器的失敗條件、可接受目標上限或所需支援更新，未證明沙箱載入版本，未實測 net462",
+    "frameworkCoreFile": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscorlib.dll",
+    "frameworkCoreFileVersion": "4.8.4795.0"
+  },
   "lastReviewedUserPlan": {
     "utc": "2026-11-04T06:14:02.6994698+00:00",
     "sha256": "C7C599656278D8E1A6BFB06894D5EC7D16BA182427FA6BBE55C9749D4B84DDDA",
@@ -45,5 +58,11 @@
       "0x80040216",
       "0x80040216"
     ]
-  }
+  },
+  "preservedUserCommit": {
+    "commit": "714465fd",
+    "checked": "清單差異僅 goodshepherdback false→true；其餘為已驗證的診斷任務／文件與審查紀錄，產品程式未變更；保留歷史",
+    "cleanup": "完成驗收收尾後，以新提交保存清單 false，之後再確認此檔 git status 無輸出"
+  },
+  "offlineSpikeAuthorization": "使用者 2026-11-04 同意先離線試做 .NET 4.6.2 相容版本；未核定正式採用或部署"
 }

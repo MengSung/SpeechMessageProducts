@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using LineMessagingProcessor.Core;
@@ -25,6 +26,19 @@ public sealed class DiagnosticsPingPluginTests
     private const string Token = "synthetic-plugin-token";
     /// <summary>符合單人推播格式的合成收件者，不對應真實聯絡人。</summary>
     private const string UserId = "U11111111111111111111111111111111";
+
+    /// <summary>
+    /// 保護部署外殼只能以伺服器已接受的 .NET Framework 4.6.2 為目標；
+    /// 直接讀取測試實際載入的 Plugin 組件屬性，避免只看專案設定或測試專案本身而產生假綠燈。
+    /// </summary>
+    [Fact(DisplayName = "Plugin 參考的正式組件目標為 Framework 4.6.2")]
+    public void Assembly_TargetFramework_IsNet462()
+    {
+        var attribute = typeof(DiagnosticsPingPlugin).Assembly.GetCustomAttributes(typeof(TargetFrameworkAttribute), false)
+            .Cast<TargetFrameworkAttribute>().Single();
+
+        Assert.Equal(".NETFramework,Version=v4.6.2", attribute.FrameworkName);
+    }
 
     /// <summary>trace 模式不得送 HTTP；斷言標記、組件、執行環境、觸發事件及兩語系實際取字結果。</summary>
     [Fact(DisplayName = "追蹤模式寫入診斷與雙語文字")]

@@ -14,8 +14,8 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
-    <!-- 只複製中央固定 1.0.3 套件的 net48 編譯參考，產生不執行的 PE；不參考正式 Plugin 或正式金鑰。 -->
-    <Content Include="$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.net48/1.0.3/build/.NETFramework/v4.8/mscorlib.dll"
+    <!-- 只複製中央固定 1.0.3 套件的 net462 編譯參考，產生不執行的 PE；不參考正式 Plugin 或正式金鑰。 -->
+    <Content Include="$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.net462/1.0.3/build/.NETFramework/v4.6.2/mscorlib.dll"
              Link="Framework/mscorlib.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

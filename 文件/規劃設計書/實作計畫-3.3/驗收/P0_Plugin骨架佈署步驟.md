@@ -97,11 +97,15 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 **已完成（使用者 2026-11-04 回報）：** 前置確認、第 1 步追蹤設為「全部」並儲存、第 2 步建置與打包檢查，以及第 3 步清單改為 true 和 plan 審核。plan 只列出 CreateAssembly／CreateType／CreateStep，符合本次 trace 骨架的預期。
 
-**目前卡在第 4 步：** 使用者在第二份 plan 審核後再次執行 apply，回報 `Dataverse fault code[0]: 0x80040216`、`Dataverse fault code[1]: 0x80040216`，以及 ``Command failed (FaultException`1). Sensitive details are not shown.``。已取得實際數字錯誤碼，但伺服器根因仍未明；verify、smoke 與停用收尾皆未完成。Codex 僅在本機檢查程式與安全診斷，不連線 D365／LINE。
+**目前卡在第 4 步：** 第二份 plan 的 apply 回報兩層 `0x80040216`。使用者隨後核定由 Codex 操作已開啟的 D365-9.1 虛擬機查看紀錄；已在 2026-11-04 台灣時間 14:16:19 的 `MSCRMWebService` 事件 18176，確認故障位於 `pluginassembly` 的 Create／Stage 30：`System.FormatException` 發生在 `TargetFrameworkVersionValidator.ValidateInternal()`，呼叫鏈包含 `PluginValidatorBase.Validate()` 與 `ValidateAssemblyMetadata(...)`。已定位目標框架驗證階段，但尚未取得伺服器可接受的框架版本上限；verify、smoke 與停用收尾皆未完成。
 
-**下一小步：** 先確認使用者能否登入**安裝 Dynamics 365 的伺服器 Windows 桌面**（可使用遠端桌面）；只回覆能／不能登入，不提供位址、帳密或日誌全文。確認可登入後，再逐步查看本次 apply 時段（2026-11-04 台灣時間約 14:16）的既有伺服器錯誤紀錄；此時先不改伺服器設定、不重啟服務，也不再次執行 apply。
+**已完成的唯讀查核：** Codex 經使用者核定直接查看虛擬機 GUI 的上述事件，以及 `Microsoft.Crm.ObjectModel.dll` 的詳細資料，版本為 `9.1.49.21825`。續查 `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorlib.dll` 的詳細資料，檔案與產品版本均為 **4.8.4795.0**；這證明該檔案存在，不能直接當成沙箱程序實際載入版本或第 5 步 smoke 的驗收結果。本次沒有產品程式修改，也沒有執行新的 plan／apply。
+
+**下一小步（使用者 2026-11-04 追加核定）：** 先離線試做 .NET Framework 4.6.2 相容候選，完成相關測試與打包檢查；只在隔離副本試做，產品預設 `TargetFramework=net48`、原部署 DLL 與原守門保留，不部署、不修改伺服器、不繞過驗證。已見 4.8 核心檔案，不把失敗歸因為未安裝 .NET 4.8；net462 能否註冊仍未證實。上述事件已由 Codex 查看並記錄，不需要使用者重找。試做尚未執行，結果將同步本文件及[供 Claude 複核的調查報告](./P0-13_部署失敗調查報告_供Claude複核.md)。
 
 兩個相同的數字碼沒有指出失敗的是哪一項建立操作，也不能證明沒有部分寫入。後續若需重試，先重新 plan 並審核目前狀態，不重用失敗的 plan，也不要在 apply 後重新以「最新目錄」改寫 `$plan`。
+
+**途中提交（2026-11-04）：** 使用者手動提交 `714465fd` 已核對並保留；清單的唯一差異為 goodshepherdback 從 false 改為 true，產品程式未變更，其餘為已驗證的診斷任務／文件與審查紀錄。清單 true 已在 HEAD；第 6 步須另以新提交保存 false，不能再假設改回 false 後工作目錄會自動乾淨。不改寫原提交，目前尚未執行停用收尾。
 
 **紀錄原則（使用者 2026-11-04 要求）：** 每有修正、完成事項或新阻礙，都同步更新本文件的目前進度、對應步驟與文末結果表；離線測試通過不等於實機驗收通過。
 
@@ -170,7 +174,7 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 
 **使用者執行結果（2026-11-04）：** 首次 apply 只有固定失敗摘要；數字診斷補修後，第二份 plan 的 apply 仍失敗，實際回報為 `Dataverse fault code[0]: 0x80040216`、`Dataverse fault code[1]: 0x80040216`，以及 ``Command failed (FaultException`1). Sensitive details are not shown.``。這兩個是本次實際代碼，不是範例。不能據此判定為權限、框架或其他特定原因，也不能排除部分寫入。verify 尚未執行；暫不進入 smoke。診斷只輸出最多四個八位十六進位數字碼，不輸出原始訊息、追蹤全文或秘密；本機驗證見下方。這只補足診斷，尚未修復或驗證伺服器端拒絕原因。
 
-**錯誤碼判讀與下一項證據：** Microsoft 官方將 `0x80040216`（`-2147220970`）列為 `UnExpected`，訊息為「An unexpected error occurred.」；這是通用錯誤，仍需伺服器端的具體錯誤紀錄。先依 §0.3 確認使用者可否登入 D365 伺服器桌面，再引導查看既有紀錄；不預先要求開啟額外追蹤或修改登錄。原始日誌可能包含機密或個資，不整份貼出或加入 repo。依據：[Microsoft：Web service error codes](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/web-service-error-codes)、[地端伺服器監控與疑難排解](https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/deploy/monitor-and-troubleshoot-dynamics-365?view=op-9-1)。
+**錯誤碼判讀與已取得的證據：** Microsoft 官方將 `0x80040216`（`-2147220970`）列為 `UnExpected`，屬通用錯誤；§0.3 已補入伺服器事件的時間、代碼、例外型別、驗證方法與元件版本，只記錄必要診斷，不保存事件全文、機器識別值或資料內容。目前官方地端文件已列出 Plugin 可用 4.6.2～4.8，但未在該段指定所需伺服器更新版本，不能據此斷言現場的 `9.1.49.21825` 必定接受 net48。依據：[Microsoft：Web service error codes](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/web-service-error-codes)、[地端 Plugin 與 .NET Framework 支援](https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/visual-studio-dot-net-framework?view=op-9-1)、[D21 原定目標](../00_總覽與執行規則.md)。
 
 **診斷補修的本機驗證（2026-11-04，Codex 離線執行）：**
 
@@ -179,7 +183,7 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 - 本次補修另經自癒入口分析與審查；兩次皆為 `reviewMode=dual`、`dualModelComplete=true`、`quotaBlocked=false`，沒有未處理的 Critical／High。這是本次補修的新審查，不冒稱由先前階段 0 審查涵蓋。
 - 本機證據位於 `artifacts/p013-apply-fault-tests/`；全方案各測試組的完整摘要保留於 `validation/release-test.log`。這些結果不等於 apply、verify 或 smoke 已通過。
 
-**目前先不重試：** 先取得伺服器端的具體診斷，再決定修法。後續若經判定需要新一輪 plan／apply，失敗時仍只回報數字行與固定失敗摘要，不貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。
+**目前先不重試：** 已取得目標框架驗證器的具體故障位置；使用者已核定先離線試做 net462，正式採用與部署尚未核定，先完成隔離候選的測試與檢查。後續若核定部署，必須重新 plan／審核。失敗時仍只回報數字行與固定失敗摘要，不貼 Exception.log 全文、追蹤全文、帳密或任何設定內容。
 
 **不對時怎麼辦：** 連線、權限、簽章或沙箱錯誤就停下回報並做第 6 步，不改回手動註冊。trace 的 verify=1 或 3 都未通過，不能略過。
 
@@ -232,7 +236,7 @@ dotnet run -c Release --no-build --project .\SpeechMessage.Dynamics.Deployment -
 git status --short -- .\d365\registration\plugins.registration.json
 ```
 
-預期沒有輸出，表示此檔沒有已暫存或未暫存的未提交變更。若有輸出，先核對清單是否確實恢復原設定；不要為了消除輸出而提交 true 的版本，也不要覆寫不屬於本次驗收的修改。
+預期沒有輸出，表示此檔沒有已暫存或未暫存的未提交變更。**本次例外：** 使用者的 `714465fd` 已提交 true，因此改回 false 時會先出現修改；完成伺服器停用與收尾 verify=0 後，須核對只有本次預期的 false 修改，再以**新提交**保存 false，最後重跑這項檢查。保留原提交與歷史，不為消除輸出而還原成 true，也不覆寫其他修改。
 
 **預期看到什麼：**
 
@@ -249,7 +253,7 @@ git status --short -- .\d365\registration\plugins.registration.json
 | 第 0 步前置與準備 | 使用者已回報舊步驟／流程停用、3 筆作業取消、金鑰存在及 User Secrets 儲存；舊 token 與會友 LINE ID 核定保留，免除本次清理前置 |
 | 建置與打包檢查 | 已由使用者執行通過；Deployment 有 1 個 CS1572 警告，詳第 2 步 |
 | Plugin 追蹤設定 | 使用者已設為全部並儲存；收尾復原尚未完成 |
-| 一輪 plan／apply／verify=0 | 第二份 plan 已審核並執行 apply，仍失敗：fault code[0]、[1] 均為 `0x80040216`；根因未明，待確認伺服器診斷方式，verify 未執行 |
+| 一輪 plan／apply／verify=0 | 第二份 plan 的 apply 仍失敗：兩層 `0x80040216`；Codex 經使用者核定查得事件 18176，故障位於目標框架驗證器；伺服器元件 `9.1.49.21825`、核心檔案 `4.8.4795.0`；net462 離線試做已核定，正式採用與部署未核定，verify 未執行 |
 | trace smoke 與五項人工追蹤 | 未驗證 |
 | 停用、收尾 verify=0、追蹤復原及資料清除 | 未驗證 |
 

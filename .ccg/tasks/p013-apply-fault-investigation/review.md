@@ -2,7 +2,7 @@
 
 ## 範圍及尚未完成事項
 
-此補修僅新增安全數字碼以診斷使用者的 apply 失敗。真正的 SDK 伺服器拒絕原因尚未知；不得將本機綠燈標為 P0-13 或階段 0 完成。後續由使用者重新 plan、審核再 apply。Codex 未連線 D365／LINE，未讀取機密或其他 worktree；使用者的清單 true 變更保留但不得提交。
+此補修僅新增安全數字碼以診斷使用者的 apply 失敗。真正的 SDK 伺服器拒絕原因尚未知；不得將本機綠燈標為 P0-13 或階段 0 完成。後續由使用者重新 plan、審核再 apply。Codex 未連線 D365／LINE，未讀取機密或其他 worktree；使用者手動提交 `714465fd` 的清單 true 變更已核對保留；驗收收尾須另以新提交保存 false，不改寫歷史。
 
 ## TDD 與本機 00 §8
 
@@ -35,3 +35,17 @@ Claude 的兩項 Info：
 2. 文件範例碼不可當成實際伺服器代碼；文件已明確標註，取得使用者新輸出後再同步更新。
 
 原始分析／審查產物留存於上述 runId 對應的 .ccg/dual-model-runs/ 本機目錄；本摘要不含帳密、token、金鑰或授權內容。
+
+## 伺服器診斷紀錄審查（2026-11-04）
+
+- 自癒入口 runId=`20261104-144816-p013-server-event-record-reviewer`；reviewMode=dual、dualModelComplete=true、quotaBlocked=false、degradedFallback=false。
+- 已完整讀取 Gemini 與 Claude 的輸出，兩方均無 Critical／High。Gemini 的 Info/Medium 提醒保留 D21 核定邊界，已遵守。
+- Claude Medium 指出 GUI 導覽與篩選細節超出審查提示列舉的七項事實；Low 指出未記錄識別值／未複製 DLL 的自述不在給定事實內。這些不構成產品缺陷；為縮小紀錄至已列舉證據，文件改為只列 GUI 觀察到的事件與檔案版本，刪除上述多餘敘述。
+- 審查後另作兩項事實補充：唯讀查看伺服器 mscorlib.dll 詳細資料，檔案／產品版本為 4.8.4795.0；核對使用者手動提交 714465fd 並修正清單收尾條件。這兩項不宣稱已由前述審查涵蓋。
+- 本次僅改驗收文件與既有任務紀錄；未重跑產品測試或全方案 §8，前節測試數字屬前次診斷補修。P0-13 仍未通過，尚未執行 verify、smoke 或停用收尾。
+
+### 最終紀錄複審與本機檢查
+
+- runId=`20261104-150013-p013-server-evidence-final-reviewer`；reviewMode=dual、dualModelComplete=true、quotaBlocked=false、degradedFallback=false。已讀取兩方完整輸出，均無 Critical／High；Gemini 無 Warning，Info 提醒遵守 false 的新提交收尾條件。
+- Claude Medium 指官方頁面 HTTP 狀態與修訂日期不在本輪提示的已確認事實內。這兩項對故障定位沒有必要，已從 analysis.md 刪除，保留來源頁面連結與支援範圍限制。Low 提醒須將「不再請使用者重找事件」明確連回已記錄證據，已補明。
+- 本次四份文件的 strict UTF-8 無 BOM、CRLF／final CRLF、任務 JSON 欄位檢查通過。清單內容與 HEAD 相同，未修改 true；核對內容時統一 Git 與工作目錄的換行表示，未改檔。Changed 編碼守門（Base 73b6e6cf）：checked=499、excluded=284、filesWithIssues=0；git diff --check 通過。

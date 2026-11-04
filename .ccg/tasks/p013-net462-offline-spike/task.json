@@ -1,0 +1,21 @@
+{
+  "id": "p013-net462-offline-spike",
+  "title": "P0-13 經核定的 net462 離線相容試做與 Claude 查核報告",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "隔離試驗已完成，正式改版由 p013-net462-migration 接續；原核定已被取代",
+  "createdAt": "2026-11-04",
+  "branch": "1.0.0.11.Integration.P0",
+  "authorization": "使用者同意先離線試做 .NET 4.6.2 相容版本；未核定正式改用 net462 或部署",
+  "constraints": [
+    "沿用既有 Trellis 任務，不新建 Trellis 任務",
+    "產品專案與原 net48 DLL 保留；只在隔離副本試做",
+    "不連線 D365／LINE、不重試 plan／apply／verify／smoke",
+    "正式金鑰僅供既有打包工具經程序環境變數使用，不讀取／複製／輸出金鑰內容",
+    "不讀取帳密、User Secrets、token、授權檔；不推送、不合併、不改寫歷史",
+    "驗收步驟與供 Claude 查核報告同步；離線成功不等於註冊成功"
+  ]
+}

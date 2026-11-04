@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using Xunit;
 
@@ -13,6 +14,19 @@ namespace SpeechMessage.Localization.Tests;
 /// </summary>
 public sealed class SystemTextCatalogTests
 {
+    /// <summary>
+    /// 保護 Plugin 取得的 Localization 專案輸出為 net462，而非舊 net48 或僅適用主機的 net10。
+    /// 讀取實際載入組件上的 TargetFrameworkAttribute，避免建置設定與引用資產不一致時誤報通過。
+    /// </summary>
+    [Fact(DisplayName = "Localization 專案參考選取 Framework 4.6.2 輸出")]
+    public void Assembly_TargetFramework_IsNet462()
+    {
+        var attribute = typeof(SystemTextTable).Assembly.GetCustomAttributes(typeof(TargetFrameworkAttribute), false)
+            .Cast<TargetFrameworkAttribute>().Single();
+
+        Assert.Equal(".NETFramework,Version=v4.6.2", attribute.FrameworkName);
+    }
+
     /// <summary>六個固定資源都須由真實生成表返回原文，包含 P0-10 診斷鍵，不可以替身字典略過產生器。</summary>
     /// <param name="key">resx 的穩定鍵。</param>
     /// <param name="expected">核定的原始繁中文字串。</param>
