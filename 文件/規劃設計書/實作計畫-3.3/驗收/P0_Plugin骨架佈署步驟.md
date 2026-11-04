@@ -119,7 +119,7 @@ JSON 中的反斜線必須寫**兩條** `\\`，解析後才是一條；只寫一
 
 詳見[部署失敗調查報告](P0-13_部署失敗調查報告_供Claude複核.md)、主任務的 P0-13 回報及去識別化驗收證據。原始 export、追蹤全文、User Secrets、金鑰與授權內容均不進回報或版控。
 
-**完成判定：** 最小 P0-13 實機驗收通過；搭配既有完整 00 §8、階段審查無未處理 Critical／High，及使用者已接受的 GitHub CI 過渡範圍，階段 0 為 18／18 完成。本次未建立 P1 分支，未開始階段 1。
+**完成判定：** 最小 P0-13 實機驗收通過；搭配既有完整 00 §8、階段審查無未處理 Critical／High，及使用者已接受的 GitHub CI 過渡範圍，階段 0 為 18／18 工作包完成。額外的本輪收尾文件審查逾時、無可用輸出，已備妥審查包；任務暫留 review，取得結果後才正式封存。本次未建立 P1 分支，未開始階段 1。
 
 ## 1. 開啟 Plugin 追蹤
 
@@ -293,4 +293,9 @@ git status --short -- .\d365\registration\plugins.registration.json
 來源：[LINE 官方重試說明](https://developers.line.biz/en/docs/messaging-api/retrying-api-request/)。
 
 GitHub CI 的 23／26 專案過渡範圍已由使用者 2026-11-04 接受；DevExpress 來源在階段 1 開始後優先處理，本機 §8 仍驗證全方案。
-**P0-13 與階段 0 已完成。使用者先回報啟用註冊 verify=0；Codex 依最新全權授權完成 smoke、五項追蹤、停用與清理。本次未建立 P1 分支、未執行 LINE 推播、未推送、未合併或改寫歷史。**
+**P0-13 實機驗收已完成，階段 0 工作包為 18／18。使用者先回報啟用註冊 verify=0；Codex 依最新全權授權完成 smoke、五項追蹤、停用與清理。本次未建立 P1 分支、未執行 LINE 推播、未推送、未合併或改寫歷史。**
+
+
+### 本輪收尾文件審查待續
+
+2026-11-04 透過同一自癒入口呼叫本輪補充審查，結果逾時且沒有可用輸出（exitCode=124、timedOut=true）。reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=false；不能當成配額降級、雙模型或已通過的審查。依逾時規則保存審查包後停止，不再新增線上操作。既有產品審查結果保留，本輪只改清單停用值、文件及任務紀錄；任務保留 review，尚未正式封存。完整輸入與摘要見 `.ccg/dual-model-runs/20261104-204858-p013-live-acceptance-closeout-reviewer/`，不含原始追蹤或秘密內容。

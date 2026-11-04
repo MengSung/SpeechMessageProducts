@@ -92,5 +92,27 @@
     "phase1Started": false,
     "githubCiSuccessClaimed": false
   },
-  "dataPolicy": "只保存固定結果、計數與版本；不保存原始追蹤、export、record ID、帳密、金鑰、授權或會友個資。"
+  "dataPolicy": "只保存固定結果、計數與版本；不保存原始追蹤、export、record ID、帳密、金鑰、授權或會友個資。",
+  "closeoutReview": {
+    "runId": "20261104-204858-p013-live-acceptance-closeout-reviewer",
+    "ok": false,
+    "reviewMode": "claude-only",
+    "dualModelComplete": false,
+    "quotaBlocked": false,
+    "degradedFallback": false,
+    "exitCode": 124,
+    "timedOut": true,
+    "producedOutput": false,
+    "findingsAvailable": false,
+    "gate": "本輪額外收尾文件審查；不代表原產品審查失敗，也不冒稱本輪已通過。"
+  },
+  "formalArchivePending": true,
+  "documentValidation": {
+    "progressTestsPassed": 3,
+    "dataOnlyChange": true,
+    "powerShellBlocksParsed": 9,
+    "encodingFilesChecked": 530,
+    "encodingIssues": 0,
+    "finalDisabledVerifyExitCode": 0
+  }
 }

@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-13 net462 實機註冊、smoke、五項追蹤與停用清理全部通過，階段 0 完成；本次依使用者全權授權由 Codex 自動收尾。",
+  "description": "P0-13 net462 實機驗收與停用清理全部通過，18／18 工作包完成；額外收尾文件 ClaudeOnly 審查逾時，任務保留 review 待續。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -25,12 +25,12 @@
   "meta": {
     "currentWorkPackage": "P0-13",
     "userRequestedStop": false,
-    "gatePassed": true,
+    "gatePassed": false,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-13.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
-    "reviewPending": false,
-    "waitingFor": null,
+    "reviewPending": true,
+    "waitingFor": "本輪收尾文件 ClaudeOnly 審查逾時，已備包；實機驗收已通過，等待審查結果才正式封存。",
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -90,7 +90,8 @@
       "dd3b75ed",
       "714465fd",
       "160553b9",
-      "d3c2f4c3"
+      "d3c2f4c3",
+      "39e58b30"
     ],
     "characterizationVerified": true,
     "net462Migration": {
@@ -107,8 +108,8 @@
   },
   "currentPhase": "review",
   "currentWorkPackage": "P0-13",
-  "nextAction": "核對驗收文件、進度 DATA 與本次獨立審查後提交並封存；不開 P1。",
-  "stopReason": null,
+  "nextAction": "本次實機驗收全部完成；本輪收尾文件外審逾時且無輸出，依規則備包停止，保留 review；不開 P1。",
+  "stopReason": "本次實機驗收全部完成；本輪收尾文件外審逾時且無輸出，依規則備包停止，保留 review；不開 P1。",
   "stageReview": {
     "mode": "claude-only",
     "state": "passed",
@@ -183,7 +184,7 @@
     "fileVersionTraceAvailable": false,
     "sameEventRetryVerified": false,
     "cleanupReported": true,
-    "stage0Completed": true,
+    "stage0Completed": false,
     "smallGroupArchiveCommit": "53df63f3",
     "scopeApproval": "使用者 2026-11-04 核定最小驗收；FileVersion 追蹤移至階段 5，實機重送改用單元測試與 LINE 官方重試契約。",
     "ciTransitionAccepted": true,
@@ -214,7 +215,21 @@
     "remainingSmokeTasks": 0,
     "oldLineDataCleared": false,
     "evidence": "wp-evidence/P0-13-live-acceptance.json",
-    "completedAt": "2026-11-04T12:41:18.2820756+00:00"
+    "completedAt": "2026-11-04T12:41:18.2820756+00:00",
+    "workPackagesCompleted": 18,
+    "closeoutReview": {
+      "runId": "20261104-204858-p013-live-acceptance-closeout-reviewer",
+      "ok": false,
+      "reviewMode": "claude-only",
+      "dualModelComplete": false,
+      "quotaBlocked": false,
+      "degradedFallback": false,
+      "exitCode": 124,
+      "timedOut": true,
+      "producedOutput": false,
+      "findingsAvailable": false,
+      "gate": "本輪額外收尾文件審查；不代表原產品審查失敗，也不冒稱本輪已通過。"
+    }
   },
   "futureWork": [
     {

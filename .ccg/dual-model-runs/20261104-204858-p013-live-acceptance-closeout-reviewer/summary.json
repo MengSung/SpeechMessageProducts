@@ -1,0 +1,70 @@
+{
+    "runId":  "20261104-204858-p013-live-acceptance-closeout-reviewer",
+    "role":  "reviewer",
+    "requestedBackends":  [
+                              "claude"
+                          ],
+    "claudeOnly":  true,
+    "reviewMode":  "claude-only",
+    "dualModelComplete":  false,
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree",
+    "taskFile":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\.ccg\\dual-model-runs\\p013-live-acceptance-closeout-reviewer.md",
+    "runDirectory":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\.\\.ccg\\dual-model-runs\\20261104-204858-p013-live-acceptance-closeout-reviewer",
+    "wrapperPath":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+    "toolchainEnvironment":  {
+                                 "ToolPathEntries":  [
+                                                         "C:\\Users\\Administrator\\AppData\\Roaming\\npm",
+                                                         "C:\\Users\\Administrator\\.claude\\bin",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\Scripts",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Launcher"
+                                                     ],
+                                 "ChangedProcessPath":  false,
+                                 "ChangedUserPath":  false,
+                                 "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                                 "CODEAGENT_LITE_MODE":  "true",
+                                 "PYTHONIOENCODING":  "utf-8",
+                                 "CLAUDE_MODEL":  "sonnet",
+                                 "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-28276-fc5f537db8dd4862862cc1dffc5741a3\\claude.cmd",
+                                 "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-28276-fc5f537db8dd4862862cc1dffc5741a3",
+                                 "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                             },
+    "healthBackendSmoke":  false,
+    "attempts":  [
+                     {
+                         "attempt":  1,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\.\\.ccg\\dual-model-runs\\20261104-204858-p013-live-acceptance-closeout-reviewer\\health-attempt-1.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  false,
+                                              "exitCode":  124,
+                                              "timedOut":  true,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "timeout",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  "[codeagent-wrapper]   Backend: claude   Command: claude -p --dangerously-skip-permissions --setting-sources  --output-format stream-json --verbose -   PID: 41600   Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-41600.log   Session-ID: d09e4c8f-c045-41f3-834e-2466c630aa01",
+                                              "probeDiagnostic":  "CLAUDE_DIRECT_QUOTA_PROBE_OK",
+                                              "probe":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\.\\.ccg\\dual-model-runs\\20261104-204858-p013-live-acceptance-closeout-reviewer\\claude-probe-attempt-1.stdout.md",
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\.\\.ccg\\dual-model-runs\\20261104-204858-p013-live-acceptance-closeout-reviewer\\claude-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\.\\.ccg\\dual-model-runs\\20261104-204858-p013-live-acceptance-closeout-reviewer\\claude-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P0.Worktree\\.\\.ccg\\dual-model-runs\\20261104-204858-p013-live-acceptance-closeout-reviewer\\claude-reviewer-attempt-1.stderr.md"
+                                          }
+                                      ]
+                     }
+                 ],
+    "ok":  false,
+    "degradedFallback":  false,
+    "fallbackAccepted":  false,
+    "quotaBlocked":  false,
+    "completedBackends":  [
+
+                          ],
+    "failedBackends":  [
+                           "claude"
+                       ]
+}
