@@ -23,7 +23,7 @@ public sealed class LinePushRequest
             if (character is not (>= '0' and <= '9') and not (>= 'a' and <= 'f'))
                 throw new ArgumentException("A valid single-recipient identifier is required.", nameof(userId));
         }
-#if NET48
+#if NETFRAMEWORK
         if (messages is null) throw new ArgumentNullException(nameof(messages));
 #else
         ArgumentNullException.ThrowIfNull(messages);

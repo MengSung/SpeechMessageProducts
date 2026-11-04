@@ -115,6 +115,12 @@ PluginAssemblyServiceInternal.ValidateAssemblyMetadata
 
 使用者手動提交 714465fd 已保留；其中清單 true 已在 HEAD。驗收結束須另以新提交保存 false，不能改寫該提交。所有後續變更都要同步原驗收步驟文件。
 
-## 8. 離線試做結果
+## 8. net462 正式遷移與離線驗證
 
-待執行；完成後更新本節。原有本機綠燈、文件審查結果及部署失敗紀錄，不是本次 net462 成功的證據。
+**使用者核定（2026-11-04）：** 依 D21 退路正式採用 .NET Framework 4.6.2，而非只做隔離試做。Plugin 目標改為 `net462`；LineMessagingProcessor.Core 與 SpeechMessage.Localization 改為 `net462;net10.0`；測試執行器可維持 `net48`，但必須驗證引用的是 `net462` 產品輸出。日後會部署到 D365 沙箱的 Plugin／Workflow 一律以 `net462` 為目標。這項核定取代先前 §5「只在隔離副本試做、正式目標仍為 net48」的限制。
+
+**根因狀態：** 事件 18176 位於 `TargetFrameworkVersionValidator.ValidateInternal()`，使 net48 組件框架不相容成為高度可信假設；尚未證實伺服器接受 net462。現場 `Microsoft.Crm.ObjectModel.dll` 檔案版本 `9.1.49.21825` 與 `mscorlib.dll` 檔案版本 `4.8.4795.0` 都保留為觀察證據，不代表特定更新已提供 4.8 Plugin 沙箱支援。smoke 的 `FrameworkFileVersion=4.8.x` 驗證的是伺服器載入的 mscorlib 執行環境，與 Plugin 組件宣告的 net462 目標不同。
+
+**離線驗證狀態：** 本次遷移的 restore、net462 套件 compile/runtime 資產盤點、四個合併輸入的框架中繼資料、條件編譯、測試、簽章打包及完整 00 §8 驗證尚待完成；在結果產生前不得引用先前 net48 的綠燈作為遷移成功證據。任何 `.NET Standard` facade（包含 `System.Runtime`）都不得加入 Plugin 合併輸入；若套件資產落在 `netstandard2.0`，須逐項說明其解析與執行需求。
+
+**實機驗證狀態：** Codex 不執行 D365／LINE 操作。離線驗證與審查完成後，由使用者以新 net462 DLL 重新建置、重新 plan 並審核，再依序 apply、verify=0、smoke 和停用收尾。舊 net48 plan 綁定舊組件雜湊，不得重用；新 plan 預期仍只有 CreateAssembly／CreateType／CreateStep。直到使用者回報註冊、trace smoke 與收尾成功，不能宣稱 net462 被伺服器接受或 P0-13 完成。

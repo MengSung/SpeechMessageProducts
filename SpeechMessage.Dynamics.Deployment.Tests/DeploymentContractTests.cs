@@ -1031,11 +1031,11 @@ internal sealed class Fixture : IDisposable
         ["name"] = Image.Name, ["version"] = version, ["publickeytoken"] = token, ["content"] = Image.Content,
         ["isolationmode"] = new OptionSetValue(2), ["sourcetype"] = new OptionSetValue(0)
     });
-    /// <summary>離線產生沒有金鑰的最小 net48 樣本，僅供 MetadataReader 測試。</summary>
+    /// <summary>離線產生沒有金鑰的最小 net462 樣本，僅供 MetadataReader 測試。</summary>
     /// <param name="extra">是否注入未註冊型別。</param><returns>不載入執行的 PE 路徑。</returns>
     public string Emit(bool extra = false)
     {
-        var source = "[assembly:System.Runtime.Versioning.TargetFramework(\".NETFramework,Version=v4.8\")] " +
+        var source = "[assembly:System.Runtime.Versioning.TargetFramework(\".NETFramework,Version=v4.6.2\")] " +
             "namespace Microsoft.Xrm.Sdk { public interface IPlugin { } } namespace SpeechMessage.Dynamics.Plugins { public abstract class PluginShellBase : Microsoft.Xrm.Sdk.IPlugin { } } " +
             "namespace SpeechMessage.Dynamics.Plugins.Diagnostics { public sealed class DiagnosticsPingPlugin : SpeechMessage.Dynamics.Plugins.PluginShellBase { } " +
             (extra ? "public sealed class UnregisteredPlugin : Microsoft.Xrm.Sdk.IPlugin { }" : "") + " }";

@@ -15,7 +15,7 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
-    <!-- 只用 net48 參考編譯器產生惰性測試 PE，不參考或執行正式 Plugin。 -->
-    <Content Include="$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.net48/1.0.3/build/.NETFramework/v4.8/mscorlib.dll" Link="Framework/mscorlib.dll" CopyToOutputDirectory="PreserveNewest" />
+    <!-- 只用 net462 參考編譯器產生惰性測試 PE，不參考或執行正式 Plugin。 -->
+    <Content Include="$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.net462/1.0.3/build/.NETFramework/v4.6.2/mscorlib.dll" Link="Framework/mscorlib.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

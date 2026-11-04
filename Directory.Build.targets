@@ -45,9 +45,9 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)build/Plugin/BannedSymbols.txt" />
   </ItemGroup>
 
-  <!-- 補丁只補 net48 缺少的編譯器中繼資料，不在 net10 重複宣告框架型別。
+  <!-- 補丁只補 .NET Framework 缺少的編譯器中繼資料，不在 net10 重複宣告框架型別。
        使用連結檔確保所有雙目標程式庫共用一份定義，不建立額外狀態或組件相依。 -->
-  <ItemGroup Condition="'$(SpeechMessageStrictCode)' == 'true' And '$(TargetFramework)' == 'net48'">
+  <ItemGroup Condition="'$(SpeechMessageStrictCode)' == 'true' And ('$(TargetFramework)' == 'net48' Or '$(TargetFramework)' == 'net462')">
     <Compile Include="$(MSBuildThisFileDirectory)src-shared/Polyfills/IsExternalInit.cs" Link="Polyfills/IsExternalInit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src-shared/Polyfills/NotNullWhenAttribute.cs" Link="Polyfills/NotNullWhenAttribute.cs" />
   </ItemGroup>

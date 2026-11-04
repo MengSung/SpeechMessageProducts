@@ -56,15 +56,22 @@ minutes and deletes the task in finally. Caller cancellation is not notified.
 ## Offline verification
 
 Keep all original 17 test methods and every subsequently added case; 17 is the original contract list, not the current suite total. L1 uses operation-local in-memory SDK services;
-L2 emits an unsigned net48 PE into the test's unique temporary folder and reads
-metadata without Assembly.Load. Dispose readers, timers, locks and temp fixtures.
+L2 emits an unsigned net462 PE into the test's unique temporary folder and reads
+metadata without Assembly.Load. A test runner may itself target net48, but the
+generated deployment fixture must exercise the net462 Plugin metadata contract.
+Dispose readers, timers, locks and temp fixtures.
 CI includes the Deployment project and a separate >=80% coverage report.
 Actual WCF/WS-Trust connectivity and D365 sandbox behavior remain P0-13 user
 acceptance, not a claim made by the offline suite.
 
 ## Minimal P0-13 acceptance (user approved 2026-11-04)
 
-P0-13 is user-operated trace-only sandbox acceptance. Only OrganizationUrl,
+P0-13 is user-operated trace-only sandbox acceptance. The Plugin deployment
+assembly targets .NET Framework 4.6.2 per the user's 2026-11-04 D21
+authorization; successful registration on the target D365 host remains to be
+confirmed by the user. The smoke field `FrameworkFileVersion=4.8.x` describes
+the server's loaded `mscorlib` runtime file, not the Plugin target framework.
+Only OrganizationUrl,
 Username and Password under the Deployment organization User Secrets are needed;
 no test LINE identity or token is required. Plugins and Deployment have no direct
 or transitive ImageSharp dependency, so these project builds need no Six Labors

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net48;net10.0</TargetFrameworks>
+    <TargetFrameworks>net462;net10.0</TargetFrameworks>
     <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
     <!-- SDK 在 targets 之前決定 XML 文件輸出；嚴格開關與文件開關必須同在專案本體。 -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -10,7 +10,7 @@
     <InternalsVisibleTo Include="LineMessagingProcessor.Tests" />
     <InternalsVisibleTo Include="SpeechMessage.Dynamics.Plugins.Tests" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>

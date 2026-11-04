@@ -12,7 +12,7 @@ namespace LineMessagingProcessor.Core;
 
 /// <summary>
 /// 固定 LINE push 端點的單次傳輸實作，沒有重試佇列、背景工作或管理者 notifier。
-/// net48 的程序級共用 HttpClient 不含使用者狀態，net10 的 HttpClient 由主機擁有；
+/// .NET Framework 的程序級共用 HttpClient 不含使用者狀態，net10 的 HttpClient 由主機擁有；
 /// 每個操作獨佔 HTTP 訊息、十秒逾時與取消連結，結束前按 using 次序釋放。
 /// </summary>
 public sealed class LinePushClient : ILinePushClient
@@ -24,7 +24,7 @@ public sealed class LinePushClient : ILinePushClient
     /// <summary>固定十秒的 Core 內部期限，不讓未驗證輸入延長資源生命週期。</summary>
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
 
-#if NET48
+#if NETFRAMEWORK
     /// <summary>
     /// 沙箱 AppDomain／程序是此唯一客戶端與連線池的 owner，卸載時一併回收。
     /// 它不使用 Cookie、預設認證或自動轉址，沒有 per-user 狀態；每個傳輸取消與內容另有 using owner。
@@ -37,7 +37,7 @@ public sealed class LinePushClient : ILinePushClient
 
     /// <summary>連線由呼叫端擁有；必須使用無 Cookie、無預設憑證且不自動轉址的管線。</summary>
     /// <param name="httpClient">可重用且無教會／使用者狀態的客戶端；Core 不 Dispose 它。</param>
-#if NET48
+#if NETFRAMEWORK
     internal LinePushClient(HttpClient httpClient) : this(httpClient, StartTimeout) { }
 #else
     public LinePushClient(HttpClient httpClient) : this(httpClient, StartTimeout) { }
@@ -59,7 +59,7 @@ public sealed class LinePushClient : ILinePushClient
     /// <returns>不持有 request／response／credential 的結果。</returns>
     public async Task<LinePushResult> PushAsync(LineChannelCredential credential, LinePushRequest request, CancellationToken ct)
     {
-#if NET48
+#if NETFRAMEWORK
         if (credential is null) throw new ArgumentNullException(nameof(credential));
         if (request is null) throw new ArgumentNullException(nameof(request));
 #else
@@ -106,7 +106,7 @@ public sealed class LinePushClient : ILinePushClient
         catch (HttpRequestException exception)
         {
             // 本層沒有收到 HTTP 回應，原始實例交給最終邊界；不能在可恢復重試階段重複告警。
-            // net48 不會像 net10 自動把同時發生的 caller 取消正規化，因此在此明確優先辨識。
+            // .NET Framework 不會像 net10 自動把同時發生的 caller 取消正規化，因此在此明確優先辨識。
             ct.ThrowIfCancellationRequested();
             return new LinePushResult(LinePushOutcome.Retryable, null, null, exception);
         }
@@ -117,8 +117,11 @@ public sealed class LinePushClient : ILinePushClient
     /// <returns>尚未與其他操作共用的新來源。</returns>
     private static CancellationTokenSource StartTimeout(TimeSpan duration) => new(duration);
 
-#if NET48
-    /// <summary>只在 AppDomain 建立一次無狀態池；TLS 依 OS／Framework 4.8 預設，不改程序全域 TLS。</summary>
+#if NETFRAMEWORK
+    /// <summary>
+    /// 只在 AppDomain 建立一次無狀態連線池，不覆寫程序級 TLS 設定。
+    /// TLS 仍受沙箱 .NET Framework 目標相容開關與作業系統設定影響；net462 的 LINE 推播須在 P2-04 前置另行驗收。
+    /// </summary>
     /// <returns>由程序擁有、沒有 Cookie 或使用者憑證的客戶端。</returns>
     private static HttpClient CreateSharedClient()
     {

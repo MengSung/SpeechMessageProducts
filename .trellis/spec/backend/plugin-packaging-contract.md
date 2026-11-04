@@ -2,8 +2,10 @@
 
 ## 1. Scope / Trigger
 
-P0-10 builds the net48 DiagnosticsPingPlugin shell and a separate deployment DLL.
-All verification is offline. No package test or build connects to D365 or LINE.
+P0-10 originally built the net48 DiagnosticsPingPlugin shell. Per the user's
+2026-11-04 D21 authorization, the deployment Plugin and every input merged into
+it now target .NET Framework 4.6.2 (`net462`). The separate deployment DLL is
+validated offline. No package test or build connects to D365 or LINE.
 
 ## 2. Signatures
 
@@ -28,6 +30,13 @@ It emits one JSON result per DLL and fails the whole run if any DLL fails.
 - Merge exactly the primary DLL, Localization, Core, and Newtonsoft.Json.
   Internalize dependencies, leave Xrm SDK external, and write only the dedicated
   `artifacts/plugins` deployment output. Never overwrite the original test DLL.
+- The primary Plugin, Localization, Core, and Newtonsoft.Json merge inputs must
+  each declare a .NET Framework target no higher than v4.6.2; the merged
+  deployment assembly must declare v4.6.2. The metadata checker reads PE
+  metadata without loading the files. Do not merge .NET Standard facades,
+  including `System.Runtime`.
+- `net48` may remain a test-host target, but tests that reference product
+  projects must resolve and verify their actual `net462` product outputs.
 - Read the formal key only from process environment
   `SPEECHMESSAGE_PLUGIN_KEYFILE`. Do not read, copy, print, or record its contents.
   Never generate a replacement formal key.
@@ -55,7 +64,8 @@ It emits one JSON result per DLL and fails the whole run if any DLL fails.
 
 | Input / condition | Required result |
 | --- | --- |
-| Signed net48 public DiagnosticsPingPlugin, allowed references, under 16 MiB | JSON ok=true, exit 0 |
+| Signed net462 public DiagnosticsPingPlugin, allowed references, under 16 MiB | JSON ok=true, exit 0 |
+| Signed net48 public DiagnosticsPingPlugin | targetFramework=false, exit 1 |
 | No public key/token or no StrongNameSigned flag | strongName=false, exit 1 |
 | Wrong/missing TargetFrameworkAttribute | targetFramework=false, exit 1 |
 | Reference outside mscorlib, System, System.*, Xrm SDK/Proxy | allowedReferences=false, exit 1 |
@@ -81,6 +91,8 @@ Keep ordinary Debug/Release-without-key builds, opt-in missing/invalid-key
 failures, and signed/unsigned samples and independently inject framework, dependency,
 visibility, drawing, size, image and mixed-directory faults. Temporary test
 keys belong to a unique fixture, are never formal keys, and must be deleted.
+The signed positive fixture targets net462; a signed net48 fixture is a
+required negative case so the previous target cannot return unnoticed.
 The in-process helper suite must also prove immediate exclusive file reopening;
 its writer is operation-owned, avoiding global Console replacement in tests.
 

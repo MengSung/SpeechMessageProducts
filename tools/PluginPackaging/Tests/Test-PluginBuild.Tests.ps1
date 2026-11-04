@@ -16,6 +16,10 @@ $projectPath = Join-Path $repoRoot 'SpeechMessage.Dynamics.Plugins/SpeechMessage
 $checker = Join-Path $PSScriptRoot '../Test-PluginAssembly.ps1'
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $fixtureRoot = [IO.Path]::GetFullPath((Join-Path $tempRoot ('speechmessage-build-' + [Guid]::NewGuid().ToString('N'))))
+$toolProjectRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot 'tools/PluginPackaging'))
+$toolIntermediateRelativePath = Join-Path 'obj' ('p013-' + [Guid]::NewGuid().ToString('N'))
+$toolIntermediatePath = [IO.Path]::GetFullPath((Join-Path $toolProjectRoot $toolIntermediateRelativePath))
+$toolObjRoot = [IO.Path]::GetFullPath((Join-Path $toolProjectRoot 'obj'))
 $null = New-Item -ItemType Directory -Path $fixtureRoot
 $failures = 0
 try {
@@ -36,7 +40,10 @@ try {
         # 未要求打包的案例不得進入合併目標；即使沒有金鑰，也不能建立 artifacts 目錄。
         $packageArguments = @()
         if (-not $sample.EndsWith('-no-package', [StringComparison]::Ordinal)) { $packageArguments = @('-p:SpeechMessagePackagePlugin=true') }
-        $output = @(& dotnet build $projectPath -c $configuration @packageArguments --no-restore "-p:SpeechMessagePluginOutputDirectory=$outputDirectory" -p:SpeechMessageBuildNumber=37 --nologo -v minimal 2>&1)
+        $output = @(& dotnet build $projectPath -c $configuration @packageArguments --no-restore `
+            "-p:SpeechMessagePluginOutputDirectory=$outputDirectory" `
+            "-p:SpeechMessagePluginPackagingIntermediateOutputPath=$toolIntermediateRelativePath" `
+            -p:SpeechMessageBuildNumber=37 --nologo -v minimal 2>&1)
         $code = $LASTEXITCODE
         $assemblyPath = Join-Path $outputDirectory 'SpeechMessage.Dynamics.Plugins.dll'
         $text = $output -join "`n"
@@ -49,6 +56,9 @@ try {
             $passed = $code -ne 0 -and $text.Contains('SMP0001') -and -not (Test-Path -LiteralPath $assemblyPath)
         } elseif ($sample -eq 'debug-unset') {
             $passed = $code -eq 0 -and $text.Contains('SMP0002') -and (Test-Path -LiteralPath $assemblyPath)
+            # 唯一工具子建置必須在本案例的新中繼資料目錄自行 Restore，不能借用 repo 既有 obj。
+            $toolAssets = Join-Path $toolIntermediatePath 'project.assets.json'
+            $passed = $passed -and (Test-Path -LiteralPath $toolAssets)
             if ($passed) {
                 $inspection = @(& powershell -NoProfile -File $checker -AssemblyPath $assemblyPath 2>&1)
                 $inspectCode = $LASTEXITCODE
@@ -68,7 +78,14 @@ try {
             }
         }
         if ($passed) { Write-Output ('PASS ' + $sample) }
-        else { $failures++; Write-Output ('FAIL ' + $sample + ': packaging contract not satisfied') }
+        else {
+            $failures++
+            $errorCodes = [Regex]::Matches($text, '(?:NETSDK|MSB|SMP)[0-9]{4}') |
+                ForEach-Object { $_.Value } | Sort-Object -Unique
+            $codeSummary = if ($errorCodes.Count -gt 0) { ' codes=' + ($errorCodes -join ',') } else { '' }
+            Write-Output ('FAIL ' + $sample + ': packaging contract not satisfied' + $codeSummary)
+            $text -split "`r?`n" | Where-Object { $_ -match 'MSB5029' } | ForEach-Object { Write-Output $_ }
+        }
     }
 } finally {
     [Environment]::SetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE', $originalKey)
@@ -76,6 +93,18 @@ try {
     if (-not $resolvedFixture.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase) -or
         -not ([IO.Path]::GetFileName($resolvedFixture)).StartsWith('speechmessage-build-', [StringComparison]::Ordinal)) {
         throw 'Refused cleanup outside the owned build fixture directory.'
+    }
+    $toolObjPrefix = $toolObjRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    if (-not $toolIntermediatePath.StartsWith($toolObjPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+        -not ([IO.Path]::GetFileName($toolIntermediatePath)).StartsWith('p013-', [StringComparison]::Ordinal)) {
+        throw 'Refused cleanup outside the owned PluginPackaging intermediate directory.'
+    }
+    if (Test-Path -LiteralPath $toolIntermediatePath) {
+        $attributes = [IO.File]::GetAttributes($toolIntermediatePath)
+        if (($attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw 'Refused cleanup of a reparse-point PluginPackaging intermediate directory.'
+        }
+        Remove-Item -LiteralPath $toolIntermediatePath -Force -Recurse
     }
     Remove-Item -LiteralPath $resolvedFixture -Force -Recurse
 }

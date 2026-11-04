@@ -353,13 +353,13 @@ const DATA = {
   "snapshot": "2026-11-04（使用者核定 P0-13 最小驗收；等待清理與實機結果）",
   "branch": "1.0.0.11.Integration.P0",
   "worker": "實作：Codex　查核：Claude",
-  "headline": "階段 0 原審查與第 09 份 ClaudeOnly 複審已通過，無未處理 Critical／High。P0-13 已依使用者核定精簡為 <strong>trace 沙箱最小驗收</strong>；FileVersion／回復移至階段 5，推播移至 P2-04 前。GitHub CI 過渡範圍已接受，仍待<strong>清理與使用者實際驗收</strong>。",
+  "headline": "階段 0 原審查與第 09 份 ClaudeOnly 複審已通過，無未處理 Critical／High。P0-13 已依使用者核定精簡為 <strong>trace 沙箱最小驗收</strong>；FileVersion／回復移至階段 5，推播移至 P2-04 前。net48 註冊失敗後，使用者已核定依 D21 正式改用 net462；目前等待離線驗證與第 10 份審查，再由使用者重新實機驗收。",
   "alert": {
-    "title": "請完成清理，再執行 P0-13 最小驗收",
-    "body": "使用者 2026-11-04 核定：FileVersion 停止事項解除，P0 不需測試 LINE channel 或 Six Labors 授權。文件已精簡，實際驗收尚未完成。",
+    "title": "等待 net462 離線驗證，再重新執行 P0-13",
+    "body": "使用者 2026-11-04 核定依 D21 正式改用 net462，取代隔離試做。完成建置、套件／合併檢查、測試與第 10 份 ClaudeOnly 審查後，再由使用者以新組件重跑驗收；net462 是否可註冊仍未證實。",
     "steps": [
-      "回報 goodshepherdback 安全清理完成；第 0 步前置確認目前全部未勾選。",
-      "依驗收文件完成 trace 註冊、啟用、smoke 與五項追蹤確認。",
+      "等待本機 net462 驗證、完整 00 §8 與第 10 份 ClaudeOnly 審查通過。",
+      "再依更新後驗收文件重新建置、plan 並審核；舊 net48 plan 不可重用。",
       "停用測試步驟、verify=0、追蹤恢復例外狀況並確認資料清理，再回報結果。"
     ]
   },
@@ -495,7 +495,7 @@ const DATA = {
     },
     {
       "id": "P0-10",
-      "name": "骨架：Dynamics Plugins（net48）＋ILRepack＋簽章＋打包檢查",
+      "name": "骨架：Dynamics Plugins（原 net48；依 D21 改 net462）＋ILRepack＋簽章＋打包檢查",
       "status": "done",
       "note": "一般建置不讀打包金鑰；兩紅轉六綠。子程序無金鑰 Release 與正式明確打包皆通過；兩個暫存資料夾已由使用者清除。",
       "commit": "7881177a（主體 cf3595db）"
@@ -531,7 +531,7 @@ const DATA = {
       "id": "P0-13",
       "name": "使用者最小驗收：trace 沙箱註冊與清理",
       "status": "you",
-      "note": "最小驗收第 0～6 步已備妥；依 2026-11-04 核定補含網域帳號、JSON 反斜線、新視窗金鑰檢查、立即取得 plan／審核、追蹤位置及清單恢復 false。清理與實機結果仍未回報。",
+      "note": "net48 apply 失敗後，使用者 2026-11-04 核定正式改用 net462。遷移的離線建置、套件／facade 盤點、打包、完整 §8 與第 10 份 ClaudeOnly 審查待完成；完成後由使用者重新 plan／apply／verify／smoke。net462 註冊尚未實機證實。",
       "commit": "9f87187c（精簡）；本次操作文件補充，未實機驗收"
     }
   ],
@@ -1025,6 +1025,11 @@ const DATA = {
       "t": "2026-11-04",
       "cls": "ok",
       "text": "依使用者核定補齊 P0-13 帳號格式、金鑰新視窗、plan 路徑取得、追蹤位置及清單恢復檢查；smoke 約 2 秒輪詢與時鐘測試登錄階段 1 第一批，現在不改程式。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "舊 net48 組件在 D365 目標框架驗證器發生 FormatException。使用者核定正式採用 net462；伺服器註冊是否成功仍待本機驗證、複審及使用者重跑。FrameworkFileVersion=4.8.x 仍指伺服器 mscorlib，不代表 Plugin 目標。",
+      "cls": ""
     }
   ],
   "decisions": [

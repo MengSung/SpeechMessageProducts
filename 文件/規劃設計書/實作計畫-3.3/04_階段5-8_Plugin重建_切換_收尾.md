@@ -6,6 +6,8 @@
 
 # 階段 5　Plugin／Workflow 重建（36 個 DLL → 2 個）
 
+**框架核定（使用者 2026-11-04）：** 所有實際部署至 D365 沙箱的 Plugin 與 Workflow 組件一律以 `.NET Framework 4.6.2`（`net462`）為目標；`LineMessagingProcessor.Core`、`SpeechMessage.Localization` 維持 `net462;net10.0` 雙目標。測試執行器或離線舊程式 harness 可在明確標示下保留 `net48`，但不得讓 `net48` 產品組件進入部署包。goodshepherdback 曾拒絕 net48；net462 是否可註冊仍須由使用者驗收。伺服器 `mscorlib` 的 `FrameworkFileVersion=4.8.x` 是執行環境版本，不代表 Plugin 的目標框架。
+
 - **估時：** 20～27 天（國際化＋5～7 天）。
 - **目標：** 舊外掛與工作流程活動的功能，全部由 `SpeechMessage.Dynamics.Plugins`、`SpeechMessage.Dynamics.Workflows` 承接。
   - 規則全部在 `GoodShepherd.Core`；
@@ -16,7 +18,7 @@
 
 ### P5-01　外殼基礎與測試替身
 
-**`SpeechMessage.Dynamics.Plugins\Infrastructure\`**（net48；Workflows 專案以原始碼連結共用）
+**`SpeechMessage.Dynamics.Plugins\Infrastructure\`**（net462；Workflows 專案以原始碼連結共用）
 
 | 型別 | 職責 |
 |---|---|
@@ -43,7 +45,7 @@
 
 ### P5-02　舊程式黃金資料產生器 `tools\LegacyGolden\PluginHarness`
 
-- **專案設定：** net48 console，不進 .sln。
+- **專案設定：** net48 console，不進 .sln；只作離線舊程式黃金資料測試，不部署至 D365 沙箱。
 - **編譯舊原始碼：** 把舊 Plugin 原始碼以 `<Compile Include>` 編進 harness。
   - 原始碼先用 `Convert-TextEncoding.ps1` 轉成 UTF-8，放在暫存資料夾；**不修改** `.其他解決方案` 原檔；
   - 改用 `Microsoft.CrmSdk.CoreAssemblies 9.0.2` 編譯，舊程式原本用的是 Xrm.Sdk 8.2。
@@ -69,7 +71,7 @@
 
 **使用者 2026-11-04 核定：** 原 P0-13 第 8、9 步移至階段 5。先以骨架完成下列驗收，再佈署第一個正式 Plugin；現在不補改 P0 Plugin。所有連線／寫入／smoke 由使用者執行，唯一組織 goodshepherdback。
 
-1. **先補自身 FileVersion 追蹤：** 以 TDD 讓 Plugin 追蹤輸出自身組件的 FileVersion，不能拿固定 AssemblyVersion 或 mscorlib FrameworkFileVersion 代替。測試確認數值確實來自 Plugin 組件、無秘密；經該階段守門及必要審查後才交使用者驗收。
+1. **先補自身 FileVersion 追蹤：** 以 TDD 讓 Plugin 追蹤輸出自身組件的 FileVersion，不能拿固定 AssemblyVersion 或伺服器 `mscorlib` 的 FrameworkFileVersion（目前觀察為 4.8.x）代替。兩者分別是 Plugin 組件檔案版本與伺服器執行環境版本；測試確認數值確實來自 Plugin 組件、無秘密；經該階段守門及必要審查後才交使用者驗收。
 2. **保存第一版：** 清理與 trace 驗收前提仍成立；以 trace、secureConfig 空白、enabled=true 註冊骨架，verify=0、smoke trace 通過。於 repo 外保存第一版已合併 DLL 與清單，記下原步驟資料庫 ID、追蹤中的 Plugin FileVersion；不複製金鑰。
 3. **只更新 FileVersion：** AssemblyVersion 固定 `1.0.0.0`，沿用相同名稱、簽章及步驟；只遞增 SpeechMessageBuildNumber，Release 明確打包並通過 Test-PluginAssembly。plan 必須只有 UpdateAssembly，不能重建步驟。apply 前保存該次自動產生的 export.json（是本次更新的 apply 目錄，不是初次安裝前的空備份）。verify=0、smoke trace 後人工確認原步驟 ID 不變且沙箱追蹤顯示新的 Plugin FileVersion。
 4. **回復第一版：** 以 `rollback --org goodshepherdback --from <本次更新apply前的export.json>` 還原；rollback 只還原組件內容與既有步驟啟用狀態，不還原 unsecure／secure 設定或秘密，因此全程維持相同 trace 設定。將本機比較用 DLL 換回保存的第一版，再 verify=0、smoke trace，確認步驟 ID 不變及追蹤回到第一版 Plugin FileVersion。
@@ -136,14 +138,14 @@
 
 ## 5.5 Workflows 專案
 
-- **專案設定：** `SpeechMessage.Dynamics.Workflows`，net48，參考 `Microsoft.CrmSdk.Workflow`，打包、簽章、ILRepack 與 Plugins 專案相同。
+- **專案設定：** `SpeechMessage.Dynamics.Workflows`，net462，參考 `Microsoft.CrmSdk.Workflow`，打包、簽章、ILRepack 與 Plugins 專案相同。
 - **活動屬性：**
   - 每個 `CodeActivity` 的 InputArgument／OutputArgument 與舊活動同名、同型別；
   - 群組名稱「音訊科技」（WorkflowActivityGroupName）；
   - 顯示名稱寫在註冊清單 `plugins.registration.json`。
 - **改參數的規則：** 活動要改參數時，新增一個新類別（例如 `WeeklyReportGenerationActivityV2`），不改舊類別（設計 10.8 節）。
 
-**先寫的測試：** 以 `WorkflowInvoker` 執行活動（net48 可用）。
+**先寫的測試：** 以 net48 測試執行器透過 `WorkflowInvoker` 執行 net462 活動；net48 僅是測試宿主，不是部署組件目標。
 - `WorkflowInvoker` 需要的 `IWorkflowContext`、`IOrganizationServiceFactory` 以擴充提供；
 - 斷言輸入輸出參數與規則呼叫。
 

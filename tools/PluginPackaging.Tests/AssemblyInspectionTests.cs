@@ -89,6 +89,15 @@ public sealed class AssemblyInspectionTests
         using var result = JsonDocument.Parse(output.ToString());
         Assert.Equal(expected, result.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal(expected, result.RootElement.GetProperty("checks").GetProperty("targetFramework").GetBoolean());
+        var expectedFramework = target switch
+        {
+            "net462" => ".NETFramework,Version=v4.6.2",
+            "net45" => ".NETFramework,Version=v4.5",
+            "net48" => ".NETFramework,Version=v4.8",
+            "framework" => ".NETCoreApp,Version=v10.0",
+            _ => null
+        };
+        Assert.Equal(expectedFramework, result.RootElement.GetProperty("frameworkName").GetString());
         Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
     }
 

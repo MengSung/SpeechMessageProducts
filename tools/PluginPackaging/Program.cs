@@ -116,7 +116,7 @@ internal static class Program
     /// <returns>只有 PE 可讀且框架版本符合上限時回傳零。</returns>
     private static int ValidateMergeInputFramework(string path, TextWriter output)
     {
-        var valid = false;
+        string? frameworkName;
         try
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -125,7 +125,7 @@ internal static class Program
             if (!pe.HasMetadata) return Reject("InvalidImage", output);
             var metadata = pe.GetMetadataReader();
             if (!metadata.IsAssembly) return Reject("InvalidImage", output);
-            valid = IsFrameworkAtOrBelowLimit(ReadFrameworkName(metadata, metadata.GetAssemblyDefinition()));
+            frameworkName = ReadFrameworkName(metadata, metadata.GetAssemblyDefinition());
         }
         catch (Exception exception) when (exception is BadImageFormatException or IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -133,10 +133,13 @@ internal static class Program
             return Reject("InvalidImage", output);
         }
 
+        var valid = IsFrameworkAtOrBelowLimit(frameworkName);
         output.WriteLine(JsonSerializer.Serialize(new
         {
             ok = valid,
-            checks = new { targetFramework = valid }
+            checks = new { targetFramework = valid },
+            frameworkName,
+            maximumTargetFramework = ".NETFramework,Version=v4.6.2"
         }));
         return valid ? 0 : 1;
     }

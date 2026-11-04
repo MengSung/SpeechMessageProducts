@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
     <!-- 嚴格開關與 XML 文件開關必須同在專案本體，避免 SDK 載入時點造成假綠燈。 -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

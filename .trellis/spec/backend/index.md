@@ -20,10 +20,10 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [CCG Review Summary Contract](./ccg-review-summary-contract.md) | Requested-backend success, explicit review mode, dual completion and independent probe diagnostics | Established |
 | [Central Package Management](./central-package-management.md) | Actual project scope, snapshot opt-out, XML-aware version guard, and restore validation | Established |
-| [Strict Analyzer Contract](./strict-analyzer-contract.md) | Late opt-in evaluation, exact diagnostic probes, legacy isolation, and net48 polyfills | Established |
+| [Strict Analyzer Contract](./strict-analyzer-contract.md) | Late opt-in evaluation, exact diagnostic probes, legacy isolation, and .NET Framework polyfills | Established |
 | [Solution CI Contract](./solution-ci-contract.md) | Offline Windows checks, per-target coverage, optional signing and temp-key cleanup | Established |
 | [Deployment CLI Contract](./deployment-contract.md) | User Secrets-only isolated commands, metadata plans, safe diagnostics and offline verification | Established |
-| [Plugin Packaging Contract](./plugin-packaging-contract.md) | Separate four-input merge, process-environment signing, offline metadata checks and sandbox exception ownership | Established |
+| [Plugin Packaging Contract](./plugin-packaging-contract.md) | Separate four-input merge targeting .NET Framework 4.6.2, process-environment signing, offline metadata checks and sandbox exception ownership | Established |
 | [Text Encoding Contract](./text-encoding-contract.md) | Tracked-file boundaries, byte/token checks, lossless conversion, and safe output ownership | Established |
 | [Development Configuration Safety](./development-configuration-safety.md) | Development-only providers, baseline token rejection, test organization guard and Production compatibility | Established |
 | [Duplicate Source Ratchet](./duplicate-source-ratchet.md) | Solution-scoped content/type duplicates, baseline identity validation and no parent-worktree traversal | Established |
