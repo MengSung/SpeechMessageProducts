@@ -1,0 +1,103 @@
+{
+  "characterizationBefore": {
+    "passed": 3,
+    "failed": 0,
+    "path": "artifacts/p1-04-attachment-before/before.trx"
+  },
+  "safetyRedConfirmed": {
+    "passed": 2,
+    "failed": 28,
+    "path": "artifacts/p1-04-attachment-red-confirmed/red-confirmed.trx"
+  },
+  "base64AndParentRed": {
+    "passed": 1,
+    "failed": 13,
+    "path": "artifacts/p1-04-attachment-base64-red/base64-red.trx"
+  },
+  "safeBeforeMove": {
+    "passed": 50,
+    "failed": 0,
+    "path": "artifacts/p1-04-attachment-safe-before/safe-before.trx"
+  },
+  "final": {
+    "reports": 16,
+    "passed": 2272,
+    "failed": 0,
+    "skipped": 0,
+    "net48": 413,
+    "net10": 512,
+    "churchReport": 623,
+    "architecture": 67,
+    "coverageNet48": 99.48,
+    "coverageNet10": 100.0
+  },
+  "checks": {
+    "coreStrictWarnings": 0,
+    "coreStrictErrors": 0,
+    "solutionBuildWarnings": 0,
+    "tracer": 7,
+    "i18n": 108,
+    "packaging": 27,
+    "pluginMetadata": 10,
+    "pluginEphemeralBuild": 6,
+    "analyzer": 26,
+    "ciTransition": 6,
+    "packages": {
+      "projects": 34,
+      "references": 158,
+      "failures": 0
+    },
+    "duplicates": {
+      "projects": 28,
+      "files": 937,
+      "groups": 0,
+      "new": 0,
+      "stale": 0
+    },
+    "progress": 8,
+    "browserViewports": [
+      1440,
+      390,
+      320
+    ],
+    "browserPageErrors": 0,
+    "weeklyQuotaRegression": 7,
+    "ccgSummaryRegression": 6,
+    "firstSolutionBuildLegacyWarnings": 4,
+    "rebuiltLegacyTestWarnings": 17,
+    "encodingOwned": {
+      "checked": 40,
+      "issues": 0
+    },
+    "encodingFullChanged": {
+      "checked": 775,
+      "rawExcluded": 736,
+      "issues": 1,
+      "path": ".ccg/tasks/p013-apply-fault-investigation/.turns.json",
+      "issue": "MissingFinalCrlf",
+      "ownership": "Unrelated managed task metadata; left untouched and not staged"
+    }
+  },
+  "review": {
+    "analysisDualModelComplete": true,
+    "finalRun": "20261105-203320-integration-p1-04-attachment-final-review-reviewer",
+    "quotaRepairRun": "20261105-203510-integration-p1-04-weekly-quota-review-reviewer",
+    "dualModelComplete": false,
+    "quotaBlocked": true,
+    "degradedFallback": true,
+    "completed": [
+      "gemini"
+    ],
+    "blocked": [
+      "claude"
+    ],
+    "resetTaipei": "2026-11-07T16:00:00+08:00",
+    "criticalHigh": 0,
+    "remainingWarnings": [
+      "Maintain bounded transport/limits as documented",
+      "Caller must not replace ref SDK during operation as documented"
+    ],
+    "base64WarningEvidence": "512 source groups / 1536 variants; valid decode roundtrips, strict rejection of nonstandard padding in both targets"
+  },
+  "scope": "Offline SDK boundary; no VM/D365/LINE/deployment/push. P1 remains 2/12. Main task not archived."
+}

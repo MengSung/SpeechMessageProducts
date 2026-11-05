@@ -332,7 +332,7 @@ OUTPUT:
 
 function Test-QuotaBlockedText {
     param([string]$Text)
-    return ($Text -match "(?i)(you'?ve hit your session limit|you'?ve reached your .* limit|fable 5 limit|session limit|rate limit|rate_limit|quota exceeded|insufficient_quota|resource_exhausted|usage limit|http\s*429|\b429\b|insufficient balance|balance insufficient|billing account|enable billing|billing required|payment required.*(quota|balance|billing)|\u4f59\u989d\u4e0d\u8db3|\u9918\u984d\u4e0d\u8db3|\u4f59\u989d\u4e0d\u591f)")
+    return ($Text -match "(?i)(you'?ve hit your (session|weekly) limit|you'?ve reached your .* limit|fable 5 limit|session limit|rate limit|rate_limit|quota exceeded|insufficient_quota|resource_exhausted|usage limit|http\s*429|\b429\b|insufficient balance|balance insufficient|billing account|enable billing|billing required|payment required.*(quota|balance|billing)|\u4f59\u989d\u4e0d\u8db3|\u9918\u984d\u4e0d\u8db3|\u4f59\u989d\u4e0d\u591f)")
 }
 
 function Test-BackendQuotaBlocked {

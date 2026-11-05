@@ -209,3 +209,24 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - 非本執行建立的b64d3224／93377c7f已保存程式及原有兩份修改；不重寫，起始雜湊不變。後續本地提交只收本輪可分離證據／文件。
 
 - 提交前Changed encoding：747 checked／678 timestamp raw excluded／0 issues；來源及文件whitespace通過，完整diff唯一診斷為刻意保留raw health JSON檔尾空行，其原bytes另有ZIP／SHA可還原。
+
+## 2026-11-05 20:04 Attachment切片準備
+- Repository收尾證據已本地提交141c1e8e、未push。接續Attachment：已讀兩入口、既有測試與真實Facade委派，確認實際使用ref SDK而非ctor SDK；200333 CCG雙模型分析執行中，附件產品尚未修改。P1仍2/12，整包未完成。
+
+## 2026-11-05 20:24 Attachment抽取檢查點
+- Attachment原host特性3/3、安全28紅/2綠；Base64與parent補測13紅/1綠，修後搬前50/50才git mv。搬後雙宿主410/410、509/509，產品net462反射通過、strict雙目標0警告/錯誤。完整回歸、coverage與雙模型審查待完成；P1仍2/12，P1-04未驗收。
+- 初次Core strict指出CA1510/CA1512，依既有NETFRAMEWORK模式改目標專屬ThrowIf API，未新增NoWarn；首次caller fixture誤用不存在Instance已改正常new無狀態tracer。
+
+## 2026-11-05 20:38 Attachment回歸與額度診斷
+- Attachment完整方案16TRX、2272/2272，ToolUtility413/413與512/512、ChurchReport623/623、架構67/67；Core coverage99.48%/100%。203320已完成Gemini單模型降級審查；Claude週額度阻擋至2026-11-07 16:00(台北)，未宣稱雙模型。已修復自癒入口weekly誤判，離線7/7與summary6/6；1536組候選證明合法Base64可解碼且兩target同拒多餘padding。末端其他守門與保存中，P1仍2/12，整包未完成。
+- 先前BCL比較把Framework過度寬鬆decoder誤當唯一oracle，net48紅案tCo==可解碼1byte、net10拒絕；產品一直依標準拒絕，改測試明確驗合法字串還原及非法padding兩目標拒絕，沒有放寬產品、刪測試或隱藏失敗。
+- 最後00§8後誤叫不存在Test-TrxResults，保留失敗；改正式Test-TrxExecution -ReportPath後正TRX通過，沒有修改守門或測試斷言。
+
+## 2026-11-05 20:42 Attachment收尾證據
+- 16組件目標集合2272/2272、ToolUtility413/512、ChurchReport623、架構67；Core99.48%/100%、strict0/0。工具108/27、tracer7加正TRX、plugin10/6、analyzer26、CI6、package34/158/0、duplicates28/937/0均過；頁面8/8、全新無登入Edge1440/390/320無溢出或頁錯誤。頁面更新漏掉只讀及Constants/四方法歷史摘要曾被測試拒絕，已補回真實摘要，未改測試。
+- 最終附件203320、quota修復203510為Gemini單模型降級；Claude週額度、無Claude末端證據。Gemini附件2個Warning為既有有界transport與不可操作中改ref前置，非可重現新缺陷；quota修復無Warning。五輪raw ZIP/SHA、驗證摘要與來源SHA已保存evidence/attachment；正式計畫未修改、VM/D365/LINE未操作，P1仍2/12。
+- 外部產生的.ccg/tasks/p013-apply-fault-investigation/.turns.json變更未讀取內容、不混入提交；原兩份既有測試/設定hash不變。接續Activity與其餘P1-04候選，不封存主任務。
+
+## 2026-11-05 20:45 Attachment提交前範圍驗證
+- Attachment已保存完整離線2272回歸、雙宿主413/512及99.48%/100%。末端審查Claude週額度、Gemini單模型降級；完整Changed編碼只被非本切片p013任務索引缺檔尾CRLF阻擋，自有40文字0問題，保留外部索引不改、不混入提交。P1仍2/12，接續Activity及其餘候選。
+- 完整Changed775 checked/736 raw excluded/1個非本切片索引問題；以未修改repo byte-validator驗40自有文字全過，沒有弱化原守門，不宣稱完整Changed成功。

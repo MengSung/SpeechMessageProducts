@@ -1,0 +1,6 @@
+{
+  "scope": "Explicit owned paths using unchanged repository byte validator",
+  "checked": 40,
+  "issues": [],
+  "fullChangedScope": "Failed only on unrelated p013 .turns.json MissingFinalCrlf; left untouched"
+}

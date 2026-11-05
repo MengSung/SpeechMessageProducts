@@ -94,3 +94,11 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 ## 2026-11-05 19:59 Repository末輪複審
 - Repository切片完成末端再驗：16TRX2167/2167，ToolUtility363/363、457/457，ChurchReport623/623；Core coverage99.42%／100%、strict零警告／錯誤，I18nCheck verify通過／Core CJK=0。195337雙模型完整、無配額降級，前W1／W2關閉、無新增Critical／High／Warning。其餘候選未完成，P1仍2/12；接續Attachment，不封存主P1。
 - 非本執行建立的b64d3224／93377c7f已保存程式及原有兩份修改；不重寫，起始雜湊不變。後續本地提交只收本輪可分離證據／文件。
+
+
+## P1-04 Attachment與weekly quota修復（2026-11-05）
+
+分析200333完整雙模型；202614 reviewer只有Gemini，Claude exit1；202819 health診斷weekly quota，原regex漏判。兩處regex修復6/7紅→7/7綠、summary6/6，203320/203510 runner確認quotaBlocked=true/degradedFallback=true/dualModelComplete=false，只能記Gemini單模型降級。Gemini無Critical/High；附件兩Warning是有界transport及不可並行改ref前置（已寫明且建議保持現狀），quota修復無Warning，daily/monthly泛化為Info未臆增。原Base64解碼Warning以1536候選補證；Framework decoder過度寬鬆不是放行非法padding理由。完整2272、Core99.48%/100%、雙宿主413/512與其餘守門摘要見evidence/attachment/。尚無Claude末端證據，不能宣告整P1完成。
+
+
+編碼邊界：完整Changed基準73b6e6cf檢查775檔／736 raw排除，只在非本切片p013任務.turns.json報MissingFinalCrlf；保留其內容不改、不暫存。以**相同且未修改**Get-TextByteIssues驗本切片40份自有文字，0問題。不能把此局部證據宣稱完整Changed守門通過；主P1仍不具最終交付條件。來源／文件whitespace通過，timestamp raw原bytes及ZIP保留。

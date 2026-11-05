@@ -206,7 +206,7 @@ OUTPUT: one line only
         -WorkingDirectory $RepositoryPath
 
     $combined = (($result.StdOut + "`n" + $result.StdErr) -replace "`r", "")
-    $quotaBlockedPattern = "(?i)(you'?ve hit your session limit|you'?ve reached your .* limit|fable 5 limit|session limit|rate limit|rate_limit|quota exceeded|insufficient_quota|resource_exhausted|usage limit|http\s*429|\b429\b|insufficient balance|balance insufficient|billing account|enable billing|billing required|payment required.*(quota|balance|billing)|\u4f59\u989d\u4e0d\u8db3|\u9918\u984d\u4e0d\u8db3|\u4f59\u989d\u4e0d\u591f)"
+    $quotaBlockedPattern = "(?i)(you'?ve hit your (session|weekly) limit|you'?ve reached your .* limit|fable 5 limit|session limit|rate limit|rate_limit|quota exceeded|insufficient_quota|resource_exhausted|usage limit|http\s*429|\b429\b|insufficient balance|balance insufficient|billing account|enable billing|billing required|payment required.*(quota|balance|billing)|\u4f59\u989d\u4e0d\u8db3|\u9918\u984d\u4e0d\u8db3|\u4f59\u989d\u4e0d\u591f)"
     $errorCombined = (($result.StdErr) -replace "`r", "")
     $quotaBlocked = $errorCombined -match $quotaBlockedPattern
     $ok = ($result.ExitCode -eq 0 -and $combined -match [regex]::Escape($ExpectedText))

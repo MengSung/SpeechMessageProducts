@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 9
+- **Total Sessions**: 10
 - **Last Active**: 2026-11-05
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~328 | Active |
+| `journal-1.md` | ~367 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 10 | 2026-11-05 | P1-04 Attachment離線切片與Claude週額度降級檢查點（主P1未完成） | - | `1.0.0.11.Integration.P1.Worktree` |
 | 9 | 2026-11-05 | P1-04 Repository抽取與末端驗證 | `b64d3224`, `93377c7f` | `1.0.0.11.Integration.P1.Worktree` |
 | 8 | 2026-11-05 | P1-04 屬性與 SDK extension 抽取、caller補證及完整回歸 | `0169e079` | `1.0.0.11.Integration.P1.Worktree` |
 | 7 | 2026-11-05 | 階段2至8工作包登錄與頁面驗證完成 | `48964ee5`, `a5dcef04` | `1.0.0.11.Integration.P1.Worktree` |

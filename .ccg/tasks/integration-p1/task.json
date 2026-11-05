@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Repository切片完成末端再驗：16TRX2167/2167，ToolUtility363/363、457/457，ChurchReport623/623；Core coverage99.42%／100%、strict零警告／錯誤，I18nCheck verify通過／Core CJK=0。195337雙模型完整、無配額降級，前W1／W2關閉、無新增Critical／High／Warning。其餘候選未完成，P1仍2/12；接續Attachment，不封存主P1。",
+  "nextAction": "Attachment已保存完整離線2272回歸、雙宿主413/512及99.48%/100%。末端審查Claude週額度、Gemini單模型降級；完整Changed編碼只被非本切片p013任務索引缺檔尾CRLF阻擋，自有40文字0問題，保留外部索引不改、不混入提交。P1仍2/12，接續Activity及其餘候選。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",

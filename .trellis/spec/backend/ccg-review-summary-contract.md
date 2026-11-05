@@ -48,3 +48,13 @@ Phase 0 runs external review once after P0-11 and before P0-12. Between work pac
 Wrong: treat summary.ok or exit code 0 as proof that Gemini and Claude both completed.
 
 Correct: claim dual completion only when summary.dualModelComplete is true; otherwise describe the actual reviewMode or fallback state explicitly.
+
+
+## 2026-11-05 週額度診斷補充
+
+`You've hit your weekly limit` 與 session limit 同屬 provider quota，不能當作 PATH／本機工具故障反覆修復。
+runner 與 health 的 regex 必須一致；只在真實失敗／probe診斷分類，普通 weekly report 或任意 exit1 不算。
+離線回歸 `powershell -NoProfile -File docs/scripts/Tests/Test-CcgWeeklyQuota.ps1` 必須7/7，
+既有 `Test-CcgReviewSummary.ps1` 六案不變。兩者只擷取AST純函式／字串，不啟動模型或讀取憑證。
+真實自癒執行若 `quotaBlocked=true`、`degradedFallback=true`，仍 `dualModelComplete=false`，
+只能稱「Claude週額度阻擋，Gemini單模型降級」。不得把診斷修復說成提高額度、繞過限制或取得Claude審查。

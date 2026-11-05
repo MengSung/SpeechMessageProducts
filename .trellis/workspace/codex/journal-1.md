@@ -326,3 +326,42 @@ Repository原host12綠、安全30紅/4綠、overload2紅、修後搬前98綠後g
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: P1-04 Attachment離線切片與Claude週額度降級檢查點（主P1未完成）
+
+**Date**: 2026-11-05
+**Task**: P1-04 Attachment離線切片與Claude週額度降級檢查點（主P1未完成）
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+Attachment413/512與完整2272通過；Claude週額度、Gemini降級，保持P1 2/12，接續Activity。
+
+### Main Changes
+
+## 範圍與驗證
+Attachment三型別抽Core；50搬前綠；最終兩宿主413/512、16TRX2272、Core99.48%/100%、strict0/0，完整00§8與其他守門有本輪證據。
+## 審查
+分析完整雙模型；末端Gemini降級，Claude週額度至2026-11-07 16:00台北，沒有Claude末端證據。修復自癒weekly漏判，7/7及summary6/6。沒有宣告雙模型或主P1完成。
+## 接續
+主P1仍2/12、P1-04未驗收，Activity與其餘候選及P1-05～12待做。Goal仍usageLimited，未覆蓋、未宣稱背景執行。此journal session完成不等於主P1完成；不封存主任務，不push/部署。
+## 其他變更
+保留p013任務.turns.json外部變更；原既有測試/設定hash不變，無VM/D365/LINE操作。
+
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

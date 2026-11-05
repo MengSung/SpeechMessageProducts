@@ -30,8 +30,8 @@
 | `ToolUtility/ActivityOperations/IActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.IActivityService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
 | `ToolUtility/AppointmentOperations/AppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.AppointmentService` | 可搬（先純化） | SDK-only I/O；去除未用logger，日期文化／XML輸入先鎖golden再安全純化。 |
 | `ToolUtility/AppointmentOperations/IAppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.IAppointmentService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/AttachmentOperations/AttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.AttachmentService` | 不可直接搬 | 未用logger持有；byte[]／base64缺容量契約，例外含ID及原始message。 |
-| `ToolUtility/AttachmentOperations/IAttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.IAttachmentService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/AttachmentOperations/AttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.AttachmentService` | 已抽取（離線通過／審查降級） | 只保存不可變limits；固定wrapper、整頁ID／parent／容量；413/512及2272回歸通過，Claude週額度。 |
+| `ToolUtility.Core/AttachmentOperations/IAttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.IAttachmentService` | 已抽取（純契約） | 保留原namespace／ref；完整nullable中繼資料及兩產品目標已驗證。 |
 | `ToolUtility/AttributeOperations/AttributeServiceComposite.cs` | `ToolUtilityNameSpace.AttributeOperations.AttributeServiceComposite` | 不可直接搬 | 連帶九個服務反射載入Extensions logger，本檔無using不代表純Core。 |
 | `ToolUtility/AttributeOperations/BoolAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.BoolAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
 | `ToolUtility/AttributeOperations/DateTimeAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DateTimeAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
@@ -139,3 +139,8 @@ I18nCheck抓到13個舊中文診斷常值後已改固定英文，Core CJK=0，�
 詳細契約、測試與本地提交歸屬見 `wp-reports/P1-04-repository.md`。
 Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必要純契約尚待處理；
 整個P1-04與P1仍未完成，主P1維持2/12。
+
+
+## Attachment切片（2026-11-05）
+
+三型別已抽取，保持原namespace／ref／七欄；移除ctor logger／SDK保存，單檔5MiB、整頁32Mi字元／5000列的本地有界預算。原host3特性綠、安全28紅/2綠，修後搬前50綠才git mv；最終413/512、16TRX2272、Core99.48%/100%。分析雙模型、末審Claude週額度阻擋、Gemini降級，詳P1-04-attachment.md。Activity與其餘候選未完成，P1仍2/12。

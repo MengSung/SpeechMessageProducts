@@ -1,0 +1,1 @@
+<query entity="annotation" all-columns="true" columns="0" criteria="And" orders="0" links="0" top="none"><condition field="objectid" operator="Equal" type="System.String">11111111-1111-1111-1111-111111111111</condition></query>

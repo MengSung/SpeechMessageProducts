@@ -1,0 +1,13 @@
+{
+  "ToolUtility.Core/AttachmentOperations/AttachmentService.cs": "77a9525ec0051780718956145ead4fe03f55c098588e19394095a57daca7a73b",
+  "ToolUtility.Core/AttachmentOperations/IAttachmentService.cs": "abe116100357f7ca62bf8b78abe842c7032c11428d7ccdfafb9aaebd6bc48b31",
+  "ToolUtility.Core/AttachmentOperations/AttachmentTransferLimits.cs": "c86d8b6eaca9487904086002b91e367dcf27cdbeaaa2de181ce7c898833f6b46",
+  "ToolUtility.Tests/DataOperations/AttachmentCharacterizationTests.cs": "988fe79e61315928b7c996345f1229cb56acd7ae68b5ee5712789357ed0c8062",
+  "ToolUtility.Tests/DataOperations/AttachmentSafetyTests.cs": "d9f3bb77c4b4ffe4a1525c48428f71ca59029ae986318140d308614f63570d19",
+  "ToolUtility.Tests/AttachmentOperations/AttachmentCallerRouteTests.cs": "03ab3dd056fc30d95f3439feb433a7ba47814148b9355aeaf1baf2bc9ce2361d",
+  "ToolUtility.Tests/CoreTargetFrameworkTests.cs": "92c7e31ad51891a14c2adb8a2bf0585fb7a2cb60d82b905064e6c37c98d1a90d",
+  "wp-reports/P1-04-attachment.md": "60c6c8a793d315afe08e9ee3cd25c9aca8f47131049f19d6f89302af033ad96b",
+  "docs/scripts/Tests/Test-CcgWeeklyQuota.ps1": "7e02d823f3d53709b43787c8c49620b4f01b7d3a907c7806241b3bb74589be87",
+  "docs/scripts/Invoke-CcgDualModelWithSelfHealing.ps1": "56920406ebb60a54696c7e70e7fe4e4ad9e2ded981e6e3186a1d69e08f7d7389",
+  "docs/scripts/Test-CcgDualModelHealth.ps1": "8550fbe6b5b68c384fcfa29f90d01f445a1585d2b60bac7739bc766013122a5a"
+}

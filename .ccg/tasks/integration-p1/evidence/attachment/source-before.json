@@ -1,0 +1,7 @@
+{
+  "base": "141c1e8e",
+  "files": {
+    "ToolUtility/AttachmentOperations/AttachmentService.cs": "dbd5ea3eb90314df2bf9481ce0ce092aaad30e0dcd0567022aaaf47eefabd437",
+    "ToolUtility/AttachmentOperations/IAttachmentService.cs": "6f6cbd14f2637961c0371e5bc6159daa3f190660f4d87d4f1ba5116525c69899"
+  }
+}

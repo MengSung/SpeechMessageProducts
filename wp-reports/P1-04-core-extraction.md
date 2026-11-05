@@ -106,3 +106,8 @@ I18nCheck抓到13個舊中文診斷常值後已改固定英文，Core CJK=0，�
 詳細契約、測試與本地提交歸屬見 `wp-reports/P1-04-repository.md`。
 Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必要純契約尚待處理；
 整個P1-04與P1仍未完成，主P1維持2/12。
+
+
+## Attachment切片（2026-11-05）
+
+已抽取AttachmentService／IAttachmentService及新immutable limits；最終雙宿主413/413、512/512，Core99.48%／100%、strict0/0，完整16TRX2272/2272、ChurchReport623/623。實際公開委派四案、1000 A/B與1536 Base64候選有證據。分析雙模型；末端Claude週額度、Gemini單模型降級，未取得Claude review，不宣稱完整雙模型。詳P1-04-attachment.md；主P1仍2/12。

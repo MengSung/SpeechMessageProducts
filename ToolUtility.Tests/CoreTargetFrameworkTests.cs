@@ -10,6 +10,7 @@ using ToolUtilityNameSpace.Interfaces;
 using ToolUtilityNameSpace.AttributeOperations;
 using ToolUtilityNameSpace.Extensions;
 using ToolUtilityNameSpace.Constants;
+using ToolUtilityNameSpace.AttachmentOperations;
 using Xunit;
 
 namespace ToolUtility.Tests
@@ -40,6 +41,9 @@ namespace ToolUtility.Tests
             Assert.Same(assembly, typeof(IEntityAttributeUtilityService).Assembly);
             Assert.Same(assembly, typeof(OrganizationServiceExtensions).Assembly);
             Assert.Same(assembly, typeof(CrmEntityColumns).Assembly);
+            Assert.Same(assembly, typeof(AttachmentService).Assembly);
+            Assert.Same(assembly, typeof(IAttachmentService).Assembly);
+            Assert.Same(assembly, typeof(AttachmentTransferLimits).Assembly);
             Assert.Equal("ToolUtility.Core", assembly.GetName().Name);
             var target = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
             Assert.NotNull(target);
@@ -65,6 +69,7 @@ namespace ToolUtility.Tests
         [InlineData(typeof(IEntityRepository))]
         [InlineData(typeof(IOwnerManagementService))]
         [InlineData(typeof(IEntityAttributeUtilityService))]
+        [InlineData(typeof(IAttachmentService))]
         public void CoreInterfaces_EmitNonObliviousStringContracts(System.Type contract)
         {
             var context = new NullabilityInfoContext();
@@ -73,7 +78,8 @@ namespace ToolUtility.Tests
                 foreach (var parameter in method.GetParameters())
                     if (parameter.ParameterType == typeof(string))
                     {
-                        var expected = contract == typeof(IEntityAttributeUtilityService) && parameter.Name == "attributeName"
+                        var expected = (contract == typeof(IEntityAttributeUtilityService) && parameter.Name == "attributeName")
+                            || (contract == typeof(IAttachmentService) && parameter.Name != "entityName")
                             ? NullabilityState.Nullable : NullabilityState.NotNull;
                         Assert.Equal(expected, context.Create(parameter).ReadState);
                         checkedParameters++;

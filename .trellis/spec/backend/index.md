@@ -29,6 +29,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Duplicate Source Ratchet](./duplicate-source-ratchet.md) | Solution-scoped content/type duplicates, baseline identity validation and no parent-worktree traversal | Established |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels, and unified diagnostic trace contract | Established |
 | [I18n Scanner Contract](./i18n-scanner-contract.md) | Separate C# tokens from Razor template boundaries without widening count scope | Established |
+| [Attachment Transfer Contract](./attachment-transfer-contract.md) | Bounded annotation payloads, stable identity/parent validation and dual-target Base64 consistency | Established |
 | [Image Input Contract](./image-input-contract.md) | Restricted image formats, pre-decode size limits, safe rejection and bounded ownership | Established |
 | [MemberInfo Tree And Grid Contract](./member-info-tree-contract.md) | Cross-layer MemberInfo authorization, DTO, paging, sorting, cache, and CRM batching rules | Established |
 | [Small Group Background Upload Isolation](./small-group-background-upload-isolation.md) | SaveIntegrate background snapshot, refresh response, resource ownership, and regression contract | Established |
