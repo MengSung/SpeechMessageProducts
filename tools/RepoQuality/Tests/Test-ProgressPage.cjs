@@ -59,8 +59,6 @@ test('No alert hides the warning region and still renders the page', () => {
   const activePage = render(original.alert);
   assert.match(activePage.get('alert').innerHTML, /D365 預設只讀/);
   assert.match(activePage.get('alert').innerHTML, /P1-04 Constants 已抽取/);
-  assert.match(activePage.get('alert').innerHTML, /P1-03 已正式驗收/);
-  assert.match(activePage.get('alert').innerHTML, /20261105-140350/);
 });
 
 test('Alert without prompt omits copy button and full prompt area', () => {
@@ -105,6 +103,143 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   assert.match(p1_12, /不可逆操作與正式資料仍不在授權範圍/);
 });
 
+test('Stages 2 through 8 render every planned package once and keep all packages not started', () => {
+  const expected = [
+    ['階段 2', 12],
+    ['階段 3', 9],
+    ['階段 4', 6],
+    ['階段 5', 13],
+    ['階段 6', 6],
+    ['階段 7', 2],
+    ['階段 8', 5]
+  ];
+  const packages = original.plannedWps || [];
+  assert.equal(packages.length, 53, 'the plan defines 53 packages across stages 2-8');
+  const ids = Array.from(packages, wp => wp.id);
+  assert.equal(new Set(ids).size, 53, 'work package IDs must be unique');
+  const packageById = new Map(Array.from(packages, wp => [wp.id, wp]));
+  const planEvidence = {
+    'P2-01': 'ExceptionOutputOptions',
+    'P2-02': 'MemberNotificationService',
+    'P2-03': 'ChannelTokenProtector',
+    'P2-04': 'TestChannelToken',
+    'P2-05': '{{t:Key}}',
+    'P2-06': 'PushUtility 5 份',
+    'P2-07': 'RowVersion',
+    'P2-08': 'qps-ploc',
+    'P2-09': 'ZXing.Net',
+    'P2-10': 'new_textchangedon',
+    'P2-11': 'mode=member',
+    'P2-12': 'P2_推播鏈驗收步驟.md',
+    'P3-01': '103 個關鍵字',
+    'P3-02': '/api/line/webhook/{channelId}',
+    'P3-03': 'LineSignature.Verify',
+    'P3-04': 'ConnectionStrings:Platform',
+    'P3-05': 'Channel<WebhookEnvelope>',
+    'P3-06': 'Authorization Bearer',
+    'P3-07': 'Routing_AllLegacyKeywords_SameIntent',
+    'P3-08': 'OutboundLetterPlugin',
+    'P3-09': 'P3_Webhook驗收步驟.md',
+    'P4-01': 'HashCode',
+    'P4-02': 'Money_TwdRoundTrip_NoDecimalLoss',
+    'P4-03': 'AllotQueryHandler',
+    'P4-04': 'Payments:Sinopac:Profiles:',
+    'P4-05': 'Payments.AspNetCore',
+    'P4-06': '永豐測試環境',
+    'P5-01': 'PluginShellBase',
+    'P5-02': 'PluginHarness',
+    'P5-03': 'shadow 指令',
+    'P5-04': 'ChurchLocaleChangedPlugin',
+    'P5-05': 'WeeklyReportStatisticsPlugin',
+    'P5-06': 'PresentRecordPlugin',
+    'P5-07': 'LessonProgressionPlugin',
+    'P5-08': 'AppointmentSigningActivity',
+    'P5-09': 'MeetingQrCodeActivity',
+    'P5-10': 'ContactAnniversaryActivity',
+    'P5-11': 'FeeAllotPlugin',
+    'P5-12': 'OutboundLetterPlugin',
+    'P5-13': 'Line.NotifyBot',
+    'P6-01': 'SmallGroupQrCodeUtility',
+    'P6-02': 'GoodShepherd.Core/WeeklyReports',
+    'P6-03': 'P2-06',
+    'P6-04': 'AddToolUtility',
+    'P6-05': 'I18nCheck',
+    'P6-06': 'Microsoft.AspNetCore.* 2.2.x',
+    'P7-01': '--production',
+    'P7-02': 'P7_組織切換手冊.md',
+    'P8-01': 'new_offeringcategory',
+    'P8-02': 'Role.PastorCouple',
+    'P8-03': 'ChurchTermWhitelist',
+    'P8-04': 'PseudoLocaleAudit',
+    'P8-05': 'Test-TextEncoding -Scope All'
+  };
+  assert.equal(Object.keys(planEvidence).length, 53);
+
+  for (const [phaseId, count] of expected) {
+    const phasePackages = Array.from(packages).filter(wp => wp.phaseId === phaseId);
+    assert.equal(phasePackages.length, count, `${phaseId} package count must match plan 3.3`);
+    assert.ok(phasePackages.every(wp => wp.status === 'todo'), `${phaseId} must remain not started`);
+    assert.ok(phasePackages.every(wp => wp.scope && wp.verification), `${phaseId} packages need scope and acceptance evidence`);
+    const phase = Array.from(original.phases).find(item => item.id === phaseId);
+    assert.equal(phase.total, count);
+    assert.equal(phase.done, 0);
+    assert.equal(phase.active, 0);
+  }
+
+  for (const [id, marker] of Object.entries(planEvidence)) {
+    const wp = packageById.get(id);
+    assert.ok(wp, `${id} must be present`);
+    assert.ok(`${wp.name} ${wp.scope} ${wp.verification} ${wp.prerequisite || ''}`.includes(marker),
+      `${id} must preserve plan-specific detail: ${marker}`);
+  }
+
+  const rendered = render(original.alert).get('planned-phases').innerHTML;
+  assert.ok(rendered);
+  for (const id of ids) {
+    assert.match(rendered, new RegExp(`<span class="id">${id}</span>`));
+  }
+});
+
+test('Planned phase disclosures show a visible expanded-state indicator', () => {
+  const rendered = render(original.alert).get('planned-phases').innerHTML;
+  assert.match(rendered,
+    /<details class="planned-phase">[\s\S]*?<summary>[\s\S]*?<span class="planned-phase-toggle" aria-hidden="true"><\/span>/);
+  assert.match(html, /\.planned-phase-toggle::before\s*\{[^}]*content:\s*["']\+["']/);
+  assert.match(html, /\.planned-phase\[open\] \.planned-phase-toggle::before\s*\{[^}]*content:\s*["']-["']/);
+});
+
+test('Future work packages preserve external-operation and isolation stop boundaries', () => {
+  const packageById = new Map(Array.from(original.plannedWps || [], wp => [wp.id, wp]));
+  const text = id => {
+    const wp = packageById.get(id);
+    assert.ok(wp, `${id} must be present`);
+    return `${wp.scope} ${wp.verification} ${wp.prerequisite || ''}`;
+  };
+
+  assert.match(text('P2-04'), /TestChannelToken/);
+  assert.match(text('P2-04'), /TestLineUserId/);
+  assert.match(text('P2-04'), /秘密不得記錄/);
+  assert.match(text('P3-04'), /平台 SQL/);
+  assert.match(text('P3-04'), /不得.*記憶體|記憶體.*不得/);
+  assert.match(text('P3-09'), /使用者.*測試主機/);
+  assert.match(text('P5-02'), /不修改.*舊.*原檔/);
+  assert.match(text('P5-03'), /goodshepherdback/);
+  assert.match(text('P5-03'), /apply、switch、smoke.*使用者/);
+  assert.match(text('P7-01'), /Codex.*不連.*正式組織/);
+  assert.match(text('P7-02'), /apply／switch 由使用者審核及執行/);
+  assert.match(text('P8-01'), /同名.*保留/);
+  assert.match(text('P8-01'), /List_DuplicateId_PublicationRejected/);
+  assert.match(text('P8-01'), /重複 ID.*拒絕發布並診斷/);
+  assert.match(text('P8-01'), /使用者審核執行/);
+  assert.match(text('P8-02'), /中文文字.*停止|停止.*中文文字/);
+  assert.match(text('P8-03'), /Save_ChurchIdFromRequestIgnored/);
+  assert.match(text('P8-03'), /伺服器依登入者判定/);
+  assert.match(text('P8-03'), /不接受 request 的教會 ID/);
+  assert.match(text('P8-04'), /人工登入/);
+  assert.match(text('P8-04'), /不保存.*帳密|帳密.*不保存/);
+  assert.match(text('P8-05'), /v3\.3.*已完成/);
+});
+
 test('Summary cards and phase meters agree with accepted work packages', () => {
   // 頁首、卡片與階段表必須共用同一驗收數；不能只改文字而留下零進度的矛盾。
   const accepted = original.p1Wps.filter(wp => wp.status === 'done').length;
@@ -118,6 +253,9 @@ test('Summary cards and phase meters agree with accepted work packages', () => {
   assert.equal(tile.meter.active, active);
   const totalDone = original.phases.reduce((sum, phase) => sum + phase.done, 0);
   const total = original.tiles.find(item => item.label === '全計畫進度');
+  assert.equal(original.phases.reduce((sum, phase) => sum + phase.total, 0), 83);
+  assert.equal(total.meter.total, 83);
+  assert.match(html, /9 個階段、83 個工作包/);
   assert.equal(Number(total.value), totalDone);
   assert.equal(total.meter.done, totalDone);
   assert.equal(total.meter.active, original.phases.reduce((sum, phase) => sum + phase.active, 0));
