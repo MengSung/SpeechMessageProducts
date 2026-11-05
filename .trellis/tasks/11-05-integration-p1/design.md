@@ -29,3 +29,6 @@ Appendix A Account列出7欄但02稱5欄：本階段locale五欄加LINE lookup�
 
 ## 品質
 每WP保留red/green／characterization證據，00§8全方案建置與測試、Debug tracer、duplicates、encoding、I18nCheck。新module每個產品target coverage≥80%，net48 harness驗net462。所有新增與實質修改C#完整繁中XML、UTF8無BOM／CRLF／final CRLF；不用新NoWarn或降低分析器。雙模型分析及review皆經自癒入口。任一credible isolation/resource leak、Critical/High阻擋交付。
+
+## 2026-11-05 使用者審查方式覆寫
+使用者最新明確要求「不需要雙模型REVIEW了」。後續不再啟動外部reviewer，由主會話直接逐項審查、修正及實際驗證並保存review.md；已取得的歷史外審證據保留原狀，不冒稱新增雙模型完成。需求、安全／測試／覆蓋率門檻不降低；開發規範所需雙後端分析仍經自癒入口及如實揭露額度降級。這只更改執行協作方式，不修改正式3.3計畫需求，無Word修正報告需求。

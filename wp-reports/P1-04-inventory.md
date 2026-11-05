@@ -26,8 +26,8 @@
 | `ToolUtility/ToolUtilityPartials/ToolUtilityClass.Query1.cs` | `ToolUtilityNameSpace.ToolUtilityClass` | 不可搬（host） | 同一ToolUtilityClass partial，持組態／連線並委派服務；全部留同一assembly。 |
 | `ToolUtility/ToolUtilityPartials/ToolUtilityClass.Query2.cs` | `ToolUtilityNameSpace.ToolUtilityClass` | 不可搬（host） | 同一ToolUtilityClass partial，持組態／連線並委派服務；全部留同一assembly。 |
 | `ToolUtility/ToolUtilityPartials/ToolUtilityClass.Utility.cs` | `ToolUtilityNameSpace.ToolUtilityClass` | 不可搬（host） | 同一ToolUtilityClass partial，持組態／連線並委派服務；全部留同一assembly。 |
-| `ToolUtility/ActivityOperations/ActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.ActivityService` | 不可直接搬 | 未用logger持有；直接寫入呼叫端ArrayList，ID字典覆寫，例外回顯原值／系統時間。 |
-| `ToolUtility/ActivityOperations/IActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.IActivityService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/ActivityOperations/ActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.ActivityService` | 已抽取（離線通過／主會話審查） | 移除logger持有、複合正式識別、完整候選／有界分頁、Dispose清除借入SDK；495/602及2444回歸，詳Activity報告。 |
+| `ToolUtility.Core/ActivityOperations/IActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.IActivityService` | 已抽取（純契約） | 六方法／namespace保留；獨占ArrayList及append／有界生命週期完整文件、nullable與雙產品反射已驗證。 |
 | `ToolUtility/AppointmentOperations/AppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.AppointmentService` | 可搬（先純化） | SDK-only I/O；去除未用logger，日期文化／XML輸入先鎖golden再安全純化。 |
 | `ToolUtility/AppointmentOperations/IAppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.IAppointmentService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
 | `ToolUtility.Core/AttachmentOperations/AttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.AttachmentService` | 已抽取（離線通過／審查降級） | 只保存不可變limits；固定wrapper、整頁ID／parent／容量；413/512及2272回歸通過，Claude週額度。 |
@@ -144,3 +144,7 @@ Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必
 ## Attachment切片（2026-11-05）
 
 三型別已抽取，保持原namespace／ref／七欄；移除ctor logger／SDK保存，單檔5MiB、整頁32Mi字元／5000列的本地有界預算。原host3特性綠、安全28紅/2綠，修後搬前50綠才git mv；最終413/512、16TRX2272、Core99.48%/100%。分析雙模型、末審Claude週額度阻擋、Gemini降級，詳P1-04-attachment.md。Activity與其餘候選未完成，P1仍2/12。
+
+## Activity切片（2026-11-05 21:33）
+
+已修跨表GUID覆寫及部分發布，原51紅→57綠，含生命週期82搬前綠後git mv兩檔；495/602、16TRX2444、Core99.56%/100%。保留合法append、外部地址略過及狀態1/4、3/5；1000 A/B、59次明確故障重試、Dispose/drain及公開委派七案通過。使用者取消後續雙模型REVIEW，主會話直接審查；分析兩後端已嘗試但Claude週額度降級。其他候選仍未完成，P1仍2/12，不封存主任務。

@@ -425,13 +425,13 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-05 21:02（Attachment已提交；Activity準備六案／2278回歸通過，未修安全缺陷）",
+  "snapshot": "2026-11-05 21:37（Activity離線驗證完成，P1仍2/12）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
   "headline": "階段 1 目前 <strong>2／12 工作包列為驗收完成</strong>（P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收20包；規劃登錄不代表實作或驗收。",
   "alert": {
-    "title": "階段1執行中｜Attachment已提交，Activity原host特性已鎖定",
-    "body": "D365 預設只讀，本輪未操作VM／D365／LINE。P1-04 Constants 已抽取。Activity六特性原host已綠，最新完整方案16TRX2278/2278、ToolUtility413/518、ChurchReport623；205806特性review為Gemini單模型降級且無新Critical/High/Warning。產品尚未修／搬，分析已核實跨表GUID覆寫與部分發布風險，安全紅綠為下一步；主P1仍2/12。Attachment已保存31ab8cea。 Claude週額度及非本切片索引編碼仍揭露，不宣告完整雙模型或P1完成。",
+    "title": "階段1執行中｜Activity安全修正",
+    "body": "D365 預設只讀，本輪未操作VM／D365／LINE。P1-04 Constants 已抽取。Activity安全51紅→57綠，含生命週期搬前82/82後才git mv；搬後ToolUtility net48實載net462 495/495、net10 602/602，Core獨立coverage99.56%／100%、strict零警告／錯誤。真公開委派7/7、完整方案16TRX2444/2444、ChurchReport623/623、架構67/67。使用者免除後續雙模型REVIEW，改主會話審查；其餘適用守門與主會話審查已保存；完整Changed仍受非本切片索引缺CRLF阻擋，P1仍2/12。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -668,7 +668,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性／SDK extension與Repository已抽Core。Activity六特性原host已綠，最新完整方案16TRX2278/2278、ToolUtility413/518、ChurchReport623；205806特性review為Gemini單模型降級且無新Critical/High/Warning。產品尚未修／搬，分析已核實跨表GUID覆寫與部分發布風險，安全紅綠為下一步；主P1仍2/12。Attachment已保存31ab8cea。"
+      "note": "四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性／SDK extension、Repository、Attachment及Activity已抽Core。Activity安全51紅→57綠，含生命週期搬前82/82後才git mv；搬後ToolUtility net48實載net462 495/495、net10 602/602，Core獨立coverage99.56%／100%、strict零警告／錯誤。真公開委派7/7、完整方案16TRX2444/2444、ChurchReport623/623、架構67/67。使用者免除後續雙模型REVIEW，改主會話審查；其餘守門保存中，P1仍2/12。"
     },
     {
       "id": "P1-05",
@@ -1444,6 +1444,20 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-05 21:37",
+      "text": "Activity切片16TRX2444、雙宿主495/602、Core99.56%/100%、tracer7、工具108/27、plugin10/6、package34/158/0、duplicates28/941/0、頁面8/8與三尺寸Edge全過。使用者免除後續雙模型REVIEW，主會話審查已保存；30自有文字0問題，完整Changed唯一非本切片索引缺CRLF，未修改。P1仍2/12，接續其他候選。",
+      "cls": "info"
+    },
+    {
+      "t": "2026-11-05 21:31",
+      "text": "Activity安全51紅→57綠，含生命週期搬前82/82後才git mv；搬後ToolUtility net48實載net462 495/495、net10 602/602，Core獨立coverage99.56%／100%、strict零警告／錯誤。真公開委派7/7、完整方案16TRX2444/2444、ChurchReport623/623、架構67/67。使用者免除後續雙模型REVIEW，改主會話審查；其餘守門保存中，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 21:19",
+      "text": "使用者已明確免除後續雙模型REVIEW，由主會話直接審查及實測，既有外審紀錄保留不改寫。Activity安全51案已在原host真實全紅，包含跨表GUID覆寫／部分發布；產品修正尚未通過。P1仍2/12，D365預設只讀、本輪未操作VM／D365／LINE。"
+    },
     {
       "t": "2026-11-05 21:02",
       "text": "Activity六特性原host已綠，最新完整方案16TRX2278/2278、ToolUtility413/518、ChurchReport623；205806特性review為Gemini單模型降級且無新Critical/High/Warning。產品尚未修／搬，分析已核實跨表GUID覆寫與部分發布風險，安全紅綠為下一步；主P1仍2/12。Attachment已保存31ab8cea。",

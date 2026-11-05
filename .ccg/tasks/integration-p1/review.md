@@ -107,3 +107,15 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 ## Activity準備（未修／未搬）
 
 204755分析與205806特性review皆Gemini單模型週額度降級，雙模型未完成。分析既有跨表GUID覆寫／部分ArrayList發布Critical仍待安全紅綠；review僅針對六個合法成功特性及CoreTarget文件校正，無新Critical/High/Warning，不代表修復。完整16TRX2278/2278與來源不變SHA已保存activity-preparation evidence。
+
+## Activity 切片主會話審查（使用者取消後續雙模型 REVIEW）
+
+- 使用者本輪明確要求「不需要雙模型REVIEW了」；後續不再啟動外部 reviewer，不宣稱新增外審／雙模型完成。保留舊 evidence 與配額事實。
+- 開發前 211941 analyzer 仍經既有自癒入口嘗試兩後端，Gemini 成功／Claude 週額度，屬分析降級不是審查。Gemini 的並行 Warning 已以 caller 獨占普通 ArrayList、scope SDK owner 與 1000 A/B 測試實際對應；不聲稱同一輸出可違約並行讀寫。
+- 主會話直接逐方法審查兩產品檔、三個 Core 測試檔、真公開委派七案、反射及 csproj：異質身份包含表名，完整前綴驗證、局部候選／兩容量先配置、正常 append 不 Clear、SDK 真例外不按型別丟失、頁面集合完整且有界、無全域可變狀態或自有背景資源。
+- 原 51 安全案全紅，修後 57／57，再含生命週期 82／82 搬前綠才 git mv。首次 strict 揪出 CA2208／CA1510／CA1859，修真實參數名稱、各目標 null API 與具體回傳型別，未新增 NoWarn。兩產品 strict 零警告／錯誤。
+- 搬後 495／602、Core 獨立 coverage99.56%／100%、完整16TRX2444／2444、ChurchReport623／623、架構67／67。明確標為 SDK mock I/O 邊界，未冒充實機／授權驗收。
+- 無已知本切片 Critical／High。限制：兩 ArrayList 不能對違約並行讀者跨物件原子 swap；AllColumns 傳輸量／逾時仍須 host 限制；分頁非跨頁資料庫快照，資料變動衝突明確拒絕、caller 可重試。這些前置已明載，不以放寬斷言掩蓋。
+- 詳 wp-reports/P1-04-activity.md、evidence/activity/；主P1／P1-04未全包驗收。
+
+末端編碼：Changed 805 checked／769 raw excluded，唯一問題仍是非本切片p013索引MissingFinalCrlf；本輪30份自有文字以未修改repo byte-validator驗證0問題。來源／文件whitespace與進度8/8通過，不宣稱完整Changed成功。

@@ -11,6 +11,7 @@ using ToolUtilityNameSpace.AttributeOperations;
 using ToolUtilityNameSpace.Extensions;
 using ToolUtilityNameSpace.Constants;
 using ToolUtilityNameSpace.AttachmentOperations;
+using ToolUtilityNameSpace.ActivityOperations;
 using Xunit;
 
 namespace ToolUtility.Tests
@@ -44,6 +45,8 @@ namespace ToolUtility.Tests
             Assert.Same(assembly, typeof(AttachmentService).Assembly);
             Assert.Same(assembly, typeof(IAttachmentService).Assembly);
             Assert.Same(assembly, typeof(AttachmentTransferLimits).Assembly);
+            Assert.Same(assembly, typeof(ActivityService).Assembly);
+            Assert.Same(assembly, typeof(IActivityService).Assembly);
             Assert.Equal("ToolUtility.Core", assembly.GetName().Name);
             var target = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
             Assert.NotNull(target);
@@ -71,6 +74,7 @@ namespace ToolUtility.Tests
         [InlineData(typeof(IOwnerManagementService))]
         [InlineData(typeof(IEntityAttributeUtilityService))]
         [InlineData(typeof(IAttachmentService))]
+        [InlineData(typeof(IActivityService))]
         public void CoreInterfaces_EmitNonObliviousStringContracts(System.Type contract)
         {
             var context = new NullabilityInfoContext();

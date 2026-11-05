@@ -1,54 +1,61 @@
-# P1-04 Activity接續檢查點（未實作／未搬移）
+# P1-04 Activity 切片離線驗證紀錄
 
-## 已確認與證據
+狀態：Activity 兩型別已抽取及完成主會話審查；P1-04 整包未完成，P1 仍 2/12。
 
-- 前切片Attachment本地提交 `31ab8cea`；本文不重做其已完成離線證據，也不宣稱主P1完成。
-- Activity兩產品原檔尚未修改，仍在ToolUtility；已完整閱讀服務／介面及精確Facade委派，無讀取或外傳敏感Facade全文。
-- 分析 `20261105-204755-integration-p1-04-activity-analysis-analyzer`：Claude週額度阻擋，
-  Gemini單模型降級，dualModelComplete=false／quotaBlocked=true／degradedFallback=true。
-- 原host六個特性測試已綠：分組查詢golden／逆序回應重排、同名不同ID保留、現有前綴append不Clear、
-  無partyid的addressused略過、純ID無SDK I/O，以及兩組SetState各default／external多載。
-  `artifacts/p1-04-activity-before/before.trx`為6Activity＋9CoreTarget＝15/15；net48CoreTarget另1/1。
-- 特性測試僅鎖合法成功行為，沒有把下列安全缺陷做成通過期望；沒有SDK／D365實機驗收。
+## 需求與實作
 
-## 已核實的既有風險（阻擋Activity準入，不是已修復）
+| 需求 | 實作位置 | 驗證及證據 | 狀態 |
+|---|---|---|---|
+| 原 host 成功行為先綠 | ActivityCharacterizationTests／三份 activity golden | 原 host 六案、before.trx；群組查詢／逆序回應／前綴 append／純 ID／四 SetState | 通過 |
+| 修異質表同 GUID 覆寫 | Core ActivityService 的複合識別及 ReadBatch | ActivitySafetyTests 原51全紅→57綠；跨表兩實體都正確保留 | 通過 |
+| 完整消費集合及兩清單發布 | ValidatePrefix／ReadReferences／AppendComplete | 前綴衝突、錯型、後組／後頁故障、缺／重／錯表／多餘列，兩清單原內容不變 | 通過 |
+| 有界 batch／完整分頁 | ReadBatch／AddPage | 500／500／1、不截斷；MoreRecords丟棄probe後主鍵排序重讀、cookie／無cookie；跨頁重複／空進度／timeout拒絕 | 通過 |
+| 同 scope 借用及資源釋放 | ActivityService.Dispose／Facade既有子服務Dispose分支 | 1000 A/B、59故障重試、2059 SDK calls、active=0；weak references、Dispose競爭、borrowed Dispose=0 | 通過 |
+| 保留活動1/4、appointment3/5 | ExecuteState及四公開狀態多載 | golden、空ID／null回應拒絕、SDK timeout／ArgumentException同InnerException | 通過 |
+| 雙目標與跨組件呼叫 | Core兩產品檔、Framework測試白名單、CoreTargetFrameworkTests、ActivityCallerRouteTests | net48實載net462；495/495、net10 602/602；真ToolUtilityClass→Facade→Lazy→Core七案 | 通過 |
+| 全方案相容／品質 | 00§8及獨立coverage | 16TRX2444/2444，ChurchReport623/623、架構67/67，Core99.56%／100%，strict零警告／錯誤 | 通過 |
 
-1. 不同表共用GUID時，Dictionary<Guid,Entity>覆寫導致錯表結果。新識別須包含logical name＋正式GUID，
-   不按顯示姓名或GUID單欄合併異質記錄。
-2. 先改caller的partyTypeList再SDK I/O，故障後部分發布；缺查詢結果亦讓type／value不對齊。
-   純ID解析途中cast失敗也可能留下前半段。需先建局部候選，所有驗證／I/O成功後才append。
-3. SDK根表、缺／重複ID、未請求ID、MoreRecords未完整、重複輸入參照、既有前綴身份與對齊，均待安全紅綠保護。
-4. logger未使用卻保存；SDK須保留給default路徑但只能限原host授權scope且有清除／drain契約，不能Dispose借入SDK。
-5. 固定英文wrapper與同一InnerException待修；SetState空ID／無效回應／fault不能假成功或盲目重試。
+## 相容與安全決策
 
-## 分析建議的核實與不採用項
+六方法、namespace、舊ctor與正常append保留。缺partyid且帶addressused可為外部地址，仍略過，不生成正式ID。
+不採先Clear再AddRange，不以姓名去重或把缺列當空結果。既有同表同ID重複改為明確拒絕，跨表同GUID合法。
+logger只作ctor null相容、不保存；default路徑需要的SDK限原host scope保存，Dispose清除但不處置借入SDK。
+原Facade已有activity IDisposable分支，七個真公開委派測試確認有執行，不需修改敏感Facade全文。
+真故障固定英文wrapper、保留同一原InnerException，交上層共用通知邊界，不在Core另建LINE client。
 
-- 採最小相容方案，不新增一組沒有caller需要的泛型API；原namespace／舊ctor／六方法簽章保留。
-- **不採「先Clear再AddRange」**：原合法行為為append，已有6案中的prefix斷言；清除會無聲刪舊資料。
-- 兩個ArrayList無法跨物件原子swap；必須明載caller獨占、不可並行enumerate／修改。
-  先候選／驗證再正常成功append，不能宣稱任意自訂ArrayList、OOM或違約並行下也有跨物件原子性。
-- 缺partyid但addressused可能是外部收件者；沿用略過，不因新的記錄ID規則為其補造正式ID。
-- SDK自身ArgumentException仍應包裝保留InnerException，不按例外型別一律重拋破壞既有API。
-- 容量／chunk／完整分頁策略尚待以有界本地預算及官方SDK證據定稿；不可把猜測上限宣稱D365實測。
+兩個ArrayList無法跨物件原子swap。caller必須獨占兩個普通清單，不並行修改／列舉；拒絕alias、subclass、read-only／fixed wrapper。
+先完成候選、兩個object[]與兩Capacity配置，再執行普通AddRange；不宣稱強制中止執行緒或違約並行下也有原子性。
+來源5000容器、含前綴輸出5000列、每批500為本地預算，不是D365組織實測值。
+AllColumns已反序列化的傳輸配置不能事後撤銷，host仍須限制傳輸量／逾時／併發。
+完整分頁不代表跨頁資料庫快照；變動造成重複或缺列時整體拒絕，供caller明確重試。不自動重試未知寫入。
 
-## 接續順序
+## 執行順序與結果
 
-1. 先補上列安全紅測與錯頁／SDK故障／前綴不變／跨表同GUID案例，核對真正失敗。
-2. 原host修正、重用EntityQueryService正式識別驗證、不複製驗頁或保存結果；測並行A/B與清除／借入Dispose=0。
-3. 全部修後搬前綠，再git mv兩產品檔至Core；將特性與安全測試納入net48白名單，不刪host既有測試。
-4. 新鮮雙目標反射、coverage、完整00§8、真公開委派與自癒review，再更新準入狀態。
+1. 前切片Attachment本地31ab8cea、Activity準備63878c9a保持不變。
+2. 原host六特性先綠；新增安全51案全紅，沒有用編譯錯誤冒充紅測。
+3. 修後57/57，加入生命周期後82/82搬前綠，再git mv兩型別至Core；原host測試全保留。
+4. 首次Core strict拒絕CA2208／CA1510／CA1859，修真實參數名稱、條件API及具體回傳型別後兩產品0警告／錯誤；未放寬設定。
+5. 最終495/602雙宿主、7公開委派、每目標新目錄各恰一份coverage99.56%／100%，完整16TRX2444/2444、0失敗／略過。
+6. tracer7＋正TRX、I18n verify、工具108/27、plugin metadata10／一次性key build6、package34專案／158參考／0失敗、duplicates28專案／941檔／0新舊群組。
+7. 頁面8/8，無登入Edge1440／390／320、明暗色及鍵盤通過，0頁面錯誤／溢出；外連阻擋，context／browser finally關閉。
 
-正式計畫沒有修改，無Word修正報告需求；VM／D365／LINE未操作。
-主P1維持2/12，P1-04與Activity均未驗收；本文件是可接續檢查點，不是最終交付。
+產品strict通過不表示舊測試整體strict-clean。完整方案首次build有4個既有obsolete warning；host測試重新編譯亦有既有warning，沒有用NoWarn消除。
+證據位於 artifacts/p1-04-activity-{red,all-before-move,dual,caller,coverage,final-section8,browser}/
+及 .ccg/tasks/integration-p1/evidence/activity/（提交不含TRX／DLL／金鑰）。
 
+## 審查與授權
 
-## 本次準備收尾
+使用者最新明確要求「不需要雙模型REVIEW了」，後續不啟動reviewer，主會話逐項審查並保存review.md。
+原204755分析及205806準備review是歷史Gemini單模型降級，沒有回寫成完整雙模型。
+本輪211941 analyzer仍按開發規範嘗試兩後端：Gemini成功／Claude週額度阻擋，dualModelComplete=false、quotaBlocked=true、degradedFallback=true。
+分析並行Warning以明確caller獨占、服務scope owner及實際A/B／drain測試對應；不要求同一輸出可同時讀寫。
+主會話未找到本切片尚未修復的Critical／High；沒有宣稱外部review完成。
 
-最新全方案Release建置與16組件／目標集合2278/2278、0失敗／略過，
-ToolUtility413/413與518/518、ChurchReport623/623、架構67/67；沒有只使用舊DLL。
-`artifacts/p1-04-activity-baseline-section8/`及`evidence/activity-preparation/`保存摘要。
-205806特性測試review為Gemini單模型降級，無Critical／High／Warning；Claude仍週額度，未取得其review。
-分析所列兩個既有Critical尚待安全修正，不能以測試準備review通過代替產品修復。
-本輪CoreTarget文件校正不改執行碼，附件Core產品與前輪coverage來源未變。
+## 未完成及界線
 
-最新Changed編碼790 checked／758 raw排除，仍只有非本切片p013任務索引MissingFinalCrlf；不修改或提交它。本次19份自有文字以未修改repo byte-validator驗證0問題，來源／文件whitespace通過；不能把局部結果稱完整Changed通過。
+其他P1-04候選（Collection／Contact／List／Query／屬性及純契約）與P1-01、P1-05～12仍待完成，不封存主任務。
+D365／Hyper-V／LINE未操作，沒有實機／hosted CI新證據；正式3.3計畫未修改，無Word修正報告需求。
+原Goal仍usageLimited，沒有覆蓋、重建或宣稱背景執行。
+外部p013任務索引編碼問題仍須正式Changed守門揭露；不為本切片修改／提交他人索引，不把自有文字通過說成完整Changed通過。
+
+末端編碼：Changed 805 checked／769 raw excluded，唯一問題仍是非本切片p013索引MissingFinalCrlf；本輪30份自有文字以未修改repo byte-validator驗證0問題。來源／文件whitespace與進度8/8通過，不宣稱完整Changed成功。

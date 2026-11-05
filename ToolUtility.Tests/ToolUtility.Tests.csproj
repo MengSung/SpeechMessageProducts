@@ -61,6 +61,7 @@
     <Compile Include="EntityOperations\EntityQueryCharacterizationTests.cs" />
     <Compile Include="EntityOperations\EntityQueryContractTests.cs" />
     <Compile Include="DataOperations\*.cs" />
+    <Compile Include="ActivityOperations\*.cs" />
     <Compile Include="TestHelpers\GoldenQueryAssertions*.cs" />
     <Compile Include="CoreTargetFrameworkTests.cs" />
   </ItemGroup>

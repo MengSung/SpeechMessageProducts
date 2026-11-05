@@ -11,7 +11,8 @@ using Xunit;
 namespace ToolUtility.Tests.ActivityOperations
 {
     /// <summary>
-    /// 在Activity仍位於原host時鎖定三類成功行為：分組查詢／順序、純ID解析、兩組狀態請求。
+    /// 在原 host 搬移前已鎖定三類成功行為：分組查詢／順序、純 ID 解析、兩組狀態請求；
+    /// 抽取後兩個測試宿主共用同一黃金檔，Framework 宿主實際載入 net462 產品。
     /// 只替代SDK，所有ID與內容為合成值，不連D365、不發LINE；不把已知安全缺陷當作相容行為。
     /// </summary>
     public sealed class ActivityCharacterizationTests

@@ -1,0 +1,109 @@
+{
+  "characterizationBefore": {
+    "passed": 6,
+    "failed": 0,
+    "evidence": "artifacts/p1-04-activity-before/before.trx"
+  },
+  "safetyRed": {
+    "passed": 0,
+    "failed": 51,
+    "evidence": "artifacts/p1-04-activity-red/red.trx"
+  },
+  "firstGreenBeforeMove": {
+    "passed": 57,
+    "failed": 0
+  },
+  "allBeforeMove": {
+    "passed": 82,
+    "failed": 0,
+    "evidence": "artifacts/p1-04-activity-all-before-move/all-before-move.trx"
+  },
+  "final": {
+    "reports": 16,
+    "passed": 2444,
+    "failed": 0,
+    "skipped": 0,
+    "net48": 495,
+    "net10": 602,
+    "churchReport": 623,
+    "architecture": 67,
+    "publicCallerRoutes": 7,
+    "coverageNet48": 99.56,
+    "coverageNet10": 100
+  },
+  "checks": {
+    "coreStrictWarnings": 0,
+    "coreStrictErrors": 0,
+    "firstStrictFailureCodes": [
+      "CA2208",
+      "CA1510",
+      "CA1859"
+    ],
+    "solutionBuildLegacyWarnings": 4,
+    "tracer": 7,
+    "i18n": 108,
+    "packaging": 27,
+    "pluginMetadata": 10,
+    "pluginEphemeralBuild": 6,
+    "packages": {
+      "projects": 34,
+      "references": 158,
+      "failures": 0
+    },
+    "duplicates": {
+      "projects": 28,
+      "files": 941,
+      "groups": 0,
+      "new": 0,
+      "stale": 0
+    },
+    "progress": 8,
+    "encodingFullChanged": {
+      "checked": 805,
+      "rawExcluded": 769,
+      "issues": 1,
+      "path": ".ccg/tasks/p013-apply-fault-investigation/.turns.json",
+      "issue": "MissingFinalCrlf",
+      "ownership": "Unrelated task; not modified or staged"
+    },
+    "encodingOwned": {
+      "checked": 30,
+      "issues": 0
+    },
+    "browser": {
+      "viewports": [
+        1440,
+        390,
+        320
+      ],
+      "pageErrors": 0,
+      "overflow": 0,
+      "allClosedInFinally": true
+    }
+  },
+  "review": {
+    "mode": "main-session-inline",
+    "authority": "使用者最新要求：不需要雙模型REVIEW了",
+    "externalReviewNotRequested": true,
+    "analysisRun": "20261105-211941-integration-p1-04-activity-safety-analysis-analyzer",
+    "analysisDualModelComplete": false,
+    "analysisQuotaBlocked": true,
+    "analysisDegradedFallback": true,
+    "analysisCompleted": [
+      "gemini"
+    ],
+    "analysisBlocked": [
+      "claude"
+    ],
+    "blockingFindings": 0
+  },
+  "lifecycle": {
+    "concurrentOperations": 1000,
+    "explicitRetriesAfterInjectedTimeout": 59,
+    "sdkCalls": 2059,
+    "activeAfterDrain": 0,
+    "borrowedDispose": 0,
+    "weakReferenceLoggerAndReleasedSdk": "passed"
+  },
+  "scope": "離線SDK邊界；無VM/D365/LINE/部署/push；P1仍2/12，主任務不封存。"
+}

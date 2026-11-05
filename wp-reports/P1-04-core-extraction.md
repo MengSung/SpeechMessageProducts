@@ -111,3 +111,7 @@ Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必
 ## Attachment切片（2026-11-05）
 
 已抽取AttachmentService／IAttachmentService及新immutable limits；最終雙宿主413/413、512/512，Core99.48%／100%、strict0/0，完整16TRX2272/2272、ChurchReport623/623。實際公開委派四案、1000 A/B與1536 Base64候選有證據。分析雙模型；末端Claude週額度、Gemini單模型降級，未取得Claude review，不宣稱完整雙模型。詳P1-04-attachment.md；主P1仍2/12。
+
+## Activity切片（2026-11-05 21:33）
+
+已修跨表GUID覆寫及部分發布，原51紅→57綠，含生命週期82搬前綠後git mv兩檔；495/602、16TRX2444、Core99.56%/100%。保留合法append、外部地址略過及狀態1/4、3/5；1000 A/B、59次明確故障重試、Dispose/drain及公開委派七案通過。使用者取消後續雙模型REVIEW，主會話直接審查；分析兩後端已嘗試但Claude週額度降級。其他候選仍未完成，P1仍2/12，不封存主任務。

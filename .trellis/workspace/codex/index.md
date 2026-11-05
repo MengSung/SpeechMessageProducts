@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 11
+- **Total Sessions**: 12
 - **Last Active**: 2026-11-05
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~404 | Active |
+| `journal-1.md` | ~494 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 12 | 2026-11-05 | P1-04 Activity安全修正與Core抽取（P1仍未完成） | - | `1.0.0.11.Integration.P1.Worktree` |
 | 11 | 2026-11-05 | P1-04 Activity原host特性準備檢查點（主P1仍未完成） | - | `1.0.0.11.Integration.P1.Worktree` |
 | 10 | 2026-11-05 | P1-04 Attachment離線切片與Claude週額度降級檢查點（主P1未完成） | - | `1.0.0.11.Integration.P1.Worktree` |
 | 9 | 2026-11-05 | P1-04 Repository抽取與末端驗證 | `b64d3224`, `93377c7f` | `1.0.0.11.Integration.P1.Worktree` |

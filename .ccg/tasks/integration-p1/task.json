@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Activity六案特性原host綠、204755分析Gemini降級。下一步補跨表同GUID／部分發布等安全紅測，修後搬前綠才git mv；詳wp-reports/P1-04-activity.md。Attachment31ab8cea已保存，Claude週額度／非本切片索引編碼仍揭露，P1仍2/12。",
+  "nextAction": "Activity已抽Core，原51紅→搬前82綠；495/602與2444全方案、coverage99.56%/100%。保存最後頁面/編碼/本地提交，依使用者主會話審查不再雙模型REVIEW；接續其他P1-04候選，P1仍2/12。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
@@ -16,5 +16,6 @@
     "不push/merge/正式部署",
     "VM預設只讀，測試寫入須確認隔離/備份/復原",
     "產品net462;net10.0，不降低守門"
-  ]
+  ],
+  "reviewPolicy": "使用者最新明確免除後續雙模型REVIEW；主會話直接審查+實測，歷史外審保留且不冒稱新增。"
 }

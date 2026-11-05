@@ -1,0 +1,13 @@
+{
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/ccg-health-20261105-211942.json": "8ab8420ea9ba5c7ed9b29d19fa24dadb81583f28dc54b669362c10ab23dbd766",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/claude-analyzer-attempt-1.prompt.md": "02b3af2133ced5524664ab581c989b2bb728c3b8d3baa91995abfa8fda34589d",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/claude-analyzer-attempt-1.stderr.md": "7320e51f0f7cd4f974ae21247c776dbd2a59c5d7f18c2bd013c353a48bf558c8",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/claude-analyzer-attempt-1.stdout.md": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/claude-probe-attempt-1.stdout.md": "ec4c8e7a9798e85a70a77527bb284b961a3a7d83687350347c0c42b47a319943",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/gemini-analyzer-attempt-1.prompt.md": "89788f17adf6098471874e8af65747fc5bf8427270202773feaba7993f49d7f0",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/gemini-analyzer-attempt-1.stderr.md": "d9ae43bd5c6f4bb2215492e6008099f6ae28fcd47516935e78752678e770c9ef",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/gemini-analyzer-attempt-1.stdout.md": "a47e97cead48e21b9c9aa62c9e45ed9fe12f37c9de54f16ca6f4ea16397a50e9",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/health-attempt-1.json": "ec980a809600b6674deb17ed0828022b6b6be084c3cd791900e093177b282189",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/summary.json": "6c7478b47ed2d17e2f1a24e35ddbf2d04cabec6d23f7d78bb546985f5eee6e43",
+  ".ccg/dual-model-runs/20261105-211941-integration-p1-04-activity-safety-analysis-analyzer/summary.md": "f33a069392ccfeb1197214349c8b957fbf66db126a4d223893ff2258755b4184"
+}

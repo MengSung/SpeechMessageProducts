@@ -1,0 +1,10 @@
+{
+  "ToolUtility.Core/ActivityOperations/ActivityService.cs": "552cf4b6e522d78b855050eeaab56f6511e6f778afd047e70830d6a62478fe29",
+  "ToolUtility.Core/ActivityOperations/IActivityService.cs": "b103c57115726830be2e895340631c7379b8eb43d1ea60b86df181c02b96b2df",
+  "ToolUtility.Tests/ActivityHostOperations/ActivityCallerRouteTests.cs": "92e18ad68596e2d71285c6487f4fbede33423e74b080c0d97c412297ff2ea4f8",
+  "ToolUtility.Tests/ActivityOperations/ActivityCharacterizationTests.cs": "ce0c624484e53d77d3615a1a2ec808559ba51ebc17d49c62b791a7246f35d922",
+  "ToolUtility.Tests/ActivityOperations/ActivityLifecycleTests.cs": "c75afeff91ece828437425b7c0233a88090fb25d63e3fc91814d3fdb27e4c6c3",
+  "ToolUtility.Tests/ActivityOperations/ActivitySafetyTests.cs": "5d50f3b039ba25caf4f809804a1cf3d8d17a4905727a9cd370f711b9308fbc78",
+  "ToolUtility.Tests/CoreTargetFrameworkTests.cs": "eb6ae923d86e2a3cfb20d7638b8b352dd059c93e591ac94e797fc4c0761ed9f1",
+  "ToolUtility.Tests/ToolUtility.Tests.csproj": "b61eee6342dd16c7cb5e610b18c5fcea6a3594b6bb0bd47f2dc4cc0cd8a2c37b"
+}

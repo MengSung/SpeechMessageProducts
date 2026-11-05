@@ -1,0 +1,6 @@
+{
+  "checked": 30,
+  "validator": "Unmodified Get-TextByteIssues from repository",
+  "issues": [],
+  "scope": "Own text only; not full Changed gate"
+}
