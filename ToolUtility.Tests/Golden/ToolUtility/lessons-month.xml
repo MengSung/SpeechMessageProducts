@@ -1,0 +1,15 @@
+<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                      <entity name='new_disciple_lessons'>
+                        <attribute name='new_name' />
+                        <attribute name='createdon' />
+                        <attribute name='new_class_start_date' />
+                        <attribute name='new_class_end_date' />
+                        <attribute name='new_classification' />
+                        <attribute name='new_disciple_lessonsid' />
+                        <order attribute='new_classification' descending='false' />
+                        <filter type='and'>
+                            <condition attribute='new_class_start_date' operator='on-or-after'  value='2027-1-2' />
+                            <condition attribute='new_class_end_date' operator='on-or-before' value='2027-3-4' />
+                        </filter>
+                      </entity>
+                    </fetch>

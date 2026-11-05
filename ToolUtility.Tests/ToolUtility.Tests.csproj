@@ -58,6 +58,9 @@
     <!-- 既有 host 測試完整保留在 net10；Framework 宿主只編譯純 Core 契約，不引用 net10 host。 -->
     <Compile Remove="**\*.cs" />
     <Compile Include="FeeOperations\*.cs" />
+    <Compile Include="EntityOperations\EntityQueryCharacterizationTests.cs" />
+    <Compile Include="EntityOperations\EntityQueryContractTests.cs" />
+    <Compile Include="DataOperations\*.cs" />
     <Compile Include="TestHelpers\GoldenQueryAssertions*.cs" />
     <Compile Include="CoreTargetFrameworkTests.cs" />
   </ItemGroup>
@@ -65,6 +68,7 @@
     <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" PrivateAssets="all" />
     <!-- 測試直接消費 SDK，需同樣以中央安全版本覆蓋其舊傳遞相依。 -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" PrivateAssets="all" />
+    <PackageReference Include="System.Security.Permissions" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

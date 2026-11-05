@@ -1,0 +1,24 @@
+<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='appointment'>
+                        <attribute name='subject' />
+                        <attribute name='statecode' />
+                        <attribute name='scheduledstart' />
+                        <attribute name='scheduledend' />
+                        <attribute name='regardingobjectid' />
+                        <attribute name='ownerid' />
+                        <attribute name='new_meeting_kind' />
+                        <attribute name='new_leave_kind' />
+                        <attribute name='new_location_kind' />
+                        <attribute name='activityid' />
+                        <attribute name='requiredattendees' />
+                        <attribute name='optionalattendees' />
+                        <attribute name='new_list_appointment' />
+                        <attribute name='description' />
+                        <order attribute='subject' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='scheduledstart' operator='on-or-after'  value='2027-1-2' />
+                          <condition attribute='scheduledstart' operator='on-or-before' value='2027-3-4' />
+                          <condition attribute='new_meeting_kind' operator='eq' value='100000001' />
+                        </filter>
+                      </entity>
+                    </fetch>

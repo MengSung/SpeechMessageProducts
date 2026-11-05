@@ -1,0 +1,11 @@
+<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='new_present_record'>
+                        <attribute name='new_present_recordid' />
+                        <attribute name='new_name' />
+                        <attribute name='createdon' />
+                        <order attribute='new_name' descending='false' />
+                        <filter type='and'>
+                          <condition attribute='new_sunday_date' operator='on' value='2027-1-2' />
+                        </filter>
+                      </entity>
+                    </fetch>

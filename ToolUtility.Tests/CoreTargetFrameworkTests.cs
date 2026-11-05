@@ -1,6 +1,10 @@
 using System.Reflection;
 using System.Runtime.Versioning;
 using ToolUtilityNameSpace.FeeOperations;
+using ToolUtilityNameSpace.EntityOperations;
+using ToolUtilityNameSpace.AppointmentOperations;
+using ToolUtilityNameSpace.LessonsOperations;
+using ToolUtilityNameSpace.MeetingStatisticsOperations;
 using Xunit;
 
 namespace ToolUtility.Tests
@@ -19,6 +23,10 @@ namespace ToolUtility.Tests
         public void LoadedCore_UsesApprovedProductTarget()
         {
             var assembly = typeof(FeeService).Assembly;
+            Assert.Same(assembly, typeof(EntityQueryService).Assembly);
+            Assert.Same(assembly, typeof(AppointmentService).Assembly);
+            Assert.Same(assembly, typeof(LessonsService).Assembly);
+            Assert.Same(assembly, typeof(MeetingStatisticsService).Assembly);
             Assert.Equal("ToolUtility.Core", assembly.GetName().Name);
             var target = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
             Assert.NotNull(target);
@@ -28,5 +36,30 @@ namespace ToolUtility.Tests
             Assert.Equal(".NETCoreApp,Version=v10.0", target!.FrameworkName);
 #endif
         }
+
+#if !NETFRAMEWORK
+        /// <summary>
+        /// 實際反射三個介面的公開 nullable 中繼資料，而非以檔頭是否有 pragma 判斷。
+        /// Core strict 專案統一啟用 Nullable；若後續設定漂移成 oblivious，任一字串參數即決定性失敗。
+        /// 不需修改產品公開 API 或新增重複 pragma 來配合靜態審查推測。
+        /// </summary>
+        [Theory]
+        [InlineData(typeof(IAppointmentService))]
+        [InlineData(typeof(ILessonsService))]
+        [InlineData(typeof(IMeetingStatisticsService))]
+        public void CoreInterfaces_EmitNonObliviousStringContracts(System.Type contract)
+        {
+            var context = new NullabilityInfoContext();
+            var checkedParameters = 0;
+            foreach (var method in contract.GetMethods())
+                foreach (var parameter in method.GetParameters())
+                    if (parameter.ParameterType == typeof(string))
+                    {
+                        Assert.Equal(NullabilityState.NotNull, context.Create(parameter).ReadState);
+                        checkedParameters++;
+                    }
+            Assert.True(checkedParameters > 0);
+        }
+#endif
     }
 }

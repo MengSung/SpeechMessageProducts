@@ -38,6 +38,8 @@
     <PackageReference Include="System.ComponentModel.Annotations" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+    <!-- 舊 SDK 的 Permissions 6 與 DirectoryServices 9 所需的組件版本衝突；明確統一至中央版本。 -->
+    <PackageReference Include="System.Security.Permissions" />
     <PackageReference Include="System.ServiceModel.Http" />
     <PackageReference Include="System.ServiceModel.Primitives" />
     

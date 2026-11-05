@@ -23,9 +23,8 @@ using ToolUtilityNameSpace.Diagnostics;
 namespace ToolUtilityNameSpace.DependencyInjection
 {
     /// <summary>
-    /// ServiceCollection 擴展方法
-    /// 用於在 ASP.NET Core 中註冊 ToolUtility 服務
-    /// 實現 Dependency Injection 模式
+    /// 產品級 ToolUtility 組合根；產品與組態只能由受信任的 host 提供，不能來自 request。
+    /// 一個容器只屬於一個產品，manager／pool 是容器擁有的 singleton，資料操作維持 scoped。
     /// </summary>
     public static class ServiceCollectionExtensions
     {
@@ -36,12 +35,58 @@ namespace ToolUtilityNameSpace.DependencyInjection
         /// </summary>
         /// <param name="services">服務集合</param>
         /// <returns>服務集合</returns>
+        [Obsolete("請改用 AddToolUtility(configuration, product) 明確指定產品；此相容多載預定於階段 6 移除。")]
         public static IServiceCollection AddToolUtility(this IServiceCollection services)
+        {
+            // 舊 API 沒有組態參數，延至解析時才從原容器取得組態；不可為取得設定另建 ServiceProvider。
+            return RegisterServices(services, null, "ChurchReport");
+        }
+
+        /// <summary>
+        /// 以明確的產品與組態註冊資料服務，讓實際 DataverseConnectionKey 包含正確產品。
+        /// 組態只活至 host 容器結束，不保存 HttpContext、Session 或個別使用者值。
+        /// 同一容器的衝突產品／組態會在任何新增註冊前拒絕，避免第一份 singleton 靜默勝出。
+        /// </summary>
+        /// <param name="services">由 host 擁有且尚在建構中的服務集合；非並行註冊 API。</param>
+        /// <param name="configuration">此產品的 host 組態；讀取必要連線設定時仍須通過 manager 驗證。</param>
+        /// <param name="product">伺服器組合根選定的非空產品識別，不接受呼叫端路由作為權限。</param>
+        /// <returns>同一服務集合；相同組態實例與產品重複註冊為冪等。</returns>
+        public static IServiceCollection AddToolUtility(
+            this IServiceCollection services, IConfiguration configuration, string product)
+        {
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            return RegisterServices(services, configuration, product);
+        }
+
+        /// <summary>
+        /// 共用新舊 API 的唯一註冊流程，不建立隱藏容器或捕獲 scoped service。
+        /// null 組態只供無參數相容入口，所有需組態的 factory 透過同一解析函式取得來源。
+        /// </summary>
+        private static IServiceCollection RegisterServices(
+            IServiceCollection services, IConfiguration configuration, string product)
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
+            if (string.IsNullOrWhiteSpace(product))
+                throw new ArgumentException("A non-empty product identifier is required.", nameof(product));
+            foreach (var descriptor in services)
+            {
+                if (descriptor.ServiceType != typeof(ProductRegistration)) continue;
+                var previous = (ProductRegistration)descriptor.ImplementationInstance;
+                if (!string.Equals(previous.Product, product, StringComparison.Ordinal)
+                    || !ReferenceEquals(previous.Configuration, configuration))
+                    throw new InvalidOperationException("ToolUtility is already registered for a different product or configuration.");
+                return services;
+            }
+
+            services.AddSingleton(new ProductRegistration(product, configuration));
+            if (configuration != null) services.TryAddSingleton<IConfiguration>(configuration);
+
+            // 此委派只捕獲 host 組態，不保存 provider；每個 factory 仍在原容器依原生命週期執行。
+            IConfiguration ResolveConfiguration(IServiceProvider provider) =>
+                configuration ?? provider.GetRequiredService<IConfiguration>();
 
             // Manager 與 pool 都是程序級資源擁有者；它們只能依賴 Singleton，
             // 絕不捕獲 request-scoped service。TryAdd 讓測試或其他產品可先提供
@@ -64,7 +109,7 @@ namespace ToolUtilityNameSpace.DependencyInjection
             services.TryAddSingleton<DataversePoolOptions>(sp =>
             {
                 var options = new DataversePoolOptions();
-                sp.GetRequiredService<IConfiguration>()
+                ResolveConfiguration(sp)
                     .GetSection("Dataverse:Pool")
                     .Bind(options);
                 options.Validate();
@@ -72,12 +117,12 @@ namespace ToolUtilityNameSpace.DependencyInjection
             });
             services.TryAddSingleton<DataverseConnectionManager>(sp =>
             {
-                var configuration = sp.GetRequiredService<IConfiguration>();
+                var effectiveConfiguration = ResolveConfiguration(sp);
                 return new DataverseConnectionManager(
                     sp.GetRequiredService<ICrmConnectionService>(),
-                    configuration,
-                    "ChurchReport",
-                    ResolveEnvironmentName(configuration),
+                    effectiveConfiguration,
+                    product,
+                    ResolveEnvironmentName(effectiveConfiguration),
                     sp.GetRequiredService<DataversePoolOptions>());
             });
             services.TryAddSingleton<IDataverseConnectionManager>(sp =>
@@ -93,9 +138,29 @@ namespace ToolUtilityNameSpace.DependencyInjection
             services.AddScoped<ToolUtilityClass>(sp => new ToolUtilityClass(
                 sp.GetRequiredService<IOrganizationService>(),
                 sp.GetRequiredService<IToolUtilityTracer>(),
-                sp.GetRequiredService<IConfiguration>()));
+                ResolveConfiguration(sp)));
             services.AddScoped<IToolUtilityProvider, ToolUtilityProvider>();
             return services;
+        }
+
+        /// <summary>
+        /// 註冊期間的有限不可變標記，只含 host 擁有的產品與組態參照，不是使用者狀態快取。
+        /// 與 IServiceCollection／容器同生命週期，不擁有組態或任何 IDisposable。
+        /// </summary>
+        private sealed class ProductRegistration
+        {
+            /// <summary>保存首次註冊的受信任邊界，供後續註冊比對，不讀取或複製機密內容。</summary>
+            internal ProductRegistration(string product, IConfiguration configuration)
+            {
+                Product = product;
+                Configuration = configuration;
+            }
+
+            /// <summary>唯一的 host 產品識別，不由 request 改寫。</summary>
+            internal string Product { get; }
+
+            /// <summary>原 host 組態；null 表示延用既有 DI 解析，不代表缺少連線驗證。</summary>
+            internal IConfiguration Configuration { get; }
         }
 
         /// <summary>

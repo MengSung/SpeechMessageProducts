@@ -36,11 +36,16 @@ namespace ToolUtility.Tests.FeeOperations
         public void NewQuery_MatchesGoldenAndPreservesSameNameRows(string operation, string golden)
         {
             var expected = Rows();
+            expected.MoreRecords = true;
+            expected.PagingCookie = "Synthetic paging cookie";
             var client = Client(expected, xml => GoldenQueryAssertions.Equal(golden, xml));
             var sut = new FeeService(new object(), client.Object);
 
             var result = Invoke(sut, operation);
 
+            Assert.Same(expected, result);
+            Assert.True(result.MoreRecords);
+            Assert.Equal("Synthetic paging cookie", result.PagingCookie);
             Assert.Equal(2, result.Entities.Count);
             Assert.NotEqual(result.Entities[0].Id, result.Entities[1].Id);
             Assert.Equal(result.Entities[0]["new_name"], result.Entities[1]["new_name"]);
@@ -235,6 +240,9 @@ namespace ToolUtility.Tests.FeeOperations
                     .Where(condition => condition.Attribute("uiname") != null).ToArray();
                 Assert.Single(lookups);
                 Assert.Equal(SpecialText, (string?)lookups[0].Attribute("uiname"));
+                if (operation == "Fee")
+                    Assert.Equal(SpecialText, (string?)XDocument.Parse(xml).Descendants("condition")
+                        .Single(condition => (string?)condition.Attribute("attribute") == "new_paid_period").Attribute("value"));
             });
 
             var sut = new FeeService(new object(), client.Object);
@@ -280,6 +288,22 @@ namespace ToolUtility.Tests.FeeOperations
         }
 
         /// <summary>
+        /// 期數是必要業務條件；明確鎖定空白拒絕而非悄悄擴張查詢。
+        /// 現有 ChurchReport 消費者固定傳入001，此邊界不改變其有效流程；拒絕前不碰SDK。
+        /// </summary>
+        /// <param name="period">無效的合成期數。</param>
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void RetrieveFee_EmptyPeriod_RejectsBeforeIo(string period)
+        {
+            var client = new Mock<IOrganizationService>(MockBehavior.Strict);
+            var sut = new FeeService(client.Object);
+            Assert.Throws<ArgumentException>(() => sut.RetrieveFee("Synthetic Booking", ScopeId, period));
+            client.VerifyNoOtherCalls();
+        }
+
+        /// <summary>
         /// 非西曆環境不能改變資料庫日期條件；在本案局部注入泰國曆並finally還原，
         /// 應仍符合已核對的西曆golden，不能靠改主機全域文化換取通過。
         /// </summary>
@@ -298,6 +322,20 @@ namespace ToolUtility.Tests.FeeOperations
             {
                 CultureInfo.CurrentCulture = previous;
             }
+        }
+
+        /// <summary>
+        /// 反向日期區間是預期輸入拒絕，必須在 SDK I/O 前停止，不能擴張成不受限查詢。
+        /// 此案例保護既有安全分支；不修改產品斷言或以空集合冒充合法結果。
+        /// </summary>
+        [Fact]
+        public void DateRange_StartAfterEnd_RejectsBeforeIo()
+        {
+            var client = new Mock<IOrganizationService>(MockBehavior.Strict);
+            var sut = new FeeService(client.Object);
+            Assert.Throws<ArgumentException>(() => sut.RetrieveDedicationFeeByDateRange("Synthetic Contact", ScopeId,
+                new DateTime(2027, 3, 4), new DateTime(2027, 1, 2)));
+            client.VerifyNoOtherCalls();
         }
 
         /// <summary>

@@ -101,6 +101,8 @@ jobs:
           $cases = @(
             @{ Project='SpeechMessage.Localization.Tests'; Framework='net48'; Module='SpeechMessage.Localization' },
             @{ Project='SpeechMessage.Localization.Tests'; Framework='net10.0'; Module='SpeechMessage.Localization' },
+            @{ Project='ToolUtility.Tests'; Framework='net48'; Module='ToolUtility.Core' },
+            @{ Project='ToolUtility.Tests'; Framework='net10.0'; Module='ToolUtility.Core' },
             @{ Project='LineMessagingProcessor.Tests'; Framework='net48'; Module='LineMessagingProcessor.Core' },
             @{ Project='LineMessagingProcessor.Tests'; Framework='net10.0'; Module='LineMessagingProcessor.Core' },
             @{ Project='SpeechMessage.Dynamics.Plugins.Tests'; Framework='net48'; Module='SpeechMessage.Dynamics.Plugins' },
