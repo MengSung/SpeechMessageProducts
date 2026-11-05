@@ -25,3 +25,9 @@ DevExtreme23.1.5本機來自已授權local source，公開NuGet固定版本404�
 
 ## 待完成
 P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證及適用雙模型審查／修正／分階段commit。P1-04～12尚未實作，不得標完成。下一個工作包先盤點ToolUtility並鎖住可搬Operations查詢特性，再抽Core；P1-10先於08。整階段任務只在全部必要證據通過後封存。
+
+## 接續檢查點（2026-11-05）
+- 使用者要求每有進度即更新 `文件/規劃設計書/實作計畫-3.3/實作進度.html`，並逐包列出 P1-01～P1-12。頁面已新增12包清單，P1-01～03標為驗收收斂中，P1-04～11未開始，P1-12依D24標示使用者執行apply；總計0/12驗收完成、3包進行中。
+- 進度頁新增渲染測試；先紅（缺少P1列表renderer），實作共用renderer後4/4通過。
+- 2026-11-05 CCG analyzer run `20261105-103725-integration-p1-02-warning-resolution-analyzer`：`reviewMode=dual`、`dualModelComplete=true`、`quotaBlocked=false`。確認 `ArchitectureProjectReader.Evaluate` 的終止等待及pipe drain沒有期限；`QueryFixture.LastQuery` 欄位並行發布不安全。Gemini所提 `AdvancingClock` 競態依實際使用圖不成立（clock per fixture，輪詢序列await，`OnDelay`無呼叫端）。
+- 計畫本身已有有界等待／資源釋放規則；此為實作缺口，故不改正式計畫、不產Word修正報告。下一步依TDD加入有界終止與有界輸出drain測試，修正Process讀取上限與 LastQuery volatile發布，再定向驗證及外審。

@@ -294,6 +294,11 @@
   </section>
 
   <section>
+    <h2>階段 1 工作包<small>依正式計畫 02；逐包以驗收證據決定完成</small></h2>
+    <div class="card"><ol class="wps" id="p1-wps"></ol></div>
+  </section>
+
+  <section>
     <h2>整體路線圖<small>9 個階段、77 個工作包；百分比依工作包數計算，不代表工時</small></h2>
     <div class="card">
       <div class="legend" aria-hidden="true">
@@ -358,7 +363,8 @@ const DATA = {
     "title": "階段 1 執行中｜重新驗證 P1-01～03",
     "body": "截至 2026-11-05，本機局部測試與靜態守門曾通過；完整方案結果早於 SDK 最後修補，尚未重跑。SDK 審查的舊 Critical／Warning 也早於修補，不能視為已解除。D365 預設只讀；計畫指定的 apply 由使用者執行，未確認隔離、備份與復原前不寫入。",
     "steps": [
-      "目前優先處理 ArchitectureProjectReader 的子程序退出／輸出排空逾時，以及並行測試 fixture 的 LastQuery 共享寫入。",
+      "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
+      "目前修正為有界程序終止與輸出排空／記憶體上限，並以執行緒安全欄位發布 LastQuery；完成後重跑架構及相關測試。",
       "之後重跑完整方案、Debug tracer、編碼、重複程式、套件、I18nCheck、架構與打包檢查，並以最新版 diff 重新執行雙模型審查。",
       "若研究證明正式計畫存在必要修正，先留下需求、證據、影響與替代方案，再製作 Word 修正報告；未證實前不改計畫。"
     ]
@@ -368,10 +374,10 @@ const DATA = {
       "label": "全計畫進度",
       "value": "18",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18 已完成；P1 逐包驗收尚未通過",
+      "sub": "P0 18／18 已完成；P1 有 3 包正在收斂驗收",
       "meter": {
         "done": 18,
-        "active": 0,
+        "active": 3,
         "total": 83
       }
     },
@@ -390,10 +396,10 @@ const DATA = {
       "label": "階段 1 驗收",
       "value": "0",
       "unit": "/ 12 工作包",
-      "sub": "P1-01～03 實作存在；完整驗收、最新審查與證據歸檔未完成",
+      "sub": "前三包實作存在，完整驗收、最新審查與證據歸檔未完成",
       "meter": {
         "done": 0,
-        "active": 1,
+        "active": 3,
         "total": 12
       }
     },
@@ -546,6 +552,80 @@ const DATA = {
       "commit": "69803bf1（net462）；a4649e3b（verify）；f664c685（清單停用）"
     }
   ],
+  "p1Wps": [
+    {
+      "id": "P1-01",
+      "name": "清理孤兒專案與檔案",
+      "status": "active",
+      "note": "51 個候選檔案已有逐項引用稽核；原 15 個效能案例均保留並已納入可執行測試。待重跑階段 §8 全量守門、保存本輪 log，並完成工作包報告與提交。"
+    },
+    {
+      "id": "P1-02",
+      "name": "架構測試（R4：相依只能往下）",
+      "status": "active",
+      "note": "真實 MSBuild／逐目標與 NuGet Framework assets 檢查、合成正反例及 net48 載入 net462 測試已實作。2026-11-05 Gemini＋Claude 雙模型分析確認子程序無界等待及 LastQuery 非安全發布兩項 Warning；AdvancingClock 競態推測不成立。修復與最新版複審待完成。"
+    },
+    {
+      "id": "P1-03",
+      "name": "Line.Messaging 雙目標與 Webhook 安全",
+      "status": "active",
+      "note": "net462／net10、六類序列化 golden、Sender／Background／Webhook 欄位、原始 byte HMAC、每次請求憑證隔離及資源生命週期測試已有實作。舊雙模型審查早於 raw-byte 入口修補，舊 Critical／Warning 尚未以最新版重審；完整方案回歸待重跑。"
+    },
+    {
+      "id": "P1-04",
+      "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
+      "status": "todo",
+      "note": "尚未開始。先逐型別盤點可搬／不可搬項目、確認舊來源路徑並鎖定 Operations 特性測試，再抽取 Core、補四個方法與 product 隔離多載。"
+    },
+    {
+      "id": "P1-05",
+      "name": "SpeechMessage.Localization 完整版",
+      "status": "todo",
+      "note": "尚未開始。需完成五層字典解析、具名參數、語言 resolver、關鍵字正規化與衝突守門，並驗證教會 A／B 1,000 次並行不串資料。"
+    },
+    {
+      "id": "P1-06",
+      "name": "教會時鐘與 IANA／Windows 時區對照",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-05；需驗證明確 UTC／當地時間、DST 模糊與無效時間拒絕、生日純日期不移日及雙目標一致。"
+    },
+    {
+      "id": "P1-07",
+      "name": "Money 與幣別格式化",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-05；需驗證幣別白名單、TWD 顯示政策、格式語系不改幣別及跨幣別運算拒絕。"
+    },
+    {
+      "id": "P1-08",
+      "name": "教會覆寫快照快取",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-04、P1-05、P1-10；須先完成租戶 resolver，再實作有界快取、single-flight、完整候選驗證、原快照保留、取消隔離與 Dispose／drain 基線測試。"
+    },
+    {
+      "id": "P1-09",
+      "name": "I18nCheck v2 完整資源檢查",
+      "status": "todo",
+      "note": "尚未開始。需逐規則補正反例，檢查 key／參數／重複、Sender 與 ChatBar 長度、偽語系、跨語系關鍵字衝突及英文完成度報告。"
+    },
+    {
+      "id": "P1-10",
+      "name": "SpeechMessage.Tenancy 與 LINE channel resolver",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-04；集中既有九處設定解析、保留 Jesus 後備並安全告警，加入租戶 A／B 並行隔離，且先於 P1-08。"
+    },
+    {
+      "id": "P1-11",
+      "name": "Deployment 結構 schema／plan／apply／verify",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-04；先完成唯讀 metadata 匯出與離線 plan／verify，apply 僅新增、核對 fingerprint／plan hash／白名單與冪等性，不改既有結構或輸出業務資料／秘密。"
+    },
+    {
+      "id": "P1-12",
+      "name": "goodshepherdback 結構驗收",
+      "status": "you",
+      "note": "正式計畫 D24 指定由使用者在目標組織執行審核後的 apply。尚未確認隔離測試環境、備份與可驗證復原前維持只讀；不得把 mock／離線驗證寫成實機通過。"
+    }
+  ],
   "phases": [
     {
       "id": "階段 0",
@@ -562,7 +642,7 @@ const DATA = {
       "est": "12～16 天",
       "total": 12,
       "done": 0,
-      "active": 1,
+      "active": 3,
       "current": true
     },
     {
@@ -762,7 +842,12 @@ const DATA = {
     },
     {
       "t": "目前",
-      "text": "先修 ArchitectureProjectReader 的有界程序等待與並行 fixture 的共享欄位風險；完成後重跑並保存各 gate 輸出。",
+      "text": "Gemini＋Claude 雙模型分析完成（dualModelComplete=true、無降級）：確認兩項 Warning，排除 AdvancingClock 假設競態；正式計畫未發現缺陷，無須變更計畫或製作 Word 修正報告。",
+      "cls": "ok"
+    },
+    {
+      "t": "目前",
+      "text": "正在落實有界子程序終止／輸出 drain，並安全發布 LastQuery；完成後先跑定向測試，再重跑 P1 全套 gates。",
       "cls": "stop"
     },
     {
@@ -1320,7 +1405,7 @@ document.getElementById("tiles").innerHTML = D.tiles.map(t => `
     <div class="sub">${esc(t.sub)}</div>
   </div>`).join("");
 
-document.getElementById("wps").innerHTML = D.wps.map(w => {
+const renderWp = w => {
   if (w.milestone) {
     return `<li class="wp is-milestone">
       <span class="dot">${ICON.review}</span><span class="id">審查</span>
@@ -1339,7 +1424,9 @@ document.getElementById("wps").innerHTML = D.wps.map(w => {
     <span class="name">${esc(w.name)}</span>
     <span class="right">${right}</span>
     ${w.note ? `<span class="note">${esc(w.note)}</span>` : ""}</li>`;
-}).join("");
+};
+document.getElementById("wps").innerHTML = D.wps.map(renderWp).join("");
+document.getElementById("p1-wps").innerHTML = D.p1Wps.map(renderWp).join("");
 
 document.getElementById("phases").innerHTML = D.phases.map(p => `
   <div class="phase${p.current ? " is-current" : ""}">

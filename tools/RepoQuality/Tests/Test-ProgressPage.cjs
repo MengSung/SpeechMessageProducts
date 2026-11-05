@@ -68,3 +68,13 @@ test('Alert with prompt preserves escaped prompt and copy handler', () => {
   assert.equal(elements.get('copyBtn').listeners.has('click'), true);
   assert.match(elements.get('alert').innerHTML, /&lt;sample&gt;/);
 });
+
+test('Stage 1 progress lists all twelve packages and preserves the live acceptance boundary', () => {
+  const elements = render(original.alert);
+  const ids = [...elements.get('p1-wps').innerHTML.matchAll(/<span class="id">(P1-\d+)<\/span>/g)]
+    .map(match => match[1]);
+  assert.deepEqual(ids, Array.from({ length: 12 }, (_, index) => `P1-${String(index + 1).padStart(2, '0')}`));
+  assert.match(elements.get('p1-wps').innerHTML, /P1-02[\s\S]*尚未完成複審/);
+  assert.match(elements.get('p1-wps').innerHTML, /P1-08[\s\S]*P1-10/);
+  assert.match(elements.get('p1-wps').innerHTML, /P1-12[\s\S]*由使用者在目標組織執行審核後的 apply/);
+});
