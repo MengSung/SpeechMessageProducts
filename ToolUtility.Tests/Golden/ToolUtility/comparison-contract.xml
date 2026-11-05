@@ -1,0 +1,6 @@
+<fetch>
+  <entity name="synthetic">
+    <attribute name="syntheticid" />
+    <order attribute="syntheticid" descending="false" />
+  </entity>
+</fetch>

@@ -110,12 +110,13 @@ public sealed class LineRichMenuWorkflowTests
 
     /// <summary>
     /// LINE provider 明確拒絕 request 時，OrThrow 變體應丟出標準 RichMenu 例外並保留 provider-rejected 狀態。
+    /// 注入含合成私密標記的 HTTP 400；精確檢查錯誤代碼及安全訊息，例外不得洩漏遠端本文。
     /// </summary>
     [Fact]
     public async Task CreateUploadAndLinkOrThrowAsync_throws_standard_exception_when_provider_rejects_request()
     {
         var handler = new SequencedHttpMessageHandler();
-        handler.Enqueue(HttpStatusCode.BadRequest, """{"message":"invalid rich menu","details":[]}""");
+        handler.Enqueue(HttpStatusCode.BadRequest, """{"message":"private-synthetic-richmenu-detail","details":[]}""");
         var workflow = CreateWorkflow(handler);
 
         var action = () => workflow.CreateUploadAndLinkOrThrowAsync(new LineRichMenuCreateUploadAndLinkRequest
@@ -128,7 +129,9 @@ public sealed class LineRichMenuWorkflowTests
         var exception = await action.Should().ThrowAsync<LineRichMenuException>();
         exception.Which.Result.Status.Should().Be(LineRichMenuStatus.ProviderRejected);
         exception.Which.Result.ErrorCode.Should().Be("line-richmenu-provider-rejected");
-        exception.Which.Result.ErrorMessage.Should().Be("invalid rich menu");
+        exception.Which.Result.ErrorMessage.Should().Be("LINE API request failed. HTTP 400.");
+        exception.Which.Message.Should().Be("LINE API request failed. HTTP 400.");
+        exception.Which.ToString().Should().NotContain("private-synthetic-richmenu-detail");
     }
 
     /// <summary>

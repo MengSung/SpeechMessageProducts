@@ -1,0 +1,28 @@
+<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+  <entity name="new_fee">
+    <attribute name="new_feeid" />
+    <attribute name="new_name" />
+    <attribute name="createdon" />
+    <attribute name="new_pay_date" />
+    <attribute name="new_fee_shoud_pay" />
+    <attribute name="new_fee_really_paid" />
+    <attribute name="new_pay_way" />
+    <attribute name="new_category" />
+    <attribute name="new_others" />
+    <attribute name="new_paid_period" />
+    <order attribute="new_name" descending="false" />
+    <filter type="and">
+      <condition attribute="new_contact_new_fee" operator="eq" uiname="Synthetic Contact" uitype="contact" value="{11111111-1111-4111-8111-111111111111}" />
+      <condition attribute="new_category" operator="not-null" />
+      <condition attribute="new_pay_status" operator="in">
+        <value>100000001</value>
+        <value>100000002</value>
+        <value>100000003</value>
+        <value>100000004</value>
+        <value>100000006</value>
+      </condition>
+      <condition attribute="new_pay_date" operator="on-or-after" value="2027-1-2" />
+      <condition attribute="new_pay_date" operator="on-or-before" value="2027-3-4" />
+    </filter>
+  </entity>
+</fetch>

@@ -358,19 +358,20 @@ const DATA = {
   "snapshot": "2026-11-05（P1 執行中；P1-02 最新雙模型複審完成，P1-04 盤點中）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
-  "headline": "階段 1 持續執行，目前 <strong>0／12 工作包列為驗收完成</strong>。P1-02 定向雙模型複審已完成且無 Critical／Warning；進度頁回歸 4/4 通過。全階段 gates 與 P1-01、P1-03 最新完整回歸仍未完成。P1-04 正在完成逐型別盤點與特性測試設計。",
+  "headline": "階段 1 持續執行，目前 <strong>0／12 工作包列為驗收完成</strong>。最新 Release 建置 0 錯誤／18 警告；全方案測試 1,399／1,403 通過、4 失敗，正在追查，不宣稱全綠。P1-04 已完成 Fee 原實作特性測試 4/4 及雙模型抽取風險分析，Core 尚未搬移。",
   "alert": {
     "title": "階段 1 執行中｜P1-02 複審完成，接續 P1-04",
-    "body": "截至 2026-11-05，本機局部測試與靜態守門曾通過；完整方案結果早於 SDK 最後修補，尚未重跑。SDK 審查的舊 Critical／Warning 也早於修補，不能視為已解除。D365 預設只讀；計畫指定的 apply 由使用者執行，未確認隔離、備份與復原前不寫入。",
+    "body": "截至 2026-11-05，最新完整測試退出碼 1：3 案仍期待原始 LINE 錯誤本文，1 案依賴已更名的私有欄位；需依隔離與生命週期契約修正並重驗。D365 預設只讀；歷史 D24 指定使用者 apply，但最新對話已另授權在確認隔離測試、適當備份及可驗證復原後執行必要可逆測試變更。尚未取得這些證據，不寫入。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
       "局部證據：架構／MSBuild 67/67、程序故障注入 2/2、查詢效能含64路並行 16/16、進度頁 4/4；這不代表全階段 gates 已完成。接續重跑全套必要守門並處理 P1-01／03。",
       "P1-04 呼叫路徑已核對：ChurchReport 有 7 處使用舊名單 facade 方法，產品 C# 未發現直接 OrganizationServiceProxy／ServiceClient 呼叫，方法邊界為 IOrganizationService；計畫的非 SDK 大量使用停止條件目前未觸發。",
       "四個舊方法已定位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility。GetPaidFee、GetNotYetPaidFee 與 RetrieveFeeByFetchXmlOrderNumber 原始 FetchXML 有未跳脫輸入；搬移時以 XML 安全組裝，使用合成特殊字元測試，不複製注入風險。",
-      "目前 ToolUtility.Tests 沒有 FeeOperations／QueryOperations 專屬測試；現有 MockOrganizationServiceFactory 可提供每案獨立的 IOrganizationService 替身。AGENTS 指定的兩份跨使用者隔離規範檔在本工作樹不存在，將依 AGENTS 本文完整隔離條款驗收並記錄缺口。",
+      "ToolUtility.Tests 已新增 FeeOperations 特性測試 4/4：兩種完整查詢黃金檔、合法同名不同 ID 保留、SDK 原例外傳遞；尚未修改產品。QueryOperations 特性測試及61檔逐型別報告仍待補。AGENTS 指定的兩份跨使用者隔離規範檔缺失，依 AGENTS 本文隔離條款驗收並記錄缺口。",
       "若研究證明正式計畫存在必要修正，先留下需求、證據、影響與替代方案，再製作 Word 修正報告；未證實前不改計畫。",
-      "接續修正進度頁測試的兩個過時狀態斷言；逐包定位 P1-02 審查列並檢查 P1-04 接續狀態，node --test 4/4 通過。此為進度工具回歸，不代表任何 P1 工作包驗收完成。"
+      "P1-04 analyzer run 20261105-122655：dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型要求先分類、鎖行為、追溯空實作及服務所有權。這是去識別化摘要風險分析，不是程式碼審查。",
+      "最新完整結果：Release build 0 錯誤／18 警告；16 份 TRX 合計 1,399 通過／4 失敗／0 略過。證據在 artifacts/p1-resume-full-build.log、artifacts/p1-resume-full-tests/；先修正整合回歸，再繼續 Core。"
     ]
   },
   "tiles": [
@@ -409,15 +410,15 @@ const DATA = {
     },
     {
       "label": "最新完整本機 Release",
-      "value": "待重跑",
-      "unit": "尚無最新版完整結果",
-      "sub": "最近完整基準早於 SDK 最後修補，不作為本次 P1 最終驗收證據"
+      "value": "1,399 / 1,403",
+      "unit": "4 失敗、0 略過",
+      "sub": "最新版全方案退出碼 1；三案錯誤訊息契約、一案私有欄位反射依賴，修正中"
     },
     {
       "label": "最新完整本機建置",
-      "value": "待重跑",
-      "unit": "尚無最新版完整結果",
-      "sub": "將依正式計畫重做 Release 建置與所有必要守門"
+      "value": "0 錯誤",
+      "unit": "18 警告",
+      "sub": "Release build 退出碼 0；既有 ToolUtility.Tests 警告仍保留，不增加 NoWarn"
     }
   ],
   "wps": [
@@ -627,7 +628,7 @@ const DATA = {
       "id": "P1-12",
       "name": "goodshepherdback 結構驗收",
       "status": "you",
-      "note": "正式計畫 D24 指定由使用者在目標組織執行審核後的 apply。尚未確認隔離測試環境、備份與可驗證復原前維持只讀；不得把 mock／離線驗證寫成實機通過。"
+      "note": "歷史計畫 D24 指定使用者 apply；最新對話另有條件授權必要可逆測試變更，並非任意寫入授權。須確認隔離測試環境、適當備份與可驗證復原後才可執行；目前未確認，維持只讀。不可逆操作與正式資料仍不在授權範圍；不得把 mock／離線驗證寫成實機通過。"
     }
   ],
   "phases": [

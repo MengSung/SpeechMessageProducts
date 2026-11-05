@@ -85,5 +85,9 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   assert.doesNotMatch(p1_02, /最新版雙模型複審尚未完成/);
   assert.match(getWorkPackageRow(elements, 'P1-04'), /四個舊方法來源已定位/);
   assert.match(elements.get('p1-wps').innerHTML, /P1-08[\s\S]*P1-10/);
-  assert.match(elements.get('p1-wps').innerHTML, /P1-12[\s\S]*由使用者在目標組織執行審核後的 apply/);
+  const p1_12 = getWorkPackageRow(elements, 'P1-12');
+  assert.match(p1_12, /歷史計畫 D24 指定使用者 apply/);
+  assert.match(p1_12, /最新對話另有條件授權必要可逆測試變更/);
+  assert.match(p1_12, /目前未確認，維持只讀/);
+  assert.match(p1_12, /不可逆操作與正式資料仍不在授權範圍/);
 });

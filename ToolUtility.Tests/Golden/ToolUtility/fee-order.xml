@@ -1,0 +1,14 @@
+<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+  <entity name="new_fee">
+    <attribute name="new_feeid" />
+    <attribute name="new_name" />
+    <attribute name="createdon" />
+    <order attribute="new_name" descending="false" />
+    <filter type="and">
+      <filter type="or">
+        <condition attribute="new_q_pay_card_order_no" operator="eq" value="Synthetic-Order" />
+        <condition attribute="new_q_pay_order_atm_no" operator="eq" value="Synthetic-Order" />
+      </filter>
+    </filter>
+  </entity>
+</fetch>

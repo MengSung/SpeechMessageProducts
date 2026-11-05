@@ -39,7 +39,7 @@ public sealed class LineUtilityClassWorkflowTests
     /// </summary>
     /// <remarks>
     /// 故障注入使用向後相容的字串建構式，使第一個 client 明確由工具類別擁有；接著呼叫公開 token
-    /// 切換 API。決定性斷言是舊 client 內部 HttpClient 的下一次操作立即拋出
+    /// 切換 API。決定性斷言是舊 client 及其 transport 擁有的 HttpClient 下一次操作立即拋出
     /// <see cref="ObjectDisposedException"/>，而非繼續持有 socket handler。這個測試不發送真實 LINE
     /// 請求，且 using 會在測試結束釋放替換後的 client。
     /// </remarks>
@@ -54,17 +54,27 @@ public sealed class LineUtilityClassWorkflowTests
         clientField.Should().NotBeNull();
         var oldClient = (LineMessagingClient)clientField!.GetValue(utility)!;
 
-        var httpClientField = typeof(LineMessagingClient).GetField(
-            "_client",
+        // Transport 已集中擁有連線；只探查資源所有權，不讀取任何 credential。
+        // 同時檢查公開 API 與真正的 HttpClient，避免只清 token 卻洩漏自有 handler 也被誤判通過。
+        var transportField = typeof(LineMessagingClient).GetField(
+            "_transport",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        transportField.Should().NotBeNull();
+        var transport = transportField!.GetValue(oldClient)!;
+        var httpClientField = transport.GetType().GetField(
+            "client",
             BindingFlags.Instance | BindingFlags.NonPublic);
         httpClientField.Should().NotBeNull();
-        var oldHttpClient = (HttpClient)httpClientField!.GetValue(oldClient)!;
+        var oldHttpClient = (HttpClient)httpClientField!.GetValue(transport)!;
 
         IOrganizationService crmService = null!;
         utility.SetupChannelAccessToken(ref crmService);
 
         Func<Task> operation = () => oldHttpClient.GetAsync("https://127.0.0.1:1/");
         await operation.Should().ThrowAsync<ObjectDisposedException>();
+        Func<Task> sdkOperation = () => oldClient.GetBotInfoAsync();
+        await sdkOperation.Should().ThrowAsync<ObjectDisposedException>();
+        clientField.GetValue(utility).Should().NotBeSameAs(oldClient);
     }
 
     [Fact]

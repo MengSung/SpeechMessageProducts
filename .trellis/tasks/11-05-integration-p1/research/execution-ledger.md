@@ -1,5 +1,16 @@
 # P1 執行帳本（2026-11-05）
 
+## 本輪接續（2026-11-05 午間）
+- Goal 保持原 P1，不覆蓋；工具回報 `usageLimited`，不假稱已重啟 Goal 或仍在背景自動運作。當前依使用者「繼續」在本輪執行。
+- 最新原全方案 Release build 退出 0、0 錯誤／18 警告；16份 TRX 合計 1,403 案，1,399 通過／4 失敗／0 略過。失敗並非效能偶發：三案期待遠端原始 LINE message，另一案反射舊 `_client` 欄位。證據 `artifacts/p1-resume-full-{build,tests}.log`、`artifacts/p1-resume-full-tests/`。
+- 維持既有安全修補，不回傳原始 provider body。三個整合測試精確斷言安全訊息、保留 ProviderRejected／標準例外，另外注入私密合成標記並斷言不外洩。生命週期測試改讀真正 owner `_transport.client`，仍驗自有 HttpClient 已 Dispose，另驗 SDK 停止新操作及替換實例；未刪斷言或放寬標準。
+- 首次修補回歸有一個測試筆誤：FieldInfo 取值仍傳舊 SDK 而非 transport，導致 ArgumentException；修正後定向生命週期 1/1 通過。此筆誤不是產品缺陷，原始失敗紀錄保留 `artifacts/p1-regression-repair-tests/`，定向結果 `artifacts/p1-regression-repair-lifecycle/`。最新全方案重跑中，不預先宣告通過。
+- P1-04 既有 Fee 4案特性通過；日期 golden 的 ambient culture 僅在當案固定 InvariantCulture 並 finally 還原，不設定 DefaultThreadCurrentCulture。XML helper 正反例6案（縮排／引號、欄位變更、缺少節點、順序、DTD、1MiB）全部通過。
+- P1-04 新增現有 FetchXmlQueryService 的認獻／收費黃金查詢與原例外測試4案；合計14/14通過，產品尚未修改。證據 `artifacts/p1-04-pre-extraction.log`／`artifacts/p1-04-pre-extraction/p1-04-pre-extraction.trx`。
+- 確認 Facade 有兩套認獻／收費名稱路徑：`RetrieveDedicationBookingByFetchXml`／`RetrieveFeeByFetchXml` 目前經 Fee 空方法，`RetrieveDedicationBooking`／`RetrieveFee` 則經有效 FetchXmlQueryService。有效查詢的條件已鎖 golden，可以收斂單一 Fee 實作，不能帶空殼進 Core。
+- P1-04 雙模型分析 run `20261105-122655-integration-p1-04-extraction-analysis-analyzer`：dualModelComplete=true、quotaBlocked=false、degradedFallback=false。為去識別化摘要風險分析，非 code review。採納先分類／溯源／特性／安全修補後才搬移；模型提出必須修計畫之建議尚無充分依據，現行計畫已有安全抽取邊界，暫不修改正式計畫。
+- 進度頁已記錄原全方案紅燈及最新有條件 VM 授權，區分歷史 D24 與最新對話；未確認隔離、適當備份與可驗證復原前仍不寫入，亦不把不可逆 schema 操作視為當然可執行。
+
 ## 持續目標與執行邊界
 沿用 active P1 Goal；主會話 inline 實作／檢查，不派 implement/check worker。前輪三個 worker 已停止，無背景代理。CCG 只經自癒入口作唯讀分析／審查。不 push、不 merge、不部署正式環境；VM 預設只讀，必要寫入先確認隔離／備份／復原。
 

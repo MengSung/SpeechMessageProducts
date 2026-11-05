@@ -40,12 +40,17 @@ public sealed class PushUtilityTests
         handler.RequestBody.Should().Contain("\"text\":\"ATM instructions\"");
     }
 
+    /// <summary>
+    /// 保護付款推播失敗仍拋標準例外且不洩漏遠端本文。注入含合成私密標記的 HTTP 400；
+    /// 嚴格檢查失敗分類、安全訊息及例外文字，不能以回復原始 provider message 換取相容。
+    /// HTTP 替身及 transport 由本案 using 擁有並在 await 排空後確定性釋放。
+    /// </summary>
     [Fact]
     public async Task SendMessageOrThrowAsync_throws_when_line_rejects_push_message()
     {
         var handler = new RecordingLineHandler(
             HttpStatusCode.BadRequest,
-            "{\"message\":\"invalid user id\",\"details\":[]}");
+            "{\"message\":\"private-synthetic-payment-detail\",\"details\":[]}");
         using var httpClient = new HttpClient(handler);
         var pushUtility = new PushUtility(new LineMessagingClient(
             httpClient,
@@ -54,8 +59,12 @@ public sealed class PushUtilityTests
 
         var act = () => pushUtility.SendMessageOrThrowAsync("bad-user", "ATM instructions");
 
-        await act.Should().ThrowAsync<LineNotificationException>()
-            .WithMessage("invalid user id");
+        var exception = await act.Should().ThrowAsync<LineNotificationException>()
+            .WithMessage("LINE API request failed. HTTP 400.");
+        exception.Which.Result.Status.Should().Be(LineNotificationStatus.ProviderRejected);
+        exception.Which.Result.ErrorCode.Should().Be("line-provider-rejected");
+        exception.Which.Result.ErrorMessage.Should().Be("LINE API request failed. HTTP 400.");
+        exception.Which.ToString().Should().NotContain("private-synthetic-payment-detail");
     }
 
     [Fact]

@@ -517,10 +517,14 @@ public sealed class LineNotificationWorkflowTests
         handler.Requests.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// 保護 provider 拒絕仍轉成標準失敗例外，且不回顯可能帶個資的遠端本文。
+    /// 注入含合成私密標記的 HTTP 400，決定性斷言為狀態不變、安全訊息精確相等及例外不含標記。
+    /// </summary>
     [Fact]
     public async Task SendOrThrowAsync_throws_standard_exception_when_send_fails()
     {
-        var handler = new CapturingHttpMessageHandler(HttpStatusCode.BadRequest, """{"message":"invalid user id","details":[]}""");
+        var handler = new CapturingHttpMessageHandler(HttpStatusCode.BadRequest, """{"message":"private-synthetic-notification-detail","details":[]}""");
         var workflow = CreateWorkflow(handler);
 
         var action = () => workflow.SendOrThrowAsync(new LineNotificationRequest
@@ -531,7 +535,10 @@ public sealed class LineNotificationWorkflowTests
 
         var exception = await action.Should().ThrowAsync<LineNotificationException>();
         exception.Which.Result.Status.Should().Be(LineNotificationStatus.ProviderRejected);
-        exception.Which.Result.ErrorMessage.Should().Be("invalid user id");
+        exception.Which.Result.ErrorCode.Should().Be("line-provider-rejected");
+        exception.Which.Result.ErrorMessage.Should().Be("LINE API request failed. HTTP 400.");
+        exception.Which.Message.Should().Be("LINE API request failed. HTTP 400.");
+        exception.Which.ToString().Should().NotContain("private-synthetic-notification-detail");
     }
 
     private static LineNotificationWorkflow CreateWorkflow(CapturingHttpMessageHandler handler)
