@@ -219,3 +219,43 @@ net462 正式遷移與 facade 修正已提交，完整離線 §8 及第 10 份 C
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: 階段2至8工作包登錄與頁面驗證完成
+
+**Date**: 2026-11-05
+**Task**: 階段2至8工作包登錄與頁面驗證完成
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+完成使用者最新要求的53個後續工作包進度頁登錄、實際瀏覽器驗證及雙模型複審；主P1仍保持原驗收狀態。
+
+### Main Changes
+
+- 階段 2～8 共 53 包依正式 03／04 完整登錄，每包有工作內容、測試／驗收及前置界線；七階段可展開，保留全計畫 20/83、P1 2/12，各後續包均未開始。
+- 頁面回歸 8/8；真實 Edge 在 1440／390／320 像素與明暗色驗證無錯誤、無水平溢出，Enter／Space 正常。UTF-8 無 BOM／CRLF 與暫存 diff 檢查通過。
+- CCG 自癒入口的 Gemini＋Claude 分析／審查完成，無配額降級；最後複核無 Critical／Warning。沒有修改正式計畫，不需 Word 修正報告。
+- 本次獨立文件任務歸檔於 `.ccg/tasks/archive/2026-11/integration-progress-stages-2-8/`，含測試、瀏覽器截圖及原始 runner health ZIP。頁面提交 `48964ee5`，歸檔提交 `a5dcef04`；沒有 push。
+- 主 P1 未完成、不歸檔，持續目標仍為 usageLimited；接續點是 P1-04 抽取後雙目標 coverage 與增量審查，不宣稱仍在背景執行。
+- 既有付款測試及應用設定修改保持原狀，未混入本次提交；本次未連線 Hyper-V／D365。
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `48964ee5` | (see git log) |
+| `a5dcef04` | (see git log) |
+
+### Testing
+
+- 頁面測試 8/8、0 失敗、0 略過；三種尺寸真實瀏覽器驗證通過；來源 ID 53 對 53、無遺漏。
+
+### Status
+
+本次文件工作已完成；主 P1 仍在進行中，2/12 已驗收。
+
+### Next Steps
+
+- 主 P1 接回 P1-04：抽取後 net48／net10 覆蓋率、相容性證據與增量雙模型複審。
