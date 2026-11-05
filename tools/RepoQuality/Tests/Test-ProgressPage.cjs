@@ -44,8 +44,14 @@ test('No alert hides the warning region and still renders the page', () => {
   const elements = render(null);
   assert.equal(elements.get('alert').hidden, true);
   assert.equal(elements.has('copyBtn'), false);
-  assert.match(elements.get('meta').innerHTML, /1\.0\.0\.11\.Integration\.P0/);
+  assert.match(elements.get('meta').innerHTML, /1\.0\.0\.11\.Integration\.P1\.Worktree/);
+  assert.match(elements.get('headline').innerHTML, /0／12 工作包/);
+  assert.match(elements.get('tiles').innerHTML, /階段 1 驗收/);
   assert.match(elements.get('wps').innerHTML, /P0-05/);
+
+  const activePage = render(original.alert);
+  assert.match(activePage.get('alert').innerHTML, /D365 預設只讀/);
+  assert.match(activePage.get('alert').innerHTML, /P1-01～03/);
 });
 
 test('Alert without prompt omits copy button and full prompt area', () => {

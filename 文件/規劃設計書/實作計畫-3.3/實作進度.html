@@ -339,7 +339,7 @@
   </section>
 
   <footer>
-    <p>本頁是快照，不會自動更新。資料來源：P0 worktree 的 git 提交紀錄、<code>.trellis/tasks/11-02-integration-p0/</code> 的任務狀態、工作包回報與證據，以及 Claude 的獨立查核。</p>
+    <p>本頁是快照，不會自動更新。資料來源：目前 P1 worktree 的 git 提交紀錄、<code>.trellis/tasks/11-05-integration-p1/</code> 執行帳本、工作包報告與可重跑的驗證證據；外部審查狀態依自癒入口產物記載。</p>
     <p>要更新時，請 Claude「重新產生實作進度頁」；或直接修改本檔下方 <code>DATA</code> 區塊的內容。</p>
   </footer>
 </div>
@@ -350,16 +350,17 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-05（P0 收尾雙模型補審通過，階段 1 規劃接續）",
-  "branch": "1.0.0.11.Integration.P0",
-  "worker": "實作：Codex　查核：Gemini＋Claude",
-  "headline": "P0-13 實機驗收與停用清理已完成，階段 0 為 <strong>18／18 工作包</strong>。2026-11-05 Gemini 與 Claude 收尾文件補審通過，無 Critical／High；正式封存前置關卡，依使用者全自動授權接續階段 1。P1 尚未完成，不以規劃代替實作。",
+  "snapshot": "2026-11-05（P1 執行中；P1-01～03 實作已有，驗收與複審收斂中）",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
+  "headline": "階段 1 已進入實作。P1-01～03 的程式與局部證據已存在，但最終回歸、最新雙模型審查及逐包驗收尚未完成，因此目前 <strong>0／12 工作包列為驗收完成</strong>。接續修正已知審查風險並重跑保存證據，再開始 P1-04～12；不把舊測試結果或 mock 當作最新／實機驗收。",
   "alert": {
-    "title": "階段 0 收尾補審通過；階段 1 規劃接續",
-    "body": "本次 reviewMode=dual、dualModelComplete=true；無 Critical／High／Warning。歷史逾時紀錄完整保留，不改寫先前結果。",
+    "title": "階段 1 執行中｜重新驗證 P1-01～03",
+    "body": "截至 2026-11-05，本機局部測試與靜態守門曾通過；完整方案結果早於 SDK 最後修補，尚未重跑。SDK 審查的舊 Critical／Warning 也早於修補，不能視為已解除。D365 預設只讀；計畫指定的 apply 由使用者執行，未確認隔離、備份與復原前不寫入。",
     "steps": [
-      "先完成 P1 規劃與雙模型分析，再依工作包逐項 TDD 實作。",
-      "P1 仍為 0／12；推播、正式組織與階段 2 業務搬移不在本階段範圍。"
+      "目前優先處理 ArchitectureProjectReader 的子程序退出／輸出排空逾時，以及並行測試 fixture 的 LastQuery 共享寫入。",
+      "之後重跑完整方案、Debug tracer、編碼、重複程式、套件、I18nCheck、架構與打包檢查，並以最新版 diff 重新執行雙模型審查。",
+      "若研究證明正式計畫存在必要修正，先留下需求、證據、影響與替代方案，再製作 Word 修正報告；未證實前不改計畫。"
     ]
   },
   "tiles": [
@@ -367,7 +368,7 @@ const DATA = {
       "label": "全計畫進度",
       "value": "18",
       "unit": "/ 83 工作包",
-      "sub": "實機工作包 18／18；收尾文件審查待續，未開 P1",
+      "sub": "P0 18／18 已完成；P1 逐包驗收尚未通過",
       "meter": {
         "done": 18,
         "active": 0,
@@ -378,7 +379,7 @@ const DATA = {
       "label": "階段 0 進度",
       "value": "18",
       "unit": "/ 18 工作包",
-      "sub": "實機工作包 18／18；收尾文件審查待續，未開 P1",
+      "sub": "歷史階段 0 驗收完成",
       "meter": {
         "done": 18,
         "active": 0,
@@ -386,16 +387,27 @@ const DATA = {
       }
     },
     {
+      "label": "階段 1 驗收",
+      "value": "0",
+      "unit": "/ 12 工作包",
+      "sub": "P1-01～03 實作存在；完整驗收、最新審查與證據歸檔未完成",
+      "meter": {
+        "done": 0,
+        "active": 1,
+        "total": 12
+      }
+    },
+    {
       "label": "最新完整本機 Release",
-      "value": "1125",
-      "unit": "/ 1125 通過",
-      "sub": "a4649e3b 前完整本機 §8；ChurchReport 596／596，Debug tracer 7／7"
+      "value": "待重跑",
+      "unit": "尚無最新版完整結果",
+      "sub": "最近完整基準早於 SDK 最後修補，不作為本次 P1 最終驗收證據"
     },
     {
       "label": "最新完整本機建置",
-      "value": "通過",
-      "unit": "0 警告／0 錯誤",
-      "sub": "a4649e3b 前完整本機 Release；GitHub 過渡實跑結果仍待確認"
+      "value": "待重跑",
+      "unit": "尚無最新版完整結果",
+      "sub": "將依正式計畫重做 Release 建置與所有必要守門"
     }
   ],
   "wps": [
@@ -542,7 +554,7 @@ const DATA = {
       "total": 18,
       "done": 18,
       "active": 0,
-      "current": true
+      "current": false
     },
     {
       "id": "階段 1",
@@ -550,7 +562,8 @@ const DATA = {
       "est": "12～16 天",
       "total": 12,
       "done": 0,
-      "active": 0
+      "active": 1,
+      "current": true
     },
     {
       "id": "階段 2",
@@ -742,6 +755,21 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-05 接續",
+      "text": "沿用 P1 任務；確認 P1-01～03 尚未具備最新版完整驗收證據，進度頁改以「實作存在、驗收未完成」呈現。",
+      "cls": "ok"
+    },
+    {
+      "t": "目前",
+      "text": "先修 ArchitectureProjectReader 的有界程序等待與並行 fixture 的共享欄位風險；完成後重跑並保存各 gate 輸出。",
+      "cls": "stop"
+    },
+    {
+      "t": "安全邊界",
+      "text": "Hyper-V／D365 維持只讀；不執行 apply、部署或正式資料寫入。若有證據證明計畫需修訂，另產出 Word 修正報告。",
+      "cls": "stop"
+    },
     {
       "t": "12:30",
       "text": "Codex 建立階段 0 任務與工作資料夾"
