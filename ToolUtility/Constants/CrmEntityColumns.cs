@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
 // 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
 // 主要型別：class CrmEntityColumns、class Contact、class List、class PresentRecord、class WeeklyReport、class DedicationBooking、class Fee、class StorLessons
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
+// 主要成員：21 組 CRM 欄位複本存取器；每次回傳獨立陣列，避免 caller 修改影響其他查詢。
 // 引用命名空間：System
 // 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -30,23 +30,19 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class Contact
         {
-            /// <summary>
-            /// 基本欄位 (最常用)
-            /// 用於: 列表顯示、基本資訊
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "contactid",
                 "fullname",
                 "mobilephone"
             };
 
             /// <summary>
-            /// 擴展欄位 (一般使用)
-            /// 用於: 詳細資訊、編輯頁面
+            /// 基本欄位 (最常用)
+            /// 用於: 列表顯示、基本資訊
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "contactid",
                 "fullname",
                 "mobilephone",
@@ -59,11 +55,12 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 完整欄位 (詳細資訊)
-            /// 用於: 完整編輯、匯出
+            /// 擴展欄位 (一般使用)
+            /// 用於: 詳細資訊、編輯頁面
             /// </summary>
-            public static readonly string[] Full =
-            {
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
+
+            private static readonly string[] FullColumns = {
                 "contactid",
                 "fullname",
                 "lastname",
@@ -93,11 +90,12 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 新人跟進欄位
-            /// 用於: 新人管理、跟進記錄
+            /// 完整欄位 (詳細資訊)
+            /// 用於: 完整編輯、匯出
             /// </summary>
-            public static readonly string[] FollowUp =
-            {
+            public static string[] Full => (string[])FullColumns.Clone();
+
+            private static readonly string[] FollowUpColumns = {
                 "contactid",
                 "fullname",
                 "mobilephone",
@@ -107,6 +105,12 @@ namespace ToolUtilityNameSpace.Constants
                 "description",
                 "gendercode"
             };
+
+            /// <summary>
+            /// 新人跟進欄位
+            /// 用於: 新人管理、跟進記錄
+            /// </summary>
+            public static string[] FollowUp => (string[])FollowUpColumns.Clone();
         }
 
         /// <summary>
@@ -114,21 +118,18 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class List
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "listid",
                 "listname",
                 "purpose"
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "listid",
                 "listname",
                 "purpose",
@@ -141,6 +142,11 @@ namespace ToolUtilityNameSpace.Constants
                 "statuscode",
                 "statecode"
             };
+
+            /// <summary>
+            /// 擴展欄位
+            /// </summary>
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
         }
 
         /// <summary>
@@ -148,11 +154,7 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class PresentRecord
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "new_present_recordid",
                 "new_contact_new_present_record",  // 聯絡人
                 "new_sunday_date",                 // 主日日期
@@ -161,10 +163,11 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "new_present_recordid",
                 "new_contact_new_present_record",
                 "new_sunday_date",
@@ -180,10 +183,11 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 新人跟進欄位
+            /// 擴展欄位
             /// </summary>
-            public static readonly string[] FollowUp =
-            {
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
+
+            private static readonly string[] FollowUpColumns = {
                 "new_present_recordid",
                 "new_contact_new_present_record",
                 "new_sunday_date",
@@ -194,6 +198,11 @@ namespace ToolUtilityNameSpace.Constants
                 "new_explanation",        // 跟進描述
                 "new_groupleader_present_record"
             };
+
+            /// <summary>
+            /// 新人跟進欄位
+            /// </summary>
+            public static string[] FollowUp => (string[])FollowUpColumns.Clone();
         }
 
         /// <summary>
@@ -201,11 +210,7 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class WeeklyReport
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "new_group_present_weekly_reportid",
                 "new_name",
                 "new_sunday_date",
@@ -213,10 +218,11 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "new_group_present_weekly_reportid",
                 "new_name",
                 "new_sunday_date",
@@ -230,6 +236,11 @@ namespace ToolUtilityNameSpace.Constants
                 "createdon",
                 "statecode"
             };
+
+            /// <summary>
+            /// 擴展欄位
+            /// </summary>
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
         }
 
         /// <summary>
@@ -237,11 +248,7 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class DedicationBooking
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "new_dedication_bookingid",
                 "new_name",
                 "new_contact_new_dedication_booking",  // 聯絡人
@@ -250,10 +257,11 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "new_dedication_bookingid",
                 "new_name",
                 "new_contact_new_dedication_booking",
@@ -265,6 +273,11 @@ namespace ToolUtilityNameSpace.Constants
                 "createdon",
                 "statecode"
             };
+
+            /// <summary>
+            /// 擴展欄位
+            /// </summary>
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
         }
 
         /// <summary>
@@ -272,11 +285,7 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class Fee
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "new_feeid",
                 "new_name",
                 "new_dedication_booking_new_fee",  // 奉獻預約
@@ -285,10 +294,11 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "new_feeid",
                 "new_name",
                 "new_dedication_booking_new_fee",
@@ -300,6 +310,11 @@ namespace ToolUtilityNameSpace.Constants
                 "createdon",
                 "statecode"
             };
+
+            /// <summary>
+            /// 擴展欄位
+            /// </summary>
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
         }
 
         /// <summary>
@@ -307,11 +322,7 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class StorLessons
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "new_stor_lessonsid",
                 "new_contact_new_stor_lessons",       // 聯絡人
                 "new_new_disciple_lessons_new_stor_les", // 課程
@@ -319,10 +330,11 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "new_stor_lessonsid",
                 "new_contact_new_stor_lessons",
                 "new_new_disciple_lessons_new_stor_les",
@@ -334,6 +346,11 @@ namespace ToolUtilityNameSpace.Constants
                 "statuscode",
                 "statecode"
             };
+
+            /// <summary>
+            /// 擴展欄位
+            /// </summary>
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
         }
 
         /// <summary>
@@ -341,26 +358,28 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class Account
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "accountid",
                 "name"
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "accountid",
                 "name",
                 "telephone1",
                 "address1_line1",
                 "emailaddress1"
             };
+
+            /// <summary>
+            /// 擴展欄位
+            /// </summary>
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
         }
 
         /// <summary>
@@ -368,21 +387,18 @@ namespace ToolUtilityNameSpace.Constants
         /// </summary>
         public static class Task
         {
-            /// <summary>
-            /// 基本欄位
-            /// </summary>
-            public static readonly string[] Basic =
-            {
+            private static readonly string[] BasicColumns = {
                 "activityid",
                 "subject",
                 "statecode"
             };
 
             /// <summary>
-            /// 擴展欄位
+            /// 基本欄位
             /// </summary>
-            public static readonly string[] Extended =
-            {
+            public static string[] Basic => (string[])BasicColumns.Clone();
+
+            private static readonly string[] ExtendedColumns = {
                 "activityid",
                 "subject",
                 "description",
@@ -393,6 +409,11 @@ namespace ToolUtilityNameSpace.Constants
                 "statecode",
                 "createdon"
             };
+
+            /// <summary>
+            /// 擴展欄位
+            /// </summary>
+            public static string[] Extended => (string[])ExtendedColumns.Clone();
         }
     }
 }

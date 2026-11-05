@@ -1,40 +1,28 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Interfaces/IOwnerManagementService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IOwnerManagementService
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
-// 引用命名空間：Microsoft.Xrm.Sdk、System
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
-using Microsoft.Xrm.Sdk;
 using System;
+using Microsoft.Xrm.Sdk;
 
 namespace ToolUtilityNameSpace.Interfaces
 {
     /// <summary>
-    /// 負責人管理服務介面
-    /// 處理實體的 Owner 相關操作
+    /// 已驗證 SDK scope 的負責人讀取／指派契約，不處理登入或授權、不保存實體或憑證。
+    /// 真正失敗交 caller 最終共用通知邊界，不隱藏重試或以顯示名稱取代資料庫身分。
     /// </summary>
     public interface IOwnerManagementService
     {
-        /// <summary>
-        /// 取得實體的負責人 ID
-        /// </summary>
+        /// <summary>讀取 ownerid 的資料庫 ID，缺值為 Guid.Empty，不呼叫 SDK。</summary>
+        /// <param name="entity">已授權的操作獨占實體。</param>
+        /// <returns>原 ID 或缺省值，不作 caller 授權判定。</returns>
         Guid GetOwnerId(Entity entity);
 
-        /// <summary>
-        /// 取得實體的負責人名稱
-        /// </summary>
+        /// <summary>讀取既有顯示名稱，缺值回空字串，不記錄或共用此文字。</summary>
+        /// <param name="entity">已授權非 null 實體。</param>
+        /// <returns>操作生命週期內供 caller 使用的顯示名稱。</returns>
         string GetOwnerName(Entity entity);
 
-        /// <summary>
-        /// 指派負責人給實體
-        /// </summary>
+        /// <summary>一次 AssignRequest 指派 systemuser；目標名稱一致且兩 ID 非空才允許 I/O。</summary>
+        /// <param name="entityName">伺服器決定且與 entity 一致的 logical name。</param>
+        /// <param name="entity">已授權且具資料庫 ID 的實體，不移轉所有權。</param>
+        /// <param name="ownerId">已驗證同組織的 systemuser ID。</param>
         void AssignOwner(string entityName, Entity entity, Guid ownerId);
     }
 }

@@ -1,113 +1,72 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/OwnerOperations/OwnerManagementService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class OwnerManagementService
-// 主要成員：GetOwnerId、GetOwnerName、AssignOwner
-// 引用命名空間：Microsoft.Crm.Sdk.Messages、Microsoft.Xrm.Sdk、System、ToolUtilityNameSpace.Interfaces
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+using System;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
-using System;
 using ToolUtilityNameSpace.Interfaces;
 
 namespace ToolUtilityNameSpace.OwnerOperations
 {
     /// <summary>
-    /// 負責人管理服務實作
-    /// 處理實體的 Owner 相關操作
+    /// 以原 SDK ownerid／AssignRequest 處理已授權的單筆資料；不保存實體、logger 或使用者可變狀態。
+    /// 實例限於 SDK 原授權 scope；借入連線、憑證與 Dispose 由 host 擁有，不建立背景工作。
     /// </summary>
+    /// <remarks>
+    /// 缺省值不是故障；型別錯誤與真正 SDK 失敗直接上傳 host 共用通知入口。
+    /// 不把實體名稱、ID 或原始 Exception.Message 拼成新訊息，也不 catch 吞掉失敗。
+    /// 指派不是授權機制，caller 須先驗證當前組織、目標記錄與受派者權限。
+    /// </remarks>
     public class OwnerManagementService : IOwnerManagementService
     {
-        private readonly object _logger;
         private readonly IOrganizationService _organizationService;
 
+        /// <summary>保留舊建構及 null 拒絕；未用 logger 不保存，SDK 僅借用且不在服務內 Dispose。</summary>
+        /// <param name="logger">來源相容非 null 參數，不使用或持有。</param>
+        /// <param name="organizationService">已授權的 caller-owned SDK，須存活至所有同步操作返回。</param>
         public OwnerManagementService(object logger, IOrganizationService organizationService)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _ = logger ?? throw new ArgumentNullException(nameof(logger));
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
-        /// <summary>
-        /// 取得實體的負責人 ID
-        /// </summary>
+        /// <summary>只讀操作獨占實體的 ownerid；缺值沿用 Guid.Empty，不呼叫 SDK 或保存 EntityReference。</summary>
+        /// <param name="entity">已授權非 null 實體，呼叫中不可並行修改。</param>
+        /// <returns>原 owner 資料庫 ID，或缺省的 Guid.Empty。</returns>
         public Guid GetOwnerId(Entity entity)
         {
-            try
-            {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-                var ownerRef = entity.GetAttributeValue<EntityReference>("ownerid");
-                if (ownerRef == null)
-                    return Guid.Empty;
-
-                return ownerRef.Id;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Error getting owner ID for entity '{entity?.LogicalName}': {ex.Message}", ex);
-            }
+            var candidate = entity ?? throw new ArgumentNullException(nameof(entity));
+            return candidate.GetAttributeValue<EntityReference>("ownerid")?.Id ?? Guid.Empty;
         }
 
-        /// <summary>
-        /// 取得實體的負責人名稱
-        /// </summary>
+        /// <summary>回傳既有 owner 顯示名稱或空字串；名稱不是 ID、授權或跨記錄去重鍵。</summary>
+        /// <param name="entity">已授權的操作獨占實體，不保存其屬性。</param>
+        /// <returns>僅供本次 caller 顯示的名稱，不寫入診斷或共用快取。</returns>
         public string GetOwnerName(Entity entity)
         {
-            try
-            {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-                var ownerRef = entity.GetAttributeValue<EntityReference>("ownerid");
-                if (ownerRef == null)
-                    return string.Empty;
-
-                return ownerRef.Name ?? string.Empty;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Error getting owner name for entity '{entity?.LogicalName}': {ex.Message}", ex);
-            }
+            var candidate = entity ?? throw new ArgumentNullException(nameof(entity));
+            return candidate.GetAttributeValue<EntityReference>("ownerid")?.Name ?? string.Empty;
         }
 
         /// <summary>
-        /// 指派負責人給實體
+        /// 保留 systemuser 指派語義；目標實體一致、兩個 ID 非空才 Execute 一次。
+        /// 原例外直接交 caller，不包裝、回顯個資或重試寫入，也不修改 caller 的 Entity。
         /// </summary>
+        /// <param name="entityName">須與 entity.LogicalName 完全一致的伺服器實體名稱。</param>
+        /// <param name="entity">已授權的持久化記錄，不使用暫存 draft 身分。</param>
+        /// <param name="ownerId">同組織內已授權的 systemuser 資料庫 ID。</param>
         public void AssignOwner(string entityName, Entity entity, Guid ownerId)
         {
-            try
+            var candidate = entity ?? throw new ArgumentNullException(nameof(entity));
+            if (string.IsNullOrWhiteSpace(entityName))
+                throw new ArgumentNullException(nameof(entityName));
+            if (!string.Equals(entityName, candidate.LogicalName, StringComparison.Ordinal))
+                throw new ArgumentException("The target entity name is missing or inconsistent.", nameof(entityName));
+            if (candidate.Id == Guid.Empty) throw new ArgumentException("A database identity is required.", nameof(entity));
+            if (ownerId == Guid.Empty) throw new ArgumentException("An owner database identity is required.", nameof(ownerId));
+            var assign = new AssignRequest
             {
-                if (string.IsNullOrWhiteSpace(entityName))
-                    throw new ArgumentNullException(nameof(entityName));
-
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-                if (ownerId == Guid.Empty)
-                    throw new ArgumentException("Owner ID cannot be empty", nameof(ownerId));
-
-                var assign = new AssignRequest
-                {
-                    Assignee = new EntityReference("systemuser", ownerId),
-                    Target = new EntityReference(entityName, entity.Id)
-                };
-
-                _organizationService.Execute(assign);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Error assigning owner for entity '{entityName}' (ID: {entity?.Id}): {ex.Message}", ex);
-            }
+                Assignee = new EntityReference("systemuser", ownerId),
+                Target = new EntityReference(entityName, candidate.Id)
+            };
+            _organizationService.Execute(assign);
         }
     }
 }

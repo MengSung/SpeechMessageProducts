@@ -1,0 +1,84 @@
+{
+  "comparedTo": "integration-p1-04-operations-review-input.md (20261105-134544)",
+  "comparison": "UTF-8 text with CRLF normalized; full product text identical; subsequent delta contains only tests/docs/evidence, not product source.",
+  "files": [
+    {
+      "file": "ToolUtility.Core/AppointmentOperations/AppointmentService.cs",
+      "reviewedSnapshotSha256": "6d4a0ab27115a03772a55f65cd0e1a42dfd80272dfe52e8445f6871a79745a5a",
+      "currentSha256": "6d4a0ab27115a03772a55f65cd0e1a42dfd80272dfe52e8445f6871a79745a5a",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/AppointmentOperations/IAppointmentService.cs",
+      "reviewedSnapshotSha256": "4cf5fdcff0d73f6a2fd047b27ce31b6ae89900aa90f52dbe91685afcaa665633",
+      "currentSha256": "4cf5fdcff0d73f6a2fd047b27ce31b6ae89900aa90f52dbe91685afcaa665633",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/DataOperations/SdkDataQuery.cs",
+      "reviewedSnapshotSha256": "c57410d39839d4ba928669c49b614bf53c8d0983da9f2864d556bc49dcad1add",
+      "currentSha256": "c57410d39839d4ba928669c49b614bf53c8d0983da9f2864d556bc49dcad1add",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/EntityOperations/EntityQueryService.cs",
+      "reviewedSnapshotSha256": "ea2192ea017b25c18b360dc098e338630825448a520f9358de64506452b03ea2",
+      "currentSha256": "ea2192ea017b25c18b360dc098e338630825448a520f9358de64506452b03ea2",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/EntityOperations/IEntityQueryService.cs",
+      "reviewedSnapshotSha256": "3e54683d9563e2c613471835ef1dc9d0b2c4a470d63b0bf19c371ec3b688af4c",
+      "currentSha256": "3e54683d9563e2c613471835ef1dc9d0b2c4a470d63b0bf19c371ec3b688af4c",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/FeeOperations/FeeService.cs",
+      "reviewedSnapshotSha256": "b2f0abdb2eaca83c1aeb2d42d5d0d2dafb6930d0b41a27136adfbb93bb39b614",
+      "currentSha256": "b2f0abdb2eaca83c1aeb2d42d5d0d2dafb6930d0b41a27136adfbb93bb39b614",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/FeeOperations/IFeeService.cs",
+      "reviewedSnapshotSha256": "6a9fec8f205fcbe70e42c5ec56f34e37e1d8e3b388a83a07fdfb358f468300b6",
+      "currentSha256": "6a9fec8f205fcbe70e42c5ec56f34e37e1d8e3b388a83a07fdfb358f468300b6",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/LessonsOperations/ILessonsService.cs",
+      "reviewedSnapshotSha256": "dd664112b311cf7431657fd1643475d6d09447ca594ede38dc0a2aa8234b6549",
+      "currentSha256": "dd664112b311cf7431657fd1643475d6d09447ca594ede38dc0a2aa8234b6549",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/LessonsOperations/LessonsService.cs",
+      "reviewedSnapshotSha256": "ac573da0039c630d7368bf9797c101385afb1edc3f2a6e28ce998bce9af4c47e",
+      "currentSha256": "ac573da0039c630d7368bf9797c101385afb1edc3f2a6e28ce998bce9af4c47e",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/MeetingStatisticsOperations/IMeetingStatisticsService.cs",
+      "reviewedSnapshotSha256": "cfd5121fb9808fb3c961ec8c04dfcd4278a4a14935530808b136efbf1fb08185",
+      "currentSha256": "cfd5121fb9808fb3c961ec8c04dfcd4278a4a14935530808b136efbf1fb08185",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/MeetingStatisticsOperations/MeetingStatisticsService.cs",
+      "reviewedSnapshotSha256": "7435de391d589cce0491ae989ad0191903548e2da1703cf79d032155326a7a31",
+      "currentSha256": "7435de391d589cce0491ae989ad0191903548e2da1703cf79d032155326a7a31",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility.Core/ToolUtility.Core.csproj",
+      "reviewedSnapshotSha256": "bd202fad8614ec8356042c24d293ee59254a315bb22d91f29e9376dc6b521e1d",
+      "currentSha256": "bd202fad8614ec8356042c24d293ee59254a315bb22d91f29e9376dc6b521e1d",
+      "equal": true
+    },
+    {
+      "file": "ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs",
+      "reviewedSnapshotSha256": "d36f01d2fbf96d6345d939458e3b43e0e11cfe4d89dbdc411002d1e11ff56a14",
+      "currentSha256": "d36f01d2fbf96d6345d939458e3b43e0e11cfe4d89dbdc411002d1e11ff56a14",
+      "equal": true
+    }
+  ]
+}

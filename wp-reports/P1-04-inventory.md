@@ -2,6 +2,9 @@
 
 日期：2026-11-05。正式指定資料夾共有 **62個原始檔**，先前暫記61不正確，已按實際列舉修正；不是擴大正式範圍。下表76列含partial多來源與巢狀型別。
 
+本表是抽取前的來源路徑與準入盤點，不表示全部仍在原目錄。最新搬移進度見文末及
+`wp-reports/P1-04-core-extraction.md`；不得以原盤點的歷史「待實作」文字蓋過後續實際證據。
+
 ## 判讀與完成界線
 
 「可搬（先純化）」是候選，**尚未准入／搬移／驗收**。完成表列前置、每個待搬Operations的2～3代表golden（原實作先綠）及故障／隔離／資源測試，才git mv。「不可直接搬」是現況或連帶依賴未達前置，不代表永久排除P1；用最小純介面／host adapter排除障礙，不偷帶依賴。「不可搬（host）」保留原所有權，不拆partial跨assembly。
@@ -105,3 +108,19 @@ Fee特性4/4、FetchXmlFee特性4/4、XML helper正反例6/6，合計14/14；`ar
 ## 尚待交付
 
 候選純化、全部實際搬移Operations的特性、四方法各至少3案、Core雙目標strict、DI product隔離、兩目標測試／覆蓋率、架構／duplicates／ChurchReport回歸與雙模型code review。**本報告不等於P1-04完成。**
+
+## 抽取後狀態更新（2026-11-05）
+
+| 原範圍 | 最新位置與進度 |
+| --- | --- |
+| FeeService／IFeeService | 已 git mv 至 Core/FeeOperations；七入口安全組裝與四方法中三個 Fee API 已實作，舊來源及完整頁面證據已補 |
+| EntityQueryService／IEntityQueryService | 已 git mv 至 Core/EntityOperations；RetrieveEntityNoCache 已實作，通用 Fetch 根實體在 I/O 前辨識，Dispose 不關借入 SDK |
+| AppointmentService／IAppointmentService | 已 git mv 至 Core/AppointmentOperations；先綠 golden，再安全紅綠，最後搬移 |
+| LessonsService／ILessonsService | 已 git mv 至 Core/LessonsOperations；三查詢完整 golden、lookup／日期／ID／故障／隔離證據 |
+| MeetingStatisticsService／IMeetingStatisticsService | 已 git mv 至 Core/MeetingStatisticsOperations；六查詢完整 golden，保留全部舊欄位／狀態／提示值 |
+| 新共同內部 helper | Core/DataOperations/SdkDataQuery.cs；只建局部 XML／日期與驗頁，不建立連線、通知器或快取 |
+| EntityCrud、Owner、EntityAttributeUtility、OrganizationServiceExtensions、CrmEntityColumns、其他純契約 | 仍待必要特性、純化、抽取及審查；**未改判成 host 以縮減交付範圍** |
+| 不可直接搬的既有型別 | 仍依原表逐型別判斷；必須釐清 host 依賴及最小抽取邊界，不帶入反射 logger、cache、連線或背景工作 |
+
+不同 ID 的同名記錄在所有已搬移單頁保持完整；重複／空 ID／跨實體候選拒絕。
+本輪不更改正式 P1 計畫，沒有觸發 Word 修正報告需求。

@@ -5,6 +5,8 @@ using ToolUtilityNameSpace.EntityOperations;
 using ToolUtilityNameSpace.AppointmentOperations;
 using ToolUtilityNameSpace.LessonsOperations;
 using ToolUtilityNameSpace.MeetingStatisticsOperations;
+using ToolUtilityNameSpace.OwnerOperations;
+using ToolUtilityNameSpace.Interfaces;
 using Xunit;
 
 namespace ToolUtility.Tests
@@ -27,6 +29,8 @@ namespace ToolUtility.Tests
             Assert.Same(assembly, typeof(AppointmentService).Assembly);
             Assert.Same(assembly, typeof(LessonsService).Assembly);
             Assert.Same(assembly, typeof(MeetingStatisticsService).Assembly);
+            Assert.Same(assembly, typeof(EntityCrudService).Assembly);
+            Assert.Same(assembly, typeof(OwnerManagementService).Assembly);
             Assert.Equal("ToolUtility.Core", assembly.GetName().Name);
             var target = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
             Assert.NotNull(target);
@@ -47,6 +51,8 @@ namespace ToolUtility.Tests
         [InlineData(typeof(IAppointmentService))]
         [InlineData(typeof(ILessonsService))]
         [InlineData(typeof(IMeetingStatisticsService))]
+        [InlineData(typeof(IEntityCrudService))]
+        [InlineData(typeof(IOwnerManagementService))]
         public void CoreInterfaces_EmitNonObliviousStringContracts(System.Type contract)
         {
             var context = new NullabilityInfoContext();

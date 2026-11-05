@@ -89,3 +89,52 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - FeeService／IFeeService已移入Core，雙產品net462/net10及net48/net10測試配置建立，尚未搬後編譯成功。
 - restore被NU1903阻擋：Pkcs6.0.1（GHSA-555c-2p6r-68mm）及System.Text.Json6.0.8（GHSA-8g4q-xg66-9fp4）；artifacts/p1-04-core-restore.log。將沿用中央安全版本直接引用，不關audit／不新增NoWarn。
 - 本輪HEAD已外部前進至dbd785ec，保留他人提交／變更，不將外部提交宣稱為本輪操作。沿用P1 Goal，工具仍usageLimited；本輪依使用者繼續執行，不宣稱Goal已重啟。
+
+
+## 13:08 Fee Core 雙目標綠燈
+- 初次安全直接引用JSON於net10觸發NU1510；檢查assets確認弱點JSON6.0.8實際在Framework圖。改為net462/net48直接中央JSON6.0.11，net10僅直接Pkcs10.0.14並使用內建JSON；restore成功，不關audit／不加NoWarn。官方NuGet PackageReference文件確認net10 pruning行為。
+- Core初次strict build出CA1861六錯，將三個固定結構欄位陣列改有限且唯讀ReadOnlyCollection，不共享使用者資料。最新版雙目標build0警告／0錯誤（artifacts/p1-04-core-strict-build-green.log）。
+- Framework測試首次缺LangVersion造成CS8630；設定latest後net48 51/51、net10 118/118、無略過。反射測試驗net48實際載net462。證據artifacts/p1-04-core-dual-green/。
+- 每target新鮮Core覆蓋率：net48載net46295.60%、net10 100%，均通過Test-Coverage ≥80%；artifacts/p1-04-core-coverage/。
+- net10既有host依賴帶入System.DirectoryServices9，直接SDK帶Permissions6，產生MSB3277；待查正確相依修復，不抑制。局部綠燈不是全P1驗收。
+
+
+## 13:27 Entity／產品隔離與最新版整合證據
+- Product DI先CS1501紅（API缺口），新overload後8/8綠；實際子池鍵讀取證明ProductA/B區分、相同註冊冪等、衝突拒絕且集合不變、lease歸零及容器Dispose只關自己client。舊無參數API保留ChurchReport且依計畫Obsolete。
+- EntityQuery三個搬前characterization3/3；NoCache API先CS1061；先還原舊來源直接SDK別名後安全測試12失敗/4通過，真實重現XML注入／缺ID／重複ID／Dispose後仍可操作；修復後搬前含原2案21/21，才git mv兩檔至Core。
+- Entity借入SDK不Dispose，GetService取得操作局部參照；Dispose停止新操作並清除欄位，已開始同步呼叫可完成，host須先drain再關其SDK。無背景工作或cache。保留optional ctor未初始化的原明確失敗語義。
+- Core net10首次CA1510／CA1513，依既有跨目標模式採NETFRAMEWORK分支與現代ThrowIfNull/ThrowIf，不新增NoWarn。兩target strict build0警告0錯誤。
+- 最新完整ToolUtility測試net48 77/77、net10 152/152；Core覆蓋率97.63%／100%，每目標新鮮報告及Test-Coverage通過；artifacts/p1-04-current-{dual,coverage}/。
+- Permissions6與host DirectoryServices9衝突：首次試10.0.14造成Drawing.Common9/10衝突，未採；中央Permissions9.0.0與既有9系列對齊後MSB3277=0、restore安全稽核通過（artifacts/p1-04-permissions-aligned-*）。不升整個圖、不抑制警告。
+- 新版全方案Release build退出0、0錯誤／4個本次依計畫Obsolete提示（增量建置）；16份TRX1565/1565、0略過、ChurchReport612/612。artifacts/p1-04-integration-{restore,build,tests}.log及tests/。所有16個組件／目標均有TRX，無覆寫警告。
+- CI精確依賴閉包守門先紅4/5；新增Core coverage矩陣守門後紅4/6。修復filter補Core與ToolUtility.Tests且仍只排除原核定三專案，coverage加入net48/net10兩target；綠6/6。舊硬編碼23改精確比較實際eligible集合，保留固定三項排除與全差集，不降低檢查。沒有hosted證據。
+- 編碼Changed(73b6e6cf)先20檔紅，都是前輪P1產物LF／缺檔尾；只正規化換行且比較文字內容不變，重跑633檔0問題／排除488份raw模型產物。duplicates28專案921檔0groups/new/stale。新異動16文字檔另已做位元組斷言。
+- Fee run20261105-130623 reviewer雙模型完整、無Critical/High。Gemini兩項Warning實為已處理風險提醒；Claude三項Warning為來源可獨立核對、期數空白相容、是否host還有舊副本。已核對active host無三新API副本、唯一現行期數固定001；補舊來源切片與分頁Same/MoreRecords/Cookie，連同Entity與DI送run20261105-132016重審。尚不預判結果。
+- P1仍0/12，未修改正式計畫、無Word修正報告需求；VM未操作。
+
+## 13:34 審查回應
+- run20261105-132016雙模型完整完成，無quota降級、無Critical/High；Claude兩Warning為FetchExpression略過實體驗證與反向日期分支未測。
+- 核對後採納：先補22案例，11失敗/11通過；跨實體回應確實未拒絕。補串流根實體解析、I/O前驗證、禁DTD與外部解析；不重寫query、單操作reader Dispose；Fee日期反向測試屬既有行為補證。定向93/93通過，待雙宿主/coverage/完整回歸及再審。
+- 送Fetch/CI固定快照補審；保留P1 0/12。Goal工具仍usageLimited，本輪依使用者繼續，未聲稱已重啟。
+
+## 13:48 三組Operations抽取
+- Appointment/Lessons/MeetingStatistics固定舊來源47ab85f8，12份合成XML加ByDate型別化查詢先13/13綠；source SHA artifacts/p1-04-query-source-goldens.json。安全測試81失敗/18通過，修後搬前112/112。
+- 六檔git mv到Core；新增共同internal SdkDataQuery只負責XML/日期/整頁識別，不新建連線或通知器。借入SDK不Dispose，logger不保存，原exception交host。保留原欄位、top、順序、status、alias及舊未filter ByDate／weekly uitype提示。
+- Core雙目標strict0警告0錯誤，ToolUtility net48(實net462)207/207、net10 282/282。coverage初次TRX attachment副本使精確一份守門拒絕，未刪證據；分離coverage run後新鮮單份98.78/100通過。
+- 前Fetch/CI review20261105-133329雙模型完整，無quota、Critical/High；Claude三Warning均快照/證據缺，本輪Operations外審已包含缺件。CS8603曾擋net462，等價顯式null判斷修正，無NoWarn。
+- package34專案158refs0錯、analyzer26/26、I18nCheck及CItransition6、TracerCI、SixLaborsCI、package/coverage契約皆通過；Debug tracer與離線Plugin測試執行中。P1仍0/12。
+
+## 2026-11-05 14:01 驗收與審查收斂
+- 最新產品與純測試增補後，全方案16TRX1836/1836，ChurchReport612/612；CI14TRX1145/1145。原摘要誤算CI為13份(錯把被排除ChurchReport產品當測試)被assert拒絕，改精確比較兩集合；沒有改/略過任何測試。
+- Core net48實net462211/211、net10 289/289；獨立最新coverage98.78%/100%。CI全部10模組/目標各單份報告≥80%。Debug tracer7及正TRX、Plugin10/6、Pester39、JS20、工具108/27、CCG6全過。
+- reviewer20261105-134544/135446兩輪均dualModelComplete=true、quotaBlocked=false、degradedFallback=false，無Critical/High；nullable Warning以evaluated設定和實際metadata證明誤報，ByDate4故障與完整Golden helper補證均確認。末輪僅「零產品改動」稽核Warning已補13檔與前審快照SHA完全相同證據，沒有新產品行為修改。
+- P1-02正式需求逐項、雙模型及00§8均有證據，首次標為正式完成，階段1/12；其餘未擅自標完成。P1-04還有CRUD/Owner/AttributeUtility/Constants/Extensions及其餘純契約候選待處理，P1-03補審仍未結，05～12未完成。
+
+## 2026-11-05 14:25 接續與本地主動提交
+- 沿用P1 Goal，get_goal仍usageLimited，沒有重啟/覆蓋或宣稱背景執行；依本輪使用者繼續工作。
+- SDK最終20261105-140350雙模型完整、無quota降級／Critical／Warning，舊C1/W2關閉；本地29快照核對，最新SDK96/96、101/101，P1-03正式驗收。P1目前2/12。
+- 進度卡片/階段表舊done=0被新增測試實際拒絕(0≠1)，同步後5/5；不是用一致性測試證明真實驗收。增量審查20261105-141440完整雙模型，Claude因未附alert原文推論未同步，但實際title/body已提03；已補直接render斷言、P1-03固定里程碑、P1-12既有is-you與total.active sum。#if三檔清單已補。
+- 文字換行無語義正規化後Changed(73b6e6cf)672檔/548 raw排除/0問題；duplicates28專案924檔0group/new/stale。git diff --check在quoted source snapshot抓到原來源尾端空白，保留證據不改raw；code staged check0問題。
+- 本主會話明確執行本地commit abbbba3b：44檔Core查詢/DI/CI安全切片。提交前最新ToolUtility雙宿主211/211、289/289，未push。之前47ab85f8是外部提交，不冒稱本輪建立。
+- CRUD/Owner舊來源固定abbbba3b與SHA，7/7特性先綠；22安全案14失敗/8通過，修後搬前29/29再git mv四檔。真實SDK例外原樣交host，不再把ID/Message拼入owner外層；保留alternate-key更新，不推測業務冪等鍵。
+- 最新補四ctor及並行1000Create+1000Assign後，雙宿主244/244、324/324；Core strict0警告0錯誤，獨立新鮮coverage98.91%/100%。review經自癒入口執行中，不預判；尚未用這輪結果替代完整方案再驗證。

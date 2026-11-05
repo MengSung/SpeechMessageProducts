@@ -1,25 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/EntityOperations/IEntityCrudService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IEntityCrudService
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
-// 引用命名空間：System、Microsoft.Xrm.Sdk
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
 using System;
 using Microsoft.Xrm.Sdk;
 
 namespace ToolUtilityNameSpace.EntityOperations
 {
+    /// <summary>
+    /// 已授權 SDK scope 的單次寫入契約，不管理連線、保存輸入或提供隱藏重試。
+    /// caller 須以伺服器業務事件唯一鍵保護冪等，並在最終失敗邊界將原 Exception 交共用通知入口。
+    /// </summary>
     public interface IEntityCrudService
     {
+        /// <summary>新增操作獨占候選，成功才回傳非空資料庫 ID；不以姓名等內容去重。</summary>
+        /// <param name="entityToCreate">已完成授權及冪等設計的候選，不移轉資源所有權。</param>
+        /// <returns>SDK 確認的資料庫 ID。</returns>
         Guid CreateEntity(Entity entityToCreate);
+
+        /// <summary>更新具 ID 或伺服器替代鍵的單筆候選，原 SDK 故障直接向 caller 傳遞。</summary>
+        /// <param name="entityToUpdate">已授權、不可並行修改的候選，服務不保存其參照。</param>
         void UpdateEntity(Entity entityToUpdate);
+
+        /// <summary>刪除範圍內的精確非空 ID，不自行搜尋同名資料或執行批次清理。</summary>
+        /// <param name="entityName">伺服器已驗證的實體名稱。</param>
+        /// <param name="entityId">已授權的資料庫 ID。</param>
         void DeleteEntity(string entityName, Guid entityId);
     }
 }

@@ -5,7 +5,7 @@
   "description": "",
   "status": "in_progress",
   "currentPhase": "implementation",
-  "nextAction": "完成 P1-04 逐型別可搬性盤點與舊來源核對，先建立 Operations 特性測試，再依正式計畫抽取雙目標 Core。",
+  "nextAction": "P1-02／03正式驗收(2/12)。接續P1-04 CRUD／Owner／AttributeUtility／Constants／Extensions及其餘純化，保留1836全方案與SDK最終雙模型證據；P1-01來源／審查收斂及05～12待完成。",
   "dev_type": null,
   "scope": null,
   "package": null,

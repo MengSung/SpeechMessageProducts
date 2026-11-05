@@ -355,13 +355,13 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-05 13:00（P1 執行中；Fee 搬移前54/54，Core安全還原阻擋處理中）",
+  "snapshot": "2026-11-05 14:25（P1驗收2/12；Core再抽取CRUD／Owner）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
-  "headline": "階段 1 持續執行，目前 <strong>0／12 工作包列為驗收完成</strong>。P1-04 安全 Fee 查詢搬移前54/54通過，兩檔已移入雙目標 Core；目前還原被 NU1903 傳遞套件弱點阻擋，尚未取得搬移後建置與雙宿主證據。",
+  "headline": "階段 1 目前 <strong>2／12 工作包列為驗收完成</strong>（P1-02、P1-03）。全方案1,836/1,836、ChurchReport612/612，本地過渡CI1,145/1,145；SDK最新重跑96/96、101/101，雙模型最終複審無Critical／Warning。Core五組已搬移，P1-04其餘候選及P1-01、05～12仍待完成。",
   "alert": {
-    "title": "階段 1 執行中｜P1-02 複審完成，接續 P1-04",
-    "body": "歷史全方案1409/1409、ChurchReport612/612通過，發生在 Fee 產品異動之前，不能代表目前版本通過。最新 Fee 搬移前54/54，Core還原遇到 Pkcs 6.0.1／System.Text.Json 6.0.8 弱點，正以中央安全版本修復，不關閉 audit 或降低驗收。D365 預設只讀、尚未操作；寫入仍須確認隔離、備份與可驗證復原。",
+    "title": "階段 1 執行中｜P1-02 複審完成，接續 P1-04｜P1-03 已正式驗收",
+    "body": "P1-02／03有逐項需求、完整本機守門及雙模型證據，已正式驗收；不是整個P1完成。SDK最終run20261105-140350為dualModelComplete=true、無降級／Critical／Warning，已本地核對29份快照並重跑雙宿主197項測試。進度卡片舊零值矛盾已先用測試重現再修正。D365 預設只讀，本輪未操作；沒有hosted CI或實機寫入證據。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -372,18 +372,30 @@ const DATA = {
       "P1-04 analyzer run 20261105-122655：dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型要求先分類、鎖行為、追溯空實作及服務所有權。這是去識別化摘要風險分析，不是程式碼審查。",
       "最新回歸 artifacts/p1-regression-green-tests/：15份TRX合計1409/1409，ChurchReport612/612；其後新增FetchXmlFee特性4案，連同Fee4案及XML helper6案另跑14/14通過。",
       "P1-04 Fee 七個入口已安全組裝XML、驗證穩定ID／實體／整頁重複，並保留SDK例外與借入資源所有權；搬移前正常建置54/54通過，證據 artifacts/p1-04-before-move/。",
-      "FeeService／IFeeService 兩檔已移入 ToolUtility.Core；net462／net10.0 產品、net48／net10.0測試配置已建立，尚未取得搬後成功證據。artifacts/p1-04-core-restore.log 保留 NU1903 失敗，不新增 NoWarn。"
+      "FeeService／IFeeService 兩檔已移入 ToolUtility.Core；net462／net10.0 產品、net48／net10.0測試配置已建立，尚未取得搬後成功證據。artifacts/p1-04-core-restore.log 保留 NU1903 失敗，不新增 NoWarn。",
+      "13:08 搬後雙宿主全部測試：net48 51/51、net10 118/118，0失敗／0略過；net48反射確認產品net462。artifacts/p1-04-core-dual-green/。",
+      "Core每target新鮮覆蓋率報告：net48載net462為95.60%，net10為100%；Test-Coverage.ps1兩份均通過≥80%。artifacts/p1-04-core-coverage/。",
+      "13:17 EntityOperations已git mv兩檔；搬前3/3特性，安全故障12紅→完整21綠；最新雙宿主net48 77/77、net10 152/152。Core最新覆蓋率net48載net46297.63%、net10 100%。",
+      "產品DI新overload8/8，真正子池DataverseConnectionKey依ProductA/B分隔；同容器衝突拒絕、相同註冊冪等、租約與Dispose驗證通過。",
+      "Fee reviewer run20261105-130623：dualModelComplete=true、無quota降級、無Critical/High。Claude提出舊來源／host整合證據與空期數相容性Warning，已補獨立舊來源切片、唯一現行001呼叫證據與分頁旗標斷言，隨Entity／DI重審中。",
+      "13:27 編碼守門先抓20份前輪P1產物LF／檔尾問題，無語義變更正規化後633檔0問題；duplicates28專案921檔0新重複。證據artifacts/p1-04-encoding-green.log、p1-04-duplicates.log。",
+      "13:34 FetchXML在SDK I/O前辨識根實體，DTD禁止／resolver=null，解析器單次擁有且Dispose；同名不同ID、分頁、原query保留。93/93僅局部綠，不代替正式P1驗收；將續抽取盤點中的純Operations。",
+      "13:48 Core嚴格雙目標0警告0錯誤；新鮮覆蓋net48實載net462為98.78%、net10為100%。初次TRX與coverage同收造成attachment副本兩份，守門拒絕；改獨立coverage目錄無TRX，仍嚴格一份報告後通過。package guard34專案0問題、analyzer26/26、I18nCheck通過；CI／tracer／license／package／coverage五組契約通過。",
+      "本輪最終全方案16TRX=1836/1836；過渡CI14TRX=1145/1145，精確等於全方案扣除原核定兩個測試專案（三項排除中ChurchReport不是測試）。摘要程式原誤估13份被拒，已按真實組件/目標精確集合修正；未放寬任何產品測試。",
+      "Debug tracer7/7＋正TRX、Plugin metadata10/10、一次性測試金鑰打包6/6、Pester39/39、JavaScript20/20、CCG摘要6/6、I18nCheck108/108、Packaging工具27/27與10份各目標coverage皆通過。Core補測後211/289及98.78%/100%。",
+      "14:15 SDK最終雙模型確認舊C1／W2關閉、net48宿主矩陣非缺陷；29份審查快照本地核對，最新SDK96/96＋101/101。P1-03正式報告wp-reports/P1-03-acceptance.md；進度統計由工作包狀態同步，新增一致性測試先紅(0≠1)。",
+      "14:25 已建立本地主動切片commit abbbba3b（Core查詢／DI隔離／CI），未push。CRUD／Owner另先綠、紅綠、git mv四檔；最新244/244及324/324、coverage98.91%／100%，正送雙模型。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "18",
+      "value": "20",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18 已完成；P1 有 3 包正在收斂驗收",
+      "sub": "P0 18／18；P1 2／12 已驗收，2包收斂中",
       "meter": {
-        "done": 18,
-        "active": 4,
+        "done": 20,
+        "active": 2,
         "total": 83
       }
     },
@@ -400,26 +412,26 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "0",
+      "value": "2",
       "unit": "/ 12 工作包",
-      "sub": "P1-02 複審完成；P1-01/03 全量驗收及 P1-04～12 尚未完成",
+      "sub": "P1-02／03正式驗收；P1-01、04～12尚未完成",
       "meter": {
-        "done": 0,
-        "active": 4,
+        "done": 2,
+        "active": 2,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "1,409 / 1,409",
+      "value": "1,836 / 1,836",
       "unit": "0 失敗、0 略過",
-      "sub": "最新全方案退出碼0；ChurchReport612/612，後加4案另驗，最後需整體重跑"
+      "sub": "16份TRX，ChurchReport612/612；本地filter14份TRX=1145/1145"
     },
     {
       "label": "最新完整本機建置",
       "value": "0 錯誤",
-      "unit": "17 警告（增量建置）",
-      "sub": "最近修補build退出碼0；初次完整build為18警告，未增加NoWarn"
+      "unit": "完整方案與Core雙目標建置成功",
+      "sub": "Core strict 0警告；既有host nullable與核定Obsolete提示保留，沒有新增NoWarn"
     }
   ],
   "wps": [
@@ -563,25 +575,25 @@ const DATA = {
       "id": "P1-01",
       "name": "清理孤兒專案與檔案",
       "status": "active",
-      "note": "51 個候選檔案已有逐項引用稽核；原 15 個效能案例均保留並已納入可執行測試。待重跑階段 §8 全量守門、保存本輪 log，並完成工作包報告與提交。"
+      "note": "51候選引用稽核、15原效能案例加1並行案例保留、smoke2秒可控時鐘與本機全量守門已有證據；DevExpress合法新來源／hosted證據尚未取得，待正式報告與審查收斂，不標全包完成。"
     },
     {
       "id": "P1-02",
       "name": "架構測試（R4：相依只能往下）",
-      "status": "active",
-      "note": "真實 MSBuild／逐目標與 NuGet Framework assets 檢查、合成正反例及 net48 載入 net462 測試已實作。有界程序 runner 與 LastQuery Volatile 發布已通過定向測試。20261105-113854 Gemini＋Claude 複審 dualModelComplete=true，Critical／Warning 均無；全階段 gates、整合回歸及驗收紀錄仍待完成。"
+      "status": "done",
+      "note": "真實MSBuild逐目標/NuGet assets、12模型反例、10 XML/實際方案與2程序故障注入共24案通過；Localization全套67/67另含原43案。20261105-113854 Gemini＋Claude 複審 dualModelComplete=true，Critical／Warning 均無；本輪00§8、每目標coverage、打包、編碼與duplicates均過。正式驗收 wp-reports/P1-02-acceptance.md。"
     },
     {
       "id": "P1-03",
       "name": "Line.Messaging 雙目標與 Webhook 安全",
-      "status": "active",
-      "note": "net462／net10、六類序列化 golden、Sender／Background／Webhook 欄位、原始 byte HMAC、每次請求憑證隔離及資源生命週期測試已有實作。舊雙模型審查早於 raw-byte 入口修補，舊 Critical／Warning 尚未以最新版重審；完整方案回歸待重跑。"
+      "status": "done",
+      "note": "六類golden先舊net10綠、雙宿主逐字相同；Sender／Background／webhook欄位與raw-byteHMAC及舊HTTP入口均完成。最新96/96、101/101，29份快照本地核對；最終雙模型20261105-140350 dualModelComplete=true、無降級／Critical／Warning，舊C1／W2關閉。正式驗收wp-reports/P1-03-acceptance.md。"
     },
     {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "四個舊方法來源已定位；62檔／76宣告列盤點已保存；安全Fee查詢搬移前54/54通過，兩檔已移入Core。搬後restore遇NU1903，正用CPM安全版本修復；雙目標建置／覆蓋率／新版產品審查尚未完成。"
+      "note": "四個舊方法來源已定位且已實作；原五組加CRUD／Owner共七組已搬Core。CRUD／Owner搬前7/7特性、安全14紅/8綠→搬前29/29；最新雙宿主244/244、324/324，Core覆蓋98.91%／100%，strict0警告0錯誤；並行1000次Create＋1000次Assign及logger可回收。此切片雙模型審查中，其餘候選未完成。"
     },
     {
       "id": "P1-05",
@@ -647,8 +659,8 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 0,
-      "active": 4,
+      "done": 2,
+      "active": 2,
       "current": true
     },
     {
@@ -841,6 +853,16 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-05 14:25",
+      "text": "Core CRUD／Owner完成安全抽取並再驗雙宿主244/244、324/324，coverage98.91%／100%；切片外審中，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 14:15",
+      "text": "P1-03最終雙模型無Critical／Warning，SDK再驗96/96與101/101；正式驗收2/12。修正卡片／階段統計舊零值，先用新一致性測試重現。",
+      "cls": "ok"
+    },
     {
       "t": "2026-11-05 接續",
       "text": "沿用 P1 任務；確認 P1-01～03 尚未具備最新版完整驗收證據，進度頁改以「實作存在、驗收未完成」呈現。",

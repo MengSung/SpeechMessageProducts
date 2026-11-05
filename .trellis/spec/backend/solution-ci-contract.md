@@ -30,6 +30,21 @@ run remains mandatory; targeted reruns provide isolated coverage for new code.
 Include I18nCheck.Tests and PluginPackaging.Tests, which are outside the solution.
 Add new modules to the explicit coverage matrix as they enter future WPs.
 
+### P1 Core 納入與證據邊界（2026-11-05）
+
+新增 `ToolUtility.Core` 時，必須同步將 Core 與完整 `ToolUtility.Tests` 納入過渡
+solution filter，並在 coverage matrix 分別使用 net48（實載 net462 產品）及 net10.0。
+`Test-CiTransition` 必須比較真實方案的完整 eligible 集合，不能繼續用 P0 的固定 23
+掩蓋新專案遺漏；原核定三項 DevExtreme 排除、完整差集及重複拒絕仍須保留。
+
+Core strict 全域已啟用 Nullable；沒有逐檔 `#nullable enable` 不表示 nullable-oblivious。
+若審查質疑介面契約，應核對各目標的 evaluated Nullable 值與真實中繼資料，而不是
+單靠檔頭 pragma 作結論。
+
+TRX logger 可能把 coverage attachment 複製到第二個結果路徑，使「恰好一份 coverage」
+守門正確拒絕。不要刪失敗報告、挑較佳結果或放寬斷言；將 TRX 執行證據與獨立 coverage
+run 分開，各用新目錄，coverage run 不另啟 TRX logger。
+
 ## Signing
 
 Ordinary Release builds receive no key and do not package. The workflow reads
