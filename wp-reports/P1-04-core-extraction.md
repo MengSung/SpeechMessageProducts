@@ -15,6 +15,7 @@
 | product 參數化與舊多載 | `ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs` | `ProductRegistrationTests` 8 案：真正子池鍵分隔、同配置冪等、衝突拒絕且集合不變、舊 ChurchReport、租約歸零及 Dispose owner | 此切片通過 |
 | 全部 host 測試保留 | `ToolUtility.Tests/ToolUtility.Tests.csproj` | Framework 宿主只編純 Core 契約；net10 原 host 測試完整保留；反射確認 Core 組件及真實 net462 產品目標 | 此切片通過 |
 | CI 不遺漏新模組 | `.github/workflows/solution-ci.yml`、`SpeechMessageProducts.CI.slnf` | CI 精確閉包先紅，再加入 Core 與 ToolUtility.Tests；仍固定原三項排除、完整差集、雙目標 coverage；`Test-CiTransition` 6/6 | 本機契約通過；沒有 hosted 證據 |
+| 固定欄位模板隔離 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | 先以 net10 23/23 驗證 golden 與 caller mutation；net48 曾以 CS0234 證明型別仍留 host；抽取後 net48 23/23、完整雙宿主 270/270 與 350/350，Core strict Release 雙目標 0 警告／0 錯誤 | 此切片通過 |
 | 其他可搬型別與必要純化 | 原盤點中剩餘候選 | 尚未取得完整特性、純化與抽取證據 | **未完成，不縮減範圍** |
 
 ## 舊來源與相容性
@@ -28,6 +29,14 @@
   完整頁面非空／唯一 ID／根實體驗證。不以空集合、去重或吞例外取得綠燈。
 - FetchXML 通用入口在 SDK I/O 前辨識唯一根表；DTD 禁止、resolver=null，
   字元上限為原輸入長度，串流 reader 由單次操作確定性釋放，不重寫原 Query。
+- `CrmEntityColumns` 保留 21 組欄位名稱及順序；模板留在 Core 私有靜態陣列，
+  每次公開 getter 回傳操作自有複本。原先 net48 編譯錯誤證明該型別仍在 host；
+  抽取後 23 案涵蓋完整 golden、caller mutation 與 1,000 次並行讀取。
+- `DeleteEntity` 空字串維持舊 `ArgumentNullException` 與參數名；純空白名稱明確改為
+  `ArgumentException` 並在 SDK 前拒絕。精確回歸案例已在 net10 通過 1/1；
+  ChurchReport 搜尋未發現對 `ArgumentNullException` 的專一捕捉。
+- ChurchReport 35 處有效 `AssignOwner` 呼叫均使用明確 logical name；逐一沿 Entity
+  建立／同名 Retrieve 路徑核對，沒有發現傳入名稱與目標 Entity 不一致。
 
 ## 隔離、資源與通知
 
@@ -60,6 +69,10 @@
   timestamp raw 外模證據依既有規範保留原 bytes。重複掃描未新增。
 - 初次同收 TRX／coverage 產生 attachment 副本，嚴格一份報告守門確實拒絕；
   改用獨立新 coverage run，沒有刪除失敗證據或挑選較佳報告。
+- 本輪抽取後最新 ToolUtility 測試：net48（實載 net462）270/270、
+  net10 350/350；結果分別見 `artifacts/p1-04-current-dual-net48/` 與
+  `artifacts/p1-04-current-dual-net10/`。Core Release strict build 兩目標
+  0 警告／0 錯誤。抽取後新鮮覆蓋率與增量雙模型複審尚待完成。
 
 ## 審查與未結事項
 
@@ -68,5 +81,5 @@
 最後補證為 `20261105-135446`。非阻斷 Warning 逐項有處置與產品 SHA 比對證據，
 不是忽略模型意見或把局部審查宣稱為整個 P1-04 完成。
 
-其他候選 Operations、純契約、Constants 及 Extensions 尚未全部抽取；
+其他候選 Operations、純契約及 Extensions 尚未全部抽取；
 P1-05～12 尚未完成。本輪未操作 VM，也未修改正式實作計畫，不需要 Word 修正報告。

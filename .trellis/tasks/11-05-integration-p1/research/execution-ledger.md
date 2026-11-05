@@ -138,3 +138,14 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - 本主會話明確執行本地commit abbbba3b：44檔Core查詢/DI/CI安全切片。提交前最新ToolUtility雙宿主211/211、289/289，未push。之前47ab85f8是外部提交，不冒稱本輪建立。
 - CRUD/Owner舊來源固定abbbba3b與SHA，7/7特性先綠；22安全案14失敗/8通過，修後搬前29/29再git mv四檔。真實SDK例外原樣交host，不再把ID/Message拼入owner外層；保留alternate-key更新，不推測業務冪等鍵。
 - 最新補四ctor及並行1000Create+1000Assign後，雙宿主244/244、324/324；Core strict0警告0錯誤，獨立新鮮coverage98.91%/100%。review經自癒入口執行中，不預判；尚未用這輪結果替代完整方案再驗證。
+
+## 2026-11-05 15:10 P1-04 Constants 與相容性接續
+- 接續時原 P1 Goal 狀態仍為 `usageLimited`；依使用者本輪「繼續」執行，沒有宣稱背景仍在跑或另行建立 Goal。
+- 檢查到外部 HEAD 前進為 `a7fba28f7` 且與遠端追蹤分支一致；這不是本主會話建立或 push 的提交。保留完整歷史與內容，不回退、不改寫；本輪僅留進度 HTML 與後續 P1-04 變更。
+- 進度頁回歸最新 5/5。P1-04 mutation reviewer run `20261105-142426` 機器摘要為 dual、兩個 backend 均完成、無配額降級與 Critical；Claude 提出兩項 Warning：Delete 空／空白名稱相容差異需明載、AssignOwner callers 需核對 Entity logical name。
+- 35 處有效 ChurchReport `AssignOwner` literal callsites 已逐項核對；目標 Entity 來自同名 Retrieve 或同 logical-name 組裝，未找到 mismatch。整個 ChurchReport 原始碼未找到 `catch (ArgumentNullException)` 或相同型別專用過濾，因此 Delete 舊型別無專一攔截相依。
+- 補 `Delete_NameValidation_PreservesEmptyExceptionAndRejectsWhitespace` 精確案例：空字串維持 `ArgumentNullException("entityName")`，純空白為 `ArgumentException`；net10 定向 1/1。原實作已符合此預期，因此只鎖回歸行為，沒有改產品語義。
+- 首次 net48 全套在編譯期 CS0234，原因是新增 `ColumnContractTests` 已依 Framework host 不引用 ToolUtility 的架構，只能從 Core 找 `CrmEntityColumns`；不是測試略過或 NuGet/環境問題。正式 P1-04 本身要求盤點／抽取 `Constants`，故將現有純固定欄位目錄移至 `ToolUtility.Core/Constants/`，未排除 Framework 測試。
+- 抽取後 ColumnContractTests net48（宿主實載 net462）23/23；完整 ToolUtility net48 270/270、net10 350/350；Core Release strict `--warnaserror` 雙目標 0 警告／0 錯誤。TRX 位於 `artifacts/p1-04-columns-core-net48/`、`p1-04-current-dual-net48/`、`p1-04-current-dual-net10/`；net48 首次 CS0234 保留於本輪工具執行紀錄。
+- `CrmEntityColumns` 維持 21 組欄位及順序；類別文件修正原先指向不存在 `ContactColumns` 的範例，記載私有固定模板、每次讀取複本、caller 所有權及無租戶／請求狀態。覆蓋率仍須以抽取後各目標新鮮報告重跑；增量雙模型審查尚未執行，P1-04仍未驗收。
+- 已將此狀態寫入進度頁與 P1-04 inventory／core-extraction 報告。下一步：獨立 net48/net10 coverage、更新 P1-04 相容性與 review evidence、透過 `Start-CcgDualModelRun.ps1` 進行增量雙模型複審，再跑 changed-scope encoding／duplicates／回歸。

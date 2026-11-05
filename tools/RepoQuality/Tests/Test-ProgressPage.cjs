@@ -58,7 +58,7 @@ test('No alert hides the warning region and still renders the page', () => {
 
   const activePage = render(original.alert);
   assert.match(activePage.get('alert').innerHTML, /D365 預設只讀/);
-  assert.match(activePage.get('alert').innerHTML, /P1-02 複審完成，接續 P1-04/);
+  assert.match(activePage.get('alert').innerHTML, /P1-04 Constants 已抽取/);
   assert.match(activePage.get('alert').innerHTML, /P1-03 已正式驗收/);
   assert.match(activePage.get('alert').innerHTML, /20261105-140350/);
 });

@@ -355,13 +355,13 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-05 14:25（P1驗收2/12；Core再抽取CRUD／Owner）",
+  "snapshot": "2026-11-05 15:10（P1驗收2/12；P1-04 Constants雙目標驗證完成）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
-  "headline": "階段 1 目前 <strong>2／12 工作包列為驗收完成</strong>（P1-02、P1-03）。全方案1,836/1,836、ChurchReport612/612，本地過渡CI1,145/1,145；SDK最新重跑96/96、101/101，雙模型最終複審無Critical／Warning。Core五組已搬移，P1-04其餘候選及P1-01、05～12仍待完成。",
+  "headline": "階段 1 目前 <strong>2／12 工作包列為驗收完成</strong>（P1-02、P1-03）。上一輪全方案1,836/1,836、過渡CI1,145/1,145；本輪Core Constants抽取後，ToolUtility雙宿主270/270、350/350，Core strict雙目標0警告／錯誤。P1-04尚有其他候選、coverage與複審待完成；P1-01、05～12仍待處理。",
   "alert": {
-    "title": "階段 1 執行中｜P1-02 複審完成，接續 P1-04｜P1-03 已正式驗收",
-    "body": "P1-02／03有逐項需求、完整本機守門及雙模型證據，已正式驗收；不是整個P1完成。SDK最終run20261105-140350為dualModelComplete=true、無降級／Critical／Warning，已本地核對29份快照並重跑雙宿主197項測試。進度卡片舊零值矛盾已先用測試重現再修正。D365 預設只讀，本輪未操作；沒有hosted CI或實機寫入證據。",
+    "title": "階段 1 執行中｜P1-04 Constants 已抽取，其他候選與複審持續中｜P1-02／03 已驗收",
+    "body": "P1-02／03有逐項需求、完整本機守門及雙模型證據，已正式驗收；不是整個P1完成。net48曾在編譯階段精確抓到CrmEntityColumns仍留host，現已依計畫抽入Core：欄位契約23/23、ToolUtility全套net48 270/270與net10 350/350，Core Release strict雙目標0警告／錯誤。P1-04 reviewer run20261105-142426為完整雙模型、無Critical；相容差異與呼叫端核查已補證，增量複審仍待執行。D365 預設只讀，本輪未操作；無hosted CI或實機寫入證據。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -384,7 +384,9 @@ const DATA = {
       "本輪最終全方案16TRX=1836/1836；過渡CI14TRX=1145/1145，精確等於全方案扣除原核定兩個測試專案（三項排除中ChurchReport不是測試）。摘要程式原誤估13份被拒，已按真實組件/目標精確集合修正；未放寬任何產品測試。",
       "Debug tracer7/7＋正TRX、Plugin metadata10/10、一次性測試金鑰打包6/6、Pester39/39、JavaScript20/20、CCG摘要6/6、I18nCheck108/108、Packaging工具27/27與10份各目標coverage皆通過。Core補測後211/289及98.78%/100%。",
       "14:15 SDK最終雙模型確認舊C1／W2關閉、net48宿主矩陣非缺陷；29份審查快照本地核對，最新SDK96/96＋101/101。P1-03正式報告wp-reports/P1-03-acceptance.md；進度統計由工作包狀態同步，新增一致性測試先紅(0≠1)。",
-      "14:25 已建立本地主動切片commit abbbba3b（Core查詢／DI隔離／CI），未push。CRUD／Owner另先綠、紅綠、git mv四檔；最新244/244及324/324、coverage98.91%／100%，正送雙模型。"
+      "14:25 已建立本地主動切片commit abbbba3b（Core查詢／DI隔離／CI），未push。CRUD／Owner另先綠、紅綠、git mv四檔；最新244/244及324/324、coverage98.91%／100%，正送雙模型。",
+      "14:40 增量審查run20261105-142426已確認dualModelComplete=true、無Critical；兩項Warning轉為待補證。ChurchReport 35處有效AssignOwner呼叫已逐項核對目標logical name；無ArgumentNullException專一捕捉。空字串保留舊例外型別、空白名稱fail-closed的精確測試net10 1/1。雙宿主最新檢查在net48編譯階段發現Constants尚在host；依P1-04範圍抽取，不縮小測試。",
+      "15:10 CrmEntityColumns已抽入ToolUtility.Core/Constants；欄位golden與caller mutation 23/23、ToolUtility net48實載net462 270/270、net10 350/350，Core Release strict雙目標0警告／錯誤。完整P1-04覆蓋率、其他候選與增量雙模型複審仍待完成，工作包未驗收。"
     ]
   },
   "tiles": [
@@ -593,7 +595,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "四個舊方法來源已定位且已實作；原五組加CRUD／Owner共七組已搬Core。CRUD／Owner搬前7/7特性、安全14紅/8綠→搬前29/29；最新雙宿主244/244、324/324，Core覆蓋98.91%／100%，strict0警告0錯誤；並行1000次Create＋1000次Assign及logger可回收。此切片雙模型審查中，其餘候選未完成。"
+      "note": "四個舊方法來源已定位且已實作；原五組加CRUD／Owner與Constants共八組已搬Core。CRUD／Owner搬前7/7特性、安全14紅/8綠→搬前29/29；Constants已鎖21組完整golden與caller mutation。抽取後全套net48實載net462 270/270、net10 350/350；Core Release strict雙目標0警告／錯誤。刪除名稱相容測試net10 1/1；35處有效AssignOwner呼叫核對、無ArgumentNullException專一捕捉。review run20261105-142426雙模型完整、無Critical；增量複審、覆蓋率及其他候選仍待，P1-04尚未驗收。"
     },
     {
       "id": "P1-05",
@@ -880,7 +882,7 @@ const DATA = {
     },
     {
       "t": "2026-11-05",
-      "text": "P1-04 盤點中：已確認舊來源位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility，將逐型別標註可搬／不可搬並先建特性測試；沒有修改正式計畫。",
+      "text": "P1-04 盤點中：已確認舊來源位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility，逐型別標註可搬／不可搬並先建特性測試；沒有修改正式計畫。",
       "cls": "stop"
     },
     {

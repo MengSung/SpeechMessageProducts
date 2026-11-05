@@ -1,14 +1,14 @@
 // ============================================================================
 // AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Constants/CrmEntityColumns.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class CrmEntityColumns、class Contact、class List、class PresentRecord、class WeeklyReport、class DedicationBooking、class Fee、class StorLessons
-// 主要成員：21 組 CRM 欄位複本存取器；每次回傳獨立陣列，避免 caller 修改影響其他查詢。
+// 檔案路徑：ToolUtility.Core/Constants/CrmEntityColumns.cs
+// 所屬區塊：供 net462 與 net10 共用的純 Dataverse 欄位結構目錄，不依賴產品 host。
+// 檔案責任：集中保存各 CRM 實體查詢會使用的固定欄位名稱與順序，避免各呼叫端複製不同版本。
+// 主要型別：CrmEntityColumns，以及 Contact、List、PresentRecord、WeeklyReport、DedicationBooking、Fee、StorLessons、Account、Task 九個分類。
+// 主要成員：21 組公開欄位複本存取器；每次讀取都回傳新的 caller-owned 陣列，不共享可變陣列。
 // 引用命名空間：System
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 閱讀路徑：依實體分類確認欄位 logical name；實際查詢、授權、連線與例外處理由各 host 負責。
+// 維護重點：私有模板只保存有限的結構字串；不可直接公開模板，也不可依姓名、租戶或請求建立共享可變狀態。
+// 行為保護：golden 測試鎖定 21 組欄位及其順序；修改欄位需先確認消費者契約並同步更新特性證據。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using System;
@@ -16,13 +16,14 @@ using System;
 namespace ToolUtilityNameSpace.Constants
 {
     /// <summary>
-    /// CRM 實體標準欄位映射
-    /// ? Phase 3.3: 提供標準欄位集合，避免重複定義
-    ///
-    /// 使用範例:
-    /// var contact = optimizedQuery.RetrieveEntity("contact", id, ContactColumns.Basic);
-    /// var contact = optimizedQuery.RetrieveEntity("contact", id, ContactColumns.Extended);
+    /// 提供各 Dataverse 實體既有查詢使用的固定欄位集合；每組欄位名稱與順序都由 golden 契約保護。
     /// </summary>
+    /// <remarks>
+    /// 類別只保存有限的結構欄位名稱，不持有 CRM Entity、服務連線、使用者、教會或租戶資料。
+    /// 私有靜態模板只供 getter 複製；每次 getter 都建立新的陣列交給單一呼叫端，
+    /// 因此呼叫端可為 SDK 查詢調整自己的陣列，而不會污染同時或後續操作。
+    /// 例如：<c>new ColumnSet(CrmEntityColumns.Contact.Basic)</c>。
+    /// </remarks>
     public static class CrmEntityColumns
     {
         /// <summary>

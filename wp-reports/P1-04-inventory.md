@@ -81,16 +81,16 @@
 | `ToolUtility/Core/ToolUtilityFacade.Metadata.cs` | `ToolUtilityNameSpace.Core.ToolUtilityFacade` | 不可直接搬 | ConnectionOperations、logger、LINE與Lazy組合根；Metadata partial不可跨assembly拆。 |
 | `ToolUtility/Extensions/CrmAsyncExtensions.cs` | `ToolUtilityNameSpace.Extensions.CrmAsyncExtensions` | 不可直接搬 | SemaphoreSlim無確定性Dispose，Task.Run批次與dictionary覆寫ID；先有界／drain／衝突測試。 |
 | `ToolUtility/Extensions/OrganizationServiceExtensions.cs` | `ToolUtilityNameSpace.Extensions.OrganizationServiceExtensions` | 可搬（先純化） | 只SDK Execute，但null service／request／response轉空結果須先釐清失敗契約。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Contact` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.List` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.PresentRecord` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.WeeklyReport` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.DedicationBooking` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Fee` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.StorLessons` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Account` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
-| `ToolUtility/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Task` | 可搬（先純化） | public static readonly string[]仍可變，先每次複本／不可變界線及caller mutation測試。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns` | 已純化並抽取 | 私有固定模板加公開複本 getter；21組完整golden、caller mutation及並行測試通過。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Contact` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.List` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.PresentRecord` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.WeeklyReport` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.DedicationBooking` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Fee` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.StorLessons` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Account` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
+| `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Task` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
 
 ## 必要連帶依賴與溯源
 
@@ -119,7 +119,8 @@ Fee特性4/4、FetchXmlFee特性4/4、XML helper正反例6/6，合計14/14；`ar
 | LessonsService／ILessonsService | 已 git mv 至 Core/LessonsOperations；三查詢完整 golden、lookup／日期／ID／故障／隔離證據 |
 | MeetingStatisticsService／IMeetingStatisticsService | 已 git mv 至 Core/MeetingStatisticsOperations；六查詢完整 golden，保留全部舊欄位／狀態／提示值 |
 | 新共同內部 helper | Core/DataOperations/SdkDataQuery.cs；只建局部 XML／日期與驗頁，不建立連線、通知器或快取 |
-| EntityCrud、Owner、EntityAttributeUtility、OrganizationServiceExtensions、CrmEntityColumns、其他純契約 | 仍待必要特性、純化、抽取及審查；**未改判成 host 以縮減交付範圍** |
+| EntityCrud、Owner、EntityAttributeUtility、OrganizationServiceExtensions、其他純契約 | 仍待必要特性、純化、抽取及審查；**未改判成 host 以縮減交付範圍** |
+| CrmEntityColumns | 已移至 `ToolUtility.Core/Constants/`；private static templates 加 caller-owned clone getters，完整欄位清單 golden 及 21 組 mutation／並行契約共 23 案通過 |
 | 不可直接搬的既有型別 | 仍依原表逐型別判斷；必須釐清 host 依賴及最小抽取邊界，不帶入反射 logger、cache、連線或背景工作 |
 
 不同 ID 的同名記錄在所有已搬移單頁保持完整；重複／空 ID／跨實體候選拒絕。
