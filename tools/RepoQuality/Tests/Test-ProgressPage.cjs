@@ -40,6 +40,11 @@ function render(alert) {
   return elements;
 }
 
+function getWorkPackageRow(elements, id) {
+  const rows = elements.get('p1-wps').innerHTML.match(/<li class="wp [^"]+">[\s\S]*?<\/li>/g) || [];
+  return rows.find(row => row.includes(`<span class="id">${id}</span>`)) || '';
+}
+
 test('No alert hides the warning region and still renders the page', () => {
   const elements = render(null);
   assert.equal(elements.get('alert').hidden, true);
@@ -51,7 +56,7 @@ test('No alert hides the warning region and still renders the page', () => {
 
   const activePage = render(original.alert);
   assert.match(activePage.get('alert').innerHTML, /D365 預設只讀/);
-  assert.match(activePage.get('alert').innerHTML, /P1-01～03/);
+  assert.match(activePage.get('alert').innerHTML, /P1-02 複審完成，接續 P1-04/);
 });
 
 test('Alert without prompt omits copy button and full prompt area', () => {
@@ -74,7 +79,11 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   const ids = [...elements.get('p1-wps').innerHTML.matchAll(/<span class="id">(P1-\d+)<\/span>/g)]
     .map(match => match[1]);
   assert.deepEqual(ids, Array.from({ length: 12 }, (_, index) => `P1-${String(index + 1).padStart(2, '0')}`));
-  assert.match(elements.get('p1-wps').innerHTML, /P1-02[\s\S]*最新版雙模型複審尚未完成/);
+  const p1_02 = getWorkPackageRow(elements, 'P1-02');
+  assert.ok(p1_02);
+  assert.match(p1_02, /20261105-113854 Gemini＋Claude 複審 dualModelComplete=true，Critical／Warning 均無/);
+  assert.doesNotMatch(p1_02, /最新版雙模型複審尚未完成/);
+  assert.match(getWorkPackageRow(elements, 'P1-04'), /四個舊方法來源已定位/);
   assert.match(elements.get('p1-wps').innerHTML, /P1-08[\s\S]*P1-10/);
   assert.match(elements.get('p1-wps').innerHTML, /P1-12[\s\S]*由使用者在目標組織執行審核後的 apply/);
 });

@@ -24,7 +24,7 @@ Visual Studio (devenv) 同時開啟此solution，其設計時還原曾將Line.Me
 DevExtreme23.1.5本機來自已授權local source，公開NuGet固定版本404且未找到vendor環境變數；未取得可用hosted來源／CI證據，沒有洩漏source/key。繼續其他工作。
 
 ## 待完成
-P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證及適用雙模型審查／修正／分階段commit。P1-04～12尚未實作，不得標完成。下一個工作包先盤點ToolUtility並鎖住可搬Operations查詢特性，再抽Core；P1-10先於08。整階段任務只在全部必要證據通過後封存。
+P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分階段commit。P1-02 最新定向雙模型複審已完成，但全階段 gates／逐包驗收仍待完成。P1-04～12尚未完成，不得標完成。先完成 ToolUtility 型別盤點與可搬 Operations 特性測試，再抽 Core；P1-10先於08。整階段任務只在全部必要證據通過後封存。
 
 ## 接續檢查點（2026-11-05）
 - 使用者要求每有進度即更新 `文件/規劃設計書/實作計畫-3.3/實作進度.html`，並逐包列出 P1-01～P1-12。頁面已新增12包清單，P1-01～03標為驗收收斂中，P1-04～11未開始，P1-12依D24標示使用者執行apply；總計0/12驗收完成、3包進行中。
@@ -38,4 +38,29 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證及適�
 - 實作以同一30秒總期限涵蓋程序退出及兩條pipe drain；每條最多保留1,048,576字元，輸出逾限時架構讀取器拒絕解析截斷JSON；逾時後終止程序樹，最多2秒回收，關閉串流並有限等待reader完成。清理失敗會與主要例外一起保留，不讓錯誤被覆蓋。
 - `QueryFixture.LastQuery` 已改用 `Volatile.Read/Write` 明確發布；64路並行回歸完成。最新版 `SpeechMessage.Localization.Tests` net10 全套架構／MSBuild 67/67、`CollectionQueryServiceAsyncTests` 16/16、進度頁 4/4 均通過；Changed-scope encoding 3檔0問題，7個異動文字檔均通過UTF-8無BOM／CRLF／final CRLF 位元組檢查，`git diff --check` 無錯誤。
 - MSBuild 評估命令增加 `-maxcpucount:1` 與 `-nodeReuse:false`，維持不執行targets的單程序讀取契約。API的 `WaitForExit` 只證明根程序退出；runner 文件限制不得套用於會自行建立子程序的工作負載，若 tree termination 回報不完整即明確失敗，不假稱後代皆已退出。
-- P1-02仍未驗收：需完成最新版雙模型review、依 findings 修正並重跑，另需全套 gates 與階段級檢查。
+- P1-02仍未整包驗收：最新版定向雙模型 review 已完成且無 Critical／Warning；仍需重跑全套 gates、逐包證據與階段級檢查。
+
+## P1-02 最新雙模型複審（2026-11-05）
+- 經專案自癒入口執行 reviewer run `20261105-113854-integration-p1-02-process-lifecycle-review-reviewer`；`summary.json` 確認 `reviewMode=dual`、`dualModelComplete=true`、`quotaBlocked=false`、`degradedFallback=false`，Gemini 與 Claude 均有輸出。
+- Gemini：Critical 0、Warning 0；認可單一總期限、雙管線有界保留／排空、截斷 JSON 拒絕、失敗時合併清理錯誤及 LastQuery 安全發布。其 Info 建議 BOM 與專案 UTF-8 無 BOM 規範相衝，未採納。
+- Claude：Critical 0、Warning 0；Info 指出 StopAndReap 清理例外型別篩選可收斂、測試 Arguments 使用舊 overload、未覆蓋「根程序退出但子程序持有 pipe」情境，且明確將後者定位為目前單程序 MSBuild 評估契約以外的未來工作負載限制。現有註解已禁止擴用至會自行建立子程序的命令；本輪不為非必要 Info 改動受審程式。
+- Claude 輸出含一段稱本身未經 CCG 的文字，與 runner `summary.json` 的實際成功紀錄矛盾；原始 stdout/stderr 及摘要均保留，按自癒 runner 的機器摘要判定雙模型完成，並如實記錄此輸出內部矛盾。
+- 本次 review 僅涵蓋 P1-02 程式切片，不等於 P1-02 全包或階段 1 驗收。局部既有測試證據仍為架構／MSBuild 67/67、runner fault injection 2/2、query 16/16、進度頁 4/4；全階段 gates 與 P1-01／03 完整回歸尚待重跑。
+
+## P1-04 接續檢查點（2026-11-05）
+- 正式計畫要求 ToolUtility 逐型別盤點、每個待搬 Operations 的特性測試先在原實作上通過，再搬到雙目標 Core。
+- 已找到舊來源：父工作樹 `.其他解決方案\\LineApiWebhook\\ToolUtility`；初次誤查的 `Dynamics365Line\\LineApiWebhook` 路徑不存在。後續逐方法比對舊版行為，並以目前產品版本與實際消費者為相容權威；舊來源若與核定規格衝突，不盲目複製。
+- 目前初步分類：純 `IOrganizationService`／`Microsoft.Xrm.Sdk` 型別才可能搬；ServiceClient、Microsoft.Extensions、檔案、logger、連線／cache／host DI 與 facade 明確留在 host。逐檔清單與特性測試結果待補入 `wp-reports/P1-04-inventory.md` 及此帳本。
+- 總階段驗收維持 0/12；Hyper-V／D365 預設只讀，不因 P1-04 離線工作擴大權限或做實機寫入。
+
+## P1-04 有效消費路徑與舊方法初核（2026-11-05）
+- 僅搜尋 ChurchReport 實際 `.cs` 原始碼（排除 `bin/obj`），未找到 `OrganizationServiceProxy`、`ServiceClient` 或 `.ServiceClient` 使用；確認 7 個 `RetrieveMemberListCollectionByListIdDynamics365`／`RetrieveDynamicMemberListDynamics365` 呼叫點，皆經現有 `ToolUtilityClass` facade，以 `IOrganizationService` 進入 ListService。正式計畫的「非 `IOrganizationService` 大量消費」停止條件目前未觸發；文件範例及註解不計入有效呼叫。
+- 四個舊來源已核實：`Services/QueryService.cs` 的 `GetPaidFee`、`GetNotYetPaidFee`；`ToolUtilityClass/ToolUtilityClass.FetchXmlAndString.cs` 的 `RetrieveFeeByFetchXmlOrderNumber`；`Core/ToolUtilityFacade.cs` 的 `RetrieveEntityNoCache`。
+- 三個舊 FetchXML 方法把呼叫值直接插入 XML 屬性；這是可重現的 XML/query injection 風險，不按舊字串寫法搬移。特性測試只使用合成識別值，對 `<`、`&`、`"`、`'` 證明 XML 解析後保留原值且條件樹不被注入；識別碼欄位另依其業務型別驗證。
+- `ToolUtility.Tests` 已在 solution，並有獨立 Moq `IOrganizationService` helper；目前缺 FeeOperations、QueryOperations 專屬測試，待新增搬移前特性測試。此處尚無程式實作或 P1-04 驗收通過。
+- AGENTS 指定的 `.trellis/spec/backend/cross-user-isolation-and-performance.md` 與 `.trellis/spec/guides/cross-user-isolation-and-performance-review.md` 在此工作樹不存在；已讀取 AGENTS 內完整隔離條款及現有 duplicate-row、error-handling、logging、encoding、CI 規範，並將缺檔列為審查限制。
+
+## 接續回歸與專案現況（2026-11-05）
+- 重現 `node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs`：4 個案例中 2 個失敗，均因斷言仍要求舊進度文案「P1-01～03」及「最新版雙模型複審尚未完成」；目前頁面已正確顯示 P1-02 `dualModelComplete=true` 並接續 P1-04。修正測試為按單一工作包列定位當前狀態，避免跨列文字誤匹配，保留 12 個 ID 與 P1-12 D24 apply 邊界斷言；結果 4/4 通過。
+- P1-04 實際產品專案是 `ToolUtility/ToolUtility.csproj`（net10.0），測試專案是 `ToolUtility.Tests/ToolUtility.Tests.csproj`（net10.0）；現有 `ToolUtility/Core/IToolUtilityCore.cs` 是既有程式碼，不代表 `ToolUtility.Core` 雙目標專案已建立。盤點範圍仍依正式計畫列出的各 partial、Operations、Core、Extensions、Constants，不能以路徑名推定可搬。
+- 最新進度頁已記錄 renderer 回歸 4/4、階段仍 0/12 驗收完成、P1-04 未驗收；P1-01／03 全階段 gates 與 P1-12 實機寫入界線均未改變。

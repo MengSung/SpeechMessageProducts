@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "inline完成首批smoke、P1-01/02並逐包接續P1-03~12",
+  "nextAction": "P1-02 最新雙模型複審已通過；完成 P1-04 逐型別盤點、舊來源核對與 Operations 特性測試，再依序實作。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",

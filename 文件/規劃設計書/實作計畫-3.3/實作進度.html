@@ -355,18 +355,22 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-05（P1 執行中；P1-01～03 實作已有，驗收與複審收斂中）",
+  "snapshot": "2026-11-05（P1 執行中；P1-02 最新雙模型複審完成，P1-04 盤點中）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
-  "headline": "階段 1 已進入實作。P1-01～03 的程式與局部證據已存在，但最終回歸、最新雙模型審查及逐包驗收尚未完成，因此目前 <strong>0／12 工作包列為驗收完成</strong>。接續修正已知審查風險並重跑保存證據，再開始 P1-04～12；不把舊測試結果或 mock 當作最新／實機驗收。",
+  "headline": "階段 1 持續執行，目前 <strong>0／12 工作包列為驗收完成</strong>。P1-02 定向雙模型複審已完成且無 Critical／Warning；進度頁回歸 4/4 通過。全階段 gates 與 P1-01、P1-03 最新完整回歸仍未完成。P1-04 正在完成逐型別盤點與特性測試設計。",
   "alert": {
-    "title": "階段 1 執行中｜重新驗證 P1-01～03",
+    "title": "階段 1 執行中｜P1-02 複審完成，接續 P1-04",
     "body": "截至 2026-11-05，本機局部測試與靜態守門曾通過；完整方案結果早於 SDK 最後修補，尚未重跑。SDK 審查的舊 Critical／Warning 也早於修補，不能視為已解除。D365 預設只讀；計畫指定的 apply 由使用者執行，未確認隔離、備份與復原前不寫入。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
-      "已實作共用期限的子程序等待／stdout／stderr 排空、有界輸出擷取與逾時清理；架構／MSBuild 67/67、程序故障注入 2/2、查詢效能含64路並行 16/16、進度頁 4/4 均通過。Changed encoding 與位元組檢查無問題；最新版雙模型複審待執行。",
-      "之後重跑完整方案、Debug tracer、編碼、重複程式、套件、I18nCheck、架構與打包檢查，並以最新版 diff 重新執行雙模型審查。",
-      "若研究證明正式計畫存在必要修正，先留下需求、證據、影響與替代方案，再製作 Word 修正報告；未證實前不改計畫。"
+      "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
+      "局部證據：架構／MSBuild 67/67、程序故障注入 2/2、查詢效能含64路並行 16/16、進度頁 4/4；這不代表全階段 gates 已完成。接續重跑全套必要守門並處理 P1-01／03。",
+      "P1-04 呼叫路徑已核對：ChurchReport 有 7 處使用舊名單 facade 方法，產品 C# 未發現直接 OrganizationServiceProxy／ServiceClient 呼叫，方法邊界為 IOrganizationService；計畫的非 SDK 大量使用停止條件目前未觸發。",
+      "四個舊方法已定位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility。GetPaidFee、GetNotYetPaidFee 與 RetrieveFeeByFetchXmlOrderNumber 原始 FetchXML 有未跳脫輸入；搬移時以 XML 安全組裝，使用合成特殊字元測試，不複製注入風險。",
+      "目前 ToolUtility.Tests 沒有 FeeOperations／QueryOperations 專屬測試；現有 MockOrganizationServiceFactory 可提供每案獨立的 IOrganizationService 替身。AGENTS 指定的兩份跨使用者隔離規範檔在本工作樹不存在，將依 AGENTS 本文完整隔離條款驗收並記錄缺口。",
+      "若研究證明正式計畫存在必要修正，先留下需求、證據、影響與替代方案，再製作 Word 修正報告；未證實前不改計畫。",
+      "接續修正進度頁測試的兩個過時狀態斷言；逐包定位 P1-02 審查列並檢查 P1-04 接續狀態，node --test 4/4 通過。此為進度工具回歸，不代表任何 P1 工作包驗收完成。"
     ]
   },
   "tiles": [
@@ -377,7 +381,7 @@ const DATA = {
       "sub": "P0 18／18 已完成；P1 有 3 包正在收斂驗收",
       "meter": {
         "done": 18,
-        "active": 3,
+        "active": 4,
         "total": 83
       }
     },
@@ -396,10 +400,10 @@ const DATA = {
       "label": "階段 1 驗收",
       "value": "0",
       "unit": "/ 12 工作包",
-      "sub": "前三包實作存在，完整驗收、最新審查與證據歸檔未完成",
+      "sub": "P1-02 複審完成；P1-01/03 全量驗收及 P1-04～12 尚未完成",
       "meter": {
         "done": 0,
-        "active": 3,
+        "active": 4,
         "total": 12
       }
     },
@@ -563,7 +567,7 @@ const DATA = {
       "id": "P1-02",
       "name": "架構測試（R4：相依只能往下）",
       "status": "active",
-      "note": "真實 MSBuild／逐目標與 NuGet Framework assets 檢查、合成正反例及 net48 載入 net462 測試已實作。新增有界程序 runner；架構／MSBuild 67/67、程序故障注入 2/2、查詢效能含64路並行 16/16 通過，LastQuery 改為 Volatile 發布。全套 gates 與最新版雙模型複審尚未完成。"
+      "note": "真實 MSBuild／逐目標與 NuGet Framework assets 檢查、合成正反例及 net48 載入 net462 測試已實作。有界程序 runner 與 LastQuery Volatile 發布已通過定向測試。20261105-113854 Gemini＋Claude 複審 dualModelComplete=true，Critical／Warning 均無；全階段 gates、整合回歸及驗收紀錄仍待完成。"
     },
     {
       "id": "P1-03",
@@ -574,8 +578,8 @@ const DATA = {
     {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
-      "status": "todo",
-      "note": "尚未開始。先逐型別盤點可搬／不可搬項目、確認舊來源路徑並鎖定 Operations 特性測試，再抽取 Core、補四個方法與 product 隔離多載。"
+      "status": "active",
+      "note": "已核對 ChurchReport 的 7 處名單 facade 消費點均走 IOrganizationService；產品 C# 未發現直接 OrganizationServiceProxy／ServiceClient 路徑，正式計畫停止條件目前未觸發。四個舊方法來源已定位；三個舊 FetchXML 方法有未跳脫輸入風險，須先以合成資料特性測試並用 XML 安全組裝。逐型別清單與測試仍進行中。"
     },
     {
       "id": "P1-05",
@@ -642,7 +646,7 @@ const DATA = {
       "est": "12～16 天",
       "total": 12,
       "done": 0,
-      "active": 3,
+      "active": 4,
       "current": true
     },
     {
@@ -847,8 +851,18 @@ const DATA = {
     },
     {
       "t": "目前",
-      "text": "P1-02 定向驗證已完成：架構／MSBuild 67/67、程序故障注入 2/2、查詢效能16/16、進度頁4/4及 Changed encoding 均通過。正在提交最新版雙模型複審；全套 gates 未完成前仍不標示工作包驗收完成。",
+      "text": "P1-02 reviewer run 20261105-113854：Gemini＋Claude 均完成，dualModelComplete=true，無 quota 降級；Critical／Warning 0。Claude 的子程序限制符合既有單程序評估契約；Gemini BOM 建議不採納（與 UTF-8 無 BOM 規範衝突）。P1-02 全階段 gates 仍待完成。",
       "cls": "stop"
+    },
+    {
+      "t": "2026-11-05",
+      "text": "P1-04 盤點中：已確認舊來源位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility，將逐型別標註可搬／不可搬並先建特性測試；沒有修改正式計畫。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-05",
+      "text": "接續回歸：進度頁測試原有兩項狀態文案斷言已過時，更新為逐包檢查 P1-02 最新雙模型證據與 P1-04 盤點狀態；node --test 4/4 通過，P1 驗收仍為 0/12。",
+      "cls": "ok"
     },
     {
       "t": "安全邊界",
