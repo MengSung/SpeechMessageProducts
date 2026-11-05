@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Activity已抽Core，原51紅→搬前82綠；495/602與2444全方案、coverage99.56%/100%。保存最後頁面/編碼/本地提交，依使用者主會話審查不再雙模型REVIEW；接續其他P1-04候選，P1仍2/12。",
+  "nextAction": "Activity切片ec108ae0已本地提交、離線驗證完整。下一步CollectionQueryService的原host特性及安全紅綠（尚未改產品）；其餘P1-04候選、P1-01及05～12未完成。主P1仍2/12，主會話審查、無後續雙模型REVIEW。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",

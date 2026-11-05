@@ -479,7 +479,7 @@ D365／Hyper-V／LINE未操作，沒有實機／hosted CI新證據；正式3.3�
 
 ### Git Commits
 
-(No commits - planning session)
+`ec108ae0`（Activity實作及驗證本地提交；未push）
 
 ### Testing
 
@@ -491,4 +491,4 @@ D365／Hyper-V／LINE未操作，沒有實機／hosted CI新證據；正式3.3�
 
 ### Next Steps
 
-- None - task complete
+- 主P1仍進行中；接續CollectionQueryService與其餘P1工作包，不宣告背景執行。

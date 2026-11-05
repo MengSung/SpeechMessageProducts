@@ -251,3 +251,5 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - 搬後 495／602、Core 獨立 coverage99.56%／100%、完整16TRX2444／2444、ChurchReport623／623、架構67／67。明確標為 SDK mock I/O 邊界，未冒充實機／授權驗收。
 - 無已知本切片 Critical／High。限制：兩 ArrayList 不能對違約並行讀者跨物件原子 swap；AllColumns 傳輸量／逾時仍須 host 限制；分頁非跨頁資料庫快照，資料變動衝突明確拒絕、caller 可重試。這些前置已明載，不以放寬斷言掩蓋。
 - 詳 wp-reports/P1-04-activity.md、evidence/activity/；主P1／P1-04未全包驗收。
+
+- Activity切片本地提交ec108ae0，未push。預讀CollectionQueryService及介面／PagedResult全文；目前未改Collection產品。其logger反射host依賴、字典覆寫、分頁cookie固定第2頁與取消／drain契約須先核對既有Performance測試，再做特性／安全紅綠。尚未將疑點宣稱已修；原Goal仍usageLimited，未覆蓋或宣稱背景執行。
