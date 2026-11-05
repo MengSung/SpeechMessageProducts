@@ -1,12 +1,12 @@
 {
   "id": "p013-net462-acceptance-guidance",
   "title": "P0-13 net462 自動驗收、停用收尾與文件同步",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "M",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "review",
-  "nextAction": "本次實機驗收全部完成；本輪收尾文件外審逾時且無輸出，依規則備包停止，保留 review；不開 P1。",
+  "currentPhase": "completed",
+  "nextAction": "2026-11-05 雙模型補審通過，封存並交接 P1。",
   "createdAt": "2026-11-04",
   "branch": "1.0.0.11.Integration.P0",
   "constraints": [
@@ -16,16 +16,15 @@
     "不推送、不合併、不改寫歷史"
   ],
   "reviewAttempt": {
-    "runId": "20261104-204858-p013-live-acceptance-closeout-reviewer",
-    "ok": false,
-    "reviewMode": "claude-only",
-    "dualModelComplete": false,
+    "runId": "20261105-081123-p013-closeout-resume-20261105-reviewer",
+    "ok": true,
+    "reviewMode": "dual",
+    "dualModelComplete": true,
     "quotaBlocked": false,
     "degradedFallback": false,
-    "exitCode": 124,
-    "timedOut": true,
-    "producedOutput": false,
-    "findingsAvailable": false,
-    "gate": "本輪額外收尾文件審查；不代表原產品審查失敗，也不冒稱本輪已通過。"
+    "critical": 0,
+    "high": 0,
+    "warning": 0,
+    "scope": "P0-13 收尾文件與去識別證據補審；非重新實機驗收"
   }
 }

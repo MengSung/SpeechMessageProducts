@@ -2,7 +2,7 @@
   "id": "integration-p0",
   "name": "integration-p0",
   "title": "階段 0 準備守門與可行性驗證",
-  "description": "P0-13 net462 實機驗收與停用清理全部通過，18／18 工作包完成；額外收尾文件 ClaudeOnly 審查逾時，任務保留 review 待續。",
+  "description": "P0-13 實機驗收與停用清理通過；2026-11-05 Gemini／Claude 收尾文件補審通過，無 Critical／High。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -25,12 +25,12 @@
   "meta": {
     "currentWorkPackage": "P0-13",
     "userRequestedStop": false,
-    "gatePassed": false,
+    "gatePassed": true,
     "baselineSummary": "baseline/baseline-summary.md",
     "report": "wp-reports/P0-13.md",
     "repairRecommendation": "research/baseline-repair-recommendation.md",
-    "reviewPending": true,
-    "waitingFor": "本輪收尾文件 ClaudeOnly 審查逾時，已備包；實機驗收已通過，等待審查結果才正式封存。",
+    "reviewPending": false,
+    "waitingFor": null,
     "completedWorkPackages": {
       "P0-01": "90799969",
       "P0-02": "bc13efe7",
@@ -107,10 +107,10 @@
       "report": ".ccg/tasks/archive/2026-11/p013-net462-migration/review.md"
     }
   },
-  "currentPhase": "review",
+  "currentPhase": "completed",
   "currentWorkPackage": "P0-13",
-  "nextAction": "本次實機驗收全部完成；本輪收尾文件外審逾時且無輸出，依規則備包停止，保留 review；不開 P1。",
-  "stopReason": "本次實機驗收全部完成；本輪收尾文件外審逾時且無輸出，依規則備包停止，保留 review；不開 P1。",
+  "nextAction": "階段 0 關卡全部完成，封存後開始已授權的 P1 規劃。",
+  "stopReason": null,
   "stageReview": {
     "mode": "claude-only",
     "state": "passed",
@@ -185,7 +185,7 @@
     "fileVersionTraceAvailable": false,
     "sameEventRetryVerified": false,
     "cleanupReported": true,
-    "stage0Completed": false,
+    "stage0Completed": true,
     "smallGroupArchiveCommit": "53df63f3",
     "scopeApproval": "使用者 2026-11-04 核定最小驗收；FileVersion 追蹤移至階段 5，實機重送改用單元測試與 LINE 官方重試契約。",
     "ciTransitionAccepted": true,
@@ -219,17 +219,16 @@
     "completedAt": "2026-11-04T20:41:18.2820756+08:00",
     "workPackagesCompleted": 18,
     "closeoutReview": {
-      "runId": "20261104-204858-p013-live-acceptance-closeout-reviewer",
-      "ok": false,
-      "reviewMode": "claude-only",
-      "dualModelComplete": false,
+      "runId": "20261105-081123-p013-closeout-resume-20261105-reviewer",
+      "ok": true,
+      "reviewMode": "dual",
+      "dualModelComplete": true,
       "quotaBlocked": false,
       "degradedFallback": false,
-      "exitCode": 124,
-      "timedOut": true,
-      "producedOutput": false,
-      "findingsAvailable": false,
-      "gate": "本輪額外收尾文件審查；不代表原產品審查失敗，也不冒稱本輪已通過。"
+      "critical": 0,
+      "high": 0,
+      "warning": 0,
+      "scope": "P0-13 收尾文件與去識別證據補審；非重新實機驗收"
     }
   },
   "futureWork": [

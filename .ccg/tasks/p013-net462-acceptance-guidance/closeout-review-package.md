@@ -12,3 +12,8 @@
 接續時仍只能經 Start-CcgDualModelRun.ps1 的 ClaudeOnly 入口。依使用者逾時規則，本輪不再呼叫。審查目標為本次收尾文件、限定範圍證據及連線釋放，不得讀取 User Secrets、appsettings、金鑰、授權或連線 D365／LINE。
 
 本次已通過：實機 smoke=0、五項追蹤、停用 apply／verify=0、追蹤恢復例外狀況、task 殘留 0、Deployment 56／56、進度頁 3／3、9 個 PowerShell 區塊靜態解析及編碼守門。沒有再次跑完整 §8，沿用 a4649e3b 前完整通過證據。不推送、不合併、不改寫歷史、不開 P1。
+
+
+## 2026-11-05 補審結案
+
+Gemini 與 Claude 均完成收尾文件補審，無 Critical／High／Warning；run 20261105-081123-p013-closeout-resume-20261105-reviewer，dualModelComplete=true。本次沒有再次連線 D365 或發 LINE。歷史逾時狀態已由此次成功補審解除；原證據與其範圍保留，階段 0 可正式封存。

@@ -350,17 +350,16 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-04（P0-13 實機全部通過；收尾文件審查逾時，保留 review）",
+  "snapshot": "2026-11-05（P0 收尾雙模型補審通過，階段 1 規劃接續）",
   "branch": "1.0.0.11.Integration.P0",
-  "worker": "實作：Codex　查核：Claude",
-  "headline": "P0-13 實機驗收與停用清理已完成，階段 0 為 <strong>18／18 工作包</strong>。net462 註冊／smoke／五項追蹤與收尾 verify=0 全部通過，追蹤已回復例外狀況，測試 task 殘留 0。本輪額外收尾文件審查逾時、沒有輸出，已備包；任務保留 review，尚未正式封存，也未開 P1。",
+  "worker": "實作：Codex　查核：Gemini＋Claude",
+  "headline": "P0-13 實機驗收與停用清理已完成，階段 0 為 <strong>18／18 工作包</strong>。2026-11-05 Gemini 與 Claude 收尾文件補審通過，無 Critical／High；正式封存前置關卡，依使用者全自動授權接續階段 1。P1 尚未完成，不以規劃代替實作。",
   "alert": {
-    "title": "實機驗收已完成；本輪收尾文件審查逾時待續",
-    "body": "同一 ClaudeOnly 自癒入口未產生可用輸出，exitCode=124、timedOut=true、quotaBlocked=false。不能當作審查通過；原階段 0／第 09／10 份及 verify 修正審查結果不變。",
+    "title": "階段 0 收尾補審通過；階段 1 規劃接續",
+    "body": "本次 reviewMode=dual、dualModelComplete=true；無 Critical／High／Warning。歷史逾時紀錄完整保留，不改寫先前結果。",
     "steps": [
-      "已保存審查輸入、工具摘要與去識別驗收證據，依規則停止呼叫入口。",
-      "P0-13 實機項目全部完成，任務暫留 review；取得補充審查結果後才封存。",
-      "不再執行線上測試，不建立或開始 P1。"
+      "先完成 P1 規劃與雙模型分析，再依工作包逐項 TDD 實作。",
+      "P1 仍為 0／12；推播、正式組織與階段 2 業務搬移不在本階段範圍。"
     ]
   },
   "tiles": [
@@ -1041,6 +1040,11 @@ const DATA = {
       "t": "2026-11-04 20:54",
       "cls": "",
       "text": "本輪額外收尾文件 ClaudeOnly 審查逾時，無可用輸出；不是配額問題，未冒稱通過。審查包已保存，依規則停止新增操作，Trellis／CCG 保留 review；實機驗收完成事實不變。"
+    },
+    {
+      "t": "2026-11-05",
+      "cls": "ok",
+      "text": "P0 收尾文件補審：Gemini＋Claude 均完成，無 Critical／High。新工作樹 Release 1125／1125；使用者全權授權完成 P1，接續建立規劃。"
     }
   ],
   "decisions": [
@@ -1164,7 +1168,7 @@ const DATA = {
     {
       "state": "done",
       "text": "既有產品審查與 P0-13 實機驗收已完成",
-      "sub": "原審查、第 09／10 份及 verify 修正審查通過；實機 smoke 與停用清理已完成。本輪額外收尾文件審查逾時，保留 review，詳見頁首。"
+      "sub": "原產品審查與實機證據不變；2026-11-05 Gemini／Claude 收尾文件補審亦通過。"
     },
     {
       "state": "done",
@@ -1179,9 +1183,9 @@ const DATA = {
   ],
   "risks": [
     {
-      "level": "warn",
-      "text": "本輪收尾文件 ClaudeOnly 審查逾時，尚未通過",
-      "sub": "reviewMode=claude-only、dualModelComplete=false、quotaBlocked=false、ok=false；不是配額降級。P0-13 實機已通過，任務維持 review 待續，未封存。"
+      "level": "info",
+      "text": "歷史收尾審查逾時已完成補審",
+      "sub": "2026-11-05 Gemini 與 Claude 均完成，dualModelComplete=true，無 Critical／High；保留原始逾時證據。"
     },
     {
       "level": "info",
@@ -1196,7 +1200,7 @@ const DATA = {
     {
       "level": "info",
       "text": "本次 trace 前置與驗收收尾已完成",
-      "sub": "舊步驟／流程停用與 3 筆作業取消依使用者回報；本次 smoke task 殘留 0。舊 LINE token／會友 LINE ID 依核定保留，此例外不自動延伸至後續階段。 額外收尾文件審查逾時，已備包並保留 review。"
+      "sub": "舊步驟／流程停用與作業取消依既有回報；測試 task 殘留 0。舊 LINE 資料依核定保留，不宣稱已清理。收尾補審已通過。"
     },
     {
       "level": "info",

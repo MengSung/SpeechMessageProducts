@@ -185,3 +185,8 @@ P0-11 收尾時核對外部提交 fc5df488 與 7641a206，內容與已驗證檔�
 - [x] 自癒入口 ClaudeOnly 已呼叫，逾時且 producedOutput=false；如實記錄 reviewMode、dualModelComplete=false、quotaBlocked=false、ok=false。
 - [x] 已備妥審查包與實機證據；原先已通過的 verify 審查紀錄完整保留。
 - [ ] 取得本輪收尾文件審查結果後正式封存；目前維持 review，不再新增線上操作，不開 P1。
+
+
+## 2026-11-05 補審結案
+
+Gemini 與 Claude 均完成收尾文件補審，無 Critical／High／Warning；run 20261105-081123-p013-closeout-resume-20261105-reviewer，dualModelComplete=true。本次沒有再次連線 D365 或發 LINE。歷史逾時狀態已由此次成功補審解除；原證據與其範圍保留，階段 0 可正式封存。
