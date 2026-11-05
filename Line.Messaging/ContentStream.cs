@@ -51,7 +51,14 @@ namespace Line.Messaging
         /// 取得 HTTP Content 的標頭資訊（如 Content-Type、Content-Length 等）
         /// Gets the HTTP content headers (e.g., Content-Type, Content-Length)
         /// </summary>
-        public HttpContentHeaders ContentHeaders { get; }
+        public HttpContentHeaders ContentHeaders => _contentHeaders ?? throw new ObjectDisposedException(nameof(ContentStream));
+
+        /// <summary>最多持有到 Dispose 的內容標頭；釋放後清掉，避免標頭容器間接保留 HttpContent。</summary>
+        private HttpContentHeaders _contentHeaders;
+        /// <summary>由下載 helper 轉交的唯一 response owner；舊公開建構式則只 owns baseStream。</summary>
+        private IDisposable _responseOwner;
+        /// <summary>僅保護一次性所有權轉交，不序列化串流讀寫；Stream 本身不支援並行讀寫。</summary>
+        private readonly object _disposeGate = new object();
 
         /// <summary>
         /// 初始化 ContentStream 的新執行個體
@@ -61,8 +68,16 @@ namespace Line.Messaging
         /// <param name="contentHeaders">HTTP Content 標頭 / HTTP content headers</param>
         public ContentStream(Stream baseStream, HttpContentHeaders contentHeaders)
         {
-            _baseStream = baseStream;
-            ContentHeaders = contentHeaders;
+            _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
+            _contentHeaders = contentHeaders;
+        }
+
+        /// <summary>由 SDK 內部一次性交接 response 所有權；外部仍可沿用原雙參數建構式。</summary>
+        /// <param name="baseStream">response 內容串流，不獨立重複 Dispose。</param>
+        /// <param name="contentHeaders">只在串流存活期間有效的內容標頭。</param><param name="responseOwner">唯一 response owner，會連同 content 與串流一起釋放。</param>
+        internal ContentStream(Stream baseStream, HttpContentHeaders contentHeaders, IDisposable responseOwner) : this(baseStream, contentHeaders)
+        {
+            _responseOwner = responseOwner ?? throw new ArgumentNullException(nameof(responseOwner));
         }
 
         /// <summary>
@@ -154,12 +169,27 @@ namespace Line.Messaging
         /// <param name="disposing">true 表示釋放 Managed 和 Unmanaged 資源；false 則只釋放 Unmanaged 資源</param>
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-            if (disposing)
+            try
             {
-                _baseStream?.Dispose();
-                _baseStream = null;
+                if (disposing)
+                {
+                    Stream stream;
+                    IDisposable owner;
+                    lock (_disposeGate)
+                    {
+                        stream = _baseStream;
+                        owner = _responseOwner;
+                        _baseStream = null;
+                        _responseOwner = null;
+                        _contentHeaders = null;
+                    }
+                    // Response owns 它的 content 與串流；無 response 的舊建構式才獨立釋放 stream。
+                    // 先清參照再釋放，重複或重入 Dispose 不會留下 owner，也不雙重處置借來的目的地。
+                    if (owner != null) owner.Dispose();
+                    else stream?.Dispose();
+                }
             }
+            finally { base.Dispose(disposing); }
         }
     }
 }

@@ -32,6 +32,8 @@ SpeechMessage.Dynamics.Crm82Worker.Tests：實際僅 packages.lock.json。
 SpeechMessage.Dynamics.Crm91Worker：實際僅 packages.lock.json。
 SpeechMessage.Dynamics.Crm91Worker.Tests：實際僅 packages.lock.json。
 
+四個 worker 目錄在刪除前各只有鎖定檔，沒有 csproj／原始碼／方案項目；本次不是保留仍存活的 worker 專案，也沒有把其他 untracked 資料當成孤兒遞迴刪除。
+
 待刪除追蹤檔：51
 - Line.Messaging/Line.Messaging_Net10.csproj
 - LineMessagingProcessor/LineMessagingProcessor_Net10.csproj

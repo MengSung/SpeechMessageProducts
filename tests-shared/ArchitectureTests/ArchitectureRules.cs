@@ -37,6 +37,13 @@ internal static class ArchitectureRules
                 Add("UnknownProject", project.Name);
             }
 
+            // 直接保護產品輸出，不依賴是否已有 Plugin／其他 core 消費這個專案。
+            // net48 僅限上面已排除的測試宿主；不能藉孤立節點漏過沙箱 Framework 上限。
+            if (project.Target != "net462" && project.Target != "net10.0")
+            {
+                Add("ProductTarget", project.Target);
+            }
+
             var dual = project.Targets.Contains("net462", StringComparer.Ordinal) && project.Targets.Count > 1;
             var sandbox = IsSandbox(project.Name);
             if (sandbox && project.Target != "net462")

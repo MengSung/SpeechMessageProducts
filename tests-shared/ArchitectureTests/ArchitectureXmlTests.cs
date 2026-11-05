@@ -64,6 +64,17 @@ public sealed class ArchitectureXmlTests
         Assert.Empty(ArchitectureRules.Validate(fixture.Read()));
     }
 
+    /// <summary>沒有沙箱消費者的雙目標產品也不能把 net48 當產品目標，防止只靠被參考關係才攔截的死角。</summary>
+    [Fact]
+    public void InvalidCsprojUnreferencedProductTarget_IsRejected()
+    {
+        using var fixture = new ProjectFixture();
+        fixture.Add("SpeechMessage.Localization", Project("net48;net10.0", string.Empty));
+        Assert.Contains(ArchitectureRules.Validate(fixture.Read()), item => item.Rule == "ProductTarget" && item.Target == "net48");
+        fixture.Replace("SpeechMessage.Localization", Project("net462;net10.0", string.Empty));
+        Assert.Empty(ArchitectureRules.Validate(fixture.Read()));
+    }
+
     /// <summary>即使 csproj 宣告雙目標，NuGet 若實際選出 net48 產品也必須拒絕；正常 net462 與套件節點不誤擋。</summary>
     [Fact]
     public void RestoredAssets_Net48Product_IsRejected()

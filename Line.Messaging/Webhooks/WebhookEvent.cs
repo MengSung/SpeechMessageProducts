@@ -17,26 +17,34 @@ using System.Collections.Generic;
 namespace Line.Messaging.Webhooks
 {
     /// <summary>
-    /// The webhook event generated on the LINE Platform.
-    /// https://developers.line.me/en/docs/messaging-api/reference/#webhook-event-objects
+    /// LINE webhook 的單筆事件；保留原有型別、來源與時間建構契約，新投遞欄位僅由解析器設定。
+    /// 模型不驗證簽章也不授予租戶權限；呼叫端必須先驗原始 body 的簽章再消費事件。
     /// </summary>
     public abstract class WebhookEvent
     {
+        /// <summary>平台提供的穩定事件 ID；重送保持同值，缺少欄位的舊事件為 null；不取代後續業務資料庫 ID。</summary>
+        public string WebhookEventId { get; private set; }
+
+        /// <summary>本次投遞資訊；每個事件獨立持有，不保留 JSON、HTTP request、token 或跨事件的可變狀態。</summary>
+        public DeliveryContext DeliveryContext { get; private set; } = new DeliveryContext(false);
+
         /// <summary>
-        /// Identifier for the type of event
+        /// 事件類別，由已知 enum 判定；未知類別沿用舊行為略過，不猜測業務意圖。
         /// </summary>
         public WebhookEventType Type { get; }
 
         /// <summary>
-        /// JSON object which contains the source of the event
+        /// 此事件專屬的來源資料；只供路由提示，不能直接視為伺服器端已授權使用者。
         /// </summary>
         public WebhookEventSource Source { get; }
 
         /// <summary>
-        /// Time of the event in milliseconds
+        /// 平台事件時間的 Unix 毫秒值；重送時不以接收時間覆寫，供後續去重與排序。
         /// </summary>
         public long Timestamp { get; }
 
+        /// <summary>建立事件既有欄位；建構時沒有 HTTP、token 或共用可變狀態，投遞資訊預設為非重送。</summary>
+        /// <param name="type">已知事件類別。</param><param name="source">事件專屬來源。</param><param name="timestamp">平台事件 Unix 毫秒。</param>
         public WebhookEvent(WebhookEventType type, WebhookEventSource source, long timestamp)
         {
             Type = type;
@@ -44,7 +52,20 @@ namespace Line.Messaging.Webhooks
             Timestamp = timestamp;
         }
 
+        /// <summary>在既有各類事件建構後補入共同投遞欄位；所有類別共走此入口，避免遺漏某個 switch 分支。</summary>
+        /// <param name="dynamicObject">呼叫端已完成驗簽及 JSON 解析的單筆物件；不保存原 JSON。</param><returns>可辨識的 detached 事件，或沿用舊行為回 null。</returns>
         internal static WebhookEvent CreateFrom(dynamic dynamicObject)
+        {
+            WebhookEvent result = CreateEvent(dynamicObject);
+            if (result == null) return null;
+            result.WebhookEventId = (string)dynamicObject.webhookEventId;
+            result.DeliveryContext = new DeliveryContext((bool?)dynamicObject.deliveryContext?.isRedelivery ?? false);
+            return result;
+        }
+
+        /// <summary>保留既有類別映射，不把投遞 ID 當成訊息或資料庫記錄的 ID；整個候選完成後才交還呼叫端。</summary>
+        /// <param name="dynamicObject">單筆已解析事件。</param><returns>已知事件或 null。</returns>
+        private static WebhookEvent CreateEvent(dynamic dynamicObject)
         {
             if (dynamicObject == null) { throw new ArgumentNullException(nameof(dynamicObject)); }
 

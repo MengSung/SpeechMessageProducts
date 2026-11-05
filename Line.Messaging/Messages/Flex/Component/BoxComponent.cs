@@ -22,6 +22,9 @@ namespace Line.Messaging
     /// </summary>
     public class BoxComponent : IFlexComponent
     {
+        /// <summary>選用的 Box 漸層背景；未指定時保持舊版 Flex JSON，不影響子元件的內容或順序。</summary>
+        public Background Background { get; set; }
+
         /// <summary>
         /// Box
         /// </summary>

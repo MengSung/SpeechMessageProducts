@@ -56,6 +56,9 @@ namespace Line.Messaging
     /// <seealso cref="QuickReply"/>
     public class TextMessage : ISendMessage
     {
+        /// <summary>單則訊息選用的品牌呈現；未設定時不輸出 sender，維持既有 JSON。不得用它決定授權 channel。</summary>
+        public Sender Sender { get; set; }
+
         /// <summary>
         /// 取得訊息類型，固定為 Text
         /// Gets the message type, always Text

@@ -219,32 +219,34 @@ public sealed class CollectionQueryServiceAsyncTests
         /// <summary>最後一次合成查詢，供查詢契約斷言，不包含使用者資料。</summary>
         internal QueryBase? LastQuery { get; private set; }
         /// <summary>每案例有限 I/O 總數。</summary>
-        internal int Calls { get; private set; }
+        internal int Calls => Volatile.Read(ref calls);
+        private int calls;
         /// <summary>最後一頁之前回傳 paging cookie；最多十頁，由記憶體測試設定。</summary>
         internal int PageCount { get; set; } = 1;
         /// <summary>當前同步 SDK 呼叫數；finally 歸零作為 drain 證據。</summary>
-        internal int ActiveCalls { get; private set; }
+        internal int ActiveCalls => Volatile.Read(ref activeCalls);
+        private int activeCalls;
 
         /// <summary>為每個查詢建立新結果，IN 保留全部不同資料庫 ID；不使用顯示名稱合併。</summary>
         /// <param name="query">借用的 query，僅保留最後一個合成實例。</param><returns>此次呼叫專用 EntityCollection。</returns>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
-            ActiveCalls++;
+            Interlocked.Increment(ref activeCalls);
             try
             {
-                Calls++;
+                var call = Interlocked.Increment(ref calls);
                 LastQuery = query;
                 var name = query switch { QueryExpression expression => expression.EntityName, QueryByAttribute attributes => attributes.EntityName, _ => throw new NotSupportedException() };
                 if (name == "invalid_entity_name") throw new InvalidOperationException("Synthetic entity rejection.");
                 var condition = (query as QueryExpression)?.Criteria.Conditions.FirstOrDefault(item => item.Operator == ConditionOperator.In);
                 var ids = condition is null ? new[] { ListId } : condition.Values.Cast<Guid>().ToArray();
-                if (PageCount > 1) ids = Enumerable.Range(1, 100).Select(index => new Guid(index + (Calls * 100), 0, 0, new byte[8])).ToArray();
+                if (PageCount > 1) ids = Enumerable.Range(1, 100).Select(index => new Guid(index + (call * 100), 0, 0, new byte[8])).ToArray();
                 var result = new EntityCollection(ids.Select(id => new Entity(name, id) { ["new_status"] = "Active", ["fullname"] = "synthetic-same-name" }).ToList());
-                result.MoreRecords = Calls < PageCount;
-                result.PagingCookie = result.MoreRecords ? "synthetic-page-" + Calls : null;
+                result.MoreRecords = call < PageCount;
+                result.PagingCookie = result.MoreRecords ? "synthetic-page-" + call : null;
                 return result;
             }
-            finally { ActiveCalls--; }
+            finally { Interlocked.Decrement(ref activeCalls); }
         }
 
         /// <summary>只支援週報 RetrieveMultiple 訊息；回傳該次獨立的 SDK response。</summary>

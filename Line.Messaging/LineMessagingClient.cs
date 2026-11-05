@@ -20,6 +20,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq; // RichMenu list endpoint 回傳包在 richmenus 陣列中，需用 JObject/JArray 解析。
 
@@ -80,6 +81,9 @@ namespace Line.Messaging
         /// </summary>
         private readonly bool _disposeClient;
 
+        /// <summary>此 SDK 實例唯一的 channel credential；僅附加到單次 request，Dispose 以原子交換清除參照。</summary>
+        private AuthenticationHeaderValue _authorization;
+
         /// <summary>
         /// JSON 序列化設定（使用 Camel Case 命名）
         /// JSON serializer settings (using Camel Case naming)
@@ -108,7 +112,7 @@ namespace Line.Messaging
         {
             _client = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _disposeClient = false;
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
+            _authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
             _uri = NormalizeLineApiBaseUri(uri);
             _dataUri = DeriveDataUri(_uri);
@@ -125,7 +129,7 @@ namespace Line.Messaging
         {
             _client = new HttpClient();
             _disposeClient = true;
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
+            _authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
             _uri = NormalizeLineApiBaseUri(uri);
             _dataUri = DeriveDataUri(_uri);
@@ -247,15 +251,16 @@ namespace Line.Messaging
         /// }
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public static async Task<ChannelAccessToken> IssueChannelAccessTokenAsync(HttpClient httpClient, string channelId, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/accessToken"),
-                new FormUrlEncodedContent(new Dictionary<string, string>
+            using var content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     ["grant_type"] = "client_credentials",
                     ["client_id"] = channelId,
                     ["client_secret"] = channelAccessToken
-                })).ConfigureAwait(false);
+                });
+            using var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/accessToken"), content).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonConvert.DeserializeObject<ChannelAccessToken>(json,
@@ -302,10 +307,11 @@ namespace Line.Messaging
         /// }
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public static async Task RevokeChannelAccessTokenAsync(HttpClient httpClient, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/revoke"),
-                new FormUrlEncodedContent(new Dictionary<string, string> { ["access_token"] = channelAccessToken })).ConfigureAwait(false);
+            using var content = new FormUrlEncodedContent(new Dictionary<string, string> { ["access_token"] = channelAccessToken });
+            using var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/revoke"), content).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -429,11 +435,12 @@ namespace Line.Messaging
         /// </example>
         /// <seealso cref="PushMessageAsync(string, IList{ISendMessage})"/>
         /// <seealso cref="MultiCastMessageAsync(IList{string}, IList{ISendMessage})"/>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ReplyMessageAsync(string replyToken, IList<ISendMessage> messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/reply");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/reply");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { replyToken, messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -496,12 +503,13 @@ namespace Line.Messaging
         /// );
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ReplyMessageWithJsonAsync(string replyToken, params string[] messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/reply");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/reply");
             var json = $"{{ \"replyToken\" : \"{replyToken}\", \"messages\" : [{string.Join(", ", messages)}] }}";
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -556,12 +564,13 @@ namespace Line.Messaging
         public virtual Task PushMessageAsync(string to, IList<ISendMessage> messages)
             => PushMessageAsync(to, messages, retryKey: null);
 
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task PushMessageAsync(string to, IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/push"));
+            using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/push"));
             ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { to, messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -583,12 +592,13 @@ namespace Line.Messaging
         /// This method is suitable for advanced scenarios requiring full control of JSON format.
         /// </para>
         /// </remarks>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task PushMessageWithJsonAsync(string to, params string[] messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/push");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/push");
             var json = $"{{ \"to\" : \"{to}\", \"messages\" : [{string.Join(", ", messages)}] }}";
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -654,12 +664,13 @@ namespace Line.Messaging
         public virtual Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages)
             => MultiCastMessageAsync(to, messages, retryKey: null);
 
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/multicast"));
+            using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/multicast"));
             ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { to, messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -675,13 +686,14 @@ namespace Line.Messaging
         /// JSON 格式的訊息陣列
         /// Array of messages in JSON format
         /// </param>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task MultiCastMessageWithJsonAsync(IList<string> to, params string[] messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/multicast");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/multicast");
             var quotedIds = string.Join(", ", to.Select(x => $"\"{x}\""));
             var json = $"{{ \"to\" : [{quotedIds}], \"messages\" : [{string.Join(", ", messages)}] }}";
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -732,12 +744,13 @@ namespace Line.Messaging
         public virtual Task BroadcastMessageAsync(IList<ISendMessage> messages)
             => BroadcastMessageAsync(messages, retryKey: null);
 
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task BroadcastMessageAsync(IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/broadcast"));
+            using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/broadcast"));
             ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -793,11 +806,12 @@ namespace Line.Messaging
         /// var progress = await client.GetNarrowcastProgressAsync(requestId);
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task<string> NarrowcastMessageAsync(IList<ISendMessage> messages, object recipient = null, object filter = null, object limit = null)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/narrowcast");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/narrowcast");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages, recipient, filter, limit }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             if (response.Headers.TryGetValues("X-Line-Request-Id", out var values)) return values.FirstOrDefault();
             return null;
@@ -837,9 +851,9 @@ namespace Line.Messaging
         /// 將來自使用者的訊息標記為已讀
         /// Marks messages from users as read
         /// </summary>
-        /// <param name="chatId">
-        /// 聊天識別碼 - 可以是 userId（一對一聊天）、groupId（群組）或 roomId（聊天室）
-        /// Chat identifier - Can be userId (one-on-one chat), groupId (group), or roomId (room)
+        /// <param name="markAsReadToken">
+        /// 已驗簽 webhook 內的 markAsReadToken，不接受 userId、groupId 或 roomId。
+        /// 此操作只持有 token 到本次傳輸完成；request 與 response 均在方法結束時釋放。
         /// </param>
         /// <remarks>
         /// 標記為已讀後，使用者端會顯示訊息已讀取。
@@ -854,20 +868,21 @@ namespace Line.Messaging
         /// <example>
         /// <code>
         /// // 標記一對一聊天為已讀
-        /// await client.MarkAsReadAsync(userId);
+        /// await client.MarkAsReadByTokenAsync(markAsReadToken);
         ///
         /// // 標記群組訊息為已讀
-        /// await client.MarkAsReadAsync(groupId);
+        /// await client.MarkAsReadByTokenAsync(markAsReadToken);
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task MarkAsReadByTokenAsync(string markAsReadToken)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/chat/markAsRead"));
+            using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/chat/markAsRead"));
             request.Content = new StringContent(
                 JsonConvert.SerializeObject(new { markAsReadToken }, _jsonSerializerSettings),
                 Encoding.UTF8,
                 "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -909,11 +924,12 @@ namespace Line.Messaging
         /// await client.ShowLoadingAnimationAsync(userId, 30);
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ShowLoadingAnimationAsync(string chatId, int loadingSeconds = 20)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/chat/loading/start");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/chat/loading/start");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { chatId, loadingSeconds }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -964,11 +980,10 @@ namespace Line.Messaging
         /// </code>
         /// </example>
         /// <seealso cref="GetContentBytesAsync(string)"/>
+        /// <remarks>成功時 response 唯一轉交回傳的 ContentStream；呼叫端必須 using，失敗時內部釋放。不將媒體或使用者來源存入共用快取。</remarks>
         public virtual async Task<ContentStream> GetContentStreamAsync(string messageId)
         {
-            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content")).ConfigureAwait(false);
-            await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
-            return new ContentStream(await response.Content.ReadAsStreamAsync(), response.Content.Headers);
+            return await GetOwnedStreamAsync(DataUrl($"/bot/message/{messageId}/content")).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -997,9 +1012,10 @@ namespace Line.Messaging
         /// </code>
         /// </example>
         /// <seealso cref="GetContentStreamAsync(string)"/>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task<byte[]> GetContentBytesAsync(string messageId)
         {
-            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content")).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Get, DataUrl($"/bot/message/{messageId}/content"))).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
         }
@@ -1040,9 +1056,10 @@ namespace Line.Messaging
         /// var content = await client.GetContentStreamAsync(messageId);
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task<bool> VerifyContentPreparationAsync(string messageId)
         {
-            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content/transcoding")).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Get, DataUrl($"/bot/message/{messageId}/content/transcoding"))).ConfigureAwait(false);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -1104,11 +1121,10 @@ namespace Line.Messaging
         /// }
         /// </code>
         /// </example>
+        /// <remarks>成功時 response 唯一轉交回傳的 ContentStream；呼叫端必須 using，失敗時內部釋放。不將媒體或使用者來源存入共用快取。</remarks>
         public virtual async Task<ContentStream> GetContentPreviewAsync(string messageId)
         {
-            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content/preview")).ConfigureAwait(false);
-            await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
-            return new ContentStream(await response.Content.ReadAsStreamAsync(), response.Content.Headers);
+            return await GetOwnedStreamAsync(DataUrl($"/bot/message/{messageId}/content/preview")).ConfigureAwait(false);
         }
         #endregion
 
@@ -1436,9 +1452,10 @@ namespace Line.Messaging
         /// Console.WriteLine("機器人已離開群組");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task LeaveFromGroupAsync(string groupId)
         {
-            var response = await _client.PostAsync($"{_uri}/bot/group/{groupId}/leave", null).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/group/{groupId}/leave")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
         #endregion
@@ -1621,9 +1638,10 @@ namespace Line.Messaging
         /// Console.WriteLine("機器人已離開聊天室");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task LeaveFromRoomAsync(string roomId)
         {
-            var response = await _client.PostAsync($"{_uri}/bot/room/{roomId}/leave", null).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/room/{roomId}/leave")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
         #endregion
@@ -1661,11 +1679,12 @@ namespace Line.Messaging
         /// Console.WriteLine("Webhook 端點已設定");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task SetWebhookEndpointAsync(string endpoint)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{_uri}/bot/channel/webhook/endpoint");
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"{_uri}/bot/channel/webhook/endpoint");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { endpoint }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -1738,12 +1757,13 @@ namespace Line.Messaging
         /// var result2 = await client.TestWebhookEndpointAsync("https://example.com/webhook");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task<WebhookTestResult> TestWebhookEndpointAsync(string endpoint = null)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/channel/webhook/test");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/channel/webhook/test");
             string body = endpoint == null ? "{}" : JsonConvert.SerializeObject(new { endpoint }, _jsonSerializerSettings);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonConvert.DeserializeObject<WebhookTestResult>(json);
@@ -1816,11 +1836,12 @@ namespace Line.Messaging
         /// var richMenuId = await client.CreateRichMenuAsync(richMenu);
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task<string> CreateRichMenuAsync(RichMenu richMenu)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu");
             request.Content = new StringContent(JsonConvert.SerializeObject(richMenu, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonConvert.DeserializeAnonymousType(json, new { richMenuId = "" }).richMenuId;
@@ -1853,11 +1874,12 @@ namespace Line.Messaging
         /// }
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ValidateRichMenuAsync(RichMenu richMenu)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/validate");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/validate");
             request.Content = new StringContent(JsonConvert.SerializeObject(richMenu, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -1880,9 +1902,10 @@ namespace Line.Messaging
         /// Console.WriteLine("Rich Menu 已刪除");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task DeleteRichMenuAsync(string richMenuId)
         {
-            var response = await _client.DeleteAsync($"{_uri}/bot/richmenu/{richMenuId}").ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"{_uri}/bot/richmenu/{richMenuId}")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -1908,11 +1931,12 @@ namespace Line.Messaging
         /// Console.WriteLine("Rich Menu 別名已建立");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task CreateRichMenuAliasAsync(string richMenuId, string richMenuAliasId)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/alias");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/alias");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { richMenuId, richMenuAliasId }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -1933,9 +1957,10 @@ namespace Line.Messaging
         /// Console.WriteLine("Rich Menu 別名已刪除");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task DeleteRichMenuAliasAsync(string richMenuAliasId)
         {
-            var response = await _client.DeleteAsync($"{_uri}/bot/richmenu/alias/{richMenuAliasId}").ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"{_uri}/bot/richmenu/alias/{richMenuAliasId}")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -1959,11 +1984,12 @@ namespace Line.Messaging
         /// Console.WriteLine("Rich Menu 別名已更新");
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task UpdateRichMenuAliasAsync(string richMenuAliasId, string richMenuId)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/alias/{richMenuAliasId}");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/alias/{richMenuAliasId}");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { richMenuId }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2016,9 +2042,10 @@ namespace Line.Messaging
         /// 設定官方帳號層級的預設 RichMenu。
         /// 這會影響沒有個人 RichMenu 綁定的使用者。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task SetDefaultRichMenuAsync(string richMenuId)
         {
-            var response = await _client.PostAsync($"{_uri}/bot/user/all/richmenu/{richMenuId}", null).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/user/all/richmenu/{richMenuId}")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2034,9 +2061,10 @@ namespace Line.Messaging
         /// <summary>
         /// 取消官方帳號目前設定的預設 RichMenu。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task CancelDefaultRichMenuAsync()
         {
-            var response = await _client.DeleteAsync($"{_uri}/bot/user/all/richmenu").ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"{_uri}/bot/user/all/richmenu")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2044,40 +2072,44 @@ namespace Line.Messaging
         /// 將 RichMenu 直接連結到單一使用者。
         /// LINE 同一時間只允許一位使用者有一個直接綁定的 RichMenu。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task LinkRichMenuToUserAsync(string userId, string richMenuId)
         {
-            var response = await _client.PostAsync($"{_uri}/bot/user/{userId}/richmenu/{richMenuId}", null).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/user/{userId}/richmenu/{richMenuId}")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
         /// <summary>
         /// 將同一個 RichMenu 批次連結到多位使用者。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task LinkRichMenuToUsersAsync(string richMenuId, IList<string> userIds)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/bulk/link");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/bulk/link");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { richMenuId, userIds }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
         /// <summary>
         /// 解除單一使用者目前直接連結的 RichMenu。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task UnLinkRichMenuFromUserAsync(string userId)
         {
-            var response = await _client.DeleteAsync($"{_uri}/bot/user/{userId}/richmenu").ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"{_uri}/bot/user/{userId}/richmenu")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
         /// <summary>
         /// 批次解除多位使用者目前直接連結的 RichMenu。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task UnLinkRichMenuFromUsersAsync(IList<string> userIds)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/bulk/unlink");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/bulk/unlink");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { userIds }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2085,11 +2117,12 @@ namespace Line.Messaging
         /// 批次控制 RichMenu，支援 link、unlink 與 unlinkAll。
         /// LINE 會非同步處理此請求，呼叫端應使用 progress endpoint 追蹤結果。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task RichMenuBatchOperationAsync(IList<RichMenuBatchOperation> operations)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/batch");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/batch");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { operations }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2105,11 +2138,12 @@ namespace Line.Messaging
         /// <summary>
         /// 驗證 RichMenu batch-control request 是否符合 LINE 官方格式。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ValidateRichMenuBatchRequestAsync(IList<RichMenuBatchOperation> operations)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/richmenu/validate/batch"));
+            using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/richmenu/validate/batch"));
             request.Content = new StringContent(JsonConvert.SerializeObject(new { operations }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2117,22 +2151,22 @@ namespace Line.Messaging
         /// 下載指定 RichMenu 的圖片內容。
         /// 圖片端點必須走 api-data.line.me，因此這裡使用 DataUrl。
         /// </summary>
+        /// <remarks>成功時 response 唯一轉交回傳的 ContentStream；呼叫端必須 using，失敗時內部釋放。不將媒體或使用者來源存入共用快取。</remarks>
         public virtual async Task<ContentStream> DownloadRichMenuImageAsync(string richMenuId)
         {
-            var response = await _client.GetAsync(DataUrl($"/bot/richmenu/{richMenuId}/content")).ConfigureAwait(false);
-            await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
-            return new ContentStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), response.Content.Headers);
+            return await GetOwnedStreamAsync(DataUrl($"/bot/richmenu/{richMenuId}/content")).ConfigureAwait(false);
         }
 
         /// <summary>
         /// 上傳 JPEG RichMenu 圖片。
         /// LINE 不允許替換既有圖片；更新圖片時需建立新的 RichMenu。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task UploadRichMenuJpegImageAsync(Stream stream, string richMenuId)
         {
-            var content = new StreamContent(stream);
+            using var content = new BorrowedStreamContent(stream);
             content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-            var response = await _client.PostAsync(DataUrl($"/bot/richmenu/{richMenuId}/content"), content).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, DataUrl($"/bot/richmenu/{richMenuId}/content")) { Content = content }).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2140,11 +2174,12 @@ namespace Line.Messaging
         /// 上傳 PNG RichMenu 圖片。
         /// 共用 provisioning workflow 目前使用 PNG 圖稿時會走此端點。
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task UploadRichMenuPngImageAsync(Stream stream, string richMenuId)
         {
-            var content = new StreamContent(stream);
+            using var content = new BorrowedStreamContent(stream);
             content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-            var response = await _client.PostAsync(DataUrl($"/bot/richmenu/{richMenuId}/content"), content).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, DataUrl($"/bot/richmenu/{richMenuId}/content")) { Content = content }).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2283,9 +2318,10 @@ namespace Line.Messaging
         /// // 將 Link Token 傳送給使用者進行帳號連結
         /// </code>
         /// </example>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task<string> IssueLinkTokenAsync(string userId)
         {
-            var response = await _client.PostAsync($"{_uri}/bot/user/{userId}/linkToken", null).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/user/{userId}/linkToken")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonConvert.DeserializeAnonymousType(json, new { linkToken = "" }).linkToken;
@@ -2479,11 +2515,12 @@ namespace Line.Messaging
         /// 建立優惠券
         /// Creates a coupon
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task<Coupon> CreateCouponAsync(CreateCouponRequest request)
         {
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/coupon"));
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/coupon"));
             httpRequest.Content = new StringContent(JsonConvert.SerializeObject(request, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(httpRequest).ConfigureAwait(false);
+            using var response = await SendAsync(httpRequest).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonConvert.DeserializeObject<Coupon>(json);
@@ -2493,10 +2530,11 @@ namespace Line.Messaging
         /// 停止優惠券
         /// Closes a coupon
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task CloseCouponAsync(string couponId)
         {
-            var httpRequest = new HttpRequestMessage(HttpMethod.Put, ApiUrl($"/bot/coupon/{couponId}/close"));
-            var response = await _client.SendAsync(httpRequest).ConfigureAwait(false);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, ApiUrl($"/bot/coupon/{couponId}/close"));
+            using var response = await SendAsync(httpRequest).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2594,11 +2632,12 @@ namespace Line.Messaging
         /// This method checks if the message format is correct but does not actually send messages.
         /// </para>
         /// </remarks>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ValidateReplyMessageAsync(IList<ISendMessage> messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/reply");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/reply");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2610,11 +2649,12 @@ namespace Line.Messaging
         /// 要驗證的訊息清單
         /// List of messages to validate
         /// </param>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ValidatePushMessageAsync(IList<ISendMessage> messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/push");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/push");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2626,11 +2666,12 @@ namespace Line.Messaging
         /// 要驗證的訊息清單
         /// List of messages to validate
         /// </param>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ValidateMulticastMessageAsync(IList<ISendMessage> messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/multicast");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/multicast");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2642,11 +2683,12 @@ namespace Line.Messaging
         /// 要驗證的訊息清單
         /// List of messages to validate
         /// </param>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ValidateNarrowcastMessageAsync(IList<ISendMessage> messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/narrowcast");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/narrowcast");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2658,11 +2700,12 @@ namespace Line.Messaging
         /// 要驗證的訊息清單
         /// List of messages to validate
         /// </param>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task ValidateBroadcastMessageAsync(IList<ISendMessage> messages)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/broadcast");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/validate/broadcast");
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
+            using var response = await SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
         #endregion
@@ -2792,23 +2835,58 @@ namespace Line.Messaging
 
         #region Helper Methods
         /// <summary>
+        /// 唯一的具 credential 傳輸入口；request 只屬單次操作，完成或故障立即釋放。
+        /// 不讀寫 HttpClient.DefaultRequestHeaders，避免共用 transport 的另一 channel 覆寫身分。
+        /// 借入的 HttpClient 由呼叫者設定有限 Timeout、無使用者 cookie 的 handler 並負責關機排空；
+        /// 此方法不建立額外 task、timer 或重試。已開始的傳輸依 HttpClient timeout 完成，不遺棄工作。
+        /// </summary>
+        /// <param name="request">所有權轉交此方法的單次 request；不可以再次傳送。</param>
+        /// <param name="completion">一般 API 讀完整內容；媒體下載只讀 headers 並交由 ContentStream 擁有 response。</param>
+        /// <returns>呼叫方法必須 using 或明確轉交所有權的 response。</returns>
+        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completion = HttpCompletionOption.ResponseContentRead)
+        {
+            using (request)
+            {
+                var authorization = Volatile.Read(ref _authorization);
+                if (authorization == null) throw new ObjectDisposedException(nameof(LineMessagingClient));
+                request.Headers.Authorization = authorization;
+                return await _client.SendAsync(request, completion).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// 在串流建立成功前由此方法 owns response；失敗立即 Dispose 並重新拋原例外。
+        /// 成功後所有權唯一轉交 ContentStream，呼叫者必須 using，避免 response content／連線滯留。
+        /// 不緩衝整個媒體，內容讀取與取消由呼叫者的 Stream 操作管理，結束後 Dispose 歸還連線。
+        /// </summary>
+        /// <param name="url">已組裝的媒體端點，不記錄其使用者資料。</param><returns>擁有 response 的串流。</returns>
+        private async Task<ContentStream> GetOwnedStreamAsync(string url)
+        {
+            var response = await SendAsync(new HttpRequestMessage(HttpMethod.Get, url), HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            try
+            {
+                await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
+                return new ContentStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), response.Content.Headers, response);
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>
         /// HTTP GET 輔助方法
         /// HTTP GET helper method
         /// </summary>
+        /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         private async Task<string> GetStringAsync(string url)
         {
-            var response = await _client.GetAsync(url).ConfigureAwait(false);
+            using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Get, url)).ConfigureAwait(false);
 
-            // Enhanced error handling for authentication issues
+            // 不把遠端 body 或含使用者識別的 URL 附到例外；失敗仍由上層共用 notifier 記錄真實型別。
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new UnauthorizedAccessException(
-                    $"LINE API authentication failed. Status: 401 Unauthorized. " +
-                    $"Error: {errorContent}. " +
-                    $"Please verify your Channel Access Token is valid and not expired. " +
-                    $"URL: {url}");
-            }
+                throw new UnauthorizedAccessException("LINE API authentication failed (401). Verify the configured channel credential.");
 
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -2817,15 +2895,15 @@ namespace Line.Messaging
 
         #region IDisposable
         /// <summary>
-        /// 釋放資源
-        /// Dispose resources
+        /// 冪等停止此 SDK 的新請求並釋放自有 transport；借用 transport 不受影響。
+        /// 不啟動非同步清理；呼叫者先排空 in-flight 操作後 Dispose，credential 參照於此清除。
         /// </summary>
         public void Dispose()
         {
-            if (_disposeClient)
-            {
-                _client?.Dispose();
-            }
+            // 清除 credential 參照並禁止新工作；呼叫端應先等待既有操作完成，再處置此實例。
+            // 借入 transport 永不由此處關閉，避免另一 channel 的正常請求被中止。
+            if (Interlocked.Exchange(ref _authorization, null) == null) return;
+            if (_disposeClient) _client.Dispose();
         }
         #endregion
     }
