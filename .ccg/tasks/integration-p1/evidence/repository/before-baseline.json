@@ -1,0 +1,10 @@
+{
+  "base": "b9f84d01",
+  "source": "ToolUtility\\EntityOperations\\EntityRepository.cs",
+  "sha256": "f0fd5ed6e34b56ee92fb09da3e0b8928db1cb2dc46f50e974e061f361dfeecc5",
+  "characterization": "artifacts/p1-04-repository-before/before.trx",
+  "passed": 12,
+  "analysis": ".ccg/dual-model-runs/20261105-191821-integration-p1-04-repository-analysis-analyzer/summary.json",
+  "dualModelComplete": true,
+  "scope": "offline SDK boundary; no VM/D365/LINE"
+}

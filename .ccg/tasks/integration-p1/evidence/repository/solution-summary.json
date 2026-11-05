@@ -1,0 +1,412 @@
+{
+  "reports": 16,
+  "totals": {
+    "total": 2167,
+    "executed": 2167,
+    "passed": 2167,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "runs": [
+    {
+      "file": "solution_net10.0_20261105194533.trx",
+      "modules": [
+        "LineMessagingProcessor.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "79",
+        "executed": "79",
+        "passed": "79",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194534.trx",
+      "modules": [
+        "LineMessagingProcessor.RichMenus.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "34",
+        "executed": "34",
+        "passed": "34",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194535.trx",
+      "modules": [
+        "SpeechMessage.Payments.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "55",
+        "executed": "55",
+        "passed": "55",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194536.trx",
+      "modules": [
+        "LineMessagingProcessor.AspNetCore.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "4",
+        "executed": "4",
+        "passed": "4",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194537.trx",
+      "modules": [
+        "LineMessagingProcessor.Workflows.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "33",
+        "executed": "33",
+        "passed": "33",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194538.trx",
+      "modules": [
+        "Line.Messaging.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "101",
+        "executed": "101",
+        "passed": "101",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194539.trx",
+      "modules": [
+        "ToolUtility.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "457",
+        "executed": "457",
+        "passed": "457",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194540.trx",
+      "modules": [
+        "SpeechMessage.Dynamics.Deployment.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "62",
+        "executed": "62",
+        "passed": "62",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194541.trx",
+      "modules": [
+        "ToolUtility.Dataverse.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "79",
+        "executed": "79",
+        "passed": "79",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194542.trx",
+      "modules": [
+        "ChurchReport.MemberInfo.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "623",
+        "executed": "623",
+        "passed": "623",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net10.0_20261105194609.trx",
+      "modules": [
+        "SpeechMessage.Localization.Tests.dll"
+      ],
+      "target": "net10.0",
+      "counters": {
+        "total": "67",
+        "executed": "67",
+        "passed": "67",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net48_20261105194534.trx",
+      "modules": [
+        "SpeechMessage.Localization.Tests.dll"
+      ],
+      "target": "net48",
+      "counters": {
+        "total": "43",
+        "executed": "43",
+        "passed": "43",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net48_20261105194535.trx",
+      "modules": [
+        "Line.Messaging.Tests.dll"
+      ],
+      "target": "net48",
+      "counters": {
+        "total": "96",
+        "executed": "96",
+        "passed": "96",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net48_20261105194536.trx",
+      "modules": [
+        "LineMessagingProcessor.Tests.dll"
+      ],
+      "target": "net48",
+      "counters": {
+        "total": "46",
+        "executed": "46",
+        "passed": "46",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net48_20261105194537.trx",
+      "modules": [
+        "SpeechMessage.Dynamics.Plugins.Tests.dll"
+      ],
+      "target": "net48",
+      "counters": {
+        "total": "25",
+        "executed": "25",
+        "passed": "25",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "file": "solution_net48_20261105194538.trx",
+      "modules": [
+        "ToolUtility.Tests.dll"
+      ],
+      "target": "net48",
+      "counters": {
+        "total": "363",
+        "executed": "363",
+        "passed": "363",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ]
+}

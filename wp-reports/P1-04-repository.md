@@ -6,15 +6,15 @@
 
 | 需求 | 實作 | 測試與證據 | 狀態 |
 | --- | --- | --- | --- |
-| 純 SDK 型別保持 namespace 並 git mv | `ToolUtility.Core/EntityOperations/EntityRepository.cs`，介面與類別同檔 | 原 host 六入口特性 `p1-04-repository-before/before.trx` 12/12；修後搬前連 Query 契約及實際 caller 98/98，之後才移動 | 已抽取，末端審查進行中 |
+| 純 SDK 型別保持 namespace 並 git mv | `ToolUtility.Core/EntityOperations/EntityRepository.cs`，介面與類別同檔 | 原 host 六入口特性 `p1-04-repository-before/before.trx` 12/12；修後搬前連 Query 契約及實際 caller 98/98，之後才移動 | 此切片通過，整包未完成 |
 | 原驗證與 SDK 包裝相容 | 同上六方法 | 既有參數型別／ParamName／順序、Update 純替代鍵拒絕；12 案實際注入 SDK TimeoutException／ArgumentException，保留同一 InnerException、單次 I/O | 局部通過 |
 | 欄位選擇不變 | `EntityQueryService.RetrieveEntity` 三參數 overload | 新 API 缺口 2 紅；null／省略 AllColumns、指定 ColumnSet 原參照、原二參數仍存在 | 局部通過 |
 | 單筆與整頁穩定 ID | 共用既有 CRUD／Owner／Query | 空 Create ID、錯單筆 ID／表名、空／重複／跨表頁拒絕，原候選不裁剪，同名不同 ID 完整保留 | 局部通過 |
 | 原消費點可運作 | `RepositoryCallerRouteTests.cs` | QueryService 五入口與 MarketingListService 一入口，每入口正常／重複 ID，共12案，實際產品方法→Repository→SDK；不讀設定／憑證 | 離線路徑通過 |
 | 隔離及生命週期 | Repository 與操作局部 query adapter | A/B 1000次、59次故障後明確重試、2000個成功頁、active=0、借入Dispose=0；弱參照Query／頁／Entity可回收；listener finally釋放 | 局部通過 |
-| 雙目標與strict | Core與`CoreTargetFrameworkTests` | net48實載net462 362/362；net10 456/456；獨立各一份coverage 99.42%／100%；strict雙目標0警告／0錯誤 | 通過 |
-| 完整方案及00§8 | 全方案、架構、打包、encoding、i18n等 | 執行中，尚不借用上一切片2056當成本輪證據 | 待補 |
-| Gemini＋Claude審查 | 專案自癒入口 | 分析191821雙模型完整、無quota降級；實作審查待結果 | 待補 |
+| 雙目標與strict | Core與`CoreTargetFrameworkTests` | net48實載net462 363/363；net10 457/457；獨立各一份coverage 99.42%／100%；strict雙目標0警告／0錯誤 | 通過 |
+| 完整方案及00§8 | 全方案、架構、打包、encoding、i18n等 | 本輪16份TRX2167/2167、623 ChurchReport、67架構；完整守門見下方 | 通過 |
+| Gemini＋Claude審查 | 專案自癒入口 | 分析191821、初審193656、末審195337均雙模型完整且無quota降級；前Warning關閉、無新增阻斷缺陷 | 通過 |
 
 ## 行為決策與分析核實
 
@@ -57,3 +57,31 @@
 本輪沒有操作VM／D365／LINE，沒有push或正式部署，沒有修改正式計畫，因此不需Word修正報告。
 保留使用者原有付款測試及appsettings修改，僅比對雜湊、不輸出設定內容。
 目前Goal工具仍usageLimited，未覆蓋，也不宣稱在背景持續執行。
+
+
+## 最終驗證、審查與提交界線
+
+- 最新完整方案 `artifacts/p1-04-repository-final-section8/`：精確16組件／目標集合、
+  TRX counters與結果列一致，2167/2167，0失敗／略過；ToolUtility363/363、457/457，
+  ChurchReport623/623、架構／MSBuild67/67。沒有採用過期DLL；新增聚合案後再次完整建置測試。
+- Core strict雙目標0警告／0錯誤，獨立coverage每目標恰一份99.42%／100%。
+  全方案重編有17個原有host測試warning，沒有NoWarn；不採Gemini「所有測試零警告／完整覆蓋率」的泛稱。
+- Debug tracer7/7加正TRX；I18nCheck verify及Core CJK=0；工具測試108/108、27/27；
+  package34專案／158references／0failures；duplicates28專案／933檔／0group／new／stale；
+  Plugin metadata10/10、一次性測試金鑰build6/6、analyzer26/26、CI transition6/6。
+  誤以Pester執行獨立CI腳本只發現0案，守門明確拒絕，改執行原腳本才取得6/6；失敗日誌保留。
+- 進度頁8/8；新無登入Edge在1440／390／320像素、明暗色及鍵盤操作通過，
+  documentWidth精確等於viewport、頁面錯誤0。HTTP外連禁止，context及browser均finally關閉。
+- 最終 `20261105-195337-integration-p1-04-repository-final-reviewer`：
+  dualModelComplete=true、quotaBlocked=false、degradedFallback=false。
+  兩模型明確關閉W1／W2，無新增Critical／High／Warning。Gemini仍將舊項列在Warning標題下，
+  但結論明確CLOSED；不把舊項標題說成未修缺陷或隱藏此格式差異。
+  Claude兩Info為委派防禦文件歸屬及nullable pragma風格，無需改產品行為。
+- 原始來源SHA、驗證摘要、瀏覽器結果及三輪CCG原始ZIP／逐檔SHA保存在
+  `.ccg/tasks/integration-p1/evidence/repository/`，ZIP解壓逐份核對原bytes相同。
+- 執行期間觀察到非本執行建立的本地提交 `b64d3224`、`93377c7f`；
+  前者保存搬移，後者納入本輪程式及兩份原有付款測試／appsettings修改。
+  不撤回或重寫外部提交，也不將兩份原有修改宣稱為本任務實作；它們的原始雜湊仍完全相同。
+  本執行後續提交僅收可分離的收尾文件／證據。主P1任務不封存，其他候選仍須繼續。
+
+- 提交前Changed encoding：747 checked／678 timestamp raw excluded／0 issues；來源及文件whitespace通過，完整diff唯一診斷為刻意保留raw health JSON檔尾空行，其原bytes另有ZIP／SHA可還原。

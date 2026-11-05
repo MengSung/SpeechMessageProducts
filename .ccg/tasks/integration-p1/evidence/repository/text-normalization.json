@@ -1,0 +1,26 @@
+[
+  {
+    "path": ".ccg/dual-model-runs/integration-p1-04-repository-analysis-analyzer.md",
+    "canonicalEqual": true,
+    "before": "ebd5e944fb8ddd2d355634a1cba32eedbe5f8bd5770f2600654b79dafb3c5ffa",
+    "after": "8b7d697989a21ae83c2f93a80422242d0b0c6121b4b2b26d1fad84165409c29f"
+  },
+  {
+    "path": ".ccg/dual-model-runs/integration-p1-04-repository-final-reviewer.md",
+    "canonicalEqual": true,
+    "before": "f99f8eae1ed43ac62ad413aef3df89d403cbe5523636280464e07b2a5a99202f",
+    "after": "70920a37f65ed72f68b1652fc324f78f30cb442b70a84bddbe1e5ade88ea5ea5"
+  },
+  {
+    "path": ".ccg/dual-model-runs/integration-p1-04-repository-review-reviewer.md",
+    "canonicalEqual": true,
+    "before": "a095d9425b93cb88a6eae4e30039fdd5cef60c9c49cdcc963762e9a52bcf59f3",
+    "after": "9219c1eeb118e487b1e43e466981b3b1f06e14f0759750f5ded578fb20d5e664"
+  },
+  {
+    "path": ".trellis/workspace/codex/index.md",
+    "canonicalEqual": true,
+    "before": "7a28a324b5364aafc05c0b8335acc186dd1c56d66c6accf2545684a6fb2bd72d",
+    "after": "fc9a1af15ed5f794d89c887e70308088f6952ea82f477d4ec619f17b745a0840"
+  }
+]

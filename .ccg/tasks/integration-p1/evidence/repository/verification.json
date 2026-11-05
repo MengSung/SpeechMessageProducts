@@ -1,0 +1,82 @@
+{
+  "characterizationBefore": {
+    "passed": 12,
+    "failed": 0,
+    "path": "artifacts/p1-04-repository-before/before.trx"
+  },
+  "safetyRed": {
+    "passed": 4,
+    "failed": 30,
+    "path": "artifacts/p1-04-repository-red/red.trx"
+  },
+  "overloadRed": {
+    "passed": 0,
+    "failed": 2,
+    "path": "artifacts/p1-04-repository-overload-red/overload-red.trx"
+  },
+  "safeBeforeMove": {
+    "passed": 98,
+    "failed": 0,
+    "path": "artifacts/p1-04-repository-safe-callers-before/safe-callers-before.trx"
+  },
+  "final": {
+    "reports": 16,
+    "passed": 2167,
+    "failed": 0,
+    "skipped": 0,
+    "net48": 363,
+    "net10": 457,
+    "coverage": {
+      "net48": 99.42,
+      "net10": 100.0
+    },
+    "churchReport": 623,
+    "architecture": 67
+  },
+  "checks": {
+    "strictWarnings": 0,
+    "strictErrors": 0,
+    "legacyHostWarningsObserved": 17,
+    "tracer": 7,
+    "packageProjects": 34,
+    "packageReferences": 158,
+    "packageFailures": 0,
+    "duplicateProjects": 28,
+    "duplicateFiles": 933,
+    "duplicateGroups": 0,
+    "duplicateNew": 0,
+    "i18nPassed": true,
+    "coreCjkLiterals": 0,
+    "i18nTool": 108,
+    "packagingTool": 27,
+    "pluginMetadataFixtures": 10,
+    "pluginEphemeralBuildFixtures": 6,
+    "analyzer": 26,
+    "ciTransition": 6,
+    "progress": 8,
+    "encodingChecked": 747,
+    "encodingRawExcluded": 678,
+    "encodingIssues": 0
+  },
+  "review": {
+    "run": "20261105-195337-integration-p1-04-repository-final-reviewer",
+    "dualModelComplete": true,
+    "quotaBlocked": false,
+    "degradedFallback": false,
+    "closed": [
+      "aggregate projection warning",
+      "caller PageInfo mutation warning"
+    ],
+    "newCriticalHighWarning": 0,
+    "info": [
+      "delegated AssignOwner documentation ownership wording",
+      "nullable pragma style"
+    ]
+  },
+  "unrelatedInputHashesUnchanged": true,
+  "externalCommitsObservedNotCreatedByThisExecution": [
+    "b64d3224",
+    "93377c7f"
+  ],
+  "scope": "Offline SDK boundary only. No VM/D365/LINE/push/deployment. P1 remains 2/12."
+}

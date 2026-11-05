@@ -203,3 +203,9 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 
 ## 2026-11-05 19:47 Repository再驗檢查點
 - Repository初輪完整方案16TRX、2165/2165，ChurchReport623/623、架構67/67；193656雙模型無Critical／High，有兩個文件Warning，已補聚合無ID拒絕與PageInfo原地改寫文件／案例。I18nCheck曾抓13個搬入Core的中文診斷常值，已改英文固定訊息、Core回0且verify通過，未改基準。英文化及補證後的最後回歸／複審進行中，尚未列最終驗收。P1仍2/12、P1-04整包未完成。
+
+## 2026-11-05 19:59 Repository切片末端證據
+- Repository切片完成末端再驗：16TRX2167/2167，ToolUtility363/363、457/457，ChurchReport623/623；Core coverage99.42%／100%、strict零警告／錯誤，I18nCheck verify通過／Core CJK=0。195337雙模型完整、無配額降級，前W1／W2關閉、無新增Critical／High／Warning。其餘候選未完成，P1仍2/12；接續Attachment，不封存主P1。
+- 非本執行建立的b64d3224／93377c7f已保存程式及原有兩份修改；不重寫，起始雜湊不變。後續本地提交只收本輪可分離證據／文件。
+
+- 提交前Changed encoding：747 checked／678 timestamp raw excluded／0 issues；來源及文件whitespace通過，完整diff唯一診斷為刻意保留raw health JSON檔尾空行，其原bytes另有ZIP／SHA可還原。

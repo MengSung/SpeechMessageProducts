@@ -1,0 +1,9 @@
+{
+  "ToolUtility.Core/EntityOperations/EntityRepository.cs": "afbadb79c6f06581daeea1a80ebf1a4566eca1749473f6b65e5ab5798f3d0f63",
+  "ToolUtility.Core/EntityOperations/EntityQueryService.cs": "c5dc4eac98cb188a3845d6076ec87e45b2cbf4351942fa09aaf5d0409b0e7078",
+  "ToolUtility.Tests/CoreTargetFrameworkTests.cs": "b7bd020e80064df025fd23f783076ab248ed2224bb1e58f8f55941e6a0cf54f5",
+  "ToolUtility.Tests/DataOperations/RepositoryCharacterizationTests.cs": "7326e0823dbaaf96e91c4edab847d712ab3a29583dd2da41fbd196d039fc2fbc",
+  "ToolUtility.Tests/DataOperations/RepositorySafetyTests.cs": "8e24884034ee1e560d50bc2e6a8c147ff2a35d5ca048392b73bb1656357949a2",
+  "ToolUtility.Tests/EntityOperations/RepositoryCallerRouteTests.cs": "9a1c0717ade7f10c5442bdd2408378ff45b36b9581ae04d92979e88bff3112de",
+  "wp-reports/P1-04-repository.md": "77115aa886e0b8e5e3c29e4a66b7186df557634894cbf32d4d89834324836382"
+}

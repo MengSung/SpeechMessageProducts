@@ -94,3 +94,15 @@ Constants、CRUD／Owner 與屬性／SDK extension 增量補證已完成；最�
 caller 補證為 35 處靜態盤點的 8 種表名、11 個離線實際委派鏈案例，不是全部業務分支或實機驗收。
 其他候選 Operations、純契約及 Extensions 尚未全部抽取；
 P1-05～12 尚未完成。本輪未操作 VM，也未修改正式實作計畫，不需要 Word 修正報告。
+
+
+## Repository切片更新（2026-11-05）
+
+`EntityRepository`／`IEntityRepository` 已同檔git mv至Core，先12特性綠、安全30紅／4綠、
+overload2紅、修後搬前含六個真實caller98綠。最新雙宿主363/363、457/457，
+Core99.42%／100%、strict0警告／錯誤；完整方案2167/2167、ChurchReport623/623。
+I18nCheck抓到13個舊中文診斷常值後已改固定英文，Core CJK=0，不放寬baseline。
+195337末輪雙模型完整、無quota降級，前兩Warning已關閉、無新增阻斷缺陷。
+詳細契約、測試與本地提交歸屬見 `wp-reports/P1-04-repository.md`。
+Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必要純契約尚待處理；
+整個P1-04與P1仍未完成，主P1維持2/12。

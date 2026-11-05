@@ -90,3 +90,7 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
   coverage99.36%/100%；Debug tracer7、Plugin metadata10/build6、I18n tool108、PE27全過。
 - 詳 `wp-reports/P1-04-attribute-extension.md` 及此任務 `evidence/attribute-extension/`。
   僅此切片完成檢查，主 P1／P1-04 都未全包驗收，無 hosted／實機新證據。
+
+## 2026-11-05 19:59 Repository末輪複審
+- Repository切片完成末端再驗：16TRX2167/2167，ToolUtility363/363、457/457，ChurchReport623/623；Core coverage99.42%／100%、strict零警告／錯誤，I18nCheck verify通過／Core CJK=0。195337雙模型完整、無配額降級，前W1／W2關閉、無新增Critical／High／Warning。其餘候選未完成，P1仍2/12；接續Attachment，不封存主P1。
+- 非本執行建立的b64d3224／93377c7f已保存程式及原有兩份修改；不重寫，起始雜湊不變。後續本地提交只收本輪可分離證據／文件。

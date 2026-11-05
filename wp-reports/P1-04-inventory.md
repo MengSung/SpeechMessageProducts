@@ -127,3 +127,15 @@ Fee特性4/4、FetchXmlFee特性4/4、XML helper正反例6/6，合計14/14；`ar
 
 不同 ID 的同名記錄在所有已搬移單頁保持完整；重複／空 ID／跨實體候選拒絕。
 本輪不更改正式 P1 計畫，沒有觸發 Word 修正報告需求。
+
+
+## Repository切片更新（2026-11-05）
+
+`EntityRepository`／`IEntityRepository` 已同檔git mv至Core，先12特性綠、安全30紅／4綠、
+overload2紅、修後搬前含六個真實caller98綠。最新雙宿主363/363、457/457，
+Core99.42%／100%、strict0警告／錯誤；完整方案2167/2167、ChurchReport623/623。
+I18nCheck抓到13個舊中文診斷常值後已改固定英文，Core CJK=0，不放寬baseline。
+195337末輪雙模型完整、無quota降級，前兩Warning已關閉、無新增阻斷缺陷。
+詳細契約、測試與本地提交歸屬見 `wp-reports/P1-04-repository.md`。
+Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必要純契約尚待處理；
+整個P1-04與P1仍未完成，主P1維持2/12。
