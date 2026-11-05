@@ -49,6 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ToolUtility.Core\ToolUtility.Core.csproj" />
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />    
     <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj" />
   </ItemGroup>

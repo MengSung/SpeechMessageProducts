@@ -193,6 +193,93 @@ namespace ToolUtility.Tests.FeeOperations
         }
 
         /// <summary>
+        /// 欠缺真實資料庫 ID 的正式列或混入其他實體列均拒絕；不能產生draft key讓正式資料通過。
+        /// </summary>
+        /// <param name="operation">Fee全部查詢入口。</param>
+        /// <param name="missingId">注入空ID或錯誤實體型別。</param>
+        [Theory]
+        [InlineData("Paid", true)]
+        [InlineData("Unpaid", false)]
+        [InlineData("Order", true)]
+        [InlineData("Booking", false)]
+        [InlineData("Fee", true)]
+        [InlineData("Dedication", false)]
+        [InlineData("DateRange", true)]
+        public void Query_InvalidStableIdentity_RejectsPublication(string operation, bool missingId)
+        {
+            var candidate = Rows(operation == "Booking" ? "new_dedication_booking" : "new_fee");
+            if (missingId) candidate.Entities[1].Id = Guid.Empty;
+            else candidate.Entities[1].LogicalName = "synthetic_wrong_entity";
+            var client = Client(candidate, _ => { });
+
+            Assert.Throws<InvalidOperationException>(() => Invoke(new FeeService(new object(), client.Object), operation));
+            Assert.Equal(2, candidate.Entities.Count);
+        }
+
+        /// <summary>
+        /// 所有lookup顯示名稱及期數文字只可當XML值；含特殊字元解碼後須逐字相等，
+        /// 條件數不增加，證明修復既有入口而非只保護新增訂單方法。
+        /// </summary>
+        /// <param name="operation">使用外部文字的既有查詢。</param>
+        [Theory]
+        [InlineData("Booking")]
+        [InlineData("Fee")]
+        [InlineData("Dedication")]
+        [InlineData("DateRange")]
+        public void ExistingQuery_SpecialDisplayName_IsOnlyAnAttributeValue(string operation)
+        {
+            var candidate = Rows(operation == "Booking" ? "new_dedication_booking" : "new_fee");
+            var client = Client(candidate, xml =>
+            {
+                var lookups = XDocument.Parse(xml).Descendants("condition")
+                    .Where(condition => condition.Attribute("uiname") != null).ToArray();
+                Assert.Single(lookups);
+                Assert.Equal(SpecialText, (string?)lookups[0].Attribute("uiname"));
+            });
+
+            var sut = new FeeService(new object(), client.Object);
+            if (operation == "Fee")
+                sut.RetrieveFee(SpecialText, ScopeId, SpecialText);
+            else
+                Invoke(sut, operation, ScopeId, SpecialText);
+        }
+
+        /// <summary>
+        /// SDK每次提供獨立操作資料；第一個呼叫者修改集合不可污染下一次回應，
+        /// 並以兩次真實SDK呼叫證明服務沒有偷偷快取前一範圍的可變結果。
+        /// </summary>
+        [Fact]
+        public void Query_CallerMutation_DoesNotBecomeNextOperationState()
+        {
+            var client = new Mock<IOrganizationService>(MockBehavior.Strict);
+            client.Setup(service => service.Execute(It.IsAny<OrganizationRequest>()))
+                .Returns(() =>
+                {
+                    var response = new RetrieveMultipleResponse();
+                    response.Results["EntityCollection"] = Rows();
+                    return response;
+                });
+            var sut = new FeeService(new object(), client.Object);
+            var first = Invoke(sut, "Paid");
+            first.Entities[0]["new_name"] = "Synthetic caller mutation";
+            first.Entities.RemoveAt(1);
+
+            var second = Invoke(sut, "Paid");
+
+            Assert.NotSame(first, second);
+            Assert.Equal(2, second.Entities.Count);
+            Assert.Equal("Synthetic Fee", second.Entities[0]["new_name"]);
+            client.Verify(service => service.Execute(It.IsAny<OrganizationRequest>()), Times.Exactly(2));
+        }
+
+        /// <summary>建構時拒絕沒有授權SDK的服務，不能延至呼叫才以NullReferenceException掩蓋設定失敗。</summary>
+        [Fact]
+        public void Constructor_NullService_RejectsImmediately()
+        {
+            Assert.Throws<ArgumentNullException>(() => new FeeService(null!));
+        }
+
+        /// <summary>
         /// 非西曆環境不能改變資料庫日期條件；在本案局部注入泰國曆並finally還原，
         /// 應仍符合已核對的西曆golden，不能靠改主機全域文化換取通過。
         /// </summary>

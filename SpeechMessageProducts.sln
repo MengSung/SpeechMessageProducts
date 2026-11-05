@@ -57,6 +57,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpeechMessage.Dynamics.Depl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolUtility.Tests", "ToolUtility.Tests\ToolUtility.Tests.csproj", "{753F7C1C-E6C0-43A9-A740-5D4F32F7C480}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolUtility.Core", "ToolUtility.Core\ToolUtility.Core.csproj", "{D5FC9003-775A-4124-95B6-FA76DA71EA89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_LearnCrm|Any CPU = Debug_LearnCrm|Any CPU
@@ -886,6 +888,36 @@ Global
 		{753F7C1C-E6C0-43A9-A740-5D4F32F7C480}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
 		{753F7C1C-E6C0-43A9-A740-5D4F32F7C480}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
 		{753F7C1C-E6C0-43A9-A740-5D4F32F7C480}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug_LearnCrm|x64.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug_LearnCrm|x64.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug_LearnCrm|x86.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug_LearnCrm|x86.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug|x64.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Debug|x86.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.DebugOracleConnector|x64.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.DebugOracleConnector|x64.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.DebugOracleConnector|x86.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.DebugOracleConnector|x86.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Release|x64.ActiveCfg = Release|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Release|x64.Build.0 = Release|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Release|x86.ActiveCfg = Release|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Release|x86.Build.0 = Release|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Test_Exchange_Service|x64.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
+		{D5FC9003-775A-4124-95B6-FA76DA71EA89}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

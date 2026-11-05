@@ -28,6 +28,7 @@ namespace ToolUtilityNameSpace.QueryOperations
     {
         private readonly object _logger;
         private readonly IOrganizationService _organizationService;
+        private readonly ToolUtilityNameSpace.FeeOperations.FeeService _feeService;
 
         // ? 預設查詢限制，防止返回過多資料
         private const int DEFAULT_TOP_LIMIT = 5000;
@@ -37,6 +38,7 @@ namespace ToolUtilityNameSpace.QueryOperations
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
+            _feeService = new ToolUtilityNameSpace.FeeOperations.FeeService(_organizationService);
         }
 
         /// <summary>
@@ -206,42 +208,13 @@ namespace ToolUtilityNameSpace.QueryOperations
         /// 根據聯絡人查詢奉獻預約 (使用 FetchXML)
         /// ? Phase 3.1: 優化 - 添加 top 限制
         /// </summary>
+        /// <remarks>
+        /// 認獻查詢委派唯一Fee實作；保留既有SDK request、上限、欄位及排序，補齊安全XML與穩定ID驗證。
+        /// 真正SDK例外原樣傳向最終host共用通知；不在此保留結果、關閉借入服務或另建LINE client。
+        /// </remarks>
         public EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId)
         {
-            try
-            {
-                contactName = $"'{contactName}'";
-                contactId = $"'{{{contactId}}}'";
-
-                // ? 優化: 添加 top 限制、按創建日期倒序
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
-                          <entity name='new_dedication_booking'>
-                            <attribute name='new_dedication_bookingid' />
-                            <attribute name='new_name' />
-                            <attribute name='createdon' />
-                            <attribute name='new_dedication_booking_status' />
-                            <order attribute='createdon' descending='true' />
-                            <filter type='and'>
-                              <condition attribute='new_contact_new_dedication_booking' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
-                              <condition attribute='new_dedication_booking_status' operator='eq' value='100000001' />
-                              <condition attribute='statecode' operator='eq' value='0' />
-                            </filter>
-                          </entity>
-                        </fetch>";
-
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
-                return response.EntityCollection;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, "RetrieveDedicationBookingByFetchXml 發生錯誤");
-                throw;
-            }
+            return _feeService.RetrieveDedicationBooking(contactName, contactId);
         }
 
         /// <summary>
@@ -289,42 +262,13 @@ namespace ToolUtilityNameSpace.QueryOperations
         /// 根據奉獻預約和已付期數查詢收費單 (使用 FetchXML)
         /// ? Phase 3.1: 優化 - 添加 top 限制
         /// </summary>
+        /// <remarks>
+        /// 收費查詢委派唯一Fee實作，避免Facade兩條路徑分別維護條件或把空實作視為成功。
+        /// 真正SDK例外原樣傳向最終host共用通知；不在此保留結果、關閉借入服務或另建LINE client。
+        /// </remarks>
         public EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
         {
-            try
-            {
-                dedicationBookingName = $"'{dedicationBookingName}'";
-                dedicationBookingId = $"'{{{dedicationBookingId}}}'";
-
-                // ? 優化: 添加 top 限制
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='500'>
-                          <entity name='new_fee'>
-                            <attribute name='new_feeid' />
-                            <attribute name='new_name' />
-                            <attribute name='createdon' />
-                            <attribute name='new_paid_period' />
-                            <order attribute='createdon' descending='true' />
-                            <filter type='and'>
-                              <condition attribute='new_dedication_booking_new_fee' operator='eq' uiname={dedicationBookingName} uitype='new_dedication_booking' value={dedicationBookingId} />
-                              <condition attribute='new_paid_period' operator='eq' value='{paidPeriod}' />
-                              <condition attribute='statecode' operator='eq' value='0' />
-                            </filter>
-                          </entity>
-                        </fetch>";
-
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
-                return response.EntityCollection;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, "RetrieveFeeByFetchXml 發生錯誤");
-                throw;
-            }
+            return _feeService.RetrieveFee(dedicationBookingName, dedicationBookingId, paidPeriod);
         }
 
         /// <summary>

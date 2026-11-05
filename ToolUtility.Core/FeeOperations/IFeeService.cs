@@ -1,34 +1,61 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/FeeOperations/IFeeService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IFeeService
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
-// 引用命名空間：Microsoft.Xrm.Sdk、System
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
-using Microsoft.Xrm.Sdk;
 using System;
+using Microsoft.Xrm.Sdk;
 
 namespace ToolUtilityNameSpace.FeeOperations
 {
+    /// <summary>
+    /// 單次授權範圍的收費查詢契約；呼叫者先驗證身分／教會，再提供資料庫 ID。
+    /// 所有結果是操作擁有的 SDK 查詢頁，保留分頁資訊；不按名稱去重，ID 衝突整頁拒絕。
+    /// 實作不得持有跨使用者狀態或接管借入連線，真正故障傳至 host 共用通知邊界。
+    /// </summary>
     public interface IFeeService
     {
+        /// <summary>
+        /// 依認獻 ID 與期數讀啟用收費頁；文字安全組裝，不允許輸入改變條件樹。
+        /// </summary>
+        /// <param name="dedicationBookingName">僅供lookup顯示，不作識別或授權。</param>
+        /// <param name="dedicationBookingId">非空認獻資料庫GUID。</param>
+        /// <param name="paidPeriod">原查詢的非空期數文字。</param>
+        /// <returns>保留原投影、排序與500筆上限的SDK頁。</returns>
         EntityCollection RetrieveFee(string dedicationBookingName, string dedicationBookingId, string paidPeriod);
+
+        /// <summary>依聯絡人ID讀啟用且已核准認獻；不得以空集合代替SDK查詢或失敗。</summary>
+        /// <param name="contactName">僅供lookup顯示，不作權限依據。</param>
+        /// <param name="contactId">非空聯絡人資料庫GUID。</param>
+        /// <returns>保留原建立時間倒序及1000筆上限的SDK頁。</returns>
         EntityCollection RetrieveDedicationBooking(string contactName, string contactId);
 
-        /// <summary>
-        /// 根據連絡人查詢奉獻收費單
-        /// </summary>
+        /// <summary>讀分類非空的奉獻收費頁；整頁驗穩定ID後才回傳，不改合法同名記錄。</summary>
+        /// <param name="contactName">可含特殊字元的lookup顯示名稱。</param>
+        /// <param name="contactId">非空聯絡人資料庫GUID。</param>
+        /// <returns>呼叫者擁有的原SDK頁，不在實作保存。</returns>
         EntityCollection RetrieveDedicationFee(string contactName, string contactId);
 
         /// <summary>
-        /// 根據連絡人和日期範圍查詢奉獻收費單
+        /// 讀含端點日期內的奉獻頁，套用原付款狀態白名單；日期採西曆但不作時區偏移。
         /// </summary>
+        /// <param name="contactName">lookup顯示名稱，不作權限。</param>
+        /// <param name="contactId">非空聯絡人資料庫GUID。</param>
+        /// <param name="startDate">呼叫者已決定的業務起日。</param>
+        /// <param name="endDate">不早於起日的業務迄日。</param>
+        /// <returns>完整驗證、保留原分頁資訊的一頁結果。</returns>
         EntityCollection RetrieveDedicationFeeByDateRange(string contactName, string contactId, DateTime startDate, DateTime endDate);
+
+        /// <summary>依課程紀錄ID及pay_date非空查已繳頁，不推導或改寫付款狀態。</summary>
+        /// <param name="storLessonName">只為來源相容保留，實作不使用或保存。</param>
+        /// <param name="storLessonId">伺服器已授權的非空課程紀錄GUID。</param>
+        /// <returns>含繳費日期及實繳額的SDK頁，合法同名不同ID均保留。</returns>
+        EntityCollection GetPaidFee(string storLessonName, string storLessonId);
+
+        /// <summary>依課程紀錄ID及pay_date為null查未繳頁，保留舊來源欄位及排序。</summary>
+        /// <param name="storLessonName">只為相容保留，不當識別或授權。</param>
+        /// <param name="storLessonId">伺服器已授權的非空課程紀錄GUID。</param>
+        /// <returns>含應繳額的SDK頁，重複或欠缺穩定ID時整頁拒絕。</returns>
+        EntityCollection GetNotYetPaidFee(string storLessonName, string storLessonId);
+
+        /// <summary>以卡或ATM欄位OR比對訂單文字，安全編碼所有XML特殊字元且保留原欄位／排序。</summary>
+        /// <param name="orderNumber">非空訂單文字；所屬權限仍由host先驗證。</param>
+        /// <returns>完整ID驗證的SDK頁，不以文字合併不同資料庫記錄。</returns>
+        EntityCollection RetrieveFeeByFetchXmlOrderNumber(string orderNumber);
     }
 }

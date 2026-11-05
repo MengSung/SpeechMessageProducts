@@ -2,7 +2,7 @@
 
 ## 本輪接續（2026-11-05 午間）
 - Goal 保持原 P1，不覆蓋；工具回報 `usageLimited`，不假稱已重啟 Goal 或仍在背景自動運作。當前依使用者「繼續」在本輪執行。
-- 最新原全方案 Release build 退出 0、0 錯誤／18 警告；16份 TRX 合計 1,403 案，1,399 通過／4 失敗／0 略過。失敗並非效能偶發：三案期待遠端原始 LINE message，另一案反射舊 `_client` 欄位。證據 `artifacts/p1-resume-full-{build,tests}.log`、`artifacts/p1-resume-full-tests/`。
+- 最新原全方案 Release build 退出 0、0 錯誤／18 警告；15份 TRX 合計 1,403 案，1,399 通過／4 失敗／0 略過。失敗並非效能偶發：三案期待遠端原始 LINE message，另一案反射舊 `_client` 欄位。證據 `artifacts/p1-resume-full-{build,tests}.log`、`artifacts/p1-resume-full-tests/`。
 - 維持既有安全修補，不回傳原始 provider body。三個整合測試精確斷言安全訊息、保留 ProviderRejected／標準例外，另外注入私密合成標記並斷言不外洩。生命週期測試改讀真正 owner `_transport.client`，仍驗自有 HttpClient 已 Dispose，另驗 SDK 停止新操作及替換實例；未刪斷言或放寬標準。
 - 首次修補回歸有一個測試筆誤：FieldInfo 取值仍傳舊 SDK 而非 transport，導致 ArgumentException；修正後定向生命週期 1/1 通過。此筆誤不是產品缺陷，原始失敗紀錄保留 `artifacts/p1-regression-repair-tests/`，定向結果 `artifacts/p1-regression-repair-lifecycle/`。最新全方案重跑中，不預先宣告通過。
 - P1-04 既有 Fee 4案特性通過；日期 golden 的 ambient culture 僅在當案固定 InvariantCulture 並 finally 還原，不設定 DefaultThreadCurrentCulture。XML helper 正反例6案（縮排／引號、欄位變更、缺少節點、順序、DTD、1MiB）全部通過。
@@ -75,3 +75,17 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - 重現 `node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs`：4 個案例中 2 個失敗，均因斷言仍要求舊進度文案「P1-01～03」及「最新版雙模型複審尚未完成」；目前頁面已正確顯示 P1-02 `dualModelComplete=true` 並接續 P1-04。修正測試為按單一工作包列定位當前狀態，避免跨列文字誤匹配，保留 12 個 ID 與 P1-12 D24 apply 邊界斷言；結果 4/4 通過。
 - P1-04 實際產品專案是 `ToolUtility/ToolUtility.csproj`（net10.0），測試專案是 `ToolUtility.Tests/ToolUtility.Tests.csproj`（net10.0）；現有 `ToolUtility/Core/IToolUtilityCore.cs` 是既有程式碼，不代表 `ToolUtility.Core` 雙目標專案已建立。盤點範圍仍依正式計畫列出的各 partial、Operations、Core、Extensions、Constants，不能以路徑名推定可搬。
 - 最新進度頁已記錄 renderer 回歸 4/4、階段仍 0/12 驗收完成、P1-04 未驗收；P1-01／03 全階段 gates 與 P1-12 實機寫入界線均未改變。
+
+
+## 回歸與盤點收斂
+- 全方案最新重跑退出0，15份TRX合計1409/1409、0略過，ChurchReport612/612；證據artifacts/p1-regression-green-tests/。其後新增FetchXmlFee4案另跑綠，最後整體仍須重驗。
+- 逐型別盤點已寫wp-reports/P1-04-inventory.md：實際62檔／76宣告列，先前61為計數錯誤，並非需求擴張。候選前置／host依賴仍明列，不代表抽取完成。
+- 三個新Fee API測試先因未存在而CS1061，artifacts/p1-04-fee-contract-red.log；這是API缺口紅燈，不宣稱已重現所有行為缺陷。
+- 局部review run20261105-124121雙模型完整成功、無Critical；反射耦合Warning保留以實際驗自有HttpClient Dispose，不為測試擴大產品API。資源命名Warning採用固定EmbeddedResource.LogicalName並待變更RootNamespace驗證；完整回歸覆蓋Warning已有1409結果並待最後重跑。
+
+
+## 13:00 Core 搬移檢查點
+- Fee 安全實作／Query委派搬移前正常建置54/54通過，證據 artifacts/p1-04-before-move/；既有1409全方案綠燈早於此產品異動，不能作為最新版驗收。
+- FeeService／IFeeService已移入Core，雙產品net462/net10及net48/net10測試配置建立，尚未搬後編譯成功。
+- restore被NU1903阻擋：Pkcs6.0.1（GHSA-555c-2p6r-68mm）及System.Text.Json6.0.8（GHSA-8g4q-xg66-9fp4）；artifacts/p1-04-core-restore.log。將沿用中央安全版本直接引用，不關audit／不新增NoWarn。
+- 本輪HEAD已外部前進至dbd785ec，保留他人提交／變更，不將外部提交宣稱為本輪操作。沿用P1 Goal，工具仍usageLimited；本輪依使用者繼續執行，不宣稱Goal已重啟。
