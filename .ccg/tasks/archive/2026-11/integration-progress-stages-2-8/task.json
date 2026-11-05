@@ -1,0 +1,19 @@
+{
+  "id": "integration-progress-stages-2-8",
+  "title": "將正式計畫階段 2～8 的完整工作包加入實作進度頁",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "docs",
+  "currentPhase": "completed",
+  "nextAction": "本次文件交付完成；主 P1 保持進行中，後續從 P1-04 抽取後 coverage 與增量審查檢查點接續",
+  "completedAt": "2026-11-05T16:33:58+08:00",
+  "createdAt": "2026-11-05T15:23:31+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parentTask": "integration-p1",
+  "executionMode": "inline",
+  "workCommits": [
+    "48964ee5"
+  ],
+  "archivePath": ".ccg/tasks/archive/2026-11/integration-progress-stages-2-8"
+}

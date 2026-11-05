@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: No alert hides the warning region and still renders the page
+ok 1 - No alert hides the warning region and still renders the page
+  ---
+  duration_ms: 10.9121
+  type: 'test'
+  ...
+# Subtest: Alert without prompt omits copy button and full prompt area
+ok 2 - Alert without prompt omits copy button and full prompt area
+  ---
+  duration_ms: 4.8071
+  type: 'test'
+  ...
+# Subtest: Alert with prompt preserves escaped prompt and copy handler
+ok 3 - Alert with prompt preserves escaped prompt and copy handler
+  ---
+  duration_ms: 4.7235
+  type: 'test'
+  ...
+# Subtest: Stage 1 progress lists all twelve packages and preserves the live acceptance boundary
+ok 4 - Stage 1 progress lists all twelve packages and preserves the live acceptance boundary
+  ---
+  duration_ms: 6.4285
+  type: 'test'
+  ...
+# Subtest: Stages 2 through 8 render every planned package once and keep all packages not started
+ok 5 - Stages 2 through 8 render every planned package once and keep all packages not started
+  ---
+  duration_ms: 3.7752
+  type: 'test'
+  ...
+# Subtest: Planned phase disclosures show a visible expanded-state indicator
+ok 6 - Planned phase disclosures show a visible expanded-state indicator
+  ---
+  duration_ms: 3.8756
+  type: 'test'
+  ...
+# Subtest: Future work packages preserve external-operation and isolation stop boundaries
+ok 7 - Future work packages preserve external-operation and isolation stop boundaries
+  ---
+  duration_ms: 0.6216
+  type: 'test'
+  ...
+# Subtest: Summary cards and phase meters agree with accepted work packages
+ok 8 - Summary cards and phase meters agree with accepted work packages
+  ---
+  duration_ms: 0.2584
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 130.9953

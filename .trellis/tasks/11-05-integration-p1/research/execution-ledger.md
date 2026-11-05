@@ -149,3 +149,26 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - 抽取後 ColumnContractTests net48（宿主實載 net462）23/23；完整 ToolUtility net48 270/270、net10 350/350；Core Release strict `--warnaserror` 雙目標 0 警告／0 錯誤。TRX 位於 `artifacts/p1-04-columns-core-net48/`、`p1-04-current-dual-net48/`、`p1-04-current-dual-net10/`；net48 首次 CS0234 保留於本輪工具執行紀錄。
 - `CrmEntityColumns` 維持 21 組欄位及順序；類別文件修正原先指向不存在 `ContactColumns` 的範例，記載私有固定模板、每次讀取複本、caller 所有權及無租戶／請求狀態。覆蓋率仍須以抽取後各目標新鮮報告重跑；增量雙模型審查尚未執行，P1-04仍未驗收。
 - 已將此狀態寫入進度頁與 P1-04 inventory／core-extraction 報告。下一步：獨立 net48/net10 coverage、更新 P1-04 相容性與 review evidence、透過 `Start-CcgDualModelRun.ps1` 進行增量雙模型複審，再跑 changed-scope encoding／duplicates／回歸。
+
+## 2026-11-05 15:57 階段 2～8 進度頁工作包登錄
+- 依使用者要求，把正式計畫 03／04 的階段 2～8 共 53 個工作包逐包登錄到 `文件/規劃設計書/實作計畫-3.3/實作進度.html`；各包包含名稱、實作範圍、指定驗收／測試與前置／安全界線，階段摘要另列依賴順序及外部操作停止條件。
+- 數量對照為階段 2～8：12／9／6／13／6／2／5；ID 共 53 且唯一，全數 `todo`；不改 P0 18/18、P1 2/12 或全計畫 20/83 統計，也不宣稱後續階段已開始。
+- 對照 03／04 原文核實 P2-04 測試憑證保密與使用者沙箱實收、P3-04 平台 SQL 未提供即停止、P3-09 測試站操作、P5 舊來源唯讀及使用者切換、P7 禁止 Codex 連正式組織、P8 同名不同 ID 保留／重複 ID 拒絕、角色中文比對停止、伺服器端教會授權、人工登入不保存帳密、v3.3 已完成 Word 修正。P8-01 已改為計畫原文「拒絕發布並診斷」；P8-03 明列教會由伺服器依登入者判定。
+- 初次重新跑 `node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 先抓到 P8-01 用語斷言不同，隨後抓到 P8-03 摘要沒有明載伺服器依登入者判定的正面規則；補齊原文契約並同步斷言後，當時結果 7/7 通過、0 略過。`git diff --check` 通過。進度頁快照及時間軸已記錄此驗證。
+- 階段 2～8 內容分析 CCG run `20261105-152344-integration-progress-stages-2-8-analysis-analyzer` 的 `summary.json` 為雙模型完成、無配額降級；其輸出曾基於過期頁面快照，故內容結論以現行 03／04 與本機資料／測試為準。針對目前變更的雙模型 reviewer 尚待經專案自癒入口執行。
+- 本工作僅登錄未來計畫，沒有修改正式計畫文件、不需 Word 修正報告；Hyper-V／D365 未連線或寫入。P1-04 仍進行中，不代表 P1 Goal 完成。既有其他未提交修改均保留。
+
+## 2026-11-05 16:12 階段工作包複審與展開提示修正
+- CCG reviewer run `20261105-160221-integration-progress-stages-2-8-review-reviewer` 經 `Start-CcgDualModelRun.ps1` 完成；`summary.json` 確認 `reviewMode=dual`、`dualModelComplete=true`、Gemini／Claude 均成功、`quotaBlocked=false`、`degradedFallback=false`。
+- 兩模型一致確認 53 IDs、階段數、todo 狀態、20/83 已驗收統計、03／04 安全界線與動態欄位 `esc()` 跳脫均正確；核實後沒有有效的 Critical 或 Warning。Gemini 提出的 `<title>` 編碼 Warning 與 Claude 位元組核實相矛盾；本機 UTF-8 解碼及 `Get-Content -Encoding utf8` 均實際讀得 `<title>實作進度</title>`，因此判為誤報，沒有改動正確標題。
+- Claude 唯一 Info 指出 `<details>/<summary>` 隱藏原生標記卻沒有替代視覺提示。先新增回歸測試並確認紅燈，再以 `aria-hidden` 可見加號／減號提示補齊；專項測試 1/1 通過，完整 `node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 8/8 通過、0 略過。`git diff --check` 通過。
+- 進度頁於 16:12 更新快照與時間軸：初次雙模型審查完成、Info 已修正、最終複審待完成。此後需再依自癒入口複審最終頁面／測試；未更動正式計畫，無 Word 修正報告需求。D365／Hyper-V 未操作，P1-04 仍在進行中。
+
+## 2026-11-05 16:25 階段 2～8 工作包登錄驗收
+- 第二輪 `20261105-161352-integration-progress-stages-2-8-final-review-reviewer` 雙模型完成、無 Critical／Warning；唯一 Info 為 P5-03 內 FileVersion／rollback 關卡歸屬已明標「階段 5 共同關卡，非 P5-03 專屬驗收」，不改原規則。
+- 真實 Edge／Playwright 在 1440×1000 明色、390×844 明色、320×800 暗色驗證 7 個階段、53 個 todo 包、Enter／Space 展開／收合、可見加減號、頁面錯誤 0、溢出 0。首次 320px 全頁寬 362，定位為既有 P0 長名稱／時間軸；修正最小欄寬後剩 322，再定位警示內長 API 文字並補換行，最終三尺寸精確等於視窗寬，未提高容許值或隱藏內容。工具及 JSON／截圖保存在 `artifacts/progress-stages-2-8-browser/`，每個 context／browser 均在 finally 關閉，HTTP 外連已阻擋。
+- 自行核對並修正兩處摘要精確度：P4-05 回呼按金流供應商契約驗簽／冪等，不套 LINE webhook 契約；P5-01 影子模式讀真實服務、僅記錄寫入／推播，只有離線測試使用合成資料。正式 03／04 原文不變，無 Word 修正報告需求。
+- 上述最後增量經 `20261105-162250-integration-progress-stages-2-8-closeout-reviewer` 雙模型複核：`dualModelComplete=true`、`quotaBlocked=false`、`degradedFallback=false`，Gemini／Claude 均無 Critical／Warning。
+- 最新頁面測試 8/8、0 略過；兩份正式原文擷取 ID 與頁面比較為 53 對 53、無缺漏或額外項；P0 18/18、P1 2/12、全計畫 20/83 保持不變。進度頁快照／時間軸已更新最終結果；本次獨立文件任務紀錄歸檔位置為 `.ccg/tasks/archive/2026-11/integration-progress-stages-2-8/`。主 P1 任務與 Goal 未宣告完成，後續接回 P1-04 檢查點。
+- 提交前重跑頁面 8/8、三種尺寸瀏覽器驗證及 53 個來源 ID 比對，結果一致；測試紀錄、瀏覽器程式／JSON／截圖另保存於本次獨立任務的 `evidence/`，原始外部模型輸出保持原樣。只提交本次頁面、測試與紀錄；既有付款測試及應用設定修改維持工作樹原狀。
+- 本地頁面與驗證提交 `48964ee5`；原始 runner health JSON 的檔尾空行另保留 ZIP 原件與 SHA-256，Git 複本只做格式整理且 JSON 值相等，暫存 diff 檢查已通過。沒有 push，未封存主 P1。
