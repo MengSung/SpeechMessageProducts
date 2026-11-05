@@ -4,6 +4,8 @@
   "title": "階段 1 基礎層與國際化地基",
   "description": "",
   "status": "in_progress",
+  "currentPhase": "review",
+  "nextAction": "使用 Start-CcgDualModelRun.ps1 對最新版 P1-02 工作樹差異執行 Gemini 與 Claude review；修正 findings 後重跑定向測試。",
   "dev_type": null,
   "scope": null,
   "package": null,

@@ -30,4 +30,12 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證及適�
 - 使用者要求每有進度即更新 `文件/規劃設計書/實作計畫-3.3/實作進度.html`，並逐包列出 P1-01～P1-12。頁面已新增12包清單，P1-01～03標為驗收收斂中，P1-04～11未開始，P1-12依D24標示使用者執行apply；總計0/12驗收完成、3包進行中。
 - 進度頁新增渲染測試；先紅（缺少P1列表renderer），實作共用renderer後4/4通過。
 - 2026-11-05 CCG analyzer run `20261105-103725-integration-p1-02-warning-resolution-analyzer`：`reviewMode=dual`、`dualModelComplete=true`、`quotaBlocked=false`。確認 `ArchitectureProjectReader.Evaluate` 的終止等待及pipe drain沒有期限；`QueryFixture.LastQuery` 欄位並行發布不安全。Gemini所提 `AdvancingClock` 競態依實際使用圖不成立（clock per fixture，輪詢序列await，`OnDelay`無呼叫端）。
-- 計畫本身已有有界等待／資源釋放規則；此為實作缺口，故不改正式計畫、不產Word修正報告。下一步依TDD加入有界終止與有界輸出drain測試，修正Process讀取上限與 LastQuery volatile發布，再定向驗證及外審。
+- 計畫本身已有有界等待／資源釋放規則；此為實作缺口，故不改正式計畫、不產Word修正報告。後續依TDD加入程序期限及雙管線輸出測試，並修正有界讀取與 LastQuery 發布。
+
+## P1-02 修正里程碑（2026-11-05）
+- RED：新增程序期限與雙管線超額輸出故障測試後，首次執行因缺少 `BoundedProcessRunner` 而編譯失敗（兩處 CS0103）；測試明確依賴尚未提供的 runner 行為。
+- GREEN：`ArchitectureProcessRunnerTests` 的真實子程序測試通過 2/2。500ms期限測試在8秒斷言範圍內回報逾時；stdout與stderr各輸出約2MB時，runner持續排空、每條只保留4,096字元並回報截斷。
+- 實作以同一30秒總期限涵蓋程序退出及兩條pipe drain；每條最多保留1,048,576字元，輸出逾限時架構讀取器拒絕解析截斷JSON；逾時後終止程序樹，最多2秒回收，關閉串流並有限等待reader完成。清理失敗會與主要例外一起保留，不讓錯誤被覆蓋。
+- `QueryFixture.LastQuery` 已改用 `Volatile.Read/Write` 明確發布；64路並行回歸完成。最新版 `SpeechMessage.Localization.Tests` net10 全套架構／MSBuild 67/67、`CollectionQueryServiceAsyncTests` 16/16、進度頁 4/4 均通過；Changed-scope encoding 3檔0問題，7個異動文字檔均通過UTF-8無BOM／CRLF／final CRLF 位元組檢查，`git diff --check` 無錯誤。
+- MSBuild 評估命令增加 `-maxcpucount:1` 與 `-nodeReuse:false`，維持不執行targets的單程序讀取契約。API的 `WaitForExit` 只證明根程序退出；runner 文件限制不得套用於會自行建立子程序的工作負載，若 tree termination 回報不完整即明確失敗，不假稱後代皆已退出。
+- P1-02仍未驗收：需完成最新版雙模型review、依 findings 修正並重跑，另需全套 gates 與階段級檢查。

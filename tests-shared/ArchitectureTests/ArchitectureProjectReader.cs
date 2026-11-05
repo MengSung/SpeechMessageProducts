@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace SpeechMessage.Architecture.Tests;
 
@@ -117,7 +116,7 @@ internal static class ArchitectureProjectReader
     private static JsonDocument Evaluate(string root, string path, string? target)
     {
         var start = new ProcessStartInfo("dotnet") { WorkingDirectory = root, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
-        foreach (var argument in new[] { "msbuild", path, "-nologo", "-p:Configuration=Release", "-getProperty:TargetFramework,TargetFrameworks,IsTestProject,ProjectAssetsFile", "-getItem:ProjectReference,PackageReference" })
+        foreach (var argument in new[] { "msbuild", path, "-nologo", "-maxcpucount:1", "-nodeReuse:false", "-p:Configuration=Release", "-getProperty:TargetFramework,TargetFrameworks,IsTestProject,ProjectAssetsFile", "-getItem:ProjectReference,PackageReference" })
         {
             start.ArgumentList.Add(argument);
         }
@@ -127,36 +126,17 @@ internal static class ArchitectureProjectReader
             start.ArgumentList.Add("-p:TargetFramework=" + target);
         }
 
-        using var process = new Process { StartInfo = start };
-        process.Start();
-        var stdout = process.StandardOutput.ReadToEndAsync();
-        var stderr = process.StandardError.ReadToEndAsync();
-        try
+        var result = BoundedProcessRunner.Run(start, TimeSpan.FromSeconds(30), 1_048_576);
+        if (result.StandardOutputTruncated || result.StandardErrorTruncated)
         {
-            if (!process.WaitForExit(30_000))
-            {
-                process.Kill(entireProcessTree: true);
-                process.WaitForExit();
-                throw new TimeoutException("Read-only architecture evaluation exceeded its deadline.");
-            }
-
-            Task.WhenAll(stdout, stderr).GetAwaiter().GetResult();
-            if (process.ExitCode != 0)
-            {
-                throw new InvalidDataException("Read-only architecture evaluation failed.");
-            }
-
-            return JsonDocument.Parse(stdout.GetAwaiter().GetResult());
+            throw new InvalidDataException("Read-only architecture evaluation exceeded its output limit.");
         }
-        finally
+
+        if (result.ExitCode != 0)
         {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-                process.WaitForExit();
-            }
-
-            Task.WhenAll(stdout, stderr).GetAwaiter().GetResult();
+            throw new InvalidDataException("Read-only architecture evaluation failed.");
         }
+
+        return JsonDocument.Parse(result.StandardOutput);
     }
 }

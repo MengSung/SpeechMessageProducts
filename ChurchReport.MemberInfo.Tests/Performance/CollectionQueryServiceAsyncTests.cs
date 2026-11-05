@@ -209,6 +209,32 @@ public sealed class CollectionQueryServiceAsyncTests
     }
 
     /// <summary>
+    /// 保護查詢 fixture 的並行發布契約；同時注入 64 個不同的合成查詢，
+    /// 斷言最後觀察值一定是其中一個完整已發布 query，且所有呼叫均已排空。
+    /// </summary>
+    [Fact]
+    public async Task QueryFixture_LastQuery_ConcurrentCallsPublishCompleteQueryReference()
+    {
+        var requests = Enumerable.Range(0, 64)
+            .Select(index => Task.Run(() =>
+            {
+                var query = new QueryExpression("synthetic_" + index);
+                var result = source.RetrieveMultiple(query);
+                Assert.Single(result.Entities);
+                return query;
+            }))
+            .ToArray();
+
+        var completedQueries = await Task.WhenAll(requests);
+        var lastQuery = source.LastQuery;
+
+        Assert.NotNull(lastQuery);
+        Assert.Contains(completedQueries, query => ReferenceEquals(query, lastQuery));
+        Assert.Equal(completedQueries.Length, source.Calls);
+        Assert.Equal(0, source.ActiveCalls);
+    }
+
+    /// <summary>
     /// 只實作十五案例需要的 SDK 邊界；所有 query 都被案例另外檢查，未支援操作明確拒絕。
     /// 不保存回傳 Entity／結果集合，最多保留最後一個合成 query；生命週期與本測試實例相同，無連線或 handle。
     /// </summary>
@@ -217,7 +243,12 @@ public sealed class CollectionQueryServiceAsyncTests
         /// <summary>固定案例資料庫範圍，不由網路輸入建立。</summary>
         internal Guid ListId { get; } = new("07000000-0000-0000-0000-000000000001");
         /// <summary>最後一次合成查詢，供查詢契約斷言，不包含使用者資料。</summary>
-        internal QueryBase? LastQuery { get; private set; }
+        internal QueryBase? LastQuery
+        {
+            get => Volatile.Read(ref lastQuery);
+            private set => Volatile.Write(ref lastQuery, value);
+        }
+        private QueryBase? lastQuery;
         /// <summary>每案例有限 I/O 總數。</summary>
         internal int Calls => Volatile.Read(ref calls);
         private int calls;

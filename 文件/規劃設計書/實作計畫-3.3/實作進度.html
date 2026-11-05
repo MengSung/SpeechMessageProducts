@@ -364,7 +364,7 @@ const DATA = {
     "body": "截至 2026-11-05，本機局部測試與靜態守門曾通過；完整方案結果早於 SDK 最後修補，尚未重跑。SDK 審查的舊 Critical／Warning 也早於修補，不能視為已解除。D365 預設只讀；計畫指定的 apply 由使用者執行，未確認隔離、備份與復原前不寫入。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
-      "目前修正為有界程序終止與輸出排空／記憶體上限，並以執行緒安全欄位發布 LastQuery；完成後重跑架構及相關測試。",
+      "已實作共用期限的子程序等待／stdout／stderr 排空、有界輸出擷取與逾時清理；架構／MSBuild 67/67、程序故障注入 2/2、查詢效能含64路並行 16/16、進度頁 4/4 均通過。Changed encoding 與位元組檢查無問題；最新版雙模型複審待執行。",
       "之後重跑完整方案、Debug tracer、編碼、重複程式、套件、I18nCheck、架構與打包檢查，並以最新版 diff 重新執行雙模型審查。",
       "若研究證明正式計畫存在必要修正，先留下需求、證據、影響與替代方案，再製作 Word 修正報告；未證實前不改計畫。"
     ]
@@ -563,7 +563,7 @@ const DATA = {
       "id": "P1-02",
       "name": "架構測試（R4：相依只能往下）",
       "status": "active",
-      "note": "真實 MSBuild／逐目標與 NuGet Framework assets 檢查、合成正反例及 net48 載入 net462 測試已實作。2026-11-05 Gemini＋Claude 雙模型分析確認子程序無界等待及 LastQuery 非安全發布兩項 Warning；AdvancingClock 競態推測不成立。修復與最新版複審待完成。"
+      "note": "真實 MSBuild／逐目標與 NuGet Framework assets 檢查、合成正反例及 net48 載入 net462 測試已實作。新增有界程序 runner；架構／MSBuild 67/67、程序故障注入 2/2、查詢效能含64路並行 16/16 通過，LastQuery 改為 Volatile 發布。全套 gates 與最新版雙模型複審尚未完成。"
     },
     {
       "id": "P1-03",
@@ -847,7 +847,7 @@ const DATA = {
     },
     {
       "t": "目前",
-      "text": "正在落實有界子程序終止／輸出 drain，並安全發布 LastQuery；完成後先跑定向測試，再重跑 P1 全套 gates。",
+      "text": "P1-02 定向驗證已完成：架構／MSBuild 67/67、程序故障注入 2/2、查詢效能16/16、進度頁4/4及 Changed encoding 均通過。正在提交最新版雙模型複審；全套 gates 未完成前仍不標示工作包驗收完成。",
       "cls": "stop"
     },
     {
