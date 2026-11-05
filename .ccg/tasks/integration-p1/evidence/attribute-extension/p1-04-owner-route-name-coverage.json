@@ -1,0 +1,25 @@
+{
+  "sourceCallsites": 35,
+  "observedNames": [
+    "appointment",
+    "contact",
+    "list",
+    "new_dedication_booking",
+    "new_fee",
+    "new_group_present_weekly_report",
+    "new_present_record",
+    "new_stor_lessons"
+  ],
+  "testTheoryNames": [
+    "appointment",
+    "contact",
+    "list",
+    "new_dedication_booking",
+    "new_fee",
+    "new_group_present_weekly_report",
+    "new_present_record",
+    "new_stor_lessons"
+  ],
+  "exactSetEqual": true,
+  "testSourceHash": "ab3c6eb87f2855b98a8a7d114ccea817ccbf3d963cf5568c8fd2e3953e94ffcf"
+}

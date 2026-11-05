@@ -172,3 +172,21 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - 最新頁面測試 8/8、0 略過；兩份正式原文擷取 ID 與頁面比較為 53 對 53、無缺漏或額外項；P0 18/18、P1 2/12、全計畫 20/83 保持不變。進度頁快照／時間軸已更新最終結果；本次獨立文件任務紀錄歸檔位置為 `.ccg/tasks/archive/2026-11/integration-progress-stages-2-8/`。主 P1 任務與 Goal 未宣告完成，後續接回 P1-04 檢查點。
 - 提交前重跑頁面 8/8、三種尺寸瀏覽器驗證及 53 個來源 ID 比對，結果一致；測試紀錄、瀏覽器程式／JSON／截圖另保存於本次獨立任務的 `evidence/`，原始外部模型輸出保持原樣。只提交本次頁面、測試與紀錄；既有付款測試及應用設定修改維持工作樹原狀。
 - 本地頁面與驗證提交 `48964ee5`；原始 runner health JSON 的檔尾空行另保留 ZIP 原件與 SHA-256，Git 複本只做格式整理且 JSON 值相等，暫存 diff 檢查已通過。沒有 push，未封存主 P1。
+
+## 2026-11-05 18:21 P1-04 接回實作與輸出新鮮度檢查
+- 接續正式 P1，不回到已封存的 P0；目前 Goal 工具仍 usageLimited，沒有覆蓋或宣稱背景持續執行。沿用 Trellis 已核定計畫與 inline 模式。
+- 起始 `--no-build` coverage 只發現 net48 244 案、net10 349 案，與現行來源應有 270／350 不符，判定輸出過期；該輪 `artifacts/p1-04-columns-coverage-20261105-181843/` 不列抽取後驗收證據。沒有略過測試或降低覆蓋標準。
+- 重新實際建置後測試 net48 270/270、net10 350/350，無略過；`artifacts/p1-04-resume-columns-rebuild/`。後續覆蓋率須使用本輪建置及全新目錄。
+- 下一切片 EntityAttributeUtilityService 與 OrganizationServiceExtensions 的唯讀 Gemini＋Claude 分析已經專案自癒入口啟動；先特性、再安全紅綠、最後 git mv，不帶入 logger／連線 owner。主 P1 與 P1-04 尚未驗收。
+
+## 2026-11-05 18:44 P1-04 屬性工具與 SDK 相容入口
+- 原host特性12/12；安全31案28失敗/3通過，修後搬前81/81才git mv三檔到Core。新增null欄位名及完整Query/PageInfo斷言，最新雙宿主314/314、395/395，無失敗或略過。
+- 兩target各獨立且恰一份coverage，Core99.36%/100%；strict雙目標0警告/0錯誤。證據artifacts/p1-04-attribute-extension-final-{dual,coverage}/及review-evidence.json。
+- 固定16來源SHA與完整安全快照經自癒入口啟動reviewer，涵蓋Constants及mutation兩Warning補證；00§8完整方案另行執行中。尚不預判結果，P1仍2/12，P1-04未驗收。
+- 本輪不操作Hyper-V/D365/LINE，不修改正式計畫。Goal仍usageLimited，未覆蓋或宣稱背景執行。
+
+## 2026-11-05 19:09 P1-04 切片驗證檢查點
+- 最後實際完整方案16TRX2056/2056（已含caller11案），ChurchReport623/623、ToolUtility314/395，無失敗略過；Core coverage99.36%/100%、strict0警告錯誤。Debug tracer7與正TRX、duplicates28/930/0、I18n verify、Plugin metadata10/build6、工具108/27、package34/158/0全過。
+- reviewer20261105-184322採納caller可執行補證；185302抓到盤點8種而非7種，補週報InlineData並做8對8精確集合比較，11/11綠。185904最終雙模型完整、無Critical/High/Warning、無quota降級；一項fixture Dispose雙重故障診斷Info已揭露。
+- Encoding守門抓到13份前輪文字換行不符，僅正規化CRLF／final CRLF且canonical內容逐份相同，沒有更改timestamp raw證據。正式changed-scope須在本輪明確自有新檔暫存後再跑；沒有放寬守門。
+- 進度HTML與wp報告已更新；下一步是本地分離提交本切片，再依盤點續Repository/Activity/Attachment/其他候選，P1-01與05～12待完成，主P1保持2/12不封存。現有Goal仍usageLimited，未覆蓋或宣稱背景執行。

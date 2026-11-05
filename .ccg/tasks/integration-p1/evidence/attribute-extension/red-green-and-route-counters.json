@@ -1,0 +1,90 @@
+[
+  {
+    "file": "artifacts/p1-04-attribute-extension-before/before.trx",
+    "sha256": "e6c1dee00e5a0f70a8588e18062d72cdc60311ba9cd7a78f10aa6d360fcbc8d7",
+    "counters": {
+      "total": "12",
+      "executed": "12",
+      "passed": "12",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "artifacts/p1-04-attribute-extension-red/red.trx",
+    "sha256": "308c86831378c56303c5f0dc54c065b6f020881882606172555adcd01624d9d5",
+    "counters": {
+      "total": "31",
+      "executed": "31",
+      "passed": "3",
+      "failed": "28",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "artifacts/p1-04-attribute-extension-safe-before-move/safe-before-move.trx",
+    "sha256": "560d4f8800a70d05d7e5967c3ed6a74bae27aaacac6bcbe70cc8fc3f91a8ed43",
+    "counters": {
+      "total": "81",
+      "executed": "81",
+      "passed": "81",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  {
+    "file": "artifacts/p1-04-owner-route-final-proof/owner-route.trx",
+    "sha256": "e9989b3a71115c2892e789a78f99dd3d11efaa1519c0f041e652852e68a35694",
+    "counters": {
+      "total": "11",
+      "executed": "11",
+      "passed": "11",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  }
+]

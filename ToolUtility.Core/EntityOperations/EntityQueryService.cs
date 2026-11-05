@@ -165,7 +165,8 @@ namespace ToolUtilityNameSpace.EntityOperations
 #endif
             if (request.Query == null) throw new ArgumentException("A query is required.", nameof(request));
             var entityName = ExpectedEntity(request.Query);
-            var response = (RetrieveMultipleResponse)service.Execute(request);
+            if (service.Execute(request) is not RetrieveMultipleResponse response)
+                throw new InvalidOperationException("The SDK returned an invalid query response.");
             return ValidatePage(response.EntityCollection, entityName);
         }
 

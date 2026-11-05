@@ -1,0 +1,77 @@
+[
+  {
+    "path": "ToolUtility.Core/AttributeOperations/EntityAttributeUtilityService.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Core/Interfaces/IEntityAttributeUtilityService.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Core/Extensions/OrganizationServiceExtensions.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Core/EntityOperations/EntityQueryService.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/CoreTargetFrameworkTests.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/DataOperations/AttributeExtensionCharacterizationTests.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/DataOperations/AttributeExtensionSafetyTests.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Core/Constants/CrmEntityColumns.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/DataOperations/ColumnContractTests.cs",
+    "rawHashUnchanged": false,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/Golden/ToolUtility/columns-all.xml",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Core/EntityOperations/EntityCrudService.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Core/OwnerOperations/OwnerManagementService.cs",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/DataOperations/MutationOperationsSafetyTests.cs",
+    "rawHashUnchanged": false,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Core/ToolUtility.Core.csproj",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/ToolUtility.Tests.csproj",
+    "rawHashUnchanged": true,
+    "canonicalContentUnchanged": true
+  }
+]

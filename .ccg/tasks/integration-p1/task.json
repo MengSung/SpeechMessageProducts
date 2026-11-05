@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P1-02／03正式驗收(2/12)。接續P1-04 CRUD／Owner／AttributeUtility／Constants／Extensions及其餘純化，保留1836全方案與SDK最終雙模型證據；P1-01來源／審查收斂及05～12待完成。",
+  "nextAction": "P1維持2/12（02/03驗收）。P1-04屬性/SDK extension/Constants及mutation補證完成，2056全方案、雙宿主314/395、最終185904雙模型無Critical/High/Warning。保存本地切片提交後接續Repository、Activity/Attachment及其他候選；P1-01收斂與05～12未完成。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",

@@ -7,6 +7,9 @@ using ToolUtilityNameSpace.LessonsOperations;
 using ToolUtilityNameSpace.MeetingStatisticsOperations;
 using ToolUtilityNameSpace.OwnerOperations;
 using ToolUtilityNameSpace.Interfaces;
+using ToolUtilityNameSpace.AttributeOperations;
+using ToolUtilityNameSpace.Extensions;
+using ToolUtilityNameSpace.Constants;
 using Xunit;
 
 namespace ToolUtility.Tests
@@ -31,6 +34,10 @@ namespace ToolUtility.Tests
             Assert.Same(assembly, typeof(MeetingStatisticsService).Assembly);
             Assert.Same(assembly, typeof(EntityCrudService).Assembly);
             Assert.Same(assembly, typeof(OwnerManagementService).Assembly);
+            Assert.Same(assembly, typeof(EntityAttributeUtilityService).Assembly);
+            Assert.Same(assembly, typeof(IEntityAttributeUtilityService).Assembly);
+            Assert.Same(assembly, typeof(OrganizationServiceExtensions).Assembly);
+            Assert.Same(assembly, typeof(CrmEntityColumns).Assembly);
             Assert.Equal("ToolUtility.Core", assembly.GetName().Name);
             var target = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
             Assert.NotNull(target);
@@ -43,8 +50,9 @@ namespace ToolUtility.Tests
 
 #if !NETFRAMEWORK
         /// <summary>
-        /// 實際反射三個介面的公開 nullable 中繼資料，而非以檔頭是否有 pragma 判斷。
+        /// 實際反射抽取介面的公開 nullable 中繼資料，而非以檔頭是否有 pragma 判斷。
         /// Core strict 專案統一啟用 Nullable；若後續設定漂移成 oblivious，任一字串參數即決定性失敗。
+        /// 屬性讀取的 attributeName 依舊允許 null，其餘字串必須維持非 null 契約。
         /// 不需修改產品公開 API 或新增重複 pragma 來配合靜態審查推測。
         /// </summary>
         [Theory]
@@ -53,6 +61,7 @@ namespace ToolUtility.Tests
         [InlineData(typeof(IMeetingStatisticsService))]
         [InlineData(typeof(IEntityCrudService))]
         [InlineData(typeof(IOwnerManagementService))]
+        [InlineData(typeof(IEntityAttributeUtilityService))]
         public void CoreInterfaces_EmitNonObliviousStringContracts(System.Type contract)
         {
             var context = new NullabilityInfoContext();
@@ -61,7 +70,9 @@ namespace ToolUtility.Tests
                 foreach (var parameter in method.GetParameters())
                     if (parameter.ParameterType == typeof(string))
                     {
-                        Assert.Equal(NullabilityState.NotNull, context.Create(parameter).ReadState);
+                        var expected = contract == typeof(IEntityAttributeUtilityService) && parameter.Name == "attributeName"
+                            ? NullabilityState.Nullable : NullabilityState.NotNull;
+                        Assert.Equal(expected, context.Create(parameter).ReadState);
                         checkedParameters++;
                     }
             Assert.True(checkedParameters > 0);

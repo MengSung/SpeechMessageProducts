@@ -1,0 +1,222 @@
+{
+  "evidenceKind": "Offline actual compiled business method plus real facade/core chain; external SDK substituted; no VM/LINE/auth/startup claim",
+  "representativeTests": {
+    "total": "10",
+    "executed": "10",
+    "passed": "10",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "staticCallsites": [
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs",
+      "line": 1141,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs",
+      "line": 1224,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Models/PollManager.cs",
+      "line": 491,
+      "entity": "new_stor_lessons"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+      "line": 146,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+      "line": 449,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+      "line": 482,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs",
+      "line": 545,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs",
+      "line": 437,
+      "entity": "new_stor_lessons"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs",
+      "line": 706,
+      "entity": "new_fee"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs",
+      "line": 461,
+      "entity": "new_fee"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs",
+      "line": 853,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs",
+      "line": 436,
+      "entity": "new_group_present_weekly_report"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs",
+      "line": 562,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs",
+      "line": 591,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/AppointmentsDownUpLoader.cs",
+      "line": 663,
+      "entity": "appointment"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/ChurchListDataProcessor.cs",
+      "line": 793,
+      "entity": "list"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.DedicationBooking.cs",
+      "line": 142,
+      "entity": "new_dedication_booking"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs",
+      "line": 661,
+      "entity": "new_fee"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.PresentRecord.cs",
+      "line": 129,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs",
+      "line": 970,
+      "entity": "new_fee"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs",
+      "line": 229,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs",
+      "line": 288,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs",
+      "line": 404,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs",
+      "line": 967,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs",
+      "line": 1082,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs",
+      "line": 1224,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/PersonalInfomatioManager.cs",
+      "line": 132,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/PersonalInfomatioManager.cs",
+      "line": 630,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Assignment.cs",
+      "line": 95,
+      "entity": "contact"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Assignment.cs",
+      "line": 208,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs",
+      "line": 59,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs",
+      "line": 165,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs",
+      "line": 195,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs",
+      "line": 594,
+      "entity": "new_present_record"
+    },
+    {
+      "file": "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.WeeklyReport.cs",
+      "line": 311,
+      "entity": "new_group_present_weekly_report"
+    }
+  ],
+  "callerSourceHashes": {
+    "SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs": "441a2ea7e0039556af3470de5ddc05fe18e19c76602e54717dd6a6540f18a77c",
+    "SpeechMessageProducts.ChurchReport/Models/PollManager.cs": "f9142793db6fcda75cacc10ba21c49a414e784ae7be2a362f1d906f4fc3dc55b",
+    "SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs": "4a6ef1c2b12b5e46783925e70cd981059cb4c6abd37d94c93e2420bd8fe078c7",
+    "SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs": "1d73071c339b0663298f1601e8fc59d29611312b8bf33b713dded903df152ca3",
+    "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs": "8a9db9b649467b6ed1c35fb57c3c7dd98abb7db12277110af6661fc70d5a5830",
+    "SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs": "6fd5797a73be07b80c611376ab43df6b0f649cb76fcac749f8e86823e51cc43e",
+    "SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs": "8df1d9cae3a0fa984a5ac7239e5ff033b6cc6ff5f7f9e596a9285ef5da9e112a",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/AppointmentsDownUpLoader.cs": "6d6c547335155ab3ff26d23efe9369dccc08167704db6da9d8ac16daa1e255ce",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/ChurchListDataProcessor.cs": "e817f7b9c4a066611709dac98682ef74b3815da6a45b89ab81eb28987a05839c",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.DedicationBooking.cs": "04ac6c5b31f4458857080065305bf9d79b0f9ca6a2150b7612b4262ddd8a7595",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs": "c83caa150b715c94d19eb27905094e598d4967c1500b15b1d94d5d216449d46b",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.PresentRecord.cs": "32634e4ddf054fc36003cc262b39e5480313189472e36672093cbec987159e07",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs": "fcdee914ef8c34f0e60a9d2f5e186cae49dace3c7c9022f9883bdb2ec26fab5a",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs": "1bf35fa2adb109ec417636e0dafba4d772edc567d26cf9ce42abb77de10d917d",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/PersonalInfomatioManager.cs": "6a4e7e837e6b54b5eaa107864685233c452976250bfc3556962ee0d25ded433e",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Assignment.cs": "ffdda0e058841d484e6ea26798ec271dab0916259911f79763474c848f6f0f8c",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs": "b5ea33df12a285a5841521508302e8da8df614f4ee6f79e3863a8937e2de6759",
+    "SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.WeeklyReport.cs": "b6c66602dec1c4723183acdc34d7e97281aa3b787f0b900eed1b3d4bec99eee9"
+  },
+  "supplementalFileHashes": {
+    "ChurchReport.MemberInfo.Tests/Integration/ContactOwnerRouteTests.cs": "717958cf9c71c4580fa8e9a5fbf543d45168b928c2ba04876e8dc9321873fa1f",
+    "Directory.Build.targets": "78eaf4f20616c04afb5d6637584586ae59dbb8240ef7d23fb2ca35d28152ebc4"
+  }
+}

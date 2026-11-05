@@ -73,3 +73,20 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 - AGENTS 引用的兩份 cross-user isolation spec 在工作樹缺檔；
   按 AGENTS 全文與現存 duplicate-row／error-handling 契約執行，沒有假稱已讀到缺檔。
 - 其他 P1 工作包仍待實作與適用審查；沒有實機 D365 寫入證據。
+
+## P1-04 屬性／SDK extension／Constants 增量收斂（2026-11-05）
+
+- analyzer `20261105-181935`、reviewer `20261105-184322`、補證複審 `20261105-185302`、
+  最終 `20261105-185904` 均確認 dualModelComplete=true，無 quota／fallback。
+- 初審無 Critical／High；採納 AssignOwner 代表性路徑補證，使用真實已編譯 ContactService
+  與完整 Facade/Core 鏈，只替代 SDK。舊 ctor 的 LINE 設定不讀取，限制明載於測試／報告。
+- 補審抓到「7 種全數」實際為 8 種、漏週報，核實成立並補測，不繼續引用錯誤結論。
+  最新 35 處／8 種集合與 8 個 Theory 完全相同；3 Fact＋8 Theory＝11/11。
+- 最終雙模型均無 Critical／High／Warning。Claude 非阻斷 Info 是測試 fixture Dispose
+  斷言在雙重故障時可能遮蔽原測試原因，未重現；完整揭露且不冒稱沒有任何 Info。
+  Gemini 的 logger 相容／局部 query 配置建議依刻意相容與明確 bounded owner 保留。
+- 所有既有產品切片 canonical 文字與初審快照相同；Encoding-only 改動另有13份manifest。
+  最終完整方案16 TRX2056/2056、ChurchReport623/623、ToolUtility314/395、Core
+  coverage99.36%/100%；Debug tracer7、Plugin metadata10/build6、I18n tool108、PE27全過。
+- 詳 `wp-reports/P1-04-attribute-extension.md` 及此任務 `evidence/attribute-extension/`。
+  僅此切片完成檢查，主 P1／P1-04 都未全包驗收，無 hosted／實機新證據。

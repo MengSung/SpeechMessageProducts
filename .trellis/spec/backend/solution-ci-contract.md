@@ -45,6 +45,17 @@ TRX logger 可能把 coverage attachment 複製到第二個結果路徑，使「
 守門正確拒絕。不要刪失敗報告、挑較佳結果或放寬斷言；將 TRX 執行證據與獨立 coverage
 run 分開，各用新目錄，coverage run 不另啟 TRX logger。
 
+每次抽取新增型別或測試後，先實際建置兩個測試目標，再從新 TRX 核對執行數及
+Framework 產品反射斷言，才使用該輸出收集覆蓋率。`--no-build` 不代表目前來源
+已被編譯；若發現案例數少於來源預期，必須保留該輪失敗證據、重建後另開新目錄，
+不得拿過期 DLL 的高覆蓋率或成功結束碼當成目前抽取的驗收。
+
+跨 assembly 搬移的相容性補證，應包含真實已編譯的代表業務方法與公開 Facade
+委派鏈，只替代外部 SDK I/O。若既有建構式會讀憑證或建立與該方法無關的外部
+client，隔離測試可明載略過該建構式、僅注入方法實際使用的依賴；此證據只保護
+方法及委派，不代表建構、DI、授權或實機整合。不得為測這條路徑而讀真實秘密、
+連線 D365、發 LINE，或將一個代表方法說成全部業務分支都已執行。
+
 ## Signing
 
 Ordinary Release builds receive no key and do not package. The workflow reads

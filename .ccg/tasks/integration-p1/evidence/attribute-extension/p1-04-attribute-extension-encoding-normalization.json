@@ -1,0 +1,80 @@
+[
+  {
+    "path": ".ccg/dual-model-runs/integration-p1-04-mutation-reviewer.md",
+    "before": "587a9a1d1bae9ec62bd487acb881a26da4970ec2707be2e46182265914f66b95",
+    "after": "9bbc99ba4eb96ab39c6b96bd553999ac909d49f7c214ddc595793108e4d3ae3f",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": ".ccg/dual-model-runs/integration-p1-acceptance-progress-reviewer.md",
+    "before": "33380cff52a88a729dfc697712ae08eef88c599cacbe49549e7b3a69734668db",
+    "after": "0e09c53162949873c1b0760a7d173fb2cdb6fa1862a5e02d8c66b90387c1372c",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": ".ccg/dual-model-runs/integration-progress-stages-2-8-analysis-analyzer.md",
+    "before": "4a44aea0f8d23e9c85015972017b73c49f54fe99e3c210d1017b8822ab362d03",
+    "after": "c0c04a77df8af6dc2009a48f7931d36cc51c2ca28afe827a888f98cf9384a3f5",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": ".ccg/dual-model-runs/integration-progress-stages-2-8-closeout-reviewer.md",
+    "before": "e7683ae73df65fb18ab9680d2c7c6b2d89930a4973baf4834db41b1d930c390c",
+    "after": "1c1baf27988d5c63a7a1127fe854a594a823809103362323820901eee8a5f67f",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": ".ccg/dual-model-runs/integration-progress-stages-2-8-final-review-reviewer.md",
+    "before": "38436740b9075901016404e8e3db0ea26e41e51c1eb5c1b84ea4892f677f09ba",
+    "after": "20203dc634a2ec23405bdc28582c3a267415be928b7e7a65953a65d81a45d490",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": ".ccg/dual-model-runs/integration-progress-stages-2-8-review-reviewer.md",
+    "before": "8410d6738bc7f7303fe9d321e64a8321e64e0c762b5c1b8e2ed7ac142d75a23f",
+    "after": "c0cc555cc25bb1a680389699a81f23f06725468d5969cb57efbd6ce217ce4295",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/DataOperations/ColumnContractTests.cs",
+    "before": "4dd9b6de00ee3a16e1645df753ba23864986f443d2c0038aafbdf417b4259b52",
+    "after": "bc323eb2f66c940070b0c7c072781b21ce3a4ddb9fc25bd058b9735b6c3f4e0a",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/DataOperations/MutationOperationsCharacterizationTests.cs",
+    "before": "00caa14d7e53b3f25ccc3625d19f35c6dbbc55229b26792bb77fa46dc2f37299",
+    "after": "5965ff25365d18dff612e2556a5b6a76dd6e64f4093d049e595153dabe35fb8c",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/DataOperations/MutationOperationsSafetyTests.cs",
+    "before": "52441dc49424da1cf9ca0c8e433ee38e5e59e3332d1c3b403f1bd5188c194cad",
+    "after": "869b11d005f0c375151332d5d88157eed2a7673ff4c4c5d0936ec715efa9af24",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/Golden/ToolUtility/mutation-assign.xml",
+    "before": "184d51f8e05042af39102af78736125ff2e1a32ccf5a70cbdbdbf49f1f95dc6e",
+    "after": "15dd3846104a20a499e82e81a114984d1b2f2c85fb0c90bc8177e5f7fff31e78",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/Golden/ToolUtility/mutation-create.xml",
+    "before": "a2c139471745e803fab10742420f38b916c614f9b525c45a7a42448ae4b08b1d",
+    "after": "8163874cee62c943d2f5b0d00d1e519358e95f5a0db25ca841254a9f118309dc",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/Golden/ToolUtility/mutation-delete.xml",
+    "before": "715564c82783af95548204dd26ef7bb297635b48f3397a5b9add16d4da8a16a0",
+    "after": "4d388030e7927c0100bdd39c1a266b419198574f545fde8ef85523391103c814",
+    "canonicalTextUnchanged": true
+  },
+  {
+    "path": "ToolUtility.Tests/Golden/ToolUtility/mutation-update.xml",
+    "before": "a2e28b7015e8c2804a88a372f786e6c71f5bafbaf80f360c43a9201a77e234b6",
+    "after": "5d4833ed0de5213afe35191e402fa99a620fb938c5ebeb202fc3ac8e6d6e4e3f",
+    "canonicalTextUnchanged": true
+  }
+]

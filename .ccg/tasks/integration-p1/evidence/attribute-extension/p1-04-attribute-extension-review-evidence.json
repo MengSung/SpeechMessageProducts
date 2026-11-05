@@ -1,0 +1,77 @@
+{
+  "scope": "P1-04 attribute-extension slice only; offline, not full P1 acceptance",
+  "tests": [
+    {
+      "path": "artifacts/p1-04-attribute-extension-final-dual/net10.0/net10.0.trx",
+      "counters": {
+        "total": "395",
+        "executed": "395",
+        "passed": "395",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "artifacts/p1-04-attribute-extension-final-dual/net48/net48.trx",
+      "counters": {
+        "total": "314",
+        "executed": "314",
+        "passed": "314",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "target": "net48",
+      "file": "artifacts/p1-04-attribute-extension-final-coverage/net48/9c4450c3-f023-4b22-960f-b5b689f09392/coverage.cobertura.xml",
+      "lineRate": 0.9936
+    },
+    {
+      "target": "net10.0",
+      "file": "artifacts/p1-04-attribute-extension-final-coverage/net10.0/b4271975-e69b-448c-8609-287bba14f6ac/coverage.cobertura.xml",
+      "lineRate": 1.0
+    }
+  ],
+  "sourceHashes": {
+    "ToolUtility.Core/AttributeOperations/EntityAttributeUtilityService.cs": "777c6e1a848ba49761dd924eb13db80dabdb02a1257d75c1f218918cfd8faf25",
+    "ToolUtility.Core/Interfaces/IEntityAttributeUtilityService.cs": "e59833dfec1541a635725f1589bc52ae9b7cd486506004e4a572c523f3577b74",
+    "ToolUtility.Core/Extensions/OrganizationServiceExtensions.cs": "8c1d63c25c849ff64b88dd7ff810d1d6d724b033d18587fa8938b7ad58bcf4a7",
+    "ToolUtility.Core/EntityOperations/EntityQueryService.cs": "935320c298a4f541d4872d04c56b1b83aa0b127354e543ceeff2bf684fdbb8e2",
+    "ToolUtility.Tests/CoreTargetFrameworkTests.cs": "7ba5f14c0ad355e1f40a6945357f1e61fed82063b0d481b06caa7c81fb26b3b6",
+    "ToolUtility.Tests/DataOperations/AttributeExtensionCharacterizationTests.cs": "346e8c1363c0a73cac60f6e34550c302cff32e4ef6facdf73b665dc23d703298",
+    "ToolUtility.Tests/DataOperations/AttributeExtensionSafetyTests.cs": "efc4e06b8b12aabf934f40db0beedd1e4eab870a8a24fed21d1a76b469820468",
+    "ToolUtility.Core/Constants/CrmEntityColumns.cs": "9d6744a0f07b060027a8c8fa02e2272c63db7d40f31b906b21d3ec8160b48b4d",
+    "ToolUtility.Tests/DataOperations/ColumnContractTests.cs": "4dd9b6de00ee3a16e1645df753ba23864986f443d2c0038aafbdf417b4259b52",
+    "ToolUtility.Tests/Golden/ToolUtility/columns-all.xml": "512885322d6d7c587a62d7bbb0b8cfc00aca47f67e39a19fbb7fa3e459476f02",
+    "ToolUtility.Core/EntityOperations/EntityCrudService.cs": "bb9a8e30c7d2bcddf6248d14ad85d2091897b1b4fedf0f3772e74fe10dea256a",
+    "ToolUtility.Core/OwnerOperations/OwnerManagementService.cs": "b910e9e7c9294305eb4996b90e6edf6ba49d7b17e5858043cbc8e29c9232f60b",
+    "ToolUtility.Tests/DataOperations/MutationOperationsSafetyTests.cs": "52441dc49424da1cf9ca0c8e433ee38e5e59e3332d1c3b403f1bd5188c194cad",
+    "ToolUtility.Core/ToolUtility.Core.csproj": "bd2fb61dc10f78442890bd986404368c44928da65319fb6628d6f51678eff07c",
+    "ToolUtility.Tests/ToolUtility.Tests.csproj": "2b7c08f13f77d1fd073bce02664767faf53cd041e568ed10e3658a3a585a87a8",
+    "wp-reports/P1-04-attribute-extension.md": "8fd5ba7b39efe4f9c198832fbb2a05afcb6f14966c6dcab9d8a48bad4a7f1baa"
+  }
+}

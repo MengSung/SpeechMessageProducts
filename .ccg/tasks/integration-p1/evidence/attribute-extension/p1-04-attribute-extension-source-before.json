@@ -1,0 +1,18 @@
+{
+  "ToolUtility/AttributeOperations/EntityAttributeUtilityService.cs": {
+    "base": "e7f021704a2792bbd6a2540c49b8e59168fced75",
+    "sha256": "5fc5d0e122ae81126d61d5ffd2ee029233d222cf93cd496ca571ad044a7c6ca8"
+  },
+  "ToolUtility/Interfaces/IEntityAttributeUtilityService.cs": {
+    "base": "e7f021704a2792bbd6a2540c49b8e59168fced75",
+    "sha256": "35ba8543de57946bc122c0953e7b719f70bc6424d8b9e2e4e5b82ce473798205"
+  },
+  "ToolUtility/Extensions/OrganizationServiceExtensions.cs": {
+    "base": "e7f021704a2792bbd6a2540c49b8e59168fced75",
+    "sha256": "bf448073b7ad9594922238fecb0fab503ab598987762231f10427e863fc33c3f"
+  },
+  "ToolUtility.Core/EntityOperations/EntityQueryService.cs": {
+    "base": "e7f021704a2792bbd6a2540c49b8e59168fced75",
+    "sha256": "e991fe75326b6cbc73517479c44aefdf91bfe1dad37437c74c241c5eafade21d"
+  }
+}

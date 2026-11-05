@@ -119,7 +119,9 @@ Fee特性4/4、FetchXmlFee特性4/4、XML helper正反例6/6，合計14/14；`ar
 | LessonsService／ILessonsService | 已 git mv 至 Core/LessonsOperations；三查詢完整 golden、lookup／日期／ID／故障／隔離證據 |
 | MeetingStatisticsService／IMeetingStatisticsService | 已 git mv 至 Core/MeetingStatisticsOperations；六查詢完整 golden，保留全部舊欄位／狀態／提示值 |
 | 新共同內部 helper | Core/DataOperations/SdkDataQuery.cs；只建局部 XML／日期與驗頁，不建立連線、通知器或快取 |
-| EntityCrud、Owner、EntityAttributeUtility、OrganizationServiceExtensions、其他純契約 | 仍待必要特性、純化、抽取及審查；**未改判成 host 以縮減交付範圍** |
+| EntityCrud／Owner | 已抽至 Core；7 個搬前特性及安全紅綠、1,000 次 Create＋Assign 並行，Delete 精確例外及 35 處 caller 補證已納入本輪複審 |
+| EntityAttributeUtility／OrganizationServiceExtensions | 三檔已 git mv 至 Core；12 搬前特性、安全 28 紅／3 綠→修後搬前 81 綠；最終雙宿主 314/314、395/395，覆蓋率 99.36%／100%，最終 reviewer 20261105-185904 雙模型無 Critical／High／Warning；完整方案 2056/2056 |
+| 其他純契約及 Operations | 仍依逐型別準入處理；不能把未用 logger、Trace 或可移除的反射診斷依賴當作永久 host 排除理由，也不擴張到其他階段業務重寫 |
 | CrmEntityColumns | 已移至 `ToolUtility.Core/Constants/`；private static templates 加 caller-owned clone getters，完整欄位清單 golden 及 21 組 mutation／並行契約共 23 案通過 |
 | 不可直接搬的既有型別 | 仍依原表逐型別判斷；必須釐清 host 依賴及最小抽取邊界，不帶入反射 logger、cache、連線或背景工作 |
 

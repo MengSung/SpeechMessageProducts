@@ -58,9 +58,9 @@
 - 搬後初輪：`artifacts/p1-04-operations-dual/`，net48 207/207、
   net10 282/282；獨立 coverage 98.78%／100%。
 - 後續只增測試：ByDate 四種故障及三介面 nullability 中繼資料；
-  `artifacts/p1-04-review-proof/` 8/8。最新最終全量結果以
-  `artifacts/p1-04-final-solution-summary.json` 為準：16 TRX、1836/1836，
-  Core 211/211、289/289；不能把前輪數字當最新。
+  `artifacts/p1-04-review-proof/` 8/8。該輪全量結果為
+  `artifacts/p1-04-final-solution-summary.json`：16 TRX、1836/1836，
+  Core 211/211、289/289；這是歷史切片，最新結果另列下方。
 - 所有 10 個 CI coverage 模組／目標：`artifacts/p1-04-ci-all-coverage/`，
   每份獨立且 ≥80%；Core 的最新補測後報告另在 `p1-04-final-core-coverage/`。
 - Debug tracer 7/7、正 TRX 守門、Plugin metadata 10/10、
@@ -69,10 +69,18 @@
   timestamp raw 外模證據依既有規範保留原 bytes。重複掃描未新增。
 - 初次同收 TRX／coverage 產生 attachment 副本，嚴格一份報告守門確實拒絕；
   改用獨立新 coverage run，沒有刪除失敗證據或挑選較佳報告。
-- 本輪抽取後最新 ToolUtility 測試：net48（實載 net462）270/270、
-  net10 350/350；結果分別見 `artifacts/p1-04-current-dual-net48/` 與
-  `artifacts/p1-04-current-dual-net10/`。Core Release strict build 兩目標
-  0 警告／0 錯誤。抽取後新鮮覆蓋率與增量雙模型複審尚待完成。
+- 2026-11-05 18:44 屬性工具與 SDK extension 已抽取，最終新鮮 ToolUtility
+  雙宿主 net48（實載 net462）314/314、net10 395/395，無失敗／略過；
+  `artifacts/p1-04-attribute-extension-final-dual/`。獨立每目標恰一份 Core coverage
+  為 99.36%／100%，`p1-04-attribute-extension-final-coverage/`；strict 雙目標
+  0 警告／0 錯誤，詳細見 `P1-04-attribute-extension.md`。
+- 最新 00 §8 完整方案 Release 建置成功（最後增量 0 警告／0 錯誤；前次舊測試警告保留）；
+  16 TRX、2056/2056、0 失敗／略過，ChurchReport 623/623、架構 67/67。
+  `artifacts/p1-04-attribute-extension-closeout-section8/solution-summary.json`。
+  Debug tracer 7/7 並有正 TRX 守門；第一次呼叫工具參數誤用 Path 已保存失敗日誌，
+  改成正式 ReportPath 後成功，不改測試或驗收斷言。duplicates 28 專案／929 檔、
+  0 group／new／stale；I18nCheck verify 通過。新增未追蹤來源另做 byte check，
+  提交前仍須將明確自有檔暫存後跑正式 changed-scope encoding。
 
 ## 審查與未結事項
 
@@ -81,5 +89,8 @@
 最後補證為 `20261105-135446`。非阻斷 Warning 逐項有處置與產品 SHA 比對證據，
 不是忽略模型意見或把局部審查宣稱為整個 P1-04 完成。
 
+Constants、CRUD／Owner 與屬性／SDK extension 增量補證已完成；最終 run
+`20261105-185904` 完整雙模型、無 quota 降級、無 Critical／High／Warning。
+caller 補證為 35 處靜態盤點的 8 種表名、11 個離線實際委派鏈案例，不是全部業務分支或實機驗收。
 其他候選 Operations、純契約及 Extensions 尚未全部抽取；
 P1-05～12 尚未完成。本輪未操作 VM，也未修改正式實作計畫，不需要 Word 修正報告。
