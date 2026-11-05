@@ -1,0 +1,1 @@
+{"to":"synthetic-recipient","messages":[{"type":"template","template":{"type":"confirm","text":"確認？","actions":[{"type":"message","label":"是","text":"YES"},{"type":"message","label":"否","text":"NO"}]},"altText":"合成確認"}]}

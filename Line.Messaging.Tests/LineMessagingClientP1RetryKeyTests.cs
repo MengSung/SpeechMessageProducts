@@ -15,6 +15,7 @@ using FluentAssertions;
 using Line.Messaging;
 using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using Xunit;
 
@@ -141,8 +142,9 @@ public sealed class LineMessagingClientP1RetryKeyTests
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Requests.Add(request);
-            Bodies.Add(request.Content == null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken));
+            Bodies.Add(request.Content == null ? string.Empty : await request.Content.ReadAsStringAsync());
             return new HttpResponseMessage(_statusCode)
             {
                 Content = new StringContent(_responseBody, Encoding.UTF8, _mediaType)

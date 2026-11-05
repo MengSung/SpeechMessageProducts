@@ -296,6 +296,8 @@ internal sealed class DeploymentEngine
     /// <summary>
     /// 建立本次專用 task，有限等待對應 asyncoperation 與 Plugin trace；成功、斷言失敗、
     /// 逾時或 caller cancellation 都會在 finally 刪除該 task。只查詢此 task 關聯的記錄。
+    /// 首次立即查詢，後續每兩秒重試，總期限維持三分鐘；避免對與正式組織共用的地端主機施加高頻輪詢。
+    /// timeout／linked token 及延遲 timer 都由此操作擁有並確定性釋放，不保留連線或跨命令狀態。
     /// </summary>
     /// <param name="scenario">P0 核准的 trace 或 push 情境。</param>
     /// <param name="ct">呼叫端取消 token。</param>
@@ -330,7 +332,7 @@ internal sealed class DeploymentEngine
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMilliseconds(100), clock, linked.Token).ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromSeconds(2), clock, linked.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (!ct.IsCancellationRequested && timeout.IsCancellationRequested)
                 {

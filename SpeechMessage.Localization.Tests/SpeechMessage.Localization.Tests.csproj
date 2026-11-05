@@ -19,4 +19,8 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <!-- R4 原始碼共用；Framework 測試宿主不啟動 MSBuild 子程序。 -->
+    <Compile Include="../tests-shared/ArchitectureTests/*.cs" Link="ArchitectureTests/%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

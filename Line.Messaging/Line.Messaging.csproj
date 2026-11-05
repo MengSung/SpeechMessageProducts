@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net462;net10.0</TargetFrameworks>
     <Authors>pierre3, kenamanu</Authors>
     <Company></Company>
     <Product>Line Messaging API</Product>
@@ -43,7 +43,7 @@ https://developers.line.biz/en/news/2019/01/
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\net10.0\Line.Messaging.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -53,4 +53,9 @@ https://developers.line.biz/en/news/2019/01/
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
 </Project>

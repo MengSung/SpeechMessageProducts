@@ -1,0 +1,1 @@
+{"to":"synthetic-recipient","messages":[{"type":"text","quickReply":{"items":[{"type":"action","imageUrl":"https://example.invalid/icon.png","action":{"type":"message","label":"選擇","text":"SELECT"}}]},"text":"合成選項"}]}

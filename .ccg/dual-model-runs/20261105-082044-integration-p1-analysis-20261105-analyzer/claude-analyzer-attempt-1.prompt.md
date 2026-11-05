@@ -1,0 +1,382 @@
+ROLE_FILE: C:\Users\Administrator\.claude\.ccg\prompts\claude\analyzer.md
+<TASK>
+# CCG analyzer Task: integration-p1-analysis-20261105
+
+## Repository
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P1.Worktree
+
+## Request
+# 階段 1 全自動實作的雙模型分析（不是實作）
+
+你是 analyzer。只讀 repo 中的程式、測試與需求，不修改任何檔案，不派代理，不連 D365、LINE 或其他外部服務，不讀任何 appsettings、User Secrets、憑證、授權檔或秘密。主代理 inline 實作，沒有 implement/check 子代理。
+
+階段 0 前置已於本日完成：run 20261105-081123-p013-closeout-resume-20261105-reviewer，Gemini／Claude 都完成、無 Critical／High；P0 已封存至 .trellis/tasks/archive/2026-11/11-02-integration-p0。新工作樹基準全方案 1125／1125、Debug tracer 7／7，建置 0 error、1 既有 CS1572。使用者全權授權不再介入，主代理要完整完成 P1，包含必要 goodshepherdback 結構驗收，不碰 production、不發 LINE、不刪既有資料。
+
+請針對下述既定 P1 規格與實際程式給可執行分析：
+- 工作包順序／依賴、實際文件範圍、如何先寫特性或紅燈測試。
+- ToolUtility 抽取哪些型別安全；partial／Facade 有連線、Trace、Logging／Extensions 的 host 依賴時保持 host adapter，不能複製實作。嚴格分析器不得用新的 NoWarn／降規避過。保持舊 API 與命名空間。
+- .NET Framework 產品 net462、測試宿主 net48 的 ProjectReference／套件條件與 reference-output 驗證；CoreAssemblies 與 Dataverse 的 PrivateAssets 型別相依如何正確傳遞。
+- LINE SDK 的 Sender、Background、序列化黃金、Webhook redelivery、固定時間 HMAC；不要改舊 JSON。
+- Localization 五層 fallback 不可被 P0 SystemTextTable 預先展開繁中後備吞掉；提供可辨識原始存在值的方法，保留 P0 公開 GetText 行為。
+- TextContext／TenantId 信任邊界、snapshot metadata、stable row ID、具名參數、qps gate、NFKC 關鍵字、DST invalid／ambiguous fail-closed、Money 的 TWD 0 位是顯示政策（ISO TWD 本身不是 0 minor units）。
+- Tenancy 快取必須完整 validated scope 分區、snapshot 深度不可變，source 假資料 A/B 1000並行；single-flight 可重試、有界 in-flight、caller 取消不可中斷其他 callers、停用／invalidation generation 競態、drain／Dispose 都回基線；真正失敗交共用可注入 notifier，不保留 Exception／HttpContext／connection。
+- Deployment schema 既有 plan／apply／verify API 擴充，新增 metadata-only export、schema 指紋、additive-only、欄位日期契約、alternate key 非同步 Active 驗證、欄位安全性只授權系統管理員、未受管理 solution、idempotency、過期 plan 拒絕及每命令 lease cleanup。
+- DevExpress 來源目前本機 restore 成功但 GitHub 過渡範圍還沒解除；只能用已存在安全設定，不擅改全球 NuGet config 或輸出 feed key。
+- repo 缺少 .其他解決方案/Dynamics365Line 與 LineApiWebhook 參考根目錄；需要舊四方法／Background 等來源時如何證據優先處理，明確區分缺失和阻擋。
+
+請輸出：1. 建議的最小設計與工作包順序；2. Critical/High 風險與對應的具體測試；3. 需修正的已確認矛盾（勿靠猜測）；4. 設計／測試檔案清單。不要把已核定規格當成可隨意更換的功能。
+
+## 既定需求全文
+# 02　階段 1：基礎層與國際化地基
+
+- 分支：`1.0.0.11.Integration.P1`，從階段 0 驗收後的最後提交開出。
+- 估時：12～16 天（國際化＋6～8 天）。
+- 目標：
+  - 補齊共用的基礎能力：LINE SDK 雙目標、D365 資料操作雙目標、租戶設定；
+  - 國際化地基完整可用：字典分層、會友語言、教會時鐘、金額、關鍵字表、教會覆寫快取；
+  - D365 結構（欄位與新實體）能以佈署專案在 goodshepherdback 建立（D22、D25）。
+- 不做：任何業務流程的搬移。那是階段 2 以後的事。
+
+---
+
+## 階段 1 第一批待辦（使用者 2026-11-04 核定）
+
+- **部署 smoke 降低輪詢頻率：** `DeploymentEngine.SmokeAsync` 目前每 100 毫秒輪詢、最多 3 分鐘；goodshepherdback 可能與正式組織共用地端伺服器，頻率過高。階段 1 開始後第一批將間隔改為約 **2 秒**，並補可控時鐘測試，保護輪詢節奏、最多 3 分鐘的逾時、caller 取消與 finally 刪除測試 task；不以真實等待或連線驗證。**P2-04 推播驗收前完成。** 本次僅登錄待辦，不改程式，不提前開始階段 1。
+- DevExpress 套件來源仍依既有核定在階段 1 開始後優先處理；本機 00 §8 維持全方案。
+
+## WP 一覽
+
+| WP | 名稱 | 依賴 |
+|---|---|---|
+| P1-01 | 清理孤兒專案與檔案 | — |
+| P1-02 | 架構測試（R4：相依只能往下） | — |
+| P1-03 | `Line.Messaging` 改雙目標＋Sender、Background、webhookEventId、redelivery | P1-02 |
+| P1-04 | 拆出 `ToolUtility.Core`（雙目標）＋補 4 個方法＋product 參數化 | P1-02 |
+| P1-05 | `SpeechMessage.Localization` 完整版 | 階段 0 |
+| P1-06 | 教會時鐘 `IChurchClock`（含 .NET Framework 的 IANA→Windows 對照） | P1-05 |
+| P1-07 | `Money` 與格式化 | P1-05 |
+| P1-08 | 教會覆寫快照快取（`ChurchTextOverrideCache`，放在 Tenancy） | P1-05、P1-04、P1-10 |
+| P1-09 | I18nCheck 第二版：完整 resx 檢查、長度上限、en 完成度報告 | P1-05 |
+| P1-10 | `SpeechMessage.Tenancy`＋`ILineChannelResolver`（取代 9 份複製）；建議先於 P1-08 完成 | P1-04 |
+| P1-11 | 佈署專案加入結構指令（`SpeechMessage.Dynamics.Deployment`） | P1-04、P0-12 |
+| P1-12 | 使用者驗收：在 goodshepherdback 以佈署專案建立結構 | P1-11 |
+
+---
+
+## P1-01　清理孤兒專案與檔案
+
+**對象**（逐一確認「沒有任何 .sln 或 csproj 參考」才刪除，以 `rg` 搜尋檔名與專案名）
+
+| 對象 | 處理 |
+|---|---|
+| `Trace\Trace.csproj`、`Trace_Fixed.csproj`、`Trace_Net10.csproj` 與其原始碼 | 若 ChurchReport 或 ToolUtility 仍以 `<Compile Include>` 或 `ProjectReference` 使用，**停止並回報**；否則刪除 |
+| `Line.Messaging\Line.Messaging_Net10.csproj`、`LineMessagingProcessor\LineMessagingProcessor_Net10.csproj` | 刪除（同資料夾雙 csproj 會造成 obj 衝突） |
+| `LinePayCSharp\` | 刪除（決定 D17：不移植 LINE Pay） |
+| `SpeechMessage.Dynamics.Crm82Worker*`、`SpeechMessage.Dynamics.Crm91Worker*` | 只剩 `packages.lock.json` 時刪除 |
+| `ChurchReport.Tests\PerformanceTests\*.cs`（沒有 csproj） | 搬進 `ChurchReport.MemberInfo.Tests\Performance\`，並標 `[Trait("Category","Performance")]`；若編不過，**停止並回報**，不要刪除 |
+| `ToolUtility.Tests` | 加入 .sln（P1-04 會改為雙目標） |
+
+**先寫的測試：** `Find-DuplicateCode.ps1` 與建置。刪除前後跑一次，確認重複數只減不增，建置與測試結果不變。
+
+**回報：** 列出刪除清單與每一項「無人參考」的搜尋證據。
+
+---
+
+## P1-02　架構測試（R4）
+
+**新增** `tests-shared\ArchitectureTests\`，以原始碼連結方式放進 `SpeechMessage.Localization.Tests`（net10 目標）。階段 2 再搬到 `SpeechMessage.Hosting.Tests`。
+
+**做法**：讀取 .sln 內每個 csproj（XML），檢查以下規則：
+- 雙目標產品專案（`TargetFrameworks` 含 `net462`）只能參考同時提供 `net462` 的雙目標專案；不能參考 `Microsoft.Extensions.*`、`Microsoft.AspNetCore.*`、`Microsoft.PowerPlatform.Dataverse.Client`。
+  - 例外：`ToolUtility.Core` 的 net10 目標可以參考 `Microsoft.PowerPlatform.Dataverse.Client`，只為了取得 `Microsoft.Xrm.Sdk` 型別。
+- net462 Plugin／Workflow 專案只能參考含 net462 目標的雙目標專案；沙箱組件及合併輸入不可高於 v4.6.2（使用者依 D21 於 2026-11-04 核定）。測試執行器可用 net48，但須驗證它引用的是 net462 產品輸出；net48 不得作為部署產品目標。
+- 層級規則依 00 第 3.4 節：每個專案標一個層級，參考只能往下。
+- 主機（ChurchReport、LineWebhook）之間不互相參考。
+
+**先寫的測試：** 每條規則一個測試，並各附一組「故意違規的 csproj 範例」字串，證明規則會擋下。
+
+---
+
+## P1-03　`Line.Messaging` 改雙目標
+
+**現況：**
+- `Line.Messaging` 有 155 個檔案，使用 Newtonsoft（26 個檔案），沒有使用 `record`、`init`、`Span`、`ValueTask` 等 .NET 10 專屬語法；
+- `ImplicitUsings=disable`；
+- 主方案**沒有** `Sender` 型別。
+
+**步驟**
+
+1. **先鎖行為：** 在 `Line.Messaging.Tests` 為主要訊息型別加黃金測試，把序列化結果和既有黃金 JSON 比對。
+   - 型別：Text、Flex、Template、Image、QuickReply、RichMenu 請求；
+   - 黃金檔由目前的 net10 版本產生；
+   - 改雙目標後，兩個目標都必須產生**逐字相同**的 JSON。
+2. **改雙目標：** `TargetFrameworks=net462;net10.0`。
+   - .NET Framework 缺的 API 用 `src-shared\Polyfills` 或 `#if NETFRAMEWORK` 處理；避免只檢查 `NET48`，因 net462 不會定義該符號；
+   - **若需要 `#if` 的檔案超過 30 個，停止並回報**，可能改為「只把 Plugin 需要的訊息型別抽成小專案」。
+3. **補型別：**
+   - `Messages\Sender\Sender.cs`：參考 `.其他解決方案\Dynamics365Line\Line.Messaging\Messages\Sender\Sender.cs`，舊檔的 XML 註解是從 Block Style 複製的錯誤內容，要重寫。
+     - `Name` 長度 1～20，建構時驗證，超過丟 `ArgumentException`；
+     - `IconUrl` 必須是 https。
+   - `Flex\Style\Background.cs`（同一份舊檔來源，需重寫註解）。
+   - Webhook 模型補 `WebhookEventId`、`DeliveryContext.IsRedelivery`。
+4. **驗簽：**
+   - 既有 `Webhooks\WebhookRequestMessageHelper.VerifySignature` 吃 `HttpRequestMessage`，保留；
+   - 新增與傳輸無關的 `LineSignature.Verify(byte[] body, string signatureHeader, string channelSecret)`：HMAC-SHA256 加固定時間比較，net462 自行實作固定時間比較；
+   - ASP.NET Core 端在階段 3 使用。
+
+**先寫的測試**
+- `Serialize_AllMessageTypes_MatchGolden`：兩個目標都跑。
+- `Sender_NameLongerThan20_Throws`、`Sender_HttpIconUrl_Throws`、`Sender_Serializes_NameAndIconUrl`
+- `Background_LinearGradient_Serializes`
+- `WebhookEvent_Deserialize_ReadsWebhookEventIdAndRedelivery`：使用 LINE 官方文件格式的樣本 JSON。
+- `Signature_Valid_ReturnsTrue`、`Signature_Tampered_ReturnsFalse`、`Signature_EmptySecret_Throws`
+
+---
+
+## P1-04　拆出 `ToolUtility.Core`（雙目標）
+
+**目標：** 把「只依賴 `IOrganizationService` 與 `Microsoft.Xrm.Sdk`」的資料操作，從 `ToolUtility`（net10）拆到 `ToolUtility.Core`（net462;net10.0）。Plugin 與網站共用同一份。
+
+**步驟**
+
+1. **盤點：**
+   - 列出 `ToolUtility` 下以下位置的每個型別：
+     - `ToolUtilityPartials\*.cs`；
+     - `*Operations\` 資料夾：`ActivityOperations`、`AppointmentOperations`、`AttachmentOperations`、`AttributeOperations`、`CollectionOperations`、`ContactOperations`、`EntityOperations`、`FeeOperations`、`LessonsOperations`、`ListOperations`、`MeetingStatisticsOperations`、`OwnerOperations`、`QueryOperations`；
+     - `Core\`、`Extensions\`、`Constants\`。
+   - 逐一標記「可搬」或「不可搬」。
+     - **不可搬的條件：** 使用 `Microsoft.Extensions.*`、`ServiceClient`、`HttpClient`、`IMemoryCache`、檔案系統、`ILogger`，或任何 net10 專屬 API。
+   - 盤點結果寫成 `wp-reports\P1-04-inventory.md`。
+2. **新增專案：** `ToolUtility.Core\ToolUtility.Core.csproj`，雙目標、`SpeechMessageStrictCode=true`。
+   - **SDK 參考：** net462 用 `Microsoft.CrmSdk.CoreAssemblies`，net10 用 `Microsoft.PowerPlatform.Dataverse.Client`；兩者都設 `PrivateAssets=all`。
+   - **命名空間：** 維持 `ToolUtilityNameSpace`，ChurchReport 的呼叫在原始碼層級不用改。
+3. **搬移：**
+   - 用 `git mv` 保留歷史，一次搬一個資料夾；
+   - 搬完 `ToolUtility` 參考 `ToolUtility.Core`。
+4. **補 4 個方法**（設計 13.1 節，來源是 `.其他解決方案\LineApiWebhook\ToolUtility`），補在 `ToolUtility.Core` 對應的 Operations：
+   - `GetNotYetPaidFee`、`GetPaidFee`、`RetrieveFeeByFetchXmlOrderNumber`（FeeOperations）；
+   - `RetrieveEntityNoCache`（EntityOperations）。
+   - FetchXML 的參數必須用 `SecurityElement.Escape` 或 `XElement` 組裝，不得字串串接未跳脫的值。
+5. **product 參數化：**
+   - `ToolUtility\DependencyInjection\ServiceCollectionExtensions.cs` 第 79 行寫死 `"ChurchReport"`。
+   - 改為 `AddToolUtility(this IServiceCollection services, IConfiguration configuration, string product)`；
+   - 保留舊多載，呼叫新多載並傳 `"ChurchReport"`，ChurchReport 行為不變；
+   - 舊多載標 `[Obsolete]`，說明階段 6 移除。
+6. **`ToolUtility.Tests`：** 改為雙目標，加入 .sln。
+
+**先寫的測試**
+
+在搬移之前就寫好，並在搬移前的程式上先跑綠一次，作為特性測試：
+- 用 Moq 假造 `IOrganizationService`，為每個要搬的 Operations 選 2～3 個代表方法，斷言送出的 `QueryExpression`／FetchXML 與回傳轉換。
+  - 斷言字串用黃金檔 `Golden\ToolUtility\*.xml`，**測試資料全部是假資料**。
+- 4 個新方法各至少 3 個測試，其中一個測 FetchXML 參數含 `<`、`&`、`"` 會被正確跳脫。
+- `AddToolUtility_ProductParameter_PartitionsConnectionKey`：不同 product 產生不同的 `DataverseConnectionKey`。
+- `AddToolUtility_LegacyOverload_UsesChurchReport`
+
+**驗證：**
+- 兩個目標的測試都過；
+- ChurchReport 建置與既有測試不變；
+- 架構測試通過；
+- `Find-DuplicateCode` 不增加。
+
+**停止條件：** 盤點發現某個 Operations 同時被 ChurchReport 以非 `IOrganizationService` 的方式（例如直接用 `ServiceClient` 屬性）大量使用。列出清單，請使用者決定拆分方式。
+
+---
+
+## P1-05　`SpeechMessage.Localization` 完整版
+
+依附錄 C.1 的介面實作，補齊階段 0 骨架以外的部分。
+
+| 元件 | 規格要點 |
+|---|---|
+| `ITextCatalog.GetText(TextContext ctx, TextKey key, params TextArg[] args)` | `TextContext`＝教會 ID、文字語系、格式語系，由伺服器端建立，不接受呼叫端隨意傳教會 ID。依設計 5.2 節五層解析：教會覆寫(語系) → 教會覆寫(`*`) → 系統字典(語系) → 父語系/別名 → zh-TW；依使用者 2026-11-03 核定（CA1716）。 |
+| 參數 | 具名參數 `{name}`。缺參數或多參數都丟 `FormatException`（CI 會先擋）。參數值先依格式語系格式化 |
+| `IMemberCultureResolver.Resolve(MemberLanguagePreference pref, ChurchLocaleSettings church)` | 純函式。偏好在教會「已啟用且已開放」的語系內就用；否則用教會預設；再否則 zh-TW。`en` 在 `ReleasedCultures` 未列入前一律視為不支援。`qps-ploc` 只有 `AllowPseudoLocale=true` 時有效 |
+| `IKeywordCatalog.Match(string culture, IReadOnlyList<string> churchCultures, string input)` | 依設計 6.2 節：NFKC 正規化、去頭尾空白、合併空白、拉丁字母 `ToLowerInvariant`；比對順序為會友語系 → 教會其他啟用語系 → zh-TW；回傳意圖代碼 |
+| `SharedText.resx`、`SharedText.en.resx` | en 只放既有英文關鍵字（決定 I10） |
+| `LocalizationOptions` | `ReleasedCultures`（預設只有 `zh-TW`）、`AllowPseudoLocale`（預設 false）。正式環境設定若出現 `qps-ploc` 或 `AllowPseudoLocale=true`，主機啟動時丟例外拒絕啟動（階段 2 的 Hosting 會呼叫驗證） |
+
+**先寫的測試**（含教會覆寫的部分以假的 `IChurchTextOverrideSource` 測）
+- **解析順序：** 5 層各一個測試，外加「全部沒有」丟例外。
+- **參數：**
+  - `Format_NamedParameters_Replaced`、`Format_MissingParameter_Throws`；
+  - `Format_DateParameter_UsesFormatCulture`：格式語系 en-US 對照 zh-TW，日期字串不同。
+- **語言決定：**
+  - `Resolve_PreferenceEnabledAndReleased_UsesPreference`；
+  - `Resolve_EnNotReleased_FallsBackToChurchDefault`；
+  - `Resolve_PseudoWhenNotAllowed_FallsBack`；
+  - `Resolve_LanguageNeverChangesChurch`（R8）：同一個 `TextContext`，改語言後教會 ID 不變。
+- **關鍵字：**
+  - `Keyword_FullWidthAndSpaces_Normalized`、`Keyword_EnglishCaseInsensitive`；
+  - `Keyword_ChineseAlwaysWorksForEnglishMember`；
+  - `Keyword_ConflictInSameCulture_ThrowsAtBuild`。
+- **並行：** `Catalog_ConcurrentDifferentChurches_NoCrossTalk`。A、B 兩間教會各有不同覆寫，並行 1,000 次，結果不混。
+
+---
+
+## P1-06　教會時鐘 `IChurchClock`
+
+- **介面：**
+  - `UtcNow`；
+  - `ToChurchTime(DateTime utc, string ianaTimeZoneId)`；
+  - `TodayInChurch(string ianaTimeZoneId)`；
+  - `ToUtc(LocalDateTimeOfChurch local)`。
+- **net10：** 直接用 `TimeZoneInfo.FindSystemTimeZoneById(iana)`。主機啟動時檢查 ICU 模式，不是 ICU 就拒絕啟動（設計附錄 E.5）。
+- **net462（D365 沙箱使用的 .NET Framework 目標）：**
+  - 以內建對照表把 IANA 換成 Windows 時區 ID；
+  - 對照表 `IanaWindowsZones.g.cs` 由 `tools\I18nCheck generate-timezones --cldr <windowsZones.xml>` 產生；
+  - CLDR 版本號寫在檔頭註解，原始 XML 存在 `tools\I18nCheck\data\windowsZones.xml`。
+- **時間來源：** 以 `TimeProvider` 抽象。net462 沒有 `TimeProvider`，自行定義 `IClock`，兩個目標共用。
+
+**先寫的測試**（兩個目標都跑，結果必須相同）
+- `Taipei_NoDst_Plus8`
+- `London_DstStart_2027_03_28`、`London_DstEnd_2027_10_31`
+- `LosAngeles_DstStart_2027_03_14`
+- `Birthday_DateOnly_NeverShiftsDay`
+- `UnknownIana_Throws`
+- `NetFrameworkMapping_CoversAllSupportedChurchTimeZones`：在 net462 產品目標及 net10.0 目標測試 Asia/Taipei、Asia/Hong_Kong、Asia/Singapore、Asia/Kuala_Lumpur、Europe/London、America/Los_Angeles、America/New_York、Australia/Sydney。測試執行器若為 net48，仍須確認載入的產品組件是 net462。
+
+---
+
+## P1-07　`Money` 與格式化
+
+- `readonly struct Money(decimal Amount, string Currency)`：
+  - 幣別只接受白名單（第一版：TWD、HKD、SGD、MYR、USD、GBP、AUD）；
+  - 小數位依 ISO 4217（TWD 顯示 0 位、USD 2 位）。
+- `IMoneyFormatter.Format(Money m, CultureInfo formatCulture)`：格式語系只決定符號與分隔，不改幣別。
+
+**先寫的測試：**
+- `Twd_NoDecimals`、`Usd_TwoDecimals`；
+- `Format_EnUsCulture_KeepsTwdCurrency`（R8）；
+- `UnknownCurrency_Throws`；
+- `Add_DifferentCurrencies_Throws`。
+
+---
+
+## P1-08　教會覆寫快照快取
+
+- **`IChurchTextOverrideSource`**（雙目標介面）：讀一間教會的全部覆寫，回傳 `IReadOnlyList<ChurchTextOverride>`。
+  - D365 實作放在 `ToolUtility.Core\Localization\`，查 `new_localizedtext`，條件 `new_accountid = 教會 ID`。
+- **`ChurchTextOverrideCache`**（net10，放在 `SpeechMessage.Tenancy`）：
+  - 它用到 `MemoryCache`，屬於 `Microsoft.Extensions.*`，雙目標的 Localization 不能參考，所以放在 net10 的租戶層；
+  - 它實作 Localization 定義的 `IChurchTextOverrideSnapshotProvider` 介面；
+  - 「改字時間輪詢」背景服務在階段 2 放進 `SpeechMessage.Hosting`。
+
+  規格依設計 5.5 節：
+
+| 項目 | 規格 |
+|---|---|
+| 鍵 | 教會 ID＋異動時間（`new_textchangedon`） |
+| 載入 | 同一教會同時只載入一次（single-flight，以 `Lazy<Task<T>>`＋`ConcurrentDictionary`，失敗時移除，避免永久卡住失敗） |
+| 發布 | 全部讀完並驗證通過才替換；驗證失敗（重複的 key＋語系、key 不存在於系統字典、參數不一致、超過長度上限）時保留舊快照並告警（fail closed） |
+| 上限與釋放 | `MemoryCache` SizeLimit 2,000、閒置 30 分鐘、最長 10 分鐘重讀；教會停用時移除 |
+| 隔離 | 快取鍵一定含教會 ID；呼叫端不能傳入任意教會 ID 查別人的快照（只接受 `TextContext`） |
+| 不保存 | 不含個資、Token、`HttpContext`、D365 連線物件 |
+
+**先寫的測試**
+- `Load_SameChurchConcurrently_SourceCalledOnce`
+- `Load_SourceThrows_NextCallRetries`
+- `Publish_DuplicateKeyCulture_KeepsOldSnapshot`、`Publish_UnknownKey_KeepsOldSnapshot`
+- `Invalidate_TextChangedOnAdvanced_RebuildsOnlyThatChurch`
+- `Cache_ABChurchesParallel_NoLeak_CountsReturnToBaseline`：AGENTS.md 要求的 A／B 並行與資源回到基線。
+- `Snapshot_ReturnedCollectionsAreImmutable`
+
+---
+
+## P1-09　I18nCheck 第二版
+
+補上設計 5.7 節其餘的檢查：
+
+| 檢查 | 失敗條件 |
+|---|---|
+| key 一致 | 任一語系出現 zh-TW 沒有的 key |
+| 參數一致 | 同一 key 在不同語系的參數名稱集合不同 |
+| key 唯一 | 不同 `.resx` 之間 key 重複 |
+| 長度上限 | `Line.Sender.Template` 套用最長教會名稱（設定檔 `tools\I18nCheck\limits.json`）後 > 20 字；`RichMenu.ChatBar.*` > 14 字；偽語系套用後同樣檢查 |
+| 關鍵字衝突 | 同一語系內，或教會可能同時啟用的語系之間，同一關鍵字對到不同意圖 |
+| en 完成度 | 只輸出 `en 完成度 xx%` 報告，不失敗 |
+
+**先寫的測試：** 每條檢查都要有「通過」與「失敗」兩個樣本的測試。
+
+---
+
+## P1-10　`SpeechMessage.Tenancy`＋`ILineChannelResolver`
+
+- **現況：** `LineMessaging:{org}:ChannelAccessToken ?? "Jesus"` 的解析鏈複製了 9 份。位置以 `rg "ChannelAccessToken"` 確認，設計記錄的位置如下：
+  - `LineMessagingProcessorClass.cs:114`、`Startup.cs:558`、`LineExceptionSender.cs:33`；
+  - `PaymentNotificationService.cs:318`、`MemberInfoController.cs:998`、`DonationPaymentManager.cs:238`；
+  - `LineUtilityClass.cs:64`、`DonationFeePaymentProcessor.cs:224`、`PersonalQrCodeUtility.cs:119`。
+- **新增** `SpeechMessage.Tenancy`（net10）：
+  - `ILineChannelResolver.Resolve(TenantId tenant)`：回傳 `LineChannelCredential` 與 ChannelId；
+  - `ITenantSettingsProvider`：教會語系、時區、國家、幣別、品牌名稱。
+  - **本階段的資料來源：**
+    - 設定檔維持現有鍵，行為與 `?? "Jesus"` 相同；
+    - **預設值 `"Jesus"` 的後備保留**，但記錄告警，階段 2 改由 `new_linechannel` 提供。
+- 9 處呼叫全部改用 `ILineChannelResolver`。
+
+**先寫的測試**
+- `Resolve_ConfiguredOrg_ReturnsThatToken`
+- `Resolve_MissingOrg_FallsBackToJesusAndLogsWarning`：先鎖舊行為。
+- `Resolve_TwoTenantsParallel_NoCrossTalk`
+- `ChurchReport_AllNineCallSites_UseResolver`：架構測試，以 `rg` 規則掃描不得再出現 `ChannelAccessToken"] ??`。
+
+---
+
+## P1-11　佈署專案加入結構指令（`SpeechMessage.Dynamics.Deployment`，D22、D25）
+
+**為什麼用佈署專案而不是手動建：** 欄位多、名稱容易打錯；佈署專案可以重複執行（idempotent）、先 plan 預覽，結果可比對、可回復。v3.2 的 `tools\D365Provisioning` 不再建立，功能併入 P0-12 的佈署專案（附錄 G）。
+
+- **輸入：** `d365\schema\speechmessagecore.schema.json`，內容依附錄 A。
+- **連線與白名單：** 沿用 P0-12：帳密只從 User Secrets 或 Windows 認證管理員讀取；`Deployment:AllowedOrganizations` 預設只有 goodshepherdback。
+- **新增指令：**
+  - `export-metadata --org`：匯出組織的結構（實體、欄位、訊息篩選器、現有步驟）到 `d365\snapshots\{組織}\`，只有定義、沒有任何業務資料；Codex 在使用者回報清理完成後可以執行（D24）；
+  - `plan`、`apply --plan`、`verify` 擴充到結構：只做新增，不刪、不改既有欄位型別；
+  - 建立的元件都登記到未受管理解決方案 `SpeechMessageCore`（不使用受管理解決方案，D25）。
+- **建立的內容：**
+  - 既有實體的新欄位：Account 5 個、Contact 2 個；
+  - 新實體：`new_localizedtext`、`new_linechannel`、`new_outboundtask`、`new_offeringcategory`；
+  - 替代索引鍵（alternate key），以及加入解決方案 `SpeechMessageCore`（發行者前綴 `new`）。
+- **日期欄位：** 一律依附錄 A 指定的行為建立。**不得修改既有欄位的行為**（不可逆，設計 7.5 節）。
+
+**先寫的測試**（L1，不連 D365）：
+- 以假的 `IOrganizationService` 與 `d365\snapshots\goodshepherdback\` 的結構快照測 `plan` 的輸出（快照不存在時只用假結構，並在回報註明）：
+  - 已存在的欄位不重複建立；
+  - 型別不符時回報衝突並停止，不自動修改；
+  - 非白名單組織拒絕執行。
+- `apply` 對同一份 schema 執行兩次，第二次沒有任何寫入。
+- 日期欄位的行為與附錄 A 一致；既有欄位的行為不被修改。
+- `export-metadata` 的輸出不含任何記錄資料（只有中繼資料）。
+
+---
+
+## P1-12　使用者驗收（停下來等使用者）
+
+**Codex 先寫好** `文件\規劃設計書\實作計畫-3.3\驗收\P1_D365結構建立步驟.md`，內容依序如下（寫入指令由使用者執行，D24）：
+1. 在 goodshepherdback 執行 `plan`，審核 plan 檔（Codex 在清理完成後也可以先執行 plan 並附上結果）。
+2. 確認後執行 `apply --plan <檔案>`。
+3. 執行 `verify`，結果應為無差異。
+4. 在 D365 後台確認元件都登記在未受管理解決方案 `SpeechMessageCore`；需要備份時匯出未受管理解決方案，存到 `artifacts\d365\`（已在 `.gitignore`，另行保存）。
+5. 在 D365 介面建一筆 `new_localizedtext`（測試教會、`Org.Level.Group`、`*`、細胞小組），確認替代索引鍵阻擋第二筆相同資料；測試完刪除。
+
+---
+
+## 階段 1 完成判準
+
+- **工作包：** P1-01～P1-11 通過驗證並提交；P1-12 使用者回報成功。
+- **測試：** 新專案覆蓋率 ≥ 80%，兩個目標的測試結果一致。
+- **既有行為：** ChurchReport 既有測試不變，行為不變（`"Jesus"` 後備保留）。
+- **自動檢查：** `I18nCheck verify` 通過；新專案中文字串常值為 0。
+- **審查：** 外部審查沒有未處理的 Critical／High。
+
+
+## Required Recovery Behavior
+- Run through the self-healing CCG entrypoint, not direct Gemini/Claude commands.
+- If Gemini, Claude, or codeagent-wrapper fails before usable output, repair local toolchain issues and retry.
+- Preserve prompts, stdout, stderr, health reports, and summary files under .ccg/dual-model-runs.
+- If provider quota/session blocks one backend, classify it as degraded fallback only when -AllowSingleModelWhenQuotaBlocked is enabled and the other backend produced usable output.
+</TASK>
+OUTPUT:
+- Use Traditional Chinese when possible.
+- Return concrete findings and decisions.
+- For reviewer role, classify findings as Critical / Warning / Info.
+- If the task cannot be completed, explain the exact blocker.

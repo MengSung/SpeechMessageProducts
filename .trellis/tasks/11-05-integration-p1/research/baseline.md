@@ -1,0 +1,3 @@
+# P1 基準與分析
+P0前置補審dualModelComplete=true，提交2edc3470/cb932c01。全方案Release1125/1125、ChurchReport596/596、Debug7/7；ToolUtility孤兒63/63。Build0error，既有CS1572一項。duplicates26projects879files0new；encoding536files0issues；I18nCheck通過。原始logs在ignored artifacts/p1-bootstrap-20261105。
+Gemini分析重點：NETFRAMEWORK目標隔離、P0預展開fallback、schema不可逆日期、singleflight失敗重試、XMLescape與固定時間HMAC。Claude分析尚執行，controller待收取，不宣稱雙模型完成。舊參考來源現已找到父工作樹，唯讀。

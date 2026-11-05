@@ -1,0 +1,20 @@
+{
+  "id": "integration-p1",
+  "title": "階段 1 基礎層與國際化地基",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "inline完成首批smoke、P1-01/02並逐包接續P1-03~12",
+  "createdAt": "2026-11-05",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "trellisTask": ".trellis/tasks/11-05-integration-p1",
+  "authorization": "使用者全權授權完整自動完成 P1；不逐步詢問。",
+  "constraints": [
+    "inline，不派implement/check子代理",
+    "不push/merge/正式部署",
+    "VM預設只讀，測試寫入須確認隔離/備份/復原",
+    "產品net462;net10.0，不降低守門"
+  ]
+}

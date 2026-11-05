@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net48;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -14,13 +17,22 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Condition="'$(TargetFramework)' == 'net10.0'" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
-    <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" Condition="'$(TargetFramework)' == 'net10.0'" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Golden/*.json" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <!-- 此檔保護 net10 主機的設定來源；SDK 的全部既有端點與模型案例在兩個宿主都執行。 -->
+    <Compile Remove="LineMessagingProcessorCredentialTests.cs" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 </Project>

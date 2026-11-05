@@ -684,7 +684,7 @@ public sealed class DeploymentContractTests
         using var f = new Fixture(); f.Service.Trace = null;
         Assert.False(await f.Engine.SmokeAsync("p0-ping-trace", CancellationToken.None));
         Assert.True(f.Service.TraceQueryCount > 1);
-        Assert.Equal(2, f.Clock.DelayCount);
+        Assert.Equal(90, f.Clock.DelayCount);
         Assert.Empty(f.Service.Rows.Where(x => x.LogicalName == "task"));
         Assert.Single(f.Service.Writes.Where(x => x == "Delete:task"));
         Assert.Equal(0, f.Clock.ActiveTimers);
@@ -1395,23 +1395,29 @@ internal sealed class AdvancingClock : TimeProvider
     public int ActiveTimers { get; private set; }
     /// <summary>記錄虛擬輪詢次數，避免 timeout 案例在第一次查詢前就被取消。</summary>
     public int DelayCount { get; private set; }
+    /// <summary>只保留本案例最多九十次輪詢的間隔；非共享集合，案例結束即釋放。</summary>
+    public List<TimeSpan> ObservedDelays { get; } = new();
+    /// <summary>在建立短延遲時注入正常 caller 取消；委派僅屬本 fixture，不跨測試持有。</summary>
+    public Action? OnDelay { get; set; }
     /// <summary>回傳固定起點加上假延遲。</summary><returns>UTC 時點。</returns>
     public override DateTimeOffset GetUtcNow() => now;
     /// <summary>單調時間使用同一假時間，不讀硬體計時器。</summary><returns>tick 數。</returns>
     public override long GetTimestamp() => now.Ticks;
     /// <summary>固定 tick 頻率配合單調時間。</summary>
     public override long TimestampFrequency => TimeSpan.TicksPerSecond;
-    /// <summary>長期限先排程；短輪詢等待快轉兩分鐘並執行所有已到期的一次性回呼。</summary>
+    /// <summary>長期限先排程；短輪詢等待按要求的實際間隔快轉並執行所有已到期的一次性回呼。</summary>
     /// <param name="callback">延遲的單次完成回呼。</param><param name="state">延遲 owner 的狀態。</param><param name="dueTime">模擬延遲。</param><param name="period">不得重複。</param><returns>由等待者釋放的 timer。</returns>
     public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
     {
         var timer = new OwnedTimer(this, callback, state, dueTime);
         timers.Add(timer);
         ActiveTimers++;
-        if (dueTime <= TimeSpan.FromSeconds(1))
+        if (dueTime <= TimeSpan.FromSeconds(2))
         {
             DelayCount++;
-            now += TimeSpan.FromMinutes(2);
+            ObservedDelays.Add(dueTime);
+            now += dueTime;
+            OnDelay?.Invoke();
             foreach (var scheduled in timers.ToArray())
             {
                 scheduled.FireIfDue(now);
