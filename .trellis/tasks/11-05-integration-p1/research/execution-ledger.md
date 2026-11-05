@@ -230,3 +230,12 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 ## 2026-11-05 20:45 Attachment提交前範圍驗證
 - Attachment已保存完整離線2272回歸、雙宿主413/512及99.48%/100%。末端審查Claude週額度、Gemini單模型降級；完整Changed編碼只被非本切片p013任務索引缺檔尾CRLF阻擋，自有40文字0問題，保留外部索引不改、不混入提交。P1仍2/12，接續Activity及其餘候選。
 - 完整Changed775 checked/736 raw excluded/1個非本切片索引問題；以未修改repo byte-validator驗40自有文字全過，沒有弱化原守門，不宣稱完整Changed成功。
+
+## 2026-11-05 21:00 Activity原host基準
+- Attachment已本地提交31ab8cea、完整2272回歸通過；Activity原host六特性已綠（含前綴不Clear、兩組SetState/default與external SDK），204755分析為Gemini單模型週額度降級。已核實跨表GUID覆寫及部分ArrayList發布風險，安全紅綠待做，Activity產品未改／未搬。P1仍2/12。
+- Gemini建議先Clear再AddRange不採用，因原正常契約是append且新特性已鎖前綴。兩ArrayList不能跨物件原子swap，caller獨占界線需明確；不能假稱已修或以泛型新API代替舊路徑。
+- CoreTargetFrameworkTests僅校正XML文件的附件nullable說明，執行碼不變；net10九案及net48一案綠。
+
+## 2026-11-05 21:02 Activity準備再驗
+- Activity六特性原host已綠，最新完整方案16TRX2278/2278、ToolUtility413/518、ChurchReport623；205806特性review為Gemini單模型降級且無新Critical/High/Warning。產品尚未修／搬，分析已核實跨表GUID覆寫與部分發布風險，安全紅綠為下一步；主P1仍2/12。Attachment已保存31ab8cea。
+- 分析／review raw與ZIP/SHA、原產品未變SHA保存在evidence/activity-preparation；主P1不封存。

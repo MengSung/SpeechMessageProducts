@@ -1,0 +1,1 @@
+You've hit your weekly limit · resets Nov 7, 4pm (Asia/Taipei)

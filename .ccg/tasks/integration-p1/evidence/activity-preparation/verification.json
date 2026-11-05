@@ -1,0 +1,29 @@
+{
+  "characterization": 6,
+  "combinedActivityAndTargetNet10": 15,
+  "targetNet48": 1,
+  "solutionReports": 16,
+  "solutionPassed": 2278,
+  "solutionFailed": 0,
+  "solutionSkipped": 0,
+  "toolUtilityNet48": 413,
+  "toolUtilityNet10": 518,
+  "productUnchanged": true,
+  "analysisAndReview": {
+    "dualModelComplete": false,
+    "quotaBlocked": true,
+    "degradedFallback": true,
+    "completed": [
+      "gemini"
+    ],
+    "blocked": [
+      "claude"
+    ],
+    "baselineReviewCriticalHighWarning": 0,
+    "analysisIdentifiedExistingCriticalRisks": [
+      "Cross-table GUID overwrite",
+      "Partial caller-list publication"
+    ]
+  },
+  "status": "Preparation only; security red/green and move are pending. P1 remains 2/12. No D365/LINE/VM."
+}

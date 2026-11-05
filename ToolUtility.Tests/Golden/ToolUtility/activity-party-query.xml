@@ -1,0 +1,13 @@
+<queries>
+  <query entity="contact" all-columns="true" columns="0">
+    <condition field="contactid" operator="In">
+      <id>11111111-1111-1111-1111-111111111111</id>
+      <id>33333333-3333-3333-3333-333333333333</id>
+    </condition>
+  </query>
+  <query entity="systemuser" all-columns="true" columns="0">
+    <condition field="systemuserid" operator="In">
+      <id>22222222-2222-2222-2222-222222222222</id>
+    </condition>
+  </query>
+</queries>

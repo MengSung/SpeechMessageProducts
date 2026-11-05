@@ -1,0 +1,71 @@
+[
+  {
+    "name": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "colorScheme": "light",
+    "passed": true,
+    "layout": {
+      "viewport": 1440,
+      "documentWidth": 1440,
+      "overflow": [],
+      "counts": [
+        "0/12 驗收、0 進行中、12 未開始",
+        "0/9 驗收、0 進行中、9 未開始",
+        "0/6 驗收、0 進行中、6 未開始",
+        "0/13 驗收、0 進行中、13 未開始",
+        "0/6 驗收、0 進行中、6 未開始",
+        "0/2 驗收、0 進行中、2 未開始",
+        "0/5 驗收、0 進行中、5 未開始"
+      ]
+    },
+    "keyboard": "Enter/Space passed",
+    "pageErrors": 0
+  },
+  {
+    "name": "mobile",
+    "width": 390,
+    "height": 844,
+    "colorScheme": "light",
+    "passed": true,
+    "layout": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "overflow": [],
+      "counts": [
+        "0/12 驗收、0 進行中、12 未開始",
+        "0/9 驗收、0 進行中、9 未開始",
+        "0/6 驗收、0 進行中、6 未開始",
+        "0/13 驗收、0 進行中、13 未開始",
+        "0/6 驗收、0 進行中、6 未開始",
+        "0/2 驗收、0 進行中、2 未開始",
+        "0/5 驗收、0 進行中、5 未開始"
+      ]
+    },
+    "keyboard": "Enter/Space passed",
+    "pageErrors": 0
+  },
+  {
+    "name": "narrow-dark",
+    "width": 320,
+    "height": 800,
+    "colorScheme": "dark",
+    "passed": true,
+    "layout": {
+      "viewport": 320,
+      "documentWidth": 320,
+      "overflow": [],
+      "counts": [
+        "0/12 驗收、0 進行中、12 未開始",
+        "0/9 驗收、0 進行中、9 未開始",
+        "0/6 驗收、0 進行中、6 未開始",
+        "0/13 驗收、0 進行中、13 未開始",
+        "0/6 驗收、0 進行中、6 未開始",
+        "0/2 驗收、0 進行中、2 未開始",
+        "0/5 驗收、0 進行中、5 未開始"
+      ]
+    },
+    "keyboard": "Enter/Space passed",
+    "pageErrors": 0
+  }
+]

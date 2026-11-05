@@ -1,0 +1,7 @@
+{
+  "base": "31ab8cea",
+  "files": {
+    "ToolUtility/ActivityOperations/ActivityService.cs": "adcdebf6f364fbac6e58335e4c51a213cebdc47a9f4c4706a9707b3c5b0eb866",
+    "ToolUtility/ActivityOperations/IActivityService.cs": "225f528d0d15d317f9914e07459806be126714198871f75ff1ecf59e0c3f28c7"
+  }
+}

@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Attachment已保存完整離線2272回歸、雙宿主413/512及99.48%/100%。末端審查Claude週額度、Gemini單模型降級；完整Changed編碼只被非本切片p013任務索引缺檔尾CRLF阻擋，自有40文字0問題，保留外部索引不改、不混入提交。P1仍2/12，接續Activity及其餘候選。",
+  "nextAction": "Activity六案特性原host綠、204755分析Gemini降級。下一步補跨表同GUID／部分發布等安全紅測，修後搬前綠才git mv；詳wp-reports/P1-04-activity.md。Attachment31ab8cea已保存，Claude週額度／非本切片索引編碼仍揭露，P1仍2/12。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",

@@ -365,3 +365,40 @@ Attachment三型別抽Core；50搬前綠；最終兩宿主413/512、16TRX2272、
 ### Next Steps
 
 - None - task complete
+
+
+## Session 11: P1-04 Activity原host特性準備檢查點（主P1仍未完成）
+
+**Date**: 2026-11-05
+**Task**: P1-04 Activity原host特性準備檢查點（主P1仍未完成）
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+原host六特性綠，最新完整2278；產品安全修正／搬移待做，Gemini週額度降級審查。
+
+### Main Changes
+
+## 檢查點
+Attachment已31ab8cea本地保存；Activity原host六特性綠，產品兩檔SHA不變、未修／未搬。CoreTarget只修nullable XML文件，9+1案通過。
+## 再驗
+最新完整16TRX2278/2278，ToolUtility413/518，ChurchReport623、架構67。進度頁8/8、Edge1440/390/320無頁錯誤／溢出，finally關閉。19自有文字0編碼問題；完整Changed790/758仍唯一非本切片p013索引缺CRLF，保留不動。
+## 審查與下一步
+204755分析、205806特性review皆Gemini單模型週額度降級。原跨表GUID覆寫／部分ArrayList發布既有Critical待安全紅綠，不能把特性review無新問題當產品已修。先安全紅綠、原host綠再git mv，不Clear舊前綴、不保存logger、不Dispose借入SDK。P1仍2/12、主task不封存；Goal usageLimited，沒有宣稱背景執行。未操作VM/D365/LINE或push。
+
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

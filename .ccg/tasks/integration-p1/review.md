@@ -102,3 +102,8 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 
 
 編碼邊界：完整Changed基準73b6e6cf檢查775檔／736 raw排除，只在非本切片p013任務.turns.json報MissingFinalCrlf；保留其內容不改、不暫存。以**相同且未修改**Get-TextByteIssues驗本切片40份自有文字，0問題。不能把此局部證據宣稱完整Changed守門通過；主P1仍不具最終交付條件。來源／文件whitespace通過，timestamp raw原bytes及ZIP保留。
+
+
+## Activity準備（未修／未搬）
+
+204755分析與205806特性review皆Gemini單模型週額度降級，雙模型未完成。分析既有跨表GUID覆寫／部分ArrayList發布Critical仍待安全紅綠；review僅針對六個合法成功特性及CoreTarget文件校正，無新Critical/High/Warning，不代表修復。完整16TRX2278/2278與來源不變SHA已保存activity-preparation evidence。

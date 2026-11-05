@@ -58,7 +58,8 @@ namespace ToolUtility.Tests
         /// <summary>
         /// 實際反射抽取介面的公開 nullable 中繼資料，而非以檔頭是否有 pragma 判斷。
         /// Core strict 專案統一啟用 Nullable；若後續設定漂移成 oblivious，任一字串參數即決定性失敗。
-        /// 屬性讀取的 attributeName 依舊允許 null，其餘字串必須維持非 null 契約。
+        /// 屬性讀取的 attributeName 與附件四個原樣傳遞 metadata 依舊允許 null；
+        /// 其他字串（包含附件 parent entityName）必須維持非 null 契約。
         /// 不需修改產品公開 API 或新增重複 pragma 來配合靜態審查推測。
         /// </summary>
         [Theory]
