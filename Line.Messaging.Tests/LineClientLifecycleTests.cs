@@ -139,6 +139,24 @@ public sealed class LineClientLifecycleTests
         Assert.True(handler.Content!.Disposed);
     }
 
+    /// <summary>一般非 401 遠端錯誤亦不得把未受信任 response body 帶進 Exception.Message、ToString 或公開錯誤 DTO。</summary>
+    /// <returns>已釋放 response 且只保留 HTTP 狀態碼的錯誤作業。</returns>
+    [Fact]
+    public async Task RemoteError_DoesNotExposeUntrustedBody()
+    {
+        using var handler = new OwnershipHandler("http");
+        using var transport = new HttpClient(handler);
+        using var client = new LineMessagingClient(transport, "synthetic-token");
+        var exception = await Assert.ThrowsAsync<LineResponseException>(() => client.GetUserProfileAsync("private-synthetic-user"));
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        Assert.DoesNotContain("sensitive-synthetic-detail", exception.Message);
+        Assert.DoesNotContain("private-synthetic-user", exception.ToString());
+        Assert.DoesNotContain("sensitive-synthetic-detail", exception.ToString());
+        Assert.Equal("LINE API request failed.", exception.ResponseMessage.Message);
+        Assert.Empty(exception.ResponseMessage.Details);
+        Assert.True(handler.Content!.Disposed);
+    }
+
     /// <summary>固定案例涵蓋 JSON、GET、DELETE、空 POST、bytes 與 OAuth form，不接觸外部端點。</summary>
     private static Task Invoke(string kind, LineMessagingClient client, HttpClient transport) => kind switch
     {

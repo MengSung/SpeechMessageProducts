@@ -14,6 +14,8 @@
 using System;
 using System.IO;
 using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Line.Messaging
 {
@@ -133,6 +135,23 @@ namespace Line.Messaging
         /// <returns>讀入緩衝區的總位元組數 / Total number of bytes read into the buffer</returns>
         /// <exception cref="ObjectDisposedException">當串流已被釋放時拋出</exception>
         public override int Read(byte[] buffer, int offset, int count) => BaseStream.Read(buffer, offset, count);
+
+        /// <summary>直接轉交底層非同步讀取與 caller token，不以 ThreadPool 包裝同步 Read，也不建立額外工作或保留 buffer。</summary>
+        /// <param name="buffer">僅在本次讀取期間借用的 caller 緩衝。</param><param name="offset">起點。</param>
+        /// <param name="count">最大讀取數。</param><param name="cancellationToken">底層實際 I/O 使用的 caller token。</param>
+        /// <returns>底層唯一讀取作業；caller 須等待完成再 Dispose 串流。</returns>
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+            BaseStream.ReadAsync(buffer, offset, count, cancellationToken);
+
+        /// <summary>直接轉交底層非同步寫入與取消，不讓 Stream 基底另建執行緒工作；支援能力仍由底層串流決定。</summary>
+        /// <param name="buffer">本次操作借用的內容。</param><param name="offset">起點。</param><param name="count">寫入數。</param>
+        /// <param name="cancellationToken">轉交底層 I/O 的 caller token。</param><returns>實際寫入作業。</returns>
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+            BaseStream.WriteAsync(buffer, offset, count, cancellationToken);
+
+        /// <summary>轉交底層真正的非同步 flush；不保存 caller token 或建立假非同步排程。</summary>
+        /// <param name="cancellationToken">當次 flush 的 caller 取消。</param><returns>底層 flush 作業。</returns>
+        public override Task FlushAsync(CancellationToken cancellationToken) => BaseStream.FlushAsync(cancellationToken);
 
         /// <summary>
         /// 設定目前串流中的位置

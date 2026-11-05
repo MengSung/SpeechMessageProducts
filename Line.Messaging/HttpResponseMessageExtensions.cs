@@ -11,7 +11,7 @@
 // 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
-using Newtonsoft.Json;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -20,31 +20,27 @@ namespace Line.Messaging
     internal static class HttpResponseMessageExtensions
     {
         /// <summary>
-        /// Validate the response status.
+        /// 驗證遠端 HTTP 狀態。錯誤 body 是不受信任的遠端資料，可能帶入個資或憑證；
+        /// 不放進 Exception.Message、公開 DTO 或 ToString，避免上層記錄錯誤時跨請求洩漏。
         /// </summary>
-        /// <param name="response">HttpResponseMessage</param>
-        /// <returns>HttpResponseMessage</returns>
-        internal static async Task<HttpResponseMessage> EnsureSuccessStatusCodeAsync(this HttpResponseMessage response)
+        /// <param name="response">由單次 API 呼叫擁有、稍後確定性 Dispose 的 response。</param>
+        /// <returns>成功時原 response；失敗時拋只含 status code 的安全錯誤。</returns>
+        internal static Task<HttpResponseMessage> EnsureSuccessStatusCodeAsync(this HttpResponseMessage response)
         {
-            if (response.IsSuccessStatusCode)
-            {
-                return response;
-            }
-            else
-            {
-                ErrorResponseMessage errorMessage;
-                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    errorMessage = JsonConvert.DeserializeObject<ErrorResponseMessage>(content, new CamelCaseJsonSerializerSettings());
-                }
-                catch
-                {
-                    errorMessage = new ErrorResponseMessage() { Message = content, Details = new ErrorResponseMessage.ErrorDetails[0] };
-                }
-                throw new LineResponseException(errorMessage.Message) { StatusCode = response.StatusCode, ResponseMessage = errorMessage };
+            if (response == null) throw new ArgumentNullException(nameof(response));
+            if (response.IsSuccessStatusCode) return Task.FromResult(response);
 
-            }
+            // 僅保留 HTTP 狀態分類；不解析、回顯或保存遠端錯誤 body。
+            var safeError = new ErrorResponseMessage
+            {
+                Message = "LINE API request failed.",
+                Details = Array.Empty<ErrorResponseMessage.ErrorDetails>()
+            };
+            throw new LineResponseException($"{safeError.Message} HTTP {(int)response.StatusCode}.")
+            {
+                StatusCode = response.StatusCode,
+                ResponseMessage = safeError
+            };
         }
     }
 }

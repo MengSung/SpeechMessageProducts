@@ -49,7 +49,10 @@ public sealed class LineSdkGoldenTests
         using var stream = typeof(LineSdkGoldenTests).Assembly.GetManifestResourceStream("Line.Messaging.Tests.Golden." + kind + ".json")
             ?? throw new InvalidOperationException("缺少固定黃金資源。");
         using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: false);
-        Assert.Equal(await reader.ReadToEndAsync(), handler.Body);
+        // fixture 以 CRLF 結尾符合倉庫文件格式；只移除這一個檔尾封套，不 Trim 真正請求內的任何字元。
+        var expected = await reader.ReadToEndAsync();
+        Assert.EndsWith("\r\n", expected);
+        Assert.Equal(expected.Substring(0, expected.Length - 2), handler.Body);
     }
 
     /// <summary>建立每次操作獨享的模型，不共用可變清單或任何收件者狀態。</summary>

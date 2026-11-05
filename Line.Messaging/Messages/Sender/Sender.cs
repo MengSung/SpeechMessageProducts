@@ -14,9 +14,9 @@ public sealed class Sender
     public Sender(string name, string iconUrl)
     {
         if (string.IsNullOrEmpty(name) || name.Length > 20)
-            throw new ArgumentException("發送者名稱必須為一至二十字。", nameof(name));
+            throw new ArgumentException("Sender name must contain 1 to 20 UTF-16 code units.", nameof(name));
         if (!Uri.TryCreate(iconUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
-            throw new ArgumentException("發送者圖示必須為絕對 HTTPS 網址。", nameof(iconUrl));
+            throw new ArgumentException("Sender icon must be an absolute HTTPS URL.", nameof(iconUrl));
         Name = name;
         IconUrl = iconUrl;
     }

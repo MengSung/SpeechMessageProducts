@@ -15,7 +15,7 @@ public static class LineSignature
     public static bool Verify(byte[] body, string signatureHeader, string channelSecret)
     {
         if (body == null) throw new ArgumentNullException(nameof(body));
-        if (string.IsNullOrWhiteSpace(channelSecret)) throw new ArgumentException("Channel secret 不可空白。", nameof(channelSecret));
+        if (string.IsNullOrWhiteSpace(channelSecret)) throw new ArgumentException("Channel secret must not be blank.", nameof(channelSecret));
         // SHA256 的 Base64 恆為 44 字元；先限制長度避免不可信 header 造成任意大小配置。
         // 格式與長度不是秘密，只有相同長度 digest 的比較需要固定時間。
         if (signatureHeader == null || signatureHeader.Length != 44) return false;

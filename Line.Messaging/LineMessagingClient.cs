@@ -71,18 +71,8 @@ namespace Line.Messaging
         /// </summary>
         private const string DEFAULT_DATA_URI = "https://api-data.line.me/v2";
 
-        /// <summary>
-        /// HTTP 客戶端，用於發送 LINE API 請求。
-        /// </summary>
-        private readonly HttpClient _client;
-
-        /// <summary>
-        /// 是否由此類別負責釋放 HttpClient。
-        /// </summary>
-        private readonly bool _disposeClient;
-
-        /// <summary>此 SDK 實例唯一的 channel credential；僅附加到單次 request，Dispose 以原子交換清除參照。</summary>
-        private AuthenticationHeaderValue _authorization;
+        /// <summary>此 SDK 實例唯一的 channel 傳輸 owner；Messaging 與 LIFF 共用同一認證隔離契約。</summary>
+        private readonly ChannelHttpTransport _transport;
 
         /// <summary>
         /// JSON 序列化設定（使用 Camel Case 命名）
@@ -110,9 +100,7 @@ namespace Line.Messaging
         /// <param name="uri">LINE API 的基礎 URI（選用）</param>
         public LineMessagingClient(HttpClient httpClient, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            _client = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _disposeClient = false;
-            _authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
+            _transport = new ChannelHttpTransport(httpClient, channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
             _uri = NormalizeLineApiBaseUri(uri);
             _dataUri = DeriveDataUri(_uri);
@@ -127,9 +115,7 @@ namespace Line.Messaging
         [Obsolete("建議使用接受 HttpClient 參數的建構函式，以避免 Socket 耗盡問題。Use constructor with HttpClient parameter to avoid socket exhaustion.")]
         public LineMessagingClient(string channelAccessToken, string uri = DEFAULT_URI)
         {
-            _client = new HttpClient();
-            _disposeClient = true;
-            _authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
+            _transport = new ChannelHttpTransport(channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
             _uri = NormalizeLineApiBaseUri(uri);
             _dataUri = DeriveDataUri(_uri);
@@ -2164,7 +2150,7 @@ namespace Line.Messaging
         /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task UploadRichMenuJpegImageAsync(Stream stream, string richMenuId)
         {
-            using var content = new BorrowedStreamContent(stream);
+            var content = new BorrowedStreamContent(stream);
             content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
             using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, DataUrl($"/bot/richmenu/{richMenuId}/content")) { Content = content }).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -2177,7 +2163,7 @@ namespace Line.Messaging
         /// <remarks>單次操作 owns request／content 與完整讀取的 response；成功及例外皆由 using 釋放，不保存回應或跨 channel 狀態。故障交回呼叫端共用告警入口。</remarks>
         public virtual async Task UploadRichMenuPngImageAsync(Stream stream, string richMenuId)
         {
-            using var content = new BorrowedStreamContent(stream);
+            var content = new BorrowedStreamContent(stream);
             content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
             using var response = await SendAsync(new HttpRequestMessage(HttpMethod.Post, DataUrl($"/bot/richmenu/{richMenuId}/content")) { Content = content }).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -2843,16 +2829,8 @@ namespace Line.Messaging
         /// <param name="request">所有權轉交此方法的單次 request；不可以再次傳送。</param>
         /// <param name="completion">一般 API 讀完整內容；媒體下載只讀 headers 並交由 ContentStream 擁有 response。</param>
         /// <returns>呼叫方法必須 using 或明確轉交所有權的 response。</returns>
-        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completion = HttpCompletionOption.ResponseContentRead)
-        {
-            using (request)
-            {
-                var authorization = Volatile.Read(ref _authorization);
-                if (authorization == null) throw new ObjectDisposedException(nameof(LineMessagingClient));
-                request.Headers.Authorization = authorization;
-                return await _client.SendAsync(request, completion).ConfigureAwait(false);
-            }
-        }
+        private Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completion = HttpCompletionOption.ResponseContentRead) =>
+            _transport.SendAsync(request, completion);
 
         /// <summary>
         /// 在串流建立成功前由此方法 owns response；失敗立即 Dispose 並重新拋原例外。
@@ -2902,8 +2880,7 @@ namespace Line.Messaging
         {
             // 清除 credential 參照並禁止新工作；呼叫端應先等待既有操作完成，再處置此實例。
             // 借入 transport 永不由此處關閉，避免另一 channel 的正常請求被中止。
-            if (Interlocked.Exchange(ref _authorization, null) == null) return;
-            if (_disposeClient) _client.Dispose();
+            _transport.Dispose();
         }
         #endregion
     }
