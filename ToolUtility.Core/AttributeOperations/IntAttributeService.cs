@@ -1,31 +1,31 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/AttributeOperations/IntAttributeService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class IntAttributeService
-// 主要成員：GetAttribute、SetAttribute、SafeLogError
-// 引用命名空間：System、Microsoft.Xrm.Sdk、System.Linq
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+#nullable enable
 using System;
 using Microsoft.Xrm.Sdk;
-using System.Linq;
+using System.Globalization;
 
 namespace ToolUtilityNameSpace.AttributeOperations
 {
-    public class IntAttributeService
+    /// <summary>
+    /// IntAttributeService的無狀態屬性操作；只讀寫 caller 擁有的 Entity，不保存 logger、Entity、身分或跨請求狀態。
+    /// </summary>
+    public class IntAttributeService : IAttributeValueReader<int>, IAttributeValueWriter<int>
     {
-        private readonly object _logger;
 
+        /// <summary>
+        /// 保留原 logger 建構契約並拒絕 null；不使用、反射、保存或處置此物件，避免延長 request／憑證生命週期。
+        /// </summary>
         public IntAttributeService(object logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+#if NETFRAMEWORK
+            if (logger == null) throw new ArgumentNullException(nameof(logger));
+#else
+            ArgumentNullException.ThrowIfNull(logger);
+#endif
         }
 
+        /// <summary>
+        /// 缺少 Entity／欄位回 0；原 int 直接回傳，其他值沿用 caller CurrentCulture 的 Convert.ToInt32，不改程序文化。 不保存結果，真正故障交回 host。
+        /// </summary>
         public int GetAttribute(Entity entity, string propertyName)
         {
             if (entity == null) return 0;
@@ -35,23 +35,23 @@ namespace ToolUtilityNameSpace.AttributeOperations
             {
                 var value = entity.Attributes[propertyName];
                 if (value is int i) return i;
-                try
-                {
-                    return Convert.ToInt32(value);
-                }
-                catch (Exception ex)
-                {
-                    SafeLogError(ex, "GetAttribute int invalid cast for {0}", propertyName);
-                    throw;
-                }
+                                    return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+                
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// 只變更 caller 獨占的 Entity 欄位，保留原 add／replace 及 SDK 型別包裝；不發布共享快照或執行 I/O，無效參數不應被吞掉。
+        /// </summary>
         public void SetAttribute(ref Entity entity, string propertyName, int value)
         {
+#if NETFRAMEWORK
             if (entity == null) throw new ArgumentNullException(nameof(entity));
+#else
+            ArgumentNullException.ThrowIfNull(entity);
+#endif
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
 
             if (entity.Attributes.Contains(propertyName))
@@ -64,43 +64,6 @@ namespace ToolUtilityNameSpace.AttributeOperations
             }
         }
 
-        private void SafeLogError(Exception ex, string format, params object[] args)
-        {
-            try
-            {
-                if (_logger == null) return;
-                var loggerType = _logger.GetType();
-                var logMethod = loggerType.GetMethods()
-                    .FirstOrDefault(m => m.Name == "Log" && m.GetParameters().Length == 5 && m.IsGenericMethod);
 
-                if (logMethod != null)
-                {
-                    var genericMethod = logMethod.MakeGenericMethod(typeof(object));
-                    var logLevelType = Type.GetType("Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.Abstractions");
-                    object errorLevel = null;
-                    if (logLevelType != null)
-                    {
-                        errorLevel = Enum.Parse(logLevelType, "Error");
-                    }
-
-                    var eventIdType = Type.GetType("Microsoft.Extensions.Logging.EventId, Microsoft.Extensions.Logging.Abstractions");
-                    object eventId = null;
-                    if (eventIdType != null)
-                    {
-                        eventId = Activator.CreateInstance(eventIdType, 0, string.Empty);
-                    }
-
-                    object state = string.Format(format, args);
-                    Func<object, Exception, string> formatter = (s, e) => s?.ToString() ?? string.Empty;
-
-                    var parameters = new object[] { errorLevel, eventId, state, ex, formatter };
-                    genericMethod.Invoke(_logger, parameters);
-                }
-            }
-            catch
-            {
-                // swallow
-            }
-        }
     }
 }

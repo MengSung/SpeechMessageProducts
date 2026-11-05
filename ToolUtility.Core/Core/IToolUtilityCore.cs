@@ -1,16 +1,4 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Core/IToolUtilityCore.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IToolUtilityCore
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
-// 引用命名空間：Microsoft.Xrm.Sdk、System、System.Collections、System.Collections.Generic、System.Threading、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+#nullable enable
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections;
@@ -21,55 +9,55 @@ using System.Threading.Tasks;
 namespace ToolUtilityNameSpace.Core
 {
     /// <summary>
-    /// ToolUtility 核心介面
-    /// 定義所有基礎操作的抽象，遵循 Interface Segregation Principle (ISP)
+    /// 純 BCL／SDK 的主機委派契約；組態、連線、cache 與最終告警實作仍由 net10 host 擁有。
+    /// 只定義方法不持有資源，呼叫者必須先驗證使用者／組織／產品及記錄 scope，不能從傳入 ID 推導權限。
     /// </summary>
     public interface IToolUtilityCore
     {
         #region 組織服務屬性
         /// <summary>
-        /// 取得 CRM 組織服務實例
+        /// 借用 host 已授權的 CRM SDK，不接管連線／憑證或 Dispose；host 排空操作後才釋放，不跨授權 scope 保存。
         /// </summary>
         IOrganizationService OrganizationService { get; }
         #endregion
 
         #region Entity 基礎操作
         /// <summary>
-        /// 建立實體
+        /// 以 caller 擁有的 Entity 建立記錄並回正式資料庫 ID；host 負責授權及跨程序冪等鍵，不以應用鎖代替資料庫唯一性。
         /// </summary>
         Guid CreateEntity(Entity entity);
 
         /// <summary>
-        /// 更新實體
+        /// 更新 caller 獨占且具正式 ID 的 Entity，不公開共享 cache／Session 圖；SDK 故障交最終 host 共用告警。
         /// </summary>
         void UpdateEntity(ref Entity entity);
 
         /// <summary>
-        /// 刪除實體
+        /// 依伺服器已授權的表名及正式 ID 刪除，不把顯示名稱或路由值當權限，不隱藏 SDK 失敗。
         /// </summary>
         void DeleteEntity(string entityName, Guid entityId);
 
         /// <summary>
-        /// 檢索單一實體
+        /// 讀取並驗證單筆正式 ID／表名；結果生命週期只屬於這次操作，不保留 SDK／request 參照。
         /// </summary>
         Entity RetrieveEntity(string entityName, Guid entityId);
         #endregion
 
         #region 聯絡人操作
         /// <summary>
-        /// 透過 LINE ID 檢索聯絡人
+        /// 透過已授權 scope 的 LINE ID 查聯絡人；ID 為查詢值而非權限，host cache 與連線責任不得移入純契約。
         /// </summary>
         Entity RetrieveContactByLineId(string lineId);
 
         /// <summary>
-        /// 透過姓名檢索聯絡人集合
+        /// 以名稱過濾但按正式資料庫 ID 發布，合法同名資料完整保留，不以名稱去重或隱藏衝突。
         /// </summary>
         EntityCollection RetrieveContactCollectionByName(string contactFullName);
         #endregion
 
         #region 名單操作
         /// <summary>
-        /// 批次添加成員到行銷名單 (非同步)
+        /// 在已授權名單中批次添加正式成員 ID；caller 取消停止後續批次，已成功寫入不宣稱可回滾，host 擁有排空責任。
         /// </summary>
         Task<int> AddMembersToMarketingListAsync(
             Guid listGuid,
@@ -78,7 +66,7 @@ namespace ToolUtilityNameSpace.Core
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 取得名單所有成員
+        /// 傳回此次操作擁有的完整成員集合，驗穩定 ID 後才發布；caller 不得把可變 ArrayList 當共享快照。
         /// </summary>
         ArrayList GetAllMemberDataFromList(Guid listEntityId);
         #endregion

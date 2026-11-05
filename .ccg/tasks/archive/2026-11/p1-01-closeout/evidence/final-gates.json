@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "sourceCommit": "03c8aa28bc8ede00b59ec769737a8ed0ca5d06b8",
+  "formatFixCommit": "a3b5b749",
+  "encodingChangedBase": "73b6e6cf",
+  "encodingChecked": 807,
+  "encodingRawExcluded": 780,
+  "encodingIssues": 0,
+  "encodingLogSha256": "edc2299a1e3328a0c44a7de6c09650d405b49a76b408810640f402ea665d439a",
+  "stagedDiffCheck": true,
+  "productSourceChanged": false,
+  "reviewRun": "20261105-214807-p1-01-closeout-review-reviewer",
+  "dualModelComplete": false,
+  "quotaBlocked": true,
+  "degradedFallback": true,
+  "completedBackends": [
+    "gemini"
+  ],
+  "blockedBackends": [
+    "claude"
+  ],
+  "outstandingReproducibleDefects": 0,
+  "hostedCi": "deferred, not verified"
+}

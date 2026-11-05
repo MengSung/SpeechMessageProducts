@@ -1,0 +1,15 @@
+--- before/tools/RepoQuality/Tests/Test-ProgressPage.cjs
++++ after/tools/RepoQuality/Tests/Test-ProgressPage.cjs
+@@ -92,7 +92,11 @@
+   // 這是人工驗收後的固定里程碑，不以彼此相等就推論實際執行或實機通過。
+   assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-03-acceptance.md'), 'utf8'),
+     /狀態：本工作包驗收完成/);
+-  assert.match(getWorkPackageRow(elements, 'P1-04'), /四個舊方法來源已定位/);
++  // 驗收里程碑與狀態是契約；P1-04 的階段性說明會持續更新，不綁定歷史文案。
++  assert.match(getWorkPackageRow(elements, 'P1-01'), /class="wp is-done"/);
++  assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-01-acceptance.md'), 'utf8'),
++    /P1-01 的孤兒清理、測試整合及本機驗收已完成/);
++  assert.match(getWorkPackageRow(elements, 'P1-04'), /class="wp is-active"/);
+   assert.match(elements.get('p1-wps').innerHTML, /P1-08[\s\S]*P1-10/);
+   const p1_12 = getWorkPackageRow(elements, 'P1-12');
+   assert.match(p1_12, /class="wp is-you"/);

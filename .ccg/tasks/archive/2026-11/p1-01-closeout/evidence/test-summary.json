@@ -1,0 +1,220 @@
+{
+  "sourceCommit": "03c8aa28bc8ede00b59ec769737a8ed0ca5d06b8",
+  "targetCount": 16,
+  "total": 2278,
+  "passed": 2278,
+  "failed": 0,
+  "skipped": 0,
+  "targets": [
+    {
+      "assembly": "churchreport.memberinfo.tests.dll",
+      "target": "net10.0",
+      "total": 623,
+      "passed": 623,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214020.trx",
+      "sha256": "8ef866cfa7eb0ce9853ca16a182548d2b676a446ca124f62e13ffb320c934aa8"
+    },
+    {
+      "assembly": "line.messaging.tests.dll",
+      "target": "net10.0",
+      "total": 101,
+      "passed": 101,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214014.trx",
+      "sha256": "aa7dfd050635528b0ac1e6146a124e5276fb10a038ff654c7d0ae0dc489cddac"
+    },
+    {
+      "assembly": "line.messaging.tests.dll",
+      "target": "net48",
+      "total": 96,
+      "passed": 96,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net48_20261105214014.trx",
+      "sha256": "3c0a80282fc9ad913ca9d8014bc6b35599793039382b270853113a6b327abff4"
+    },
+    {
+      "assembly": "linemessagingprocessor.aspnetcore.tests.dll",
+      "target": "net10.0",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214015.trx",
+      "sha256": "80f771e75eea69847bf4848873b423378610560a9f1e7408970e21c95607fcfd"
+    },
+    {
+      "assembly": "linemessagingprocessor.richmenus.tests.dll",
+      "target": "net10.0",
+      "total": 34,
+      "passed": 34,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214011.trx",
+      "sha256": "135295711147a2f1892e8eab93860b9f4c851ab0bb8533e46ad4d5a041b39a70"
+    },
+    {
+      "assembly": "linemessagingprocessor.tests.dll",
+      "target": "net10.0",
+      "total": 79,
+      "passed": 79,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214016.trx",
+      "sha256": "13cd93f0ff92900ffc9cf9d5f5b2ac1ad1a8311917ea23b82a20e97f156034ec"
+    },
+    {
+      "assembly": "linemessagingprocessor.tests.dll",
+      "target": "net48",
+      "total": 46,
+      "passed": 46,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net48_20261105214013.trx",
+      "sha256": "d2fe2b1187fb7dad80fcdb02f4fe59111f70ccba542a1d50dcbd8ff0eac90fc4"
+    },
+    {
+      "assembly": "linemessagingprocessor.workflows.tests.dll",
+      "target": "net10.0",
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214013.trx",
+      "sha256": "2d0e322ca5774cdb3bc3dfd18167bde33c5d288eaf5c46f2b84c05c3e8aa6212"
+    },
+    {
+      "assembly": "speechmessage.dynamics.deployment.tests.dll",
+      "target": "net10.0",
+      "total": 62,
+      "passed": 62,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214018.trx",
+      "sha256": "aa299c5d2005f625d2ea73c56bbcc1cee20cfb620f46d5ca4f3e7cbb22eeb558"
+    },
+    {
+      "assembly": "speechmessage.dynamics.plugins.tests.dll",
+      "target": "net48",
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net48_20261105214015.trx",
+      "sha256": "f1ed5c510607ba25497dc845e235f713cd16688214d583dcd765a4c81004bf3e"
+    },
+    {
+      "assembly": "speechmessage.localization.tests.dll",
+      "target": "net10.0",
+      "total": 67,
+      "passed": 67,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214053.trx",
+      "sha256": "4450ae825750b6a26accce243b7af11ddca482ae674a81f652aa3dd16bd07a96"
+    },
+    {
+      "assembly": "speechmessage.localization.tests.dll",
+      "target": "net48",
+      "total": 43,
+      "passed": 43,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net48_20261105214012.trx",
+      "sha256": "33690a09643f4b5269992d144bc56609323bf5dc431efae3a0cfa8c608fd18fc"
+    },
+    {
+      "assembly": "speechmessage.payments.tests.dll",
+      "target": "net10.0",
+      "total": 55,
+      "passed": 55,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214012.trx",
+      "sha256": "ed99fd0a31d0e0728200aa65563ec6fb2f5077ae876319e15deffbee879fd14e"
+    },
+    {
+      "assembly": "toolutility.dataverse.tests.dll",
+      "target": "net10.0",
+      "total": 79,
+      "passed": 79,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214019.trx",
+      "sha256": "39e2351a26cfe70863ceb0cb86f9d7fd78cafab4ca76194902c83f32afb7a2f0"
+    },
+    {
+      "assembly": "toolutility.tests.dll",
+      "target": "net10.0",
+      "total": 518,
+      "passed": 518,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net10.0_20261105214017.trx",
+      "sha256": "bbe19eb637c7ba0f5b4e0ec24295fcae16283e07b13066b779bdd8168691366f"
+    },
+    {
+      "assembly": "toolutility.tests.dll",
+      "target": "net48",
+      "total": 413,
+      "passed": 413,
+      "failed": 0,
+      "trx": "artifacts/p1-01-closeout/release-results/p101_net48_20261105214016.trx",
+      "sha256": "a9c2799b475e748f227af8e8289c7f4d54b8145096c3bbfbc272a09340918351"
+    }
+  ],
+  "performanceTests": [
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.QueryWeeklyReportBeforeTowMonthOfSundayAsync_ShouldReturnReports",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveEntityCollectionByConditionsAsync_ShouldReturnEntities",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveBatchByIdsAsync_WithLargeSet_ShouldHandleEfficiently",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveBatchByIdsAsync_WithEmptyIdList_ShouldReturnEmptyCollection",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.ConcurrentAsyncQueries_ShouldNotBlock",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveEntityCollectionByConditionAsync_ShouldReturnEntities",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveEntityCollectionByFieldAsync_WithCancellation_ShouldThrowOperationCanceledException",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.PagedQuery_MemoryUsage_ShouldBeLow",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrievePagedEntitiesAsync_WithFilter_ShouldReturnFilteredResults",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrievePagedEntitiesAsync_WithCancellation_ShouldThrowOperationCanceledException",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrievePagedEntitiesAsync_FirstPage_ShouldReturnPagedResult",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveEntityCollectionByFieldAsync_ShouldReturnEntities",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveEntityCollectionByFieldAsync_WithInvalidEntityName_ShouldThrowException",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.CompareAsyncVsSyncPerformance",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.QueryFixture_LastQuery_ConcurrentCallsPublishCompleteQueryReference",
+      "outcome": "Passed"
+    },
+    {
+      "name": "ChurchReport.MemberInfo.Tests.Performance.CollectionQueryServiceAsyncTests.RetrieveBatchByIdsAsync_ShouldReturnAllMatchingEntities",
+      "outcome": "Passed"
+    }
+  ]
+}

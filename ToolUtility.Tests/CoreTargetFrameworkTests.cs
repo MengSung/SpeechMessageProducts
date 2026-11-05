@@ -12,6 +12,10 @@ using ToolUtilityNameSpace.Extensions;
 using ToolUtilityNameSpace.Constants;
 using ToolUtilityNameSpace.AttachmentOperations;
 using ToolUtilityNameSpace.ActivityOperations;
+using ToolUtilityNameSpace.CollectionOperations;
+using ToolUtilityNameSpace.ContactOperations;
+using ToolUtilityNameSpace.ListOperations;
+using ToolUtilityNameSpace.QueryOperations;
 using Xunit;
 
 namespace ToolUtility.Tests
@@ -47,6 +51,16 @@ namespace ToolUtility.Tests
             Assert.Same(assembly, typeof(AttachmentTransferLimits).Assembly);
             Assert.Same(assembly, typeof(ActivityService).Assembly);
             Assert.Same(assembly, typeof(IActivityService).Assembly);
+            Assert.Same(assembly, typeof(CollectionQueryService).Assembly);
+            Assert.Same(assembly, typeof(ICollectionQueryService).Assembly);
+            Assert.Same(assembly, typeof(PagedResult<>).Assembly);
+            Assert.Same(assembly, typeof(AttributeServiceComposite).Assembly);
+            Assert.Same(assembly, typeof(EntityAttributeHandler).Assembly);
+            Assert.Same(assembly, typeof(IContactService).Assembly);
+            Assert.Same(assembly, typeof(IListService).Assembly);
+            Assert.Same(assembly, typeof(IMarketingListService).Assembly);
+            Assert.Same(assembly, typeof(IComplexQueryService).Assembly);
+            Assert.Same(assembly, typeof(IQueryService).Assembly);
             Assert.Equal("ToolUtility.Core", assembly.GetName().Name);
             var target = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
             Assert.NotNull(target);

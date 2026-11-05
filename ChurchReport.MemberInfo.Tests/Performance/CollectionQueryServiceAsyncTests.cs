@@ -274,7 +274,10 @@ public sealed class CollectionQueryServiceAsyncTests
                 if (PageCount > 1) ids = Enumerable.Range(1, 100).Select(index => new Guid(index + (call * 100), 0, 0, new byte[8])).ToArray();
                 var result = new EntityCollection(ids.Select(id => new Entity(name, id) { ["new_status"] = "Active", ["fullname"] = "synthetic-same-name" }).ToList());
                 result.MoreRecords = call < PageCount;
-                result.PagingCookie = result.MoreRecords ? "synthetic-page-" + call : null;
+                // 使用 SDK 官方 cookie 的 page 屬性，讓第三頁以後能驗證真正遞增的頁碼。
+                // 不以任意字串讓舊版固定第二頁缺陷通過；fixture 只保存最後一個合成 query。
+                if (PageCount > 1) Assert.Equal(call, Assert.IsType<QueryExpression>(query).PageInfo.PageNumber);
+                result.PagingCookie = result.MoreRecords ? "<cookie page=\"" + call + "\" />" : null;
                 return result;
             }
             finally { Interlocked.Decrement(ref activeCalls); }

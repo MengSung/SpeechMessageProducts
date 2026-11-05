@@ -1,0 +1,196 @@
+--- a/文件/規劃設計書/實作計畫-3.3/實作進度.html
++++ b/文件/規劃設計書/實作計畫-3.3/實作進度.html
+@@ -113,4 +113,4 @@
+-  /* 急件警示 */
+-  .alert {
+-    border-left: 4px solid var(--crit);
+-    background: var(--crit-wash);
++  /* 一般資訊預設收合；注意與錯誤保留可見摘要，詳細紀錄另行展開。 */
++  .notice {
++    border-left: 4px solid var(--base);
++    background: var(--surface-2);
+@@ -118 +118 @@
+-    padding: 14px 16px;
++    padding: 12px 16px;
+@@ -119,0 +120 @@
++    overflow-wrap: anywhere;
+@@ -121,4 +122,29 @@
+-  .alert .title { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; color: var(--crit-text); }
+-  .alert p { margin: 8px 0 0; }
+-  .alert ol { margin: 8px 0 0; padding-left: 22px; }
+-  .alert .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
++  .notice.warn { border-color: var(--warn); background: var(--warn-wash); }
++  .notice.error { border-color: var(--crit); background: var(--crit-wash); }
++  .notice-heading { display: flex; gap: 10px; align-items: flex-start; min-width: 0; font-weight: 700; }
++  .notice-heading svg { width: 22px; height: 22px; flex: none; margin-top: 2px; }
++  .notice-label { display: block; font-size: 13px; color: var(--ink-2); }
++  .notice.warn .notice-label { color: var(--warn-text); }
++  .notice.error .notice-label { color: var(--crit-text); }
++  .notice > summary, .notice-details > summary {
++    display: flex;
++    gap: 12px;
++    align-items: center;
++    justify-content: space-between;
++    min-height: 44px;
++    cursor: pointer;
++    list-style: none;
++  }
++  .notice > summary::-webkit-details-marker, .notice-details > summary::-webkit-details-marker { display: none; }
++  .notice > summary:focus-visible, .notice-details > summary:focus-visible {
++    outline: 3px solid var(--prog);
++    outline-offset: 4px;
++    border-radius: 4px;
++  }
++  .notice-toggle { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-2); }
++  .notice-toggle::before { content: "+ 展開"; }
++  details[open] > summary > .notice-toggle::before { content: "− 收合"; }
++  .notice-content { padding-top: 4px; }
++  .notice p { margin: 8px 0 0; }
++  .notice ol { margin: 8px 0 0; padding-left: 22px; }
++  .notice .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+@@ -131 +157 @@
+-    background: var(--crit);
++    background: var(--prog);
+@@ -351 +377,2 @@
+-  <div class="alert" role="alert" id="alert"></div>
++  <div id="notices" hidden></div>
++  <div id="alert" hidden></div>
+@@ -425,0 +453,2 @@
++ * alert 保留歷史資訊；目前待處理事項放入 notices 陣列。level 使用 info／warn／error，省略時為 info。
++ * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
+@@ -431,0 +461 @@
++  "notices": [],
+@@ -432,0 +463 @@
++    "level": "info",
+@@ -2099,0 +2131,24 @@
++// 只接受明確分類，歷史紀錄中提到的 Warning／失敗不會被當作目前阻擋。
++// 所有文字皆跳脫後插入；分類只從固定白名單選取，避免資料成為 HTML 屬性。
++function renderNotice(notice, actions = "") {
++  const level = ["info", "warn", "error"].includes(notice.level) ? notice.level : "info";
++  const label = { info: "一般資訊", warn: "注意事項", error: "錯誤／阻擋" }[level];
++  const icon = ICON[level === "error" ? "alert" : level];
++  const heading = `<span class="notice-heading">${icon}<span><span class="notice-label">${label}</span>${esc(notice.title || "")}</span></span>`;
++  const steps = Array.isArray(notice.steps) ? notice.steps : [];
++  const content = `<div class="notice-content">${notice.body ? `<p>${esc(notice.body)}</p>` : ""}
++    ${steps.length ? `<ol>${steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>` : ""}${actions}</div>`;
++  const toggle = '<span class="notice-toggle" aria-hidden="true"></span>';
++  if (level === "info") {
++    return `<details class="notice info"><summary>${heading}${toggle}</summary>${content}</details>`;
++  }
++  return `<article class="notice ${level}" role="${level === "error" ? "alert" : "status"}">${heading}
++    <details class="notice-details"><summary>查看詳細資訊${toggle}</summary>${content}</details></article>`;
++}
++
++const noticesRegion = document.getElementById("notices");
++const notices = Array.isArray(D.notices)
++  ? D.notices.filter(notice => notice && typeof notice === "object" && !Array.isArray(notice)) : [];
++noticesRegion.hidden = notices.length === 0;
++noticesRegion.innerHTML = notices.map(notice => renderNotice(notice)).join("");
++
+@@ -2104,27 +2159,29 @@
+-  const alertSteps = Array.isArray(D.alert.steps) ? D.alert.steps : [];
+-  alertRegion.innerHTML = `
+-  <div class="title">${ICON.alert.replace('aria-hidden="true"', 'aria-hidden="true" width="22" height="22"')}<span>${esc(D.alert.title)}</span></div>
+-  <p>${esc(D.alert.body || "")}</p>
+-  <ol>${alertSteps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
+-  ${hasPrompt ? `<div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
+-  <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>` : ""}`;
+-
+-if (hasPrompt) document.getElementById("copyBtn").addEventListener("click", async () => {
+-  const text = D.alert.prompt;
+-  const done = msg => { document.getElementById("copied").textContent = msg; };
+-  try {
+-    await navigator.clipboard.writeText(text);
+-    done("已複製，可以貼到 Codex 了");
+-  } catch (e) {
+-    // 檔案直接開啟時某些瀏覽器不允許 Clipboard API，改用選取後複製。
+-    const ta = document.createElement("textarea");
+-    ta.value = text;
+-    ta.style.position = "fixed";
+-    ta.style.opacity = "0";
+-    document.body.appendChild(ta);
+-    ta.select();
+-    const ok = document.execCommand("copy");
+-    ta.remove();
+-    done(ok ? "已複製，可以貼到 Codex 了" : "無法自動複製，請展開全文後手動選取");
+-  }
+-});
++  const actions = hasPrompt ? `<div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
++    <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>` : "";
++  alertRegion.innerHTML = renderNotice(D.alert, actions);
++
++  if (hasPrompt) document.getElementById("copyBtn").addEventListener("click", async () => {
++    const text = D.alert.prompt;
++    const done = msg => { document.getElementById("copied").textContent = msg; };
++    try {
++      await navigator.clipboard.writeText(text);
++      done("已複製，可以貼到 Codex 了");
++    } catch (e) {
++      // 檔案直接開啟時可能禁止 Clipboard API；暫存選取元素只活在本次複製操作，
++      // 即使舊版複製命令拋錯也必須移除，不保留提示詞或持續累積 DOM。
++      const ta = document.createElement("textarea");
++      try {
++        ta.value = text;
++        ta.style.position = "fixed";
++        ta.style.opacity = "0";
++        document.body.appendChild(ta);
++        ta.select();
++        const ok = document.execCommand("copy");
++        done(ok ? "已複製，可以貼到 Codex 了" : "無法自動複製，請展開全文後手動選取");
++      } catch (copyError) {
++        done("無法自動複製，請展開全文後手動選取");
++      } finally {
++        ta.remove();
++      }
++    }
++  });
+--- a/tools/RepoQuality/Tests/Test-ProgressPage.cjs
++++ b/tools/RepoQuality/Tests/Test-ProgressPage.cjs
+@@ -17 +17 @@
+-function render(alert) {
++function render(alert, notices = []) {
+@@ -37,0 +38 @@
++  data.notices = notices;
+@@ -266,0 +268,42 @@
++
++// 若資訊再次套用警告語意、詳細內容預設展開，或警告被資訊收合容器吞掉，以下案例必須失敗。
++test('Informational history defaults to a closed neutral disclosure', () => {
++  const elements = render({ title: '<progress>', body: '<history>', steps: ['old result'] });
++  const content = elements.get('alert').innerHTML;
++  assert.match(content, /<details class="notice info"[^>]*>/);
++  assert.doesNotMatch(content, /<details[^>]*\bopen(?:[\s=>])/);
++  assert.match(content, /一般資訊/);
++  assert.match(content, /&lt;progress&gt;/);
++  assert.match(content, /&lt;history&gt;/);
++  assert.match(content, /old result/);
++  assert.doesNotMatch(content, /role="alert"/);
++});
++
++test('Current warnings and errors remain separate from collapsed history', () => {
++  const elements = render({ title: 'History', steps: ['past warning resolved'] }, [
++    { level: 'warn', title: 'Pending evidence', body: '<check>' },
++    { level: 'error', title: 'Build blocked', body: 'real failure', steps: ['fix required'] }
++  ]);
++  const issues = elements.get('notices');
++  assert.ok(issues, 'current notices need a region separate from informational history');
++  assert.equal(issues.hidden, false);
++  assert.match(issues.innerHTML, /<article class="notice warn" role="status">/);
++  assert.match(issues.innerHTML, /注意事項[\s\S]*Pending evidence/);
++  assert.match(issues.innerHTML, /<article class="notice error" role="alert">/);
++  assert.match(issues.innerHTML, /錯誤／阻擋[\s\S]*Build blocked/);
++  assert.match(issues.innerHTML, /&lt;check&gt;/);
++  assert.doesNotMatch(issues.innerHTML, /<details[^>]*\bopen(?:[\s=>])/);
++  assert.doesNotMatch(issues.innerHTML, /past warning resolved/);
++  assert.doesNotMatch(elements.get('alert').innerHTML, /Build blocked/);
++});
++
++test('Empty notices hide their region and unknown severity cannot inject markup', () => {
++  const empty = render(null);
++  assert.ok(empty.get('notices'));
++  assert.equal(empty.get('notices').hidden, true);
++  const elements = render(null, [null, { level: '\" onclick=\"attack', title: '<unknown>', body: 'retained' }]);
++  const content = elements.get('notices').innerHTML;
++  assert.match(content, /<details class="notice info"/);
++  assert.match(content, /&lt;unknown&gt;/);
++  assert.doesNotMatch(content, /onclick/);
++});

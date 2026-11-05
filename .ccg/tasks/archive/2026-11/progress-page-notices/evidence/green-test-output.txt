@@ -1,0 +1,19 @@
+✔ No alert hides the warning region and still renders the page (11.8766ms)
+✔ Alert without prompt omits copy button and full prompt area (5.1ms)
+✔ Alert with prompt preserves escaped prompt and copy handler (5.3641ms)
+✔ Stage 1 progress lists all twelve packages and preserves the live acceptance boundary (5.736ms)
+✔ Stages 2 through 8 render every planned package once and keep all packages not started (4.0451ms)
+✔ Planned phase disclosures show a visible expanded-state indicator (2.6618ms)
+✔ Future work packages preserve external-operation and isolation stop boundaries (0.6214ms)
+✔ Summary cards and phase meters agree with accepted work packages (0.2585ms)
+✔ Informational history defaults to a closed neutral disclosure (4.4723ms)
+✔ Current warnings and errors remain separate from collapsed history (4.9805ms)
+✔ Empty notices hide their region and unknown severity cannot inject markup (6.5161ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.4862

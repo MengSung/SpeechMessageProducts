@@ -1,0 +1,158 @@
+[
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "colors": [
+      {
+        "className": "notice warn",
+        "border": "rgb(250, 178, 25)",
+        "background": "rgb(255, 246, 224)"
+      },
+      {
+        "className": "notice error",
+        "border": "rgb(208, 59, 59)",
+        "background": "rgb(252, 239, 238)"
+      },
+      {
+        "className": "notice info",
+        "border": "rgb(195, 194, 183)",
+        "background": "rgb(243, 242, 238)"
+      }
+    ],
+    "documentWidth": 1440,
+    "pageErrors": 0,
+    "keyboardAndPointer": "passed",
+    "clipboardPaths": "4 passed",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "colors": [
+      {
+        "className": "notice warn",
+        "border": "rgb(250, 178, 25)",
+        "background": "rgb(255, 246, 224)"
+      },
+      {
+        "className": "notice error",
+        "border": "rgb(208, 59, 59)",
+        "background": "rgb(252, 239, 238)"
+      },
+      {
+        "className": "notice info",
+        "border": "rgb(195, 194, 183)",
+        "background": "rgb(243, 242, 238)"
+      }
+    ],
+    "documentWidth": 390,
+    "pageErrors": 0,
+    "keyboardAndPointer": "passed",
+    "clipboardPaths": "4 passed",
+    "passed": true
+  },
+  {
+    "width": 320,
+    "colorScheme": "light",
+    "colors": [
+      {
+        "className": "notice warn",
+        "border": "rgb(250, 178, 25)",
+        "background": "rgb(255, 246, 224)"
+      },
+      {
+        "className": "notice error",
+        "border": "rgb(208, 59, 59)",
+        "background": "rgb(252, 239, 238)"
+      },
+      {
+        "className": "notice info",
+        "border": "rgb(195, 194, 183)",
+        "background": "rgb(243, 242, 238)"
+      }
+    ],
+    "documentWidth": 320,
+    "pageErrors": 0,
+    "keyboardAndPointer": "passed",
+    "clipboardPaths": "4 passed",
+    "passed": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "colors": [
+      {
+        "className": "notice warn",
+        "border": "rgb(250, 178, 25)",
+        "background": "rgba(250, 178, 25, 0.12)"
+      },
+      {
+        "className": "notice error",
+        "border": "rgb(208, 59, 59)",
+        "background": "rgba(208, 59, 59, 0.16)"
+      },
+      {
+        "className": "notice info",
+        "border": "rgb(56, 56, 53)",
+        "background": "rgb(35, 35, 33)"
+      }
+    ],
+    "documentWidth": 1440,
+    "pageErrors": 0,
+    "keyboardAndPointer": "passed",
+    "clipboardPaths": "4 passed",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "colors": [
+      {
+        "className": "notice warn",
+        "border": "rgb(250, 178, 25)",
+        "background": "rgba(250, 178, 25, 0.12)"
+      },
+      {
+        "className": "notice error",
+        "border": "rgb(208, 59, 59)",
+        "background": "rgba(208, 59, 59, 0.16)"
+      },
+      {
+        "className": "notice info",
+        "border": "rgb(56, 56, 53)",
+        "background": "rgb(35, 35, 33)"
+      }
+    ],
+    "documentWidth": 390,
+    "pageErrors": 0,
+    "keyboardAndPointer": "passed",
+    "clipboardPaths": "4 passed",
+    "passed": true
+  },
+  {
+    "width": 320,
+    "colorScheme": "dark",
+    "colors": [
+      {
+        "className": "notice warn",
+        "border": "rgb(250, 178, 25)",
+        "background": "rgba(250, 178, 25, 0.12)"
+      },
+      {
+        "className": "notice error",
+        "border": "rgb(208, 59, 59)",
+        "background": "rgba(208, 59, 59, 0.16)"
+      },
+      {
+        "className": "notice info",
+        "border": "rgb(56, 56, 53)",
+        "background": "rgb(35, 35, 33)"
+      }
+    ],
+    "documentWidth": 320,
+    "pageErrors": 0,
+    "keyboardAndPointer": "passed",
+    "clipboardPaths": "4 passed",
+    "passed": true
+  }
+]

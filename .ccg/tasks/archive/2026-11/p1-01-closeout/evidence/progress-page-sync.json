@@ -1,0 +1,45 @@
+{
+  "target": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\文件\\規劃設計書\\實作計畫-3.3\\實作進度.html",
+  "updatedAt": "2026-11-05 22:11",
+  "beforeSha256": "10800defa8d1e819203f69900402ac53f15703e0a19a310839f5fb49f60f077f",
+  "afterSha256": "b41a5f192c911ad91b78b615e71218af8fb7389ae294c48594b8e12a69ff2670",
+  "p1Done": 3,
+  "p1Active": 1,
+  "totalDone": 21,
+  "totalPackages": 83,
+  "changedFields": [
+    "snapshot",
+    "headline",
+    "alert",
+    "tiles",
+    "p1Wps",
+    "phases",
+    "prep",
+    "risks"
+  ],
+  "preservedP104NoteExceptAggregate": true,
+  "historicalTimelinePreserved": true,
+  "verification": {
+    "progressPageTests": {
+      "passed": 8,
+      "failed": 0
+    },
+    "byteChecks": [
+      {
+        "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\文件\\規劃設計書\\實作計畫-3.3\\實作進度.html",
+        "sha256": "b41a5f192c911ad91b78b615e71218af8fb7389ae294c48594b8e12a69ff2670",
+        "utf8NoBom": true,
+        "crlfOnly": true,
+        "finalCrlf": true
+      },
+      {
+        "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\tools\\RepoQuality\\Tests\\Test-ProgressPage.cjs",
+        "sha256": "0689a99e9b4a75450edfd20c795ebd271176519d1ee71766cf72c3577a95614e",
+        "utf8NoBom": true,
+        "crlfOnly": true,
+        "finalCrlf": true
+      }
+    ],
+    "liveDataAssertions": "P1-01 done; P1-04 active; P1 3/12; all phases 21/83"
+  }
+}

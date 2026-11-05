@@ -1,0 +1,14 @@
+{
+  "id": "progress-page-notices",
+  "title": "進度頁資訊與警告分離、預設收合",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "frontend",
+  "currentPhase": "completed",
+  "nextAction": "原始頁面已修改並驗證；重新整理可見",
+  "createdAt": "2026-11-05T22:19:32.496061+08:00",
+  "branch": "codex/p1-01-closeout",
+  "completedAt": "2026-11-05T22:31:51.360489+08:00",
+  "externalReview": "gemini-only quota fallback; dualModelComplete=false"
+}

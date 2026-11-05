@@ -110,25 +110,51 @@
   .headline { margin-top: 20px; font-size: 17px; }
   .headline strong { font-weight: 700; }
 
-  /* 急件警示 */
-  .alert {
-    border-left: 4px solid var(--crit);
-    background: var(--crit-wash);
+  /* 一般資訊預設收合；注意與錯誤保留可見摘要，詳細紀錄另行展開。 */
+  .notice {
+    border-left: 4px solid var(--base);
+    background: var(--surface-2);
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 12px 16px;
     margin-top: 16px;
+    overflow-wrap: anywhere;
   }
-  .alert .title { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; color: var(--crit-text); }
-  .alert p { margin: 8px 0 0; }
-  .alert ol { margin: 8px 0 0; padding-left: 22px; }
-  .alert .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+  .notice.warn { border-color: var(--warn); background: var(--warn-wash); }
+  .notice.error { border-color: var(--crit); background: var(--crit-wash); }
+  .notice-heading { display: flex; gap: 10px; align-items: flex-start; min-width: 0; font-weight: 700; }
+  .notice-heading svg { width: 22px; height: 22px; flex: none; margin-top: 2px; }
+  .notice-label { display: block; font-size: 13px; color: var(--ink-2); }
+  .notice.warn .notice-label { color: var(--warn-text); }
+  .notice.error .notice-label { color: var(--crit-text); }
+  .notice > summary, .notice-details > summary {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .notice > summary::-webkit-details-marker, .notice-details > summary::-webkit-details-marker { display: none; }
+  .notice > summary:focus-visible, .notice-details > summary:focus-visible {
+    outline: 3px solid var(--prog);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+  .notice-toggle { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .notice-toggle::before { content: "+ 展開"; }
+  details[open] > summary > .notice-toggle::before { content: "− 收合"; }
+  .notice-content { padding-top: 4px; }
+  .notice p { margin: 8px 0 0; }
+  .notice ol { margin: 8px 0 0; padding-left: 22px; }
+  .notice .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
   button.copy {
     font: inherit;
     font-weight: 700;
     border: 0;
     border-radius: 8px;
     padding: 8px 14px;
-    background: var(--crit);
+    background: var(--prog);
     color: #ffffff;
     cursor: pointer;
   }
@@ -348,7 +374,8 @@
 
   <p class="headline card" id="headline"></p>
 
-  <div class="alert" role="alert" id="alert"></div>
+  <div id="notices" hidden></div>
+  <div id="alert" hidden></div>
 
   <div class="tiles" id="tiles"></div>
 
@@ -423,15 +450,19 @@
 /*
  * 本頁所有內容都來自下面的 DATA。更新進度時只改 DATA，不必改版面程式。
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
+ * alert 保留歷史資訊；目前待處理事項放入 notices 陣列。level 使用 info／warn／error，省略時為 info。
+ * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-05 21:39（Activity ec108ae0已本地提交；P1仍2/12）",
+  "snapshot": "2026-11-05 22:11（P1-01正式驗收完成；P1為3/12，P1-04持續中）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
-  "headline": "階段 1 目前 <strong>2／12 工作包列為驗收完成</strong>（P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收20包；規劃登錄不代表實作或驗收。",
+  "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
+  "notices": [],
   "alert": {
-    "title": "階段1執行中｜Activity安全修正",
-    "body": "D365 預設只讀，本輪未操作VM／D365／LINE。P1-04 Constants 已抽取。Activity安全51紅→57綠，含生命週期搬前82/82後才git mv；搬後ToolUtility net48實載net462 495/495、net10 602/602，Core獨立coverage99.56%／100%、strict零警告／錯誤。真公開委派7/7、完整方案16TRX2444/2444、ChurchReport623/623、架構67/67。使用者免除後續雙模型REVIEW，改主會話審查；其餘適用守門與主會話審查已保存；完整Changed仍受非本切片索引缺CRLF阻擋，P1仍2/12。",
+    "level": "info",
+    "title": "階段1執行中｜集中P1-04收尾",
+    "body": "P1-01已正式驗收完成，報告 wp-reports/P1-01-acceptance.md；DevExpress保留現版、不升級不續訂，新來源與hosted完整CI依使用者決定暫緩，不再阻擋P1-01。D365 預設只讀，本輪未操作VM／D365／LINE。P1-04 Constants 已抽取。Collection原host三特性先綠、安全45/45真紅→搬前48/48綠後git mv；搬後net48實載net462 554/554、net10 661/661，Core strict零警告／錯誤，既有Collection效能16/16通過。正純化九屬性轉換器及靜態handler：19特性先綠、13安全＋1null lookup真紅。主會話審查，P1-04未全包驗收。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -465,12 +496,12 @@ const DATA = {
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "20",
+      "value": "21",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 2／12 已驗收，2包收斂中",
+      "sub": "P0 18／18；P1 3／12 已驗收，1包進行中",
       "meter": {
-        "done": 20,
-        "active": 2,
+        "done": 21,
+        "active": 1,
         "total": 83
       }
     },
@@ -487,12 +518,12 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "2",
+      "value": "3",
       "unit": "/ 12 工作包",
-      "sub": "P1-02／03正式驗收；P1-01、04～12尚未完成",
+      "sub": "P1-01／02／03正式驗收；P1-04進行中，05～12尚未完成",
       "meter": {
-        "done": 2,
-        "active": 2,
+        "done": 3,
+        "active": 1,
         "total": 12
       }
     },
@@ -649,8 +680,8 @@ const DATA = {
     {
       "id": "P1-01",
       "name": "清理孤兒專案與檔案",
-      "status": "active",
-      "note": "51候選引用稽核、15原效能案例加1並行案例保留、smoke2秒可控時鐘與本機全量守門已有證據；DevExpress合法新來源／hosted證據尚未取得，待正式報告與審查收斂，不標全包完成。"
+      "status": "done",
+      "note": "51個孤兒檔已清除且引用稽核通過；原15效能案例加1並行案例16/16、ToolUtility.Tests完整方案映射、本機Release16份TRX共2278/2278及smoke約2秒可控時鐘均已核對。正式驗收 wp-reports/P1-01-acceptance.md。DevExpress保留現版、不升級不續訂；新來源與hosted完整CI暫緩，不宣稱雲端通過。外審為Gemini單模型降級，Claude額度阻擋，未宣稱雙模型完成。"
     },
     {
       "id": "P1-02",
@@ -668,7 +699,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性／SDK extension、Repository、Attachment及Activity已抽Core。Activity安全51紅→57綠，含生命週期搬前82/82後才git mv；搬後ToolUtility net48實載net462 495/495、net10 602/602，Core獨立coverage99.56%／100%、strict零警告／錯誤。真公開委派7/7、完整方案16TRX2444/2444、ChurchReport623/623、架構67/67。使用者免除後續雙模型REVIEW，改主會話審查；其餘守門保存中，P1仍2/12。"
+      "note": "Collection原host三特性先綠、安全45/45真紅→搬前48/48綠後git mv；搬後net48實載net462 554/554、net10 661/661，Core strict零警告／錯誤，既有Collection效能16/16通過。正純化九屬性轉換器及靜態handler：19特性先綠、13安全＋1null lookup真紅。主會話審查，P1-04未全包驗收。"
     },
     {
       "id": "P1-05",
@@ -1250,8 +1281,8 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 2,
-      "active": 2,
+      "done": 3,
+      "active": 1,
       "current": true
     },
     {
@@ -1446,7 +1477,7 @@ const DATA = {
   "timeline": [
     {
       "t": "2026-11-05 21:39",
-      "text": "Activity切片ec108ae0已本地提交、未push；495/602雙宿主、2444完整回歸、Core99.56%/100%及主會話審查證據已保存。依使用者不再安排雙模型REVIEW。Collection產品未改，下一步原host特性與安全紅綠；其餘P1仍未完成。",
+      "text": "Activity切片ec108ae0已本地提交、未push；495/602雙宿主、2444完整回歸、Core99.56%/100%及主會話審查證據已保存。依使用者不再安排雙模型REVIEW。集中P1-04剩餘抽取，先Collection原host特性、安全紅綠與完整分頁，再處理必要純契約；已驗收切片不重做。其餘P1仍未完成。",
       "cls": "info"
     },
     {
@@ -2022,9 +2053,9 @@ const DATA = {
       "sub": "使用者已清除；2026-11-03 Test-Path 確認兩個目錄均不存在。"
     },
     {
-      "state": "todo",
-      "text": "階段 1 第一批：smoke 輪詢降為約 2 秒並補時鐘測試",
-      "sub": "P2-04 推播驗收前完成；避免過度查詢可能與正式組織共用的地端伺服器，本次不修改程式。"
+      "state": "done",
+      "text": "P1-01：smoke輪詢約2秒與可控時鐘驗證已完成",
+      "sub": "本機測試與正式驗收已核對，見wp-reports/P1-01-acceptance.md；本次未連D365或發送LINE。"
     }
   ],
   "risks": [
@@ -2039,9 +2070,9 @@ const DATA = {
       "sub": "使用者 2026-11-04 核定，解除 P0 停止事項；首個正式 Plugin 佈署 goodshepherdback 前才實作與驗收，現在不改 Plugin。"
     },
     {
-      "level": "warn",
-      "text": "GitHub CI 過渡範圍已接受，實跑結果仍待確認",
-      "sub": "使用者 2026-11-04 接受排除三個 DevExtreme 依賴專案；階段 1 優先解決來源。job 空環境值與 GITHUB_ENV 覆寫後的建置效果仍待實跑。"
+      "level": "info",
+      "text": "DevExpress維持現版；hosted完整CI恢復暫緩",
+      "sub": "使用者2026-11-05決定不升級、不續訂，保留現有UI；新套件來源與hosted完整CI恢復暫緩，不再阻擋P1-01。既有過渡排除保留，本機完整驗收已完成，未宣稱GitHub實跑通過。"
     },
     {
       "level": "info",
@@ -2097,37 +2128,63 @@ document.getElementById("meta").innerHTML =
   `<span>資料快照：${esc(D.snapshot)}</span><span>分支 ${esc(D.branch)}</span><span>${esc(D.worker)}</span>`;
 document.getElementById("headline").innerHTML = D.headline;
 
+// 只接受明確分類，歷史紀錄中提到的 Warning／失敗不會被當作目前阻擋。
+// 所有文字皆跳脫後插入；分類只從固定白名單選取，避免資料成為 HTML 屬性。
+function renderNotice(notice, actions = "") {
+  const level = ["info", "warn", "error"].includes(notice.level) ? notice.level : "info";
+  const label = { info: "一般資訊", warn: "注意事項", error: "錯誤／阻擋" }[level];
+  const icon = ICON[level === "error" ? "alert" : level];
+  const heading = `<span class="notice-heading">${icon}<span><span class="notice-label">${label}</span>${esc(notice.title || "")}</span></span>`;
+  const steps = Array.isArray(notice.steps) ? notice.steps : [];
+  const content = `<div class="notice-content">${notice.body ? `<p>${esc(notice.body)}</p>` : ""}
+    ${steps.length ? `<ol>${steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>` : ""}${actions}</div>`;
+  const toggle = '<span class="notice-toggle" aria-hidden="true"></span>';
+  if (level === "info") {
+    return `<details class="notice info"><summary>${heading}${toggle}</summary>${content}</details>`;
+  }
+  return `<article class="notice ${level}" role="${level === "error" ? "alert" : "status"}">${heading}
+    <details class="notice-details"><summary>查看詳細資訊${toggle}</summary>${content}</details></article>`;
+}
+
+const noticesRegion = document.getElementById("notices");
+const notices = Array.isArray(D.notices)
+  ? D.notices.filter(notice => notice && typeof notice === "object" && !Array.isArray(notice)) : [];
+noticesRegion.hidden = notices.length === 0;
+noticesRegion.innerHTML = notices.map(notice => renderNotice(notice)).join("");
+
 const alertRegion = document.getElementById("alert");
 alertRegion.hidden = !D.alert;
 if (D.alert) {
   const hasPrompt = typeof D.alert.prompt === "string" && D.alert.prompt.trim().length > 0;
-  const alertSteps = Array.isArray(D.alert.steps) ? D.alert.steps : [];
-  alertRegion.innerHTML = `
-  <div class="title">${ICON.alert.replace('aria-hidden="true"', 'aria-hidden="true" width="22" height="22"')}<span>${esc(D.alert.title)}</span></div>
-  <p>${esc(D.alert.body || "")}</p>
-  <ol>${alertSteps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
-  ${hasPrompt ? `<div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
-  <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>` : ""}`;
+  const actions = hasPrompt ? `<div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
+    <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>` : "";
+  alertRegion.innerHTML = renderNotice(D.alert, actions);
 
-if (hasPrompt) document.getElementById("copyBtn").addEventListener("click", async () => {
-  const text = D.alert.prompt;
-  const done = msg => { document.getElementById("copied").textContent = msg; };
-  try {
-    await navigator.clipboard.writeText(text);
-    done("已複製，可以貼到 Codex 了");
-  } catch (e) {
-    // 檔案直接開啟時某些瀏覽器不允許 Clipboard API，改用選取後複製。
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand("copy");
-    ta.remove();
-    done(ok ? "已複製，可以貼到 Codex 了" : "無法自動複製，請展開全文後手動選取");
-  }
-});
+  if (hasPrompt) document.getElementById("copyBtn").addEventListener("click", async () => {
+    const text = D.alert.prompt;
+    const done = msg => { document.getElementById("copied").textContent = msg; };
+    try {
+      await navigator.clipboard.writeText(text);
+      done("已複製，可以貼到 Codex 了");
+    } catch (e) {
+      // 檔案直接開啟時可能禁止 Clipboard API；暫存選取元素只活在本次複製操作，
+      // 即使舊版複製命令拋錯也必須移除，不保留提示詞或持續累積 DOM。
+      const ta = document.createElement("textarea");
+      try {
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        done(ok ? "已複製，可以貼到 Codex 了" : "無法自動複製，請展開全文後手動選取");
+      } catch (copyError) {
+        done("無法自動複製，請展開全文後手動選取");
+      } finally {
+        ta.remove();
+      }
+    }
+  });
 }
 
 document.getElementById("tiles").innerHTML = D.tiles.map(t => `

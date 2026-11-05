@@ -14,7 +14,7 @@ const dataEnd = script.indexOf('\n};', dataStart) + 3;
 const original = vm.runInNewContext(script.slice(dataStart, dataEnd) + '\nDATA;');
 
 // 每個案例持有自己的 DOM 與資料副本，避免警示事件或內容從上一個案例滲入。
-function render(alert) {
+function render(alert, notices = []) {
   const elements = new Map();
   class Element {
     constructor(id) { this.id = id; this.hidden = false; this.listeners = new Map(); this.children = []; this.content = ''; }
@@ -35,6 +35,7 @@ function render(alert) {
   }
   const data = JSON.parse(JSON.stringify(original));
   data.alert = alert;
+  data.notices = notices;
   const source = script.slice(0, dataStart) + 'const DATA = ' + JSON.stringify(data) + ';' + script.slice(dataEnd);
   vm.runInNewContext(source, { document: { getElementById: id => elements.get(id) || null }, navigator: {} });
   return elements;
@@ -92,7 +93,11 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   // 這是人工驗收後的固定里程碑，不以彼此相等就推論實際執行或實機通過。
   assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-03-acceptance.md'), 'utf8'),
     /狀態：本工作包驗收完成/);
-  assert.match(getWorkPackageRow(elements, 'P1-04'), /四個舊方法來源已定位/);
+  // 驗收里程碑與狀態是契約；P1-04 的階段性說明會持續更新，不綁定歷史文案。
+  assert.match(getWorkPackageRow(elements, 'P1-01'), /class="wp is-done"/);
+  assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-01-acceptance.md'), 'utf8'),
+    /P1-01 的孤兒清理、測試整合及本機驗收已完成/);
+  assert.match(getWorkPackageRow(elements, 'P1-04'), /class="wp is-active"/);
   assert.match(elements.get('p1-wps').innerHTML, /P1-08[\s\S]*P1-10/);
   const p1_12 = getWorkPackageRow(elements, 'P1-12');
   assert.match(p1_12, /class="wp is-you"/);
@@ -259,4 +264,46 @@ test('Summary cards and phase meters agree with accepted work packages', () => {
   assert.equal(Number(total.value), totalDone);
   assert.equal(total.meter.done, totalDone);
   assert.equal(total.meter.active, original.phases.reduce((sum, phase) => sum + phase.active, 0));
+});
+
+// 若資訊再次套用警告語意、詳細內容預設展開，或警告被資訊收合容器吞掉，以下案例必須失敗。
+test('Informational history defaults to a closed neutral disclosure', () => {
+  const elements = render({ title: '<progress>', body: '<history>', steps: ['old result'] });
+  const content = elements.get('alert').innerHTML;
+  assert.match(content, /<details class="notice info"[^>]*>/);
+  assert.doesNotMatch(content, /<details[^>]*\bopen(?:[\s=>])/);
+  assert.match(content, /一般資訊/);
+  assert.match(content, /&lt;progress&gt;/);
+  assert.match(content, /&lt;history&gt;/);
+  assert.match(content, /old result/);
+  assert.doesNotMatch(content, /role="alert"/);
+});
+
+test('Current warnings and errors remain separate from collapsed history', () => {
+  const elements = render({ title: 'History', steps: ['past warning resolved'] }, [
+    { level: 'warn', title: 'Pending evidence', body: '<check>' },
+    { level: 'error', title: 'Build blocked', body: 'real failure', steps: ['fix required'] }
+  ]);
+  const issues = elements.get('notices');
+  assert.ok(issues, 'current notices need a region separate from informational history');
+  assert.equal(issues.hidden, false);
+  assert.match(issues.innerHTML, /<article class="notice warn" role="status">/);
+  assert.match(issues.innerHTML, /注意事項[\s\S]*Pending evidence/);
+  assert.match(issues.innerHTML, /<article class="notice error" role="alert">/);
+  assert.match(issues.innerHTML, /錯誤／阻擋[\s\S]*Build blocked/);
+  assert.match(issues.innerHTML, /&lt;check&gt;/);
+  assert.doesNotMatch(issues.innerHTML, /<details[^>]*\bopen(?:[\s=>])/);
+  assert.doesNotMatch(issues.innerHTML, /past warning resolved/);
+  assert.doesNotMatch(elements.get('alert').innerHTML, /Build blocked/);
+});
+
+test('Empty notices hide their region and unknown severity cannot inject markup', () => {
+  const empty = render(null);
+  assert.ok(empty.get('notices'));
+  assert.equal(empty.get('notices').hidden, true);
+  const elements = render(null, [null, { level: '\" onclick=\"attack', title: '<unknown>', body: 'retained' }]);
+  const content = elements.get('notices').innerHTML;
+  assert.match(content, /<details class="notice info"/);
+  assert.match(content, /&lt;unknown&gt;/);
+  assert.doesNotMatch(content, /onclick/);
 });

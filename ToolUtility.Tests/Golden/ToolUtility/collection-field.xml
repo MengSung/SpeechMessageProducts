@@ -1,0 +1,1 @@
+<query entity="contact" all="true"><condition field="new_scope" value="synthetic" /><condition field="statecode" value="0" /></query>

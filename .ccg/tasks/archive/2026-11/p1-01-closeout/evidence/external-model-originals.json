@@ -1,0 +1,116 @@
+{
+  "archiveSha256": "7571ecdb50e380a3f56b5135c092c3edd6e2629cf8929a7697d5e2261bb31974",
+  "files": [
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/ccg-health-20261105-213803.json",
+      "bytes": 1649,
+      "sha256": "79c908283c23a9ac5bb04bf8e22d1830997f96325529dc003ba2a171a7c8318b"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/claude-analyzer-attempt-1.prompt.md",
+      "bytes": 2874,
+      "sha256": "d0b510d4cf6d6232462053713f66b5100206a3d50fbd14034308882fb0511308"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/claude-analyzer-attempt-1.stderr.md",
+      "bytes": 533,
+      "sha256": "d39e083aa420a8e8f3a1c962cff998c458b29158b96db57d435d87cb4c81a227"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/claude-analyzer-attempt-1.stdout.md",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/claude-probe-attempt-1.stdout.md",
+      "bytes": 63,
+      "sha256": "ec4c8e7a9798e85a70a77527bb284b961a3a7d83687350347c0c42b47a319943"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/gemini-analyzer-attempt-1.prompt.md",
+      "bytes": 2874,
+      "sha256": "49ac620e82653660504b39c95b8b982dceb90b5e5aca29f7615e226ad62b7b0d"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/gemini-analyzer-attempt-1.stderr.md",
+      "bytes": 274,
+      "sha256": "4c94c4f94c5338e0b89d330de8cada59f4591c0dcd726a25b2f28fd10e6faab1"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/gemini-analyzer-attempt-1.stdout.md",
+      "bytes": 5937,
+      "sha256": "e97a8b9dcd243e3944f6796566c0c1c8413be1d403f8c508aabec17ff5a27915"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/health-attempt-1.json",
+      "bytes": 1845,
+      "sha256": "cf16b6480c05125c20b20d4645845aeb9e06ea0be08886e7041dff87174e47e1"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/summary.json",
+      "bytes": 7589,
+      "sha256": "3b683be43b12e54c96060b20d2b8ac93576b74233344eeb1b313b11765d81ce8"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-213802-p1-01-closeout-analysis-analyzer/summary.md",
+      "bytes": 788,
+      "sha256": "e1005845b64008d1d6834d27266dab94607863343a854aa636198fa6dd38971a"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/ccg-health-20261105-214808.json",
+      "bytes": 1649,
+      "sha256": "864c626c4b0d5a709059bde92e3df2ef7d7f0c9e697089af187cbc7c9bb78154"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/claude-probe-attempt-1.stdout.md",
+      "bytes": 63,
+      "sha256": "ec4c8e7a9798e85a70a77527bb284b961a3a7d83687350347c0c42b47a319943"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/claude-reviewer-attempt-1.prompt.md",
+      "bytes": 42814,
+      "sha256": "c9d526bb0f1d85e5f77643e9144e5cc2d3fd1763c7fb35866de80cb3b397b4b2"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/claude-reviewer-attempt-1.stderr.md",
+      "bytes": 561,
+      "sha256": "d5e32731b1342c3ad9a43d86f770b2a24a596d048ae2fa3458c435dceb8ed5d0"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/claude-reviewer-attempt-1.stdout.md",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/gemini-reviewer-attempt-1.prompt.md",
+      "bytes": 42814,
+      "sha256": "cfff79eaf93264fbf7f73763abd67aa07d64fbbca2ec3db5c9ea7695bb160e57"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/gemini-reviewer-attempt-1.stderr.md",
+      "bytes": 274,
+      "sha256": "ab4023a8b68da5d4390b6283d383e1870e6756918706a0fcc42d073f9fc52c74"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/gemini-reviewer-attempt-1.stdout.md",
+      "bytes": 4337,
+      "sha256": "4495f77eb328cfc0cb9b7ef50bc291418685f65ec482ca90e4f9ba1fa21dff4e"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/health-attempt-1.json",
+      "bytes": 1843,
+      "sha256": "3b6eb75d5ffc9795ec6288c5e89ab71f7fe0b6ed1c4c3c580cab30fb0e1fdb2a"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/summary.json",
+      "bytes": 7563,
+      "sha256": "f417a61f71e7f9e5341fefbbca8403ee778c1946748377ea1f0c24c7d9eb8b4c"
+    },
+    {
+      "path": ".ccg/dual-model-runs/20261105-214807-p1-01-closeout-review-reviewer/summary.md",
+      "bytes": 782,
+      "sha256": "a8278f0559255dd48441b2197e4bd96aa94cbfeb08293ce367bc86f9315bdc84"
+    }
+  ],
+  "gitMirrorNormalization": "Only two health-attempt-1.json terminal blank lines removed; parsed JSON values equal. ZIP preserves every original byte."
+}

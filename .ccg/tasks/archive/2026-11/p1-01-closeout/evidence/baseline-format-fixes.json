@@ -1,0 +1,16 @@
+[
+  {
+    "path": ".ccg/tasks/p013-apply-fault-investigation/.turns.json",
+    "change": "append final CRLF only",
+    "beforeSha256": "19a63b5262bde9fa4b84ddcc9f30938d75572c744fc0e865d0936f3fb6f31d29",
+    "afterSha256": "e54e64a18c33fc5f5351bdb14186893d3a8f400533625659b3a3726d49eacfa4",
+    "allOriginalBytesUnchanged": true
+  },
+  {
+    "path": ".trellis/workspace/codex/index.md",
+    "change": "append final CRLF only",
+    "beforeSha256": "1f1051d8e1d478dd4f7a6e7c8a7b5a885ab84a988b61c452d0d247c4c74face1",
+    "afterSha256": "05fd104e683d0cdac1f519a83974e2867d2f472be27e391cdf6a5a998cf2ecee",
+    "allOriginalBytesUnchanged": true
+  }
+]

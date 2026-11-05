@@ -1,0 +1,190 @@
+{
+  "files": [
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\文件\\規劃設計書\\實作計畫-3.3\\實作進度.html",
+      "sha256": "175ddf852ae9f34c2403d34c1b2ce540803639969399182bd37183477aa01e38",
+      "utf8NoBom": true,
+      "crlfOnly": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\tools\\RepoQuality\\Tests\\Test-ProgressPage.cjs",
+      "sha256": "5e47537ccfcf7043e443f3527063135b43250ac949f04f11eab9c7d885ce1c00",
+      "utf8NoBom": true,
+      "crlfOnly": true,
+      "finalCrlf": true
+    }
+  ],
+  "existingDataPreserved": true,
+  "p1_01": "done",
+  "p1_04": "active",
+  "browser": [
+    {
+      "width": 1440,
+      "colorScheme": "light",
+      "colors": [
+        {
+          "className": "notice warn",
+          "border": "rgb(250, 178, 25)",
+          "background": "rgb(255, 246, 224)"
+        },
+        {
+          "className": "notice error",
+          "border": "rgb(208, 59, 59)",
+          "background": "rgb(252, 239, 238)"
+        },
+        {
+          "className": "notice info",
+          "border": "rgb(195, 194, 183)",
+          "background": "rgb(243, 242, 238)"
+        }
+      ],
+      "documentWidth": 1440,
+      "pageErrors": 0,
+      "keyboardAndPointer": "passed",
+      "clipboardPaths": "4 passed",
+      "passed": true
+    },
+    {
+      "width": 390,
+      "colorScheme": "light",
+      "colors": [
+        {
+          "className": "notice warn",
+          "border": "rgb(250, 178, 25)",
+          "background": "rgb(255, 246, 224)"
+        },
+        {
+          "className": "notice error",
+          "border": "rgb(208, 59, 59)",
+          "background": "rgb(252, 239, 238)"
+        },
+        {
+          "className": "notice info",
+          "border": "rgb(195, 194, 183)",
+          "background": "rgb(243, 242, 238)"
+        }
+      ],
+      "documentWidth": 390,
+      "pageErrors": 0,
+      "keyboardAndPointer": "passed",
+      "clipboardPaths": "4 passed",
+      "passed": true
+    },
+    {
+      "width": 320,
+      "colorScheme": "light",
+      "colors": [
+        {
+          "className": "notice warn",
+          "border": "rgb(250, 178, 25)",
+          "background": "rgb(255, 246, 224)"
+        },
+        {
+          "className": "notice error",
+          "border": "rgb(208, 59, 59)",
+          "background": "rgb(252, 239, 238)"
+        },
+        {
+          "className": "notice info",
+          "border": "rgb(195, 194, 183)",
+          "background": "rgb(243, 242, 238)"
+        }
+      ],
+      "documentWidth": 320,
+      "pageErrors": 0,
+      "keyboardAndPointer": "passed",
+      "clipboardPaths": "4 passed",
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "colorScheme": "dark",
+      "colors": [
+        {
+          "className": "notice warn",
+          "border": "rgb(250, 178, 25)",
+          "background": "rgba(250, 178, 25, 0.12)"
+        },
+        {
+          "className": "notice error",
+          "border": "rgb(208, 59, 59)",
+          "background": "rgba(208, 59, 59, 0.16)"
+        },
+        {
+          "className": "notice info",
+          "border": "rgb(56, 56, 53)",
+          "background": "rgb(35, 35, 33)"
+        }
+      ],
+      "documentWidth": 1440,
+      "pageErrors": 0,
+      "keyboardAndPointer": "passed",
+      "clipboardPaths": "4 passed",
+      "passed": true
+    },
+    {
+      "width": 390,
+      "colorScheme": "dark",
+      "colors": [
+        {
+          "className": "notice warn",
+          "border": "rgb(250, 178, 25)",
+          "background": "rgba(250, 178, 25, 0.12)"
+        },
+        {
+          "className": "notice error",
+          "border": "rgb(208, 59, 59)",
+          "background": "rgba(208, 59, 59, 0.16)"
+        },
+        {
+          "className": "notice info",
+          "border": "rgb(56, 56, 53)",
+          "background": "rgb(35, 35, 33)"
+        }
+      ],
+      "documentWidth": 390,
+      "pageErrors": 0,
+      "keyboardAndPointer": "passed",
+      "clipboardPaths": "4 passed",
+      "passed": true
+    },
+    {
+      "width": 320,
+      "colorScheme": "dark",
+      "colors": [
+        {
+          "className": "notice warn",
+          "border": "rgb(250, 178, 25)",
+          "background": "rgba(250, 178, 25, 0.12)"
+        },
+        {
+          "className": "notice error",
+          "border": "rgb(208, 59, 59)",
+          "background": "rgba(208, 59, 59, 0.16)"
+        },
+        {
+          "className": "notice info",
+          "border": "rgb(56, 56, 53)",
+          "background": "rgb(35, 35, 33)"
+        }
+      ],
+      "documentWidth": 320,
+      "pageErrors": 0,
+      "keyboardAndPointer": "passed",
+      "clipboardPaths": "4 passed",
+      "passed": true
+    }
+  ],
+  "beforeHashes": [
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\文件\\規劃設計書\\實作計畫-3.3\\實作進度.html",
+      "sha256": "b41a5f192c911ad91b78b615e71218af8fb7389ae294c48594b8e12a69ff2670"
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\tools\\RepoQuality\\Tests\\Test-ProgressPage.cjs",
+      "sha256": "0689a99e9b4a75450edfd20c795ebd271176519d1ee71766cf72c3577a95614e"
+    }
+  ],
+  "patchFormat": "zero context; apply only after matching beforeHashes, using git apply --unidiff-zero"
+}

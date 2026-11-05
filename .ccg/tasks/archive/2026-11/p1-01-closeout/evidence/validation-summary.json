@@ -1,0 +1,117 @@
+{
+  "freshValidation": {
+    "buildExitCode": 0,
+    "buildWarnings": 21,
+    "buildErrors": 0,
+    "releaseTargets": 16,
+    "releaseTestsPassed": 2278,
+    "performancePassed": 16,
+    "debugTracerPassed": 7,
+    "duplicates": {
+      "projects": 28,
+      "files": 938,
+      "groups": 0,
+      "new": 0,
+      "stale": 0
+    },
+    "encodingBefore": {
+      "checked": 791,
+      "excluded": 758,
+      "issues": 2
+    },
+    "encodingAfterBaselineFix": {
+      "checked": 791,
+      "excluded": 758,
+      "issues": 0
+    },
+    "i18nVerify": true,
+    "pluginBuildPassed": 6,
+    "pluginMetadataPassed": 10,
+    "pluginToolPassed": 27
+  },
+  "historicalBeforeCleanup": {
+    "solutionTargets": 13,
+    "solutionPassed": 1125,
+    "outsideSolutionToolUtilityPassed": 63,
+    "duplicateProjects": 26,
+    "duplicateFiles": 879,
+    "duplicateGroups": 0,
+    "historicalLogs": [
+      {
+        "name": "p0-release-build.log",
+        "sha256": "692a4705bbfe4da7e156ed67f2b19484ac8367fcb291d9f695392a60089bdcfe"
+      },
+      {
+        "name": "p0-release-tests.log",
+        "sha256": "df2cde8f0d8bc3e8620acbf310f12fefb45b0f1c71225216670d671b121f0358"
+      },
+      {
+        "name": "orphan-toolutility-tests-baseline.log",
+        "sha256": "3e9b28e83889559a9df8426fff600e10b32ad520e28815c5733681e0d3a8eca0"
+      },
+      {
+        "name": "duplicates.log",
+        "sha256": "b4087c46e588ce8e0f066934276b0e21983d8de48154019d874fbbc598247584"
+      }
+    ]
+  },
+  "freshLogManifest": [
+    {
+      "path": "artifacts/p1-01-closeout/release-build.log",
+      "sha256": "c8da04f0aba9148e53fd17ee75917b7abca89413f306cc640e391fc486891124",
+      "bytes": 32812
+    },
+    {
+      "path": "artifacts/p1-01-closeout/release-tests.log",
+      "sha256": "e3e5b24199d8832904b727f6eaad3a6fc1373ea06dfc13cbb46e903543841666",
+      "bytes": 9506
+    },
+    {
+      "path": "artifacts/p1-01-closeout/debug-tracer.log",
+      "sha256": "89f532e4482cfa9c8767b2fa26ef99d4bf75850b280f0ab80f87ade79bb68b03",
+      "bytes": 5339
+    },
+    {
+      "path": "artifacts/p1-01-closeout/debug-tracer-positive.log",
+      "sha256": "94279616002627609bc9483374df50a394f0bbf2d83cfa94716d4a0f07dfffa1",
+      "bytes": 35
+    },
+    {
+      "path": "artifacts/p1-01-closeout/duplicates.log",
+      "sha256": "190769034a3d920f5325b37ca3f087218a8db360a16763d7930cb0b69b092481",
+      "bytes": 84
+    },
+    {
+      "path": "artifacts/p1-01-closeout/encoding-baseline.log",
+      "sha256": "3f631c21e0c5dcf640a7bb81fc34342868024278b0cab319235e29ddc5070561",
+      "bytes": 209
+    },
+    {
+      "path": "artifacts/p1-01-closeout/encoding-fixed-baseline.log",
+      "sha256": "8e28294fc85b8c6b02b0bd51165ec852cfee5b30a157b426c3a77e7267c5a8d5",
+      "bytes": 73
+    },
+    {
+      "path": "artifacts/p1-01-closeout/i18n.log",
+      "sha256": "88a630c621fad9160bb1cdcfa1d6df50b33a8cf17c51f6dbc12709405e7cb0cd",
+      "bytes": 64604
+    },
+    {
+      "path": "artifacts/p1-01-closeout/plugin-build.log",
+      "sha256": "b5f3f9a873e56163dca2051ab911a434e8e7034716d09ed6087c0b7680e7042c",
+      "bytes": 227
+    },
+    {
+      "path": "artifacts/p1-01-closeout/plugin-metadata.log",
+      "sha256": "4bdf69dda3675c169b05136d234741c2ef393b118de8c5bd00eee3cbfb0632f6",
+      "bytes": 962
+    },
+    {
+      "path": "artifacts/p1-01-closeout/plugin-tool.log",
+      "sha256": "897db4d571aca37cf18d46c0b3406534045bb454243a99e5834207ee2a94fe94",
+      "bytes": 1239
+    }
+  ],
+  "hostedCi": "deferred, not verified",
+  "productSourceChanges": false
+}

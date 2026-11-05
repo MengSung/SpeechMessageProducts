@@ -1,16 +1,4 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/CollectionOperations/ICollectionQueryService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface ICollectionQueryService、class PagedResult
-// 主要成員：Entities、TotalCount、MoreRecords、PagingCookie
-// 引用命名空間：Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、System、System.Collections.Generic、System.Threading、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+#nullable enable
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
@@ -21,20 +9,21 @@ using System.Threading.Tasks;
 namespace ToolUtilityNameSpace.CollectionOperations
 {
     /// <summary>
-    /// 集合查詢服務介面
-    /// 提供同步與非同步查詢方法
+    /// 純 SDK 集合查詢契約；授權及連線 scope 由 host 驗證與擁有，不保存 request／結果或跨租戶狀態。
+    /// Task 包裝仍執行同步 SDK；取消只在 I/O 前後檢查，不能中斷正在執行的同步呼叫。
+    /// 單頁入口保留分頁 metadata；批次入口完整有界讀取，衝突與故障交最終 host 告警，不回部分成功。
     /// </summary>
     public interface ICollectionQueryService
     {
         #region 同步方法 (向下相容)
 
         /// <summary>
-        /// 根據欄位查詢實體集合 (同步)
+        /// 沿用 AllColumns、欄位值及啟用條件，驗完整單頁正式身份；caller 擁有回傳結果及續頁責任。
         /// </summary>
         EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue);
 
         /// <summary>
-        /// 查詢週報資料 (同步)
+        /// 透過 Execute 查指定主日前兩月週報，保留條件／排序；錯頁或故障不得偽裝空資料。
         /// </summary>
         EntityCollection QueryWeeklyReportBeforeTowMonthOfSunday(DateTime aSunday, Guid aListEntityId);
 
@@ -43,7 +32,7 @@ namespace ToolUtilityNameSpace.CollectionOperations
         #region 非同步方法 (新增)
 
         /// <summary>
-        /// 根據欄位查詢實體集合 (非同步)
+        /// 同步 SDK 的完成 Task 包裝；保留單頁及原例外，caller 取消前不執行 I/O，取消後不發布成功。
         /// </summary>
         Task<EntityCollection> RetrieveEntityCollectionByFieldAsync(
             string entityName,
@@ -52,7 +41,7 @@ namespace ToolUtilityNameSpace.CollectionOperations
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 根據單一條件查詢實體集合 (非同步)
+        /// 保留單條件與啟用條件；值為操作局部 SDK 型別，不作 XML 拼接或服務級快取。
         /// </summary>
         Task<EntityCollection> RetrieveEntityCollectionByConditionAsync(
             string entityName,
@@ -62,7 +51,7 @@ namespace ToolUtilityNameSpace.CollectionOperations
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 根據多重條件查詢實體集合 (非同步)
+        /// 保留多條件 AND 與啟用條件；caller 在同步執行期間須獨占字典，回傳完整驗證的單頁。
         /// </summary>
         Task<EntityCollection> RetrieveEntityCollectionByConditionsAsync(
             string entityName,
@@ -70,7 +59,7 @@ namespace ToolUtilityNameSpace.CollectionOperations
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 查詢週報資料 (非同步)
+        /// 與同步週報共用同一查詢；只由明確 caller token 判定正常取消，內部逾時仍屬故障。
         /// </summary>
         Task<EntityCollection> QueryWeeklyReportBeforeTowMonthOfSundayAsync(
             DateTime aSunday,
@@ -78,73 +67,76 @@ namespace ToolUtilityNameSpace.CollectionOperations
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 分頁查詢實體集合 (非同步)
+        /// 傳回一個有序完整頁與原 metadata；官方 XML cookie 的 page 指向上一頁，無 cookie 表第一頁。
+        /// 沒有 SDK cookie 的後續頁改用實作類別明確 pageNumber 多載，不在服務保存游標或租戶狀態。
         /// </summary>
         Task<PagedResult<Entity>> RetrievePagedEntitiesAsync(
             string entityName,
-            FilterExpression filter = null,
-            ColumnSet columnSet = null,
+            FilterExpression? filter = null,
+            ColumnSet? columnSet = null,
             int pageSize = 100,
-            string pagingCookie = null,
+            string? pagingCookie = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 批量查詢實體 (使用 IN 條件，非同步)
+        /// 保留 caller 指定主鍵與啟用條件；最多 5000 個非空唯一 ID、5000 列與 1000 頁，超預算拒絕。
+        /// 全分頁驗證後才回傳；缺少／不可見的記錄不補造，未請求 ID／重複 ID 必須失敗。
         /// </summary>
         Task<EntityCollection> RetrieveBatchByIdsAsync(
             string entityName,
             string idFieldName,
             IEnumerable<Guid> ids,
-            ColumnSet columnSet = null,
+            ColumnSet? columnSet = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 批次根據 ID 列表查詢實體（避免 N+1 查詢）
-        /// ? Phase 3.1: 批次查詢，效能提升 10-100倍
+        /// 沿用不含 statecode 的字典批次；null／空輸入回空，其他輸入及輸出有界且每個正式 ID 唯一。
+        /// 同名不同 ID 均保留；不以 dictionary 索引覆寫掩蓋衝突，不宣稱假 SDK 證明實機加速。
         /// </summary>
         Task<Dictionary<Guid, Entity>> RetrieveBatchByIdsAsync(
             string entityName,
             List<Guid> entityIds,
-            ColumnSet columnSet = null,
+            ColumnSet? columnSet = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 批次根據欄位值查詢實體（使用 IN 條件）
-        /// ? Phase 3.1: 批次查詢，避免循環查詢
+        /// 保留字串 IN 與啟用條件，null／空輸入不掃全表；最多 5000 輸入／輸出及 1000 頁。
+        /// 結果只屬本次操作，不保存查詢值、Entity、cookie 或 SDK；後頁失敗不發布部分資料。
         /// </summary>
         Task<EntityCollection> RetrieveBatchByFieldValuesAsync(
             string entityName,
             string fieldName,
             List<string> fieldValues,
-            ColumnSet columnSet = null,
+            ColumnSet? columnSet = null,
             CancellationToken cancellationToken = default);
 
         #endregion
     }
 
     /// <summary>
-    /// 分頁查詢結果模型
+    /// 操作局部可變分頁 DTO，維持原公開 setter 以保留來源相容；不得用作 Session／共享快照。
+    /// 所有 Entity 與 List 由此次 caller 擁有，服務不保存；若 host 快取必須另建足夠深的隔離複本。
     /// </summary>
     public class PagedResult<T>
     {
         /// <summary>
-        /// 實體列表
+        /// 此次頁面獨占的清單；服務在發布前已驗證穩定 ID，caller 修改後不得宣稱仍為已驗共享快照。
         /// </summary>
         public List<T> Entities { get; set; } = new List<T>();
 
         /// <summary>
-        /// 總記錄數
+        /// SDK 原始 TotalRecordCount；未知值保留 -1，不把頁面筆數假裝全表總數。
         /// </summary>
         public int TotalCount { get; set; }
 
         /// <summary>
-        /// 是否有更多記錄
+        /// SDK 表示有後續頁時為 true，caller 應繼續讀取，不把此頁當完整結果。
         /// </summary>
         public bool MoreRecords { get; set; }
 
         /// <summary>
-        /// 分頁 Cookie
+        /// SDK 原始續頁 cookie，可為 null；只活至 caller 的此次分頁流程，不能跨授權 scope 重用。
         /// </summary>
-        public string PagingCookie { get; set; }
+        public string? PagingCookie { get; set; }
     }
 }

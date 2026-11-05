@@ -1,0 +1,85 @@
+✔ No alert hides the warning region and still renders the page (12.0361ms)
+✔ Alert without prompt omits copy button and full prompt area (4.9386ms)
+✔ Alert with prompt preserves escaped prompt and copy handler (4.8365ms)
+✔ Stage 1 progress lists all twelve packages and preserves the live acceptance boundary (6.8632ms)
+✔ Stages 2 through 8 render every planned package once and keep all packages not started (3.7362ms)
+✔ Planned phase disclosures show a visible expanded-state indicator (3.5547ms)
+✔ Future work packages preserve external-operation and isolation stop boundaries (0.629ms)
+✔ Summary cards and phase meters agree with accepted work packages (0.4231ms)
+✖ Informational history defaults to a closed neutral disclosure (6.1744ms)
+✖ Current warnings and errors remain separate from collapsed history (5.0103ms)
+✖ Empty notices hide their region and unknown severity cannot inject markup (7.7939ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 8
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.1677
+
+✖ failing tests:
+
+test at D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P1.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:270:1
+✖ Informational history defaults to a closed neutral disclosure (6.1744ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /<details class="notice info"[^>]*>/. Input:
+
+  '\n' +
+    '  <div class="title"><svg viewBox="0 0 22 22" aria-hidden="true" width="22" height="22"><path d="M11 2.5l9.2 16H1.8z" fill="var(--crit)" stroke="var(--crit)" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 8.2v5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="15.9" r="1.3" fill="#fff"/></svg><span>&lt;progress&gt;</span></div>\n' +
+    '  <p>&lt;history&gt;</p>\n' +
+    '  <ol><li>old result</li></ol>\n' +
+    '  '
+
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P1.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:273:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '\n  <div class="title"><svg viewBox="0 0 22 22" aria-hidden="true" width="22" height="22"><path d="M11 2.5l9.2 16H1.8z" fill="var(--crit)" stroke="var(--crit)" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 8.2v5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="15.9" r="1.3" fill="#fff"/></svg><span>&lt;progress&gt;</span></div>\n  <p>&lt;history&gt;</p>\n  <ol><li>old result</li></ol>\n  ',
+    expected: /<details class="notice info"[^>]*>/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P1.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:282:1
+✖ Current warnings and errors remain separate from collapsed history (5.0103ms)
+  AssertionError [ERR_ASSERTION]: current notices need a region separate from informational history
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P1.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:288:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P1.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:300:1
+✖ Empty notices hide their region and unknown severity cannot inject markup (7.7939ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(empty.get('notices'))
+
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P1.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:302:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

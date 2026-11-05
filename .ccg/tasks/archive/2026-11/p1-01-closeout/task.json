@@ -1,0 +1,17 @@
+{
+  "id": "p1-01-closeout",
+  "title": "P1-01 孤兒清理獨立驗收收尾",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "validation",
+  "currentPhase": "completed",
+  "nextAction": "已直接同步使用者指定D槽原始進度頁：P1-01完成、P1 3/12、全計畫21/83；頁面8/8與UTF-8無BOM／CRLF驗證通過，主實作保留P1-04收尾",
+  "createdAt": "2026-11-05T13:37:38.2853716+00:00",
+  "baseCommit": "03c8aa28bc8ede00b59ec769737a8ed0ca5d06b8",
+  "parentTask": "integration-p1",
+  "ownerThread": "01a1abe3-d126-7b63-a2be-8acc7ce2b5e3",
+  "mainThread": "01a1a904-c0e6-7800-bf33-aa8677ec1b1a",
+  "branch": "codex/p1-01-closeout",
+  "completedAt": "2026-11-05"
+}
