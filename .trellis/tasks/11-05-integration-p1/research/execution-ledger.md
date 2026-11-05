@@ -190,3 +190,5 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - reviewer20261105-184322採納caller可執行補證；185302抓到盤點8種而非7種，補週報InlineData並做8對8精確集合比較，11/11綠。185904最終雙模型完整、無Critical/High/Warning、無quota降級；一項fixture Dispose雙重故障診斷Info已揭露。
 - Encoding守門抓到13份前輪文字換行不符，僅正規化CRLF／final CRLF且canonical內容逐份相同，沒有更改timestamp raw證據。正式changed-scope須在本輪明確自有新檔暫存後再跑；沒有放寬守門。
 - 進度HTML與wp報告已更新；下一步是本地分離提交本切片，再依盤點續Repository/Activity/Attachment/其他候選，P1-01與05～12待完成，主P1保持2/12不封存。現有Goal仍usageLimited，未覆蓋或宣稱背景執行。
+
+- 2026-11-05 19:16 已完成本地主動提交 `0169e079`（85檔；屬性／SDK抽取、離線caller補證、雙模型與完整回歸證據）；未push，另外兩檔hash不變。接續剩餘Repository與資料操作，主P1與Goal未宣告完成。

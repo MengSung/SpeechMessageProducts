@@ -259,3 +259,36 @@ net462 正式遷移與 facade 修正已提交，完整離線 §8 及第 10 份 C
 ### Next Steps
 
 - 主 P1 接回 P1-04：抽取後 net48／net10 覆蓋率、相容性證據與增量雙模型複審。
+
+
+## Session 8: P1-04 屬性與 SDK extension 抽取、caller補證及完整回歸
+
+**Date**: 2026-11-05
+**Task**: P1-04 屬性與 SDK extension 抽取、caller補證及完整回歸
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+本切片Core雙宿主314/395、coverage99.36%/100%，完整方案2056/2056、ChurchReport623/623。caller盤點修正為35處8種，實際代表方法/Facade鏈11/11。末輪185904完整雙模型無Critical/High/Warning，無quota降級。進度頁與證據已提交；主P1仍2/12，未封存，接續Repository及剩餘候選；既有兩檔修改保留，未push。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0169e079` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

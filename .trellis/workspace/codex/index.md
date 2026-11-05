@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
+- **Total Sessions**: 8
 - **Last Active**: 2026-11-05
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~261 | Active |
+| `journal-1.md` | ~294 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-11-05 | P1-04 屬性與 SDK extension 抽取、caller補證及完整回歸 | `0169e079` | `1.0.0.11.Integration.P1.Worktree` |
 | 7 | 2026-11-05 | 階段2至8工作包登錄與頁面驗證完成 | `48964ee5`, `a5dcef04` | `1.0.0.11.Integration.P1.Worktree` |
 | 6 | 2026-11-04 | P0-13 實機驗收通過，收尾文件審查逾時待續 | `f664c685`, `39e58b30`, `d4871b4e` | `1.0.0.11.Integration.P0` |
 | 5 | 2026-11-04 | P0-13 net462 遷移與第 10 份複審完成，等待使用者重驗 | `69803bf1` | `1.0.0.11.Integration.P0` |
