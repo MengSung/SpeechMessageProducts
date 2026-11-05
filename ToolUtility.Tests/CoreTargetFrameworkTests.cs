@@ -29,6 +29,8 @@ namespace ToolUtility.Tests
         {
             var assembly = typeof(FeeService).Assembly;
             Assert.Same(assembly, typeof(EntityQueryService).Assembly);
+            Assert.Same(assembly, typeof(EntityRepository).Assembly);
+            Assert.Same(assembly, typeof(IEntityRepository).Assembly);
             Assert.Same(assembly, typeof(AppointmentService).Assembly);
             Assert.Same(assembly, typeof(LessonsService).Assembly);
             Assert.Same(assembly, typeof(MeetingStatisticsService).Assembly);
@@ -60,6 +62,7 @@ namespace ToolUtility.Tests
         [InlineData(typeof(ILessonsService))]
         [InlineData(typeof(IMeetingStatisticsService))]
         [InlineData(typeof(IEntityCrudService))]
+        [InlineData(typeof(IEntityRepository))]
         [InlineData(typeof(IOwnerManagementService))]
         [InlineData(typeof(IEntityAttributeUtilityService))]
         public void CoreInterfaces_EmitNonObliviousStringContracts(System.Type contract)

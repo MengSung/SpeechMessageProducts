@@ -192,3 +192,14 @@ P1-01/02/03完整00§8、byte-level、duplicates、package、打包驗證與分�
 - 進度HTML與wp報告已更新；下一步是本地分離提交本切片，再依盤點續Repository/Activity/Attachment/其他候選，P1-01與05～12待完成，主P1保持2/12不封存。現有Goal仍usageLimited，未覆蓋或宣稱背景執行。
 
 - 2026-11-05 19:16 已完成本地主動提交 `0169e079`（85檔；屬性／SDK抽取、離線caller補證、雙模型與完整回歸證據）；未push，另外兩檔hash不變。接續剩餘Repository與資料操作，主P1與Goal未宣告完成。
+
+## 2026-11-05 19:28 Repository切片接續
+- P1-04 Repository 分析191821已完成Gemini／Claude雙模型、無配額降級；原host六入口特性12/12。目前補安全紅綠，保留Update非空ID及SDK原InnerException，記錄固定訊息／拒絕錯誤識別等安全差異。Repository尚未搬移或驗收，整個P1仍2/12；上一切片2056回歸是既有證據，不當成本切片通過。
+- 分析建議不直接照單全收：原有參數檢查仍在try前；adapter新增拒絕沿用操作失敗包裝。不能catch ArgumentException一律重拋，因SDK本身也可能拋此型別，故加入12案保護真InnerException。
+- Repository目前僅有QueryService／MarketingListService六個RetrieveMultiple消費點；無產品直接new或AssignOwner caller。新增名稱、Assign非空ID／一致性及查詢根表驗證屬安全差異，並非額外授權機制。
+
+## 2026-11-05 19:36 Repository搬移後局部驗證
+- P1-04 Repository原host特性12/12、安全30紅/4綠、overload2紅；修後搬前含六個消費點98/98後git mv。搬後雙宿主362/362、456/456，Core獨立coverage99.42%／100%、strict零警告／錯誤。完整方案回歸與CCG雙模型審查進行中，尚未預判通過，P1仍2/12。
+
+## 2026-11-05 19:47 Repository再驗檢查點
+- Repository初輪完整方案16TRX、2165/2165，ChurchReport623/623、架構67/67；193656雙模型無Critical／High，有兩個文件Warning，已補聚合無ID拒絕與PageInfo原地改寫文件／案例。I18nCheck曾抓13個搬入Core的中文診斷常值，已改英文固定訊息、Core回0且verify通過，未改基準。英文化及補證後的最後回歸／複審進行中，尚未列最終驗收。P1仍2/12、P1-04整包未完成。

@@ -425,13 +425,13 @@
  * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
  */
 const DATA = {
-  "snapshot": "2026-11-05 19:16（本地0169e079已保存屬性／SDK切片與2056回歸，P1驗收仍2/12；接續其他候選）",
+  "snapshot": "2026-11-05 19:47（Repository初輪2165通過；國際化修正及review補證後再驗中）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
   "headline": "階段 1 目前 <strong>2／12 工作包列為驗收完成</strong>（P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收20包；規劃登錄不代表實作或驗收。",
   "alert": {
-    "title": "階段 1 執行中｜P1-04 本切片回歸與雙模型審查完成，其他候選待處理｜P1-02／03 已驗收",
-    "body": "D365 預設只讀，本輪未操作。P1-04 Constants 已抽取，屬性工具與 SDK extension 亦已搬 Core。最新 ToolUtility 雙宿主314/314、395/395，Core覆蓋率99.36%／100%、strict零警告／錯誤；完整方案已含caller補證2056/2056、ChurchReport623/623，無失敗／略過。末輪20261105-185904雙模型完整、無Critical／High／Warning、無配額降級；另有一項測試診斷Info已記錄。既有35處AssignOwner共有8種表名，先前漏週報的補證已修正，11/11與8對8集合通過。僅此切片通過，不是整個P1-04；P1維持2/12，其他候選及P1-05～12未完成。無hosted CI或實機新證據。",
+    "title": "階段1執行中｜Repository修正國際化並補審查證據；最後再驗中",
+    "body": "D365 預設只讀，本輪未操作；P1-04 Constants 已抽取。Repository初輪完整方案16TRX、2165/2165，ChurchReport623/623、架構67/67；193656雙模型無Critical／High，有兩個文件Warning，已補聚合無ID拒絕與PageInfo原地改寫文件／案例。I18nCheck曾抓13個搬入Core的中文診斷常值，已改英文固定訊息、Core回0且verify通過，未改基準。英文化及補證後的最後回歸／複審進行中，尚未列最終驗收。P1仍2/12、P1-04整包未完成。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -668,7 +668,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性工具及SDK extension已抽Core。本切片先12特性綠、安全28紅／3綠→搬前81綠；最新雙宿主314/314、395/395、coverage99.36%／100%、strict零警告／錯誤。完整方案2056/2056、ChurchReport623/623；35處caller共8種表名的實際代表委派鏈11/11與集合比對通過。最終185904雙模型完整、無降級／Critical／High／Warning；一項非阻斷測試診斷Info已揭露。Repository、Activity／Attachment及其他候選未完成，整包仍在進行。"
+      "note": "四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性／SDK extension與Repository已抽Core。Repository初輪完整方案16TRX、2165/2165，ChurchReport623/623、架構67/67；193656雙模型無Critical／High，有兩個文件Warning，已補聚合無ID拒絕與PageInfo原地改寫文件／案例。I18nCheck曾抓13個搬入Core的中文診斷常值，已改英文固定訊息、Core回0且verify通過，未改基準。英文化及補證後的最後回歸／複審進行中，尚未列最終驗收。P1仍2/12、P1-04整包未完成。 Activity／Attachment、其他屬性／Collection／Contact／List／Query及必要純契約仍待逐型別處理。"
     },
     {
       "id": "P1-05",
@@ -1444,6 +1444,21 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-05 19:47",
+      "text": "Repository初輪完整方案16TRX、2165/2165，ChurchReport623/623、架構67/67；193656雙模型無Critical／High，有兩個文件Warning，已補聚合無ID拒絕與PageInfo原地改寫文件／案例。I18nCheck曾抓13個搬入Core的中文診斷常值，已改英文固定訊息、Core回0且verify通過，未改基準。英文化及補證後的最後回歸／複審進行中，尚未列最終驗收。P1仍2/12、P1-04整包未完成。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 19:36",
+      "text": "P1-04 Repository原host特性12/12、安全30紅/4綠、overload2紅；修後搬前含六個消費點98/98後git mv。搬後雙宿主362/362、456/456，Core獨立coverage99.42%／100%、strict零警告／錯誤。完整方案回歸與CCG雙模型審查進行中，尚未預判通過，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "text": "P1-04 Repository 分析191821已完成Gemini／Claude雙模型、無配額降級；原host六入口特性12/12。目前補安全紅綠，保留Update非空ID及SDK原InnerException，記錄固定訊息／拒絕錯誤識別等安全差異。Repository尚未搬移或驗收，整個P1仍2/12；上一切片2056回歸是既有證據，不當成本切片通過。",
+      "t": "2026-11-05 19:28",
+      "cls": "ok"
+    },
     {
       "t": "2026-11-05 19:16",
       "text": "本地主動提交0169e079已保存抽取、完整回歸與雙模型證據，未push；兩份既有修改保留。主P1仍2/12，接續Repository及其他候選，不封存未完成任務。",

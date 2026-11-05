@@ -339,7 +339,7 @@ public sealed class SinopacProviderTests
                 ["A2"] = "D743D0EB06904837",
                 ["B1"] = "08169D5445644513",
                 ["B2"] = "8E52B5A180EE4399",
-                ["XKeyId"] = "b5e6986d-8636-4aa0-8c93-441ad14b2098"
+                ["XKeyId"] = "d1e96f57-f31f-4fc1-b14b-beb930f5aa86"
             }
         };
 
@@ -390,7 +390,7 @@ public sealed class SinopacProviderTests
                 ["A2"] = "D743D0EB06904837",
                 ["B1"] = "08169D5445644513",
                 ["B2"] = "8E52B5A180EE4399",
-                ["XKeyId"] = "b5e6986d-8636-4aa0-8c93-441ad14b2098"
+                ["XKeyId"] = "d1e96f57-f31f-4fc1-b14b-beb930f5aa86"
             },
             Endpoints = new Dictionary<string, string>
             {

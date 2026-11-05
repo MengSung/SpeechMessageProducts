@@ -50,12 +50,23 @@ namespace ToolUtilityNameSpace.EntityOperations
         /// <param name="entityName">伺服器決定的合法資料庫 logical name，不構成授權。</param>
         /// <param name="entityId">已授權的非空資料庫 GUID。</param>
         /// <returns>本次操作擁有且已驗證的單筆實體。</returns>
-        public Entity RetrieveEntity(string entityName, Guid entityId)
+        public Entity RetrieveEntity(string entityName, Guid entityId) => RetrieveEntity(entityName, entityId, null);
+
+        /// <summary>
+        /// 提供 Repository 所需的精確欄位讀取，與完整欄位入口共用相同正式識別驗證。
+        /// 不重建 caller 的 ColumnSet；null 才建立本次操作的 AllColumns，回應不保存於服務。
+        /// 此新增 overload 不擴充既有介面，以免強迫外部介面實作者新增成員。
+        /// </summary>
+        /// <param name="entityName">伺服器已授權的合法 logical name。</param>
+        /// <param name="entityId">同一授權範圍的非空正式資料庫 ID。</param>
+        /// <param name="columnSet">操作局部欄位集合，呼叫中不可並行改動；null 沿用完整欄位。</param>
+        /// <returns>本次操作獨占且已驗證 ID／表名的 SDK 實體。</returns>
+        public Entity RetrieveEntity(string entityName, Guid entityId, ColumnSet? columnSet)
         {
             var service = GetService();
             RequireLogicalName(entityName, nameof(entityName));
             if (entityId == Guid.Empty) throw new ArgumentException("A database identifier is required.", nameof(entityId));
-            var candidate = service.Retrieve(entityName, entityId, new ColumnSet(true));
+            var candidate = service.Retrieve(entityName, entityId, columnSet ?? new ColumnSet(true));
             if (candidate == null || candidate.Id != entityId || !string.Equals(candidate.LogicalName, entityName, StringComparison.Ordinal))
                 throw new InvalidOperationException("The SDK returned a mismatched database identity.");
             return candidate;
@@ -93,6 +104,7 @@ namespace ToolUtilityNameSpace.EntityOperations
         /// <summary>
         /// 執行呼叫端已授權的查詢，保留既有「PageInfo 為 null 才補 5000／第一頁」相容行為。
         /// 不自動遍歷無界頁面；單頁 MoreRecords／PagingCookie 原樣交由原分頁 owner 繼續處理。
+        /// 補值會直接寫入 caller 的 QueryExpression；本記錄入口不支援沒有正式 ID 的聚合投影，不補造 ID。
         /// </summary>
         /// <param name="query">操作擁有的查詢，不可在執行期間由其他執行緒改動。</param>
         /// <returns>整頁穩定 ID 驗證後的 SDK 候選，不保存或共享。</returns>

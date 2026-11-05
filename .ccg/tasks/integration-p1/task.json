@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P1維持2/12（02/03驗收）。P1-04屬性/SDK extension/Constants及mutation補證完成，2056全方案、雙宿主314/395、最終185904雙模型無Critical/High/Warning。保存本地切片提交後接續Repository、Activity/Attachment及其他候選；P1-01收斂與05～12未完成。",
+  "nextAction": "P1-04 Repository原host特性12/12、安全30紅/4綠、overload2紅；修後搬前含六個消費點98/98後git mv。搬後雙宿主362/362、456/456，Core獨立coverage99.42%／100%、strict零警告／錯誤。完整方案回歸與CCG雙模型審查進行中，尚未預判通過，P1仍2/12。 接續實作審查、00§8、進度／任務保存及本地分階段提交；其他候選與P1-05～12仍未完成。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
