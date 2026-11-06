@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T16:13:43+08:00",
+  "snapshot": "2026-11-06T16:30:57+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
-  "worker": "實作／驗證／審查：Codex inline；使用者已取消後續雙模型，歷史外模證據保留",
-  "headline": "階段 1 目前 <strong>9／12 工作包已驗收完成</strong>（P1-01～07、P1-09～10）。P1-05解鎖的06/07/09均已交付；接續P1-08，另P1-11/12仍須完成。現行inline主會話實作／檢查，不宣稱多代理同時開發。全計畫83包，已驗收27包。",
+  "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
+  "headline": "階段 1 目前 <strong>10／12 工作包已驗收完成</strong>（P1-01～10）。P1-08有界快照與回收驗證完成；續P1-11結構指令及P1-12實機驗收。全計畫83包，已驗收28包；主Goal持續active，不宣告整個P1完成。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1-08 進行中；P1 目前 9／12",
-    "body": "P1-08 狀態已修正為 active（進行中），計數一致，進度頁15/15通過。百scope回收失敗已定位到Task.Yield擷取caller SynchronizationContext；改為不擷取內容的owner排程後Tenancy75/75，回收與排程兩案另連跑五次全綠。尚待雙目標、coverage及全回歸，不宣告本包驗收。P1-11/12未完成，D365預設只讀。",
+    "title": "P1-08 已完成本機驗收；P1 目前10／12",
+    "body": "P1-08完整來源、候選驗證、有界快取與single-flight已通過；百scope回收缺陷已修，交付方案17TRX4317/4317、Tenancy75、五份獨立coverage均≥80%、strict0/0。外部審查兩服務均無可用結果，主會話自審且如實缺證據。P1-11/12仍未完成，D365預設只讀；本包沒有實機操作。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -529,18 +529,19 @@ const DATA = {
       "2026-11-06T16:01:08+08:00 使用者回報P1-08出現undefined：確認進度資料誤用doing，LABEL/ICON僅接受active等既定狀態，導致兩處undefined及進行中漏計。補83包合法狀態與實際渲染回歸，修前15案13綠/2紅（明確指出P1-08 doing及摘要11≠12）；改為active，並同步階段1與全計畫meter.active=1，完成數維持9/12、27/83。本次只修進度頁與測試，不改未驗收後端。證據artifacts/p1-08-20261106/progress-status/；修後測試及審查結果續記。",
       "2026-11-06T16:01:08+08:00 P1-08真實檢查點：最新Tenancy73/74，Lifecycle_HundredScopes_ReleaseContextsSnapshotsAndTimers仍失敗，200個弱參照有48個未回收，延後排程後獨立重跑仍失敗，尚不能判定GC根因。原始tenancy-lifecycle與lifecycle-drain-second的TRX保留；共用ExceptionDiagnostics owner整合測試1/1通過（shared-owner/shared-owner.trx，SendLine=false）。後端修改未commit，下一步釐清保留鏈、修正並重驗；P1-08仍進行中，主P1 Goal active，沒有D365/VM/LINE實機通過聲明。",
       "2026-11-06T16:13:43+08:00 進度頁修正驗證15/15通過，83工作包狀態與圖示標籤均合法；歷史說明可保留undefined根因，不可誤作狀態缺值。雙模型審查依最新developer要求經自癒入口同時嘗試：run20261106-160712-p108-progress-status-reviewer，ok=false/dualModelComplete=false/quotaBlocked=true/degradedFallback=false，兩後端均無可用結果，不能算完成外審。主會話已檢查差異、跳脫及統計，先保存本地驗證，無push。",
-      "2026-11-06T16:13:43+08:00 P1-08回收根因修正：新增caller同步內容計數案先紅（0預期/2實際），確認ReadAsync與DisposeCoreAsync的Task.Yield會擷取caller排程器，延長完成工作與scope保留。改Task.CompletedTask.ConfigureAwait(ForceYielding)，仍強制跳離短鎖與caller堆疊但不擷取同步內容；不放寬弱參照斷言。Tenancy75/75；百scope200弱參照全部死亡，回收與排程案另五次共10/10通過。證據synchronization-red、owner-scheduling、retention-stability；尚待完整驗收。"
+      "2026-11-06T16:13:43+08:00 P1-08回收根因修正：新增caller同步內容計數案先紅（0預期/2實際），確認ReadAsync與DisposeCoreAsync的Task.Yield會擷取caller排程器，延長完成工作與scope保留。改Task.CompletedTask.ConfigureAwait(ForceYielding)，仍強制跳離短鎖與caller堆疊但不擷取同步內容；不放寬弱參照斷言。Tenancy75/75；百scope200弱參照全部死亡，回收與排程案另五次共10/10通過。證據synchronization-red、owner-scheduling、retention-stability；尚待完整驗收。",
+      "2026-11-06T16:30:57+08:00 P1-08整包本機驗收：最後編碼正規化後重建17份TRX逐列核對4317/4317、0失敗/略過；Localization182/208、ToolUtility1231/1369、Tenancy75、ChurchReport630。五份獨立coverage97.84%/98.17%、Core95.50%/95.86%、Tenancy96.96%，strict三產品0/0；Debug7、I18n170、PE27、Plugin metadata10/build6、CI6、Pester39、JavaScript20、analyzer26、套件/duplicates/verify/生成check及Changed1131檔0問題。未放寬弱參照、覆蓋率、編碼或任何斷言。實作已在本地b74a311d、顯示封存f2c7bfbc；最後交付commit收尾中。驗收wp-reports/P1-08-acceptance.md與evidence/p108-final；原始artifacts/p1-08-20261106。外審run20261106-161834兩後端均無輸出（quotaBlocked），不宣稱雙/單模型通過；主會話自審。主P1更新10/12但Goal仍active，續P1-11/12，未push／部署／連VM或D365／發LINE。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "27",
+      "value": "28",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 9／12 已驗收",
+      "sub": "P0 18／18；P1 10／12 已驗收",
       "meter": {
-        "done": 27,
-        "active": 1,
+        "done": 28,
+        "active": 0,
         "total": 83
       }
     },
@@ -557,26 +558,26 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "9",
+      "value": "10",
       "unit": "/ 12 工作包",
-      "sub": "P1-01～07、09～10已驗收；續P1-08/11/12",
+      "sub": "P1-01～10已驗收；續P1-11/12",
       "meter": {
-        "done": 9,
-        "active": 1,
+        "done": 10,
+        "active": 0,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "4,203 / 4,203",
+      "value": "4,317 / 4,317",
       "unit": "0 失敗、0 略過",
-      "sub": "17份TRX；ChurchReport629；Localization162/188；ToolUtility1214/1345"
+      "sub": "17份TRX；ChurchReport630；Localization182/208；ToolUtility1231/1369"
     },
     {
       "label": "最新完整本機建置",
       "value": "0 錯誤",
-      "unit": "完整方案與Localization strict雙目標成功",
-      "sub": "strict0/0；完整方案23個既有測試警告未隱藏／宣稱修完"
+      "unit": "完整方案與Localization/Core/Tenancy strict成功",
+      "sub": "strict0/0；完整方案19個既有測試警告保留"
     }
   ],
   "wps": [
@@ -769,8 +770,10 @@ const DATA = {
     {
       "id": "P1-08",
       "name": "教會覆寫快照快取",
-      "status": "active",
-      "note": "進行中，尚未驗收。來源、完整候選、single-flight及隔離已有局部證據；最新Tenancy75/75，百scope回收與caller排程兩案另五次10/10通過，共用例外owner1/1。仍須完成雙目標、coverage及全回歸；外審兩服務均未取得結果。進度頁誤寫doing已改active，圖示、標籤及計數回歸15/15。"
+      "status": "done",
+      "note": "本機驗收完成：完整scoped來源/候選與有界single-flight；方案4317、Tenancy75、來源雙宿主17/17、validator20/20及真manager adapter7；百scope200弱參照全回收，另五輪10/10。coverage Localization97.84%/98.17%、Core95.50%/95.86%、Tenancy96.96%、strict0/0；全部必要守門通過。主會話自審，外審兩服務均無可用結果如實記錄。驗收wp-reports/P1-08-acceptance.md；本地交付收尾中，不代表P1-12實機驗收。",
+      "commit": "b74a311d",
+      "time": "2026-11-06T16:30:57+08:00"
     },
     {
       "id": "P1-09",
@@ -1340,8 +1343,8 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 9,
-      "active": 1,
+      "done": 10,
+      "active": 0,
       "current": true
     },
     {

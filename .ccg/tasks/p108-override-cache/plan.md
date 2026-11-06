@@ -11,9 +11,9 @@
 - Disable及dispose使entry/flight世代失效；不保存無界停用tombstone，host重新授權啟用後方可重新Load。
 
 ## 實作步驟
-- [ ] 來源契約/完整頁/lease生命週期/錯scope/故障/取消紅綠，兩宿主驗實載net462。
-- [ ] 候選鍵/參數/字長/schema/正式ID/不完整候選紅綠。
-- [ ] MemoryCache與singleflight，fake time、stamp/invalidate、取消、disable/dispose race紅綠。
-- [ ] A/B1000、容量、故障注入、回收與catalog實際流程，依真失敗修正。
-- [ ] strict、獨立coverage、完整方案及適用守門；主會話自審與重驗。
-- [ ] 更新一般資訊/驗收矩陣/證據manifest、本地commit與子任務封存。主P1續11/12，不宣告整P1完成。
+- [x] 來源契約/完整頁/lease生命週期/錯scope/故障/取消紅綠，兩宿主驗實載net462。
+- [x] 候選鍵/參數/字長/schema/正式ID/不完整候選紅綠。
+- [x] MemoryCache與singleflight，fake time、stamp/invalidate、取消、disable/dispose race紅綠。
+- [x] A/B1000、容量、故障注入、回收與catalog實際流程，依真失敗修正。
+- [x] strict、獨立coverage、完整方案及適用守門；主會話自審與重驗。
+- [x] 更新一般資訊/驗收矩陣/證據manifest、本地commit與子任務封存。主P1續11/12，不宣告整P1完成。

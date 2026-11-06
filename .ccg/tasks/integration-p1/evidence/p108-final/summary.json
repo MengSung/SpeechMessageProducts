@@ -1,0 +1,67 @@
+{
+  "workPackage": "P1-08",
+  "solution": {
+    "trxCount": 17,
+    "total": 4317,
+    "passed": 4317,
+    "failed": 0,
+    "skipped": 0
+  },
+  "tests": {
+    "localization": {
+      "net48": 182,
+      "net10.0": 208
+    },
+    "toolUtility": {
+      "net48": 1231,
+      "net10.0": 1369
+    },
+    "tenancy": 75,
+    "churchReport": 630,
+    "sourceContractEachHost": 17,
+    "validatorEachHost": 20,
+    "managerAdapterNet10": 7,
+    "lifecycleRepetitions": 5,
+    "lifecycleRepeatedTests": 10,
+    "progress": 15
+  },
+  "coverage": {
+    "SpeechMessage.Localization-net10.0": 0.9817,
+    "SpeechMessage.Localization-net48": 0.9784,
+    "SpeechMessage.Tenancy-net10.0": 0.9695999999999999,
+    "ToolUtility.Core-net10.0": 0.9586,
+    "ToolUtility.Core-net48": 0.955
+  },
+  "strict": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionBuild": {
+    "warnings": 19,
+    "errors": 0
+  },
+  "gates": {
+    "debugTracer": 7,
+    "i18n": 170,
+    "pe": 27,
+    "pluginMetadata": 10,
+    "pluginBuild": 6,
+    "ciTransition": 6,
+    "pester": 39,
+    "javascript": 20,
+    "analyzer": 26
+  },
+  "review": {
+    "local": "主會話自審，非獨立第二人",
+    "externalAttempt": "20261106-161834-p108-cache-reviewer",
+    "dualModelComplete": false,
+    "quotaBlocked": true,
+    "degradedFallback": false,
+    "completedBackends": []
+  },
+  "liveD365": false,
+  "lineSent": false,
+  "hostedCi": false,
+  "productCommit": "b74a311d",
+  "progressCommit": "f2c7bfbc"
+}

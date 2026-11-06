@@ -34,6 +34,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Money Contract](./money-contract.md) | 不換匯的不可變金額、七幣白名單、明確文化及跨目標捨入 | Established |
 | [Church Clock Contract](./church-clock-contract.md) | 明確 Kind／DST／生日、TimeProvider 借用、CLDR 可重生映射與實際 ICU 啟動守門 | Established |
 | [Tenancy Channel Contract](./tenancy-channel-contract.md) | 固定產品解析、四種既有優先序、不可變教會設定、借用 owner 與 Lazy 失敗邊界 | Established |
+| [教會覆寫快照契約](./church-text-override-cache-contract.md) | 雙目標完整來源、驗證後發布、有界single-flight、隔離及owner排空 | Established |
 | [Attachment Transfer Contract](./attachment-transfer-contract.md) | Bounded annotation payloads, stable identity/parent validation and dual-target Base64 consistency | Established |
 | [Contact Authentication Cache Contract](./contact-authentication-cache-contract.md) | Fresh SDK password verification, no authenticated-result cache and precise cancellation | Established |
 | [List and Async SDK Contract](./list-and-async-sdk-contract.md) | Bounded membership writes, full publication, caller cancellation, fault fidelity and deterministic drain | Established |

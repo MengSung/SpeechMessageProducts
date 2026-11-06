@@ -1,0 +1,145 @@
+{
+  "trxCount": 17,
+  "total": 4317,
+  "passed": 4317,
+  "failed": 0,
+  "skipped": 0,
+  "runs": [
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_22_53_net10.0.trx",
+      "assembly": "SpeechMessage.Payments.Tests.dll",
+      "total": 55,
+      "passed": 55,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_22_53_net10.0[1].trx",
+      "assembly": "SpeechMessage.Localization.Tests.dll",
+      "total": 208,
+      "passed": 208,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_22_55_net48.trx",
+      "assembly": "SpeechMessage.Localization.Tests.dll",
+      "total": 182,
+      "passed": 182,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_22_56_net48.trx",
+      "assembly": "SpeechMessage.Dynamics.Plugins.Tests.dll",
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_25_net10.0.trx",
+      "assembly": "LineMessagingProcessor.RichMenus.Tests.dll",
+      "total": 34,
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_25_net10.0[1].trx",
+      "assembly": "LineMessagingProcessor.Tests.dll",
+      "total": 87,
+      "passed": 87,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_26_net10.0.trx",
+      "assembly": "LineMessagingProcessor.Workflows.Tests.dll",
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_26_net10.0[1].trx",
+      "assembly": "Line.Messaging.Tests.dll",
+      "total": 101,
+      "passed": 101,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_26_net10.0[2].trx",
+      "assembly": "LineMessagingProcessor.AspNetCore.Tests.dll",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_26_net10.0[3].trx",
+      "assembly": "SpeechMessage.Tenancy.Tests.dll",
+      "total": 75,
+      "passed": 75,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_27_net48.trx",
+      "assembly": "LineMessagingProcessor.Tests.dll",
+      "total": 46,
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_27_net48[1].trx",
+      "assembly": "Line.Messaging.Tests.dll",
+      "total": 96,
+      "passed": 96,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_28_net10.0.trx",
+      "assembly": "SpeechMessage.Dynamics.Deployment.Tests.dll",
+      "total": 62,
+      "passed": 62,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_28_net10.0[1].trx",
+      "assembly": "ToolUtility.Tests.dll",
+      "total": 1369,
+      "passed": 1369,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_31_net48.trx",
+      "assembly": "ToolUtility.Tests.dll",
+      "total": 1231,
+      "passed": 1231,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_33_net10.0.trx",
+      "assembly": "ToolUtility.Dataverse.Tests.dll",
+      "total": 79,
+      "passed": 79,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-06_16_23_34_net10.0.trx",
+      "assembly": "ChurchReport.MemberInfo.Tests.dll",
+      "total": 630,
+      "passed": 630,
+      "failed": 0,
+      "skipped": 0
+    }
+  ]
+}

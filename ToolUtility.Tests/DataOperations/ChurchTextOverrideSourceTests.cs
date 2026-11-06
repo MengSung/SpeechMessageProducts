@@ -185,6 +185,7 @@ public sealed class ChurchTextOverrideSourceTests
         private readonly IOrganizationService service;
         internal int Opened;
         internal int Disposed;
+        /// <summary>借用本案固定scope與SDK，實際釋放僅計操作lease，工廠不取得SDK所有權。</summary>
         internal Factory(TextContext context, IOrganizationService service) { this.context = context; this.service = service; }
         /// <summary>只建立本案 lease，不取得連線；尊重 caller 取消且計數只在成功入場時增加。</summary>
         public IChurchTextOverrideServiceLease Open(TextContext requested, CancellationToken cancellationToken)
@@ -198,11 +199,15 @@ public sealed class ChurchTextOverrideSourceTests
         private sealed class Lease : IChurchTextOverrideServiceLease
         {
             private Factory? owner;
+            /// <summary>綁定單一操作owner；來源讀完或失敗後必須由using解除引用。</summary>
             internal Lease(Factory owner) => this.owner = owner;
+            /// <summary>回傳本案工廠的真實範圍，供產品核對foreign lease，不能直接用requested假裝驗證。</summary>
             public TextContext Context => owner!.context;
+            /// <summary>只借用本案合成SDK，不將任何連線或服務交給快照。</summary>
             public IOrganizationService Service => owner!.service;
             /// <summary>本案純 SDK 替身沒有實際連線池；淘汰次數由 manager adapter 的獨立測試精確驗證。</summary>
             public void MarkFaulted() { }
+            /// <summary>每個lease最多一次歸還；先斷owner參照才計數，重複Dispose不得再增加。</summary>
             public void Dispose() { if (owner is { } value) { owner = null; ++value.Disposed; } }
         }
     }
