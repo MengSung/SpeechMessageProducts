@@ -1,0 +1,14 @@
+{
+  "id": "product-platform-relevance",
+  "title": "釐清目前整合修改對三項未來產品的價值",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "planning",
+  "currentPhase": "completed",
+  "nextAction": "分析已完成；未修改產品程式，未建立P2實作分支",
+  "createdAt": "2026-11-06",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "completedAt": "2026-11-06",
+  "conclusion": "目前P1的跨產品價值主要在雙目標核心、Dataverse資料安全、LINE共用層、付款host adapter、國際化與租戶隔離；GoodShepherd業務查詢與教會schema仍是產品專屬。未來三產品可共用基礎，但不能直接複製好牧人業務服務。"
+}
