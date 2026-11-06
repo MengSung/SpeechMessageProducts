@@ -995,32 +995,23 @@ namespace ChurchReport.Controllers
             }
         }
 
-        /// <summary>
-        /// 讀取目前組織對應的 LINE Channel Access Token（LineMessaging:{Organization}:ChannelAccessToken，
-        /// 找不到則退回 DefaultOrganization）。供 ResyncLineProfiles 呼叫 LINE Profile API 使用。
-        /// </summary>
+        /// <summary>保留既有可選 token 簽章，解析集中委派 Tenancy；部署設定由 host 擁有，不保存 request 或跨操作結果。
+        /// 真正設定故障由產品共用邊界上報原例外後回空；不再輸出來源值或例外本文。</summary>
+        /// <returns>本次操作的 raw token，未配置或已上報失敗為空；呼叫端不得記錄或共享快取。</returns>
         private string GetResyncLineChannelAccessToken()
         {
             try
             {
-                var config = HttpContext?.RequestServices?
-                    .GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration))
+                var config = HttpContext?.RequestServices?.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration))
                     as Microsoft.Extensions.Configuration.IConfiguration;
-                if (config == null) { return string.Empty; }
-
-                var organization = config["CrmConnection:Organization"];
-                if (!string.IsNullOrEmpty(organization))
-                {
-                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
-                    var token = config[$"LineMessaging:{configKey}:ChannelAccessToken"];
-                    if (!string.IsNullOrEmpty(token)) { return token; }
-                }
-
-                var defaultOrg = config["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                return config[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ?? string.Empty;
+                // 僅在本次操作借用 DI resolver，不把 RequestServices 或 HttpContext 留到任何共享物件。
+                var resolver = HttpContext?.RequestServices?.GetService(typeof(global::SpeechMessage.Tenancy.ILineChannelResolver))
+                    as global::SpeechMessage.Tenancy.ILineChannelResolver;
+                return global::ChurchReport.Services.ChurchReportLineChannelAccess.GetOptionalToken(config, resolver);
             }
-            catch
+            catch (Exception exception)
             {
+                global::ChurchReport.Services.ChurchReportLineAdminNotificationService.ReportException("MemberInfo.GetResyncLineChannelAccessToken", exception);
                 return string.Empty;
             }
         }

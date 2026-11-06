@@ -24,6 +24,8 @@
       "SpeechMessage.Payments.Tests\\SpeechMessage.Payments.Tests.csproj",
       "SpeechMessage.Payments.Workflows\\SpeechMessage.Payments.Workflows.csproj",
       "SpeechMessage.Payments\\SpeechMessage.Payments.csproj",
+      "SpeechMessage.Tenancy.Tests\\SpeechMessage.Tenancy.Tests.csproj",
+      "SpeechMessage.Tenancy\\SpeechMessage.Tenancy.csproj",
       "ToolUtility.Core\\ToolUtility.Core.csproj",
       "ToolUtility.Tests\\ToolUtility.Tests.csproj",
       "ToolUtility\\ToolUtility.csproj"

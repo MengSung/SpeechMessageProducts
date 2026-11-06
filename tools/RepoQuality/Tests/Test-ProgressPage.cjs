@@ -263,8 +263,10 @@ test('Unified summaries exclude review milestones and account for user-operated 
   assert.match(summaries[1], /目前階段/);
   assert.match(rendered, /class="wp is-milestone"/);
 
-  // 注入不同狀態，證明摘要不是將目前的 3／1／7／1 寫死。
-  const changed = render(null, [], data => { data.p1Wps[4].status = 'you'; })
+  // 固定合成四項完成、六項未開始及兩項人工操作，驗證計數不隨正式進度改變而漂移。
+  const changed = render(null, [], data => {
+    data.p1Wps.forEach((wp, index) => { wp.status = index < 4 ? 'done' : index < 10 ? 'todo' : 'you'; });
+  })
     .get('planned-phases').innerHTML;
   assert.match(changed, /6 未開始、2 待你操作/);
 });

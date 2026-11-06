@@ -30,11 +30,10 @@ public sealed class LineExceptionSender : IDisposable
         var organization = configuration["CrmConnection:Organization"];
         if (!string.IsNullOrWhiteSpace(organization))
             organization = char.ToUpperInvariant(organization[0]) + organization.Substring(1).ToLowerInvariant();
-        var defaultOrganization = configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-        _token = configuration["LINE_CHANNEL_ACCESS_TOKEN"];
-        if (string.IsNullOrWhiteSpace(_token)) _token = configuration[$"LineMessaging:{organization}:ChannelAccessToken"];
-        if (string.IsNullOrWhiteSpace(_token)) _token = configuration[$"LineMessaging:{defaultOrganization}:ChannelAccessToken"];
-        if (_token?.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) == true) _token = _token.Substring(7);
+        // 只委派唯一解析器，保留告警專用環境→組織→預設順序；此 sender 不通知自身解析故障。
+        _token = global::SpeechMessage.Tenancy.LegacyLineChannelAccess.GetOptionalAccessToken(configuration,
+            string.IsNullOrWhiteSpace(organization) ? null : organization,
+            global::SpeechMessage.Tenancy.LineChannelSelection.EnvironmentThenOrganizationThenDefault);
         _recipient = configuration["ExceptionNotifications:AdminLineUserId"]
             ?? ChurchReportLineAdminNotificationService.DefaultAdminLineUserId;
         _client = new HttpClient(new SocketsHttpHandler

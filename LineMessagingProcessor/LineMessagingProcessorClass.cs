@@ -124,24 +124,13 @@ namespace LineMessagingProcessor
                 builder.SetBasePath(basePath).AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false);
             return builder;
         }
-
+        /// <summary>保留舊環境優先及空設定相容，全部來源選擇委派 Tenancy；不保留設定根或新增背景資源。</summary>
+        /// <param name="configuration">呼叫端擁有的安全部署設定，null 維持舊空結果。</param>
+        /// <returns>本次 raw token，由既有建構式正規化並隨 processor 釋放；不能用於跨租戶共享。</returns>
         private static string ResolveChannelAccessToken(IConfiguration configuration)
         {
-            if (configuration == null)
-            {
-                return string.Empty;
-            }
-
-            var environmentToken = configuration["LINE_CHANNEL_ACCESS_TOKEN"];
-            if (!string.IsNullOrWhiteSpace(environmentToken))
-            {
-                return environmentToken;
-            }
-
-            var defaultOrganization = configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-            var configuredToken = configuration[$"LineMessaging:{defaultOrganization}:ChannelAccessToken"];
-
-            return configuredToken ?? string.Empty;
+            return configuration == null ? string.Empty : global::SpeechMessage.Tenancy.LegacyLineChannelAccess.GetOptionalAccessToken(
+                configuration, selection: global::SpeechMessage.Tenancy.LineChannelSelection.EnvironmentThenDefault, product: "LineMessagingProcessor");
         }
 
         private string GetRequiredChannelAccessToken()

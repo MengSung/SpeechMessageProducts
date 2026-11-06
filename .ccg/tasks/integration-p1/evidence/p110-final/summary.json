@@ -1,0 +1,49 @@
+{
+  "workPackage": "P1-10",
+  "verifiedAt": "2026-11-06T13:47:12+08:00",
+  "solution": {
+    "trx": 17,
+    "passed": 4060,
+    "failed": 0,
+    "skipped": 0
+  },
+  "tenancyTests": 43,
+  "coverage": {
+    "module": "SpeechMessage.Tenancy",
+    "framework": "net10.0",
+    "lineRate": 0.9871,
+    "reportCount": 1,
+    "minimum": 0.8
+  },
+  "strictRebuild": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionFirstBuild": {
+    "existingTestWarnings": 23,
+    "errors": 0
+  },
+  "solutionFinalIncrementalBuild": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "debugTracer": 7,
+  "i18nToolTests": 108,
+  "peToolTests": 27,
+  "pluginMetadataCases": 10,
+  "pluginBuildCases": 6,
+  "ciTransitionCases": 6,
+  "packageProjects": 36,
+  "packageReferences": 167,
+  "duplicateNewGroups": 0,
+  "progressPageTests": 14,
+  "review": "主會話直接審查，使用者免除雙模型；無獨立第二人證據",
+  "liveConnections": false,
+  "hostedCiExecuted": false,
+  "parentP1Complete": false,
+  "textEncoding": {
+    "scope": "Changed",
+    "checked": 1047,
+    "filesWithIssues": 0
+  }
+}

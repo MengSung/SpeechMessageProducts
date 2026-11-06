@@ -65,17 +65,12 @@ namespace ChurchReport.Tools
             private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
             // 依組織代號從 appsettings.json 取出對應的 Channel Access Token。
-            private static string GetChannelAccessToken(string organization)
+            /// <summary>由 Tenancy 唯一入口解析，null 表示部署預設；保留既有產品組織選擇與 client owner，不快取解析結果。</summary>
+            /// <param name="organization">已驗證產品組織別名；null 時僅讀部署預設。</param>
+            /// <returns>只供本次工具 client 使用的 raw token；未配置為空，來源故障由外層上報。</returns>
+            private static string GetChannelAccessToken(string? organization)
             {
-                string token = m_Configuration[$"LineMessaging:{organization}:ChannelAccessToken"];
-                if (string.IsNullOrEmpty(token))
-                {
-                    // 找不到該組織的設定時，退回預設組織的設定，
-                    // 避免因為新增組織卻漏設定而讓通知整個發不出去。
-                    string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                    token = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
-                }
-                return token ?? string.Empty;
+                return global::SpeechMessage.Tenancy.LegacyLineChannelAccess.GetOptionalAccessToken(m_Configuration, organization);
             }
 
             #endregion
@@ -205,8 +200,7 @@ namespace ChurchReport.Tools
                 m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
 
                 // 依目前組織取得對應的 Channel Access Token。
-                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
+                m_ChannelAccessToken = GetChannelAccessToken(null);
 
                 m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
                 m_OwnsLineMessagingClient = true;
@@ -357,8 +351,7 @@ namespace ChurchReport.Tools
                     else
                     {
                         // 未指定組織時使用預設組織。
-                        string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                        m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
+                        m_ChannelAccessToken = GetChannelAccessToken(null);
                     }
 
                     // 新 client 必須完整建立後才可發佈，否則預設 workflow 建構失敗會讓既有欄位停在

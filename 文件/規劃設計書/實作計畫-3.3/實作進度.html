@@ -444,10 +444,10 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06 13:00（P1-05本機驗收）",
+  "snapshot": "2026-11-06T13:47:12+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／驗證／審查：Codex inline；使用者已取消後續雙模型，歷史外模證據保留",
-  "headline": "階段 1 目前 <strong>5／12 工作包列為驗收完成</strong>（P1-01～P1-05）；Localization地基完成，接續P1-10租戶與LINE credential集中解析，再解鎖P1-08。P1-06～12尚未完成。階段 2～8 的53個工作包仍全部未開始；全計畫83包，目前已驗收23包。",
+  "headline": "階段 1 目前 <strong>6／12 工作包已驗收完成</strong>（P1-01～05、P1-10）。租戶與LINE集中解析已整合十五處，接續P1-08教會覆寫快取；P1-06／07／08／09／11／12尚未完成。階段2～8的53個工作包仍未開始；全計畫83包，目前已驗收24包。",
   "notices": [],
   "alert": {
     "level": "info",
@@ -505,17 +505,21 @@ const DATA = {
       "2026-11-06 12:38 P1-05第三切片：關鍵字12案每宿主先紅後綠；保留六個既有英文命令之意圖，來源CP950以嚴格解碼唯讀核對，generated由正式I18nCheck重生。補參數集合先驗證再格式化之故障測試每宿主先紅後修；來源故障保留原例外/可重試及百次臨時context/參數弱參照回收均通過。完整Localization含架構net48 87/87、net10 111/111，I18n verify通過。進度頁13/14發現active計數未同步，已修正資料一致性，待重跑；P1仍4/12，整包回歸未完成。",
       "2026-11-06 12:54 P1-05接續核對：交接程序全部終止且成功，Localization net48實載net462 92/92、net10 116/116；獨立最終coverage96.61%/97.70%各通過80%守門，strict雙目標0警告0錯誤。Debug tracer7、Plugin metadata10/build6、PE27、套件34專案158引用零違規。完整方案既有16TRX4004案正逐份核對並整理驗收／主會話審查，尚未標整包完成；目前無本包commit。證據artifacts/p1-05-20261106；遵守inline設定，不啟動外部雙模型。P1仍4/12，後續P1-06～12未驗收。",
       "2026-11-06 13:00 P1-05完整字典驗收：五層回退、兩階段具名參數、純resolver與Production偽語系拒絕、六個舊英文命令、完整scope不可變快照及明確關鍵字priority完成。Localization net48實載net462 92/92、net10 116/116，獨立coverage96.61%/97.70%、strict零警告／錯誤。完整方案16TRX4004/4004、ChurchReport623；Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6、套件及duplicates通過；完整Changed1022檔0問題。主會話審查，使用者取消雙模型，沒有新增雙模型或第二人審查證據。驗收wp-reports/P1-05-acceptance.md；摘要.ccg/tasks/integration-p1/evidence/p105-final/；本地提交收尾中，不push。 接續P1-10；P1-06～12未驗收。",
-      "2026-11-06T13:02:43+08:00 P1-05已本地提交2bbf8850；驗收矩陣與可追蹤證據一併提交。主P1保持in_progress，只歸檔p105-localization子任務並保存journal第14節；接續P1-10。未push、部署或連VM/D365/LINE。"
+      "2026-11-06T13:02:43+08:00 P1-05已本地提交2bbf8850；驗收矩陣與可追蹤證據一併提交。主P1保持in_progress，只歸檔p105-localization子任務並保存journal第14節；接續P1-10。未push、部署或連VM/D365/LINE。",
+      "2026-11-06T13:20:24+08:00 P1 Goal接續P1-10：17個resolver及5個settings案例取得真紅，基礎22/22綠。盤點15個解析消費者及1個Development安全驗證來源；優先序分四種保留，不移除安全guard。下一步補alias與環境來源碰撞／空時區測試、DI借用owner及呼叫點遷移；尚未整包驗收，不增加5/12。證據artifacts/p1-10-20261106；新檔未提交。主會話inline，未恢復外部雙模型。",
+      "2026-11-06T13:34:07+08:00 P1-10整合切片：Tenancy30/30、舊Processor搬前／後8/8、主機58/58（含Development防護及client替換釋放）、CI閉包6/6；十五處解析消費者全部改委派共用入口，保留四種優先序。設定故障不再輸出Message，改交共用原例外告警；另以注入resolver來源差異取得1案真紅後接入控制器DI。方案30專案／CI27專案及Tenancy coverage矩陣已補；初步獨立coverage96.15%。接續全方案、邊界審查及正式驗收，仍5/12，未提交／未連外。證據artifacts/p1-10-20261106。",
+      "2026-11-06T13:39:37+08:00 P1-10回歸修正：首輪完整方案有2個真實失敗，原因為Lazy設定在呼叫參數求值時先拋出，移除原catch後超出共用邊界。補factory故障紅測（1失敗/1通過）並集中在GetOptionalTokenFromFactory內求值、報原例外、維持空結果；原主機7/7、SDK consumer2/2重測通過，不改optional/provider順序。補header注入／容量及教會設定各千次並行與百次弱參照回收後Tenancy43/43。套件36專案167引用0違規、duplicates30專案0新增、進度頁14/14。正在重新跑全方案與最終覆蓋率，P1-10仍進行中；失敗原證據完整保留。",
+      "2026-11-06T13:47:12+08:00 P1-10必要本機驗收通過：17份TRX逐列核對4060/4060、0失敗/略過；Tenancy43、coverage98.71%、strict重建0/0，Debug7且正式TRX守門通過，I18n108／verify／generatecheck、PE27、CI6、Plugin metadata10/build6，套件36/167與duplicates零違規。Changed初輪1043檔零問題。首輪Lazy兩失敗及Debug錯專案零案均保留並修正／拒絕，未冒稱綠燈。主會話完成審查，無新增雙模型或第二人；正式需求未改。驗收wp-reports/P1-10-acceptance.md，摘要／SHA在evidence/p110-final；本地提交收尾中。P1增為6/12，主Goal續做P1-08，其餘未完成，未push／部署／連VM/D365/LINE。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "23",
+      "value": "24",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 5／12 已驗收",
+      "sub": "P0 18／18；P1 6／12 已驗收",
       "meter": {
-        "done": 23,
+        "done": 24,
         "active": 0,
         "total": 83
       }
@@ -533,26 +537,26 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "5",
+      "value": "6",
       "unit": "/ 12 工作包",
-      "sub": "P1-01～05已驗收；P1-06～12尚未完成",
+      "sub": "P1-01～05、10已驗收；接續P1-08",
       "meter": {
-        "done": 5,
+        "done": 6,
         "active": 0,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "4,004 / 4,004",
+      "value": "4,060 / 4,060",
       "unit": "0 失敗、0 略過",
-      "sub": "16份TRX；ChurchReport623；ToolUtility1214/1345；Localization92/116"
+      "sub": "17份TRX；ChurchReport628；Tenancy43；ToolUtility1214/1345；Localization92/116"
     },
     {
       "label": "最新完整本機建置",
       "value": "0 錯誤",
-      "unit": "完整方案與Localization雙目標建置成功",
-      "sub": "Localization strict兩目標0警告／0錯誤；方案23個既有測試警告，未新增NoWarn"
+      "unit": "完整方案與Tenancy strict重建成功",
+      "sub": "Tenancy strict重建0警告／錯誤；方案首輪23個既有測試警告，修後增量0/0"
     }
   ],
   "wps": [
@@ -753,8 +757,8 @@ const DATA = {
     {
       "id": "P1-10",
       "name": "SpeechMessage.Tenancy 與 LINE channel resolver",
-      "status": "todo",
-      "note": "尚未開始。依賴 P1-04；集中既有九處設定解析、保留 Jesus 後備並安全告警，加入租戶 A／B 並行隔離，且先於 P1-08。"
+      "status": "done",
+      "note": "已通過本機必要驗收。十五處集中且四種來源政策保留；Tenancy43/43、千次A/B及百次弱參照回收、獨立coverage98.71%、strict0/0；完整方案17TRX4060/4060，主機628。驗收wp-reports/P1-10-acceptance.md；證據evidence/p110-final。主會話審查，未新增外模／第二人／遠端實機證據。本地提交收尾中。"
     },
     {
       "id": "P1-11",
@@ -1310,7 +1314,7 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 5,
+      "done": 6,
       "active": 0,
       "current": true
     },

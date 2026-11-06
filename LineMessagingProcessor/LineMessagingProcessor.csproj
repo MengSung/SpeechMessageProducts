@@ -45,6 +45,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Tenancy\SpeechMessage.Tenancy.csproj" />
   </ItemGroup>
 
 </Project>

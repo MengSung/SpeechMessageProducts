@@ -1,0 +1,15 @@
+{
+  "id": "p110-tenancy",
+  "title": "P1-10租戶設定與LINE頻道集中解析",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "本地提交P1-10並封存此子任務，主P1接續P1-08",
+  "parent": "integration-p1",
+  "createdAt": "2026-11-06T13:07:32.306568+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "completedAt": "2026-11-06T13:47:12+08:00",
+  "acceptanceRecord": "wp-reports/P1-10-acceptance.md"
+}

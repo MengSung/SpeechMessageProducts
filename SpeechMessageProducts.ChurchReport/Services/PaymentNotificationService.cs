@@ -308,33 +308,12 @@ namespace ChurchReport.Services
             }
         }
 
-        /// <summary>
-        /// 依目前 CRM organization 選擇 LINE channel access token。
-        /// 多產品或多教會環境共用同一份程式時，這個選擇邏輯仍是 ChurchReport 組態規則；
-        /// 因此不放入 provider-neutral 的金流核心。
-        /// </summary>
+        /// <summary>保留既有可選 token 簽章，解析集中委派 Tenancy；部署設定由 host 擁有，不保存 request 或跨操作結果。
+        /// 真正設定故障由產品共用邊界上報原例外後回空；不再輸出來源值或例外本文。</summary>
+        /// <returns>本次操作的 raw token，未配置或已上報失敗為空；呼叫端不得記錄或共享快取。</returns>
         private static string GetLineChannelAccessToken()
         {
-            try
-            {
-                var organization = Configuration["CrmConnection:Organization"];
-                if (!string.IsNullOrEmpty(organization))
-                {
-                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
-                    var token = Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
-                    if (!string.IsNullOrEmpty(token))
-                    {
-                        return token;
-                    }
-                }
-
-                var defaultOrg = Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                return Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ?? string.Empty;
-            }
-            catch
-            {
-                return string.Empty;
-            }
+            return global::ChurchReport.Services.ChurchReportLineChannelAccess.GetOptionalTokenFromFactory(static () => Configuration);
         }
 
         private static ILineNotificationWorkflow CreateDefaultLineNotificationWorkflow()

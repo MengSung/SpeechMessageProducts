@@ -72,35 +72,12 @@ namespace ChurchReport.WebServiceConnector
 
             m_PushUtility = new PushUtility(m_LineMessagingClient);
         }
-
+        /// <summary>保留既有可選 token 簽章，解析集中委派 Tenancy；部署設定由 host 擁有，不保存 request 或跨操作結果。
+        /// 真正設定故障由產品共用邊界上報原例外後回空；不再輸出來源值或例外本文。</summary>
+        /// <returns>本次操作的 raw token，未配置或已上報失敗為空；呼叫端不得記錄或共享快取。</returns>
         private static string GetLineChannelAccessToken()
         {
-            try
-            {
-                string organization = m_Configuration["CrmConnection:Organization"];
-                if (!string.IsNullOrEmpty(organization))
-                {
-                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
-                    string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
-                    if (!string.IsNullOrEmpty(token))
-                    {
-                        return token;
-                    }
-                }
-
-                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
-                if (string.IsNullOrEmpty(defaultToken))
-                {
-                    System.Diagnostics.Trace.WriteLine("[LineNotifyUtility] 警告: LINE Channel Access Token 未設定");
-                }
-                return defaultToken ?? string.Empty;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[LineNotifyUtility] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
-                return string.Empty;
-            }
+            return global::ChurchReport.Services.ChurchReportLineChannelAccess.GetOptionalTokenFromFactory(static () => m_Configuration);
         }
 
         public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData, bool PauseCheckBox)

@@ -553,13 +553,13 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.PaymentCallbackLogger>();
             services.AddScoped<ChurchReport.Services.PaymentCrmService>();
             services.AddScoped<ChurchReport.Services.PaymentNotificationService>();
+            // 固定產品容器只註冊一次；Tenancy 借用 host 的設定與 logger，不擁有 request 或設定 provider。
+            global::SpeechMessage.Tenancy.TenancyServiceCollectionExtensions.AddSpeechMessageTenancy(services, "ChurchReport");
             services.AddLineMessagingProcessor(options =>
             {
-                var defaultOrg = Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                options.ChannelAccessToken =
-                    Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ??
-                    Configuration["LINE_CHANNEL_ACCESS_TOKEN"] ??
-                    string.Empty;
+                // 保留原 default-null→環境政策；明確空 default 不得冒用另一環境憑證。
+                options.ChannelAccessToken = global::SpeechMessage.Tenancy.LegacyLineChannelAccess.GetOptionalAccessToken(
+                    Configuration, selection: global::SpeechMessage.Tenancy.LineChannelSelection.DefaultThenEnvironment);
             });
             // ChurchReport 的 RichMenu 圖片、alias 與 legacy-auth menu key 屬於產品層設定；
             // 共用 LineMessagingProcessor.RichMenus 只負責依 catalog 佈建、快取 richMenuId 並執行指派。
