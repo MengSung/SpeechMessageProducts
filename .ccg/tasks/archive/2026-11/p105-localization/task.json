@@ -1,0 +1,17 @@
+{
+  "id": "p105-localization",
+  "title": "P1-05 完整國際化解析與純函式語言地基",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "已驗收並本地提交；封存本子任務，主P1接續P1-10",
+  "createdAt": "2026-11-06T12:22:01+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parent": "integration-p1",
+  "updatedAt": "2026-11-06T12:59:36+08:00",
+  "completedAt": "2026-11-06T13:02:43+08:00",
+  "commit": "2bbf8850",
+  "acceptanceRecord": "wp-reports/P1-05-acceptance.md"
+}

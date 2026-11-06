@@ -535,3 +535,38 @@ P1-04全部候選完成；四方法專屬7/7/8/8、product8案；16TRX3906/3906�
 ### Next Steps
 
 - None - task complete
+
+
+## Session 14: P1-05完整國際化地基驗收交付；主P1繼續
+
+**Date**: 2026-11-06
+**Task**: P1-05完整國際化地基驗收交付；主P1繼續
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+P1-05五層/具名參數/純語言resolver/關鍵字/完整scope快照驗收完成；雙宿主92/116、方案4004、coverage96.61%/97.70%、strict零警告錯誤。主會話審查，無雙模型證據；主P1仍5/12，下一P1-10。
+
+### Main Changes
+
+驗收矩陣：wp-reports/P1-05-acceptance.md；來源／TRX／coverage／紅綠摘要：.ccg/tasks/integration-p1/evidence/p105-final/。子任務封存.ccg/tasks/archive/2026-11/p105-localization/，主P1不封存。兩階段格式化與明確prefix優先序由真紅測試修正；完整scope拒絕、千次A/B、百次弱參照回收通過。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2bbf8850` | (see git log) |
+
+### Testing
+
+- [OK] 方案16TRX4004/4004；Localization net48實載net462 92/92、net10 116/116；coverage96.61%/97.70%。
+- [OK] strict零警告／錯誤，方案23個既有測試警告；Debug7、I18n108、PE27、metadata10/build6、CI6、套件34/158、duplicates0、Changed1022檔0問題及進度14/14。
+
+### Status
+
+[OK] **P1-05完成；主P1仍in_progress（5/12）**
+
+### Next Steps
+
+- 接續P1-10租戶及LINE credential集中解析；後續P1-08及其餘工作包仍須完成。
+- 未push／部署／連VM或D365／發LINE；本包沒有獨立第二審查者或雙模型完成證據。

@@ -30,5 +30,6 @@
   "review": "主會話直接審查；沒有新增雙模型或獨立第二人審查證據",
   "blockers": [],
   "nextAction": "P1-10 Tenancy及ILineChannelResolver；後續P1-08",
-  "commitRecord": "完成本地提交後於本檔及一般資訊追加確切hash，不回寫來源程式"
+  "implementationCommit": "2bbf8850",
+  "archivedTask": ".ccg/tasks/archive/2026-11/p105-localization"
 }
