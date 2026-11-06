@@ -570,3 +570,41 @@ P1-05五層/具名參數/純語言resolver/關鍵字/完整scope快照驗收完�
 
 - 接續P1-10租戶及LINE credential集中解析；後續P1-08及其餘工作包仍須完成。
 - 未push／部署／連VM或D365／發LINE；本包沒有獨立第二審查者或雙模型完成證據。
+
+
+## Session 15: P1-10集中租戶與LINE解析驗收完成（主P1仍6/12）
+
+**Date**: 2026-11-06
+**Task**: P1-10集中租戶與LINE解析驗收完成（主P1仍6/12）
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+十五處集中與四政策保留；Tenancy43、方案4060、coverage98.71%、strict0/0。Lazy求值回歸已修並保留證據；主P1接續P1-08。
+
+### Main Changes
+
+驗收矩陣：wp-reports/P1-10-acceptance.md；可追蹤摘要／原始SHA：.ccg/tasks/integration-p1/evidence/p110-final/。十五處集中保留四政策，無新增provider/watcher/queue；真紅修正environment別名、空時區、DI委派及Lazy求值邊界。
+
+- [OK] 方案17TRX4060/4060，Tenancy43、coverage98.71%、strict重建0/0；首輪方案既有23警告，修後增量0/0。
+- [OK] Debug7且正式TRX守門；I18n108/verify/generatecheck、PE27、metadata10/build6、CI6、套件36/167、duplicates0、Changed1047檔0問題、進度14/14。
+- 主會話直接審查；無新增外模或第二人證據。首輪Lazy兩失敗及Debug零案原證據保留，均修正／拒絕，沒有降低門檻。
+- 只封存p110-tenancy，主P1仍in_progress（6/12），Goal接續P1-08及其他未完成工作包。未push／部署／連VM或D365／發LINE。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6e8f1ef9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

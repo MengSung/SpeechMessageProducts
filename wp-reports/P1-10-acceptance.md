@@ -54,7 +54,7 @@ Lazy 設定求值跑出原 catch、進度測試固定舊計數。
 
 ## 本地交付與剩餘界線
 
-提交於本包守門通過後補記，僅本地 commit；主 P1 保持 in_progress。
+實作本地提交：`6e8f1ef9`；子任務已封存於 `.ccg/tasks/archive/2026-11/p110-tenancy/`。主 P1 保持 in_progress。
 原始 TRX／log／coverage 位於忽略目錄，提交可追蹤摘要與 SHA manifest。
 未 push、部署、連 VM／D365／LINE 或執行 hosted CI。
 

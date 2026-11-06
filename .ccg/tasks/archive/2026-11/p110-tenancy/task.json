@@ -11,5 +11,6 @@
   "createdAt": "2026-11-06T13:07:32.306568+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "completedAt": "2026-11-06T13:47:12+08:00",
-  "acceptanceRecord": "wp-reports/P1-10-acceptance.md"
+  "acceptanceRecord": "wp-reports/P1-10-acceptance.md",
+  "commit": "6e8f1ef9"
 }
