@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：從 User Secrets 為單一命令建立 goodshepherdback 地端連線。連線直接使用 ToolUtility 的 CreateOnPremiseClient，不經共用池；credential 
+ * 只在 Connect 的呼叫框架內短暫存在， 回傳租約是唯一 owner，命令結束必定 Dispose 並解除服務參考。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 UserSecretsOrganizationConnector。
+ * - 保留 provider 供單次連線讀取，不複製或快取任何解析後的帳密。
+ * - 建立可測的地端 client 邊界。正式入口仍委派至 ToolUtility；測試注入記憶體服務， 不建立網路連線且不保存組織以外的狀態。
+ * - 驗證組織白名單、端點與必要 secrets 後建立獨占地端服務租約。
+ * - 只接受唯一開發測試組織的 HTTPS Organization.svc 固定主機與路徑。
+ * 主要操作入口包含 Connect、IsAllowedEndpoint。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ */
 using System;
 using System.Linq;
 using Microsoft.Extensions.Configuration;

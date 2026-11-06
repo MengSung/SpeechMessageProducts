@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護降低共用 D365 伺服器負載的兩秒輪詢契約；只使用假 SDK 與虛擬時鐘，不建立連線或等待真實時間。 故障注入涵蓋延遲追蹤、完整三分鐘逾時、caller 取消及查詢失敗；各出口均要求刪除本次 task、
+ * timer 回到零。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SmokePollingTests。
+ * - 第三次才讀到 trace，應只等待兩次各兩秒；立即成功時不建立任何 delay timer。
+ * - 沒有 trace 時只輪詢九十次並恰於虛擬三分鐘停止，不能把輪詢頻率降低後意外放大總期限。
+ * - 第一個延遲期間注入 caller 取消，必須保留 OperationCanceledException 而非誤當三分鐘逾時。
+ * - 在第一次查詢注入真實失敗實例；核心往外拋供 CLI 統一通知，finally 仍清除唯一測試 task。
+ * 測試案例入口包含 Smoke_TraceArrives_UsesTwoSecondCadenceAndCleansUp、Smoke_NoTrace_StopsAtThreeMinutesWithNinetyPolls、
+ * Smoke_CallerCancelsDuringDelay_ThrowsAndDeletesOwnTask、Smoke_QueryFails_PreservesOriginalFailureAndCleanup、
+ * Smoke_PreflightRejects_DoesNotCreateTaskOrTimer、AssertCleaned。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Threading;

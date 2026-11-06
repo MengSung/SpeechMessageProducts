@@ -19,6 +19,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [Hook Guidelines](./hook-guidelines.md) | Custom hooks, data fetching patterns | To fill |
 | [State Management](./state-management.md) | Local state, global state, server state | To fill |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
+| [檔案整體說明契約](../backend/file-documentation-contract.md) | Razor、JS、CSS的繁中檔首導讀、資料邊界及文件守門 | Established |
 | [實作進度頁狀態契約](./progress-page-contract.md) | 工作包合法狀態、全頁一致計數及歷史與驗收證據 | Established |
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
 | [MemberInfo Tree And Grid Contract](../backend/member-info-tree-contract.md) | Shared MemberInfo API, grid, responsive, sorting, and touch contract | Established |

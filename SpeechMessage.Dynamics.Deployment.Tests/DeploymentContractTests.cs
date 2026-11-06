@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：用記憶體組織及獨立暫存檔保護 P0-12 的十七項原始契約。 測試刻意注入版本／token 衝突、組織變動、竄改、連線機密與 smoke 失敗； 斷言實際 SDK 寫入、備份順序及 finally 清理，不呼叫 
+ * D365、LINE 或正式金鑰。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DeploymentContractTests、ThrowingConnector、TrackingConnector、DeploymentWorkingDirectoryScope、Fixture、
+ * MemoryOrganization、AdvancingClock、OwnedTimer。
+ * - 保留 plan 操作的固定順序，避免每個案例重複配置相同期待陣列。
+ * - 只供 CLI 拒絕案例使用的合成密碼參數範本；呼叫時複製以維持案例隔離。
+ * - 只供白名單拒絕案例使用的合成參數範本；每次呼叫複製避免共用可變陣列。
+ * - CLI 說明案例的固定輸入，避免每次執行測試重複配置參數陣列。
+ * 測試案例入口包含 Plan_EmptyOrganization_CreatesAssemblyTypeAndStep、Plan_SameState_NoOperations、
+ * Apply_ConfigurationChanged_UpdatesSameStepAndRemainsIdempotent、
+ * Verify_SecretValuesUnchecked_ReturnsIncompleteAndDisclosesScope、
+ * Plan_WithSecrets_DisclosesVerificationAndRotationLimits、Verify_TraceMetadata_PreservesSuccessAndDifferenceCodes、
+ * Verify_AppliedTraceStep_UsesSupportedSchemaWithoutWrites、
+ * Cli_TraceLifecycle_ValidatesSchemaAndDisposesEveryLease；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

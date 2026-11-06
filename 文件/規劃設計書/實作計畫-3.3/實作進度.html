@@ -452,7 +452,7 @@ const DATA = {
   "alert": {
     "level": "info",
     "title": "P1 已完成10／12；P1-11結構指令開發中",
-    "body": "P1-08完整來源、候選驗證、有界快取與single-flight已通過；百scope回收缺陷已修，交付方案17TRX4317/4317、Tenancy75、五份獨立coverage均≥80%、strict0/0。外部審查兩服務均無可用結果，主會話自審且如實缺證據。P1-11/12仍未完成，D365預設只讀；本包沒有實機操作。",
+    "body": "P1-01～10已驗收。P1-11程式與真正D365唯讀匯出／88項plan已完成，完整方案17TRX共4371/4371通過，仍在收尾品質守門及驗收紀錄。已透過正常Windows提升入口取得Hyper-V唯讀資料；D365-9.1正在執行、沒有checkpoint、VSS無法連絡，正查客體備份與用途，尚未apply。外部審查兩服務均無可用輸出，僅主會話自審，不宣稱雙模型通過。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -539,7 +539,8 @@ const DATA = {
       "2026-11-06T17:36:06+08:00 P1-11只讀診斷確認566表/22678欄，合法多型lookup最多379目標（12個超過實作最初32預算），沒有重複/非法lookup目標或重複選項，原拒絕是實作假設過小。補獨立379目標真紅，改沿用全組織4096表預算，仍拒重複/非法及4097超量，不丟列、不放寬正式單目標lookup匹配。Deployment110/110，另A/B不同server組織ID千次並行與百快照弱參照全回收通過。只讀export重新驗證中，仍沒有D365寫入；這是實作修正而非修改正式3.3計畫。",
       "2026-11-06T17:58:57+08:00 依使用者最新要求新增完整檔案整體說明：AGENTS加入永久規範，不能以type/method summary代替檔首責任/流程/輸入輸出/依賴/隔離/資源/失敗/驗證說明。已先完整補SchemaFiles.cs，建立file-purpose-documentation子任務與清冊計畫。初盤1102個.cs、84個.cshtml、69個.ps1、353個.js、4個.cjs（含待區分vendor），P1變更來源336份；這只是盤點數，沒有宣稱全部補齊。先補P1-11及P1來源，再按模組補自行維護來源；第三方/生成檔依所有權處理，JSON不插非法註解。主P1仍10/12，不放棄11/12。另P1-11唯讀匯出已成功：566表22678欄、4829filters、7259steps、13,833,677bytes，沒有業務資料或寫入；真正plan尚因publisher候選衝突拒絕，將按正式身份修正，未執行apply。",
       "2026-11-06T18:06:47+08:00 P1-11實機唯讀plan已成功：正式schema與真metadata比對88項，逐動詞核對皆為Create/Include，沒有Update/Delete/Convert；不執行apply。publisher前綴不能當正式身份，先以多new publisher真紅確認誤拒絕，改依清單正式名稱建立自己publisher，不猜選其他產品。Deployment116/116，並行同plan兩apply只一個成功，第二個重驗拒絕舊plan；原62案保留。摘要文字8個CJK常值守門先紅，移12個標籤至正式resx並由I18n工具重生後verify通過，英文6/45=13.33%僅資訊，發布政策未變。文件註解全專案由另一對話接手，主會話僅維護正在編輯檔頭，分工在p111/coordination.md。下一完成P1-11最終品質及P1-12可審核驗收材料；VM隔離/備份/復原仍缺證據，未寫D365。",
-      "2026-11-06T18:10:01+08:00 P1-11交付前驗證：本機Deployment116/116、獨立coverage88.42%；真正組織唯讀plan88項成功、摘要已審核，沒有任何遠端寫入。P1_D365結構建立步驟.md已備妥，列出實際唯讀證據、plan/schema/fingerprint、apply/verify/Active key/後台元件與資料唯一性清理流程及缺少的VM隔離/備份/復原前置。正在跑最後全方案，結果尚未取得前不標P1-11完成。Schema與新測試13份完整檔頭及DeploymentCli檔頭由主會話維護；全專案文件對話接手其他來源，僅明確stage本P1範圍，不混入其註解修改。"
+      "2026-11-06T18:10:01+08:00 P1-11交付前驗證：本機Deployment116/116、獨立coverage88.42%；真正組織唯讀plan88項成功、摘要已審核，沒有任何遠端寫入。P1_D365結構建立步驟.md已備妥，列出實際唯讀證據、plan/schema/fingerprint、apply/verify/Active key/後台元件與資料唯一性清理流程及缺少的VM隔離/備份/復原前置。正在跑最後全方案，結果尚未取得前不標P1-11完成。Schema與新測試13份完整檔頭及DeploymentCli檔頭由主會話維護；全專案文件對話接手其他來源，僅明確stage本P1範圍，不混入其註解修改。",
+      "2026-11-06T18:26:50+08:00 P1-11交付回歸逐筆核對：solution-delivery的17份TRX共4371/4371、零失敗／略過；原Localization固定12鍵失敗保留，修為獨立完整24鍵清單後雙宿主182/208及完整方案全通過。最新CCG自癒final-reviewer兩後端均無輸出（Gemini522、Claude週配額），不算外審完成。Hyper-V的Get-VM及普通vmconnect權限拒絕後，使用正常Windows RunAs入口成功唯讀查詢（ElevatedAdmin=true），未改群組／安全政策；D365-9.1運作、兩個獨立動態VHDX、零checkpoint、VSS無法連絡，尚缺隔離用途及可驗證備份／復原，接續PowerShell Direct只讀查驗。證據artifacts/p1-11-20261106/hyperv-elevated-readonly.json。已記錄文件對話提醒，後續只stage精確P1檔案，不納入其.ccg任務；既有自動checkpoint歷史不改寫。"
     ]
   },
   "tiles": [

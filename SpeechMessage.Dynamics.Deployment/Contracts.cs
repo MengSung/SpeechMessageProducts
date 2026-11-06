@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔整合下列相關契約：RegistrationManifest：單次讀取的註冊清單。檔案可進版控，因此設定欄位只允許固定結構與秘密佔位； 真實 token、收件者識別或帳密不得進入此模型。；
+ * StepRegistration：一個受管理步驟的不可變範本。身份欄位決定唯一步驟，設定欄位只保留固定值或 `${secret:name}` 佔位；僅 apply 寫入瞬間才解析秘密。；AssemblyImage：從有界 
+ * PE 讀出的單次組件描述。保留 DLL bytes 只供本次 apply，從不載入或執行待驗證組件的程式碼， 也不將此物件放入 static、快取或跨命令狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RegistrationManifest、StepRegistration、AssemblyImage、DeploymentOperation、DeploymentPlan、
+ * IOrganizationConnector、OrganizationLease。
+ * - 受此工具管理的唯一 Plugin 組件簡名，不接受路徑或任意組件。
+ * - Plugin 完整型別名稱，必須在待部署 PE 中實作 IPlugin。
+ * - P0 骨架只允許 task 實體，避免觸碰會友或業務資料。
+ * - Create 的篩選欄位；P0 必須為空，非空時拒絕而不靜默忽略。
+ * 主要操作入口包含 AssemblyImage、DeploymentOperation、DeploymentPlan、Dispose。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ */
 using System;
 using System.Collections.Generic;
 using System.Threading;

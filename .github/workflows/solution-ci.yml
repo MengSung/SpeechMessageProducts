@@ -42,6 +42,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Select Python for file documentation checks
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify file documentation
+        run: |
+          python -m unittest discover -s tools/RepoQuality/Tests -p test_file_documentation.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'File documentation contract tests failed.' }
+          python tools/RepoQuality/check_file_documentation.py
+          if ($LASTEXITCODE -ne 0) { throw 'File documentation is incomplete.' }
       - name: Prepare Six Labors license
         env:
           SIXLABORS_LICENSE: ${{ secrets.SIXLABORS_LICENSE }}

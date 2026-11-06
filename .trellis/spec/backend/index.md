@@ -26,6 +26,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [P1 結構部署契約](./schema-deployment-contract.md) | 正式schema、完整只讀metadata、只新增plan/apply/verify及實機邊界 | Established |
 | [Plugin Packaging Contract](./plugin-packaging-contract.md) | Separate four-input merge targeting .NET Framework 4.6.2, process-environment signing, offline metadata checks and sandbox exception ownership | Established |
 | [Text Encoding Contract](./text-encoding-contract.md) | Tracked-file boundaries, byte/token checks, lossless conversion, and safe output ownership | Established |
+| [檔案整體說明契約](./file-documentation-contract.md) | 逐檔繁中目的、流程與邊界；產生器及JSON伴隨說明；離線文件守門 | Established |
 | [Development Configuration Safety](./development-configuration-safety.md) | Development-only providers, baseline token rejection, test organization guard and Production compatibility | Established |
 | [Duplicate Source Ratchet](./duplicate-source-ratchet.md) | Solution-scoped content/type duplicates, baseline identity validation and no parent-worktree traversal | Established |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels, and unified diagnostic trace contract | Established |

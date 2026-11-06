@@ -77,7 +77,11 @@ def leading_comment(source: str, extension: str) -> str:
         if extension == '.py' and text.startswith(('"""', "'''")):
             start = end = text[:3]
         else:
-            return '\n'.join(x[1:] for x in text.splitlines() if x.startswith('#')) if text.startswith('#') else ''
+            rows=[]
+            for line in text.splitlines():
+                if not line.startswith('#'): break
+                rows.append(line[1:])
+            return '\n'.join(rows)
     elif extension == '.bat':
         rows=[]
         for line in text.splitlines():
@@ -106,7 +110,12 @@ def inspect_bytes(raw: bytes, extension: str) -> list[str]:
     comment=leading_comment(text, extension)
     if '檔案整體說明' not in comment:
         issues.append('MissingFileOverview')
-    if any(label not in comment for label in ('目的與定位', '主要功能與流程', '使用邊界與維護')):
+    # 舊有人工詳寫的標題可保留；守門檢查責任面向，不強迫所有檔案貼同一版型。
+    if not all(re.search(pattern, comment) for pattern in (
+        r'(?:目的與定位|整體目的)\s*[：:]',
+        r'(?:主要功能(?:與流程)?|主要流程|主要情境)\s*[：:]',
+        r'(?:使用邊界與維護|[^\r\n：:]{0,16}(?:擁有權|隔離|生命週期)|維護(?:與驗證|驗證|要求))\s*[：:]',
+    )):
         issues.append('IncompleteFileOverview')
     if len(re.findall('[\u3400-\u9fff]', comment)) < 80:
         issues.append('InsufficientChineseExplanation')

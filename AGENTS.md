@@ -58,6 +58,8 @@
 - 產生檔的說明必須由產生器輸出並通過 deterministic check，不能手改 `.g.cs`；第三方原始碼／套件、minified vendor 檔及原始執行證據保留原貌，以維護清冊註明所有權，不冒充本專案自行維護的程式。
 - JSON 等不允許註解的格式不得插入非法註解；用途與欄位契約寫在同目錄的繁中說明或明確 schema／spec。
 - 檔案說明本身也必須 UTF-8 無 BOM、CRLF、末尾 CRLF；補說明時保留程式 token／字串／行為，執行適用的語法、建置、測試與位元組檢查後才提交。
+- 每次交付執行 `python tools/RepoQuality/check_file_documentation.py`，CI 同步執行；新增產品目錄預設納管，不得為通過而擴張排除範圍。JSON 等格式的逐檔伴隨說明集中於 `docs/file-purpose-companions.json`，新增或搬移須同步維護。
+- 完整執行契約見 `.trellis/spec/backend/file-documentation-contract.md`。結構／字數檢查不代表語意完整；審查仍須確認說明符合實際用途、失敗處理、隔離及資源所有權。
 
 ## Permanent Cross-User Isolation and Sustainable Performance Rule
 

@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：部署 CLI 的程序組合根。組態與 Ctrl+C 註冊由 Main 持有至命令結束； 每一命令另持有唯一例外診斷 owner 與一個可確定釋放的組織連線租約。 本工具只寫本機 Exception.log，不建立 
+ * LINE sender，也不保留跨命令憑證或連線狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 Program。
+ * - 建立唯一 User Secrets 組態與 Ctrl+C 取消來源，執行一個命令後先解除事件訂閱， 再 Dispose 取消來源與組態。初始化失敗只輸出固定訊息及例外型別，不輸出原始訊息。
+ * - 為單次命令掛載共用檔案診斷 owner，明確停用 LINE，並在命令完成時解除全域註冊後 drain／Dispose owner。日誌目錄由程序組合根提供，不接受命令列、組態或 request 決定。
+ * - 組態尚未建立診斷 owner 時，只輸出固定初始化狀態與型別名稱。
+ * - 以固定 stderr 代碼處理輸出 writer 失敗，不展開原始例外或組態內容。
+ * 主要操作入口包含 Main、RunCommand、WriteInitializationFailure、WriteEmergency、WriteOutputLine。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ */
 using System;
 using System.IO;
 using System.Threading;

@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以唯讀 PE 中繼資料檢查 Plugin 組件，不載入、反射執行或建立待部署程式碼。 每次只讀一個有大小上限的 DLL，並於方法結束釋放 PE reader 與檔案控制代碼。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AssemblyCatalog。
+ * - 驗證 DLL 的組件身份、雜湊與全部公開 Plugin 型別，並回傳供一次 plan/apply 使用的描述。 不把原始檔案路徑或 DLL 位元組寫入診斷訊息。
+ * - 只回傳可註冊的公開、非 abstract 類別；介面與 abstract base class 不會被當作步驟候選。
+ * - 直接辨識實作清單中的 IPlugin 介面，不使用 Assembly.Load 或執行 DLL 程式碼。
+ * - 沿同一組件的基底類別追蹤 IPlugin，涵蓋繼承 PluginShellBase 的實際外掛。
+ * 主要操作入口包含 Read、ReadPublicPluginTypes、ImplementsPluginInterface、GetTypeName、GetFullTypeName、IsPublicType、
+ * ReadPublicKeyToken。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -35,6 +35,12 @@ class FileDocumentationTests(unittest.TestCase):
         self.assertIn('InvalidUtf8',CHECKER.inspect_bytes(b'\xff\r\n','.cs'))
         self.assertIn('PlaceholderOverview',CHECKER.inspect_bytes(OVERVIEW.replace('先驗證再發布','已修復的說明').encode(),'.cs'))
 
+    def test_existing_detailed_headings_are_kept_and_late_yaml_comments_do_not_count(self):
+        existing=OVERVIEW.replace('主要功能與流程','主要情境').replace('使用邊界與維護','並行與擁有權')
+        self.assertEqual([],CHECKER.inspect_bytes(existing.encode(),'.cs'))
+        yaml='# a short comment\r\nname: job\r\n'+''.join('# '+line+'\r\n' for line in OVERVIEW.splitlines())
+        self.assertIn('MissingFileOverview',CHECKER.inspect_bytes(yaml.encode(),'.yml'))
+
     def test_new_product_sources_are_included_but_vendor_and_build_outputs_are_excluded(self):
         for path in ('FutureProduct/Worker.cs','FutureProduct/appsettings.json','NewTool/entry.py'):
             self.assertNotEqual('reference',CHECKER.classification(path))
