@@ -175,3 +175,6 @@ Money兩宿主35/35、完整Localization159/185，方案17TRX4197/4197；coverag
 
 ## P1-09 最終驗收（2026-11-06）
 完整key/參數/跨組唯一、20/14與pseudo、跨文化關鍵字及英文資訊報告完成；工具170（v2 51）、coverage97.54%、strict0/0，方案17TRX4203/4203、Localization162/188及coverage98.17%/98.52%。原完整14字教會名保留，只縮sender固定後綴助手使pseudo21→19；正式需求/上限/公式/英文發布政策不改，無Word修正報告需求。孤兒/大小寫、顯式group budget、JSON高surrogate、舊精確golden及錯namespace參數均有修正與證據。主會話自審無外審；只封存p109子任務，主P1 9/12，續P1-08/11/12。
+
+## P1-08 最終本機驗收（2026-11-06）
+完整來源/validator/有界single-flight完成；回收48/200未釋放根因以同步內容計數真紅0/2確認，改ForceYielding後Tenancy75/75及五輪10/10。交付重建17TRX4317/4317、Localization182/208、ToolUtility1231/1369、ChurchReport630；五份coverage97.84%/98.17%、Core95.50%/95.86%、Tenancy96.96%，strict0/0，全部必要守門通過，Changed1133檔0問題。dfb82a7e驗收交付，原實作b74a311d、UI封存f2c7bfbc；矩陣wp-reports/P1-08-acceptance.md及evidence/p108-final。主會話自審，外部兩後端自癒入口run20261106-161834均無可用輸出，不能稱雙模型或單模型完成。主P1保持active/in_progress，10/12，續P1-11/12，未連VM/D365/LINE、未push。

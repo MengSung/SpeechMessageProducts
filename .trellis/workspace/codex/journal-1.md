@@ -707,3 +707,37 @@ Money兩宿主各35，完整Localization159/185、方案4197；coverage98.17%/98
 ### Next Steps
 
 - 接續P1-08，之後P1-11及P1-12；Goal保持active，VM預設只讀。
+
+
+## Session 19: P1-08覆寫快取本機驗收完成（主P1仍10/12）
+
+**Date**: 2026-11-06
+**Task**: P1-08覆寫快取本機驗收完成（主P1仍10/12）
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+完整來源與候選、single-flight及caller排程/回收修復，方案4317、五份coverage達標；外審兩服務無可用輸出如實記錄，續P1-11/12，未push或實機寫入。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b74a311d` | (see git log) |
+| `dfb82a7e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
