@@ -1,0 +1,12 @@
+{
+  "organization": "goodshepherdback",
+  "vmConnectionsVerified": 2,
+  "serverOrganizationIdMatched": true,
+  "copyOnlyChecksumBackupsVerified": 2,
+  "independentRestoreVerified": true,
+  "physicalCheckPassed": true,
+  "probeDatabaseDropped": true,
+  "originalDatabaseRestored": false,
+  "recoveryEvidencePath": "artifacts/p1-12-20261106/recovery-executed.json",
+  "recoveryEvidenceSha256": "35EF2F8D1E193A41B081EAF8592D9FC8D80DA3AE37EDB0A27E1B05C91C7504F7"
+}

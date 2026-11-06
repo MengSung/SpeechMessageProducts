@@ -2,6 +2,7 @@
 檔案整體說明
 
 目的與定位：驗證實作進度HTML的工作包狀態、計數與歷史證據區一致，防止視覺上已完成卻與工作包資料矛盾；使用本機頁面內容，不修改正式產品狀態。
+P1-12由歷史人工待辦進入使用者授權的實機作業時，狀態必須對應備份／復原證據；只有apply、已發布verify、Active key、唯一性與清理證據齊全才能標已完成。
 
 主要功能與流程：
 操作入口包含render、getWorkPackageRow；呼叫參數與輸出形狀以各入口宣告為準。
@@ -144,12 +145,40 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   assert.equal(required.productRegistration.length, 8);
   assert.match(elements.get('planned-phases').innerHTML, /P1-08[\s\S]*P1-10/);
   const p1_12 = getWorkPackageRow(elements, 'P1-12');
-  assert.match(p1_12, /class="wp is-you"/);
+  const liveStatus = original.p1Wps.find(wp => wp.id === 'P1-12').status;
+  assert.ok(['you', 'active', 'done'].includes(liveStatus));
+  assert.match(p1_12, new RegExp(`class="wp is-${liveStatus}"`));
   assert.doesNotMatch(p1_12, /undefined/);
-  assert.match(p1_12, /歷史計畫 D24 指定使用者 apply/);
-  assert.match(p1_12, /最新對話另有條件授權必要可逆測試變更/);
-  assert.match(p1_12, /目前未確認，維持只讀/);
   assert.match(p1_12, /不可逆操作與正式資料仍不在授權範圍/);
+  if (liveStatus === 'you') {
+    assert.match(p1_12, /歷史計畫 D24 指定使用者 apply/);
+    assert.match(p1_12, /最新對話另有條件授權必要可逆測試變更/);
+    assert.match(p1_12, /目前未確認，維持只讀/);
+  } else {
+    const readiness = JSON.parse(fs.readFileSync(path.join(root,
+      '.ccg/tasks/integration-p1/evidence/p112-final/readiness.json'), 'utf8'));
+    assert.equal(readiness.vmConnectionsVerified, 2);
+    assert.equal(readiness.serverOrganizationIdMatched, true);
+    assert.equal(readiness.organization, 'goodshepherdback');
+    assert.equal(readiness.copyOnlyChecksumBackupsVerified, 2);
+    assert.equal(readiness.independentRestoreVerified, true);
+    assert.equal(readiness.physicalCheckPassed, true);
+    assert.equal(readiness.probeDatabaseDropped, true);
+    assert.equal(readiness.originalDatabaseRestored, false);
+    if (liveStatus === 'active') {
+      assert.match(p1_12, /尚未驗收完成/);
+    } else {
+      const acceptance = JSON.parse(fs.readFileSync(path.join(root,
+        '.ccg/tasks/integration-p1/evidence/p112-final/summary.json'), 'utf8'));
+      assert.equal(acceptance.liveApplyPassed, true);
+      assert.equal(acceptance.publishedVerifyExitCode, 0);
+      assert.equal(acceptance.activeKeyCount, 4);
+      assert.equal(acceptance.secondApplyWriteCount, 0);
+      assert.equal(acceptance.duplicateStableKeyRejected, true);
+      assert.equal(acceptance.testRowsRemaining, 0);
+      assert.equal(acceptance.productionOrganizationChanged, false);
+    }
+  }
 });
 
 test('Stages 2 through 8 render every planned package once and keep all packages not started', () => {

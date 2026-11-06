@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P1-01～10已驗收，主P1 10/12；續P1-11結構CLI及P1-12實機，VM預設只讀。",
+  "nextAction": "P1-01～11已驗收，5cfef59e交付P1-11；P1-12兩VM連入與備份/獨立復原通過，續實機apply/verify/唯一鍵與清理。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
@@ -28,7 +28,8 @@
     "P1-07",
     "P1-08",
     "P1-09",
-    "P1-10"
+    "P1-10",
+    "P1-11"
   ],
-  "acceptanceRecord": "wp-reports/P1-08-acceptance.md"
+  "acceptanceRecord": "wp-reports/P1-11-acceptance.md"
 }

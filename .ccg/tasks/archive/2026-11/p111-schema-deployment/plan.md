@@ -25,14 +25,14 @@ VM用途與備份未證明前不寫入；本包離線測試不代表P1-12通過�
 
 ## 切片與驗證
 
-- [ ] 逐欄對附錄A及Word明確日期行為，記錄phase；比較SDK/JSON/手動方案，採正式既有SDK入口，不重建新工具。
-- [ ] Schema先紅：非法／未知欄、重複ID、phase、定義完整矩陣、檔案大小／路徑／JSON深度，再純解析及canonical hash。
-- [ ] Metadata先紅：只讀messages、完整根scope、列身份、無敏感設定、日期/lookup/選項/key投影、缺失／錯型別／過量拒絕，實作後輸出detached快照。
-- [ ] Plan/Apply先紅：無差異、錯型別／長度／日期／security／owner衝突、錯白名單、漂移／竄改、備份先flush、兩次apply第二次零寫入、pending/failed key不能verify成功。
-- [ ] CLI先紅：四命令含schema、純只讀export、錯路徑／重複選項／其他組織在連線前拒絕；舊62案全保留。真ExceptionDiagnostics去重／保密，連線/鎖/輸出故障釋放。
-- [ ] 加故障注入／併行／取消／資源回收；實際strict與Deployment獨立coverage≥80%，完整方案/Debug/I18n/架構/打包/編碼/duplicates及必要品質守門。
-- [ ] 主會話深度自審；依有效developer規則經CCG自癒入口雙模型嘗試，供應商缺輸出如實記錄，不算外審通過。
-- [ ] 完整驗收矩陣／一般資訊／證據SHA、本地commit與子任務封存；主P1仍需P1-12，不提前結束Goal。
+- [x] 逐欄對附錄A及Word明確日期行為，記錄phase；比較SDK/JSON/手動方案，採正式既有SDK入口，不重建新工具。
+- [x] Schema先紅：非法／未知欄、重複ID、phase、定義完整矩陣、檔案大小／路徑／JSON深度，再純解析及canonical hash。
+- [x] Metadata先紅：只讀messages、完整根scope、列身份、無敏感設定、日期/lookup/選項/key投影、缺失／錯型別／過量拒絕，實作後輸出detached快照。
+- [x] Plan/Apply先紅：無差異、錯型別／長度／日期／security／owner衝突、錯白名單、漂移／竄改、備份先flush、兩次apply第二次零寫入、pending/failed key不能verify成功。
+- [x] CLI先紅：四命令含schema、純只讀export、錯路徑／重複選項／其他組織在連線前拒絕；舊62案全保留。真ExceptionDiagnostics去重／保密，連線/鎖/輸出故障釋放。
+- [x] 加故障注入／併行／取消／資源回收；實際strict與Deployment獨立coverage≥80%，完整方案/Debug/I18n/架構/打包/編碼/duplicates及必要品質守門。
+- [x] 主會話深度自審；依有效developer規則經CCG自癒入口雙模型嘗試，供應商缺輸出如實記錄，不算外審通過。
+- [x] 完整驗收矩陣／一般資訊／證據SHA、本地commit與子任務封存；主P1仍需P1-12，不提前結束Goal。
 
 ## 可回復與失敗處理
 

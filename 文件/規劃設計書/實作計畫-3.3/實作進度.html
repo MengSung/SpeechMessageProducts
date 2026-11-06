@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T18:10:01+08:00",
+  "snapshot": "2026-11-06T19:09:29+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
-  "headline": "階段 1 目前 <strong>10／12 工作包已驗收完成</strong>（P1-01～10）。P1-08有界快照與回收驗證完成；續P1-11結構指令及P1-12實機驗收。全計畫83包，已驗收28包；主Goal持續active，不宣告整個P1完成。",
+  "headline": "階段 1 目前 <strong>11／12 工作包已驗收完成</strong>（P1-01～11）；P1-12兩台VM已連入、備份及獨立復原驗證通過，續真正結構apply與唯一索引驗收。全計畫83包，已驗收29包；整個P1尚未完成。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1 已完成10／12；P1-11結構指令開發中",
-    "body": "P1-01～10已驗收。P1-11程式與真正D365唯讀匯出／88項plan已完成，完整方案17TRX共4371/4371通過，仍在收尾品質守門及驗收紀錄。已透過正常Windows提升入口取得Hyper-V唯讀資料；D365-9.1正在執行、沒有checkpoint、VSS無法連絡，正查客體備份與用途，尚未apply。外部審查兩服務均無可用輸出，僅主會話自審，不宣稱雙模型通過。",
+    "title": "P1 已完成11／12；P1-12實機驗收進行中",
+    "body": "P1-11正式schema、完整metadata／plan／只新增apply及已發布verify已驗收；17TRX4372/4372，Deployment117、coverage88.43%、strict0/0。5cfef59e本地交付；外部兩後端無可用結果，主會話自審。Hyper-V兩台均已合法連入，目標COPY_ONLY備份與獨立資料庫實際復原／完整性／清理通過；尚未套用D365結構，不宣告P1-12或整個P1完成。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -541,17 +541,18 @@ const DATA = {
       "2026-11-06T18:06:47+08:00 P1-11實機唯讀plan已成功：正式schema與真metadata比對88項，逐動詞核對皆為Create/Include，沒有Update/Delete/Convert；不執行apply。publisher前綴不能當正式身份，先以多new publisher真紅確認誤拒絕，改依清單正式名稱建立自己publisher，不猜選其他產品。Deployment116/116，並行同plan兩apply只一個成功，第二個重驗拒絕舊plan；原62案保留。摘要文字8個CJK常值守門先紅，移12個標籤至正式resx並由I18n工具重生後verify通過，英文6/45=13.33%僅資訊，發布政策未變。文件註解全專案由另一對話接手，主會話僅維護正在編輯檔頭，分工在p111/coordination.md。下一完成P1-11最終品質及P1-12可審核驗收材料；VM隔離/備份/復原仍缺證據，未寫D365。",
       "2026-11-06T18:10:01+08:00 P1-11交付前驗證：本機Deployment116/116、獨立coverage88.42%；真正組織唯讀plan88項成功、摘要已審核，沒有任何遠端寫入。P1_D365結構建立步驟.md已備妥，列出實際唯讀證據、plan/schema/fingerprint、apply/verify/Active key/後台元件與資料唯一性清理流程及缺少的VM隔離/備份/復原前置。正在跑最後全方案，結果尚未取得前不標P1-11完成。Schema與新測試13份完整檔頭及DeploymentCli檔頭由主會話維護；全專案文件對話接手其他來源，僅明確stage本P1範圍，不混入其註解修改。",
       "2026-11-06T18:26:50+08:00 P1-11交付回歸逐筆核對：solution-delivery的17份TRX共4371/4371、零失敗／略過；原Localization固定12鍵失敗保留，修為獨立完整24鍵清單後雙宿主182/208及完整方案全通過。最新CCG自癒final-reviewer兩後端均無輸出（Gemini522、Claude週配額），不算外審完成。Hyper-V的Get-VM及普通vmconnect權限拒絕後，使用正常Windows RunAs入口成功唯讀查詢（ElevatedAdmin=true），未改群組／安全政策；D365-9.1運作、兩個獨立動態VHDX、零checkpoint、VSS無法連絡，尚缺隔離用途及可驗證備份／復原，接續PowerShell Direct只讀查驗。證據artifacts/p1-11-20261106/hyperv-elevated-readonly.json。已記錄文件對話提醒，後續只stage精確P1檔案，不納入其.ccg任務；既有自動checkpoint歷史不改寫。",
-      "2026-11-06T18:39:01+08:00 Hyper-V客體實際連線已打通：D365-9.1與D365DC01皆經既有憑證／PowerShell Direct正常連入，無帳號／群組／網域／安全原則修改。D365 9.1.45.11、Sandbox/Async/SQL Running；DC DNS/NTDS/KDC/Netlogon Running。唯一開發測試組織goodshepherdback依正式D23為正式複本，SQL實際對應GoodShepherd_MSCRM（不是依alias猜DB名），API組織ID與MSCRM_CONFIG正式ID吻合。目標DB未找到現存backup歷史；既有目錄內其他組織備份不能充當本目標備份，正核對安全備份／復原路徑。仍未apply或寫業務列。分析器26/26、Pester39/39及進度頁15/15通過；原始摘要artifacts/p1-11-20261106。"
+      "2026-11-06T18:39:01+08:00 Hyper-V客體實際連線已打通：D365-9.1與D365DC01皆經既有憑證／PowerShell Direct正常連入，無帳號／群組／網域／安全原則修改。D365 9.1.45.11、Sandbox/Async/SQL Running；DC DNS/NTDS/KDC/Netlogon Running。唯一開發測試組織goodshepherdback依正式D23為正式複本，SQL實際對應GoodShepherd_MSCRM（不是依alias猜DB名），API組織ID與MSCRM_CONFIG正式ID吻合。目標DB未找到現存backup歷史；既有目錄內其他組織備份不能充當本目標備份，正核對安全備份／復原路徑。仍未apply或寫業務列。分析器26/26、Pester39/39及進度頁15/15通過；原始摘要artifacts/p1-11-20261106。",
+      "2026-11-06T19:09:29+08:00 P1-11已完成本機驗收並提交5cfef59e：6表37欄（P1 36/P4 1）4keys正式schema，真實唯讀566表22678欄與88項plan，完整方案4372/4372、Deployment117、coverage88.43%、Localization97.87%/98.19%、strict0/0、Debug7/I18n170/PE27/Plugin10+6/analyzer26/Pester39及全部守門通過。verify未發布假成功以正確fixture確認紅後修；首個fixture欄名錯誤也保留原始失敗。Changed原25問題已修自身換行、文件對話10PS等值修復、原metadata僅停止追蹤不刪檔且SHA不變，最後1998檔0問題。矩陣wp-reports/P1-11-acceptance.md與evidence/p111-final；子任務依流程封存，主P1保持未完成。P1-12新建任務：兩VM連入，API/SQL ID吻合；目標1,027,411,968 bytes與config3,780,608 bytes COPY_ONLY/CHECKSUM備份及VERIFYONLY成功，獨立P1RecoveryProbe已實際還原ONLINE/RESTRICTED_USER、DBCC PHYSICAL_ONLY通過且已DROP自身暫存DB；原DB未還原、未改帳號/政策，備份留客體既有受限目錄。接續檢查測試列可能觸發的舊步驟／流程，再重plan/apply/verify。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "28",
+      "value": "29",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 10／12 已驗收",
+      "sub": "P0 18／18；P1 11／12 已驗收",
       "meter": {
-        "done": 28,
+        "done": 29,
         "active": 1,
         "total": 83
       }
@@ -569,26 +570,26 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "10",
+      "value": "11",
       "unit": "/ 12 工作包",
-      "sub": "P1-01～10已驗收；續P1-11/12",
+      "sub": "P1-01～11已驗收；續P1-12實機",
       "meter": {
-        "done": 10,
+        "done": 11,
         "active": 1,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "4,317 / 4,317",
+      "value": "4,372 / 4,372",
       "unit": "0 失敗、0 略過",
-      "sub": "17份TRX；ChurchReport630；Localization182/208；ToolUtility1231/1369"
+      "sub": "17TRX；Deployment117；ChurchReport630；Localization182/208；ToolUtility1231/1369"
     },
     {
       "label": "最新完整本機建置",
       "value": "0 錯誤",
-      "unit": "完整方案與Localization/Core/Tenancy strict成功",
-      "sub": "strict0/0；完整方案19個既有測試警告保留"
+      "unit": "完整方案與Deployment/Localization strict成功",
+      "sub": "strict0/0；完整方案23個既有legacy警告保留"
     }
   ],
   "wps": [
@@ -803,14 +804,14 @@ const DATA = {
     {
       "id": "P1-11",
       "name": "Deployment 結構 schema／plan／apply／verify",
-      "status": "active",
-      "note": "進行中：正式schema與metadata/plan/apply/verify設計及離線紅綠開發。沿用既有connector/lease/寫鎖，--schema明確選結構模式；只新增、完整衝突拒絕及hash守門。未寫D365、未驗收；Hyper-V只讀管理查詢權限不足，不改用繞過方式。"
+      "status": "done",
+      "note": "已驗收：正式schema與完整metadata/export/plan/apply/已發布verify；4372/4372、Deployment117、coverage88.43%、strict0/0及必要守門通過。真實只讀plan88項，尚未實機apply；外審無輸出如實保留。commit5cfef59e；wp-reports/P1-11-acceptance.md。"
     },
     {
       "id": "P1-12",
       "name": "goodshepherdback 結構驗收",
-      "status": "you",
-      "note": "歷史計畫 D24 指定使用者 apply；最新對話另有條件授權必要可逆測試變更，並非任意寫入授權。須確認隔離測試環境、適當備份與可驗證復原後才可執行；目前未確認，維持只讀。不可逆操作與正式資料仍不在授權範圍；不得把 mock／離線驗證寫成實機通過。"
+      "status": "active",
+      "note": "兩台VM已實際連入；API組織ID與GoodShepherd_MSCRM映射一致。COPY_ONLY/CHECKSUM備份與獨立GUID資料庫實際復原／DBCC／清理已通過；原組織未還原。正在準備只新增apply、已發布verify/key Active及自身測試列唯一性與清理，尚未驗收完成。 不可逆操作與正式資料仍不在授權範圍。"
     }
   ],
   "plannedPhaseNotes": [
@@ -1354,7 +1355,7 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 10,
+      "done": 11,
       "active": 1,
       "current": true
     },

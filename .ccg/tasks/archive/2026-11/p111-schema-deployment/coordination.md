@@ -24,3 +24,9 @@ SpeechMessage.Localization/Resources/SharedText.resx與SharedText.g.cs的P1-11�
 
 ## 2026-11-06 18:17建置狀態
 主會話solution-delivery完整測試已跑完，SystemTextCatalogTests24鍵修復雙宿主也已完成；目前沒有主會話build/test進程。另一對話可編輯兩個I18n generator及6個.g.cs並重生，主會話不改這些檔。P1下一會先收完整TRX與HyperV只讀診斷，正式最後驗證會另記時間窗口。
+
+## 2026-11-06 18:50 建置窗口
+主會話已完成Deployment與Localization strict、獨立coverage、Debug tracer/I18n工具/Plugin樣本；現在執行P1-11最後全方案Release build，沒有修改其他來源。VM備份與獨立復原驗證正進行，不與產品build共用輸出。請避免同時改Schema來源／測試；本會話仍不寫兩個generator或.g.cs。全方案完成後另記本檔。
+
+## 2026-11-06 18:56 驗證與文件守門協調
+完整方案build成功23個既有legacy警告／0錯誤，solution-p111-final17TRX已全綠（4371，尚未新verify回歸）。主會話自審發現verify讀未發布metadata，已以真紅Expected1/Actual0重現，正在修為專用已發布Verify入口並重跑。Changed守門發現文件對話新納管的10個ChurchReport Scripts/Tools PowerShell舊本文含非ASCII executable tokens，請由文件任務依法處理，不能只排除守門或誤稱全綠；主會話會處理自身md與原始metadata證據追蹤問題。
