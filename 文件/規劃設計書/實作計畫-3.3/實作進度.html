@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T14:32:53+08:00",
+  "snapshot": "2026-11-06T14:51:41+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／驗證／審查：Codex inline；使用者已取消後續雙模型，歷史外模證據保留",
-  "headline": "階段 1 目前 <strong>7／12 工作包已驗收完成</strong>（P1-01～06、P1-10）。教會時鐘、CLDR完整映射與實際ICU主機守門已通過本機驗收；P1-07／09無須等待P1-08，依使用者要求優先續作。現行inline統一實作／檢查，不宣稱多代理同時開發。全計畫83包，已驗收25包。",
+  "headline": "階段 1 目前 <strong>8／12 工作包已驗收完成</strong>（P1-01～07、P1-10）。Money雙目標與完整回歸通過；接續P1-09，不等待P1-08。現行inline統一實作／檢查，不宣稱多代理同時開發。全計畫83包，已驗收26包。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1-06 已驗收；P1 目前 7／12",
-    "body": "P1-06正式時間四入口、TimeProvider、生日純日期、CLDR49全部445映射及ChurchReport啟動ICU守門完成。正規化後方案17TRX4127/4127；Localization124/150、coverage98.11%/98.47%、strict0/0；I18n119、Debug7、PE27、Plugin metadata10/build6及CI6通過。真實NLS主機拒絕使用合成設定且兩通知輸出關閉，不連CRM／發LINE。下一步P1-07／09；主P1未完成，D365 預設只讀。",
+    "title": "P1-07 已驗收；P1 目前 8／12",
+    "body": "七幣白名單、default/跨幣別/溢位拒絕、精度保留與明確文化不換匯完成。Money兩宿主35/35、方案4197/4197、Localization159/185、coverage98.17%/98.52%、strict0/0。主會話自審，無第二人／外部模型。下一步P1-09；其他未驗收包仍未完成。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -514,17 +514,20 @@ const DATA = {
       "2026-11-06T13:59:36+08:00 依使用者要求加速已解鎖工作：建立.ccg/tasks/p106-church-clock需求／實作與驗收清單，開始P1-06。P1-07／09為可獨立推進佇列，不是假稱已有背景Agent；P1-08只完成先前研究尚未實作。執行層要求的analyzer已經CCG自癒入口嘗試，run20261106-135758兩後端皆無可用輸出（Claude週額度），無雙模型／單模型成功證據，不重複重試相同供應商阻擋；主會話續做本地分析與驗證。未啟動外部reviewer。本包尚無實作驗收證據，不標完成。",
       "2026-11-06T14:11:51+08:00 P1-06第一輪實作：clock契約缺型別1案真紅後，Framework31/net10 33行為案通過；CLDR生成器2紅5綠→7綠，來源缺失verify先1案真紅再修正。CLDR release49原XML及授權已保留來源／repo SHA，只正規化換行；生成445映射。net10 strict CA1510已依目標API分支修正，未停用規則。進度頁曾綁Constants舊本文，改固定合成renderer fixture後14/14。下一步完整445映射、ICU三程序、coverage／方案／品質守門；本包尚未commit、尚未整包驗收，P1仍6/12。證據artifacts/p1-06-20261106。",
       "2026-11-06T14:32:53+08:00 P1-06整包本機驗收通過：正式Word8.2／E.5確認須接入現有主機，已補owner→ICU→Startup前檢查，主機來源1案先紅後綠；CLDR原XML oracle空白造成兩宿主紅燈已按規格修正，445個唯一ID及逐項值斷言保留。正規化後17TRX4127/4127、0失敗/略過；Localization124/150（clock32/34），coverage98.11%/98.47%、strict0/0，ICU/NLS/Invariant各1案及真實NLS主機啟動拒絕通過。I18n119／coverage96.77%／verify／兩生成check、Debug7、PE27、Plugin10/6、CI6、套件36/167及duplicates零違規。主會話自審，無獨立第二人／外部reviewer；analyzer兩後端無可用輸出不算成功。驗收wp-reports/P1-06-acceptance.md；證據evidence/p106-final。正式需求未改，本地提交收尾中；只封存本包，主P1增7/12並續作P1-07／09，不push／部署／連VM/D365/LINE。",
-      "2026-11-06T14:37:10+08:00 P1-06交付收尾：本地工作commit 1e68c298；正式Changed1071檔0問題、進度頁14/14及129份原始證據SHA全部重核相符。子任務p106-church-clock封存，主P1仍7/12／Goal active；下一步P1-07與P1-09，無背景Agent／外部雙模型，未push／部署。"
+      "2026-11-06T14:37:10+08:00 P1-06交付收尾：本地工作commit 1e68c298；正式Changed1071檔0問題、進度頁14/14及129份原始證據SHA全部重核相符。子任務p106-church-clock封存，主P1仍7/12／Goal active；下一步P1-07與P1-09，無背景Agent／外部雙模型，未push／部署。",
+      "2026-11-06T14:38:53+08:00 P1-07開始：依正式02/90與主Task7建立金額白名單、TWD顯示政策、明確文化不改幣別、default拒絕及checked加法驗收清單。原精度保留、AwayFromZero明確顯示捨入；不搬業務、不新增cache/IO。先缺型別契約紅燈再實作，P1-09獨立待續；inline不冒稱背景Agent。P1仍7/12；本包尚未驗收／提交。",
+      "2026-11-06T14:46:24+08:00 P1-07紅綠實作：缺正式型別1案真紅，完整行為暫殼32紅/1綠後實作，兩宿主各33/33通過；CA1859真實阻擋已改具體型別而不關規則。Money保持decimal精度、七幣白名單、default與跨幣別/溢位拒絕；顯示明確AwayFromZero與ISO身分，文化只影響數字。千次A/B、百次文化弱參照與故障原例外/重試通過。完整方案首輪全綠（含既有23警告），coverage及最終邊界補證進行；首輪TRX固定檔名互覆，已改兩宿主獨立目錄重驗，保留原log不作雙宿主證據。本包尚未完成/commit。",
+      "2026-11-06T14:51:41+08:00 P1-07整包驗收：正式Money各35/35（含後補負零）、方案17TRX4197/4197且0失敗/略過；Localization159/185，獨立coverage98.17%/98.52%、strict0/0，I18n119/verify/generate、Debug7、PE27、Plugin10/6、CI6、套件36/167及duplicates全過。原始32紅/1綠與CA1859、TRX互覆證據保留，正式每目標獨立TRX已重跑。主會話自審無外模／第二人，沒有更改正式計畫或金融業務。驗收wp-reports/P1-07-acceptance.md；證據evidence/p107-final。本地提交收尾中；只封存本子任務，主P1增8/12、Goal仍active，接續P1-09。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "25",
+      "value": "26",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 6／12 已驗收",
+      "sub": "P0 18／18；P1 8／12 已驗收",
       "meter": {
-        "done": 25,
+        "done": 26,
         "active": 0,
         "total": 83
       }
@@ -542,20 +545,20 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "7",
+      "value": "8",
       "unit": "/ 12 工作包",
-      "sub": "P1-01～06、10已驗收；續作已解鎖P1-07／09",
+      "sub": "P1-01～07、10已驗收；續作P1-09",
       "meter": {
-        "done": 7,
+        "done": 8,
         "active": 0,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "4,127 / 4,127",
+      "value": "4,197 / 4,197",
       "unit": "0 失敗、0 略過",
-      "sub": "17份TRX；ChurchReport629；Localization124/150；ToolUtility1214/1345"
+      "sub": "17份TRX；ChurchReport629；Localization159/185；ToolUtility1214/1345"
     },
     {
       "label": "最新完整本機建置",
@@ -746,8 +749,9 @@ const DATA = {
     {
       "id": "P1-07",
       "name": "Money 與幣別格式化",
-      "status": "todo",
-      "note": "P1-05前置已成立，可獨立推進；現行inline，尚未實作／驗收。依賴 P1-05；需驗證幣別白名單、TWD 顯示政策、格式語系不改幣別及跨幣別運算拒絕。"
+      "status": "done",
+      "note": "Money雙宿主35/35、完整Localization159/185，方案4197；七幣/default/精度/跨幣別/溢位/負零與明確文化不換匯；千次A/B及百次弱引用通過。coverage98.17%/98.52%、strict0/0；驗收wp-reports/P1-07-acceptance.md。主會話自審無外審；本地提交收尾中。",
+      "time": "2026-11-06T14:51:41+08:00"
     },
     {
       "id": "P1-08",
@@ -1321,7 +1325,7 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 7,
+      "done": 8,
       "active": 0,
       "current": true
     },
@@ -1392,8 +1396,8 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "3906 過／0 失敗",
-      "note": "最新完整本機16份TRX；ChurchReport623/623、架構67/67；零略過"
+      "after": "4197 過／0 失敗",
+      "note": "最新完整17TRX；ChurchReport629、Localization159/185；零略過"
     },
     {
       "item": "Release 建置警告",
@@ -1405,7 +1409,7 @@ const DATA = {
       "item": "套件版本違規",
       "before": "113 項",
       "after": "0 項",
-      "note": "最新34專案、158引用、2快照排除，零違規"
+      "note": "最新36專案、167引用、2快照排除，零違規"
     },
     {
       "item": "Debug 追蹤測試",

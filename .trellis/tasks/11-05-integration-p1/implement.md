@@ -80,8 +80,8 @@ Files: Localization/Time/**、Localization.Tests/ChurchClockTests.cs、tools/I18
 
 ### Task 7: P1-07 Money
 Files: Localization/Money.cs、MoneyFormatter.cs及tests；Task5後。
-- [ ] readonly Money(decimal,string)白名單／default invalid；TWD產品顯示0、其他2；加法檢查currency並checked。
-- [ ] Format(m,CultureInfo)輸出ISO幣別且格式只改separator／symbol，en-US保留TWD；同值、invalid／overflow測試。
+- [x] readonly Money(decimal,string)白名單／default invalid；TWD產品顯示0、其他2；加法檢查currency並checked。
+- [x] Format(m,CultureInfo)輸出ISO幣別且格式只改separator／symbol，en-US保留TWD；同值、invalid／overflow測試。
 
 ### Task 8: P1-10 Tenancy resolver（先於P1-08）
 Files: SpeechMessage.Tenancy/**、SpeechMessage.Tenancy.Tests/**、既有九處ChannelAccessToken解析及其csproj references；controller ownership。
@@ -169,3 +169,6 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 
 ## P1-06 最終驗收（2026-11-06）
 正式時間四入口、TimeProvider／純日期與CLDR49完整445映射完成；Word8.2／E.5重新核對後，補實際ChurchReport.Main ICU守門，非僅未來Hosting helper。正規化後方案17TRX4127/4127、Localization124/150（clock32/34）、coverage98.11%/98.47%、strict0/0；I18n119及coverage96.77%、Debug7、PE27、Plugin metadata10/build6、CI6。ICU／NLS／Invariant各一案與真實NLS啟動拒絕通過。缺來源verify、缺主機守門、CLDR清單空白oracle及分析器真失敗均保留修正證據。正式計畫未變，無Word修正報告需求；主會話自審，無外部reviewer／第二人。執行層analyzer曾經自癒入口嘗試雙後端，皆無可用輸出，不能稱成功。不歸檔主P1，依使用者要求續作已解鎖P1-07／09。
+
+## P1-07 最終驗收（2026-11-06）
+Money兩宿主35/35、完整Localization159/185，方案17TRX4197/4197；coverage98.17%/98.52%、strict0/0。七幣/default/精度/負零/溢位、千次A/B、百次文化弱引用及故障重試通過。主會話自審無外審；只封存p107-money，主P1保持8/12並續P1-09。

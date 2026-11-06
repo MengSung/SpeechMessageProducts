@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P1-06教會時鐘已驗收；P1-07／09前置成立，先續作P1-07，再P1-09；P1-08研究保留，主P1仍in_progress，VM預設只讀。",
+  "nextAction": "P1-07金額驗收完成；接續P1-09完整resx守門，不等P1-08；主P1仍in_progress。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
@@ -25,7 +25,8 @@
     "P1-04",
     "P1-05",
     "P1-06",
+    "P1-07",
     "P1-10"
   ],
-  "acceptanceRecord": "wp-reports/P1-06-acceptance.md"
+  "acceptanceRecord": "wp-reports/P1-07-acceptance.md"
 }

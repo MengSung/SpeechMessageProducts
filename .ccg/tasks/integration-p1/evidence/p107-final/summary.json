@@ -1,0 +1,46 @@
+{
+  "workPackage": "P1-07",
+  "solution": {
+    "trxCount": 17,
+    "total": 4197,
+    "passed": 4197,
+    "failed": 0,
+    "skipped": 0
+  },
+  "moneyTests": {
+    "net48": 35,
+    "net10.0": 35
+  },
+  "localizationTests": {
+    "net48": 159,
+    "net10.0": 185
+  },
+  "coverage": {
+    "net48": 0.9817,
+    "net10.0": 0.9852
+  },
+  "strictWarnings": 0,
+  "strictErrors": 0,
+  "initialSolutionWarnings": 23,
+  "finalIncrementalSolutionWarnings": 0,
+  "i18nToolTests": 119,
+  "debugTracer": 7,
+  "peToolTests": 27,
+  "pluginMetadataCases": 10,
+  "pluginBuildCases": 6,
+  "ciTransitionCases": 6,
+  "packageProjects": 36,
+  "packageReferences": 167,
+  "duplicateNewGroups": 0,
+  "review": "主會話自審；無獨立第二人／外部模型審查",
+  "parentP1Complete": false,
+  "liveD365Connections": false,
+  "lineSent": false,
+  "progressPageTests": 14,
+  "textEncoding": {
+    "scope": "Changed",
+    "base": "73b6e6cf",
+    "checked": 1084,
+    "filesWithIssues": 0
+  }
+}

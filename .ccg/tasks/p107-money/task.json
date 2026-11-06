@@ -1,0 +1,18 @@
+{
+  "id": "p107-money",
+  "title": "P1-07 不可變金額與明確文化格式化",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "全部驗證通過；本地commit後只封存本子任務。",
+  "createdAt": "2026-11-06T14:38:53+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parent": ".ccg/tasks/integration-p1",
+  "executionMode": "inline；主會話分析實作審查；使用者免外部雙模型",
+  "dependencies": [
+    "P1-05"
+  ],
+  "completedAt": "2026-11-06T14:51:41+08:00"
+}
