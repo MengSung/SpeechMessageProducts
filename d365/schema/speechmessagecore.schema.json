@@ -1,0 +1,422 @@
+{
+  "schemaVersion": 1,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": [
+    {
+      "logicalName": "account",
+      "displayName": "教會",
+      "pluralName": "教會",
+      "isNew": false,
+      "audit": false,
+      "optimisticConcurrency": false,
+      "fields": [
+        {
+          "logicalName": "new_defaultlanguage",
+          "displayName": "預設語言",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 16
+        },
+        {
+          "logicalName": "new_enabledlanguages",
+          "displayName": "啟用語系",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200
+        },
+        {
+          "logicalName": "new_timezone",
+          "displayName": "時區",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64
+        },
+        {
+          "logicalName": "new_countrycode",
+          "displayName": "國家",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 2
+        },
+        {
+          "logicalName": "new_textchangedon",
+          "displayName": "教會改字時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_linechannelid",
+          "displayName": "LINE Channel",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_linechannel",
+          "required": false
+        },
+        {
+          "logicalName": "new_sinopacprofile",
+          "displayName": "永豐設定檔名稱",
+          "type": "string",
+          "phase": 4,
+          "maxLength": 64
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "contact",
+      "displayName": "會友",
+      "pluralName": "會友",
+      "isNew": false,
+      "audit": false,
+      "optimisticConcurrency": false,
+      "fields": [
+        {
+          "logicalName": "new_preferredlanguage",
+          "displayName": "偏好語言",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 16
+        },
+        {
+          "logicalName": "new_languagesource",
+          "displayName": "語言來源",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "自選"
+            },
+            {
+              "value": 100000001,
+              "label": "LIFF 偵測"
+            },
+            {
+              "value": 100000002,
+              "label": "預設"
+            }
+          ]
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_linechannel",
+      "displayName": "LINE 頻道",
+      "pluralName": "LINE 頻道",
+      "isNew": true,
+      "audit": false,
+      "optimisticConcurrency": false,
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        },
+        {
+          "logicalName": "new_channelid",
+          "displayName": "LINE Channel ID",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 20
+        },
+        {
+          "logicalName": "new_accesstokenencrypted",
+          "displayName": "加密存取權杖",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 4000,
+          "secured": true
+        },
+        {
+          "logicalName": "new_channelsecretencrypted",
+          "displayName": "加密通道秘密",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 1000,
+          "secured": true
+        },
+        {
+          "logicalName": "new_richmenucapacityused",
+          "displayName": "已用宮格數",
+          "type": "integer",
+          "phase": 1
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_linechannel",
+          "attributes": [
+            "new_channelid"
+          ]
+        }
+      ],
+      "primaryName": "new_name"
+    },
+    {
+      "logicalName": "new_outboundtask",
+      "displayName": "送出工作",
+      "pluralName": "送出工作",
+      "isNew": true,
+      "audit": false,
+      "optimisticConcurrency": true,
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 300,
+          "required": true
+        },
+        {
+          "logicalName": "new_type",
+          "displayName": "類型",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "RichMenuGenerate"
+            },
+            {
+              "value": 100000001,
+              "label": "QrImageGenerate"
+            },
+            {
+              "value": 100000002,
+              "label": "AllotQuery"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_taskstatus",
+          "displayName": "工作狀態",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "Pending"
+            },
+            {
+              "value": 100000001,
+              "label": "Processing"
+            },
+            {
+              "value": 100000002,
+              "label": "Completed"
+            },
+            {
+              "value": 100000003,
+              "label": "Failed"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_accountid",
+          "displayName": "教會",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_contactid",
+          "displayName": "會友",
+          "type": "lookup",
+          "phase": 1,
+          "target": "contact",
+          "required": false
+        },
+        {
+          "logicalName": "new_payload",
+          "displayName": "內容",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 4000
+        },
+        {
+          "logicalName": "new_idempotencykey",
+          "displayName": "冪等鍵",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200
+        },
+        {
+          "logicalName": "new_attempts",
+          "displayName": "重試次數",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_nextattempton",
+          "displayName": "下次重試時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_claimedon",
+          "displayName": "取得時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_completedon",
+          "displayName": "完成時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_lasterror",
+          "displayName": "錯誤代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 400
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_outboundtask",
+          "attributes": [
+            "new_idempotencykey"
+          ]
+        }
+      ],
+      "primaryName": "new_name"
+    },
+    {
+      "logicalName": "new_localizedtext",
+      "displayName": "教會文字覆寫",
+      "pluralName": "教會文字覆寫",
+      "isNew": true,
+      "audit": true,
+      "optimisticConcurrency": false,
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 300,
+          "required": true
+        },
+        {
+          "logicalName": "new_accountid",
+          "displayName": "教會",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_key",
+          "displayName": "文字鍵",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200
+        },
+        {
+          "logicalName": "new_culture",
+          "displayName": "語系",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 16
+        },
+        {
+          "logicalName": "new_text",
+          "displayName": "覆寫文字",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 2000
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_localizedtext",
+          "attributes": [
+            "new_accountid",
+            "new_key",
+            "new_culture"
+          ]
+        }
+      ],
+      "primaryName": "new_name"
+    },
+    {
+      "logicalName": "new_offeringcategory",
+      "displayName": "奉獻類別",
+      "pluralName": "奉獻類別",
+      "isNew": true,
+      "audit": true,
+      "optimisticConcurrency": false,
+      "fields": [
+        {
+          "logicalName": "new_accountid",
+          "displayName": "教會",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_code",
+          "displayName": "代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 50
+        },
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        },
+        {
+          "logicalName": "new_sortorder",
+          "displayName": "排序",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_accountingcode",
+          "displayName": "會計代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 50
+        },
+        {
+          "logicalName": "new_legacyoptionvalue",
+          "displayName": "舊選項值",
+          "type": "integer",
+          "phase": 1
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_offeringcategory",
+          "attributes": [
+            "new_accountid",
+            "new_code"
+          ]
+        }
+      ],
+      "primaryName": "new_name"
+    }
+  ]
+}
