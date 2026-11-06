@@ -17,7 +17,8 @@ using System;
 namespace Line.Messaging
 {
     /// <summary>
-    /// Capture Invalid Signature Exception.
+    /// 表示 webhook 的目的使用者識別與預期不符，供入口在處理事件前拒絕錯誤接收範圍。
+    /// 此例外分類與 HMAC 簽章失敗不同；訊息不得包含 token、原始事件本文或其他使用者的資料。
     /// </summary>
     public class UserIdMismatchException : Exception
     {

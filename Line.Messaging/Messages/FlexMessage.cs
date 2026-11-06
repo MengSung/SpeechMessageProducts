@@ -21,7 +21,8 @@ using System.Collections.Generic;
 namespace Line.Messaging
 {
     /// <summary>
-    /// Template messages are messages with predefined layouts which you can customize. There are four types of templates available that can be used to interact with users through your bot.
+    /// 將 Flex bubble 或 carousel 容器包裝為可傳送訊息，AltText 提供不支援 Flex 顯示時的替代文字。
+    /// 本型別只組裝協定資料；版面驗證、授權與 HTTP 傳送分別由相應呼叫端負責，不屬於 TemplateMessage。
     /// </summary>
     public class FlexMessage : ISendMessage
     {
