@@ -14,11 +14,9 @@
  * 使用邊界與維護：
  * 協定模型與產品身分／業務授權分離；欄位或列舉值變更須同步檢查JSON相容性、解析分派及雙目標測試。
  * 可變模型由建立它的操作持有；事件來源、reply token及profile不得被當作跨使用者共用的可變狀態。
- * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/ChurchReportLineBindingNotificationServiceTests.cs、
- * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/LineUtilityClassWorkflowTests.cs、
- * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/PaymentNotificationServiceWorkflowTests.cs、
- * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/PushUtilityWorkflowTests.cs、
- * ChurchReport.MemberInfo.Tests/ReplyUtilityGroupRoomProfileAdapterTests.cs 追查目前工作樹中的合作／使用位置。
+ * 可沿 Line.Messaging.Tests/LineClientLifecycleTests.cs、Line.Messaging.Tests/LineMessagingClientP1RetryKeyTests.cs、
+ * Line.Messaging.Tests/LineSdkFoundationTests.cs、Line.Messaging.Tests/LineSdkGoldenTests.cs、
+ * Line.Messaging/LineMessagingClient.cs 追查目前工作樹中的合作／使用位置。
  */
 using System;
 

@@ -1,21 +1,15 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：認證控制器（登入頁/登入流程入口）
+ * 目的與定位：提供一般帳號登入頁與ProcessLogin提交入口，將目前表單交既有認證及Session初始化流程，再回傳固定登入結果；表單內容只是候選，密碼不可進入公開JSON或claims，服務與結果限目前請求使用。
  *
  * 主要功能與流程：
  * 本檔宣告 AuthenticationController。
  * 主要操作入口包含 Login、ProcessLogin。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 ChurchReport.MemberInfo.Tests/Security/LineLoginOAuthSensitiveLoggingTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Core.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineBinding.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOA
- * uth.cs 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Mvc;

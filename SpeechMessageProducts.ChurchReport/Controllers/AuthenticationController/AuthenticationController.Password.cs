@@ -8,14 +8,8 @@
  * 主要操作入口包含 ForgotPassword、ResetPassword、ChangePassword。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 ChurchReport.MemberInfo.Tests/Security/LineLoginOAuthSensitiveLoggingTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Core.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineBinding.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOA
- * uth.cs 追查目前工作樹中的合作／使用位置。
  */
 using Microsoft.AspNetCore.Mvc;
 using System;

@@ -11,11 +11,11 @@
  * 使用邊界與維護：
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
- * 可沿 ToolUtility.Tests/DataOperations/QueryOperationsCharacterizationTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/FeeManagementController.cs、
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/FeeManagementController.cs、
  * SpeechMessageProducts.ChurchReport/Models/FeeList.cs、
  * SpeechMessageProducts.ChurchReport/Views/FeeManagement/LessonList.cshtml、
- * SpeechMessageProducts.ChurchReport/Views/Home/PresentFeeListView.cshtml 追查目前工作樹中的合作／使用位置。
+ * SpeechMessageProducts.ChurchReport/Views/Home/PresentFeeListView.cshtml、
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/FeeDownUpLoader.cs 追查目前工作樹中的合作／使用位置。
  */
 using System;
 using System.Collections.Generic;

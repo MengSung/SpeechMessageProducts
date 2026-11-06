@@ -18,8 +18,8 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessage.Tenancy.Tests/ConfigurationResolverTests.cs、
  * SpeechMessage.Tenancy.Tests/TenancyCompositionTests.cs、SpeechMessage.Tenancy.Tests/TenantSettingsTests.cs、
- * LineMessagingProcessor/LineMessagingProcessorClass.cs、SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs 
- * 追查目前工作樹中的合作／使用位置。
+ * SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs、
+ * SpeechMessage.Tenancy/TenancyServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
  */
 using System;
 using LineMessagingProcessor.Core;

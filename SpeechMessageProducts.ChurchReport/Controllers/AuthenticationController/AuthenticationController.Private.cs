@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：認證控制器（私有輔助方法）
+ * 目的與定位：集中認證完成後的Session資料初始化、系統資料載入、可見畫面選擇及登入回應組裝，供不同登入入口共用；只處理目前請求已確認的使用者，回應factory不得將密碼及內部連線狀態序列化。
  *
  * 主要功能與流程：
  * 本檔宣告 AuthenticationController。
@@ -9,14 +9,8 @@
  * CreateLoginResponse。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 ChurchReport.MemberInfo.Tests/Security/LineLoginOAuthSensitiveLoggingTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Core.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineBinding.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOA
- * uth.cs 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.ViewModel;

@@ -1,21 +1,15 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：小組管理控制器 - 多小組回報功能
+ * 目的與定位：提供多小組回報頁入口及既有登入後資料組裝，將可見小組的週報與統計交給Razor；多小組畫面仍受已授權名單範圍限制，不因接收列表ID而擴大查閱。
  *
  * 主要功能與流程：
  * 本檔宣告 SmallGroupController。
  * 主要操作入口包含 MultiGroupView、HandleMultiGroupLogin。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Cache.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Core.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Crud.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Date.cs 
- * 追查目前工作樹中的合作／使用位置。
  */
 using Microsoft.AspNetCore.Mvc;
 using System;

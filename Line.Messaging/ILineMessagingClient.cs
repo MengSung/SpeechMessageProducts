@@ -10,8 +10,8 @@
  * - 建立 RichMenu metadata 與可點擊區域設定，並回傳 LINE 產生的 richMenuId。 建立後還必須另外上傳圖片，並將 RichMenu 綁定到使用者或設為預設選單，使用者端才會看到。 LINE 
  * 官方帳號最多可建立 1000 個 RichMenu，因此 provisioning 流程需避免重複建立。 
  * https://developers.line.biz/en/reference/messaging-api/#create-rich-menu
- * - 驗證 RichMenu 物件是否符合 LINE 建立規則，但不實際建立。 https://developers.line.biz/en/reference/messaging-api/#validate-rich
- * -menu-object
+ * - 驗證 RichMenu 物件是否符合 LINE 建立規則，但不實際建立。 https://developers.line.biz/en/reference/messaging-api/#validate-rich-menu-object
+ *
  * - 刪除指定 provider richMenuId 的 RichMenu。 此操作會移除 LINE 端資源；若同一 RichMenu 被多位使用者或 alias 共用，呼叫端必須先確認生命週期。 
  * https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu
  * 資料／選項欄位包含 ILineMessagingClient，名稱、型別與序列化規約須與消費端保持一致。

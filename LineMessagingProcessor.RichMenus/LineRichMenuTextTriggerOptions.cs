@@ -13,7 +13,6 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 LineMessagingProcessor.RichMenus.Tests/Orchestration/RichMenuOrchestratorTests.cs、
  * LineMessagingProcessor.RichMenus.Tests/Triggers/LineRichMenuTextTriggerResolverTests.cs、
- * LineMessagingProcessor.AspNetCore/LineMessagingProcessorServiceCollectionExtensions.cs、
  * LineMessagingProcessor.RichMenus/LineRichMenuTextTriggerResolver.cs 追查目前工作樹中的合作／使用位置。
  */
 namespace LineMessagingProcessor.RichMenus;

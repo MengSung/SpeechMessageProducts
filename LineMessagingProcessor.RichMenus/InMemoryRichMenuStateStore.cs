@@ -16,9 +16,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 LineMessagingProcessor.RichMenus.Tests/Assignment/LineRichMenuAssignmentWorkflowTests.cs、
  * LineMessagingProcessor.RichMenus.Tests/Orchestration/RichMenuExpirationSweepWorkflowTests.cs、
- * LineMessagingProcessor.AspNetCore/LineMessagingProcessorServiceCollectionExtensions.cs、
- * LineMessagingProcessor.RichMenus/LineRichMenuAssignmentWorkflow.cs、
- * SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs 追查目前工作樹中的合作／使用位置。
+ * LineMessagingProcessor.RichMenus/LineRichMenuAssignmentWorkflow.cs 追查目前工作樹中的合作／使用位置。
  */
 using System.Collections.Concurrent;
 

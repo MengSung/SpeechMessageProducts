@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：認證控制器（LINE 身分綁定/註冊）
+ * 目的與定位：協調LINE身分綁定／註冊，驗表單、查既有綁定、尋找匹配聯絡人，再更新既有記錄或建立候選；同步CRM呼叫不另包Task.Run，帳號與LINE資料不能留在跨請求共用狀態。
  *
  * 主要功能與流程：
  * 本檔宣告 AuthenticationController。
@@ -11,14 +11,8 @@
  * CreateNewContactWithLineBinding；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 ChurchReport.MemberInfo.Tests/Security/LineLoginOAuthSensitiveLoggingTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Core.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOA
- * uth.cs、SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Logi
- * n.cs 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Mvc;

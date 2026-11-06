@@ -136,6 +136,24 @@ SmallGroupController/SmallGroupReportController|保留小組週報儲存及日�
 AuthenticationController/AuthenticationController.Password|保留AuthenticationController密碼管理的partial擴充位置；目前為預留功能，不因有檔案而代表已提供重設密碼或驗證端點，未來實作必須接入既有認證與告警邊界。
 ''')
 
+add('SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/', '''
+AuthenticationController.Core|宣告認證控制器的共用建構依賴、request-scoped Dataverse服務與畫面圖片來源，並提供公開隱私政策入口；帳密、LINE、OAuth、綁定與Session行為分置同名partial，不能在主檔建立跨登入者狀態。
+AuthenticationController.Login|提供一般帳號登入頁與ProcessLogin提交入口，將目前表單交既有認證及Session初始化流程，再回傳固定登入結果；表單內容只是候選，密碼不可進入公開JSON或claims，服務與結果限目前請求使用。
+AuthenticationController.LineLogin|處理LINE識別登入畫面、暫存工作識別及既有LINE登入提交，將身分／綁定結果交共用登入流程；LINE ID不是任意聯絡人的授權憑據，後續資料仍須伺服器確認所屬範圍。
+AuthenticationController.LineBinding|協調LINE身分綁定／註冊，驗表單、查既有綁定、尋找匹配聯絡人，再更新既有記錄或建立候選；同步CRM呼叫不另包Task.Run，帳號與LINE資料不能留在跨請求共用狀態。
+AuthenticationController.Private|集中認證完成後的Session資料初始化、系統資料載入、可見畫面選擇及登入回應組裝，供不同登入入口共用；只處理目前請求已確認的使用者，回應factory不得將密碼及內部連線狀態序列化。
+AuthenticationController.SaveUserId|接收LINE登入畫面提供的工作識別／顯示資料並檢查既有綁定，決定後續登入或綁定畫面；此入口保留舊前端契約，顯示資料不得取代伺服器認證，暫存資料限目前Session範圍。
+AuthenticationController.Session|提供登出、Session狀態檢查與延長入口，協調目前登入ticket及Session有效性；檢查結果只屬當前使用者，延長請求不能建立其他使用者身分或復用其資料。
+''')
+
+add('SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/', '''
+SmallGroupController.Date|處理目前小組回報日期及幸福小組週次／主題更新，將日期切換與對應資料重載連接；舊週次資料不得發布成新週次結果，範圍與快取失效須沿目前Session及正式名單ID驗證。
+SmallGroupController.MultiGroupView|提供多小組回報頁入口及既有登入後資料組裝，將可見小組的週報與統計交給Razor；多小組畫面仍受已授權名單範圍限制，不因接收列表ID而擴大查閱。
+SmallGroupController.ViewBag|集中小組畫面需要的ViewBag、費用清單數量及名單ID選擇，讓partial入口共用一致呈現資料；ViewBag屬本次請求，不能成為跨Session資料容器或服務端授權來源。
+SmallGroupController.Save|接受整合回報的儲存候選，驗證後交受追蹤背景runner處理隔離副本，並維持轉介／指派後移除及安全故障分類；背景工作不得持有HttpContext、控制器或Session原圖，owner須追蹤完成與清理。
+SaveIntegrateBackgroundUploadRunner|執行已接受的整合回報背景工作，建立自己的DI scope、解析工具服務、上傳隔離副本並依序清理；以固定schema記錄生命週期，真實故障交共用告警，不能以背景執行跳過追蹤或關機排空。
+''')
+
 add('SpeechMessage.Payments.Workflows/', '''
 PaymentLineItemDraft|定義主機交付金流前的中性品項草稿，保存商品識別、數量、金額及附加metadata；核心不解讀產品實體ID，商品授權與價格核對仍由產品完成。
 PaymentMethodSelection|描述產品選定的付款方式與provider profile路由資訊，將畫面選項轉為中性決策；此選擇不包含銀行協定，也不能讓未驗證的caller任意切換部署憑證。

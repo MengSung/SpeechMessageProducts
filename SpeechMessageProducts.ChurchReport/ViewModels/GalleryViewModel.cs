@@ -11,11 +11,11 @@
  * 使用邊界與維護：
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
- * 可沿 ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
- * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AppointmentController.cs、
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/AppointmentController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineBinding.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs 
+ * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOAuth.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Login.cs 
  * 追查目前工作樹中的合作／使用位置。
  */
 using Microsoft.Xrm.Sdk;

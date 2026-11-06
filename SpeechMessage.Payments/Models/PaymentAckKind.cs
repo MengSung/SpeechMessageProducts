@@ -17,7 +17,6 @@
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessage.Payments.Tests/Models/PaymentModelContractTests.cs、
  * SpeechMessage.Payments.Tests/Providers/Taishin/TaishinProviderTests.cs、
- * SpeechMessage.Payments.AspNetCore/PaymentAcknowledgementResultMapper.cs、
  * SpeechMessage.Payments/Models/PaymentCallbackAcknowledgement.cs 追查目前工作樹中的合作／使用位置。
  */
 namespace SpeechMessage.Payments.Models;

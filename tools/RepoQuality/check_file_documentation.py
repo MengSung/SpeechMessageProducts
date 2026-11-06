@@ -113,7 +113,7 @@ def inspect_bytes(raw: bytes, extension: str) -> list[str]:
     # 舊有人工詳寫的標題可保留；守門檢查責任面向，不強迫所有檔案貼同一版型。
     if not all(re.search(pattern, comment) for pattern in (
         r'(?:目的與定位|整體目的)\s*[：:]',
-        r'(?:主要功能(?:與流程)?|主要流程|主要情境)\s*[：:]',
+        r'(?:主要功能(?:與流程)?|主要流程|主要情境|主要契約|測試範圍|測試依賴)\s*[：:]',
         r'(?:使用邊界與維護|[^\r\n：:]{0,16}(?:擁有權|隔離|生命週期)|維護(?:與驗證|驗證|要求))\s*[：:]',
     )):
         issues.append('IncompleteFileOverview')

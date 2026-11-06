@@ -15,7 +15,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/DiagnosticsController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/PerformanceController.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/PerformanceMonitoringMiddleware.cs、
- * SpeechMessageProducts.ChurchReport/Startup.cs、ToolUtility/Diagnostics/TraceLogger.cs 追查目前工作樹中的合作／使用位置。
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
  */
 using System;
 using System.Collections.Generic;

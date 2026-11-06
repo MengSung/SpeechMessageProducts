@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：認證控制器（Core） - 包含建構函式與基礎類別繼承宣告 - 其餘功能分割到其他 partial 檔案
+ * 目的與定位：宣告認證控制器的共用建構依賴、request-scoped Dataverse服務與畫面圖片來源，並提供公開隱私政策入口；帳密、LINE、OAuth、綁定與Session行為分置同名partial，
+ * 不能在主檔建立跨登入者狀態。
  *
  * 主要功能與流程：
  * 本檔宣告 AuthenticationController。
@@ -11,14 +12,8 @@
  * 主要操作入口包含 BuildHeroImages、Privacy。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 ChurchReport.MemberInfo.Tests/Security/LineLoginOAuthSensitiveLoggingTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineBinding.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOA
- * uth.cs、SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Logi
- * n.cs 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.Models;
 using ChurchReport.Tools;

@@ -17,7 +17,7 @@
  * 可沿 SpeechMessage.Localization.Tests/ChurchTextOverrideValidatorTests.cs、
  * SpeechMessage.Localization.Tests/KeywordCatalogTests.cs、
  * SpeechMessage.Localization.Tests/SystemTextCatalogTests.cs、SpeechMessage.Localization.Tests/TextCatalogTests.cs、
- * SpeechMessage.Tenancy.Tests/ChurchTextOverrideCacheTests.cs 追查目前工作樹中的合作／使用位置。
+ * SpeechMessage.Localization/ChurchTextOverrideSnapshot.cs 追查目前工作樹中的合作／使用位置。
  */
 using System;
 

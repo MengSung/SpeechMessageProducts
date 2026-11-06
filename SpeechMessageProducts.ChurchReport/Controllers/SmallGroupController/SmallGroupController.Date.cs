@@ -1,21 +1,15 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：小組管理控制器 - 日期更新與幸福小組週次
+ * 目的與定位：處理目前小組回報日期及幸福小組週次／主題更新，將日期切換與對應資料重載連接；舊週次資料不得發布成新週次結果，範圍與快取失效須沿目前Session及正式名單ID驗證。
  *
  * 主要功能與流程：
  * 本檔宣告 SmallGroupController。
  * 主要操作入口包含 UpdateHappyWeekIndex、UpdateHappyWeekTopic、UpdateDate、UpdateIntegrateDate。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Cache.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Core.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Crud.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.IntegrateView.cs 
- * 追查目前工作樹中的合作／使用位置。
  */
 using Microsoft.AspNetCore.Mvc;
 using System;

@@ -11,10 +11,7 @@
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessage.Payments.Tests/Providers/MyPay/MyPayProviderTests.cs、
- * SpeechMessage.Payments.AspNetCore/PaymentCreateRequestFactory.cs、
- * SpeechMessage.Payments.Workflows/PaymentOrderDraftMapper.cs、
- * SpeechMessage.Payments/Models/PaymentCreateRequest.cs、
- * SpeechMessageProducts.ChurchReport/Payments/DonationPaymentCreateGatewayAdapter.cs 追查目前工作樹中的合作／使用位置。
+ * SpeechMessage.Payments/Models/PaymentCreateRequest.cs 追查目前工作樹中的合作／使用位置。
  */
 namespace SpeechMessage.Payments.Models;
 

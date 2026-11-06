@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：執行已接受的 SaveIntegrate 背景作業，並以固定 schema 紀錄每個生命週期階段的結果。
+ * 目的與定位：執行已接受的整合回報背景工作，建立自己的DI scope、解析工具服務、上傳隔離副本並依序清理；以固定schema記錄生命週期，真實故障交共用告警，不能以背景執行跳過追蹤或關機排空。
  *
  * 主要功能與流程：
  * 本檔宣告 SaveIntegrateBackgroundUploadRunner。
@@ -10,10 +10,9 @@
  * 主要操作入口包含 RunAsync、GetErrorClass。
  *
  * 使用邊界與維護：
- * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 ToolUtility.Dataverse.Tests/SaveIntegrateBackgroundUploadRunnerTests.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs 
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs 
  * 追查目前工作樹中的合作／使用位置。
  */
 using Microsoft.Extensions.DependencyInjection;

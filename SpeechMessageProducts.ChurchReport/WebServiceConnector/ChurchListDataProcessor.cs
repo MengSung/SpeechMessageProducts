@@ -17,7 +17,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/HomeController.cs、
  * SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs、
- * SpeechMessageProducts.ChurchReport/Startup.cs、ToolUtility/Caching/CrmCacheService.cs 追查目前工作樹中的合作／使用位置。
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
  */
 using System;
 using System.Collections.Generic;

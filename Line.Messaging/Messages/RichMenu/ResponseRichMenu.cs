@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：LINE 回傳的 RichMenu response 物件。 https://developers.line.me/en/docs/messaging-api/reference/#rich-menu-r
- * esponse-object 在 RichMenu 的版面資料外，額外保存 LINE 建立或查詢後回傳的 provider id。
+ * 目的與定位：LINE 回傳的 RichMenu response 物件。 https://developers.line.me/en/docs/messaging-api/reference/#rich-menu-response-object 
+ * 在 RichMenu 的版面資料外，額外保存 LINE 建立或查詢後回傳的 provider id。
  *
  * 主要功能與流程：
  * 本檔宣告 ResponseRichMenu。
@@ -13,9 +13,7 @@
  * 使用邊界與維護：
  * 協定模型與產品身分／業務授權分離；欄位或列舉值變更須同步檢查JSON相容性、解析分派及雙目標測試。
  * 可變模型由建立它的操作持有；事件來源、reply token及profile不得被當作跨使用者共用的可變狀態。
- * 可沿 LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessorServiceCollectionExtensionsTests.cs、
- * LineMessagingProcessor.RichMenus.Tests/Support/CapturingRichMenuProcessor.cs、
- * Line.Messaging/ILineMessagingClient.cs、Line.Messaging/LineMessagingClient.cs、
+ * 可沿 Line.Messaging/ILineMessagingClient.cs、Line.Messaging/LineMessagingClient.cs、
  * Line.Messaging/Messages/RichMenu/RichMenu.cs 追查目前工作樹中的合作／使用位置。
  */
 using System.Collections.Generic;

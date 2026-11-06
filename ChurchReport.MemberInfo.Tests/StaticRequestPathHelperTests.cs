@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔承接以下操作邊界：靜態資源分類不得接受路徑穿越片段，避免動態路由在快取標頭分流時被誤判為公共資源。
+ * 目的與定位：保護StaticRequestPathHelper的既有行為與相容性。受測元件的責任為：Shared static asset path classifier for logging/profiling 
+ * noise reduction. This helper must not be used to bypass authentication or session validation.
  *
  * 主要功能與流程：
  * 本檔宣告 StaticRequestPathHelperTests。

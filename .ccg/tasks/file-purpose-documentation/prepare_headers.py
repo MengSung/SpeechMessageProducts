@@ -159,7 +159,7 @@ def header(item, description, references):
             lines += ['協定模型與產品身分／業務授權分離；欄位或列舉值變更須同步檢查JSON相容性、解析分派及雙目標測試。',
                       '可變模型由建立它的操作持有；事件來源、reply token及profile不得被當作跨使用者共用的可變狀態。']
         elif '/Controllers/' in path:
-            lines += ['本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。',
+            lines += ['控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。',
                       '外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。']
         elif '/Models/' in path or '/ViewModels/' in path:
             lines += ['模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。',
@@ -174,7 +174,10 @@ def header(item, description, references):
     for line in lines:
         while len(line)>112:
             stop = max(line.rfind(c, 45, 112) + 1 for c in '；。，、 ')
-            if stop<45: stop=108
+            if stop<45:
+                # 檔案路徑與識別字必須完整；寧可保留長行，也不能把可追查名稱截成兩半。
+                stops=[line.find(c,45) for c in '；。，、 ']
+                stop=min((n+1 for n in stops if n>=0),default=len(line))
             wrapped.append(line[:stop]); line=line[stop:]
         wrapped.append(line)
     if is_view:
