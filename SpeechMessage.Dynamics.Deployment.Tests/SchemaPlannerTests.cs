@@ -52,6 +52,7 @@ public sealed class SchemaPlannerTests
     [InlineData("secured")]
     [InlineData("ownership")]
     [InlineData("audit")]
+    [InlineData("field-audit")]
     [InlineData("concurrency")]
     [InlineData("key")]
     [InlineData("managed-solution")]
@@ -60,7 +61,7 @@ public sealed class SchemaPlannerTests
         var definition = Definition();
         var snapshot = CompleteSnapshot(definition);
         var entities = snapshot.Entities.ToArray();
-        var targetName = fault is "ownership" or "audit" ? "new_localizedtext"
+        var targetName = fault is "ownership" or "audit" or "field-audit" ? "new_localizedtext"
             : fault == "concurrency" ? "new_outboundtask" : "account";
         var index = Array.FindIndex(entities, entity => entity.LogicalName == targetName);
         var target = entities[index];
@@ -73,6 +74,7 @@ public sealed class SchemaPlannerTests
             case "secured": fields[0] = fields[0] with { Secured = true }; break;
             case "ownership": target = target with { Ownership = "UserOwned" }; break;
             case "audit": target = target with { Audit = false }; break;
+            case "field-audit": fields[0] = fields[0] with { Audit = false }; break;
             case "concurrency": target = target with { OptimisticConcurrency = false }; break;
             case "key": var keyEntity = Array.FindIndex(entities, entity => entity.Keys.Count > 0); entities[keyEntity] = entities[keyEntity] with { Keys = new[] { entities[keyEntity].Keys[0] with { Attributes = new[] { "new_name" } } } }; break;
             case "managed-solution": snapshot = snapshot with { Solutions = new[] { snapshot.Solutions[0] with { Managed = true } } }; break;
@@ -125,7 +127,7 @@ public sealed class SchemaPlannerTests
             entity.Fields.Where(field => field.Phase == 1).Select(field => new SchemaFieldState(Guid.NewGuid(), field.LogicalName,
                 field.Type, field.MaxLength == 0 ? null : field.MaxLength, field.Required ? "ApplicationRequired" : "None", field.Secured,
                 field.Target.Length == 0 ? Array.Empty<string>() : new[] { field.Target }, field.Behavior, field.Format,
-                field.Options.Select(option => option.Value).ToArray(), false)).ToArray(),
+                field.Options.Select(option => option.Value).ToArray(), false, entity.Audit)).ToArray(),
             entity.Keys.Select(key => new SchemaKeyState(Guid.NewGuid(), key.LogicalName, key.Attributes.ToArray(), "Active")).ToArray())).ToArray();
         var publisher = new SchemaPublisherState(Guid.NewGuid(), "SpeechMessagePublisher", "new");
         var solution = new SchemaSolutionState(Guid.NewGuid(), "SpeechMessageCore", false, publisher.Id);

@@ -48,7 +48,8 @@ internal static class SchemaPlanner
                 operations.Add(new SchemaOperation("CreateEntity", expected.LogicalName, expected.PrimaryName, Guid.Empty));
             }
             else if (expected.IsNew && (existing.Ownership != "OrganizationOwned" || existing.PrimaryName != expected.PrimaryName
-                || existing.Audit != expected.Audit || existing.OptimisticConcurrency != expected.OptimisticConcurrency || existing.Managed != false))
+                || existing.Audit != expected.Audit
+                || expected.OptimisticConcurrency.HasValue && existing.OptimisticConcurrency != expected.OptimisticConcurrency || existing.Managed != false))
                 Conflict(expected.LogicalName);
             if (existing is null || !components.Contains((1, existing.Id)))
                 includes.Add(new SchemaOperation("IncludeEntity", expected.LogicalName, expected.LogicalName, existing?.Id ?? Guid.Empty));
@@ -60,7 +61,7 @@ internal static class SchemaPlanner
                     if (existing is not null || field.LogicalName != expected.PrimaryName)
                         operations.Add(new SchemaOperation(field.Type == "lookup" ? "CreateLookup" : "CreateAttribute", expected.LogicalName, field.LogicalName, Guid.Empty));
                 }
-                else if (!Matches(field, actual)) Conflict(expected.LogicalName + "." + field.LogicalName);
+                else if (!Matches(field, actual, expected.IsNew && expected.Audit)) Conflict(expected.LogicalName + "." + field.LogicalName);
                 if (actual is null || !components.Contains((2, actual.Id)))
                     includes.Add(new SchemaOperation("IncludeAttribute", expected.LogicalName, field.LogicalName, actual?.Id ?? Guid.Empty));
             }
@@ -83,7 +84,7 @@ internal static class SchemaPlanner
         var ordered = operations.OrderBy(operation => Order(operation.Kind)).Concat(includes).ToArray();
         var plan = new SchemaPlan
         {
-            OrganizationId = snapshot.OrganizationId, Organization = snapshot.Organization, CreatedUtc = createdUtc,
+            OrganizationId = snapshot.OrganizationId, PublisherId = publisher?.Id ?? Guid.Empty, Organization = snapshot.Organization, CreatedUtc = createdUtc,
             Fingerprint = SchemaFiles.HashValue(snapshot), SchemaHash = SchemaFiles.Hash(definition),
             Operations = Array.AsReadOnly(ordered), PendingKeys = Array.AsReadOnly(pending.ToArray())
         };
@@ -102,8 +103,9 @@ internal static class SchemaPlanner
     }
 
     /// <summary>逐一核對功能約束；null的server政策不當false，不能把managed/未知安全或日期行為當相容。</summary>
-    private static bool Matches(SchemaField expected, SchemaFieldState actual) => actual.Type == expected.Type
+    private static bool Matches(SchemaField expected, SchemaFieldState actual, bool requireAudit) => actual.Type == expected.Type
         && actual.Managed == false && actual.Secured == expected.Secured
+        && (!requireAudit || actual.Audit == true)
         && actual.Required == (expected.Required ? "ApplicationRequired" : "None")
         && (expected.MaxLength == 0 || actual.MaxLength == expected.MaxLength)
         && (expected.Type != "lookup" || actual.Targets.Count == 1 && actual.Targets[0] == expected.Target)

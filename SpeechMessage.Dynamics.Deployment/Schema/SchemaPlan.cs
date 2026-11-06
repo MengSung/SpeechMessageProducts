@@ -15,6 +15,8 @@ internal sealed record SchemaPlan
     public int SchemaVersion { get; init; } = 1;
     /// <summary>server正式組織ID，同alias另一個組織不可使用。</summary>
     public Guid OrganizationId { get; init; }
+    /// <summary>已核對發行者的正式ID；新建時為空，由本次SDK回應取得，不能重新猜另一發行者。</summary>
+    public Guid PublisherId { get; init; }
     /// <summary>server uniqueName，必須唯一白名單。</summary>
     public string Organization { get; init; } = "";
     /// <summary>明確UTC審核時刻，由Host時鐘供應，不使用CurrentCulture。</summary>

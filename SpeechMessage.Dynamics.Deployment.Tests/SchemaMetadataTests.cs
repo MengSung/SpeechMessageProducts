@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
@@ -61,8 +62,57 @@ public sealed class SchemaMetadataTests
         Assert.Same(service.Failure, Assert.Throws<InvalidOperationException>(() => SchemaMetadata.Read(service, default)));
     }
 
+    /// <summary>D365 regarding等多型lookup可合法指向數百表；只讀實測379不能誤用P1單一lookup限制，仍守4096實體預算與唯一性。</summary>
+    [Fact]
+    public void Read_PolymorphicLookup_PreservesAllTargetsWithinGlobalEntityBudget()
+    {
+        var service = new MetadataService();
+        var lookup = new LookupAttributeMetadata { MetadataId = Guid.NewGuid(), LogicalName = "regardingobjectid",
+            Targets = Enumerable.Range(0, 379).Select(index => "synthetic" + index.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray() };
+        MetadataService.SetResponse(service.Entities[0], "Attributes", new AttributeMetadata[] { lookup });
+        Assert.Equal(379, SchemaMetadata.Read(service, default).Entities.Single(entity => entity.LogicalName == "account").Fields.Single().Targets.Count);
+        lookup.Targets = Enumerable.Range(0, 4097).Select(index => "synthetic" + index.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        Assert.Throws<InvalidDataException>(() => SchemaMetadata.Read(service, default));
+    }
+
+    /// <summary>兩個獨立server組織ID的metadata並行一千次不得串入另一scope；SDK各自只讀且沒有跨命令全域快取。</summary>
+    [Fact]
+    public void Read_ParallelTwoOrganizations_PreserveTheirOwnServerIdentity()
+    {
+        var first = new MetadataService();
+        var second = new MetadataService();
+        System.Threading.Tasks.Parallel.For(0, 1000, index =>
+        {
+            var source = index % 2 == 0 ? first : second;
+            var actual = SchemaMetadata.Read(source, default);
+            Assert.Equal(source.OrganizationId, actual.OrganizationId);
+        });
+        Assert.Equal(0, first.Writes);
+        Assert.Equal(0, second.Writes);
+    }
+
+    /// <summary>長生命SDK借用者讀完百份快照後不能保留任一結果，合成SDK仍存活；不只驗scope計數，必須弱參照全部死亡。</summary>
+    [Fact]
+    public void Read_HundredSnapshots_ReleaseEveryResultWhileSourceLives()
+    {
+        var service = new MetadataService();
+        var references = CollectSnapshots(service);
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        Assert.All(references, reference => Assert.False(reference.IsAlive));
+        GC.KeepAlive(service);
+    }
+
+    /// <summary>分離本案JIT區域生命週期，回傳只有弱參照，不靠清空產品快照或放寬回收比例。</summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static List<WeakReference> CollectSnapshots(MetadataService service)
+    {
+        var references = new List<WeakReference>();
+        for (var index = 0; index < 100; index++) references.Add(new WeakReference(SchemaMetadata.Read(service, default)));
+        return references;
+    }
+
     /// <summary>單案SDK替身只供metadata與純組織語言讀取；不持有真正連線、credential或背景資源。</summary>
-    internal sealed class MetadataService : IOrganizationService
+    internal class MetadataService : IOrganizationService
     {
         /// <summary>metadata可讀表白名單獨立於產品定義，任何業務表皆拒絕。</summary>
         private static readonly string[] AllowedTables = { "solution", "publisher", "solutioncomponent", "sdkmessagefilter", "sdkmessageprocessingstep" };
@@ -80,7 +130,7 @@ public sealed class SchemaMetadataTests
         internal int Writes { get; private set; }
 
         /// <summary>只接受current organization與完整entity metadata messages，其他message視為越界。</summary>
-        public OrganizationResponse Execute(OrganizationRequest request)
+        public virtual OrganizationResponse Execute(OrganizationRequest request)
         {
             Calls++;
             if (Failure is { } failure) throw failure;
@@ -91,7 +141,6 @@ public sealed class SchemaMetadataTests
             if (request is RetrieveAllEntitiesRequest metadata)
             {
                 Assert.Equal(EntityFilters.All, metadata.EntityFilters);
-                Assert.True(metadata.RetrieveAsIfPublished);
                 var rows = Entities.ToList();
                 if (Fault == "empty-id") rows[0].MetadataId = Guid.Empty;
                 if (Fault == "duplicate-id") rows[1].MetadataId = rows[0].MetadataId;
@@ -112,7 +161,7 @@ public sealed class SchemaMetadataTests
         }
 
         /// <summary>只接受solution/publisher/component與filters/steps定義，敏感設定及任意業務列在此拒絕。</summary>
-        public EntityCollection RetrieveMultiple(QueryBase query)
+        public virtual EntityCollection RetrieveMultiple(QueryBase query)
         {
             Calls++;
             var expression = Assert.IsType<QueryExpression>(query);
@@ -139,7 +188,7 @@ public sealed class SchemaMetadataTests
             instance.GetType().GetProperty(property)!.SetValue(instance, value);
 
         /// <summary>唯讀來源一旦意外Create立即拒絕並留計數，不模擬成功。</summary>
-        public Guid Create(Entity entity) { Writes++; throw new NotSupportedException(); }
+        public virtual Guid Create(Entity entity) { Writes++; throw new NotSupportedException(); }
         /// <summary>唯讀來源不得更新任何既有資料或metadata。</summary>
         public void Update(Entity entity) { Writes++; throw new NotSupportedException(); }
         /// <summary>唯讀來源不得刪除資料或既有結構。</summary>

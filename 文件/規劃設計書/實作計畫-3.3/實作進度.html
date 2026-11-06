@@ -444,7 +444,7 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T16:35:52+08:00",
+  "snapshot": "2026-11-06T17:36:06+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
   "headline": "階段 1 目前 <strong>10／12 工作包已驗收完成</strong>（P1-01～10）。P1-08有界快照與回收驗證完成；續P1-11結構指令及P1-12實機驗收。全計畫83包，已驗收28包；主Goal持續active，不宣告整個P1完成。",
@@ -532,7 +532,11 @@ const DATA = {
       "2026-11-06T16:13:43+08:00 P1-08回收根因修正：新增caller同步內容計數案先紅（0預期/2實際），確認ReadAsync與DisposeCoreAsync的Task.Yield會擷取caller排程器，延長完成工作與scope保留。改Task.CompletedTask.ConfigureAwait(ForceYielding)，仍強制跳離短鎖與caller堆疊但不擷取同步內容；不放寬弱參照斷言。Tenancy75/75；百scope200弱參照全部死亡，回收與排程案另五次共10/10通過。證據synchronization-red、owner-scheduling、retention-stability；尚待完整驗收。",
       "2026-11-06T16:30:57+08:00 P1-08整包本機驗收：最後編碼正規化後重建17份TRX逐列核對4317/4317、0失敗/略過；Localization182/208、ToolUtility1231/1369、Tenancy75、ChurchReport630。五份獨立coverage97.84%/98.17%、Core95.50%/95.86%、Tenancy96.96%，strict三產品0/0；Debug7、I18n170、PE27、Plugin metadata10/build6、CI6、Pester39、JavaScript20、analyzer26、套件/duplicates/verify/生成check及Changed1131檔0問題。未放寬弱參照、覆蓋率、編碼或任何斷言。實作已在本地b74a311d、顯示封存f2c7bfbc；最後交付commit收尾中。驗收wp-reports/P1-08-acceptance.md與evidence/p108-final；原始artifacts/p1-08-20261106。外審run20261106-161834兩後端均無輸出（quotaBlocked），不宣稱雙/單模型通過；主會話自審。主P1更新10/12但Goal仍active，續P1-11/12，未push／部署／連VM或D365／發LINE。",
       "2026-11-06T16:31:55+08:00 P1-08驗收本地提交dfb82a7e；只封存p108-override-cache，記錄Session19，主P1仍10/12與Goal active。主P1下一步11結構CLI/12實機；外審兩服務無輸出狀態保留，不把本機驗收冒稱實機／hosted成功。",
-      "2026-11-06T16:35:52+08:00 開始P1-11：讀完正式02/90、既有Deployment及Word7.4/7.5與附錄時間點UserLocal存UTC契約；建立p111-schema-deployment需求與切片計畫。沿用既有單命令lease及寫鎖，以--schema隔離P0註冊；附錄A完整定義、只新增、衝突拒絕、metadata快照／hash／Active alternate key驗證，不修改既有欄位或權限。Hyper-V只讀Get-VM遭必要權限拒絕，尚未取得隔離/備份/復原證據，未繞過安全機制；先續離線開發，P1-12維持未驗收。"
+      "2026-11-06T16:35:52+08:00 開始P1-11：讀完正式02/90、既有Deployment及Word7.4/7.5與附錄時間點UserLocal存UTC契約；建立p111-schema-deployment需求與切片計畫。沿用既有單命令lease及寫鎖，以--schema隔離P0註冊；附錄A完整定義、只新增、衝突拒絕、metadata快照／hash／Active alternate key驗證，不修改既有欄位或權限。Hyper-V只讀Get-VM遭必要權限拒絕，尚未取得隔離/備份/復原證據，未繞過安全機制；先續離線開發，P1-12維持未驗收。",
+      "2026-11-06T17:09:19+08:00 P1-11第一／二切片：schema11案、只讀metadata8案與純planner15案合計34/34。正式清單6表37欄（P1 36、P4 1）、4唯一鍵；strict JSON拒未知/重複屬性、日期行為固定UserLocal存UTC。metadata重用Core完整頁，拒空/重複ID、錯組織、部分頁與錯回應，純投影不留SDK；planner只新增、全部約束衝突停止、schema+實際orgid+fingerprint+planhash重驗，pending/failed key不冒充Active。SDKreadonly回應屬性由測試合成設定，沒有改真環境；編譯紅、SDK Organization/Discovery同名型別修正及strict分析器修正證據保留於artifacts/p1-11-20261106。外部分析run20261106-163553兩服務均無可用輸出，不算雙模型。下一實作SDK apply與CLI；本包未驗收、P1仍10/12，未寫D365。",
+      "2026-11-06T17:28:01+08:00 P1-11 SDK引擎與CLI已整合：Deployment106/106，原62案全保留。前筆34案廣泛filter含兩個舊schema測試，新增初期實為32案，補欄位audit後33案；現新增合計44案。CLI生命週期plan/apply/verify/export-metadata與第二輪零寫入、6命令6lease歸還通過；不依賴Plugin DLL。before snapshot需先CreateNew/flush/close，故障不覆寫；plan竄改與SDK原故障保留。定向publish先真紅1預期/0實際後修，106全綠。SDK唯讀IsOptimisticConcurrencyEnabled依Microsoft新custom表預設true並重讀核對outbound，不用反射修改產品metadata；其他未要求表不強制false。讀取官方create-entity/create-key/current-org/concurrency文件HTTP200；未修改正式需求。開始透過既有合法endpoint做只讀metadata匯出診斷，尚無成功證據、不執行任何VM/D365寫入。",
+      "2026-11-06T17:32:42+08:00 P1-11中段驗證：Deployment107/107、獨立coverage87.78%，只新增SDK/CLI往返、原62案完整保留；schema apply補定向PublishXml，且published/unpublished既有表功能約束差異先紅再修，不能順帶發布未審核變更。只讀export已經既有合法connector連上端點，但ProjectField有界驗證拒絕；共用日誌只保留InvalidDataException與符號位置，未輸出SDK本文/秘密。正在做僅metadata數量與約束的只讀診斷，不輸出業務資料；目前沒有成功snapshot、沒有任何D365寫入。Hyper-V管理權限不足仍未解決，本包與P1-12都尚未驗收。",
+      "2026-11-06T17:36:06+08:00 P1-11只讀診斷確認566表/22678欄，合法多型lookup最多379目標（12個超過實作最初32預算），沒有重複/非法lookup目標或重複選項，原拒絕是實作假設過小。補獨立379目標真紅，改沿用全組織4096表預算，仍拒重複/非法及4097超量，不丟列、不放寬正式單目標lookup匹配。Deployment110/110，另A/B不同server組織ID千次並行與百快照弱參照全回收通過。只讀export重新驗證中，仍沒有D365寫入；這是實作修正而非修改正式3.3計畫。"
     ]
   },
   "tiles": [

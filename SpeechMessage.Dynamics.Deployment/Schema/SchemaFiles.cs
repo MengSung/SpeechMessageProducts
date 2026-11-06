@@ -29,16 +29,53 @@ internal static class SchemaFiles
     /// <returns>已完整驗證的純結構候選，僅供本次命令使用。</returns>
     internal static SchemaDefinition Load(string path)
     {
-        var file = new FileInfo(path);
-        if (!file.Exists || file.Length is <= 0 or > 1_048_576 || (file.Attributes & FileAttributes.ReparsePoint) != 0)
-            throw new InvalidDataException("Schema file is unavailable or outside its bounded budget.");
-        using var stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-        using var document = JsonDocument.Parse(stream, new JsonDocumentOptions { MaxDepth = 32 });
-        RejectDuplicateProperties(document.RootElement);
-        var definition = document.RootElement.Deserialize<SchemaDefinition>(Json)
-            ?? throw new InvalidDataException("Schema is empty.");
+        var definition = Read<SchemaDefinition>(path, 1_048_576);
         Validate(definition);
         return definition;
+    }
+
+    /// <summary>讀取有界plan，不接受未知或重複屬性；語意與hash仍須由apply依即時server重驗。</summary>
+    internal static SchemaPlan ReadPlan(string path) => Read<SchemaPlan>(path, 4 * 1024 * 1024);
+
+    /// <summary>同一份嚴格JSON入口，取得獨占讀handle後再次驗大小，防止FileInfo與open之間的替換繞過預算。</summary>
+    private static T Read<T>(string path, long maximumBytes) where T : class
+    {
+        var file = new FileInfo(path);
+        if (!file.Exists || file.Length <= 0 || file.Length > maximumBytes || (file.Attributes & FileAttributes.ReparsePoint) != 0)
+            throw new InvalidDataException("Schema file is unavailable or outside its bounded budget.");
+        using var stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if (stream.Length <= 0 || stream.Length > maximumBytes) throw new InvalidDataException("Schema file exceeds its bounded budget.");
+        using var document = JsonDocument.Parse(stream, new JsonDocumentOptions { MaxDepth = 32 });
+        RejectDuplicateProperties(document.RootElement);
+        return document.RootElement.Deserialize<T>(Json)
+            ?? throw new InvalidDataException("Schema is empty.");
+    }
+
+    /// <summary>在命令獨占目錄以CreateNew寫暫存並flush到磁碟，關閉後才移成正式證據；故障不覆寫舊檔或留下半份JSON。</summary>
+    /// <param name="directory">Host選定的本命令唯一目錄，不接受request輸入。</param><param name="name">程式固定檔名。</param>
+    /// <param name="value">純metadata或計畫，不可含SDK/credential。</param><returns>新證據絕對路徑。</returns>
+    internal static string WriteNew<T>(string directory, string name, T value)
+    {
+        if (name != Path.GetFileName(name) || name.Length == 0) throw new InvalidDataException("Invalid schema artifact name.");
+        Directory.CreateDirectory(directory);
+        if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new InvalidDataException("Artifact directory must not be a link.");
+        var path = Path.GetFullPath(Path.Combine(directory, name));
+        if (File.Exists(path)) throw new IOException("Schema artifact already exists.");
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        var text = JsonSerializer.Serialize(value, Json).Replace("\n", "\r\n", StringComparison.Ordinal) + "\r\n";
+        if (Encoding.UTF8.GetByteCount(text) > 100 * 1024 * 1024) throw new InvalidDataException("Schema artifact exceeds its bounded budget.");
+        try
+        {
+            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                var bytes = Encoding.UTF8.GetBytes(text);
+                stream.Write(bytes);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temporary, path, overwrite: false);
+            return path;
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
     /// <summary>對完整已辨識定義計算canonical hash；apply必須重算，清單任何有效變更使既有plan失效。</summary>

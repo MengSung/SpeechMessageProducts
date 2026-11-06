@@ -56,6 +56,10 @@ internal static class DeploymentCli
             return 0;
         }
 
+        // P1結構命令不需要Plugin DLL；只在明確--schema或export-metadata時進新路由，舊P0語法與安全邊界保留。
+        if (args[0] == "export-metadata" || Array.IndexOf(args, "--schema") >= 0)
+            return Schema.SchemaDeploymentCli.Run(args, connector, output, report, artifactRoot, writeLockTimeout, cancellationToken);
+
         if (!TryParse(args, out var command))
         {
             output.WriteLine("Arguments are invalid or not supported.");
@@ -315,7 +319,7 @@ internal static class DeploymentCli
     /// <param name="path">命令列輸入的檔案位置。</param>
     /// <param name="fullPath">正規化後的絕對位置。</param>
     /// <returns>正規化路徑是根目錄內的檔案時為 true。</returns>
-    private static bool IsContainedPath(string root, string path, out string fullPath)
+    internal static bool IsContainedPath(string root, string path, out string fullPath)
     {
         fullPath = Path.GetFullPath(path);
         var relative = Path.GetRelativePath(root, fullPath);
@@ -329,7 +333,7 @@ internal static class DeploymentCli
     /// <summary>建立唯一 UTC 操作目錄；同時執行的命令取得不同目錄且不互相覆寫。</summary>
     /// <param name="organizationRoot">白名單組織的 artifacts 根目錄。</param>
     /// <returns>此命令獨占的輸出目錄。</returns>
-    private static string CreateOperationDirectory(string organizationRoot)
+    internal static string CreateOperationDirectory(string organizationRoot)
     {
         Directory.CreateDirectory(organizationRoot);
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff", CultureInfo.InvariantCulture);
@@ -395,7 +399,7 @@ internal static class DeploymentCli
 
     /// <summary>從目前工作目錄向上找唯一 SpeechMessageProducts.sln 根目錄。</summary>
     /// <returns>方案根目錄的絕對路徑。</returns>
-    private static string FindRepositoryRoot()
+    internal static string FindRepositoryRoot()
     {
         var current = new DirectoryInfo(Directory.GetCurrentDirectory());
         while (current is not null)
@@ -431,6 +435,8 @@ internal static class DeploymentCli
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
+        output.WriteLine("          export-metadata --org <name> | plan/verify --org <name> --schema <file>");
+        output.WriteLine("          apply --org <name> --schema <file> --plan <file>");
     }
 
     /// <summary>只包含已驗證的命令名稱與參數；不保留其他命令列文字。</summary>

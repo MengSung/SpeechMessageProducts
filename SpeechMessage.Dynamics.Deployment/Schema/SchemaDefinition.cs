@@ -33,8 +33,8 @@ internal sealed record SchemaEntity
     public string PrimaryName { get; init; } = "";
     /// <summary>新表要求的稽核狀態；既有不相容時衝突，不自動UpdateEntity。</summary>
     public bool Audit { get; init; }
-    /// <summary>新表是否必須啟用樂觀並行，作為RowVersion後續使用的結構保證。</summary>
-    public bool OptimisticConcurrency { get; init; }
+    /// <summary>有值才要求明確樂觀並行政策；SDK此回應欄唯讀，新自訂表使用server預設true並於建立後核對，不能假造setter。</summary>
+    public bool? OptimisticConcurrency { get; init; }
     /// <summary>最多128欄的單次候選；phase=1才參與本階段寫入。</summary>
     public IReadOnlyList<SchemaField> Fields { get; init; } = Array.Empty<SchemaField>();
     /// <summary>最多八個正式alternate key，不以應用鎖取代資料庫唯一性。</summary>

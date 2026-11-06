@@ -19,8 +19,9 @@ internal static class SchemaMetadata
     /// <summary>一次只讀完整metadata與註冊定義；SDK同步I/O前後驗caller取消，不建立未觀測Task或提前歸還正在入場的client。</summary>
     /// <param name="service">由命令lease擁有且有transport timeout的獨占服務。</param>
     /// <param name="cancellationToken">命令owner取消訊號。</param>
+    /// <param name="retrieveAsIfPublished">true盤點含未發布候選；false核對已發布結構，避免apply順便發布其他變更或把未發布當完成。</param>
     /// <returns>最多4096實體／100000欄、各註冊集合5000列的純值完整快照。</returns>
-    internal static SchemaSnapshot Read(IOrganizationService service, CancellationToken cancellationToken)
+    internal static SchemaSnapshot Read(IOrganizationService service, CancellationToken cancellationToken, bool retrieveAsIfPublished = true)
     {
         ArgumentNullException.ThrowIfNull(service);
         cancellationToken.ThrowIfCancellationRequested();
@@ -36,7 +37,7 @@ internal static class SchemaMetadata
             || !organization.Attributes.TryGetValue("languagecode", out var rawLanguage) || rawLanguage is not int language || language is <= 0 or > 65535)
             throw new InvalidDataException("Organization language metadata is incomplete.");
         var metadata = Execute<RetrieveAllEntitiesResponse>(service,
-            new RetrieveAllEntitiesRequest { EntityFilters = EntityFilters.All, RetrieveAsIfPublished = true }, cancellationToken).EntityMetadata;
+            new RetrieveAllEntitiesRequest { EntityFilters = EntityFilters.All, RetrieveAsIfPublished = retrieveAsIfPublished }, cancellationToken).EntityMetadata;
         if (metadata is null || metadata.Length is < 1 or > 4096)
             throw new InvalidDataException("Entity metadata is incomplete or exceeds its bounded budget.");
         var entities = new List<SchemaEntityState>(metadata.Length);
@@ -124,7 +125,9 @@ internal static class SchemaMetadata
         var options = field is PicklistAttributeMetadata choice
             ? choice.OptionSet?.Options.Select(option => option.Value ?? throw new InvalidDataException("Option metadata has no stable identity.")).ToArray()
                 ?? throw new InvalidDataException("Choice metadata is incomplete.") : Array.Empty<int>();
-        if (options.Length > 4096 || options.Distinct().Count() != options.Length || targets.Length > 32
+        // 這是完整組織metadata而非P1單目標lookup清單。D365 regardingobjectid合法含數百表，
+        // 唯讀實測379個目標；上限沿用全組織4096表預算，仍拒重複／非法名稱，不能靜默刪掉多型目標。
+        if (options.Length > 4096 || options.Distinct().Count() != options.Length || targets.Length > 4096
             || targets.Any(target => string.IsNullOrWhiteSpace(target) || target.Length > 128)
             || targets.Distinct(StringComparer.Ordinal).Count() != targets.Length)
             throw new InvalidDataException("Attribute metadata contains duplicate identities or exceeds its budget.");
@@ -134,7 +137,7 @@ internal static class SchemaMetadata
             Array.AsReadOnly(targets.OrderBy(target => target, StringComparer.Ordinal).ToArray()),
             field is DateTimeAttributeMetadata date ? date.DateTimeBehavior?.Value ?? "Unknown" : "",
             field is DateTimeAttributeMetadata formatted ? formatted.Format?.ToString() ?? "Unknown" : "",
-            Array.AsReadOnly(options.Order().ToArray()), field.IsManaged);
+            Array.AsReadOnly(options.Order().ToArray()), field.IsManaged, field.IsAuditEnabled?.Value);
     }
 
     /// <summary>重用Core完整頁／正式ID/cookie守門，最多5000列；任何超量或後頁故障都不回傳部分metadata。</summary>

@@ -42,9 +42,9 @@ internal sealed record SchemaEntityState(Guid Id, string LogicalName, string Pri
 /// <param name="Id">正式metadata ID。</param><param name="LogicalName">欄位身份。</param><param name="Type">明確型別。</param>
 /// <param name="MaxLength">文字長度。</param><param name="Required">SDK required level。</param><param name="Secured">欄位安全。</param>
 /// <param name="Targets">lookup目標。</param><param name="Behavior">日期行為。</param><param name="Format">日期格式。</param>
-/// <param name="Options">正式選項數值，與顯示名無關。</param><param name="Managed">受管理標記。</param>
+/// <param name="Options">正式選項數值，與顯示名無關。</param><param name="Managed">受管理標記。</param><param name="Audit">欄位稽核政策，不能只啟用entity而漏掉實際欄位。</param>
 internal sealed record SchemaFieldState(Guid Id, string LogicalName, string Type, int? MaxLength, string Required,
-    bool? Secured, IReadOnlyList<string> Targets, string Behavior, string Format, IReadOnlyList<int> Options, bool? Managed);
+    bool? Secured, IReadOnlyList<string> Targets, string Behavior, string Format, IReadOnlyList<int> Options, bool? Managed, bool? Audit = null);
 
 /// <summary>正式alternate key與建置狀態；Active以外不能verify為成功。</summary>
 /// <param name="Id">metadata ID。</param><param name="LogicalName">正式key身份。</param>

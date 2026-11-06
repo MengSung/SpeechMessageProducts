@@ -10,7 +10,6 @@
       "pluralName": "教會",
       "isNew": false,
       "audit": false,
-      "optimisticConcurrency": false,
       "fields": [
         {
           "logicalName": "new_defaultlanguage",
@@ -72,7 +71,6 @@
       "pluralName": "會友",
       "isNew": false,
       "audit": false,
-      "optimisticConcurrency": false,
       "fields": [
         {
           "logicalName": "new_preferredlanguage",
@@ -110,7 +108,6 @@
       "pluralName": "LINE 頻道",
       "isNew": true,
       "audit": false,
-      "optimisticConcurrency": false,
       "fields": [
         {
           "logicalName": "new_name",
@@ -304,7 +301,6 @@
       "pluralName": "教會文字覆寫",
       "isNew": true,
       "audit": true,
-      "optimisticConcurrency": false,
       "fields": [
         {
           "logicalName": "new_name",
@@ -362,7 +358,6 @@
       "pluralName": "奉獻類別",
       "isNew": true,
       "audit": true,
-      "optimisticConcurrency": false,
       "fields": [
         {
           "logicalName": "new_accountid",
