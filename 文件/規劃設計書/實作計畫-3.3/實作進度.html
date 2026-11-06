@@ -513,7 +513,8 @@ const DATA = {
       "2026-11-06T13:49:16+08:00 P1-10已本地提交6e8f1ef9，驗收矩陣及104份原始證據SHA一併提交；子任務封存.ccg/tasks/archive/2026-11/p110-tenancy，journal保存續作資訊。編碼最終1047檔零問題、進度14/14；主P1維持6/12及in_progress，接續P1-08。沒有背景代理、未push／部署／連VM/D365/LINE。",
       "2026-11-06T13:59:36+08:00 依使用者要求加速已解鎖工作：建立.ccg/tasks/p106-church-clock需求／實作與驗收清單，開始P1-06。P1-07／09為可獨立推進佇列，不是假稱已有背景Agent；P1-08只完成先前研究尚未實作。執行層要求的analyzer已經CCG自癒入口嘗試，run20261106-135758兩後端皆無可用輸出（Claude週額度），無雙模型／單模型成功證據，不重複重試相同供應商阻擋；主會話續做本地分析與驗證。未啟動外部reviewer。本包尚無實作驗收證據，不標完成。",
       "2026-11-06T14:11:51+08:00 P1-06第一輪實作：clock契約缺型別1案真紅後，Framework31/net10 33行為案通過；CLDR生成器2紅5綠→7綠，來源缺失verify先1案真紅再修正。CLDR release49原XML及授權已保留來源／repo SHA，只正規化換行；生成445映射。net10 strict CA1510已依目標API分支修正，未停用規則。進度頁曾綁Constants舊本文，改固定合成renderer fixture後14/14。下一步完整445映射、ICU三程序、coverage／方案／品質守門；本包尚未commit、尚未整包驗收，P1仍6/12。證據artifacts/p1-06-20261106。",
-      "2026-11-06T14:32:53+08:00 P1-06整包本機驗收通過：正式Word8.2／E.5確認須接入現有主機，已補owner→ICU→Startup前檢查，主機來源1案先紅後綠；CLDR原XML oracle空白造成兩宿主紅燈已按規格修正，445個唯一ID及逐項值斷言保留。正規化後17TRX4127/4127、0失敗/略過；Localization124/150（clock32/34），coverage98.11%/98.47%、strict0/0，ICU/NLS/Invariant各1案及真實NLS主機啟動拒絕通過。I18n119／coverage96.77%／verify／兩生成check、Debug7、PE27、Plugin10/6、CI6、套件36/167及duplicates零違規。主會話自審，無獨立第二人／外部reviewer；analyzer兩後端無可用輸出不算成功。驗收wp-reports/P1-06-acceptance.md；證據evidence/p106-final。正式需求未改，本地提交收尾中；只封存本包，主P1增7/12並續作P1-07／09，不push／部署／連VM/D365/LINE。"
+      "2026-11-06T14:32:53+08:00 P1-06整包本機驗收通過：正式Word8.2／E.5確認須接入現有主機，已補owner→ICU→Startup前檢查，主機來源1案先紅後綠；CLDR原XML oracle空白造成兩宿主紅燈已按規格修正，445個唯一ID及逐項值斷言保留。正規化後17TRX4127/4127、0失敗/略過；Localization124/150（clock32/34），coverage98.11%/98.47%、strict0/0，ICU/NLS/Invariant各1案及真實NLS主機啟動拒絕通過。I18n119／coverage96.77%／verify／兩生成check、Debug7、PE27、Plugin10/6、CI6、套件36/167及duplicates零違規。主會話自審，無獨立第二人／外部reviewer；analyzer兩後端無可用輸出不算成功。驗收wp-reports/P1-06-acceptance.md；證據evidence/p106-final。正式需求未改，本地提交收尾中；只封存本包，主P1增7/12並續作P1-07／09，不push／部署／連VM/D365/LINE。",
+      "2026-11-06T14:37:10+08:00 P1-06交付收尾：本地工作commit 1e68c298；正式Changed1071檔0問題、進度頁14/14及129份原始證據SHA全部重核相符。子任務p106-church-clock封存，主P1仍7/12／Goal active；下一步P1-07與P1-09，無背景Agent／外部雙模型，未push／部署。"
     ]
   },
   "tiles": [
@@ -738,8 +739,9 @@ const DATA = {
       "id": "P1-06",
       "name": "教會時鐘與 IANA／Windows 時區對照",
       "status": "done",
-      "note": "已通過本機驗收：clock32/34，完整Localization124/150；CLDR49全部445映射／八zone／DST／Kind／純日期；ICU三程序及真實NLS主機拒絕。方案4127、coverage98.11%/98.47%、strict0/0與品質守門通過。主會話自審，無第二人／外審；驗收wp-reports/P1-06-acceptance.md，證據evidence/p106-final。本地提交收尾中。",
-      "time": "2026-11-06T14:32:53+08:00"
+      "note": "已通過本機驗收：clock32/34，完整Localization124/150；CLDR49全部445映射／八zone／DST／Kind／純日期；ICU三程序及真實NLS主機拒絕。方案4127、coverage98.11%/98.47%、strict0/0與品質守門通過。主會話自審，無第二人／外審；驗收wp-reports/P1-06-acceptance.md，證據evidence/p106-final。本地工作commit 1e68c298；子任務已封存。",
+      "time": "2026-11-06T14:32:53+08:00",
+      "commit": "1e68c298"
     },
     {
       "id": "P1-07",
