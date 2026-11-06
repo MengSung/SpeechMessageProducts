@@ -1,0 +1,11 @@
+<query entity="contact" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="false">
+    <column>fullname</column>
+  </columns>
+  <filter op="And">
+    <condition field="contactid" op="In" entity="">
+      <value type="Guid">aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa</value>
+      <value type="Guid">bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb</value>
+    </condition>
+  </filter>
+</query>

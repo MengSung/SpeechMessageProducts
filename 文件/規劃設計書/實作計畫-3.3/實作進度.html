@@ -444,7 +444,7 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06 10:46（P1-04實作與驗證歷程已更新）",
+  "snapshot": "2026-11-06 11:13（P1-04實作與驗證歷程已更新）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
   "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
@@ -452,7 +452,7 @@ const DATA = {
   "alert": {
     "level": "info",
     "title": "階段1執行中｜集中P1-04收尾",
-    "body": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。Present八入口原host golden 8/8；安全矩陣63紅/2綠，純化後搬前72/72，git mv入Core，net48 887/887、net10 1017/1017、strict 0警告0錯誤。QueryService五入口原host golden 5/5，安全矩陣37紅/3綠；共用Fetch安全串流parser、加IClock保留舊本地日期Kind且可控測試，移除含查詢值的Trace。Query+Present+產品路由131/131；Core搬後strict/雙目標/coverage待重跑。證據artifacts/p1-04-present-20261106與artifacts/p1-04-repository-query-20261106。P1-04仍未完成；尚有CrmAsync、ComplexQuery、List/MarketingList、四資料方法/DI及整包00§8守門。未操作VM/D365/LINE。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。",
+    "body": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。接續P1-04：Query已完成搬後net48 933/933、net10 1063/1063；CrmAsyncExtensions已抽Core，固定worker與5000列/1000頁預算、取消分類及drain完整回歸958/1088，補弱引用後專項雙宿主26/26。ComplexQuery原host18特性先綠、安全84紅/1綠、修後搬前103/103；正驗證Core及host薄adapter。剩餘List/Marketing與整包coverage/00§8尚待完成，未標完成。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -492,7 +492,9 @@ const DATA = {
       "2026-11-06 10:08 文件暫存守門發現index-only候選未經Git換行正規化，diff --check拒絕；已依既有.gitattributes/core.autocrlf重建LF儲存候選，工作樹仍維持UTF-8無BOM/CRLF，未關閉守門或修改他人版面。",
       "2026-11-06 10:17 Fetch七入口已修補並git mv入Core；擴充分立矩陣62案51紅/11綠，修後原host含Fee134/134通過才搬。共用SdkDataQuery統一Execute型別/ID/top守門，Fee不重複驗證；兩個原中文謂詞由resx正式生成，不改篩選語義。搬後ToolUtility net48實載net462 755/755、net10 885/885，Core strict雙目標0警告/錯誤，I18n generated4檔通過。正進行coverage/全方案末端驗證，其餘List/Query/CrmAsync尚待交付。",
       "2026-11-06 10:29 Relationship六入口原host特性6/6先綠、安全53案52失敗，修補後58/58；已git mv至Core，雙目標完整814/814、944/944，strict零警告零錯誤。證據artifacts/p1-04-relationship-20261106。Present八入口特性與安全驗證接續中。",
-      "2026-11-06 10:46 Present八入口原host golden 8/8；安全矩陣63紅/2綠，純化後搬前72/72，git mv入Core，net48 887/887、net10 1017/1017、strict 0警告0錯誤。QueryService五入口原host golden 5/5，安全矩陣37紅/3綠；共用Fetch安全串流parser、加IClock保留舊本地日期Kind且可控測試，移除含查詢值的Trace。Query+Present+產品路由131/131；Core搬後strict/雙目標/coverage待重跑。證據artifacts/p1-04-present-20261106與artifacts/p1-04-repository-query-20261106。P1-04仍未完成；尚有CrmAsync、ComplexQuery、List/MarketingList、四資料方法/DI及整包00§8守門。未操作VM/D365/LINE。"
+      "2026-11-06 10:46 Present八入口原host golden 8/8；安全矩陣63紅/2綠，純化後搬前72/72，git mv入Core，net48 887/887、net10 1017/1017、strict 0警告0錯誤。QueryService五入口原host golden 5/5，安全矩陣37紅/3綠；共用Fetch安全串流parser、加IClock保留舊本地日期Kind且可控測試，移除含查詢值的Trace。Query+Present+產品路由131/131；Core搬後strict/雙目標/coverage待重跑。證據artifacts/p1-04-present-20261106與artifacts/p1-04-repository-query-20261106。P1-04仍未完成；尚有CrmAsync、ComplexQuery、List/MarketingList、四資料方法/DI及整包00§8守門。未操作VM/D365/LINE。",
+      "2026-11-06 10:57 QueryService搬後最新net48 933/933、net10 1063/1063、Core strict零警告零錯誤。另已回原host位置同源編譯45/45後恢復Core；原固定時間/欄位/排序語義不變。期間偵測既有工作由外部提交ebe6d0b5保存，沿用該HEAD不回退。CrmAsync原host三代表特性3/3；安全矩陣7紅/1綠，含並行度0無界等待、跨表相同Guid覆寫、caller PageInfo遭修改；已加測試取消上限並安全清理本次懸掛測試程序，接續修補。",
+      "2026-11-06 11:13 接續P1-04：Query已完成搬後net48 933/933、net10 1063/1063；CrmAsyncExtensions已抽Core，固定worker與5000列/1000頁預算、取消分類及drain完整回歸958/1088，補弱引用後專項雙宿主26/26。ComplexQuery原host18特性先綠、安全84紅/1綠、修後搬前103/103；正驗證Core及host薄adapter。剩餘List/Marketing與整包coverage/00§8尚待完成，未標完成。"
     ]
   },
   "tiles": [
@@ -701,7 +703,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。Present八入口原host golden 8/8；安全矩陣63紅/2綠，純化後搬前72/72，git mv入Core，net48 887/887、net10 1017/1017、strict 0警告0錯誤。QueryService五入口原host golden 5/5，安全矩陣37紅/3綠；共用Fetch安全串流parser、加IClock保留舊本地日期Kind且可控測試，移除含查詢值的Trace。Query+Present+產品路由131/131；Core搬後strict/雙目標/coverage待重跑。證據artifacts/p1-04-present-20261106與artifacts/p1-04-repository-query-20261106。P1-04仍未完成；尚有CrmAsync、ComplexQuery、List/MarketingList、四資料方法/DI及整包00§8守門。未操作VM/D365/LINE。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。"
+      "note": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。接續P1-04：Query已完成搬後net48 933/933、net10 1063/1063；CrmAsyncExtensions已抽Core，固定worker與5000列/1000頁預算、取消分類及drain完整回歸958/1088，補弱引用後專項雙宿主26/26。ComplexQuery原host18特性先綠、安全84紅/1綠、修後搬前103/103；正驗證Core及host薄adapter。剩餘List/Marketing與整包coverage/00§8尚待完成，未標完成。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。"
     },
     {
       "id": "P1-05",

@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Xml.Linq;
@@ -240,15 +239,6 @@ namespace ToolUtilityNameSpace.EntityOperations
         /// HashSet 與候選沒有 static／cache 引用；衝突不回顯 ID 或本文，也不改動原候選。
         /// </summary>
         private static EntityCollection ValidatePage(EntityCollection? candidate, string entityName)
-        {
-            if (candidate == null) throw new InvalidOperationException("The SDK returned no query page.");
-            var identities = new HashSet<Guid>();
-            foreach (var row in candidate.Entities)
-                if (row == null || row.Id == Guid.Empty || string.IsNullOrEmpty(row.LogicalName)
-                    || !string.Equals(row.LogicalName, entityName, StringComparison.Ordinal)
-                    || !identities.Add(row.Id))
-                    throw new InvalidOperationException("Query page contains invalid or duplicate database identities.");
-            return candidate;
-        }
+            => SdkDataQuery.ValidatePage(candidate, entityName, 5000);
     }
 }

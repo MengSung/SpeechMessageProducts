@@ -189,12 +189,12 @@ namespace ToolUtilityNameSpace.QueryOperations
         }
 
         /// <summary>
-        /// 保留既有LastXWeeks及DateTime.Now.AddMonths算法、兩欄投影、排序與舊版未使用的list參數。
+        /// 保留既有LocalNow.AddMonths算法、AllColumns投影、日期GreaterEqual及降冪排序與舊版未使用的list參數。
         /// list與contact由呼叫端先授權；本抽取不自行把原本缺漏的list條件加進查詢。
         /// </summary>
         /// <param name="listEntityId">相容舊API的list ID；原查詢未使用，不能視為服務端授權依據。</param>
         /// <param name="contactId">伺服器已授權scope內的非空聯絡人ID。</param>
-        /// <param name="monthPeriod">正月份期間，保留舊查詢將月份作為LastXWeeks參數的行為。</param>
+        /// <param name="monthPeriod">正月份期間；由舊本地瞬間往前移動指定月份，不改成週數或教會時區。</param>
         /// <returns>完整驗證的單頁出席記錄。</returns>
         public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid listEntityId, Guid contactId, int monthPeriod)
         {

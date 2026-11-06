@@ -1,0 +1,10 @@
+<query entity="task" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="false">
+    <column>subject</column>
+  </columns>
+  <filter op="And">
+    <condition field="regardingobjectid" op="Equal" entity="">
+      <value type="String">b2071325-b861-e011-9e82-001d60789032</value>
+    </condition>
+  </filter>
+</query>
