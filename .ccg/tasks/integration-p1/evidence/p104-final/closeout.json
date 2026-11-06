@@ -1,3 +1,47 @@
 {
-  "status": "final-check-in-progress"
+  "status": "passed",
+  "verifiedAt": "2026-11-06T12:04:25.228244+08:00",
+  "base": "73b6e6cf",
+  "encoding": {
+    "checked": 995,
+    "excludedRawRuns": 853,
+    "issues": 0,
+    "report": "artifacts/p1-04-final-20261106/encoding-delivery.md",
+    "sha256": "88ced4b7b78b6738fdb168817dea435f1ceb289ab2e256aa4cd82719d1900ea6"
+  },
+  "htmlAndCjsByteEncoding": "strict UTF-8 without BOM, CRLF, final CRLF; passed",
+  "sourceConsistency": {
+    "files": 306,
+    "unchanged": 306
+  },
+  "progressPage": {
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "logSha256": "a5eefd3cbeec48f619700a9565c081438873703ceccef24c2a65177ccede7892"
+  },
+  "milestones": {
+    "P1-04": "done",
+    "P1Done": 4,
+    "P1Total": 12,
+    "allDone": 22,
+    "allTotal": 83,
+    "futurePackagesStillTodo": 53
+  },
+  "review": "主會話直接審查；使用者取消雙模型，無新增獨立外模審查",
+  "knownBlockingDefects": [],
+  "missingEvidence": [
+    "未執行hosted CI",
+    "未執行VM/D365/LINE實機整合；本包為離線資料層契約"
+  ],
+  "taskArchive": ".ccg/tasks/archive/2026-11/p104-final-delivery",
+  "parentStatus": "in_progress",
+  "nextWorkPackage": "P1-05",
+  "localAcceptanceCommit": "a12cfa07",
+  "formalPlanChanged": false,
+  "pushOrDeploy": false,
+  "recoveredChecks": [
+    "新增規範的LF／缺末尾CRLF曾被完整Changed拒絕；用既有無損轉換器修正後重跑零問題",
+    "進度完成里程碑曾因舊active狀態失敗；同步已驗收證據與4/12後14/14通過"
+  ]
 }

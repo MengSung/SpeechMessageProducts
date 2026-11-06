@@ -25,7 +25,7 @@
 | ChurchReport 舊功能與架構 | 全方案 Release | 16 份 TRX 共 3906/3906；ChurchReport 623/623、架構／Localization 67/67；實際結果列、Counters、零略過一致 | 通過 |
 | 每產品目標行覆蓋率 ≥80% | 既有 `Test-Coverage.ps1` | 獨立新目錄、每目標恰一份；Core net462 95.45%、net10 95.81%；嚴格守門實際通過 | 通過 |
 | 隔離、完整發布與資源生命週期 | Core 所有新增／抽取資料操作 | 合法同名異 ID 保留；空／重複／錯表 ID fail closed、後頁故障不發布；多組 1000 次 A/B、caller mutation、取消／Dispose 競爭、active 歸零與弱參照回收 | 通過 |
-| 00 §8 與工具守門 | `artifacts/p1-04-final-20261106/` | Debug tracer 7、Plugin metadata 10／build 6、I18n 工具 108／PE 工具 27、I18n verify／generate check、套件 34 專案 158 引用零違規、duplicates 零新增、完整 Changed 編碼及進度頁結果 | 通過；末端編碼與頁面摘要見交付證據 |
+| 00 §8 與工具守門 | `artifacts/p1-04-final-20261106/` | Debug tracer 7、Plugin metadata 10／build 6、I18n 工具 108／PE 工具 27、I18n verify／generate check、套件 34 專案 158 引用零違規、duplicates 零新增、完整 Changed 編碼及進度頁結果 | 通過；完整 Changed 995 檔零問題、進度頁 14/14 |
 
 四方法的上述數字是逐案解析 net10 TRX 得到的專屬案例數，不把同一參數化測試當成三個 API 都已測。
 雙宿主均執行其適用純 Core 測試。精確名稱在
@@ -119,3 +119,6 @@ Changed 編碼前置六份已提交歷史紀錄已另建任務、無損轉換並
 本地 coverage 使用正式 CI 同一守門，不能稱作 hosted 成功。
 通用 SDK 同步呼叫的傳輸逾時與授權仍由 host 擁有，分頁也不是跨頁資料庫交易快照。
 主 P1 尚有 P1-05～12；本包完成不代表整階段完成。
+
+
+末端交付摘要：`evidence/p104-final/closeout.json`；306 份驗證來源 SHA 全部保持不變，主 P1 仍為 in_progress，下一包 P1-05。驗收提交 `a12cfa07`；收尾歸檔／journal另行本地提交。
