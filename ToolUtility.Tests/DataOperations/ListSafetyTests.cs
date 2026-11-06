@@ -1,4 +1,3 @@
-#if NET10_0
 using System.Xml.Linq;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
@@ -238,4 +237,3 @@ namespace ToolUtility.Tests.DataOperations
         }
     }
 }
-#endif

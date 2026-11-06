@@ -30,7 +30,10 @@ namespace ToolUtilityNameSpace.QueryOperations
         }
 
         #region Many-to-One 關係查詢
-        /// <summary>保留舊RetrieveManyToOneCollection查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留固定舊regardingobjectid範例、task.subject投影及直接RetrieveMultiple；此入口不替caller建立資料範圍授權。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection RetrieveManyToOneCollection()
         {
             var client = GetExecutor();
@@ -53,7 +56,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return Page(client.RetrieveMultiple(query), query);
         }
 
-        /// <summary>保留舊QueryBloodReportByContactId查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留contactId的字串條件、AllColumns與createdon降冪及Execute路徑；TotalRecordCount大於0才取首筆，正count卻空頁必須拒絕。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public Entity? QueryBloodReportByContactId(Guid contactId)
         {
             var client = GetExecutor();
@@ -95,7 +101,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return null;
         }
 
-        /// <summary>保留舊QueryPresentRecordByContactIdAndSunday查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 名單與聯絡人GUID仍以舊字串型別傳條件，monthPeriod實為LastXWeeks正週數；只取兩個出席欄位並按主日降冪，不改成月份計算。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid listEntityId, Guid contactId, int monthPeriod)
         {
             var client = GetExecutor();
@@ -150,7 +159,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return candidate;
         }
 
-        /// <summary>保留舊RetrieveManyToOneRelationship查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留父表link方向及link內的父ID字串/statecode條件、子表AllColumns；受信任結構名稱先驗格式，不能把format正確當授權。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection RetrieveManyToOneRelationship(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
         {
             var client = GetExecutor();
@@ -197,7 +209,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return candidate;
         }
 
-        /// <summary>保留舊QueryPresentRecordSortBySunday查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留根表association/statecode及UTC現在前32天的GreaterEqual條件、主日升冪；不借另一個同名服務新增父link或變更日期邊界。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryPresentRecordSortBySunday(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
         {
             var client = GetExecutor();
@@ -245,7 +260,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return candidate;
         }
 
-        /// <summary>保留舊QueryPresentRecordSortBySundayFetchXml查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 沿用十個出席欄位及原Execute Fetch路徑、正週數last-x-weeks；lookup顯示名只進XML屬性且先驗正式GUID，不拼接原字串。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryPresentRecordSortBySundayFetchXml(int lastWeeks, string contactName, string contactId)
         {
             var client = GetExecutor();
@@ -261,7 +279,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return ExecutePage(client, new FetchExpression(fetch.ToString(SaveOptions.DisableFormatting)));
         }
 
-        /// <summary>保留舊QueryPresentRecordInWeeklyReportByContactId查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留週報GUID、statecode、聯絡人GUID三條件的CLR型別和順序，AllColumns後走Execute；本方法不新增日期或去重條件。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryPresentRecordInWeeklyReportByContactId(Guid contactId, Guid weeklyReportEntityId)
         {
             var client = GetExecutor();
@@ -308,7 +329,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return candidate;
         }
 
-        /// <summary>保留舊QueryEntityListByDate查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留association、statecode與UTC前7天class-end條件全在root filter，AllColumns後走Execute；不能改成Present服務的parent-only link。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryEntityListByDate(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
         {
             var client = GetExecutor();
@@ -356,7 +380,10 @@ namespace ToolUtilityNameSpace.QueryOperations
         #endregion
 
         #region 週報查詢
-        /// <summary>保留舊QueryWeeklyReportBySunday查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留父link上的ID/statecode/主日條件及主日降冪；主日仍是明確CurrentCulture序列化字串，不偷偷改為DateTime或換時區。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryWeeklyReportBySunday(DateTime sunday, string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
         {
             var client = GetExecutor();
@@ -418,7 +445,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return candidate;
         }
 
-        /// <summary>保留舊QueryWeeklyReportBySunday查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留名單GUID、statecode、DateTime型別On主日及七欄週報投影，按主日降冪；caller已決定日期，這裡不做時區換算。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryWeeklyReportBySunday(DateTime sunday, Guid listEntityId)
         {
             var client = GetExecutor();
@@ -471,7 +501,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return candidate;
         }
 
-        /// <summary>保留舊QueryWeeklyReportBeforeTwoMonthsOfSunday查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留主日前兩個月的OnOrAfter/OnOrBefore閉區間、AllColumns與主日升冪；不以最近週數取代原月份算法。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryWeeklyReportBeforeTwoMonthsOfSunday(DateTime sunday, Guid listEntityId)
         {
             var client = GetExecutor();
@@ -534,7 +567,10 @@ namespace ToolUtilityNameSpace.QueryOperations
         #endregion
 
         #region 名單查詢
-        /// <summary>保留舊QueryListsAndOrderedByListName查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留父link內ID/statecode及listname升冪，子表AllColumns；不同正式ID的同名名單都要留下，名稱不是身份或權限。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryListsAndOrderedByListName(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
         {
             var client = GetExecutor();
@@ -588,7 +624,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return candidate;
         }
 
-        /// <summary>保留舊QueryListByContactId查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留動態association欄位的Guid值、statecode及bool App條件和listname升冪；結構名稱由受信任程式提供並在I/O前驗證。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection QueryListByContactId(Guid contactId, string associationName)
         {
             var client = GetExecutor();
@@ -644,7 +683,10 @@ namespace ToolUtilityNameSpace.QueryOperations
         #endregion
 
         #region 成員名單查詢
-        /// <summary>保留舊RetrieveContactCollectionByLineId查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留QueryByAttribute的new_lineid/statecode及AllColumns與原首筆/null契約；LINE值不寫入診斷，整頁身份先驗才取首筆。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public Entity? RetrieveContactCollectionByLineId(string lineId)
         {
             var client = GetExecutor();
@@ -662,7 +704,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return null;
         }
 
-        /// <summary>保留舊RetrieveMemberListCollectionByListIdDynamics365查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 保留listmember QueryByAttribute、Guid型別listid及AllColumns與直接RetrieveMultiple；不把名單關係列ID誤當成Contact ID。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(Guid listId)
         {
             var client = GetExecutor();
@@ -674,7 +719,10 @@ namespace ToolUtilityNameSpace.QueryOperations
             return Page(client.RetrieveMultiple(query), query);
         }
 
-        /// <summary>保留舊RetrieveDynamicMemberListDynamics365查詢投影、條件CLR型別與SDK入口；完整頁正式ID驗證後才發布，故障原樣傳host。</summary>
+        /// <summary>
+        /// 先由原Retrieve路徑讀list.query並核對根表與正式ID，再安全解析唯一Fetch根並直接RetrieveMultiple；不保存儲存查詢或跨scope快取。
+        /// 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+        /// </summary>
         public EntityCollection RetrieveDynamicMemberListDynamics365(Guid listId)
         {
             var client = GetExecutor();

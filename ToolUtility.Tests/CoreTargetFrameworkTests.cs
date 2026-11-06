@@ -76,6 +76,14 @@ namespace ToolUtility.Tests
             Assert.Same(assembly, typeof(IMarketingListService).Assembly);
             Assert.Same(assembly, typeof(IComplexQueryService).Assembly);
             Assert.Same(assembly, typeof(IQueryService).Assembly);
+            Assert.Same(assembly, typeof(ListService).Assembly);
+            Assert.Same(assembly, typeof(MarketingListService).Assembly);
+            Assert.Same(assembly, typeof(ComplexQueryDataService).Assembly);
+            Assert.Same(assembly, typeof(QueryService).Assembly);
+            Assert.Same(assembly, typeof(FetchXmlQueryService).Assembly);
+            Assert.Same(assembly, typeof(PresentRecordQueryService).Assembly);
+            Assert.Same(assembly, typeof(RelationshipQueryService).Assembly);
+            Assert.Same(assembly, typeof(CrmAsyncExtensions).Assembly);
             Assert.Equal("ToolUtility.Core", assembly.GetName().Name);
             var target = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
             Assert.NotNull(target);
@@ -207,7 +215,8 @@ namespace ToolUtility.Tests
         /// <summary>
         /// 五個新搬介面的單筆查無結果必須標為 nullable，而非宣稱永不為 null；
         /// 集合與字串維持非 null。這是實際中繼資料斷言，不以檔頭文字替代。
-        /// 同時驗證仍留在host的原實作可指派至同namespace Core契約，防止留下兩份同名介面。
+        /// 同時驗證原實作可指派至同namespace Core契約；Contact／Complex仍留薄host adapter，
+        /// 已純化的List／Marketing則必須與契約同一Core組件，防止留下同功能副本。
         /// </summary>
         [Theory]
         [InlineData(typeof(IContactService), typeof(ContactService))]
@@ -218,7 +227,10 @@ namespace ToolUtility.Tests
             System.Type contract, System.Type hostImplementation)
         {
             Assert.True(contract.IsAssignableFrom(hostImplementation));
-            Assert.NotSame(contract.Assembly, hostImplementation.Assembly);
+            if (contract == typeof(IListService) || contract == typeof(IMarketingListService))
+                Assert.Same(contract.Assembly, hostImplementation.Assembly);
+            else
+                Assert.NotSame(contract.Assembly, hostImplementation.Assembly);
             var context = new NullabilityInfoContext();
             foreach (var method in contract.GetMethods())
                 if (method.ReturnType.IsClass)

@@ -1,353 +1,137 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/ListOperations/MarketingListService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class MarketingListService
-// 純契約已移至 ToolUtility.Core；此檔仍保留既有 host 實作，尚未宣稱安全純化完成。
-// 主要成員：RetrieveMembersByListId、GetAllMemberData、AddMember、AddMembersAsync、AddMembersUsingSdkAsync、RemoveMember、RemoveMembersAsync
-// 引用命名空間：Microsoft.Crm.Sdk.Messages、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、System、System.Collections、System.Collections.Generic、System.Diagnostics、System.Linq
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
-using Microsoft.Crm.Sdk.Messages;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
+#nullable enable
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using ToolUtilityNameSpace.DataOperations;
 using ToolUtilityNameSpace.EntityOperations;
 
 namespace ToolUtilityNameSpace.ListOperations
 {
-
-
     /// <summary>
-    /// 行銷名單服務實現
-    /// 使用 Repository Pattern + Strategy Pattern 優化批次操作
+    /// 保留原Repository讀取與SDK寫入路徑的純行銷名單服務；不保存查詢結果或request，也不輸出成員ID／例外本文。
+    /// host先驗完整subject／organization／教會及名單授權，再借入同scope依賴；格式正確的ID不構成權限。
+    /// 完整投影及寫入最多5000列，單頁最多5000列；候選完整驗證才發布，不按名稱合併或跳漏不合法成員。
     /// </summary>
-    public class MarketingListService : IMarketingListService
+    /// <remarks>
+    /// 批次由唯一有界owner串行執行，所有同步SDK呼叫排空才完成Task；不用逐列Task.Run或吞錯回部分成功。
+    /// Dispose清兩個借用參照並拒新入口；不處置repository／SDK。host須await/drain後才關連線。
+    /// 原生名單成員訊息維持資料庫關聯唯一性，沒有應用層鎖或自動重試；失敗／取消不回復已提交批次。
+    /// </remarks>
+    public class MarketingListService : IMarketingListService, IDisposable
     {
-        private readonly IEntityRepository _repository;
-        private readonly IOrganizationService _organizationService;
+        private IEntityRepository? _repository;
+        private IOrganizationService? _organizationService;
+        private int _disposed;
 
-        /// <summary>
-        /// 建構函數 - 注入依賴
-        /// </summary>
+        /// <summary>借用同一已授權scope的repository與SDK；不接管連線、logger或Dispose所有權。</summary>
+        /// <param name="repository">host擁有的資料讀取邊界，不可跨不相容scope共用。</param>
+        /// <param name="organizationService">host擁有且已配置timeout的SDK；與repository必須在同一授權範圍。</param>
         public MarketingListService(IEntityRepository repository, IOrganizationService organizationService)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
+            _organizationService = SdkDataQuery.RequireService(organizationService);
         }
 
-        /// <summary>
-        /// 檢索名單成員集合
-        /// </summary>
+        /// <summary>保持AllColumns、listid條件與repository路徑；整頁先驗，保留舊失敗包裝層及原InnerException，不洩漏原本文。</summary>
         public EntityCollection RetrieveMembersByListId(Guid listId)
         {
+            var repository = GetRepository();
             try
             {
-                if (listId == Guid.Empty)
-                    throw new ArgumentException("List ID 不可為空", nameof(listId));
-
-                Trace.WriteLine($"[MarketingListService] Retrieving members for list: {listId}");
-
-                var query = new QueryExpression("listmember")
-                {
-                    ColumnSet = new ColumnSet(true),
-                    Criteria = new FilterExpression
-                    {
-                        Conditions =
-                        {
-                            new ConditionExpression("listid", ConditionOperator.Equal, listId)
-                        }
-                    }
-                };
-
-                var results = _repository.RetrieveMultiple(query);
-                Trace.WriteLine($"[MarketingListService] Retrieved {results.Entities.Count} members");
-                return results;
+                var query = MemberQuery(listId);
+                return SdkDataQuery.ValidatePage(repository.RetrieveMultiple(query), "listmember", 5000);
             }
-            catch (Exception ex)
+            catch (Exception failure)
             {
-                Trace.WriteLine($"[MarketingListService] RetrieveMembersByListId failed: {ex.Message}");
-                throw new InvalidOperationException("檢索名單成員失敗", ex);
+                throw new InvalidOperationException("The marketing list query failed.", failure);
             }
         }
 
-        /// <summary>
-        /// 取得名單所有成員資料
-        /// </summary>
+        /// <summary>完整讀完同repository各頁後才投影entityid；保留Guid並接受SDK正式EntityReference，缺／空／重複成員拒絕。</summary>
         public ArrayList GetAllMemberData(Guid listId)
         {
-            try
-            {
-                var members = RetrieveMembersByListId(listId);
-                var memberList = new ArrayList();
-
-                foreach (var member in members.Entities)
-                {
-                    if (member.Contains("entityid") && member["entityid"] is Guid entityId)
-                    {
-                        memberList.Add(entityId);
-                    }
-                }
-
-                return memberList;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[MarketingListService] GetAllMemberData failed: {ex.Message}");
-                throw new InvalidOperationException("取得名單成員資料失敗", ex);
-            }
+            var repository = GetRepository();
+            var rows = ListMembershipOperations.ReadComplete(repository.RetrieveMultiple, MemberQuery(listId), "listmember");
+            return ListMembershipOperations.ProjectMembers(rows, false);
         }
 
-        /// <summary>
-        /// 添加成員到名單
-        /// </summary>
+        /// <summary>保留AddMemberListRequest原生關聯加入，正式名單／成員ID先驗，真正故障向host傳遞原Exception。</summary>
         public void AddMember(Guid listGuid, Guid memberGuid)
         {
-            try
-            {
-                if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID 不可為空", nameof(listGuid));
-
-                if (memberGuid == Guid.Empty)
-                    throw new ArgumentException("Member GUID 不可為空", nameof(memberGuid));
-
-                Trace.WriteLine($"[MarketingListService] Adding member {memberGuid} to list {listGuid}");
-
-                var request = new AddMemberListRequest
-                {
-                    ListId = listGuid,
-                    EntityId = memberGuid
-                };
-
-                _organizationService.Execute(request);
-                Trace.WriteLine($"[MarketingListService] Member added successfully");
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[MarketingListService] AddMember failed: {ex.Message}");
-                throw new InvalidOperationException("添加名單成員失敗", ex);
-            }
+            var sdk = GetService(); ListMembershipOperations.RequireId(listGuid, nameof(listGuid));
+            ListMembershipOperations.RequireId(memberGuid, nameof(memberGuid));
+            sdk.Execute(new AddMemberListRequest { ListId = listGuid, EntityId = memberGuid });
         }
 
-        /// <summary>
-        /// 批次添加成員到名單 (非同步) - Phase 2.3 效能優化
-        /// </summary>
-        public async Task<int> AddMembersAsync(
-            Guid listGuid,
-            List<Guid> memberGuidList,
-            int batchSize = 50,
-            CancellationToken cancellationToken = default)
+        /// <summary>維持每位成員的AddMemberListRequest路徑及預設50；一個串行owner避免同SDK無證明並行，失敗不回部分成功。</summary>
+        public Task<int> AddMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default) =>
+            ListMembershipOperations.Start(GetService(), listGuid, memberGuidList, batchSize, MembershipWrite.AddSingle, 0, cancellationToken);
+
+        /// <summary>保留借入外部SDK及1000人預設，改用同一有界批次owner；caller取消只停後續工作，已入場必drain。</summary>
+        public Task<int> AddMembersUsingSdkAsync(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service,
+            int maxBatchSize = 1000, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID 不可為空", nameof(listGuid));
-
-                if (memberGuidList == null || memberGuidList.Count == 0)
-                    return 0;
-
-                Trace.WriteLine($"[MarketingListService] Adding {memberGuidList.Count} members in batches of {batchSize}");
-
-                int successCount = 0;
-                var batches = memberGuidList
-                    .Select((guid, index) => new { guid, index })
-                    .GroupBy(x => x.index / batchSize)
-                    .Select(g => g.Select(x => x.guid).ToList())
-                    .ToList();
-
-                foreach (var batch in batches)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var tasks = batch.Select(memberGuid =>
-                        Task.Run(() =>
-                        {
-                            try
-                            {
-                                AddMember(listGuid, memberGuid);
-                                return true;
-                            }
-                            catch (Exception ex)
-                            {
-                                Trace.WriteLine($"[MarketingListService] Failed to add member {memberGuid}: {ex.Message}");
-                                return false;
-                            }
-                        }, cancellationToken));
-
-                    var results = await Task.WhenAll(tasks);
-                    successCount += results.Count(r => r);
-                }
-
-                Trace.WriteLine($"[MarketingListService] Successfully added {successCount}/{memberGuidList.Count} members");
-                return successCount;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[MarketingListService] AddMembersAsync failed: {ex.Message}");
-                throw new InvalidOperationException("批次添加名單成員失敗", ex);
-            }
+            GetService(); return ListMembershipOperations.Start(SdkDataQuery.RequireService(service), listGuid, memberGuidList,
+                maxBatchSize, MembershipWrite.AddBulk, 0, cancellationToken);
         }
 
-        /// <summary>
-        /// 使用 SDK 批次添加成員 (最高效) - Phase 2.3 效能優化
-        /// </summary>
-        public async Task<int> AddMembersUsingSdkAsync(
-            Guid listGuid,
-            List<Guid> memberGuidList,
-            IOrganizationService service,
-            int maxBatchSize = 1000,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID 不可為空", nameof(listGuid));
-
-                if (memberGuidList == null || memberGuidList.Count == 0)
-                    return 0;
-
-                Trace.WriteLine($"[MarketingListService] Using SDK batch to add {memberGuidList.Count} members");
-
-                int successCount = 0;
-                var batches = memberGuidList
-                    .Select((guid, index) => new { guid, index })
-                    .GroupBy(x => x.index / maxBatchSize)
-                    .Select(g => g.Select(x => x.guid).ToList())
-                    .ToList();
-
-                foreach (var batch in batches)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    await Task.Run(() =>
-                    {
-                        try
-                        {
-                            var request = new AddListMembersListRequest
-                            {
-                                ListId = listGuid,
-                                MemberIds = batch.ToArray()
-                            };
-
-                            service.Execute(request);
-                            successCount += batch.Count;
-                            Trace.WriteLine($"[MarketingListService] Batch of {batch.Count} members added successfully");
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine($"[MarketingListService] Batch add failed: {ex.Message}");
-                        }
-                    }, cancellationToken);
-                }
-
-                Trace.WriteLine($"[MarketingListService] SDK batch completed. Added {successCount}/{memberGuidList.Count} members");
-                return successCount;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[MarketingListService] AddMembersUsingSdkAsync failed: {ex.Message}");
-                throw new InvalidOperationException("使用 SDK 批次添加名單成員失敗", ex);
-            }
-        }
-
-        /// <summary>
-        /// 移除名單成員
-        /// </summary>
+        /// <summary>保留RemoveMemberListRequest原生關聯移除；不用姓名、查詢再刪除或隱藏retry推定成功。</summary>
         public void RemoveMember(Guid listGuid, Guid memberGuid)
         {
-            try
-            {
-                if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID 不可為空", nameof(listGuid));
-
-                if (memberGuid == Guid.Empty)
-                    throw new ArgumentException("Member GUID 不可為空", nameof(memberGuid));
-
-                Trace.WriteLine($"[MarketingListService] Removing member {memberGuid} from list {listGuid}");
-
-                var request = new RemoveMemberListRequest
-                {
-                    ListId = listGuid,
-                    EntityId = memberGuid
-                };
-
-                _organizationService.Execute(request);
-                Trace.WriteLine($"[MarketingListService] Member removed successfully");
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[MarketingListService] RemoveMember failed: {ex.Message}");
-                throw new InvalidOperationException("移除名單成員失敗", ex);
-            }
+            var sdk = GetService(); ListMembershipOperations.RequireId(listGuid, nameof(listGuid));
+            ListMembershipOperations.RequireId(memberGuid, nameof(memberGuid));
+            sdk.Execute(new RemoveMemberListRequest { ListId = listGuid, EntityId = memberGuid });
         }
 
-        /// <summary>
-        /// 批次移除名單成員 (非同步)
-        /// </summary>
-        public async Task<int> RemoveMembersAsync(
-            Guid listGuid,
-            List<Guid> memberGuidList,
-            int batchSize = 50,
-            CancellationToken cancellationToken = default)
+        /// <summary>保持原每位RemoveMemberListRequest訊息，單一owner串行排空；原例外保留且不再吞錯。</summary>
+        public Task<int> RemoveMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default) =>
+            ListMembershipOperations.Start(GetService(), listGuid, memberGuidList, batchSize, MembershipWrite.RemoveSingle, 0, cancellationToken);
+
+        /// <summary>建立操作自有的原query，沒有額外statecode或新排序；非空正式ID不取代host授權。</summary>
+        private static QueryExpression MemberQuery(Guid listId)
         {
-            try
-            {
-                if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID 不可為空", nameof(listGuid));
-
-                if (memberGuidList == null || memberGuidList.Count == 0)
-                    return 0;
-
-                Trace.WriteLine($"[MarketingListService] Removing {memberGuidList.Count} members in batches of {batchSize}");
-
-                int successCount = 0;
-                var batches = memberGuidList
-                    .Select((guid, index) => new { guid, index })
-                    .GroupBy(x => x.index / batchSize)
-                    .Select(g => g.Select(x => x.guid).ToList())
-                    .ToList();
-
-                foreach (var batch in batches)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var tasks = batch.Select(memberGuid =>
-                        Task.Run(() =>
-                        {
-                            try
-                            {
-                                RemoveMember(listGuid, memberGuid);
-                                return true;
-                            }
-                            catch (Exception ex)
-                            {
-                                Trace.WriteLine($"[MarketingListService] Failed to remove member {memberGuid}: {ex.Message}");
-                                return false;
-                            }
-                        }, cancellationToken));
-
-                    var results = await Task.WhenAll(tasks);
-                    successCount += results.Count(r => r);
-                }
-
-                Trace.WriteLine($"[MarketingListService] Successfully removed {successCount}/{memberGuidList.Count} members");
-                return successCount;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[MarketingListService] RemoveMembersAsync failed: {ex.Message}");
-                throw new InvalidOperationException("批次移除名單成員失敗", ex);
-            }
+            ListMembershipOperations.RequireId(listId, nameof(listId));
+            var query = new QueryExpression("listmember") { ColumnSet = new ColumnSet(true) };
+            query.Criteria.AddCondition("listid", ConditionOperator.Equal, listId); return query;
         }
+
+        /// <summary>取得局部借用repository；Dispose拒新工作，不把ObjectDisposed包成假資料查無。</summary>
+        private IEntityRepository GetRepository()
+        {
+            var repository = Volatile.Read(ref _repository); ThrowIfDisposed();
+            return repository ?? throw new ObjectDisposedException(nameof(MarketingListService));
+        }
+
+        /// <summary>取得局部SDK供完整操作drain；不在Task closure保存服務本身。</summary>
+        private IOrganizationService GetService()
+        {
+            var sdk = Volatile.Read(ref _organizationService); ThrowIfDisposed();
+            return sdk ?? throw new ObjectDisposedException(nameof(MarketingListService));
+        }
+
+        /// <summary>統一新入口拒絕判斷；Framework與net10遵守同一生命週期且不降低strict分析器。</summary>
+        private void ThrowIfDisposed()
+        {
+#if NETFRAMEWORK
+            if (Volatile.Read(ref _disposed) != 0) throw new ObjectDisposedException(nameof(MarketingListService));
+#else
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+#endif
+        }
+
+        /// <summary>冪等解除兩個借用參照；不處置外部repository／SDK，已開始操作須由host排空。</summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) == 0)
+            { Interlocked.Exchange(ref _repository, null); Interlocked.Exchange(ref _organizationService, null); }
+        }
+
+        /// <summary>停止新工作並釋放本物件的強參照；沒有cache、timer或終結器。</summary>
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
     }
 }

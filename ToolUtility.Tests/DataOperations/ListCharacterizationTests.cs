@@ -1,4 +1,3 @@
-#if NET10_0
 using System.Collections;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
@@ -226,4 +225,3 @@ namespace ToolUtility.Tests.DataOperations
         internal static readonly Guid SecondId = ContactCharacterizationTests.SecondId;
     }
 }
-#endif

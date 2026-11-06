@@ -1,619 +1,238 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/ListOperations/ListService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class ListService
-// 主要成員：AddMembers、AddMembersUsingSdk、RemoveMember、RemoveMemberUsingSdk、RetrieveMemberListCollectionByListId、RetrieveMemberListCollectionByListIdUsingService、RetrieveMemberListCollectionByListIdUsingProxy、RetrieveDynamicMemberList、RetrieveDynamicMemberListUsingService、RetrieveDynamicMemberListUsingProxy
-// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading、System.Threading.Tasks、ToolUtilityNameSpace.EntityOperations、ToolUtilityNameSpace.ListOperations、ToolUtilityNameSpace.Interfaces
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+#nullable enable
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ToolUtilityNameSpace.EntityOperations;
-using ToolUtilityNameSpace.ListOperations;
-using ToolUtilityNameSpace.Interfaces;
+using System.Xml.Linq;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
-using System.Collections;
-using System.Collections.Concurrent;
-using Microsoft.Xrm.Sdk.Client;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Crm.Sdk.Messages;
+using ToolUtilityNameSpace.DataOperations;
 
 namespace ToolUtilityNameSpace.ListOperations
 {
-    public class ListService : IListService
+    /// <summary>
+    /// 名單的純SDK資料服務；沿用原二十個入口、查詢投影、降冪及不同成員來源，不引用host連線或logger。
+    /// host必須先驗使用者／租戶／教會及名單權限；任何ID、顯示名稱或儲存Fetch都不是授權來源。
+    /// 單頁最多5000列，完整成員讀取最多5000列／1000頁；全部正式身份通過才回操作自有候選。
+    /// </summary>
+    /// <remarks>
+    /// 不保存logger、結果、credential或request。批次只建立一個有界且必須await的owner工作，無逐列Task或隱藏重試。
+    /// Dispose拒新入口並清借用SDK；已入場工作使用局部參照至drain，host須先await/drain再關連線。
+    /// 寫入沿用CRM原生名單成員訊息，由資料庫關聯唯一性控制；已完成批次不會因後續故障或取消回復。
+    /// </remarks>
+    public class ListService : IListService, IDisposable
     {
-        private readonly object _logger;
-        private readonly IOrganizationService _organizationService;
+        private IOrganizationService? _organizationService;
+        private int _disposed;
+        private static readonly ReadOnlyCollection<string> ListFields = Array.AsReadOnly(new[]
+            { "listname", "createdfromcode", "lastusedon", "purpose", "listid" });
+        private static readonly ReadOnlyCollection<string> SmallFields = Array.AsReadOnly(new[]
+            { "listname", "createdfromcode", "lastusedon", "purpose", "new_contact_race_leager_list", "new_contact_family_leader_list", "listid" });
+        private static readonly string Purpose = LegacyValue("List.Query.Purpose");
+        private static readonly string ExitPattern = LegacyValue("List.Query.ExitPattern");
 
-        #region 靜態 FetchXml 查詢常數 (避免每次呼叫重新配置字串)
-
-        /// <summary>
-        /// 查詢所有啟用中的小組名單 (含 App 標記)
-        /// </summary>
-        private const string FetchXmlRetrieveLists = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='list'>
-                        <attribute name='listname' />
-                        <attribute name='createdfromcode' />
-                        <attribute name='lastusedon' />
-                        <attribute name='purpose' />
-                        <attribute name='listid' />
-                        <order attribute='listname' descending='true' />
-                        <filter type='and'>
-                          <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='小組名單' />
-                          <condition attribute='new_app_named' operator='eq' value='1' />
-                        </filter>
-                      </entity>
-                    </fetch>";
-
-        /// <summary>
-        /// 查詢所有小組名單 (排除已退出的名單，含族群領袖與家長欄位)
-        /// </summary>
-        private const string FetchXmlRetrieveSmallGroupLists = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='list'>
-                        <attribute name='listname' />
-                        <attribute name='createdfromcode' />
-                        <attribute name='lastusedon' />
-                        <attribute name='purpose' />
-                        <attribute name='new_contact_race_leager_list' />
-                        <attribute name='new_contact_family_leader_list' />
-                        <attribute name='listid' />
-                        <order attribute='listname' descending='true' />
-                        <filter type='and'>
-                          <condition attribute='new_app_named' operator='eq' value='1' />
-                          <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='小組名單' />
-                          <condition attribute='listname' operator='not-like' value='%退出%' />
-                        </filter>
-                      </entity>
-                    </fetch>";
-
-        #endregion
-
+        /// <summary>保留必填logger的來源契約但不保存；SDK只借用同一已授權scope，不取得Dispose所有權。</summary>
+        /// <param name="logger">舊診斷參數，不保存、不反射或處置。</param>
+        /// <param name="organizationService">host擁有的SDK；不得跨不相容使用者／租戶共用本服務。</param>
         public ListService(object logger, IOrganizationService organizationService)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
+#if NETFRAMEWORK
+            if (logger == null) throw new ArgumentNullException(nameof(logger));
+#else
+            ArgumentNullException.ThrowIfNull(logger);
+#endif
+            _organizationService = SdkDataQuery.RequireService(organizationService);
         }
 
-        #region 同步方法 (向下相容)
+        /// <summary>沿用單次AddListMembersListRequest；完整驗證至多5000個唯一正式成員再送，不以重複輸入灌成功數。</summary>
+        public void AddMembers(Guid listGuid, List<Guid> memberGuidList) => Add(GetService(), listGuid, memberGuidList);
 
-        /// <summary>
-        /// 批次新增多個成員到行銷名單
-        /// 使用 AddListMembersListRequest 單次 CRM 呼叫完成，
-        /// 避免逐一新增的 N 次往返延遲 (效能提升: N 次 → 1 次 CRM 呼叫)
-        /// </summary>
-        public void AddMembers(Guid listGuid, List<Guid> memberGuidList)
-        {
-            if (memberGuidList == null || memberGuidList.Count == 0) return;
-
-            // 使用 CRM SDK 批次 API，一次呼叫即可新增所有成員
-            var request = new AddListMembersListRequest
-            {
-                ListId = listGuid,
-                MemberIds = memberGuidList.ToArray()
-            };
-            _organizationService.Execute(request);
-        }
-
-        /// <summary>
-        /// 使用 CRM SDK AddListMembersListRequest 批次新增多個成員到名單
-        /// </summary>
+        /// <summary>使用明確借入SDK送原生批次，外部連線不處置；只發布成功／例外，不吞錯或保存輸入。</summary>
         public void AddMembersUsingSdk(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service)
-        {
-            if (memberGuidList == null || memberGuidList.Count == 0) return;
+        { GetService(); Add(SdkDataQuery.RequireService(service), listGuid, memberGuidList); }
 
-            try
-            {
-                var request = new AddListMembersListRequest
-                {
-                    ListId = listGuid,
-                    MemberIds = memberGuidList.ToArray()
-                };
-                service.Execute(request);
-            }
-            catch (Exception ex)
-            {
-                // Log error and potentially fall back to individual adds
-                throw new InvalidOperationException($"Failed to add members to list {listGuid}", ex);
-            }
-        }
+        /// <summary>以原生RemoveMemberListRequest移除一個已授權關係；不先查再Delete，無自動重試。</summary>
+        public void RemoveMember(Guid listGuid, Guid memberGuid) => Remove(GetService(), listGuid, memberGuid);
 
-        /// <summary>
-        /// 從行銷名單移除單一成員
-        /// 使用 RemoveMemberListRequest 單次 CRM 呼叫完成，
-        /// 取代查詢再刪除的兩步驟操作 (效能提升: 2+ 次 → 1 次 CRM 呼叫)
-        /// </summary>
-        public void RemoveMember(Guid listGuid, Guid memberGuid)
-        {
-            // 直接使用 CRM SDK RemoveMemberListRequest，無需先查詢再刪除
-            var request = new RemoveMemberListRequest
-            {
-                ListId = listGuid,
-                EntityId = memberGuid
-            };
-            _organizationService.Execute(request);
-        }
-
-        /// <summary>
-        /// 使用 CRM SDK RemoveMemberListRequest 從行銷名單移除成員
-        /// </summary>
+        /// <summary>保留外部SDK入口；只移除指定正式關係，故障原樣傳給最終host共用告警。</summary>
         public void RemoveMemberUsingSdk(Guid listGuid, Guid memberGuid, IOrganizationService service)
-        {
-            try
-            {
-                var request = new RemoveMemberListRequest
-                {
-                    ListId = listGuid,
-                    EntityId = memberGuid
-                };
-                service.Execute(request);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to remove member {memberGuid} from list {listGuid}", ex);
-            }
-        }
+        { GetService(); Remove(SdkDataQuery.RequireService(service), listGuid, memberGuid); }
 
-        /// <summary>
-        /// 根據名單 ID 取得靜態名單成員清單 (使用內部 CRM 服務)
-        /// </summary>
-        public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
-            => RetrieveMemberListCore(_organizationService, listId);
+        /// <summary>保留原QueryByAttribute與三欄投影，單頁metadata不改；5000列與全部正式listmember身份先驗後回。</summary>
+        public EntityCollection RetrieveMemberListCollectionByListId(Guid listId) => Members(GetService(), listId);
 
-        /// <summary>
-        /// 根據名單 ID 取得靜態名單成員清單 (使用外部 CRM 服務)
-        /// </summary>
-        public EntityCollection RetrieveMemberListCollectionByListIdUsingService(IOrganizationService externalService, Guid listId)
-            => externalService == null ? new EntityCollection() : RetrieveMemberListCore(externalService, listId);
+        /// <summary>沿用external null回空集合；非null只借用該scope SDK，不回退內部連線而跨scope讀取。</summary>
+        public EntityCollection RetrieveMemberListCollectionByListIdUsingService(IOrganizationService? externalService, Guid listId)
+        { GetService(); return externalService == null ? new EntityCollection() : Members(externalService, listId); }
 
-        /// <summary>
-        /// 根據名單 ID 取得靜態名單成員清單 (使用外部 Proxy 服務)
-        /// </summary>
-        public EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(IOrganizationService externalProxy, Guid listId)
-            => externalProxy == null ? new EntityCollection() : RetrieveMemberListCore(externalProxy, listId);
+        /// <summary>保留Proxy命名及IOrganizationService參數，不接觸Proxy的host屬性；null語義與Service入口相同。</summary>
+        public EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(IOrganizationService? externalService, Guid listId) =>
+            RetrieveMemberListCollectionByListIdUsingService(externalService, listId);
 
-        /// <summary>
-        /// 取得動態名單成員清單 (使用內部 CRM 服務)
-        /// 動態名單透過 FetchXml 查詢條件即時計算成員
-        /// </summary>
-        public EntityCollection RetrieveDynamicMemberList(Guid listId)
-            => RetrieveDynamicMemberListCore(_organizationService, listId);
+        /// <summary>先驗list根表／ID及儲存Fetch，再由同SDK RetrieveMultiple；單頁metadata原樣，無cache。</summary>
+        public EntityCollection RetrieveDynamicMemberList(Guid listId) => Dynamic(GetService(), listId, false);
 
-        /// <summary>
-        /// 取得動態名單成員清單 (使用外部 CRM 服務)
-        /// </summary>
-        public EntityCollection RetrieveDynamicMemberListUsingService(IOrganizationService externalService, Guid listId)
-            => externalService == null ? new EntityCollection() : RetrieveDynamicMemberListCore(externalService, listId);
+        /// <summary>明確外部SDK承擔整次動態查詢，null仍回空，不把儲存Fetch文字當授權。</summary>
+        public EntityCollection RetrieveDynamicMemberListUsingService(IOrganizationService? externalService, Guid listId)
+        { GetService(); return externalService == null ? new EntityCollection() : Dynamic(externalService, listId, false); }
 
-        /// <summary>
-        /// 取得動態名單成員清單 (使用外部 Proxy 服務)
-        /// </summary>
-        public EntityCollection RetrieveDynamicMemberListUsingProxy(IOrganizationService externalProxy, Guid listId)
-            => externalProxy == null ? new EntityCollection() : RetrieveDynamicMemberListCore(externalProxy, listId);
+        /// <summary>保留Proxy相容入口並委派唯一動態讀取實作；不建立、重設或關閉任何連線。</summary>
+        public EntityCollection RetrieveDynamicMemberListUsingProxy(IOrganizationService? externalService, Guid listId) =>
+            RetrieveDynamicMemberListUsingService(externalService, listId);
 
-        /// <summary>
-        /// 根據連絡人 ID 查詢其所屬的名單 (listmember)
-        /// </summary>
+        /// <summary>保留listmember根表、AllColumns及唯一entityid條件；associationName原未用，不偷偷新增不同查詢語義。</summary>
         public EntityCollection QueryListByContactId(Guid contactId, string associationName)
         {
-            // associationName (e.g., "contact_list") could be used to build fetch; simplified placeholder
-            var query = new QueryExpression("listmember")
-            {
-                ColumnSet = new ColumnSet(true)
-            };
+            var sdk = GetService(); ListMembershipOperations.RequireId(contactId, nameof(contactId));
+            var query = new QueryExpression("listmember") { ColumnSet = new ColumnSet(true) };
             query.Criteria.AddCondition("entityid", ConditionOperator.Equal, contactId);
-            return _organizationService.RetrieveMultiple(query);
+            return Page(sdk, query, "listmember");
         }
 
         /// <summary>
-        /// 取得名單中所有成員的 ContactId 清單
-        /// 自動判斷靜態/動態名單並使用對應的查詢方式
+        /// 依原type判斷靜態／動態，完整續讀後才投影正式成員GUID；單頁API不被冒稱全名單。
+        /// 靜態entityid接受正式EntityReference，動態contactid須等於row.Id；缺欄／空／重複成員拒絕整份ArrayList。
         /// </summary>
         public ArrayList GetAllMemberDataFromList(Guid listEntityId)
         {
-            // 取得名單實體以判斷是靜態或動態名單
-            var listEntity = _organizationService.Retrieve("list", listEntityId, new ColumnSet("type", "query"));
-            if (listEntity == null) return new ArrayList();
-
-            // type = false 表示靜態名單，type = true 表示動態名單
-            bool isStaticList = false;
-            if (listEntity.Attributes.Contains("type"))
-            {
-                isStaticList = !listEntity.GetAttributeValue<bool>("type");
-            }
-
-            EntityCollection memberCollection;
-            if (isStaticList)
-            {
-                // 靜態名單: 查詢 listmember 實體取得成員
-                memberCollection = RetrieveMemberListCollectionByListId(listEntityId);
-
-                // 預先配置 ArrayList 容量，避免動態擴容的記憶體重新配置成本
-                var members = new ArrayList(memberCollection.Entities.Count);
-                foreach (Entity memberEntity in memberCollection.Entities)
-                {
-                    if (memberEntity.Attributes.Contains("entityid"))
-                    {
-                        var entityRef = (EntityReference)memberEntity.Attributes["entityid"];
-                        members.Add(entityRef.Id);
-                    }
-                }
-                return members;
-            }
-            else
-            {
-                // 動態名單: 使用名單儲存的 FetchXml 查詢條件即時計算成員
-                memberCollection = RetrieveDynamicMemberListCore(_organizationService, listEntityId);
-
-                // 預先配置 ArrayList 容量
-                var members = new ArrayList(memberCollection.Entities.Count);
-                foreach (Entity memberEntity in memberCollection.Entities)
-                {
-                    if (memberEntity.Attributes.Contains("contactid"))
-                    {
-                        members.Add((Guid)memberEntity.Attributes["contactid"]);
-                    }
-                }
-                return members;
-            }
+            var sdk = GetService();
+            var list = ListMembershipOperations.ReadList(sdk, listEntityId, new ColumnSet("type", "query"));
+            var dynamic = true;
+            if (list.Attributes.TryGetValue("type", out var kind))
+                dynamic = kind is bool flag ? flag : throw new InvalidOperationException("The SDK returned invalid list metadata.");
+            var rows = dynamic ? Dynamic(sdk, listEntityId, true)
+                : ListMembershipOperations.ReadComplete(sdk.RetrieveMultiple, MemberQuery(listEntityId), "listmember");
+            return ListMembershipOperations.ProjectMembers(rows, dynamic);
         }
 
-        /// <summary>
-        /// 取得所有啟用中的小組名單 (含 App 標記)
-        /// </summary>
+        /// <summary>保留statuscode=0、purpose、App條件及listname降冪；不加入原本沒有的statecode。</summary>
         public EntityCollection RetrieveLists()
-            => _organizationService.RetrieveMultiple(new FetchExpression(FetchXmlRetrieveLists));
-
-        /// <summary>
-        /// 取得所有小組名單 (排除已退出的名單，含族群領袖與家長欄位)
-        /// </summary>
-        public EntityCollection RetrieveSmallGroupLists()
-            => _organizationService.RetrieveMultiple(new FetchExpression(FetchXmlRetrieveSmallGroupLists));
-
-        /// <summary>
-        /// 根據名單名稱查詢名單實體
-        /// </summary>
-        public Entity RetrieveListEntityByName(string listName)
         {
-            var query = new QueryByAttribute("list") { ColumnSet = new ColumnSet("listmemberid", "entityid", "listid") };
-            query.Attributes.AddRange("listname", "statecode");
-            query.Values.AddRange(listName, 0);
-            var coll = _organizationService.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
+            var sdk = GetService(); var entity = SdkDataQuery.Entity("list", ListFields, "listname", true);
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Condition("statuscode", "eq", "0"),
+                SdkDataQuery.Condition("purpose", "eq", Purpose), SdkDataQuery.Condition("new_app_named", "eq", "1")));
+            return SdkDataQuery.Run(sdk, entity);
         }
 
-        /// <summary>
-        /// 根據連絡人查詢所屬的名單
-        /// </summary>
+        /// <summary>保留兩個leader欄位及原「退出」排除謂詞，不借用另一Fetch服務的不同「測試」條件或排序。</summary>
+        public EntityCollection RetrieveSmallGroupLists()
+        {
+            var sdk = GetService(); var entity = SdkDataQuery.Entity("list", SmallFields, "listname", true);
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Condition("new_app_named", "eq", "1"),
+                SdkDataQuery.Condition("statuscode", "eq", "0"), SdkDataQuery.Condition("purpose", "eq", Purpose),
+                SdkDataQuery.Condition("listname", "not-like", ExitPattern)));
+            return SdkDataQuery.Run(sdk, entity);
+        }
+
+        /// <summary>保持原QueryByAttribute三欄及name/statecode條件；整頁先驗身份，再回舊第一筆／null，姓名非唯一鍵。</summary>
+        public Entity? RetrieveListEntityByName(string listName)
+        {
+            var sdk = GetService();
+            var query = new QueryByAttribute("list") { ColumnSet = new ColumnSet("listmemberid", "entityid", "listid") };
+            query.Attributes.AddRange("listname", "statecode"); query.Values.AddRange(listName, 0);
+            var page = Page(sdk, query, "list"); return page.Entities.Count == 0 ? null : page.Entities[0];
+        }
+
+        /// <summary>保留distinct=true、兩層listmember/contact link及原姓名條件；姓名只進XAttribute並安全XML編碼。</summary>
         public EntityCollection RetrieveListByContact(string contactName)
         {
-            contactName = $"'{contactName}'";
-            var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
-                          <entity name='list'>
-                            <attribute name='listname' />
-                            <attribute name='createdfromcode' />
-                            <attribute name='lastusedon' />
-                            <attribute name='purpose' />
-                            <attribute name='listid' />
-                            <order attribute='listname' descending='true' />
-                            <filter type='and'>
-                              <condition attribute='new_app_named' operator='eq' value='1' />
-                              <condition attribute='purpose' operator='eq' value='小組名單' />
-                            </filter>
-                            <link-entity name='listmember' from='listid' to='listid' visible='false' intersect='true'>
-                              <link-entity name='contact' from='contactid' to='entityid' alias='af'>
-                                <filter type='and'>
-                                  <condition attribute='fullname' operator='eq' value={contactName} />
-                                </filter>
-                              </link-entity>
-                            </link-entity>
-                          </entity>
-                        </fetch>";
-
-            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
+            var sdk = GetService(); var entity = SdkDataQuery.Entity("list", ListFields, "listname", true);
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Condition("new_app_named", "eq", "1"), SdkDataQuery.Condition("purpose", "eq", Purpose)),
+                new XElement("link-entity", new XAttribute("name", "listmember"), new XAttribute("from", "listid"), new XAttribute("to", "listid"),
+                    new XAttribute("visible", "false"), new XAttribute("intersect", "true"),
+                    new XElement("link-entity", new XAttribute("name", "contact"), new XAttribute("from", "contactid"), new XAttribute("to", "entityid"),
+                        new XAttribute("alias", "af"), SdkDataQuery.Filter(SdkDataQuery.Condition("fullname", "eq", contactName)))));
+            return SdkDataQuery.Run(sdk, entity, distinct: true);
         }
 
-        /// <summary>
-        /// 根據競賽領袖查詢名單
-        /// </summary>
+        /// <summary>保持原leader lookup且不加App/statecode；ID非空GUID與uiname XML編碼，名稱不建立授權。</summary>
         public EntityCollection RetrieveListByRacerLeader(string contactName, string contactId)
         {
-            contactName = $"'{contactName}'";
-            contactId = $"'{{{contactId}}}'";
-
-            var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='list'>
-                        <attribute name='listname' />
-                        <attribute name='createdfromcode' />
-                        <attribute name='lastusedon' />
-                        <attribute name='purpose' />
-                        <attribute name='listid' />
-                        <order attribute='listname' descending='true' />
-                        <filter type='and'>
-                            <condition attribute='new_contact_race_leager_list' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
-                        </filter>
-                      </entity>
-                    </fetch>";
-
-            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
+            var sdk = GetService(); var entity = SdkDataQuery.Entity("list", ListFields, "listname", true);
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Lookup("new_contact_race_leager_list", contactName, "contact", contactId)));
+            return SdkDataQuery.Run(sdk, entity);
         }
 
-        #endregion
+        /// <summary>預設50人；一次有界owner串行送原生批次，保留100ms批間節流，故障立即停止後批並await排空。</summary>
+        public Task<int> AddMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default) =>
+            ListMembershipOperations.Start(GetService(), listGuid, memberGuidList, batchSize, MembershipWrite.AddBulk, 100, cancellationToken);
 
-        #region 非同步批量操作 (Phase 2.3 - 效能優化)
+        /// <summary>沿用ExecuteMultiple、ContinueOnError與ReturnResponses=false；仍逐Fault檢查，不能把失敗批次算成功。</summary>
+        public Task<int> RemoveMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default) =>
+            ListMembershipOperations.Start(GetService(), listGuid, memberGuidList, batchSize, MembershipWrite.RemoveBulk, 100, cancellationToken);
 
-        /// <summary>
-        /// 批量添加成員到名單 (非同步)
-        /// 使用 AddListMembersListRequest 批次 API，每批次僅需 1 次 CRM 呼叫
-        /// 效能提升: N 次個別呼叫 → ceil(N/batchSize) 次批次呼叫
-        /// </summary>
-        /// <param name="listGuid">名單 ID</param>
-        /// <param name="memberGuidList">成員 ID 列表</param>
-        /// <param name="batchSize">每批次成員數 (預設 50)</param>
-        /// <param name="cancellationToken">取消標記</param>
-        /// <returns>成功添加的成員數</returns>
-        public async Task<int> AddMembersAsync(
-            Guid listGuid,
-            List<Guid> memberGuidList,
-            int batchSize = 50,
-            CancellationToken cancellationToken = default)
+        /// <summary>借用指定SDK，保留1000人預設及200ms批間節流；完整輸入snapshot驗完才排程，caller取消不代表rollback。</summary>
+        public Task<int> AddMembersUsingSdkAsync(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service,
+            int maxBatchSize = 1000, CancellationToken cancellationToken = default)
         {
-            if (memberGuidList == null || memberGuidList.Count == 0)
-                return 0;
-
-            int successCount = 0;
-            // ConcurrentBag 確保平行寫入的執行緒安全
-            var exceptions = new ConcurrentBag<Exception>();
-
-            try
-            {
-                // 預先具體化為 List，避免 IEnumerable 重複列舉
-                var batches = ChunkList(memberGuidList, batchSize).ToList();
-
-                foreach (var batch in batches)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        // 使用 CRM SDK 批次 API，每批僅 1 次 CRM 呼叫
-                        await Task.Run(() =>
-                        {
-                            var request = new AddListMembersListRequest
-                            {
-                                ListId = listGuid,
-                                MemberIds = batch.ToArray()
-                            };
-                            _organizationService.Execute(request);
-                        }, cancellationToken).ConfigureAwait(false);
-
-                        successCount += batch.Count;
-                    }
-                    catch (OperationCanceledException) { throw; }
-                    catch (Exception ex)
-                    {
-                        exceptions.Add(new InvalidOperationException(
-                            $"Failed to add batch of {batch.Count} members to list {listGuid}", ex));
-                    }
-
-                    // 批次間短暫延遲，避免對 CRM 伺服器造成過大壓力
-                    if (batches.Count > 1)
-                        await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-                }
-
-                return successCount;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to add members to list {listGuid}. Succeeded: {successCount}/{memberGuidList.Count}",
-                    ex);
-            }
+            GetService(); return ListMembershipOperations.Start(SdkDataQuery.RequireService(service), listGuid, memberGuidList,
+                maxBatchSize, MembershipWrite.AddBulk, 200, cancellationToken);
         }
 
-        /// <summary>
-        /// 批量移除名單成員 (非同步)
-        /// 使用 ExecuteMultipleRequest 將同一批次的移除請求合併為單次 CRM 呼叫
-        /// 效能提升: N 次個別呼叫 → ceil(N/batchSize) 次批次呼叫
-        /// </summary>
-        public async Task<int> RemoveMembersAsync(
-            Guid listGuid,
-            List<Guid> memberGuidList,
-            int batchSize = 50,
-            CancellationToken cancellationToken = default)
+        /// <summary>單筆原生新增訊息；只讀caller輸入的局部snapshot，不保存可變List。</summary>
+        private static void Add(IOrganizationService sdk, Guid listId, List<Guid> input)
         {
-            if (memberGuidList == null || memberGuidList.Count == 0)
-                return 0;
-
-            int successCount = 0;
-            // ConcurrentBag 確保平行寫入的執行緒安全
-            var exceptions = new ConcurrentBag<Exception>();
-
-            try
-            {
-                // 預先具體化為 List，避免 IEnumerable 重複列舉
-                var batches = ChunkList(memberGuidList, batchSize).ToList();
-
-                foreach (var batch in batches)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        // 使用 ExecuteMultipleRequest 將同批次的移除請求合併為單次 CRM 往返
-                        await Task.Run(() =>
-                        {
-                            var multiRequest = new ExecuteMultipleRequest
-                            {
-                                Settings = new ExecuteMultipleSettings
-                                {
-                                    ContinueOnError = true,  // 單筆失敗不影響其他
-                                    ReturnResponses = false  // 不需要回傳結果，節省傳輸量
-                                },
-                                Requests = new OrganizationRequestCollection()
-                            };
-
-                            foreach (var memberId in batch)
-                            {
-                                multiRequest.Requests.Add(new RemoveMemberListRequest
-                                {
-                                    ListId = listGuid,
-                                    EntityId = memberId
-                                });
-                            }
-
-                            _organizationService.Execute(multiRequest);
-                        }, cancellationToken).ConfigureAwait(false);
-
-                        successCount += batch.Count;
-                    }
-                    catch (OperationCanceledException) { throw; }
-                    catch (Exception ex)
-                    {
-                        exceptions.Add(new InvalidOperationException(
-                            $"Failed to remove batch of {batch.Count} members from list {listGuid}", ex));
-                    }
-
-                    // 批次間短暫延遲，避免對 CRM 伺服器造成過大壓力
-                    if (batches.Count > 1)
-                        await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-                }
-
-                return successCount;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to remove members from list {listGuid}. Succeeded: {successCount}/{memberGuidList.Count}",
-                    ex);
-            }
+            var ids = ListMembershipOperations.Snapshot(listId, input);
+            if (ids.Length != 0) sdk.Execute(new AddListMembersListRequest { ListId = listId, MemberIds = ids });
         }
 
-        /// <summary>
-        /// 使用 CRM SDK AddListMembersListRequest 批次新增成員 (非同步)
-        /// 這是最高效的方式: CRM API 原生支援批次操作，單次呼叫可新增多達 1000 個成員
-        /// </summary>
-        /// <param name="listGuid">名單 ID</param>
-        /// <param name="memberGuidList">成員 ID 列表</param>
-        /// <param name="service">外部 CRM 服務實例</param>
-        /// <param name="maxBatchSize">最大批次大小 (CRM API 限制，預設 1000)</param>
-        /// <param name="cancellationToken">取消標記</param>
-        /// <returns>成功添加的成員數</returns>
-        public async Task<int> AddMembersUsingSdkAsync(
-            Guid listGuid,
-            List<Guid> memberGuidList,
-            IOrganizationService service,
-            int maxBatchSize = 1000,
-            CancellationToken cancellationToken = default)
+        /// <summary>沿用原生移除語義與例外；不以模糊失敗重試可能已提交的寫入。</summary>
+        private static void Remove(IOrganizationService sdk, Guid listId, Guid memberId)
         {
-            if (memberGuidList == null || memberGuidList.Count == 0)
-                return 0;
-
-            if (service == null)
-                throw new ArgumentNullException(nameof(service));
-
-            int successCount = 0;
-
-            try
-            {
-                // 預先具體化為 List，避免 yield return 的 IEnumerable 被重複列舉
-                var batches = ChunkList(memberGuidList, maxBatchSize).ToList();
-
-                foreach (var batch in batches)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // 使用 CRM SDK 批次 API，單次呼叫新增整批成員
-                    await Task.Run(() =>
-                    {
-                        var request = new AddListMembersListRequest
-                        {
-                            ListId = listGuid,
-                            MemberIds = batch.ToArray()
-                        };
-                        service.Execute(request);
-                    }, cancellationToken).ConfigureAwait(false);
-
-                    successCount += batch.Count;
-
-                    // 批次間延遲，避免 CRM 伺服器過載
-                    if (batches.Count > 1)
-                    {
-                        await Task.Delay(200, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-
-                return successCount;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to add members to list {listGuid} using SDK. Succeeded: {successCount}/{memberGuidList.Count}",
-                    ex);
-            }
+            ListMembershipOperations.RequireId(listId, nameof(listId)); ListMembershipOperations.RequireId(memberId, nameof(memberId));
+            sdk.Execute(new RemoveMemberListRequest { ListId = listId, EntityId = memberId });
         }
 
-        /// <summary>
-        /// 輔助方法: 將列表依指定大小分批
-        /// 使用 GetRange 直接存取子範圍，避免 Skip/Take 的重複遍歷開銷
-        /// </summary>
-        private static IEnumerable<List<T>> ChunkList<T>(List<T> source, int chunkSize)
+        /// <summary>三個靜態入口共用原單頁query，欄位／條件順序及metadata不改。</summary>
+        private static EntityCollection Members(IOrganizationService sdk, Guid id) => Page(sdk, MemberQuery(id), "listmember");
+
+        /// <summary>建立每次獨有的三欄QueryByAttribute，不共用可變ColumnSet或PageInfo。</summary>
+        private static QueryByAttribute MemberQuery(Guid id)
         {
-            for (int i = 0; i < source.Count; i += chunkSize)
-                yield return source.GetRange(i, Math.Min(chunkSize, source.Count - i));
+            ListMembershipOperations.RequireId(id, nameof(id));
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet("listmemberid", "entityid", "listid") };
+            query.AddAttributeValue("listid", id); return query;
         }
 
-        /// <summary>
-        /// 共用私有方法: 根據名單 ID 查詢靜態名單成員
-        /// 消除 RetrieveMemberListCollectionByListId / UsingService / UsingProxy 三個方法的重複程式碼
-        /// </summary>
-        private static EntityCollection RetrieveMemberListCore(IOrganizationService service, Guid listId)
+        /// <summary>只在局部使用儲存Fetch，安全解析根且核對list身份；完整投影另用有界續頁，不能回部分結果。</summary>
+        private static EntityCollection Dynamic(IOrganizationService sdk, Guid id, bool complete)
         {
-            var query = new QueryByAttribute("listmember")
-            {
-                ColumnSet = new ColumnSet("listmemberid", "entityid", "listid")
-            };
-            query.AddAttributeValue("listid", listId);
-            return service.RetrieveMultiple(query);
+            var list = ListMembershipOperations.ReadList(sdk, id, new ColumnSet("query"));
+            if (!list.Attributes.TryGetValue("query", out var value) || value is not string xml)
+                throw new InvalidOperationException("The dynamic list has no valid query.");
+            var table = SdkDataQuery.ExpectedFetchEntity(xml, nameof(id));
+            var query = new FetchExpression(xml);
+            return complete ? ListMembershipOperations.ReadComplete(sdk.RetrieveMultiple, query, table) : Page(sdk, query, table);
         }
 
-        /// <summary>
-        /// 共用私有方法: 根據名單 ID 查詢動態名單成員
-        /// 動態名單將儲存的 FetchXml 查詢條件作為即時篩選
-        /// 消除 RetrieveDynamicMemberList / UsingService / UsingProxy 三個方法的重複程式碼
-        /// </summary>
-        private static EntityCollection RetrieveDynamicMemberListCore(IOrganizationService service, Guid listId)
+        /// <summary>拒絕null、錯表、空／重複ID及超量後回原單頁；不同ID的同名記錄完整保留。</summary>
+        private static EntityCollection Page(IOrganizationService sdk, QueryBase query, string table) =>
+            SdkDataQuery.ValidatePage(sdk.RetrieveMultiple(query), table, 5000);
+
+        /// <summary>中立resx的資料庫固定謂詞只取一次不可變字串，不能隨UI語系翻譯而擴張／改變業務查詢。</summary>
+        private static string LegacyValue(string key) => ListQueryLegacyData.Rows.Single(row => string.Equals(row[0], key, StringComparison.Ordinal))[1]!;
+
+        /// <summary>Dispose與新入口的線性化界線；已入場者持局部SDK至drain，不能處置借入連線。</summary>
+        private IOrganizationService GetService()
         {
-            var listEntity = service.Retrieve("list", listId, new ColumnSet("query"));
-            if (listEntity == null || !listEntity.Attributes.Contains("query"))
-                return new EntityCollection();
-
-            var fetchXml = listEntity.GetAttributeValue<string>("query");
-            return service.RetrieveMultiple(new FetchExpression(fetchXml));
+            var sdk = Volatile.Read(ref _organizationService);
+#if NETFRAMEWORK
+            if (Volatile.Read(ref _disposed) != 0) throw new ObjectDisposedException(nameof(ListService));
+#else
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+#endif
+            return sdk ?? throw new ObjectDisposedException(nameof(ListService));
         }
 
-        #endregion
+        /// <summary>冪等清除唯一借入SDK參照；已開始的Task仍由caller await，不做fire-and-forget或假稱取消SDK。</summary>
+        protected virtual void Dispose(bool disposing)
+        { if (Interlocked.Exchange(ref _disposed, 1) == 0) Interlocked.Exchange(ref _organizationService, null); }
+
+        /// <summary>停止新入口並解除SDKowner參照；沒有cache、timer、subscription或unmanaged資源。</summary>
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
     }
 }
