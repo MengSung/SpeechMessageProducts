@@ -1,3 +1,14 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔把真SchemaDeploymentEngine／SchemaMetadata／SchemaPlanner接到嚴格合成SDK資料庫，驗完整新增與重讀流程。
+ * 主要契約：每次寫入前before snapshot必須完整flush且檔案已關閉；只新增metadata，不Update/Delete既有資料，原account ID保持不變。
+ * 具體斷言：四key、四日期及兩加密欄的SDK參數精確；定向publish一次，第二輪重新plan/apply完全零寫入且元件齊全。
+ * 故障注入：plan竄改、舊證據同名、SDK原故障與未發布結構差異；失敗不覆寫before、不還原checkpoint、不刪既有元件。
+ * 生命週期：Fixture擁有唯一Guid暫存目錄與合成Store；產品借用SDK，所有stream關閉後fixture才刪目錄。沒有真連線、credential或LINE。
+ * Store以SDK實際請求建立下一次metadata回應，不從planner複製預期結果；SDK readonly屬性只在測試回應建構時設定。
+ * 維護要求：新operation要擴充真SDK參數及往返斷言，未知message一律拒絕；本離線整合不是P1-12實機部署或索引唯一性證據。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

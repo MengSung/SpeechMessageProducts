@@ -17,3 +17,8 @@
 - 真fault保真、取消及連線／檔案／鎖釋放；A/B及同scope併行、獨立命令隔離／弱參照；獨立coverage≥80%、strict、完整方案與00§8。
 
 P1-12的真機驗收另列，不能以合成SDK通過冒充。2026-11-06 Get-VM D365-9.1只讀查詢遭Hyper-V權限拒絕；尚無隔離／備份／復原證據，維持只讀，不能繞過UAC／安全機制。
+
+## 實作補證
+- SDK IsOptimisticConcurrencyEnabled是readonly；依官方optimistic-concurrency文件，新custom table預設true，建立後必須重讀確認outbound；沒有規定的表不自行要求false，不反射修改產品metadata。
+- 只讀真組織566表22678欄、12個多型lookup超32且最多379目標；完整metadata投影沿用4096全表預算，379真紅後修，4097/重複/非法仍拒絕。單一P1 lookup定義仍exact target。
+- 內建publisher可空prefix，唯讀投影保留正式ID與空值，不假裝符合new；planner選擇與既有solution發行者仍強驗new。此為實作修正，不改正式計畫。

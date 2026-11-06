@@ -1,3 +1,13 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔保護純planner的只新增／完整衝突拒絕與plan完整性；完全以單案純snapshot比對，不呼叫SDK或真環境。
+ * 主要情境：只剩基礎表時列精確新增數；完整結構及solution元件一致時零操作；P4欄位不得提前建立。
+ * 故障矩陣：逐一改變型別、長度、日期、安全、owner、entity/field audit、concurrency、key與managed solution，任何衝突都停止而非產生修改。
+ * 決定性斷言：pending key不能當Active，failed key不能重建掩蓋；plan hash、正式orgID或版本漂移必須在apply之前拒絕。
+ * 依賴與生命週期：正式schema每案重新讀，CompleteSnapshot產生本案獨占合成metadata ID／集合；固定UTC時刻，不修改全域Culture或建立背景資源。
+ * 維護要求：保留各約束獨立失敗案例，必要時加真正SDK往返佐證；這裡的純模型成功不能替代SDK建立、實機索引或備份驗證。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,6 +51,22 @@ public sealed class SchemaPlannerTests
         Assert.Empty(plan.Operations);
         Assert.Empty(plan.PendingKeys);
         SchemaPlanner.ValidatePlan(plan, definition, snapshot);
+    }
+
+    /// <summary>沒有本產品solution且有多個合法new前綴publisher時，應建立清單指定的獨立publisher身份，不猜選舊產品或因prefix共用而誤報衝突。</summary>
+    [Fact]
+    public void Plan_MultiplePublishersSharingPrefix_CreatesDeclaredPublisherIdentity()
+    {
+        var definition = Definition();
+        var snapshot = CompleteSnapshot(definition) with
+        {
+            Solutions = Array.Empty<SchemaSolutionState>(),
+            Publishers = new[] { new SchemaPublisherState(Guid.NewGuid(), "ExistingOne", "new"), new SchemaPublisherState(Guid.NewGuid(), "ExistingTwo", "new") }
+        };
+        var plan = SchemaPlanner.Create(definition, snapshot, Now);
+        var publisher = Assert.Single(plan.Operations.Where(operation => operation.Kind == "CreatePublisher"));
+        Assert.Equal("SpeechMessagePublisher", publisher.Name);
+        Assert.Equal(Guid.Empty, plan.PublisherId);
     }
 
     /// <summary>任何型別/長度/日期/security/owner/audit/concurrency或key衝突都停止，不產生Update、Delete或替代欄位來掩蓋。</summary>

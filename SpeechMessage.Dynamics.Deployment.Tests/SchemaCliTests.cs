@@ -1,5 +1,16 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔從正式DeploymentCli入口驗P1結構命令與P0路由相容，確保新模式不靠Plugin DLL或測試專用分支運作。
+ * 主要流程：在獨立最小repo建立正式schema，經真CLI／engine完成plan→apply→verify、第二輪零寫入與export；六命令六租約必須完整歸還。
+ * 拒絕情境：非白名單組織、重複／未知選項、外部schema或其他組織plan路徑，全部在Connect之前停止。
+ * 例外與取消：caller明確取消不入場不告警；內部timeout仍失敗；真Program／ExceptionDiagnostics寫一筆且不含原敏感本文。
+ * 資源與隔離：Deployment working directory集合序列化cwd切換；CliFixture在finally恢復cwd、Dispose writer並刪單案目錄，來源純合成SDK。
+ * 維護要求：保留原62案及本案正負路由，不以mock被呼叫等同整合成功；未知正式憑證／VM備份不會被本測試建立或自動授權。
+ */
 using System;
 using System.IO;
+using Microsoft.Extensions.Configuration;
 using SpeechMessage.Dynamics.Deployment.Schema;
 using Xunit;
 
@@ -9,6 +20,8 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 [Collection("Deployment working directory")]
 public sealed class SchemaCliTests
 {
+    /// <summary>固定唯讀CLI語法，產品只讀輸入且每案不修改，避免反覆配置相同陣列。</summary>
+    private static readonly string[] ExportArguments = { "export-metadata", "--org", "goodshepherdback" };
     /// <summary>schema plan→apply→verify及唯讀export通過，租約每指令歸還且不讀Plugin DLL；第二輪plan/apply零寫入。</summary>
     [Fact]
     public void Run_SchemaLifecycle_IsIndependentFromPluginAndReturnsEveryLease()
@@ -16,6 +29,9 @@ public sealed class SchemaCliTests
         using var fixture = new CliFixture();
         Assert.Equal(0, fixture.Run("plan", "--org", "goodshepherdback", "--schema", fixture.Schema));
         var firstPlan = Assert.Single(Directory.GetFiles(fixture.Root, "schema-plan.json", SearchOption.AllDirectories));
+        var readable = File.ReadAllText(Path.Combine(Path.GetDirectoryName(firstPlan)!, "schema-plan.md"));
+        Assert.Contains(SchemaFiles.ReadPlan(firstPlan).Sha256, readable, StringComparison.Ordinal);
+        Assert.Contains("CreateEntity", readable, StringComparison.Ordinal);
         Assert.Equal(0, fixture.Run("apply", "--org", "goodshepherdback", "--schema", fixture.Schema, "--plan", firstPlan));
         Assert.Equal(0, fixture.Run("verify", "--org", "goodshepherdback", "--schema", fixture.Schema));
         var writes = fixture.Connector.Service.WriteCount;
@@ -67,6 +83,43 @@ public sealed class SchemaCliTests
         Assert.Same(fixture.Connector.Service.Failure, Assert.Single(fixture.Failures));
         Assert.DoesNotContain("synthetic-private-value", fixture.Output.ToString(), StringComparison.Ordinal);
         Assert.Equal(fixture.Connector.Opened, fixture.Connector.Returned);
+    }
+
+    /// <summary>新schema路由必須經真Program共用ExceptionDiagnostics，原例外只記一筆且本文不落檔；不是僅驗mock notifier。</summary>
+    [Fact]
+    public void Run_RealDiagnosticOwner_RecordsOneIncidentWithoutPrivateBody()
+    {
+        using var fixture = new CliFixture();
+        fixture.Connector.Service.Failure = new InvalidOperationException("synthetic-private-schema-token");
+        var configuration = new ConfigurationBuilder().Build();
+        var logDirectory = Path.Combine(fixture.Root, "logs");
+        try
+        {
+            Assert.Equal(1, Program.RunCommand(ExportArguments, fixture.Connector,
+                fixture.Output, configuration, logDirectory, default));
+            var line = Assert.Single(File.ReadAllLines(Path.Combine(logDirectory, "Exception.log")));
+            Assert.Contains("InvalidOperationException", line, StringComparison.Ordinal);
+            Assert.DoesNotContain("synthetic-private-schema-token", line, StringComparison.Ordinal);
+            Assert.Equal(1, fixture.Connector.Returned);
+        }
+        finally { (configuration as IDisposable)?.Dispose(); }
+    }
+
+    /// <summary>明確caller取消在connect之前停止且不告警；內部已取消timeout仍是功能失敗，必須交共用report，不能誤判正常取消。</summary>
+    [Fact]
+    public void Run_CallerCancellationAndInternalTimeout_HaveDifferentFailureBoundaries()
+    {
+        using var fixture = new CliFixture();
+        using var cancellation = new System.Threading.CancellationTokenSource();
+        cancellation.Cancel();
+        Assert.Equal(130, DeploymentCli.Run(ExportArguments, fixture.Connector,
+            fixture.Output, fixture.Failures.Add, Path.Combine(fixture.Root, "artifacts", "d365"), cancellationToken: cancellation.Token));
+        Assert.Equal(0, fixture.Connector.Opened);
+        Assert.Empty(fixture.Failures);
+        fixture.Connector.Service.Failure = new OperationCanceledException(cancellation.Token);
+        Assert.Equal(1, fixture.Run("export-metadata", "--org", "goodshepherdback"));
+        Assert.Same(fixture.Connector.Service.Failure, Assert.Single(fixture.Failures));
+        Assert.Equal(1, fixture.Connector.Returned);
     }
 
     /// <summary>每案唯一定義／輸出與SDK；只改程序cwd的集合已序列化，finally恢復，沒有跨命令連線或request殘留。</summary>

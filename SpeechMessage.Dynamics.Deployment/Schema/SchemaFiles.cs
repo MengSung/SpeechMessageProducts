@@ -1,3 +1,31 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔是 SpeechMessage.Dynamics.Deployment 結構部署流程的檔案與序列化邊界。
+ * 它把人工維護的 speechmessagecore.schema.json／審核過的 schema-plan.json 轉為可規劃的純值，
+ * 並把完整 metadata 快照、計畫 JSON 與可閱讀摘要寫成可保留的本機證據；不連 D365、不執行部署。
+ * SchemaDeploymentCli 負責路由、白名單與可信路徑，SchemaPlanner 負責即時組織差異與 plan 雜湊核對，
+ * SchemaDeploymentEngine 只有在本檔的 before snapshot 已成功 flush 並關閉後，才可發出新增請求。
+ *
+ * 主要功能與流程：Load 讀取最多 1 MiB 的 schema，ReadPlan 讀取最多 4 MiB 的 plan；
+ * 共用的 Read<T> 開啟檔案後再次核對大小，解析深度最多 32，拒絕未知及重複 JSON 屬性。
+ * Validate 逐一確認固定 solution／publisher／new 前綴、實體與欄位的穩定邏輯身份、唯一性、
+ * 型別／長度／phase、lookup 目標、選項數值與索引欄位；P1 時間點必須為 UserLocal／DateAndTime。
+ * Hash 與 HashValue 對已辨識的純結構計算 SHA-256；它們用於完整性與漂移檢查，不代表使用者授權。
+ * WriteNew 與 WritePlanMarkdown 共用 WriteContent，以 UTF-8 無 BOM、CRLF 輸出，最多 100 MiB。
+ *
+ * 擁有權、隔離與失敗處理：每次讀取獨佔 FileStream／JsonDocument，離開方法即 Dispose；
+ * 每次寫入先以 CreateNew 建立操作專屬暫存檔，Flush(true)、關閉，再以禁止覆寫的 File.Move 發布。
+ * 舊證據不得截斷或覆蓋；失敗不回傳半份 JSON，暫存檔由同一操作 finally 清理，例外向命令共用告警入口傳遞。
+ * 本檔沒有租戶結果快取、背景工作、timer 或 request 狀態；唯一共用內容是固定 JSON 規約、
+ * 固定名稱文法與不可變系統文字表。部署摘要不建立假教會 context，也不讀教會覆寫或秘密。
+ * 路徑的組織授權與祖先 link／junction 檢查由 CLI 完成；本檔的檔案檢查不能取代該信任邊界。
+ *
+ * 維護與驗證：修改 JSON 規約、預算、命名或 hash 時，必須同步重驗 SchemaDefinitionTests、
+ * SchemaPlannerTests、SchemaEngineTests 與 SchemaCliTests。尤其保留未知／重複輸入拒絕、
+ * plan 漂移、before snapshot 先落檔、禁止覆寫與 UTF-8／CRLF 斷言。摘要文字只改正式 resx，
+ * 再由 I18nCheck 產生資源並執行 verify；不能為通過而提高棘輪或手改生成檔。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +35,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using SpeechMessage.Localization;
 
 namespace SpeechMessage.Dynamics.Deployment.Schema;
 
@@ -23,6 +52,8 @@ internal static class SchemaFiles
     };
     /// <summary>固定資料庫名稱文法附逾時，不保存任何來源文字或caller狀態。</summary>
     private static readonly Regex Name = new("^new_[a-z][a-z0-9_]{0,79}$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+    /// <summary>固定生成資源的不可變系統表，無scope、request或教會覆寫，可安全共用且沒有背景資源。</summary>
+    private static readonly SystemTextTable Texts = new();
 
     /// <summary>讀取最多1MiB的UTF-8定義，不追蹤symlink檔；stream只在此呼叫存活，解析失敗也確定釋放。</summary>
     /// <param name="path">Host選定的結構清單路徑，不是資料或credential來源。</param>
@@ -55,6 +86,31 @@ internal static class SchemaFiles
     /// <param name="directory">Host選定的本命令唯一目錄，不接受request輸入。</param><param name="name">程式固定檔名。</param>
     /// <param name="value">純metadata或計畫，不可含SDK/credential。</param><returns>新證據絕對路徑。</returns>
     internal static string WriteNew<T>(string directory, string name, T value)
+        => WriteContent(directory, name, JsonSerializer.Serialize(value, Json));
+
+    /// <summary>計畫以相同有界／CreateNew／flush契約輸出可人工掃讀的Markdown，不另開另一套不安全writer。</summary>
+    internal static string WritePlanMarkdown(string directory, SchemaPlan plan)
+    {
+        var text = new StringBuilder("# " + Text("Title") + "\n\n");
+        text.AppendLine("- " + Text("Organization") + ": " + plan.Organization);
+        text.AppendLine("- " + Text("OrganizationId") + ": " + plan.OrganizationId.ToString("D"));
+        text.AppendLine("- " + Text("SchemaHash") + ": " + plan.SchemaHash);
+        text.AppendLine("- " + Text("Fingerprint") + ": " + plan.Fingerprint);
+        text.AppendLine("- " + Text("PlanHash") + ": " + plan.Sha256);
+        text.AppendLine("- " + Text("Safety") + "\n\n## " + Text("Operations") + "\n");
+        foreach (var operation in plan.Operations) text.AppendLine("- " + operation.Kind + ": " + operation.Entity + "." + operation.Name);
+        if (plan.Operations.Count == 0) text.AppendLine("- " + Text("NoChanges"));
+        text.AppendLine("\n## " + Text("Keys") + "\n");
+        foreach (var key in plan.PendingKeys) text.AppendLine("- " + Text("Pending") + ": " + key);
+        if (plan.PendingKeys.Count == 0) text.AppendLine("- " + Text("NoPending"));
+        return WriteContent(directory, "schema-plan.md", text.ToString());
+    }
+
+    /// <summary>部署工具固定採繁中系統資源，不建立假的教會scope或讀任一租戶覆寫。</summary>
+    private static string Text(string suffix) => Texts.GetText("zh-TW", new TextKey("Deployment.Schema.Plan." + suffix));
+
+    /// <summary>所有格式共用一次性檔案owner，任一已存在檔案保持原樣，暫存檔不會被讀者當完整證據。</summary>
+    private static string WriteContent(string directory, string name, string content)
     {
         if (name != Path.GetFileName(name) || name.Length == 0) throw new InvalidDataException("Invalid schema artifact name.");
         Directory.CreateDirectory(directory);
@@ -62,7 +118,7 @@ internal static class SchemaFiles
         var path = Path.GetFullPath(Path.Combine(directory, name));
         if (File.Exists(path)) throw new IOException("Schema artifact already exists.");
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        var text = JsonSerializer.Serialize(value, Json).Replace("\n", "\r\n", StringComparison.Ordinal) + "\r\n";
+        var text = content.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd('\n').Replace("\n", "\r\n", StringComparison.Ordinal) + "\r\n";
         if (Encoding.UTF8.GetByteCount(text) > 100 * 1024 * 1024) throw new InvalidDataException("Schema artifact exceeds its bounded budget.");
         try
         {

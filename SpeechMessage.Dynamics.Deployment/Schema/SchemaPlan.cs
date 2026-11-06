@@ -1,3 +1,14 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔定義可保存與審閱的結構新增計畫；它承接純planner結果，讓apply重新核對同一組織與同一schema。
+ * 主要功能：SchemaPlan保存版本、server組織及publisher正式ID、UTC時刻、schema hash、metadata fingerprint、完整有序操作、pending key及plan hash。
+ * SchemaOperation只接受產品規劃的新增／納入元件動詞，包含正式表名、欄位或key名；新元件ID必須等SDK建立後取得，不可捏造。
+ * 輸入輸出與依賴：SchemaPlanner建立並計算hash，SchemaFiles嚴格讀寫，SchemaDeploymentEngine在每次apply前重新讀server並驗整份計畫。
+ * 安全與生命週期：計畫只有結構身份，不含資料列、token、密碼或SDK；每份由命令獨佔，不保存在跨使用者static或request狀態。
+ * 重要限制：SHA-256用來偵測完整性與漂移，不是數位簽章，也不代表授權。pending key不是成功，任何操作也不能繞過VM隔離／備份前置。
+ * 維護驗證：新增計畫欄位必須納入hash、strict JSON與ValidatePlan；保留竄改、組織ID／版本漂移及pending/failed key測試。
+ */
 using System;
 using System.Collections.Generic;
 

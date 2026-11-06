@@ -47,6 +47,18 @@
   review/release blockers. Verify encoding and line endings at byte level before
   reporting completion.
 
+## 永久檔案整體說明規範
+
+- 每個自行維護的程式檔都必須在檔案開頭提供完整繁體中文「檔案整體說明」，不能以類別／方法 XML 註解代替。
+- 未來新增、搬移或修改檔案時，必須先讀取全部內容，補齊並同步更新檔案說明；不得貼上只換檔名的空泛範本或宣稱尚未實作的安全保證。
+- 說明至少包括：檔案目的與所屬模組、負責的主要功能、與呼叫端／依賴的關係、主要輸入與輸出／執行流程、適用範圍與不變條件，以及失敗處理與驗證方式。
+- 涉及資料存取、授權、共用狀態、非同步、快取或資源時，另寫明信任邊界、組織／租戶／使用者隔離、資料保留期間、唯一資源擁有者、取消／逾時／併行行為，以及 drain／Dispose／關閉順序。沒有這類行為時，須如實說明本檔純資料或委派角色，不虛構保證。
+- 測試檔必須交代保護的產品契約、使用的合成／真實依賴、故障注入、決定性斷言，以及測試 owner 的清理方式；不得把離線測試寫成實機結果。
+- C# 使用檔首區塊註解，Razor 使用 `@* *@`，PowerShell 使用 help 區塊或檔首註解，JavaScript 使用區塊註解；保留 shebang、license、`#requires`、Razor 指令等必要語意位置。
+- 產生檔的說明必須由產生器輸出並通過 deterministic check，不能手改 `.g.cs`；第三方原始碼／套件、minified vendor 檔及原始執行證據保留原貌，以維護清冊註明所有權，不冒充本專案自行維護的程式。
+- JSON 等不允許註解的格式不得插入非法註解；用途與欄位契約寫在同目錄的繁中說明或明確 schema／spec。
+- 檔案說明本身也必須 UTF-8 無 BOM、CRLF、末尾 CRLF；補說明時保留程式 token／字串／行為，執行適用的語法、建置、測試與位元組檢查後才提交。
+
 ## Permanent Cross-User Isolation and Sustainable Performance Rule
 
 This rule applies to every current and future product line, deployment mode,

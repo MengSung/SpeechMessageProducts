@@ -1,3 +1,15 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔是無I/O的結構差異與完整性核心，依正式SchemaDefinition及一份完整server快照建立只新增計畫。
+ * 主要功能：核對唯一組織、solution未受管理、publisher前綴、既有新表ownership/audit/concurrency，以及每個P1欄位與索引的完整功能約束。
+ * 所有衝突先停止整份候選；不得產生Update/Delete、改欄位型別、關閉安全或用新欄位掩蓋既有衝突。
+ * 流程與輸出：新增依publisher→solution→所有表→一般欄→lookup→key排序，最後列需要加入solution的正式元件；獨立列出尚未Active的key。
+ * 以schema hash及包含server組織ID的metadata fingerprint建立plan hash；ValidatePlan重算即時完整預期，任何範圍、操作或定義漂移都拒絕。
+ * 隔離與生命週期：只使用本次方法區域集合，不讀系統時鐘、不連SDK、不存credential／request、不持有背景工作或跨命令結果。
+ * 重要限制：傳入快照必須由完整只讀投影取得；值物件、plan hash與白名單alias都不取代server授權、寫鎖或實機備份。
+ * 維護驗證：SchemaPlannerTests逐一注入型別、長度、日期、安全、owner、audit、concurrency、key與managed衝突，並驗零差異、竄改與pending狀態。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,12 +40,8 @@ internal static class SchemaPlanner
         var publisher = solution is not null ? snapshot.Publishers.SingleOrDefault(item => item.Id == solution.PublisherId)
             : snapshot.Publishers.SingleOrDefault(item => item.Name == definition.Publisher);
         if (solution is not null && publisher is null || publisher is not null && publisher.Prefix != definition.Prefix) Conflict("publisher");
-        if (publisher is null)
-        {
-            var compatible = snapshot.Publishers.Where(item => item.Prefix == definition.Prefix).ToArray();
-            if (compatible.Length > 1) Conflict("publisher identity");
-            publisher = compatible.SingleOrDefault();
-        }
+        // prefix不是publisher正式身份：多個舊publisher可合法共用new。
+        // 沒有本產品solution或清單指定名稱時，只規劃建立自己的publisher，不猜選任一舊產品發行者。
         if (publisher is null) operations.Add(new SchemaOperation("CreatePublisher", "publisher", definition.Publisher, Guid.Empty));
         if (solution is null) operations.Add(new SchemaOperation("CreateSolution", "solution", definition.Solution, Guid.Empty));
         var components = snapshot.Components.Select(item => (item.Type, item.ObjectId)).ToHashSet();

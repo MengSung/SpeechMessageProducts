@@ -1,3 +1,16 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔在單命令SDK租約內執行結構plan、唯讀export與只新增apply，是純規劃器和實際SDK metadata message之間的協調者。
+ * 輸入與依賴：借用Host授權的IOrganizationService、固定操作目錄及TimeProvider；CLI已先驗白名單／路徑，apply必須持同組織寫鎖。
+ * 主要流程：重新讀完整server metadata→重驗schema/plan/fingerprint→核對涉及表的published/unpublished功能約束→before快照成功flush/close→依序新增。
+ * 只允許建立publisher/solution/entity/attribute/lookup/key與AddSolutionComponent；日期明確UserLocal/DateAndTime，加密欄啟用field security，稽核包含欄位層級。
+ * 新custom表樂觀並行依server預設，outbound必須重讀確認true；產品不反射寫入SDK的唯讀回應屬性，也不修改角色或舊欄位。
+ * 發布與驗證：僅定向PublishXml本plan新內容涉及的表，再讀已發布metadata及key狀態；仍有新增差異拋錯，pending key交CLI回不完整結果。
+ * 資源與失敗：SDK由外層lease擁有；本類不Dispose它。同步I/O前後尊重caller取消，不建立背景排程；部分失敗保留before證據與原Exception，不自動刪元件或還原VM。
+ * 隔離與限制：所有新ID只能取SDK正式回應，候選與created對照只存活本次apply；metadata備份不是組織資料庫備份，呼叫方法不等於環境獲准寫入。
+ * 維護驗證：SchemaEngineTests以真引擎對合成metadata資料庫往返，驗before先落檔、具體SDK參數、原表ID、第二次零寫入、竄改／故障／未發布變更拒絕。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

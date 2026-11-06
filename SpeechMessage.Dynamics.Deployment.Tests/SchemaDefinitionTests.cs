@@ -1,3 +1,13 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔用獨立於產品清單的附錄A期望，驗P1 schema解析／hash契約；它保護正式結構內容，而不只是檔案存在。
+ * 測試範圍：六個受管實體、四新表／唯一鍵、Account與Contact欄位、phase邊界、日期UserLocal/DateAndTime與兩個加密欄位安全。
+ * 故障注入：未知及重複JSON屬性、重複表／欄、非法名稱／型別、錯phase、缺key欄與錯日期行為；任何錯誤必須拒絕整個候選。
+ * 決定性斷言：P4永豐欄不能參與P1、key順序與choice正式值精確符合附錄；完整同檔hash穩定，有效欄位改變必須使hash不同。
+ * 依賴與生命週期：只讀本worktree正式schema，各案獨立暫存JSON由WithFile建立並在finally刪除；不連D365、不讀憑證、不持有背景資源。
+ * 維護要求：新增結構須先更新獨立業務期望及失敗樣本；不能從被測清單反推自身oracle，也不能把本離線契約稱為P1-12實機通過。
+ */
 using System;
 using System.IO;
 using System.Linq;

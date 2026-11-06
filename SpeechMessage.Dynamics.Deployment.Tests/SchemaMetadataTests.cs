@@ -1,3 +1,14 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔驗證只讀metadata投影真正遵守查詢範圍、完整發布、正式身份與不保留SDK結果的契約。
+ * 測試依賴：MetadataService只允許固定metadata messages、組織languagecode與指定metadata表；業務資料／設定本文／任何資料寫入都拒絕。
+ * 故障注入：錯回應、空／重複metadata ID、重複名稱、別組織、空續頁、跨頁重複ID、原SDK故障與caller取消。
+ * 相容與斷言：379目標多型lookup完整保留而4097拒絕；內建publisher空prefix保留正式身份；5001筆filter完整分頁且不改Core業務5000限制。
+ * 隔離與回收：兩個server組織ID千次並行只回自己的scope，來源mutation不能改已回snapshot；百快照弱參照全部死亡，SDK替身持續存活。
+ * 資源生命週期：每案只用合成SDK與記憶體metadata，沒有真連線／token／timer；readonly SDK回應屬性只由測試反射建立，不能搬到產品當setter。
+ * 維護要求：新增只讀metadata類別時，同步擴充固定白名單及獨立錯誤樣本；不以metadata匯出成功推論VM隔離、備份或寫入驗收。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -75,6 +86,30 @@ public sealed class SchemaMetadataTests
         Assert.Throws<InvalidDataException>(() => SchemaMetadata.Read(service, default));
     }
 
+    /// <summary>內建publisher可能沒有自訂prefix，完整唯讀匯出須保留正式ID而非拒絕或刪除；本產品仍只能使用new前綴。</summary>
+    [Fact]
+    public void Read_BuiltInPublisherWithoutCustomPrefix_PreservesMetadataIdentity()
+    {
+        var service = new MetadataService();
+        var publisher = new Entity("publisher", Guid.NewGuid()) { ["uniquename"] = "syntheticBuiltin", ["customizationprefix"] = "" };
+        service.PublisherRows.Add(publisher);
+        var actual = Assert.Single(SchemaMetadata.Read(service, default).Publishers);
+        Assert.Equal(publisher.Id, actual.Id);
+        Assert.Equal("", actual.Prefix);
+    }
+
+    /// <summary>組織message filter可多於單次業務查詢5000列；完整metadata要保留5001列，跨頁重複ID仍拒絕，不能提高Core產品查詢上限。</summary>
+    [Fact]
+    public void Read_MetadataFiltersOverOnePage_PreserveAllRowsAndRejectCrossPageDuplicate()
+    {
+        var service = new MetadataService();
+        for (var index = 0; index < 5001; index++) service.FilterRows.Add(new Entity("sdkmessagefilter", Guid.NewGuid())
+        { ["sdkmessageid"] = new EntityReference("sdkmessage", Guid.NewGuid()), ["primaryobjecttypecode"] = "account" });
+        Assert.Equal(5001, SchemaMetadata.Read(service, default).Filters.Count);
+        service.FilterRows[5000].Id = service.FilterRows[0].Id;
+        Assert.Throws<InvalidDataException>(() => SchemaMetadata.Read(service, default));
+    }
+
     /// <summary>兩個獨立server組織ID的metadata並行一千次不得串入另一scope；SDK各自只讀且沒有跨命令全域快取。</summary>
     [Fact]
     public void Read_ParallelTwoOrganizations_PreserveTheirOwnServerIdentity()
@@ -120,6 +155,10 @@ public sealed class SchemaMetadataTests
         internal Guid OrganizationId { get; } = Guid.NewGuid();
         /// <summary>每案獨占的SDK來源，測試會mutation確認產品已脫離原物件。</summary>
         internal List<EntityMetadata> Entities { get; } = new() { BaseEntity("account", "name"), BaseEntity("contact", "fullname") };
+        /// <summary>可選合成publisher定義，供官方內建空prefix的相容契約；不包含個人或token。</summary>
+        internal List<Entity> PublisherRows { get; } = new();
+        /// <summary>完整分頁合成filter資料，5000頁面以上僅限metadata匯出，不包含業務列。</summary>
+        internal List<Entity> FilterRows { get; } = new();
         /// <summary>固定測試故障碼，不是使用者內容。</summary>
         internal string Fault { get; init; } = "";
         /// <summary>需要驗證保真的原始合成例外，不含真實秘密。</summary>
@@ -168,7 +207,11 @@ public sealed class SchemaMetadataTests
             Assert.Contains(expression.EntityName, AllowedTables);
             Assert.False(expression.ColumnSet.AllColumns);
             Assert.DoesNotContain(expression.ColumnSet.Columns, value => value.Contains("config", StringComparison.OrdinalIgnoreCase));
-            return new EntityCollection { MoreRecords = Fault == "partial-page" };
+            var source = expression.EntityName == "publisher" ? PublisherRows : expression.EntityName == "sdkmessagefilter" ? FilterRows : new List<Entity>();
+            var page = Math.Max(1, expression.PageInfo.PageNumber);
+            return new EntityCollection(source.Skip((page - 1) * 5000).Take(5000).ToList())
+            { MoreRecords = Fault == "partial-page" || source.Count > page * 5000,
+                PagingCookie = source.Count > page * 5000 ? page.ToString(System.Globalization.CultureInfo.InvariantCulture) : null };
         }
 
         /// <summary>建立具有正式metadata ID與主名稱欄的基礎實體；只有合成schema，不含業務記錄。</summary>

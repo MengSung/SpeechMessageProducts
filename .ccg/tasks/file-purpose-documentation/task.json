@@ -1,0 +1,13 @@
+{
+  "id": "file-purpose-documentation",
+  "title": "補齊自行維護程式檔的完整繁中檔案說明與永久守門",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "cross-layer",
+  "currentPhase": "analysis",
+  "nextAction": "先補SchemaFiles與P1檔案整體說明，再逐模組盤點自行維護來源；排除第三方/建置副本/原始證據，產生檔改generator。保留P1-11未完成實作。",
+  "createdAt": "2026-11-06T17:55:14+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parent": ".ccg/tasks/integration-p1"
+}

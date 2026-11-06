@@ -1,0 +1,19 @@
+{
+  "files": [
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaFiles.cs",
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaDefinition.cs",
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaSnapshot.cs",
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaMetadata.cs",
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaPlan.cs",
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaPlanner.cs",
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaDeploymentEngine.cs",
+    "SpeechMessage.Dynamics.Deployment/Schema/SchemaDeploymentCli.cs",
+    "SpeechMessage.Dynamics.Deployment.Tests/SchemaDefinitionTests.cs",
+    "SpeechMessage.Dynamics.Deployment.Tests/SchemaMetadataTests.cs",
+    "SpeechMessage.Dynamics.Deployment.Tests/SchemaPlannerTests.cs",
+    "SpeechMessage.Dynamics.Deployment.Tests/SchemaEngineTests.cs",
+    "SpeechMessage.Dynamics.Deployment.Tests/SchemaCliTests.cs"
+  ],
+  "count": 13,
+  "verification": "待本批建置、測試、token及位元組檢查，不宣稱整個repo已補齊。"
+}

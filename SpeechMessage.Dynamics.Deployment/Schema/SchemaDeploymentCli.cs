@@ -1,3 +1,16 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔承接DeploymentCli明確--schema與export-metadata命令，提供不依賴Plugin DLL的P1結構操作路由。
+ * 主要功能：嚴格解析plan/apply/verify/export-metadata及唯一--org/--schema/--plan組合；只有goodshepherdback可進入connector。
+ * 輸入與流程：schema限定本repo d365/schema，plan限定該組織artifacts；先核對路徑祖先link/junction、讀strict JSON，再由既有connector取得一次lease。
+ * apply沿用既有OrganizationWriteLock，持有期間重新盤點／驗plan／保存before／新增；唯讀匯出寫到d365/snapshots/組織的唯一操作目錄。
+ * 輸出：plan同時提供JSON與可閱讀Markdown；verify有差異為1、key未Active為3、拒絕為2、caller取消為130，只有完整一致才為0。
+ * 生命週期與保密：每指令使用本地候選及單一lease，using先歸還服務再釋放寫鎖；沒有共用request、credential、結果cache或無界背景工作。
+ * 真正故障傳原Exception給Program注入的共用report，摘要不回顯訊息、參數或機密；正常caller取消不告警，內部timeout仍是失敗。
+ * 重要限制：連線成功／plan產生不等於實機寫入授權；沒有隔離、備份與可驗證復原證據前不可自動apply。
+ * 維護驗證：SchemaCliTests用真路由／引擎及合成SDK驗完整生命週期、租約歸還、路徑拒絕、取消、真共用ExceptionDiagnostics與敏感本文不落檔。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -57,6 +70,7 @@ internal static class SchemaDeploymentCli
             {
                 var plan = engine.Plan(definition!, cancellationToken);
                 _ = SchemaFiles.WriteNew(operationRoot, "schema-plan.json", plan);
+                _ = SchemaFiles.WritePlanMarkdown(operationRoot, plan);
                 output.WriteLine("Schema plan created; additions=" + plan.Operations.Count.ToString(CultureInfo.InvariantCulture));
                 return 0;
             }

@@ -1,3 +1,15 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔定義P1結構清單的純值資料契約，作為人工維護JSON、嚴格解析器與新增SDK引擎之間的唯一格式。
+ * 主要功能：SchemaDefinition宣告格式版本、solution／publisher與new前綴；SchemaEntity描述既有或新實體；
+ * SchemaField描述型別、長度、必填、安全、日期、lookup、phase與choice；SchemaKey保留正式索引身份與有序欄位。
+ * 輸入輸出與依賴：SchemaFiles從JSON建立候選並完整驗證，SchemaPlanner比較server投影，SchemaDeploymentEngine依清單新增。
+ * 此處建構record不會驗證授權或進行I/O，呼叫端不能以成功反序列化當成schema合法、組織授權或可安全寫入。
+ * 隔離與生命週期：物件僅屬單次命令，不含SDK、連線、token、request或背景工作；集合在命令範圍獨佔，不作全域可變快取。
+ * 重要限制：phase=1才參與P1寫入；未指定樂觀並行政策以null表示，不能誤用false要求改server唯讀metadata。
+ * 維護驗證：新增欄位須同步嚴格JSON驗證、canonical hash、planner比對與SDK建立；SchemaDefinitionTests獨立對照附錄A，避免自我驗證。
+ */
 using System;
 using System.Collections.Generic;
 

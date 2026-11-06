@@ -1,3 +1,17 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔是結構部署的只讀SDK邊界，將單一已連線組織的完整定義轉成不帶SDK參照的SchemaSnapshot。
+ * 主要流程：取得實際組織ID／uniqueName／版本與基礎語言，讀完整entity metadata，再讀受管solution及publisher、component、filters、steps。
+ * 欄位投影保留型別、長度、required/security/audit、lookup目標、日期behavior/format、choice正式值與key建置狀態。
+ * 只讀範圍：只查metadata及組織languagecode，不查業務實體值，也不讀步驟secure/unsecure設定或trace本文；沒有Create/Update/Delete。
+ * 有界與完整性：最多4096實體／100000屬性；多型lookup沿用4096目標預算，不能靜默丟掉D365合法的數百目標。
+ * 註冊metadata使用Core單頁身份守門再作專屬十頁／五萬列聚合，跨頁重複ID、壞cookie、空續頁或超量整體拒絕，Core業務5000限制不變。
+ * 擁有權與取消：SDK由命令lease擁有，本檔僅借用；每次同步I/O前後檢查caller取消，已入場呼叫返回才允許外層歸還lease。
+ * 沒有全域結果cache、背景Task、timer或跨組織共享候選；全部I/O與驗證完成才回快照，任一步失敗保留原Exception交外層共用告警。
+ * 維護驗證：SchemaMetadataTests保護scope／正式ID／全頁／mutation隔離、實測多型lookup、內建publisher、千次A/B及百快照弱參照回收。
+ * 唯讀真機證據與合成SDK測試分開；不得以成功投影推論環境已隔離、已有備份或獲准寫入。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,7 +34,7 @@ internal static class SchemaMetadata
     /// <param name="service">由命令lease擁有且有transport timeout的獨占服務。</param>
     /// <param name="cancellationToken">命令owner取消訊號。</param>
     /// <param name="retrieveAsIfPublished">true盤點含未發布候選；false核對已發布結構，避免apply順便發布其他變更或把未發布當完成。</param>
-    /// <returns>最多4096實體／100000欄、各註冊集合5000列的純值完整快照。</returns>
+    /// <returns>最多4096實體／100000欄、各註冊metadata集合50000列的純值完整快照；業務Core的5000限制不變。</returns>
     internal static SchemaSnapshot Read(IOrganizationService service, CancellationToken cancellationToken, bool retrieveAsIfPublished = true)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -85,7 +99,8 @@ internal static class SchemaMetadata
             .Select(row => new SchemaSolutionState(row.Id, Text(row, "uniquename"), Required<bool>(row, "ismanaged"), Lookup(row, "publisherid"))).ToArray();
         if (solutions.Length > 1) throw new InvalidDataException("Solution identity is ambiguous.");
         var publishers = ReadRows(service, "publisher", new ColumnSet("publisherid", "uniquename", "customizationprefix"), cancellationToken)
-            .Select(row => new SchemaPublisherState(row.Id, Text(row, "uniquename"), Text(row, "customizationprefix"))).ToArray();
+            // 內建publisher可沒有自訂prefix；保留它的正式身份供唯讀盤點，planner仍只選明確new前綴，不把空值當符合。
+            .Select(row => new SchemaPublisherState(row.Id, Text(row, "uniquename"), OptionalText(row, "customizationprefix"))).ToArray();
         if (publishers.Select(row => row.Name).Distinct(StringComparer.Ordinal).Count() != publishers.Length)
             throw new InvalidDataException("Publisher identity is ambiguous.");
         var components = solutions.Length == 0 ? Array.Empty<SchemaComponentState>()
@@ -140,14 +155,35 @@ internal static class SchemaMetadata
             Array.AsReadOnly(options.Order().ToArray()), field.IsManaged, field.IsAuditEnabled?.Value);
     }
 
-    /// <summary>重用Core完整頁／正式ID/cookie守門，最多5000列；任何超量或後頁故障都不回傳部分metadata。</summary>
+    /// <summary>重用Core單頁／正式ID守門，metadata匯出另以十頁五萬列有界聚合；不改Core業務查詢5000列契約，不回傳部分定義。</summary>
     private static List<Entity> ReadRows(IOrganizationService service, string table, ColumnSet columns,
         CancellationToken cancellationToken, Action<QueryExpression>? configure = null)
     {
         var query = new QueryExpression(table) { ColumnSet = columns };
         query.AddOrder(table + "id", OrderType.Ascending);
         configure?.Invoke(query);
-        return service.RetrieveAllAsync(query, cancellationToken: cancellationToken).GetAwaiter().GetResult();
+        var rows = new List<Entity>();
+        var identities = new HashSet<Guid>();
+        var cookies = new HashSet<string>(StringComparer.Ordinal);
+        for (var page = 1; page <= 10; page++)
+        {
+            query.PageInfo.PageNumber = page;
+            query.PageInfo.Count = 5000;
+            var result = service.RetrieveMultipleAsync(query, cancellationToken).GetAwaiter().GetResult();
+            if (result.Entities.Count > 50_000 - rows.Count || result.MoreRecords && result.Entities.Count == 0)
+                throw new InvalidDataException("Metadata collection exceeds its budget or contains an incomplete page.");
+            foreach (var row in result.Entities)
+            {
+                if (!identities.Add(row.Id)) throw new InvalidDataException("Metadata collection contains duplicate database identities.");
+                rows.Add(row);
+            }
+            if (!result.MoreRecords) return rows;
+            var cookie = result.PagingCookie;
+            if (cookie is null || cookie.Length is < 1 or > 65536 || !cookies.Add(cookie))
+                throw new InvalidDataException("Metadata paging continuation is invalid.");
+            query.PageInfo.PagingCookie = cookie;
+        }
+        throw new InvalidDataException("Metadata collection exceeds its page budget.");
     }
 
     /// <summary>SDKmessage前後檢查取消與強型別回應，不把錯型別回應當空成功。</summary>

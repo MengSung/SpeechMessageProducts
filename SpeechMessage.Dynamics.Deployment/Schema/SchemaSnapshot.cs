@@ -1,3 +1,15 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔描述從D365只讀取得、完整驗證後才發布的結構快照，是規劃與本機證據使用的純值格式。
+ * 主要功能：記錄server組織ID／uniqueName／版本／基礎語言，以及entity、attribute、key、publisher、solution、component、filter與step定義。
+ * 輸入輸出與依賴：SchemaMetadata從SDK物件逐項複製到本檔record，SchemaPlanner讀取差異，SchemaFiles輸出JSON或計算fingerprint。
+ * 輸出刻意不含業務記錄、secure/unsecure configuration、SDK Entity／EntityReference、連線、憑證或request。
+ * 隔離與生命週期：所有record只隨本次命令存活；集合由投影器完成後封裝，消費者不得原地填入尚未讀完的內容。
+ * 不變條件：每個正式ID及其所屬集合的邏輯身份須唯一；nullable政策代表server未提供，不能轉成符合false。
+ * Active以外的key狀態必須保留，不能靠零新增操作把pending或failed說成驗收成功。
+ * 維護驗證：擴充快照時同步投影、hash／漂移檢查、輸出保密與mutation／弱參照回收測試；metadata快照不等同資料庫備份。
+ */
 using System;
 using System.Collections.Generic;
 
