@@ -1,12 +1,12 @@
 {
   "id": "p108-progress-status",
   "title": "修正 P1-08 進度頁 undefined 狀態與漏計統計",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "S",
   "risk": "low",
   "domain": "frontend",
-  "currentPhase": "implementation",
-  "nextAction": "重現 doing 狀態錯誤，補全工作包狀態回歸後修正 active 與摘要統計；不得宣告 P1-08 已驗收。",
+  "currentPhase": "completed",
+  "nextAction": "顯示修正已驗證；後端P1-08仍active，全P1未完成。外審兩服務無可用輸出，詳review.md。",
   "createdAt": "2026-11-06T16:01:08+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "parent": ".ccg/tasks/integration-p1"
