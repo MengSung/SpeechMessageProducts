@@ -3,9 +3,9 @@
   "name": "integration-p1",
   "title": "階段 1 基礎層與國際化地基",
   "description": "",
-  "status": "in_progress",
-  "currentPhase": "review",
-  "nextAction": "必要實作/實機/回歸/主會話審查/計畫Word/編碼全部通過，完成本地驗收提交及封存，無待修阻斷。",
+  "status": "completed",
+  "currentPhase": "completed",
+  "nextAction": "全部必要驗收及本地交付完成；封存保留證據，階段2～8未啟動。",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -13,7 +13,7 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-05",
-  "completedAt": null,
+  "completedAt": "2026-11-06",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "base_branch": "1.0.0.11.Integration.P1.Worktree",
   "worktree_path": null,
@@ -41,5 +41,6 @@
     "P1-12"
   ],
   "acceptanceRecord": "wp-reports/P1-acceptance.md",
-  "localImplementationCommit": "e890ec95"
+  "localImplementationCommit": "e890ec95",
+  "localAcceptanceCommit": "d69247a5"
 }

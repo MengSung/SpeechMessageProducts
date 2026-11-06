@@ -1,12 +1,12 @@
 {
   "id": "integration-p1",
   "title": "階段 1 基礎層與國際化地基",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "review",
-  "nextAction": "必要實作/實機/回歸/主會話審查/計畫Word/編碼全部通過，完成本地驗收提交及封存，無待修阻斷。",
+  "currentPhase": "completed",
+  "nextAction": "全部必要驗收及本地交付完成；封存保留證據，階段2～8未啟動。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
@@ -33,5 +33,7 @@
     "P1-12"
   ],
   "acceptanceRecord": "wp-reports/P1-acceptance.md",
-  "localImplementationCommit": "e890ec95"
+  "localImplementationCommit": "e890ec95",
+  "completedAt": "2026-11-06T21:19:17+08:00",
+  "localAcceptanceCommit": "d69247a5"
 }
