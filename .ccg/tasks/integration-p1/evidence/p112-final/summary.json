@@ -29,7 +29,28 @@
     "dualModelComplete": false,
     "degradedFallback": false,
     "completedBackends": [],
-    "run": "20261106-200653-p112-final-review-reviewer"
+    "run": "20261106-210950-p112-delivery-review-reviewer"
   },
-  "finalAcceptanceStatus": "evidence-passed-pending-documentation-review-and-commit"
+  "finalAcceptanceStatus": "passed",
+  "quality": {
+    "debugTracer": 7,
+    "i18nTool": 170,
+    "peTool": 27,
+    "pluginMetadata": 10,
+    "pluginBuild": 6,
+    "analyzer": 26,
+    "pester": 39,
+    "javascript": 16,
+    "progressPage": 15,
+    "fileDocumentation": 1250,
+    "fileDocumentationTests": 8,
+    "encoding": {
+      "scope": "Changed",
+      "base": "73b6e6cf",
+      "checked": 2025,
+      "excludedRaw": 1021,
+      "filesWithIssues": 0
+    }
+  },
+  "localImplementationCommit": "e890ec95"
 }

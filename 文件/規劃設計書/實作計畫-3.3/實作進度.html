@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T20:31:33+08:00",
+  "snapshot": "2026-11-06T21:17:31+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
-  "headline": "階段 1 目前 <strong>11／12 工作包已驗收完成</strong>（P1-01～11）；P1-12兩台VM已連入、備份及獨立復原驗證通過，續真正結構apply與唯一索引驗收。全計畫83包，已驗收29包；整個P1尚未完成。",
+  "headline": "階段 1 目前 <strong>12／12 工作包已驗收完成</strong>（P1-01～12）。P1-12真正已發布verify、四個Active key、第二輪零寫入、唯一鍵差分驗收及測試資料清理全部通過。全計畫83包，已驗收30包；階段2～8維持未開始。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1-12實機與最終回歸通過 本地交付收尾",
-    "body": "真verify=0、四key Active、第二輪plan/apply零寫入及smoke=0已通過；五輪16候選另行唯讀重查殘留0。方案4412/4412、Deployment157、coverage89.11%，Word三頁QA完成。現續最後文件/編碼守門、精確本地提交與封存，尚未把提交收尾算作已完成。",
+    "title": "P1全部必要驗收通過 本地提交與封存",
+    "body": "P1-01～12共12包已完成驗收；最新方案4412/4412、Deployment157、coverage89.11%。P1-12真SDK/SQL/官方solution匯出驗收與5輪16候選清理0通過；Word修正報告3頁QA完成，主會話自審無已知阻斷。外部兩模型均無輸出，沒有UI/hosted CI成功聲明。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -547,18 +547,20 @@ const DATA = {
       "2026-11-06T19:53:37+08:00 P1-12實機第三差異已研究確認：四個新表rootcomponentbehavior=0（Include Subcomponents），account/contact根為1且欄位有精確子列。修正投影保存官方root政策及Guid根ID，planner僅同正式entity ID且根0時承認其真實欄/key包含；未知/1/2/別表/子列仍要求精確列。新7案1真紅6綠，修後Deployment151/151，舊before hash相容測試通過。證據artifacts/p1-12-20261106/root-membership-{red,green}與solution-components-readonly-fixed.json。兩輪稽核補正都在預檢停下，尚未補正寫入；現續strict、受限補正、已發布verify、第二輪零寫入及實機smoke。未宣告P1完成，尚無本輪commit。",
       "2026-11-06T19:58:42+08:00 P1-12第三次受限complete-created-audit真實exit0：原plan/before hash核對成功，只啟用a62b8a6e-d64d-408f-966f-d46df8cc8724與91da8dcc-950c-446e-ab10-4275885a0980兩個本輪新Lookup稽核，保存before-audit-completion/audit-completion-plan/after-audit-completion，定向publish後全metadata吻合、四key Active。證據artifacts/d365/goodshepherdback/20261106-115338-2055883-de307140dd94440cbe59fafd12ddbc69與live-audit-completion-third-exit.json。獨立verify正在執行。Word修正報告三項研究已建立且重排移除Title藍線與空白頁，三頁QA完成；尚待最後結果同步。本輪未commit，P1仍11/12。",
       "2026-11-06T20:10:30+08:00 P1-12獨立已發布verify exit0、第二輪plan operations0/pending0與apply exit0，before/after留存供零寫入比對。官方SDK真匯出SpeechMessageCore未受管理zip34281bytes，SHA BC83CFD652644009ED838FE47462769360995928839A40605E66A3DD7EC033BB；獨立XML確認6表/36欄/4key、根0/1政策、加密欄安全、兩新表與新欄稽核、四日期UserLocal，無roles/workflows/securityprofiles。介面操作被實體Esc停止，本輪已停止UI控制，沒有後台截圖；backend確認採官方匯出與SDKmetadata證據如實記錄。真smoke exit1非預期Fault，未當唯一鍵成功；正先只讀查本次3個候選ID清理狀態，再作不含本文/秘密的operation與error-code診斷。全方案4406/4406、Deployment151/151、coverage88.99%、文件1250/0、Debug7、Pester39、analyzer26、I18n170/verify、PE27、Plugin10+6及守門已通過。新外審200653兩後端仍無輸出，不稱成功；未提交本輪。",
-      "2026-11-06T20:31:33+08:00 P1-12最終真smoke exit0，記錄實際0x80040237與legacyIntegrityDifferentialPassed=true：原tuple只第一ID、第二ID未入庫，同鍵zh-TW控制可寫/讀回，所有自身列finally清理。另行只讀核對5份ownership/16個候選ID全部0。完整方案17TRX4412/4412、Deployment157、獨立coverage89.11%；新5案真紅後綠及控制取消清理通過。原先151/4406是前次切片，最新結果取final-verified。Word修正報告已包含四項相容研究與自主SDK/官方solution匯出驗收分工，3頁全部渲染檢查，無藍線/空白頁，SHA D8EC01D0D485C590FE4E09F4F7BA29D29DF743E407991093164980FEC8132201。矩陣wp-reports/P1-12-acceptance.md與正式驗收文件已更新；主會話完整自審無阻斷，外審200653兩後端無輸出如實保留。準備精確本地commit及子任務/主P1封存，不push、不正式部署；UI因實體Esc已停止，無截圖成功聲明。"
+      "2026-11-06T20:31:33+08:00 P1-12最終真smoke exit0，記錄實際0x80040237與legacyIntegrityDifferentialPassed=true：原tuple只第一ID、第二ID未入庫，同鍵zh-TW控制可寫/讀回，所有自身列finally清理。另行只讀核對5份ownership/16個候選ID全部0。完整方案17TRX4412/4412、Deployment157、獨立coverage89.11%；新5案真紅後綠及控制取消清理通過。原先151/4406是前次切片，最新結果取final-verified。Word修正報告已包含四項相容研究與自主SDK/官方solution匯出驗收分工，3頁全部渲染檢查，無藍線/空白頁，SHA D8EC01D0D485C590FE4E09F4F7BA29D29DF743E407991093164980FEC8132201。矩陣wp-reports/P1-12-acceptance.md與正式驗收文件已更新；主會話完整自審無阻斷，外審200653兩後端無輸出如實保留。準備精確本地commit及子任務/主P1封存，不push、不正式部署；UI因實體Esc已停止，無截圖成功聲明。",
+      "2026-11-06T21:13:56+08:00 P1收斂：P1-01～12全部必要驗收已逐項核對，P1-12工作包舊說明更新為真實最終結果，總計12/12、全計畫30/83。正式矩陣wp-reports/P1-acceptance.md與P1-12-acceptance.md；before/after完全相等證明第二apply零metadata寫入，真smoke0及官方匯出/Active/稽核/安全/日期/並行均有獨立證據，5輪16候選只讀重查0。外部delivery-review 20261106-210950兩後端仍無可用輸出，主會話自審無阻斷，不稱外審成功。文件1250/0及測試8、JavaScript16/進度15、I18n生成/verify與strict0/0通過；Word最終SHA D8EC01D0D485C590FE4E09F4F7BA29D29DF743E407991093164980FEC8132201。正執行最後Changed編碼守門及精確本地commit，完成後追加commit/封存收據；未push/正式部署，階段2～8不啟動。",
+      "2026-11-06T21:17:31+08:00 本地產品交付e890ec95已取得；15份Schema產品/測試來源與Git blob經換行正規化後逐份一致，工作樹UTF-8無BOM/CRLF與SHA另存reviewed-source-sha256.json。最終Changed已2025檔0問題，產品沒有待提交程式異動；現提交完整需求矩陣/12-12進度/spec/審查/去識別證據，接著按流程封存P1-12與主P1。其他規劃中主任務11-02-integration-v32保持原狀，不擴張封存。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "29",
+      "value": "30",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 11／12 已驗收",
+      "sub": "P0 18／18；P1 12／12 已驗收",
       "meter": {
-        "done": 29,
-        "active": 1,
+        "done": 30,
+        "active": 0,
         "total": 83
       }
     },
@@ -575,20 +577,20 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "11",
+      "value": "12",
       "unit": "/ 12 工作包",
-      "sub": "P1-01～11已驗收；續P1-12實機",
+      "sub": "P1-01～12全部必要驗收通過",
       "meter": {
-        "done": 11,
-        "active": 1,
+        "done": 12,
+        "active": 0,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "4,372 / 4,372",
+      "value": "4,412 / 4,412",
       "unit": "0 失敗、0 略過",
-      "sub": "17TRX；Deployment117；ChurchReport630；Localization182/208；ToolUtility1231/1369"
+      "sub": "17TRX；Deployment157；ChurchReport630；Localization182/208；ToolUtility1231/1369"
     },
     {
       "label": "最新完整本機建置",
@@ -815,8 +817,10 @@ const DATA = {
     {
       "id": "P1-12",
       "name": "goodshepherdback 結構驗收",
-      "status": "active",
-      "note": "兩台VM已實際連入；API組織ID與GoodShepherd_MSCRM映射一致。COPY_ONLY/CHECKSUM備份與獨立GUID資料庫實際復原／DBCC／清理已通過；原組織未還原。正在準備只新增apply、已發布verify/key Active及自身測試列唯一性與清理，尚未驗收完成。 不可逆操作與正式資料仍不在授權範圍。"
+      "status": "done",
+      "note": "已完成真實驗收：合法兩VM/API-SQL映射、COPY_ONLY/CHECKSUM備份及獨立真復原/DBCC/清理；36欄/6表/4Active，已發布verify=0，第二plan/apply零寫入，真smoke=0與不同文化差分控制、5輪16候選殘留0。官方未受管理SpeechMessageCore匯出獨立XML核對，無UI截圖成功聲明。方案4412/4412、Deployment157、coverage89.11%；驗收wp-reports/P1-12-acceptance.md與Word報告。不可逆操作與正式資料仍不在授權範圍。 本地程式交付e890ec95；主會話自審，最後外審兩後端無輸出如實記錄。",
+      "time": "2026-11-06 21:13",
+      "commit": "e890ec95"
     }
   ],
   "plannedPhaseNotes": [
@@ -1360,8 +1364,8 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 11,
-      "active": 1,
+      "done": 12,
+      "active": 0,
       "current": true
     },
     {
@@ -1560,6 +1564,11 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-06 21:13",
+      "text": "P1-12實機/4412回歸/157與89.11%完成；12/12驗收、30/83總計，續本地提交及封存。",
+      "cls": "done"
+    },
     {
       "t": "2026-11-06 12:00",
       "text": "P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。",

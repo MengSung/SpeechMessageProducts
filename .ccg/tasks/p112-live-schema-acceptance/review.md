@@ -18,3 +18,7 @@
 外部自癒審查200653兩後端無輸出，Gemini403/503、Claude週額度；dualModelComplete=false、degradedFallback=false。不是獨立第二人審查，不稱雙模型或單模型通過。依使用者取消雙模型等待採本主會話審查，未降低測試/安全驗收。畫面操作被實體Esc停止，只有真正SDK/SQL/官方solution匯出證據，無後台截圖。
 
 必要驗收已通過；精確stage/本地commit/任務封存依流程收尾，不push或正式部署。
+
+## 除錯回顧與防止重複發生
+根因屬B跨層契約、D替身過度理想化、E未明示假設：CreateOneToMany回應未保audit、key陣列順序非唯一性、solution根含子列、地端DuplicateRecord不等於雲端EntityKey碼。每次失敗都由嚴格預檢阻擋或finally精確清理，沒有靠重放舊plan/降低斷言修復。改用官方metadata/solutioncomponent/error表及真正SQL索引與差分實驗區分假說，新增獨立SDK替身/反例紅綠，維持整個schema比對。落地契約已寫schema-deployment-contract及Word，沒有建立無關模板或改框架。
+最新delivery-review兩後端仍無可用結果，主會話已審查最後legacy控制與取消切片；不無限重試相同配額，不聲稱外審成功。所有可重現阻斷缺陷已修正。

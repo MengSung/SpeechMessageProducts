@@ -6,12 +6,13 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "review",
-  "nextAction": "全部必要實機/回歸已通過：4412/4412、157、coverage89.11%、5輪16候選0。完成最後編碼/文件守門及精確本地提交，更新12/12後封存P1-12與主P1，不push/正式部署。",
+  "nextAction": "必要實作/實機/回歸/主會話審查/計畫Word/編碼全部通過，完成本地驗收提交及封存，無待修阻斷。",
   "createdAt": "2026-11-06T18:40:00+08:00",
   "parent": ".ccg/tasks/integration-p1",
   "dependencies": [
     "P1-11"
   ],
   "executionMode": "inline，不派implement/check代理",
-  "acceptanceRecord": "wp-reports/P1-12-acceptance.md"
+  "acceptanceRecord": "wp-reports/P1-12-acceptance.md",
+  "localImplementationCommit": "e890ec95"
 }

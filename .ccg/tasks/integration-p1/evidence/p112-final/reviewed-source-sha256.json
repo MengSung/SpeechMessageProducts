@@ -1,0 +1,110 @@
+{
+  "commit": "e890ec95",
+  "files": [
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaAcceptanceProbe.cs",
+      "worktreeSha256": "E66628D38724FEB06376CE4F24617BD9FD50036DE0955650885E0C5B7AFFD9F0",
+      "gitBlobSha256": "E8EE813AEA40FA79058C36453FC10AF0A011793883F7A02B75A619BEA28429C5",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaDefinition.cs",
+      "worktreeSha256": "1B8C67BF723687C2522F235B419EF2697BF88E17DE0EAF6F24B418A6C087D479",
+      "gitBlobSha256": "96BA4A30A2CA6DE7717E66B60B1487A2F70435AF73F92C1E3B039F5621D4D8F1",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaDeploymentCli.cs",
+      "worktreeSha256": "BF5AC1E3F6718E9E7B881AC6C0E16FBD790627B48461BAE03EDBA2EC0AD10830",
+      "gitBlobSha256": "E704D0DD3C04A6381C99146F3B1C928260B67B6F028AB92BE3499CDC96D31305",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaDeploymentEngine.cs",
+      "worktreeSha256": "D59AF5306A056F78851AD26DEAFAF76DF0DF0DDFFE36341EB7395F25675F90CC",
+      "gitBlobSha256": "6D705276BC1DEA5467AB2FD7A33AF0FE6CF57B4D729AE9453016C4077869AE36",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaFiles.cs",
+      "worktreeSha256": "D10FA8ED47546A07E133A35BD4DED944CCA51063C1A6DF48204FE19DDFE65E2A",
+      "gitBlobSha256": "E6D2DD5AB72C2B7BEA2BAEBA5B3E3662157296E94EEBF3E8E11E021CA7B6C0DF",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaMetadata.cs",
+      "worktreeSha256": "66C4C505D6DE68EB8D2092BD7124D449CBAFCAC4D6E0D6C7113A253861C3FF15",
+      "gitBlobSha256": "87C1D62B0D4D2C6366E55C337C807CF29AE58253CF726DA619E490F89BFDDF9E",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaPlan.cs",
+      "worktreeSha256": "4A58B9BE3ED433C8FC894342AC0ACAB7FAA2101510F6DB436FB09AE17CCE6F17",
+      "gitBlobSha256": "4E287B3CF685C8F00F17E39D05302F9B8BF9D5719AF066FBF539B54A8B54C717",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaPlanner.cs",
+      "worktreeSha256": "71084164CF1C673A3AF36DF83D51DA221FAD415A506C0A748BDF4230DA5F818C",
+      "gitBlobSha256": "991C26832BEE899D6A08841C565A79E6BD15B6A856C9D34A2344F2EF51228506",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaSnapshot.cs",
+      "worktreeSha256": "1E639BF0F51CB5A80E8D7161DDA459C4C11782A0576D032301A04256190A74E5",
+      "gitBlobSha256": "CECB8022F48C30E6454A618BEB1071B5099AB7D5858160B5D87B42FF5D837098",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment.Tests/SchemaAcceptanceProbeTests.cs",
+      "worktreeSha256": "912CEEC7097FDADF9330B8315B73B3AA1137BBB8D79435142B15E69C1999C741",
+      "gitBlobSha256": "5E7BF35E99158F58925549A148E0774C53A7A48F0B992D062D9A01F7DBEF1021",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment.Tests/SchemaCliTests.cs",
+      "worktreeSha256": "7722D3F8AE4034FA0DFC41ED9F3FA8C036684326ED8468E86A4A8151CB07EC98",
+      "gitBlobSha256": "072187F1065CC96CC09163F9AEE3121F5530D74EE9031EF06162ABEDC4669DFD",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment.Tests/SchemaDefinitionTests.cs",
+      "worktreeSha256": "5D47884F374E3BDC0230376AF51D8DA8A8EDE7A05CD3122A9460A75D34536AD7",
+      "gitBlobSha256": "DED1EBDCB96FE0F80EC1682209175747935F863181BC664D3D1E7A1A07878BAB",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment.Tests/SchemaEngineTests.cs",
+      "worktreeSha256": "CD09F6A8974968FE468CE3360B630DFA8A7BEBCBD6FA3EE534D27F4D1C95E8C8",
+      "gitBlobSha256": "73319EBDB4BED19E05394AFED3AA7CD90AE83D0A634BEACBB613A306C52791DE",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment.Tests/SchemaMetadataTests.cs",
+      "worktreeSha256": "91AC39F057A9488D77B459EAEAC8F75792E22BC56300FF1C25D0B863B882E790",
+      "gitBlobSha256": "1EAF0101F17A5806D31112C09DCC6B62D148F74B939F6FE569D8A4B6BEDF16CA",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Dynamics.Deployment.Tests/SchemaPlannerTests.cs",
+      "worktreeSha256": "71209B67C9012EBF44AD318246E3BACE80809DBD2DE66B863C45D9BEF54FF90D",
+      "gitBlobSha256": "FC5506CD672571675D166C6EC67B23B57546CD64E2DE6B1636157086AFC3FC07",
+      "matchesCommitAfterGitLineEndingNormalization": true,
+      "worktreeUtf8NoBomCrlf": true
+    }
+  ]
+}

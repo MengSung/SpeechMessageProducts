@@ -106,3 +106,34 @@ solutioncomponent的rootcomponentbehavior官方值0為Include Subcomponents、1�
 
 ## D3659.1通用唯一性故障的差分驗收
 真實9.1.45.11的第二筆相同鍵回官方DuplicateRecord 0x80040237；SQL本文隱藏，不能解析或輸出，不能將任意SQL fault當通過。已唯讀核對實體索引ndx_for_entitykey_new_ak_localizedtext為啟用的唯一索引，三欄恰為account/culture/key。正式probe只在已發布完整verify及4key Active後執行：對0x80060892保留明確拒絕；對0x80040237另需精確查回本次account、第二ID不存在、原三欄tuple僅原第一ID，並實際建立/讀回同鍵不同culture=zh-TW控制列，重查原tuple仍唯一。控制故障、回應遺失、錯集合、第二筆已提交及caller取消皆拒絕並finally清理；原fault與控制故障聚合保真。第四候選ID也先寫ownership，倒序控制文字/第二/第一/教會清理，正常取消分類不變。結果記實際錯碼與LegacyIntegrityDifferentialPassed，不偽填0x80060892。5案真紅後綠，增加控制列取消實測，共157案通過。這是以更多服務端證據替代原先不適用的錯誤碼假設，不降低唯一性/清理驗收。
+
+## P1-12接續與驗收的可執行補充
+
+### 1 適用範圍
+唯一測試組織的部分新增完成、SDK與9.1服務端語意不同時使用。隔離、備份與實際復原證據先於寫入；正式資料/帳號權限/日期轉換不在範圍。
+
+### 2 命令與簽章
+`complete-created-audit --org goodshepherdback --schema <repo schema> --plan <org artifacts plan> --before <原before>`；`smoke --org goodshepherdback --schema <repo schema>`。引擎內部`CompleteCreatedAudits(SchemaPlan,SchemaSnapshot,SchemaDefinition,CancellationToken)`與`SchemaAcceptanceProbe.Run(IOrganizationService,string,string,CancellationToken)`借用外層lease/寫鎖，不自建連線。
+
+### 3 請求與輸出契約
+稽核payload只含MetadataId/LogicalName/IsAuditEnabled=true，before與精確ID先flush；根資訊nullable且null省略。probe ownership包含本次account/first/duplicate/cultureControl正式候選ID，Create先查不存在；結果含真duplicateErrorCode、legacyIntegrityDifferentialPassed、testRowsRemaining=0。CLI只固定摘要，不輸出SQL本文或SDK detail。
+
+### 4 驗證與錯誤矩陣
+| 條件 | 結果 |
+| --- | --- |
+| before/hash/server不符、舊欄、額外metadata差異或未發布漂移 | 補正寫入前拒絕 |
+| root未知/1/2/外殼/別表 | 不推論子元件，要求精確ID |
+| key完整集合不符 | 失敗，不去重掩蓋 |
+| probe第二筆60892 | 預期拒絕，仍查第一筆與清理 |
+| probe第二筆40237 | 必須原tuple唯一、第二ID無列、文化控制可持久化、原tuple重驗；任一失敗聚合原fault |
+| 其他fault、控制故障、清理失敗 | 失敗，保留原Exception及ownership |
+| caller取消 | 清理/同步drain後130；內部timeout仍失敗 |
+
+### 5 正常與錯誤案例
+正常：同表根0雖無顯式欄/key列仍可通過，但metadata全約束與Active要成立。基本：根1的account只承認本次明列欄位。錯誤：只有40237就接受、按顯示名刪資料、用Mock冒充D365或把未發布當完成。
+
+### 6 必要測試
+Root6政策/舊hash、Metadata5型別邊界、Engine真SDK替身二次零寫入、Probe legacy5故障與控制取消；精確斷言原fault、無假result、所有Rows清零。真機另外執行verify/zero-plan/zero-apply/smoke/官方solution匯出/獨立SQL索引/全部候選ID清理重查，兩類證據不可互換。
+
+### 7 錯誤與正確作法
+錯誤：`catch(FaultException){ success=true; }`，或為了通過把audit刪掉。正確：只在第三筆固定資料識別已驗證的拒絕，40237增加完整差分控制，finally精確ID/marker清理；audit只完成本次新建設定並保留原規格。

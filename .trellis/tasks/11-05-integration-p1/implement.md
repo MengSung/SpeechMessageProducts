@@ -178,3 +178,6 @@ Money兩宿主35/35、完整Localization159/185，方案17TRX4197/4197；coverag
 
 ## P1-08 最終本機驗收（2026-11-06）
 完整來源/validator/有界single-flight完成；回收48/200未釋放根因以同步內容計數真紅0/2確認，改ForceYielding後Tenancy75/75及五輪10/10。交付重建17TRX4317/4317、Localization182/208、ToolUtility1231/1369、ChurchReport630；五份coverage97.84%/98.17%、Core95.50%/95.86%、Tenancy96.96%，strict0/0，全部必要守門通過，Changed1133檔0問題。dfb82a7e驗收交付，原實作b74a311d、UI封存f2c7bfbc；矩陣wp-reports/P1-08-acceptance.md及evidence/p108-final。主會話自審，外部兩後端自癒入口run20261106-161834均無可用輸出，不能稱雙模型或單模型完成。主P1保持active/in_progress，10/12，續P1-11/12，未連VM/D365/LINE、未push。
+
+## 2026-11-06 P1最後收斂
+P1-01～P1-12均已逐包驗收；以上早期unchecked項是當時排程紀錄，最終狀態以wp-reports/P1-acceptance.md及各包*-acceptance.md為準。P1-01使用者核定保留DevExpress現版/暫緩hosted CI，非缺證據冒稱通過；使用者取消外模等待，後段依主會話自審；P1-12改官方服務端自主驗收的研究及驗收方法已同步正式02/90與Word。真機5輪16候選全部清理、verify0、4Active、第二apply零metadata寫入、smoke0、官方solution匯出核對；最後全方案4412/4412及必要守門全部通過。只做本地commit及封存，不push/正式部署。

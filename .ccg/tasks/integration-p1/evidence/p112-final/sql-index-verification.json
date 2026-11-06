@@ -1,0 +1,35 @@
+{
+  "readOnly": true,
+  "organization": "goodshepherdback",
+  "table": "new_localizedtextBase",
+  "indexes": [
+    {
+      "IndexName": "PK_new_localizedtextBase",
+      "IsUnique": true,
+      "IsDisabled": false,
+      "Ordinal": 1,
+      "ColumnName": "new_localizedtextId"
+    },
+    {
+      "IndexName": "ndx_for_entitykey_new_ak_localizedtext",
+      "IsUnique": true,
+      "IsDisabled": false,
+      "Ordinal": 1,
+      "ColumnName": "new_accountid"
+    },
+    {
+      "IndexName": "ndx_for_entitykey_new_ak_localizedtext",
+      "IsUnique": true,
+      "IsDisabled": false,
+      "Ordinal": 2,
+      "ColumnName": "new_culture"
+    },
+    {
+      "IndexName": "ndx_for_entitykey_new_ak_localizedtext",
+      "IsUnique": true,
+      "IsDisabled": false,
+      "Ordinal": 3,
+      "ColumnName": "new_key"
+    }
+  ]
+}

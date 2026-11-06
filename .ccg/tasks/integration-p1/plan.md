@@ -119,3 +119,6 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 
 ## 計畫自審
 需求02每包映射Task1～12；P1-10先於08。共用檔僅controller寫；Task5→6/7→9接口一致，Task4→9 source不並寫。Task3不需要Task4。Task2可在controller實作時三worker各自先測，最終整合R4為關卡。任何外部model提示只是待驗證風險，不能當既有bug斷言。
+
+## 2026-11-06 P1最後收斂
+P1-01～P1-12均已逐包驗收；以上早期unchecked項是當時排程紀錄，最終狀態以wp-reports/P1-acceptance.md及各包*-acceptance.md為準。P1-01使用者核定保留DevExpress現版/暫緩hosted CI，非缺證據冒稱通過；使用者取消外模等待，後段依主會話自審；P1-12改官方服務端自主驗收的研究及驗收方法已同步正式02/90與Word。真機5輪16候選全部清理、verify0、4Active、第二apply零metadata寫入、smoke0、官方solution匯出核對；最後全方案4412/4412及必要守門全部通過。只做本地commit及封存，不push/正式部署。
