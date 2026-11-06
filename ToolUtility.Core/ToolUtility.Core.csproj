@@ -5,6 +5,9 @@
     <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" PrivateAssets="all" />

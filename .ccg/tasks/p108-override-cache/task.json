@@ -1,0 +1,19 @@
+{
+  "id": "p108-override-cache",
+  "title": "P1-08教會覆寫來源與完整快照快取",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "來源17/17雙宿主、validator20/20、快取22綠；補manager lease adapter/不確定故障淘汰、DI、回收及全回歸。",
+  "createdAt": "2026-11-06T15:29:16+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parent": ".ccg/tasks/integration-p1",
+  "executionMode": "inline，主會話實作與自審，使用者免外部雙模型",
+  "dependencies": [
+    "P1-04",
+    "P1-05",
+    "P1-10"
+  ]
+}

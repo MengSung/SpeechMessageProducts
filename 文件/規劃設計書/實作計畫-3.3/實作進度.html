@@ -444,15 +444,25 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T15:21:35+08:00",
+  "snapshot": "2026-11-06T16:01:08+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／驗證／審查：Codex inline；使用者已取消後續雙模型，歷史外模證據保留",
   "headline": "階段 1 目前 <strong>9／12 工作包已驗收完成</strong>（P1-01～07、P1-09～10）。P1-05解鎖的06/07/09均已交付；接續P1-08，另P1-11/12仍須完成。現行inline主會話實作／檢查，不宣稱多代理同時開發。全計畫83包，已驗收27包。",
-  "notices": [],
+  "notices": [
+    {
+      "level": "warn",
+      "title": "P1-08 尚未通過資源回收驗收",
+      "body": "最新 Tenancy 測試 73／74 通過；百個 scope 載入後停用的弱參照回收測試仍失敗，正在釐清保留根因。不可宣告本工作包完成。",
+      "steps": [
+        "證據：artifacts/p1-08-20261106/tenancy-lifecycle/tenancy-lifecycle.trx；獨立重跑 lifecycle-drain-second/lifecycle-drain-second.trx 仍失敗。",
+        "共用例外 owner 整合測試另通過 1／1，SendLine=false；離線驗證不代表 D365 實機通過。"
+      ]
+    }
+  ],
   "alert": {
     "level": "info",
-    "title": "P1-09 已驗收；P1 目前 9／12",
-    "body": "完整resx規則與sender20/chatbar14、pseudo、關鍵字與英文資訊已接verify；工具170/170、coverage97.54%，完整方案4203/4203。完整14字名稱保留，只縮sender後綴使pseudo21→19；未縮樣本、提高上限或改公式。主會話自審，無第二人／外部模型。接續P1-08；P1-11/12未完成，D365 預設只讀。",
+    "title": "P1-08 進行中；P1 目前 9／12",
+    "body": "P1-08 的 undefined 是進度頁將狀態誤寫為 doing，並非 D365 錯誤碼；已修正為 active（進行中）並同步計數。P1-09 既有驗收及方案4203/4203證據保留；P1-08 最新局部測試73／74，資源回收失敗仍待修正及全回歸。P1-11/12未完成，D365 預設只讀。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -523,7 +533,11 @@ const DATA = {
       "2026-11-06T15:05:31+08:00 P1-09第一切片：正式verify正反例28案先21紅/7綠→28綠，擴充長度/JSON/預算/1000快照並行/百次弱參照後45/45；孤兒翻譯與保留語系大小寫另3案真紅後修正。真實repo守門明確拒絕sender qps長21（20上限），原始輸出保留；只縮固定後綴小幫手→助手、完整14字名稱保留，實際resolver六案先紅再待重驗，沒有放寬原斷言。生成時發現namespace參數與原檔不符，已用正式生成入口改回原Resources命名空間；不得把只用生成檔自述namespace的check當建置證據。正式key/參數/重複守門沿用P0，完整候選與長度/關鍵字/en18.18%(6/33)已接verify，下一步完整雙目標/coverage/方案回歸。本包尚未驗收、未commit，P1仍8/12。",
       "2026-11-06T15:15:12+08:00 P1-09回歸追修：真實資源改後綴後Framework完整測試3案仍綁舊sender精確golden而失敗，已逐一核對僅更新三個文案精確答案及理由，未刪案例/放寬斷言。修後Localization162/188全綠（含新最長名稱實際流程3案/宿主）；工具168案及coverage97.52%、strict0/0與repo verify/en18.18%通過。審查再注入JSON逃逸高surrogate，2紅/8綠證明Name/GetString的InvalidOperation會逃出CLI；已只在JSON解碼邊界轉InvalidData並保留InnerException，不擴大全域catch。正式完整方案/Plugin/最終tool重驗進行中，本包仍active，無commit。",
       "2026-11-06T15:21:35+08:00 P1-09整包驗收：工具170/170（v2 51）及獨立coverage97.54%，工具/Localization strict0/0；方案17TRX4203/4203、0失敗/略過，Localization162/188、coverage98.17%/98.52%。Debug7、PE27、Plugin10/6、CI6、套件36/167與duplicates通過；完整Changed先驗1098檔0問題，交付頁/manifest納入後再驗。實repo5組生成check/CLDRcheck/CJK及en18.18%(6/33)通過，英文仍未發布。所有真紅/回歸紀錄保留；主會話自審無外模/第二人。驗收wp-reports/P1-09-acceptance.md；證據evidence/p109-final。本地提交收尾中；正式需求不改，僅資源後綴必要修正；只封存本包，主P1增9/12、Goal active，續P1-08/11/12，不push／部署／連VM/D365/LINE。",
-      "2026-11-06T15:25:11+08:00 P1-09本地工作commit 9f9b2b29；方案4203/4203、工具170/170、coverage97.54%、雙目標與所有必要守門證據已保存。只封存p109-i18n-v2並記錄Session18，主P1仍9/12、Goal active，續P1-08/11/12。主會話自審無外審，未push／部署／連VM或D365／發LINE。"
+      "2026-11-06T15:25:11+08:00 P1-09本地工作commit 9f9b2b29；方案4203/4203、工具170/170、coverage97.54%、雙目標與所有必要守門證據已保存。只封存p109-i18n-v2並記錄Session18，主P1仍9/12、Goal active，續P1-08/11/12。主會話自審無外審，未push／部署／連VM或D365／發LINE。",
+      "2026-11-06T15:29:16+08:00 P1-08開始：前置04/05/10已驗收，建立來源/候選/快取完整需求與紅綠計畫；來源逐次scoped lease，不保留D365連線，沿用Core完整分頁。同步catalog只讀先載入的不可變快照，冷未載入明確拒絕；10分重讀失敗保留舊快照，30分閒置/2000容量及64 flight獨立有界。先驗scope/正式ID/參數/20與14長度，再實作取消與generation競態。未連D365，P1仍9/12，無實機通過聲明。",
+      "2026-11-06T15:46:53+08:00 P1-08第一切片：來源雙宿主各17/17、候選各20/20，快取22/22（含2000容量、64上限的低容量入場、A/B1000、取消/失效/停用晚回應）。先取得缺契約編譯紅；另取消callback故障1紅/2綠、timer deadline真紅及共享來源繼承caller AsyncLocal真紅，修後22全綠。deadline改為安全owner timer並await DisposeAsync排空，Lazy啟動及timer建立抑制ExecutionContext，絕不跨await抑制。CA1001/1859/1861均修契約不抑制警告。下一補真manager lease adapter/故障淘汰、DI與回收及全回歸；本包未驗收、未commit，P1仍9/12，沒有D365/LINE實機操作。",
+      "2026-11-06T16:01:08+08:00 使用者回報P1-08出現undefined：確認進度資料誤用doing，LABEL/ICON僅接受active等既定狀態，導致兩處undefined及進行中漏計。補83包合法狀態與實際渲染回歸，修前15案13綠/2紅（明確指出P1-08 doing及摘要11≠12）；改為active，並同步階段1與全計畫meter.active=1，完成數維持9/12、27/83。本次只修進度頁與測試，不改未驗收後端。證據artifacts/p1-08-20261106/progress-status/；修後測試及審查結果續記。",
+      "2026-11-06T16:01:08+08:00 P1-08真實檢查點：最新Tenancy73/74，Lifecycle_HundredScopes_ReleaseContextsSnapshotsAndTimers仍失敗，200個弱參照有48個未回收，延後排程後獨立重跑仍失敗，尚不能判定GC根因。原始tenancy-lifecycle與lifecycle-drain-second的TRX保留；共用ExceptionDiagnostics owner整合測試1/1通過（shared-owner/shared-owner.trx，SendLine=false）。後端修改未commit，下一步釐清保留鏈、修正並重驗；P1-08仍進行中，主P1 Goal active，沒有D365/VM/LINE實機通過聲明。"
     ]
   },
   "tiles": [
@@ -534,7 +548,7 @@ const DATA = {
       "sub": "P0 18／18；P1 9／12 已驗收",
       "meter": {
         "done": 27,
-        "active": 0,
+        "active": 1,
         "total": 83
       }
     },
@@ -556,7 +570,7 @@ const DATA = {
       "sub": "P1-01～07、09～10已驗收；續P1-08/11/12",
       "meter": {
         "done": 9,
-        "active": 0,
+        "active": 1,
         "total": 12
       }
     },
@@ -763,8 +777,8 @@ const DATA = {
     {
       "id": "P1-08",
       "name": "教會覆寫快照快取",
-      "status": "todo",
-      "note": "尚未開始。依賴 P1-04、P1-05、P1-10；須先完成租戶 resolver，再實作有界快取、single-flight、完整候選驗證、原快照保留、取消隔離與 Dispose／drain 基線測試。"
+      "status": "active",
+      "note": "進行中，尚未驗收。前置04/05/10已完成；來源、候選、single-flight、隔離及取消已有局部證據。最新Tenancy73/74，百scope弱參照回收1案仍失敗，正釐清保留根因；共用例外owner整合1/1通過。須修正並完成雙目標、coverage及全回歸，不能標示完成。進度頁undefined為doing狀態誤寫，已修正active。"
     },
     {
       "id": "P1-09",
@@ -1335,7 +1349,7 @@ const DATA = {
       "est": "12～16 天",
       "total": 12,
       "done": 9,
-      "active": 0,
+      "active": 1,
       "current": true
     },
     {

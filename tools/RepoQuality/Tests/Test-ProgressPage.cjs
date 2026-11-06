@@ -47,6 +47,25 @@ function getWorkPackageRow(elements, id) {
   return rows.find(row => row.includes(`<span class="id">${id}</span>`)) || '';
 }
 
+// 狀態誤寫為 doing 會同時破壞圖示、標籤及摘要計數；用真實資料守門所有階段，
+// 不只檢查某一工作包，也不把未知狀態默默當成未開始而掩蓋驗收資料錯誤。
+test('Every work package has a supported status and renders without undefined labels or icons', () => {
+  const supported = new Set(['done', 'active', 'todo', 'you']);
+  const packages = [...original.wps, ...original.p1Wps, ...original.plannedWps]
+    .filter(wp => !wp.milestone);
+  assert.equal(packages.length, 83);
+  for (const wp of packages) {
+    assert.ok(supported.has(wp.status), `${wp.id} has unsupported status: ${wp.status}`);
+  }
+  const rendered = render(original.alert).get('planned-phases').innerHTML;
+  // 歷史說明可以記錄「undefined」根因；真正禁止的是圖示或狀態標籤缺值。
+  const statusElements = [...rendered.matchAll(/<span class="(?:dot|chip [^"]+)">[\s\S]*?<\/span>/g)];
+  assert.ok(statusElements.length >= 83 * 2);
+  for (const [element] of statusElements) {
+    assert.doesNotMatch(element, /\bundefined\b/, 'every visible work-package status needs a label and icon');
+  }
+});
+
 test('No alert hides the warning region and still renders the page', () => {
   const elements = render(null);
   assert.equal(elements.get('alert').hidden, true);
