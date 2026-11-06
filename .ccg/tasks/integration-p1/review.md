@@ -137,3 +137,8 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 - I18n實際拒絕原非分層key，改Contact.Legacy.*並用正式工具產生表；複製中立文案成私有唯讀表，不帶入ResourceManager/衛星或動態cache；舊字串golden不變。
 - 最終688/818、完整16TRX2853、Core92.77%/93.42%、Contact100%；產品strict零警告/錯誤。原新nullable提示以更強Assert.NotNull修復；其他既有測試warning未隱藏。Debug7/進度11/I18n/duplicates通過。
 - 使用者免除雙模型，主會話審查無已知切片Critical/High；List/MarketingList/其餘Query/CrmAsync未交付，不宣告P1-04或主P1完成。未知來源新HTML備份未修改/暫存。
+
+## 2026-11-06 一般資訊歷程更新自查（僅文件）
+- 按使用者指定追加7筆歷程至DATA.alert.steps，一般資訊維持預設收合；保留原27筆，不更改renderer/CSS、其他工作包或他人測試。既有產品結果明確標歷史，Fetch紅測不冒稱通過。
+- 現有工作樹進度頁測試14/14（含他任務版面整合案例）；這不是本任務新增產品驗證。byte-level驗證與精確DATA歸屬證據另存evidence/fetch-query-history。
+- 尚未實作Fetch修補，不宣告P1-04或主P1完成；本次沒有新增外部模型審查或實機證據。

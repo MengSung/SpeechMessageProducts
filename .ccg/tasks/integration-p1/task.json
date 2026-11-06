@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Contact純資料/host adapter完成；688/818、2853、Core92.77%/93.42%與strict通過，主會話審查/本地保存；接續FetchXmlQueryService，再List/其餘Query/CrmAsync。P1-04未完成、P1仍3/12，不呼叫雙模型。",
+  "nextAction": "Fetch原host9/9特性先綠、安全20案17失敗/3通過，證據artifacts/p1-04-fetch-query-20261106；產品Fetch尚未修改。下一步修補XML/GUID/候選/top/Dispose後抽Core，再List/其餘Query/CrmAsync。修改歷程持續寫入進度頁一般資訊；P1-04未完成、P1仍3/12。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",

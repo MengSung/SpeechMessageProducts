@@ -1,0 +1,53 @@
+{
+  "characterization": {
+    "total": "9",
+    "executed": "9",
+    "passed": "9",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "safetyRed": {
+    "total": "20",
+    "executed": "20",
+    "passed": "3",
+    "failed": "17",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "productFetchModified": false,
+  "historyLocation": "DATA.alert (level=info).steps",
+  "entries": 36,
+  "p104Complete": false,
+  "p1Complete": false,
+  "rawEvidence": "artifacts/p1-04-fetch-query-20261106/",
+  "review": "本次僅文件更新自查，無新增外部審查",
+  "sourceSha256": "8b6a2863d349075124288f6fceb9353184e3d829ae06d1ee8737e59999bbcd19",
+  "verification": {
+    "worktreeProgressTests": 14,
+    "isolatedIndexProgressTests": 11,
+    "ownedWorktreeEncoding": "passed",
+    "stagedDiffCheck": "passed",
+    "sharedLayoutExcludedFromCommit": true
+  }
+}

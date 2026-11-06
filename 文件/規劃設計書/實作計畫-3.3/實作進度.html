@@ -454,7 +454,7 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06 09:50（Contact切片末端驗證保存，接續Query）",
+  "snapshot": "2026-11-06 10:05（一般資訊已補完整修改歷程與Fetch紅測）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
   "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
@@ -462,7 +462,7 @@ const DATA = {
   "alert": {
     "level": "info",
     "title": "階段1執行中｜集中P1-04收尾",
-    "body": "P1-04 Constants 已抽取；契約/優化查詢與帳密修補已提交c9a667d4。Contact純資料切片完成：原host7特性先綠、安全24全紅及空密碼2全紅，修後搬前43綠才抽Core；host保留兩ctor、不使用/保存缺隔離鍵cache。最新雙宿主688/818、全方案16TRX 2853/2853（ChurchReport623）、Core coverage92.77%/93.42%、Contact本體100%、strict零警告/錯誤；Debug tracer7、進度頁11及I18n/duplicates通過。主會話審查，未呼叫雙模型。List/MarketingList、其餘Query/CrmAsync尚待交付，整包P1-04未完成、P1仍3/12。D365 預設只讀，未操作VM/D365/LINE。",
+    "body": "P1-04 Constants 已抽取；契約/優化查詢與Contact切片已本地提交c9a667d4、5a9e4b03（未push）。Contact末端驗證688/818、全方案2853/2853、Core92.77%/93.42%是既有已完成切片證據。本次Fetch原host9/9特性先綠，安全20案17失敗／3通過，尚未修改產品FetchXmlQueryService。修改內容、驗證、提交歸屬及未完成項目已記在下方一般資訊歷程。P1-04未完成、P1仍3/12；List/MarketingList、其餘Query/CrmAsync仍待交付。D365 預設只讀，未操作VM/D365/LINE。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -490,7 +490,16 @@ const DATA = {
       "15:10 CrmEntityColumns已抽入ToolUtility.Core/Constants；欄位golden與caller mutation 23/23、ToolUtility net48實載net462 270/270、net10 350/350，Core Release strict雙目標0警告／錯誤。完整P1-04覆蓋率、其他候選與增量雙模型複審仍待完成，工作包未驗收。",
       "2026-11-05 18:21 接續檢查：現成DLL僅244／349案，未採為新證據；重新建置後net48 270/270、net10 350/350。正補抽取後獨立coverage並分析屬性工具／SDK extension，P1-04仍未驗收。",
       "2026-11-05 18:44 本輪屬性工具／SDK extension三檔已抽Core；null logger相容但不保存、固定外層訊息及原InnerException、單一查詢器整頁識別驗證，借入SDK不Dispose。先12特性綠；安全28紅／3綠→修後搬前81綠。最新雙宿主314/314、395/395，Core coverage99.36%／100%、strict雙目標0警告／錯誤。1,000次A/B並行與弱引用回收通過。Constants及CRUD／Owner補證同步複審中；完整00§8及其餘候選未完成，不標整包驗收。",
-      "2026-11-05 19:09 四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性工具及SDK extension已抽Core。本切片先12特性綠、安全28紅／3綠→搬前81綠；最新雙宿主314/314、395/395、coverage99.36%／100%、strict零警告／錯誤。完整方案2056/2056、ChurchReport623/623；35處caller共8種表名的實際代表委派鏈11/11與集合比對通過。最終185904雙模型完整、無降級／Critical／High／Warning；一項非阻斷測試診斷Info已揭露。Repository、Activity／Attachment及其他候選未完成，整包仍在進行。"
+      "2026-11-05 19:09 四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性工具及SDK extension已抽Core。本切片先12特性綠、安全28紅／3綠→搬前81綠；最新雙宿主314/314、395/395、coverage99.36%／100%、strict零警告／錯誤。完整方案2056/2056、ChurchReport623/623；35處caller共8種表名的實際代表委派鏈11/11與集合比對通過。最終185904雙模型完整、無降級／Critical／High／Warning；一項非阻斷測試診斷Info已揭露。Repository、Activity／Attachment及其他候選未完成，整包仍在進行。",
+      "2026-11-06 修改歷程登錄規則：依使用者指定，所有後續本任務修改歷程持續追加於本「一般資訊」，記錄實際修改內容、驗證結果、證據位置、本地commit與未完成項目；保留原歷史，不只更新工作包狀態或時間軸。",
+      "2026-11-06 已提交的程式修改：c9a667d4 抽取五個純介面／67多載及EntityOptimizedQueryService，修正Contact帳密cache hit跳過當前密碼核對；證據wp-reports/P1-04-contracts-optimized.md。該切片最終ToolUtility652/778、全方案2777/2777、Core92.13%/92.83%，是當時結果而非本次Fetch驗證。",
+      "2026-11-06 已提交的程式修改：5a9e4b03 抽取ContactDataService及中立resx/generated表；host保留兩ctor薄adapter，停用缺完整授權scope的Contact cache、不保存logger/cache、不接管SDK。集合完整有界分頁，補XML編碼、空密碼拒絕、ID驗證、取消及Dispose/drain。最終688/818、全方案2853/2853、Core92.77%/93.42%、Contact100%；證據wp-reports/P1-04-contact.md。",
+      "2026-11-06 提交歸屬修正：53c42625 僅修正Git index中的共用HTML歸屬，保留本任務DATA更新；工作樹HTML內容SHA前後相同，其他任務版面修改與測試仍保留，未覆蓋／回退／混入本任務提交。證據artifacts/p1-04-contact-20261106/ownership/。",
+      "2026-11-06 Fetch切片已新增五個固定合成查詢golden、FetchQueryCharacterizationTests及FetchQuerySafetyTests；尚未修改或搬移產品FetchXmlQueryService。原host五個完整XML特性＋既有Fee四案9/9先綠，保留原查詢SHA；證據artifacts/p1-04-fetch-query-20261106/before.trx、source-before-sha256.json。",
+      "2026-11-06 10:05 Fetch安全基線實跑20案：17失敗、3通過、0略過，編譯成功；確認原host缺少XML編碼／GUID拒絕、整頁身份及top驗證、錯誤response防護與Dispose/logger清理契約。失敗TRX與原始log已保留於artifacts/p1-04-fetch-query-20261106/red-safety.trx及red-safety.log。這是待修正紅測，不是安全驗收完成。",
+      "2026-11-06 10:05 目前邊界：本次只補寫一般資訊與保存驗證歷程，Fetch產品修補尚未執行；P1-04仍進行中、P1仍3/12。其餘List/MarketingList、Query與CrmAsync抽取仍待交付。不把歷史Mock通過當實機證據，未操作VM/D365/LINE，未push／部署。",
+      "2026-11-06 10:07 一般資訊更新驗證：保留原27筆歷程、追加本輪歷程，僅修改DATA，不改renderer/CSS；目前工作樹進度頁14/14通過（含他任務版面案例）。執行規則已保存至Trellis implement.md、CCG/Trellis接續狀態與review.md；不將文件更新當成P1-04完成。",
+      "2026-11-06 10:08 文件暫存守門發現index-only候選未經Git換行正規化，diff --check拒絕；已依既有.gitattributes/core.autocrlf重建LF儲存候選，工作樹仍維持UTF-8無BOM/CRLF，未關閉守門或修改他人版面。"
     ]
   },
   "tiles": [

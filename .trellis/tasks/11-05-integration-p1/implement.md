@@ -134,3 +134,7 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 - 在原host位置修正後43/43通過；搬前暫時Compile link同一SdkDataQuery來源供internal helper使用，非副本；git mv前已移除link並逐字核對host csproj回HEAD。
 - 完整集合最多5000列/1000頁/64Ki cookie，穩定contactid排序，完整候選跨頁驗重後發布；超預算/後頁故障拒絕，不回部分集合。
 - 搬後補外部SDK/ref/null、三Task取消/內部timeout、Dispose/drain/weak-reference/1000A/B，跑雙目標coverage/strict/全方案/00§8並保存本地證據。不改正式3.3計畫。
+
+## 2026-11-06 進度歷程固定位置
+- 使用者指定所有本任務修改歷程寫入正式進度頁的「一般資訊」；使用既有 DATA.alert(level=info).body/steps，不只更新 timeline 或工作包 note。每輪追加時間、修改範圍、實際紅/綠驗證、證據、本地commit與未完成邊界；保留既有歷史及他任務版面。
+- 本次將契約/Contact既有提交與Fetch原host9/9先綠、安全20案17失敗/3通過寫入；HTML渲染器未變，現有工作樹進度頁測試14/14，產品Fetch仍未修改，不標P1-04完成。
