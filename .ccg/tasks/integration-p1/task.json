@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Activity切片ec108ae0已本地提交、離線驗證完整。下一步CollectionQueryService的原host特性及安全紅綠（尚未改產品）；其餘P1-04候選、P1-01及05～12未完成。主P1仍2/12，主會話審查、無後續雙模型REVIEW。",
+  "nextAction": "P1-04契約/優化查詢/帳密修補：652/778、2777完整回歸、Core92.13%/92.83%與strict通過，保存本地主會話審查證據後接續Contact純資料操作；其餘List/Query/CrmAsync待交付，P1仍3/12，不呼叫雙模型。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
@@ -17,5 +17,5 @@
     "VM預設只讀，測試寫入須確認隔離/備份/復原",
     "產品net462;net10.0，不降低守門"
   ],
-  "reviewPolicy": "使用者最新明確免除後續雙模型REVIEW；主會話直接審查+實測，歷史外審保留且不冒稱新增。"
+  "reviewPolicy": "使用者2026-11-06明確表示不需要雙模型；後續由主會話直接分析、實作與審查，保留歷史外模證據，不冒稱新增雙模型完成。"
 }

@@ -23,9 +23,10 @@ using ToolUtilityNameSpace.Caching;
 namespace ToolUtilityNameSpace.ContactOperations
 {
     /// <summary>
-    /// 聯絡人服務
-    /// ? Phase 3.2: 整合快取機制
-    /// 效能提升: 減少 70% 重複查詢
+    /// 保留舊聯絡人查詢與 host 可選快取；服務只限原已授權的 SDK scope，不得跨使用者／租戶共用。
+    /// 帳密核對永不從快取讀取或寫回驗證結果，每次檢查同一授權 SDK 的當前資料。
+    /// 其他名稱／LINE 快取入口仍屬 host，後續須各自驗證完整隔離邊界，不能因純介面已抽取就宣稱安全。
+    /// SDK、logger 與 cache 由 host 擁有；本服務不建立背景工作，host 在操作 drain 後釋放自己的資源。
     /// </summary>
     public class ContactService : IContactService
     {
@@ -33,13 +34,18 @@ namespace ToolUtilityNameSpace.ContactOperations
         private readonly IOrganizationService _organizationService;
         private readonly ICrmCacheService _cacheService;
 
-        // ? 支援無快取的舊版構造函數（向下相容）
+        /// <summary>保留無快取建構入口，借用已授權 SDK 與 host 診斷物件至原 scope 結束，不接管 Dispose。</summary>
+        /// <param name="logger">host 擁有的診斷物件，不應帶有其他使用者狀態。</param>
+        /// <param name="organizationService">host 已授權且有界存活的 SDK，不得跨租戶借用。</param>
         public ContactService(object logger, IOrganizationService organizationService)
             : this(logger, organizationService, null)
         {
         }
 
-        // ? 新版構造函數，支援快取注入
+        /// <summary>保留可選 host 快取注入，但帳密核對不使用它；三個依賴均由 host 原 scope 管理。</summary>
+        /// <param name="logger">host 擁有的診斷物件。</param>
+        /// <param name="organizationService">同一已驗證 scope 的借入 SDK，host 先 drain 再釋放。</param>
+        /// <param name="cacheService">可為 null 的 host 快取；不得保存密碼或已核對身份供另一次登入重用。</param>
         public ContactService(object logger, IOrganizationService organizationService, ICrmCacheService cacheService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -70,26 +76,20 @@ namespace ToolUtilityNameSpace.ContactOperations
         }
 
         /// <summary>
-        /// 根據帳號和密碼查詢聯絡人（帶快取）
-        /// ? Phase 3.2: 快取 10 分鐘
+        /// 每次直接以原已授權 SDK 核對帳號及當前密碼，不快取成功身份，也不把密碼／雜湊加入快取鍵。
+        /// 只以帳號命中的舊快取可能屬其他使用者、組織或已變更密碼，絕不能用它略過本次驗證。
+        /// 同步 I/O 前後檢查 caller 取消；真正 SDK 故障保留原例外，交最終 host 共用告警而不回舊資料。
         /// </summary>
-        public async Task<Entity> RetrieveByAccountNumberAsync(
+        /// <param name="accountNumber">僅供此次查詢的帳號，不是伺服器授權的替代物。</param>
+        /// <param name="password">僅在此次核對期間使用的機密，不記錄、不存入快取或背景工作。</param>
+        /// <param name="cancellationToken">明確 caller 取消；不能中斷已進入 SDK 的同步 I/O。</param>
+        /// <returns>當前密碼相符的操作自有 Entity，否則 null；不建立登入票證或 Session。</returns>
+        public Task<Entity> RetrieveByAccountNumberAsync(
             string accountNumber,
             string password,
             CancellationToken cancellationToken = default)
         {
-            // 密碼不參與快取鍵，使用帳號作為鍵
-            if (_cacheService != null)
-            {
-                var cacheKey = $"Contact:Account:{accountNumber}";
-                return await _cacheService.GetOrCreateAsync(
-                    cacheKey,
-                    () => ExecuteAsync(() => RetrieveByAccountNumber(accountNumber, password), cancellationToken),
-                    TimeSpan.FromMinutes(10),
-                    cancellationToken);
-            }
-
-            return await ExecuteAsync(() => RetrieveByAccountNumber(accountNumber, password), cancellationToken);
+            return ExecuteAsync(() => RetrieveByAccountNumber(accountNumber, password), cancellationToken);
         }
 
         /// <summary>
@@ -407,8 +407,9 @@ namespace ToolUtilityNameSpace.ContactOperations
         }
 
         /// <summary>
-        /// 輕量包裝同步 CRM 呼叫。
-        /// 這裡保留取消與例外語意，但不再額外建立 ThreadPool 工作項目。
+        /// 在 caller 執行緒包裝同步 CRM 呼叫，不排程背景工作、不保存候選或 caller 機密。
+        /// 明確 caller 取消在 I/O 前後檢查；內部取消而 caller 未取消仍是故障，不能假稱正常取消。
+        /// 正常完成／故障／取消均不持有 cancellation registration 或其他需處置資源。
         /// </summary>
         private static Task<T> ExecuteAsync<T>(Func<T> operation, CancellationToken cancellationToken)
         {
@@ -419,7 +420,13 @@ namespace ToolUtilityNameSpace.ContactOperations
 
             try
             {
-                return Task.FromResult(operation());
+                var result = operation();
+                cancellationToken.ThrowIfCancellationRequested();
+                return Task.FromResult(result);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<T>(cancellationToken);
             }
             catch (Exception ex)
             {

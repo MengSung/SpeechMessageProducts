@@ -119,3 +119,13 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 - 詳 wp-reports/P1-04-activity.md、evidence/activity/；主P1／P1-04未全包驗收。
 
 末端編碼：Changed 805 checked／769 raw excluded，唯一問題仍是非本切片p013索引MissingFinalCrlf；本輪30份自有文字以未修改repo byte-validator驗證0問題。來源／文件whitespace與進度8/8通過，不宣稱完整Changed成功。
+
+## 2026-11-06 純契約、優化查詢及帳密修補主會話審查
+- 使用者免除後續雙模型分析/審查，本輪由主會話直接審查，不冒稱外部證據。先前Gemini403/Claude週額度均無可用結果，保留原檔。
+- 五契約67多載golden核對namespace、ref、參數與預設值；nullable如實反映null，不刪舊方法。host實作指派及反射實載net462均通過。
+- 優化查詢重用唯一Query/Collection驗證；Batch與Paged不增statecode，OR整體AND不修改caller，top拒超量；所有候選驗ID/表/分頁後發布。
+- 同步SDK不Task.Run，caller取消前後檢查，內部取消faulted；Dispose清SDK參照而不關借入連線，已入場I/O由host drain；不保存logger或機密。
+- 帳密cache命中原可跳過當前密碼，七案真紅後移除該入口全部cache I/O；八案含1000次A/B通過。未把密碼塞key，不吞例外。其餘LINE/姓名cache不冒稱安全。
+- 最終完整16TRX2777/2777、ToolUtility652/778、ChurchReport623/623、架構67/67；Core92.13%/92.83%、strict0警告/錯誤。無已知本切片Critical/High；不代表整包P1-04完成。
+
+末端守門：Debug tracer最初誤選ToolUtility.Tests得到0測試，已明確拒絕該結果；改正ToolUtility.Dataverse.Tests後7/7且TRX守門通過。進度頁第一次漏保留安全/Constants文案使10/11，修正文案而未改測試，最終11/11；duplicates951檔0新重複、I18n通過。9份同任務歷史文字作無語義編碼正規化，manifest保留雜湊。完整Changed882檔僅他人p013 .turns.json缺檔尾CRLF，不修改或提交該檔，不宣稱全Changed成功。

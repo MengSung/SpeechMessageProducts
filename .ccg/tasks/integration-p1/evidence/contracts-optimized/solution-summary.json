@@ -1,0 +1,88 @@
+{
+  "reports": 16,
+  "passed": 2777,
+  "failed": 0,
+  "skipped": 0,
+  "runs": [
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_52_net10.0.trx",
+      "passed": 34,
+      "assembly": "LineMessagingProcessor.RichMenus.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_52_net10.0[1].trx",
+      "passed": 33,
+      "assembly": "LineMessagingProcessor.Workflows.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_52_net10.0[2].trx",
+      "passed": 4,
+      "assembly": "LineMessagingProcessor.AspNetCore.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_52_net10.0[3].trx",
+      "passed": 55,
+      "assembly": "SpeechMessage.Payments.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_52_net10.0[4].trx",
+      "passed": 79,
+      "assembly": "LineMessagingProcessor.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_52_net10.0[5].trx",
+      "passed": 101,
+      "assembly": "Line.Messaging.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_52_net10.0[6].trx",
+      "passed": 67,
+      "assembly": "SpeechMessage.Localization.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_53_net10.0.trx",
+      "passed": 778,
+      "assembly": "ToolUtility.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_53_net10.0[1].trx",
+      "passed": 62,
+      "assembly": "SpeechMessage.Dynamics.Deployment.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_53_net10.0[2].trx",
+      "passed": 79,
+      "assembly": "ToolUtility.Dataverse.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_53_net10.0[3].trx",
+      "passed": 623,
+      "assembly": "ChurchReport.MemberInfo.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_54_net48.trx",
+      "passed": 43,
+      "assembly": "SpeechMessage.Localization.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_54_net48[1].trx",
+      "passed": 96,
+      "assembly": "Line.Messaging.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_54_net48[2].trx",
+      "passed": 46,
+      "assembly": "LineMessagingProcessor.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_55_net48.trx",
+      "passed": 25,
+      "assembly": "SpeechMessage.Dynamics.Plugins.Tests.dll"
+    },
+    {
+      "report": "artifacts/p1-04-contracts-continuation-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_17_55_net48[1].trx",
+      "passed": 652,
+      "assembly": "ToolUtility.Tests.dll"
+    }
+  ]
+}

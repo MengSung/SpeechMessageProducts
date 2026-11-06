@@ -454,7 +454,7 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-05 22:11（P1-01正式驗收完成；P1為3/12，P1-04持續中）",
+  "snapshot": "2026-11-06（P1-04契約與優化查詢驗證保存，接續Contact純資料層）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
   "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
@@ -462,7 +462,7 @@ const DATA = {
   "alert": {
     "level": "info",
     "title": "階段1執行中｜集中P1-04收尾",
-    "body": "P1-01已正式驗收完成，報告 wp-reports/P1-01-acceptance.md；DevExpress保留現版、不升級不續訂，新來源與hosted完整CI依使用者決定暫緩，不再阻擋P1-01。D365 預設只讀，本輪未操作VM／D365／LINE。P1-04 Constants 已抽取。Collection原host三特性先綠、安全45/45真紅→搬前48/48綠後git mv；搬後net48實載net462 554/554、net10 661/661，Core strict零警告／錯誤，既有Collection效能16/16通過。正純化九屬性轉換器及靜態handler：19特性先綠、13安全＋1null lookup真紅。主會話審查，P1-04未全包驗收。",
+    "body": "P1-04 Constants 已抽取；五個純契約67個多載與優化查詢已抽取；補上帳密cache繞過的安全修補，每次核對當前密碼、不快取登入結果。最終ToolUtility net48實載net462 652/652、net10 778/778；Core coverage 92.13%/92.83%、strict零警告/錯誤；全方案16 TRX共2777/2777、ChurchReport623/623。使用者免除雙模型，主會話審查。Contact其餘純查詢、List/MarketingList、其餘Query/CrmAsync尚待處理；整包P1-04未完成，P1仍3/12。D365 預設只讀；未操作VM、D365、LINE。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -699,7 +699,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "Collection原host三特性先綠、安全45/45真紅→搬前48/48綠後git mv；搬後net48實載net462 554/554、net10 661/661，Core strict零警告／錯誤，既有Collection效能16/16通過。正純化九屬性轉換器及靜態handler：19特性先綠、13安全＋1null lookup真紅。主會話審查，P1-04未全包驗收。"
+      "note": "P1-04 Constants 已抽取；五個純契約67個多載與優化查詢已抽取；補上帳密cache繞過的安全修補，每次核對當前密碼、不快取登入結果。最終ToolUtility net48實載net462 652/652、net10 778/778；Core coverage 92.13%/92.83%、strict零警告/錯誤；全方案16 TRX共2777/2777、ChurchReport623/623。使用者免除雙模型，主會話審查。Contact其餘純查詢、List/MarketingList、其餘Query/CrmAsync尚待處理；整包P1-04未完成，P1仍3/12。D365 預設只讀；未操作VM、D365、LINE。"
     },
     {
       "id": "P1-05",
@@ -1475,6 +1475,10 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-06 09:25",
+      "text": "P1-04 Constants 已抽取；五個純契約67個多載與優化查詢已抽取；補上帳密cache繞過的安全修補，每次核對當前密碼、不快取登入結果。最終ToolUtility net48實載net462 652/652、net10 778/778；Core coverage 92.13%/92.83%、strict零警告/錯誤；全方案16 TRX共2777/2777、ChurchReport623/623。使用者免除雙模型，主會話審查。Contact其餘純查詢、List/MarketingList、其餘Query/CrmAsync尚待處理；整包P1-04未完成，P1仍3/12。D365 預設只讀；未操作VM、D365、LINE。"
+    },
     {
       "t": "2026-11-05 21:39",
       "text": "Activity切片ec108ae0已本地提交、未push；495/602雙宿主、2444完整回歸、Core99.56%/100%及主會話審查證據已保存。依使用者不再安排雙模型REVIEW。集中P1-04剩餘抽取，先Collection原host特性、安全紅綠與完整分頁，再處理必要純契約；已驗收切片不重做。其餘P1仍未完成。",

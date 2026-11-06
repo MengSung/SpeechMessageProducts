@@ -3,7 +3,8 @@
 // 檔案路徑：ToolUtility/ListOperations/MarketingListService.cs
 // 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
 // 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IMarketingListService、class MarketingListService
+// 主要型別：class MarketingListService
+// 純契約已移至 ToolUtility.Core；此檔仍保留既有 host 實作，尚未宣稱安全純化完成。
 // 主要成員：RetrieveMembersByListId、GetAllMemberData、AddMember、AddMembersAsync、AddMembersUsingSdkAsync、RemoveMember、RemoveMembersAsync
 // 引用命名空間：Microsoft.Crm.Sdk.Messages、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、System、System.Collections、System.Collections.Generic、System.Diagnostics、System.Linq
 // 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
@@ -25,33 +26,7 @@ using ToolUtilityNameSpace.EntityOperations;
 
 namespace ToolUtilityNameSpace.ListOperations
 {
-    /// <summary>
-    /// 行銷名單服務介面
-    /// 遵循 Interface Segregation Principle (ISP)
-    /// </summary>
-    public interface IMarketingListService
-    {
-        /// <summary>檢索名單成員集合</summary>
-        EntityCollection RetrieveMembersByListId(Guid listId);
 
-        /// <summary>取得名單所有成員資料</summary>
-        ArrayList GetAllMemberData(Guid listId);
-
-        /// <summary>添加成員到名單</summary>
-        void AddMember(Guid listGuid, Guid memberGuid);
-
-        /// <summary>批次添加成員到名單 (非同步)</summary>
-        Task<int> AddMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default);
-
-        /// <summary>使用 SDK 批次添加成員 (最高效)</summary>
-        Task<int> AddMembersUsingSdkAsync(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service, int maxBatchSize = 1000, CancellationToken cancellationToken = default);
-
-        /// <summary>移除名單成員</summary>
-        void RemoveMember(Guid listGuid, Guid memberGuid);
-
-        /// <summary>批次移除名單成員 (非同步)</summary>
-        Task<int> RemoveMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default);
-    }
 
     /// <summary>
     /// 行銷名單服務實現

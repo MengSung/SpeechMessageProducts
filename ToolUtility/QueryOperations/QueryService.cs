@@ -3,7 +3,8 @@
 // 檔案路徑：ToolUtility/QueryOperations/QueryService.cs
 // 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
 // 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IQueryService、class QueryService
+// 主要型別：class QueryService
+// 純契約已移至 ToolUtility.Core；此檔仍保留既有 host 實作，尚未宣稱安全純化完成。
 // 主要成員：RetrieveEntityByField、RetrieveEntityCollectionByField、QueryByFetchXml、QueryBloodReportByContactId、QueryPresentRecordByContactIdAndSunday
 // 引用命名空間：Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、System、System.Diagnostics、ToolUtilityNameSpace.EntityOperations
 // 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
@@ -19,27 +20,7 @@ using ToolUtilityNameSpace.EntityOperations;
 
 namespace ToolUtilityNameSpace.QueryOperations
 {
-    /// <summary>
-    /// 查詢服務介面
-    /// 專責處理各種複雜查詢操作
-    /// </summary>
-    public interface IQueryService
-    {
-        /// <summary>透過欄位值檢索實體</summary>
-        Entity RetrieveEntityByField(string entityName, string fieldName, string fieldValue);
 
-        /// <summary>透過欄位值檢索實體集合</summary>
-        EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue);
-
-        /// <summary>透過 FetchXml 查詢</summary>
-        EntityCollection QueryByFetchXml(string fetchXml);
-
-        /// <summary>查詢血液報告</summary>
-        Entity QueryBloodReportByContactId(Guid contactId);
-
-        /// <summary>查詢出席記錄</summary>
-        EntityCollection QueryPresentRecordByContactIdAndSunday(Guid listEntityId, Guid contactId, int monthPeriod);
-    }
 
     /// <summary>
     /// 查詢服務實現

@@ -30,6 +30,8 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels, and unified diagnostic trace contract | Established |
 | [I18n Scanner Contract](./i18n-scanner-contract.md) | Separate C# tokens from Razor template boundaries without widening count scope | Established |
 | [Attachment Transfer Contract](./attachment-transfer-contract.md) | Bounded annotation payloads, stable identity/parent validation and dual-target Base64 consistency | Established |
+| [Contact Authentication Cache Contract](./contact-authentication-cache-contract.md) | Fresh SDK password verification, no authenticated-result cache and precise cancellation | Established |
+| [Core Query Adapter Contract](./core-query-adapter-contract.md) | Pure contract API golden, legacy filter differences, bounded query delegation and borrowed SDK lifecycle | Established |
 | [Activity Publication Contract](./activity-publication-contract.md) | Composite party identities, complete bounded paging, legacy append and borrowed SDK drain | Established |
 | [Image Input Contract](./image-input-contract.md) | Restricted image formats, pre-decode size limits, safe rejection and bounded ownership | Established |
 | [MemberInfo Tree And Grid Contract](./member-info-tree-contract.md) | Cross-layer MemberInfo authorization, DTO, paging, sorting, cache, and CRM batching rules | Established |

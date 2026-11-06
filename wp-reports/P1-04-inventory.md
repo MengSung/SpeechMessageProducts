@@ -28,59 +28,59 @@
 | `ToolUtility/ToolUtilityPartials/ToolUtilityClass.Utility.cs` | `ToolUtilityNameSpace.ToolUtilityClass` | 不可搬（host） | 同一ToolUtilityClass partial，持組態／連線並委派服務；全部留同一assembly。 |
 | `ToolUtility.Core/ActivityOperations/ActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.ActivityService` | 已抽取（離線通過／主會話審查） | 移除logger持有、複合正式識別、完整候選／有界分頁、Dispose清除借入SDK；495/602及2444回歸，詳Activity報告。 |
 | `ToolUtility.Core/ActivityOperations/IActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.IActivityService` | 已抽取（純契約） | 六方法／namespace保留；獨占ArrayList及append／有界生命週期完整文件、nullable與雙產品反射已驗證。 |
-| `ToolUtility/AppointmentOperations/AppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.AppointmentService` | 可搬（先純化） | SDK-only I/O；去除未用logger，日期文化／XML輸入先鎖golden再安全純化。 |
-| `ToolUtility/AppointmentOperations/IAppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.IAppointmentService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/AppointmentOperations/AppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.AppointmentService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AppointmentOperations/IAppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.IAppointmentService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/AttachmentOperations/AttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.AttachmentService` | 已抽取（離線通過／審查降級） | 只保存不可變limits；固定wrapper、整頁ID／parent／容量；413/512及2272回歸通過，Claude週額度。 |
 | `ToolUtility.Core/AttachmentOperations/IAttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.IAttachmentService` | 已抽取（純契約） | 保留原namespace／ref；完整nullable中繼資料及兩產品目標已驗證。 |
-| `ToolUtility/AttributeOperations/AttributeServiceComposite.cs` | `ToolUtilityNameSpace.AttributeOperations.AttributeServiceComposite` | 不可直接搬 | 連帶九個服務反射載入Extensions logger，本檔無using不代表純Core。 |
-| `ToolUtility/AttributeOperations/BoolAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.BoolAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/AttributeOperations/DateTimeAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DateTimeAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/AttributeOperations/DoubleAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DoubleAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/AttributeOperations/EntityAttributeUtilityService.cs` | `ToolUtilityNameSpace.AttributeOperations.EntityAttributeUtilityService` | 可搬（先純化） | 未用logger持有，例外回顯原message；先純化並保留真實Exception鏈。 |
-| `ToolUtility/AttributeOperations/FloatAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.FloatAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/AttributeOperations/IAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IAttributeService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/AttributeOperations/IntAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IntAttributeService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/AttributeOperations/LookupAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.LookupAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/AttributeOperations/MoneyAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.MoneyAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/AttributeOperations/OptionSetAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.OptionSetAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/AttributeOperations/StringAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.StringAttributeService` | 不可直接搬 | SafeLogError反射載入Extensions logger並保存object；先純轉換／host錯誤轉接分離。 |
-| `ToolUtility/CollectionOperations/CollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.CollectionQueryService` | 不可直接搬 | Diagnostics.LoggerInvoker host依賴，ID字典及分頁／取消／drain先驗證。 |
-| `ToolUtility/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.ICollectionQueryService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.PagedResult<T>` | 不可直接搬 | 公開可變List／PagingCookie，只能是operation-owned DTO，不可當共用快照。 |
+| `ToolUtility.Core/AttributeOperations/AttributeServiceComposite.cs` | `ToolUtilityNameSpace.AttributeOperations.AttributeServiceComposite` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/BoolAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.BoolAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/DateTimeAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DateTimeAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/DoubleAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DoubleAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/EntityAttributeUtilityService.cs` | `ToolUtilityNameSpace.AttributeOperations.EntityAttributeUtilityService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/FloatAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.FloatAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/IAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/IntAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IntAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/LookupAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.LookupAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/MoneyAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.MoneyAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/OptionSetAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.OptionSetAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/StringAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.StringAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/CollectionOperations/CollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.CollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.ICollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.PagedResult<T>` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility/ContactOperations/ContactService.cs` | `ToolUtilityNameSpace.ContactOperations.ContactService` | 不可直接搬 | Caching.ICrmCacheService及Diagnostics.LoggerInvoker；cache／連線留host。 |
-| `ToolUtility/ContactOperations/IContactService.cs` | `ToolUtilityNameSpace.ContactOperations.IContactService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/EntityOperations/EntityAttributeHandler.cs` | `ToolUtilityNameSpace.EntityOperations.EntityAttributeHandler` | 不可直接搬 | static轉換catch Trace原值並有預設值路徑，須區分合法缺值及真正失敗。 |
-| `ToolUtility/EntityOperations/EntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityCrudService` | 可搬（先純化） | SDK Create/Update/Delete；去除未用logger，host仍負責授權／冪等。 |
-| `ToolUtility/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityOptimizedQueryService` | 不可直接搬 | 依Diagnostics.LoggerInvoker，ID字典、PagedResult及借入服務Dispose邊界先驗證。 |
-| `ToolUtility/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.PagedResult<T>` | 不可直接搬 | 公開可變List／PagingCookie，只能是operation-owned DTO，不可當共用快照。 |
-| `ToolUtility/EntityOperations/EntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityQueryService` | 可搬（先純化） | 未用logger、允許未初始化服務、XML注入與Dispose狀態待測修；NoCache在此收斂。 |
-| `ToolUtility/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityRepository` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.EntityRepository` | 不可直接搬 | Trace記錄實體／ID／Exception.Message；先安全診斷分層，保留原例外鏈。 |
-| `ToolUtility/EntityOperations/IEntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityCrudService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/EntityOperations/IEntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityQueryService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/FeeOperations/FeeService.cs` | `ToolUtilityNameSpace.FeeOperations.FeeService` | 可搬（先純化） | 未用logger；兩有效方法有XML注入、兩空方法已有有效來源；先特性／修補後搬。 |
-| `ToolUtility/FeeOperations/IFeeService.cs` | `ToolUtilityNameSpace.FeeOperations.IFeeService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/LessonsOperations/ILessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.ILessonsService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/LessonsOperations/LessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.LessonsService` | 可搬（先純化） | SDK-only；去除未用logger，日期文化及XML lookup安全組裝先測。 |
-| `ToolUtility/ListOperations/IListService.cs` | `ToolUtilityNameSpace.ListOperations.IListService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/ContactOperations/IContactService.cs` | `ToolUtilityNameSpace.ContactOperations.IContactService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/EntityAttributeHandler.cs` | `ToolUtilityNameSpace.EntityOperations.EntityAttributeHandler` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/EntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityCrudService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityOptimizedQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.PagedResult<T>` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/EntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityRepository` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.EntityRepository` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/IEntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityCrudService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/EntityOperations/IEntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/FeeOperations/FeeService.cs` | `ToolUtilityNameSpace.FeeOperations.FeeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/FeeOperations/IFeeService.cs` | `ToolUtilityNameSpace.FeeOperations.IFeeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/LessonsOperations/ILessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.ILessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/LessonsOperations/LessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.LessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/ListOperations/IListService.cs` | `ToolUtilityNameSpace.ListOperations.IListService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility/ListOperations/ListService.cs` | `ToolUtilityNameSpace.ListOperations.ListService` | 不可直接搬 | Task.Run／Delay批次與外部SDK借入，先驗取消／故障／排空及ID完整發布。 |
-| `ToolUtility/ListOperations/MarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.IMarketingListService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/ListOperations/IMarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.IMarketingListService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；host實作仍待純化。 |
 | `ToolUtility/ListOperations/MarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.MarketingListService` | 不可直接搬 | 依IEntityRepository與SDK，Task.Run批次及連帶Repository待純化。 |
-| `ToolUtility/MeetingStatisticsOperations/IMeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.IMeetingStatisticsService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
-| `ToolUtility/MeetingStatisticsOperations/MeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.MeetingStatisticsService` | 可搬（先純化） | SDK-only；去除未用logger，固定日期文化／lookup安全組裝，先2～3個golden。 |
-| `ToolUtility/OwnerOperations/OwnerManagementService.cs` | `ToolUtilityNameSpace.OwnerOperations.OwnerManagementService` | 可搬（先純化） | SDK owner操作；去除未用logger，例外不得回顯ID／原message。 |
+| `ToolUtility.Core/MeetingStatisticsOperations/IMeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.IMeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/MeetingStatisticsOperations/MeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.MeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/OwnerOperations/OwnerManagementService.cs` | `ToolUtilityNameSpace.OwnerOperations.OwnerManagementService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility/QueryOperations/ComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.ComplexQueryService` | 不可直接搬 | 依Interfaces.ICrmClient而非純借入IOrganizationService，不搬host連線。 |
 | `ToolUtility/QueryOperations/FetchXmlQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.FetchXmlQueryService` | 不可直接搬 | 反射Extensions logger及未跳脫XML；認獻／收費可委派Fee單一實作。 |
-| `ToolUtility/QueryOperations/IComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IComplexQueryService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/QueryOperations/IComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IComplexQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility/QueryOperations/PresentRecordQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.PresentRecordQueryService` | 不可直接搬 | 反射Extensions logger及FetchXML插入，先分離純查詢／host告警。 |
-| `ToolUtility/QueryOperations/QueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IQueryService` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/QueryOperations/IQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IQueryService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；host實作仍待純化。 |
 | `ToolUtility/QueryOperations/QueryService.cs` | `ToolUtilityNameSpace.QueryOperations.QueryService` | 不可直接搬 | 依Repository、Trace原值與DateTime.Now，須處理時間來源／安全診斷。 |
 | `ToolUtility/QueryOperations/RelationshipQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.RelationshipQueryService` | 不可直接搬 | 反射Extensions logger與動態XML，實體／欄位／關係名也須結構驗證。 |
-| `ToolUtility/Core/IToolUtilityCore.cs` | `ToolUtilityNameSpace.Core.IToolUtilityCore` | 可搬（純契約） | 簽章僅BCL／SDK，不持資源；必要DTO／文件及雙目標編譯仍須驗證。 |
+| `ToolUtility.Core/Core/IToolUtilityCore.cs` | `ToolUtilityNameSpace.Core.IToolUtilityCore` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility/Core/ToolUtilityFacade.cs` | `ToolUtilityNameSpace.Core.ToolUtilityFacade` | 不可直接搬 | ConnectionOperations、logger、LINE與Lazy組合根；Metadata partial不可跨assembly拆。 |
 | `ToolUtility/Core/ToolUtilityFacade.Metadata.cs` | `ToolUtilityNameSpace.Core.ToolUtilityFacade` | 不可直接搬 | ConnectionOperations、logger、LINE與Lazy組合根；Metadata partial不可跨assembly拆。 |
 | `ToolUtility/Extensions/CrmAsyncExtensions.cs` | `ToolUtilityNameSpace.Extensions.CrmAsyncExtensions` | 不可直接搬 | SemaphoreSlim無確定性Dispose，Task.Run批次與dictionary覆寫ID；先有界／drain／衝突測試。 |
-| `ToolUtility/Extensions/OrganizationServiceExtensions.cs` | `ToolUtilityNameSpace.Extensions.OrganizationServiceExtensions` | 可搬（先純化） | 只SDK Execute，但null service／request／response轉空結果須先釐清失敗契約。 |
+| `ToolUtility.Core/Extensions/OrganizationServiceExtensions.cs` | `ToolUtilityNameSpace.Extensions.OrganizationServiceExtensions` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns` | 已純化並抽取 | 私有固定模板加公開複本 getter；21組完整golden、caller mutation及並行測試通過。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Contact` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.List` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
@@ -148,3 +148,7 @@ Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必
 ## Activity切片（2026-11-05 21:33）
 
 已修跨表GUID覆寫及部分發布，原51紅→57綠，含生命週期82搬前綠後git mv兩檔；495/602、16TRX2444、Core99.56%/100%。保留合法append、外部地址略過及狀態1/4、3/5；1000 A/B、59次明確故障重試、Dispose/drain及公開委派七案通過。使用者取消後續雙模型REVIEW，主會話直接審查；分析兩後端已嘗試但Claude週額度降級。其他候選仍未完成，P1仍2/12，不封存主任務。
+
+## 2026-11-06 純契約／優化查詢接續
+
+五純契約共67多載與 EntityOptimizedQueryService／其 PagedResult 已抽取。詳細位置、搬前特性、安全紅綠與所有權見 `wp-reports/P1-04-contracts-optimized.md`。原表尚未搬的列仍為待交付，不以歷史分類替代驗證；嵌入的 IQueryService／IMarketingListService 已分離至 Core 的獨立檔，其 host 實作未搬。Collection、屬性轉換器／handler在前輪已抽取，本表已按磁碟真實位置同步；沒有修改正式 P1 計畫。

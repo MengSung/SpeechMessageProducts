@@ -1,0 +1,23 @@
+{
+  "productFrameworks": [
+    "net462",
+    "net10.0"
+  ],
+  "testHosts": [
+    "net48",
+    "net10.0"
+  ],
+  "tests": {
+    "net48": 652,
+    "net10": 778,
+    "solution": 2777,
+    "churchReport": 623
+  },
+  "coreCoveragePercent": {
+    "net48": 92.13,
+    "net10": 92.83
+  },
+  "review": "主會話；使用者免除雙模型",
+  "remaining": "Contact/List/Query/CrmAsync；P1-04與主P1未完成",
+  "vmOrD365OrLineOperations": false
+}

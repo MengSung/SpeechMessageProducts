@@ -492,3 +492,6 @@ D365／Hyper-V／LINE未操作，沒有實機／hosted CI新證據；正式3.3�
 ### Next Steps
 
 - 主P1仍進行中；接續CollectionQueryService與其餘P1工作包，不宣告背景執行。
+
+## 2026-11-06 P1-04契約/優化查詢保存
+五介面67 API、優化查詢已抽Core；帳密cache跳過核對已修。最終雙宿主652/778、16TRX2777、Core92.13%/92.83%、strict零警告/錯誤。主會話審查，使用者不需要雙模型。進度頁更新，P1仍3/12、P1-04未完成。下一步Contact純資料與其餘List/Query/CrmAsync。未操作VM/D365/LINE，未push。原始證據artifacts/p1-04-contracts-continuation-20261106/；摘要evidence/contracts-optimized/。

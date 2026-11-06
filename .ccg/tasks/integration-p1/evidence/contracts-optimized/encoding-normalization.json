@@ -1,0 +1,47 @@
+{
+  ".ccg/dual-model-runs/integration-p1-04-remaining-safety-analysis-analyzer.md": {
+    "before": "d0b20f96645d55ab9d1a8c0924384188f2f12d65e05ed55441bd9cedbced166f",
+    "after": "b9c8bf09e1f07475e97d662bcd69bd1a58f0bfb8fdd95bc18c11005d64196549",
+    "canonicalUnchanged": true
+  },
+  ".ccg/dual-model-runs/p1-04-contracts-continuation-analyzer.md": {
+    "before": "e4ab195df6e767bc7ee91213256327305ef370d8c6c91ff5ba9693ca0fa11a49",
+    "after": "9b39ca8b28908220c9893c1def21ff09fda7e79a75e5db566e75556cf3583666",
+    "canonicalUnchanged": true
+  },
+  "ToolUtility.Tests/DataOperations/AttributeConversionTests.cs": {
+    "before": "2fb5911b46cd9ed4194ed151787567ed9f0d159b0d705c7d5e08947531a2932f",
+    "after": "e9435b70bbd3b63568ef8746dc1434b2855756f0471b0edc81077205122c0e8b",
+    "canonicalUnchanged": true
+  },
+  "ToolUtility.Tests/DataOperations/CollectionCharacterizationTests.cs": {
+    "before": "592952dd5fb4e388de8ce4c14614299739694345c649fb9f67eaa246c479a062",
+    "after": "bdb601863d4d2ddbb10a744d3f1421dc9d35b842c0e560b1e72ca3827867e93b",
+    "canonicalUnchanged": true
+  },
+  "ToolUtility.Tests/DataOperations/CollectionLifecycleTests.cs": {
+    "before": "911e0cebd6ba74d388a35c7aa54f1dd5961d9c3a185adda1bbce3456f5331d83",
+    "after": "de8f752927e31d8c7388b368d79bf33d892e6454d66ad90e703c1d2e6c7ad6bf",
+    "canonicalUnchanged": true
+  },
+  "ToolUtility.Tests/DataOperations/CollectionSafetyTests.cs": {
+    "before": "5d5e1f539676ea6338f5d720003fa71ee6ec9ad036662516c3a65064f6d69699",
+    "after": "c9b354c35e52dd052a598eba6a3334f52a096f45b5a5ad5415b1c0dafb1ec4ed",
+    "canonicalUnchanged": true
+  },
+  "ToolUtility.Tests/Golden/ToolUtility/collection-dictionary.xml": {
+    "before": "20513907f5d49a67865eaa4e4c113f8b001cc1133ffe3b9dd7467131a1898ca3",
+    "after": "b687e1aa8b50028f1ec4913f152083c4549878264f39fbb64fd0cfa5ce7eff78",
+    "canonicalUnchanged": true
+  },
+  "ToolUtility.Tests/Golden/ToolUtility/collection-field.xml": {
+    "before": "0690f2e54be35d4925cb2e25723130be96de03d97aec3eba3820279761226c07",
+    "after": "10e346c70f99af34cc0949492eefb92c28149ac44f095ccf19d3e12d6f210da1",
+    "canonicalUnchanged": true
+  },
+  "ToolUtility.Tests/Golden/ToolUtility/collection-weekly.xml": {
+    "before": "31327ff14c6d4064c4dcde9a944b3744441df51384751ab87a733090d3598ddc",
+    "after": "295f6bc3c7d741edd8c1487e7fbff628fc21dd99d3aeb255dfff44b165af2c2b",
+    "canonicalUnchanged": true
+  }
+}

@@ -5,7 +5,7 @@
   "description": "",
   "status": "in_progress",
   "currentPhase": "implementation",
-  "nextAction": "Activity切片ec108ae0已本地提交：51安全紅→搬前82綠，495/602雙宿主、2444全方案、Core99.56%/100%。依使用者取消後續雙模型REVIEW，主會話審查。下一步CollectionQueryService原host特性與安全紅綠；P1仍2/12。",
+  "nextAction": "P1-04契約/優化查詢/帳密修補：652/778、2777完整回歸、Core92.13%/92.83%與strict通過，保存本地主會話審查證據後接續Contact純資料操作；其餘List/Query/CrmAsync待交付，P1仍3/12，不呼叫雙模型。",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -24,5 +24,6 @@
   "parent": "11-02-integration-v32",
   "relatedFiles": [],
   "notes": "",
-  "meta": {}
+  "meta": {},
+  "reviewPolicy": "使用者2026-11-06明確表示不需要雙模型；後續由主會話直接分析、實作與審查，保留歷史外模證據，不冒稱新增雙模型完成。"
 }
