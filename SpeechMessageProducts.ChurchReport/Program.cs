@@ -56,6 +56,7 @@ namespace ChurchReport
         /// 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr
         /// 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。
         /// 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。
+        /// ICU 必須在共用例外 owner 建立後、Startup／CRM／HTTP 啟動前驗證；不符時同一例外告警並拒絕啟動。
         /// </summary>
         /// <param name="args">傳給 ASP.NET Core 組態與 Host 的命令列參數。</param>
         public static void Main(string[] args)
@@ -83,6 +84,10 @@ namespace ChurchReport
                     sender = new ChurchReport.Services.LineExceptionSender(builder.Configuration);
                     diagnostics.StartNotifications(sender.SendAsync);
                 }
+                // 正式 P1 時區契約要求實際主機 fail closed，而不只是提供未被呼叫的 helper。
+                // 此時通知開關與 owner 已確定；失敗沿外層 catch 傳原 Exception，finally 排空／釋放所有資源。
+                // 尚未建立 Startup／CRM 或 Kestrel，不讀伺服器 local，也不自動改寫 NLS／Invariant 設定。
+                SpeechMessage.Localization.GlobalizationModeGuard.ValidateIcuMode();
                 RunApplication(builder, diagnostics);
             }
             catch (Exception exception)

@@ -74,9 +74,9 @@ Assert.Equal(original.ChurchId, original.WithCultures("en", "en-US").ChurchId);
 
 ### Task 6: P1-06 時鐘
 Files: Localization/Time/**、Localization.Tests/ChurchClockTests.cs、tools/I18nCheck/data/windowsZones.xml及generator；在Task5後同owner接續。
-- [ ] 固定UTC測Taipei+8、London 2027-03-28／10-31、LA03-14、八zone、生日date-only；invalid／ambiguous local、unknown id先紅。
-- [ ] IClock／TimeProvider adapter、IChurchClock含ToUtc(LocalDateTimeOfChurch)，明確Kind；net462 map和net10 IANA保持結果。
-- [ ] CLDR釘選版本／license／原XML，generate-timezones deterministic regeneration；ICU啟動驗證helper。
+- [x] 固定UTC測Taipei+8、London 2027-03-28／10-31、LA03-14、八zone、生日date-only；invalid／ambiguous local、unknown id先紅。
+- [x] IClock／TimeProvider adapter、IChurchClock含ToUtc(LocalDateTimeOfChurch)，明確Kind；net462 map和net10 IANA保持結果。
+- [x] CLDR釘選版本／license／原XML，generate-timezones deterministic regeneration；ICU啟動驗證helper。
 
 ### Task 7: P1-07 Money
 Files: Localization/Money.cs、MoneyFormatter.cs及tests；Task5後。
@@ -166,3 +166,6 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 
 ## P1-05 最終驗收（2026-11-06 13:00）
 完整五層／具名參數／語言resolver／關鍵字與完整scope快照通過；Localization92/116、方案16TRX4004、coverage96.61%/97.70%、strict雙目標零警告／錯誤。兩階段格式化及重疊前綴priority真紅後修正，A/B1000、故障保真重試與百次弱參照回收通過。驗收wp-reports/P1-05-acceptance.md及evidence/p105-final/。主會話直接審查，未恢復外部雙模型；主P1保持in_progress，下一P1-10。
+
+## P1-06 最終驗收（2026-11-06）
+正式時間四入口、TimeProvider／純日期與CLDR49完整445映射完成；Word8.2／E.5重新核對後，補實際ChurchReport.Main ICU守門，非僅未來Hosting helper。正規化後方案17TRX4127/4127、Localization124/150（clock32/34）、coverage98.11%/98.47%、strict0/0；I18n119及coverage96.77%、Debug7、PE27、Plugin metadata10/build6、CI6。ICU／NLS／Invariant各一案與真實NLS啟動拒絕通過。缺來源verify、缺主機守門、CLDR清單空白oracle及分析器真失敗均保留修正證據。正式計畫未變，無Word修正報告需求；主會話自審，無外部reviewer／第二人。執行層analyzer曾經自癒入口嘗試雙後端，皆無可用輸出，不能稱成功。不歸檔主P1，依使用者要求續作已解鎖P1-07／09。

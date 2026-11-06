@@ -58,9 +58,11 @@ test('No alert hides the warning region and still renders the page', () => {
   assert.match(elements.get('tiles').innerHTML, /階段 1 驗收/);
   assert.match(elements.get('planned-phases').innerHTML, /P0-05/);
 
-  const activePage = render(original.alert);
+  // 使用固定合成進度驗證 renderer，不把已完成的 Constants 歷史文案綁在每次更新的資訊本文。
+  // P1-12 的真實只讀／不可逆邊界仍由下方獨立驗收案例逐字守門。
+  const activePage = render({ title: 'Current slice', body: 'D365 預設只讀；合成進度', steps: [] });
   assert.match(activePage.get('alert').innerHTML, /D365 預設只讀/);
-  assert.match(activePage.get('alert').innerHTML, /P1-04 Constants 已抽取/);
+  assert.match(activePage.get('alert').innerHTML, /合成進度/);
 });
 
 test('Alert without prompt omits copy button and full prompt area', () => {

@@ -1,0 +1,653 @@
+{
+  "generatedAt": "2026-11-06T14:34:06+08:00",
+  "root": "artifacts/p1-06-20261106",
+  "fileCount": 129,
+  "note": "包含建立時所有原始證據及真實紅燈；後續closeout log另存，不覆寫已列檔案。",
+  "files": [
+    {
+      "path": "artifacts/p1-06-20261106/ci-transition.log",
+      "bytes": 297,
+      "sha256": "1afdfac5e929cee0fa96116f3a484c06e9f74fb4e427b63ec58082218550ae8f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/clock-first-net10.0.log",
+      "bytes": 759,
+      "sha256": "e0d19c314c7010c01cd28d988caaba929a6e761f49c7dd61e1b46e81007b40ff"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/clock-first-net48/clock.trx",
+      "bytes": 51040,
+      "sha256": "39ae6fe34685d0bc4de45f68de35d4d76c3517cce58b1710f6269c0baf981a64"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/clock-first-net48.log",
+      "bytes": 1352,
+      "sha256": "28b42e46402ae8c690212221f73795c657c8ec71811556e8f4d9e2a8e7147a2a"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/clock-green-net10/clock.trx",
+      "bytes": 54477,
+      "sha256": "3369d344f0d149e178105c1bd7bfdcb4fc957ecae0dbb4169309210b2b30c5bd"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/clock-green-net10.log",
+      "bytes": 1357,
+      "sha256": "08ddd74a2cdb92a8f63cd3b09d691fabd46eb0cb5c7c27992550f15cfb01e32f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-i18n/7a1dfaa9-f49d-4094-af09-392a4adbfeab/coverage.cobertura.xml",
+      "bytes": 171943,
+      "sha256": "0047d861a0fde757f4db0bb98e477c1b55b9420927e862344601d836acf5e83f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-i18n-gate.log",
+      "bytes": 28,
+      "sha256": "ac86869de3e7acd31f28307ff7c4c36b55a7b2dcb00abe67f9135c206d970e23"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-i18n.log",
+      "bytes": 703,
+      "sha256": "f84a96a6141b0bc94fe9276724807909d90f514110a4aced3881bd54fd192198"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-localization-net10.0/90b32c88-48de-4030-9d3b-4cad5b7a9b99/coverage.cobertura.xml",
+      "bytes": 347178,
+      "sha256": "2e0fb419c9f3925cfdb4e40155b0ed44d9db63e72ea93ebbb72806801436ca59"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-localization-net10.0-gate.log",
+      "bytes": 45,
+      "sha256": "ad7a67f8af1e5ed1db7142ce3ba9a94bd44c9e270d65250b7c303f323d471760"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-localization-net10.0.log",
+      "bytes": 762,
+      "sha256": "065547019b791642bc5e117104ba168e7a6d9ebbbaed95a87300e037f14e3356"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-localization-net48/c2c0647c-b202-4117-a77b-380008af5311/coverage.cobertura.xml",
+      "bytes": 351274,
+      "sha256": "89c82721429d5a42ff99b1eb80bddbe34606d078a7f1d76149d83dd4016e266c"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-localization-net48-gate.log",
+      "bytes": 45,
+      "sha256": "e7275e56ec112f76d41ebd5f8e8e19a43b1c0f2893f722c8c9c640d12516ee36"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/coverage-localization-net48.log",
+      "bytes": 759,
+      "sha256": "57052458296f763b28b87d772e97d2929df6bc04876215a85106c1a8f3f24e33"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/debug-tracer/debug-tracer.trx",
+      "bytes": 13323,
+      "sha256": "81c4c5a84bed5fd0addc940219684377e352cb65339282f65b5c082444bd6558"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/debug-tracer-gate.log",
+      "bytes": 35,
+      "sha256": "94279616002627609bc9483374df50a394f0bbf2d83cfa94716d4a0f07dfffa1"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/debug-tracer.log",
+      "bytes": 7544,
+      "sha256": "a5fab43fdfadac694fdfcc24bfdcc183ddf5695d6767918c95f96091725639a3"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/duplicates.log",
+      "bytes": 85,
+      "sha256": "cc15ee4d25e54ec27c9f9605c8f90e5f9d5767b97ac4fa4e60e293a365bd2980"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/encoding-acceptance.log",
+      "bytes": 74,
+      "sha256": "3cbfeae279ffa298c9f487370b02ea12344d230f29fce47a05742f5b0ef20e1b"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/encoding-code.log",
+      "bytes": 74,
+      "sha256": "0285c3769fc63d3a3071bbe4144d65c4494d750d71d1745fb44c6447e8705959"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/generate-timezones.log",
+      "bytes": 65,
+      "sha256": "81e44f2ec38748b70a5da6e755504016eb296e4d1a3fe577028827cd59664dfe"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/green-timezones/green-timezones.trx",
+      "bytes": 12613,
+      "sha256": "48fac95830e4f5f5c7bbcfa5b774ce3515d5364671fd8eeccf608f655ee199a8"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/green-timezones.log",
+      "bytes": 1231,
+      "sha256": "e844bcee347d69e8130950f7a3a7e57c26b18bd662f70bcac72937c08042af83"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-all/i18n.trx",
+      "bytes": 195579,
+      "sha256": "5162eaa2a3d42b66c4557569cd810d7380d9c678b5b76c38e332ee78d879004e"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-all.log",
+      "bytes": 1213,
+      "sha256": "c9cb43cb33f8cdae91e435050cde8219207be01933e06ce44a3bb332f52cbdc0"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-final/i18n-final.trx",
+      "bytes": 195579,
+      "sha256": "bcfee8321821fd84dfee0c1824c088284ec4018acb78f4e2e1da3adac663581f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-final-verify.log",
+      "bytes": 66301,
+      "sha256": "a663c92abc482eacca09e6ab0426fce563dc79dd581313fe44971ce0da23284c"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-final.log",
+      "bytes": 1221,
+      "sha256": "136cc9d75bb129303a91f634018139c4608a17c91b30995d4d1797a1fc15ec9f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-postencoding/i18n-postencoding.trx",
+      "bytes": 195579,
+      "sha256": "520e352dc7d7e5ffbc7b2e094f3600bd9e93c7133d53809e57920e990fee8d4e"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-postencoding.log",
+      "bytes": 1235,
+      "sha256": "a643839a4585d07fb2e63251f7a9ea220e123f269b9a3d8aa5c53660f9cebbbd"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/i18n-verify.log",
+      "bytes": 66301,
+      "sha256": "a663c92abc482eacca09e6ab0426fce563dc79dd581313fe44971ce0da23284c"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/package-versions.log",
+      "bytes": 65,
+      "sha256": "536b4c58487ca8237951f2472353d84cf4084834810bacece0b70462dc3e0958"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/pe-tests/pe.trx",
+      "bytes": 47094,
+      "sha256": "1af763d3ce6b2a4ae47dd9346fd46481dfbe67a4718550248629f3dba2bd698f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/pe-tests.log",
+      "bytes": 1262,
+      "sha256": "7b90736e887b806423fad99236a4577735dc1ebeb386ba7b2a531b545bf0cd97"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/plugin-build.log",
+      "bytes": 227,
+      "sha256": "b5f3f9a873e56163dca2051ab911a434e8e7034716d09ed6087c0b7680e7042c"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/plugin-metadata.log",
+      "bytes": 971,
+      "sha256": "ed8865bab67c0da12946fd6a404dd3b808b3d300415802ba522ff4d8c3c585dc"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/progress-acceptance.log",
+      "bytes": 1379,
+      "sha256": "2cc1e2b3fba1b6853e7ddc9405c46d317e9527d4b78ec7ba73756ca74df21d3a"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/progress-slice.log",
+      "bytes": 1376,
+      "sha256": "83b20aad809eabf4a1ff86246b6723f7384aecbe4225db3d7723dd038a516072"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/progress-start.log",
+      "bytes": 1374,
+      "sha256": "7160b6e279adeddd97df90ea32f866e2d96156c5abb145273bc2d4662b8fd95a"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/red-clock-net48/red-clock.trx",
+      "bytes": 4388,
+      "sha256": "71defb2289e79012831e6b8217af5eb1cce283666356a254cb76ae0f12732c28"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/red-clock-net48.log",
+      "bytes": 1932,
+      "sha256": "8b7eac437092d916faff844946f81534426b64b92f4faaf694c6b7e6e12f25e9"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/red-timezones/red-timezones.trx",
+      "bytes": 16204,
+      "sha256": "6c8322132f517d03d2516c2963def28dc1613dac40cd3ea1b043a86ee0a0c87c"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/red-timezones.log",
+      "bytes": 2686,
+      "sha256": "1501ac2e078dceb9e798a82ffbf47a43b5a679563c1d6d2c6686e51c43236ee2"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/red-verify/red-verify.trx",
+      "bytes": 4895,
+      "sha256": "bf9451bb0434c78bef5ee360ab78523714c21119d194291bd33d03f3ea6a1dfe"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/red-verify.log",
+      "bytes": 1950,
+      "sha256": "f357176a8d328dabe6e7e6ec82cd8b47f1ed247236a964607a2f4ca7ed930576"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/research/globalization-icu.html",
+      "bytes": 79400,
+      "sha256": "f97bc4541e62352143b4c6c9aa2728223d10fce0ffdd22763f033d2a9c401a81"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/research/LICENSE",
+      "bytes": 3193,
+      "sha256": "65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/research/windowsZones.xml",
+      "bytes": 49892,
+      "sha256": "5f902f94106a396cb7774f0b0e1ca4dfecb686494045350c0b4935d378e3913b"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/resources-final-check.log",
+      "bytes": 48,
+      "sha256": "9ae159b9aa78eed47f3c9bf41d971589dd849ec0be4549c4a2a5268b5f5bc56d"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-icu/guard.trx",
+      "bytes": 3252,
+      "sha256": "6b8c455f5c57ee2d83fc5379cd60b3469b484c87155d0b8250b982590631be8c"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-icu-gate.log",
+      "bytes": 451,
+      "sha256": "97936e7ea830a24228bcb15d12e50e4ad9a42e669d4e5a364da10ac0c1cef444"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-icu-verified.log",
+      "bytes": 35,
+      "sha256": "3aa59784fdb582da033efa540150ed3d178a0647002c468d7d6453a2fba41460"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-icu.log",
+      "bytes": 690,
+      "sha256": "9290941b70da43d11eecb6d3464ccad03354cc43217e104b57db2d7983e0148e"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-invariant/guard.trx",
+      "bytes": 3252,
+      "sha256": "5ccdb525277a6a0fcb838e5a117c502ae7160cb326c574b9fdaa76a6c4f27814"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-invariant-verified.log",
+      "bytes": 35,
+      "sha256": "3aa59784fdb582da033efa540150ed3d178a0647002c468d7d6453a2fba41460"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-invariant.log",
+      "bytes": 696,
+      "sha256": "ef2543df451686b53687b515412d397a10e809e03ed609d06c54abade53b47e5"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-nls/guard.trx",
+      "bytes": 3252,
+      "sha256": "00a601e7ea780838af8908498c7197e3d93f686787dc24482b37b1305bd7e770"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-nls-verified.log",
+      "bytes": 35,
+      "sha256": "3aa59784fdb582da033efa540150ed3d178a0647002c468d7d6453a2fba41460"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/runtime-nls.log",
+      "bytes": 690,
+      "sha256": "29302d2542247ab1a0bd22e1fa19bece13155f95a15f24f79493891cbdcb6a15"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-build.log",
+      "bytes": 37564,
+      "sha256": "44e98f08ef43b6391ce9a4b496f0e09b481d1d1a442746fc5eb16fdd466f8001"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final-build.log",
+      "bytes": 12476,
+      "sha256": "3ec811c4e281209b4d95e9cdc006c23d62b2262d55831cb00beea32835a9230d"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final-summary.json",
+      "bytes": 4866,
+      "sha256": "53fd4a1b67b27aea230b5159d88cc94a332eec5c3f93d6b1ced7ac35ee8bdc3e"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-build.log",
+      "bytes": 15413,
+      "sha256": "1af538f68e471ad1a6e4ec97d69b7fdc3860a100b2c7da8921cadecbe37816e0"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0.trx",
+      "bytes": 98412,
+      "sha256": "2efe8c6fafee0ab4e564e62d2caf984abd8e5b2d8ab34fecc2df6aea2bc71e3d"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[10].trx",
+      "bytes": 247686,
+      "sha256": "5ecf06ca51629b536a791081df72fb626f142c62a41fadf1c1afb5a331b2ba3f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[1].trx",
+      "bytes": 168770,
+      "sha256": "9a3287c901250b44c0d3054f3d7c5dfe8dc2299b5689116ad2cef928a1b6dc1d"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[2].trx",
+      "bytes": 64457,
+      "sha256": "ce5c5964fd0c9cf47406c6879654998316e34d3c14cf798bde932c3363d9802a"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[3].trx",
+      "bytes": 150712,
+      "sha256": "3a89bb3f0ee3fa5382f90eae7c1a0a69af15f8fb7a7902131724b23d7f765008"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[4].trx",
+      "bytes": 63873,
+      "sha256": "5bcb5a27df3fd751a46a567830013d82ec2144bddc53612f246224b5a193fc80"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[5].trx",
+      "bytes": 9349,
+      "sha256": "c72748b2931098b6c74f5b27c1fd5aaaa42ea9f7e179548d22960271bf0b5d76"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[6].trx",
+      "bytes": 69781,
+      "sha256": "82b724c42012e95e95bbadf8a2e0ed525c9a313a6f76693343eec60c1a0e6062"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[7].trx",
+      "bytes": 135253,
+      "sha256": "3b722671560ccf2a217a330353f880b08133ffb22a2f2ff778988c96c9666f06"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[8].trx",
+      "bytes": 2262360,
+      "sha256": "4e0e71d5835f01c0ee95c3cd9c55bfc71991c0226c46b7a0c31af0e6fb11a37b"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_22_net10.0[9].trx",
+      "bytes": 1123648,
+      "sha256": "8e15c7c58ae7d288480b35ad61a2679262b3bf92800cdb8726c422ee751242ca"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_23_net10.0.trx",
+      "bytes": 103203,
+      "sha256": "4a4703a3da3cc37266c2ca8b1ebdab179af4ebf5f1a02ecac117de2ca26cc780"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_23_net48.trx",
+      "bytes": 201004,
+      "sha256": "e24e75f979b692cb238555e203480add1b06929548aad457a95e7e1cef0e4091"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_23_net48[1].trx",
+      "bytes": 73305,
+      "sha256": "67e177790a6a97b447ed18cac44ada055737efaab8ff03ad321eaebae91cb3d4"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_23_net48[2].trx",
+      "bytes": 159342,
+      "sha256": "ee7e0f4e34bb4c5d6d37a8d3135e32cd49e398ebe035a501756b0bf2e58feee4"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_23_net48[3].trx",
+      "bytes": 2027693,
+      "sha256": "f2f4e0e214fb8a4a66ab02b788638923679555e057e5ceafd84b720c5c1d27f7"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests/Administrator_LENOVO-LEGION_2026-11-06_14_18_24_net48.trx",
+      "bytes": 42093,
+      "sha256": "839416709f659a9c772832b39fc4674d74af8b34d73bfbb54c61629f4fdca27b"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final2-tests.log",
+      "bytes": 12630,
+      "sha256": "2940ebe5491f2b26dada49241167413396c62b4a84b68ce7c8911dce025af218"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-build.log",
+      "bytes": 10219,
+      "sha256": "0034fd4f086a2d6d6d9bf6129b90abe1499367983de299902142feeebd94f286"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_40_net10.0.trx",
+      "bytes": 64457,
+      "sha256": "84cf415e967bf05b195044934f298ebd4d5e99f0012de2782cd56473c8c92fbb"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_40_net10.0[1].trx",
+      "bytes": 168770,
+      "sha256": "ddd83eea66fe3a690f84f1c6f3e9be9e3cbffec111292e8ad04cb0eb67e10ae6"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0.trx",
+      "bytes": 9349,
+      "sha256": "9c16e7ea0281471e83a6329b12d87152216322f2dcd8e76843575a1ab24b3741"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[1].trx",
+      "bytes": 150712,
+      "sha256": "4555a75e39acba0621968e665a540b65f5d458e53d9296a201e864874de5560d"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[2].trx",
+      "bytes": 98412,
+      "sha256": "61b4100416eb9ebb417e05d4fb3efecbc50dd35a9bd488dbec0e827593d59e44"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[3].trx",
+      "bytes": 63873,
+      "sha256": "20ee595dc3cffaddfa044b21250c9e03613a2888dec0b1e7be0e713e1b6daa02"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[4].trx",
+      "bytes": 69781,
+      "sha256": "3a967184e1a3a15a73854ce12151a880a94d69464369eec3dc8e91d54275cc13"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[5].trx",
+      "bytes": 103203,
+      "sha256": "3a236813d3ffaa9be2a1520345532ae52c173456bed36f5a3d8417e402369e1a"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[6].trx",
+      "bytes": 135253,
+      "sha256": "5608096a57e69a588d4eaa9991445cdc1eb96dfc6c1e160560db2e4414737e84"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[7].trx",
+      "bytes": 2262360,
+      "sha256": "06acb6f272eb526c963b62a3c48ce798a724e7fbef3a58659beb9613d7547c78"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[8].trx",
+      "bytes": 1123653,
+      "sha256": "73b33a9d03f52cbd7aa0bc76459edb4a9d850164c9ab3230ecd10b0dcf63b0a2"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_41_net10.0[9].trx",
+      "bytes": 247686,
+      "sha256": "5e00eb0e6e68a2e20d83c1ad192849ec7588a5f020f7b5a65912570a565c6da0"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_42_net48.trx",
+      "bytes": 201004,
+      "sha256": "21e1af3fcd497778e59051a1894d4fd09f5a4c6eb5764906504a6a643dbffd85"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_42_net48[1].trx",
+      "bytes": 73305,
+      "sha256": "300bc85fecd10570fee1fe49be80a96a463ac5cec46dbb33d6c88a88f26f92bd"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_42_net48[2].trx",
+      "bytes": 159342,
+      "sha256": "967e9245f87fd7a2a711eb202300708145d9bb6c77f30f4fbeb51928bf025cea"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_42_net48[3].trx",
+      "bytes": 2027693,
+      "sha256": "3f9c0d649c5057053803bef184b5278cc37df16d3e6e2c1133ce1a589eb5e79b"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests/Administrator_LENOVO-LEGION_2026-11-06_14_26_43_net48.trx",
+      "bytes": 42093,
+      "sha256": "262933c3161ff413739f7662131ec9b4fb1879b9fecb2725cde120827346c1b0"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-final3-tests.log",
+      "bytes": 12627,
+      "sha256": "9f942ee456ab2b4f6ebe160d12ba84b66b6003d65b27214727260c5a875c05c1"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-summary.json",
+      "bytes": 4867,
+      "sha256": "c82a59025b0e1267cd726a73ee51efa9fbb2853e3bdbae3dfb19ca00ebd30826"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0.trx",
+      "bytes": 98412,
+      "sha256": "88e125d49313da0c28f1ec25f6e8fb75ea5be650caee4188592076b7698baf3d"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[10].trx",
+      "bytes": 1122056,
+      "sha256": "75a2dca6fb6cafcfb904c3bacf26dd304a8bfeff8b118e2301ac94d070ebbf34"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[11].trx",
+      "bytes": 249511,
+      "sha256": "346b79f9cbbbf1c0858e97f506650b455e15d95221f4ca8a6a7a7524873964b7"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[1].trx",
+      "bytes": 64457,
+      "sha256": "558e649152a964684f23804ff0b69145b987fd53c6c5f5e98d5b82e3da287794"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[2].trx",
+      "bytes": 150712,
+      "sha256": "956f4692b91763c7ee5f13fd6bce2c35ba24cdfb457760d2d84dc9b2afe24d87"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[3].trx",
+      "bytes": 63873,
+      "sha256": "e1731576258ac6a15bd69f843fa7dc31ea5ba3a00773781361a227829a402156"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[4].trx",
+      "bytes": 9349,
+      "sha256": "a2122243b03f5e53cfaad80496310a8e7601241d1b2e539d5d079f5e563a6384"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[5].trx",
+      "bytes": 69781,
+      "sha256": "213c69c9dd21d4eafc385db33b49c15bf3a68151526ebb6494efd6e8067f38d5"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[6].trx",
+      "bytes": 168770,
+      "sha256": "aca870679efe2ab1d96dc9f3f83dfd45fce0cb90112de87bfeda119f14ee34a4"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[7].trx",
+      "bytes": 103203,
+      "sha256": "eef6b5206f7f9aee49b6061b22c40c45e34d4030d4c9ab738fcc05af0941924a"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[8].trx",
+      "bytes": 135253,
+      "sha256": "972e64275b78dc89ef8aef336cf1413aceff28a48ad903312bd10dce26055923"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_14_net10.0[9].trx",
+      "bytes": 2262360,
+      "sha256": "9d12b8cc38431965ca1f6457c9d45e2dae05a4112458d20f0bbab8dca4234357"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_15_net48.trx",
+      "bytes": 202183,
+      "sha256": "40915472e4df0a8a2223f9443d835c3e13d88d993e4d80ab00cf2d069f49b2ef"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_15_net48[1].trx",
+      "bytes": 73305,
+      "sha256": "4a5ffd3caee152b66ebf9374eef82a8f5319dfde84cac993f0afc30262e11b2f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_15_net48[2].trx",
+      "bytes": 159342,
+      "sha256": "3225d8630240c3ed639f01243e318b463e04f0148d2dc8b15607b28a040a9503"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_16_net48.trx",
+      "bytes": 42093,
+      "sha256": "2328cae3506554873120158f29c4cea05304d3c98965904a5bbe46ee29965518"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests/Administrator_LENOVO-LEGION_2026-11-06_14_13_16_net48[1].trx",
+      "bytes": 2027693,
+      "sha256": "a04ac9ca74e978cf6592d8fd56bcfd3d33a46fbd7c82dadf62398dbb1715ad26"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/solution-tests.log",
+      "bytes": 13808,
+      "sha256": "7ba80402ca7fdfd1babadf98f0babf8b040257460766e097c91859d7bbc4d06e"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/startup-nls-summary.json",
+      "bytes": 291,
+      "sha256": "9eeeff6325ea6150f7bedf83930addf47389c834324fcad1be0d5770bc68d3aa"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/startup-nls.stderr.log",
+      "bytes": 623,
+      "sha256": "8877e3094ba08e8a47963e46e16cca107869d23f70bd7ab0ad93dce96cfc071f"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/startup-nls.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/startup-red/startup-red.trx",
+      "bytes": 5207,
+      "sha256": "a2816496982445e4cabf055f23fcf6a3a346653cf3ac43a76b6c767b2266ff8a"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/startup-red.log",
+      "bytes": 5804,
+      "sha256": "91d40badfcb6609dc18dda244796b2d249e60be0a7eeb74da71555967d475fb1"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/strict-rebuild.log",
+      "bytes": 723,
+      "sha256": "84a34aa707bd770269ee0af7d5c489ed3c2efaf8aa542684d124155559158cd9"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/synthetic-startup-root/appsettings.json",
+      "bytes": 75,
+      "sha256": "5c5230058959e2d9e5b1147fb30b8af5934123b4fe86b8ea1eb4384e1f46c173"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/timezones-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/p1-06-20261106/timezones-final-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

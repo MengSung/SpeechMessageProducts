@@ -33,6 +33,7 @@ internal static class CommandRunner
             {
                 "scan" => Scan(root, Parse(args, ["--baseline", "--write-baseline"]), output),
                 "generate" => Generate(root, Parse(args, ["--resx", "--namespace", "--class", "--out", "--check"]), output),
+                "generate-timezones" => GenerateTimeZones(root, Parse(args, ["--cldr", "--cldr-version", "--out", "--check"]), output),
                 "verify" when args.Length == 1 => Verify(root, output),
                 _ => throw new InvalidDataException("I18N402: command or options are invalid.")
             };
@@ -177,6 +178,24 @@ internal static class CommandRunner
         return 1;
     }
 
+    /// <summary>從明確 CLDR 路徑產生固定時區表；check 只比較，未提供 out 時使用正式 Localization 位置。</summary>
+    /// <param name="root">固定本次方案邊界，不向父 worktree 尋檔。</param>
+    /// <param name="options">只接受 CLDR、版本、輸出及唯讀 check。</param>
+    /// <param name="output">只輸出生成路徑或固定判定，不輸出原始 XML／例外本文。</param>
+    /// <returns>一致零、過期一、預期拒絕由外層轉二。</returns>
+    private static int GenerateTimeZones(string root, Dictionary<string, string> options, TextWriter output)
+    {
+        if (!options.TryGetValue("--cldr", out var source)) throw new InvalidDataException("I18N511: CLDR source is required.");
+        var destination = LocalFiles.Resolve(root, options.GetValueOrDefault("--out", "SpeechMessage.Localization/Time/IanaWindowsZones.g.cs"));
+        if (!source.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) || !destination.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("I18N512: time zone file extensions are invalid.");
+        var bytes = TimeZoneGenerator.Generate(LocalFiles.Resolve(root, source), options.GetValueOrDefault("--cldr-version", TimeZoneGenerator.PinnedCldrVersion));
+        if (options.ContainsKey("--check")) return CompareGenerated(destination, bytes, output);
+        LocalFiles.WriteAtomic(destination, bytes);
+        output.WriteLine("GENERATED " + RepositoryScanner.Relative(root, destination));
+        return 0;
+    }
+
     /// <summary>每包及 CI 的一致入口，固定執行專案棘輪、resx 契約與產生檔比較。</summary>
     /// <param name="root">本次根。</param>
     /// <param name="output">呼叫者輸出。</param>
@@ -185,6 +204,13 @@ internal static class CommandRunner
     {
         var scan = Scan(root, new Dictionary<string, string>(StringComparer.Ordinal), output);
         var generated = CheckAllGenerated(root, output);
-        return scan == 0 && generated == 0 ? 0 : 1;
+        // 正式 Localization 存在時來源也必須存在；不能以刪掉 XML 跳過驗證。
+        // 沒有 Localization 的既有最小 scanner repo 不需憑空建立時區來源。
+        var timeZones = 0;
+        if (File.Exists(LocalFiles.Resolve(root, "SpeechMessage.Localization/SpeechMessage.Localization.csproj")) ||
+            File.Exists(LocalFiles.Resolve(root, "tools/I18nCheck/data/windowsZones.xml")))
+            timeZones = GenerateTimeZones(root, new Dictionary<string, string>(StringComparer.Ordinal)
+            { ["--cldr"] = "tools/I18nCheck/data/windowsZones.xml", ["--check"] = string.Empty }, output);
+        return scan == 0 && generated == 0 && timeZones == 0 ? 0 : 1;
     }
 }

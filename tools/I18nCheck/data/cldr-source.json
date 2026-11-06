@@ -1,0 +1,19 @@
+{
+  "cldrVersion": "49",
+  "branch": "release-49",
+  "normalization": "UTF-8 without BOM; LF normalized to CRLF only; contents unchanged",
+  "files": {
+    "windowsZones.xml": {
+      "upstreamSha256": "5f902f94106a396cb7774f0b0e1ca4dfecb686494045350c0b4935d378e3913b",
+      "repositorySha256": "b329fb0c7d2e54892d5ed2e880544287d31e721a2c2ce7435436d17cfed4370d",
+      "upstreamBytes": 49892,
+      "repositoryBytes": 50697
+    },
+    "UNICODE-LICENSE.txt": {
+      "upstreamSha256": "65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804",
+      "repositorySha256": "0219965a9312abc5cf75a3d1439feaba4215cc012a539becd59e1b793ff08623",
+      "upstreamBytes": 3193,
+      "repositoryBytes": 3252
+    }
+  }
+}

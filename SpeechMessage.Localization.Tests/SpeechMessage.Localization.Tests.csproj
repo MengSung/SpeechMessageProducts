@@ -10,6 +10,8 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <ItemGroup>
+    <!-- 只複製已釘選的公共 CLDR，讓兩宿主以獨立 XML oracle 核對完整生成映射。 -->
+    <None Include="../tools/I18nCheck/data/windowsZones.xml" Link="Fixtures/windowsZones.xml" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />

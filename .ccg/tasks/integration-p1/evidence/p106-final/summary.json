@@ -1,0 +1,76 @@
+{
+  "workPackage": "P1-06",
+  "verifiedAt": "2026-11-06T14:30:59+08:00",
+  "solution": {
+    "trxCount": 17,
+    "total": 4127,
+    "passed": 4127,
+    "failed": 0,
+    "skipped": 0
+  },
+  "localizationTests": {
+    "net48": 124,
+    "net10.0": 150
+  },
+  "clockTests": {
+    "net48": 32,
+    "net10.0": 34
+  },
+  "mappingIdentitiesPerTarget": 445,
+  "coverage": [
+    {
+      "module": "SpeechMessage.Localization",
+      "framework": "net48",
+      "lineRate": 0.9811,
+      "reportCount": 1
+    },
+    {
+      "module": "SpeechMessage.Localization",
+      "framework": "net10.0",
+      "lineRate": 0.9847,
+      "reportCount": 1
+    }
+  ],
+  "i18nToolTests": 119,
+  "i18nCoverage": 0.9677,
+  "strictRebuild": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "initialSolutionWarnings": 23,
+  "finalIncrementalSolutionWarnings": 0,
+  "debugTracer": 7,
+  "peToolTests": 27,
+  "pluginMetadataCases": 10,
+  "pluginBuildCases": 6,
+  "ciTransitionCases": 6,
+  "packageProjects": 36,
+  "packageReferences": 167,
+  "duplicateNewGroups": 0,
+  "runtimeModes": {
+    "icu": 1,
+    "nls": 1,
+    "invariant": 1
+  },
+  "actualChurchReportNlsStartupRejected": true,
+  "review": "主會話直接審查；無獨立第二人或外部reviewer。雙後端analyzer皆無可用輸出，不算成功。",
+  "liveD365Connections": false,
+  "lineSent": false,
+  "hostedCiExecuted": false,
+  "parentP1Complete": false,
+  "progressPageTests": 14,
+  "textEncoding": {
+    "scope": "Changed",
+    "base": "73b6e6cf",
+    "checked": 1071,
+    "filesWithIssues": 0,
+    "note": "encoding-final.log：完整Changed守門1071檔、853排除、0問題；129份原始證據SHA全部核對。"
+  },
+  "externalAnalysisAttempt": {
+    "runId": "20261106-135758-p106-analysis-analyzer",
+    "dualModelComplete": false,
+    "degradedFallback": false,
+    "completedBackends": [],
+    "summarySha256": "e4787e7e85d2e514b96452e0fe12a3c34652bab77de3976705bf6663f068b458"
+  }
+}

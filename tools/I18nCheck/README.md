@@ -11,6 +11,8 @@ dotnet run --project tools/I18nCheck -- scan --baseline tools/I18nCheck/baseline
 dotnet run --project tools/I18nCheck -- generate --resx Path/SharedText.resx --namespace Sample.Resources --class SharedTextData --out Path/SharedText.g.cs
 dotnet run --project tools/I18nCheck -- generate --resx Path/SharedText.resx --namespace Sample.Resources --class SharedTextData --out Path/SharedText.g.cs --check
 dotnet run --project tools/I18nCheck -- generate --check
+dotnet run --project tools/I18nCheck -- generate-timezones --cldr tools/I18nCheck/data/windowsZones.xml
+dotnet run --project tools/I18nCheck -- generate-timezones --cldr tools/I18nCheck/data/windowsZones.xml --check
 dotnet run --project tools/I18nCheck -- verify
 dotnet test tools/I18nCheck.Tests -c Release
 ```
@@ -19,6 +21,7 @@ dotnet test tools/I18nCheck.Tests -c Release
 - 結束碼：`0` 成功、`1` 棘輪增加或生成檔缺失／不同、`2` 輸入或檔案驗證拒絕。
 - `generate --check` 沒有其他參數時，檢查方案內非測試專案的全部中性 resx 及同目錄同名 `.g.cs`。語系檔併入中性檔驗證；namespace／class 從既有生成檔讀取，再完整重新產生逐位元組比較。
 - `verify` 同時執行各專案 CJK 棘輪、resx 格式／唯一鍵／參數集合及生成檔檢查。P0-08 加入正式 resx 前，真實方案的生成檔檢查為零檔；產生器已有獨立測試及離線命令驗證。
+- P1-06 起，正式 Localization 存在時 `verify` 也強制檢查釘選 CLDR 及生成時區表；缺來源或過期不能跳過。`generate-timezones` 可用 `--cldr-version`／`--out`，預設版本與來源／授權見 `data/README.md`；check 不寫檔，與 resx 產生器維持相同 0／1／2 結束碼。
 
 ## 掃描範圍
 

@@ -36,3 +36,6 @@ Appendix A Account列出7欄但02稱5欄：本階段locale五欄加LINE lookup�
 
 ## 2026-11-06 最新執行方式
 使用者明確表示「不需要雙模型了」，後續分析與審查均由主會話直接完成，不再等候外部模型。20261106-085049歷史分析曾嘗試雙後端：Gemini HTTP403、Claude週額度，無可用輸出，不能稱為雙模型或單模型分析成功；原始證據保留。需求／測試／安全／覆蓋率與實機證據門檻不變，不修改正式3.3計畫，無Word需求修正報告。
+
+## 2026-11-06 P1-06 主機守門補足
+重新核對正式Word8.2／E.5與階段1國際化步驟，確認ICU必須在現有主機實際啟動檢查，不能只有未來Hosting helper。ChurchReport.Main於共用通知owner建立後、RunApplication／Startup／CRM前呼叫，原例外與finally釋放保留。net10系統來源統一TimeProvider.System；Framework用IClock直接UTC。legacy LocalNow相容介面保留不搬業務。CLDR49原XML／完整授權／雙SHA、全部445映射與8正式zone兩產品實測；契約見.trellis/spec/backend/church-clock-contract.md。屬補齊正式需求，不修改核定計畫，無Word需求修正報告。

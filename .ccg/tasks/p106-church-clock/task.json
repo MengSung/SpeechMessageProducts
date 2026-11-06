@@ -1,0 +1,28 @@
+{
+  "id": "p106-church-clock",
+  "title": "P1-06 教會時鐘與可重生時區對照",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "P1-06全部本機驗證通過，進行本地提交與子任務封存；主P1續做P1-07／09。",
+  "createdAt": "2026-11-06",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parent": ".ccg/tasks/integration-p1",
+  "executionMode": "inline；不派 implement/check 子代理",
+  "dependencies": [
+    "P1-05"
+  ],
+  "independentSiblings": [
+    "P1-07",
+    "P1-09"
+  ],
+  "constraints": [
+    "不搬業務流程",
+    "不push、不部署、不連VM/D365/LINE",
+    "保留既有未提交外模證據"
+  ],
+  "completedAt": "2026-11-06T14:32:53+08:00",
+  "complexityReason": "實際含雙目標時間、生成工具與主機啟動整合，研究後升為L+；現行inline禁止派implement/check子代理，保留計畫與實際主會話審查。"
+}
