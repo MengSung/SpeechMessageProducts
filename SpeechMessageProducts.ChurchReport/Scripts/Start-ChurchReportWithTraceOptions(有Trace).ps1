@@ -35,7 +35,7 @@ $configuration = 'Debug'
 $diagnosticTraceEnabled = $true
 
 # 三種 Trace 共用的輸出目錄；只由本機啟動設定提供，不來自 request 或使用者輸入。
-$traceDirectory = 'D:\除錯追蹤'
+$traceDirectory = ([regex]::Unescape('D:\\\u9664\u932f\u8ffd\u8e64'))
 
 # 網站網址。
 $url = 'http://localhost:5000/'
@@ -62,19 +62,19 @@ $projectPath = Join-Path $projectDirectory 'SpeechMessageProducts.ChurchReport.c
 $existingStarter = Join-Path $scriptDirectory 'Start-ChurchReportDevelopment.ps1'
 
 if ($configuration -notin @('Debug', 'Release')) {
-    throw "configuration 必須是 'Debug' 或 'Release'。目前值：$configuration"
+    throw "configuration $([regex]::Unescape('\u5fc5\u9808\u662f')) 'Debug' $([regex]::Unescape('\u6216')) 'Release'$([regex]::Unescape('\u3002\u76ee\u524d\u503c\uff1a'))$configuration"
 }
 
 if ($diagnosticTraceEnabled -isnot [bool]) {
-    throw 'diagnosticTraceEnabled 必須是 $true 或 $false。'
+    throw ([regex]::Unescape('diagnosticTraceEnabled \u5fc5\u9808\u662f $true \u6216 $false\u3002'))
 }
 
 if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
-    throw "找不到 ChurchReport 專案檔：$projectPath"
+    throw "$([regex]::Unescape('\u627e\u4e0d\u5230')) ChurchReport $([regex]::Unescape('\u5c08\u6848\u6a94\uff1a'))$projectPath"
 }
 
 if (-not (Test-Path -LiteralPath $existingStarter -PathType Leaf)) {
-    throw "找不到既有啟動腳本：$existingStarter"
+    throw "$([regex]::Unescape('\u627e\u4e0d\u5230\u65e2\u6709\u555f\u52d5\u8173\u672c\uff1a'))$existingStarter"
 }
 
 $traceDirectoryFull = [System.IO.Path]::GetFullPath($traceDirectory)
@@ -83,7 +83,7 @@ $traceEnabledText = $diagnosticTraceEnabled.ToString().ToLowerInvariant()
 $targetUri = [System.Uri]::new($url)
 
 if ($targetUri.Scheme -notin @('http', 'https') -or [string]::IsNullOrWhiteSpace($targetUri.Host)) {
-    throw "網址必須是有效的 HTTP 或 HTTPS URL：$url"
+    throw "$([regex]::Unescape('\u7db2\u5740\u5fc5\u9808\u662f\u6709\u6548\u7684')) HTTP $([regex]::Unescape('\u6216')) HTTPS URL$([regex]::Unescape('\uff1a'))$url"
 }
 
 function Test-TcpPortReady {
@@ -137,19 +137,19 @@ function Stop-ExistingChurchReportForPort {
         }
         else {
             [void]$unknownProcessIds.Add([int]$ownerProcessId)
-            Write-Host "無法確認程序 $ownerProcessId（$processName）是否屬於 ChurchReport。" -ForegroundColor Yellow
+            Write-Host "$([regex]::Unescape('\u7121\u6cd5\u78ba\u8a8d\u7a0b\u5e8f')) $ownerProcessId$([regex]::Unescape('\uff08'))$processName$([regex]::Unescape('\uff09\u662f\u5426\u5c6c\u65bc')) ChurchReport$([regex]::Unescape('\u3002'))" -ForegroundColor Yellow
         }
     }
 
     if ($unknownProcessIds.Count -gt 0) {
-        throw "連接埠 $Port 已被其他或無法辨識的程序使用；為避免誤殺，腳本不會自動終止。PID：$($unknownProcessIds -join ', ')"
+        throw "$([regex]::Unescape('\u9023\u63a5\u57e0')) $Port $([regex]::Unescape('\u5df2\u88ab\u5176\u4ed6\u6216\u7121\u6cd5\u8fa8\u8b58\u7684\u7a0b\u5e8f\u4f7f\u7528\uff1b\u70ba\u907f\u514d\u8aa4\u6bba\uff0c\u8173\u672c\u4e0d\u6703\u81ea\u52d5\u7d42\u6b62\u3002'))PID$([regex]::Unescape('\uff1a'))$($unknownProcessIds -join ', ')"
     }
 
     foreach ($churchReportProcessId in $churchReportProcessIds) {
-        Write-Host "正在停止既有 ChurchReport 程序（PID $churchReportProcessId）..." -ForegroundColor Yellow
+        Write-Host "$([regex]::Unescape('\u6b63\u5728\u505c\u6b62\u65e2\u6709')) ChurchReport $([regex]::Unescape('\u7a0b\u5e8f\uff08'))PID $churchReportProcessId$([regex]::Unescape('\uff09'))..." -ForegroundColor Yellow
         & taskkill.exe /PID $churchReportProcessId /T /F 2>$null | Out-Null
         if ($LASTEXITCODE -ne 0) {
-            throw "無法停止 ChurchReport 程序（PID $churchReportProcessId），結束碼：$LASTEXITCODE"
+            throw "$([regex]::Unescape('\u7121\u6cd5\u505c\u6b62')) ChurchReport $([regex]::Unescape('\u7a0b\u5e8f\uff08'))PID $churchReportProcessId$([regex]::Unescape('\uff09\uff0c\u7d50\u675f\u78bc\uff1a'))$LASTEXITCODE"
         }
     }
 
@@ -158,14 +158,14 @@ function Stop-ExistingChurchReportForPort {
         $remainingProcessIds = @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
             Select-Object -ExpandProperty OwningProcess -Unique)
         if ($remainingProcessIds.Count -eq 0) {
-            Write-Host "既有 ChurchReport 已停止，連接埠 $Port 已釋放。" -ForegroundColor Green
+            Write-Host "$([regex]::Unescape('\u65e2\u6709')) ChurchReport $([regex]::Unescape('\u5df2\u505c\u6b62\uff0c\u9023\u63a5\u57e0')) $Port $([regex]::Unescape('\u5df2\u91cb\u653e\u3002'))" -ForegroundColor Green
             return
         }
 
         Start-Sleep -Milliseconds 250
     }
 
-    throw "既有 ChurchReport 已要求停止，但連接埠 $Port 仍被占用。"
+    throw "$([regex]::Unescape('\u65e2\u6709')) ChurchReport $([regex]::Unescape('\u5df2\u8981\u6c42\u505c\u6b62\uff0c\u4f46\u9023\u63a5\u57e0')) $Port $([regex]::Unescape('\u4ecd\u88ab\u5360\u7528\u3002'))"
 }
 
 $previousTraceEnabled = [Environment]::GetEnvironmentVariable('DiagnosticsTrace__Enabled', 'Process')
@@ -181,30 +181,30 @@ try {
             Stop-ExistingChurchReportForPort -Port $targetUri.Port -ProjectDirectory $projectDirectory
         }
         else {
-            throw "網址目前已被其他程序使用：$url；非本機網址不會自動終止程序。"
+            throw "$([regex]::Unescape('\u7db2\u5740\u76ee\u524d\u5df2\u88ab\u5176\u4ed6\u7a0b\u5e8f\u4f7f\u7528\uff1a'))$url$([regex]::Unescape('\uff1b\u975e\u672c\u6a5f\u7db2\u5740\u4e0d\u6703\u81ea\u52d5\u7d42\u6b62\u7a0b\u5e8f\u3002'))"
         }
     }
 
 Write-Host '========================================' -ForegroundColor Magenta
-Write-Host 'ChurchReport 組態啟動範例' -ForegroundColor Magenta
+Write-Host ([regex]::Unescape('ChurchReport \u7d44\u614b\u555f\u52d5\u7bc4\u4f8b')) -ForegroundColor Magenta
 Write-Host '========================================' -ForegroundColor Magenta
-Write-Host "編譯組態：$configuration" -ForegroundColor Gray
-Write-Host "DiagnosticsTrace:Enabled：$traceEnabledText" -ForegroundColor Gray
-Write-Host "Trace 目錄：$traceDirectoryFull" -ForegroundColor Gray
-Write-Host "網址：$url" -ForegroundColor Gray
+Write-Host "$([regex]::Unescape('\u7de8\u8b6f\u7d44\u614b\uff1a'))$configuration" -ForegroundColor Gray
+Write-Host "DiagnosticsTrace:Enabled$([regex]::Unescape('\uff1a'))$traceEnabledText" -ForegroundColor Gray
+Write-Host "Trace $([regex]::Unescape('\u76ee\u9304\uff1a'))$traceDirectoryFull" -ForegroundColor Gray
+Write-Host "$([regex]::Unescape('\u7db2\u5740\uff1a'))$url" -ForegroundColor Gray
 
 if ($configuration -eq 'Release' -and $diagnosticTraceEnabled) {
-    Write-Warning 'Release 組態具有編譯期停用防線；即使設定 true，正式組態仍不會建立三種檔案 Trace。'
+    Write-Warning ([regex]::Unescape('Release \u7d44\u614b\u5177\u6709\u7de8\u8b6f\u671f\u505c\u7528\u9632\u7dda\uff1b\u5373\u4f7f\u8a2d\u5b9a true\uff0c\u6b63\u5f0f\u7d44\u614b\u4ecd\u4e0d\u6703\u5efa\u7acb\u4e09\u7a2e\u6a94\u6848 Trace\u3002'))
 }
 
     if ($buildOnly) {
-        Write-Host "開始編譯 $configuration ..." -ForegroundColor Cyan
+        Write-Host "$([regex]::Unescape('\u958b\u59cb\u7de8\u8b6f')) $configuration ..." -ForegroundColor Cyan
         & $dotnetCommand.Source build $projectPath --configuration $configuration --nologo --property:UseAppHost=false
         if ($LASTEXITCODE -ne 0) {
-            throw "dotnet build 失敗，結束碼：$LASTEXITCODE"
+            throw "dotnet build $([regex]::Unescape('\u5931\u6557\uff0c\u7d50\u675f\u78bc\uff1a'))$LASTEXITCODE"
         }
 
-        Write-Host '編譯成功；因為 buildOnly=$true，未啟動網站。' -ForegroundColor Green
+        Write-Host ([regex]::Unescape('\u7de8\u8b6f\u6210\u529f\uff1b\u56e0\u70ba buildOnly=$true\uff0c\u672a\u555f\u52d5\u7db2\u7ad9\u3002')) -ForegroundColor Green
         return
     }
 
@@ -224,10 +224,10 @@ if ($skipBrowser) {
     $starterArguments += '-SkipBrowser'
 }
 
-Write-Host '交由既有 Start-ChurchReportDevelopment.ps1 編譯、啟動網站並管理程序生命週期 ...' -ForegroundColor Cyan
+Write-Host ([regex]::Unescape('\u4ea4\u7531\u65e2\u6709 Start-ChurchReportDevelopment.ps1 \u7de8\u8b6f\u3001\u555f\u52d5\u7db2\u7ad9\u4e26\u7ba1\u7406\u7a0b\u5e8f\u751f\u547d\u9031\u671f ...')) -ForegroundColor Cyan
     & powershell.exe @starterArguments
     if ($LASTEXITCODE -ne 0) {
-        throw "既有 ChurchReport 啟動腳本失敗，結束碼：$LASTEXITCODE"
+        throw "$([regex]::Unescape('\u65e2\u6709')) ChurchReport $([regex]::Unescape('\u555f\u52d5\u8173\u672c\u5931\u6557\uff0c\u7d50\u675f\u78bc\uff1a'))$LASTEXITCODE"
     }
 }
 finally {

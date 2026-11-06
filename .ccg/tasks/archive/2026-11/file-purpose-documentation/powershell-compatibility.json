@@ -1,0 +1,72 @@
+[
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Migrate-ControllerSplit-Phase1.ps1",
+    "literalEdits": 68,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportDevelopment.ps1",
+    "literalEdits": 43,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions(有Trace).ps1",
+    "literalEdits": 44,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions(無Trace).ps1",
+    "literalEdits": 44,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions.ps1",
+    "literalEdits": 44,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Update-ViewRoutes-Batch2.ps1",
+    "literalEdits": 33,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Update-ViewRoutes.ps1",
+    "literalEdits": 19,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/Analyze-ChurchReportTraces.ps1",
+    "literalEdits": 155,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/Diagnose-DataverseTrace.ps1",
+    "literalEdits": 99,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/verify-release-noperf.ps1",
+    "literalEdits": 2,
+    "roundTripVerified": true,
+    "parseErrors": 0,
+    "nonAsciiExecutable": 0
+  }
+]

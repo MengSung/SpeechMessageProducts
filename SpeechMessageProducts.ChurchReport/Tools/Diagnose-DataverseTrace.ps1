@@ -85,12 +85,12 @@ param(
 $ErrorActionPreference = 'Stop'
 $script:Results = New-Object System.Collections.Generic.List[object]
 $script:UncoveredItems = @(
-    '建置與單元測試：dotnet build，以及 ToolUtility.Tests、ToolUtility.Dataverse.Tests、ChurchReport.MemberInfo.Tests。',
-    'Run H 靜態相依檢查：ToolUtility 的 Microsoft.AspNetCore、FrameworkReference、DEBUG-only、Trace.Listeners 與 AutoFlush 掃描。',
-    'H1 identityName → sessionId → anon fallback、T7 完整 JSONL schema 與端對端欄位值斷言。',
-    'Trace Enabled=false 關閉路徑，以及程序停止時 writer flush、檔案輪替與 MaxRetainedFiles 保留數。',
-    'A/B 使用者並行隔離、登入授權正確性、真實 Dataverse timeout/cancel/fault 演練。',
-    'Controllers 零 diff、UTF-8/CRLF、git 白名單與其他交付稽核。'
+    ([regex]::Unescape('\u5efa\u7f6e\u8207\u55ae\u5143\u6e2c\u8a66\uff1adotnet build\uff0c\u4ee5\u53ca ToolUtility.Tests\u3001ToolUtility.Dataverse.Tests\u3001ChurchReport.MemberInfo.Tests\u3002')),
+    ([regex]::Unescape('Run H \u975c\u614b\u76f8\u4f9d\u6aa2\u67e5\uff1aToolUtility \u7684 Microsoft.AspNetCore\u3001FrameworkReference\u3001DEBUG-only\u3001Trace.Listeners \u8207 AutoFlush \u6383\u63cf\u3002')),
+    ([regex]::Unescape('H1 identityName \u2192 sessionId \u2192 anon fallback\u3001T7 \u5b8c\u6574 JSONL schema \u8207\u7aef\u5c0d\u7aef\u6b04\u4f4d\u503c\u65b7\u8a00\u3002')),
+    ([regex]::Unescape('Trace Enabled=false \u95dc\u9589\u8def\u5f91\uff0c\u4ee5\u53ca\u7a0b\u5e8f\u505c\u6b62\u6642 writer flush\u3001\u6a94\u6848\u8f2a\u66ff\u8207 MaxRetainedFiles \u4fdd\u7559\u6578\u3002')),
+    ([regex]::Unescape('A/B \u4f7f\u7528\u8005\u4e26\u884c\u9694\u96e2\u3001\u767b\u5165\u6388\u6b0a\u6b63\u78ba\u6027\u3001\u771f\u5be6 Dataverse timeout/cancel/fault \u6f14\u7df4\u3002')),
+    ([regex]::Unescape('Controllers \u96f6 diff\u3001UTF-8/CRLF\u3001git \u767d\u540d\u55ae\u8207\u5176\u4ed6\u4ea4\u4ed8\u7a3d\u6838\u3002'))
 )
 
 function Add-DiagnosticResult {
@@ -158,33 +158,33 @@ function Write-DiagnosticReport {
     )
 
     $reportLines = New-Object System.Collections.Generic.List[string]
-    $reportLines.Add('# Dataverse Trace 診斷結論報告')
+    $reportLines.Add(([regex]::Unescape('# Dataverse Trace \u8a3a\u65b7\u7d50\u8ad6\u5831\u544a')))
     $reportLines.Add('')
-    $reportLines.Add(('- 產生時間：{0}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')))
-    $reportLines.Add(('- Trace 檔案：`{0}`' -f $TraceFilePath))
-    $reportLines.Add(('- 最後結論：**{0}** — {1}' -f $ConclusionStatus, $ConclusionText))
+    $reportLines.Add((([regex]::Unescape('- \u7522\u751f\u6642\u9593\uff1a{0}')) -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')))
+    $reportLines.Add((([regex]::Unescape('- Trace \u6a94\u6848\uff1a`{0}`')) -f $TraceFilePath))
+    $reportLines.Add((([regex]::Unescape('- \u6700\u5f8c\u7d50\u8ad6\uff1a**{0}** \u2014 {1}')) -f $ConclusionStatus, $ConclusionText))
     $reportLines.Add('')
-    $reportLines.Add('## 檢查結果')
+    $reportLines.Add(([regex]::Unescape('## \u6aa2\u67e5\u7d50\u679c')))
     $reportLines.Add('')
-    $reportLines.Add('| 結果 | 檢查項目 | 詳情 |')
+    $reportLines.Add(([regex]::Unescape('| \u7d50\u679c | \u6aa2\u67e5\u9805\u76ee | \u8a73\u60c5 |')))
     $reportLines.Add('|---|---|---|')
     foreach ($result in $script:Results) {
         $details = ([string]$result.Details).Replace('|', '\|').Replace("`r", ' ').Replace("`n", ' ')
         $reportLines.Add(('| {0} | {1} | {2} |' -f $result.Status, $result.Name, $details))
     }
     $reportLines.Add('')
-    $reportLines.Add('## 尚未由本腳本涵蓋的補測')
+    $reportLines.Add(([regex]::Unescape('## \u5c1a\u672a\u7531\u672c\u8173\u672c\u6db5\u84cb\u7684\u88dc\u6e2c')))
     $reportLines.Add('')
-    $reportLines.Add('本報告只代表 JSONL 執行軌跡診斷結果，不代表整個 Run H 品質門檻已全部完成。')
+    $reportLines.Add(([regex]::Unescape('\u672c\u5831\u544a\u53ea\u4ee3\u8868 JSONL \u57f7\u884c\u8ecc\u8de1\u8a3a\u65b7\u7d50\u679c\uff0c\u4e0d\u4ee3\u8868\u6574\u500b Run H \u54c1\u8cea\u9580\u6abb\u5df2\u5168\u90e8\u5b8c\u6210\u3002')))
     foreach ($item in $script:UncoveredItems) {
         $reportLines.Add('- {0}' -f $item)
     }
     $reportLines.Add('')
-    $reportLines.Add('## 判讀規則')
+    $reportLines.Add(([regex]::Unescape('## \u5224\u8b80\u898f\u5247')))
     $reportLines.Add('')
-    $reportLines.Add('- **PASS**：該項檢查有足夠的 JSONL 證據且未發現違規。')
-    $reportLines.Add('- **WARN**：沒有直接硬性違規，但資料不足或需要另外補測；不可當成完整通過。')
-    $reportLines.Add('- **FAIL**：發現可由 JSONL 證明的錯誤，或 Trace 檔無法解析/不存在。')
+    $reportLines.Add(([regex]::Unescape('- **PASS**\uff1a\u8a72\u9805\u6aa2\u67e5\u6709\u8db3\u5920\u7684 JSONL \u8b49\u64da\u4e14\u672a\u767c\u73fe\u9055\u898f\u3002')))
+    $reportLines.Add(([regex]::Unescape('- **WARN**\uff1a\u6c92\u6709\u76f4\u63a5\u786c\u6027\u9055\u898f\uff0c\u4f46\u8cc7\u6599\u4e0d\u8db3\u6216\u9700\u8981\u53e6\u5916\u88dc\u6e2c\uff1b\u4e0d\u53ef\u7576\u6210\u5b8c\u6574\u901a\u904e\u3002')))
+    $reportLines.Add(([regex]::Unescape('- **FAIL**\uff1a\u767c\u73fe\u53ef\u7531 JSONL \u8b49\u660e\u7684\u932f\u8aa4\uff0c\u6216 Trace \u6a94\u7121\u6cd5\u89e3\u6790/\u4e0d\u5b58\u5728\u3002')))
 
     try {
         $reportDirectory = [System.IO.Path]::GetDirectoryName($OutputPath)
@@ -193,24 +193,24 @@ function Write-DiagnosticReport {
         }
         $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
         [System.IO.File]::WriteAllLines($OutputPath, $reportLines, $utf8NoBom)
-        Write-Host ('診斷報告已輸出：{0}' -f $OutputPath) -ForegroundColor Cyan
+        Write-Host (([regex]::Unescape('\u8a3a\u65b7\u5831\u544a\u5df2\u8f38\u51fa\uff1a{0}')) -f $OutputPath) -ForegroundColor Cyan
     }
     catch {
-        Write-Host ('診斷報告輸出失敗：{0}' -f $_.Exception.Message) -ForegroundColor Red
+        Write-Host (([regex]::Unescape('\u8a3a\u65b7\u5831\u544a\u8f38\u51fa\u5931\u6557\uff1a{0}')) -f $_.Exception.Message) -ForegroundColor Red
     }
 }
 
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host 'Dataverse Trace 唯讀診斷' -ForegroundColor Cyan
+Write-Host ([regex]::Unescape('Dataverse Trace \u552f\u8b80\u8a3a\u65b7')) -ForegroundColor Cyan
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host ('開始時間: {0}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'))
+Write-Host (([regex]::Unescape('\u958b\u59cb\u6642\u9593: {0}')) -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'))
 
 try {
     $resolvedPath = [System.IO.Path]::GetFullPath($TracePath)
 }
 catch {
-    Add-DiagnosticResult -Name 'Trace 路徑' -Status 'FAIL' -Details ('無法解析路徑：{0}' -f $_.Exception.Message)
-    Write-Host '結論：FAIL（Trace 路徑無法解析）' -ForegroundColor Red
+    Add-DiagnosticResult -Name ([regex]::Unescape('Trace \u8def\u5f91')) -Status 'FAIL' -Details (([regex]::Unescape('\u7121\u6cd5\u89e3\u6790\u8def\u5f91\uff1a{0}')) -f $_.Exception.Message)
+    Write-Host ([regex]::Unescape('\u7d50\u8ad6\uff1aFAIL\uff08Trace \u8def\u5f91\u7121\u6cd5\u89e3\u6790\uff09')) -ForegroundColor Red
     return
 }
 
@@ -227,17 +227,17 @@ else {
     $resolvedReportPath = [System.IO.Path]::GetFullPath($ReportPath)
 }
 
-Write-Host ('檔案: {0}' -f $resolvedPath)
+Write-Host (([regex]::Unescape('\u6a94\u6848: {0}')) -f $resolvedPath)
 
 if (-not (Test-Path -LiteralPath $resolvedPath -PathType Leaf)) {
-    Add-DiagnosticResult -Name 'Trace 檔案存在' -Status 'FAIL' -Details '找不到指定的 JSONL 檔案。請確認網站已啟動、設定路徑正確，並重新操作一次。'
-    Write-Host '結論：FAIL（找不到 Trace 檔案）' -ForegroundColor Red
-    Write-DiagnosticReport -OutputPath $resolvedReportPath -TraceFilePath $resolvedPath -ConclusionStatus 'FAIL' -ConclusionText '找不到指定的 JSONL 檔案。'
+    Add-DiagnosticResult -Name ([regex]::Unescape('Trace \u6a94\u6848\u5b58\u5728')) -Status 'FAIL' -Details ([regex]::Unescape('\u627e\u4e0d\u5230\u6307\u5b9a\u7684 JSONL \u6a94\u6848\u3002\u8acb\u78ba\u8a8d\u7db2\u7ad9\u5df2\u555f\u52d5\u3001\u8a2d\u5b9a\u8def\u5f91\u6b63\u78ba\uff0c\u4e26\u91cd\u65b0\u64cd\u4f5c\u4e00\u6b21\u3002'))
+    Write-Host ([regex]::Unescape('\u7d50\u8ad6\uff1aFAIL\uff08\u627e\u4e0d\u5230 Trace \u6a94\u6848\uff09')) -ForegroundColor Red
+    Write-DiagnosticReport -OutputPath $resolvedReportPath -TraceFilePath $resolvedPath -ConclusionStatus 'FAIL' -ConclusionText ([regex]::Unescape('\u627e\u4e0d\u5230\u6307\u5b9a\u7684 JSONL \u6a94\u6848\u3002'))
     return
 }
 
 $fileInfo = Get-Item -LiteralPath $resolvedPath
-Add-DiagnosticResult -Name 'Trace 檔案存在' -Status 'PASS' -Details ('{0} bytes，最後寫入 {1}' -f $fileInfo.Length, $fileInfo.LastWriteTime)
+Add-DiagnosticResult -Name ([regex]::Unescape('Trace \u6a94\u6848\u5b58\u5728')) -Status 'PASS' -Details (([regex]::Unescape('{0} bytes\uff0c\u6700\u5f8c\u5beb\u5165 {1}')) -f $fileInfo.Length, $fileInfo.LastWriteTime)
 
 $records = New-Object System.Collections.Generic.List[object]
 $parseErrors = New-Object System.Collections.Generic.List[string]
@@ -246,7 +246,7 @@ $lineNumber = 0
 foreach ($line in [System.IO.File]::ReadLines($resolvedPath)) {
     $lineNumber++
     if ([string]::IsNullOrWhiteSpace($line)) {
-        $parseErrors.Add(('第 {0} 行為空白' -f $lineNumber))
+        $parseErrors.Add((([regex]::Unescape('\u7b2c {0} \u884c\u70ba\u7a7a\u767d')) -f $lineNumber))
         continue
     }
 
@@ -254,18 +254,18 @@ foreach ($line in [System.IO.File]::ReadLines($resolvedPath)) {
         $records.Add(($line | ConvertFrom-Json -ErrorAction Stop))
     }
     catch {
-        $parseErrors.Add(('第 {0} 行 JSON 無法解析：{1}' -f $lineNumber, $_.Exception.Message))
+        $parseErrors.Add((([regex]::Unescape('\u7b2c {0} \u884c JSON \u7121\u6cd5\u89e3\u6790\uff1a{1}')) -f $lineNumber, $_.Exception.Message))
     }
 }
 
 if ($parseErrors.Count -eq 0 -and $records.Count -gt 0) {
-    Add-DiagnosticResult -Name 'JSONL 解析' -Status 'PASS' -Details ('{0} 行全部可解析' -f $records.Count)
+    Add-DiagnosticResult -Name ([regex]::Unescape('JSONL \u89e3\u6790')) -Status 'PASS' -Details (([regex]::Unescape('{0} \u884c\u5168\u90e8\u53ef\u89e3\u6790')) -f $records.Count)
 }
 elseif ($records.Count -eq 0) {
-    Add-DiagnosticResult -Name 'JSONL 解析' -Status 'FAIL' -Details '檔案沒有任何可解析的事件。請先操作網站，再重新執行本腳本。'
+    Add-DiagnosticResult -Name ([regex]::Unescape('JSONL \u89e3\u6790')) -Status 'FAIL' -Details ([regex]::Unescape('\u6a94\u6848\u6c92\u6709\u4efb\u4f55\u53ef\u89e3\u6790\u7684\u4e8b\u4ef6\u3002\u8acb\u5148\u64cd\u4f5c\u7db2\u7ad9\uff0c\u518d\u91cd\u65b0\u57f7\u884c\u672c\u8173\u672c\u3002'))
 }
 else {
-    Add-DiagnosticResult -Name 'JSONL 解析' -Status 'FAIL' -Details ('共 {0} 行，其中 {1} 行無法解析' -f $lineNumber, $parseErrors.Count)
+    Add-DiagnosticResult -Name ([regex]::Unescape('JSONL \u89e3\u6790')) -Status 'FAIL' -Details (([regex]::Unescape('\u5171 {0} \u884c\uff0c\u5176\u4e2d {1} \u884c\u7121\u6cd5\u89e3\u6790')) -f $lineNumber, $parseErrors.Count)
     foreach ($parseError in $parseErrors | Select-Object -First 10) {
         Write-Host ('  - {0}' -f $parseError) -ForegroundColor Red
     }
@@ -280,14 +280,14 @@ if ($records.Count -gt 0) {
     )
 
     if ($missingCoreFields.Count -eq 0) {
-        Add-DiagnosticResult -Name '事件基本欄位' -Status 'PASS' -Details '每筆事件均含 ts 與 ev'
+        Add-DiagnosticResult -Name ([regex]::Unescape('\u4e8b\u4ef6\u57fa\u672c\u6b04\u4f4d')) -Status 'PASS' -Details ([regex]::Unescape('\u6bcf\u7b46\u4e8b\u4ef6\u5747\u542b ts \u8207 ev'))
     }
     else {
-        Add-DiagnosticResult -Name '事件基本欄位' -Status 'FAIL' -Details ('{0} 筆事件缺少 ts 或 ev' -f $missingCoreFields.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('\u4e8b\u4ef6\u57fa\u672c\u6b04\u4f4d')) -Status 'FAIL' -Details (([regex]::Unescape('{0} \u7b46\u4e8b\u4ef6\u7f3a\u5c11 ts \u6216 ev')) -f $missingCoreFields.Count)
     }
 
     Write-Host ''
-    Write-Host '事件統計：' -ForegroundColor Cyan
+    Write-Host ([regex]::Unescape('\u4e8b\u4ef6\u7d71\u8a08\uff1a')) -ForegroundColor Cyan
     $records |
         Group-Object -Property ev |
         Sort-Object Name |
@@ -299,16 +299,16 @@ if ($records.Count -gt 0) {
     $endCount = @($records | Where-Object { $_.ev -eq 'request.end' }).Count
 
     if ($beginCount -eq 0 -and $endCount -eq 0) {
-        Add-DiagnosticResult -Name 'Request begin/end 成對' -Status 'WARN' -Details '目前沒有 request.begin 或 request.end；請在網站執行登入或 CRM 操作後重跑。'
+        Add-DiagnosticResult -Name ([regex]::Unescape('Request begin/end \u6210\u5c0d')) -Status 'WARN' -Details ([regex]::Unescape('\u76ee\u524d\u6c92\u6709 request.begin \u6216 request.end\uff1b\u8acb\u5728\u7db2\u7ad9\u57f7\u884c\u767b\u5165\u6216 CRM \u64cd\u4f5c\u5f8c\u91cd\u8dd1\u3002'))
     }
     else {
         $missingEnd = @($beginIds | Where-Object { $_ -notin $endIds })
         $orphanEnd = @($endIds | Where-Object { $_ -notin $beginIds })
         if ($beginCount -eq $endCount -and $missingEnd.Count -eq 0 -and $orphanEnd.Count -eq 0) {
-            Add-DiagnosticResult -Name 'Request begin/end 成對' -Status 'PASS' -Details ('begin={0}、end={1}，traceId 全部配對' -f $beginCount, $endCount)
+            Add-DiagnosticResult -Name ([regex]::Unescape('Request begin/end \u6210\u5c0d')) -Status 'PASS' -Details (([regex]::Unescape('begin={0}\u3001end={1}\uff0ctraceId \u5168\u90e8\u914d\u5c0d')) -f $beginCount, $endCount)
         }
         else {
-            Add-DiagnosticResult -Name 'Request begin/end 成對' -Status 'FAIL' -Details ('begin={0}、end={1}、缺少 end={2}、孤立 end={3}' -f $beginCount, $endCount, $missingEnd.Count, $orphanEnd.Count)
+            Add-DiagnosticResult -Name ([regex]::Unescape('Request begin/end \u6210\u5c0d')) -Status 'FAIL' -Details (([regex]::Unescape('begin={0}\u3001end={1}\u3001\u7f3a\u5c11 end={2}\u3001\u5b64\u7acb end={3}')) -f $beginCount, $endCount, $missingEnd.Count, $orphanEnd.Count)
         }
     }
 
@@ -319,16 +319,16 @@ if ($records.Count -gt 0) {
     $returnCount = @($records | Where-Object { $_.ev -eq 'pool.return' }).Count
 
     if ($acquireCount -eq 0 -and $returnCount -eq 0) {
-        Add-DiagnosticResult -Name 'Lease acquire/return 成對' -Status 'WARN' -Details '目前沒有 pool 借還事件；請執行會使用 Dataverse 的操作後重跑。'
+        Add-DiagnosticResult -Name ([regex]::Unescape('Lease acquire/return \u6210\u5c0d')) -Status 'WARN' -Details ([regex]::Unescape('\u76ee\u524d\u6c92\u6709 pool \u501f\u9084\u4e8b\u4ef6\uff1b\u8acb\u57f7\u884c\u6703\u4f7f\u7528 Dataverse \u7684\u64cd\u4f5c\u5f8c\u91cd\u8dd1\u3002'))
     }
     else {
         $missingReturn = @($acquireIds | Where-Object { $_ -notin $returnIds })
         $orphanReturn = @($returnIds | Where-Object { $_ -notin $acquireIds })
         if ($missingReturn.Count -eq 0 -and $orphanReturn.Count -eq 0) {
-            Add-DiagnosticResult -Name 'Lease acquire/return 成對' -Status 'PASS' -Details ('acquire={0}、return={1}，leaseId 全部配對' -f $acquireCount, $returnCount)
+            Add-DiagnosticResult -Name ([regex]::Unescape('Lease acquire/return \u6210\u5c0d')) -Status 'PASS' -Details (([regex]::Unescape('acquire={0}\u3001return={1}\uff0cleaseId \u5168\u90e8\u914d\u5c0d')) -f $acquireCount, $returnCount)
         }
         else {
-            Add-DiagnosticResult -Name 'Lease acquire/return 成對' -Status 'FAIL' -Details ('acquire={0}、return={1}、缺少 return={2}、孤立 return={3}' -f $acquireCount, $returnCount, $missingReturn.Count, $orphanReturn.Count)
+            Add-DiagnosticResult -Name ([regex]::Unescape('Lease acquire/return \u6210\u5c0d')) -Status 'FAIL' -Details (([regex]::Unescape('acquire={0}\u3001return={1}\u3001\u7f3a\u5c11 return={2}\u3001\u5b64\u7acb return={3}')) -f $acquireCount, $returnCount, $missingReturn.Count, $orphanReturn.Count)
         }
     }
 
@@ -344,13 +344,13 @@ if ($records.Count -gt 0) {
     )
 
     if ($userRecords.Count -eq 0) {
-        Add-DiagnosticResult -Name 'User 假名格式' -Status 'WARN' -Details '目前沒有含 user 欄位的事件。'
+        Add-DiagnosticResult -Name ([regex]::Unescape('User \u5047\u540d\u683c\u5f0f')) -Status 'WARN' -Details ([regex]::Unescape('\u76ee\u524d\u6c92\u6709\u542b user \u6b04\u4f4d\u7684\u4e8b\u4ef6\u3002'))
     }
     elseif ($invalidUsers.Count -eq 0) {
-        Add-DiagnosticResult -Name 'User 假名格式' -Status 'PASS' -Details ('{0} 個 user 欄位均為 u_ 開頭的假名' -f $userRecords.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('User \u5047\u540d\u683c\u5f0f')) -Status 'PASS' -Details (([regex]::Unescape('{0} \u500b user \u6b04\u4f4d\u5747\u70ba u_ \u958b\u982d\u7684\u5047\u540d')) -f $userRecords.Count)
     }
     else {
-        Add-DiagnosticResult -Name 'User 假名格式' -Status 'FAIL' -Details ('{0} 個 user 欄位不符合 u_XXXXXXXX 格式' -f $invalidUsers.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('User \u5047\u540d\u683c\u5f0f')) -Status 'FAIL' -Details (([regex]::Unescape('{0} \u500b user \u6b04\u4f4d\u4e0d\u7b26\u5408 u_XXXXXXXX \u683c\u5f0f')) -f $invalidUsers.Count)
     }
 
     $returnRecords = @($records | Where-Object { $_.ev -eq 'pool.return' })
@@ -361,13 +361,13 @@ if ($records.Count -gt 0) {
     )
 
     if ($returnRecords.Count -eq 0) {
-        Add-DiagnosticResult -Name 'CallerId 歸還前清除' -Status 'WARN' -Details '目前沒有 pool.return 事件。'
+        Add-DiagnosticResult -Name ([regex]::Unescape('CallerId \u6b78\u9084\u524d\u6e05\u9664')) -Status 'WARN' -Details ([regex]::Unescape('\u76ee\u524d\u6c92\u6709 pool.return \u4e8b\u4ef6\u3002'))
     }
     elseif ($nonEmptyCallerIds.Count -eq 0) {
-        Add-DiagnosticResult -Name 'CallerId 歸還前清除' -Status 'PASS' -Details ('{0} 筆 pool.return 的 callerIdAtReturn 均為空' -f $returnRecords.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('CallerId \u6b78\u9084\u524d\u6e05\u9664')) -Status 'PASS' -Details (([regex]::Unescape('{0} \u7b46 pool.return \u7684 callerIdAtReturn \u5747\u70ba\u7a7a')) -f $returnRecords.Count)
     }
     else {
-        Add-DiagnosticResult -Name 'CallerId 歸還前清除' -Status 'FAIL' -Details ('{0} 筆 pool.return 仍含非空 callerIdAtReturn' -f $nonEmptyCallerIds.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('CallerId \u6b78\u9084\u524d\u6e05\u9664')) -Status 'FAIL' -Details (([regex]::Unescape('{0} \u7b46 pool.return \u4ecd\u542b\u975e\u7a7a callerIdAtReturn')) -f $nonEmptyCallerIds.Count)
     }
 
     $cleanupRecords = @($records | Where-Object { $_.ev -eq 'pool.cleanup' })
@@ -387,34 +387,34 @@ if ($records.Count -gt 0) {
     )
 
     if ($cleanupRecords.Count -eq 0) {
-        Add-DiagnosticResult -Name 'MinSize 保底' -Status 'WARN' -Details '目前沒有 pool.cleanup 事件。'
+        Add-DiagnosticResult -Name ([regex]::Unescape('MinSize \u4fdd\u5e95')) -Status 'WARN' -Details ([regex]::Unescape('\u76ee\u524d\u6c92\u6709 pool.cleanup \u4e8b\u4ef6\u3002'))
     }
     elseif ($minSizeViolations.Count -eq 0 -and $alreadyBelowMinSize.Count -eq 0) {
-        Add-DiagnosticResult -Name 'MinSize 保底' -Status 'PASS' -Details ('{0} 筆 cleanup 均維持 idleAfter >= minSize' -f $cleanupRecords.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('MinSize \u4fdd\u5e95')) -Status 'PASS' -Details (([regex]::Unescape('{0} \u7b46 cleanup \u5747\u7dad\u6301 idleAfter >= minSize')) -f $cleanupRecords.Count)
     }
     elseif ($minSizeViolations.Count -gt 0) {
-        Add-DiagnosticResult -Name 'MinSize 保底' -Status 'FAIL' -Details ('{0} 筆 cleanup 的 idleAfter 低於 minSize' -f $minSizeViolations.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('MinSize \u4fdd\u5e95')) -Status 'FAIL' -Details (([regex]::Unescape('{0} \u7b46 cleanup \u7684 idleAfter \u4f4e\u65bc minSize')) -f $minSizeViolations.Count)
     }
     else {
-        Add-DiagnosticResult -Name 'MinSize 保底' -Status 'WARN' -Details ('{0} 筆 cleanup 開始時 idleBefore 已低於 minSize；未觀察到淘汰穿透保底，但需另查健康淘汰後的補建' -f $alreadyBelowMinSize.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('MinSize \u4fdd\u5e95')) -Status 'WARN' -Details (([regex]::Unescape('{0} \u7b46 cleanup \u958b\u59cb\u6642 idleBefore \u5df2\u4f4e\u65bc minSize\uff1b\u672a\u89c0\u5bdf\u5230\u6dd8\u6c70\u7a7f\u900f\u4fdd\u5e95\uff0c\u4f46\u9700\u53e6\u67e5\u5065\u5eb7\u6dd8\u6c70\u5f8c\u7684\u88dc\u5efa')) -f $alreadyBelowMinSize.Count)
     }
 
     $droppedCount = @($records | Where-Object { $_.ev -eq 'trace.dropped' }).Count
     if ($droppedCount -eq 0) {
-        Add-DiagnosticResult -Name 'Trace 佇列丟棄' -Status 'PASS' -Details '沒有 trace.dropped 事件'
+        Add-DiagnosticResult -Name ([regex]::Unescape('Trace \u4f47\u5217\u4e1f\u68c4')) -Status 'PASS' -Details ([regex]::Unescape('\u6c92\u6709 trace.dropped \u4e8b\u4ef6'))
     }
     else {
-        Add-DiagnosticResult -Name 'Trace 佇列丟棄' -Status 'WARN' -Details ('發現 {0} 筆 trace.dropped；部分診斷事件可能不完整' -f $droppedCount)
+        Add-DiagnosticResult -Name ([regex]::Unescape('Trace \u4f47\u5217\u4e1f\u68c4')) -Status 'WARN' -Details (([regex]::Unescape('\u767c\u73fe {0} \u7b46 trace.dropped\uff1b\u90e8\u5206\u8a3a\u65b7\u4e8b\u4ef6\u53ef\u80fd\u4e0d\u5b8c\u6574')) -f $droppedCount)
     }
 
     $rawTrace = [System.IO.File]::ReadAllText($resolvedPath)
     $sensitivePattern = '(?i)(password\s*[:=]|access[_-]?token\s*[:=]|authorization\s*[:=]|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})'
     $sensitiveMatches = [System.Text.RegularExpressions.Regex]::Matches($rawTrace, $sensitivePattern)
     if ($sensitiveMatches.Count -eq 0) {
-        Add-DiagnosticResult -Name '敏感資料表面掃描' -Status 'PASS' -Details '未發現明顯密碼、Token、Authorization 或 Email 文字模式'
+        Add-DiagnosticResult -Name ([regex]::Unescape('\u654f\u611f\u8cc7\u6599\u8868\u9762\u6383\u63cf')) -Status 'PASS' -Details ([regex]::Unescape('\u672a\u767c\u73fe\u660e\u986f\u5bc6\u78bc\u3001Token\u3001Authorization \u6216 Email \u6587\u5b57\u6a21\u5f0f'))
     }
     else {
-        Add-DiagnosticResult -Name '敏感資料表面掃描' -Status 'FAIL' -Details ('發現 {0} 個疑似敏感資料模式；腳本不輸出原文，請人工檢查對應事件' -f $sensitiveMatches.Count)
+        Add-DiagnosticResult -Name ([regex]::Unescape('\u654f\u611f\u8cc7\u6599\u8868\u9762\u6383\u63cf')) -Status 'FAIL' -Details (([regex]::Unescape('\u767c\u73fe {0} \u500b\u7591\u4f3c\u654f\u611f\u8cc7\u6599\u6a21\u5f0f\uff1b\u8173\u672c\u4e0d\u8f38\u51fa\u539f\u6587\uff0c\u8acb\u4eba\u5de5\u6aa2\u67e5\u5c0d\u61c9\u4e8b\u4ef6')) -f $sensitiveMatches.Count)
     }
 }
 
@@ -422,48 +422,48 @@ $failed = @($script:Results | Where-Object Status -eq 'FAIL')
 $warnings = @($script:Results | Where-Object Status -eq 'WARN')
 $conclusionStatus = if ($failed.Count -gt 0) { 'FAIL' } elseif ($warnings.Count -gt 0) { 'WARN' } else { 'PASS' }
 $conclusionText = if ($conclusionStatus -eq 'FAIL') {
-    '發現必須處理的 JSONL 診斷錯誤。'
+    ([regex]::Unescape('\u767c\u73fe\u5fc5\u9808\u8655\u7406\u7684 JSONL \u8a3a\u65b7\u932f\u8aa4\u3002'))
 }
 elseif ($conclusionStatus -eq 'WARN') {
-    '沒有直接硬性錯誤，但仍有警告或需要另外補測的項目。'
+    ([regex]::Unescape('\u6c92\u6709\u76f4\u63a5\u786c\u6027\u932f\u8aa4\uff0c\u4f46\u4ecd\u6709\u8b66\u544a\u6216\u9700\u8981\u53e6\u5916\u88dc\u6e2c\u7684\u9805\u76ee\u3002'))
 }
 else {
-    '本腳本涵蓋的 JSONL 執行軌跡檢查全部通過。'
+    ([regex]::Unescape('\u672c\u8173\u672c\u6db5\u84cb\u7684 JSONL \u57f7\u884c\u8ecc\u8de1\u6aa2\u67e5\u5168\u90e8\u901a\u904e\u3002'))
 }
 
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host '最後結論' -ForegroundColor Cyan
+Write-Host ([regex]::Unescape('\u6700\u5f8c\u7d50\u8ad6')) -ForegroundColor Cyan
 Write-Host '============================================================' -ForegroundColor Cyan
 
 if ($conclusionStatus -eq 'FAIL') {
-    Write-Host ('結論：FAIL（{0} 個失敗、{1} 個警告）' -f $failed.Count, $warnings.Count) -ForegroundColor Red
-    Write-Host '請先修正 FAIL 項目，重新啟動網站並重新產生 Trace 後再稽核。' -ForegroundColor Red
+    Write-Host (([regex]::Unescape('\u7d50\u8ad6\uff1aFAIL\uff08{0} \u500b\u5931\u6557\u3001{1} \u500b\u8b66\u544a\uff09')) -f $failed.Count, $warnings.Count) -ForegroundColor Red
+    Write-Host ([regex]::Unescape('\u8acb\u5148\u4fee\u6b63 FAIL \u9805\u76ee\uff0c\u91cd\u65b0\u555f\u52d5\u7db2\u7ad9\u4e26\u91cd\u65b0\u7522\u751f Trace \u5f8c\u518d\u7a3d\u6838\u3002')) -ForegroundColor Red
 }
 elseif ($conclusionStatus -eq 'WARN') {
-    Write-Host ('結論：WARN（沒有硬性失敗，但有 {0} 個警告）' -f $warnings.Count) -ForegroundColor Yellow
-    Write-Host '請依每個 WARN 的詳情補做操作或獨立測試；WARN 不等於完整通過。' -ForegroundColor Yellow
+    Write-Host (([regex]::Unescape('\u7d50\u8ad6\uff1aWARN\uff08\u6c92\u6709\u786c\u6027\u5931\u6557\uff0c\u4f46\u6709 {0} \u500b\u8b66\u544a\uff09')) -f $warnings.Count) -ForegroundColor Yellow
+    Write-Host ([regex]::Unescape('\u8acb\u4f9d\u6bcf\u500b WARN \u7684\u8a73\u60c5\u88dc\u505a\u64cd\u4f5c\u6216\u7368\u7acb\u6e2c\u8a66\uff1bWARN \u4e0d\u7b49\u65bc\u5b8c\u6574\u901a\u904e\u3002')) -ForegroundColor Yellow
 }
 else {
-    Write-Host '結論：PASS（本腳本涵蓋的 JSONL 執行軌跡檢查均通過）' -ForegroundColor Green
+    Write-Host ([regex]::Unescape('\u7d50\u8ad6\uff1aPASS\uff08\u672c\u8173\u672c\u6db5\u84cb\u7684 JSONL \u57f7\u884c\u8ecc\u8de1\u6aa2\u67e5\u5747\u901a\u904e\uff09')) -ForegroundColor Green
 }
 
-Write-Host ('結束時間: {0}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'))
+Write-Host (([regex]::Unescape('\u7d50\u675f\u6642\u9593: {0}')) -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'))
 
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host '本腳本未涵蓋的補測項目' -ForegroundColor Cyan
+Write-Host ([regex]::Unescape('\u672c\u8173\u672c\u672a\u6db5\u84cb\u7684\u88dc\u6e2c\u9805\u76ee')) -ForegroundColor Cyan
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host '以下項目不能從 JSONL 單獨證明，請另外執行：' -ForegroundColor Yellow
+Write-Host ([regex]::Unescape('\u4ee5\u4e0b\u9805\u76ee\u4e0d\u80fd\u5f9e JSONL \u55ae\u7368\u8b49\u660e\uff0c\u8acb\u53e6\u5916\u57f7\u884c\uff1a')) -ForegroundColor Yellow
 for ($index = 0; $index -lt $script:UncoveredItems.Count; $index++) {
     Write-Host ('  {0}. {1}' -f ($index + 1), $script:UncoveredItems[$index])
 }
-Write-Host '上述補測未完成前，本腳本的 PASS 應解讀為「Trace 執行證據通過」，不是「Run H 全部結案」。' -ForegroundColor Yellow
+Write-Host ([regex]::Unescape('\u4e0a\u8ff0\u88dc\u6e2c\u672a\u5b8c\u6210\u524d\uff0c\u672c\u8173\u672c\u7684 PASS \u61c9\u89e3\u8b80\u70ba\u300cTrace \u57f7\u884c\u8b49\u64da\u901a\u904e\u300d\uff0c\u4e0d\u662f\u300cRun H \u5168\u90e8\u7d50\u6848\u300d\u3002')) -ForegroundColor Yellow
 
 Write-DiagnosticReport -OutputPath $resolvedReportPath -TraceFilePath $resolvedPath -ConclusionStatus $conclusionStatus -ConclusionText $conclusionText
 
 if ($Watch -and (Test-Path -LiteralPath $resolvedPath -PathType Leaf)) {
     Write-Host ''
-    Write-Host ('開始即時監看最後 {0} 行；按 Ctrl+C 結束。' -f $Tail) -ForegroundColor Cyan
+    Write-Host (([regex]::Unescape('\u958b\u59cb\u5373\u6642\u76e3\u770b\u6700\u5f8c {0} \u884c\uff1b\u6309 Ctrl+C \u7d50\u675f\u3002')) -f $Tail) -ForegroundColor Cyan
     Get-Content -LiteralPath $resolvedPath -Tail $Tail -Wait
 }

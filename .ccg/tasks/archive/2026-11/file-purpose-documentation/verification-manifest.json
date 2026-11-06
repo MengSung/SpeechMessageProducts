@@ -5557,37 +5557,37 @@
   {
     "path": "SpeechMessageProducts.ChurchReport/Scripts/Migrate-ControllerSplit-Phase1.ps1",
     "beforeSha256": "74dfd0dc0549e2da01c728df689cc203c1ad57b252cf0c93cc9febfa1387b729",
-    "afterSha256": "155cfdd6f26ffdf831ac6b0b13a47b0d80b0753c507afde902d7b48480c925b5"
+    "afterSha256": "049d698fabe96a297bde2b22dae28d7c1e7ad69aefaa6ac52f155edafb1d796f"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportDevelopment.ps1",
     "beforeSha256": "7d8fd34b5fea7490ca2205cb9a1e86fec592f16cf1222141eed2c4851567e591",
-    "afterSha256": "fca0ddb2af378ebfc1e64da008be4e20aa1a5e8dfa1115688b012d3facdfb850"
+    "afterSha256": "d15fa974eebc6d25b0dbdbf74754311df1128b746b8c3e07527e1fcd7b5ae7ae"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions(有Trace).ps1",
     "beforeSha256": "355f4d2fe1914789173a52211882ef1135c56c8e56be016509d18d07111b7458",
-    "afterSha256": "49c6b98015d2511536d24ab18ad841021b7d31cebbf3664b97fb772578b8893b"
+    "afterSha256": "fe1c1f621da8b0cfa7bd60edf021e06df3cf26f052ea31951cef1c5a02e007d3"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions(無Trace).ps1",
     "beforeSha256": "1f29badc64e8717cded0715b07b95c9bca9eca93524c24b1b7e77791c6b3eb4c",
-    "afterSha256": "455d1b983a667d7364803c1d3ed72bdde8c9b6822ce919ef2cf287fb3ea83bcc"
+    "afterSha256": "1c42435c96469d599b6613f4db27529ccbaf0f9614a6f6425bd2b50c33fadd8b"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions.ps1",
     "beforeSha256": "355f4d2fe1914789173a52211882ef1135c56c8e56be016509d18d07111b7458",
-    "afterSha256": "5244ec13f013fc29bcc20be37e3bea3be3be16659c358f5c0c464960963d253e"
+    "afterSha256": "67e8a15a98000beaf8fb7466ab683b2520067b59cde6f6ec4d4e819915aea252"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Scripts/Update-ViewRoutes-Batch2.ps1",
     "beforeSha256": "096523d14ab77bb3c27ab2241f6e2e857ea87dfe62f5f0181b25715f55a8bd26",
-    "afterSha256": "cb272f06f1cc36e391f7cae26b1c34074826b510be00948f6a426bf93d1a0c75"
+    "afterSha256": "f8986343c29fc387ba3600c7d34056219366b9b73fce8d975559c8c30927dc7e"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Scripts/Update-ViewRoutes.ps1",
     "beforeSha256": "867e09deb44416da0fda477d257dc1db8855416b2fe1850604b1660f4c777fdb",
-    "afterSha256": "9c4476cefd6d32ecb7d3ebd346ef303f4b46c6017453adde1e11b60ed0c4a5ef"
+    "afterSha256": "92961901570c382bba601ac667817003c4a4dc3fff4ae288fdab99aa755f6f0a"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Services/Images/ImageInputText.resx",
@@ -5602,12 +5602,12 @@
   {
     "path": "SpeechMessageProducts.ChurchReport/Tools/Analyze-ChurchReportTraces.ps1",
     "beforeSha256": "c131e43eb048b8904df51cdfd601407e6286b0dc61e45949d52c21a292d7302b",
-    "afterSha256": "e48a20402ec405aac1a80275a80b1c520345bfe48acbd10419fd7c1cb70c9bac"
+    "afterSha256": "9b6f507ba04c6552423ed84881f58ddd3d337e500e66e92fe223fc3dd7b3fff9"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Tools/Diagnose-DataverseTrace.ps1",
     "beforeSha256": "71bfb33157eaff6bfffadcd7354d5b7fa658e56f4d7409d18fc4192d4328a716",
-    "afterSha256": "82340bb0956003854a1eebc72a1c1cb74378fc10252a97bb50e5d6736f6310e9"
+    "afterSha256": "7aa92e39fcb55c200f13b5be09a77156d94059b1844310835dcdf41104cc424e"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/Tools/parse-perf-log.ps1",
@@ -5617,7 +5617,7 @@
   {
     "path": "SpeechMessageProducts.ChurchReport/Tools/verify-release-noperf.ps1",
     "beforeSha256": "12f9f1ef7908acb8ac3a8e7e6199bde318db3dd23fc1d2752e3a10a0a0383059",
-    "afterSha256": "29aa3c73efce5a469abac3ef1e37ba96e0ac3eef087dc980c699cbd7a328ecf8"
+    "afterSha256": "355353ff99782fcae6e5069f5df7385832442f12a2532cc71a5e45fcaae01e2a"
   },
   {
     "path": "SpeechMessageProducts.ChurchReport/web.config",

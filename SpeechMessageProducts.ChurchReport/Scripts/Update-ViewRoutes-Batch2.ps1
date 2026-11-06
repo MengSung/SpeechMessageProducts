@@ -228,7 +228,7 @@ $errorFiles = 0
 $changeLog = @()
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "View 路由批次更新工具 - 第二批" -ForegroundColor Cyan
+Write-Host ([regex]::Unescape('View \u8def\u7531\u6279\u6b21\u66f4\u65b0\u5de5\u5177 - \u7b2c\u4e8c\u6279')) -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -238,12 +238,12 @@ foreach ($relativeFilePath in $highPriorityFiles) {
     $filePath = Join-Path $ViewsPath $relativeFilePath
     
     if (-not (Test-Path $filePath)) {
-        Write-Host "??  檔案不存在: $relativeFilePath" -ForegroundColor Yellow
+        Write-Host "??  $([regex]::Unescape('\u6a94\u6848\u4e0d\u5b58\u5728')): $relativeFilePath" -ForegroundColor Yellow
         $skippedFiles++
         continue
     }
     
-    Write-Host "?? 處理檔案: $relativeFilePath" -ForegroundColor White
+    Write-Host "?? $([regex]::Unescape('\u8655\u7406\u6a94\u6848')): $relativeFilePath" -ForegroundColor White
     
     try {
         # 讀取檔案內容
@@ -265,7 +265,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
         }
         
         if (-not $targetController) {
-            Write-Host "  ??  無需更新 (未找到相關路由)" -ForegroundColor Gray
+            Write-Host ([regex]::Unescape('  ??  \u7121\u9700\u66f4\u65b0 (\u672a\u627e\u5230\u76f8\u95dc\u8def\u7531)')) -ForegroundColor Gray
             $skippedFiles++
             continue
         }
@@ -284,7 +284,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                         $replacement1 = "Controller(`"$newCtrl`")"
                         if ($content -match $pattern1) {
                             $content = $content -replace $pattern1, $replacement1
-                            $changes += "  ? Controller(`"$oldCtrl`") → Controller(`"$newCtrl`")"
+                            $changes += "  ? Controller(`"$oldCtrl`") $([regex]::Unescape('\u2192')) Controller(`"$newCtrl`")"
                         }
                         
                         # 替換 URL 路徑
@@ -292,7 +292,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                         $replacement2 = "/$newCtrl/$action"
                         if ($content -match [regex]::Escape($pattern2)) {
                             $content = $content -replace [regex]::Escape($pattern2), $replacement2
-                            $changes += "  ? /$oldCtrl/$action → /$newCtrl/$action"
+                            $changes += "  ? /$oldCtrl/$action $([regex]::Unescape('\u2192')) /$newCtrl/$action"
                         }
                         
                         # 替換 Url.Action
@@ -300,7 +300,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                         $replacement3 = "Url.Action(`"$action`", `"$newCtrl`")"
                         if ($content -match $pattern3) {
                             $content = $content -replace $pattern3, $replacement3
-                            $changes += "  ? Url.Action(`"$action`", `"$oldCtrl`") → Url.Action(`"$action`", `"$newCtrl`")"
+                            $changes += "  ? Url.Action(`"$action`", `"$oldCtrl`") $([regex]::Unescape('\u2192')) Url.Action(`"$action`", `"$newCtrl`")"
                         }
                         
                         # 替換 @Url.Action
@@ -308,7 +308,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                         $replacement4 = "@Url.Action(`"$action`", `"$newCtrl`")"
                         if ($content -match $pattern4) {
                             $content = $content -replace $pattern4, $replacement4
-                            $changes += "  ? @Url.Action(`"$action`", `"$oldCtrl`") → @Url.Action(`"$action`", `"$newCtrl`")"
+                            $changes += "  ? @Url.Action(`"$action`", `"$oldCtrl`") $([regex]::Unescape('\u2192')) @Url.Action(`"$action`", `"$newCtrl`")"
                         }
                         
                         # 替換 JavaScript 中的 URL
@@ -316,7 +316,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                         $replacement5 = "`"/$newCtrl/$action`""
                         if ($content -match [regex]::Escape($pattern5)) {
                             $content = $content -replace [regex]::Escape($pattern5), $replacement5
-                            $changes += "  ? JS: `"/$oldCtrl/$action`" → `"/$newCtrl/$action`""
+                            $changes += "  ? JS: `"/$oldCtrl/$action`" $([regex]::Unescape('\u2192')) `"/$newCtrl/$action`""
                         }
                         
                         # 替換 JavaScript 中的 URL (單引號)
@@ -324,7 +324,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                         $replacement6 = "'/$newCtrl/$action'"
                         if ($content -match [regex]::Escape($pattern6)) {
                             $content = $content -replace [regex]::Escape($pattern6), $replacement6
-                            $changes += "  ? JS: '/$oldCtrl/$action' → '/$newCtrl/$action'"
+                            $changes += "  ? JS: '/$oldCtrl/$action' $([regex]::Unescape('\u2192')) '/$newCtrl/$action'"
                         }
                     }
                 }
@@ -334,7 +334,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
         # 檢查是否有變更
         if ($content -ne $originalContent) {
             if ($changes.Count -gt 0) {
-                Write-Host "  ?? 發現 $($changes.Count) 處變更:" -ForegroundColor Green
+                Write-Host "  ?? $([regex]::Unescape('\u767c\u73fe')) $($changes.Count) $([regex]::Unescape('\u8655\u8b8a\u66f4')):" -ForegroundColor Green
                 foreach ($change in $changes) {
                     if ($Verbose) {
                         Write-Host $change -ForegroundColor Gray
@@ -345,7 +345,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
             if (-not $WhatIf) {
                 # 寫入檔案
                 $content | Out-File $filePath -Encoding UTF8 -NoNewline
-                Write-Host "  ? 已更新" -ForegroundColor Green
+                Write-Host ([regex]::Unescape('  ? \u5df2\u66f4\u65b0')) -ForegroundColor Green
                 $updatedFiles++
                 
                 # 記錄變更
@@ -353,10 +353,10 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                     File = $relativeFilePath
                     Controller = $targetController
                     ChangeCount = $changes.Count
-                    Status = "成功"
+                    Status = ([regex]::Unescape('\u6210\u529f'))
                 }
             } else {
-                Write-Host "  ?? 模擬模式: 將會更新 (使用 -WhatIf:$false 執行實際更新)" -ForegroundColor Yellow
+                Write-Host "  ?? $([regex]::Unescape('\u6a21\u64ec\u6a21\u5f0f')): $([regex]::Unescape('\u5c07\u6703\u66f4\u65b0')) ($([regex]::Unescape('\u4f7f\u7528')) -WhatIf:$false $([regex]::Unescape('\u57f7\u884c\u5be6\u969b\u66f4\u65b0')))" -ForegroundColor Yellow
                 $updatedFiles++
                 
                 # 記錄變更
@@ -364,18 +364,18 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                     File = $relativeFilePath
                     Controller = $targetController
                     ChangeCount = $changes.Count
-                    Status = "模擬"
+                    Status = ([regex]::Unescape('\u6a21\u64ec'))
                 }
             }
         } else {
-            Write-Host "  ??  無需更新" -ForegroundColor Gray
+            Write-Host ([regex]::Unescape('  ??  \u7121\u9700\u66f4\u65b0')) -ForegroundColor Gray
             $skippedFiles++
         }
         
         Write-Host ""
         
     } catch {
-        Write-Host "  ? 錯誤: $_" -ForegroundColor Red
+        Write-Host "  ? $([regex]::Unescape('\u932f\u8aa4')): $_" -ForegroundColor Red
         $errorFiles++
         
         # 記錄錯誤
@@ -383,7 +383,7 @@ foreach ($relativeFilePath in $highPriorityFiles) {
             File = $relativeFilePath
             Controller = "N/A"
             ChangeCount = 0
-            Status = "錯誤: $_"
+            Status = "$([regex]::Unescape('\u932f\u8aa4')): $_"
         }
         
         Write-Host ""
@@ -392,26 +392,26 @@ foreach ($relativeFilePath in $highPriorityFiles) {
 
 # 顯示統計摘要
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "更新完成統計" -ForegroundColor Cyan
+Write-Host ([regex]::Unescape('\u66f4\u65b0\u5b8c\u6210\u7d71\u8a08')) -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "總檔案數: $totalFiles" -ForegroundColor White
-Write-Host "已更新:   $updatedFiles" -ForegroundColor Green
-Write-Host "跳過:     $skippedFiles" -ForegroundColor Yellow
-Write-Host "錯誤:     $errorFiles" -ForegroundColor Red
+Write-Host "$([regex]::Unescape('\u7e3d\u6a94\u6848\u6578')): $totalFiles" -ForegroundColor White
+Write-Host "$([regex]::Unescape('\u5df2\u66f4\u65b0')):   $updatedFiles" -ForegroundColor Green
+Write-Host "$([regex]::Unescape('\u8df3\u904e')):     $skippedFiles" -ForegroundColor Yellow
+Write-Host "$([regex]::Unescape('\u932f\u8aa4')):     $errorFiles" -ForegroundColor Red
 Write-Host ""
 
 # 匯出變更記錄
 if ($changeLog.Count -gt 0) {
-    $logPath = ".\ChurchReport\文件\路由更新記錄_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+    $logPath = ".\ChurchReport\$([regex]::Unescape('\u6587\u4ef6'))\$([regex]::Unescape('\u8def\u7531\u66f4\u65b0\u8a18\u9304'))_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
     $changeLog | Export-Csv -Path $logPath -Encoding UTF8 -NoTypeInformation
-    Write-Host "?? 變更記錄已儲存至: $logPath" -ForegroundColor Cyan
+    Write-Host "?? $([regex]::Unescape('\u8b8a\u66f4\u8a18\u9304\u5df2\u5132\u5b58\u81f3')): $logPath" -ForegroundColor Cyan
 }
 
 if ($WhatIf) {
     Write-Host ""
-    Write-Host "??  這是模擬執行,未實際修改檔案" -ForegroundColor Yellow
-    Write-Host "   執行 .\Scripts\Update-ViewRoutes-Batch2.ps1 -WhatIf:`$false 進行實際更新" -ForegroundColor Yellow
+    Write-Host ([regex]::Unescape('??  \u9019\u662f\u6a21\u64ec\u57f7\u884c,\u672a\u5be6\u969b\u4fee\u6539\u6a94\u6848')) -ForegroundColor Yellow
+    Write-Host ([regex]::Unescape('   \u57f7\u884c .\\Scripts\\Update-ViewRoutes-Batch2.ps1 -WhatIf:$false \u9032\u884c\u5be6\u969b\u66f4\u65b0')) -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "? 完成!" -ForegroundColor Green
+Write-Host ([regex]::Unescape('? \u5b8c\u6210!')) -ForegroundColor Green

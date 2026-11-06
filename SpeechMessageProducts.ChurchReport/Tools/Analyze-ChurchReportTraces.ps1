@@ -203,10 +203,10 @@ function Update-SensitiveCounts {
 
     # Retain counts only. Never retain a match or raw line, so the report cannot become a second sensitive-data store.
     $patterns = @{
-        '敏感欄位值' = '(?i)\b(?:password|passwd|pwd|token|secret|authorization|cookie|credential|username|email|phone|mobile|address)\b[^:=\r\n]{0,3}[:=]\s*(?!"?(?:null|none|"))\S+'
-        'Bearer／JWT' = '(?i)\bBearer\s+[A-Za-z0-9._~+/-]{12,}|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
-        '電子郵件' = '(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b'
-        '臺灣身分證字號格式' = '(?i)\b[A-Z][12]\d{8}\b'
+        ([regex]::Unescape('\u654f\u611f\u6b04\u4f4d\u503c')) = '(?i)\b(?:password|passwd|pwd|token|secret|authorization|cookie|credential|username|email|phone|mobile|address)\b[^:=\r\n]{0,3}[:=]\s*(?!"?(?:null|none|"))\S+'
+        ([regex]::Unescape('Bearer\uff0fJWT')) = '(?i)\bBearer\s+[A-Za-z0-9._~+/-]{12,}|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
+        ([regex]::Unescape('\u96fb\u5b50\u90f5\u4ef6')) = '(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b'
+        ([regex]::Unescape('\u81fa\u7063\u8eab\u5206\u8b49\u5b57\u865f\u683c\u5f0f')) = '(?i)\b[A-Z][12]\d{8}\b'
     }
 
     foreach ($name in $patterns.Keys) {
@@ -235,7 +235,7 @@ function Convert-ToSafeLabel {
     param([string]$Value)
 
     if ([string]::IsNullOrWhiteSpace($Value)) {
-        return '(空白)'
+        return ([regex]::Unescape('(\u7a7a\u767d)'))
     }
 
     $safe = $Value -replace '[\r\n|]', ' '
@@ -374,7 +374,7 @@ function Analyze-DataverseTrace {
     $result | Add-Member NoteProperty CleanupEvicted ([long]0)
 
     if (-not [System.IO.File]::Exists($Path)) {
-        Add-Reason -Result $result -Severity WARN -Message '找不到檔案；三檔證據集合不完整。'
+        Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u627e\u4e0d\u5230\u6a94\u6848\uff1b\u4e09\u6a94\u8b49\u64da\u96c6\u5408\u4e0d\u5b8c\u6574\u3002'))
         return $result
     }
 
@@ -418,7 +418,7 @@ function Analyze-DataverseTrace {
 
             $eventName = [string](Get-RecordValue -Record $record -Name 'ev')
             if ([string]::IsNullOrWhiteSpace($eventName)) {
-                $eventName = '(缺少 ev)'
+                $eventName = ([regex]::Unescape('(\u7f3a\u5c11 ev)'))
             }
             if ($result.EventCounts.ContainsKey($eventName)) {
                 $result.EventCounts[$eventName]++
@@ -687,39 +687,39 @@ function Analyze-DataverseTrace {
         foreach ($id in $returned) { if (-not $acquired.Contains($id)) { $result.OrphanReturns++ } }
     }
 
-    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message '檔案無法完整解碼或讀取。' }
-    if ($result.Parsed -eq 0) { Add-Reason -Result $result -Severity WARN -Message '沒有可解析的 JSONL 事件；證據不足。' }
-    if ($result.ParseErrors -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ("{0} 行 JSONL 無法解析。" -f $result.ParseErrors) }
-    if ($result.PairOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message '配對追蹤超過記憶體上限；配對結果僅是部分證據。' }
-    if (($result.MissingRequestEnds + $result.OrphanRequestEnds) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message 'request.begin／request.end 事件未完整配對。' }
-    if (($result.MissingReturns + $result.OrphanReturns) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '租約取得／歸還事件未完整配對。' }
-    if ($result.HealthFailures -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '偵測到 Pool 健康檢查失敗。' }
-    if ($result.CallerStateViolations -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '歸還的租約仍保留呼叫端狀態。' }
-    if ($result.InvalidPseudonyms -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '使用者欄位值不符合短期虛擬識別碼格式。' }
-    if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '偵測到疑似敏感資料模式；報告已省略原始值。' }
-    if ($result.Timeouts -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到 Pool 取得逾時。' }
+    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u6a94\u6848\u7121\u6cd5\u5b8c\u6574\u89e3\u78bc\u6216\u8b80\u53d6\u3002')) }
+    if ($result.Parsed -eq 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u6c92\u6709\u53ef\u89e3\u6790\u7684 JSONL \u4e8b\u4ef6\uff1b\u8b49\u64da\u4e0d\u8db3\u3002')) }
+    if ($result.ParseErrors -gt 0) { Add-Reason -Result $result -Severity FAIL -Message (([regex]::Unescape('{0} \u884c JSONL \u7121\u6cd5\u89e3\u6790\u3002')) -f $result.ParseErrors) }
+    if ($result.PairOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u914d\u5c0d\u8ffd\u8e64\u8d85\u904e\u8a18\u61b6\u9ad4\u4e0a\u9650\uff1b\u914d\u5c0d\u7d50\u679c\u50c5\u662f\u90e8\u5206\u8b49\u64da\u3002')) }
+    if (($result.MissingRequestEnds + $result.OrphanRequestEnds) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('request.begin\uff0frequest.end \u4e8b\u4ef6\u672a\u5b8c\u6574\u914d\u5c0d\u3002')) }
+    if (($result.MissingReturns + $result.OrphanReturns) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u79df\u7d04\u53d6\u5f97\uff0f\u6b78\u9084\u4e8b\u4ef6\u672a\u5b8c\u6574\u914d\u5c0d\u3002')) }
+    if ($result.HealthFailures -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u5075\u6e2c\u5230 Pool \u5065\u5eb7\u6aa2\u67e5\u5931\u6557\u3002')) }
+    if ($result.CallerStateViolations -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u6b78\u9084\u7684\u79df\u7d04\u4ecd\u4fdd\u7559\u547c\u53eb\u7aef\u72c0\u614b\u3002')) }
+    if ($result.InvalidPseudonyms -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u4f7f\u7528\u8005\u6b04\u4f4d\u503c\u4e0d\u7b26\u5408\u77ed\u671f\u865b\u64ec\u8b58\u5225\u78bc\u683c\u5f0f\u3002')) }
+    if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u5075\u6e2c\u5230\u7591\u4f3c\u654f\u611f\u8cc7\u6599\u6a21\u5f0f\uff1b\u5831\u544a\u5df2\u7701\u7565\u539f\u59cb\u503c\u3002')) }
+    if ($result.Timeouts -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u5075\u6e2c\u5230 Pool \u53d6\u5f97\u903e\u6642\u3002')) }
 
     # ================= Session Leakage：由重到輕 =================
     if ($result.LeaseOverlaps -gt 0) {
-        Add-Reason -Result $result -Severity FAIL -Message ('同一條實體連線出現 {0:N0} 次租約區間重疊；曾有兩個 request 同時持有同一條連線。' -f $result.LeaseOverlaps)
+        Add-Reason -Result $result -Severity FAIL -Message (([regex]::Unescape('\u540c\u4e00\u689d\u5be6\u9ad4\u9023\u7dda\u51fa\u73fe {0:N0} \u6b21\u79df\u7d04\u5340\u9593\u91cd\u758a\uff1b\u66fe\u6709\u5169\u500b request \u540c\u6642\u6301\u6709\u540c\u4e00\u689d\u9023\u7dda\u3002')) -f $result.LeaseOverlaps)
     }
     if ($result.LeaseOutstandingRequests -gt 0) {
-        Add-Reason -Result $result -Severity FAIL -Message ('{0:N0} 個 request 結束時仍有未歸還租約（最多 {1:N0} 條）；租約洩漏。' -f $result.LeaseOutstandingRequests, $result.LeaseOutstandingMax)
+        Add-Reason -Result $result -Severity FAIL -Message (([regex]::Unescape('{0:N0} \u500b request \u7d50\u675f\u6642\u4ecd\u6709\u672a\u6b78\u9084\u79df\u7d04\uff08\u6700\u591a {1:N0} \u689d\uff09\uff1b\u79df\u7d04\u6d29\u6f0f\u3002')) -f $result.LeaseOutstandingRequests, $result.LeaseOutstandingMax)
     }
     if ($result.ConcurrentGatewayEvents -gt 0) {
-        Add-Reason -Result $result -Severity FAIL -Message ('偵測到 {0:N0} 次平行進入同一個 scoped Gateway（最高同時 {1:N0} 條）；Gateway 的 depth 與 lease 欄位無同步保護，此路徑可能造成跨 request 共用連線。' -f $result.ConcurrentGatewayEvents, $result.ConcurrentGatewayMax)
+        Add-Reason -Result $result -Severity FAIL -Message (([regex]::Unescape('\u5075\u6e2c\u5230 {0:N0} \u6b21\u5e73\u884c\u9032\u5165\u540c\u4e00\u500b scoped Gateway\uff08\u6700\u9ad8\u540c\u6642 {1:N0} \u689d\uff09\uff1bGateway \u7684 depth \u8207 lease \u6b04\u4f4d\u7121\u540c\u6b65\u4fdd\u8b77\uff0c\u6b64\u8def\u5f91\u53ef\u80fd\u9020\u6210\u8de8 request \u5171\u7528\u9023\u7dda\u3002')) -f $result.ConcurrentGatewayEvents, $result.ConcurrentGatewayMax)
     }
     if ($result.ScopeEndLeaseHeld -gt 0) {
-        Add-Reason -Result $result -Severity WARN -Message ('{0:N0} 次 Gateway 釋放時仍持有租約；租約是靠 DI 回收 scope 才被救回，而非正常執行路徑。' -f $result.ScopeEndLeaseHeld)
+        Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('{0:N0} \u6b21 Gateway \u91cb\u653e\u6642\u4ecd\u6301\u6709\u79df\u7d04\uff1b\u79df\u7d04\u662f\u9760 DI \u56de\u6536 scope \u624d\u88ab\u6551\u56de\uff0c\u800c\u975e\u6b63\u5e38\u57f7\u884c\u8def\u5f91\u3002')) -f $result.ScopeEndLeaseHeld)
     }
 
     # ================= 建線可觀測性不變量 =================
     $acquireResults = $result.AcquireHits + $result.AcquireMisses + $result.AcquireFails
     if ($result.AcquireWaitCount -ne $acquireResults) {
-        Add-Reason -Result $result -Severity WARN -Message ('取得等待 {0:N0} 筆無法被結果完整解釋（hit + miss + fail = {1:N0}）；有 acquire 未留下結果事件。' -f $result.AcquireWaitCount, $acquireResults)
+        Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u53d6\u5f97\u7b49\u5f85 {0:N0} \u7b46\u7121\u6cd5\u88ab\u7d50\u679c\u5b8c\u6574\u89e3\u91cb\uff08hit + miss + fail = {1:N0}\uff09\uff1b\u6709 acquire \u672a\u7559\u4e0b\u7d50\u679c\u4e8b\u4ef6\u3002')) -f $result.AcquireWaitCount, $acquireResults)
     }
     if ($result.CreateFailed -gt 0) {
-        Add-Reason -Result $result -Severity WARN -Message ('建立連線失敗 {0:N0} 次；請檢視錯誤種類分佈。' -f $result.CreateFailed)
+        Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u5efa\u7acb\u9023\u7dda\u5931\u6557 {0:N0} \u6b21\uff1b\u8acb\u6aa2\u8996\u932f\u8aa4\u7a2e\u985e\u5206\u4f48\u3002')) -f $result.CreateFailed)
     }
 
     # ================= 故障淘汰比率 =================
@@ -727,49 +727,49 @@ function Analyze-DataverseTrace {
     if ($returnTotal -gt 0) {
         $faultRate = [double]$result.ReturnFaulted / [double]$returnTotal
         if ($faultRate -ge 0.01) {
-            Add-Reason -Result $result -Severity WARN -Message ('租約以 faulted 歸還的比率為 {0:P1}（{1:N0}/{2:N0}）；每一次都會銷毀並重建一條連線。' -f $faultRate, $result.ReturnFaulted, $returnTotal)
+            Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u79df\u7d04\u4ee5 faulted \u6b78\u9084\u7684\u6bd4\u7387\u70ba {0:P1}\uff08{1:N0}/{2:N0}\uff09\uff1b\u6bcf\u4e00\u6b21\u90fd\u6703\u92b7\u6bc0\u4e26\u91cd\u5efa\u4e00\u689d\u9023\u7dda\u3002')) -f $faultRate, $result.ReturnFaulted, $returnTotal)
         }
     }
 
     # ================= 效能 =================
     if ($result.NPlusOneRequests.Count -gt 0) {
-        Add-Reason -Result $result -Severity WARN -Message ('偵測到 N+1 徵兆：有 request 對同一張 entity 查詢達 {0:N0} 次以上。' -f $NPlusOneThreshold)
+        Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u5075\u6e2c\u5230 N+1 \u5fb5\u5146\uff1a\u6709 request \u5c0d\u540c\u4e00\u5f35 entity \u67e5\u8a62\u9054 {0:N0} \u6b21\u4ee5\u4e0a\u3002')) -f $NPlusOneThreshold)
     }
     if ($result.LockWaitCount -gt 0) {
-        Add-Reason -Result $result -Severity WARN -Message ('偵測到 {0:N0} 次子池鎖等待（最長 {1:N0} 毫秒）；建線移出鎖之後此事件不應出現，屬回歸徵兆。' -f $result.LockWaitCount, $result.LockWaitMax)
+        Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u5075\u6e2c\u5230 {0:N0} \u6b21\u5b50\u6c60\u9396\u7b49\u5f85\uff08\u6700\u9577 {1:N0} \u6beb\u79d2\uff09\uff1b\u5efa\u7dda\u79fb\u51fa\u9396\u4e4b\u5f8c\u6b64\u4e8b\u4ef6\u4e0d\u61c9\u51fa\u73fe\uff0c\u5c6c\u56de\u6b78\u5fb5\u5146\u3002')) -f $result.LockWaitCount, $result.LockWaitMax)
     }
     if ($result.CrmFailures -gt 0) {
-        Add-Reason -Result $result -Severity WARN -Message ('{0:N0} 次 CRM 操作以失敗結束。' -f $result.CrmFailures)
+        Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('{0:N0} \u6b21 CRM \u64cd\u4f5c\u4ee5\u5931\u6557\u7d50\u675f\u3002')) -f $result.CrmFailures)
     }
 
     # ================= 資源趨勢 =================
     if ($result.ProcSamples -lt 2) {
-        Add-Reason -Result $result -Severity WARN -Message '程序資源快照少於兩筆；無法檢定記憶體或控制代碼是否單調成長，本次執行不構成無洩漏的證據。'
+        Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u7a0b\u5e8f\u8cc7\u6e90\u5feb\u7167\u5c11\u65bc\u5169\u7b46\uff1b\u7121\u6cd5\u6aa2\u5b9a\u8a18\u61b6\u9ad4\u6216\u63a7\u5236\u4ee3\u78bc\u662f\u5426\u55ae\u8abf\u6210\u9577\uff0c\u672c\u6b21\u57f7\u884c\u4e0d\u69cb\u6210\u7121\u6d29\u6f0f\u7684\u8b49\u64da\u3002'))
     }
     else {
         $handleGrowth = $result.ProcLast.Handles - $result.ProcFirst.Handles
         $privateGrowth = $result.ProcLast.PrivateMb - $result.ProcFirst.PrivateMb
         if ($handleGrowth -ge 500) {
-            Add-Reason -Result $result -Severity WARN -Message ('控制代碼數成長 {0:N0}（{1:N0} 至 {2:N0}）；非受控資源可能未釋放。' -f $handleGrowth, $result.ProcFirst.Handles, $result.ProcLast.Handles)
+            Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u63a7\u5236\u4ee3\u78bc\u6578\u6210\u9577 {0:N0}\uff08{1:N0} \u81f3 {2:N0}\uff09\uff1b\u975e\u53d7\u63a7\u8cc7\u6e90\u53ef\u80fd\u672a\u91cb\u653e\u3002')) -f $handleGrowth, $result.ProcFirst.Handles, $result.ProcLast.Handles)
         }
         if ($privateGrowth -ge 256) {
-            Add-Reason -Result $result -Severity WARN -Message ('私有記憶體成長 {0:N0} MB（{1:N0} 至 {2:N0}）。' -f $privateGrowth, $result.ProcFirst.PrivateMb, $result.ProcLast.PrivateMb)
+            Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u79c1\u6709\u8a18\u61b6\u9ad4\u6210\u9577 {0:N0} MB\uff08{1:N0} \u81f3 {2:N0}\uff09\u3002')) -f $privateGrowth, $result.ProcFirst.PrivateMb, $result.ProcLast.PrivateMb)
         }
     }
     if ($result.PoolSamples -ge 2) {
         $aliveGrowth = $result.PoolLast.Alive - $result.PoolFirst.Alive
         if ($aliveGrowth -ge 5) {
-            Add-Reason -Result $result -Severity WARN -Message ('存活連線數成長 {0:N0}（{1:N0} 至 {2:N0}）；連線可能只進不出。' -f $aliveGrowth, $result.PoolFirst.Alive, $result.PoolLast.Alive)
+            Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u5b58\u6d3b\u9023\u7dda\u6578\u6210\u9577 {0:N0}\uff08{1:N0} \u81f3 {2:N0}\uff09\uff1b\u9023\u7dda\u53ef\u80fd\u53ea\u9032\u4e0d\u51fa\u3002')) -f $aliveGrowth, $result.PoolFirst.Alive, $result.PoolLast.Alive)
         }
         $unreturned = $result.PoolLast.Acquires - $result.PoolLast.Releases
         if ($unreturned -gt 0) {
-            Add-Reason -Result $result -Severity WARN -Message ('最後一筆連線池快照顯示累計租借比歸還多 {0:N0} 次；可能有租約未歸還。' -f $unreturned)
+            Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u6700\u5f8c\u4e00\u7b46\u9023\u7dda\u6c60\u5feb\u7167\u986f\u793a\u7d2f\u8a08\u79df\u501f\u6bd4\u6b78\u9084\u591a {0:N0} \u6b21\uff1b\u53ef\u80fd\u6709\u79df\u7d04\u672a\u6b78\u9084\u3002')) -f $unreturned)
         }
         if ($result.PoolLast.SubPools -gt $result.PoolFirst.SubPools) {
-            Add-Reason -Result $result -Severity WARN -Message ('子池數量由 {0:N0} 成長為 {1:N0}；子池目前沒有回收路徑，啟用 per-user 隔離後會單調累積。' -f $result.PoolFirst.SubPools, $result.PoolLast.SubPools)
+            Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('\u5b50\u6c60\u6578\u91cf\u7531 {0:N0} \u6210\u9577\u70ba {1:N0}\uff1b\u5b50\u6c60\u76ee\u524d\u6c92\u6709\u56de\u6536\u8def\u5f91\uff0c\u555f\u7528 per-user \u9694\u96e2\u5f8c\u6703\u55ae\u8abf\u7d2f\u7a4d\u3002')) -f $result.PoolFirst.SubPools, $result.PoolLast.SubPools)
         }
     }
-    if ($result.DroppedEvents -gt 0) { Add-Reason -Result $result -Severity WARN -Message '有 Trace 事件被丟棄；證據可能不完整。' }
+    if ($result.DroppedEvents -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u6709 Trace \u4e8b\u4ef6\u88ab\u4e1f\u68c4\uff1b\u8b49\u64da\u53ef\u80fd\u4e0d\u5b8c\u6574\u3002')) }
 
     return $result
 }
@@ -794,7 +794,7 @@ function Analyze-ApplicationTrace {
     $result | Add-Member NoteProperty Endpoints (New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::OrdinalIgnoreCase))
 
     if (-not [System.IO.File]::Exists($Path)) {
-        Add-Reason -Result $result -Severity WARN -Message '找不到檔案；三檔證據集合不完整。'
+        Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u627e\u4e0d\u5230\u6a94\u6848\uff1b\u4e09\u6a94\u8b49\u64da\u96c6\u5408\u4e0d\u5b8c\u6574\u3002'))
         return $result
     }
 
@@ -873,14 +873,14 @@ function Analyze-ApplicationTrace {
         if ($null -ne $reader) { $reader.Dispose() }
     }
 
-    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message '檔案無法以 UTF-8 完整解碼或讀取。' }
-    if ($result.PerfCount -eq 0) { Add-Reason -Result $result -Severity WARN -Message '沒有 [Perf] 事件；無法評估端點效能。' }
-    if ($result.EndpointOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message '端點種類數超過有限聚合上限。' }
-    if ($result.SlowCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message ("{0} 個請求達到 {1} 毫秒慢請求門檻。" -f $result.SlowCount, $SlowThreshold) }
-    if ($result.NPlusOneCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到 [Perf-N+1] 指標。' }
-    if ($result.GapCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到 [Perf-Gap] 指標。' }
-    if ($result.ErrorCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到錯誤／例外／致命錯誤關鍵字。' }
-    if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '偵測到疑似敏感資料模式；報告已省略原始值。' }
+    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u6a94\u6848\u7121\u6cd5\u4ee5 UTF-8 \u5b8c\u6574\u89e3\u78bc\u6216\u8b80\u53d6\u3002')) }
+    if ($result.PerfCount -eq 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u6c92\u6709 [Perf] \u4e8b\u4ef6\uff1b\u7121\u6cd5\u8a55\u4f30\u7aef\u9ede\u6548\u80fd\u3002')) }
+    if ($result.EndpointOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u7aef\u9ede\u7a2e\u985e\u6578\u8d85\u904e\u6709\u9650\u805a\u5408\u4e0a\u9650\u3002')) }
+    if ($result.SlowCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message (([regex]::Unescape('{0} \u500b\u8acb\u6c42\u9054\u5230 {1} \u6beb\u79d2\u6162\u8acb\u6c42\u9580\u6abb\u3002')) -f $result.SlowCount, $SlowThreshold) }
+    if ($result.NPlusOneCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u5075\u6e2c\u5230 [Perf-N+1] \u6307\u6a19\u3002')) }
+    if ($result.GapCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u5075\u6e2c\u5230 [Perf-Gap] \u6307\u6a19\u3002')) }
+    if ($result.ErrorCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u5075\u6e2c\u5230\u932f\u8aa4\uff0f\u4f8b\u5916\uff0f\u81f4\u547d\u932f\u8aa4\u95dc\u9375\u5b57\u3002')) }
+    if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u5075\u6e2c\u5230\u7591\u4f3c\u654f\u611f\u8cc7\u6599\u6a21\u5f0f\uff1b\u5831\u544a\u5df2\u7701\u7565\u539f\u59cb\u503c\u3002')) }
 
     return $result
 }
@@ -895,11 +895,11 @@ function Analyze-ToolUtilityTrace {
     $result | Add-Member NoteProperty EntryCount ([long]0)
     $result | Add-Member NoteProperty ErrorCount ([long]0)
     $result | Add-Member NoteProperty CategoryOverflow ([long]0)
-    $result | Add-Member NoteProperty EncodingUsed 'Big5（950 編碼頁）'
+    $result | Add-Member NoteProperty EncodingUsed ([regex]::Unescape('Big5\uff08950 \u7de8\u78bc\u9801\uff09'))
     $result | Add-Member NoteProperty Categories (New-Object 'System.Collections.Generic.Dictionary[string,long]' ([StringComparer]::OrdinalIgnoreCase))
 
     if (-not [System.IO.File]::Exists($Path)) {
-        Add-Reason -Result $result -Severity WARN -Message '找不到檔案；三檔證據集合不完整。'
+        Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u627e\u4e0d\u5230\u6a94\u6848\uff1b\u4e09\u6a94\u8b49\u64da\u96c6\u5408\u4e0d\u5b8c\u6574\u3002'))
         return $result
     }
 
@@ -936,7 +936,7 @@ function Analyze-ToolUtilityTrace {
             if (-not $messageMatch.Success) { continue }
             $result.EntryCount++
             $message = $messageMatch.Groups['message'].Value.Trim()
-            $category = '(未分類)'
+            $category = ([regex]::Unescape('(\u672a\u5206\u985e)'))
             $categoryMatch = [regex]::Match($message, '^\[(?<category>[^\]\r\n]{1,40})\]')
             if ($categoryMatch.Success) {
                 $category = Convert-ToSafeLabel ('[' + $categoryMatch.Groups['category'].Value + ']')
@@ -960,24 +960,24 @@ function Analyze-ToolUtilityTrace {
         if ($null -ne $reader) { $reader.Dispose() }
     }
 
-    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message '檔案無法以 Big5 完整解碼或讀取。' }
-    if ($result.EntryCount -eq 0) { Add-Reason -Result $result -Severity WARN -Message '沒有 StringToProcess 項目；證據不足或格式不受支援。' }
-    if ($result.CategoryOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message '類別種類數超過有限聚合上限。' }
-    if ($result.ErrorCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message '偵測到英文或繁體中文錯誤指標。' }
-    if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message '偵測到疑似敏感資料模式；報告已省略原始值。' }
+    if ($null -ne $result.ReadError) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u6a94\u6848\u7121\u6cd5\u4ee5 Big5 \u5b8c\u6574\u89e3\u78bc\u6216\u8b80\u53d6\u3002')) }
+    if ($result.EntryCount -eq 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u6c92\u6709 StringToProcess \u9805\u76ee\uff1b\u8b49\u64da\u4e0d\u8db3\u6216\u683c\u5f0f\u4e0d\u53d7\u652f\u63f4\u3002')) }
+    if ($result.CategoryOverflow -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u985e\u5225\u7a2e\u985e\u6578\u8d85\u904e\u6709\u9650\u805a\u5408\u4e0a\u9650\u3002')) }
+    if ($result.ErrorCount -gt 0) { Add-Reason -Result $result -Severity WARN -Message ([regex]::Unescape('\u5075\u6e2c\u5230\u82f1\u6587\u6216\u7e41\u9ad4\u4e2d\u6587\u932f\u8aa4\u6307\u6a19\u3002')) }
+    if ((Get-SensitiveTotal $result.SensitiveCounts) -gt 0) { Add-Reason -Result $result -Severity FAIL -Message ([regex]::Unescape('\u5075\u6e2c\u5230\u7591\u4f3c\u654f\u611f\u8cc7\u6599\u6a21\u5f0f\uff1b\u5831\u544a\u5df2\u7701\u7565\u539f\u59cb\u503c\u3002')) }
 
     return $result
 }
 
 function Format-NullableTime {
     param($Value)
-    if ($null -eq $Value) { return '無資料' }
+    if ($null -eq $Value) { return ([regex]::Unescape('\u7121\u8cc7\u6599')) }
     return ([DateTime]$Value).ToString('yyyy-MM-dd HH:mm:ss.fff')
 }
 
 function Format-Average {
     param([long]$Sum, [long]$Count)
-    if ($Count -le 0) { return '無資料' }
+    if ($Count -le 0) { return ([regex]::Unescape('\u7121\u8cc7\u6599')) }
     return [Math]::Round($Sum / [double]$Count, 2).ToString('0.##', [System.Globalization.CultureInfo]::InvariantCulture)
 }
 
@@ -987,7 +987,7 @@ function Add-ReasonsToReport {
         [Parameter(Mandatory = $true)]$Result
     )
     if ($Result.Reasons.Count -eq 0) {
-        [void]$Lines.Add('- 未偵測到明確違規。')
+        [void]$Lines.Add(([regex]::Unescape('- \u672a\u5075\u6e2c\u5230\u660e\u78ba\u9055\u898f\u3002')))
         return
     }
     foreach ($reason in $Result.Reasons) {
@@ -1001,10 +1001,10 @@ function Add-SensitiveTable {
         [Parameter(Mandatory = $true)]$Counts
     )
     if ($Counts.Count -eq 0) {
-        [void]$Lines.Add('- 潛在敏感資料模式命中：0')
+        [void]$Lines.Add(([regex]::Unescape('- \u6f5b\u5728\u654f\u611f\u8cc7\u6599\u6a21\u5f0f\u547d\u4e2d\uff1a0')))
         return
     }
-    [void]$Lines.Add('| 模式 | 命中的行數 |')
+    [void]$Lines.Add(([regex]::Unescape('| \u6a21\u5f0f | \u547d\u4e2d\u7684\u884c\u6578 |')))
     [void]$Lines.Add('|---|---:|')
     foreach ($entry in ($Counts.GetEnumerator() | Sort-Object Name)) {
         [void]$Lines.Add(('| {0} | {1} |' -f $entry.Key, $entry.Value))
@@ -1039,83 +1039,83 @@ try {
     $crossNotes = New-Object 'System.Collections.Generic.List[string]'
     if ($timed.Count -lt 3) {
         $crossStatus = 'WARN'
-        [void]$crossNotes.Add('至少有一個檔案沒有可辨識的時間範圍；無法進行完整事件對齊。')
+        [void]$crossNotes.Add(([regex]::Unescape('\u81f3\u5c11\u6709\u4e00\u500b\u6a94\u6848\u6c92\u6709\u53ef\u8fa8\u8b58\u7684\u6642\u9593\u7bc4\u570d\uff1b\u7121\u6cd5\u9032\u884c\u5b8c\u6574\u4e8b\u4ef6\u5c0d\u9f4a\u3002')))
     }
     else {
         $latestStart = ($timed | Sort-Object StartTime -Descending | Select-Object -First 1).StartTime
         $earliestEnd = ($timed | Sort-Object EndTime | Select-Object -First 1).EndTime
         if ($latestStart -gt $earliestEnd) {
             $crossStatus = 'WARN'
-            [void]$crossNotes.Add('可辨識的時間範圍沒有明確重疊；跨檔案因果關聯需要一次受控的完整重現。')
+            [void]$crossNotes.Add(([regex]::Unescape('\u53ef\u8fa8\u8b58\u7684\u6642\u9593\u7bc4\u570d\u6c92\u6709\u660e\u78ba\u91cd\u758a\uff1b\u8de8\u6a94\u6848\u56e0\u679c\u95dc\u806f\u9700\u8981\u4e00\u6b21\u53d7\u63a7\u7684\u5b8c\u6574\u91cd\u73fe\u3002')))
         }
         else {
-            [void]$crossNotes.Add('可辨識的時間範圍有重疊，可支援針對同一次重現進行人工關聯。')
+            [void]$crossNotes.Add(([regex]::Unescape('\u53ef\u8fa8\u8b58\u7684\u6642\u9593\u7bc4\u570d\u6709\u91cd\u758a\uff0c\u53ef\u652f\u63f4\u91dd\u5c0d\u540c\u4e00\u6b21\u91cd\u73fe\u9032\u884c\u4eba\u5de5\u95dc\u806f\u3002')))
         }
     }
     if ($crossStatus -eq 'WARN' -and $overall -eq 'PASS') { $overall = 'WARN' }
 
     $lines = New-Object 'System.Collections.Generic.List[string]'
-    [void]$lines.Add('# ChurchReport 三檔 Trace 分析報告')
+    [void]$lines.Add(([regex]::Unescape('# ChurchReport \u4e09\u6a94 Trace \u5206\u6790\u5831\u544a')))
     [void]$lines.Add('')
-    [void]$lines.Add(('- 產生時間：{0}' -f (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')))
-    [void]$lines.Add(('- 整體狀態：**{0}**' -f $overall))
-    [void]$lines.Add(('- 慢請求門檻：{0} 毫秒' -f $SlowRequestThresholdMs))
-    [void]$lines.Add(('- 配對／聚合記憶體上限：{0:N0} 筆。溢位會標記為 WARN，不會被誤判為 PASS。' -f $MaxPairEntries))
+    [void]$lines.Add((([regex]::Unescape('- \u7522\u751f\u6642\u9593\uff1a{0}')) -f (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')))
+    [void]$lines.Add((([regex]::Unescape('- \u6574\u9ad4\u72c0\u614b\uff1a**{0}**')) -f $overall))
+    [void]$lines.Add((([regex]::Unescape('- \u6162\u8acb\u6c42\u9580\u6abb\uff1a{0} \u6beb\u79d2')) -f $SlowRequestThresholdMs))
+    [void]$lines.Add((([regex]::Unescape('- \u914d\u5c0d\uff0f\u805a\u5408\u8a18\u61b6\u9ad4\u4e0a\u9650\uff1a{0:N0} \u7b46\u3002\u6ea2\u4f4d\u6703\u6a19\u8a18\u70ba WARN\uff0c\u4e0d\u6703\u88ab\u8aa4\u5224\u70ba PASS\u3002')) -f $MaxPairEntries))
     [void]$lines.Add('')
-    [void]$lines.Add('## 執行摘要')
+    [void]$lines.Add(([regex]::Unescape('## \u57f7\u884c\u6458\u8981')))
     [void]$lines.Add('')
-    [void]$lines.Add('| 檔案 | 狀態 | 行數 | 大小（位元組） | 時間範圍 |')
+    [void]$lines.Add(([regex]::Unescape('| \u6a94\u6848 | \u72c0\u614b | \u884c\u6578 | \u5927\u5c0f\uff08\u4f4d\u5143\u7d44\uff09 | \u6642\u9593\u7bc4\u570d |')))
     [void]$lines.Add('|---|---|---:|---:|---|')
     foreach ($result in $results) {
-        $range = if ($null -eq $result.StartTime) { '無資料' } else { (Format-NullableTime $result.StartTime) + ' 至 ' + (Format-NullableTime $result.EndTime) }
+        $range = if ($null -eq $result.StartTime) { ([regex]::Unescape('\u7121\u8cc7\u6599')) } else { (Format-NullableTime $result.StartTime) + ([regex]::Unescape(' \u81f3 ')) + (Format-NullableTime $result.EndTime) }
         [void]$lines.Add(('| {0} | **{1}** | {2:N0} | {3:N0} | {4} |' -f $result.Name, $result.Status, $result.Lines, $result.Length, $range))
     }
 
     [void]$lines.Add('')
-    [void]$lines.Add('## 檔案清單與唯讀契約')
+    [void]$lines.Add(([regex]::Unescape('## \u6a94\u6848\u6e05\u55ae\u8207\u552f\u8b80\u5951\u7d04')))
     [void]$lines.Add('')
-    [void]$lines.Add('| 檔案 | 路徑 | 存在 | 最後修改時間 |')
+    [void]$lines.Add(([regex]::Unescape('| \u6a94\u6848 | \u8def\u5f91 | \u5b58\u5728 | \u6700\u5f8c\u4fee\u6539\u6642\u9593 |')))
     [void]$lines.Add('|---|---|---|---|')
     foreach ($result in $results) {
-        $modified = if ($null -eq $result.LastWriteTime) { '無資料' } else { $result.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss') }
-        $existsLabel = if ($result.Exists) { '是' } else { '否' }
+        $modified = if ($null -eq $result.LastWriteTime) { ([regex]::Unescape('\u7121\u8cc7\u6599')) } else { $result.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss') }
+        $existsLabel = if ($result.Exists) { ([regex]::Unescape('\u662f')) } else { ([regex]::Unescape('\u5426')) }
         [void]$lines.Add(('| {0} | `{1}` | {2} | {3} |' -f $result.Name, ($result.Path -replace '\|', '\|'), $existsLabel, $modified))
     }
     [void]$lines.Add('')
-    [void]$lines.Add('所有輸入均以 `FileMode.Open + FileAccess.Read + FileShare.ReadWrite/Delete` 串流讀取；分析器不會修改原始 Trace。')
+    [void]$lines.Add(([regex]::Unescape('\u6240\u6709\u8f38\u5165\u5747\u4ee5 `FileMode.Open + FileAccess.Read + FileShare.ReadWrite/Delete` \u4e32\u6d41\u8b80\u53d6\uff1b\u5206\u6790\u5668\u4e0d\u6703\u4fee\u6539\u539f\u59cb Trace\u3002')))
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## Dataverse 管理與隔離（{0}）' -f $dataverse.Status))
+    [void]$lines.Add((([regex]::Unescape('## Dataverse \u7ba1\u7406\u8207\u9694\u96e2\uff08{0}\uff09')) -f $dataverse.Status))
     [void]$lines.Add('')
-    [void]$lines.Add(('- JSONL：{0:N0} 行，成功解析 {1:N0} 行，解析錯誤 {2:N0} 行' -f $dataverse.Lines, $dataverse.Parsed, $dataverse.ParseErrors))
-    [void]$lines.Add(('- 請求配對：缺少結束 {0:N0}，多出的結束 {1:N0}' -f $dataverse.MissingRequestEnds, $dataverse.OrphanRequestEnds))
-    [void]$lines.Add(('- 租約配對：缺少歸還 {0:N0}，多出的歸還 {1:N0}' -f $dataverse.MissingReturns, $dataverse.OrphanReturns))
-    [void]$lines.Add(('- 請求耗時：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒' -f $dataverse.RequestDurationCount, (Format-Average $dataverse.RequestDurationSum $dataverse.RequestDurationCount), $dataverse.RequestDurationMax))
-    [void]$lines.Add(('- 取得等待：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒，逾時 {3:N0} 次' -f $dataverse.AcquireWaitCount, (Format-Average $dataverse.AcquireWaitSum $dataverse.AcquireWaitCount), $dataverse.AcquireWaitMax, $dataverse.Timeouts))
-    [void]$lines.Add(('- 租約持有：{0:N0} 筆，平均 {1} 毫秒，最大 {2:N0} 毫秒' -f $dataverse.HeldCount, (Format-Average $dataverse.HeldSum $dataverse.HeldCount), $dataverse.HeldMax))
-    [void]$lines.Add(('- 連線池（Pool）：健康檢查失敗 {0:N0} 次、低於 MinSize 的清理快照 {1:N0} 次、未清除呼叫端狀態 {2:N0} 次、丟棄事件 {3:N0} 次' -f $dataverse.HealthFailures, $dataverse.CleanupBelowMinSnapshots, $dataverse.CallerStateViolations, $dataverse.DroppedEvents))
-    [void]$lines.Add(('- 租約歸還狀態：healthy {0:N0}、faulted {1:N0}{2}' -f $dataverse.ReturnHealthy, $dataverse.ReturnFaulted, $(
+    [void]$lines.Add((([regex]::Unescape('- JSONL\uff1a{0:N0} \u884c\uff0c\u6210\u529f\u89e3\u6790 {1:N0} \u884c\uff0c\u89e3\u6790\u932f\u8aa4 {2:N0} \u884c')) -f $dataverse.Lines, $dataverse.Parsed, $dataverse.ParseErrors))
+    [void]$lines.Add((([regex]::Unescape('- \u8acb\u6c42\u914d\u5c0d\uff1a\u7f3a\u5c11\u7d50\u675f {0:N0}\uff0c\u591a\u51fa\u7684\u7d50\u675f {1:N0}')) -f $dataverse.MissingRequestEnds, $dataverse.OrphanRequestEnds))
+    [void]$lines.Add((([regex]::Unescape('- \u79df\u7d04\u914d\u5c0d\uff1a\u7f3a\u5c11\u6b78\u9084 {0:N0}\uff0c\u591a\u51fa\u7684\u6b78\u9084 {1:N0}')) -f $dataverse.MissingReturns, $dataverse.OrphanReturns))
+    [void]$lines.Add((([regex]::Unescape('- \u8acb\u6c42\u8017\u6642\uff1a{0:N0} \u7b46\uff0c\u5e73\u5747 {1} \u6beb\u79d2\uff0c\u6700\u5927 {2:N0} \u6beb\u79d2')) -f $dataverse.RequestDurationCount, (Format-Average $dataverse.RequestDurationSum $dataverse.RequestDurationCount), $dataverse.RequestDurationMax))
+    [void]$lines.Add((([regex]::Unescape('- \u53d6\u5f97\u7b49\u5f85\uff1a{0:N0} \u7b46\uff0c\u5e73\u5747 {1} \u6beb\u79d2\uff0c\u6700\u5927 {2:N0} \u6beb\u79d2\uff0c\u903e\u6642 {3:N0} \u6b21')) -f $dataverse.AcquireWaitCount, (Format-Average $dataverse.AcquireWaitSum $dataverse.AcquireWaitCount), $dataverse.AcquireWaitMax, $dataverse.Timeouts))
+    [void]$lines.Add((([regex]::Unescape('- \u79df\u7d04\u6301\u6709\uff1a{0:N0} \u7b46\uff0c\u5e73\u5747 {1} \u6beb\u79d2\uff0c\u6700\u5927 {2:N0} \u6beb\u79d2')) -f $dataverse.HeldCount, (Format-Average $dataverse.HeldSum $dataverse.HeldCount), $dataverse.HeldMax))
+    [void]$lines.Add((([regex]::Unescape('- \u9023\u7dda\u6c60\uff08Pool\uff09\uff1a\u5065\u5eb7\u6aa2\u67e5\u5931\u6557 {0:N0} \u6b21\u3001\u4f4e\u65bc MinSize \u7684\u6e05\u7406\u5feb\u7167 {1:N0} \u6b21\u3001\u672a\u6e05\u9664\u547c\u53eb\u7aef\u72c0\u614b {2:N0} \u6b21\u3001\u4e1f\u68c4\u4e8b\u4ef6 {3:N0} \u6b21')) -f $dataverse.HealthFailures, $dataverse.CleanupBelowMinSnapshots, $dataverse.CallerStateViolations, $dataverse.DroppedEvents))
+    [void]$lines.Add((([regex]::Unescape('- \u79df\u7d04\u6b78\u9084\u72c0\u614b\uff1ahealthy {0:N0}\u3001faulted {1:N0}{2}')) -f $dataverse.ReturnHealthy, $dataverse.ReturnFaulted, $(
         if (($dataverse.ReturnHealthy + $dataverse.ReturnFaulted) -gt 0) {
-            '（faulted 比率 {0:P1}）' -f ([double]$dataverse.ReturnFaulted / [double]($dataverse.ReturnHealthy + $dataverse.ReturnFaulted))
+            ([regex]::Unescape('\uff08faulted \u6bd4\u7387 {0:P1}\uff09')) -f ([double]$dataverse.ReturnFaulted / [double]($dataverse.ReturnHealthy + $dataverse.ReturnFaulted))
         } else { '' })))
-    [void]$lines.Add(('- 建立連線：成功 {0:N0}、失敗 {1:N0}、平均 {2} 毫秒、最長 {3:N0} 毫秒' -f $dataverse.CreateOk, $dataverse.CreateFailed, (Format-Average $dataverse.CreateMsSum ($dataverse.CreateOk + $dataverse.CreateFailed)), $dataverse.CreateMsMax))
-    [void]$lines.Add(('- 取得結果配對：wait {0:N0} = hit {1:N0} + miss {2:N0} + fail {3:N0}{4}' -f $dataverse.AcquireWaitCount, $dataverse.AcquireHits, $dataverse.AcquireMisses, $dataverse.AcquireFails, $(
-        if ($dataverse.AcquireWaitCount -eq ($dataverse.AcquireHits + $dataverse.AcquireMisses + $dataverse.AcquireFails)) { '　✔ 不變量成立' } else { '　✘ 不變量不成立' })))
-    [void]$lines.Add(('- 清理淘汰：{0:N0} 條；越過保底的清理 {1:N0} 次' -f $dataverse.CleanupEvicted, $dataverse.CleanupBelowMinSnapshots))
-    [void]$lines.Add('- 清理判讀：只有「淘汰前高於 MinSize、淘汰後低於 MinSize」才計為越線。舊規則單看 `idleAfter < minSize`，在池中沒有閒置連線（idle = 0）時恆為真，會產生大量假陽性。')
+    [void]$lines.Add((([regex]::Unescape('- \u5efa\u7acb\u9023\u7dda\uff1a\u6210\u529f {0:N0}\u3001\u5931\u6557 {1:N0}\u3001\u5e73\u5747 {2} \u6beb\u79d2\u3001\u6700\u9577 {3:N0} \u6beb\u79d2')) -f $dataverse.CreateOk, $dataverse.CreateFailed, (Format-Average $dataverse.CreateMsSum ($dataverse.CreateOk + $dataverse.CreateFailed)), $dataverse.CreateMsMax))
+    [void]$lines.Add((([regex]::Unescape('- \u53d6\u5f97\u7d50\u679c\u914d\u5c0d\uff1await {0:N0} = hit {1:N0} + miss {2:N0} + fail {3:N0}{4}')) -f $dataverse.AcquireWaitCount, $dataverse.AcquireHits, $dataverse.AcquireMisses, $dataverse.AcquireFails, $(
+        if ($dataverse.AcquireWaitCount -eq ($dataverse.AcquireHits + $dataverse.AcquireMisses + $dataverse.AcquireFails)) { ([regex]::Unescape('\u3000\u2714 \u4e0d\u8b8a\u91cf\u6210\u7acb')) } else { ([regex]::Unescape('\u3000\u2718 \u4e0d\u8b8a\u91cf\u4e0d\u6210\u7acb')) })))
+    [void]$lines.Add((([regex]::Unescape('- \u6e05\u7406\u6dd8\u6c70\uff1a{0:N0} \u689d\uff1b\u8d8a\u904e\u4fdd\u5e95\u7684\u6e05\u7406 {1:N0} \u6b21')) -f $dataverse.CleanupEvicted, $dataverse.CleanupBelowMinSnapshots))
+    [void]$lines.Add(([regex]::Unescape('- \u6e05\u7406\u5224\u8b80\uff1a\u53ea\u6709\u300c\u6dd8\u6c70\u524d\u9ad8\u65bc MinSize\u3001\u6dd8\u6c70\u5f8c\u4f4e\u65bc MinSize\u300d\u624d\u8a08\u70ba\u8d8a\u7dda\u3002\u820a\u898f\u5247\u55ae\u770b `idleAfter < minSize`\uff0c\u5728\u6c60\u4e2d\u6c92\u6709\u9592\u7f6e\u9023\u7dda\uff08idle = 0\uff09\u6642\u6046\u70ba\u771f\uff0c\u6703\u7522\u751f\u5927\u91cf\u5047\u967d\u6027\u3002')))
     if ($dataverse.DisposeByReason.Count -gt 0) {
-        $disposeText = (($dataverse.DisposeByReason.GetEnumerator() | Sort-Object -Property Value -Descending | ForEach-Object { '{0} {1:N0}' -f $_.Key, $_.Value }) -join '、')
-        [void]$lines.Add(('- 連線淘汰原因：{0}' -f $disposeText))
+        $disposeText = (($dataverse.DisposeByReason.GetEnumerator() | Sort-Object -Property Value -Descending | ForEach-Object { '{0} {1:N0}' -f $_.Key, $_.Value }) -join ([regex]::Unescape('\u3001')))
+        [void]$lines.Add((([regex]::Unescape('- \u9023\u7dda\u6dd8\u6c70\u539f\u56e0\uff1a{0}')) -f $disposeText))
     }
     if ($dataverse.ErrorKinds.Count -gt 0) {
-        $kindText = (($dataverse.ErrorKinds.GetEnumerator() | Sort-Object -Property Value -Descending | ForEach-Object { '{0} {1:N0}' -f $_.Key, $_.Value }) -join '、')
-        [void]$lines.Add(('- 錯誤種類（僅型別名稱，不含訊息內容）：{0}' -f $kindText))
+        $kindText = (($dataverse.ErrorKinds.GetEnumerator() | Sort-Object -Property Value -Descending | ForEach-Object { '{0} {1:N0}' -f $_.Key, $_.Value }) -join ([regex]::Unescape('\u3001')))
+        [void]$lines.Add((([regex]::Unescape('- \u932f\u8aa4\u7a2e\u985e\uff08\u50c5\u578b\u5225\u540d\u7a31\uff0c\u4e0d\u542b\u8a0a\u606f\u5167\u5bb9\uff09\uff1a{0}')) -f $kindText))
     }
-    [void]$lines.Add(('- 使用者隔離：有效虛擬識別碼 {0:N0} 個，格式違規 {1:N0} 次' -f $dataverse.UniquePseudonyms, $dataverse.InvalidPseudonyms))
+    [void]$lines.Add((([regex]::Unescape('- \u4f7f\u7528\u8005\u9694\u96e2\uff1a\u6709\u6548\u865b\u64ec\u8b58\u5225\u78bc {0:N0} \u500b\uff0c\u683c\u5f0f\u9055\u898f {1:N0} \u6b21')) -f $dataverse.UniquePseudonyms, $dataverse.InvalidPseudonyms))
     [void]$lines.Add('')
-    [void]$lines.Add('### 事件統計')
+    [void]$lines.Add(([regex]::Unescape('### \u4e8b\u4ef6\u7d71\u8a08')))
     [void]$lines.Add('')
-    [void]$lines.Add('| 事件 | 次數 |')
+    [void]$lines.Add(([regex]::Unescape('| \u4e8b\u4ef6 | \u6b21\u6578 |')))
     [void]$lines.Add('|---|---:|')
     foreach ($entry in ($dataverse.EventCounts.GetEnumerator() | Sort-Object Name)) {
         [void]$lines.Add(('| `{0}` | {1:N0} |' -f $entry.Key, $entry.Value))
@@ -1123,46 +1123,46 @@ try {
     [void]$lines.Add('')
 
     # ===================== 效能歸因 =====================
-    [void]$lines.Add('### 效能歸因')
+    [void]$lines.Add(([regex]::Unescape('### \u6548\u80fd\u6b78\u56e0')))
     [void]$lines.Add('')
     $appMs = [Math]::Max(0, $dataverse.RequestDurationSum - $dataverse.RequestCrmMsSum)
-    [void]$lines.Add(('- CRM 操作 {0:N0} 次，累計 {1:N0} 毫秒；失敗 {2:N0} 次' -f $dataverse.CrmOpCount, $dataverse.CrmMsTotal, $dataverse.CrmFailures))
-    [void]$lines.Add(('- 全部請求耗時 {0:N0} 毫秒，其中 CRM {1:N0} 毫秒、應用程式自身 {2:N0} 毫秒' -f $dataverse.RequestDurationSum, $dataverse.RequestCrmMsSum, $appMs))
-    [void]$lines.Add('- 判讀：CRM 佔比高代表往返次數或查詢成本是瓶頸；應用程式自身佔比高則代表瓶頸在 CRM 之外（序列化、加密、Session 或本機運算）。')
+    [void]$lines.Add((([regex]::Unescape('- CRM \u64cd\u4f5c {0:N0} \u6b21\uff0c\u7d2f\u8a08 {1:N0} \u6beb\u79d2\uff1b\u5931\u6557 {2:N0} \u6b21')) -f $dataverse.CrmOpCount, $dataverse.CrmMsTotal, $dataverse.CrmFailures))
+    [void]$lines.Add((([regex]::Unescape('- \u5168\u90e8\u8acb\u6c42\u8017\u6642 {0:N0} \u6beb\u79d2\uff0c\u5176\u4e2d CRM {1:N0} \u6beb\u79d2\u3001\u61c9\u7528\u7a0b\u5f0f\u81ea\u8eab {2:N0} \u6beb\u79d2')) -f $dataverse.RequestDurationSum, $dataverse.RequestCrmMsSum, $appMs))
+    [void]$lines.Add(([regex]::Unescape('- \u5224\u8b80\uff1aCRM \u4f54\u6bd4\u9ad8\u4ee3\u8868\u5f80\u8fd4\u6b21\u6578\u6216\u67e5\u8a62\u6210\u672c\u662f\u74f6\u9838\uff1b\u61c9\u7528\u7a0b\u5f0f\u81ea\u8eab\u4f54\u6bd4\u9ad8\u5247\u4ee3\u8868\u74f6\u9838\u5728 CRM \u4e4b\u5916\uff08\u5e8f\u5217\u5316\u3001\u52a0\u5bc6\u3001Session \u6216\u672c\u6a5f\u904b\u7b97\uff09\u3002')))
     [void]$lines.Add('')
 
     if ($dataverse.EntityStats.Count -gt 0) {
-        [void]$lines.Add(('#### Entity 查詢分佈（前 {0} 名）' -f $Top))
+        [void]$lines.Add((([regex]::Unescape('#### Entity \u67e5\u8a62\u5206\u4f48\uff08\u524d {0} \u540d\uff09')) -f $Top))
         [void]$lines.Add('')
-        [void]$lines.Add('| Entity | 次數 | 累計毫秒 | 平均毫秒 | 最長毫秒 |')
+        [void]$lines.Add(([regex]::Unescape('| Entity | \u6b21\u6578 | \u7d2f\u8a08\u6beb\u79d2 | \u5e73\u5747\u6beb\u79d2 | \u6700\u9577\u6beb\u79d2 |')))
         [void]$lines.Add('|---|---:|---:|---:|---:|')
         foreach ($entry in ($dataverse.EntityStats.GetEnumerator() | Sort-Object -Property { $_.Value.Ms } -Descending | Select-Object -First $Top)) {
             [void]$lines.Add(('| `{0}` | {1:N0} | {2:N0} | {3} | {4:N0} |' -f $entry.Key, $entry.Value.Count, $entry.Value.Ms, (Format-Average $entry.Value.Ms $entry.Value.Count), $entry.Value.Max))
         }
         if ($dataverse.EntityOverflow -gt 0) {
             [void]$lines.Add(('' ))
-            [void]$lines.Add(('- Entity 種類超過聚合上限，另有 {0:N0} 次未計入。' -f $dataverse.EntityOverflow))
+            [void]$lines.Add((([regex]::Unescape('- Entity \u7a2e\u985e\u8d85\u904e\u805a\u5408\u4e0a\u9650\uff0c\u53e6\u6709 {0:N0} \u6b21\u672a\u8a08\u5165\u3002')) -f $dataverse.EntityOverflow))
         }
         [void]$lines.Add('')
     }
 
     if ($dataverse.NPlusOneRequests.Count -gt 0) {
-        [void]$lines.Add(('#### N+1 徵兆（同一 entity 在單一請求內查詢 ≥ {0} 次）' -f $NPlusOneThreshold))
+        [void]$lines.Add((([regex]::Unescape('#### N+1 \u5fb5\u5146\uff08\u540c\u4e00 entity \u5728\u55ae\u4e00\u8acb\u6c42\u5167\u67e5\u8a62 \u2265 {0} \u6b21\uff09')) -f $NPlusOneThreshold))
         [void]$lines.Add('')
-        [void]$lines.Add('| TraceId | 重複最多的 Entity | 該 Entity 次數 | 請求內 CRM 次數 | CRM 毫秒 | 請求毫秒 |')
+        [void]$lines.Add(([regex]::Unescape('| TraceId | \u91cd\u8907\u6700\u591a\u7684 Entity | \u8a72 Entity \u6b21\u6578 | \u8acb\u6c42\u5167 CRM \u6b21\u6578 | CRM \u6beb\u79d2 | \u8acb\u6c42\u6beb\u79d2 |')))
         [void]$lines.Add('|---|---|---:|---:|---:|---:|')
         foreach ($item in ($dataverse.NPlusOneRequests | Sort-Object -Property TopCount -Descending)) {
             [void]$lines.Add(('| `{0}` | `{1}` | {2:N0} | {3:N0} | {4:N0} | {5:N0} |' -f $item.TraceId, $item.Entity, $item.TopCount, $item.CrmCount, $item.CrmMs, $item.DurationMs))
         }
         [void]$lines.Add('')
-        [void]$lines.Add('- 判讀：同一張表被重複查詢，通常是迴圈內逐筆查詢所致。合併為單次批次查詢的效益，約等於「次數 × 單次往返成本」。優化單一查詢對此無效。')
+        [void]$lines.Add(([regex]::Unescape('- \u5224\u8b80\uff1a\u540c\u4e00\u5f35\u8868\u88ab\u91cd\u8907\u67e5\u8a62\uff0c\u901a\u5e38\u662f\u8ff4\u5708\u5167\u9010\u7b46\u67e5\u8a62\u6240\u81f4\u3002\u5408\u4f75\u70ba\u55ae\u6b21\u6279\u6b21\u67e5\u8a62\u7684\u6548\u76ca\uff0c\u7d04\u7b49\u65bc\u300c\u6b21\u6578 \u00d7 \u55ae\u6b21\u5f80\u8fd4\u6210\u672c\u300d\u3002\u512a\u5316\u55ae\u4e00\u67e5\u8a62\u5c0d\u6b64\u7121\u6548\u3002')))
         [void]$lines.Add('')
     }
 
     if ($dataverse.SlowRequests.Count -gt 0) {
-        [void]$lines.Add(('#### 慢請求歸因（≥ {0} 毫秒）' -f $SlowRequestThresholdMs))
+        [void]$lines.Add((([regex]::Unescape('#### \u6162\u8acb\u6c42\u6b78\u56e0\uff08\u2265 {0} \u6beb\u79d2\uff09')) -f $SlowRequestThresholdMs))
         [void]$lines.Add('')
-        [void]$lines.Add('| TraceId | 總毫秒 | CRM 毫秒 | 應用程式毫秒 | CRM 次數 | 重複最多的 Entity | 次數 |')
+        [void]$lines.Add(([regex]::Unescape('| TraceId | \u7e3d\u6beb\u79d2 | CRM \u6beb\u79d2 | \u61c9\u7528\u7a0b\u5f0f\u6beb\u79d2 | CRM \u6b21\u6578 | \u91cd\u8907\u6700\u591a\u7684 Entity | \u6b21\u6578 |')))
         [void]$lines.Add('|---|---:|---:|---:|---:|---|---:|')
         foreach ($item in ($dataverse.SlowRequests | Sort-Object -Property DurationMs -Descending)) {
             [void]$lines.Add(('| `{0}` | {1:N0} | {2:N0} | {3:N0} | {4:N0} | `{5}` | {6:N0} |' -f $item.TraceId, $item.DurationMs, $item.CrmMs, $item.AppMs, $item.CrmCount, $item.TopEntity, $item.TopCount))
@@ -1171,49 +1171,49 @@ try {
     }
 
     # ===================== Session Leakage =====================
-    [void]$lines.Add('### Session Leakage 判定')
+    [void]$lines.Add(([regex]::Unescape('### Session Leakage \u5224\u5b9a')))
     [void]$lines.Add('')
-    [void]$lines.Add('| 判準 | 觀測值 | 說明 |')
+    [void]$lines.Add(([regex]::Unescape('| \u5224\u6e96 | \u89c0\u6e2c\u503c | \u8aaa\u660e |')))
     [void]$lines.Add('|---|---:|---|')
-    [void]$lines.Add(('| 同一 client 的租約區間重疊 | {0:N0} | 終極判準；非零代表兩個請求同時持有同一條實體連線 |' -f $dataverse.LeaseOverlaps))
-    [void]$lines.Add(('| 請求結束時未歸還的租約 | {0:N0} 個請求 | 非零代表租約洩漏到請求邊界之外 |' -f $dataverse.LeaseOutstandingRequests))
-    [void]$lines.Add(('| 平行進入同一 Gateway | {0:N0} 次 / {1:N0} 個請求 | Gateway 的 depth 與 lease 欄位無同步保護，平行進入可能造成連線共用 |' -f $dataverse.ConcurrentGatewayEvents, $dataverse.ConcurrentGatewayRequests))
-    [void]$lines.Add(('| Gateway 釋放時仍持有租約 | {0:N0} 次 | 租約靠 DI 回收 scope 才被救回，而非正常執行路徑 |' -f $dataverse.ScopeEndLeaseHeld))
-    [void]$lines.Add(('| 歸還時仍帶呼叫端身分 | {0:N0} 次 | 非零代表 impersonation 狀態跨請求殘留 |' -f $dataverse.CallerStateViolations))
-    [void]$lines.Add(('| 觀測到的最大 reentrant 深度 | {0:N0} | 為 1 代表巢狀路徑未被觸發，reentrant 防線本次未受驗證 |' -f $dataverse.MaxDepthObserved))
+    [void]$lines.Add((([regex]::Unescape('| \u540c\u4e00 client \u7684\u79df\u7d04\u5340\u9593\u91cd\u758a | {0:N0} | \u7d42\u6975\u5224\u6e96\uff1b\u975e\u96f6\u4ee3\u8868\u5169\u500b\u8acb\u6c42\u540c\u6642\u6301\u6709\u540c\u4e00\u689d\u5be6\u9ad4\u9023\u7dda |')) -f $dataverse.LeaseOverlaps))
+    [void]$lines.Add((([regex]::Unescape('| \u8acb\u6c42\u7d50\u675f\u6642\u672a\u6b78\u9084\u7684\u79df\u7d04 | {0:N0} \u500b\u8acb\u6c42 | \u975e\u96f6\u4ee3\u8868\u79df\u7d04\u6d29\u6f0f\u5230\u8acb\u6c42\u908a\u754c\u4e4b\u5916 |')) -f $dataverse.LeaseOutstandingRequests))
+    [void]$lines.Add((([regex]::Unescape('| \u5e73\u884c\u9032\u5165\u540c\u4e00 Gateway | {0:N0} \u6b21 / {1:N0} \u500b\u8acb\u6c42 | Gateway \u7684 depth \u8207 lease \u6b04\u4f4d\u7121\u540c\u6b65\u4fdd\u8b77\uff0c\u5e73\u884c\u9032\u5165\u53ef\u80fd\u9020\u6210\u9023\u7dda\u5171\u7528 |')) -f $dataverse.ConcurrentGatewayEvents, $dataverse.ConcurrentGatewayRequests))
+    [void]$lines.Add((([regex]::Unescape('| Gateway \u91cb\u653e\u6642\u4ecd\u6301\u6709\u79df\u7d04 | {0:N0} \u6b21 | \u79df\u7d04\u9760 DI \u56de\u6536 scope \u624d\u88ab\u6551\u56de\uff0c\u800c\u975e\u6b63\u5e38\u57f7\u884c\u8def\u5f91 |')) -f $dataverse.ScopeEndLeaseHeld))
+    [void]$lines.Add((([regex]::Unescape('| \u6b78\u9084\u6642\u4ecd\u5e36\u547c\u53eb\u7aef\u8eab\u5206 | {0:N0} \u6b21 | \u975e\u96f6\u4ee3\u8868 impersonation \u72c0\u614b\u8de8\u8acb\u6c42\u6b98\u7559 |')) -f $dataverse.CallerStateViolations))
+    [void]$lines.Add((([regex]::Unescape('| \u89c0\u6e2c\u5230\u7684\u6700\u5927 reentrant \u6df1\u5ea6 | {0:N0} | \u70ba 1 \u4ee3\u8868\u5de2\u72c0\u8def\u5f91\u672a\u88ab\u89f8\u767c\uff0creentrant \u9632\u7dda\u672c\u6b21\u672a\u53d7\u9a57\u8b49 |')) -f $dataverse.MaxDepthObserved))
     [void]$lines.Add('')
 
     # ===================== 資源趨勢 =====================
-    [void]$lines.Add('### 資源趨勢（記憶體與連線洩漏）')
+    [void]$lines.Add(([regex]::Unescape('### \u8cc7\u6e90\u8da8\u52e2\uff08\u8a18\u61b6\u9ad4\u8207\u9023\u7dda\u6d29\u6f0f\uff09')))
     [void]$lines.Add('')
     if ($dataverse.ProcSamples -lt 2) {
-        [void]$lines.Add(('- 程序快照僅 {0:N0} 筆，不足以檢定趨勢。洩漏判定需要至少兩個時間點；請延長重現時間。' -f $dataverse.ProcSamples))
+        [void]$lines.Add((([regex]::Unescape('- \u7a0b\u5e8f\u5feb\u7167\u50c5 {0:N0} \u7b46\uff0c\u4e0d\u8db3\u4ee5\u6aa2\u5b9a\u8da8\u52e2\u3002\u6d29\u6f0f\u5224\u5b9a\u9700\u8981\u81f3\u5c11\u5169\u500b\u6642\u9593\u9ede\uff1b\u8acb\u5ef6\u9577\u91cd\u73fe\u6642\u9593\u3002')) -f $dataverse.ProcSamples))
     }
     else {
-        [void]$lines.Add(('- 程序快照 {0:N0} 筆' -f $dataverse.ProcSamples))
+        [void]$lines.Add((([regex]::Unescape('- \u7a0b\u5e8f\u5feb\u7167 {0:N0} \u7b46')) -f $dataverse.ProcSamples))
         [void]$lines.Add('')
-        [void]$lines.Add('| 指標 | 起始 | 結束 | 變化 | 判讀 |')
+        [void]$lines.Add(([regex]::Unescape('| \u6307\u6a19 | \u8d77\u59cb | \u7d50\u675f | \u8b8a\u5316 | \u5224\u8b80 |')))
         [void]$lines.Add('|---|---:|---:|---:|---|')
-        [void]$lines.Add(('| Managed 記憶體 (MB) | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 持續上升代表受控物件未釋放 |' -f $dataverse.ProcFirst.ManagedMb, $dataverse.ProcLast.ManagedMb, ($dataverse.ProcLast.ManagedMb - $dataverse.ProcFirst.ManagedMb)))
-        [void]$lines.Add(('| 私有記憶體 (MB) | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | Managed 平穩但此值上升，指向非受控資源 |' -f $dataverse.ProcFirst.PrivateMb, $dataverse.ProcLast.PrivateMb, ($dataverse.ProcLast.PrivateMb - $dataverse.ProcFirst.PrivateMb)))
-        [void]$lines.Add(('| 控制代碼數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 連線、檔案或 socket 未釋放的最直接指標 |' -f $dataverse.ProcFirst.Handles, $dataverse.ProcLast.Handles, ($dataverse.ProcLast.Handles - $dataverse.ProcFirst.Handles)))
-        [void]$lines.Add(('| 執行緒數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 上升代表執行緒洩漏或飢餓 |' -f $dataverse.ProcFirst.Threads, $dataverse.ProcLast.Threads, ($dataverse.ProcLast.Threads - $dataverse.ProcFirst.Threads)))
-        [void]$lines.Add(('| Gen2 回收次數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 持續上升代表物件不斷晉升到長命世代 |' -f $dataverse.ProcFirst.Gen2, $dataverse.ProcLast.Gen2, ($dataverse.ProcLast.Gen2 - $dataverse.ProcFirst.Gen2)))
+        [void]$lines.Add((([regex]::Unescape('| Managed \u8a18\u61b6\u9ad4 (MB) | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u6301\u7e8c\u4e0a\u5347\u4ee3\u8868\u53d7\u63a7\u7269\u4ef6\u672a\u91cb\u653e |')) -f $dataverse.ProcFirst.ManagedMb, $dataverse.ProcLast.ManagedMb, ($dataverse.ProcLast.ManagedMb - $dataverse.ProcFirst.ManagedMb)))
+        [void]$lines.Add((([regex]::Unescape('| \u79c1\u6709\u8a18\u61b6\u9ad4 (MB) | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | Managed \u5e73\u7a69\u4f46\u6b64\u503c\u4e0a\u5347\uff0c\u6307\u5411\u975e\u53d7\u63a7\u8cc7\u6e90 |')) -f $dataverse.ProcFirst.PrivateMb, $dataverse.ProcLast.PrivateMb, ($dataverse.ProcLast.PrivateMb - $dataverse.ProcFirst.PrivateMb)))
+        [void]$lines.Add((([regex]::Unescape('| \u63a7\u5236\u4ee3\u78bc\u6578 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u9023\u7dda\u3001\u6a94\u6848\u6216 socket \u672a\u91cb\u653e\u7684\u6700\u76f4\u63a5\u6307\u6a19 |')) -f $dataverse.ProcFirst.Handles, $dataverse.ProcLast.Handles, ($dataverse.ProcLast.Handles - $dataverse.ProcFirst.Handles)))
+        [void]$lines.Add((([regex]::Unescape('| \u57f7\u884c\u7dd2\u6578 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u4e0a\u5347\u4ee3\u8868\u57f7\u884c\u7dd2\u6d29\u6f0f\u6216\u98e2\u9913 |')) -f $dataverse.ProcFirst.Threads, $dataverse.ProcLast.Threads, ($dataverse.ProcLast.Threads - $dataverse.ProcFirst.Threads)))
+        [void]$lines.Add((([regex]::Unescape('| Gen2 \u56de\u6536\u6b21\u6578 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u6301\u7e8c\u4e0a\u5347\u4ee3\u8868\u7269\u4ef6\u4e0d\u65b7\u6649\u5347\u5230\u9577\u547d\u4e16\u4ee3 |')) -f $dataverse.ProcFirst.Gen2, $dataverse.ProcLast.Gen2, ($dataverse.ProcLast.Gen2 - $dataverse.ProcFirst.Gen2)))
     }
     [void]$lines.Add('')
     if ($dataverse.PoolSamples -lt 2) {
-        [void]$lines.Add(('- 連線池快照僅 {0:N0} 筆，不足以檢定連線數趨勢。' -f $dataverse.PoolSamples))
+        [void]$lines.Add((([regex]::Unescape('- \u9023\u7dda\u6c60\u5feb\u7167\u50c5 {0:N0} \u7b46\uff0c\u4e0d\u8db3\u4ee5\u6aa2\u5b9a\u9023\u7dda\u6578\u8da8\u52e2\u3002')) -f $dataverse.PoolSamples))
     }
     else {
-        [void]$lines.Add(('- 連線池快照 {0:N0} 筆；存活連線峰值 {1:N0}、子池數峰值 {2:N0}' -f $dataverse.PoolSamples, $dataverse.PoolAliveMax, $dataverse.SubPoolsMax))
+        [void]$lines.Add((([regex]::Unescape('- \u9023\u7dda\u6c60\u5feb\u7167 {0:N0} \u7b46\uff1b\u5b58\u6d3b\u9023\u7dda\u5cf0\u503c {1:N0}\u3001\u5b50\u6c60\u6578\u5cf0\u503c {2:N0}')) -f $dataverse.PoolSamples, $dataverse.PoolAliveMax, $dataverse.SubPoolsMax))
         [void]$lines.Add('')
-        [void]$lines.Add('| 指標 | 起始 | 結束 | 變化 | 判讀 |')
+        [void]$lines.Add(([regex]::Unescape('| \u6307\u6a19 | \u8d77\u59cb | \u7d50\u675f | \u8b8a\u5316 | \u5224\u8b80 |')))
         [void]$lines.Add('|---|---:|---:|---:|---|')
-        [void]$lines.Add(('| 存活連線 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 穩定運行時應在 MinSize 附近震盪 |' -f $dataverse.PoolFirst.Alive, $dataverse.PoolLast.Alive, ($dataverse.PoolLast.Alive - $dataverse.PoolFirst.Alive)))
-        [void]$lines.Add(('| 累計建立 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 與淘汰數的差值應約等於存活數 |' -f $dataverse.PoolFirst.Created, $dataverse.PoolLast.Created, ($dataverse.PoolLast.Created - $dataverse.PoolFirst.Created)))
-        [void]$lines.Add(('| 累計淘汰 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 建立遠多於淘汰代表連線抖動 |' -f $dataverse.PoolFirst.Discarded, $dataverse.PoolLast.Discarded, ($dataverse.PoolLast.Discarded - $dataverse.PoolFirst.Discarded)))
-        [void]$lines.Add(('| 租借減歸還 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 非零代表有租約尚未歸還 |' -f ($dataverse.PoolFirst.Acquires - $dataverse.PoolFirst.Releases), ($dataverse.PoolLast.Acquires - $dataverse.PoolLast.Releases), (($dataverse.PoolLast.Acquires - $dataverse.PoolLast.Releases) - ($dataverse.PoolFirst.Acquires - $dataverse.PoolFirst.Releases))))
-        [void]$lines.Add(('| 子池數 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | 子池無回收路徑，啟用 per-user 隔離後會單調累積 |' -f $dataverse.PoolFirst.SubPools, $dataverse.PoolLast.SubPools, ($dataverse.PoolLast.SubPools - $dataverse.PoolFirst.SubPools)))
+        [void]$lines.Add((([regex]::Unescape('| \u5b58\u6d3b\u9023\u7dda | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u7a69\u5b9a\u904b\u884c\u6642\u61c9\u5728 MinSize \u9644\u8fd1\u9707\u76ea |')) -f $dataverse.PoolFirst.Alive, $dataverse.PoolLast.Alive, ($dataverse.PoolLast.Alive - $dataverse.PoolFirst.Alive)))
+        [void]$lines.Add((([regex]::Unescape('| \u7d2f\u8a08\u5efa\u7acb | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u8207\u6dd8\u6c70\u6578\u7684\u5dee\u503c\u61c9\u7d04\u7b49\u65bc\u5b58\u6d3b\u6578 |')) -f $dataverse.PoolFirst.Created, $dataverse.PoolLast.Created, ($dataverse.PoolLast.Created - $dataverse.PoolFirst.Created)))
+        [void]$lines.Add((([regex]::Unescape('| \u7d2f\u8a08\u6dd8\u6c70 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u5efa\u7acb\u9060\u591a\u65bc\u6dd8\u6c70\u4ee3\u8868\u9023\u7dda\u6296\u52d5 |')) -f $dataverse.PoolFirst.Discarded, $dataverse.PoolLast.Discarded, ($dataverse.PoolLast.Discarded - $dataverse.PoolFirst.Discarded)))
+        [void]$lines.Add((([regex]::Unescape('| \u79df\u501f\u6e1b\u6b78\u9084 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u975e\u96f6\u4ee3\u8868\u6709\u79df\u7d04\u5c1a\u672a\u6b78\u9084 |')) -f ($dataverse.PoolFirst.Acquires - $dataverse.PoolFirst.Releases), ($dataverse.PoolLast.Acquires - $dataverse.PoolLast.Releases), (($dataverse.PoolLast.Acquires - $dataverse.PoolLast.Releases) - ($dataverse.PoolFirst.Acquires - $dataverse.PoolFirst.Releases))))
+        [void]$lines.Add((([regex]::Unescape('| \u5b50\u6c60\u6578 | {0:N0} | {1:N0} | {2:+#,##0;-#,##0;0} | \u5b50\u6c60\u7121\u56de\u6536\u8def\u5f91\uff0c\u555f\u7528 per-user \u9694\u96e2\u5f8c\u6703\u55ae\u8abf\u7d2f\u7a4d |')) -f $dataverse.PoolFirst.SubPools, $dataverse.PoolLast.SubPools, ($dataverse.PoolLast.SubPools - $dataverse.PoolFirst.SubPools)))
     }
     [void]$lines.Add('')
 
@@ -1222,14 +1222,14 @@ try {
     Add-SensitiveTable -Lines $lines -Counts $dataverse.SensitiveCounts
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## 應用程式與效能 Trace.log（{0}）' -f $application.Status))
+    [void]$lines.Add((([regex]::Unescape('## \u61c9\u7528\u7a0b\u5f0f\u8207\u6548\u80fd Trace.log\uff08{0}\uff09')) -f $application.Status))
     [void]$lines.Add('')
     [void]$lines.Add(('- `[Perf]` {0:N0}, `[Perf-N+1]` {1:N0}, `[Perf-Gap]` {2:N0}, `[Perf-Startup]` {3:N0}' -f $application.PerfCount, $application.NPlusOneCount, $application.GapCount, $application.StartupCount))
-    [void]$lines.Add(('- 慢請求 {0:N0} 次、啟動最大耗時 {1:N0} 毫秒、錯誤／例外／致命錯誤 {2:N0} 次、警告 {3:N0} 次' -f $application.SlowCount, $application.StartupMax, $application.ErrorCount, $application.WarningCount))
+    [void]$lines.Add((([regex]::Unescape('- \u6162\u8acb\u6c42 {0:N0} \u6b21\u3001\u555f\u52d5\u6700\u5927\u8017\u6642 {1:N0} \u6beb\u79d2\u3001\u932f\u8aa4\uff0f\u4f8b\u5916\uff0f\u81f4\u547d\u932f\u8aa4 {2:N0} \u6b21\u3001\u8b66\u544a {3:N0} \u6b21')) -f $application.SlowCount, $application.StartupMax, $application.ErrorCount, $application.WarningCount))
     [void]$lines.Add('')
-    [void]$lines.Add(('### 最慢端點（前 {0} 名；查詢、GUID 與長數字已遮罩）' -f $Top))
+    [void]$lines.Add((([regex]::Unescape('### \u6700\u6162\u7aef\u9ede\uff08\u524d {0} \u540d\uff1b\u67e5\u8a62\u3001GUID \u8207\u9577\u6578\u5b57\u5df2\u906e\u7f69\uff09')) -f $Top))
     [void]$lines.Add('')
-    [void]$lines.Add('| 端點 | 次數 | 平均總耗時（毫秒） | 最大總耗時（毫秒） | CRM 呼叫次數 | CRM 耗時（毫秒） | 最大 crm.n | 平均間隔（毫秒） | 最大間隔（毫秒） |')
+    [void]$lines.Add(([regex]::Unescape('| \u7aef\u9ede | \u6b21\u6578 | \u5e73\u5747\u7e3d\u8017\u6642\uff08\u6beb\u79d2\uff09 | \u6700\u5927\u7e3d\u8017\u6642\uff08\u6beb\u79d2\uff09 | CRM \u547c\u53eb\u6b21\u6578 | CRM \u8017\u6642\uff08\u6beb\u79d2\uff09 | \u6700\u5927 crm.n | \u5e73\u5747\u9593\u9694\uff08\u6beb\u79d2\uff09 | \u6700\u5927\u9593\u9694\uff08\u6beb\u79d2\uff09 |')))
     [void]$lines.Add('|---|---:|---:|---:|---:|---:|---:|---:|---:|')
     foreach ($endpoint in ($application.Endpoints.Values | Sort-Object MaxTotal -Descending | Select-Object -First $Top)) {
         [void]$lines.Add(('| `{0}` | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} |' -f $endpoint.Path, $endpoint.Hits, (Format-Average $endpoint.TotalSum $endpoint.Hits), $endpoint.MaxTotal, $endpoint.CrmCountSum, $endpoint.CrmMsSum, $endpoint.MaxCrmN, (Format-Average $endpoint.GapSum $endpoint.Hits), $endpoint.MaxGap))
@@ -1240,13 +1240,13 @@ try {
     Add-SensitiveTable -Lines $lines -Counts $application.SensitiveCounts
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## 舊版 ToolUtility Trace（{0}）' -f $toolUtility.Status))
+    [void]$lines.Add((([regex]::Unescape('## \u820a\u7248 ToolUtility Trace\uff08{0}\uff09')) -f $toolUtility.Status))
     [void]$lines.Add('')
-    [void]$lines.Add(('- 編碼：{0}；{1:N0} 行；{2:N0} 個 StringToProcess 項目；{3:N0} 個錯誤指標' -f $toolUtility.EncodingUsed, $toolUtility.Lines, $toolUtility.EntryCount, $toolUtility.ErrorCount))
+    [void]$lines.Add((([regex]::Unescape('- \u7de8\u78bc\uff1a{0}\uff1b{1:N0} \u884c\uff1b{2:N0} \u500b StringToProcess \u9805\u76ee\uff1b{3:N0} \u500b\u932f\u8aa4\u6307\u6a19')) -f $toolUtility.EncodingUsed, $toolUtility.Lines, $toolUtility.EntryCount, $toolUtility.ErrorCount))
     [void]$lines.Add('')
-    [void]$lines.Add(('### 常見安全類別（前 {0} 名；已省略訊息內容）' -f $Top))
+    [void]$lines.Add((([regex]::Unescape('### \u5e38\u898b\u5b89\u5168\u985e\u5225\uff08\u524d {0} \u540d\uff1b\u5df2\u7701\u7565\u8a0a\u606f\u5167\u5bb9\uff09')) -f $Top))
     [void]$lines.Add('')
-    [void]$lines.Add('| 類別 | 次數 |')
+    [void]$lines.Add(([regex]::Unescape('| \u985e\u5225 | \u6b21\u6578 |')))
     [void]$lines.Add('|---|---:|')
     foreach ($entry in ($toolUtility.Categories.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First $Top)) {
         [void]$lines.Add(('| `{0}` | {1:N0} |' -f $entry.Key, $entry.Value))
@@ -1257,19 +1257,19 @@ try {
     Add-SensitiveTable -Lines $lines -Counts $toolUtility.SensitiveCounts
 
     [void]$lines.Add('')
-    [void]$lines.Add(('## 跨檔案關聯（{0}）' -f $crossStatus))
+    [void]$lines.Add((([regex]::Unescape('## \u8de8\u6a94\u6848\u95dc\u806f\uff08{0}\uff09')) -f $crossStatus))
     [void]$lines.Add('')
     foreach ($note in $crossNotes) { [void]$lines.Add(('- {0}' -f $note)) }
-    [void]$lines.Add('- 分析器不會根據模糊文字猜測 traceId／端點關係。若沒有共用的關聯識別碼，只能進行時間範圍與聚合結果的關聯。')
+    [void]$lines.Add(([regex]::Unescape('- \u5206\u6790\u5668\u4e0d\u6703\u6839\u64da\u6a21\u7cca\u6587\u5b57\u731c\u6e2c traceId\uff0f\u7aef\u9ede\u95dc\u4fc2\u3002\u82e5\u6c92\u6709\u5171\u7528\u7684\u95dc\u806f\u8b58\u5225\u78bc\uff0c\u53ea\u80fd\u9032\u884c\u6642\u9593\u7bc4\u570d\u8207\u805a\u5408\u7d50\u679c\u7684\u95dc\u806f\u3002')))
 
     [void]$lines.Add('')
-    [void]$lines.Add('## 建議與限制')
+    [void]$lines.Add(([regex]::Unescape('## \u5efa\u8b70\u8207\u9650\u5236')))
     [void]$lines.Add('')
-    [void]$lines.Add('- FAIL：重新收集 Trace 前，請先修正配對、Pool 隔離、解析或敏感資料問題。')
-    [void]$lines.Add('- WARN：請從同一次 Debug 重現收集三個檔案，並檢查慢端點、N+1、Gap、逾時與丟棄事件指標。')
-    [void]$lines.Add('- 本報告本身無法證明不存在記憶體／工作階段（Session）洩漏；正式組態（Release）驗證仍需要並行 A/B 隔離、控制代碼釋放、長時間穩定性與資源基準檢查。')
-    [void]$lines.Add('- 分析期間檔案可能仍在追加內容；本報告是當下可讀取的快照，可能不包含之後產生的事件。')
-    [void]$lines.Add('- 敏感資料模式掃描採保守策略；請在來源環境確認命中結果，原始命中文字刻意不予保留。')
+    [void]$lines.Add(([regex]::Unescape('- FAIL\uff1a\u91cd\u65b0\u6536\u96c6 Trace \u524d\uff0c\u8acb\u5148\u4fee\u6b63\u914d\u5c0d\u3001Pool \u9694\u96e2\u3001\u89e3\u6790\u6216\u654f\u611f\u8cc7\u6599\u554f\u984c\u3002')))
+    [void]$lines.Add(([regex]::Unescape('- WARN\uff1a\u8acb\u5f9e\u540c\u4e00\u6b21 Debug \u91cd\u73fe\u6536\u96c6\u4e09\u500b\u6a94\u6848\uff0c\u4e26\u6aa2\u67e5\u6162\u7aef\u9ede\u3001N+1\u3001Gap\u3001\u903e\u6642\u8207\u4e1f\u68c4\u4e8b\u4ef6\u6307\u6a19\u3002')))
+    [void]$lines.Add(([regex]::Unescape('- \u672c\u5831\u544a\u672c\u8eab\u7121\u6cd5\u8b49\u660e\u4e0d\u5b58\u5728\u8a18\u61b6\u9ad4\uff0f\u5de5\u4f5c\u968e\u6bb5\uff08Session\uff09\u6d29\u6f0f\uff1b\u6b63\u5f0f\u7d44\u614b\uff08Release\uff09\u9a57\u8b49\u4ecd\u9700\u8981\u4e26\u884c A/B \u9694\u96e2\u3001\u63a7\u5236\u4ee3\u78bc\u91cb\u653e\u3001\u9577\u6642\u9593\u7a69\u5b9a\u6027\u8207\u8cc7\u6e90\u57fa\u6e96\u6aa2\u67e5\u3002')))
+    [void]$lines.Add(([regex]::Unescape('- \u5206\u6790\u671f\u9593\u6a94\u6848\u53ef\u80fd\u4ecd\u5728\u8ffd\u52a0\u5167\u5bb9\uff1b\u672c\u5831\u544a\u662f\u7576\u4e0b\u53ef\u8b80\u53d6\u7684\u5feb\u7167\uff0c\u53ef\u80fd\u4e0d\u5305\u542b\u4e4b\u5f8c\u7522\u751f\u7684\u4e8b\u4ef6\u3002')))
+    [void]$lines.Add(([regex]::Unescape('- \u654f\u611f\u8cc7\u6599\u6a21\u5f0f\u6383\u63cf\u63a1\u4fdd\u5b88\u7b56\u7565\uff1b\u8acb\u5728\u4f86\u6e90\u74b0\u5883\u78ba\u8a8d\u547d\u4e2d\u7d50\u679c\uff0c\u539f\u59cb\u547d\u4e2d\u6587\u5b57\u523b\u610f\u4e0d\u4e88\u4fdd\u7559\u3002')))
 
     $reportDirectory = [System.IO.Path]::GetDirectoryName($reportPathFull)
     if (-not [string]::IsNullOrWhiteSpace($reportDirectory)) {
@@ -1278,14 +1278,15 @@ try {
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($reportPathFull, (($lines -join "`r`n") + "`r`n"), $utf8NoBom)
 
-    Write-Output ("整體狀態：{0}" -f $overall)
-    Write-Output ("報告路徑：{0}" -f $reportPathFull)
-    Write-Output ("Dataverse={0}；Trace.log={1}；ToolUtility={2}；跨檔案={3}" -f $dataverse.Status, $application.Status, $toolUtility.Status, $crossStatus)
+    Write-Output (([regex]::Unescape('\u6574\u9ad4\u72c0\u614b\uff1a{0}')) -f $overall)
+    Write-Output (([regex]::Unescape('\u5831\u544a\u8def\u5f91\uff1a{0}')) -f $reportPathFull)
+    Write-Output (([regex]::Unescape('Dataverse={0}\uff1bTrace.log={1}\uff1bToolUtility={2}\uff1b\u8de8\u6a94\u6848={3}')) -f $dataverse.Status, $application.Status, $toolUtility.Status, $crossStatus)
 
     if ($overall -eq 'FAIL') { exit 2 }
     exit 0
 }
 catch {
-    Write-Error ("Trace 分析器執行失敗：{0}`r`n{1}" -f $_.Exception.Message, $_.InvocationInfo.PositionMessage)
+    Write-Error (([regex]::Unescape('Trace \u5206\u6790\u5668\u57f7\u884c\u5931\u6557\uff1a{0}
+{1}')) -f $_.Exception.Message, $_.InvocationInfo.PositionMessage)
     exit 1
 }

@@ -34,7 +34,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$false)]
-    [string]$SolutionRoot = "D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport"
+    [string]$SolutionRoot = ([regex]::Unescape('D:\\\u7db2\u9801APP\u96f2\u7aef\u7dda\u4e0a\u7248\u672c\\DevExpressDevExtreme-21.2.7\u7248\u672c\\\u97f3\u8a0a\u7522\u54c1\u7248\u672c\\ChurchReport\\ChurchReport'))
 )
 
 # 設定錯誤處理
@@ -55,9 +55,9 @@ function New-DirectoryIfNotExists {
     
     if (-not (Test-Path $Path)) {
         New-Item -ItemType Directory -Path $Path -Force | Out-Null
-        Write-ColorOutput "? 建立目錄: $Path" "Green"
+        Write-ColorOutput "? $([regex]::Unescape('\u5efa\u7acb\u76ee\u9304')): $Path" "Green"
     } else {
-        Write-ColorOutput "??  目錄已存在: $Path" "Yellow"
+        Write-ColorOutput "??  $([regex]::Unescape('\u76ee\u9304\u5df2\u5b58\u5728')): $Path" "Yellow"
     }
 }
 
@@ -70,18 +70,18 @@ function New-FileWithContent {
     
     if (-not (Test-Path $Path)) {
         $Content | Out-File -FilePath $Path -Encoding UTF8
-        Write-ColorOutput "? 建立檔案: $Path" "Green"
+        Write-ColorOutput "? $([regex]::Unescape('\u5efa\u7acb\u6a94\u6848')): $Path" "Green"
     } else {
-        Write-ColorOutput "??  檔案已存在，跳過: $Path" "Yellow"
+        Write-ColorOutput "??  $([regex]::Unescape('\u6a94\u6848\u5df2\u5b58\u5728\uff0c\u8df3\u904e')): $Path" "Yellow"
     }
 }
 
 Write-ColorOutput "`n========================================" "Cyan"
-Write-ColorOutput "  Controller 分割遷移 - 階段一" "Cyan"
+Write-ColorOutput ([regex]::Unescape('  Controller \u5206\u5272\u9077\u79fb - \u968e\u6bb5\u4e00')) "Cyan"
 Write-ColorOutput "========================================`n" "Cyan"
 
 # 1. 建立目錄結構
-Write-ColorOutput "步驟 1: 建立目錄結構..." "Cyan"
+Write-ColorOutput ([regex]::Unescape('\u6b65\u9a5f 1: \u5efa\u7acb\u76ee\u9304\u7d50\u69cb...')) "Cyan"
 
 $directories = @(
     "$SolutionRoot\Controllers\Authentication",
@@ -100,32 +100,31 @@ foreach ($dir in $directories) {
 }
 
 # 2. 建立 Model 檔案
-Write-ColorOutput "`n步驟 2: 建立 Model 定義..." "Cyan"
+Write-ColorOutput ([regex]::Unescape('\n\u6b65\u9a5f 2: \u5efa\u7acb Model \u5b9a\u7fa9...')) "Cyan"
 
 # LoginRequest.cs
-$loginRequestContent = @"
-using System.ComponentModel.DataAnnotations;
+$loginRequestContent = ([regex]::Unescape('using System.ComponentModel.DataAnnotations;
 
 namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// 登入請求模型
+    /// \u767b\u5165\u8acb\u6c42\u6a21\u578b
     /// </summary>
     public class LoginRequest
     {
         /// <summary>
-        /// 帳號
+        /// \u5e33\u865f
         /// </summary>
         public string Account { get; set; }
 
         /// <summary>
-        /// 密碼
+        /// \u5bc6\u78bc
         /// </summary>
         public string Password { get; set; }
     }
 
     /// <summary>
-    /// LINE 登入請求模型
+    /// LINE \u767b\u5165\u8acb\u6c42\u6a21\u578b
     /// </summary>
     public class LineLoginRequest
     {
@@ -136,102 +135,98 @@ namespace ChurchReport.Models.Authentication
         public string LineUserId { get; set; }
 
         /// <summary>
-        /// 顯示名稱
+        /// \u986f\u793a\u540d\u7a31
         /// </summary>
         public string DisplayName { get; set; }
     }
-}
-"@
+}'))
 
 New-FileWithContent -Path "$SolutionRoot\Models\Authentication\LoginRequest.cs" -Content $loginRequestContent
 
 # LoginResponse.cs
-$loginResponseContent = @"
-namespace ChurchReport.Models.Authentication
+$loginResponseContent = ([regex]::Unescape('namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// 登入回應模型
+    /// \u767b\u5165\u56de\u61c9\u6a21\u578b
     /// </summary>
     public class LoginResponse
     {
         /// <summary>
-        /// 是否成功
+        /// \u662f\u5426\u6210\u529f
         /// </summary>
         public bool Success { get; set; }
 
         /// <summary>
-        /// 顯示檢視類型
+        /// \u986f\u793a\u6aa2\u8996\u985e\u578b
         /// </summary>
         public string DisplayViewType { get; set; }
 
         /// <summary>
-        /// 活躍清單 ID
+        /// \u6d3b\u8e8d\u6e05\u55ae ID
         /// </summary>
         public string ActiveListId { get; set; }
 
         /// <summary>
-        /// 訊息
+        /// \u8a0a\u606f
         /// </summary>
         public string Message { get; set; }
 
         /// <summary>
-        /// 全名
+        /// \u5168\u540d
         /// </summary>
         public string FullName { get; set; }
 
         /// <summary>
-        /// 帳號
+        /// \u5e33\u865f
         /// </summary>
         public string Account { get; set; }
 
         /// <summary>
-        /// 密碼
+        /// \u5bc6\u78bc
         /// </summary>
         public string Password { get; set; }
     }
-}
-"@
+}'))
 
 New-FileWithContent -Path "$SolutionRoot\Models\Authentication\LoginResponse.cs" -Content $loginResponseContent
 
 # AuthResult.cs
-$authResultContent = @"
-using Microsoft.Xrm.Sdk;
+$authResultContent = ([regex]::Unescape('using Microsoft.Xrm.Sdk;
 
 namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// 認證結果
+    /// \u8a8d\u8b49\u7d50\u679c
     /// </summary>
     public class AuthResult
     {
         /// <summary>
-        /// 是否成功
+        /// \u662f\u5426\u6210\u529f
         /// </summary>
         public bool Success { get; set; }
 
         /// <summary>
-        /// 登入的連絡人實體
+        /// \u767b\u5165\u7684\u9023\u7d61\u4eba\u5be6\u9ad4
         /// </summary>
         public Entity LoginContact { get; set; }
 
         /// <summary>
-        /// 全名
+        /// \u5168\u540d
         /// </summary>
         public string FullName { get; set; }
 
         /// <summary>
-        /// 登入類型
+        /// \u767b\u5165\u985e\u578b
         /// </summary>
         public LoginType LoginType { get; set; }
 
         /// <summary>
-        /// 錯誤訊息
+        /// \u932f\u8aa4\u8a0a\u606f
         /// </summary>
         public string ErrorMessage { get; set; }
 
         /// <summary>
-        /// 建立成功結果
+        /// \u5efa\u7acb\u6210\u529f\u7d50\u679c
         /// </summary>
         public static AuthResult Success(Entity contact, string fullName, LoginType type)
         {
@@ -245,7 +240,7 @@ namespace ChurchReport.Models.Authentication
         }
 
         /// <summary>
-        /// 建立失敗結果
+        /// \u5efa\u7acb\u5931\u6557\u7d50\u679c
         /// </summary>
         public static AuthResult Fail(string errorMessage)
         {
@@ -258,141 +253,135 @@ namespace ChurchReport.Models.Authentication
     }
 
     /// <summary>
-    /// 登入類型列舉
+    /// \u767b\u5165\u985e\u578b\u5217\u8209
     /// </summary>
     public enum LoginType
     {
         /// <summary>
-        /// 帳號密碼登入
+        /// \u5e33\u865f\u5bc6\u78bc\u767b\u5165
         /// </summary>
         AccountPassword,
 
         /// <summary>
-        /// LINE ID 登入
+        /// LINE ID \u767b\u5165
         /// </summary>
         LineId,
 
         /// <summary>
-        /// QR Code 登入
+        /// QR Code \u767b\u5165
         /// </summary>
         QrCode
     }
-}
-"@
+}'))
 
 New-FileWithContent -Path "$SolutionRoot\Models\Authentication\AuthResult.cs" -Content $authResultContent
 
 # SessionData.cs
-$sessionDataContent = @"
-using Microsoft.Xrm.Sdk;
+$sessionDataContent = ([regex]::Unescape('using Microsoft.Xrm.Sdk;
 
 namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// Session 資料模型
+    /// Session \u8cc7\u6599\u6a21\u578b
     /// </summary>
     public class SessionData
     {
         /// <summary>
-        /// 登入的連絡人實體
+        /// \u767b\u5165\u7684\u9023\u7d61\u4eba\u5be6\u9ad4
         /// </summary>
         public Entity LoginContact { get; set; }
 
         /// <summary>
-        /// 帳號
+        /// \u5e33\u865f
         /// </summary>
         public string Account { get; set; }
 
         /// <summary>
-        /// 密碼
+        /// \u5bc6\u78bc
         /// </summary>
         public string Password { get; set; }
 
         /// <summary>
-        /// 全名
+        /// \u5168\u540d
         /// </summary>
         public string FullName { get; set; }
 
         /// <summary>
-        /// 登入類型
+        /// \u767b\u5165\u985e\u578b
         /// </summary>
         public string LoginType { get; set; }
 
         /// <summary>
-        /// 顯示檢視類型
+        /// \u986f\u793a\u6aa2\u8996\u985e\u578b
         /// </summary>
         public string DisplayViewType { get; set; }
 
         /// <summary>
-        /// 活躍清單 ID
+        /// \u6d3b\u8e8d\u6e05\u55ae ID
         /// </summary>
         public string ActiveListId { get; set; }
 
         /// <summary>
-        /// 使用者類型
+        /// \u4f7f\u7528\u8005\u985e\u578b
         /// </summary>
         public string UserType { get; set; }
 
         /// <summary>
-        /// 是否有幸福小組
+        /// \u662f\u5426\u6709\u5e78\u798f\u5c0f\u7d44
         /// </summary>
         public bool HasHappyGroup { get; set; }
 
         /// <summary>
-        /// 是否有繳費資料
+        /// \u662f\u5426\u6709\u7e73\u8cbb\u8cc7\u6599
         /// </summary>
         public bool HasFeeData { get; set; }
     }
-}
-"@
+}'))
 
 New-FileWithContent -Path "$SolutionRoot\Models\Authentication\SessionData.cs" -Content $sessionDataContent
 
 # 3. 建立 Service 介面
-Write-ColorOutput "`n步驟 3: 建立 Service 介面..." "Cyan"
+Write-ColorOutput ([regex]::Unescape('\n\u6b65\u9a5f 3: \u5efa\u7acb Service \u4ecb\u9762...')) "Cyan"
 
 # IAuthenticationService.cs
-$authServiceInterfaceContent = @"
-using ChurchReport.Models.Authentication;
+$authServiceInterfaceContent = ([regex]::Unescape('using ChurchReport.Models.Authentication;
 using System.Threading.Tasks;
 
 namespace ChurchReport.Services.Authentication
 {
     /// <summary>
-    /// 認證服務介面
+    /// \u8a8d\u8b49\u670d\u52d9\u4ecb\u9762
     /// </summary>
     public interface IAuthenticationService
     {
         /// <summary>
-        /// 驗證帳號密碼
+        /// \u9a57\u8b49\u5e33\u865f\u5bc6\u78bc
         /// </summary>
         Task<AuthResult> ValidateCredentialsAsync(string account, string password);
 
         /// <summary>
-        /// 驗證 LINE User ID
+        /// \u9a57\u8b49 LINE User ID
         /// </summary>
         Task<AuthResult> ValidateLineIdAsync(string lineUserId);
     }
-}
-"@
+}'))
 
 New-FileWithContent -Path "$SolutionRoot\Services\Authentication\IAuthenticationService.cs" -Content $authServiceInterfaceContent
 
 # ISessionInitializationService.cs
-$sessionServiceInterfaceContent = @"
-using ChurchReport.Models.Authentication;
+$sessionServiceInterfaceContent = ([regex]::Unescape('using ChurchReport.Models.Authentication;
 using Microsoft.Xrm.Sdk;
 using System.Threading.Tasks;
 
 namespace ChurchReport.Services.Authentication
 {
     /// <summary>
-    /// Session 初始化服務介面
+    /// Session \u521d\u59cb\u5316\u670d\u52d9\u4ecb\u9762
     /// </summary>
     public interface ISessionInitializationService
     {
         /// <summary>
-        /// 初始化使用者 Session
+        /// \u521d\u59cb\u5316\u4f7f\u7528\u8005 Session
         /// </summary>
         Task<SessionData> InitializeSessionAsync(
             Entity loginContact,
@@ -401,111 +390,108 @@ namespace ChurchReport.Services.Authentication
             string password);
 
         /// <summary>
-        /// 清除 Session
+        /// \u6e05\u9664 Session
         /// </summary>
         void ClearSession();
     }
-}
-"@
+}'))
 
 New-FileWithContent -Path "$SolutionRoot\Services\Authentication\ISessionInitializationService.cs" -Content $sessionServiceInterfaceContent
 
 # INavigationService.cs
-$navigationServiceInterfaceContent = @"
-using ChurchReport.Models.Authentication;
+$navigationServiceInterfaceContent = ([regex]::Unescape('using ChurchReport.Models.Authentication;
 
 namespace ChurchReport.Services.Navigation
 {
     /// <summary>
-    /// 導覽服務介面
+    /// \u5c0e\u89bd\u670d\u52d9\u4ecb\u9762
     /// </summary>
     public interface INavigationService
     {
         /// <summary>
-        /// 決定登入後的重導向資訊
+        /// \u6c7a\u5b9a\u767b\u5165\u5f8c\u7684\u91cd\u5c0e\u5411\u8cc7\u8a0a
         /// </summary>
         RedirectInfo DetermineRedirect(SessionData sessionData);
     }
 
     /// <summary>
-    /// 重導向資訊
+    /// \u91cd\u5c0e\u5411\u8cc7\u8a0a
     /// </summary>
     public class RedirectInfo
     {
         public string ViewType { get; set; }
         public string ActiveListId { get; set; }
     }
-}
-"@
+}'))
 
 New-FileWithContent -Path "$SolutionRoot\Services\Navigation\INavigationService.cs" -Content $navigationServiceInterfaceContent
 
 # 4. 建立 README
-Write-ColorOutput "`n步驟 4: 建立 README 文件..." "Cyan"
+Write-ColorOutput ([regex]::Unescape('\n\u6b65\u9a5f 4: \u5efa\u7acb README \u6587\u4ef6...')) "Cyan"
 
 $readmeContent = @"
-# Controller 分割遷移進度
+# Controller $([regex]::Unescape('\u5206\u5272\u9077\u79fb\u9032\u5ea6'))
 
-## 階段一：基礎架構建立 ?
+## $([regex]::Unescape('\u968e\u6bb5\u4e00\uff1a\u57fa\u790e\u67b6\u69cb\u5efa\u7acb')) ?
 
-已完成：
-- [x] 建立目錄結構
-- [x] 建立 Model 定義
-- [x] 建立 Service 介面
-- [ ] 實作 Service 類別
-- [ ] 建立新的 Controller
-- [ ] 修改 Startup.cs 註冊服務
+$([regex]::Unescape('\u5df2\u5b8c\u6210\uff1a'))
+- [x] $([regex]::Unescape('\u5efa\u7acb\u76ee\u9304\u7d50\u69cb'))
+- [x] $([regex]::Unescape('\u5efa\u7acb')) Model $([regex]::Unescape('\u5b9a\u7fa9'))
+- [x] $([regex]::Unescape('\u5efa\u7acb')) Service $([regex]::Unescape('\u4ecb\u9762'))
+- [ ] $([regex]::Unescape('\u5be6\u4f5c')) Service $([regex]::Unescape('\u985e\u5225'))
+- [ ] $([regex]::Unescape('\u5efa\u7acb\u65b0\u7684')) Controller
+- [ ] $([regex]::Unescape('\u4fee\u6539')) Startup.cs $([regex]::Unescape('\u8a3b\u518a\u670d\u52d9'))
 
-## 下一步
+## $([regex]::Unescape('\u4e0b\u4e00\u6b65'))
 
-請參考以下文件繼續實作：
-1. `Controller分割實作範例.md` - 查看完整實作範例
-2. `Controller分割設計評估報告.md` - 查看整體設計方案
+$([regex]::Unescape('\u8acb\u53c3\u8003\u4ee5\u4e0b\u6587\u4ef6\u7e7c\u7e8c\u5be6\u4f5c\uff1a'))
+1. `Controller$([regex]::Unescape('\u5206\u5272\u5be6\u4f5c\u7bc4\u4f8b')).md` - $([regex]::Unescape('\u67e5\u770b\u5b8c\u6574\u5be6\u4f5c\u7bc4\u4f8b'))
+2. `Controller$([regex]::Unescape('\u5206\u5272\u8a2d\u8a08\u8a55\u4f30\u5831\u544a')).md` - $([regex]::Unescape('\u67e5\u770b\u6574\u9ad4\u8a2d\u8a08\u65b9\u6848'))
 
-## 注意事項
+## $([regex]::Unescape('\u6ce8\u610f\u4e8b\u9805'))
 
-1. 所有新建的檔案都在適當的命名空間下
-2. 請使用 Visual Studio 將這些檔案加入專案
-3. 實作 Service 類別時，請參考原始的 HomeController 邏輯
-4. 記得在 Startup.cs 註冊新服務
+1. $([regex]::Unescape('\u6240\u6709\u65b0\u5efa\u7684\u6a94\u6848\u90fd\u5728\u9069\u7576\u7684\u547d\u540d\u7a7a\u9593\u4e0b'))
+2. $([regex]::Unescape('\u8acb\u4f7f\u7528')) Visual Studio $([regex]::Unescape('\u5c07\u9019\u4e9b\u6a94\u6848\u52a0\u5165\u5c08\u6848'))
+3. $([regex]::Unescape('\u5be6\u4f5c')) Service $([regex]::Unescape('\u985e\u5225\u6642\uff0c\u8acb\u53c3\u8003\u539f\u59cb\u7684')) HomeController $([regex]::Unescape('\u908f\u8f2f'))
+4. $([regex]::Unescape('\u8a18\u5f97\u5728')) Startup.cs $([regex]::Unescape('\u8a3b\u518a\u65b0\u670d\u52d9'))
 
-## 執行命令
+## $([regex]::Unescape('\u57f7\u884c\u547d\u4ee4'))
 
 ```powershell
-# 進入專案目錄
+# $([regex]::Unescape('\u9032\u5165\u5c08\u6848\u76ee\u9304'))
 cd ChurchReport
 
-# 執行階段二遷移腳本（待建立）
+# $([regex]::Unescape('\u57f7\u884c\u968e\u6bb5\u4e8c\u9077\u79fb\u8173\u672c\uff08\u5f85\u5efa\u7acb\uff09'))
 .\Scripts\Migrate-ControllerSplit-Phase2.ps1
 ```
 
-建立時間: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+$([regex]::Unescape('\u5efa\u7acb\u6642\u9593')): $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 "@
 
-New-FileWithContent -Path "$SolutionRoot\文件\Controller分割遷移進度.md" -Content $readmeContent
+New-FileWithContent -Path "$SolutionRoot\$([regex]::Unescape('\u6587\u4ef6'))\Controller$([regex]::Unescape('\u5206\u5272\u9077\u79fb\u9032\u5ea6')).md" -Content $readmeContent
 
 # 完成
 Write-ColorOutput "`n========================================" "Cyan"
-Write-ColorOutput "  階段一完成！" "Green"
+Write-ColorOutput ([regex]::Unescape('  \u968e\u6bb5\u4e00\u5b8c\u6210\uff01')) "Green"
 Write-ColorOutput "========================================`n" "Cyan"
 
-Write-ColorOutput "已建立以下內容：" "White"
-Write-ColorOutput "  ?? 目錄結構（Controllers, Services, Models）" "White"
-Write-ColorOutput "  ?? Model 定義檔案（4 個）" "White"
-Write-ColorOutput "  ?? Service 介面檔案（3 個）" "White"
-Write-ColorOutput "  ?? 進度追蹤文件" "White"
+Write-ColorOutput ([regex]::Unescape('\u5df2\u5efa\u7acb\u4ee5\u4e0b\u5167\u5bb9\uff1a')) "White"
+Write-ColorOutput ([regex]::Unescape('  ?? \u76ee\u9304\u7d50\u69cb\uff08Controllers, Services, Models\uff09')) "White"
+Write-ColorOutput ([regex]::Unescape('  ?? Model \u5b9a\u7fa9\u6a94\u6848\uff084 \u500b\uff09')) "White"
+Write-ColorOutput ([regex]::Unescape('  ?? Service \u4ecb\u9762\u6a94\u6848\uff083 \u500b\uff09')) "White"
+Write-ColorOutput ([regex]::Unescape('  ?? \u9032\u5ea6\u8ffd\u8e64\u6587\u4ef6')) "White"
 
-Write-ColorOutput "`n下一步：" "Yellow"
-Write-ColorOutput "  1. 使用 Visual Studio 開啟方案" "White"
-Write-ColorOutput "  2. 將新建的檔案加入專案" "White"
-Write-ColorOutput "  3. 參考 'Controller分割實作範例.md' 實作 Service 類別" "White"
-Write-ColorOutput "  4. 建立 AuthenticationController" "White"
-Write-ColorOutput "  5. 在 Startup.cs 註冊服務" "White"
+Write-ColorOutput ([regex]::Unescape('\n\u4e0b\u4e00\u6b65\uff1a')) "Yellow"
+Write-ColorOutput ([regex]::Unescape('  1. \u4f7f\u7528 Visual Studio \u958b\u555f\u65b9\u6848')) "White"
+Write-ColorOutput ([regex]::Unescape('  2. \u5c07\u65b0\u5efa\u7684\u6a94\u6848\u52a0\u5165\u5c08\u6848')) "White"
+Write-ColorOutput ([regex]::Unescape('  3. \u53c3\u8003 ''Controller\u5206\u5272\u5be6\u4f5c\u7bc4\u4f8b.md'' \u5be6\u4f5c Service \u985e\u5225')) "White"
+Write-ColorOutput ([regex]::Unescape('  4. \u5efa\u7acb AuthenticationController')) "White"
+Write-ColorOutput ([regex]::Unescape('  5. \u5728 Startup.cs \u8a3b\u518a\u670d\u52d9')) "White"
 
-Write-ColorOutput "`n詳細說明請參考：" "Cyan"
-Write-ColorOutput "  ?? 文件\Controller分割設計評估報告.md" "White"
-Write-ColorOutput "  ?? 文件\Controller分割實作範例.md" "White"
-Write-ColorOutput "  ?? 文件\Controller分割遷移進度.md" "White"
+Write-ColorOutput ([regex]::Unescape('\n\u8a73\u7d30\u8aaa\u660e\u8acb\u53c3\u8003\uff1a')) "Cyan"
+Write-ColorOutput ([regex]::Unescape('  ?? \u6587\u4ef6\\Controller\u5206\u5272\u8a2d\u8a08\u8a55\u4f30\u5831\u544a.md')) "White"
+Write-ColorOutput ([regex]::Unescape('  ?? \u6587\u4ef6\\Controller\u5206\u5272\u5be6\u4f5c\u7bc4\u4f8b.md')) "White"
+Write-ColorOutput ([regex]::Unescape('  ?? \u6587\u4ef6\\Controller\u5206\u5272\u9077\u79fb\u9032\u5ea6.md')) "White"
 
-Write-ColorOutput "`n提示：記得先建立 Git 分支！" "Yellow"
+Write-ColorOutput ([regex]::Unescape('\n\u63d0\u793a\uff1a\u8a18\u5f97\u5148\u5efa\u7acb Git \u5206\u652f\uff01')) "Yellow"
 Write-ColorOutput "  git checkout -b feature/controller-split-authentication`n" "Gray"

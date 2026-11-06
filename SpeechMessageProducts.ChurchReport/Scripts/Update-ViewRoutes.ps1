@@ -104,7 +104,7 @@ function Update-ViewFile {
         [switch]$DryRun
     )
     
-    Write-Host "處理檔案: $FilePath" -ForegroundColor Cyan
+    Write-Host "$([regex]::Unescape('\u8655\u7406\u6a94\u6848')): $FilePath" -ForegroundColor Cyan
     
     $content = Get-Content -Path $FilePath -Raw -Encoding UTF8
     $originalContent = $content
@@ -115,7 +115,7 @@ function Update-ViewFile {
         $newRoute = $routeMappings[$oldRoute]
         if ($content -match [regex]::Escape($oldRoute)) {
             $content = $content -replace [regex]::Escape($oldRoute), $newRoute
-            Write-Host "  ? 更新 href: $oldRoute → $newRoute" -ForegroundColor Green
+            Write-Host "  ? $([regex]::Unescape('\u66f4\u65b0')) href: $oldRoute $([regex]::Unescape('\u2192')) $newRoute" -ForegroundColor Green
             $changesMade = $true
         }
     }
@@ -125,7 +125,7 @@ function Update-ViewFile {
         $newPattern = $urlActionMappings[$oldPattern]
         if ($content -match $oldPattern) {
             $content = $content -replace $oldPattern, $newPattern
-            Write-Host "  ? 更新 Url.Action: $oldPattern → $newPattern" -ForegroundColor Green
+            Write-Host "  ? $([regex]::Unescape('\u66f4\u65b0')) Url.Action: $oldPattern $([regex]::Unescape('\u2192')) $newPattern" -ForegroundColor Green
             $changesMade = $true
         }
     }
@@ -133,11 +133,11 @@ function Update-ViewFile {
     # 如果有變更且不是測試模式，則寫入檔案
     if ($changesMade -and -not $DryRun) {
         Set-Content -Path $FilePath -Value $content -Encoding UTF8 -NoNewline
-        Write-Host "  ? 檔案已更新" -ForegroundColor Yellow
+        Write-Host ([regex]::Unescape('  ? \u6a94\u6848\u5df2\u66f4\u65b0')) -ForegroundColor Yellow
     } elseif ($changesMade) {
-        Write-Host "  ? 測試模式：檔案未實際更新" -ForegroundColor Yellow
+        Write-Host ([regex]::Unescape('  ? \u6e2c\u8a66\u6a21\u5f0f\uff1a\u6a94\u6848\u672a\u5be6\u969b\u66f4\u65b0')) -ForegroundColor Yellow
     } else {
-        Write-Host "  - 無需更新" -ForegroundColor Gray
+        Write-Host ([regex]::Unescape('  - \u7121\u9700\u66f4\u65b0')) -ForegroundColor Gray
     }
     
     return $changesMade
@@ -148,21 +148,21 @@ $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $viewsPath = Join-Path $scriptPath "Views"
 
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "View 路由更新腳本" -ForegroundColor Magenta
+Write-Host ([regex]::Unescape('View \u8def\u7531\u66f4\u65b0\u8173\u672c')) -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
 # 詢問是否為測試模式
-$response = Read-Host "是否為測試模式？(僅顯示變更但不實際修改) [Y/N]"
+$response = Read-Host ([regex]::Unescape('\u662f\u5426\u70ba\u6e2c\u8a66\u6a21\u5f0f\uff1f(\u50c5\u986f\u793a\u8b8a\u66f4\u4f46\u4e0d\u5be6\u969b\u4fee\u6539) [Y/N]'))
 $dryRun = $response -eq "Y"
 
 if ($dryRun) {
-    Write-Host "? 測試模式：只顯示變更，不實際修改檔案" -ForegroundColor Yellow
+    Write-Host ([regex]::Unescape('? \u6e2c\u8a66\u6a21\u5f0f\uff1a\u53ea\u986f\u793a\u8b8a\u66f4\uff0c\u4e0d\u5be6\u969b\u4fee\u6539\u6a94\u6848')) -ForegroundColor Yellow
 } else {
-    Write-Host "? 正式模式：將實際修改檔案" -ForegroundColor Red
-    $confirm = Read-Host "確定要繼續嗎？[Y/N]"
+    Write-Host ([regex]::Unescape('? \u6b63\u5f0f\u6a21\u5f0f\uff1a\u5c07\u5be6\u969b\u4fee\u6539\u6a94\u6848')) -ForegroundColor Red
+    $confirm = Read-Host ([regex]::Unescape('\u78ba\u5b9a\u8981\u7e7c\u7e8c\u55ce\uff1f[Y/N]'))
     if ($confirm -ne "Y") {
-        Write-Host "操作已取消" -ForegroundColor Red
+        Write-Host ([regex]::Unescape('\u64cd\u4f5c\u5df2\u53d6\u6d88')) -ForegroundColor Red
         exit
     }
 }
@@ -182,13 +182,13 @@ Get-ChildItem -Path $viewsPath -Filter "*.cshtml" -Recurse | ForEach-Object {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "處理完成" -ForegroundColor Magenta
+Write-Host ([regex]::Unescape('\u8655\u7406\u5b8c\u6210')) -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "處理檔案數: $filesProcessed" -ForegroundColor Cyan
-Write-Host "變更檔案數: $filesChanged" -ForegroundColor Green
+Write-Host "$([regex]::Unescape('\u8655\u7406\u6a94\u6848\u6578')): $filesProcessed" -ForegroundColor Cyan
+Write-Host "$([regex]::Unescape('\u8b8a\u66f4\u6a94\u6848\u6578')): $filesChanged" -ForegroundColor Green
 Write-Host ""
 
 if ($dryRun) {
-    Write-Host "這是測試模式的結果，實際檔案未被修改" -ForegroundColor Yellow
-    Write-Host "若要實際更新，請重新執行腳本並選擇 'N'" -ForegroundColor Yellow
+    Write-Host ([regex]::Unescape('\u9019\u662f\u6e2c\u8a66\u6a21\u5f0f\u7684\u7d50\u679c\uff0c\u5be6\u969b\u6a94\u6848\u672a\u88ab\u4fee\u6539')) -ForegroundColor Yellow
+    Write-Host ([regex]::Unescape('\u82e5\u8981\u5be6\u969b\u66f4\u65b0\uff0c\u8acb\u91cd\u65b0\u57f7\u884c\u8173\u672c\u4e26\u9078\u64c7 ''N''')) -ForegroundColor Yellow
 }

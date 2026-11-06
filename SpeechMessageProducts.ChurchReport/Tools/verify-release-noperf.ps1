@@ -29,8 +29,8 @@ $hit = $u.Contains("[Perf") -or $a.Contains("[Perf")
 
 Write-Host ("DLL: " + $dll.FullName)
 if ($hit) {
-    Write-Host "`[FAIL`] Release DLL contains '`[Perf`' — 剖析字串外洩到 Release！" -ForegroundColor Red
+    Write-Host ([regex]::Unescape('[FAIL] Release DLL contains ''[Perf'' \u2014 \u5256\u6790\u5b57\u4e32\u5916\u6d29\u5230 Release\uff01')) -ForegroundColor Red
     exit 1
 } else {
-    Write-Host "`[PASS`] Release DLL 無 '`[Perf`' 字串（無痕通過）。" -ForegroundColor Green
+    Write-Host ([regex]::Unescape('[PASS] Release DLL \u7121 ''[Perf'' \u5b57\u4e32\uff08\u7121\u75d5\u901a\u904e\uff09\u3002')) -ForegroundColor Green
 }

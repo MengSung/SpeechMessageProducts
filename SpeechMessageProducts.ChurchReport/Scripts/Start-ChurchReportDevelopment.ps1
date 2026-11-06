@@ -106,19 +106,19 @@ function Stop-ExistingChurchReportForPort {
         }
         else {
             $unknownProcessIds.Add([int]$ownerProcessId)
-            Write-Host "無法確認程序 $ownerProcessId（$processName）是否屬於 ChurchReport。" -ForegroundColor Yellow
+            Write-Host "$([regex]::Unescape('\u7121\u6cd5\u78ba\u8a8d\u7a0b\u5e8f')) $ownerProcessId$([regex]::Unescape('\uff08'))$processName$([regex]::Unescape('\uff09\u662f\u5426\u5c6c\u65bc')) ChurchReport$([regex]::Unescape('\u3002'))" -ForegroundColor Yellow
         }
     }
 
     if ($unknownProcessIds.Count -gt 0) {
-        throw "連接埠 $Port 已被其他或無法辨識的程序使用；為避免誤殺，腳本不會自動終止。PID：$($unknownProcessIds -join ', ')"
+        throw "$([regex]::Unescape('\u9023\u63a5\u57e0')) $Port $([regex]::Unescape('\u5df2\u88ab\u5176\u4ed6\u6216\u7121\u6cd5\u8fa8\u8b58\u7684\u7a0b\u5e8f\u4f7f\u7528\uff1b\u70ba\u907f\u514d\u8aa4\u6bba\uff0c\u8173\u672c\u4e0d\u6703\u81ea\u52d5\u7d42\u6b62\u3002'))PID$([regex]::Unescape('\uff1a'))$($unknownProcessIds -join ', ')"
     }
 
     foreach ($churchReportProcessId in $churchReportProcessIds) {
-        Write-Host "[0/3] 正在停止既有 ChurchReport 程序（PID $churchReportProcessId）..." -ForegroundColor Yellow
+        Write-Host "[0/3] $([regex]::Unescape('\u6b63\u5728\u505c\u6b62\u65e2\u6709')) ChurchReport $([regex]::Unescape('\u7a0b\u5e8f\uff08'))PID $churchReportProcessId$([regex]::Unescape('\uff09'))..." -ForegroundColor Yellow
         & taskkill.exe /PID $churchReportProcessId /T /F 2>$null | Out-Null
         if ($LASTEXITCODE -ne 0) {
-            throw "無法停止 ChurchReport 程序（PID $churchReportProcessId），結束碼：$LASTEXITCODE"
+            throw "$([regex]::Unescape('\u7121\u6cd5\u505c\u6b62')) ChurchReport $([regex]::Unescape('\u7a0b\u5e8f\uff08'))PID $churchReportProcessId$([regex]::Unescape('\uff09\uff0c\u7d50\u675f\u78bc\uff1a'))$LASTEXITCODE"
         }
     }
 
@@ -127,31 +127,31 @@ function Stop-ExistingChurchReportForPort {
         $remainingProcessIds = @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
             Select-Object -ExpandProperty OwningProcess -Unique)
         if ($remainingProcessIds.Count -eq 0) {
-            Write-Host "[0/3] 既有 ChurchReport 已停止，連接埠 $Port 已釋放。" -ForegroundColor Green
+            Write-Host "[0/3] $([regex]::Unescape('\u65e2\u6709')) ChurchReport $([regex]::Unescape('\u5df2\u505c\u6b62\uff0c\u9023\u63a5\u57e0')) $Port $([regex]::Unescape('\u5df2\u91cb\u653e\u3002'))" -ForegroundColor Green
             return
         }
 
         Start-Sleep -Milliseconds 250
     }
 
-    throw "既有 ChurchReport 已要求停止，但連接埠 $Port 仍被占用。"
+    throw "$([regex]::Unescape('\u65e2\u6709')) ChurchReport $([regex]::Unescape('\u5df2\u8981\u6c42\u505c\u6b62\uff0c\u4f46\u9023\u63a5\u57e0')) $Port $([regex]::Unescape('\u4ecd\u88ab\u5360\u7528\u3002'))"
 }
 
 try {
     $dotnetCommand = Get-Command dotnet -CommandType Application -ErrorAction Stop
 
     if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
-        throw "找不到 ChurchReport 專案檔：$projectPath"
+        throw "$([regex]::Unescape('\u627e\u4e0d\u5230')) ChurchReport $([regex]::Unescape('\u5c08\u6848\u6a94\uff1a'))$projectPath"
     }
 
     $targetUri = [System.Uri]::new($Url)
     if ($targetUri.Scheme -notin @('http', 'https') -or [string]::IsNullOrWhiteSpace($targetUri.Host)) {
-        throw "網站網址必須是有效的 HTTP 或 HTTPS URL：$Url"
+        throw "$([regex]::Unescape('\u7db2\u7ad9\u7db2\u5740\u5fc5\u9808\u662f\u6709\u6548\u7684')) HTTP $([regex]::Unescape('\u6216')) HTTPS URL$([regex]::Unescape('\uff1a'))$Url"
     }
 
     $port = $targetUri.Port
     if ($port -le 0) {
-        throw "無法從網站網址取得有效的連接埠：$Url"
+        throw "$([regex]::Unescape('\u7121\u6cd5\u5f9e\u7db2\u7ad9\u7db2\u5740\u53d6\u5f97\u6709\u6548\u7684\u9023\u63a5\u57e0\uff1a'))$Url"
     }
 
     if (Test-TcpPortReady -HostName $targetUri.DnsSafeHost -Port $port) {
@@ -159,7 +159,7 @@ try {
             Stop-ExistingChurchReportForPort -Port $port -ProjectDirectory $projectDirectory
         }
         else {
-            throw "網址目前已被其他程序使用：$Url；非本機網址不會自動終止程序。"
+            throw "$([regex]::Unescape('\u7db2\u5740\u76ee\u524d\u5df2\u88ab\u5176\u4ed6\u7a0b\u5e8f\u4f7f\u7528\uff1a'))$Url$([regex]::Unescape('\uff1b\u975e\u672c\u6a5f\u7db2\u5740\u4e0d\u6703\u81ea\u52d5\u7d42\u6b62\u7a0b\u5e8f\u3002'))"
         }
     }
 
@@ -167,23 +167,23 @@ try {
     $env:ASPNETCORE_URLS = $Url
 
     Write-Host '========================================' -ForegroundColor Magenta
-    Write-Host 'ChurchReport 開發網站啟動器' -ForegroundColor Magenta
+    Write-Host ([regex]::Unescape('ChurchReport \u958b\u767c\u7db2\u7ad9\u555f\u52d5\u5668')) -ForegroundColor Magenta
     Write-Host '========================================' -ForegroundColor Magenta
-    Write-Host "專案：$projectPath" -ForegroundColor Gray
-    Write-Host "環境：$env:ASPNETCORE_ENVIRONMENT" -ForegroundColor Gray
-    Write-Host "網址：$Url" -ForegroundColor Gray
+    Write-Host "$([regex]::Unescape('\u5c08\u6848\uff1a'))$projectPath" -ForegroundColor Gray
+    Write-Host "$([regex]::Unescape('\u74b0\u5883\uff1a'))$env:ASPNETCORE_ENVIRONMENT" -ForegroundColor Gray
+    Write-Host "$([regex]::Unescape('\u7db2\u5740\uff1a'))$Url" -ForegroundColor Gray
     Write-Host ''
 
-    Write-Host "[1/3] 編譯 $Configuration ..." -ForegroundColor Cyan
+    Write-Host "[1/3] $([regex]::Unescape('\u7de8\u8b6f')) $Configuration ..." -ForegroundColor Cyan
     # 不產生可執行檔 apphost，避免另一個開發程序只因鎖定 apphost.exe 而阻塞編譯。
     # 網站仍由 dotnet 啟動目標 DLL，行為與一般開發執行一致。
     & $dotnetCommand.Source build $projectPath --configuration $Configuration --nologo --property:UseAppHost=false
     if ($LASTEXITCODE -ne 0) {
-        throw "dotnet build 失敗，結束碼：$LASTEXITCODE"
+        throw "dotnet build $([regex]::Unescape('\u5931\u6557\uff0c\u7d50\u675f\u78bc\uff1a'))$LASTEXITCODE"
     }
-    Write-Host '[1/3] 編譯成功' -ForegroundColor Green
+    Write-Host ([regex]::Unescape('[1/3] \u7de8\u8b6f\u6210\u529f')) -ForegroundColor Green
 
-    Write-Host '[2/3] 啟動網站 ...' -ForegroundColor Cyan
+    Write-Host ([regex]::Unescape('[2/3] \u555f\u52d5\u7db2\u7ad9 ...')) -ForegroundColor Cyan
     $serverArguments = @(
         'run'
         '--no-launch-profile'
@@ -205,7 +205,7 @@ try {
     $ready = $false
     while ((Get-Date) -lt $deadline) {
         if ($serverProcess.HasExited) {
-            throw "網站程序在啟動完成前結束，結束碼：$($serverProcess.ExitCode)"
+            throw "$([regex]::Unescape('\u7db2\u7ad9\u7a0b\u5e8f\u5728\u555f\u52d5\u5b8c\u6210\u524d\u7d50\u675f\uff0c\u7d50\u675f\u78bc\uff1a'))$($serverProcess.ExitCode)"
         }
 
         if (Test-TcpPortReady -HostName $targetUri.DnsSafeHost -Port $port) {
@@ -217,22 +217,22 @@ try {
     }
 
     if (-not $ready) {
-        throw "等待網站啟動逾時（$StartupTimeoutSeconds 秒）：$Url"
+        throw "$([regex]::Unescape('\u7b49\u5f85\u7db2\u7ad9\u555f\u52d5\u903e\u6642\uff08'))$StartupTimeoutSeconds $([regex]::Unescape('\u79d2\uff09\uff1a'))$Url"
     }
 
-    Write-Host '[2/3] 網站已開始監聽' -ForegroundColor Green
+    Write-Host ([regex]::Unescape('[2/3] \u7db2\u7ad9\u5df2\u958b\u59cb\u76e3\u807d')) -ForegroundColor Green
 
     if (-not $SkipBrowser) {
-        Write-Host '[3/3] 開啟瀏覽器 ...' -ForegroundColor Cyan
+        Write-Host ([regex]::Unescape('[3/3] \u958b\u555f\u700f\u89bd\u5668 ...')) -ForegroundColor Cyan
         Start-Process -FilePath $Url | Out-Null
-        Write-Host '[3/3] 瀏覽器已開啟' -ForegroundColor Green
+        Write-Host ([regex]::Unescape('[3/3] \u700f\u89bd\u5668\u5df2\u958b\u555f')) -ForegroundColor Green
     }
     else {
-        Write-Host '[3/3] 已略過開啟瀏覽器（-SkipBrowser）' -ForegroundColor Yellow
+        Write-Host ([regex]::Unescape('[3/3] \u5df2\u7565\u904e\u958b\u555f\u700f\u89bd\u5668\uff08-SkipBrowser\uff09')) -ForegroundColor Yellow
     }
 
     Write-Host ''
-    Write-Host '網站正在執行；按 Ctrl+C 會停止網站並清理子程序。' -ForegroundColor Yellow
+    Write-Host ([regex]::Unescape('\u7db2\u7ad9\u6b63\u5728\u57f7\u884c\uff1b\u6309 Ctrl+C \u6703\u505c\u6b62\u7db2\u7ad9\u4e26\u6e05\u7406\u5b50\u7a0b\u5e8f\u3002')) -ForegroundColor Yellow
     Wait-Process -Id $serverProcess.Id
 }
 catch {
