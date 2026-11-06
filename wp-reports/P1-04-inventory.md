@@ -47,7 +47,8 @@
 | `ToolUtility.Core/CollectionOperations/CollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.CollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.ICollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.PagedResult<T>` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility/ContactOperations/ContactService.cs` | `ToolUtilityNameSpace.ContactOperations.ContactService` | 不可直接搬 | Caching.ICrmCacheService及Diagnostics.LoggerInvoker；cache／連線留host。 |
+| `ToolUtility/ContactOperations/ContactService.cs` | `ToolUtilityNameSpace.ContactOperations.ContactService` | host相容adapter已完成 | 不保存logger/cache，保留兩ctor；全部查詢委派Core ContactDataService，原cache缺完整scope所以停用。 |
+| `ToolUtility.Core/ContactOperations/ContactDataService.cs` | `ToolUtilityNameSpace.ContactOperations.ContactDataService` | 已純化並抽取 | 19同步契約/3Task入口、有界完整分頁與ID守門；詳P1-04-contact.md。 |
 | `ToolUtility.Core/ContactOperations/IContactService.cs` | `ToolUtilityNameSpace.ContactOperations.IContactService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/EntityOperations/EntityAttributeHandler.cs` | `ToolUtilityNameSpace.EntityOperations.EntityAttributeHandler` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/EntityOperations/EntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityCrudService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
@@ -152,3 +153,6 @@ Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必
 ## 2026-11-06 純契約／優化查詢接續
 
 五純契約共67多載與 EntityOptimizedQueryService／其 PagedResult 已抽取。詳細位置、搬前特性、安全紅綠與所有權見 `wp-reports/P1-04-contracts-optimized.md`。原表尚未搬的列仍為待交付，不以歷史分類替代驗證；嵌入的 IQueryService／IMarketingListService 已分離至 Core 的獨立檔，其 host 實作未搬。Collection、屬性轉換器／handler在前輪已抽取，本表已按磁碟真實位置同步；沒有修改正式 P1 計畫。
+
+## Contact切片（2026-11-06）
+原host7/7特性、安全24全紅與空密碼2全紅；修後搬前43綠，資料操作git mv至Core ContactDataService，host只留相容ctor adapter。八個舊文字依正式I18n resx/generated規則保存；所有Contact cache不再被讀寫或保存，未把credential塞key。最終雙目標/回歸結果詳P1-04-contact.md。其餘List/Query/CrmAsync仍未交付，P1仍3/12。

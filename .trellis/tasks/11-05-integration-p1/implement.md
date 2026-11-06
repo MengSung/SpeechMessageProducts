@@ -126,3 +126,11 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 
 ## 2026-11-06 最新執行方式
 使用者明確表示「不需要雙模型了」，後續分析與審查均由主會話直接完成，不再等候外部模型。20261106-085049歷史分析曾嘗試雙後端：Gemini HTTP403、Claude週額度，無可用輸出，不能稱為雙模型或單模型分析成功；原始證據保留。需求／測試／安全／覆蓋率與實機證據門檻不變，不修改正式3.3計畫，無Word需求修正報告。
+
+## P1-04 Contact切片執行決策（2026-11-06）
+- 原host三查詢golden與舊登入/資訊文字7/7先綠；安全24全紅、空密碼2全紅。
+- 可選cache的舊鍵缺完整伺服器已授權scope且共享mutable Entity，停用所有Contact cache I/O，不把密碼/雜湊加key；兩建構式保留於薄host adapter，不保存cache/logger。
+- 借入SDK的全部資料操作集中ContactDataService，保留namespace/19介面方法/3Task入口與舊文字；八個legacy文案移中立resx，不引入host相依或全域culture。
+- 在原host位置修正後43/43通過；搬前暫時Compile link同一SdkDataQuery來源供internal helper使用，非副本；git mv前已移除link並逐字核對host csproj回HEAD。
+- 完整集合最多5000列/1000頁/64Ki cookie，穩定contactid排序，完整候選跨頁驗重後發布；超預算/後頁故障拒絕，不回部分集合。
+- 搬後補外部SDK/ref/null、三Task取消/內部timeout、Dispose/drain/weak-reference/1000A/B，跑雙目標coverage/strict/全方案/00§8並保存本地證據。不改正式3.3計畫。

@@ -129,3 +129,11 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 - 最終完整16TRX2777/2777、ToolUtility652/778、ChurchReport623/623、架構67/67；Core92.13%/92.83%、strict0警告/錯誤。無已知本切片Critical/High；不代表整包P1-04完成。
 
 末端守門：Debug tracer最初誤選ToolUtility.Tests得到0測試，已明確拒絕該結果；改正ToolUtility.Dataverse.Tests後7/7且TRX守門通過。進度頁第一次漏保留安全/Constants文案使10/11，修正文案而未改測試，最終11/11；duplicates951檔0新重複、I18n通過。9份同任務歷史文字作無語義編碼正規化，manifest保留雜湊。完整Changed882檔僅他人p013 .turns.json缺檔尾CRLF，不修改或提交該檔，不宣稱全Changed成功。
+
+## 2026-11-06 Contact抽取主會話審查
+- 原host7特性先綠，24安全案/2空密碼全紅；修後host43綠才搬。19同步API與3Task/兩ctor保留，namespace不變；host只留adapter，無cache/logger保存或第二份資料實作。
+- 核對單筆Top1/AllColumns與完整候選ID守門；無top集合contactid排序、5000列/1000頁/64Ki cookie、後頁衝突/故障不發布；六OR欄位XElement編碼與top3/100回應預算。
+- 認證null/空密碼不I/O、不放行；12個污染cache/取消/1000A/B案。三Task入口15情境兩宿主、外借/ref/null、Dispose/GC/drain有實際證據，不Dispose原SDK。
+- I18n實際拒絕原非分層key，改Contact.Legacy.*並用正式工具產生表；複製中立文案成私有唯讀表，不帶入ResourceManager/衛星或動態cache；舊字串golden不變。
+- 最終688/818、完整16TRX2853、Core92.77%/93.42%、Contact100%；產品strict零警告/錯誤。原新nullable提示以更強Assert.NotNull修復；其他既有測試warning未隱藏。Debug7/進度11/I18n/duplicates通過。
+- 使用者免除雙模型，主會話審查無已知切片Critical/High；List/MarketingList/其餘Query/CrmAsync未交付，不宣告P1-04或主P1完成。未知來源新HTML備份未修改/暫存。

@@ -1,0 +1,14 @@
+{
+  "ToolUtility.Core/ContactOperations/ContactDataService.cs": "d7954de41bf941b2ead74d4de9934c5ff5b7c6be2381472be00d0d0b68209e28",
+  "ToolUtility.Core/ContactOperations/ContactDataService.resx": "51b394427f9f6b0b8c933158509851c3dce4fb9d5fd1ffe2fc4bd934e6ad3130",
+  "ToolUtility.Core/ContactOperations/ContactDataService.g.cs": "91990f945a88b3df05783d1c26fbd1452b96c4a803c60c3db322757a10442c88",
+  "ToolUtility/ContactOperations/ContactService.cs": "4387d83de0b768aafda51dce9f0f8ffade4e56ebcf71bce20c07c9dbf503275a",
+  "ToolUtility.Tests/CoreTargetFrameworkTests.cs": "df1e0fe9ef5a5b43d4b158d603e3415ebcf7fcbd490d9076e53413f9ae7d9d89",
+  "ToolUtility.Tests/ContactOperations/ContactAuthenticationIsolationTests.cs": "fa45121b6077eaa9224766ca1732e957797b47a4477bacd813d5fd8830b5fb43",
+  "ToolUtility.Tests/ContactOperations/ContactServiceTests.cs": "60be87756b622dae107ad3c55ccefd4d4471315a60f961c0af84ac2ba446c96a",
+  "ToolUtility.Tests/DataOperations/ContactCharacterizationTests.cs": "57fc69d33a7d551e890e747dc989e26f528a5b51c5d0e8ef84336778fb60e88e",
+  "ToolUtility.Tests/DataOperations/ContactSafetyTests.cs": "0a7f6b6c0a7b003a34a72bc92cd1bded82aa8373d3cd333e2c814bb5fa554cc2",
+  "ToolUtility.Tests\\Golden\\ToolUtility\\contact-dedication.xml": "9af7823b0c8af25555f071909bd238f1ce207e720fa029328605c08e742e8108",
+  "ToolUtility.Tests\\Golden\\ToolUtility\\contact-line.xml": "b1035eed012034b30f7a24367834ecc46f60e2648d3e5e361c443c84875de532",
+  "ToolUtility.Tests\\Golden\\ToolUtility\\contact-prefix.xml": "c9d48ca7615aeecbb5edd7d73e294b245cabf683c30442a723d0325a664ba9da"
+}

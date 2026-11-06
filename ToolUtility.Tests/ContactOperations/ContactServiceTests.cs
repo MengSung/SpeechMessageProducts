@@ -23,8 +23,10 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace ToolUtility.Tests.ContactOperations
 {
+    /// <summary>保護舊host相容入口確實沿原SDK查詢，結果與資料庫身份不被adapter或快取改寫。</summary>
     public class ContactServiceTests
     {
+        /// <summary>SDK注入一筆合成LINE資料；斷言單筆非null及原LINE值，不能用空實作通過。</summary>
         [Fact]
         public void RetrieveByLineId_WhenContactExists_ShouldReturnEntity()
         {
@@ -40,6 +42,7 @@ namespace ToolUtility.Tests.ContactOperations
             var result = service.RetrieveByLineId("U123456");
 
             result.Should().NotBeNull();
+            Assert.NotNull(result);
             result["new_lineid"].Should().Be("U123456");
         }
 

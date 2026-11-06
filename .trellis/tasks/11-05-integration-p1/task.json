@@ -5,7 +5,7 @@
   "description": "",
   "status": "in_progress",
   "currentPhase": "implementation",
-  "nextAction": "P1-04契約/優化查詢/帳密修補：652/778、2777完整回歸、Core92.13%/92.83%與strict通過，保存本地主會話審查證據後接續Contact純資料操作；其餘List/Query/CrmAsync待交付，P1仍3/12，不呼叫雙模型。",
+  "nextAction": "Contact純資料/host adapter完成；688/818、2853、Core92.77%/93.42%與strict通過，主會話審查/本地保存；接續FetchXmlQueryService，再List/其餘Query/CrmAsync。P1-04未完成、P1仍3/12，不呼叫雙模型。",
   "dev_type": null,
   "scope": null,
   "package": null,

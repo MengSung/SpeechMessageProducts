@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Contact.Legacy.AccountMissing" xml:space="preserve"><value>帳號錯誤</value></data>
+  <data name="Contact.Legacy.PasswordUnset" xml:space="preserve"><value>系統沒有設定密碼</value></data>
+  <data name="Contact.Legacy.PasswordIncorrect" xml:space="preserve"><value>密碼錯誤</value></data>
+  <data name="Contact.Legacy.InputPrompt" xml:space="preserve"><value>請輸入</value></data>
+  <data name="Contact.Legacy.NameLabel" xml:space="preserve"><value>姓名:</value></data>
+  <data name="Contact.Legacy.CustomerLabel" xml:space="preserve"><value>客戶字號:</value></data>
+  <data name="Contact.Legacy.PhoneLabel" xml:space="preserve"><value>電話號碼:</value></data>
+  <data name="Contact.Legacy.EmailLabel" xml:space="preserve"><value>電子郵件:</value></data>
+</root>

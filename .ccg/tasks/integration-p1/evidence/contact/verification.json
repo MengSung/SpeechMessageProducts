@@ -1,0 +1,25 @@
+{
+  "testHosts": {
+    "net48": 688,
+    "net10": 818
+  },
+  "solution": 2853,
+  "coverage": {
+    "net48": {
+      "core": 92.77,
+      "contact": 100.0
+    },
+    "net10": {
+      "core": 93.42,
+      "contact": 100.0
+    }
+  },
+  "red": {
+    "safety": 24,
+    "emptySecret": 2
+  },
+  "beforeMove": 43,
+  "review": "主會話；使用者免除雙模型",
+  "p1Complete": false,
+  "p104Complete": false
+}

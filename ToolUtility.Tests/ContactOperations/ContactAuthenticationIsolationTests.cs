@@ -13,6 +13,56 @@ namespace ToolUtility.Tests.ContactOperations
     /// </summary>
     public sealed class ContactAuthenticationIsolationTests
     {
+        /// <summary>缺失密碼不能因SDK有同為null/空的欄位而變成登入成功；只作業務拒絕，不查SDK或污染cache。</summary>
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public async Task MissingPassword_NeverAuthenticatesAnUnsetSecret(string? password)
+        {
+            var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
+            sdk.Setup(item => item.RetrieveMultiple(It.IsAny<QueryBase>())).Returns(new EntityCollection(new[]
+            {
+                new Entity("contact", new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")) { ["new_app_pass"] = password }
+            }));
+            var cache = PoisonedCache();
+            var service = new ContactService(new object(), sdk.Object, cache.Object);
+            Assert.Null(await service.RetrieveByAccountNumberAsync("synthetic", password!));
+            sdk.Verify(item => item.RetrieveMultiple(It.IsAny<QueryBase>()), Times.Never);
+            cache.VerifyNoOtherCalls();
+        }
+
+        /// <summary>
+        /// 舊LINE/姓名鍵缺完整已授權scope且回傳mutable Entity，不能只把密碼入口修掉就保留其他串用通道。
+        /// 注入其他subject的污染cache；兩個讀取均須忽略cache、回本SDK的新資料且明確caller取消前不I/O。
+        /// </summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task OtherContactLookups_DoNotReuseUnpartitionedIdentityCache(bool byName)
+        {
+            var currentId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+            var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
+            sdk.Setup(item => item.RetrieveMultiple(It.IsAny<QueryBase>())).Returns(() => Rows(currentId, "synthetic-current"));
+            var cache = PoisonedCache();
+            var service = new ContactService(new object(), sdk.Object, cache.Object);
+            var result = await (byName ? service.RetrieveByFullNameAsync("synthetic")
+                : service.RetrieveByLineIdAsync("synthetic"));
+            Assert.NotNull(result);
+            Assert.Equal(currentId, result.Id);
+            result["fullname"] = "caller-mutation";
+            var fresh = await (byName ? service.RetrieveByFullNameAsync("synthetic")
+                : service.RetrieveByLineIdAsync("synthetic"));
+            Assert.NotNull(fresh);
+            Assert.False(fresh.Contains("fullname"));
+            using var cancelled = new CancellationTokenSource();
+            cancelled.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => byName
+                ? service.RetrieveByFullNameAsync("synthetic", cancelled.Token)
+                : service.RetrieveByLineIdAsync("synthetic", cancelled.Token));
+            sdk.Verify(item => item.RetrieveMultiple(It.IsAny<QueryBase>()), Times.Exactly(2));
+            cache.VerifyNoOtherCalls();
+        }
+
         /// <summary>成功、密碼錯誤與密碼變更均不能重用之前已核對的 Entity；每次進 SDK、完全不讀寫快取。</summary>
         [Theory]
         [InlineData("synthetic-current", true)]
@@ -27,7 +77,7 @@ namespace ToolUtility.Tests.ContactOperations
 
             var result = await service.RetrieveByAccountNumberAsync("synthetic-account", password);
 
-            if (success) Assert.Equal(currentId, result.Id);
+            if (success) Assert.Equal(currentId, Assert.IsType<Entity>(result).Id);
             else Assert.Null(result);
             sdk.Verify(item => item.RetrieveMultiple(It.IsAny<QueryBase>()), Times.Once);
             cache.VerifyNoOtherCalls();
@@ -110,6 +160,7 @@ namespace ToolUtility.Tests.ContactOperations
                     correct ? useA ? "synthetic-a" : "synthetic-b" : "synthetic-wrong");
                 if (correct)
                 {
+                    Assert.NotNull(result);
                     Assert.Equal(useA ? aId : bId, result.Id);
                     result["fullname"] = "caller-mutation";
                 }

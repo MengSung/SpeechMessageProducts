@@ -495,3 +495,6 @@ D365／Hyper-V／LINE未操作，沒有實機／hosted CI新證據；正式3.3�
 
 ## 2026-11-06 P1-04契約/優化查詢保存
 五介面67 API、優化查詢已抽Core；帳密cache跳過核對已修。最終雙宿主652/778、16TRX2777、Core92.13%/92.83%、strict零警告/錯誤。主會話審查，使用者不需要雙模型。進度頁更新，P1仍3/12、P1-04未完成。下一步Contact純資料與其餘List/Query/CrmAsync。未操作VM/D365/LINE，未push。原始證據artifacts/p1-04-contracts-continuation-20261106/；摘要evidence/contracts-optimized/。
+
+## 2026-11-06 Contact切片
+ContactDataService資料操作抽Core，host兩ctor保留、不用cache/logger；空密碼與其他LINE/姓名快取污染修復。原7特性/24+2安全紅/搬前43綠，最終688/818、16TRX2853、Core92.77%/93.42%、Contact100%、strict0warning/error。Debug7、I18n/generated3、duplicates0、進度11通過。主會話審查，未呼叫外模/VM/D365/LINE。原始artifacts/p1-04-contact-20261106、摘要evidence/contact、報告wp-reports/P1-04-contact.md。未知來源HTML備份不碰。接續FetchXmlQueryService及其餘P1-04，主P1仍3/12。

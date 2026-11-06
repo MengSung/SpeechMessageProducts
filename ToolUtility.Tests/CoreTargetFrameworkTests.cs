@@ -71,6 +71,7 @@ namespace ToolUtility.Tests
             Assert.Same(assembly, typeof(StringAttributeService).Assembly);
             Assert.Same(assembly, typeof(EntityAttributeHandler).Assembly);
             Assert.Same(assembly, typeof(IContactService).Assembly);
+            Assert.Same(assembly, typeof(ContactDataService).Assembly);
             Assert.Same(assembly, typeof(IListService).Assembly);
             Assert.Same(assembly, typeof(IMarketingListService).Assembly);
             Assert.Same(assembly, typeof(IComplexQueryService).Assembly);

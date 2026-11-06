@@ -1,0 +1,120 @@
+{
+  "reports": 16,
+  "passed": 2853,
+  "failed": 0,
+  "skipped": 0,
+  "runs": [
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0.trx",
+      "passed": 34,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 34
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[1].trx",
+      "passed": 33,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 33
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[2].trx",
+      "passed": 55,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 55
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[3].trx",
+      "passed": 79,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 79
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[4].trx",
+      "passed": 4,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 4
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[5].trx",
+      "passed": 101,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 101
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[6].trx",
+      "passed": 79,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 79
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[7].trx",
+      "passed": 623,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 623
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_14_net10.0[8].trx",
+      "passed": 67,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 67
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_15_net10.0.trx",
+      "passed": 62,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 62
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_15_net10.0[1].trx",
+      "passed": 818,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 818
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_15_net48.trx",
+      "passed": 43,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 43
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_15_net48[1].trx",
+      "passed": 46,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 46
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_15_net48[2].trx",
+      "passed": 96,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 96
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_16_net48.trx",
+      "passed": 25,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 25
+    },
+    {
+      "report": "artifacts/p1-04-contact-20261106/final-section8/release/Administrator_LENOVO-LEGION_2026-11-06_09_45_16_net48[1].trx",
+      "passed": 688,
+      "failed": 0,
+      "notExecuted": 0,
+      "executed": 688
+    }
+  ]
+}

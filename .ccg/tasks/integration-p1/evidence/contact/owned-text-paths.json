@@ -1,0 +1,14 @@
+[
+  "ToolUtility.Core/ContactOperations/ContactDataService.cs",
+  "ToolUtility.Core/ContactOperations/ContactDataService.resx",
+  "ToolUtility.Core/ContactOperations/ContactDataService.g.cs",
+  "ToolUtility/ContactOperations/ContactService.cs",
+  "ToolUtility.Tests/CoreTargetFrameworkTests.cs",
+  "ToolUtility.Tests/ContactOperations/ContactAuthenticationIsolationTests.cs",
+  "ToolUtility.Tests/ContactOperations/ContactServiceTests.cs",
+  "ToolUtility.Tests/DataOperations/ContactCharacterizationTests.cs",
+  "ToolUtility.Tests/DataOperations/ContactSafetyTests.cs",
+  "ToolUtility.Tests\\Golden\\ToolUtility\\contact-dedication.xml",
+  "ToolUtility.Tests\\Golden\\ToolUtility\\contact-line.xml",
+  "ToolUtility.Tests\\Golden\\ToolUtility\\contact-prefix.xml"
+]

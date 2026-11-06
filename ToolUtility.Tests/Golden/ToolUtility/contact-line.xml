@@ -1,0 +1,1 @@
+<query entity="contact" top="1" all="true"><condition field="new_lineid" value="synthetic-line" /><condition field="statecode" value="0" /></query>
