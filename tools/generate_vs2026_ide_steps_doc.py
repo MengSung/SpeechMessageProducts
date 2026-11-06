@@ -1,3 +1,12 @@
+# 檔案整體說明
+#
+# 目的與定位：建立Visual Studio 2026介面操作步驟的Word教學，集中排版與步驟內容；產生結果需依文件流程檢視，不能把成功寫檔視為版面已驗證。
+#
+# 主要功能與流程：
+# 操作入口包含set_run_font、add_text、add_bullet、add_number、add_code；呼叫參數與輸出形狀以各入口宣告為準。
+#
+# 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+# 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
 from pathlib import Path
 
 from docx import Document

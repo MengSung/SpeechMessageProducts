@@ -1,27 +1,38 @@
-# View ¸ô¥Ñ§ó·s¸}¥»
-# ¥Î©ó§ó·s©Ò¦³ View ÀÉ®×¤¤ªº±±¨î¾¹¸ô¥Ñ
+<#
+æª”æ¡ˆæ•´é«”èªªæ˜
 
-# ©w¸q¸ô¥Ñ¹ïÀ³ªí
+ç›®çš„èˆ‡å®šä½ï¼šä¾å›ºå®šè·¯ç”±å°ç…§è¡¨æŠŠèˆŠHomeç•«é¢é€£çµæ”¹ç‚ºæ‹†åˆ†å¾Œçš„æ§åˆ¶å™¨è·¯å¾‘ï¼›æ­¤ç‚ºä¾†æºé·ç§»å·¥å…·ï¼Œä¸èƒ½æ‹¿ä¾†æ¨è«–ç¾æœ‰ç«¯é»çš„æˆæ¬Šæˆ–è‡ªå‹•ä¿®æ­£ä»»æ„å­—ä¸²ã€‚
+
+ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+æ“ä½œå…¥å£åŒ…å«Update-ViewFileï¼›å‘¼å«åƒæ•¸èˆ‡è¼¸å‡ºå½¢ç‹€ä»¥å„å…¥å£å®£å‘Šç‚ºæº–ã€‚
+
+ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šä¿®æ”¹å‰å…ˆæ ¸å°å¼•ç”¨æ­¤æª”çš„å°ˆæ¡ˆã€é é¢ã€è…³æœ¬æˆ–CIæ­¥é©Ÿï¼Œä¿ç•™æ—¢æœ‰åƒæ•¸ã€è¼¸å‡ºåŠå¤±æ•—çµæŸç¢¼ã€‚
+æ¶‰åŠå¯«å…¥ã€å¤–éƒ¨å‘½ä»¤æˆ–æš«å­˜è³‡æºæ™‚ï¼Œä¾æœ¬æª”å¯¦éš›å¯¦ä½œçš„owneråŠæ¸…ç†è·¯å¾‘è™•ç†ï¼›èªªæ˜ä¸èƒ½å–ä»£åŸ·è¡Œå‰çš„ç¯„åœé©—è­‰ã€‚
+#>
+# View è·¯ç”±æ›´æ–°è…³æœ¬
+# ç”¨æ–¼æ›´æ–°æ‰€æœ‰ View æª”æ¡ˆä¸­çš„æ§åˆ¶å™¨è·¯ç”±
+
+# å®šç¾©è·¯ç”±å°æ‡‰è¡¨
 $routeMappings = @{
-    # ¤p²ÕºŞ²z
+    # å°çµ„ç®¡ç†
     "/Home/MultiGroupView" = "/SmallGroup/MultiGroupView"
     "/Home/IntegrateView" = "/SmallGroup/IntegrateView"
     "/Home/SmallGroupReportView" = "/SmallGroup/SmallGroupReportView"
     
-    # ·s¤HºŞ²z
+    # æ–°äººç®¡ç†
     "/Home/NewPersonFollowUpView" = "/NewPerson/FollowUpView"
     "/Home/NewPerson" = "/NewPerson/NewPerson"
     
-    # ­Ó¤H¸ê°T
+    # å€‹äººè³‡è¨Š
     "/Home/PersonalReport" = "/Personal/Report"
     "/Home/PersonalInfomationView" = "/Personal/InfomationView"
     "/Home/MaintainPersonInfomationView" = "/Personal/MaintainInfomationView"
     
-    # ¦æ¨Æ¾ä
+    # è¡Œäº‹æ›†
     "/Home/Scheduler" = "/Scheduler/Scheduler"
     "/Home/SchedulerView" = "/Scheduler/SchedulerView"
     
-    # ©^ÄmºŞ²z
+    # å¥‰ç»ç®¡ç†
     "/Home/QPayView" = "/Dedication/QPayView"
     "/Home/DedicationFeeView" = "/Dedication/DedicationFeeView"
     "/Home/DedicationFeeViewWeb" = "/Dedication/DedicationFeeViewWeb"
@@ -29,7 +40,7 @@ $routeMappings = @{
     "/Home/KeyInDedicationFeeViewWeb" = "/Dedication/KeyInDedicationFeeViewWeb"
     "/Home/DediationLineLoginView" = "/Dedication/DediationLineLoginView"
     
-    # ©^Äm½]®Ö
+    # å¥‰ç»ç¨½æ ¸
     "/Home/DedicationFeeAuditViewLine" = "/DedicationAudit/AuditViewLine"
     "/Home/DedicationFeeAuditViewWeb" = "/DedicationAudit/AuditViewWeb"
     
@@ -40,38 +51,38 @@ $routeMappings = @{
     "/Home/SundayQrCodeView" = "/QrCode/SundayView"
     "/Home/PersonalQrCodeView" = "/QrCode/PersonalView"
     
-    # ¦W³æºŞ²z
+    # åå–®ç®¡ç†
     "/Home/ChurchRoot" = "/ListManagement/ChurchRoot"
 }
 
-# Url.Action ¹ïÀ³ªí
+# Url.Action å°æ‡‰è¡¨
 $urlActionMappings = @{
-    # ¤p²ÕºŞ²z
+    # å°çµ„ç®¡ç†
     'Url.Action\("MultiGroupView", "Home"' = 'Url.Action("MultiGroupView", "SmallGroup"'
     'Url.Action\("IntegrateView", "Home"' = 'Url.Action("IntegrateView", "SmallGroup"'
     'Url.Action\("SmallGroupReportView", "Home"' = 'Url.Action("SmallGroupReportView", "SmallGroup"'
     
-    # ·s¤HºŞ²z
+    # æ–°äººç®¡ç†
     'Url.Action\("NewPersonFollowUpView", "Home"' = 'Url.Action("FollowUpView", "NewPerson"'
     'Url.Action\("NewPerson", "Home"' = 'Url.Action("NewPerson", "NewPerson"'
     
-    # ­Ó¤H¸ê°T
+    # å€‹äººè³‡è¨Š
     'Url.Action\("PersonalReport", "Home"' = 'Url.Action("Report", "Personal"'
     'Url.Action\("PersonalInfomationView", "Home"' = 'Url.Action("InfomationView", "Personal"'
     'Url.Action\("MaintainPersonInfomationView", "Home"' = 'Url.Action("MaintainInfomationView", "Personal"'
     
-    # ¦æ¨Æ¾ä
+    # è¡Œäº‹æ›†
     'Url.Action\("Scheduler", "Home"' = 'Url.Action("Scheduler", "Scheduler"'
     'Url.Action\("SchedulerView", "Home"' = 'Url.Action("SchedulerView", "Scheduler"'
     
-    # ©^ÄmºŞ²z
+    # å¥‰ç»ç®¡ç†
     'Url.Action\("QPayView", "Home"' = 'Url.Action("QPayView", "Dedication"'
     'Url.Action\("DedicationFeeView", "Home"' = 'Url.Action("DedicationFeeView", "Dedication"'
     'Url.Action\("DedicationFeeViewWeb", "Home"' = 'Url.Action("DedicationFeeViewWeb", "Dedication"'
     'Url.Action\("KeyInDedicationFeeView", "Home"' = 'Url.Action("KeyInDedicationFeeView", "Dedication"'
     'Url.Action\("DediationLineLoginView", "Home"' = 'Url.Action("DediationLineLoginView", "Dedication"'
     
-    # ©^Äm½]®Ö
+    # å¥‰ç»ç¨½æ ¸
     'Url.Action\("DedicationFeeAuditViewLine", "Home"' = 'Url.Action("AuditViewLine", "DedicationAudit"'
     'Url.Action\("DedicationFeeAuditViewWeb", "Home"' = 'Url.Action("AuditViewWeb", "DedicationAudit"'
     
@@ -82,83 +93,83 @@ $urlActionMappings = @{
     'Url.Action\("SundayQrCodeView", "Home"' = 'Url.Action("SundayView", "QrCode"'
     'Url.Action\("PersonalQrCodeView", "Home"' = 'Url.Action("PersonalView", "QrCode"'
     
-    # ¦W³æºŞ²z
+    # åå–®ç®¡ç†
     'Url.Action\("ChurchRoot", "Home"' = 'Url.Action("ChurchRoot", "ListManagement"'
 }
 
-# ¨ç¼Æ¡G§ó·s³æ­ÓÀÉ®×
+# å‡½æ•¸ï¼šæ›´æ–°å–®å€‹æª”æ¡ˆ
 function Update-ViewFile {
     param (
         [string]$FilePath,
         [switch]$DryRun
     )
     
-    Write-Host "³B²zÀÉ®×: $FilePath" -ForegroundColor Cyan
+    Write-Host "è™•ç†æª”æ¡ˆ: $FilePath" -ForegroundColor Cyan
     
     $content = Get-Content -Path $FilePath -Raw -Encoding UTF8
     $originalContent = $content
     $changesMade = $false
     
-    # §ó·s href ¸ô¥Ñ
+    # æ›´æ–° href è·¯ç”±
     foreach ($oldRoute in $routeMappings.Keys) {
         $newRoute = $routeMappings[$oldRoute]
         if ($content -match [regex]::Escape($oldRoute)) {
             $content = $content -replace [regex]::Escape($oldRoute), $newRoute
-            Write-Host "  ? §ó·s href: $oldRoute ¡÷ $newRoute" -ForegroundColor Green
+            Write-Host "  ? æ›´æ–° href: $oldRoute â†’ $newRoute" -ForegroundColor Green
             $changesMade = $true
         }
     }
     
-    # §ó·s Url.Action ©I¥s
+    # æ›´æ–° Url.Action å‘¼å«
     foreach ($oldPattern in $urlActionMappings.Keys) {
         $newPattern = $urlActionMappings[$oldPattern]
         if ($content -match $oldPattern) {
             $content = $content -replace $oldPattern, $newPattern
-            Write-Host "  ? §ó·s Url.Action: $oldPattern ¡÷ $newPattern" -ForegroundColor Green
+            Write-Host "  ? æ›´æ–° Url.Action: $oldPattern â†’ $newPattern" -ForegroundColor Green
             $changesMade = $true
         }
     }
     
-    # ¦pªG¦³ÅÜ§ó¥B¤£¬O´ú¸Õ¼Ò¦¡¡A«h¼g¤JÀÉ®×
+    # å¦‚æœæœ‰è®Šæ›´ä¸”ä¸æ˜¯æ¸¬è©¦æ¨¡å¼ï¼Œå‰‡å¯«å…¥æª”æ¡ˆ
     if ($changesMade -and -not $DryRun) {
         Set-Content -Path $FilePath -Value $content -Encoding UTF8 -NoNewline
-        Write-Host "  ? ÀÉ®×¤w§ó·s" -ForegroundColor Yellow
+        Write-Host "  ? æª”æ¡ˆå·²æ›´æ–°" -ForegroundColor Yellow
     } elseif ($changesMade) {
-        Write-Host "  ? ´ú¸Õ¼Ò¦¡¡GÀÉ®×¥¼¹ê»Ú§ó·s" -ForegroundColor Yellow
+        Write-Host "  ? æ¸¬è©¦æ¨¡å¼ï¼šæª”æ¡ˆæœªå¯¦éš›æ›´æ–°" -ForegroundColor Yellow
     } else {
-        Write-Host "  - µL»İ§ó·s" -ForegroundColor Gray
+        Write-Host "  - ç„¡éœ€æ›´æ–°" -ForegroundColor Gray
     }
     
     return $changesMade
 }
 
-# ¥Dµ{¦¡
+# ä¸»ç¨‹å¼
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $viewsPath = Join-Path $scriptPath "Views"
 
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "View ¸ô¥Ñ§ó·s¸}¥»" -ForegroundColor Magenta
+Write-Host "View è·¯ç”±æ›´æ–°è…³æœ¬" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
-# ¸ß°İ¬O§_¬°´ú¸Õ¼Ò¦¡
-$response = Read-Host "¬O§_¬°´ú¸Õ¼Ò¦¡¡H(¶ÈÅã¥ÜÅÜ§ó¦ı¤£¹ê»Ú­×§ï) [Y/N]"
+# è©¢å•æ˜¯å¦ç‚ºæ¸¬è©¦æ¨¡å¼
+$response = Read-Host "æ˜¯å¦ç‚ºæ¸¬è©¦æ¨¡å¼ï¼Ÿ(åƒ…é¡¯ç¤ºè®Šæ›´ä½†ä¸å¯¦éš›ä¿®æ”¹) [Y/N]"
 $dryRun = $response -eq "Y"
 
 if ($dryRun) {
-    Write-Host "? ´ú¸Õ¼Ò¦¡¡G¥uÅã¥ÜÅÜ§ó¡A¤£¹ê»Ú­×§ïÀÉ®×" -ForegroundColor Yellow
+    Write-Host "? æ¸¬è©¦æ¨¡å¼ï¼šåªé¡¯ç¤ºè®Šæ›´ï¼Œä¸å¯¦éš›ä¿®æ”¹æª”æ¡ˆ" -ForegroundColor Yellow
 } else {
-    Write-Host "? ¥¿¦¡¼Ò¦¡¡G±N¹ê»Ú­×§ïÀÉ®×" -ForegroundColor Red
-    $confirm = Read-Host "½T©w­nÄ~Äò¶Ü¡H[Y/N]"
+    Write-Host "? æ­£å¼æ¨¡å¼ï¼šå°‡å¯¦éš›ä¿®æ”¹æª”æ¡ˆ" -ForegroundColor Red
+    $confirm = Read-Host "ç¢ºå®šè¦ç¹¼çºŒå—ï¼Ÿ[Y/N]"
     if ($confirm -ne "Y") {
-        Write-Host "¾Ş§@¤w¨ú®ø" -ForegroundColor Red
+        Write-Host "æ“ä½œå·²å–æ¶ˆ" -ForegroundColor Red
         exit
     }
 }
 
 Write-Host ""
 
-# ³B²z©Ò¦³ .cshtml ÀÉ®×
+# è™•ç†æ‰€æœ‰ .cshtml æª”æ¡ˆ
 $filesProcessed = 0
 $filesChanged = 0
 
@@ -171,13 +182,13 @@ Get-ChildItem -Path $viewsPath -Filter "*.cshtml" -Recurse | ForEach-Object {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "³B²z§¹¦¨" -ForegroundColor Magenta
+Write-Host "è™•ç†å®Œæˆ" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "³B²zÀÉ®×¼Æ: $filesProcessed" -ForegroundColor Cyan
-Write-Host "ÅÜ§óÀÉ®×¼Æ: $filesChanged" -ForegroundColor Green
+Write-Host "è™•ç†æª”æ¡ˆæ•¸: $filesProcessed" -ForegroundColor Cyan
+Write-Host "è®Šæ›´æª”æ¡ˆæ•¸: $filesChanged" -ForegroundColor Green
 Write-Host ""
 
 if ($dryRun) {
-    Write-Host "³o¬O´ú¸Õ¼Ò¦¡ªºµ²ªG¡A¹ê»ÚÀÉ®×¥¼³Q­×§ï" -ForegroundColor Yellow
-    Write-Host "­Y­n¹ê»Ú§ó·s¡A½Ğ­«·s°õ¦æ¸}¥»¨Ã¿ï¾Ü 'N'" -ForegroundColor Yellow
+    Write-Host "é€™æ˜¯æ¸¬è©¦æ¨¡å¼çš„çµæœï¼Œå¯¦éš›æª”æ¡ˆæœªè¢«ä¿®æ”¹" -ForegroundColor Yellow
+    Write-Host "è‹¥è¦å¯¦éš›æ›´æ–°ï¼Œè«‹é‡æ–°åŸ·è¡Œè…³æœ¬ä¸¦é¸æ“‡ 'N'" -ForegroundColor Yellow
 }

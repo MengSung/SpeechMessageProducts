@@ -1,0 +1,722 @@
+[
+  {
+    "path": ".github/workflows/solution-ci.yml",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\.github\\workflows\\solution-ci.yml",
+    "before": "24f37c2c98f04b6aab48bbbf9bc3e50bb7b1a906311482262383a0dde9fd36c8",
+    "after": "6d3acc1dde95bc90dd5f4d292404c7ccff299b166cc711224e5256a537d15ecd"
+  },
+  {
+    "path": "ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ChurchReport.MemberInfo.Tests\\ChurchReport.MemberInfo.Tests.csproj",
+    "before": "166e4c8faeaab919f6c34bcece261e53264515589193cac0e20c6799ea0f80f2",
+    "after": "7c6a9e6d9c79c568bcde07b01c0c0c5dd2df6e433f019da5cede9a4f63d985dd"
+  },
+  {
+    "path": "Directory.Build.props",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\Directory.Build.props",
+    "before": "226366574aeee821d392e4679583179ab99009261353f80c3217615fb79c8e2d",
+    "after": "5001ef1d43a3f227237d54f596b6d4faf6fa0924b245c6019d6b02217f45bd04"
+  },
+  {
+    "path": "Directory.Build.targets",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\Directory.Build.targets",
+    "before": "78eaf4f20616c04afb5d6637584586ae59dbb8240ef7d23fb2ca35d28152ebc4",
+    "after": "7a99e77a461baee22dbb0c5d17a3a4795288d672c0b6ea2b365410c2813efe0e"
+  },
+  {
+    "path": "Directory.Packages.props",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\Directory.Packages.props",
+    "before": "24e8914c2568c0092381bad0a2adf68c99e16467171589beff3e16819a1fa283",
+    "after": "57dbf0ae8dcf196edc873e887edd2f103d16a118900896dee41e2ceaed15d4f8"
+  },
+  {
+    "path": "Line.Messaging.Tests/Line.Messaging.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\Line.Messaging.Tests\\Line.Messaging.Tests.csproj",
+    "before": "c37333b6957e2aa7657fcc345bc5669f42a9a7919c2d260bf55ea8d7d98ad5db",
+    "after": "7b48a2a5eebc4ad92a5a31709539bf0179422bcb8e59dbe5ff791122203c7799"
+  },
+  {
+    "path": "Line.Messaging/Line.Messaging.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\Line.Messaging\\Line.Messaging.csproj",
+    "before": "68a0202628e38affaa0a6a49cba354402e62eec59698bdb0a64163abf891959c",
+    "after": "da6259af6c7b97a292807f496164b90d17d62ce118645ad27be074e1f2f070a2"
+  },
+  {
+    "path": "LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessor.AspNetCore.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.AspNetCore.Tests\\LineMessagingProcessor.AspNetCore.Tests.csproj",
+    "before": "0443e7ec64b5e906e07feb89eec34b9d49717492e8bba508cb5faba39cd95407",
+    "after": "45868424494cf79f7f40168be47f4f2da7d52e4d3b81d2d0d7ff24b994f0404f"
+  },
+  {
+    "path": "LineMessagingProcessor.AspNetCore/LineMessagingProcessor.AspNetCore.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.AspNetCore\\LineMessagingProcessor.AspNetCore.csproj",
+    "before": "8299371cd6b02bdecc1ece1c961d008a0ed9279aefd3986ab437064076e08672",
+    "after": "affa0a76634d9464b4950913a1332db2c80baa4121b3286fe7657c6714b13da3"
+  },
+  {
+    "path": "LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.Core\\LineMessagingProcessor.Core.csproj",
+    "before": "7724bb459579b214e6078932ff3a82df90424a9d9b0c2f27bf932c2e147a0010",
+    "after": "dda154e33e2a1f3896b3e597dd4956e0ff045106f1a2bd287abec0c6720868a7"
+  },
+  {
+    "path": "LineMessagingProcessor.RichMenus.Tests/LineMessagingProcessor.RichMenus.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.RichMenus.Tests\\LineMessagingProcessor.RichMenus.Tests.csproj",
+    "before": "21a986d48f5da4cdc7f62adeb1c18d97f8ed0ea54d715fe25e3a8282485ba1e8",
+    "after": "d6d9e66379f700097fd319e27f4f5d8aefbb976991db0d90b7c308b577604835"
+  },
+  {
+    "path": "LineMessagingProcessor.RichMenus/LineMessagingProcessor.RichMenus.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.RichMenus\\LineMessagingProcessor.RichMenus.csproj",
+    "before": "2f7a16b183c54b3e3a7f2ef40bb89d343f33a7730fcdd3c23ce2ef687c48d742",
+    "after": "9792c8dbe5c0636ccfc4d3848a7e03b404f724eeb33b99406aaa46db0962e20e"
+  },
+  {
+    "path": "LineMessagingProcessor.Tests/LineMessagingProcessor.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.Tests\\LineMessagingProcessor.Tests.csproj",
+    "before": "61c7abd3cb5837811aa7b65c5b5a8c33cb8a1acc1284be8e02ba9ecc68487203",
+    "after": "2faffa5ff761d30a74bd0dd6b41eca8aceebbc99029c8c585a65876789cd0b50"
+  },
+  {
+    "path": "LineMessagingProcessor.Workflows.Tests/LineMessagingProcessor.Workflows.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.Workflows.Tests\\LineMessagingProcessor.Workflows.Tests.csproj",
+    "before": "e4a5fc2d85a762baa3668f5192d61e21db10f2d457f43e529e1131909214e207",
+    "after": "80c084d5348cd41666bbb05b09d38b92f3e52de7990585e225a7fa12079ae7c0"
+  },
+  {
+    "path": "LineMessagingProcessor.Workflows/LineMessagingProcessor.Workflows.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor.Workflows\\LineMessagingProcessor.Workflows.csproj",
+    "before": "7ea811f946ff092980d27825d6cbf174eff32cc89c624f38139f9193a728b6cb",
+    "after": "340d15ae80b2adeddd38327ef8dc3c44e47e4e8497fa48be193cffa7d83a91b2"
+  },
+  {
+    "path": "LineMessagingProcessor/LineMessagingProcessor.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\LineMessagingProcessor\\LineMessagingProcessor.csproj",
+    "before": "e9a03bce841aa1788fb6525ad202729f091a3f314f9f612e53542b77667542cf",
+    "after": "5de057b299b735c98d4e28be8170b5a95a364bd82447139689ac338b2751d76e"
+  },
+  {
+    "path": "SpeechMessage.Dynamics.Deployment.Tests/SpeechMessage.Dynamics.Deployment.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Dynamics.Deployment.Tests\\SpeechMessage.Dynamics.Deployment.Tests.csproj",
+    "before": "b1569902e18814cd767fc853745f14be17cd592d8c13b54fae9a060a58692d8f",
+    "after": "82932ad6bff520614790671773e688445f70f297a72bc72c841cb6f136e4a3f8"
+  },
+  {
+    "path": "SpeechMessage.Dynamics.Deployment/SpeechMessage.Dynamics.Deployment.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Dynamics.Deployment\\SpeechMessage.Dynamics.Deployment.csproj",
+    "before": "aa59350259c392177f7a228564a065123f2d1169b5a33d3dcda295c1367cb342",
+    "after": "ea99d8c95f5c53e8a3a0ce31bda1fd19e2aa7230dee872e1e9d99838675f34d1"
+  },
+  {
+    "path": "SpeechMessage.Dynamics.Plugins.Tests/SpeechMessage.Dynamics.Plugins.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Dynamics.Plugins.Tests\\SpeechMessage.Dynamics.Plugins.Tests.csproj",
+    "before": "9f053c66d3f261c9e9dea1c7b24a74e79d638d432edb1764da1cb0c23544e621",
+    "after": "4bed583a00b796ed2ee33442d75e04478f8ff2ac4cfed9183d4106e042694e9e"
+  },
+  {
+    "path": "SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Dynamics.Plugins\\SpeechMessage.Dynamics.Plugins.csproj",
+    "before": "5e3bbb3eb0311c12cb76367e97197be0fd14c4d458b8bb2137a68767db863101",
+    "after": "8c53e1fab7f7703bc10e64aeecac8369490a8ac85f6694ddbffa820120161245"
+  },
+  {
+    "path": "SpeechMessage.Localization.Tests/SpeechMessage.Localization.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Localization.Tests\\SpeechMessage.Localization.Tests.csproj",
+    "before": "c51f99e0ba85e3ef2585970cd875dee9e25c7231d52f9a565f2ef4cfd0bd5a29",
+    "after": "4153ec12f851ce89ccb36f7229d47a89bd5ced7af62b79b59c8b37a155086d93"
+  },
+  {
+    "path": "SpeechMessage.Localization/Resources/SharedText.en.resx",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Localization\\Resources\\SharedText.en.resx",
+    "before": "1610c4399b37a67357954e27f67f44e535b0e9886832cb6649da8bbd37ad80c8",
+    "after": "987299a9d09ba01c839305c390bd12916373d8288c651fd9a70404fc0465216e"
+  },
+  {
+    "path": "SpeechMessage.Localization/Resources/SharedText.resx",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Localization\\Resources\\SharedText.resx",
+    "before": "554db48932250df36231bd08b78cbcf5875b2b707c69d040b9ec5aa2d43613dd",
+    "after": "c2e368c5414bc6d79a6cda3c025c8c8be7c9b0b0e438e60c65d8d6c664bbbcb7"
+  },
+  {
+    "path": "SpeechMessage.Localization/SpeechMessage.Localization.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Localization\\SpeechMessage.Localization.csproj",
+    "before": "377874ec877eb8d2251c87dd7b1042cb29af78bf2fa626291a38a68538702e5e",
+    "after": "92f7e378268ef14ca0f6354a32436cd1b016c029918ede9244fb043ae5821da7"
+  },
+  {
+    "path": "SpeechMessage.Payments.AspNetCore/SpeechMessage.Payments.AspNetCore.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Payments.AspNetCore\\SpeechMessage.Payments.AspNetCore.csproj",
+    "before": "66d4d6b9a843f6748d7d9deae42eb13d7cb161a6af9fc7d7ce28319ed8c71b05",
+    "after": "1baa30f2e3e07d022e701b0988a583e28af2f220a9f5ba5d0028b2342c66d3b7"
+  },
+  {
+    "path": "SpeechMessage.Payments.Tests/SpeechMessage.Payments.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Payments.Tests\\SpeechMessage.Payments.Tests.csproj",
+    "before": "1ba09a6f4696f5d37dfcbebb1435c9e389a79bb41929301d3d83799b9a9b0a20",
+    "after": "df384339a12158d6513aaba71f9becf60ad5a3b41cca64fe01fd4664fcd18f0a"
+  },
+  {
+    "path": "SpeechMessage.Payments.Workflows/SpeechMessage.Payments.Workflows.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Payments.Workflows\\SpeechMessage.Payments.Workflows.csproj",
+    "before": "5d6add950fc6bbc61c2196a4273fa5360535278a54e93108d2bf55f12ee77306",
+    "after": "c768568a4d3c7386f0bfaa5e1e9f26103d421310d5bd070dda8b129349671135"
+  },
+  {
+    "path": "SpeechMessage.Payments/SpeechMessage.Payments.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Payments\\SpeechMessage.Payments.csproj",
+    "before": "da99196334782d65f8449406ac4a552db011c638a4cd26be5f43267ee403be3c",
+    "after": "0d7cb2c00949ef960600621cf4f7cde7d134ce71fd93a486c5b72cff9ad44672"
+  },
+  {
+    "path": "SpeechMessage.Tenancy.Tests/SpeechMessage.Tenancy.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Tenancy.Tests\\SpeechMessage.Tenancy.Tests.csproj",
+    "before": "ca9e08bbf0d7b0a546a8f045997b248463d8f513456ce9b07afb08c078f0d6b8",
+    "after": "b1dccf7675c2de3a78afde2b761580c48b5174a1dd558a71d4a302569aaf83b3"
+  },
+  {
+    "path": "SpeechMessage.Tenancy/SpeechMessage.Tenancy.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessage.Tenancy\\SpeechMessage.Tenancy.csproj",
+    "before": "44366406a5b983ba549a7ba672da4fcbe244df498968a8a4fbefb22981101822",
+    "after": "813f26c7da19969ffedd615a2e2e04860d9454e686ef97aeb21b105af9e8a17c"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/DotNetPublish-Debug.bat",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\DotNetPublish-Debug.bat",
+    "before": "12c9bb10bc0f501a5741a663e26e8b69786a60b2957aeb0832e9aafe29b743d6",
+    "after": "d9fbae976479c31585a2c2a7ade3b00571d30e3b56395758be9ef36bfbea9fb3"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/DotNetPublish-Release-Deploy-Official-Production.bat",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\DotNetPublish-Release-Deploy-Official-Production.bat",
+    "before": "40c34986fc5ccad4386ed0d291bcfe0942e901595990dcda9434fd84101fe879",
+    "after": "211940e924d8e7cc00beee03bf6b9a8cbd72c688c811582edea75186a1a15d35"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/DotNetPublish-Release-MaxThroughput.bat",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\DotNetPublish-Release-MaxThroughput.bat",
+    "before": "ef75314e052a7417aca034494b72f68577c31b4d9a7bbc731c84f0756502645d",
+    "after": "4ccc8cbf8f89f186466c91ddc1546804f6674c680a28da961ced6b29a58963b9"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/DotNetPublish-Release-WebMax.bat",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\DotNetPublish-Release-WebMax.bat",
+    "before": "139c09d20d36c362004cb963532932d1744c875141721911ee1205c4bb913469",
+    "after": "3fc3660311be5a4845bb29b89d0fa9710c3ee009ac2863570a18b43565250860"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/NuGet.config",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\NuGet.config",
+    "before": "3f96daf5d928b678270ba3aa16d75e0d2adc1a0fdedcbcaaaf3e3ee3d4cf11dc",
+    "after": "ba05e379bc1c181cc49b78f5aafba64a520704746d50f9b77cda5cca74195e16"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Migrate-ControllerSplit-Phase1.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Scripts\\Migrate-ControllerSplit-Phase1.ps1",
+    "before": "74dfd0dc0549e2da01c728df689cc203c1ad57b252cf0c93cc9febfa1387b729",
+    "after": "155cfdd6f26ffdf831ac6b0b13a47b0d80b0753c507afde902d7b48480c925b5"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportDevelopment.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Scripts\\Start-ChurchReportDevelopment.ps1",
+    "before": "7d8fd34b5fea7490ca2205cb9a1e86fec592f16cf1222141eed2c4851567e591",
+    "after": "fca0ddb2af378ebfc1e64da008be4e20aa1a5e8dfa1115688b012d3facdfb850"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions(有Trace).ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Scripts\\Start-ChurchReportWithTraceOptions(有Trace).ps1",
+    "before": "355f4d2fe1914789173a52211882ef1135c56c8e56be016509d18d07111b7458",
+    "after": "49c6b98015d2511536d24ab18ad841021b7d31cebbf3664b97fb772578b8893b"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions(無Trace).ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Scripts\\Start-ChurchReportWithTraceOptions(無Trace).ps1",
+    "before": "1f29badc64e8717cded0715b07b95c9bca9eca93524c24b1b7e77791c6b3eb4c",
+    "after": "455d1b983a667d7364803c1d3ed72bdde8c9b6822ce919ef2cf287fb3ea83bcc"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Start-ChurchReportWithTraceOptions.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Scripts\\Start-ChurchReportWithTraceOptions.ps1",
+    "before": "355f4d2fe1914789173a52211882ef1135c56c8e56be016509d18d07111b7458",
+    "after": "5244ec13f013fc29bcc20be37e3bea3be3be16659c358f5c0c464960963d253e"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Update-ViewRoutes-Batch2.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Scripts\\Update-ViewRoutes-Batch2.ps1",
+    "before": "096523d14ab77bb3c27ab2241f6e2e857ea87dfe62f5f0181b25715f55a8bd26",
+    "after": "cb272f06f1cc36e391f7cae26b1c34074826b510be00948f6a426bf93d1a0c75"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Scripts/Update-ViewRoutes.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Scripts\\Update-ViewRoutes.ps1",
+    "before": "867e09deb44416da0fda477d257dc1db8855416b2fe1850604b1660f4c777fdb",
+    "after": "9c4476cefd6d32ecb7d3ebd346ef303f4b46c6017453adde1e11b60ed0c4a5ef"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Services/Images/ImageInputText.resx",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Services\\Images\\ImageInputText.resx",
+    "before": "5f780235a9ed6739670941e2fa23580bc2146bb0ba14443c19df4f02e1038a18",
+    "after": "9f6e2d06052de3da86e622dac91efb3fcd48020ce09ae5a636621d45c3c963ee"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\SpeechMessageProducts.ChurchReport.csproj",
+    "before": "cddfce99ccdd63d3271307a445e44a938ae91abf8a42ce1eff488261f96b4717",
+    "after": "986d60ddaed7f2102251c9d7a7db858fd263ebd5327f466d3c9fbff8fc8abb0a"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/Analyze-ChurchReportTraces.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Tools\\Analyze-ChurchReportTraces.ps1",
+    "before": "c131e43eb048b8904df51cdfd601407e6286b0dc61e45949d52c21a292d7302b",
+    "after": "e48a20402ec405aac1a80275a80b1c520345bfe48acbd10419fd7c1cb70c9bac"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/Diagnose-DataverseTrace.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Tools\\Diagnose-DataverseTrace.ps1",
+    "before": "71bfb33157eaff6bfffadcd7354d5b7fa658e56f4d7409d18fc4192d4328a716",
+    "after": "82340bb0956003854a1eebc72a1c1cb74378fc10252a97bb50e5d6736f6310e9"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/parse-perf-log.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Tools\\parse-perf-log.ps1",
+    "before": "8a3571b9f5a1a7aade5dd897d72db5368b8af58baf728bcddab62b319e4db6bd",
+    "after": "7c88c380cd46e3384a425ca3eda529aa010995607bac112145cee577bd1fc80f"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/Tools/verify-release-noperf.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\Tools\\verify-release-noperf.ps1",
+    "before": "12f9f1ef7908acb8ac3a8e7e6199bde318db3dd23fc1d2752e3a10a0a0383059",
+    "after": "29aa3c73efce5a469abac3ef1e37ba96e0ac3eef087dc980c699cbd7a328ecf8"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/web.config",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\web.config",
+    "before": "361bd31bdd4a6648a8d7a927a4b394d070cb9659d1d212b3b17e82fefb9da646",
+    "after": "974b04c0ea890d4105782f91ecfaec7c9c6ee720eb81fdad2118c9df88d05d3a"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/_references.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\_references.js",
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "a210b233b99edd9928c8c5215b719ae66addcae3586900c088c2a2ec1d031413"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/DonationPaymentView.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\DonationPaymentView.css",
+    "before": "47187426b0902e4139091e00f541fd7f84a2c98b4453935846973525cb35bb56",
+    "after": "d1da2b4be31225a89d2f9367c3d694e370a07a46b75ab2c6ba2fbd92680be2e0"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/Gallery.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\Gallery.css",
+    "before": "7d6d7d3d8d5a5a8e4d7491737785cf8d6e7c948ffe46075785a928e960c79567",
+    "after": "2f45b8954b50e730c45326619a481b43682c364966dc8f7f38db51c713666884"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/LineIdLoginView.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\LineIdLoginView.css",
+    "before": "c0dd21dbd09bf64c959ab35d08eabc7b4c53eac2f56cd7d2a7805cf2007bff84",
+    "after": "031e0b8207f1b2afaf544f2612b676acc9d7f874380742cf9d3830f0a1f3cc71"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/LineLiffView.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\LineLiffView.css",
+    "before": "2d489cdef5b92650f5fc7f32a8348cece92c8ff768a3ed517814e58206d29c86",
+    "after": "ba6456ee8fe396736ab5a3f6a5c5fb0954f993f9ae0638544d685066f6de78ba"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/Login.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\Login.css",
+    "before": "bb0bcf4b9c520c62311bcdf443c51bcdafc57ae403c367dc8a1aefb41aae16e6",
+    "after": "7b236a01d4154e92e909f91f09075b32a890b02b5737069f14ea63e7dd6184e9"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/MasterDetail.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\MasterDetail.css",
+    "before": "952d84075bb04eb8bee7308438c626bb254ae3691cf6da96e594c423d109bbe1",
+    "after": "78fa3a1a5856a75b2e2bea83d61fb894e83491b18785c90d4f90376d63190442"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/NewPerson.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\NewPerson.css",
+    "before": "74e6aa8d12126f5eeb0804a476a854bc6d5ee6fbda07dbfb1514f8ec0db17cc3",
+    "after": "5d9caf581c5afba66a94deadeef90b549f2ac3e2e700f897d7d2fd92526ac6b7"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/ReportChart.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\ReportChart.css",
+    "before": "e97ceab210303e74554ace65dfd6304c430d09c41c8cde76dad785a8f97dfca7",
+    "after": "77b1c31070683f4772f0b7c410e0528198eb9ddac1983b1d2f9db2d30688d6d3"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/Scheduler.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\Scheduler.css",
+    "before": "8df0886cddbc6cd1e90fec118fa5ed3c43201d259691de7ab6bbbc1b2b21ef1f",
+    "after": "349d64262916a30fde8888b2b79f3eef495a421407f3f3f3989f4e16a2b9b469"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/Site - 複製.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\Site - 複製.css",
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "9ebb6227e154b0e9c946723547bbe8b8c93537372becb7d9b68b43a37acf5aca"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/Site.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\Site.css",
+    "before": "4d68b6cdb367a6829e768f0e84296415168e31172992f6dab8c61df297b7bcf7",
+    "after": "702d1d0c0605bf6467413acd8a2845962fb796620681a6455cf502f1a55d8204"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/SmallGroupReportController.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\SmallGroupReportController.css",
+    "before": "425ca02dfd31e68766f8df965e05c0d79814bd1ddf5dd05abf348d5211c1e0fd",
+    "after": "cde07318835f100706074f874884b08a0f6d14d96e8aba94d88b0b2b7ee83cbc"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/WeeklyReport.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\WeeklyReport.css",
+    "before": "d1bf8225c0974c92e1ea4205683d5fedd0a90ee4198a27dea22a1e1667e5cdfc",
+    "after": "a6e906b086c23f15c139f8a42830a078cb0b81bd856aeca919d0b62f912137eb"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/arch-dedication.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\arch-dedication.css",
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "00a0530947728589510306cdb51c87b81dc06468d6dd1b5b28572b21624d4d19"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/chinese-support.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\chinese-support.css",
+    "before": "6163f764e5f101fe0f2f8571f7dc77c8a86fce1483ddcc73a9d04bedd2833821",
+    "after": "f7f85dcbf9b281ccd3abdeddcbbd769a7cabb8c01608a0fd620145f13c1443b6"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/css/mini-app-safe-area.css",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\css\\mini-app-safe-area.css",
+    "before": "08038eb74eba1d458e1115ed900d55888b300cc7ee104a64179cd71bf19f68c2",
+    "after": "820b069a8c3c77fbc281cc67c7e21cfe90a7528c913233c95593a9d22e81b0a6"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/ActionButtonCentering.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\ActionButtonCentering.js",
+    "before": "027cc250f57a4f0ea198526272c167d3b1be01b52f12ca7400e733088601bc4e",
+    "after": "b4264f204c154db7f333c5e69f11e9c650a6be3b3150f7658d25572bac2b4661"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/Ajax.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\Ajax.js",
+    "before": "5f6a0a62a191aaeb2a0c07d7e3bce24fc0edf36bfbc641c0d25a7874db1ece46",
+    "after": "52b3d37ea6fdca8f2e7d55e10a0af6a801ae9649723fe6529242e581800d4c5e"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/DataGridAjax.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\DataGridAjax.js",
+    "before": "591e014b339650a4f8d163a4c5e0be0e508c252fc81c23ece15d4f12d20b968c",
+    "after": "9be3affd8d9a4dfca4ddaef3ad115dd9ff4889af85835b25303c56dd9d09390d"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/DropDownBox.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\DropDownBox.js",
+    "before": "6ca9fe7469733c57e0529d2c8a65cbf59e6263761d45a8f324f26ebbc9bc9703",
+    "after": "72955ebf5ff2c42f7120c6ae233db6dff6f156e638b4b7e73d89f7602c0f30bd"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/FeeDataGridAjax.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\FeeDataGridAjax.js",
+    "before": "db15396b9ae5f3570cc2f8488a461d1cf61a4c5eb70b82b7cf4dec6fe68f1780",
+    "after": "05ead9b94afcf9e8f81d405ef74e7a909d33ef370e05d464c580ce5d482eb71d"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/LineIdLoginView.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\LineIdLoginView.js",
+    "before": "d560bec9e83d42318c9b1af7ea565801a6254c2f17727f77f5128907a5d626ed",
+    "after": "d77e0c699341c0b1e60567d18b1295120631a36d801d215391c057b7fe9ff372"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/LoadPanel.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\LoadPanel.js",
+    "before": "23566ab1e64678c3a37daad1b0adad95619f48686a72d942b44964c5d1914f4a",
+    "after": "b74b8bb61ad03c2dbf0dcf464ccd50c82bbad497cacea18c66706ce7ec19d361"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/Login.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\Login.js",
+    "before": "b07376d8268a456ada112942e859dfcd90632440b80a6774518679da33efbec6",
+    "after": "79d54eab9914745d183935e190d41493cef323a55011470a6e7f89b060d5dbbe"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/SelectDate.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\SelectDate.js",
+    "before": "7e50d8c7bee91252f16296559d943fec7a5fd55b5ce34918b3cc4ed44598f480",
+    "after": "655b737d5b904a71ba64acf7442d0bed23575f7ed8f32be95e67725bd37330c0"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/TreeView.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\TreeView.js",
+    "before": "fc9710f09501dca07e1d5ef185a3616e16a91e2e66624e5e5e699bc8336b37a8",
+    "after": "79697780e3c107baeb17e47124c1abb1731f1fd6d05a01cb1ef0024bae397101"
+  },
+  {
+    "path": "SpeechMessageProducts.ChurchReport/wwwroot/js/collection-load-coordinator.js",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\SpeechMessageProducts.ChurchReport\\wwwroot\\js\\collection-load-coordinator.js",
+    "before": "8a964e394fa1da9920ca43da7ad91793eaf14738f76d4b01f58a3b717ec1be6a",
+    "after": "c9fd76a15552205fd39e6d92c5544245cf19cef23d270949246966a27470f2fb"
+  },
+  {
+    "path": "ToolUtility.Core/ContactOperations/ContactDataService.resx",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ToolUtility.Core\\ContactOperations\\ContactDataService.resx",
+    "before": "51b394427f9f6b0b8c933158509851c3dce4fb9d5fd1ffe2fc4bd934e6ad3130",
+    "after": "e52995db83f711588d8d7583a53a8669b754116bed6ed0ba206d0c156f3b58f7"
+  },
+  {
+    "path": "ToolUtility.Core/ListOperations/ListService.resx",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ToolUtility.Core\\ListOperations\\ListService.resx",
+    "before": "fad27dce2361dc51ed6ad1d04306ef55e1721f032291f6a6ff46734ff2bf1355",
+    "after": "13724c9c164e26d7cfabed726863591f556ad99542db8825ca3382d0014b547c"
+  },
+  {
+    "path": "ToolUtility.Core/QueryOperations/FetchXmlQueryService.resx",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ToolUtility.Core\\QueryOperations\\FetchXmlQueryService.resx",
+    "before": "b611e23a8cc56af920fe74ca5e8803225273d9a3f440492ae4eb59754d9d11d3",
+    "after": "bf2b5fa981125313bf3ad168519fa6c7d96bc42ccecd7e612d148502e45f8748"
+  },
+  {
+    "path": "ToolUtility.Core/ToolUtility.Core.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ToolUtility.Core\\ToolUtility.Core.csproj",
+    "before": "13e6327a2060b25254dd0bd98beeebe26dba108914b813f88d6bfb21710d4ab3",
+    "after": "3c84bd56e3bded8bebf5dbddbd4803d32dcad06bd81fd5dcaaab36e283451ce5"
+  },
+  {
+    "path": "ToolUtility.Dataverse.Tests/ToolUtility.Dataverse.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ToolUtility.Dataverse.Tests\\ToolUtility.Dataverse.Tests.csproj",
+    "before": "2353d6bc420fdb0f44e74de16b36642c6ecf516923f2461e8309210fbde0a188",
+    "after": "0b46aaf706899382e8aa9564886458529f60549e93592673ee2ea077495fe8e8"
+  },
+  {
+    "path": "ToolUtility.Tests/ToolUtility.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ToolUtility.Tests\\ToolUtility.Tests.csproj",
+    "before": "b61eee6342dd16c7cb5e610b18c5fcea6a3594b6bb0bd47f2dc4cc0cd8a2c37b",
+    "after": "43ac0e86422debb976d33b8ce18a898179e692fd06173cd8e9524216da817a35"
+  },
+  {
+    "path": "ToolUtility/ToolUtility.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\ToolUtility\\ToolUtility.csproj",
+    "before": "7b6bf0c3068c8432c0bb4c97cae89757862821c62996a7b875af9b16250fcd20",
+    "after": "9e6f7920eb829cddc3e05c3386f1a4d5a10fbc31cb1e6f0d78e0d841138f1340"
+  },
+  {
+    "path": "build/PluginMerge.targets",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\build\\PluginMerge.targets",
+    "before": "938e053e7f9b9de72c1cb517b8b8dacbbe9f16ad777ac022fe66eba8a4666668",
+    "after": "32b5a30163ec02a9dad36bbd61347a61902be7c9ac4f967278e7dd228d10360a"
+  },
+  {
+    "path": "docs/architecture/generate_dataverse_code_conformance_diagram.py",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\docs\\architecture\\generate_dataverse_code_conformance_diagram.py",
+    "before": "898843ddbadb24d5e931138838d8fa9488e0438f87199141def7b1139ab4296c",
+    "after": "cb5604a6a7d1ca7493e98388564e168e5001ea52ddf042e52182f396c3ad8c61"
+  },
+  {
+    "path": "docs/scripts/Invoke-CcgDualModelWithSelfHealing.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\docs\\scripts\\Invoke-CcgDualModelWithSelfHealing.ps1",
+    "before": "56920406ebb60a54696c7e70e7fe4e4ad9e2ded981e6e3186a1d69e08f7d7389",
+    "after": "36c4d6ce6e6de354aafd8bf916ac65bcf24f45c1f3b6ecca032faefa0e98a694"
+  },
+  {
+    "path": "docs/scripts/Start-CcgDualModelRun.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\docs\\scripts\\Start-CcgDualModelRun.ps1",
+    "before": "fe3e4ee454b1d6358a15af3ec407453bc4ac4068e4d6098fd6a25e2747753da4",
+    "after": "845ca21bd9920a75e19c4d32a46d59ab279d228c2d52d2d6041f2edcab2c31aa"
+  },
+  {
+    "path": "docs/scripts/Test-CcgDualModelHealth.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\docs\\scripts\\Test-CcgDualModelHealth.ps1",
+    "before": "8550fbe6b5b68c384fcfa29f90d01f445a1585d2b60bac7739bc766013122a5a",
+    "after": "da15b2668a4261f27eb94d6f9f7023aff3dd2faf6e165314fbdd6caddc96a170"
+  },
+  {
+    "path": "docs/scripts/Tests/Test-CcgReviewSummary.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\docs\\scripts\\Tests\\Test-CcgReviewSummary.ps1",
+    "before": "0a1995106c36845fe91b3da3b79011192873409efd5ecfeb8e6b7494ceb7571c",
+    "after": "24cbc3fa7d317dd4affcab27ae475b65e76826afd4fd3da9581b66671490282d"
+  },
+  {
+    "path": "docs/scripts/Tests/Test-CcgWeeklyQuota.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\docs\\scripts\\Tests\\Test-CcgWeeklyQuota.ps1",
+    "before": "7e02d823f3d53709b43787c8c49620b4f01b7d3a907c7806241b3bb74589be87",
+    "after": "e59dd43b979e303f3aeaa86b0da2023d862114b12b34418924ecc9a3771cd7d5"
+  },
+  {
+    "path": "openspec/changes/line-rich-menu-shared-architecture/.openspec.yaml",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\openspec\\changes\\line-rich-menu-shared-architecture\\.openspec.yaml",
+    "before": "c332e3b0f8f4432f05f7d38dff5efce719c593f962518b8c577a561f48322671",
+    "after": "ef0aae3f80d6a2cac2639ebef228fc99866e4466fb7a16533bb334a39940c68e"
+  },
+  {
+    "path": "tools/I18nCheck.Tests/I18nCheck.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\I18nCheck.Tests\\I18nCheck.Tests.csproj",
+    "before": "93c6a45752b7599a9f8d9ea4426d0a1b1a0b2651c0f52586160f60c347e545b1",
+    "after": "a71765b2dfbabdd8e4cd44fdf865fc5c722def5d910119191c7555a9617ef24f"
+  },
+  {
+    "path": "tools/I18nCheck/I18nCheck.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\I18nCheck\\I18nCheck.csproj",
+    "before": "d7f90383fb742d87f1af375c4661be77b752d7984ebd7aeba4a3e33fba818690",
+    "after": "454b3e58ddb2bbf631e4b583f9044e0100cc43819fb03b0420099eae1752d127"
+  },
+  {
+    "path": "tools/PluginPackaging.Tests/PluginPackaging.Tests.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\PluginPackaging.Tests\\PluginPackaging.Tests.csproj",
+    "before": "6d9357704e6bcf608926f5e8effbbae03627b72682afb1d5fbd88a0594073e25",
+    "after": "de7745dc21fd66fd5e083a7b1f6fcecd57ea0331a022f1f586d87e5adf92cb12"
+  },
+  {
+    "path": "tools/PluginPackaging/PluginPackaging.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\PluginPackaging\\PluginPackaging.csproj",
+    "before": "8a9b18c2e92fcd00942bbc52cfc07a9113f8feb6660d31ad434fe98d7a8db366",
+    "after": "0c5807ca839a8b6f706be9d847bce7cda5a8da07bf4eb209abaea43663d73989"
+  },
+  {
+    "path": "tools/PluginPackaging/Test-PluginAssembly.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\PluginPackaging\\Test-PluginAssembly.ps1",
+    "before": "92b14a889850e9c9150616a432a73b8e9daa3f99a062095a2d71e180afe10cbc",
+    "after": "a50a6020f74828c3ee614c2dc3ccdb6d0f5c4b8b70315c738ade5e84f2add625"
+  },
+  {
+    "path": "tools/PluginPackaging/Tests/Test-PluginAssembly.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\PluginPackaging\\Tests\\Test-PluginAssembly.Tests.ps1",
+    "before": "e03b063ec26ed4b61a5c401b626215704a82b1ce19f91f817043e4e1e930e6bd",
+    "after": "ecb3fdb82e5442191fd0350f576ed9515174be75dcd09caef8e9f720d5894a73"
+  },
+  {
+    "path": "tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\PluginPackaging\\Tests\\Test-PluginBuild.Tests.ps1",
+    "before": "f98df6c1f1c5fd99063dd33a8a5100c93dd1fb4af9ad3a60dbe847d6708e3801",
+    "after": "420fccaecbdf153138e5aba85eb5bfd286c40eb659edb0c0b7590f21fc64932f"
+  },
+  {
+    "path": "tools/RepoQuality/AnalyzerProbe/AnalyzerProbe.csproj",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\AnalyzerProbe\\AnalyzerProbe.csproj",
+    "before": "8f478be0833146edb0a7fab63e796415fd3f2e795d1f89a6de65c467a24528c5",
+    "after": "19913ba36be1bd47659f2d9408e433024edeebde7a79120ab682d037c66b965c"
+  },
+  {
+    "path": "tools/RepoQuality/Convert-TextEncoding.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Convert-TextEncoding.ps1",
+    "before": "95e37ffa56509b56dac9be0ca0ed0bd07d934ab2004eb3208e3856461c7fd1df",
+    "after": "90955d57eb406d97755315b4da95f176b9aec1c900a60684dfe4e5169748d9b3"
+  },
+  {
+    "path": "tools/RepoQuality/Find-DuplicateCode.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Find-DuplicateCode.ps1",
+    "before": "f3370bd189010386a22b507030f974cb50c315831271d9b46f81a36ab4fa76f5",
+    "after": "8d434d4f45304e4d7142c3025c66e4a5e9ed9c74fa5a3d1cad4933680ad33770"
+  },
+  {
+    "path": "tools/RepoQuality/Test-AnalyzerProbe.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Test-AnalyzerProbe.ps1",
+    "before": "57955e764a43794f77e3e2e3148a4b8dd3cfb7befc11daa8afa86f637de17e8a",
+    "after": "eb6e775ecb041d0c2c50bd8b47c3b24e91af64e8af80a1e7147326ca78a329f2"
+  },
+  {
+    "path": "tools/RepoQuality/Test-Coverage.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Test-Coverage.ps1",
+    "before": "03807ed0a6c6d53fbb8f3f150cd0b39cf527b893047472729b051ed0b8ef7638",
+    "after": "69b8f31a1f5f444c7dd615b54f3b7b534cd21e641ef4f066e8a62cb8e97c4dbb"
+  },
+  {
+    "path": "tools/RepoQuality/Test-PackageVersions.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Test-PackageVersions.ps1",
+    "before": "1ebe4b6fd52551caaf499b503ece2d84690d75e57e24aa88fd2a26a5345ad0f5",
+    "after": "c5b1c91954cc0521b08c8fa2401f19760a26652a8429fc877f09eff2dbfe403b"
+  },
+  {
+    "path": "tools/RepoQuality/Test-TextEncoding.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Test-TextEncoding.ps1",
+    "before": "f3a6057671e1856a19ac23325582aa8b564c8ea8bc9f5cc62163e2f252a4ed20",
+    "after": "c92d9b8b442c809ab0af6b6cf9ae1d1304fdec7a5318e5a77b74548370ff984b"
+  },
+  {
+    "path": "tools/RepoQuality/Test-TrxExecution.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Test-TrxExecution.ps1",
+    "before": "3e17c0ccd86330cff28412c4558bd20939d16226fae36032f4746f2fdb092d41",
+    "after": "8453d031ca0ecc8e75692684e23bb8de5764878776ac2e4281ce47ade4e49097"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Find-DuplicateCode.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Find-DuplicateCode.Tests.ps1",
+    "before": "f7c1265ef53523994e8a4bbaded7816b1626bd9e3f14a36af08b3d65b982ee01",
+    "after": "454bd4f9bd88ad7b3d7eb7445c3782b12563d896d8dc5c554141043212131f9a"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-CiTransition.Tests.ps1",
+    "before": "a6fa25230d0757abfaada110b0b78c2c209eac4437dbc794a34da352bdd7b08f",
+    "after": "e3cb1b3123c428f2b8ce303152033df490ed287333f95eef4c16576ad4b074c8"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-Coverage.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-Coverage.Tests.ps1",
+    "before": "1b2e67ab01477fcfde2d70be145d05c118f12e1b2ec74405063344189aeaaa5a",
+    "after": "e82e122348fd4ea3a49e043bd36b696b79488032265926732ca64137ecf336af"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-P002Settings.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-P002Settings.ps1",
+    "before": "98efc99faf3c5c2c6e89c5009681ef4c221322e0e7de218c8b91f9d0239bb56a",
+    "after": "32b351dc9cd7f0500de4de9d61de1fd23b3b290acec653fe7ea322bed7388df3"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-PackageVersions.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-PackageVersions.Tests.ps1",
+    "before": "573dea4f841d1ae6dc3a2880dc1a6bab8a928e50f75463af4176303d221f6038",
+    "after": "36c3ca3638cd885abd6bc9b771a1b48b517da8844b1484187bec7a968580eba8"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-ProgressPage.cjs",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-ProgressPage.cjs",
+    "before": "2f642803073eaa0c878006b031f12ab202e2b6a90cca7cd93a8c3733234cd895",
+    "after": "08b1e9258799ee55e394b0bda95c425906a08bf86a9145894222dcc675a9e27f"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-SixLaborsCiLicense.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-SixLaborsCiLicense.Tests.ps1",
+    "before": "e0798a3a815b8558d72d80df006d5602611f1925ec6978e7fe2acb1eea170904",
+    "after": "fe96a0def2b6d7e18948ac2a357fbc9bdbda6abf7356417fc4332b9191c1d84f"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-TextEncoding.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-TextEncoding.Tests.ps1",
+    "before": "12ba77911cdffc0698d057feee71392ad642d7a011ab0519984bddf7963b08f5",
+    "after": "806abedd967352033998de604c014c0a7e86d38836b20c5975ec4f409e30788d"
+  },
+  {
+    "path": "tools/RepoQuality/Tests/Test-TracerCi.Tests.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\Tests\\Test-TracerCi.Tests.ps1",
+    "before": "6029d6710e7415c52b50f2b16827adce7e8af992051ced5001a84e9a1b808d50",
+    "after": "8f6ddb75cd73b5d3e182fd70a6347dca2e6fb28c951c5f69efc6df304d885a53"
+  },
+  {
+    "path": "tools/RepoQuality/TextEncoding.Common.ps1",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\RepoQuality\\TextEncoding.Common.ps1",
+    "before": "82357d04abdd2b9a080bbb847031e2834449772fefb925bb596fb99be9351387",
+    "after": "204358c8ca8212b7616dfb96b308370ae00a11741eb656e86ff5ee0740d0fc24"
+  },
+  {
+    "path": "tools/generate_vs2026_git_guide.py",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\generate_vs2026_git_guide.py",
+    "before": "f538867c8b7e76c2dc5546a0497c90f7ef3956fc18ab4217683e7bae7527e37b",
+    "after": "b2d9a36d822f0075d9fcb56be541079b017a94128215176f79450e281321d66e"
+  },
+  {
+    "path": "tools/generate_vs2026_ide_steps_doc.py",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\generate_vs2026_ide_steps_doc.py",
+    "before": "4ca6f8b996ff877352bdbd5a8f29e3575ec6418785987a2bebb2b5d5f9cd884c",
+    "after": "e01d395966d8647f8cb69d37edff42b51a4a7e13fa76ddb1fea48de404a6ffa1"
+  },
+  {
+    "path": "tools/merge_vs2026_client_version_docs.py",
+    "backup": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\speechmessage-infrastructure-documentation-_n6z3n8z\\tools\\merge_vs2026_client_version_docs.py",
+    "before": "16082bde64f28d2272eea2c0716a38dbe84d358935c212df72a74918be1a3b4a",
+    "after": "302656de302e24b8de6e40b1c51cf8592615714c0dd1ed0d44e018e6518edacf"
+  }
+]

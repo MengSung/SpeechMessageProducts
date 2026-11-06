@@ -1,20 +1,31 @@
 <#
+æª”æ¡ˆæ•´é«”èªªæ˜
+
+ç›®çš„èˆ‡å®šä½ï¼šç‚ºèˆŠæ§åˆ¶å™¨æ‹†åˆ†å»ºç«‹ç¬¬ä¸€éšæ®µåŸºç¤æª”æ¡ˆèˆ‡ç›®éŒ„ï¼Œä¿ç•™èˆŠç”¢å“çµæ§‹é·ç§»çš„æ“ä½œå…¥å£ï¼›åŸ·è¡Œæœƒä¿®æ”¹ä¾†æºï¼Œå¿…é ˆå…ˆæ ¸å°è¼¸å…¥è·¯å¾‘åŠç¾æœ‰ä¿®æ”¹ã€‚
+
+ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+æ“ä½œå…¥å£åŒ…å«Write-ColorOutputã€New-DirectoryIfNotExistsã€New-FileWithContentï¼›å‘¼å«åƒæ•¸èˆ‡è¼¸å‡ºå½¢ç‹€ä»¥å„å…¥å£å®£å‘Šç‚ºæº–ã€‚
+
+ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šä¿®æ”¹å‰å…ˆæ ¸å°å¼•ç”¨æ­¤æª”çš„å°ˆæ¡ˆã€é é¢ã€è…³æœ¬æˆ–CIæ­¥é©Ÿï¼Œä¿ç•™æ—¢æœ‰åƒæ•¸ã€è¼¸å‡ºåŠå¤±æ•—çµæŸç¢¼ã€‚
+æ¶‰åŠå¯«å…¥ã€å¤–éƒ¨å‘½ä»¤æˆ–æš«å­˜è³‡æºæ™‚ï¼Œä¾æœ¬æª”å¯¦éš›å¯¦ä½œçš„owneråŠæ¸…ç†è·¯å¾‘è™•ç†ï¼›èªªæ˜ä¸èƒ½å–ä»£åŸ·è¡Œå‰çš„ç¯„åœé©—è­‰ã€‚
+#>
+<#
 .SYNOPSIS
-    Controller ¤À³Î¾E²¾¸}¥» - ¶¥¬q¤@¡G«Ø¥ß°òÂ¦¬[ºc
+    Controller åˆ†å‰²é·ç§»è…³æœ¬ - éšæ®µä¸€ï¼šå»ºç«‹åŸºç¤æ¶æ§‹
 
 .DESCRIPTION
-    ³o­Ó¸}¥»·|¦Û°Ê«Ø¥ß Controller ¤À³Î©Ò»İªº¥Ø¿ıµ²ºc©M°òÂ¦ÀÉ®×
-    ¥]§t¡G
-    - «Ø¥ß·sªº¥Ø¿ıµ²ºc
-    - «Ø¥ßªA°È¤¶­±©M¹ê§@Ãş§O
-    - «Ø¥ß Model ©w¸q
-    - «Ø¥ß·sªº Controller
+    é€™å€‹è…³æœ¬æœƒè‡ªå‹•å»ºç«‹ Controller åˆ†å‰²æ‰€éœ€çš„ç›®éŒ„çµæ§‹å’ŒåŸºç¤æª”æ¡ˆ
+    åŒ…å«ï¼š
+    - å»ºç«‹æ–°çš„ç›®éŒ„çµæ§‹
+    - å»ºç«‹æœå‹™ä»‹é¢å’Œå¯¦ä½œé¡åˆ¥
+    - å»ºç«‹ Model å®šç¾©
+    - å»ºç«‹æ–°çš„ Controller
 
 .NOTES
-    °õ¦æ«e½Ğ½T«O¡G
-    1. ¤w³Æ¥÷·í«eµ{¦¡½X
-    2. ¤w«Ø¥ß Git ¤À¤ä
-    3. ¤wÃö³¬ Visual Studio
+    åŸ·è¡Œå‰è«‹ç¢ºä¿ï¼š
+    1. å·²å‚™ä»½ç•¶å‰ç¨‹å¼ç¢¼
+    2. å·²å»ºç«‹ Git åˆ†æ”¯
+    3. å·²é—œé–‰ Visual Studio
 
 .EXAMPLE
     .\Migrate-ControllerSplit-Phase1.ps1
@@ -23,13 +34,13 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$false)]
-    [string]$SolutionRoot = "D:\ºô­¶APP¶³ºİ½u¤Wª©¥»\DevExpressDevExtreme-21.2.7ª©¥»\­µ°T²£«~ª©¥»\ChurchReport\ChurchReport"
+    [string]$SolutionRoot = "D:\ç¶²é APPé›²ç«¯ç·šä¸Šç‰ˆæœ¬\DevExpressDevExtreme-21.2.7ç‰ˆæœ¬\éŸ³è¨Šç”¢å“ç‰ˆæœ¬\ChurchReport\ChurchReport"
 )
 
-# ³]©w¿ù»~³B²z
+# è¨­å®šéŒ¯èª¤è™•ç†
 $ErrorActionPreference = "Stop"
 
-# ÃC¦â¿é¥X¨ç¼Æ
+# é¡è‰²è¼¸å‡ºå‡½æ•¸
 function Write-ColorOutput {
     param(
         [string]$Message,
@@ -38,19 +49,19 @@ function Write-ColorOutput {
     Write-Host $Message -ForegroundColor $Color
 }
 
-# «Ø¥ß¥Ø¿ı¨ç¼Æ
+# å»ºç«‹ç›®éŒ„å‡½æ•¸
 function New-DirectoryIfNotExists {
     param([string]$Path)
     
     if (-not (Test-Path $Path)) {
         New-Item -ItemType Directory -Path $Path -Force | Out-Null
-        Write-ColorOutput "? «Ø¥ß¥Ø¿ı: $Path" "Green"
+        Write-ColorOutput "? å»ºç«‹ç›®éŒ„: $Path" "Green"
     } else {
-        Write-ColorOutput "??  ¥Ø¿ı¤w¦s¦b: $Path" "Yellow"
+        Write-ColorOutput "??  ç›®éŒ„å·²å­˜åœ¨: $Path" "Yellow"
     }
 }
 
-# «Ø¥ßÀÉ®×¨ç¼Æ
+# å»ºç«‹æª”æ¡ˆå‡½æ•¸
 function New-FileWithContent {
     param(
         [string]$Path,
@@ -59,18 +70,18 @@ function New-FileWithContent {
     
     if (-not (Test-Path $Path)) {
         $Content | Out-File -FilePath $Path -Encoding UTF8
-        Write-ColorOutput "? «Ø¥ßÀÉ®×: $Path" "Green"
+        Write-ColorOutput "? å»ºç«‹æª”æ¡ˆ: $Path" "Green"
     } else {
-        Write-ColorOutput "??  ÀÉ®×¤w¦s¦b¡A¸õ¹L: $Path" "Yellow"
+        Write-ColorOutput "??  æª”æ¡ˆå·²å­˜åœ¨ï¼Œè·³é: $Path" "Yellow"
     }
 }
 
 Write-ColorOutput "`n========================================" "Cyan"
-Write-ColorOutput "  Controller ¤À³Î¾E²¾ - ¶¥¬q¤@" "Cyan"
+Write-ColorOutput "  Controller åˆ†å‰²é·ç§» - éšæ®µä¸€" "Cyan"
 Write-ColorOutput "========================================`n" "Cyan"
 
-# 1. «Ø¥ß¥Ø¿ıµ²ºc
-Write-ColorOutput "¨BÆJ 1: «Ø¥ß¥Ø¿ıµ²ºc..." "Cyan"
+# 1. å»ºç«‹ç›®éŒ„çµæ§‹
+Write-ColorOutput "æ­¥é©Ÿ 1: å»ºç«‹ç›®éŒ„çµæ§‹..." "Cyan"
 
 $directories = @(
     "$SolutionRoot\Controllers\Authentication",
@@ -88,8 +99,8 @@ foreach ($dir in $directories) {
     New-DirectoryIfNotExists -Path $dir
 }
 
-# 2. «Ø¥ß Model ÀÉ®×
-Write-ColorOutput "`n¨BÆJ 2: «Ø¥ß Model ©w¸q..." "Cyan"
+# 2. å»ºç«‹ Model æª”æ¡ˆ
+Write-ColorOutput "`næ­¥é©Ÿ 2: å»ºç«‹ Model å®šç¾©..." "Cyan"
 
 # LoginRequest.cs
 $loginRequestContent = @"
@@ -98,23 +109,23 @@ using System.ComponentModel.DataAnnotations;
 namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// µn¤J½Ğ¨D¼Ò«¬
+    /// ç™»å…¥è«‹æ±‚æ¨¡å‹
     /// </summary>
     public class LoginRequest
     {
         /// <summary>
-        /// ±b¸¹
+        /// å¸³è™Ÿ
         /// </summary>
         public string Account { get; set; }
 
         /// <summary>
-        /// ±K½X
+        /// å¯†ç¢¼
         /// </summary>
         public string Password { get; set; }
     }
 
     /// <summary>
-    /// LINE µn¤J½Ğ¨D¼Ò«¬
+    /// LINE ç™»å…¥è«‹æ±‚æ¨¡å‹
     /// </summary>
     public class LineLoginRequest
     {
@@ -125,7 +136,7 @@ namespace ChurchReport.Models.Authentication
         public string LineUserId { get; set; }
 
         /// <summary>
-        /// Åã¥Ü¦WºÙ
+        /// é¡¯ç¤ºåç¨±
         /// </summary>
         public string DisplayName { get; set; }
     }
@@ -139,42 +150,42 @@ $loginResponseContent = @"
 namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// µn¤J¦^À³¼Ò«¬
+    /// ç™»å…¥å›æ‡‰æ¨¡å‹
     /// </summary>
     public class LoginResponse
     {
         /// <summary>
-        /// ¬O§_¦¨¥\
+        /// æ˜¯å¦æˆåŠŸ
         /// </summary>
         public bool Success { get; set; }
 
         /// <summary>
-        /// Åã¥ÜÀËµøÃş«¬
+        /// é¡¯ç¤ºæª¢è¦–é¡å‹
         /// </summary>
         public string DisplayViewType { get; set; }
 
         /// <summary>
-        /// ¬¡ÅD²M³æ ID
+        /// æ´»èºæ¸…å–® ID
         /// </summary>
         public string ActiveListId { get; set; }
 
         /// <summary>
-        /// °T®§
+        /// è¨Šæ¯
         /// </summary>
         public string Message { get; set; }
 
         /// <summary>
-        /// ¥ş¦W
+        /// å…¨å
         /// </summary>
         public string FullName { get; set; }
 
         /// <summary>
-        /// ±b¸¹
+        /// å¸³è™Ÿ
         /// </summary>
         public string Account { get; set; }
 
         /// <summary>
-        /// ±K½X
+        /// å¯†ç¢¼
         /// </summary>
         public string Password { get; set; }
     }
@@ -190,37 +201,37 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// »{ÃÒµ²ªG
+    /// èªè­‰çµæœ
     /// </summary>
     public class AuthResult
     {
         /// <summary>
-        /// ¬O§_¦¨¥\
+        /// æ˜¯å¦æˆåŠŸ
         /// </summary>
         public bool Success { get; set; }
 
         /// <summary>
-        /// µn¤Jªº³sµ¸¤H¹êÅé
+        /// ç™»å…¥çš„é€£çµ¡äººå¯¦é«”
         /// </summary>
         public Entity LoginContact { get; set; }
 
         /// <summary>
-        /// ¥ş¦W
+        /// å…¨å
         /// </summary>
         public string FullName { get; set; }
 
         /// <summary>
-        /// µn¤JÃş«¬
+        /// ç™»å…¥é¡å‹
         /// </summary>
         public LoginType LoginType { get; set; }
 
         /// <summary>
-        /// ¿ù»~°T®§
+        /// éŒ¯èª¤è¨Šæ¯
         /// </summary>
         public string ErrorMessage { get; set; }
 
         /// <summary>
-        /// «Ø¥ß¦¨¥\µ²ªG
+        /// å»ºç«‹æˆåŠŸçµæœ
         /// </summary>
         public static AuthResult Success(Entity contact, string fullName, LoginType type)
         {
@@ -234,7 +245,7 @@ namespace ChurchReport.Models.Authentication
         }
 
         /// <summary>
-        /// «Ø¥ß¥¢±Ñµ²ªG
+        /// å»ºç«‹å¤±æ•—çµæœ
         /// </summary>
         public static AuthResult Fail(string errorMessage)
         {
@@ -247,22 +258,22 @@ namespace ChurchReport.Models.Authentication
     }
 
     /// <summary>
-    /// µn¤JÃş«¬¦CÁ|
+    /// ç™»å…¥é¡å‹åˆ—èˆ‰
     /// </summary>
     public enum LoginType
     {
         /// <summary>
-        /// ±b¸¹±K½Xµn¤J
+        /// å¸³è™Ÿå¯†ç¢¼ç™»å…¥
         /// </summary>
         AccountPassword,
 
         /// <summary>
-        /// LINE ID µn¤J
+        /// LINE ID ç™»å…¥
         /// </summary>
         LineId,
 
         /// <summary>
-        /// QR Code µn¤J
+        /// QR Code ç™»å…¥
         /// </summary>
         QrCode
     }
@@ -278,57 +289,57 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.Models.Authentication
 {
     /// <summary>
-    /// Session ¸ê®Æ¼Ò«¬
+    /// Session è³‡æ–™æ¨¡å‹
     /// </summary>
     public class SessionData
     {
         /// <summary>
-        /// µn¤Jªº³sµ¸¤H¹êÅé
+        /// ç™»å…¥çš„é€£çµ¡äººå¯¦é«”
         /// </summary>
         public Entity LoginContact { get; set; }
 
         /// <summary>
-        /// ±b¸¹
+        /// å¸³è™Ÿ
         /// </summary>
         public string Account { get; set; }
 
         /// <summary>
-        /// ±K½X
+        /// å¯†ç¢¼
         /// </summary>
         public string Password { get; set; }
 
         /// <summary>
-        /// ¥ş¦W
+        /// å…¨å
         /// </summary>
         public string FullName { get; set; }
 
         /// <summary>
-        /// µn¤JÃş«¬
+        /// ç™»å…¥é¡å‹
         /// </summary>
         public string LoginType { get; set; }
 
         /// <summary>
-        /// Åã¥ÜÀËµøÃş«¬
+        /// é¡¯ç¤ºæª¢è¦–é¡å‹
         /// </summary>
         public string DisplayViewType { get; set; }
 
         /// <summary>
-        /// ¬¡ÅD²M³æ ID
+        /// æ´»èºæ¸…å–® ID
         /// </summary>
         public string ActiveListId { get; set; }
 
         /// <summary>
-        /// ¨Ï¥ÎªÌÃş«¬
+        /// ä½¿ç”¨è€…é¡å‹
         /// </summary>
         public string UserType { get; set; }
 
         /// <summary>
-        /// ¬O§_¦³©¯ºÖ¤p²Õ
+        /// æ˜¯å¦æœ‰å¹¸ç¦å°çµ„
         /// </summary>
         public bool HasHappyGroup { get; set; }
 
         /// <summary>
-        /// ¬O§_¦³Ãº¶O¸ê®Æ
+        /// æ˜¯å¦æœ‰ç¹³è²»è³‡æ–™
         /// </summary>
         public bool HasFeeData { get; set; }
     }
@@ -337,8 +348,8 @@ namespace ChurchReport.Models.Authentication
 
 New-FileWithContent -Path "$SolutionRoot\Models\Authentication\SessionData.cs" -Content $sessionDataContent
 
-# 3. «Ø¥ß Service ¤¶­±
-Write-ColorOutput "`n¨BÆJ 3: «Ø¥ß Service ¤¶­±..." "Cyan"
+# 3. å»ºç«‹ Service ä»‹é¢
+Write-ColorOutput "`næ­¥é©Ÿ 3: å»ºç«‹ Service ä»‹é¢..." "Cyan"
 
 # IAuthenticationService.cs
 $authServiceInterfaceContent = @"
@@ -348,17 +359,17 @@ using System.Threading.Tasks;
 namespace ChurchReport.Services.Authentication
 {
     /// <summary>
-    /// »{ÃÒªA°È¤¶­±
+    /// èªè­‰æœå‹™ä»‹é¢
     /// </summary>
     public interface IAuthenticationService
     {
         /// <summary>
-        /// ÅçÃÒ±b¸¹±K½X
+        /// é©—è­‰å¸³è™Ÿå¯†ç¢¼
         /// </summary>
         Task<AuthResult> ValidateCredentialsAsync(string account, string password);
 
         /// <summary>
-        /// ÅçÃÒ LINE User ID
+        /// é©—è­‰ LINE User ID
         /// </summary>
         Task<AuthResult> ValidateLineIdAsync(string lineUserId);
     }
@@ -376,12 +387,12 @@ using System.Threading.Tasks;
 namespace ChurchReport.Services.Authentication
 {
     /// <summary>
-    /// Session ªì©l¤ÆªA°È¤¶­±
+    /// Session åˆå§‹åŒ–æœå‹™ä»‹é¢
     /// </summary>
     public interface ISessionInitializationService
     {
         /// <summary>
-        /// ªì©l¤Æ¨Ï¥ÎªÌ Session
+        /// åˆå§‹åŒ–ä½¿ç”¨è€… Session
         /// </summary>
         Task<SessionData> InitializeSessionAsync(
             Entity loginContact,
@@ -390,7 +401,7 @@ namespace ChurchReport.Services.Authentication
             string password);
 
         /// <summary>
-        /// ²M°£ Session
+        /// æ¸…é™¤ Session
         /// </summary>
         void ClearSession();
     }
@@ -406,18 +417,18 @@ using ChurchReport.Models.Authentication;
 namespace ChurchReport.Services.Navigation
 {
     /// <summary>
-    /// ¾ÉÄıªA°È¤¶­±
+    /// å°è¦½æœå‹™ä»‹é¢
     /// </summary>
     public interface INavigationService
     {
         /// <summary>
-        /// ¨M©wµn¤J«áªº­«¾É¦V¸ê°T
+        /// æ±ºå®šç™»å…¥å¾Œçš„é‡å°å‘è³‡è¨Š
         /// </summary>
         RedirectInfo DetermineRedirect(SessionData sessionData);
     }
 
     /// <summary>
-    /// ­«¾É¦V¸ê°T
+    /// é‡å°å‘è³‡è¨Š
     /// </summary>
     public class RedirectInfo
     {
@@ -429,72 +440,72 @@ namespace ChurchReport.Services.Navigation
 
 New-FileWithContent -Path "$SolutionRoot\Services\Navigation\INavigationService.cs" -Content $navigationServiceInterfaceContent
 
-# 4. «Ø¥ß README
-Write-ColorOutput "`n¨BÆJ 4: «Ø¥ß README ¤å¥ó..." "Cyan"
+# 4. å»ºç«‹ README
+Write-ColorOutput "`næ­¥é©Ÿ 4: å»ºç«‹ README æ–‡ä»¶..." "Cyan"
 
 $readmeContent = @"
-# Controller ¤À³Î¾E²¾¶i«×
+# Controller åˆ†å‰²é·ç§»é€²åº¦
 
-## ¶¥¬q¤@¡G°òÂ¦¬[ºc«Ø¥ß ?
+## éšæ®µä¸€ï¼šåŸºç¤æ¶æ§‹å»ºç«‹ ?
 
-¤w§¹¦¨¡G
-- [x] «Ø¥ß¥Ø¿ıµ²ºc
-- [x] «Ø¥ß Model ©w¸q
-- [x] «Ø¥ß Service ¤¶­±
-- [ ] ¹ê§@ Service Ãş§O
-- [ ] «Ø¥ß·sªº Controller
-- [ ] ­×§ï Startup.cs µù¥UªA°È
+å·²å®Œæˆï¼š
+- [x] å»ºç«‹ç›®éŒ„çµæ§‹
+- [x] å»ºç«‹ Model å®šç¾©
+- [x] å»ºç«‹ Service ä»‹é¢
+- [ ] å¯¦ä½œ Service é¡åˆ¥
+- [ ] å»ºç«‹æ–°çš„ Controller
+- [ ] ä¿®æ”¹ Startup.cs è¨»å†Šæœå‹™
 
-## ¤U¤@¨B
+## ä¸‹ä¸€æ­¥
 
-½Ğ°Ñ¦Ò¥H¤U¤å¥óÄ~Äò¹ê§@¡G
-1. `Controller¤À³Î¹ê§@½d¨Ò.md` - ¬d¬İ§¹¾ã¹ê§@½d¨Ò
-2. `Controller¤À³Î³]­pµû¦ô³ø§i.md` - ¬d¬İ¾ãÅé³]­p¤è®×
+è«‹åƒè€ƒä»¥ä¸‹æ–‡ä»¶ç¹¼çºŒå¯¦ä½œï¼š
+1. `Controlleråˆ†å‰²å¯¦ä½œç¯„ä¾‹.md` - æŸ¥çœ‹å®Œæ•´å¯¦ä½œç¯„ä¾‹
+2. `Controlleråˆ†å‰²è¨­è¨ˆè©•ä¼°å ±å‘Š.md` - æŸ¥çœ‹æ•´é«”è¨­è¨ˆæ–¹æ¡ˆ
 
-## ª`·N¨Æ¶µ
+## æ³¨æ„äº‹é …
 
-1. ©Ò¦³·s«ØªºÀÉ®×³£¦b¾A·íªº©R¦WªÅ¶¡¤U
-2. ½Ğ¨Ï¥Î Visual Studio ±N³o¨ÇÀÉ®×¥[¤J±M®×
-3. ¹ê§@ Service Ãş§O®É¡A½Ğ°Ñ¦Ò­ì©lªº HomeController ÅŞ¿è
-4. °O±o¦b Startup.cs µù¥U·sªA°È
+1. æ‰€æœ‰æ–°å»ºçš„æª”æ¡ˆéƒ½åœ¨é©ç•¶çš„å‘½åç©ºé–“ä¸‹
+2. è«‹ä½¿ç”¨ Visual Studio å°‡é€™äº›æª”æ¡ˆåŠ å…¥å°ˆæ¡ˆ
+3. å¯¦ä½œ Service é¡åˆ¥æ™‚ï¼Œè«‹åƒè€ƒåŸå§‹çš„ HomeController é‚è¼¯
+4. è¨˜å¾—åœ¨ Startup.cs è¨»å†Šæ–°æœå‹™
 
-## °õ¦æ©R¥O
+## åŸ·è¡Œå‘½ä»¤
 
 ```powershell
-# ¶i¤J±M®×¥Ø¿ı
+# é€²å…¥å°ˆæ¡ˆç›®éŒ„
 cd ChurchReport
 
-# °õ¦æ¶¥¬q¤G¾E²¾¸}¥»¡]«İ«Ø¥ß¡^
+# åŸ·è¡Œéšæ®µäºŒé·ç§»è…³æœ¬ï¼ˆå¾…å»ºç«‹ï¼‰
 .\Scripts\Migrate-ControllerSplit-Phase2.ps1
 ```
 
-«Ø¥ß®É¶¡: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+å»ºç«‹æ™‚é–“: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 "@
 
-New-FileWithContent -Path "$SolutionRoot\¤å¥ó\Controller¤À³Î¾E²¾¶i«×.md" -Content $readmeContent
+New-FileWithContent -Path "$SolutionRoot\æ–‡ä»¶\Controlleråˆ†å‰²é·ç§»é€²åº¦.md" -Content $readmeContent
 
-# §¹¦¨
+# å®Œæˆ
 Write-ColorOutput "`n========================================" "Cyan"
-Write-ColorOutput "  ¶¥¬q¤@§¹¦¨¡I" "Green"
+Write-ColorOutput "  éšæ®µä¸€å®Œæˆï¼" "Green"
 Write-ColorOutput "========================================`n" "Cyan"
 
-Write-ColorOutput "¤w«Ø¥ß¥H¤U¤º®e¡G" "White"
-Write-ColorOutput "  ?? ¥Ø¿ıµ²ºc¡]Controllers, Services, Models¡^" "White"
-Write-ColorOutput "  ?? Model ©w¸qÀÉ®×¡]4 ­Ó¡^" "White"
-Write-ColorOutput "  ?? Service ¤¶­±ÀÉ®×¡]3 ­Ó¡^" "White"
-Write-ColorOutput "  ?? ¶i«×°lÂÜ¤å¥ó" "White"
+Write-ColorOutput "å·²å»ºç«‹ä»¥ä¸‹å…§å®¹ï¼š" "White"
+Write-ColorOutput "  ?? ç›®éŒ„çµæ§‹ï¼ˆControllers, Services, Modelsï¼‰" "White"
+Write-ColorOutput "  ?? Model å®šç¾©æª”æ¡ˆï¼ˆ4 å€‹ï¼‰" "White"
+Write-ColorOutput "  ?? Service ä»‹é¢æª”æ¡ˆï¼ˆ3 å€‹ï¼‰" "White"
+Write-ColorOutput "  ?? é€²åº¦è¿½è¹¤æ–‡ä»¶" "White"
 
-Write-ColorOutput "`n¤U¤@¨B¡G" "Yellow"
-Write-ColorOutput "  1. ¨Ï¥Î Visual Studio ¶}±Ò¤è®×" "White"
-Write-ColorOutput "  2. ±N·s«ØªºÀÉ®×¥[¤J±M®×" "White"
-Write-ColorOutput "  3. °Ñ¦Ò 'Controller¤À³Î¹ê§@½d¨Ò.md' ¹ê§@ Service Ãş§O" "White"
-Write-ColorOutput "  4. «Ø¥ß AuthenticationController" "White"
-Write-ColorOutput "  5. ¦b Startup.cs µù¥UªA°È" "White"
+Write-ColorOutput "`nä¸‹ä¸€æ­¥ï¼š" "Yellow"
+Write-ColorOutput "  1. ä½¿ç”¨ Visual Studio é–‹å•Ÿæ–¹æ¡ˆ" "White"
+Write-ColorOutput "  2. å°‡æ–°å»ºçš„æª”æ¡ˆåŠ å…¥å°ˆæ¡ˆ" "White"
+Write-ColorOutput "  3. åƒè€ƒ 'Controlleråˆ†å‰²å¯¦ä½œç¯„ä¾‹.md' å¯¦ä½œ Service é¡åˆ¥" "White"
+Write-ColorOutput "  4. å»ºç«‹ AuthenticationController" "White"
+Write-ColorOutput "  5. åœ¨ Startup.cs è¨»å†Šæœå‹™" "White"
 
-Write-ColorOutput "`n¸Ô²Ó»¡©ú½Ğ°Ñ¦Ò¡G" "Cyan"
-Write-ColorOutput "  ?? ¤å¥ó\Controller¤À³Î³]­pµû¦ô³ø§i.md" "White"
-Write-ColorOutput "  ?? ¤å¥ó\Controller¤À³Î¹ê§@½d¨Ò.md" "White"
-Write-ColorOutput "  ?? ¤å¥ó\Controller¤À³Î¾E²¾¶i«×.md" "White"
+Write-ColorOutput "`nè©³ç´°èªªæ˜è«‹åƒè€ƒï¼š" "Cyan"
+Write-ColorOutput "  ?? æ–‡ä»¶\Controlleråˆ†å‰²è¨­è¨ˆè©•ä¼°å ±å‘Š.md" "White"
+Write-ColorOutput "  ?? æ–‡ä»¶\Controlleråˆ†å‰²å¯¦ä½œç¯„ä¾‹.md" "White"
+Write-ColorOutput "  ?? æ–‡ä»¶\Controlleråˆ†å‰²é·ç§»é€²åº¦.md" "White"
 
-Write-ColorOutput "`n´£¥Ü¡G°O±o¥ı«Ø¥ß Git ¤À¤ä¡I" "Yellow"
+Write-ColorOutput "`næç¤ºï¼šè¨˜å¾—å…ˆå»ºç«‹ Git åˆ†æ”¯ï¼" "Yellow"
 Write-ColorOutput "  git checkout -b feature/controller-split-authentication`n" "Gray"

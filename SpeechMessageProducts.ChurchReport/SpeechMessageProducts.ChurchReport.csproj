@@ -1,3 +1,15 @@
+<!--
+檔案整體說明
+
+目的與定位：定義既有教會管理MVC主機與產品整合的MSBuild專案邊界，集中target、套件及專案參考，讓產品／測試依正確方向編譯。
+
+主要功能與流程：
+宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
+專案參考包含Line.Messaging.csproj、SpeechMessage.Tenancy.csproj、LineMessagingProcessor.csproj、LineMessagingProcessor.AspNetCore.csproj、LineMessagingProcessor.Workflows.csproj、ToolUtility.csproj、SpeechMessage.Payments.csproj、SpeechMessage.Payments.AspNetCore.csproj、SpeechMessage.Payments.Workflows.csproj、LineMessagingProcessor.RichMenus.csproj；不能新增反向相依或將主機狀態引入純核心。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+-->
 <Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

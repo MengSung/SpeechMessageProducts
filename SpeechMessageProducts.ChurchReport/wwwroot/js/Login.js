@@ -1,74 +1,85 @@
+/*
+æª”æ¡ˆæ•´é«”èªªæ˜
+
+ç›®çš„èˆ‡å®šä½ï¼šè™•ç†ç™»å…¥è¡¨å–®çš„å‰ç«¯é€å‡ºã€è¼‰å…¥ç‹€æ…‹ã€æç¤ºåŠå°è¦½ï¼Œé…åˆä¼ºæœå™¨å›ºå®šç™»å…¥å›æ‡‰æ¬„ä½ï¼›è¼¸å…¥é©—è­‰åªæ”¹å–„äº’å‹•ï¼Œä¸å–ä»£èªè­‰ã€‚
+
+ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+æ“ä½œå…¥å£åŒ…å«getLoadPanelInstanceã€Loginã€Registerã€onBeginã€onSuccessã€onCompleteã€ShowToastï¼›å‘¼å«åƒæ•¸èˆ‡è¼¸å‡ºå½¢ç‹€ä»¥å„å…¥å£å®£å‘Šç‚ºæº–ã€‚
+
+ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šä¿®æ”¹å‰å…ˆæ ¸å°å¼•ç”¨æ­¤æª”çš„å°ˆæ¡ˆã€é é¢ã€è…³æœ¬æˆ–CIæ­¥é©Ÿï¼Œä¿ç•™æ—¢æœ‰åƒæ•¸ã€è¼¸å‡ºåŠå¤±æ•—çµæŸç¢¼ã€‚
+æ¶‰åŠå¯«å…¥ã€å¤–éƒ¨å‘½ä»¤æˆ–æš«å­˜è³‡æºæ™‚ï¼Œä¾æœ¬æª”å¯¦éš›å¯¦ä½œçš„owneråŠæ¸…ç†è·¯å¾‘è™•ç†ï¼›èªªæ˜ä¸èƒ½å–ä»£åŸ·è¡Œå‰çš„ç¯„åœé©—è­‰ã€‚
+*/
 // ===========================================
-// Login ­¶­± JavaScript ÅŞ¿è
+// Login é é¢ JavaScript é‚è¼¯
 // ===========================================
 
-// °òÂ¦¶EÂ_¡G½T»{ JavaScript °õ¦æÀô¹Ò
-console.log('=== JavaScript ¶}©l°õ¦æ ===');
-console.log('jQuery ª©¥»:', typeof $ !== 'undefined' ? $.fn.jquery : '¥¼¸ü¤J');
-console.log('DevExtreme ª©¥»:', typeof DevExpress !== 'undefined' ? 'loaded' : '¥¼¸ü¤J');
+// åŸºç¤è¨ºæ–·ï¼šç¢ºèª JavaScript åŸ·è¡Œç’°å¢ƒ
+console.log('=== JavaScript é–‹å§‹åŸ·è¡Œ ===');
+console.log('jQuery ç‰ˆæœ¬:', typeof $ !== 'undefined' ? $.fn.jquery : 'æœªè¼‰å…¥');
+console.log('DevExtreme ç‰ˆæœ¬:', typeof DevExpress !== 'undefined' ? 'loaded' : 'æœªè¼‰å…¥');
 
-// ¸ü¤J­±ªO¹ê¨Ò¨ú±o¨ç¼Æ
+// è¼‰å…¥é¢æ¿å¯¦ä¾‹å–å¾—å‡½æ•¸
 function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
 
-// µn¤J«ö¶sÂIÀ»¨Æ¥ó¡GÅã¥Ü¸ü¤J­±ªO
+// ç™»å…¥æŒ‰éˆ•é»æ“Šäº‹ä»¶ï¼šé¡¯ç¤ºè¼‰å…¥é¢æ¿
 function Login(arg) { getLoadPanelInstance().show(); }
 
-// µù¥U«ö¶sÂIÀ»¨Æ¥ó¡G¸õÂà¨ìµù¥U­¶­±
+// è¨»å†ŠæŒ‰éˆ•é»æ“Šäº‹ä»¶ï¼šè·³è½‰åˆ°è¨»å†Šé é¢
 function Register(arg) { window.location.href = "/Home/Register"; }
 
-// Gallery ªì©l¤Æ¡G¨Ï¥Î½ü¸ß¾÷¨îµ¥«İ¹ê¨Ò³Ğ«Ø
+// Gallery åˆå§‹åŒ–ï¼šä½¿ç”¨è¼ªè©¢æ©Ÿåˆ¶ç­‰å¾…å¯¦ä¾‹å‰µå»º
 $(function() {
-    console.log('[Gallery] ¶}©lªì©l¤Æ¬yµ{');
-    console.log('[Gallery] #gallery ¤¸¯À¼Æ¶q:', $('#gallery').length);
+    console.log('[Gallery] é–‹å§‹åˆå§‹åŒ–æµç¨‹');
+    console.log('[Gallery] #gallery å…ƒç´ æ•¸é‡:', $('#gallery').length);
 
-    var attemptCount = 0;      // ¹Á¸Õ¦¸¼Æ­p¼Æ¾¹
-    var maxAttempts = 20;      // ³Ì¤j¹Á¸Õ¦¸¼Æ
-    var intervalMs = 200;      // ¨C¦¸¶¡¹j 200ms
+    var attemptCount = 0;      // å˜—è©¦æ¬¡æ•¸è¨ˆæ•¸å™¨
+    var maxAttempts = 20;      // æœ€å¤§å˜—è©¦æ¬¡æ•¸
+    var intervalMs = 200;      // æ¯æ¬¡é–“éš” 200ms
 
-    // ½ü¸ßÀË¬d Gallery ¹ê¨Ò¬O§_¤w³Ğ«Ø
+    // è¼ªè©¢æª¢æŸ¥ Gallery å¯¦ä¾‹æ˜¯å¦å·²å‰µå»º
     var pollGallery = setInterval(function() {
         attemptCount++;
-        console.log('[Gallery] ¹Á¸Õ²Ä ' + attemptCount + ' ¦¸Àò¨ú¹ê¨Ò...');
+        console.log('[Gallery] å˜—è©¦ç¬¬ ' + attemptCount + ' æ¬¡ç²å–å¯¦ä¾‹...');
 
         try {
             var gallery = $("#gallery").dxGallery("instance");
 
             if (gallery) {
-                // ¦¨¥\Àò¨ú¹ê¨Ò¡A°±¤î½ü¸ß
+                // æˆåŠŸç²å–å¯¦ä¾‹ï¼Œåœæ­¢è¼ªè©¢
                 clearInterval(pollGallery);
-                console.log('[Gallery] ? ¦¨¥\Àò¨ú¹ê¨Ò¡I');
-                console.log('[Gallery] ·í«e¿ï¶µ:', gallery.option());
+                console.log('[Gallery] ? æˆåŠŸç²å–å¯¦ä¾‹ï¼');
+                console.log('[Gallery] ç•¶å‰é¸é …:', gallery.option());
 
-                // ±j¨î³]©w Gallery ¿ï¶µ
+                // å¼·åˆ¶è¨­å®š Gallery é¸é …
                 gallery.option({
-                    slideshowDelay: 6000,     // ¨C±i¹Ï°±¯d 6 ¬í
-                    animationDuration: 800,    // ¹L³õ°Êµe 800ms
-                    animationEnabled: true,    // ±Ò¥Î°Êµe
-                    swipeEnabled: true,        // ±Ò¥Î¤â¶Õ·Æ°Ê
-                    loop: true,                // ´`Àô¼½©ñ
-                    stretchImages: false       // ¤£©Ô¦ù¹Ï¤ù
+                    slideshowDelay: 6000,     // æ¯å¼µåœ–åœç•™ 6 ç§’
+                    animationDuration: 800,    // éå ´å‹•ç•« 800ms
+                    animationEnabled: true,    // å•Ÿç”¨å‹•ç•«
+                    swipeEnabled: true,        // å•Ÿç”¨æ‰‹å‹¢æ»‘å‹•
+                    loop: true,                // å¾ªç’°æ’­æ”¾
+                    stretchImages: false       // ä¸æ‹‰ä¼¸åœ–ç‰‡
                 });
 
-                console.log('[Gallery] ³]©w§¹¦¨:', gallery.option());
+                console.log('[Gallery] è¨­å®šå®Œæˆ:', gallery.option());
 
-                // ÀË¬d¹Ï¤ù¼Æ¶q¨Ã¨M©w¬O§_±Ò°Ê¦Û°Ê¼½©ñ
+                // æª¢æŸ¥åœ–ç‰‡æ•¸é‡ä¸¦æ±ºå®šæ˜¯å¦å•Ÿå‹•è‡ªå‹•æ’­æ”¾
                 var dataSource = gallery.option("dataSource");
-                console.log('[Gallery] ¹Ï¤ù¼Æ¶q:', dataSource ? dataSource.length : 0);
+                console.log('[Gallery] åœ–ç‰‡æ•¸é‡:', dataSource ? dataSource.length : 0);
 
                 if (dataSource && dataSource.length > 1) {
-                    console.log('[Gallery] ±Ò°Ê¦Û°Ê¼½©ñ');
+                    console.log('[Gallery] å•Ÿå‹•è‡ªå‹•æ’­æ”¾');
                 } else {
-                    console.warn('[Gallery] ¥u¦³¤@±i¹Ï©ÎµL¹Ï¤ù');
+                    console.warn('[Gallery] åªæœ‰ä¸€å¼µåœ–æˆ–ç„¡åœ–ç‰‡');
                 }
             } else if (attemptCount >= maxAttempts) {
-                // ¶W¹L³Ì¤j¹Á¸Õ¦¸¼Æ¡A°±¤î½ü¸ß¨Ã°O¿ı¿ù»~
+                // è¶…éæœ€å¤§å˜—è©¦æ¬¡æ•¸ï¼Œåœæ­¢è¼ªè©¢ä¸¦è¨˜éŒ„éŒ¯èª¤
                 clearInterval(pollGallery);
-                console.error('[Gallery] ? µLªkÀò¨ú¹ê¨Ò');
-                console.log('[Gallery] #gallery ¦s¦b:', $('#gallery').length > 0);
+                console.error('[Gallery] ? ç„¡æ³•ç²å–å¯¦ä¾‹');
+                console.log('[Gallery] #gallery å­˜åœ¨:', $('#gallery').length > 0);
             }
         } catch (e) {
-            // ®·Àò²§±`¨Ã°O¿ı
-            console.error('[Gallery] ¿ù»~:', e);
+            // æ•ç²ç•°å¸¸ä¸¦è¨˜éŒ„
+            console.error('[Gallery] éŒ¯èª¤:', e);
             if (attemptCount >= maxAttempts) {
                 clearInterval(pollGallery);
             }
@@ -77,17 +88,17 @@ $(function() {
 });
 
 // ===========================================
-// AJAX ¨Æ¥ó³B²z
+// AJAX äº‹ä»¶è™•ç†
 // ===========================================
 
-// AJAX ½Ğ¨D¶}©l¨Æ¥ó
+// AJAX è«‹æ±‚é–‹å§‹äº‹ä»¶
 function onBegin() { }
 
-// AJAX ½Ğ¨D¦¨¥\¨Æ¥ó¡G³B²zµn¤Jµ²ªG
+// AJAX è«‹æ±‚æˆåŠŸäº‹ä»¶ï¼šè™•ç†ç™»å…¥çµæœ
 function onSuccess(data) {
-    getLoadPanelInstance().hide();  // ÁôÂÃ¸ü¤J­±ªO
+    getLoadPanelInstance().hide();  // éš±è—è¼‰å…¥é¢æ¿
 
-    // ®Ú¾Ú¦^¶ÇªºÅã¥ÜÃş«¬¸õÂà¨ì¹ïÀ³­¶­±
+    // æ ¹æ“šå›å‚³çš„é¡¯ç¤ºé¡å‹è·³è½‰åˆ°å°æ‡‰é é¢
     if (data.DisplayViewType == "MultiGroupView") {
         ShowToast(data.message, "success", 2000);
         window.location.href = "/SmallGroup/MultiGroupView/" + data.ActiveListId;
@@ -98,31 +109,31 @@ function onSuccess(data) {
         ShowToast(data.message, "success", 2000);
         window.location.href = "/Home/HappyGroup";
     } else {
-        // µn¤J¥¢±Ñ¡AÅã¥Ü¿ù»~°T®§
+        // ç™»å…¥å¤±æ•—ï¼Œé¡¯ç¤ºéŒ¯èª¤è¨Šæ¯
         ShowToast(data.message, "error", 4000);
     }
 }
 
-// AJAX ½Ğ¨D§¹¦¨¨Æ¥ó
+// AJAX è«‹æ±‚å®Œæˆäº‹ä»¶
 function onComplete(data) { }
 
 // ===========================================
-// Toast ³qª¾¨ç¼Æ
+// Toast é€šçŸ¥å‡½æ•¸
 // ===========================================
 
-// Åã¥Ü Toast ³qª¾
+// é¡¯ç¤º Toast é€šçŸ¥
 function ShowToast(LocalToastMessage, Type, DisplayTime) {
     var ToastInstance = $("#Toast").dxToast("instance");
     ToastInstance.option({
-        message: LocalToastMessage,     // °T®§¤º®e
-        type: Type,                     // °T®§Ãş«¬ (success/error µ¥)
-        displayTime: DisplayTime,       // Åã¥Ü®É¶¡ (²@¬í)
-        closeOnClick: true,             // ¤¹³\ÂIÀ»Ãö³¬
-        position: {                     // ¦ì¸m³]©w
+        message: LocalToastMessage,     // è¨Šæ¯å…§å®¹
+        type: Type,                     // è¨Šæ¯é¡å‹ (success/error ç­‰)
+        displayTime: DisplayTime,       // é¡¯ç¤ºæ™‚é–“ (æ¯«ç§’)
+        closeOnClick: true,             // å…è¨±é»æ“Šé—œé–‰
+        position: {                     // ä½ç½®è¨­å®š
             at: 'center center',
             of: '.login-card',
             offset: '0 20'
         }
     });
-    ToastInstance.show();  // Åã¥Ü Toast
+    ToastInstance.show();  // é¡¯ç¤º Toast
 }

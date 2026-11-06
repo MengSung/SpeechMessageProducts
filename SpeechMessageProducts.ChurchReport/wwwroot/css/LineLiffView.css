@@ -1,9 +1,20 @@
+/*
+æª”æ¡ˆæ•´é«”èªªæ˜
+
+ç›®çš„èˆ‡å®šä½ï¼šå®šç¾©LIFFç™»å…¥é çš„è¦–è¦ºè¦å‰‡ï¼Œè®“å°æ‡‰Razorï¼HTMLåœ¨æ¡Œé¢èˆ‡è¡Œå‹•é¡¯ç¤ºä¸€è‡´ï¼›CSSåªæ§åˆ¶å‘ˆç¾ï¼Œä¸è² è²¬è³‡æ–™è¼‰å…¥æˆ–æˆæ¬Šã€‚
+
+ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+ä¾ä¸‹æ–¹åŸç”Ÿå®£å‘ŠåŸ·è¡Œæœ¬æª”æ‰€è¿°å·¥ä½œï¼›å…¥å£ã€æ¢ä»¶åŠé †åºé ˆèˆ‡å¯¦éš›å‘¼å«ç«¯ä¸€è‡´ï¼Œä¸èƒ½æŠŠç¤ºç¯„æˆ–é è¦½è¦–ç‚ºå·²å¥—ç”¨ã€‚
+
+ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šä¿®æ”¹å‰å…ˆæ ¸å°å¼•ç”¨æ­¤æª”çš„å°ˆæ¡ˆã€é é¢ã€è…³æœ¬æˆ–CIæ­¥é©Ÿï¼Œä¿ç•™æ—¢æœ‰åƒæ•¸ã€è¼¸å‡ºåŠå¤±æ•—çµæŸç¢¼ã€‚
+æ¶‰åŠå¯«å…¥ã€å¤–éƒ¨å‘½ä»¤æˆ–æš«å­˜è³‡æºæ™‚ï¼Œä¾æœ¬æª”å¯¦éš›å¯¦ä½œçš„owneråŠæ¸…ç†è·¯å¾‘è™•ç†ï¼›èªªæ˜ä¸èƒ½å–ä»£åŸ·è¡Œå‰çš„ç¯„åœé©—è­‰ã€‚
+*/
 /* ===================================================================
- * LineLiffView ­¶­±¼Ë¦¡ªí (LineLiffView.css)
- * ¥\¯à¡G©w¸q LINE LIFF ¨­¤À¸j©w­¶­±ªºµøÄ±¼Ë¦¡
+ * LineLiffView é é¢æ¨£å¼è¡¨ (LineLiffView.css)
+ * åŠŸèƒ½ï¼šå®šç¾© LINE LIFF èº«åˆ†ç¶å®šé é¢çš„è¦–è¦ºæ¨£å¼
  * =================================================================== */
 
-/* ===== ¥ş°ì¼Ë¦¡ ===== */
+/* ===== å…¨åŸŸæ¨£å¼ ===== */
 html, body {
   height: 100%;
 }
@@ -13,7 +24,7 @@ body {
   color: #2c3e50;
 }
 
-/* ===== ­¶­º°Ï°ì ===== */
+/* ===== é é¦–å€åŸŸ ===== */
 .cr-header {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(6px);
@@ -30,7 +41,7 @@ body {
   font-size: .95rem;
 }
 
-/* ===== ¥d¤ù°Ï°ì ===== */
+/* ===== å¡ç‰‡å€åŸŸ ===== */
 .cr-card {
   max-width: 820px;
   width: 100%;
@@ -43,19 +54,19 @@ body {
   padding: 1.25rem 1.5rem 1.75rem;
 }
 
-/* ===== ¬X©M¥d¤ù¤º®e°Ï°ì ===== */
+/* ===== æŸ”å’Œå¡ç‰‡å…§å®¹å€åŸŸ ===== */
 .card-body-soft {
   padding: 1rem 1.25rem;
   background-color: #f8f9fa;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 0 0 18px 18px;
-  display: flex;                    /* ¨Ï¥Î Flexbox */
-  align-items: center;              /* ««ª½¸m¤¤ */
-  justify-content: center;          /* ¤ô¥­¸m¤¤ */
-  min-height: 120px;               /* ³]©w³Ì¤p°ª«× */
+  display: flex;                    /* ä½¿ç”¨ Flexbox */
+  align-items: center;              /* å‚ç›´ç½®ä¸­ */
+  justify-content: center;          /* æ°´å¹³ç½®ä¸­ */
+  min-height: 120px;               /* è¨­å®šæœ€å°é«˜åº¦ */
 }
 
-/* ===== ÃÀ´Y¥]¸Ë¾¹ ===== */
+/* ===== è—å»ŠåŒ…è£å™¨ ===== */
 .cr-gallery {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   background: #fff;
@@ -65,13 +76,13 @@ body {
   border-radius: 12px;
 }
 
-/* ===== ª¬ºAÅã¥Ü ===== */
+/* ===== ç‹€æ…‹é¡¯ç¤º ===== */
 #displaynamefield {
   min-height: 2.2rem;
   color: #34495e;
 }
 
-/* ===== ¸ê°T¦Cªí ===== */
+/* ===== è³‡è¨Šåˆ—è¡¨ ===== */
 .info-list {
   list-style: none;
   padding: 0;
@@ -103,12 +114,12 @@ body {
   font-size: 1rem;
   font-family: inherit;
   letter-spacing: 0.5px;
-  white-space: nowrap;        /* ¤£´«¦æ¡A©l²×¤@¾ã¦æÅã¥Ü */
-  overflow: visible;         /* ¶W¥X¤£ÁôÂÃ */
-  text-overflow: unset;     /* ¤£Åã¥Ü¬Ù²¤¸¹ */
+  white-space: nowrap;        /* ä¸æ›è¡Œï¼Œå§‹çµ‚ä¸€æ•´è¡Œé¡¯ç¤º */
+  overflow: visible;         /* è¶…å‡ºä¸éš±è— */
+  text-overflow: unset;     /* ä¸é¡¯ç¤ºçœç•¥è™Ÿ */
 }
 
-/* ===== ­¶§Àµù°O ===== */
+/* ===== é å°¾è¨»è¨˜ ===== */
 .footer-note {
   text-align: center;
   padding: 1rem;
@@ -118,12 +129,12 @@ body {
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-/* ===== ¤u¨ãÃş§O ===== */
+/* ===== å·¥å…·é¡åˆ¥ ===== */
 .text-center-important {
   text-align: center !important;
 }
 
-/* ===== °Êµe®ÄªG ===== */
+/* ===== å‹•ç•«æ•ˆæœ ===== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -135,50 +146,50 @@ body {
   }
 }
 
-/* ===== ÅTÀ³¦¡³]­p ===== */
-/* ¥­ªO¸Ë¸m */
+/* ===== éŸ¿æ‡‰å¼è¨­è¨ˆ ===== */
+/* å¹³æ¿è£ç½® */
 @media (max-width: 768px) {
   .cr-card {
     margin: 0 15px;
   }
 
   .card-body-soft {
-    min-height: 100px;  /* ¥­ªO¤W´î¤Ö³Ì¤p°ª«× */
-    padding: 0.75rem 1rem;  /* ´î¤Ö¤ºÃä¶Z */
+    min-height: 100px;  /* å¹³æ¿ä¸Šæ¸›å°‘æœ€å°é«˜åº¦ */
+    padding: 0.75rem 1rem;  /* æ¸›å°‘å…§é‚Šè· */
   }
 
   .card-body-soft .row .col-md-7 {
     margin-bottom: 1rem;
   }
 
-  /* ¥­ªO¤W«O«ù¤ô¥­±Æ¦C¡A¦ı¤¹³\¤å¦r´«¦æ */
+  /* å¹³æ¿ä¸Šä¿æŒæ°´å¹³æ’åˆ—ï¼Œä½†å…è¨±æ–‡å­—æ›è¡Œ */
   .info-list li {
-    flex-direction: row;  /* «O«ù¤ô¥­±Æ¦C */
-    align-items: flex-start;  /* ³»³¡¹ï»ô */
-    gap: 8px;  /* ¼W¥[¶¡¶Z */
-    flex-wrap: wrap;  /* ¤¹³\´«¦æ */
+    flex-direction: row;  /* ä¿æŒæ°´å¹³æ’åˆ— */
+    align-items: flex-start;  /* é ‚éƒ¨å°é½Š */
+    gap: 8px;  /* å¢åŠ é–“è· */
+    flex-wrap: wrap;  /* å…è¨±æ›è¡Œ */
   }
 
   .info-label {
-    flex: 0 0 70px;  /* ©T©w¼ĞÅÒ¼e«× */
+    flex: 0 0 70px;  /* å›ºå®šæ¨™ç±¤å¯¬åº¦ */
     min-width: 70px;
   }
 
   .info-value {
-    flex: 1;  /* ­È¦û¾Ú³Ñ¾lªÅ¶¡ */
-    text-align: left;  /* ¥ª¹ï»ô */
+    flex: 1;  /* å€¼ä½”æ“šå‰©é¤˜ç©ºé–“ */
+    text-align: left;  /* å·¦å°é½Š */
     font-size: 0.95rem;
-    white-space: nowrap; /* ¤£´«¦æ¡A©l²×¤@¾ã¦æÅã¥Ü */
-    overflow: visible; /* ¶W¥X¤£ÁôÂÃ */
-    text-overflow: unset; /* ¤£Åã¥Ü¬Ù²¤¸¹ */
-    word-break: break-all;  /* ¤¹³\ªø³æµü¤¤Â_ */
-    overflow-wrap: break-word;  /* ½T«Oªø³æµü¯à°÷´«¦æ */
-    hyphens: auto;  /* ¦Û°ÊÂ_¦r */
-    line-height: 1.4;  /* ¦æ°ª */
+    white-space: nowrap; /* ä¸æ›è¡Œï¼Œå§‹çµ‚ä¸€æ•´è¡Œé¡¯ç¤º */
+    overflow: visible; /* è¶…å‡ºä¸éš±è— */
+    text-overflow: unset; /* ä¸é¡¯ç¤ºçœç•¥è™Ÿ */
+    word-break: break-all;  /* å…è¨±é•·å–®è©ä¸­æ–· */
+    overflow-wrap: break-word;  /* ç¢ºä¿é•·å–®è©èƒ½å¤ æ›è¡Œ */
+    hyphens: auto;  /* è‡ªå‹•æ–·å­— */
+    line-height: 1.4;  /* è¡Œé«˜ */
   }
 }
 
-/* ¤â¾÷¸Ë¸m */
+/* æ‰‹æ©Ÿè£ç½® */
 @media (max-width: 480px) {
   .cr-header .container {
     padding: 0 15px;
@@ -190,38 +201,38 @@ body {
 
   .card-body-soft {
     border-radius: 0 0 12px 12px;
-    min-height: 80px;   /* ¤â¾÷¤W¶i¤@¨B´î¤Ö³Ì¤p°ª«× */
-    padding: 0.5rem 0.75rem;  /* ´î¤Ö¤ºÃä¶Z */
+    min-height: 80px;   /* æ‰‹æ©Ÿä¸Šé€²ä¸€æ­¥æ¸›å°‘æœ€å°é«˜åº¦ */
+    padding: 0.5rem 0.75rem;  /* æ¸›å°‘å…§é‚Šè· */
   }
 
   .cr-gallery .dx-widget {
     border-radius: 8px;
   }
 
-  /* ¤â¾÷¤W«O«ù¤ô¥­±Æ¦C¡AÀu¤ÆÅã¥Ü */
+  /* æ‰‹æ©Ÿä¸Šä¿æŒæ°´å¹³æ’åˆ—ï¼Œå„ªåŒ–é¡¯ç¤º */
   .info-list li {
-    flex-direction: row;  /* «O«ù¤ô¥­±Æ¦C */
-    align-items: flex-start;  /* ³»³¡¹ï»ô */
-    gap: 6px;  /* ¾A¤¤ªº¶¡¶Z */
-    padding: 6px 0;  /* ´î¤Ö¤ºÃä¶Z */
+    flex-direction: row;  /* ä¿æŒæ°´å¹³æ’åˆ— */
+    align-items: flex-start;  /* é ‚éƒ¨å°é½Š */
+    gap: 6px;  /* é©ä¸­çš„é–“è· */
+    padding: 6px 0;  /* æ¸›å°‘å…§é‚Šè· */
   }
 
   .info-label {
-    flex: 0 0 60px;  /* ¤â¾÷¤WÁY¤p¼ĞÅÒ¼e«× */
+    flex: 0 0 60px;  /* æ‰‹æ©Ÿä¸Šç¸®å°æ¨™ç±¤å¯¬åº¦ */
     min-width: 60px;
-    font-size: 0.9rem;  /* µy·LÁY¤p¦rÅé */
+    font-size: 0.9rem;  /* ç¨å¾®ç¸®å°å­—é«” */
   }
 
   .info-value {
-    flex: 1;  /* ­È¦û¾Ú³Ñ¾lªÅ¶¡ */
-    text-align: left;  /* ¥ª¹ï»ô */
-    font-size: 0.85rem;  /* µy·LÁY¤p¦rÅé */
-    white-space: nowrap; /* ¤£´«¦æ¡A©l²×¤@¾ã¦æÅã¥Ü */
-    overflow: visible; /* ¶W¥X¤£ÁôÂÃ */
-    text-overflow: unset; /* ¤£Åã¥Ü¬Ù²¤¸¹ */
-    word-break: break-word;  /* ¤¹³\ªø³æµü¤¤Â_ */
-    overflow-wrap: break-word;  /* ½T«Oªø³æµü¯à°÷´«¦æ */
-    hyphens: auto;  /* ¦Û°ÊÂ_¦r */
-    line-height: 1.3;  /* ¦æ°ª */
+    flex: 1;  /* å€¼ä½”æ“šå‰©é¤˜ç©ºé–“ */
+    text-align: left;  /* å·¦å°é½Š */
+    font-size: 0.85rem;  /* ç¨å¾®ç¸®å°å­—é«” */
+    white-space: nowrap; /* ä¸æ›è¡Œï¼Œå§‹çµ‚ä¸€æ•´è¡Œé¡¯ç¤º */
+    overflow: visible; /* è¶…å‡ºä¸éš±è— */
+    text-overflow: unset; /* ä¸é¡¯ç¤ºçœç•¥è™Ÿ */
+    word-break: break-word;  /* å…è¨±é•·å–®è©ä¸­æ–· */
+    overflow-wrap: break-word;  /* ç¢ºä¿é•·å–®è©èƒ½å¤ æ›è¡Œ */
+    hyphens: auto;  /* è‡ªå‹•æ–·å­— */
+    line-height: 1.3;  /* è¡Œé«˜ */
   }
 }

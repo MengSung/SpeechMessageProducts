@@ -1,3 +1,14 @@
+<#
+檔案整體說明
+
+目的與定位：檢查CCG雙後端所需wrapper、程序環境與可選後端探測，輸出結構化健康證據；探測不代表正式任務審查成功，也不應透過修改全域登入設定強行修復供應商額度。
+
+主要功能與流程：
+操作入口包含New-DirectoryIfMissing、Resolve-ExecutablePath、Resolve-CcgRealClaudeCommand、New-CcgClaudeModelShim、Join-ProcessArguments、Invoke-CommandCapture、Test-BackendSmoke；呼叫參數與輸出形狀以各入口宣告為準。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+#>
 param(
     [string]$RepositoryPath = (Get-Location).Path,
     [string]$OutputDirectory = ".\.ccg\dual-model-runs",

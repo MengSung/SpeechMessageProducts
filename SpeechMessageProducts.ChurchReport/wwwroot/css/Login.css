@@ -1,9 +1,20 @@
+/*
+檔案整體說明
+
+目的與定位：定義共用登入卡片與表單的視覺規則，讓對應Razor／HTML在桌面與行動顯示一致；CSS只控制呈現，不負責資料載入或授權。
+
+主要功能與流程：
+依下方原生宣告執行本檔所述工作；入口、條件及順序須與實際呼叫端一致，不能把示範或預覽視為已套用。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+*/
 /* ===========================================
-   Login �����˦� - ChurchReport/Views/Home/Login.cshtml
+   Login 頁面樣式 - ChurchReport/Views/Home/Login.cshtml
    =========================================== */
 
 /* ===========================================
-   Hero ��T�P�л\�h�˦�
+   Hero 橫幅與覆蓋層樣式
    =========================================== */
 .hero-wrapper {
     position: relative;
@@ -12,12 +23,12 @@
     overflow: hidden;
 }
 
-/* Gallery �e�������վ� */
+/* Gallery 容器偏移調整 */
 .hero-gallery-shift .dx-gallery, .hero-gallery-shift .dx-gallery-wrapper {
     margin-top: 40px;
 }
 
-/* Hero �л\�h�G��ܱз|�W�ٻP�g�� */
+/* Hero 覆蓋層：顯示教會名稱與經文 */
 .hero-overlay {
     position: absolute;
     inset: 0;
@@ -31,7 +42,7 @@
     background: linear-gradient(135deg, rgba(0,0,0,.55), rgba(0,0,0,.25));
 }
 
-/* �з|�W�ټ˦� */
+/* 教會名稱樣式 */
 .hero-overlay h1 {
     font-size: 1.9rem;
     letter-spacing: 2px;
@@ -39,14 +50,14 @@
     margin-bottom: .35rem;
 }
 
-/* �Ƽ��D�˦� */
+/* 副標題樣式 */
 .hero-overlay .sub {
     font-size: .95rem;
     opacity: .92;
     margin-bottom: .5rem;
 }
 
-/* �g��˦� */
+/* 經文樣式 */
 .hero-overlay .verse {
     font-size: .95rem;
     line-height: 1.4;
@@ -60,7 +71,7 @@
     opacity: .85;
 }
 
-/* �H���ϼаʵe */
+/* 信仰圖標動畫 */
 .logo-faith {
     font-size: 2.2rem;
     margin-bottom: .35rem;
@@ -68,7 +79,7 @@
     animation: pulse 3.5s infinite;
 }
 
-/* �߽İʵe�w�q */
+/* 脈衝動畫定義 */
 @@keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.08); }
@@ -76,14 +87,14 @@
 }
 
 /* ===========================================
-   Gallery �Ϥ��˦�
+   Gallery 圖片樣式
    =========================================== */
-/* Gallery �e�����׳]�w */
+/* Gallery 容器高度設定 */
 .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper {
     height: 100%;
 }
 
-/* Gallery ���ؼ˦��G�j���w��A�קK��i�ϦP�ɥi�� */
+/* Gallery 項目樣式：強制絕對定位，避免兩張圖同時可見 */
 .hero-wrapper .dx-gallery-item {
     display: flex !important;
     align-items: center;
@@ -98,20 +109,20 @@
     pointer-events: none;
 }
 
-/* �襤�� Gallery ���ءG��ܨñҥΤ��� */
+/* 選中的 Gallery 項目：顯示並啟用互動 */
 .hero-wrapper .dx-gallery-item.dx-gallery-item-selected {
     opacity: 1 !important;
     pointer-events: auto;
     z-index: 2;
 }
 
-/* �D�襤�� Gallery ���ءG���� */
+/* 非選中的 Gallery 項目：隱藏 */
 .hero-wrapper .dx-gallery-item:not(.dx-gallery-item-selected) {
     opacity: 0 !important;
     z-index: 1;
 }
 
-/* Gallery ���ؤ��e�˦� */
+/* Gallery 項目內容樣式 */
 .hero-wrapper .dx-gallery-item .dx-gallery-item-content {
     display: flex;
     align-items: center;
@@ -121,7 +132,7 @@
     overflow: hidden;
 }
 
-/* �Ϥ��˦��G�O����ҡA�~����� */
+/* 圖片樣式：保持比例，居中顯示 */
 .hero-wrapper .dx-gallery-item img {
     max-width: 100%;
     max-height: 100%;
@@ -133,10 +144,10 @@
 }
 
 /* ===========================================
-   �T�����]�p�G�p�ù��վ�
+   響應式設計：小螢幕調整
    =========================================== */
 @@media (max-width: 575.98px) {
-    /* �p�ù��G�۰ʰ��סA�T�O�Ϥ�������� */
+    /* 小螢幕：自動高度，確保圖片完整顯示 */
     .hero-wrapper {
         height: auto;
         min-height: 240px;
@@ -150,21 +161,21 @@
         min-height: 240px;
     }
 
-    /* �վ��л\�h���D�j�p */
+    /* 調整覆蓋層標題大小 */
     .hero-overlay h1 {
         font-size: 1.6rem;
     }
 }
 
 /* ===========================================
-   ���e�ϼ˦�
+   內容區樣式
    =========================================== */
 .main-section {
     margin-top: 0;
     padding-top: 32px;
 }
 
-/* �d���˦��G�X�M���v */
+/* 卡片樣式：柔和陰影 */
 .card-soft {
     border: none;
     border-radius: 18px;
@@ -173,7 +184,7 @@
     overflow: hidden;
 }
 
-/* �d�����D�˦� */
+/* 卡片標題樣式 */
 .card-soft-header {
     background: linear-gradient(135deg,#6b8ce3,#4864b8);
     color: #fff;
@@ -185,12 +196,12 @@
     letter-spacing: 1px;
 }
 
-/* �d�����e�˦� */
+/* 卡片內容樣式 */
 .card-soft-body {
     padding: 1rem 1rem 1.25rem;
 }
 
-/* ���s�ϰ�˦� */
+/* 按鈕區域樣式 */
 .actions {
     display: flex;
     justify-content: center;
@@ -206,13 +217,13 @@
     box-shadow: 0 4px 12px rgba(0,0,0,.12);
 }
 
-/* �n�J�d���˦� */
+/* 登入卡片樣式 */
 .login-card {
     max-width: 560px;
     margin: 0 auto;
 }
 
-/* DevExtreme ����˦��վ� */
+/* DevExtreme 表單樣式調整 */
 .login-card .dx-form .dx-texteditor {
     width: 100%;
 }
@@ -226,7 +237,7 @@
     text-align: left;
 }
 
-/* ���}�˦� */
+/* 頁腳樣式 */
 .footer-note {
     text-align: center;
     font-size: .8rem;
@@ -234,7 +245,7 @@
     margin: 2rem 0 .75rem;
 }
 
-/* �p�ù��G�վ�n�J�d���M���Z */
+/* 小螢幕：調整登入卡片和間距 */
 @@media (max-width: 575.98px) {
     .login-card {
         max-width: 100%;
@@ -245,7 +256,7 @@
     }
 }
 
-/* �ۿO���˦��]�ƥΡ^ */
+/* 幻燈片樣式（備用） */
 .slide {
     display: none;
     position: absolute;

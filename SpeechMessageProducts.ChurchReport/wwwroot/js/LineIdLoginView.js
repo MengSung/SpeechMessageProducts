@@ -1,3 +1,14 @@
+/*
+檔案整體說明
+
+目的與定位：協調LINE識別登入頁的前端初始化、資料送出及登入結果導覽；LINE來源與回傳值仍須經伺服器綁定／認證，不能以前端旗標授予身分。
+
+主要功能與流程：
+操作入口包含byId、setStatus、getLoadPanelInstance、getBindingPageUrl、useLiffSdk、ensureProfilePermissionAndRun、initializeApp、updateLineUserId；呼叫參數與輸出形狀以各入口宣告為準。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+*/
 // LineIdLoginView.js
 //
 // Safe LIFF-only LINE ID login flow.

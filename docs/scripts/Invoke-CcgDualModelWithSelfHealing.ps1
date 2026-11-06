@@ -1,3 +1,14 @@
+<#
+檔案整體說明
+
+目的與定位：協調Gemini及Claude執行、健康檢查、有界修復重試與證據保存，將本機工具失敗和供應商額度／session限制分開回報，避免把單模型輸出誤認為雙模型完成。
+
+主要功能與流程：
+操作入口包含Get-CcgToolPathEntries、Add-UniquePathEntries、Resolve-CcgRealClaudeCommand、New-CcgClaudeModelShim、Initialize-CcgToolchainEnvironment、Resolve-ExecutablePath、New-DirectoryIfMissing、Join-ProcessArguments、Invoke-ProcessCapture、Get-RoleFile；呼叫參數與輸出形狀以各入口宣告為準。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+#>
 param(
     [Parameter(Mandatory = $true)]
     [ValidateScript({ Test-Path -LiteralPath $_ })]

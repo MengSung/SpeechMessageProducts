@@ -1,4 +1,15 @@
-﻿    function OnValueChanged(arg) {
+/*
+檔案整體說明
+
+目的與定位：處理回報頁日期選取事件與資料更新接點，確保畫面提交對應目前日期；晚到回應必須沿既有載入協調器判定，不能覆寫新日期狀態。
+
+主要功能與流程：
+操作入口包含OnValueChanged、GridDateChanged、notify、getODataLocalDateFilter；呼叫參數與輸出形狀以各入口宣告為準。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+*/
+    function OnValueChanged(arg) {
 
         //debugger;
 

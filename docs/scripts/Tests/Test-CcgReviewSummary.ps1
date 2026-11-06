@@ -1,3 +1,14 @@
+<#
+檔案整體說明
+
+目的與定位：以合成後端結果驗證reviewMode、requestedBackends及dualModelComplete等摘要契約，防止exit code零或單邊成功掩蓋未完成審查。
+
+主要功能與流程：
+操作入口包含Assert-Condition；呼叫參數與輸出形狀以各入口宣告為準。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+#>
 param([string]$RunnerPath = (Join-Path $PSScriptRoot '..\Invoke-CcgDualModelWithSelfHealing.ps1'))
 
 $ErrorActionPreference = 'Stop'

@@ -1,4 +1,15 @@
 <#
+檔案整體說明
+
+目的與定位：以實際 Git 差異、位元組樣本與子程序驗證編碼守門及無損轉換契約。
+
+主要功能與流程：
+操作入口包含Invoke-EncodingCheck、Invoke-EncodingConversion、Invoke-EncodingArrayConversion；呼叫參數與輸出形狀以各入口宣告為準。
+
+使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+#>
+<#
 .SYNOPSIS
 以實際 Git 差異、位元組樣本與子程序驗證編碼守門及無損轉換契約。
 .DESCRIPTION

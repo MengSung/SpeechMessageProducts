@@ -1,23 +1,34 @@
+/*
+æª”æ¡ˆæ•´é«”èªªæ˜
+
+ç›®çš„èˆ‡å®šä½ï¼šå®šç¾©ä¸­æ–‡å­—å‹ã€æ›è¡Œèˆ‡å­—è·çš„è¦–è¦ºè¦å‰‡ï¼Œè®“å°æ‡‰Razorï¼HTMLåœ¨æ¡Œé¢èˆ‡è¡Œå‹•é¡¯ç¤ºä¸€è‡´ï¼›CSSåªæ§åˆ¶å‘ˆç¾ï¼Œä¸è² è²¬è³‡æ–™è¼‰å…¥æˆ–æˆæ¬Šã€‚
+
+ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+ä¾ä¸‹æ–¹åŸç”Ÿå®£å‘ŠåŸ·è¡Œæœ¬æª”æ‰€è¿°å·¥ä½œï¼›å…¥å£ã€æ¢ä»¶åŠé †åºé ˆèˆ‡å¯¦éš›å‘¼å«ç«¯ä¸€è‡´ï¼Œä¸èƒ½æŠŠç¤ºç¯„æˆ–é è¦½è¦–ç‚ºå·²å¥—ç”¨ã€‚
+
+ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šä¿®æ”¹å‰å…ˆæ ¸å°å¼•ç”¨æ­¤æª”çš„å°ˆæ¡ˆã€é é¢ã€è…³æœ¬æˆ–CIæ­¥é©Ÿï¼Œä¿ç•™æ—¢æœ‰åƒæ•¸ã€è¼¸å‡ºåŠå¤±æ•—çµæŸç¢¼ã€‚
+æ¶‰åŠå¯«å…¥ã€å¤–éƒ¨å‘½ä»¤æˆ–æš«å­˜è³‡æºæ™‚ï¼Œä¾æœ¬æª”å¯¦éš›å¯¦ä½œçš„owneråŠæ¸…ç†è·¯å¾‘è™•ç†ï¼›èªªæ˜ä¸èƒ½å–ä»£åŸ·è¡Œå‰çš„ç¯„åœé©—è­‰ã€‚
+*/
 /* 
    ===================================================================
-   ¤¤¤å¤ä´© CSS ¼Ë¦¡ªí
-   ¥\¯à¡G½T«Oºô¯¸¦b¦U¥­¥x¤W¥¿½TÅã¥Ü
+   ä¸­æ–‡æ”¯æ´ CSS æ¨£å¼è¡¨
+   åŠŸèƒ½ï¼šç¢ºä¿ç¶²ç«™åœ¨å„å¹³å°ä¸Šæ­£ç¢ºé¡¯ç¤º
    ===================================================================
 */
 
-/* ===== ¥ş°ì¦rÅé³]©w - ½T«O¤¤¤å¥¿½TÅã¥Ü ===== */
+/* ===== å…¨åŸŸå­—é«”è¨­å®š - ç¢ºä¿ä¸­æ–‡æ­£ç¢ºé¡¯ç¤º ===== */
 * {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }
 
-/* ===== HTML ©M body ¤¸¯À¦rÅé³]©w ===== */
+/* ===== HTML å’Œ body å…ƒç´ å­—é«”è¨­å®š ===== */
 html, body {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
-  -webkit-font-smoothing: antialiased;  /* WebKit ¦rÅé¥­·Æ */
-  -moz-osx-font-smoothing: grayscale;   /* Firefox ¦rÅé¥­·Æ */
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;  /* WebKit å­—é«”å¹³æ»‘ */
+  -moz-osx-font-smoothing: grayscale;   /* Firefox å­—é«”å¹³æ»‘ */
 }
 
-/* ===== DevExtreme ¤¸¥ó¦rÅé¤ä´© ===== */
+/* ===== DevExtreme å…ƒä»¶å­—é«”æ”¯æ´ ===== */
 .dx-widget,
 .dx-datagrid,
 .dx-datagrid-headers,
@@ -28,52 +39,52 @@ html, body {
 .dx-button-text,
 .dx-popup-title,
 .dx-toast-message {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }
 
-/* ===== ªí®æ¼ĞÃD©M¸ê®Æ¦æ¦rÅé³]©w ===== */
+/* ===== è¡¨æ ¼æ¨™é¡Œå’Œè³‡æ–™è¡Œå­—é«”è¨­å®š ===== */
 .dx-header-row td,
 .dx-data-row td,
 .dx-group-row td {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }
 
-/* ===== ¤@¯ë HTML ¤¸¯À¦rÅé³]©w ===== */
+/* ===== ä¸€èˆ¬ HTML å…ƒç´ å­—é«”è¨­å®š ===== */
 h1, h2, h3, h4, h5, h6,
 label, span, div, p {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }
 
-/* ===== ªí³æ¤¸¯À¦rÅé³]©w ===== */
+/* ===== è¡¨å–®å…ƒç´ å­—é«”è¨­å®š ===== */
 input, select, textarea, button {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }
 
-/* ===== ¯S©w°Ï¶ô¦rÅé³]©w ===== */
+/* ===== ç‰¹å®šå€å¡Šå­—é«”è¨­å®š ===== */
 .general-group-grids,
 .small-group-section,
 .new-person-follow-up-section {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }
 
-/* ===== °Ï¶ô¼ĞÃD¦rÅé±j½Õ ===== */
+/* ===== å€å¡Šæ¨™é¡Œå­—é«”å¼·èª¿ ===== */
 .general-group-grids h5,
 .small-group-section h5,
 .new-person-follow-up-section h5 {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
-  font-weight: bold;    /* ²ÊÅé */
-  color: inherit;       /* Ä~©Ó¤÷¤¸¯ÀÃC¦â */
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
+  font-weight: bold;    /* ç²—é«” */
+  color: inherit;       /* ç¹¼æ‰¿çˆ¶å…ƒç´ é¡è‰² */
 }
 
-/* ===== DevExtreme ¤U©Ô¿ï³æ©M¼u¥Xµøµ¡¦rÅé ===== */
+/* ===== DevExtreme ä¸‹æ‹‰é¸å–®å’Œå½ˆå‡ºè¦–çª—å­—é«” ===== */
 .dx-lookup-popup-content,
 .dx-selectbox-popup-wrapper,
 .dx-dropdowneditor-overlay {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }
 
-/* ===== ²M³æ¶µ¥Ø¦rÅé³]©w ===== */
+/* ===== æ¸…å–®é …ç›®å­—é«”è¨­å®š ===== */
 .dx-list-item-content,
 .dx-item-content {
-  font-family: "Microsoft JhengHei", "·L³n¥¿¶ÂÅé", "SimHei", "¶ÂÅé", "Arial Unicode MS", "·s²Ó©úÅé", "·s§ºÊ^", "PMingLiU", Arial, sans-serif !important;
+  font-family: "Microsoft JhengHei", "å¾®è»Ÿæ­£é»‘é«”", "SimHei", "é»‘é«”", "Arial Unicode MS", "æ–°ç´°æ˜é«”", "æ–°å®‹ä½“", "PMingLiU", Arial, sans-serif !important;
 }

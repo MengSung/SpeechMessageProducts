@@ -1,5 +1,16 @@
-# View ¸ô¥Ñ§å¦¸§ó·s¸}¥» - ²Ä¤G§å (°ªÀu¥ı¯ÅÀÉ®×)
-# ¥\¯à: ¦Û°Ê§ó·s View ÀÉ®×¤¤ªº±±¨î¾¹¸ô¥Ñ
+<#
+æª”æ¡ˆæ•´é«”èªªæ˜
+
+ç›®çš„èˆ‡å®šä½ï¼šæ›´æ–°ç¬¬äºŒæ‰¹é«˜å„ªå…ˆè¦–åœ–çš„æ§åˆ¶å™¨è·¯ç”±ï¼Œæ”¯æ´é¸å®šViewsç›®éŒ„åŠé è¦½é¸é …ï¼›æ­£å¼å¯«å…¥å‰æ‡‰æ ¸å°æ›¿æ›å€™é¸ï¼Œé¿å…èª¤æ”¹æœªå±¬é·ç§»ç¯„åœçš„é é¢ã€‚
+
+ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+ä¾ä¸‹æ–¹åŸç”Ÿå®£å‘ŠåŸ·è¡Œæœ¬æª”æ‰€è¿°å·¥ä½œï¼›å…¥å£ã€æ¢ä»¶åŠé †åºé ˆèˆ‡å¯¦éš›å‘¼å«ç«¯ä¸€è‡´ï¼Œä¸èƒ½æŠŠç¤ºç¯„æˆ–é è¦½è¦–ç‚ºå·²å¥—ç”¨ã€‚
+
+ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šä¿®æ”¹å‰å…ˆæ ¸å°å¼•ç”¨æ­¤æª”çš„å°ˆæ¡ˆã€é é¢ã€è…³æœ¬æˆ–CIæ­¥é©Ÿï¼Œä¿ç•™æ—¢æœ‰åƒæ•¸ã€è¼¸å‡ºåŠå¤±æ•—çµæŸç¢¼ã€‚
+æ¶‰åŠå¯«å…¥ã€å¤–éƒ¨å‘½ä»¤æˆ–æš«å­˜è³‡æºæ™‚ï¼Œä¾æœ¬æª”å¯¦éš›å¯¦ä½œçš„owneråŠæ¸…ç†è·¯å¾‘è™•ç†ï¼›èªªæ˜ä¸èƒ½å–ä»£åŸ·è¡Œå‰çš„ç¯„åœé©—è­‰ã€‚
+#>
+# View è·¯ç”±æ‰¹æ¬¡æ›´æ–°è…³æœ¬ - ç¬¬äºŒæ‰¹ (é«˜å„ªå…ˆç´šæª”æ¡ˆ)
+# åŠŸèƒ½: è‡ªå‹•æ›´æ–° View æª”æ¡ˆä¸­çš„æ§åˆ¶å™¨è·¯ç”±
 
 param(
     [string]$ViewsPath = ".\ChurchReport\Views",
@@ -7,9 +18,9 @@ param(
     [switch]$Verbose = $false
 )
 
-# ©w¸q¸ô¥Ñ¹ïÀ³ªí
+# å®šç¾©è·¯ç”±å°æ‡‰è¡¨
 $routeMappings = @{
-    # ¤p²ÕºŞ²z¬ÛÃö
+    # å°çµ„ç®¡ç†ç›¸é—œ
     "SmallGroup" = @{
         OldController = "Home"
         NewController = "SmallGroup"
@@ -26,7 +37,7 @@ $routeMappings = @{
         )
     }
     
-    # ·s¤HºŞ²z¬ÛÃö
+    # æ–°äººç®¡ç†ç›¸é—œ
     "NewPerson" = @{
         OldController = "Home"
         NewController = "NewPerson"
@@ -44,7 +55,7 @@ $routeMappings = @{
         )
     }
     
-    # ­Ó¤H¸ê°T¬ÛÃö
+    # å€‹äººè³‡è¨Šç›¸é—œ
     "Personal" = @{
         OldController = "Home"
         NewController = "Personal"
@@ -62,7 +73,7 @@ $routeMappings = @{
         )
     }
     
-    # ¦æ¨Æ¾ä¬ÛÃö
+    # è¡Œäº‹æ›†ç›¸é—œ
     "Appointment" = @{
         OldController = "Home"
         NewController = "Appointment"
@@ -77,7 +88,7 @@ $routeMappings = @{
         )
     }
     
-    # ©^ÄmºŞ²z¬ÛÃö
+    # å¥‰ç»ç®¡ç†ç›¸é—œ
     "Dedication" = @{
         OldController = "Home"
         NewController = "Dedication"
@@ -102,7 +113,7 @@ $routeMappings = @{
         )
     }
     
-    # ©^Äm½]®Ö¬ÛÃö
+    # å¥‰ç»ç¨½æ ¸ç›¸é—œ
     "DedicationAudit" = @{
         OldController = "Home"
         NewController = "DedicationAudit"
@@ -119,7 +130,7 @@ $routeMappings = @{
         )
     }
     
-    # QR Code ¬ÛÃö
+    # QR Code ç›¸é—œ
     "QrCode" = @{
         OldController = "Home"
         NewController = "QrCode"
@@ -138,7 +149,7 @@ $routeMappings = @{
         )
     }
     
-    # ¦W³æºŞ²z¬ÛÃö
+    # åå–®ç®¡ç†ç›¸é—œ
     "ListManagement" = @{
         OldController = "Home"
         NewController = "ListManagement"
@@ -170,46 +181,46 @@ $routeMappings = @{
     }
 }
 
-# °ªÀu¥ı¯ÅÀÉ®×²M³æ
+# é«˜å„ªå…ˆç´šæª”æ¡ˆæ¸…å–®
 $highPriorityFiles = @(
-    # ¤p²ÕºŞ²z
+    # å°çµ„ç®¡ç†
     "Home\MultiGroupView.cshtml",
     "Home\IntegrateView.cshtml",
     "Home\_GeneralGroupGrids.cshtml",
     "Home\_HappyGroupGrid.cshtml",
     "Home\_IndividualReportGrid.cshtml",
     
-    # ·s¤HºŞ²z
+    # æ–°äººç®¡ç†
     "Home\NewPerson.cshtml",
     "Home\NewPersonFollowUpView.cshtml",
     
-    # ­Ó¤H¸ê°T
+    # å€‹äººè³‡è¨Š
     "Home\PersonalReport.cshtml",
     "Home\PersonalInfomationView.cshtml",
     "Home\MaintainPersonInfomationView.cshtml",
     
-    # ©^ÄmºŞ²z
+    # å¥‰ç»ç®¡ç†
     "Home\QPayView.cshtml",
     "Home\DedicationFeeView.cshtml",
     "Home\DedicationFeeViewWeb.cshtml",
     
-    # ©^Äm½]®Ö
+    # å¥‰ç»ç¨½æ ¸
     "Home\DedicationFeeAuditViewLine.cshtml",
     "Home\DedicationFeeAuditViewWeb.cshtml",
     
     # QR Code
     "Home\QrCodeView.cshtml",
     
-    # ¦W³æºŞ²z
+    # åå–®ç®¡ç†
     "Home\ChurchRoot.cshtml",
     
-    # ¨ä¥L
+    # å…¶ä»–
     "Home\Login.cshtml",
     "Home\LineIdLoginView.cshtml",
     "Home\DisplayErrorView.cshtml"
 )
 
-# ²Î­pÅÜ¼Æ
+# çµ±è¨ˆè®Šæ•¸
 $totalFiles = 0
 $updatedFiles = 0
 $skippedFiles = 0
@@ -217,30 +228,30 @@ $errorFiles = 0
 $changeLog = @()
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "View ¸ô¥Ñ§å¦¸§ó·s¤u¨ã - ²Ä¤G§å" -ForegroundColor Cyan
+Write-Host "View è·¯ç”±æ‰¹æ¬¡æ›´æ–°å·¥å…· - ç¬¬äºŒæ‰¹" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ³B²z¨C­ÓÀÉ®×
+# è™•ç†æ¯å€‹æª”æ¡ˆ
 foreach ($relativeFilePath in $highPriorityFiles) {
     $totalFiles++
     $filePath = Join-Path $ViewsPath $relativeFilePath
     
     if (-not (Test-Path $filePath)) {
-        Write-Host "??  ÀÉ®×¤£¦s¦b: $relativeFilePath" -ForegroundColor Yellow
+        Write-Host "??  æª”æ¡ˆä¸å­˜åœ¨: $relativeFilePath" -ForegroundColor Yellow
         $skippedFiles++
         continue
     }
     
-    Write-Host "?? ³B²zÀÉ®×: $relativeFilePath" -ForegroundColor White
+    Write-Host "?? è™•ç†æª”æ¡ˆ: $relativeFilePath" -ForegroundColor White
     
     try {
-        # Åª¨úÀÉ®×¤º®e
+        # è®€å–æª”æ¡ˆå…§å®¹
         $content = Get-Content $filePath -Raw -Encoding UTF8
         $originalContent = $content
         $changes = @()
         
-        # ®Ú¾ÚÀÉ®×¸ô®|§PÂ_À³¸Ó¨Ï¥Î­ş­Ó±±¨î¾¹
+        # æ ¹æ“šæª”æ¡ˆè·¯å¾‘åˆ¤æ–·æ‡‰è©²ä½¿ç”¨å“ªå€‹æ§åˆ¶å™¨
         $targetController = $null
         foreach ($key in $routeMappings.Keys) {
             $mapping = $routeMappings[$key]
@@ -254,12 +265,12 @@ foreach ($relativeFilePath in $highPriorityFiles) {
         }
         
         if (-not $targetController) {
-            Write-Host "  ??  µL»İ§ó·s (¥¼§ä¨ì¬ÛÃö¸ô¥Ñ)" -ForegroundColor Gray
+            Write-Host "  ??  ç„¡éœ€æ›´æ–° (æœªæ‰¾åˆ°ç›¸é—œè·¯ç”±)" -ForegroundColor Gray
             $skippedFiles++
             continue
         }
         
-        # °õ¦æ´À´«
+        # åŸ·è¡Œæ›¿æ›
         $mapping = $routeMappings | Where-Object { $_.Values.NewController -eq $targetController } | Select-Object -First 1
         if ($mapping) {
             foreach ($entry in $routeMappings.GetEnumerator()) {
@@ -268,62 +279,62 @@ foreach ($relativeFilePath in $highPriorityFiles) {
                     $newCtrl = $entry.Value.NewController
                     
                     foreach ($action in $entry.Value.Actions) {
-                        # ´À´« Controller Äİ©Ê¤¤ªº¸ô¥Ñ
+                        # æ›¿æ› Controller å±¬æ€§ä¸­çš„è·¯ç”±
                         $pattern1 = "Controller\(`"$oldCtrl`"\)"
                         $replacement1 = "Controller(`"$newCtrl`")"
                         if ($content -match $pattern1) {
                             $content = $content -replace $pattern1, $replacement1
-                            $changes += "  ? Controller(`"$oldCtrl`") ¡÷ Controller(`"$newCtrl`")"
+                            $changes += "  ? Controller(`"$oldCtrl`") â†’ Controller(`"$newCtrl`")"
                         }
                         
-                        # ´À´« URL ¸ô®|
+                        # æ›¿æ› URL è·¯å¾‘
                         $pattern2 = "/$oldCtrl/$action"
                         $replacement2 = "/$newCtrl/$action"
                         if ($content -match [regex]::Escape($pattern2)) {
                             $content = $content -replace [regex]::Escape($pattern2), $replacement2
-                            $changes += "  ? /$oldCtrl/$action ¡÷ /$newCtrl/$action"
+                            $changes += "  ? /$oldCtrl/$action â†’ /$newCtrl/$action"
                         }
                         
-                        # ´À´« Url.Action
+                        # æ›¿æ› Url.Action
                         $pattern3 = "Url\.Action\(`"$action`",\s*`"$oldCtrl`"\)"
                         $replacement3 = "Url.Action(`"$action`", `"$newCtrl`")"
                         if ($content -match $pattern3) {
                             $content = $content -replace $pattern3, $replacement3
-                            $changes += "  ? Url.Action(`"$action`", `"$oldCtrl`") ¡÷ Url.Action(`"$action`", `"$newCtrl`")"
+                            $changes += "  ? Url.Action(`"$action`", `"$oldCtrl`") â†’ Url.Action(`"$action`", `"$newCtrl`")"
                         }
                         
-                        # ´À´« @Url.Action
+                        # æ›¿æ› @Url.Action
                         $pattern4 = "@Url\.Action\(`"$action`",\s*`"$oldCtrl`"\)"
                         $replacement4 = "@Url.Action(`"$action`", `"$newCtrl`")"
                         if ($content -match $pattern4) {
                             $content = $content -replace $pattern4, $replacement4
-                            $changes += "  ? @Url.Action(`"$action`", `"$oldCtrl`") ¡÷ @Url.Action(`"$action`", `"$newCtrl`")"
+                            $changes += "  ? @Url.Action(`"$action`", `"$oldCtrl`") â†’ @Url.Action(`"$action`", `"$newCtrl`")"
                         }
                         
-                        # ´À´« JavaScript ¤¤ªº URL
+                        # æ›¿æ› JavaScript ä¸­çš„ URL
                         $pattern5 = "`"/$oldCtrl/$action`""
                         $replacement5 = "`"/$newCtrl/$action`""
                         if ($content -match [regex]::Escape($pattern5)) {
                             $content = $content -replace [regex]::Escape($pattern5), $replacement5
-                            $changes += "  ? JS: `"/$oldCtrl/$action`" ¡÷ `"/$newCtrl/$action`""
+                            $changes += "  ? JS: `"/$oldCtrl/$action`" â†’ `"/$newCtrl/$action`""
                         }
                         
-                        # ´À´« JavaScript ¤¤ªº URL (³æ¤Ş¸¹)
+                        # æ›¿æ› JavaScript ä¸­çš„ URL (å–®å¼•è™Ÿ)
                         $pattern6 = "'/$oldCtrl/$action'"
                         $replacement6 = "'/$newCtrl/$action'"
                         if ($content -match [regex]::Escape($pattern6)) {
                             $content = $content -replace [regex]::Escape($pattern6), $replacement6
-                            $changes += "  ? JS: '/$oldCtrl/$action' ¡÷ '/$newCtrl/$action'"
+                            $changes += "  ? JS: '/$oldCtrl/$action' â†’ '/$newCtrl/$action'"
                         }
                     }
                 }
             }
         }
         
-        # ÀË¬d¬O§_¦³ÅÜ§ó
+        # æª¢æŸ¥æ˜¯å¦æœ‰è®Šæ›´
         if ($content -ne $originalContent) {
             if ($changes.Count -gt 0) {
-                Write-Host "  ?? µo²{ $($changes.Count) ³BÅÜ§ó:" -ForegroundColor Green
+                Write-Host "  ?? ç™¼ç¾ $($changes.Count) è™•è®Šæ›´:" -ForegroundColor Green
                 foreach ($change in $changes) {
                     if ($Verbose) {
                         Write-Host $change -ForegroundColor Gray
@@ -332,75 +343,75 @@ foreach ($relativeFilePath in $highPriorityFiles) {
             }
             
             if (-not $WhatIf) {
-                # ¼g¤JÀÉ®×
+                # å¯«å…¥æª”æ¡ˆ
                 $content | Out-File $filePath -Encoding UTF8 -NoNewline
-                Write-Host "  ? ¤w§ó·s" -ForegroundColor Green
+                Write-Host "  ? å·²æ›´æ–°" -ForegroundColor Green
                 $updatedFiles++
                 
-                # °O¿ıÅÜ§ó
+                # è¨˜éŒ„è®Šæ›´
                 $changeLog += [PSCustomObject]@{
                     File = $relativeFilePath
                     Controller = $targetController
                     ChangeCount = $changes.Count
-                    Status = "¦¨¥\"
+                    Status = "æˆåŠŸ"
                 }
             } else {
-                Write-Host "  ?? ¼ÒÀÀ¼Ò¦¡: ±N·|§ó·s (¨Ï¥Î -WhatIf:$false °õ¦æ¹ê»Ú§ó·s)" -ForegroundColor Yellow
+                Write-Host "  ?? æ¨¡æ“¬æ¨¡å¼: å°‡æœƒæ›´æ–° (ä½¿ç”¨ -WhatIf:$false åŸ·è¡Œå¯¦éš›æ›´æ–°)" -ForegroundColor Yellow
                 $updatedFiles++
                 
-                # °O¿ıÅÜ§ó
+                # è¨˜éŒ„è®Šæ›´
                 $changeLog += [PSCustomObject]@{
                     File = $relativeFilePath
                     Controller = $targetController
                     ChangeCount = $changes.Count
-                    Status = "¼ÒÀÀ"
+                    Status = "æ¨¡æ“¬"
                 }
             }
         } else {
-            Write-Host "  ??  µL»İ§ó·s" -ForegroundColor Gray
+            Write-Host "  ??  ç„¡éœ€æ›´æ–°" -ForegroundColor Gray
             $skippedFiles++
         }
         
         Write-Host ""
         
     } catch {
-        Write-Host "  ? ¿ù»~: $_" -ForegroundColor Red
+        Write-Host "  ? éŒ¯èª¤: $_" -ForegroundColor Red
         $errorFiles++
         
-        # °O¿ı¿ù»~
+        # è¨˜éŒ„éŒ¯èª¤
         $changeLog += [PSCustomObject]@{
             File = $relativeFilePath
             Controller = "N/A"
             ChangeCount = 0
-            Status = "¿ù»~: $_"
+            Status = "éŒ¯èª¤: $_"
         }
         
         Write-Host ""
     }
 }
 
-# Åã¥Ü²Î­pºK­n
+# é¡¯ç¤ºçµ±è¨ˆæ‘˜è¦
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "§ó·s§¹¦¨²Î­p" -ForegroundColor Cyan
+Write-Host "æ›´æ–°å®Œæˆçµ±è¨ˆ" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Á`ÀÉ®×¼Æ: $totalFiles" -ForegroundColor White
-Write-Host "¤w§ó·s:   $updatedFiles" -ForegroundColor Green
-Write-Host "¸õ¹L:     $skippedFiles" -ForegroundColor Yellow
-Write-Host "¿ù»~:     $errorFiles" -ForegroundColor Red
+Write-Host "ç¸½æª”æ¡ˆæ•¸: $totalFiles" -ForegroundColor White
+Write-Host "å·²æ›´æ–°:   $updatedFiles" -ForegroundColor Green
+Write-Host "è·³é:     $skippedFiles" -ForegroundColor Yellow
+Write-Host "éŒ¯èª¤:     $errorFiles" -ForegroundColor Red
 Write-Host ""
 
-# ¶×¥XÅÜ§ó°O¿ı
+# åŒ¯å‡ºè®Šæ›´è¨˜éŒ„
 if ($changeLog.Count -gt 0) {
-    $logPath = ".\ChurchReport\¤å¥ó\¸ô¥Ñ§ó·s°O¿ı_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+    $logPath = ".\ChurchReport\æ–‡ä»¶\è·¯ç”±æ›´æ–°è¨˜éŒ„_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
     $changeLog | Export-Csv -Path $logPath -Encoding UTF8 -NoTypeInformation
-    Write-Host "?? ÅÜ§ó°O¿ı¤wÀx¦s¦Ü: $logPath" -ForegroundColor Cyan
+    Write-Host "?? è®Šæ›´è¨˜éŒ„å·²å„²å­˜è‡³: $logPath" -ForegroundColor Cyan
 }
 
 if ($WhatIf) {
     Write-Host ""
-    Write-Host "??  ³o¬O¼ÒÀÀ°õ¦æ,¥¼¹ê»Ú­×§ïÀÉ®×" -ForegroundColor Yellow
-    Write-Host "   °õ¦æ .\Scripts\Update-ViewRoutes-Batch2.ps1 -WhatIf:`$false ¶i¦æ¹ê»Ú§ó·s" -ForegroundColor Yellow
+    Write-Host "??  é€™æ˜¯æ¨¡æ“¬åŸ·è¡Œ,æœªå¯¦éš›ä¿®æ”¹æª”æ¡ˆ" -ForegroundColor Yellow
+    Write-Host "   åŸ·è¡Œ .\Scripts\Update-ViewRoutes-Batch2.ps1 -WhatIf:`$false é€²è¡Œå¯¦éš›æ›´æ–°" -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "? §¹¦¨!" -ForegroundColor Green
+Write-Host "? å®Œæˆ!" -ForegroundColor Green
