@@ -1,0 +1,618 @@
+[
+  {
+    "path": "artifacts/p1-05-20261106/i18n-tests/i18n_net10.0_20261106124527.trx",
+    "sha256": "1ad4fba330115c5456adfd056aac493051136ced81cb740e73e8cfafef56ac5f",
+    "counters": {
+      "total": 108,
+      "executed": 108,
+      "passed": 108,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 108
+    },
+    "tests": [
+      {
+        "name": "基準重複專案身分必須拒絕",
+        "outcome": "Passed"
+      },
+      {
+        "name": "補充平面字元必須按 Rune 計數(text: \"   \", expected: \"［   ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \"a.Text\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "新專案以零為基準",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼允許缺字",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<text>/* \\\" ) { */ @(new { Value = \\\"}\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺參數、未知命令、缺基準與非法輸出均必須非零結束(command: \"generate|--check|--unknown\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \"A.文字\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "僅計算可見節點與四種指定屬性(source: \"<p>中文</p><p>中文</p>\", count: 2)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<input value=\\\"忽略\\\" />))<p>顯示</p>\", expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { [I18nIgnore(\\\"\\\")] string X = \\\"中文\\\"; }\", count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺參數、未知命令、缺基準與非法輸出均必須非零結束(command: \"invalid\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { [I18nIgnore(\\\"協定\\\")] string X = \\\"中文\\\"; \"···, count: 0)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@if (Model.Path == @\\\"C:\\\\Logs\\\\\\\") { <p title=\\\"提\"···, expected: 2)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorUnclosedCode_FailsClosed(source: \"@{ <div title=\\\"unterminated> }<p>中文</p>\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "即使方案誤列排除目錄內的專案",
+        "outcome": "Passed"
+      },
+      {
+        "name": "僅計算可見節點與四種指定屬性(source: \"@{ var x = \\\"中文\\\"; }<p>顯示 @Model.Name</p>\", count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相似方法名稱不得造成假排除(source: \"using Microsoft.Extensions.Logging; class C { void\"···, count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系保留參數並依核定公式補字(input: \"{name}\", expected: \"［{name}ǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@{ var path = @\\\"C:\\\\Logs\\\\\\\"; }<p>顯示</p>\", expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "補充平面字元必須按 Rune 計數(text: \"\\ud83d\\ude00\\ud83d\\ude00\\ud83d\\ude00\", expected: \"［\\ud83d\\ude00\\ud83d\\ude00\\ud83d\\ude00ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "實際 CLI 建立基準後通過",
+        "outcome": "Passed"
+      },
+      {
+        "name": "參數辨識不得任意限縮為 ASCII 名稱(text: \"{1234567890}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "產生、唯讀檢查、竄改後拒絕",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorUnclosedCode_FailsClosed(source: \"@{ var value = 1;\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相似方法名稱不得造成假排除(source: \"using Microsoft.Extensions.Logging; class C { void\"···, count: 0)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "僅計算可見節點與四種指定屬性(source: \"<input title='標題' placeholder=\\\"提示\\\" alt='替代' valu\"···, count: 4)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "ILogger 訊息樣板不增加顯示文字棘輪",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<text>const x = \\\"}\\\"; // \\\" ) { <span\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@{ var path = @\\\"C:\\\\A\\\"\\\"}B\\\\\\\"; }<p>顯示</p>\", expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "減少中文字串通過並回報改善",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相似方法名稱不得造成假排除(source: \"class Trace { public static void WriteLine(string \"···, count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "僅計算可見節點與四種指定屬性(source: \"<input value='@Model.Name' /><p>@(\\\"程式字串\\\")</p>\", count: 0)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相似方法名稱不得造成假排除(source: \"using System.Diagnostics; class C { void M() { Tra\"···, count: 0)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \".A.Text\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系保留參數並依核定公式補字(input: \"{churchName}小幫手\", expected: \"［{churchName}小幫手ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵必須符合分層格式",
+        "outcome": "Passed"
+      },
+      {
+        "name": "參數集合忽略次數及出現順序",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { string X = \\\"\\\"\\\"中文\\\"\\\"\\\"; }\", count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ var test = a<b && b>c; var list = new List<stri\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorUnclosedCode_FailsClosed(source: \"@(1 + \\\"unterminated)\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺參數、未知命令、缺基準與非法輸出均必須非零結束(command: \"scan|--baseline|missing.json\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ @:don't \\\" } ) <b>忽略</b>\\r\\n var x = 1; }<p>顯示<\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "僅計算可見節點與四種指定屬性(source: \"@if (Model.Ready) { <p title='提示'>中文</p> }\", count: 2)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系保留參數並依核定公式補字(input: \"課程報名\", expected: \"［課程報名ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@{ /* } \\\" */ var x = 1; }<p>顯示</p>\", expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<text>@if (Model.Ready) { <div>don't }\"···, expected: 2)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@{ var code = \\\"\\\"\\\"brace } and \\\" and \\\\ \\\"\\\"\\\"; \"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "補充平面字元必須按 Rune 計數(text: \"{a}一{b}二\", expected: \"［{a}一{b}二ǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { string X = $\\\"中文{1}中文\\\"; }\", count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@{ var value = new { Path = @\\\"C:\\\\Logs\\\\\\\", Neste\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { string X = @\\\"中文\\\"; }\", count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "產出符合無 BOM UTF-8 與 CRLF",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { char X = '中'; string Y = \\\"English\\\"; }\", count: 0)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \"A.\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系保留參數並依核定公式補字(input: \"目前語系：{culture}\", expected: \"［目前語系：{culture}ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "參數辨識不得任意限縮為 ASCII 名稱(text: \"{這是參數名稱}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "基準重複檔案身分必須拒絕",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<text>@(Nested(@<div>@Model.Name</div>\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺參數、未知命令、缺基準與非法輸出均必須非零結束(command: \"scan|--write-baseline|../outside.json\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorUnclosedCode_FailsClosed(source: \"@(Template(@<text>unclosed))<p>中文</p>\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<text><div data-value=\\\">\\\">@(Model.Ge\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { string X = $\\\"English{\\\"中文\\\"}\\\"; }\", count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \"A.Text\\n\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 重複鍵拒絕載入",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個並行掃描不得共享來源、計數或輸出",
+        "outcome": "Passed"
+      },
+      {
+        "name": "跨語系參數名稱集合必須一致",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ var quote = '\\\\''; var close = '}'; }<p>顯示</p>\", expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \"A.Text\\r\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "CJK 字串常值必須納入計數",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系保留參數並依核定公式補字(input: \"小組\", expected: \"［小組ǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@{ var code = $\\\"{(true ? \\\"}\\\" : \\\"{\\\")}\\\"; }<p>顯\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "XML DTD 不得解析外部檔案",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<div><div>忽略</div>don't }</div>))<p>顯示\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \"A.X Y\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "專案 XML 不允許 DTD",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorUnclosedCode_FailsClosed(source: \"@(Template(@<div><span>mismatch</div>))<p>中文</p>\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "Windows 副檔名大小寫不影響掃描",
+        "outcome": "Passed"
+      },
+      {
+        "name": "resx 鍵格式必須完整匹配整個名稱(key: \"A..Text\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ var template = @<text>\\r\\n@:don't \\\" } )\\r\\n<sp\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorUnclosedCode_FailsClosed(source: \"@{ var path = @\\\"unterminated; }<p>中文</p>\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ <input value=\\\"忽略\\\" /> <br> <div><div>don't }</\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ var code = $@\\\"C:\\\\{(true ? \\\"}\\\" : \\\"{\\\")}\\\\\\\"\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ <div>don't \\\" } ) <span>忽略</span></div> var x =\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相似方法名稱不得造成假排除(source: \"class C { void M(dynamic logger) { logger.LogInfor\"···, count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "翻譯資源的重複鍵與沒有中性來源的鍵也必須拒絕",
+        "outcome": "Passed"
+      },
+      {
+        "name": "舊 CP950 來源唯讀盤點且不改寫",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorLexicalBoundary_KeepsFollowingDisplay(source: \"@{ // } \\\"\\r\\n var x = 1; }<p>顯示</p>\", expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "中文註解不當成字串",
+        "outcome": "Passed"
+      },
+      {
+        "name": "專案中文字串數增加必須拒絕",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<div title=\\\"@(\\\")\\\")\\\">@{ var x = @\\\"\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "補充平面字元必須按 Rune 計數(text: \"\", expected: \"［ǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "有理由的 I18nIgnore 僅排除其成員",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺參數、未知命令、缺基準與非法輸出均必須非零結束(command: \"generate\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "僅計算可見節點與四種指定屬性(source: \"<!-- 中文 -- > -->@* 中文 *@<script>const x='中文';</scr\"···, count: 0)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "產生的 C# 必須可被編譯器接受",
+        "outcome": "Passed"
+      },
+      {
+        "name": "補充平面字元必須按 Rune 計數(text: \"{name}{name}\", expected: \"［{name}{name}ǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相同資源的產生結果逐位元組相同",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<text>don't \\\" } ) <span>忽略</span></te\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { string X = \\\"\\\\u4e2d文\\\"; }\", count: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系保留參數並依核定公式補字(input: \"{name}，報名成功\", expected: \"［{name}，報名成功ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Cli_RazorVerbatimThenNewDisplay_RejectsRatchetIncrease",
+        "outcome": "Passed"
+      },
+      {
+        "name": "方案不能參照 repo 以外的專案",
+        "outcome": "Passed"
+      },
+      {
+        "name": "注入不同 C# 字串語法與範圍邊界(source: \"class C { string X = \\\"㐀\\\" + \\\"鿿\\\" + \\\"豈\\\" + \\\"﫿\\\"\"···, count: 4)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系保留參數並依核定公式補字(input: \"連線測試成功\", expected: \"［連線測試成功ǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "只讀方案非測試專案",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@(Template(@<div><br><img src='fake'><input value=\"···, expected: 1)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "I18nCheck.Tests.RazorLexicalBoundaryTests.Scan_RazorTemplatesAndCode_KeepExistingCountingScope(source: \"@{ var code = @$\\\"C:\\\\{(true ? \\\"}\\\" : \\\"{\\\")}\\\\\\\"\"···, expected: 1)",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/tracer/tracer_net10.0_20261106124816.trx",
+    "sha256": "3ae3783810a019ddbc11b557c0ebb4d77a8bb112b94ddf874cbc0a6ca4028b46",
+    "counters": {
+      "total": 7,
+      "executed": 7,
+      "passed": 7,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 7
+    },
+    "tests": [
+      {
+        "name": "ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Write_ManyTimes_DoesNotGrowTraceListeners",
+        "outcome": "Passed"
+      },
+      {
+        "name": "ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.NewTempTracePath_SecondCall_ThrowsAndKeepsOriginalOwner",
+        "outcome": "Passed"
+      },
+      {
+        "name": "ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.DeleteTraceFile_PersistentRetention_FailsAfterFiveAttempts",
+        "outcome": "Passed"
+      },
+      {
+        "name": "ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Dispose_RemovesListenerFromGlobalCollection",
+        "outcome": "Passed"
+      },
+      {
+        "name": "ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Write_BelowQualifiedLevel_DoesNotOpenTraceFile",
+        "outcome": "Passed"
+      },
+      {
+        "name": "ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.Write_uses_culture_invariant_legacy_timestamp_format",
+        "outcome": "Passed"
+      },
+      {
+        "name": "ToolUtility.Dataverse.Tests.FileToolUtilityTracerTests.DeleteTraceFile_TransientLock_RetriesThenDrains",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/plugin-pe/plugin-pe.trx",
+    "sha256": "b4c824c8298c3513da9d10fb2265d4b52da2304aa87af243987543c3df05e54f",
+    "counters": {
+      "total": 27,
+      "executed": 27,
+      "passed": 27,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 27
+    },
+    "tests": [
+      {
+        "name": "檢查器拒絕不符合沙箱契約的中繼資料(fault: \"drawing\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "合併輸入僅接受不高於 Framework 4.6.2 的明確目標(target: \"no-framework\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "檢查器拒絕不符合沙箱契約的中繼資料(fault: \"unsigned\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "不完整輸入以固定原因拒絕且不洩漏路徑(fault: \"oversize\", reason: \"SizeLimit\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"System.runtime\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "facade 本身即使宣告正確框架也不得合併(assemblyName: \"System.Collections\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "facade 本身即使宣告正確框架也不得合併(assemblyName: \"netstandard\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "合併輸入僅接受不高於 Framework 4.6.2 的明確目標(target: \"framework\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"System.Runtime.Extensions\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "檢查器拒絕不符合沙箱契約的中繼資料(fault: \"valid\", expected: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"System.Runtime.CustomLibrary\", expected: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"netstandard\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "合併輸入僅接受不高於 Framework 4.6.2 的明確目標(target: \"net45\", expected: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "合併輸入僅接受不高於 Framework 4.6.2 的明確目標(target: \"net462\", expected: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "檢查器拒絕不符合沙箱契約的中繼資料(fault: \"no-framework\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "不完整輸入以固定原因拒絕且不洩漏路徑(fault: \"invalid\", reason: \"InvalidImage\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "合併輸入僅接受不高於 Framework 4.6.2 的明確目標(target: \"net48\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "不完整輸入以固定原因拒絕且不洩漏路徑(fault: \"missing\", reason: \"InvalidImage\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "檢查器拒絕不符合沙箱契約的中繼資料(fault: \"framework\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "檢查器拒絕不符合沙箱契約的中繼資料(fault: \"private\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"System.Net.Http\", expected: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"System.ServiceModel.Primitives\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"System.Collections\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "不完整輸入以固定原因拒絕且不洩漏路徑(fault: \"arguments\", reason: \"InvalidArguments\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "檢查器拒絕不符合沙箱契約的中繼資料(fault: \"reference\", expected: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "facade 本身即使宣告正確框架也不得合併(assemblyName: \"System.Runtime\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "兩個檢查入口拒絕 facade 參考並保留合法 Framework 參考(dependencyName: \"System.Runtime\", expected: False)",
+        "outcome": "Passed"
+      }
+    ]
+  }
+]

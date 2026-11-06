@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <!-- 英文仍未預設開放；只提供既有英文命令，不新增顯示文字翻譯。 -->
+  <data name="Keyword.PrayerRequest" xml:space="preserve"><value>Pray</value></data>
+  <data name="Keyword.Journal" xml:space="preserve"><value>Report</value></data>
+  <data name="Keyword.QrCode" xml:space="preserve"><value>QR</value></data>
+  <data name="Keyword.Rpg" xml:space="preserve"><value>RPG</value></data>
+  <data name="Keyword.QueryUserId" xml:space="preserve"><value>ID</value></data>
+  <data name="Keyword.NotifyLink" xml:space="preserve"><value>Notify</value></data>
+</root>

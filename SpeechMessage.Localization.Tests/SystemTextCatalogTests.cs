@@ -98,7 +98,7 @@ public sealed class SystemTextCatalogTests
     [InlineData("A.Key Value")]
     public void TextKey_InvalidFormat_Throws(string value) => Assert.Throws<ArgumentException>(() => new TextKey(value));
 
-    /// <summary>三個語系表都完整保留六個資源鍵；不能轉回可變 Dictionary，IDictionary 若存在也必須拒絕寫入。</summary>
+    /// <summary>三個語系表保留六個原診斷鍵及六個 P1 既有命令鍵；新增資源不得削弱唯讀或完整後備保護。</summary>
     [Fact(DisplayName = "呼叫者不能修改任何已發布語系表")]
     public void Table_IsImmutable_CallerCannotMutate()
     {
@@ -109,7 +109,7 @@ public sealed class SystemTextCatalogTests
             Assert.False(table is Dictionary<string, string>);
             if (table is IDictionary<string, string> mutable)
                 Assert.Throws<NotSupportedException>(() => mutable["Common.Diagnostics.Ping"] = "caller-change");
-            Assert.Equal(6, table.Count);
+            Assert.Equal(12, table.Count);
         }
         Assert.Equal("連線測試成功", catalog.GetText("zh-TW", new TextKey("Common.Diagnostics.Ping")));
     }
@@ -257,7 +257,7 @@ public sealed class SystemTextCatalogTests
         Assert.Throws<KeyNotFoundException>(() => new SystemTextTable().GetText("zh-TW", default));
     }
 
-    /// <summary>未知語系與大小寫變化只重用既有六鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量不變。</summary>
+    /// <summary>未知語系與大小寫變化只重用既有十二鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量不變。</summary>
     [Fact(DisplayName = "未知語系重用既有後備快照")]
     public void Table_UnknownCultures_ReuseFixedFallback()
     {
@@ -265,6 +265,6 @@ public sealed class SystemTextCatalogTests
         var original = catalog.GetTable("zh-TW");
         for (var index = 0; index < 1000; index++) Assert.Same(original, catalog.GetTable("unrecognized-" + index));
         Assert.Same(original, catalog.GetTable("ZH-tw"));
-        Assert.Equal(6, original.Count);
+        Assert.Equal(12, original.Count);
     }
 }

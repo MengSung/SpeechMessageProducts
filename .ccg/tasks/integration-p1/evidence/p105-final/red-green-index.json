@@ -1,0 +1,2132 @@
+[
+  {
+    "path": "artifacts/p1-05-20261106/baseline_net10.0_20261106122146.trx",
+    "sha256": "895d5b07ca8edd8f963089136f578a666d4ac824d876ff8065137b6b010b4cd6",
+    "counters": {
+      "total": 67,
+      "executed": 67,
+      "passed": 67,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 67
+    },
+    "tests": [
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key.\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少系統鍵直接失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: null)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "百執行緒讀取一致並排空且 net10 零配置",
+        "outcome": "Passed"
+      },
+      {
+        "name": "重複資源鍵拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "錯誤語系與不完整列拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessage.Localization\", targets: \"net462;net10.0\", dependency: \"ToolUtility\", dependencyTargets: \"net10.0\", rule: \"DualTargetReference\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Sandbox_ReferenceToNet48Product_IsRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.Extensions.Logging\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A..Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "來源陣列修改不影響已發布表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"［診斷外掛設定格式錯誤。ǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "Localization 專案參考選取宿主對應產品輸出",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ToolCore_DataverseException_IsTargetSpecific",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests.Run_WhenProcessExceedsDeadline_ThrowsWithinBoundedTime",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.文字\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Net10SharedLayer_ToDualCore_IsAllowed",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"fr-FR\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojUnreferencedProductTarget_IsRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ConditionalReferences_AreCheckedForEachEvaluatedTarget",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"lower.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.AspNetCore.Http\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key\\n\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "支援語系中繼資料固定且唯讀",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Culture\", expected: \"［目前語系：{culture}ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.HostToHost_IsRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"Single\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessageProducts.ChurchReport\", targets: \"net10.0\", dependency: \"SpeechMessageProducts.LineWebhook\", dependencyTargets: \"net10.0\", rule: \"HostReference\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Solution_AllEvaluatedTargets_ObeyR4",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ReverseDependency_ToolReference_AndUnknownProject_AreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojSandboxTarget_IsRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系重用既有後備快照",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Line.Sender.Template\", expected: \"［{churchName}小幫手ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key Value\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.PowerPlatform.Dataverse.Client\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessage.Dynamics.Plugins\", targets: \"net462\", dependency: \"SpeechMessage.Localization\", dependencyTargets: \"net48;net10.0\", rule: \"SandboxReference\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Sandbox_HigherFramework_IsRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.lower\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "預設文字鍵與空參數不會偽裝成合法鍵",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Ping\", expected: \"［連線測試成功ǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.Extensions.Logging\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.AspNetCore.Http\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \".A.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.PushTest\", expected: \"［P0 推播測試 {utc}ǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相同顯示文字的不同鍵完整保留",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Retryable\", expected: \"［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.RestoredAssets_Net48Product_IsRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"Line.Messaging\", targets: \"net10.0\", dependency: \"LineMessagingProcessor\", dependencyTargets: \"net10.0\", rule: \"LayerDirection\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.PowerPlatform.Dataverse.Client\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_ReferenceToNet10Only_IsRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests.Run_WhenBothOutputPipesExceedCaptureLimit_DrainsAndBoundsCapturedText",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵相等與雜湊遵守 Ordinal 契約",
+        "outcome": "Passed"
+      },
+      {
+        "name": "呼叫者不能修改任何已發布語系表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/baseline_net48_20261106122119.trx",
+    "sha256": "e8d501c9b728ee7931faf0138888198afdd4583d9434b9e54a7ad64ab155b938",
+    "counters": {
+      "total": 43,
+      "executed": 43,
+      "passed": 43,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 43
+    },
+    "tests": [
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A..Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "支援語系中繼資料固定且唯讀",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "Localization 專案參考選取宿主對應產品輸出",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Culture\", expected: \"［目前語系：{culture}ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "百執行緒讀取一致並排空且 net10 零配置",
+        "outcome": "Passed"
+      },
+      {
+        "name": "預設文字鍵與空參數不會偽裝成合法鍵",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key\\n\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Retryable\", expected: \"［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵相等與雜湊遵守 Ordinal 契約",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.lower\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: null)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "來源陣列修改不影響已發布表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"［診斷外掛設定格式錯誤。ǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key.\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"lower.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key Value\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "錯誤語系與不完整列拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.PushTest\", expected: \"［P0 推播測試 {utc}ǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"Single\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \".A.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Line.Sender.Template\", expected: \"［{churchName}小幫手ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系重用既有後備快照",
+        "outcome": "Passed"
+      },
+      {
+        "name": "呼叫者不能修改任何已發布語系表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "重複資源鍵拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少系統鍵直接失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.文字\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相同顯示文字的不同鍵完整保留",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Ping\", expected: \"［連線測試成功ǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"fr-FR\")",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/culture-green_net10.0_20261106123102.trx",
+    "sha256": "b14c64a316c5e299323310bd382d5761bdbfed04185baee91e767122dcd8597c",
+    "counters": {
+      "total": 10,
+      "executed": 10,
+      "passed": 10,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 10
+    },
+    "tests": [
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"fr-FR\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文未開放回教會預設",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: True, expected: \"qps-ploc\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "語系選項與教會設定複製來源且不可變",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偏好及預設不可用時回繁中",
+        "outcome": "Passed"
+      },
+      {
+        "name": "正式環境任何偽語系設定拒絕啟動",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: null)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偏好同時啟用與開放才可選用",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: False, expected: \"zh-TW\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"\")",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/culture-green_net48_20261106123104.trx",
+    "sha256": "8616846474cc6e3269a59682dcb43a4a46343b420d3bd8ffdc56b1784645fc20",
+    "counters": {
+      "total": 10,
+      "executed": 10,
+      "passed": 10,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 10
+    },
+    "tests": [
+      {
+        "name": "偏好同時啟用與開放才可選用",
+        "outcome": "Passed"
+      },
+      {
+        "name": "正式環境任何偽語系設定拒絕啟動",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偏好及預設不可用時回繁中",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: False, expected: \"zh-TW\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "語系選項與教會設定複製來源且不可變",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: True, expected: \"qps-ploc\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文未開放回教會預設",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"fr-FR\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: null)",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/culture-red_net10.0_20261106122949.trx",
+    "sha256": "05d2129a407ede184cbb4d0e598ffed16322b7dfd121efa9206aca0140cd50c2",
+    "counters": {
+      "total": 10,
+      "executed": 10,
+      "passed": 0,
+      "failed": 10,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 10
+    },
+    "tests": [
+      {
+        "name": "偏好及預設不可用時回繁中",
+        "outcome": "Failed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"fr-FR\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偏好同時啟用與開放才可選用",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: False, expected: \"zh-TW\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "語系選項與教會設定複製來源且不可變",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: True, expected: \"qps-ploc\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文未開放回教會預設",
+        "outcome": "Failed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "正式環境任何偽語系設定拒絕啟動",
+        "outcome": "Failed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: null)",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/culture-red_net48_20261106122951.trx",
+    "sha256": "1a89965c9aa587564cc6209e01b4e3368921913bf1aa29cb684d9a72b46cbe23",
+    "counters": {
+      "total": 10,
+      "executed": 10,
+      "passed": 0,
+      "failed": 10,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 10
+    },
+    "tests": [
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: False, expected: \"zh-TW\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: null)",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偏好同時啟用與開放才可選用",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文未開放回教會預設",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系必須明確允許且使用固定格式(allowed: True, expected: \"qps-ploc\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "語系選項與教會設定複製來源且不可變",
+        "outcome": "Failed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"fr-FR\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偏好及預設不可用時回繁中",
+        "outcome": "Failed"
+      },
+      {
+        "name": "正式環境任何偽語系設定拒絕啟動",
+        "outcome": "Failed"
+      },
+      {
+        "name": "缺少與未知偏好使用已開放教會預設(preference: \"\")",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/format-order-red_net10.0_20261106123649.trx",
+    "sha256": "b4d103a09ae05ad854955b6120de70e42df60a0012d44354023e37d18332f7d8",
+    "counters": {
+      "total": 1,
+      "executed": 1,
+      "passed": 0,
+      "failed": 1,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 1
+    },
+    "tests": [
+      {
+        "name": "參數集合完整驗證後才執行參數值格式化",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/format-order-red_net48_20261106123651.trx",
+    "sha256": "7cd84bd1cab84d97d17a33a43a259ea2240258d0c36f0f8eb2fa8a17f6ab6349",
+    "counters": {
+      "total": 1,
+      "executed": 1,
+      "passed": 0,
+      "failed": 1,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 1
+    },
+    "tests": [
+      {
+        "name": "參數集合完整驗證後才執行參數值格式化",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/keyword-green_net10.0_20261106123539.trx",
+    "sha256": "aa23aa5f6755cf07c3cda63d1969cc7ce6e9db2adf3a5ad1fe1fa5400edd72fe",
+    "counters": {
+      "total": 12,
+      "executed": 12,
+      "passed": 12,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 12
+    },
+    "tests": [
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"REPORT\", expected: \"Journal\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"rpg\", expected: \"Rpg\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文會友仍可使用中文且未命中不保留結果",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"ｑｒ\", expected: \"QrCode\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "同意圖別名合法且空白輸入不分派",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"pRaY\", expected: \"PrayerRequest\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"id\", expected: \"QueryUserId\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "關鍵字支援明確前綴與包含模式並遵守語系順序",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"notify\", expected: \"NotifyLink\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "關鍵字全形與連續空白正規化",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/keyword-green_net48_20261106123541.trx",
+    "sha256": "7a52fb7ff9d51e6ddde5850bbd312533ce8c2a3d28393c629ea1903319e88cb9",
+    "counters": {
+      "total": 12,
+      "executed": 12,
+      "passed": 12,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 12
+    },
+    "tests": [
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"REPORT\", expected: \"Journal\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "同意圖別名合法且空白輸入不分派",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"rpg\", expected: \"Rpg\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"pRaY\", expected: \"PrayerRequest\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"id\", expected: \"QueryUserId\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"ｑｒ\", expected: \"QrCode\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "關鍵字支援明確前綴與包含模式並遵守語系順序",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文會友仍可使用中文且未命中不保留結果",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"notify\", expected: \"NotifyLink\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "關鍵字全形與連續空白正規化",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/keyword-red_net10.0_20261106123334.trx",
+    "sha256": "81e77e6eba6b52ff4d7ce5734fa8bbfc5fe680dbb1804c71ff210b2136df7338",
+    "counters": {
+      "total": 12,
+      "executed": 12,
+      "passed": 0,
+      "failed": 12,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 12
+    },
+    "tests": [
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"pRaY\", expected: \"PrayerRequest\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"notify\", expected: \"NotifyLink\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"id\", expected: \"QueryUserId\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"rpg\", expected: \"Rpg\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "同意圖別名合法且空白輸入不分派",
+        "outcome": "Failed"
+      },
+      {
+        "name": "關鍵字全形與連續空白正規化",
+        "outcome": "Failed"
+      },
+      {
+        "name": "關鍵字支援明確前綴與包含模式並遵守語系順序",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"ｑｒ\", expected: \"QrCode\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"REPORT\", expected: \"Journal\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: False)",
+        "outcome": "Failed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: True)",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文會友仍可使用中文且未命中不保留結果",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/keyword-red_net48_20261106123336.trx",
+    "sha256": "67de2f334863630b5f52d1bb62eb441d89ff95aa403666ac5ebe51671b6bc249",
+    "counters": {
+      "total": 12,
+      "executed": 12,
+      "passed": 0,
+      "failed": 12,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 12
+    },
+    "tests": [
+      {
+        "name": "關鍵字全形與連續空白正規化",
+        "outcome": "Failed"
+      },
+      {
+        "name": "同意圖別名合法且空白輸入不分派",
+        "outcome": "Failed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: True)",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"REPORT\", expected: \"Journal\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"id\", expected: \"QueryUserId\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文會友仍可使用中文且未命中不保留結果",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"pRaY\", expected: \"PrayerRequest\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"ｑｒ\", expected: \"QrCode\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"notify\", expected: \"NotifyLink\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "關鍵字支援明確前綴與包含模式並遵守語系順序",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼僅提供既有關鍵字並忽略大小寫(input: \"rpg\", expected: \"Rpg\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "同語系及跨語系異意圖衝突拒絕建表(crossCulture: False)",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/priority-green_net10.0_20261106124357.trx",
+    "sha256": "57bfb8cdd26589dd39559860712e97fd0bbfcdd2e65ad85e9a022b758770f968",
+    "counters": {
+      "total": 1,
+      "executed": 1,
+      "passed": 1,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 1
+    },
+    "tests": [
+      {
+        "name": "產品指定優先序不被前綴長度覆蓋",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/priority-green_net48_20261106124359.trx",
+    "sha256": "332f207c7a633af6b94b69d5e4095361d05af46157f1a9a36808f3a8ea45928e",
+    "counters": {
+      "total": 1,
+      "executed": 1,
+      "passed": 1,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 1
+    },
+    "tests": [
+      {
+        "name": "產品指定優先序不被前綴長度覆蓋",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/priority-red_net10.0_20261106124146.trx",
+    "sha256": "410cee965a68ded7e9c908e1c8f06df2fe52d17741da56de6ed63f8565673bc1",
+    "counters": {
+      "total": 1,
+      "executed": 1,
+      "passed": 0,
+      "failed": 1,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 1
+    },
+    "tests": [
+      {
+        "name": "產品指定優先序不被前綴長度覆蓋",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/priority-red_net48_20261106124148.trx",
+    "sha256": "28bcfb632f1d1a18c5e98d39f97af5d37f5bf37dbfb139540c3da3602dd3ffcd",
+    "counters": {
+      "total": 1,
+      "executed": 1,
+      "passed": 0,
+      "failed": 1,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 1
+    },
+    "tests": [
+      {
+        "name": "產品指定優先序不被前綴長度覆蓋",
+        "outcome": "Failed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/text-green_net10.0_20261106122824.trx",
+    "sha256": "e3806098359c9cbcdd04eca9c0929ad17e8e58fbe68b420b2d67d62871890932",
+    "counters": {
+      "total": 62,
+      "executed": 62,
+      "passed": 62,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 62
+    },
+    "tests": [
+      {
+        "name": "Localization 專案參考選取宿主對應產品輸出",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整解析全部缺鍵明確失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "呼叫者不能修改任何已發布語系表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 2, expected: \"church-wildcard\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "語言變更保留完整邊界且偽語系格式固定",
+        "outcome": "Passed"
+      },
+      {
+        "name": "香港文字語系依核定別名回繁中",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key Value\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \".A.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: null)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "覆寫快照複製來源並保留不同正式列",
+        "outcome": "Passed"
+      },
+      {
+        "name": "原始翻譯存在性與舊完整後備分開",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "不同教會千次並行取字不串資料",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"en-US\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 3, expected: \"system-exact\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 4, expected: \"system-parent\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相同顯示文字的不同鍵完整保留",
+        "outcome": "Passed"
+      },
+      {
+        "name": "錯誤語系與不完整列拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "預設文字鍵與空參數不會偽裝成合法鍵",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"zh-TW\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key.\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"［診斷外掛設定格式錯誤。ǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "具名參數單次替換且不重新解析參數值",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "重複資源鍵拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 1, expected: \"church-exact\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "百執行緒讀取一致並排空且 net10 零配置",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系重用既有後備快照",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵相等與雜湊遵守 Ordinal 契約",
+        "outcome": "Passed"
+      },
+      {
+        "name": "來源陣列修改不影響已發布表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Retryable\", expected: \"［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "具名參數集合必須完整且唯一",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"fr-FR\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.PushTest\", expected: \"［P0 推播測試 {utc}ǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "覆寫候選驗證正式識別與教會邊界",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A..Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.文字\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "支援語系中繼資料固定且唯讀",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 5, expected: \"neutral\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key\\n\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Ping\", expected: \"［連線測試成功ǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"lower.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.lower\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "快照完整邊界不符直接拒絕",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"de-DE\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"Single\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Culture\", expected: \"［目前語系：{culture}ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少系統鍵直接失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Line.Sender.Template\", expected: \"［{churchName}小幫手ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "無效文字範圍拒絕建立",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/text-green_net48_20261106122826.trx",
+    "sha256": "628f4377e47f9b380ebeadd7db661898db629a9b8645bdc360450b2c59e97265",
+    "counters": {
+      "total": 62,
+      "executed": 62,
+      "passed": 62,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 62
+    },
+    "tests": [
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Culture\", expected: \"［目前語系：{culture}ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"de-DE\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"zh-TW\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "百執行緒讀取一致並排空且 net10 零配置",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Retryable\", expected: \"［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key.\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "預設文字鍵與空參數不會偽裝成合法鍵",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"［診斷外掛設定格式錯誤。ǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "語言變更保留完整邊界且偽語系格式固定",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少系統鍵直接失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: null)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "覆寫快照複製來源並保留不同正式列",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整解析全部缺鍵明確失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "Localization 專案參考選取宿主對應產品輸出",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"fr-FR\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "香港文字語系依核定別名回繁中",
+        "outcome": "Passed"
+      },
+      {
+        "name": "覆寫候選驗證正式識別與教會邊界",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.文字\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"en-US\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "原始翻譯存在性與舊完整後備分開",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Line.Sender.Template\", expected: \"［{churchName}小幫手ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 1, expected: \"church-exact\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 4, expected: \"system-parent\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key\\n\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "快照完整邊界不符直接拒絕",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "呼叫者不能修改任何已發布語系表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "不同教會千次並行取字不串資料",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "錯誤語系與不完整列拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "具名參數單次替換且不重新解析參數值",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵相等與雜湊遵守 Ordinal 契約",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \".A.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "支援語系中繼資料固定且唯讀",
+        "outcome": "Passed"
+      },
+      {
+        "name": "來源陣列修改不影響已發布表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "重複資源鍵拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"lower.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"Single\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 3, expected: \"system-exact\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系重用既有後備快照",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.PushTest\", expected: \"［P0 推播測試 {utc}ǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key Value\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相同顯示文字的不同鍵完整保留",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 2, expected: \"church-wildcard\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "具名參數集合必須完整且唯一",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A..Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "無效文字範圍拒絕建立",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 5, expected: \"neutral\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.lower\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Ping\", expected: \"［連線測試成功ǂǂǂ］\")",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/text-red_net10.0_20261106122605.trx",
+    "sha256": "46fd6636dcac14e00fe04726bff6ba719ef0d2e7ee83d36e5452382639601c59",
+    "counters": {
+      "total": 62,
+      "executed": 62,
+      "passed": 43,
+      "failed": 19,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Passed": 43,
+      "Failed": 19
+    },
+    "tests": [
+      {
+        "name": "來源陣列修改不影響已發布表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 2, expected: \"church-wildcard\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "覆寫快照複製來源並保留不同正式列",
+        "outcome": "Failed"
+      },
+      {
+        "name": "不同教會千次並行取字不串資料",
+        "outcome": "Failed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "覆寫候選驗證正式識別與教會邊界",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key\\n\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"Single\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 5, expected: \"neutral\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "快照完整邊界不符直接拒絕",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Culture\", expected: \"［目前語系：{culture}ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "相同顯示文字的不同鍵完整保留",
+        "outcome": "Passed"
+      },
+      {
+        "name": "錯誤語系與不完整列拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "預設文字鍵與空參數不會偽裝成合法鍵",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整解析全部缺鍵明確失敗",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.lower\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 4, expected: \"system-parent\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵相等與雜湊遵守 Ordinal 契約",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "重複資源鍵拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "百執行緒讀取一致並排空且 net10 零配置",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Retryable\", expected: \"［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key.\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 1, expected: \"church-exact\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "無效文字範圍拒絕建立",
+        "outcome": "Failed"
+      },
+      {
+        "name": "具名參數集合必須完整且唯一",
+        "outcome": "Failed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 3, expected: \"system-exact\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "語言變更保留完整邊界且偽語系格式固定",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"［診斷外掛設定格式錯誤。ǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "支援語系中繼資料固定且唯讀",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.PushTest\", expected: \"［P0 推播測試 {utc}ǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: null)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A..Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "原始翻譯存在性與舊完整後備分開",
+        "outcome": "Failed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"de-DE\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Ping\", expected: \"［連線測試成功ǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.文字\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "香港文字語系依核定別名回繁中",
+        "outcome": "Failed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"en-US\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "具名參數單次替換且不重新解析參數值",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key Value\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "Localization 專案參考選取宿主對應產品輸出",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \".A.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Line.Sender.Template\", expected: \"［{churchName}小幫手ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"lower.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "呼叫者不能修改任何已發布語系表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系重用既有後備快照",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少系統鍵直接失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"zh-TW\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"fr-FR\")",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  {
+    "path": "artifacts/p1-05-20261106/text-red_net48_20261106122606.trx",
+    "sha256": "a3b82eef922211d62a0ed77cb48b55e0bf2df066e9593f5cd0d11c6a050db060",
+    "counters": {
+      "total": 62,
+      "executed": 62,
+      "passed": 43,
+      "failed": 19,
+      "notExecuted": 0
+    },
+    "outcomes": {
+      "Failed": 19,
+      "Passed": 43
+    },
+    "tests": [
+      {
+        "name": "具名參數集合必須完整且唯一",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Ping\", expected: \"［連線測試成功ǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"zh-TW\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "百執行緒讀取一致並排空且 net10 零配置",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"lower.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "缺少系統鍵直接失敗",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "覆寫候選驗證正式識別與教會邊界",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.PushTest\", expected: \"［P0 推播測試 {utc}ǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \".A.Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.lower\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "Localization 專案參考選取宿主對應產品輸出",
+        "outcome": "Passed"
+      },
+      {
+        "name": "香港文字語系依核定別名回繁中",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 2, expected: \"church-wildcard\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"［診斷外掛設定格式錯誤。ǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Retryable\", expected: \"診斷推播暫時失敗；RetryKey={retryKey}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Retryable\", expected: \"［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "不同教會千次並行取字不串資料",
+        "outcome": "Failed"
+      },
+      {
+        "name": "無效文字範圍拒絕建立",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵相等與雜湊遵守 Ordinal 契約",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.文字\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整解析全部缺鍵明確失敗",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key Value\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "原始翻譯存在性與舊完整後備分開",
+        "outcome": "Failed"
+      },
+      {
+        "name": "相同顯示文字的不同鍵完整保留",
+        "outcome": "Passed"
+      },
+      {
+        "name": "呼叫者不能修改任何已發布語系表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "覆寫快照複製來源並保留不同正式列",
+        "outcome": "Failed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 3, expected: \"system-exact\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Common.Diagnostics.Culture\", expected: \"［目前語系：{culture}ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 1, expected: \"church-exact\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "重複資源鍵拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "預設文字鍵與空參數不會偽裝成合法鍵",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A..Key\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: null)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key.\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "錯誤語系與不完整列拒絕發布",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Culture\", expected: \"目前語系：{culture}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"de-DE\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Line.Sender.Template\", expected: \"{churchName}小幫手\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系重用既有後備快照",
+        "outcome": "Passed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 4, expected: \"system-parent\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "完整字典依五層順序選出第一個有效原文(layer: 5, expected: \"neutral\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"Single\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "英文空殼缺字回繁中(key: \"Common.Diagnostics.Ping\", expected: \"連線測試成功\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "具名參數單次替換且不重新解析參數值",
+        "outcome": "Failed"
+      },
+      {
+        "name": "日期與數值按明確格式文化輸出(formatCulture: \"en-US\")",
+        "outcome": "Failed"
+      },
+      {
+        "name": "來源陣列修改不影響已發布表",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.PushTest\", expected: \"P0 推播測試 {utc}\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "語言變更保留完整邊界且偽語系格式固定",
+        "outcome": "Failed"
+      },
+      {
+        "name": "偽語系取字符合核定對照表(key: \"Line.Sender.Template\", expected: \"［{churchName}小幫手ǂǂ］\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "繁中取字使用真實系統資源(key: \"Common.Diagnostics.InvalidConfiguration\", expected: \"診斷外掛設定格式錯誤。\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "支援語系中繼資料固定且唯讀",
+        "outcome": "Passed"
+      },
+      {
+        "name": "未知語系確定回繁中(culture: \"fr-FR\")",
+        "outcome": "Passed"
+      },
+      {
+        "name": "快照完整邊界不符直接拒絕",
+        "outcome": "Failed"
+      },
+      {
+        "name": "文字鍵完整驗證分層格式(value: \"A.Key\\n\")",
+        "outcome": "Passed"
+      }
+    ]
+  }
+]

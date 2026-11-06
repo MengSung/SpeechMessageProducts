@@ -1,0 +1,59 @@
+using System;
+using System.Globalization;
+
+namespace SpeechMessage.Localization;
+
+/// <summary>承載伺服器授權後的不可變文字範圍；建立物件不代表取得資料存取權，不持有 request 或憑證。</summary>
+public sealed class TextContext
+{
+    /// <summary>伺服器驗證的教會識別。</summary>
+    public Guid ChurchId { get; }
+    /// <summary>文字選擇語系，不能改變授權範圍。</summary>
+    public string TextCulture { get; } = string.Empty;
+    /// <summary>明確格式文化，不依賴執行緒文化。</summary>
+    public string FormatCulture { get; } = string.Empty;
+    /// <summary>伺服器驗證的組織範圍。</summary>
+    public string Organization { get; } = string.Empty;
+    /// <summary>伺服器驗證的產品範圍。</summary>
+    public string Product { get; } = string.Empty;
+    /// <summary>建立不可變範圍；預設值只支援既有產品呼叫，不取代 host 授權。</summary>
+    /// <param name="churchId">非空教會 ID。</param>
+    /// <param name="textCulture">文字語系。</param>
+    /// <param name="formatCulture">格式文化。</param>
+    /// <param name="organization">伺服器組織識別。</param>
+    /// <param name="product">伺服器產品識別。</param>
+    public TextContext(Guid churchId, string textCulture, string formatCulture, string organization = "default", string product = "ChurchReport")
+    {
+        if (churchId == Guid.Empty) throw new ArgumentException("A validated church identity is required.", nameof(churchId));
+        ChurchId = churchId;
+        Organization = RequireBoundary(organization, nameof(organization));
+        Product = RequireBoundary(product, nameof(product));
+        TextCulture = RequireBoundary(textCulture, nameof(textCulture));
+        // 格式文化先驗證；偽語系亦不容許無效輸入，且永遠使用核定的 en-US。
+        _ = CultureInfo.GetCultureInfo(RequireBoundary(formatCulture, nameof(formatCulture)));
+        FormatCulture = string.Equals(textCulture, "qps-ploc", StringComparison.OrdinalIgnoreCase) ? "en-US" : formatCulture;
+    }
+    /// <summary>只替換語系，保留教會、組織及產品。</summary>
+    /// <param name="textCulture">新文字語系。</param>
+    /// <param name="formatCulture">新格式文化。</param>
+    /// <returns>新的不可變範圍。</returns>
+    public TextContext WithCultures(string textCulture, string formatCulture) => new(ChurchId, textCulture, formatCulture, Organization, Product);
+    /// <summary>按完整教會邊界比較，不以語言或格式文化代表授權。</summary>
+    /// <param name="other">另一個範圍。</param>
+    /// <returns>全部 scope 欄位相同時為真。</returns>
+    public bool HasSameScope(TextContext other) => other is not null && ChurchId == other.ChurchId
+        && string.Equals(Organization, other.Organization, StringComparison.Ordinal)
+        && string.Equals(Product, other.Product, StringComparison.Ordinal);
+
+    /// <summary>限制範圍值長度並拒絕空白及控制字元，避免模糊識別或無界保留；不自行修剪或改寫授權識別。</summary>
+    /// <param name="value">伺服器驗證後的識別或語系。</param>
+    /// <param name="parameter">固定參數名稱。</param>
+    /// <returns>原始且不可變的有效值。</returns>
+    private static string RequireBoundary(string value, string parameter)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 128) throw new ArgumentException("A bounded nonempty scope value is required.", parameter);
+        foreach (var character in value)
+            if (char.IsControl(character)) throw new ArgumentException("Scope values cannot contain control characters.", parameter);
+        return value;
+    }
+}

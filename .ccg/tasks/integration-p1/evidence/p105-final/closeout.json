@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-06",
+  "workPackage": "P1-05",
+  "status": "accepted",
+  "scope": "本機正式P1-05驗收；主P1仍in_progress",
+  "releaseTests": 4004,
+  "releaseTrx": 16,
+  "localizationTests": {
+    "net48ProductNet462": 92,
+    "net10": 116
+  },
+  "coverage": {
+    "net462": 0.9661,
+    "net10.0": 0.977
+  },
+  "encoding": {
+    "base": "73b6e6cf",
+    "checked": 1022,
+    "rawExcluded": 853,
+    "issues": 0
+  },
+  "progressTests": {
+    "passed": 14,
+    "failed": 0
+  },
+  "ciTransition": {
+    "passed": 6,
+    "failed": 0
+  },
+  "review": "主會話直接審查；沒有新增雙模型或獨立第二人審查證據",
+  "blockers": [],
+  "nextAction": "P1-10 Tenancy及ILineChannelResolver；後續P1-08",
+  "commitRecord": "完成本地提交後於本檔及一般資訊追加確切hash，不回寫來源程式"
+}

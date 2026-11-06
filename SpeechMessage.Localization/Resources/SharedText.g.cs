@@ -15,6 +15,12 @@ namespace SpeechMessage.Localization.Resources
             new string?[] { "Common.Diagnostics.Ping", "連線測試成功", null, "［連線測試成功ǂǂǂ］" },
             new string?[] { "Common.Diagnostics.PushTest", "P0 推播測試 {utc}", null, "［P0 推播測試 {utc}ǂǂǂǂ］" },
             new string?[] { "Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}", null, "［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］" },
+            new string?[] { "Keyword.Journal", "日誌|Report", "Report", "［日誌|Reportǂǂǂǂ］" },
+            new string?[] { "Keyword.NotifyLink", "連動|Notify", "Notify", "［連動|Notifyǂǂǂǂ］" },
+            new string?[] { "Keyword.PrayerRequest", "代禱|Pray|緊急代禱", "Pray", "［代禱|Pray|緊急代禱ǂǂǂǂǂ］" },
+            new string?[] { "Keyword.QrCode", "QR|qr", "QR", "［QR|qrǂǂ］" },
+            new string?[] { "Keyword.QueryUserId", "ID|Id|id", "ID", "［ID|Id|idǂǂǂǂ］" },
+            new string?[] { "Keyword.Rpg", "RPG|Rpg|rpg", "RPG", "［RPG|Rpg|rpgǂǂǂǂǂ］" },
             new string?[] { "Line.Sender.Template", "{churchName}小幫手", null, "［{churchName}小幫手ǂǂ］" },
         };
     }

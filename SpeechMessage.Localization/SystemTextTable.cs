@@ -17,9 +17,13 @@ namespace SpeechMessage.Localization;
 public sealed class SystemTextTable : ISystemTextCatalog
 {
 #if NET10_0_OR_GREATER
+    /// <summary>只保存原始翻譯的凍結表，與完整後備分開，容量僅隨固定資源增加。</summary>
+    private readonly FrozenDictionary<string, IReadOnlyDictionary<string, string>> originalTables;
     /// <summary>建立完成後才賦值的凍結語系表；容量只取決於固定資源，不保留查詢參數或外部陣列。</summary>
     private readonly FrozenDictionary<string, IReadOnlyDictionary<string, string>> tables;
 #else
+    /// <summary>Framework 原始翻譯表由單一建構式擁有，完成後封裝且不再修改。</summary>
+    private readonly ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> originalTables;
     /// <summary>包住本實例獨佔且不再修改的候選字典；不公開或保留其他可變擁有者。</summary>
     private readonly ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> tables;
 #endif
@@ -42,6 +46,7 @@ public sealed class SystemTextTable : ISystemTextCatalog
         var names = new string[cultures.Count];
         var cultureIdentities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var values = new Dictionary<string, string>[cultures.Count];
+        var originals = new Dictionary<string, string>[cultures.Count];
         var neutralIndex = -1;
         for (var index = 0; index < cultures.Count; index++)
         {
@@ -49,6 +54,7 @@ public sealed class SystemTextTable : ISystemTextCatalog
             if (string.IsNullOrWhiteSpace(culture) || !cultureIdentities.Add(culture)) throw new InvalidDataException("Duplicate or empty system text culture.");
             names[index] = culture;
             values[index] = new Dictionary<string, string>(StringComparer.Ordinal);
+            originals[index] = new Dictionary<string, string>(StringComparer.Ordinal);
             if (string.Equals(culture, "zh-TW", StringComparison.OrdinalIgnoreCase)) neutralIndex = index;
         }
         if (neutralIndex < 0) throw new InvalidDataException("System text requires a neutral zh-TW culture.");
@@ -61,12 +67,22 @@ public sealed class SystemTextTable : ISystemTextCatalog
             if (keyValue is null || neutral is null) throw new InvalidDataException("System text row has no key or neutral value.");
             var key = new TextKey(keyValue);
             if (!identities.Add(key.Value)) throw new InvalidDataException("Duplicate system text key.");
-            for (var index = 0; index < names.Length; index++) values[index].Add(key.Value, row[index + 1] ?? neutral);
+            for (var index = 0; index < names.Length; index++)
+            {
+                values[index].Add(key.Value, row[index + 1] ?? neutral);
+                if (row[index + 1] is { } original) originals[index].Add(key.Value, original);
+            }
         }
         // 先完成全部列與身分驗證，再封裝內層及外層；失敗時不會有任何可觀察的半成品。
         var candidate = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
-        for (var index = 0; index < names.Length; index++) candidate.Add(names[index], Seal(values[index]));
+        var originalCandidate = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+        for (var index = 0; index < names.Length; index++)
+        {
+            candidate.Add(names[index], Seal(values[index]));
+            originalCandidate.Add(names[index], Seal(originals[index]));
+        }
         tables = Seal(candidate);
+        originalTables = Seal(originalCandidate);
     }
 
     /// <summary>取得已展開後備的完整文字；命中路徑不配置物件或修改字典。</summary>
@@ -84,6 +100,22 @@ public sealed class SystemTextTable : ISystemTextCatalog
     /// <param name="culture">已知語系或任意未知值；未知時共用既有 zh-TW 表，不新增快取。</param>
     /// <returns>本實例生命週期內不變的完整字典。</returns>
     public IReadOnlyDictionary<string, string> GetTable(string? culture) => culture is not null && tables.TryGetValue(culture, out var selected) ? selected : tables["zh-TW"];
+
+    /// <summary>只查來源語系明確宣告的文字，不把預展開的繁中後備偽裝成原始翻譯。</summary>
+    /// <param name="culture">指定來源語系，不自行回退。</param>
+    /// <param name="key">穩定系統鍵。</param>
+    /// <param name="text">原始文字或空字串。</param>
+    /// <returns>來源明確有該鍵時為真。</returns>
+    public bool TryGetOriginalText(string culture, TextKey key, out string text)
+    {
+        if (culture is not null && originalTables.TryGetValue(culture, out var original) && original.TryGetValue(key.Value, out var found))
+        {
+            text = found;
+            return true;
+        }
+        text = string.Empty;
+        return false;
+    }
 
 #if NET10_0_OR_GREATER
     /// <summary>將本次建構獨佔的候選轉為 FrozenDictionary，讀取路徑不再配置或鎖定。</summary>

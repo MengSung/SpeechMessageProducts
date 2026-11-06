@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06 12:03（P1-04驗收／歸檔與本地交付）",
+  "snapshot": "2026-11-06 13:00（P1-05本機驗收）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／驗證／審查：Codex inline；使用者已取消後續雙模型，歷史外模證據保留",
-  "headline": "階段 1 目前 <strong>4／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03、P1-04）；P1-04所有純資料抽取、四方法與product隔離已完成本機驗收。P1-05～12尚未完成，下一包P1-05。階段 2～8 的53個工作包仍全部未開始；全計畫83包，目前已驗收22包。",
+  "headline": "階段 1 目前 <strong>5／12 工作包列為驗收完成</strong>（P1-01～P1-05）；Localization地基完成，接續P1-10租戶與LINE credential集中解析，再解鎖P1-08。P1-06～12尚未完成。階段 2～8 的53個工作包仍全部未開始；全計畫83包，目前已驗收23包。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1-04 已完成；P1 目前 4／12",
-    "body": "P1-04 Constants 已抽取；P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。 主要驗收提交a12cfa07；收尾子任務與journal第13節保存完成。",
+    "title": "P1-05 已完成；P1 目前 5／12",
+    "body": "P1-04 Constants 已抽取，P1-04整包驗收保留。P1-05完整字典驗收：五層回退、兩階段具名參數、純resolver與Production偽語系拒絕、六個舊英文命令、完整scope不可變快照及明確關鍵字priority完成。Localization net48實載net462 92/92、net10 116/116，獨立coverage96.61%/97.70%、strict零警告／錯誤。完整方案16TRX4004/4004、ChurchReport623；Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6、套件及duplicates通過；完整Changed1022檔0問題。主會話審查，使用者取消雙模型，沒有新增雙模型或第二人審查證據。驗收wp-reports/P1-05-acceptance.md；摘要.ccg/tasks/integration-p1/evidence/p105-final/；本地提交收尾中，不push。 P1仍未全部完成；D365 預設只讀，本包未操作VM／D365／LINE或hosted CI。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -499,17 +499,22 @@ const DATA = {
       "2026-11-06 11:42 最終程序已確認：ToolUtility net48 1214/1214、net10 1345/1345；完整16份TRX共3906/3906，Debug tracer7/7，Plugin metadata10/build6。Core覆蓋率95.45%/95.81%。目前完整Changed編碼守門列10份歷史文字換行問題，先依歸屬與無語義檢查修正，尚不宣告完成。",
       "2026-11-06 11:52 完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。",
       "2026-11-06 12:00 P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。",
-      "2026-11-06 12:03 P1-04末端收尾：完成里程碑舊active狀態先被測試拒絕，更新驗收文件與4/12統計後進度頁14/14通過。全部306份驗證來源SHA保持不變。完整Changed基準73b6e6cf已確認993檔0問題；新增規範漏CRLF曾被正式守門擋下，已用既有無損工具修正並重跑通過，沒有更改守門。主要驗收提交a12cfa07；P1-04收尾子任務已歸檔、journal第13節已保存，主P1繼續保持in_progress。"
+      "2026-11-06 12:03 P1-04末端收尾：完成里程碑舊active狀態先被測試拒絕，更新驗收文件與4/12統計後進度頁14/14通過。全部306份驗證來源SHA保持不變。完整Changed基準73b6e6cf已確認993檔0問題；新增規範漏CRLF曾被正式守門擋下，已用既有無損工具修正並重跑通過，沒有更改守門。主要驗收提交a12cfa07；P1-04收尾子任務已歸檔、journal第13節已保存，主P1繼續保持in_progress。",
+      "2026-11-06 12:22 P1 Goal接續：工作樹乾淨，P1-04驗收保留。P1-05已建立需求矩陣與切片計畫，開始雙宿主baseline及五層解析／具名參數／scope不可變測試；尚未完成，不增加4/12。依現行inline主會話實作與檢查，P1-10及P1-11依賴可另線但本輪優先P1-05。證據artifacts/p1-05-20261106與.ccg/tasks/p105-localization。",
+      "2026-11-06 12:31 P1-05第一、二切片：原字典baseline net48 43/net10 67先綠；五層/參數/scope/快照19案每宿主先紅，修後連原字典62/62；語言resolver/Production偽語系10案每宿主先紅後綠。新增完整組織/產品/教會scope與不可變覆寫，保留舊GetText/GetTable；原始翻譯不被繁中預展開掩蓋。strict分析器修正後通過，沒有降低規則。下一步關鍵字、生命週期/故障與完整驗收；P1仍4/12。",
+      "2026-11-06 12:38 P1-05第三切片：關鍵字12案每宿主先紅後綠；保留六個既有英文命令之意圖，來源CP950以嚴格解碼唯讀核對，generated由正式I18nCheck重生。補參數集合先驗證再格式化之故障測試每宿主先紅後修；來源故障保留原例外/可重試及百次臨時context/參數弱參照回收均通過。完整Localization含架構net48 87/87、net10 111/111，I18n verify通過。進度頁13/14發現active計數未同步，已修正資料一致性，待重跑；P1仍4/12，整包回歸未完成。",
+      "2026-11-06 12:54 P1-05接續核對：交接程序全部終止且成功，Localization net48實載net462 92/92、net10 116/116；獨立最終coverage96.61%/97.70%各通過80%守門，strict雙目標0警告0錯誤。Debug tracer7、Plugin metadata10/build6、PE27、套件34專案158引用零違規。完整方案既有16TRX4004案正逐份核對並整理驗收／主會話審查，尚未標整包完成；目前無本包commit。證據artifacts/p1-05-20261106；遵守inline設定，不啟動外部雙模型。P1仍4/12，後續P1-06～12未驗收。",
+      "2026-11-06 13:00 P1-05完整字典驗收：五層回退、兩階段具名參數、純resolver與Production偽語系拒絕、六個舊英文命令、完整scope不可變快照及明確關鍵字priority完成。Localization net48實載net462 92/92、net10 116/116，獨立coverage96.61%/97.70%、strict零警告／錯誤。完整方案16TRX4004/4004、ChurchReport623；Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6、套件及duplicates通過；完整Changed1022檔0問題。主會話審查，使用者取消雙模型，沒有新增雙模型或第二人審查證據。驗收wp-reports/P1-05-acceptance.md；摘要.ccg/tasks/integration-p1/evidence/p105-final/；本地提交收尾中，不push。 接續P1-10；P1-06～12未驗收。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "22",
+      "value": "23",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 4／12 已驗收",
+      "sub": "P0 18／18；P1 5／12 已驗收",
       "meter": {
-        "done": 22,
+        "done": 23,
         "active": 0,
         "total": 83
       }
@@ -527,26 +532,26 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "4",
+      "value": "5",
       "unit": "/ 12 工作包",
-      "sub": "P1-01／02／03／04已驗收；P1-05～12尚未完成",
+      "sub": "P1-01～05已驗收；P1-06～12尚未完成",
       "meter": {
-        "done": 4,
+        "done": 5,
         "active": 0,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "3,906 / 3,906",
+      "value": "4,004 / 4,004",
       "unit": "0 失敗、0 略過",
-      "sub": "16份TRX；ChurchReport623/623；ToolUtility1214/1345；架構67/67"
+      "sub": "16份TRX；ChurchReport623；ToolUtility1214/1345；Localization92/116"
     },
     {
       "label": "最新完整本機建置",
       "value": "0 錯誤",
-      "unit": "完整方案與Core雙目標建置成功",
-      "sub": "Core strict兩目標0警告／0錯誤；全方案4個既有Obsolete警告，未新增NoWarn"
+      "unit": "完整方案與Localization雙目標建置成功",
+      "sub": "Localization strict兩目標0警告／0錯誤；方案23個既有測試警告，未新增NoWarn"
     }
   ],
   "wps": [
@@ -715,8 +720,9 @@ const DATA = {
     {
       "id": "P1-05",
       "name": "SpeechMessage.Localization 完整版",
-      "status": "todo",
-      "note": "尚未開始。需完成五層字典解析、具名參數、語言 resolver、關鍵字正規化與衝突守門，並驗證教會 A／B 1,000 次並行不串資料。"
+      "status": "done",
+      "note": "P1-05完整字典驗收：五層回退、兩階段具名參數、純resolver與Production偽語系拒絕、六個舊英文命令、完整scope不可變快照及明確關鍵字priority完成。Localization net48實載net462 92/92、net10 116/116，獨立coverage96.61%/97.70%、strict零警告／錯誤。完整方案16TRX4004/4004、ChurchReport623；Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6、套件及duplicates通過；完整Changed1022檔0問題。主會話審查，使用者取消雙模型，沒有新增雙模型或第二人審查證據。驗收wp-reports/P1-05-acceptance.md；摘要.ccg/tasks/integration-p1/evidence/p105-final/；本地提交收尾中，不push。",
+      "time": "2026-11-06 13:00"
     },
     {
       "id": "P1-06",
@@ -1302,7 +1308,7 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 4,
+      "done": 5,
       "active": 0,
       "current": true
     },

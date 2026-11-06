@@ -1,0 +1,188 @@
+[
+  {
+    "harness": "net48",
+    "product": "net462",
+    "path": "artifacts/p1-05-20261106/final-coverage/net48/92bf2a47-46fc-42d8-9874-8c21e8c25b8f/coverage.cobertura.xml",
+    "sha256": "2580700c6a2135d111096fc800ad6ef0489b7d92f7a64f7922ef03d9d0f863f7",
+    "lineRate": "0.9661",
+    "classes": [
+      {
+        "name": "System.Diagnostics.CodeAnalysis.NotNullWhenAttribute",
+        "lineRate": "0"
+      },
+      {
+        "name": "SpeechMessage.Localization.ChurchTextOverride",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.ChurchTextOverrideSnapshot",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.KeywordCatalog",
+        "lineRate": "0.9189"
+      },
+      {
+        "name": "SpeechMessage.Localization.KeywordCatalog/KeywordRule",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.KeywordCatalog/CultureKeywords",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.LocalizationOptions",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.MemberLanguagePreference",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.ChurchLocaleSettings",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.ResolvedCulture",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.MemberCultureResolver",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.CultureNames",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.NamedTextFormatter",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.SupportedCulture",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.SupportedCultures",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.SystemTextTable",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextArg",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextCatalog",
+        "lineRate": "0.9285"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextContext",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextKey",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.Resources.SharedTextData",
+        "lineRate": "1"
+      }
+    ],
+    "gate": "tools/RepoQuality/Test-Coverage.ps1 -Module SpeechMessage.Localization",
+    "gateExitCode": 0
+  },
+  {
+    "harness": "net10",
+    "product": "net10.0",
+    "path": "artifacts/p1-05-20261106/final-coverage/net10/fd9e8a27-f811-4eb5-911c-14eb2f010542/coverage.cobertura.xml",
+    "sha256": "e9a2feaa7293117f27ade89e80d6033566c0ce241fcb75930949106fe3f8f6cf",
+    "lineRate": "0.977",
+    "classes": [
+      {
+        "name": "SpeechMessage.Localization.ChurchTextOverride",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.ChurchTextOverrideSnapshot",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.KeywordCatalog",
+        "lineRate": "0.9189"
+      },
+      {
+        "name": "SpeechMessage.Localization.KeywordCatalog/KeywordRule",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.KeywordCatalog/CultureKeywords",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.LocalizationOptions",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.MemberLanguagePreference",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.ChurchLocaleSettings",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.ResolvedCulture",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.MemberCultureResolver",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.CultureNames",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.NamedTextFormatter",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.SupportedCulture",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.SupportedCultures",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.SystemTextTable",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextArg",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextCatalog",
+        "lineRate": "0.9285"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextContext",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.TextKey",
+        "lineRate": "1"
+      },
+      {
+        "name": "SpeechMessage.Localization.Resources.SharedTextData",
+        "lineRate": "1"
+      }
+    ],
+    "gate": "tools/RepoQuality/Test-Coverage.ps1 -Module SpeechMessage.Localization",
+    "gateExitCode": 0
+  }
+]

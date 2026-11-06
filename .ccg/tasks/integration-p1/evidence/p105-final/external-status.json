@@ -1,0 +1,9 @@
+{
+  "ok": false,
+  "dualModelComplete": false,
+  "degradedFallback": false,
+  "quotaBlocked": true,
+  "completedBackends": [],
+  "source": ".ccg/dual-model-runs/20261106-122201-p105-analysis-analyzer/summary.json",
+  "interpretation": "兩後端皆無可用分析；使用者取消後續外部雙模型，僅主會話審查與本機證據。"
+}

@@ -63,11 +63,11 @@ Assert.NotEqual(productAConnectionKey, productBConnectionKey);
 ### Task 5: P1-05 Localization
 Files: SpeechMessage.Localization/**、SpeechMessage.Localization.Tests/**（不改csproj；controller處理連結），worker exclusive。新增snapshot介面可由Task8直接消費。
 Interfaces: TextContext(Guid churchId,string textCulture,string formatCulture, string organization="default",string product="ChurchReport") immutable；WithCultures preserves boundary；TextArg(name,object?)；ITextCatalog.GetText(context,key,args)；IChurchTextOverrideSnapshotProvider.GetSnapshot(TextContext context)；snapshot.TryGetText(culture,key,out text)；ChurchTextOverride有database Guid Id、ChurchId、Key、Culture、Text。source.ReadAsync(TextContext,CancellationToken)回IReadOnlyList<ChurchTextOverride>，不持SDK。
-- [ ] 保留P0 public契約與43case，增加SystemTextTable.TryGetOriginalText分開預填fallback。
-- [ ] 五層每層測、全缺丟；命名參數完整比對／format culture，無global culture。
-- [ ] resolver released/ enabled intersection、en未開放、pseudo production fail startup；Keyword NFKC／空白／case／跨語系衝突。
-- [ ] resx唯一來源，en僅既有keyword；generated由controller的I18nCheck重生，worker不得手改generated資源導致verify漂移。
-- [ ] A/B 1000並行、scope不隨語言改變、snapshot深不可變／duplicate ID rejection；兩targettests。
+- [x] 保留P0 public契約與43case，增加SystemTextTable.TryGetOriginalText分開預填fallback。
+- [x] 五層每層測、全缺丟；命名參數完整比對／format culture，無global culture。
+- [x] resolver released/ enabled intersection、en未開放、pseudo production fail startup；Keyword NFKC／空白／case／跨語系衝突。
+- [x] resx唯一來源，en僅既有keyword；generated由controller的I18nCheck重生，worker不得手改generated資源導致verify漂移。
+- [x] A/B 1000並行、scope不隨語言改變、snapshot深不可變／duplicate ID rejection；兩targettests。
 ```csharp
 Assert.Equal(original.ChurchId, original.WithCultures("en", "en-US").ChurchId);
 ```
@@ -163,3 +163,6 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 - 全方案Release16TRX3906/3906、ChurchReport623、架構67；換行修復後實際重建兩宿主1214/1345，Core strict零警告／錯誤，獨立coverage95.45%/95.81%。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6、套件34/158零違規及I18n/duplicates通過。原始輸出及完整Changed守門沿用既定基準，未放寬斷言。
 - 審查由主會話逐項完成，使用者免除雙模型；Marketing舊例外wrapper回歸已修並12案重測，原Fault保真、snapshot／完整頁／caller取消／drain／弱參照及1000 A/B均有證據。
 - 驗收矩陣：wp-reports/P1-04-acceptance.md；可追蹤證據：.ccg/tasks/integration-p1/evidence/p104-final/。只封存P1-04收尾子任務，主P1保持in_progress；下一包P1-05，後續P1-10先於P1-08。沒有更改正式計畫，無Word修正報告需求；未push／部署／連VM或D365／發LINE。
+
+## P1-05 最終驗收（2026-11-06 13:00）
+完整五層／具名參數／語言resolver／關鍵字與完整scope快照通過；Localization92/116、方案16TRX4004、coverage96.61%/97.70%、strict雙目標零警告／錯誤。兩階段格式化及重疊前綴priority真紅後修正，A/B1000、故障保真重試與百次弱參照回收通過。驗收wp-reports/P1-05-acceptance.md及evidence/p105-final/。主會話直接審查，未恢復外部雙模型；主P1保持in_progress，下一P1-10。

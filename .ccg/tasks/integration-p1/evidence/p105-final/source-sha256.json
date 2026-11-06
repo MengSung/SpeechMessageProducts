@@ -1,0 +1,58 @@
+[
+  {
+    "path": "SpeechMessage.Localization.Tests/KeywordCatalogTests.cs",
+    "sha256": "0c5c087f44f7eec0ef3b8b75c474de01499a5b0ee8755f9c25215096f59d8dda"
+  },
+  {
+    "path": "SpeechMessage.Localization.Tests/MemberCultureResolverTests.cs",
+    "sha256": "8ce466e2e40f275e6c79356aa8eab1be19a5bb0ff58194cbc39e8da740bc7727"
+  },
+  {
+    "path": "SpeechMessage.Localization.Tests/TextCatalogTests.cs",
+    "sha256": "c54a826e5d5f7426bf911fa329e1172920f30bf5f4ee4925e3de4c2b42baa62e"
+  },
+  {
+    "path": "SpeechMessage.Localization/ChurchTextOverrideSnapshot.cs",
+    "sha256": "9dc04dd06b7558fdadecf339c684d773055d756593fd91a1710d486d3cbc8c06"
+  },
+  {
+    "path": "SpeechMessage.Localization/KeywordCatalog.cs",
+    "sha256": "eb077b40571a402c54e14d6456db2e4d111b5b6f9622e127362374311a87d8e7"
+  },
+  {
+    "path": "SpeechMessage.Localization/MemberCultureResolver.cs",
+    "sha256": "3c4e47b4459204caa3a613c813d0590dfaecbb0553b10a34838a08fc126d5304"
+  },
+  {
+    "path": "SpeechMessage.Localization/NamedTextFormatter.cs",
+    "sha256": "fa09ef09051845af53161ae0484bd56f59d73f2a9ce7e52b0d2b739149801242"
+  },
+  {
+    "path": "SpeechMessage.Localization/Resources/SharedText.en.resx",
+    "sha256": "1610c4399b37a67357954e27f67f44e535b0e9886832cb6649da8bbd37ad80c8"
+  },
+  {
+    "path": "SpeechMessage.Localization/TextCatalog.cs",
+    "sha256": "f6aa2fd5bb2faa5f9d6ddfc8da4be54a92cb7e6654082d2c5f01044380548839"
+  },
+  {
+    "path": "SpeechMessage.Localization/TextContext.cs",
+    "sha256": "c482f24598c440327c5263363baf0409ae2ee2c3168f5d86614cae1b6106d695"
+  },
+  {
+    "path": "SpeechMessage.Localization.Tests/SystemTextCatalogTests.cs",
+    "sha256": "e3224f8b1519a471574cdf12bc2eb7cc6b2842d5105ddb26ff4d81d6c0c1836e"
+  },
+  {
+    "path": "SpeechMessage.Localization/Resources/SharedText.g.cs",
+    "sha256": "fced5d7a7f2cb771c5ad0fb4c72d3e9ee8f3cd74366170bca531afbdfaac5d0b"
+  },
+  {
+    "path": "SpeechMessage.Localization/Resources/SharedText.resx",
+    "sha256": "d02c262cc7994f6a0b99c81ff8d7cff69f0f514dfba8199841f031049dc3c992"
+  },
+  {
+    "path": "SpeechMessage.Localization/SystemTextTable.cs",
+    "sha256": "e9bdffeff8eccb60d8bb56a54b4c73c11fcff0c06a5991d4061ed914163ace44"
+  }
+]

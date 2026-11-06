@@ -1,0 +1,109 @@
+{
+  "releaseSolution": {
+    "trxCount": 16,
+    "passed": 4004,
+    "failed": 0,
+    "skipped": 0
+  },
+  "build": {
+    "warnings": 23,
+    "errors": 0,
+    "strictModuleWarnings": 0,
+    "strictModuleErrors": 0
+  },
+  "commands": [
+    {
+      "command": "dotnet build SpeechMessageProducts.sln -c Release -warnaserror:NU1605",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/solution-build.log",
+      "sha256": "f8321c2899b0c31bdb447df3fbd02429edf6b18747009d8ebfa250715a10ebff"
+    },
+    {
+      "command": "dotnet test SpeechMessageProducts.sln -c Release --no-build",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/solution-tests.log",
+      "sha256": "69c3049f442e31cf714aa4a764bbb731ea71ef9bc5bdbda80c886b6aea350153"
+    },
+    {
+      "command": "dotnet build SpeechMessage.Localization -c Release --no-restore -warnaserror",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/strict-build.log",
+      "sha256": "f4851676387ba0b9b4e07e5ac7701668f831850069e17ed285e7d33f52f0e793"
+    },
+    {
+      "command": "dotnet test ToolUtility.Dataverse.Tests -c Debug --no-restore --filter FullyQualifiedName~FileToolUtilityTracerTests",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/tracer.log",
+      "sha256": "2318d8e681da00b173b1e7764ab9bad3ab7d07c65c63910e11fbf2be7022d3e5"
+    },
+    {
+      "command": "dotnet run --project tools/I18nCheck -- verify",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/i18n-verify.log",
+      "sha256": "88557d391478cee919e654a64e8f1210556526b131c3e66b0cc109d1e9042ee8"
+    },
+    {
+      "command": "dotnet run --project tools/I18nCheck -- generate --check",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/generate-check.log",
+      "sha256": "9ae159b9aa78eed47f3c9bf41d971589dd849ec0be4549c4a2a5268b5f5bc56d"
+    },
+    {
+      "command": "powershell -NoProfile -File tools/RepoQuality/Find-DuplicateCode.ps1 -Baseline tools/RepoQuality/duplicate-baseline.json",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/duplicates.log",
+      "sha256": "00bb0687d80394ed85f77bc16c6cbc475ff8357d793dc13629c092b3e511e964"
+    },
+    {
+      "command": "dotnet test tools/I18nCheck.Tests -c Release",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/i18n-tests.log",
+      "sha256": "9a8b056bc39f8fe5b9ca224553b054a92f95fb6c372e3a38aaf7f44d129eb926"
+    },
+    {
+      "command": "dotnet test tools/PluginPackaging.Tests -c Release --no-restore",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/plugin-pe.log",
+      "sha256": "8d10c9229e051aab7fe59526c47e05fa9ca3a6ec92b2b1395c8c1a7aa409892f"
+    },
+    {
+      "command": "powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginAssembly.Tests.ps1",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/plugin-metadata.log",
+      "sha256": "7d4b32ea815aaf04e457f5ae3b7b4ac608c03eccde9bce10ae036e6c6bb06d77"
+    },
+    {
+      "command": "powershell -NoProfile -File tools/PluginPackaging/Tests/Test-PluginBuild.Tests.ps1 -UseEphemeralTestKey",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/plugin-build.log",
+      "sha256": "b5f3f9a873e56163dca2051ab911a434e8e7034716d09ed6087c0b7680e7042c"
+    },
+    {
+      "command": "powershell -NoProfile -File tools/RepoQuality/Test-PackageVersions.ps1",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/package-guard.log",
+      "sha256": "53bf3ccde4dbdc223fffd8511357e7db1ee5a09dfc5f006fd025adb0968a6995"
+    },
+    {
+      "command": "powershell -NoProfile -File tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/ci-transition.log",
+      "sha256": "1afdfac5e929cee0fa96116f3a484c06e9f74fb4e427b63ec58082218550ae8f"
+    },
+    {
+      "command": "node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/progress.log",
+      "sha256": "dbe9ee8ccaffd7ce34e944160cb201f8e7a0f2be2f8ab5b7a98c9317f274bed9"
+    },
+    {
+      "command": "powershell -NoProfile -File tools/RepoQuality/Test-TextEncoding.ps1 -Scope Changed -Base 73b6e6cf",
+      "exitCode": 0,
+      "log": "artifacts/p1-05-20261106/encoding.log",
+      "sha256": "3f16196d279de857179bf1913c01cd7a567739c3ed1364acf787e9d458951bc5"
+    }
+  ],
+  "review": "主會話逐項直接審查；使用者取消外部雙模型。歷史分析嘗試兩後端皆無可用輸出。",
+  "liveIntegrationExecuted": false,
+  "hostedCiExecuted": false
+}
