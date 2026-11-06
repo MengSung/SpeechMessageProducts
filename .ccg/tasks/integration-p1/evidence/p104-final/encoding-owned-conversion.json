@@ -1,0 +1,50 @@
+{
+  "dryRun": false,
+  "failureCount": 0,
+  "files": [
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\dual-model-runs\\p104-fetch-resume-analysis-input.md",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "10a6cb1f54507f135bf994542488fcd25eaf1802dd4137e99740af57d2a24526",
+      "afterSha256": "65748ba71acc8a62381ec59c16d1afefc1fc43d251110af19bf223538e901c52",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\dual-model-runs\\p104-fetch-resume-analyzer.md",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "5c1a60291ab8e7b75660dff883e4e4ca83c243d8da044fc3ed8322166e2ddfa3",
+      "afterSha256": "31be3822c0ad8cf45d1547440439db98fca1d7750cf978a11f7524d1ce99ce37",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\ToolUtility.Tests\\Golden\\ToolUtility\\complex-dynamic.xml",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "bce8bdb73950e81cb85548d5f62981735b315aa21cbd4b5ee624cf27d4a5d127",
+      "afterSha256": "f75f5b9754751043c262eaf2afd1084ff5811df7c7c310303e87dcf2e3bcf780",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\ToolUtility.Tests\\Golden\\ToolUtility\\crm-async-batch.xml",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "ecd6d80bb304f87bd4a64ab883718bf60563ad113ac530c5726ad0d504102e88",
+      "afterSha256": "5b872618749d23e4bd471db3f064ce406036b7e6787d670301b3d97764621181",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    }
+  ]
+}

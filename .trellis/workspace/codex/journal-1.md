@@ -498,3 +498,40 @@ D365／Hyper-V／LINE未操作，沒有實機／hosted CI新證據；正式3.3�
 
 ## 2026-11-06 Contact切片
 ContactDataService資料操作抽Core，host兩ctor保留、不用cache/logger；空密碼與其他LINE/姓名快取污染修復。原7特性/24+2安全紅/搬前43綠，最終688/818、16TRX2853、Core92.77%/93.42%、Contact100%、strict0warning/error。Debug7、I18n/generated3、duplicates0、進度11通過。主會話審查，未呼叫外模/VM/D365/LINE。原始artifacts/p1-04-contact-20261106、摘要evidence/contact、報告wp-reports/P1-04-contact.md。未知來源HTML備份不碰。接續FetchXmlQueryService及其餘P1-04，主P1仍3/12。
+
+
+## Session 13: P1-04整包完成：Core抽取、四方法與product隔離
+
+**Date**: 2026-11-06
+**Task**: P1-04整包完成：Core抽取、四方法與product隔離
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+P1-04全部候選完成；四方法專屬7/7/8/8、product8案；16TRX3906/3906、雙宿主1214/1345、Core coverage95.45%/95.81%、strict0警告/錯誤。主會話審查，使用者免除雙模型。進度頁P1-04 done、P1=4/12、一般資訊歷程及驗收矩陣/來源SHA已保存；只封存P1-04收尾子任務，主P1接續P1-05；未push/部署/連VM或D365/發LINE。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6aac1c6f` | (see git log) |
+| `57078508` | (see git log) |
+| `ebe6d0b5` | (see git log) |
+| `d99a4c77` | (see git log) |
+| `a12cfa07` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

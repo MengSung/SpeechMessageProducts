@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 12
-- **Last Active**: 2026-11-05
+- **Total Sessions**: 13
+- **Last Active**: 2026-11-06
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~494 | Active |
+| `journal-1.md` | ~537 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 13 | 2026-11-06 | P1-04整包完成：Core抽取、四方法與product隔離 | `6aac1c6f`, `57078508`, `ebe6d0b5`, `d99a4c77`, `a12cfa07` | `1.0.0.11.Integration.P1.Worktree` |
 | 12 | 2026-11-05 | P1-04 Activity安全修正與Core抽取（P1仍未完成） | `ec108ae0` | `1.0.0.11.Integration.P1.Worktree` |
 | 11 | 2026-11-05 | P1-04 Activity原host特性準備檢查點（主P1仍未完成） | - | `1.0.0.11.Integration.P1.Worktree` |
 | 10 | 2026-11-05 | P1-04 Attachment離線切片與Claude週額度降級檢查點（主P1未完成） | - | `1.0.0.11.Integration.P1.Worktree` |

@@ -1,0 +1,17 @@
+{
+  "dryRun": false,
+  "failureCount": 0,
+  "files": [
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.trellis\\spec\\backend\\list-and-async-sdk-contract.md",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "6431bbe51b6fe83fefd26f5ce70406cb642a516813c898e6000fbf893b323daa",
+      "afterSha256": "6a9b94791e4417d4933c0dce6d499886657f7921a82c79a0010ffbc2a024722d",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    }
+  ]
+}
