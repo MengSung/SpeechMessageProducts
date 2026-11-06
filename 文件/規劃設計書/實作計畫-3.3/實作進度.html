@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06 11:52（P1-04實作與驗證歷程已更新）",
+  "snapshot": "2026-11-06 12:00（P1-04整包驗收與交付紀錄更新）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
-  "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
-  "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
+  "worker": "實作／驗證／審查：Codex inline；使用者已取消後續雙模型，歷史外模證據保留",
+  "headline": "階段 1 目前 <strong>4／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03、P1-04）；P1-04所有純資料抽取、四方法與product隔離已完成本機驗收。P1-05～12尚未完成，下一包P1-05。階段 2～8 的53個工作包仍全部未開始；全計畫83包，目前已驗收22包。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "階段1執行中｜集中P1-04收尾",
-    "body": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。",
+    "title": "P1-04 已完成；P1 目前 4／12",
+    "body": "P1-04 Constants 已抽取；P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -497,18 +497,19 @@ const DATA = {
       "2026-11-06 11:13 接續P1-04：Query已完成搬後net48 933/933、net10 1063/1063；CrmAsyncExtensions已抽Core，固定worker與5000列/1000頁預算、取消分類及drain完整回歸958/1088，補弱引用後專項雙宿主26/26。ComplexQuery原host18特性先綠、安全84紅/1綠、修後搬前103/103；正驗證Core及host薄adapter。剩餘List/Marketing與整包coverage/00§8尚待完成，未標完成。",
       "2026-11-06 11:26 ComplexQuery搬後雙目標103/103、host三路轉接/1000A-B/Dispose-drain/weak-reference補測通過。List/Marketing原host18特性先綠、安全93紅/6綠，修後搬前117/117才git mv；已修XML值注入、完整成員投影身份、吞批次錯誤與ExecuteMultiple Fault漏判，兩服務Core strict雙目標0警告0錯誤。正補生命週期與整包驗收，不提前標P1-04完成。",
       "2026-11-06 11:42 最終程序已確認：ToolUtility net48 1214/1214、net10 1345/1345；完整16份TRX共3906/3906，Debug tracer7/7，Plugin metadata10/build6。Core覆蓋率95.45%/95.81%。目前完整Changed編碼守門列10份歷史文字換行問題，先依歸屬與無語義檢查修正，尚不宣告完成。",
-      "2026-11-06 11:52 完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。"
+      "2026-11-06 11:52 完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。",
+      "2026-11-06 12:00 P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "21",
+      "value": "22",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 3／12 已驗收，1包進行中",
+      "sub": "P0 18／18；P1 4／12 已驗收",
       "meter": {
-        "done": 21,
-        "active": 1,
+        "done": 22,
+        "active": 0,
         "total": 83
       }
     },
@@ -525,26 +526,26 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "3",
+      "value": "4",
       "unit": "/ 12 工作包",
-      "sub": "P1-01／02／03正式驗收；P1-04進行中，05～12尚未完成",
+      "sub": "P1-01／02／03／04已驗收；P1-05～12尚未完成",
       "meter": {
-        "done": 3,
-        "active": 1,
+        "done": 4,
+        "active": 0,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "1,836 / 1,836",
+      "value": "3,906 / 3,906",
       "unit": "0 失敗、0 略過",
-      "sub": "16份TRX，ChurchReport612/612；本地filter14份TRX=1145/1145"
+      "sub": "16份TRX；ChurchReport623/623；ToolUtility1214/1345；架構67/67"
     },
     {
       "label": "最新完整本機建置",
       "value": "0 錯誤",
       "unit": "完整方案與Core雙目標建置成功",
-      "sub": "Core strict 0警告；既有host nullable與核定Obsolete提示保留，沒有新增NoWarn"
+      "sub": "Core strict兩目標0警告／0錯誤；全方案4個既有Obsolete警告，未新增NoWarn"
     }
   ],
   "wps": [
@@ -705,8 +706,10 @@ const DATA = {
     {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
-      "status": "active",
-      "note": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。"
+      "status": "done",
+      "note": "P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。",
+      "time": "2026-11-06 12:00",
+      "commit": "6aac1c6f"
     },
     {
       "id": "P1-05",
@@ -1298,8 +1301,8 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 3,
-      "active": 1,
+      "done": 4,
+      "active": 0,
       "current": true
     },
     {
@@ -1361,22 +1364,28 @@ const DATA = {
   ],
   "quality": [
     {
+      "item": "ToolUtility.Core 雙目標",
+      "before": "未抽取",
+      "after": "1214／1345 通過",
+      "note": "net48實載net462；每目標獨立coverage95.45%／95.81%，四方法7/7/8/8專屬案例及product8案"
+    },
+    {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "1104 過／0 失敗",
-      "note": "完整方案含 ChurchReport 590／590；零跳過"
+      "after": "3906 過／0 失敗",
+      "note": "最新完整本機16份TRX；ChurchReport623/623、架構67/67；零略過"
     },
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "1",
-      "note": "完整重建 0 錯誤；僅原有 Line.Messaging CS1572，未新增警告"
+      "after": "Core strict 0；方案4",
+      "note": "全方案當輪4個既有Obsolete警告；增量測試另見既有StringUtility nullable，均未隱藏；0錯誤"
     },
     {
       "item": "套件版本違規",
       "before": "113 項",
       "after": "0 項",
-      "note": "39 專案、149 引用、零違規"
+      "note": "最新34專案、158引用、2快照排除，零違規"
     },
     {
       "item": "Debug 追蹤測試",
@@ -1399,14 +1408,14 @@ const DATA = {
     {
       "item": "進度頁警示容錯",
       "before": "空值會出錯",
-      "after": "3／3",
-      "note": "無警示隱藏、缺提示詞不顯示複製區"
+      "after": "14／14",
+      "note": "一般資訊收合、九階段完整呈現、完成里程碑與實際驗收證據、統計一致性"
     },
     {
       "item": "重複程式守門",
       "before": "未建立",
-      "after": "0 新增／18 測試",
-      "note": "26 專案 879 檔，groups／new／stale 均為 0"
+      "after": "0 新增",
+      "note": "最新28專案974檔，groups／new／stale均0"
     },
     {
       "item": "I18nCheck 工具與基準",
@@ -1429,8 +1438,8 @@ const DATA = {
     {
       "item": "Plugin 與離線打包",
       "before": "未建立",
-      "after": "24／24；工具 11／11",
-      "note": "行覆蓋率 91.93%／98.30%；樣本 9／9、流程 6／6；正式簽章已在 P0-10 驗證。"
+      "after": "metadata10／build6；PE27",
+      "note": "最新離線正反樣本與一次性測試金鑰流程通過；原正式簽章證據仍屬P0，未新增部署"
     },
     {
       "item": "方案 CI 與覆蓋率門檻",
@@ -1492,6 +1501,11 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-06 12:00",
+      "text": "P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。",
+      "cls": "ok"
+    },
     {
       "t": "2026-11-06 09:50",
       "text": "P1-04 Constants 已抽取；契約/優化查詢與帳密修補已提交c9a667d4。Contact純資料切片完成：原host7特性先綠、安全24全紅及空密碼2全紅，修後搬前43綠才抽Core；host保留兩ctor、不使用/保存缺隔離鍵cache。最新雙宿主688/818、全方案16TRX 2853/2853（ChurchReport623）、Core coverage92.77%/93.42%、Contact本體100%、strict零警告/錯誤；Debug tracer7、進度頁11及I18n/duplicates通過。主會話審查，未呼叫雙模型。List/MarketingList、其餘Query/CrmAsync尚待交付，整包P1-04未完成、P1仍3/12。D365 預設只讀，未操作VM/D365/LINE。"

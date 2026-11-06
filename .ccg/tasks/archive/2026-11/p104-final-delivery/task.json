@@ -1,0 +1,15 @@
+{
+  "id": "p104-final-delivery",
+  "title": "P1-04 最終審查、驗收與交付",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "收尾任務已歸檔；主P1接續P1-05，驗收與雜湊見父任務evidence/p104-final",
+  "createdAt": "2026-11-06T11:53:14.881083+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parentTask": ".ccg/tasks/integration-p1",
+  "reviewPolicy": "使用者免除雙模型，由主會話直接審查，不派子代理",
+  "completedAt": "2026-11-06T12:01:09.892216+08:00"
+}
