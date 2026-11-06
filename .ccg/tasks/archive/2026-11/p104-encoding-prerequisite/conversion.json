@@ -1,0 +1,72 @@
+{
+  "dryRun": false,
+  "failureCount": 0,
+  "files": [
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\dual-model-runs\\unify-progress-analysis-input.md",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "acac74d89ad703978847e97dcca469ad63ce38b2e57ca94e6a9673ef094a8b79",
+      "afterSha256": "c51d8092f753777c5eb5bd1180f7d4fefeffc9c612503e3bbaf6f20e27c71944",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\dual-model-runs\\unify-progress-packages-analyzer.md",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "fa3fd0890f33d9e45b5c0f5a3b79c640d8c9dde3111c61955b0d195f23b30de5",
+      "afterSha256": "2f04eddde7a56d797c5951ab0b9ee0a6e08216d74ad7b03f7345ff49b90249e7",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\dual-model-runs\\unify-progress-packages-reviewer.md",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "6a294bae42669b3caf1bf6e3d5c4c8e91d503d026626bf8c2f4d301e25940e36",
+      "afterSha256": "99d7cd0a6b785f88f034d074f29b433bf94017dc7c9d64335976fdb3f8c337a2",
+      "chineseStringLiteralCount": 11,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\tasks\\archive\\2026-11\\unify-progress-phase-packages\\.turns.json",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "d75474177bb7367568a9ed6d5061397319333903f9b5ef6878e814741843bb61",
+      "afterSha256": "38f681f2482024abe889c2365e802acf232ed76d54a355065965c5d31a68b211",
+      "chineseStringLiteralCount": 2,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\tasks\\archive\\2026-11\\unify-progress-phase-packages\\requirements.md",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "63994d6ef20d12d3f138fc0f49ced2370c7884d3eda0f3b484c216cf78c6f154",
+      "afterSha256": "ffc3b6ccd6119e8958e0850d40f5ef68e6f5e977c22dc4f52bd73298e668b7d6",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\tasks\\p013-apply-fault-investigation\\.turns.json",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "7b83ccb83dec34da060b27f8d47e8fe6971d0e231ac0c416156cae1dc50f9bf8",
+      "afterSha256": "7d6bf5450b6d9600bd6b02272760072c3debb927abd5bd0a345b099768424e05",
+      "chineseStringLiteralCount": 10,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "p104-encoding-prerequisite",
+  "title": "P1-04 完整編碼守門之前置歷史紀錄換行修復",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "documentation",
+  "currentPhase": "completed",
+  "nextAction": "已歸檔；由 P1-04 新檔精確暫存後重跑完整守門",
+  "createdAt": "2026-11-06T11:43:27.004697+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "completedAt": "2026-11-06T11:44:50.257063+08:00"
+}
