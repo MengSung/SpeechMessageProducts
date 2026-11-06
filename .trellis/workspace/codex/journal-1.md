@@ -674,3 +674,36 @@ Money兩宿主各35，完整Localization159/185、方案4197；coverage98.17%/98
 ### Next Steps
 
 - None - task complete
+
+
+## Session 18: P1-09完整資源守門驗收完成（主P1仍9/12）
+
+**Date**: 2026-11-06
+**Task**: P1-09完整資源守門驗收完成（主P1仍9/12）
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+工具170/170、v2 51、coverage97.54%；方案4203、Localization162/188、coverage98.17%/98.52%及strict零警告錯誤。完整14字名稱保留，只縮sender固定後綴符合原20上限；主會話自審無外審。主P1續P1-08/11/12。
+
+### Main Changes
+
+- P1-09驗收及工作commit完成，只封存本子任務；完整證據見wp-reports/P1-09-acceptance.md及evidence/p109-final。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9f9b2b29` | (see git log) |
+
+### Testing
+
+- 工具170、完整方案4203、雙目標及覆蓋率、所有適用守門通過；見驗收原始證據。
+
+### Status
+
+[OK] **P1-09 completed；主P1 in_progress**
+
+### Next Steps
+
+- 接續P1-08，之後P1-11及P1-12；Goal保持active，VM預設只讀。

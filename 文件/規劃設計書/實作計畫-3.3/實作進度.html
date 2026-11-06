@@ -522,7 +522,8 @@ const DATA = {
       "2026-11-06T14:54:18+08:00 P1-09深入盤點：P0已有單檔key/翻譯參數及pseudo產生器，不重做；尚缺跨資源唯一、20/14原語系與偽語系長度、關鍵字及en完成度verify整合。建立L+子任務與正反例清單，inline不派子代理。E4字面最長教會名實14字（雖名稱寫十二字），完整保留；現有sender後綴小幫手導致pseudo長21，將先取得真紅再縮固定後綴助手以滿足原20上限，不調高門檻／縮短樣本／改公式。正式需求不變，本包未驗收。",
       "2026-11-06T15:05:31+08:00 P1-09第一切片：正式verify正反例28案先21紅/7綠→28綠，擴充長度/JSON/預算/1000快照並行/百次弱參照後45/45；孤兒翻譯與保留語系大小寫另3案真紅後修正。真實repo守門明確拒絕sender qps長21（20上限），原始輸出保留；只縮固定後綴小幫手→助手、完整14字名稱保留，實際resolver六案先紅再待重驗，沒有放寬原斷言。生成時發現namespace參數與原檔不符，已用正式生成入口改回原Resources命名空間；不得把只用生成檔自述namespace的check當建置證據。正式key/參數/重複守門沿用P0，完整候選與長度/關鍵字/en18.18%(6/33)已接verify，下一步完整雙目標/coverage/方案回歸。本包尚未驗收、未commit，P1仍8/12。",
       "2026-11-06T15:15:12+08:00 P1-09回歸追修：真實資源改後綴後Framework完整測試3案仍綁舊sender精確golden而失敗，已逐一核對僅更新三個文案精確答案及理由，未刪案例/放寬斷言。修後Localization162/188全綠（含新最長名稱實際流程3案/宿主）；工具168案及coverage97.52%、strict0/0與repo verify/en18.18%通過。審查再注入JSON逃逸高surrogate，2紅/8綠證明Name/GetString的InvalidOperation會逃出CLI；已只在JSON解碼邊界轉InvalidData並保留InnerException，不擴大全域catch。正式完整方案/Plugin/最終tool重驗進行中，本包仍active，無commit。",
-      "2026-11-06T15:21:35+08:00 P1-09整包驗收：工具170/170（v2 51）及獨立coverage97.54%，工具/Localization strict0/0；方案17TRX4203/4203、0失敗/略過，Localization162/188、coverage98.17%/98.52%。Debug7、PE27、Plugin10/6、CI6、套件36/167與duplicates通過；完整Changed先驗1098檔0問題，交付頁/manifest納入後再驗。實repo5組生成check/CLDRcheck/CJK及en18.18%(6/33)通過，英文仍未發布。所有真紅/回歸紀錄保留；主會話自審無外模/第二人。驗收wp-reports/P1-09-acceptance.md；證據evidence/p109-final。本地提交收尾中；正式需求不改，僅資源後綴必要修正；只封存本包，主P1增9/12、Goal active，續P1-08/11/12，不push／部署／連VM/D365/LINE。"
+      "2026-11-06T15:21:35+08:00 P1-09整包驗收：工具170/170（v2 51）及獨立coverage97.54%，工具/Localization strict0/0；方案17TRX4203/4203、0失敗/略過，Localization162/188、coverage98.17%/98.52%。Debug7、PE27、Plugin10/6、CI6、套件36/167與duplicates通過；完整Changed先驗1098檔0問題，交付頁/manifest納入後再驗。實repo5組生成check/CLDRcheck/CJK及en18.18%(6/33)通過，英文仍未發布。所有真紅/回歸紀錄保留；主會話自審無外模/第二人。驗收wp-reports/P1-09-acceptance.md；證據evidence/p109-final。本地提交收尾中；正式需求不改，僅資源後綴必要修正；只封存本包，主P1增9/12、Goal active，續P1-08/11/12，不push／部署／連VM/D365/LINE。",
+      "2026-11-06T15:25:11+08:00 P1-09本地工作commit 9f9b2b29；方案4203/4203、工具170/170、coverage97.54%、雙目標與所有必要守門證據已保存。只封存p109-i18n-v2並記錄Session18，主P1仍9/12、Goal active，續P1-08/11/12。主會話自審無外審，未push／部署／連VM或D365／發LINE。"
     ]
   },
   "tiles": [
@@ -767,9 +768,10 @@ const DATA = {
     },
     {
       "id": "P1-09",
+      "commit": "9f9b2b29",
       "name": "I18nCheck v2 完整資源檢查",
       "status": "done",
-      "note": "完整key/參數/跨組唯一、20/14/pseudo、關鍵字及en資訊完成；工具170、coverage97.54%，完整方案4203、Localization162/188及coverage98.17%/98.52%、strict0/0。完整14字名稱保留，sender只縮後綴使pseudo21→19；未改上限或公式。主會話自審無外審；驗收wp-reports/P1-09-acceptance.md，本地提交收尾中。",
+      "note": "完整key/參數/跨組唯一、20/14/pseudo、關鍵字及en資訊完成；工具170、coverage97.54%，完整方案4203、Localization162/188及coverage98.17%/98.52%、strict0/0。完整14字名稱保留，sender只縮後綴使pseudo21→19；未改上限或公式。主會話自審無外審；驗收wp-reports/P1-09-acceptance.md；本地工作commit 9f9b2b29，子任務封存收尾。",
       "time": "2026-11-06T15:21:35+08:00"
     },
     {
