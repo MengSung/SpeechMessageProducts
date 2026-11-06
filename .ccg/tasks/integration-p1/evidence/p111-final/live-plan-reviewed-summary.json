@@ -1,0 +1,26 @@
+{
+  "schemaPlanPath": "artifacts/d365/goodshepherdback/20261106-100416-6242392-2592137e548e4bf2b2319c07d90ea35c/schema-plan.json",
+  "planSha256": "D7BA566880CF260AFFDA274D9FE0ED58B996D3D42212D13BFFD722B5A530A644",
+  "schemaHash": "B27A89E732473C72C7B729970C83E50C105C3CEFD8267D982078B770470DDB47",
+  "metadataFingerprint": "5E10E1D11E29D8D4A193FDB557FE00319E46D01FF2B77B163B4956CE0131ADD6",
+  "operationCount": 88,
+  "operationKinds": {
+    "CreatePublisher": 1,
+    "CreateSolution": 1,
+    "CreateEntity": 4,
+    "CreateAttribute": 27,
+    "CreateLookup": 5,
+    "CreateKey": 4,
+    "IncludeEntity": 6,
+    "IncludeAttribute": 36,
+    "IncludeKey": 4
+  },
+  "pendingExistingKeys": 0,
+  "reviewedBy": "P1主會話：逐項核對正式附錄A，只新增及納入元件，尚未套用",
+  "writesPerformed": false,
+  "blockedPrerequisites": [
+    "未確認VM隔離用途",
+    "未取得適當備份與可驗證復原證據",
+    "Hyper-V只讀管理權限不足"
+  ]
+}

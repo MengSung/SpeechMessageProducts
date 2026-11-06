@@ -277,3 +277,6 @@ __pycache__/
 
 # 授權檔保存在 repo 外；防止同名檔案意外進入任何子目錄。
 sixlabors.lic
+
+# Keep the original live metadata diagnostic bytes local; commit only evidence hashes.
+/d365/snapshots/goodshepherdback/20261106-094644-0608219-8355ab621190400fbf22cf84291a9b0f/

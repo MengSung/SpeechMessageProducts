@@ -1,0 +1,14 @@
+{
+  "snapshotPath": "d365\\snapshots\\goodshepherdback\\20261106-094644-0608219-8355ab621190400fbf22cf84291a9b0f\\metadata.json",
+  "bytes": 13833677,
+  "entities": 566,
+  "fields": 22678,
+  "filters": 4829,
+  "steps": 7259,
+  "version": "9.1.45.11",
+  "languageCode": 1028,
+  "writesPerformed": false,
+  "vmPurposeConfirmed": false,
+  "backupConfirmed": false,
+  "recoveryVerified": false
+}

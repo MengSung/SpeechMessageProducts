@@ -89,3 +89,6 @@ Deployment與Localization各目標獨立coverage≥80%、strict、完整方案�
 
 P1-11的離線套用與真正只讀export/plan不等於P1-12。VM用途、隔離、適當備份與可驗證復原未取得前，
 不apply、不建測試業務列、不還原checkpoint。P1-12另須真apply、verify=0、後台元件、Active索引拒第二筆與自身測試資料清理證據。
+
+## 已發布驗收補證（2026-11-06）
+verify必須經SchemaDeploymentEngine.Verify以RetrieveAsIfPublished=false讀取已發布結構，plan仍讀完整未發布候選供衝突盤點。不能共用plan入口而將尚未發布的P1欄位視為實機完成。SchemaCliTests獨立合成缺少已發布new_defaultlanguage，先assert來源確實有此欄，再斷言verify=1、零寫入及全部租約歸還；真紅Expected1/Actual0修後117案全綠。最初fixture誤用不存在的new_textculture造成修後仍紅，已保留該失敗，另以正確fixture在舊入口重現confirmed-red，沒有放寬斷言。

@@ -75,7 +75,7 @@ internal static class SchemaDeploymentCli
                 return 0;
             }
             var result = command == "apply" ? engine.Apply(approved!, definition!, cancellationToken)
-                : engine.Plan(definition!, cancellationToken);
+                : engine.Verify(definition!, cancellationToken);
             if (result.Operations.Count != 0)
             {
                 output.WriteLine("Schema differs from the definition; no implicit changes were made.");

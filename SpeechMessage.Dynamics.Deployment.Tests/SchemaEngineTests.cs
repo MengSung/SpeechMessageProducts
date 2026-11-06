@@ -148,6 +148,8 @@ public sealed class SchemaEngineTests
         internal Exception? WriteFailure { get; set; }
         /// <summary>只讀已發布metadata注入與pending定義不同，不能讓apply順便發布未審核內容。</summary>
         internal bool UnpublishedChanges { get; set; }
+        /// <summary>在完成一輪apply後將P1欄位隱藏於已發布回應，驗證CLI不能把僅未發布定義視為成功；不改合成DB候選。</summary>
+        internal bool MissingPublishedField { get; set; }
 
         /// <summary>建立publisher/solution是唯一允許的資料型message；任何其他實體Create都拒絕。</summary>
         public override Guid Create(Entity entity)
@@ -172,6 +174,20 @@ public sealed class SchemaEngineTests
         /// <summary>只實作正式新增與加入solution訊息；未知/update/delete/publish-all一律由基類拒絕。</summary>
         public override OrganizationResponse Execute(OrganizationRequest request)
         {
+            if (request is RetrieveAllEntitiesRequest { RetrieveAsIfPublished: false } && MissingPublishedField)
+            {
+                var response = (RetrieveAllEntitiesResponse)base.Execute(request);
+                var account = Entities.Single(entity => entity.LogicalName == "account");
+                Assert.Contains(account.Attributes, field => field.LogicalName == "new_defaultlanguage");
+                var publishedAccount = new EntityMetadata { MetadataId = account.MetadataId, LogicalName = account.LogicalName,
+                    OwnershipType = account.OwnershipType, IsAuditEnabled = account.IsAuditEnabled };
+                SetResponse(publishedAccount, "PrimaryIdAttribute", account.PrimaryIdAttribute);
+                SetResponse(publishedAccount, "PrimaryNameAttribute", account.PrimaryNameAttribute);
+                SetResponse(publishedAccount, "Attributes", account.Attributes.Where(field => field.LogicalName != "new_defaultlanguage").ToArray());
+                SetResponse(publishedAccount, "Keys", account.Keys);
+                response.Results["EntityMetadata"] = response.EntityMetadata.Select(entity => entity == account ? publishedAccount : entity).ToArray();
+                return response;
+            }
             if (request is RetrieveAllEntitiesRequest { RetrieveAsIfPublished: false } && UnpublishedChanges)
             {
                 var response = base.Execute(request);

@@ -1,0 +1,50 @@
+{
+  "workPackage": "P1-11",
+  "solution": {
+    "trxCount": 17,
+    "total": 4372,
+    "passed": 4372,
+    "failed": 0,
+    "skipped": 0
+  },
+  "coverage": {
+    "deployment-postverify-coverage": 0.8843000000000001,
+    "localization-net48-final": 0.9787,
+    "localization-net10-final": 0.9819
+  },
+  "strict": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionBuild": {
+    "warnings": 23,
+    "errors": 0
+  },
+  "gates": {
+    "debugTracer": 7,
+    "i18n": 170,
+    "pe": 27,
+    "pluginMetadata": 10,
+    "pluginBuild": 6,
+    "analyzer": 26,
+    "pester": 39,
+    "progress": 15,
+    "javascript": 20,
+    "fileDocumentation": 1247
+  },
+  "review": {
+    "local": "主會話逐檔自審，非獨立第二人",
+    "run": "20261106-190143-p111-schema-published-review-reviewer",
+    "dualModelComplete": false,
+    "quotaBlocked": true,
+    "degradedFallback": false,
+    "completedBackends": []
+  },
+  "live": {
+    "readOnlyExport": true,
+    "planOperations": 88,
+    "apply": false
+  },
+  "hostedCi": false,
+  "lineSent": false
+}

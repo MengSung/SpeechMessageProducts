@@ -48,6 +48,23 @@ public sealed class SchemaCliTests
         Assert.Empty(fixture.Failures);
     }
 
+    /// <summary>先以合成SDK完成apply，再讓已發布metadata缺少一個P1欄位；verify必須回差異且零寫入，不能以未發布候選宣告完成。</summary>
+    [Fact]
+    public void Run_VerifyOnlyUnpublishedFieldExists_RejectsFalseCompletion()
+    {
+        using var fixture = new CliFixture();
+        Assert.Equal(0, fixture.Run("plan", "--org", "goodshepherdback", "--schema", fixture.Schema));
+        var plan = Assert.Single(Directory.GetFiles(fixture.Root, "schema-plan.json", SearchOption.AllDirectories));
+        Assert.Equal(0, fixture.Run("apply", "--org", "goodshepherdback", "--schema", fixture.Schema, "--plan", plan));
+        var writes = fixture.Connector.Service.WriteCount;
+        fixture.Connector.Service.MissingPublishedField = true;
+        Assert.Equal(1, fixture.Run("verify", "--org", "goodshepherdback", "--schema", fixture.Schema));
+        Assert.Equal(writes, fixture.Connector.Service.WriteCount);
+        Assert.Equal(3, fixture.Connector.Opened);
+        Assert.Equal(3, fixture.Connector.Returned);
+        Assert.Empty(fixture.Failures);
+    }
+
     /// <summary>非白名單、未知／重複參數、schema外部路徑與其他組織plan皆在連線前拒絕，不讀秘密或建立空成功。</summary>
     /// <param name="fault">要注入的CLI錯誤。</param>
     [Theory]

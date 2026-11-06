@@ -42,6 +42,12 @@ internal sealed class SchemaDeploymentEngine
     internal SchemaPlan Plan(SchemaDefinition definition, CancellationToken cancellationToken) =>
         SchemaPlanner.Create(definition, SchemaMetadata.Read(service, cancellationToken), clock.GetUtcNow());
 
+    /// <summary>驗收只能比對已發布結構；未發布候選即使完整也不能供實際應用使用，故必須與plan的盤點模式分開。只讀且沿用本命令SDK租約。</summary>
+    /// <param name="definition">正式唯一結構清單。</param><param name="cancellationToken">命令owner取消，已入場同步SDK必須返回後才能釋放。</param>
+    /// <returns>已發布metadata的完整差異及未Active索引鍵；呼叫端依兩者判定結果，不隱式發布或寫入。</returns>
+    internal SchemaPlan Verify(SchemaDefinition definition, CancellationToken cancellationToken) =>
+        SchemaPlanner.Create(definition, SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false), clock.GetUtcNow());
+
     /// <summary>只輸出完整metadata候選，以CreateNew防覆寫，不把此結構snapshot冒稱組織資料庫備份。</summary>
     internal string Export(CancellationToken cancellationToken) =>
         SchemaFiles.WriteNew(directory, "metadata.json", SchemaMetadata.Read(service, cancellationToken));
