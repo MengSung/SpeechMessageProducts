@@ -49,12 +49,12 @@ Assert.False(LineSignature.Verify(body, tamperedSignature, secret));
 
 ### Task 4: P1-04 ToolUtility.Core
 Files: ToolUtility.Core/**、ToolUtility/**、ToolUtility.Tests/**、wp-reports/P1-04-inventory.md，worker exclusive（ToolUtility DI由同worker改product overload）。
-- [ ] 逐型別列ToolUtilityPartials、Operations、Core、Extensions、Constants，標可搬／不可搬與依賴原因；唯讀比對父工作樹LineApiWebhook來源。
-- [ ] 每可搬Operations 2～3 query/result golden特性先綠；git mv保歷史；host Facade／連線／ILogger不搬不複製。
-- [ ] Core雙目標strict、原namespace，SDK條件private；依賴host型別用最小純介面adapter，不引入額外同功能copy。
-- [ ] 四方法GetNotYetPaidFee、GetPaidFee、RetrieveFeeByFetchXmlOrderNumber、RetrieveEntityNoCache；各≥3case及XML特殊字元，既有API不變。
-- [ ] AddToolUtility(services,configuration,string product)及Obsolete舊overload→ChurchReport；不同product connection key隔離。
-- [ ] tests雙目標：純Core兩target，既有host tests net10保留，不為net48刪測試。借用IOrganizationService不Dispose、不保存userstate。
+- [x] 逐型別列ToolUtilityPartials、Operations、Core、Extensions、Constants，標可搬／不可搬與依賴原因；唯讀比對父工作樹LineApiWebhook來源。
+- [x] 每可搬Operations 2～3 query/result golden特性先綠；git mv保歷史；host Facade／連線／ILogger不搬不複製。
+- [x] Core雙目標strict、原namespace，SDK條件private；依賴host型別用最小純介面adapter，不引入額外同功能copy。
+- [x] 四方法GetNotYetPaidFee、GetPaidFee、RetrieveFeeByFetchXmlOrderNumber、RetrieveEntityNoCache；各≥3case及XML特殊字元，既有API不變。
+- [x] AddToolUtility(services,configuration,string product)及Obsolete舊overload→ChurchReport；不同product connection key隔離。
+- [x] tests雙目標：純Core兩target，既有host tests net10保留，不為net48刪測試。借用IOrganizationService不Dispose、不保存userstate。
 ```csharp
 Assert.Equal("a<&\"", parsedValue);
 Assert.NotEqual(productAConnectionKey, productBConnectionKey);
@@ -156,3 +156,10 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 - Repository QueryService五入口原host完整golden 5/5先綠；新增錯表、null/empty/duplicate/over-budget、DTD/多根Fetch、取消/失敗重試、Dispose race、1000 A/B與弱參照安全矩陣，原實作修改前37紅／3綠。修後Combined Query／Present／產品路由131/131；證據artifacts/p1-04-repository-query-20261106。
 - QueryService已改純Core候選，保持舊namespace、constructor與五API；共享安全串流Fetch根表解析由SdkDataQuery唯一維護，EntityQueryService移除重複parser。QueryService移除輸出欄位值／例外本文的Trace；失敗只固定operation包裝並保留原InnerException。原present使用DateTime.Now不符合Core strict，故新增無scope狀態IClock、注入LocalNow以保留舊Local DateTime.Kind及月份算法，測試可固定時鐘；未自行改成教會時區或補未使用list filter，待P1-06定義時鐘遷移。
 - 上述QueryService尚未完成搬移後雙目標／strict／方案驗證及 coverage；P1-04仍進行中。尚須處理CrmAsyncExtensions、ComplexQuery host adapter、ListService／MarketingListService、四方法與product DI之整包核對，不能把已綠切片宣告為整包交付。
+
+
+## P1-04 最終整包核對（2026-11-06）
+- Fetch／Relationship／Present／Query／Complex／CrmAsync／List及Marketing全部完成原host特性、安全紅綠與搬移，原namespace／67多載／預設值及必要host adapter保留。四方法專屬案例7/7/8/8、product8案由實際TRX核對，沒有未處理候選。
+- 全方案Release16TRX3906/3906、ChurchReport623、架構67；換行修復後實際重建兩宿主1214/1345，Core strict零警告／錯誤，獨立coverage95.45%/95.81%。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6、套件34/158零違規及I18n/duplicates通過。原始輸出及完整Changed守門沿用既定基準，未放寬斷言。
+- 審查由主會話逐項完成，使用者免除雙模型；Marketing舊例外wrapper回歸已修並12案重測，原Fault保真、snapshot／完整頁／caller取消／drain／弱參照及1000 A/B均有證據。
+- 驗收矩陣：wp-reports/P1-04-acceptance.md；可追蹤證據：.ccg/tasks/integration-p1/evidence/p104-final/。只封存P1-04收尾子任務，主P1保持in_progress；下一包P1-05，後續P1-10先於P1-08。沒有更改正式計畫，無Word修正報告需求；未push／部署／連VM或D365／發LINE。

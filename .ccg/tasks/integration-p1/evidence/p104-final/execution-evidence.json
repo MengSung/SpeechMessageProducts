@@ -1,0 +1,87 @@
+{
+  "capturedAt": "2026-11-06T11:52:26.943254+08:00",
+  "sourceHead": "559f285fecdbcf097e7ae6b8be908a03fd48cfbe",
+  "releaseSolution": {
+    "trxCount": 16,
+    "passed": 3906,
+    "failed": 0,
+    "skipped": 0
+  },
+  "postNormalization": {
+    "net48": 1214,
+    "net10": 1345
+  },
+  "coreTargets": [
+    "net462",
+    "net10.0"
+  ],
+  "frameworkHarness": "net48",
+  "strictCoreBuild": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "releaseSolutionBuild": {
+    "warnings": 4,
+    "errors": 0,
+    "warning": "既有 Obsolete 相容多載"
+  },
+  "postNormalizationBuildWarnings": "既有 ToolUtility.Tests/StringUtilityTests.cs CS8600；未新增 NoWarn",
+  "review": "主會話逐項直接審查；使用者取消雙模型，沒有新增外模成功證據",
+  "hostedCi": "未執行；本地執行既有 coverage 守門與 CI 契約",
+  "d365LineVm": "未連線、未部署、未發送；合成 SDK I/O 契約不代表實機",
+  "formalPlanChanged": false,
+  "logs": [
+    {
+      "path": "artifacts/p1-04-final-20261106/core-strict.log",
+      "sha256": "aa1a0928486e7e08a56e6f520eac7f5ed89f2345ab1def4d673542df9e0ec988"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/solution-build.log",
+      "sha256": "d541e1b4680f941d457aa23c20fe4af01507c859f369155fe0f21cc927754953"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/duplicates.log",
+      "sha256": "4be34e70adf88c35579c7e46388d3827c9d73ed3a7dc333f99acd4c70df056b1"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/i18n-generate-check.log",
+      "sha256": "9ae159b9aa78eed47f3c9bf41d971589dd849ec0be4549c4a2a5268b5f5bc56d"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/list-generated-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/coverage-gate-net48.log",
+      "sha256": "ba49b970897dc3e3098c1080e056d6480b5d6bdc7a65afafcb09219b3a638c66"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/coverage-gate-net10.log",
+      "sha256": "011e391fd90e26ddc273b160259becbece1cbe9cd5523d6033bb24b5bc930f90"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/tracer-trx.log",
+      "sha256": "94279616002627609bc9483374df50a394f0bbf2d83cfa94716d4a0f07dfffa1"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/plugin-build.log",
+      "sha256": "b5f3f9a873e56163dca2051ab911a434e8e7034716d09ed6087c0b7680e7042c"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/plugin-metadata.log",
+      "sha256": "7d3e1ee3c546ef734c687aad627069d9794655e87fc15f2ab658c6359471d9d8"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/ci-transition.log",
+      "sha256": "1afdfac5e929cee0fa96116f3a484c06e9f74fb4e427b63ec58082218550ae8f"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/package-versions.log",
+      "sha256": "53bf3ccde4dbdc223fffd8511357e7db1ee5a09dfc5f006fd025adb0968a6995"
+    },
+    {
+      "path": "artifacts/p1-04-final-20261106/i18n-verify.log",
+      "sha256": "eea9d3cf97ab8f4af1e8aca8f6bfc94a669e52fac0a26a43804a56a1846c2bf8"
+    }
+  ]
+}

@@ -98,7 +98,18 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   assert.match(getWorkPackageRow(elements, 'P1-01'), /class="wp is-done"/);
   assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-01-acceptance.md'), 'utf8'),
     /P1-01 的孤兒清理、測試整合及本機驗收已完成/);
-  assert.match(getWorkPackageRow(elements, 'P1-04'), /class="wp is-active"/);
+  assert.match(getWorkPackageRow(elements, 'P1-04'), /class="wp is-done"/);
+  assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-04-acceptance.md'), 'utf8'),
+    /狀態：P1-04 本機驗收完成/);
+  // 固定里程碑須有實際執行證據；不能只把畫面狀態由 active 換成 done。
+  const p104Evidence = path.join(root, '.ccg/tasks/integration-p1/evidence/p104-final');
+  const execution = JSON.parse(fs.readFileSync(path.join(p104Evidence, 'execution-evidence.json'), 'utf8'));
+  assert.deepEqual(execution.releaseSolution, { trxCount: 16, passed: 3906, failed: 0, skipped: 0 });
+  const required = JSON.parse(fs.readFileSync(path.join(p104Evidence, 'required-methods-and-product-tests.json'), 'utf8'));
+  assert.deepEqual(Object.keys(required.methods).sort(),
+    ['GetNotYetPaidFee', 'GetPaidFee', 'RetrieveEntityNoCache', 'RetrieveFeeByFetchXmlOrderNumber'].sort());
+  for (const cases of Object.values(required.methods)) assert.ok(cases.length >= 3);
+  assert.equal(required.productRegistration.length, 8);
   assert.match(elements.get('planned-phases').innerHTML, /P1-08[\s\S]*P1-10/);
   const p1_12 = getWorkPackageRow(elements, 'P1-12');
   assert.match(p1_12, /class="wp is-you"/);

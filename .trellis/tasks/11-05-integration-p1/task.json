@@ -5,7 +5,7 @@
   "description": "",
   "status": "in_progress",
   "currentPhase": "implementation",
-  "nextAction": "Present已抽Core並雙目標887/1017；QueryService原host5/5、修補後Query+Present+路由131/131，新增IClock並共用安全Fetch parser。先重跑Query搬後雙目標與strict/coverage；再處理CrmAsyncExtensions、ComplexQuery最小host adapter、List/MarketingList，核四資料方法/product DI，補inventory/review與全方案00§8。歷程持續追加進度頁一般資訊；P1-04未完成、P1仍3/12。",
+  "nextAction": "P1-04整包驗收與交付紀錄已完成；接續P1-05完整Localization五層解析、具名參數、語言resolver及關鍵字。之後P1-10先於P1-08；主P1未完成，VM仍依條件授權預設只讀。",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -25,5 +25,12 @@
   "relatedFiles": [],
   "notes": "",
   "meta": {},
-  "reviewPolicy": "使用者2026-11-06明確表示不需要雙模型；後續由主會話直接分析、實作與審查，保留歷史外模證據，不冒稱新增雙模型完成。"
+  "reviewPolicy": "使用者2026-11-06明確表示不需要雙模型；後續由主會話直接分析、實作與審查，保留歷史外模證據，不冒稱新增雙模型完成。",
+  "completedWorkPackages": [
+    "P1-01",
+    "P1-02",
+    "P1-03",
+    "P1-04"
+  ],
+  "acceptanceRecord": "wp-reports/P1-04-acceptance.md"
 }

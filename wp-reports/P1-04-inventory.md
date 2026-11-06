@@ -1,9 +1,8 @@
 # P1-04 ToolUtility 型別盤點與抽取準入
 
-日期：2026-11-05。正式指定資料夾共有 **62個原始檔**，先前暫記61不正確，已按實際列舉修正；不是擴大正式範圍。下表76列含partial多來源與巢狀型別。
+日期：2026-11-05。正式指定資料夾共有 **62個原始檔**，先前暫記61不正確，已按實際列舉修正；不是擴大正式範圍。原索引76列含partial多來源與巢狀型別；現表另補ContactDataService與ComplexQueryDataService，共78列。
 
-本表是抽取前的來源路徑與準入盤點，不表示全部仍在原目錄。最新搬移進度見文末及
-`wp-reports/P1-04-core-extraction.md`；不得以原盤點的歷史「待實作」文字蓋過後續實際證據。
+2026-11-06 最終盤點：所有純資料候選已抽取；表列路徑已按實際位置更新，Contact／Complex 的 host 相容adapter與組合根留host。整包驗收見 `wp-reports/P1-04-acceptance.md` 及 `.ccg/tasks/integration-p1/evidence/p104-final/`。文末保留的日期切片是歷史檢查點，不能當作最新未完成狀態。
 
 ## 判讀與完成界線
 
@@ -28,60 +27,61 @@
 | `ToolUtility/ToolUtilityPartials/ToolUtilityClass.Utility.cs` | `ToolUtilityNameSpace.ToolUtilityClass` | 不可搬（host） | 同一ToolUtilityClass partial，持組態／連線並委派服務；全部留同一assembly。 |
 | `ToolUtility.Core/ActivityOperations/ActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.ActivityService` | 已抽取（離線通過／主會話審查） | 移除logger持有、複合正式識別、完整候選／有界分頁、Dispose清除借入SDK；495/602及2444回歸，詳Activity報告。 |
 | `ToolUtility.Core/ActivityOperations/IActivityService.cs` | `ToolUtilityNameSpace.ActivityOperations.IActivityService` | 已抽取（純契約） | 六方法／namespace保留；獨占ArrayList及append／有界生命週期完整文件、nullable與雙產品反射已驗證。 |
-| `ToolUtility.Core/AppointmentOperations/AppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.AppointmentService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AppointmentOperations/IAppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.IAppointmentService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AppointmentOperations/AppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.AppointmentService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AppointmentOperations/IAppointmentService.cs` | `ToolUtilityNameSpace.AppointmentOperations.IAppointmentService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
 | `ToolUtility.Core/AttachmentOperations/AttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.AttachmentService` | 已抽取（離線通過／審查降級） | 只保存不可變limits；固定wrapper、整頁ID／parent／容量；413/512及2272回歸通過，Claude週額度。 |
 | `ToolUtility.Core/AttachmentOperations/IAttachmentService.cs` | `ToolUtilityNameSpace.AttachmentOperations.IAttachmentService` | 已抽取（純契約） | 保留原namespace／ref；完整nullable中繼資料及兩產品目標已驗證。 |
-| `ToolUtility.Core/AttributeOperations/AttributeServiceComposite.cs` | `ToolUtilityNameSpace.AttributeOperations.AttributeServiceComposite` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/BoolAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.BoolAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/DateTimeAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DateTimeAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/DoubleAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DoubleAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/EntityAttributeUtilityService.cs` | `ToolUtilityNameSpace.AttributeOperations.EntityAttributeUtilityService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/FloatAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.FloatAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/IAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/IntAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IntAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/LookupAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.LookupAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/MoneyAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.MoneyAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/OptionSetAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.OptionSetAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/AttributeOperations/StringAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.StringAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/CollectionOperations/CollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.CollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.ICollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.PagedResult<T>` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/AttributeOperations/AttributeServiceComposite.cs` | `ToolUtilityNameSpace.AttributeOperations.AttributeServiceComposite` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/BoolAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.BoolAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/DateTimeAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DateTimeAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/DoubleAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.DoubleAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/EntityAttributeUtilityService.cs` | `ToolUtilityNameSpace.AttributeOperations.EntityAttributeUtilityService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/FloatAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.FloatAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/IAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/IntAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.IntAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/LookupAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.LookupAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/MoneyAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.MoneyAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/OptionSetAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.OptionSetAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/AttributeOperations/StringAttributeService.cs` | `ToolUtilityNameSpace.AttributeOperations.StringAttributeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/CollectionOperations/CollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.CollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.ICollectionQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs` | `ToolUtilityNameSpace.CollectionOperations.PagedResult<T>` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
 | `ToolUtility/ContactOperations/ContactService.cs` | `ToolUtilityNameSpace.ContactOperations.ContactService` | host相容adapter已完成 | 不保存logger/cache，保留兩ctor；全部查詢委派Core ContactDataService，原cache缺完整scope所以停用。 |
 | `ToolUtility.Core/ContactOperations/ContactDataService.cs` | `ToolUtilityNameSpace.ContactOperations.ContactDataService` | 已純化並抽取 | 19同步契約/3Task入口、有界完整分頁與ID守門；詳P1-04-contact.md。 |
-| `ToolUtility.Core/ContactOperations/IContactService.cs` | `ToolUtilityNameSpace.ContactOperations.IContactService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/EntityAttributeHandler.cs` | `ToolUtilityNameSpace.EntityOperations.EntityAttributeHandler` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/EntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityCrudService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityOptimizedQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.PagedResult<T>` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/EntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityRepository` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.EntityRepository` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/IEntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityCrudService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/EntityOperations/IEntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/FeeOperations/FeeService.cs` | `ToolUtilityNameSpace.FeeOperations.FeeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/FeeOperations/IFeeService.cs` | `ToolUtilityNameSpace.FeeOperations.IFeeService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/LessonsOperations/ILessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.ILessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/LessonsOperations/LessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.LessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/ListOperations/IListService.cs` | `ToolUtilityNameSpace.ListOperations.IListService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility/ListOperations/ListService.cs` | `ToolUtilityNameSpace.ListOperations.ListService` | 待純化 | 大型facade含靜態／動態名單、ExecuteMultiple與非同步批次；需先拆可直接借入IOrganizationService的純查詢／請求建構及host lifecycle，再逐入口安全驗證。 |
-| `ToolUtility.Core/ListOperations/IMarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.IMarketingListService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；host實作仍待純化。 |
-| `ToolUtility/ListOperations/MarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.MarketingListService` | 待純化 | Repository／SDK混合、批次Task.Run與吞例外；須先保護部分成功回報、caller取消、失敗保真及工作drain，再決定Core operation與host adapter邊界。 |
-| `ToolUtility.Core/MeetingStatisticsOperations/IMeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.IMeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/MeetingStatisticsOperations/MeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.MeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility.Core/OwnerOperations/OwnerManagementService.cs` | `ToolUtilityNameSpace.OwnerOperations.OwnerManagementService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility/QueryOperations/ComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.ComplexQueryService` | 不可直接搬 | 依Interfaces.ICrmClient而非純借入IOrganizationService，不搬host連線。 |
+| `ToolUtility.Core/ContactOperations/IContactService.cs` | `ToolUtilityNameSpace.ContactOperations.IContactService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/EntityAttributeHandler.cs` | `ToolUtilityNameSpace.EntityOperations.EntityAttributeHandler` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/EntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityCrudService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityOptimizedQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.PagedResult<T>` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/EntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.EntityQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityRepository` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/EntityRepository.cs` | `ToolUtilityNameSpace.EntityOperations.EntityRepository` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/IEntityCrudService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityCrudService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/EntityOperations/IEntityQueryService.cs` | `ToolUtilityNameSpace.EntityOperations.IEntityQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/FeeOperations/FeeService.cs` | `ToolUtilityNameSpace.FeeOperations.FeeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/FeeOperations/IFeeService.cs` | `ToolUtilityNameSpace.FeeOperations.IFeeService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/LessonsOperations/ILessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.ILessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/LessonsOperations/LessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.LessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/ListOperations/IListService.cs` | `ToolUtilityNameSpace.ListOperations.IListService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/ListOperations/ListService.cs` | `ToolUtilityNameSpace.ListOperations.ListService` | 已純化並抽取 | 20方法／預設值不變；18原host特性先綠、安全93紅/6綠至搬前117綠；完整名單分頁與精確成員ID、六批次snapshot／故障／取消／drain，最終雙宿主及整包通過。 |
+| `ToolUtility.Core/ListOperations/IMarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.IMarketingListService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；實作亦已抽Core並完成最終驗收。 |
+| `ToolUtility.Core/ListOperations/MarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.MarketingListService` | 已純化並抽取 | 7方法與Repository／SDK route不變；單一有界批次owner，不吞錯回部分成功；舊query包裝層回歸12案已修，完整候選及Dispose清借用參照。 |
+| `ToolUtility.Core/MeetingStatisticsOperations/IMeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.IMeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/MeetingStatisticsOperations/MeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.MeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility.Core/OwnerOperations/OwnerManagementService.cs` | `ToolUtilityNameSpace.OwnerOperations.OwnerManagementService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
+| `ToolUtility/QueryOperations/ComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.ComplexQueryService` | host相容adapter已完成 | 保持ctor(object?,ICrmClient)，只轉接Retrieve／RetrieveMultiple／Execute；十六資料操作唯一實作在Core，無logger或連線建立／處置。 |
+| `ToolUtility.Core/QueryOperations/ComplexQueryDataService.cs` | `ToolUtilityNameSpace.QueryOperations.ComplexQueryDataService` | 已純化並抽取 | 最小ICrmQueryExecutor／純SDK adapter；原18綠、安全84紅/1綠至搬前103綠，十六入口原型別／filter／route差異保留，1000 A/B及drain／弱參照通過。 |
 | `ToolUtility.Core/QueryOperations/FetchXmlQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.FetchXmlQueryService` | 已抽取（本輪切片） | 七入口保留Execute/top/欄位差異；安全紅綠、resx謂詞及雙目標/strict/coverage證據見Fetch切片紀錄。 |
-| `ToolUtility.Core/QueryOperations/IComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IComplexQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/QueryOperations/IComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IComplexQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
 | `ToolUtility.Core/QueryOperations/PresentRecordQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.PresentRecordQueryService` | 已抽取（本輪切片） | 八入口保留查詢樹、兩UTC窗及parent-only link；單頁5000、borrowed SDK drain及雙目標測試見Present證據目錄。 |
-| `ToolUtility.Core/QueryOperations/IQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IQueryService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；host實作仍待純化。 |
+| `ToolUtility.Core/QueryOperations/IQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IQueryService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；實作亦已抽Core並完成最終驗收。 |
 | `ToolUtility.Core/QueryOperations/QueryService.cs` | `ToolUtilityNameSpace.QueryOperations.QueryService` | 已抽取（本輪切片；雙目標已驗） | Repository單頁五入口、原Local時間透過IClock注入、固定診斷訊息、安全Fetch解析及ID／根表驗證；搬後net48 933/net10 1063、strict 0 warning/error。 |
 | `ToolUtility.Core/QueryOperations/RelationshipQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.RelationshipQueryService` | 已抽取（本輪切片） | 六入口保留原link/條件CLR型別；動態metadata/GUID與5000列預算、double-host及strict證據見Relationship目錄。 |
-| `ToolUtility.Core/Core/IToolUtilityCore.cs` | `ToolUtilityNameSpace.Core.IToolUtilityCore` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/Core/IToolUtilityCore.cs` | `ToolUtilityNameSpace.Core.IToolUtilityCore` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
 | `ToolUtility/Core/ToolUtilityFacade.cs` | `ToolUtilityNameSpace.Core.ToolUtilityFacade` | 不可直接搬 | ConnectionOperations、logger、LINE與Lazy組合根；Metadata partial不可跨assembly拆。 |
 | `ToolUtility/Core/ToolUtilityFacade.Metadata.cs` | `ToolUtilityNameSpace.Core.ToolUtilityFacade` | 不可直接搬 | ConnectionOperations、logger、LINE與Lazy組合根；Metadata partial不可跨assembly拆。 |
-| `ToolUtility/Extensions/CrmAsyncExtensions.cs` | `ToolUtilityNameSpace.Extensions.CrmAsyncExtensions` | 待純化 | 靜態SDK轉接表面可雙目標，但bounded parallelism、整頁原子發布、重複跨表Guid、caller取消與背景同步SDK排空尚未驗證。 |
-| `ToolUtility.Core/Extensions/OrganizationServiceExtensions.cs` | `ToolUtilityNameSpace.Extensions.OrganizationServiceExtensions` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
+| `ToolUtility.Core/Extensions/CrmAsyncExtensions.cs` | `ToolUtilityNameSpace.Extensions.CrmAsyncExtensions` | 已純化並抽取 | 單次同步Task wrapper及最多64固定worker；5000列／1000頁／64Ki cookie、有界候選、跨表同Guid拒絕、caller取消與內部OCE區分、全部drain／closure回收已雙目標驗證。 |
+| `ToolUtility.Core/Extensions/OrganizationServiceExtensions.cs` | `ToolUtilityNameSpace.Extensions.OrganizationServiceExtensions` | 已抽取（見切片證據） | 沿用原 namespace；最終雙宿主1214/1345通過；逐包特性、生命週期與整包驗收見P1-04-acceptance.md。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns` | 已純化並抽取 | 私有固定模板加公開複本 getter；21組完整golden、caller mutation及並行測試通過。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Contact` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.List` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
@@ -98,7 +98,7 @@
 - Interfaces/IFetchXmlQueryService.cs實際namespace是ToolUtilityNameSpace.QueryOperations；IEntityAttributeUtilityService、IOwnerManagementService也位於Interfaces。對應服務准入時只搬必要純契約，ICrmClient、cache、LoggerInvoker與連線留host。
 - ChurchReport七處名單呼叫經舊facade，SDK邊界是IOrganizationService；產品C#未找到ServiceClient／Proxy直接消費，停止條件目前未觸發，搬後重查。
 - Facade的RetrieveDedicationBookingByFetchXml／RetrieveFeeByFetchXml走Fee空方法；另一組RetrieveDedicationBooking／RetrieveFee走有效FetchXmlQueryService。有效兩方法已有完整golden／原例外測試，可收斂單一Fee實作，不猜業務。
-- 三個新Fee方法舊來源為父工作樹`.其他解決方案/LineApiWebhook/ToolUtility/Services/QueryService.cs`（GetPaidFee／GetNotYetPaidFee），以及ToolUtilityClass/ToolUtilityClass.FetchXmlAndString.cs（RetrieveFeeByFetchXmlOrderNumber）。前兩者storLessonName原未使用，不當權限；後者卡與ATM欄位OR，文字安全編碼，不照抄注入。RetrieveEntityNoCache來源是同來源Core/ToolUtilityFacade.cs，仍待實作。
+- 三個新Fee方法舊來源為父工作樹`.其他解決方案/LineApiWebhook/ToolUtility/Services/QueryService.cs`（GetPaidFee／GetNotYetPaidFee），以及ToolUtilityClass/ToolUtilityClass.FetchXmlAndString.cs（RetrieveFeeByFetchXmlOrderNumber）。前兩者storLessonName原未使用，不當權限；後者卡與ATM欄位OR，文字安全編碼，不照抄注入。RetrieveEntityNoCache來源是同來源Core/ToolUtilityFacade.cs，已補於Core EntityQueryService；8個專屬實際案例含每次重讀、不cache及身份／故障拒絕。
 
 ## 證據與決策
 
@@ -106,9 +106,15 @@ Fee特性4/4、FetchXmlFee特性4/4、XML helper正反例6/6，合計14/14；`ar
 
 雙模型分析run `.ccg/dual-model-runs/20261105-122655-integration-p1-04-extraction-analysis-analyzer`：dualModelComplete=true、quotaBlocked=false、degradedFallback=false，為摘要風險分析而非逐檔code review。採納先分類／溯源／特性／安全修補再搬。Claude推測Fee有效方法依賴ComplexQueryService不符實際直接SDK路徑，不列已證缺陷。模型主張必須修正式計畫只是建議；目前已找到有效來源且原計畫有安全抽取邊界，沒有改正式計畫或產Word修正報告。
 
-## 尚待交付
+## 最終候選結論（2026-11-06）
 
-候選純化、全部實際搬移Operations的特性、四方法各至少3案、Core雙目標strict、DI product隔離、兩目標測試／覆蓋率、架構／duplicates／ChurchReport回歸與雙模型code review。**本報告不等於P1-04完成。**
+全部純資料候選已有實作去向；無待純化列。四方法專屬案例7/7/8/8、product DI8案、Core strict兩目標、1214/1345雙宿主、完整3906回歸、coverage95.45%/95.81%、架構／duplicates／完整Changed編碼已通過。最後文件／頁面證據依正式驗收報告記錄。使用者免除雙模型，由主會話直接審查，沒有新增雙模型成功證據。
+
+新增支援型別為ICrmQueryExecutor／OrganizationQueryExecutor、IClock／SystemClock、ListMembershipOperations及固定資源generated表；均屬最小純化依賴，詳Core來源與實載反射。不可搬的host partial／facade仍保有組態、連線或組合根所有權；不是留有第二份資料操作。
+
+## 以下為歷史切片檢查點
+
+保留當時測試與待辦，不以當時文字覆蓋上方最新結論。
 
 ## 抽取後狀態更新（2026-11-05）
 

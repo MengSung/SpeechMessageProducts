@@ -142,3 +142,15 @@ Claude 留一項純稽核 Warning：「僅測試增補」欠缺本輪產品 diff
 - 按使用者指定追加7筆歷程至DATA.alert.steps，一般資訊維持預設收合；保留原27筆，不更改renderer/CSS、其他工作包或他人測試。既有產品結果明確標歷史，Fetch紅測不冒稱通過。
 - 現有工作樹進度頁測試14/14（含他任務版面整合案例）；這不是本任務新增產品驗證。byte-level驗證與精確DATA歸屬證據另存evidence/fetch-query-history。
 - 尚未實作Fetch修補，不宣告P1-04或主P1完成；本次沒有新增外部模型審查或實機證據。
+
+
+## P1-04 最終整包主會話審查（2026-11-06）
+
+已逐項對照正式02 P1-04的盤點、雙目標、namespace、搬前特性、四方法、product與舊API、雙宿主、ChurchReport、架構及duplicates；全部候選有實作去向。最新矩陣以wp-reports/P1-04-acceptance.md為準，前文尚待是歷史切片。
+
+- Complex十六入口不能用Present／Relationship同名方法替代：已核weeks GUID字串、blood正TotalRecordCount才回第一筆、UTC-7 class-end root filter及三路SDK route；最小executor不攜host連線。主會話核SDK純adapter／host真轉接、Dispose/drain與1000 A/B／弱參照測試。
+- Async固定worker、原query恢復、完整候選與跨表Guid拒絕；單次wrapper不排背景工作，caller取消與內部timeout分開，WhenAll排空、完成Task closure清借入SDK。
+- List20／Marketing7方法保持，四Fetch原謂詞與降冪不混用；完整成員ID、後頁衝突／故障與cookie預算、三種投影主鍵排序；輸入snapshot／batch驗完才I/O，單一串行owner、故障停止後批、原Fault.Detail及固定訊息、無隱藏retry／部分成功。已修全量回歸抓到的Marketing wrapper差異，原斷言保留、路由12案重跑通過。
+- 四方法實際專屬案例7/7/8/8；DI實際8案包含真實product pool key、舊ChurchReport、冪等／拒衝突、租約釋放及容器owner。原host測試完整保留，不把net48 test harness當成net48產品。
+- 整包16TRX3906/3906、雙宿主1214/1345、Core95.45%/95.81%、strict0/0；工具與打包全部實際結果見evidence/p104-final。編碼原先10個問題，以既有無損轉換器修自有4檔、六份clean歷史紀錄另任務獨立提交d99a4c77；完整Changed基準73b6e6cf已通過，不再用局部檢查冒稱整包綠。
+- 使用者取消外部分析／review，本輪沒有新外模輸出，既有配額降級不改寫；這是主會話直接審查，非獨立第二人或雙模型審查。無已知本包Critical／High／阻斷缺陷。未取得hosted CI或實機新證據；本包未要求實機部署，未操作VM／D365／LINE。傳輸timeout由host擁有、跨頁非交易快照、寫入故障可能部分提交均明載且不假稱rollback。

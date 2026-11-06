@@ -31,6 +31,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [I18n Scanner Contract](./i18n-scanner-contract.md) | Separate C# tokens from Razor template boundaries without widening count scope | Established |
 | [Attachment Transfer Contract](./attachment-transfer-contract.md) | Bounded annotation payloads, stable identity/parent validation and dual-target Base64 consistency | Established |
 | [Contact Authentication Cache Contract](./contact-authentication-cache-contract.md) | Fresh SDK password verification, no authenticated-result cache and precise cancellation | Established |
+| [List and Async SDK Contract](./list-and-async-sdk-contract.md) | Bounded membership writes, full publication, caller cancellation, fault fidelity and deterministic drain | Established |
 | [Core Query Adapter Contract](./core-query-adapter-contract.md) | Pure contract API golden, legacy filter differences, bounded query delegation and borrowed SDK lifecycle | Established |
 | [Activity Publication Contract](./activity-publication-contract.md) | Composite party identities, complete bounded paging, legacy append and borrowed SDK drain | Established |
 | [Image Input Contract](./image-input-contract.md) | Restricted image formats, pre-decode size limits, safe rejection and bounded ownership | Established |

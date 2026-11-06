@@ -1,0 +1,52 @@
+{
+  "methods": {
+    "GetPaidFee": [
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.LessonQuery_DisplayNameCannotChangeScope(operation: \"Paid\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.LessonQuery_InvalidId_RejectsBeforeIo(operation: \"Paid\", invalidId: \"\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.LessonQuery_InvalidId_RejectsBeforeIo(operation: \"Paid\", invalidId: \"00000000-0000-0000-0000-000000000000\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.NewQuery_MatchesGoldenAndPreservesSameNameRows(operation: \"Paid\", golden: \"fee-paid.xml\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.NewQuery_SdkFault_PropagatesSameException(operation: \"Paid\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.Query_DuplicateStableId_RejectsPublication(operation: \"Paid\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.Query_InvalidStableIdentity_RejectsPublication(operation: \"Paid\", missingId: True)"
+    ],
+    "GetNotYetPaidFee": [
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.LessonQuery_DisplayNameCannotChangeScope(operation: \"Unpaid\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.LessonQuery_InvalidId_RejectsBeforeIo(operation: \"Unpaid\", invalidId: \" \")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.LessonQuery_InvalidId_RejectsBeforeIo(operation: \"Unpaid\", invalidId: \"<&\\\"'\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.NewQuery_MatchesGoldenAndPreservesSameNameRows(operation: \"Unpaid\", golden: \"fee-unpaid.xml\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.NewQuery_SdkFault_PropagatesSameException(operation: \"Unpaid\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.Query_DuplicateStableId_RejectsPublication(operation: \"Unpaid\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.Query_InvalidStableIdentity_RejectsPublication(operation: \"Unpaid\", missingId: False)"
+    ],
+    "RetrieveFeeByFetchXmlOrderNumber": [
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.NewQuery_MatchesGoldenAndPreservesSameNameRows(operation: \"Order\", golden: \"fee-order.xml\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.NewQuery_SdkFault_PropagatesSameException(operation: \"Order\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.OrderQuery_EmptyInput_RejectsBeforeIo(orderNumber: \" \")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.OrderQuery_EmptyInput_RejectsBeforeIo(orderNumber: \"\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.OrderQuery_EmptyInput_RejectsBeforeIo(orderNumber: null)",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.OrderQuery_XmlSpecialCharacters_RoundTripWithoutInjection",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.Query_DuplicateStableId_RejectsPublication(operation: \"Order\")",
+      "ToolUtility.Tests.FeeOperations.FeeQueryContractTests.Query_InvalidStableIdentity_RejectsPublication(operation: \"Order\", missingId: True)"
+    ],
+    "RetrieveEntityNoCache": [
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_EmptyId_RejectsBeforeIo",
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_IdentityMismatch_RejectsPublication(wrongEntity: False)",
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_IdentityMismatch_RejectsPublication(wrongEntity: True)",
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_InvalidEntityName_RejectsBeforeIo(entityName: \" \")",
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_InvalidEntityName_RejectsBeforeIo(entityName: \"\")",
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_InvalidEntityName_RejectsBeforeIo(entityName: \"<&\\\"'\")",
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_RepeatedId_ReadsFreshSdkResult",
+      "ToolUtility.Tests.EntityOperations.EntityQueryContractTests.RetrieveEntityNoCache_SdkFault_PropagatesOriginalException"
+    ]
+  },
+  "productRegistration": [
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_ConflictingConfiguration_RejectsWithoutMutation",
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_DifferentProductsInOneContainer_RejectsWithoutMutation",
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_InvalidProduct_RejectsBeforeRegistration(product: \" \")",
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_InvalidProduct_RejectsBeforeRegistration(product: \"\")",
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_InvalidProduct_RejectsBeforeRegistration(product: null)",
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_LegacyOverload_UsesChurchReport",
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_ProductParameter_PartitionsConnectionKey",
+    "ToolUtility.Tests.DependencyInjection.ProductRegistrationTests.AddToolUtility_SameRegistration_IsIdempotent"
+  ]
+}

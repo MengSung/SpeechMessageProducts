@@ -444,7 +444,7 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06 11:42（P1-04實作與驗證歷程已更新）",
+  "snapshot": "2026-11-06 11:52（P1-04實作與驗證歷程已更新）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
   "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
@@ -452,7 +452,7 @@ const DATA = {
   "alert": {
     "level": "info",
     "title": "階段1執行中｜集中P1-04收尾",
-    "body": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。最終程序已確認：ToolUtility net48 1214/1214、net10 1345/1345；完整16份TRX共3906/3906，Debug tracer7/7，Plugin metadata10/build6。Core覆蓋率95.45%/95.81%。目前完整Changed編碼守門列10份歷史文字換行問題，先依歸屬與無語義檢查修正，尚不宣告完成。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。",
+    "body": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -496,7 +496,8 @@ const DATA = {
       "2026-11-06 10:57 QueryService搬後最新net48 933/933、net10 1063/1063、Core strict零警告零錯誤。另已回原host位置同源編譯45/45後恢復Core；原固定時間/欄位/排序語義不變。期間偵測既有工作由外部提交ebe6d0b5保存，沿用該HEAD不回退。CrmAsync原host三代表特性3/3；安全矩陣7紅/1綠，含並行度0無界等待、跨表相同Guid覆寫、caller PageInfo遭修改；已加測試取消上限並安全清理本次懸掛測試程序，接續修補。",
       "2026-11-06 11:13 接續P1-04：Query已完成搬後net48 933/933、net10 1063/1063；CrmAsyncExtensions已抽Core，固定worker與5000列/1000頁預算、取消分類及drain完整回歸958/1088，補弱引用後專項雙宿主26/26。ComplexQuery原host18特性先綠、安全84紅/1綠、修後搬前103/103；正驗證Core及host薄adapter。剩餘List/Marketing與整包coverage/00§8尚待完成，未標完成。",
       "2026-11-06 11:26 ComplexQuery搬後雙目標103/103、host三路轉接/1000A-B/Dispose-drain/weak-reference補測通過。List/Marketing原host18特性先綠、安全93紅/6綠，修後搬前117/117才git mv；已修XML值注入、完整成員投影身份、吞批次錯誤與ExecuteMultiple Fault漏判，兩服務Core strict雙目標0警告0錯誤。正補生命週期與整包驗收，不提前標P1-04完成。",
-      "2026-11-06 11:42 最終程序已確認：ToolUtility net48 1214/1214、net10 1345/1345；完整16份TRX共3906/3906，Debug tracer7/7，Plugin metadata10/build6。Core覆蓋率95.45%/95.81%。目前完整Changed編碼守門列10份歷史文字換行問題，先依歸屬與無語義檢查修正，尚不宣告完成。"
+      "2026-11-06 11:42 最終程序已確認：ToolUtility net48 1214/1214、net10 1345/1345；完整16份TRX共3906/3906，Debug tracer7/7，Plugin metadata10/build6。Core覆蓋率95.45%/95.81%。目前完整Changed編碼守門列10份歷史文字換行問題，先依歸屬與無語義檢查修正，尚不宣告完成。",
+      "2026-11-06 11:52 完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。"
     ]
   },
   "tiles": [
@@ -705,7 +706,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。最終程序已確認：ToolUtility net48 1214/1214、net10 1345/1345；完整16份TRX共3906/3906，Debug tracer7/7，Plugin metadata10/build6。Core覆蓋率95.45%/95.81%。目前完整Changed編碼守門列10份歷史文字換行問題，先依歸屬與無語義檢查修正，尚不宣告完成。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。"
+      "note": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。完整Changed已通過（978 checked、853 raw excluded、0問題），前置純換行修復獨立提交d99a4c77。換行修復後實際重新建置並測兩宿主仍1214/1214、1345/1345；額外I18n工具108/108、PE工具27/27、CI閉包6/6、中央套件34專案158引用0違規。正在完成四方法逐案證據與最終文件／本地提交。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。"
     },
     {
       "id": "P1-05",
