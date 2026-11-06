@@ -65,6 +65,33 @@ public sealed class SchemaCliTests
         Assert.Empty(fixture.Failures);
     }
 
+    /// <summary>明確schema smoke須先驗已發布結構；缺結構回1而非未知語法2，不可先建任何測試資料，租約完整歸還。</summary>
+    [Fact]
+    public void Run_SchemaSmoke_DifferencesPreventAnyDataWrite()
+    {
+        using var fixture = new CliFixture();
+        Assert.Equal(1, fixture.Run("smoke", "--org", "goodshepherdback", "--schema", fixture.Schema));
+        Assert.Equal(0, fixture.Connector.Service.WriteCount);
+        Assert.Equal(1, fixture.Connector.Opened);
+        Assert.Equal(1, fixture.Connector.Returned);
+        Assert.Empty(fixture.Failures);
+    }
+
+    /// <summary>實體雖齊全但key仍Pending時，smoke必須回3且零新增業務列，不能藉唯一鍵測試假裝索引已Active。</summary>
+    [Fact]
+    public void Run_SchemaSmoke_PendingKeyPreventsAnyDataWrite()
+    {
+        using var fixture = new CliFixture();fixture.Connector.Service.PendingKey = true;
+        Assert.Equal(0, fixture.Run("plan", "--org", "goodshepherdback", "--schema", fixture.Schema));
+        var plan = Assert.Single(Directory.GetFiles(fixture.Root, "schema-plan.json", SearchOption.AllDirectories));
+        Assert.Equal(3, fixture.Run("apply", "--org", "goodshepherdback", "--schema", fixture.Schema, "--plan", plan));
+        var writes = fixture.Connector.Service.WriteCount;
+        Assert.Equal(3, fixture.Run("smoke", "--org", "goodshepherdback", "--schema", fixture.Schema));
+        Assert.Equal(writes, fixture.Connector.Service.WriteCount);
+        Assert.Equal(3, fixture.Connector.Returned);
+        Assert.Empty(fixture.Failures);
+    }
+
     /// <summary>非白名單、未知／重複參數、schema外部路徑與其他組織plan皆在連線前拒絕，不讀秘密或建立空成功。</summary>
     /// <param name="fault">要注入的CLI錯誤。</param>
     [Theory]
@@ -73,6 +100,7 @@ public sealed class SchemaCliTests
     [InlineData("unknown-option")]
     [InlineData("external-schema")]
     [InlineData("external-plan")]
+    [InlineData("external-before")]
     public void Run_InvalidSchemaArguments_RejectBeforeConnect(string fault)
     {
         using var fixture = new CliFixture();
@@ -83,6 +111,8 @@ public sealed class SchemaCliTests
             "unknown-option" => new[] { "plan", "--org", "goodshepherdback", "--schema", fixture.Schema, "--password", "synthetic" },
             "external-schema" => new[] { "plan", "--org", "goodshepherdback", "--schema", Path.Combine(fixture.Root, "external.json") },
             "external-plan" => new[] { "apply", "--org", "goodshepherdback", "--schema", fixture.Schema, "--plan", Path.Combine(Path.GetTempPath(), "other-organization.json") },
+            "external-before" => new[] { "complete-created-audit", "--org", "goodshepherdback", "--schema", fixture.Schema,
+                "--plan", Path.Combine(fixture.Root, "artifacts", "d365", "goodshepherdback", "plan.json"), "--before", Path.Combine(Path.GetTempPath(), "foreign-before.json") },
             _ => throw new InvalidOperationException()
         };
         Assert.Equal(2, fixture.Run(args));
@@ -181,6 +211,7 @@ public sealed class SchemaCliTests
             File.WriteAllText(Path.Combine(Root, "SpeechMessageProducts.sln"), "synthetic solution");
             Schema = Path.Combine(Root, "d365", "schema", "speechmessagecore.schema.json");
             File.Copy(originalSchema, Schema);
+            File.Copy(Path.Combine(Path.GetDirectoryName(originalSchema)!, "p1-12-acceptance.fixture.json"), Path.Combine(Root, "d365", "schema", "p1-12-acceptance.fixture.json"));
             Connector = new Connector(Root);
             Environment.CurrentDirectory = Root;
         }

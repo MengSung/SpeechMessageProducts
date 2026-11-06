@@ -4,8 +4,8 @@
   "title": "階段 1 基礎層與國際化地基",
   "description": "",
   "status": "in_progress",
-  "currentPhase": "implementation",
-  "nextAction": "P1-06/07/09均已驗收；主P1 9/12，續P1-08快照快取，另P1-11/12未完成。VM預設只讀。",
+  "currentPhase": "review",
+  "nextAction": "全部必要實機/回歸已通過：4412/4412、157、coverage89.11%、5輪16候選0。完成最後編碼/文件守門及精確本地提交，更新12/12後封存P1-12與主P1，不push/正式部署。",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -34,8 +34,10 @@
     "P1-05",
     "P1-06",
     "P1-07",
+    "P1-08",
     "P1-09",
-    "P1-10"
+    "P1-10",
+    "P1-11"
   ],
-  "acceptanceRecord": "wp-reports/P1-09-acceptance.md"
+  "acceptanceRecord": "wp-reports/P1-12-acceptance.md"
 }

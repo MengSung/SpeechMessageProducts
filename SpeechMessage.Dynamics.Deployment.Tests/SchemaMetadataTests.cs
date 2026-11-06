@@ -60,6 +60,36 @@ public sealed class SchemaMetadataTests
         Assert.Equal(0, service.Writes);
     }
 
+    /// <summary>solution根政策只保留官方0/1/2與正式Guid；未知不假裝包含，錯型別與空ID整體拒絕，來源mutation不得污染快照。</summary>
+    /// <param name="fault">純合成的根資訊邊界。</param>
+    [Theory]
+    [InlineData("valid")]
+    [InlineData("unknown")]
+    [InlineData("bad-behavior")]
+    [InlineData("wrong-root-type")]
+    [InlineData("empty-root")]
+    public void Read_ComponentRootPolicy_PreservesDetachedIdentityOrFailsClosed(string fault)
+    {
+        var service = new MetadataService();
+        service.SolutionRows.Add(new Entity("solution", Guid.NewGuid()) { ["uniquename"] = "SpeechMessageCore", ["ismanaged"] = false, ["publisherid"] = new EntityReference("publisher", Guid.NewGuid()) });
+        var rootId = Guid.NewGuid();
+        var row = new Entity("solutioncomponent", Guid.NewGuid()) { ["componenttype"] = new OptionSetValue(2), ["objectid"] = Guid.NewGuid() };
+        if (fault != "unknown") { row["rootcomponentbehavior"] = new OptionSetValue(fault == "bad-behavior" ? 3 : 0); row["rootsolutioncomponentid"] = rootId; }
+        if (fault == "wrong-root-type") row["rootsolutioncomponentid"] = new EntityReference("solutioncomponent", rootId);
+        if (fault == "empty-root") row["rootsolutioncomponentid"] = Guid.Empty;
+        service.ComponentRows.Add(row);
+        if (fault is "valid" or "unknown")
+        {
+            var actual = Assert.Single(SchemaMetadata.Read(service, default).Components);
+            Assert.Equal(fault == "valid" ? 0 : (int?)null, actual.RootBehavior);
+            Assert.Equal(fault == "valid" ? rootId : (Guid?)null, actual.RootId);
+            row["rootcomponentbehavior"] = new OptionSetValue(2);
+            Assert.Equal(fault == "valid" ? 0 : (int?)null, actual.RootBehavior);
+        }
+        else Assert.Throws<InvalidDataException>(() => SchemaMetadata.Read(service, default));
+        Assert.Equal(0, service.Writes);
+    }
+
     /// <summary>進場前取消不呼叫SDK；唯讀故障傳原Exception，不以空快照吞掉錯誤。</summary>
     [Fact]
     public void Read_CancellationAndFault_PreserveOwnershipAndOriginalFailure()
@@ -157,6 +187,10 @@ public sealed class SchemaMetadataTests
         internal List<EntityMetadata> Entities { get; } = new() { BaseEntity("account", "name"), BaseEntity("contact", "fullname") };
         /// <summary>可選合成publisher定義，供官方內建空prefix的相容契約；不包含個人或token。</summary>
         internal List<Entity> PublisherRows { get; } = new();
+        /// <summary>本案solution純定義，供元件根語意案例；不含部署檔或秘密。</summary>
+        internal List<Entity> SolutionRows { get; } = new();
+        /// <summary>本案solutioncomponent來源，測試可注入錯型別或mutation，產品須回脫離SDK的純值。</summary>
+        internal List<Entity> ComponentRows { get; } = new();
         /// <summary>完整分頁合成filter資料，5000頁面以上僅限metadata匯出，不包含業務列。</summary>
         internal List<Entity> FilterRows { get; } = new();
         /// <summary>固定測試故障碼，不是使用者內容。</summary>
@@ -207,7 +241,8 @@ public sealed class SchemaMetadataTests
             Assert.Contains(expression.EntityName, AllowedTables);
             Assert.False(expression.ColumnSet.AllColumns);
             Assert.DoesNotContain(expression.ColumnSet.Columns, value => value.Contains("config", StringComparison.OrdinalIgnoreCase));
-            var source = expression.EntityName == "publisher" ? PublisherRows : expression.EntityName == "sdkmessagefilter" ? FilterRows : new List<Entity>();
+            var source = expression.EntityName switch { "publisher" => PublisherRows, "solution" => SolutionRows,
+                "solutioncomponent" => ComponentRows, "sdkmessagefilter" => FilterRows, _ => new List<Entity>() };
             var page = Math.Max(1, expression.PageInfo.PageNumber);
             return new EntityCollection(source.Skip((page - 1) * 5000).Take(5000).ToList())
             { MoreRecords = Fault == "partial-page" || source.Count > page * 5000,

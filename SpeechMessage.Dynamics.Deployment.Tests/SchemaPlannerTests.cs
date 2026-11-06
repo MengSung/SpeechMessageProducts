@@ -53,6 +53,70 @@ public sealed class SchemaPlannerTests
         SchemaPlanner.ValidatePlan(plan, definition, snapshot);
     }
 
+    /// <summary>Dataverse可重排複合key欄位；相同完整欄位集合仍是同一唯一鍵，但缺欄、重複欄與替換欄都必須拒絕，不能刪掉真約束。</summary>
+    /// <param name="fault">實機順序重排或故意破壞欄位集合。</param>
+    [Theory]
+    [InlineData("permuted")]
+    [InlineData("missing")]
+    [InlineData("duplicate")]
+    [InlineData("replaced")]
+    public void Plan_CompositeKeyColumnSet_HandlesServerOrderWithoutWeakeningIdentity(string fault)
+    {
+        var definition = Definition();var snapshot = CompleteSnapshot(definition);
+        var entities = snapshot.Entities.ToArray();var index = Array.FindIndex(entities, entity => entity.LogicalName == "new_localizedtext");
+        var key = Assert.Single(entities[index].Keys);
+        var attributes = fault switch
+        {
+            "permuted" => new[] { "new_accountid", "new_culture", "new_key" },
+            "missing" => new[] { "new_accountid", "new_culture" },
+            "duplicate" => new[] { "new_accountid", "new_culture", "new_culture" },
+            "replaced" => new[] { "new_accountid", "new_culture", "new_name" },
+            _ => throw new InvalidOperationException()
+        };
+        entities[index] = entities[index] with { Keys = new[] { key with { Attributes = attributes } } };
+        if (fault == "permuted") Assert.Empty(SchemaPlanner.Create(definition, snapshot with { Entities = entities }, Now).Operations);
+        else Assert.Throws<InvalidDataException>(() => SchemaPlanner.Create(definition, snapshot with { Entities = entities }, Now));
+        Assert.Equal(key.Id, Assert.Single(entities[index].Keys).Id);
+    }
+
+    /// <summary>實機新表以rootBehavior=0隱含包含欄與key；只接受同表正式ID且為根的列，shell／未知／別表不能掩蓋缺少元件。合成快照沒有SDK資源。</summary>
+    /// <param name="mode">根元件包含政策或錯誤身份。</param>
+    [Theory]
+    [InlineData("include")]
+    [InlineData("exclude")]
+    [InlineData("shell")]
+    [InlineData("unknown")]
+    [InlineData("foreign")]
+    [InlineData("child")]
+    public void Plan_RootEntityMembership_RequiresExplicitIncludeSubcomponents(string mode)
+    {
+        var definition = Definition();var snapshot = CompleteSnapshot(definition);
+        var target = snapshot.Entities.Single(entity => entity.LogicalName == "new_localizedtext");
+        var childIds = target.Fields.Select(field => field.Id).Concat(target.Keys.Select(key => key.Id)).ToHashSet();
+        var components = snapshot.Components.Where(component => !childIds.Contains(component.ObjectId)).Select(component =>
+            component.Type == 1 && component.ObjectId == target.Id ? component with
+            {
+                RootBehavior = mode is "include" or "foreign" or "child" ? 0 : mode == "exclude" ? 1 : mode == "shell" ? 2 : null,
+                ObjectId = mode == "foreign" ? Guid.NewGuid() : component.ObjectId,
+                RootId = mode == "child" ? Guid.NewGuid() : null
+            } : component).ToArray();
+        var plan = SchemaPlanner.Create(definition, snapshot with { Components = components }, Now);
+        if (mode == "include") Assert.Empty(plan.Operations);
+        else Assert.Equal(childIds.Count, plan.Operations.Count(operation => operation.Entity == target.LogicalName && operation.Kind is "IncludeAttribute" or "IncludeKey"));
+        Assert.DoesNotContain(plan.Operations, operation => operation.Kind.StartsWith("Create", StringComparison.Ordinal));
+    }
+
+    /// <summary>新增nullable根資訊不能重寫歷史before的canonical JSON與hash；未知必須省略，明確包含資訊則必須改變指紋。</summary>
+    [Fact]
+    public void Component_LegacyEvidenceHash_RemainsCompatibleUntilRootInformationIsKnown()
+    {
+        var id = Guid.NewGuid();var objectId = Guid.NewGuid();
+        var legacy = new { Id = id, Type = 1, ObjectId = objectId };
+        var actual = new SchemaComponentState(id, 1, objectId);
+        Assert.Equal(SchemaFiles.HashValue(legacy), SchemaFiles.HashValue(actual));
+        Assert.NotEqual(SchemaFiles.HashValue(legacy), SchemaFiles.HashValue(actual with { RootBehavior = 0 }));
+    }
+
     /// <summary>沒有本產品solution且有多個合法new前綴publisher時，應建立清單指定的獨立publisher身份，不猜選舊產品或因prefix共用而誤報衝突。</summary>
     [Fact]
     public void Plan_MultiplePublishersSharingPrefix_CreatesDeclaredPublisherIdentity()

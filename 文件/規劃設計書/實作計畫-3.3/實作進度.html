@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T19:09:29+08:00",
+  "snapshot": "2026-11-06T20:31:33+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
   "headline": "階段 1 目前 <strong>11／12 工作包已驗收完成</strong>（P1-01～11）；P1-12兩台VM已連入、備份及獨立復原驗證通過，續真正結構apply與唯一索引驗收。全計畫83包，已驗收29包；整個P1尚未完成。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1 已完成11／12；P1-12實機驗收進行中",
-    "body": "P1-11正式schema、完整metadata／plan／只新增apply及已發布verify已驗收；17TRX4372/4372，Deployment117、coverage88.43%、strict0/0。5cfef59e本地交付；外部兩後端無可用結果，主會話自審。Hyper-V兩台均已合法連入，目標COPY_ONLY備份與獨立資料庫實際復原／完整性／清理通過；尚未套用D365結構，不宣告P1-12或整個P1完成。",
+    "title": "P1-12實機與最終回歸通過 本地交付收尾",
+    "body": "真verify=0、四key Active、第二輪plan/apply零寫入及smoke=0已通過；五輪16候選另行唯讀重查殘留0。方案4412/4412、Deployment157、coverage89.11%，Word三頁QA完成。現續最後文件/編碼守門、精確本地提交與封存，尚未把提交收尾算作已完成。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -542,7 +542,12 @@ const DATA = {
       "2026-11-06T18:10:01+08:00 P1-11交付前驗證：本機Deployment116/116、獨立coverage88.42%；真正組織唯讀plan88項成功、摘要已審核，沒有任何遠端寫入。P1_D365結構建立步驟.md已備妥，列出實際唯讀證據、plan/schema/fingerprint、apply/verify/Active key/後台元件與資料唯一性清理流程及缺少的VM隔離/備份/復原前置。正在跑最後全方案，結果尚未取得前不標P1-11完成。Schema與新測試13份完整檔頭及DeploymentCli檔頭由主會話維護；全專案文件對話接手其他來源，僅明確stage本P1範圍，不混入其註解修改。",
       "2026-11-06T18:26:50+08:00 P1-11交付回歸逐筆核對：solution-delivery的17份TRX共4371/4371、零失敗／略過；原Localization固定12鍵失敗保留，修為獨立完整24鍵清單後雙宿主182/208及完整方案全通過。最新CCG自癒final-reviewer兩後端均無輸出（Gemini522、Claude週配額），不算外審完成。Hyper-V的Get-VM及普通vmconnect權限拒絕後，使用正常Windows RunAs入口成功唯讀查詢（ElevatedAdmin=true），未改群組／安全政策；D365-9.1運作、兩個獨立動態VHDX、零checkpoint、VSS無法連絡，尚缺隔離用途及可驗證備份／復原，接續PowerShell Direct只讀查驗。證據artifacts/p1-11-20261106/hyperv-elevated-readonly.json。已記錄文件對話提醒，後續只stage精確P1檔案，不納入其.ccg任務；既有自動checkpoint歷史不改寫。",
       "2026-11-06T18:39:01+08:00 Hyper-V客體實際連線已打通：D365-9.1與D365DC01皆經既有憑證／PowerShell Direct正常連入，無帳號／群組／網域／安全原則修改。D365 9.1.45.11、Sandbox/Async/SQL Running；DC DNS/NTDS/KDC/Netlogon Running。唯一開發測試組織goodshepherdback依正式D23為正式複本，SQL實際對應GoodShepherd_MSCRM（不是依alias猜DB名），API組織ID與MSCRM_CONFIG正式ID吻合。目標DB未找到現存backup歷史；既有目錄內其他組織備份不能充當本目標備份，正核對安全備份／復原路徑。仍未apply或寫業務列。分析器26/26、Pester39/39及進度頁15/15通過；原始摘要artifacts/p1-11-20261106。",
-      "2026-11-06T19:09:29+08:00 P1-11已完成本機驗收並提交5cfef59e：6表37欄（P1 36/P4 1）4keys正式schema，真實唯讀566表22678欄與88項plan，完整方案4372/4372、Deployment117、coverage88.43%、Localization97.87%/98.19%、strict0/0、Debug7/I18n170/PE27/Plugin10+6/analyzer26/Pester39及全部守門通過。verify未發布假成功以正確fixture確認紅後修；首個fixture欄名錯誤也保留原始失敗。Changed原25問題已修自身換行、文件對話10PS等值修復、原metadata僅停止追蹤不刪檔且SHA不變，最後1998檔0問題。矩陣wp-reports/P1-11-acceptance.md與evidence/p111-final；子任務依流程封存，主P1保持未完成。P1-12新建任務：兩VM連入，API/SQL ID吻合；目標1,027,411,968 bytes與config3,780,608 bytes COPY_ONLY/CHECKSUM備份及VERIFYONLY成功，獨立P1RecoveryProbe已實際還原ONLINE/RESTRICTED_USER、DBCC PHYSICAL_ONLY通過且已DROP自身暫存DB；原DB未還原、未改帳號/政策，備份留客體既有受限目錄。接續檢查測試列可能觸發的舊步驟／流程，再重plan/apply/verify。"
+      "2026-11-06T19:09:29+08:00 P1-11已完成本機驗收並提交5cfef59e：6表37欄（P1 36/P4 1）4keys正式schema，真實唯讀566表22678欄與88項plan，完整方案4372/4372、Deployment117、coverage88.43%、Localization97.87%/98.19%、strict0/0、Debug7/I18n170/PE27/Plugin10+6/analyzer26/Pester39及全部守門通過。verify未發布假成功以正確fixture確認紅後修；首個fixture欄名錯誤也保留原始失敗。Changed原25問題已修自身換行、文件對話10PS等值修復、原metadata僅停止追蹤不刪檔且SHA不變，最後1998檔0問題。矩陣wp-reports/P1-11-acceptance.md與evidence/p111-final；子任務依流程封存，主P1保持未完成。P1-12新建任務：兩VM連入，API/SQL ID吻合；目標1,027,411,968 bytes與config3,780,608 bytes COPY_ONLY/CHECKSUM備份及VERIFYONLY成功，獨立P1RecoveryProbe已實際還原ONLINE/RESTRICTED_USER、DBCC PHYSICAL_ONLY通過且已DROP自身暫存DB；原DB未還原、未改帳號/政策，備份留客體既有受限目錄。接續檢查測試列可能觸發的舊步驟／流程，再重plan/apply/verify。",
+      "2026-11-06T19:30:01+08:00 P1-12第一輪真實apply已執行Create/Include及定向publish，寫後嚴格比對因兩個新Lookup的audit=false失敗（exit1，未宣稱通過）。已唯讀逐欄比較：36個P1欄位僅new_localizedtext.new_accountid及new_offeringcategory.new_accountid稽核不符，其餘約束吻合，四個key皆Active。真D3659.1忽略CreateOneToMany.Lookup.IsAuditEnabled旗標，已補嚴格合成SDK回歸先紅，將保留稽核門檻並補新建欄位稽核啟用／只限原before與plan證明的新欄補正，不改舊欄型別、安全或其他組織。這項必要實作計畫澄清會另附Word修正報告。P1-11已交付5cfef59e、28266677，但此實機發現的新缺陷由P1-12修復後再回歸，不把前次離線成功當實機通過。受限smoke --schema清理六案先紅後綠、route先紅後124/124；新增故障矩陣仍在驗證，尚未執行業務列smoke。",
+      "2026-11-06T19:53:37+08:00 P1-12實機第三差異已研究確認：四個新表rootcomponentbehavior=0（Include Subcomponents），account/contact根為1且欄位有精確子列。修正投影保存官方root政策及Guid根ID，planner僅同正式entity ID且根0時承認其真實欄/key包含；未知/1/2/別表/子列仍要求精確列。新7案1真紅6綠，修後Deployment151/151，舊before hash相容測試通過。證據artifacts/p1-12-20261106/root-membership-{red,green}與solution-components-readonly-fixed.json。兩輪稽核補正都在預檢停下，尚未補正寫入；現續strict、受限補正、已發布verify、第二輪零寫入及實機smoke。未宣告P1完成，尚無本輪commit。",
+      "2026-11-06T19:58:42+08:00 P1-12第三次受限complete-created-audit真實exit0：原plan/before hash核對成功，只啟用a62b8a6e-d64d-408f-966f-d46df8cc8724與91da8dcc-950c-446e-ab10-4275885a0980兩個本輪新Lookup稽核，保存before-audit-completion/audit-completion-plan/after-audit-completion，定向publish後全metadata吻合、四key Active。證據artifacts/d365/goodshepherdback/20261106-115338-2055883-de307140dd94440cbe59fafd12ddbc69與live-audit-completion-third-exit.json。獨立verify正在執行。Word修正報告三項研究已建立且重排移除Title藍線與空白頁，三頁QA完成；尚待最後結果同步。本輪未commit，P1仍11/12。",
+      "2026-11-06T20:10:30+08:00 P1-12獨立已發布verify exit0、第二輪plan operations0/pending0與apply exit0，before/after留存供零寫入比對。官方SDK真匯出SpeechMessageCore未受管理zip34281bytes，SHA BC83CFD652644009ED838FE47462769360995928839A40605E66A3DD7EC033BB；獨立XML確認6表/36欄/4key、根0/1政策、加密欄安全、兩新表與新欄稽核、四日期UserLocal，無roles/workflows/securityprofiles。介面操作被實體Esc停止，本輪已停止UI控制，沒有後台截圖；backend確認採官方匯出與SDKmetadata證據如實記錄。真smoke exit1非預期Fault，未當唯一鍵成功；正先只讀查本次3個候選ID清理狀態，再作不含本文/秘密的operation與error-code診斷。全方案4406/4406、Deployment151/151、coverage88.99%、文件1250/0、Debug7、Pester39、analyzer26、I18n170/verify、PE27、Plugin10+6及守門已通過。新外審200653兩後端仍無輸出，不稱成功；未提交本輪。",
+      "2026-11-06T20:31:33+08:00 P1-12最終真smoke exit0，記錄實際0x80040237與legacyIntegrityDifferentialPassed=true：原tuple只第一ID、第二ID未入庫，同鍵zh-TW控制可寫/讀回，所有自身列finally清理。另行只讀核對5份ownership/16個候選ID全部0。完整方案17TRX4412/4412、Deployment157、獨立coverage89.11%；新5案真紅後綠及控制取消清理通過。原先151/4406是前次切片，最新結果取final-verified。Word修正報告已包含四項相容研究與自主SDK/官方solution匯出驗收分工，3頁全部渲染檢查，無藍線/空白頁，SHA D8EC01D0D485C590FE4E09F4F7BA29D29DF743E407991093164980FEC8132201。矩陣wp-reports/P1-12-acceptance.md與正式驗收文件已更新；主會話完整自審無阻斷，外審200653兩後端無輸出如實保留。準備精確本地commit及子任務/主P1封存，不push、不正式部署；UI因實體Esc已停止，無截圖成功聲明。"
     ]
   },
   "tiles": [

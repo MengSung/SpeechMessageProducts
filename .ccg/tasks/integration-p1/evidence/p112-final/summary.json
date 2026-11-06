@@ -1,0 +1,35 @@
+{
+  "workPackage": "P1-12",
+  "liveApplyPassed": true,
+  "firstApplyExitCode": 1,
+  "auditCompletionExitCode": 0,
+  "publishedVerifyExitCode": 0,
+  "activeKeyCount": 4,
+  "secondApplyWriteCount": 0,
+  "duplicateStableKeyRejected": true,
+  "duplicateErrorCode": "0x80040237",
+  "legacyIntegrityDifferentialPassed": true,
+  "testRowsRemaining": 0,
+  "productionOrganizationChanged": false,
+  "officialSolutionExportVerified": true,
+  "uiScreenshotObtained": false,
+  "solution": {
+    "trxCount": 17,
+    "total": 4412,
+    "passed": 4412,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "deploymentTestCount": 157,
+  "deploymentCoverage": 0.8911,
+  "strictWarnings": 0,
+  "strictErrors": 0,
+  "hostedCi": false,
+  "externalReview": {
+    "dualModelComplete": false,
+    "degradedFallback": false,
+    "completedBackends": [],
+    "run": "20261106-200653-p112-final-review-reviewer"
+  },
+  "finalAcceptanceStatus": "evidence-passed-pending-documentation-review-and-commit"
+}

@@ -5,6 +5,7 @@
  * 主要功能：核對唯一組織、solution未受管理、publisher前綴、既有新表ownership/audit/concurrency，以及每個P1欄位與索引的完整功能約束。
  * 所有衝突先停止整份候選；不得產生Update/Delete、改欄位型別、關閉安全或用新欄位掩蓋既有衝突。
  * 流程與輸出：新增依publisher→solution→所有表→一般欄→lookup→key排序，最後列需要加入solution的正式元件；獨立列出尚未Active的key。
+ * 元件包含只承認精確正式ID的顯式列，或同表根明確Include Subcomponents；未知與外殼不得掩蓋缺漏，功能約束仍完整核對。
  * 以schema hash及包含server組織ID的metadata fingerprint建立plan hash；ValidatePlan重算即時完整預期，任何範圍、操作或定義漂移都拒絕。
  * 隔離與生命週期：只使用本次方法區域集合，不讀系統時鐘、不連SDK、不存credential／request、不持有背景工作或跨命令結果。
  * 重要限制：傳入快照必須由完整只讀投影取得；值物件、plan hash與白名單alias都不取代server授權、寫鎖或實機備份。
@@ -61,6 +62,10 @@ internal static class SchemaPlanner
                 Conflict(expected.LogicalName);
             if (existing is null || !components.Contains((1, existing.Id)))
                 includes.Add(new SchemaOperation("IncludeEntity", expected.LogicalName, expected.LogicalName, existing?.Id ?? Guid.Empty));
+            // D365新表根元件可包含所有子元件而沒有逐筆solutioncomponent列。
+            // 只接受同一正式entity ID、確為根且官方值0；未知／不包含／僅外殼均仍要求精確子元件身份。
+            var includesChildren = existing is not null && snapshot.Components.Any(component =>
+                component.Type == 1 && component.ObjectId == existing.Id && component.RootBehavior == 0 && component.RootId is null);
             foreach (var field in expected.Fields.Where(field => field.Phase == 1))
             {
                 var actual = existing?.Fields.SingleOrDefault(item => item.LogicalName == field.LogicalName);
@@ -70,7 +75,7 @@ internal static class SchemaPlanner
                         operations.Add(new SchemaOperation(field.Type == "lookup" ? "CreateLookup" : "CreateAttribute", expected.LogicalName, field.LogicalName, Guid.Empty));
                 }
                 else if (!Matches(field, actual, expected.IsNew && expected.Audit)) Conflict(expected.LogicalName + "." + field.LogicalName);
-                if (actual is null || !components.Contains((2, actual.Id)))
+                if (actual is null || !includesChildren && !components.Contains((2, actual.Id)))
                     includes.Add(new SchemaOperation("IncludeAttribute", expected.LogicalName, field.LogicalName, actual?.Id ?? Guid.Empty));
             }
             foreach (var key in expected.Keys)
@@ -80,11 +85,12 @@ internal static class SchemaPlanner
                     operations.Add(new SchemaOperation("CreateKey", expected.LogicalName, key.LogicalName, Guid.Empty));
                 else
                 {
-                    if (!actual.Attributes.SequenceEqual(key.Attributes, StringComparer.Ordinal) || actual.Status is not ("Active" or "Pending" or "InProgress"))
+                    // 複合唯一鍵的語意是完整欄位集合；D3659.1會重排回應順序。排序後仍精確比較數量與每個名稱，缺欄／重複／替換不會通過。
+                    if (!actual.Attributes.Order(StringComparer.Ordinal).SequenceEqual(key.Attributes.Order(StringComparer.Ordinal), StringComparer.Ordinal) || actual.Status is not ("Active" or "Pending" or "InProgress"))
                         Conflict(expected.LogicalName + "." + key.LogicalName);
                     if (actual.Status != "Active") pending.Add(expected.LogicalName + "." + key.LogicalName);
                 }
-                if (actual is null || !components.Contains((14, actual.Id)))
+                if (actual is null || !includesChildren && !components.Contains((14, actual.Id)))
                     includes.Add(new SchemaOperation("IncludeKey", expected.LogicalName, key.LogicalName, actual?.Id ?? Guid.Empty));
             }
         }

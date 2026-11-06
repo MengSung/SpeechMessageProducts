@@ -68,6 +68,18 @@ internal static class SchemaFiles
     /// <summary>讀取有界plan，不接受未知或重複屬性；語意與hash仍須由apply依即時server重驗。</summary>
     internal static SchemaPlan ReadPlan(string path) => Read<SchemaPlan>(path, 4 * 1024 * 1024);
 
+    /// <summary>受限接續作業讀原始完整before，最多100MiB與同一JSON深度；語意必須由原plan完整hash重新驗證，不把任意snapshot當授權。</summary>
+    internal static SchemaSnapshot ReadBeforeSnapshot(string path) => Read<SchemaSnapshot>(path, 100 * 1024 * 1024);
+
+    /// <summary>只讀repo內固定P1-12合成fixture，使用相同嚴格JSON／4KiB預算；固定key及文化不可改成其他業務資料。</summary>
+    internal static string ReadAcceptanceText(string path)
+    {
+        var fixture = Read<SchemaAcceptanceFixture>(path, 4096);
+        if (fixture.Key != "Org.Level.Group" || fixture.Culture != "*" || string.IsNullOrWhiteSpace(fixture.Text) || fixture.Text.Length > 2000)
+            throw new InvalidDataException("Acceptance fixture does not match the fixed P1 scope.");
+        return fixture.Text;
+    }
+
     /// <summary>同一份嚴格JSON入口，取得獨占讀handle後再次驗大小，防止FileInfo與open之間的替換繞過預算。</summary>
     private static T Read<T>(string path, long maximumBytes) where T : class
     {

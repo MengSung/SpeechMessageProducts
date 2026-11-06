@@ -1,0 +1,10 @@
+{
+  "planOperations": 0,
+  "pendingKeys": 0,
+  "exitCode": 0,
+  "writeOperations": 0,
+  "beforeAfterEqual": true,
+  "beforeSha256": "FD903BB44903C5E4CA0619DDF4178CD6B7D589474B51DCD744F1DC3EB3C1B0BE",
+  "afterSha256": "FD903BB44903C5E4CA0619DDF4178CD6B7D589474B51DCD744F1DC3EB3C1B0BE",
+  "directory": "artifacts/d365/goodshepherdback/20261106-120155-0915575-3eb8aa9ccdba4a9d9fae1c9657488dab"
+}

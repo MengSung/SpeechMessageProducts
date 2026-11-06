@@ -19,6 +19,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../../..');
+// 同一P1任務完成後須整體封存；證據跟隨任務移動，不能為保留測試路徑而留下假active任務。
+// 僅接受唯一有task.json的正式位置，並拒絕兩份並存，避免新舊摘要互相掩蓋。
+const p1TaskCandidates = ['.ccg/tasks/integration-p1', '.ccg/tasks/archive/2026-11/integration-p1']
+  .map(relative => path.join(root, relative)).filter(candidate => fs.existsSync(path.join(candidate, 'task.json')));
+assert.equal(p1TaskCandidates.length, 1, 'P1 evidence must belong to exactly one active or archived task');
+const p1EvidenceRoot = path.join(p1TaskCandidates[0], 'evidence');
 const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.3/實作進度.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
 const dataStart = script.indexOf('const DATA = {');
@@ -135,7 +141,7 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-04-acceptance.md'), 'utf8'),
     /狀態：P1-04 本機驗收完成/);
   // 固定里程碑須有實際執行證據；不能只把畫面狀態由 active 換成 done。
-  const p104Evidence = path.join(root, '.ccg/tasks/integration-p1/evidence/p104-final');
+  const p104Evidence = path.join(p1EvidenceRoot, 'p104-final');
   const execution = JSON.parse(fs.readFileSync(path.join(p104Evidence, 'execution-evidence.json'), 'utf8'));
   assert.deepEqual(execution.releaseSolution, { trxCount: 16, passed: 3906, failed: 0, skipped: 0 });
   const required = JSON.parse(fs.readFileSync(path.join(p104Evidence, 'required-methods-and-product-tests.json'), 'utf8'));
@@ -155,8 +161,8 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
     assert.match(p1_12, /最新對話另有條件授權必要可逆測試變更/);
     assert.match(p1_12, /目前未確認，維持只讀/);
   } else {
-    const readiness = JSON.parse(fs.readFileSync(path.join(root,
-      '.ccg/tasks/integration-p1/evidence/p112-final/readiness.json'), 'utf8'));
+    const readiness = JSON.parse(fs.readFileSync(path.join(p1EvidenceRoot,
+      'p112-final/readiness.json'), 'utf8'));
     assert.equal(readiness.vmConnectionsVerified, 2);
     assert.equal(readiness.serverOrganizationIdMatched, true);
     assert.equal(readiness.organization, 'goodshepherdback');
@@ -168,8 +174,8 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
     if (liveStatus === 'active') {
       assert.match(p1_12, /尚未驗收完成/);
     } else {
-      const acceptance = JSON.parse(fs.readFileSync(path.join(root,
-        '.ccg/tasks/integration-p1/evidence/p112-final/summary.json'), 'utf8'));
+      const acceptance = JSON.parse(fs.readFileSync(path.join(p1EvidenceRoot,
+        'p112-final/summary.json'), 'utf8'));
       assert.equal(acceptance.liveApplyPassed, true);
       assert.equal(acceptance.publishedVerifyExitCode, 0);
       assert.equal(acceptance.activeKeyCount, 4);

@@ -5,8 +5,8 @@
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "P1-01～11已驗收，5cfef59e交付P1-11；P1-12兩VM連入與備份/獨立復原通過，續實機apply/verify/唯一鍵與清理。",
+  "currentPhase": "review",
+  "nextAction": "全部必要實機/回歸已通過：4412/4412、157、coverage89.11%、5輪16候選0。完成最後編碼/文件守門及精確本地提交，更新12/12後封存P1-12與主P1，不push/正式部署。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
@@ -31,5 +31,5 @@
     "P1-10",
     "P1-11"
   ],
-  "acceptanceRecord": "wp-reports/P1-11-acceptance.md"
+  "acceptanceRecord": "wp-reports/P1-12-acceptance.md"
 }

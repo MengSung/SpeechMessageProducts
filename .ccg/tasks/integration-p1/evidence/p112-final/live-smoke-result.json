@@ -1,0 +1,11 @@
+{
+  "duplicateStableKeyRejected": true,
+  "duplicateErrorCode": "0x80040237",
+  "testRowsRemaining": 0,
+  "legacyIntegrityDifferentialPassed": true,
+  "fixturePreserved": true,
+  "accountId": "bb915bc3-0bf6-4fb4-9778-610ab8ea4252",
+  "firstTextId": "95e724a0-65c6-4dcd-bc2c-849fe3e22b35",
+  "evidencePath": "artifacts/d365/goodshepherdback/20261106-122051-2041331-fdfd806e247846dea1afe407be51d641/acceptance-result.json",
+  "sha256": "4ABB09055387210F1C3868717D969E71F7D5C038289E4681F102AB99DBFBCEC4"
+}

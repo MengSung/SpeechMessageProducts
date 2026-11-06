@@ -4,6 +4,7 @@
  * 目的與定位：本檔是結構部署的只讀SDK邊界，將單一已連線組織的完整定義轉成不帶SDK參照的SchemaSnapshot。
  * 主要流程：取得實際組織ID／uniqueName／版本與基礎語言，讀完整entity metadata，再讀受管solution及publisher、component、filters、steps。
  * 欄位投影保留型別、長度、required/security/audit、lookup目標、日期behavior/format、choice正式值與key建置狀態。
+ * Solution元件另保留根包含政策0/1/2及Guid根ID；缺值不猜包含、非法型別或數值整份拒絕，避免誤報新表子元件缺漏。
  * 只讀範圍：只查metadata及組織languagecode，不查業務實體值，也不讀步驟secure/unsecure設定或trace本文；沒有Create/Update/Delete。
  * 有界與完整性：最多4096實體／100000屬性；多型lookup沿用4096目標預算，不能靜默丟掉D365合法的數百目標。
  * 註冊metadata使用Core單頁身份守門再作專屬十頁／五萬列聚合，跨頁重複ID、壞cookie、空續頁或超量整體拒絕，Core業務5000限制不變。
@@ -86,7 +87,7 @@ internal static class SchemaMetadata
                     || key.KeyAttributes.Any(name => !fieldNames.Contains(name)))
                     throw new InvalidDataException("Alternate key metadata identity is invalid.");
                 keys.Add(new SchemaKeyState(key.MetadataId!.Value, key.LogicalName,
-                    Array.AsReadOnly(key.KeyAttributes.ToArray()), key.EntityKeyIndexStatus.ToString()));
+                    Array.AsReadOnly(key.KeyAttributes.Order(StringComparer.Ordinal).ToArray()), key.EntityKeyIndexStatus.ToString()));
             }
             entities.Add(new SchemaEntityState(entity.MetadataId!.Value, entity.LogicalName,
                 entity.PrimaryIdAttribute ?? "", entity.PrimaryNameAttribute ?? "", entity.OwnershipType?.ToString() ?? "Unknown",
@@ -104,9 +105,9 @@ internal static class SchemaMetadata
         if (publishers.Select(row => row.Name).Distinct(StringComparer.Ordinal).Count() != publishers.Length)
             throw new InvalidDataException("Publisher identity is ambiguous.");
         var components = solutions.Length == 0 ? Array.Empty<SchemaComponentState>()
-            : ReadRows(service, "solutioncomponent", new ColumnSet("solutioncomponentid", "componenttype", "objectid"), cancellationToken,
+            : ReadRows(service, "solutioncomponent", new ColumnSet("solutioncomponentid", "componenttype", "objectid", "rootcomponentbehavior", "rootsolutioncomponentid"), cancellationToken,
                 query => query.Criteria.AddCondition("solutionid", ConditionOperator.Equal, solutions[0].Id))
-                .Select(row => new SchemaComponentState(row.Id, Required<OptionSetValue>(row, "componenttype").Value, Required<Guid>(row, "objectid"))).ToArray();
+                .Select(ProjectComponent).ToArray();
         if (components.Any(component => component.ObjectId == Guid.Empty)
             || components.Select(component => (component.Type, component.ObjectId)).Distinct().Count() != components.Length)
             throw new InvalidDataException("Solution component identity is ambiguous.");
@@ -125,6 +126,16 @@ internal static class SchemaMetadata
             Components = Array.AsReadOnly(components.OrderBy(component => component.Type).ThenBy(component => component.ObjectId).ToArray()),
             Filters = Array.AsReadOnly(filters.OrderBy(filter => filter.Id).ToArray()), Steps = Array.AsReadOnly(steps.OrderBy(step => step.Id).ToArray())
         };
+    }
+
+    /// <summary>複製solution根包含政策；根ID官方型別為Guid。缺值保持未知，非法值拒絕，避免錯誤推論已包含子元件；不保留SDK參照。</summary>
+    private static SchemaComponentState ProjectComponent(Entity row)
+    {
+        int? behavior = row.Attributes.ContainsKey("rootcomponentbehavior") ? Required<OptionSetValue>(row, "rootcomponentbehavior").Value : null;
+        Guid? rootId = row.Attributes.ContainsKey("rootsolutioncomponentid") ? Required<Guid>(row, "rootsolutioncomponentid") : null;
+        if (behavior is < 0 or > 2 || rootId == Guid.Empty) throw new InvalidDataException("Solution component root metadata is invalid.");
+        return new SchemaComponentState(row.Id, Required<OptionSetValue>(row, "componenttype").Value, Required<Guid>(row, "objectid"))
+        { RootBehavior = behavior, RootId = rootId };
     }
 
     /// <summary>只映射schema功能約束；未知型別保留其正式名稱供匯出，不能在plan中假裝等於任一支援型別。</summary>

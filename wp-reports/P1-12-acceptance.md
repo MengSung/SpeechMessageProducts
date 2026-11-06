@@ -1,0 +1,37 @@
+# P1-12 goodshepherdback 實機驗收
+
+日期：2026-11-06，Asia/Taipei。正式02 P1-12與附錄A/G的必要服務端驗收已通過；本地提交與封存見本報告尾段及進度頁一般資訊。
+
+| 需求 | 實作位置／實際操作 | 決定性執行證據 | 結果 |
+| --- | --- | --- | --- |
+| 唯一測試範圍與合法連線 | 既有Deployment connector、Hyper-V標準提升與PowerShell Direct | D23測試複本；D365-9.1/D365DC01正常連入，API與MSCRM_CONFIG組織ID完全相同，實際DB GoodShepherd_MSCRM | 通過 |
+| 適當備份及可驗證復原 | COPY_ONLY/CHECKSUM/COMPRESSION，目標及MSCRM_CONFIG full backup | 兩份VERIFYONLY；全新未註冊D365的GUID暫存DB真還原ONLINE/RESTRICTED_USER，DBCC PHYSICAL_ONLY通過且已清理，原DB未還原 | 通過 |
+| 真plan與限定apply | SchemaDeploymentEngine/Planner、正式schema | 原88項全部Create/Include，原plan hash 3E9AEBB16633EB90E9B678687AE8EA00A9B88DE3C10E5AF46CD0C4F3AAD3C2D6；第一輪建立/定向publish後比對失敗保留 | 修正後通過 |
+| 新Lookup稽核完整 | Engine.EnableCreatedLookupAudit/CompleteCreatedAudits | 原plan/before完整hash，同serverID，僅2新Lookup的ID/LogicalName/IsAuditEnabled；先保存before/精確ID再寫；第三輪補正exit0 | 通過 |
+| 元件與功能約束 | SchemaMetadata/Planner、官方SDK ExportSolution | 獨立solution.xml/customizations.xml核6表/36欄/4鍵、new前綴與未受管理、根0/1、稽核/安全/日期；snapshot另驗outbound concurrency=true | 通過 |
+| 真已發布verify與key Active | Engine.Verify，RetrieveAsIfPublished=false | live-verify-first exit0；4key Active，不拿未發布當完成 | 通過 |
+| 冪等第二次apply | 新plan0 operations/0 pending，再正式apply | live-zero-apply exit0；完整before/after JSON相等，沒有SDK metadata寫入 | 通過 |
+| 真唯一鍵拒第二筆 | SchemaAcceptanceProbe，正式smoke --schema | 原第一列持久化；9.1第二筆回官方DuplicateRecord 0x80040237；只讀SQL證明三欄啟用唯一索引，差分控制同鍵zh-TW可建/讀回，原tuple仍只有原第一ID，第二ID不存在；最終smoke exit0 | 通過 |
+| 自身資料與資源清理 | ownership先flush、候選ID不存在、標記核對、同步finally | 正常/取消/回應遺失/控制故障/清理故障離線測試；實機5輪16候選ID另行只讀重查全部0，租約/連線/stream確定釋放 | 通過 |
+| 回歸與品質 | 全方案及正式00§8守門 | 17TRX 4412/4412、Deployment157、coverage89.11%、strict0/0；詳下段及SHA索引 | 通過 |
+| 計畫與審查 | 正式02/90、schema spec、三頁Word修正報告 | 四項實機相容研究與自主驗收依據；Word全部頁面渲染檢查。主會話逐檔自審；外部兩後端皆無可用輸出，使用者已取消等待 | 通過使用者核定審查方式，外審缺證據如實保留 |
+
+## 實機失敗與修正
+
+首次apply=1，兩Lookup audit=false，未降低稽核要求。受限補正前兩輪分別被複合key回應順序及32項solution子元件誤判攔下，均在預檢停止；保留原始檔。key改完整數量/名稱集合核對，缺欄/重複/替換仍拒絕；root只接受同表正式entity ID、確為根且官方值0。未知/1/2/錯表仍精確驗子元件，新nullable未知欄位不序列化，原before hash相容。
+
+最初smoke嚴格只接受0x80060892，因此真正9.1的0x80040237仍判失敗。沒有直接把一般SQL完整性故障放行：新增服務端tuple讀回與不同文化寫入控制，控制故障/回應遺失/錯集合/已提交重複皆失敗並聚合保留原fault；取消仍正常分類。SQL錯誤本文不輸出、不改D365安全設定取詳細錯誤；官方錯誤碼及獨立SQL索引證據另存。5案真紅後全綠，控制取消亦驗證清理歸零。
+
+## 最後本機品質結果
+
+全方案17TRX 4412/4412，0失敗/略過；Deployment157、ChurchReport630、Localization182/208、ToolUtility1231/1369、Tenancy75。完整建置23個既有非strict警告、0錯誤；沒有新增NoWarn。Deployment獨立coverage89.11%，其餘P1模組的雙目標獨立≥80%證據沿各包驗收保留，沒有因本次未改而重作實作。
+Debug tracer7及正式正執行TRX守門、I18n170/verify與deterministic生成、PE27、Plugin metadata10/build6、analyzer26、Pester39、JS20、進度頁15、CPM/coverage/CI/CCG/tracer/授權工具樣本與檔案說明/位元組守門通過。完整命令、SHA與最終編碼計數在evidence/p112-final；早期失敗不刪除。
+
+## 審查與證據邊界
+
+主會話inline逐檔對照scope、hash、SDK訊息、原例外、穩定ID、fault/cancel、cleanup與實際TRX；無已知Critical/High或阻斷缺陷。最新外部自癒入口run 20261106-200653-p112-final-review-reviewer：Gemini403/503、Claude週配額，dualModelComplete=false、degradedFallback=false、completedBackends=[]，不是單模型或雙模型審查通過。依使用者明確取消外模等待之決定，不作外審成功聲明。
+
+介面操作曾收到實體Esc並已停止，本輪沒有後台畫面或人工點選證據。後台確認以真正官方未受管理solution匯出及獨立XML核對完成；資料操作由正式SDK與資料庫約束驗收，沒有以Mock或虛構畫面代替。此自主分工已同步02與Word報告。hosted完整CI沿P1-01使用者核定暫緩，未宣稱已執行。
+
+原始根：artifacts/p1-12-20261106與artifacts/d365/goodshepherdback；SQL備份只留客體受限目錄，不外傳或提交。可追蹤摘要與SHA位於.ccg/tasks/integration-p1/evidence/p112-final，主任務完成封存後同批移至.ccg/tasks/archive/2026-11/integration-p1/evidence/p112-final。
+沒有push、正式組織變更、帳號/權限/網域/安全政策變更、checkpoint還原或LINE推播。正式資料與不可逆操作仍不在授權範圍。已知阻斷缺陷與剩餘必要工作：無；本地交付提交及封存收據另附。

@@ -33,3 +33,6 @@
 可追蹤摘要與SHA：.ccg/tasks/integration-p1/evidence/p111-final/；原始輸出：artifacts/p1-11-20261106/。
 原13.8MB metadata留本機原位、SHA A88D7381452A3940AC7CB65BAD2FA28E697DAFDC6EB4A42EA24B573E42397F74；停止追蹤不刪檔，避免原始診斷與換行守門衝突。
 沒有修改正式需求，無Word修正報告需求；未push、未正式部署。主P1續P1-12，不封存主目標。
+
+## P1-12後續實機修正
+2026-11-06 P1-12發現9.1新Lookup稽核、key回應順序及solution根包含誤判，已依原plan/before受限補正並補回歸；一般新增流程新增只限本次新Lookup的audit啟用例外。正式計畫及Word修正報告已同步。最新157案、coverage89.11%、方案4412及真正實機verify/零apply/smoke/清理以P1-12-acceptance.md為準，以上117案與只讀狀態是當時交付歷史，不宣稱本輪無Update。

@@ -1,0 +1,22 @@
+{
+  "pages": 3,
+  "visuallyReviewedAllPages": true,
+  "titleBlackNoBorder": true,
+  "noBlankPages": true,
+  "renderAdapter": "native Word PDF then original render_docx Poppler pipeline; packaged LibreOffice unavailable",
+  "sha256": "D8EC01D0D485C590FE4E09F4F7BA29D29DF743E407991093164980FEC8132201",
+  "pageImages": [
+    {
+      "file": "page-1.png",
+      "sha256": "38C0299622381BEF8F500F9B6F80CF31C4F7755F611827A320B7246A773EE4E6"
+    },
+    {
+      "file": "page-2.png",
+      "sha256": "E6F247A2563196FB1914888DCA35FC64197F2A52B134BD781A77FA60CAC15D55"
+    },
+    {
+      "file": "page-3.png",
+      "sha256": "D11A2B874C207335E6974607AF97118F074EB4C1E642F4F501EC33C2A8B81C12"
+    }
+  ]
+}

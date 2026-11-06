@@ -26,6 +26,22 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>真引擎與真metadata投影對嚴格合成SDK往返，驗實際建立參數、backup先flush、兩次apply與漂移；不連D365。</summary>
 public sealed class SchemaEngineTests
 {
+    /// <summary>重現實機新表以根包含子元件而省略顯式欄／key列；第一次必須完整驗收且第二次零SDK寫入，既有表仍逐欄加入。</summary>
+    [Fact]
+    public void Apply_ServerIncludesChildrenThroughRoot_TwoRunsRemainCompleteAndIdempotent()
+    {
+        using var fixture = new Fixture();fixture.Service.IncludeChildrenThroughRoot = true;
+        Assert.Empty(fixture.Engine.Apply(fixture.Engine.Plan(fixture.Definition, default), fixture.Definition, default).Operations);
+        var snapshot = SchemaMetadata.Read(fixture.Service, default);
+        var target = snapshot.Entities.Single(entity => entity.LogicalName == "new_localizedtext");
+        Assert.DoesNotContain(snapshot.Components, component => target.Fields.Any(field => field.Id == component.ObjectId) || target.Keys.Any(key => key.Id == component.ObjectId));
+        Assert.Equal(4, snapshot.Components.Count(component => component.Type == 1 && component.RootBehavior == 0));
+        var writes = fixture.Service.WriteCount;
+        var second = new SchemaDeploymentEngine(fixture.Service, Path.Combine(fixture.Directory, "second"), new Clock());
+        Assert.Empty(second.Apply(second.Plan(fixture.Definition, default), fixture.Definition, default).Operations);
+        Assert.Equal(writes, fixture.Service.WriteCount);
+    }
+
     /// <summary>首次只新增、確認全部元件與明確日期/安全；第二次重新plan/apply零SDK寫入，原表metadata ID不得改變。</summary>
     [Fact]
     public void Apply_Twice_IsAdditiveIdempotentAndKeepsBaseIdentity()
@@ -106,6 +122,63 @@ public sealed class SchemaEngineTests
         Assert.Equal(0, fixture.Service.WriteCount);
     }
 
+    /// <summary>D3659.1會忽略CreateOneToMany的Lookup稽核旗標；真引擎必須對本次SDK回傳的兩個新ID補啟用，不能放寬audit驗收。</summary>
+    [Fact]
+    public void Apply_ServerIgnoresNewLookupAudit_CompletesOnlyTwoCreatedLookups()
+    {
+        using var fixture = new Fixture();fixture.Service.IgnoreLookupAudit = true;
+        var actual = fixture.Engine.Apply(fixture.Engine.Plan(fixture.Definition, default), fixture.Definition, default);
+        Assert.Empty(actual.Operations);
+        Assert.Equal(2, fixture.Service.AuditUpdates);
+        foreach (var table in new[] { "new_localizedtext", "new_offeringcategory" })
+            Assert.True(fixture.Service.Entities.Single(entity => entity.LogicalName == table).Attributes.Single(field => field.LogicalName == "new_accountid").IsAuditEnabled.Value);
+    }
+
+    /// <summary>重現已發布後兩Lookup稽核遺失的部分完成狀態；持原plan/before才可補兩個新ID，第二次必須零寫入。</summary>
+    [Fact]
+    public void CompleteCreatedAudits_OriginalPlanAndBefore_RepairsOnlyOwnedPolicyAndIsIdempotent()
+    {
+        using var fixture = new Fixture();fixture.Service.IgnoreLookupAudit = true;fixture.Service.LoseLookupAuditOnPublish = true;
+        var before = SchemaMetadata.Read(fixture.Service, default);var plan = fixture.Engine.Plan(fixture.Definition, default);
+        Assert.Throws<InvalidDataException>(() => fixture.Engine.Apply(plan, fixture.Definition, default));
+        fixture.Service.LoseLookupAuditOnPublish = false;
+        Assert.Empty(fixture.Engine.CompleteCreatedAudits(plan, before, fixture.Definition, default).Operations);
+        Assert.Equal(4, fixture.Service.AuditUpdates);
+        var writes = fixture.Service.WriteCount;
+        Assert.Empty(fixture.Engine.CompleteCreatedAudits(plan, before, fixture.Definition, default).Operations);
+        Assert.Equal(writes, fixture.Service.WriteCount);
+        Assert.True(File.Exists(Path.Combine(fixture.Directory, "before-audit-completion.json")));
+    }
+
+    /// <summary>原before竄改或當前另有其他欄位約束不符，都必須在任何補正寫入之前拒絕，不能藉修稽核放寬型別／長度。</summary>
+    /// <param name="fault">獨立注入的證據或metadata故障。</param>
+    [Theory]
+    [InlineData("tampered-before")]
+    [InlineData("unrelated-length")]
+    public void CompleteCreatedAudits_ConflictingEvidence_RejectsBeforeWrites(string fault)
+    {
+        using var fixture = new Fixture();fixture.Service.IgnoreLookupAudit = true;fixture.Service.LoseLookupAuditOnPublish = true;
+        var before = SchemaMetadata.Read(fixture.Service, default);var plan = fixture.Engine.Plan(fixture.Definition, default);
+        Assert.Throws<InvalidDataException>(() => fixture.Engine.Apply(plan, fixture.Definition, default));fixture.Service.LoseLookupAuditOnPublish = false;
+        if (fault == "tampered-before") before = before with { OrganizationId = Guid.NewGuid() };
+        else ((StringAttributeMetadata)fixture.Service.Entities.Single(entity => entity.LogicalName == "new_linechannel").Attributes.Single(field => field.LogicalName == "new_name")).MaxLength = 101;
+        var writes = fixture.Service.WriteCount;
+        Assert.Throws<InvalidDataException>(() => fixture.Engine.CompleteCreatedAudits(plan, before, fixture.Definition, default));
+        Assert.Equal(writes, fixture.Service.WriteCount);
+    }
+
+    /// <summary>若before已存在該欄，後來稽核被改false也不屬本次新建；即使其他schema吻合，補正入口仍不得更新。</summary>
+    [Fact]
+    public void CompleteCreatedAudits_PreExistingField_IsNeverModified()
+    {
+        using var fixture = new Fixture();fixture.Engine.Apply(fixture.Engine.Plan(fixture.Definition, default), fixture.Definition, default);
+        var before = SchemaMetadata.Read(fixture.Service, default);var plan = fixture.Engine.Plan(fixture.Definition, default);
+        fixture.Service.Entities.Single(entity => entity.LogicalName == "new_localizedtext").Attributes.Single(field => field.LogicalName == "new_accountid").IsAuditEnabled = new BooleanManagedProperty(false);
+        var writes = fixture.Service.WriteCount;
+        Assert.Throws<InvalidDataException>(() => fixture.Engine.CompleteCreatedAudits(plan, before, fixture.Definition, default));
+        Assert.Equal(writes, fixture.Service.WriteCount);
+    }
+
     /// <summary>固定時鐘沒有timer或可變caller狀態；只提供本測試的UTC建立時間。</summary>
     internal sealed class Clock : TimeProvider
     {
@@ -150,6 +223,16 @@ public sealed class SchemaEngineTests
         internal bool UnpublishedChanges { get; set; }
         /// <summary>在完成一輪apply後將P1欄位隱藏於已發布回應，驗證CLI不能把僅未發布定義視為成功；不改合成DB候選。</summary>
         internal bool MissingPublishedField { get; set; }
+        /// <summary>重現真D3659.1忽略CreateOneToMany查閱稽核的行為，不從產品輸出反推預期。</summary>
+        internal bool IgnoreLookupAudit { get; set; }
+        /// <summary>只計新增查閱欄的稽核補正，其他UpdateAttribute一律拒絕。</summary>
+        internal int AuditUpdates { get; private set; }
+        /// <summary>模擬舊版本已完成建立但發布後兩個查閱稽核仍false，供持原始before的嚴格接續補正。</summary>
+        internal bool LoseLookupAuditOnPublish { get; set; }
+        /// <summary>新key仍在server非同步建立時保持Pending，保護smoke不得先寫資料。</summary>
+        internal bool PendingKey { get; set; }
+        /// <summary>實機新表自動帶root0且Add子元件不額外列列；此開關讓獨立SDK替身重現該官方語意，不修改planner輸出。</summary>
+        internal bool IncludeChildrenThroughRoot { get; set; }
 
         /// <summary>建立publisher/solution是唯一允許的資料型message；任何其他實體Create都拒絕。</summary>
         public override Guid Create(Entity entity)
@@ -208,6 +291,8 @@ public sealed class SchemaEngineTests
                 SetResponse(entity, "Attributes", new AttributeMetadata[] { primary });
                 SetResponse(entity, "Keys", Array.Empty<EntityKeyMetadata>());
                 Entities.Add(entity);
+                if (IncludeChildrenThroughRoot) rows.Add(new Entity("solutioncomponent", Guid.NewGuid())
+                { ["objectid"] = entity.MetadataId.Value, ["componenttype"] = new OptionSetValue(1), ["rootcomponentbehavior"] = new OptionSetValue(0) });
                 return new CreateEntityResponse { Results = { ["EntityId"] = entity.MetadataId.Value, ["AttributeId"] = primary.MetadataId!.Value } };
             }
             if (request is CreateAttributeRequest createField)
@@ -220,16 +305,29 @@ public sealed class SchemaEngineTests
             {
                 BeforeWrite(); Assert.Equal("SpeechMessageCore", createLookup.SolutionUniqueName);
                 var field = Materialize(createLookup.Lookup);
+                if (IgnoreLookupAudit) field.IsAuditEnabled = new BooleanManagedProperty(false);
                 ((LookupAttributeMetadata)field).Targets = new[] { createLookup.OneToManyRelationship.ReferencedEntity };
                 Assert.Contains(Entities, entity => entity.LogicalName == createLookup.OneToManyRelationship.ReferencedEntity);
                 AddField(createLookup.OneToManyRelationship.ReferencingEntity, field);
                 return new CreateOneToManyResponse { Results = { ["AttributeId"] = field.MetadataId!.Value, ["RelationshipId"] = Guid.NewGuid() } };
             }
+            if (request is UpdateAttributeRequest audit)
+            {
+                Assert.True(audit.EntityName is "new_localizedtext" or "new_offeringcategory");
+                Assert.Equal("new_accountid", audit.Attribute.LogicalName);
+                Assert.True(audit.Attribute.IsAuditEnabled.Value);
+                Assert.Null(audit.Attribute.IsSecured);
+                Assert.Null(audit.Attribute.RequiredLevel);
+                var field = Entities.Single(entity => entity.LogicalName == audit.EntityName).Attributes.Single(field => field.LogicalName == audit.Attribute.LogicalName);
+                Assert.Equal(field.MetadataId, audit.Attribute.MetadataId);
+                BeforeWrite();field.IsAuditEnabled = new BooleanManagedProperty(true);AuditUpdates++;
+                return new UpdateAttributeResponse();
+            }
             if (request is CreateEntityKeyRequest createKey)
             {
                 BeforeWrite(); Assert.Equal("SpeechMessageCore", createKey.SolutionUniqueName); KeyCreates++;
                 var key = createKey.EntityKey; key.MetadataId = Guid.NewGuid(); key.LogicalName = key.SchemaName;
-                SetResponse(key, "EntityKeyIndexStatus", EntityKeyIndexStatus.Active);
+                SetResponse(key, "EntityKeyIndexStatus", PendingKey ? EntityKeyIndexStatus.Pending : EntityKeyIndexStatus.Active);
                 var entity = Entities.Single(entity => entity.LogicalName == createKey.EntityName);
                 Assert.All(key.KeyAttributes, name => Assert.Contains(entity.Attributes, field => field.LogicalName == name));
                 SetResponse(entity, "Keys", entity.Keys.Append(key).ToArray());
@@ -239,6 +337,12 @@ public sealed class SchemaEngineTests
             {
                 BeforeWrite(); Assert.Equal("SpeechMessageCore", include.SolutionUniqueName);
                 Assert.False(include.AddRequiredComponents);
+                if (IncludeChildrenThroughRoot && include.ComponentType is 2 or 14)
+                {
+                    var owner = Entities.Single(entity => entity.Attributes.Any(field => field.MetadataId == include.ComponentId) || entity.Keys.Any(key => key.MetadataId == include.ComponentId));
+                    if (rows.Any(row => row.LogicalName == "solutioncomponent" && row.GetAttributeValue<Guid>("objectid") == owner.MetadataId
+                        && row.GetAttributeValue<OptionSetValue>("rootcomponentbehavior")?.Value == 0)) return new AddSolutionComponentResponse();
+                }
                 if (!rows.Any(row => row.LogicalName == "solutioncomponent" && row.GetAttributeValue<Guid>("objectid") == include.ComponentId))
                     rows.Add(new Entity("solutioncomponent", Guid.NewGuid()) { ["objectid"] = include.ComponentId, ["componenttype"] = new OptionSetValue(include.ComponentType) });
                 return new AddSolutionComponentResponse();
@@ -249,6 +353,9 @@ public sealed class SchemaEngineTests
                 Assert.Contains("<entities>", publish.ParameterXml, StringComparison.Ordinal);
                 Assert.DoesNotContain("<all", publish.ParameterXml, StringComparison.OrdinalIgnoreCase);
                 Publishes++;
+                if (LoseLookupAuditOnPublish)
+                    foreach (var field in Entities.Where(entity => entity.LogicalName is "new_localizedtext" or "new_offeringcategory").SelectMany(entity => entity.Attributes).Where(field => field.LogicalName == "new_accountid"))
+                        field.IsAuditEnabled = new BooleanManagedProperty(false);
                 return new PublishXmlResponse();
             }
             return base.Execute(request);

@@ -1,0 +1,3 @@
+請審查本次P1-12收尾的產品與測試差異，不修改檔案。範圍限定 SpeechMessage.Dynamics.Deployment/Schema 及 SpeechMessage.Dynamics.Deployment.Tests/Schema*，以 git diff 與這兩個目錄尚未追蹤的 SchemaAcceptanceProbe 檔案為準。主會話inline，禁止spawn任何代理。不得讀User Secrets、設定機密、業務資料、備份、ignored artifacts或外部憑證；若需要證據僅可讀.ccg/tasks/integration-p1/evidence/p112-final之去識別摘要。
+重點：新建Lookup audit Update payload只含本次正式ID/LogicalName/IsAuditEnabled；complete-created-audit須原plan/before hash與server scope證明、拒舊欄和其他漂移；key完整集合而非回傳順序；root0同正式entity根才包含子元件，未知/1/2/別表不可；nullable新投影不能破壞原before hash；smoke只接受0x80060892、ownership先flush、Create後逾時或取消仍精確ID+marker清理，原例外不可丟、資源確定歸還。請輸出Critical/High/Warning/Info、檔案位置、實際可重現原因；不存在請明列無，不得把Mock或未觀察UI當實機證據。
+目前151單元測試通過、獨立coverage88.99%、全方案4406。官方SDK已發布verify為0，實機第二輪apply與smoke正在執行；外部模型不可操作實機。

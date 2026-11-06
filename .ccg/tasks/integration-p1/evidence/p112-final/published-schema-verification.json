@@ -1,0 +1,652 @@
+{
+  "organizationId": "3bdcc75d-89d6-f111-8cc9-00155d007916",
+  "version": "9.1.45.11",
+  "languageCode": 1028,
+  "entities": [
+    {
+      "id": "70816501-edb9-4740-a16c-6a5efbc05d84",
+      "logicalName": "account",
+      "primaryId": "accountid",
+      "primaryName": "name",
+      "ownership": "UserOwned",
+      "audit": false,
+      "optimisticConcurrency": true,
+      "managed": true,
+      "fields": [
+        {
+          "id": "9945ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_countrycode",
+          "type": "string",
+          "maxLength": 2,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "e803adfc-d3d9-f111-8cca-00155d007916",
+          "logicalName": "new_defaultlanguage",
+          "type": "string",
+          "maxLength": 16,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "eb03adfc-d3d9-f111-8cca-00155d007916",
+          "logicalName": "new_enabledlanguages",
+          "type": "string",
+          "maxLength": 200,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "3581dae2-dbfa-4412-8d7f-947b47f13eac",
+          "logicalName": "new_linechannelid",
+          "type": "lookup",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [
+            "new_linechannel"
+          ],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "9b45ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_textchangedon",
+          "type": "datetime",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "UserLocal",
+          "format": "DateAndTime",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "9745ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_timezone",
+          "type": "string",
+          "maxLength": 64,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        }
+      ],
+      "keys": []
+    },
+    {
+      "id": "608861bc-50a4-4c5f-a02c-21fe1943e2cf",
+      "logicalName": "contact",
+      "primaryId": "contactid",
+      "primaryName": "fullname",
+      "ownership": "UserOwned",
+      "audit": true,
+      "optimisticConcurrency": true,
+      "managed": true,
+      "fields": [
+        {
+          "id": "a045ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_languagesource",
+          "type": "choice",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [
+            100000000,
+            100000001,
+            100000002
+          ],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "9d45ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_preferredlanguage",
+          "type": "string",
+          "maxLength": 16,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        }
+      ],
+      "keys": []
+    },
+    {
+      "id": "28fee595-d3d9-f111-8cca-00155d007916",
+      "logicalName": "new_linechannel",
+      "primaryId": "new_linechannelid",
+      "primaryName": "new_name",
+      "ownership": "OrganizationOwned",
+      "audit": false,
+      "optimisticConcurrency": true,
+      "managed": false,
+      "fields": [
+        {
+          "id": "a545ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_accesstokenencrypted",
+          "type": "memo",
+          "maxLength": 4000,
+          "required": "None",
+          "secured": true,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "a445ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_channelid",
+          "type": "string",
+          "maxLength": 20,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "a745ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_channelsecretencrypted",
+          "type": "memo",
+          "maxLength": 1000,
+          "required": "None",
+          "secured": true,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "29fee595-d3d9-f111-8cca-00155d007916",
+          "logicalName": "new_name",
+          "type": "string",
+          "maxLength": 100,
+          "required": "ApplicationRequired",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "a945ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_richmenucapacityused",
+          "type": "integer",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        }
+      ],
+      "keys": [
+        {
+          "id": "1c669012-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_ak_linechannel",
+          "attributes": [
+            "new_channelid"
+          ],
+          "status": "Active"
+        }
+      ]
+    },
+    {
+      "id": "b6b36ac1-d3d9-f111-8cca-00155d007916",
+      "logicalName": "new_outboundtask",
+      "primaryId": "new_outboundtaskid",
+      "primaryName": "new_name",
+      "ownership": "OrganizationOwned",
+      "audit": false,
+      "optimisticConcurrency": true,
+      "managed": false,
+      "fields": [
+        {
+          "id": "7a375bcc-517b-4356-bae4-4f0c5bbd5d4c",
+          "logicalName": "new_accountid",
+          "type": "lookup",
+          "maxLength": null,
+          "required": "ApplicationRequired",
+          "secured": false,
+          "targets": [
+            "account"
+          ],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "b245ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_attempts",
+          "type": "integer",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "b445ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_claimedon",
+          "type": "datetime",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "UserLocal",
+          "format": "DateAndTime",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "13cf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_completedon",
+          "type": "datetime",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "UserLocal",
+          "format": "DateAndTime",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "ee842ae1-2a7e-4e8f-9da4-c95fc382cf67",
+          "logicalName": "new_contactid",
+          "type": "lookup",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [
+            "contact"
+          ],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "b145ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_idempotencykey",
+          "type": "string",
+          "maxLength": 200,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "14cf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_lasterror",
+          "type": "string",
+          "maxLength": 400,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "b7b36ac1-d3d9-f111-8cca-00155d007916",
+          "logicalName": "new_name",
+          "type": "string",
+          "maxLength": 300,
+          "required": "ApplicationRequired",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "b345ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_nextattempton",
+          "type": "datetime",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "UserLocal",
+          "format": "DateAndTime",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "b045ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_payload",
+          "type": "memo",
+          "maxLength": 4000,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "ad45ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_taskstatus",
+          "type": "choice",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [
+            100000000,
+            100000001,
+            100000002,
+            100000003
+          ],
+          "managed": false,
+          "audit": false
+        },
+        {
+          "id": "aa45ee05-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_type",
+          "type": "choice",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [
+            100000000,
+            100000001,
+            100000002
+          ],
+          "managed": false,
+          "audit": false
+        }
+      ],
+      "keys": [
+        {
+          "id": "1d669012-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_ak_outboundtask",
+          "attributes": [
+            "new_idempotencykey"
+          ],
+          "status": "Active"
+        }
+      ]
+    },
+    {
+      "id": "f417a3e7-d3d9-f111-8cca-00155d007916",
+      "logicalName": "new_localizedtext",
+      "primaryId": "new_localizedtextid",
+      "primaryName": "new_name",
+      "ownership": "OrganizationOwned",
+      "audit": true,
+      "optimisticConcurrency": true,
+      "managed": false,
+      "fields": [
+        {
+          "id": "a62b8a6e-d64d-408f-966f-d46df8cc8724",
+          "logicalName": "new_accountid",
+          "type": "lookup",
+          "maxLength": null,
+          "required": "ApplicationRequired",
+          "secured": false,
+          "targets": [
+            "account"
+          ],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "16cf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_culture",
+          "type": "string",
+          "maxLength": 16,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "15cf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_key",
+          "type": "string",
+          "maxLength": 200,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "f517a3e7-d3d9-f111-8cca-00155d007916",
+          "logicalName": "new_name",
+          "type": "string",
+          "maxLength": 300,
+          "required": "ApplicationRequired",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "17cf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_text",
+          "type": "memo",
+          "maxLength": 2000,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        }
+      ],
+      "keys": [
+        {
+          "id": "1e669012-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_ak_localizedtext",
+          "attributes": [
+            "new_accountid",
+            "new_culture",
+            "new_key"
+          ],
+          "status": "Active"
+        }
+      ]
+    },
+    {
+      "id": "8407cdf5-d3d9-f111-8cca-00155d007916",
+      "logicalName": "new_offeringcategory",
+      "primaryId": "new_offeringcategoryid",
+      "primaryName": "new_name",
+      "ownership": "OrganizationOwned",
+      "audit": true,
+      "optimisticConcurrency": true,
+      "managed": false,
+      "fields": [
+        {
+          "id": "91da8dcc-950c-446e-ab10-4275885a0980",
+          "logicalName": "new_accountid",
+          "type": "lookup",
+          "maxLength": null,
+          "required": "ApplicationRequired",
+          "secured": false,
+          "targets": [
+            "account"
+          ],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "1acf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_accountingcode",
+          "type": "string",
+          "maxLength": 50,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "18cf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_code",
+          "type": "string",
+          "maxLength": 50,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "1bcf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_legacyoptionvalue",
+          "type": "integer",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "8507cdf5-d3d9-f111-8cca-00155d007916",
+          "logicalName": "new_name",
+          "type": "string",
+          "maxLength": 100,
+          "required": "ApplicationRequired",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        },
+        {
+          "id": "19cf000c-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_sortorder",
+          "type": "integer",
+          "maxLength": null,
+          "required": "None",
+          "secured": false,
+          "targets": [],
+          "behavior": "",
+          "format": "",
+          "options": [],
+          "managed": false,
+          "audit": true
+        }
+      ],
+      "keys": [
+        {
+          "id": "1f669012-d4d9-f111-8cca-00155d007916",
+          "logicalName": "new_ak_offeringcategory",
+          "attributes": [
+            "new_accountid",
+            "new_code"
+          ],
+          "status": "Active"
+        }
+      ]
+    }
+  ],
+  "snapshotSha256": "FD903BB44903C5E4CA0619DDF4178CD6B7D589474B51DCD744F1DC3EB3C1B0BE"
+}

@@ -4,7 +4,8 @@
  * 目的與定位：本檔在單命令SDK租約內執行結構plan、唯讀export與只新增apply，是純規劃器和實際SDK metadata message之間的協調者。
  * 輸入與依賴：借用Host授權的IOrganizationService、固定操作目錄及TimeProvider；CLI已先驗白名單／路徑，apply必須持同組織寫鎖。
  * 主要流程：重新讀完整server metadata→重驗schema/plan/fingerprint→核對涉及表的published/unpublished功能約束→before快照成功flush/close→依序新增。
- * 只允許建立publisher/solution/entity/attribute/lookup/key與AddSolutionComponent；日期明確UserLocal/DateAndTime，加密欄啟用field security，稽核包含欄位層級。
+ * 一般plan只建立publisher/solution/entity/attribute/lookup/key與AddSolutionComponent；日期明確UserLocal/DateAndTime，加密欄啟用field security，稽核包含欄位層級。
+ * D3659.1忽略新Lookup稽核時，僅對本次Create回傳ID補IsAuditEnabled=true；部分完成的接續另須原plan/before完整hash與其他約束全符，不能變成通用Update。
  * 新custom表樂觀並行依server預設，outbound必須重讀確認true；產品不反射寫入SDK的唯讀回應屬性，也不修改角色或舊欄位。
  * 發布與驗證：僅定向PublishXml本plan新內容涉及的表，再讀已發布metadata及key狀態；仍有新增差異拋錯，pending key交CLI回不完整結果。
  * 資源與失敗：SDK由外層lease擁有；本類不Dispose它。同步I/O前後尊重caller取消，不建立背景排程；部分失敗保留before證據與原Exception，不自動刪元件或還原VM。
@@ -47,6 +48,56 @@ internal sealed class SchemaDeploymentEngine
     /// <returns>已發布metadata的完整差異及未Active索引鍵；呼叫端依兩者判定結果，不隱式發布或寫入。</returns>
     internal SchemaPlan Verify(SchemaDefinition definition, CancellationToken cancellationToken) =>
         SchemaPlanner.Create(definition, SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false), clock.GetUtcNow());
+
+    /// <summary>用原始受審plan與完整before證明欄位於本輪新增後，只完成新Lookup稽核；其他既有衝突仍須停止，不能拿本入口作通用修改。</summary>
+    internal SchemaPlan CompleteCreatedAudits(SchemaPlan original, SchemaSnapshot before, SchemaDefinition definition, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        SchemaPlanner.ValidatePlan(original, definition, before);
+        var current = SchemaMetadata.Read(service, cancellationToken);
+        if (current.OrganizationId != before.OrganizationId) throw new InvalidDataException("Creation evidence belongs to another server organization.");
+        var targets = new List<(string Entity, string Field, Guid Id)>();
+        var correctedEntities = current.Entities.Select(entity =>
+        {
+            var expected = definition.Entities.SingleOrDefault(item => item.LogicalName == entity.LogicalName && item.IsNew && item.Audit);
+            if (expected is null) return entity;
+            var previous = before.Entities.SingleOrDefault(item => item.LogicalName == entity.LogicalName);
+            var fields = entity.Fields.Select(field =>
+            {
+                if (field.Type != "lookup" || field.Audit != false
+                    || !expected.Fields.Any(item => item.LogicalName == field.LogicalName && item.Phase == 1 && item.Type == "lookup")) return field;
+                if (previous?.Fields.Any(item => item.LogicalName == field.LogicalName) == true
+                    || !original.Operations.Any(operation => operation.Kind == "CreateLookup" && operation.Entity == entity.LogicalName && operation.Name == field.LogicalName))
+                    throw new InvalidDataException("Audit completion cannot modify a field that predates the approved creation plan.");
+                targets.Add((entity.LogicalName, field.LogicalName, RequireId(field.Id)));
+                return field with { Audit = true };
+            }).ToArray();
+            return entity with { Fields = Array.AsReadOnly(fields) };
+        }).ToArray();
+        // 先證明唯一差異就是這些新查閱稽核；其他型別、安全、長度、元件缺漏或key失敗仍由同一planner完整拒絕。
+        var candidate = SchemaPlanner.Create(definition, current with { Entities = Array.AsReadOnly(correctedEntities) }, clock.GetUtcNow());
+        if (candidate.Operations.Count != 0 || targets.Count > 8) throw new InvalidDataException("Creation completion has unrelated differences or exceeds its bounded scope.");
+        if (targets.Count == 0) return candidate;
+        var published = SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false);
+        foreach (var entity in current.Entities.Where(entity => targets.Any(target => target.Entity == entity.LogicalName)))
+            if (SchemaFiles.HashValue(published.Entities.SingleOrDefault(item => item.Id == entity.Id)) != SchemaFiles.HashValue(entity))
+                throw new InvalidDataException("Unpublished changes prevent narrowly scoped audit completion.");
+        _ = SchemaFiles.WriteNew(directory, "before-audit-completion.json", current);
+        _ = SchemaFiles.WriteNew(directory, "audit-completion-plan.json", new
+        {
+            OriginalPlanHash = original.Sha256, BaselineFingerprint = original.Fingerprint,
+            CurrentFingerprint = SchemaFiles.HashValue(current), OrganizationId = current.OrganizationId,
+            Fields = targets.Select(target => new { target.Entity, target.Field, target.Id, EnableAudit = true }).ToArray()
+        });
+        foreach (var target in targets) EnableCreatedLookupAudit(target.Entity, target.Field, target.Id, definition.Solution, cancellationToken);
+        var xml = new XElement("importexportxml", new XElement("entities", targets.Select(target => target.Entity).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).Select(name => new XElement("entity", name))));
+        _ = Execute<PublishXmlResponse>(new PublishXmlRequest { ParameterXml = xml.ToString(SaveOptions.DisableFormatting) }, cancellationToken);
+        var after = SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false);
+        _ = SchemaFiles.WriteNew(directory, "after-audit-completion.json", after);
+        var result = SchemaPlanner.Create(definition, after, clock.GetUtcNow());
+        if (result.Operations.Count != 0) throw new InvalidDataException("Created lookup audit completion left metadata differences.");
+        return result;
+    }
 
     /// <summary>只輸出完整metadata候選，以CreateNew防覆寫，不把此結構snapshot冒稱組織資料庫備份。</summary>
     internal string Export(CancellationToken cancellationToken) =>
@@ -139,6 +190,7 @@ internal sealed class SchemaDeploymentEngine
                         }, cancellationToken);
                         id = RequireId(response.AttributeId);
                         _ = RequireId(response.RelationshipId);
+                        if (entity.IsNew && entity.Audit) EnableCreatedLookupAudit(entity.LogicalName, field.LogicalName, id, definition.Solution, cancellationToken);
                     }
                     else id = RequireId(Execute<CreateAttributeResponse>(new CreateAttributeRequest
                     { EntityName = entity.LogicalName, Attribute = attribute, SolutionUniqueName = definition.Solution }, cancellationToken).AttributeId);
@@ -190,7 +242,7 @@ internal sealed class SchemaDeploymentEngine
         return remaining;
     }
 
-    /// <summary>建構明確新欄位；固定附錄型別、日期與安全，沒有UpdateAttribute或任何既有欄位轉換。</summary>
+    /// <summary>建構明確新欄位，固定附錄型別、日期與安全；不轉換既有欄位，後續Update例外僅限新Lookup啟用稽核。</summary>
     private static AttributeMetadata Attribute(SchemaField field, bool audit, int language)
     {
         AttributeMetadata attribute = field.Type switch
@@ -217,6 +269,16 @@ internal sealed class SchemaDeploymentEngine
         var options = new OptionSetMetadata { IsGlobal = false, OptionSetType = OptionSetType.Picklist };
         foreach (var option in field.Options) options.Options.Add(new OptionMetadata(new Label(option.Label, language), option.Value));
         return options;
+    }
+
+    /// <summary>D3659.1可能忽略CreateOneToMany的Lookup稽核旗標；只對本次Create剛取得的正式ID啟用稽核。僅傳身份與IsAuditEnabled，不改型別／安全／日期或既有欄位。</summary>
+    private void EnableCreatedLookupAudit(string entity, string field, Guid id, string solution, CancellationToken cancellationToken)
+    {
+        _ = Execute<UpdateAttributeResponse>(new UpdateAttributeRequest
+        {
+            EntityName = entity, SolutionUniqueName = solution, MergeLabels = true,
+            Attribute = new LookupAttributeMetadata { MetadataId = RequireId(id), LogicalName = field, IsAuditEnabled = new BooleanManagedProperty(true) }
+        }, cancellationToken);
     }
 
     /// <summary>每次寫入前後核對caller取消與強型別回應，保留SDK原故障，不作假成功或catch後靜默繼續。</summary>

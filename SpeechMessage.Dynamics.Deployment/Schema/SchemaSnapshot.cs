@@ -8,10 +8,12 @@
  * 隔離與生命週期：所有record只隨本次命令存活；集合由投影器完成後封裝，消費者不得原地填入尚未讀完的內容。
  * 不變條件：每個正式ID及其所屬集合的邏輯身份須唯一；nullable政策代表server未提供，不能轉成符合false。
  * Active以外的key狀態必須保留，不能靠零新增操作把pending或failed說成驗收成功。
+ * Solution根政策只存官方值與Guid；未知保持null且省略JSON，維持既有before的指紋，不能把缺值默認為包含子元件。
  * 維護驗證：擴充快照時同步投影、hash／漂移檢查、輸出保密與mutation／弱參照回收測試；metadata快照不等同資料庫備份。
  */
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace SpeechMessage.Dynamics.Deployment.Schema;
 
@@ -60,7 +62,7 @@ internal sealed record SchemaFieldState(Guid Id, string LogicalName, string Type
 
 /// <summary>正式alternate key與建置狀態；Active以外不能verify為成功。</summary>
 /// <param name="Id">metadata ID。</param><param name="LogicalName">正式key身份。</param>
-/// <param name="Attributes">有序欄位。</param><param name="Status">SDK index狀態。</param>
+/// <param name="Attributes">按Ordinal排序的完整欄位集合；回應順序不是唯一性契約。</param><param name="Status">SDK index狀態。</param>
 internal sealed record SchemaKeyState(Guid Id, string LogicalName, IReadOnlyList<string> Attributes, string Status);
 
 /// <summary>只保留solution必要metadata，不含任何資料庫或套件內容。</summary>
@@ -71,7 +73,15 @@ internal sealed record SchemaSolutionState(Guid Id, string Name, bool Managed, G
 internal sealed record SchemaPublisherState(Guid Id, string Name, string Prefix);
 /// <summary>一個solutioncomponent正式列；同type/object重複屬衝突，不可靜默去重。</summary>
 /// <param name="Id">正式列ID。</param><param name="Type">SDK componenttype。</param><param name="ObjectId">實際metadata ID。</param>
-internal sealed record SchemaComponentState(Guid Id, int Type, Guid ObjectId);
+internal sealed record SchemaComponentState(Guid Id, int Type, Guid ObjectId)
+{
+    /// <summary>0包含子元件、1不包含、2僅外殼；未知為null，絕不推論為包含。舊證據缺欄時不序列化，以保留既有指紋。</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? RootBehavior { get; init; }
+    /// <summary>所屬根solutioncomponent的正式列ID；SDK型別是Uniqueidentifier而非EntityReference。null表示本列為根或舊證據未知，不保留SDK物件。</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? RootId { get; init; }
+}
 /// <summary>訊息篩選器純定義，沒有任何訊息本文。</summary>
 /// <param name="Id">正式filter ID。</param><param name="MessageId">SDK message ID。</param><param name="Primary">主要邏輯表。</param><param name="Secondary">次要邏輯表。</param>
 internal sealed record SchemaFilterState(Guid Id, Guid MessageId, string Primary, string Secondary);

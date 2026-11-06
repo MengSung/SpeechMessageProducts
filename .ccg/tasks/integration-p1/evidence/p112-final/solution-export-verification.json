@@ -1,0 +1,71 @@
+{
+  "officialSdkExportVerified": true,
+  "solution": "SpeechMessageCore",
+  "managed": false,
+  "publisherPrefix": "new",
+  "entityCount": 6,
+  "p1FieldCount": 36,
+  "keyCount": 4,
+  "rows": [
+    {
+      "entity": "account",
+      "p1FieldCount": 6,
+      "keyCount": 0,
+      "owner": "UserOwned",
+      "audit": "0",
+      "validated": true
+    },
+    {
+      "entity": "contact",
+      "p1FieldCount": 2,
+      "keyCount": 0,
+      "owner": "UserOwned",
+      "audit": "1",
+      "validated": true
+    },
+    {
+      "entity": "new_linechannel",
+      "p1FieldCount": 5,
+      "keyCount": 1,
+      "owner": "OrgOwned",
+      "audit": "0",
+      "validated": true
+    },
+    {
+      "entity": "new_outboundtask",
+      "p1FieldCount": 12,
+      "keyCount": 1,
+      "owner": "OrgOwned",
+      "audit": "0",
+      "validated": true
+    },
+    {
+      "entity": "new_localizedtext",
+      "p1FieldCount": 5,
+      "keyCount": 1,
+      "owner": "OrgOwned",
+      "audit": "1",
+      "validated": true
+    },
+    {
+      "entity": "new_offeringcategory",
+      "p1FieldCount": 6,
+      "keyCount": 1,
+      "owner": "OrgOwned",
+      "audit": "1",
+      "validated": true
+    }
+  ],
+  "rootBehaviors": {
+    "account": 1,
+    "contact": 1,
+    "new_linechannel": 0,
+    "new_localizedtext": 0,
+    "new_offeringcategory": 0,
+    "new_outboundtask": 0
+  },
+  "noBusinessRows": true,
+  "exportedNoRolesWorkflowsFieldSecurityProfiles": true,
+  "uiScreenshotObtained": false,
+  "sha256": "BC83CFD652644009ED838FE47462769360995928839A40605E66A3DD7EC033BB"
+}
