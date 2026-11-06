@@ -1,0 +1,26 @@
+{
+  "completedAt": "2026-11-06T21:20:27+08:00",
+  "workPackagesCompleted": 12,
+  "localImplementationCommit": "e890ec95",
+  "acceptanceCommit": "d69247a5",
+  "archiveCommit": "f94092e6",
+  "ccgParentArchive": ".ccg/tasks/archive/2026-11/integration-p1",
+  "ccgLiveArchive": ".ccg/tasks/archive/2026-11/p112-live-schema-acceptance",
+  "trellisArchive": ".trellis/tasks/archive/2026-11/11-05-integration-p1",
+  "progressPage": "文件/規劃設計書/實作計畫-3.3/實作進度.html",
+  "acceptanceRecord": "wp-reports/P1-acceptance.md",
+  "finalEncoding": {
+    "base": "73b6e6cf",
+    "checked": 2026,
+    "excluded": 1021,
+    "issues": 0
+  },
+  "pushed": false,
+  "productionDeployed": false,
+  "knownBlockingDefects": [],
+  "evidenceLimitations": [
+    "外審兩後端皆無輸出，未宣稱成功",
+    "無UI截圖，後台驗收為官方SDK/SQL/solution匯出",
+    "hosted完整CI沿使用者核定暫緩"
+  ]
+}

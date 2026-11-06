@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T21:19:17+08:00",
+  "snapshot": "2026-11-06T21:20:27+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
   "headline": "階段 1 目前 <strong>12／12 工作包已驗收完成</strong>（P1-01～12）。P1-12真正已發布verify、四個Active key、第二輪零寫入、唯一鍵差分驗收及測試資料清理全部通過。全計畫83包，已驗收30包；階段2～8維持未開始。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1已完成 12／12工作包驗收與本地交付",
-    "body": "P1-01～12必要驗收全部完成；產品e890ec95、最終驗收/進度d69247a5，現依流程封存任務與保存日誌。4412/4412、Deployment157、coverage89.11%，真實verify/零寫入/唯一鍵/清理皆通過；無已知阻斷。外審無輸出、UI/hosted未取得證據已明列。",
+    "title": "P1已完成 12／12驗收並完成本地封存",
+    "body": "P1-01～12全部必要驗收與本地交付完成。程式e890ec95、驗收d69247a5、封存f94092e6；CCG/Trellis任務已封存，日誌已保存。全方案4412/4412、Deployment157、coverage89.11%；真D365驗收與全部測試資料清理通過。無已知阻斷；外審/UI/hosted證據限制如實保留。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -550,7 +550,8 @@ const DATA = {
       "2026-11-06T20:31:33+08:00 P1-12最終真smoke exit0，記錄實際0x80040237與legacyIntegrityDifferentialPassed=true：原tuple只第一ID、第二ID未入庫，同鍵zh-TW控制可寫/讀回，所有自身列finally清理。另行只讀核對5份ownership/16個候選ID全部0。完整方案17TRX4412/4412、Deployment157、獨立coverage89.11%；新5案真紅後綠及控制取消清理通過。原先151/4406是前次切片，最新結果取final-verified。Word修正報告已包含四項相容研究與自主SDK/官方solution匯出驗收分工，3頁全部渲染檢查，無藍線/空白頁，SHA D8EC01D0D485C590FE4E09F4F7BA29D29DF743E407991093164980FEC8132201。矩陣wp-reports/P1-12-acceptance.md與正式驗收文件已更新；主會話完整自審無阻斷，外審200653兩後端無輸出如實保留。準備精確本地commit及子任務/主P1封存，不push、不正式部署；UI因實體Esc已停止，無截圖成功聲明。",
       "2026-11-06T21:13:56+08:00 P1收斂：P1-01～12全部必要驗收已逐項核對，P1-12工作包舊說明更新為真實最終結果，總計12/12、全計畫30/83。正式矩陣wp-reports/P1-acceptance.md與P1-12-acceptance.md；before/after完全相等證明第二apply零metadata寫入，真smoke0及官方匯出/Active/稽核/安全/日期/並行均有獨立證據，5輪16候選只讀重查0。外部delivery-review 20261106-210950兩後端仍無可用輸出，主會話自審無阻斷，不稱外審成功。文件1250/0及測試8、JavaScript16/進度15、I18n生成/verify與strict0/0通過；Word最終SHA D8EC01D0D485C590FE4E09F4F7BA29D29DF743E407991093164980FEC8132201。正執行最後Changed編碼守門及精確本地commit，完成後追加commit/封存收據；未push/正式部署，階段2～8不啟動。",
       "2026-11-06T21:17:31+08:00 本地產品交付e890ec95已取得；15份Schema產品/測試來源與Git blob經換行正規化後逐份一致，工作樹UTF-8無BOM/CRLF與SHA另存reviewed-source-sha256.json。最終Changed已2025檔0問題，產品沒有待提交程式異動；現提交完整需求矩陣/12-12進度/spec/審查/去識別證據，接著按流程封存P1-12與主P1。其他規劃中主任務11-02-integration-v32保持原狀，不擴張封存。",
-      "2026-11-06T21:19:17+08:00 本地交付完成：P1-11 5cfef59e/28266677；P1-12程式e890ec95；全階段驗收矩陣、spec、12/12狀態與最終去識別證據d69247a5。最後Changed2026檔0問題，stage只本次文件/證據且產品來源SHA對應已驗commit。現將CCG主P1與p112、Trellis 11-05-integration-p1封存至archive/2026-11，保存主任務證據；11-02-integration-v32保持planning，其他階段未啟動。無push/正式部署、剩餘阻斷無；封存後再核對頁面與編碼。"
+      "2026-11-06T21:19:17+08:00 本地交付完成：P1-11 5cfef59e/28266677；P1-12程式e890ec95；全階段驗收矩陣、spec、12/12狀態與最終去識別證據d69247a5。最後Changed2026檔0問題，stage只本次文件/證據且產品來源SHA對應已驗commit。現將CCG主P1與p112、Trellis 11-05-integration-p1封存至archive/2026-11，保存主任務證據；11-02-integration-v32保持planning，其他階段未啟動。無push/正式部署、剩餘阻斷無；封存後再核對頁面與編碼。",
+      "2026-11-06T21:20:27+08:00 最後交付收據：產品e890ec95、正式驗收/12-12進度d69247a5、主P1與P1-12/Trellis封存f94092e6。CCG證據現位於.ccg/tasks/archive/2026-11/integration-p1/evidence/p112-final/；子任務archive/2026-11/p112-live-schema-acceptance；Trellis archive/2026-11/11-05-integration-p1，日誌另保存本次工作/驗收commit。封存後進度15/15、Changed2026檔/1021 raw排除/0問題，唯一可引用證據位置已驗存在；其他planning任務與P2～8未啟動。全部必要工作完成，已知阻斷/剩餘必要工作無；未push/正式部署。"
     ]
   },
   "tiles": [

@@ -29,3 +29,5 @@
 
 ## 本地實作交付與最後守門
 本地程式提交 `e890ec95` 已包含本輪受測來源與Word報告。最後逐檔來源與該commit經Git換行正規化後完全一致，另驗工作樹bytes為UTF-8無BOM/CRLF並保存兩種SHA；不把Git LF blob誤當工作樹編碼失敗。Changed編碼基準73b6e6cf，2025檔/1021原始證據排除/0問題。文件1250/0、文件測試8、進度15與JavaScript16通過。主任務封存後證據位於 `.ccg/tasks/archive/2026-11/integration-p1/evidence/p112-final/`，Trellis封存位於 `.trellis/tasks/archive/2026-11/11-05-integration-p1/`；後續封存提交不改產品行為。
+
+本次封存提交：`f94092e6`，CCG主P1/子P1-12及Trellis主任務均已封存；交付收據位於CCG主封存任務evidence/p112-final/delivery-receipt.json，進度頁一般資訊保存全部修改/驗證/提交歷程。
