@@ -207,14 +207,13 @@ namespace ToolUtility.Tests
         /// <summary>
         /// 五個新搬介面的單筆查無結果必須標為 nullable，而非宣稱永不為 null；
         /// 集合與字串維持非 null。這是實際中繼資料斷言，不以檔頭文字替代。
-        /// 同時驗證原 host 實作仍可指派至同 namespace 的 Core 契約，防止留下兩份同名介面。
+        /// 同時驗證仍留在host的原實作可指派至同namespace Core契約，防止留下兩份同名介面。
         /// </summary>
         [Theory]
         [InlineData(typeof(IContactService), typeof(ContactService))]
         [InlineData(typeof(IListService), typeof(ListService))]
         [InlineData(typeof(IMarketingListService), typeof(MarketingListService))]
         [InlineData(typeof(IComplexQueryService), typeof(ComplexQueryService))]
-        [InlineData(typeof(IQueryService), typeof(QueryService))]
         public void ExtractedContracts_PreserveHostAssignmentAndHonestNullability(
             System.Type contract, System.Type hostImplementation)
         {
@@ -226,6 +225,14 @@ namespace ToolUtility.Tests
                     Assert.Equal(method.ReturnType == typeof(Microsoft.Xrm.Sdk.Entity)
                         ? NullabilityState.Nullable : NullabilityState.NotNull,
                         context.Create(method.ReturnParameter).ReadState);
+        }
+
+        /// <summary>QueryService已純化抽入Core，實作與既有契約必須同組件，不可留下host同名副本。</summary>
+        [Fact]
+        public void RepositoryQueryService_AndContract_AreInCore()
+        {
+            Assert.Same(typeof(IQueryService).Assembly, typeof(QueryService).Assembly);
+            Assert.Equal("ToolUtility.Core", typeof(QueryService).Assembly.GetName().Name);
         }
 #endif
     }

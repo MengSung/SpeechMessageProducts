@@ -1,59 +1,34 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Interfaces/IFetchXmlQueryService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IFetchXmlQueryService
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
-// 引用命名空間：System、Microsoft.Xrm.Sdk
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
 using System;
 using Microsoft.Xrm.Sdk;
 
 namespace ToolUtilityNameSpace.QueryOperations
 {
     /// <summary>
-    /// FetchXML 查詢服務介面
+    /// 七個舊Fetch入口的純SDK契約；host先驗授權scope，各結果是本次操作擁有的SDK頁，不是共享快照。
+    /// 整頁正式ID／表／重複／top驗證成功才回傳；保留分頁metadata，不按名稱去重或把top頁宣稱完整全表。
+    /// 真正SDK故障由最終host共用告警，介面不保存logger、credential、連線或結果。
     /// </summary>
     public interface IFetchXmlQueryService
     {
-        /// <summary>
-        /// 根據聯絡人查詢學員上課記錄 (使用 FetchXML)
-        /// </summary>
+        /// <summary>依聯絡人正式GUID讀學習課，top1000，保留原無classification限制查詢；名稱只作安全編碼顯示提示。</summary>
         EntityCollection RetrieveStorLessonsByFetchXml(string contactName, string contactId);
 
-        /// <summary>
-        /// 根據課程查詢學員上課記錄 (使用 FetchXML)
-        /// </summary>
+        /// <summary>依課程正式GUID讀學習課，top1000，保留三種enroll排除及statuscode非2；不使用名稱作身份。</summary>
         EntityCollection RetrieveStorLessonsByDiscipleLessonsFetchXml(string lessonName, string lessonId);
 
-        /// <summary>
-        /// 根據聯絡人查詢認獻記錄 (使用 FetchXML)
-        /// </summary>
+        /// <summary>以非空聯絡人GUID讀啟用且核准的認獻單頁，委派唯一Fee邏輯；顯示名稱不能擴張scope。</summary>
         EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId);
 
-        /// <summary>
-        /// 根據主日日期查詢聚會統計記錄 (使用 FetchXML)
-        /// </summary>
+        /// <summary>以caller已決定的西曆日期查聚會統計，top100且保留原狀態；不在此推導教會時區。</summary>
         EntityCollection RetrieveMeetingStatisticsByFetchXml(DateTime sundayDate);
 
-        /// <summary>
-        /// 根據認獻預約和繳費期間查詢收費單 (使用 FetchXML)
-        /// </summary>
+        /// <summary>依正式認獻GUID及非空期數讀啟用收費單頁，top500；所有外部文字只能作XML屬性值。</summary>
         EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod);
 
-        /// <summary>
-        /// 查詢所有需要點名的小組名單 (使用 FetchXML)
-        /// </summary>
+        /// <summary>讀原點名名單的一頁，top500；保留原purpose/app/status/state，不套用小組集合特有排除條件。</summary>
         EntityCollection RetrieveListByFetchXml();
 
-        /// <summary>
-        /// 查詢所有小組名單集合 (使用 FetchXML)
-        /// </summary>
+        /// <summary>讀含原兩個lookup欄位及測試名稱排除的小組單頁，top500；穩定資料庫ID衝突整頁拒絕。</summary>
         EntityCollection RetrieveSmallGroupListCollectionByFetchXml();
     }
 }

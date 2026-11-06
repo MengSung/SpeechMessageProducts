@@ -2,13 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Threading;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using ToolUtilityNameSpace.DataOperations;
 
 namespace ToolUtilityNameSpace.EntityOperations
 {
@@ -215,11 +214,7 @@ namespace ToolUtilityNameSpace.EntityOperations
         /// <summary>只接受 SDK logical name 字元，不把 XML 編碼當作任意結構名稱的合法性或授權。</summary>
         private static void RequireLogicalName(string value, string parameter)
         {
-            if (string.IsNullOrEmpty(value)) throw new ArgumentException("A logical name is required.", parameter);
-            foreach (var character in value)
-                if (!(character >= 'a' && character <= 'z') && !(character >= 'A' && character <= 'Z')
-                    && !(character >= '0' && character <= '9') && character != '_')
-                    throw new ArgumentException("An invalid logical name was supplied.", parameter);
+            SdkDataQuery.RequireLogicalName(value, parameter);
         }
 
         /// <summary>
@@ -236,46 +231,9 @@ namespace ToolUtilityNameSpace.EntityOperations
             return entityName;
         }
 
-        /// <summary>
-        /// 僅串流辨識一個無命名空間的 fetch／entity 根表，不建立或保存完整 XML 物件樹。
-        /// DTD 禁止、resolver 為 null，不能讀檔或網路；字元上限等於既有輸入長度，禁止展開額外內容。
-        /// Reader 與 StringReader 由單次操作擁有並在成功／拒絕／解析失敗時確定性 Dispose；
-        /// 不保存查詢文字、SDK 或使用者資料。壞 XML 的固定外層訊息不包含原輸入。
-        /// </summary>
+        /// <summary>委派唯一共用的安全串流解析器，避免Fetch根表辨識規則在不同查詢服務分歧。</summary>
         private static string ExpectedFetchEntity(FetchExpression query)
-        {
-            if (string.IsNullOrWhiteSpace(query.Query))
-                throw new ArgumentException("A FetchXML query is required.", nameof(query));
-            try
-            {
-                using var text = new StringReader(query.Query);
-                using var reader = XmlReader.Create(text, new XmlReaderSettings
-                {
-                    DtdProcessing = DtdProcessing.Prohibit,
-                    XmlResolver = null,
-                    MaxCharactersInDocument = query.Query.Length
-                });
-                if (reader.MoveToContent() != XmlNodeType.Element || reader.LocalName != "fetch"
-                    || reader.NamespaceURI.Length != 0)
-                    throw new ArgumentException("Invalid FetchXML root.", nameof(query));
-                string? entityName = null;
-                var entityCount = 0;
-                while (reader.Read())
-                    if (reader.NodeType == XmlNodeType.Element && reader.Depth == 1
-                        && reader.LocalName == "entity" && reader.NamespaceURI.Length == 0)
-                    {
-                        entityCount++;
-                        entityName = reader.GetAttribute("name");
-                    }
-                if (entityCount != 1 || entityName == null || entityName.Length == 0)
-                    throw new ArgumentException("A single FetchXML entity is required.", nameof(query));
-                return entityName;
-            }
-            catch (XmlException failure)
-            {
-                throw new ArgumentException("Invalid FetchXML query.", nameof(query), failure);
-            }
-        }
+            => SdkDataQuery.ExpectedFetchEntity(query.Query, nameof(query));
 
         /// <summary>
         /// 候選頁只活至本次操作：驗全部 ID 非空／不重複及查詢根實體，才原子式回傳。

@@ -1,0 +1,2283 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>實作進度</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --surface-2: #f3f2ee;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #6f6e69;
+    --hair: #e1e0d9;
+    --base: #c3c2b7;
+    --ring: rgba(11, 11, 11, 0.10);
+    --good: #0ca30c;
+    --good-text: #006300;
+    --good-wash: #eaf6ea;
+    --warn: #fab219;
+    --warn-text: #7a4f00;
+    --warn-wash: #fff6e0;
+    --crit: #d03b3b;
+    --crit-text: #a52a2a;
+    --crit-wash: #fcefee;
+    --prog: #2a78d6;
+    --prog-text: #1c5cab;
+    --prog-wash: #edf4fd;
+    --todo: #c3c2b7;
+    --code-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --surface-2: #232321;
+      --ink: #f0efec;
+      --ink-2: #c3c2b7;
+      --muted: #9a9890;
+      --hair: #2c2c2a;
+      --base: #383835;
+      --ring: rgba(255, 255, 255, 0.10);
+      --good-text: #3fc23f;
+      --good-wash: rgba(12, 163, 12, 0.14);
+      --warn-text: #fab219;
+      --warn-wash: rgba(250, 178, 25, 0.12);
+      --crit-text: #f08080;
+      --crit-wash: rgba(208, 59, 59, 0.16);
+      --prog: #3987e5;
+      --prog-text: #6da7ec;
+      --prog-wash: rgba(57, 135, 229, 0.14);
+      --todo: #4a4a46;
+      --code-bg: #232321;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #232321;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #9a9890;
+    --hair: #2c2c2a;
+    --base: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --good-text: #3fc23f;
+    --good-wash: rgba(12, 163, 12, 0.14);
+    --warn-text: #fab219;
+    --warn-wash: rgba(250, 178, 25, 0.12);
+    --crit-text: #f08080;
+    --crit-wash: rgba(208, 59, 59, 0.16);
+    --prog: #3987e5;
+    --prog-text: #6da7ec;
+    --prog-wash: rgba(57, 135, 229, 0.14);
+    --todo: #4a4a46;
+    --code-bg: #232321;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Microsoft JhengHei UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 16px 56px; }
+  header .eyebrow { color: var(--ink-2); font-size: 13px; margin: 0 0 4px; }
+  header h1 { font-size: 28px; line-height: 1.25; margin: 0 0 6px; }
+  header .meta { color: var(--muted); font-size: 13px; margin: 0; }
+  header .meta span + span::before { content: "｜"; margin: 0 6px; color: var(--base); }
+
+  section { margin-top: 28px; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  h2 small { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 8px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--ring);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+
+  /* 一句話總結 */
+  .headline { margin-top: 20px; font-size: 17px; }
+  .headline strong { font-weight: 700; }
+
+  /* 一般資訊預設收合；注意與錯誤保留可見摘要，詳細紀錄另行展開。 */
+  .notice {
+    border-left: 4px solid var(--base);
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    overflow-wrap: anywhere;
+  }
+  .notice.warn { border-color: var(--warn); background: var(--warn-wash); }
+  .notice.error { border-color: var(--crit); background: var(--crit-wash); }
+  .notice-heading { display: flex; gap: 10px; align-items: flex-start; min-width: 0; font-weight: 700; }
+  .notice-heading svg { width: 22px; height: 22px; flex: none; margin-top: 2px; }
+  .notice-label { display: block; font-size: 13px; color: var(--ink-2); }
+  .notice.warn .notice-label { color: var(--warn-text); }
+  .notice.error .notice-label { color: var(--crit-text); }
+  .notice > summary, .notice-details > summary {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .notice > summary::-webkit-details-marker, .notice-details > summary::-webkit-details-marker { display: none; }
+  .notice > summary:focus-visible, .notice-details > summary:focus-visible {
+    outline: 3px solid var(--prog);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+  .notice-toggle { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .notice-toggle::before { content: "+ 展開"; }
+  details[open] > summary > .notice-toggle::before { content: "− 收合"; }
+  .notice-content { padding-top: 4px; }
+  .notice p { margin: 8px 0 0; }
+  .notice ol { margin: 8px 0 0; padding-left: 22px; }
+  .notice .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+  button.copy {
+    font: inherit;
+    font-weight: 700;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: var(--prog);
+    color: #ffffff;
+    cursor: pointer;
+  }
+  button.copy:focus-visible { outline: 3px solid var(--prog); outline-offset: 2px; }
+  .copied { color: var(--good-text); font-weight: 700; font-size: 14px; }
+  details.prompt { margin-top: 10px; }
+  details.prompt summary { cursor: pointer; color: var(--ink-2); font-size: 14px; }
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--code-bg);
+    border: 1px solid var(--ring);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    font-family: Consolas, "Cascadia Mono", "Microsoft JhengHei", monospace;
+    max-height: 420px;
+    overflow: auto;
+  }
+
+  /* 數字磚 */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 16px; }
+  .tile .label { color: var(--ink-2); font-size: 13px; }
+  .tile .value { font-size: 30px; font-weight: 700; line-height: 1.2; margin-top: 4px; }
+  .tile .value small { font-size: 15px; font-weight: 400; color: var(--ink-2); margin-left: 4px; }
+  .tile .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .tile .meter { margin-top: 10px; }
+
+  /* 進度條：完成（綠）＋進行中（藍）＋未開始（底軌），段與段之間留 2px 間隔 */
+  .meter { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; background: var(--surface-2); }
+  .meter i { display: block; height: 100%; }
+  .meter i.done { background: var(--good); }
+  .meter i.active { background: var(--prog); }
+  .meter i.rest { background: var(--surface-2); flex: 1; }
+  .meter i:first-child { border-radius: 5px 0 0 5px; }
+  .meter i:last-child { border-radius: 0 5px 5px 0; }
+
+  /* 狀態標籤：一律圖示＋文字，顏色不單獨表達意義 */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 700; white-space: nowrap;
+    border-radius: 999px; padding: 2px 10px 2px 6px;
+  }
+  .chip svg { width: 16px; height: 16px; flex: none; }
+  .chip.done { color: var(--good-text); background: var(--good-wash); }
+  .chip.active { color: var(--prog-text); background: var(--prog-wash); }
+  .chip.todo { color: var(--ink-2); background: var(--surface-2); }
+  .chip.you { color: var(--warn-text); background: var(--warn-wash); }
+  .chip.review { color: var(--ink-2); background: var(--surface-2); }
+  .chip.flag { color: var(--crit-text); background: var(--crit-wash); }
+
+  /* 階段 0 工作包清單 */
+  .wps { list-style: none; margin: 0; padding: 0; }
+  .wp {
+    display: grid;
+    grid-template-columns: 26px 64px 1fr auto;
+    gap: 4px 12px;
+    align-items: start;
+    padding: 12px 4px;
+    border-top: 1px solid var(--hair);
+  }
+  .wp:first-child { border-top: 0; }
+  .wp .dot { width: 22px; height: 22px; margin-top: 1px; }
+  .wp .id { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .wp .name { font-weight: 700; }
+  .wp .note { grid-column: 3 / 5; color: var(--ink-2); font-size: 14px; }
+  .wp .right { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
+  .wp .commit { font-family: Consolas, monospace; font-size: 12px; color: var(--muted); }
+  .wp.is-todo .name { color: var(--ink-2); font-weight: 400; }
+  .wp.is-milestone { background: var(--surface-2); border-radius: 8px; border-top: 0; margin: 4px 0; }
+  .wp.is-milestone + .wp { border-top: 0; }
+
+  /* 路線圖 */
+  .phases { display: grid; gap: 4px; }
+  .phase {
+    display: grid;
+    grid-template-columns: 74px 1fr 220px;
+    gap: 4px 14px;
+    align-items: center;
+    padding: 10px 4px;
+    border-top: 1px solid var(--hair);
+  }
+  .phase:first-child { border-top: 0; }
+  .phase .pid { font-weight: 700; color: var(--ink-2); }
+  .phase .pname { font-weight: 700; }
+  .phase .pmeta { color: var(--muted); font-size: 13px; }
+  .phase .pbar .count { font-size: 13px; color: var(--ink-2); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .phase.is-current { background: var(--prog-wash); border-radius: 8px; border-top: 0; }
+  .phase.is-current + .phase { border-top: 0; }
+
+  /* 後續階段以可展開清單呈現，完整保留逐包範圍與驗收而不擠壓目前進度。 */
+  .planned-phases { display: grid; }
+  .planned-phase { border-top: 1px solid var(--hair); }
+  .planned-phase:first-child { border-top: 0; }
+  .planned-phase > summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    padding: 12px 4px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .planned-phase > summary::-webkit-details-marker { display: none; }
+  .planned-phase-toggle {
+    display: inline-flex;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .planned-phase-toggle::before { content: "+"; }
+  .planned-phase[open] .planned-phase-toggle::before { content: "-"; }
+  .planned-phase > summary:focus-visible { outline: 3px solid var(--prog); outline-offset: 2px; }
+  .planned-phase-id { min-width: 64px; color: var(--ink-2); font-weight: 700; }
+  .planned-phase-name { flex: 1 1 260px; font-weight: 700; }
+  .planned-phase-count, .planned-phase-est { color: var(--muted); font-size: 13px; }
+  .planned-phase[open] > summary { background: var(--surface-2); }
+  .planned-phase-body { padding: 0 4px 12px; }
+  .planned-source, .planned-gate { margin: 4px 0 10px; color: var(--ink-2); }
+  .planned-gate { padding-left: 10px; border-left: 3px solid var(--warn); }
+  .planned-wps { list-style: none; margin: 0; padding: 0; }
+  .planned-wp {
+    display: grid;
+    grid-template-columns: 26px 64px minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    align-items: start;
+    padding: 12px 4px;
+    border-top: 1px solid var(--hair);
+  }
+  .planned-wp .dot { width: 22px; height: 22px; margin-top: 1px; }
+  .planned-wp .id { color: var(--ink-2); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .planned-wp .name { font-weight: 700; }
+  .planned-wp .status { justify-self: end; }
+  .planned-wp .details { grid-column: 3 / 5; min-width: 0; color: var(--ink-2); font-size: 14px; }
+  .planned-wp .details p { margin: 4px 0 0; overflow-wrap: anywhere; }
+  .planned-wp .details strong { color: var(--ink); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--ink-2); font-size: 13px; margin-bottom: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend b { display: inline-block; width: 14px; height: 10px; border-radius: 3px; }
+
+  /* 兩欄區塊 */
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 12px; }
+  .two > div { min-width: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-top: 1px solid var(--hair); vertical-align: top; }
+  th { color: var(--ink-2); font-weight: 700; font-size: 13px; border-top: 0; }
+  td.num { font-variant-numeric: tabular-nums; }
+  td .arrow { color: var(--muted); margin: 0 4px; }
+
+  ul.checks { list-style: none; margin: 0; padding: 0; }
+  ul.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 6px 0; border-top: 1px solid var(--hair); }
+  ul.checks li:first-child { border-top: 0; }
+  ul.checks svg { width: 18px; height: 18px; margin-top: 3px; }
+  ul.checks .sub { color: var(--muted); font-size: 13px; display: block; }
+
+  /* 時間軸 */
+  ol.timeline { list-style: none; margin: 0; padding: 0; }
+  ol.timeline li { display: grid; grid-template-columns: 92px 1fr; gap: 10px; padding: 7px 0; border-top: 1px solid var(--hair); }
+  ol.timeline li:first-child { border-top: 0; }
+  ol.timeline .t { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; padding-top: 1px; }
+  ol.timeline .stop { color: var(--warn-text); font-weight: 700; }
+  ol.timeline .bad { color: var(--crit-text); font-weight: 700; }
+  ol.timeline .ok { color: var(--good-text); font-weight: 700; }
+
+  footer { margin-top: 36px; color: var(--muted); font-size: 13px; }
+  footer p { margin: 4px 0; }
+  code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.92em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 24px; }
+    .alert li { overflow-wrap: anywhere; }
+    .wp { grid-template-columns: 26px minmax(0, 1fr); }
+    .wp > span, ol.timeline li > span { min-width: 0; overflow-wrap: anywhere; }
+    .wp .id { grid-column: 2; }
+    .wp .name { grid-column: 2; }
+    .wp .right { grid-column: 2; justify-content: flex-start; }
+    .wp .note { grid-column: 2; }
+    .planned-phase > summary { align-items: flex-start; gap: 6px 10px; }
+    .planned-phase-id { min-width: 58px; }
+    .planned-phase-name { flex-basis: 100%; order: 2; }
+    .planned-phase-count { order: 3; }
+    .planned-phase-est { order: 4; }
+    .planned-wp { grid-template-columns: 26px minmax(0, 1fr); gap: 4px 10px; }
+    .planned-wp .id { grid-column: 2; }
+    .planned-wp .name { grid-column: 2; }
+    .planned-wp .status { grid-column: 2; justify-self: start; }
+    .planned-wp .details { grid-column: 2; }
+    .phase { grid-template-columns: 1fr; }
+    ol.timeline li { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    /* 窄螢幕把表格每一列改成一張小卡，避免橫向捲動 */
+    #quality thead { display: none; }
+    #quality, #quality tbody, #quality tr, #quality td { display: block; width: 100%; }
+    #quality tr { border-top: 1px solid var(--hair); padding: 6px 0; }
+    #quality tr:first-child { border-top: 0; }
+    #quality td { border-top: 0; padding: 2px 0; }
+    #quality td:first-child { font-weight: 700; }
+  }
+  @media print {
+    .alert .actions, details.prompt { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">方案整合、.NET 10 升級與國際化（設計 v3.3、實作計畫 3.3）</p>
+    <h1>實作進度</h1>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <p class="headline card" id="headline"></p>
+
+  <div id="notices" hidden></div>
+  <div id="alert" hidden></div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section>
+    <h2>階段 0 工作包<small>一次做一個；每個都要先寫會失敗的測試、再寫程式</small></h2>
+    <div class="card"><ol class="wps" id="wps"></ol></div>
+  </section>
+
+  <section>
+    <h2>階段 1 工作包<small>依正式計畫 02；逐包以驗收證據決定完成</small></h2>
+    <div class="card"><ol class="wps" id="p1-wps"></ol></div>
+  </section>
+
+  <section>
+    <h2>階段 2～8 工作包<small>依正式計畫 03／04；目前全部未開始</small></h2>
+    <p class="planned-source">逐包列出實作範圍、計畫指定驗收與前置／停止界線；登錄工作包不代表已開工或驗收。</p>
+    <div class="planned-phases" id="planned-phases"></div>
+  </section>
+
+  <section>
+    <h2>整體路線圖<small>9 個階段、83 個工作包；百分比依工作包數計算，不代表工時</small></h2>
+    <div class="card">
+      <div class="legend" aria-hidden="true">
+        <span><b style="background:var(--good)"></b>已完成</span>
+        <span><b style="background:var(--prog)"></b>進行中</span>
+        <span><b style="background:var(--surface-2);outline:1px solid var(--hair)"></b>未開始</span>
+      </div>
+      <div class="phases" id="phases"></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>品質守門<small>修改前 → 目前</small></h2>
+      <div class="card"><table id="quality"></table></div>
+    </div>
+    <div>
+      <h2>Codex 有沒有守規矩</h2>
+      <div class="card"><ul class="checks" id="conduct"></ul></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>今天發生的事<small>2026-11-05</small></h2>
+      <div class="card"><ol class="timeline" id="timeline"></ol></div>
+    </div>
+    <div>
+      <h2>你已拍板的決定</h2>
+      <div class="card"><ul class="checks" id="decisions"></ul></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>P0-12 之前你要準備的事</h2>
+      <div class="card"><ul class="checks" id="prep"></ul></div>
+    </div>
+    <div>
+      <h2>已知風險與待追蹤</h2>
+      <div class="card"><ul class="checks" id="risks"></ul></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>本頁是快照，不會自動更新。階段 2～8 工作包依正式計畫 3.3 的 00、03、04 文件整理；P0／P1 現況依目前 worktree 的提交紀錄、執行帳本、工作包報告及可重跑證據記載。</p>
+    <p>進度以逐包驗收證據更新；未開始的規劃項目不計入完成數。</p>
+  </footer>
+</div>
+
+<script>
+/*
+ * 本頁所有內容都來自下面的 DATA。更新進度時只改 DATA，不必改版面程式。
+ * status 可用：done（已完成）、active（進行中）、todo（未開始）、you（由你操作）、review（階段審查）。
+ * alert 保留歷史資訊；目前待處理事項放入 notices 陣列。level 使用 info／warn／error，省略時為 info。
+ * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
+ */
+const DATA = {
+  "snapshot": "2026-11-06（P1-04契約與優化查詢驗證保存，接續Contact純資料層）",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
+  "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
+  "notices": [],
+  "alert": {
+    "level": "info",
+    "title": "階段1執行中｜集中P1-04收尾",
+    "body": "P1-04 Constants 已抽取；五個純契約67個多載與優化查詢已抽取；補上帳密cache繞過的安全修補，每次核對當前密碼、不快取登入結果。最終ToolUtility net48實載net462 652/652、net10 778/778；Core coverage 92.13%/92.83%、strict零警告/錯誤；全方案16 TRX共2777/2777、ChurchReport623/623。使用者免除雙模型，主會話審查。Contact其餘純查詢、List/MarketingList、其餘Query/CrmAsync尚待處理；整包P1-04未完成，P1仍3/12。D365 預設只讀；未操作VM、D365、LINE。",
+    "steps": [
+      "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
+      "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
+      "局部證據：架構／MSBuild 67/67、程序故障注入 2/2、查詢效能含64路並行 16/16、進度頁 4/4；這不代表全階段 gates 已完成。接續重跑全套必要守門並處理 P1-01／03。",
+      "P1-04 呼叫路徑已核對：ChurchReport 有 7 處使用舊名單 facade 方法，產品 C# 未發現直接 OrganizationServiceProxy／ServiceClient 呼叫，方法邊界為 IOrganizationService；計畫的非 SDK 大量使用停止條件目前未觸發。",
+      "四個舊方法已定位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility。GetPaidFee、GetNotYetPaidFee 與 RetrieveFeeByFetchXmlOrderNumber 原始 FetchXML 有未跳脫輸入；搬移時以 XML 安全組裝，使用合成特殊字元測試，不複製注入風險。",
+      "若研究證明正式計畫存在必要修正，先留下需求、證據、影響與替代方案，再製作 Word 修正報告；未證實前不改計畫。",
+      "P1-04 analyzer run 20261105-122655：dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型要求先分類、鎖行為、追溯空實作及服務所有權。這是去識別化摘要風險分析，不是程式碼審查。",
+      "最新回歸 artifacts/p1-regression-green-tests/：15份TRX合計1409/1409，ChurchReport612/612；其後新增FetchXmlFee特性4案，連同Fee4案及XML helper6案另跑14/14通過。",
+      "P1-04 Fee 七個入口已安全組裝XML、驗證穩定ID／實體／整頁重複，並保留SDK例外與借入資源所有權；搬移前正常建置54/54通過，證據 artifacts/p1-04-before-move/。",
+      "FeeService／IFeeService 兩檔已移入 ToolUtility.Core；net462／net10.0 產品、net48／net10.0測試配置已建立，尚未取得搬後成功證據。artifacts/p1-04-core-restore.log 保留 NU1903 失敗，不新增 NoWarn。",
+      "13:08 搬後雙宿主全部測試：net48 51/51、net10 118/118，0失敗／0略過；net48反射確認產品net462。artifacts/p1-04-core-dual-green/。",
+      "Core每target新鮮覆蓋率報告：net48載net462為95.60%，net10為100%；Test-Coverage.ps1兩份均通過≥80%。artifacts/p1-04-core-coverage/。",
+      "13:17 EntityOperations已git mv兩檔；搬前3/3特性，安全故障12紅→完整21綠；最新雙宿主net48 77/77、net10 152/152。Core最新覆蓋率net48載net46297.63%、net10 100%。",
+      "產品DI新overload8/8，真正子池DataverseConnectionKey依ProductA/B分隔；同容器衝突拒絕、相同註冊冪等、租約與Dispose驗證通過。",
+      "Fee reviewer run20261105-130623：dualModelComplete=true、無quota降級、無Critical/High。Claude提出舊來源／host整合證據與空期數相容性Warning，已補獨立舊來源切片、唯一現行001呼叫證據與分頁旗標斷言，隨Entity／DI重審中。",
+      "13:27 編碼守門先抓20份前輪P1產物LF／檔尾問題，無語義變更正規化後633檔0問題；duplicates28專案921檔0新重複。證據artifacts/p1-04-encoding-green.log、p1-04-duplicates.log。",
+      "13:34 FetchXML在SDK I/O前辨識根實體，DTD禁止／resolver=null，解析器單次擁有且Dispose；同名不同ID、分頁、原query保留。93/93僅局部綠，不代替正式P1驗收；將續抽取盤點中的純Operations。",
+      "13:48 Core嚴格雙目標0警告0錯誤；新鮮覆蓋net48實載net462為98.78%、net10為100%。初次TRX與coverage同收造成attachment副本兩份，守門拒絕；改獨立coverage目錄無TRX，仍嚴格一份報告後通過。package guard34專案0問題、analyzer26/26、I18nCheck通過；CI／tracer／license／package／coverage五組契約通過。",
+      "本輪最終全方案16TRX=1836/1836；過渡CI14TRX=1145/1145，精確等於全方案扣除原核定兩個測試專案（三項排除中ChurchReport不是測試）。摘要程式原誤估13份被拒，已按真實組件/目標精確集合修正；未放寬任何產品測試。",
+      "Debug tracer7/7＋正TRX、Plugin metadata10/10、一次性測試金鑰打包6/6、Pester39/39、JavaScript20/20、CCG摘要6/6、I18nCheck108/108、Packaging工具27/27與10份各目標coverage皆通過。Core補測後211/289及98.78%/100%。",
+      "14:15 SDK最終雙模型確認舊C1／W2關閉、net48宿主矩陣非缺陷；29份審查快照本地核對，最新SDK96/96＋101/101。P1-03正式報告wp-reports/P1-03-acceptance.md；進度統計由工作包狀態同步，新增一致性測試先紅(0≠1)。",
+      "14:25 已建立本地主動切片commit abbbba3b（Core查詢／DI隔離／CI），未push。CRUD／Owner另先綠、紅綠、git mv四檔；最新244/244及324/324、coverage98.91%／100%，正送雙模型。",
+      "14:40 增量審查run20261105-142426已確認dualModelComplete=true、無Critical；兩項Warning轉為待補證。ChurchReport 35處有效AssignOwner呼叫已逐項核對目標logical name；無ArgumentNullException專一捕捉。空字串保留舊例外型別、空白名稱fail-closed的精確測試net10 1/1。雙宿主最新檢查在net48編譯階段發現Constants尚在host；依P1-04範圍抽取，不縮小測試。",
+      "15:10 CrmEntityColumns已抽入ToolUtility.Core/Constants；欄位golden與caller mutation 23/23、ToolUtility net48實載net462 270/270、net10 350/350，Core Release strict雙目標0警告／錯誤。完整P1-04覆蓋率、其他候選與增量雙模型複審仍待完成，工作包未驗收。",
+      "2026-11-05 18:21 接續檢查：現成DLL僅244／349案，未採為新證據；重新建置後net48 270/270、net10 350/350。正補抽取後獨立coverage並分析屬性工具／SDK extension，P1-04仍未驗收。",
+      "2026-11-05 18:44 本輪屬性工具／SDK extension三檔已抽Core；null logger相容但不保存、固定外層訊息及原InnerException、單一查詢器整頁識別驗證，借入SDK不Dispose。先12特性綠；安全28紅／3綠→修後搬前81綠。最新雙宿主314/314、395/395，Core coverage99.36%／100%、strict雙目標0警告／錯誤。1,000次A/B並行與弱引用回收通過。Constants及CRUD／Owner補證同步複審中；完整00§8及其餘候選未完成，不標整包驗收。",
+      "2026-11-05 19:09 四個舊方法來源已定位且已實作；CRUD／Owner、Constants、屬性工具及SDK extension已抽Core。本切片先12特性綠、安全28紅／3綠→搬前81綠；最新雙宿主314/314、395/395、coverage99.36%／100%、strict零警告／錯誤。完整方案2056/2056、ChurchReport623/623；35處caller共8種表名的實際代表委派鏈11/11與集合比對通過。最終185904雙模型完整、無降級／Critical／High／Warning；一項非阻斷測試診斷Info已揭露。Repository、Activity／Attachment及其他候選未完成，整包仍在進行。"
+    ]
+  },
+  "tiles": [
+    {
+      "label": "全計畫進度",
+      "value": "21",
+      "unit": "/ 83 工作包",
+      "sub": "P0 18／18；P1 3／12 已驗收，1包進行中",
+      "meter": {
+        "done": 21,
+        "active": 1,
+        "total": 83
+      }
+    },
+    {
+      "label": "階段 0 進度",
+      "value": "18",
+      "unit": "/ 18 工作包",
+      "sub": "歷史階段 0 驗收完成",
+      "meter": {
+        "done": 18,
+        "active": 0,
+        "total": 18
+      }
+    },
+    {
+      "label": "階段 1 驗收",
+      "value": "3",
+      "unit": "/ 12 工作包",
+      "sub": "P1-01／02／03正式驗收；P1-04進行中，05～12尚未完成",
+      "meter": {
+        "done": 3,
+        "active": 1,
+        "total": 12
+      }
+    },
+    {
+      "label": "最新完整本機 Release",
+      "value": "1,836 / 1,836",
+      "unit": "0 失敗、0 略過",
+      "sub": "16份TRX，ChurchReport612/612；本地filter14份TRX=1145/1145"
+    },
+    {
+      "label": "最新完整本機建置",
+      "value": "0 錯誤",
+      "unit": "完整方案與Core雙目標建置成功",
+      "sub": "Core strict 0警告；既有host nullable與核定Obsolete提示保留，沒有新增NoWarn"
+    }
+  ],
+  "wps": [
+    {
+      "id": "P0-01",
+      "name": "開分支、Trellis 任務、基準記錄",
+      "status": "done",
+      "commit": "90799969",
+      "time": "14:45",
+      "note": "記錄開工基準；經你授權修好 24 個原本就失敗的測試（測試找錯名稱和路徑，產品程式沒動）；完成 Claude 審查要求的修正。"
+    },
+    {
+      "id": "P0-02",
+      "name": ".gitignore、global.json",
+      "status": "done",
+      "commit": "bc13efe7",
+      "time": "14:53",
+      "note": "固定使用 .NET SDK 10.0.403；不讓舊方案資料夾、.snk 私鑰、.trx 測試原始檔進入版控。"
+    },
+    {
+      "id": "P0-03",
+      "name": "套件版本集中管理與版本統一",
+      "status": "done",
+      "commit": "d1c92d83",
+      "time": "15:24",
+      "note": "51 個套件改由一個檔案管理版本；Microsoft.Extensions 全部升到 10.0.0、Newtonsoft.Json 統一 13.0.4；套件降版警告重新看得見。"
+    },
+    {
+      "id": "P0-04",
+      "name": "新程式的分析器與禁用 API 設定",
+      "status": "done",
+      "note": "原 c4e1f294、命名補充 cea2958d 保留；分析層級補修 58245c6f 使 net48 真正載入 Recommended，探測 24／24。",
+      "commit": "c4e1f294"
+    },
+    {
+      "id": "P0-04-Cryptography",
+      "name": "補修：System.Security.Cryptography.Xml／Pkcs 弱點",
+      "status": "done",
+      "note": "中央版本與地端連線來源直接相依升至 10.0.14；弱點清單已清除此兩項，Release 971／971、建置 36 警告。"
+    },
+    {
+      "id": "P0-04-NuGetAudit",
+      "name": "補修：net48 嚴格專案稽核間接套件",
+      "status": "done",
+      "note": "net48 與 net10 還原皆為 NuGetAuditMode=all；Plugin／測試升 System.Text.Json 6.0.11；方案 971／971、Debug 7／7，剩餘弱點僅 ImageSharp，排入 P0-12A。"
+    },
+    {
+      "id": "P0-05",
+      "name": "編碼檢查與編碼轉換工具",
+      "status": "done",
+      "note": "編碼測試在 PowerShell 5.1／7 各 21／21，進度頁 3／3；Release 741／741、Debug tracer 7／7、編碼與套件守門通過。",
+      "commit": "ba565a55",
+      "time": "18:01"
+    },
+    {
+      "id": "P0-SEC",
+      "name": "防止 Development 使用正式 LINE token 與非測試組織",
+      "status": "done",
+      "note": "11＋1 讀取點接上 Development 覆寫，Production 不增加 provider；25／25、Release 766／766、Debug tracer 7／7。P0-ENV 前 CRM 尚未覆寫，開發啟動預期拒絕。",
+      "commit": "24cca555"
+    },
+    {
+      "id": "P0-ENV",
+      "name": "指定 goodshepherdback 為開發測試組織",
+      "status": "done",
+      "note": "依使用者 2026-11-03 核定，Development 可存放帳密，User Secrets 仍可覆寫；HTTPS／主機／Organization.svc 完整路徑回歸與其他防護維持通過。",
+      "commit": "aa1de29d；核定調整見本次提交"
+    },
+    {
+      "id": "P0-06",
+      "name": "重複程式掃描",
+      "status": "done",
+      "note": "只掃 .sln 的 19 專案 851 個 .cs；內容／型別跨專案重複 0，基準外新增即失敗；PS 5.1／7 各 14／14，完整 Release 771／771。",
+      "commit": "18e901b1"
+    },
+    {
+      "id": "P0-07",
+      "name": "I18nCheck 第一版：中文字串棘輪＋resx 產生器",
+      "status": "done",
+      "note": "已提交 f0f0360f；75／75、覆蓋率 96.73%，11 專案 817 檔共 3895 CJK 片段，完整方案與全部守門通過。",
+      "commit": "f0f0360f"
+    },
+    {
+      "id": "P0-08",
+      "name": "骨架：SpeechMessage.Localization（雙目標）",
+      "status": "done",
+      "note": "兩目標各 33／33，覆蓋率 94.87%／100%；真實 resx 及生成檔 1 檔驗證，百執行緒讀取與排空、net10 零配置通過。",
+      "commit": "92cfa180"
+    },
+    {
+      "id": "P0-09",
+      "name": "骨架：LineMessagingProcessor.Core（雙目標，單人推播）",
+      "status": "done",
+      "note": "原 21 方法保留並新增 2 方法；雙目標各 45／45、覆蓋率 93.87%／98.88%，原 net10 33 全保留；方案 927／927，全部守門通過。",
+      "commit": "6b559da5"
+    },
+    {
+      "id": "P0-10",
+      "name": "骨架：Dynamics Plugins（原 net48；依 D21 改 net462）＋ILRepack＋簽章＋打包檢查",
+      "status": "done",
+      "note": "一般建置不讀打包金鑰；兩紅轉六綠。子程序無金鑰 Release 與正式明確打包皆通過；兩個暫存資料夾已由使用者清除。",
+      "commit": "7881177a（主體 cf3595db）"
+    },
+    {
+      "id": "P0-11",
+      "name": "方案層級 CI",
+      "status": "done",
+      "note": "本機逐步執行 CI：Release 969／969、Debug 7／7，七組覆蓋率過門檻；沒有 secret 跳過打包，暫存金鑰 always 清理。未在 GitHub 實跑。",
+      "commit": "9b59a4f4"
+    },
+    {
+      "id": "P0-12",
+      "name": "佈署專案最小版：SpeechMessage.Dynamics.Deployment",
+      "status": "done",
+      "note": "原 17 方法保留，Deployment 42／42、覆蓋率 81.80%；方案 1013／1013、Debug 7／7。只讀 User Secrets，每命令獨立連線並釋放，全部離線。",
+      "commit": "a6a20905（收尾）"
+    },
+    {
+      "id": "P0-12A",
+      "name": "ImageSharp 升級與上傳圖片格式／尺寸防護",
+      "status": "done",
+      "note": "圖片 76／76、A／B 已提交；一般金鑰 CI 合成測試 23／23。使用者證實 GitHub 授權準備與清理成功，但過去均停 Restore；本輪過渡 CI 未推送。",
+      "commit": "eb7ff61f；授權 CI ae29cb40"
+    },
+    {
+      "milestone": true,
+      "name": "階段 0 外部審查（單模型：使用者指定 ClaudeOnly）",
+      "status": "done",
+      "note": "單模型（使用者指定 ClaudeOnly）；原 11 份與 ae29cb40..e3f89eb6 的獨立第 09 份均已完成，無未處理 Critical／High；不等於 GitHub 或 D365 驗收。"
+    },
+    {
+      "id": "P0-13",
+      "name": "最小驗收：trace 沙箱註冊、執行與清理",
+      "status": "done",
+      "note": "使用者 net462 apply／verify=0；Codex 依 2026-11-04 全權授權完成 smoke=0，P0-PING／Assembly 1.0.0.0／Framework 4.8.4795.0／雙語五項追蹤全通過。單項 UpdateStepState 停用、verify=0、追蹤回復例外狀況，smoke task 殘留 0；不發 LINE。",
+      "commit": "69803bf1（net462）；a4649e3b（verify）；f664c685（清單停用）"
+    }
+  ],
+  "p1Wps": [
+    {
+      "id": "P1-01",
+      "name": "清理孤兒專案與檔案",
+      "status": "done",
+      "note": "51個孤兒檔已清除且引用稽核通過；原15效能案例加1並行案例16/16、ToolUtility.Tests完整方案映射、本機Release16份TRX共2278/2278及smoke約2秒可控時鐘均已核對。正式驗收 wp-reports/P1-01-acceptance.md。DevExpress保留現版、不升級不續訂；新來源與hosted完整CI暫緩，不宣稱雲端通過。外審為Gemini單模型降級，Claude額度阻擋，未宣稱雙模型完成。"
+    },
+    {
+      "id": "P1-02",
+      "name": "架構測試（R4：相依只能往下）",
+      "status": "done",
+      "note": "真實MSBuild逐目標/NuGet assets、12模型反例、10 XML/實際方案與2程序故障注入共24案通過；Localization全套67/67另含原43案。20261105-113854 Gemini＋Claude 複審 dualModelComplete=true，Critical／Warning 均無；本輪00§8、每目標coverage、打包、編碼與duplicates均過。正式驗收 wp-reports/P1-02-acceptance.md。"
+    },
+    {
+      "id": "P1-03",
+      "name": "Line.Messaging 雙目標與 Webhook 安全",
+      "status": "done",
+      "note": "六類golden先舊net10綠、雙宿主逐字相同；Sender／Background／webhook欄位與raw-byteHMAC及舊HTTP入口均完成。最新96/96、101/101，29份快照本地核對；最終雙模型20261105-140350 dualModelComplete=true、無降級／Critical／Warning，舊C1／W2關閉。正式驗收wp-reports/P1-03-acceptance.md。"
+    },
+    {
+      "id": "P1-04",
+      "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
+      "status": "active",
+      "note": "P1-04 Constants 已抽取；五個純契約67個多載與優化查詢已抽取；補上帳密cache繞過的安全修補，每次核對當前密碼、不快取登入結果。最終ToolUtility net48實載net462 652/652、net10 778/778；Core coverage 92.13%/92.83%、strict零警告/錯誤；全方案16 TRX共2777/2777、ChurchReport623/623。使用者免除雙模型，主會話審查。Contact其餘純查詢、List/MarketingList、其餘Query/CrmAsync尚待處理；整包P1-04未完成，P1仍3/12。D365 預設只讀；未操作VM、D365、LINE。"
+    },
+    {
+      "id": "P1-05",
+      "name": "SpeechMessage.Localization 完整版",
+      "status": "todo",
+      "note": "尚未開始。需完成五層字典解析、具名參數、語言 resolver、關鍵字正規化與衝突守門，並驗證教會 A／B 1,000 次並行不串資料。"
+    },
+    {
+      "id": "P1-06",
+      "name": "教會時鐘與 IANA／Windows 時區對照",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-05；需驗證明確 UTC／當地時間、DST 模糊與無效時間拒絕、生日純日期不移日及雙目標一致。"
+    },
+    {
+      "id": "P1-07",
+      "name": "Money 與幣別格式化",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-05；需驗證幣別白名單、TWD 顯示政策、格式語系不改幣別及跨幣別運算拒絕。"
+    },
+    {
+      "id": "P1-08",
+      "name": "教會覆寫快照快取",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-04、P1-05、P1-10；須先完成租戶 resolver，再實作有界快取、single-flight、完整候選驗證、原快照保留、取消隔離與 Dispose／drain 基線測試。"
+    },
+    {
+      "id": "P1-09",
+      "name": "I18nCheck v2 完整資源檢查",
+      "status": "todo",
+      "note": "尚未開始。需逐規則補正反例，檢查 key／參數／重複、Sender 與 ChatBar 長度、偽語系、跨語系關鍵字衝突及英文完成度報告。"
+    },
+    {
+      "id": "P1-10",
+      "name": "SpeechMessage.Tenancy 與 LINE channel resolver",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-04；集中既有九處設定解析、保留 Jesus 後備並安全告警，加入租戶 A／B 並行隔離，且先於 P1-08。"
+    },
+    {
+      "id": "P1-11",
+      "name": "Deployment 結構 schema／plan／apply／verify",
+      "status": "todo",
+      "note": "尚未開始。依賴 P1-04；先完成唯讀 metadata 匯出與離線 plan／verify，apply 僅新增、核對 fingerprint／plan hash／白名單與冪等性，不改既有結構或輸出業務資料／秘密。"
+    },
+    {
+      "id": "P1-12",
+      "name": "goodshepherdback 結構驗收",
+      "status": "you",
+      "note": "歷史計畫 D24 指定使用者 apply；最新對話另有條件授權必要可逆測試變更，並非任意寫入授權。須確認隔離測試環境、適當備份與可驗證復原後才可執行；目前未確認，維持只讀。不可逆操作與正式資料仍不在授權範圍；不得把 mock／離線驗證寫成實機通過。"
+    }
+  ],
+  "plannedPhaseNotes": [
+    {
+      "phaseId": "階段 2",
+      "source": "正式計畫 03，階段 2",
+      "gate": "目標：送訊核心維持 net462／net10.0 雙目標，D365 Plugin 可直接單人推播；只有宮格圖、QR 圖與撥款查詢使用 new_outboundtask。階段 2、3、4 各自使用階段分支，須驗收後才進下一階段。P2-04 推播實作前必須先完成下方沙箱前置驗收。"
+    },
+    {
+      "phaseId": "階段 3",
+      "source": "正式計畫 03，階段 3",
+      "gate": "依階段順序在階段 2 驗收後開始。P3-01 黃金資料是其餘工作包的行為基準，先做。正式去重必須用平台 SQL；尚未取得平台 SQL 時停止該整合，不得改用記憶體去重。測試 IIS／LINE Developers 的操作依計畫交由使用者。"
+    },
+    {
+      "phaseId": "階段 4",
+      "source": "正式計畫 03，階段 4",
+      "gate": "依階段順序在階段 3 驗收後開始。金流整合限測試環境；金鑰只由部署環境或 Windows 認證保管提供，不進 repo、測試假資料除外。撥款查詢沿用階段 2 對外待辦。"
+    },
+    {
+      "phaseId": "階段 5",
+      "source": "正式計畫 04，階段 5",
+      "gate": "部署至 D365 沙箱的 Plugins／Workflows 一律 net462；共用規則在 GoodShepherd.Core，核心規則測試跑雙目標。P5-04～13 共用盤點、至少三種黃金情境、規則／外殼測試、註冊清單一致性與影子比對流程。首個正式 Plugin 部署前另須先完成 FileVersion 更新與回復前置驗收；goodshepherdback 的 apply、switch、smoke 由使用者操作。"
+    },
+    {
+      "phaseId": "階段 6",
+      "source": "正式計畫 04，階段 6",
+      "gate": "ChurchReport 是現役系統，行為不變為最高優先；各搬移項目須有黃金／既有測試證明。送訊相容薄殼在本階段移除；網頁實際操作由使用者驗收，重複程式基準需對應清除。"
+    },
+    {
+      "phaseId": "階段 7",
+      "source": "正式計畫 04，階段 7",
+      "gate": "正式組織一次只切換一個；Codex 不連正式組織。正式組織必須白名單、明確 --production 與組織名稱確認，且只執行已審核、未過期的 plan。每步先備份並可回復；所有正式 apply／switch 由使用者審核與執行。"
+    },
+    {
+      "phaseId": "階段 8",
+      "source": "正式計畫 04，階段 8",
+      "gate": "最終整合階段。遇到中文文字作為角色比對資料、無可靠教會管理員授權、或任何不可逆資料轉換時，依計畫停止並回報，不自行轉換。完整驗收需涵蓋方案測試、R1～R11、偽語系、教會隔離／資源回收及外部審查。"
+    }
+  ],
+  "plannedWps": [
+    {
+      "phaseId": "階段 2",
+      "id": "P2-01",
+      "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
+      "status": "todo",
+      "scope": "新增 net10 SpeechMessage.Hosting 與 Hosting.Tests；將 LineExceptionSender、ExceptionOutputOptions 搬成唯一可注入通知入口；加入 ICU、偽語系正式環境、ReleasedCultures 完成度啟動檢查；把架構測試搬入 Hosting.Tests，補 R2、R3、R9；ChurchReport 改呼叫共用入口。",
+      "verification": "先鎖既有 ExceptionOutputOptions 行為；測 WriteExceptionLog／SendLine 四種組合、先寫並 flush 才送 LINE、寫檔失敗不送、LINE 失敗不遞迴、有界佇列滿載 stderr、停止 drain／Dispose、呼叫端取消不通知、內部逾時通知；另測 ICU／正式環境偽語系與不完整語系拒絕啟動、R2/R3/R9，ChurchReport 既有測試不變。",
+      "prerequisite": "同時遵守 AGENTS 的例外輸出四種開關契約；不得保存 HttpContext、Session、credential 或建立無界佇列。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-02",
+      "name": "GoodShepherd.Core 雙目標骨架",
+      "status": "todo",
+      "scope": "新增 net462／net10.0 雙目標且啟用 SpeechMessageStrictCode；只參考 ToolUtility.Core、Localization、LineMessagingProcessor.Core、Line.Messaging。建立 Attendance、WeeklyReports、Lessons、Appointments、QrCodes、Care、Fees、Members、Messaging、Notifications 模組目錄與說明，先放 MemberNotificationService。",
+      "verification": "GoodShepherd.Core.Tests 雙目標 smoke 測試通過；兩個產品目標均可建置，且不參考任何僅 net10.0 專案。",
+      "prerequisite": "此工作包只建立骨架，不在空目錄放入尚未核定的業務實作。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-03",
+      "name": "Channel Token 加密封包與安全寫入工具",
+      "status": "todo",
+      "scope": "雙目標實作 ChannelTokenProtector：AES-256-CBC＋HMAC-SHA256、Encrypt-then-MAC、64-byte 分離金鑰與 v1 版本化封包；部署專案新增 protect-token（敏感值只從標準輸入讀取）與 assign-channel，以 new_channelid Upsert。",
+      "verification": "RoundTrip_Net462AndNet10_Compatible、Tampered_Ciphertext_Throws、Tampered_Mac_Throws、WrongKey_Throws、UnknownVersion_Throws、Exception_NeverContainsSecret、Mac_CompareIsConstantTime 均須通過；跨目標互解固定向量，例外固定文字不含明密文，MAC 固定時間比較；工具測白名單組織，輸入不出現在參數／歷史或輸出。",
+      "prerequisite": "Plugin 端 tokenKey 只由 secure configuration 傳入；主機端由 LineChannels:TokenKey 的部署環境或 Windows 認證保管提供，不寫入 appsettings。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-04",
+      "name": "LineMessagingProcessor.Core 完整版與單人推播",
+      "status": "todo",
+      "scope": "完成雙目標傳輸、sender、Retry Key、教會一致性檢查及宮格綁定 API；由 ToolUtility.Core 最小欄位查詢 Contact／Church／Channel，GoodShepherd.Core 組合讀取、NotBound 判斷、語言、字典與推播；允許多間教會共用 Channel，但必須各自使用教會 sender。",
+      "verification": "測 Push_ChurchMismatch_RejectedWithoutHttp、Push_SharedChannel_TwoChurches_EachUsesOwnSender、Notify_MemberNotBound_ReturnsNotBound、Notify_UsesMemberLanguage_ZhTwAndPseudo、Notify_RetryKeyIsSourceRecordId、Notify_ColumnSetIsMinimal、LinkRichMenu_AliasNotFound_Permanent、Notify_ParallelDifferentChurches_NoCrossTalk；拒絕時不得呼叫 LINE。",
+      "prerequisite": "正式推播工作前須由使用者完成 03 的 P2-04 沙箱前置：確認骨架 trace 驗收及測試 channel／本人測試帳號；User Secrets 設 TestChannelToken／TestLineUserId，只在 secureConfig／unsecureConfig 使用佔位名稱；以同一 DiagnosticsPingPlugin、步驟身份與 enabled=true 審核 plan，使用者執行 apply／verify／smoke。需見手機收到測試訊息、Outcome=Accepted、Status=200、有效 RequestId，且追蹤不含 token、內文、lineUserId；成功或失敗後都由使用者恢復 trace、清空 secureConfig、停用步驟並 verify=0。不得使用正式 channel，秘密不得記錄於 repo、命令列或回報。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-05",
+      "name": "Flex 範本引擎與 sender 範本",
+      "status": "todo",
+      "scope": "在 LineMessagingProcessor.Core/Templates 建立雙目標引擎；Flex JSON 以嵌入資源保存，支援 {{t:Key}} 字典文字及 {{v:name}} 資料替換並做 JSON 跳脫；每份範本必須有 altText key。sender 由發送端依教會產生，超過 20 字先改用 Brand.ShortName，仍超長即拒絕。",
+      "verification": "Fill_TextAndValuePlaceholders、Fill_ValueWithQuotesAndNewlines_EscapedValidJson、Template_MissingAltText_Throws、Sender_LongChurchName_UsesShortName、Sender_StillTooLong_Throws、Fill_PseudoLocale_AllTextWrapped 均須通過；每份範本另有黃金檔測試。",
+      "prerequisite": "不得由呼叫端任意指定 sender；範本文字全部經 ITextCatalog。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-06",
+      "name": "合併 PushUtility、ReplyUtility、LineUtilityClass 副本",
+      "status": "todo",
+      "scope": "盤點主方案與兩個舊方案的 PushUtility 5 份、ReplyUtility 4 份、LineUtilityClass 3 份及各公開方法；以最完整副本為基底，推播轉呼叫 Core，Reply／多訊息／內容下載保留 net10 主機層；舊 API 先留 Obsolete 薄殼。",
+      "verification": "每個公開方法以假 HTTP handler 鎖 URL、遮罩 Token 後的標頭與 body 黃金資料；新入口結果須與黃金相同，僅逐項記錄計畫核准新增的 X-Line-Retry-Key 與 sender 差異。",
+      "prerequisite": "薄殼到階段 6 才移除；遇副本行為差異且無證據判定時停止，不任意選邊。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-07",
+      "name": "對外待辦 Writer 與有界 Worker",
+      "status": "todo",
+      "scope": "雙目標 OutboundTaskWriter 僅接受 RichMenuGenerate、QrImageGenerate、AllotQuery，payload 白名單只放 ID／數值，以替代索引鍵 Upsert 冪等；Hosting OutboundTaskWorker 每 5 秒查 statuscode=待處理 且 new_nextattempton<=UtcNow 或空值、每批最多 50 筆，以 IfRowVersionMatches 認領，逐筆按教會讀設定，支援退避、卡住重領、停止 drain 與保留期限。",
+      "verification": "Enqueue_SameIdempotencyKey_SingleRecord、Enqueue_PayloadWithText_Rejected、Claim_TwoWorkersParallel_OnlyOneExecutes、Retry_429_BackoffSchedule、Retry_ExceedsMax_FailedAndNotified、StaleProcessing_Reclaimed、Shutdown_DrainsCurrentBatch_WithinTimeout、Worker_ResourceCountsReturnToBaseline 均須通過；退避為 1/2/4/8/16 分鐘最多 5 次，處理中超過 10 分鐘可重認領，停機最多等待 30 秒；完成保留 30 天、失敗保留 90 天。",
+      "prerequisite": "只處理三種核定待辦；每筆使用自己的 churchId 設定，不跨批次共用教會資料。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-08",
+      "name": "宮格多語產生器",
+      "status": "todo",
+      "scope": "RichMenuGenerateHandler 只為已啟用語系產生 8 張宮格，圖中文字使用字典與教會覆寫；alias 格式受限且最多 32 字，qps-ploc 縮寫 qps；ImageSharp 合成位於 net10 RichMenus。",
+      "verification": "沿用 RichMenus 特性測試並新增 Alias_Format_MaxLength32、Generate_OnlyEnabledCultures、Generate_CapacityInsufficient_FailsBeforeUpload、ChatBarText_TooLong_Rejected、Generate_PseudoLocale_AliasUsesQps；Channel 容量 1,000 張，不足時上傳前失敗，chatBarText 不超過 14 字。",
+      "prerequisite": "經 P2-07 對外待辦處理；不得為未啟用語系生成或上傳。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-09",
+      "name": "QR 內容編碼與圖片產生處理器",
+      "status": "todo",
+      "scope": "QR 內容編碼放在雙目標 GoodShepherd.Core/QrCodes，供產生端及 ChurchReport 掃碼端共用；net10 待辦處理器使用 ZXing.Net＋ImageSharp 產生圖片。",
+      "verification": "對內容編碼／解碼建立黃金測試；實際產圖再以 ZXing 解碼，必須回到同一內容。",
+      "prerequisite": "圖片工作經 P2-07 QrImageGenerate 待辦執行；不把 net10 圖片依賴帶入雙目標核心。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-10",
+      "name": "改字時間輪詢背景服務",
+      "status": "todo",
+      "scope": "Hosting 的 TextChangePollingService 每 30 秒查詢 new_textchangedon 大於上次查詢時間減 2 分鐘的教會，只讓實際變更的教會快照失效。",
+      "verification": "測 Poll_OnlyChangedChurchesInvalidated、Poll_D365Unavailable_KeepsSnapshotsAndRetries、Poll_OverlapWindow_NoMissedChange；以可控時間證明重疊窗不漏變更。",
+      "prerequisite": "使用 P1-08 快照快取的逐教會失效介面；D365 故障時保留舊完整快照並可重試。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-11",
+      "name": "推播整條鏈骨架驗證",
+      "status": "todo",
+      "scope": "升級 DiagnosticsPingPlugin 的 mode=member：以 task 關聯 Contact，呼叫 MemberNotificationService 完成讀取與解密 Channel、教會檢查、語言、範本、單人推播，Retry Key 使用 task ID。",
+      "verification": "Plugins.Tests 以假服務驗證正常、教會不符、未綁定、偽語系四情境；教會不符與未綁定不得誤送。",
+      "prerequisite": "先完成 P2-04 推播鏈與必要範本；此測試骨架不取代沙箱實收驗收。"
+    },
+    {
+      "phaseId": "階段 2",
+      "id": "P2-12",
+      "name": "使用者推播鏈驗收",
+      "status": "todo",
+      "scope": "編寫驗收/P2_推播鏈驗收步驟.md，涵蓋測試 Token 寫入、偽語系會友、關聯 task 收訊、跨教會拒絕、重跑抑制重複及兩程序併發只產生一次宮格待辦。",
+      "verification": "依文件由使用者在測試 channel／本人帳號實際驗收：偽語系手機收訊、異教會不送、作業重跑不重複、兩主機同時處理同一待辦只產生一次；保留去識別化的結果證據。",
+      "prerequisite": "不可用 Mock 或單元測試冒充實機收訊；憑證不得寫入文件、命令列、repo 或回報。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-01",
+      "name": "Webhook 舊行為黃金資料",
+      "status": "todo",
+      "scope": "新增不進方案的 net10 LegacyGolden 工具，唯讀轉碼舊 CP950 關鍵字來源，產生 103 個關鍵字與變形對應意圖；建立 12 種 LINE 事件 JSON 樣本及遮罩個資的舊回覆型態／處理器參數。",
+      "verification": "黃金資料需可重跑、涵蓋全數 103 關鍵字及 12 類事件；以靜態可知內容保存回覆類型／文字，依賴 D365 的情境記錄處理器與參數。",
+      "prerequisite": "12 類事件為 message(text/image/audio/location/sticker)、follow、unfollow、join、leave、postback、accountLink、memberJoined。轉碼僅進暫存，不修改 .其他解決方案 原檔；真實錄製資料只有在使用者提供遮罩樣本時才採用。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-02",
+      "name": "LineWebhook 主機專案與端點",
+      "status": "todo",
+      "scope": "新增 net10 LineWebhook；Program 只負責組裝共用註冊；提供 POST /api/line/webhook/{channelId}，舊 /api/callback 僅由設定控制且預設關閉；接收 body 後依序限長、驗簽、解析、逐事件去重、入佇列、回 200。",
+      "verification": "端點契約確認 body 上限 1 MiB、驗簽失敗 401、佇列滿 503、正常受理 200；不得保留「任何錯誤皆回 Ok」或把 HttpContext 放進背景資料。",
+      "prerequisite": "依 R2 保持主機只組裝；P4 完成後再註冊 Payments；佇列／去重失敗必須明確回錯誤供 LINE 重送。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-03",
+      "name": "Webhook 簽章驗證",
+      "status": "todo",
+      "scope": "Tenancy 依 channelId 取得 Channel secret，呼叫 P1-03 LineSignature.Verify 驗證收到的原始 body；空 secret 的 Channel 在啟動時拒絕，不得略過驗簽。",
+      "verification": "Webhook_InvalidSignature_401、Webhook_EmptySecretChannel_RejectedAtStartup、Webhook_BodyTooLarge_413。",
+      "prerequisite": "舊 ChannelSecret 空值須補齊；secret 不得記錄。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-04",
+      "name": "平台 SQL Webhook 去重",
+      "status": "todo",
+      "scope": "建立 LineWebhookEvent，以 (ChannelId, WebhookEventId) 複合主鍵原子 INSERT；Microsoft.Data.SqlClient 讀取 ConnectionStrings:Platform，SQL timeout 5 秒；每日清除 7 天前事件。",
+      "verification": "測同事件第二次為重複、SQL timeout 回 503、不同 Channel 同 EventId 不互斥、只清 7 天前資料；SQL 整合測試用 LocalDB／Docker，環境缺席須明確標示未驗證。",
+      "prerequisite": "平台 SQL 連線由使用者提供；尚未提供時停止正式去重整合，不得改用記憶體實作上正式環境。Timeout 一律視為失敗並 503，不可繼續處理。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-05",
+      "name": "有界佇列與背景事件處理",
+      "status": "todo",
+      "scope": "Channel<WebhookEnvelope> 容量 1,000、Wait 模式與 2 秒寫入逾時；預設 4 個 worker，依 userId hash 分區保序；每事件 30 秒期限；停止時停收、最多 drain 30 秒後取消剩餘。",
+      "verification": "測 Queue_Full_Returns503、SameUser_EventsProcessedInOrder、DifferentUsers_ProcessedConcurrently、Shutdown_DrainsWithinTimeout、Envelope_ContainsNoHttpContext、ResourceCounts_ReturnToBaseline。",
+      "prerequisite": "佇列只存已解析事件與 Channel 識別，不得保存 HttpContext；CTS、背景工作與剩餘事件須有限期且確實 Dispose。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-06",
+      "name": "事件分派與舊處理器移植",
+      "status": "todo",
+      "scope": "依 P3-01 黃金逐事件移植 LineBotApp partial、Handler、WebhookMessageProcessor 與 Crm2011Processor；業務規則放 GoodShepherd.Core，主機僅 adapter；每個處理器標註來源檔與行範圍。",
+      "verification": "每種事件先有黃金再搬移；語音上傳修正 Authorization Bearer 前綴並測正確標頭；跨事件結果與舊黃金一致，必要行為變動須有逐項理由。",
+      "prerequisite": "不移植以姓名＋手機綁定身分的舊 LINE 流程；副本邏輯衝突且無權威資料時依 00 停止條件回報。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-07",
+      "name": "關鍵字路由改用 IKeywordCatalog",
+      "status": "todo",
+      "scope": "把 103 個中文關鍵字置入 GoodShepherdText.resx，key 使用 Keyword.{意圖}，保留完全相符／前綴比對；英文只放既有 Pray、Report、QR、RPG、ID、Notify。",
+      "verification": "Routing_AllLegacyKeywords_SameIntent 必須 100% 對上 P3-01；另測英文不分大小寫及偽語系會員仍可用中文關鍵字。",
+      "prerequisite": "字典是唯一來源；不得因使用者語言或顯示文字改變授權判定。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-08",
+      "name": "Webhook 回覆、letter 紀錄與例外處理",
+      "status": "todo",
+      "scope": "以 Reply API 回覆，sender 依教會與會友語言產生；搬入中文字串全走字典；每筆入站訊息寫 letter 作紀錄但不觸發 Plugin，階段 5 OutboundLetterPlugin 僅處理外送方向。",
+      "verification": "證明入站 letter 不觸發推播、回覆依語系與教會、文字皆有字典來源；失敗傳遞真實 Exception 至 Hosting 共用通知入口，移除推送開發者個人 LINE 的舊路徑。",
+      "prerequisite": "依 D19 保留入站紀錄語義；正常取消與預期拒絕不告警，真正失敗不得吞掉或丟失原始 Exception。"
+    },
+    {
+      "phaseId": "階段 3",
+      "id": "P3-09",
+      "name": "Webhook 使用者驗收",
+      "status": "todo",
+      "scope": "編寫驗收/P3_Webhook驗收步驟.md，列出測試 IIS（DMZ）、憑證、LINE Developers Verify、10 個常用關鍵字、偽語系、redelivery 與錯誤簽章驗證。",
+      "verification": "使用者在測試主機驗證：中文會友回覆與出席紀錄正確、偽語系字串包裹、重送事件只處理一次、錯誤簽章回 401。",
+      "prerequisite": "IIS／LINE Developers 操作由使用者執行；測試 channel Webhook URL 指向測試主機。"
+    },
+    {
+      "phaseId": "階段 4",
+      "id": "P4-01",
+      "name": "盤點金流副本並鎖定舊行為",
+      "status": "todo",
+      "scope": "比對主方案 Payments／ChurchReport、LineApiWebhook Payment.Infrastructure、Dynamics365Line 的 Allot Plugin／Workflow；逐能力列出建單、查詢、撥款、回呼驗證及 HashCode 差異，標示舊寫死金鑰來源但不複製。",
+      "verification": "固定輸入與測試假金鑰鎖 HashCode 舊輸出；請求／回應序列化建立黃金檔。",
+      "prerequisite": "舊金流副本不一致時保留差異與證據，不以正式秘密測試或推定來源。"
+    },
+    {
+      "phaseId": "階段 4",
+      "id": "P4-02",
+      "name": "金額模型改用 Money",
+      "status": "todo",
+      "scope": "Payments 公開模型以 Money 表達金額與幣別；舊呼叫以標記 Obsolete 的相容轉接維持現行使用者。",
+      "verification": "Money_TwdRoundTrip_NoDecimalLoss 及 CreateOrder_UnsupportedCurrency_Rejected；確認不遺失 TWD 精度且不支援幣別明確拒絕。",
+      "prerequisite": "沿用 P1-07 幣別白名單／格式契約，格式語系不得改變幣別。"
+    },
+    {
+      "phaseId": "階段 4",
+      "id": "P4-03",
+      "name": "永豐 AllotQuery 對外待辦處理器",
+      "status": "todo",
+      "scope": "將 AllotTlsWorkflow 核心流程改為 net10 AllotQueryHandler；依待辦查詢永豐並按舊契約回寫收費單。",
+      "verification": "特性測試鎖定回寫欄位；網路錯誤／5xx 可重試，查無資料等業務結果不重試且照實回寫。",
+      "prerequisite": "只使用 P2-07 核定 AllotQuery 任務；不把正式金鑰帶入程式或測試。"
+    },
+    {
+      "phaseId": "階段 4",
+      "id": "P4-04",
+      "name": "永豐金鑰改用具名設定檔",
+      "status": "todo",
+      "scope": "改用 Payments:Sinopac:Profiles:{profileName} 與 Tenancy 的 SinopacProfile；移除 XKey.config 15 組金鑰 ID、HashCode 常值及 D:\\XKeyConfig\\ 讀檔。",
+      "verification": "測缺設定 fail-closed、租戶 A 不可使用租戶 B profile、Source_NoHardcodedKeys 掃描為 0；只用假金鑰測試。",
+      "prerequisite": "正式值由環境變數或 Windows 認證保管提供，不進 repo；測試不使用正式設定。"
+    },
+    {
+      "phaseId": "階段 4",
+      "id": "P4-05",
+      "name": "付款回呼端點移入 LineWebhook",
+      "status": "todo",
+      "scope": "在 LineWebhook 註冊 Payments.AspNetCore ATM 與信用卡回呼；ChurchReport 舊回呼在階段 7 切換完成前持續運作。",
+      "verification": "覆蓋回呼驗簽、相同回呼冪等處理、金額與幣別一致性。",
+      "prerequisite": "金流回呼依各供應商契約驗簽、驗證重複回呼冪等與金額／幣別一致性；不提前停掉 ChurchReport 回呼。"
+    },
+    {
+      "phaseId": "階段 4",
+      "id": "P4-06",
+      "name": "永豐測試環境使用者驗收",
+      "status": "todo",
+      "scope": "撰寫並執行測試環境驗收流程：建立收費單、觸發撥款查詢待辦、確認結果回寫，再以同一事件重觸發。",
+      "verification": "使用者在永豐測試環境確認回寫正確且同一筆只執行一次；保存不含秘密的驗收證據。",
+      "prerequisite": "限永豐測試環境及核定測試資料；無測試環境／憑證時標記實機阻塞，不以 Mock 冒充。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-01",
+      "name": "Plugin 外殼、共用 Infrastructure 與測試替身",
+      "status": "todo",
+      "scope": "在 net462 Plugins.Infrastructure 建立不可變 PluginInput、PluginShellBase、StepConfiguration、RecordingOrganizationService、ShadowPushRecorder；Workflows 以原始碼連結共用；Plugins.Tests 建立服務／執行內容／追蹤／服務提供者替身。",
+      "verification": "測 Depth>2 不執行、Shadow 不寫入且完整記錄、不推播、業務錯誤帶事件 ID、未預期錯誤重新拋出、錯誤設定繁中拒絕、大 payload 分段。",
+      "prerequisite": "外殼只負責 adapter；異常不可吞掉。影子模式的讀取轉交真實服務，寫入與推播只記錄而不執行；不得記錄 token、secret 或多餘個資。離線測試使用合成資料。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-02",
+      "name": "LegacyGolden.PluginHarness 舊程式黃金產生器",
+      "status": "todo",
+      "scope": "建立不進 .sln 的 net48 離線 harness，將舊 Plugin 原始碼以 Compile Include 編入暫存 UTF-8 副本；替換 LINE、檔案與 Trace 為只記錄呼叫的替身，輸出合成情境下 D365 寫入／LINE 呼叫 JSON。",
+      "verification": "以全合成輸入執行 harness，產生可追溯的 Legacy 情境黃金檔並驗證 D365 寫入／LINE 呼叫輸出；使用指定 CRM SDK 相容版本。舊碼無法編譯時改由 P5-03 影子模式比對，並在回報標記。",
+      "prerequisite": "唯讀舊來源；轉碼只放暫存，絕不修改舊方案原檔。輸入不得含真實個資或秘密。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-03",
+      "name": "部署專案 shadow 比對與切換前置",
+      "status": "todo",
+      "scope": "把 shadow 指令整合至 Dynamics.Deployment，解析新 Plugin 影子追蹤與舊 Plugin 實際欄位並輸出逐欄差異；支援映像、Workflow 群組、switch、ui-export／ui-import。",
+      "verification": "離線測欄位相同、不同、單側存在三種比對；切換前影子差異必須為 0，輸出 artifacts/shadow/{日期}.md。",
+      "prerequisite": "D365 僅 goodshepherdback 白名單且唯讀；apply、switch、smoke 與正式步驟由使用者執行。以下是階段 5 共同關卡，非 P5-03 專屬驗收：首個正式 Plugin 前完成 FileVersion 追蹤；AssemblyVersion 固定 1.0.0.0、只遞增 SpeechMessageBuildNumber，plan 只含 UpdateAssembly；保存更新前 export，rollback 後確認步驟 ID 不變、版本回到第一版，最後停用並清理。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-04",
+      "name": "Plugin 模組：國際化與語系變更",
+      "status": "todo",
+      "scope": "新增 LocalizedTextChangedPlugin、MemberLanguageChangedPlugin、ChurchLocaleChangedPlugin；前者更新改字時間，會員語言變更直接換綁宮格，教會語系變更同步驗證並非同步建立 RichMenuGenerate。",
+      "verification": "依共用 P5 流程完成盤點、至少正常／邊界／錯誤黃金、雙目標 LanguageRule 測試、net462 外殼測試、註冊清單一致性與影子差異 0。",
+      "prerequisite": "沿用 P1 Localization／P1-08、P2-08 宮格語系規則；異步工作須具備逾時、隔離與停止清理。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-05",
+      "name": "Plugin／Workflow 模組：週報",
+      "status": "todo",
+      "scope": "以 WeeklyReportStatisticsPlugin（PreImage）、WeeklyReportNotificationPlugin（非同步單人推播）與 WeeklyReportGenerationActivity 承接 WeeklyReportPlugIn、WeeklyReportLinePlugIn、WeeklyReportWorkflow。",
+      "verification": "週報統計／通知／活動黃金資料；按共用 P5 流程完成規則雙目標、外殼、註冊清單一致性及影子差異 0。",
+      "prerequisite": "黃金基準來自舊程式；通知使用 P2 MemberNotificationService 並遵守 Retry Key 與教會隔離。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-06",
+      "name": "Plugin 模組：出席通知",
+      "status": "todo",
+      "scope": "以 PresentRecordPlugin（PreImage、非同步推播）承接 PresentRecordLinePlugIn，規則集中 Attendance/PresentRecordNotificationRule。",
+      "verification": "出席正常／邊界／錯誤黃金；規則雙目標、外殼及註冊清單／DLL 一致性測試，影子比對差異 0。",
+      "prerequisite": "單人推播、會友／來源教會一致性與通知失敗回寫依 P2 共用契約。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-07",
+      "name": "Plugin／Workflow 模組：課程與設備",
+      "status": "todo",
+      "scope": "整合 DiscipleLessonsPluIn、QrCodeWorkflow、StorLessonSignningPlugIn、StorLessonSigningWorkflow、StorLessonSigningLibrary、TwoWingsPlugIn、YangMeillcStorLessonsPlugIn、EquipmentWorkflow，建立 LessonLinkPlugin、StorLessonSigningPlugin、StorLessonSigningActivity、LessonProgressionPlugin、EquipmentStatusActivity；兩套進階評估合為一個引擎。",
+      "verification": "逐能力建立正常／邊界／錯誤黃金；規則雙目標、Plugin／Workflow 外殼、WorkflowInvoker 輸入輸出與註冊一致性；影子差異 0。",
+      "prerequisite": "兩套進階評估差異寫入教會設定（R3），不得按組織代碼分支；QR 圖片使用 P2 待辦。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-08",
+      "name": "Plugin／Workflow 模組：預約簽核",
+      "status": "todo",
+      "scope": "整合 AppointmentPlugIn、AppointmentSigning、AppointmentWorkflow、AppointmentSigningLibrary，建立 AppointmentPlugin 與 AppointmentSigningActivity；規則位於 Appointments/AppointmentSigningRule。",
+      "verification": "簽核正常／邊界／錯誤黃金、雙目標規則及 WorkflowInvoker 參數相容、外殼與步驟註冊一致性，影子差異 0。",
+      "prerequisite": "Workflow 公開 Input／Output 名稱與型別維持舊契約；變更參數時新增 V2 類別。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-09",
+      "name": "Workflow 模組：會議與個人 QR",
+      "status": "todo",
+      "scope": "整合 SundayQrCodeWorkflow、CalculateQrCodeScanNumberWorkflow、PersonalQrCodeWorkflow，建立 MeetingQrCodeActivity、MeetingScanCountActivity、PersonalQrCodeActivity；需要圖片時建立 QrImageGenerate。",
+      "verification": "QR 內容與掃描計數黃金；活動輸入輸出、規則雙目標、註冊清單／DLL 一致性及影子比對差異 0。",
+      "prerequisite": "內容編碼使用 P2-09 GoodShepherd.Core 共用實作；圖片由 net10 待辦處理器產生。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-10",
+      "name": "Workflow 模組：新朋友關懷與紀念日",
+      "status": "todo",
+      "scope": "整合 NewPersonCareWorkflow、HappyBirthdayWorkflow、RecursiveWorkflow，建立 NewPersonCareActivity、ContactAnniversaryActivity；D365 遞迴流程仍照舊呼叫。",
+      "verification": "關懷／生日／年資黃金含正常、邊界、錯誤；雙目標規則、活動參數與外殼驗證，註冊一致性、影子差異 0。",
+      "prerequisite": "「今天」由教會 IChurchClock 決定；祝福 Retry Key 由類型＋會友 ID＋教會當地日期產生固定 GUID。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-11",
+      "name": "Plugin／Workflow 模組：收費分攤與通知",
+      "status": "todo",
+      "scope": "整合 AllotPlugIn、AllotWorkflow、AllotTlsWorkflow、FeePushLineWorkflow；建立 FeeAllotPlugin（建立 AllotQuery 待辦）、FeeAllotActivity、FeeNotifyActivity（非同步單人推播）。",
+      "verification": "收費／分攤／通知黃金，查詢待辦回寫與通知結果測試；規則雙目標、外殼、註冊一致性與影子差異 0。",
+      "prerequisite": "撥款查詢走 P2-07／P4-03；通知 Retry Key 使用收費單 ID。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-12",
+      "name": "Plugin 模組：外送訊息與快速群發",
+      "status": "todo",
+      "scope": "由 OutboundLetterPlugin 承接約 19,892 行 LineMessagePlugIn 的核定行為，只處理 letter 外送方向，單活動只直接推播 1 人，並支援設計 10.10 的快速行銷活動；依 Messaging/OutboundLetterRule 實作。",
+      "verification": "鎖住入站略過、單人 Retry Key＝活動 ID、異教會／未綁定／封鎖處理、429 系統重試、內容不變與框架字典化；100 活動各自獨立推播／Key、系統作業重跑不重送、架構掃描禁止 multicast／broadcast。",
+      "prerequisite": "更新活動成功／失敗原因代碼；LineWebhook 每 5 分鐘彙總達門檻失敗並先寫 Exception.log 再通知。不得以多播繞過逐收件者隔離。"
+    },
+    {
+      "phaseId": "階段 5",
+      "id": "P5-13",
+      "name": "確認不移植的範本、範例與已終止功能",
+      "status": "todo",
+      "scope": "依計畫不移植 TemplatePlugIn、ExampleWorkflow、WorkflowTemplate、除錯版 NewPersonCareWorkflow、Line.NotifyBot 與 Trace。",
+      "verification": "以新註冊清單／DLL 一致性及引用檢查證明上述舊功能均未移植；保留不移植理由，不建立空殼代替刪除。",
+      "prerequisite": "Line.NotifyBot 已於 2025-03-31 終止；SmsPlugInClassLibrary 與 SnsPlugInDatabase 因來源未提供而暫緩，不自行搜尋或實作。"
+    },
+    {
+      "phaseId": "階段 6",
+      "id": "P6-01",
+      "name": "ChurchReport QR 工具改用共用核心",
+      "status": "todo",
+      "scope": "ChurchReport 的 QrCodeUtility、SundayQrCodeUtility、PersonalQrCodeUtility、SmallGroupQrCodeUtility 改呼叫 GoodShepherd.Core/QrCodes 並移除重複實作。",
+      "verification": "同一批掃碼 QR 內容的新舊解析黃金結果完全相同；既有 ChurchReport 測試全綠，Find-DuplicateCode 相應重複移除。",
+      "prerequisite": "先完成 P2-09 共用 QR 編碼；維持現役 ChurchReport 行為不變。"
+    },
+    {
+      "phaseId": "階段 6",
+      "id": "P6-02",
+      "name": "ChurchReport 週報改用共用核心",
+      "status": "todo",
+      "scope": "ChurchReport 週報改呼叫 GoodShepherd.Core/WeeklyReports，移除重複計算實作。",
+      "verification": "以階段 5 取得的資料建立週報計算黃金測試；ChurchReport 全部既有測試全綠，相關重複基準清除。",
+      "prerequisite": "先完成 P5-05 週報規則；QR 簽到與週報頁面需由使用者在測試站確認。"
+    },
+    {
+      "phaseId": "階段 6",
+      "id": "P6-03",
+      "name": "移除送訊 Obsolete 薄殼",
+      "status": "todo",
+      "scope": "刪除 P2-06 為相容保留的 PushUtility、ReplyUtility、LineUtilityClass 薄殼，呼叫點改直接使用新共用入口。",
+      "verification": "ChurchReport 既有測試全綠；P2-06 每個公開方法的黃金檔維持相同，送訊類重複基準移除。",
+      "prerequisite": "先完成 P2-06 並盤點全呼叫點；不得改變現役送訊行為。"
+    },
+    {
+      "phaseId": "階段 6",
+      "id": "P6-04",
+      "name": "移除 AddToolUtility 舊多載",
+      "status": "todo",
+      "scope": "移除 AddToolUtility 舊多載，ChurchReport 明確傳入產品鍵 ChurchReport。",
+      "verification": "連線鍵測試證明不同產品隔離、ChurchReport 仍使用正確租戶設定；全套既有測試通過。",
+      "prerequisite": "以 P1-04 已建立的 product／連線池隔離契約為前置；不得使同一 host 的不同產品共用錯誤連線。"
+    },
+    {
+      "phaseId": "階段 6",
+      "id": "P6-05",
+      "name": "搬移範圍文字國際化與棘輪更新",
+      "status": "todo",
+      "scope": "只將本次搬移部分的顯示文字改由字典提供；未搬移舊頁維持現狀，依決定 I6 用棘輪控管。",
+      "verification": "I18nCheck ChurchReport 違規數下降並更新精確基準；共用搬移範圍繁中／偽語系輸出正確。",
+      "prerequisite": "不擴張為整個 ChurchReport 全面翻譯；不得以提高基準或排除新增檔案通過。"
+    },
+    {
+      "phaseId": "階段 6",
+      "id": "P6-06",
+      "name": "評估並處理 ASP.NET Core 2.2 套件",
+      "status": "todo",
+      "scope": "逐專案評估 Microsoft.AspNetCore.* 2.2.x 在 net10 專案的實際用途；不需要則移除，需要則保留並記錄依據。",
+      "verification": "依選擇執行 Release 建置與既有測試，確認沒有缺少必要 API 或引入新套件警告。",
+      "prerequisite": "不得為減少套件而破壞既有行為，也不得關閉 NuGet audit 或警告。"
+    },
+    {
+      "phaseId": "階段 7",
+      "id": "P7-01",
+      "name": "Deployment 正式組織白名單與 switch／rollback",
+      "status": "todo",
+      "scope": "正式組織僅於本包開放並加入白名單；支援 export、plan --switch-to、switch、rollback、verify，switch 前自動 export 並逐步留存記錄；流程自訂活動變更產生人工清單。",
+      "verification": "測 switch 再 rollback 回到 export 狀態；缺少 --production／組織確認錯誤、非白名單、plan 雜湊不符或組織現況已變均拒絕。",
+      "prerequisite": "Codex 不連正式組織；正式組織每次 apply／switch 只能由使用者在維護時段審核 plan 後執行。任何 plan 必須綁定組織、雜湊與當前快照。"
+    },
+    {
+      "phaseId": "階段 7",
+      "id": "P7-02",
+      "name": "逐組織切換與回復手冊",
+      "status": "todo",
+      "scope": "編寫驗收/P7_組織切換手冊.md；每步列操作、檢查、回復及預估時間；順序為 goodshepherdback、使用量最小、使用量最大教會。",
+      "verification": "每組織設定 zh-TW／Asia/Taipei、寫入 Channel、完整匯出舊 DLL 後才停用；觀察一週無新增錯誤、舊 DLL 移除、語系與時區通過驗證。",
+      "prerequisite": "contact／account 共用實體表單不打包，新增欄位需人工調整；切換期間一次只動一個組織，apply／switch 由使用者審核及執行。"
+    },
+    {
+      "phaseId": "階段 8",
+      "id": "P8-01",
+      "name": "奉獻類別 new_offeringcategory 與安全遷移",
+      "status": "todo",
+      "scope": "先核實 new_fee.new_category 與奉獻預約 new_dedication_category 的實體／欄位來源及所有寫死點：DonationFeePaymentProcessor、RecurringDonationPaymentProcessor、DonationPaymentView、KeyInDedicationFeeViewWeb、DonationPaymentProcessor.EntityMapper、DonationPaymentFormModel、DonationPaymentModelAssembler、PaymentFeeTypeHelper；新增 plan/apply/verify：依教會與選項值列計畫，替代鍵 Upsert、每批 100 筆、可續跑回填 lookup；讀取優先 lookup，過渡期空值才讀選項。",
+      "verification": "Plan_GroupsByChurchAndOptionValue、Plan_SimilarNames_NotMerged、Apply_TwiceIdempotent、Apply_ResumeAfterInterruption、Read_LookupPreferredOverOptionSet、List_SameNameDifferentIds_BothKept、List_DuplicateId_PublicationRejected、Settings_ChurchA_CannotSeeChurchB 均須通過；verify 每教會有選項但無 lookup 筆數為 0。",
+      "prerequisite": "名稱不是資料列身分：不同 ID 即使同名仍保留；同一消費集合出現重複 ID 時拒絕發布並診斷。資料寫入／apply 依計畫由使用者審核執行，不刪除或合併舊選項。"
+    },
+    {
+      "phaseId": "階段 8",
+      "id": "P8-02",
+      "name": "角色代碼、字典名稱與教會覆寫",
+      "status": "todo",
+      "scope": "以 Role.PastorCouple、Role.ZoneShepherd、Role.ZoneLeader、Role.GroupLeader、Role.AssistantGroupLeader、Role.CoreWorker、Role.Member、Role.NotInGroup、Role.Newcomer、Role.OtherChurch、Role.Closed 等核定代碼作權限依據；中文顯示名稱來自 GoodShepherdText.resx 並可依教會覆寫；更新 PersonalController 與群組格線固定清單。",
+      "verification": "RoleNames_ChurchOverride_AssistantGroupLeaderShowsInternLeader、RolePermission_IndependentOfDisplayName、RoleList_OtherChurchOverrideNotApplied 均須通過；權限只看角色代碼。",
+      "prerequisite": "先盤點 D365 儲存方式；若目前以中文文字存放且程式用其比對，必須停止回報，先核定資料轉換，不可自行轉換。"
+    },
+    {
+      "phaseId": "階段 8",
+      "id": "P8-03",
+      "name": "ChurchSettings 教會設定網頁",
+      "status": "todo",
+      "scope": "新增 ChurchSettings 區域：GoodShepherd.Core/Settings/ChurchTermWhitelist 白名單名詞的系統預設／教會名稱／預覽／還原；奉獻類別新增、停用、排序與會計科目；D365 audit 與修改紀錄查詢；改字 60 秒內生效。",
+      "verification": "Save_NonAdmin_Forbidden、Save_ChurchIdFromRequestIgnored、Save_TooLong_Rejected、Save_NonWhitelistedKey_Rejected、Reset_RemovesOverride、Save_ScriptInput_EncodedOnOutput 均須通過；另驗 CSRF／XSS。",
+      "prerequisite": "教會由伺服器依登入者判定，不接受 request 的教會 ID；先證明 ChurchReport 有可靠的教會管理員授權，沒有即停止。名詞只接受 ChurchTermWhitelist。"
+    },
+    {
+      "phaseId": "階段 8",
+      "id": "P8-04",
+      "name": "偽語系全面人工瀏覽驗收",
+      "status": "todo",
+      "scope": "新增 tools/PseudoLocaleAudit net10 Playwright 有頭工具依 audit-urls.json 走訪 ChurchSettings、LIFF 及共用層搬移頁面；偵測含中文未被［］包住及 scrollWidth 大於 clientWidth 的截斷；輸出日期報告並彙整 LINE 自動測試。",
+      "verification": "未包裹中文為 0；截斷為 0 或逐項有可接受理由；LINE 訊息結果彙整 P2-05、P3-07、P5 測試。",
+      "prerequisite": "由使用者在有頭瀏覽器人工登入；工具不保存任何帳密。依 I6 列出排除的 ChurchReport 舊頁與原因，按設計 16.4 驗收腳本執行。"
+    },
+    {
+      "phaseId": "階段 8",
+      "id": "P8-05",
+      "name": "移除過渡相容層並完成收尾基準",
+      "status": "todo",
+      "scope": "移除已不再需要的轉接程式、功能旗標、Obsolete 成員；確認無使用後移除 /api/callback 相容路由；重整重複程式基準並產生全範圍編碼報告。",
+      "verification": "duplicate-baseline.json 僅留下已知且說明理由項目；Test-TextEncoding -Scope All 報告剩餘舊檔；方案 37 專案建置／測試、R1～R11、切換組織 verify、偽語系、教會隔離與資源回基線均通過，無未處理 Critical／High。",
+      "prerequisite": "v3.3 Word 已完成 Token AES-CBC＋HMAC 與 Channel 共用修正，這不是待修改項目；前置階段未驗收不得宣告整體收尾。"
+    }
+  ],
+  "phases": [
+    {
+      "id": "階段 0",
+      "name": "準備、守門與可行性驗證",
+      "est": "5～8 天",
+      "total": 18,
+      "done": 18,
+      "active": 0,
+      "current": false
+    },
+    {
+      "id": "階段 1",
+      "name": "基礎層與國際化地基",
+      "est": "12～16 天",
+      "total": 12,
+      "done": 3,
+      "active": 1,
+      "current": true
+    },
+    {
+      "id": "階段 2",
+      "name": "共用送訊＋對外待辦",
+      "est": "10～13 天（國際化＋2～3 天）",
+      "total": 12,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 3",
+      "name": "LINE Webhook 主機",
+      "est": "12～17 天",
+      "total": 9,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 4",
+      "name": "金流＋幣別",
+      "est": "6～8 天",
+      "total": 6,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 5",
+      "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
+      "est": "20～27 天（國際化＋5～7 天）",
+      "total": 13,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 6",
+      "name": "ChurchReport 改用共用層",
+      "est": "6～8 天",
+      "total": 6,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 7",
+      "name": "D365 9.1 切換（逐組織）",
+      "est": "每個組織 1～2 天＋觀察 1 週",
+      "total": 2,
+      "done": 0,
+      "active": 0
+    },
+    {
+      "id": "階段 8",
+      "name": "收尾、偽語系驗收、教會設定網頁",
+      "est": "4～6 天（國際化＋3～4 天）",
+      "total": 5,
+      "done": 0,
+      "active": 0
+    }
+  ],
+  "quality": [
+    {
+      "item": "既有測試",
+      "before": "714 過／24 失敗",
+      "after": "1104 過／0 失敗",
+      "note": "完整方案含 ChurchReport 590／590；零跳過"
+    },
+    {
+      "item": "Release 建置警告",
+      "before": "77",
+      "after": "1",
+      "note": "完整重建 0 錯誤；僅原有 Line.Messaging CS1572，未新增警告"
+    },
+    {
+      "item": "套件版本違規",
+      "before": "113 項",
+      "after": "0 項",
+      "note": "39 專案、149 引用、零違規"
+    },
+    {
+      "item": "Debug 追蹤測試",
+      "before": "未納入",
+      "after": "7／7",
+      "note": "真實 TRX executed=7／passed=7；CI 暫停期間合成 6／6 仍啟用"
+    },
+    {
+      "item": "新程式分析器探測",
+      "before": "未建立",
+      "after": "26／26",
+      "note": "含 net48 CA1707／CA1716 與兩目標 EffectiveAnalysisLevel；原先 net48 Recommended 缺口已修正。"
+    },
+    {
+      "item": "編碼／轉換測試",
+      "before": "16 項紅燈",
+      "after": "21／21",
+      "note": "PowerShell 5.1、7 各自通過"
+    },
+    {
+      "item": "進度頁警示容錯",
+      "before": "空值會出錯",
+      "after": "3／3",
+      "note": "無警示隱藏、缺提示詞不顯示複製區"
+    },
+    {
+      "item": "重複程式守門",
+      "before": "未建立",
+      "after": "0 新增／18 測試",
+      "note": "26 專案 879 檔，groups／new／stale 均為 0"
+    },
+    {
+      "item": "I18nCheck 工具與基準",
+      "before": "未建立",
+      "after": "108／108；verify 通過",
+      "note": "84 個 Razor 零 I18N415；ChurchReport 3682→3636，逐檔原因已記錄；基準未提高；生成檔實查 2 檔。"
+    },
+    {
+      "item": "Localization 雙目標",
+      "before": "未建立",
+      "after": "42＋42 全通過",
+      "note": "保留原 33 案例，新加三個診斷鍵在繁中／偽語系／英文後備各 3 筆"
+    },
+    {
+      "item": "LINE Core 雙目標",
+      "before": "未建立",
+      "after": "45＋45 全通過",
+      "note": "取消補修 6b559da5 已提交；覆蓋率 93.87%／98.88%，原 33 案例保留"
+    },
+    {
+      "item": "Plugin 與離線打包",
+      "before": "未建立",
+      "after": "24／24；工具 11／11",
+      "note": "行覆蓋率 91.93%／98.30%；樣本 9／9、流程 6／6；正式簽章已在 P0-10 驗證。"
+    },
+    {
+      "item": "方案 CI 與覆蓋率門檻",
+      "before": "僅舊 .NET 8 workflow",
+      "after": "本機全過；八組 ≥80%",
+      "note": "過渡 CI 為 23／26 專案，使用者 2026-11-04 已接受範圍；GitHub 新流程成功結果仍待確認，本機維持全方案。"
+    },
+    {
+      "item": "Deployment 離線 L1／L2",
+      "before": "未建立",
+      "after": "56／56；84.95%",
+      "note": "安全欄位 schema 回歸及命令租約釋放通過；P0-13 已另外完成實機 trace 驗收，推播未驗收。"
+    },
+    {
+      "item": "階段 0 外部審查",
+      "before": "待執行",
+      "after": "11／11＋09 通過",
+      "note": "單模型（使用者指定 ClaudeOnly），dualModelComplete=false、quotaBlocked=false；修正獨立複審，無未處理 Critical／High。"
+    }
+  ],
+  "conduct": [
+    {
+      "ok": true,
+      "text": "一次只做一個工作包，做完才提交"
+    },
+    {
+      "ok": true,
+      "text": "先寫會失敗的測試、再寫程式",
+      "sub": "每包都留有紅燈、綠燈證據"
+    },
+    {
+      "ok": true,
+      "text": "發現計畫和程式對不上就停下來問你",
+      "sub": "P0-01、P0-03、P0-04 各停過一次，都等你核定才繼續"
+    },
+    {
+      "ok": true,
+      "text": "沒有推送、沒有合併"
+    },
+    {
+      "ok": true,
+      "text": "沒有提交機密或測試原始檔",
+      "sub": "Claude 掃描三個提交，未發現密碼或 token"
+    },
+    {
+      "ok": true,
+      "text": "本輪實機驗收未修改產品程式",
+      "sub": "沿用既有 Deployment；清單停用另以新提交保存。前面工作包的產品修正仍保留。"
+    },
+    {
+      "ok": true,
+      "text": "Claude 獨立重建結果一致",
+      "sub": "建置 0 錯誤、77 警告；測試 735 通過，另 6 個因 Claude 暫存資料夾路徑太長無法執行，與程式無關，在 Codex 的正式資料夾都通過"
+    },
+    {
+      "ok": false,
+      "text": "P0-04 的 XML 說明檢查是假的通過",
+      "sub": "只看設定值、沒看實際結果；已有補充提示詞"
+    }
+  ],
+  "timeline": [
+    {
+      "t": "2026-11-06 09:25",
+      "text": "P1-04 Constants 已抽取；五個純契約67個多載與優化查詢已抽取；補上帳密cache繞過的安全修補，每次核對當前密碼、不快取登入結果。最終ToolUtility net48實載net462 652/652、net10 778/778；Core coverage 92.13%/92.83%、strict零警告/錯誤；全方案16 TRX共2777/2777、ChurchReport623/623。使用者免除雙模型，主會話審查。Contact其餘純查詢、List/MarketingList、其餘Query/CrmAsync尚待處理；整包P1-04未完成，P1仍3/12。D365 預設只讀；未操作VM、D365、LINE。"
+    },
+    {
+      "t": "2026-11-05 21:39",
+      "text": "Activity切片ec108ae0已本地提交、未push；495/602雙宿主、2444完整回歸、Core99.56%/100%及主會話審查證據已保存。依使用者不再安排雙模型REVIEW。集中P1-04剩餘抽取，先Collection原host特性、安全紅綠與完整分頁，再處理必要純契約；已驗收切片不重做。其餘P1仍未完成。",
+      "cls": "info"
+    },
+    {
+      "t": "2026-11-05 21:37",
+      "text": "Activity切片16TRX2444、雙宿主495/602、Core99.56%/100%、tracer7、工具108/27、plugin10/6、package34/158/0、duplicates28/941/0、頁面8/8與三尺寸Edge全過。使用者免除後續雙模型REVIEW，主會話審查已保存；30自有文字0問題，完整Changed唯一非本切片索引缺CRLF，未修改。P1仍2/12，接續其他候選。",
+      "cls": "info"
+    },
+    {
+      "t": "2026-11-05 21:31",
+      "text": "Activity安全51紅→57綠，含生命週期搬前82/82後才git mv；搬後ToolUtility net48實載net462 495/495、net10 602/602，Core獨立coverage99.56%／100%、strict零警告／錯誤。真公開委派7/7、完整方案16TRX2444/2444、ChurchReport623/623、架構67/67。使用者免除後續雙模型REVIEW，改主會話審查；其餘守門保存中，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 21:19",
+      "text": "使用者已明確免除後續雙模型REVIEW，由主會話直接審查及實測，既有外審紀錄保留不改寫。Activity安全51案已在原host真實全紅，包含跨表GUID覆寫／部分發布；產品修正尚未通過。P1仍2/12，D365預設只讀、本輪未操作VM／D365／LINE。"
+    },
+    {
+      "t": "2026-11-05 21:02",
+      "text": "Activity六特性原host已綠，最新完整方案16TRX2278/2278、ToolUtility413/518、ChurchReport623；205806特性review為Gemini單模型降級且無新Critical/High/Warning。產品尚未修／搬，分析已核實跨表GUID覆寫與部分發布風險，安全紅綠為下一步；主P1仍2/12。Attachment已保存31ab8cea。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 21:00",
+      "text": "Attachment已本地提交31ab8cea、完整2272回歸通過；Activity原host六特性已綠（含前綴不Clear、兩組SetState/default與external SDK），204755分析為Gemini單模型週額度降級。已核實跨表GUID覆寫及部分ArrayList發布風險，安全紅綠待做，Activity產品未改／未搬。P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 20:45",
+      "text": "Attachment已保存完整離線2272回歸、雙宿主413/512及99.48%/100%。末端審查Claude週額度、Gemini單模型降級；完整Changed編碼只被非本切片p013任務索引缺檔尾CRLF阻擋，自有40文字0問題，保留外部索引不改、不混入提交。P1仍2/12，接續Activity及其餘候選。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 20:38",
+      "text": "Attachment完整方案16TRX、2272/2272，ToolUtility413/413與512/512、ChurchReport623/623、架構67/67；Core coverage99.48%/100%。203320已完成Gemini單模型降級審查；Claude週額度阻擋至2026-11-07 16:00(台北)，未宣稱雙模型。已修復自癒入口weekly誤判，離線7/7與summary6/6；1536組候選證明合法Base64可解碼且兩target同拒多餘padding。末端其他守門與保存中，P1仍2/12，整包未完成。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 20:24",
+      "text": "Attachment原host特性3/3、安全28紅/2綠；Base64與parent補測13紅/1綠，修後搬前50/50才git mv。搬後雙宿主410/410、509/509，產品net462反射通過、strict雙目標0警告/錯誤。完整回歸、coverage與雙模型審查待完成；P1仍2/12，P1-04未驗收。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 20:04",
+      "text": "Repository收尾證據已本地提交141c1e8e、未push。接續Attachment：已讀兩入口、既有測試與真實Facade委派，確認實際使用ref SDK而非ctor SDK；200333 CCG雙模型分析執行中，附件產品尚未修改。P1仍2/12，整包未完成。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 19:59",
+      "text": "Repository切片完成末端再驗：16TRX2167/2167，ToolUtility363/363、457/457，ChurchReport623/623；Core coverage99.42%／100%、strict零警告／錯誤，I18nCheck verify通過／Core CJK=0。195337雙模型完整、無配額降級，前W1／W2關閉、無新增Critical／High／Warning。其餘候選未完成，P1仍2/12；接續Attachment，不封存主P1。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 19:47",
+      "text": "Repository初輪完整方案16TRX、2165/2165，ChurchReport623/623、架構67/67；193656雙模型無Critical／High，有兩個文件Warning，已補聚合無ID拒絕與PageInfo原地改寫文件／案例。I18nCheck曾抓13個搬入Core的中文診斷常值，已改英文固定訊息、Core回0且verify通過，未改基準。英文化及補證後的最後回歸／複審進行中，尚未列最終驗收。P1仍2/12、P1-04整包未完成。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 19:36",
+      "text": "P1-04 Repository原host特性12/12、安全30紅/4綠、overload2紅；修後搬前含六個消費點98/98後git mv。搬後雙宿主362/362、456/456，Core獨立coverage99.42%／100%、strict零警告／錯誤。完整方案回歸與CCG雙模型審查進行中，尚未預判通過，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "text": "P1-04 Repository 分析191821已完成Gemini／Claude雙模型、無配額降級；原host六入口特性12/12。目前補安全紅綠，保留Update非空ID及SDK原InnerException，記錄固定訊息／拒絕錯誤識別等安全差異。Repository尚未搬移或驗收，整個P1仍2/12；上一切片2056回歸是既有證據，不當成本切片通過。",
+      "t": "2026-11-05 19:28",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 19:16",
+      "text": "本地主動提交0169e079已保存抽取、完整回歸與雙模型證據，未push；兩份既有修改保留。主P1仍2/12，接續Repository及其他候選，不封存未完成任務。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 19:09",
+      "text": "P1-04本切片完整方案2056/2056與末輪185904雙模型通過；caller補證修正為8種、11案，無降級或Critical／High／Warning。其他候選未完成，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 18:44",
+      "text": "P1-04屬性工具／SDK extension完成本輪抽取與雙宿主314／395驗證，coverage99.36%／100%。增量雙模型及全方案回歸執行中，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 18:21",
+      "text": "接回P1-04。拒絕使用過期DLL的244／349案作為驗收；實際重新建置後270／350案全通過。最新coverage與剩餘純工具抽取持續中，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 16:25",
+      "text": "階段2～8的53包登錄完成，對照原文ID無遺漏或額外項，全部未開始。頁面測試8/8；Edge在1440／390／320像素與明暗色通過鍵盤切換、零溢出／零執行錯誤。CCG最終增量複核run 20261105-162250雙模型完整、無降級、無Critical／Warning；僅完成文件登錄，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 16:12",
+      "text": "CCG雙模型初審run 20261105-160221完成，無Critical／Warning；Info指出展開符號不易發現，已補可見展開／收合指示。專項回歸紅→綠，進度頁全測8/8通過；最終複審待完成。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 15:57",
+      "text": "逐項對照正式計畫03／04，確認階段2～8的53包、驗收案例與停止界線；修正P8-01重複ID及P8-03伺服器判定措辭，進度頁測試7/7通過，所有後續包仍未開始。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 14:25",
+      "text": "Core CRUD／Owner完成安全抽取並再驗雙宿主244/244、324/324，coverage98.91%／100%；切片外審中，P1仍2/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 14:15",
+      "text": "P1-03最終雙模型無Critical／Warning，SDK再驗96/96與101/101；正式驗收2/12。修正卡片／階段統計舊零值，先用新一致性測試重現。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-05 接續",
+      "text": "沿用 P1 任務；確認 P1-01～03 尚未具備最新版完整驗收證據，進度頁改以「實作存在、驗收未完成」呈現。",
+      "cls": "ok"
+    },
+    {
+      "t": "目前",
+      "text": "Gemini＋Claude 雙模型分析完成（dualModelComplete=true、無降級）：確認兩項 Warning，排除 AdvancingClock 假設競態；正式計畫未發現缺陷，無須變更計畫或製作 Word 修正報告。",
+      "cls": "ok"
+    },
+    {
+      "t": "目前",
+      "text": "P1-02 reviewer run 20261105-113854：Gemini＋Claude 均完成，dualModelComplete=true，無 quota 降級；Critical／Warning 0。Claude 的子程序限制符合既有單程序評估契約；Gemini BOM 建議不採納（與 UTF-8 無 BOM 規範衝突）。P1-02 全階段 gates 仍待完成。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-05",
+      "text": "P1-04 盤點中：已確認舊來源位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility，逐型別標註可搬／不可搬並先建特性測試；沒有修改正式計畫。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-05",
+      "text": "接續回歸：進度頁測試原有兩項狀態文案斷言已過時，更新為逐包檢查 P1-02 最新雙模型證據與 P1-04 盤點狀態；node --test 4/4 通過，P1 驗收仍為 0/12。",
+      "cls": "ok"
+    },
+    {
+      "t": "安全邊界",
+      "text": "Hyper-V／D365 維持只讀；不執行 apply、部署或正式資料寫入。若有證據證明計畫需修訂，另產出 Word 修正報告。",
+      "cls": "stop"
+    },
+    {
+      "t": "12:30",
+      "text": "Codex 建立階段 0 任務與工作資料夾"
+    },
+    {
+      "t": "12:48–13:15",
+      "text": "自動外部審查試了 8 次，都逾時或登入失效",
+      "cls": "bad"
+    },
+    {
+      "t": "—",
+      "text": "停：發現 24 個原本就失敗的測試 → 你授權先修",
+      "cls": "stop"
+    },
+    {
+      "t": "—",
+      "text": "改由你人工轉交審查包給 Claude；Claude 審查無 Critical"
+    },
+    {
+      "t": "14:45",
+      "text": "P0-01 提交",
+      "cls": "ok"
+    },
+    {
+      "t": "14:53",
+      "text": "P0-02 提交",
+      "cls": "ok"
+    },
+    {
+      "t": "—",
+      "text": "停：計畫有 2 處和程式對不上 → 你核定修正",
+      "cls": "stop"
+    },
+    {
+      "t": "15:24",
+      "text": "P0-03 提交",
+      "cls": "ok"
+    },
+    {
+      "t": "15:26",
+      "text": "停：計畫指定的設定位置讀不到專案開關 → 你核定改放 targets",
+      "cls": "stop"
+    },
+    {
+      "t": "15:32",
+      "text": "P0-04 測試先失敗（紅燈）"
+    },
+    {
+      "t": "15:43",
+      "text": "P0-04 自檢 13/13 通過，尚未提交"
+    },
+    {
+      "t": "15:45",
+      "text": "Claude 查核：XML 說明強制沒有真的生效",
+      "cls": "bad"
+    },
+    {
+      "t": "已核對",
+      "text": "P0-04 文件產出補修 c4e1f294，16／16 可信；原急件已解決",
+      "cls": "ok"
+    },
+    {
+      "t": "本次",
+      "text": "P0-05 保存歷史紅燈與實作提交，新增排除目錄／junction 與空警示容錯測試後轉綠"
+    },
+    {
+      "t": "本次收尾",
+      "text": "P0-05 編碼與轉換 21／21（兩個 PowerShell 版本）、進度頁 3／3、完整方案與 Debug tracer 通過",
+      "cls": "ok"
+    },
+    {
+      "t": "18:01",
+      "text": "P0-05 已提交 ba565a55；完整驗證結果保存在 P0-05 回報",
+      "cls": "ok"
+    },
+    {
+      "t": "本次調查",
+      "text": "停：P0-ENV 發現舊 LINE 靜態設定繞過 Development，必須改產品程式才能保障 token 來源；依使用者規則等待核定",
+      "cls": "stop"
+    },
+    {
+      "t": "本次核對",
+      "text": "P0-SEC 已獲核定；環境衝突五案探針有兩案與核定順序不一致，依 §9.6 停止等待單行修正",
+      "cls": "stop"
+    },
+    {
+      "t": "本次改版",
+      "text": "核對 E: v3.3 Word／HTML／drawio 的 D22～D27；切換 3.3 路徑及進度，3.2 保持凍結。",
+      "cls": "ok"
+    },
+    {
+      "t": "本次",
+      "text": "P0-SEC 25 個功能紅燈轉綠；Release 766／766、Debug tracer 7／7，未連線外部系統。",
+      "cls": "ok"
+    },
+    {
+      "t": "本次",
+      "text": "P0-ENV 五個設定紅燈轉綠，Release 771／771；正式回呼保留並記錄限制，不進行付款或外部連線。",
+      "cls": "ok"
+    },
+    {
+      "t": "本次",
+      "text": "P0-06 12 個初始紅燈轉綠，再補兩個基準識別拒絕紅燈；最終兩個引擎各 14／14，重複群組基準 0。",
+      "cls": "ok"
+    },
+    {
+      "t": "本次核對",
+      "text": "P0-06 已提交 18e901b1；P0-07 偽語系兩個範例與精確公式不一致，依 §9.6 停止。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "使用者明確核定偽語系公式例外；設計範例留待下一版勘誤，P0-07 從 TDD 接續。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "停：新嚴格測試專案的 CA1707 拒絕原列十二個測試名稱；保留全部名稱及嚴格規則，等待窄範圍例外核定。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 原 18／邊界 58 紅燈轉綠，補充邊界後 75／75；Release 771／771、Debug 7／7、CLI 全範圍通過。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 提交前全部守門通過；包含新檔的全階段編碼無問題，3.2 凍結副本不變。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 已提交 f0f0360f；P0-08 核對發現同一命名衝突，但目前例外僅限上一測試專案，停下等待核定。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "永久規則補充：原探測加四例 20／20；工具 75／75、方案 771／771、Debug 7／7。P0-08 命名待決解除。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-04 補充提交 cea2958d；P0-08 net48 33 個功能紅燈，net10 因 Get 的 CA1716 編譯診斷停止。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "net48 規則補修先紅 3 項，綠燈 24／24；本補修與 P0-08 分開提交，沒有修改尚未提交的 P0-08 來源。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "分析層級補修 58245c6f 獨立提交後，P0-08 兩目標各 33 紅燈轉綠，完整方案 837／837。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-08 提交 92cfa180；P0-09 核對發現跨框架共用例外回報契約缺口，依 §9.6 停止，沒有產品變更或外部連線。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "使用者釐清既有設計責任分工；Core 兩目標各 41 個功能紅燈，補取消競爭後各 42／42，全方案驗證中。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-09 完成功能及重構：雙目標各 42／42、方案 921／921、Debug 7／7、重複掃描 22 專案 863 檔無重複，沒有外部連線。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "依核定補修取消邊界：新案例兩目標紅 3／綠 6；雙目標測試各 45／45、方案 927／927、覆蓋率 93.87%／98.88%。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-09 補修已提交 6b559da5；P0-10 全部本機守門通過，兩個早期測試暫存目錄刪除遭工具拒絕，待使用者清理後提交。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "收尾發現 HEAD 新增 cf3595db，內容為已驗證 P0-10 實作；提交格式不符原規則，非本次會話建立，保留歷史並停止等待確認。",
+      "cls": "stop"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-10 收尾核定：使用者清除暫存並確認 cf3595db；一般建置改為不打包，六樣本及無金鑰 Release／正式明確打包通過。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "ok",
+      "text": "P0-11 本機逐步 CI 通過；覆蓋率七組皆過門檻，保留啟動器故障與修正證據，不推送、不建立 GitHub secret。"
+    },
+    {
+      "text": "P0-ENV 核定調整：保留 01f3c03e；舊空白契約與舊網址故障各有紅燈，相關 32／32、方案 971／971，未連線外部服務。",
+      "t": "2026-11-03",
+      "cls": "ok"
+    },
+    {
+      "text": "P0-04 net48 全相依稽核及 System.Text.Json 修補通過；還原成功、弱點清單只剩 ImageSharp，Release 971／971、建置 37 警告。",
+      "t": "2026-11-03",
+      "cls": "ok"
+    },
+    {
+      "text": "P0-12 離線佈署工具通過：42／42、覆蓋率 81.80%；方案 1013／1013、建置 36 警告。新增設定切換紅→綠並修正八個新檔換行。",
+      "t": "2026-11-03",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "ok",
+      "text": "P0-12A 特徵測試修復：補齊 Personal 測試工具依賴，現有 3.1.12 圖片 50／50、Release 1063／1063，未改產品。"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "stop",
+      "text": "P0-12A 新增 30 個功能紅燈後開始實作；3.2.0 還原成功，但編譯前缺有效授權，停止等待使用者。"
+    },
+    {
+      "text": "P0-12A 一般金鑰已備妥：76 個圖片案例、Release 1089／1089、Debug 7／7；CJK 訊息移入資源檔，兩個生成檔逐位元組一致。",
+      "t": "2026-11-03",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-03",
+      "cls": "ok",
+      "text": "P0-12A B 段：一般金鑰 CI 23／23（PowerShell 5.1、7）；完整 §8 再通過，準備八批 ClaudeOnly 審查。"
+    },
+    {
+      "t": "2026-11-03 23:48",
+      "cls": "stop",
+      "text": "ClaudeOnly 第 03 份因工作階段額度限制失敗；01a、01b、01c、02 已有結果，完整審查包已準備，依核定停止。Razor 修正仍未通過完整 verify。"
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "依核定保留 d25fd2cc、接續 ClaudeOnly；C-01 混合語法 14 項功能紅燈後轉工具 108／108，完整 repo verify 通過，CJK 基準未提高。"
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "H-01 依核定改列 Medium 並修正：真 junction 與排除邊界先有 3 項紅燈，兩種 PowerShell 各 5／5，實際套件盤點 39 專案／149 引用零違規。"
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "M-01 tracer 守門：真實 workflow 合成 5 項紅燈後，兩種 PowerShell 各 6／6；本機 Debug TRX 實際 executed=7、passed=7。"
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "M-02 本機重現巢狀型別 owner 誤判：新增 4 案紅→綠，兩種 PowerShell 各 18／18；完整方案重複掃描仍零新增，未改基準。"
+    },
+    {
+      "t": "11/04",
+      "text": "03～08 七份續行完成；重大問題分題修正，全方案 1104／1104，修正另送第 09 份 ClaudeOnly。"
+    },
+    {
+      "text": "第 09 份複審完成，無 Critical／High；單模型（使用者指定 ClaudeOnly），未受額度阻擋。",
+      "t": "2026-11-04",
+      "cls": ""
+    },
+    {
+      "t": "2026-11-04",
+      "text": "小組回報第 ⑧ 批與第 09 份審查通過，前端再次 16／16；依核定完成 Trellis／CCG 封存。",
+      "cls": ""
+    },
+    {
+      "t": "2026-11-04",
+      "text": "P0-13 驗收步驟文件已寫好，第 0 步全未勾選；發現 Plugin FileVersion 追蹤與計畫不符，依 §9.6 停止等待使用者。",
+      "cls": ""
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "使用者核定 P0-13 最小驗收及 CI 過渡範圍；解除 FileVersion 停止事項，以離線 Retry Key 測試與官方契約為依據，不改 Plugin。精簡文件後等待清理與使用者結果。"
+    },
+    {
+      "t": "2026-11-04",
+      "cls": "ok",
+      "text": "依使用者核定補齊 P0-13 帳號格式、金鑰新視窗、plan 路徑取得、追蹤位置及清單恢復檢查；smoke 約 2 秒輪詢與時鐘測試登錄階段 1 第一批，現在不改程式。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "舊 net48 組件在 D365 目標框架驗證器發生 FormatException。使用者核定正式採用 net462；離線驗證與第 10 份獨立複審通過，初審 High 已修正。伺服器註冊仍待使用者重跑；FrameworkFileVersion=4.8.x 指伺服器 mscorlib，不代表 Plugin 目標。",
+      "cls": "ok"
+    },
+    {
+      "t": "2026-11-04 20:41",
+      "cls": "ok",
+      "text": "使用者 verify=0 後全權授權自動驗收。Codex 完成 smoke=0、五項追蹤（FrameworkFileVersion=4.8.4795.0）、單項 UpdateStepState 停用及 verify=0；追蹤回復例外狀況，本次 smoke task 殘留 0。清單 false 已新提交，階段 0 為 18／18，未開 P1。"
+    },
+    {
+      "t": "2026-11-04 20:54",
+      "cls": "",
+      "text": "本輪額外收尾文件 ClaudeOnly 審查逾時，無可用輸出；不是配額問題，未冒稱通過。審查包已保存，依規則停止新增操作，Trellis／CCG 保留 review；實機驗收完成事實不變。"
+    },
+    {
+      "t": "2026-11-05",
+      "cls": "ok",
+      "text": "P0 收尾文件補審：Gemini＋Claude 均完成，無 Critical／High。新工作樹 Release 1125／1125；使用者全權授權完成 P1，接續建立規劃。"
+    }
+  ],
+  "decisions": [
+    {
+      "text": "先修好原有 24 個失敗測試，再繼續階段 0"
+    },
+    {
+      "text": "外部審查只使用 Claude，階段末做一次",
+      "sub": "P0-12A 提交後、P0-13 前；失敗就準備審查包並等待使用者"
+    },
+    {
+      "text": "P0-04 文件開關放在 csproj 本體，其餘嚴格設定放 targets",
+      "sub": "以實際文件路徑、CS1591、SMQ0001 與 bin XML 驗收，16／16"
+    },
+    {
+      "text": "保留 6b7d5c4b 與 06a4b102 歷史",
+      "sub": "P0-05 正式收尾提交記錄紅燈、實作與最新完整驗證"
+    },
+    {
+      "text": "P0-05 之後先做 P0-ENV，才進入 P0-06"
+    },
+    {
+      "text": "goodshepherdback 清理完成且使用者回報前，任何工具都不得連線",
+      "sub": "P0-ENV 僅處理本機設定、測試與計畫，不連線任何 D365 組織"
+    },
+    {
+      "text": "依 P0-ENV(c) 停止，不擅自提前實作 P2-01",
+      "sub": "只保存本機調查與停止紀錄；等待使用者安排安全修復"
+    },
+    {
+      "text": "使用者已核定先做獨立 P0-SEC，再接續 P0-ENV",
+      "sub": "安全修復範圍已明確；僅環境優先順序與實際 Host 矛盾需核定修正"
+    },
+    {
+      "text": "使用者核定以實作計畫 3.3 執行，3.2 凍結",
+      "sub": "部署改用 Solution 內佈署專案，環境順序依網站現有規則；原兩項待決均已解除"
+    },
+    {
+      "text": "P0-07 補字數以附錄 E.3 精確公式為準",
+      "sub": "使用者 2026-11-03 核定；排除參數後以 Rune 計數，設計中四字補三個為筆誤，不改設計原檔。"
+    },
+    {
+      "text": "僅 I18nCheck.Tests 允許 CA1707 命名例外",
+      "sub": "使用者 2026-11-03 明確核定；保留十二個方法名，工具本體及其他分析器維持嚴格。"
+    },
+    {
+      "text": "永久集中允許合格嚴格測試的底線命名",
+      "sub": "2026-11-03 核定所有階段：StrictCode、IsTestProject、.Tests 名稱三者同時成立，僅 CA1707；取代先前單專案例外。"
+    },
+    {
+      "text": "嚴格 net48 明確設定分析層級；新 API 可依 CA1716 語意改名",
+      "sub": "2026-11-03 核定：AnalysisLevel 空白補 latest；GetText／richMenuAlias 不需警告抑制，原測試名不改。"
+    },
+    {
+      "text": "P0-09／P0-10 例外責任依既有設計核定",
+      "sub": "2026-11-03：Core 原始 TransportException 交 caller；net48 Plugin 追蹤後拋出，不用 notifier；最終通知依設計 10.5／10.9、04 §5.4。"
+    },
+    {
+      "text": "ChurchReport Development 帳密存放例外已核定",
+      "sub": "僅調整 ChurchReport；User Secrets 仍可覆寫。P0-12 佈署帳密仍只讀 User Secrets；證據不含機密值。"
+    },
+    {
+      "text": "P0-12 前置套件弱點修補與 P0-12A 已核定",
+      "sub": "Xml／Pkcs 升至 10.0.14、net48 全相依稽核及 System.Text.Json 6.0.11 已通過；ImageSharp 3.2.0 與圖片格式／尺寸防護列入 P0-12A，階段審查移至其後。"
+    },
+    {
+      "text": "P0-12A 維持既有 JPEG／PNG／GIF 白名單，不新增 WebP",
+      "sub": "使用者 2026-11-03 更正；先把 3.1.12 特徵測試修到全綠，再拒絕偽裝 WebP。"
+    },
+    {
+      "text": "Six Labors 使用一般金鑰；本機與 GitHub 設定已由使用者完成",
+      "sub": "只以程序環境提供本機路徑，不讀內容；B 段將 secret 暫存至 runner，缺少即失敗並 always 清理。"
+    },
+    {
+      "text": "P0-13 改為 trace 沙箱最小驗收",
+      "sub": "使用者 2026-11-04 核定；一輪建立即啟用，只需三個 User Secrets 值，不需 LINE channel 或 Six Labors 授權；完成後停用、verify=0、恢復追蹤並清理。"
+    },
+    {
+      "text": "推播前置移至 P2-04；更新／回復與 Plugin FileVersion 追蹤移至階段 5",
+      "sub": "使用者 2026-11-04 核定；後者須在首個正式 Plugin 佈署 goodshepherdback 前驗收，現在不改 Plugin。"
+    },
+    {
+      "text": "接受 Retry Key 單元測試及 LINE 官方 24 小時有效期契約",
+      "sub": "使用者 2026-11-04 核定，取消 P0 同事件實機重送；不宣稱實機重送通過，也不保證送達。"
+    },
+    {
+      "text": "GitHub CI 過渡範圍已接受",
+      "sub": "使用者 2026-11-04 核定；排除三個 DevExtreme 依賴專案，階段 1 優先解決來源，本機 §8 仍為全方案。"
+    },
+    {
+      "text": "smoke 輪詢調整列入階段 1 第一批",
+      "sub": "使用者 2026-11-04 核定：目前 100 毫秒／最多 3 分鐘，改約 2 秒並補時鐘測試；P2-04 推播驗收前完成，現在只記錄。"
+    }
+  ],
+  "prep": [
+    {
+      "state": "done",
+      "text": "Six Labors 一般金鑰已由使用者備妥",
+      "sub": "P0-12A 與 B 段已提交；使用者證實 GitHub 授權準備／清理成功。P0-13 的 Plugins／Deployment 無 ImageSharp 相依，不需要此授權。"
+    },
+    {
+      "state": "done",
+      "text": "唯一開發測試組織已指定 goodshepherdback",
+      "sub": "使用者 2026-11-04 全權授權 Codex 自動執行本次 trace 驗收；固定端點與組織白名單不變，未發 LINE。"
+    },
+    {
+      "state": "done",
+      "text": "本次 trace 驗收前置已依使用者核定處理",
+      "sub": "使用者回報舊 Plugin／Workflow 已停用、3 筆作業已取消；舊 LINE token 與會友 new_lineid 核定保留，免除本次清理前置，不能宣稱資料已清空。"
+    },
+    {
+      "state": "todo",
+      "text": "P2-04 前再準備測試 LINE channel 與自己的測試帳號",
+      "sub": "P0-13 不需要；推播前置驗收時才需 TestLineUserId／TestChannelToken，禁止正式 channel。"
+    },
+    {
+      "state": "done",
+      "text": "新的強式名稱金鑰",
+      "sub": "目前程序讀得到指定環境變數；正式 Release 簽章與打包檢查已通過，未讀取或輸出金鑰內容"
+    },
+    {
+      "state": "done",
+      "text": "既有產品審查與 P0-13 實機驗收已完成",
+      "sub": "原產品審查與實機證據不變；2026-11-05 Gemini／Claude 收尾文件補審亦通過。"
+    },
+    {
+      "state": "done",
+      "text": "清除兩個早期 P0-10 測試暫存資料夾",
+      "sub": "使用者已清除；2026-11-03 Test-Path 確認兩個目錄均不存在。"
+    },
+    {
+      "state": "done",
+      "text": "P1-01：smoke輪詢約2秒與可控時鐘驗證已完成",
+      "sub": "本機測試與正式驗收已核對，見wp-reports/P1-01-acceptance.md；本次未連D365或發送LINE。"
+    }
+  ],
+  "risks": [
+    {
+      "level": "info",
+      "text": "歷史收尾審查逾時已完成補審",
+      "sub": "2026-11-05 Gemini 與 Claude 均完成，dualModelComplete=true，無 Critical／High；保留原始逾時證據。"
+    },
+    {
+      "level": "info",
+      "text": "自身 FileVersion 追蹤與更新／回復已排入階段 5",
+      "sub": "使用者 2026-11-04 核定，解除 P0 停止事項；首個正式 Plugin 佈署 goodshepherdback 前才實作與驗收，現在不改 Plugin。"
+    },
+    {
+      "level": "info",
+      "text": "DevExpress維持現版；hosted完整CI恢復暫緩",
+      "sub": "使用者2026-11-05決定不升級、不續訂，保留現有UI；新套件來源與hosted完整CI恢復暫緩，不再阻擋P1-01。既有過渡排除保留，本機完整驗收已完成，未宣稱GitHub實跑通過。"
+    },
+    {
+      "level": "info",
+      "text": "本次 trace 前置與驗收收尾已完成",
+      "sub": "舊步驟／流程停用與作業取消依既有回報；測試 task 殘留 0。舊 LINE 資料依核定保留，不宣稱已清理。收尾補審已通過。"
+    },
+    {
+      "level": "info",
+      "text": "小組回報頁面已由使用者確認恢復",
+      "sub": "第 08 與 09 通過後已封存；圖表未逐項驗證。正式線移植及既有 Excel 匯出風險保留，未修改其他分支。"
+    },
+    {
+      "level": "info",
+      "text": "冷還原套件暫存目錄待使用者清理",
+      "sub": "自動核准審查拒絕刪除；僅有公開套件，無授權／金鑰。"
+    },
+    {
+      "level": "info",
+      "text": "P0 不做同一事件重送實機驗收",
+      "sub": "使用者 2026-11-04 接受來源記錄 ID Retry Key 單元測試與官方 24 小時有效期契約；不是實機去重或保證送達的結果。"
+    }
+  ]
+};
+
+/* ---- 圖示：狀態一律搭配文字，不只靠顏色 ---- */
+const ICON = {
+  done: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--good)"/><path d="M6.5 11.3l3 3 6-6.3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  active: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="var(--prog)" stroke-width="2.2"/><path d="M11 4a7 7 0 0 1 0 14z" fill="var(--prog)"/></svg>',
+  todo: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="var(--todo)" stroke-width="2.2"/></svg>',
+  you: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--warn)"/><circle cx="11" cy="8.2" r="3" fill="#0b0b0b"/><path d="M5.8 16.6c.9-2.7 3-4 5.2-4s4.3 1.3 5.2 4" fill="none" stroke="#0b0b0b" stroke-width="2" stroke-linecap="round"/></svg>',
+  review: '<svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2l9 9-9 9-9-9z" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-linejoin="round"/><circle cx="11" cy="11" r="2.4" fill="var(--ink-2)"/></svg>',
+  alert: '<svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2.5l9.2 16H1.8z" fill="var(--crit)" stroke="var(--crit)" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 8.2v5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="15.9" r="1.3" fill="#fff"/></svg>',
+  warn: '<svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2.5l9.2 16H1.8z" fill="var(--warn)" stroke="var(--warn)" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 8.2v5" stroke="#0b0b0b" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="15.9" r="1.3" fill="#0b0b0b"/></svg>',
+  info: '<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="var(--muted)" stroke-width="2"/><path d="M11 10v5.5" stroke="var(--muted)" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="6.8" r="1.3" fill="var(--muted)"/></svg>'
+};
+const LABEL = { done: "已完成", active: "進行中", todo: "未開始", you: "由你操作", review: "階段審查" };
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const chip = (status, text) => `<span class="chip ${status}">${ICON[status === "flag" ? "alert" : status] || ""}${esc(text || LABEL[status])}</span>`;
+
+function meter(done, active, total) {
+  const pct = n => (n / total * 100).toFixed(2) + "%";
+  const label = `已完成 ${done}、進行中 ${active}、共 ${total}`;
+  let html = `<div class="meter" role="img" aria-label="${label}" title="${label}">`;
+  if (done) html += `<i class="done" style="width:${pct(done)}"></i>`;
+  if (active) html += `<i class="active" style="width:${pct(active)}"></i>`;
+  if (done + active < total) html += `<i class="rest"></i>`;
+  return html + "</div>";
+}
+
+const D = DATA;
+document.getElementById("meta").innerHTML =
+  `<span>資料快照：${esc(D.snapshot)}</span><span>分支 ${esc(D.branch)}</span><span>${esc(D.worker)}</span>`;
+document.getElementById("headline").innerHTML = D.headline;
+
+// 只接受明確分類，歷史紀錄中提到的 Warning／失敗不會被當作目前阻擋。
+// 所有文字皆跳脫後插入；分類只從固定白名單選取，避免資料成為 HTML 屬性。
+function renderNotice(notice, actions = "") {
+  const level = ["info", "warn", "error"].includes(notice.level) ? notice.level : "info";
+  const label = { info: "一般資訊", warn: "注意事項", error: "錯誤／阻擋" }[level];
+  const icon = ICON[level === "error" ? "alert" : level];
+  const heading = `<span class="notice-heading">${icon}<span><span class="notice-label">${label}</span>${esc(notice.title || "")}</span></span>`;
+  const steps = Array.isArray(notice.steps) ? notice.steps : [];
+  const content = `<div class="notice-content">${notice.body ? `<p>${esc(notice.body)}</p>` : ""}
+    ${steps.length ? `<ol>${steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>` : ""}${actions}</div>`;
+  const toggle = '<span class="notice-toggle" aria-hidden="true"></span>';
+  if (level === "info") {
+    return `<details class="notice info"><summary>${heading}${toggle}</summary>${content}</details>`;
+  }
+  return `<article class="notice ${level}" role="${level === "error" ? "alert" : "status"}">${heading}
+    <details class="notice-details"><summary>查看詳細資訊${toggle}</summary>${content}</details></article>`;
+}
+
+const noticesRegion = document.getElementById("notices");
+const notices = Array.isArray(D.notices)
+  ? D.notices.filter(notice => notice && typeof notice === "object" && !Array.isArray(notice)) : [];
+noticesRegion.hidden = notices.length === 0;
+noticesRegion.innerHTML = notices.map(notice => renderNotice(notice)).join("");
+
+const alertRegion = document.getElementById("alert");
+alertRegion.hidden = !D.alert;
+if (D.alert) {
+  const hasPrompt = typeof D.alert.prompt === "string" && D.alert.prompt.trim().length > 0;
+  const actions = hasPrompt ? `<div class="actions"><button class="copy" type="button" id="copyBtn">複製提示詞</button><span class="copied" id="copied" aria-live="polite"></span></div>
+    <details class="prompt"><summary>看提示詞全文</summary><pre id="promptText">${esc(D.alert.prompt)}</pre></details>` : "";
+  alertRegion.innerHTML = renderNotice(D.alert, actions);
+
+  if (hasPrompt) document.getElementById("copyBtn").addEventListener("click", async () => {
+    const text = D.alert.prompt;
+    const done = msg => { document.getElementById("copied").textContent = msg; };
+    try {
+      await navigator.clipboard.writeText(text);
+      done("已複製，可以貼到 Codex 了");
+    } catch (e) {
+      // 檔案直接開啟時可能禁止 Clipboard API；暫存選取元素只活在本次複製操作，
+      // 即使舊版複製命令拋錯也必須移除，不保留提示詞或持續累積 DOM。
+      const ta = document.createElement("textarea");
+      try {
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        done(ok ? "已複製，可以貼到 Codex 了" : "無法自動複製，請展開全文後手動選取");
+      } catch (copyError) {
+        done("無法自動複製，請展開全文後手動選取");
+      } finally {
+        ta.remove();
+      }
+    }
+  });
+}
+
+document.getElementById("tiles").innerHTML = D.tiles.map(t => `
+  <div class="tile card">
+    <div class="label">${esc(t.label)}</div>
+    <div class="value">${esc(t.value)}<small>${esc(t.unit)}</small></div>
+    ${t.meter ? `<div class="meter-wrap">${meter(t.meter.done, t.meter.active, t.meter.total)}</div>` : ""}
+    <div class="sub">${esc(t.sub)}</div>
+  </div>`).join("");
+
+const renderWp = w => {
+  if (w.milestone) {
+    return `<li class="wp is-milestone">
+      <span class="dot">${ICON.review}</span><span class="id">審查</span>
+      <span class="name">${esc(w.name)}</span>
+      <span class="right">${chip("review")}</span>
+      <span class="note">${esc(w.note)}</span></li>`;
+  }
+  const right = [
+    w.flag ? chip("flag", w.flag) : "",
+    chip(w.status),
+    w.commit ? `<span class="commit">${esc(w.commit)}</span>` : "",
+    w.time ? `<span class="commit">${esc(w.time)}</span>` : ""
+  ].join("");
+  return `<li class="wp is-${w.status}">
+    <span class="dot">${ICON[w.status]}</span><span class="id">${esc(w.id)}</span>
+    <span class="name">${esc(w.name)}</span>
+    <span class="right">${right}</span>
+    ${w.note ? `<span class="note">${esc(w.note)}</span>` : ""}</li>`;
+};
+document.getElementById("wps").innerHTML = D.wps.map(renderWp).join("");
+document.getElementById("p1-wps").innerHTML = D.p1Wps.map(renderWp).join("");
+
+document.getElementById("phases").innerHTML = D.phases.map(p => `
+  <div class="phase${p.current ? " is-current" : ""}">
+    <div class="pid">${esc(p.id)}</div>
+    <div><div class="pname">${esc(p.name)}${p.current ? "　" + chip("active", "目前階段") : ""}</div><div class="pmeta">預估 ${esc(p.est)}</div></div>
+    <div class="pbar">${meter(p.done, p.active, p.total)}<div class="count">${p.done} / ${p.total} 完成${p.active ? `，${p.active} 進行中` : ""}</div></div>
+  </div>`).join("");
+
+const renderPlannedWp = wp => `
+  <li class="planned-wp is-${esc(wp.status)}">
+    <span class="dot">${ICON[wp.status]}</span>
+    <span class="id">${esc(wp.id)}</span>
+    <span class="name">${esc(wp.name)}</span>
+    <span class="status">${chip(wp.status)}</span>
+    <div class="details">
+      <p><strong>工作內容：</strong>${esc(wp.scope)}</p>
+      <p><strong>測試／驗收：</strong>${esc(wp.verification)}</p>
+      ${wp.prerequisite ? `<p><strong>前置／界線：</strong>${esc(wp.prerequisite)}</p>` : ""}
+    </div>
+  </li>`;
+
+document.getElementById("planned-phases").innerHTML = D.plannedPhaseNotes.map(note => {
+  const phase = D.phases.find(item => item.id === note.phaseId);
+  const packages = D.plannedWps.filter(wp => wp.phaseId === note.phaseId);
+  const done = packages.filter(wp => wp.status === "done").length;
+  const active = packages.filter(wp => wp.status === "active").length;
+  const todo = packages.filter(wp => wp.status === "todo").length;
+  return `
+    <details class="planned-phase">
+      <summary>
+        <span class="planned-phase-toggle" aria-hidden="true"></span>
+        <span class="planned-phase-id">${esc(phase.id)}</span>
+        <span class="planned-phase-name">${esc(phase.name)}</span>
+        <span class="planned-phase-count">${done}/${phase.total} 驗收、${active} 進行中、${todo} 未開始</span>
+        <span class="planned-phase-est">預估 ${esc(phase.est)}</span>
+      </summary>
+      <div class="planned-phase-body">
+        <p class="planned-source">來源：${esc(note.source)}</p>
+        <p class="planned-gate">${esc(note.gate)}</p>
+        <ol class="planned-wps">${packages.map(renderPlannedWp).join("")}</ol>
+      </div>
+    </details>`;
+}).join("");
+
+document.getElementById("quality").innerHTML =
+  `<thead><tr><th>項目</th><th>修改前 → 目前</th><th>說明</th></tr></thead><tbody>` +
+  D.quality.map(q => `<tr><td>${esc(q.item)}</td><td class="num">${esc(q.before)}<span class="arrow">→</span><strong>${esc(q.after)}</strong></td><td>${q.warn ? chip("flag", q.note) : esc(q.note)}</td></tr>`).join("") +
+  `</tbody>`;
+
+const checkItem = (icon, text, sub) =>
+  `<li>${icon}<span>${esc(text)}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</span></li>`;
+document.getElementById("conduct").innerHTML = D.conduct.map(c => checkItem(c.ok ? ICON.done : ICON.alert, c.text, c.sub)).join("");
+document.getElementById("decisions").innerHTML = D.decisions.map(d => checkItem(ICON.done, d.text, d.sub)).join("");
+document.getElementById("prep").innerHTML = D.prep.map(p => checkItem(p.state === "done" ? ICON.done : ICON.todo, (p.state === "done" ? "已準備：" : "待準備：") + p.text, p.sub)).join("");
+document.getElementById("risks").innerHTML = D.risks.map(r => checkItem(ICON[r.level], (r.level === "warn" ? "注意：" : "記錄：") + r.text, r.sub)).join("");
+document.getElementById("timeline").innerHTML = D.timeline.map(e =>
+  `<li><span class="t">${esc(e.t)}</span><span class="${e.cls || ""}">${esc(e.text)}</span></li>`).join("");
+</script>
+</body>
+</html>

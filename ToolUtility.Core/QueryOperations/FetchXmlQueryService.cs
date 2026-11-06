@@ -1,397 +1,178 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/QueryOperations/FetchXmlQueryService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class FetchXmlQueryService
-// 主要成員：RetrieveStorLessonsByFetchXml、RetrieveStorLessonsByDiscipleLessonsFetchXml、RetrieveDedicationBookingByFetchXml、RetrieveMeetingStatisticsByFetchXml、RetrieveFeeByFetchXml、RetrieveListByFetchXml、RetrieveSmallGroupListCollectionByFetchXml、SafeLogError
-// 引用命名空間：System、System.Linq、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、Microsoft.Xrm.Sdk.Messages
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+#nullable enable
 using System;
-using System.Linq;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Threading;
+using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-using Microsoft.Xrm.Sdk.Messages;
+using ToolUtilityNameSpace.DataOperations;
+using ToolUtilityNameSpace.FeeOperations;
 
 namespace ToolUtilityNameSpace.QueryOperations
 {
     /// <summary>
-    /// FetchXML 查詢服務實作
-    /// 專責處理所有的 FetchXML 查詢
-    /// ? Phase 3.1: 查詢優化 - 添加 top 限制、減少 link-entity
+    /// 七個舊Fetch公開入口的純SDK實作；保留投影、排序、link、top及實際使用的篩選差異。
+    /// 名稱／資料庫ID只構成查詢條件，不是授權；host必須先驗證使用者、教會及組織scope。
     /// </summary>
-    public class FetchXmlQueryService : IFetchXmlQueryService
+    /// <remarks>
+    /// 只借用同scope的SDK，不保存logger、credential、查詢、結果或快取，不建立背景Task、timer或queue。
+    /// 每次SDK同步在caller執行緒執行；單頁先核對型別、top與整頁正式ID，保留原分頁metadata。
+    /// 不把top頁冒稱全表或按名稱去重。故障不catch、不回假空集合，由最終host交共用告警入口。
+    /// Dispose停止新入口並清借用參照，已開始的局部SDK工作可drain；host必須先排空才關SDK。
+    /// 兩個固定業務謂詞由中立resx編譯表複製成私有字串，不隨顯示語言翻譯資料庫條件。
+    /// </remarks>
+    public class FetchXmlQueryService : IFetchXmlQueryService, IDisposable
     {
-        private readonly object _logger;
-        private readonly IOrganizationService _organizationService;
-        private readonly ToolUtilityNameSpace.FeeOperations.FeeService _feeService;
+        // 私有唯讀模板僅含固定結構名稱，逐次建立局部XML，不公開陣列或保留操作資料。
+        private static readonly ReadOnlyCollection<string> ContactLessonFields = Array.AsReadOnly(new[]
+        { "createdon", "new_contact_new_stor_lessons", "new_fee", "new_pay_date", "new_current_complete",
+            "new_new_disciple_lessons_new_stor_les", "new_stor_lessonsid" });
+        private static readonly ReadOnlyCollection<string> LessonFields = Array.AsReadOnly(new[]
+        { "createdon", "new_contact_new_stor_lessons", "new_fee", "new_pay_date",
+            "new_new_disciple_lessons_new_stor_les", "new_stor_lessonsid" });
+        private static readonly ReadOnlyCollection<string> MeetingFields = Array.AsReadOnly(new[]
+        { "new_meeting_statisticsid", "new_name", "createdon", "new_sunday_date" });
+        private static readonly ReadOnlyCollection<string> ListFields = Array.AsReadOnly(new[]
+        { "listname", "createdfromcode", "lastusedon", "purpose", "listid" });
+        private static readonly ReadOnlyCollection<string> SmallGroupFields = Array.AsReadOnly(new[]
+        { "listname", "createdfromcode", "lastusedon", "purpose", "new_contact_race_leager_list",
+            "new_contact_family_leader_list", "listid" });
+        private static readonly string ListPurpose = LegacyValue("Fetch.Query.ListPurpose");
+        private static readonly string TestListPattern = LegacyValue("Fetch.Query.TestListPattern");
+        private IOrganizationService? _organizationService;
+        private int _disposed;
 
-        // ? 預設查詢限制，防止返回過多資料
-        private const int DEFAULT_TOP_LIMIT = 5000;
-        private const int SMALL_QUERY_LIMIT = 1000;
-
+        /// <summary>保持舊建構簽章與null拒絕；logger只驗證不保存／反射，SDK所有權仍屬原host。</summary>
+        /// <param name="logger">來源相容的診斷參數，不得用它延長request或credential生命週期。</param>
+        /// <param name="organizationService">已授權scope的SDK；服務不能註冊為跨使用者／租戶singleton。</param>
         public FetchXmlQueryService(object logger, IOrganizationService organizationService)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
-            _feeService = new ToolUtilityNameSpace.FeeOperations.FeeService(_organizationService);
+#if NETFRAMEWORK
+            if (logger == null) throw new ArgumentNullException(nameof(logger));
+            if (organizationService == null) throw new ArgumentNullException(nameof(organizationService));
+#else
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(organizationService);
+#endif
+            _organizationService = organizationService;
         }
 
         /// <summary>
-        /// 根據聯絡人查詢學習課紀錄 (使用 FetchXML)
-        /// ? Phase 3.1: 優化 - 添加 top 限制、簡化 link-entity
+        /// 依聯絡人讀取學習課的一頁，沿用實際生效的RemoveConstrain查詢，不加回舊未使用模板的classification過濾。
+        /// top1000、兩個link與欄位完全保留；顯示名稱XML編碼，ID必須非空GUID。
         /// </summary>
         public EntityCollection RetrieveStorLessonsByFetchXml(string contactName, string contactId)
         {
-            try
-            {
-                contactName = $"'{contactName}'";
-                contactId = $"'{{{contactId}}}'";
-
-                // ? 優化 1: 添加 top='1000' 限制
-                // ? 優化 2: 只查詢必要欄位，移除不需要的 link-entity 欄位
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
-                          <entity name='new_stor_lessons'>
-                            <attribute name='createdon' />
-                            <attribute name='new_contact_new_stor_lessons' />
-                            <attribute name='new_fee' />
-                            <attribute name='new_pay_date' />
-                            <attribute name='new_current_complete' />
-                            <attribute name='new_new_disciple_lessons_new_stor_les' />
-                            <attribute name='new_stor_lessonsid' />
-                            <order attribute='createdon' descending='true' />
-                            <filter type='and'>
-                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
-                                <condition attribute='statecode' operator='eq' value='0' />
-                            </filter>
-                            <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='contact'>
-                              <attribute name='mobilephone' />
-                              <attribute name='emailaddress1' />
-                            </link-entity>
-                            <link-entity name='new_disciple_lessons' from='new_disciple_lessonsid' to='new_new_disciple_lessons_new_stor_les' alias='lesson'>
-                              <attribute name='new_name' />
-                              <filter type='and'>
-                                <condition attribute='new_classification' operator='in'>
-                                  <value>100000000</value>
-                                  <value>100000001</value>
-                                </condition>
-                              </filter>
-                            </link-entity>
-                          </entity>
-                        </fetch>";
-
-                var fetchXmlNoConstrain = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
-                          <entity name='new_stor_lessons'>
-                            <attribute name='createdon' />
-                            <attribute name='new_contact_new_stor_lessons' />
-                            <attribute name='new_fee' />
-                            <attribute name='new_pay_date' />
-                            <attribute name='new_current_complete' />
-                            <attribute name='new_new_disciple_lessons_new_stor_les' />
-                            <attribute name='new_stor_lessonsid' />
-                            <order attribute='createdon' descending='true' />
-                            <filter type='and'>
-                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
-                                <condition attribute='statecode' operator='eq' value='0' />
-                            </filter>
-                            <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='contact'>
-                              <attribute name='mobilephone' />
-                              <attribute name='emailaddress1' />
-                            </link-entity>
-                            <link-entity name='new_disciple_lessons' from='new_disciple_lessonsid' to='new_new_disciple_lessons_new_stor_les' alias='lesson'>
-                              <attribute name='new_name' />
-                            </link-entity>
-                          </entity>
-                        </fetch>";
-
-                // ? 優化 1: 添加 top='1000' 限制
-                // ? 優化 2: 只查詢必要欄位，移除不需要的 link-entity 欄位
-                // new_classification 過濾已移除，返回所有分類的課程
-                var fetchXmlRemoveConstrain = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
-                          <entity name='new_stor_lessons'>
-                            <attribute name='createdon' />
-                            <attribute name='new_contact_new_stor_lessons' />
-                            <attribute name='new_fee' />
-                            <attribute name='new_pay_date' />
-                            <attribute name='new_current_complete' />
-                            <attribute name='new_new_disciple_lessons_new_stor_les' />
-                            <attribute name='new_stor_lessonsid' />
-                            <order attribute='createdon' descending='true' />
-                            <filter type='and'>
-                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
-                                <condition attribute='statecode' operator='eq' value='0' />
-                            </filter>
-                            <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='contact'>
-                              <attribute name='mobilephone' />
-                              <attribute name='emailaddress1' />
-                            </link-entity>
-                            <link-entity name='new_disciple_lessons' from='new_disciple_lessonsid' to='new_new_disciple_lessons_new_stor_les' alias='lesson'>
-                              <attribute name='new_name' />
-                            </link-entity>
-                          </entity>
-                        </fetch>";
-
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    //Query = new FetchExpression(fetchXml)
-                    Query = new FetchExpression(fetchXmlRemoveConstrain)
-                };
-
-                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
-                return response.EntityCollection;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, "RetrieveStorLessonsByFetchXml 發生錯誤");
-                throw;
-            }
+            var sdk = GetService();
+            var entity = SdkDataQuery.Entity("new_stor_lessons", ContactLessonFields, "createdon", true);
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Lookup("new_contact_new_stor_lessons", contactName, "contact", contactId),
+                SdkDataQuery.Condition("statecode", "eq", "0")),
+                ContactLink("mobilephone", "emailaddress1"),
+                new XElement("link-entity", new XAttribute("name", "new_disciple_lessons"),
+                    new XAttribute("from", "new_disciple_lessonsid"), new XAttribute("to", "new_new_disciple_lessons_new_stor_les"),
+                    new XAttribute("alias", "lesson"), new XElement("attribute", new XAttribute("name", "new_name"))));
+            return SdkDataQuery.Run(sdk, entity, top: 1000, executeRequest: true);
         }
 
-        /// <summary>
-        /// 根據課程查詢學習課紀錄 (使用 FetchXML)
-        /// ? Phase 3.1: 優化 - 添加 top 限制、簡化查詢
-        /// </summary>
+        /// <summary>依課程讀取學習課，保留三種enroll排除狀態、statuscode非2及啟用條件；不套用聯絡人查詢的不同投影。</summary>
         public EntityCollection RetrieveStorLessonsByDiscipleLessonsFetchXml(string lessonName, string lessonId)
         {
-            try
-            {
-                lessonName = $"'{lessonName}'";
-                lessonId = $"'{{{lessonId}}}'";
-
-                // ? 優化: 添加 top 限制、減少不必要的欄位
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
-                      <entity name='new_stor_lessons'>
-                        <attribute name='createdon' />
-                        <attribute name='new_contact_new_stor_lessons' />
-                        <attribute name='new_fee' />
-                        <attribute name='new_pay_date' />
-                        <attribute name='new_new_disciple_lessons_new_stor_les' />
-                        <attribute name='new_stor_lessonsid' />
-                        <order attribute='createdon' descending='true' />
-                        <filter type='and'>
-                          <condition attribute='new_enroll_status' operator='not-in'>
-                            <value>100000007</value>
-                            <value>100000009</value>
-                            <value>100000003</value>
-                          </condition>
-                          <condition attribute='new_new_disciple_lessons_new_stor_les' operator='eq' uiname={lessonName} uitype='new_disciple_lessons' value={lessonId} />
-                          <condition attribute='statuscode' operator='ne' value='2' />
-                          <condition attribute='statecode' operator='eq' value='0' />
-                        </filter>
-                        <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='contact'>
-                          <attribute name='fullname' />
-                          <attribute name='mobilephone' />
-                        </link-entity>
-                      </entity>
-                    </fetch>";
-
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
-                return response.EntityCollection;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, "RetrieveStorLessonsByDiscipleLessonsFetchXml 發生錯誤");
-                throw;
-            }
+            var sdk = GetService();
+            var entity = SdkDataQuery.Entity("new_stor_lessons", LessonFields, "createdon", true);
+            entity.Add(SdkDataQuery.Filter(
+                new XElement("condition", new XAttribute("attribute", "new_enroll_status"), new XAttribute("operator", "not-in"),
+                    new XElement("value", "100000007"), new XElement("value", "100000009"), new XElement("value", "100000003")),
+                SdkDataQuery.Lookup("new_new_disciple_lessons_new_stor_les", lessonName, "new_disciple_lessons", lessonId),
+                SdkDataQuery.Condition("statuscode", "ne", "2"), SdkDataQuery.Condition("statecode", "eq", "0")),
+                ContactLink("fullname", "mobilephone"));
+            return SdkDataQuery.Run(sdk, entity, top: 1000, executeRequest: true);
         }
 
         /// <summary>
-        /// 根據聯絡人查詢奉獻預約 (使用 FetchXML)
-        /// ? Phase 3.1: 優化 - 添加 top 限制
+        /// 認獻查詢委派唯一Fee實作，仍使用Execute及top1000；不保留FeeService而讓Dispose後仍有可繞過的SDK參照。
+        /// 已取得局部SDK的操作可排空，暫存委派不擁有連線或任何額外資源。
         /// </summary>
-        /// <remarks>
-        /// 認獻查詢委派唯一Fee實作；保留既有SDK request、上限、欄位及排序，補齊安全XML與穩定ID驗證。
-        /// 真正SDK例外原樣傳向最終host共用通知；不在此保留結果、關閉借入服務或另建LINE client。
-        /// </remarks>
-        public EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId)
-        {
-            return _feeService.RetrieveDedicationBooking(contactName, contactId);
-        }
+        public EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId) =>
+            new FeeService(GetService()).RetrieveDedicationBooking(contactName, contactId);
 
-        /// <summary>
-        /// 根據主日日期查詢聚會統計記錄 (使用 FetchXML)
-        /// ? Phase 3.1: 優化 - 添加 top 限制
-        /// </summary>
+        /// <summary>主日日期以原西曆yyyy-MM-dd條件序列化，top100及原啟用狀態不變；不在此猜時區或改ambient culture。</summary>
         public EntityCollection RetrieveMeetingStatisticsByFetchXml(DateTime sundayDate)
         {
-            try
-            {
-                string sundayDateString = $"'{sundayDate.Year}-{sundayDate.Month:D2}-{sundayDate.Day:D2}'";
-
-                // ? 優化: 添加 top 限制（通常只有少數記錄）
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='100'>
-                          <entity name='new_meeting_statistics'>
-                            <attribute name='new_meeting_statisticsid' />
-                            <attribute name='new_name' />
-                            <attribute name='createdon' />
-                            <attribute name='new_sunday_date' />
-                            <order attribute='createdon' descending='true' />
-                            <filter type='and'>
-                              <condition attribute='statuscode' operator='eq' value='1' />
-                              <condition attribute='new_sunday_date' operator='on' value={sundayDateString} />
-                              <condition attribute='statecode' operator='eq' value='0' />
-                            </filter>
-                          </entity>
-                        </fetch>";
-
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
-                return response.EntityCollection;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, "RetrieveMeetingStatisticsByFetchXml 發生錯誤");
-                throw;
-            }
+            var sdk = GetService();
+            var entity = SdkDataQuery.Entity("new_meeting_statistics", MeetingFields, "createdon", true);
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Condition("statuscode", "eq", "1"),
+                SdkDataQuery.Condition("new_sunday_date", "on", sundayDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+                SdkDataQuery.Condition("statecode", "eq", "0")));
+            return SdkDataQuery.Run(sdk, entity, top: 100, executeRequest: true);
         }
 
-        /// <summary>
-        /// 根據奉獻預約和已付期數查詢收費單 (使用 FetchXML)
-        /// ? Phase 3.1: 優化 - 添加 top 限制
-        /// </summary>
-        /// <remarks>
-        /// 收費查詢委派唯一Fee實作，避免Facade兩條路徑分別維護條件或把空實作視為成功。
-        /// 真正SDK例外原樣傳向最終host共用通知；不在此保留結果、關閉借入服務或另建LINE client。
-        /// </remarks>
-        public EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
-        {
-            return _feeService.RetrieveFee(dedicationBookingName, dedicationBookingId, paidPeriod);
-        }
+        /// <summary>收費查詢逐次借用SDK委派唯一Fee邏輯，保留期數／啟用條件、top500與原查詢例外；名稱不是權限。</summary>
+        public EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod) =>
+            new FeeService(GetService()).RetrieveFee(dedicationBookingName, dedicationBookingId, paidPeriod);
 
-        /// <summary>
-        /// 查詢所有需要點名的小組名單 (使用 FetchXML)
-        /// ? Phase 3.1: 優化 - 添加 top 限制
-        /// </summary>
+        /// <summary>保留原點名名單投影、purpose/app/status/state條件及top500；不暗中套用小組集合的測試名稱排除。</summary>
         public EntityCollection RetrieveListByFetchXml()
         {
-            try
-            {
-                // ? 優化: 添加 top 限制（小組名單通常不會超過 500 個）
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='500'>
-                      <entity name='list'>
-                        <attribute name='listname' />
-                        <attribute name='createdfromcode' />
-                        <attribute name='lastusedon' />
-                        <attribute name='purpose' />
-                        <attribute name='listid' />
-                        <order attribute='listname' descending='false' />
-                        <filter type='and'>
-                          <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='小組名單' />
-                          <condition attribute='new_app_named' operator='eq' value='1' />
-                          <condition attribute='statecode' operator='eq' value='0' />
-                        </filter>
-                      </entity>
-                    </fetch>";
-
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
-                return response.EntityCollection;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, "RetrieveListByFetchXml 發生錯誤");
-                throw;
-            }
+            var sdk = GetService();
+            var entity = SdkDataQuery.Entity("list", ListFields, "listname");
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Condition("statuscode", "eq", "0"),
+                SdkDataQuery.Condition("purpose", "eq", ListPurpose), SdkDataQuery.Condition("new_app_named", "eq", "1"),
+                SdkDataQuery.Condition("statecode", "eq", "0")));
+            return SdkDataQuery.Run(sdk, entity, top: 500, executeRequest: true);
         }
 
-        /// <summary>
-        /// 查詢所有小組名單集合 (使用 FetchXML)
-        /// ? Phase 3.1: 優化 - 添加 top 限制、簡化查詢
-        /// </summary>
+        /// <summary>保留小組集合額外兩個lookup欄位、原條件順序及測試名稱not-like；top頁不是完整全表，分頁資訊不丟棄。</summary>
         public EntityCollection RetrieveSmallGroupListCollectionByFetchXml()
         {
-            try
-            {
-                // ? 優化: 添加 top 限制
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='500'>
-                      <entity name='list'>
-                        <attribute name='listname' />
-                        <attribute name='createdfromcode' />
-                        <attribute name='lastusedon' />
-                        <attribute name='purpose' />
-                        <attribute name='new_contact_race_leager_list' />
-                        <attribute name='new_contact_family_leader_list' />
-                        <attribute name='listid' />
-                        <order attribute='listname' descending='false' />
-                        <filter type='and'>
-                          <condition attribute='new_app_named' operator='eq' value='1' />
-                          <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='小組名單' />
-                          <condition attribute='listname' operator='not-like' value='%測試%' />
-                          <condition attribute='statecode' operator='eq' value='0' />
-                        </filter>
-                      </entity>
-                    </fetch>";
-
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
-                return response.EntityCollection;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, "RetrieveSmallGroupListCollectionByFetchXml 發生錯誤");
-                throw;
-            }
+            var sdk = GetService();
+            var entity = SdkDataQuery.Entity("list", SmallGroupFields, "listname");
+            entity.Add(SdkDataQuery.Filter(SdkDataQuery.Condition("new_app_named", "eq", "1"),
+                SdkDataQuery.Condition("statuscode", "eq", "0"), SdkDataQuery.Condition("purpose", "eq", ListPurpose),
+                SdkDataQuery.Condition("listname", "not-like", TestListPattern), SdkDataQuery.Condition("statecode", "eq", "0")));
+            return SdkDataQuery.Run(sdk, entity, top: 500, executeRequest: true);
         }
 
-        /// <summary>
-        /// 安全的錯誤日誌記錄
-        /// </summary>
-        private void SafeLogError(Exception ex, string format, params object[] args)
+        /// <summary>只建立本次link容器；兩個原入口具有不同欄位但同一outer/contact結構，不共享可變XElement。</summary>
+        private static XElement ContactLink(string firstField, string secondField) =>
+            new XElement("link-entity", new XAttribute("name", "contact"), new XAttribute("from", "contactid"),
+                new XAttribute("to", "new_contact_new_stor_lessons"), new XAttribute("visible", "false"),
+                new XAttribute("link-type", "outer"), new XAttribute("alias", "contact"),
+                new XElement("attribute", new XAttribute("name", firstField)),
+                new XElement("attribute", new XAttribute("name", secondField)));
+
+        /// <summary>僅在型別初始化複製兩個中立固定謂詞；不公開generated陣列、不保留操作資料或隨語系改查詢。</summary>
+        private static string LegacyValue(string key)
         {
-            try
-            {
-                if (_logger == null) return;
-                var loggerType = _logger.GetType();
-                var logMethod = loggerType.GetMethods()
-                    .FirstOrDefault(m => m.Name == "Log" && m.GetParameters().Length == 5 && m.IsGenericMethod);
-                if (logMethod != null)
-                {
-                    var genericMethod = logMethod.MakeGenericMethod(typeof(object));
-                    var logLevelType = Type.GetType("Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.Abstractions");
-                    object errorLevel = null;
-                    if (logLevelType != null)
-                    {
-                        errorLevel = Enum.Parse(logLevelType, "Error");
-                    }
-                    var eventIdType = Type.GetType("Microsoft.Extensions.Logging.EventId, Microsoft.Extensions.Logging.Abstractions");
-                    object eventId = null;
-                    if (eventIdType != null)
-                    {
-                        eventId = Activator.CreateInstance(eventIdType, 0, string.Empty);
-                    }
-                    object state = string.Format(format, args);
-                    Func<object, Exception, string> formatter = (s, e) => s?.ToString() ?? string.Empty;
-                    var parameters = new object[] { errorLevel, eventId, state, ex, formatter };
-                    genericMethod.Invoke(_logger, parameters);
-                }
-            }
-            catch
-            {
-                // swallow - 不讓日誌錯誤影響主要功能
-            }
+            foreach (var row in FetchQueryLegacyData.Rows)
+                if (string.Equals(row[0], key, StringComparison.Ordinal))
+                    return row[1] ?? throw new InvalidOperationException("A neutral query predicate is required.");
+            throw new InvalidOperationException("A neutral query predicate is missing.");
+        }
+
+        /// <summary>取得單次借用參照，不以全域鎖序列化不同scope；Dispose競爭時只有已取得參照的舊工作可以繼續。</summary>
+        private IOrganizationService GetService()
+        {
+            var sdk = Volatile.Read(ref _organizationService);
+#if NETFRAMEWORK
+            if (Volatile.Read(ref _disposed) != 0) throw new ObjectDisposedException(nameof(FetchXmlQueryService));
+#else
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+#endif
+            return sdk ?? throw new ObjectDisposedException(nameof(FetchXmlQueryService));
+        }
+
+        /// <summary>標準可覆寫Dispose hook只清借用SDK參照，冪等且不阻塞外部同步I/O；host負責排空及真正連線釋放。</summary>
+        /// <param name="disposing">本型別無自有unmanaged或背景資源；保留衍生類可延伸的標準清理形狀。</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) == 0) Interlocked.Exchange(ref _organizationService, null);
+        }
+
+        /// <summary>由服務owner停止新入口，不Dispose借入SDK、不建立終結器或留下logger/Fee委派強參照。</summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

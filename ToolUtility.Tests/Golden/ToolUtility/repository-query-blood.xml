@@ -1,0 +1,9 @@
+<query entity="new_blood_report" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="true" />
+  <filter op="And">
+    <condition field="new_blood_contact_relation" op="Equal" entity="">
+      <value type="Guid">aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa</value>
+    </condition>
+  </filter>
+  <order field="createdon" direction="Descending" />
+</query>

@@ -64,23 +64,23 @@
 | `ToolUtility.Core/LessonsOperations/ILessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.ILessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/LessonsOperations/LessonsService.cs` | `ToolUtilityNameSpace.LessonsOperations.LessonsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/ListOperations/IListService.cs` | `ToolUtilityNameSpace.ListOperations.IListService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility/ListOperations/ListService.cs` | `ToolUtilityNameSpace.ListOperations.ListService` | 不可直接搬 | Task.Run／Delay批次與外部SDK借入，先驗取消／故障／排空及ID完整發布。 |
+| `ToolUtility/ListOperations/ListService.cs` | `ToolUtilityNameSpace.ListOperations.ListService` | 待純化 | 大型facade含靜態／動態名單、ExecuteMultiple與非同步批次；需先拆可直接借入IOrganizationService的純查詢／請求建構及host lifecycle，再逐入口安全驗證。 |
 | `ToolUtility.Core/ListOperations/IMarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.IMarketingListService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；host實作仍待純化。 |
-| `ToolUtility/ListOperations/MarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.MarketingListService` | 不可直接搬 | 依IEntityRepository與SDK，Task.Run批次及連帶Repository待純化。 |
+| `ToolUtility/ListOperations/MarketingListService.cs` | `ToolUtilityNameSpace.ListOperations.MarketingListService` | 待純化 | Repository／SDK混合、批次Task.Run與吞例外；須先保護部分成功回報、caller取消、失敗保真及工作drain，再決定Core operation與host adapter邊界。 |
 | `ToolUtility.Core/MeetingStatisticsOperations/IMeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.IMeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/MeetingStatisticsOperations/MeetingStatisticsService.cs` | `ToolUtilityNameSpace.MeetingStatisticsOperations.MeetingStatisticsService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/OwnerOperations/OwnerManagementService.cs` | `ToolUtilityNameSpace.OwnerOperations.OwnerManagementService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility/QueryOperations/ComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.ComplexQueryService` | 不可直接搬 | 依Interfaces.ICrmClient而非純借入IOrganizationService，不搬host連線。 |
-| `ToolUtility/QueryOperations/FetchXmlQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.FetchXmlQueryService` | 不可直接搬 | 反射Extensions logger及未跳脫XML；認獻／收費可委派Fee單一實作。 |
+| `ToolUtility.Core/QueryOperations/FetchXmlQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.FetchXmlQueryService` | 已抽取（本輪切片） | 七入口保留Execute/top/欄位差異；安全紅綠、resx謂詞及雙目標/strict/coverage證據見Fetch切片紀錄。 |
 | `ToolUtility.Core/QueryOperations/IComplexQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IComplexQueryService` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
-| `ToolUtility/QueryOperations/PresentRecordQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.PresentRecordQueryService` | 不可直接搬 | 反射Extensions logger及FetchXML插入，先分離純查詢／host告警。 |
+| `ToolUtility.Core/QueryOperations/PresentRecordQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.PresentRecordQueryService` | 已抽取（本輪切片） | 八入口保留查詢樹、兩UTC窗及parent-only link；單頁5000、borrowed SDK drain及雙目標測試見Present證據目錄。 |
 | `ToolUtility.Core/QueryOperations/IQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.IQueryService` | 已抽取（純契約） | 五介面67多載固定golden及雙宿主反射驗證；host實作仍待純化。 |
-| `ToolUtility/QueryOperations/QueryService.cs` | `ToolUtilityNameSpace.QueryOperations.QueryService` | 不可直接搬 | 依Repository、Trace原值與DateTime.Now，須處理時間來源／安全診斷。 |
-| `ToolUtility/QueryOperations/RelationshipQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.RelationshipQueryService` | 不可直接搬 | 反射Extensions logger與動態XML，實體／欄位／關係名也須結構驗證。 |
+| `ToolUtility.Core/QueryOperations/QueryService.cs` | `ToolUtilityNameSpace.QueryOperations.QueryService` | 已抽取（本輪切片；雙目標已驗） | Repository單頁五入口、原Local時間透過IClock注入、固定診斷訊息、安全Fetch解析及ID／根表驗證；搬後net48 933/net10 1063、strict 0 warning/error。 |
+| `ToolUtility.Core/QueryOperations/RelationshipQueryService.cs` | `ToolUtilityNameSpace.QueryOperations.RelationshipQueryService` | 已抽取（本輪切片） | 六入口保留原link/條件CLR型別；動態metadata/GUID與5000列預算、double-host及strict證據見Relationship目錄。 |
 | `ToolUtility.Core/Core/IToolUtilityCore.cs` | `ToolUtilityNameSpace.Core.IToolUtilityCore` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility/Core/ToolUtilityFacade.cs` | `ToolUtilityNameSpace.Core.ToolUtilityFacade` | 不可直接搬 | ConnectionOperations、logger、LINE與Lazy組合根；Metadata partial不可跨assembly拆。 |
 | `ToolUtility/Core/ToolUtilityFacade.Metadata.cs` | `ToolUtilityNameSpace.Core.ToolUtilityFacade` | 不可直接搬 | ConnectionOperations、logger、LINE與Lazy組合根；Metadata partial不可跨assembly拆。 |
-| `ToolUtility/Extensions/CrmAsyncExtensions.cs` | `ToolUtilityNameSpace.Extensions.CrmAsyncExtensions` | 不可直接搬 | SemaphoreSlim無確定性Dispose，Task.Run批次與dictionary覆寫ID；先有界／drain／衝突測試。 |
+| `ToolUtility/Extensions/CrmAsyncExtensions.cs` | `ToolUtilityNameSpace.Extensions.CrmAsyncExtensions` | 待純化 | 靜態SDK轉接表面可雙目標，但bounded parallelism、整頁原子發布、重複跨表Guid、caller取消與背景同步SDK排空尚未驗證。 |
 | `ToolUtility.Core/Extensions/OrganizationServiceExtensions.cs` | `ToolUtilityNameSpace.Extensions.OrganizationServiceExtensions` | 已抽取（見切片證據） | 沿用原 namespace；最新雙宿主652/778通過，細節依對應切片報告，不把整包視為完成。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns` | 已純化並抽取 | 私有固定模板加公開複本 getter；21組完整golden、caller mutation及並行測試通過。 |
 | `ToolUtility.Core/Constants/CrmEntityColumns.cs` | `ToolUtilityNameSpace.Constants.CrmEntityColumns.Contact` | 已純化並抽取 | 欄位陣列由getter逐次複製；保留來源namespace及既有欄位／順序。 |
@@ -149,6 +149,12 @@ Activity／Attachment、其餘屬性／Collection／Contact／List／Query及必
 ## Activity切片（2026-11-05 21:33）
 
 已修跨表GUID覆寫及部分發布，原51紅→57綠，含生命週期82搬前綠後git mv兩檔；495/602、16TRX2444、Core99.56%/100%。保留合法append、外部地址略過及狀態1/4、3/5；1000 A/B、59次明確故障重試、Dispose/drain及公開委派七案通過。使用者取消後續雙模型REVIEW，主會話直接審查；分析兩後端已嘗試但Claude週額度降級。其他候選仍未完成，P1仍2/12，不封存主任務。
+
+## Present與Query接續（2026-11-06）
+
+`PresentRecordQueryService` 八入口已先以原host完整golden 8/8確認，安全矩陣63紅/2綠，修補後搬前72綠再移入Core。net48 887/887、net10 1017/1017、Core strict零警告／錯誤。保持UTC窗、Fetch Execute契約、QueryExpression完整欄位與條件、原日期值型別和分頁資訊；只在原父表是new_disciple_lessons時建立日期link。證據 `artifacts/p1-04-present-20261106/`。
+
+`QueryService` 五入口原host完整golden 5/5、安全矩陣37紅/3綠後改為純Core實作；Query＋Present＋實際Repository consumer路由131/131。只讀repository借用、正式ID及根表完整驗證、Fetch安全parser共用、固定診斷訊息及原InnerException、可控LocalNow時鐘、Dispose停止新入口／排空舊呼叫。證據 `artifacts/p1-04-repository-query-20261106/`。其Core strict與雙目標搬後數字仍待重跑；尚未完成P1-04其餘Operations、四方法／DI及整包守門，不得提前宣告完成。
 
 ## 2026-11-06 純契約／優化查詢接續
 

@@ -1,0 +1,18 @@
+<query entity="new_group_present_weekly_report" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="true" />
+  <filter op="And">
+    <condition field="new_list_group_present_weekly_report" op="Equal" entity="">
+      <value type="Guid">11111111-1111-4111-8111-111111111111</value>
+    </condition>
+    <condition field="statecode" op="Equal" entity="">
+      <value type="Int32">0</value>
+    </condition>
+    <condition field="new_sunday_date" op="OnOrAfter" entity="">
+      <value type="DateTime">01/14/2027 00:00:00</value>
+    </condition>
+    <condition field="new_sunday_date" op="OnOrBefore" entity="">
+      <value type="DateTime">03/14/2027 00:00:00</value>
+    </condition>
+  </filter>
+  <order field="new_sunday_date" direction="Ascending" />
+</query>

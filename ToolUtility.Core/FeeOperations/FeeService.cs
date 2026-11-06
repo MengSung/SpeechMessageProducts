@@ -4,8 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
+using ToolUtilityNameSpace.DataOperations;
 
 namespace ToolUtilityNameSpace.FeeOperations
 {
@@ -66,7 +65,7 @@ namespace ToolUtilityNameSpace.FeeOperations
                 Lookup("new_contact_new_dedication_booking", contactName, "contact", contactId, nameof(contactId)),
                 Condition("new_dedication_booking_status", "eq", "100000001"),
                 Condition("statecode", "eq", "0")));
-            return Query(fetch, "new_dedication_booking", false);
+            return Query(fetch, false);
         }
 
         /// <summary>
@@ -86,7 +85,7 @@ namespace ToolUtilityNameSpace.FeeOperations
                 Lookup("new_dedication_booking_new_fee", dedicationBookingName, "new_dedication_booking",
                     dedicationBookingId, nameof(dedicationBookingId)),
                 Condition("new_paid_period", "eq", paidPeriod), Condition("statecode", "eq", "0")));
-            return Query(fetch, "new_fee", false);
+            return Query(fetch, false);
         }
 
         /// <summary>
@@ -98,7 +97,7 @@ namespace ToolUtilityNameSpace.FeeOperations
         /// <returns>原 SDK 單頁結果；同名不同 ID 完整保留，ID 衝突整頁拒絕。</returns>
         public EntityCollection RetrieveDedicationFee(string contactName, string contactId)
         {
-            return Query(CreateDedicationFetch(contactName, contactId, false), "new_fee", true);
+            return Query(CreateDedicationFetch(contactName, contactId, false), true);
         }
 
         /// <summary>
@@ -120,7 +119,7 @@ namespace ToolUtilityNameSpace.FeeOperations
             fetch.Element("entity")!.Element("filter")!.Add(status,
                 Condition("new_pay_date", "on-or-after", startDate.ToString("yyyy-M-d", CultureInfo.InvariantCulture)),
                 Condition("new_pay_date", "on-or-before", endDate.ToString("yyyy-M-d", CultureInfo.InvariantCulture)));
-            return Query(fetch, "new_fee", true);
+            return Query(fetch, true);
         }
 
         /// <summary>
@@ -132,7 +131,7 @@ namespace ToolUtilityNameSpace.FeeOperations
         /// <returns>完整驗證、保留原分頁資訊的已繳收費頁。</returns>
         public EntityCollection GetPaidFee(string storLessonName, string storLessonId)
         {
-            return Query(CreateLessonFeeFetch(storLessonId, true), "new_fee", false);
+            return Query(CreateLessonFeeFetch(storLessonId, true), false);
         }
 
         /// <summary>
@@ -144,7 +143,7 @@ namespace ToolUtilityNameSpace.FeeOperations
         /// <returns>原投影及排序的完整 SDK 查詢頁。</returns>
         public EntityCollection GetNotYetPaidFee(string storLessonName, string storLessonId)
         {
-            return Query(CreateLessonFeeFetch(storLessonId, false), "new_fee", false);
+            return Query(CreateLessonFeeFetch(storLessonId, false), false);
         }
 
         /// <summary>
@@ -161,7 +160,7 @@ namespace ToolUtilityNameSpace.FeeOperations
                 new XElement("filter", new XAttribute("type", "or"),
                     Condition("new_q_pay_card_order_no", "eq", orderNumber),
                     Condition("new_q_pay_order_atm_no", "eq", orderNumber))));
-            return Query(fetch, "new_fee", false);
+            return Query(fetch, false);
         }
 
         /// <summary>建立單次奉獻查詢候選；字串陣列每次配置，不公開或保留跨操作的可變欄位集合。</summary>
@@ -232,22 +231,12 @@ namespace ToolUtilityNameSpace.FeeOperations
         }
 
         /// <summary>
-        /// 保留原操作所用SDK入口，完成I/O後驗證整頁才一次回傳；HashSet僅活至本次呼叫結束。
-        /// 不存結果、不釋放借入服務、不攔截真實SDK例外；資料衝突不含ID／欄位本文且不靜默去重。
+        /// 保留原操作所用SDK入口，委派共用單頁發布守門，避免Fetch與Fee兩套回應驗證漂移。
+        /// 有top時先拒超量，完整驗ID才回傳；不保存結果、不處置借入SDK、不包裝真正SDK例外。
         /// </summary>
-        private EntityCollection Query(XElement fetch, string entityName, bool direct)
+        private EntityCollection Query(XElement fetch, bool direct)
         {
-            var expression = new FetchExpression(fetch.ToString(SaveOptions.DisableFormatting));
-            var candidate = direct ? _organizationService.RetrieveMultiple(expression)
-                : ((RetrieveMultipleResponse)_organizationService.Execute(new RetrieveMultipleRequest { Query = expression })).EntityCollection;
-            if (candidate == null) throw new InvalidOperationException("The SDK returned no query page.");
-            var identities = new HashSet<Guid>();
-            foreach (var row in candidate.Entities)
-            {
-                if (row == null || row.Id == Guid.Empty || !string.Equals(row.LogicalName, entityName, StringComparison.Ordinal)
-                    || !identities.Add(row.Id)) throw new InvalidOperationException("Query page contains invalid or duplicate database identities.");
-            }
-            return candidate;
+            return SdkDataQuery.RunFetch(_organizationService, fetch, !direct);
         }
     }
 }

@@ -1,0 +1,19 @@
+<query entity="list" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="true" />
+  <filter op="And">
+    <condition field="new_app_named" op="Equal" entity="">
+      <value type="Boolean">true</value>
+    </condition>
+    <condition field="statecode" op="Equal" entity="">
+      <value type="Int32">0</value>
+    </condition>
+  </filter>
+  <link fromEntity="list" fromAttribute="listid" toEntity="listmember" toAttribute="listid" join="Inner" alias="">
+    <columns all="false" />
+    <filter op="And">
+      <condition field="entityid" op="Equal" entity="">
+        <value type="Guid">11111111-1111-4111-8111-111111111111</value>
+      </condition>
+    </filter>
+  </link>
+</query>

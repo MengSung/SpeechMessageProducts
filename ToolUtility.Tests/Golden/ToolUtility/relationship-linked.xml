@@ -1,0 +1,13 @@
+<query entity="contact" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="false">
+    <column>fullname</column>
+    <column>address1_city</column>
+  </columns>
+  <filter op="And" />
+  <link fromEntity="contact" fromAttribute="parentcustomerid" toEntity="account" toAttribute="accountid" join="Inner" alias="aliasAccount">
+    <columns all="false">
+      <column>accountnumber</column>
+    </columns>
+    <filter op="And" />
+  </link>
+</query>

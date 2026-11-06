@@ -14,7 +14,7 @@ const dataEnd = script.indexOf('\n};', dataStart) + 3;
 const original = vm.runInNewContext(script.slice(dataStart, dataEnd) + '\nDATA;');
 
 // 每個案例持有自己的 DOM 與資料副本，避免警示事件或內容從上一個案例滲入。
-function render(alert, notices = []) {
+function render(alert, notices = [], updateData = () => {}) {
   const elements = new Map();
   class Element {
     constructor(id) { this.id = id; this.hidden = false; this.listeners = new Map(); this.children = []; this.content = ''; }
@@ -36,13 +36,14 @@ function render(alert, notices = []) {
   const data = JSON.parse(JSON.stringify(original));
   data.alert = alert;
   data.notices = notices;
+  updateData(data);
   const source = script.slice(0, dataStart) + 'const DATA = ' + JSON.stringify(data) + ';' + script.slice(dataEnd);
   vm.runInNewContext(source, { document: { getElementById: id => elements.get(id) || null }, navigator: {} });
   return elements;
 }
 
 function getWorkPackageRow(elements, id) {
-  const rows = elements.get('p1-wps').innerHTML.match(/<li class="wp [^"]+">[\s\S]*?<\/li>/g) || [];
+  const rows = elements.get('planned-phases').innerHTML.match(/<li class="wp [^"]+">[\s\S]*?<\/li>/g) || [];
   return rows.find(row => row.includes(`<span class="id">${id}</span>`)) || '';
 }
 
@@ -55,7 +56,7 @@ test('No alert hides the warning region and still renders the page', () => {
   const accepted = original.p1Wps.filter(wp => wp.status === 'done').length;
   assert.match(elements.get('headline').innerHTML, new RegExp(`${accepted}／12 工作包`));
   assert.match(elements.get('tiles').innerHTML, /階段 1 驗收/);
-  assert.match(elements.get('wps').innerHTML, /P0-05/);
+  assert.match(elements.get('planned-phases').innerHTML, /P0-05/);
 
   const activePage = render(original.alert);
   assert.match(activePage.get('alert').innerHTML, /D365 預設只讀/);
@@ -79,7 +80,7 @@ test('Alert with prompt preserves escaped prompt and copy handler', () => {
 
 test('Stage 1 progress lists all twelve packages and preserves the live acceptance boundary', () => {
   const elements = render(original.alert);
-  const ids = [...elements.get('p1-wps').innerHTML.matchAll(/<span class="id">(P1-\d+)<\/span>/g)]
+  const ids = [...elements.get('planned-phases').innerHTML.matchAll(/<span class="id">(P1-\d+)<\/span>/g)]
     .map(match => match[1]);
   assert.deepEqual(ids, Array.from({ length: 12 }, (_, index) => `P1-${String(index + 1).padStart(2, '0')}`));
   const p1_02 = getWorkPackageRow(elements, 'P1-02');
@@ -98,7 +99,7 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   assert.match(fs.readFileSync(path.join(root, 'wp-reports/P1-01-acceptance.md'), 'utf8'),
     /P1-01 的孤兒清理、測試整合及本機驗收已完成/);
   assert.match(getWorkPackageRow(elements, 'P1-04'), /class="wp is-active"/);
-  assert.match(elements.get('p1-wps').innerHTML, /P1-08[\s\S]*P1-10/);
+  assert.match(elements.get('planned-phases').innerHTML, /P1-08[\s\S]*P1-10/);
   const p1_12 = getWorkPackageRow(elements, 'P1-12');
   assert.match(p1_12, /class="wp is-you"/);
   assert.doesNotMatch(p1_12, /undefined/);
@@ -211,6 +212,75 @@ test('Planned phase disclosures show a visible expanded-state indicator', () => 
     /<details class="planned-phase">[\s\S]*?<summary>[\s\S]*?<span class="planned-phase-toggle" aria-hidden="true"><\/span>/);
   assert.match(html, /\.planned-phase-toggle::before\s*\{[^}]*content:\s*["']\+["']/);
   assert.match(html, /\.planned-phase\[open\] \.planned-phase-toggle::before\s*\{[^}]*content:\s*["']-["']/);
+});
+
+// 若重新鋪開 P0/P1、只用 CSS 隱藏舊清單、漏整合任何階段，或預設展開明細，必須失敗。
+test('All nine stages share one closed work-package disclosure list without standalone P0/P1 sections', () => {
+  const elements = render(original.alert);
+  const rendered = elements.get('planned-phases').innerHTML;
+  const ids = [...rendered.matchAll(/<span class="planned-phase-id">([^<]+)<\/span>/g)]
+    .map(match => match[1]);
+  assert.deepEqual(ids, Array.from({ length: 9 }, (_, i) => `階段 ${i}`));
+  assert.equal((rendered.match(/<details class="planned-phase">/g) || []).length, 9);
+  assert.doesNotMatch(rendered, /<details[^>]*\bopen(?:[\s=>])/);
+  assert.doesNotMatch(html, /<h2>階段 [01] 工作包/);
+  assert.doesNotMatch(html, /\bid="(?:wps|p1-wps)"/);
+  assert.equal(elements.has('wps'), false);
+  assert.equal(elements.has('p1-wps'), false);
+  assert.match(html, /<h2>階段 0～8 工作包/);
+});
+
+// 單獨計數人工操作，審查只是證據而非第十九包；摘要必須涵蓋所有狀態，不能漏掉 P1-12。
+test('Unified summaries exclude review milestones and account for user-operated work', () => {
+  const rendered = render(original.alert).get('planned-phases').innerHTML;
+  const summaries = [...rendered.matchAll(/<summary>([\s\S]*?)<\/summary>/g)]
+    .map(match => match[1]);
+  assert.equal(summaries.length, 9);
+  const groups = [original.wps.filter(wp => !wp.milestone), original.p1Wps,
+    ...original.phases.slice(2).map(phase => original.plannedWps.filter(wp => wp.phaseId === phase.id))];
+  for (const [index, packages] of groups.entries()) {
+    const done = packages.filter(wp => wp.status === 'done').length;
+    const active = packages.filter(wp => wp.status === 'active').length;
+    const todo = packages.filter(wp => wp.status === 'todo').length;
+    const you = packages.filter(wp => wp.status === 'you').length;
+    assert.equal(done + active + todo + you, original.phases[index].total);
+    assert.ok(summaries[index].includes(`${done}/${packages.length} 驗收`));
+    assert.ok(summaries[index].includes(`${active} 進行中`));
+    assert.ok(summaries[index].includes(`${todo} 未開始`));
+    if (you) assert.ok(summaries[index].includes(`${you} 待你操作`));
+  }
+  assert.match(summaries[1], /目前階段/);
+  assert.match(rendered, /class="wp is-milestone"/);
+
+  // 注入不同狀態，證明摘要不是將目前的 3／1／7／1 寫死。
+  const changed = render(null, [], data => { data.p1Wps[4].status = 'you'; })
+    .get('planned-phases').innerHTML;
+  assert.match(changed, /6 未開始、2 待你操作/);
+});
+
+// 所有原始欄位都要渲染且只出現一列；注入同名與 HTML 內容，保護身分保留與輸出跳脫。
+test('Integrated P0/P1 entries preserve every evidence field and never merge same-name records', () => {
+  const elements = render(original.alert);
+  const escape = value => String(value).replace(/[&<>"]/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  for (const wp of [...original.wps, ...original.p1Wps].filter(wp => !wp.milestone)) {
+    const row = getWorkPackageRow(elements, wp.id);
+    assert.ok(row, `${wp.id} must remain visible inside its disclosure`);
+    assert.ok(row.includes(`class="wp is-${wp.status}"`));
+    for (const key of ['name', 'note', 'commit', 'time']) {
+      if (wp[key]) assert.ok(row.includes(escape(wp[key])), `${wp.id} must preserve ${key}`);
+    }
+    assert.equal(elements.get('planned-phases').innerHTML
+      .split(`<span class="id">${wp.id}</span>`).length - 1, 1);
+  }
+  const changed = render(null, [], data => {
+    data.wps[0].name = '<shared-name>';
+    data.p1Wps[0].name = '<shared-name>';
+    data.wps[0].note = '<script>synthetic</script>&"';
+  }).get('planned-phases').innerHTML;
+  assert.equal(changed.split('&lt;shared-name&gt;').length - 1, 2);
+  assert.match(changed, /&lt;script&gt;synthetic&lt;\/script&gt;&amp;&quot;/);
+  assert.doesNotMatch(changed, /<shared-name>|<script>synthetic/);
 });
 
 test('Future work packages preserve external-operation and isolation stop boundaries', () => {

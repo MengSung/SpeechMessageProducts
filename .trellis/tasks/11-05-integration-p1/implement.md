@@ -138,3 +138,21 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 ## 2026-11-06 進度歷程固定位置
 - 使用者指定所有本任務修改歷程寫入正式進度頁的「一般資訊」；使用既有 DATA.alert(level=info).body/steps，不只更新 timeline 或工作包 note。每輪追加時間、修改範圍、實際紅/綠驗證、證據、本地commit與未完成邊界；保留既有歷史及他任務版面。
 - 本次將契約/Contact既有提交與Fetch原host9/9先綠、安全20案17失敗/3通過寫入；HTML渲染器未變，現有工作樹進度頁測試14/14，產品Fetch仍未修改，不標P1-04完成。
+
+## P1-04 Fetch切片執行決策（2026-11-06）
+- 既有五個非Fee完整XML golden與四Fee原host特性9/9先綠；安全矩陣拆為七入口獨立案例，62案51失敗/11通過，產品修改前取得真紅。
+- 先於原host修補後再git mv；暫時Compile link同一SdkDataQuery來源供internal helper，不複製。七入口沿用Execute、top1000/100/500、原欄位/排序/link/差異條件；lookup用XElement與非空GUID驗證。
+- 共用SdkDataQuery集中Execute錯型別/整頁穩定ID/top預算；Fee Query委派同一實作，不保留兩套驗證。無背景排程/結果cache/logger引用；Dispose清SDK，不關借入連線，舊工作可drain。兩Fee入口逐次借SDK至局部FeeService，不留額外owner。
+- 兩個中文業務謂詞保持原義，移分層resx並由正式I18n工具生成，不能按語言翻譯資料庫條件。一般資訊持續記錄修改/驗證/未完成。
+- 工具層要求的外部分析經自癒入口20261106-101015嘗試，Gemini403、Claude週額度，兩者無可用輸出；不是雙模型成功，依規則續做本地驗證，不重試相同供應商阻擋。
+
+## P1-04 Relationship切片執行決策（2026-11-06）
+- 六入口完整QueryExpression投影golden原host6/6先綠；安全53案52失敗/1通過。保留SDK直接RetrieveMultiple、link方向/根與link filter差異、bool/Guid/字串型別、欄位/排序及PageInfo缺省。
+- 純化反射logger後抽Core；五/七動態metadata名稱共用既有logical-name驗證規則，非空GUID在I/O前驗；單頁最多5000列，先拒超量再配置ID集合，同名異ID/metadata保留。
+- 原週報日期使用sunday.ToString，保留明確CurrentCulture字串型別而不偷改為DateTime/時區；日期地基仍依後續P1-06，不改正式計畫。借SDK/Dispose/drain/1000A/B/weak-reference與故障重試均實測。
+
+## P1-04 Present／Query切片執行決策（2026-11-06）
+- Present八入口完整投影特性8/8原host先綠；安全矩陣產品修改前63紅／2綠，修後搬前72綠再git mv至Core；net48 887/887、net10 1017/1017，Core strict 0警告／錯誤。保留兩個UTC界線、父課程唯一日期link、Fetch Execute回應型別、所有條件順序/值型別、分頁metadata及同名異ID。動態父表/欄位在I/O前驗logical name及正式GUID；單頁上限5000，borrowed SDK Dispose/drain、1000 A/B與弱引用證據在artifacts/p1-04-present-20261106。
+- Repository QueryService五入口原host完整golden 5/5先綠；新增錯表、null/empty/duplicate/over-budget、DTD/多根Fetch、取消/失敗重試、Dispose race、1000 A/B與弱參照安全矩陣，原實作修改前37紅／3綠。修後Combined Query／Present／產品路由131/131；證據artifacts/p1-04-repository-query-20261106。
+- QueryService已改純Core候選，保持舊namespace、constructor與五API；共享安全串流Fetch根表解析由SdkDataQuery唯一維護，EntityQueryService移除重複parser。QueryService移除輸出欄位值／例外本文的Trace；失敗只固定operation包裝並保留原InnerException。原present使用DateTime.Now不符合Core strict，故新增無scope狀態IClock、注入LocalNow以保留舊Local DateTime.Kind及月份算法，測試可固定時鐘；未自行改成教會時區或補未使用list filter，待P1-06定義時鐘遷移。
+- 上述QueryService尚未完成搬移後雙目標／strict／方案驗證及 coverage；P1-04仍進行中。尚須處理CrmAsyncExtensions、ComplexQuery host adapter、ListService／MarketingListService、四方法與product DI之整包核對，不能把已綠切片宣告為整包交付。

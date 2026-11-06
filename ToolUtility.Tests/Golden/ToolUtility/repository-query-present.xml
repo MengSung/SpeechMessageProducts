@@ -1,0 +1,12 @@
+<query entity="new_individual_meeting_and_spiritual_meditation_records" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="true" />
+  <filter op="And">
+    <condition field="new_contact_present_record" op="Equal" entity="">
+      <value type="Guid">aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa</value>
+    </condition>
+    <condition field="new_sunday_date" op="GreaterEqual" entity="">
+      <value type="DateTime">CURRENT_LOCAL</value>
+    </condition>
+  </filter>
+  <order field="new_sunday_date" direction="Descending" />
+</query>

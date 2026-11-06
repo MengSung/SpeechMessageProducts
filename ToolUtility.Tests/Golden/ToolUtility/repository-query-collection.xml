@@ -1,0 +1,8 @@
+<query entity="contact" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="true" />
+  <filter op="And">
+    <condition field="fullname" op="Equal" entity="">
+      <value type="String">synthetic-private</value>
+    </condition>
+  </filter>
+</query>

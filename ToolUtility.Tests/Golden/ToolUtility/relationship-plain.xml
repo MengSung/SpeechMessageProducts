@@ -1,0 +1,15 @@
+<query entity="list" distinct="false" noLock="false" top="" page="0" count="0" cookie="" returnTotal="false">
+  <columns all="true" />
+  <filter op="And" />
+  <link fromEntity="list" fromAttribute="new_contact_family_leader_list" toEntity="contact" toAttribute="contactid" join="Inner" alias="">
+    <columns all="false" />
+    <filter op="And">
+      <condition field="contactid" op="Equal" entity="">
+        <value type="String">11111111-1111-4111-8111-111111111111</value>
+      </condition>
+      <condition field="statecode" op="Equal" entity="">
+        <value type="Int32">0</value>
+      </condition>
+    </filter>
+  </link>
+</query>

@@ -1,0 +1,14 @@
+<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false" top="100">
+                          <entity name="new_meeting_statistics">
+                            <attribute name="new_meeting_statisticsid" />
+                            <attribute name="new_name" />
+                            <attribute name="createdon" />
+                            <attribute name="new_sunday_date" />
+                            <order attribute="createdon" descending="true" />
+                            <filter type="and">
+                              <condition attribute="statuscode" operator="eq" value="1" />
+                              <condition attribute="new_sunday_date" operator="on" value="2027-03-14" />
+                              <condition attribute="statecode" operator="eq" value="0" />
+                            </filter>
+                          </entity>
+                        </fetch>

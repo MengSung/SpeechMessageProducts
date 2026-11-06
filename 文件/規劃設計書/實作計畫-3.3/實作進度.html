@@ -207,11 +207,11 @@
   .chip.review { color: var(--ink-2); background: var(--surface-2); }
   .chip.flag { color: var(--crit-text); background: var(--crit-wash); }
 
-  /* 階段 0 工作包清單 */
+  /* 已有執行紀錄的工作包；放在共用階段收合區內，保留提交與驗收證據。 */
   .wps { list-style: none; margin: 0; padding: 0; }
   .wp {
     display: grid;
-    grid-template-columns: 26px 64px 1fr auto;
+    grid-template-columns: 26px 100px minmax(0, 1fr) auto;
     gap: 4px 12px;
     align-items: start;
     padding: 12px 4px;
@@ -219,9 +219,9 @@
   }
   .wp:first-child { border-top: 0; }
   .wp .dot { width: 22px; height: 22px; margin-top: 1px; }
-  .wp .id { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-2); }
-  .wp .name { font-weight: 700; }
-  .wp .note { grid-column: 3 / 5; color: var(--ink-2); font-size: 14px; }
+  .wp .id { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-2); overflow-wrap: anywhere; }
+  .wp .name { min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+  .wp .note { grid-column: 3 / 5; min-width: 0; color: var(--ink-2); font-size: 14px; overflow-wrap: anywhere; }
   .wp .right { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
   .wp .commit { font-family: Consolas, monospace; font-size: 12px; color: var(--muted); }
   .wp.is-todo .name { color: var(--ink-2); font-weight: 400; }
@@ -246,7 +246,7 @@
   .phase.is-current { background: var(--prog-wash); border-radius: 8px; border-top: 0; }
   .phase.is-current + .phase { border-top: 0; }
 
-  /* 後續階段以可展開清單呈現，完整保留逐包範圍與驗收而不擠壓目前進度。 */
+  /* 所有階段共用原生收合清單；預設只顯示摘要，展開後才顯示工作包與證據。 */
   .planned-phases { display: grid; }
   .planned-phase { border-top: 1px solid var(--hair); }
   .planned-phase:first-child { border-top: 0; }
@@ -380,18 +380,8 @@
   <div class="tiles" id="tiles"></div>
 
   <section>
-    <h2>階段 0 工作包<small>一次做一個；每個都要先寫會失敗的測試、再寫程式</small></h2>
-    <div class="card"><ol class="wps" id="wps"></ol></div>
-  </section>
-
-  <section>
-    <h2>階段 1 工作包<small>依正式計畫 02；逐包以驗收證據決定完成</small></h2>
-    <div class="card"><ol class="wps" id="p1-wps"></ol></div>
-  </section>
-
-  <section>
-    <h2>階段 2～8 工作包<small>依正式計畫 03／04；目前全部未開始</small></h2>
-    <p class="planned-source">逐包列出實作範圍、計畫指定驗收與前置／停止界線；登錄工作包不代表已開工或驗收。</p>
+    <h2>階段 0～8 工作包<small>統一收合呈現；點選階段查看工作包與驗收紀錄</small></h2>
+    <p class="planned-source">階段 0、1 的執行紀錄與階段 2～8 的規劃整合於下列清單，不另設獨立工作包區。原編號、狀態與證據保留；階段 2～8 的 53 包仍全部未開始，規劃登錄不代表已開工或驗收。</p>
     <div class="planned-phases" id="planned-phases"></div>
   </section>
 
@@ -441,7 +431,7 @@
   </section>
 
   <footer>
-    <p>本頁是快照，不會自動更新。階段 2～8 工作包依正式計畫 3.3 的 00、03、04 文件整理；P0／P1 現況依目前 worktree 的提交紀錄、執行帳本、工作包報告及可重跑證據記載。</p>
+    <p>本頁是快照，不會自動更新。階段 0～8 工作包統一呈現；階段 2～8 依正式計畫 3.3 的 00、03、04 文件整理，P0／P1 現況依目前 worktree 的提交紀錄、執行帳本、工作包報告及可重跑證據記載。本次版面整合不改變階段歸屬或新增驗收結果。</p>
     <p>進度以逐包驗收證據更新；未開始的規劃項目不計入完成數。</p>
   </footer>
 </div>
@@ -454,7 +444,7 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06 10:05（一般資訊已補完整修改歷程與Fetch紅測）",
+  "snapshot": "2026-11-06 10:46（P1-04實作與驗證歷程已更新）",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／本機驗證：Codex inline；外部分析與審查依 CCG 自癒入口",
   "headline": "階段 1 目前 <strong>3／12 工作包列為驗收完成</strong>（P1-01、P1-02、P1-03）；P1-04仍在進行。階段 2～8 已依正式計畫登錄53個工作包，全部未開始。全計畫共83包，目前已驗收21包；規劃登錄不代表實作或驗收。",
@@ -462,7 +452,7 @@ const DATA = {
   "alert": {
     "level": "info",
     "title": "階段1執行中｜集中P1-04收尾",
-    "body": "P1-04 Constants 已抽取；契約/優化查詢與Contact切片已本地提交c9a667d4、5a9e4b03（未push）。Contact末端驗證688/818、全方案2853/2853、Core92.77%/93.42%是既有已完成切片證據。本次Fetch原host9/9特性先綠，安全20案17失敗／3通過，尚未修改產品FetchXmlQueryService。修改內容、驗證、提交歸屬及未完成項目已記在下方一般資訊歷程。P1-04未完成、P1仍3/12；List/MarketingList、其餘Query/CrmAsync仍待交付。D365 預設只讀，未操作VM/D365/LINE。",
+    "body": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。Present八入口原host golden 8/8；安全矩陣63紅/2綠，純化後搬前72/72，git mv入Core，net48 887/887、net10 1017/1017、strict 0警告0錯誤。QueryService五入口原host golden 5/5，安全矩陣37紅/3綠；共用Fetch安全串流parser、加IClock保留舊本地日期Kind且可控測試，移除含查詢值的Trace。Query+Present+產品路由131/131；Core搬後strict/雙目標/coverage待重跑。證據artifacts/p1-04-present-20261106與artifacts/p1-04-repository-query-20261106。P1-04仍未完成；尚有CrmAsync、ComplexQuery、List/MarketingList、四資料方法/DI及整包00§8守門。未操作VM/D365/LINE。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -499,7 +489,10 @@ const DATA = {
       "2026-11-06 10:05 Fetch安全基線實跑20案：17失敗、3通過、0略過，編譯成功；確認原host缺少XML編碼／GUID拒絕、整頁身份及top驗證、錯誤response防護與Dispose/logger清理契約。失敗TRX與原始log已保留於artifacts/p1-04-fetch-query-20261106/red-safety.trx及red-safety.log。這是待修正紅測，不是安全驗收完成。",
       "2026-11-06 10:05 目前邊界：本次只補寫一般資訊與保存驗證歷程，Fetch產品修補尚未執行；P1-04仍進行中、P1仍3/12。其餘List/MarketingList、Query與CrmAsync抽取仍待交付。不把歷史Mock通過當實機證據，未操作VM/D365/LINE，未push／部署。",
       "2026-11-06 10:07 一般資訊更新驗證：保留原27筆歷程、追加本輪歷程，僅修改DATA，不改renderer/CSS；目前工作樹進度頁14/14通過（含他任務版面案例）。執行規則已保存至Trellis implement.md、CCG/Trellis接續狀態與review.md；不將文件更新當成P1-04完成。",
-      "2026-11-06 10:08 文件暫存守門發現index-only候選未經Git換行正規化，diff --check拒絕；已依既有.gitattributes/core.autocrlf重建LF儲存候選，工作樹仍維持UTF-8無BOM/CRLF，未關閉守門或修改他人版面。"
+      "2026-11-06 10:08 文件暫存守門發現index-only候選未經Git換行正規化，diff --check拒絕；已依既有.gitattributes/core.autocrlf重建LF儲存候選，工作樹仍維持UTF-8無BOM/CRLF，未關閉守門或修改他人版面。",
+      "2026-11-06 10:17 Fetch七入口已修補並git mv入Core；擴充分立矩陣62案51紅/11綠，修後原host含Fee134/134通過才搬。共用SdkDataQuery統一Execute型別/ID/top守門，Fee不重複驗證；兩個原中文謂詞由resx正式生成，不改篩選語義。搬後ToolUtility net48實載net462 755/755、net10 885/885，Core strict雙目標0警告/錯誤，I18n generated4檔通過。正進行coverage/全方案末端驗證，其餘List/Query/CrmAsync尚待交付。",
+      "2026-11-06 10:29 Relationship六入口原host特性6/6先綠、安全53案52失敗，修補後58/58；已git mv至Core，雙目標完整814/814、944/944，strict零警告零錯誤。證據artifacts/p1-04-relationship-20261106。Present八入口特性與安全驗證接續中。",
+      "2026-11-06 10:46 Present八入口原host golden 8/8；安全矩陣63紅/2綠，純化後搬前72/72，git mv入Core，net48 887/887、net10 1017/1017、strict 0警告0錯誤。QueryService五入口原host golden 5/5，安全矩陣37紅/3綠；共用Fetch安全串流parser、加IClock保留舊本地日期Kind且可控測試，移除含查詢值的Trace。Query+Present+產品路由131/131；Core搬後strict/雙目標/coverage待重跑。證據artifacts/p1-04-present-20261106與artifacts/p1-04-repository-query-20261106。P1-04仍未完成；尚有CrmAsync、ComplexQuery、List/MarketingList、四資料方法/DI及整包00§8守門。未操作VM/D365/LINE。"
     ]
   },
   "tiles": [
@@ -708,7 +701,7 @@ const DATA = {
       "id": "P1-04",
       "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
       "status": "active",
-      "note": "P1-04 Constants 已抽取；契約/優化查詢與帳密修補已提交c9a667d4。Contact純資料切片完成：原host7特性先綠、安全24全紅及空密碼2全紅，修後搬前43綠才抽Core；host保留兩ctor、不使用/保存缺隔離鍵cache。最新雙宿主688/818、全方案16TRX 2853/2853（ChurchReport623）、Core coverage92.77%/93.42%、Contact本體100%、strict零警告/錯誤；Debug tracer7、進度頁11及I18n/duplicates通過。主會話審查，未呼叫雙模型。List/MarketingList、其餘Query/CrmAsync尚待交付，整包P1-04未完成、P1仍3/12。D365 預設只讀，未操作VM/D365/LINE。"
+      "note": "P1-04 Constants 已抽取；契約/Contact既有本地提交保留，未push。Present八入口原host golden 8/8；安全矩陣63紅/2綠，純化後搬前72/72，git mv入Core，net48 887/887、net10 1017/1017、strict 0警告0錯誤。QueryService五入口原host golden 5/5，安全矩陣37紅/3綠；共用Fetch安全串流parser、加IClock保留舊本地日期Kind且可控測試，移除含查詢值的Trace。Query+Present+產品路由131/131；Core搬後strict/雙目標/coverage待重跑。證據artifacts/p1-04-present-20261106與artifacts/p1-04-repository-query-20261106。P1-04仍未完成；尚有CrmAsync、ComplexQuery、List/MarketingList、四資料方法/DI及整包00§8守門。未操作VM/D365/LINE。 P1-04未完成、P1仍3/12；D365 預設只讀，未操作VM/D365/LINE。"
     },
     {
       "id": "P1-05",
@@ -760,6 +753,16 @@ const DATA = {
     }
   ],
   "plannedPhaseNotes": [
+    {
+      "phaseId": "階段 0",
+      "source": "正式計畫 01，階段 0；既有提交、工作包及沙箱驗收紀錄",
+      "gate": "18 個工作包維持既有已完成狀態，逐包保留提交、時間與驗收證據；階段審查另列為里程碑，不計入工作包總數。此處僅整合既有紀錄，不代表重新執行 GitHub、D365 或 LINE 驗收。"
+    },
+    {
+      "phaseId": "階段 1",
+      "source": "正式計畫 02，階段 1；既有工作包報告與本機執行紀錄",
+      "gate": "12 個工作包依逐包證據列示狀態；完成、進行中、未開始及待你操作分別統計。仍須先寫失敗測試再實作，以正式驗收決定完成；不得把離線測試或規劃登錄當成實機通過，操作授權與停止界線保留於各包紀錄。"
+    },
     {
       "phaseId": "階段 2",
       "source": "正式計畫 03，階段 2",
@@ -2236,9 +2239,6 @@ const renderWp = w => {
     <span class="right">${right}</span>
     ${w.note ? `<span class="note">${esc(w.note)}</span>` : ""}</li>`;
 };
-document.getElementById("wps").innerHTML = D.wps.map(renderWp).join("");
-document.getElementById("p1-wps").innerHTML = D.p1Wps.map(renderWp).join("");
-
 document.getElementById("phases").innerHTML = D.phases.map(p => `
   <div class="phase${p.current ? " is-current" : ""}">
     <div class="pid">${esc(p.id)}</div>
@@ -2259,25 +2259,32 @@ const renderPlannedWp = wp => `
     </div>
   </li>`;
 
+// P0/P1 沿用原始紀錄與渲染器，不複製或重編工作包，也不將既有完成狀態覆寫為規劃狀態。
+// 此對照僅在本頁載入期間持有靜態 DATA；沒有網路、計時器或跨使用者儲存。
+const recordedWpsByPhase = new Map([["階段 0", D.wps], ["階段 1", D.p1Wps]]);
 document.getElementById("planned-phases").innerHTML = D.plannedPhaseNotes.map(note => {
   const phase = D.phases.find(item => item.id === note.phaseId);
-  const packages = D.plannedWps.filter(wp => wp.phaseId === note.phaseId);
+  const recordedWps = recordedWpsByPhase.get(note.phaseId);
+  const entries = recordedWps || D.plannedWps.filter(wp => wp.phaseId === note.phaseId);
+  // 審查里程碑保留在明細但不算工作包；人工操作不可漏計或冒列成未開始／已完成。
+  const packages = entries.filter(wp => !wp.milestone);
   const done = packages.filter(wp => wp.status === "done").length;
   const active = packages.filter(wp => wp.status === "active").length;
   const todo = packages.filter(wp => wp.status === "todo").length;
+  const you = packages.filter(wp => wp.status === "you").length;
   return `
     <details class="planned-phase">
       <summary>
         <span class="planned-phase-toggle" aria-hidden="true"></span>
         <span class="planned-phase-id">${esc(phase.id)}</span>
-        <span class="planned-phase-name">${esc(phase.name)}</span>
-        <span class="planned-phase-count">${done}/${phase.total} 驗收、${active} 進行中、${todo} 未開始</span>
+        <span class="planned-phase-name">${esc(phase.name)}${phase.current ? "　" + chip("active", "目前階段") : ""}</span>
+        <span class="planned-phase-count">${done}/${phase.total} 驗收、${active} 進行中、${todo} 未開始${you ? `、${you} 待你操作` : ""}</span>
         <span class="planned-phase-est">預估 ${esc(phase.est)}</span>
       </summary>
       <div class="planned-phase-body">
         <p class="planned-source">來源：${esc(note.source)}</p>
         <p class="planned-gate">${esc(note.gate)}</p>
-        <ol class="planned-wps">${packages.map(renderPlannedWp).join("")}</ol>
+        <ol class="${recordedWps ? "wps" : "planned-wps"}">${entries.map(recordedWps ? renderWp : renderPlannedWp).join("")}</ol>
       </div>
     </details>`;
 }).join("");

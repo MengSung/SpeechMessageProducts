@@ -1,0 +1,88 @@
+{
+    "runId":  "20261106-101015-p104-fetch-resume-analyzer",
+    "role":  "analyzer",
+    "requestedBackends":  [
+                              "gemini",
+                              "claude"
+                          ],
+    "claudeOnly":  false,
+    "reviewMode":  "dual",
+    "dualModelComplete":  false,
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree",
+    "taskFile":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.ccg\\dual-model-runs\\p104-fetch-resume-analyzer.md",
+    "runDirectory":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer",
+    "wrapperPath":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+    "toolchainEnvironment":  {
+                                 "ToolPathEntries":  [
+                                                         "C:\\Users\\Administrator\\AppData\\Roaming\\npm",
+                                                         "C:\\Users\\Administrator\\.claude\\bin",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\Scripts",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Launcher"
+                                                     ],
+                                 "ChangedProcessPath":  false,
+                                 "ChangedUserPath":  false,
+                                 "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                                 "CODEAGENT_LITE_MODE":  "true",
+                                 "PYTHONIOENCODING":  "utf-8",
+                                 "CLAUDE_MODEL":  "sonnet",
+                                 "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-51472-eb9220959a474e029fac0461f7cb9606\\claude.cmd",
+                                 "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-51472-eb9220959a474e029fac0461f7cb9606",
+                                 "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                             },
+    "healthBackendSmoke":  false,
+    "attempts":  [
+                     {
+                         "attempt":  1,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\health-attempt-1.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "gemini",
+                                              "ok":  false,
+                                              "exitCode":  1,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "no-usable-output",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  "[codeagent-wrapper]   Backend: gemini   Command: gemini -o stream-json -y --include-directories D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree   PID: 29716   Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-29716.log Gemini CCG adapter error: 以 \"0\" 引數呼叫 \"GetResponse\" 時發生例外狀況: \"遠端伺服器傳回一個錯誤: (403) 禁止。\" === Recent Errors === Using stdin mode for task due to: piped input, explicit \"-\", newline, backsl",
+                                              "probeDiagnostic":  "Gemini CCG adapter error: 以 \"0\" 引數呼叫 \"GetResponse\" 時發生例外狀況: \"遠端伺服器傳回一個錯誤: (503) 伺服器無法使用。\"",
+                                              "probe":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\gemini-probe-attempt-1.stdout.md",
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\gemini-analyzer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\gemini-analyzer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\gemini-analyzer-attempt-1.stderr.md"
+                                          },
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  false,
+                                              "exitCode":  1,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  true,
+                                              "failureReason":  "provider-quota-or-billing-blocked",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  "[codeagent-wrapper]   Backend: claude   Command: claude -p --dangerously-skip-permissions --setting-sources  --output-format stream-json --verbose -   PID: 32320   Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-32320.log   Session-ID: c9fd4881-1a1f-4b15-9c51-63f8e2fb4d34 === Recent Errors === Using stdin mode for task due to: piped input, explicit \"-\", newline, backslash, backtick, length\u003e800 claude exited with status 1 Log file: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeag",
+                                              "probeDiagnostic":  "You\u0027ve hit your weekly limit · resets Nov 7, 4pm (Asia/Taipei)",
+                                              "probe":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\claude-probe-attempt-1.stdout.md",
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\claude-analyzer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\claude-analyzer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P1.Worktree\\.\\.ccg\\dual-model-runs\\20261106-101015-p104-fetch-resume-analyzer\\claude-analyzer-attempt-1.stderr.md"
+                                          }
+                                      ]
+                     }
+                 ],
+    "ok":  false,
+    "degradedFallback":  false,
+    "fallbackAccepted":  true,
+    "quotaBlocked":  true,
+    "completedBackends":  [
+
+                          ],
+    "failedBackends":  [
+                           "gemini",
+                           "claude"
+                       ]
+}

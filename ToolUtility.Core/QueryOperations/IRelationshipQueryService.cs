@@ -1,58 +1,47 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Interfaces/IRelationshipQueryService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IRelationshipQueryService
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
-// 引用命名空間：System、Microsoft.Xrm.Sdk
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
 using System;
 using Microsoft.Xrm.Sdk;
 
 namespace ToolUtilityNameSpace.QueryOperations
 {
     /// <summary>
-    /// N:1 和 N:N 關聯查詢服務介面
+    /// N:1及N:N純SDK單頁契約，host先驗授權scope；整頁穩定ID驗證後發布，保留同名異ID與分頁metadata。
+    /// 每頁最多5000列，超量/空/重複/錯表拒絕；結果只屬本caller，不當作跨使用者共用快照。
+    /// SDK故障由host共用告警處理，本契約不保存連線、credential或logger。
     /// </summary>
     public interface IRelationshipQueryService
     {
         /// <summary>
-        /// 查詢 N:1 關聯的集合
+        /// 依受信任metadata及非空父資料庫GUID查單頁，啟用條件保留於原link，不將字串ID變為另一型別。
         /// </summary>
         EntityCollection RetrieveManyToOneRelationship(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName);
 
         /// <summary>
-        /// 查詢 N:1 關聯的集合(根據名稱排序)
+        /// 父關聯單頁另加listname升序；顯示名稱不構成身份或去重依據。
         /// </summary>
         EntityCollection QueryListsAndOrderedByListName(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName);
 
         /// <summary>
-        /// 查詢 N:1 關聯(使用 LinkEntity 取得關聯資料)
+        /// 固定contact/account內關聯欄位與alias，沒有父ID篩選，host須先授權SDK可見整體範圍。
         /// </summary>
         EntityCollection RetrieveManyToOneWithLinkEntity();
 
         /// <summary>
-        /// 查詢週報(根據主日日期和N:1關聯)
+        /// 週報日期沿原CurrentCulture字串與link Equal條件；不在抽取時暗中改時區、運算子或資料型別。
         /// </summary>
         EntityCollection QueryWeeklyReportBySunday(DateTime sunday, string parentEntityName,
             string parentEntityIdName, string parentEntityId, string associationName, string childEntityName);
 
         /// <summary>
-        /// 查詢 N:N (ManyToMany) 的集合
+        /// 驗七個受信任結構名稱與非空GUID，保留根bool/啟用及link Guid條件；單頁結果不緩存。
         /// </summary>
         EntityCollection QueryManyToMany(string conditionAttributeName, string entityNameToSearch,
             string linkFromEntityName, string linkFromAttributeName, string linkToEntityName,
             string linkToAttributeName, string attributeName, Guid entityIdValue);
 
         /// <summary>
-        /// 連絡人相關的各類名單 (N:N查詢)
+        /// 聯絡人固定N:N名單單頁，共用同一查詢邏輯；正式GUID不等於授權，caller自行處理續頁。
         /// </summary>
         EntityCollection QueryListOfContactManyToMany(Guid contactId);
     }

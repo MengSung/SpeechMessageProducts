@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Fetch原host9/9特性先綠、安全20案17失敗/3通過，證據artifacts/p1-04-fetch-query-20261106；產品Fetch尚未修改。下一步修補XML/GUID/候選/top/Dispose後抽Core，再List/其餘Query/CrmAsync。修改歷程持續寫入進度頁一般資訊；P1-04未完成、P1仍3/12。",
+  "nextAction": "Present已抽Core並雙目標887/1017；QueryService原host5/5、修補後Query+Present+路由131/131，新增IClock並共用安全Fetch parser。先重跑Query搬後雙目標與strict/coverage；再處理CrmAsyncExtensions、ComplexQuery最小host adapter、List/MarketingList，核四資料方法/product DI，補inventory/review與全方案00§8。歷程持續追加進度頁一般資訊；P1-04未完成、P1仍3/12。",
   "createdAt": "2026-11-05",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "trellisTask": ".trellis/tasks/11-05-integration-p1",
