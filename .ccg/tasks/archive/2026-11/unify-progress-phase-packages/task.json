@@ -1,0 +1,12 @@
+{
+  "id": "unify-progress-phase-packages",
+  "title": "將進度頁階段0與1納入既有階段收合工作包區",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "docs-frontend",
+  "currentPhase": "completed",
+  "nextAction": "本機實作與驗證完成；外審受供應商限制未完成，依規則保留原始證據；程式變更留工作樹",
+  "createdAt": "2026-11-06T01:39:39.9438788Z",
+  "branch": "1.0.0.11.Integration.P1.Worktree"
+}
