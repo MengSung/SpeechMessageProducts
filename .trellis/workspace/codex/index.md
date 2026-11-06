@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 16
+- **Total Sessions**: 17
 - **Last Active**: 2026-11-06
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~643 | Active |
+| `journal-1.md` | ~676 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 17 | 2026-11-06 | P1-07金額與格式化驗收完成（主P1仍8/12） | `0691db90` | `1.0.0.11.Integration.P1.Worktree` |
 | 16 | 2026-11-06 | P1-06教會時鐘驗收與交付（主P1仍7/12） | `1e68c298` | `1.0.0.11.Integration.P1.Worktree` |
 | 15 | 2026-11-06 | P1-10集中租戶與LINE解析驗收完成（主P1仍6/12） | `6e8f1ef9` | `1.0.0.11.Integration.P1.Worktree` |
 | 14 | 2026-11-06 | P1-05完整國際化地基驗收交付；主P1繼續 | `2bbf8850` | `1.0.0.11.Integration.P1.Worktree` |

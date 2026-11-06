@@ -641,3 +641,36 @@ P1-05五層/具名參數/純語言resolver/關鍵字/完整scope快照驗收完�
 ### Next Steps
 
 - None - task complete
+
+
+## Session 17: P1-07金額與格式化驗收完成（主P1仍8/12）
+
+**Date**: 2026-11-06
+**Task**: P1-07金額與格式化驗收完成（主P1仍8/12）
+**Branch**: `1.0.0.11.Integration.P1.Worktree`
+
+### Summary
+
+Money兩宿主各35，完整Localization159/185、方案4197；coverage98.17%/98.52%、strict0/0。跨幣/default/溢位拒絕、精度與文化隔離、弱引用/重試通過。Changed1084零問題，主會話自審無外審；接續P1-09。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0691db90` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -6,7 +6,7 @@
   "risk": "medium",
   "domain": "backend",
   "currentPhase": "completed",
-  "nextAction": "全部驗證通過；本地commit後只封存本子任務。",
+  "nextAction": "已封存；主P1續P1-09，Goal active。",
   "createdAt": "2026-11-06T14:38:53+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "parent": ".ccg/tasks/integration-p1",
@@ -14,5 +14,6 @@
   "dependencies": [
     "P1-05"
   ],
-  "completedAt": "2026-11-06T14:51:41+08:00"
+  "completedAt": "2026-11-06T14:51:41+08:00",
+  "commit": "0691db90"
 }

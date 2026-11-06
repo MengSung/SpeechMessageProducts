@@ -23,4 +23,4 @@ UTF8無BOM/CRLF與進度頁結果見summary；主會話自審review.md，無外�
 ## 決策與交付界線
 ISO代碼用作無歧義幣別標記，格式文化只控制數字；TWD0位是產品政策，不宣稱ISO minor unit=0。明確AwayFromZero只影響顯示副本，原decimal不改。
 沒有搬業務／更改付款規則／正式計畫，無Word修正報告需求。未push／部署／連VM或D365／發LINE；不是支付provider或D365收費單實機整合證據。
-本地工作commit收尾後由此紀錄與進度一般資訊同步補入。只封存p107-money，主P1增8/12、Goal保持active；接續P1-09。P1-07已知阻斷缺陷：**無**。
+本地工作commit：`0691db90`；完整Changed1084檔0問題，進度14/14，77份原始證據SHA核對相符。只封存p107-money，主P1增8/12、Goal保持active；接續P1-09。P1-07已知阻斷缺陷：**無**。
