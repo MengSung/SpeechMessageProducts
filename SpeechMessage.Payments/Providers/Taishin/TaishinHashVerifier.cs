@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：台新 TSPG callback hash 驗證。 驗證規則依序串接 StoreKey、transaction_id、order_id、state、StoreIV 後做 SHA256。 
+ * 目的與定位：台新 TSPG callback hash 驗證。 驗證規則依序串接 StoreKey、transaction_id、order_id、state、StoreIV 後做 SHA256。
  * StoreKey/StoreIV 只存在 profile credentials，不回傳給產品層。
  *
  * 主要功能與流程：

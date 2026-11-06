@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：從 User Secrets 為單一命令建立 goodshepherdback 地端連線。連線直接使用 ToolUtility 的 CreateOnPremiseClient，不經共用池；credential 
+ * 目的與定位：從 User Secrets 為單一命令建立 goodshepherdback 地端連線。連線直接使用 ToolUtility 的 CreateOnPremiseClient，不經共用池；credential
  * 只在 Connect 的呼叫框架內短暫存在， 回傳租約是唯一 owner，命令結束必定 Dispose 並解除服務參考。
  *
  * 主要功能與流程：

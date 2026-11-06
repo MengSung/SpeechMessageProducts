@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：一列奉獻明細：一個奉獻類別、該類別金額及補充說明。 MVC 會依照表單欄位名稱 Lines[index].Category、Lines[index].Amount、 Lines[index].Others 
+ * 目的與定位：一列奉獻明細：一個奉獻類別、該類別金額及補充說明。 MVC 會依照表單欄位名稱 Lines[index].Category、Lines[index].Amount、 Lines[index].Others
  * 自動繫結；服務層在使用前仍必須自行正規化及驗證， 不可把瀏覽器送來的字串直接當成已可信任的 CRM 或金流資料。
  *
  * 主要功能與流程：

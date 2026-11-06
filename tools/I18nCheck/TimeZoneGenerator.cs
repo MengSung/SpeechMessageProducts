@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 TimeZoneGenerator。
  * - 與 data/windowsZones.xml 及其來源記錄一起升級的固定 CLDR release，不以執行日期猜版本。
- * - 以最多十六 MiB XML、4096 個來源列及 2048 個唯一 IANA 限制配置量；排序採 Ordinal。 上游有外部 DTD 宣告，故僅 Ignore 宣告而不解析 DTD；XmlResolver=null 
+ * - 以最多十六 MiB XML、4096 個來源列及 2048 個唯一 IANA 限制配置量；排序採 Ordinal。 上游有外部 DTD 宣告，故僅 Ignore 宣告而不解析 DTD；XmlResolver=null
  * 且實體引用仍由 XML reader 拒絕。
  * - 固定公共 IANA 對照，無可變字典、教會或 caller 狀態；不使用伺服器 local 時區。
  * - 以區分大小寫的固定映射查詢，未知 ID 回空值，不猜測或新增動態快取。

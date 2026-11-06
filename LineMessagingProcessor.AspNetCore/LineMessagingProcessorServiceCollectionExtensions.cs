@@ -6,11 +6,11 @@
  *
  * 主要功能與流程：
  * 本檔宣告 LineMessagingProcessorServiceCollectionExtensions。
- * - 註冊共用 LINE Messaging client、低階 processor 與預設工作流。 RichMenu 基礎服務會在這裡一併掛上，但產品專屬 catalog 仍由 
+ * - 註冊共用 LINE Messaging client、低階 processor 與預設工作流。 RichMenu 基礎服務會在這裡一併掛上，但產品專屬 catalog 仍由
  * AddLineRichMenuProvisioning{TCatalog} 明確提供。
- * - 註冊產品中立的 RichMenu services。 此方法不註冊 ILineRichMenuCatalog，因為 catalog 內容屬於各產品。 未來 ASP.NET Core 產品可先註冊 
+ * - 註冊產品中立的 RichMenu services。 此方法不註冊 ILineRichMenuCatalog，因為 catalog 內容屬於各產品。 未來 ASP.NET Core 產品可先註冊
  * LineMessagingProcessorClass， 再加上自己的 catalog、policies 與持久化 state store。
- * - 使用產品擁有的 catalog 註冊 RichMenu provisioning。 將 provisioning 與 AddLineRichMenus 分開，可避免共用核心要求每個應用程式 必須先定義選單，才能使用 
+ * - 使用產品擁有的 catalog 註冊 RichMenu provisioning。 將 provisioning 與 AddLineRichMenus 分開，可避免共用核心要求每個應用程式 必須先定義選單，才能使用
  * assignment、文字 trigger 或舊版 workflow services。
  * 主要操作入口包含 AddLineMessagingProcessor、AddLineRichMenus。
  *

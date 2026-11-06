@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：建立 RichMenu 測試資料的集中 factory。 測試透過這個 helper 取得一致的版面、action area 與 PNG bytes，避免每個測試各自手寫不一致的 RichMenu 
+ * 目的與定位：建立 RichMenu 測試資料的集中 factory。 測試透過這個 helper 取得一致的版面、action area 與 PNG bytes，避免每個測試各自手寫不一致的 RichMenu
  * payload。
  *
  * 主要功能與流程：

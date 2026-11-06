@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 產品層建立付款訂單時使用的中性 adapter 契約。 此介面保留在 ChurchReport 專案中，因為 CreOrder 是舊奉獻網頁流程仍需使用的相容 DTO； 可重用的 
+ * 目的與定位：ChurchReport 產品層建立付款訂單時使用的中性 adapter 契約。 此介面保留在 ChurchReport 專案中，因為 CreOrder 是舊奉獻網頁流程仍需使用的相容 DTO； 可重用的
  * provider protocol 仍由 SpeechMessage.Payments 負責，避免 ChurchReport 的舊 DTO 污染核心金流專案。
  *
  * 主要功能與流程：

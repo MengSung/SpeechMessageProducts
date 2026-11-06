@@ -1,15 +1,15 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：身份審計清理服務 (Background Service) 設計原則: - Single Responsibility Principle (SRP): 專注於定期清理追蹤資料 - Open/Closed 
- * Principle: 繼承 BackgroundService，擴展而不修改框架 - Dependency Inversion Principle: 依賴 ILogger 抽象 作用: 定期清理 
- * IdentityAuditMiddleware 中的追蹤資料，防止記憶體洩漏。 清理策略: - 每 30 分鐘執行一次 - 清除超過 1 小時未活動的記錄 - 記錄清理結果到日誌 記憶體管理最佳實務: - 
- * 避免無限增長的靜態集合 - 定期清理舊資料 - 監控清理效果 使用方式: 在 Startup.cs 的 ConfigureServices 中註冊為 HostedService: #if DEBUG 
+ * 目的與定位：身份審計清理服務 (Background Service) 設計原則: - Single Responsibility Principle (SRP): 專注於定期清理追蹤資料 - Open/Closed
+ * Principle: 繼承 BackgroundService，擴展而不修改框架 - Dependency Inversion Principle: 依賴 ILogger 抽象 作用: 定期清理
+ * IdentityAuditMiddleware 中的追蹤資料，防止記憶體洩漏。 清理策略: - 每 30 分鐘執行一次 - 清除超過 1 小時未活動的記錄 - 記錄清理結果到日誌 記憶體管理最佳實務: -
+ * 避免無限增長的靜態集合 - 定期清理舊資料 - 監控清理效果 使用方式: 在 Startup.cs 的 ConfigureServices 中註冊為 HostedService: #if DEBUG
  * services.AddHostedService&lt;IdentityAuditCleanupService&gt;(); #endif ?? 注意: 僅在 DEBUG 模式下啟用
  *
  * 主要功能與流程：
  * 本檔宣告 IdentityAuditCleanupService。
- * - 背景服務主要執行方法 執行流程: 1. 啟動日誌記錄 2. 進入無限迴圈 3. 每 30 分鐘執行一次清理 4. 記錄清理結果 5. 處理取消請求 錯誤處理: - 使用 try-catch 確保服務不會因單次錯誤而停止 
+ * - 背景服務主要執行方法 執行流程: 1. 啟動日誌記錄 2. 進入無限迴圈 3. 每 30 分鐘執行一次清理 4. 記錄清理結果 5. 處理取消請求 錯誤處理: - 使用 try-catch 確保服務不會因單次錯誤而停止
  * - 記錄錯誤到日誌 - 繼續下一次清理週期
  * - 服務停止時的清理方法 執行最後一次清理，確保資料不會殘留
  * 主要操作入口包含 ExecuteAsync、StopAsync。

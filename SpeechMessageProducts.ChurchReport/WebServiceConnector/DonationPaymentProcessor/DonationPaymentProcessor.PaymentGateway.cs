@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻付款處理器 - 金流閘道整合模組 【職責】 - 將 ChurchReport 的奉獻付款資料轉交給中性金流 adapter - 保留既有 CreOrder 回傳形狀，避免一次破壞舊 
- * Razor/View 流程 - provider 差異由 SpeechMessage.Payments 與 adapter 處理，本類別不直接分辨永豐/高鉅/台新 protocol 【設計模式】 - 
+ * 目的與定位：ChurchReport 奉獻付款處理器 - 金流閘道整合模組 【職責】 - 將 ChurchReport 的奉獻付款資料轉交給中性金流 adapter - 保留既有 CreOrder 回傳形狀，避免一次破壞舊
+ * Razor/View 流程 - provider 差異由 SpeechMessage.Payments 與 adapter 處理，本類別不直接分辨永豐/高鉅/台新 protocol 【設計模式】 -
  * 適配器模式：統一不同金流介面 - 工廠模式：根據配置選擇金流 - 策略模式：動態選擇金流提供商
  *
  * 主要功能與流程：

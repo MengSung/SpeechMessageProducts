@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ListManager 快取擴充方法 Phase 2.3: 為 ListManager 提供快取功能的擴充方法 使用情境: - 快取多小組清單資料 (MultiGroupList) - 快取圖表資料 
+ * 目的與定位：ListManager 快取擴充方法 Phase 2.3: 為 ListManager 提供快取功能的擴充方法 使用情境: - 快取多小組清單資料 (MultiGroupList) - 快取圖表資料
  * (MultiGroupChartDataList) - 支援按帳號+日期的快取策略
  *
  * 主要功能與流程：

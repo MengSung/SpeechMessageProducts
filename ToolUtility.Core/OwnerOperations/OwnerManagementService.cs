@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：以原 SDK ownerid／AssignRequest 處理已授權的單筆資料；不保存實體、logger 或使用者可變狀態。 實例限於 SDK 原授權 scope；借入連線、憑證與 Dispose 由 host 
+ * 目的與定位：以原 SDK ownerid／AssignRequest 處理已授權的單筆資料；不保存實體、logger 或使用者可變狀態。 實例限於 SDK 原授權 scope；借入連線、憑證與 Dispose 由 host
  * 擁有，不建立背景工作。
  *
  * 主要功能與流程：

@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 NewPersonController。
  * - 取得目前 request scope 的 Dataverse 服務；DI 容器負責其最大生命週期與確定性釋放。 控制器不自行借還或跨 request 保存連線，以維持使用者隔離並避免資源洩漏。
- * - 載入新人跟進資料，供 DevExtreme DataGrid 使用。 每次 request 都重新驗證 Session scope、取得 detached snapshot，並在 consumer boundary 依 
+ * - 載入新人跟進資料，供 DevExtreme DataGrid 使用。 每次 request 都重新驗證 Session scope、取得 detached snapshot，並在 consumer boundary 依
  * PresentRecordId fail closed；合法同名不同 ID 的新人仍全部保留。
  * - 新增新人跟進記錄；重送 request 會在同一 instance lock 內依 PresentRecordId 原子拒絕， 不會用姓名或內容相似度刪除資料，也不會在失敗時留下半加入集合。
  * - 儲存新人；附圖拒絕只追加固定提示，不回滾已建立的新人或誘發重送。

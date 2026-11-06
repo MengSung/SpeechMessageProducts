@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 ChurchReport 付款完成後的產品流程已改用中性命名。 這些流程負責 CRM 更新、LINE 通知與畫面回應，屬於 ChurchReport 產品層， 不應再用 QPay 這種永豐金流 
+ * 目的與定位：驗證 ChurchReport 付款完成後的產品流程已改用中性命名。 這些流程負責 CRM 更新、LINE 通知與畫面回應，屬於 ChurchReport 產品層， 不應再用 QPay 這種永豐金流
  * provider 名稱作為相容入口。
  *
  * 主要功能與流程：

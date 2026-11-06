@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：尚未解析 offset 的教會牆上時間，強制 Unspecified 與明確 IANA；建構不是教會授權。 caller 必須先由伺服器授權並取得該教會時區；DST 的模糊／無效時段由 ToUtc 再拒絕。 
+ * 目的與定位：尚未解析 offset 的教會牆上時間，強制 Unspecified 與明確 IANA；建構不是教會授權。 caller 必須先由伺服器授權並取得該教會時區；DST 的模糊／無效時段由 ToUtc 再拒絕。
  * 僅有不可變純值，不保存教會實體、Session、HttpContext 或連線，生命週期由單次操作決定。
  *
  * 主要功能與流程：
@@ -15,7 +15,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 SpeechMessage.Localization.Tests/ChurchClockTests.cs、SpeechMessage.Localization/Time/ChurchClock.cs 
+ * 可沿 SpeechMessage.Localization.Tests/ChurchClockTests.cs、SpeechMessage.Localization/Time/ChurchClock.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

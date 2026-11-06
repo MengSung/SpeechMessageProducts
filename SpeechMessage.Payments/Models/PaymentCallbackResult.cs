@@ -14,7 +14,7 @@
  * 可沿 SpeechMessage.Payments.Tests/Gateway/PaymentGatewayTests.cs、
  * SpeechMessage.Payments.Tests/Models/PaymentModelContractTests.cs、
  * SpeechMessage.Payments.Tests/Providers/MyPay/MyPayProviderTests.cs、
- * SpeechMessage.Payments/Abstractions/IPaymentGateway.cs、SpeechMessage.Payments/Abstractions/IPaymentProvider.cs 
+ * SpeechMessage.Payments/Abstractions/IPaymentGateway.cs、SpeechMessage.Payments/Abstractions/IPaymentProvider.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 namespace SpeechMessage.Payments.Models;

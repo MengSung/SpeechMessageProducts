@@ -1,17 +1,17 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 Run C 切換後的完整服務圖、scope 隔離、故障淘汰與 raw client 封裝。 測試只建立假的 IOrganizationService，不連線真實 Dataverse； 每一項斷言都直接保護 
+ * 目的與定位：驗證 Run C 切換後的完整服務圖、scope 隔離、故障淘汰與 raw client 封裝。 測試只建立假的 IOrganizationService，不連線真實 Dataverse； 每一項斷言都直接保護
  * Singleton pool、Scoped gateway 與 per-operation lease 的生命週期契約。
  *
  * 主要功能與流程：
  * 本檔宣告 RunCServiceGraphTests。
  * - 驗證服務圖在 ValidateScopes 與 ValidateOnBuild 同時開啟時可建立，且五個池參數皆由組態繫結。 故障注入為假的連線服務；決定性斷言是所有新服務可解析且組態值逐一相等。
- * - 驗證三個並行 request scope 各執行十次操作後租約歸零，且 keyed pool 不會超過 MaxN。 故障注入為可計數的假的服務；決定性斷言是 scope 結束後 Leased=0、Idle 
+ * - 驗證三個並行 request scope 各執行十次操作後租約歸零，且 keyed pool 不會超過 MaxN。 故障注入為可計數的假的服務；決定性斷言是 scope 結束後 Leased=0、Idle
  * 不超過上限且只有一個子池。
- * - 驗證操作例外會讓當前 client 進入 Faulted 並淘汰，而下一次操作仍能取得替代 client。 故障注入為第一個假的 service 在 Retrieve 時擲出例外；決定性斷言是 
+ * - 驗證操作例外會讓當前 client 進入 Faulted 並淘汰，而下一次操作仍能取得替代 client。 故障注入為第一個假的 service 在 Retrieve 時擲出例外；決定性斷言是
  * Faulted/Discarded 計數增加且第二次操作成功。
- * - 驗證 DI 注入給 ToolUtilityClass 的服務是 gateway 代理而非 OnPremiseClient raw client。 這保護應用程式無法繞過 manager 取得長命通道；scope 
+ * - 驗證 DI 注入給 ToolUtilityClass 的服務是 gateway 代理而非 OnPremiseClient raw client。 這保護應用程式無法繞過 manager 取得長命通道；scope
  * 結束時由 gateway/pool 確定歸還。
  * 測試案例入口包含 Service_graph_validates_and_binds_all_pool_options、
  * Concurrent_scopes_return_all_leases_and_respect_maximum、

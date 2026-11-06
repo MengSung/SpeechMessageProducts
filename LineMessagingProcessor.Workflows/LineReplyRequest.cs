@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：共用 LINE reply-token workflow 的輸入模型。 這裡只描述 LINE reply 所需的 protocol 資料：reply token、SDK message 清單、 以及診斷用 
+ * 目的與定位：共用 LINE reply-token workflow 的輸入模型。 這裡只描述 LINE reply 所需的 protocol 資料：reply token、SDK message 清單、 以及診斷用
  * metadata；不得放入 ChurchReport 的 CRM、Controller 或產品流程狀態。
  *
  * 主要功能與流程：

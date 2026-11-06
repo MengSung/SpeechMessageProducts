@@ -5,14 +5,14 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ToolUtilityFactoryAmbientGatewayTests、TrackingScopeFactory、TrackingScope。
- * - 保護 legacy Factory 在 HTTP request 內不可以直接跳到 IDataverseGateway， 必須回到目前 scope 已註冊的 IOrganizationService。故障注入是以真實 
- * ChurchReport.Startup 建立 Debug 計時裝飾器，再由 Factory 單例呼叫 IOrganizationService.Execute(OrganizationRequest)；決定性斷言是目前 
- * ChurchReport.Diagnostics.Profiling.RequestProfiler 的摘要含有 crm{n=1, 。這可防止 Factory 持有的 ambient 代理繞過 DI decorator，讓 
+ * - 保護 legacy Factory 在 HTTP request 內不可以直接跳到 IDataverseGateway， 必須回到目前 scope 已註冊的 IOrganizationService。故障注入是以真實
+ * ChurchReport.Startup 建立 Debug 計時裝飾器，再由 Factory 單例呼叫 IOrganizationService.Execute(OrganizationRequest)；決定性斷言是目前
+ * ChurchReport.Diagnostics.Profiling.RequestProfiler 的摘要含有 crm{n=1, 。這可防止 Factory 持有的 ambient 代理繞過 DI decorator，讓
  * JSONL 有 CRM 操作但同一 request 的 [Perf] 永遠為零。
- * - 保護 Factory 單例不捕獲 request scope、也不在背景操作遺漏 scope 釋放的契約。 故障注入為可計數的 scope factory 和不連線網路的 CRM service；決定性斷言依序是： 有 
+ * - 保護 Factory 單例不捕獲 request scope、也不在背景操作遺漏 scope 釋放的契約。 故障注入為可計數的 scope factory 和不連線網路的 CRM service；決定性斷言依序是： 有
  * request 時不自建 scope、無 request 時建立且釋放一個短命 scope、以及連續一百個 不同 request scope 操作後 pool 的已建立 client 數維持熱身基線且 lease 歸零。
  * - 保護背景工作即使繼承 request 的 ExecutionContext，也只能使用明確指定的背景 scope。 故障注入建立兩個彼此獨立的服務提供者：request 服務回傳第一個識別碼，背景服務回傳 第二個識別碼。
- * 決定性斷言是在 Task.Run(Func{Task{Guid}}) 內仍取得背景 識別碼，且離開 override 後恢復 request 服務；這可捕捉原本 ambient 代理優先使用 inherited 
+ * 決定性斷言是在 Task.Run(Func{Task{Guid}}) 內仍取得背景 識別碼，且離開 override 後恢復 request 服務；這可捕捉原本 ambient 代理優先使用 inherited
  * HttpContext.RequestServices 的 lifecycle leak。
  * - 建立只回傳固定 GUID 的組織服務替身；它不建立連線、租約或背景資源，僅用來辨識 ambient 解析到哪一個 DI scope。
  * 測試案例入口包含 Factory_legacy_organization_service_uses_current_scope_timed_decorator、

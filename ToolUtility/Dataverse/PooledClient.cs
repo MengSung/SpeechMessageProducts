@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：封裝一個由 bounded pool 建立及擁有的 client，並以鎖保護狀態轉換。 client 的最長生命週期僅至閒置逾時、故障淘汰或 pool 關閉；只有 pool 可呼叫 
+ * 目的與定位：封裝一個由 bounded pool 建立及擁有的 client，並以鎖保護狀態轉換。 client 的最長生命週期僅至閒置逾時、故障淘汰或 pool 關閉；只有 pool 可呼叫
  * DisposeUnderlying。此型別不跨 pool 脫離，底層服務只經由短命 lease 暫時暴露， 且在回到 Idle 前清除已知的 impersonation 身分，避免跨 request／使用者重用狀態。
  *
  * 主要功能與流程：

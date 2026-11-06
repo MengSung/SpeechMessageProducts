@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：將新的 Dataverse pool metrics 映射為舊有 Controller 契約的唯讀相容層。 16 個 Controller 仍可注入 ICrmConnectionPool，但本 adapter 
- * 不會 暴露 raw client；舊式取得、歸還與驗證 API 一律拒絕，避免繞過 Gateway 的 lease 邊界。 此型別是 Singleton，僅保存 manager 參考，不擁有或釋放 manager、pool 
+ * 目的與定位：將新的 Dataverse pool metrics 映射為舊有 Controller 契約的唯讀相容層。 16 個 Controller 仍可注入 ICrmConnectionPool，但本 adapter
+ * 不會 暴露 raw client；舊式取得、歸還與驗證 API 一律拒絕，避免繞過 Gateway 的 lease 邊界。 此型別是 Singleton，僅保存 manager 參考，不擁有或釋放 manager、pool
  * 或 client。
  *
  * 主要功能與流程：

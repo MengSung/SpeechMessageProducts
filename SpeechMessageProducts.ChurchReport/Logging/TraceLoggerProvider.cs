@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Trace Logger Provider 將 ILogger 的輸出導向 System.Diagnostics.Trace，使其能寫入 Trace.log 僅在 Debug 組態下啟用（透過 
+ * 目的與定位：Trace Logger Provider 將 ILogger 的輸出導向 System.Diagnostics.Trace，使其能寫入 Trace.log 僅在 Debug 組態下啟用（透過
  * Startup.cs 的條件編譯控制）
  *
  * 主要功能與流程：

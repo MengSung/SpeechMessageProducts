@@ -1,15 +1,15 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 專用的 LINE 綁定通知流程。 這個類別刻意只做三件事： 1. 取得 LINE 使用者顯示名稱。 2. 依 ChurchReport 既有路由格式組出綁定網址與訊息。 3. 
- * 把訊息交給共用的 ILineNotificationWorkflow 發送。 注意：這裡保留 ChurchReport 專用網址與文案，因為未來產品會有自己的綁定頁、 會員資料來源與顯示文字；共用 LINE 
+ * 目的與定位：ChurchReport 專用的 LINE 綁定通知流程。 這個類別刻意只做三件事： 1. 取得 LINE 使用者顯示名稱。 2. 依 ChurchReport 既有路由格式組出綁定網址與訊息。 3.
+ * 把訊息交給共用的 ILineNotificationWorkflow 發送。 注意：這裡保留 ChurchReport 專用網址與文案，因為未來產品會有自己的綁定頁、 會員資料來源與顯示文字；共用 LINE
  * 專案不應該引用這些產品相依。
  *
  * 主要功能與流程：
  * 本檔宣告 IChurchReportLineProfileProvider、ChurchReportLineProfileProvider、
  * ChurchReportLineBindingNotificationService。
  * - 依 LINE user id 取得 LINE 使用者 profile。
- * - 依已知的 LINE user id 與 display name 發送綁定提示。 這個方法獨立出來是為了讓單元測試可以直接驗證 ChurchReport 的 URL 與訊息格式， 不需要真的呼叫 LINE 
+ * - 依已知的 LINE user id 與 display name 發送綁定提示。 這個方法獨立出來是為了讓單元測試可以直接驗證 ChurchReport 的 URL 與訊息格式， 不需要真的呼叫 LINE
  * profile API。
  * - 建立 ChurchReport 既有 LINE 綁定頁 URL。 displayName 與 userId 必須 URL encode，避免中文、空白或特殊字元破壞路由。
  * - 建立 ChurchReport 的 LINE 綁定提示訊息。 文案保留在 ChurchReport，因為這是產品語意，不是 LINE SDK 的責任。

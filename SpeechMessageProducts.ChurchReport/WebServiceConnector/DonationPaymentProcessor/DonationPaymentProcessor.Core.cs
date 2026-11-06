@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻付款處理器 - 核心模組 【職責】 - 初始化與依賴注入 - 配置管理 - LINE Bot 整合 - 建立 ChurchReport 產品層付款流程所需的 CRM、LINE 
+ * 目的與定位：ChurchReport 奉獻付款處理器 - 核心模組 【職責】 - 初始化與依賴注入 - 配置管理 - LINE Bot 整合 - 建立 ChurchReport 產品層付款流程所需的 CRM、LINE
  * 與金流 adapter 依賴 【設計模式】 - Facade 模式：為複雜的金流系統提供統一介面 - Strategy 模式：動態選擇金流提供商 - Factory 模式：ToolUtility 實例化
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentProcessor。
- * - DonationPaymentProcessor.Core 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 
+ * - DonationPaymentProcessor.Core 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
- * - 保留舊有單一 adapter 建構式的編譯相容簽章，但不再提供無 scope 的執行路徑。 現行付款流程使用下方帶有 LINE 物件的四參數建構式；此簽章只供測試替身以 
+ * - 保留舊有單一 adapter 建構式的編譯相容簽章，但不再提供無 scope 的執行路徑。 現行付款流程使用下方帶有 LINE 物件的四參數建構式；此簽章只供測試替身以
  * System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(Type) 建立物件時讓衍生類別通過 C# base constructor 檢查。
  * 若實際執行此建構式，表示 呼叫端仍依賴已移除的 legacy 生命週期，必須明確改用受管理的付款建構流程。
  * - 相容性建構函式（用於現有 LINE Bot 整合）。 仍然收 LINE 相關物件，是因為 ChurchReport 的奉獻通知流程屬於產品層； 這些依賴不會被搬入可重用金流核心。

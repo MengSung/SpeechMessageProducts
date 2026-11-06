@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：認證控制器（LINE Login Server-side OAuth 2.0） 目的：解決電腦版 LINE 無法使用 LIFF 的問題 架構：Server-side OAuth 2.0 流程，完全不依賴 
- * LIFF SDK 流程： 1. LineLoginStart => 重導向至 LINE OAuth 授權頁面 2. LINE OAuth => 用戶授權 => 回呼 LineCallback 3. LineCallback 
+ * 目的與定位：認證控制器（LINE Login Server-side OAuth 2.0） 目的：解決電腦版 LINE 無法使用 LIFF 的問題 架構：Server-side OAuth 2.0 流程，完全不依賴
+ * LIFF SDK 流程： 1. LineLoginStart => 重導向至 LINE OAuth 授權頁面 2. LINE OAuth => 用戶授權 => 回呼 LineCallback 3. LineCallback
  * => 以 code 換取 access_token => 取得 user profile => 登入系統
  *
  * 主要功能與流程：

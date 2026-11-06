@@ -13,7 +13,7 @@
  * 可沿 LineMessagingProcessor.Workflows.Tests/LineNotificationWorkflowTests.cs、
  * LineMessagingProcessor.Workflows/LineNotificationResult.cs、
  * LineMessagingProcessor.Workflows/LineNotificationWorkflow.cs、
- * LineMessagingProcessor.Workflows/LineReplyResult.cs、LineMessagingProcessor.Workflows/LineReplyWorkflow.cs 
+ * LineMessagingProcessor.Workflows/LineReplyResult.cs、LineMessagingProcessor.Workflows/LineReplyWorkflow.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 namespace LineMessagingProcessor.Workflows;

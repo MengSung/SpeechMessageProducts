@@ -6,7 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 IChurchReportLineBindingNotificationService。
- * - 發送 ChurchReport LINE 帳號綁定提示。 這個流程會查詢 LINE 使用者顯示名稱，組出 ChurchReport 的綁定頁 URL， 再透過共用 LINE notification workflow 
+ * - 發送 ChurchReport LINE 帳號綁定提示。 這個流程會查詢 LINE 使用者顯示名稱，組出 ChurchReport 的綁定頁 URL， 再透過共用 LINE notification workflow
  * 發送文字訊息。
  * 資料／選項欄位包含 IChurchReportLineBindingNotificationService，名稱、型別與序列化規約須與消費端保持一致。
  *

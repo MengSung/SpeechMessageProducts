@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：剖析總開關。僅 Debug 編譯存在；再加 runtime 旗標（預設關）雙重保險， 即使正式機誤以 Debug 部署，未開統一 DiagnosticsTrace 設定就不剖析； Release 編譯則由 
+ * 目的與定位：剖析總開關。僅 Debug 編譯存在；再加 runtime 旗標（預設關）雙重保險， 即使正式機誤以 Debug 部署，未開統一 DiagnosticsTrace 設定就不剖析； Release 編譯則由
  * Program 建立 disabled options，部署設定無法繞過。
  *
  * 主要功能與流程：
  * 本檔宣告 ProfilingSwitch。
- * - 取得或設定目前程序是否允許建立 request/CRM 效能剖析事件。Startup 只會從已通過 Debug 編譯防線的 DiagnosticTraceOptions.Enabled 指派此值；volatile 
+ * - 取得或設定目前程序是否允許建立 request/CRM 效能剖析事件。Startup 只會從已通過 Debug 編譯防線的 DiagnosticTraceOptions.Enabled 指派此值；volatile
  * 確保各 request 執行緒立即看見程序級開關，但此欄位不得承載任何 request、使用者或租戶狀態。
  * 資料／選項欄位包含 ProfilingSwitch、Enabled，名稱、型別與序列化規約須與消費端保持一致。
  *

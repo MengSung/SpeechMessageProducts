@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Legacy OrganizationServiceProxy Adapter（.NET Framework 4.6.2 適用） 設計模式：Adapter Pattern 用途：將舊的 
+ * 目的與定位：Legacy OrganizationServiceProxy Adapter（.NET Framework 4.6.2 適用） 設計模式：Adapter Pattern 用途：將舊的
  * OrganizationServiceProxy (WCF) 包裝成 ICrmClient 注意：此 Adapter 僅作為過渡期使用，最終將移除
  *
  * 主要功能與流程：

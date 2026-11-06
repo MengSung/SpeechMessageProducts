@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護「後台手動輸入奉獻」完成後的 LINE 通知規則。 這批測試刻意只測不需要 CRM 連線的純邏輯： - 手動輸入奉獻保存收費單後，會用 retry key 呼叫必達通知路徑。 - retry key 
- * 最後會進入 LINE HTTP header，所以不能混入中文奉獻類別、付款方式或其他非 ASCII 文字。 - ChurchReport 的奉獻語意留在產品層；共用 LINE 專案只接收已整理好的 user id、文字與 
+ * 目的與定位：保護「後台手動輸入奉獻」完成後的 LINE 通知規則。 這批測試刻意只測不需要 CRM 連線的純邏輯： - 手動輸入奉獻保存收費單後，會用 retry key 呼叫必達通知路徑。 - retry key
+ * 最後會進入 LINE HTTP header，所以不能混入中文奉獻類別、付款方式或其他非 ASCII 文字。 - ChurchReport 的奉獻語意留在產品層；共用 LINE 專案只接收已整理好的 user id、文字與
  * retry key。
  *
  * 主要功能與流程：

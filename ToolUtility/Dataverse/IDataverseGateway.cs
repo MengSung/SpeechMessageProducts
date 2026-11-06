@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Scoped、per-operation 的 Dataverse Gateway。每次最外層 Execute 取得一條 lease， 巢狀 Execute 重用同一條 lease，最外層結束時才歸還，避免跨 
+ * 目的與定位：Scoped、per-operation 的 Dataverse Gateway。每次最外層 Execute 取得一條 lease， 巢狀 Execute 重用同一條 lease，最外層結束時才歸還，避免跨
  * request 持有 client。
  *
  * 主要功能與流程：

@@ -17,7 +17,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Crud.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs 
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

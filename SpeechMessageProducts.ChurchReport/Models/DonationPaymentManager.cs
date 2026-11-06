@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻付款 UI 狀態與產品流程管理器。 這個類別留在 ChurchReport 專案，負責 UI 表單狀態、CRM 更新、LINE 通知與付款建單前後的產品流程。 可重用金流核心只處理 
+ * 目的與定位：ChurchReport 奉獻付款 UI 狀態與產品流程管理器。 這個類別留在 ChurchReport 專案，負責 UI 表單狀態、CRM 更新、LINE 通知與付款建單前後的產品流程。 可重用金流核心只處理
  * provider 協定，因此這裡透過 DonationPaymentProcessor 與 IDonationPaymentCreateGatewayAdapter 接到抽離後的金流模組。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentManager。
  * - DonationPaymentManager 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；
  * 缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
- * - ChurchReport 奉獻付款主流程。 DonationPaymentManager 是產品層的主要名稱；舊 DonationPaymentManager 只保留在薄相容 wrapper。 實際金流流程由 
+ * - ChurchReport 奉獻付款主流程。 DonationPaymentManager 是產品層的主要名稱；舊 DonationPaymentManager 只保留在薄相容 wrapper。 實際金流流程由
  * DonationPaymentProcessor 承擔，避免產品流程繼續綁在永豐 QPay 名稱上。
  * - 建立付款用的中性 adapter。 這個 adapter 是 ChurchReport 與抽離後金流核心的邊界，未來其他 ASP.NET Core 產品可用同一種模式接入。
  * - ChurchReport CRM contact 的建立、篩選與補欄位服務。 這些規則直接依賴 Dynamics 365 的 contact 欄位與奉獻者登入邏輯， 因此保留在 ChurchReport 專案，

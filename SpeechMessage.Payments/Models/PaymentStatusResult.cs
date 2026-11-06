@@ -13,7 +13,7 @@
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessage.Payments.Tests/Gateway/PaymentGatewayTests.cs、
  * SpeechMessage.Payments/Abstractions/IPaymentGateway.cs、SpeechMessage.Payments/Abstractions/IPaymentProvider.cs、
- * SpeechMessage.Payments/Gateway/PaymentGateway.cs、SpeechMessage.Payments/Providers/MyPay/MyPayPaymentProvider.cs 
+ * SpeechMessage.Payments/Gateway/PaymentGateway.cs、SpeechMessage.Payments/Providers/MyPay/MyPayPaymentProvider.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 namespace SpeechMessage.Payments.Models;

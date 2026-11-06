@@ -5,9 +5,9 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DiagnosticsController。
- * - 查看當前 Session 資訊 功能: - 顯示 Session ID - 顯示 Session 中的所有 Key - 顯示 Session 的值 - 顯示 Session Cookie 設定 用途: - 診斷 
+ * - 查看當前 Session 資訊 功能: - 顯示 Session ID - 顯示 Session 中的所有 Key - 顯示 Session 的值 - 顯示 Session Cookie 設定 用途: - 診斷
  * Session 是否正確建立 - 檢查 Session 資料是否正確 - 驗證 Session Bleeding 是否發生
- * - 查看身份審計追蹤資料 功能: - 顯示當前追蹤的 IP 與使用者對應關係 - 顯示最後活動時間 - 偵測可能的 Session Bleeding 用途: - 即時監控身份混淆問題 - 診斷 Wi-Fi 
+ * - 查看身份審計追蹤資料 功能: - 顯示當前追蹤的 IP 與使用者對應關係 - 顯示最後活動時間 - 偵測可能的 Session Bleeding 用途: - 即時監控身份混淆問題 - 診斷 Wi-Fi
  * 環境下的使用者切換 - 驗證防護機制是否有效
  * - 查看效能統計 功能: - 顯示當前進程的記憶體使用量 - 顯示執行緒數量 - 顯示運行時間 用途: - 監控應用程式效能 - 偵測記憶體洩漏 - 診斷效能問題
  * - 重設身份審計資料 功能: - 清除所有身份審計追蹤資料 - 釋放記憶體 用途: - 手動清理測試資料 - 重置監控狀態 ?? 注意：僅在必要時使用，會清除所有追蹤歷史

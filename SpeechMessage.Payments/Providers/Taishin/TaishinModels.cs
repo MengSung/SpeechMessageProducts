@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔整合下列相關契約：TaishinPaymentRequest：台新 TSPG REST API 內部 DTO。 這些欄位名稱是 provider contract，不作為 
+ * 目的與定位：本檔整合下列相關契約：TaishinPaymentRequest：台新 TSPG REST API 內部 DTO。 這些欄位名稱是 provider contract，不作為
  * SpeechMessage.Payments 的公開模型。
  *
  * 主要功能與流程：

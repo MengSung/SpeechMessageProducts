@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護 ChurchReport 組合根在 Debug 建構時，先裝飾 IOrganizationService 再交給 ToolUtilityClass 與其 facade 的服務圖契約。故障注入為假的 CRM 
+ * 目的與定位：保護 ChurchReport 組合根在 Debug 建構時，先裝飾 IOrganizationService 再交給 ToolUtilityClass 與其 facade 的服務圖契約。故障注入為假的 CRM
  * 連線服務；測試只解析 scoped 服務，不呼叫 CRM，避免網路副作用，同時以決定性斷言確認 wrapper 型別、inner 非空以及同一 scope 的解析快取語意。
  *
  * 主要功能與流程：
  * 本檔宣告 StartupOrganizationServiceProfilingTests。
- * - 驗證 Startup.ConfigureServices 產生的 IOrganizationService 是 scoped 計時裝飾器， 且同一 scope 重複解析回傳同一 wrapper。測試不執行任何 CRM 
+ * - 驗證 Startup.ConfigureServices 產生的 IOrganizationService 是 scoped 計時裝飾器， 且同一 scope 重複解析回傳同一 wrapper。測試不執行任何 CRM
  * operation；若組合根仍 使用未裝飾的 GatewayOrganizationService，第一個型別斷言會以測試失敗而非編譯錯誤呈現。
  * 測試案例入口包含 ConfigureServices_registers_timed_organization_service_per_scope。
  *

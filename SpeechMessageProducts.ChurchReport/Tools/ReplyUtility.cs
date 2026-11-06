@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ReplyUtility。
- * - 產品流程只需要提供 LINE client 與共用 reply workflow 時使用的建構式。 直接 new LineMessagingProcessorClass 的 adapter 建立細節留在 
+ * - 產品流程只需要提供 LINE client 與共用 reply workflow 時使用的建構式。 直接 new LineMessagingProcessorClass 的 adapter 建立細節留在
  * ReplyUtility 內部， 避免 ChurchReport 的付款、奉獻、控制器流程到處知道 processor adapter 的建立方式。
  * - ChurchReport 的 reply-token 發送集中點。 所有 helper 都走共用 LINE reply workflow，讓 product code 不再直接呼叫 LINE reply SDK。
  * 主要操作入口包含 CreateDefaultReplyWorkflow、EchoAsyncProcessor、ReplyMessage、ReplyMessageAsync、EchoAsync、
@@ -18,7 +18,7 @@
  * SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs、
  * SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs、
  * SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs、
- * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs 
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using Line.Messaging;

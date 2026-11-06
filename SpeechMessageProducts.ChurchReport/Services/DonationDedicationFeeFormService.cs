@@ -1,13 +1,13 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻查詢表單刷新服務。 這個服務負責把 contact 欄位投影到 DonationPaymentFormModel，並重新查詢 new_fee 奉獻收費單清單。 它是 
+ * 目的與定位：ChurchReport 奉獻查詢表單刷新服務。 這個服務負責把 contact 欄位投影到 DonationPaymentFormModel，並重新查詢 new_fee 奉獻收費單清單。 它是
  * ChurchReport UI/CRM 表單流程，不是金流 provider 核心能力；未來其他產品可建立自己的 表單刷新服務，只共用 SpeechMessage.Payments 的付款建立與 callback 抽象。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationDedicationFeeFormService。
  * - 嘗試以 LINE user id 查詢 CRM contact。
- * - 取得指定 contact 的奉獻收費單 AJAX rows。 這個方法把 contactId 解析、CRM 讀取、model 刷新與 rows 投影包成單一入口， 讓 DonationPaymentManager 
+ * - 取得指定 contact 的奉獻收費單 AJAX rows。 這個方法把 contactId 解析、CRM 讀取、model 刷新與 rows 投影包成單一入口， 讓 DonationPaymentManager
  * 不需要再知道這些步驟的順序。
  * - 清除查無 contact 時的所有使用者識別與奉獻清單欄位。
  * 主要操作入口包含 FillFromLineId、TryResolveLineContact、FillFromContact、GetFeesByContactId、FillIdentity、

@@ -1,9 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：LINE Mini App 環境偵測中間件。 偵測請求是否來自 LINE LIFF Browser（LINE App 內建瀏覽器）， 並將偵測結果存入 HttpContext.Items 供後續 
- * Controller / View 使用。 使用方式： - 在 Controller 中：var isMiniApp = (bool)(HttpContext.Items["IsLineMiniApp"] ?? 
- * false); - 在 Razor View 中：var isMiniApp = (bool)(Context.Items["IsLineMiniApp"] ?? false); 📖 詳細說明請參閱：文件\Line 
+ * 目的與定位：LINE Mini App 環境偵測中間件。 偵測請求是否來自 LINE LIFF Browser（LINE App 內建瀏覽器）， 並將偵測結果存入 HttpContext.Items 供後續
+ * Controller / View 使用。 使用方式： - 在 Controller 中：var isMiniApp = (bool)(HttpContext.Items["IsLineMiniApp"] ??
+ * false); - 在 Razor View 中：var isMiniApp = (bool)(Context.Items["IsLineMiniApp"] ?? false); 📖 詳細說明請參閱：文件\Line
  * Mini App\好牧人-LINE-Mini-App-導入佈署步驟.md 第八章
  *
  * 主要功能與流程：

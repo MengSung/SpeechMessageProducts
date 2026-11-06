@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：舊 ChurchReport 管理者告警的相容入口。所有呼叫統一交給組合根的診斷 owner， 先完成 Exception.log 寫入／flush，再排入 LINE；不再自行建立長命 LINE client 
- * 或同步等網路。 舊文字參數可能含憑證、姓名或完整例外，因此不讀取、不留存、不傳送，改以編譯期 caller 定位。 新增程式應直接傳 Exception 至 ExceptionReporting.Report，以保留型別與 
+ * 目的與定位：舊 ChurchReport 管理者告警的相容入口。所有呼叫統一交給組合根的診斷 owner， 先完成 Exception.log 寫入／flush，再排入 LINE；不再自行建立長命 LINE client
+ * 或同步等網路。 舊文字參數可能含憑證、姓名或完整例外，因此不讀取、不留存、不傳送，改以編譯期 caller 定位。 新增程式應直接傳 Exception 至 ExceptionReporting.Report，以保留型別與
  * stack 符號。
  *
  * 主要功能與流程：

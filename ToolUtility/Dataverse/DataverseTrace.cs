@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：寫入 Dataverse 架構稽核所需的結構化 JSONL 軌跡。此 singleton 唯一擁有背景佇列、 StreamWriter、隨機 HMAC salt 與檔案輪替；request 
+ * 目的與定位：寫入 Dataverse 架構稽核所需的結構化 JSONL 軌跡。此 singleton 唯一擁有背景佇列、 StreamWriter、隨機 HMAC salt 與檔案輪替；request
  * 執行緒只在啟用時建立小型事件並入列， 從不執行同步磁碟 I/O。每個 request 的 traceId、使用者假名與 leaseId 均儲存在 AsyncLocal{T} 範圍，結束時立即還原，因此不會跨 request、
  * 使用者、profile 或 tenant 留存識別資料。
  *

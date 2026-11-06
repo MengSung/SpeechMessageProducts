@@ -16,7 +16,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/HomeController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.IntegrateView.cs 
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.IntegrateView.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

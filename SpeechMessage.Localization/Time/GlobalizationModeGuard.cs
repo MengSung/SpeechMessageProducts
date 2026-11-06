@@ -6,7 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 GlobalizationModeGuard。
- * - 真實 ICU 的 SortId 前四 bytes 應為非零且等於 FullVersion；NLS／Invariant 均拒絕。 不依賴私有 runtime 欄位或僅能讀取一次的自訂旗標，部署改模式後必須重啟 host 
+ * - 真實 ICU 的 SortId 前四 bytes 應為非零且等於 FullVersion；NLS／Invariant 均拒絕。 不依賴私有 runtime 欄位或僅能讀取一次的自訂旗標，部署改模式後必須重啟 host
  * 再驗。
  * 主要操作入口包含 ValidateIcuMode。
  *

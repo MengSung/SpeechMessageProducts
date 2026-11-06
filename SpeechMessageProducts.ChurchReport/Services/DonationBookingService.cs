@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 認獻單清單、狀態與取消流程服務。 認獻單是 ChurchReport 奉獻領域模型，並非通用金流核心概念。 因此這個服務留在 ChurchReport，集中管理 CRM 
- * new_dedication_booking 映射、 認獻單狀態文字、定期定額中止後的 CRM 備註更新，以及通知奉獻者的 LINE 訊息。 注意：這裡雖然會呼叫舊相容的 OrderMaintain，但它仍然是 
+ * 目的與定位：ChurchReport 認獻單清單、狀態與取消流程服務。 認獻單是 ChurchReport 奉獻領域模型，並非通用金流核心概念。 因此這個服務留在 ChurchReport，集中管理 CRM
+ * new_dedication_booking 映射、 認獻單狀態文字、定期定額中止後的 CRM 備註更新，以及通知奉獻者的 LINE 訊息。 注意：這裡雖然會呼叫舊相容的 OrderMaintain，但它仍然是
  * ChurchReport 既有產品流程。 通用金流核心不應知道「認獻單」、「奉獻者 fullname」或 ChurchReport 的 LINE 通知格式。
  *
  * 主要功能與流程：

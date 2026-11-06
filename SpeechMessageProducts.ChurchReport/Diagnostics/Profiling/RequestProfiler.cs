@@ -5,10 +5,10 @@
  *
  * 主要功能與流程：
  * 本檔宣告 RequestProfiler、PhaseScope、NoopDisposable。
- * - Trace.log 的 [Perf] crm.ms 外層耗時。 此值由 TimedOrganizationService 在 DI 接縫包住整個 GatewayOrganizationService 呼叫而得，所以除 
- * CRM 操作本身外，也包含租約取得、 Gateway 代理與首次建立池內連線等成本。它必須與同一 request 的 CRM 次數一起解讀， 不能假定等同 JSONL 的內層時間。 JSONL 
+ * - Trace.log 的 [Perf] crm.ms 外層耗時。 此值由 TimedOrganizationService 在 DI 接縫包住整個 GatewayOrganizationService 呼叫而得，所以除
+ * CRM 操作本身外，也包含租約取得、 Gateway 代理與首次建立池內連線等成本。它必須與同一 request 的 CRM 次數一起解讀， 不能假定等同 JSONL 的內層時間。 JSONL
  * request.end.crmMs 則由 CrmOperationTrace 僅累加 CRM 操作本身。 兩者的差值正是 Gateway／連線層成本；這是刻意保留的兩個量測邊界，而非重複計數或漏計。
- * - 控制器 action 耗時扣除 CrmMs 後的剩餘時間。 由於 CrmMs 已包含 Gateway 與連線建立成本， gap 表示的只是該外層 CRM 路徑以外的 action 時間；它不能與 JSONL 的內層 
+ * - 控制器 action 耗時扣除 CrmMs 後的剩餘時間。 由於 CrmMs 已包含 Gateway 與連線建立成本， gap 表示的只是該外層 CRM 路徑以外的 action 時間；它不能與 JSONL 的內層
  * crmMs 直接相減或互相比對。
  * 主要操作入口包含 SetActionElapsed、MeasurePhase、RecordPhase、RecordCrmCall、StopAndGetTotalMs、BuildSummaryLine、
  * BuildPhaseLines、BuildEscalationLines；其餘入口見下方成員契約。

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：預設的 ChurchReport 奉獻付款回傳 workflow。 如果 DI 有提供 IDonationPaymentProductWorkflowDispatcher， workflow 
+ * 目的與定位：預設的 ChurchReport 奉獻付款回傳 workflow。 如果 DI 有提供 IDonationPaymentProductWorkflowDispatcher， workflow
  * 會把結果派送到真正的 ChurchReport 產品 processor。 如果沒有提供 dispatcher，workflow 會回傳一個基本付款結果頁，這主要用於測試或保底顯示。
  *
  * 主要功能與流程：

@@ -7,11 +7,11 @@
  * 本檔宣告 ToolUtilityClassScopedLifetimeTests。
  * - 保護 DI 建構不得建立 legacy Dataverse 連線的契約。 故障注入為嚴格的 ICrmConnectionService 替身；若建構式錯誤呼叫 CreateOnPremiseClient，替身會立即失敗，
  * 並由 Never 斷言確認呼叫數為零。
- * - 保護注入連線不由 ToolUtilityClass 釋放的契約。 故障注入為可計數的 IDisposable 組織服務；直接 Dispose ToolUtilityClass 後， 決定性斷言是注入服務的 
+ * - 保護注入連線不由 ToolUtilityClass 釋放的契約。 故障注入為可計數的 IDisposable 組織服務；直接 Dispose ToolUtilityClass 後， 決定性斷言是注入服務的
  * Dispose 呼叫數仍為零，表示真正的 DI scope 擁有它。
- * - 保護 scoped provider 不被 singleton 捕獲的契約。 故障注入為以 ValidateScopes 與 ValidateOnBuild 建立的服務容器； 決定性斷言是建置不擲例外，且兩個 
+ * - 保護 scoped provider 不被 singleton 捕獲的契約。 故障注入為以 ValidateScopes 與 ValidateOnBuild 建立的服務容器； 決定性斷言是建置不擲例外，且兩個
  * scope 解析出不同的 ToolUtilityClass。
- * - 保護 fire-and-forget 背景 scope 的隔離與釋放契約。 故障注入為兩個可計數的 IDisposable 組織服務；決定性斷言是背景 scope 取得的 ToolUtility 與 request 
+ * - 保護 fire-and-forget 背景 scope 的隔離與釋放契約。 故障注入為兩個可計數的 IDisposable 組織服務；決定性斷言是背景 scope 取得的 ToolUtility 與 request
  * scope 不共用連線，且背景 scope 結束時只釋放自己的連線。 這覆蓋 Run 1.5 延後至 Run 2 的背景 scope 生命週期測試。
  * 測試案例入口包含 DiConstructor_DoesNotCreateLegacyConnection、Dispose_DoesNotDisposeInjectedOrganizationService、
  * ScopedRegistration_PassesValidationAndCreatesOneUtilityPerScope、

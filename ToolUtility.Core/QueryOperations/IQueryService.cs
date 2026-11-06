@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Repository 查詢的純 BCL／SDK 契約；保留既有 namespace、參數順序與預設值供兩個產品目標共用。 不包含 host 連線、cache、logger 或排程實作，介面搬移不代表舊 host 
+ * 目的與定位：Repository 查詢的純 BCL／SDK 契約；保留既有 namespace、參數順序與預設值供兩個產品目標共用。 不包含 host 連線、cache、logger 或排程實作，介面搬移不代表舊 host
  * 已完成安全純化。
  *
  * 主要功能與流程：

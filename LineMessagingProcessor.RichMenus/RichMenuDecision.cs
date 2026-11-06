@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：表示 RichMenu policy 在呼叫 LINE API 前回傳的 outcome。 decision 仍維持 provider-neutral：使用應用程式 menu key、priority、選填 
+ * 目的與定位：表示 RichMenu policy 在呼叫 LINE API 前回傳的 outcome。 decision 仍維持 provider-neutral：使用應用程式 menu key、priority、選填
  * TTL 與 reason， 讓 orchestrator 能可預期地挑出勝出的 action。
  *
  * 主要功能與流程：

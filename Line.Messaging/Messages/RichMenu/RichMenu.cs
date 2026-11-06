@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：RichMenu 建立用物件。 https://developers.line.me/en/docs/messaging-api/reference/#rich-menu-object 此 model 用於建立 
+ * 目的與定位：RichMenu 建立用物件。 https://developers.line.me/en/docs/messaging-api/reference/#rich-menu-object 此 model 用於建立
  * RichMenu 定義；LINE 建立成功後才會額外指派 provider richMenuId。
  *
  * 主要功能與流程：

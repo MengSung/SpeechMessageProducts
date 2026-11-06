@@ -5,13 +5,13 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DiagnosticTraceOptionsTests。
- * - 保護未提供 SessionVerbose 組態時的低雜訊安全預設；故障注入是保留一般 Trace 啟用值但刻意省略 SessionVerbose，決定性斷言是一般 Trace 仍可啟用而 Session 詳細診斷必為 
+ * - 保護未提供 SessionVerbose 組態時的低雜訊安全預設；故障注入是保留一般 Trace 啟用值但刻意省略 SessionVerbose，決定性斷言是一般 Trace 仍可啟用而 Session 詳細診斷必為
  * false，避免預設保留任何高頻 Session 相關輸出。
- * - 保護 Debug 組合根可明確啟用 Session 詳細診斷的組態契約；故障注入是將整體 Trace 設為 false 而 SessionVerbose 設為 true，決定性斷言是兩個開關各自保留 設計值，證明 
+ * - 保護 Debug 組合根可明確啟用 Session 詳細診斷的組態契約；故障注入是將整體 Trace 設為 false 而 SessionVerbose 設為 true，決定性斷言是兩個開關各自保留 設計值，證明
  * Session 詳細診斷不再被整體 writer 開關意外耦合。
- * - 保護 Release 的 fail-closed 邊界不可被部署組態繞過；故障注入是同時要求啟用 一般與 Session 詳細診斷但傳入 allowEnabled=false，決定性斷言是兩者皆為 false， 
+ * - 保護 Release 的 fail-closed 邊界不可被部署組態繞過；故障注入是同時要求啟用 一般與 Session 詳細診斷但傳入 allowEnabled=false，決定性斷言是兩者皆為 false，
  * 因而不會在不允許的組建保留跨請求 Session 診斷輸出。
- * - 保護明確停用的組合根不讀取或保留 Session 詳細診斷狀態；故障注入是直接建立 CreateDisabled 設定，決定性斷言是一般與 Session 開關均為 false，確保此純值物件 不會擁有或延長任何 
+ * - 保護明確停用的組合根不讀取或保留 Session 詳細診斷狀態；故障注入是直接建立 CreateDisabled 設定，決定性斷言是一般與 Session 開關均為 false，確保此純值物件 不會擁有或延長任何
  * writer、Session、使用者或租戶資料的生命週期。
  * 測試案例入口包含 Session_verbose_defaults_to_false_when_configuration_omits_key、
  * Session_verbose_reads_true_when_allowed_even_if_general_trace_is_disabled、

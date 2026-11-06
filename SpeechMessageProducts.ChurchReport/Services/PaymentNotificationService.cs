@@ -1,18 +1,18 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：金流 callback 後的 ChurchReport LINE 通知服務。 此服務消費共用金流層的 PaymentWorkflowResult，但訊息內容、 收費單欄位與 LINE 推播策略都屬於 
+ * 目的與定位：金流 callback 後的 ChurchReport LINE 通知服務。 此服務消費共用金流層的 PaymentWorkflowResult，但訊息內容、 收費單欄位與 LINE 推播策略都屬於
  * ChurchReport 產品流程，因此不放進共用金流專案。
  *
  * 主要功能與流程：
  * 本檔宣告 PaymentNotificationService。
- * - PaymentNotificationService 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 
+ * - PaymentNotificationService 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
- * - 建立付款 LINE 通知專用的 deterministic retry key。 同一筆付款事件重送時會得到同一個 key，LINE 端即可辨識重試請求， 但 key 內不放付款者姓名、LINE ID、卡號 token 
+ * - 建立付款 LINE 通知專用的 deterministic retry key。 同一筆付款事件重送時會得到同一個 key，LINE 端即可辨識重試請求， 但 key 內不放付款者姓名、LINE ID、卡號 token
  * 或完整訊息，避免把個資/敏感資料寫進協定 header。
  * - 透過 LINE Messaging API 推播付款通知。 此方法仍位於 ChurchReport，是因為 LINE channel token 的選擇、 使用者 LINE ID 欄位與通知失敗策略都屬於產品流程，
  * 不屬於共用金流核心。
- * - 透過 LINE Messaging API 推播付款通知。 retryKey 有值時走 LineMessagingProcessor 的可重試入口；沒有 retryKey 時保留舊的 PushUtility 路徑， 
+ * - 透過 LINE Messaging API 推播付款通知。 retryKey 有值時走 LineMessagingProcessor 的可重試入口；沒有 retryKey 時保留舊的 PushUtility 路徑，
  * 讓既有非付款或無穩定識別碼的通知不被本次重構影響。
  * 主要操作入口包含 BuildPaymentLineRetryKey、SendLineMessage、SendLineNotificationByType、SendLineFailureNotificationByType、
  * GetLineChannelAccessToken、CreateDefaultLineNotificationWorkflow。

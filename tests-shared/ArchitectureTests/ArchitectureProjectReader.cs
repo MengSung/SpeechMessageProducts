@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：從實際方案逐 csproj、逐目標呼叫 MSBuild 的唯讀評估；避免自行猜測 Condition／Import 規則漏掉 Framework 專用參考。每個程序最長三十秒，輸入只來自受信任方案，程序、串流與 
+ * 目的與定位：從實際方案逐 csproj、逐目標呼叫 MSBuild 的唯讀評估；避免自行猜測 Condition／Import 規則漏掉 Framework 專用參考。每個程序最長三十秒，輸入只來自受信任方案，程序、串流與
  * JSON 均有限持有。
  *
  * 主要功能與流程：

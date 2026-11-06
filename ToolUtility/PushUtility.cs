@@ -1,18 +1,18 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔承接以下操作邊界：舊版直接建立 RichMenu、上傳圖片並綁定到指定使用者的流程。 這段程式保留在 ToolUtility 舊工具中，描述早期產品直接操作 LINE provider 的生命週期： 先建立 
- * RichMenu 取得 provider 產生的 richMenuId，再從本機固定路徑讀取圖片， 上傳為 RichMenu 圖片，最後把該 richMenuId link 到使用者並推送成功訊息。 
- * ChurchReport 目前已改由共用 RichMenu workflow / assignment workflow 管理 menu key、 richMenuId 快取、線上選單同步與解除綁定，避免每次呼叫都建立新 
+ * 目的與定位：本檔承接以下操作邊界：舊版直接建立 RichMenu、上傳圖片並綁定到指定使用者的流程。 這段程式保留在 ToolUtility 舊工具中，描述早期產品直接操作 LINE provider 的生命週期： 先建立
+ * RichMenu 取得 provider 產生的 richMenuId，再從本機固定路徑讀取圖片， 上傳為 RichMenu 圖片，最後把該 richMenuId link 到使用者並推送成功訊息。
+ * ChurchReport 目前已改由共用 RichMenu workflow / assignment workflow 管理 menu key、 richMenuId 快取、線上選單同步與解除綁定，避免每次呼叫都建立新
  * RichMenu 或依賴硬編碼圖片路徑。
  *
  * 主要功能與流程：
  * 本檔宣告 PushUtility。
- * - 舊版直接建立 RichMenu、上傳圖片並綁定到指定使用者的流程。 這段程式保留在 ToolUtility 舊工具中，描述早期產品直接操作 LINE provider 的生命週期： 先建立 RichMenu 取得 
- * provider 產生的 richMenuId，再從本機固定路徑讀取圖片， 上傳為 RichMenu 圖片，最後把該 richMenuId link 到使用者並推送成功訊息。 ChurchReport 目前已改由共用 
+ * - 舊版直接建立 RichMenu、上傳圖片並綁定到指定使用者的流程。 這段程式保留在 ToolUtility 舊工具中，描述早期產品直接操作 LINE provider 的生命週期： 先建立 RichMenu 取得
+ * provider 產生的 richMenuId，再從本機固定路徑讀取圖片， 上傳為 RichMenu 圖片，最後把該 richMenuId link 到使用者並推送成功訊息。 ChurchReport 目前已改由共用
  * RichMenu workflow / assignment workflow 管理 menu key、 richMenuId 快取、線上選單同步與解除綁定，避免每次呼叫都建立新 RichMenu 或依賴硬編碼圖片路徑。
- * - 舊版直接解除使用者 RichMenu 並刪除 provider richMenuId 的流程。 此方法先向 LINE 查詢使用者目前綁定的 richMenuId，接著 unlink 使用者， 最後直接刪除該 
- * provider RichMenu。這個做法假設該 richMenuId 只屬於單一使用者； 若同一選單被多位使用者或多個流程共用，直接刪除 provider 資源會影響其他人。 新版 ChurchReport 透過共用 
+ * - 舊版直接解除使用者 RichMenu 並刪除 provider richMenuId 的流程。 此方法先向 LINE 查詢使用者目前綁定的 richMenuId，接著 unlink 使用者， 最後直接刪除該
+ * provider RichMenu。這個做法假設該 richMenuId 只屬於單一使用者； 若同一選單被多位使用者或多個流程共用，直接刪除 provider 資源會影響其他人。 新版 ChurchReport 透過共用
  * assignment workflow 只處理使用者 unlink， provider RichMenu 的建立、版本同步與刪除策略交由共用 provisioning / sweep 流程集中管理。
  * - 確認訊息範例 (已改為非同步) ✅ Phase 7: 移除 .Wait() 阻塞，改為 async/await
  * - 輪播訊息範例 (已改為非同步) ✅ Phase 7: 移除 .Wait() 阻塞，改為 async/await

@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：小組管理控制器 - 核心定義 負責處理小組週報、整合視圖、多組週報等相關功能 快取策略（混合式）： - 資料層：使用 IMemoryCache 快取 CRM 查詢結果（15分鐘TTL） - HTTP 
+ * 目的與定位：小組管理控制器 - 核心定義 負責處理小組週報、整合視圖、多組週報等相關功能 快取策略（混合式）： - 資料層：使用 IMemoryCache 快取 CRM 查詢結果（15分鐘TTL） - HTTP
  * 層：不快取回應（NoStore），確保每次都從最新記憶體取得資料 - 清理機制：日期變更時清除相關快取，確保資料一致性
  *
  * 主要功能與流程：
  * 本檔宣告 SmallGroupController。
- * - 建立背景工作專用 DI scope 的工廠。背景上傳可能在 HTTP request 結束後仍執行， 因此 scope 必須由背景工作自行擁有並在工作完成時釋放，避免沿用 request scope 的 
+ * - 建立背景工作專用 DI scope 的工廠。背景上傳可能在 HTTP request 結束後仍執行， 因此 scope 必須由背景工作自行擁有並在工作完成時釋放，避免沿用 request scope 的
  * ToolUtility、CRM 連線或其他可變狀態而造成跨 request 資源洩漏。
- * - 建立小組管理控制器。 HTTP request 的服務由基底控制器持有；背景上傳另以 scopeFactory 建立 operation scope，確保 request 結束後仍執行的工作不會持有已釋放的 
+ * - 建立小組管理控制器。 HTTP request 的服務由基底控制器持有；背景上傳另以 scopeFactory 建立 operation scope，確保 request 結束後仍執行的工作不會持有已釋放的
  * ToolUtility 或 CRM 連線，且工作結束時資源一定歸還。
  * 功能由下方宣告及其呼叫端共同構成；沒有方法入口的契約／常數檔不自行執行業務作業。
  *

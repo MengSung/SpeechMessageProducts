@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻付款流程使用的 ASP.NET Session key。 注意：這些 key 屬於 ChurchReport 的網站流程狀態，不屬於可重用金流核心。 金流核心只處理 
+ * 目的與定位：ChurchReport 奉獻付款流程使用的 ASP.NET Session key。 注意：這些 key 屬於 ChurchReport 的網站流程狀態，不屬於可重用金流核心。 金流核心只處理
  * provider 協定與標準化付款結果；登入者、CRM contact、 LINE 通知與畫面狀態都必須留在產品專案。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentSessionKeys。
- * - 網頁奉獻登入成功後保存的 CRM contact id。 目的： AJAX 登入成功後會經過 browser redirect 再進入奉獻頁。若中途 DonationPaymentManager 的 
+ * - 網頁奉獻登入成功後保存的 CRM contact id。 目的： AJAX 登入成功後會經過 browser redirect 再進入奉獻頁。若中途 DonationPaymentManager 的
  * memory-cache key 因 Session 指紋或建立時間差異而分裂， 奉獻頁仍可用這個穩定的 Session 值重新讀取 contact， 重新建立姓名、奉獻編號、信用卡清單與認獻清單。
- * - LINE LIFF 登入成功後由伺服器保存的已驗證 LINE user id。 收費清單與付款頁的 route segment 可由瀏覽器自行修改，因此只能在 Session 中存在同一個、已完成 CRM 
+ * - LINE LIFF 登入成功後由伺服器保存的已驗證 LINE user id。 收費清單與付款頁的 route segment 可由瀏覽器自行修改，因此只能在 Session 中存在同一個、已完成 CRM
  * contact 驗證的值時接受該 route。 此 key 不保存姓名、contact 或其他個資，並隨 Session 到期而失效。
  * 資料／選項欄位包含 DonationPaymentSessionKeys、WebLoginContactId、LineUserId，名稱、型別與序列化規約須與消費端保持一致。
  *

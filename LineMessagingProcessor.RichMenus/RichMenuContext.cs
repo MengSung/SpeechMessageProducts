@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：攜帶 RichMenu policies 做 decision 時可能需要的所有使用者與訊息事實。 context 刻意使用角色、屬性等應用程式概念，讓 policies 不必直接依賴資料庫 entity 或 
+ * 目的與定位：攜帶 RichMenu policies 做 decision 時可能需要的所有使用者與訊息事實。 context 刻意使用角色、屬性等應用程式概念，讓 policies 不必直接依賴資料庫 entity 或
  * LINE SDK payload 型別。
  *
  * 主要功能與流程：

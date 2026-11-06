@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證台新 TSPG provider 的狀態碼、前端/後端 callback、hash 驗證與建立付款 payload。 台新 ret_code/state/hash 規則屬於 provider 
+ * 目的與定位：驗證台新 TSPG provider 的狀態碼、前端/後端 callback、hash 驗證與建立付款 payload。 台新 ret_code/state/hash 規則屬於 provider
  * protocol，應留在 SpeechMessage.Payments provider 實作與測試中。
  *
  * 主要功能與流程：

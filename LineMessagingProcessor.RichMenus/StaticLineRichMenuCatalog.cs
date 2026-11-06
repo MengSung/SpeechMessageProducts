@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：提供固定的記憶體 RichMenu definitions catalog。 當應用程式在啟動時已知道所有選單，且希望 provisioning workflow 不必讀取資料庫、設定 provider 
+ * 目的與定位：提供固定的記憶體 RichMenu definitions catalog。 當應用程式在啟動時已知道所有選單，且希望 provisioning workflow 不必讀取資料庫、設定 provider
  * 或遠端服務時，可使用此實作。
  *
  * 主要功能與流程：

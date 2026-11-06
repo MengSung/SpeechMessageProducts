@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 SmallGroupController。
  * - 整合式小組回報頁面 提供單一小組的詳細回報功能(點名、禱告、統計)
- * - 處理整合式頁面登入並建立 request-owned Razor model。伺服器重新驗證 ActiveListId， detached snapshot 在回應完成後可回收，不會把 Session graph 
+ * - 處理整合式頁面登入並建立 request-owned Razor model。伺服器重新驗證 ActiveListId， detached snapshot 在回應完成後可回收，不會把 Session graph
  * 暴露給 Razor callback。
  * 主要操作入口包含 IntegrateView、SetupIntegrateViewData、ShouldLoadIntegrateData、HandleIntegrateViewLogin、
  * EnsureIntegrateDataLoaded。

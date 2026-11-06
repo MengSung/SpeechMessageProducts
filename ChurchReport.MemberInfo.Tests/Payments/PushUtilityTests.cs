@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔承接以下操作邊界：保護付款推播失敗仍拋標準例外且不洩漏遠端本文。注入含合成私密標記的 HTTP 400； 嚴格檢查失敗分類、安全訊息及例外文字，不能以回復原始 provider message 換取相容。 
+ * 目的與定位：本檔承接以下操作邊界：保護付款推播失敗仍拋標準例外且不洩漏遠端本文。注入含合成私密標記的 HTTP 400； 嚴格檢查失敗分類、安全訊息及例外文字，不能以回復原始 provider message 換取相容。
  * HTTP 替身及 transport 由本案 using 擁有並在 await 排空後確定性釋放。
  *
  * 主要功能與流程：
  * 本檔宣告 PushUtilityTests、RecordingLineHandler。
- * - 保護付款推播失敗仍拋標準例外且不洩漏遠端本文。注入含合成私密標記的 HTTP 400； 嚴格檢查失敗分類、安全訊息及例外文字，不能以回復原始 provider message 換取相容。 HTTP 替身及 
+ * - 保護付款推播失敗仍拋標準例外且不洩漏遠端本文。注入含合成私密標記的 HTTP 400； 嚴格檢查失敗分類、安全訊息及例外文字，不能以回復原始 provider message 換取相容。 HTTP 替身及
  * transport 由本案 using 擁有並在 await 排空後確定性釋放。
  * 測試案例入口包含 SendMessageOrThrowAsync_posts_text_message_to_line_push_endpoint、
  * SendMessageOrThrowAsync_throws_when_line_rejects_push_message、

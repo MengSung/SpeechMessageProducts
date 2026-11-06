@@ -5,9 +5,9 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ScopedToolUtilityConsumerTests、StubToolUtilityProvider。
- * - 保護 QR 工具不再於欄位初始化時呼叫 legacy Factory。 故障注入為未設定 Factory 的程序狀態；若工具仍呼叫 Factory，建構即會失敗。 決定性斷言為建構後欄位持有呼叫端提供的同一個 
+ * - 保護 QR 工具不再於欄位初始化時呼叫 legacy Factory。 故障注入為未設定 Factory 的程序狀態；若工具仍呼叫 Factory，建構即會失敗。 決定性斷言為建構後欄位持有呼叫端提供的同一個
  * scoped 實例。
- * - 保護短命付款處理器不得釋放 request scope 擁有的 ToolUtility。 故障注入為可驗證 Dispose 呼叫的 CRM 替身；決定性斷言是 Dispose 後 組織服務仍未收到 Dispose，證明 
+ * - 保護短命付款處理器不得釋放 request scope 擁有的 ToolUtility。 故障注入為可驗證 Dispose 呼叫的 CRM 替身；決定性斷言是 Dispose 後 組織服務仍未收到 Dispose，證明
  * consumer 沒有越權釋放 scoped 依賴。
  * 測試案例入口包含 QrCodeUtility_UsesInjectedRequestToolUtility、
  * DonationFeePaymentProcessor_DisposeDoesNotDisposeInjectedToolUtility、GetToolUtility。

@@ -1,13 +1,13 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：RichMenu 可點擊區域。 https://developers.line.me/en/docs/messaging-api/reference/#area-object ActionArea 將 
+ * 目的與定位：RichMenu 可點擊區域。 https://developers.line.me/en/docs/messaging-api/reference/#area-object ActionArea 將
  * RichMenu 圖片上的矩形範圍綁定到一個 LINE template action。
  *
  * 主要功能與流程：
  * 本檔宣告 ActionArea。
  * - 以像素描述可點擊範圍邊界的物件。 Bounds 必須落在 RichMenu 圖片尺寸內；除非設計上刻意依賴 LINE 的區域排序判定，否則不應互相重疊。
- * - 使用者點擊此區域時執行的 action。 RichMenu action 不支援顯示 label；目前支援 message、URI、postback、datetime picker、RichMenu switch 與 
+ * - 使用者點擊此區域時執行的 action。 RichMenu action 不支援顯示 label；目前支援 message、URI、postback、datetime picker、RichMenu switch 與
  * clipboard。
  * 主要操作入口包含 CreateFrom、ParseTemplateAction。
  *

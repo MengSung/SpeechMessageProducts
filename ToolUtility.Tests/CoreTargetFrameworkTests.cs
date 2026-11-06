@@ -7,7 +7,7 @@
  * 本檔宣告 CoreTargetFrameworkTests。
  * - 比對FeeService所屬assembly的目標中繼資料；錯用任一產品目標即決定性失敗， 不接觸D365、不配置連線或其他需處置資源。
  * - 鎖定抽取前五份純介面的完整方法數、ref 計數及批次預設值。 搬移若漏掉任何舊多載、把 ref 變值傳遞或改變批次／取消預設值即失敗； 不建立實作、SDK 或背景工作，兩個產品測試宿主執行相同反射。
- * - 以搬移前來源簽章建立的固定 golden 核對五介面全部 67 個多載，而非只比方法數； 刪改參數型別／順序／名稱／ref 或預設值都會失敗。nullable 另驗，因其不改 CLR 簽章。 此測試不載入 host 
+ * - 以搬移前來源簽章建立的固定 golden 核對五介面全部 67 個多載，而非只比方法數； 刪改參數型別／順序／名稱／ref 或預設值都會失敗。nullable 另驗，因其不改 CLR 簽章。 此測試不載入 host
  * 或連線，兩個產品宿主使用完全相同 golden。
  * - 只將反射型別轉成搬移前 API 使用的 C# 拼字；不讀產品實作或建構預期 golden。
  * 測試案例入口包含 LoadedCore_UsesApprovedProductTarget、ExtractedContracts_PreserveMethodCountAndDefaults、

@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 RowPublicationGuard。
- * - 小組週報 Grid 的固定診斷／契約名稱；它不是資料列身份，也不得被拿來 取代 PresentRecordId 。集中管理可避免 manifest、API 與測試在重構後 各自保留不同文字，導致錯誤診斷無法對應到實際 
+ * - 小組週報 Grid 的固定診斷／契約名稱；它不是資料列身份，也不得被拿來 取代 PresentRecordId 。集中管理可避免 manifest、API 與測試在重構後 各自保留不同文字，導致錯誤診斷無法對應到實際
  * consumer。
  * - 新人跟進 Grid 的固定診斷／契約名稱；同樣只用於可觀測性與契約對照， 不參與任何資料去重、授權或 Session 判斷。
  * - 快取候選驗證所使用的小組資料集名稱，與 Grid consumer 命名保持可追蹤關聯。

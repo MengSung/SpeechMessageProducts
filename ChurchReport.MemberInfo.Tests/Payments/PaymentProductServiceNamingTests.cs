@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 ChurchReport 的付款後產品流程服務不再以單一 provider 命名。 CRM 更新、LINE 通知、付款訊息組裝都屬於 ChurchReport 產品流程， 
+ * 目的與定位：驗證 ChurchReport 的付款後產品流程服務不再以單一 provider 命名。 CRM 更新、LINE 通知、付款訊息組裝都屬於 ChurchReport 產品流程，
  * 服務名稱應表達「產品付款後處理」而不是誤導成 MyPay 金流協定實作。
  *
  * 主要功能與流程：

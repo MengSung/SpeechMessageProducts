@@ -15,7 +15,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/HomeController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs、
  * SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs、
- * SpeechMessageProducts.ChurchReport/Models/NewPersonModel.cs、SpeechMessageProducts.ChurchReport/Startup.cs 
+ * SpeechMessageProducts.ChurchReport/Models/NewPersonModel.cs、SpeechMessageProducts.ChurchReport/Startup.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

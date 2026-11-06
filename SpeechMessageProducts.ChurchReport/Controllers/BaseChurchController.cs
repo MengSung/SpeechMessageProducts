@@ -7,7 +7,7 @@
  * 本檔宣告 BaseChurchController。
  * - 驗證快取允許保留的最大項目數；超過前會先淘汰一筆最舊項目。
  * - 取得 Dataverse/CRM 與各項後端服務的統一操作進入點。
- * - 指示本控制器是否擁有建構式自行建立的 data context。 DI 注入的 context 由 DI scope 負責釋放，控制器不得重複 Dispose； 相容路徑自行建立的 context 則由本控制器在 
+ * - 指示本控制器是否擁有建構式自行建立的 data context。 DI 注入的 context 由 DI scope 負責釋放，控制器不得重複 Dispose； 相容路徑自行建立的 context 則由本控制器在
  * request 結束時確定性釋放。
  * - 避免 MVC、手動 using 與測試重複釋放同一個 context。
  * 主要操作入口包含 HandleError、SetMultiGroupLayoutParameter、ResolveDonationManagementAccessFlag、IsIntegrateDataLoaded、

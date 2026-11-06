@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：建立可在 RichMenu aliases 之間切換使用者選單的 LINE template actions。 將 action 建立集中在此處，可讓需要 LINE richmenuswitch action 
+ * 目的與定位：建立可在 RichMenu aliases 之間切換使用者選單的 LINE template actions。 將 action 建立集中在此處，可讓需要 LINE richmenuswitch action
  * type 的應用程式選單， 共用一致的 alias 驗證與 postback data 驗證規則。
  *
  * 主要功能與流程：

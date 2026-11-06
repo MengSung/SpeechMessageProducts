@@ -1,21 +1,21 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：全域無快取過濾器 (Session Bleeding 防護 - 第三層) 設計原則: - Single Responsibility Principle (SRP): 專注於設定 HTTP 快取標頭 - 
+ * 目的與定位：全域無快取過濾器 (Session Bleeding 防護 - 第三層) 設計原則: - Single Responsibility Principle (SRP): 專注於設定 HTTP 快取標頭 -
  * Open/Closed Principle: 透過 IActionFilter 介面擴展，不需修改現有代碼 - Dependency Inversion Principle: 依賴抽象 IActionFilter，
- * 不依賴具體實現 作用: 在每個 Action 執行完成後，強制設定最嚴格的 HTTP 快取標頭， 確保回應不會被任何中間層代理伺服器或瀏覽器快取。 這是防止 Session Bleeding（會話串連）問題的第三層防護。 
- * 防護架構: 第一層: 全站無快取中介軟體 (Middleware) 第二層: ResponseCacheAttribute (MVC Framework) 第三層: StrictNoCacheFilter (Action 
- * Filter) ← 此檔案 使用方式: 在 Startup.cs 的 ConfigureServices 中全域註冊: services.AddMvc(options => { 
- * options.Filters.Add&lt;StrictNoCacheFilter&gt;(); }); 或在特定 Controller/Action 上使用: 
+ * 不依賴具體實現 作用: 在每個 Action 執行完成後，強制設定最嚴格的 HTTP 快取標頭， 確保回應不會被任何中間層代理伺服器或瀏覽器快取。 這是防止 Session Bleeding（會話串連）問題的第三層防護。
+ * 防護架構: 第一層: 全站無快取中介軟體 (Middleware) 第二層: ResponseCacheAttribute (MVC Framework) 第三層: StrictNoCacheFilter (Action
+ * Filter) ← 此檔案 使用方式: 在 Startup.cs 的 ConfigureServices 中全域註冊: services.AddMvc(options => {
+ * options.Filters.Add&lt;StrictNoCacheFilter&gt;(); }); 或在特定 Controller/Action 上使用:
  * [ServiceFilter(typeof(StrictNoCacheFilter))] public class MyController : Controller { }
  *
  * 主要功能與流程：
  * 本檔宣告 StrictNoCacheFilter。
  * - ✅ 效能：共用實例。 本過濾器沒有任何相依項、沒有任何欄位，所有輸入都由 context 參數傳入， 因此在所有請求之間共用單一實例是安全的，且不含任何跨請求狀態。 這讓全域註冊不必在每個請求重新配置一個過濾器物件。
  * - Action 執行前的處理（此過濾器不需要在執行前處理）
- * - Action 執行後的處理：設定最嚴格的快取控制標頭 設定的 HTTP Headers: 1. Cache-Control: no-store, no-cache, must-revalidate, max-age=0 
- * - no-store: 完全禁止快取（最嚴格） - no-cache: 每次都要重新驗證 - must-revalidate: 過期後必須重新驗證 - max-age=0: 立即過期 2. Pragma: no-cache 
- * - HTTP/1.0 的向後相容標頭 3. Expires: -1 - 表示內容已過期（HTTP/1.0 相容） 為什麼需要三個標頭? - Cache-Control: 現代瀏覽器和代理伺服器使用 - Pragma: 舊版 
+ * - Action 執行後的處理：設定最嚴格的快取控制標頭 設定的 HTTP Headers: 1. Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+ * - no-store: 完全禁止快取（最嚴格） - no-cache: 每次都要重新驗證 - must-revalidate: 過期後必須重新驗證 - max-age=0: 立即過期 2. Pragma: no-cache
+ * - HTTP/1.0 的向後相容標頭 3. Expires: -1 - 表示內容已過期（HTTP/1.0 相容） 為什麼需要三個標頭? - Cache-Control: 現代瀏覽器和代理伺服器使用 - Pragma: 舊版
  * HTTP/1.0 客戶端使用 - Expires: 向後相容，確保所有客戶端都理解
  * 主要操作入口包含 OnActionExecuting、OnActionExecuted。
  *

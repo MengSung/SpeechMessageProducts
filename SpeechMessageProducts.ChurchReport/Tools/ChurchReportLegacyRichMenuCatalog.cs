@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 既有單鈕認證 RichMenu 的產品目錄。 共用 RichMenu 專案只負責「依 catalog 佈建與指派」，不應知道 ChurchReport 的舊圖檔位置、 
+ * 目的與定位：ChurchReport 既有單鈕認證 RichMenu 的產品目錄。 共用 RichMenu 專案只負責「依 catalog 佈建與指派」，不應知道 ChurchReport 的舊圖檔位置、
  * 按鈕文字或認證用途；因此這份 catalog 留在 ChurchReport 產品層。
  *
  * 主要功能與流程：

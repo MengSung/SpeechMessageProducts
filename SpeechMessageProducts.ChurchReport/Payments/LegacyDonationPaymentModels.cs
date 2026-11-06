@@ -1,9 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔整合下列相關契約：CreOrder：舊 ChurchReport QPay 建立訂單流程使用的相容模型。 新金流核心不公開這個型別；它只留在 ChurchReport adapter，協助舊前端與 
- * processor 逐步遷移到 provider-neutral contract。；CreOrderATMParamRes：舊 QPay ATM 建立訂單回應欄位。 ATM 虛擬帳號是繳費指示，必須由核心 
- * provider data 映射回來給 ChurchReport 顯示與通知。；CreOrderCardParamRes：舊 QPay 信用卡付款頁 URL 欄位。 若核心沒有回傳有效付款頁 URL，adapter 
+ * 目的與定位：本檔整合下列相關契約：CreOrder：舊 ChurchReport QPay 建立訂單流程使用的相容模型。 新金流核心不公開這個型別；它只留在 ChurchReport adapter，協助舊前端與
+ * processor 逐步遷移到 provider-neutral contract。；CreOrderATMParamRes：舊 QPay ATM 建立訂單回應欄位。 ATM 虛擬帳號是繳費指示，必須由核心
+ * provider data 映射回來給 ChurchReport 顯示與通知。；CreOrderCardParamRes：舊 QPay 信用卡付款頁 URL 欄位。 若核心沒有回傳有效付款頁 URL，adapter
  * 必須讓建立訂單失敗，避免瀏覽器跳回原頁。
  *
  * 主要功能與流程：
@@ -18,7 +18,7 @@
  * SpeechMessageProducts.ChurchReport/Payments/DonationPaymentCreateGatewayAdapter.cs、
  * SpeechMessageProducts.ChurchReport/Payments/IDonationPaymentCreateGatewayAdapter.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationBookingService.cs、
- * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentGateway.cs 
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentGateway.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 namespace ChurchReport.Payments;

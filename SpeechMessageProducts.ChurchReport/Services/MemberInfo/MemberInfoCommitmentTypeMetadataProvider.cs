@@ -6,7 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 MemberInfoCommitmentTypeOption、MemberInfoCommitmentTypeMetadataProvider。
- * - 取得依 Dynamics 客製化順序排列的選項快照；Order 從零開始且只由集合位置產生。 metadata 暫時失敗時回傳短期快取的空集合，呼叫端即可採「未知值」穩定排序， 不會誤用 raw 
+ * - 取得依 Dynamics 客製化順序排列的選項快照；Order 從零開始且只由集合位置產生。 metadata 暫時失敗時回傳短期快取的空集合，呼叫端即可採「未知值」穩定排序， 不會誤用 raw
  * 整數或硬編碼清單冒充正確順序。
  * - 優先使用繁體中文，其次簡體中文及目前使用者語系；完全無標籤時保留可診斷文字。
  * 主要操作入口包含 MemberInfoCommitmentTypeOption、GetOptions、ResolveLabel。

@@ -1,17 +1,17 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔整合下列相關契約：IntegrateLoadKey：定義一份整合快照的完整 Session 內隔離邊界。任何登入者、登入憑證、角色、日期、 小組或週報變化都會強制建立新候選，禁止只憑 LoadFlag 或 
+ * 目的與定位：本檔整合下列相關契約：IntegrateLoadKey：定義一份整合快照的完整 Session 內隔離邊界。任何登入者、登入憑證、角色、日期、 小組或週報變化都會強制建立新候選，禁止只憑 LoadFlag 或
  * ListEntityId 沿用舊資料。
  *
  * 主要功能與流程：
  * 本檔宣告 ListManager、IntegrateLoadKey。
  * - ChurchReport 週報單次完整快照允許的最大資料列數。此上限同時限制 stable-ID HashSet 與序列化工作量，避免異常查詢或重試造成無界記憶體配置；超量必須明確失敗，不可截斷。
- * - 同一 Session holder 內整合資料的同步根。由於現有 CRM SDK 入口是同步 API， 使用 instance lock 可在整個候選快照建立期間阻擋同一 holder 的第二個 writer， 
- * 且不引入需要跨 cache eviction 額外 Dispose 的 SemaphoreSlim。此鎖不在 static、 Session 或跨使用者 registry 中，因此不會把不同使用者的 request 
+ * - 同一 Session holder 內整合資料的同步根。由於現有 CRM SDK 入口是同步 API， 使用 instance lock 可在整個候選快照建立期間阻擋同一 holder 的第二個 writer，
+ * 且不引入需要跨 cache eviction 額外 Dispose 的 SemaphoreSlim。此鎖不在 static、 Session 或跨使用者 registry 中，因此不會把不同使用者的 request
  * 串在一起。
  * - 測試用的區域候選建立器；正式建構式保持原有行為並建立新的 DownloadIntegrateData。 委派只在 gate 內暫時使用，不得保存 HttpContext、Session、CRM 連線或測試同步原語。
- * - 最近一次成功發布的完整隔離鍵。此值只存在於單一 Session 的 ListManager 生命週期， 不會進入程序級 cache key、log 或回應；隔離鍵只保存不可逆的 credential 
+ * - 最近一次成功發布的完整隔離鍵。此值只存在於單一 Session 的 ListManager 生命週期， 不會進入程序級 cache key、log 或回應；隔離鍵只保存不可逆的 credential
  * fingerprint， 絕不把密碼明文複製到 record struct、例外訊息或可被除錯器列印的 ToString 結果。
  * 主要操作入口包含 SetupListManager、SetupListManagerCore、ReloadDateAndGetIntegrateDetachedRead、SetSelectDate、
  * SetupOnlyOneListManager、GetDisplayViewType、SetupIntegrateData、EnsureAndGetIntegrateDetachedRead；其餘入口見下方成員契約。

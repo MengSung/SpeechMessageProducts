@@ -15,7 +15,7 @@
  * 使用邊界與維護：
  * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
- * 可沿 SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Private.cs 
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Private.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.Diagnostics.Profiling;

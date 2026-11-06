@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻流程專用的 CRM contact 操作服務。 這個類別刻意留在 ChurchReport 專案，而不是抽到 SpeechMessage.Payments 或 
+ * 目的與定位：ChurchReport 奉獻流程專用的 CRM contact 操作服務。 這個類別刻意留在 ChurchReport 專案，而不是抽到 SpeechMessage.Payments 或
  * SpeechMessage.Payments.AspNetCore，因為它直接認得 ChurchReport 的 CRM schema， 例如 contact.new_personal_id、contact.pager、
- * contact.mobilephone，以及奉獻者登入時 「只補空欄位、不覆蓋既有資料」的產品規則。 DonationPaymentManager 只負責協調流程；真正建立、篩選、補齊奉獻者 contact 
+ * contact.mobilephone，以及奉獻者登入時 「只補空欄位、不覆蓋既有資料」的產品規則。 DonationPaymentManager 只負責協調流程；真正建立、篩選、補齊奉獻者 contact
  * 的細節集中在這裡， 讓未來閱讀或修改 CRM contact 規則時，不需要在大型付款協調器裡搜尋。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationContactService。
- * - 依照官網奉獻登入頁輸入的資料建立 ChurchReport contact。 這裡只建立 ChurchReport 需要的 CRM 欄位，不處理任何金流 provider 參數； 金流核心不應知道奉獻者資料如何落到 
+ * - 依照官網奉獻登入頁輸入的資料建立 ChurchReport contact。 這裡只建立 ChurchReport 需要的 CRM 欄位，不處理任何金流 provider 參數； 金流核心不應知道奉獻者資料如何落到
  * Dynamics 365 contact。
  * - 從 CRM 查詢結果中找出姓名完全相同的 contact。
  * - 從 CRM 查詢結果中用身分證字號比對 contact。 舊資料可能把奉獻編號放在 pager，因此仍同時比對 new_personal_id 與 pager； 這是 ChurchReport 的歷史資料相容規則，

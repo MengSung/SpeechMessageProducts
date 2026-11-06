@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：將 ASP.NET Core host 收到的產品付款資料轉成通用金流核心使用的 PaymentCreateRequest。 這個 factory 只處理 provider-neutral 欄位搬移，不知道 
+ * 目的與定位：將 ASP.NET Core host 收到的產品付款資料轉成通用金流核心使用的 PaymentCreateRequest。 這個 factory 只處理 provider-neutral 欄位搬移，不知道
  * CRM、LINE、奉獻、 發票或任何產品流程，因此可以被其他 ASP.NET Core 產品重用。
  *
  * 主要功能與流程：
  * 本檔宣告 PaymentCreateRequestFactory、PaymentCreateRequestInput。
- * - 建立金流核心的付款建立請求。Host 端可以先把自己的表單或 ViewModel 投影成 PaymentCreateRequestInput，再由這裡產生核心 DTO。 真正的 provider SDK payload 
+ * - 建立金流核心的付款建立請求。Host 端可以先把自己的表單或 ViewModel 投影成 PaymentCreateRequestInput，再由這裡產生核心 DTO。 真正的 provider SDK payload
  * 仍由 SpeechMessage.Payments 的 provider 實作負責。
  * - 要使用的金流 profile 名稱，通常對應 appsettings 的 Payment:Profiles 設定。
  * - 付款金額，單位由 host 與 provider profile 約定，台灣金流通常為新台幣元。
@@ -16,7 +16,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 SpeechMessage.Payments.AspNetCore/DependencyInjection/PaymentAspNetCoreServiceCollectionExtensions.cs 
+ * 可沿 SpeechMessage.Payments.AspNetCore/DependencyInjection/PaymentAspNetCoreServiceCollectionExtensions.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using SpeechMessage.Payments.Models;

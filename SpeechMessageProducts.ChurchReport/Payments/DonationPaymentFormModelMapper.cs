@@ -2,15 +2,15 @@
  * 檔案整體說明
  *
  * 目的與定位：將 ChurchReport 的奉獻付款表單狀態轉成可重用的 PaymentOrderDraft。 這個 mapper 是刻意存在的邊界層： - 左邊是 ChurchReport 產品語言，例如奉獻者、奉獻類別、
- * 奉獻編號、定期定額期數。 - 右邊是 SpeechMessage.Payments.Workflows 的中性語言，例如付款人、付款項目、付款方法、付款排程。 為什麼不要直接把 
- * DonationPaymentFormModel 丟進金流核心？ 1. DonationPaymentFormModel 只有 ChurchReport 懂，未來的建設維修系統或協會會員系統不會有奉獻編號。 2. 
- * 金流核心只應該知道「付款訂單草稿」，不應該知道 ViewBag、CRM、LINE 或奉獻分類。 3. 透過 mapper 轉換後，未來產品只要做自己的 mapper，就可以共用 PaymentOrderDraft 與後續 
+ * 奉獻編號、定期定額期數。 - 右邊是 SpeechMessage.Payments.Workflows 的中性語言，例如付款人、付款項目、付款方法、付款排程。 為什麼不要直接把
+ * DonationPaymentFormModel 丟進金流核心？ 1. DonationPaymentFormModel 只有 ChurchReport 懂，未來的建設維修系統或協會會員系統不會有奉獻編號。 2.
+ * 金流核心只應該知道「付款訂單草稿」，不應該知道 ViewBag、CRM、LINE 或奉獻分類。 3. 透過 mapper 轉換後，未來產品只要做自己的 mapper，就可以共用 PaymentOrderDraft 與後續
  * gateway 流程。 這個類別只做純資料轉換，不呼叫外部服務、不讀 appsettings、不存資料庫。 這樣測試容易，責任也清楚。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentFormModelMapper。
- * - 將 ChurchReport 表單模型映射成中性付款訂單草稿。 profileName 是金流 profile 名稱，例如 JesusTest、MyPayProduction、TaishinSandbox。 
- * productOrderId 是產品端訂單號，例如 C202607010001。 productEntityId 是 ChurchReport 自己的 CRM fee 或 dedication booking entity 
+ * - 將 ChurchReport 表單模型映射成中性付款訂單草稿。 profileName 是金流 profile 名稱，例如 JesusTest、MyPayProduction、TaishinSandbox。
+ * productOrderId 是產品端訂單號，例如 C202607010001。 productEntityId 是 ChurchReport 自己的 CRM fee 或 dedication booking entity
  * id。 注意：這三個值由呼叫端提供，因為它們通常要依照實際流程產生； mapper 不應該自己決定 profile，也不應該自己建立 CRM record。
  * 主要操作入口包含 Map、BuildMetadata、IsRecurringPayWay、ResolveDeductTotalPeriods、FirstNonEmpty。
  *

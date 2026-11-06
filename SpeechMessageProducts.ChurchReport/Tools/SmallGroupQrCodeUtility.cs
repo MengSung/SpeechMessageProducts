@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 SmallGroupQrCodeUtility。
- * - SmallGroupQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 
+ * - SmallGroupQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
  * - 建立小組 QR Code 工具，使用呼叫端目前 request scope 的 ToolUtility。 此 ToolUtility 由呼叫端的 request scope 提供，本型別不擁有、不釋放。

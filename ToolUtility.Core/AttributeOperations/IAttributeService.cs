@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：純 Entity 屬性轉換契約，不保存 request、logger 或結果；caller 須獨占被修改的 Entity，host 快取必須另行隔離。 缺值預設由各 getter 明列；真正轉換失敗交回 
+ * 目的與定位：純 Entity 屬性轉換契約，不保存 request、logger 或結果；caller 須獨占被修改的 Entity，host 快取必須另行隔離。 缺值預設由各 getter 明列；真正轉換失敗交回
  * host 共用告警，不改全域文化或從顯示名推算正式身份。
  *
  * 主要功能與流程：

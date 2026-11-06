@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ListSmallGroupWeeklyReport。
- * - 建立供背景上傳專用的週報副本。 m_SmallGroupDataList 透過其短鎖深拷貝建立，三組 Members 與每個 Member 均不會與前景 Session 共享。只複製 
+ * - 建立供背景上傳專用的週報副本。 m_SmallGroupDataList 透過其短鎖深拷貝建立，三組 Members 與每個 Member 均不會與前景 Session 共享。只複製
  * UploadIntegrateDataAsync 會讀取的純量 中繼資料；建構式會建立新的上傳器。圖表、個人回報 ViewModel、CRM Entity 與 GroupArray 不屬於此上傳資料流，
  * 刻意不複製以避免背景工作保留前景物件圖。 副本的最長生命週期是上傳與清理完成前，且不保存 HttpContext、Session 或租約資源。
  * - 建立供 Controller/序列化使用的 detached read copy。除資料圖外也複製圖表與小組名稱， 讓讀取端不會持有 Session holder 的可變 List；複製完成後來源可安全被下一世代交換。

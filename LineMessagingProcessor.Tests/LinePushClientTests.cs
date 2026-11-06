@@ -8,7 +8,7 @@
  * 本檔宣告 LinePushClientTests、Fixture、Handler、TrackedContent。
  * - 固定合成收件 ID，不代表任何真實會友，也不作為授權來源。
  * - 固定業務事件鍵，保證黃金 JSON／標頭不依賴亂數或時間。
- * - 保護雙目標參考依測試宿主選出正確產品輸出：net48 宿主必須載入 Plugin 使用的 net462 及 Framework 專用無參數客戶端；net10 宿主則載入 net10 與注入 HttpClient 
+ * - 保護雙目標參考依測試宿主選出正確產品輸出：net48 宿主必須載入 Plugin 使用的 net462 及 Framework 專用無參數客戶端；net10 宿主則載入 net10 與注入 HttpClient
  * 的公開建構式。 測試檢查實際載入組件和建構式，不能只由測試專案的目標框架推定產品分支。
  * - 成功回應注入固定 ID；斷言 URL、方法、兩個逐請求標頭及共用標頭沒有被污染。
  * 測試案例入口包含 Assembly_TargetFramework_AndClientBranch_MatchHost、Push_Success_SendsBearerAndRetryKeyHeaders、

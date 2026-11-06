@@ -1,23 +1,23 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 收費單付款完成後的產品流程處理器。 【這個類別在整個金流流程中的位置】 1. 金流核心或舊版 adapter 已經完成「付款結果解析」，並把結果整理成 
- * DonationPaymentWorkflowResult。 2. 本類別接手 ChurchReport 自己的產品後處理：查 CRM 收費單、判斷成功或失敗、更新 CRM 欄位、發 LINE、回傳結果頁。 3. 
- * 因為這些事情都依賴 ChurchReport 的 CRM 欄位、LINE 通知文案與課程/奉獻規則，所以不能放進可重用的金流核心。 【重要邊界】 - 金流核心負責 provider 協定、簽章、加解密、callback 
- * parsing。 - 本類別負責 ChurchReport 的 CRM、LINE、結果頁與舊版欄位相容。 - 其他產品若要重用金流核心，應重用 SpeechMessage.Payments 與 workflow 
+ * 目的與定位：ChurchReport 收費單付款完成後的產品流程處理器。 【這個類別在整個金流流程中的位置】 1. 金流核心或舊版 adapter 已經完成「付款結果解析」，並把結果整理成
+ * DonationPaymentWorkflowResult。 2. 本類別接手 ChurchReport 自己的產品後處理：查 CRM 收費單、判斷成功或失敗、更新 CRM 欄位、發 LINE、回傳結果頁。 3.
+ * 因為這些事情都依賴 ChurchReport 的 CRM 欄位、LINE 通知文案與課程/奉獻規則，所以不能放進可重用的金流核心。 【重要邊界】 - 金流核心負責 provider 協定、簽章、加解密、callback
+ * parsing。 - 本類別負責 ChurchReport 的 CRM、LINE、結果頁與舊版欄位相容。 - 其他產品若要重用金流核心，應重用 SpeechMessage.Payments 與 workflow
  * contract， 但 CRM/LINE 實作要由各產品自己提供，不應直接搬用本類別。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationFeePaymentProcessor。
- * - DonationFeePaymentProcessor 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 
+ * - DonationFeePaymentProcessor 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
- * - 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例 這條路徑主要服務舊程式碼：某些舊流程會直接 new DonationFeePaymentProcessor() ， 沒有透過 
- * ASP.NET Core DI 容器建立物件。為了不破壞舊流程，這裡仍保留 Factory 取得 CRM 工具的方式。 重要：這條路徑使用 No-Op 的 PaymentPostPaymentWorkflow， 
+ * - 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例 這條路徑主要服務舊程式碼：某些舊流程會直接 new DonationFeePaymentProcessor() ， 沒有透過
+ * ASP.NET Core DI 容器建立物件。為了不破壞舊流程，這裡仍保留 Factory 取得 CRM 工具的方式。 重要：這條路徑使用 No-Op 的 PaymentPostPaymentWorkflow，
  * 避免舊流程在沒有完整 DI context 時重複觸發新的 CRM/LINE handler。
  * - 建構函數，使用 Dependency Injection 模式 這是比預設建構子更容易測試的路徑：外部把 IToolUtilityProvider 傳進來， 本類別不用知道 ToolUtilityClass 要怎麼建立，
  * 只要跟 provider 要一個 CRM 工具即可。 但這個建構子仍沒有注入完整付款後 workflow，所以也會使用 No-Op workflow。
- * - DI 使用的主要建構子。共通付款後流程與頁面 presenter 都透過 DI 注入， 讓其他 ASP.NET Core 產品未來可以使用同一套 workflow contract，再實作自己的 CRM/通知 
- * handler。 這是目前最完整、最推薦的建立方式： - toolUtilityProvider：提供 ChurchReport CRM 操作工具。 - postPaymentWorkflow：執行抽離後的付款後處理 
+ * - DI 使用的主要建構子。共通付款後流程與頁面 presenter 都透過 DI 注入， 讓其他 ASP.NET Core 產品未來可以使用同一套 workflow contract，再實作自己的 CRM/通知
+ * handler。 這是目前最完整、最推薦的建立方式： - toolUtilityProvider：提供 ChurchReport CRM 操作工具。 - postPaymentWorkflow：執行抽離後的付款後處理
  * contract。 - paymentContextBuilder：把 ChurchReport CRM Entity 包成 workflow context。 - returnPresenter：負責回傳結果頁所需資料。
  * 主要操作入口包含 Dispose、GetLineChannelAccessToken、CreateNoOpPostPaymentWorkflow、CreatePaymentWorkflowResult、
  * ExecutePostPaymentWorkflowIfAvailable、HandlePaymentReturn、ApplyPaidDecision、RetrieveParam1GroupFees；其餘入口見下方成員契約。

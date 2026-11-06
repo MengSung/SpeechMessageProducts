@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護StaticRequestPathHelper的既有行為與相容性。受測元件的責任為：Shared static asset path classifier for logging/profiling 
+ * 目的與定位：保護StaticRequestPathHelper的既有行為與相容性。受測元件的責任為：Shared static asset path classifier for logging/profiling
  * noise reduction. This helper must not be used to bypass authentication or session validation.
  *
  * 主要功能與流程：

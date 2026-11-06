@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 MessageType。
  * - 文字訊息 - 最多 2000 字元 Text message - Maximum 2000 characters
- * - 文字訊息 v2 - 支援 substitution mention / emoji 的官方 textV2 訊息 Text message v2 - Official textV2 message with 
+ * - 文字訊息 v2 - 支援 substitution mention / emoji 的官方 textV2 訊息 Text message v2 - Official textV2 message with
  * substitution support
  * - 圖片訊息 - 支援 JPEG/PNG 格式 Image message - Supports JPEG/PNG format
  * - 影片訊息 - 支援 MP4 格式，最長 1 分鐘 Video message - Supports MP4 format, maximum 1 minute

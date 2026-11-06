@@ -12,7 +12,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs、
  * ToolUtility/Diagnostics/FileToolUtilityTracer.cs、ToolUtility/Diagnostics/NullToolUtilityTracer.cs、
- * ToolUtility/Factory/ToolUtilityFactory.cs、ToolUtility/ToolUtilityPartials/ToolUtilityClass.Core.cs 
+ * ToolUtility/Factory/ToolUtilityFactory.cs、ToolUtility/ToolUtilityPartials/ToolUtilityClass.Core.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System.Diagnostics;

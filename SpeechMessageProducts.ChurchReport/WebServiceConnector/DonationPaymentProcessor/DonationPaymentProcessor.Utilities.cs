@@ -17,7 +17,7 @@
  * SpeechMessageProducts.ChurchReport/Services/DonationKeyInDedicationService.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationPaymentSubmissionService.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs、
- * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.DedicationBooking.cs 
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.DedicationBooking.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.Models;

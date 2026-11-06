@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：單次呼叫的不可變結果，只保存分類與必要診斷值，不持有 HTTP 訊息或憑證。 傳輸例外保留原始實例供最終邊界上報；不得直接序列化或輸出其 Message／ToString。 呼叫端消費後應放棄結果參考，Core 
+ * 目的與定位：單次呼叫的不可變結果，只保存分類與必要診斷值，不持有 HTTP 訊息或憑證。 傳輸例外保留原始實例供最終邊界上報；不得直接序列化或輸出其 Message／ToString。 呼叫端消費後應放棄結果參考，Core
  * 不在 static 或快取保存它。
  *
  * 主要功能與流程：
@@ -15,7 +15,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 LineMessagingProcessor.Core/ILinePushClient.cs、LineMessagingProcessor.Core/LinePushClient.cs 
+ * 可沿 LineMessagingProcessor.Core/ILinePushClient.cs、LineMessagingProcessor.Core/LinePushClient.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

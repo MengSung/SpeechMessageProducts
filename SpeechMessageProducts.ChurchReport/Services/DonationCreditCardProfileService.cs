@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻者信用卡保存格式的產品層服務。 這個服務刻意留在 ChurchReport 專案，因為它處理的是 CRM contact 欄位 new_visa_info 的歷史儲存格式，不是銀行 
+ * 目的與定位：ChurchReport 奉獻者信用卡保存格式的產品層服務。 這個服務刻意留在 ChurchReport 專案，因為它處理的是 CRM contact 欄位 new_visa_info 的歷史儲存格式，不是銀行
  * provider 的信用卡協定。 抽出這個類別的目的，是讓 DonationPaymentManager 不再直接解析以「全形逗號 + |」 組成的字串，降低大檔案的責任範圍，也讓格式轉換可以用單元測試保護。
  *
  * 主要功能與流程：

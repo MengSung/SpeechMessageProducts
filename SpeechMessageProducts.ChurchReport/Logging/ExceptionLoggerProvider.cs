@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Debug／Release 共用 Error/Critical 轉接器。只借用組合根診斷 owner，不保存 logger scope、 state 或 formatter（可能含使用者資料），也不自行建立 
+ * 目的與定位：Debug／Release 共用 Error/Critical 轉接器。只借用組合根診斷 owner，不保存 logger scope、 state 或 formatter（可能含使用者資料），也不自行建立
  * category cache 或檔案 handle。
  *
  * 主要功能與流程：

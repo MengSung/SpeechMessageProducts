@@ -2,12 +2,12 @@
  * 檔案整體說明
  *
  * 目的與定位：ChurchReport 奉獻付款頁面模型組裝器。 這個服務負責把 CRM contact、CRM task 設定、OptionSet、信用卡清單與認獻清單組成 DonationPaymentFormModel。
- * 它是「ChurchReport 畫面模型組裝」而不是「金流核心」： - 未來建設公司維修系統不會有奉獻類別、宣道支持奉獻、認獻單。 - 協會會員系統或發票收款系統可能會有自己的付款表單，但不該繼承 ChurchReport 
+ * 它是「ChurchReport 畫面模型組裝」而不是「金流核心」： - 未來建設公司維修系統不會有奉獻類別、宣道支持奉獻、認獻單。 - 協會會員系統或發票收款系統可能會有自己的付款表單，但不該繼承 ChurchReport
  * 的 CRM task 名稱。 因此 DonationPaymentManager 只保留公開方法與目前 contact 狀態；詳細表單欄位填值集中在此處。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentModelAssembler。
- * - 建立奉獻付款頁面所需的完整表單模型。 這裡沿用原本 DonationPaymentManager.SetDonationPaymentModel 的填值順序，避免頁面初始狀態改變。 最後一定呼叫 
+ * - 建立奉獻付款頁面所需的完整表單模型。 這裡沿用原本 DonationPaymentManager.SetDonationPaymentModel 的填值順序，避免頁面初始狀態改變。 最後一定呼叫
  * EnsureFormDefaults，保護 CRM OptionSet 或 task 設定查詢失敗時的畫面基本可用性。
  * 主要操作入口包含 Build、FillDonorIdentity、FillOtherCategories、FillSpecialCategories、ReadTaskDescriptionLines、
  * FillCreditCards、FillDedicationBookings、IsAccountingWorker；其餘入口見下方成員契約。

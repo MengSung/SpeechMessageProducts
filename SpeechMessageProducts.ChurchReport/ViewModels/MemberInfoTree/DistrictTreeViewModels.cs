@@ -3,7 +3,7 @@
  *
  * 目的與定位：本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、
  * SpiritualIdentity、MembershipStatus 均為 OptionSet 顯示文字，而非可直接回寫 CRM 的整數值。；
- * MemberInfoTreeSearchResultViewModel：MatchingListIds 與 HasUngrouped 保留為相容欄位及節點命中 metadata；現行前端主要使用 Rows 
+ * MemberInfoTreeSearchResultViewModel：MatchingListIds 與 HasUngrouped 保留為相容欄位及節點命中 metadata；現行前端主要使用 Rows
  * 直接替換搜尋結果表格，不需按每個命中節點再發請求。Rows 必須由 allowed ids 過濾並去重。
  *
  * 主要功能與流程：

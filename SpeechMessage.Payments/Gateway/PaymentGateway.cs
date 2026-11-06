@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：provider-neutral gateway router。 這裡只負責 profile/provider 選擇與錯誤正規化，不處理任何宿主產品 CRM、 LINE 通知、畫面導向或 provider 
+ * 目的與定位：provider-neutral gateway router。 這裡只負責 profile/provider 選擇與錯誤正規化，不處理任何宿主產品 CRM、 LINE 通知、畫面導向或 provider
  * 封包細節。
  *
  * 主要功能與流程：

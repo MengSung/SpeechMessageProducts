@@ -6,7 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 WebhookRequestMessageHelper。
- * - 先對傳輸收到的原始 body 位元組驗證 HMAC，再以 UTF-8 解析同一份內容；不受 Content-Type charset 影響。 body 與解析字串僅存活於本次呼叫，request 及其 content 
+ * - 先對傳輸收到的原始 body 位元組驗證 HMAC，再以 UTF-8 解析同一份內容；不受 Content-Type charset 影響。 body 與解析字串僅存活於本次呼叫，request 及其 content
  * 仍由呼叫端擁有，本方法不保存跨請求狀態。
  * 主要操作入口包含 GetWebhookEventsAsync。
  *

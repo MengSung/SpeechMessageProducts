@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 ChurchReport 舊 QPay 建立付款 adapter 仍能呼叫共用的 PaymentCreateRequestFactory，並維持既有 CreOrder 與 profile mapping 
+ * 目的與定位：驗證 ChurchReport 舊 QPay 建立付款 adapter 仍能呼叫共用的 PaymentCreateRequestFactory，並維持既有 CreOrder 與 profile mapping
  * 行為。
  *
  * 主要功能與流程：

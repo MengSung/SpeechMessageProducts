@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：純 SDK 課程查詢，維持原欄位、join、排序與狀態條件；安全 XML 不容許文字改寫查詢結構。 SDK 只借入，host 先完成授權並擁有 timeout／drain／Dispose；本類不保存 
+ * 目的與定位：純 SDK 課程查詢，維持原欄位、join、排序與狀態條件；安全 XML 不容許文字改寫查詢結構。 SDK 只借入，host 先完成授權並擁有 timeout／drain／Dispose；本類不保存
  * logger、結果或憑證。 無 cache、Task、timer 或隱藏 retry；真實例外交回最終 host 共用通知，不自行發 LINE。
  *
  * 主要功能與流程：

@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ToolUtilityClass。
- * - 建立由 DI 管理的 request-scoped ToolUtilityClass。 服務是 GatewayOrganizationService 或 
+ * - 建立由 DI 管理的 request-scoped ToolUtilityClass。 服務是 GatewayOrganizationService 或
  * AmbientGatewayOrganizationService；兩者都只在 單次操作期間取得 lease。本型別與 legacy Factory 都只借用此代理，絕不在 Dispose 路徑釋放它，避免短命工具、
  * Facade 或程序級單例重複釋放 scope 所擁有的資源。
  * - 依層級輸出追蹤紀錄。簽章維持不變，既有 160 個呼叫點無須修改。

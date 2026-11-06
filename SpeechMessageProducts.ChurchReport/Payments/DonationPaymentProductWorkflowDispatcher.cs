@@ -1,9 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：預設的 ChurchReport 奉獻付款產品流程派送器。 目前 ChurchReport 付款回傳後主要有兩條產品流程： 1. 一般收費單/奉獻收費單：交給 
+ * 目的與定位：預設的 ChurchReport 奉獻付款產品流程派送器。 目前 ChurchReport 付款回傳後主要有兩條產品流程： 1. 一般收費單/奉獻收費單：交給
  * DonationFeePaymentProcessor 更新 CRM 與呈現結果。 2. 定期定額奉獻：交給 RecurringDonationPaymentProcessor 更新定期扣款相關資料。 這個類別很薄，
- * 原因是派送器只應決定「交給誰」，不應把 CRM 更新、LINE 通知、 ViewBag 設定等細節全部塞進自己。這樣未來新增其他產品流程時，只要新增清楚的分支或 processor， 不會讓 callback 
+ * 原因是派送器只應決定「交給誰」，不應把 CRM 更新、LINE 通知、 ViewBag 設定等細節全部塞進自己。這樣未來新增其他產品流程時，只要新增清楚的分支或 processor， 不會讓 callback
  * controller 直接長出大量 ChurchReport 業務邏輯。
  *
  * 主要功能與流程：

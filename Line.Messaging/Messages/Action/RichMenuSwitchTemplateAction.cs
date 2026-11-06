@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：RichMenu 切換動作。 使用者點擊綁定此 action 的區域時，LINE 會切換到 richMenuAliasId 指向的 RichMenu。 
+ * 目的與定位：RichMenu 切換動作。 使用者點擊綁定此 action 的區域時，LINE 會切換到 richMenuAliasId 指向的 RichMenu。
  * https://developers.line.biz/en/reference/messaging-api/#richmenu-switch-action 此 action 依賴 RichMenu alias，
  * 因此佈建流程必須先建立或更新 alias，使用者點擊時才會成功切換。
  *

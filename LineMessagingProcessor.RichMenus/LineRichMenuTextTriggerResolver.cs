@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：使用精確文字對照，將 LINE 傳入文字解析成應用程式 RichMenu key。 resolver 會先 trim 使用者輸入，再依 options dictionary 的 comparer 
+ * 目的與定位：使用精確文字對照，將 LINE 傳入文字解析成應用程式 RichMenu key。 resolver 會先 trim 使用者輸入，再依 options dictionary 的 comparer
  * 決定是否區分大小寫。
  *
  * 主要功能與流程：

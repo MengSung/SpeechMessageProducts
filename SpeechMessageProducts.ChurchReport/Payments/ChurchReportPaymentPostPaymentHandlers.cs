@@ -1,10 +1,10 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔整合下列相關契約：ChurchReportPaymentWorkflowContextKeys：ChurchReport 付款後流程共用資料的 key。 共用 workflow project 不知道 
+ * 目的與定位：本檔整合下列相關契約：ChurchReportPaymentWorkflowContextKeys：ChurchReport 付款後流程共用資料的 key。 共用 workflow project 不知道
  * CRM entity、ToolUtility、LINE 聯絡人等型別， 因此由 ChurchReport 在自己的 product layer 定義 context item contract。；
- * ChurchReportPaymentRecordUpdater：ChurchReport 的付款紀錄更新 handler。 它實作共用 IPaymentRecordUpdater，但具體仍呼叫 ChurchReport 
- * 的 CRM service。；ChurchReportPaymentPayerNotifier：ChurchReport 的付款者通知 handler。 它實作共用 IPaymentPayerNotifier，但 LINE 
+ * ChurchReportPaymentRecordUpdater：ChurchReport 的付款紀錄更新 handler。 它實作共用 IPaymentRecordUpdater，但具體仍呼叫 ChurchReport
+ * 的 CRM service。；ChurchReportPaymentPayerNotifier：ChurchReport 的付款者通知 handler。 它實作共用 IPaymentPayerNotifier，但 LINE
  * 訊息內容、收費單分類與聯絡人欄位 仍全部留在 ChurchReport product layer。
  *
  * 主要功能與流程：

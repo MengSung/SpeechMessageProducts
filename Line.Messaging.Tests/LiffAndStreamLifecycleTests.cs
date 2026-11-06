@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護同 SDK 的 LIFF 認證隔離與串流生命週期，不讓主 Messaging client 的修正留下另一個共用 transport 漏洞。 故障全部在記憶體 handler 注入；檢查實際 request 
+ * 目的與定位：保護同 SDK 的 LIFF 認證隔離與串流生命週期，不讓主 Messaging client 的修正留下另一個共用 transport 漏洞。 故障全部在記憶體 handler 注入；檢查實際 request
  * credential、內容釋放及非同步讀取委派，不連 LINE。
  *
  * 主要功能與流程：

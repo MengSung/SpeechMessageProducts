@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 SaveIntegrate 背景 runner 的安全結果紀錄。 測試以可控的 scope、DI 與上傳委派注入失敗，不連線 CRM、不建立 Session，並在每個案例結束時 釋放暫存 Trace 檔與 
+ * 目的與定位：驗證 SaveIntegrate 背景 runner 的安全結果紀錄。 測試以可控的 scope、DI 與上傳委派注入失敗，不連線 CRM、不建立 Session，並在每個案例結束時 釋放暫存 Trace 檔與
  * DI provider，防止測試資源或跨案例 trace context 殘留。
  *
  * 主要功能與流程：

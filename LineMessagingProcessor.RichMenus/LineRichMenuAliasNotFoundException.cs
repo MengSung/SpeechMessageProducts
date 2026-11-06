@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：表示 LINE 沒有回傳指定 alias id 的 RichMenu alias。 專用例外讓 provisioning 程式可以分辨「可建立的 missing alias」與「應回報為同步錯誤的其他 
+ * 目的與定位：表示 LINE 沒有回傳指定 alias id 的 RichMenu alias。 專用例外讓 provisioning 程式可以分辨「可建立的 missing alias」與「應回報為同步錯誤的其他
  * provider failure」。
  *
  * 主要功能與流程：

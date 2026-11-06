@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：建立付款的通用請求。 此 DTO 不使用任何 provider 專屬欄位名稱；必要的 provider 相容參數放在 Metadata， 由各 provider mapper 解讀，避免宿主產品綁死在 
+ * 目的與定位：建立付款的通用請求。 此 DTO 不使用任何 provider 專屬欄位名稱；必要的 provider 相容參數放在 Metadata， 由各 provider mapper 解讀，避免宿主產品綁死在
  * QPay/MyPay/TSPG 模型上。
  *
  * 主要功能與流程：

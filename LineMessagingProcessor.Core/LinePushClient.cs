@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：固定 LINE push 端點的單次傳輸實作，沒有重試佇列、背景工作或管理者 notifier。 .NET Framework 的程序級共用 HttpClient 不含使用者狀態，net10 的 
+ * 目的與定位：固定 LINE push 端點的單次傳輸實作，沒有重試佇列、背景工作或管理者 notifier。 .NET Framework 的程序級共用 HttpClient 不含使用者狀態，net10 的
  * HttpClient 由主機擁有； 每個操作獨佔 HTTP 訊息、十秒逾時與取消連結，結束前按 using 次序釋放。
  *
  * 主要功能與流程：

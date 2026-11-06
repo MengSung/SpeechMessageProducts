@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：讓舊式行程級設定讀取點在 Development 套用與主機相同的檔案及 secrets，並在任何 CRM／LINE client 建立前驗證安全邊界。 不保存請求、使用者、教會、設定值或憑證；非 
+ * 目的與定位：讓舊式行程級設定讀取點在 Development 套用與主機相同的檔案及 secrets，並在任何 CRM／LINE client 建立前驗證安全邊界。 不保存請求、使用者、教會、設定值或憑證；非
  * Development 只追加專用 LINE__ provider， Development 不追加正式環境 provider。
  *
  * 主要功能與流程：
@@ -9,7 +9,7 @@
  * - 依現有 WebApplication Host 的順序選擇環境；純函式不讀取或修改程序的環境變數。
  * - 既有靜態讀取點的唯一轉接；只讀部署環境名稱，不保存 request 或教會狀態，也不改目前目錄。
  * - 用明確目錄、環境及擁有者組件組合設定；非 Development 立即返回，不觸碰來源、目錄或 secrets。
- * - 在非 Development 組態建構器最後加入專用的 LINE__ 環境變數 provider。 後加入的 provider 具有較高優先權，讓正式主機可覆寫已清空的基底 JSON， 同時不把 LINE token 
+ * - 在非 Development 組態建構器最後加入專用的 LINE__ 環境變數 provider。 後加入的 provider 具有較高優先權，讓正式主機可覆寫已清空的基底 JSON， 同時不把 LINE token
  * 放回版本控制；Development 不加入此來源，避免把正式部署 的命名慣例誤當成測試秘密來源。provider 不啟用 reload，生命週期由呼叫端組態根擁有。
  * 主要操作入口包含 ResolveEnvironmentName、AddChurchReportDevelopmentOverrides、
  * AddChurchReportDeploymentLineEnvironmentOverrides、ValidateDevelopmentConfiguration、IsDevelopment、

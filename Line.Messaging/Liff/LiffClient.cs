@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：LINE LIFF 管理 API，保留既有 JSON 與公開入口。 一個實例只代表一個伺服器端 channel；與 Messaging client 共用隔離 transport， 不修改 HttpClient 
+ * 目的與定位：LINE LIFF 管理 API，保留既有 JSON 與公開入口。 一個實例只代表一個伺服器端 channel；與 Messaging client 共用隔離 transport， 不修改 HttpClient
  * 預設 credential、不快取 request／response 或 LIFF 使用者資料。 方法完成即釋放 request/content/response，原始失敗保持向外傳遞。
  *
  * 主要功能與流程：

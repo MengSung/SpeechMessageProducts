@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：共用的 LINE reply-token workflow。 這一層只做 reply token 與 SDK message 的驗證、呼叫 LineMessagingProcessor， 並將 LINE API 
+ * 目的與定位：共用的 LINE reply-token workflow。 這一層只做 reply token 與 SDK message 的驗證、呼叫 LineMessagingProcessor， 並將 LINE API
  * 例外轉成穩定的 workflow result；ChurchReport 的文案、 CRM 判斷、MVC Action 流程都必須留在 ChurchReport。
  *
  * 主要功能與流程：

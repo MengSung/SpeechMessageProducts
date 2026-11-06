@@ -7,12 +7,12 @@
  * 本檔宣告 PushUtility。
  * - 舊版 create/upload/link 流程的相容入口；保留欄位是為了不破壞既有建構式注入形狀。 目前新增/刪除 legacy-auth RichMenu 主要改走 assignment workflow，
  * 避免產品層重複佈建圖片。
- * - 共用 RichMenu 指派流程，負責把 ChurchReport 使用者切到 catalog 中的 legacy-auth menu key， 並將 provider 例外轉成一致的 RichMenu 
+ * - 共用 RichMenu 指派流程，負責把 ChurchReport 使用者切到 catalog 中的 legacy-auth menu key， 並將 provider 例外轉成一致的 RichMenu
  * exception/result 語意。
  * - ChurchReport 既有認證選單的產品層 menu key；實際 richMenuId 由 catalog/provisioning/cache 解析。
  * - 送出需要保留 LINE retry-key 語意的必要文字通知。 這個方法刻意不同於 SendMessage(string, string)： SendMessage 是舊版 best-effort 路徑，仍會吞掉失敗；
  * 此方法則用於付款或必要通知， 讓傳送失敗必須對呼叫端保持可見。 注入 ILineNotificationWorkflow 時，請求會走共用且不綁定產品的 LINE workflow， 並保留 retry key。
- * ChurchReport 專屬的 CRM、付款、奉獻與 MVC 決策仍留在 ChurchReport。 舊版 new PushUtility(client) 建構式現在會自動建立這個共用 workflow， 
+ * ChurchReport 專屬的 CRM、付款、奉獻與 MVC 決策仍留在 ChurchReport。 舊版 new PushUtility(client) 建構式現在會自動建立這個共用 workflow，
  * 因此舊呼叫端也會使用同一條 processor-backed 路徑。
  * 主要操作入口包含 CreateDefaultNotificationWorkflow、CreateDefaultRichMenuWorkflow、
  * CreateDefaultRichMenuAssignmentWorkflow、SendBestEffortSdkMessagesAsync、SendMessage、SendMessageOrThrowAsync、

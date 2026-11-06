@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 Program。
  * - 部署沙箱目前核定的最高組件目標框架；更高版本即使本機可執行也不得送入合併。
- * - 以固定 Microsoft.NETFramework.ReferenceAssemblies.net462 1.0.3 的 Facades 清單加 netstandard 區分相容轉送組件，避免原有 System.* 
+ * - 以固定 Microsoft.NETFramework.ReferenceAssemblies.net462 1.0.3 的 Facades 清單加 netstandard 區分相容轉送組件，避免原有 System.*
  * 允許規則讓 facade 參考假通過。 集合在程序啟動後不可變且大小固定，不讀取執行主機／呼叫者的目錄或設定，不保存任何操作狀態。 組件身分依 CLR 簡名以 OrdinalIgnoreCase 比對；只拒絕完整名稱，
  * 不誤拒合法的 System.Net.Http 等框架參考。
  * - 輸出固定 JSON 檢查結果；未完成檢查時不得以結束碼零假稱通過。

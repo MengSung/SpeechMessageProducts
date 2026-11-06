@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 ASP.NET Core DI extension 對 LINE 與 RichMenu 共用工作流的註冊邊界。 這些測試鎖住「基礎 RichMenu services 可自動註冊，但產品 catalog 
+ * 目的與定位：驗證 ASP.NET Core DI extension 對 LINE 與 RichMenu 共用工作流的註冊邊界。 這些測試鎖住「基礎 RichMenu services 可自動註冊，但產品 catalog
  * 必須由產品明確提供」的規則。
  *
  * 主要功能與流程：

@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：本檔整合下列相關契約：IAttributeValueReader：無狀態屬性讀取契約；Entity 只在呼叫中借讀，實作不保存輸入、結果或 logger，host 負責授權及快取隔離。；
- * IAttributeValueWriter：無狀態寫入契約；caller 必須獨占目標 Entity，這不是 SDK 持久化或共用快照發布入口。；IRefAttributeClearer：保留原 ref Entity 
+ * IAttributeValueWriter：無狀態寫入契約；caller 必須獨占目標 Entity，這不是 SDK 持久化或共用快照發布入口。；IRefAttributeClearer：保留原 ref Entity
  * 清空簽章；明確寫 null 供後續 SDK update，不移除屬性或接管實體所有權。
  *
  * 主要功能與流程：

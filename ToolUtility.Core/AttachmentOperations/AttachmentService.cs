@@ -7,7 +7,7 @@
  * 本檔宣告 AttachmentService。
  * - 保留舊簽章及 null 拒絕，啟用有界預設；不保存或處置兩個相容參數，避免延長 request／連線生命。 方法實際使用的 SDK 仍由各次 ref 明確借入，不能回退使用此建構參數。
  * - 設定不可變的單檔／單頁安全預算；設定由 host 擁有，可並行讀取且不包含租戶資料。
- * - 保留 annotation AllColumns、objectid 字串條件與單頁分頁語義；不擅自抓完所有頁面。 重用 Core 的正式 ID／根表／重複識別驗證，再驗 parent 與容量，任何一列失敗則整頁不發布。 
+ * - 保留 annotation AllColumns、objectid 字串條件與單頁分頁語義；不擅自抓完所有頁面。 重用 Core 的正式 ID／根表／重複識別驗證，再驗 parent 與容量，任何一列失敗則整頁不發布。
  * 缺少或 null documentbody 是合法文字附註；不補空檔、不解碼複製、不裁剪原結果。
  * - 保留原七欄、合法空 byte[] 及 metadata 原值；先驗 raw 長度再配置 Base64，僅執行一次 Create。 SDK 必須確認正式非空 ID；空 ID 或故障代表結果不確定，
  * 不盲目重試以免建立重複附註。

@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ToolUtilityProvider。
- * - 建立目前 scope 的提供者。 由 DI 注入同一 scope 的 ToolUtilityClass；provider 不擁有也不另行釋放它， 由外層 DI scope 統一完成 ToolUtility、Facade 
+ * - 建立目前 scope 的提供者。 由 DI 注入同一 scope 的 ToolUtilityClass；provider 不擁有也不另行釋放它， 由外層 DI scope 統一完成 ToolUtility、Facade
  * 與 CRM 租約的釋放。
  * - 取得目前 request scope 的 ToolUtilityClass。
  * 主要操作入口包含 GetToolUtility。

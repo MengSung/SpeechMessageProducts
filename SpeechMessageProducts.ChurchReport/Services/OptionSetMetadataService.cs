@@ -6,9 +6,9 @@
  * 主要功能與流程：
  * 本檔宣告 OptionSetMetadataService。
  * - 取得指定實體的 OptionSet 對應表（顯示文字 → 值） 包含快取機制，避免頻繁查詢 Metadata
- * - 根據 OptionSet 值取得顯示文字（反向查詢） ? 效能優化：快取反向對應表，避免每次呼叫都重建 Dictionary 原本每次呼叫都執行 mapping.ToDictionary() 建立新的反向字典， 
- * 若一頁有 50 位成員，每人查 3-4 個欄位，就是 150-200 次多餘的 Dictionary 建構。 ? Session 安全：快取鍵為 
- * "OptionSetReverse_{entityName}_{attributeName}" 內容為 Dictionary&lt;int, string&gt;（整數值 → 顯示文字）， 屬於 CRM Schema 
+ * - 根據 OptionSet 值取得顯示文字（反向查詢） ? 效能優化：快取反向對應表，避免每次呼叫都重建 Dictionary 原本每次呼叫都執行 mapping.ToDictionary() 建立新的反向字典，
+ * 若一頁有 50 位成員，每人查 3-4 個欄位，就是 150-200 次多餘的 Dictionary 建構。 ? Session 安全：快取鍵為
+ * "OptionSetReverse_{entityName}_{attributeName}" 內容為 Dictionary&lt;int, string&gt;（整數值 → 顯示文字）， 屬於 CRM Schema
  * Metadata，所有使用者完全相同，不含任何個人資料。
  * 主要操作入口包含 GetOptionSetMapping、GetOptionSetValue、GetOptionSetText、ClearCache、GetLocalizedLabel、GetLanguageCodeId。
  *

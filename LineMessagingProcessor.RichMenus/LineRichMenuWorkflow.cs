@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：RichMenu API 的共用 workflow。 此型別只負責建立 RichMenu、上傳 PNG、連結使用者、解除連結與刪除遠端選單； 選單規則、使用者分群、畫面流程與產品 policy 
+ * 目的與定位：RichMenu API 的共用 workflow。 此型別只負責建立 RichMenu、上傳 PNG、連結使用者、解除連結與刪除遠端選單； 選單規則、使用者分群、畫面流程與產品 policy
  * 都留在呼叫端或更上層 orchestrator。
  *
  * 主要功能與流程：

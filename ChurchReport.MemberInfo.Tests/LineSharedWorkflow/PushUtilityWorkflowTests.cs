@@ -1,15 +1,15 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 PushUtility 在導入共用 LINE workflow 後仍維持舊產品語意。 RichMenu 相關測試特別鎖住 ChurchReport 舊版授權選單的 menu key， 
+ * 目的與定位：驗證 PushUtility 在導入共用 LINE workflow 後仍維持舊產品語意。 RichMenu 相關測試特別鎖住 ChurchReport 舊版授權選單的 menu key，
  * 確保產品端不再直接建立、上傳、刪除 RichMenu，而是委派給共用 assignment workflow。
  *
  * 主要功能與流程：
  * 本檔宣告 PushUtilityWorkflowTests、CapturingWorkflow、CapturingRichMenuWorkflow、CapturingRichMenuAssignmentWorkflow、
  * NoopHttpMessageHandler、RecordingLineHandler、ThrowingHttpMessageHandler。
- * - AddRichMenuMessage 應透過共用 assignment workflow 指派舊版授權選單。 這個測試保護遷移後的邊界：ChurchReport 仍保留原方法名稱與通知行為， 但 RichMenu 
+ * - AddRichMenuMessage 應透過共用 assignment workflow 指派舊版授權選單。 這個測試保護遷移後的邊界：ChurchReport 仍保留原方法名稱與通知行為， 但 RichMenu
  * 綁定動作改由 menu key legacy-auth 交給共用層解析。
- * - DeleteRichMenuMessage 應透過共用 assignment workflow 解除使用者 RichMenu 綁定。 舊實作會取得使用者目前 richMenuId 後直接刪除 provider 資源； 
+ * - DeleteRichMenuMessage 應透過共用 assignment workflow 解除使用者 RichMenu 綁定。 舊實作會取得使用者目前 richMenuId 後直接刪除 provider 資源；
  * 新流程只負責 unlink 使用者，避免產品端誤刪仍被其他使用者或環境共用的 RichMenu。
  * 測試案例入口包含 SendMessage_uses_shared_workflow_when_workflow_is_provided、
  * SendMessage_swallows_workflow_failure_for_legacy_best_effort_behavior、

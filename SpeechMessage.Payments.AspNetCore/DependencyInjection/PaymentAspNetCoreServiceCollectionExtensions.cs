@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：註冊 ASP.NET Core host integration 需要的共用金流服務。 這個專案只處理 HTTP request/response、付款建立 DTO 與 provider-neutral 
+ * 目的與定位：註冊 ASP.NET Core host integration 需要的共用金流服務。 這個專案只處理 HTTP request/response、付款建立 DTO 與 provider-neutral
  * workflow， 不註冊 CRM、LINE、奉獻、會員或任何產品資料庫實作；那些責任由 host application 自己提供。
  *
  * 主要功能與流程：

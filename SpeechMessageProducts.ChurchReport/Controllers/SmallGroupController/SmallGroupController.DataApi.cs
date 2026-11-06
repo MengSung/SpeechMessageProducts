@@ -1,18 +1,18 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：小組管理控制器 - 資料載入 API (Small Group Controller - Data Loading API) 教學說明： 這是一個 Partial Class（部分類別），將 
- * SmallGroupController 的功能分散到多個檔案中。 為什麼使用 Partial Class？ - 分離關注點：這個檔案專注於「資料載入 API」 - 代碼組織：避免單一檔案過大，難以維護 - 
- * 團隊協作：不同開發者可以同時編輯不同部分而不衝突 本檔案的職責： - 提供資料載入的 HTTP GET API 端點 - 處理 DevExtreme DataGrid 的 AJAX 請求 - 實作快取機制以提升性能 - 
- * 確保用戶身份驗證和資料安全 API 設計模式： - RESTful API：使用 HTTP GET 方法載入資料 - Repository Pattern：透過 InMemoryContext 存取資料 - Caching 
- * Pattern：使用記憶體快取減少重複查詢 與其他部分的關係： - SmallGroupController.IntegrateView.cs：處理整合視圖的頁面渲染 - 
+ * 目的與定位：小組管理控制器 - 資料載入 API (Small Group Controller - Data Loading API) 教學說明： 這是一個 Partial Class（部分類別），將
+ * SmallGroupController 的功能分散到多個檔案中。 為什麼使用 Partial Class？ - 分離關注點：這個檔案專注於「資料載入 API」 - 代碼組織：避免單一檔案過大，難以維護 -
+ * 團隊協作：不同開發者可以同時編輯不同部分而不衝突 本檔案的職責： - 提供資料載入的 HTTP GET API 端點 - 處理 DevExtreme DataGrid 的 AJAX 請求 - 實作快取機制以提升性能 -
+ * 確保用戶身份驗證和資料安全 API 設計模式： - RESTful API：使用 HTTP GET 方法載入資料 - Repository Pattern：透過 InMemoryContext 存取資料 - Caching
+ * Pattern：使用記憶體快取減少重複查詢 與其他部分的關係： - SmallGroupController.IntegrateView.cs：處理整合視圖的頁面渲染 -
  * SmallGroupController.Crud.cs：處理資料的新增、修改、刪除 - BaseChurchController：提供共用的驗證、錯誤處理等功能
  *
  * 主要功能與流程：
  * 本檔宣告 SmallGroupController。
- * - 載入多小組列表資料（含快取）(Load Multi-Group List Data with Caching) 教學說明： 這個 API 提供多小組的詳細列表資料。 用於 DataGrid 或 Lookup 
- * 控制項的資料來源。 與前一個方法的區別： - 前一個是圓餅圖資料（統計數字） - 這個是列表資料（詳細記錄） 快取策略： 使用與前一個方法相同的手動快取機制。 快取 Key 格式：{前綴}{日期}_{帳號} 資料來源： 
- * m_WeeklyReportRecordListData 包含所有小組的週報記錄。 這些資料通常用於： - 多小組統計頁面 - 小組選擇下拉選單 - 小組指派功能 HTTP 方法：GET URL 
+ * - 載入多小組列表資料（含快取）(Load Multi-Group List Data with Caching) 教學說明： 這個 API 提供多小組的詳細列表資料。 用於 DataGrid 或 Lookup
+ * 控制項的資料來源。 與前一個方法的區別： - 前一個是圓餅圖資料（統計數字） - 這個是列表資料（詳細記錄） 快取策略： 使用與前一個方法相同的手動快取機制。 快取 Key 格式：{前綴}{日期}_{帳號} 資料來源：
+ * m_WeeklyReportRecordListData 包含所有小組的週報記錄。 這些資料通常用於： - 多小組統計頁面 - 小組選擇下拉選單 - 小組指派功能 HTTP 方法：GET URL
  * 範例：/SmallGroup/AssignSmallGroupGet?id=12345
  * 主要操作入口包含 LoadIntegrate、GetChartDataList、GetMultiGroupChartDataList、AssignSmallGroupGet。
  *

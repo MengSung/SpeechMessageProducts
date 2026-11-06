@@ -1,10 +1,10 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：記憶體內資料上下文 - 小組管理專用 此類別負責管理小組相關資料的記憶體快取和 Session 處理， 實現 IInMemoryDataContext 接口，提供各種資料管理器的快取存取。 主要功能： - 使用 
- * IMemoryCache 快取資料管理器實例，避免重複建立 - 處理 Session 隔離，防止 Session Bleeding 問題 - 提供安全的 Session ID 生成和指紋驗證 - 
- * 支援多個組長和各種小組資料的管理 快取策略： - 每個屬性使用 Session ID + 屬性名稱作為快取鍵 - 快取過期時間：絕對 30 分鐘，滑動 30 分鐘 - Session 變更時設定 dirty flag 標記 
- * Session 安全： - 每次存取 Session 時從 IHttpContextAccessor 取得最新值 - 使用 IP + User-Agent 生成請求指紋，防止資料混淆 - 支援已登入使用者的 Session 
+ * 目的與定位：記憶體內資料上下文 - 小組管理專用 此類別負責管理小組相關資料的記憶體快取和 Session 處理， 實現 IInMemoryDataContext 接口，提供各種資料管理器的快取存取。 主要功能： - 使用
+ * IMemoryCache 快取資料管理器實例，避免重複建立 - 處理 Session 隔離，防止 Session Bleeding 問題 - 提供安全的 Session ID 生成和指紋驗證 -
+ * 支援多個組長和各種小組資料的管理 快取策略： - 每個屬性使用 Session ID + 屬性名稱作為快取鍵 - 快取過期時間：絕對 30 分鐘，滑動 30 分鐘 - Session 變更時設定 dirty flag 標記
+ * Session 安全： - 每次存取 Session 時從 IHttpContextAccessor 取得最新值 - 使用 IP + User-Agent 生成請求指紋，防止資料混淆 - 支援已登入使用者的 Session
  * 綁定
  *
  * 主要功能與流程：
@@ -21,7 +21,7 @@
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/DedicationController.cs、
- * SpeechMessageProducts.ChurchReport/Models/ContextDictionary.cs、SpeechMessageProducts.ChurchReport/Startup.cs 
+ * SpeechMessageProducts.ChurchReport/Models/ContextDictionary.cs、SpeechMessageProducts.ChurchReport/Startup.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.Payments;

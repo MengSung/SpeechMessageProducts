@@ -7,10 +7,10 @@
  * 本檔宣告 PersonalController、MaintainContactFields。
  * - 建立背景工作專用的 DI scope。背景工作可能在 HTTP request 結束後仍執行， 因此不得捕獲 request scope 的 ToolUtility 或 CRM 連線；scope 由背景工作 擁有，
  * 並在工作結束時由 using 確定性釋放，以防止跨 request 資源洩漏。
- * - 建立個人資訊控制器。 控制器本身只持有目前 request 的服務；長時間執行的背景工作會透過 IServiceScopeFactory 建立獨立 scope，讓 ToolUtility 與 CRM 
+ * - 建立個人資訊控制器。 控制器本身只持有目前 request 的服務；長時間執行的背景工作會透過 IServiceScopeFactory 建立獨立 scope，讓 ToolUtility 與 CRM
  * 連線在背景工作結束時確定性釋放，不會跨 request 或跨使用者重用。
  * - 載入個人回報資料 用於 DevExtreme DataGrid 的資料來源
- * - 載入維護個人資訊資料 用於 MaintainPersonInfomationView 的 DataGrid 資料來源 ✅ 修復：多小組模式下，無論是從「回報統計」還是「小組回報」點擊「組員資訊」，都顯示所有小組成員 ✅ 
+ * - 載入維護個人資訊資料 用於 MaintainPersonInfomationView 的 DataGrid 資料來源 ✅ 修復：多小組模式下，無論是從「回報統計」還是「小組回報」點擊「組員資訊」，都顯示所有小組成員 ✅
  * 修復：明確指定要查詢的欄位，確保會員身分和信仰狀態正確顯示 ✅ 修復：單一小組模式也使用相同的查詢邏輯，確保會員身分和信仰狀態正確顯示
  * 主要操作入口包含 PersonalReport、SetupPersonalReportViewModel、SetupPersonalReportViewBag、SetupPersonalGroupPosition、
  * LoadPersonReport、LoadMaintainPersonInfomation、CreateMaintainContactColumnSet、RetrieveMaintainContactsByIds；

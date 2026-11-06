@@ -1,9 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：測試 ChurchReport 奉獻付款表單如何轉成共用金流 workflows 專案的 PaymentOrderDraft。 這個測試鎖定的是「資料邊界」，不是銀行付款本身： - ChurchReport 
+ * 目的與定位：測試 ChurchReport 奉獻付款表單如何轉成共用金流 workflows 專案的 PaymentOrderDraft。 這個測試鎖定的是「資料邊界」，不是銀行付款本身： - ChurchReport
  * 仍然可以使用奉獻者、奉獻類別、奉獻編號等產品語言。 - 跨出 ChurchReport 之後，資料要變成 PaymentOrderDraft 這種中性合約。 - PaymentOrderDraft 不能知道 CRM、
- * LINE、ViewBag、Controller 或任何 ChurchReport 專屬流程。 這樣未來建設公司維修系統、協會會員系統、發票收款系統也可以建立自己的 FormModel， 再用相同概念轉成 
+ * LINE、ViewBag、Controller 或任何 ChurchReport 專屬流程。 這樣未來建設公司維修系統、協會會員系統、發票收款系統也可以建立自己的 FormModel， 再用相同概念轉成
  * PaymentOrderDraft，而不是複製 ChurchReport 的奉獻表單模型。
  *
  * 主要功能與流程：

@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationLineItemNormalizer。
- * - 一次奉獻最多幾個類別。每個類別建立一張收費單，所有收費單 Id 都要放進永豐 Param1（X(255)）， 因此上限直接等於 DonationFeeIdList.MaxIds（7 張）；要調高必須先改 Param1 
+ * - 一次奉獻最多幾個類別。每個類別建立一張收費單，所有收費單 Id 都要放進永豐 Param1（X(255)）， 因此上限直接等於 DonationFeeIdList.MaxIds（7 張）；要調高必須先改 Param1
  * 的編碼方式。
  * 主要操作入口包含 Normalize。
  *
@@ -15,7 +15,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Services/DonationGivingHistory.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationPaymentSubmissionService.cs、
  * SpeechMessageProducts.ChurchReport/Views/Dedication/DonationPaymentView.cshtml、
- * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs 
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

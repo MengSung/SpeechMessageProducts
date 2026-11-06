@@ -1,13 +1,13 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：把 SDK 產生、已包含搜尋／在籍／無小組範圍條件的 FetchXML，轉成 customertypecode group-by 計數查詢。所有使用者條件都保留在既有 XML 節點中， 本類別只做結構化 DOM 
+ * 目的與定位：把 SDK 產生、已包含搜尋／在籍／無小組範圍條件的 FetchXML，轉成 customertypecode group-by 計數查詢。所有使用者條件都保留在既有 XML 節點中， 本類別只做結構化 DOM
  * 變更，不拼接任何輸入文字。
  *
  * 主要功能與流程：
  * 本檔宣告 MemberInfoCommitmentTypeCountQuery。
  * - 建立「每個非空 OptionSet 值有幾筆」的 aggregate FetchXML。 FetchXML aggregate 不計入 null，因此真正空白會由 Controller 另做一次 null count。
- * - 將 CRM aggregate rows 轉成 raw OptionSet value → count；raw value 在此只作為 metadata 分段的識別鍵，不拿來比較大小。重複值會合計，缺少 alias 
+ * - 將 CRM aggregate rows 轉成 raw OptionSet value → count；raw value 在此只作為 metadata 分段的識別鍵，不拿來比較大小。重複值會合計，缺少 alias
  * 的異常列會略過。
  * 主要操作入口包含 CreateValueCountsFetch、ReadValueCounts、Unwrap。
  *

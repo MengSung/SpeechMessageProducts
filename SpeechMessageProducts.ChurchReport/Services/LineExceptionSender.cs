@@ -1,13 +1,13 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：管理者診斷用 LINE push adapter，僅接收已落檔的安全文字。現有 workflow 沒有 CancellationToken 契約，此專用 adapter 使用官方 push endpoint，讓 
+ * 目的與定位：管理者診斷用 LINE push adapter，僅接收已落檔的安全文字。現有 workflow 沒有 CancellationToken 契約，此專用 adapter 使用官方 push endpoint，讓
  * Host 能確實取消並 drain。 擁有一個無使用者 cookie 的 HttpClient；部署 token 只存續至 Program 關閉，不讀 request 設定。
  *
  * 主要功能與流程：
  * 本檔宣告 LineExceptionSender。
  * - 只由組合根建立。環境 token 優先，其次目前 CRM 組織，再其次既有 LINE 預設組織； 收件人沿用既有管理者 ID，可由受信任部署設定覆寫。禁止把此 client 借給業務使用者。
- * - 每次 request／response 都 using 釋放；不讀 provider response body、不寫 ILogger， 避免 token、回應資料被保留或形成通知遞迴。非 2xx 回傳固定型別失敗由 
+ * - 每次 request／response 都 using 釋放；不讀 provider response body、不寫 ILogger， 避免 token、回應資料被保留或形成通知遞迴。非 2xx 回傳固定型別失敗由
  * owner 本地記錄。
  * - Program 必須先停止並 drain 診斷 consumer，再釋放 client／pool 並清除 token 參照。
  * 主要操作入口包含 SendAsync、Dispose。

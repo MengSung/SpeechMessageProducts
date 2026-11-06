@@ -15,7 +15,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineBinding.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLogin.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOAuth.cs、
- * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Login.cs 
+ * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Login.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using Microsoft.Xrm.Sdk;

@@ -12,7 +12,7 @@
  * 可變模型由建立它的操作持有；事件來源、reply token及profile不得被當作跨使用者共用的可變狀態。
  * 可沿 Line.Messaging.Tests/LineSdkFoundationTests.cs、Line.Messaging.Tests/LineSdkGoldenTests.cs、
  * Line.Messaging/Messages/Flex/Extensions/BubbleContainerFlexMessages.cs、
- * Line.Messaging/Messages/Flex/Extensions/CarouselContainerFlexMessges.cs、Line.Messaging/Messages/ISendMessage.cs 
+ * Line.Messaging/Messages/Flex/Extensions/CarouselContainerFlexMessges.cs、Line.Messaging/Messages/ISendMessage.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：會友資訊導覽 ViewComponent。 為什麼用 ViewComponent：左側導覽在 _Layout（每頁都套用）。各 controller 設定 ViewBag 的流程不一致—— 
+ * 目的與定位：會友資訊導覽 ViewComponent。 為什麼用 ViewComponent：左側導覽在 _Layout（每頁都套用）。各 controller 設定 ViewBag 的流程不一致——
  * 例如「回報統計／小組回報」走 SmallGroupController 自己的 ViewBag 流程，不會呼叫 SetupMemberInfoViewBag， 導致剛登入第一個畫面（回報統計）看不到「會友資訊」。
  * 本元件在每頁渲染時自行計算存取等級（必要時載入 登入連絡人，並把正向結果快取進 Session），確保按鈕在所有頁面、含首次登入畫面即正確顯示。 IInMemoryDataContext 於 DI 註冊為 Scoped，
  * 本元件取得的即是該請求 controller 所用的同一實例。

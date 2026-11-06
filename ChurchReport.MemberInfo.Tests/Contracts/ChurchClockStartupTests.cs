@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護真實 ChurchReport 組合根的啟動順序：共用診斷 owner 建立後驗 ICU，成功才進 Startup／CRM／HTTP。 此為來源組合契約，另以真正 NLS 子程序驗證停止；本案不建立 
+ * 目的與定位：保護真實 ChurchReport 組合根的啟動順序：共用診斷 owner 建立後驗 ICU，成功才進 Startup／CRM／HTTP。 此為來源組合契約，另以真正 NLS 子程序驗證停止；本案不建立
  * Host、讀憑證或發送 LINE。
  *
  * 主要功能與流程：

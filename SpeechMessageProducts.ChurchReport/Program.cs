@@ -5,12 +5,12 @@
  *
  * 主要功能與流程：
  * 本檔宣告 Program。
- * - 建立並執行 Host；Debug／Release 都依 ExceptionNotifications 的啟動快照選擇例外目的地。 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr 
- * 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。 ICU 
+ * - 建立並執行 Host；Debug／Release 都依 ExceptionNotifications 的啟動快照選擇例外目的地。 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr
+ * 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。 ICU
  * 必須在共用例外 owner 建立後、Startup／CRM／HTTP 啟動前驗證；不符時同一例外告警並拒絕啟動。
  * - 建立正常 Host 管線，借用最外層管理的 Exception.log owner；錯誤 provider 在所有組態啟用。 原本三個診斷 Trace 檔仍遵守 Release 關閉契約，與正式錯誤紀錄完全獨立。
  * - 註冊只擷取安全 metadata 的正式錯誤 provider；不沿用會複製原始訊息的舊 FileLogger。
- * - 初始化 Trace Listener（僅在 Debug 組態下編譯） 確保 TextWriterTraceListener 只建立一次，並且可以在應用程式停止時正確釋放 【自動建立機制】 - 
+ * - 初始化 Trace Listener（僅在 Debug 組態下編譯） 確保 TextWriterTraceListener 只建立一次，並且可以在應用程式停止時正確釋放 【自動建立機制】 -
  * 若統一設定指定的診斷目錄不存在，會自動建立 - 若 Trace.log 檔案不存在，會自動建立 - 若檔案已存在，會以 Append 模式追加寫入
  * 主要操作入口包含 Main、RunApplication、ConfigureSafeLogging、InitializeTraceListener、CleanupTraceListener、
  * FlushTraceListener、RegisterUnhandledExceptionTraceFlush、UnregisterUnhandledExceptionTraceFlush；其餘入口見下方成員契約。

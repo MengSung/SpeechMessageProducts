@@ -1,10 +1,10 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ToolUtilityClass - 主類別（Partial Class 主檔案） 所有實際實現都在 ToolUtilityPartials 資料夾的各個 partial class 檔案中 使用方式： 
- * using (var utility = ToolUtilityFactory.CreateInstance(configuration)) { var contact = 
- * utility.RetrieveContactEntityByName("張三"); // ... 其他操作 } 架構說明： - Core: 核心功能（建構式、Dispose、追蹤） - Contact: 聯絡人查詢與管理 
- * - List: 名單成員管理（同步與非同步） - Query1/Query2: 各種業務查詢 - Entity: 實體CRUD操作 - Attribute: 實體屬性Get/Set - 
+ * 目的與定位：ToolUtilityClass - 主類別（Partial Class 主檔案） 所有實際實現都在 ToolUtilityPartials 資料夾的各個 partial class 檔案中 使用方式：
+ * using (var utility = ToolUtilityFactory.CreateInstance(configuration)) { var contact =
+ * utility.RetrieveContactEntityByName("張三"); // ... 其他操作 } 架構說明： - Core: 核心功能（建構式、Dispose、追蹤） - Contact: 聯絡人查詢與管理
+ * - List: 名單成員管理（同步與非同步） - Query1/Query2: 各種業務查詢 - Entity: 實體CRUD操作 - Attribute: 實體屬性Get/Set -
  * ActivityAttachment: 活動與附件管理 - Line: Line訊息推播 - Utility: 字串處理等工具方法
  *
  * 主要功能與流程：

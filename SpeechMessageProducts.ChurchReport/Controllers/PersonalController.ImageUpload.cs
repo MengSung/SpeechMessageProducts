@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 PersonalController、BatchImageRequest。
  * - 個人資訊管理控制器 - 圖片上傳部分 處理 Contact 大頭照上傳與更新
- * - 取得目前 HTTP request scope 的 Dataverse 服務。服務由 DI 容器建立與釋放， 最大生命週期限定於目前 request；此 partial 不自行借還或保存連線，避免跨使用者 
+ * - 取得目前 HTTP request scope 的 Dataverse 服務。服務由 DI 容器建立與釋放， 最大生命週期限定於目前 request；此 partial 不自行借還或保存連線，避免跨使用者
  * 重用可變傳輸狀態。若在沒有 request scope 的情況呼叫，立即失敗而不建立臨時連線。
  * - 僅更新目前 Session 登入 Contact 的照片，保留既有宣告白名單與 5 MiB 限制。 內容必經共用格式與尺寸守門；EXIF 轉正後輸出 JPEG90，不再退回儲存原始檔。 input、image、
  * output 只屬當次請求並確定性釋放，不保留姓名、圖片或服務至 static。 預期輸入拒絕不通知；其他失敗經共用入口上報，回應不包含底層例外訊息。

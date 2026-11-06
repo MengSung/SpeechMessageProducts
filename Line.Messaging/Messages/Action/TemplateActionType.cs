@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：LINE template action 的序列化型別。 RichMenu 使用此 enum 解析 action area 的 action type；新增 LINE action 時必須同步更新 
+ * 目的與定位：LINE template action 的序列化型別。 RichMenu 使用此 enum 解析 action area 的 action type；新增 LINE action 時必須同步更新
  * ActionArea.ParseTemplateAction(dynamic)，否則 provider 回傳的 RichMenu area 會無法還原成正確 action 物件。
  *
  * 主要功能與流程：
  * 本檔宣告 TemplateActionType。
- * - LINE RichMenu switch action，對應官方 JSON 字串 richmenuswitch 。 此值需要搭配 RichMenu alias 使用，讓切換 action 不直接綁死 provider 
+ * - LINE RichMenu switch action，對應官方 JSON 字串 richmenuswitch 。 此值需要搭配 RichMenu alias 使用，讓切換 action 不直接綁死 provider
  * richMenuId。
  * 資料／選項欄位包含 TemplateActionType，名稱、型別與序列化規約須與消費端保持一致。
  *

@@ -7,7 +7,7 @@
  * 本檔宣告 EntityQueryService。
  * - 保留舊 optional 建構式但不保存未使用的任意 logger，避免延長 request／憑證參照。 為相容允許未初始化 SDK；首次操作會明確拒絕，不將設定失敗當成查無資料。
  * - 依舊單筆契約讀完整欄位，不走快取。SDK 回應 ID／實體必須與請求完全相符，否則拒絕發布。
- * - 提供 Repository 所需的精確欄位讀取，與完整欄位入口共用相同正式識別驗證。 不重建 caller 的 ColumnSet；null 才建立本次操作的 AllColumns，回應不保存於服務。 此新增 
+ * - 提供 Repository 所需的精確欄位讀取，與完整欄位入口共用相同正式識別驗證。 不重建 caller 的 ColumnSet；null 才建立本次操作的 AllColumns，回應不保存於服務。 此新增
  * overload 不擴充既有介面，以免強迫外部介面實作者新增成員。
  * - 還原舊來源直接 SDK 讀取的明確入口；每次重新查詢，不回傳前次 caller 修改的物件。 與 RetrieveEntity 共用相同識別驗證及故障傳遞，不複製第二套資料／快取邏輯。
  * 主要操作入口包含 RetrieveEntity、RetrieveEntityNoCache、RetrieveEntityByField、RetrieveMultiple、RetrieveAccountByName、

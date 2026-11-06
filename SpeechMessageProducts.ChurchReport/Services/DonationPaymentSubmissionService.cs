@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻付款送出流程的產品層判斷服務。 這個類別不呼叫銀行 provider，也不更新 CRM；它只負責兩件事： 1. 驗證奉獻付款表單是否足以建立付款。 2. 將 
- * DonationPaymentProcessor 回傳的既有文字結果分類成奉獻頁 AJAX 需要的狀態。 抽出這個服務後，DonationPaymentManager 可以專注於協調 Controller 回應， 
+ * 目的與定位：ChurchReport 奉獻付款送出流程的產品層判斷服務。 這個類別不呼叫銀行 provider，也不更新 CRM；它只負責兩件事： 1. 驗證奉獻付款表單是否足以建立付款。 2. 將
+ * DonationPaymentProcessor 回傳的既有文字結果分類成奉獻頁 AJAX 需要的狀態。 抽出這個服務後，DonationPaymentManager 可以專注於協調 Controller 回應，
  * 而不必在大型類別內散落一串 StartsWith / Contains 判斷。
  *
  * 主要功能與流程：

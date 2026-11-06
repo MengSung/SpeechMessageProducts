@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：產品級 ToolUtility 組合根；產品與組態只能由受信任的 host 提供，不能來自 request。 一個容器只屬於一個產品，manager／pool 是容器擁有的 singleton，資料操作維持 
+ * 目的與定位：產品級 ToolUtility 組合根；產品與組態只能由受信任的 host 提供，不能來自 request。 一個容器只屬於一個產品，manager／pool 是容器擁有的 singleton，資料操作維持
  * scoped。
  *
  * 主要功能與流程：
  * 本檔宣告 ServiceCollectionExtensions、ProductRegistration。
- * - 註冊 ToolUtility 服務到 DI 容器 ToolUtilityClass 與其 Provider 都使用 Scoped 生命週期；每個 request 取得自己的 Dataverse 連線租約，request 
+ * - 註冊 ToolUtility 服務到 DI 容器 ToolUtilityClass 與其 Provider 都使用 Scoped 生命週期；每個 request 取得自己的 Dataverse 連線租約，request
  * 結束時由 DI 確定性釋放。
- * - 以明確的產品與組態註冊資料服務，讓實際 DataverseConnectionKey 包含正確產品。 組態只活至 host 容器結束，不保存 HttpContext、Session 或個別使用者值。 
+ * - 以明確的產品與組態註冊資料服務，讓實際 DataverseConnectionKey 包含正確產品。 組態只活至 host 容器結束，不保存 HttpContext、Session 或個別使用者值。
  * 同一容器的衝突產品／組態會在任何新增註冊前拒絕，避免第一份 singleton 靜默勝出。
  * - 共用新舊 API 的唯一註冊流程，不建立隱藏容器或捕獲 scoped service。 null 組態只供無參數相容入口，所有需組態的 factory 透過同一解析函式取得來源。
  * - 保存首次註冊的受信任邊界，供後續註冊比對，不讀取或複製機密內容。

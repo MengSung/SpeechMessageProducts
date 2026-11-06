@@ -6,11 +6,11 @@
  * 主要功能與流程：
  * 本檔宣告 LineUtilityClass、PostTextClass、TextMessageClass、PostTemplateClass、TemplateMessageClass、TemplateClass、
  * PostConfirmClass、ConfirmMessageClass、ConfirmClass、PostCarouselClass、CarouselMessageClass、CarouselClass 等相關型別。
- * - LineUtilityClass 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試 
+ * - LineUtilityClass 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試
  * token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 由 Tenancy 唯一入口解析，null 表示部署預設；保留既有產品組織選擇與 client owner，不快取解析結果。
  * - 指示目前 LINE client 是否由本類別以相容字串建構式建立並負責釋放。 外部注入的 client 由呼叫端擁有，不能在此處 Dispose，避免破壞共享 HttpClient 的生命週期。
- * - 舊版 RichMenu 建立/上傳/連結 workflow 的相容欄位。 目前 legacy-auth 的一般指派改由 m_LineRichMenuAssignmentWorkflow 處理， 
+ * - 舊版 RichMenu 建立/上傳/連結 workflow 的相容欄位。 目前 legacy-auth 的一般指派改由 m_LineRichMenuAssignmentWorkflow 處理，
  * 此欄位仍保留給既有建構式與測試替換使用。
  * 主要操作入口包含 GetChannelAccessToken、Dispose、CreateDefaultNotificationWorkflow、CreateDefaultReplyWorkflow、
  * CreateDefaultRichMenuWorkflow、CreateDefaultRichMenuAssignmentWorkflow、SetupChannelAccessToken、ThrowIfDisposed；

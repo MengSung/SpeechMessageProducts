@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：CRM 快取服務（骨架） - 採用 Cache-Aside 模式 - 支援 MemoryCache 與 DistributedCache（例如 Redis） - 預設過期：滑動 5 分鐘 + 絕對 30 
+ * 目的與定位：CRM 快取服務（骨架） - 採用 Cache-Aside 模式 - 支援 MemoryCache 與 DistributedCache（例如 Redis） - 預設過期：滑動 5 分鐘 + 絕對 30
  * 分鐘（可覆寫）
  *
  * 主要功能與流程：

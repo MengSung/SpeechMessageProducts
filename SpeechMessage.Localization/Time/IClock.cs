@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：兩產品共用的最小 UTC 瞬間來源；不得含伺服器 local、教會、身分或請求狀態。 注入來源由 host／測試擁有，ChurchClock 僅借用，不建立 timer、背景工作或 Dispose 外部 
+ * 目的與定位：兩產品共用的最小 UTC 瞬間來源；不得含伺服器 local、教會、身分或請求狀態。 注入來源由 host／測試擁有，ChurchClock 僅借用，不建立 timer、背景工作或 Dispose 外部
  * owner。
  *
  * 主要功能與流程：
@@ -15,7 +15,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 SpeechMessage.Localization.Tests/ChurchClockTests.cs、SpeechMessage.Localization/Time/ChurchClock.cs 
+ * 可沿 SpeechMessage.Localization.Tests/ChurchClockTests.cs、SpeechMessage.Localization/Time/ChurchClock.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

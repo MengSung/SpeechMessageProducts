@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護 webhook 在 JSON 解碼前以 wire 原始 UTF-8 bytes 驗證簽章，避免 Content-Type charset 或正規化改變驗簽內容。 故障注入刻意讓 header 
+ * 目的與定位：保護 webhook 在 JSON 解碼前以 wire 原始 UTF-8 bytes 驗證簽章，避免 Content-Type charset 或正規化改變驗簽內容。 故障注入刻意讓 header
  * charset 與實際 LINE UTF-8 body 不一致；正確結果須按 bytes 驗證並依 UTF-8 解析。
  *
  * 主要功能與流程：

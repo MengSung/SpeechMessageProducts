@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：HTTP 最終失敗轉接器；必須位於 UseExceptionHandler 的內側，先落檔與排入通知再 rethrow。 只持有組合根 owner 與管線委派；所有 request 狀態僅存在本次 
+ * 目的與定位：HTTP 最終失敗轉接器；必須位於 UseExceptionHandler 的內側，先落檔與排入通知再 rethrow。 只持有組合根 owner 與管線委派；所有 request 狀態僅存在本次
  * InvokeAsync，不流入背景工作。
  *
  * 主要功能與流程：

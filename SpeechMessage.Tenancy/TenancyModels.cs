@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：本檔整合下列相關契約：TenantId：host 驗證後的組織／產品及可選教會純值；建構值物件本身不授權，不攜帶登入、request 或憑證。；
- * LineChannelSelection：明確記錄舊呼叫點的設定優先序；不是由使用者輸入控制的路由選項。；ResolvedLineChannel：單次解析結果；憑證只活到本次送訊 owner 結束，禁止快取或記錄原始 
+ * LineChannelSelection：明確記錄舊呼叫點的設定優先序；不是由使用者輸入控制的路由選項。；ResolvedLineChannel：單次解析結果；憑證只活到本次送訊 owner 結束，禁止快取或記錄原始
  * token。
  *
  * 主要功能與流程：

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證永豐 QPay provider 的 request mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。 這些測試特別保護付款頁 URL、ATM 虛擬帳號與 legacy 
+ * 目的與定位：驗證永豐 QPay provider 的 request mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。 這些測試特別保護付款頁 URL、ATM 虛擬帳號與 legacy
  * key derivation，避免抽離後破壞既有奉獻流程。
  *
  * 主要功能與流程：

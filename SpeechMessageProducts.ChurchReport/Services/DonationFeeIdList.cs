@@ -17,7 +17,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Services/DonationLineItemNormalizer.cs、
  * SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs、
- * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentProcessing.cs 
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentProcessing.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

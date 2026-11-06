@@ -6,7 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ChurchReportPaymentContextBuilder。
- * - 建立付款後 workflow 的產品 context。這裡只做資料組裝，不更新 CRM、不送 LINE， 讓 side effect 仍由 ChurchReportPaymentRecordUpdater 與 
+ * - 建立付款後 workflow 的產品 context。這裡只做資料組裝，不更新 CRM、不送 LINE， 讓 side effect 仍由 ChurchReportPaymentRecordUpdater 與
  * ChurchReportPaymentPayerNotifier 負責。
  * - 使用已解析好的產品資料建立 context。這個方法讓測試與少數已經取得 contact/feeType 的舊流程 可以重用同一份 context contract，而不需要為了測試去模擬整個 CRM 查詢層。
  * 主要操作入口包含 Build、BuildFromResolvedValues、ResolveContactEntity。

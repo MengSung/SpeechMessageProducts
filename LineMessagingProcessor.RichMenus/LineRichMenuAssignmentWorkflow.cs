@@ -1,9 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：RichMenu 使用者指派工作流。 這個類別是未來多個產品共用 RichMenu 能力的核心入口之一。 產品層只需要傳入「想指派的邏輯選單代號」 menuKey ， 共用層會負責把它解析成 LINE 
+ * 目的與定位：RichMenu 使用者指派工作流。 這個類別是未來多個產品共用 RichMenu 能力的核心入口之一。 產品層只需要傳入「想指派的邏輯選單代號」 menuKey ， 共用層會負責把它解析成 LINE
  * 平台實際使用的 richMenuId ， 再透過 ILineRichMenuProcessor 呼叫 LINE RichMenu API。 設計邊界： 1. 這裡只處理 RichMenu 指派與解除指派，
- * 不處理特定產品的身分資料、業務流程、畫面或通知文字。 2. ILineRichMenuCatalog 由產品提供，負責描述產品有哪些 RichMenu；共用層只讀取目錄。 3. IRichMenuStateStore 
+ * 不處理特定產品的身分資料、業務流程、畫面或通知文字。 2. ILineRichMenuCatalog 由產品提供，負責描述產品有哪些 RichMenu；共用層只讀取目錄。 3. IRichMenuStateStore
  * 只是本流程的輔助紀錄，不是 LINE 平台狀態的唯一真相來源。 4. LINE / HTTP / timeout 錯誤會轉成標準 LineRichMenuAssignmentResult， 讓產品層用一致方式判斷失敗，
  * 而不是被迫捕捉各種底層例外。 這樣切割後，建設公司維修系統、協會會員系統、發票收款系統等未來產品， 只要提供自己的 catalog / policy / state store，就能共用同一套 RichMenu 指派流程。
  *

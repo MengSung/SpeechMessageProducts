@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：實際建立 ToolUtilityClass 並執行公開入口→Facade→Lazy→Core 的完整附件委派鏈。 僅替代 SDK I/O，使用空設定與無輸出 tracer，不讀憑證、不連線或發 LINE； 
+ * 目的與定位：實際建立 ToolUtilityClass 並執行公開入口→Facade→Lazy→Core 的完整附件委派鏈。 僅替代 SDK I/O，使用空設定與無輸出 tracer，不讀憑證、不連線或發 LINE；
  * 此證據保護跨組件路徑，不冒充 D365 實機或 host 的授權驗收。
  *
  * 主要功能與流程：

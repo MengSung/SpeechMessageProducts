@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保存 LINE 使用者的應用程式層級 RichMenu 狀態。 實作可以使用記憶體、資料庫或分散式快取，但必須保留足夠狀態，讓 assignment workflow 與到期 sweep 
+ * 目的與定位：保存 LINE 使用者的應用程式層級 RichMenu 狀態。 實作可以使用記憶體、資料庫或分散式快取，但必須保留足夠狀態，讓 assignment workflow 與到期 sweep
  * 能可預期地還原前一個選單。
  *
  * 主要功能與流程：

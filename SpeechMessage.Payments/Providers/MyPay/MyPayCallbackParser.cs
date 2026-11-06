@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：解析高鉅 MyPay callback。 MyPay 回呼可能是 form、query、JSON 或 raw form-urlencoded； parser 只負責轉為通用 
+ * 目的與定位：解析高鉅 MyPay callback。 MyPay 回呼可能是 form、query、JSON 或 raw form-urlencoded； parser 只負責轉為通用
  * PaymentCallbackResult，不更新宿主產品資料。
  *
  * 主要功能與流程：

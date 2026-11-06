@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：LINE 回傳的 RichMenu response 物件。 https://developers.line.me/en/docs/messaging-api/reference/#rich-menu-response-object 
+ * 目的與定位：LINE 回傳的 RichMenu response 物件。 https://developers.line.me/en/docs/messaging-api/reference/#rich-menu-response-object
  * 在 RichMenu 的版面資料外，額外保存 LINE 建立或查詢後回傳的 provider id。
  *
  * 主要功能與流程：

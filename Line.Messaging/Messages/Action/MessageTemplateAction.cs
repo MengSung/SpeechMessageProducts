@@ -5,8 +5,8 @@
  *
  * 主要功能與流程：
  * 本檔宣告 MessageTemplateAction。
- * - Label for the action Required for templates other than image carousel.Max: 20 characters Optional for image 
- * carousel templates.Max: 12 characters. RichMenu 可省略；用戶端啟用可及性功能時會朗讀此文字，最多 20 個字元。 LINE iOS 8.2.0 以後支援 RichMenu 
+ * - Label for the action Required for templates other than image carousel.Max: 20 characters Optional for image
+ * carousel templates.Max: 12 characters. RichMenu 可省略；用戶端啟用可及性功能時會朗讀此文字，最多 20 個字元。 LINE iOS 8.2.0 以後支援 RichMenu
  * 上的此可及性 label。
  * 主要操作入口包含 CreateFrom。
  *

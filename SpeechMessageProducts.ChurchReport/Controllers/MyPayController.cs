@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：高鉅 MyPay callback 的 ChurchReport HTTP adapter。 Provider callback parsing、acknowledgement 與狀態正規化交給共用金流核心； 
+ * 目的與定位：高鉅 MyPay callback 的 ChurchReport HTTP adapter。 Provider callback parsing、acknowledgement 與狀態正規化交給共用金流核心；
  * 本 controller 只負責 ChurchReport 的 CRM fee 查詢、付款後 workflow context 組裝與結果頁。
  *
  * 主要功能與流程：
  * 本檔宣告 MyPayController。
- * - MyPay 背景通知入口。 ASP.NET request 先轉成中立 callback request，再由 MyPay provider parser 驗證與正規化； 成功解析後，交給共用付款後流程 
+ * - MyPay 背景通知入口。 ASP.NET request 先轉成中立 callback request，再由 MyPay provider parser 驗證與正規化； 成功解析後，交給共用付款後流程
  * pipeline 編排 CRM 更新與付款者通知。
  * 主要操作入口包含 PaymentNotify、PaymentSuccess、PaymentFailure、ResolveContactEntity。
  *

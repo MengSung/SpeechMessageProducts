@@ -8,7 +8,7 @@
  * 本檔宣告 LineUtilityClassWorkflowTests、TestLineUtility、CapturingWorkflow、CapturingReplyWorkflow、
  * RecordingLineHandler、ThrowingHttpMessageHandler。
  * - 保護 token 切換時由 LineUtilityClass 建立的舊版內部 HttpClient 會被確定釋放。
- * - 建立可注入各種共用 workflow 的 LineUtilityClass 測試實例。 lineRichMenuAssignmentWorkflow 參數保留給 RichMenu 指派流程測試： 
+ * - 建立可注入各種共用 workflow 的 LineUtilityClass 測試實例。 lineRichMenuAssignmentWorkflow 參數保留給 RichMenu 指派流程測試：
  * 產品工具類只應把使用者與 menu key 傳入共用 workflow，不應在測試中真的建立或刪除 LINE RichMenu。
  * 測試案例入口包含 SetupChannelAccessToken_disposes_the_previously_owned_client_after_replacement、
  * SendMessage_with_sdk_messages_uses_shared_workflow_when_workflow_is_provided、

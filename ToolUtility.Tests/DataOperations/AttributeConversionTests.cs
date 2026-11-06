@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：無 I/O 的屬性操作以固定值鎖特性，沒有可送 SDK 的 QueryExpression，故不虛構 XML 黃金檔。 每種型別驗證已存值、缺值 sentinel 及寫回；全部輸入是 caller 自有 
+ * 目的與定位：無 I/O 的屬性操作以固定值鎖特性，沒有可送 SDK 的 QueryExpression，故不虛構 XML 黃金檔。 每種型別驗證已存值、缺值 sentinel 及寫回；全部輸入是 caller 自有
  * Entity，沒有共享快照或 cache。
  *
  * 主要功能與流程：

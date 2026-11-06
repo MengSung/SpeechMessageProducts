@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 Dataverse 結構化執行軌跡的隱私、非侵入性、檔案生命週期與端對端關聯契約。 本類別停用 xUnit 平行化，因為 Trace 的已啟用實例是程序層級觀測器；測試仍以真實 pool 與 
+ * 目的與定位：驗證 Dataverse 結構化執行軌跡的隱私、非侵入性、檔案生命週期與端對端關聯契約。 本類別停用 xUnit 平行化，因為 Trace 的已啟用實例是程序層級觀測器；測試仍以真實 pool 與
  * Gateway 的多執行緒工作負載驗證 request 間隔離，且所有輸出只寫入每個測試私有的暫存目錄。
  *
  * 主要功能與流程：
@@ -9,7 +9,7 @@
  * - 保護 legacy Ambient 代理的 CRM 歸因不可以重複計數。
  * - 保護關閉 trace 的零侵入契約。故障注入是直接呼叫最熱的 crm.op 觀測點； 決定性斷言是沒有建立輸出檔，且暖機後的一次呼叫不配置 managed 物件。
  * - 保護背景工作與父 request 的統計隔離契約。故障注入是在背景 scope 內寫入一次 CRM 事件； 決定性斷言是父 request 結束仍為零次，而背景結束事件獨立記錄一次並保留來源 traceId。
- * - 保護 SaveIntegrate 背景工作接受與完成結果可以安全關聯，且不把 scope 結束誤當成 CRM 成功。故障注入是在 request／background scope 內寫入 accepted 與 
+ * - 保護 SaveIntegrate 背景工作接受與完成結果可以安全關聯，且不把 scope 結束誤當成 CRM 成功。故障注入是在 request／background scope 內寫入 accepted 與
  * succeeded 結果； 決定性斷言是兩筆事件都含 opaque operationId、固定 stage/outcome/errorClass 欄位， 且一般 JSONL 不含帳號、密碼、成員資料或例外文字。
  * 測試案例入口包含 Ambient_service_records_each_retrieve_once_in_request_trace、
  * Disabled_trace_writes_nothing_and_allocates_nothing_on_hot_path、

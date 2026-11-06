@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：LINE reply-token 發送流程的共用介面。 reply-token 來自 webhook 事件，只能用來回覆該事件； 它和 push notification 的 user id / group 
+ * 目的與定位：LINE reply-token 發送流程的共用介面。 reply-token 來自 webhook 事件，只能用來回覆該事件； 它和 push notification 的 user id / group
  * id / room id 是不同語意， 因此獨立成 reply workflow，不混入 ILineNotificationWorkflow。
  *
  * 主要功能與流程：

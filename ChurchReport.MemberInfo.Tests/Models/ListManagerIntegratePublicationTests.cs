@@ -8,7 +8,7 @@
  * - 驗證同一載入鍵的 32 個並行讀取只執行一次 loader，且所有呼叫只取得完成後的獨立快照。 故障注入以 barrier 暫停唯一 loader，決勝斷言為 invocation count 等於一、每份快照內容完整，
  *  並且任兩份回傳集合不共享可變參考。
  * - 驗證 loader 產生相同非空 PresentRecordId 時會拒絕發布，且既有完整快照不被污染。 故障注入是第二次載入回傳重複 key；決勝斷言為擲出明確例外，之後原小組仍可讀到原資料。
- * - 驗證候選成功發布後，即使 legacy 寫入路徑把相同 PresentRecordId 再次放入活的 Session 物件圖，下一次快取命中也必須重新驗證實際交付集合並 fail closed。故障注入先完成一次 
+ * - 驗證候選成功發布後，即使 legacy 寫入路徑把相同 PresentRecordId 再次放入活的 Session 物件圖，下一次快取命中也必須重新驗證實際交付集合並 fail closed。故障注入先完成一次
  * 正常發布，再直接模擬舊 CRUD 的 append；決勝斷言為 loader 不會重跑、讀取會擲出重複 ID 例外，而且 guard 不會用姓名或內容選擇其中一列來掩蓋衝突。
  * - 驗證呼叫端改寫 detached snapshot 不會反向污染 Session holder 中已發布的資料。 故障注入直接清空第一份回傳集合；決勝斷言為第二次讀取仍保有原始 row 與名稱。
  * 測試案例入口包含 EnsureAndGetIntegrateDetachedRead_ConcurrentSameKey_LoadsOnceAndReturnsIsolatedSnapshots、

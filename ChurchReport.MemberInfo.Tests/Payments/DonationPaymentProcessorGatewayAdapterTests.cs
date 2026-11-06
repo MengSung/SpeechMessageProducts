@@ -7,7 +7,7 @@
  * 本檔宣告 DonationPaymentProcessorGatewayAdapterTests、RecordingPaymentGateway、SingleServiceProvider、TestSession、
  * ThrowingToolUtilityProvider。
  * - 保護 QR 掃描 request 建立的 LINE client 具有明確的 Dispose 合約。
- * - 驗證相同 Session Id 在兩個獨立 HTTP request 中也不得重用同一個資料上下文。 這是防止 static dictionary 回歸的隔離測試：兩個 request 各自擁有 Items， 
+ * - 驗證相同 Session Id 在兩個獨立 HTTP request 中也不得重用同一個資料上下文。 這是防止 static dictionary 回歸的隔離測試：兩個 request 各自擁有 Items，
  * 因此結果必須是不同實例，且測試結束後不應留下程序級項目。
  * 測試案例入口包含 Request_scoped_qr_utilities_expose_deterministic_disposal_contract、
  * ChurchReport_controllers_do_not_accept_legacy_ipayment_in_constructors、

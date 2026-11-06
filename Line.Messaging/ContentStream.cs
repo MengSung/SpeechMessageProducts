@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：表示 LINE Messaging API 回傳的內容串流（如圖片、影片、音訊等媒體檔案） Stream object for content such as image, video, audio, and 
+ * 目的與定位：表示 LINE Messaging API 回傳的內容串流（如圖片、影片、音訊等媒體檔案） Stream object for content such as image, video, audio, and
  * other media files from LINE Messaging API.
  *
  * 主要功能與流程：
  * 本檔宣告 ContentStream。
  * - 底層的串流物件 The underlying stream object
  * - 取得底層串流物件，如果已釋放則拋出例外 Gets the base stream, throws ObjectDisposedException if already disposed
- * - 取得 HTTP Content 的標頭資訊（如 Content-Type、Content-Length 等） Gets the HTTP content headers (e.g., Content-Type, 
+ * - 取得 HTTP Content 的標頭資訊（如 Content-Type、Content-Length 等） Gets the HTTP content headers (e.g., Content-Type,
  * Content-Length)
  * - 最多持有到 Dispose 的內容標頭；釋放後清掉，避免標頭容器間接保留 HttpContent。
  * 主要操作入口包含 Flush、Read、ReadAsync、WriteAsync、FlushAsync、Seek、SetLength、Write；其餘入口見下方成員契約。

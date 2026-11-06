@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 建立付款訂單時使用的中性 adapter。 它負責把 ChurchReport 既有產品資料、CRM entity id、付款分類與 callback URL 轉成 
+ * 目的與定位：ChurchReport 建立付款訂單時使用的中性 adapter。 它負責把 ChurchReport 既有產品資料、CRM entity id、付款分類與 callback URL 轉成
  * PaymentCreateRequest；真正的 provider protocol mapping 仍由 SpeechMessage.Payments 核心負責。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentCreateGatewayAdapter。
- * - 將 ChurchReport 產品付款輸入轉成 provider-neutral 的建單 request。 Metadata 是 ChurchReport 與 provider mapping 的邊界，集中保存產品單據 
+ * - 將 ChurchReport 產品付款輸入轉成 provider-neutral 的建單 request。 Metadata 是 ChurchReport 與 provider mapping 的邊界，集中保存產品單據
  * id、組織、 付款分類與定期定額欄位，避免這些資料散落在各個 processor。
  * - 建立付款訂單並投影回舊 QPayProcessor 期待的 CreOrder shape。 這是相容舊 ChurchReport 呼叫點的轉換，不應新增 provider-specific protocol 邏輯。
  * 主要操作入口包含 CreateCardPaymentAsync、CreateLegacyOrderAsync、BuildMetadata、ResolveItems、ResolveDeductTotalNum、
@@ -19,7 +19,7 @@
  * SpeechMessageProducts.ChurchReport/Payments/DonationPaymentCreateInput.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs、
- * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentGateway.cs 
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentGateway.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

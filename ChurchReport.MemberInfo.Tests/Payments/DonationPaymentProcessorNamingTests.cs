@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：確認 ChurchReport 的奉獻付款 processor 已經使用 DonationPayment 命名。 DonationPaymentProcessor 是 ChurchReport 
+ * 目的與定位：確認 ChurchReport 的奉獻付款 processor 已經使用 DonationPayment 命名。 DonationPaymentProcessor 是 ChurchReport
  * 產品層的付款後流程處理器， 會處理 CRM fee、奉獻收據、LINE 通知與頁面回傳。這些都不是永豐 QPay 協定本身。 因此 processor 不能再提供 QPayProcessor alias，否則未來高鉅、
  * 台新或其他產品共用流程時， 會看起來像是所有付款都必須經過永豐 QPay。
  *

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：共用 RichMenu 核心呼叫 LINE RichMenu API 的抽象邊界。 未來產品只需要使用 catalog、provisioning、assignment 與 orchestration；底層 
+ * 目的與定位：共用 RichMenu 核心呼叫 LINE RichMenu API 的抽象邊界。 未來產品只需要使用 catalog、provisioning、assignment 與 orchestration；底層
  * LINE API 呼叫集中在此介面背後。
  *
  * 主要功能與流程：

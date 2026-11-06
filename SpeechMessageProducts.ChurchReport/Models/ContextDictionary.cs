@@ -1,16 +1,16 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：管理目前 HTTP request 的 InMemoryDataContextSmallGroup。 舊版以程序級 static dictionary 按 Session Id 保存 context，並以 
+ * 目的與定位：管理目前 HTTP request 的 InMemoryDataContextSmallGroup。 舊版以程序級 static dictionary 按 Session Id 保存 context，並以
  * static Timer 清理。 那個設計會把 scoped adapter/workflow 及可變使用者資料延長到 request 之外；當 DI scope 結束後，字典仍可能重用已 Dispose 的物件，
- * 亦可能在同一 Session 重新登入另一個帳號時 讀到前一個帳號的 ListManager。這是 Session/Resource Leakage，不可接受。 現在只把 context 放入 
- * HttpContext.Items。Items 的 owner 是目前 request， request 結束即與其 scoped 相依項一併失去唯一持有者；因此不需要 Timer、背景工作或 行程級集合，也不會跨 
+ * 亦可能在同一 Session 重新登入另一個帳號時 讀到前一個帳號的 ListManager。這是 Session/Resource Leakage，不可接受。 現在只把 context 放入
+ * HttpContext.Items。Items 的 owner 是目前 request， request 結束即與其 scoped 相依項一併失去唯一持有者；因此不需要 Timer、背景工作或 行程級集合，也不會跨
  * request、使用者、租戶或 profile 重用可變狀態。
  *
  * 主要功能與流程：
  * 本檔宣告 ContextDictionary。
  * - 在目前 request 的 Items 中保存 context 的私有鍵；不含使用者資料。
- * - 向後相容的靜態屬性（已標記為過時）。 只回傳目前 request 的 context 快照；沒有 current request 時回傳空字典。 不再建立程序級集合，避免把 scoped 使用者狀態留在 static 
+ * - 向後相容的靜態屬性（已標記為過時）。 只回傳目前 request 的 context 快照；沒有 current request 時回傳空字典。 不再建立程序級集合，避免把 scoped 使用者狀態留在 static
  * root。
  * - 取得或建立 InMemoryDataContextSmallGroup
  * - 手動移除目前 request 的 context。request 結束時 Items 會自動清空，因此不需要 Dispose static 資源。

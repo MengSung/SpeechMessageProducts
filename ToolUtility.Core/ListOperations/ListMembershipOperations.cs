@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：兩名單服務唯一的輸入／投影及批次owner，沒有static可變操作資料或跨scope cache。 每次輸入／輸出最多5000列，1000頁及64Ki cookie；先完整驗證再發布，故障不回部分成功。 
+ * 目的與定位：兩名單服務唯一的輸入／投影及批次owner，沒有static可變操作資料或跨scope cache。 每次輸入／輸出最多5000列，1000頁及64Ki cookie；先完整驗證再發布，故障不回部分成功。
  * 一個Task owner串行使用借入SDK，既有批間節流至多200ms；caller必須await，不註冊額外timer或queue。
  *
  * 主要功能與流程：
  * 本檔宣告 MembershipWrite、ListMembershipOperations。
  * - 名單及成員只可用正式非空ID；診斷不回顯實際值，不把格式驗證當host授權。
  * - 在任何I/O或排程前複製完整輸入並驗證預算／唯一ID；caller之後修改原List不會改變工作目標。
- * - 建立一個可觀察、有界且必須await的owner；輸入snapshot在排程前驗完，故障／caller取消在drain後完成Task。 SDK內部OCE以原InnerException保存為故障，只有明確caller 
+ * - 建立一個可觀察、有界且必須await的owner；輸入snapshot在排程前驗完，故障／caller取消在drain後完成Task。 SDK內部OCE以原InnerException保存為故障，只有明確caller
  * token取消才成Canceled，避免漏告警。
  * - ReturnResponses=false省略成功項但仍包含Fault；先驗回應型別、索引範圍及重複，再決定整批成功。 真Fault以穩定訊息包原Detail交host，不記錄Fault.Message或名單／成員ID，
  * 不能把批次當原子交易。
@@ -17,7 +17,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 ToolUtility.Core/ListOperations/ListService.cs、ToolUtility.Core/ListOperations/MarketingListService.cs 
+ * 可沿 ToolUtility.Core/ListOperations/ListService.cs、ToolUtility.Core/ListOperations/MarketingListService.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 #nullable enable

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證通用金流核心公開模型保持 provider-neutral。 這些測試用來防止 QPay PayToken、ASP.NET HttpRequest 或 provider SDK 型別重新洩漏到 public 
+ * 目的與定位：驗證通用金流核心公開模型保持 provider-neutral。 這些測試用來防止 QPay PayToken、ASP.NET HttpRequest 或 provider SDK 型別重新洩漏到 public
  * contract。
  *
  * 主要功能與流程：

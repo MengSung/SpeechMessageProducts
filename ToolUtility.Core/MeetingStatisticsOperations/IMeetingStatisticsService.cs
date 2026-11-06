@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：已由 host 驗證組織與授權範圍的純 SDK 查詢契約；SDK 只借入，host 負責 timeout、drain 與 Dispose。 不保存 logger、憑證、查詢結果或共用可變資料；真實故障原樣交回 
+ * 目的與定位：已由 host 驗證組織與授權範圍的純 SDK 查詢契約；SDK 只借入，host 負責 timeout、drain 與 Dispose。 不保存 logger、憑證、查詢結果或共用可變資料；真實故障原樣交回
  * host 共用例外通知邊界。 每頁在完整穩定 ID 驗證後才回傳，原分頁資訊與同名不同 ID 資料均保留。
  *
  * 主要功能與流程：

@@ -1,19 +1,19 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：測試專用的 RichMenu processor 假物件。 這個類別不會真的連到 LINE，而是把每一次呼叫記錄在 Calls， 讓測試可以確認 workflow 是否真的送出 create / link / 
- * unlink / alias 等命令。 設計重點： 1. 測試只關心「共用流程有沒有呼叫正確的 processor 方法」，不碰外部網路。 2. 透過 LinkException 與 UnlinkException 
- * 可以模擬 LINE 拒絕、 網路失敗、timeout 或程式錯誤，進而測試 workflow 的錯誤分類邊界。 3. LinkedUsers、ExistingRichMenus 與 Aliases 是記憶體狀態，方便驗證 
+ * 目的與定位：測試專用的 RichMenu processor 假物件。 這個類別不會真的連到 LINE，而是把每一次呼叫記錄在 Calls， 讓測試可以確認 workflow 是否真的送出 create / link /
+ * unlink / alias 等命令。 設計重點： 1. 測試只關心「共用流程有沒有呼叫正確的 processor 方法」，不碰外部網路。 2. 透過 LinkException 與 UnlinkException
+ * 可以模擬 LINE 拒絕、 網路失敗、timeout 或程式錯誤，進而測試 workflow 的錯誤分類邊界。 3. LinkedUsers、ExistingRichMenus 與 Aliases 是記憶體狀態，方便驗證
  * processor 呼叫後是否產生預期副作用。 這種假物件讓 RichMenu 共用核心的測試保持單純、穩定、快速， 也避免把 LINE 官方服務、產品資料庫或任何特定產品流程混進單元測試。
  *
  * 主要功能與流程：
  * 本檔宣告 CapturingRichMenuProcessor。
  * - 建立 RichMenu 時要回傳的 richMenuId 佇列。 測試若需要固定 ID，可以先呼叫 EnqueueCreatedRichMenuId； 若沒有預先指定，這個假物件會依照目前清單數量自動產生穩定 ID。
- * - 所有 processor 方法的呼叫紀錄。 測試通常透過這個集合確認 workflow 是否真的執行到外部平台邊界， 例如解除 RichMenu 時即使 state store 沒資料，也仍然要出現 
+ * - 所有 processor 方法的呼叫紀錄。 測試通常透過這個集合確認 workflow 是否真的執行到外部平台邊界， 例如解除 RichMenu 時即使 state store 沒資料，也仍然要出現
  * unlink:U123 。
- * - 模擬 LINE 平台上已存在的 RichMenu 清單。 workflow 在 cache miss 時會呼叫 GetRichMenuListAsync 尋找線上 RichMenu； 測試可先把資料放進這裡，驗證 
+ * - 模擬 LINE 平台上已存在的 RichMenu 清單。 workflow 在 cache miss 時會呼叫 GetRichMenuListAsync 尋找線上 RichMenu； 測試可先把資料放進這裡，驗證
  * menu key 能否被解析為實際 richMenuId。
- * - 模擬 LINE RichMenu alias 對應表。 key 是 alias id，value 是 richMenuId；用來測試 provisioning / alias 更新流程， 不需要真的呼叫 LINE 官方 
+ * - 模擬 LINE RichMenu alias 對應表。 key 是 alias id，value 是 richMenuId；用來測試 provisioning / alias 更新流程， 不需要真的呼叫 LINE 官方
  * alias API。
  * 測試案例入口包含 EnqueueCreatedRichMenuId、CreateRichMenuAsync、UploadRichMenuPngImageAsync、GetRichMenuListAsync、
  * SetDefaultRichMenuAsync、GetDefaultRichMenuIdAsync、CancelDefaultRichMenuAsync、GetRichMenuIdOfUserAsync；

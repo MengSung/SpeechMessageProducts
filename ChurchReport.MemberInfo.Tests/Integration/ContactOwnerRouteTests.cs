@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：實際執行既有 ContactService.AssignOwner 與 ToolUtilityClass／Facade／Core 委派鏈， 僅替代最末端 SDK I/O。保護 logical name、資料庫 
+ * 目的與定位：實際執行既有 ContactService.AssignOwner 與 ToolUtilityClass／Facade／Core 委派鏈， 僅替代最末端 SDK I/O。保護 logical name、資料庫
  * ID、owner 與原始故障不被搬移改壞。
  *
  * 主要功能與流程：

@@ -1,9 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻付款回傳流程使用的產品層結果 DTO。 這個 DTO 的位置很重要： - 它不在 SpeechMessage.Payments，因為裡面包含 ChurchReport 
+ * 目的與定位：ChurchReport 奉獻付款回傳流程使用的產品層結果 DTO。 這個 DTO 的位置很重要： - 它不在 SpeechMessage.Payments，因為裡面包含 ChurchReport
  * 產品流程會用到的欄位，例如 CRM fee id、奉獻類別、信用卡 token、付款組織代碼。 - 它也不是 provider protocol DTO，因為它不應該直接代表永豐、高鉅或台新的原始 API response。
- *  - 它是「金流核心已經解析/查詢完成後，ChurchReport 後續流程需要的資料包」。 你可以把這個類別理解成付款回傳流程的交接單： 金流核心負責回答「這筆付款在 provider 那邊的狀態是什麼」； 
+ *  - 它是「金流核心已經解析/查詢完成後，ChurchReport 後續流程需要的資料包」。 你可以把這個類別理解成付款回傳流程的交接單： 金流核心負責回答「這筆付款在 provider 那邊的狀態是什麼」；
  * ChurchReport workflow 則拿這張交接單去更新 CRM 收費單、產生畫面訊息、發 LINE 通知。
  *
  * 主要功能與流程：

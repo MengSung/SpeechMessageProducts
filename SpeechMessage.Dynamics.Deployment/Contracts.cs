@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：本檔整合下列相關契約：RegistrationManifest：單次讀取的註冊清單。檔案可進版控，因此設定欄位只允許固定結構與秘密佔位； 真實 token、收件者識別或帳密不得進入此模型。；
- * StepRegistration：一個受管理步驟的不可變範本。身份欄位決定唯一步驟，設定欄位只保留固定值或 `${secret:name}` 佔位；僅 apply 寫入瞬間才解析秘密。；AssemblyImage：從有界 
+ * StepRegistration：一個受管理步驟的不可變範本。身份欄位決定唯一步驟，設定欄位只保留固定值或 `${secret:name}` 佔位；僅 apply 寫入瞬間才解析秘密。；AssemblyImage：從有界
  * PE 讀出的單次組件描述。保留 DLL bytes 只供本次 apply，從不載入或執行待驗證組件的程式碼， 也不將此物件放入 static、快取或跨命令狀態。
  *
  * 主要功能與流程：

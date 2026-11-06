@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 專用的金流 profile 選擇器。 SpeechMessage.Payments 只認得 named profile，不認得 ChurchReport 歷史設定鍵； 因此 
+ * 目的與定位：ChurchReport 專用的金流 profile 選擇器。 SpeechMessage.Payments 只認得 named profile，不認得 ChurchReport 歷史設定鍵； 因此
  * PAY_PROVIDER 到 Payment:Profiles 的轉換留在產品層，避免通用核心綁死 ChurchReport 設定格式。
  *
  * 主要功能與流程：

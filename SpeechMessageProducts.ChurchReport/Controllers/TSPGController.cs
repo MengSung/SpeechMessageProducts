@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：台新 TSPG 的 ChurchReport HTTP adapter。 台新 JSON/form callback parsing、hash 驗證與狀態轉換已移到 SpeechMessage.Payments 
+ * 目的與定位：台新 TSPG 的 ChurchReport HTTP adapter。 台新 JSON/form callback parsing、hash 驗證與狀態轉換已移到 SpeechMessage.Payments
  * ； 此 controller 只保留 HTTP 入口、acknowledgement 與結果頁轉址；CRM/LINE 後處理委派給 ChurchReport workflow handlers。
  *
  * 主要功能與流程：

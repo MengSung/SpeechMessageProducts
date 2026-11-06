@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：啟動階段計時。用法：using (StartupProfiler.Phase("ConfigureServices")) { ... } 無共用可變狀態（每個 Phase 只持有自己的 
+ * 目的與定位：啟動階段計時。用法：using (StartupProfiler.Phase("ConfigureServices")) { ... } 無共用可變狀態（每個 Phase 只持有自己的
  * label+Stopwatch）。啟動時無任何使用者/請求，零 Session-Leakage 風險。
  *
  * 主要功能與流程：

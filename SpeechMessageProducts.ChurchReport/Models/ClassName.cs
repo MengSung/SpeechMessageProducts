@@ -14,7 +14,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/FeeManagementController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/PhoneBindingController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/QrCodeController.cs、
- * SpeechMessageProducts.ChurchReport/Models/FeeList.cs、SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs 
+ * SpeechMessageProducts.ChurchReport/Models/FeeList.cs、SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;

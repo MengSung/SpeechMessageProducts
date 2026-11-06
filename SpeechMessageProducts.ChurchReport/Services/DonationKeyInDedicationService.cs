@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：ChurchReport 手動輸入奉獻資料的查詢與更新流程。 這個服務處理的是 ChurchReport 的 CRM contact 查詢、同名清單、奉獻收費單查詢以及 既有 AJAX JSON 回應格式；
- * 它不是通用金流能力，因此不能放進 SpeechMessage.Payments 或 SpeechMessage.Payments.AspNetCore。未來其他產品若也需要「人工補單」流程，應在各自 
+ * 它不是通用金流能力，因此不能放進 SpeechMessage.Payments 或 SpeechMessage.Payments.AspNetCore。未來其他產品若也需要「人工補單」流程，應在各自
  * 產品實作自己的查詢與回應格式，只共用中立的付款核心。
  *
  * 主要功能與流程：

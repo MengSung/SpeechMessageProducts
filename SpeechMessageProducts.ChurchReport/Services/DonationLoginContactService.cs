@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：ChurchReport 奉獻登入 contact 比對與新 contact 建立服務。 奉獻登入流程同時處理身分證比對、姓名比對、同名/同證件錯誤訊息，以及找不到資料時建立 contact。 這些規則是 
+ * 目的與定位：ChurchReport 奉獻登入 contact 比對與新 contact 建立服務。 奉獻登入流程同時處理身分證比對、姓名比對、同名/同證件錯誤訊息，以及找不到資料時建立 contact。 這些規則是
  * ChurchReport 的 CRM 身分流程，不屬於共用金流核心。 將它從 DonationPaymentManager 拆出來之後，manager 只需要保留公開入口與結果回傳； 具體的比對策略若未來再調整，
  * 不會把大型付款協調器弄得更難維護。
  *

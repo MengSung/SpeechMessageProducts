@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 RepositoryTraceCollection、RepositorySafetyTests、NonRetainingSdk、MarkerListener。
  * - 以反射在新 overload 尚不存在時取得可執行紅測；公開三參數入口須保留原 ColumnSet 參照。 不把 overload 加到既有介面而破壞外部實作者，兩參數公開契約亦必須繼續存在。
- * - 六入口遇到真正 SDK 逾時或 ArgumentException 都維持 InvalidOperationException wrapper， 同一 InnerException、固定訊息及單次 I/O；不能以 
+ * - 六入口遇到真正 SDK 逾時或 ArgumentException 都維持 InvalidOperationException wrapper， 同一 InnerException、固定訊息及單次 I/O；不能以
  * catch ArgumentException 一律重拋而誤改 SDK 故障契約。
  * - SDK 未確認建立 ID 時拒絕回報成功，不盲目重試或改寫 caller 的未建立候選。
  * - 單筆缺失、錯 ID 或跨表回應都拒絕，不能把 ColumnSet 子集當成缺少識別的理由。

@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 IAttachmentService。
  * - 讀取一頁 annotation 並完整驗證正式識別、parent 及容量後才發布；同名不同 ID 全部保留。 不解碼本文，不把缺本文的文字附註誤判失敗；分頁與 SDK 逾時／排空由 host 控制。
- * - 驗 raw 長度後寫入一次七欄附註，合法空 bytes 保留；故障／未確認 ID 不回報成功或隱藏重試。 固定訊息包裝保留真 InnerException，真正失敗交 host 共用通知邊界，不在 Core 
+ * - 驗 raw 長度後寫入一次七欄附註，合法空 bytes 保留；故障／未確認 ID 不回報成功或隱藏重試。 固定訊息包裝保留真 InnerException，真正失敗交 host 共用通知邊界，不在 Core
  * 記錄內容或憑證。
  * 資料／選項欄位包含 IAttachmentService，名稱、型別與序列化規約須與消費端保持一致。
  *

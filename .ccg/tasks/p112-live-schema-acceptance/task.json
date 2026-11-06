@@ -1,0 +1,14 @@
+{
+  "id": "p112-live-schema-acceptance",
+  "title": "P1-12 goodshepherdback 實機結構與唯一鍵驗收",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "已實際連入兩台VM並核對API/SQL組織ID；先建立目標備份及獨立復原驗證，P1-11品質收尾後才以Deployment apply。",
+  "createdAt": "2026-11-06T18:40:00+08:00",
+  "parent": ".ccg/tasks/integration-p1",
+  "dependencies": ["P1-11"],
+  "executionMode": "inline，不派implement/check代理"
+}

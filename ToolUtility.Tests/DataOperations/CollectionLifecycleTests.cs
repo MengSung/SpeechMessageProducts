@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 CollectionLifecycleTests。
- * - 兩個已授權 SDK scope 並行 1000 次，故障明確重試後回傳本 scope 的完整獨立結果。 斷言相同顯示名的不同 ID 保留、修改 caller 清單不污染其他結果、active=0 且借用 SDK 未被 
+ * - 兩個已授權 SDK scope 並行 1000 次，故障明確重試後回傳本 scope 的完整獨立結果。 斷言相同顯示名的不同 ID 保留、修改 caller 清單不污染其他結果、active=0 且借用 SDK 未被
  * Dispose。
  * - Dispose 不搶走進行中 SDK 所有權；舊操作可排空，新入口立即拒絕，無 timer／registration 殘留。
  * - 保持服務存活仍可回收相容 logger；Dispose 後借用 SDK 可回收，不僅驗證私人欄位是否為 null。

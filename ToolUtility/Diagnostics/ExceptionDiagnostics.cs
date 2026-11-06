@@ -1,15 +1,15 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Debug／Release 共用的錯誤輸出 owner，依啟動快照獨立啟用檔案與 LINE。 雙開先完成 JSONL 落檔及 flush 再放入最多 64 筆的 LINE 佇列；LINE-only 不寫檔。 
+ * 目的與定位：Debug／Release 共用的錯誤輸出 owner，依啟動快照獨立啟用檔案與 LINE。 雙開先完成 JSONL 落檔及 flush 再放入最多 64 筆的 LINE 佇列；LINE-only 不寫檔。
  * 不保存例外、請求、身分或驗證資料。 每個部署目錄最多保留目前檔與五份備份，單筆不超過 4 KiB；正常路徑不執行任何 I/O。
  *
  * 主要功能與流程：
  * 本檔宣告 ExceptionDiagnostics。
  * - 建立獨立 owner。directory 必須由部署組合根提供，不能來自 request。 命名 mutex 讓相同目錄的多程序輪替不會互相覆寫；只在錯誤落檔期間持有。
- * - 啟動唯一通知 consumer。sender 必須遵守 cancellation，且由呼叫端在本 owner drain 後釋放。 不繼承呼叫者 ExecutionContext，避免 request 的 
+ * - 啟動唯一通知 consumer。sender 必須遵守 cancellation，且由呼叫端在本 owner drain 後釋放。 不繼承呼叫者 ExecutionContext，避免 request 的
  * AsyncLocal 身分流入長命背景工作。
- * - 在功能確定失敗的邊界呼叫。相同例外實例以 weak key 去重，不延長例外生命； 只有呼叫者 token 已取消的 OperationCanceledException 視為正常取消，內部逾時仍須記錄。 不讀 
+ * - 在功能確定失敗的邊界呼叫。相同例外實例以 weak key 去重，不延長例外生命； 只有呼叫者 token 已取消的 OperationCanceledException 視為正常取消，內部逾時仍須記錄。 不讀
  * Message、Data、原始 StackTrace 或使用者值。true 表示已落檔，或 LINE-only 已入列， 不代表 LINE 已送達。雙開時磁碟失敗不發送 LINE；全關回傳 false，且無檔案／通知副作用。
  * - 字段僅接受開發者擁有的型別／方法符號並限制 80 字；這不是任意文字的去識別化器。 呼叫端禁止傳入 route 實值、request identifier、姓名或 log formatter 的動態內容。
  * 主要操作入口包含 StartNotifications、Report、Symbol、StackSymbols、Write、AppendWithinDegradedCap、WriteStatus、Emergency；

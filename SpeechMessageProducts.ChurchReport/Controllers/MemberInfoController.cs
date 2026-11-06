@@ -9,11 +9,11 @@
  * - 本 request 唯一的 Dataverse 服務。其租借、故障淘汰與 Dispose 順序由 scoped PooledOrganizationService 與 DI 容器共同擁有，控制器不得自行釋放或快取它。
  * - 建立會友控制器並接收 request 隔離的 Dataverse 服務。所有依賴皆由容器擁有；若 scope 在 例外、取消或正常回應後結束，容器會釋放服務，避免手動借還遺漏造成的連線或跨使用者狀態洩漏。
  * - 取得「需要重新同步」的候選聯絡人 ID 清單（在籍、且有 new_lineid 者；不論目前有無 new_line_picture_url）。 已清空/從未有照片者也要納入，
- * 以便偵測對方「解除封鎖/重新加好友/新增照片」後補回。 前端據此分批呼叫 ResyncLineProfiles，以便即時顯示進度。僅限「全教會」管理者。 GET: 
+ * 以便偵測對方「解除封鎖/重新加好友/新增照片」後補回。 前端據此分批呼叫 ResyncLineProfiles，以便即時顯示進度。僅限「全教會」管理者。 GET:
  * /MemberInfo/ResyncLineCandidateIds
- * - 對「前端傳來的一批聯絡人 ID」重新同步 LINE 資料（供分批/即時進度使用）。 有照片網址者先探測該網址能否顯示圖片；「確定失效」或「根本沒有網址」者，皆依 new_lineid 取最新 Profile， 更新 
- * new_line_picture_url / new_line_status_message / new_line_displayname（set-or-clear）。 取不到 
- * Profile（多半未加官方帳號好友→403/404）：有舊網址者清空失效網址；本來就沒網址者維持無照片(下次再試)。 僅限「全教會」管理者。POST: 
+ * - 對「前端傳來的一批聯絡人 ID」重新同步 LINE 資料（供分批/即時進度使用）。 有照片網址者先探測該網址能否顯示圖片；「確定失效」或「根本沒有網址」者，皆依 new_lineid 取最新 Profile， 更新
+ * new_line_picture_url / new_line_status_message / new_line_displayname（set-or-clear）。 取不到
+ * Profile（多半未加官方帳號好友→403/404）：有舊網址者清空失效網址；本來就沒網址者維持無照片(下次再試)。 僅限「全教會」管理者。POST:
  * /MemberInfo/ResyncLineProfiles（body: { contactIds: [...] }）
  * 主要操作入口包含 Index、LoadDistrictTree、SearchDistrictTree、LoadGroupMembers、LoadUngroupedMembers、LoadMemberInfoList、
  * Detail、LoadContactPresentRecords；其餘入口見下方成員契約。

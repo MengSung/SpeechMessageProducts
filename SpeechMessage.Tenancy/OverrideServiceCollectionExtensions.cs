@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 OverrideServiceCollectionExtensions、Registration。
- * - 註冊單一 cache owner、純系統表、validator 及 catalog。Host 必須先註冊恰一個無 request 狀態的 singleton 來源， 把 reportFailure 接到既有共用 
+ * - 註冊單一 cache owner、純系統表、validator 及 catalog。Host 必須先註冊恰一個無 request 狀態的 singleton 來源， 把 reportFailure 接到既有共用
  * ExceptionDiagnostics，且 await 容器 DisposeAsync 後才關閉來源／manager。
  * 主要操作入口包含 AddChurchTextOverrides、Registration。
  *

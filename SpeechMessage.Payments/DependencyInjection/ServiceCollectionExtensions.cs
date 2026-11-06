@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：可重用金流核心的 DI 註冊點。 Host 專案只需要提供 Payment 設定區塊；核心會註冊 gateway、profile resolver、 provider typed HttpClient 與 
+ * 目的與定位：可重用金流核心的 DI 註冊點。 Host 專案只需要提供 Payment 設定區塊；核心會註冊 gateway、profile resolver、 provider typed HttpClient 與
  * options 驗證。
  *
  * 主要功能與流程：

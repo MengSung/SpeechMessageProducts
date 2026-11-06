@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護DateTimeAttributeService的既有行為與相容性。受測元件的責任為：DateTimeAttributeService的無狀態屬性操作；只讀寫 caller 擁有的 Entity，不保存 
+ * 目的與定位：保護DateTimeAttributeService的既有行為與相容性。受測元件的責任為：DateTimeAttributeService的無狀態屬性操作；只讀寫 caller 擁有的 Entity，不保存
  * logger、Entity、身分或跨請求狀態。
  *
  * 主要功能與流程：

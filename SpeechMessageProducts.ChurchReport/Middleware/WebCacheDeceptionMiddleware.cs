@@ -1,9 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Web Cache Deception 防護中間件 攻擊原理： 攻擊者在動態頁面 URL 後附加靜態檔案副檔名（如 /Home/IntegrateView/evil.css）， CDN 
- * 或反向代理誤認為靜態資源進行快取，導致後續使用者取得前一位使用者的個人頁面。 防護策略： 1. 偵測請求路徑是否以常見靜態檔案副檔名結尾 2. 排除合法靜態資源目錄（/css/, /js/, /lib/, 
- * /images/, /assets/） 3. 對非法路徑直接回傳 404，阻斷攻擊鏈 4. 額外設定 X-Content-Type-Options: nosniff 防止瀏覽器嗅探內容類型 部署位置： 必須在 
+ * 目的與定位：Web Cache Deception 防護中間件 攻擊原理： 攻擊者在動態頁面 URL 後附加靜態檔案副檔名（如 /Home/IntegrateView/evil.css）， CDN
+ * 或反向代理誤認為靜態資源進行快取，導致後續使用者取得前一位使用者的個人頁面。 防護策略： 1. 偵測請求路徑是否以常見靜態檔案副檔名結尾 2. 排除合法靜態資源目錄（/css/, /js/, /lib/,
+ * /images/, /assets/） 3. 對非法路徑直接回傳 404，阻斷攻擊鏈 4. 額外設定 X-Content-Type-Options: nosniff 防止瀏覽器嗅探內容類型 部署位置： 必須在
  * UseStaticFiles 之前、全站無快取中間件之後執行
  *
  * 主要功能與流程：

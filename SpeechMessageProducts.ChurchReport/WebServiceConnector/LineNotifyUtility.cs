@@ -6,7 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 LineNotifyUtility。
- * - LineNotifyUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試 
+ * - LineNotifyUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試
  * token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 保留既有可選 token 簽章，解析集中委派 Tenancy；部署設定由 host 擁有，不保存 request 或跨操作結果。 真正設定故障由產品共用邊界上報原例外後回空；不再輸出來源值或例外本文。
  * 主要操作入口包含 GetLineChannelAccessToken、SendSmallGroupResultLine、SendAddNewPersonResultLine、SendResultLine、

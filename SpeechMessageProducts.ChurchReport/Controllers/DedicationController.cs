@@ -6,9 +6,9 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DedicationController、LineIdTokenVerificationResponse。
- * - 奉獻付款主頁面。 `/Dedication/DonationPaymentView/{LineId}` 是新的中性入口； `/Dedication/QPayView/{LineId}` 僅保留給舊 LINE 
+ * - 奉獻付款主頁面。 `/Dedication/DonationPaymentView/{LineId}` 是新的中性入口； `/Dedication/QPayView/{LineId}` 僅保留給舊 LINE
  * 連結與既有書籤使用，不代表此 action 只服務永豐 QPay。
- * - 判斷目前路由是否為官網網頁奉獻登入。 LINE 入口會把 LINE user id 放在同一個 route segment，因此這裡必須精準比對 「網頁登入」，不能用空字串或其他寬鬆判斷，避免把 LINE 
+ * - 判斷目前路由是否為官網網頁奉獻登入。 LINE 入口會把 LINE user id 放在同一個 route segment，因此這裡必須精準比對 「網頁登入」，不能用空字串或其他寬鬆判斷，避免把 LINE
  * 使用者誤當成網頁登入。
  * - 使用 Session 保存的 CRM contact id 重新初始化 DonationPaymentManager。 這個方法只在產品層 Controller 使用，因為它同時碰到 ASP.NET Session、
  * CRM 與畫面模型； 這些責任都不屬於抽離後的 SpeechMessage.Payments 金流核心。

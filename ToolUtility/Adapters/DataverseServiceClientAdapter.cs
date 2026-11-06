@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Dataverse ServiceClient Adapter（.NET Core / .NET 10 適用） 設計模式：Adapter Pattern 用途：將新的 
+ * 目的與定位：Dataverse ServiceClient Adapter（.NET Core / .NET 10 適用） 設計模式：Adapter Pattern 用途：將新的
  * Microsoft.PowerPlatform.Dataverse.Client.ServiceClient 包裝成 ICrmClient
  *
  * 主要功能與流程：
@@ -12,7 +12,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 ToolUtility/Adapters/LegacyOrganizationServiceAdapter.cs、ToolUtility/Factories/CrmClientFactory.cs 
+ * 可沿 ToolUtility/Adapters/LegacyOrganizationServiceAdapter.cs、ToolUtility/Factories/CrmClientFactory.cs
  * 追查目前工作樹中的合作／使用位置。
  */
 // 此檔案需要在 .NET Core 3.1+ 或 .NET 5+ 環境才能編譯

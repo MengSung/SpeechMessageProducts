@@ -1,13 +1,13 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Light-weight Facade for ToolUtility functionality. This is the new Facade introduced in PR-04. It 
- * delegates to smaller services. It intentionally coexists with the legacy ToolUtilityClass during the refactor. 
+ * 目的與定位：Light-weight Facade for ToolUtility functionality. This is the new Facade introduced in PR-04. It
+ * delegates to smaller services. It intentionally coexists with the legacy ToolUtilityClass during the refactor.
  * 完整委派 ToolUtilityClass-developing.cs 的所有功能
  *
  * 主要功能與流程：
  * 本檔宣告 ToolUtilityFacade。
- * - 建立委派至子服務的 ToolUtility Facade。 Facade 只借用呼叫端提供的 IOrganizationService；連線的擁有者是 legacy ToolUtilityClass 或 ASP.NET 
+ * - 建立委派至子服務的 ToolUtility Facade。 Facade 只借用呼叫端提供的 IOrganizationService；連線的擁有者是 legacy ToolUtilityClass 或 ASP.NET
  * Core DI scope，Facade Dispose 僅釋放自己建立的 子服務與連線輔助物件，絕不釋放共用的組織服務。
  * - 重新初始化所有服務 (當 _organizationService 更新後呼叫)
  * - 取得 CRM Organization Service 並設定為內部服務
