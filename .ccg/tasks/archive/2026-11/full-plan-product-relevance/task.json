@@ -1,0 +1,20 @@
+{
+  "id": "full-plan-product-relevance",
+  "title": "分析實作計畫3.3全階段對三項未來產品的關聯",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "planning",
+  "currentPhase": "completed",
+  "nextAction": "已回答整體規劃的產品關聯；未啟動產品實作或修改正式計畫",
+  "createdAt": "2026-11-06",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "completedAt": "2026-11-06",
+  "conclusion": "3.3以既有好牧人/D365/LINE整合、現代化及遷移為主，同時產生可重用基礎；不是三產品完整功能藍圖，也不足以單獨證明完整好牧人2.0需求均涵蓋。",
+  "phaseCoverage": "P0 工程守門及D365可行性；P1 資料核心、語系、時鐘、金額、租戶設定；P2 LINE送訊、告警、三類對外待辦；P3 Webhook驗簽、防重、佇列與好牧人處理器；P4 金流、幣別及教會付款profile；P5 既有教會Plugin與Workflow重建；P6 ChurchReport接入共用層；P7 現役教會逐組織切換；P8 教會自訂與有限範圍國際化驗收",
+  "directBeneficiary": "好牧人直接承接既有教會業務；建設維修與協會重用通知、金流、工程守門等，另建產品領域模型與授權/設定轉接。",
+  "limitations": "ToolUtility.Core依賴Dataverse；TextContext/ChurchChannel及快照仍具教會語意；Webhook主機組裝GoodShepherd；對外待辦僅宮格/QR/撥款三類；國際化是地基而非全翻譯；P5-7遷移成本不可全算成另兩產品功能。",
+  "missingProductScope": "本目錄未安排完整維修工單/派工/保固/驗收或協會入會/會費週期/活動/會籍權限的產品工作包，具體需求需另案確認。",
+  "verification": "主代理完整核對03與90，唯讀研究代理分讀00/01/02與04；來源存在、P0-P8覆蓋及JSON/UTF8/CRLF驗證。未跑產品測試，未改產品程式。",
+  "sourceFiles": "README.md; 00_總覽與執行規則.md; 01_階段0_準備守門與可行性驗證.md; 02_階段1_基礎層與國際化地基.md; 03_階段2-4_共用送訊_Webhook_金流.md; 04_階段5-8_Plugin重建_切換_收尾.md; 90_附錄_規格與範本.md"
+}
