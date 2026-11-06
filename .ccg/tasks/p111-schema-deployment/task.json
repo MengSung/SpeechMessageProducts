@@ -1,0 +1,15 @@
+{
+  "id": "p111-schema-deployment",
+  "title": "P1-11 結構清單與metadata plan/apply/verify",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "依正式02/90及Word7.4/7.5建立附錄A完整schema、只新增SDK引擎及CLI整合；先離線紅綠。VM管理只讀權限不足先記錄，並繼續不受影響工作。",
+  "createdAt": "2026-11-06T16:35:00+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parent": ".ccg/tasks/integration-p1",
+  "dependencies": ["P1-04", "P0-12"],
+  "executionMode": "inline，不派implement/check代理"
+}

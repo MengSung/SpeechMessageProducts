@@ -444,14 +444,14 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T16:31:55+08:00",
+  "snapshot": "2026-11-06T16:35:52+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
   "headline": "階段 1 目前 <strong>10／12 工作包已驗收完成</strong>（P1-01～10）。P1-08有界快照與回收驗證完成；續P1-11結構指令及P1-12實機驗收。全計畫83包，已驗收28包；主Goal持續active，不宣告整個P1完成。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1-08 已完成本機驗收；P1 目前10／12",
+    "title": "P1 已完成10／12；P1-11結構指令開發中",
     "body": "P1-08完整來源、候選驗證、有界快取與single-flight已通過；百scope回收缺陷已修，交付方案17TRX4317/4317、Tenancy75、五份獨立coverage均≥80%、strict0/0。外部審查兩服務均無可用結果，主會話自審且如實缺證據。P1-11/12仍未完成，D365預設只讀；本包沒有實機操作。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
@@ -531,7 +531,8 @@ const DATA = {
       "2026-11-06T16:13:43+08:00 進度頁修正驗證15/15通過，83工作包狀態與圖示標籤均合法；歷史說明可保留undefined根因，不可誤作狀態缺值。雙模型審查依最新developer要求經自癒入口同時嘗試：run20261106-160712-p108-progress-status-reviewer，ok=false/dualModelComplete=false/quotaBlocked=true/degradedFallback=false，兩後端均無可用結果，不能算完成外審。主會話已檢查差異、跳脫及統計，先保存本地驗證，無push。",
       "2026-11-06T16:13:43+08:00 P1-08回收根因修正：新增caller同步內容計數案先紅（0預期/2實際），確認ReadAsync與DisposeCoreAsync的Task.Yield會擷取caller排程器，延長完成工作與scope保留。改Task.CompletedTask.ConfigureAwait(ForceYielding)，仍強制跳離短鎖與caller堆疊但不擷取同步內容；不放寬弱參照斷言。Tenancy75/75；百scope200弱參照全部死亡，回收與排程案另五次共10/10通過。證據synchronization-red、owner-scheduling、retention-stability；尚待完整驗收。",
       "2026-11-06T16:30:57+08:00 P1-08整包本機驗收：最後編碼正規化後重建17份TRX逐列核對4317/4317、0失敗/略過；Localization182/208、ToolUtility1231/1369、Tenancy75、ChurchReport630。五份獨立coverage97.84%/98.17%、Core95.50%/95.86%、Tenancy96.96%，strict三產品0/0；Debug7、I18n170、PE27、Plugin metadata10/build6、CI6、Pester39、JavaScript20、analyzer26、套件/duplicates/verify/生成check及Changed1131檔0問題。未放寬弱參照、覆蓋率、編碼或任何斷言。實作已在本地b74a311d、顯示封存f2c7bfbc；最後交付commit收尾中。驗收wp-reports/P1-08-acceptance.md與evidence/p108-final；原始artifacts/p1-08-20261106。外審run20261106-161834兩後端均無輸出（quotaBlocked），不宣稱雙/單模型通過；主會話自審。主P1更新10/12但Goal仍active，續P1-11/12，未push／部署／連VM或D365／發LINE。",
-      "2026-11-06T16:31:55+08:00 P1-08驗收本地提交dfb82a7e；只封存p108-override-cache，記錄Session19，主P1仍10/12與Goal active。主P1下一步11結構CLI/12實機；外審兩服務無輸出狀態保留，不把本機驗收冒稱實機／hosted成功。"
+      "2026-11-06T16:31:55+08:00 P1-08驗收本地提交dfb82a7e；只封存p108-override-cache，記錄Session19，主P1仍10/12與Goal active。主P1下一步11結構CLI/12實機；外審兩服務無輸出狀態保留，不把本機驗收冒稱實機／hosted成功。",
+      "2026-11-06T16:35:52+08:00 開始P1-11：讀完正式02/90、既有Deployment及Word7.4/7.5與附錄時間點UserLocal存UTC契約；建立p111-schema-deployment需求與切片計畫。沿用既有單命令lease及寫鎖，以--schema隔離P0註冊；附錄A完整定義、只新增、衝突拒絕、metadata快照／hash／Active alternate key驗證，不修改既有欄位或權限。Hyper-V只讀Get-VM遭必要權限拒絕，尚未取得隔離/備份/復原證據，未繞過安全機制；先續離線開發，P1-12維持未驗收。"
     ]
   },
   "tiles": [
@@ -542,7 +543,7 @@ const DATA = {
       "sub": "P0 18／18；P1 10／12 已驗收",
       "meter": {
         "done": 28,
-        "active": 0,
+        "active": 1,
         "total": 83
       }
     },
@@ -564,7 +565,7 @@ const DATA = {
       "sub": "P1-01～10已驗收；續P1-11/12",
       "meter": {
         "done": 10,
-        "active": 0,
+        "active": 1,
         "total": 12
       }
     },
@@ -793,8 +794,8 @@ const DATA = {
     {
       "id": "P1-11",
       "name": "Deployment 結構 schema／plan／apply／verify",
-      "status": "todo",
-      "note": "尚未開始。依賴 P1-04；先完成唯讀 metadata 匯出與離線 plan／verify，apply 僅新增、核對 fingerprint／plan hash／白名單與冪等性，不改既有結構或輸出業務資料／秘密。"
+      "status": "active",
+      "note": "進行中：正式schema與metadata/plan/apply/verify設計及離線紅綠開發。沿用既有connector/lease/寫鎖，--schema明確選結構模式；只新增、完整衝突拒絕及hash守門。未寫D365、未驗收；Hyper-V只讀管理查詢權限不足，不改用繞過方式。"
     },
     {
       "id": "P1-12",
@@ -1345,7 +1346,7 @@ const DATA = {
       "est": "12～16 天",
       "total": 12,
       "done": 10,
-      "active": 0,
+      "active": 1,
       "current": true
     },
     {
