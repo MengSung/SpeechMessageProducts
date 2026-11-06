@@ -1,0 +1,21 @@
+{
+  "id": "p2-parallel-feasibility",
+  "title": "評估 P2 與 P1 並行及工作目錄隔離",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "planning",
+  "currentPhase": "completed",
+  "nextAction": "供使用者決定是否另開 P2 隔離工作樹並調整原階段順序；本次未開始 P2 實作",
+  "createdAt": "2026-11-06",
+  "completedAt": "2026-11-06",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "conclusion": "技術上可以拆出獨立離線工作並行；完整整合與驗收依賴特定 P1 包及 P2-04 沙箱推播前置。正式計畫仍規定前階段驗收後才開下一階段。",
+  "independentCandidates": ["P2-03 純 ChannelTokenProtector 與合成向量測試，不含 D365 寫入", "P2-09 QR 編解碼與圖片往返測試，不含待辦接線", "P2-06 既有送訊盤點與特性測試，不搬移正式呼叫點"],
+  "dependencies": ["P2-05 文字範本依賴 P1-05", "P2-01 完整 Hosting 依賴 P1-05/06/09/10", "P2-10 依賴 P1-08 快照失效介面", "P2-03 寫入工具及 P2-07 實機依賴 P1-11/12 schema", "P2-04 推播依賴 P1-03/04/05、Channel schema 與沙箱實收前置"],
+  "workspace": "本對話與 P1 主對話 cwd 相同；實作前須獨立 worktree，固定已提交基點，約定共用檔歸屬及整合批次；不複製 P1 未提交變更。",
+  "p1Observed": "P1-01/02/03 完成，P1-04 正在整包驗收；觀察基點 d99a4c77，不代表核定 P2 基點。",
+  "coordination": "已依使用者授權詢問主對話 01a1a904-c0e6-7800-bf33-aa8677ec1b1a（完成階段 1 基礎與國際化），截至本評估尚未收到依賴答覆；不冒稱取得同意。",
+  "evidence": ["文件/規劃設計書/實作計畫-3.3/00_總覽與執行規則.md §6.1", "文件/規劃設計書/實作計畫-3.3/02_階段1_基礎層與國際化地基.md", "文件/規劃設計書/實作計畫-3.3/03_階段2-4_共用送訊_Webhook_金流.md", "文件/規劃設計書/實作計畫-3.3/90_附錄_規格與範本.md A.5"],
+  "validation": "逐包核對正式規格與主對話近期訊息；驗證來源有 P2-01 至 P2-12、紀錄 JSON/UTF-8/CRLF 與限定檔案 diff。無產品修改，未重跑產品測試，未推送、部署或呼叫 LINE。"
+}
