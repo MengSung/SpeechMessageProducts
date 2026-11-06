@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：名單查詢及成員寫入的純 BCL／SDK 契約；保留既有 namespace、參數順序與預設值供兩個產品目標共用。 不包含 host 連線、cache、logger 或排程實作，介面搬移不代表舊 host 
+ * 已完成安全純化。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IListService。
+ * - 沿用名單批次加入入口；caller 提供授權名單與正式成員 ID，不以應用鎖冒充資料庫唯一性。
+ * - 借用指定 SDK 加入正式成員；呼叫結束不移轉 SDK 所有權，重試前須釐清伺服器是否已完成寫入。
+ * - 依正式名單及成員 ID 移除關係；只改已授權關係，不以顯示名稱推定目標。
+ * - 透過借入 SDK 移除關係；連線由 caller 擁有並在全部呼叫 drain 後釋放。
+ * 資料／選項欄位包含 IListService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Core/ListOperations/ListService.cs、
+ * ToolUtility/Core/ToolUtilityFacade.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.Generic;

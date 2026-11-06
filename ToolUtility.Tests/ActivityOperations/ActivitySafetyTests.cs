@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以原 host 重現跨表識別覆寫與兩清單部分發布，再保護完整候選、故障重試及有界讀取。 只替代 SDK，所有識別及故障內容均為合成值；不代表 D365 實機或伺服器授權驗收。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ActivitySafetyTests。
+ * - 不同資料表的同 GUID 必須各保留正確記錄，不能被最後一張表覆寫；同名亦不可合併。
+ * - 第二組 I/O 失敗時不能先 append 型別或第一組資料；明確再次呼叫才重試， 固定訊息不含 SDK 內容且 InnerException 必須仍是同一實例。
+ * - 解析後段非法參照、重複正式識別或既有前綴衝突時，兩個入口皆須在任何 I/O／append 前拒絕。
+ * - SDK 的損壞頁、未請求記錄、遺失記錄、重複與錯表皆拒絕整個候選，不能只略過缺失列。
+ * 測試案例入口包含 CrossTableSameGuid_PreservesBothDatabaseIdentities、
+ * LaterGroupFailure_PreservesPrefixAndExplicitRetryPublishesCompletePair、
+ * InvalidInput_RejectsWithoutPartialPublicationOrSdk、InvalidSdkCandidate_PreservesBothOutputPrefixes、
+ * MoreRecords_RestartsWithDeterministicOrderAndPublishesOnlyCompleteResult、
+ * PagingFailure_RejectsWithoutPublishingProbeOrFirstPage、SourceBudget_RejectsBeforeSdk、
+ * BatchBudget_ChunksWithoutDroppingAnyIdentity；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Collections;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;

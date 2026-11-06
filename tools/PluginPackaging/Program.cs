@@ -1,3 +1,28 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：由 PowerShell 啟動的離線中繼資料檢查器；只讀 PE，不載入或執行受檢 DLL。 每次程序只處理指定的檔案，串流與讀取器由同一操作確定性釋放，不保留到 static。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 Program。
+ * - 部署沙箱目前核定的最高組件目標框架；更高版本即使本機可執行也不得送入合併。
+ * - 以固定 Microsoft.NETFramework.ReferenceAssemblies.net462 1.0.3 的 Facades 清單加 netstandard 區分相容轉送組件，避免原有 System.* 
+ * 允許規則讓 facade 參考假通過。 集合在程序啟動後不可變且大小固定，不讀取執行主機／呼叫者的目錄或設定，不保存任何操作狀態。 組件身分依 CLR 簡名以 OrdinalIgnoreCase 比對；只拒絕完整名稱，
+ * 不誤拒合法的 System.Net.Http 等框架參考。
+ * - 輸出固定 JSON 檢查結果；未完成檢查時不得以結束碼零假稱通過。
+ * - 由呼叫者擁有輸出 writer，讓並行離線驗證不必改全域 Console 或共享診斷緩衝。
+ * 主要操作入口包含 Main、Run、ReadFramework、ReadFrameworkName、ValidateMergeInputFramework、HasNoFrameworkFacade、
+ * IsFrameworkAtOrBelowLimit、Reject。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/ChurchClockStartupTests.cs、
+ * ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs、
+ * SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs、
+ * SpeechMessage.Dynamics.Deployment.Tests/SchemaCliTests.cs、
+ * ToolUtility.Dataverse.Tests/FileToolUtilityTracerTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Frozen;
 using System.IO;

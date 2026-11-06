@@ -1,21 +1,31 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/ListManager.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：擁有單一 Session 的登入 scope、可見小組與整合週報發布生命週期。候選資料必須
-//           在 instance gate 內完整建立、依 PresentRecordId 驗證後原子發布；每次讀取再建立
-//           detached snapshot 並驗證實際交付集合，防止快取命中後的 legacy 寫入洩漏重複列。
-// 隔離與效能：本檔案不得使用 static 使用者狀態或跨 Session lock registry。同步區間只涵蓋
-//             目前 holder 的 scope／快照，CRM 同步載入雖受 gate 保護，但不建立額外背景 Task；
-//             stable-ID 檢查為有界 O(n)，失敗時保留上一份完整 snapshot 而不發布半成品。
-// 主要型別：class ListManager
-// 主要成員：SetupListManager、SetSelectDate、SetupOnlyOneListManager、GetDisplayViewType、SetupIntegrateData、SetupIntegrateDataDemo、GetMarkers、m_SelectDate、SchedulerView、DisplayNavigation
-// 引用命名空間：ChurchReport.WebServiceConnector、Microsoft.AspNetCore.Mvc、Microsoft.Xrm.Sdk、Newtonsoft.Json、System、System.Collections.Generic、System.Linq、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔整合下列相關契約：IntegrateLoadKey：定義一份整合快照的完整 Session 內隔離邊界。任何登入者、登入憑證、角色、日期、 小組或週報變化都會強制建立新候選，禁止只憑 LoadFlag 或 
+ * ListEntityId 沿用舊資料。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ListManager、IntegrateLoadKey。
+ * - ChurchReport 週報單次完整快照允許的最大資料列數。此上限同時限制 stable-ID HashSet 與序列化工作量，避免異常查詢或重試造成無界記憶體配置；超量必須明確失敗，不可截斷。
+ * - 同一 Session holder 內整合資料的同步根。由於現有 CRM SDK 入口是同步 API， 使用 instance lock 可在整個候選快照建立期間阻擋同一 holder 的第二個 writer， 
+ * 且不引入需要跨 cache eviction 額外 Dispose 的 SemaphoreSlim。此鎖不在 static、 Session 或跨使用者 registry 中，因此不會把不同使用者的 request 
+ * 串在一起。
+ * - 測試用的區域候選建立器；正式建構式保持原有行為並建立新的 DownloadIntegrateData。 委派只在 gate 內暫時使用，不得保存 HttpContext、Session、CRM 連線或測試同步原語。
+ * - 最近一次成功發布的完整隔離鍵。此值只存在於單一 Session 的 ListManager 生命週期， 不會進入程序級 cache key、log 或回應；隔離鍵只保存不可逆的 credential 
+ * fingerprint， 絕不把密碼明文複製到 record struct、例外訊息或可被除錯器列印的 ToString 結果。
+ * 主要操作入口包含 SetupListManager、SetupListManagerCore、ReloadDateAndGetIntegrateDetachedRead、SetSelectDate、
+ * SetupOnlyOneListManager、GetDisplayViewType、SetupIntegrateData、EnsureAndGetIntegrateDetachedRead；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/AppointmentController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Login.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.WebServiceConnector;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;

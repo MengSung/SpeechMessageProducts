@@ -1,16 +1,29 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor/LineMessagingProcessorClass.cs
-// 所屬區塊：LINE 訊息處理核心橋接層，將產品 workflow 與 LINE Messaging Client 串接。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LineMessagingProcessorClass、class UserProfile
-// 主要成員：NormalizeBearerToken、StripBearerPrefix、ResolveDefaultChannelAccessToken、ResolveChannelAccessToken、GetRequiredChannelAccessToken、Dispose、ProcessMessage_TEST、ProcessMessage、SendMessage、SendReliableMessageAsync
-// 引用命名空間：System、System.Collections.Generic、System.IO、System.Linq、System.Text、System.Threading.Tasks、Line.Messaging、Newtonsoft.Json
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：提供既有產品使用的LINE功能外觀，集中轉接Messaging SDK的推播、回覆、群組／聊天室profile與RichMenu等能力；頻道設定依主機解析並限定於實例，產品業務決策交各workflow。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineMessagingProcessorClass、UserProfile。
+ * - 解析舊預設建構路徑的一次性部署 token；Lazy 每行程只保存此部署憑證，不含使用者或教會動態狀態。 Development 只套用遮蔽後的 Development JSON，不讀取環境 token；不引用 
+ * ChurchReport 或載入其 User Secrets。 非 Development 先套用一般環境來源，再由 LINE__ provider 覆寫；不開 reload watcher，完成後 Dispose 
+ * 區域組態根。
+ * - 只追加 Development JSON 的獨立接點；可由呼叫端明確提供目錄與環境，不修改任何程序全域狀態。
+ * - 保留舊環境優先及空設定相容，全部來源選擇委派 Tenancy；不保留設定根或新增背景資源。
+ * - 發送可重試的 LINE 推播訊息。 此方法只負責「可重用的 LINE 推播入口」：檢查必要欄位、建立文字訊息， 然後把呼叫交給 Line.Messaging SDK。真正的 X-Line-Retry-Key 
+ * header 仍由 SDK 統一處理，避免 Processor 與 SDK 各自實作一份 LINE 協定細節。
+ * 主要操作入口包含 NormalizeBearerToken、StripBearerPrefix、ResolveDefaultChannelAccessToken、AddDevelopmentOverrides、
+ * ResolveChannelAccessToken、GetRequiredChannelAccessToken、Dispose、ProcessMessage_TEST；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs、
+ * ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/ChurchReportLineBindingNotificationServiceTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/MemberLineProfileWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/ReplyUtilityGroupRoomProfileAdapterTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

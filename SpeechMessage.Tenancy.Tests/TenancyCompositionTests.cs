@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證真實 DI 容器、設定來源故障及舊橋接，全部只使用合成值；不連外、不變更程序環境。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TenancyCompositionTests、FaultSource、FaultProvider。
+ * - 同產品重複註冊必須維持唯一 resolver；容器關閉不能 Dispose 外部設定 provider，最後由本案例唯一釋放。
+ * - 相同容器不允許第二產品覆蓋 singleton owner；不同容器則可各自使用同名組織而不串設定。
+ * - 設定來源故障必須保留原 Exception 身份；修正來源後可立即重試，不被失敗或舊結果快取阻擋。
+ * - 空組織不能誤選名為 default 的真實別名；舊缺設定回空，明確組織則保留自身來源。
+ * 測試案例入口包含 AddTenancy_RepeatedRegistration_BorrowsConfiguration、AddTenancy_ForeignProduct_RejectsWithoutCrossTalk、
+ * Resolve_ProviderFailure_PreservesExceptionAndRetries、LegacyBridge_OptionalOrganization_PreservesDefaultPolicy、
+ * Config、Build、TryGet、Dispose。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;

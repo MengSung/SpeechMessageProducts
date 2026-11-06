@@ -1,19 +1,31 @@
+@*
+    檔案整體說明
+
+    目的與定位：提供登入流程共用載入遮罩，讓父頁在送出與結束時明確控制顯示。
+
+    主要功能與流程：
+    透過下方Razor／HTML及資源宣告完成呈現；是否為全頁、partial或初始化設定依本檔宣告決定。
+
+    使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
+    修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
+*@
 @* ===========================================
-   Login �������J���O�ե�
+   Login 頁面載入面板組件
    =========================================== *@
 
-<!-- ���J���O -->
+<!-- 載入面板 -->
 <div id="LoadPanel">
     @(Html.DevExtreme().LoadPanel()
-        .ID("loadPanel")                 // ���J���O�ѧO�X
-        .ShadingColor("rgba(0,0,0,0.45)") // �B�n�C��
-        .Position(p => p.Of("#form-container")) // �۹�����e��
-        .Visible(false)                  // �w�]����
-        .ShowIndicator(true)             // ��ܫ��ܾ�
-        .ShowPane(true)                  // ��ܭ��O
-        .Shading(true)                   // �ҥξB�n
-        .CloseOnOutsideClick(false)      // �����\�I���~������
-        .Message("�n�J���A�еy�ԡK")      // �T����r
-        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing))) // ��ܰʵe
+        .ID("loadPanel")                 // 載入面板識別碼
+        .ShadingColor("rgba(0,0,0,0.45)") // 遮罩顏色
+        .Position(p => p.Of("#form-container")) // 相對於表單容器
+        .Visible(false)                  // 預設隱藏
+        .ShowIndicator(true)             // 顯示指示器
+        .ShowPane(true)                  // 顯示面板
+        .Shading(true)                   // 啟用遮罩
+        .CloseOnOutsideClick(false)      // 不允許點擊外部關閉
+        .Message("登入中，請稍候…")      // 訊息文字
+        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing))) // 顯示動畫
     )
 </div>

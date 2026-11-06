@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以實際 verify 入口保護 P1-09 每項正反例；生成檔先以正式生成器建立，不以假綠替身跳過。 每案的方案、limits、resx 及 writer 均由本案獨佔並立即釋放；不讀取真實產品設定或連網。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ResourceVerificationTests、VerificationFixture。
+ * - 同組跨文化相同 key 是翻譯，不是重複；具名參數換順序／重複但集合相同應通過。
+ * - 未知翻譯 key 或改名參數都由既有 ResourceCatalog 拒絕；不能被 stale output 遮蔽成成功。
+ * - 兩組中性資源同 key 即使文字相同也衝突；不同 key 同顯示文字合法，不可按內容去重。
+ * - 保留正式 E4 字面十四字樣本；原後綴的 pseudo=21 必須失敗，縮固定後綴而不縮名稱才可通過。
+ * 測試案例入口包含 Verify_SameGroupTranslationsAndParameterSets_Passes、Verify_TranslationKeyOrParametersMismatch_Rejects、
+ * Verify_AcrossResourceGroups_ValidatesStableKeys、Verify_SenderPseudoWithFullChurchName_Enforces20、
+ * Verify_LimitedTemplates_AllCultures、Verify_SenderSurrogates_CountsUtf16、
+ * Verify_InvalidLengthConfiguration_Rejects、Verify_KeywordAliases_DetectsSameAndCrossCultureConflict；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;

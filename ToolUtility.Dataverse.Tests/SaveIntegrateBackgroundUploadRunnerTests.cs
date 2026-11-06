@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 SaveIntegrate 背景 runner 的安全結果紀錄。 測試以可控的 scope、DI 與上傳委派注入失敗，不連線 CRM、不建立 Session，並在每個案例結束時 釋放暫存 Trace 檔與 
+ * DI provider，防止測試資源或跨案例 trace context 殘留。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SaveIntegrateBackgroundUploadRunnerTests、TestToolUtilityProvider、ThrowingToolUtilityProvider、
+ * NoopDisposable、TestOwnedServiceScope。
+ * - 保護背景工作只有 upload 正常完成才能記錄 succeeded；scope 結束的 bg.end 不得被當成成功證明。
+ * - 保護建立背景 DI scope 失敗時留下 scope-create/failed，而非只留下無語意的 bg.end。 故障注入不包含例外文字；決定性斷言為固定 errorClass，避免敏感內容寫入 JSONL。
+ * - 保護 provider／ToolUtility 初始化失敗會保留精確 stage 與粗粒度 dependency-resolution 分類。
+ * - 保護 ToolUtility 實例建立失敗會標記 toolutility-resolve，而不會錯誤歸類成上傳失敗。
+ * 測試案例入口包含 RunAsync_RecordsSucceededOnlyAfterUploadCompletes、
+ * RunAsync_RecordsScopeCreationFailureWithoutExceptionText、RunAsync_RecordsProviderResolutionFailure、
+ * RunAsync_RecordsToolUtilityResolutionFailure、RunAsync_RecordsUploadFailureWithoutSucceededOutcome、
+ * RunAsync_RecordsCleanupFailureSeparately、RunScenarioAsync、CreateScope；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using System.ServiceModel;

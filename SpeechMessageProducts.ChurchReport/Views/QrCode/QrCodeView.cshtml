@@ -1,3 +1,15 @@
+@*
+    檔案整體說明
+
+    目的與定位：提供課程或活動QR Code通用入口畫面，將掃描參數交既有產品端點確認。
+
+    主要功能與流程：
+    透過下方Razor／HTML及資源宣告完成呈現；是否為全頁、partial或初始化設定依本檔宣告決定。
+
+    使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
+    修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
+*@
 
 <div class="long-title"><h3 id="classnamefield"></h3></div>
 <div class="long-title"><h3 id="usernamefield"></h3></div>
@@ -11,7 +23,7 @@
                         .Position(p => p
                         .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                         .Offset(0, 50))
-                        .Message("�H�Q��")
+                        .Message("以利亞")
                         .DisplayTime(2000)
                         .MaxWidth(200)
         )
@@ -26,9 +38,9 @@
 <script>
     var dictionary = {
         "zh-tw": {
-            "dxScheduler-switcherAgenda": "�|ĳ���e", // �b�o�̥i�H���̫᪺�r�����
-            "Month": "��",
-            "Subject": "�D�D",
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
             "Company": "Company",
             "Amount": "Amount",
             "PaymentDate": "Payment Date"
@@ -66,12 +78,12 @@
             liff.init({ liffId:  '@TempData["Proponent"]' })
                 .then(() =>
                 {
-                // ?�d��?�O�_�w�n?
+                // ?查用?是否已登?
                   if (!liff.isLoggedIn())
                   {
-                      document.getElementById('displaynamefield').innerHTML = "�z�٨S���n�JLINE";
+                      document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
 
-                      ShowToast("�z�٨S���n�JLINE", "error", 5000);
+                      ShowToast("您還沒有登入LINE", "error", 5000);
 
                       liff.login();
 
@@ -81,22 +93,22 @@
                   {
                       liff.permission.query("profile").then((permissionStatus) => {
                           if (permissionStatus.state === "granted") {
-                              //�ϥΪ̤w���v
+                              //使用者已授權
                               initializeApp();
                           }
                           else if (permissionStatus.state === "prompt") {
-                              document.getElementById('displaynamefield').innerHTML = "�z�å����v�A�Х��������v�{��!";
+                              document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
                               liff.permission.requestAll();
                           }
                           else {
-                              document.getElementById('displaynamefield').innerHTML = "Liff Scope�S���]�w�A�ҥH�L�k�ާ@!";
+                              document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
                           }
                       });
                   }
                 })
                 .catch(error => {
-                    // ���~�B�z Liff LLogin
-                    document.getElementById('displaynamefield').innerHTML = "���~:" + error;
+                    // 錯誤處理 Liff LLogin
+                    document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
                 });
         };
 
@@ -112,43 +124,43 @@
     async function initializeApp() {
         await liff.getProfile()
             .then(function (profile) {
-                document.getElementById('displaynamefield').innerHTML = "�˷R��" + profile.displayName + "<br />�z�w���y�FQR Code" + "�бz�@�ߵ��Ԭ�15~30���A���n��������!";
+                document.getElementById('displaynamefield').innerHTML = "親愛的" + profile.displayName + "<br />您已掃描了QR Code" + "請您耐心等候約15~30秒，不要關閉網頁!";
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
-                //alert("���� UserId =" + UserId);
+                //alert("測試 UserId =" + UserId);
                 GroupId = profile.aGroupId;
                 RoomId = profile.aRoomId;
                 ViewType = profile.aViewType;
-                //alert("����004!" + DisplayName);
+                //alert("測試004!" + DisplayName);
 
-                // ���o UserId ��Ajax
+                // 取得 UserId 的Ajax
                 UpdateLineUserId(DisplayName, UserId, GroupId, RoomId, ViewType);
             })
             .catch(error => {
-                // ���~�B�z Liff LLogin
-                document.getElementById('displaynamefield').innerHTML = "���~:" + error;
+                // 錯誤處理 Liff LLogin
+                document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
             });
 
     }
 
     function UpdateLineUserId(aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType)
     {
-                    // AJAX �϶�
+                    // AJAX 區塊
                     return $.ajax
                     (
                         {
                             url: '@Url.Action("QrCodeGetLineId", "QrCode")',
-                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // ��z�^�ǵ� Server ���I�W���
+                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
                             //async: false,
                             success: function (data)
                             {
-                                if (data.result.includes("���~") != true) {
-                                    // ���T���y
-                                    document.getElementById('classnamefield').innerHTML = "�W��: " + data.classname;
-                                    document.getElementById('usernamefield').innerHTML = "�m�W: " + data.username;
-                                    document.getElementById('classindexfield').innerHTML = "��T: " + data.classindex;
-                                    //document.getElementById('onboardtypefield').innerHTML   = "ñ��h�ɶ�: "  + data.onboardtype;
+                                if (data.result.includes("錯誤") != true) {
+                                    // 正確掃描
+                                    document.getElementById('classnamefield').innerHTML = "名稱: " + data.classname;
+                                    document.getElementById('usernamefield').innerHTML = "姓名: " + data.username;
+                                    document.getElementById('classindexfield').innerHTML = "資訊: " + data.classindex;
+                                    //document.getElementById('onboardtypefield').innerHTML   = "簽到退時間: "  + data.onboardtype;
                                     document.getElementById('onboardtypefield').innerHTML = data.onboardtype;
                                     document.getElementById('displaynamefield').innerHTML = "";
                                 }
@@ -166,7 +178,7 @@
                             }
                         }
                     );
-                    // AJAX �϶�
+                    // AJAX 區塊
         }
 
         function ShowToast(LocalToastMessage, Type, DisplayTime) {

@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：全域 legacy 綁定測試與其他案例隔離，避免同程序的兩個 owner 互搶收件路徑。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ExceptionReportingCollection、ChurchReportLineAdminNotificationServiceTests。
+ * - 模擬業務 catch 先經相容入口上報、上層再次收到同一例外；必須只有一筆事件。 sender 讀取真實檔案確認同 ID 已落檔，並驗證型別／堆疊保留而原始敏感訊息排除。
+ * - 舊二／三參數入口統一 owner；驗證傳入的 error/category 不進 LINE／log。
+ * 測試案例入口包含 Exception_facade_preserves_diagnostics_and_deduplicates_outer_report、
+ * Legacy_calls_use_shared_log_before_line_without_raw_error_text。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Services;
 using ToolUtilityNameSpace.Diagnostics;
 using Xunit;

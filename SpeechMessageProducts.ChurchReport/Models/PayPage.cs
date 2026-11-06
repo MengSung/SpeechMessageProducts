@@ -1,16 +1,22 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/PayPage.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
-// 主要型別：class PayPage
-// 主要成員：store_uid、user_id、user_name、user_real_name、user_zipcode、user_address、user_sn_type、user_sn、user_phone、user_cellphone_code
-// 引用命名空間：System、System.Collections.Generic、Newtonsoft.Json
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保存舊付款頁建立交易時的欄位形狀，供既有畫面／adapter相容使用；供應商協定與真正付款建立交由共用金流核心，不能在此模型中加入CRM或LINE副作用。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PayPage。
+ * - 訂單總金額 = 物品之總價加總 + 折價 + 運費(如為定期定額交易，此為每一期的應扣金額)
+ * - 消費者來源 IP(格式務必正確，部分金流服務商後續處理會驗證)
+ * - 總期數(如為 12 期即代入 12，如果不設定終止期，請代入 0)
+ * - 定期扣款起扣日 (不得小於當日，若未指定日期，將判定為當日扣款，格式為 YYYYMMDD，如 20090916)
+ * 資料／選項欄位包含 PayPage、store_uid、user_id、user_name、user_real_name、user_zipcode、user_address、user_sn_type、user_sn、
+ * user_phone、user_cellphone_code、user_cellphone、user_email、user_birthday、cost、currency，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 SpeechMessageProducts.ChurchReport/Models/PayPageResponse.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;

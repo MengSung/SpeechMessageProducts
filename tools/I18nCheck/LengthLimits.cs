@@ -1,3 +1,20 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：單次讀入並驗證的長度政策，只保存合成最長名稱，不含真實教會或個資。 不允許透過改配置放寬核定Sender20/ChatBar14；JSON reader由本次呼叫立即Dispose。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LengthLimits。
+ * - 檢查JSON重複／未知屬性、型別及固定門檻；缺檔不得跳過驗證。
+ * - 從尚未Dispose的JSON文件建立完整純字串候選；所有JsonElement只在此stack內，禁止逃出文件owner。
+ * - 拒絕重複屬性而非讓JSON最後值勝出；集合只存在於讀取期間且最多十六項。
+ * 主要操作入口包含 LengthLimits、Load、ReadCandidate、UniqueProperties。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck/ResourceVerifier.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Text.Json;
 
 namespace I18nCheck;

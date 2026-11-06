@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護完整組織／產品／正式教會設定的不可變發布；全部設定為合成值，不連資料庫或保存使用者資料。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TenantSettingsTests。
+ * - 固定預期值只供 Assert 比較，不保存租戶資料且不交給產品修改。
+ * - 未提供任何教會設定時採正式繁中／台北／台灣／TWD 地基，品牌留空交產品選現有後備。
+ * - 同教會 ID 的不同組織、同組織不同產品及不同教會逐一改變，不能命中另一範圍品牌或語系。
+ * - 設定根後續變更只影響下次讀取，已回傳的 locale 清單及品牌不能被修改；來源不以 Section 對外傳遞。
+ * 測試案例入口包含 GetSettings_Defaults_PreserveCompleteScope、GetSettings_DifferentScopes_DoNotCrossTalk、
+ * GetSettings_SourceChanges_PreservePreviousSnapshot、GetSettings_MissingChurchOrForeignProduct_Rejects、
+ * GetSettings_InvalidCultures_RejectsWholeCandidate、GetSettings_EmptyTimeZone_RejectsAndCanRetry、
+ * GetSettings_InvalidField_RejectsCandidate、GetSettings_ConcurrentScopes_DoNotCrossTalkOrRetainResults；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

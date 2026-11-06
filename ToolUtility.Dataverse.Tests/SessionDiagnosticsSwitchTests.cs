@@ -1,13 +1,19 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility.Dataverse.Tests/SessionDiagnosticsSwitchTests.cs
-// 所屬區塊：ChurchReport Session 隔離與診斷輸出契約的回歸測試。
-// 檔案責任：驗證逐步 Session 診斷在預設停用時不進入 Debug 輸出管線，避免 request
-//           路徑因同步磁碟 I/O 污染效能量測，或把 session / 用戶端資料留存到 trace。
-// 測試生命週期：本測試只讀取 repo 內受版控的 C# 來源，不建立 listener、stream、timer、
-//           background task 或靜態 request 狀態，因此沒有跨測試資源需要回收，也不會污染原始 trace。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與最終 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 Session 診斷開關預設關閉與全部輸出呼叫皆受同一入口保護的來源契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SessionDiagnosticsSwitchTests。
+ * - 保護預設關閉時四個既有 Session 診斷區段不會進入未受控 Debug 輸出的契約。
+ * - 從測試輸出目錄向上找到 repo root，避免依賴測試 runner 的目前工作目錄。
+ * 測試案例入口包含 Session_diagnostics_are_default_disabled_and_all_call_sites_are_guarded、FindRepositoryRoot、
+ * CountMatches。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.IO;
 using System.Text.RegularExpressions;

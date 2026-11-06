@@ -1,3 +1,30 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：Singleton Dataverse 連線管理器。 它解析完整 Pool Key、建立 bounded pool，並把 client 建立與 WhoAmI 健康檢查集中在唯一路徑； manager 
+ * 本身不依賴任何 scoped 服務，存活至 DI 容器關閉並在 Dispose 時確定性釋放 pool。Pool Key 僅取自受信任的組合根與必要組態，絕不採納 caller 的使用者、tenant 或 profile 
+ * 資料， 因此不會在跨 request 或跨環境間共用可變連線狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DataverseConnectionManager。
+ * - 建立 manager 與其唯一 bounded pool。product 與 environment 由組合根傳入， 不採用呼叫端提供的資料作為隔離權限來源。ServerUrl 與 Username 是完整隔離鍵與 
+ * 有效服務身分的必要設定；任一缺漏都會立即拒絕建立，絕不回退到硬編碼環境或帳號。
+ * - 取得由此 manager 唯一擁有並供組合根註冊的 singleton pool。呼叫端只能透過 lease 操作， 不得自行 Dispose 底層 client；manager 關閉時會依 pool 
+ * 的生命週期規則統一釋放資源。
+ * - 使用從受信任 Product、Environment、OrganizationUrl 與 EffectiveIdentity 組成的完整 key 取得 lease。呼叫端無法提供或覆寫隔離邊界，因此不可藉此跨 
+ * tenant、profile 或環境取得連線。
+ * - 取得 pool 的唯讀健康與容量計數，供診斷使用且不暴露 raw client 或任何憑證。
+ * 主要操作入口包含 Acquire、GetMetrics、Dispose、CreateClient、IsHealthy、RequireValue、RequireConfigurationValue、
+ * ThrowIfDisposed。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/BoundedClientPoolTests.cs、
+ * ToolUtility.Dataverse.Tests/GatewayArchitectureTests.cs、
+ * ToolUtility.Tests/DependencyInjection/ProductRegistrationTests.cs、
+ * ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Threading;

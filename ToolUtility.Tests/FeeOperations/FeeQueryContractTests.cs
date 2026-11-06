@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護 P1-04 新增收費查詢及既有查詢安全契約。所有資料、ID與故障均合成； 每案獨立借入 SDK 替身，沒有實機連線、共享快取或持續背景工作。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FeeQueryContractTests。
+ * - 鎖定三個舊來源補回方法的完整條件及欄位；注入同名不同ID兩筆資料， 以完整golden及兩筆ID斷言證明沒有按名稱合併或丟失。
+ * - 課程ID是查詢界線；注入空白、空GUID及XML注入字串均須在I/O前拒絕， 不可將XML編碼誤當成授權或合法識別碼驗證。
+ * - 舊API保留但未使用的課程名稱可含XML字元，不能被加入查詢或拿來當識別／權限； 完整golden仍相等，證明兩個方法只按伺服器提供的課程ID查詢。
+ * - 訂單號是文字而非GUID；含所有XML特殊字元仍須只產生原有兩個OR條件， 解碼後值逐字相等，不能新增節點或讓卡／ATM任一分支遺失。
+ * 測試案例入口包含 NewQuery_MatchesGoldenAndPreservesSameNameRows、LessonQuery_InvalidId_RejectsBeforeIo、
+ * LessonQuery_DisplayNameCannotChangeScope、OrderQuery_XmlSpecialCharacters_RoundTripWithoutInjection、
+ * OrderQuery_EmptyInput_RejectsBeforeIo、NewQuery_SdkFault_PropagatesSameException、
+ * FormerPlaceholder_UsesEstablishedQuery、Query_DuplicateStableId_RejectsPublication；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Globalization;
 using System.Linq;

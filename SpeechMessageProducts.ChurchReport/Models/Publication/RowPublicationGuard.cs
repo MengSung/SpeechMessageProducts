@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：提供不保存呼叫端狀態的資料列發布前驗證，讓各產品可在實際 consumer boundary 以資料庫唯一 ID 阻止重複列、缺少身份與無界集合進入 UI。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RowPublicationGuard。
+ * - 小組週報 Grid 的固定診斷／契約名稱；它不是資料列身份，也不得被拿來 取代 PresentRecordId 。集中管理可避免 manifest、API 與測試在重構後 各自保留不同文字，導致錯誤診斷無法對應到實際 
+ * consumer。
+ * - 新人跟進 Grid 的固定診斷／契約名稱；同樣只用於可觀測性與契約對照， 不參與任何資料去重、授權或 Session 判斷。
+ * - 快取候選驗證所使用的小組資料集名稱，與 Grid consumer 命名保持可追蹤關聯。
+ * - 目前 ChurchReport 完整週報 consumer 的預設安全容量；產品可在未來 consumer contract 以明確設定覆寫，但不得用無界集合取代上限。
+ * 資料／選項欄位包含 RowPublicationGuard、SmallGroupGridConsumerName、NewPersonGridConsumerName、SmallGroupDatasetName、
+ * NewPersonDatasetName、HappyGroupDatasetName、AllMembersDatasetName、DefaultMaximumRowCount，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/RowPublicationGuardTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs、
+ * SpeechMessageProducts.ChurchReport/Models/ListManager.cs 追查目前工作樹中的合作／使用位置。
+ */
 // ============================================================================
 // 檔案路徑：SpeechMessageProducts.ChurchReport/Models/Publication/RowPublicationGuard.cs
 // 檔案責任：在集合交付給 Razor、JSON serializer、DataSourceLoader、Grid、報表或匯出器前，

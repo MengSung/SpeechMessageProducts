@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：固定產品部署的 DI 組合根；不保存 request、不接管外部 IConfiguration，不建立背景資源。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TenancyServiceCollectionExtensions、ProductRegistration、LegacyLineChannelAccess。
+ * - 註冊同一產品的共用解析入口及不可變設定 provider；重複相同產品可重入，跨產品誤註冊必須拒絕。
+ * - 保留舊可選 token 入口；未設定回空，來源故障向上拋給原始失敗邊界。呼叫者須先驗證部署組織。
+ * 主要操作入口包含 AddSpeechMessageTenancy、GetOptionalAccessToken。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * SpeechMessage.Tenancy.Tests/TenancyCompositionTests.cs、LineMessagingProcessor/LineMessagingProcessorClass.cs、
+ * SpeechMessageProducts.ChurchReport/Services/ChurchReportLineChannelAccess.cs、
+ * SpeechMessageProducts.ChurchReport/Services/LineExceptionSender.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

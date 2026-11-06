@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護 P0-07 原列十二個契約，以最小來源及假資源注入 CJK、忽略、棘輪與資源錯誤。 每個案例使用獨立暫存目錄，沒有共享可變狀態，斷言實際數量、錯誤或輸出位元組。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 I18nContractsTests、ResourceFixture。
+ * - 注入 ILogger 樣板及一個顯示常值，排除診斷時仍必須保留顯示常值。
+ * - 中文只出現在註解；若改為文字搜尋而非語法樹，零計數就會失敗。
+ * - 對成員注入有理由的忽略標記，同類別未標記成員仍必須計數。
+ * - 打亂資源列順序，兩次產出仍必須逐位元組相同，且鍵依 Ordinal 排序。
+ * 測試案例入口包含 Scan_LiteralWithCjk_IsCounted、Scan_LoggerTemplate_IsExcluded、Scan_CommentOnly_IsNotCounted、
+ * Scan_I18nIgnoreAttribute_IsExcluded、Ratchet_CountIncreases_Fails、
+ * Ratchet_CountDecreases_PassesAndReportsImprovement、Generate_SameInput_ByteIdenticalOutput、
+ * Generate_OutputIsUtf8NoBomCrlf；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;

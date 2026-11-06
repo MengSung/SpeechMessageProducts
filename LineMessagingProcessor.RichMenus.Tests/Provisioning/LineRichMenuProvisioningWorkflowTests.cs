@@ -1,16 +1,22 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus.Tests/Provisioning/LineRichMenuProvisioningWorkflowTests.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class LineRichMenuProvisioningWorkflowTests
-// 主要成員：SyncAsync_creates_uploads_aliases_defaults_and_caches_new_menu、SyncAsync_reuses_existing_fingerprinted_menu_and_updates_alias_when_needed、SyncAsync_records_failed_item_and_continues_with_next_definition
-// 引用命名空間：FluentAssertions、LineMessagingProcessor.RichMenus.Tests.Support、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 RichMenu catalog 佈建 workflow 與 LINE provider 狀態同步的核心行為。 測試重點是 create/upload/alias/default/cache 的順序，
+ * 以及失敗選單不會中斷後續選單同步。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineRichMenuProvisioningWorkflowTests。
+ * - 新選單不存在於 LINE 時，workflow 應建立 RichMenu、上傳圖片、建立 alias、設定 default 並寫入 cache。
+ * - 已存在相同 fingerprinted name 時，workflow 應重用 provider richMenuId，仍補齊 alias 與 cache。
+ * - 單一 definition 失敗時應產生 Failed item 並繼續處理下一個 definition，讓管理端看到完整同步結果。
+ * 測試案例入口包含 SyncAsync_creates_uploads_aliases_defaults_and_caches_new_menu、
+ * SyncAsync_reuses_existing_fingerprinted_menu_and_updates_alias_when_needed、
+ * SyncAsync_records_failed_item_and_continues_with_next_definition。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using FluentAssertions;
 using LineMessagingProcessor.RichMenus.Tests.Support;
 using Xunit;

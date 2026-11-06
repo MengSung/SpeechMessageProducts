@@ -1,16 +1,27 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Tools/QrCodeUtility.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class QrCodeUtility
-// 主要成員：GetLineChannelAccessToken、SetupQrCodeIdString、SigningLesson、SigningProcess、SetStorLessonsTimeAttribute、SetStorLessonsEnrollTimeAttribute、GetStorLessonsTimeAttribute、GetClassAttribute、CreateNewStorLesson、UpdateNewStorLesson
-// 引用命名空間：ChurchReport.WebServiceConnector、System、System.Collections.Generic、System.IO、System.Linq、System.Text.RegularExpressions、System.Threading.Tasks、System.Runtime.CompilerServices
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：提供課程及活動QR Code流程的共用舊入口，連接掃描資料、CRM操作與LINE訊息呈現；組態解析採既有集中邊界，掃描內容只是輸入，不能直接取得資料操作權限。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 QrCodeUtility。
+ * - QrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試 
+ * token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
+ * - 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
+ * - 建立課程 QR Code 工具，使用呼叫端目前 request scope 的 ToolUtility。 此 ToolUtility 由呼叫端的 request scope 提供，本型別不擁有、不釋放。
+ * - 保留既有可選 token 簽章，解析集中委派 Tenancy；部署設定由 host 擁有，不保存 request 或跨操作結果。 真正設定故障由產品共用邊界上報原例外後回空；不再輸出來源值或例外本文。
+ * 主要操作入口包含 Dispose、GetLineChannelAccessToken、SetupQrCodeIdString、SigningLesson、SigningProcess、
+ * SetStorLessonsTimeAttribute、SetStorLessonsEnrollTimeAttribute、GetStorLessonsTimeAttribute；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorGatewayAdapterTests.cs、
+ * ToolUtility.Dataverse.Tests/ScopedToolUtilityConsumerTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/PhoneBindingController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/QrCodeController.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.WebServiceConnector;
 using ChurchReport.Configuration;
 using System;

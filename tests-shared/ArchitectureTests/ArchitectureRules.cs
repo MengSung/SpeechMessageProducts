@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：一個專案在一個實際目標上的唯讀評估資料；不載入產品 DLL，不含使用者或租戶狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ArchitectureProject、ArchitectureViolation、ArchitectureRules。
+ * - 驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。
+ * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
+ * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
+ * - 以實際 DAG 而非示意圖的位置標記層級；同層彼此也不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
+ * 測試案例入口包含 ArchitectureProject、ArchitectureViolation、Validate、ValidateFrameworkAssets、IsSandbox、IsHost、Layer。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ * 可沿 tests-shared/ArchitectureTests/ArchitectureProjectReader.cs、
+ * tests-shared/ArchitectureTests/ArchitectureRuleTests.cs、tests-shared/ArchitectureTests/ArchitectureXmlTests.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

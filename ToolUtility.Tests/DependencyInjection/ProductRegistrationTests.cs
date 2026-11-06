@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證產品組合根真正傳入連線池的完整隔離鍵，而非只檢查註冊文字。 外部連線由合成 SDK 替身取代；容器是唯一 pool owner，每案結束必確定性 Dispose。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ProductRegistrationTests。
+ * - 兩個產品使用相同合成組織／身分時，實際租約仍進入不同 Product 鍵。 若 factory 仍寫死 ChurchReport，本案必失敗；釋放後租約／等待者歸零，容器再關閉 client。
+ * - 原本無參數的公開 overload 必須保留 ChurchReport 鍵與 DI 組態讀取， 不能在註冊期間另建容器或連線，亦不能讓未解析服務逃過容器關閉。
+ * - 同一容器先後註冊不同產品必須拒絕，不能讓 TryAddSingleton 靜默沿用第一個產品。 失敗前後服務描述數相等，避免部分註冊污染現有組合根。
+ * - 完全相同組態與產品的重複註冊必須冪等，不能建立第二份 singleton owner 或 scoped provider。
+ * 測試案例入口包含 AddToolUtility_ProductParameter_PartitionsConnectionKey、AddToolUtility_LegacyOverload_UsesChurchReport、
+ * AddToolUtility_DifferentProductsInOneContainer_RejectsWithoutMutation、
+ * AddToolUtility_SameRegistration_IsIdempotent、AddToolUtility_InvalidProduct_RejectsBeforeRegistration、
+ * AddToolUtility_ConflictingConfiguration_RejectsWithoutMutation、Configuration、Client；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections;
 using System.Collections.Generic;

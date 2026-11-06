@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：實際建立 ToolUtilityClass 並執行公開入口→Facade→Lazy→Core 的完整附件委派鏈。 僅替代 SDK I/O，使用空設定與無輸出 tracer，不讀憑證、不連線或發 LINE； 
+ * 此證據保護跨組件路徑，不冒充 D365 實機或 host 的授權驗收。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AttachmentCallerRouteTests。
+ * - 下載必須抵達 ref SDK 而非建構 SDK，正常頁保留；錯 parent 整頁拒絕並保留故障。 using 排空 host 工具後仍不得處置任一借入 SDK，無快取或背景資源殘留。
+ * - 上傳在真實公開委派鏈保持七欄及 ref SDK；注入 SDK 參數例外仍保存同一 InnerException。 Dispose 只結束工具自有生命週期，不擁有借入 SDK，不把故障偽裝成功或做隱藏重試。
+ * 測試案例入口包含 PublicDownload_RoutesRefSdkAndRejectsWrongParent、PublicUpload_RoutesSevenFieldsAndPreservesFault。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

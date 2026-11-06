@@ -1,16 +1,33 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/DonationPaymentLoginController.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
-// 主要型別：class DonationPaymentLoginController
-// 主要成員：Index、ProcessDonationPaymentLogin、RememberWebLoginContact、ClearRememberedWebLoginContact
-// 引用命名空間：System、System.Collections.Generic、ChurchReport.Models、ChurchReport.Payments、ChurchReport.ViewModel、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：處理網頁版奉獻付款登入的 Controller。 這個 Controller 的重點不是「呼叫金流」，而是「確認奉獻者身分」： 使用者在網頁登入表單輸入姓名、身分證字號與手機後，ChurchReport 會到 
+ * CRM 找 contact。 找到 contact 後，才把 contact 轉成後續奉獻付款頁需要的表單狀態。 為什麼這個類別要叫 DonationPaymentLoginController： - 登入流程是 
+ * ChurchReport 的奉獻付款產品流程，不屬於永豐、高鉅或台新任何一家 provider。 - 真正要使用哪一家金流，是後續建立付款訂單時由 appsettings 與 payment profile 決定。 - 
+ * 舊網址 /QPayLogin 仍保留在 Route attribute，因為那是外部網址相容，不代表 C# 類別要保留舊 provider 名稱。 這樣切分後，未來其他 ASP.NET Core 產品也可以學同一個模式： 
+ * 各產品自己處理會員/客戶登入與資料查詢，再把結果轉成共用付款 DTO，而不是把產品登入流程塞進金流核心。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentLoginController。
+ * - 顯示網頁版奉獻付款登入頁。 這裡保留舊路由 /QPayLogin，避免舊連結失效； 但 View 檔名使用 DonationPaymentLogin.cshtml，讓專案檔與檔案總管中看到的名稱都是產品中性名稱。
+ * - 處理網頁版奉獻付款登入表單。 流程說明： 1. 先檢查表單是否有姓名、身分證字號、手機。這些是 ChurchReport 查 CRM contact 的基本條件。 2. 將身分證字號轉成大寫，避免大小寫差異造成 CRM 
+ * 查詢不到。 3. 呼叫 DonationPaymentManager.GetDonationPaymentLoginContact 查詢或建立奉獻者 contact。 4. 查到 contact 後，呼叫 
+ * SetDonationPaymentModel，把 CRM contact 轉成奉獻付款表單模型。 5. 把 contact id 存到 ASP.NET Session，讓下一個 redirect request 
+ * 可以還原同一位奉獻者資料。 這個 action 回傳 JSON，是為了配合原本 AJAX 登入頁流程。
+ * - 記住網頁登入取得的 CRM contact id。 為什麼要放進 Session： AJAX 登入成功後，前端通常會 redirect 到奉獻付款頁。redirect 會產生新的 HTTP request， 而新的 
+ * request 不一定還拿得到剛才記憶體中的完整 DonationPaymentManager 狀態。 把 contact id 放進 Session 後，DedicationController 可以用這個 id 
+ * 重新讀取 CRM contact， 再還原姓名、奉獻編號、信用卡清單、定期定額清單等畫面需要的資料。
+ * - 清除網頁登入 contact id。 只要表單資料不完整、CRM 查詢失敗、contact id 無效，就清掉 Session。 這樣下一次進入奉獻頁時不會誤用上一位奉獻者的資料。
+ * 主要操作入口包含 Index、ProcessDonationPaymentLogin、RememberWebLoginContact、ClearRememberedWebLoginContact。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/DedicationController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/HomeController.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using ChurchReport.Models;

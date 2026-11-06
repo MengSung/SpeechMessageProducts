@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：持有每個語系的完整唯讀系統文字快照；建立時補齊 zh-TW 後備，再一次發布。 沒有 I/O、教會覆寫或可變 request 狀態；每個實例只持有固定資源，生命週期由消費者擁有。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SystemTextTable。
+ * - 只保存原始翻譯的凍結表，與完整後備分開，容量僅隨固定資源增加。
+ * - 建立完成後才賦值的凍結語系表；容量只取決於固定資源，不保留查詢參數或外部陣列。
+ * - Framework 原始翻譯表由單一建構式擁有，完成後封裝且不再修改。
+ * - 包住本實例獨佔且不再修改的候選字典；不公開或保留其他可變擁有者。
+ * 主要操作入口包含 GetText、GetTable、TryGetOriginalText。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/OverrideCacheExceptionTests.cs、
+ * SpeechMessage.Localization.Tests/ChurchClockTests.cs、
+ * SpeechMessage.Localization.Tests/ChurchTextOverrideValidatorTests.cs、
+ * SpeechMessage.Localization.Tests/KeywordCatalogTests.cs、SpeechMessage.Localization.Tests/MoneyTests.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

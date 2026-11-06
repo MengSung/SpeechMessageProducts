@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保留既有 Repository API 與操作失敗包裝，委派唯一的 Core CRUD／Owner／Query 驗證。 實例只限借入 SDK 的原授權 scope，禁止跨使用者／租戶 singleton；不保存 
+ * Entity、Query 或回應。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IEntityRepository、EntityRepository。
+ * - 建立一次並要求 SDK 確認非空資料庫 ID；業務冪等鍵須由 caller 與資料庫事先保證。
+ * - 只更新具有正式非空 ID 的實體；此舊契約不接受僅有替代鍵的候選。
+ * - 精確刪除已授權的實體與資料庫 ID，不按名稱合併或刪除同名記錄。
+ * - 每次直接讀取 SDK 並核對 ID／實體；null 欄位沿用完整欄位，指定欄位原樣傳遞。
+ * 主要操作入口包含 Create、Update、Delete、Retrieve、RetrieveMultiple、AssignOwner。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Tests/DataOperations/ListCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/ListLifecycleTests.cs、ToolUtility.Tests/DataOperations/ListSafetyTests.cs、
+ * ToolUtility.Tests/DataOperations/RepositoryCharacterizationTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;

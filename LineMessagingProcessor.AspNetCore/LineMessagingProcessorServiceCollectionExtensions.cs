@@ -1,16 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.AspNetCore/LineMessagingProcessorServiceCollectionExtensions.cs
-// 所屬區塊：LINE Messaging Processor 的 ASP.NET Core DI 與整合測試區塊。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LineMessagingProcessorServiceCollectionExtensions
-// 主要成員：AddLineMessagingProcessor、AddLineRichMenus
-// 引用命名空間：Line.Messaging、LineMessagingProcessor、LineMessagingProcessor.RichMenus、LineMessagingProcessor.Workflows、Microsoft.Extensions.DependencyInjection、Microsoft.Extensions.DependencyInjection.Extensions、Microsoft.Extensions.Options
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ASP.NET Core DI 註冊入口，集中註冊共用 LINE processor 家族。 註冊流程刻意拆開：未來產品可以只使用共用 RichMenu 核心， 不必同時被迫提供產品專屬的 catalog、
+ * policy 或持久化 state store。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineMessagingProcessorServiceCollectionExtensions。
+ * - 註冊共用 LINE Messaging client、低階 processor 與預設工作流。 RichMenu 基礎服務會在這裡一併掛上，但產品專屬 catalog 仍由 
+ * AddLineRichMenuProvisioning{TCatalog} 明確提供。
+ * - 註冊產品中立的 RichMenu services。 此方法不註冊 ILineRichMenuCatalog，因為 catalog 內容屬於各產品。 未來 ASP.NET Core 產品可先註冊 
+ * LineMessagingProcessorClass， 再加上自己的 catalog、policies 與持久化 state store。
+ * - 使用產品擁有的 catalog 註冊 RichMenu provisioning。 將 provisioning 與 AddLineRichMenus 分開，可避免共用核心要求每個應用程式 必須先定義選單，才能使用 
+ * assignment、文字 trigger 或舊版 workflow services。
+ * 主要操作入口包含 AddLineMessagingProcessor、AddLineRichMenus。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ */
 using Line.Messaging;
 using LineMessagingProcessor;
 using LineMessagingProcessor.RichMenus;
@@ -133,4 +140,3 @@ public static class LineMessagingProcessorServiceCollectionExtensions
         return services;
     }
 }
-

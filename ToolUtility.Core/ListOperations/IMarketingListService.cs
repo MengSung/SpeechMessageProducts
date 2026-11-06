@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：行銷名單與批次成員操作的純 BCL／SDK 契約；保留既有 namespace、參數順序與預設值供兩個產品目標共用。 不包含 host 連線、cache、logger 或排程實作，介面搬移不代表舊 host 
+ * 已完成安全純化。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IMarketingListService。
+ * - 沿用行銷名單成員查詢；集合只屬本次 caller，正式成員 ID 不同者不可按顯示名稱合併。
+ * - 保留舊行銷名單 ArrayList 輸出；caller 獨占資料，不能把暫存位置當正式資料身份。
+ * - 加入一筆已授權名單關係；使用正式記錄 ID，是否可重試由 host 的資料庫冪等策略判斷。
+ * - 沿用可取消批次加入契約；Task 完成前 caller 不可釋放借入 SDK，取消不代表已提交的寫入自動回復。
+ * 資料／選項欄位包含 IMarketingListService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Core/ListOperations/MarketingListService.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections;

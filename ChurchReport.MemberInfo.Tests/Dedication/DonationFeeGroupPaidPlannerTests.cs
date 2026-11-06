@@ -1,11 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Dedication/DonationFeeGroupPaidPlannerTests.cs
-// 檔案責任：鎖定 callback 逐張入帳規則：任意類別數量時每張收費單實收＝自己的應收（未繳金額＝0）、
-//           舊程式把整筆付款寫進單一收費單時的校正、冪等、人工調整不覆蓋、金額不符註記，以及單張收費單舊規則。
-// 測試隔離：只建立不可變快照，不連線 CRM、金流、LINE 或 Session。
-// 編碼要求：本檔案維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證多類別付款按各收費單自己的應付額入帳、重跑不再異動及人工調整不被覆寫，防止把群組總額寫到單一收費單。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationFeeGroupPaidPlannerTests。
+ * 測試案例入口包含 NewGroup_EveryFeeIsPaidWithItsOwnAmount_ForAnyCategoryCount、
+ * Paid1700For800And900_SplitsIntoEachFee_InsteadOfWritingTotalIntoOne、
+ * OldHandlerWroteTotalIntoPrimary_IsCorrected_SiblingIsPaid_AndRerunChangesNothing、
+ * ManualAdjustment_IsNeverOverwritten、AmountMismatch_StillPaysEachFeeItsOwnAmount_AndNeverCorrects、
+ * SingleFee_KeepsLegacyRule_AndIsIdempotent。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using ChurchReport.Tools;

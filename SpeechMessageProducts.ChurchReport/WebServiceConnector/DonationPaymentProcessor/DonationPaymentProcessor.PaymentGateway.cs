@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentGateway.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於付款相關流程，註解重點在說明 provider 邊界、金流狀態、錯誤處理與不可改變的外部契約。
-// 主要型別：class DonationPaymentProcessor
-// 主要成員：CreOrderCard、CreateOrderATM、GetRequiredDonationPaymentCreateGatewayAdapter、CreateDonationPaymentOrder
-// 引用命名空間：ChurchReport.Models、ChurchReport.Payments、Microsoft.Xrm.Sdk、System、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認金額、訂單編號、付款狀態、provider profile、callback acknowledgement 與錯誤訊息是否跨層保持一致。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 奉獻付款處理器 - 金流閘道整合模組 【職責】 - 將 ChurchReport 的奉獻付款資料轉交給中性金流 adapter - 保留既有 CreOrder 回傳形狀，避免一次破壞舊 
+ * Razor/View 流程 - provider 差異由 SpeechMessage.Payments 與 adapter 處理，本類別不直接分辨永豐/高鉅/台新 protocol 【設計模式】 - 
+ * 適配器模式：統一不同金流介面 - 工廠模式：根據配置選擇金流 - 策略模式：動態選擇金流提供商
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentProcessor。
+ * - 建立信用卡/行動支付訂單（多金流支援） 根據配置的 PAY_PROVIDER 動態選擇金流提供商
+ * - 建立奉獻付款訂單。 方法仍回傳舊 CreOrder，是為了讓既有頁面與測試保持相容； 真正的 provider request 已由中性 adapter 轉交給抽離後的金流核心。
+ * 主要操作入口包含 CreOrderCard、CreateOrderATM、GetRequiredDonationPaymentCreateGatewayAdapter、
+ * CreateDonationPaymentOrderWithItems、CreateDonationPaymentOrder。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorGatewayAdapterTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorKeyInNotificationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorMoneyToChineseTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using ChurchReport.Payments;
 

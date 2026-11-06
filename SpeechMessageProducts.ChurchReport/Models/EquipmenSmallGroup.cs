@@ -1,16 +1,22 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/EquipmenSmallGroup.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
-// 主要型別：class EquipmenSmallGroup
-// 主要成員：SmallGroupName、LoginUserId、SmallGroupListEntityId、DirtyFlag、EquipmentContactList
-// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：表示裝備管理樹中的小組節點，帶入小組名單ID、登入識別、異動旗標與裝備學員清單；不同ID的小組即使同名仍是不同節點。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 EquipmenSmallGroup。
+ * 資料／選項欄位包含 EquipmenSmallGroup、SmallGroupName、LoginUserId、SmallGroupListEntityId、DirtyFlag、EquipmentContactList，
+ * 名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/EquipmentController.cs、
+ * SpeechMessageProducts.ChurchReport/Models/EquipmentDataManager.cs、
+ * SpeechMessageProducts.ChurchReport/Models/EquipmentRootClass.cs、
+ * SpeechMessageProducts.ChurchReport/Views/Equipment/EquipmentView.cshtml、
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/ChurchListDataProcessor.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

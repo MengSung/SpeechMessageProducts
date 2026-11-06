@@ -1,16 +1,32 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Middleware/IdentityAuditMiddleware.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 IdentityAuditMiddleware 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class IdentityAuditMiddleware
-// 主要成員：InvokeAsync、CleanupOldTracking
-// 引用命名空間：Microsoft.AspNetCore.Http、Microsoft.Extensions.Logging、System、System.Collections.Concurrent、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：身份審計中間件 (Session Bleeding 防護 - 第六層監控) 設計原則: - Single Responsibility Principle (SRP): 專注於身份一致性監控 - 
+ * Open/Closed Principle: 透過中間件模式擴展，不需修改現有代碼 - Liskov Substitution Principle: 可以安全地加入或移除中間件 - Dependency Inversion 
+ * Principle: 依賴 ILogger 抽象，不依賴具體日誌實現 作用: 即時偵測並記錄每個 HTTP 請求的身份資訊，用於診斷 Session Bleeding 問題。 追蹤 TraceId、User、IP 
+ * 的對應關係，當發現異常時發出警告。 異常情況: - 同一個 IP 下頻繁切換不同使用者 - 同一個 TraceId 出現不同使用者（不應該發生） - 未登入使用者存取需要身份驗證的資源 使用方式: 在 Startup.cs 
+ * 的 Configure 方法中，UseAuthentication 之後註冊: app.UseAuthentication(); #if DEBUG 
+ * app.UseMiddleware&lt;IdentityAuditMiddleware&gt;(); #endif ?? 注意: 此中間件僅在 DEBUG 模式下啟用，避免生產環境的效能影響
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IdentityAuditMiddleware。
+ * - 靜態追蹤字典：記錄 IP 與最後一個使用者的對應關係 用於偵測同一 IP 下的使用者切換 設計考量: - 使用 ConcurrentDictionary 確保執行緒安全 - Key: IP 位址 - Value: 
+ * (LastUser, LastSeen) - 最後一個使用者和時間 ?? 記憶體管理: 為避免記憶體洩漏，應定期清理舊資料 參考 IdentityAuditCleanupService 進行定期清理
+ * - 中間件核心方法：處理每個 HTTP 請求的身份審計 執行流程: 1. 提取請求的身份資訊 (TraceId, User, IP) 2. 記錄審計日誌 3. 檢查異常情況（同 IP 使用者切換） 4. 更新追蹤字典 5. 
+ * 執行下一個中間件 效能考量: - 僅在 DEBUG 模式啟用 - 使用 ConcurrentDictionary 避免鎖定 - 日誌使用結構化格式，便於分析
+ * - 取得當前追蹤資料（供診斷使用） 使用情境: - DiagnosticsController 可以呼叫此方法取得追蹤資料 - 用於即時監控和問題診斷 回傳格式: Dictionary&lt;IP, (LastUser, 
+ * LastSeen)&gt;
+ * - 清除追蹤資料（供定期清理使用） 使用情境: - IdentityAuditCleanupService 定期呼叫此方法 - 清除超過指定時間的舊資料 - 防止記憶體洩漏 清理策略: - 清除超過 1 小時未活動的記錄 
+ * - 保留最近活動的記錄
+ * 主要操作入口包含 InvokeAsync、CleanupOldTracking。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/DiagnosticsController.cs、
+ * SpeechMessageProducts.ChurchReport/Middleware/IdentityAuditCleanupService.cs、
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;

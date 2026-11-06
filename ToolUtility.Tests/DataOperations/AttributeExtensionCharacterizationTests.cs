@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在抽取前保護屬性工具的缺值、別名與就地更新，以及 SDK 擴充的完整請求／分頁契約。 僅用合成實體與受控 SDK 邊界；不連線、不配置 logger 或外部資源。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AttributeExtensionCharacterizationTests。
+ * - 一般值、別名值與真正缺值維持舊文字語義，不把合法的空資料當成故障。
+ * - 移除欄位只改原 Entity 的指定屬性；缺欄位合法、其他值與實體參照不能被替換。
+ * - 設 null 保留屬性存在，才能表達 SDK 清欄位語義；不得誤做成移除屬性而漏送更新。
+ * - 真實擴充入口只 Execute 一次原請求，保留選項、Query 與分頁欄位；合法同名不同 ID 不可被合併。 SDK 只借用，測試結束不會配置或留下外部連線。
+ * 測試案例入口包含 AttributeRead_PreservesValueAndMissingSemantics、AttributeRemove_PreservesEntityAndUnrelatedValues、
+ * AttributeSetNull_PreservesExplicitNullAndOtherValues、ExtensionExecute_PreservesRequestOptionsAndCompletePage。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;

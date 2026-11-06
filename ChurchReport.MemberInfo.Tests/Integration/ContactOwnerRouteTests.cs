@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：實際執行既有 ContactService.AssignOwner 與 ToolUtilityClass／Facade／Core 委派鏈， 僅替代最末端 SDK I/O。保護 logical name、資料庫 
+ * ID、owner 與原始故障不被搬移改壞。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ContactOwnerRouteTests、OwnerRouteFixture、OwnerRouteSdkProxy。
+ * - 既有聯絡人業務方法必須先讀 contact，再以相同資料庫 ID 指派。 注入不同 owner 與目標 GUID，防止測試只因兩個 ID 相同而漏掉錯接。
+ * - SDK 回錯資料表時，既有業務方法經 Core 讀取驗證即失敗，不能向錯誤目標繼續指派。 決定性斷言為讀取一次、Assign 零次，避免以錯 Entity.LogicalName 繞過新檢查。
+ * - 真實業務／Facade 鏈遇到 SDK 指派逾時時保留同一 Exception，且不隱藏重試。 此處不執行最終通知邊界，也不把 provider 的原始訊息當成安全輸出。
+ * - 依既有 35 處呼叫的八種資料表，實際執行 RetrieveEntity→AssignOwner 公開相容路徑。 各案例只用合成資料，保留所有 EntityReference 名稱與 GUID；
+ * 不假稱逐一執行全部業務分支。
+ * 測試案例入口包含 ContactService_AssignOwner_TraversesActualFacadeWithMatchingIdentity、
+ * ContactService_MismatchedRetrievedEntity_StopsBeforeAssignment、
+ * ContactService_AssignmentFailure_PreservesOriginalExceptionWithoutRetry、
+ * LegacyFacade_RetrieveThenAssign_PreservesEveryObservedEntityName、CreateContactService、AssertSingleAssignment、
+ * Dispose、Invoke。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using ChurchReport.Services.Contact.Impl;

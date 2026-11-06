@@ -1,16 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：Line.Messaging/Webhooks/WebhookEvent.cs
-// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class WebhookEvent
-// 主要成員：CreateFrom、Type、Source、Timestamp
-// 引用命名空間：System、System.Collections.Generic
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：LINE webhook 的單筆事件；保留原有型別、來源與時間建構契約，新投遞欄位僅由解析器設定。 模型不驗證簽章也不授予租戶權限；呼叫端必須先驗原始 body 的簽章再消費事件。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 WebhookEvent。
+ * - 平台提供的穩定事件 ID；重送保持同值，缺少欄位的舊事件為 null；不取代後續業務資料庫 ID。
+ * - 本次投遞資訊；每個事件獨立持有，不保留 JSON、HTTP request、token 或跨事件的可變狀態。
+ * - 事件類別，由已知 enum 判定；未知類別沿用舊行為略過，不猜測業務意圖。
+ * - 此事件專屬的來源資料；只供路由提示，不能直接視為伺服器端已授權使用者。
+ * 主要操作入口包含 CreateFrom、CreateEvent。
+ *
+ * 使用邊界與維護：
+ * 協定模型與產品身分／業務授權分離；欄位或列舉值變更須同步檢查JSON相容性、解析分派及雙目標測試。
+ * 可變模型由建立它的操作持有；事件來源、reply token及profile不得被當作跨使用者共用的可變狀態。
+ * 可沿 Line.Messaging/Webhooks/DeviceEvent.cs、Line.Messaging/Webhooks/LeaveEvent.cs、
+ * Line.Messaging/Webhooks/MemberLeaveEvent.cs、Line.Messaging/Webhooks/ReplyableEvent.cs、
+ * Line.Messaging/Webhooks/UnfollowEvent.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 

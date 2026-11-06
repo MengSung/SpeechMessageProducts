@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：同步活動資料操作的舊相容契約；host 先授權活動及 SDK scope，純核心不以 ID／表名代替授權。 所有輸出只屬於 caller 操作，不保存於服務、cache 或靜態集合；故障保留真實例外交最終 
+ * host 告警。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IActivityService。
+ * - 完整讀取所有正式參照，驗過整個消費集合再按來源順序追加；缺列／錯頁／SDK 故障不部分發布。
+ * - 不查 SDK，完整驗證參照及前綴後追加對齊 ID／表名；後段錯型不能留前半段結果。
+ * - 以 ctor 借入 SDK 執行一次原狀態 1／4 轉移；未知回應或故障不能回報成功或重試。
+ * - 以 ctor 借入 SDK 將原 appointment 轉為 3／5；不改變組織狀態模型或連線所有權。
+ * 資料／選項欄位包含 IActivityService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/ActivityHostOperations/ActivityCallerRouteTests.cs、
+ * ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Core/ActivityOperations/ActivityService.cs、
+ * ToolUtility/Core/ToolUtilityFacade.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using Microsoft.Xrm.Sdk;
 using System;

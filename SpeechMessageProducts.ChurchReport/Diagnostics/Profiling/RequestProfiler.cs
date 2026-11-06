@@ -1,16 +1,27 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Diagnostics/Profiling/RequestProfiler.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 RequestProfiler 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class RequestProfiler、class PhaseScope、class NoopDisposable
-// 主要成員：SetActionElapsed、MeasurePhase、RecordPhase、RecordCrmCall、StopAndGetTotalMs、BuildSummaryLine、BuildPhaseLines、BuildEscalationLines、Dispose
-// 引用命名空間：System.Collections.Generic、System.Diagnostics、System.Text、System、Microsoft.AspNetCore.Http
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：單一請求計時容器。只放 HttpContext.Items，請求結束即回收。 只記數字 + entity 邏輯名 + 操作名。CRM 時間以 ticks 累計避免 &lt;1ms 捨入低報。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RequestProfiler、PhaseScope、NoopDisposable。
+ * - Trace.log 的 [Perf] crm.ms 外層耗時。 此值由 TimedOrganizationService 在 DI 接縫包住整個 GatewayOrganizationService 呼叫而得，所以除 
+ * CRM 操作本身外，也包含租約取得、 Gateway 代理與首次建立池內連線等成本。它必須與同一 request 的 CRM 次數一起解讀， 不能假定等同 JSONL 的內層時間。 JSONL 
+ * request.end.crmMs 則由 CrmOperationTrace 僅累加 CRM 操作本身。 兩者的差值正是 Gateway／連線層成本；這是刻意保留的兩個量測邊界，而非重複計數或漏計。
+ * - 控制器 action 耗時扣除 CrmMs 後的剩餘時間。 由於 CrmMs 已包含 Gateway 與連線建立成本， gap 表示的只是該外層 CRM 路徑以外的 action 時間；它不能與 JSONL 的內層 
+ * crmMs 直接相減或互相比對。
+ * 主要操作入口包含 SetActionElapsed、MeasurePhase、RecordPhase、RecordCrmCall、StopAndGetTotalMs、BuildSummaryLine、
+ * BuildPhaseLines、BuildEscalationLines；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/SaveIntegrateBackgroundUploadRunnerTests.cs、
+ * ToolUtility.Dataverse.Tests/ToolUtilityFactoryAmbientGatewayTests.cs、
+ * SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/PerfPhase.cs、
+ * SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/TimedOrganizationService.cs、
+ * SpeechMessageProducts.ChurchReport/Filters/PerfTimingActionFilter.cs 追查目前工作樹中的合作／使用位置。
+ */
 #if DEBUG
 using System.Collections.Generic;
 using System.Diagnostics;

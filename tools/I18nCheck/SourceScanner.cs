@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：用 Roslyn 辨識常值與插值文字，僅在符號可證明時排除診斷呼叫；解析不完整時保守計入。 語法樹與語意模型由單次掃描持有，完成後不放入靜態快取，避免原始文字無界保留。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SourceScanner。
+ * - 固定框架中繼資料只建立一次，範圍限本工具程序的可信平台清單與 ILogger 組件。 不包含來源、request 或教會資訊；數量受程序相依清單限制，程序結束即由執行環境回收。
+ * - 建立單檔語法與語意分析；註解從來不是字串常值，因此不會進入計數。
+ * - 以同專案所有來源建立一份語意模型集合，避免每檔重建重複的中繼資料。
+ * - 每個常值或整個插值字串各計一次；插值運算式中的獨立常值另行計數。
+ * 主要操作入口包含 CountCSharp、CreateCompilation、CountRazor、ContainsCjk、IsIgnoredMember、IsDiagnosticArgument。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/BoundaryTests.cs、tools/I18nCheck.Tests/I18nContractsTests.cs、
+ * tools/I18nCheck.Tests/InputIntegrityTests.cs、tools/I18nCheck.Tests/RazorLexicalBoundaryTests.cs、
+ * tools/I18nCheck/RazorScanner.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

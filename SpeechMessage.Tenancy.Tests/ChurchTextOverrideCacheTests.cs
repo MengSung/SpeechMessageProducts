@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護覆寫快取完整發布及資源 owner；只注入有界合成來源，不接 D365、LINE 或任一 request／使用者。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchTextOverrideCacheTests、Source、CountingSynchronizationContext、Clock、DeadlineClock、ManualTimer。
+ * - 固定 UTC 版本起點，不能用本機時區或字串文化改變快取世代。
+ * - 三十二位同範圍讀取者在 deterministic barrier 等待同一個來源；完成後 active flight 必須歸零。
+ * - 冷載入故障傳同一例外、告警一次；失敗 flight 移除後下次可成功，不把錯誤快取成空清單。
+ * - 每種不完整候選都保留原完整快照並告警；修來源後同一版本仍可重試，不能把失敗 stamp 當已成功。
+ * 測試案例入口包含 Load_SameChurchConcurrently_SourceCalledOnce、Load_SourceThrows_NextCallRetries、
+ * Publish_InvalidCandidate_KeepsOldSnapshot、Load_CallerCancellation_DoesNotCancelSharedWork、
+ * Invalidate_InFlightGeneration_CannotPublishStaleRows、Invalidate_TextChangedOnAdvanced_RebuildsOnlyThatChurch、
+ * Expiry_FakeTime_ReloadsAtTenMinutesAndExpiresIdleAtThirty、Stop_LateSourceCompletion_CannotRepublishAndDrains；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

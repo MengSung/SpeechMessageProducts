@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/SundayCalculator.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class SundayCalculator
-// 主要成員：ParseChineseDayOfWeek、CalculateSunday、CalculateWeekStart、CalculateWeekEnd
-// 引用命名空間：System
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：集中式主日日期計算服務。 主日永遠固定是星期日，但所屬週次必須依據設定的每週第一日來判定。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SundayCalculator。
+ * - 將中文星期名稱解析成 DayOfWeek。 若設定值為空白、null 或不支援的內容，會回退到星期一， 以維持舊系統「每週從星期一開始」的既有行為。
+ * - 計算指定日期所屬週次的主日日期。 演算法會先回推出該日期落在哪一個週區間的起始日， 再找出該週區間內對應的星期日，並回傳純日期值。
+ * - 依指定主日與每週第一日，回推出該週區間的起始日。 例如： - 每週第一日為星期一時，主日 2026/03/08 對應的起始日是 2026/03/02。 - 每週第一日為星期六時，主日 2026/03/08 
+ * 對應的起始日是 2026/03/07。 - 每週第一日為星期日時，主日 2026/03/08 對應的起始日就是 2026/03/08。
+ * - 依指定主日與每週第一日，計算該週區間的結束日。 週區間固定為 7 天，因此結束日一定是起始日加 6 天。
+ * 主要操作入口包含 ParseChineseDayOfWeek、CalculateSunday、CalculateWeekStart、CalculateWeekEnd。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs、
+ * SpeechMessageProducts.ChurchReport/Models/ListSmallGroupWeeklyReport.cs、
+ * SpeechMessageProducts.ChurchReport/Services/WeeklyScheduleSettings.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 
 namespace ChurchReport.Services

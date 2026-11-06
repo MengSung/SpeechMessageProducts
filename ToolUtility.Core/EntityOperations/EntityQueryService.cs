@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：不保存查詢結果的純 SDK 實體讀取器；授權、組織與服務身分必須由 host 先驗證。 每次建立操作局部候選，整頁穩定 ID 驗證後才回傳，不以名稱去重或發布部分結果。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 EntityQueryService。
+ * - 保留舊 optional 建構式但不保存未使用的任意 logger，避免延長 request／憑證參照。 為相容允許未初始化 SDK；首次操作會明確拒絕，不將設定失敗當成查無資料。
+ * - 依舊單筆契約讀完整欄位，不走快取。SDK 回應 ID／實體必須與請求完全相符，否則拒絕發布。
+ * - 提供 Repository 所需的精確欄位讀取，與完整欄位入口共用相同正式識別驗證。 不重建 caller 的 ColumnSet；null 才建立本次操作的 AllColumns，回應不保存於服務。 此新增 
+ * overload 不擴充既有介面，以免強迫外部介面實作者新增成員。
+ * - 還原舊來源直接 SDK 讀取的明確入口；每次重新查詢，不回傳前次 caller 修改的物件。 與 RetrieveEntity 共用相同識別驗證及故障傳遞，不複製第二套資料／快取邏輯。
+ * 主要操作入口包含 RetrieveEntity、RetrieveEntityNoCache、RetrieveEntityByField、RetrieveMultiple、RetrieveAccountByName、
+ * RetrieveTaskBySubject、ExecuteRetrieveMultiple、Dispose；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/AttributeExtensionSafetyTests.cs、
+ * ToolUtility.Tests/DataOperations/RepositorySafetyTests.cs、
+ * ToolUtility.Tests/EntityOperations/EntityQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/EntityOperations/EntityQueryContractTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.ObjectModel;

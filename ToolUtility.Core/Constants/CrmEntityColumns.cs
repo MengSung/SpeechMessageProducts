@@ -1,16 +1,22 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility.Core/Constants/CrmEntityColumns.cs
-// 所屬區塊：供 net462 與 net10 共用的純 Dataverse 欄位結構目錄，不依賴產品 host。
-// 檔案責任：集中保存各 CRM 實體查詢會使用的固定欄位名稱與順序，避免各呼叫端複製不同版本。
-// 主要型別：CrmEntityColumns，以及 Contact、List、PresentRecord、WeeklyReport、DedicationBooking、Fee、StorLessons、Account、Task 九個分類。
-// 主要成員：21 組公開欄位複本存取器；每次讀取都回傳新的 caller-owned 陣列，不共享可變陣列。
-// 引用命名空間：System
-// 閱讀路徑：依實體分類確認欄位 logical name；實際查詢、授權、連線與例外處理由各 host 負責。
-// 維護重點：私有模板只保存有限的結構字串；不可直接公開模板，也不可依姓名、租戶或請求建立共享可變狀態。
-// 行為保護：golden 測試鎖定 21 組欄位及其順序；修改欄位需先確認消費者契約並同步更新特性證據。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：提供各 Dataverse 實體既有查詢使用的固定欄位集合；每組欄位名稱與順序都由 golden 契約保護。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CrmEntityColumns、Contact、List、PresentRecord、WeeklyReport、DedicationBooking、Fee、StorLessons、Account、Task。
+ * 資料／選項欄位包含 CrmEntityColumns、Contact、Basic、Extended、Full、FollowUp、List、PresentRecord、WeeklyReport、
+ * DedicationBooking、Fee、StorLessons、Account、Task，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/PublicationContractManifestTests.cs、
+ * ChurchReport.MemberInfo.Tests/Dedication/DonationGivingHistoryTests.cs、
+ * ChurchReport.MemberInfo.Tests/Dedication/DonationMultiCategoryTests.cs、
+ * ChurchReport.MemberInfo.Tests/Images/ImageUploadCharacterizationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Images/ImageUploadSafetyTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 
 namespace ToolUtilityNameSpace.Constants

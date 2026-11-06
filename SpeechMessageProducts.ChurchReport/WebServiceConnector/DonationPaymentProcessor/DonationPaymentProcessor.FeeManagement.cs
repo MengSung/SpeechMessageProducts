@@ -1,16 +1,27 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於付款相關流程，註解重點在說明 provider 邊界、金流狀態、錯誤處理與不可改變的外部契約。
-// 主要型別：class DonationPaymentProcessor
-// 主要成員：CreateFeeAsync、CreateFee、SetFeeParameter、UpdateFee、SetFeeUpdateParameter、SaveKeyInDedication、GetContactForKeyIn、SendDedicationNotificationAsync、ResolveDedicationNotificationLineId、BuildDedicationNotificationLineRetryKey
-// 引用命名空間：ChurchReport.Models、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、System、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認金額、訂單編號、付款狀態、provider profile、callback acknowledgement 與錯誤訊息是否跨層保持一致。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：金流處理器 - 收費單管理模組 【職責】 - 建立收費單 - 設定收費單參數 - 更新收費單狀態 - 處理 ATM 轉帳 - 手動輸入奉獻 【設計原則】 - 單一職責：專注於收費單生命週期管理 - 
+ * 開放封閉：易於擴展新的付款方式
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentProcessor。
+ * - 依明細逐張建立收費單；所有收費單 Id 會一起放進金流 Param1（第一張是 primary）。
+ * - 將同一金流訂單資訊寫入群組內每張收費單，確保 callback 可依鍵找齊。
+ * - 鍵入奉獻專用的會友查詢。 同一奉獻編號可能掛在大量會友上，原本整批撈回所有欄位再在記憶體比對姓名， 曾造成上傳卡住近百秒；改為奉獻編號＋姓名直接在 CRM 端雙條件過濾， 同編號不同姓名也能即時找到正確會友。
+ * - 解析手動輸入奉獻通知要使用的 LINE user id。 這個 helper 故意和 ATM 建單通知的解析規則保持一致，避免同一位奉獻者在 「線上 ATM 建單」可收到通知，但「後台手動輸入 ATM 奉獻」收不到通知。
+ * 主要操作入口包含 CreateFeeAsync、UpdateFees、CreateFee、SetFeeParameter、UpdateFee、SetFeeUpdateParameter、
+ * SaveKeyInDedication、GetContactForKeyIn；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorGatewayAdapterTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorKeyInNotificationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorMoneyToChineseTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using ChurchReport.Services;
 using Microsoft.Xrm.Sdk;

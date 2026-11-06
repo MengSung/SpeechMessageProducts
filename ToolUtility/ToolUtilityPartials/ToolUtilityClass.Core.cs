@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/ToolUtilityPartials/ToolUtilityClass.Core.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class ToolUtilityClass
-// 主要成員：Dispose、TraceByLevel（委派給 IToolUtilityTracer）
-// 引用命名空間：Microsoft.Extensions.Configuration、Microsoft.Xrm.Sdk、System、System.Diagnostics、System.IO、System.Text
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ToolUtilityClass - 核心部分 (Partial Class 1/10) 包含：欄位、常數、建構式、Dispose Pattern
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ToolUtilityClass。
+ * - 建立由 DI 管理的 request-scoped ToolUtilityClass。 服務是 GatewayOrganizationService 或 
+ * AmbientGatewayOrganizationService；兩者都只在 單次操作期間取得 lease。本型別與 legacy Factory 都只借用此代理，絕不在 Dispose 路徑釋放它，避免短命工具、
+ * Facade 或程序級單例重複釋放 scope 所擁有的資源。
+ * - 依層級輸出追蹤紀錄。簽章維持不變，既有 160 個呼叫點無須修改。
+ * 主要操作入口包含 Dispose、TraceByLevel。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Images/ImageUploadCharacterizationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Integration/ContactOwnerRouteTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/LineUtilityClassWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/ChurchReportPaymentContextBuilderTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using System;

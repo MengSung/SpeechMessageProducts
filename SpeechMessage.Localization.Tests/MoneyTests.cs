@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護雙目標金額地基；先檢查產品組件確實有正式型別，避免只驗測試自己的替代實作。 後續以固定金額、明確文化及拒絕向量保護不換匯、精度與隔離。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MoneyTests、FailingCulture。
+ * - 缺少正式 Money／formatter 時必須真紅；兩宿主都查實際引用的產品組件。
+ * - TWD 顯示零位是產品政策；固定 midpoint 向遠離零取整，但原金額精度不可改變。
+ * - 美元顯示兩位；decimal midpoint 明確處理以避免兩 runtime 的預設捨入差異。
+ * - R8：英美格式文化只決定分隔符，不能把台幣變成美元或不明的 dollar symbol。
+ * 測試案例入口包含 MoneyContract_BothTargets_ContainsMoneyAndFormatter、Twd_NoDecimals、Usd_TwoDecimals、
+ * Format_EnUsCulture_KeepsTwdCurrency、Whitelist_ValidCurrency_PreservesIdentity、UnknownCurrency_Throws、
+ * Add_DifferentCurrencies_Throws、Add_SameCurrency_PreservesDecimalPrecision；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Globalization;
 using System.Linq;

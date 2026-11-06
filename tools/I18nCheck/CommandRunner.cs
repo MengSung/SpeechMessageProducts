@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：協調單一離線命令；來源只在命令區域持有，輸出只有計數、路徑及固定錯誤代碼。 不建構服務 client、不載入產品設定，不使用背景佇列、使用者快取或程序文化狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CommandRunner。
+ * - 固定基準位置，與 verify／CI 使用同一份已審核計數。
+ * - 只含固定格式的共用序列化設定，首次使用後由 System.Text.Json 凍結，無使用者資料。
+ * - 執行且封閉處理可預期的輸入錯誤，不將任何來源文字或資料值寫入診斷。
+ * - 嚴格解析本命令允許的選項，拒絕拼錯、重複或缺值，不默默忽略輸入。
+ * 主要操作入口包含 Run、Parse、Scan、Validate、Generate、CheckAllGenerated、CompareGenerated、GenerateTimeZones；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/BoundaryTests.cs、tools/I18nCheck.Tests/InputIntegrityTests.cs、
+ * tools/I18nCheck.Tests/RazorLexicalBoundaryTests.cs、tools/I18nCheck.Tests/ResourceVerificationTests.cs、
+ * tools/I18nCheck.Tests/TimeZoneGeneratorTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Text;
 using System.Text.Json;
 using System.Xml;

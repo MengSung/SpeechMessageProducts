@@ -1,3 +1,18 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在原 host 鎖定兩個附件入口的完整 SDK 查詢／七欄寫入及 ref 參照語義。 全部內容為合成資料，不連 D365、不讀設定，也不把正常特性與新增安全拒絕混為一談。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AttachmentCharacterizationTests。
+ * - 下載保留 annotation AllColumns、objectid 的字串值型別及完整分頁； 純文字附註與同名不同 ID 都返回，實際只借用 ref SDK，不呼叫或替換 ctor SDK。
+ * - 空檔案保持空 Base64；非空檔案及特殊文字完整原樣寫入七欄，不作 XML／檔名或MIME內容轉換。 黃金檔保護實際 SDK Entity，而非只驗證模擬服務有被呼叫。
+ * 測試案例入口包含 Download_PreservesGoldenQueryPageAndRefSdk、Upload_PreservesGoldenSevenFieldsAndRefSdk。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Xml.Linq;

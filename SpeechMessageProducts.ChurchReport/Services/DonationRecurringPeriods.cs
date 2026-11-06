@@ -1,15 +1,17 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/DonationRecurringPeriods.cs
-// 所屬區塊：ChurchReport 奉獻付款服務層。
-// 檔案責任：把前端送出的定期定額期數文字（例如「12個月」）轉成整數期數。
-// 主要型別：DonationRecurringPeriods
-// 主要成員：Allowed、Parse
-// 維護重點：DonationPaymentProcessor.TransferToDeductTotalNum 原本以中文字串比對，
-//           但比對字串在 Big5 轉 UTF-8 時被破壞，所有期數都解析成 0 而退回預設 12 期。
-//           改為只取 ASCII 數字並限制在允許的期數，不再依賴中文字面值。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：定期定額扣款期數的解析規則。 奉獻頁下拉選單送出「3個月」「6個月」「12個月」「18個月」「24個月」； 不在允許清單內的值回傳 0，由金流 adapter 套用既有預設（12 期）。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationRecurringPeriods。
+ * 主要操作入口包含 Parse。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Dedication/DonationGivingHistoryTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Collections.Generic;
 using System.Linq;
 

@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/ChurchReportLineBindingNotificationService.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：interface IChurchReportLineProfileProvider、class ChurchReportLineProfileProvider、class ChurchReportLineBindingNotificationService
-// 主要成員：GetUserProfileAsync、NotifyLineBindingAsync、SendBindingPromptAsync、BuildBindingUrl、BuildBindingMessage
-// 引用命名空間：Line.Messaging、LineMessagingProcessor、LineMessagingProcessor.Workflows、System、System.Collections.Generic、System.Net、System.Threading、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 專用的 LINE 綁定通知流程。 這個類別刻意只做三件事： 1. 取得 LINE 使用者顯示名稱。 2. 依 ChurchReport 既有路由格式組出綁定網址與訊息。 3. 
+ * 把訊息交給共用的 ILineNotificationWorkflow 發送。 注意：這裡保留 ChurchReport 專用網址與文案，因為未來產品會有自己的綁定頁、 會員資料來源與顯示文字；共用 LINE 
+ * 專案不應該引用這些產品相依。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IChurchReportLineProfileProvider、ChurchReportLineProfileProvider、
+ * ChurchReportLineBindingNotificationService。
+ * - 依 LINE user id 取得 LINE 使用者 profile。
+ * - 依已知的 LINE user id 與 display name 發送綁定提示。 這個方法獨立出來是為了讓單元測試可以直接驗證 ChurchReport 的 URL 與訊息格式， 不需要真的呼叫 LINE 
+ * profile API。
+ * - 建立 ChurchReport 既有 LINE 綁定頁 URL。 displayName 與 userId 必須 URL encode，避免中文、空白或特殊字元破壞路由。
+ * - 建立 ChurchReport 的 LINE 綁定提示訊息。 文案保留在 ChurchReport，因為這是產品語意，不是 LINE SDK 的責任。
+ * 主要操作入口包含 GetUserProfileAsync、NotifyLineBindingAsync、SendBindingPromptAsync、BuildBindingUrl、BuildBindingMessage。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/ChurchReportLineBindingNotificationServiceTests.cs、
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Line.Messaging;
 using LineMessagingProcessor;
 using LineMessagingProcessor.Workflows;

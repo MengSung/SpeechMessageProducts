@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：名單的純SDK資料服務；沿用原二十個入口、查詢投影、降冪及不同成員來源，不引用host連線或logger。 host必須先驗使用者／租戶／教會及名單權限；任何ID、顯示名稱或儲存Fetch都不是授權來源。 
+ * 單頁最多5000列，完整成員讀取最多5000列／1000頁；全部正式身份通過才回操作自有候選。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ListService。
+ * - 保留必填logger的來源契約但不保存；SDK只借用同一已授權scope，不取得Dispose所有權。
+ * - 沿用單次AddListMembersListRequest；完整驗證至多5000個唯一正式成員再送，不以重複輸入灌成功數。
+ * - 使用明確借入SDK送原生批次，外部連線不處置；只發布成功／例外，不吞錯或保存輸入。
+ * - 以原生RemoveMemberListRequest移除一個已授權關係；不先查再Delete，無自動重試。
+ * 主要操作入口包含 AddMembers、AddMembersUsingSdk、RemoveMember、RemoveMemberUsingSdk、RetrieveMemberListCollectionByListId、
+ * RetrieveMemberListCollectionByListIdUsingService、RetrieveMemberListCollectionByListIdUsingProxy、
+ * RetrieveDynamicMemberList；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Tests/DataOperations/ListCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/ListLifecycleTests.cs、ToolUtility.Tests/DataOperations/ListSafetyTests.cs、
+ * ToolUtility.Tests/ListOperations/ListServiceTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections;

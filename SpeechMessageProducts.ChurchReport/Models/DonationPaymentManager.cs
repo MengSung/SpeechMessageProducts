@@ -1,16 +1,30 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/DonationPaymentManager.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
-// 主要型別：class DonationPaymentManager
-// 主要成員：GetLineChannelAccessToken、NotifyDonationPaymentError、NotifyDonationRegistrationError、SaveKeyInDedication、QueryKeyInDedication、AuditQueryDedication、UpdateKeyInDedication、SetDedicationFeeList、SetDonationPaymentModel、SetDonationPaymentFormModel
-// 引用命名空間：ChurchReport.Payments、ChurchReport.Services、ChurchReport.Tools、ChurchReport.ViewModel、ChurchReport.WebServiceConnector、Line.Messaging、LineMessagingProcessor、LineMessagingProcessor.Workflows
-// 閱讀路徑：閱讀此檔案時應先確認金額、訂單編號、付款狀態、provider profile、callback acknowledgement 與錯誤訊息是否跨層保持一致。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 奉獻付款 UI 狀態與產品流程管理器。 這個類別留在 ChurchReport 專案，負責 UI 表單狀態、CRM 更新、LINE 通知與付款建單前後的產品流程。 可重用金流核心只處理 
+ * provider 協定，因此這裡透過 DonationPaymentProcessor 與 IDonationPaymentCreateGatewayAdapter 接到抽離後的金流模組。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentManager。
+ * - DonationPaymentManager 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；
+ * 缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
+ * - ChurchReport 奉獻付款主流程。 DonationPaymentManager 是產品層的主要名稱；舊 DonationPaymentManager 只保留在薄相容 wrapper。 實際金流流程由 
+ * DonationPaymentProcessor 承擔，避免產品流程繼續綁在永豐 QPay 名稱上。
+ * - 建立付款用的中性 adapter。 這個 adapter 是 ChurchReport 與抽離後金流核心的邊界，未來其他 ASP.NET Core 產品可用同一種模式接入。
+ * - ChurchReport CRM contact 的建立、篩選與補欄位服務。 這些規則直接依賴 Dynamics 365 的 contact 欄位與奉獻者登入邏輯， 因此保留在 ChurchReport 專案，
+ * 不抽入通用金流核心或 ASP.NET Core 共用層。
+ * 主要操作入口包含 Dispose、GetLineChannelAccessToken、NotifyDonationPaymentError、NotifyDonationRegistrationError、
+ * SaveKeyInDedication、QueryKeyInDedication、AuditQueryDedication、UpdateKeyInDedication；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentManagerNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentNamingCompatibilityTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Payments;
 using ChurchReport.Services;
 using ChurchReport.Tools;

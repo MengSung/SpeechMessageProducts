@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以 Ordinal 識別固定系統文字的穩定鍵，不以翻譯後顯示文字判斷身分。 值不可變，不含教會、使用者或憑證；建立時驗證分層格式，預設值不會命中合法資源。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TextKey。
+ * - 只保留不可變的原始鍵，預設 struct 的 null 不會成為合法資源身分。
+ * - 要求至少兩個以大寫開頭的英數分段，確保資源鍵格式可由工具與程式共同驗證。
+ * - 只按鍵值作 Ordinal 比較，不參照顯示語系或程序文化。
+ * - 只允許與另一個 TextKey 比較，避免其他型別的顯示字串冒充鍵。
+ * 主要操作入口包含 Equals、GetHashCode、ToString、IsValid。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Localization.Tests/ChurchTextOverrideValidatorTests.cs、
+ * SpeechMessage.Localization.Tests/KeywordCatalogTests.cs、
+ * SpeechMessage.Localization.Tests/SystemTextCatalogTests.cs、SpeechMessage.Localization.Tests/TextCatalogTests.cs、
+ * SpeechMessage.Tenancy.Tests/ChurchTextOverrideCacheTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 
 namespace SpeechMessage.Localization;

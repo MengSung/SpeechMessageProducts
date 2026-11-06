@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：聯絡人純資料操作與舊資訊格式；所有查詢只借用已授權scope的SDK，不以LINE／姓名／帳號條件取代授權。 不保存logger、cache、Entity、查詢值或credential，不建立連線、
+ * Task.Run、timer、queue或取消registration。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ContactDataService。
+ * - 相容logger參數僅驗非null、不保存／反射；SDK限原授權scope借用，呼叫端擁有Dispose。
+ * - 依原客戶編號查第一筆啟用資料；查無null，不以外部編號作正式資料列ID或身份授權。
+ * - 保留外借SDK與ref筆數入口；先驗服務存活，null外借SDK保留舊null/count=0，不接管其生命週期。
+ * - 依LINE綁定等值與啟用條件查第一筆，不快取／建立登入狀態，回應只屬此次caller。
+ * 主要操作入口包含 RetrieveByContactId、RetrieveByLineId、RetrieveByLineIdForCollection、RetrieveCollectionByLineId、
+ * RetrieveCollectionByName、RetrieveCollectionByFullName、RetrieveCollectionByNationId、RetrieveByFullName；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/ContactCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/ContactSafetyTests.cs、ToolUtility/ContactOperations/ContactService.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.Generic;

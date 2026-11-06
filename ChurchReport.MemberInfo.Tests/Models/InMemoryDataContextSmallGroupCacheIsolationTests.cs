@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs
-// 所屬區塊：ChurchReport 產品層回歸測試，驗證 Session、記憶體快取與背景執行環境的隔離契約。
-// 檔案責任：固定無 HTTP Session 時的資料上下文不得將暫時狀態寫入程序級 IMemoryCache，防止背景工作或除錯評估造成跨 scope 的無界保留。
-// 主要型別：InMemoryDataContextSmallGroupCacheIsolationTests、ThrowingToolUtilityProvider。
-// 主要成員：ListManager_without_HttpContext_does_not_add_process_cache_entries_after_repeated_access。
-// 引用命名空間：ChurchReport.Models、FluentAssertions、Microsoft.AspNetCore.Http、Microsoft.Extensions.Caching.Memory、ToolUtilityNameSpace.DependencyInjection、Xunit。
-// 閱讀路徑：先讀測試名稱與 Arrange/Act/Assert，了解本測試保護的無 Session 快取生命週期，再閱讀測試替身的失敗保護。
-// 維護重點：不可將斷言改為只驗證後備物件可建立；關鍵契約是重複存取不增加程序級快取項目數。
-// 行為保護：測試不建立真實 CRM 用戶端、連線、工作執行緒或背景工作；所有資源只由 using 範圍持有並在測試結束時確定釋放。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，並以 CRLF 結尾。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 InMemoryDataContextSmallGroup 在沒有 HTTP Session 的執行環境中， 仍能提供只屬於目前 data context 的後備資料，而不污染程序級記憶體快取。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 InMemoryDataContextSmallGroupCacheIsolationTests、ThrowingToolUtilityProvider、NullToolUtilityProvider、
+ * TestSessionFeature、FixedHttpContextAccessor、TestSession、CountingMemoryCache、CountingCacheEntry。
+ * - 保護每 request 建立的付款管理器及其 LINE client 具有明確的 Dispose 所有權。
+ * - 保護所有 Session 資料 getter 在無 Session 路徑不會建立程序級 cache entry 的契約。
+ * - 保護需要 request-scoped ToolUtility 的小組管理器不會被提升到程序級快取。
+ * - 同時保護 scoped manager 的生命週期與純 Session 資料的跨 request 快取契約。
+ * 測試案例入口包含 Request_owned_payment_components_must_expose_deterministic_disposal_contract、
+ * Session_state_getters_without_HttpContext_do_not_add_process_cache_entries_after_repeated_access、
+ * Scoped_tool_utility_managers_are_context_local_and_never_enter_process_cache、
+ * Scoped_tool_utility_managers_with_a_session_are_not_retained_or_reused_across_contexts、
+ * Session_data_graph_cache_keeps_a_hard_global_entry_bound_under_many_sessions、ResetLegacyToolUtilityFactory、
+ * ClearLegacyToolUtilityFactoryStatics、GetToolUtility；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

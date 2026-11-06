@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以最近方案及其明列專案為唯一來源邊界；不進入父 worktree、未列專案、生成輸出或重新解析點。 每次依專案建立並釋放語法／語意候選，單專案原文總量上限六十四 MiB，不保留到下一命令。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ScanFile、ScanProject、ScanSnapshot、RepositoryScanner。
+ * - 只辨識方案明列的 C# 專案，不把 solution folder 或任意目錄當成來源。
+ * - 所有目錄邊界與前包一致；先剪枝才走訪，避免讀入被排除的內容。
+ * - 只向上定位最近方案標記；來源走訪之後固定在回傳的根之下。
+ * - 完整掃描後才回傳候選，單次結果不含任何語法樹、來源字串或開啟檔案。
+ * 主要操作入口包含 ScanFile、ScanProject、ScanSnapshot、FindRoot、Scan、ProjectPaths、Files、Relative。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/BoundaryTests.cs、tools/I18nCheck/CommandRunner.cs、tools/I18nCheck/Program.cs、
+ * tools/I18nCheck/ResourceSet.cs、tools/I18nCheck/ResourceVerifier.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

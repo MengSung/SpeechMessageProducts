@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：從系統資源建立不可變路由表；只保存固定關鍵字，不保存訊息、成員或教會資料。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 KeywordMatchMode、IKeywordCatalog、KeywordCatalog、KeywordRule、CultureKeywords。
+ * - 依會友、教會其他語系及繁中順序比對；所有資料在建構時完成衝突驗證。
+ * - 固定的兩個預設語系，僅作複製來源，不對外暴露或加入輸入文化。
+ * - Framework 由本建構式獨佔的字典完成後封裝，後續不再修改。
+ * - 一次建立全部可共同使用的語系，異意圖正規化衝突直接拒絕，不發布部分路由。
+ * 主要操作入口包含 TryMatch、TryCulture、Normalize、KeywordRule。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Localization.Tests/KeywordCatalogTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

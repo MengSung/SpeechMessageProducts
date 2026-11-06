@@ -1,10 +1,21 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案責任：以付款群組鍵查出同會友、同次建立的兄弟收費單。
-// 隔離：訂單鍵以外必須限制 contact 與建立時間窗；結果不寫入 Session、static cache 或背景佇列。
-// 生命週期：CRM 結果僅為本次 callback 的區域集合，方法結束後不再持有 Entity 參考。
-// 編碼要求：UTF-8 without BOM、CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：建立有資料隔離邊界的多收費單群組 CRM 查詢。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationFeeGroupKey、DonationFeeGroupLocator。
+ * - 讀取 primary 的既有群組鍵；遺失建立時間時採 UTC 現在時間以保守縮小查詢範圍。
+ * - 依信用卡訂單或 ATM 虛擬帳號查詢，並強制限制 contact 與建立時間，防止跨會友誤入帳。
+ * - primary 固定排第一，維持 Param1 舊流程與群組流程的處理順序。
+ * - 查詢群組；任何群組鍵不足或 CRM 查詢失敗都安全退回 primary，不擴大付款影響範圍。
+ * 主要操作入口包含 DonationFeeGroupKey、ReadKey、BuildSiblingQuery、OrderPrimaryFirst、Locate。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

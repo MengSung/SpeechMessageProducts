@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：使用真實 csproj XML 的故意違規範例驗證 R4，不把合成模型當成 MSBuild 解析證據。 範例不還原、不建置、不載入 DLL；每個案例擁有自己的暫存目錄，子程序退出後確定刪除。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ArchitectureXmlTests、ProjectFixture。
+ * - 每條正式規則都有能被實際 XML 評估偵測的反例，移除違規參考後則必須通過。
+ * - 條件式套件只在 net462 啟用仍必須拒絕；net10 例外不能掩蓋另一個 inner build。
+ * - 沙箱自身 net48 的 XML 不得冒充 net462 產品；測試宿主的豁免不會套到產品名稱。
+ * - 沒有沙箱消費者的雙目標產品也不能把 net48 當產品目標，防止只靠被參考關係才攔截的死角。
+ * 測試案例入口包含 InvalidCsprojReference_IsRejected、InvalidCsprojConditionalPackage_IsRejected、
+ * InvalidCsprojSandboxTarget_IsRejected、InvalidCsprojUnreferencedProductTarget_IsRejected、
+ * RestoredAssets_Net48Product_IsRejected、Project、Add、Replace；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

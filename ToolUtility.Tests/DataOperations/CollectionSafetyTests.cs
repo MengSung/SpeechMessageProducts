@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：對真正的集合發布入口注入錯頁、跨表 ID、分頁故障及取消，不以 Mock 的空資料代表安全。 所有回傳候選只由案例持有；集合服務不應保存 logger 或結果，也不應處置借入 SDK。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CollectionSafetyTests。
+ * - 八個實際入口各注入三種識別衝突及 null 頁；漏驗任一列都會造成對應案例失敗。
+ * - 失效頁不得以覆寫、去重或空集合發布；同步週報須保留原始失敗鏈供 host 告警。
+ * - 字典完整批次須讀到第三頁、依正式身份組裝，不得只發第一頁或永遠送第二頁。
+ * - 後頁重複身份／讀取失敗都拒絕整個候選；明確重試須重新 I/O，不能命中失敗或部分快照。
+ * 測試案例入口包含 InvalidPages、EveryEntry_RejectsInvalidPageBeforePublication、
+ * DictionaryBatch_ReadsAllPagesWithIncreasingNumbers、LaterPageFailure_DoesNotPublishAndNextCallRetries、
+ * Cancellation_EmptyBatchAndInternalTimeoutAreClassified、Cancellation_DuringSdkStopsPublication、
+ * LegacyPagingCookie_AdvancesToThirdPage、PagingCookie_RejectsUnsafeInput；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Reflection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;

@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純資料操作的局部 XML 建構與單頁發布契約；僅保留有限結構常數，不保存任一操作資料。 不建立連線、快取、Task、timer 或通知器；授權與 SDK 生命週期由最終 host owner 負責。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SdkDataQuery。
+ * - 拒絕未配置 SDK；回傳借用參照，不移轉 Dispose、憑證或連線所有權。
+ * - 結構名稱只接受SDK logical name字元；XML編碼或QueryExpression本身不是結構合法性與授權證明。
+ * - 僅串流讀取一次無命名空間Fetch根表；禁止DTD／resolver及外部檔案網路存取， 不建立可保留任意查詢的共享樹。錯誤訊息不含原XML，以免查詢條件進入日誌。
+ * - 建立新的根實體欄位與排序樹；輸入是各服務私有唯讀結構名稱，非 caller 授權依據。
+ * 主要操作入口包含 RequireService、RequireLogicalName、ExpectedFetchEntity、Entity、Filter、Condition、Lookup、Date；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Core/AppointmentOperations/AppointmentService.cs、
+ * ToolUtility.Core/ContactOperations/ContactDataService.cs、
+ * ToolUtility.Core/EntityOperations/EntityQueryService.cs、ToolUtility.Core/Extensions/CrmAsyncExtensions.cs、
+ * ToolUtility.Core/FeeOperations/FeeService.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.Generic;

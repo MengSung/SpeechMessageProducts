@@ -1,3 +1,30 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以實際 Development 檔的鍵與非機密網址驗證測試組織、設定優先順序與傳輸路徑防護；不建立 Host 或外部 client。 複製到測試目錄前先將帳密值換成固定假值，避免真實憑證落入暫存證據；
+ * 斷言只回報布林結果。 每案獨立擁有組態根、假設定與假 User Secrets，先釋放組態，再於 Dispose 清除所有自建檔案。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DevelopmentOrganizationSettingsTests、SettingsScope、SecretsScope。
+ * - 基底仍指向舊組織時，本案例應失敗；Development 合併後組織與 URI 主機必須精確符合唯一測試目標。
+ * - 捕捉先前僅驗主機而漏掉服務路徑的回歸；對實際 Development 的非機密網址驗證 HTTPS、精確主機及 Organization.svc 路徑。 網址錯誤時只輸出失敗的布林條件，不建立連線，
+ * 也不將設定值放進錯誤訊息。
+ * - 用唯一識別碼的假 User Secrets 驗證實際 Development 擴充方法的 provider 順序；若 secrets 被漏載或遭 JSON 蓋回，本案失敗。 所有帳密均為固定假資料，比較先轉成布林，
+ * 不讀既有使用者 secrets；組態釋放後才清除專有 secrets 目錄。
+ * - 實際 User Secrets provider 提供 DevTest token 時，Development 啟動守門應允許； 只斷言不拋出例外，不輸出或比較 token 內容。
+ * 測試案例入口包含 Development_CrmOrganizationAndServer_AreGoodshepherdback、
+ * Development_CrmServerUrl_UsesHttpsAndFullOrganizationServicePath、
+ * Development_UserSecrets_OverrideDevelopmentCredentialKeys、
+ * Development_UserSecrets_DevTestToken_PassesSafetyGuard、
+ * Development_Credentials_KeysExistWithoutRestrictingStorage、
+ * Development_EmbeddedFeeReads_AreDisabledBeforeAdfsValidation、
+ * Development_LineAliasesAndQpayOrganization_StayWithinTestBoundary、
+ * TrackedBaseSettings_LineChannelAccessTokens_AreEmpty；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Configuration;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;

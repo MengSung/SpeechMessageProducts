@@ -1,29 +1,41 @@
+@*
+    檔案整體說明
+
+    目的與定位：集中登入頁共用按鈕，保持帳號／LINE等入口與父頁事件繫結一致。
+
+    主要功能與流程：
+    元件事件交給 Login、Register，維護時須一併核對宣告、載入順序與元件ID。
+
+    使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
+    修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
+*@
 @* ===========================================
-   Login �������s�ϰ�
+   Login 頁面按鈕區域
    =========================================== *@
 
-<!-- ���s�ϰ� -->
+<!-- 按鈕區域 -->
 <div class="actions">
     @(Html.DevExtreme().Button()
-        .Text("�n�J")                    // ���s��r
-        .Type(ButtonType.Default)        // �w�]�˦�
-        .ID("save-button")               // ���s�ѧO�X
-        .UseSubmitBehavior(true)         // �������
-        .OnClick("Login")                // �I���ƥ�
-        .Width(120)                      // �e��
+        .Text("登入")                    // 按鈕文字
+        .Type(ButtonType.Default)        // 預設樣式
+        .ID("save-button")               // 按鈕識別碼
+        .UseSubmitBehavior(true)         // 提交表單
+        .OnClick("Login")                // 點擊事件
+        .Width(120)                      // 寬度
     )
     @(Html.DevExtreme().Button()
-        .Text("�]�w�b���K�X")            // ���s��r
-        .Type(ButtonType.Normal)         // ���q�˦�
-        .Visible(false)                  // �w�]����
-        .ID("register-button")           // ���s�ѧO�X
-        .UseSubmitBehavior(false)        // ���������
-        .OnClick("Register")             // �I���ƥ�
-        .Width(160)                      // �e��
+        .Text("設定帳號密碼")            // 按鈕文字
+        .Type(ButtonType.Normal)         // 普通樣式
+        .Visible(false)                  // 預設隱藏
+        .ID("register-button")           // 按鈕識別碼
+        .UseSubmitBehavior(false)        // 不提交表單
+        .OnClick("Register")             // 點擊事件
+        .Width(160)                      // 寬度
     )
 </div>
 
-<!-- �ѰO�K�X���� -->
+<!-- 忘記密碼提示 -->
 <div class="mt-5 small text-muted text-center">
-    �ѰO�K�X�H���p���з|��F�P�u��U���]�C
+    忘記密碼？請聯絡教會行政同工協助重設。
 </div>

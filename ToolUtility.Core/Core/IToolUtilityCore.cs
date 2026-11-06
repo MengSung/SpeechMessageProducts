@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純 BCL／SDK 的主機委派契約；組態、連線、cache 與最終告警實作仍由 net10 host 擁有。 只定義方法不持有資源，呼叫者必須先驗證使用者／組織／產品及記錄 scope，不能從傳入 ID 
+ * 推導權限。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IToolUtilityCore。
+ * - 借用 host 已授權的 CRM SDK，不接管連線／憑證或 Dispose；host 排空操作後才釋放，不跨授權 scope 保存。
+ * - 以 caller 擁有的 Entity 建立記錄並回正式資料庫 ID；host 負責授權及跨程序冪等鍵，不以應用鎖代替資料庫唯一性。
+ * - 更新 caller 獨占且具正式 ID 的 Entity，不公開共享 cache／Session 圖；SDK 故障交最終 host 共用告警。
+ * - 依伺服器已授權的表名及正式 ID 刪除，不把顯示名稱或路由值當權限，不隱藏 SDK 失敗。
+ * 資料／選項欄位包含 IToolUtilityCore，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/DataOperations/AttributeConversionTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using Microsoft.Xrm.Sdk;
 using System;

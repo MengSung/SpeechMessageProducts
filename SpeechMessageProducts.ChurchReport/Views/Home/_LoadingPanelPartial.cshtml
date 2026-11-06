@@ -1,12 +1,24 @@
 @*
+    æª”æ¡ˆæ•´é«”èªªæ˜
+
+    ç›®çš„èˆ‡å®šä½ï¼šæä¾›èˆŠæ•´åˆé ä½¿ç”¨çš„è¼‰å…¥é¢æ¿partialï¼Œèˆ‡çˆ¶é å…ƒä»¶è­˜åˆ¥åŠäº‹ä»¶ä¿æŒä¸€è‡´ã€‚
+
+    ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+    å…ƒä»¶äº‹ä»¶äº¤çµ¦ loadPanel_shownã€loadPanel_hiddenï¼Œç¶­è­·æ™‚é ˆä¸€ä½µæ ¸å°å®£å‘Šã€è¼‰å…¥é †åºèˆ‡å…ƒä»¶IDã€‚
+
+    ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šç•«é¢åƒ…å‘ˆç¾ç›®å‰è«‹æ±‚å–å¾—çš„è³‡æ–™ï¼›ä½¿ç”¨è€…è¼¸å…¥èˆ‡å…ƒä»¶å‚³å›å€¼ä»é ˆåœ¨ä¼ºæœå™¨é©—è­‰ã€‚
+    ä¿®æ”¹æ¨¡å‹ã€å…ƒç´ IDã€è·¯ç”±æˆ–callbackæ™‚ï¼Œé ˆåŒæ­¥æª¢æŸ¥å¼•ç”¨æ­¤é çš„çˆ¶é ï¼æ§åˆ¶å™¨ï¼›éåŒæ­¥å›æ‡‰ä¸èƒ½è¦†å¯«è¼ƒæ–°ç•«é¢ç‹€æ…‹ã€‚
+    æœ¬æ®µä½¿ç”¨Razorè¨»è§£ï¼Œç·¨è­¯å¾Œä¸æœƒå°‡ç¶­è­·èªªæ˜æˆ–å…§éƒ¨è·¯å¾‘å‚³åˆ°ç€è¦½å™¨ã€‚
+*@
+@*
     ===================================================================
-    ¸ü¤J­±ªO Partial View
-    ¥\¯à¡G²Î¤@ºŞ²z¸ü¤J«ü¥Ü¾¹¤¸¥ó
-    ½s½X¡GUTF-8
+    è¼‰å…¥é¢æ¿ Partial View
+    åŠŸèƒ½ï¼šçµ±ä¸€ç®¡ç†è¼‰å…¥æŒ‡ç¤ºå™¨å…ƒä»¶
+    ç·¨ç¢¼ï¼šUTF-8
     ===================================================================
 *@
 
-@* ===== ¥D­n¸ü¤J­±ªO ===== *@
+@* ===== ä¸»è¦è¼‰å…¥é¢æ¿ ===== *@
 <div class="loading-panel-main">
     @(Html.DevExtreme().LoadPanel()
         .ID("loadPanel")
@@ -17,7 +29,7 @@
         .ShowPane(true)
         .Shading(true)
         .CloseOnOutsideClick(false)
-        .Message("³B²z¤¤¡A½Ğµy­Ô...")
+        .Message("è™•ç†ä¸­ï¼Œè«‹ç¨å€™...")
         .Height(120)
         .Width(300)
         .Animation(a => a
@@ -37,7 +49,7 @@
     )
 </div>
 
-@* ===== ¹Ïªí¸ü¤J­±ªO ===== *@
+@* ===== åœ–è¡¨è¼‰å…¥é¢æ¿ ===== *@
 <div class="loading-panel-chart">
     @(Html.DevExtreme().LoadPanel()
         .ID("chartLoadPanel")
@@ -48,13 +60,13 @@
         .ShowPane(true)
         .Shading(true)
         .CloseOnOutsideClick(false)
-        .Message("¸ü¤J¹Ïªí¸ê®Æ...")
+        .Message("è¼‰å…¥åœ–è¡¨è³‡æ–™...")
         .Height(100)
         .Width(250)
     )
 </div>
 
-@* ===== ¸ê®Æºô®æ¸ü¤J­±ªO ===== *@
+@* ===== è³‡æ–™ç¶²æ ¼è¼‰å…¥é¢æ¿ ===== *@
 <div class="loading-panel-grid">
     @(Html.DevExtreme().LoadPanel()
         .ID("gridLoadPanel")
@@ -65,13 +77,13 @@
         .ShowPane(true)
         .Shading(true)
         .CloseOnOutsideClick(false)
-        .Message("§ó·s¸ê®Æ¤¤...")
+        .Message("æ›´æ–°è³‡æ–™ä¸­...")
         .Height(100)
         .Width(200)
     )
 </div>
 
-@* ===== ¤W¶Ç±M¥Î¸ü¤J­±ªO ===== *@
+@* ===== ä¸Šå‚³å°ˆç”¨è¼‰å…¥é¢æ¿ ===== *@
 <div class="loading-panel-upload">
     @(Html.DevExtreme().LoadPanel()
         .ID("uploadLoadPanel")
@@ -82,14 +94,14 @@
         .ShowPane(true)
         .Shading(true)
         .CloseOnOutsideClick(false)
-        .Message("¤W¶Ç¸ê®Æ¤¤...")
+        .Message("ä¸Šå‚³è³‡æ–™ä¸­...")
         .Height(80)
         .Width(180)
     )
 </div>
 
 <style>
-    /* ===== ¸ü¤J­±ªO®e¾¹¼Ë¦¡ ===== */
+    /* ===== è¼‰å…¥é¢æ¿å®¹å™¨æ¨£å¼ ===== */
     .loading-panel-main,
     .loading-panel-chart,
     .loading-panel-grid,
@@ -98,7 +110,7 @@
         z-index: 9999;
     }
 
-    /* ===== ¸ü¤J­±ªO¤º®e«È»s¤Æ ===== */
+    /* ===== è¼‰å…¥é¢æ¿å…§å®¹å®¢è£½åŒ– ===== */
     .dx-loadpanel-content {
         border-radius: 12px !important;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
@@ -106,13 +118,13 @@
         -webkit-backdrop-filter: blur(5px) !important;
     }
 
-    /* ¸ü¤J­±ªO­I´º */
+    /* è¼‰å…¥é¢æ¿èƒŒæ™¯ */
     .dx-loadpanel-pane {
         background: rgba(255, 255, 255, 0.95) !important;
         border: 1px solid rgba(0, 0, 0, 0.1) !important;
     }
 
-    /* ¸ü¤J«ü¥Ü¾¹¼Ë¦¡ */
+    /* è¼‰å…¥æŒ‡ç¤ºå™¨æ¨£å¼ */
     .dx-loadindicator {
         width: 48px !important;
         height: 48px !important;
@@ -123,7 +135,7 @@
         border-color: #2196f3 transparent transparent transparent !important;
     }
 
-    /* ¸ü¤J°T®§¤å¦r¼Ë¦¡ */
+    /* è¼‰å…¥è¨Šæ¯æ–‡å­—æ¨£å¼ */
     .dx-loadpanel-message {
         font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif !important;
         font-size: 14px !important;
@@ -133,7 +145,7 @@
         text-align: center !important;
     }
 
-    /* ¹Ïªí¸ü¤J­±ªO¯S®í¼Ë¦¡ */
+    /* åœ–è¡¨è¼‰å…¥é¢æ¿ç‰¹æ®Šæ¨£å¼ */
     #chartLoadPanel .dx-loadpanel-pane {
         background: rgba(33, 150, 243, 0.05) !important;
         border: 1px solid rgba(33, 150, 243, 0.2) !important;
@@ -143,7 +155,7 @@
         border-color: #1976d2 transparent transparent transparent !important;
     }
 
-    /* ¸ê®Æºô®æ¸ü¤J­±ªO¯S®í¼Ë¦¡ */
+    /* è³‡æ–™ç¶²æ ¼è¼‰å…¥é¢æ¿ç‰¹æ®Šæ¨£å¼ */
     #gridLoadPanel .dx-loadpanel-pane {
         background: rgba(158, 158, 158, 0.05) !important;
         border: 1px solid rgba(158, 158, 158, 0.2) !important;
@@ -153,7 +165,7 @@
         border-color: #757575 transparent transparent transparent !important;
     }
 
-    /* ¤W¶Ç¸ü¤J­±ªO¯S®í¼Ë¦¡ */
+    /* ä¸Šå‚³è¼‰å…¥é¢æ¿ç‰¹æ®Šæ¨£å¼ */
     #uploadLoadPanel .dx-loadpanel-pane {
         background: rgba(76, 175, 80, 0.05) !important;
         border: 1px solid rgba(76, 175, 80, 0.2) !important;
@@ -163,7 +175,7 @@
         border-color: #4caf50 transparent transparent transparent !important;
     }
 
-    /* ÅTÀ³¦¡³]­p */
+    /* éŸ¿æ‡‰å¼è¨­è¨ˆ */
     @@media (max-width: 768px) {
         .dx-loadpanel-content {
             max-width: 90vw !important;
@@ -197,7 +209,7 @@
         }
     }
 
-    /* °ª¹ï¤ñ¼Ò¦¡¤ä´© */
+    /* é«˜å°æ¯”æ¨¡å¼æ”¯æ´ */
     @@media (prefers-contrast: high) {
         .dx-loadpanel-pane {
             background: rgba(255, 255, 255, 1) !important;
@@ -214,7 +226,7 @@
         }
     }
 
-    /* ·t¦â¥DÃD¤ä´© */
+    /* æš—è‰²ä¸»é¡Œæ”¯æ´ */
     @@media (prefers-color-scheme: dark) {
         .dx-loadpanel-pane {
             background: rgba(66, 66, 66, 0.95) !important;
@@ -230,7 +242,7 @@
         }
     }
 
-    /* ´î¤Ö°Êµe®ÄªG¼Ò¦¡ */
+    /* æ¸›å°‘å‹•ç•«æ•ˆæœæ¨¡å¼ */
     @@media (prefers-reduced-motion: reduce) {
         .dx-loadpanel,
         .dx-loadindicator {
@@ -245,11 +257,11 @@
 </style>
 
 <script>
-    // ===== ¸ü¤J­±ªO¬ÛÃö»²§U¨ç¦¡ =====
+    // ===== è¼‰å…¥é¢æ¿ç›¸é—œè¼”åŠ©å‡½å¼ =====
     var LoadPanelHelpers = {
         /*
-         * Åã¥Ü¥D­n¸ü¤J­±ªO
-         * message - ¦Û­q°T®§
+         * é¡¯ç¤ºä¸»è¦è¼‰å…¥é¢æ¿
+         * message - è‡ªè¨‚è¨Šæ¯
          */
         showMain: function(message) {
             try {
@@ -261,12 +273,12 @@
                     loadPanel.show();
                 }
             } catch (error) {
-                console.error("Åã¥Ü¥D­n¸ü¤J­±ªO¿ù»~:", error);
+                console.error("é¡¯ç¤ºä¸»è¦è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * ÁôÂÃ¥D­n¸ü¤J­±ªO
+         * éš±è—ä¸»è¦è¼‰å…¥é¢æ¿
          */
         hideMain: function() {
             try {
@@ -275,12 +287,12 @@
                     loadPanel.hide();
                 }
             } catch (error) {
-                console.error("ÁôÂÃ¥D­n¸ü¤J­±ªO¿ù»~:", error);
+                console.error("éš±è—ä¸»è¦è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * Åã¥Ü¹Ïªí¸ü¤J­±ªO
+         * é¡¯ç¤ºåœ–è¡¨è¼‰å…¥é¢æ¿
          */
         showChart: function() {
             try {
@@ -289,12 +301,12 @@
                     chartLoadPanel.show();
                 }
             } catch (error) {
-                console.error("Åã¥Ü¹Ïªí¸ü¤J­±ªO¿ù»~:", error);
+                console.error("é¡¯ç¤ºåœ–è¡¨è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * ÁôÂÃ¹Ïªí¸ü¤J­±ªO
+         * éš±è—åœ–è¡¨è¼‰å…¥é¢æ¿
          */
         hideChart: function() {
             try {
@@ -303,12 +315,12 @@
                     chartLoadPanel.hide();
                 }
             } catch (error) {
-                console.error("ÁôÂÃ¹Ïªí¸ü¤J­±ªO¿ù»~:", error);
+                console.error("éš±è—åœ–è¡¨è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * Åã¥Ü¸ê®Æºô®æ¸ü¤J­±ªO
+         * é¡¯ç¤ºè³‡æ–™ç¶²æ ¼è¼‰å…¥é¢æ¿
          */
         showGrid: function() {
             try {
@@ -317,12 +329,12 @@
                     gridLoadPanel.show();
                 }
             } catch (error) {
-                console.error("Åã¥Ü¸ê®Æºô®æ¸ü¤J­±ªO¿ù»~:", error);
+                console.error("é¡¯ç¤ºè³‡æ–™ç¶²æ ¼è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * ÁôÂÃ¸ê®Æºô®æ¸ü¤J­±ªO
+         * éš±è—è³‡æ–™ç¶²æ ¼è¼‰å…¥é¢æ¿
          */
         hideGrid: function() {
             try {
@@ -331,12 +343,12 @@
                     gridLoadPanel.hide();
                 }
             } catch (error) {
-                console.error("ÁôÂÃ¸ê®Æºô®æ¸ü¤J­±ªO¿ù»~:", error);
+                console.error("éš±è—è³‡æ–™ç¶²æ ¼è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * Åã¥Ü¤W¶Ç¸ü¤J­±ªO
+         * é¡¯ç¤ºä¸Šå‚³è¼‰å…¥é¢æ¿
          */
         showUpload: function() {
             try {
@@ -345,12 +357,12 @@
                     uploadLoadPanel.show();
                 }
             } catch (error) {
-                console.error("Åã¥Ü¤W¶Ç¸ü¤J­±ªO¿ù»~:", error);
+                console.error("é¡¯ç¤ºä¸Šå‚³è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * ÁôÂÃ¤W¶Ç¸ü¤J­±ªO
+         * éš±è—ä¸Šå‚³è¼‰å…¥é¢æ¿
          */
         hideUpload: function() {
             try {
@@ -359,12 +371,12 @@
                     uploadLoadPanel.hide();
                 }
             } catch (error) {
-                console.error("ÁôÂÃ¤W¶Ç¸ü¤J­±ªO¿ù»~:", error);
+                console.error("éš±è—ä¸Šå‚³è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         },
 
         /*
-         * ÁôÂÃ©Ò¦³¸ü¤J­±ªO
+         * éš±è—æ‰€æœ‰è¼‰å…¥é¢æ¿
          */
         hideAll: function() {
             try {
@@ -373,58 +385,58 @@
                 this.hideGrid();
                 this.hideUpload();
             } catch (error) {
-                console.error("ÁôÂÃ©Ò¦³¸ü¤J­±ªO¿ù»~:", error);
+                console.error("éš±è—æ‰€æœ‰è¼‰å…¥é¢æ¿éŒ¯èª¤:", error);
             }
         }
     };
 
-    // ===== ¸ü¤J­±ªO¨Æ¥ó³B²z¨ç¦¡ =====
+    // ===== è¼‰å…¥é¢æ¿äº‹ä»¶è™•ç†å‡½å¼ =====
     
     /*
-     * ¸ü¤J­±ªOÅã¥Ü«á¨Æ¥ó³B²z
+     * è¼‰å…¥é¢æ¿é¡¯ç¤ºå¾Œäº‹ä»¶è™•ç†
      */
     function loadPanel_shown(e) {
         try {
-            // ¸T¥Î­¶­±ºu°Ê
+            // ç¦ç”¨é é¢æ»¾å‹•
             document.body.style.overflow = 'hidden';
             
-            // °O¿ı¸ü¤J¶}©l®É¶¡¡]¥Î©ó®Ä¯àºÊ±±¡^
+            // è¨˜éŒ„è¼‰å…¥é–‹å§‹æ™‚é–“ï¼ˆç”¨æ–¼æ•ˆèƒ½ç›£æ§ï¼‰
             if (typeof window.loadStartTime === 'undefined') {
                 window.loadStartTime = Date.now();
             }
             
-            console.log("¸ü¤J­±ªO¤wÅã¥Ü");
+            console.log("è¼‰å…¥é¢æ¿å·²é¡¯ç¤º");
         } catch (error) {
-            console.error("¸ü¤J­±ªOÅã¥Ü¨Æ¥ó³B²z¿ù»~:", error);
+            console.error("è¼‰å…¥é¢æ¿é¡¯ç¤ºäº‹ä»¶è™•ç†éŒ¯èª¤:", error);
         }
     }
 
     /*
-     * ¸ü¤J­±ªOÁôÂÃ«á¨Æ¥ó³B²z
+     * è¼‰å…¥é¢æ¿éš±è—å¾Œäº‹ä»¶è™•ç†
      */
     function loadPanel_hidden(e) {
         try {
-            // «ì´_­¶­±ºu°Ê
+            // æ¢å¾©é é¢æ»¾å‹•
             document.body.style.overflow = '';
             
-            // ­pºâ¸ü¤J®É¶¡¡]¥Î©ó®Ä¯àºÊ±±¡^
+            // è¨ˆç®—è¼‰å…¥æ™‚é–“ï¼ˆç”¨æ–¼æ•ˆèƒ½ç›£æ§ï¼‰
             if (typeof window.loadStartTime !== 'undefined') {
                 var loadTime = Date.now() - window.loadStartTime;
-                console.log("¸ü¤J§¹¦¨¡A¯Ó®É:", loadTime + "ms");
+                console.log("è¼‰å…¥å®Œæˆï¼Œè€—æ™‚:", loadTime + "ms");
                 delete window.loadStartTime;
             }
             
-            console.log("¸ü¤J­±ªO¤wÁôÂÃ");
+            console.log("è¼‰å…¥é¢æ¿å·²éš±è—");
         } catch (error) {
-            console.error("¸ü¤J­±ªOÁôÂÃ¨Æ¥ó³B²z¿ù»~:", error);
+            console.error("è¼‰å…¥é¢æ¿éš±è—äº‹ä»¶è™•ç†éŒ¯èª¤:", error);
         }
     }
 
-    // ±N LoadPanelHelpers ¸j©w¨ì window ª«¥ó¨Ñ¥~³¡¨Ï¥Î
+    // å°‡ LoadPanelHelpers ç¶å®šåˆ° window ç‰©ä»¶ä¾›å¤–éƒ¨ä½¿ç”¨
     if (typeof window !== 'undefined') {
         window.LoadPanelHelpers = LoadPanelHelpers;
         
-        // ¦V«á¬Û®eªº¥ş°ì¨ç¦¡
+        // å‘å¾Œç›¸å®¹çš„å…¨åŸŸå‡½å¼
         window.showLoadingPanel = LoadPanelHelpers.showMain;
         window.hideLoadingPanel = LoadPanelHelpers.hideMain;
     }

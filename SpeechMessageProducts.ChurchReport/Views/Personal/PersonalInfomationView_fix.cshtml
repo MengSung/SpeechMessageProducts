@@ -1,3 +1,17 @@
+@*
+    æª”æ¡ˆæ•´é«”èªªæ˜
+
+    ç›®çš„èˆ‡å®šä½ï¼šä¿ç•™å€‹äººè³‡æ–™ç•«é¢çš„ä¿®è¨‚ç‰ˆæœ¬ï¼Œèˆ‡èˆŠè¼¸å…¥åŠç…§ç‰‡äº’å‹•ç›¸å®¹ï¼›æ­£å¼ä½¿ç”¨èˆ‡å¦éœ€ç¢ºèªæ§åˆ¶å™¨å¼•ç”¨ã€‚
+
+    ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+    ç•«é¢è¼¸å…¥æ¡ç”¨ PersonalInfomationViewModelï¼Œæ¬„ä½èªæ„é ˆèˆ‡æ§åˆ¶å™¨çµ„è£çš„æ¨¡å‹ä¸€è‡´ã€‚
+    æœ¬é å¼•ç”¨çš„æ§åˆ¶å™¨ï¼å‹•ä½œåŒ…å« SavePersonalInfomationï¼›å¯¦éš›ç¶²å€åŠåƒæ•¸ä»¥é å…§è¨­å®šç‚ºæº–ã€‚
+    å…ƒä»¶äº‹ä»¶äº¤çµ¦ SaveNewPersonï¼Œç¶­è­·æ™‚é ˆä¸€ä½µæ ¸å°å®£å‘Šã€è¼‰å…¥é †åºèˆ‡å…ƒä»¶IDã€‚
+
+    ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šç•«é¢åƒ…å‘ˆç¾ç›®å‰è«‹æ±‚å–å¾—çš„è³‡æ–™ï¼›ä½¿ç”¨è€…è¼¸å…¥èˆ‡å…ƒä»¶å‚³å›å€¼ä»é ˆåœ¨ä¼ºæœå™¨é©—è­‰ã€‚
+    ä¿®æ”¹æ¨¡å‹ã€å…ƒç´ IDã€è·¯ç”±æˆ–callbackæ™‚ï¼Œé ˆåŒæ­¥æª¢æŸ¥å¼•ç”¨æ­¤é çš„çˆ¶é ï¼æ§åˆ¶å™¨ï¼›éåŒæ­¥å›æ‡‰ä¸èƒ½è¦†å¯«è¼ƒæ–°ç•«é¢ç‹€æ…‹ã€‚
+    æœ¬æ®µä½¿ç”¨Razorè¨»è§£ï¼Œç·¨è­¯å¾Œä¸æœƒå°‡ç¶­è­·èªªæ˜æˆ–å…§éƒ¨è·¯å¾‘å‚³åˆ°ç€è¦½å™¨ã€‚
+*@
 @{
     var priorities = new[] { "Low", "Normal", "Urgent", "High" };
 }
@@ -5,13 +19,13 @@
 @using ChurchReport.ViewModels
 @model PersonalInfomationViewModel
 
-<div class="long-title"><h4>  @Model.FullName ­Ó¤H¬ÛÃö¸ê®Æ</h4></div>
+<div class="long-title"><h4>  @Model.FullName å€‹äººç›¸é—œè³‡æ–™</h4></div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePersonalInfomation" asp-controller="Personal" method="post">
     <div class="dx-field">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-                    .Text("¤W¶Ç").Icon("check")
+                    .Text("ä¸Šå‚³").Icon("check")
                     .Type(ButtonType.Success)
                     .ID("save-button")
                     .UseSubmitBehavior(true)
@@ -24,7 +38,7 @@
                 .Position(p => p
                     .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                     .Offset(0, 50))
-                    .Message("¤W¶Ç¦¨¥\¤F!")
+                    .Message("ä¸Šå‚³æˆåŠŸäº†!")
                     .DisplayTime(20000)
                     .MaxWidth(200)
             )
@@ -39,7 +53,7 @@
                     .ShowPane(true)
                     .Shading(true)
                     .CloseOnOutsideClick(false)
-                    .Message("¤W¶Ç¸ê®Æ¤¤...")
+                    .Message("ä¸Šå‚³è³‡æ–™ä¸­...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
         </div>
@@ -47,7 +61,7 @@
     
     <div id="form-container">
         @{
-            var NtbtOrNotPriorities = new[] { "¬O", "§_", };
+            var NtbtOrNotPriorities = new[] { "æ˜¯", "å¦", };
         }
 
         @(Html.DevExtreme().Form<PersonalInfomationViewModel>()
@@ -56,121 +70,121 @@
         .Items(items =>
         {
             items.AddSimpleFor(m => m.LastName)
-                .Label(l => l.Text("©m¦W"))
+                .Label(l => l.Text("å§“å"))
                 .Visible(false)
-                .Editor(e => e.TextBox().Disabled(false).Placeholder("¿é¤J©m¦W"));
+                .Editor(e => e.TextBox().Disabled(false).Placeholder("è¼¸å…¥å§“å"));
 
             items.AddSimpleFor(m => m.Phone)
-                .Label(l => l.Text("¦æ°Ê¹q¸Ü"))
+                .Label(l => l.Text("è¡Œå‹•é›»è©±"))
                 .Editor(e => e.TextBox()
                     .Mask("(X000) 000-000")
                     .MaskRules(new { X = new JS("/[02-9]/") })
-                    .Placeholder("¿é¤J¤â¾÷¸¹½X"))
-                .ValidationRules(r => r.AddRequired().Message("¦æ°Ê¹q¸Ü¬°¥²¶ñ"));
+                    .Placeholder("è¼¸å…¥æ‰‹æ©Ÿè™Ÿç¢¼"))
+                .ValidationRules(r => r.AddRequired().Message("è¡Œå‹•é›»è©±ç‚ºå¿…å¡«"));
 
             items.AddSimpleFor(m => m.HomePhone)
-                .Label(l => l.Text("¦í®a¹q¸Ü"))
+                .Label(l => l.Text("ä½å®¶é›»è©±"))
                 .Editor(e => e.TextBox()
                     .MaskRules(new { X = new JS("/[02-9]/") })
-                    .Placeholder("¿é¤J¹q¸Ü¸¹½X"));
+                    .Placeholder("è¼¸å…¥é›»è©±è™Ÿç¢¼"));
 
             items.AddSimpleFor(m => m.OfficePhone)
-                .Label(l => l.Text("¤½¥q¹q¸Ü"))
+                .Label(l => l.Text("å…¬å¸é›»è©±"))
                 .Editor(e => e.TextBox()
                     .MaskRules(new { X = new JS("/[02-9]/") })
-                    .Placeholder("¿é¤J¹q¸Ü¸¹½X"));
+                    .Placeholder("è¼¸å…¥é›»è©±è™Ÿç¢¼"));
 
             items.AddSimpleFor(m => m.Address)
-                .Label(l => l.Text("¦a§}"))
-                .ValidationRules(r => r.AddRequired().Message("¦a§}¬°¥²¶ñ"));
+                .Label(l => l.Text("åœ°å€"))
+                .ValidationRules(r => r.AddRequired().Message("åœ°å€ç‚ºå¿…å¡«"));
 
             items.AddSimpleFor(m => m.Email)
-                .Label(l => l.Text("¹q¤l¶l¥ó"));
+                .Label(l => l.Text("é›»å­éƒµä»¶"));
 
             items.AddSimpleFor(m => m.Facebook)
-                .Label(l => l.Text("Facebook±b¸¹"));
+                .Label(l => l.Text("Facebookå¸³è™Ÿ"));
 
             items.AddSimpleFor(m => m.Instagram)
-                .Label(l => l.Text("Instagram±b¸¹"));
+                .Label(l => l.Text("Instagramå¸³è™Ÿ"));
 
             items.AddSimpleFor(m => m.LastSixDigit)
-                .Label(l => l.Text("»È¦æ±b¤á«á¤»½X"));
+                .Label(l => l.Text("éŠ€è¡Œå¸³æˆ¶å¾Œå…­ç¢¼"));
 
             items.AddSimpleFor(m => m.NtbtOrNot)
-                .Label(l => l.Text("¬O§_¤W¶Ç°êµ|§½"))
+                .Label(l => l.Text("æ˜¯å¦ä¸Šå‚³åœ‹ç¨…å±€"))
                 .Editor(e => e.RadioGroup()
                     .Items(NtbtOrNotPriorities)
                     .Layout(Orientation.Horizontal));
 
             items.AddSimpleFor(m => m.PersonalId)
-                .Label(l => l.Text("¨­¥÷ÃÒ¦r¸¹"));
+                .Label(l => l.Text("èº«ä»½è­‰å­—è™Ÿ"));
 
             items.AddSimpleFor(m => m.Gender)
-                .Label(l => l.Text("©Ê§O"))
+                .Label(l => l.Text("æ€§åˆ¥"))
                 .Editor(e => e.SelectBox()
-                    .DataSource(new string[] { "¥¼ª¾", "¨k©Ê", "¤k©Ê" }));
+                    .DataSource(new string[] { "æœªçŸ¥", "ç”·æ€§", "å¥³æ€§" }));
 
             items.AddSimpleFor(m => m.Position)
-                .Label(l => l.Text("©ÒÄİ¤p²Õ"))
+                .Label(l => l.Text("æ‰€å±¬å°çµ„"))
                 .Visible(false)
                 .Editor(e => e.SelectBox()
                     .DataSource(Model.GroupArray)
                     .Value(Model.Position));
 
             items.AddSimpleFor(m => m.BirthDate)
-                .Label(l => l.Text("¥Í¤é"))
+                .Label(l => l.Text("ç”Ÿæ—¥"))
                 .IsRequired(false)
                 .Editor(e => e.DateBox()
                     .DisplayFormat("yyyy/M/d")
                     .Disabled(false)
-                    .Placeholder("¥Í¤é")
+                    .Placeholder("ç”Ÿæ—¥")
                     .PickerType(DateBoxPickerType.Calendar));
 
             items.AddSimpleFor(m => m.HireDate)
                 .IsRequired(false)
-                .Label(l => l.Text("¶i±Ğ·|¤é´Á"))
+                .Label(l => l.Text("é€²æ•™æœƒæ—¥æœŸ"))
                 .Editor(e => e.DateBox()
-                    .Placeholder("¶i±Ğ·|¤é´Á")
+                    .Placeholder("é€²æ•™æœƒæ—¥æœŸ")
                     .PickerType(DateBoxPickerType.Calendar)
                     .DisplayFormat("yyyy/M/d"));
 
-            // ? ±B«Ãª¬ºA - ¨Ï¥Î AddSimpleFor ¥¿½T¸j©w­È
+            // ? å©šå§»ç‹€æ…‹ - ä½¿ç”¨ AddSimpleFor æ­£ç¢ºç¶å®šå€¼
             items.AddSimpleFor(m => m.MerrageState)
-                .Label(l => l.Text("±B«Ãª¬ºA"))
+                .Label(l => l.Text("å©šå§»ç‹€æ…‹"))
                 .Editor(e => e.SelectBox()
                     .ID("familyStatusSelectBox")
                     .DataSource(new JS("familyStatusDataSource")));
 
             items.AddSimpleFor(m => m.CustomerTypeCode)
-                .Label(l => l.Text("©e¨­Ãş«¬"))
+                .Label(l => l.Text("å§”èº«é¡å‹"))
                 .Editor(e => e.TextBox().Disabled(true));
 
             items.AddSimpleFor(m => m.Introducer)
-                .Label(l => l.Text("ÁÜ½Ğ¤H"));
+                .Label(l => l.Text("é‚€è«‹äºº"));
 
             items.AddSimpleFor(m => m.IntroducerRelation)
-                .Label(l => l.Text("»PÁÜ½Ğ¤HÃö«Y"));
+                .Label(l => l.Text("èˆ‡é‚€è«‹äººé—œä¿‚"));
 
-            // ? «H¥õª¬ºA - ¨Ï¥Î AddSimpleFor ¥¿½T¸j©w­È
+            // ? ä¿¡ä»°ç‹€æ…‹ - ä½¿ç”¨ AddSimpleFor æ­£ç¢ºç¶å®šå€¼
             items.AddSimpleFor(m => m.Status)
-                .Label(l => l.Text("«H¥õª¬ºA"))
+                .Label(l => l.Text("ä¿¡ä»°ç‹€æ…‹"))
                 .Editor(e => e.SelectBox()
                     .ID("spiritualIdentitySelectBox")
                     .DataSource(new JS("spiritualIdentityDataSource")));
 
             items.AddSimpleFor(m => m.Industry)
                 .Name("Industry")
-                .Label(l => l.Text("Â¾·~¤Î±Mªø"));
+                .Label(l => l.Text("è·æ¥­åŠå°ˆé•·"));
 
             items.AddSimpleFor(m => m.EquipmentStatus)
                 .Name("EquipmentStatus")
-                .Label(l => l.Text("¸Ë³Æª¬ºA"))
+                .Label(l => l.Text("è£å‚™ç‹€æ…‹"))
                 .Editor(e => e.TextBox().Disabled(true));
 
             items.AddSimpleFor(m => m.Notes)
                 .Name("Notes")
                 .ColSpan(2)
-                .Label(l => l.Text("ªşµù"))
+                .Label(l => l.Text("é™„è¨»"))
                 .Editor(e => e.TextArea().Disabled(true).Height(200));
         })
         .OnContentReady(@<text>
@@ -184,7 +198,7 @@
 
     <div id="buttonContainer" class="dx-button-icon">
         @(Html.DevExtreme().Button()
-                    .Text("¤W¶Ç").Icon("check")
+                    .Text("ä¸Šå‚³").Icon("check")
                     .Type(ButtonType.Success)
                     .ID("save-button_bottom")
                     .UseSubmitBehavior(true)
@@ -194,21 +208,21 @@
 </form>
 
 <script>
-    // ? ¥ş°ìÅÜ¼Æ¡G«H¥õª¬ºA DataSource
+    // ? å…¨åŸŸè®Šæ•¸ï¼šä¿¡ä»°ç‹€æ…‹ DataSource
     var spiritualIdentityDataSource = [];
     
-    // ? ¥ş°ìÅÜ¼Æ¡G±B«Ãª¬ºA DataSource
+    // ? å…¨åŸŸè®Šæ•¸ï¼šå©šå§»ç‹€æ…‹ DataSource
     var familyStatusDataSource = [];
 
-    // ? ­¶­±¸ü¤J®É±q API ¨ú±o²M³æ
+    // ? é é¢è¼‰å…¥æ™‚å¾ API å–å¾—æ¸…å–®
     $(document).ready(function() {
         console.log('========================================');
-        console.log('? [PersonalInfomationView] ­¶­±¸ü¤J');
+        console.log('? [PersonalInfomationView] é é¢è¼‰å…¥');
         console.log('? [PersonalInfomationView] Model.Status:', '@Model.Status');
         console.log('? [PersonalInfomationView] Model.MerrageState:', '@Model.MerrageState');
         console.log('========================================');
         
-        // ? ¸ü¤J«H¥õª¬ºA²M³æ
+        // ? è¼‰å…¥ä¿¡ä»°ç‹€æ…‹æ¸…å–®
         $.ajax({
             url: '/Personal/Api/GetSpiritualIdentityList',
             type: 'GET',
@@ -217,16 +231,16 @@
             success: function(response) {
                 if (response.success && response.data) {
                     spiritualIdentityDataSource = response.data;
-                    console.log('? [PersonalInfomationView] ¦¨¥\¸ü¤J«H¥õª¬ºA²M³æ:', spiritualIdentityDataSource);
+                    console.log('? [PersonalInfomationView] æˆåŠŸè¼‰å…¥ä¿¡ä»°ç‹€æ…‹æ¸…å–®:', spiritualIdentityDataSource);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('? [PersonalInfomationView] ¸ü¤J«H¥õª¬ºA²M³æ¥¢±Ñ:', error);
-                spiritualIdentityDataSource = ["-¥¼ª¾-"];
+                console.error('? [PersonalInfomationView] è¼‰å…¥ä¿¡ä»°ç‹€æ…‹æ¸…å–®å¤±æ•—:', error);
+                spiritualIdentityDataSource = ["-æœªçŸ¥-"];
             }
         });
 
-        // ? ¸ü¤J±B«Ãª¬ºA²M³æ
+        // ? è¼‰å…¥å©šå§»ç‹€æ…‹æ¸…å–®
         $.ajax({
             url: '/Personal/Api/GetFamilyStatusList',
             type: 'GET',
@@ -235,16 +249,16 @@
             success: function(response) {
                 if (response.success && response.data) {
                     familyStatusDataSource = response.data;
-                    console.log('? [PersonalInfomationView] ¦¨¥\¸ü¤J±B«Ãª¬ºA²M³æ:', familyStatusDataSource);
+                    console.log('? [PersonalInfomationView] æˆåŠŸè¼‰å…¥å©šå§»ç‹€æ…‹æ¸…å–®:', familyStatusDataSource);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('? [PersonalInfomationView] ¸ü¤J±B«Ãª¬ºA²M³æ¥¢±Ñ:', error);
-                familyStatusDataSource = ["¥¼ª¾"];
+                console.error('? [PersonalInfomationView] è¼‰å…¥å©šå§»ç‹€æ…‹æ¸…å–®å¤±æ•—:', error);
+                familyStatusDataSource = ["æœªçŸ¥"];
             }
         });
         
-        console.log('? [PersonalInfomationView] API ¸ü¤J§¹¦¨¡A·Ç³Æªì©l¤Æ Form');
+        console.log('? [PersonalInfomationView] API è¼‰å…¥å®Œæˆï¼Œæº–å‚™åˆå§‹åŒ– Form');
     });
 
     function getLoadPanelInstance() {
@@ -256,7 +270,7 @@
     }
 
     function OnSelectStatusBoxValueChanged(e) {
-        if (e.value == "¥¼«H¥D") {
+        if (e.value == "æœªä¿¡ä¸»") {
             $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
         }
         else {
@@ -267,7 +281,7 @@
 
 <script type="text/javascript">
     function onBegin() {
-        // ¶}©l³B²z
+        // é–‹å§‹è™•ç†
     }
 
     function onSuccess(data) {
@@ -282,7 +296,7 @@
     }
 
     function onComplete(data) {
-        // ³B²z§¹¦¨
+        // è™•ç†å®Œæˆ
     }
 </script>
 

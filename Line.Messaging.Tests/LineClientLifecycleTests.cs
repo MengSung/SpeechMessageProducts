@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護共用雙目標 SDK 的 channel 隔離與 HTTP 資源所有權；全部 handler 離線、資料合成。 故障注入涵蓋遠端失敗與傳輸失敗，決定性檢查內容 Dispose、借用串流仍開啟及並行作業排空。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineClientLifecycleTests、IsolationHandler、OwnershipHandler、TrackedContent。
+ * - 同一 transport 給 A/B channel 共用時，每次請求都必須使用自己的 credential，不能修改共用預設 header。
+ * - 成功、HTTP 失敗與 transport 失敗都要釋放自己的 request/content；回傳值完全讀完後才處置 response。
+ * - 下載成功時 response 所有權交給 ContentStream；串流釋放前內容仍可讀，重複 Dispose 不重複保留資源。
+ * - 上傳內容由 SDK 釋放，但輸入串流是呼叫端借入；成功或遠端失敗均不能提前關閉呼叫端檔案。
+ * 測試案例入口包含 SharedTransport_TwoChannelsParallel_NoCredentialLeak、RequestsAndResponses_AreDisposed、
+ * Download_StreamOwnsResponse_UntilDisposed、Upload_BorrowedStream_RemainsOpen、
+ * Dispose_BorrowedTransportSurvives_ClientStopsSending、Unauthorized_ErrorDoesNotExposeRemoteBodyOrUrl、
+ * RemoteError_DoesNotExposeUntrustedBody、Invoke；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -1,3 +1,20 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：原host非同步SDK facade三代表入口先綠；鎖定IN型別／欄位、既有paging及單筆傳遞，不碰網路。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CrmAsyncExtensionCharacterizationTests。
+ * - 原批次保留無statecode、IN Guid值、指定ColumnSet；回傳不同ID同名兩列完整字典。
+ * - 單筆保持表／ID及同一ColumnSet，SDK列原樣返回，擴充不Dispose借入SDK。
+ * - 完整分頁保留root查詢、頁大小及下一頁cookie，只在最後才回完整兩筆。
+ * 測試案例入口包含 Batch_PreservesCompleteQueryAndSameNameRecords、Single_PreservesColumnSetAndBorrowedSdk、
+ * All_PreservesPagingRequestAndReturnsBothPages。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;

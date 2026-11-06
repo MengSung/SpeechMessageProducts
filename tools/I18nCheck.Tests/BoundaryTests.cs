@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以假原始碼、假資源與獨佔目錄保護掃描準確性、Unicode、檔案所有權與命令列棘輪。 測試失敗時指出真正的語法、資料或生命週期契約，不依賴網路、主機文化或真實組織。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 BoundaryTests、RepositoryFixture。
+ * - 注入不同 C# 字串語法與範圍邊界；以明列數量保護 Roslyn 語法計數。
+ * - 相似方法名稱不得造成假排除；真正診斷只排除模板或 Trace／Debug 引數。
+ * - 僅計算可見節點與四種指定屬性；Razor、註解與腳本字串不得被假算。
+ * - 補充平面字元必須按 Rune 計數，空白與標點不可被修剪，參數重複不增加字數。
+ * 測試案例入口包含 Scan_SyntaxAndRanges_UsesLiteralValues、Scan_Diagnostics_ExcludesOnlyProvenTemplates、
+ * Scan_Razor_OnlyCountsDisplayFragments、Pseudo_UnicodeAndWhitespace_CountsRunes、
+ * Pseudo_UnicodeOrNumericPlaceholder_IsNotCounted、Ratchet_NewProjectAndOffsettingDecrease_StillFails、
+ * Generate_EnglishShellAndEscaping_PreservesValues、Resx_RepeatedAndReorderedParameters_ValidatesAsSet；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Text;
 using System.Text.Json;
 using System.Xml;

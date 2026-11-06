@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：承載伺服器授權後的不可變文字範圍；建立物件不代表取得資料存取權，不持有 request 或憑證。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TextContext。
+ * - 建立不可變範圍；預設值只支援既有產品呼叫，不取代 host 授權。
+ * - 限制範圍值長度並拒絕空白及控制字元，避免模糊識別或無界保留；不自行修剪或改寫授權識別。
+ * 主要操作入口包含 WithCultures、HasSameScope、RequireBoundary。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/OverrideCacheExceptionTests.cs、
+ * SpeechMessage.Localization.Tests/ChurchTextOverrideValidatorTests.cs、
+ * SpeechMessage.Localization.Tests/TextCatalogTests.cs、
+ * SpeechMessage.Tenancy.Tests/ChurchTextOverrideCacheTests.cs、
+ * SpeechMessage.Tenancy.Tests/OverrideCompositionTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Globalization;
 

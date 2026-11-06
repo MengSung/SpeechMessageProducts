@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗真 DI owner 組合，不讓 singleton 快取保存 scoped request source，容器必須 await 確定清理同一 cache。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 OverrideCompositionTests、EmptySource。
+ * - source／validator／provider／catalog 使用同一套正式服務，兩個別名同 owner 且 async disposal 恰一次清理。
+ * - 缺來源、scoped/transient captive source 或重複來源都拒絕，不能在正式 Host 偷塞 no-op source。
+ * - 不同 notifier 或最長樣本不能由第二次註冊靜默覆蓋；已有 catalog/provider owner 亦拒絕。
+ * - 空資料仍是完整候選，透過真 validator／cache 後由 catalog 回退到系統原文。
+ * 測試案例入口包含 Composition_OneCacheOwner_IsDrainedByContainer、
+ * Composition_InvalidSourceLifetime_RejectsBeforeRegistration、Composition_ConflictingOwner_Rejects、ReadAsync。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Threading;

@@ -1,3 +1,32 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：十六個舊複雜查詢的純資料核心，借入最小Read／Execute邊界，不建立host連線或保存logger。 host先驗完整subject／organization／教會scope；
+ * 輸入ID及查詢格式正確不構成授權。 每頁最多5000列，維持舊原生metadata及不同方法的條件CLR型別，不按同名資料去重或回部分頁。 無cache／timer／queue／背景工作；
+ * Dispose只清借用executor並拒新入口，已入場I/O由host先drain再關連線。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ComplexQueryDataService。
+ * - 借入原授權scope的最小查詢executor；logger只保留來源相容參數，不保存或反射。
+ * - 保留固定舊regardingobjectid範例、task.subject投影及直接RetrieveMultiple；此入口不替caller建立資料範圍授權。 每頁先驗5000列預算、非空且唯一資料庫ID與根表，
+ * 再回操作自有候選；故障保留原Exception交host共用通知。
+ * - 保留contactId的字串條件、AllColumns與createdon降冪及Execute路徑；TotalRecordCount大於0才取首筆，正count卻空頁必須拒絕。 每頁先驗5000列預算、
+ * 非空且唯一資料庫ID與根表，再回操作自有候選；故障保留原Exception交host共用通知。
+ * - 名單與聯絡人GUID仍以舊字串型別傳條件，monthPeriod實為LastXWeeks正週數；只取兩個出席欄位並按主日降冪，不改成月份計算。 每頁先驗5000列預算、非空且唯一資料庫ID與根表，再回操作自有候選；
+ * 故障保留原Exception交host共用通知。
+ * 主要操作入口包含 RetrieveManyToOneCollection、QueryBloodReportByContactId、QueryPresentRecordByContactIdAndSunday、
+ * RetrieveManyToOneRelationship、QueryPresentRecordSortBySunday、QueryPresentRecordSortBySundayFetchXml、
+ * QueryPresentRecordInWeeklyReportByContactId、QueryEntityListByDate；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/ComplexQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/ComplexQueryLifecycleTests.cs、
+ * ToolUtility.Tests/DataOperations/ComplexQuerySafetyTests.cs、ToolUtility/QueryOperations/ComplexQueryService.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using Microsoft.Xrm.Sdk;

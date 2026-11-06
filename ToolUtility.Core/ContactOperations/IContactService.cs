@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：聯絡人查詢與舊登入入口的純 BCL／SDK 契約；保留既有 namespace、參數順序與預設值供兩個產品目標共用。 不包含 host 連線、cache、logger 或排程實作，介面搬移不代表舊 host 
+ * 已完成安全純化。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IContactService。
+ * - 依舊系統客戶編號查啟用聯絡人；查無資料回 null，不把外部編號當資料庫列身份或授權。
+ * - 依 LINE 綁定值查第一筆啟用聯絡人；查無回 null，值必須來自已驗證流程而非身分授權替代物。
+ * - 依 LINE 綁定值查集合，保留不同資料庫 ID 的合法記錄；caller 須處理 SDK 分頁與發布驗證。
+ * - 依顯示姓名查集合而不按姓名合併；姓名不能替代資料庫 ID 或登入授權。
+ * 資料／選項欄位包含 IContactService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/ContactCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/ContactSafetyTests.cs、
+ * SpeechMessageProducts.ChurchReport/Services/Contact/IContactService.cs、
+ * SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using Microsoft.Xrm.Sdk;
 

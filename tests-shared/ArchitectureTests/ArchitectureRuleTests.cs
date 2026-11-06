@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以合成相依圖及實際方案保護 R4；每個反例只違反指定邊界，避免以其他建置失敗冒充架構拒絕。 測試不讀任何秘密、不連資料庫；實際專案僅進行有界的 MSBuild 評估，子程序與串流由讀取器釋放。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ArchitectureRuleTests。
+ * - 雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
+ * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
+ * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
+ * - 沙箱只引用可提供 net462 的雙目標產品；net48 宿主不等於合格部署產品。
+ * 測試案例入口包含 DualTarget_ReferenceToNet10Only_IsRejected、DualTarget_HostPackage_IsRejected、
+ * ToolCore_DataverseException_IsTargetSpecific、Sandbox_ReferenceToNet48Product_IsRejected、
+ * Sandbox_HigherFramework_IsRejected、HostToHost_IsRejected、
+ * ReverseDependency_ToolReference_AndUnknownProject_AreRejected、Net10SharedLayer_ToDualCore_IsAllowed；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

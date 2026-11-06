@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：出席與週報八個純SDK單頁查詢；保留原欄位、排序、filter位置、日期CLR型別及UTC動態界線。 ID與metadata只作查詢驗證，不構成授權；host須先驗使用者、租戶、教會及名單scope。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PresentRecordQueryService。
+ * - 保持原建構簽章及null拒絕；logger只驗證不保存或反射，SDK只借用當前已授權scope。
+ * - 搜尋主日日期是最近N週的靈修單 本次操作僅持有局部候選，整頁正式ID驗證成功才發布；SDK故障原樣傳至host共用告警。
+ * - 根據主日日期排序查詢出席記錄 本次操作僅持有局部候選，整頁正式ID驗證成功才發布；SDK故障原樣傳至host共用告警。
+ * - 使用 FetchXML 查詢最近N週的出席記錄 本次操作僅持有局部候選，整頁正式ID驗證成功才發布；SDK故障原樣傳至host共用告警。
+ * 主要操作入口包含 QueryPresentRecordByContactIdAndSunday、QueryPresentRecordSortBySunday、
+ * QueryPresentRecordSortBySundayFetchXml、QueryPresentRecordInWeeklyReportByContactId、QueryEntityListByDate、
+ * QueryWeeklyReportBySunday、QueryWeeklyReportBeforeTwoMonthOfSunday、QueryListByContactId；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/PresentQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/PresentQuerySafetyTests.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Globalization;

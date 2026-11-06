@@ -1,13 +1,16 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Models/LegacyToolUtilityFactoryCollection.cs
-// 測試責任：將會設定或清除 ToolUtilityFactory 程序級 static 狀態的模型測試序列化。
-// 保護契約：不同測試不可在同一時間覆寫 configuration、tracer 或 ambient gateway，否則測試
-//           可能把已釋放的服務提供者帶入其他案例，造成假的跨 scope 成功或非決定性失敗。
-// 資源生命週期：Collection 本身不建立資源；各測試仍必須以 using/finally 擁有並釋放其 provider、
-//               tracer 與 Factory 重設動作。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與 final CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：宣告 legacy Factory static 狀態的非平行測試集合。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LegacyToolUtilityFactoryCollection。
+ * 資料／選項欄位包含 LegacyToolUtilityFactoryCollection，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Models;

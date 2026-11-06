@@ -1,11 +1,19 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorMoneyToChineseTests.cs
-// 檔案責任：固定奉獻金額轉財務中文大寫的功能契約，防止註解整理或效能修改破壞收據文字。
-// 測試保護：測試直接呼叫真實 DonationPaymentProcessor.MoneyToChinese；使用未初始化物件是因為
-// 該方法是純轉換邏輯，不需要 CRM、LINE 或金流相依服務，避免測試建立外部資源與跨測試狀態。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF，並以 final CRLF 結尾。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證奉獻金額轉換的數字、位值、小數與錯誤輸入契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentProcessorMoneyToChineseTests。
+ * - 建立只用於純轉換方法測試的 processor 物件；不執行會連線 CRM/LINE 的建構式。
+ * 測試案例入口包含 CreateProcessor、MoneyToChinese_should_preserve_financial_digit_and_place_values、
+ * MoneyToChinese_should_fail_closed_to_zero_for_blank_or_invalid_input、
+ * MoneyToChinese_should_preserve_negative_sign_without_sharing_state。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Runtime.CompilerServices;
 using ChurchReport.WebServiceConnector;

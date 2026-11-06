@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 Solution-level manifest 不是只存在檔名，而是可被自動化檢查的實際契約入口。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PublicationContractManifestTests。
+ * - 保護每個已登記 consumer 都有產品、端點、View、權威 ID、scope、容量與測試套件。 決勝斷言同時確認檔案存在、兩個 ChurchReport Grid 均登記且 identity 不是姓名欄位。
+ * - 先從測試輸出定位最近的 SpeechMessageProducts.sln，再限定於該 worktree 查詢指定檔案。 缺少方案或檔案必須立即失敗，不得讀取父 worktree 的舊副本或退回輸出目錄使缺檔測試假通過。
+ *  方法僅查詢檔案資訊，路徑只屬於當次測試，不保存內容、watcher、handle 或跨案例狀態。
+ * 測試案例入口包含 Manifest_ContainsRequiredStableIdentityAndConsumerBoundaryFields、FindRepositoryFile。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 // ============================================================================
 // 檔案路徑：ChurchReport.MemberInfo.Tests/Contracts/PublicationContractManifestTests.cs
 // 測試責任：驗證 Solution 層級 publication manifest 確實登記每個 ChurchReport Grid consumer，

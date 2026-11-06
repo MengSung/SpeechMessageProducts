@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔整合下列相關契約：AllowAnonymousResult：✅ 效能：每個 Action 的 [AllowAnonymous] 判定結果快取。 原本每個請求都對 MethodInfo 與 
+ * ControllerTypeInfo 各執行一次 GetCustomAttributes(inherit: true)。這是完整的反射屬性掃描，會走訪整條繼承鏈、 具體化屬性實例並配置陣列，接著再各跑一次 LINQ 
+ * OfType/Any。 這個判定的輸入只有 Action 的型別中繼資料，在 descriptor 存活期間永不改變， 因此以 descriptor 物件作弱鍵快取既安全又不會根住動態重載後的舊中繼資料。 
+ * 【為何不含任何請求狀態】 快取的值是 bool，只由編譯期的屬性標註決定， 不含使用者、Session、租戶、Claims 或任何請求資料。 ConditionalWeakTable 的鍵不會被快取本身強制保留；其數量隨 
+ * MVC descriptor 生命週期而定，不隨請求數或重載次數無界成長，因此不會造成記憶體洩漏。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 GlobalAuthorizationFilter、AllowAnonymousResult。
+ * - 以 ActionDescriptor 物件作為弱鍵保存反射結果。 ConditionalWeakTable 不會以字串鍵永久根住動態重載後已淘汰的 descriptor， 因此即使應用程式重新建立 MVC 
+ * descriptor，也不會讓快取隨重載次數無界成長。
+ * - ✅ 效能：設定值在建構時讀取一次。 IConfiguration.GetValue&lt;T&gt; 每次呼叫都會走訪所有設定提供者、 以字串比對鍵路徑，再透過 TypeConverter 做型別轉換。
+ * 原本每個請求最多呼叫兩次。 這兩個開關都是佈署期決定的，不需要熱重載。
+ * 主要操作入口包含 OnAuthorizationAsync、AllowsAnonymous、IsAuthenticated、HasServerSessionIdentity、IsAjax。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Security/GlobalAuthorizationFilterTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;

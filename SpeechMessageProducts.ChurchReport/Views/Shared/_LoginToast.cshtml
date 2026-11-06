@@ -1,20 +1,32 @@
+@*
+    檔案整體說明
+
+    目的與定位：提供登入成功／失敗等提示元件，顯示伺服器回傳的安全結果文字。
+
+    主要功能與流程：
+    透過下方Razor／HTML及資源宣告完成呈現；是否為全頁、partial或初始化設定依本檔宣告決定。
+
+    使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
+    修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
+*@
 @* ===========================================
-   Login ���� Toast �q���ե�
+   Login 頁面 Toast 通知組件
    =========================================== *@
 
-<!-- Toast �q���e�� -->
+<!-- Toast 通知容器 -->
 <div id="ToastContainer">
     @(Html.DevExtreme().Toast()
-        .ID("Toast")                                    // Toast �ߤ@�ѧO�X
+        .ID("Toast")                                    // Toast 唯一識別碼
         .Position(p => p
-            .At(HorizontalAlignment.Center, VerticalAlignment.Top)  // ��m�G�~���W��
-            .Of(".card-soft-body")                         // �۹��d�����e��
-            .Offset(0, 10))                                // �����q
-        .CloseOnOutsideClick(true)                      // �I���~������
-        .DisplayTime(2400)                              // ��ܮɶ� 2.4 ��
-        .MaxWidth("90%")                                // �̤j�e�� 90%
+            .At(HorizontalAlignment.Center, VerticalAlignment.Top)  // 位置：居中上方
+            .Of(".card-soft-body")                         // 相對於卡片內容區
+            .Offset(0, 10))                                // 偏移量
+        .CloseOnOutsideClick(true)                      // 點擊外部關閉
+        .DisplayTime(2400)                              // 顯示時間 2.4 秒
+        .MaxWidth("90%")                                // 最大寬度 90%
         .Animation(a => a
-            .Show(s => s.Type(AnimationType.Fade).Duration(300))  // ��ܰʵe
-            .Hide(h => h.Type(AnimationType.Fade).Duration(200))) // ���ðʵe
+            .Show(s => s.Type(AnimationType.Fade).Duration(300))  // 顯示動畫
+            .Hide(h => h.Type(AnimationType.Fade).Duration(200))) // 隱藏動畫
     )
 </div>

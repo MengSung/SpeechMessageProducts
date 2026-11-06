@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/DonationBookingService.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class DonationBookingService
-// 主要成員：ConvertStatus、FillBookingList、SelectDefaultBooking、DeleteBookingAsync、MapBooking、BuildDeleteResultMessage、SendBookingResultMessage
-// 引用命名空間：System、System.Threading.Tasks、ChurchReport.Models、ChurchReport.Payments、ChurchReport.Tools、Microsoft.Xrm.Sdk、ToolUtilityNameSpace
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 認獻單清單、狀態與取消流程服務。 認獻單是 ChurchReport 奉獻領域模型，並非通用金流核心概念。 因此這個服務留在 ChurchReport，集中管理 CRM 
+ * new_dedication_booking 映射、 認獻單狀態文字、定期定額中止後的 CRM 備註更新，以及通知奉獻者的 LINE 訊息。 注意：這裡雖然會呼叫舊相容的 OrderMaintain，但它仍然是 
+ * ChurchReport 既有產品流程。 通用金流核心不應知道「認獻單」、「奉獻者 fullname」或 ChurchReport 的 LINE 通知格式。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationBookingService。
+ * - 從 CRM 查出指定奉獻者的認獻單，並填入奉獻付款表單模型。 DonationPaymentManager 只需要知道「要載入認獻清單」；new_dedication_booking 的欄位名稱、 金額轉字串、
+ * 日期轉本地時間、OptionSet 轉顯示文字等細節都集中在這裡。
+ * - 中止一筆認獻單對應的定期定額授權，並把結果寫回 CRM 與 LINE。 orderMaintainer 由 manager 傳入，是為了把舊金流維護入口留在既有邊界； 本服務只負責 ChurchReport 產品流程，
+ * 不直接依賴特定 provider toolkit。
+ * 主要操作入口包含 ConvertStatus、FillBookingList、SelectDefaultBooking、DeleteBookingAsync、MapBooking、
+ * BuildDeleteResultMessage、SendBookingResultMessage。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs、
+ * SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs、
+ * SpeechMessageProducts.ChurchReport/Services/DonationPaymentModelAssembler.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Threading.Tasks;
 using ChurchReport.Models;

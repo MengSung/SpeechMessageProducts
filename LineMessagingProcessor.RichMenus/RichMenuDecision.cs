@@ -1,16 +1,24 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus/RichMenuDecision.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class RichMenuDecision
-// 主要成員：Assign、Remove、MenuKey、Unlink、Priority、Ttl、Reason、None
-// 引用命名空間：未宣告 using；請由命名空間、同檔型別或完全限定名稱判讀相依性。
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：表示 RichMenu policy 在呼叫 LINE API 前回傳的 outcome。 decision 仍維持 provider-neutral：使用應用程式 menu key、priority、選填 
+ * TTL 與 reason， 讓 orchestrator 能可預期地挑出勝出的 action。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RichMenuDecision。
+ * - 建立標準化 policy decision。 使用 static factory methods 可讓 assign 與 unlink 語意保持明確。
+ * - 取得要指派的應用程式層級 menu key。 no-op 與 unlink decisions 會是 null。
+ * - 取得此 decision 是否要求 orchestrator 移除使用者 RichMenu 連結。
+ * - 取得多個 policies 回傳競爭 actions 時用來比較的 decision priority。
+ * 主要操作入口包含 Assign、Remove。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.RichMenus/IRichMenuPolicy.cs、
+ * LineMessagingProcessor.RichMenus/LineRichMenuTextTriggerPolicy.cs、
+ * LineMessagingProcessor.RichMenus/RichMenuOrchestrator.cs 追查目前工作樹中的合作／使用位置。
+ */
 namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>

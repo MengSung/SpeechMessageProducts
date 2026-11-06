@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護不經快取的實體讀取、整頁穩定 ID 與安全 XML 邊界。 每案只借入合成 SDK，故障原樣傳遞給 host；沒有真正 D365 或 LINE 操作。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 EntityQueryContractTests。
+ * - 相同 ID 連查兩次必須兩次進 SDK，第二次讀到更新值而非第一個 caller 修改後的物件。 所有欄位沿用舊來源 AllColumns，不把此方法變成 host cache 的別名。
+ * - 不經快取入口的 SDK 故障必須維持原 Exception 實例，不回空、不重試或輸出敏感本文。
+ * - XML特殊字元作為實體 logical name 並非合法資料庫識別，必須在 I/O 前拒絕； 此方法用型別化 Retrieve 而不是把名稱拼成 FetchXML，不能靠 escape 放行任意結構。
+ * - 空 GUID 不能變成廣泛查詢或 draft key，拒絕時 SDK 不得被呼叫。
+ * 測試案例入口包含 RetrieveEntityNoCache_RepeatedId_ReadsFreshSdkResult、
+ * RetrieveEntityNoCache_SdkFault_PropagatesOriginalException、
+ * RetrieveEntityNoCache_InvalidEntityName_RejectsBeforeIo、RetrieveEntityNoCache_EmptyId_RejectsBeforeIo、
+ * RetrieveEntityNoCache_IdentityMismatch_RejectsPublication、
+ * RetrieveTaskBySubject_XmlSpecialCharacters_CannotInjectConditions、MultiQuery_DuplicateId_RejectsEntireCandidate、
+ * MultiQuery_StableIds_AreRequiredAndSameNamesArePreserved；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Threading;

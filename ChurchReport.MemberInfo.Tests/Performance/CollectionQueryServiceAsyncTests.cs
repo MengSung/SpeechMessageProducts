@@ -1,3 +1,28 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：將孤兒目錄中的十五個非同步查詢案例納入正式執行：以獨立假 SDK 保護查詢形狀、結果、I/O 次數、 取消與有界結果持有。全部資料均為合成；不連 CRM、不以單元測試延遲宣稱實機效能。 同步 SDK 的 
+ * Task 包裝不會憑空產生可取消的網路 I/O；取消案例明確驗證送出前拒絕而非依賴計時競賽。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CollectionQueryServiceAsyncTests、QueryFixture。
+ * - 每案例獨享資料來源；只保留最後一個 query 與有限計數，不跨測試或使用者共用。
+ * - 待測物借用本案例的假服務，不建立連線、timer 或背景工作。
+ * - 完成原草稿遺漏的初始化；logger 僅為既有 API 的非空佔位，不會送通知或保留 request。
+ * - 固定欄位查詢須送出原值與啟用條件，回傳 detached 的唯一資料庫 ID。
+ * 測試案例入口包含 RetrieveEntityCollectionByFieldAsync_ShouldReturnEntities、
+ * RetrieveEntityCollectionByConditionAsync_ShouldReturnEntities、
+ * RetrieveEntityCollectionByConditionsAsync_ShouldReturnEntities、
+ * QueryWeeklyReportBeforeTowMonthOfSundayAsync_ShouldReturnReports、
+ * RetrievePagedEntitiesAsync_FirstPage_ShouldReturnPagedResult、
+ * RetrievePagedEntitiesAsync_WithFilter_ShouldReturnFilteredResults、
+ * RetrieveBatchByIdsAsync_ShouldReturnAllMatchingEntities、
+ * RetrieveBatchByIdsAsync_WithLargeSet_ShouldHandleEfficiently；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;

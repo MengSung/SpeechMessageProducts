@@ -1,11 +1,30 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Models/SmallGroupDataListSnapshotIsolationTests.cs
-// 測試責任：驗證背景上傳使用獨佔深拷貝，不會與前景 Session 快取物件圖共享可變集合或 Member 實例。
-// 保護契約：背景清理只能修改快照；原始三組名單在高頻列舉時必須保持完整且不可擲出集合競態例外。
-// 資源生命週期：測試僅使用記憶體內模型與受控執行緒同步原語，不建立 CRM、網路、Session 或長生命週期背景資源。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與 final CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 SmallGroupDataList 與 ListSmallGroupWeeklyReport 的背景快照隔離契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SmallGroupDataListSnapshotIsolationTests、LegacyToolUtilityFactoryScope。
+ * - 保護三組清單及其中成員均屬背景副本所有的契約。 此案例建立含相同語意資料的前景週報後製作快照，並以參考相異與值相同的斷言， 偵測任何把原始集合或 Member 實例帶入背景工作的回歸。
+ * - 保護來源週報圖的寫入端與 SaveIntegrate 快照必須共同持有同一同步根。 故障注入是由測試先持有來源 SmallGroupDataList 的內部同步根，再啟動會以 JSON 
+ * 原地改寫姓名與電話兩個欄位的前景更新。修正前 UpdateMember 不持有該同步根， 因而會在鎖仍被持有時完成；快照逐欄複製便可能取得不同時間點的欄位。決定性斷言是寫入在 鎖釋放前必須等待，鎖內快照保持完整舊值，
+ * 釋放後的新快照保持完整新值，不能出現混合狀態。 測試只使用記憶體模型與受控同步原語，不建立 CRM、HTTP、Session 或長生命週期背景資源。
+ * - 保護下載／初始化流程加入全部成員時也必須遵守來源資料圖同步根，避免快照在 成員物件加入途中觀察到不完整的集合。故障注入是先持有同步根，再啟動新增工作； 決定性斷言是工作在鎖內等待，釋放後才完成，
+ * 且快照只看到完整加入前或完整加入後狀態。
+ * - 保護 DevExtreme 或代理重送同一筆新增 payload 時，不會把相同資料庫 ID append 兩次。 故障注入對同一集合連續送入相同 PresentRecordId、不同姓名的 JSON；決勝斷言為第二次 
+ * 寫入 fail closed，而且原集合只保留第一列。姓名刻意不同，用來證明身份判斷不依內容。
+ * 測試案例入口包含 CreateBackgroundUploadCopy_DeepCopiesAllMemberCollectionsAndRequiredUploadMetadata、
+ * UpdateMember_WaitsForSourceGraphLock_AndSnapshotsRemainWhole、AddMemberToAllMemberData_WaitsForSourceGraphLock、
+ * InsertMember_DuplicateStableId_RejectsWithoutMutatingPublishedCollection、
+ * AddNewPersonToMember_ConcurrentDuplicateStableId_PublishesExactlyOncePerConsumer、
+ * SortAndCleanMemberStatus_WaitsForSourceGraphLock、
+ * BackgroundMutationOfSnapshot_DoesNotBreakConcurrentEnumerationOfOriginalMembers、AssertCompleteMembers；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Models;
 using ChurchReport.WebServiceConnector;
 using ChurchReport.ViewModels;

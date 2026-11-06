@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純 SDK 集合查詢契約；授權及連線 scope 由 host 驗證與擁有，不保存 request／結果或跨租戶狀態。 Task 包裝仍執行同步 SDK；取消只在 I/O 前後檢查，不能中斷正在執行的同步呼叫。 
+ * 單頁入口保留分頁 metadata；批次入口完整有界讀取，衝突與故障交最終 host 告警，不回部分成功。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ICollectionQueryService、PagedResult。
+ * - 沿用 AllColumns、欄位值及啟用條件，驗完整單頁正式身份；caller 擁有回傳結果及續頁責任。
+ * - 透過 Execute 查指定主日前兩月週報，保留條件／排序；錯頁或故障不得偽裝空資料。
+ * - 同步 SDK 的完成 Task 包裝；保留單頁及原例外，caller 取消前不執行 I/O，取消後不發布成功。
+ * - 保留單條件與啟用條件；值為操作局部 SDK 型別，不作 XML 拼接或服務級快取。
+ * 資料／選項欄位包含 ICollectionQueryService、Entities、TotalCount、MoreRecords、PagingCookie，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Performance/CollectionQueryServiceAsyncTests.cs、
+ * ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Core/CollectionOperations/CollectionQueryService.cs、
+ * ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

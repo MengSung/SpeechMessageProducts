@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：舊式非 DI 呼叫端的程序級轉接器，只保存一個診斷 owner、不保存 request／user 狀態。 每個 Host 以 using 註冊並解除；禁止同程序同時綁定多個產品或收件人而任意選路。 
+ * 共用模組應在最終失敗邊界呼叫，重試中的可恢復失敗不在此上報。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ExceptionReporting、Registration。
+ * - 取得目前 owner 是否可用，供 legacy 告警在未啟動 Host 的工具中明確辨識狀態。
+ * - 綁定唯一 owner 並註冊全域終端失敗；回傳的 registration 必須先於 owner 釋放。
+ * - 上報可行動失敗，CallerMemberName 只提供編譯期方法名稱；不得傳入動態個資作 operation。 未綁定時只印固定碼，不自行建立未受控 writer／LINE client。
+ * - owner 綁定成功後才註冊；實例最長只存續至 Host 結束。
+ * 主要操作入口包含 Attach、Report、OnUnhandled、OnUnobserved、Dispose。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/ChurchClockStartupTests.cs、
+ * ChurchReport.MemberInfo.Tests/Images/ImageUploadSafetyTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/ChurchReportLineAdminNotificationServiceTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/TenancyFailureBoundaryTests.cs、
+ * SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;

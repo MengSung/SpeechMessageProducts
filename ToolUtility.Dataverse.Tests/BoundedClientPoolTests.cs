@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 keyed bounded pool 的租約互斥、故障淘汰、分池、逾時與冪等釋放契約。 每個測試只使用假的 IOrganizationService，不連線真實 Dataverse。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 BoundedClientPoolTests、TrackingOrganizationService。
+ * - 驗證同一個池的 client 在第一條租約尚未歸還前，不會被第二條租約同時取得。
+ * - 驗證標記故障的租約歸還後會銷毀 client，不會重新加入 idle 集合。
+ * - 驗證不同 Pool Key 會隔離子池，相同 key 則可重用同一個健康 client。
+ * - 驗證超過 MaxN 時會在 AcquireTimeout 內擲出 TimeoutException，並累計 Metrics。
+ * 測試案例入口包含 Acquire_does_not_return_same_client_to_parallel_lease、
+ * Faulted_client_is_discarded_instead_of_returned_to_pool、Pool_key_partitions_subpools_and_reuses_within_same_key、
+ * Acquire_timeout_is_counted_when_pool_is_at_capacity、Lease_dispose_is_idempotent_and_returns_once、
+ * Returning_on_premise_client_clears_caller_id_before_idle、Cleanup_does_not_dispose_client_leased_after_selection、
+ * Cleanup_keeps_idle_count_at_min_size；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

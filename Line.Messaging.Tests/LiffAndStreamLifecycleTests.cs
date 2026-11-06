@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護同 SDK 的 LIFF 認證隔離與串流生命週期，不讓主 Messaging client 的修正留下另一個共用 transport 漏洞。 故障全部在記憶體 handler 注入；檢查實際 request 
+ * credential、內容釋放及非同步讀取委派，不連 LINE。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LiffAndStreamLifecycleTests、LiffHandler、LiffContent、AsyncOnlyStream。
+ * - 兩個 LIFF channel 共用 transport 交錯一千次；每筆 URI 的合成範圍須與 header 相符，排空後不保留預設 credential。
+ * - LIFF 四種入口在成功及遠端故障都必須檢查 status 並釋放 response；JSON request 也須在完成後釋放。
+ * - LIFF Dispose 不關閉借入 transport，但必須拒絕之後的每筆 API，且重複 Dispose 冪等。
+ * - 下載 wrapper 必須直接呼叫底層非同步讀取並傳同 token，不能退回 Stream 基底的同步讀取加 ThreadPool 包裝。
+ * 測試案例入口包含 Liff_SharedTransport_ThousandRequestsRemainIsolated、
+ * Liff_EveryEndpoint_DisposesResponseAndReportsFailure、Liff_Dispose_StopsSendingWithoutDisposingBorrowedTransport、
+ * ContentStream_ReadAsync_ForwardsUnderlyingOperationAndCancellation、LiffHandler、SendAsync、LiffContent、
+ * SerializeToStreamAsync；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.IO;
 using System.Net;

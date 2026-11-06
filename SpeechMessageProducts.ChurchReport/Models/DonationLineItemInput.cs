@@ -1,16 +1,22 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/DonationLineItemInput.cs
-// 所屬區塊：ChurchReport 奉獻付款表單模型層。
-// 檔案責任：描述一筆多類別奉獻明細，供 MVC model binding、驗證與建單流程共用。
-// 主要型別：DonationLineItemInput
-// 主要成員：Category、Amount、Others
-// 引用命名空間：無；本 DTO 不持有外部資源或可變共享狀態。
-// 維護重點：欄位名稱是前端 Lines[i].Category／Amount／Others 的 POST 契約，不可任意改名。
-// 隔離要求：每次請求建立獨立 DTO，不得放入 static、singleton 或跨會友快取，避免資料串流。
-// 生命週期：DTO 僅隨單次請求流動，由 model binding 建立，離開請求後由 GC 回收。
-// 編碼要求：本檔案維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：一列奉獻明細：一個奉獻類別、該類別金額及補充說明。 MVC 會依照表單欄位名稱 Lines[index].Category、Lines[index].Amount、 Lines[index].Others 
+ * 自動繫結；服務層在使用前仍必須自行正規化及驗證， 不可把瀏覽器送來的字串直接當成已可信任的 CRM 或金流資料。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationLineItemInput。
+ * 資料／選項欄位包含 DonationLineItemInput、Category、Amount、Others，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Dedication/DonationMultiCategoryTests.cs、
+ * SpeechMessageProducts.ChurchReport/Models/DonationPaymentFormModel.cs、
+ * SpeechMessageProducts.ChurchReport/Services/DonationFeeGroupText.cs、
+ * SpeechMessageProducts.ChurchReport/Services/DonationGivingHistory.cs、
+ * SpeechMessageProducts.ChurchReport/Services/DonationLineItemNormalizer.cs 追查目前工作樹中的合作／使用位置。
+ */
 namespace ChurchReport.Models
 {
     /// <summary>

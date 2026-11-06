@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：執行既有 QueryService 五個入口與 MarketingListService 的真實已編譯委派鏈。 只替代外部 SDK，保護 Repository 跨 assembly 搬移的查詢形狀及整頁拒絕；
+ * 不證明授權或實機 D365。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RepositoryCallerRouteTests。
+ * - 六個消費點必須抵達同一 SDK 並保留各自投影／條件；正常回應完整返回，重複 ID 拒絕而不部分發布。 借入 SDK 的 Dispose 不被轉移，沒有外部設定、憑證或網路。
+ * - 只選擇真實產品方法，不在 fixture 重建查詢或模擬 repository 呼叫。
+ * 測試案例入口包含 ActualCallers_PreserveQueryAndRejectDuplicatePage、Invoke。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;

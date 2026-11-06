@@ -1,16 +1,21 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Diagnostics/Profiling/PerfThresholds.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 PerfThresholds 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class PerfThresholds
-// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
-// 引用命名空間：未宣告 using；請由命名空間、同檔型別或完全限定名稱判讀相依性。
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：效能剖析門檻（僅 Debug）。集中管理，方便調整。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PerfThresholds。
+ * - 同一請求 CRM 呼叫次數超過此值 → 視為疑似 N+1，加印明細。
+ * - 單次 CRM 呼叫超過此毫秒 → 視為慢呼叫，加印明細。
+ * - action − 已計時 CRM 超過此毫秒 → 視為「未歸因時間」過大（盲區/CPU），加印 [Perf-Gap]。
+ * - named phase 超過此毫秒才輸出，避免 log 被微小階段淹沒。
+ * 資料／選項欄位包含 PerfThresholds、NPlusOneCrmCount、SlowSingleCallMs、GapMs、PhaseMs，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/RequestProfiler.cs 追查目前工作樹中的合作／使用位置。
+ */
 #if DEBUG
 namespace ChurchReport.Diagnostics.Profiling
 {

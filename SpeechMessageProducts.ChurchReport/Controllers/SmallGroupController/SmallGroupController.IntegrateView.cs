@@ -1,20 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.IntegrateView.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：組裝週報初始頁面與已授權小組 scope。Razor model 必須來自 ListManager 的
-//           detached read，不得直接傳入 Session holder 的活週報；如此即使同 Session 另一個
-//           request 正在 CRUD 或換日期，View 也只會列舉一個完整世代。
-// 生命週期：同步 CRM 載入由目前 request 擁有，取消在可安全中止的步驟前檢查；不建立捕獲
-//           HttpContext、Session、credential 或 mutable Members 的背景 Task。
-// 主要型別：class SmallGroupController
-// 主要成員：IntegrateView、SetupIntegrateViewData、ShouldLoadIntegrateData、HandleIntegrateViewLogin、EnsureIntegrateDataLoaded
-// 引用命名空間：Microsoft.AspNetCore.Mvc、System、System.Threading、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：小組管理控制器 - 整合式小組長點名功能
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SmallGroupController。
+ * - 整合式小組回報頁面 提供單一小組的詳細回報功能(點名、禱告、統計)
+ * - 處理整合式頁面登入並建立 request-owned Razor model。伺服器重新驗證 ActiveListId， detached snapshot 在回應完成後可回收，不會把 Session graph 
+ * 暴露給 Razor callback。
+ * 主要操作入口包含 IntegrateView、SetupIntegrateViewData、ShouldLoadIntegrateData、HandleIntegrateViewLogin、
+ * EnsureIntegrateDataLoaded。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Cache.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Core.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Crud.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Date.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading;

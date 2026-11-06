@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：活動參與者解析與原狀態碼轉移；只借用 host 已授權的 scope SDK，不保存結果、logger 或個資。 異質記錄以 logical name＋正式 GUID 識別，全部 
+ * I/O／識別驗證通過後才追加對齊的輸出清單。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ActivityService。
+ * - 保留舊簽章及 null 拒絕；不保存未使用的 logger，SDK 僅在同一授權 scope 借用。 不建立連線或取得任何使用者權限，借入 SDK 永遠由原 host owner 釋放。
+ * - 依原參與者順序追加完整實體與類型，保留前綴與 AllColumns／IN 批次查詢。 缺 partyid 的外部地址沿用略過；正式參照的缺列、錯表、重複或故障一律整體拒絕，不偷偷裁剪。 一般單頁保留原無排序查詢；
+ * 只有發現 MoreRecords 才丟棄探測頁，另以主鍵排序重新完整分頁。
+ * - 不執行 SDK I/O，先完整驗證全部 partyid 及既有前綴，再追加對齊的 GUID／類型候選。 活動容器不是輸出記錄，不替缺 partyid 的外部地址補造 ID；任何壞參照都不留下前半清單。
+ * - 使用同一 scope 借入 SDK 完成活動；維持原 1／4 狀態碼，不自行查權限或重試不確定寫入。
+ * 主要操作入口包含 GetActivityPartyList、GetActivityPartyIdList、SetActivityStatusToCompleted、
+ * SetAppointmentStatusToScheduled、ExecuteState、RequireInputs、RequireStateInputs、ValidatePrefix；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/ActivityOperations/ActivityCharacterizationTests.cs、
+ * ToolUtility.Tests/ActivityOperations/ActivityLifecycleTests.cs、
+ * ToolUtility.Tests/ActivityOperations/ActivitySafetyTests.cs、ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility/Core/ToolUtilityFacade.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;

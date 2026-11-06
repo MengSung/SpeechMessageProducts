@@ -1,18 +1,24 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility.Dataverse.Tests/FileToolUtilityTracerTests.cs
-// 所屬區塊：Dataverse 連線與診斷資源的生命週期測試。
-// 檔案責任：驗證追蹤資源為程序級單一擁有者，且不會隨使用次數累積於全域集合。
-// 主要型別：class FileToolUtilityTracerTests
-// 主要成員：Write_ManyTimes_DoesNotGrowTraceListeners、Dispose_RemovesListenerFromGlobalCollection、
-//           Write_BelowQualifiedLevel_DoesNotOpenTraceFile
-// 引用命名空間：System、System.Diagnostics、System.IO、Xunit、ToolUtilityNameSpace.Diagnostics
-// 閱讀路徑：先看每個測試保護的契約說明，再看斷言為何具決定性。
-// 維護重點：這些測試守住「追蹤資源不可隨請求累積」的規則，是 ToolUtilityClass
-//           能否安全改為 request 範圍的前提，不可因為不方便而放寬。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：FileToolUtilityTracer 的資源生命週期測試。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FileToolUtilityTracerTests。
+ * - 為當次案例配置唯一暫存路徑但不建立檔案，讓 Release 的無檔案副作用可以被檢驗。 路徑只由此 fixture 擁有，最長存活到案例結束；Dispose 會在串流釋放後刪除檔案。
+ * - 在每個案例成功或失敗後清除本 fixture 的唯一暫存檔，避免重跑測試累積檔案。 所有 tracer 與讀取串流都由測試方法的 using 先行釋放；清理失敗必須讓測試失敗，不能隱藏資源殘留。 短暫鎖檔最多嘗試五次、
+ * 間隔一百毫秒，等待總量最多四百毫秒，不建立背景工作或計時器。
+ * - 保護每個 fixture 只能配置一次暫存檔；注入第二次配置，斷言立即拒絕且第一個檔案仍由原 fixture 清理。 即使拒絕斷言失敗，finally 也只清除本案例建立的檔案，避免紅燈本身留下孤兒檔案。
+ * - 保護防毒軟體短暫鎖檔時仍能有界清理；注入前兩次刪除失敗，第三次才刪除實際檔案。 斷言嘗試三次、等待兩次且檔案消失；等待用區域計數代替真實睡眠，測試不依賴排程或時間。
+ * 測試案例入口包含 NewTempTracePath、Dispose、NewTempTracePath_SecondCall_ThrowsAndKeepsOriginalOwner、
+ * DeleteTraceFile_TransientLock_RetriesThenDrains、DeleteTraceFile_PersistentRetention_FailsAfterFiveAttempts、
+ * DeleteTraceFileWithRetry、Write_ManyTimes_DoesNotGrowTraceListeners、Dispose_RemovesListenerFromGlobalCollection；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Diagnostics;
 using System.IO;

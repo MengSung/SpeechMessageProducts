@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護舊 ArrayList 邊界、借用 SDK 生命週期及不同授權 scope 的並行隔離。 所有 I/O 為合成替身；測試擁有等待事件與工作並在 finally 排空，不連 VM／D365 或發 LINE。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ActivityLifecycleTests、AdversarialList。
+ * - 普通清單以外的 wrapper／衍生類及兩參數別名皆在 I/O 前拒絕，不能執行任意 Add callback。
+ * - 來源 null／錯型集合及空欄位名稱皆拒絕，兩個入口保留固定安全包裝與前綴。
+ * - 缺欄位、null 欄位、空集合沿用合法不追加語義；沒有 SDK 呼叫，也不重建或清除既有前綴。
+ * - 5000 個既有正式 ID 合法；再 append 一列或前綴已超界時皆整體拒絕，不以分批突破總量。
+ * 測試案例入口包含 UnsupportedList_RejectsWithoutAnySdkOrMutation、InvalidSource_RejectsWithoutIo、
+ * EmptySource_PreservesPrefixWithoutSdk、TotalBudget_IncludesExistingPrefix、
+ * ConcurrentScopes_FaultRetryMutationAndDrainRemainIsolated、
+ * Dispose_RejectsNewWorkButAllowsStartedCallToDrainWithoutDisposingBorrowedSdk、
+ * UnusedLoggerAndReleasedSdk_AreNotRetainedByLiveService、CreateRetentionProbe；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;

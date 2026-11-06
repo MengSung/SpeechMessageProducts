@@ -1,3 +1,29 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純 SDK 集合讀取器；每次建立操作局部候選，驗證正式 ID／表名後才回傳，不保存結果或 logger。 host 必須先完成授權且以同一 scope 借入 SDK，並擁有連線逾時、並行政策、排空及 
+ * Dispose。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CollectionQueryService。
+ * - 保留原必填 logger 建構契約但不保存它；SDK 僅借用至服務 Dispose 或 scope 結束。
+ * - 沿用 AllColumns、欄位值與 statecode=0，單頁結果保留分頁 metadata；不得把此值當授權。
+ * - 保留週報 Execute 訊息、主日前兩月閉區間及日期升冪；失敗固定訊息且保留真 InnerException。
+ * - 在 caller 執行緒完成相同單頁查詢；Task 只表達完成／故障／明確 caller 取消，不排程背景 I/O。
+ * 主要操作入口包含 RetrieveEntityCollectionByField、QueryWeeklyReportBeforeTowMonthOfSunday、
+ * RetrieveEntityCollectionByFieldAsync、RetrieveEntityCollectionByConditionAsync、
+ * RetrieveEntityCollectionByConditionsAsync、QueryWeeklyReportBeforeTowMonthOfSundayAsync、
+ * RetrievePagedEntitiesAsync、RetrieveBatchByIdsAsync；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Performance/CollectionQueryServiceAsyncTests.cs、
+ * ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/CollectionCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/CollectionLifecycleTests.cs、
+ * ToolUtility.Tests/DataOperations/CollectionSafetyTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.Generic;

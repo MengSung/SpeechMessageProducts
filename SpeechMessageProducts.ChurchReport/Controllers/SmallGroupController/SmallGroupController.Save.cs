@@ -1,11 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs
-// 檔案責任：在 HTTP request 仍有效時建立隔離快照、接受背景上傳，並維持前景 Session 圖不被背景工作保存或回寫。
-// 隔離與生命週期：Task 只捕獲 scalar、背景副本與 IServiceScopeFactory；背景 runner 唯一擁有 DI、ambient 與 trace scope，
-// 在每一條成功、失敗或取消路徑釋放資源，不得重用 request scope 或記錄敏感資料。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與 final CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：小組管理控制器的儲存與背景清理 HTTP 入口。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SmallGroupController。
+ * - 將背景 runner 提供的固定例外型別名稱寫入既有低階診斷管道。
+ * - 判斷背景副本中的成員是否已指派或轉介而應從目前名單移除。
+ * 主要操作入口包含 SaveIntegrate、RemoveTransferredMembersFromBackgroundCopy、RecordSafeBackgroundFailure、
+ * ValidateHappyGroupFields、RemoveTransferredMembers、ShouldRemoveMember。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Cache.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Core.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Crud.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Date.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;

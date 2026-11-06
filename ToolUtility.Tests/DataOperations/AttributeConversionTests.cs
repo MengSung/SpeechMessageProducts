@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：無 I/O 的屬性操作以固定值鎖特性，沒有可送 SDK 的 QueryExpression，故不虛構 XML 黃金檔。 每種型別驗證已存值、缺值 sentinel 及寫回；全部輸入是 caller 自有 
+ * Entity，沒有共享快照或 cache。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AttributeConversionTests、FaultingValue。
+ * - 九個轉換器的人工固定樣本，避免以產品轉換器計算預期結果造成同源斷言。
+ * - 同一公開 getter 對存在／缺少欄位維持原轉換與 sentinel，錯誤預設值或消失的欄位均可被攔下。
+ * - 原 setter 的 add／replace 與型別包裝維持；Lookup 的正式 ID 及表名不被換成顯示名稱。
+ * - 靜態 handler 保留正常 typed 讀寫、預設值及 null 字串替代，不能以重新導向而改成另一套 sentinel。
+ * 測試案例入口包含 Values、OriginalGetters_PreserveStoredAndMissingValues、OriginalSetters_PreserveAddAndReplace、
+ * OriginalStaticHandler_PreservesTypedValuesAndDefaults、Services_DoNotRetainLogger、
+ * StaticHandler_PropagatesRealFormattingFailure、StaticHandler_RejectsWrongStoredType、
+ * Lookup_ExplicitNullMeansClearedReference；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Xrm.Sdk;

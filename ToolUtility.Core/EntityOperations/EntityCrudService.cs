@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純 SDK 單次寫入轉接器；只借用 host 已驗證組織、使用者及授權範圍的服務，不建立連線或共用資料。 輸入與輸出只在同步呼叫存活，不保存 Entity、logger、Session、token 或 
+ * callback。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 EntityCrudService。
+ * - 保留舊建構簽章及 null 拒絕，不保存未使用 logger，避免延長 request／憑證的生命。
+ * - 只執行一次 Create，驗證回傳非空資料庫 ID 後才回報成功；不修改 caller 的 Entity 或自行重試。
+ * - 以既有資料庫 ID 或伺服器替代索引鍵更新一次；缺少兩者即在 I/O 前拒絕。
+ * - 刪除 caller 已授權的精確非空 ID；不查詢、合併或刪除同名資料。
+ * 主要操作入口包含 CreateEntity、UpdateEntity、DeleteEntity、RequireName。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/MutationOperationsCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/MutationOperationsSafetyTests.cs、
+ * ToolUtility.Tests/EntityOperations/EntityCrudServiceTests.cs、
+ * ToolUtility.Core/EntityOperations/EntityRepository.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Xrm.Sdk;
 

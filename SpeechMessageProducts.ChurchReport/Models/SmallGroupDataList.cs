@@ -1,21 +1,27 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/SmallGroupDataList.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：擁有單一 Session 週報的四組 Member collection 與唯一 instance synchronization root。
-//           跨集合新增、更新、刪除、分類與快照必須在同一短暫臨界區原子完成，讀取端只取得
-//           deep-enough detached copy，不直接持有活的 Session Members。
-// 身份與資源：各 consumer 依 PresentRecordId 獨立驗證；同一資料可合法存在於「所屬小組」與
-//             「全部成員」兩個不同 consumer，但每個集合內不得重複。鎖內禁止 CRM／HTTP I/O、
-//             Task 排程與等待，因此沒有跨 request 背景 owner 或無界資源保留。
-// 主要型別：class SmallGroupDataList
-// 主要成員：SetupContactIdString、SetSmallGroupDateOfWeeklyReport、TransferToMemberInfomationPackage、MappingMembers、AddNewPersonToMember
-// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks、ToolUtilityNameSpace、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、Microsoft.Xrm.Sdk.Client
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：管理目前登入範圍內多小組資料及其快照複製，提供小組畫面與背景上傳分離的輸入；新增集合欄位時必須同步檢查深度複製，避免仍引用原Session物件。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SmallGroupDataList。
+ * - 供同一物件圖的協作者在替換集合參考時使用的同步根；不應跨物件圖保存或公開給請求外部。
+ * - 幸福小組資料；替換時不保留舊同步根或跨 request 可變參考。
+ * - 全部成員資料；參與背景上傳，所有前景 CRUD 必須與快照共鎖。
+ * - 將新建或替換的 group 接入目前資料圖的同步根；此 setter 只執行記憶體參考綁定。
+ * 主要操作入口包含 AttachToThisGraph、ExecuteSynchronized、UpdateSmallGroupAndAllMember、UpdateNewPersonAndAllMember、
+ * DeleteMemberFromAllGroups、AddMemberToAllMemberData、RebuildSmallGroupAndNewPersonDataFromAllMembers、
+ * RebuildHappyGroupDataFromAllMembers；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/SmallGroupDataListSnapshotIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

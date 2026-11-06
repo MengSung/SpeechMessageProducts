@@ -1,16 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus/RichMenuExpirationSweepReport.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class RichMenuExpirationSweepReport
-// 主要成員：ScannedCount、RestoredCount
-// 引用命名空間：未宣告 using；請由命名空間、同檔型別或完全限定名稱判讀相依性。
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：彙總一次針對 RichMenu 使用者狀態的到期 sweep。 report 刻意只公開計數，讓呼叫端可記錄或監控 sweep 成效， 而不需要依賴特定 state store 的 record shape。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RichMenuExpirationSweepReport。
+ * - 建立 sweep report，包含掃描與成功還原的紀錄數。
+ * - 取得掃描紀錄中成功完成 RichMenu 還原或 unlink 的數量。
+ * 資料／選項欄位包含 RichMenuExpirationSweepReport、ScannedCount、RestoredCount，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.RichMenus/IRichMenuExpirationSweepWorkflow.cs、
+ * LineMessagingProcessor.RichMenus/RichMenuExpirationSweepWorkflow.cs 追查目前工作樹中的合作／使用位置。
+ */
 namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>

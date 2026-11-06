@@ -1,15 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Diagnostics/FileToolUtilityTracer.cs
-// 所屬區塊：ToolUtility 診斷層，負責 legacy ToolUtility 追蹤輸出的資源擁有權。
-// 檔案責任：以單一私有 writer 輸出 CHURCH_REPORT_TRACE.TXT，不加入全域
-//           System.Diagnostics.Trace.Listeners，避免污染 Trace.log 或重複輸出。
-// 生命週期：此型別必須由 DI 以 Singleton 建立；第一次合格輸出才開啟檔案，
-//           Dispose 依序停止寫入、Flush、釋放 writer 與 stream，且方法冪等。
-// 隔離要求：本型別不保存 request、Session、Claims、tenant 或 credential 狀態；
-//           Release 編譯下即使被直接 new，Write 也永遠是 no-op。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與最終 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以私有檔案 writer 輸出 legacy ToolUtility 追蹤的程序級資源擁有者。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FileToolUtilityTracer。
+ * - 以統一設定建立 tracer；停用時不會開啟或建立任何檔案。
+ * - 建立預設停用的相容 tracer；不推測路徑、不建立檔案，也不觸碰全域 listener。
+ * - 建立供測試或明確 legacy 呼叫端使用的 tracer。
+ * - 寫入達到層級門檻的 legacy 訊息；停用與 Release 皆在入口快速返回。
+ * 主要操作入口包含 Write、Dispose、CreateFileStream、CreateWriter、IsCompileTimeTraceEnabled。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/DiagnosticTraceOptionsTests.cs、
+ * ToolUtility.Dataverse.Tests/FileToolUtilityTracerTests.cs、SpeechMessageProducts.ChurchReport/Startup.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Diagnostics;
 using System.IO;

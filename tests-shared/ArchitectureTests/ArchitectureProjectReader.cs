@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：從實際方案逐 csproj、逐目標呼叫 MSBuild 的唯讀評估；避免自行猜測 Condition／Import 規則漏掉 Framework 專用參考。每個程序最長三十秒，輸入只來自受信任方案，程序、串流與 
+ * JSON 均有限持有。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ArchitectureProjectReader。
+ * - 定位當前工作樹的方案並評估每目標；不走父工作樹、不讀 appsettings 或連線資訊。
+ * - 評估呼叫者擁有的受信任 csproj 集合；同樣逐目標解析 Condition，不自行模擬 MSBuild。
+ * - 只向上尋找目前 checkout 的方案；找到即停，不以另一個工作樹補來源。
+ * - 拒絕跨工作樹及 reparse point，確保測試只檢視本次方案宣告的普通檔案。
+ * 測試案例入口包含 ReadSolution、ReadProjects、FindRoot、ValidateLocalPath、Evaluate。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ * 可沿 tests-shared/ArchitectureTests/ArchitectureRuleTests.cs、
+ * tests-shared/ArchitectureTests/ArchitectureXmlTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：Line.Messaging/LineMessagingClient.cs
-// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LineMessagingClient
-// 主要成員：NormalizeLineApiBaseUri、DeriveDataUri、ApiUrl、DataUrl、ApplyRetryKeyHeader、CombineBaseAndPath、IssueChannelAccessTokenAsync、RevokeChannelAccessTokenAsync、CreateAsync、ReplyMessageAsync
-// 引用命名空間：Newtonsoft.Json、Newtonsoft.Json.Serialization、System、System.Collections.Generic、System.IO、System.Linq、System.Net.Http、System.Net.Http.Headers
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：LINE Messaging API 客戶端，集中處理與 LINE 伺服器的請求和回應。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineMessagingClient。
+ * - LINE binary data API 預設 URI。 Content 與 Rich Menu 圖檔端點官方要求使用 api-data.line.me，不可共用一般 JSON API host。
+ * - 此 SDK 實例唯一的 channel 傳輸 owner；Messaging 與 LIFF 共用同一認證隔離契約。
+ * - JSON 序列化設定（使用 Camel Case 命名） JSON serializer settings (using Camel Case naming)
+ * - LINE API 的基礎 URI Base URI for LINE API
+ * 主要操作入口包含 NormalizeLineApiBaseUri、DeriveDataUri、ApiUrl、DataUrl、ApplyRetryKeyHeader、CombineBaseAndPath、
+ * IssueChannelAccessTokenAsync、RevokeChannelAccessTokenAsync；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/LineUtilityClassWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/MemberLineProfileWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/PushUtilityWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/PushUtilityTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;

@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：十六入口逐一拒絕候選完整性故障；Mock只供SDK response，不代替產品身份／XML驗證。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ComplexQuerySafetyTests。
+ * - 每入口分開測null、空／重複ID、錯表與budget，避免首入口失敗遮蔽後面的缺陷。
+ * - 先驗整頁才回單筆或集合；metadata門檻不得讓錯誤正式資料列通過或被假空結果隱藏。
+ * - 十四個帶ID入口在I/O前拒空；無ID的固定示例與LINE字串查詢另守根表，不偽裝為GUID流程。
+ * - 動態表/欄位、週數及LINE空字串不能形成更寬查詢；錯誤不含原輸入。
+ * 測試案例入口包含 Cases、AllEntrypoints_RejectInvalidPage、IdentifierInputs_RejectBeforeIo、UnsafeInputs_RejectBeforeIo、
+ * Fetch_SafelyEncodesNameAndChecksResponse、Dispose_RejectsAllEntrypointsAndDoesNotDisposeClient、
+ * Failure_RetainsOriginalExceptionAndAllowsExplicitRetry、Source。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;

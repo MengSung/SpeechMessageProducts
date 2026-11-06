@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在發布前驗證完整教會覆寫候選；只借用固定系統資源，所有集合與列驗證皆屬一次操作。 不含 I/O、request、連線、計時器或跨教會可變狀態；失敗不得發布部分結果或覆蓋舊快照。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchTextOverrideValidator。
+ * - 固定系統字典由 Host 擁有，可跨教會安全共用，沒有使用者覆寫。
+ * - 僅保存核定合成最長名稱的 UTF-16 長度，不保存任何真實教會名稱。
+ * - 固定來源與長度政策在建構驗證，不接受每次 request 改上限以繞過平台限制。
+ * - 先驗 schema、系統鍵、參數集合及平台長度，再由既有快照建構式驗正式 ID／scope／重複 key+culture。 本文合計最多一百萬 UTF-16 字元且最多五千列，避免單教會用小列數保留無界記憶體。
+ * 主要操作入口包含 Validate、RequireUnicode。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/OverrideCacheExceptionTests.cs、
+ * SpeechMessage.Localization.Tests/ChurchTextOverrideValidatorTests.cs、
+ * SpeechMessage.Tenancy.Tests/ChurchTextOverrideCacheTests.cs、SpeechMessage.Tenancy/ChurchTextOverrideCache.cs、
+ * SpeechMessage.Tenancy/OverrideServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

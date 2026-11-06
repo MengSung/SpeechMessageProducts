@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以合成 SDK 頁面保護完整覆寫來源；斷言查詢範圍、正式 ID、完整分頁及 lease 歸還，不宣稱實機整合。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchTextOverrideSourceTests、Factory、Lease。
+ * - 兩頁同顯示文字但不同資料庫 ID／key 均保留，查詢不得漏教會條件、穩定排序或指定欄位。
+ * - 逐一注入缺 ID、外教會、錯表、重複正式 ID、缺欄位、超 schema 文字，整份候選必須失敗且只歸還一次 lease。
+ * - 組織、產品或教會任一 lease scope 不同，在送 SDK 之前拒絕；語系差異不改授權資料範圍。
+ * - 後頁 SDK 故障必須保留原例外而非回傳第一頁；下一次可重讀且兩次 lease 均完成釋放。
+ * 測試案例入口包含 ReadAsync_CompletePages_AreScopedAndDetached、ReadAsync_InvalidCandidate_RejectsWholeResultAndDisposes、
+ * ReadAsync_ForeignLease_RejectsBeforeIo、ReadAsync_LateFailure_PreservesOriginalAndRetries、
+ * ReadAsync_Cancellation_DrainsAndReturnsLease、ReadAsync_RepeatedCookie_StopsAndDisposes、Context、Row；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Threading;

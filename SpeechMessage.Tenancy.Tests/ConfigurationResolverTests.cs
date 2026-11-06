@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：使用合成設定保護舊後備、完整 scope、憑證遮罩與純 resolver；不連 LINE／D365，不讀真實環境或時鐘。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ConfigurationResolverTests、CaptureLogger。
+ * - 不同大小寫的受信任組織必須選自身 token 及頻道 ID；不可先使用預設組織。
+ * - 找不到 org 時保留 Jesus 後備，warning 只有固定事件；token、教會及任意 org 不可進 log。
+ * - 部署有指定預設別名時不能硬改回 Jesus；後備 token 與 ID 都來自同一別名。
+ * - 真實組織及預設別名可以叫 environment；另放不同環境頻道 ID，證明來源不可由別名字串推斷。
+ * 測試案例入口包含 Resolve_ConfiguredOrg_ReturnsThatToken、Resolve_MissingOrg_FallsBackToJesusAndLogsWarning、
+ * Resolve_ExplicitDefault_PreservesAlias、Resolve_EnvironmentAlias_PreservesConfiguredChannelIdentity、
+ * Resolve_LegacySelection_PreservesPrecedence、Resolve_DefaultEmpty_DoesNotSelectEnvironment、
+ * Resolve_BearerPrefix_NormalizesOnce、Resolve_MissingOrForeignScope_FailsClosed；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

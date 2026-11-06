@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在原 host 先鎖定 Repository 六入口的有效 SDK 邊界，再由相同測試保護 Core 搬移。 全部識別與內容為合成值；只替代外部 SDK，不假稱 D365、授權或資料庫唯一鍵已驗收。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RepositoryCharacterizationTests。
+ * - 寫入參數與既有黃金檔一致，原 Entity 不改動，每次只呼叫一次 SDK。
+ * - 省略或傳 null 欄位仍讀 AllColumns；明確欄位實例原樣交 SDK，回應不被重建或保留。
+ * - 三種合法查詢與完整分頁資訊原樣通過；相同顯示名稱的不同 ID 都保留。
+ * - 指派仍使用 systemuser 與原目標資料庫 ID；請求與原 golden 相同且不寫回 Entity。
+ * 測試案例入口包含 Crud_ValidInput_PreservesGoldenRequest、Retrieve_PreservesColumnSetAndResponse、
+ * RetrieveMultiple_PreservesQueryRowsAndPaging、AssignOwner_PreservesGoldenRequest、
+ * ExistingValidation_RejectsBeforeSdkWithOriginalParameterNames、Describe。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Xml.Linq;
 using Microsoft.Crm.Sdk.Messages;

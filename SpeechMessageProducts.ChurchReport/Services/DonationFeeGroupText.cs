@@ -1,14 +1,21 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/DonationFeeGroupText.cs
-// 所屬區塊：奉獻付款服務層；集中處理同一筆付款的群組文字與金流明細。
-// 檔案責任：提供總額、類別摘要、商品名稱、PaymentLineItem 與 ATM 標籤文字的純函式。
-// 主要型別：DonationFeeGroupText
-// 生命週期／資源：不建立 Session、CRM 連線、背景工作、timer 或 static 可變快取；回傳值由呼叫端持有。
-// 隔離要求：輸入只讀取目前請求的明細快照，不跨會友或跨請求保存任何資料。
-// 外部契約：ATM 標籤文字及 PaymentLineItem 欄位不可任意改動，前端解析與 provider 均依賴它們。
-// 編碼要求：本檔案維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：同一筆奉獻付款群組的可重用、無副作用文字組裝器。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationFeeGroupText。
+ * - 產生 ATM 顯示與 LINE 共用文字。標籤名稱刻意維持既有契約， 以確保 DonationPaymentView 的 parser 與「複製虛擬帳號」功能不被破壞。
+ * 主要操作入口包含 Total、CategorySummary、ProviderProductName、ProviderItems。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Dedication/DonationMultiCategoryTests.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs、
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Pay
+ * mentProcessing.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

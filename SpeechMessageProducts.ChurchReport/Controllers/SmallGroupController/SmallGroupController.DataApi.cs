@@ -1,21 +1,31 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：提供週報 Grid／圖表的 HTTP 讀取邊界。每個 request 先驗證目前 Session scope，
-//           再取得 ListManager detached snapshot；實際交給 DataSourceLoader 的集合會依資料庫
-//           PresentRecordId 再做一次有界 fail-closed 驗證，絕不依姓名或顯示內容去重。
-// 隔離與生命週期：Controller 不保存 response、Session collection、CRM client 或 credential 到
-//                 static/cache/background callback；request 完成後 detached graph 可回收，no-store
-//                 端點也不得被中介快取當成跨使用者授權替代品。
-// 主要型別：class SmallGroupController
-// 主要成員：LoadIntegrate、GetChartDataList、GetMultiGroupChartDataList、AssignSmallGroupGet
-// 引用命名空間：ChurchReport.Models、ChurchReport.Tools、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory、System
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：小組管理控制器 - 資料載入 API (Small Group Controller - Data Loading API) 教學說明： 這是一個 Partial Class（部分類別），將 
+ * SmallGroupController 的功能分散到多個檔案中。 為什麼使用 Partial Class？ - 分離關注點：這個檔案專注於「資料載入 API」 - 代碼組織：避免單一檔案過大，難以維護 - 
+ * 團隊協作：不同開發者可以同時編輯不同部分而不衝突 本檔案的職責： - 提供資料載入的 HTTP GET API 端點 - 處理 DevExtreme DataGrid 的 AJAX 請求 - 實作快取機制以提升性能 - 
+ * 確保用戶身份驗證和資料安全 API 設計模式： - RESTful API：使用 HTTP GET 方法載入資料 - Repository Pattern：透過 InMemoryContext 存取資料 - Caching 
+ * Pattern：使用記憶體快取減少重複查詢 與其他部分的關係： - SmallGroupController.IntegrateView.cs：處理整合視圖的頁面渲染 - 
+ * SmallGroupController.Crud.cs：處理資料的新增、修改、刪除 - BaseChurchController：提供共用的驗證、錯誤處理等功能
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SmallGroupController。
+ * - 載入多小組列表資料（含快取）(Load Multi-Group List Data with Caching) 教學說明： 這個 API 提供多小組的詳細列表資料。 用於 DataGrid 或 Lookup 
+ * 控制項的資料來源。 與前一個方法的區別： - 前一個是圓餅圖資料（統計數字） - 這個是列表資料（詳細記錄） 快取策略： 使用與前一個方法相同的手動快取機制。 快取 Key 格式：{前綴}{日期}_{帳號} 資料來源： 
+ * m_WeeklyReportRecordListData 包含所有小組的週報記錄。 這些資料通常用於： - 多小組統計頁面 - 小組選擇下拉選單 - 小組指派功能 HTTP 方法：GET URL 
+ * 範例：/SmallGroup/AssignSmallGroupGet?id=12345
+ * 主要操作入口包含 LoadIntegrate、GetChartDataList、GetMultiGroupChartDataList、AssignSmallGroupGet。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Cache.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Core.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Crud.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Date.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.IntegrateView.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;

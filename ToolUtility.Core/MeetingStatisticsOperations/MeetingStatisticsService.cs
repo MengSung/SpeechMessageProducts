@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：個人出席記錄純 SDK 查詢，維持全部原查詢條件與欄位；不同資料庫 ID 的同名資料完整保留。 只借入已授權 scope 的 SDK，不保存 logger、查詢結果或使用者狀態，不建立 cache／背景工作。 
+ * host 擁有 timeout／drain／Dispose 與最終共用通知；本類不關借入連線、不吞真實例外或送 LINE。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MeetingStatisticsService。
+ * - 保留相容建構式，logger 不保存；借入 SDK 不轉移身分、憑證或資源所有權。
+ * - 依主日日期查原出席資料，固定西曆日期與 new_name 排序，不自行換算時區。
+ * - 保留原週報／聯絡人查詢，包含原 uitype=new_disciple_lessons 相容文字； 這是舊版提示值而非授權，搬移時不猜測修正；明確週報型別的另一入口亦維持原值。
+ * - 聯絡人與主日日期條件的安全 XML 查詢，不把顯示名稱當正式列 ID。
+ * 主要操作入口包含 RetrieveBySunday、RetrieveByWeeklyReportAndContact、RetrieveBySundayDateAndContact、
+ * RetrieveByWeeklyReportAndContactAlt、RetrieveWithExpiredDateByContact、RetrieveByContactSmallGroupAndSundayDate、
+ * Contact、Query。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/QueryOperationsCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/QueryOperationsSafetyTests.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.ObjectModel;

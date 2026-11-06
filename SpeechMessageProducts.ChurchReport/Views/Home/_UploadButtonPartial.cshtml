@@ -1,13 +1,26 @@
+@*
+    檔案整體說明
+
+    目的與定位：提供舊整合頁的上傳按鈕partial，將點擊交既有提交函式及目前編輯候選。
+
+    主要功能與流程：
+    畫面輸入採用 ChurchReport.Models.ListSmallGroupWeeklyReport，欄位語意須與控制器組裝的模型一致。
+    元件事件交給 onUploadClickGeneral、onUploadClickHappy、onUploadClickIndividual，維護時須一併核對宣告、載入順序與元件ID。
+
+    使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
+    修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
+*@
 @model ChurchReport.Models.ListSmallGroupWeeklyReport
 
 @* Render upload button by login and group type *@
-@if (Model.LoginType == "�p�ժ�")
+@if (Model.LoginType == "小組長")
 {
-    if (Model.GroupType == "�@��p��")
+    if (Model.GroupType == "一般小組")
     {
         @(Html.DevExtreme().Button()
             .ID("save-button-general")
-            .Text("�W��")
+            .Text("上傳")
             .Height(50)
             .Width(100)
             .Type(ButtonType.Success)
@@ -20,7 +33,7 @@
     {
         @(Html.DevExtreme().Button()
             .ID("save-button-happy")
-            .Text("�W��")
+            .Text("上傳")
             .Height(50)
             .Width(100)
             .Type(ButtonType.Success)
@@ -34,7 +47,7 @@ else
 {
     @(Html.DevExtreme().Button()
         .ID("save-button-individual")
-        .Text("�W��")
+        .Text("上傳")
         .Height(50)
         .Width(100)
         .Type(ButtonType.Success)

@@ -23,6 +23,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Strict Analyzer Contract](./strict-analyzer-contract.md) | Late opt-in evaluation, exact diagnostic probes, legacy isolation, and .NET Framework polyfills | Established |
 | [Solution CI Contract](./solution-ci-contract.md) | Offline Windows checks, per-target coverage, optional signing and temp-key cleanup | Established |
 | [Deployment CLI Contract](./deployment-contract.md) | User Secrets-only isolated commands, metadata plans, safe diagnostics and offline verification | Established |
+| [P1 結構部署契約](./schema-deployment-contract.md) | 正式schema、完整只讀metadata、只新增plan/apply/verify及實機邊界 | Established |
 | [Plugin Packaging Contract](./plugin-packaging-contract.md) | Separate four-input merge targeting .NET Framework 4.6.2, process-environment signing, offline metadata checks and sandbox exception ownership | Established |
 | [Text Encoding Contract](./text-encoding-contract.md) | Tracked-file boundaries, byte/token checks, lossless conversion, and safe output ownership | Established |
 | [Development Configuration Safety](./development-configuration-safety.md) | Development-only providers, baseline token rejection, test organization guard and Production compatibility | Established |

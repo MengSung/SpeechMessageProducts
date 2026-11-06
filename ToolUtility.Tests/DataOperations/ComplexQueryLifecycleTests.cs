@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證真正借用邊界、host路徑及資源生命週期；不開連線，不以Mock自己的驗證代替產品行為。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ComplexQueryLifecycleTests。
+ * - 1000次A/B並行實際走十六個Core入口，各回自己的身份與新候選；caller修改不得影響下一次。
+ * - 同步SDK已入場時Dispose只拒新工作；finally釋放gate且await舊工作，確證active歸零而非遺留背景呼叫。
+ * - Dispose後服務不再留executor、從未保存logger；有限GC檢查保持服務本身存活，避免假陽性。
+ * - 純SDK轉接三路徑原樣通過，再由Core驗證；不更換Execute路線或轉移Dispose所有權。
+ * 測試案例入口包含 ConcurrentScopes_PreserveIdentityAndDrain、DisposeRace_DrainsBorrowedWork、
+ * Dispose_ReleasesExecutorAndUnusedLogger、OrganizationAdapter_PreservesAllThreeRoutes、
+ * LegacyHostAdapter_PreservesAllThreeRoutes、Collect。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Runtime.CompilerServices;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;

@@ -1,16 +1,29 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility.Dataverse.Tests/ToolUtilityFactoryAmbientGatewayTests.cs
-// 檔案責任：驗證 legacy ToolUtilityFactory 單例透過 ambient gateway 取得目前 scope 的
-//           Dataverse 操作邊界，而不保存 request scope、client 或 lease。
-// 資源生命週期：測試建立的 ServiceProvider、scope、pool 與假 CRM service 都由 using
-//               明確釋放；測試會斷言 ambient fallback scope 在操作完成後立即釋放，
-//               並確認 100 個跨 scope 操作後沒有保留 lease 或成長中的 client。
-// 跨 request 隔離：AsyncLocal 僅模擬單一執行流程的目前 request services；Factory 單例
-//                 僅保存不含 request 狀態的 AmbientGatewayOrganizationService，因此不同
-//                 scope 不可能共享 mutable gateway 或租約。
-// 編碼要求：本檔案維持 UTF-8 無 BOM、CRLF，並以 final CRLF 結尾。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 legacy Factory 使用 ambient gateway 的跨 scope 安全性與資源回收契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ToolUtilityFactoryAmbientGatewayTests、TrackingScopeFactory、TrackingScope。
+ * - 保護 legacy Factory 在 HTTP request 內不可以直接跳到 IDataverseGateway， 必須回到目前 scope 已註冊的 IOrganizationService。故障注入是以真實 
+ * ChurchReport.Startup 建立 Debug 計時裝飾器，再由 Factory 單例呼叫 IOrganizationService.Execute(OrganizationRequest)；決定性斷言是目前 
+ * ChurchReport.Diagnostics.Profiling.RequestProfiler 的摘要含有 crm{n=1, 。這可防止 Factory 持有的 ambient 代理繞過 DI decorator，讓 
+ * JSONL 有 CRM 操作但同一 request 的 [Perf] 永遠為零。
+ * - 保護 Factory 單例不捕獲 request scope、也不在背景操作遺漏 scope 釋放的契約。 故障注入為可計數的 scope factory 和不連線網路的 CRM service；決定性斷言依序是： 有 
+ * request 時不自建 scope、無 request 時建立且釋放一個短命 scope、以及連續一百個 不同 request scope 操作後 pool 的已建立 client 數維持熱身基線且 lease 歸零。
+ * - 保護背景工作即使繼承 request 的 ExecutionContext，也只能使用明確指定的背景 scope。 故障注入建立兩個彼此獨立的服務提供者：request 服務回傳第一個識別碼，背景服務回傳 第二個識別碼。
+ * 決定性斷言是在 Task.Run(Func{Task{Guid}}) 內仍取得背景 識別碼，且離開 override 後恢復 request 服務；這可捕捉原本 ambient 代理優先使用 inherited 
+ * HttpContext.RequestServices 的 lifecycle leak。
+ * - 建立只回傳固定 GUID 的組織服務替身；它不建立連線、租約或背景資源，僅用來辨識 ambient 解析到哪一個 DI scope。
+ * 測試案例入口包含 Factory_legacy_organization_service_uses_current_scope_timed_decorator、
+ * Factory_singleton_resolves_current_gateway_and_releases_ambient_scopes_without_pool_growth、
+ * Background_scope_override_flows_to_nested_task_and_restores_request_scope、CreateIdentifiedService、
+ * CreateConfiguration、CreateConnectionService、ResetFactory、CreateScope；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Reflection;

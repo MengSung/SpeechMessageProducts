@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：注入屬性轉字串故障、SDK 異常頁與並行 A/B 操作，保護固定安全診斷、原始例外及單次發布。 全部資料為合成值；替身僅替代外部 SDK I/O，不實作產品驗證、不連線或發送通知。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AttributeExtensionSafetyTests、FaultingValue。
+ * - 沙箱可不建立 logger；舊簽章仍拒絕 null，不能以隱藏記錄物件維持相容。
+ * - 三入口的 null Entity 仍包裝真實引數例外，但外層訊息不能包含呼叫者的欄位文字。
+ * - 寫入欄位空值保持既有包裝及內層型別；拒絕不改動原實體或其他欄位。
+ * - 欄位物件的 ToString 真正失敗時，保留同一例外供 host 統一通知，外層不回顯資料／原 Message； caller 修復自己的欄位後可重試，服務不保存失敗值。
+ * 測試案例入口包含 AttributeConstructor_OffersStatelessPathAndPreservesLegacyNullRejection、
+ * AttributeNullEntity_PreservesWrapperWithoutEchoingInput、AttributeInvalidProperty_RejectsWithoutMutation、
+ * AttributeFormattingFault_PreservesOriginalExceptionAndAllowsRetry、AttributeLifetime_DoesNotRetainLoggerOrEntity、
+ * ExtensionInvalidArguments_RejectBeforeSdkIo、ExtensionInvalidFetch_RejectsBeforeSdkIo、
+ * SdkResponseIntegrity_RejectsIncompleteResponse；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;

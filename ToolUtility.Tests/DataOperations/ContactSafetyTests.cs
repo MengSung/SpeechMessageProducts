@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：聯絡人抽取的正式 ID、完整發布、XML、隔離及生命週期契約。 故障直接注入 SDK 邊界，斷言產品拒絕候選且不回部分資料；所有替身／Task／事件限本案例且確定排空。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ContactSafetyTests。
+ * - 三個Task入口在兩宿主都精確區分正常caller取消與內部timeout。 分別注入預取消／I/O中取消／內部取消／真故障／正常完成；不建立隱藏背景工作，決定性斷言Task狀態與原Exception。
+ * - 外部SDK多載保留null/ref與資訊字串；只讀傳入SDK，不能偷偷用服務內另一個scope。
+ * - 所有單筆空頁與格式化空頁維持null/空字串，不把空頁誤當故障或生成假資料庫ID。
+ * - 建構失敗在保存任何依賴前發生；精確參數名稱讓host診斷設定錯誤，不接受空logger或SDK。
+ * 測試案例入口包含 AsyncEntrypoints_PreserveCancellationAndOriginalFailures、
+ * ExternalSdkOverloads_PreserveNullCountAndExactBorrowedScope、EmptySingleQueries_PreserveNullAndEmptyInformation、
+ * Constructor_RejectsMissingDependencies、EveryCollection_RejectsInvalidCandidate、
+ * EverySingle_RejectsInvalidCandidate、Collection_ReadsCompletePagesAndPreservesSameNameRows、
+ * Collection_RejectsNonTerminatingPagingAtExactPageBudget；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;

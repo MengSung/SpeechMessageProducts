@@ -1,3 +1,20 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：P1-09完整資源守門；所有集合只屬於一次verify，全部成功組裝才輸出結果。 不保留來源到靜態狀態，不修改檔案、啟動Task或建立服務client；診斷不含資源文字與教會名稱。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ResourceVerifier。
+ * - 跨中性組驗穩定key、所有原始文化及pseudo長度、跨文化關鍵字；英文缺譯只報告不失敗。 每組已由ResourceCatalog驗證key/參數集合；本層不另寫第二份XML或參數解析器。
+ * - 使用Sender相同UTF16單位而非Rune放寬上限；只計算替換後長度，不配置膨脹後字串。 受限模板只能使用已明確提供最長值的churchName，不能替其他參數猜短值而假通過。
+ * - 與產品KeywordCatalog相同的NFKC/Unicode空白合併/Invariant小寫；不記錄輸入或永久保存。
+ * 主要操作入口包含 Verify、CheckLength、NormalizeKeyword。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/ResourceVerificationTests.cs、tools/I18nCheck/CommandRunner.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Globalization;
 using System.Text;
 

@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 Debug 診斷背景監控的停止契約。測試以永不自行完成的延遲模擬長時間 GC 監控，關鍵斷言是停止程序必須先取消自己擁有的 token，再等待背景工作完成；如此可 避免在 Host 的 
+ * ApplicationStopping 同步 callback 內等待同一顆 token 而死鎖。 測試不建立檔案、不保留 request 或使用者資料，且每個取消來源都由測試決定性釋放。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DebugTraceMonitorLifetimeTests。
+ * - 故障注入是以無限延遲模擬仍在執行的 GC 監控；決定性斷言是 DebugTraceMonitorLifetime.Dispose 能在一秒內完成，且監控確實收到取消。 若實作先等待 task 再取消其專屬 token，
+ * 此測試會逾時並揭露停止死鎖。
+ * 測試案例入口包含 Dispose_cancels_owned_token_before_waiting_for_monitor。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Threading;
 using System.Threading.Tasks;

@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：同一已授權 host scope 的純 SDK 查詢契約；不擁有連線、不保存結果或個別使用者狀態。 單筆核對請求 ID，多筆驗證整個消費頁穩定 ID 後才回傳；SDK 故障交回 host 最終通知邊界。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IEntityQueryService。
+ * - 依資料庫 ID 直接讀完整欄位，回應 ID 與實體不符時拒絕，不走共用快取。
+ * - 明確的不經快取入口；每次進 SDK，不能讀回上次 caller 修改或其他 scope 的 Entity。
+ * - 保留啟用條件與 TopCount=1 單筆語義，以型別化值查詢，不把名稱當唯一資料列 ID。
+ * - 執行已授權操作局部查詢，保留 SDK 分頁資訊並拒絕同頁重複或欠缺正式 ID。
+ * 資料／選項欄位包含 IEntityQueryService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/ContactOperations/ContactServiceTests.cs、
+ * ToolUtility.Tests/ListOperations/ListServiceTests.cs、ToolUtility.Core/EntityOperations/EntityQueryService.cs、
+ * ToolUtility/Core/ToolUtilityFacade.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using Microsoft.Xrm.Sdk;

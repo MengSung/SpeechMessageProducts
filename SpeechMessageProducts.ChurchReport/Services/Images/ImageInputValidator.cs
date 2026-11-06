@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 所有上傳及縮圖共用的影像信任邊界。只註冊 JPEG、PNG、GIF， 先辨識尺寸再解碼，禁止用宣告的副檔名或 Content-Type 代替內容驗證。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ImageInputValidator、ImageInputRejectedException。
+ * - 同步檢查並解碼單張影像。輸入由呼叫端擁有，回傳影像的所有權移交呼叫端； 失敗時只有本方法建立的暫存會被釋放，不處置借用的來源串流。
+ * - 非同步版本沿用相同解碼器及尺寸檢查；辨識後重設同一請求的串流位置， 不把影像、取消來源或 request 保存到 static。正常 caller 取消原樣往外傳遞。
+ * - 獨立設定不能從 Configuration.Default 複製，否則 TIFF 等非允許格式仍會被註冊。 禁用內部像素池，避免診斷或空閒期間持有前一次請求的影像；不修改程序全域設定。
+ * - 每次解碼自有 options。輸出既有契約是單張 JPEG，只需第一影格； 限制 GIF／APNG 的影格數，避免低檔案大小但大量影格造成配置放大。
+ * 主要操作入口包含 Load、LoadAsync、CreateConfiguration、CreateOptions、ValidateDimensions、BufferInput、BufferInputAsync、
+ * UnsupportedFormat；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Images/ImageUploadSafetyTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs、
+ * SpeechMessageProducts.ChurchReport/Services/Images/ImageInputText.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.IO;
 using System.Threading;

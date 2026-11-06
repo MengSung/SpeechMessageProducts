@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔是部署工具的共同命令入口，讓P0 Plugin註冊與P1結構操作共用既有connector、
+ * 組織白名單、固定artifacts邊界、寫鎖及終端例外回報，但保持兩種清單與執行流程分開。
+ *
+ * 主要功能與流程：先解析命令／選項、拒絕非goodshepherdback與外部plan/export路徑；
+ * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
+ * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
+ * 委派DeploymentEngine，保留原P0公開語法、trace/push設定佔位與安全驗證。
+ * verify有metadata差異回1，只有秘密佔位尚未比對時回3，不因零操作假稱秘密或推播已驗證。
+ *
+ * 擁有權與隔離：一次命令最多一個OrganizationLease，寫入命令另持本機同組織OS檔案鎖；
+ * using先歸還client再釋放寫鎖。所有命令資料與輸出目錄均為本次操作，沒有跨命令SDK、
+ * credential、request、Session或可變結果快取；secretReader僅在真正寫入設定瞬間解析。
+ *
+ * 失敗與限制：正常caller取消回130且不通知；真正例外在lease已歸還後交注入的共用report，
+ * 只輸出固定摘要、例外型別及最多四層SDK數字錯碼，不讀Message、TraceText或設定本文。
+ * parser／白名單與hash不代表實機寫入授權；VM隔離、備份、復原及本次明確操作範圍須另外證明。
+ *
+ * 維護驗證：保留DeploymentContractTests原62案與SmokePollingTests；修改路由須另跑SchemaCliTests，
+ * 驗新模式不讀Plugin DLL、拒絕非法輸入、lease/drain、敏感輸出、取消、真共用診斷及並行寫鎖。
+ */
 using System;
 using System.Globalization;
 using System.IO;

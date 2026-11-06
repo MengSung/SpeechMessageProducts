@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：固定 LINE push 端點的單次傳輸實作，沒有重試佇列、背景工作或管理者 notifier。 .NET Framework 的程序級共用 HttpClient 不含使用者狀態，net10 的 
+ * HttpClient 由主機擁有； 每個操作獨佔 HTTP 訊息、十秒逾時與取消連結，結束前按 using 次序釋放。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LinePushClient。
+ * - 外部或沙箱程序擁有的無狀態連線池，不保存任何當次憑證或結果。
+ * - 建立操作專屬逾時來源；委派本身不捕獲使用者、教會或 request 狀態。
+ * - 固定十秒的 Core 內部期限，不讓未驗證輸入延長資源生命週期。
+ * - 沙箱 AppDomain／程序是此唯一客戶端與連線池的 owner，卸載時一併回收。 它不使用 Cookie、預設認證或自動轉址，沒有 per-user 狀態；每個傳輸取消與內容另有 using owner。
+ * 主要操作入口包含 PushAsync、StartTimeout、CreateSharedClient。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.Tests/LinePushClientTests.cs、
+ * SpeechMessage.Dynamics.Plugins.Tests/DiagnosticsPingPluginTests.cs、
+ * SpeechMessage.Dynamics.Plugins/Diagnostics/DiagnosticsPingPlugin.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Globalization;
 using System.Linq;

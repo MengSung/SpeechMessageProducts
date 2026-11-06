@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：候選全驗證後發布的唯讀文字表，無 I/O 或資源擁有權，不保留來源集合。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchTextOverride、IChurchTextOverrideSnapshot、IChurchTextOverrideSnapshotProvider、
+ * ChurchTextOverrideSnapshot。
+ * - 完整伺服器範圍；消費端每次確認一致，不以快取命中取代授權。
+ * - 沒有資料仍回傳帶原範圍的空快照；來源資源生命週期由實作 owner 負責。
+ * - 兩層字典皆由建構式獨佔並在發布前封裝；最多五千列，不保留輸入集合或資料列物件。
+ * - 檢查穩定識別及 scope，再複製全部純文字，失敗時不發布部分資料。
+ * 主要操作入口包含 TryGetText。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/OverrideCacheExceptionTests.cs、
+ * SpeechMessage.Localization.Tests/ChurchTextOverrideValidatorTests.cs、
+ * SpeechMessage.Localization.Tests/TextCatalogTests.cs、
+ * SpeechMessage.Tenancy.Tests/ChurchTextOverrideCacheTests.cs、
+ * SpeechMessage.Tenancy.Tests/OverrideCompositionTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

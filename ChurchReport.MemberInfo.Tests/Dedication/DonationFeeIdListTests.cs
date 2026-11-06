@@ -1,11 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Dedication/DonationFeeIdListTests.cs
-// 檔案責任：鎖定永豐 Param1「收費單 Id 清單」契約：單張格式不變、多張可逐張還原、長度不超過 255、
-//           類別上限與 Param1 容量一致，以及 callback 只入帳同會友、同訂單的收費單。
-// 測試隔離：每個測試自行產生 Guid，不連線 CRM、金流或 Session，不使用 static 可變資料。
-// 編碼要求：本檔案維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護單筆GUID舊格式、多筆收費單順序往返及永豐欄位長度上限，並確認空值、重複及過量ID整體拒絕。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationFeeIdListTests。
+ * 測試案例入口包含 Encode_SingleFee_KeepsLegacyGuidFormat、Encode_MultipleFees_RoundTripsEveryIdInOrder_WithinSinopacLimit、
+ * MaxIds_IsSeven_AndDonationLineCapUsesIt、Encode_RejectsEmptyDuplicateBlankOrTooManyIds、
+ * Parse_AcceptsStandardFormats_AndRejectsWholeValueWhenAnyPartIsInvalid、
+ * SelectGroupMembers_KeepsPrimary_AndOnlySameContactSameOrderSiblings、
+ * SelectGroupMembers_PrimaryWithoutContact_ProcessesOnlyPrimary。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using ChurchReport.Services;

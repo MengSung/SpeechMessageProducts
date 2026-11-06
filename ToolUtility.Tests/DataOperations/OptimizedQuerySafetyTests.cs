@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：對優化查詢真實入口注入錯誤身份、截斷、取消及 Dispose 競爭。 SDK 替身僅模擬網路回應，斷言產品是否拒絕發布、保留完整候選且清除借用參照；不連真實 D365。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 OptimizedQuerySafetyTests。
+ * - 五個同步／Task 發布入口分別接受四種故障；每案建立獨立 SDK／候選。
+ * - 空 ID、錯表、錯／重複 ID 與 null 回應都不可成為成功資料；訊息不得回顯資料值。
+ * - OR 條件必須整體與啟用條件 AND，而非把 statecode 加入 OR 擴張範圍；原輸入樹不能被修改。
+ * - 批次必須讀完第三頁後才回字典；每頁 ID 各異、同名都保留，分頁中斷不可回部分成功。
+ * 測試案例入口包含 InvalidPages、EveryEntry_RejectsInvalidIdentity、Condition_DoesNotMutateCallerOrExpandOrFilter、
+ * Batch_ReadsAllPagesAndDoesNotPublishFailure、Paging_UsesThirdPageAndPreservesUnfilteredContract、
+ * Condition_RejectsInvalidTopBeforeIo、Condition_RejectsOutputBeyondRequestedTop、
+ * Paging_ExplicitPageSupportsNoCookieAndPreservesMetadata；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Runtime.CompilerServices;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

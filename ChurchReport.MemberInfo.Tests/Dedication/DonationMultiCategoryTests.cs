@@ -1,11 +1,19 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Dedication/DonationMultiCategoryTests.cs
-// 檔案責任：驗證多類別奉獻的純邏輯契約，不連線 CRM、金流、Session 或外部通知服務。
-// 測試隔離：每個測試建立自己的表單與 DTO，不使用 static 可變資料，避免測試間或會友資料污染。
-// 生命週期：僅配置受測純物件；沒有 stream、timer、subscription、背景工作或連線需要釋放。
-// 編碼要求：本檔案維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：鎖定多類別流程跨層共用的純函式行為：Lines 正規化、送出限制、 金流／ATM 文字與 callback 逐張付款決策。CRM 寫入與金流 sandbox 另由整合驗證負責。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationMultiCategoryTests。
+ * 測試案例入口包含 Normalize_UsesTrimmedLines_AndDropsBlankRows、Normalize_UsesLegacyFields_WhenLinesAreEmpty、
+ * ValidateDonationForm_AllowsSevenLines_RejectsEight_AndRecurringMultipleLines、
+ * ValidateDonationForm_RejectsDuplicateCategories_AndMultiCategoryAtm、GroupText_SumsLines_AndPreservesAtmLabels、
+ * PaidPlanner_MarksEveryNewGroupFee_WithItsOwnAmount_AndIsIdempotent。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using ChurchReport.Models;

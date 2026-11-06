@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：Scoped Gateway 的 reentrant 實作。 它只持有 scoped lease 參考，不持有 raw client；lease 由 manager pool 決定底層 client 的最終釋放。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DataverseGateway。
+ * - 目前同時進行中的 Execute{T} 呼叫數，僅供觀測，不參與任何控制流決策。
+ * - 目前這條非同步流程自身的巢狀深度，用來把「巢狀」與「平行」區分開。
+ * - 建立目前 request scope 專屬的 Gateway。
+ * - 在目前 Gateway 範圍執行不回傳值的 Dataverse 操作。外層呼叫取得一次 lease，巢狀呼叫只增加深度； Trace 僅記錄進出深度，絕不攔截、吞沒或改寫底層例外與 lease 的 faulted 決策。
+ * 主要操作入口包含 Execute、Dispose、IsConnectionFault、ThrowIfDisposed。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/DataverseTraceTests.cs、ToolUtility.Dataverse.Tests/GatewayArchitectureTests.cs、
+ * ToolUtility/Dataverse/DataverseTrace.cs、ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.IO;
 using System.Net;

@@ -1,16 +1,17 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Filters/ThemeViewDataFilter.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 ThemeViewDataFilter 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class ThemeViewDataFilter
-// 主要成員：OnActionExecuting、ResolveThemeName、MapThemeCssClass、OnActionExecuted
-// 引用命名空間：ChurchReport.Services.Theme、Microsoft.AspNetCore.Mvc、Microsoft.AspNetCore.Mvc.Filters、Microsoft.Extensions.Configuration、System、System.Collections.Generic
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：將 Theme 設定注入到 ViewData，供 Layout 與各頁面統一使用。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ThemeViewDataFilter。
+ * 主要操作入口包含 OnActionExecuting、ResolveThemeName、MapThemeCssClass、OnActionExecuted。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Services.Theme;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

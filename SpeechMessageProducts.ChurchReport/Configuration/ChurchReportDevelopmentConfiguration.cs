@@ -1,3 +1,28 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：讓舊式行程級設定讀取點在 Development 套用與主機相同的檔案及 secrets，並在任何 CRM／LINE client 建立前驗證安全邊界。 不保存請求、使用者、教會、設定值或憑證；非 
+ * Development 只追加專用 LINE__ provider， Development 不追加正式環境 provider。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchReportDevelopmentConfiguration。
+ * - 依現有 WebApplication Host 的順序選擇環境；純函式不讀取或修改程序的環境變數。
+ * - 既有靜態讀取點的唯一轉接；只讀部署環境名稱，不保存 request 或教會狀態，也不改目前目錄。
+ * - 用明確目錄、環境及擁有者組件組合設定；非 Development 立即返回，不觸碰來源、目錄或 secrets。
+ * - 在非 Development 組態建構器最後加入專用的 LINE__ 環境變數 provider。 後加入的 provider 具有較高優先權，讓正式主機可覆寫已清空的基底 JSON， 同時不把 LINE token 
+ * 放回版本控制；Development 不加入此來源，避免把正式部署 的命名慣例誤當成測試秘密來源。provider 不啟用 reload，生命週期由呼叫端組態根擁有。
+ * 主要操作入口包含 ResolveEnvironmentName、AddChurchReportDevelopmentOverrides、
+ * AddChurchReportDeploymentLineEnvironmentOverrides、ValidateDevelopmentConfiguration、IsDevelopment、
+ * IsValueFromUserSecrets、ReadBaseline、ValidateTestHost；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/DevelopmentOrganizationSettingsTests.cs、
+ * ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs、
+ * ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、SpeechMessageProducts.ChurchReport/Program.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.IO;
 using System.Linq;

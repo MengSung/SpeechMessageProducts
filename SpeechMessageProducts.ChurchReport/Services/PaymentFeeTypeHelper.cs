@@ -1,16 +1,29 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/PaymentFeeTypeHelper.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class PaymentFeeTypeHelper、enum FeeType
-// 主要成員：DetermineFeeType、GetCourseName、GetDedicationCategoryName
-// 引用命名空間：System、Microsoft.Extensions.Logging、ToolUtilityNameSpace、Microsoft.Xrm.Sdk
-// 閱讀路徑：閱讀此檔案時應先確認金額、訂單編號、付款狀態、provider profile、callback acknowledgement 與錯誤訊息是否跨層保持一致。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 付款收費單類型判斷輔助服務 此類別只理解 ChurchReport 的 CRM 欄位與奉獻/課程分類規則，不處理任何 MyPay、永豐或台新 provider protocol。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PaymentFeeTypeHelper、FeeType。
+ * - ======================================== 判斷收費單類型 ======================================== 【判斷邏輯】 1. 
+ * 檢查是否有關聯課程（new_course_id）→ 課程類型 2. 檢查收費單名稱是否包含課程關鍵字 → 課程類型 3. 檢查課程名稱欄位是否有值 → 課程類型 4. 
+ * 檢查奉獻類別代碼範圍（100000000~100000019）→ 奉獻類型 5. 預設為奉獻類型
+ * - ======================================== 取得課程名稱 ======================================== 【取得順序】 1. 
+ * 透過課程關聯（new_course_id）查詢課程實體的名稱 2. 使用收費單的課程名稱欄位（new_course_name） 3. 使用收費單本身的名稱（new_name） 4. 預設回傳「課程」
+ * - ======================================== 取得奉獻類別名稱 ======================================== 【支援的奉獻類別】 - 
+ * 100000010: 主日奉獻 - 100000000: 十一奉獻 - 100000002: 感恩奉獻 - 100000006: 建堂奉獻 - 100000007: 宣教奉獻 - 100000019: 愛心奉獻 - 
+ * 100000008: 特別奉獻 【支援多種輸入方式】 1. 傳入 Entity：從 FormattedValues 或 OptionSetValue 取得 2. 傳入 int：直接對應類別代碼
+ * 主要操作入口包含 DetermineFeeType、GetCourseName、GetDedicationCategoryName。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/PaymentNotificationServiceWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/ChurchReportPaymentContextBuilderTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/MyPayControllerAdapterTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/PaymentProductServiceNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/TspgControllerAdapterTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Extensions.Logging;
 using ToolUtilityNameSpace;

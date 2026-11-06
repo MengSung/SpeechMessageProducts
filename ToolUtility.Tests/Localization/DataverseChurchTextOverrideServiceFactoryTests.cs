@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以真來源及真 factory 轉接既有 manager 契約；SDK／manager 只用合成替身，不連資料庫或讀憑證。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DataverseChurchTextOverrideServiceFactoryTests。
+ * - 同一 manager 的固定組織產品才可入場，傳遞 owner token；每次讀完整歸還 lease，不處置 manager 或 raw SDK。
+ * - 不確定 SDK／內部取消／無效頁結果一律淘汰租約，不能把狀態不明 client 交給下一請求；仍保留原故障。
+ * - 錯組織／錯產品均在 manager Acquire 前拒絕；context 建構是值驗證，不代表已授權另一個固定部署。
+ * - 明確 caller 取消不取得 manager lease；wrapper 重複 Dispose 不重複歸還，之後不得讀 Service 或標故障。
+ * 測試案例入口包含 Source_UsesRealManagerLease_AndReturnsItOnce、Source_FailedRead_MarksLeaseFaultedBeforeReturn、
+ * Factory_ForeignDeployment_RejectsBeforeAcquire、Factory_CanceledAndDisposed_StopsNewAccess、Context。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Threading;
 using System.Threading.Tasks;

@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：六個原host關聯入口的固定完整QueryExpression投影：欄位、條件值型別、link、排序與分頁缺省逐一鎖定。 golden由已讀原碼獨立撰寫，不在測試執行時生成；替身只代替SDK網路，
+ * 不幫產品驗候選或做授權。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RelationshipQueryCharacterizationTests。
+ * - 同名異ID與原單頁metadata全部保留；不因抽取而添加statecode、日期轉換或自動全表分頁。
+ * - 六入口只有合成GUID與固定日期；動態結構名稱只用於獨立測試變體，不構成已授權scope。
+ * - 投影實際SDK查詢而非另造產品預期；保留空根filter、全部link層級及原值CLR型別以抓出暗中改寫。
+ * - 欄位順序及AllColumns屬原查詢契約，不能由排序或忽略空欄位掩蓋差異。
+ * 測試案例入口包含 OriginalEntrypoints_PreserveQueryAndCompleteSdkPage、Read、Describe、Columns、Filter、Link。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Globalization;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;

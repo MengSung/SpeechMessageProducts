@@ -1,28 +1,40 @@
+@*
+    檔案整體說明
+
+    目的與定位：集中登入頁所需樣式與腳本引用，確保資源載入順序與頁面元件相容。
+
+    主要功能與流程：
+    透過下方Razor／HTML及資源宣告完成呈現；是否為全頁、partial或初始化設定依本檔宣告決定。
+
+    使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
+    修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
+*@
 @* ===========================================
-   Login �����귽�ޥ�
+   Login 頁面資源引用
    =========================================== *@
 
-<!-- CSS �귽���J -->
-<!-- Bootstrap �ج[�˦� -->
+<!-- CSS 資源載入 -->
+<!-- Bootstrap 框架樣式 -->
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-<!-- �����q�μ˦� -->
+<!-- 網站通用樣式 -->
 <link rel="stylesheet" href="~/css/site.css" />
-<!-- Login �����M�μ˦� -->
+<!-- Login 頁面專用樣式 -->
 <link rel="stylesheet" href="~/css/Login.css" />
-<!-- DevExtreme �q�μ˦� -->
+<!-- DevExtreme 通用樣式 -->
 <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
-<!-- DevExtreme �L��D�D -->
+<!-- DevExtreme 淺色主題 -->
 <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
-<!-- Font Awesome �ϼ� -->
+<!-- Font Awesome 圖標 -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-<!-- JavaScript �귽���J -->
-<!-- jQuery �֤� -->
+<!-- JavaScript 資源載入 -->
+<!-- jQuery 核心 -->
 <script src="~/lib/jquery/dist/jquery.js"></script>
 <!-- Bootstrap JavaScript -->
 <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 
-<!-- DevExtreme ���y�Ƥ䴩 -->
+<!-- DevExtreme 全球化支援 -->
 <script src="~/js/devextreme/cldr.js"></script>
 <script src="~/js/devextreme/cldr/event.js"></script>
 <script src="~/js/devextreme/cldr/supplemental.js"></script>
@@ -33,23 +45,23 @@
 <script src="~/js/devextreme/globalize/currency.js"></script>
 <script src="~/js/devextreme/globalize/date.js"></script>
 
-<!-- DevExtreme �֤� -->
+<!-- DevExtreme 核心 -->
 <script src="~/js/devextreme/dx.all.js"></script>
-<!-- �a�ϸ�� -->
+<!-- 地圖資料 -->
 <script src="~/js/devextreme/vectormap-data/world.js"></script>
-<!-- ASP.NET MVC ��X -->
+<!-- ASP.NET MVC 整合 -->
 <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
 <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 
-<!-- Login �����M�� JavaScript -->
+<!-- Login 頁面專用 JavaScript -->
 <script src="~/js/Login.js"></script>
 
 <!-- ===========================================
-     ��L�귽���J
+     其他資源載入
      =========================================== -->
-<!-- jQuery AJAX �D�I�J���䴩 -->
+<!-- jQuery AJAX 非侵入式支援 -->
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-<!-- Gallery �����˦� -->
+<!-- Gallery 相關樣式 -->
 <link href="~/css/Gallery.css" rel="stylesheet" />
-<!-- �g�������˦� -->
+<!-- 週報相關樣式 -->
 <link href="~/css/WeeklyReport.css" rel="stylesheet" />

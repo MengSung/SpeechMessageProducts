@@ -1,16 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：Line.Messaging.Tests/LineMessagingProcessorCredentialTests.cs
-// 所屬區塊：LINE Messaging SDK 測試專案，驗證 API 端點、序列化與 Client 行為。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class LineMessagingProcessorCredentialTests
-// 主要成員：Processor_source_does_not_contain_literal_bearer_tokens、Processor_accepts_channel_access_token_through_constructor、Processor_uses_injected_configuration_line_messaging_token、Processor_uses_standard_configuration_environment_override、Processor_without_token_fails_before_sending_line_request、GetPrivateChannelAccessToken
-// 引用命名空間：FluentAssertions、LineMessagingProcessor、Microsoft.Extensions.Configuration、System.Reflection、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：檢查processor透過建構式／組態取得頻道token而不含字面Bearer，缺設定在送出請求前失敗。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineMessagingProcessorCredentialTests。
+ * 測試案例入口包含 Processor_source_does_not_contain_literal_bearer_tokens、
+ * Processor_accepts_channel_access_token_through_constructor、
+ * Processor_uses_injected_configuration_line_messaging_token、
+ * Processor_uses_standard_configuration_environment_override、
+ * Processor_without_token_fails_before_sending_line_request、GetPrivateChannelAccessToken。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using FluentAssertions;
 using LineMessagingProcessor;
 using Microsoft.Extensions.Configuration;

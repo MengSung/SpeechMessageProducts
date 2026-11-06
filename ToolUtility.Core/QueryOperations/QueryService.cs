@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：Repository型別的五個共用查詢；維持舊namespace、參數與查詢形狀，不建立CRM連線。 查詢值和資料庫ID不是授權；呼叫端必須先驗證subject、organization、產品及資料範圍。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 QueryService。
+ * - 保留原雙參數建構契約；只保存本次資料操作邊界的Repository，不保存未使用的SDK別名。 Repository、SDK及其授權範圍仍由host建立、排空及處置，不能把本服務註冊成跨使用者singleton。
+ * - 可注入無scope狀態的純時鐘，讓舊本地時間查詢可控測試；時鐘生命週期不含request、SDK或credential。
+ * - 以欄位等值取得最多一筆並回傳null或該列；完整頁驗證先於選取，不能讓重複ID或錯表混入結果。 使用者欄位值只用於此次查詢，不會記錄、快取或由此取得授權。
+ * - 以欄位等值讀取一頁；保留SDK分頁metadata，完整驗證後才發布且不按欄位值去重。
+ * 主要操作入口包含 RetrieveEntityByField、RetrieveEntityCollectionByField、QueryByFetchXml、QueryBloodReportByContactId、
+ * QueryPresentRecordByContactIdAndSunday、GetRepository、GetClock、Failure；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/RepositoryQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/RepositoryQuerySafetyTests.cs、
+ * ToolUtility.Tests/EntityOperations/RepositoryCallerRouteTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Threading;

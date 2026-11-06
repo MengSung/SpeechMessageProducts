@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：同步附註附件操作；只借用每次 ref 傳入、由 host 先完成授權的 SDK。 服務只保存不可變容量，不保存建構時 SDK／logger、候選、本文或使用者資料，故可並行服務不同 scope。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AttachmentService。
+ * - 保留舊簽章及 null 拒絕，啟用有界預設；不保存或處置兩個相容參數，避免延長 request／連線生命。 方法實際使用的 SDK 仍由各次 ref 明確借入，不能回退使用此建構參數。
+ * - 設定不可變的單檔／單頁安全預算；設定由 host 擁有，可並行讀取且不包含租戶資料。
+ * - 保留 annotation AllColumns、objectid 字串條件與單頁分頁語義；不擅自抓完所有頁面。 重用 Core 的正式 ID／根表／重複識別驗證，再驗 parent 與容量，任何一列失敗則整頁不發布。 
+ * 缺少或 null documentbody 是合法文字附註；不補空檔、不解碼複製、不裁剪原結果。
+ * - 保留原七欄、合法空 byte[] 及 metadata 原值；先驗 raw 長度再配置 Base64，僅執行一次 Create。 SDK 必須確認正式非空 ID；空 ID 或故障代表結果不確定，
+ * 不盲目重試以免建立重複附註。
+ * 主要操作入口包含 DownloadAttachment、UploadAttachment、ValidateBody。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/AttachmentOperations/AttachmentServiceTests.cs、
+ * ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/AttachmentCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/AttachmentSafetyTests.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using Microsoft.Xrm.Sdk;

@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：Line.Messaging/Messages/Action/RichMenuSwitchTemplateAction.cs
-// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class RichMenuSwitchTemplateAction
-// 主要成員：CreateFrom、Type、RichMenuAliasId、Label、Data
-// 引用命名空間：Newtonsoft.Json
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：RichMenu 切換動作。 使用者點擊綁定此 action 的區域時，LINE 會切換到 richMenuAliasId 指向的 RichMenu。 
+ * https://developers.line.biz/en/reference/messaging-api/#richmenu-switch-action 此 action 依賴 RichMenu alias，
+ * 因此佈建流程必須先建立或更新 alias，使用者點擊時才會成功切換。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RichMenuSwitchTemplateAction。
+ * - 取得序列化到 LINE JSON 時使用的 RichMenu switch action 類型識別值。
+ * - 要切換到的 RichMenu alias ID。 LINE 會在使用者點擊當下解析 alias，因此佈署可輪替底層 richMenuId，而 action payload 仍維持穩定。
+ * - action 標籤。 LINE 限制最長 20 個字元；在 RichMenu 上不顯示，但 template message 仍可能需要。 iOS 與 Android 的 LINE 8.11.0 以後支援此欄位；
+ * 即使未來重用在 RichMenu 以外的介面，也應保持簡短。
+ * - 使用者點擊後，LINE webhook 會放在 postback event 的 postback.data 內回傳的字串。 最長 300 個字元，可用於應用程式路由、稽核或後續流程判斷。
+ * 主要操作入口包含 CreateFrom。
+ *
+ * 使用邊界與維護：
+ * 協定模型與產品身分／業務授權分離；欄位或列舉值變更須同步檢查JSON相容性、解析分派及雙目標測試。
+ * 可變模型由建立它的操作持有；事件來源、reply token及profile不得被當作跨使用者共用的可變狀態。
+ * 可沿 LineMessagingProcessor.RichMenus.Tests/Actions/RichMenuActionFactoryTests.cs、
+ * Line.Messaging/Messages/RichMenu/ActionArea.cs、LineMessagingProcessor.RichMenus/RichMenuActionFactory.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using Newtonsoft.Json;
 
 namespace Line.Messaging

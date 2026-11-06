@@ -1,16 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/DonationKeyInDedicationService.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class DonationKeyInDedicationService、record DonationContactQuery
-// 主要成員：SaveAsync、QueryAsync、AuditQueryAsync、UpdateAsync、BuildQuery、QueryContacts、FillSameNameList、ContactNotFound、ResolvePhoneNumber、NotifyFailure
-// 引用命名空間：System、System.Linq、System.Threading.Tasks、ChurchReport.Models、ChurchReport.WebServiceConnector、LineMessagingProcessor、Microsoft.AspNetCore.Mvc、Microsoft.Xrm.Sdk
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 手動輸入奉獻資料的查詢與更新流程。 這個服務處理的是 ChurchReport 的 CRM contact 查詢、同名清單、奉獻收費單查詢以及 既有 AJAX JSON 回應格式；
+ * 它不是通用金流能力，因此不能放進 SpeechMessage.Payments 或 SpeechMessage.Payments.AspNetCore。未來其他產品若也需要「人工補單」流程，應在各自 
+ * 產品實作自己的查詢與回應格式，只共用中立的付款核心。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationKeyInDedicationService、DonationContactQuery。
+ * - request 所有者注入既有 CRM／表單與同步診斷轉接器；callback 不得保留例外或 request。 診斷轉接器必須先 flush Exception.log 再排入 LINE，並以真實例外實例去重。
+ * - 僅同步交付真實例外，不把可能含個資的 ToString 轉成通知文字。 呼叫端仍以 throw 保留原堆疊，外層再次上報時共用 owner 會去重。
+ * 主要操作入口包含 SaveAsync、QueryAsync、AuditQueryAsync、UpdateAsync、BuildQuery、QueryContacts、FillSameNameList、
+ * ContactNotFound；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs、
+ * SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Linq;
 using System.Threading.Tasks;

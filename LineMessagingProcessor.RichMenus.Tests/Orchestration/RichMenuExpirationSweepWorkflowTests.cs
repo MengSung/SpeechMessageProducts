@@ -1,16 +1,22 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus.Tests/Orchestration/RichMenuExpirationSweepWorkflowTests.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class RichMenuExpirationSweepWorkflowTests、class CapturingAssignmentWorkflow
-// 主要成員：SweepAsync_restores_previous_menu_for_expired_state、SweepAsync_unassigns_expired_state_without_previous_menu、SweepAsync_ignores_states_that_have_not_expired、AssignAsync、AssignOrThrowAsync、UnassignAsync、UnassignOrThrowAsync、Calls
-// 引用命名空間：FluentAssertions、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證到期掃描 workflow 如何還原暫時性 RichMenu 狀態。 測試涵蓋「回復上一個選單」、「沒有上一個選單時解除綁定」與「未到期不處理」三種核心路徑。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RichMenuExpirationSweepWorkflowTests、CapturingAssignmentWorkflow。
+ * - 使用者狀態已到期且有 PreviousMenuKey 時，sweep 應呼叫 assignment workflow 指派回上一個選單。
+ * - 使用者狀態已到期但沒有 PreviousMenuKey 時，sweep 應解除使用者個人 RichMenu 綁定。
+ * - 使用者狀態尚未到期時，sweep 不應呼叫 assignment workflow，也不應把它計入 scanned/restored。
+ * - 依序記錄 assign / unassign 呼叫，讓測試能直接 assert sweep 的輸出行為。
+ * 測試案例入口包含 SweepAsync_restores_previous_menu_for_expired_state、
+ * SweepAsync_unassigns_expired_state_without_previous_menu、SweepAsync_ignores_states_that_have_not_expired、
+ * AssignAsync、AssignOrThrowAsync、UnassignAsync、UnassignOrThrowAsync。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using FluentAssertions;
 using Xunit;
 

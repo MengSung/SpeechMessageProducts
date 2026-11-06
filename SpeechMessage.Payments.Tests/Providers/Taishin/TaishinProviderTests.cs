@@ -1,16 +1,21 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：SpeechMessage.Payments.Tests/Providers/Taishin/TaishinProviderTests.cs
-// 所屬區塊：可重用付款核心、付款 provider、ASP.NET Core 整合、workflow 與測試模組。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class TaishinProviderTests
-// 主要成員：Status_mapper_maps_tspg_codes_to_normalized_status、Callback_parser_maps_frontend_form_callback_to_neutral_result、Callback_parser_maps_backend_json_callback_to_json_acknowledgement、Callback_parser_maps_invalid_hash_to_signature_invalid、Request_mapper_maps_create_request_to_tspg_payload、Service_registration_adds_taishin_provider、CreateProfile、ComputeNotificationHash
-// 引用命名空間：System.Security.Cryptography、System.Text、FluentAssertions、Microsoft.Extensions.Configuration、Microsoft.Extensions.DependencyInjection、SpeechMessage.Payments.Abstractions、SpeechMessage.Payments.Configuration、SpeechMessage.Payments.DependencyInjection
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證台新 TSPG provider 的狀態碼、前端/後端 callback、hash 驗證與建立付款 payload。 台新 ret_code/state/hash 規則屬於 provider 
+ * protocol，應留在 SpeechMessage.Payments provider 實作與測試中。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TaishinProviderTests。
+ * 測試案例入口包含 Status_mapper_maps_tspg_codes_to_normalized_status、
+ * Callback_parser_maps_frontend_form_callback_to_neutral_result、
+ * Callback_parser_maps_backend_json_callback_to_json_acknowledgement、
+ * Callback_parser_maps_invalid_hash_to_signature_invalid、Request_mapper_maps_create_request_to_tspg_payload、
+ * Service_registration_adds_taishin_provider、CreateProfile、ComputeNotificationHash。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Security.Cryptography;
 using System.Text;
 using FluentAssertions;

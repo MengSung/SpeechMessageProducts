@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護純 SDK 寫入的識別、故障與引用生命週期；故障在記憶體注入，不實際修改 D365 或帳號權限。 各案例使用獨立服務；正常業務授權與跨程序唯一鍵仍是 host／資料庫責任，不能以測試假裝已整合。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MutationOperationsSafetyTests。
+ * - 保留兩服務的舊 null 建構拒絕；不因移除 logger 欄位就放寬錯誤組態。
+ * - 無合法目標的操作必須在 I/O 前拒絕；Strict SDK 證明沒有送出任何部分寫入。
+ * - 空字串保留舊版 ArgumentNullException；純空白名稱則新增 fail-closed 拒絕。 嚴格 SDK 替身在本機注入兩種輸入，並以精確例外型別及零呼叫保護相容差異。
+ * - SDK 真的故障必須把同一 Exception 傳回共用 host 邊界，不能吞掉、重試重複寫入或包成含個資訊息。
+ * 測試案例入口包含 Constructor_MissingDependency_Rejects、InvalidIdentity_RejectsBeforeSdk、
+ * Delete_NameValidation_PreservesEmptyExceptionAndRejectsWhitespace、
+ * SdkFault_PreservesOriginalExceptionAndDoesNotRetry、Create_EmptySdkIdentity_RejectsOnce、
+ * Update_ServerAlternateKey_PreservesSdkContract、Owner_NullEntity_RejectsWithoutSdk、LegacyLogger_IsNotRetained；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;

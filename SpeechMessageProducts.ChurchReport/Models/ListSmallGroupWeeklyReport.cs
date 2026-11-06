@@ -1,16 +1,28 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/ListSmallGroupWeeklyReport.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
-// 主要型別：class ListSmallGroupWeeklyReport
-// 主要成員：UploadIntegrateData、UploadIntegrateDataAsync、DeleteMemberData、SetPersonalReportViewModel、SetPersonalReportNoSmallGroup、SetPersonalReportViewModelWithNoSmallGroup、SavePersonalReportForm、CreatePresentRecordWithNoSmallGroup、SetupPresentRecordEntityAttributes、GetPersonalReportViewModelResult
-// 引用命名空間：ChurchReport.ViewModels、ChurchReport.WebServiceConnector、Microsoft.Xrm.Sdk、System、System.Collections.Generic、System.Linq、System.Threading.Tasks、ToolUtilityNameSpace
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保存小組名單與週報的巢狀操作資料，供小組回報與完整快照建立使用；資料集合與背景作業間的傳遞必須經既有複製／快照邊界，不能直接共用Session可變集合。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ListSmallGroupWeeklyReport。
+ * - 建立供背景上傳專用的週報副本。 m_SmallGroupDataList 透過其短鎖深拷貝建立，三組 Members 與每個 Member 均不會與前景 Session 共享。只複製 
+ * UploadIntegrateDataAsync 會讀取的純量 中繼資料；建構式會建立新的上傳器。圖表、個人回報 ViewModel、CRM Entity 與 GroupArray 不屬於此上傳資料流，
+ * 刻意不複製以避免背景工作保留前景物件圖。 副本的最長生命週期是上傳與清理完成前，且不保存 HttpContext、Session 或租約資源。
+ * - 建立供 Controller/序列化使用的 detached read copy。除資料圖外也複製圖表與小組名稱， 讓讀取端不會持有 Session holder 的可變 List；複製完成後來源可安全被下一世代交換。
+ * - 非同步版本的 UploadIntegrateData。 內部會呼叫 UploadIntegrateData.UploadDataAsync，並在完成後將 ref 值回寫到本物件。 保留同步版本以維持向下相容性。
+ * 主要操作入口包含 CreateBackgroundUploadCopy、CreateDetachedReadCopy、UploadIntegrateData、UploadIntegrateDataAsync、
+ * DeleteMemberData、SetPersonalReportViewModel、SetPersonalReportNoSmallGroup、
+ * SetPersonalReportViewModelWithNoSmallGroup；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/SmallGroupDataListSnapshotIsolationTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs、
+ * SpeechMessageProducts.ChurchReport/Models/ListManager.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.ViewModels;
 using ChurchReport.WebServiceConnector;
 using Microsoft.Xrm.Sdk;

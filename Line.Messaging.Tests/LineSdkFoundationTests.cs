@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以離線官方形狀樣本與 RFC HMAC 向量保護 P1-03；樣本全為合成值，不連 LINE、不含實際收件者。 相同案例在 net48 宿主（載入 net462）及 net10 上執行，防止僅編譯成功卻遺漏 
+ * Framework 行為。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineSdkFoundationTests。
+ * - 檢查實際載入 DLL 的框架屬性；不能把 net48 測試宿主誤算成產品 net48。
+ * - 建構時拒絕空或超過二十 UTF-16 單元的名稱；不可等遠端 API 才發現錯誤。
+ * - 圖示網址只接受絕對 HTTPS；http、相對路徑與其他 scheme 都不可透過。
+ * - 一及二十字邊界合法，透過真實 SDK 傳輸序列化後 sender 位於訊息內；不更改未設定 sender 的黃金檔。
+ * 測試案例入口包含 Assembly_TargetFramework_MatchesProduct、Sender_InvalidNameLength_Throws、Sender_NonHttpsIcon_Throws、
+ * Sender_Serializes_NameAndIconUrl、Background_LinearGradient_Serializes、
+ * WebhookEvent_Deserialize_ReadsWebhookEventIdAndRedelivery、Signature_ValidAndEveryTamperedByte_AreVerified、
+ * Signature_InvalidHeader_ReturnsFalse；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Runtime.Versioning;

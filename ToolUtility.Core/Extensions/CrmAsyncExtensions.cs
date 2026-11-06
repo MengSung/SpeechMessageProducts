@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純SDK Task轉接：同步單次I/O不額外排程，明確Parallel入口最多64個worker，單次輸入／完整結果最多5000列。 SDK只借入已授權scope，host先確認連線可並行且擁有timeout；
+ * 本類無static可變狀態、cache、credential或結果owner。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CrmAsyncExtensions。
+ * - 單筆查詢委派唯一Core身份驗證，保留原ColumnSet；Task不另起背景工作。
+ * - 保留Query原實例與單頁metadata，委派Core驗根表／正式ID後核5000列；不冒稱完整全表。
+ * - 單次建立確認非空資料庫ID，故障及不確定寫入不自動重試；SDK不轉移owner。
+ * - 只更新具有正式非空ID的操作局部記錄；caller取消在寫入後不抹除故障或暗中重試。
+ * 主要操作入口包含 RetrieveAsync、RetrieveMultipleAsync、CreateAsync、UpdateAsync、DeleteAsync、ExecuteAsync、
+ * BatchRetrieveAsync、BatchRetrieveContactsAsync；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/CrmAsyncExtensionSafetyTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.Generic;

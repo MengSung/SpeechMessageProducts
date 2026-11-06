@@ -1,3 +1,15 @@
+@*
+    檔案整體說明
+
+    目的與定位：集中Razor需要的命名空間與TagHelper匯入，影響其作用目錄下的視圖編譯；不在此建立request資料或執行產品操作。
+
+    主要功能與流程：
+    透過下方Razor／HTML及資源宣告完成呈現；是否為全頁、partial或初始化設定依本檔宣告決定。
+
+    使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
+    修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
+*@
 @using ChurchReport
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using DevExtreme.AspNet.Mvc

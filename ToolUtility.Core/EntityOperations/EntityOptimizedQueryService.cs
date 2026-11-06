@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：欄位選取、條件、完整批次與單頁查詢的來源相容入口；共用既有 Core Query／Collection 唯一驗證實作。 服務僅借用 host 已授權 scope 的 SDK，不保存 logger、查詢、
+ * Entity、cookie、使用者或 credential。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 EntityOptimizedQueryService、PagedResult。
+ * - 保留舊 logger 必填簽章但不持有或反射它；SDK 只借用至服務 Dispose 或 host scope 結束。
+ * - 沿用指定欄位／缺省 AllColumns；委派唯一單筆驗證以核對正式 ID、根表與非 null 回應。
+ * - 同一單筆查詢的完成 Task；操作前後檢查 caller 取消，不保留結果或增加背景排程。
+ * - 保留無 statecode 的字典批次及 null／空輸入語義；完整有界分頁後才回傳，不覆寫重複正式 ID。 相同顯示名但不同 ID 全部保留；缺失／不可見 ID 不補造，SDK 失敗不隱藏重試。
+ * 主要操作入口包含 RetrieveEntity、RetrieveEntityAsync、RetrieveBatch、RetrieveBatchAsync、RetrieveByCondition、
+ * RetrieveByConditionAsync、RetrieveByFieldValue、RetrieveByFieldValueAsync；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/OptimizedQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/OptimizedQuerySafetyTests.cs、
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/WeeklyReportManager.cs、
+ * ToolUtility.Core/CollectionOperations/CollectionQueryService.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.Generic;

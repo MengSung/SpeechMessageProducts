@@ -1,16 +1,33 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus.Tests/Assignment/LineRichMenuAssignmentWorkflowTests.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class LineRichMenuAssignmentWorkflowTests、class ThrowingRichMenuStateStore
-// 主要成員：AssignAsync_links_user_to_cached_rich_menu_id、AssignAsync_returns_validation_failure_when_menu_key_is_unknown、AssignAsync_resolves_online_rich_menu_when_cache_is_empty、AssignOrThrowAsync_throws_standard_exception_when_assignment_fails、UnassignAsync_calls_line_unlink_even_when_state_store_is_empty、UnassignAsync_returns_previous_menu_key_and_removes_state_when_record_exists、AssignAsync_returns_provider_rejected_when_line_rejects_link_request、AssignAsync_returns_provider_unavailable_when_line_link_network_fails、AssignAsync_returns_provider_unavailable_when_online_rich_menu_lookup_network_fails、AssignAsync_returns_provider_timeout_when_line_link_times_out
-// 引用命名空間：FluentAssertions、Line.Messaging、LineMessagingProcessor.RichMenus.Tests.Support、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：LineRichMenuAssignmentWorkflow 的行為測試。 這組測試的重點不是測 LINE 官方 API 本身，而是鎖住共用工作流的資料流： 1. 產品只用 menu key 表達想切到哪個 
+ * RichMenu。 2. 共用層負責解析 richMenuId 並呼叫 processor。 3. state store 只作為輔助紀錄，不可以讓解除綁定流程跳過 LINE unlink。 這些規則會影響未來產品整合，
+ * 所以測試名稱刻意寫得偏長， 讓維護者看到失敗訊息時就知道是哪個業務邊界被破壞。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineRichMenuAssignmentWorkflowTests、ThrowingRichMenuStateStore。
+ * - 快取已有 richMenuId 時，指派流程應直接用快取值綁定使用者。 這是最常見的產品路徑：provisioning 已經把 menu key 與 provider richMenuId 建立好對照，
+ * assignment workflow 只負責把使用者連到既有 RichMenu， 不應重新建立或掃描線上選單。
+ * - menu key 不存在時應回傳標準驗證失敗，而不是呼叫 LINE provider。 產品端只知道穩定的 menu key；如果這個 key 沒有被 catalog 或 cache 解析， 代表本機設定錯誤，
+ * 不能把錯誤包裝成 LINE 平台失敗。
+ * - 快取未命中時，workflow 應能用 catalog fingerprint 從線上 RichMenu 清單復原 richMenuId。 這保護重啟後的冷快取情境：LINE 上已存在相同版本選單時，不需要重新建立， 
+ * 只要找回 provider id、寫回快取並繼續完成使用者綁定。
+ * - AssignOrThrowAsync 在指派失敗時應丟出共用例外，並保留原始 assignment result。 呼叫端若採用 throw-based API，仍需要從例外取回狀態碼與錯誤碼， 
+ * 才能在產品層做一致的錯誤記錄或使用者提示。
+ * 測試案例入口包含 AssignAsync_links_user_to_cached_rich_menu_id、
+ * AssignAsync_returns_validation_failure_when_menu_key_is_unknown、
+ * AssignAsync_resolves_online_rich_menu_when_cache_is_empty、
+ * AssignOrThrowAsync_throws_standard_exception_when_assignment_fails、
+ * UnassignAsync_calls_line_unlink_even_when_state_store_is_empty、
+ * UnassignAsync_returns_previous_menu_key_and_removes_state_when_record_exists、
+ * AssignAsync_returns_provider_rejected_when_line_rejects_link_request、
+ * AssignAsync_returns_provider_unavailable_when_line_link_network_fails；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using FluentAssertions;
 using Line.Messaging;
 using LineMessagingProcessor.RichMenus.Tests.Support;

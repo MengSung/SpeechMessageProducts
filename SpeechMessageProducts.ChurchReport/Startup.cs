@@ -1,16 +1,24 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Startup.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 Startup 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class Startup
-// 主要成員：ResolveThemeName、MapThemeCssClass、ConfigureServices、Configure、Configuration、CurrentTheme、CurrentThemeCssClass
-// 引用命名空間：ChurchReport.Services、ChurchReport.Tools、ChurchReport.Filters、ChurchReport.Services.Theme、ChurchReport.Payments、Microsoft.AspNetCore.Authentication.Cookies、Microsoft.AspNetCore.Builder、Microsoft.AspNetCore.Hosting
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：應用程式啟動類別，負責配置服務和 HTTP 請求管道。 此類別定義了 ASP.NET Core 應用程式的啟動邏輯，包括依賴注入、路由配置等。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 Startup。
+ * - 目前啟用的主題名稱（藍色、橘色、綠色、粉紅色、晨霧紫、月光藍、皇家紫金、勃根地金、陽光黃、珊瑚橘、行道靛紫）。
+ * - 配置服務的方法。此方法由運行時呼叫，用於將服務添加到依賴注入容器中。 包括 HTTP 客戶端、快取、CRM 連接池、健康檢查、MVC 配置、身份驗證等服務的註冊。
+ * - 配置 HTTP 請求管道的方法。此方法由運行時呼叫，用於設定中間件管道。 包括異常處理、健康檢查、靜態檔案、Session、身份驗證和路由配置。
+ * 主要操作入口包含 ResolveThemeName、MapThemeCssClass、ConfigureServices、Configure。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/ChurchClockStartupTests.cs、
+ * ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs、
+ * SpeechMessage.Tenancy.Tests/ConfigurationResolverTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.Filters;

@@ -1,16 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Payments/DonationPaymentCreateGatewayAdapterTests.cs
-// 所屬區塊：ChurchReport 會員、付款與 LINE 共用流程的測試專案，用來固定產品層行為與回歸案例。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class DonationPaymentCreateGatewayAdapterTests、class RecordingPaymentGateway
-// 主要成員：CreateCardPaymentAsync_maps_legacy_qpay_fields_to_neutral_create_request、CreateCardPaymentAsync_uses_pay_provider_profile_before_payment_default_profile、CreateCardPaymentAsync_defaults_recurring_schedule_when_ui_default_is_not_posted、CreateLegacyOrderAsync_maps_neutral_create_result_to_existing_creorder_shape、CreateLegacyOrderAsync_fails_closed_when_card_payment_page_url_is_missing、CreateLegacyOrderAsync_maps_atm_virtual_account_from_provider_data、CreateLegacyOrderAsync_fails_closed_when_atm_virtual_account_is_missing、CreateAdapter、CreatePaymentAsync、QueryPaymentAsync
-// 引用命名空間：ChurchReport.Payments、FluentAssertions、Microsoft.Extensions.Configuration、SpeechMessage.Payments.AspNetCore、SpeechMessage.Payments.Abstractions、SpeechMessage.Payments.Models、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 ChurchReport 舊 QPay 建立付款 adapter 仍能呼叫共用的 PaymentCreateRequestFactory，並維持既有 CreOrder 與 profile mapping 
+ * 行為。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentCreateGatewayAdapterTests、RecordingPaymentGateway。
+ * 測試案例入口包含 CreateCardPaymentAsync_maps_legacy_qpay_fields_to_neutral_create_request、
+ * CreateCardPaymentAsync_uses_pay_provider_profile_before_payment_default_profile、
+ * CreateCardPaymentAsync_defaults_recurring_schedule_when_ui_default_is_not_posted、
+ * CreateLegacyOrderAsync_maps_neutral_create_result_to_existing_creorder_shape、
+ * CreateLegacyOrderAsync_fails_closed_when_card_payment_page_url_is_missing、
+ * CreateLegacyOrderAsync_maps_atm_virtual_account_from_provider_data、
+ * CreateLegacyOrderAsync_fails_closed_when_atm_virtual_account_is_missing、CreateAdapter；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Payments;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;

@@ -1,16 +1,31 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/DedicationController.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
-// 主要型別：class DedicationController
-// 主要成員：DonationPaymentView、IsWebLogin、RestoreWebLoginDonationPaymentModel、RestoreWebLoginDonationPaymentModelFromSession、TryRestoreDonationDonorIdentity、SetupDonationPaymentViewBag、SaveDonationPaymentDedication、LoadCreditCardList、DeleteCreditCard、LoadDedicationBookingList、DeleteDedicationBooking
-// 引用命名空間：ChurchReport.Models、ChurchReport.Payments、ChurchReport.Tools、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：奉獻管理控制器 處理線上奉獻付款相關功能。 真正使用哪一家金流由共用 payment core 與 appsettings profile 決定，Controller 只負責 ChurchReport 的畫面、
+ * CRM 與 Session 流程。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DedicationController、LineIdTokenVerificationResponse。
+ * - 奉獻付款主頁面。 `/Dedication/DonationPaymentView/{LineId}` 是新的中性入口； `/Dedication/QPayView/{LineId}` 僅保留給舊 LINE 
+ * 連結與既有書籤使用，不代表此 action 只服務永豐 QPay。
+ * - 判斷目前路由是否為官網網頁奉獻登入。 LINE 入口會把 LINE user id 放在同一個 route segment，因此這裡必須精準比對 「網頁登入」，不能用空字串或其他寬鬆判斷，避免把 LINE 
+ * 使用者誤當成網頁登入。
+ * - 使用 Session 保存的 CRM contact id 重新初始化 DonationPaymentManager。 這個方法只在產品層 Controller 使用，因為它同時碰到 ASP.NET Session、
+ * CRM 與畫面模型； 這些責任都不屬於抽離後的 SpeechMessage.Payments 金流核心。
+ * - 取得由 LINE 登入流程建立且與目前 Session 綁定的 user id。
+ * 主要操作入口包含 DonationPaymentView、IsWebLogin、RestoreWebLoginDonationPaymentModel、
+ * RestoreWebLoginDonationPaymentModelFromSession、TryRestoreDonationDonorIdentity、SetupDonationPaymentViewBag、
+ * SaveDonationPaymentDedication、LoadCreditCardList；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/DedicationAuditController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/DonationPaymentLoginController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/HomeController.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using ChurchReport.Payments;
 using ChurchReport.Tools;

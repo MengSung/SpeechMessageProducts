@@ -1,3 +1,18 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：原host八入口全投影特性；固定查詢黃金值不靠新實作產生，兩種UtcNow界線另以呼叫前後時間窗驗證。 Query與Fetch仍保持不同SDK入口，結果原單頁metadata與同名異ID完整保存。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PresentQueryCharacterizationTests。
+ * - 每入口都鎖定條件順序/型別、欄位/排序/link；動態時間僅替換已驗證的單一值，不放寬其餘樹。
+ * - 固定八個來源API及合成ID/日期，名稱與結構參數只供安全測試變體，不取代伺服器授權。
+ * 測試案例入口包含 OriginalEntrypoints_PreserveFullQueryAndMetadata、Read。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;

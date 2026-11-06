@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：原 host 優化查詢的三個代表特性：精確欄位單筆、帶啟用條件的 top 查詢與不含啟用條件的批次。 先在未搬移實作跑綠；黃金值只使用合成資料庫 ID，假 SDK 僅替代網路、不產生預期查詢。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 OptimizedQueryCharacterizationTests。
+ * - 單筆必須維持 caller 欄位與正式 ID，不能悄悄改成 AllColumns 或另一筆查詢。
+ * - 保留原欄位等值、啟用條件與 top；同名但不同 ID 的結果必須完整保留。
+ * - 字典版本不得偷偷加 statecode；沿用第一頁 5000 上限及 AllColumns 的完整 golden。
+ * - 只正規化語義等價的 AND 巢狀節點，保留欄位／值及順序；OR 不能在 golden 中被誤扁平。 測試輸入固定小樹，不處理外來不可信查詢或產生產品預期值。
+ * 測試案例入口包含 Retrieve_PreservesColumnsAndIdentity、Condition_PreservesGoldenAndSameNameRecords、
+ * Batch_PreservesGoldenAndDictionaryIdentity、FlattenAnd。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

@@ -1,3 +1,18 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔以真實生成的SystemTextTable保護雙目標最底層資源取字、完整後備與不可變性，
+ * 並以獨立合成陣列注入身份／欄位錯誤。它不測教會快取或D365；那些契約由各自測試負責。
+ * 主要情境：精確繁中與偽語系原文、英文空殼後備、未知key與TextKey格式／相等、來源mutation、
+ * 語系清單唯讀，以及Framework宿主必須實際載入net462產品、net10宿主載入net10的反射斷言。
+ * 完整性基準：獨立列出原12鍵與P1-11新增12個部署摘要鍵，三語系都必須保留完整24鍵，
+ * 不能只靠讀被測表自身的Count來生成期望，亦不能因新資源合法增加而放寬原鍵保留與不可變斷言。
+ * 並行與擁有權：百個真執行緒各讀萬次；單案擁有CountdownEvent／ManualResetEventSlim與故障槽，
+ * finally放行並join全部執行緒後才Dispose閘門，active必須歸零；net10另驗預熱後十萬hit零配置。
+ * 沒有真連線、credential或外送，固定資源可共用但合成來源每案獨占；未知語系千次查詢必須重用同一後備表。
+ * 維護驗證：新增正式資源同步更新獨立鍵清單與具體使用流程，不刪原文／異常／mutation／回收斷言；
+ * 保留兩產品宿主及I18n deterministic generate／verify證據，不以Mock或資源檔存在冒充實機流程通過。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +29,18 @@ namespace SpeechMessage.Localization.Tests;
 /// </summary>
 public sealed class SystemTextCatalogTests
 {
+    /// <summary>依原P0/P1資源與P1-11核定摘要鍵獨立列完整身份，按Ordinal固定順序；不從被測生成表反推oracle。</summary>
+    private static readonly string[] ExpectedSystemKeys =
+    {
+        "Common.Diagnostics.Culture", "Common.Diagnostics.InvalidConfiguration", "Common.Diagnostics.Ping",
+        "Common.Diagnostics.PushTest", "Common.Diagnostics.Retryable",
+        "Deployment.Schema.Plan.Fingerprint", "Deployment.Schema.Plan.Keys", "Deployment.Schema.Plan.NoChanges",
+        "Deployment.Schema.Plan.NoPending", "Deployment.Schema.Plan.Operations", "Deployment.Schema.Plan.Organization",
+        "Deployment.Schema.Plan.OrganizationId", "Deployment.Schema.Plan.Pending", "Deployment.Schema.Plan.PlanHash",
+        "Deployment.Schema.Plan.Safety", "Deployment.Schema.Plan.SchemaHash", "Deployment.Schema.Plan.Title",
+        "Keyword.Journal", "Keyword.NotifyLink", "Keyword.PrayerRequest", "Keyword.QrCode", "Keyword.QueryUserId", "Keyword.Rpg",
+        "Line.Sender.Template"
+    };
     /// <summary>
     /// 保護雙目標參考依測試宿主選出正確產品輸出：net48 宿主必須載入供 Plugin 使用的 net462，
     /// net10 宿主則載入 net10。讀取實際組件屬性，避免把測試專案 TFM 誤當成產品輸出 TFM。
@@ -101,7 +128,7 @@ public sealed class SystemTextCatalogTests
     [InlineData("A.Key Value")]
     public void TextKey_InvalidFormat_Throws(string value) => Assert.Throws<ArgumentException>(() => new TextKey(value));
 
-    /// <summary>三個語系表保留六個原診斷鍵及六個 P1 既有命令鍵；新增資源不得削弱唯讀或完整後備保護。</summary>
+    /// <summary>三個語系表保留原十二鍵及十二個P1-11摘要鍵；固定獨立鍵清單防漏鍵，新增資源不得削弱唯讀或完整後備保護。</summary>
     [Fact(DisplayName = "呼叫者不能修改任何已發布語系表")]
     public void Table_IsImmutable_CallerCannotMutate()
     {
@@ -112,7 +139,8 @@ public sealed class SystemTextCatalogTests
             Assert.False(table is Dictionary<string, string>);
             if (table is IDictionary<string, string> mutable)
                 Assert.Throws<NotSupportedException>(() => mutable["Common.Diagnostics.Ping"] = "caller-change");
-            Assert.Equal(12, table.Count);
+            Assert.Equal(24, table.Count);
+            Assert.Equal(ExpectedSystemKeys, table.Keys.OrderBy(key => key, StringComparer.Ordinal));
         }
         Assert.Equal("連線測試成功", catalog.GetText("zh-TW", new TextKey("Common.Diagnostics.Ping")));
     }
@@ -260,7 +288,7 @@ public sealed class SystemTextCatalogTests
         Assert.Throws<KeyNotFoundException>(() => new SystemTextTable().GetText("zh-TW", default));
     }
 
-    /// <summary>未知語系與大小寫變化只重用既有十二鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量不變。</summary>
+    /// <summary>未知語系與大小寫變化只重用完整二十四鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量及所有原鍵不變。</summary>
     [Fact(DisplayName = "未知語系重用既有後備快照")]
     public void Table_UnknownCultures_ReuseFixedFallback()
     {
@@ -268,6 +296,7 @@ public sealed class SystemTextCatalogTests
         var original = catalog.GetTable("zh-TW");
         for (var index = 0; index < 1000; index++) Assert.Same(original, catalog.GetTable("unrecognized-" + index));
         Assert.Same(original, catalog.GetTable("ZH-tw"));
-        Assert.Equal(12, original.Count);
+        Assert.Equal(24, original.Count);
+        Assert.Equal(ExpectedSystemKeys, original.Keys.OrderBy(key => key, StringComparer.Ordinal));
     }
 }

@@ -1,18 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/DonationFeeIdList.cs
-// 所屬區塊：奉獻付款服務層；定義「同一筆付款包含哪些收費單」在永豐訂單參數 Param1 內的格式。
-// 檔案責任：建單時把同一次付款建立的所有收費單 Id 編進 Param1；callback 時解析回來，並過濾不屬於本次付款的收費單。
-// 外部契約（永豐豐收款 API 規格 v24，ChurchReport/文件/豐收款API開發規格書/spec_v24.txt）：
-//   Param1 為 X(255)，不可有單引號、雙引號、百分比；付款完成後原樣回傳。
-//   - 一張收費單：Param1＝標準格式 Guid（xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx），與改版前完全相同。
-//   - 多張收費單：Param1＝32 碼 Guid（"N" 格式）以半形逗號串接，第一張是 primary。
-//   - 每張 32 碼加 1 個逗號，255 字最多放 7 張，因此一次奉獻最多 7 個類別（MaxIds）。
-// 使用者：DonationPaymentProcessor（建單）、DonationFeePaymentProcessor（RETURN_URL callback）、
-//         外部 QPaybackend（ATM 入帳與 BACKEND_URL 通知，必須依相同格式解析）。
-// 隔離與生命週期：純函式，不讀寫 CRM、Session、static 可變快取；不持有連線、timer 或背景工作。
-// 編碼要求：本檔案維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：永豐訂單 Param1「收費單 Id 清單」的編碼、解析與過濾規則。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationFeeParamMember、DonationFeeIdList。
+ * - 多張收費單時每個 Id 的長度（Guid "N" 格式，32 個十六進位字元，大小寫不敏感）。
+ * - 多張收費單之間的分隔字元；永豐允許，且不會出現在 Guid 內。
+ * - Param1 最多可放入的收費單張數：(255 + 1) / (32 + 1) = 7。
+ * - 把收費單 Id 編成 Param1。清單順序就是 callback 的處理順序，第一張是 primary （付款人、LINE 通知、課程報名與信用卡資料都以 primary 為準）。
+ * 主要操作入口包含 DonationFeeParamMember、Encode、Parse、SelectGroupMembers。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Dedication/DonationFeeIdListTests.cs、
+ * ChurchReport.MemberInfo.Tests/Dedication/DonationMultiCategoryTests.cs、
+ * SpeechMessageProducts.ChurchReport/Services/DonationLineItemNormalizer.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs、
+ * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Fee
+ * Management.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 

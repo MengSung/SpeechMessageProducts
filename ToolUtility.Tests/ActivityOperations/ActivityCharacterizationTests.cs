@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在原 host 搬移前已鎖定三類成功行為：分組查詢／順序、純 ID 解析、兩組狀態請求； 抽取後兩個測試宿主共用同一黃金檔，Framework 宿主實際載入 net462 產品。 只替代SDK，
+ * 所有ID與內容為合成值，不連D365、不發LINE；不把已知安全缺陷當作相容行為。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ActivityCharacterizationTests。
+ * - contact/systemuser分組各查一次AllColumns，回應逆序仍依原參與者順序append並保留既有前綴。 沒有partyid但帶addressused的外部收件者沿用略過語義；同名不同正式ID都保留，
+ * 借入SDK不Dispose。
+ * - 純ID入口不查SDK，順序及型別與ID一一對齊，原前綴不被Clear。 缺partyid的外部地址不偽造資料庫ID；這不表示本文已驗證寄送或外部收件者授權。
+ * - default/external兩多載實際只呼叫所選SDK一次；鎖定活動1/4、約會3/5與完整EntityMoniker。 不臆測不同組織的狀態碼，不更動任何真實活動，不把SDK所有權轉交給工具。
+ * - 合成參與者含同名但不同ID聯絡人及外部地址；partyid參照既有資料庫記錄， activityparty容器只供解析、不作持久化列發布或補造ID。
+ * 測試案例入口包含 PartyList_PreservesBatchGoldenOrderAndExistingPrefix、
+ * PartyIds_PreserveOrderPrefixAndSkipUnresolvedAddressWithoutIo、SetState_PreservesGoldenAndSelectedSdk、Activity。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Collections;
 using System.Xml.Linq;
 using Microsoft.Crm.Sdk.Messages;

@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：僅容許一名收件者與最多五則 text 的操作快照，不能表示群播或廣播。 建構時複製並驗證全部訊息再發布，來源集合後續修改不得影響已建立請求。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LinePushRequest。
+ * - 在任何 HTTP 操作之前完成單人 ID、訊息界限與事件重試鍵驗證。
+ * - 伺服器已驗證的單一收件 ID，僅用於當次 HTTP 內容，不可當成授權依據。
+ * - 呼叫專屬且不可變的完整訊息集合，不把外部可變清單直接發布。
+ * - 由業務事件衍生的重試鍵；Core 不重新產生或在失敗時替換。
+ * 主要操作入口包含 ToString。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.Tests/LinePushClientTests.cs、LineMessagingProcessor.Core/ILinePushClient.cs、
+ * LineMessagingProcessor.Core/LinePushClient.cs、
+ * SpeechMessage.Dynamics.Plugins/Diagnostics/DiagnosticsPingPlugin.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 

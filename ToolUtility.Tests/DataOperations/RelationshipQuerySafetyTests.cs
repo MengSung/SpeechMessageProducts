@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：六入口獨立故障矩陣驗正式ID／根表／整頁預算，所有資料是合成值；不把Mock通過當實機整合。 另驗結構名與GUID在I/O前拒絕、並行scope隔離、Dispose/drain與弱引用，不建立無主背景資源。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RelationshipQuerySafetyTests。
+ * - 六個實作和契約必須實際來自雙目標Core；不以同名host複本通過組件驗證。
+ * - 獨立列出每入口／故障組合，不能讓第一個失敗掩蓋後面入口；固定清單不含scope資料。
+ * - 5000列為單頁本地安全預算；超量先拒絕，不配置超量ID集合，也不回部分或靜默刪重。
+ * - 五個動態N:1結構名稱逐個注入XML/SQL樣式字元；不得送SDK，錯誤不回顯輸入。
+ * 測試案例入口包含 ImplementationAndContract_AreInCore、InvalidPages、EveryEntrypoint_RejectsInvalidPage、
+ * DynamicNames_RejectUnsafeStructureBeforeIo、ManyToManyNames_RejectUnsafeStructureBeforeIo、
+ * EmptyIdentifier_RejectsBeforeIo、AllEntrypoints_PreserveFailureAndAllowExplicitRetry、
+ * Dispose_RejectsAllNewEntriesAndDoesNotDisposeBorrowedSdk；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Runtime.CompilerServices;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

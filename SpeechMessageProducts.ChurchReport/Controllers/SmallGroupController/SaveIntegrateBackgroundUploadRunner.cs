@@ -1,11 +1,21 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/SmallGroupController/SaveIntegrateBackgroundUploadRunner.cs
-// 檔案責任：執行 SaveIntegrate 已接受的背景上傳，明確擁有背景 DI/ambient/trace scope，並只寫入安全的結構化結果。
-// 隔離與生命週期：本 runner 不持有 Controller、HttpContext、Session 或來源週報圖；所有輸入都是已隔離副本或短命委派，
-// 且 DI/ambient/trace scope 皆由 using 在成功與失敗路徑確定釋放，避免跨使用者或跨 request 保留。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與 final CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：執行已接受的 SaveIntegrate 背景作業，並以固定 schema 紀錄每個生命週期階段的結果。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SaveIntegrateBackgroundUploadRunner。
+ * - 依序建立背景 scope、解析 ToolUtility、執行上傳並清理隔離副本。
+ * - 將例外映射成固定且不含敏感內容的背景 errorClass。
+ * 主要操作入口包含 RunAsync、GetErrorClass。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 ToolUtility.Dataverse.Tests/SaveIntegrateBackgroundUploadRunnerTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.ServiceModel;

@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/OptionSetMetadataService.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class OptionSetMetadataService
-// 主要成員：GetOptionSetValue、GetOptionSetText、ClearCache、GetLocalizedLabel、GetLanguageCodeId
-// 引用命名空間：Microsoft.Extensions.Caching.Memory、Microsoft.Extensions.Logging、Microsoft.Extensions.Logging.Abstractions、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Messages、Microsoft.Xrm.Sdk.Metadata、System、System.Collections.Generic
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：OptionSet Metadata 服務 負責從 Dynamics 365 動態取得 OptionSet 的完整清單並提供快取機制
+ *
+ * 主要功能與流程：
+ * 本檔宣告 OptionSetMetadataService。
+ * - 取得指定實體的 OptionSet 對應表（顯示文字 → 值） 包含快取機制，避免頻繁查詢 Metadata
+ * - 根據 OptionSet 值取得顯示文字（反向查詢） ? 效能優化：快取反向對應表，避免每次呼叫都重建 Dictionary 原本每次呼叫都執行 mapping.ToDictionary() 建立新的反向字典， 
+ * 若一頁有 50 位成員，每人查 3-4 個欄位，就是 150-200 次多餘的 Dictionary 建構。 ? Session 安全：快取鍵為 
+ * "OptionSetReverse_{entityName}_{attributeName}" 內容為 Dictionary&lt;int, string&gt;（整數值 → 顯示文字）， 屬於 CRM Schema 
+ * Metadata，所有使用者完全相同，不含任何個人資料。
+ * 主要操作入口包含 GetOptionSetMapping、GetOptionSetValue、GetOptionSetText、ClearCache、GetLocalizedLabel、GetLanguageCodeId。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.cs、
+ * SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs、
+ * SpeechMessageProducts.ChurchReport/Services/DonationPaymentModelAssembler.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions; // ? 新增

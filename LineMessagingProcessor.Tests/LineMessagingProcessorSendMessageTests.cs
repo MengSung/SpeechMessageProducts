@@ -1,16 +1,18 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.Tests/LineMessagingProcessorSendMessageTests.cs
-// 所屬區塊：LINE 訊息處理核心測試專案。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class LineMessagingProcessorSendMessageTests、class CapturingHttpMessageHandler
-// 主要成員：SendMessage_delegates_normal_text_push_to_line_sdk、SendMessage_preserves_legacy_confirmation_code_message_text、SendMessage_rejects_blank_required_fields_before_http_call、SendAsync、Requests、Bodies
-// 引用命名空間：System.Net、System.Text、FluentAssertions、Line.Messaging、Newtonsoft.Json.Linq、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以假HTTP handler保護一般文字推播及既有確認碼文案，空必填欄位不得送出請求。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineMessagingProcessorSendMessageTests、CapturingHttpMessageHandler。
+ * 測試案例入口包含 SendMessage_delegates_normal_text_push_to_line_sdk、
+ * SendMessage_preserves_legacy_confirmation_code_message_text、
+ * SendMessage_rejects_blank_required_fields_before_http_call、SendAsync。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Net;
 using System.Text;
 using FluentAssertions;

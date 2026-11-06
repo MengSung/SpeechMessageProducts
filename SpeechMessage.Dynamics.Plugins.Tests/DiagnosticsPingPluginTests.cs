@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：完全離線驗證外掛邊界；以 Moq 提供 SDK 服務、假 handler 注入 HTTP 狀態及原始例外。 每案例獨佔 provider、追蹤集合與 HttpClient，確認不輸出機密、不吞錯、
+ * 傳輸及服務參考不跨執行保留。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DiagnosticsPingPluginTests、RejectingContext、IsolationHandler、DrainContent、Fixture、Handler、TrackedContent。
+ * - 只在測試中使用的合成憑證，不對應任何 LINE channel。
+ * - 保護部署外殼只能以使用者依 D21 核定的 .NET Framework 4.6.2 為目標； 直接讀取測試實際載入的 Plugin 組件屬性，避免只看專案設定或測試專案本身而產生假綠燈。
+ * - trace 模式不得送 HTTP；斷言標記、組件、執行環境、觸發事件及兩語系實際取字結果。
+ * - 固定 UTC 時鐘與實體 ID，斷言真實 Core HTTP 標頭及單則推播內容，不驗證替身自行設定的結果。
+ * 測試案例入口包含 Assembly_TargetFramework_IsNet462、Execute_TraceMode_WritesPingAndBothCultures、
+ * Execute_PushMode_UsesPrimaryEntityIdAsRetryKey、Execute_PushMode_TraceNeverContainsToken、
+ * Execute_Retryable_ThrowsInvalidPluginExecutionException、Execute_Permanent_DoesNotThrow、
+ * Execute_DepthGreaterThanOne_DoesNothing、Ctor_InvalidUnsecureJson_ThrowsWithChineseMessage；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

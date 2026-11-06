@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：逐入口保護完整發布、正式身份、批次故障保真與取消分類；所有失敗均由受測實作觀察合成SDK邊界。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ListSafetyTests。
+ * - 十二個List讀入口加兩個Marketing投影分開故障，確保每個public入口都執行完整頁驗證。
+ * - 任何候選身份故障必須拒絕整頁；不得回首筆、跳過壞列或用字典覆寫。
+ * - XML值含特殊符號仍只是一個condition值，不可增加link或改變結構。
+ * - 四類名單批次故障不再吞錯回部分成功；原Timeout必須仍可由host辨識，後續批次不得啟動。
+ * 測試案例入口包含 InvalidPages、EveryRead_RejectsInvalidCandidate、NameInputs_AreEncoded、
+ * BatchFailure_DoesNotReturnPartialSuccess、RemoveBatch_ChecksSdkFaults、BatchValidation_RejectsBeforeAnyIo、
+ * InternalCancellation_RemainsFaulted、CallerCancellation_IsCanceledWithoutIo；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Xml.Linq;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;

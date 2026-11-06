@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以真實系統表保護 NFKC、空白、大小寫、跨語系衝突及明確比對模式；不執行產品路由或傳送 LINE。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 KeywordCatalogTests。
+ * - 注入全形拉丁字與不同 Unicode 空白，完全比對須與資源正規化後結果一致。
+ * - 六個既有英文關鍵字由真實 en resx 讀取，即使大小寫及全形不同仍回傳舊處理器意圖。
+ * - 英文會友仍可輸入中文，最後繁中層永遠參與；未命中明確回 false 且不回傳前次意圖。
+ * - 同語系或可同時啟用語系正規化後的同字對應異意圖，建構整表直接拒絕，不能用查詢順序掩蓋。
+ * 測試案例入口包含 Keyword_FullWidthAndSpaces_Normalized、Keyword_EnglishCaseInsensitive、
+ * Keyword_ChineseAlwaysWorksForEnglishMember、Keyword_ConflictInSameCulture_ThrowsAtBuild、
+ * Keyword_SameIntentAliasesAndEmptyInput_Handled、Keyword_ExplicitModes_PreserveCulturePriority、
+ * Keyword_ExplicitPriority_PreservesOverlappingLegacyOrder、Keyword_InvalidOrOversizedInput_ReturnsNoIntent。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using Xunit;

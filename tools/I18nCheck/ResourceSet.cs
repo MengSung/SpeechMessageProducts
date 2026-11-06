@@ -1,3 +1,20 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：一組中性資源與其翻譯的操作區域快照；Path 是穩定的來源身分，不以顯示文字區分。 僅由完整 repository 候選建立，沒有開啟串流、使用者資料或背景工作。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ResourceSet。
+ * - 只保存平台固定文化名稱，無來源或租戶資料；用以辨認缺中性來源的標準翻譯檔。
+ * - 沿用正式方案非測試專案與剪枝邊界；先限制全部實體 resx 最多4096檔、合計64MiB， 再讀完整候選。相同實體檔被兩專案重述直接拒絕，不以Distinct或覆寫隱藏衝突。
+ * 主要操作入口包含 ResourceSet、LoadRepository。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/ResourceVerificationTests.cs、tools/I18nCheck/CommandRunner.cs、
+ * tools/I18nCheck/ResourceVerifier.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Collections.Frozen;
 using System.Globalization;
 

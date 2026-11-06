@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：使用 Roslyn 及一次性測試金鑰編譯惰性 PE，驗證真實 MetadataReader 與確定性關檔。 樣本不載入執行，不讀正式金鑰或外部服務；各案例的輸出、金鑰與資料夾完全隔離。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AssemblyInspectionTests、Fixture。
+ * - 逐項注入錯誤框架、未簽章、未公開型別及禁用相依，正樣本必須通過全部檢查。
+ * - 損毀、過大、缺檔與缺參數皆 fail closed，輸出固定原因且不能包含原始本機路徑。
+ * - 保護 ILRepack 的每一個輸入都不得宣告高於伺服器核定的 v4.6.2； 以離線合成 PE 注入 v4.6.2、v4.5、v4.8 與非 Framework 屬性，斷言只接受不高於上限的明確 .NET 
+ * Framework 目標。
+ * - 合成真實的 facade 名稱參考，重現 System.* 前綴把它誤判為安全相依的缺口； 合併前與部署 DLL 檢查兩個入口都必須拒絕，普通 Framework 名稱則維持可用。 每次建立獨立惰性 PE，不載入執行；
+ * 返回後獨佔重開確認讀取資源已釋放。
+ * 測試案例入口包含 Inspect_MetadataFaults_ReturnsContractResult、Inspect_InvalidInput_FailsClosedWithoutPath、
+ * ValidateMergeInputFramework_EnforcesNet462Ceiling、Inspect_FacadeReferences_BothEntryPointsReject、
+ * Inspect_FacadeAssemblyIdentity_BothEntryPointsReject、Emit、GetFrameworkName、Dispose。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Globalization;
 using System.IO;

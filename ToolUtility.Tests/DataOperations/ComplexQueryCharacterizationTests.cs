@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：原Complex十六個入口完整特性；不同於Present/Relationship的字串Guid、root日期欄位、 TotalRecordCount門檻及Execute路徑各自保留，
+ * 不能因同名方法而直接轉接成另一套語義。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ComplexQueryCharacterizationTests。
+ * - 十六入口明列，不能只測代表共用查詢而漏掉原本不同的入口；資料均由本測試建立。
+ * - 完整投影、原SDK入口與頁metadata先在原host跑綠；動態UTC另驗界線，字串日期固定Invariant後finally還原。
+ * - 原血液報告以TotalRecordCount門檻決定null，不能抽取時改成單看Entities.Count。
+ * - 只在實際查詢完全相同時共用golden；舊DateTime/root filter/CLR字串差異有獨立檔。
+ * 測試案例入口包含 Entrypoints、OriginalHost_PreservesEveryQueryAndResult、Blood_PreservesLegacyTotalCountGate、Golden、Read。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Globalization;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;

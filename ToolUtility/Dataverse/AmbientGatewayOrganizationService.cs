@@ -1,21 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Dataverse/AmbientGatewayOrganizationService.cs
-// 檔案責任：供 legacy ToolUtilityFactory 程序級單例延後解析目前 DI scope 的
-//           IOrganizationService；絕不把 HttpContext、scope、lease、raw CRM client 或
-//           使用者／租戶資料保存到單例，避免跨 request、跨使用者與跨租戶洩漏。
-// 量測不變量：必須解析 IOrganizationService，而非直接解析 IDataverseGateway。前者是
-//             Host 組合根唯一可插入計時、安全或稽核裝飾器的入口；直接取 Gateway 會繞過
-//             裝飾器，使 JSONL 有 CRM 資料但同一 request 的 [Perf] 歸因為零。
-// 量測單一所有者：Ambient 僅負責解析並委派；解析後的 GatewayOrganizationService 是 JSONL
-//                   crm.op 的唯一量測者，而 Host 的 TimedOrganizationService 是 [Perf] 的唯一
-//                   量測者。Ambient 再包 CrmOperationTrace.Measure 會把同一 SDK 呼叫寫入兩次，
-//                   使 request.end.crmCount 與 [Perf] crm.n 失去逐請求可比性。
-// 資源生命週期：有 HTTP request 時只借用其既有 scope；無 request 的背景相容路徑建立一個
-//               短命 scope，且由 using 在 work 結束（包括例外）時確定釋放其 scoped gateway
-//               與可能持有的 Dataverse lease。此型別本身不擁有或快取任何上述資源。
-// 編碼要求：本檔案維持 UTF-8 無 BOM、CRLF，並以 final CRLF 結尾。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：為 legacy session／Factory 持有者提供的過渡性 IOrganizationService 代理。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AmbientGatewayOrganizationService、BackgroundScopeOverride。
+ * - 背景作業目前明確指定的 DI 服務提供者。AsyncLocal 讓巢狀 Task.Run 繼承同一個 背景 scope，但不把 request services 寫入程序級單例；每個 scope 結束時都會還原前值。
+ * - 取得目前執行流程所屬 request 的服務提供者；回傳值只在本次同步操作中使用，絕不儲存。
+ * - 建立無 request fallback scope 的根 factory；本欄位不代表或持有任何已建立的 scope。
+ * - 建立可安全由 legacy 程序級 Factory 保存的 ambient 解析代理。
+ * 主要操作入口包含 BeginBackgroundScope、Associate、Create、Delete、Disassociate、Execute、Retrieve、RetrieveMultiple；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/SmallGroupDataListSnapshotIsolationTests.cs、
+ * ToolUtility.Dataverse.Tests/DataverseTraceTests.cs、ToolUtility.Dataverse.Tests/GatewayArchitectureTests.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;

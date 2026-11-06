@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在搬移與安全純化之前鎖定三組 SDK-only 操作的全部查詢，而非以重寫結果反推 golden。 Golden 由固定舊來源模板填入合成資料；每案比較真正送到 SDK 的完整 XML，保留排序與欄位。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 QueryOperationsCharacterizationTests、DataOperationFixture。
+ * - 列出固定有限的公開操作；不讀機器設定、網路、個資或動態列舉外部輸入。
+ * - SDK 回傳兩筆同名不同 ID 與分頁，服務不得去重、改寫或丟棄分頁欄位。 此搬前基準局部固定西曆並 finally 還原，不修改程序預設文化或寫回 golden。
+ * - 舊 RetrieveByDate 雖有日期參數，實際不加日期條件；本階段搬移不擅自修改這項既有契約。 比對型別化 QueryByAttribute 與 AllColumns、空條件，日期篩選維持由明確區間 API 提供。
+ * - 建立同名不同 ID 的完整合成候選，確保測試能區分按名稱去重與正確 ID 驗證。
+ * 測試案例入口包含 Operations、ExistingQuery_MatchesGoldenAndPreservesCompleteResult、
+ * AppointmentByDate_PreservesLegacyUnfilteredQuery、EntityName、Rows、Run。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

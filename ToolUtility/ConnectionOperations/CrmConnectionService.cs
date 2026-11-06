@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/ConnectionOperations/CrmConnectionService.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class CrmConnectionService
-// 主要成員：GetClientCredentials、GetOrganizationService、SetOrganizationService、SetClaimsBasedAuthenticationOrganizationService、SetFederatedOrganizationProxy、DiscoverOrganizations、FindOrganization、CreateOnPremiseClient、ValidateConnection、GetCurrentUser
-// 引用命名空間：System、System.Linq、System.Net、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Client、Microsoft.Xrm.Sdk.Discovery、Microsoft.Xrm.Sdk.Query、Microsoft.Crm.Sdk.Messages
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：CRM 連線服務實作 提供多種連線方式支援 CRM 2011、Dynamics 365 On-Premise 和 Online
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CrmConnectionService。
+ * - 設定 Claims-Based 驗證的組織服務（HTTPS 連線） 用於內部部署的 Dynamics 365
+ * - 設定 Federated (聯盟) 組織服務 Proxy 支援 Dynamics 365 Online 和 On-Premise IFD 環境
+ * - 取得服務 Proxy（泛型方法，支援 Discovery 或 Organization Service）
+ * - 建立使用 OnPremiseClient 的連線（推薦用於新專案） 使用自定義的 PowerPlatform.Dataverse.Client.OnPremiseClient
+ * 主要操作入口包含 GetClientCredentials、GetOrganizationService、SetOrganizationService、
+ * SetClaimsBasedAuthenticationOrganizationService、SetFederatedOrganizationProxy、DiscoverOrganizations、
+ * FindOrganization、CreateOnPremiseClient；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/DataverseTraceTests.cs、
+ * SpeechMessage.Dynamics.Deployment/UserSecretsOrganizationConnector.cs、ToolUtility/Core/ToolUtilityFacade.cs、
+ * ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Linq;
 using System.Net;

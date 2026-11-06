@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：依 2026-11-03 使用者核定公式擴展文字，只在整段外包圍一次，不修改參數。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 Placeholders、PseudoLocale。
+ * - 辨識一組大括號內的非空名稱，不把參數任意限縮為 ASCII；巢狀括號不合併。
+ * - 僅移除識別成功的整個參數，保留標點、空白與其他 Unicode 字元。
+ * - 產生 Ordinal 唯讀集合，重複參數及順序不影響跨語系契約。
+ * - 使用同一參數文法計算最長教會名替換後的UTF16長度，不配置實際展開文字或重新解析插入值。 只允許已提供最長值的churchName；未知參數拒絕，最多256處替換以限制錯誤模板成本。
+ * 主要操作入口包含 Remove、Names、LengthWithChurchName、Transform。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/BoundaryTests.cs、tools/I18nCheck.Tests/I18nContractsTests.cs、
+ * tools/I18nCheck.Tests/ResourceVerificationTests.cs、tools/I18nCheck/ResourceCatalog.cs、
+ * tools/I18nCheck/ResourceGenerator.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Collections.Frozen;
 using System.Text;
 using System.Text.RegularExpressions;

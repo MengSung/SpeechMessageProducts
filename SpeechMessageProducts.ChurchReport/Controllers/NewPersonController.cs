@@ -1,21 +1,24 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/NewPersonController.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：處理新人跟進 Grid 與 CRM 新人建立流程。讀取只發布 detached snapshot 並在
-//           DataSourceLoader 前依 PresentRecordId 驗證；新增成功後的純記憶體 publication 必須
-//           在目前 request 內同步完成，不能用 LongRunning fire-and-forget Task 捕獲 Session graph。
-// 隔離與資源：IOrganizationService 只從目前 request scope 取得，不跨 request 保存。圖片 stream
-//             依既有 using 路徑釋放；Grid callback、ViewModel、credential 與 Session collection
-//             都不得進入 static cache、未觀察 Task 或無界佇列。
-// 主要型別：class NewPersonController
-// 主要成員：NewPersonFollowUpView、SetupNewPersonFollowUpViewBag、LoadNewPersonFollowUp、EnsureNewPersonDataLoaded、InsertNewPresentRecord、UpdateNewPresentRecord、UpdateNewPersonFollowUpData、UpdateAllMemberData、DeleteNewPresentRecord、SaveNewPersonFollowUp
-// 引用命名空間：ChurchReport.Models、ChurchReport.Tools、ChurchReport.ViewModels、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：新人關懷與追蹤控制器 處理新人追蹤、關懷、指派小組等功能
+ *
+ * 主要功能與流程：
+ * 本檔宣告 NewPersonController。
+ * - 取得目前 request scope 的 Dataverse 服務；DI 容器負責其最大生命週期與確定性釋放。 控制器不自行借還或跨 request 保存連線，以維持使用者隔離並避免資源洩漏。
+ * - 載入新人跟進資料，供 DevExtreme DataGrid 使用。 每次 request 都重新驗證 Session scope、取得 detached snapshot，並在 consumer boundary 依 
+ * PresentRecordId fail closed；合法同名不同 ID 的新人仍全部保留。
+ * - 新增新人跟進記錄；重送 request 會在同一 instance lock 內依 PresentRecordId 原子拒絕， 不會用姓名或內容相似度刪除資料，也不會在失敗時留下半加入集合。
+ * - 儲存新人；附圖拒絕只追加固定提示，不回滾已建立的新人或誘發重送。
+ * 主要操作入口包含 NewPersonFollowUpView、SetupNewPersonFollowUpViewBag、LoadNewPersonFollowUp、EnsureNewPersonDataLoaded、
+ * InsertNewPresentRecord、UpdateNewPresentRecord、DeleteNewPresentRecord、SaveNewPersonFollowUp；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 ChurchReport.MemberInfo.Tests/Images/ImageUploadCharacterizationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Images/ImageUploadSafetyTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using ChurchReport.Services;
 using ChurchReport.Services.Images;

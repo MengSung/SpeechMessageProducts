@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：用真共用檔案 owner 驗覆寫 cache 的功能故障邊界；LINE 明確關閉，不把離線測試宣稱實機傳送。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 OverrideCacheExceptionTests、FailureSource。
+ * - 冷失敗由 cache 傳真 Exception，外層再報同實例只能一筆；本文、租戶與個資不得進 Exception.log。
+ * - 由 cache 真實終端邊界報同一例外，不在來源另行通知或轉字串。
+ * 測試案例入口包含 Cache_failure_uses_shared_owner_and_preserves_original_without_sensitive_output、FailureSource、
+ * ReadAsync。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using SpeechMessage.Localization;
 using SpeechMessage.Tenancy;
 using ToolUtilityNameSpace.Diagnostics;

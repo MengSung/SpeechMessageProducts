@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus/RichMenuContext.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class RichMenuContext
-// 主要成員：LineUserId、Roles、ReceivedText、CurrentMenuKey
-// 引用命名空間：未宣告 using；請由命名空間、同檔型別或完全限定名稱判讀相依性。
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：攜帶 RichMenu policies 做 decision 時可能需要的所有使用者與訊息事實。 context 刻意使用角色、屬性等應用程式概念，讓 policies 不必直接依賴資料庫 entity 或 
+ * LINE SDK payload 型別。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RichMenuContext。
+ * - 建立單次 LINE 使用者互動的 policy evaluation context。
+ * - 取得將傳入 assignment 與 unlink workflows 的 LINE userId。
+ * - 取得 policy implementations 可使用的角色名稱。 預設 comparer 不分大小寫，避免應用程式角色大小寫差異影響 decisions。
+ * - 取得應用程式提供給自訂 policy logic 使用的額外事實。
+ * 資料／選項欄位包含 RichMenuContext、LineUserId、Roles、ReceivedText、CurrentMenuKey、Attributes，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessorServiceCollectionExtensionsTests.cs、
+ * LineMessagingProcessor.RichMenus.Tests/Orchestration/RichMenuOrchestratorTests.cs、
+ * LineMessagingProcessor.RichMenus/IRichMenuOrchestrator.cs、LineMessagingProcessor.RichMenus/IRichMenuPolicy.cs、
+ * LineMessagingProcessor.RichMenus/LineRichMenuTextTriggerPolicy.cs 追查目前工作樹中的合作／使用位置。
+ */
 namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>

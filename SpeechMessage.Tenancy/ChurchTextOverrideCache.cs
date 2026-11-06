@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：Host 擁有的完整教會覆寫快取。只接受已授權 TextContext，命中不能代替每次伺服器授權； 完整組織／產品／教會隔離，快照只含文字，不含使用者、request、token 或 D365 連線。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchTextOverrideCache、ScopeKey、Entry、Flight、LoadResult、CacheClock。
+ * - 只保護短記憶體狀態轉換；來源 I/O、通知與取消 callback 一律不在鎖內執行。
+ * - 本 owner 獨佔的有界快取；每 scope size=1，沒有共用其他產品 MemoryCache 的容量。
+ * - 最多六十四個正在執行的 flight；每個 Lazy 只啟動一次，完成後移除，不保留失敗 Task。
+ * - Host 擁有且無 request 狀態的來源；本 owner 不 Dispose 外部來源。
+ * 主要操作入口包含 LoadAsync、GetSnapshot、Invalidate、Disable、DisposeAsync、ReadAsync、DisposeCoreAsync、IsCurrent；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/OverrideCacheExceptionTests.cs、
+ * SpeechMessage.Tenancy.Tests/ChurchTextOverrideCacheTests.cs、
+ * SpeechMessage.Tenancy.Tests/OverrideCompositionTests.cs、
+ * SpeechMessage.Tenancy/OverrideServiceCollectionExtensions.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/FeeManagementController.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

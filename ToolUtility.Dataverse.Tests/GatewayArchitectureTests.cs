@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 Run B 新增的 Manager、Gateway、IOrganizationService 代理與 ambient fallback。 所有測試均使用假的 CRM service，並檢查租約取得、
+ * 故障標記與 scope 確定性釋放。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 GatewayArchitectureTests、TestManager、TestLease、DirectGateway、TrackingGateway。
+ * - 巢狀三層 Execute 必須只取得一條 lease，最外層結束才歸還。
+ * - 傳輸層例外代表通道不可信，Gateway 必須標記故障、釋放 lease 並保留原例外。
+ * - 商業層 fault（欄位不存在、權限不足）代表伺服器已完整回覆，通道健康；例外必須原樣重擲， 但連線不可被淘汰。這是本次修正的核心行為：一個打錯的欄位名不應該燒掉一條連線。
+ * - FaultException 在 WCF 型別階層中是 CommunicationException 的子類別。 本測試釘住判斷順序：若分類函式先比對 CommunicationException，此處會退化為淘汰連線。
+ * 測試案例入口包含 Gateway_reentrant_execute_uses_one_lease_for_three_nested_calls、
+ * Gateway_marks_lease_faulted_and_rethrows_connection_exception、Gateway_marks_lease_faulted_on_timeout、
+ * Gateway_keeps_lease_reusable_when_business_fault_is_thrown、
+ * Business_fault_is_not_treated_as_communication_fault_despite_inheritance、
+ * Gateway_keeps_lease_reusable_when_application_exception_is_thrown、
+ * Gateway_marks_lease_faulted_when_connection_fault_is_wrapped、
+ * Gateway_keeps_lease_reusable_when_business_fault_is_wrapped；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;

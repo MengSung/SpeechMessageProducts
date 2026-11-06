@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：new_localizedtext 的雙目標純 SDK 來源；僅保存 Host 擁有的工廠，不保存連線、請求或資料列。 同步 SDK 使用既有完整分頁轉接，無 Task.Run、額外執行緒或無主背景工作；
+ * 取消後仍等入場 I/O 返回。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IChurchTextOverrideServiceFactory、IChurchTextOverrideServiceLease、D365ChurchTextOverrideSource。
+ * - 同步取得一次有界 lease；Host 必須設定 SDK transport timeout，來源會在入場 I/O 排空後歸還。
+ * - 工廠驗證後的實際範圍；來源再次與請求核對，禁止錯組織、產品及教會。
+ * - 僅在 lease 內有效、已設定有界逾時的 SDK；不得由結果或快取保存。
+ * - 讀取故障／取消或不確定狀態時標記不可重用；Host lease 必須在歸還前讓 pool 淘汰該 client。
+ * 主要操作入口包含 ReadAsync、RequireText。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/DataOperations/ChurchTextOverrideSourceTests.cs、
+ * ToolUtility.Tests/Localization/DataverseChurchTextOverrideServiceFactoryTests.cs、
+ * ToolUtility/Localization/DataverseChurchTextOverrideServiceFactory.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Threading;

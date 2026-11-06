@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Middleware/IdentityAuditCleanupService.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 IdentityAuditCleanupService 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class IdentityAuditCleanupService
-// 主要成員：ExecuteAsync、StopAsync
-// 引用命名空間：Microsoft.Extensions.Hosting、Microsoft.Extensions.Logging、System、System.Threading、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：身份審計清理服務 (Background Service) 設計原則: - Single Responsibility Principle (SRP): 專注於定期清理追蹤資料 - Open/Closed 
+ * Principle: 繼承 BackgroundService，擴展而不修改框架 - Dependency Inversion Principle: 依賴 ILogger 抽象 作用: 定期清理 
+ * IdentityAuditMiddleware 中的追蹤資料，防止記憶體洩漏。 清理策略: - 每 30 分鐘執行一次 - 清除超過 1 小時未活動的記錄 - 記錄清理結果到日誌 記憶體管理最佳實務: - 
+ * 避免無限增長的靜態集合 - 定期清理舊資料 - 監控清理效果 使用方式: 在 Startup.cs 的 ConfigureServices 中註冊為 HostedService: #if DEBUG 
+ * services.AddHostedService&lt;IdentityAuditCleanupService&gt;(); #endif ?? 注意: 僅在 DEBUG 模式下啟用
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IdentityAuditCleanupService。
+ * - 背景服務主要執行方法 執行流程: 1. 啟動日誌記錄 2. 進入無限迴圈 3. 每 30 分鐘執行一次清理 4. 記錄清理結果 5. 處理取消請求 錯誤處理: - 使用 try-catch 確保服務不會因單次錯誤而停止 
+ * - 記錄錯誤到日誌 - 繼續下一次清理週期
+ * - 服務停止時的清理方法 執行最後一次清理，確保資料不會殘留
+ * 主要操作入口包含 ExecuteAsync、StopAsync。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessageProducts.ChurchReport/Middleware/IdentityAuditMiddleware.cs、
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;

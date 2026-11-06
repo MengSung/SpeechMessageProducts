@@ -1,3 +1,28 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護 Development 不取用正式 token、CRM 只連指定測試組織與 Production 逐鍵相容的契約。 所有輸入均為操作區域內假設定；不啟動 Host、不呼叫 CRM／LINE、
+ * 不改程序環境或目前目錄。 暫存檔、組態根與串流均由個別測試確定釋放，並行案例不共用可變狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DevelopmentSafetyTests、SettingsFixture。
+ * - 注入兩種 Development 大小寫；斷言每個既有別名都遮蔽基底假 token，且預設選到測試別名。
+ * - 注入 Production、Staging 與缺省環境；只追加專用 LINE 環境來源，且保留所有基底鍵和值。
+ * - 注入衝突與缺省名稱，斷言 DOTNET 優先、其次 ASPNETCORE，皆未指定才採 Production。
+ * - 移除測試 token 時，守門仍允許安全設定，但各 token 值保持空白，不能退回正式別名。
+ * 測試案例入口包含 DevelopmentLayer_Development_HidesEveryBaseToken、
+ * DevelopmentLayer_NonDevelopment_PreservesProvidersAndEveryValue、
+ * Environment_ConflictingInputs_UsesHostPrecedence、
+ * DevelopmentGuard_SafeSettingsWithoutToken_PassesWithoutFallback、
+ * DevelopmentGuard_UnsafeSetting_RejectsWithoutSecret、
+ * DevelopmentGuard_EmptyBaselineTokens_StillRejectsProductionAlias、
+ * DevelopmentGuard_EmptyBaselineTokens_RejectsAnyProductionAliasToken、
+ * DevelopmentGuard_EmptyBaselineTokens_RejectsGenericEnvironmentToken；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Reflection;
 using System.Text;
 using ChurchReport.Configuration;

@@ -1,11 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Dedication/DonationGivingHistoryTests.cs
-// 所屬區塊：ChurchReport 奉獻付款測試。
-// 檔案責任：固定奉獻頁「常用類別」、「同上次奉獻」、「奉獻清單」與定期定額期數解析的規則。
-// 主要型別：DonationGivingHistoryTests、DonationRecurringPeriodsTests
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證奉獻歷史的常用類別排名、同次提交分組、最近一次奉獻與預設補位，並保護定期奉獻期數推導。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationGivingHistoryTests、DonationRecurringPeriodsTests。
+ * 測試案例入口包含 Fee、RankPinned_OrdersByFrequency_ThenFillsWithDefaults、RankPinned_BreaksTiesByMostRecentGift、
+ * RankPinned_IgnoresCategoriesNoLongerOffered_AndUsesDefaultsWithoutHistory、
+ * RankPinned_FillsFromOfferedCategories_WhenDefaultsAreMissing、
+ * FindLastGift_GroupsTheSameSubmission_AndSkipsOlderGifts、FindLastGift_ExcludesRecurringCharges_AndOtherPayWays、
+ * FindLastGift_MergesTheSameCategoryWithinOneSubmission；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Models;
 using ChurchReport.Services;
 using FluentAssertions;

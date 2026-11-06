@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：階段零的沙箱診斷外殼；只保存不可變註冊設定，執行內容及傳輸資源不得跨執行保留。 Core 擁有每次 HTTP 訊息及十秒逾時；外掛只追蹤安全欄位並在邊界重新拋出真正失敗。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DiagnosticsPingPlugin。
+ * - 只包含固定資源的唯讀表，不承載教會、使用者、token 或執行內容。
+ * - 註冊設定的不可變模式；沙箱可重用外掛，但不得寫入此次 Execute 的狀態。
+ * - 只屬此 secure 註冊步驟的不可變憑證；不進 static、追蹤或其他步驟。
+ * - 只屬此測試步驟的固定收件者；執行時不由輸入內容覆寫，也不寫追蹤。
+ * 主要操作入口包含 Execute、ReadString、IsValidUserId、InvalidConfiguration、ReadUtcNow、SafeIdentifier。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs、
+ * SpeechMessage.Dynamics.Plugins.Tests/DiagnosticsPingPluginTests.cs、
+ * tools/PluginPackaging.Tests/AssemblyInspectionTests.cs、SpeechMessage.Dynamics.Deployment/Contracts.cs、
+ * tools/PluginPackaging/Program.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Globalization;
 using System.Linq;

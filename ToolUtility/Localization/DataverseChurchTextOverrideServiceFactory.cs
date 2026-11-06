@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：將既有產品隔離的 Dataverse manager 轉為覆寫來源的短命 lease 工廠；只保存固定部署邊界與 Host singleton manager， 不保存 request、使用者或 raw SDK。
+ * 共用 cache 不得注入舊 request-scoped GatewayOrganizationService。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DataverseChurchTextOverrideServiceFactory、Lease。
+ * - Host 擁有且已配置固定產品／endpoint／身分的 manager，不在本工廠 Dispose。
+ * - 先驗固定組織／產品及 caller 取消，再取得唯一操作 lease；來源讀完所有頁才歸還，不逐頁換 client。
+ * - 固定部署值必須有界且不含控制字元；保留原大小寫，不自行修剪／改寫身分。
+ * - 在來源使用期間保持完整 scope，釋放時移除純值引用。
+ * 主要操作入口包含 Open、RequireBoundary、Lease、MarkFaulted、Dispose、GetLease。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/DataOperations/ChurchTextOverrideSourceTests.cs、
+ * ToolUtility.Tests/Localization/DataverseChurchTextOverrideServiceFactoryTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Threading;

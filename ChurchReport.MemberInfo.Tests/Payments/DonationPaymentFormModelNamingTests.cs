@@ -1,16 +1,28 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs
-// 所屬區塊：ChurchReport 會員、付款與 LINE 共用流程的測試專案，用來固定產品層行為與回歸案例。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class DonationPaymentFormModelNamingTests
-// 主要成員：Donation_payment_form_model_is_the_primary_churchreport_form_state_type、Donation_payment_manager_is_the_only_churchreport_payment_state_manager、Product_layer_file_names_should_not_contain_provider_brand_names、Provider_specific_names_are_confined_to_provider_code_or_legacy_route_templates、IsAllowedLegacyRouteTemplate、IsRuntimeCodeLine、ShouldIgnorePath、FindRepositoryRoot
-// 引用命名空間：FluentAssertions、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 ChurchReport 的「產品層金流命名」已經切回中性名稱。 這個測試不是在測銀行協定，也不是在測永豐、高鉅、台新的 API。 它測的是一條架構邊界：只要一段程式是 ChurchReport 
+ * 的奉獻表單、 付款流程、MVC Controller、Workflow、Adapter 或測試護欄，它就應該 使用 Payment / DonationPayment 這類中性名稱。 為什麼要這麼嚴格： 1. 
+ * 舊名稱看起來像「所有付款都屬於永豐」，但現在同一條流程會選擇永豐、高鉅或台新。 2. 未來建設公司維修系統、協會會員系統、發票收款系統也會重用共通金流模組； 如果共通入口仍帶著某一家 provider 的名稱，
+ * 後續產品會很難判斷哪些程式可以安全重用。 3. 舊外部 URL 可以用 Route attribute 保留，因為那是瀏覽器或銀行 callback 的契約； 但是 C# 類別、介面、方法、變數、檔名不應再保留 
+ * provider 形狀的 alias。 注意：測試本身需要搜尋舊名稱，所以字串會用片段組合，避免這個測試檔自己被掃描規則誤判。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentFormModelNamingTests。
+ * - 保護中性表單模型是唯一產品狀態型別。 在實際產品組件同時查詢新名稱及舊供應商名稱，偵測新型別遺失或舊別名回流；斷言新型別存在而舊型別不存在。
+ * - 保護產品付款狀態僅使用中性 manager。 於真實產品組件查詢舊供應商名稱，模擬相容包裝被重建；斷言不存在，避免後續產品誤用供應商入口。
+ * - 保護產品與共用金流的檔案命名邊界。 從目前方案根目錄掃描兩個確實存在的來源目錄，偵測供應商形狀的產品檔名；斷言例外範圍外沒有命中，不能漏掃改名後的產品目錄。
+ * - 保護供應商字樣僅留在協定實作或已核准的既有路由。 掃描真實方案的執行程式來源，偵測供應商命名回流；斷言所有命中皆位於限定例外，註解與建置產物不作為產品行為。
+ * 測試案例入口包含 Donation_payment_form_model_is_the_primary_churchreport_form_state_type、
+ * Donation_payment_manager_is_the_only_churchreport_payment_state_manager、
+ * Product_layer_file_names_should_not_contain_provider_brand_names、
+ * Provider_specific_names_are_confined_to_provider_code_or_legacy_route_templates、IsAllowedLegacyRouteTemplate、
+ * IsRuntimeCodeLine、ShouldIgnorePath、FindRepositoryRoot。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using FluentAssertions;
 using Xunit;
 

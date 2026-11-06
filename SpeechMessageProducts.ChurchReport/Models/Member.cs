@@ -1,16 +1,24 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/Member.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
-// 主要型別：class Member
-// 主要成員：PresentRecordId、ContactId、Id、Group、FullName、Status、Phone、HomePhone、Address、BirthDate
-// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Text、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保存小組週報及整合名單使用的單一會友編輯資料，將聯絡人身分、出席／關懷狀態與異動欄位帶往既有上傳流程；它不是跨使用者共用的CRM實體快取。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 Member。
+ * - 建立 Member 的獨立副本。 此建構式只複製成員本身的值，不保留指向原始週報或其他可變物件圖的參考； 背景上傳快照因此可在自己的生命週期內清理欄位，而不會改寫前景 Session 所持有的成員。
+ * 字串與值型別可直接複製，ParentListSmallGroupWeeklyReport 則刻意留空，避免把父物件圖重新連回共用狀態。
+ * 資料／選項欄位包含 Member、PresentRecordId、ContactId、Id、Group、FullName、Status、Phone、HomePhone、Address、BirthDate、Industry、
+ * EquipmentStatus、SpiritualIdentity、BaptizedSituation、Description，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs、
+ * ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs、
+ * ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/RowPublicationGuardTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

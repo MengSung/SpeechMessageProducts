@@ -1,18 +1,19 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility.Tests/TestHelpers/MockOrganizationServiceFactory.cs
-// 所屬區塊：ToolUtility 測試專案，驗證共用工具層的相容行為。
-// 檔案責任：提供 IOrganizationService 的測試替身工廠，讓服務層測試不需接觸真實 Dataverse。
-// 主要型別：static class MockOrganizationServiceFactory
-// 主要成員：CreateMock、CreateMockWithEntity、CreateMockWithCollection
-// 引用命名空間：Moq、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query
-// 閱讀路徑：閱讀此檔案時應先看各方法預設的 mock 行為，因為它們是所有服務層測試的共同前提。
-// 維護重點：本工廠取代舊的 MockCrmClientFactory。ToolUtility 的服務建構式已由
-//           ICrmClient 改為直接接收 Microsoft.Xrm.Sdk.IOrganizationService，
-//           測試替身必須與產品契約一致，不可再以 ICrmClient 冒充。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：IOrganizationService 測試替身工廠。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MockOrganizationServiceFactory。
+ * - 建立具備安全預設行為的 IOrganizationService 替身。
+ * - 建立替身，並讓 Retrieve 於「邏輯名稱與識別碼皆相符」時回傳指定資料列。
+ * - 建立替身，並讓 RetrieveMultiple 回傳指定集合。
+ * 測試案例入口包含 CreateMock、CreateMockWithEntity、CreateMockWithCollection。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Moq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

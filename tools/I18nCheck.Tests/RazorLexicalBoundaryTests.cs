@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護 Razor 程式區塊與後續顯示文字的詞法邊界。所有輸入都是合成模板， 不執行 Razor；斷言實際顯示片段及 CLI 棘輪拒絕，避免引號誤判造成假綠燈。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RazorLexicalBoundaryTests。
+ * - 注入逐字、原始、插值字串及註解中的括號；程式內容不計數， 後續 HTML 必須完整保留，不能由反斜線或假括號吞掉檔案餘段。
+ * - C# 詞法與 Razor 轉換各自擁有邊界；模板內的引號、英文撇號、JavaScript 括號與遞迴運算式都不得終止外層程式區塊。程式內模板仍不計數，只保留後續 HTML。
+ * - 不完整區塊或字串不能被當成「其餘內容皆非顯示」而回傳零； 固定輸入錯誤直接失敗，不附帶模板內容或假路徑。
+ * - 從零計數基準加入「逐字字串後的中文」；真正 scan 與 verify 都必須非零失敗。 每案例獨占假方案與輸出 writer，Dispose 後立即刪除，沒有來源或計數跨案例保留。
+ * 測試案例入口包含 Scan_RazorLexicalBoundary_KeepsFollowingDisplay、Scan_RazorTemplatesAndCode_KeepExistingCountingScope、
+ * Scan_RazorUnclosedCode_FailsClosed、Cli_RazorVerbatimThenNewDisplay_RejectsRatchetIncrease。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Xunit;
 
 namespace I18nCheck.Tests;

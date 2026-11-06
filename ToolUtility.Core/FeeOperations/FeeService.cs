@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：收費與認獻的純 SDK 查詢；所有條件樹、候選集合及識別碼驗證均屬單次操作。 本服務不做授權：呼叫端必須先在伺服器確認教會／使用者及資料範圍，字串名稱不構成權限。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FeeService。
+ * - 建立與呼叫端相同授權／連線生命週期的查詢器，不接管借入 SDK 服務。
+ * - 保留既有建構 API，但不保存任意 host logger，避免無用參照延長 request 或憑證生命週期。 本類不吞例外，故不在純核心重建日誌／LINE client；最終 host 負責共用通知。
+ * - 讀取啟用且已核准的認獻，使用現有 FetchXmlQueryService 的有效條件，不再回傳假空集合。 保留原上限 1000、createdon 倒序及投影欄位；名稱只供 lookup 顯示，ID 才是查詢條件。
+ * - 按認獻資料庫 ID 與已繳期數讀取啟用收費單，沿用有效舊查詢的 500 筆上限與建立時間排序。 所有外部文字由 XML writer 編碼，不能改變元素、條件或 OR／AND 結構。
+ * 主要操作入口包含 RetrieveDedicationBooking、RetrieveFee、RetrieveDedicationFee、RetrieveDedicationFeeByDateRange、
+ * GetPaidFee、GetNotYetPaidFee、RetrieveFeeByFetchXmlOrderNumber、CreateDedicationFetch；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Tests/FeeOperations/FeeCharacterizationTests.cs、
+ * ToolUtility.Tests/FeeOperations/FeeQueryContractTests.cs、
+ * ToolUtility.Core/QueryOperations/FetchXmlQueryService.cs、ToolUtility/Core/ToolUtilityFacade.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

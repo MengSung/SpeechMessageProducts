@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在原 host 先鎖定三個代表查詢及舊登入／資訊字串；只替代 SDK 網路，不以產品程式產生預期值。 全部欄位、ID 與內容均為合成，golden 固定條件／投影／排序，搬移後兩宿主必須保持一致。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ContactCharacterizationTests。
+ * - 合法同名但不同資料庫身份；測試必須保留而不能按姓名合併。
+ * - LINE 單筆保持 Top=1、AllColumns、等值與啟用條件，回原正式 ID。
+ * - 原奉獻前綴保留 ExecuteRetrieveMultiple、top=3、完整欄位及 pager 反向排序。
+ * - 多條件奉獻查詢保留 OR/AND 邊界、六項條件及 top=100，不能漏掉狀態或改成 AND。
+ * 測試案例入口包含 LineLookup_PreservesTypedQueryGolden、DedicationPrefix_PreservesFetchAndResponse、
+ * DedicationSearch_PreservesFullGolden、LoginAndInformation_PreserveLegacyText、Create、Rows、FetchSdk。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;

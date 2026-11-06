@@ -1,3 +1,30 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：寫入 Dataverse 架構稽核所需的結構化 JSONL 軌跡。此 singleton 唯一擁有背景佇列、 StreamWriter、隨機 HMAC salt 與檔案輪替；request 
+ * 執行緒只在啟用時建立小型事件並入列， 從不執行同步磁碟 I/O。每個 request 的 traceId、使用者假名與 leaseId 均儲存在 AsyncLocal{T} 範圍，結束時立即還原，因此不會跨 request、
+ * 使用者、profile 或 tenant 留存識別資料。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DataverseTraceOptions、DataverseTrace、EventKind、TraceEntry、ProcessSnapshotData、PoolSnapshotData、
+ * RequestStats、RequestContext、RequestScope、BackgroundScope、LeaseScope、NoopScope。
+ * - 取得或設定是否啟用執行軌跡；關閉時所有觀測熱路徑只進行一次布林判斷。
+ * - 取得或設定 JSONL 基礎路徑；相對路徑會在背景寫入執行緒解析，避免阻塞 request。
+ * - 取得或設定單一檔案可寫入的最大位元組數，預設為 64MB。
+ * - 取得或設定最多保留的最新 trace 檔案數，預設為五個，總量上限因而為 320MB。
+ * 主要操作入口包含 FromDiagnosticOptions、Validate、ObserveDepth、Dispose、BeginRequest、BeginBackgroundOperation、
+ * RecordBackgroundAccepted、RecordBackgroundOutcome；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/DataverseTraceTests.cs、
+ * ToolUtility.Dataverse.Tests/DiagnosticTraceOptionsTests.cs、
+ * ToolUtility.Dataverse.Tests/SaveIntegrateBackgroundUploadRunnerTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SaveIntegrateBackgroundUploadRunner.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;

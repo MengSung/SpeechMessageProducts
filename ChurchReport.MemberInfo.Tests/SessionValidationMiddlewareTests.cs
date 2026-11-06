@@ -1,9 +1,17 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案責任：固定 SessionValidationMiddleware 的公開路徑邊界與 Session 載入行為。
-// 測試重點：只有完整路徑段可以略過 Session 驗證；相似前綴仍必須進入驗證管線。
-// 生命週期：測試 Session 只由單一測試擁有，不建立背景工作或跨測試共享狀態。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證公開路徑排除規則不會因為字串前綴相似而繞過 Session 驗證。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SessionValidationMiddlewareTests、RecordingSession。
+ * - 精確的登入路徑可以免載入 Session；帶有相似前綴的動態路徑則必須載入 Session。 這個斷言直接觀察 LoadAsync 呼叫次數，避免只測試 next delegate 而掩蓋安全邊界錯誤。
+ * 測試案例入口包含 Excluded_path_requires_a_complete_path_segment、Clear、CommitAsync、LoadAsync、Remove、Set、TryGetValue。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Threading;

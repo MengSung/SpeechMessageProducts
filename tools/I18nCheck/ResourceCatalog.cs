@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證後的 resx 快照；載入期間以區域字典組裝，完整成功後才發布不可變集合。 XML reader 在成功與失敗路徑均立即 Dispose，禁止 DTD 與外部解析，單檔十六 MiB、 
+ * 每組最多64個原始語系／每檔20000鍵／每值32768個UTF16；快照不保留檔案把手。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ResourceCatalog。
+ * - 鍵必須分層且各段以大寫開頭；使用完整字串邊界，避免 $ 允許尾端換行。
+ * - 固定基礎語系順序，不隨載入次數重複配置，也不向外部公開可變陣列。
+ * - 每個語系的唯讀鍵值，只有靜態資源，不含執行中的使用者、教會或憑證。
+ * - 產出語系的固定順序：zh-TW、en、其他語系 Ordinal 排序、qps-ploc。
+ * 主要操作入口包含 Load、Read。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/BoundaryTests.cs、tools/I18nCheck.Tests/I18nContractsTests.cs、
+ * tools/I18nCheck.Tests/InputIntegrityTests.cs、tools/I18nCheck.Tests/ResourceVerificationTests.cs、
+ * tools/I18nCheck/CommandRunner.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Collections.Frozen;
 using System.Globalization;
 using System.Text.RegularExpressions;

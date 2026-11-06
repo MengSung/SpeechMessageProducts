@@ -1,16 +1,32 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/MemberInfoController.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
-// 主要型別：class MemberInfoController
-// 主要成員：Index、LoadDistrictTree、SearchDistrictTree、LoadGroupMembers、LoadUngroupedMembers、Detail、GetContactImage、GetContactImagesBatch、ResyncLineProfiles、UploadContactImage
-// 引用命名空間：ChurchReport.Models、ChurchReport.Services、ChurchReport.Services.MemberInfo、ChurchReport.Tools、ChurchReport.ViewModels、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：處理會友樹、搜尋、影像與同步作業的 HTTP 控制器。Dataverse 服務由建構式注入的 scoped IOrganizationService 提供；服務的最大生命週期為目前 HTTP request，
+ * 並由 DI scope 在 request 結束時確定性釋放。控制器不保存 static、Session 或跨 request 的 CRM 參考，因此不同 使用者、profile 與租戶不會共用此控制器擁有的可變連線狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MemberInfoController、UngroupedContactPage。
+ * - 本 request 唯一的 Dataverse 服務。其租借、故障淘汰與 Dispose 順序由 scoped PooledOrganizationService 與 DI 容器共同擁有，控制器不得自行釋放或快取它。
+ * - 建立會友控制器並接收 request 隔離的 Dataverse 服務。所有依賴皆由容器擁有；若 scope 在 例外、取消或正常回應後結束，容器會釋放服務，避免手動借還遺漏造成的連線或跨使用者狀態洩漏。
+ * - 取得「需要重新同步」的候選聯絡人 ID 清單（在籍、且有 new_lineid 者；不論目前有無 new_line_picture_url）。 已清空/從未有照片者也要納入，
+ * 以便偵測對方「解除封鎖/重新加好友/新增照片」後補回。 前端據此分批呼叫 ResyncLineProfiles，以便即時顯示進度。僅限「全教會」管理者。 GET: 
+ * /MemberInfo/ResyncLineCandidateIds
+ * - 對「前端傳來的一批聯絡人 ID」重新同步 LINE 資料（供分批/即時進度使用）。 有照片網址者先探測該網址能否顯示圖片；「確定失效」或「根本沒有網址」者，皆依 new_lineid 取最新 Profile， 更新 
+ * new_line_picture_url / new_line_status_message / new_line_displayname（set-or-clear）。 取不到 
+ * Profile（多半未加官方帳號好友→403/404）：有舊網址者清空失效網址；本來就沒網址者維持無照片(下次再試)。 僅限「全教會」管理者。POST: 
+ * /MemberInfo/ResyncLineProfiles（body: { contactIds: [...] }）
+ * 主要操作入口包含 Index、LoadDistrictTree、SearchDistrictTree、LoadGroupMembers、LoadUngroupedMembers、LoadMemberInfoList、
+ * Detail、LoadContactPresentRecords；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/Images/ImageUploadCharacterizationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Images/ImageUploadSafetyTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/MemberLineProfileWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/MemberInfoDetailContractTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using ChurchReport.Services;
 using ChurchReport.Services.MemberInfo;

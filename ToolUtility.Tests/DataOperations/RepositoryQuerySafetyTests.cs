@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：不信任注入的Repository會替上層驗頁；五入口自己拒絕錯表、重複／空ID與超量，且失敗不能返回部分結果。 固定訊息及原InnerException保護相容失敗鏈；無SDK網路，不宣稱實機D365通過。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RepositoryQuerySafetyTests。
+ * - 五入口及故障獨立列案，避免一個失敗遮蔽其他路徑；只包含固定測試分類。
+ * - 整頁驗證先於第一筆選擇及集合發布；single的top1不能默認SDK遵守，其他頁最多5000列。
+ * - 非法metadata、空GUID與非正月份皆在repository之前拒絕，不能因值存在而誤當授權。
+ * - 即使repository替身不驗XML，DTD、雙根表、無表及錯根仍須先拒絕；不解析檔案或網路。
+ * 測試案例入口包含 InvalidPages、EveryQuery_RejectsInvalidRepositoryPage、Inputs_RejectBeforeIo、
+ * UnsafeFetch_RejectsBeforeRepository、EmptyAndFailureRetry_PreserveContracts、
+ * Dispose_RejectsAllEntriesWithoutOwningDependencies、DisposeRace_DrainsStartedRepositoryWork、
+ * ConcurrentScopes_AreIsolatedAndDrain；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Runtime.CompilerServices;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

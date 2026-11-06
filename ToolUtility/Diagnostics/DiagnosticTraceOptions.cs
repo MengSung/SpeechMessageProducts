@@ -1,13 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Diagnostics/DiagnosticTraceOptions.cs
-// 檔案責任：定義三種診斷檔案的單一組態入口與固定檔名契約。
-// 生命週期責任：本型別只保存已驗證的程序級路徑與啟用狀態，不建立目錄、檔案、
-//               writer、timer 或背景工作；檔案資源由各自的 singleton owner 管理。
-// 安全邊界：Release 組合根傳入 allowEnabled=false，任何 appsettings 或環境變數
-//           都不能逆轉停用結果；路徑不接受 request、Session 或使用者輸入。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與最終 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：三種診斷輸出的程序級統一設定。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DiagnosticTraceOptions。
+ * - 預設的診斷資料夾；正式環境仍由 Release 硬性停用保護。
+ * - 固定的 legacy ToolUtility Trace 檔名。
+ * - 初始化不可變的程序級診斷設定；此建構式只接收已完成路徑解析與 fail-closed 收斂的值，不建立檔案、listener、stream、timer 或背景工作，也不保存任何 request、 Session、
+ * 使用者或租戶資料，因此物件可安全由 DI 以 singleton 共用。
+ * - 取得是否允許本程序輸出高頻的 Session 詳細診斷。
+ * 主要操作入口包含 Create、FromConfiguration、CreateDisabled。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/DiagnosticTraceOptionsTests.cs、
+ * ToolUtility.Dataverse.Tests/StartupOrganizationServiceProfilingTests.cs、
+ * ToolUtility.Dataverse.Tests/ToolUtilityFactoryAmbientGatewayTests.cs、
+ * SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/ProfilingSwitch.cs、
+ * SpeechMessageProducts.ChurchReport/Diagnostics/SessionDiagnosticsSwitch.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;

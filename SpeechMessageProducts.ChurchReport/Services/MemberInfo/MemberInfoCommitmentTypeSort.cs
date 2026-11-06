@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：三種會友表格共用的 metadata rank 排序及分段頁面規則。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MemberInfoCommitmentTypeSegmentKind、MemberInfoCommitmentTypeSegment、MemberInfoCommitmentTypeSlice、
+ * MemberInfoCommitmentTypeSort。
+ * - 已設定選項依 metadata rank 排序；未知值與空白永遠固定在後兩區。 同一區段依姓名、ContactId 穩定排序，確保搜尋去重及遠端跨頁結果可重現。
+ * - 依 metadata values 建立遠端查詢區段。Configured 的先後來自輸入序列； 未列在 metadata 的所有非空 raw values 合併成 Unknown，null 則是最後的 Empty。
+ * - 把全域 skip/take 投影到各區段的局部範圍；只回傳真正與頁面相交的正數切片。
+ * 主要操作入口包含 MemberInfoCommitmentTypeSegment、MemberInfoCommitmentTypeSlice、OrderRows、BuildSegments、PlanSlices。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs、
+ * ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
+ * SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.ViewModels.MemberInfoTree;
 using System;
 using System.Collections.Generic;

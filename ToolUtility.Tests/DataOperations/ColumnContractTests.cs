@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：鎖住21組既有欄位名稱及順序，再注入 caller 修改以證明不會污染下一個使用者的查詢。 只檢查結構名稱，不含業務資料；反射同時支援舊 field 與新 property 的來源相容搬移。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ColumnContractTests。
+ * - 把實際所有欄位定義完整投影後與搬前黃金檔比對，缺欄、改序、新增或刪除組都不能靜默通過。
+ * - 修改操作A的陣列後，操作B必須仍取得原內容與不同陣列。舊版共享欄位的紅燈在 finally 還原， 不讓重現測試本身污染同程序其他案例；新版只還原caller獨占複本。
+ * - 一千個獨立操作同時讀改基本欄位；陣列只在外層測試Task內存活，全部await後不得留下污染。
+ * - 只讀指定公開成員的實際陣列；不複製或過濾，否則會把產品的共享陣列缺陷藏掉。
+ * 測試案例入口包含 ColumnsCharacterization_AllDefinitions_PreserveExactOrder、
+ * ColumnsSafety_CallerMutation_DoesNotCrossBoundary、ColumnsSafety_ConcurrentCopies_RemainIndependent、Read。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Reflection;

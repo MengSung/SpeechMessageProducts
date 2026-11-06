@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus/LineRichMenuDefinition.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LineRichMenuDefinition
-// 主要成員：NormalizeRequired、IsDefault、Description、Key、Alias、Layout
-// 引用命名空間：Line.Messaging
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：定義一組可重複佈署的 LINE RichMenu。 共用核心只保存選單 key、alias、LINE RichMenu 版面與 PNG 來源； 呼叫端可以用自己的 catalog 組合不同選單，
+ * 但不需要重寫底層建立、上傳與連結流程。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineRichMenuDefinition。
+ * - LINE RichMenu alias id，供 RichMenu switch action 與 provisioning workflow 使用。
+ * - LINE RichMenu 版面設定；包含尺寸、chat bar text 與所有可點擊 action areas。
+ * - 建立可供 object initializer 使用的空白 definition。
+ * - 以完整必要欄位建立 RichMenu definition。
+ * 主要操作入口包含 NormalizeRequired。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessorServiceCollectionExtensionsTests.cs、
+ * LineMessagingProcessor.RichMenus.Tests/Assignment/LineRichMenuAssignmentWorkflowTests.cs、
+ * LineMessagingProcessor.RichMenus.Tests/Provisioning/LineRichMenuProvisioningWorkflowTests.cs、
+ * LineMessagingProcessor.RichMenus/ILineRichMenuCatalog.cs、
+ * LineMessagingProcessor.RichMenus/LineRichMenuFingerprint.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Line.Messaging;
 
 namespace LineMessagingProcessor.RichMenus;

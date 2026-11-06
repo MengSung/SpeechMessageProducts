@@ -1,12 +1,27 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility.Dataverse.Tests/ToolUtilityClassScopedLifetimeTests.cs
-// 檔案責任：驗證 ToolUtilityClass 改為 request scope 後的建構、擁有權與容器驗證契約。
-// 資源生命週期：測試中的 IOrganizationService 由測試 DI scope 或測試本身擁有；
-// ToolUtilityClass 不得釋放注入服務，避免短命服務重複釋放 scope 所擁有的連線。
-// 跨 request 隔離：每個 scope 都解析新的 ToolUtilityClass，禁止把 scoped 物件提升為 singleton。
-// 編碼要求：本檔案維持 UTF-8 無 BOM、CRLF，並以 final CRLF 結尾。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 ToolUtilityClass 的 request 範圍與資源擁有權。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ToolUtilityClassScopedLifetimeTests。
+ * - 保護 DI 建構不得建立 legacy Dataverse 連線的契約。 故障注入為嚴格的 ICrmConnectionService 替身；若建構式錯誤呼叫 CreateOnPremiseClient，替身會立即失敗，
+ * 並由 Never 斷言確認呼叫數為零。
+ * - 保護注入連線不由 ToolUtilityClass 釋放的契約。 故障注入為可計數的 IDisposable 組織服務；直接 Dispose ToolUtilityClass 後， 決定性斷言是注入服務的 
+ * Dispose 呼叫數仍為零，表示真正的 DI scope 擁有它。
+ * - 保護 scoped provider 不被 singleton 捕獲的契約。 故障注入為以 ValidateScopes 與 ValidateOnBuild 建立的服務容器； 決定性斷言是建置不擲例外，且兩個 
+ * scope 解析出不同的 ToolUtilityClass。
+ * - 保護 fire-and-forget 背景 scope 的隔離與釋放契約。 故障注入為兩個可計數的 IDisposable 組織服務；決定性斷言是背景 scope 取得的 ToolUtility 與 request 
+ * scope 不共用連線，且背景 scope 結束時只釋放自己的連線。 這覆蓋 Run 1.5 延後至 Run 2 的背景 scope 生命週期測試。
+ * 測試案例入口包含 DiConstructor_DoesNotCreateLegacyConnection、Dispose_DoesNotDisposeInjectedOrganizationService、
+ * ScopedRegistration_PassesValidationAndCreatesOneUtilityPerScope、
+ * BackgroundScope_UsesIndependentConnectionAndDisposesOnlyItsLease、BuildServiceProvider、CreateTracer、
+ * CreateConfiguration。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;

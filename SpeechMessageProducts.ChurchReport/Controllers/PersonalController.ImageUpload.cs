@@ -1,16 +1,28 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/PersonalController.ImageUpload.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
-// 主要型別：class PersonalController、class BatchImageRequest
-// 主要成員：UploadContactImage、GetContactImage、CreateThumbnailIfNeeded、ApplyImageResponseCacheHeaders、ToSvgDataUri、GetDefaultImage、GetContactImagesBatch、ContactIds、Size
-// 引用命名空間：ChurchReport.Models、ChurchReport.Tools、ChurchReport.ViewModels、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory、Microsoft.Xrm.Sdk、System
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：提供個人照片上傳、轉換及批次讀取的partial端點，與主控制器共用注入依賴；先核對聯絡人範圍再處理影像，影像容量、解碼及資源釋放沿共用圖片服務契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PersonalController、BatchImageRequest。
+ * - 個人資訊管理控制器 - 圖片上傳部分 處理 Contact 大頭照上傳與更新
+ * - 取得目前 HTTP request scope 的 Dataverse 服務。服務由 DI 容器建立與釋放， 最大生命週期限定於目前 request；此 partial 不自行借還或保存連線，避免跨使用者 
+ * 重用可變傳輸狀態。若在沒有 request scope 的情況呼叫，立即失敗而不建立臨時連線。
+ * - 僅更新目前 Session 登入 Contact 的照片，保留既有宣告白名單與 5 MiB 限制。 內容必經共用格式與尺寸守門；EXIF 轉正後輸出 JPEG90，不再退回儲存原始檔。 input、image、
+ * output 只屬當次請求並確定性釋放，不保留姓名、圖片或服務至 static。 預期輸入拒絕不通知；其他失敗經共用入口上報，回應不包含底層例外訊息。
+ * - 取得 Contact 大頭照 GET: /Personal/GetContactImage?contactId={guid}
+ * 主要操作入口包含 UploadContactImage、InvalidatePersonalImageCache、GetContactImage、CreateThumbnailIfNeeded、
+ * ApplyImageResponseCacheHeaders、ToSvgDataUri、GetDefaultImage、GetContactImagesBatch。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 ChurchReport.MemberInfo.Tests/Images/ImageUploadCharacterizationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Images/ImageUploadSafetyTests.cs、
+ * ChurchReport.MemberInfo.Tests/Personal/PersonalContactImageCacheTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models;
 using ChurchReport.Services;
 using ChurchReport.Services.Images;

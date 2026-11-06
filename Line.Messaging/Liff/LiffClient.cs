@@ -1,16 +1,22 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：Line.Messaging/Liff/LiffClient.cs
-// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LiffClient
-// 主要成員：AddLiffAppAsync、UpdateLiffAppAsync、GetAllLiffAppAsync、DeleteLiffAppAsync、Dispose
-// 引用命名空間：Newtonsoft.Json、System、System.Collections.Generic、System.Net.Http、System.Net.Http.Headers、System.Text、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：LINE LIFF 管理 API，保留既有 JSON 與公開入口。 一個實例只代表一個伺服器端 channel；與 Messaging client 共用隔離 transport， 不修改 HttpClient 
+ * 預設 credential、不快取 request／response 或 LIFF 使用者資料。 方法完成即釋放 request/content/response，原始失敗保持向外傳遞。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LiffClient。
+ * - 借入由 Host 管理生命週期及有限 Timeout 的 HttpClient；本實例 Dispose 不會關閉其他 channel 共用的 transport。
+ * - 舊式自有 HttpClient 入口；保留相容性，呼叫者必須先排空所有操作再 Dispose，建議改用主機共用 transport。
+ * - 新增 LIFF app；保留既有 view 包裝序列化，讀完 app ID 才釋放回應，不保留新 app 資料。
+ * - 更新 LIFF view；成功或失敗都釋放 response，真實失敗保持向外傳遞，不偽裝成功。
+ * 主要操作入口包含 AddLiffAppAsync、UpdateLiffAppAsync、GetAllLiffAppAsync、DeleteLiffAppAsync、JsonRequest、Dispose。
+ *
+ * 使用邊界與維護：
+ * 協定模型與產品身分／業務授權分離；欄位或列舉值變更須同步檢查JSON相容性、解析分派及雙目標測試。
+ * 可變模型由建立它的操作持有；事件來源、reply token及profile不得被當作跨使用者共用的可變狀態。
+ * 可沿 Line.Messaging.Tests/LiffAndStreamLifecycleTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

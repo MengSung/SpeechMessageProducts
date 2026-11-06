@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：不快取的約會純資料查詢器；僅借入已授權 IOrganizationService，不保存 logger 或查詢結果。 SDK 的 timeout、drain、Dispose 由 host owner 負責，
+ * 本服務無自有背景工作或可處置資源。 每次局部建 XML、整頁穩定 ID 驗證後回傳；真實例外交回 host 共用通知，不在此送 LINE。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AppointmentService。
+ * - 保留舊建構式來源相容；logger 不使用或保存，SDK 身分由 host 先驗證且只借入。
+ * - 保留舊 API 實際未依日期過濾的相容行為；需日期條件者用明確區間 API，不在搬移時改業務。 SDK 全欄位單頁仍須完整驗 ID，結果與分頁屬當次操作，不共用可變資料。
+ * - 保留原投影、排序與 scheduledstart 含端點區間；固定西曆，不依程序文化變動。
+ * - 保留今年與三個簽核狀態條件；顯示名稱安全編碼，lookup ID 不能為空或注入結構。
+ * 主要操作入口包含 RetrieveByDate、RetrieveByDateRange、RetrieveByContactWithinYear、RetrieveByDateRangeAndScheduleType、
+ * RangeEntity。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/QueryOperationsCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/QueryOperationsSafetyTests.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.ObjectModel;

@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：五個非Fee查詢在原host先綠：golden從已記錄SHA的舊模板填合成常數後固定，不在測試執行中重生。 確切欄位、link、條件、top與排序都比較，另保留同名異ID與單頁metadata，
+ * 不冒稱全表或實機驗證。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FetchQueryCharacterizationTests。
+ * - 同一張原host單頁含兩筆同名但不同ID；回應、metadata與所有XML結構都必須保留。
+ * - 明確列出七個原API；固定合成GUID/日期不是授權或外部環境設定。
+ * 測試案例入口包含 OriginalQueries_PreserveFullGoldenAndSdkPage、Read。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;

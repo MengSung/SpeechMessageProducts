@@ -1,16 +1,24 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus/LineRichMenuResult.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LineRichMenuResult
-// 主要成員：Success、Failure、Succeeded、Status、UserId、RichMenuId、ErrorCode、ErrorMessage、Exception
-// 引用命名空間：未宣告 using；請由命名空間、同檔型別或完全限定名稱判讀相依性。
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：RichMenu workflow 的標準化執行結果。 透過固定欄位表達成功、驗證失敗、LINE 拒絕、服務不可用或未預期錯誤，避免各產品自行解析例外。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineRichMenuResult。
+ * - 建立標準化 workflow 結果。 透過 static factory 建立成功與失敗結果，讓呼叫端程式碼保持清楚可讀。
+ * - 取得 workflow 涉及的 LINE userId；若無資料則為 null。
+ * - 取得 workflow 建立、連結或刪除的 LINE richMenuId；若無資料則為 null。
+ * - 當失敗由 provider 或非預期錯誤造成時，取得原始例外。
+ * 主要操作入口包含 Success、Failure。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/PushUtilityWorkflowTests.cs、
+ * LineMessagingProcessor.RichMenus/ILineRichMenuWorkflow.cs、
+ * LineMessagingProcessor.RichMenus/LineRichMenuException.cs、
+ * LineMessagingProcessor.RichMenus/LineRichMenuWorkflow.cs 追查目前工作樹中的合作／使用位置。
+ */
 namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>
@@ -112,4 +120,3 @@ public sealed class LineRichMenuResult
         IReadOnlyDictionary<string, string>? metadata)
         => new(false, status, userId, richMenuId, errorCode, errorMessage, exception, metadata ?? new Dictionary<string, string>());
 }
-

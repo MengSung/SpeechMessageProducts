@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：Repository 查詢的純 BCL／SDK 契約；保留既有 namespace、參數順序與預設值供兩個產品目標共用。 不包含 host 連線、cache、logger 或排程實作，介面搬移不代表舊 host 
+ * 已完成安全純化。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IQueryService。
+ * - 沿用欄位等值查第一筆或 null；欄位值不作身份授權，實際資料庫 ID 才是正式記錄識別。
+ * - 沿用欄位等值查集合；caller 擁有分頁及發布責任，不以重複顯示值隱藏合法記錄。
+ * - 執行受信任且在授權 scope 內建構的 FetchXML；實作須拒絕 DTD／外部解析，查詢文字不得寫入診斷。
+ * - 依正式聯絡人查舊排序的第一筆血液報告或 null；敏感資料僅供已授權 caller 使用。
+ * 資料／選項欄位包含 IQueryService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Tests/DataOperations/RepositoryQuerySafetyTests.cs、
+ * ToolUtility.Core/QueryOperations/QueryService.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using Microsoft.Xrm.Sdk;

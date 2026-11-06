@@ -1,16 +1,29 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Program.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 Program 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class Program
-// 主要成員：Main、ConfigureSafeLogging、InitializeTraceListener、CleanupTraceListener、StartGCMonitoring
-// 引用命名空間：Microsoft.AspNetCore.Builder、Microsoft.AspNetCore.Hosting、Microsoft.AspNetCore.Server.Kestrel.Core、Microsoft.Extensions.DependencyInjection、Microsoft.Extensions.Logging、Microsoft.Extensions.Hosting、System、System.Diagnostics
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport ASP.NET Core 程序的組合根，負責建立 Host、集中診斷設定、服務註冊與 Debug-only Trace 資源生命週期；不保存任何 request、使用者、租戶或驗證狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 Program。
+ * - 建立並執行 Host；Debug／Release 都依 ExceptionNotifications 的啟動快照選擇例外目的地。 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr 
+ * 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。 ICU 
+ * 必須在共用例外 owner 建立後、Startup／CRM／HTTP 啟動前驗證；不符時同一例外告警並拒絕啟動。
+ * - 建立正常 Host 管線，借用最外層管理的 Exception.log owner；錯誤 provider 在所有組態啟用。 原本三個診斷 Trace 檔仍遵守 Release 關閉契約，與正式錯誤紀錄完全獨立。
+ * - 註冊只擷取安全 metadata 的正式錯誤 provider；不沿用會複製原始訊息的舊 FileLogger。
+ * - 初始化 Trace Listener（僅在 Debug 組態下編譯） 確保 TextWriterTraceListener 只建立一次，並且可以在應用程式停止時正確釋放 【自動建立機制】 - 
+ * 若統一設定指定的診斷目錄不存在，會自動建立 - 若 Trace.log 檔案不存在，會自動建立 - 若檔案已存在，會以 Append 模式追加寫入
+ * 主要操作入口包含 Main、RunApplication、ConfigureSafeLogging、InitializeTraceListener、CleanupTraceListener、
+ * FlushTraceListener、RegisterUnhandledExceptionTraceFlush、UnregisterUnhandledExceptionTraceFlush；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/ChurchClockStartupTests.cs、
+ * ChurchReport.MemberInfo.Tests/Contracts/DevelopmentSafetyTests.cs、
+ * SpeechMessage.Dynamics.Deployment.Tests/DeploymentContractTests.cs、
+ * SpeechMessage.Dynamics.Deployment.Tests/SchemaCliTests.cs、
+ * ToolUtility.Dataverse.Tests/FileToolUtilityTracerTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;

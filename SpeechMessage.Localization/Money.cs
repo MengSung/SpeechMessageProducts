@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保存完整 decimal 金額及第一版核定的 ISO 幣別；不換匯、不在建構或加法時捨入。 只有純值，不引用使用者、租戶、連線或可變文化；可跨執行緒傳遞且無資源釋放責任。 default 沒有合法幣別，
+ * 禁止進入金融運算或格式化，避免默認為某種貨幣的零。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 Money。
+ * - 只保留已驗證的固定 ISO 字串；null 只可能來自 default，沒有共享可變表。
+ * - 建立不經捨入的金額；負數與零合法。幣別必須精確命中七種大寫白名單， 不自動修剪或改大小寫，以免掩蓋來源金融資料錯誤。此驗證不是授權或換匯。
+ * - 原始金額，不受顯示小數位影響；單獨讀取此數值不代表 default 已成為有效貨幣。
+ * - 不可變 ISO 身分；default 沒有幣別時明確拒絕，不推定為 TWD 或格式文化的貨幣。
+ * 主要操作入口包含 Add、Equals、GetHashCode。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Localization.Tests/MoneyTests.cs、
+ * ToolUtility.Tests/AttributeOperations/AttributeServiceCompositeTests.cs、
+ * ToolUtility.Tests/AttributeOperations/MoneyAttributeServiceTests.cs、
+ * ToolUtility.Tests/DataOperations/AttributeConversionTests.cs、SpeechMessage.Localization/MoneyFormatter.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 
 namespace SpeechMessage.Localization

@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：六個N:1／N:N純SDK單頁入口；完整保留原link方向、條件值型別、欄位與排序，不按顯示名去重。 結構名稱及正式GUID在I/O前驗證，但不是權限；host必須先驗使用者／教會／組織及所需資料scope。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RelationshipQueryService。
+ * - 保持原logger必填建構簽章，只驗null不保存／反射；SDK所有權仍屬原授權host scope。
+ * - 按父正式ID查N:1子頁；啟用條件留在原link filter而不是暗中加在根表，父ID保留原字串型別。
+ * - 與N:1相同link條件，僅依原契約新增根表listname升序；名稱只排序，不用作身份或合併鍵。
+ * - 保留contact兩欄及account內關聯一欄/alias；此舊示例沒有父篩選，host必須已授權整個SDK可見範圍。
+ * 主要操作入口包含 RetrieveManyToOneRelationship、QueryListsAndOrderedByListName、RetrieveManyToOneWithLinkEntity、
+ * QueryWeeklyReportBySunday、QueryManyToMany、QueryListOfContactManyToMany、ParentQuery、RequireNames；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/RelationshipQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/RelationshipQuerySafetyTests.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Globalization;

@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：七個Fetch公開入口在SDK邊界注入非法頁／故障／錯型別，保護精確身份、top、XML與借用生命週期。 替身不接網路、不幫產品驗證候選；每案例只有合成資料且全部Task/事件確定排空。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FetchQuerySafetyTests。
+ * - 公開介面的七個多載不改名/參數，產品與契約必須實際來自Core，不能只移檔或空殼通過。
+ * - 每個入口在取回SDK後驗整頁，null/空ID/錯表/重複/超top都拒絕而不回部分或默默去重。
+ * - 七入口各自形成獨立案例，避免迴圈第一個失敗遮蔽Fee委派入口的top及候選缺陷。
+ * - 錯誤OrganizationResponse/null回應屬SDK完整性故障，應有固定診斷而不是InvalidCast/NullReference洩漏。
+ * 測試案例入口包含 ContractAndImplementation_BelongToSameCoreAssembly、AllEntrypoints_RejectInvalidCandidates、InvalidPages、
+ * AllEntrypoints_RejectInvalidResponseTypes、InvalidResponses、
+ * FailureAndRetry_PreserveOriginalExceptionWithoutRetainedCandidate、LookupIdentifiers_RejectInvalidValuesBeforeIo、
+ * DisplayNames_AreEncodedAndCannotChangeQueryStructure；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;

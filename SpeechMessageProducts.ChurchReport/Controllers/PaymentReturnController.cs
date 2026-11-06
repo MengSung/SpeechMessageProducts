@@ -1,16 +1,31 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/PaymentReturnController.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
-// 主要型別：class PaymentReturnController
-// 主要成員：Return、ReturnCore、PaymentResultView、EnsureReturnFields、ReadProviderData、FirstNonEmpty、MaskForTrace
-// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks、ChurchReport.Payments、Microsoft.AspNetCore.Mvc、SpeechMessage.Payments.Abstractions、SpeechMessage.Payments.AspNetCore
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 的付款回傳 Controller。 這個 Controller 是「產品層 callback 入口」，不是任何一家銀行的 provider 實作。 它的工作是把 ASP.NET 
+ * Core 收到的 HTTP request 轉成通用金流核心看得懂的 PaymentCallbackRequest，再把金流核心查到的付款狀態交給 IDonationPaymentReturnWorkflow 做 
+ * ChurchReport 專屬後續處理。 分工邊界如下： - 這裡可以知道 ASP.NET Core、Controller、ViewBag、舊網址。 - 這裡可以指定目前這條舊 callback 屬於 Sinopac 
+ * profile，因為舊銀行設定就是打這個網址。 - 這裡不直接更新 CRM、不直接發 LINE、不直接解析銀行加密欄位。 - provider protocol 的 callback 解析與查詢付款狀態由 
+ * IPaymentGateway 負責。 舊外部網址仍透過 Route attribute 保留，避免銀行後台設定或既有連結立刻失效； 但是 C# 類別與方法使用 PaymentReturn 這種中性名稱，
+ * 避免把整條產品流程誤命名成單一 provider。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PaymentReturnController。
+ * - 接收付款完成後的瀏覽器導回或 provider callback。 這個 action 同時掛上新的中性 URL 與舊 URL： - /api/PaymentReturn/Return：新的中性入口。 - 
+ * /Payment/Return：比較短的中性入口。 - 舊 route template：保留給銀行後台或既有連結使用。 實作時不要新增舊 provider 形狀的方法名稱；如果未來還有舊網址要保留， 請只加 Route 
+ * attribute，讓 C# 呼叫端永遠面對 Return 這個中性 action。
+ * - 實際處理付款回傳的共用流程。 步驟拆解： 1. 先把 ASP.NET Core 的 Request 轉成通用 callback request。 2. 補上 MVC model binding 已經抓到的 ShopNo 
+ * / PayToken，避免 query/form mapper 沒吃到時資料遺失。 3. 呼叫 IPaymentGateway.ParseCallbackAsync 讓金流核心驗證 callback。 4. 如果 
+ * callback 無效，就回到付款結果頁並顯示可診斷的錯誤。 5. 如果 callback 有效，再查詢 provider 的最新付款狀態。 6. 把狀態交給 ChurchReport 專屬 workflow，後續 CRM 
+ * 更新、LINE 通知、頁面呈現都在 workflow 處理。
+ * 主要操作入口包含 Return、ReturnCore、PaymentResultView、EnsureReturnFields、ReadProviderData、FirstNonEmpty、MaskForTrace。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentNamingCompatibilityTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/PaymentReturnControllerTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

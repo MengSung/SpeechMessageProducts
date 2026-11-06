@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：Trace listener 為程序集合，這組測試獨占執行以免干擾其他診斷測試；不清空外部 listener。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RepositoryTraceCollection、RepositorySafetyTests、NonRetainingSdk、MarkerListener。
+ * - 以反射在新 overload 尚不存在時取得可執行紅測；公開三參數入口須保留原 ColumnSet 參照。 不把 overload 加到既有介面而破壞外部實作者，兩參數公開契約亦必須繼續存在。
+ * - 六入口遇到真正 SDK 逾時或 ArgumentException 都維持 InvalidOperationException wrapper， 同一 InnerException、固定訊息及單次 I/O；不能以 
+ * catch ArgumentException 一律重拋而誤改 SDK 故障契約。
+ * - SDK 未確認建立 ID 時拒絕回報成功，不盲目重試或改寫 caller 的未建立候選。
+ * - 單筆缺失、錯 ID 或跨表回應都拒絕，不能把 ColumnSet 子集當成缺少識別的理由。
+ * 測試案例入口包含 QueryColumnOverload_PreservesColumnsWithoutChangingExistingInterface、
+ * SdkFailure_PreservesRealExceptionAndFixedOuterMessage、Create_EmptySdkIdentity_RejectsWithoutRetry、
+ * Retrieve_InvalidIdentity_RejectsWholeResponse、RetrieveMultiple_InvalidPage_RejectsBeforePublication、
+ * AggregateProjectionWithoutRecordIdentity_RejectsWithoutInventingId、AdapterInvalidInput_RejectsWithoutSdk、
+ * FailureRetryAndCallerMutation_UseFreshCandidatesAndBorrowSdk；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Diagnostics;
 using System.Linq;

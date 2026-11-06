@@ -1,16 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs
-// 所屬區塊：可重用付款核心、付款 provider、ASP.NET Core 整合、workflow 與測試模組。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class SinopacProviderTests、class StaticResponseHandler
-// 主要成員：Request_mapper_maps_create_request_to_qpay_order_create_payload、Request_mapper_maps_query_provider_order_ref_to_qpay_pay_token、Crypto_builds_legacy_uppercase_aes_key、Status_mapper_maps_successful_order_pay_response_to_succeeded、Status_mapper_maps_declined_order_pay_response_to_failed、Create_result_fails_when_card_payment_success_response_has_no_payment_page_url、Create_result_preserves_provider_rejection_when_card_payment_page_url_is_missing、Create_result_preserves_atm_virtual_account_in_provider_data、Create_result_fails_when_atm_success_response_has_no_virtual_account、Create_payment_includes_route_and_response_body_when_http_status_fails
-// 引用命名空間：FluentAssertions、Microsoft.Extensions.Configuration、Microsoft.Extensions.DependencyInjection、System.Net、SpeechMessage.Payments.Abstractions、SpeechMessage.Payments.Configuration、SpeechMessage.Payments.DependencyInjection、SpeechMessage.Payments.Models
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證永豐 QPay provider 的 request mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。 這些測試特別保護付款頁 URL、ATM 虛擬帳號與 legacy 
+ * key derivation，避免抽離後破壞既有奉獻流程。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SinopacProviderTests、StaticResponseHandler。
+ * 測試案例入口包含 Request_mapper_maps_create_request_to_qpay_order_create_payload、
+ * Request_mapper_maps_query_provider_order_ref_to_qpay_pay_token、Crypto_builds_legacy_uppercase_aes_key、
+ * Status_mapper_maps_successful_order_pay_response_to_succeeded、
+ * Status_mapper_maps_declined_order_pay_response_to_failed、
+ * Create_result_fails_when_card_payment_success_response_has_no_payment_page_url、
+ * Create_result_preserves_provider_rejection_when_card_payment_page_url_is_missing、
+ * Create_result_preserves_atm_virtual_account_in_provider_data；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,16 +1,29 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Filters/StrictNoCacheFilter.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案提供 StrictNoCacheFilter 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
-// 主要型別：class StrictNoCacheFilter
-// 主要成員：OnActionExecuting、OnActionExecuted
-// 引用命名空間：Microsoft.AspNetCore.Mvc.Filters、System、System.Diagnostics
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：全域無快取過濾器 (Session Bleeding 防護 - 第三層) 設計原則: - Single Responsibility Principle (SRP): 專注於設定 HTTP 快取標頭 - 
+ * Open/Closed Principle: 透過 IActionFilter 介面擴展，不需修改現有代碼 - Dependency Inversion Principle: 依賴抽象 IActionFilter，
+ * 不依賴具體實現 作用: 在每個 Action 執行完成後，強制設定最嚴格的 HTTP 快取標頭， 確保回應不會被任何中間層代理伺服器或瀏覽器快取。 這是防止 Session Bleeding（會話串連）問題的第三層防護。 
+ * 防護架構: 第一層: 全站無快取中介軟體 (Middleware) 第二層: ResponseCacheAttribute (MVC Framework) 第三層: StrictNoCacheFilter (Action 
+ * Filter) ← 此檔案 使用方式: 在 Startup.cs 的 ConfigureServices 中全域註冊: services.AddMvc(options => { 
+ * options.Filters.Add&lt;StrictNoCacheFilter&gt;(); }); 或在特定 Controller/Action 上使用: 
+ * [ServiceFilter(typeof(StrictNoCacheFilter))] public class MyController : Controller { }
+ *
+ * 主要功能與流程：
+ * 本檔宣告 StrictNoCacheFilter。
+ * - ✅ 效能：共用實例。 本過濾器沒有任何相依項、沒有任何欄位，所有輸入都由 context 參數傳入， 因此在所有請求之間共用單一實例是安全的，且不含任何跨請求狀態。 這讓全域註冊不必在每個請求重新配置一個過濾器物件。
+ * - Action 執行前的處理（此過濾器不需要在執行前處理）
+ * - Action 執行後的處理：設定最嚴格的快取控制標頭 設定的 HTTP Headers: 1. Cache-Control: no-store, no-cache, must-revalidate, max-age=0 
+ * - no-store: 完全禁止快取（最嚴格） - no-cache: 每次都要重新驗證 - must-revalidate: 過期後必須重新驗證 - max-age=0: 立即過期 2. Pragma: no-cache 
+ * - HTTP/1.0 的向後相容標頭 3. Expires: -1 - 表示內容已過期（HTTP/1.0 相容） 為什麼需要三個標頭? - Cache-Control: 現代瀏覽器和代理伺服器使用 - Pragma: 舊版 
+ * HTTP/1.0 客戶端使用 - Expires: 向後相容，確保所有客戶端都理解
+ * 主要操作入口包含 OnActionExecuting、OnActionExecuted。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Diagnostics;

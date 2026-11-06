@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：使用真實 ASP.NET Core 例外處理管線與 ILoggerFactory，保護跨層先落檔再通知契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ExceptionPipelineTests。
+ * - 下游拋錯後標準 handler 仍回 500，內側 middleware 先落檔；外層 ILogger 不重複事件。
+ * - Error/Critical 即使無 Exception 也必須記錄；scope、formatter 敏感內容不外洩。
+ * 測試案例入口包含 Standard_handler_receives_original_failure_after_log_and_line_enqueue、
+ * Logger_reports_errors_without_evaluating_sensitive_formatter_or_scope。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Diagnostics;
 using ChurchReport.Logging;
 using ChurchReport.Middleware;

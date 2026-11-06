@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：搬移前鎖定 CRUD 與負責人操作的正常 SDK 邊界；所有識別與內容皆為固定合成值。 替身只記錄實際產品送出的參數，不連 D365、不代替業務授權或宣稱資料庫冪等。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MutationOperationsCharacterizationTests。
+ * - 三個寫入入口必須只呼叫一次 SDK 且不改動 caller 實體；實際請求與搬前黃金檔完全相符。
+ * - 只讀 ownerid 不呼叫 SDK；缺值沿用 Empty／空字串，合法顯示名稱原樣回傳而不是去重鍵。
+ * - 指派仍以 systemuser 為受派者、原資料庫 ID 為 Target，不能誤換為顯示名稱或新識別。
+ * - 把實際 SDK 收到的實體投影成固定可稽核 XML；只處理此 fixture 的 fullname，不放入連線或真實資料。
+ * 測試案例入口包含 Crud_ValidInput_PreservesSdkRequest、Owner_ReadOnly_PreservesMissingAndPresentValues、
+ * Owner_Assign_PreservesTypedRequest、Describe。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Xml.Linq;
 using Microsoft.Crm.Sdk.Messages;

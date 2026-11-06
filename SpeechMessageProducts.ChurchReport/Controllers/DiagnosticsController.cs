@@ -1,16 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/DiagnosticsController.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
-// 主要型別：class DiagnosticsController
-// 主要成員：Index、GetSessionInfo、GetIdentityAudit、GetPerformanceInfo、ResetAudit、GetCacheHeaders
-// 引用命名空間：Microsoft.AspNetCore.Authorization、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、System、System.Collections.Generic、System.Diagnostics、System.Linq
-// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：提供診斷畫面與Session隔離檢查入口，將主機診斷資訊轉為受控回應；診斷功能不得公開其他登入者資料、憑證或完整request內容，啟用範圍應由主機環境及授權限制。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DiagnosticsController。
+ * - 查看當前 Session 資訊 功能: - 顯示 Session ID - 顯示 Session 中的所有 Key - 顯示 Session 的值 - 顯示 Session Cookie 設定 用途: - 診斷 
+ * Session 是否正確建立 - 檢查 Session 資料是否正確 - 驗證 Session Bleeding 是否發生
+ * - 查看身份審計追蹤資料 功能: - 顯示當前追蹤的 IP 與使用者對應關係 - 顯示最後活動時間 - 偵測可能的 Session Bleeding 用途: - 即時監控身份混淆問題 - 診斷 Wi-Fi 
+ * 環境下的使用者切換 - 驗證防護機制是否有效
+ * - 查看效能統計 功能: - 顯示當前進程的記憶體使用量 - 顯示執行緒數量 - 顯示運行時間 用途: - 監控應用程式效能 - 偵測記憶體洩漏 - 診斷效能問題
+ * - 重設身份審計資料 功能: - 清除所有身份審計追蹤資料 - 釋放記憶體 用途: - 手動清理測試資料 - 重置監控狀態 ?? 注意：僅在必要時使用，會清除所有追蹤歷史
+ * 主要操作入口包含 Index、GetSessionInfo、GetIdentityAudit、GetPerformanceInfo、ResetAudit、GetCacheHeaders。
+ *
+ * 使用邊界與維護：
+ * 本檔與同名控制器的其他partial共用一次請求的依賴及狀態；授權、Session與資料範圍必須沿既有伺服器邊界驗證。
+ * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
+ * 可沿 SpeechMessageProducts.ChurchReport/Middleware/IdentityAuditMiddleware.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

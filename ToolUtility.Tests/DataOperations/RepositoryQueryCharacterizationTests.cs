@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：五個舊Repository查詢的完整投影及回傳特性，先在原host執行；只替代外部repository，不重建產品條件。 特別保留舊present使用本地時間、忽略list條件的差異，
+ * 不在抽取時冒充教會時鐘或授權修正。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RepositoryQueryCharacterizationTests、FixedClock。
+ * - 完整黃金查詢保留欄位、條件型別、排序、top與原Fetch字串；動態本地日期另驗呼叫前後界線。
+ * - 注入固定LocalNow可穩定重現舊DateTime.Now.AddMonths條件，時鐘不得改變原本的Local型別。
+ * - 原始Fetch逐字保留，不能在安全解析後重新序列化而改變caller已簽章或診斷比較的查詢。
+ * - 固定五入口及合成scope，參數只供獨立拒絕測試變體，不作伺服器授權。
+ * 測試案例入口包含 OriginalQueries_PreserveProjectionAndResult、
+ * PresentQuery_UsesInjectedLocalClockWithoutChangingDateSemantics、Read。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

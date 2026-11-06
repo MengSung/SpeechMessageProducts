@@ -1,16 +1,17 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/SessionMonitorServiceTests.cs
-// 所屬區塊：ChurchReport 產品層回歸測試，驗證 DEBUG Session 診斷服務的資源生命週期與記憶體上限。
-// 檔案責任：固定程序級 Session 診斷索引不得因大量短命 Session 無界成長，也不得保留任何 Session 內容。
-// 主要型別：SessionMonitorServiceTests。
-// 主要成員：RecordSessionActivity_when_unique_session_volume_exceeds_capacity_keeps_a_hard_bound。
-// 引用命名空間：ChurchReport.Services.Monitoring、FluentAssertions、Microsoft.Extensions.Logging.Abstractions、Xunit。
-// 閱讀路徑：先讀測試名稱與 Arrange/Act/Assert，了解容量保護；再讀備註了解資源擁有權與故障注入。
-// 維護重點：不可將此測試改為只驗證 timer 清理；壓力到來的五分鐘清理間隔內也必須維持硬上限。
-// 行為保護：測試不建立 HTTP request、Session store、CRM 連線或背景工作；using 是唯一的服務與計時器釋放路徑。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證 DEBUG 專用的 SessionMonitorService 不會把不同 Session 的診斷紀錄無限制保留在程序記憶體。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SessionMonitorServiceTests。
+ * - 保護唯一 Session 數量超過容量時，程序級監控索引仍保持硬性記憶體上限的契約。
+ * 測試案例入口包含 RecordSessionActivity_when_unique_session_volume_exceeds_capacity_keeps_a_hard_bound。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 #if DEBUG
 using ChurchReport.Services.Monitoring;
 using FluentAssertions;

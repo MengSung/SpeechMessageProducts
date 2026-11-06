@@ -1,7 +1,21 @@
+@*
+    æª”æ¡ˆæ•´é«”èªªæ˜
+
+    ç›®çš„èˆ‡å®šä½ï¼šæä¾›æœäº‹æ„é¡˜å•å·QR Codeå…¥å£ç•«é¢ï¼Œé€£æ¥å•å·è³‡æ–™åŠæäº¤æµç¨‹ã€‚
+
+    ä¸»è¦åŠŸèƒ½èˆ‡æµç¨‹ï¼š
+    ç•«é¢è¼¸å…¥æ¡ç”¨ PollModelï¼Œæ¬„ä½èªæ„é ˆèˆ‡æ§åˆ¶å™¨çµ„è£çš„æ¨¡å‹ä¸€è‡´ã€‚
+    æœ¬é å¼•ç”¨çš„æ§åˆ¶å™¨ï¼å‹•ä½œåŒ…å« SavePollï¼›å¯¦éš›ç¶²å€åŠåƒæ•¸ä»¥é å…§è¨­å®šç‚ºæº–ã€‚
+    å…ƒä»¶äº‹ä»¶äº¤çµ¦ OnClickQueryï¼Œç¶­è­·æ™‚é ˆä¸€ä½µæ ¸å°å®£å‘Šã€è¼‰å…¥é †åºèˆ‡å…ƒä»¶IDã€‚
+
+    ä½¿ç”¨é‚Šç•Œèˆ‡ç¶­è­·ï¼šç•«é¢åƒ…å‘ˆç¾ç›®å‰è«‹æ±‚å–å¾—çš„è³‡æ–™ï¼›ä½¿ç”¨è€…è¼¸å…¥èˆ‡å…ƒä»¶å‚³å›å€¼ä»é ˆåœ¨ä¼ºæœå™¨é©—è­‰ã€‚
+    ä¿®æ”¹æ¨¡å‹ã€å…ƒç´ IDã€è·¯ç”±æˆ–callbackæ™‚ï¼Œé ˆåŒæ­¥æª¢æŸ¥å¼•ç”¨æ­¤é çš„çˆ¶é ï¼æ§åˆ¶å™¨ï¼›éåŒæ­¥å›æ‡‰ä¸èƒ½è¦†å¯«è¼ƒæ–°ç•«é¢ç‹€æ…‹ã€‚
+    æœ¬æ®µä½¿ç”¨Razorè¨»è§£ï¼Œç·¨è­¯å¾Œä¸æœƒå°‡ç¶­è­·èªªæ˜æˆ–å…§éƒ¨è·¯å¾‘å‚³åˆ°ç€è¦½å™¨ã€‚
+*@
 
 @using ChurchReport.Models
 @model PollModel
-@*<div class="long-title"><h3>©^Äm¸ê°T</h3></div>*@
+@*<div class="long-title"><h3>å¥‰ç»è³‡è¨Š</h3></div>*@
 
 <head>
     <meta charset="UTF-8">
@@ -18,7 +32,7 @@
     <link rel="stylesheet" href="~/assets/mobirise/css/mbr-additional.css" type="text/css">
 </head>
 
-<div style="font-family:¼Ğ·¢Åé;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+<div style="font-family:æ¨™æ¥·é«”;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
     <h4 id="displaynamefield"></h4>
 </div>
 
@@ -46,7 +60,7 @@
                     .ShowPane(true)
                     .Shading(true)
                     .CloseOnOutsideClick(false)
-                    .Message("¤W¶Ç¸ê®Æ¤¤...")
+                    .Message("ä¸Šå‚³è³‡æ–™ä¸­...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
 
@@ -63,14 +77,14 @@
         {
 
             items.AddGroup()
-            .Caption("A¡B¦¨?¯Zµ²·~ªÌ«ØÄ³¥i°Ñ»P¤§ªA¨Æ¶µ¥Ø")
+            .Caption("Aã€æˆ?ç­çµæ¥­è€…å»ºè­°å¯åƒèˆ‡ä¹‹æœäº‹é …ç›®")
             .ColSpan(1)
             .Visible(Model.DisplayGrowFlag)
             .Items(groupItems =>
             {
                 groupItems.AddSimpleFor(m => m.SundayTreat)
                    //.DataField("LastName")
-                   .Label(l => l.Text("¥D¤é©Û«İ¦P¤u"))
+                   .Label(l => l.Text("ä¸»æ—¥æ‹›å¾…åŒå·¥"))
                    .Editor(e => e
                        .CheckBox()
                        .Disabled(false)
@@ -79,14 +93,14 @@
             });
 
             items.AddGroup()
-            .Caption("B¡Bªù®{¯Zµ²·~ªÌ«ØÄ³¥i°Ñ»P¤§ªA¨Æ¶µ¥Ø¡m¥i½Æ¿ï¡n")
+            .Caption("Bã€é–€å¾’ç­çµæ¥­è€…å»ºè­°å¯åƒèˆ‡ä¹‹æœäº‹é …ç›®ã€Šå¯è¤‡é¸ã€‹")
             .ColSpan(1)
             .Visible(Model.DisplayDecipleFlag)
             .Items(groupItems =>
             {
                 groupItems.AddSimpleFor(m => m.SaturdayChild)
                    //.DataField("LastName")
-                   .Label(l => l.Text("¶g¤»¨à¥DªA¨Æ¦P¤u"))
+                   .Label(l => l.Text("é€±å…­å…’ä¸»æœäº‹åŒå·¥"))
                    .Editor(e => e
                        .CheckBox()
                        .Disabled(false)
@@ -94,7 +108,7 @@
 
                 groupItems.AddSimpleFor(m => m.SundaydayChild)
                     //.DataField("LastName")
-                    .Label(l => l.Text("¥D¤é¨à¥D¦P¤u"))
+                    .Label(l => l.Text("ä¸»æ—¥å…’ä¸»åŒå·¥"))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -102,7 +116,7 @@
 
                 groupItems.AddSimpleFor(m => m.SundayNewFriend)
                     //.DataField("LastName")
-                    .Label(l => l.Text("¥D¤é·s¤H±µ«İ¦P¤u").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("ä¸»æ—¥æ–°äººæ¥å¾…åŒå·¥").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -110,7 +124,7 @@
 
                 groupItems.AddSimpleFor(m => m.DisplayPpt)
                     //.DataField("LastName")
-                    .Label(l => l.Text("¥D¤é±±¥x¦P¤u").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("ä¸»æ—¥æ§å°åŒå·¥").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -118,7 +132,7 @@
 
                 groupItems.AddSimpleFor(m => m.WorshipVocal)
                     //.DataField("LastName")
-                    .Label(l => l.Text("¥D¤é·q«ô¹Î(¤HÁn)").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("ä¸»æ—¥æ•¬æ‹œåœ˜(äººè²)").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -126,7 +140,7 @@
 
                 groupItems.AddSimpleFor(m => m.WorshipInstrument)
                     //.DataField("LastName")
-                    .Label(l => l.Text("¥D¤é·q«ô¹Î(¼Ö¾¹)").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("ä¸»æ—¥æ•¬æ‹œåœ˜(æ¨‚å™¨)").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -134,17 +148,17 @@
 
                 groupItems.AddSimpleFor(m => m.Instrument)
                     //.DataField("LastName")
-                    .Label(l => l.Text("¼Ö¾¹¦WºÙ").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("æ¨‚å™¨åç¨±").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .TextBox()
-                        .Placeholder("¼Ö¾¹¦WºÙ")
+                        .Placeholder("æ¨‚å™¨åç¨±")
                         .Disabled(false)
                     );
 
 
                 groupItems.AddSimpleFor(m => m.CommunityProfit)
                     //.DataField("LastName")
-                    .Label(l => l.Text("ªÀ°ÏºÖ­µ¦æ°Ê(¯q¤H¾Ç­b)").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("ç¤¾å€ç¦éŸ³è¡Œå‹•(ç›Šäººå­¸è‹‘)").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -152,7 +166,7 @@
 
                 groupItems.AddSimpleFor(m => m.CommunityFlower)
                     //.DataField("LastName")
-                    .Label(l => l.Text("ªÀ°ÏºÖ­µ¦æ°Ê(®¦¦·¨ó·|)").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("ç¤¾å€ç¦éŸ³è¡Œå‹•(æ©æœµå”æœƒ)").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -160,7 +174,7 @@
 
                 groupItems.AddSimpleFor(m => m.IncubateCampaign)
                     //.DataField("LastName")
-                    .Label(l => l.Text("°ö¨|Àç·|¦æ¬F¦P¤u").Location(FormLabelLocation.Left))
+                    .Label(l => l.Text("åŸ¹è‚²ç‡Ÿæœƒè¡Œæ”¿åŒå·¥").Location(FormLabelLocation.Left))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -169,14 +183,14 @@
             });
 
             items.AddGroup()
-            .Caption("C¡B¤p²Õªø¯Zµ²·~ªÌ«ØÄ³¥i°Ñ»PªA¨Æ¶µ¥Ø¡m¥i½Æ¿ï¡n")
+            .Caption("Cã€å°çµ„é•·ç­çµæ¥­è€…å»ºè­°å¯åƒèˆ‡æœäº‹é …ç›®ã€Šå¯è¤‡é¸ã€‹")
             .Visible(Model.DisplayLeaderFlag)
             .ColSpan(1)
             .Items(groupItems =>
             {
                 groupItems.AddSimpleFor(m => m.SundayPrayer)
                    //.DataField("LastName")
-                   .Label(l => l.Text("¥D¤éÃ«§iªA¨Æ"))
+                   .Label(l => l.Text("ä¸»æ—¥ç¦±å‘Šæœäº‹"))
                    .Editor(e => e
                        .CheckBox()
                        .Disabled(false)
@@ -184,7 +198,7 @@
 
                 groupItems.AddSimpleFor(m => m.IncubateCampaignLeader)
                     //.DataField("LastName")
-                    .Label(l => l.Text("°ö¨|Àç·|±a²Õ¦P¤u"))
+                    .Label(l => l.Text("åŸ¹è‚²ç‡Ÿæœƒå¸¶çµ„åŒå·¥"))
                     .Editor(e => e
                         .CheckBox()
                         .Disabled(false)
@@ -192,23 +206,23 @@
 
                 groupItems.AddSimpleFor(m => m.Others)
                     //.DataField("LastName")
-                    .Label(l => l.Text("¨ä¥L").Location(FormLabelLocation.Top))
+                    .Label(l => l.Text("å…¶ä»–").Location(FormLabelLocation.Top))
                     .Editor(e => e
                         .TextBox()
-                        .Placeholder("¨ä¥L")
+                        .Placeholder("å…¶ä»–")
                         .Disabled(false)
                     );
             });
 
             items.AddSimpleFor(m => m.PollContent)
-                .Label(l => l.Text("½Òµ{·N¨£¦^õX½Õ¬d").Location(FormLabelLocation.Top))
+                .Label(l => l.Text("èª²ç¨‹æ„è¦‹å›é¥‹èª¿æŸ¥").Location(FormLabelLocation.Top))
                 .ColSpan(3)
                 .Editor(e => e
                     .TextArea()
                     .Disabled(false)
                     //.Width(400)
                     .Height(100)
-                    .Placeholder("½Òµ{·N¨£¦^õX½Õ¬d")
+                    .Placeholder("èª²ç¨‹æ„è¦‹å›é¥‹èª¿æŸ¥")
                 );
 
         })
@@ -230,7 +244,7 @@
     <br />
     <div id="buttonContainer2" class="dx-button-icon">
         @(Html.DevExtreme().Button()
-                    .Text("¤W¶Ç")
+                    .Text("ä¸Šå‚³")
                     .Type(ButtonType.Success)
                     .ID("save-button2")
                     .UseSubmitBehavior(true)
@@ -241,9 +255,9 @@
 </form>
 
 <script>
-    // Ä²µo¨Æ¥óºŞ²z
+    // è§¸ç™¼äº‹ä»¶ç®¡ç†
     function OnClickQuery(arg) {
-        //alert("¬d¸ß");
+        //alert("æŸ¥è©¢");
         getLoadPanelInstance().show();
     }
 
@@ -279,9 +293,9 @@
 <script>
     var dictionary = {
         "zh-tw": {
-            "dxScheduler-switcherAgenda": "·|Ä³¤º®e", // ¦b³o¸Ì¥i¥H°µ³Ì«áªº¦r¨å¹ïÀ³
-            "Month": "¤ë",
-            "Subject": "¥DÃD",
+            "dxScheduler-switcherAgenda": "æœƒè­°å…§å®¹", // åœ¨é€™è£¡å¯ä»¥åšæœ€å¾Œçš„å­—å…¸å°æ‡‰
+            "Month": "æœˆ",
+            "Subject": "ä¸»é¡Œ",
             "Company": "Company",
             "Amount": "Amount",
             "PaymentDate": "Payment Date"
@@ -319,12 +333,12 @@
             liff.init({ liffId:  '@TempData["Proponent"]' })
                 .then(() =>
                 {
-                // ?¬d¥Î?¬O§_¤wµn?
+                // ?æŸ¥ç”¨?æ˜¯å¦å·²ç™»?
                   if (!liff.isLoggedIn())
                   {
-                      document.getElementById('displaynamefield').innerHTML = "±zÁÙ¨S¦³µn¤JLINE";
+                      document.getElementById('displaynamefield').innerHTML = "æ‚¨é‚„æ²’æœ‰ç™»å…¥LINE";
 
-                      //ShowToast("±zÁÙ¨S¦³µn¤JLINE", "error", 5000);
+                      //ShowToast("æ‚¨é‚„æ²’æœ‰ç™»å…¥LINE", "error", 5000);
 
                       liff.login();
 
@@ -334,22 +348,22 @@
                   {
                       liff.permission.query("profile").then((permissionStatus) => {
                           if (permissionStatus.state === "granted") {
-                              //¨Ï¥ÎªÌ¤w±ÂÅv
+                              //ä½¿ç”¨è€…å·²æˆæ¬Š
                               initializeApp();
                           }
                           else if (permissionStatus.state === "prompt") {
-                              document.getElementById('displaynamefield').innerHTML = "±z¨Ã¥¼±ÂÅv¡A½Ğ¥ı§¹¦¨±ÂÅvµ{§Ç!";
+                              document.getElementById('displaynamefield').innerHTML = "æ‚¨ä¸¦æœªæˆæ¬Šï¼Œè«‹å…ˆå®Œæˆæˆæ¬Šç¨‹åº!";
                               liff.permission.requestAll();
                           }
                           else {
-                              document.getElementById('displaynamefield').innerHTML = "Liff Scope¨S¦³³]©w¡A©Ò¥HµLªk¾Ş§@!";
+                              document.getElementById('displaynamefield').innerHTML = "Liff Scopeæ²’æœ‰è¨­å®šï¼Œæ‰€ä»¥ç„¡æ³•æ“ä½œ!";
                           }
                       });
                   }
                 })
                 .catch(error => {
-                    // ¿ù»~³B²z Liff LLogin
-                    document.getElementById('displaynamefield').innerHTML = "¿ù»~:" + error;
+                    // éŒ¯èª¤è™•ç† Liff LLogin
+                    document.getElementById('displaynamefield').innerHTML = "éŒ¯èª¤:" + error;
                 });
         };
 
@@ -364,42 +378,42 @@
     async function initializeApp() {
         await liff.getProfile()
             .then(function (profile) {
-                document.getElementById('displaynamefield').innerHTML = "¥¿¦b³B²z¤¤......";
+                document.getElementById('displaynamefield').innerHTML = "æ­£åœ¨è™•ç†ä¸­......";
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
-                //alert("´ú¸Õ UserId =" + UserId);
+                //alert("æ¸¬è©¦ UserId =" + UserId);
                 GroupId = profile.aGroupId;
                 RoomId = profile.aRoomId;
                 ViewType = profile.aViewType;
-                //alert("´ú¸Õ004!" + DisplayName);
-                // ¨ú±o UserId ªºAjax
+                //alert("æ¸¬è©¦004!" + DisplayName);
+                // å–å¾— UserId çš„Ajax
                 UpdateLineUserId( DisplayName, UserId, GroupId, RoomId, ViewType);
             })
             .catch(error => {
-                // ¿ù»~³B²z Liff LLogin
-                document.getElementById('displaynamefield').innerHTML = "¿ù»~:" + error;
+                // éŒ¯èª¤è™•ç† Liff LLogin
+                document.getElementById('displaynamefield').innerHTML = "éŒ¯èª¤:" + error;
             });
 
     }
 
     function UpdateLineUserId(aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType)
     {
-                    // AJAX °Ï¶ô
+                    // AJAX å€å¡Š
                     return $.ajax
                     (
                         {
                             url: '@Url.Action("PollQrCodeGetLineId", "QrCode")',
-                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // ¾ã²z¦^¶Çµ¹ Server ªºÂI¦W¸ê®Æ
+                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // æ•´ç†å›å‚³çµ¦ Server çš„é»åè³‡æ–™
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
                             //async: false,
                             success: function (data)
                             {
-                                if (data.result.includes("¿ù»~") != true) {
-                                    // ¥¿½T±½´y
-                                    //document.getElementById('classnamefield').innerHTML = "½Òµ{¦WºÙ: " + data.classname;
-                                    //document.getElementById('displaynamefield').innerHTML = "½Ğ " + data.username + " §¹¦¨ <br/>" + data.classname + " ªA¨Æ·NÄ@¤Î·N¨£¦^õX½Õ¬d" + "<br/>ÁÂÁÂ" + data.username + "ªº°Ñ»P¡Aªª°Ï¤Î¨Æ¤u³æ¦ìªº¦P¤u±N¥D°Ê»P" + data.username + "±µ¬¢¡I";
-                                    document.getElementById('displaynamefield').innerHTML = "ªA¨Æ·NÄ@½Õ¬dªí<br/>" + "½Ğ " + data.username + " §¹¦¨ <br/>" + data.classname + " ªA¨Æ·NÄ@¤Î·N¨£¦^õX½Õ¬d" ;
-                                    //document.getElementById('classindexfield').innerHTML = "½Ò°ó¸ê°T: " + data.classindex;
+                                if (data.result.includes("éŒ¯èª¤") != true) {
+                                    // æ­£ç¢ºæƒæ
+                                    //document.getElementById('classnamefield').innerHTML = "èª²ç¨‹åç¨±: " + data.classname;
+                                    //document.getElementById('displaynamefield').innerHTML = "è«‹ " + data.username + " å®Œæˆ <br/>" + data.classname + " æœäº‹æ„é¡˜åŠæ„è¦‹å›é¥‹èª¿æŸ¥" + "<br/>è¬è¬" + data.username + "çš„åƒèˆ‡ï¼Œç‰§å€åŠäº‹å·¥å–®ä½çš„åŒå·¥å°‡ä¸»å‹•èˆ‡" + data.username + "æ¥æ´½ï¼";
+                                    document.getElementById('displaynamefield').innerHTML = "æœäº‹æ„é¡˜èª¿æŸ¥è¡¨<br/>" + "è«‹ " + data.username + " å®Œæˆ <br/>" + data.classname + " æœäº‹æ„é¡˜åŠæ„è¦‹å›é¥‹èª¿æŸ¥" ;
+                                    //document.getElementById('classindexfield').innerHTML = "èª²å ‚è³‡è¨Š: " + data.classindex;
                                 }
                                 else
                                 {
@@ -414,7 +428,7 @@
                             }
                         }
                     );
-                    // AJAX °Ï¶ô
+                    // AJAX å€å¡Š
         }
 
     function ShowToast(LocalToastMessage, Type, DisplayTime) {

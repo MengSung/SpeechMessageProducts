@@ -1,3 +1,19 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：先鎖既有 Processor 建構結果，全部使用合成設定；只建立並立即釋放未送出請求的 client，不連 LINE。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineChannelConfigurationCompatibilityTests。
+ * - 舊公開設定建構式先環境再部署預設，不增加 CRM 組織層；Bearer 只出現一次，空設定仍維持空供送訊入口拒絕。
+ * - 明確指定預設別名時不能硬改回 Jesus；直接呼叫舊入口的 null 設定仍採舊空結果。
+ * 測試案例入口包含 Constructor_ExistingPrecedence_RemainsCompatible、
+ * Constructor_ExplicitDefaultAndNull_PreserveLegacyResults。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 #if NET10_0_OR_GREATER
 using System;
 using System.Collections.Generic;

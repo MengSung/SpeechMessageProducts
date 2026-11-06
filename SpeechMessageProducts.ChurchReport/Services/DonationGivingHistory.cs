@@ -1,14 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/DonationGivingHistory.cs
-// 所屬區塊：ChurchReport 奉獻付款服務層。
-// 檔案責任：由會友已繳費的收費單推導奉獻頁的「常用類別」排序、「同上次奉獻」內容與「奉獻清單」列。
-// 主要型別：DonationGivingHistory、DonationLastGift、DonationHistoryRow
-// 主要成員：RankPinnedCategories、FindLastGift、ToHistoryRows
-// 外部依賴：只讀取 DedicationFee 快照；不查 CRM、不寫 Session、不使用 static 可變快取。
-// 隔離要求：呼叫端必須以伺服器端已驗證的奉獻 contact 取得收費單，這裡不接受任何會友識別資料。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：奉獻頁的歷史推導規則（純函式）。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationLastGift、DonationHistoryRow、DonationGivingHistory。
+ * - 沒有奉獻紀錄時的常用類別；只取目前 CRM 仍提供的類別。
+ * - 依奉獻次數排序常用類別（次數相同時較近期者優先），不足時以預設類別、再以 CRM 類別順序補滿。
+ * - 找出最近一次奉獻：以最新一張收費單為基準，收集同付款方式、建立時間相近的收費單。 定期定額自動扣款（有期數）不算「上次奉獻」；CRM 已不提供的類別會略過。
+ * 主要操作入口包含 DonationLastGift、DonationHistoryRow、RankPinnedCategories、FindLastGift、ToHistoryRows、Clean。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Dedication/DonationGivingHistoryTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

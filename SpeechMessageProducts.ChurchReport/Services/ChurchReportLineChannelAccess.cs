@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 舊靜態設定入口的失敗邊界；不建立 client、不快取 token、不保留 HttpContext，所有解析委派 Tenancy。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchReportLineChannelAccess。
+ * - 舊 Lazy 設定的建構也屬失敗邊界；只在本次呼叫執行 factory，不保存 delegate、設定或例外。
+ * - 以已通過啟動安全檢查的 CRM 部署組織解析；未配置回空，真正設定故障交共用例外 owner 後維持舊空結果。
+ * 主要操作入口包含 GetOptionalTokenFromFactory、GetOptionalToken。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs、
+ * ChurchReport.MemberInfo.Tests/LineSharedWorkflow/TenancyFailureBoundaryTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
+ * SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs、
+ * SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Extensions.Configuration;
 using SpeechMessage.Tenancy;

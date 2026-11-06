@@ -1,3 +1,20 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以控制器來源契約檢查樹端點、權威名單範圍、第二道會友檢查、現行搜尋與遠端分頁，避免功能拆分造成授權缺口。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MemberInfoTreeControllerContractTests。
+ * 測試案例入口包含 Controller_ExposesRequiredTreeActions、Controller_UsesAuthoritativeListScopeAndSecondContactGuard、
+ * Controller_ImplementsStrictCurrentSearchAndServerPagedUngroupedQuery、
+ * Controller_SearchReturnsAuthorizedCompleteMemberRows、Controller_ExposesScopeAndInvalidatesTreeCaches、
+ * Controller_MapsRelationGoalsIntoOneDtoField、Controller_MapsConfiguredCommitmentOrderWithoutExposingRawSortValue、
+ * Controller_UsesConfiguredSegmentsBeforeUngroupedPaging；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using FluentAssertions;
 using Xunit;
 

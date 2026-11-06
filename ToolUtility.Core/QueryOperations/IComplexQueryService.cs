@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：歷史複雜查詢的純 BCL／SDK 契約；保留既有 namespace、參數順序與預設值供兩個產品目標共用。 不包含 host 連線、cache、logger 或排程實作，介面搬移不代表舊 host 
+ * 已完成安全純化。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IComplexQueryService。
+ * - 保留歷史 Many-to-One 查詢入口；本次只抽契約，不改 host 的舊查詢範圍或隱含行為。
+ * - 依正式聯絡人查舊排序的第一筆血液報告或 null；敏感資料僅供已授權 caller 使用。
+ * - 保留名單、聯絡人及期間參數；不同舊實作的日期算法不在純契約搬移時統一，不能以 host 本地時間當教會時區。
+ * - 依受信任結構名稱與已授權父記錄查子集合；動態名稱與 ID 均須由實作驗證，不能以字串直接推定權限。
+ * 資料／選項欄位包含 IComplexQueryService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/ComplexQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/ComplexQueryLifecycleTests.cs、
+ * ToolUtility.Core/QueryOperations/ComplexQueryDataService.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using Microsoft.Xrm.Sdk;

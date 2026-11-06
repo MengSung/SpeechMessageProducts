@@ -10,6 +10,7 @@
  */
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using SpeechMessage.Dynamics.Deployment.Schema;
 using Xunit;
@@ -122,6 +123,30 @@ public sealed class SchemaCliTests
         Assert.Equal(1, fixture.Connector.Returned);
     }
 
+    /// <summary>同組織兩個apply同時使用同一審核plan，OS寫鎖只容許一個新增；另一個須重驗後拒絕舊plan，不產生重複表或key。</summary>
+    [Fact]
+    public async System.Threading.Tasks.Task Run_ConcurrentApply_SerializesAndRejectsStaleSecondPlan()
+    {
+        using var fixture = new CliFixture();
+        Assert.Equal(0, fixture.Run("plan", "--org", "goodshepherdback", "--schema", fixture.Schema));
+        var plan = Assert.Single(Directory.GetFiles(fixture.Root, "schema-plan.json", SearchOption.AllDirectories));
+        var failures = new System.Collections.Concurrent.ConcurrentQueue<Exception>();
+        var tasks = Enumerable.Range(0, 2).Select(_ => System.Threading.Tasks.Task.Run(() =>
+        {
+            using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+            return DeploymentCli.Run(new[] { "apply", "--org", "goodshepherdback", "--schema", fixture.Schema, "--plan", plan },
+                fixture.Connector, output, failures.Enqueue, Path.Combine(fixture.Root, "artifacts", "d365"));
+        }));
+        var results = await System.Threading.Tasks.Task.WhenAll(tasks);
+        Assert.Equal(1, results.Count(result => result == 0));
+        Assert.Equal(1, results.Count(result => result == 1));
+        Assert.IsType<InvalidDataException>(Assert.Single(failures));
+        Assert.Equal(4, fixture.Connector.Service.KeyCreates);
+        Assert.Equal(6, fixture.Connector.Service.Entities.Count);
+        Assert.Equal(3, fixture.Connector.Opened);
+        Assert.Equal(3, fixture.Connector.Returned);
+    }
+
     /// <summary>每案唯一定義／輸出與SDK；只改程序cwd的集合已序列化，finally恢復，沒有跨命令連線或request殘留。</summary>
     private sealed class CliFixture : IDisposable
     {
@@ -158,8 +183,8 @@ public sealed class SchemaCliTests
         public OrganizationLease Connect(string organization)
         {
             Assert.Equal("goodshepherdback", organization);
-            Opened++;
-            return new OrganizationLease(Service, () => Returned++);
+            System.Threading.Interlocked.Increment(ref Opened);
+            return new OrganizationLease(Service, () => System.Threading.Interlocked.Increment(ref Returned));
         }
     }
 }

@@ -1,3 +1,27 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：七個舊Fetch公開入口的純SDK實作；保留投影、排序、link、top及實際使用的篩選差異。 名稱／資料庫ID只構成查詢條件，不是授權；host必須先驗證使用者、教會及組織scope。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FetchXmlQueryService。
+ * - 保持舊建構簽章與null拒絕；logger只驗證不保存／反射，SDK所有權仍屬原host。
+ * - 依聯絡人讀取學習課的一頁，沿用實際生效的RemoveConstrain查詢，不加回舊未使用模板的classification過濾。 top1000、兩個link與欄位完全保留；顯示名稱XML編碼，ID必須非空GUID。
+ * - 依課程讀取學習課，保留三種enroll排除狀態、statuscode非2及啟用條件；不套用聯絡人查詢的不同投影。
+ * - 認獻查詢委派唯一Fee實作，仍使用Execute及top1000；不保留FeeService而讓Dispose後仍有可繞過的SDK參照。 已取得局部SDK的操作可排空，暫存委派不擁有連線或任何額外資源。
+ * 主要操作入口包含 RetrieveStorLessonsByFetchXml、RetrieveStorLessonsByDiscipleLessonsFetchXml、
+ * RetrieveDedicationBookingByFetchXml、RetrieveMeetingStatisticsByFetchXml、RetrieveFeeByFetchXml、
+ * RetrieveListByFetchXml、RetrieveSmallGroupListCollectionByFetchXml、ContactLink；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/FetchQueryCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/FetchQuerySafetyTests.cs、
+ * ToolUtility.Tests/QueryOperations/FetchXmlFeeCharacterizationTests.cs、
+ * ToolUtility.Core/FeeOperations/FeeService.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.ObjectModel;

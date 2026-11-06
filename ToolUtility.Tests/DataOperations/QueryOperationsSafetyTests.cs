@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：三組純 SDK 資料操作的故障、XML 編碼、跨 scope 與借入資源生命週期契約。 測試在純化前先重現缺陷；SDK 全為合成替身，不能冒充實機資料或部署驗收。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 QueryOperationsSafetyTests。
+ * - 對每一實際 XML 消費頁注入四種完整性故障，覆蓋全部公開查詢而非只測 helper。
+ * - 重複 ID、空 ID、跨實體或缺候選都須整頁拒絕，不去重或回假空集合。 失敗後原候選筆數必須不變，避免以修改 SDK 結果掩蓋資料衝突。
+ * - 舊 ByDate 是獨立型別化入口，即使目前與 XML 路徑共用驗頁也要直接故障注入， 防止日後改成直接回 SDK 而繞過完整發布；四種故障均不可回部分／假空結果。
+ * - 會友、課程、週報、小組與排程文字包含全部特殊字元時，XML 解碼必須完整還原， 且只出現在預定屬性值，不能成為額外條件／節點；不以字串 Contains 當作安全證據。
+ * 測試案例入口包含 InvalidPages、Query_InvalidPage_RejectsWithoutMutatingCandidate、
+ * AppointmentByDate_InvalidPage_RejectsEntireCandidate、Query_XmlSpecialCharacters_RemainOnlyAttributeValues、
+ * Query_ThaiCulture_UsesInvariantGregorianDates、Query_SdkFailure_PropagatesOriginalAndAllowsRetry、
+ * Query_ReverseDateRange_RejectsBeforeIo、Query_InvalidLookup_RejectsBeforeIo；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

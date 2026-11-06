@@ -1,14 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案責任：以純函式決定 callback 對「同一次付款」群組內每張收費單的處理（任意數量的類別）。
-// 規則：
-//   - 單一收費單：沿用舊流程（狀態仍為新建立且付款紀錄未含訂單編號才入帳，實收＝原實收＋本次付款金額）。
-//   - 多張收費單：每張只收自己的應收金額；尚未入帳的標記已付款。
-//   - 校正：若舊版單張回呼已把「整筆付款」寫進某一張（實收＝付款總額、應收較小），且群組應收合計等於付款總額，
-//           就把該張實收校正為自己的應收金額。條件刻意嚴格，避免覆蓋人工調整。
-// 隔離與生命週期：只處理不可變快照，不讀寫 CRM、Session、static 可變快取、timer、task 或連線。
-// 編碼要求：UTF-8 without BOM、CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：計算群組逐筆入帳、校正與冪等結果。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationFeePaidSnapshot、DonationFeePaidDecision、DonationFeeGroupPaidPlan、DonationFeeGroupPaidPlanner。
+ * - primary（Param1）是否由本次回呼第一次入帳；只有這時才發送付款成功通知，避免重複通知。
+ * 主要操作入口包含 DonationFeePaidSnapshot、DonationFeePaidDecision、DonationFeeGroupPaidPlan、Plan。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Dedication/DonationFeeGroupPaidPlannerTests.cs、
+ * ChurchReport.MemberInfo.Tests/Dedication/DonationMultiCategoryTests.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

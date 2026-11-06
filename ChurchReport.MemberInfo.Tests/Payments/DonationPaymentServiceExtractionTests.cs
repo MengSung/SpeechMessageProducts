@@ -1,16 +1,28 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs
-// 所屬區塊：ChurchReport 會員、付款與 LINE 共用流程的測試專案，用來固定產品層行為與回歸案例。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class DonationPaymentServiceExtractionTests
-// 主要成員：ParseCreditCards_should_convert_legacy_visa_info_into_display_cards、SerializeCreditCards_should_preserve_legacy_crm_storage_format、ResolveSpecialCategory_should_return_name_when_today_is_inside_range、ResolveSpecialCategory_should_return_empty_when_today_is_outside_range、ResolveSpecialCategory_should_ignore_malformed_date_text_without_throwing、ValidateDonationForm_should_reject_empty_amount、ValidateDonationForm_should_require_festival_selection_for_festival_dedication、ClassifyCreatePaymentResult_should_mark_payment_instruction_as_virtual_account、ClassifyCreatePaymentResult_should_return_error_for_credit_card_failure、ConvertStatus_should_map_dedication_booking_options
-// 引用命名空間：System、System.IO、ChurchReport.Models、ChurchReport.Services、FluentAssertions、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護虛構信用卡資料解析與序列化、固定日期分類、表單驗證，以及認獻狀態與付款方式的既有映射。 使用固定假資料驗證成功、錯誤輸入及未知選項，並讀取本 worktree 的 manager 區段守住服務委派邊界。 
+ * 不建立 CRM、付款或 LINE 連線；解析結果及來源文字由單一案例擁有，不跨案例保存。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentServiceExtractionTests。
+ * - 保護既有信用卡顯示資料的解析契約。 注入兩筆虛構卡片記錄，驗證遮罩、到期年月與 token 對應；斷言筆數及兩筆欄位逐一相符，不接觸真實付款資料。
+ * - 保護 CRM 舊格式的讀寫相容性。 使用固定虛構卡片資料解析後序列化，偵測分隔字元或欄位順序改變；斷言輸出逐字等於原始格式。
+ * - 保護日期區間內的特別奉獻分類。 注入固定日期及跨月區間以避免系統時鐘依賴；斷言回傳指定分類名稱。
+ * - 保護日期區間外不發布已過期分類。 注入固定的區間外日期，模擬活動結束；斷言回傳空字串而非沿用先前分類。
+ * 測試案例入口包含 ParseCreditCards_should_convert_legacy_visa_info_into_display_cards、
+ * SerializeCreditCards_should_preserve_legacy_crm_storage_format、
+ * ResolveSpecialCategory_should_return_name_when_today_is_inside_range、
+ * ResolveSpecialCategory_should_return_empty_when_today_is_outside_range、
+ * ResolveSpecialCategory_should_ignore_malformed_date_text_without_throwing、
+ * ValidateDonationForm_should_reject_empty_amount、
+ * ValidateDonationForm_should_require_festival_selection_for_festival_dedication、
+ * ClassifyCreatePaymentResult_should_mark_payment_instruction_as_virtual_account；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.IO;
 using ChurchReport.Models;

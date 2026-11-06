@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以固定 UTC 向量保護兩產品的教會時間、DST 拒絕與生日純日期契約。 不讀伺服器當地時間、不連線；故障、千次 A/B 及弱參照斷言保護隔離與生命週期。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchClockTests、FixedTimeProvider、FixedClock、FaultClock。
+ * - 產品尚無正式時鐘時必須失敗，不能以測試宿主自己的時間型別取代產品契約。
+ * - 台北跨 UTC 日期界線必須為 +8，回傳 Unspecified 以免後續誤作伺服器 local。
+ * - 倫敦春季跳過一小時；兩個相鄰 UTC 分鐘必須落在 00:59 及 02:00。
+ * - 倫敦秋季重複一點；UTC 轉換有唯一答案，不可拒絕兩個不同瞬間。
+ * 測試案例入口包含 ClockContract_BothProductTargets_ContainsChurchClock、Taipei_NoDst_Plus8、London_DstStart_2027_03_28、
+ * London_DstEnd_2027_10_31、LosAngeles_DstStart_2027_03_14、NetFrameworkMapping_CoversAllSupportedChurchTimeZones、
+ * GeneratedMappings_AllPinnedCldrIdentities_MatchXml、ToUtc_InvalidOrAmbiguousLocal_Throws；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

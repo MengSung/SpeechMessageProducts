@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純 Entity 屬性轉換契約，不保存 request、logger 或結果；caller 須獨占被修改的 Entity，host 快取必須另行隔離。 缺值預設由各 getter 明列；真正轉換失敗交回 
+ * host 共用告警，不改全域文化或從顯示名推算正式身份。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IAttributeService。
+ * - 缺少 Entity／欄位回 false；原 bool 直接回傳，其他值沿用 caller CurrentCulture 的 Convert.ToBoolean，不改程序文化。
+ * - 只在 caller 獨占的 Entity 寫回或明確清空對應 SDK 欄位；保留 add／replace 語義，不執行 SDK I/O 或發布共享物件。
+ * - 缺少 Entity／欄位回 0；原 int 直接回傳，其他值沿用 caller CurrentCulture 的 Convert.ToInt32，不改程序文化。
+ * - 缺少 Entity／欄位或明確 null 回空字串；其他值沿用 ToString，真正格式化故障直接上拋而非偽裝空資料。
+ * 資料／選項欄位包含 IAttributeService，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Tests/DataOperations/AttributeConversionTests.cs、
+ * ToolUtility.Core/AttributeOperations/AttributeServiceComposite.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using Microsoft.Xrm.Sdk;

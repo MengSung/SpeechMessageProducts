@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：純 SDK 課程查詢，維持原欄位、join、排序與狀態條件；安全 XML 不容許文字改寫查詢結構。 SDK 只借入，host 先完成授權並擁有 timeout／drain／Dispose；本類不保存 
+ * logger、結果或憑證。 無 cache、Task、timer 或隱藏 retry；真實例外交回最終 host 共用通知，不自行發 LINE。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LessonsService。
+ * - 保留舊建構式但不保存任意 logger；SDK 只屬呼叫端 scope，不轉移所有權。
+ * - 依原日期區間與報名 join 查課程；保留 distinct 及正式主鍵投影，不按課程名稱去重。
+ * - 保留原課程日期區間、分類排序與欄位；固定西曆，不受 ambient culture 影響。
+ * - 保留報名狀態排除、5筆上限、聯絡人 outer join 與原 alias；兩個 lookup 均驗正式非空 GUID。 linked 欄位與原查詢相同，不保存或記錄個資；結果只歸本次已授權操作。
+ * 主要操作入口包含 RetrieveEnrolledLessons、RetrieveLessonsByMonth、RetrieveStorLessons、RangeEntity。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/QueryOperationsCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/QueryOperationsSafetyTests.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections.ObjectModel;

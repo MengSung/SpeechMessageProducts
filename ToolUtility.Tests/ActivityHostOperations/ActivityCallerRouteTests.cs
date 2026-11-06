@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：執行真實 ToolUtilityClass→Facade→Lazy→Core 跨組件委派與 Dispose；只替代外部 SDK I/O。 使用正常建構式、空設定及無輸出 tracer，不讀機密、不連線或發 
+ * LINE；不是實機／授權驗收。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ActivityCallerRouteTests。
+ * - 跨表同 GUID 在公開入口保持不同資料，第二組故障不部分發布；確認 lazy 實載 Core， 工具 Dispose 確實停止已建立的子服務且不得 Dispose 借入 SDK。
+ * - 與真實 AppointmentsDownUpLoader 相同，連續 requiredattendees／optionalattendees 追加不清前綴； 兩個入口都沒有 SDK I/O，處理完由原工具 owner 
+ * 確定性 Dispose。
+ * - 公開兩種狀態方法經 facade 外部多載只執行一次正確請求；真故障仍保留同一 InnerException。
+ * - 正常 ctor 僅注入合成 SDK／空設定，不反序列化未初始化工具，也不讀取任何真實設定。
+ * 測試案例入口包含 PublicPartyList_UsesCoreAndPropagatesFailureWithoutPartialPublication、
+ * PublicPartyIds_PreservesRequiredThenOptionalAttendeeAppendFlow、
+ * PublicState_UsesExpectedBorrowedSdkAndPreservesOriginalException、Create、GetCreatedChild、Input。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Collections;
 using System.Reflection;
 using Microsoft.Crm.Sdk.Messages;

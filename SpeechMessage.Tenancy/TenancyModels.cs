@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：本檔整合下列相關契約：TenantId：host 驗證後的組織／產品及可選教會純值；建構值物件本身不授權，不攜帶登入、request 或憑證。；
+ * LineChannelSelection：明確記錄舊呼叫點的設定優先序；不是由使用者輸入控制的路由選項。；ResolvedLineChannel：單次解析結果；憑證只活到本次送訊 owner 結束，禁止快取或記錄原始 
+ * token。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TenantId、LineChannelSelection、ResolvedLineChannel、TenantSettings。
+ * - 可選正式教會 ID；部署頻道可只有組織，但讀教會設定時必須提供。
+ * - 驗證識別格式，不保存任意 request 或取得資料存取權。
+ * - 只允許有界 ASCII 設定識別，不修剪或接受冒號／路徑，避免租戶字串變成設定路由權限。
+ * - 舊 Processor 先環境，再部署預設，不增加 CRM 組織層。
+ * 主要操作入口包含 RequireIdentifier、GetAccessTokenForLegacyClient、ToString。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Tenancy.Tests/ConfigurationResolverTests.cs、
+ * SpeechMessage.Tenancy.Tests/TenancyCompositionTests.cs、SpeechMessage.Tenancy.Tests/TenantSettingsTests.cs、
+ * LineMessagingProcessor/LineMessagingProcessorClass.cs、SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using LineMessagingProcessor.Core;
 using SpeechMessage.Localization;

@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以與 I18nCheck 相同的非巢狀大括號文法處理具名參數。靜態正則只保存固定文法， 所有值、名稱及 MatchEvaluator 僅存在於一次呼叫，不快取模板、context 或使用者參數。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 NamedTextFormatter。
+ * - 固定文法附一秒逾時；不使用 net10 專屬正則功能，保持 net462 結果一致。
+ * - 先驗證全部參數集合，再以單次 Replace 插入已格式化值；插入值不再次解析。
+ * - 供覆寫候選與實際格式化共用同一份非巢狀參數文法，不保留任何模板或 Match。
+ * - 只計算受限模板的最長 UTF-16 長度，不配置展開後字串，也不重解析插入文字。
+ * 主要操作入口包含 Format、ParameterNames、MaximumLength。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Localization/ChurchTextOverrideValidator.cs、SpeechMessage.Localization/TextCatalog.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

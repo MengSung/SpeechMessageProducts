@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus/LineRichMenuProvisioningWorkflow.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LineRichMenuProvisioningWorkflow
-// 主要成員：SyncAsync、SyncDefinitionAsync、UpsertAliasAsync、CloneForProvisioning、ReadAllBytesAsync
-// 引用命名空間：Line.Messaging
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：將產品提供的 RichMenu catalog 同步到 LINE。 每個定義彼此獨立；單一選單建立、上傳、alias 或 default 設定失敗時，只記錄 Failed item， 不讓整批同步中斷，
+ * 讓管理端可以一次看見完整同步結果。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineRichMenuProvisioningWorkflow。
+ * - 建立 RichMenu catalog synchronization workflow。
+ * - 將 catalog 內所有 RichMenu definition 同步到 LINE provider。
+ * - 同步單一 RichMenu definition。 這個方法封裝 fingerprint 比對、create/upload、alias upsert、default 設定與 cache 更新。
+ * - 建立或更新 LINE RichMenu alias，使穩定 alias id 指向目前版本的 richMenuId。
+ * 主要操作入口包含 SyncAsync、SyncDefinitionAsync、UpsertAliasAsync、CloneForProvisioning、ReadAllBytesAsync。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessorServiceCollectionExtensionsTests.cs、
+ * LineMessagingProcessor.RichMenus.Tests/Provisioning/LineRichMenuProvisioningWorkflowTests.cs、
+ * LineMessagingProcessor.AspNetCore/LineMessagingProcessorServiceCollectionExtensions.cs、
+ * LineMessagingProcessor.RichMenus/LineRichMenuWorkflow.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Line.Messaging;
 
 namespace LineMessagingProcessor.RichMenus;

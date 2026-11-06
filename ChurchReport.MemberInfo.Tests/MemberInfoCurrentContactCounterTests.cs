@@ -1,3 +1,17 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以假SDK確認目前會友計數只送出一次aggregate查詢並採伺服器計數，不下載整份名單計算。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MemberInfoCurrentContactCounterTests、RecordingOrganizationService。
+ * 測試案例入口包含 Count_UsesOneAggregateFetchAndReturnsTheServerCount、RetrieveMultiple、Create、Update、Delete、Retrieve、
+ * Execute、Associate；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Services.MemberInfo;
 using FluentAssertions;
 using Microsoft.Xrm.Sdk;

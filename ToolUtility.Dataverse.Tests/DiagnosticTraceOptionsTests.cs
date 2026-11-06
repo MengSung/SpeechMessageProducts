@@ -1,11 +1,30 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility.Dataverse.Tests/DiagnosticTraceOptionsTests.cs
-// 檔案責任：驗證三種診斷檔案共用的設定契約，以及停用時不建立任何檔案資源。
-// 維護重點：這些測試保護 Release fail-closed 與 Debug 單一設定入口；不可把
-//           request、Session、使用者輸入或租戶值帶入輸出目錄。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與最終 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證統一診斷設定與停用 tracer 的副作用契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DiagnosticTraceOptionsTests。
+ * - 保護未提供 SessionVerbose 組態時的低雜訊安全預設；故障注入是保留一般 Trace 啟用值但刻意省略 SessionVerbose，決定性斷言是一般 Trace 仍可啟用而 Session 詳細診斷必為 
+ * false，避免預設保留任何高頻 Session 相關輸出。
+ * - 保護 Debug 組合根可明確啟用 Session 詳細診斷的組態契約；故障注入是將整體 Trace 設為 false 而 SessionVerbose 設為 true，決定性斷言是兩個開關各自保留 設計值，證明 
+ * Session 詳細診斷不再被整體 writer 開關意外耦合。
+ * - 保護 Release 的 fail-closed 邊界不可被部署組態繞過；故障注入是同時要求啟用 一般與 Session 詳細診斷但傳入 allowEnabled=false，決定性斷言是兩者皆為 false， 
+ * 因而不會在不允許的組建保留跨請求 Session 診斷輸出。
+ * - 保護明確停用的組合根不讀取或保留 Session 詳細診斷狀態；故障注入是直接建立 CreateDisabled 設定，決定性斷言是一般與 Session 開關均為 false，確保此純值物件 不會擁有或延長任何 
+ * writer、Session、使用者或租戶資料的生命週期。
+ * 測試案例入口包含 Session_verbose_defaults_to_false_when_configuration_omits_key、
+ * Session_verbose_reads_true_when_allowed_even_if_general_trace_is_disabled、
+ * Session_verbose_is_forced_off_when_release_boundary_disallows_diagnostics、
+ * Create_disabled_never_enables_session_verbose_diagnostics、
+ * Disabled_options_use_one_directory_for_all_trace_files、Null_tracer_does_not_create_file_or_global_listener、
+ * Disabled_file_tracer_does_not_open_file_or_register_listener、
+ * Dataverse_options_are_derived_from_unified_diagnostic_options；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

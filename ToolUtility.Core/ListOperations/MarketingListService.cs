@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保留原Repository讀取與SDK寫入路徑的純行銷名單服務；不保存查詢結果或request，也不輸出成員ID／例外本文。 host先驗完整subject／organization／教會及名單授權，
+ * 再借入同scope依賴；格式正確的ID不構成權限。 完整投影及寫入最多5000列，單頁最多5000列；候選完整驗證才發布，不按名稱合併或跳漏不合法成員。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MarketingListService。
+ * - 借用同一已授權scope的repository與SDK；不接管連線、logger或Dispose所有權。
+ * - 保持AllColumns、listid條件與repository路徑；整頁先驗，保留舊失敗包裝層及原InnerException，不洩漏原本文。
+ * - 完整讀完同repository各頁後才投影entityid；保留Guid並接受SDK正式EntityReference，缺／空／重複成員拒絕。
+ * - 保留AddMemberListRequest原生關聯加入，正式名單／成員ID先驗，真正故障向host傳遞原Exception。
+ * 主要操作入口包含 RetrieveMembersByListId、GetAllMemberData、AddMember、AddMembersAsync、AddMembersUsingSdkAsync、
+ * RemoveMember、RemoveMembersAsync、MemberQuery；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、ToolUtility.Tests/DataOperations/ListCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/ListLifecycleTests.cs、ToolUtility.Tests/DataOperations/ListSafetyTests.cs、
+ * ToolUtility.Tests/EntityOperations/RepositoryCallerRouteTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 #nullable enable
 using System;
 using System.Collections;

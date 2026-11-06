@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：生日等純年月日值；不帶時區、offset 或 UTC 語意，兩產品共用以避免 net462 缺 DateOnly。 只能從明確年月日或 Unspecified 午夜建構，禁止把瞬間偷偷截成日期；不含個資、
+ * owner 或外部參照。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchDate。
+ * - 只保存 Unspecified 午夜純值；default 為有效的 0001-01-01，不含動態或共享狀態。
+ * - 依 Gregorian 年月日驗證有效性；不存在的閏日直接拒絕，不移到次月。
+ * - 由已確認 DateOnly 語意的 Unspecified 午夜建立；拒絕有時間或 UTC／Local 的值。
+ * - 回傳 Unspecified 午夜供舊 API／格式化使用；這不是可丟進時區轉換的 UTC 瞬間。
+ * 主要操作入口包含 FromDateOnly、ToDateTime、Equals、GetHashCode。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Localization.Tests/ChurchClockTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 
 namespace SpeechMessage.Localization

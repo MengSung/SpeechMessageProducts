@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：升級前先執行既有三個正常化 sink，涵蓋四條上傳路徑與另外三個縮圖方法。 樣本全部為記憶體合成的四色圖，期待尺寸、方向、像素及大小範圍由人工推導， 不以編碼後的位元組或 ImageSharp 
+ * 自己的轉向結果當作黃金答案，且完全不連 CRM。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ImageUploadCharacterizationTests、ImageFixture、ImageToolUtilityProvider、ImageServiceProxy、ImageContextProxy、
+ * ImageUploadAttempt。
+ * - 四條上傳路徑各測三種允許格式及 EXIF；偽裝 WebP 改由安全拒絕案例保護；GIF 不承載 EXIF，另保護其不旋轉行為。
+ * - 鎖住既有 JPEG90、AutoOrient 與會友補白邊規則；新版本容許編碼位元組不同， 但九宮格中心的四色必須在容差內一致，EXIF 不得造成二次旋轉。
+ * - 三個影像讀取縮圖方法也受套件升級影響；保留既有裁切、等比縮放與 JPEG 品質效果。
+ * - 三個既有縮圖方法遇到無法解碼的內容，都回傳原始陣列且不向頁面拋錯； 此測試鎖住回退契約，後續安全限制拒絕其他格式時仍必須維持相同行為。
+ * 測試案例入口包含 Upload_AllowedFormats_MatchGoldenAfterUpgrade、Thumbnail_AllowedFormats_PreserveDimensionsPixelsAndSize、
+ * Thumbnail_CorruptContent_ReturnsOriginalWithoutThrowing、Thumbnail_SmallImageAndExif_KeepExistingBehavior、
+ * AssertColors、Thumbnail、CreateSample、NormalizeThroughExistingPath；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using ChurchReport.Controllers;

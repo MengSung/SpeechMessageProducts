@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證委身類型的設定順位、未知／空值區段及穩定次排序，含反向排序仍保留特殊區段位置。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MemberInfoCommitmentTypeSortTests。
+ * 測試案例入口包含 OrderRows_Ascending_UsesConfiguredRankThenUnknownThenEmpty、
+ * OrderRows_Descending_ReversesConfiguredRanksOnly、OrderRows_SameRankUsesOrdinalNameThenCaseInsensitiveContactId、
+ * OrderRows_NullInputReturnsEmptyList、BuildSegments_UsesConfiguredSequenceAndKeepsUnknownAndEmptyLast、
+ * BuildSegments_DescendingReversesOnlyConfiguredSegments、
+ * BuildSegments_DeduplicatesConfiguredValuesAndClampsCounts、PlanSlices_CrossesConfiguredUnknownAndEmptySegments；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.ViewModels.MemberInfoTree;
 using FluentAssertions;

@@ -1,16 +1,23 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorNamingTests.cs
-// 所屬區塊：ChurchReport 會員、付款與 LINE 共用流程的測試專案，用來固定產品層行為與回歸案例。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class DonationPaymentProcessorNamingTests
-// 主要成員：New_donation_payment_processor_exists_as_primary_product_workflow_processor、Legacy_qpay_processor_alias_should_not_remain、Donation_payment_processor_constructors_require_neutral_gateway_create_adapter
-// 引用命名空間：System.Reflection、ChurchReport.Payments、FluentAssertions、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：確認 ChurchReport 的奉獻付款 processor 已經使用 DonationPayment 命名。 DonationPaymentProcessor 是 ChurchReport 
+ * 產品層的付款後流程處理器， 會處理 CRM fee、奉獻收據、LINE 通知與頁面回傳。這些都不是永豐 QPay 協定本身。 因此 processor 不能再提供 QPayProcessor alias，否則未來高鉅、
+ * 台新或其他產品共用流程時， 會看起來像是所有付款都必須經過永豐 QPay。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentProcessorNamingTests。
+ * - 保護奉獻付款後流程的中性處理器入口。 以完整名稱查詢實際產品組件，讓刪除或錯誤搬移型別確實造成失敗；斷言處理器存在，不呼叫銀行、CRM 或 LINE。
+ * - 保護舊供應商處理器相容包裝已移除的架構契約。 在已載入的產品組件查詢舊型別，模擬未來誤加回舊入口；斷言不存在，不能因組件查詢失敗而假綠燈。
+ * - 保護產品處理器必須注入中性付款建立轉接器。 反射實際公開建構式，偵測移除依賴或把依賴改為可選參數的退化；斷言轉接器參數存在且沒有預設值。
+ * 測試案例入口包含 New_donation_payment_processor_exists_as_primary_product_workflow_processor、
+ * Legacy_qpay_processor_alias_should_not_remain、
+ * Donation_payment_processor_constructors_require_neutral_gateway_create_adapter。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Reflection;
 using ChurchReport.Payments;
 using FluentAssertions;

@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Tools/ReplyUtility.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class ReplyUtility
-// 主要成員：CreateDefaultReplyWorkflow、EchoAsyncProcessor、ReplyMessage、ReplyMessageAsync、EchoAsync、PostSerializedConfirm、PostSerializedImageMap、EchoImageAsync、UploadMediaContentAsync、ReplyRandomStickerAsync
-// 引用命名空間：Line.Messaging、Line.Messaging.Webhooks、LineMessagingProcessor、LineMessagingProcessor.Workflows、System、System.Collections.Generic、System.Drawing、System.Linq
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：將ChurchReport的回覆、群組／聊天室成員顯示資料與既有訊息處理轉接到LINE processor及共用reply workflow，避免控制器自行組裝provider呼叫；實例須沿注入的頻道範圍使用。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ReplyUtility。
+ * - 產品流程只需要提供 LINE client 與共用 reply workflow 時使用的建構式。 直接 new LineMessagingProcessorClass 的 adapter 建立細節留在 
+ * ReplyUtility 內部， 避免 ChurchReport 的付款、奉獻、控制器流程到處知道 processor adapter 的建立方式。
+ * - ChurchReport 的 reply-token 發送集中點。 所有 helper 都走共用 LINE reply workflow，讓 product code 不再直接呼叫 LINE reply SDK。
+ * 主要操作入口包含 CreateDefaultReplyWorkflow、EchoAsyncProcessor、ReplyMessage、ReplyMessageAsync、EchoAsync、
+ * PostSerializedConfirm、PostSerializedImageMap、EchoImageAsync；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/LineUtilityClassWorkflowTests.cs、
+ * ChurchReport.MemberInfo.Tests/ReplyUtilityGroupRoomProfileAdapterTests.cs、
+ * SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Line.Messaging;
 using Line.Messaging.Webhooks;
 using LineMessagingProcessor;

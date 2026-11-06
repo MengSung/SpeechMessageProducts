@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證集合服務的 caller 範圍、取消、借用 SDK 與可回收參照。 測試自己擁有的 task 以 WhenAll 排空；同步關卡使用 using 釋放，沒有真連線或持久狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CollectionLifecycleTests。
+ * - 兩個已授權 SDK scope 並行 1000 次，故障明確重試後回傳本 scope 的完整獨立結果。 斷言相同顯示名的不同 ID 保留、修改 caller 清單不污染其他結果、active=0 且借用 SDK 未被 
+ * Dispose。
+ * - Dispose 不搶走進行中 SDK 所有權；舊操作可排空，新入口立即拒絕，無 timer／registration 殘留。
+ * - 保持服務存活仍可回收相容 logger；Dispose 後借用 SDK 可回收，不僅驗證私人欄位是否為 null。
+ * - 僅測試執行有界完整 GC；不以記憶體總量單點代替可達性，也不新增產品端清理接口。
+ * 測試案例入口包含 ParallelScopes_MutationAndFailureRetryDrainWithoutCrossTalk、
+ * DisposeDuringIo_ExistingOperationDrainsAndNewOperationFails、LoggerAndDisposedSdk_AreCollectible、Collect、
+ * ExplicitPageNumber_WorksWithoutCookieAndPreservesMetadata、PageBoundsAndMismatch_RejectBeforeIo、
+ * InputBudget_DisposesEnumeratorWithoutIo、PageBudget_StopsUnboundedContinuation。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Runtime.CompilerServices;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

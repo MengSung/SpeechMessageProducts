@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Diagnostics/TraceLogger.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案提供 legacy 私有 writer 與效能計時器；不得註冊全域 Trace listener。
-// 主要型別：interface ITraceLogger、class TraceLogger、class PerformanceMonitor
-// 主要成員：Write、WriteLine、WriteError、Dispose、Stop
-// 引用命名空間：System、System.Diagnostics、System.IO、System.Text
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：使用延遲初始化私有 Big5 writer 的 legacy 程序級追蹤器。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ITraceLogger、TraceLogger、PerformanceMonitor。
+ * - 加上本機時間戳後寫入一行追蹤訊息；停用或已釋放時為空操作。
+ * - 將例外型別、訊息與堆疊寫入診斷檔；呼叫端須先確保內容不含敏感資料。
+ * - 停止後續寫入並確定性 Flush/Dispose 私有 writer 與 stream；方法必須冪等。
+ * - 建立預設停用的相容 logger；此建構式不推測路徑，也不建立任何檔案資源。
+ * 主要操作入口包含 Write、WriteLine、WriteError、Dispose、WritePrivate、CreateFileStream、IsCompileTimeTraceEnabled、Stop。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/DiagnosticTraceOptionsTests.cs、
+ * SpeechMessageProducts.ChurchReport/Logging/TraceLoggerProvider.cs、
+ * SpeechMessageProducts.ChurchReport/Middleware/PerformanceMonitoringMiddleware.cs、
+ * SpeechMessageProducts.ChurchReport/Services/Performance/PerformanceMonitor.cs、
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Diagnostics;
 using System.IO;

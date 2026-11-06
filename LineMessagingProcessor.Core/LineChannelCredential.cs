@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：單次送訊由呼叫端提供的不可變憑證值；不自行解析教會或保存到共用客戶端。 呼叫端決定最長生命週期，字串無法保證清零，因此禁止快取、序列化或記錄此值。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineChannelCredential。
+ * - 驗證標頭所需的非空 ASCII token；錯誤只提供固定原因，絕不回顯輸入。
+ * - 只供當次組合 Authorization 使用，不向結果、全域標頭或診斷傳遞。
+ * 主要操作入口包含 ToString。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.Tests/LinePushClientTests.cs、LineMessagingProcessor.Core/ILinePushClient.cs、
+ * LineMessagingProcessor.Core/LinePushClient.cs、
+ * SpeechMessage.Dynamics.Plugins/Diagnostics/DiagnosticsPingPlugin.cs、SpeechMessage.Tenancy/TenancyModels.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 
 namespace LineMessagingProcessor.Core;

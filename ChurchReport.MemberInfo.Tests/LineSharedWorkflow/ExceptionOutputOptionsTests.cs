@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以真實檔案與假 sender 驗證啟動設定的四種輸出組合，避免停用後仍有 I/O 副作用。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ExceptionOutputOptionsTests。
+ * - 經 JSON 組態解析後輸出僅限所選目的地；雙開 sender 必須看得到相同紀錄且同例外不重複。
+ * - 缺省維持兩者開啟；無效布林拒絕啟動，不把錯字解釋為靜默關閉。
+ * - 只開 LINE 時 sender 故障與關機剩餘佇列只用固定 stderr，不能意外建立 Exception.log。
+ * 測試案例入口包含 Selected_outputs_are_independent_and_both_write_before_sending、
+ * Missing_options_default_on_and_invalid_boolean_is_rejected、
+ * Line_only_failure_or_undrained_queue_never_creates_log。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Extensions.Configuration;
 using ToolUtilityNameSpace.Diagnostics;
 using Xunit;

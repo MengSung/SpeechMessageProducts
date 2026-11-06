@@ -1,16 +1,24 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/HappyGroupDataManager.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
-// 主要型別：class HappyGroupDataManager
-// 主要成員：SetupHappyGroupData、InitialHappyGroupData、AddActiveHappyGroup、AddWeeklyReport、AddBest、GetHappyGroupWeeklyReportListClass、GetHappyGroupWeeklyReportListClassByWeeklyReportId、WeeklyReportOrBest、UpdateActiveHappyGroup、UpdateMasterActiveHappyGroup
-// 引用命名空間：System、ToolUtilityNameSpace、ToolUtilityNameSpace.DependencyInjection、Newtonsoft.Json、System.Collections.Generic、ChurchReport.WebServiceConnector、Newtonsoft.Json.Linq
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：幸福小組資料管理類別 負責處理幸福小組相關的業務邏輯 使用 Dependency Injection 模式注入 ToolUtilityClass
+ *
+ * 主要功能與流程：
+ * 本檔宣告 HappyGroupDataManager。
+ * - 無參數建構函式 (向後相容，但不建議使用) 此建構函式為了相容舊程式碼而保留，新程式碼應使用帶參數的建構函式
+ * 主要操作入口包含 SetupHappyGroupData、InitialHappyGroupData、AddActiveHappyGroup、AddWeeklyReport、AddBest、
+ * GetHappyGroupWeeklyReportListClass、GetHappyGroupWeeklyReportListClassByWeeklyReportId、WeeklyReportOrBest；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/InMemoryDataContextSmallGroupCacheIsolationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Private.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/ListManagementController.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.DependencyInjection;

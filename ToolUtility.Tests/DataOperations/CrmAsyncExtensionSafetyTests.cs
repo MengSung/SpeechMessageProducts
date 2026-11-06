@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：SDK async facade的身份、批次發布、取消與查詢物件所有權測試；只替換同步SDK邊界，不代表實機CRM效能。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 CrmAsyncExtensionSafetyTests。
+ * - 回傳字典只以Guid為key，重複輸入ID（含跨實體）必須在SDK前拒絕，不能由後寫覆蓋前寫。
+ * - 並行度須落在固定上限內，空／重複／錯表／錯ID回應不得發布入字典。
+ * - 任一SDK回應的logical name與Id必須完全對應本次請求，不能用別表同Guid污染結果。
+ * - 分頁查詢在成功或錯誤都還原caller的PageInfo物件與值，並跨頁拒絕重複穩定ID。
+ * 測試案例入口包含 ParallelRetrieve_RejectsDuplicateIdentityBeforeIo、ParallelRetrieve_RejectsUnboundedConcurrency、
+ * ParallelRetrieve_RejectsWrongReturnedEntity、RetrieveAll_RestoresCallerPagingAndRejectsDuplicateAcrossPages、
+ * RetrieveAll_FailureRestoresCallerPagingAndPreservesException、
+ * BatchRetrieve_RejectsDuplicateRowsAndOversizedInput、SingleOperations_PreserveCancellationOwnership、
+ * CallerCancellationDuringIo_DoesNotPublishResponse；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Xrm.Sdk;
 using System.Runtime.CompilerServices;
 using Microsoft.Xrm.Sdk.Query;

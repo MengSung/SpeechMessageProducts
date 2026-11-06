@@ -1,3 +1,28 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：Keyed、bounded、可觀測的 client pool。 每個 client 由本 pool 建立並在閒置逾時、故障或 pool 關閉時最終 Dispose；租約 Dispose 只回報狀態並歸還 
+ * semaphore，故不會讓短命 request 釋放長命 pooled client。子池以完整 DataverseConnectionKey 分割，並在每次歸還前清除可辨識的呼叫者身分，防止跨 request、使用者、
+ * profile、tenant 或環境重用可變連線狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 BoundedClientPool、SubPool、ClientLease。
+ * - 已保留名額但尚未完成建立的 client 數量，由 Sync 保護。 建線移到鎖外之後，這個計數是避免多執行緒同時為同一個缺口重複建線的唯一依據。
+ * - 連線池快照的最小輸出間隔。與 DataverseTraceOptions.SnapshotInterval 的預設值 一致；此處獨立保存，是為了讓 pool 不必依賴 Trace 的組態物件而仍能自行節流。
+ * - 建立 keyed pool。factory 是唯一的 client 建立點；healthCheck 只執行 WhoAmI 類健康驗證。 Timer 只選取閒置 client，真正的網路或 Dispose I/O 
+ * 一律在子池鎖外執行，避免阻塞租借； beforeCleanupDispose 僅供受控協調／測試在銷毀前建立交錯點，例外會被 忽略，且不改變 pool 對 client 的唯一所有權與淘汰決策。
+ * - 依完整隔離鍵取得唯一 lease。此方法在 semaphore 容量內等待，並只把已成功轉為 Leased、通過必要健康檢查的 client 交給呼叫端；超時、取消或健康失敗不會讓同一條 client 同時交給其他 
+ * request，故障 client 會被淘汰而非重用。
+ * 主要操作入口包含 MarkFaulted、Dispose、Acquire、GetMetrics、CleanupIdleClients、EmitPoolSnapshotIfDue、EnsureMinimum、
+ * CreateClient；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/BoundedClientPoolTests.cs、ToolUtility.Dataverse.Tests/DataverseTraceTests.cs、
+ * ToolUtility.Tests/DependencyInjection/ProductRegistrationTests.cs、
+ * ToolUtility/Dataverse/DataverseConnectionManager.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以原 SDK ownerid／AssignRequest 處理已授權的單筆資料；不保存實體、logger 或使用者可變狀態。 實例限於 SDK 原授權 scope；借入連線、憑證與 Dispose 由 host 
+ * 擁有，不建立背景工作。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 OwnerManagementService。
+ * - 保留舊建構及 null 拒絕；未用 logger 不保存，SDK 僅借用且不在服務內 Dispose。
+ * - 只讀操作獨占實體的 ownerid；缺值沿用 Guid.Empty，不呼叫 SDK 或保存 EntityReference。
+ * - 回傳既有 owner 顯示名稱或空字串；名稱不是 ID、授權或跨記錄去重鍵。
+ * - 保留 systemuser 指派語義；目標實體一致、兩個 ID 非空才 Execute 一次。 原例外直接交 caller，不包裝、回顯個資或重試寫入，也不修改 caller 的 Entity。
+ * 主要操作入口包含 GetOwnerId、GetOwnerName、AssignOwner。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/MutationOperationsCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/MutationOperationsSafetyTests.cs、
+ * ToolUtility.Core/EntityOperations/EntityRepository.cs、ToolUtility/Core/ToolUtilityFacade.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;

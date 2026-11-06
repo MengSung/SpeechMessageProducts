@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：附件固定錯誤、正式識別／parent、容量與生命週期的安全契約。 所有資料為合成值；只替代 SDK I/O，不讀組織容量或假稱這是 D365 實機／授權證據。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 AttachmentSafetyTests。
+ * - SDK自身參數例外或逾時均保存同一InnerException，固定外層不回顯名稱、ID、時間或原訊息。
+ * - 無法確認輸入scope或內容的請求在SDK前拒絕，沿用舊操作包裝但保存真正參數例外。
+ * - 只在完整頁的正式annotation ID與parent都有效時發布；衝突不裁剪、不補值或生成ID。
+ * - 寫入狀態不確定的空Create ID必須拒絕，不盲目重試或回報void成功。
+ * 測試案例入口包含 SdkFailure_PreservesSameInnerAndFixedMessage、InvalidInput_RejectsWithoutSdk、
+ * Download_InvalidCandidate_RejectsWholePage、Upload_EmptySdkIdentity_RejectsWithoutRetry、
+ * DefaultUploadLimit_RejectsBeforeSdk、ExplicitLimits_EnforceAllBoundaries、
+ * Limits_RejectInvalidConfigurationAndCannotMutate、Download_Base64PaddingAndRawLength_AreValidated；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;

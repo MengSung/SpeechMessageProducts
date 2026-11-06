@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：無狀態的 IOrganizationService 代理。每個方法都透過 Gateway 取得 per-operation lease， 因此即使被 30 分鐘 session cache 持有，
+ * 也不會持有或釋放任何跨 request client。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 GatewayOrganizationService。
+ * - 建立由 request scope 提供 Gateway 的組織服務代理。
+ * - 透過 Gateway 在唯一 lease 中建立關聯；只記錄 entity 名稱與耗時，不含關聯內容。
+ * - 透過 Gateway 建立資料列；軌跡只記 entity 與耗時，絕不寫入欄位值或新建 ID。
+ * - 透過 Gateway 刪除資料列；只輸出 entity 名稱，不含資料列識別碼。
+ * 主要操作入口包含 Associate、Create、Delete、Disassociate、Execute、Retrieve、RetrieveMultiple、Update。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/DataverseTraceTests.cs、ToolUtility.Dataverse.Tests/GatewayArchitectureTests.cs、
+ * ToolUtility.Dataverse.Tests/RunCServiceGraphTests.cs、
+ * ToolUtility.Dataverse.Tests/StartupOrganizationServiceProfilingTests.cs、
+ * SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/RequestProfiler.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;

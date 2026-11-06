@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以假檔案保護產出可編譯性、舊編碼唯讀盤點與 XML／方案輸入邊界，不接觸外部服務。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 InputIntegrityTests。
+ * - 把包含引號、反斜線、多行及參數的真實產出交給 C# 編譯器，避免只比字串的假綠燈。
+ * - 專案 XML 的 DTD 即使只有內部假實體也必須拒絕，避免隱含實體展開或外部解析。
+ * - 方案的父路徑參照在開檔前失敗，不因父 worktree 剛好有同名專案而讀到舊來源。
+ * - 重複檔案身分不能靠字典覆寫或總數相抵隱藏；讀取基準時必須直接拒絕。
+ * 測試案例入口包含 Generate_EscapedResourceRows_CompileWithoutErrors、Cli_ProjectDtd_IsRejectedBeforeScan、
+ * Cli_ExternalProjectPath_IsRejected、Cli_DuplicateBaselineFileIdentity_IsRejected、
+ * Scan_Cp950Source_DecodesWithoutMutation、Resx_InvalidKeyBoundaries_AreRejected。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

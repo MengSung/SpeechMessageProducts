@@ -1,3 +1,28 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：對實際 ContactService 注入已污染／過期的帳號快取，證明本次帳密核對必須直接讀原授權 SDK。 所有帳號、密碼、資料庫 ID 均為合成，結果只活於本案例；SDK 替身不連網，cache 
+ * 替身模擬先前命中。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ContactAuthenticationIsolationTests。
+ * - 缺失密碼不能因SDK有同為null/空的欄位而變成登入成功；只作業務拒絕，不查SDK或污染cache。
+ * - 舊LINE/姓名鍵缺完整已授權scope且回傳mutable Entity，不能只把密碼入口修掉就保留其他串用通道。 注入其他subject的污染cache；兩個讀取均須忽略cache、
+ * 回本SDK的新資料且明確caller取消前不I/O。
+ * - 成功、密碼錯誤與密碼變更均不能重用之前已核對的 Entity；每次進 SDK、完全不讀寫快取。
+ * - 真正 SDK 故障不得從先前快取回成功；保留同一原始 Exception，讓最終 host 告警取得真實故障。
+ * 測試案例入口包含 MissingPassword_NeverAuthenticatesAnUnsetSecret、
+ * OtherContactLookups_DoNotReuseUnpartitionedIdentityCache、
+ * AccountLookup_AlwaysChecksCurrentPasswordInOriginalSdkScope、
+ * AccountLookup_SdkFailureCannotFallBackToCachedAuthenticatedContact、
+ * AccountLookup_InternalCancellationRemainsOriginalFault、
+ * AccountLookup_CancellationNeverPublishesAuthenticationResult、
+ * ParallelScopes_SameAccountCannotReuseAnotherSubjectsAuthentication、PoisonedCache；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;

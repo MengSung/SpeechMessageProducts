@@ -1,19 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Diagnostics/SessionDiagnosticsSwitch.cs
-// 所屬區塊：ChurchReport Session 隔離診斷與效能量測保護層。
-// 檔案責任：提供一個只承載程序級診斷旗標的 Debug-only 開關，讓 Session GUID、
-//           BoundUserId、X-Forwarded-For、User-Agent 與快取 key 組成細節等逐步除錯輸出，
-//           在不刪除原始診斷程式碼的前提下預設完全停用。
-// 安全與隔離不變量：此型別只保存一個 volatile Boolean；不得加入 request、Session、
-//           使用者、租戶、credential、token、traceId 或任何可變請求資料。開關切換只改變
-//           是否允許輸出，不得改變 Session key、指紋、dirty flag 或任何商業邏輯結果。
-// 效能不變量：預設 false 時，呼叫端只需一次 volatile read，且不得建立 writer、同步磁碟
-//           I/O、背景工作或無界集合；因此量測工具不會把逐步診斷成本混入 request phase。
-// 編譯防線：#if DEBUG 使正式 Release 不包含此診斷旗標；Release 組態由編譯器移除呼叫端
-//           的輸出實作，外部設定不得繞過這個第二層停用保護。
-// 編碼要求：本檔案需維持 UTF-8 without BOM、CRLF 與最終 CRLF。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：控制 Session 隔離除錯訊息是否可進入 System.Diagnostics.Debug 輸出管線。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SessionDiagnosticsSwitch。
+ * - 取得或設定是否允許逐步 Session 診斷輸出；預設停用以避免量測污染與敏感資料留存。
+ * 資料／選項欄位包含 SessionDiagnosticsSwitch、Enabled，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Dataverse.Tests/SessionDiagnosticsSwitchTests.cs、
+ * SpeechMessageProducts.ChurchReport/Models/InMemoryDataContextSmallGroup.cs、
+ * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ */
 #if DEBUG
 namespace ChurchReport.Diagnostics
 {

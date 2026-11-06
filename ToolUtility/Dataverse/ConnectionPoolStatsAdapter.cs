@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：將新的 Dataverse pool metrics 映射為舊有 Controller 契約的唯讀相容層。 16 個 Controller 仍可注入 ICrmConnectionPool，但本 adapter 
+ * 不會 暴露 raw client；舊式取得、歸還與驗證 API 一律拒絕，避免繞過 Gateway 的 lease 邊界。 此型別是 Singleton，僅保存 manager 參考，不擁有或釋放 manager、pool 
+ * 或 client。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ConnectionPoolStatsAdapter。
+ * - 建立 metrics 相容層；manager 的生命週期由 DI Singleton 擁有。
+ * - 舊式 raw client 入口已由 Gateway 取代，明確拒絕以防止繞過隔離與清理契約。
+ * - 舊式 raw client 歸還入口已停用；lease 的歸還只能由 Gateway／pool 內部完成。
+ * - 將新 pool 的計數映射成既有診斷端點使用的 ConnectionPoolStats。 映射只複製數值，不保存任何 client、租約、身分或 request 資料。
+ * 主要操作入口包含 AcquireConnection、ReleaseConnection、GetStats、ValidateConnection、Dispose。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace.ConnectionOperations;

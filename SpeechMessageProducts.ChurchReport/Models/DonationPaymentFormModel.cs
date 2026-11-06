@@ -1,16 +1,31 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/DonationPaymentFormModel.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
-// 主要型別：class DonationPaymentFormModel
-// 主要成員：EnsureFormDefaults、NeedsDonorIdentityRestore、FullName、Mobile、DedicationNumber、NationId、DedicationDate、BankName、SerialNumber、LastSixDigit
-// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先確認金額、訂單編號、付款狀態、provider profile、callback acknowledgement 與錯誤訊息是否跨層保持一致。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：ChurchReport 奉獻付款頁面使用的「產品層表單狀態」。 這個類別只描述 ChurchReport 畫面與奉獻流程需要暫存的資料，例如奉獻者姓名、奉獻編號、 奉獻類別、付款方式、信用卡清單、定期定額清單、
+ * 查詢日期等。它不是永豐 QPay 的協定模型， 也不是高鉅、台新或 LINE Pay 的 provider DTO。 重構前這個類別叫做 QpayModel，但那個名稱會讓人誤會整個奉獻付款流程都屬於永豐。 新名稱 
+ * DonationPaymentFormModel 明確表示：這是 ChurchReport 奉獻付款表單資料， 真正的銀行協定資料應該留在 SpeechMessage.Payments 的 provider 實作內。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentFormModel。
+ * - 確保奉獻頁面 render 時一定有可用的基本表單資料。 DonationPaymentFormModel 目前會被 DonationPaymentManager 當作長生命週期狀態重複使用， 舊流程或 CRM 
+ * 查詢失敗時可能把下拉選單清成 null 或空集合。 Controller 在回傳 View 前呼叫此方法，可以讓畫面至少保有可操作的奉獻類別與付款方式， 再由 CRM/LINE 初始化流程補上更完整的個人資料與選項。
+ * - 將目前類別對帳回 CRM 提供的可選清單，避免不同教會的 OptionSet 造成畫面選取值失效。 只回傳清單中的原始字串，不接受瀏覽器自行捏造的類別文字作為預設值。
+ * - 判斷奉獻頁是否缺少從 CRM contact 帶出的奉獻者識別資料。 這個方法刻意只檢查「姓名」與「奉獻編號」兩個畫面上必須顯示的欄位： - 下拉選單空白可以由 EnsureFormDefaults 補安全預設值。 - 
+ * 姓名、奉獻編號、信用卡清單則必須回到 CRM contact 重新初始化，不能用假資料補。 Controller 透過這個判斷決定是否要用 Session 裡保存的 contact id 重新呼叫 
+ * DonationPaymentManager.SetDonationPaymentModel(...)。
+ * - 多類別奉獻明細。空集合表示呼叫端仍使用相容的單一 Category／Amount／Others 欄位。 這個集合只屬於目前表單物件，禁止放入 static 或跨請求快取，以免會友資料互相洩漏。
+ * 主要操作入口包含 EnsureFormDefaults、ResolveCategoryAgainstList、FindCategoryInList、NeedsDonorIdentityRestore、
+ * CloneForLine。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Dedication/DonationMultiCategoryTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelMapperTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorKeyInNotificationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

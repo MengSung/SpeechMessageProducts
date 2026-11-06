@@ -1,3 +1,26 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護正式環境錯誤落檔、通知隔離及有限生命週期。使用測試專用目錄與可取消 sender， 絕不讀取部署憑證或呼叫真實 LINE；每個測試自行釋放 owner 後才刪除目錄。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ExceptionDiagnosticsTests。
+ * - 以檔案占用應為目錄的位置注入磁碟錯誤；落檔失敗時不得開始 LINE 發送。
+ * - 阻塞 sender 後灌入超過容量的故障；每筆先落檔，佇列满留下狀態，關機取消後回基準。
+ * - 注入含機密內容的例外；日誌與告警只含定位 metadata，重複通報同一實例一次。
+ * - LINE 失敗只落本地且 consumer 可繼續；正常取消排除，但未取消的逾時仍記錄。
+ * 測試案例入口包含 Failed_file_write_prevents_line_delivery、Saturation_keeps_all_file_records_and_shutdown_cancels_sender、
+ * Report_writes_file_before_notification_and_deduplicates_without_sensitive_values、
+ * Notification_failure_is_logged_without_recursion_and_timeout_is_actionable、
+ * Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release、
+ * Reader_blocked_write_preserves_evidence_and_retries_without_false_notification、
+ * Canceled_internal_timeout_with_active_caller_is_logged_and_notified、
+ * Concurrent_reports_rotate_with_bounded_storage_and_release_handles。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ToolUtilityNameSpace.Diagnostics;

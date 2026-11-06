@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：管理單一命令的本機檔案邊界與所有權；禁止外部路徑、重新解析點及過大輸入。 寫入只持有同目錄的唯一暫存檔，成功原子替換，失敗 finally 清除，不保留串流或背景工作。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LocalFiles。
+ * - 單一來源最大十六 MiB，限制惡意或誤選的大檔造成無界記憶體保留。
+ * - 正規化相對路徑後確認仍在明確選定的 repo 內，不接受父 worktree 檔案。
+ * - 在配置記憶體前拒絕過大檔與重新解析點，不在錯誤訊息輸出來源內容。
+ * - 讀取既有來源；UTF-8 失敗才以嚴格 CP950 盤點，不改寫舊來源編碼。
+ * 主要操作入口包含 Resolve、CheckFile、ReadSource、ReadXml、WriteAtomic。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck.Tests/InputIntegrityTests.cs、tools/I18nCheck/CommandRunner.cs、
+ * tools/I18nCheck/LengthLimits.cs、tools/I18nCheck/RepositoryScanner.cs、tools/I18nCheck/ResourceCatalog.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;

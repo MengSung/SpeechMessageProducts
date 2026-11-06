@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在 FeeService 尚未搬移前鎖定現行有效查詢與結果傳遞。 全部使用合成教會資料與獨立 SDK 替身；不連 D365，不將空實作視為正確業務。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 FeeCharacterizationTests。
+ * - 保護奉獻查詢的欄位、排序、聯絡人與分類條件；注入同名但不同 ID 的資料， 決定性斷言為實際 FetchXML 符合黃金檔且兩筆合法記錄均完整保留。
+ * - 保護日期區間查詢的既有付款狀態白名單與含端點日期條件；注入固定日期和空結果， 斷言完整 XML 而非只比對片段，且空集合來自 SDK 而非服務自行製造。
+ * - 保護 SDK 失敗不被改成空集合或成功；注入同一例外實例， 斷言原始例外與呼叫次數，讓最終 host 能以同一事件交給共用通知入口。
+ * - 建立無機密的兩筆合法同名資料；每案重新配置集合，防止測試間共享可變 Entity。
+ * 測試案例入口包含 RetrieveDedicationFee_ExistingImplementation_MatchesGoldenAndPreservesSameNameRows、
+ * RetrieveDedicationFeeByDateRange_ExistingImplementation_MatchesGolden、
+ * RetrieveDedicationFee_SdkFails_PropagatesOriginalException、CreateSameNameRows。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Globalization;
 using Microsoft.Xrm.Sdk;

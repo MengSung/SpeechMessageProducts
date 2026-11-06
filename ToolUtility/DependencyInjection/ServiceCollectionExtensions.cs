@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/DependencyInjection/ServiceCollectionExtensions.cs
-// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class ServiceCollectionExtensions
-// 主要成員：AddToolUtility
-// 引用命名空間：Microsoft.Extensions.DependencyInjection、System
-// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：產品級 ToolUtility 組合根；產品與組態只能由受信任的 host 提供，不能來自 request。 一個容器只屬於一個產品，manager／pool 是容器擁有的 singleton，資料操作維持 
+ * scoped。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ServiceCollectionExtensions、ProductRegistration。
+ * - 註冊 ToolUtility 服務到 DI 容器 ToolUtilityClass 與其 Provider 都使用 Scoped 生命週期；每個 request 取得自己的 Dataverse 連線租約，request 
+ * 結束時由 DI 確定性釋放。
+ * - 以明確的產品與組態註冊資料服務，讓實際 DataverseConnectionKey 包含正確產品。 組態只活至 host 容器結束，不保存 HttpContext、Session 或個別使用者值。 
+ * 同一容器的衝突產品／組態會在任何新增註冊前拒絕，避免第一份 singleton 靜默勝出。
+ * - 共用新舊 API 的唯一註冊流程，不建立隱藏容器或捕獲 scoped service。 null 組態只供無參數相容入口，所有需組態的 factory 透過同一解析函式取得來源。
+ * - 保存首次註冊的受信任邊界，供後續註冊比對，不讀取或複製機密內容。
+ * 主要操作入口包含 AddToolUtility、RegisterServices、ResolveEnvironmentName。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs、
+ * SpeechMessage.Tenancy/TenancyServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Configuration;

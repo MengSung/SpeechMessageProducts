@@ -1,3 +1,29 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護 ListManager 的整合資料發布邊界，避免同一 Session 的 AJAX 併發請求 同時改寫共享週報，或讓序列化端看見半完成、跨小組及重複 row-key 資料。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ListManagerIntegratePublicationTests、LegacyToolUtilityFactoryScope。
+ * - 驗證同一載入鍵的 32 個並行讀取只執行一次 loader，且所有呼叫只取得完成後的獨立快照。 故障注入以 barrier 暫停唯一 loader，決勝斷言為 invocation count 等於一、每份快照內容完整，
+ *  並且任兩份回傳集合不共享可變參考。
+ * - 驗證 loader 產生相同非空 PresentRecordId 時會拒絕發布，且既有完整快照不被污染。 故障注入是第二次載入回傳重複 key；決勝斷言為擲出明確例外，之後原小組仍可讀到原資料。
+ * - 驗證候選成功發布後，即使 legacy 寫入路徑把相同 PresentRecordId 再次放入活的 Session 物件圖，下一次快取命中也必須重新驗證實際交付集合並 fail closed。故障注入先完成一次 
+ * 正常發布，再直接模擬舊 CRUD 的 append；決勝斷言為 loader 不會重跑、讀取會擲出重複 ID 例外，而且 guard 不會用姓名或內容選擇其中一列來掩蓋衝突。
+ * - 驗證呼叫端改寫 detached snapshot 不會反向污染 Session holder 中已發布的資料。 故障注入直接清空第一份回傳集合；決勝斷言為第二次讀取仍保有原始 row 與名稱。
+ * 測試案例入口包含 EnsureAndGetIntegrateDetachedRead_ConcurrentSameKey_LoadsOnceAndReturnsIsolatedSnapshots、
+ * EnsureAndGetIntegrateDetachedRead_DuplicateStableRowKey_DoesNotPublishCandidate、
+ * EnsureAndGetIntegrateDetachedRead_CacheHitAfterDuplicateWrite_RejectsConflictingSnapshot、
+ * EnsureAndGetIntegrateDetachedRead_CallerMutatesResult_PublishedSnapshotRemainsUnchanged、
+ * EnsureAndGetIntegrateDetachedRead_DateChanges_RebuildsCompleteScope、
+ * EnsureAndGetIntegrateDetachedRead_CredentialChanges_RebuildsCompleteScope、
+ * EnsureAndGetIntegrateDetachedRead_DifferentSessionOwners_DoNotShareMutableState、
+ * EnsureAndGetIntegrateDetachedRead_LoaderFails_RetrySucceedsWithoutStickyState；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 // ============================================================================
 // 檔案路徑：ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs
 // 檔案責任：驗證小組整合資料在同一 Session holder 內的 single-flight、完整發布、

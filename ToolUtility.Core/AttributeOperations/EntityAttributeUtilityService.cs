@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：只在呼叫期間操作 caller 獨占 Entity 的無狀態工具，不保存 Entity、logger、憑證或任何租戶資料。 不建立 I/O、cache、背景工作或 disposable，
+ * 因此沒有可跨請求殘留的資源或資料。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 EntityAttributeUtilityService。
+ * - 建立不需要主機診斷依賴的純工具；實例不擁有外部資源，可供不同操作共用。
+ * - 保留舊建構簽章與 null 拒絕；不保存或處置未使用的記錄物件，避免延長 request 生命。
+ * - 讀取原值或一層 AliasedValue 的文字；缺欄位、null 值及空欄位名稱依舊回空字串。 沿用值物件原有 ToString 文化語義，不在資料抽取時改成其他格式或設定全域文化。
+ * - 就地移除指定屬性，缺欄位是合法 no-op；不更換 Entity、不清除其他欄位，也不呼叫 SDK。 移除代表不提交該屬性，與明確設 null 的清值語義不同。
+ * 主要操作入口包含 GetAttributeValue、RemoveAttribute、SetEntityAttributeToNull、RequireMutationInput。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility.Tests/CoreTargetFrameworkTests.cs、
+ * ToolUtility.Tests/DataOperations/AttributeExtensionCharacterizationTests.cs、
+ * ToolUtility.Tests/DataOperations/AttributeExtensionSafetyTests.cs、ToolUtility/Core/ToolUtilityFacade.cs 
+ * 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace.Interfaces;

@@ -1,16 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：Line.Messaging/ContentStream.cs
-// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class ContentStream
-// 主要成員：Flush、Read、Seek、SetLength、Write、Dispose、BaseStream、ContentHeaders、Position
-// 引用命名空間：System、System.IO、System.Net.Http.Headers
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：表示 LINE Messaging API 回傳的內容串流（如圖片、影片、音訊等媒體檔案） Stream object for content such as image, video, audio, and 
+ * other media files from LINE Messaging API.
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ContentStream。
+ * - 底層的串流物件 The underlying stream object
+ * - 取得底層串流物件，如果已釋放則拋出例外 Gets the base stream, throws ObjectDisposedException if already disposed
+ * - 取得 HTTP Content 的標頭資訊（如 Content-Type、Content-Length 等） Gets the HTTP content headers (e.g., Content-Type, 
+ * Content-Length)
+ * - 最多持有到 Dispose 的內容標頭；釋放後清掉，避免標頭容器間接保留 HttpContent。
+ * 主要操作入口包含 Flush、Read、ReadAsync、WriteAsync、FlushAsync、Seek、SetLength、Write；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 Line.Messaging.Tests/LiffAndStreamLifecycleTests.cs、Line.Messaging.Tests/LineClientLifecycleTests.cs、
+ * Line.Messaging/ChannelHttpTransport.cs、Line.Messaging/ILineMessagingClient.cs、
+ * Line.Messaging/LineMessagingClient.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.IO;
 using System.Net.Http.Headers;

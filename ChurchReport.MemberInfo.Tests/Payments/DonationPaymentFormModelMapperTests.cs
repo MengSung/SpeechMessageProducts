@@ -1,16 +1,20 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelMapperTests.cs
-// 所屬區塊：ChurchReport 會員、付款與 LINE 共用流程的測試專案，用來固定產品層行為與回歸案例。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class DonationPaymentFormModelMapperTests
-// 主要成員：Mapper_converts_churchreport_donation_form_to_neutral_payment_order_draft、Mapper_marks_monthly_recurring_credit_card_forms_as_recurring_schedule
-// 引用命名空間：ChurchReport.Models、ChurchReport.Payments、FluentAssertions、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：測試 ChurchReport 奉獻付款表單如何轉成共用金流 workflows 專案的 PaymentOrderDraft。 這個測試鎖定的是「資料邊界」，不是銀行付款本身： - ChurchReport 
+ * 仍然可以使用奉獻者、奉獻類別、奉獻編號等產品語言。 - 跨出 ChurchReport 之後，資料要變成 PaymentOrderDraft 這種中性合約。 - PaymentOrderDraft 不能知道 CRM、
+ * LINE、ViewBag、Controller 或任何 ChurchReport 專屬流程。 這樣未來建設公司維修系統、協會會員系統、發票收款系統也可以建立自己的 FormModel， 再用相同概念轉成 
+ * PaymentOrderDraft，而不是複製 ChurchReport 的奉獻表單模型。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 DonationPaymentFormModelMapperTests。
+ * 測試案例入口包含 Mapper_converts_churchreport_donation_form_to_neutral_payment_order_draft、
+ * Mapper_marks_monthly_recurring_credit_card_forms_as_recurring_schedule。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using ChurchReport.Models;
 using ChurchReport.Payments;
 using FluentAssertions;

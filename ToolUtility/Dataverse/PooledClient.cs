@@ -1,3 +1,22 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：封裝一個由 bounded pool 建立及擁有的 client，並以鎖保護狀態轉換。 client 的最長生命週期僅至閒置逾時、故障淘汰或 pool 關閉；只有 pool 可呼叫 
+ * DisposeUnderlying。此型別不跨 pool 脫離，底層服務只經由短命 lease 暫時暴露， 且在回到 Idle 前清除已知的 impersonation 身分，避免跨 request／使用者重用狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 PooledClientState、PooledClient。
+ * - client 不帶任何前一位呼叫者的可重用狀態，正等待 pool 租借。
+ * - client 正由唯一 lease 擁有；cleanup 與 shutdown 不得銷毀它。
+ * - 傳輸或隔離狀態不可信；歸還時只能淘汰，不得回到 Idle。
+ * - 底層可釋放資源已由 pool 的淘汰或關閉路徑處理，狀態不可逆。
+ * 主要操作入口包含 TryLease、MarkFaulted、ReturnHealthy、IsIdleExpired、MarkValidated、DisposeUnderlying、TryClearCallerId。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ToolUtility/Dataverse/BoundedClientPool.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Threading;
 using Microsoft.Xrm.Sdk;

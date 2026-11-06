@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以純設定測試已啟用／已開放交集、英文空殼及正式偽語系守門；不讀取任何環境、時鐘或使用者狀態。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 MemberCultureResolverTests。
+ * - 偏好只有同時啟用及開放才勝出；語言純函式不接受教會身分或改寫授權。
+ * - 英文雖然啟用但仍是未開放空殼，不能因存在資源或會友偏好就突破發布閘門。
+ * - 已開放但本教會未啟用的偏好與預設皆不能選用，最後明確回繁中。
+ * - 偽語系需要明確 opt-in 與教會啟用；啟用後固定 en-US 格式，未允許時回繁中。
+ * 測試案例入口包含 Resolve_PreferenceEnabledAndReleased_UsesPreference、Resolve_EnNotReleased_FallsBackToChurchDefault、
+ * Resolve_NoEligiblePreferenceOrDefault_UsesZhTw、Resolve_PseudoWhenNotAllowed_FallsBack、
+ * Validate_ProductionPseudoConfiguration_Throws、Resolve_SettingsSourceMutation_DoesNotChangeResult、
+ * Resolve_UnknownPreference_UsesEligibleDefault。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using Xunit;

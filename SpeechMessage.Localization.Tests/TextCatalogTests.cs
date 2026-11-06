@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：保護五層解析、完整教會範圍、具名格式化與完整快照發布。資源及覆寫均為合成資料， 透過真實 SystemTextTable／TextCatalog 執行；替身僅提供已建立的快照，不模擬解析結果。 每次操作沒有外部 
+ * I/O、連線或背景工作，並行案例必須等待全部工作結束。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TextCatalogTests、FixedProvider、PairProvider、FailOnceProvider、ExplodingValue。
+ * - 逐層移除較高優先資料，答案必須來自指定層；預展開繁中不得搶先蓋掉英文父語系。
+ * - zh-HK 的明確別名是 zh-TW；不可讓 zh 父語系在別名之前覆蓋核定繁中。
+ * - 系統舊完整表仍回中性文字，而原始查詢對缺少翻譯回 false，對真實翻譯回 true。
+ * - 所有來源缺鍵時必須明確失敗；不得回 key、空字串或偽造成功。
+ * 測試案例入口包含 Resolve_FiveLayers_UsesFirstOriginalValue、Resolve_ZhHkAlias_UsesTraditionalChinese、
+ * OriginalTable_MissingTranslation_DoesNotPretendNeutralIsOriginal、Resolve_AllLayersMissing_Throws、
+ * Format_NamedParameters_Replaced、Format_MissingExtraOrDuplicateParameter_Throws、
+ * Format_MissingParameter_DoesNotExecuteOtherValues、Format_DateParameter_UsesFormatCulture；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

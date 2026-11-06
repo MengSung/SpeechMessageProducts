@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：名單兩服務原host特性；完整Fetch、SDK路徑、成員投影及批次分割先跑綠，再進行安全修補與搬移。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ListCharacterizationTests。
+ * - 四種原Fetch各有獨立golden，保留降冪、未含statecode、退出排除及原link位置。
+ * - 內部與兩外部靜態入口保持QueryByAttribute欄位和GUID值；external null維持舊空集合語義。
+ * - 三動態入口先讀原list.query，再由相同借用SDK直接RetrieveMultiple；不換成Execute或第二個scope。
+ * - 保留contact查listmember的單根條件及by-name第一筆契約；同名異ID不被合併，single只選原首筆。
+ * 測試案例入口包含 OriginalHost_PreservesCompleteFetch、OriginalHost_PreservesStaticMemberQuery、
+ * OriginalHost_PreservesDynamicRoutes、OriginalHost_PreservesContactAndNameQueries、
+ * OriginalHost_PreservesMemberProjection、OriginalHost_PreservesSynchronousWriteRequests、
+ * OriginalHost_PreservesListBatchMessages、OriginalHost_PreservesMarketingRoutesAndResults；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Collections;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;

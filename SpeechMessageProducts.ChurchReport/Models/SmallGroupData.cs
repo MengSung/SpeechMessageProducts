@@ -1,20 +1,25 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Models/SmallGroupData.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：擁有單一 consumer 的 Member 集合與短暫記憶體 CRUD。掛入 SmallGroupDataList 後
-//           共用該 Session 資料圖的 instance synchronization root；新增資料必須在同一鎖內
-//           完成 JSON 解析、PresentRecordId 檢查與 Add，避免重送競態產生相同 ID 兩列。
-// 隔離與生命週期：本型別不執行 CRM／HTTP I/O、不建立背景 Task 或 static cache；同步根只隨
-//                 所屬資料圖存活。相同姓名不同 ID 必須保留，相同 ID 失敗時集合維持原狀。
-// 主要型別：class SmallGroupData
-// 主要成員：InsertMember、UpdateMember、PopulateObjectAndUpdateEntity、DeleteMember、LoginType、SmallGroupLeaderContactId、SmallGroupLeaderFullName、SundayPrayers、SundayPrayersString、DataStatus
-// 引用命名空間：ChurchReport.Models.CrmTransmitModule、ChurchReport.WebServiceConnector、Newtonsoft.Json、System、System.Collections.Generic、System.Linq、System.Text、System.Threading.Tasks
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：組合目前小組的週報、會友與統計狀態，提供整合回報畫面及深度快照的資料基礎；可變成員必須保持操作所有權，背景上傳不得反向修改Session原物件。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 SmallGroupData。
+ * - 將此資料集合接入所屬 SmallGroupDataList 的共享同步根。 僅保護短暫記憶體更新，不得在該同步邊界執行 CRM、HTTP 或其他 I/O。
+ * - 在所屬資料圖的唯一同步根內解析 DevExtreme 新增 payload，並以 PresentRecordId 原子防重。
+ * - 以目前資料圖的同步根加入已建立的成員；此方法只修改記憶體集合。
+ * 主要操作入口包含 AttachSynchronizationRoot、InsertMember、AddMember、UpdateMember、PopulateObjectAndUpdateEntity、
+ * DeleteMember。
+ *
+ * 使用邊界與維護：
+ * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs、
+ * ChurchReport.MemberInfo.Tests/Models/SmallGroupDataListSnapshotIsolationTests.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs、
+ * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.cs、
+ * SpeechMessageProducts.ChurchReport/Models/ListManager.cs 追查目前工作樹中的合作／使用位置。
+ */
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.WebServiceConnector;
 using Newtonsoft.Json;

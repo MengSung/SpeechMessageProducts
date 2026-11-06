@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以真正控制器影像路徑驗證內容白名單、解碼前尺寸拒絕與釋放責任。 僅以記憶體假 SDK 隔離網路；診斷 owner 只寫測試暫存目錄，不建立任何 LINE sender。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ImageUploadSafetyTests、CountedNonSeekableStream、TrackedImageFile、TrackedStream。
+ * - 四條呼叫路徑都要拒絕偽裝 JPG 的 TIFF，不能把未驗證內容存進 CRM。
+ * - 現有宣告白名單保持不變，實際 BMP 不能因宣告 JPG 而繞過內容辨識。
+ * - WebP 曾被通用解碼器接受；本核定刻意改為拒絕，不能再保存原始檔案。
+ * - PNG 只有合法標頭與結尾，沒有像素資料；回應必須先報尺寸而非嘗試像素解碼。 兩個單邊邊界與總面積邊界各自獨立，避免只檢查其中一項而產生假綠燈。
+ * 測試案例入口包含 Upload_TiffFile_RejectedBeforeDecode、Upload_UnsupportedFormat_Rejected、
+ * Upload_DisguisedWebpAsJpg_Rejected、Upload_OversizedDimensions_RejectedBeforeFullDecode、
+ * Upload_CorruptFile_ReturnsExpectedRejection、Upload_ExactDimensionLimits_AreNotRejectedAsOversized、
+ * Upload_NonSeekableOversizedStream_IsBoundedAndBorrowed、Upload_AnimatedGif_UsesFirstFrameForEveryRoute；
+ * 其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Buffers.Binary;
 using System.Reflection;
 using System.Reflection.Emit;

@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：五層解析器只借用系統表與快照提供者，沒有 I/O、計時器、背景工作或每請求快取。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TextArg、ITextCatalog、TextCatalog。
+ * - 只在本次格式化期間借用的值，不由 catalog 保留。
+ * - 以教會、系統及後備解析原文，再按明確文化格式化單次參數。
+ * - 固定系統資料由外部 owner 建立，本實例只借用，不留每次查詢狀態。
+ * - 快照提供者由外部 owner 管理；不得把 request 或可變快照保存在 catalog。
+ * 主要操作入口包含 GetText、TryGetParentText。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 SpeechMessage.Localization.Tests/TextCatalogTests.cs、
+ * SpeechMessage.Tenancy.Tests/ChurchTextOverrideCacheTests.cs、
+ * SpeechMessage.Tenancy.Tests/OverrideCompositionTests.cs、SpeechMessage.Localization/NamedTextFormatter.cs、
+ * SpeechMessage.Tenancy/ChurchTextOverrideCache.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Collections.Generic;
 using System.Globalization;

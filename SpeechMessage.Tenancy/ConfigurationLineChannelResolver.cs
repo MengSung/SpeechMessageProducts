@@ -1,3 +1,25 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：借用部署設定與 logger；沒有新 provider、檔案監聽、queue 或 disposable owner。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ILineChannelResolver、ConfigurationLineChannelResolver、SafeTraceLogger、ITenantSettingsProvider、
+ * ConfigurationTenantSettingsProvider。
+ * - 必填解析；缺少有效 token 明確失敗，不能把空憑證交給下一位使用者。
+ * - 可選相容路徑只對未配置回 false，設定來源故障必須保留原例外。
+ * - 固定安全後備事件，只保存靜態樣板，不捕捉租戶、token 或 request。
+ * - 固定未配置事件，正常可選路徑不偽造 Exception 或輸出來源值。
+ * 主要操作入口包含 Resolve、TryResolve、TryResolveDefault、TryResolveConfiguration、IsEnabled、GetSettings、Read、ReadCode。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/LineSharedWorkflow/TenancyFailureBoundaryTests.cs、
+ * SpeechMessage.Tenancy.Tests/ConfigurationResolverTests.cs、
+ * SpeechMessage.Tenancy.Tests/TenancyCompositionTests.cs、SpeechMessage.Tenancy.Tests/TenantSettingsTests.cs、
+ * SpeechMessage.Tenancy/TenancyServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;

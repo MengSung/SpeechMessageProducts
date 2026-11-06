@@ -1,3 +1,24 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：以完全離線的 HTTP 替身保護雙目標單人推播契約；故障只在記憶體注入。 所有資料均為合成值；測試擁有 client、handler、取消來源與閘門，結束必須排空並 Dispose。 原列十一個方法完整保留，
+ * 額外驗證原始例外、caller 取消、不可變快照及資源釋放。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LinePushClientTests、Fixture、Handler、TrackedContent。
+ * - 固定合成收件 ID，不代表任何真實會友，也不作為授權來源。
+ * - 固定業務事件鍵，保證黃金 JSON／標頭不依賴亂數或時間。
+ * - 保護雙目標參考依測試宿主選出正確產品輸出：net48 宿主必須載入 Plugin 使用的 net462 及 Framework 專用無參數客戶端；net10 宿主則載入 net10 與注入 HttpClient 
+ * 的公開建構式。 測試檢查實際載入組件和建構式，不能只由測試專案的目標框架推定產品分支。
+ * - 成功回應注入固定 ID；斷言 URL、方法、兩個逐請求標頭及共用標頭沒有被污染。
+ * 測試案例入口包含 Assembly_TargetFramework_AndClientBranch_MatchHost、Push_Success_SendsBearerAndRetryKeyHeaders、
+ * Push_409_TreatedAsAlreadyAccepted、Push_429_IsRetryable、Push_500_IsRetryable、
+ * Push_Timeout_IsRetryableAndDisposesCts、Push_401_IsPermanent、Push_InvalidUserId_ThrowsBeforeHttp；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net;

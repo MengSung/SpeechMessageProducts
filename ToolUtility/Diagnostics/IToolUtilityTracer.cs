@@ -1,16 +1,21 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ToolUtility/Diagnostics/IToolUtilityTracer.cs
-// 所屬區塊：ToolUtility 診斷層，負責追蹤輸出的資源擁有權與寫入契約。
-// 檔案責任：定義追蹤寫入契約，使追蹤資源的擁有權可以與資料存取物件的生命週期分離。
-// 主要型別：interface IToolUtilityTracer
-// 主要成員：Write
-// 引用命名空間：System.Diagnostics
-// 閱讀路徑：先看 Write 的參數說明，特別是為何由呼叫端提供 StackFrame。
-// 維護重點：此介面的實作必須是程序級單一實例；追蹤資源不可隨請求建立或釋放。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：追蹤輸出的寫入契約。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 IToolUtilityTracer。
+ * 資料／選項欄位包含 IToolUtilityTracer，名稱、型別與序列化規約須與消費端保持一致。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 ChurchReport.MemberInfo.Tests/Models/ListManagerIntegratePublicationTests.cs、
+ * ToolUtility.Dataverse.Tests/RunCServiceGraphTests.cs、
+ * ToolUtility.Dataverse.Tests/ScopedToolUtilityConsumerTests.cs、
+ * ToolUtility.Dataverse.Tests/ToolUtilityClassScopedLifetimeTests.cs、
+ * ToolUtility.Dataverse.Tests/ToolUtilityFactoryAmbientGatewayTests.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Diagnostics;
 
 namespace ToolUtilityNameSpace.Diagnostics

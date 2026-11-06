@@ -1,16 +1,26 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus.Tests/LineRichMenuWorkflowTests.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
-// 主要型別：class LineRichMenuWorkflowTests、class SequencedHttpMessageHandler
-// 主要成員：CreateUploadAndLinkAsync_creates_uploads_and_links_rich_menu_in_order、DeleteLinkedRichMenuAsync_gets_current_menu_then_unlinks_and_deletes、CreateUploadAndLinkAsync_returns_validation_failure_without_http_call_when_user_is_blank、CreateUploadAndLinkOrThrowAsync_throws_standard_exception_when_provider_rejects_request、CreateWorkflow、CreateRichMenu、Enqueue、SendAsync、Requests、Bodies
-// 引用命名空間：System.Net、System.Text、FluentAssertions、Line.Messaging、LineMessagingProcessor、LineMessagingProcessor.RichMenus、Xunit
-// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
-// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：驗證低階 RichMenu workflow 與 LINE Messaging API endpoint 的串接順序。 這組測試使用自訂 HttpMessageHandler 捕捉 HTTP request，
+ * 避免打真實 LINE API。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineRichMenuWorkflowTests、SequencedHttpMessageHandler。
+ * - 建立、上傳圖片、連結使用者應依 LINE API 要求順序送出三個 HTTP request。
+ * - 刪除已連結 RichMenu 時，workflow 應先查使用者目前 richMenuId，再 unlink，最後 delete provider menu。
+ * - 本機驗證失敗時不應送出任何 HTTP request，避免把明顯錯誤送到 LINE provider。
+ * - LINE provider 明確拒絕 request 時，OrThrow 變體應丟出標準 RichMenu 例外並保留 provider-rejected 狀態。 注入含合成私密標記的 HTTP 400；
+ * 精確檢查錯誤代碼及安全訊息，例外不得洩漏遠端本文。
+ * 測試案例入口包含 CreateUploadAndLinkAsync_creates_uploads_and_links_rich_menu_in_order、
+ * DeleteLinkedRichMenuAsync_gets_current_menu_then_unlinks_and_deletes、
+ * CreateUploadAndLinkAsync_returns_validation_failure_without_http_call_when_user_is_blank、
+ * CreateUploadAndLinkOrThrowAsync_throws_standard_exception_when_provider_rejects_request、CreateWorkflow、
+ * CreateRichMenu、Enqueue、SendAsync。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Net;
 using System.Text;
 using FluentAssertions;
@@ -212,5 +222,3 @@ public sealed class LineRichMenuWorkflowTests
         }
     }
 }
-
-

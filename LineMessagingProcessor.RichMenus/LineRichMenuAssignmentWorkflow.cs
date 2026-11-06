@@ -1,16 +1,30 @@
-// ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：LineMessagingProcessor.RichMenus/LineRichMenuAssignmentWorkflow.cs
-// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
-// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
-// 主要型別：class LineRichMenuAssignmentWorkflow
-// 主要成員：AssignAsync、AssignOrThrowAsync、UnassignAsync、UnassignOrThrowAsync、NormalizeRequired、ReadAllBytesAsync、TryExecuteProviderActionAsync、TryMapProviderException
-// 引用命名空間：Line.Messaging
-// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
-// ============================================================================
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：RichMenu 使用者指派工作流。 這個類別是未來多個產品共用 RichMenu 能力的核心入口之一。 產品層只需要傳入「想指派的邏輯選單代號」 menuKey ， 共用層會負責把它解析成 LINE 
+ * 平台實際使用的 richMenuId ， 再透過 ILineRichMenuProcessor 呼叫 LINE RichMenu API。 設計邊界： 1. 這裡只處理 RichMenu 指派與解除指派，
+ * 不處理特定產品的身分資料、業務流程、畫面或通知文字。 2. ILineRichMenuCatalog 由產品提供，負責描述產品有哪些 RichMenu；共用層只讀取目錄。 3. IRichMenuStateStore 
+ * 只是本流程的輔助紀錄，不是 LINE 平台狀態的唯一真相來源。 4. LINE / HTTP / timeout 錯誤會轉成標準 LineRichMenuAssignmentResult， 讓產品層用一致方式判斷失敗，
+ * 而不是被迫捕捉各種底層例外。 這樣切割後，建設公司維修系統、協會會員系統、發票收款系統等未來產品， 只要提供自己的 catalog / policy / state store，就能共用同一套 RichMenu 指派流程。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 LineRichMenuAssignmentWorkflow。
+ * - 對 LINE RichMenu API 的抽象；所有 provider link / unlink / list 呼叫都從這裡出去。
+ * - menuKey 到 LINE richMenuId 的快取，避免每次指派都查詢 LINE 遠端清單。
+ * - 本機輔助狀態，用來記錄使用者目前與前一個 menuKey，支援未來還原與到期掃描。
+ * - 選用 catalog。當快取找不到 menuKey 時，workflow 會用 catalog definition 推算 fingerprint， 再到 LINE 線上 RichMenu 清單尋找已佈建的同版選單。
+ * 主要操作入口包含 AssignAsync、AssignOrThrowAsync、UnassignAsync、UnassignOrThrowAsync、NormalizeRequired、ReadAllBytesAsync、
+ * TryExecuteProviderActionAsync、TryMapProviderException。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessorServiceCollectionExtensionsTests.cs、
+ * LineMessagingProcessor.RichMenus.Tests/Assignment/LineRichMenuAssignmentWorkflowTests.cs、
+ * LineMessagingProcessor.RichMenus.Tests/Orchestration/RichMenuOrchestratorTests.cs、
+ * LineMessagingProcessor.AspNetCore/LineMessagingProcessorServiceCollectionExtensions.cs、
+ * SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs 追查目前工作樹中的合作／使用位置。
+ */
 using Line.Messaging;
 
 namespace LineMessagingProcessor.RichMenus;

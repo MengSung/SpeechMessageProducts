@@ -1,3 +1,21 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：離線詞法掃描 Razor 的 HTML 文字節點及四種顯示屬性；不建置、執行或解譯產品模板。 固定正則無回溯，來源與候選字串只在單次掃描持有，沒有靜態內容快取。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 RazorScanner。
+ * - HTML／Razor 註解與 script／style 內容均不屬於此階段定義的 HTML 文字節點。
+ * - 僅計畫指定四種屬性，可使用單引號、雙引號或未加引號的值。
+ * - 先去除非顯示區與 Razor 運算式，再按 HTML 節點邊界計算，不輸出來源片段。
+ * - 移除 @ 運算式及純程式區塊；控制流程只跳過條件，保留其內實際 HTML。
+ * 主要操作入口包含 Count、StripExpressions、SkipBalanced。
+ *
+ * 使用邊界與維護：
+ * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
+ * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 可沿 tools/I18nCheck/SourceScanner.cs 追查目前工作樹中的合作／使用位置。
+ */
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;

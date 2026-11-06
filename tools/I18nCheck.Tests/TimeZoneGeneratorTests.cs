@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：對實際 CLI 注入最小 CLDR 候選，驗證排序、衝突、版本、XML 安全與寫入所有權。 每案使用獨佔假資源目錄，不下載內容、不連外；測完由原 fixture owner 關閉與清理。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 TimeZoneGeneratorTests。
+ * - 打亂列序與重複相同 territory 映射，輸出仍逐位元組相同；check 不得改寫目的地。
+ * - 同一 IANA 指向不同 Windows ID 必須拒絕，既有輸出完整保留，不可最後寫入者勝出。
+ * - 上游固定外部 DTD 宣告只略過、不解析；有實體引用的 XXE 則必須拒絕且不建立輸出。
+ * - 錯誤根、空映射、缺欄、注入識別及超預算皆須拒絕；版本選項不允許插入程式。
+ * 測試案例入口包含 GenerateTimeZones_ReorderedMappings_IsDeterministic、
+ * GenerateTimeZones_ConflictingIdentity_KeepsOldOutput、GenerateTimeZones_DtdIsIgnored_EntitiesAreNotExpanded、
+ * GenerateTimeZones_InvalidSchema_Rejects、Verify_LocalizationWithoutCldr_Rejects、
+ * GenerateTimeZones_BudgetOrVersion_Rejects、Args、Xml。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System.Text;
 using Xunit;
 

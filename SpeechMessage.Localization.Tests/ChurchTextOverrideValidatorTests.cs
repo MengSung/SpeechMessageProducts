@@ -1,3 +1,23 @@
+/*
+ * 檔案整體說明
+ *
+ * 目的與定位：在任何快取發布之前驗全部覆寫；故障只含合成資料，精確保護正式 schema、參數、長度及不可變候選。
+ *
+ * 主要功能與流程：
+ * 本檔宣告 ChurchTextOverrideValidatorTests。
+ * - 固定合成系統表，只由 SystemTextTable 複製且不修改，不含教會狀態。
+ * - 固定合成 ChatBar 系統鍵，不代表正式資源或使用者資料。
+ * - 同本文不同正式 ID／key 均保留；外部清單後改不影響已發布快照，具名參數換序仍合法。
+ * - 未知鍵、缺／多參數、schema 邊界、重複 key/culture 或 ID、外教會及非法 Unicode 均拒絕整候選。
+ * 測試案例入口包含 Validate_CompleteCandidate_PreservesIdentitiesAndDetaches、
+ * Validate_InvalidCandidate_RejectsBeforePublication、Validate_Sender_UsesCompleteNameAndUtf16Limit、
+ * Validate_ChatBar_EnforcesFourteenCharacters、Validate_TextBoundaries_AllowExplicitEmptyAndMaximum、
+ * Validate_CultureIdentity_IsCaseInsensitiveButKeepsTranslations、Validator、Context；其餘入口見下方成員契約。
+ *
+ * 使用邊界與維護：
+ * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
+ * 新增故障／隔離案例時，須明確說明注入點及決定性斷言；建立的檔案、串流、替身與背景工作由該案例負責清理。
+ */
 using System;
 using System.Collections.Generic;
 using SpeechMessage.Localization;
