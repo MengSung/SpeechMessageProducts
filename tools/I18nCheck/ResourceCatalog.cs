@@ -6,7 +6,8 @@ namespace I18nCheck;
 
 /// <summary>
 /// 驗證後的 resx 快照；載入期間以區域字典組裝，完整成功後才發布不可變集合。
-/// XML reader 在成功與失敗路徑均立即 Dispose，禁止 DTD 與外部解析，大小限制為十六 MiB。
+/// XML reader 在成功與失敗路徑均立即 Dispose，禁止 DTD 與外部解析，單檔十六 MiB、
+/// 每組最多64個原始語系／每檔20000鍵／每值32768個UTF16；快照不保留檔案把手。
 /// </summary>
 internal sealed class ResourceCatalog
 {
@@ -30,23 +31,43 @@ internal sealed class ResourceCatalog
         Cultures = Array.AsReadOnly(BaseCultures.Concat(values.Keys.Where(key => key is not "zh-TW" and not "en").Order(StringComparer.Ordinal)).Append("qps-ploc").ToArray());
     }
 
-    /// <summary>以中性 resx 為 zh-TW，載入同名的其他語系；重複鍵及參數差異直接拒絕。</summary>
+    /// <summary>
+    /// 以中性resx為zh-TW，載入同名翻譯；即使顯式generate也先限制組級64MiB/64檔，
+    /// 不讓單檔16MiB上限乘上大量語系後保留巨量候選。重複鍵／參數差異／保留語系拒絕。
+    /// </summary>
     /// <param name="path">中性資源的本機路徑。</param>
     /// <returns>沒有開啟串流或可變來源參考的資源快照。</returns>
     internal static ResourceCatalog Load(string path)
     {
-        var neutral = Read(path);
-        var values = new Dictionary<string, FrozenDictionary<string, string>>(StringComparer.Ordinal) { ["zh-TW"] = neutral };
         var fullPath = Path.GetFullPath(path);
         var directory = Path.GetDirectoryName(fullPath)!;
         var prefix = Path.GetFileNameWithoutExtension(fullPath) + ".";
-        foreach (var translationPath in Directory.EnumerateFiles(directory, "*.resx").Order(StringComparer.Ordinal))
+        LocalFiles.CheckFile(fullPath);
+        long bytes = new FileInfo(fullPath).Length;
+        var translationPaths = new List<string>();
+        int directoryFiles = 0;
+        // 先有界收集再排序；直接對EnumerateFiles呼叫Order會先配置全部相鄰檔名，
+        // 使顯式generate在大量無關resx的目錄中繞過本組64檔的記憶體預算。
+        foreach (var translationPath in Directory.EnumerateFiles(directory, "*.resx"))
         {
+            if (++directoryFiles > 20_000) throw new InvalidDataException("I18N617: resource directory entry budget exceeded.");
             var stem = Path.GetFileNameWithoutExtension(translationPath);
             if (!stem.StartsWith(prefix, StringComparison.Ordinal)) continue;
-            var culture = stem[prefix.Length..];
-            _ = CultureInfo.GetCultureInfo(culture);
-            if (culture is "zh-TW" or "qps-ploc" || values.ContainsKey(culture))
+            LocalFiles.CheckFile(translationPath);
+            bytes += new FileInfo(translationPath).Length;
+            if (bytes > 64L * 1024 * 1024) throw new InvalidDataException("I18N616: resource group size budget exceeded.");
+            if (translationPaths.Count >= 63) throw new InvalidDataException("I18N109: resource culture budget exceeded.");
+            translationPaths.Add(translationPath);
+        }
+        translationPaths.Sort(StringComparer.Ordinal);
+        var neutral = Read(fullPath);
+        var values = new Dictionary<string, FrozenDictionary<string, string>>(StringComparer.Ordinal) { ["zh-TW"] = neutral };
+        foreach (var translationPath in translationPaths)
+        {
+            var stem = Path.GetFileNameWithoutExtension(translationPath);
+            var culture = CultureInfo.GetCultureInfo(stem[prefix.Length..]).Name;
+            if (string.Equals(culture, "zh-TW", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(culture, "qps-ploc", StringComparison.OrdinalIgnoreCase) || values.ContainsKey(culture))
                 throw new InvalidDataException("I18N101: reserved or duplicate resource culture.");
             var translated = Read(translationPath);
             foreach (var pair in translated)
@@ -59,6 +80,7 @@ internal sealed class ResourceCatalog
             values.Add(culture, translated);
         }
         values.TryAdd("en", FrozenDictionary<string, string>.Empty);
+        if (values.Count > 64) throw new InvalidDataException("I18N109: resource culture budget exceeded.");
         return new ResourceCatalog(values);
     }
 
@@ -78,6 +100,8 @@ internal sealed class ResourceCatalog
             if (value is null || data.Attribute("type") is not null || data.Attribute("mimetype") is not null)
                 throw new InvalidDataException("I18N106: resource must contain a plain string value.");
             if (!result.TryAdd(key, value.Value)) throw new InvalidDataException("I18N107: duplicate resource key.");
+            if (result.Count > 20_000 || value.Value.Length > 32_768)
+                throw new InvalidDataException("I18N110: resource value or key budget exceeded.");
         }
         return result.ToFrozenDictionary(StringComparer.Ordinal);
     }

@@ -1,0 +1,128 @@
+{
+  "trxCount": 17,
+  "total": 4203,
+  "passed": 4203,
+  "failed": 0,
+  "skipped": 0,
+  "runs": [
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0.trx",
+      "total": 34,
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[1].trx",
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[2].trx",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[3].trx",
+      "total": 55,
+      "passed": 55,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[4].trx",
+      "total": 87,
+      "passed": 87,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[5].trx",
+      "total": 43,
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[6].trx",
+      "total": 101,
+      "passed": 101,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[7].trx",
+      "total": 79,
+      "passed": 79,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[8].trx",
+      "total": 1345,
+      "passed": 1345,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_31_net10.0[9].trx",
+      "total": 188,
+      "passed": 188,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_32_net10.0.trx",
+      "total": 62,
+      "passed": 62,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_32_net10.0[1].trx",
+      "total": 629,
+      "passed": 629,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_32_net48.trx",
+      "total": 96,
+      "passed": 96,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_33_net48.trx",
+      "total": 162,
+      "passed": 162,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_33_net48[1].trx",
+      "total": 46,
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_33_net48[2].trx",
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "artifacts/p1-09-20261106/solution-final-tests/Administrator_LENOVO-LEGION_2026-11-06_15_12_33_net48[3].trx",
+      "total": 1214,
+      "passed": 1214,
+      "failed": 0,
+      "skipped": 0
+    }
+  ]
+}

@@ -129,14 +129,18 @@ public sealed class TextCatalogTests
         Assert.Equal("zh-TW", original.TextCulture);
     }
 
-    /// <summary>串接真實 resolver、完整字典與生成資源，涵蓋預設繁中、英文未開放回退及開發偽語系；不是只檢查 resx 存在。</summary>
+    /// <summary>
+    /// 串接真實 resolver、完整字典與生成資源，涵蓋預設繁中、英文未開放回退及開發偽語系。
+    /// P1-09長度守門發現「小幫手」配完整十四字名稱的pseudo為21，故只縮固定後綴為「助手」，
+    /// 保留教會名稱及原20字上限；以下仍用完整字串斷言，不以放寬期望掩蓋失敗。
+    /// </summary>
     /// <param name="preference">成員偏好。</param>
     /// <param name="allowPseudo">是否允許開發偽語系。</param>
     /// <param name="expected">真實 sender 範本完成格式化後的獨立答案。</param>
     [Theory(DisplayName = "真實語言決定與生成資源流程一致")]
-    [InlineData("zh-TW", false, "Alpha小幫手")]
-    [InlineData("en", false, "Alpha小幫手")]
-    [InlineData("qps-ploc", true, "［Alpha小幫手ǂǂ］")]
+    [InlineData("zh-TW", false, "Alpha助手")]
+    [InlineData("en", false, "Alpha助手")]
+    [InlineData("qps-ploc", true, "［Alpha助手ǂ］")]
     public void FullFlow_ResolvedCulture_FormatsActualGeneratedResource(string preference, bool allowPseudo, string expected)
     {
         var options = new LocalizationOptions(allowPseudoLocale: allowPseudo);
@@ -146,6 +150,25 @@ public sealed class TextCatalogTests
         var context = Context(resolved.TextCulture, resolved.FormatCulture);
         Assert.Equal(expected, Catalog(context, new SystemTextTable())
             .GetText(context, new TextKey("Line.Sender.Template"), new TextArg("churchName", "Alpha")));
+    }
+
+    /// <summary>正式E4字面名稱完整保留；在真正resolver→catalog→生成sender流程驗證普通、回退與pseudo都不截字。</summary>
+    [Theory(DisplayName = "完整最長教會名在實際sender流程不超過20字")]
+    [InlineData("zh-TW", false, "這是一個長度剛好十二字的教會助手", 16)]
+    [InlineData("en", false, "這是一個長度剛好十二字的教會助手", 16)]
+    [InlineData("qps-ploc", true, "［這是一個長度剛好十二字的教會助手ǂ］", 19)]
+    public void FullFlow_LongestChurchName_PreservesNameWithinSenderLimit(string preference, bool allowPseudo, string expected, int expectedLength)
+    {
+        var options = new LocalizationOptions(allowPseudoLocale: allowPseudo);
+        options.Validate(false);
+        var resolved = new MemberCultureResolver(options).Resolve(new MemberLanguagePreference(preference),
+            new ChurchLocaleSettings("zh-TW", ["zh-TW", "en", "qps-ploc"]));
+        var context = Context(resolved.TextCulture, resolved.FormatCulture);
+        string result = Catalog(context, new SystemTextTable()).GetText(context, new TextKey("Line.Sender.Template"),
+            new TextArg("churchName", "這是一個長度剛好十二字的教會"));
+        Assert.Equal(expected, result);
+        Assert.Equal(expectedLength, result.Length);
+        Assert.InRange(result.Length, 1, 20);
     }
 
     /// <summary>空教會、無組織／產品及未知格式文化都必須在任何資料查詢前拒絕；context 本身不授予存取權。</summary>

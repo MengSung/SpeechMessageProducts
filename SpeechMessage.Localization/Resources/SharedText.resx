@@ -10,7 +10,7 @@
   <data name="Common.Diagnostics.InvalidConfiguration" xml:space="preserve"><value>診斷外掛設定格式錯誤。</value></data>
   <data name="Common.Diagnostics.PushTest" xml:space="preserve"><value>P0 推播測試 {utc}</value></data>
   <data name="Common.Diagnostics.Retryable" xml:space="preserve"><value>診斷推播暫時失敗；RetryKey={retryKey}</value></data>
-  <data name="Line.Sender.Template" xml:space="preserve"><value>{churchName}小幫手</value></data>
+  <data name="Line.Sender.Template" xml:space="preserve"><value>{churchName}助手</value></data>
   <!-- P1 僅保留六個既有英文命令對應詞；完整 103 詞與產品路由黃金遷移屬 P3-01／P3-07。 -->
   <data name="Keyword.PrayerRequest" xml:space="preserve"><value>代禱|Pray|緊急代禱</value></data>
   <data name="Keyword.Journal" xml:space="preserve"><value>日誌|Report</value></data>

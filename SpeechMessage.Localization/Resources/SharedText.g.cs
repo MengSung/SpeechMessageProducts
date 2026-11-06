@@ -21,7 +21,7 @@ namespace SpeechMessage.Localization.Resources
             new string?[] { "Keyword.QrCode", "QR|qr", "QR", "［QR|qrǂǂ］" },
             new string?[] { "Keyword.QueryUserId", "ID|Id|id", "ID", "［ID|Id|idǂǂǂǂ］" },
             new string?[] { "Keyword.Rpg", "RPG|Rpg|rpg", "RPG", "［RPG|Rpg|rpgǂǂǂǂǂ］" },
-            new string?[] { "Line.Sender.Template", "{churchName}小幫手", null, "［{churchName}小幫手ǂǂ］" },
+            new string?[] { "Line.Sender.Template", "{churchName}助手", null, "［{churchName}助手ǂ］" },
         };
     }
 }

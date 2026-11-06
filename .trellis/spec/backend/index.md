@@ -29,6 +29,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Duplicate Source Ratchet](./duplicate-source-ratchet.md) | Solution-scoped content/type duplicates, baseline identity validation and no parent-worktree traversal | Established |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels, and unified diagnostic trace contract | Established |
 | [I18n Scanner Contract](./i18n-scanner-contract.md) | Separate C# tokens from Razor template boundaries without widening count scope | Established |
+| [I18n Resource Verification Contract](./i18n-resource-verification-contract.md) | 全資源唯一鍵、長度與偽語系、關鍵字、英文資訊及有界唯讀驗證 | Established |
 | [Localization Contract](./localization-contract.md) | 五層原始翻譯、完整 scope、兩階段具名格式化、純語言政策及關鍵字明確優先序 | Established |
 | [Money Contract](./money-contract.md) | 不換匯的不可變金額、七幣白名單、明確文化及跨目標捨入 | Established |
 | [Church Clock Contract](./church-clock-contract.md) | 明確 Kind／DST／生日、TimeProvider 借用、CLDR 可重生映射與實際 ICU 啟動守門 | Established |

@@ -1,0 +1,7 @@
+{
+  "longestChurchName": "這是一個長度剛好十二字的教會",
+  "limits": {
+    "Line.Sender.Template": 20,
+    "RichMenu.ChatBar.*": 14
+  }
+}

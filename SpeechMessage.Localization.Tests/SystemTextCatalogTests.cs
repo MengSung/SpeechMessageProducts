@@ -31,25 +31,28 @@ public sealed class SystemTextCatalogTests
 #endif
     }
 
-    /// <summary>六個固定資源都須由真實生成表返回原文，包含 P0-10 診斷鍵，不可以替身字典略過產生器。</summary>
+    /// <summary>
+    /// 六個固定資源由真實生成表返回原文；P1-09只縮sender後綴以容納完整最長名稱與pseudo，
+    /// 因此精確答案改為「助手」，其他診斷與後備契約不變，不用替身或放寬斷言略過產生器。
+    /// </summary>
     /// <param name="key">resx 的穩定鍵。</param>
     /// <param name="expected">核定的原始繁中文字串。</param>
     [Theory(DisplayName = "繁中取字使用真實系統資源")]
     [InlineData("Common.Diagnostics.Ping", "連線測試成功")]
     [InlineData("Common.Diagnostics.Culture", "目前語系：{culture}")]
-    [InlineData("Line.Sender.Template", "{churchName}小幫手")]
+    [InlineData("Line.Sender.Template", "{churchName}助手")]
     [InlineData("Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。")]
     [InlineData("Common.Diagnostics.PushTest", "P0 推播測試 {utc}")]
     [InlineData("Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}")]
     public void Get_ZhTw_ReturnsChineseText(string key, string expected) => Assert.Equal(expected, new SystemTextTable().GetText("zh-TW", new TextKey(key)));
 
-    /// <summary>逐項採附錄 E.3 核定算式，參數保持原樣；P0-10 新鍵包含標點、空白及拉丁字元的完整 Rune 計數。</summary>
+    /// <summary>逐項採附錄E.3核定算式，參數保持原樣；sender縮後綴為兩Rune故補一字，不能更改40%公式。</summary>
     /// <param name="key">真實資源鍵。</param>
     /// <param name="expected">完整偽語系答案。</param>
     [Theory(DisplayName = "偽語系取字符合核定對照表")]
     [InlineData("Common.Diagnostics.Ping", "［連線測試成功ǂǂǂ］")]
     [InlineData("Common.Diagnostics.Culture", "［目前語系：{culture}ǂǂ］")]
-    [InlineData("Line.Sender.Template", "［{churchName}小幫手ǂǂ］")]
+    [InlineData("Line.Sender.Template", "［{churchName}助手ǂ］")]
     [InlineData("Common.Diagnostics.InvalidConfiguration", "［診斷外掛設定格式錯誤。ǂǂǂǂǂ］")]
     [InlineData("Common.Diagnostics.PushTest", "［P0 推播測試 {utc}ǂǂǂǂ］")]
     [InlineData("Common.Diagnostics.Retryable", "［診斷推播暫時失敗；RetryKey={retryKey}ǂǂǂǂǂǂǂǂ］")]
@@ -63,13 +66,13 @@ public sealed class SystemTextCatalogTests
     [InlineData(null)]
     public void Get_UnknownCulture_FallsBackToZhTw(string? culture) => Assert.Equal("連線測試成功", new SystemTextTable().GetText(culture, new TextKey("Common.Diagnostics.Ping")));
 
-    /// <summary>英文空殼沒有翻譯的每個鍵在建立時就補齊，查詢不可回 null 或重複配置後備。</summary>
+    /// <summary>英文缺譯在建立時補中性完整文字；sender沿用P1-09長度修正後綴，查詢不可回null或逐次配置後備。</summary>
     /// <param name="key">需要中性後備的真實鍵。</param>
     /// <param name="expected">繁中中性值。</param>
     [Theory(DisplayName = "英文空殼缺字回繁中")]
     [InlineData("Common.Diagnostics.Ping", "連線測試成功")]
     [InlineData("Common.Diagnostics.Culture", "目前語系：{culture}")]
-    [InlineData("Line.Sender.Template", "{churchName}小幫手")]
+    [InlineData("Line.Sender.Template", "{churchName}助手")]
     [InlineData("Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。")]
     [InlineData("Common.Diagnostics.PushTest", "P0 推播測試 {utc}")]
     [InlineData("Common.Diagnostics.Retryable", "診斷推播暫時失敗；RetryKey={retryKey}")]

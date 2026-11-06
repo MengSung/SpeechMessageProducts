@@ -137,20 +137,18 @@ internal static class CommandRunner
     /// <summary>只檢查中性 resx；語系檔由 ResourceCatalog 一次驗證，不重複當成新來源。</summary>
     /// <param name="root">固定方案邊界。</param>
     /// <param name="output">判定輸出。</param>
+    /// <param name="resourceSets">verify已建立的同世代完整候選；獨立generate檢查時才自行載入。</param>
     /// <returns>任一輸出缺失或差異時為一。</returns>
-    private static int CheckAllGenerated(string root, TextWriter output)
+    private static int CheckAllGenerated(string root, TextWriter output, IReadOnlyList<ResourceSet>? resourceSets = null)
     {
         var passed = true;
         var count = 0;
-        foreach (var project in RepositoryScanner.ProjectPaths(root))
-        foreach (var source in RepositoryScanner.Files(root, Path.GetDirectoryName(project)!).Where(path => path.EndsWith(".resx", StringComparison.OrdinalIgnoreCase)))
+        foreach (var resource in resourceSets ?? ResourceSet.LoadRepository(root))
         {
-            var stem = Path.GetFileNameWithoutExtension(source);
-            var split = stem.LastIndexOf('.');
-            if (split > 0 && File.Exists(Path.Combine(Path.GetDirectoryName(source)!, stem[..split] + ".resx"))) continue;
+            var source = resource.Path;
             count++;
             var destination = LocalFiles.Resolve(root, Path.ChangeExtension(source, ".g.cs"));
-            var catalog = ResourceCatalog.Load(source);
+            var catalog = resource.Catalog;
             if (!File.Exists(destination)) { output.WriteLine("GENERATED MISSING " + RepositoryScanner.Relative(root, destination)); passed = false; continue; }
             var syntax = CSharpSyntaxTree.ParseText(LocalFiles.ReadSource(destination)).GetRoot();
             var namespaceName = syntax.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().SingleOrDefault()?.Name.ToString();
@@ -203,7 +201,10 @@ internal static class CommandRunner
     private static int Verify(string root, TextWriter output)
     {
         var scan = Scan(root, new Dictionary<string, string>(StringComparer.Ordinal), output);
-        var generated = CheckAllGenerated(root, output);
+        // 生成檔與完整規則共用同一份完整候選，不在兩次走訪之間混入不同世代資源。
+        var resourceSets = ResourceSet.LoadRepository(root);
+        var generated = CheckAllGenerated(root, output, resourceSets);
+        var resources = ResourceVerifier.Verify(root, resourceSets, output);
         // 正式 Localization 存在時來源也必須存在；不能以刪掉 XML 跳過驗證。
         // 沒有 Localization 的既有最小 scanner repo 不需憑空建立時區來源。
         var timeZones = 0;
@@ -211,6 +212,6 @@ internal static class CommandRunner
             File.Exists(LocalFiles.Resolve(root, "tools/I18nCheck/data/windowsZones.xml")))
             timeZones = GenerateTimeZones(root, new Dictionary<string, string>(StringComparer.Ordinal)
             { ["--cldr"] = "tools/I18nCheck/data/windowsZones.xml", ["--check"] = string.Empty }, output);
-        return scan == 0 && generated == 0 && timeZones == 0 ? 0 : 1;
+        return scan == 0 && generated == 0 && resources == 0 && timeZones == 0 ? 0 : 1;
     }
 }

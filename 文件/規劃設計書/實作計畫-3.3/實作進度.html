@@ -444,15 +444,15 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T14:51:41+08:00",
+  "snapshot": "2026-11-06T15:21:35+08:00",
   "branch": "1.0.0.11.Integration.P1.Worktree",
   "worker": "實作／驗證／審查：Codex inline；使用者已取消後續雙模型，歷史外模證據保留",
-  "headline": "階段 1 目前 <strong>8／12 工作包已驗收完成</strong>（P1-01～07、P1-10）。Money雙目標與完整回歸通過；接續P1-09，不等待P1-08。現行inline統一實作／檢查，不宣稱多代理同時開發。全計畫83包，已驗收26包。",
+  "headline": "階段 1 目前 <strong>9／12 工作包已驗收完成</strong>（P1-01～07、P1-09～10）。P1-05解鎖的06/07/09均已交付；接續P1-08，另P1-11/12仍須完成。現行inline主會話實作／檢查，不宣稱多代理同時開發。全計畫83包，已驗收27包。",
   "notices": [],
   "alert": {
     "level": "info",
-    "title": "P1-07 已驗收；P1 目前 8／12",
-    "body": "七幣白名單、default/跨幣別/溢位拒絕、精度保留與明確文化不換匯完成。Money兩宿主35/35、方案4197/4197、Localization159/185、coverage98.17%/98.52%、strict0/0。主會話自審，無第二人／外部模型。下一步P1-09；其他未驗收包仍未完成。",
+    "title": "P1-09 已驗收；P1 目前 9／12",
+    "body": "完整resx規則與sender20/chatbar14、pseudo、關鍵字與英文資訊已接verify；工具170/170、coverage97.54%，完整方案4203/4203。完整14字名稱保留，只縮sender後綴使pseudo21→19；未縮樣本、提高上限或改公式。主會話自審，無第二人／外部模型。接續P1-08；P1-11/12未完成，D365 預設只讀。",
     "steps": [
       "Gemini＋Claude 已完成 P1-02 Warning 根因分析：子程序無界等待與 LastQuery 非安全發布成立；AdvancingClock 競態推測依現有呼叫圖不成立。",
       "P1-02 reviewer run 20261105-113854 為 dualModelComplete=true、quotaBlocked=false、degradedFallback=false；兩模型均無 Critical／Warning。Claude 僅列 Info 與後續情境限制，Gemini 的 BOM 建議違反 repo UTF-8 無 BOM 規範，均未要求程式修正。",
@@ -518,17 +518,21 @@ const DATA = {
       "2026-11-06T14:38:53+08:00 P1-07開始：依正式02/90與主Task7建立金額白名單、TWD顯示政策、明確文化不改幣別、default拒絕及checked加法驗收清單。原精度保留、AwayFromZero明確顯示捨入；不搬業務、不新增cache/IO。先缺型別契約紅燈再實作，P1-09獨立待續；inline不冒稱背景Agent。P1仍7/12；本包尚未驗收／提交。",
       "2026-11-06T14:46:24+08:00 P1-07紅綠實作：缺正式型別1案真紅，完整行為暫殼32紅/1綠後實作，兩宿主各33/33通過；CA1859真實阻擋已改具體型別而不關規則。Money保持decimal精度、七幣白名單、default與跨幣別/溢位拒絕；顯示明確AwayFromZero與ISO身分，文化只影響數字。千次A/B、百次文化弱參照與故障原例外/重試通過。完整方案首輪全綠（含既有23警告），coverage及最終邊界補證進行；首輪TRX固定檔名互覆，已改兩宿主獨立目錄重驗，保留原log不作雙宿主證據。本包尚未完成/commit。",
       "2026-11-06T14:51:41+08:00 P1-07整包驗收：正式Money各35/35（含後補負零）、方案17TRX4197/4197且0失敗/略過；Localization159/185，獨立coverage98.17%/98.52%、strict0/0，I18n119/verify/generate、Debug7、PE27、Plugin10/6、CI6、套件36/167及duplicates全過。原始32紅/1綠與CA1859、TRX互覆證據保留，正式每目標獨立TRX已重跑。主會話自審無外模／第二人，沒有更改正式計畫或金融業務。驗收wp-reports/P1-07-acceptance.md；證據evidence/p107-final。本地提交收尾中；只封存本子任務，主P1增8/12、Goal仍active，接續P1-09。",
-      "2026-11-06T14:52:30+08:00 P1-07本地工作commit 0691db90；完整Changed1084檔0問題、進度14/14、77份原始證據SHA核對。子任務封存與journal保存，主P1仍8/12、Goal active。接續P1-09，不push／部署／連VM/D365／發LINE。"
+      "2026-11-06T14:52:30+08:00 P1-07本地工作commit 0691db90；完整Changed1084檔0問題、進度14/14、77份原始證據SHA核對。子任務封存與journal保存，主P1仍8/12、Goal active。接續P1-09，不push／部署／連VM/D365／發LINE。",
+      "2026-11-06T14:54:18+08:00 P1-09深入盤點：P0已有單檔key/翻譯參數及pseudo產生器，不重做；尚缺跨資源唯一、20/14原語系與偽語系長度、關鍵字及en完成度verify整合。建立L+子任務與正反例清單，inline不派子代理。E4字面最長教會名實14字（雖名稱寫十二字），完整保留；現有sender後綴小幫手導致pseudo長21，將先取得真紅再縮固定後綴助手以滿足原20上限，不調高門檻／縮短樣本／改公式。正式需求不變，本包未驗收。",
+      "2026-11-06T15:05:31+08:00 P1-09第一切片：正式verify正反例28案先21紅/7綠→28綠，擴充長度/JSON/預算/1000快照並行/百次弱參照後45/45；孤兒翻譯與保留語系大小寫另3案真紅後修正。真實repo守門明確拒絕sender qps長21（20上限），原始輸出保留；只縮固定後綴小幫手→助手、完整14字名稱保留，實際resolver六案先紅再待重驗，沒有放寬原斷言。生成時發現namespace參數與原檔不符，已用正式生成入口改回原Resources命名空間；不得把只用生成檔自述namespace的check當建置證據。正式key/參數/重複守門沿用P0，完整候選與長度/關鍵字/en18.18%(6/33)已接verify，下一步完整雙目標/coverage/方案回歸。本包尚未驗收、未commit，P1仍8/12。",
+      "2026-11-06T15:15:12+08:00 P1-09回歸追修：真實資源改後綴後Framework完整測試3案仍綁舊sender精確golden而失敗，已逐一核對僅更新三個文案精確答案及理由，未刪案例/放寬斷言。修後Localization162/188全綠（含新最長名稱實際流程3案/宿主）；工具168案及coverage97.52%、strict0/0與repo verify/en18.18%通過。審查再注入JSON逃逸高surrogate，2紅/8綠證明Name/GetString的InvalidOperation會逃出CLI；已只在JSON解碼邊界轉InvalidData並保留InnerException，不擴大全域catch。正式完整方案/Plugin/最終tool重驗進行中，本包仍active，無commit。",
+      "2026-11-06T15:21:35+08:00 P1-09整包驗收：工具170/170（v2 51）及獨立coverage97.54%，工具/Localization strict0/0；方案17TRX4203/4203、0失敗/略過，Localization162/188、coverage98.17%/98.52%。Debug7、PE27、Plugin10/6、CI6、套件36/167與duplicates通過；完整Changed先驗1098檔0問題，交付頁/manifest納入後再驗。實repo5組生成check/CLDRcheck/CJK及en18.18%(6/33)通過，英文仍未發布。所有真紅/回歸紀錄保留；主會話自審無外模/第二人。驗收wp-reports/P1-09-acceptance.md；證據evidence/p109-final。本地提交收尾中；正式需求不改，僅資源後綴必要修正；只封存本包，主P1增9/12、Goal active，續P1-08/11/12，不push／部署／連VM/D365/LINE。"
     ]
   },
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "26",
+      "value": "27",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 8／12 已驗收",
+      "sub": "P0 18／18；P1 9／12 已驗收",
       "meter": {
-        "done": 26,
+        "done": 27,
         "active": 0,
         "total": 83
       }
@@ -546,26 +550,26 @@ const DATA = {
     },
     {
       "label": "階段 1 驗收",
-      "value": "8",
+      "value": "9",
       "unit": "/ 12 工作包",
-      "sub": "P1-01～07、10已驗收；續作P1-09",
+      "sub": "P1-01～07、09～10已驗收；續P1-08/11/12",
       "meter": {
-        "done": 8,
+        "done": 9,
         "active": 0,
         "total": 12
       }
     },
     {
       "label": "最新完整本機 Release",
-      "value": "4,197 / 4,197",
+      "value": "4,203 / 4,203",
       "unit": "0 失敗、0 略過",
-      "sub": "17份TRX；ChurchReport629；Localization159/185；ToolUtility1214/1345"
+      "sub": "17份TRX；ChurchReport629；Localization162/188；ToolUtility1214/1345"
     },
     {
       "label": "最新完整本機建置",
       "value": "0 錯誤",
       "unit": "完整方案與Localization strict雙目標成功",
-      "sub": "strict與最終增量0/0；首輪23個既有測試警告未宣稱消除"
+      "sub": "strict0/0；完整方案23個既有測試警告未隱藏／宣稱修完"
     }
   ],
   "wps": [
@@ -764,8 +768,9 @@ const DATA = {
     {
       "id": "P1-09",
       "name": "I18nCheck v2 完整資源檢查",
-      "status": "todo",
-      "note": "P1-05前置已成立，可獨立推進；現行inline，尚未實作／驗收。需逐規則補正反例，檢查 key／參數／重複、Sender 與 ChatBar 長度、偽語系、跨語系關鍵字衝突及英文完成度報告。"
+      "status": "done",
+      "note": "完整key/參數/跨組唯一、20/14/pseudo、關鍵字及en資訊完成；工具170、coverage97.54%，完整方案4203、Localization162/188及coverage98.17%/98.52%、strict0/0。完整14字名稱保留，sender只縮後綴使pseudo21→19；未改上限或公式。主會話自審無外審；驗收wp-reports/P1-09-acceptance.md，本地提交收尾中。",
+      "time": "2026-11-06T15:21:35+08:00"
     },
     {
       "id": "P1-10",
@@ -1327,7 +1332,7 @@ const DATA = {
       "name": "基礎層與國際化地基",
       "est": "12～16 天",
       "total": 12,
-      "done": 8,
+      "done": 9,
       "active": 0,
       "current": true
     },
@@ -1398,14 +1403,14 @@ const DATA = {
     {
       "item": "既有測試",
       "before": "714 過／24 失敗",
-      "after": "4197 過／0 失敗",
-      "note": "最新完整17TRX；ChurchReport629、Localization159/185；零略過"
+      "after": "4203 過／0 失敗",
+      "note": "最新完整17TRX；ChurchReport629、Localization162/188；零略過"
     },
     {
       "item": "Release 建置警告",
       "before": "77",
-      "after": "Core strict 0；方案4",
-      "note": "全方案當輪4個既有Obsolete警告；增量測試另見既有StringUtility nullable，均未隱藏；0錯誤"
+      "after": "Localization/tool strict 0；方案23",
+      "note": "正式方案23個既有測試警告；0錯誤，不隱藏或冒稱修完"
     },
     {
       "item": "套件版本違規",

@@ -22,6 +22,26 @@ internal static class Placeholders
     /// <param name="text">本次資源文字。</param>
     /// <returns>只包含參數名稱的不可變集合。</returns>
     internal static FrozenSet<string> Names(string text) => Pattern.Matches(text).Select(match => match.Groups["name"].Value).ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>
+    /// 使用同一參數文法計算最長教會名替換後的UTF16長度，不配置實際展開文字或重新解析插入值。
+    /// 只允許已提供最長值的churchName；未知參數拒絕，最多256處替換以限制錯誤模板成本。
+    /// </summary>
+    /// <param name="text">原始或偽語系受限模板。</param>
+    /// <param name="churchName">配置內完整最長名稱，不能依描述中的數字截短。</param>
+    /// <returns>以long累計避免重複參數造成int溢位。</returns>
+    internal static long LengthWithChurchName(string text, string churchName)
+    {
+        long length = text.Length;
+        int count = 0;
+        foreach (Match match in Pattern.Matches(text))
+        {
+            if (++count > 256 || match.Groups["name"].Value != "churchName")
+                throw new InvalidDataException("I18N614: limited template parameter has no bounded value.");
+            length += churchName.Length - match.Length;
+        }
+        return length;
+    }
 }
 
 /// <summary>依 2026-11-03 使用者核定公式擴展文字，只在整段外包圍一次，不修改參數。</summary>

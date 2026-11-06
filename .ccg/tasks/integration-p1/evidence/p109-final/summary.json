@@ -1,0 +1,60 @@
+{
+  "workPackage": "P1-09",
+  "solution": {
+    "trxCount": 17,
+    "total": 4203,
+    "passed": 4203,
+    "failed": 0,
+    "skipped": 0
+  },
+  "i18nTests": 170,
+  "i18nV2Tests": 51,
+  "localizationTests": {
+    "net48": 162,
+    "net10.0": 188
+  },
+  "coverage": {
+    "i18n-closeout-coverage": 0.9754,
+    "coverage-net48": 0.9817,
+    "coverage-net10.0": 0.9852
+  },
+  "strictWarnings": 0,
+  "strictErrors": 0,
+  "solutionBuildWarnings": 23,
+  "solutionBuildErrors": 0,
+  "english": {
+    "translated": 6,
+    "total": 33,
+    "percent": "18.18%",
+    "blocking": false
+  },
+  "resourceGroups": 5,
+  "senderUtf16": {
+    "longestChurchName": 14,
+    "previousPseudo": 21,
+    "finalNormal": 16,
+    "finalPseudo": 19,
+    "maximum": 20
+  },
+  "chatBarMaximum": 14,
+  "debugTracer": 7,
+  "peToolTests": 27,
+  "pluginMetadataCases": 10,
+  "pluginBuildCases": 6,
+  "ciTransitionCases": 6,
+  "packageProjects": 36,
+  "packageReferences": 167,
+  "duplicateNewGroups": 0,
+  "review": "主會話自審；沒有外部雙模型或獨立第二人",
+  "parentP1Complete": false,
+  "liveD365Connections": false,
+  "lineSent": false,
+  "hostedCiExecuted": false,
+  "progressPageTests": 14,
+  "textEncoding": {
+    "scope": "Changed",
+    "base": "73b6e6cf",
+    "checked": 1099,
+    "filesWithIssues": 0
+  }
+}

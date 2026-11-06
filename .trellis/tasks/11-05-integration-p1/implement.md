@@ -99,8 +99,8 @@ Files: ToolUtility.Core/Localization/D365ChurchTextOverrideSource.cs（待Task4 
 
 ### Task 10: P1-09 I18nCheck v2
 Files: tools/I18nCheck/**（controller，等Task6 sourcegenerator協調）及tests／limits.json。
-- [ ] 每規則positive/negative fixture：unknownkey、duplicate key跨resource（同key不同culture合法）、placeholder set、sender20／chatbar14及pseudo、跨culture keywords、en coverage nonblocking。
-- [ ] 保留原scanner／P0checks，resx生成deterministic、timezone生成idempotent、verify repo全綠。
+- [x] 每規則positive/negative fixture：unknownkey、duplicate key跨resource（同key不同culture合法）、placeholder set、sender20／chatbar14及pseudo、跨culture keywords、en coverage nonblocking。
+- [x] 保留原scanner／P0checks，resx生成deterministic、timezone生成idempotent、verify repo全綠。
 
 ### Task 11: P1-11 schema deployment
 Files: Deployment/Schema/**、DeploymentCli.cs及tests、d365/schema/speechmessagecore.schema.json、d365/snapshots metadata。
@@ -172,3 +172,6 @@ Files: 驗收/P1_D365結構建立步驟.md、wp-reports/P1-12.md、進度頁、t
 
 ## P1-07 最終驗收（2026-11-06）
 Money兩宿主35/35、完整Localization159/185，方案17TRX4197/4197；coverage98.17%/98.52%、strict0/0。七幣/default/精度/負零/溢位、千次A/B、百次文化弱引用及故障重試通過。主會話自審無外審；只封存p107-money，主P1保持8/12並續P1-09。
+
+## P1-09 最終驗收（2026-11-06）
+完整key/參數/跨組唯一、20/14與pseudo、跨文化關鍵字及英文資訊報告完成；工具170（v2 51）、coverage97.54%、strict0/0，方案17TRX4203/4203、Localization162/188及coverage98.17%/98.52%。原完整14字教會名保留，只縮sender固定後綴助手使pseudo21→19；正式需求/上限/公式/英文發布政策不改，無Word修正報告需求。孤兒/大小寫、顯式group budget、JSON高surrogate、舊精確golden及錯namespace參數均有修正與證據。主會話自審無外審；只封存p109子任務，主P1 9/12，續P1-08/11/12。

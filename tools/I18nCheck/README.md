@@ -1,4 +1,4 @@
-# I18nCheck（P0-07）
+# I18nCheck（P0-07／P1-09）
 
 離線盤點中文字串、驗證 resx 並產生固定 C# 資料；工具與測試都不加入方案，CI 於 P0-11 納入。
 請在工作目錄內執行。工具以最近的 `SpeechMessageProducts.sln` 定位根目錄，所有來源與輸出均限定在該根目錄內，不連線 D365 或 LINE。
@@ -49,3 +49,15 @@ dotnet test tools/I18nCheck.Tests -c Release
 
 工具與測試的 csproj 本體均啟用 `SpeechMessageStrictCode` 及 `GenerateDocumentationFile`。
 使用者 2026-11-03 明確核定永久規則：同時為嚴格模式、IsTestProject=true 且名稱以 `.Tests` 結尾的專案，由 Directory.Build.targets 統一允許 CA1707 底線測試命名。個別專案不設定此例外；產品／工具本體及其他分析器、警告視為錯誤、XML、文化比較及禁用 API 規則維持不變。
+
+## P1-09 完整資源守門
+
+`verify`在同份完整資源候選上檢查：
+- 原有未知翻譯key／具名參數／同檔重複；新增全部中性組之間穩定key唯一，同組跨語系翻譯合法，顯示文字相同不去重。
+- `limits.json`固定sender20、RichMenu.ChatBar.*14；原語系與qps均替換完整最長教會名後檢查。與SDK相同採UTF16單元，pseudo補字仍按Rune公式。未知受限參數或配置缺失不能跳過。
+- E4範例名稱實際14字，完整保留；只縮sender固定後綴為助手，使pseudo從21降19，未縮短名稱／提高上限／改公式。
+- Keyword.*的|別名依NFKC、Unicode空白合併、Invariant小寫，全部原始語系共同檢查同字異意圖；同意圖重述合法。
+- 每次輸出`en 完成度 xx.xx% (已譯/總鍵)`；缺譯僅資訊、不失敗，英語未開放政策不變。
+
+整體規則衝突結束碼1，非法資源或配置2；只輸出固定代碼／key／相對路徑／文化／長度，不輸出資源本文或名稱。生成檔及verify共用完整候選；不寫來源或基準。CLI文字產生器是離線工具，不建立LINE client或通知queue。
+全repo resx最多4096檔/64MiB；每組（包含顯式generate）先驗64MiB/64原文化，每檔20000鍵、每值32768 UTF16；總key及關鍵字別名各20000。平台文化名稱是唯一新增靜態metadata，沒有使用者或來源內容。

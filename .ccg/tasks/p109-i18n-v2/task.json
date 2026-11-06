@@ -1,0 +1,18 @@
+{
+  "id": "p109-i18n-v2",
+  "title": "P1-09 完整resx守門與長度及英文報告",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "tooling",
+  "currentPhase": "completed",
+  "nextAction": "全驗證已通過，進行本地commit及僅本子任務封存；主P1續P1-08。",
+  "createdAt": "2026-11-06T14:54:18+08:00",
+  "branch": "1.0.0.11.Integration.P1.Worktree",
+  "parent": ".ccg/tasks/integration-p1",
+  "dependencies": [
+    "P1-05"
+  ],
+  "executionMode": "inline，主會話實作及檢查；使用者免外部雙模型",
+  "completedAt": "2026-11-06T15:21:35+08:00"
+}
