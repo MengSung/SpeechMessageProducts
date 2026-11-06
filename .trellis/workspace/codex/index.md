@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 19
+- **Total Sessions**: 20
 - **Last Active**: 2026-11-06
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~743 | Active |
+| `journal-1.md` | ~776 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 20 | 2026-11-06 | 補齊逐檔整體說明與永久守門 | `77195d953` | `1.0.0.11.Integration.P1.Worktree` |
 | 19 | 2026-11-06 | P1-08覆寫快取本機驗收完成（主P1仍10/12） | `b74a311d`, `dfb82a7e` | `1.0.0.11.Integration.P1.Worktree` |
 | 18 | 2026-11-06 | P1-09完整資源守門驗收完成（主P1仍9/12） | `9f9b2b29` | `1.0.0.11.Integration.P1.Worktree` |
 | 17 | 2026-11-06 | P1-07金額與格式化驗收完成（主P1仍8/12） | `0691db90` | `1.0.0.11.Integration.P1.Worktree` |
