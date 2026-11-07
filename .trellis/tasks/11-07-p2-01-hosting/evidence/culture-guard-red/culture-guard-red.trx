@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="95872d56-245f-4339-9f5f-634902f3ce51" name="Administrator@LENOVO-LEGION 2026-11-07 10:23:28" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T10:23:28.7932699+08:00" queuing="2026-11-07T10:23:28.7932700+08:00" start="2026-11-07T10:23:27.8347289+08:00" finish="2026-11-07T10:23:28.7983198+08:00" />
+  <TestSettings name="default" id="02b007f3-878d-4133-853a-28d224d295ac">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_10_23_28" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="2aba2014-b6ed-4b71-bccc-629cec98307f" testId="dcf9d3b8-7e7a-35be-f42d-44ed28e53fa7" testName="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(production: False)" computerName="LENOVO-LEGION" duration="00:00:00.0003382" startTime="2026-11-07T10:23:28.7288013+08:00" endTime="2026-11-07T10:23:28.7288014+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2aba2014-b6ed-4b71-bccc-629cec98307f">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown&#xD;
+Expected: typeof(System.InvalidOperationException)</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(Boolean production) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs:line 31&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="918ecb2a-d81d-4a7a-95c9-eefc3c226db1" testId="f46c2381-b059-e2f8-f8b4-2e9020f6733b" testName="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(allowPseudo: False)" computerName="LENOVO-LEGION" duration="00:00:00.0024899" startTime="2026-11-07T10:23:28.7282014+08:00" endTime="2026-11-07T10:23:28.7282017+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="918ecb2a-d81d-4a7a-95c9-eefc3c226db1">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown&#xD;
+Expected: typeof(System.InvalidOperationException)</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(Boolean allowPseudo) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs:line 43&#xD;
+   at InvokeStub_StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b7626394-760a-418f-a0ae-d8e0fc2f4eb7" testId="55898350-d5e6-4283-047f-e09e80ee676d" testName="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness" computerName="LENOVO-LEGION" duration="00:00:00.0002874" startTime="2026-11-07T10:23:28.7290739+08:00" endTime="2026-11-07T10:23:28.7290740+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b7626394-760a-418f-a0ae-d8e0fc2f4eb7">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.NotNull() Failure: Value is null</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs:line 52&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c72fb0de-6811-41ed-8946-75b40a1e1aa2" testId="061e0197-20bb-4c4e-8373-2a3134356fd7" testName="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(allowPseudo: True)" computerName="LENOVO-LEGION" duration="00:00:00.4779379" startTime="2026-11-07T10:23:28.7182407+08:00" endTime="2026-11-07T10:23:28.7182542+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c72fb0de-6811-41ed-8946-75b40a1e1aa2" />
+    <UnitTestResult executionId="d22be658-41a4-4ba9-912e-5f1e7d701d13" testId="871ec4ed-971c-4d38-0db0-61e1664a2f72" testName="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(production: True)" computerName="LENOVO-LEGION" duration="00:00:00.0007654" startTime="2026-11-07T10:23:28.7289038+08:00" endTime="2026-11-07T10:23:28.7289038+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d22be658-41a4-4ba9-912e-5f1e7d701d13" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(allowPseudo: False)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="f46c2381-b059-e2f8-f8b4-2e9020f6733b">
+      <Execution id="918ecb2a-d81d-4a7a-95c9-eefc3c226db1" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests" name="PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="55898350-d5e6-4283-047f-e09e80ee676d">
+      <Execution id="b7626394-760a-418f-a0ae-d8e0fc2f4eb7" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests" name="LocalizationAssembly_ContainsExecutableGeneratedCompleteness" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(production: False)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="dcf9d3b8-7e7a-35be-f42d-44ed28e53fa7">
+      <Execution id="2aba2014-b6ed-4b71-bccc-629cec98307f" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests" name="IncompleteReleasedCulture_IsRejectedInEveryEnvironment" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(allowPseudo: True)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="061e0197-20bb-4c4e-8373-2a3134356fd7">
+      <Execution id="c72fb0de-6811-41ed-8946-75b40a1e1aa2" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests" name="PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(production: True)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="871ec4ed-971c-4d38-0db0-61e1664a2f72">
+      <Execution id="d22be658-41a4-4ba9-912e-5f1e7d701d13" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupCulturePolicyTests" name="IncompleteReleasedCulture_IsRejectedInEveryEnvironment" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="dcf9d3b8-7e7a-35be-f42d-44ed28e53fa7" executionId="2aba2014-b6ed-4b71-bccc-629cec98307f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f46c2381-b059-e2f8-f8b4-2e9020f6733b" executionId="918ecb2a-d81d-4a7a-95c9-eefc3c226db1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="55898350-d5e6-4283-047f-e09e80ee676d" executionId="b7626394-760a-418f-a0ae-d8e0fc2f4eb7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="061e0197-20bb-4c4e-8373-2a3134356fd7" executionId="c72fb0de-6811-41ed-8946-75b40a1e1aa2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="871ec4ed-971c-4d38-0db0-61e1664a2f72" executionId="d22be658-41a4-4ba9-912e-5f1e7d701d13" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="5" executed="5" passed="2" failed="3" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.05]   Discovering: SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.09]   Discovered:  SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.09]   Starting:    SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.60]       Assert.Throws() Failure: No exception was thrown&#xD;
+[xUnit.net 00:00:00.60]       Expected: typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.60]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.60]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs(43,0): at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(Boolean allowPseudo)&#xD;
+[xUnit.net 00:00:00.60]            at InvokeStub_StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.60]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.61]       Assert.Throws() Failure: No exception was thrown&#xD;
+[xUnit.net 00:00:00.61]       Expected: typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.61]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs(31,0): at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(Boolean production)&#xD;
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.61]       Assert.NotNull() Failure: Value is null&#xD;
+[xUnit.net 00:00:00.61]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.61]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs(52,0): at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness()&#xD;
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.61]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.61]   Finished:    SpeechMessage.Hosting.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:23:28.7269029+08:00">
+        <Text>[xUnit.net 00:00:00.60]     SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(allowPseudo: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:23:28.7287281+08:00">
+        <Text>[xUnit.net 00:00:00.61]     SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(production: False) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:23:28.7290501+08:00">
+        <Text>[xUnit.net 00:00:00.61]     SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

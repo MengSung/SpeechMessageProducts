@@ -1,4 +1,4 @@
-# I18nCheck（P0-07／P1-09）
+# I18nCheck（P0-07／P1-09／P2-01）
 
 離線盤點中文字串、驗證 resx 並產生固定 C# 資料；工具與測試都不加入方案，CI 於 P0-11 納入。
 請在工作目錄內執行。工具以最近的 `SpeechMessageProducts.sln` 定位根目錄，所有來源與輸出均限定在該根目錄內，不連線 D365 或 LINE。
@@ -13,6 +13,8 @@ dotnet run --project tools/I18nCheck -- generate --resx Path/SharedText.resx --n
 dotnet run --project tools/I18nCheck -- generate --check
 dotnet run --project tools/I18nCheck -- generate-timezones --cldr tools/I18nCheck/data/windowsZones.xml
 dotnet run --project tools/I18nCheck -- generate-timezones --cldr tools/I18nCheck/data/windowsZones.xml --check
+dotnet run --project tools/I18nCheck -- generate-completeness
+dotnet run --project tools/I18nCheck -- generate-completeness --check
 dotnet run --project tools/I18nCheck -- verify
 dotnet test tools/I18nCheck.Tests -c Release
 ```
@@ -22,6 +24,8 @@ dotnet test tools/I18nCheck.Tests -c Release
 - `generate --check` 沒有其他參數時，檢查方案內非測試專案的全部中性 resx 及同目錄同名 `.g.cs`。語系檔併入中性檔驗證；namespace／class 從既有生成檔讀取，再完整重新產生逐位元組比較。
 - `verify` 同時執行各專案 CJK 棘輪、resx 格式／唯一鍵／參數集合及生成檔檢查。P0-08 加入正式 resx 前，真實方案的生成檔檢查為零檔；產生器已有獨立測試及離線命令驗證。
 - P1-06 起，正式 Localization 存在時 `verify` 也強制檢查釘選 CLDR 及生成時區表；缺來源或過期不能跳過。`generate-timezones` 可用 `--cldr-version`／`--out`，預設版本與來源／授權見 `data/README.md`；check 不寫檔，與 resx 產生器維持相同 0／1／2 結束碼。
+- P2-01 起，`generate-completeness` 從方案全部原始 resx 生成 `SpeechMessage.Localization/CultureCompleteness.g.cs`；可用根內 `--out <檔案.g.cs>` 與唯讀 `--check`。分母為全部唯一中性鍵，分子只計原始非空白翻譯，不計 fallback／pseudo；空集合永不算完整。跨組重複鍵拒絕，全部候選完成後才原子寫入。
+- 正式 Localization 存在時，`generate --check` 與 `verify` 亦強制比對完成度產物；刪除或過期不能略過。產物只含常數，不含資源本文或時間，供 Hosting 啟動時驗證發布語系；完整契約見 `.trellis/spec/backend/hosting-culture-contract.md`。
 
 ## 掃描範圍
 

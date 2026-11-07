@@ -1,0 +1,14 @@
+{
+  "updatedAt": "2026-11-07T10:46:52+08:00",
+  "scopeBase": "c20dff45",
+  "exitCode": 0,
+  "stdout": "Text encoding: scope=Changed checked=20 excluded=12 filesWithIssues=0",
+  "broaderScopeBase": "a1dcc3cb",
+  "broaderScopePassed": false,
+  "inheritedUnmodifiedIssue": {
+    "path": ".ccg/tasks/p013-apply-fault-investigation/.turns.json",
+    "reason": "MissingFinalCrlf",
+    "introducedBy": "c20dff45"
+  },
+  "rawEvidencePreserved": true
+}

@@ -1,12 +1,14 @@
 # P2-01 執行計畫
 
-- [ ] 讀取 `.trellis/spec/backend/index.md`、error-handling、cross-user-isolation、
+- [x] 讀取 `.trellis/spec/backend/index.md`、error-handling、cross-user-isolation、
   duplicate-row-publication 及相關 guides。
-- [ ] 建立 `SpeechMessage.Hosting`／`SpeechMessage.Hosting.Tests` csproj 與 solution 參考。
-- [ ] 先補四種通知開關、故障注入、取消／逾時／drain／資源基線測試並確認紅燈。
-- [ ] 加入 Hosting registration、`StartupGuards` 與架構測試搬移／擴充。
-- [ ] 以 ChurchReport 的既有組合根接入，不重複建立通知 owner。
-- [ ] 執行 P2-01 focused tests、ChurchReport exception tests、Release build。
+- [x] 建立 `SpeechMessage.Hosting`／`SpeechMessage.Hosting.Tests` csproj 與 solution 參考。
+- [x] 先補四種通知開關、故障注入、取消／逾時／drain／資源基線測試並確認紅燈。
+- [x] 加入 Hosting registration、真正 sender、Development 共用委派與 Program 單一 owner。
+- [x] 加入 CultureCompleteness 生成、唯讀 check、嚴格語系設定及 Program 真接入。
+- [ ] 完成架構測試實際搬移／R2、R3、R9 擴充，同步 CI filter。
+- [x] 以 ChurchReport 的既有組合根接入，不重複建立通知 owner。
+- [x] 執行目前切片 focused tests、ChurchReport exception tests、Release build；整包變更後須重跑。
 - [ ] 執行 file documentation、encoding、duplicate、I18nCheck 與架構驗證。
 - [ ] 撰寫 `wp-reports/P2-01.md`，更新 `實作進度.html`，檢查未辨識 dirty files。
 - [ ] 載入 `trellis-check` 完成主會話審查；若有 blocker，修復後重跑。
@@ -24,3 +26,13 @@
 
 不得在本子任務修改 P2-02～P2-12 的產品規則、D365 schema、正式組織資料或
 任何秘密設定值。
+
+## CultureCompleteness 實際範圍補充
+
+正式計畫明列由 I18nCheck 生成完成度，故同步維護 `tools/I18nCheck`、
+`tools/I18nCheck.Tests`、`SpeechMessage.Localization/CultureCompleteness.g.cs` 與
+`hosting-culture-contract.md`。生成器是 g.cs 的唯一寫入者，沿用全方案來源驗證與原子輸出；
+本輪沒有新增 csproj、放寬基準或變更其他 WP 業務契約。
+具體紅綠燈與下一步見 `research/culture-completeness-checkpoint.md`。
+AGENTS 引用的 backend cross-user-isolation spec 缺檔時，仍直接遵守 AGENTS 同等硬性規則；
+不能把未存在的文件標成已讀取。以上第一項代表已檢查可用規範與此缺檔事實。

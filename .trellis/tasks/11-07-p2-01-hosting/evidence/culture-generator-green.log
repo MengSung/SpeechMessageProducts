@@ -1,0 +1,7 @@
+  I18nCheck -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck\bin\Release\net10.0\I18nCheck.dll
+  I18nCheck.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\culture-generator-green\culture-generator-green.trx
+
+已通過! - 失敗:     0，通過:     9，略過:     0，總計:     9，持續時間: 1 s - I18nCheck.Tests.dll (net10.0)

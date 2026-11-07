@@ -1,0 +1,336 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="563ab91b-8c33-44c6-b925-a080f8e5a14d" name="Administrator@LENOVO-LEGION 2026-11-07 10:05:37" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T10:05:37.3280467+08:00" queuing="2026-11-07T10:05:37.3280472+08:00" start="2026-11-07T10:05:36.6112844+08:00" finish="2026-11-07T10:05:37.3515934+08:00" />
+  <TestSettings name="default" id="624e144d-7c62-45c9-b4e5-bd3d3cef13a3">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_10_05_37" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="c40e7c67-6cb8-4d6f-9edd-e4bc4d6b29d9" testId="a87b2a44-5815-ca70-b59f-fa49b585d188" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 3)" computerName="LENOVO-LEGION" duration="00:00:00.0005763" startTime="2026-11-07T10:05:37.2787236+08:00" endTime="2026-11-07T10:05:37.2787236+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c40e7c67-6cb8-4d6f-9edd-e4bc4d6b29d9">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: Exception type was not an exact match&#xD;
+Expected: typeof(System.AggregateException)&#xD;
+Actual:   typeof(System.InvalidOperationException)&#xD;
+---- System.InvalidOperationException : synthetic-private-cleanup</Message>
+          <StackTrace>   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 246&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 159&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 265&#xD;
+   at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs:line 162&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 162</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="af5d4ca4-09a2-4880-8f15-da8a78059bab" testId="caaa71b4-16ae-3f4b-1695-253b102ba802" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Main_uses_shared_registration_and_failure_safe_cleanup" computerName="LENOVO-LEGION" duration="00:00:00.0003885" startTime="2026-11-07T10:05:37.2952019+08:00" endTime="2026-11-07T10:05:37.2952020+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="af5d4ca4-09a2-4880-8f15-da8a78059bab" />
+    <UnitTestResult executionId="a4f4a694-f812-4525-902c-75b890df7e65" testId="a9a6897c-0309-fbc5-7913-c39a08c108a4" testName="ChurchReport啟動必須先驗ICU再建立業務Host" computerName="LENOVO-LEGION" duration="00:00:00.0019459" startTime="2026-11-07T10:05:37.2286793+08:00" endTime="2026-11-07T10:05:37.2286955+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a4f4a694-f812-4525-902c-75b890df7e65" />
+    <UnitTestResult executionId="f9a127c8-bf70-4141-9a6d-14b52d582839" testId="884c02d6-5f77-7ee0-f717-8b01176eb56d" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 2)" computerName="LENOVO-LEGION" duration="00:00:00.0000500" startTime="2026-11-07T10:05:37.2795114+08:00" endTime="2026-11-07T10:05:37.2795114+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f9a127c8-bf70-4141-9a6d-14b52d582839">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: Exception type was not an exact match&#xD;
+Expected: typeof(System.AggregateException)&#xD;
+Actual:   typeof(System.InvalidOperationException)&#xD;
+---- System.InvalidOperationException : synthetic-private-cleanup</Message>
+          <StackTrace>   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 246&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 159&#xD;
+   at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 265&#xD;
+   at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs:line 161&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 162</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d1b8dfd8-26e8-4a65-8bb6-d98d7d42d269" testId="733062e2-2f8f-4239-cbd0-786c0f2f7cce" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order" computerName="LENOVO-LEGION" duration="00:00:00.0027645" startTime="2026-11-07T10:05:37.2783021+08:00" endTime="2026-11-07T10:05:37.2783023+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d1b8dfd8-26e8-4a65-8bb6-d98d7d42d269">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: Exception type was not an exact match&#xD;
+Expected: typeof(System.AggregateException)&#xD;
+Actual:   typeof(System.InvalidOperationException)&#xD;
+---- System.InvalidOperationException : synthetic-private-registration</Message>
+          <StackTrace>   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass7_0.&lt;Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order&gt;b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 178&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 246&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 176&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 265&#xD;
+   at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs:line 159&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass7_0.&lt;Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 179</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="730da828-7510-4da8-911d-5bd4914c9848" testId="899c2aa7-6805-67bb-f438-cda1b5e7e612" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 0)" computerName="LENOVO-LEGION" duration="00:00:00.0000282" startTime="2026-11-07T10:05:37.2792696+08:00" endTime="2026-11-07T10:05:37.2792696+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="730da828-7510-4da8-911d-5bd4914c9848">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: Exception type was not an exact match&#xD;
+Expected: typeof(System.AggregateException)&#xD;
+Actual:   typeof(System.InvalidOperationException)&#xD;
+---- System.InvalidOperationException : synthetic-private-cleanup</Message>
+          <StackTrace>   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 246&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 159&#xD;
+   at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 265&#xD;
+   at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs:line 159&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 162</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2f59ee81-7e91-4f58-9960-c9c85b0fc9f5" testId="af83fb67-3948-d42a-93eb-616b17bd4bb7" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Built_web_application_owns_configuration_disposal" computerName="LENOVO-LEGION" duration="00:00:00.0030428" startTime="2026-11-07T10:05:37.3109006+08:00" endTime="2026-11-07T10:05:37.3109006+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2f59ee81-7e91-4f58-9960-c9c85b0fc9f5" />
+    <UnitTestResult executionId="6d329083-ddfb-4ef2-b416-47825f027e92" testId="c42c277e-75e2-ed50-8d67-d47188727121" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_publishes_one_borrowed_owner_and_adapter" computerName="LENOVO-LEGION" duration="00:00:00.0039444" startTime="2026-11-07T10:05:37.3108915+08:00" endTime="2026-11-07T10:05:37.3108915+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d329083-ddfb-4ef2-b416-47825f027e92" />
+    <UnitTestResult executionId="72afff84-7ed5-40d0-8cc8-e08cefd65bcc" testId="5db437fa-1788-8de0-674b-c7d47068e864" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_handles_partial_initialization_without_creating_resources" computerName="LENOVO-LEGION" duration="00:00:00.0000686" startTime="2026-11-07T10:05:37.3108785+08:00" endTime="2026-11-07T10:05:37.3108785+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="72afff84-7ed5-40d0-8cc8-e08cefd65bcc" />
+    <UnitTestResult executionId="c9965098-5596-4ecd-8f2e-a6d150cc8596" testId="6dc3dc85-c0c8-8749-4324-9d818f6f2f3e" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner" computerName="LENOVO-LEGION" duration="00:00:00.0300504" startTime="2026-11-07T10:05:37.2604148+08:00" endTime="2026-11-07T10:05:37.2604149+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c9965098-5596-4ecd-8f2e-a6d150cc8596" />
+    <UnitTestResult executionId="286d3cdb-6cbe-498b-8258-d62183ff3cd5" testId="d4ce6584-185d-e9f0-3599-c236ea314b3a" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 1)" computerName="LENOVO-LEGION" duration="00:00:00.0005377" startTime="2026-11-07T10:05:37.2790287+08:00" endTime="2026-11-07T10:05:37.2790288+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="286d3cdb-6cbe-498b-8258-d62183ff3cd5">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: Exception type was not an exact match&#xD;
+Expected: typeof(System.AggregateException)&#xD;
+Actual:   typeof(System.InvalidOperationException)&#xD;
+---- System.InvalidOperationException : synthetic-private-cleanup</Message>
+          <StackTrace>   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 246&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 159&#xD;
+   at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.&lt;DisposeAsync&gt;b__14_0() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 274&#xD;
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs:line 160&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 162</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="bad852bf-d78c-4bb2-aabc-cf1731e391bd" testId="ea88834a-f8a0-fc69-8d0f-b3ed4d4647b2" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Failed_web_application_build_leaves_configuration_for_outer_owner" computerName="LENOVO-LEGION" duration="00:00:00.0183030" startTime="2026-11-07T10:05:37.2947772+08:00" endTime="2026-11-07T10:05:37.2947775+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bad852bf-d78c-4bb2-aabc-cf1731e391bd" />
+    <UnitTestResult executionId="2d4fcde7-00e8-401c-a305-00b64110ae1f" testId="3b9d2226-45f9-03ee-1304-5d927fe76e4e" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure" computerName="LENOVO-LEGION" duration="00:00:00.0007372" startTime="2026-11-07T10:05:37.3112441+08:00" endTime="2026-11-07T10:05:37.3112441+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2d4fcde7-00e8-401c-a305-00b64110ae1f">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Same() Failure: Values are not the same instance&#xD;
+Expected: System.InvalidOperationException: synthetic-private-primary&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass8_0.&lt;Cleanup_never_masks_an_already_propagating_primary_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 198&#xD;
+   at Xunit.Assert.RecordException(Action testCode) in /_/src/xunit.assert/Asserts/Record.cs:line 37&#xD;
+Actual:   System.InvalidOperationException: synthetic-private-cleanup&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 265&#xD;
+   at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs:line 159&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass8_0.&lt;Cleanup_never_masks_an_already_propagating_primary_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 199&#xD;
+   at Xunit.Assert.RecordException(Action testCode) in /_/src/xunit.assert/Asserts/Record.cs:line 37</Message>
+          <StackTrace>   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass8_0.&lt;Cleanup_never_masks_an_already_propagating_primary_failure&gt;b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 201&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 246&#xD;
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 194&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3c2d0132-87a6-4b16-be5c-e9619c0d3334" testId="034e74ad-7341-636a-9691-60c8dc7ec49a" testName="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_awaits_drain_then_closes_sender_and_untransferred_configuration" computerName="LENOVO-LEGION" duration="00:00:00.0014888" startTime="2026-11-07T10:05:37.3107691+08:00" endTime="2026-11-07T10:05:37.3107693+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3c2d0132-87a6-4b16-be5c-e9619c0d3334" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="733062e2-2f8f-4239-cbd0-786c0f2f7cce">
+      <Execution id="d1b8dfd8-26e8-4a65-8bb6-d98d7d42d269" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="6dc3dc85-c0c8-8749-4324-9d818f6f2f3e">
+      <Execution id="c9965098-5596-4ecd-8f2e-a6d150cc8596" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner" />
+    </UnitTest>
+    <UnitTest name="ChurchReport啟動必須先驗ICU再建立業務Host" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="a9a6897c-0309-fbc5-7913-c39a08c108a4">
+      <Execution id="a4f4a694-f812-4525-902c-75b890df7e65" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.ChurchClockStartupTests" name="Main_ValidatesIcuInsideSharedFailureBoundary_BeforeRunApplication" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="3b9d2226-45f9-03ee-1304-5d927fe76e4e">
+      <Execution id="2d4fcde7-00e8-401c-a305-00b64110ae1f" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_never_masks_an_already_propagating_primary_failure" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_awaits_drain_then_closes_sender_and_untransferred_configuration" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="034e74ad-7341-636a-9691-60c8dc7ec49a">
+      <Execution id="3c2d0132-87a6-4b16-be5c-e9619c0d3334" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_awaits_drain_then_closes_sender_and_untransferred_configuration" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_handles_partial_initialization_without_creating_resources" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="5db437fa-1788-8de0-674b-c7d47068e864">
+      <Execution id="72afff84-7ed5-40d0-8cc8-e08cefd65bcc" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_handles_partial_initialization_without_creating_resources" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 0)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="899c2aa7-6805-67bb-f438-cda1b5e7e612">
+      <Execution id="730da828-7510-4da8-911d-5bd4914c9848" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Main_uses_shared_registration_and_failure_safe_cleanup" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="caaa71b4-16ae-3f4b-1695-253b102ba802">
+      <Execution id="af5d4ca4-09a2-4880-8f15-da8a78059bab" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Main_uses_shared_registration_and_failure_safe_cleanup" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 3)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="a87b2a44-5815-ca70-b59f-fa49b585d188">
+      <Execution id="c40e7c67-6cb8-4d6f-9edd-e4bc4d6b29d9" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Built_web_application_owns_configuration_disposal" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="af83fb67-3948-d42a-93eb-616b17bd4bb7">
+      <Execution id="2f59ee81-7e91-4f58-9960-c9c85b0fc9f5" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Built_web_application_owns_configuration_disposal" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 1)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="d4ce6584-185d-e9f0-3599-c236ea314b3a">
+      <Execution id="286d3cdb-6cbe-498b-8258-d62183ff3cd5" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_publishes_one_borrowed_owner_and_adapter" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="c42c277e-75e2-ed50-8d67-d47188727121">
+      <Execution id="6d329083-ddfb-4ef2-b416-47825f027e92" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Registration_publishes_one_borrowed_owner_and_adapter" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Failed_web_application_build_leaves_configuration_for_outer_owner" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="ea88834a-f8a0-fc69-8d0f-b3ed4d4647b2">
+      <Execution id="bad852bf-d78c-4bb2-aabc-cf1731e391bd" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Failed_web_application_build_leaves_configuration_for_outer_owner" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 2)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="884c02d6-5f77-7ee0-f717-8b01176eb56d">
+      <Execution id="f9a127c8-bf70-4141-9a6d-14b52d582839" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests" name="Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="a87b2a44-5815-ca70-b59f-fa49b585d188" executionId="c40e7c67-6cb8-4d6f-9edd-e4bc4d6b29d9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="caaa71b4-16ae-3f4b-1695-253b102ba802" executionId="af5d4ca4-09a2-4880-8f15-da8a78059bab" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a9a6897c-0309-fbc5-7913-c39a08c108a4" executionId="a4f4a694-f812-4525-902c-75b890df7e65" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="884c02d6-5f77-7ee0-f717-8b01176eb56d" executionId="f9a127c8-bf70-4141-9a6d-14b52d582839" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="733062e2-2f8f-4239-cbd0-786c0f2f7cce" executionId="d1b8dfd8-26e8-4a65-8bb6-d98d7d42d269" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="899c2aa7-6805-67bb-f438-cda1b5e7e612" executionId="730da828-7510-4da8-911d-5bd4914c9848" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="af83fb67-3948-d42a-93eb-616b17bd4bb7" executionId="2f59ee81-7e91-4f58-9960-c9c85b0fc9f5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c42c277e-75e2-ed50-8d67-d47188727121" executionId="6d329083-ddfb-4ef2-b416-47825f027e92" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5db437fa-1788-8de0-674b-c7d47068e864" executionId="72afff84-7ed5-40d0-8cc8-e08cefd65bcc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6dc3dc85-c0c8-8749-4324-9d818f6f2f3e" executionId="c9965098-5596-4ecd-8f2e-a6d150cc8596" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d4ce6584-185d-e9f0-3599-c236ea314b3a" executionId="286d3cdb-6cbe-498b-8258-d62183ff3cd5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ea88834a-f8a0-fc69-8d0f-b3ed4d4647b2" executionId="bad852bf-d78c-4bb2-aabc-cf1731e391bd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3b9d2226-45f9-03ee-1304-5d927fe76e4e" executionId="2d4fcde7-00e8-401c-a305-00b64110ae1f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="034e74ad-7341-636a-9691-60c8dc7ec49a" executionId="3c2d0132-87a6-4b16-be5c-e9619c0d3334" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="14" executed="14" passed="8" failed="6" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.26]   Discovering: ChurchReport.MemberInfo.Tests&#xD;
+[xUnit.net 00:00:00.32]   Discovered:  ChurchReport.MemberInfo.Tests&#xD;
+[xUnit.net 00:00:00.33]   Starting:    ChurchReport.MemberInfo.Tests&#xD;
+[xUnit.net 00:00:00.40]       Assert.Throws() Failure: Exception type was not an exact match&#xD;
+[xUnit.net 00:00:00.40]       Expected: typeof(System.AggregateException)&#xD;
+[xUnit.net 00:00:00.40]       Actual:   typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.40]       ---- System.InvalidOperationException : synthetic-private-registration&#xD;
+[xUnit.net 00:00:00.40]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(178,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass7_0.&lt;Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order&gt;b__0(StringWriter output)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(246,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(176,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order()&#xD;
+[xUnit.net 00:00:00.41]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.41]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.41]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(265,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose()&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs(159,0): at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(179,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass7_0.&lt;Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order&gt;b__1()&#xD;
+[xUnit.net 00:00:00.41]       Assert.Throws() Failure: Exception type was not an exact match&#xD;
+[xUnit.net 00:00:00.41]       Expected: typeof(System.AggregateException)&#xD;
+[xUnit.net 00:00:00.41]       Actual:   typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.41]       ---- System.InvalidOperationException : synthetic-private-cleanup&#xD;
+[xUnit.net 00:00:00.41]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(161,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(246,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(159,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage)&#xD;
+[xUnit.net 00:00:00.41]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.41]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.41]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(265,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose()&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs(162,0): at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(162,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1()&#xD;
+[xUnit.net 00:00:00.41]       Assert.Throws() Failure: Exception type was not an exact match&#xD;
+[xUnit.net 00:00:00.41]       Expected: typeof(System.AggregateException)&#xD;
+[xUnit.net 00:00:00.41]       Actual:   typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.41]       ---- System.InvalidOperationException : synthetic-private-cleanup&#xD;
+[xUnit.net 00:00:00.41]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(161,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(246,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(159,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage)&#xD;
+[xUnit.net 00:00:00.41]            at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.41]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.41]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(274,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.&lt;DisposeAsync&gt;b__14_0()&#xD;
+[xUnit.net 00:00:00.41]            at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:00.41]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.41]            at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:00.41]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:00.41]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs(160,0): at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(162,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1()&#xD;
+[xUnit.net 00:00:00.41]       Assert.Throws() Failure: Exception type was not an exact match&#xD;
+[xUnit.net 00:00:00.41]       Expected: typeof(System.AggregateException)&#xD;
+[xUnit.net 00:00:00.41]       Actual:   typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.41]       ---- System.InvalidOperationException : synthetic-private-cleanup&#xD;
+[xUnit.net 00:00:00.41]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(161,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(246,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(159,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage)&#xD;
+[xUnit.net 00:00:00.41]            at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.41]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.41]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(265,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose()&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs(159,0): at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(162,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1()&#xD;
+[xUnit.net 00:00:00.41]       Assert.Throws() Failure: Exception type was not an exact match&#xD;
+[xUnit.net 00:00:00.41]       Expected: typeof(System.AggregateException)&#xD;
+[xUnit.net 00:00:00.41]       Actual:   typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.41]       ---- System.InvalidOperationException : synthetic-private-cleanup&#xD;
+[xUnit.net 00:00:00.41]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(161,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__0(StringWriter output)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(246,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(159,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage)&#xD;
+[xUnit.net 00:00:00.41]            at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.41]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.41]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(265,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose()&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs(161,0): at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure)&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(162,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass6_0.&lt;Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure&gt;b__1()&#xD;
+[xUnit.net 00:00:00.44]       Assert.Same() Failure: Values are not the same instance&#xD;
+[xUnit.net 00:00:00.44]       Expected: System.InvalidOperationException: synthetic-private-primary&#xD;
+[xUnit.net 00:00:00.44]          at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass8_0.&lt;Cleanup_never_masks_an_already_propagating_primary_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 198&#xD;
+[xUnit.net 00:00:00.44]          at Xunit.Assert.RecordException(Action testCode) in /_/src/xunit.assert/Asserts/Record.cs:line 37&#xD;
+[xUnit.net 00:00:00.44]       Actual:   System.InvalidOperationException: synthetic-private-cleanup&#xD;
+[xUnit.net 00:00:00.44]          at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.ResourceProbe.Dispose() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 265&#xD;
+[xUnit.net 00:00:00.44]          at ChurchReport.Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics, IDisposable sender, IDisposable configuration, Boolean preservePrimaryFailure) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\Program.cs:line 159&#xD;
+[xUnit.net 00:00:00.44]          at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass8_0.&lt;Cleanup_never_masks_an_already_propagating_primary_failure&gt;b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 199&#xD;
+[xUnit.net 00:00:00.44]          at Xunit.Assert.RecordException(Action testCode) in /_/src/xunit.assert/Asserts/Record.cs:line 37&#xD;
+[xUnit.net 00:00:00.44]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.44]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(201,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.&lt;&gt;c__DisplayClass8_0.&lt;Cleanup_never_masks_an_already_propagating_primary_failure&gt;b__0(StringWriter output)&#xD;
+[xUnit.net 00:00:00.44]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(246,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action)&#xD;
+[xUnit.net 00:00:00.44]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs(194,0): at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure()&#xD;
+[xUnit.net 00:00:00.44]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.44]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.44]   Finished:    ChurchReport.MemberInfo.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:05:37.2768913+08:00">
+        <Text>[xUnit.net 00:00:00.40]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:05:37.2785638+08:00">
+        <Text>[xUnit.net 00:00:00.41]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 3) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:05:37.2788647+08:00">
+        <Text>[xUnit.net 00:00:00.41]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:05:37.2790828+08:00">
+        <Text>[xUnit.net 00:00:00.41]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 0) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:05:37.2793317+08:00">
+        <Text>[xUnit.net 00:00:00.41]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 2) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T10:05:37.3335972+08:00">
+        <Text>[xUnit.net 00:00:00.44]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

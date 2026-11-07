@@ -1,0 +1,46 @@
+✔ Every work package has a supported status and renders without undefined labels or icons (8.2273ms)
+✔ No alert hides the warning region and still renders the page (10.79ms)
+✔ Alert without prompt omits copy button and full prompt area (4.9944ms)
+✔ Alert with prompt preserves escaped prompt and copy handler (5.6151ms)
+✔ Stage 1 progress lists all twelve packages and preserves the live acceptance boundary (13.2528ms)
+✔ Stages 2 through 8 preserve planned scope and render each package with its actual progress (6.8694ms)
+✔ Planned phase disclosures show a visible expanded-state indicator (4.6804ms)
+✔ All nine stages share one closed work-package disclosure list without standalone P0/P1 sections (3.9123ms)
+✔ Unified summaries exclude review milestones and account for user-operated work (8.5812ms)
+✔ Stage switching and mixed planned statuses render independently of the historical snapshot (6.3636ms)
+✔ Integrated P0/P1 entries preserve every evidence field and never merge same-name records (10.0632ms)
+✔ Future work packages preserve external-operation and isolation stop boundaries (0.4661ms)
+✔ Summary cards and phase meters agree with accepted work packages (0.2086ms)
+✔ Informational history defaults to a closed neutral disclosure (5.8436ms)
+✔ P2 informational updates share one stable closed summary and retain their evidence (5.826ms)
+✖ P2 informational body and every history entry show an explicit Taipei date and time (4.5667ms)
+✔ Current warnings and errors remain separate from collapsed history (5.0349ms)
+✔ Empty notices hide their region and unknown severity cannot inject markup (8.1915ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 17
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 228.8241
+
+✖ failing tests:
+
+test at tools\RepoQuality\Tests\Test-ProgressPage.cjs:496:1
+✖ P2 informational body and every history entry show an explicit Taipei date and time (4.5667ms)
+  AssertionError [ERR_ASSERTION]: P2 history entry 1 is missing its own visible timestamp
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:506:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '已完成切片｜P2-01-PROGRAM｜2026-11-07 10:18 Asia/Taipei (UTC+08:00)：已核對program-hosting-debug與program-hosting-release-final原始TRX各90／90、Hosting 55／55；原清理8通過／6失敗紅燈已修復，保留原始證據。Program經Hosting借用同一owner／adapter，逐階清理、保留主要例外、真實未啟動WebApplication組態移交與通知排空案例已通過；方案Release建置23個既有警告／0錯誤，來源比對見program-build-warning-provenance.json。證據均在.trellis/tasks/11-07-p2-01-hosting/evidence/，僅離線。',
+    expected: /^(?:補記 )?\d{4}-\d{2}-\d{2} \d{2}:\d{2} Asia\/Taipei \(UTC\+08:00\)/,
+    operator: 'match',
+    diff: 'simple'
+  }

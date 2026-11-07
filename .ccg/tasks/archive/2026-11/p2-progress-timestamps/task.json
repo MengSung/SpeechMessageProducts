@@ -1,0 +1,13 @@
+{
+  "id": "p2-progress-timestamps",
+  "title": "P2一般資訊逐筆日期時間與永久規則",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "frontend",
+  "currentPhase": "completed",
+  "nextAction": "日期規則已完成並歸檔；P2-01架構整合持續進行",
+  "createdAt": "2026-11-07T10:29:37+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "completedAt": "2026-11-07T10:44:05+08:00"
+}

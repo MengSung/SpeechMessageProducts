@@ -1,0 +1,33 @@
+{
+  "updatedAt": "2026-11-07T10:40:24+08:00",
+  "runs": [
+    {
+      "run": "20261107-102640-p2-culture-timestamps-analyzer",
+      "summarySha256": "02cd68cff4e8901fbc6dc29a76ee8b7b032c841f7ff9afaf76aef5a658b75b8e",
+      "ok": false,
+      "dualModelComplete": false,
+      "quotaBlocked": true,
+      "degradedFallback": false,
+      "completedBackends": [],
+      "failedBackends": [
+        "gemini",
+        "claude"
+      ]
+    },
+    {
+      "run": "20261107-103418-p2-culture-timestamps-reviewer",
+      "summarySha256": "cd6652aa318eafbf9177cb74f331b8984d87a947a4e841b1172fc719d2735edd",
+      "ok": false,
+      "dualModelComplete": false,
+      "quotaBlocked": true,
+      "degradedFallback": false,
+      "completedBackends": [],
+      "failedBackends": [
+        "gemini",
+        "claude"
+      ]
+    }
+  ],
+  "localReviewCompleted": true,
+  "externalReviewCompleted": false
+}

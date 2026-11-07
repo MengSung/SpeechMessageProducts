@@ -1,0 +1,181 @@
+  LineMessagingProcessor.Core -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\LineMessagingProcessor.Core\bin\Release\net10.0\LineMessagingProcessor.Core.dll
+  Line.Messaging -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\Line.Messaging\bin\Release\net10.0\Line.Messaging.dll
+  SpeechMessage.Payments -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Payments\bin\Release\net10.0\SpeechMessage.Payments.dll
+  PowerPlatform.Dataverse.Client -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\PowerPlatform.Dataverse.Client\bin\Release\net10.0\PowerPlatform.Dataverse.Client.dll
+  SpeechMessage.Localization -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Localization\bin\Release\net10.0\SpeechMessage.Localization.dll
+  SpeechMessage.Payments.Workflows -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Payments.Workflows\bin\Release\net10.0\SpeechMessage.Payments.Workflows.dll
+  SpeechMessage.Payments.AspNetCore -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Payments.AspNetCore\bin\Release\net10.0\SpeechMessage.Payments.AspNetCore.dll
+  ToolUtility.Core -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ToolUtility.Core\bin\Release\net10.0\ToolUtility.Core.dll
+  SpeechMessage.Tenancy -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Tenancy\bin\Release\net10.0\SpeechMessage.Tenancy.dll
+  LineMessagingProcessor -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\LineMessagingProcessor\bin\Release\net10.0\LineMessagingProcessor.dll
+  SpeechMessage.Hosting -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\bin\Release\net10.0\SpeechMessage.Hosting.dll
+  LineMessagingProcessor.RichMenus -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\LineMessagingProcessor.RichMenus\bin\Release\net10.0\LineMessagingProcessor.RichMenus.dll
+  LineMessagingProcessor.Workflows -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\LineMessagingProcessor.Workflows\bin\Release\net10.0\LineMessagingProcessor.Workflows.dll
+  ToolUtility -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ToolUtility\bin\Release\net10.0\ToolUtility.dll
+  LineMessagingProcessor.AspNetCore -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\LineMessagingProcessor.AspNetCore\bin\Release\net10.0\LineMessagingProcessor.AspNetCore.dll
+  SpeechMessageProducts.ChurchReport -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessageProducts.ChurchReport\bin\Release\net10.0\SpeechMessageProducts.ChurchReport.dll
+  ChurchReport.MemberInfo.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:01.67]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner [FAIL]
+[xUnit.net 00:00:01.67]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order [FAIL]
+[xUnit.net 00:00:01.67]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 3) [FAIL]
+[xUnit.net 00:00:01.67]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 1) [FAIL]
+[xUnit.net 00:00:01.67]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 0) [FAIL]
+[xUnit.net 00:00:01.67]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 2) [FAIL]
+[xUnit.net 00:00:01.70]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Main_uses_shared_registration_and_failure_safe_cleanup [FAIL]
+[xUnit.net 00:00:01.70]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_awaits_drain_then_closes_sender_and_untransferred_configuration [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner [118 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.InvalidOperationException)
+Actual:   typeof(Xunit.Sdk.NotNullException)
+---- Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 88
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 93
+--- End of stack trace from previous location ---
+----- Inner Stack Trace -----
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Register() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 220
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass2_0.<Registration_failure_rolls_back_candidate_without_disposing_borrowed_owner>b__0() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 88
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order [2 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.AggregateException)
+Actual:   typeof(Xunit.Sdk.NotNullException)
+---- Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass7_0.<Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order>b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 177
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 245
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 175
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+----- Inner Stack Trace -----
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass7_0.<Cleanup_multiple_failures_are_bounded_and_preserved_in_stage_order>b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 178
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 3) [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.AggregateException)
+Actual:   typeof(Xunit.Sdk.NotNullException)
+---- Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 160
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 245
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 158
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+----- Inner Stack Trace -----
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 1) [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.AggregateException)
+Actual:   typeof(Xunit.Sdk.NotNullException)
+---- Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 160
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 245
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 158
+   at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+----- Inner Stack Trace -----
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 0) [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.AggregateException)
+Actual:   typeof(Xunit.Sdk.NotNullException)
+---- Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 160
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 245
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 158
+   at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+----- Inner Stack Trace -----
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(failingStage: 2) [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.AggregateException)
+Actual:   typeof(Xunit.Sdk.NotNullException)
+---- Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 160
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 245
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Int32 failingStage) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 158
+   at InvokeStub_HostingCompositionTests.Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+----- Inner Stack Trace -----
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass6_0.<Cleanup_failure_still_attempts_every_stage_and_keeps_original_failure>b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 161
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Main_uses_shared_registration_and_failure_safe_cleanup [1 ms]
+  錯誤訊息:
+   Assert.Contains() Failure: Sub-string not found
+String:    "/*\r\n * 檔案整體說明\r\n *\r\n * 目的與定位：ChurchReport "···
+Not found: "registration = RegisterHostingDiagnostics"···
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Main_uses_shared_registration_and_failure_safe_cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 45
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_awaits_drain_then_closes_sender_and_untransferred_configuration [< 1 ms]
+  錯誤訊息:
+   Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_awaits_drain_then_closes_sender_and_untransferred_configuration() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 141
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:01.71]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_handles_partial_initialization_without_creating_resources [FAIL]
+[xUnit.net 00:00:01.71]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_publishes_one_borrowed_owner_and_adapter [FAIL]
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.71]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Built_web_application_owns_configuration_disposal [FAIL]
+[xUnit.net 00:00:01.71]     ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure [FAIL]
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_handles_partial_initialization_without_creating_resources [< 1 ms]
+  錯誤訊息:
+   Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_handles_partial_initialization_without_creating_resources() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 211
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_publishes_one_borrowed_owner_and_adapter [< 1 ms]
+  錯誤訊息:
+   Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Register() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 220
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_publishes_one_borrowed_owner_and_adapter() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 61
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Registration_publishes_one_borrowed_owner_and_adapter() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 72
+--- End of stack trace from previous location ---
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Built_web_application_owns_configuration_disposal [3 ms]
+  錯誤訊息:
+   System.InvalidOperationException : No service for type 'Microsoft.AspNetCore.Hosting.Server.IServer' has been registered.
+  堆疊追蹤:
+     at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+   at Microsoft.AspNetCore.Builder.WebApplication.get_ServerFeatures()
+   at Microsoft.AspNetCore.Builder.WebApplication..ctor(IHost host)
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Built_web_application_owns_configuration_disposal() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 107
+--- End of stack trace from previous location ---
+  失敗 ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.InvalidOperationException)
+Actual:   typeof(Xunit.Sdk.NotNullException)
+---- Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass8_0.<Cleanup_never_masks_an_already_propagating_primary_failure>b__0(StringWriter output) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 195
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.WithCapturedError(Action`1 action) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 245
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup_never_masks_an_already_propagating_primary_failure() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 193
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+----- Inner Stack Trace -----
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.Cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 228
+   at ChurchReport.MemberInfo.Tests.Contracts.HostingCompositionTests.<>c__DisplayClass8_0.<Cleanup_never_masks_an_already_propagating_primary_failure>b__1() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\Contracts\HostingCompositionTests.cs:line 198
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\program-hosting-behavior-red\program-hosting-behavior-red.trx
+
+失敗!  - 失敗:    12，通過:     1，略過:     0，總計:    13，持續時間: 158 ms - ChurchReport.MemberInfo.Tests.dll (net10.0)

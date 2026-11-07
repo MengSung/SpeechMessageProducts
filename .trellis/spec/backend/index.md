@@ -33,6 +33,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [I18n Scanner Contract](./i18n-scanner-contract.md) | Separate C# tokens from Razor template boundaries without widening count scope | Established |
 | [I18n Resource Verification Contract](./i18n-resource-verification-contract.md) | 全資源唯一鍵、長度與偽語系、關鍵字、英文資訊及有界唯讀驗證 | Established |
 | [Localization Contract](./localization-contract.md) | 五層原始翻譯、完整 scope、兩階段具名格式化、純語言政策及關鍵字明確優先序 | Established |
+| [Hosting 語系啟動契約](./hosting-culture-contract.md) | 全方案原始完成度生成、嚴格啟動組態與組合根接入 | Established |
 | [Money Contract](./money-contract.md) | 不換匯的不可變金額、七幣白名單、明確文化及跨目標捨入 | Established |
 | [Church Clock Contract](./church-clock-contract.md) | 明確 Kind／DST／生日、TimeProvider 借用、CLDR 可重生映射與實際 ICU 啟動守門 | Established |
 | [Tenancy Channel Contract](./tenancy-channel-contract.md) | 固定產品解析、四種既有優先序、不可變教會設定、借用 owner 與 Lazy 失敗邊界 | Established |

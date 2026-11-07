@@ -40,7 +40,8 @@ Message、request body、token 或個資放入 Exception.log／LINE。正常 cal
 保留 `ToolUtilityNameSpace.Diagnostics` 完整型別名稱與 ChurchReport 呼叫點，實作組件
 已移至 Hosting；以 ToolUtility 的 TypeForwardedTo 保護既有二進位參照，不再留第二套
 相容實作。Program 透過 Hosting registration 接入並維持單一 owner；
-StartupGuards 語系完成度生成與 R2／R3／R9 尚未完成，不能宣稱整包驗收。
+StartupGuards 已改用 I18nCheck 正式生成的 CultureCompleteness，Program 已建立與註冊
+嚴格驗證的不可變語系啟動快照；R2／R3／R9 尚未完成，不能宣稱整包驗收。
 回復必須一併回復三型別位置、轉送與專案參照，不可同時載入兩份 owner。
 
 ## 2026-11-07 實際抽取修正（原規劃03優先）
@@ -58,7 +59,20 @@ ToolUtility改參考Hosting，Hosting移除ToolUtility參考、改參考Tenancy�
 不同快照、外部adapter與owner不符、已存在非本入口的保留服務均拒絕且不部分發布。
 DI僅Dispose自己建立的owner／adapter；外部instance一律借用。全域registration先解除，
 再drain診斷，最後釋放sender與尚未移交的configuration。sender搬移與Program接入現已
-實作，不替代後續CultureCompleteness生成、R2／R3／R9與完整主機驗收，P2-01保持進行中。
+實作；CultureCompleteness生成與真接入也已實作並有離線證據，仍不替代
+R2／R3／R9與完整主機驗收，P2-01保持進行中。
+
+## 生成完成度與不可變政策
+
+完整方案原始 resx 是唯一完成度來源，所有中性鍵共同構成分母；同文字不同鍵保留、
+跨組同鍵拒絕，空白與回退不算翻譯。生成碼只有常數與 OrdinalIgnoreCase 查詢，
+沒有來源快取或資源 owner。CLI 原子替換，check／verify 共用完整候選且唯讀。
+
+Host 只在啟動時讀 Localization 區段：最多六十四個連續索引純文化字串，
+缺省繁中，pseudo 缺省 false 且有值須是有效布林。驗證成功的 LocalizationOptions
+與 root 分離並註冊同一 Host；所有環境拒未完成發布語系，非正式 pseudo 須 opt-in。
+正式流程為 owner → ICU → 語系政策／DI → 業務 Host；故障沿既有 catch 與逐階 cleanup。
+完整可執行契約見 backend/hosting-culture-contract.md，證據見 culture-completeness-checkpoint。
 
 ## LINE sender 搬移與測試邊界
 

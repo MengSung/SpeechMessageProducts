@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="4b1e8866-a541-43b5-a3bc-d58308cc9474" name="Administrator@LENOVO-LEGION 2026-11-07 10:22:19" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T10:22:19.8398827+08:00" queuing="2026-11-07T10:22:19.8398829+08:00" start="2026-11-07T10:22:18.0432796+08:00" finish="2026-11-07T10:22:20.1942062+08:00" />
+  <TestSettings name="default" id="b537364c-dacc-411d-9a8a-68924c32853b">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_10_22_19" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e74c29b7-4b4e-4683-a718-79897e86a377" testId="7e0aef8f-22d7-fd7f-1e5f-df563e6b2791" testName="I18nCheck.Tests.CultureCompletenessTests.RepositoryCheck_LocalizationProjectRequiresCompleteness" computerName="LENOVO-LEGION" duration="00:00:00.0146142" startTime="2026-11-07T10:22:20.1072328+08:00" endTime="2026-11-07T10:22:20.1072333+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e74c29b7-4b4e-4683-a718-79897e86a377" />
+    <UnitTestResult executionId="1b396c7b-bdc1-4aef-aacf-1ecba7c563bd" testId="05a8c51a-74d4-1731-fa89-97e5685f8bc0" testName="I18nCheck.Tests.CultureCompletenessTests.Generate_DuplicateKey_PreservesPreviousOutput" computerName="LENOVO-LEGION" duration="00:00:00.3756192" startTime="2026-11-07T10:22:18.8332683+08:00" endTime="2026-11-07T10:22:18.8332831+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1b396c7b-bdc1-4aef-aacf-1ecba7c563bd" />
+    <UnitTestResult executionId="7aa7a4b2-0977-4960-b57f-7583a132a4eb" testId="b1c128eb-cd87-7340-911a-ae0a6dfa80f2" testName="I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: True)" computerName="LENOVO-LEGION" duration="00:00:00.0446646" startTime="2026-11-07T10:22:19.9684630+08:00" endTime="2026-11-07T10:22:19.9684635+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7aa7a4b2-0977-4960-b57f-7583a132a4eb" />
+    <UnitTestResult executionId="24330af3-88db-463b-80e0-93d15baf12bb" testId="c9245eed-0e96-bca9-74c4-ca4909e1950f" testName="I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: &quot;   &quot;, expected: 1)" computerName="LENOVO-LEGION" duration="00:00:00.1400121" startTime="2026-11-07T10:22:19.7842478+08:00" endTime="2026-11-07T10:22:19.7842481+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="24330af3-88db-463b-80e0-93d15baf12bb" />
+    <UnitTestResult executionId="48b82fc0-6270-47d3-9b74-01849d6ced26" testId="e91bc407-71f5-f1b7-0472-8c7835cc5c4f" testName="I18nCheck.Tests.CultureCompletenessTests.Check_StaleInput_DoesNotWriteAndRegenerationRecovers" computerName="LENOVO-LEGION" duration="00:00:00.0189000" startTime="2026-11-07T10:22:20.1262513+08:00" endTime="2026-11-07T10:22:20.1262517+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="48b82fc0-6270-47d3-9b74-01849d6ced26" />
+    <UnitTestResult executionId="0b517a14-c4db-4c14-934d-4f38748bc901" testId="f177c44b-3762-a7bd-0d6e-a63202a32cbb" testName="I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: &quot;&quot;, expected: 1)" computerName="LENOVO-LEGION" duration="00:00:00.8112601" startTime="2026-11-07T10:22:19.6441885+08:00" endTime="2026-11-07T10:22:19.6441889+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0b517a14-c4db-4c14-934d-4f38748bc901" />
+    <UnitTestResult executionId="7400c042-6de5-4063-9350-440c01f02cee" testId="94b512a1-2604-88da-ea8e-359020c92f04" testName="I18nCheck.Tests.CultureCompletenessTests.Generate_ConcurrentRepositories_RemainIndependent" computerName="LENOVO-LEGION" duration="00:00:00.0808544" startTime="2026-11-07T10:22:20.0919339+08:00" endTime="2026-11-07T10:22:20.0919343+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7400c042-6de5-4063-9350-440c01f02cee" />
+    <UnitTestResult executionId="7a8ba988-7bd1-4d3e-8379-efd9e0c9333c" testId="e94481ad-5c47-ab19-b507-999f6b0295e9" testName="I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: &quot;translated&quot;, expected: 2)" computerName="LENOVO-LEGION" duration="00:00:00.1393393" startTime="2026-11-07T10:22:19.9236856+08:00" endTime="2026-11-07T10:22:19.9236861+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7a8ba988-7bd1-4d3e-8379-efd9e0c9333c" />
+    <UnitTestResult executionId="06b098b5-e2d6-4f54-81ba-58c0c57f7584" testId="46c07e33-3c6e-36ab-31ce-95436eac71c2" testName="I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: False)" computerName="LENOVO-LEGION" duration="00:00:00.0410287" startTime="2026-11-07T10:22:20.0095995+08:00" endTime="2026-11-07T10:22:20.0096000+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="06b098b5-e2d6-4f54-81ba-58c0c57f7584" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Check_StaleInput_DoesNotWriteAndRegenerationRecovers" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="e91bc407-71f5-f1b7-0472-8c7835cc5c4f">
+      <Execution id="48b82fc0-6270-47d3-9b74-01849d6ced26" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Check_StaleInput_DoesNotWriteAndRegenerationRecovers" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Generate_DuplicateKey_PreservesPreviousOutput" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="05a8c51a-74d4-1731-fa89-97e5685f8bc0">
+      <Execution id="1b396c7b-bdc1-4aef-aacf-1ecba7c563bd" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Generate_DuplicateKey_PreservesPreviousOutput" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: False)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="46c07e33-3c6e-36ab-31ce-95436eac71c2">
+      <Execution id="06b098b5-e2d6-4f54-81ba-58c0c57f7584" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Generate_EmptyOrBlankNeutral_IsNeverComplete" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: &quot;   &quot;, expected: 1)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="c9245eed-0e96-bca9-74c4-ca4909e1950f">
+      <Execution id="24330af3-88db-463b-80e0-93d15baf12bb" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Generate_UsesAllOriginalKeysAndNonblankTranslations" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: &quot;translated&quot;, expected: 2)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="e94481ad-5c47-ab19-b507-999f6b0295e9">
+      <Execution id="7a8ba988-7bd1-4d3e-8379-efd9e0c9333c" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Generate_UsesAllOriginalKeysAndNonblankTranslations" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.RepositoryCheck_LocalizationProjectRequiresCompleteness" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="7e0aef8f-22d7-fd7f-1e5f-df563e6b2791">
+      <Execution id="e74c29b7-4b4e-4683-a718-79897e86a377" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="RepositoryCheck_LocalizationProjectRequiresCompleteness" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: True)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="b1c128eb-cd87-7340-911a-ae0a6dfa80f2">
+      <Execution id="7aa7a4b2-0977-4960-b57f-7583a132a4eb" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Generate_EmptyOrBlankNeutral_IsNeverComplete" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: &quot;&quot;, expected: 1)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="f177c44b-3762-a7bd-0d6e-a63202a32cbb">
+      <Execution id="0b517a14-c4db-4c14-934d-4f38748bc901" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Generate_UsesAllOriginalKeysAndNonblankTranslations" />
+    </UnitTest>
+    <UnitTest name="I18nCheck.Tests.CultureCompletenessTests.Generate_ConcurrentRepositories_RemainIndependent" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\tools\i18ncheck.tests\bin\release\net10.0\i18ncheck.tests.dll" id="94b512a1-2604-88da-ea8e-359020c92f04">
+      <Execution id="7400c042-6de5-4063-9350-440c01f02cee" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="I18nCheck.Tests.CultureCompletenessTests" name="Generate_ConcurrentRepositories_RemainIndependent" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="7e0aef8f-22d7-fd7f-1e5f-df563e6b2791" executionId="e74c29b7-4b4e-4683-a718-79897e86a377" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="05a8c51a-74d4-1731-fa89-97e5685f8bc0" executionId="1b396c7b-bdc1-4aef-aacf-1ecba7c563bd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b1c128eb-cd87-7340-911a-ae0a6dfa80f2" executionId="7aa7a4b2-0977-4960-b57f-7583a132a4eb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c9245eed-0e96-bca9-74c4-ca4909e1950f" executionId="24330af3-88db-463b-80e0-93d15baf12bb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e91bc407-71f5-f1b7-0472-8c7835cc5c4f" executionId="48b82fc0-6270-47d3-9b74-01849d6ced26" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f177c44b-3762-a7bd-0d6e-a63202a32cbb" executionId="0b517a14-c4db-4c14-934d-4f38748bc901" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="94b512a1-2604-88da-ea8e-359020c92f04" executionId="7400c042-6de5-4063-9350-440c01f02cee" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e94481ad-5c47-ab19-b507-999f6b0295e9" executionId="7a8ba988-7bd1-4d3e-8379-efd9e0c9333c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="46c07e33-3c6e-36ab-31ce-95436eac71c2" executionId="06b098b5-e2d6-4f54-81ba-58c0c57f7584" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="9" executed="9" passed="9" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.05]   Discovering: I18nCheck.Tests&#xD;
+[xUnit.net 00:00:00.08]   Discovered:  I18nCheck.Tests&#xD;
+[xUnit.net 00:00:00.09]   Starting:    I18nCheck.Tests&#xD;
+[xUnit.net 00:00:01.79]   Finished:    I18nCheck.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,26 @@
+✔ Every work package has a supported status and renders without undefined labels or icons (8.1556ms)
+✔ No alert hides the warning region and still renders the page (10.746ms)
+✔ Alert without prompt omits copy button and full prompt area (4.9792ms)
+✔ Alert with prompt preserves escaped prompt and copy handler (5.6814ms)
+✔ Stage 1 progress lists all twelve packages and preserves the live acceptance boundary (15.8755ms)
+✔ Stages 2 through 8 preserve planned scope and render each package with its actual progress (7.1356ms)
+✔ Planned phase disclosures show a visible expanded-state indicator (5.3848ms)
+✔ All nine stages share one closed work-package disclosure list without standalone P0/P1 sections (4.1943ms)
+✔ Unified summaries exclude review milestones and account for user-operated work (8.4514ms)
+✔ Stage switching and mixed planned statuses render independently of the historical snapshot (5.9021ms)
+✔ Integrated P0/P1 entries preserve every evidence field and never merge same-name records (9.8886ms)
+✔ Future work packages preserve external-operation and isolation stop boundaries (0.4782ms)
+✔ Summary cards and phase meters agree with accepted work packages (0.2002ms)
+✔ Informational history defaults to a closed neutral disclosure (5.9632ms)
+✔ P2 informational updates share one stable closed summary and retain their evidence (5.5232ms)
+✔ P2 informational body and every history entry show an explicit Taipei date and time (3.8966ms)
+✔ Current warnings and errors remain separate from collapsed history (4.7622ms)
+✔ Empty notices hide their region and unknown severity cannot inject markup (7.7166ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 232.9452

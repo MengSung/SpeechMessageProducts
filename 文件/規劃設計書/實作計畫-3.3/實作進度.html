@@ -445,7 +445,7 @@
  * 注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07T10:06:06+08:00",
+  "snapshot": "2026-11-07 10:45 Asia/Taipei (UTC+08:00)",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "worker": "主會話inline實作／檢查；獨立Debug／Release驗證曾以no-restore及分離輸出並行，無子代理或外部模型。",
   "headline": "階段 2 目前 <strong>1／12 工作包進行中</strong>（P2-01）。P1-01～12 已驗收；P2-02／03／06／09 可在不連 D365／LINE 下並行，P2-04 推播前置仍需測試 channel／本人帳號與 secrets。全計畫已驗收30包，另1包進行中。",
@@ -455,8 +455,11 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "body": "2026-11-07 10:29 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01進行中。Program共用註冊與清理已提交；生成完成度9／9、工具179／179及純語系守門5／5離線通過，正式組合根接入與R2／R3／R9仍待驗收。一般資訊已逐筆加入日期時間。",
+      "body": "2026-11-07 10:45 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01進行中。一般資訊逐筆日期時間與永久規則已補齊，頁面18／18、文件1265份0問題；Program、語系生成與啟動政策有離線切片證據。下一步架構測試搬移、CI與R2／R3／R9。",
       "steps": [
+        "2026-11-07 10:45 Asia/Taipei (UTC+08:00)｜日期需求收斂：本文及每筆歷史均有可見日期、時分與台北時區，原時間不明者明標補記；單階段單卡與原有證據保留，永久規則已寫AGENTS及progress-page-contract。頁面18／18、文件1265份0問題。完整Changed對a1dcc3cb另抓到既有c20dff45的P0-13自動.turns.json缺檔尾CRLF，保留其原貌並歸屬記錄，不把本P2切片通過冒充整體守門通過。",
+        "2026-11-07 10:40 Asia/Taipei (UTC+08:00)｜P2-01-CULTURE切片已驗證：完整工具179／179，Hosting strict Debug／Release各70／70，ChurchReport相關各90／90，Localization net48宿主驗net462為182／182、net10為209／209，均0失敗／0略過；全方案Release23警告／0錯誤，I18n CJK／生成／資源／CLDR及檔案說明1265檔0失敗通過。證據根目錄.trellis/tasks/11-07-p2-01-hosting/evidence/culture-*，完整對照research/culture-completeness-checkpoint.md；僅本機離線，不相加重疊案例數。",
+        "2026-11-07 10:40 Asia/Taipei (UTC+08:00)｜實際分工與限制：主會話inline寫入，唯讀代理只盤點架構並已關閉；不同組態及只讀守門實際並行。較高優先CCG設定仍強制外部分析／審查，本輪兩個run均quotaBlocked=true、dualModelComplete=false、degradedFallback=false且無可用輸出，保留證據不稱外審成功。未連D365／LINE／金流、未部署／修改真實秘密；P2-04安全實機前置未完成。下一步架構測試搬移、CI filter與R2／R3／R9。",
         "2026-11-07 10:29 Asia/Taipei (UTC+08:00)｜一般資訊日期規則已永久保存至AGENTS.md與progress-page-contract.md；每筆詳細／歷史紀錄都有日期、分鐘及Asia/Taipei時區，原事件時間未留存者明標補記，不猜測歷史時間。仍保持同階段單卡與全部驗收證據。",
         "2026-11-07 10:18 Asia/Taipei (UTC+08:00)｜已完成切片｜P2-01-PROGRAM｜2026-11-07 10:18 Asia/Taipei (UTC+08:00)：已核對program-hosting-debug與program-hosting-release-final原始TRX各90／90、Hosting 55／55；原清理8通過／6失敗紅燈已修復，保留原始證據。Program經Hosting借用同一owner／adapter，逐階清理、保留主要例外、真實未啟動WebApplication組態移交與通知排空案例已通過；方案Release建置23個既有警告／0錯誤，來源比對見program-build-warning-provenance.json。證據均在.trellis/tasks/11-07-p2-01-hosting/evidence/，僅離線。",
         "2026-11-07 10:18 Asia/Taipei (UTC+08:00)｜進行中｜P2-01-CULTURE｜2026-11-07 10:18 Asia/Taipei (UTC+08:00)：生成器→Localization產物→Hosting守門→ChurchReport組合根為同一依賴鏈；主會話負責寫入。唯讀代理僅盤點架構R2／R3／R9，沒有產品寫入權；未呼叫外部雙模型。Goal工具回報usageLimited，本輪依使用者續作指示執行並保存狀態。P2-04安全實機前置保持未完成。",
@@ -485,7 +488,7 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T10:29:37+08:00"
+      "lastUpdated": "2026-11-07T10:45:12+08:00"
     }
   ],
   "alert": {
@@ -928,9 +931,9 @@ const DATA = {
       "id": "P2-01",
       "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
       "status": "active",
-      "scope": "進行中：ExceptionDiagnostics／ExceptionOutputOptions／ExceptionReporting與LineExceptionSender真正實作已搬至SpeechMessage.Hosting；舊產品sender與Development設定入口只委派共用StartupGuards。方案32專案，ChurchReport明確參考Hosting。Program已接入共用單一owner並完成離線失敗清理驗證；仍須CultureCompleteness生成、R2／R3／R9完整搬移及整包驗收。",
-      "verification": "已核對既有原始證據：Program整合Debug／Release相關回歸各90／90、Hosting55／55，均0失敗／0略過；方案Release23個既有警告／0錯誤。證據program-hosting-debug/program-hosting-debug.trx、program-hosting-release-final/program-hosting-release-final.trx、program-hosting-foundation-release/program-hosting-foundation-release.trx、program-solution-release-build.log，根目錄.trellis/tasks/11-07-p2-01-hosting/evidence/。此為本機離線切片；CultureCompleteness生成、正式語系guard與R2／R3／R9整包驗收未完成。",
-      "prerequisite": "下一步完成CultureCompleteness生成與正式組合根守門，再完成R2／R3／R9及整包驗收；維持四輸出、先flush後LINE、取消／逾時與drain／Dispose。P2-04必要安全實機前置另行追蹤。",
+      "scope": "進行中：ExceptionDiagnostics／ExceptionOutputOptions／ExceptionReporting與LineExceptionSender真正實作已搬至SpeechMessage.Hosting，舊入口委派共用Development guard；Program單一owner／adapter及逐階清理已接入。I18nCheck已正式生成CultureCompleteness.g.cs，StartupGuards依原始完成度嚴格解析語系政策並由Program真接入；仍須R2／R3／R9完整搬移、CI接入及整包驗收。",
+      "verification": "本機離線切片通過：Hosting strict Debug／Release各70／70；ChurchReport相關各90／90；工具179／179；Localization net48宿主驗net462為182／182、net10為209／209；頁面18／18、文件1265檔0失敗、I18n與完整方案Release23警告／0錯誤。證據.trellis/tasks/11-07-p2-01-hosting/evidence/culture-*、progress-timestamps-green.log及research/culture-completeness-checkpoint.md。外部雙模型兩端無可用輸出，不稱成功。R2／R3／R9與整包驗收尚未完成。",
+      "prerequisite": "下一步同步搬移架構測試與CI filter，再補R2／R3／R9正反例與精確過渡差距，執行整包驗收；維持四輸出、先flush後LINE、取消／逾時與drain／Dispose。P2-04必要安全實機前置另行追蹤。",
       "lastUpdated": "2026-11-07T10:06:06+08:00"
     },
     {

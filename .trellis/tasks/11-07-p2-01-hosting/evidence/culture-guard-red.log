@@ -1,0 +1,36 @@
+  LineMessagingProcessor.Core -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\LineMessagingProcessor.Core\bin\Release\net10.0\LineMessagingProcessor.Core.dll
+  SpeechMessage.Localization -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Localization\bin\Release\net10.0\SpeechMessage.Localization.dll
+  SpeechMessage.Tenancy -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Tenancy\bin\Release\net10.0\SpeechMessage.Tenancy.dll
+  SpeechMessage.Hosting -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\bin\Release\net10.0\SpeechMessage.Hosting.dll
+  SpeechMessage.Hosting.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:00.60]     SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(allowPseudo: False) [FAIL]
+[xUnit.net 00:00:00.61]     SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(production: False) [FAIL]
+[xUnit.net 00:00:00.61]     SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness [FAIL]
+  失敗 SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(allowPseudo: False) [2 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.InvalidOperationException)
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(Boolean allowPseudo) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs:line 43
+   at InvokeStub_StartupCulturePolicyTests.PseudoConfiguredCulture_RequiresExplicitDevelopmentOptIn(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(production: False) [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.InvalidOperationException)
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.IncompleteReleasedCulture_IsRejectedInEveryEnvironment(Boolean production) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs:line 31
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失敗 SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness [< 1 ms]
+  錯誤訊息:
+   Assert.NotNull() Failure: Value is null
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.StartupCulturePolicyTests.LocalizationAssembly_ContainsExecutableGeneratedCompleteness() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupCulturePolicyTests.cs:line 52
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\culture-guard-red\culture-guard-red.trx
+
+失敗!  - 失敗:     3，通過:     2，略過:     0，總計:     5，持續時間: 488 ms - SpeechMessage.Hosting.Tests.dll (net10.0)

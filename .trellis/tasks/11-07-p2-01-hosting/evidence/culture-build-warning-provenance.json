@@ -1,0 +1,81 @@
+{
+  "baseline": "a1dcc3cb",
+  "sourceComparisonOnly": true,
+  "baselineNotRebuilt": true,
+  "currentWarningCount": 23,
+  "currentErrorCount": 0,
+  "sources": [
+    {
+      "path": "ToolUtility.Dataverse.Tests/RunCServiceGraphTests.cs",
+      "gitFilteredHash": "3fa21292d0dff4b91e7806712fc4cf85392597c9",
+      "baselineHash": "3fa21292d0dff4b91e7806712fc4cf85392597c9",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Dataverse.Tests/ToolUtilityClassScopedLifetimeTests.cs",
+      "gitFilteredHash": "3cbc3b8f0bbf711629184e898bfee0ac4f61a6fa",
+      "baselineHash": "3cbc3b8f0bbf711629184e898bfee0ac4f61a6fa",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Dataverse.Tests/ToolUtilityFactoryAmbientGatewayTests.cs",
+      "gitFilteredHash": "76620ee606fc3b56ef6a01a06d4b81a3e4742ac4",
+      "baselineHash": "76620ee606fc3b56ef6a01a06d4b81a3e4742ac4",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/AttributeOperations/LookupAttributeServiceTests.cs",
+      "gitFilteredHash": "795635251990aa4cacb7b150f66eeb2a31e95e93",
+      "baselineHash": "795635251990aa4cacb7b150f66eeb2a31e95e93",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/DependencyInjection/ProductRegistrationTests.cs",
+      "gitFilteredHash": "83400c666534b70c716f70a517510a681b676ace",
+      "baselineHash": "83400c666534b70c716f70a517510a681b676ace",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/EntityOperations/RepositoryCallerRouteTests.cs",
+      "gitFilteredHash": "d9f3042f9f644c2acd3ad611e53fea02e7ae926d",
+      "baselineHash": "d9f3042f9f644c2acd3ad611e53fea02e7ae926d",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/ListOperations/ListServiceTests.cs",
+      "gitFilteredHash": "94ea21e68c1408e93d4f691ad33670ab1f0b58ae",
+      "baselineHash": "94ea21e68c1408e93d4f691ad33670ab1f0b58ae",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/TestHelpers/MockLoggerFactory.cs",
+      "gitFilteredHash": "599c7cbfb589afe04fc3317026bb0a86f481ac76",
+      "baselineHash": "599c7cbfb589afe04fc3317026bb0a86f481ac76",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/TestHelpers/MockOrganizationServiceFactory.cs",
+      "gitFilteredHash": "67456546949920a7993bf327269af196572ab234",
+      "baselineHash": "67456546949920a7993bf327269af196572ab234",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/TestHelpers/TestEntityFactory.cs",
+      "gitFilteredHash": "73af7f17831d74d002717234d21fe6975a609c35",
+      "baselineHash": "73af7f17831d74d002717234d21fe6975a609c35",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/Utilities/StringUtilityTests.cs",
+      "gitFilteredHash": "1de50d7d73e375fcc0f26290c7e287a78a90d5b1",
+      "baselineHash": "1de50d7d73e375fcc0f26290c7e287a78a90d5b1",
+      "unchanged": true
+    },
+    {
+      "path": "ToolUtility.Tests/Utilities/TraceUtilityTests.cs",
+      "gitFilteredHash": "037103a31ec397329ccd4001058779fce0db6376",
+      "baselineHash": "037103a31ec397329ccd4001058779fce0db6376",
+      "unchanged": true
+    }
+  ]
+}

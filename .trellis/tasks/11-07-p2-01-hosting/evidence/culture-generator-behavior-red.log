@@ -1,0 +1,105 @@
+  ���b�P�_�n�٭쪺�M��...
+  �w�٭� D:\���T��޲��~\�t�Υ��x\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\I18nCheck.Tests.csproj (981 �@�� ��)�C
+  2 ���M�פ��� 1 ���b�̷s���A�A�i�i���٭�C
+  I18nCheck -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck\bin\Release\net10.0\I18nCheck.dll
+  I18nCheck.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\bin\Release\net10.0\I18nCheck.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:02.08]     I18nCheck.Tests.CultureCompletenessTests.Generate_DuplicateKey_PreservesPreviousOutput [FAIL]
+[xUnit.net 00:00:02.10]     I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: "", expected: 1) [FAIL]
+[xUnit.net 00:00:02.11]     I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: "   ", expected: 1) [FAIL]
+[xUnit.net 00:00:02.12]     I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: "translated", expected: 2) [FAIL]
+[xUnit.net 00:00:02.14]     I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: True) [FAIL]
+[xUnit.net 00:00:02.15]     I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: False) [FAIL]
+[xUnit.net 00:00:02.19]     I18nCheck.Tests.CultureCompletenessTests.Generate_ConcurrentRepositories_RemainIndependent [FAIL]
+[xUnit.net 00:00:02.20]     I18nCheck.Tests.CultureCompletenessTests.RepositoryCheck_LocalizationProjectRequiresCompleteness [FAIL]
+[xUnit.net 00:00:02.22]     I18nCheck.Tests.CultureCompletenessTests.Check_StaleInput_DoesNotWriteAndRegenerationRecovers [FAIL]
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Generate_DuplicateKey_PreservesPreviousOutput [1 s]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.Generate_DuplicateKey_PreservesPreviousOutput() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 90
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: "", expected: 1) [11 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(String secondTranslation, Int32 expected) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 39
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: "   ", expected: 1) [14 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(String secondTranslation, Int32 expected) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 39
+   at InvokeStub_CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(secondTranslation: "translated", expected: 2) [12 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(String secondTranslation, Int32 expected) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 39
+   at InvokeStub_CultureCompletenessTests.Generate_UsesAllOriginalKeysAndNonblankTranslations(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: True) [14 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(Boolean blank) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 62
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(blank: False) [10 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(Boolean blank) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 62
+   at InvokeStub_CultureCompletenessTests.Generate_EmptyOrBlankNeutral_IsNeverComplete(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Generate_ConcurrentRepositories_RemainIndependent [34 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.<>c__DisplayClass5_0.<Generate_ConcurrentRepositories_RemainIndependent>b__0() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 122
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at I18nCheck.Tests.CultureCompletenessTests.Generate_ConcurrentRepositories_RemainIndependent() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 122
+--- End of stack trace from previous location ---
+  失敗 I18nCheck.Tests.CultureCompletenessTests.RepositoryCheck_LocalizationProjectRequiresCompleteness [12 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 1
+Actual:   0
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.RepositoryCheck_LocalizationProjectRequiresCompleteness() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 108
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 I18nCheck.Tests.CultureCompletenessTests.Check_StaleInput_DoesNotWriteAndRegenerationRecovers [15 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  堆疊追蹤:
+     at I18nCheck.Tests.CultureCompletenessTests.Check_StaleInput_DoesNotWriteAndRegenerationRecovers() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\I18nCheck.Tests\CultureCompletenessTests.cs:line 72
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\culture-generator-behavior-red\culture-generator-behavior-red.trx
+
+失敗!  - 失敗:     9，通過:     0，略過:     0，總計:     9，持續時間: 1 s - I18nCheck.Tests.dll (net10.0)

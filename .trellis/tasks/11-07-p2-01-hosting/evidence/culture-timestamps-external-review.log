@@ -1,0 +1,91 @@
+{
+    "runId":  "20261107-103418-p2-culture-timestamps-reviewer",
+    "role":  "reviewer",
+    "requestedBackends":  [
+                              "gemini",
+                              "claude"
+                          ],
+    "claudeOnly":  false,
+    "reviewMode":  "dual",
+    "dualModelComplete":  false,
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree",
+    "taskFile":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\p2-culture-timestamps-reviewer.md",
+    "runDirectory":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer",
+    "wrapperPath":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+    "toolchainEnvironment":  {
+                                 "ToolPathEntries":  [
+                                                         "C:\\Users\\Administrator\\AppData\\Roaming\\npm",
+                                                         "C:\\Users\\Administrator\\.claude\\bin",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\Scripts",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Launcher"
+                                                     ],
+                                 "ChangedProcessPath":  false,
+                                 "ChangedUserPath":  false,
+                                 "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                                 "CODEAGENT_LITE_MODE":  "true",
+                                 "PYTHONIOENCODING":  "utf-8",
+                                 "CLAUDE_MODEL":  "sonnet",
+                                 "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-18260-3359e337bb75418eb9eb2f6998b2e70d\\claude.cmd",
+                                 "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-18260-3359e337bb75418eb9eb2f6998b2e70d",
+                                 "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                             },
+    "healthBackendSmoke":  false,
+    "attempts":  [
+                     {
+                         "attempt":  1,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\health-attempt-1.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "gemini",
+                                              "ok":  false,
+                                              "exitCode":  1,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "failureReason":  "no-usable-output",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  "[codeagent-wrapper]   Backend: gemini   Command: gemini -o stream-json -y --include-directories D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree   PID: 42768   Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-42768.log Gemini CCG adapter error: 以 \"0\" 引數呼叫 \"GetResponse\" 時發生例外狀況: \"遠端伺服器傳回一個錯誤: (503) 伺服器無法使用。\" === Recent Errors === Using stdin mode for task due to: piped input, explicit \"-\", newline, b",
+                                              "probeDiagnostic":  "Gemini CCG adapter error: 以 \"0\" 引數呼叫 \"GetResponse\" 時發生例外狀況: \"遠端伺服器傳回一個錯誤: (503) 伺服器無法使用。\"",
+                                              "probe":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\gemini-probe-attempt-1.stdout.md",
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\gemini-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\gemini-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\gemini-reviewer-attempt-1.stderr.md"
+                                          },
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  false,
+                                              "exitCode":  1,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  true,
+                                              "failureReason":  "provider-quota-or-billing-blocked",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  "[codeagent-wrapper]   Backend: claude   Command: claude -p --dangerously-skip-permissions --setting-sources  --output-format stream-json --verbose -   PID: 40676   Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-40676.log   Session-ID: 402aae40-67fd-4734-8173-762147d32697 === Recent Errors === Using stdin mode for task due to: piped input, explicit \"-\", newline, backslash, single-quote, backtick, length\u003e800 claude exited with status 1 Log file: C:\\Users\\Administrator\\AppData\\Loc",
+                                              "probeDiagnostic":  "You\u0027ve hit your weekly limit · resets 4pm (Asia/Taipei)",
+                                              "probe":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\claude-probe-attempt-1.stdout.md",
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\claude-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\claude-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.ccg\\dual-model-runs\\20261107-103418-p2-culture-timestamps-reviewer\\claude-reviewer-attempt-1.stderr.md"
+                                          }
+                                      ]
+                     }
+                 ],
+    "ok":  false,
+    "degradedFallback":  false,
+    "fallbackAccepted":  true,
+    "quotaBlocked":  true,
+    "completedBackends":  [
+
+                          ],
+    "failedBackends":  [
+                           "gemini",
+                           "claude"
+                       ]
+}
+WARNING: CCG stopped on provider quota/session state and did not produce an accepted fallback. Read: 
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.
+P2.Worktree\.ccg\dual-model-runs\20261107-103418-p2-culture-timestamps-reviewer\summary.json

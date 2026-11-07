@@ -22,11 +22,11 @@ Production 啟動守門與架構規則，讓 ChurchReport 及後續 LineWebhook 
 ## Acceptance Criteria
 
 - [x] `SpeechMessage.Hosting` 與測試專案加入 solution，Release 建置通過。
-- [ ] 四種通知開關、寫檔失敗、LINE sender 失敗、佇列滿載、正常取消、內部逾時、
+- [x] 四種通知開關、寫檔失敗、LINE sender 失敗、佇列滿載、正常取消、內部逾時、
   drain／Dispose、A／B 兩組 operation 不串資料的測試通過。
-- [ ] ChurchReport 以 Hosting registration／adapter 使用共用入口，原有
+- [x] ChurchReport 以 Hosting registration／adapter 使用共用入口，原有
   `ExceptionOutputOptionsTests` 與既有例外測試通過。
-- [ ] 啟動守門的正反例測試通過，錯誤訊息不含 token、密碼、完整 request 或個資。
+- [x] 啟動守門的正反例測試通過，錯誤訊息不含 token、密碼、完整 request 或個資。
 - [ ] 架構測試通過；新增／修改 `.cs` 完成繁中檔案整體說明、XML 註解與 UTF-8 無 BOM／CRLF。
 - [ ] `python tools/RepoQuality/check_file_documentation.py`、相關 `dotnet test`
   與 P2-01 報告均有證據。
@@ -37,3 +37,5 @@ Production 啟動守門與架構規則，讓 ChurchReport 及後續 LineWebhook 
   保留舊namespace與CLR型別轉送以支援舊呼叫端，不把adapter／薄殼當成搬移或驗收完成。
   跨層參考須通過正反圖及實際方案評估，Hosting不得反向依賴ToolUtility。
 - P2-01 不執行 D365 寫入、LINE 實際推播或讀取秘密；外部驗收依 P2-04 前置另行處理。
+- 本輪已核對的切片證據見 `research/culture-completeness-checkpoint.md`；
+  R2／R3／R9 與整包回歸仍待完成，不封存本子任務，不把勾選的離線切片當成 P2 驗收。
