@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 07:12 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T07:12:56+08:00",
+  "snapshot": "2026-11-08 07:19 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T07:19:25+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "10c36d4e",
-  "headline": "P2-07 Writer 與原子入列已通過雙目標離線測試；Worker 尚待實作，P2-04 前置仍受組織加密金鑰阻塞。",
+  "head": "3614e9d5",
+  "headline": "P2-07 入列程式的乾淨複本全方案 4,707 個測試通過；主任務 JSON 末尾換行守門失敗，已修正待重新驗證。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T07:12:56+08:00",
-      "body": "2026-11-08 07:12 Asia/Taipei (UTC+08:00)：P2 已驗收 3 包，另 P2-09a 已驗收。P2-07 Writer 每宿主 17 個新案例、資料庫入列適配器每宿主 11 個案例通過；Worker 未完成，不標整包驗收。P2-04 前置加密金鑰缺失，未發送 LINE。",
+      "lastUpdated": "2026-11-08T07:19:25+08:00",
+      "body": "2026-11-08 07:19 Asia/Taipei (UTC+08:00)：P2-07 Writer 與入列已完成本地提交；乾淨複本全方案 4,707 個測試及 Debug tracer 7 個通過，但主任務 JSON 檔尾 CRLF 守門失敗，僅修換行後重新驗證，不標驗收。P2-04 前置仍缺組織加密復原材料。",
       "steps": [
+        "2026-11-08 07:19 Asia/Taipei (UTC+08:00)｜乾淨複本守門真失敗｜提交 3614e9d5 的 Release 建置、20 份 TRX 共 4,707 案及 Debug tracer 7 案通過；Changed 編碼 232 檔抓到主任務 task.json 缺 Final CRLF，未繼續其餘守門。已逐位元組修正且確認 JSON 語義完全相同，將以新提交重驗。另嘗試以既有憑證連 D365-9.1 的 WinRM，PSSessionOpenFailed／1312，未進入遠端、未修改服務或出站規則；TLS 仍未證實。",
         "2026-11-08 07:12 Asia/Taipei (UTC+08:00)｜P2-07 入列檢查點｜Writer 穩定鍵、三型別與有界 payload、decimal 正規化已實作；SDK 唯一鍵 Create-or-get 拒覆寫既有狀態，兩 store 競爭、內容衝突、取消、fault 與 Dispose 離線通過。Writer 17 案／store 11 案兩宿主均通過，產品含 QR 回歸各 41 案通過。原始證據與 SHA-256 見 P2-07 一頁回報；CAS／Worker 六個同名測試待做，未推送。",
         "2026-11-08 07:04 Asia/Taipei (UTC+08:00)｜P2-04 前置核對收尾｜兩份備份與 live DLL 解碼 hash 一致，撤回先前以 Base64 長度誤判 DLL 改變的推論；trace 已由 2 恢復 1，固定步驟停用／trace／無 secure。錯誤碼指 Config DB 組織加密金鑰缺失，唯讀 active=false、讀鍵回空；未重跑部署。操作紀錄 SHA-256 見 P2-04-preflight 一頁報告。舊流程精確盤點及 TLS 仍未完成。",
         "2026-11-08 06:52 Asia/Taipei (UTC+08:00)｜恢復接續與補記｜前輪已完成 net462 打包、D34 備份與 16 筆非測試主 LINE ID 清理；推播 apply 失敗，未執行 smoke。備份 Base64 字串長度不能當作 DLL 位元組數，正在解碼比對，未因此誤判回滾。主代理 inline 執行，D365 寫入保持唯一程序。",
@@ -1562,38 +1563,38 @@ const DATA = {
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-07 22:26",
-      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
+      "at": "2026-11-08 07:19",
+      "note": "3614e9d5 的獨立短路徑乾淨複本 Release 建置成功，23 個既有警告、0 個錯誤。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-07 22:26",
-      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。全方案4,651個測試全部通過；Debug tracer 7個通過。"
+      "at": "2026-11-08 07:19",
+      "note": "3614e9d5 乾淨複本 20 份 TRX，共 4,707 個測試全部通過；Debug tracer 7 個通過。"
     },
     {
       "item": "檔案說明檢查",
-      "result": "ok",
-      "at": "2026-11-07 22:26",
-      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
+      "result": "na",
+      "at": "2026-11-08 07:19",
+      "note": "本輪在編碼失敗處停止，此項未在本次乾淨複本執行；先前通過證據仍保留於歷史。"
     },
     {
       "item": "文字編碼（P2 範圍）",
-      "result": "ok",
-      "at": "2026-11-07 22:26",
-      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
+      "result": "bad",
+      "at": "2026-11-08 07:19",
+      "note": "3614e9d5：232 檔中主任務 task.json 缺檔尾 CRLF；僅修換行、JSON 語義不變，待新提交重驗。"
     },
     {
       "item": "重複程式掃描",
-      "result": "ok",
-      "at": "2026-11-07 22:26",
-      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
+      "result": "na",
+      "at": "2026-11-08 07:19",
+      "note": "本輪在編碼失敗處停止，此項未在本次乾淨複本執行；先前通過證據仍保留於歷史。"
     },
     {
       "item": "I18nCheck verify",
-      "result": "ok",
-      "at": "2026-11-07 22:26",
-      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
+      "result": "na",
+      "at": "2026-11-08 07:19",
+      "note": "本輪在編碼失敗處停止，此項未在本次乾淨複本執行；先前通過證據仍保留於歷史。"
     },
     {
       "item": "雲端 CI（GitHub）",
@@ -1763,6 +1764,10 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-08 07:19 Asia/Taipei (UTC+08:00)",
+      "text": "乾淨複本全方案 4,707 個測試通過；編碼攔下主任務 JSON 缺檔尾 CRLF，修正後重驗。"
+    },
     {
       "t": "2026-11-08 07:12 Asia/Taipei (UTC+08:00)",
       "text": "P2-07 完成 Writer 與唯一鍵儲存的紅綠測試；保存獨立本地提交前檢查點，尚未驗收／推送。"
