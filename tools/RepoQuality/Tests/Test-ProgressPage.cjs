@@ -1,14 +1,19 @@
 /*
 檔案整體說明
 
-目的與定位：驗證實作進度HTML的工作包狀態、計數與歷史證據區一致，防止視覺上已完成卻與工作包資料矛盾；使用本機頁面內容，不修改正式產品狀態。
-P1-12由歷史人工待辦進入使用者授權的實機作業時，狀態必須對應備份／復原證據；只有apply、已發布verify、Active key、唯一性與清理證據齊全才能標已完成。
+目的與定位：以本機實作進度HTML及既有驗收證據，驗證83個工作包的身分、合法狀態、
+各階段計數、單階段資訊摘要與歷史紀錄一致。呈現測試通過不表示產品或實機驗收通過。
+P1-12只有apply、已發布verify、Active key、唯一性與清理證據齊全才能標已完成。
 
 主要功能與流程：
-操作入口包含render、getWorkPackageRow；呼叫參數與輸出形狀以各入口宣告為準。
+讀取真實DATA與script，在每案例自有的vm／DOM替身執行原頁renderer，再斷言可見內容、
+收合狀態、複製事件與HTML跳脫。合成不同階段、分支、四種包狀態及惡意字串，保護
+進度推進時不綁定舊P1快照；同階段重複info卡或合併遺失證據時須明確失敗。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
-涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+每案例獨占資料副本、DOM Map與事件替身，執行結束即不再保留；不建立產品Host、網路、
+計時器或部署資源。P1歷史證據只讀，warn/error不因一般資訊合併而隱藏；離線測試不
+取代D365／LINE實機結果。以node直接執行本檔，斷言失敗回傳非零，不修改驗收資料。
 */
 // 驗證真實進度頁的渲染程式；小型 DOM 測試替身只記錄可見內容與事件，不執行外部連線。
 // 注入無警示、無提示詞與正常提示詞三種資料，保護空值容錯與既有複製功能。
@@ -88,10 +93,14 @@ test('No alert hides the warning region and still renders the page', () => {
   const elements = render(null);
   assert.equal(elements.get('alert').hidden, true);
   assert.equal(elements.has('copyBtn'), false);
-  assert.match(elements.get('meta').innerHTML, /1\.0\.0\.11\.Integration\.P1\.Worktree/);
-  // 完成數必須等於實際工作包狀態，不把 P1 初始的零永久寫死而造成後續合法更新失敗。
-  const accepted = original.p1Wps.filter(wp => wp.status === 'done').length;
-  assert.match(elements.get('headline').innerHTML, new RegExp(`${accepted}／12 工作包`));
+  assert.ok(elements.get('meta').innerHTML.includes(`分支 ${original.branch}`));
+  // 階段由真實current旗標決定；不能在P2已開始後仍要求頁首宣稱P1是目前階段。
+  const current = original.phases.filter(phase => phase.current);
+  assert.equal(current.length, 1);
+  assert.ok(elements.get('headline').innerHTML.startsWith(current[0].id));
+  if (current[0].active) {
+    assert.ok(elements.get('headline').innerHTML.includes(`${current[0].active}／${current[0].total} 工作包進行中`));
+  }
   assert.match(elements.get('tiles').innerHTML, /階段 1 驗收/);
   assert.match(elements.get('planned-phases').innerHTML, /P0-05/);
 
@@ -187,7 +196,7 @@ test('Stage 1 progress lists all twelve packages and preserves the live acceptan
   }
 });
 
-test('Stages 2 through 8 render every planned package once and keep all packages not started', () => {
+test('Stages 2 through 8 preserve planned scope and render each package with its actual progress', () => {
   const expected = [
     ['階段 2', 12],
     ['階段 3', 9],
@@ -262,12 +271,11 @@ test('Stages 2 through 8 render every planned package once and keep all packages
   for (const [phaseId, count] of expected) {
     const phasePackages = Array.from(packages).filter(wp => wp.phaseId === phaseId);
     assert.equal(phasePackages.length, count, `${phaseId} package count must match plan 3.3`);
-    assert.ok(phasePackages.every(wp => wp.status === 'todo'), `${phaseId} must remain not started`);
     assert.ok(phasePackages.every(wp => wp.scope && wp.verification), `${phaseId} packages need scope and acceptance evidence`);
     const phase = Array.from(original.phases).find(item => item.id === phaseId);
     assert.equal(phase.total, count);
-    assert.equal(phase.done, 0);
-    assert.equal(phase.active, 0);
+    assert.equal(phase.done, phasePackages.filter(wp => wp.status === 'done').length);
+    assert.equal(phase.active, phasePackages.filter(wp => wp.status === 'active').length);
   }
 
   for (const [id, marker] of Object.entries(planEvidence)) {
@@ -281,6 +289,7 @@ test('Stages 2 through 8 render every planned package once and keep all packages
   assert.ok(rendered);
   for (const id of ids) {
     assert.match(rendered, new RegExp(`<span class="id">${id}</span>`));
+    assert.equal(rendered.split(`<span class="id">${id}</span>`).length - 1, 1);
   }
 });
 
@@ -327,7 +336,10 @@ test('Unified summaries exclude review milestones and account for user-operated 
     assert.ok(summaries[index].includes(`${todo} 未開始`));
     if (you) assert.ok(summaries[index].includes(`${you} 待你操作`));
   }
-  assert.match(summaries[1], /目前階段/);
+  assert.equal(original.phases.filter(phase => phase.current).length, 1);
+  original.phases.forEach((phase, index) => {
+    assert.equal(summaries[index].includes('目前階段'), !!phase.current);
+  });
   assert.match(rendered, /class="wp is-milestone"/);
 
   // 固定合成四項完成、六項未開始及兩項人工操作，驗證計數不隨正式進度改變而漂移。
@@ -336,6 +348,26 @@ test('Unified summaries exclude review milestones and account for user-operated 
   })
     .get('planned-phases').innerHTML;
   assert.match(changed, /6 未開始、2 待你操作/);
+});
+
+// 若renderer把目前階段寫死為P1，或未來包被一律當todo，此獨立合成情境會失敗。
+test('Stage switching and mixed planned statuses render independently of the historical snapshot', () => {
+  const elements = render(null, [], data => {
+    data.branch = '<synthetic-P3>';
+    data.phases.forEach((phase, index) => { phase.current = index === 3; });
+    const packages = data.plannedWps.filter(wp => wp.phaseId === '階段 2');
+    packages.forEach((wp, index) => { wp.status = ['done', 'active', 'you'][index] || 'todo'; });
+    const phase = data.phases.find(item => item.id === '階段 2');
+    phase.done = 1;
+    phase.active = 1;
+  });
+  assert.match(elements.get('meta').innerHTML, /分支 &lt;synthetic-P3&gt;/);
+  const summaries = [...elements.get('planned-phases').innerHTML.matchAll(/<summary>([\s\S]*?)<\/summary>/g)]
+    .map(match => match[1]);
+  assert.match(summaries[2], /1\/12 驗收、1 進行中、9 未開始、1 待你操作/);
+  summaries.forEach((summary, index) => {
+    assert.equal(summary.includes('目前階段'), index === 3);
+  });
 });
 
 // 所有原始欄位都要渲染且只出現一列；注入同名與 HTML 內容，保護身分保留與輸出跳脫。
@@ -427,6 +459,27 @@ test('Informational history defaults to a closed neutral disclosure', () => {
   assert.match(content, /&lt;history&gt;/);
   assert.match(content, /old result/);
   assert.doesNotMatch(content, /role="alert"/);
+});
+
+// 同階段再追加 info 會讓頁首愈來愈長；本案例以真實 DATA 驗證單卡，
+// 並確認合併沒有丟掉方案、品質證據、實機前置或另一階段的歷史。
+test('P2 informational updates share one stable closed summary and retain their evidence', () => {
+  const information = [...original.notices, original.alert]
+    .filter(notice => notice && (!notice.level || notice.level === 'info'));
+  const p2 = information.filter(notice => notice.phaseId === '階段 2' || /^P2(?:-|\s)/.test(notice.title));
+  assert.equal(p2.length, 1, 'same-stage updates must edit the existing summary instead of adding cards');
+  assert.equal(p2[0].id, 'phase-2-summary');
+  assert.equal(p2[0].phaseId, '階段 2');
+  assert.equal(p2[0].title, 'P2 進度摘要');
+  const elements = render(original.alert, original.notices);
+  const content = elements.get('notices').innerHTML;
+  assert.equal((content.match(/<details class="notice info">/g) || []).length, 1);
+  assert.doesNotMatch(content, /<details[^>]*\bopen(?:[\s=>])/);
+  for (const marker of ['solution-registration-build.log', 'solution-before.json', 'solution-after.json',
+    'solution-registration-file-docs-green.log', 'User Secrets', '離線／mock', '必要實機']) {
+    assert.ok(content.includes(marker), `merged summary must retain ${marker}`);
+  }
+  assert.match(elements.get('alert').innerHTML, /P1已完成 12／12驗收並完成本地封存/);
 });
 
 test('Current warnings and errors remain separate from collapsed history', () => {

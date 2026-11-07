@@ -444,7 +444,7 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07T08:47:06+08:00",
+  "snapshot": "2026-11-07T08:48:01+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "worker": "主會話 inline 實作／驗證／審查；本輪曾啟動兩名子代理讀取／基線測試，收到 inline 限制後已停止並關閉，無平行產品實作成果。",
   "headline": "階段 2 目前 <strong>1／12 工作包進行中</strong>（P2-01）。P1-01～12 已驗收；P2-02／03／06／09 可在不連 D365／LINE 下並行，P2-04 推播前置仍需測試 channel／本人帳號與 secrets。全計畫已驗收30包，另1包進行中。",
@@ -457,7 +457,8 @@ const DATA = {
         "現有設定 Release 建置成功：0警告／0錯誤。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/solution-registration-build.log。",
         "已驗證加入前缺少兩筆、加入後32筆且原集合完整保留。證據：同 evidence 目錄 solution-before.json、solution-after.json。",
         "既有 Hosting 功能測試先前仍2失敗；進度頁測試基線12通過／3失敗，正待修正P1快照綁定。不得標示工作包驗收通過。",
-        "2026-11-07 使用者要求已寫入 AGENTS.md 與目錄規範：未來新增 .csproj 同步加入 .sln，不等功能完成。"
+        "2026-11-07 使用者要求已寫入 AGENTS.md 與目錄規範：未來新增 .csproj 同步加入 .sln，不等功能完成。",
+        "檔案說明守門先指出7份新Hosting檔案換行錯誤；僅正規化UTF-8無BOM／CRLF後，完整1257檔0失敗。證據：solution-registration-file-docs.log與solution-registration-file-docs-green.log。進度頁仍12通過／3失敗，不冒稱完整通過。"
       ]
     },
     {
@@ -1603,7 +1604,7 @@ const DATA = {
   "timeline": [
     {
       "t": "2026-11-07 08:47 Asia/Taipei (UTC+08:00)",
-      "text": "P2-01 補齊方案登錄：Hosting 與 Hosting.Tests 各一筆，原30專案完整保留、現32；Release建置0警告／0錯誤。新增即入方案規則寫入AGENTS與spec。兩個子代理因inline限制停止，僅保留進度測試紅燈證據；外部雙模型分析／審查均未完成，不虛報成功。完整P2目標不縮小，必要實機受阻仍算未完成。",
+      "text": "P2-01 補齊方案登錄：Hosting 與 Hosting.Tests 各一筆，原30專案完整保留、現32；Release建置0警告／0錯誤。新增即入方案規則寫入AGENTS與spec。兩個子代理因inline限制停止，僅保留進度測試紅燈證據；外部雙模型分析／審查均未完成，不虛報成功。完整P2目標不縮小，必要實機受阻仍算未完成。 檔案說明守門7份換行紅燈已修復，完整1257檔0失敗；進度頁3個P1快照斷言仍待修。",
       "cls": "info"
     },
     {

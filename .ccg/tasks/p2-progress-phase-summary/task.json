@@ -1,0 +1,12 @@
+{
+  "id": "p2-progress-phase-summary",
+  "title": "進度頁同階段一般資訊合併",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "frontend",
+  "currentPhase": "analysis",
+  "nextAction": "先保存回歸紅燈，再合併P2資訊並完整驗證",
+  "createdAt": "2026-11-07T08:55:30.7147670+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree"
+}

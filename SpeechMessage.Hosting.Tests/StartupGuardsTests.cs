@@ -62,7 +62,7 @@ public sealed class StartupGuardsTests
     {
         using var fixture = new ConfigurationFixture();
         fixture.WriteBaseConfiguration();
-        var configuration = fixture.Build(new Dictionary<string, string?>
+        using var configuration = fixture.Build(new Dictionary<string, string?>
         {
             ["LineMessaging:DefaultOrganization"] = "Jesus",
             ["LineMessaging:Jesus:ChannelAccessToken"] = "token-private-A",
@@ -87,7 +87,7 @@ public sealed class StartupGuardsTests
     {
         using var fixture = new ConfigurationFixture();
         fixture.WriteBaseConfiguration();
-        var configuration = fixture.Build(new Dictionary<string, string?>
+        using var configuration = fixture.Build(new Dictionary<string, string?>
         {
             ["LineMessaging:DefaultOrganization"] = "DevTest",
             ["CrmConnection:Organization"] = "goodshepherdback",
@@ -119,8 +119,7 @@ public sealed class StartupGuardsTests
                 """
                 {
                   "LineMessaging": {
-                    "Jesus": { "ChannelAccessToken": "" },
-                    "DevTest": { "ChannelAccessToken": "" }
+                    "Jesus": { "ChannelAccessToken": "" }
                   },
                   "CrmConnection": {
                     "Organization": "goodshepherdback",
@@ -130,13 +129,13 @@ public sealed class StartupGuardsTests
                 """);
         }
 
-        internal IConfigurationRoot Build(IReadOnlyDictionary<string, string?> values)
+        internal ConfigurationRoot Build(IReadOnlyDictionary<string, string?> values)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Root)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddInMemoryCollection(values);
-            return builder.Build();
+            return (ConfigurationRoot)builder.Build();
         }
 
         /// <summary>關閉本案例組態 root 並刪除其固定暫存目錄。</summary>
