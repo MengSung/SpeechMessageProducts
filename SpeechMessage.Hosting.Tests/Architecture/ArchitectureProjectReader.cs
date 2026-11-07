@@ -1,15 +1,16 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：從實際方案逐 csproj、逐目標呼叫 MSBuild 的唯讀評估；避免自行猜測 Condition／Import 規則漏掉 Framework 專用參考。每個程序最長三十秒，輸入只來自受信任方案，程序、串流與
- * JSON 均有限持有。
+ * 目的與定位：從實際方案逐 csproj、逐目標呼叫 MSBuild 的唯讀評估；避免自行猜測 Condition／Import 規則漏掉 Framework 專用參考，
+ * 並為 R2／R3／R9 提供有界 C# 來源快照。每個程序最長三十秒，輸入只來自受信任方案，程序、串流與 JSON 均有限持有。
  *
  * 主要功能與流程：
  * 本檔宣告 ArchitectureProjectReader。
  * - 定位當前工作樹的方案並評估每目標；不走父工作樹、不讀 appsettings 或連線資訊。
  * - 評估呼叫者擁有的受信任 csproj 集合；同樣逐目標解析 Condition，不自行模擬 MSBuild。
  * - 只向上尋找目前 checkout 的方案；找到即停，不以另一個工作樹補來源。
- * - 拒絕跨工作樹及 reparse point，確保測試只檢視本次方案宣告的普通檔案。
+ * - 拒絕跨工作樹及 reparse point，確保測試只檢視本次方案宣告的普通檔案；單檔與單目標來源
+ *   均有大小上限，避免架構檢查因異常來源無界保留記憶體。
  * 測試案例入口包含 ReadSolution、ReadProjects、FindRoot、ValidateLocalPath、Evaluate。
  *
  * 使用邊界與維護：
@@ -23,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -34,6 +36,9 @@ namespace SpeechMessage.Architecture.Tests;
 /// </summary>
 internal static class ArchitectureProjectReader
 {
+    private const long MaximumSourceFileBytes = 16L * 1024 * 1024;
+    private const long MaximumSourceBytesPerTarget = 64L * 1024 * 1024;
+
     /// <summary>定位當前工作樹的方案並評估每目標；不走父工作樹、不讀 appsettings 或連線資訊。</summary>
     /// <returns>只含相依名稱與目標的 detached 評估圖。</returns>
     internal static IReadOnlyList<ArchitectureProject> ReadSolution()
@@ -79,6 +84,25 @@ internal static class ArchitectureProjectReader
                     .Select(item => Path.GetFileNameWithoutExtension(item.GetProperty("Identity").GetString())).ToArray();
                 var packages = items.GetProperty("PackageReference").EnumerateArray()
                     .Select(item => item.GetProperty("Identity").GetString() ?? throw new InvalidDataException("Package identity is missing.")).ToArray();
+                long sourceBytes = 0;
+                var sources = items.GetProperty("Compile").EnumerateArray()
+                    .Select(item => item.GetProperty("FullPath").GetString() ?? item.GetProperty("Identity").GetString())
+                    .Where(pathValue => !string.IsNullOrWhiteSpace(pathValue))
+                    .Select(pathValue =>
+                    {
+                        var sourcePath = Path.GetFullPath(pathValue!);
+                        ValidateLocalPath(root, sourcePath);
+                        var relativePath = Path.GetRelativePath(root, sourcePath);
+                        var source = ReadSource(sourcePath, relativePath);
+                        sourceBytes += source.Length * sizeof(char);
+                        if (sourceBytes > MaximumSourceBytesPerTarget)
+                        {
+                            throw new InvalidDataException("Architecture source snapshot exceeded its target budget.");
+                        }
+
+                        return source;
+                    })
+                    .ToArray();
                 var test = string.Equals(data.GetProperty("Properties").GetProperty("IsTestProject").GetString(), "true", StringComparison.OrdinalIgnoreCase);
                 if (verifyRestoredAssets && (target == "net462" || (test && target == "net48")))
                 {
@@ -91,11 +115,29 @@ internal static class ArchitectureProjectReader
                     if (violations.Count != 0) throw new InvalidDataException("Framework restore selected an incompatible product: " + string.Join(",", violations));
                 }
 
-                projects.Add(new ArchitectureProject(Path.GetFileNameWithoutExtension(path), target, targets, references!, packages, test));
+                projects.Add(new ArchitectureProject(Path.GetFileNameWithoutExtension(path), target, targets, references!, packages, test)
+                {
+                    Sources = sources
+                });
             }
         }
 
         return projects.AsReadOnly();
+    }
+
+    /// <summary>
+    /// 讀取單一來源前先檢查檔案大小；檔案由目前方案宣告且不跨 reparse point，
+    /// 讀取後立即脫離 stream，不把檔案 handle 或可變 reader 交給規則層。
+    /// </summary>
+    private static ArchitectureSource ReadSource(string sourcePath, string relativePath)
+    {
+        var length = new FileInfo(sourcePath).Length;
+        if (length > MaximumSourceFileBytes)
+        {
+            throw new InvalidDataException("Architecture source file exceeded its size budget.");
+        }
+
+        return new ArchitectureSource(relativePath, File.ReadAllText(sourcePath, new UTF8Encoding(false, true)));
     }
 
     /// <summary>只向上尋找目前 checkout 的方案；找到即停，不以另一個工作樹補來源。</summary>
@@ -136,7 +178,7 @@ internal static class ArchitectureProjectReader
     private static JsonDocument Evaluate(string root, string path, string? target)
     {
         var start = new ProcessStartInfo("dotnet") { WorkingDirectory = root, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
-        foreach (var argument in new[] { "msbuild", path, "-nologo", "-maxcpucount:1", "-nodeReuse:false", "-p:Configuration=Release", "-getProperty:TargetFramework,TargetFrameworks,IsTestProject,ProjectAssetsFile", "-getItem:ProjectReference,PackageReference" })
+        foreach (var argument in new[] { "msbuild", path, "-nologo", "-maxcpucount:1", "-nodeReuse:false", "-p:Configuration=Release", "-getProperty:TargetFramework,TargetFrameworks,IsTestProject,ProjectAssetsFile", "-getItem:ProjectReference,PackageReference,Compile" })
         {
             start.ArgumentList.Add(argument);
         }

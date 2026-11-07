@@ -1,7 +1,9 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：以合成相依圖及實際方案保護 R4；每個反例只違反指定邊界，避免以其他建置失敗冒充架構拒絕。 測試不讀任何秘密、不連資料庫；實際專案僅進行有界的 MSBuild 評估，子程序與串流由讀取器釋放。
+ * 目的與定位：以合成相依圖及實際方案保護 R2／R3／R4／R9；每個反例只違反指定邊界，
+ * 避免以其他建置失敗冒充架構拒絕。測試不讀任何秘密、不連資料庫；實際專案僅進行有界
+ * MSBuild／來源評估，子程序、串流與來源快照由讀取器及當次案例釋放。
  *
  * 主要功能與流程：
  * 本檔宣告 ArchitectureRuleTests。
@@ -28,11 +30,13 @@ using Xunit;
 namespace SpeechMessage.Architecture.Tests;
 
 /// <summary>
-/// 以合成相依圖及實際方案保護 R4；每個反例只違反指定邊界，避免以其他建置失敗冒充架構拒絕。
-/// 測試不讀任何秘密、不連資料庫；實際專案僅進行有界的 MSBuild 評估，子程序與串流由讀取器釋放。
+/// 以合成相依圖及實際方案保護 R2／R3／R4／R9；每個反例只違反指定邊界，避免以其他建置失敗冒充架構拒絕。
+/// 測試不讀任何秘密、不連資料庫；實際專案僅進行有界的 MSBuild／來源評估，子程序、串流與來源快照由讀取器釋放。
 /// </summary>
 public sealed class ArchitectureRuleTests
 {
+    private static readonly IReadOnlyList<string> SystemDrawingPackages = new[] { "System.Drawing.Common" };
+
     /// <summary>雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。</summary>
     [Fact]
     public void DualTarget_ReferenceToNet10Only_IsRejected()
@@ -177,13 +181,30 @@ public sealed class ArchitectureRuleTests
             Product("SpeechMessage.Dynamics.Plugins", "net462", "net462",
                 "SpeechMessage.Payments") with
             {
-                Packages = new[] { "System.Drawing.Common" },
+                Packages = SystemDrawingPackages,
                 Sources = new[] { Source("Plugin.cs", "using System.Net.Http; public sealed class Plugin { private HttpClient client; }") }
             }));
 
         Assert.Contains(violations, item => item.Rule == "R9HttpClientProject");
         Assert.Contains(violations, item => item.Rule == "R9PluginPaymentsReference");
         Assert.Contains(violations, item => item.Rule == "R9PluginSystemDrawingReference");
+    }
+
+    /// <summary>
+    /// 以真實方案逐目標來源快照執行 R2／R3／R9。P2 目前只允許已知的 ChurchReport
+    /// 舊主機薄殼搬移債務出現在結果；Hosting、Plugin、Core 與相容白名單不得新增
+    /// 未記錄的違規。這是過渡期診斷，不把舊產品債務誤標為整包通過。
+    /// </summary>
+    [Fact]
+    public void Solution_SourceArchitecture_ReportsOnlyDocumentedChurchReportDebt()
+    {
+        var violations = ArchitectureRules.ValidateSource(ArchitectureProjectReader.ReadSolution());
+
+        Assert.NotEmpty(violations);
+        Assert.All(violations, item => Assert.Equal("SpeechMessageProducts.ChurchReport", item.Project));
+        Assert.Contains(violations, item => item.Rule == "R2HostPublicType");
+        Assert.DoesNotContain(violations, item => item.Rule is "R3OrganizationLiteral" or "R9HttpClientProject" or
+            "R9PluginPaymentsReference" or "R9PluginSystemDrawingReference");
     }
 
     /// <summary>

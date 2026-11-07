@@ -30,6 +30,13 @@ run remains mandatory; targeted reruns provide isolated coverage for new code.
 Include I18nCheck.Tests and PluginPackaging.Tests, which are outside the solution.
 Add new modules to the explicit coverage matrix as they enter future WPs.
 
+P2-01 `SpeechMessage.Hosting` is a net10-only module and therefore has one
+independent `SpeechMessage.Hosting.Tests` / `net10.0` coverage case. Its
+architecture sources are owned by `Hosting.Tests`; removing the old linked
+Compile from `SpeechMessage.Localization.Tests` must be accompanied by both
+the solution filter entry and this coverage case. A passing Localization run
+alone is not evidence that the moved architecture checks executed.
+
 ### P1 Core 納入與證據邊界（2026-11-05）
 
 新增 `ToolUtility.Core` 時，必須同步將 Core 與完整 `ToolUtility.Tests` 納入過渡

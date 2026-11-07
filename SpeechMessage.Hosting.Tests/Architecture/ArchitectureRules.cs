@@ -8,8 +8,11 @@
  * - 驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
+ * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
+ *   舊 ChurchReport 的搬移債務保持精確可見，不以全產品豁免掩蓋。
  * - 以實際 DAG 而非示意圖的位置標記層級；同層彼此也不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
- * 測試案例入口包含 ArchitectureProject、ArchitectureViolation、Validate、ValidateFrameworkAssets、IsSandbox、IsHost、Layer。
+ * 測試案例入口包含 ArchitectureProject、ArchitectureSource、ArchitectureViolation、Validate、
+ * ValidateSource、ValidateFrameworkAssets、IsSandbox、IsHost、Layer。
  *
  * 使用邊界與維護：
  * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
@@ -22,18 +25,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace SpeechMessage.Architecture.Tests;
 
 /// <summary>一個專案在一個實際目標上的唯讀評估資料；不載入產品 DLL，不含使用者或租戶狀態。</summary>
 /// <param name="Name">唯一專案名稱。</param><param name="Target">本節點目標。</param><param name="Targets">專案全部產品目標。</param><param name="References">此目標啟用的專案參考名稱。</param><param name="Packages">此目標啟用的直接套件名稱。</param><param name="IsTest">是否測試宿主。</param>
-internal sealed record ArchitectureProject(string Name, string Target, IReadOnlyList<string> Targets, IReadOnlyList<string> References, IReadOnlyList<string> Packages, bool IsTest);
+internal sealed record ArchitectureProject(string Name, string Target, IReadOnlyList<string> Targets, IReadOnlyList<string> References, IReadOnlyList<string> Packages, bool IsTest)
+{
+    /// <summary>本專案此目標的 C# 來源快照；缺省為空，供純相依圖合成案例使用。</summary>
+    internal IReadOnlyList<ArchitectureSource> Sources { get; init; } = Array.Empty<ArchitectureSource>();
+}
+
+/// <summary>
+/// 架構來源掃描所需的單一 C# 檔案快照；文字只在本次同步驗證期間持有，
+/// 不保存使用者、租戶、憑證或跨測試可變狀態。
+/// </summary>
+/// <param name="Path">相對於目前方案根目錄的來源路徑或合成測試路徑。</param>
+/// <param name="Text">來源文字快照；呼叫端負責提供並擁有其生命週期。</param>
+internal sealed record ArchitectureSource(string Path, string Text);
 
 /// <summary>不含來源程式或秘密值的固定規則違規，供 CI 精確診斷參考邊界。</summary>
 /// <param name="Rule">穩定規則代碼。</param><param name="Project">違規專案。</param><param name="Target">當次評估目標。</param><param name="Dependency">造成違規的參考或套件。</param>
 internal sealed record ArchitectureViolation(string Rule, string Project, string Target, string Dependency);
 
-/// <summary>純函式 R4 規則；每次驗證獨立建立結果，不保存跨測試或跨目標的可變靜態圖。</summary>
+/// <summary>純函式 R2／R3／R4／R9 規則；每次驗證獨立建立結果，不保存跨測試或跨目標的可變靜態圖。</summary>
 internal static class ArchitectureRules
 {
     /// <summary>驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。</summary>
@@ -128,6 +144,93 @@ internal static class ArchitectureRules
         return result.AsReadOnly();
     }
 
+    /// <summary>
+    /// 驗證來源層級的 R2、R3、R9 邊界。此掃描只使用呼叫端提供的 detached 文字，
+    /// 不載入產品組件、不執行來源、不保存跨操作快取；任何無法辨識的公開宣告或禁止
+    /// 參考均採拒絕策略，讓新產品不能藉由未分類語法靜默繞過守門。
+    /// </summary>
+    /// <param name="projects">每個實際目標或合成案例的來源快照。</param>
+    /// <returns>不含來源本文的固定架構違規。</returns>
+    internal static IReadOnlyList<ArchitectureViolation> ValidateSource(IReadOnlyList<ArchitectureProject> projects)
+    {
+        ArgumentNullException.ThrowIfNull(projects);
+        var violations = new List<ArchitectureViolation>();
+        foreach (var project in projects)
+        {
+            if (project.IsTest)
+            {
+                continue;
+            }
+
+            foreach (var source in project.Sources)
+            {
+                var normalizedPath = source.Path.Replace('\\', '/');
+                var withoutComments = RemoveCommentsPreserveStrings(source.Text);
+                var codeOnly = RemoveCommentsAndStrings(source.Text);
+
+                if (IsHost(project.Name))
+                {
+                    foreach (Match declaration in PublicTypePattern.Matches(codeOnly))
+                    {
+                        var name = declaration.Groups["name"].Value;
+                        if (name != "Program" &&
+                            !name.EndsWith("Registration", StringComparison.Ordinal) &&
+                            !name.EndsWith("Endpoints", StringComparison.Ordinal))
+                        {
+                            Add("R2HostPublicType", project, name);
+                        }
+                    }
+                }
+
+                if (IsSandbox(project.Name))
+                {
+                    foreach (Match declaration in PublicTypePattern.Matches(codeOnly))
+                    {
+                        var baseList = declaration.Groups["base"].Value;
+                        if (!baseList.Contains("IPlugin", StringComparison.Ordinal) &&
+                            !baseList.Contains("CodeActivity", StringComparison.Ordinal))
+                        {
+                            Add("R2PluginPublicType", project, declaration.Groups["name"].Value);
+                        }
+                    }
+                }
+
+                foreach (Match literal in OrganizationLiteralPattern.Matches(withoutComments))
+                {
+                    var value = literal.Groups["value"].Value;
+                    if (!IsAllowlistedOrganizationLiteral(project.Name, normalizedPath, value))
+                    {
+                        Add("R3OrganizationLiteral", project, value);
+                    }
+                }
+
+                if (HttpClientPattern.IsMatch(codeOnly) && !IsHttpClientProjectAllowed(project))
+                {
+                    Add("R9HttpClientProject", project, normalizedPath);
+                }
+
+                if (IsSandbox(project.Name) &&
+                    (project.References.Contains("SpeechMessage.Payments", StringComparer.Ordinal) ||
+                     project.Packages.Any(package => package.StartsWith("SpeechMessage.Payments", StringComparison.Ordinal))))
+                {
+                    Add("R9PluginPaymentsReference", project, "SpeechMessage.Payments");
+                }
+
+                if (IsSandbox(project.Name) &&
+                    (project.Packages.Any(package => package.StartsWith("System.Drawing", StringComparison.Ordinal)) ||
+                     codeOnly.Contains("System.Drawing", StringComparison.Ordinal)))
+                {
+                    Add("R9PluginSystemDrawingReference", project, "System.Drawing");
+                }
+            }
+        }
+
+        return violations.AsReadOnly();
+
+        void Add(string rule, ArchitectureProject project, string dependency) =>
+            violations.Add(new ArchitectureViolation(rule, project.Name, project.Target, dependency));
+    }
+
     /// <summary>檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。</summary>
     /// <param name="target">已還原的單一 Framework target 節點。</param>
     /// <returns>沙箱不可接受的產品名稱，不回傳完整本機路徑。</returns>
@@ -145,6 +248,199 @@ internal static class ArchitectureRules
         }
 
         return violations.AsReadOnly();
+    }
+
+    private static readonly Regex PublicTypePattern = new(
+        @"\bpublic\s+(?:(?:sealed|abstract|static|partial|readonly)\s+)*(?<kind>class|record|interface|struct|enum|delegate)\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)(?<base>\s*:\s*[^{]+)?",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex OrganizationLiteralPattern = new(
+        "\"(?<value>Jesus|JesusBack|Sunny|SunnyBack|Ymllc)\"",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex HttpClientPattern = new(
+        @"\bHttpClient\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static bool IsHttpClientProjectAllowed(ArchitectureProject project) =>
+        project.Name is "Line.Messaging" or "LineMessagingProcessor.Core" or "SpeechMessage.Payments" ||
+        (project.Target == "net10.0" &&
+         (project.Name == "SpeechMessage.Hosting" || IsHost(project.Name)));
+
+    private static bool IsAllowlistedOrganizationLiteral(string project, string path, string value) =>
+        (project == "SpeechMessage.Tenancy" &&
+         (path.Equals("ConfigurationLineChannelResolver.cs", StringComparison.Ordinal) ||
+          path.EndsWith("SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs", StringComparison.Ordinal)) &&
+         value == "Jesus") ||
+        (project == "SpeechMessageProducts.ChurchReport" &&
+         path.EndsWith("SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs", StringComparison.Ordinal) &&
+         value is "Jesus" or "JesusBack");
+
+    private static string RemoveCommentsPreserveStrings(string source)
+    {
+        var result = new char[source.Length];
+        Array.Fill(result, ' ');
+        var state = LexState.Code;
+        for (var index = 0; index < source.Length; index++)
+        {
+            var current = source[index];
+            var next = index + 1 < source.Length ? source[index + 1] : '\0';
+            if (state == LexState.LineComment)
+            {
+                if (current is '\r' or '\n')
+                {
+                    result[index] = current;
+                    state = LexState.Code;
+                }
+
+                continue;
+            }
+
+            if (state == LexState.BlockComment)
+            {
+                if (current == '*' && next == '/')
+                {
+                    index++;
+                    state = LexState.Code;
+                }
+
+                continue;
+            }
+
+            if (state == LexState.VerbatimString)
+            {
+                result[index] = current;
+                if (current == '"' && next == '"')
+                {
+                    result[++index] = next;
+                }
+                else if (current == '"')
+                {
+                    state = LexState.Code;
+                }
+
+                continue;
+            }
+
+            if (state is LexState.String or LexState.Character)
+            {
+                result[index] = current;
+                if (current == '\\')
+                {
+                    if (index + 1 < source.Length)
+                    {
+                        result[++index] = source[index];
+                    }
+                }
+                else if ((state == LexState.String && current == '"') ||
+                         (state == LexState.Character && current == '\''))
+                {
+                    state = LexState.Code;
+                }
+
+                continue;
+            }
+
+            if (current == '/' && next == '/')
+            {
+                index++;
+                state = LexState.LineComment;
+            }
+            else if (current == '/' && next == '*')
+            {
+                index++;
+                state = LexState.BlockComment;
+            }
+            else
+            {
+                result[index] = current;
+                if (current == '@' && next == '"')
+                {
+                    result[index] = ' ';
+                    result[++index] = '"';
+                    state = LexState.VerbatimString;
+                }
+                else if (current == '"')
+                {
+                    state = LexState.String;
+                }
+                else if (current == '\'')
+                {
+                    state = LexState.Character;
+                }
+            }
+        }
+
+        return new string(result);
+    }
+
+    private static string RemoveCommentsAndStrings(string source)
+    {
+        var withComments = RemoveCommentsPreserveStrings(source);
+        var result = withComments.ToCharArray();
+        var state = LexState.Code;
+        for (var index = 0; index < result.Length; index++)
+        {
+            var current = result[index];
+            if (state == LexState.VerbatimString)
+            {
+                result[index] = ' ';
+                if (current == '"' && index + 1 < result.Length && result[index + 1] == '"')
+                {
+                    result[++index] = ' ';
+                }
+                else if (current == '"')
+                {
+                    state = LexState.Code;
+                }
+
+                continue;
+            }
+
+            if (state is LexState.String or LexState.Character)
+            {
+                var closing = state == LexState.String ? '"' : '\'';
+                result[index] = ' ';
+                if (current == '\\' && index + 1 < result.Length)
+                {
+                    result[++index] = ' ';
+                }
+                else if (current == closing)
+                {
+                    state = LexState.Code;
+                }
+
+                continue;
+            }
+
+            if (current == '@' && index + 1 < result.Length && result[index + 1] == '"')
+            {
+                result[index++] = ' ';
+                state = LexState.VerbatimString;
+            }
+            else if (current == '"')
+            {
+                result[index] = ' ';
+                state = LexState.String;
+            }
+            else if (current == '\'')
+            {
+                result[index] = ' ';
+                state = LexState.Character;
+            }
+        }
+
+        return new string(result);
+    }
+
+    private enum LexState
+    {
+        Code,
+        LineComment,
+        BlockComment,
+        String,
+        VerbatimString,
+        Character
     }
 
     /// <summary>部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。</summary>
