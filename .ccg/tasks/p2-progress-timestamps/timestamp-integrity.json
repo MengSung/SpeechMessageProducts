@@ -1,0 +1,12 @@
+{
+  "updatedAt": "2026-11-07T10:29:37+08:00",
+  "retainedOriginalHistoryCount": 26,
+  "knownEventTimesPrefixed": 8,
+  "unknownEventTimesExplicitlySupplemented": 18,
+  "originalHistoryPreservedVerbatim": true,
+  "singleP2Summary": true,
+  "rendererUnchanged": true,
+  "cssAndMarkupUnchanged": true,
+  "p2AcceptanceChanged": false,
+  "originalHtmlSha256": "d2d11967e35e9a4548c137cc53cf1b7e351f5cad069523379c6a237eea4bc835"
+}

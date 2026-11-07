@@ -8,7 +8,7 @@ P1-12只有apply、已發布verify、Active key、唯一性與清理證據齊全
 主要功能與流程：
 讀取真實DATA與script，在每案例自有的vm／DOM替身執行原頁renderer，再斷言可見內容、
 收合狀態、複製事件與HTML跳脫。合成不同階段、分支、四種包狀態及惡意字串，保護
-進度推進時不綁定舊P1快照；同階段重複info卡或合併遺失證據時須明確失敗。
+進度推進時不綁定舊P1快照；同階段重複info卡、合併遺失證據或P2逐筆缺日期時間時須明確失敗。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 每案例獨占資料副本、DOM Map與事件替身，執行結束即不再保留；不建立產品Host、網路、
@@ -489,6 +489,26 @@ test('P2 informational updates share one stable closed summary and retain their 
     assert.ok(content.includes(marker), `merged summary must retain ${marker}`);
   }
   assert.match(elements.get('alert').innerHTML, /P1已完成 12／12驗收並完成本地封存/);
+});
+
+// 日期只寫在 body 或隱藏的 lastUpdated 不足以辨認每筆事件；每一列都須保留可見時間。
+// 未記載原始時間的舊資料應明標補記時間，不能以補記日冒充歷史事件發生時間。
+test('P2 informational body and every history entry show an explicit Taipei date and time', () => {
+  const p2 = original.notices.find(notice => notice.id === 'phase-2-summary');
+  assert.ok(p2);
+  const visibleTimestamp = /^(?:補記 )?\d{4}-\d{2}-\d{2} \d{2}:\d{2} Asia\/Taipei \(UTC\+08:00\)/;
+  assert.match(p2.body, visibleTimestamp, 'P2 summary body needs a visible date, time and timezone');
+  assert.match(p2.lastUpdated, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/);
+  assert.ok(Number.isFinite(Date.parse(p2.lastUpdated)));
+  const content = render(original.alert, original.notices).get('notices').innerHTML;
+  assert.ok(p2.steps.length > 0);
+  for (const [index, step] of Array.from(p2.steps).entries()) {
+    assert.match(step, visibleTimestamp, `P2 history entry ${index + 1} is missing its own visible timestamp`);
+    if (step.startsWith('補記 ')) assert.match(step, /原(?:始|事件|紀錄).*時間.*(?:未|不)/);
+    assert.ok(content.includes(step.replace(/[&<>"]/g,
+      c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))),
+    `P2 history entry ${index + 1} must actually render its timestamp`);
+  }
 });
 
 test('Current warnings and errors remain separate from collapsed history', () => {

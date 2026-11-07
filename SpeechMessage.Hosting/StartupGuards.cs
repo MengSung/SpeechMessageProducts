@@ -8,7 +8,9 @@ credential、動態 cache、timer、queue 或背景工作。
 
 主要功能與流程：
 本檔宣告 StartupGuards。ValidateIcuMode 委派 Localization 的實際 ICU guard；
-ValidateLocalization 驗證正式環境偽語系、已發布語系與教會啟用語系；Development
+ValidateLocalization 依生成完成度驗證所有環境的發布語系與教會啟用語系，正式環境
+拒絕偽語系，開發環境只允許明確 opt-in；ValidateLocalizationConfiguration 只借用
+Host 組態，嚴格解析最多六十四項的連續陣列並回傳不可變快照。Development
 方法沿用 P0-SEC 的 goodshepherdback、DevTest User Secrets、LINE provider、HTTPS
 端點及 Embedded 開關邊界。組態 provider 由呼叫端 root 擁有，基底檔讀取 stream
 在本次驗證結束前關閉，錯誤訊息只含固定鍵名與原因。
@@ -20,6 +22,7 @@ request 或路由決定。這些方法不建立外部連線、不讀取真實 se
 facade、DevelopmentSafetyTests、LocalizationOptions 與實際 Host 啟動順序。
 */
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -40,7 +43,8 @@ public static class StartupGuards
     public static void ValidateIcuMode() => GlobalizationModeGuard.ValidateIcuMode();
 
     /// <summary>
-    /// 驗證語系發布政策，拒絕正式環境偽語系及尚未完成的語系。
+    /// 依全方案生成的原始翻譯完成度驗證發布政策；任何環境均拒絕未完成語系，
+    /// 偽語系只有在非正式環境明確 opt-in 時可用，不充當正式完成度。
     /// </summary>
     /// <param name="options">Host 建立的一次性語系啟動快照。</param>
     /// <param name="isProduction">Host 已判定的正式環境旗標。</param>
@@ -53,24 +57,71 @@ public static class StartupGuards
         ArgumentNullException.ThrowIfNull(options);
         options.Validate(isProduction, configuredCultures);
 
-        if (!isProduction)
-            return;
-
         foreach (var culture in options.ReleasedCultures)
         {
-            if (!IsReleased(culture))
+            if (!IsAvailable(culture))
                 throw new InvalidOperationException("ReleasedCultures contains an incomplete culture.");
         }
 
         if (configuredCultures is null)
             return;
 
+        if (configuredCultures.Count > 64)
+            throw new InvalidOperationException("Configured cultures exceed the bounded count.");
+
         foreach (var culture in configuredCultures)
         {
-            if (string.Equals(culture, "qps-ploc", StringComparison.OrdinalIgnoreCase) ||
-                !IsReleased(culture))
+            if (!IsAvailable(culture) ||
+                (!IsPseudo(culture) && !options.ReleasedCultures.Contains(culture, StringComparer.OrdinalIgnoreCase)))
                 throw new InvalidOperationException("Configured cultures contain an unavailable culture.");
         }
+
+        // 僅讀取不可變編譯產物與本次政策，不建立按文化、教會或使用者增長的快取。
+        bool IsAvailable(string culture) => CultureCompleteness.IsComplete(culture) ||
+            (!isProduction && options.AllowPseudoLocale && IsPseudo(culture));
+    }
+
+    /// <summary>
+    /// 從受信任 Host 的 Localization 區段建立不可變啟動政策，先驗形狀再驗完成度。
+    /// 只接受最多六十四個連續數字索引的純字串項目及明確布林，不用 binder 靜默略過
+    /// 壞值；不保存 root／provider 或訂閱 reload。錯誤只含固定原因，不附原始設定值。
+    /// </summary>
+    /// <param name="configuration">Host 擁有、只借用到同步方法結束的組態 root。</param>
+    /// <param name="isProduction">Host Environment 已判定的正式旗標。</param>
+    /// <returns>驗證成功且與來源分離的啟動快照，供同一 Host 的 DI 使用。</returns>
+    public static LocalizationOptions ValidateLocalizationConfiguration(IConfiguration configuration, bool isProduction)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        var section = configuration.GetSection("Localization:ReleasedCultures");
+        var children = section.GetChildren().Take(65).ToArray();
+        if (section.Value is not null || children.Length > 64)
+            throw new InvalidOperationException("Localization:ReleasedCultures must be a bounded string array.");
+        var cultures = new string[children.Length];
+        for (var index = 0; index < children.Length; index++)
+        {
+            if (!string.Equals(children[index].Key, index.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal) ||
+                children[index].Value is null || children[index].GetChildren().Any())
+                throw new InvalidOperationException("Localization:ReleasedCultures has an invalid array entry.");
+            cultures[index] = children[index].Value!;
+        }
+
+        var pseudoSection = configuration.GetSection("Localization:AllowPseudoLocale");
+        bool allowPseudo = false;
+        if (pseudoSection.GetChildren().Any() ||
+            (pseudoSection.Value is not null && !bool.TryParse(pseudoSection.Value, out allowPseudo)))
+            throw new InvalidOperationException("Localization:AllowPseudoLocale must be a boolean.");
+        LocalizationOptions options;
+        try
+        {
+            options = new LocalizationOptions(children.Length == 0 ? null : cultures, allowPseudo);
+        }
+        catch (ArgumentException)
+        {
+            // BCL CultureNotFoundException 可能包含設定原值；只在解碼邊界轉為固定安全錯誤。
+            throw new InvalidOperationException("Localization culture settings are invalid.");
+        }
+        ValidateLocalization(options, isProduction);
+        return options;
     }
 
     /// <summary>
@@ -224,9 +275,7 @@ public static class StartupGuards
     private static InvalidOperationException UnsafeKey(string key, string reason) =>
         new(key + "：" + reason);
 
-    /// <summary>確認語系存在於 Localization 產物中的正式 Released 清單。</summary>
-    private static bool IsReleased(string culture) =>
-        SupportedCultures.All.Any(item =>
-            item.Status == CultureReleaseStatus.Released &&
-            string.Equals(item.Name, culture, StringComparison.OrdinalIgnoreCase));
+    /// <summary>只比對固定偽語系識別，不把 caller 值保存到靜態狀態。</summary>
+    private static bool IsPseudo(string culture) =>
+        string.Equals(culture, "qps-ploc", StringComparison.OrdinalIgnoreCase);
 }

@@ -8,6 +8,7 @@
  * - 固定基準位置，與 verify／CI 使用同一份已審核計數。
  * - 只含固定格式的共用序列化設定，首次使用後由 System.Text.Json 凍結，無使用者資料。
  * - 執行且封閉處理可預期的輸入錯誤，不將任何來源文字或資料值寫入診斷。
+ * - 語系完成度從同次完整 resx 候選生成；正式 Localization 產物納入 generate --check 與 verify。
  * - 嚴格解析本命令允許的選項，拒絕拼錯、重複或缺值，不默默忽略輸入。
  * 主要操作入口包含 Run、Parse、Scan、Validate、Generate、CheckAllGenerated、CompareGenerated、GenerateTimeZones；其餘入口見下方成員契約。
  *
@@ -54,6 +55,7 @@ internal static class CommandRunner
                 "scan" => Scan(root, Parse(args, ["--baseline", "--write-baseline"]), output),
                 "generate" => Generate(root, Parse(args, ["--resx", "--namespace", "--class", "--out", "--check"]), output),
                 "generate-timezones" => GenerateTimeZones(root, Parse(args, ["--cldr", "--cldr-version", "--out", "--check"]), output),
+                "generate-completeness" => GenerateCompleteness(root, Parse(args, ["--out", "--check"]), output),
                 "verify" when args.Length == 1 => Verify(root, output),
                 _ => throw new InvalidDataException("I18N402: command or options are invalid.")
             };
@@ -163,7 +165,8 @@ internal static class CommandRunner
     {
         var passed = true;
         var count = 0;
-        foreach (var resource in resourceSets ?? ResourceSet.LoadRepository(root))
+        resourceSets ??= ResourceSet.LoadRepository(root);
+        foreach (var resource in resourceSets)
         {
             var source = resource.Path;
             count++;
@@ -177,7 +180,34 @@ internal static class CommandRunner
             if (CompareGenerated(destination, ResourceGenerator.Generate(catalog, namespaceName, className), output) != 0) passed = false;
         }
         output.WriteLine($"Generated resource check: files={count}, passed={passed}");
+        if (File.Exists(LocalFiles.Resolve(root, "SpeechMessage.Localization/SpeechMessage.Localization.csproj")) ||
+            File.Exists(LocalFiles.Resolve(root, "SpeechMessage.Localization/CultureCompleteness.g.cs")))
+            if (GenerateCompleteness(root, new Dictionary<string, string>(StringComparer.Ordinal)
+                { ["--check"] = string.Empty }, output, resourceSets) != 0) passed = false;
         return passed ? 0 : 1;
+    }
+
+    /// <summary>
+    /// 以全方案原始資源生成完成度；check 只比對，不補檔或修復差異。
+    /// verify 借入同世代候選，獨立命令才載入一次；寫入沿用唯一暫存與原子替換 owner。
+    /// </summary>
+    /// <param name="root">本次明確的方案邊界。</param>
+    /// <param name="options">只允許根內 g.cs 目的地與唯讀 check。</param>
+    /// <param name="output">caller 擁有的安全診斷輸出。</param>
+    /// <param name="resourceSets">可選的已完整載入資源，不保留到命令結束後。</param>
+    /// <returns>成功零、缺失或過期一；非法輸入由外層轉二。</returns>
+    private static int GenerateCompleteness(string root, Dictionary<string, string> options, TextWriter output,
+        IReadOnlyList<ResourceSet>? resourceSets = null)
+    {
+        var destination = LocalFiles.Resolve(root,
+            options.GetValueOrDefault("--out", "SpeechMessage.Localization/CultureCompleteness.g.cs"));
+        if (!destination.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("I18N621: completeness output extension is invalid.");
+        var bytes = CultureCompletenessGenerator.Generate(resourceSets ?? ResourceSet.LoadRepository(root));
+        if (options.ContainsKey("--check")) return CompareGenerated(destination, bytes, output);
+        LocalFiles.WriteAtomic(destination, bytes);
+        output.WriteLine("GENERATED " + RepositoryScanner.Relative(root, destination));
+        return 0;
     }
 
     /// <summary>逐位元組比較候選，不修正差異，也不在診斷印出資源文字。</summary>

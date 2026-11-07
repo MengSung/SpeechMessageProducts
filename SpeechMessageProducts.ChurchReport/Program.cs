@@ -8,6 +8,7 @@
  * - 建立並執行 Host；Debug／Release 都依 ExceptionNotifications 的啟動快照選擇例外目的地。 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr
  * 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。 ICU
  * 必須在共用例外 owner 建立後、Startup／CRM／HTTP 啟動前驗證；不符時同一例外告警並拒絕啟動。
+ * 語系政策亦由 Hosting 依生成完成度驗證，再以不可變快照註冊到同一 Host 的 DI，不保存組態 provider。
  * - 透過 Hosting 註冊同一組外部 diagnostics／adapter，DI 僅借用，不在容器停止時提前解除告警。
  *   WebApplication Build 成功後接管組態；外層只清理未移交的 root，避免 provider 重複 Dispose。
  *   關閉順序固定為解除綁定、diagnostics drain、sender、未移交組態；各階段失敗仍須嘗試後續清理。
@@ -102,7 +103,10 @@ namespace ChurchReport
                 // 正式 P1 時區契約要求實際主機 fail closed，而不只是提供未被呼叫的 helper。
                 // 此時通知開關與 owner 已確定；失敗沿外層 catch 傳原 Exception，finally 排空／釋放所有資源。
                 // 尚未建立 Startup／CRM 或 Kestrel，不讀伺服器 local，也不自動改寫 NLS／Invariant 設定。
-                SpeechMessage.Localization.GlobalizationModeGuard.ValidateIcuMode();
+                StartupGuards.ValidateIcuMode();
+                var localizationOptions = StartupGuards.ValidateLocalizationConfiguration(
+                    builder.Configuration, builder.Environment.IsProduction());
+                builder.Services.AddSingleton(localizationOptions);
                 RunApplication(builder, diagnostics, ref configuration);
             }
             catch (Exception exception)

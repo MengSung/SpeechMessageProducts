@@ -264,3 +264,11 @@ Required recovery behavior:
 - 加入後以 `dotnet sln .\SpeechMessageProducts.sln list` 確認專案恰好出現一次，並核對 Debug／Release 的 ActiveCfg、Build.0 對應及原有專案未遭移除。
 - 方案可見不代表功能或驗收完成；仍須在進度頁分開記錄建置、測試、整合及必要實機驗收狀態。
 - 具體命令、失敗處理與驗證契約見 `.trellis/spec/backend/directory-structure.md` 的「新增專案與方案同步契約」。
+
+## 永久進度一般資訊逐筆日期時間規則
+
+- 使用者於 2026-11-07 明確要求：`實作進度.html` 的 P2 一般資訊及往後新增或更新的各階段一般資訊，摘要本文與每筆詳細／歷史紀錄都必須有可見的日期、時間及時區，不可只寫在 `lastUpdated` 或其他紀錄中。
+- 每筆開頭使用 `YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)`；摘要 `lastUpdated` 同步使用帶 `+08:00` 的 ISO 8601。事件時間與更新時間應如實區分。
+- 舊紀錄已有確切時間就保留；原事件時間未記錄或無法確認時，明標 `補記 YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)（原事件時間未記錄）`，不得猜測或用補記時間冒充歷史完成時間。
+- 同一階段仍只維護一張一般資訊摘要，原地更新並保留有效歷史與證據；不可因加入日期而新增同階段卡片或刪除舊紀錄。
+- 更新後執行 `node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 及適用的文件／位元組檢查；具體契約見 `.trellis/spec/frontend/progress-page-contract.md`。
