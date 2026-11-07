@@ -1,0 +1,66 @@
+✔ Every work package has a supported status and renders without undefined labels or icons (6.5887ms)
+✔ No alert hides the warning region and still renders the page (7.7135ms)
+✔ Alert without prompt omits copy button and full prompt area (3.699ms)
+✔ Alert with prompt preserves escaped prompt and copy handler (3.9512ms)
+✔ Stage 1 progress lists all twelve packages and preserves the live acceptance boundary (8.3994ms)
+✖ Stages 2 through 8 preserve planned scope and render each package with its actual progress (0.6953ms)
+✔ Planned phase disclosures show a visible expanded-state indicator (2.7541ms)
+✔ All nine stages share one closed work-package disclosure list without standalone P0/P1 sections (3.086ms)
+✔ Unified summaries exclude review milestones and account for user-operated work (6.6598ms)
+✔ Stage switching and mixed planned statuses render independently of the historical snapshot (3.505ms)
+✔ Integrated P0/P1 entries preserve every evidence field and never merge same-name records (7.3549ms)
+✔ Future work packages preserve external-operation and isolation stop boundaries (0.2809ms)
+✔ Summary cards and phase meters agree with accepted work packages (0.1431ms)
+✔ Informational history defaults to a closed neutral disclosure (2.9265ms)
+✖ P2 informational updates share one stable closed summary and retain their evidence (0.4554ms)
+✔ Current warnings and errors remain separate from collapsed history (2.6998ms)
+✔ Empty notices hide their region and unknown severity cannot inject markup (4.3098ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 15
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74.0372
+
+✖ failing tests:
+
+test at tools\RepoQuality\Tests\Test-ProgressPage.cjs:199:1
+✖ Stages 2 through 8 preserve planned scope and render each package with its actual progress (0.6953ms)
+  AssertionError [ERR_ASSERTION]: P2-01 must preserve plan-specific detail: ExceptionOutputOptions
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:284:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tools\RepoQuality\Tests\Test-ProgressPage.cjs:466:1
+✖ P2 informational updates share one stable closed summary and retain their evidence (0.4554ms)
+  AssertionError [ERR_ASSERTION]: same-stage updates must edit the existing summary instead of adding cards
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:470:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

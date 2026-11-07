@@ -466,7 +466,16 @@ test('Informational history defaults to a closed neutral disclosure', () => {
 test('P2 informational updates share one stable closed summary and retain their evidence', () => {
   const information = [...original.notices, original.alert]
     .filter(notice => notice && (!notice.level || notice.level === 'info'));
-  const p2 = information.filter(notice => notice.phaseId === '階段 2' || /^P2(?:-|\s)/.test(notice.title));
+  const stageSummaries = new Set();
+  for (const notice of information) {
+    // 舊P1歷史未標phaseId；僅以明確階段前綴相容識別，不能把P20誤認為P2。
+    const prefix = /^P([0-8])(?!\d)/.exec(notice.title || '');
+    const phaseId = notice.phaseId || (prefix ? `階段 ${prefix[1]}` : null);
+    if (!phaseId) continue;
+    assert.equal(stageSummaries.has(phaseId), false, `${phaseId} must have only one informational summary`);
+    stageSummaries.add(phaseId);
+  }
+  const p2 = information.filter(notice => notice.phaseId === '階段 2' || /^P2(?!\d)/.test(notice.title));
   assert.equal(p2.length, 1, 'same-stage updates must edit the existing summary instead of adding cards');
   assert.equal(p2[0].id, 'phase-2-summary');
   assert.equal(p2[0].phaseId, '階段 2');
