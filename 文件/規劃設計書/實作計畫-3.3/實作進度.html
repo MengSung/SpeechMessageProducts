@@ -445,7 +445,7 @@
  * 注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07 12:59 Asia/Taipei (UTC+08:00)",
+  "snapshot": "2026-11-07 13:01 Asia/Taipei (UTC+08:00)",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "worker": "主會話inline實作／檢查；獨立Debug／Release驗證曾以no-restore及分離輸出並行，無子代理或外部模型。",
   "headline": "階段 2 目前 <strong>2／12 工作包進行中</strong>（P2-01、P2-03），0／12驗收。P1-01～12已驗收；Token加密可獨立離線實作，P2-04推播前置仍需使用者核定的實機步驟。全計畫已驗收30包，另2包進行中。",
@@ -457,6 +457,7 @@ const DATA = {
       "title": "P2 進度摘要",
       "body": "2026-11-07 12:57 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01與P2-03進行中。P2-03離線：全方案Release零警告／錯誤，18份TRX4594／4594；Deployment雙組態各193／193，Core行率95.26%／97.48%、Deployment89.30%。文件1275／0、頁面18／18。R2、五份原始證據編碼及必要實機仍未驗收。",
       "steps": [
+        "2026-11-07 13:01 Asia/Taipei (UTC+08:00)｜主代理本地檢查點54d78c81已提交：P2-03安全Channel部署命令、有界stdin、雙故障保真、193案雙組態與全方案4594案摘要／hash。沒有amend既有376a6172、沒有推送。測試暫存p203-cli目錄0、命令／測試程序已收取；未變更D365／Hyper-V／LINE／金流。P2-03必要實機與P2-01既有門檻仍保留，接續其他離線可執行需求。",
         "2026-11-07 12:59 Asia/Taipei (UTC+08:00)｜品質追蹤：完整Changed初查6份，新增的一份P2父task.json為維護資料缺末尾CRLF，已只補CRLF且JSON語意／before-after hash核對；重跑剩既有5份原始機器證據（137 checked、96 raw excluded），未過完整門檻。本檢查點Changed為零問題。stdin新增36案中的owner suite共7案：4案真pipe（含128輪handle回基線）與3案MemoryStream故障，非7案全用pipe。原始123份hash先核對全不變，再補入後續證據；P2仍未驗收。",
         "2026-11-07 12:57 Asia/Taipei (UTC+08:00)｜P2-03離線收尾：補足128輪真pipe handle基線，無GC輔助；最終Deployment Debug／Release各193／193（原157＋新36）、獨立coverage89.30%。最新完整方案18份TRX4594／4594，逐列／身分／Counters核對，零失敗／略過；正常audit還原32專案通過。I18n工具179／179、Plugin工具還原後27／27、Debug tracer7／7；中央套件38專案183引用零違規；文件1275／0。證據solution-lifecycle-final-summary.json、coverage-summary.json與wp-reports/P2-03.md。主代理已審查MAC順序、buffer所有權、stdin有界、精確SDK及SDK＋cleanup故障；保持active，不封存，不做D365／LINE變更。",
         "2026-11-07 12:51 Asia/Taipei (UTC+08:00)｜P2-03重要驗證：SDK與Dispose雙故障先以cli-cleanup-red重現原錯誤被覆蓋，再修為ExceptionDispatchInfo＋有界清理聚合；Debug192／192。修後完整Release重建零警告／錯誤、18份獨立TRX4593／4593，逐檔核對Counters、結果列與executionId，零略過；Deployment獨立coverage89.30%，Core95.26%／97.48%均通過80%。duplicate32專案1054檔零新增／stale、I18n verify通過、工具I18n179／179、Debug tracer7／7。Plugin工具初因缺assets失敗，已正常還原並重跑，另存證據。執行期間出現既有本地提交376a6172，已保留、不amend，非主代理本次提交。",
@@ -500,7 +501,7 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T12:59:36+08:00"
+      "lastUpdated": "2026-11-07T13:01:20+08:00"
     }
   ],
   "alert": {

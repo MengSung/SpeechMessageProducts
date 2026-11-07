@@ -42,7 +42,7 @@ Golden/channel-token-vectors.json、Tests.csproj的fixture複製設定。
 - [x] 審查先MAC後解密、固定時間分支、例外保密、輸入配置上限、buffer／owner清理、
   跨user／church／org不可變狀態及部署唯一性；故障修復後重跑。
 - [x] 更新同一phase-2-summary及P2-03需求／證據／缺口，時間使用Asia/Taipei。
-- [ ] 保存回報及本地提交；只有全項驗收通過才封存，否則保持可接續狀態。
+- [x] 保存回報及本地提交（54d78c81，僅離線檢查點）；只有全項驗收通過才封存，否則保持可接續狀態。
 
 既有P2-01的R2與五份原始證據編碼問題仍追蹤，不降低門檻、不阻擋本獨立核心工作。
 
