@@ -17,12 +17,12 @@
 
 ## Acceptance Criteria
 
-- [ ] 產品／測試專案屬性、target 與參考方向符合規劃；Debug／Release 均可建置。
-- [ ] 兩個測試 target 通過 smoke，且 net48 測試實際載入 net462 產品組件。
-- [ ] 10 個模組導讀、通知骨架與空資源生成檔均存在；生成檔由正式 I18nCheck 產生並通過 `generate --check`。
-- [ ] `dotnet sln list` 中兩個專案各出現一次，原專案集合保持完整，Debug／Release ActiveCfg 與 Build.0 映射存在。
-- [ ] 檔案說明檢查、進度頁測試及新增／修改文字檔 UTF-8 無 BOM、CRLF、檔尾 CRLF 檢查通過。
-- [ ] 進度頁將 P2-02 記錄為已完成時，附上實際命令、結果及證據路徑；此狀態只代表骨架工作包，不代表 P2-04 或 P2 總目標完成。
+- [x] 產品／測試專案屬性、target 與參考方向符合規劃；Debug／Release 均可建置。
+- [x] 兩個測試 target 通過 smoke，且 net48 測試實際載入 net462 產品組件。
+- [x] 10 個模組導讀、通知骨架與空資源生成檔均存在；生成檔由正式 I18nCheck 產生並通過 `generate --check`。
+- [x] `dotnet sln list` 中兩個專案各出現一次，原專案集合保持完整，Debug／Release ActiveCfg 與 Build.0 映射存在。
+- [x] 檔案說明檢查、進度頁測試及新增／修改文字檔 UTF-8 無 BOM、CRLF、檔尾 CRLF 檢查通過。
+- [x] 進度頁將 P2-02 記錄為已完成時，附上實際命令、結果及證據路徑；此狀態只代表骨架工作包，不代表 P2-04 或 P2 總目標完成。
 
 ## Notes
 

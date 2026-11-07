@@ -11,7 +11,7 @@
 - 建立十個模組目錄及繁中 README，記錄正式計畫 P5 搬移來源及邊界；不複製舊程式。
 - `Resources/GoodShepherdText.resx` 是未來產品文字的唯一來源；初始空表只建立生成管線，不新增虛構文案。
 - `GoodShepherdText.g.cs` 由 I18nCheck 產生。MSBuild 不將 resx 編成衛星資源；生成資料只包含固定資源列。
-- `Notifications/MemberNotificationService` 先建立明確的內部骨架型別。P2-04 才增加查詢、Channel 解密、教會授權、語系、訊息組裝、Retry Key 與傳輸的正式 API。
+- `Notifications/MemberNotificationService` 先建立公開但無行為的骨架型別，因階段 5 的 Plugin／Workflow 會從其他組件呼叫 GoodShepherd.Core；P2-02 不新增通知方法或依賴。P2-04 才依正式契約增加查詢、Channel 解密、教會授權、語系、訊息組裝、Retry Key 與傳輸 API。
 
 ## 測試與資源生命週期
 
