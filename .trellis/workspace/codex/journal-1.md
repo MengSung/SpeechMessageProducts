@@ -808,3 +808,36 @@ P1-01～12全部完成；真D365備份/獨立復原/結構/已發布verify/4Acti
 ### Next Steps
 
 - None - task complete
+
+
+## Session 22: 同階段進度資訊集中呈現
+
+**Date**: 2026-11-07
+**Task**: 同階段進度資訊集中呈現
+**Branch**: `1.0.0.11.Integration.P2.Worktree`
+
+### Summary
+
+P2兩張一般資訊合為phase-2-summary，後續原地更新；原歷史與證據保留，P1與warn/error獨立。進度頁17/17、檔案說明1257檔0失敗、HTML與編碼檢查通過。外部分析／審查兩模型無輸出且未宣稱成功；主會話inline、無環境變更。P2及Hosting仍未完成，續修6通過／4失敗。封存時已將受ignore的原始驗證log逐檔補入歸檔位置，避免只刪除舊位置造成證據不隨提交保留。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a648a451` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
