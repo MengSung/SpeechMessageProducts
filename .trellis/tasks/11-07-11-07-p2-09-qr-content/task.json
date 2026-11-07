@@ -1,9 +1,9 @@
 {
   "id": "11-07-p2-09-qr-content",
   "name": "11-07-p2-09-qr-content",
-  "title": "[P2-09a] QR 內容編碼（暫停，待切換完成）",
+  "title": "P2-09a QR內容編碼與舊來源相容",
   "description": "完成 P2-09 可獨立的雙目標 QR 內容編碼／解碼核心及黃金測試；圖片處理器須等待 P2-07。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -21,6 +21,7 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "2026-11-07 21:14 起依 3.4 暫停；既有紅燈修復納入 P2-00，不代表 P2-09a 已驗收。",
-  "meta": {}
+  "notes": "接續3.4的a包，圖片b包獨立等待P2-07。唯讀來源顯示舊個人尾欄格式需黃金及最小相容入口；尚未驗收。",
+  "meta": {},
+  "updatedAt": "2026-11-07T22:06:11+08:00"
 }

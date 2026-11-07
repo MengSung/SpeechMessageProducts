@@ -6,7 +6,8 @@
  *
  * 主要功能與流程：純字串編碼依既有掃描器的 GUID、欄位順序及分隔符輸出，
  * 解碼先限制輸入為最多 2048 個 UTF-16 字元，再解析必需欄位，全部成功才發布輸出。
- * 保留主日／個人的 at 優先與課程 enroll 大小寫敏感特例；未消費尾欄維持舊解析語意。
+ * 保留主日／個人的 at 優先與課程 enroll 大小寫敏感特例；個人雙參數編碼保留舊尾欄，
+ * 單參數仍輸出純 GUID，兩者解碼均只消費身分。未消費尾欄維持舊解析語意。
  * 這個上限是有界解析預算，不是 QR 圖片容量保證；不產生圖片，也尚未接入掃描流程。
  *
  * 使用邊界與維護：本檔不做資料查詢、身分驗證、租戶授權、LINE 推播或圖片操作，
@@ -107,6 +108,24 @@ public static class QrCodeContentCodec
     {
         ValidateIdentity(contactId);
         return contactId.ToString("D");
+    }
+
+    /// <summary>
+    /// 逐字保留舊個人產生端的 GUID@尾欄格式，null 與空尾欄同樣保留 at；
+    /// 尾欄可以含底線或 at，但不參與身分、授權、查詢或共用狀態。
+    /// 組合前限制總長度，避免為超長尾欄配置大字串；返回後不保留任何輸入參考。
+    /// </summary>
+    /// <param name="contactId">非空聯絡人資料庫 GUID；由呼叫端另外驗證存取範圍。</param>
+    /// <param name="legacySuffix">舊顯示尾欄，僅在本次同步呼叫內使用，不修剪或記錄。</param>
+    /// <returns>符合既有掃描器 at 優先規則且不超過解析預算的內容。</returns>
+    /// <exception cref="ArgumentException">身分為空或輸出超出解析預算，固定訊息不回顯尾欄。</exception>
+    public static string EncodePersonal(Guid contactId, string? legacySuffix)
+    {
+        ValidateIdentity(contactId);
+        var prefix = contactId.ToString("D") + "@";
+        if (legacySuffix != null && legacySuffix.Length > MaximumContentLength - prefix.Length)
+            throw new ArgumentException("QR content exceeds the parsing budget.", nameof(legacySuffix));
+        return prefix + legacySuffix;
     }
 
     /// <summary>依舊個人掃描器的 at 優先規則取聯絡人 GUID，不執行任何查詢或授權。</summary>

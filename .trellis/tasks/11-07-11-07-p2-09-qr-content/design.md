@@ -30,3 +30,8 @@
 ## 驗證
 
 以 xUnit 黃金字串鎖定四類格式、主日兩種分隔符、enroll 特例、GUID 正規格式及無效輸入拒絕；同一產品與測試專案分別以 `net462`／`net48` 和 `net10.0` 組態執行。這些是本機離線合成案例，不是實際 QR 圖片解碼或 D365 驗收。
+
+## 3.4接續 2026-11-07 22:06 Asia/Taipei (UTC+08:00)
+已找到父工作樹`.其他解決方案/Dynamics365Line`的三個Workflow及LineMessagePlugIn的QrCodeGenerator。用其字串運算式建立純離線harness；合成LIFF URL的QrCodeId尾段為核心內容邊界，不把真實路由或設定帶入核心。
+舊個人產生器會輸出GUID@fullname，現有一參數EncodePersonal只輸出GUID。保留一參數API，先紅燈再加入雙參數相容入口逐字保留尾欄；尾欄不是資料身分或授權，也不能被快取／記錄。解碼仍只回傳資料庫ID。
+黃金以嵌入資源保存，測試reader／stream單案擁有、逆序Dispose；不建立產品網路或背景工作。新三個同名測試放獨立測試檔，不刪原20個案例。

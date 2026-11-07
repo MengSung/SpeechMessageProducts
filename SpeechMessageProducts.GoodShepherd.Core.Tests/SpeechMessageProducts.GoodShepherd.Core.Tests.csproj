@@ -7,7 +7,8 @@ GoodShepherd.Core 的 net462 輸出；測試目標不得被誤當成產品部署
 
 主要功能與流程：本檔集中 xUnit 測試框架、文件產出、嚴格分析器開關及對
 GoodShepherd.Core 的單一專案參考。P2-02 先以 smoke 測試確認兩個產品目標、
-組件身分及方案參考正確；後續 P2/P5 規則測試在此專案雙目標執行。
+組件身分及方案參考正確；P2-09a 以嵌入 TSV 保留舊來源合成黃金，避免依賴本機
+相對路徑或建置殘留。後續 P2/P5 規則測試在此專案雙目標執行。
 
 使用邊界與維護：測試只使用合成輸入，不連 D365、LINE、Hyper-V 或真實金流，
 也不讀取秘密。每個涉及背景工作、連線、stream 或 cancellation 的後續測試，
@@ -42,6 +43,7 @@ GoodShepherd.Core 的單一專案參考。P2-02 先以 smoke 測試確認兩個�
 
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
+    <EmbeddedResource Include="Golden\qr-content-legacy.tsv" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
