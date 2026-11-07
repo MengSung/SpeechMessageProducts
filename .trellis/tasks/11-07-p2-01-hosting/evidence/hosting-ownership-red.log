@@ -1,0 +1,9 @@
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:00.19]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility [FAIL]
+[xUnit.net 00:00:00.19]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication [FAIL]
+[xUnit.net 00:00:00.19]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent [FAIL]
+[xUnit.net 00:00:00.21]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected [FAIL]
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\hosting-ownership-red\hosting-ownership-red.trx
+
+失敗!  - 失敗:     4，通過:     6，略過:     0，總計:    10，持續時間: 51 ms - SpeechMessage.Hosting.Tests.dll (net10.0)

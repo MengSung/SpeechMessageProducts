@@ -1,0 +1,273 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="44a125f1-3c7c-4f98-8d04-5c63dd44d894" name="Administrator@LENOVO-LEGION 2026-11-07 09:12:27" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T09:12:27.6017479+08:00" queuing="2026-11-07T09:12:27.6017481+08:00" start="2026-11-07T09:12:25.6654922+08:00" finish="2026-11-07T09:12:33.5383437+08:00" />
+  <TestSettings name="default" id="fc19e0b7-a67a-40bf-852a-b85b0dee8ed8">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_09_12_27" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e992efab-6d04-4571-a7b5-537d8ed96ee6" testId="21cdf3ca-808d-ebbd-d4e0-7e27ba91d716" testName="產品舊入口保留CRM組織與缺設定相容" computerName="LENOVO-LEGION" duration="00:00:00.0491293" startTime="2026-11-07T09:12:33.4692592+08:00" endTime="2026-11-07T09:12:33.4692596+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e992efab-6d04-4571-a7b5-537d8ed96ee6" />
+    <UnitTestResult executionId="b58ade12-71d5-4afa-afde-4959891e2a21" testId="5a076c50-5f92-5075-2d61-6aa5f7ad11d3" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Concurrent_reports_rotate_with_bounded_storage_and_release_handles" computerName="LENOVO-LEGION" duration="00:00:00.3483368" startTime="2026-11-07T09:12:33.2313663+08:00" endTime="2026-11-07T09:12:33.2313665+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b58ade12-71d5-4afa-afde-4959891e2a21" />
+    <UnitTestResult executionId="c4523744-fe30-40f5-9e89-3945050b0cd3" testId="9490fa2e-adfa-ae55-1f27-2c271799d631" testName="產品設定故障回空仍上報原例外且不外洩(factoryFailure: True)" computerName="LENOVO-LEGION" duration="00:00:00.0136628" startTime="2026-11-07T09:12:33.4199911+08:00" endTime="2026-11-07T09:12:33.4199914+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c4523744-fe30-40f5-9e89-3945050b0cd3" />
+    <UnitTestResult executionId="48a55b74-a28f-45fb-b87b-2916eb3f457b" testId="9b4d5484-7165-ecd2-ce31-aaf1bf19bd8e" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: False, sendLine: True)" computerName="LENOVO-LEGION" duration="00:00:00.0233423" startTime="2026-11-07T09:12:27.5708649+08:00" endTime="2026-11-07T09:12:27.5708651+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="48a55b74-a28f-45fb-b87b-2916eb3f457b" />
+    <UnitTestResult executionId="98d8eb1c-d1cf-41fb-8bd1-852b593732e1" testId="337917ff-905a-3462-d407-d0d67038be9a" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Failed_file_write_prevents_line_delivery" computerName="LENOVO-LEGION" duration="00:00:00.0028265" startTime="2026-11-07T09:12:27.5932094+08:00" endTime="2026-11-07T09:12:27.5932095+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="98d8eb1c-d1cf-41fb-8bd1-852b593732e1" />
+    <UnitTestResult executionId="b9796903-888a-4ac8-9c87-16853beb8642" testId="370f7054-cecb-3daf-d4dd-a0f012640c96" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Notification_failure_is_logged_without_recursion_and_timeout_is_actionable" computerName="LENOVO-LEGION" duration="00:00:00.0219899" startTime="2026-11-07T09:12:32.8828617+08:00" endTime="2026-11-07T09:12:32.8828620+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b9796903-888a-4ac8-9c87-16853beb8642" />
+    <UnitTestResult executionId="2fb8cc33-d698-430c-8904-cd41eb1144dd" testId="3510c160-f7ac-39fa-9688-4a797712262f" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Saturation_keeps_all_file_records_and_shutdown_cancels_sender" computerName="LENOVO-LEGION" duration="00:00:05.1857819" startTime="2026-11-07T09:12:32.7780138+08:00" endTime="2026-11-07T09:12:32.7780141+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2fb8cc33-d698-430c-8904-cd41eb1144dd" />
+    <UnitTestResult executionId="210bb19d-9c64-46c1-a23c-eff74dbc8f45" testId="ce6073b0-f615-af52-0fea-3e0b7888ebd6" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionPipelineTests.Logger_reports_errors_without_evaluating_sensitive_formatter_or_scope" computerName="LENOVO-LEGION" duration="00:00:00.0220248" startTime="2026-11-07T09:12:27.6067645+08:00" endTime="2026-11-07T09:12:27.6067647+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="210bb19d-9c64-46c1-a23c-eff74dbc8f45" />
+    <UnitTestResult executionId="bb932d86-44b5-415b-8714-78f21e86f1f3" testId="94f3be1e-d0de-6e88-e428-3e5de4cd2037" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_write_preserves_evidence_and_retries_without_false_notification" computerName="LENOVO-LEGION" duration="00:00:00.0223490" startTime="2026-11-07T09:12:33.2538891+08:00" endTime="2026-11-07T09:12:33.2538894+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bb932d86-44b5-415b-8714-78f21e86f1f3" />
+    <UnitTestResult executionId="7a5d77f2-08e5-4980-a385-69f100539ced" testId="a91c1af3-e8ce-78f5-d777-eccda820ea5c" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Canceled_internal_timeout_with_active_caller_is_logged_and_notified" computerName="LENOVO-LEGION" duration="00:00:00.0921380" startTime="2026-11-07T09:12:27.5768836+08:00" endTime="2026-11-07T09:12:27.5768839+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7a5d77f2-08e5-4980-a385-69f100539ced" />
+    <UnitTestResult executionId="2d0a42d8-da28-4cf4-85cf-606d3a065538" testId="cbe448a7-18a5-fc8f-1f9c-863fcc546cef" testName="產品DI入口確實使用注入的共用resolver" computerName="LENOVO-LEGION" duration="00:00:00.0004226" startTime="2026-11-07T09:12:33.4698449+08:00" endTime="2026-11-07T09:12:33.4698450+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2d0a42d8-da28-4cf4-85cf-606d3a065538" />
+    <UnitTestResult executionId="4e284eed-9ba2-4b54-bf0f-670bd853b776" testId="984af84b-5945-5487-616b-864b4bbb5f7a" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ChurchReportLineAdminNotificationServiceTests.Legacy_calls_use_shared_log_before_line_without_raw_error_text" computerName="LENOVO-LEGION" duration="00:00:00.0229203" startTime="2026-11-07T09:12:33.2782409+08:00" endTime="2026-11-07T09:12:33.2782411+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4e284eed-9ba2-4b54-bf0f-670bd853b776" />
+    <UnitTestResult executionId="046ec294-6f17-4789-a15e-014441df5429" testId="e85dfe16-b633-6387-b627-2b755599c265" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: False, sendLine: False)" computerName="LENOVO-LEGION" duration="00:00:00.0005989" startTime="2026-11-07T09:12:27.5715145+08:00" endTime="2026-11-07T09:12:27.5715147+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="046ec294-6f17-4789-a15e-014441df5429" />
+    <UnitTestResult executionId="35de2316-4ca4-4cde-8b4f-93bf7f266990" testId="60fb7fe9-c538-61c8-1bc7-65b519c39257" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Missing_options_default_on_and_invalid_boolean_is_rejected" computerName="LENOVO-LEGION" duration="00:00:00.0607025" startTime="2026-11-07T09:12:27.5477451+08:00" endTime="2026-11-07T09:12:27.5477619+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="35de2316-4ca4-4cde-8b4f-93bf7f266990" />
+    <UnitTestResult executionId="eaf23f88-a727-410e-9a8b-ff9489c27aba" testId="f7c7b0d1-d9f8-f025-2c41-0e9407c5d5d5" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ChurchReportLineAdminNotificationServiceTests.Exception_facade_preserves_diagnostics_and_deduplicates_outer_report" computerName="LENOVO-LEGION" duration="00:00:00.0161286" startTime="2026-11-07T09:12:33.2945717+08:00" endTime="2026-11-07T09:12:33.2945719+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eaf23f88-a727-410e-9a8b-ff9489c27aba" />
+    <UnitTestResult executionId="2af68736-ebf0-4683-a637-5ca2bcb1949c" testId="b53cf305-a0c6-d500-b5f6-399f39be6cf6" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Forwarded_legacy_types_preserve_identity_and_report_abi" computerName="LENOVO-LEGION" duration="00:00:00.0021716" startTime="2026-11-07T09:12:27.5941237+08:00" endTime="2026-11-07T09:12:27.5941238+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2af68736-ebf0-4683-a637-5ca2bcb1949c" />
+    <UnitTestResult executionId="7b1a548d-48af-470e-bab8-0348805d6b8f" testId="b7b8014f-0c71-e22d-80c7-8a6f964b9808" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release" computerName="LENOVO-LEGION" duration="00:00:00.0823831" startTime="2026-11-07T09:12:32.8606806+08:00" endTime="2026-11-07T09:12:32.8606810+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7b1a548d-48af-470e-bab8-0348805d6b8f" />
+    <UnitTestResult executionId="3ab37ca5-1f57-44dd-bcc1-33c33a09bbef" testId="892f74c4-e3cd-2c23-9b52-73a12051bdd2" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionPipelineTests.Standard_handler_receives_original_failure_after_log_and_line_enqueue" computerName="LENOVO-LEGION" duration="00:00:00.0978085" startTime="2026-11-07T09:12:27.5839424+08:00" endTime="2026-11-07T09:12:27.5839427+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3ab37ca5-1f57-44dd-bcc1-33c33a09bbef" />
+    <UnitTestResult executionId="12f609b8-fa47-47e2-9809-bd5e2e5c634f" testId="be7d6127-4883-4ba8-4e0f-e858f0878a83" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: True, sendLine: False)" computerName="LENOVO-LEGION" duration="00:00:00.0085144" startTime="2026-11-07T09:12:27.5800578+08:00" endTime="2026-11-07T09:12:27.5800580+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="12f609b8-fa47-47e2-9809-bd5e2e5c634f" />
+    <UnitTestResult executionId="bd2f735d-f476-40d6-9275-077c676e0dcc" testId="874607ea-edc1-1d65-badc-c6d284f5b867" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Line_only_failure_or_undrained_queue_never_creates_log(startSender: False)" computerName="LENOVO-LEGION" duration="00:00:00.0003889" startTime="2026-11-07T09:12:27.5967710+08:00" endTime="2026-11-07T09:12:27.5967710+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bd2f735d-f476-40d6-9275-077c676e0dcc" />
+    <UnitTestResult executionId="595008f0-a73e-4bcc-b2d8-b72434de7986" testId="39e80c21-2674-5726-8ccc-7ca21f448dc6" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Report_writes_file_before_notification_and_deduplicates_without_sensitive_values" computerName="LENOVO-LEGION" duration="00:00:00.0121177" startTime="2026-11-07T09:12:27.5891485+08:00" endTime="2026-11-07T09:12:27.5891486+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="595008f0-a73e-4bcc-b2d8-b72434de7986" />
+    <UnitTestResult executionId="68d2428c-afb7-495f-bc0a-01c97a1aa08c" testId="24e34e6f-395e-ded1-91c7-230202dba1e3" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: True, sendLine: True)" computerName="LENOVO-LEGION" duration="00:00:00.0117705" startTime="2026-11-07T09:12:27.5931264+08:00" endTime="2026-11-07T09:12:27.5931264+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="68d2428c-afb7-495f-bc0a-01c97a1aa08c" />
+    <UnitTestResult executionId="538b582a-3e9b-4f0b-a01d-1e1bbe4aab42" testId="7913ab8f-1ee5-2db2-fa8b-5c525123d01f" testName="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Line_only_failure_or_undrained_queue_never_creates_log(startSender: True)" computerName="LENOVO-LEGION" duration="00:00:00.0021350" startTime="2026-11-07T09:12:27.5963478+08:00" endTime="2026-11-07T09:12:27.5963479+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="538b582a-3e9b-4f0b-a01d-1e1bbe4aab42" />
+    <UnitTestResult executionId="c3da07bb-4652-476d-9872-a6b8ce7d834c" testId="16bfef13-5aef-ce09-694c-70382dcde7e7" testName="產品設定故障回空仍上報原例外且不外洩(factoryFailure: False)" computerName="LENOVO-LEGION" duration="00:00:00.1112714" startTime="2026-11-07T09:12:33.4061851+08:00" endTime="2026-11-07T09:12:33.4061855+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c3da07bb-4652-476d-9872-a6b8ce7d834c" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Canceled_internal_timeout_with_active_caller_is_logged_and_notified" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="a91c1af3-e8ce-78f5-d777-eccda820ea5c">
+      <Execution id="7a5d77f2-08e5-4980-a385-69f100539ced" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Canceled_internal_timeout_with_active_caller_is_logged_and_notified" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: False, sendLine: True)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="9b4d5484-7165-ecd2-ce31-aaf1bf19bd8e">
+      <Execution id="48a55b74-a28f-45fb-b87b-2916eb3f457b" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Selected_outputs_are_independent_and_both_write_before_sending" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_write_preserves_evidence_and_retries_without_false_notification" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="94f3be1e-d0de-6e88-e428-3e5de4cd2037">
+      <Execution id="bb932d86-44b5-415b-8714-78f21e86f1f3" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Reader_blocked_write_preserves_evidence_and_retries_without_false_notification" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Report_writes_file_before_notification_and_deduplicates_without_sensitive_values" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="39e80c21-2674-5726-8ccc-7ca21f448dc6">
+      <Execution id="595008f0-a73e-4bcc-b2d8-b72434de7986" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Report_writes_file_before_notification_and_deduplicates_without_sensitive_values" />
+    </UnitTest>
+    <UnitTest name="產品DI入口確實使用注入的共用resolver" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="cbe448a7-18a5-fc8f-1f9c-863fcc546cef">
+      <Execution id="2d0a42d8-da28-4cf4-85cf-606d3a065538" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.TenancyFailureBoundaryTests" name="LegacyBoundary_InjectedResolver_UsesContainerOwner" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Line_only_failure_or_undrained_queue_never_creates_log(startSender: True)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="7913ab8f-1ee5-2db2-fa8b-5c525123d01f">
+      <Execution id="538b582a-3e9b-4f0b-a01d-1e1bbe4aab42" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Line_only_failure_or_undrained_queue_never_creates_log" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Notification_failure_is_logged_without_recursion_and_timeout_is_actionable" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="370f7054-cecb-3daf-d4dd-a0f012640c96">
+      <Execution id="b9796903-888a-4ac8-9c87-16853beb8642" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Notification_failure_is_logged_without_recursion_and_timeout_is_actionable" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: True, sendLine: True)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="24e34e6f-395e-ded1-91c7-230202dba1e3">
+      <Execution id="68d2428c-afb7-495f-bc0a-01c97a1aa08c" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Selected_outputs_are_independent_and_both_write_before_sending" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionPipelineTests.Logger_reports_errors_without_evaluating_sensitive_formatter_or_scope" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="ce6073b0-f615-af52-0fea-3e0b7888ebd6">
+      <Execution id="210bb19d-9c64-46c1-a23c-eff74dbc8f45" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionPipelineTests" name="Logger_reports_errors_without_evaluating_sensitive_formatter_or_scope" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ChurchReportLineAdminNotificationServiceTests.Legacy_calls_use_shared_log_before_line_without_raw_error_text" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="984af84b-5945-5487-616b-864b4bbb5f7a">
+      <Execution id="4e284eed-9ba2-4b54-bf0f-670bd853b776" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ChurchReportLineAdminNotificationServiceTests" name="Legacy_calls_use_shared_log_before_line_without_raw_error_text" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionPipelineTests.Standard_handler_receives_original_failure_after_log_and_line_enqueue" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="892f74c4-e3cd-2c23-9b52-73a12051bdd2">
+      <Execution id="3ab37ca5-1f57-44dd-bcc1-33c33a09bbef" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionPipelineTests" name="Standard_handler_receives_original_failure_after_log_and_line_enqueue" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Missing_options_default_on_and_invalid_boolean_is_rejected" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="60fb7fe9-c538-61c8-1bc7-65b519c39257">
+      <Execution id="35de2316-4ca4-4cde-8b4f-93bf7f266990" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Missing_options_default_on_and_invalid_boolean_is_rejected" />
+    </UnitTest>
+    <UnitTest name="產品設定故障回空仍上報原例外且不外洩(factoryFailure: False)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="16bfef13-5aef-ce09-694c-70382dcde7e7">
+      <Execution id="c3da07bb-4652-476d-9872-a6b8ce7d834c" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.TenancyFailureBoundaryTests" name="LegacyBoundary_ProviderFailure_ReportsOriginalException" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: False, sendLine: False)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="e85dfe16-b633-6387-b627-2b755599c265">
+      <Execution id="046ec294-6f17-4789-a15e-014441df5429" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Selected_outputs_are_independent_and_both_write_before_sending" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Failed_file_write_prevents_line_delivery" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="337917ff-905a-3462-d407-d0d67038be9a">
+      <Execution id="98d8eb1c-d1cf-41fb-8bd1-852b593732e1" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Failed_file_write_prevents_line_delivery" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Selected_outputs_are_independent_and_both_write_before_sending(writeLog: True, sendLine: False)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="be7d6127-4883-4ba8-4e0f-e858f0878a83">
+      <Execution id="12f609b8-fa47-47e2-9809-bd5e2e5c634f" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Selected_outputs_are_independent_and_both_write_before_sending" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ChurchReportLineAdminNotificationServiceTests.Exception_facade_preserves_diagnostics_and_deduplicates_outer_report" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="f7c7b0d1-d9f8-f025-2c41-0e9407c5d5d5">
+      <Execution id="eaf23f88-a727-410e-9a8b-ff9489c27aba" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ChurchReportLineAdminNotificationServiceTests" name="Exception_facade_preserves_diagnostics_and_deduplicates_outer_report" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Saturation_keeps_all_file_records_and_shutdown_cancels_sender" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="3510c160-f7ac-39fa-9688-4a797712262f">
+      <Execution id="2fb8cc33-d698-430c-8904-cd41eb1144dd" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Saturation_keeps_all_file_records_and_shutdown_cancels_sender" />
+    </UnitTest>
+    <UnitTest name="產品設定故障回空仍上報原例外且不外洩(factoryFailure: True)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="9490fa2e-adfa-ae55-1f27-2c271799d631">
+      <Execution id="c4523744-fe30-40f5-9e89-3945050b0cd3" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.TenancyFailureBoundaryTests" name="LegacyBoundary_ProviderFailure_ReportsOriginalException" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Concurrent_reports_rotate_with_bounded_storage_and_release_handles" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="5a076c50-5f92-5075-2d61-6aa5f7ad11d3">
+      <Execution id="b58ade12-71d5-4afa-afde-4959891e2a21" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Concurrent_reports_rotate_with_bounded_storage_and_release_handles" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Forwarded_legacy_types_preserve_identity_and_report_abi" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="b53cf305-a0c6-d500-b5f6-399f39be6cf6">
+      <Execution id="2af68736-ebf0-4683-a637-5ca2bcb1949c" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Forwarded_legacy_types_preserve_identity_and_report_abi" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests.Line_only_failure_or_undrained_queue_never_creates_log(startSender: False)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="874607ea-edc1-1d65-badc-c6d284f5b867">
+      <Execution id="bd2f735d-f476-40d6-9275-077c676e0dcc" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionOutputOptionsTests" name="Line_only_failure_or_undrained_queue_never_creates_log" />
+    </UnitTest>
+    <UnitTest name="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="b7b8014f-0c71-e22d-80c7-8a6f964b9808">
+      <Execution id="7b1a548d-48af-470e-bab8-0348805d6b8f" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests" name="Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release" />
+    </UnitTest>
+    <UnitTest name="產品舊入口保留CRM組織與缺設定相容" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\churchreport.memberinfo.tests\bin\release\net10.0\churchreport.memberinfo.tests.dll" id="21cdf3ca-808d-ebbd-d4e0-7e27ba91d716">
+      <Execution id="e992efab-6d04-4571-a7b5-537d8ed96ee6" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ChurchReport.MemberInfo.Tests\bin\Release\net10.0\ChurchReport.MemberInfo.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ChurchReport.MemberInfo.Tests.LineSharedWorkflow.TenancyFailureBoundaryTests" name="LegacyBoundary_ConfiguredOrganization_PreservesOptionalBehavior" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="21cdf3ca-808d-ebbd-d4e0-7e27ba91d716" executionId="e992efab-6d04-4571-a7b5-537d8ed96ee6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5a076c50-5f92-5075-2d61-6aa5f7ad11d3" executionId="b58ade12-71d5-4afa-afde-4959891e2a21" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9490fa2e-adfa-ae55-1f27-2c271799d631" executionId="c4523744-fe30-40f5-9e89-3945050b0cd3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9b4d5484-7165-ecd2-ce31-aaf1bf19bd8e" executionId="48a55b74-a28f-45fb-b87b-2916eb3f457b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="337917ff-905a-3462-d407-d0d67038be9a" executionId="98d8eb1c-d1cf-41fb-8bd1-852b593732e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="370f7054-cecb-3daf-d4dd-a0f012640c96" executionId="b9796903-888a-4ac8-9c87-16853beb8642" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3510c160-f7ac-39fa-9688-4a797712262f" executionId="2fb8cc33-d698-430c-8904-cd41eb1144dd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ce6073b0-f615-af52-0fea-3e0b7888ebd6" executionId="210bb19d-9c64-46c1-a23c-eff74dbc8f45" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="94f3be1e-d0de-6e88-e428-3e5de4cd2037" executionId="bb932d86-44b5-415b-8714-78f21e86f1f3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a91c1af3-e8ce-78f5-d777-eccda820ea5c" executionId="7a5d77f2-08e5-4980-a385-69f100539ced" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cbe448a7-18a5-fc8f-1f9c-863fcc546cef" executionId="2d0a42d8-da28-4cf4-85cf-606d3a065538" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="984af84b-5945-5487-616b-864b4bbb5f7a" executionId="4e284eed-9ba2-4b54-bf0f-670bd853b776" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e85dfe16-b633-6387-b627-2b755599c265" executionId="046ec294-6f17-4789-a15e-014441df5429" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="60fb7fe9-c538-61c8-1bc7-65b519c39257" executionId="35de2316-4ca4-4cde-8b4f-93bf7f266990" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f7c7b0d1-d9f8-f025-2c41-0e9407c5d5d5" executionId="eaf23f88-a727-410e-9a8b-ff9489c27aba" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b53cf305-a0c6-d500-b5f6-399f39be6cf6" executionId="2af68736-ebf0-4683-a637-5ca2bcb1949c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b7b8014f-0c71-e22d-80c7-8a6f964b9808" executionId="7b1a548d-48af-470e-bab8-0348805d6b8f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="892f74c4-e3cd-2c23-9b52-73a12051bdd2" executionId="3ab37ca5-1f57-44dd-bcc1-33c33a09bbef" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="be7d6127-4883-4ba8-4e0f-e858f0878a83" executionId="12f609b8-fa47-47e2-9809-bd5e2e5c634f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="874607ea-edc1-1d65-badc-c6d284f5b867" executionId="bd2f735d-f476-40d6-9275-077c676e0dcc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="39e80c21-2674-5726-8ccc-7ca21f448dc6" executionId="595008f0-a73e-4bcc-b2d8-b72434de7986" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="24e34e6f-395e-ded1-91c7-230202dba1e3" executionId="68d2428c-afb7-495f-bc0a-01c97a1aa08c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7913ab8f-1ee5-2db2-fa8b-5c525123d01f" executionId="538b582a-3e9b-4f0b-a01d-1e1bbe4aab42" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="16bfef13-5aef-ce09-694c-70382dcde7e7" executionId="c3da07bb-4652-476d-9872-a6b8ce7d834c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="24" executed="24" passed="24" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:01.41]   Discovering: ChurchReport.MemberInfo.Tests&#xD;
+[xUnit.net 00:00:01.48]   Discovered:  ChurchReport.MemberInfo.Tests&#xD;
+[xUnit.net 00:00:01.48]   Starting:    ChurchReport.MemberInfo.Tests&#xD;
+[ExceptionDiagnostics] ExceptionLogWriteFailed&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineDeliveryFailed&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LineQueueFull&#xD;
+[ExceptionDiagnostics] LinePendingAtShutdown&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogDegradedCapReached&#xD;
+[ExceptionDiagnostics] ExceptionLogRotationFailed&#xD;
+[ExceptionDiagnostics] ExceptionLogDegradedCapReached&#xD;
+[ExceptionDiagnostics] ExceptionLogWriteFailed&#xD;
+[xUnit.net 00:00:07.50]   Finished:    ChurchReport.MemberInfo.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

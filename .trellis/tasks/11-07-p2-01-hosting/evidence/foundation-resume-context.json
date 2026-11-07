@@ -1,0 +1,28 @@
+{
+  "updatedAt": "2026-11-07T09:18:15+08:00",
+  "scope": "P2-01 foundation checkpoint; not whole P2 acceptance",
+  "hostingStrictRelease": {
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0
+  },
+  "churchReportExceptionRegression": {
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0
+  },
+  "hostingFocused": {
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "fileDocumentation": {
+    "checked": 1258,
+    "failures": 0
+  },
+  "p2AcceptedPackages": 0,
+  "p2TotalPackages": 12,
+  "newNotices": 0,
+  "lineOrD365Calls": false,
+  "deployed": false
+}

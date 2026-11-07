@@ -1,0 +1,7 @@
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:00.26]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container [FAIL]
+[xUnit.net 00:00:00.26]     SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_accepts_bounded_test_configuration [FAIL]
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\hosting-before\hosting-before.trx
+
+失敗!  - 失敗:     2，通過:     3，略過:     0，總計:     5，持續時間: 432 ms - SpeechMessage.Hosting.Tests.dll (net10.0)

@@ -445,7 +445,7 @@
  * 注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07T09:02:25+08:00",
+  "snapshot": "2026-11-07T09:18:15+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "worker": "主會話 inline 實作／驗證／審查；本輪曾啟動兩名子代理讀取／基線測試，收到 inline 限制後已停止並關閉，無平行產品實作成果。",
   "headline": "階段 2 目前 <strong>1／12 工作包進行中</strong>（P2-01）。P1-01～12 已驗收；P2-02／03／06／09 可在不連 D365／LINE 下並行，P2-04 推播前置仍需測試 channel／本人帳號與 secrets。全計畫已驗收30包，另1包進行中。",
@@ -455,12 +455,14 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "body": "2026-11-07 09:02 Asia/Taipei (UTC+08:00)：P2 0／12驗收、1包進行中。Hosting已加入方案；功能測試6通過／4失敗，尚未驗收。P2-04測試 channel／本人帳號與 User Secrets 前置未完成；離線／mock 不代替必要實機。",
+      "body": "2026-11-07 09:18 Asia/Taipei (UTC+08:00)：P2 0／12驗收、1包進行中。Hosting嚴格Release離線測試37／37、既有例外回歸24／24；仍須sender搬移、主機接入與其他必要驗收，未完成P2。",
       "steps": [
-        "最新離線功能證據：Hosting 測試10項，6通過／4失敗；失敗為實作組件歸屬、重複註冊冪等、衝突設定拒絕及adapter／owner一致性，仍須修復。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/hosting-ownership-red/hosting-ownership-red.trx；先前3通過／2失敗僅為歷史基線，不代表目前結果。",
+        "本輪foundation實測：診斷三型別已真正移至Hosting，ToolUtility僅CLR型別轉送；Hosting不反向參考ToolUtility。新增單一owner、重入冪等、衝突拒絕／不部分發布與舊Report ABI測試。Hosting嚴格Release全套37／37（含實際方案架構評估）、ChurchReport既有例外回歸24／24、focused13／13通過。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/hosting-strict-release/hosting-strict-release.trx、hosting-legacy-release/hosting-legacy-release.trx、hosting-foundation-green/hosting-foundation-green.trx；均為本機離線，不是實機通知驗收。",
+        "本輪品質與下一步：檔案說明1258檔／0失敗；ExceptionTypeForwards.cs換行問題已修復。P2-01仍進行中：繼續搬移LINE sender、ChurchReport Program接入、Development guard共用委派、CultureCompleteness生成與R2／R3／R9整合，之後再跑完整方案。P2-04測試channel／本人帳號與User Secrets前置未完成；離線／mock不能替代必要實機。",
+        "歷史紀錄｜最新離線功能證據：Hosting 測試10項，6通過／4失敗；失敗為實作組件歸屬、重複註冊冪等、衝突設定拒絕及adapter／owner一致性，仍須修復。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/hosting-ownership-red/hosting-ownership-red.trx；先前3通過／2失敗僅為歷史基線，不代表目前結果。",
         "版面與追蹤規則：同階段只保留一張一般資訊摘要並原地更新；方案可見不等於驗收完成。進度頁17／17通過（含先紅後綠、83包狀態、53項計畫細節、P1實機證據與警告隔離），檔案說明1257檔／0失敗。證據：.trellis/tasks/archive/2026-11/11-07-p2-progress-phase-summary/evidence/progress-red.log、progress-contract-red.log、progress-final.log、file-documentation.log。 HTML結構、CSS／renderer不變、原資訊完整保留、UTF-8無BOM／CRLF檢查通過：同目錄page-integrity.json；P2驗收仍未完成。",
         "實際執行：主會話 inline 修改／檢查；本次沒有派遣子代理或平行產品實作。P2-02／03／06／09僅為依賴上可離線並行的候選；受模式限制不冒稱已並行。",
-        "外部流程限制：使用者已要求不使用外部模型，但高優先執行設定仍強制兩模型呼叫；本次分析 .ccg/dual-model-runs/20261107-085531-p2-progress-phase-summary-analyzer/summary.json、審查 .ccg/dual-model-runs/20261107-090026-p2-progress-phase-summary-reviewer/summary.json 均無可用輸出，Gemini 503、Claude額度受阻，dualModelComplete=false、degradedFallback=false。不重試同一阻塞、不冒稱外審成功；主會話本地審查與驗證已執行。",
+        "歷史紀錄｜外部流程限制：使用者已要求不使用外部模型，但高優先執行設定仍強制兩模型呼叫；本次分析 .ccg/dual-model-runs/20261107-085531-p2-progress-phase-summary-analyzer/summary.json、審查 .ccg/dual-model-runs/20261107-090026-p2-progress-phase-summary-reviewer/summary.json 均無可用輸出，Gemini 503、Claude額度受阻，dualModelComplete=false、degradedFallback=false。不重試同一阻塞、不冒稱外審成功；主會話本地審查與驗證已執行。",
         "歷史紀錄｜P2-01 方案登錄已補齊，功能驗收仍進行中：2026-11-07 08:47 Asia/Taipei (UTC+08:00)：Hosting 與 Hosting.Tests 已加入 SpeechMessageProducts.sln，原有30專案保持不變，現為32專案；兩個新項目各一筆且有 Debug／Release 建置對應。這只完成方案登錄，不代表 P2-01 或 P2 全部完成。",
         "歷史紀錄｜現有設定 Release 建置成功：0警告／0錯誤。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/solution-registration-build.log。",
         "歷史紀錄｜已驗證加入前缺少兩筆、加入後32筆且原集合完整保留。證據：同 evidence 目錄 solution-before.json、solution-after.json。",
@@ -472,7 +474,7 @@ const DATA = {
         "歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T09:02:25+08:00"
+      "lastUpdated": "2026-11-07T09:18:15+08:00"
     }
   ],
   "alert": {
@@ -915,10 +917,10 @@ const DATA = {
       "id": "P2-01",
       "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
       "status": "active",
-      "scope": "進行中：SpeechMessage.Hosting、SpeechMessage.Hosting.Tests 已建立並即時補入 SpeechMessageProducts.sln（30→32，原項目完整保留）。仍須完成通知 sender／ExceptionOutputOptions 真正抽取、ChurchReport 接入、唯一 owner／DI 邊界、生成語系完成度與 R2／R3／R9 架構守門。",
-      "verification": "待驗證；2026-11-07 08:58 Asia/Taipei (UTC+08:00)：方案成員與 Debug／Release 映射檢查已通過，Hosting.Tests 現有設定 Release 建置0警告／0錯誤。功能測試最新10項為6通過／4失敗（先前3／2僅為歷史基線）；未完成項不可標示完成。證據 .trellis/tasks/11-07-p2-01-hosting/evidence/solution-after.json、solution-registration-build.log、hosting-ownership-red/hosting-ownership-red.trx。進度頁呈現驗證另見同階段摘要，不代替產品驗收。",
-      "prerequisite": "遵守例外輸出四組合、先 flush 後 LINE、滿載與故障保密、caller取消／內部逾時、drain／Dispose；不可保留 HttpContext、Session 或跨教會憑證。測試fixture與DI非同步釋放已調整，下一步修正4項功能紅燈，再驗證實際主機整合及語系／架構。",
-      "lastUpdated": "2026-11-07T08:58:48+08:00"
+      "scope": "進行中：Hosting與Hosting.Tests已加入方案；ExceptionDiagnostics／ExceptionOutputOptions／ExceptionReporting實際搬入Hosting唯一組件，ToolUtility以CLR型別轉送保持相容。DI已補重入冪等、衝突拒絕與單一owner邊界；仍須LINE sender搬移、ChurchReport接入、Development guard共用、生成語系完成度與R2／R3／R9整合。",
+      "verification": "待完成整包驗收；2026-11-07 09:18 Asia/Taipei (UTC+08:00)：Hosting strict Release全套37／37、ChurchReport例外回歸24／24、focused13／13通過，0失敗／0略過；包含實際方案相依圖、borrowed／owned資源、衝突不部分發布及舊四參數Report ABI。證據 .trellis/tasks/11-07-p2-01-hosting/evidence/hosting-strict-release/hosting-strict-release.trx、hosting-legacy-release/hosting-legacy-release.trx、hosting-foundation-green/hosting-foundation-green.trx。檔案說明1258檔0失敗；僅為離線foundation驗證，不代表P2-01或必要實機通過。",
+      "prerequisite": "遵守例外輸出四組合、先flush後LINE、滿載與故障保密、caller取消／內部逾時、drain／Dispose；不可保留HttpContext、Session或跨教會憑證。下一步完成sender搬移與Program唯一owner接入，再驗證語系生成、啟動順序及跨模組生命週期。",
+      "lastUpdated": "2026-11-07T09:18:15+08:00"
     },
     {
       "phaseId": "階段 2",

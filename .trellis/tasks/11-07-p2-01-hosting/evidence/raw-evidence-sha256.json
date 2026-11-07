@@ -1,0 +1,156 @@
+{
+  "rawEvidencePreserved": true,
+  "fileCount": 25,
+  "files": [
+    {
+      "path": "file-documentation-tests-final.log",
+      "size": 1507,
+      "sha256": "48ef1861c736cdb98a086d335de5198140eb5c458cbf3c7eab721a395563b79d",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-before/hosting-before.trx",
+      "size": 15816,
+      "sha256": "784347e49de50240eb2e2a4349f65827e9b933b3875d6d2be8ce201672295ae6",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-before.log",
+      "size": 1005,
+      "sha256": "c3508400623e5503a35b03759ef0aa0daf85be68be76f6e37bda3147dfee1af8",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-foundation-build.log",
+      "size": 5065,
+      "sha256": "bbedc2923fcc234021d9b6954b961f472e85ffcfd8c5e6ab092e638c5da59cf6",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-foundation-file-documentation-final.log",
+      "size": 46,
+      "sha256": "e8ce38a8279171af16f8ba95debbbe73d87ad5f33776b1a275bb5448af8717ec",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-foundation-file-documentation-green.log",
+      "size": 46,
+      "sha256": "e8ce38a8279171af16f8ba95debbbe73d87ad5f33776b1a275bb5448af8717ec",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-foundation-green/hosting-foundation-green.trx",
+      "size": 23587,
+      "sha256": "2f4813de763c5791167468711d48d33c7f061f83ba57d16cdb980261f0be0ce7",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-foundation-green.log",
+      "size": 2145,
+      "sha256": "b648d4415f2cde73d194b8b99b7877d9a529cece39f0337a03c005a84b8fa4ff",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-foundation-red/hosting-foundation-red.trx",
+      "size": 33560,
+      "sha256": "5eb05eec82b5fac0afa9780a7a1329ea1f2c637807484c8451fbffaf1c43ba0a",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-foundation-red.log",
+      "size": 10489,
+      "sha256": "ee399f56197456bae01a42b3f913b6274e9daabb799de2b0e038d0bff65e9583",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-legacy-release/hosting-legacy-release.trx",
+      "size": 49157,
+      "sha256": "e0a5464cc0782471f85925ee9bfcfefb1e8b9352fed7b6d321902a57b23e3093",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-legacy-release.log",
+      "size": 5851,
+      "sha256": "398cccb5a495573424c79ad65994c53164b1b1b899270bcaa7277ecdf58ecfa0",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-ownership-red/hosting-ownership-red.trx",
+      "size": 28420,
+      "sha256": "9a1ae6e3438ac0b66a7d1bb8494752b9fbeebfe54a2b7ea4b2bbda042bc0b494",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-ownership-red.log",
+      "size": 1319,
+      "sha256": "ae0fd122e3814689630be3268df998579cef6b989e82c0201251c3982041c451",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-resume-red/hosting-resume-red.trx",
+      "size": 28420,
+      "sha256": "87be41a8462613dd3181b1dc20a131e307a3b5b359ad4bc0f909dc0fe67ebc01",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-resume-red.log",
+      "size": 7233,
+      "sha256": "181c5b0f96f9d19618b4a673defdcc67492c33800cd5aa7d9e066f6b359404a5",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-strict-release/hosting-strict-release.trx",
+      "size": 65323,
+      "sha256": "15efe057e620a41fdcfb8c670f2257830b1a7290269ceb8ed78b659d1956375a",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "hosting-strict-release.log",
+      "size": 2126,
+      "sha256": "7b8a32adc4bd4765430728864d4445917594e73effb870f56e3b8e419fb4c510",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "progress-foundation-checkpoint.log",
+      "size": 1691,
+      "sha256": "95c1f3a22d430de9146ad5d5b9b1fc1f7827ae419cd1fcbe365992e548c92c25",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "progress-resume-before.log",
+      "size": 1688,
+      "sha256": "03a921d1990f1edd689789f1d63fa65f5fa99de5f5ee7dce3adb2a64add46aca",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "solution-registration-build.log",
+      "size": 81,
+      "sha256": "42965c500b7ad1ddbd37e564d7fee405fec34b1d24acb0edd0c3414bcdf48f01",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "solution-registration-external-review.log",
+      "size": 9778,
+      "sha256": "2b72d78369ece7e314c0fe0c22662eb9ab322957354ebf5f45e10e260ab695d4",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "solution-registration-file-docs-green.log",
+      "size": 46,
+      "sha256": "63d0a54522eea57a74f2735c6b747e7bdd39271e8683085a604669d51136e9df",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "solution-registration-file-docs.log",
+      "size": 569,
+      "sha256": "80e751e378f704eb6a599f3a9b8e43214e3a7ade9205bf9a2b39c521fa186b37",
+      "indexBytesMatch": true
+    },
+    {
+      "path": "solution-registration-progress-tests.log",
+      "size": 8140,
+      "sha256": "ddeb8c9d4ee30cc901436cacf0b70a4301c205aed3d9d80775b86838c853ef5d",
+      "indexBytesMatch": true
+    }
+  ]
+}

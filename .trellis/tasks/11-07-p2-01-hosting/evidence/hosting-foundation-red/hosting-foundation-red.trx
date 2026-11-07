@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="d2b5628b-168e-4be8-a7f0-d447d55a34e4" name="Administrator@LENOVO-LEGION 2026-11-07 09:08:16" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T09:08:16.2442118+08:00" queuing="2026-11-07T09:08:16.2442119+08:00" start="2026-11-07T09:08:15.7903919+08:00" finish="2026-11-07T09:08:16.2491098+08:00" />
+  <TestSettings name="default" id="753491b9-585b-486d-b6f2-dd0a5117b277">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_09_08_16" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="7b989236-07c9-49bb-8243-b7abb8b9c9ad" testId="3aaf6b0b-e52f-c8d5-ba6f-9c3a02975f91" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility" computerName="LENOVO-LEGION" duration="00:00:00.0010469" startTime="2026-11-07T09:08:16.1830592+08:00" endTime="2026-11-07T09:08:16.1830593+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7b989236-07c9-49bb-8243-b7abb8b9c9ad">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+           ↓ (pos 0)&#xD;
+Expected: "SpeechMessage.Hosting"&#xD;
+Actual:   "ToolUtility"&#xD;
+           ↑ (pos 0)</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 68&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b0e312e3-73c7-454c-a540-f6649d51dea3" testId="94316e9f-a943-04d4-3bd3-f5dd271cf6f0" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_different_directory_without_partial_publication" computerName="LENOVO-LEGION" duration="00:00:00.0009556" startTime="2026-11-07T09:08:16.1808453+08:00" endTime="2026-11-07T09:08:16.1808454+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b0e312e3-73c7-454c-a540-f6649d51dea3">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown&#xD;
+Expected: typeof(System.InvalidOperationException)</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_different_directory_without_partial_publication() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 130&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="fa8b48aa-5387-4825-9667-8d023f513fb9" testId="d981ca63-d436-14a8-d753-e0d771b49d15" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication" computerName="LENOVO-LEGION" duration="00:00:00.0001934" startTime="2026-11-07T09:08:16.1831826+08:00" endTime="2026-11-07T09:08:16.1831826+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fa8b48aa-5387-4825-9667-8d023f513fb9">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown&#xD;
+Expected: typeof(System.InvalidOperationException)</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 97&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a05a3532-24b8-4b5a-9047-304b7d8a5247" testId="c93a3a32-4eae-8d41-297a-6330ab759f54" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent" computerName="LENOVO-LEGION" duration="00:00:00.0015433" startTime="2026-11-07T09:08:16.1848284+08:00" endTime="2026-11-07T09:08:16.1848284+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a05a3532-24b8-4b5a-9047-304b7d8a5247">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Single() Failure: The collection contained 2 items&#xD;
+Collection: [ServiceType: ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics Lifetime: Singleton ImplementationFactory: SpeechMessage.Hosting.SpeechMessageHostingServiceCollectionExtensions+&lt;&gt;c__DisplayClass1_0.&lt;AddSpeechMessageHosting&gt;b__0, ServiceType: ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics Lifetime: Singleton ImplementationFactory: SpeechMessage.Hosting.SpeechMessageHostingServiceCollectionExtensions+&lt;&gt;c__DisplayClass1_0.&lt;AddSpeechMessageHosting&gt;b__0]</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 82&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5b8fe6af-035b-4a9a-945e-0c413e061692" testId="f5d94dbb-453c-f8eb-75eb-46fbc3f4bb89" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_preexisting_owner_without_partial_publication" computerName="LENOVO-LEGION" duration="00:00:00.0004288" startTime="2026-11-07T09:08:16.1864691+08:00" endTime="2026-11-07T09:08:16.1864692+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5b8fe6af-035b-4a9a-945e-0c413e061692">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown&#xD;
+Expected: typeof(System.InvalidOperationException)</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_preexisting_owner_without_partial_publication() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 114&#xD;
+   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_preexisting_owner_without_partial_publication() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 116&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4e666aea-fa3a-4c85-bf4b-e9daa9804337" testId="fe0fe64a-23b4-4231-ad73-882bd3728cab" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_borrows_external_owner_and_releases_only_its_adapter" computerName="LENOVO-LEGION" duration="00:00:00.0173905" startTime="2026-11-07T09:08:16.1797597+08:00" endTime="2026-11-07T09:08:16.1797598+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4e666aea-fa3a-4c85-bf4b-e9daa9804337" />
+    <UnitTestResult executionId="e4286aac-4f01-4208-bf66-d0bacc854bb2" testId="f3f476db-cbdd-cca7-f7e2-482adfc15d1c" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected" computerName="LENOVO-LEGION" duration="00:00:00.0004631" startTime="2026-11-07T09:08:16.1859608+08:00" endTime="2026-11-07T09:08:16.1859608+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e4286aac-4f01-4208-bf66-d0bacc854bb2">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: No exception was thrown&#xD;
+Expected: typeof(System.ArgumentException)</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 168&#xD;
+   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 170&#xD;
+   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 170&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5f58669c-be28-4dd3-97cd-a5bd18b4d52e" testId="cb620b00-b729-4621-93dc-2111c99a631e" testName="SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference" computerName="LENOVO-LEGION" duration="00:00:00.0053282" startTime="2026-11-07T09:08:16.1772640+08:00" endTime="2026-11-07T09:08:16.1772799+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5f58669c-be28-4dd3-97cd-a5bd18b4d52e">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Empty() Failure: Collection was not empty&#xD;
+Collection: [ArchitectureViolation { Rule = LayerDirection, Project = ToolUtility, Target = net10.0, Dependency = SpeechMessage.Hosting }]</Message>
+          <StackTrace>   at SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tests-shared\ArchitectureTests\ArchitectureRuleTests.cs:line 111&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="28eaa8ab-d7dc-4ab7-8563-a837e1b721a8" testId="8c334092-1d6f-cd47-cc48-a37d1b401464" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container" computerName="LENOVO-LEGION" duration="00:00:00.0010122" startTime="2026-11-07T09:08:16.1816658+08:00" endTime="2026-11-07T09:08:16.1816658+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="28eaa8ab-d7dc-4ab7-8563-a837e1b721a8" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_preexisting_owner_without_partial_publication" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="f5d94dbb-453c-f8eb-75eb-46fbc3f4bb89">
+      <Execution id="5b8fe6af-035b-4a9a-945e-0c413e061692" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_rejects_preexisting_owner_without_partial_publication" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="cb620b00-b729-4621-93dc-2111c99a631e">
+      <Execution id="5f58669c-be28-4dd3-97cd-a5bd18b4d52e" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Architecture.Tests.ArchitectureRuleTests" name="Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="c93a3a32-4eae-8d41-297a-6330ab759f54">
+      <Execution id="a05a3532-24b8-4b5a-9047-304b7d8a5247" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_repeated_identical_snapshot_is_idempotent" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="8c334092-1d6f-cd47-cc48-a37d1b401464">
+      <Execution id="28eaa8ab-d7dc-4ab7-8563-a837e1b721a8" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_attaches_one_owner_and_releases_it_with_the_container" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_different_directory_without_partial_publication" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="94316e9f-a943-04d4-3bd3-f5dd271cf6f0">
+      <Execution id="b0e312e3-73c7-454c-a540-f6649d51dea3" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_rejects_different_directory_without_partial_publication" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="3aaf6b0b-e52f-c8d5-ba6f-9c3a02975f91">
+      <Execution id="7b989236-07c9-49bb-8243-b7abb8b9c9ad" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Exception_types_are_defined_by_Hosting_not_ToolUtility" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="d981ca63-d436-14a8-d753-e0d771b49d15">
+      <Execution id="fa8b48aa-5387-4825-9667-8d023f513fb9" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_conflicting_snapshot_fails_without_partial_publication" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="f3f476db-cbdd-cca7-f7e2-482adfc15d1c">
+      <Execution id="e4286aac-4f01-4208-bf66-d0bacc854bb2" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_mismatched_external_adapter_is_rejected" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_borrows_external_owner_and_releases_only_its_adapter" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="fe0fe64a-23b4-4231-ad73-882bd3728cab">
+      <Execution id="4e666aea-fa3a-4c85-bf4b-e9daa9804337" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_borrows_external_owner_and_releases_only_its_adapter" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="3aaf6b0b-e52f-c8d5-ba6f-9c3a02975f91" executionId="7b989236-07c9-49bb-8243-b7abb8b9c9ad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="94316e9f-a943-04d4-3bd3-f5dd271cf6f0" executionId="b0e312e3-73c7-454c-a540-f6649d51dea3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d981ca63-d436-14a8-d753-e0d771b49d15" executionId="fa8b48aa-5387-4825-9667-8d023f513fb9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c93a3a32-4eae-8d41-297a-6330ab759f54" executionId="a05a3532-24b8-4b5a-9047-304b7d8a5247" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f5d94dbb-453c-f8eb-75eb-46fbc3f4bb89" executionId="5b8fe6af-035b-4a9a-945e-0c413e061692" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fe0fe64a-23b4-4231-ad73-882bd3728cab" executionId="4e666aea-fa3a-4c85-bf4b-e9daa9804337" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f3f476db-cbdd-cca7-f7e2-482adfc15d1c" executionId="e4286aac-4f01-4208-bf66-d0bacc854bb2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cb620b00-b729-4621-93dc-2111c99a631e" executionId="5f58669c-be28-4dd3-97cd-a5bd18b4d52e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8c334092-1d6f-cd47-cc48-a37d1b401464" executionId="28eaa8ab-d7dc-4ab7-8563-a837e1b721a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="9" executed="9" passed="2" failed="7" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.05]   Discovering: SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Discovered:  SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Starting:    SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.12]       Assert.Empty() Failure: Collection was not empty&#xD;
+[xUnit.net 00:00:00.12]       Collection: [ArchitectureViolation { Rule = LayerDirection, Project = ToolUtility, Target = net10.0, Dependency = SpeechMessage.Hosting }]&#xD;
+[xUnit.net 00:00:00.12]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.12]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tests-shared\ArchitectureTests\ArchitectureRuleTests.cs(111,0): at SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference()&#xD;
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.13]       Assert.Throws() Failure: No exception was thrown&#xD;
+[xUnit.net 00:00:00.13]       Expected: typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.13]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(130,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_different_directory_without_partial_publication()&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.13]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:00:00.13]                  ↓ (pos 0)&#xD;
+[xUnit.net 00:00:00.13]       Expected: "SpeechMessage.Hosting"&#xD;
+[xUnit.net 00:00:00.13]       Actual:   "ToolUtility"&#xD;
+[xUnit.net 00:00:00.13]                  ↑ (pos 0)&#xD;
+[xUnit.net 00:00:00.13]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(68,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility()&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.13]       Assert.Throws() Failure: No exception was thrown&#xD;
+[xUnit.net 00:00:00.13]       Expected: typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.13]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(97,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication()&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.13]       Assert.Single() Failure: The collection contained 2 items&#xD;
+[xUnit.net 00:00:00.13]       Collection: [ServiceType: ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics Lifetime: Singleton ImplementationFactory: SpeechMessage.Hosting.SpeechMessageHostingServiceCollectionExtensions+&lt;&gt;c__DisplayClass1_0.&lt;AddSpeechMessageHosting&gt;b__0, ServiceType: ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics Lifetime: Singleton ImplementationFactory: SpeechMessage.Hosting.SpeechMessageHostingServiceCollectionExtensions+&lt;&gt;c__DisplayClass1_0.&lt;AddSpeechMessageHosting&gt;b__0]&#xD;
+[xUnit.net 00:00:00.13]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(82,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent()&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.13]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.13]       Assert.Throws() Failure: No exception was thrown&#xD;
+[xUnit.net 00:00:00.13]       Expected: typeof(System.ArgumentException)&#xD;
+[xUnit.net 00:00:00.13]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(168,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected()&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(170,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected()&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(170,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected()&#xD;
+[xUnit.net 00:00:00.13]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.13]       Assert.Throws() Failure: No exception was thrown&#xD;
+[xUnit.net 00:00:00.13]       Expected: typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.13]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(114,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_preexisting_owner_without_partial_publication()&#xD;
+[xUnit.net 00:00:00.13]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(116,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_preexisting_owner_without_partial_publication()&#xD;
+[xUnit.net 00:00:00.13]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.13]   Finished:    SpeechMessage.Hosting.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:08:16.1756838+08:00">
+        <Text>[xUnit.net 00:00:00.12]     SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:08:16.1808191+08:00">
+        <Text>[xUnit.net 00:00:00.13]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_different_directory_without_partial_publication [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:08:16.1830320+08:00">
+        <Text>[xUnit.net 00:00:00.13]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:08:16.1831478+08:00">
+        <Text>[xUnit.net 00:00:00.13]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:08:16.1847830+08:00">
+        <Text>[xUnit.net 00:00:00.13]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:08:16.1859117+08:00">
+        <Text>[xUnit.net 00:00:00.13]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:08:16.1864126+08:00">
+        <Text>[xUnit.net 00:00:00.13]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_rejects_preexisting_owner_without_partial_publication [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,153 @@
+{
+  "htmlBalanced": true,
+  "duplicateHtmlIds": false,
+  "layoutCssAndRendererUnchanged": true,
+  "p1HistoryUnchanged": true,
+  "workPackageIdentityAndStatusUnchanged": true,
+  "noticeCount": 1,
+  "p2InfoCount": 1,
+  "forwarderChange": "line-endings only",
+  "byteChecked": 20,
+  "files": [
+    {
+      "path": ".ccg/tasks/integration-p2/task.json",
+      "sha256": "e1c2500134a69f7af9170ae319eda970be64b6d004ad0e4e9fd1cc8b23a5d42a",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/design.md",
+      "sha256": "78e577904c2c0bb2186f7306ce88b5df7ff23c6eee5850c038d84e4f4999af02",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/evidence/foundation-resume-context.json",
+      "sha256": "e5b066f83b529f6f7001269032bbbda65178e14b9d5fbec3b7f7f8a4df0f227b",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/prd.md",
+      "sha256": "6056d8866874704e9e9fac935036a98e77387bd305d3dd30d2932a0571d82c6b",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/research/foundation-checkpoint.md",
+      "sha256": "5c2a1732d5a08f74923930c9e76410d61faa85b9a5928906d0fa8ea4bb3508e3",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/task.json",
+      "sha256": "a83d7a93d3f27bd6d9c011ad5111fa2f91e347492abf2f55150532f2d6061f40",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "ChurchReport.MemberInfo.Tests/LineSharedWorkflow/ExceptionOutputOptionsTests.cs",
+      "sha256": "9f38c13051203e9429146ebeafe29dff5bb5ac0fe0616a7d31b8330cb56e720e",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting.Tests/HostingRegistrationTests.cs",
+      "sha256": "7dc0cfaeee04f9d5af6caccf8581fe8e46ce667c3fedbe29d9a42aac8cbddc8f",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting.Tests/SpeechMessage.Hosting.Tests.csproj",
+      "sha256": "c6f9ec33de04c9bf8e478233cbccd1ce4ef4b0c287b084c1ade27b04c7effd26",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting/Diagnostics/ExceptionDiagnostics.cs",
+      "sha256": "2f2823e1809e440a7338ed6b802ea182cbe932dfbd1ddd056f6a2a1588ff2689",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting/Diagnostics/ExceptionOutputOptions.cs",
+      "sha256": "49d3217d94bac43b1eaea0c329cd02172e45fa85dd6261eac1880857a80a3d10",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting/Diagnostics/ExceptionReporting.cs",
+      "sha256": "d4880b76c2283fe2e44f924dc1c40dc10b5e21fc2e37ee1a840441dd9e26a600",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting/ExceptionReportingAdapter.cs",
+      "sha256": "55c38b943f9861ba87ad8b20fb65f2966d2d8c4360ce0488d99a3449b0d356c1",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting/SpeechMessage.Hosting.csproj",
+      "sha256": "4c9cd590bae7eae37932f2b45452ae2e555fb38e0acb6b7a5f54761da9107d61",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting/SpeechMessageHostingServiceCollectionExtensions.cs",
+      "sha256": "998b2fe95344e2c25450770371c48503787f7200d1f7015789799755f8132889",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "ToolUtility/Diagnostics/ExceptionTypeForwards.cs",
+      "sha256": "8bc021546223d576ff89a7f4a0cd64f55e9bd8bd0b445fb97fdd2077d343608c",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "ToolUtility/ToolUtility.csproj",
+      "sha256": "7ec280f08d5f10eb55e16965631f581e52e5575430cda72382a38887a38d62bc",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "tests-shared/ArchitectureTests/ArchitectureRuleTests.cs",
+      "sha256": "7f71d2afd640df2210ae03dde7e3f0aa7c095dc71ae3f1f31bbd4f8eaafafd0a",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "tests-shared/ArchitectureTests/ArchitectureRules.cs",
+      "sha256": "9eee38ad0b9784b2bca56143cfe2af11049328aa56063b189625d90c22febff6",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "文件/規劃設計書/實作計畫-3.3/實作進度.html",
+      "sha256": "fbade0de8b8c18c1af82d852ae5c629386eed3ae61ddc9b0817b5f33bdcd4c52",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    }
+  ]
+}

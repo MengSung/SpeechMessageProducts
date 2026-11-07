@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="3c403bb2-0fcd-447f-be9a-e7a250f6bca6" name="Administrator@LENOVO-LEGION 2026-11-07 08:49:49" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T08:49:49.6023110+08:00" queuing="2026-11-07T08:49:49.6023111+08:00" start="2026-11-07T08:49:48.7040137+08:00" finish="2026-11-07T08:49:49.6087073+08:00" />
+  <TestSettings name="default" id="4afd8749-92d8-48f2-b1b2-08ecd8cf42f0">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_08_49_49" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e9a67f59-aefb-4d8e-a28b-149a91f1ec46" testId="a2f66f1b-4f90-6409-62a9-2d1dead85801" testName="SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_rejects_unsafe_configuration_without_echoing_values" computerName="LENOVO-LEGION" duration="00:00:00.0019980" startTime="2026-11-07T08:49:49.5357474+08:00" endTime="2026-11-07T08:49:49.5357476+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e9a67f59-aefb-4d8e-a28b-149a91f1ec46" />
+    <UnitTestResult executionId="61b264a7-989a-4205-a861-08e29ddc11ad" testId="8c334092-1d6f-cd47-cc48-a37d1b401464" testName="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container" computerName="LENOVO-LEGION" duration="00:00:00.1381991" startTime="2026-11-07T08:49:49.2416050+08:00" endTime="2026-11-07T08:49:49.2416177+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="61b264a7-989a-4205-a861-08e29ddc11ad">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : 'ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics' type only implements IAsyncDisposable. Use DisposeAsync to dispose the container.</Message>
+          <StackTrace>   at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.Dispose()&#xD;
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.Dispose()&#xD;
+   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 43&#xD;
+   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 33&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="41b806cd-e63c-42df-989e-289f9c666ba4" testId="3b03e208-666d-5c96-c425-d093353ac494" testName="SpeechMessage.Hosting.Tests.StartupGuardsTests.Production_rejects_unreleased_cultures" computerName="LENOVO-LEGION" duration="00:00:00.2900967" startTime="2026-11-07T08:49:49.5338143+08:00" endTime="2026-11-07T08:49:49.5338147+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="41b806cd-e63c-42df-989e-289f9c666ba4" />
+    <UnitTestResult executionId="3bc4b54e-924f-4402-8083-18aac53226a8" testId="501049be-87e9-2e66-43cd-e6ec562643bc" testName="SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_accepts_bounded_test_configuration" computerName="LENOVO-LEGION" duration="00:00:00.1354275" startTime="2026-11-07T08:49:49.2436785+08:00" endTime="2026-11-07T08:49:49.2436786+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3bc4b54e-924f-4402-8083-18aac53226a8">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : LineMessaging:DefaultOrganization：必須選擇獨立的測試別名。</Message>
+          <StackTrace>   at SpeechMessage.Hosting.StartupGuards.ValidateDevelopmentConfiguration(String basePath, String environmentName, IConfiguration configuration) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\StartupGuards.cs:line 115&#xD;
+   at SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_accepts_bounded_test_configuration() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupGuardsTests.cs:line 98&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="25700532-1ffd-470b-8a39-e89989e2e4a6" testId="49566684-fcad-7e92-dfbf-628ab47cd6cc" testName="SpeechMessage.Hosting.Tests.StartupGuardsTests.Production_rejects_pseudo_locale_configuration" computerName="LENOVO-LEGION" duration="00:00:00.0001994" startTime="2026-11-07T08:49:49.5339174+08:00" endTime="2026-11-07T08:49:49.5339174+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="25700532-1ffd-470b-8a39-e89989e2e4a6" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_rejects_unsafe_configuration_without_echoing_values" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="a2f66f1b-4f90-6409-62a9-2d1dead85801">
+      <Execution id="e9a67f59-aefb-4d8e-a28b-149a91f1ec46" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupGuardsTests" name="Development_rejects_unsafe_configuration_without_echoing_values" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupGuardsTests.Production_rejects_pseudo_locale_configuration" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="49566684-fcad-7e92-dfbf-628ab47cd6cc">
+      <Execution id="25700532-1ffd-470b-8a39-e89989e2e4a6" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupGuardsTests" name="Production_rejects_pseudo_locale_configuration" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="8c334092-1d6f-cd47-cc48-a37d1b401464">
+      <Execution id="61b264a7-989a-4205-a861-08e29ddc11ad" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.HostingRegistrationTests" name="Registration_attaches_one_owner_and_releases_it_with_the_container" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_accepts_bounded_test_configuration" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="501049be-87e9-2e66-43cd-e6ec562643bc">
+      <Execution id="3bc4b54e-924f-4402-8083-18aac53226a8" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupGuardsTests" name="Development_accepts_bounded_test_configuration" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupGuardsTests.Production_rejects_unreleased_cultures" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="3b03e208-666d-5c96-c425-d093353ac494">
+      <Execution id="41b806cd-e63c-42df-989e-289f9c666ba4" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupGuardsTests" name="Production_rejects_unreleased_cultures" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="a2f66f1b-4f90-6409-62a9-2d1dead85801" executionId="e9a67f59-aefb-4d8e-a28b-149a91f1ec46" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8c334092-1d6f-cd47-cc48-a37d1b401464" executionId="61b264a7-989a-4205-a861-08e29ddc11ad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3b03e208-666d-5c96-c425-d093353ac494" executionId="41b806cd-e63c-42df-989e-289f9c666ba4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="501049be-87e9-2e66-43cd-e6ec562643bc" executionId="3bc4b54e-924f-4402-8083-18aac53226a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="49566684-fcad-7e92-dfbf-628ab47cd6cc" executionId="25700532-1ffd-470b-8a39-e89989e2e4a6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="5" executed="5" passed="3" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.05]   Discovering: SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.09]   Discovered:  SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.09]   Starting:    SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.26]       System.InvalidOperationException : 'ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics' type only implements IAsyncDisposable. Use DisposeAsync to dispose the container.&#xD;
+[xUnit.net 00:00:00.26]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.26]            at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.Dispose()&#xD;
+[xUnit.net 00:00:00.26]            at Microsoft.Extensions.DependencyInjection.ServiceProvider.Dispose()&#xD;
+[xUnit.net 00:00:00.26]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(43,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container()&#xD;
+[xUnit.net 00:00:00.26]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs(33,0): at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container()&#xD;
+[xUnit.net 00:00:00.26]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.26]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.26]       System.InvalidOperationException : LineMessaging:DefaultOrganization：必須選擇獨立的測試別名。&#xD;
+[xUnit.net 00:00:00.26]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.26]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\StartupGuards.cs(115,0): at SpeechMessage.Hosting.StartupGuards.ValidateDevelopmentConfiguration(String basePath, String environmentName, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.26]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupGuardsTests.cs(98,0): at SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_accepts_bounded_test_configuration()&#xD;
+[xUnit.net 00:00:00.26]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.26]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.56]   Finished:    SpeechMessage.Hosting.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T08:49:49.2401668+08:00">
+        <Text>[xUnit.net 00:00:00.26]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_attaches_one_owner_and_releases_it_with_the_container [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T08:49:49.2436487+08:00">
+        <Text>[xUnit.net 00:00:00.26]     SpeechMessage.Hosting.Tests.StartupGuardsTests.Development_accepts_bounded_test_configuration [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

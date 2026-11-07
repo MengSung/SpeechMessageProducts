@@ -1,0 +1,52 @@
+  SpeechMessage.Localization -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Localization\bin\Release\net10.0\SpeechMessage.Localization.dll
+  PowerPlatform.Dataverse.Client -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\PowerPlatform.Dataverse.Client\bin\Release\net10.0\PowerPlatform.Dataverse.Client.dll
+  Line.Messaging -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\Line.Messaging\bin\Release\net10.0\Line.Messaging.dll
+  ToolUtility.Core -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ToolUtility.Core\bin\Release\net10.0\ToolUtility.Core.dll
+  ToolUtility -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\ToolUtility\bin\Release\net10.0\ToolUtility.dll
+  SpeechMessage.Hosting -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\bin\Release\net10.0\SpeechMessage.Hosting.dll
+  SpeechMessage.Hosting.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:00.42]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility [FAIL]
+[xUnit.net 00:00:00.43]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication [FAIL]
+[xUnit.net 00:00:00.43]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent [FAIL]
+  失敗 SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility [186 ms]
+  錯誤訊息:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "SpeechMessage.Hosting"
+Actual:   "ToolUtility"
+           ↑ (pos 0)
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Exception_types_are_defined_by_Hosting_not_ToolUtility() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 68
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication [1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.InvalidOperationException)
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_conflicting_snapshot_fails_without_partial_publication() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 97
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent [2 ms]
+  錯誤訊息:
+   Assert.Single() Failure: The collection contained 2 items
+Collection: [ServiceType: ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics Lifetime: Singleton ImplementationFactory: SpeechMessage.Hosting.SpeechMessageHostingServiceCollectionExtensions+<>c__DisplayClass1_0.<AddSpeechMessageHosting>b__0, ServiceType: ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics Lifetime: Singleton ImplementationFactory: SpeechMessage.Hosting.SpeechMessageHostingServiceCollectionExtensions+<>c__DisplayClass1_0.<AddSpeechMessageHosting>b__0]
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_repeated_identical_snapshot_is_idempotent() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 82
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.44]     SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected [FAIL]
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected [< 1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.ArgumentException)
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 135
+   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 137
+   at SpeechMessage.Hosting.Tests.HostingRegistrationTests.Registration_mismatched_external_adapter_is_rejected() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\HostingRegistrationTests.cs:line 137
+--- End of stack trace from previous location ---
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\hosting-resume-red\hosting-resume-red.trx
+
+失敗!  - 失敗:     4，通過:     6，略過:     0，總計:    10，持續時間: 325 ms - SpeechMessage.Hosting.Tests.dll (net10.0)

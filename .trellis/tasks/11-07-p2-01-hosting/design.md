@@ -2,10 +2,10 @@
 
 ## 模組邊界
 
-`SpeechMessage.Hosting` 是 net10 上層組合模組，可參考 `ToolUtility`、Localization
-與 Tenancy，但雙目標核心不得反向參考 Hosting。既有 `ToolUtility.Diagnostics`
-是目前唯一通知 owner；本任務透過 Hosting registration、guard 與 adapter
-暴露共用能力，避免複製第二個 queue／writer。
+`SpeechMessage.Hosting` 是 net10 共用主機基礎層，參考 Localization 與 Tenancy，
+不得反向參考 ToolUtility；雙目標核心與 Plugin 也不得參考 Hosting。三個診斷型別
+已真正搬至 Hosting，保留 `ToolUtilityNameSpace.Diagnostics` 命名空間及舊組件的
+型別轉送；queue／writer 只存在一份，由具體 Host／DI 擁有。
 
 ## 元件
 
@@ -21,8 +21,10 @@
 ## 生命週期
 
 建立順序：組態快照 → guard → exception owner → optional LINE consumer → DI／Host。
-停止順序：停止接收 → owner 完成有限 drain → sender/client Dispose → registration
-解除 → configuration root Dispose。任何逾時後不重用不確定傳輸狀態。
+預定接入的停止順序：先解除全域 registration，避免新呼叫進入 → owner 停止接收
+並完成有限 drain → sender/client Dispose → configuration root Dispose。
+目前 Program 仍待接入並驗證此順序；不得把設計當成既有整合證據。
+任何逾時後不重用不確定傳輸狀態。
 
 ## 失敗處理
 
@@ -32,9 +34,10 @@ Message、request body、token 或個資放入 Exception.log／LINE。正常 cal
 
 ## 整合與回復
 
-先保留 `ToolUtilityNameSpace.Diagnostics` 相容型別與 ChurchReport 呼叫點，透過
-Hosting API 接入；只有在完整 solution 參考圖證明可安全搬移時才改 namespace。
-任何搬移失敗可回復至 P1 owner，避免在 P2-01 引入雙 owner 或下層反向參考。
+保留 `ToolUtilityNameSpace.Diagnostics` 完整型別名稱與 ChurchReport 呼叫點，實作組件
+已移至 Hosting；以 ToolUtility 的 TypeForwardedTo 保護既有二進位參照，不再留第二套
+相容實作。接下來透過 Hosting registration 接入 Program，維持單一 owner。
+回復必須一併回復三型別位置、轉送與專案參照，不可同時載入兩份 owner。
 
 ## 2026-11-07 實際抽取修正（原規劃03優先）
 

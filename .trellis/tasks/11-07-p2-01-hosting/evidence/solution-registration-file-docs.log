@@ -1,0 +1,8 @@
+FAIL SpeechMessage.Hosting.Tests/HostingRegistrationTests.cs: CrlfRequired
+FAIL SpeechMessage.Hosting.Tests/SpeechMessage.Hosting.Tests.csproj: CrlfRequired
+FAIL SpeechMessage.Hosting.Tests/StartupGuardsTests.cs: CrlfRequired
+FAIL SpeechMessage.Hosting/ExceptionReportingAdapter.cs: CrlfRequired
+FAIL SpeechMessage.Hosting/SpeechMessage.Hosting.csproj: CrlfRequired
+FAIL SpeechMessage.Hosting/SpeechMessageHostingServiceCollectionExtensions.cs: CrlfRequired
+FAIL SpeechMessage.Hosting/StartupGuards.cs: CrlfRequired
+File documentation: checked=1257, failures=7

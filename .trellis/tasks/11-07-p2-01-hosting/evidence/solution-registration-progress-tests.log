@@ -1,0 +1,169 @@
+TAP version 13
+# Subtest: Every work package has a supported status and renders without undefined labels or icons
+ok 1 - Every work package has a supported status and renders without undefined labels or icons
+  ---
+  duration_ms: 6.8333
+  type: 'test'
+  ...
+# Subtest: No alert hides the warning region and still renders the page
+not ok 2 - No alert hides the warning region and still renders the page
+  ---
+  duration_ms: 4.2365
+  type: 'test'
+  location: 'D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\tools\\RepoQuality\\Tests\\Test-ProgressPage.cjs:87:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /1\.0\.0\.11\.Integration\.P1\.Worktree/. Input:
+    
+    '<span>資料快照：2026-11-07T08:48:01+08:00</span><span>分支 1.0.0.11.Integration.P2.Worktree</span><span>主會話 inline 實作／驗證／審查；本輪曾啟動兩名子代理讀取／基線測試，收到 inline 限制後已停止並關閉，無平行產品實作成果。</span>'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<span>資料快照：2026-11-07T08:48:01+08:00</span><span>分支 1.0.0.11.Integration.P2.Worktree</span><span>主會話 inline 實作／驗證／審查；本輪曾啟動兩名子代理讀取／基線測試，收到 inline 限制後已停止並關閉，無平行產品實作成果。</span>'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:91:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1106:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+    Test.postRun (node:internal/test_runner/test:1235:19)
+    Test.run (node:internal/test_runner/test:1163:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+  ...
+# Subtest: Alert without prompt omits copy button and full prompt area
+ok 3 - Alert without prompt omits copy button and full prompt area
+  ---
+  duration_ms: 3.8723
+  type: 'test'
+  ...
+# Subtest: Alert with prompt preserves escaped prompt and copy handler
+ok 4 - Alert with prompt preserves escaped prompt and copy handler
+  ---
+  duration_ms: 3.5606
+  type: 'test'
+  ...
+# Subtest: Stage 1 progress lists all twelve packages and preserves the live acceptance boundary
+ok 5 - Stage 1 progress lists all twelve packages and preserves the live acceptance boundary
+  ---
+  duration_ms: 7.9999
+  type: 'test'
+  ...
+# Subtest: Stages 2 through 8 render every planned package once and keep all packages not started
+not ok 6 - Stages 2 through 8 render every planned package once and keep all packages not started
+  ---
+  duration_ms: 0.3993
+  type: 'test'
+  location: 'D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\tools\\RepoQuality\\Tests\\Test-ProgressPage.cjs:190:1'
+  failureType: 'testCodeFailure'
+  error: '階段 2 must remain not started'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:265:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1106:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+    Test.postRun (node:internal/test_runner/test:1235:19)
+    Test.run (node:internal/test_runner/test:1163:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: Planned phase disclosures show a visible expanded-state indicator
+ok 7 - Planned phase disclosures show a visible expanded-state indicator
+  ---
+  duration_ms: 2.3111
+  type: 'test'
+  ...
+# Subtest: All nine stages share one closed work-package disclosure list without standalone P0/P1 sections
+ok 8 - All nine stages share one closed work-package disclosure list without standalone P0/P1 sections
+  ---
+  duration_ms: 2.5724
+  type: 'test'
+  ...
+# Subtest: Unified summaries exclude review milestones and account for user-operated work
+not ok 9 - Unified summaries exclude review milestones and account for user-operated work
+  ---
+  duration_ms: 2.6628
+  type: 'test'
+  location: 'D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\tools\\RepoQuality\\Tests\\Test-ProgressPage.cjs:312:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /目前階段/. Input:
+    
+    '\n' +
+      '        <span class="planned-phase-toggle" aria-hidden="true"></span>\n' +
+      '        <span class="planned-phase-id">階段 1</span>\n' +
+      '        <span class="planned-phase-name">基礎層與國際化地基</span>\n' +
+      '        <span class="planned-phase-count">12/12 驗收、0 進行中、0 未開始</span>\n' +
+      '        <span class="planned-phase-est">預估 12～16 天</span>\n' +
+      '      '
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    
+            <span class="planned-phase-toggle" aria-hidden="true"></span>
+            <span class="planned-phase-id">階段 1</span>
+            <span class="planned-phase-name">基礎層與國際化地基</span>
+            <span class="planned-phase-count">12/12 驗收、0 進行中、0 未開始</span>
+            <span class="planned-phase-est">預估 12～16 天</span>
+          
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:330:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1106:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+    Test.postRun (node:internal/test_runner/test:1235:19)
+    Test.run (node:internal/test_runner/test:1163:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: Integrated P0/P1 entries preserve every evidence field and never merge same-name records
+ok 10 - Integrated P0/P1 entries preserve every evidence field and never merge same-name records
+  ---
+  duration_ms: 7.0326
+  type: 'test'
+  ...
+# Subtest: Future work packages preserve external-operation and isolation stop boundaries
+ok 11 - Future work packages preserve external-operation and isolation stop boundaries
+  ---
+  duration_ms: 0.327
+  type: 'test'
+  ...
+# Subtest: Summary cards and phase meters agree with accepted work packages
+ok 12 - Summary cards and phase meters agree with accepted work packages
+  ---
+  duration_ms: 0.1349
+  type: 'test'
+  ...
+# Subtest: Informational history defaults to a closed neutral disclosure
+ok 13 - Informational history defaults to a closed neutral disclosure
+  ---
+  duration_ms: 3.4848
+  type: 'test'
+  ...
+# Subtest: Current warnings and errors remain separate from collapsed history
+ok 14 - Current warnings and errors remain separate from collapsed history
+  ---
+  duration_ms: 3.9783
+  type: 'test'
+  ...
+# Subtest: Empty notices hide their region and unknown severity cannot inject markup
+ok 15 - Empty notices hide their region and unknown severity cannot inject markup
+  ---
+  duration_ms: 4.6761
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 12
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.4742
