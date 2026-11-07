@@ -21,7 +21,7 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "Hosting Debug104/104、Release coverage104/104及83.29%通過；ChurchReport兩組態82/82，8案診斷與25案架構逐案轉移核對。R2 Debug338/Release316未驗收；完整Changed編碼歷史16份問題待處理。P2維持0/12，P2-01不封存，繼續獨立需求。",
+  "notes": "Hosting Debug104/104、Release coverage104/104及83.29%通過；ChurchReport兩組態82/82，8案診斷與25案架構逐案轉移核對。LoggerProvider已移入Hosting並保留ChurchReport TypeForwardedTo；相容／例外管線Debug、Release各4/4，R2清冊比對2/2通過；未解清冊Debug337／Release315仍非空，R2未驗收。文件說明1283/0、進度頁18/18；完整Changed仍有5份原始證據換行問題。P2為1/12已驗收、2/12進行中；P2-01不封存，繼續獨立需求。",
   "meta": {},
-  "updatedAt": "2026-11-07T12:07:12+08:00"
+  "updatedAt": "2026-11-07T18:50:06+08:00"
 }

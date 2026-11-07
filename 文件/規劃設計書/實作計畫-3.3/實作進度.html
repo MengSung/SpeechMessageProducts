@@ -445,18 +445,32 @@
  * 注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07 13:01 Asia/Taipei (UTC+08:00)",
+  "snapshot": "2026-11-07 18:50 Asia/Taipei (UTC+08:00)",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "worker": "主會話inline實作／檢查；獨立Debug／Release驗證曾以no-restore及分離輸出並行，無子代理或外部模型。",
-  "headline": "階段 2 目前 <strong>2／12 工作包進行中</strong>（P2-01、P2-03），0／12驗收。P1-01～12已驗收；Token加密可獨立離線實作，P2-04推播前置仍需使用者核定的實機步驟。全計畫已驗收30包，另2包進行中。",
+  "worker": "主會話負責P2-01契約、測試與唯一寫入；平行派一名唯讀代理核對R2清冊及舊型別ABI，主會話同步規範盤點；未呼叫外部模型，未操作D365／LINE／金流。",
+  "headline": "階段 2 目前 <strong>2／12 工作包進行中</strong>（P2-01、P2-03），<strong>1／12 工作包已驗收</strong>（P2-02）。P1-01～12已驗收；P2-02只完成雙目標骨架離線驗收，不代表P2-04或P2總目標完成；推播前置仍需使用者核定的實機步驟。全計畫已驗收31包，另2包進行中。",
   "notices": [
     {
       "id": "phase-2-summary",
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "body": "2026-11-07 12:57 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01與P2-03進行中。P2-03離線：全方案Release零警告／錯誤，18份TRX4594／4594；Deployment雙組態各193／193，Core行率95.26%／97.48%、Deployment89.30%。文件1275／0、頁面18／18。R2、五份原始證據編碼及必要實機仍未驗收。",
+      "body": "2026-11-07 18:50 Asia/Taipei (UTC+08:00)：階段2為1／12工作包已驗收（P2-02），P2-01與P2-03進行中。P2-01已將唯一ExceptionLoggerProvider實作移至SpeechMessage.Hosting，ChurchReport保留TypeForwardedTo舊CLR型別身分。相容與既有例外管線Debug、Release各4／4，0失敗／0略過；R2清冊一致性Debug／Release比對2／2通過。首輪架構失敗為清冊仍列已移轉型別，失敗TRX保留；按實測移除精確兩筆後清冊由654降為652（Debug337、Release315），其餘R2仍未驗收。相容測試見 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-verification-20261107-1818/；R2成功TRX見 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-r2-green-20261107-1825/r2-inventory-green.trx。文件說明1283／0、進度頁契約測試18／18通過，最終版log見 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-r2-green-20261107-1825/progress-page-final-after-metadata.log。平行工作僅一名唯讀代理核對清冊及ABI，已完成並關閉；本次主會話唯一寫入。未呼叫外部模型或操作實機。AGENTS引用的cross-user-isolation-and-performance.md在本工作樹缺失，依AGENTS本文規則執行並如實標記。P2-03目前工作樹Release重驗20份TRX共4596／4596通過，實際結果列與Counters相符；完整Release建置23警告／0錯誤。驗證快照含既有未提交P2-02／任務文件變更，不是乾淨commit HEAD；摘要及逐份SHA見 .trellis/tasks/11-07-p2-03-channel-token/evidence/current-head-rerun-20261107-1730/current-head-summary.json。完整Changed編碼守門仍有5份原始證據換行問題；Dataverse唯一性／原子Upsert、正式資料列ID、權限、備份／回復／清理及推播前置仍待核准測試環境驗收。P2總目標未完成。",
       "steps": [
+        "2026-11-07 18:50 Asia/Taipei (UTC+08:00)｜P2-01-provider移轉切片已通過：舊組件型別轉送、完整CLR名稱及constructor ABI驗證成功；借用diagnostics owner在provider.Dispose後仍可寫入。ChurchReport相容與既有例外管線Debug／Release各4／4；清冊比對2／2通過。首輪架構紅燈確認只剩已移轉型別的Debug／Release兩筆stale清冊紀錄，保留失敗TRX；移除後清冊652筆（Debug337／Release315），仍非空，R2不標完成。三個C#檔位元組均UTF-8無BOM／純CRLF／檔尾CRLF；全方案文件說明1283／0、進度頁測試18／18。證據在 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-verification-20261107-1818/ 與 provider-forwarder-r2-green-20261107-1825/。",
+        "2026-11-07 18:06 Asia/Taipei (UTC+08:00)｜P2-01-TDD紅燈：`dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj --no-restore --filter FullyQualifiedName~ExceptionLoggerProviderCompatibilityTests`結果1／2，ABI測試按預期失敗於型別組件仍是SpeechMessageProducts.ChurchReport，owner生命週期測試通過，0略過。原始TRX provider-forwarder-red-20261107-1801/provider-forwarder-red.trx；不代表移轉完成。已讀既有ExceptionPipelineTests，避免重複其Error/Critical與formatter保密覆蓋。",
+        "2026-11-07 17:55 Asia/Taipei (UTC+08:00)｜P2-01初始盤點：R2清冊中SpeechMessageProducts.ChurchReport/Logging/ExceptionLoggerProvider.cs於Debug與Release各有一筆R2HostPublicType，程式只有Program的Error/Critical provider註冊；候選移轉至Hosting需保留ChurchReport.Logging.ExceptionLoggerProvider的CLR完整名稱，驗證轉送、Error/Critical篩選、formatter不求值、空Exception與借用diagnostics不被provider.Dispose關閉。尚未修改程式或清冊。平行僅一名唯讀代理核對精確差異與ABI，主會話唯一寫入。未讀到AGENTS所引用的cross-user-isolation-and-performance.md（工作樹不存在），仍依AGENTS原文隔離／資源規則；未操作D365／LINE／金流。",
+        "2026-11-07 17:47 Asia/Taipei (UTC+08:00)｜P2-03目前工作樹整合重驗：XML解析目前Release輸出20份TRX，逐份比較ResultSummary Counters與UnitTestResult實際結果列，合計4596／4596通過、0失敗／0未執行／0中止；全方案Release建置成功但有23警告／0錯誤。驗證時Git HEAD為cc913067，實際建置對象包含既有未提交的P2-02／任務文件變更，不冒稱乾淨HEAD或零警告。逐份位元組數、SHA-256、計數及build log hash見 .trellis/tasks/11-07-p2-03-channel-token/evidence/current-head-rerun-20261107-1730/current-head-summary.json；原始TRX保留本機且未改寫。此為離線整合證據，不替代D365／Dataverse實機、LINE實收、權限、回復或P2整體驗收。",
+        "2026-11-07 17:25 Asia/Taipei (UTC+08:00)｜P2-03唯讀盤點：130項raw evidence manifest檔案大小與SHA-256一致；但既有全方案18份TRX共4594／4594早於P2-02加入GoodShepherd兩個專案，不能作目前HEAD整合證據。下一步以獨立輸出重跑P2-03 Core／Deployment雙組態、目前方案Release建置與完整測試、I18n及完整Changed編碼守門；實機替代鍵唯一性、原子Upsert、資料列身分、權限、備份／回復／清理仍須核准測試環境實測。證據依據 .trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-summary.json、coverage-summary.json、raw-integrity-manifest.json；不將代理盤點當成測試結果。",
+        "2026-11-07 17:25 Asia/Taipei (UTC+08:00)｜P2-02封存交付：工作包已封存至 .trellis/tasks/archive/2026-11/11-07-p2-02-goodshepherd-core/，任務封存提交cc913067。原歷史紀錄路徑為當時活動任務位置，保留其原文；目前驗收報告與證據均位於封存目錄。程式提交c042b7a8已存在；未推送或合併遠端。",
+        "2026-11-07 17:13 Asia/Taipei (UTC+08:00)｜接續完整性複核：再次執行檔案說明1281／0、I18n `generate --check`、進度頁18／18及`git diff --check`；P2-02驗收報告、最終檢查log與目前進度HTML逐位元組確認UTF-8有效、無BOM／裸LF／裸CR、檔尾CRLF。原16:55 byte-check log保留當時的檢查結果；本次另重新檢查目前檔案格式，未發現換行缺陷。本次第一版PowerShell檢查命令有語法錯誤未執行，改正後核驗成功。證據索引仍為 .trellis/tasks/11-07-p2-02-goodshepherd-core/evidence/P2-02.md 與 evidence/validation/report-byte-check-final.log。",
+        "2026-11-07 16:55 Asia/Taipei (UTC+08:00)｜報告格式與位元組收尾：驗收報告原為LF-only，已用專案Convert-TextEncoding.ps1正規化為UTF-8無BOM／CRLF／檔尾CRLF；工具確認文字內容符合只改換行的預期，沒有常值變動，TEMP manifest已清除。HTML與報告的最終位元組檢查記錄於validation/report-byte-check-final.log；進度頁狀態、摘要與meter一致，完成此更新後再跑最後18項回歸。",
+        "2026-11-07 16:40 Asia/Taipei (UTC+08:00)｜交付前複核：P2-02完成狀態下進度頁完整測試18／18；Changed UTF-8／CRLF守門檢查25份、0問題，檔案說明1281／0，`git diff --check`與I18n檢查通過。進度HTML與驗收報告各自位元組檢查通過；所有結果與證據路徑已收錄於 .trellis/tasks/11-07-p2-02-goodshepherd-core/evidence/P2-02.md。P2-01、P2-03仍進行中，未連外部測試環境。",
+        "2026-11-07 16:38 Asia/Taipei (UTC+08:00)｜驗收證據彙整：正式P2-02.md已建立，列出專案契約、Debug／Release建置、net48／net10 smoke、32→34方案集合、組態映射、I18n、檔案說明、Changed編碼與進度頁18／18結果；binlog、TRX及各守門log均存於本任務evidence。測試僅離線合成，未連D365／Hyper-V／LINE／金流，P2-01與P2-03仍active，P2總目標未完成。",
+        "2026-11-07 16:26 Asia/Taipei (UTC+08:00)｜P2-02工作包完成驗收：產品net462／net10.0 Debug與Release建置均0警告／0錯誤；net48與net10.0測試宿主各1／1，TRX確認net48宿主載入net462、net10宿主載入net10.0。方案由32個專案增至34，僅新增兩個GoodShepherd專案、無移除，兩者Debug／Release ActiveCfg與Build.0各一組。I18n generate --check通過，檔案說明1281／0，Changed編碼25檔／0問題，HTML UTF-8無BOM／CRLF／檔尾CRLF，進度頁測試18／18。原紅燈根因是P2-02狀態與階段計數不一致，修正真實資料後測試恢復通過，未降低測試。證據見 .trellis/tasks/11-07-p2-02-goodshepherd-core/evidence/；本包只做離線驗證。",
+        "2026-11-07 16:05 Asia/Taipei (UTC+08:00)｜狀態修正：P2-02實作與建置／smoke、I18n等離線項目已有證據，但完整驗收未通過；該工作包目前active，階段2統計0包已驗收／3包進行中。進度頁測試紅燈根因是狀態欄與階段彙總不一致；沒有修改測試斷言，修正後須重跑全套18項。證據報告P2-02.md尚未建立，23份工作包文字檔的位元組檢查也待以失敗即停止方式重跑。未連D365／Hyper-V／LINE／金流，不讀秘密。",
+        "2026-11-07 15:58 Asia/Taipei (UTC+08:00)｜原快照當時曾記載P2-02工作包驗收完成，並記錄雙組態建置、雙宿主smoke、方案整合、I18n及檔案說明結果。此完成判定已於2026-11-07 16:05更正：進度頁測試為17／18、P2-02.md不存在，且嚴格位元組檢查尚待重跑；原有binlog、TRX與守門輸出僅作部分證據，不能據此認定工作包已驗收。",
+        "2026-11-07 15:58 Asia/Taipei (UTC+08:00)｜進度追蹤更正：第43筆10:29是反向排序清單中的歷史紀錄；原頁面最新資料實為13:01。之後P2-02於15:37有實作提交c042b7a8，但進度頁未同步，形成真實更新缺口；本次已在同一張階段2摘要補登並保留舊歷史。提交由既有提交者建立，本會話未推送或amend。",
         "2026-11-07 13:01 Asia/Taipei (UTC+08:00)｜主代理本地檢查點54d78c81已提交：P2-03安全Channel部署命令、有界stdin、雙故障保真、193案雙組態與全方案4594案摘要／hash。沒有amend既有376a6172、沒有推送。測試暫存p203-cli目錄0、命令／測試程序已收取；未變更D365／Hyper-V／LINE／金流。P2-03必要實機與P2-01既有門檻仍保留，接續其他離線可執行需求。",
         "2026-11-07 12:59 Asia/Taipei (UTC+08:00)｜品質追蹤：完整Changed初查6份，新增的一份P2父task.json為維護資料缺末尾CRLF，已只補CRLF且JSON語意／before-after hash核對；重跑剩既有5份原始機器證據（137 checked、96 raw excluded），未過完整門檻。本檢查點Changed為零問題。stdin新增36案中的owner suite共7案：4案真pipe（含128輪handle回基線）與3案MemoryStream故障，非7案全用pipe。原始123份hash先核對全不變，再補入後續證據；P2仍未驗收。",
         "2026-11-07 12:57 Asia/Taipei (UTC+08:00)｜P2-03離線收尾：補足128輪真pipe handle基線，無GC輔助；最終Deployment Debug／Release各193／193（原157＋新36）、獨立coverage89.30%。最新完整方案18份TRX4594／4594，逐列／身分／Counters核對，零失敗／略過；正常audit還原32專案通過。I18n工具179／179、Plugin工具還原後27／27、Debug tracer7／7；中央套件38專案183引用零違規；文件1275／0。證據solution-lifecycle-final-summary.json、coverage-summary.json與wp-reports/P2-03.md。主代理已審查MAC順序、buffer所有權、stdin有界、精確SDK及SDK＋cleanup故障；保持active，不封存，不做D365／LINE變更。",
@@ -501,7 +515,7 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T13:01:20+08:00"
+      "lastUpdated": "2026-11-07T18:50:06+08:00"
     }
   ],
   "alert": {
@@ -612,11 +626,11 @@ const DATA = {
   "tiles": [
     {
       "label": "全計畫進度",
-      "value": "30",
+      "value": "31",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18、P1 12／12已驗收；P2-01、P2-03進行中",
+      "sub": "P0 18／18、P1 12／12已驗收；P2-02已驗收，P2-01、P2-03進行中",
       "meter": {
-        "done": 30,
+        "done": 31,
         "active": 2,
         "total": 83
       }
@@ -645,11 +659,11 @@ const DATA = {
     },
     {
       "label": "階段 2 進度",
-      "value": "0",
+      "value": "1",
       "unit": "/ 12 工作包",
-      "sub": "P2-01、P2-03進行中；其餘依依賴與實機前置追蹤",
+      "sub": "P2-02已驗收；P2-01、P2-03進行中，其餘依依賴與實機前置追蹤",
       "meter": {
-        "done": 0,
+        "done": 1,
         "active": 2,
         "total": 12
       }
@@ -945,18 +959,19 @@ const DATA = {
       "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
       "status": "active",
       "scope": "進行中：ExceptionDiagnostics、ExceptionOutputOptions、ExceptionReporting及LineExceptionSender已真正搬入Hosting，Program單一owner、Development委派、StartupGuards及I18nCheck生成CultureCompleteness.g.cs已接入。架構實際搬家、Roslyn R2／R3／R9、兩組態MSBuild評估與CI覆蓋率已實作；R2既有公開型別差距尚未清空。",
-      "verification": "離線：Hosting Debug104／104、Release獨立coverage執行104／104、行率83.29%（門檻80%）；ChurchReport Debug／Release各82／82，八案真正轉移；Localization net10 184／184、net48實載net462 182／182，25案架構轉移有逐案證據。CI7／7；正常audit完整還原、CI filter Release 0警告／0錯誤。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/architecture-*；歷史culture-*及失敗報告保留。R2 Debug338／Release316筆未通過，完整Changed編碼守門剩5份原始證據問題（11份維護文字已修復），整包未驗收。",
-      "prerequisite": "下一步重跑收尾品質、文件與逐案回報，處理精確R2差距與歷史編碼所有權。四開關、先flush後LINE、取消／內部逾時及drain／Dispose契約保留。P2-04必要實機前置仍未完成；mock不能替代。",
-      "lastUpdated": "2026-11-07T12:07:12+08:00"
+      "verification": "離線：Hosting Debug104／104、Release獨立coverage執行104／104、行率83.29%（門檻80%）；ChurchReport Debug／Release各82／82，八案真正轉移；Localization net10 184／184、net48實載net462 182／182，25案架構轉移有逐案證據。CI7／7；正常audit完整還原、CI filter Release 0警告／0錯誤。LoggerProvider舊CLR型別轉送與owner生命週期相容測試、既有例外管線Debug／Release各4／4；R2清冊一致性兩組態2／2。全方案文件說明1283／0、進度頁契約18／18。證據見 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-verification-20261107-1818/ 及 provider-forwarder-r2-green-20261107-1825/。清冊仍有652筆（Debug337／Release315），R2未驗收；完整Changed編碼守門剩5份原始證據問題，整包未驗收。",
+      "prerequisite": "下一步重跑收尾品質、文件與逐案回報，繼續處理652筆R2差距與歷史編碼所有權。四開關、先flush後LINE、取消／內部逾時及drain／Dispose契約保留。P2-04必要實機前置仍未完成；mock不能替代。",
+      "lastUpdated": "2026-11-07T18:50:06+08:00"
     },
     {
       "phaseId": "階段 2",
       "id": "P2-02",
       "name": "GoodShepherd.Core 雙目標骨架",
-      "status": "todo",
+      "status": "done",
       "scope": "新增 net462／net10.0 雙目標且啟用 SpeechMessageStrictCode；只參考 ToolUtility.Core、Localization、LineMessagingProcessor.Core、Line.Messaging。建立 Attendance、WeeklyReports、Lessons、Appointments、QrCodes、Care、Fees、Members、Messaging、Notifications 模組目錄與說明，先放 MemberNotificationService。",
-      "verification": "GoodShepherd.Core.Tests 雙目標 smoke 測試通過；兩個產品目標均可建置，且不參考任何僅 net10.0 專案。",
-      "prerequisite": "此工作包只建立骨架，不在空目錄放入尚未核定的業務實作。"
+      "verification": "產品net462／net10.0 Debug與Release建置均0警告／0錯誤；net48與net10.0 smoke各1／1，TRX及測試斷言確認分別載入net462與net10.0。原32個方案專案全保留，僅新增本包兩專案，現34個；兩者Debug／Release ActiveCfg與Build.0齊全。10個模組導讀、無行為MemberNotificationService骨架、空resx與I18nCheck生成檔存在，generate --check通過。檔案說明1281／0，Changed編碼25檔／0問題，進度頁18／18；命令與TRX／binlog見 .trellis/tasks/archive/2026-11/11-07-p2-02-goodshepherd-core/evidence/，驗收報告見 evidence/P2-02.md。僅離線合成驗證。",
+      "prerequisite": "骨架已驗收，供P2-04及階段5後續整合；P2-04仍需另完成安全測試channel、本人測試帳號及User Secrets前置，不能以本工作包離線測試替代。",
+      "lastUpdated": "2026-11-07T16:55:42+08:00"
     },
     {
       "phaseId": "階段 2",
@@ -964,9 +979,9 @@ const DATA = {
       "name": "Channel Token 加密封包與安全寫入工具",
       "status": "active",
       "scope": "雙目標實作 ChannelTokenProtector：AES-256-CBC＋HMAC-SHA256、Encrypt-then-MAC、64-byte 分離金鑰與 v1 版本化封包；部署專案新增 protect-token（敏感值只從標準輸入讀取）與 assign-channel，以 new_channelid Upsert。",
-      "verification": "必要契約保留：RoundTrip_Net462AndNet10_Compatible、Tampered_Ciphertext_Throws、Tampered_Mac_Throws、WrongKey_Throws、UnknownVersion_Throws、Exception_NeverContainsSecret、Mac_CompareIsConstantTime；工具白名單與秘密不入參數／歷史／輸出。實際離線：Core雙組態net48 75／75、net10 116／116；三份跨端向量、Node獨立3／3，coverage95.26%／97.48%。Deployment Debug／Release各193／193（原157＋新36）、coverage89.30%；完整方案Release18份TRX4594／4594，零警告／錯誤。證據.trellis/tasks/11-07-p2-03-channel-token/evidence/及solution-lifecycle-final-summary.json。必要實機、原況備份／回復與欄位權限仍待驗證，P2-04授權前置不變。",
+      "verification": "必要契約保留：RoundTrip_Net462AndNet10_Compatible、Tampered_Ciphertext_Throws、Tampered_Mac_Throws、WrongKey_Throws、UnknownVersion_Throws、Exception_NeverContainsSecret、Mac_CompareIsConstantTime；工具白名單與秘密不入參數／歷史／輸出。實際離線：Core雙組態net48 75／75、net10 116／116；三份跨端向量、Node獨立3／3，coverage95.26%／97.48%。Deployment Debug／Release各193／193（原157＋新36）、coverage89.30%；目前工作樹完整Release 20份TRX 4596／4596，建置23警告／0錯誤；Counters逐列、逐份SHA見.trellis/tasks/11-07-p2-03-channel-token/evidence/current-head-rerun-20261107-1730/current-head-summary.json。此快照含未提交工作樹變更。必要實機、原況備份／回復與欄位權限仍待驗證，P2-04授權前置不變。",
       "prerequisite": "Plugin 端 tokenKey 只由 secure configuration 傳入；主機端由 LineChannels:TokenKey 的部署環境或 Windows 認證保管提供，不寫入 appsettings。",
-      "lastUpdated": "2026-11-07T12:57:46+08:00"
+      "lastUpdated": "2026-11-07T17:47:12+08:00"
     },
     {
       "phaseId": "階段 2",
@@ -1443,7 +1458,7 @@ const DATA = {
       "name": "共用送訊＋對外待辦",
       "est": "10～13 天（國際化＋2～3 天）",
       "total": 12,
-      "done": 0,
+      "done": 1,
       "active": 2,
       "current": true
     },

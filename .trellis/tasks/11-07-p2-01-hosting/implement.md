@@ -58,6 +58,7 @@ AGENTS 引用的 backend cross-user-isolation spec 缺檔時，仍直接遵守 A
 - [x] 建立逐項未通過R2清冊，移除整個ChurchReport不限量豁免。
 - [ ] 完整Hosting Debug／Release、獨立coverage、Localization雙宿主與CI filter整合。
 - [ ] 真正完成R2舊主機搬移並清空未通過清冊；追蹤綠燈不能勾選本項。
+- [x] 將 `ChurchReport.Logging.ExceptionLoggerProvider` 真正移入 Hosting，以 ChurchReport `TypeForwardedTo` 保留完整 CLR 身分；先跑相容與 owner 生命週期紅燈，再跑 Debug／Release、既有例外管線及精確 R2 清冊比對，僅通過後移除對應兩筆。Debug／Release 相容＋例外管線各 4／4；R2 清冊比對 2／2，證據見 `evidence/provider-forwarder-verification-20261107-1818/` 與 `evidence/provider-forwarder-r2-green-20261107-1825/`。其他 R2 差距仍未清除。
 - [ ] 核對原始TRX案例集合轉移、編碼／文件／I18n／duplicate、主代理審查及本地提交。
 
 `architecture-relocation-integrity.json` 只證明剛搬移時的本文完整性，後續四個架構檔

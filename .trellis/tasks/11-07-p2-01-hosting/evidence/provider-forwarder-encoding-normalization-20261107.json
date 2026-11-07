@@ -1,0 +1,39 @@
+{
+  "dryRun": false,
+  "failureCount": 0,
+  "files": [
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\SpeechMessage.Hosting\\Logging\\ExceptionLoggerProvider.cs",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "c7bb2f7ed1b11b621183ef1076ca3c3414ba0e8d6a9c8c3776148d9852d70667",
+      "afterSha256": "c7bb2f7ed1b11b621183ef1076ca3c3414ba0e8d6a9c8c3776148d9852d70667",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\SpeechMessageProducts.ChurchReport\\Logging\\ExceptionLoggerProvider.Forwarder.cs",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "6701f8cb39c3cfa061822c078c9ea57f9265bd650e614e9751ea3d533fa26e00",
+      "afterSha256": "dd722164452aefc87cccfc0f0b9018cf09871473c6bbfb95e9a8fe4d3930e686",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    },
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\ChurchReport.MemberInfo.Tests\\Logging\\ExceptionLoggerProviderCompatibilityTests.cs",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "5aa30559e0fa9ff3bba4a07564c3eb1e4534d4d9f0ddd17fcef675f640139ee6",
+      "afterSha256": "87843a3324c00952df6d3f5a81d3d626fd25626255b3cfc3c7b9bca014a598f6",
+      "chineseStringLiteralCount": 0,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "unresolved",
-  "observedAt": "2026-11-07T11:39:45+08:00",
+  "observedAt": "2026-11-07T18:24:29+08:00",
   "purpose": "精確追蹤既有 R2 未通過項，禁止擴成整產品豁免；測試通過只代表沒有新增或遺失未追蹤差距，不代表 R2 或 P2 驗收。",
   "entries": [
     {
@@ -492,16 +492,6 @@
       "source": "SpeechMessageProducts.ChurchReport/Filters/ThemeViewDataFilter.cs",
       "symbol": "ChurchReport.Filters.ThemeViewDataFilter",
       "reason": "既有 ChurchReport Filters 公開型別尚未遷出主機；原行為需保留，不能只改可見性或隱藏診斷。",
-      "removalCondition": "依原規劃完成對應共用／產品層遷移並驗證所有呼叫端、MVC或序列化相容及隔離，再刪除本筆；P2-01 R2在清冊非空時仍未驗收。"
-    },
-    {
-      "rule": "R2HostPublicType",
-      "project": "SpeechMessageProducts.ChurchReport",
-      "target": "net10.0",
-      "configuration": "Debug",
-      "source": "SpeechMessageProducts.ChurchReport/Logging/ExceptionLoggerProvider.cs",
-      "symbol": "ChurchReport.Logging.ExceptionLoggerProvider",
-      "reason": "既有 ChurchReport Logging 公開型別尚未遷出主機；原行為需保留，不能只改可見性或隱藏診斷。",
       "removalCondition": "依原規劃完成對應共用／產品層遷移並驗證所有呼叫端、MVC或序列化相容及隔離，再刪除本筆；P2-01 R2在清冊非空時仍未驗收。"
     },
     {
@@ -3792,16 +3782,6 @@
       "source": "SpeechMessageProducts.ChurchReport/Filters/ThemeViewDataFilter.cs",
       "symbol": "ChurchReport.Filters.ThemeViewDataFilter",
       "reason": "既有 ChurchReport Filters 公開型別尚未遷出主機；原行為需保留，不能只改可見性或隱藏診斷。",
-      "removalCondition": "依原規劃完成對應共用／產品層遷移並驗證所有呼叫端、MVC或序列化相容及隔離，再刪除本筆；P2-01 R2在清冊非空時仍未驗收。"
-    },
-    {
-      "rule": "R2HostPublicType",
-      "project": "SpeechMessageProducts.ChurchReport",
-      "target": "net10.0",
-      "configuration": "Release",
-      "source": "SpeechMessageProducts.ChurchReport/Logging/ExceptionLoggerProvider.cs",
-      "symbol": "ChurchReport.Logging.ExceptionLoggerProvider",
-      "reason": "既有 ChurchReport Logging 公開型別尚未遷出主機；原行為需保留，不能只改可見性或隱藏診斷。",
       "removalCondition": "依原規劃完成對應共用／產品層遷移並驗證所有呼叫端、MVC或序列化相容及隔離，再刪除本筆；P2-01 R2在清冊非空時仍未驗收。"
     },
     {

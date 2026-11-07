@@ -1,0 +1,17 @@
+{
+  "dryRun": false,
+  "failureCount": 0,
+  "files": [
+    {
+      "path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.10.IntegrateWebhook_SDK.worktree\\.worktrees\\1.0.0.11.Integration.P2.Worktree\\.trellis\\tasks\\archive\\2026-11\\11-07-p2-02-goodshepherd-core\\task.json",
+      "originalEncoding": "utf-8",
+      "beforeSha256": "8aedfaf2f8030ad70e374b36ffe2479da9fbc27c13ebdb464dfe41fbeff45bab",
+      "afterSha256": "59b7ec7a1dfe5e6708d5547aaa99ac814a3623e434bd00a4c45a5655bd19b91b",
+      "chineseStringLiteralCount": 1,
+      "chineseStringLiteralsUnchanged": true,
+      "stringLiteralsUnchanged": true,
+      "status": "applied",
+      "error": null
+    }
+  ]
+}
