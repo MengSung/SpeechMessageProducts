@@ -1,0 +1,22 @@
+{
+  "initialRuns": [
+    {
+      "trx": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-focused-green/core-focused-green_net10.0_20261107122100.trx",
+      "target": "net10.0",
+      "passed": 29,
+      "failed": 0,
+      "sha256": "d209eebd038d644a0a23b244dd9730f02ff53cf570a5183f72ab6dfbc07f60ba"
+    },
+    {
+      "trx": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-focused-green/core-focused-green_net48_20261107122102.trx",
+      "target": "net462",
+      "passed": 29,
+      "failed": 0,
+      "sha256": "82f0f34c1df21c931dfe5b0e927582b3953661807448617dc73815f5ee840ba8"
+    }
+  ],
+  "fixture": "LineMessagingProcessor.Tests/Golden/channel-token-vectors.json",
+  "fixtureSha256": "d8a69f9681cbdea7157e165df0c5a26bc19413004bcf1e7372a535491187505a",
+  "syntheticOnly": true,
+  "next": "Rebuild and execute both runtimes against all three shared vectors."
+}

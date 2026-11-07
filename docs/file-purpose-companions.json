@@ -25,5 +25,6 @@
   "tools/RepoQuality/duplicate-baseline.json": "保存經核定的既有跨專案內容／型別重複身分，供重複來源棘輪拒絕新增副本；基準必須唯一且符合實際來源，不能新增例外掩蓋本次複製，掃描範圍仍限制目前方案工作樹。",
   "docs/file-purpose-companions.json": "保存不允許原生註解的設定／方案檔之逐檔整體說明，以相對路徑為唯一身分供文件守門查詢；新增檔案須新增實際目的與邊界，不能放入設定值、秘密或藉此跳過原生程式檔頭。",
   "d365/schema/p1-12-acceptance.fixture.json": "保存正式P1-12唯一鍵驗收的固定合成文字Org.Level.Group、*與細胞小組，由Deployment smoke --schema嚴格讀取；不包含教會、帳密或真實資料，不提供任意業務表或payload入口。探測只有在已發布結構與全部key Active後執行，依本次資料庫ID與標記清理，未知JSON欄位及錯誤key／文化拒絕。",
-  "SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json": "逐目標與Debug／Release記錄ChurchReport尚未通過的R2公開型別，身分含規則、專案、目標、組態、來源與完整型別名稱，每筆附理由及移除條件；僅防止未追蹤差距，不是驗收豁免。清冊非空時P2-01 R2仍未驗收，不得由守門綠燈推定完成；更新須比對原始實際掃描證據，禁止自動吞掉新違規。"
+  "SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json": "逐目標與Debug／Release記錄ChurchReport尚未通過的R2公開型別，身分含規則、專案、目標、組態、來源與完整型別名稱，每筆附理由及移除條件；僅防止未追蹤差距，不是驗收豁免。清冊非空時P2-01 R2仍未驗收，不得由守門綠燈推定完成；更新須比對原始實際掃描證據，禁止自動吞掉新違規。",
+  "LineMessagingProcessor.Tests/Golden/channel-token-vectors.json": "P2-03公開合成跨目標加密向量，僅測試用0至63的key與假token；獨立Node產生初始封包，再加入真net462／net10輸出供雙向解密，不可換成實際憑證或把離線結果當實機。"
 }

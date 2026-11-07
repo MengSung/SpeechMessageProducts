@@ -66,6 +66,32 @@ internal static class DeploymentCli
         string? artifactRoot = null,
         Func<string, string>? secretReader = null,
         TimeSpan? writeLockTimeout = null,
+        CancellationToken cancellationToken = default) =>
+        Run(args, connector, output, report, null, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+
+    /// <summary>
+    /// 借入秘密輸入的命令入口。原八參數入口保留原簽章並委派此處；取消訊號保持最後一個參數，
+    /// 不為新 Channel 指令改變既有呼叫的參數繫結。reader 的生命週期由程序組合根持有。
+    /// </summary>
+    /// <param name="args">原始命令列，parser 不回顯其值。</param>
+    /// <param name="connector">每命令建立獨占租約的連線來源。</param>
+    /// <param name="output">呼叫端擁有的安全摘要 writer。</param>
+    /// <param name="report">資源釋放後接收原例外的共用入口。</param>
+    /// <param name="secretInput">僅 Channel 寫入借用的標準輸入；不由本入口關閉。</param>
+    /// <param name="artifactRoot">測試注入的獨立輸出根；產品使用固定 artifacts。</param>
+    /// <param name="secretReader">程序擁有的 User Secrets 讀取委派。</param>
+    /// <param name="writeLockTimeout">同組織寫鎖等待上限。</param>
+    /// <param name="cancellationToken">呼叫端取消訊號，保持參數列末端。</param>
+    /// <returns>成功 0、拒絕 2、故障 1、正常取消 130。</returns>
+    public static int Run(
+        string[] args,
+        IOrganizationConnector connector,
+        TextWriter output,
+        Action<Exception> report,
+        TextReader? secretInput,
+        string? artifactRoot = null,
+        Func<string, string>? secretReader = null,
+        TimeSpan? writeLockTimeout = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(args);

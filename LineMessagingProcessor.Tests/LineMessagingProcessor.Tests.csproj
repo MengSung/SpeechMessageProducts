@@ -43,6 +43,7 @@
   <ItemGroup>
     <ProjectReference Include="../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
     <None Update="Golden/push-text.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Golden/channel-token-vectors.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />

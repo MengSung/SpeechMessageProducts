@@ -445,18 +445,20 @@
  * 注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07 12:07 Asia/Taipei (UTC+08:00)",
+  "snapshot": "2026-11-07 12:17 Asia/Taipei (UTC+08:00)",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "worker": "主會話inline實作／檢查；獨立Debug／Release驗證曾以no-restore及分離輸出並行，無子代理或外部模型。",
-  "headline": "階段 2 目前 <strong>1／12 工作包進行中</strong>（P2-01）。P1-01～12 已驗收；P2-02／03／06／09 可在不連 D365／LINE 下並行，P2-04 推播前置仍需測試 channel／本人帳號與 secrets。全計畫已驗收30包，另1包進行中。",
+  "headline": "階段 2 目前 <strong>2／12 工作包進行中</strong>（P2-01、P2-03），0／12驗收。P1-01～12已驗收；Token加密可獨立離線實作，P2-04推播前置仍需使用者核定的實機步驟。全計畫已驗收30包，另2包進行中。",
   "notices": [
     {
       "id": "phase-2-summary",
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "body": "2026-11-07 12:07 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01進行中。Hosting Debug104／104、Release覆蓋率執行104／104，獨立行率83.29%通過80%；ChurchReport雙組態各82／82。R2仍有Debug338／Release316筆差距，完整Changed編碼守門尚未通過。",
+      "body": "2026-11-07 12:17 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01與P2-03進行中。Hosting雙組態104／104、獨立行率83.29%；P2-03規劃與雙目標安全測試已保存，先取得缺型別紅燈。R2既有差距與五份原始證據編碼問題仍未驗收。",
       "steps": [
+        "2026-11-07 12:17 Asia/Taipei (UTC+08:00)｜P2-01診斷移轉／逐案證據檢查點已本地提交055adf1f；最新Debug與Release各104／104，Localization雙宿主184／184、182／182；文件1266／0、duplicate零新增、I18n通過。完整Changed的16份換行問題中11份維護文字已做無語意修正，剩三份自動trace及兩份原始solution JSON保持原貌，未標門檻通過。",
+        "2026-11-07 12:17 Asia/Taipei (UTC+08:00)｜P2-03獨立群組開始：活動子任務11-07-p2-03-channel-token，prd／design／implement已保存。主代理唯一寫入Core/Security與Tests/Security，沿既有net462／net10產品及net48／net10測試宿主，不新增csproj。先保存core-missing-red.log的缺Security型別紅燈；後續需行為紅燈、先驗MAC、key／buffer清零、雙向向量、並行與資源驗證。Deployment寫入工具及實機仍待驗證，不以核心切片代表整包。",
         "2026-11-07 12:07 Asia/Taipei (UTC+08:00)｜架構與診斷驗證：正常audit完整32專案還原及CI filter Release建置0警告／0錯誤；Hosting Debug完整104／104，Release覆蓋率完整104／104、83.29%。先前58.48%失敗保留，將共用ExceptionDiagnosticsTests八案由ChurchReport搬入Hosting後達門檻；ChurchReport精確回歸Debug／Release各82／82，原90案＝保留82＋搬移8。Localization net10原209＝保留184＋搬移25，24案同身分、1個R4方案案擴成Debug／Release兩案；net48原182全數保留。逐案多重集合與coverage hash見evidence/architecture-case-transfer.json、architecture-hosting-coverage-owner-summary.json；不是實機驗收。",
         "2026-11-07 12:07 Asia/Taipei (UTC+08:00)｜品質缺口：完整Changed編碼守門相對62b409c80仍有16份歷史文字／機器證據換行問題，先依所有權做無語意修正，原始TRX／log／solution證據不改寫；未標整體通過。R2精確未通過清冊654筆仍非空；後續獨立需求繼續，P2-01不封存、不以追蹤測試綠燈取代驗收。",
         "2026-11-07 11:43 Asia/Taipei (UTC+08:00)｜P2-01架構實測：原防繞過11案先8失敗／3通過；改Roslyn後focused27／27，擴充別名／繼承／條件來源／超限UTF-8／global using／真實Plugin AssemblyRef後focused94／94。完整方案首次盤點43通過／2失敗，列出ChurchReport Debug338、Release316筆R2公開型別差距；另兩筆R9為SDK隱含System.Drawing可用參考誤報，已用專屬反例修正。精確未通過清冊SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json逐筆附理由及移除條件；清冊綠燈只代表無未追蹤差距，不能代替R2驗收。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/architecture-*。",
@@ -493,7 +495,7 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T12:07:12+08:00"
+      "lastUpdated": "2026-11-07T12:17:16+08:00"
     }
   ],
   "alert": {
@@ -606,10 +608,10 @@ const DATA = {
       "label": "全計畫進度",
       "value": "30",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 12／12 已驗收；P2-01 進行中",
+      "sub": "P0 18／18、P1 12／12已驗收；P2-01、P2-03進行中",
       "meter": {
         "done": 30,
-        "active": 1,
+        "active": 2,
         "total": 83
       }
     },
@@ -639,10 +641,10 @@ const DATA = {
       "label": "階段 2 進度",
       "value": "0",
       "unit": "/ 12 工作包",
-      "sub": "P2-01 進行中；其餘依依賴與實機前置追蹤",
+      "sub": "P2-01、P2-03進行中；其餘依依賴與實機前置追蹤",
       "meter": {
         "done": 0,
-        "active": 1,
+        "active": 2,
         "total": 12
       }
     },
@@ -954,10 +956,11 @@ const DATA = {
       "phaseId": "階段 2",
       "id": "P2-03",
       "name": "Channel Token 加密封包與安全寫入工具",
-      "status": "todo",
+      "status": "active",
       "scope": "雙目標實作 ChannelTokenProtector：AES-256-CBC＋HMAC-SHA256、Encrypt-then-MAC、64-byte 分離金鑰與 v1 版本化封包；部署專案新增 protect-token（敏感值只從標準輸入讀取）與 assign-channel，以 new_channelid Upsert。",
-      "verification": "RoundTrip_Net462AndNet10_Compatible、Tampered_Ciphertext_Throws、Tampered_Mac_Throws、WrongKey_Throws、UnknownVersion_Throws、Exception_NeverContainsSecret、Mac_CompareIsConstantTime 均須通過；跨目標互解固定向量，例外固定文字不含明密文，MAC 固定時間比較；工具測白名單組織，輸入不出現在參數／歷史或輸出。",
-      "prerequisite": "Plugin 端 tokenKey 只由 secure configuration 傳入；主機端由 LineChannels:TokenKey 的部署環境或 Windows 認證保管提供，不寫入 appsettings。"
+      "verification": "RoundTrip_Net462AndNet10_Compatible、Tampered_Ciphertext_Throws、Tampered_Mac_Throws、WrongKey_Throws、UnknownVersion_Throws、Exception_NeverContainsSecret、Mac_CompareIsConstantTime 均須通過；跨目標互解固定向量，例外固定文字不含明密文，MAC 固定時間比較；工具測白名單組織，輸入不出現在參數／歷史或輸出。 2026-11-07已建立逐項測試與公開合成固定向量，缺型別紅燈已保存，產品尚未完成；證據.trellis/tasks/11-07-p2-03-channel-token/evidence/。",
+      "prerequisite": "Plugin 端 tokenKey 只由 secure configuration 傳入；主機端由 LineChannels:TokenKey 的部署環境或 Windows 認證保管提供，不寫入 appsettings。",
+      "lastUpdated": "2026-11-07T12:17:16+08:00"
     },
     {
       "phaseId": "階段 2",
@@ -1435,7 +1438,7 @@ const DATA = {
       "est": "10～13 天（國際化＋2～3 天）",
       "total": 12,
       "done": 0,
-      "active": 1,
+      "active": 2,
       "current": true
     },
     {
