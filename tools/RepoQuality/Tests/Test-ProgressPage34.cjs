@@ -8,7 +8,8 @@
 主要功能與流程：讀取 HTML 的 DATA 與原始 script，每案建立專有資料副本及 DOM 替身，
 執行實際 renderer。用真實資料核對唯一 ID、狀態、最多兩包、驗收證據、逐筆時區，
 再注入混合狀態及惡意字串，確認摘要、階段列、工作包表及各文字區塊均安全且一致。
-跳脫案例自帶合成進行卡，不依賴當前是否有工作；另驗空清單不會被測試需求變造。
+跳脫案例自帶合成進行卡與待使用者事項，不依賴當前是否有工作或缺少憑證；
+另驗空清單與沒有待辦時的摘要，不會為了滿足測試而變造真實進度。
 
 使用邊界與維護：不修改 DATA、產品設定或歷史證據，不建置、不連網、不讀秘密。
 所有 Map、事件與 localStorage 替身屬於單次案例，無背景工作、計時器或需 Dispose
@@ -145,6 +146,8 @@ test('Plan34_Renderer_EscapesAllDisplayedTextSurfaces', () => {
     d.headline = attack;
     d.notices.push({ id: 'synthetic-warning', level: 'warn', title: attack, body: attack, steps: [] });
     d.active = [{ id: 'synthetic-active', startedAt: '', timebox: '', next: '', dod: [['', 'ok', '']] }];
+    // 此案例要覆蓋「下一個需要你」文字出口，不能依賴真實使用者仍欠缺設定。
+    d.userActions = [{ when: '', text: '', note: '', status: 'you' }];
     for (const w of d.wps) for (const key of ['name', 'deps', 'live', 'timebox', 'doneAt', 'commit', 'note']) w[key] = attack;
     for (const p of d.phases) for (const key of ['name', 'planned', 'actual']) p[key] = attack;
     for (const n of d.notices) { n.title = attack; n.body = attack; n.steps = [attack]; n.lastUpdated = attack; }
@@ -164,6 +167,15 @@ test('Plan34_Renderer_EscapesAllDisplayedTextSurfaces', () => {
     assert.ok(content.includes(escape(attack)), id);
     assert.doesNotMatch(content, /<img src=x|<script>/, id);
   }
+});
+
+test('Plan34_NoPendingUserAction_ShowsNoneWithoutInventingRequest', () => {
+  const { elements, data } = render(d => {
+    d.userActions = [{ when: '2026-11-07', text: '合成已完成事項', note: '', status: 'done' }];
+  });
+  assert.match(elements.get('tiles').innerHTML, /目前沒有/);
+  assert.equal(data.userActions.length, 1);
+  assert.equal(data.userActions[0].status, 'done');
 });
 
 test('Plan34_Page_UsesUtf8WithoutBomAndOnlyCrlf', () => {

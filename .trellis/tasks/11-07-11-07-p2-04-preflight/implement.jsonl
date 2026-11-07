@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/backend/deployment-contract.md", "reason": "接續 P2-04 前置時的授權、回復、秘密與進度契約"}
+{"file": ".trellis/spec/backend/plugin-packaging-contract.md", "reason": "接續 P2-04 前置時的授權、回復、秘密與進度契約"}
+{"file": ".trellis/spec/frontend/progress-page-contract.md", "reason": "接續 P2-04 前置時的授權、回復、秘密與進度契約"}

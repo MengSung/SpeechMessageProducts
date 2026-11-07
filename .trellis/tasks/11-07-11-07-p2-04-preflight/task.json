@@ -1,0 +1,30 @@
+{
+  "id": "11-07-p2-04-preflight",
+  "name": "11-07-p2-04-preflight",
+  "title": "P2-04 前置沙箱 LINE 測試推播",
+  "description": "依實作計畫 3.4 P2-04 前置，在 goodshepherdback 測試組織完成 User Secrets 鍵存在確認、原況保存、net462 Plugin 部署、p0-ping-push smoke、追蹤與測試資料清理，保存一頁去識別化操作紀錄與 SHA-256。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-11-07",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.11.Integration.P2.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "11-07-integration-p2",
+  "relatedFiles": [],
+  "notes": "2026-11-08 已恢復 trace=1，live assembly/step 與 pre-apply 原況一致。apply=1/0x8004852E、IsDataEncryptionActive=false、RetrieveDataEncryptionKey 回空，未重試。未 smoke／未發 LINE；舊流程精確盤點及 TLS 尚未通過；詳 wp-reports。",
+  "meta": {
+    "blocker": "organization-data-encryption-key-unavailable",
+    "lastUpdated": "2026-11-08T07:04:41+08:00",
+    "nextAction": "取得原組織加密金鑰或安全可回復方案；先做獨立 P2-07"
+  }
+}

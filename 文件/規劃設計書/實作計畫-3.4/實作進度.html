@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-07 22:19 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-07T22:19:10+08:00",
+  "snapshot": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T07:04:41+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "cdd6fe9c",
-  "headline": "P2-09a內容編碼已驗收，乾淨全方案4,651個測試通過；P2整包仍為3/12，圖片b等待P2-07。",
+  "head": "12dace71",
+  "headline": "P2-04 前置因測試組織加密金鑰缺失受阻，原況與追蹤已核對收尾；P2-07 入列與防重持續實作。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,13 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-07T22:19:10+08:00",
-      "body": "2026-11-07 22:19 Asia/Taipei (UTC+08:00)：P2已驗收3包，共12包，另P2-09a已驗收。八筆舊來源黃金、雙宿主各24個測試及提交cdd6fe9c的11項乾淨守門全過，全方案4,651個測試零失敗；P2-09整包等待圖片b。",
+      "lastUpdated": "2026-11-08T07:04:41+08:00",
+      "body": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)：P2 已驗收 3 包，另 P2-09a 已驗收。P2-04 前置 apply 失敗，未發送 LINE；遠端 DLL 未變、步驟仍停用、追蹤已回例外狀況。P2-07 Writer 與資料庫防重適配器正在完成雙目標測試。",
       "steps": [
+        "2026-11-08 07:04 Asia/Taipei (UTC+08:00)｜P2-04 前置核對收尾｜兩份備份與 live DLL 解碼 hash 一致，撤回先前以 Base64 長度誤判 DLL 改變的推論；trace 已由 2 恢復 1，固定步驟停用／trace／無 secure。錯誤碼指 Config DB 組織加密金鑰缺失，唯讀 active=false、讀鍵回空；未重跑部署。操作紀錄 SHA-256 見 P2-04-preflight 一頁報告。舊流程精確盤點及 TLS 仍未完成。",
+        "2026-11-08 06:52 Asia/Taipei (UTC+08:00)｜恢復接續與補記｜前輪已完成 net462 打包、D34 備份與 16 筆非測試主 LINE ID 清理；推播 apply 失敗，未執行 smoke。備份 Base64 字串長度不能當作 DLL 位元組數，正在解碼比對，未因此誤判回滾。主代理 inline 執行，D365 寫入保持唯一程序。",
+        "2026-11-07 22:58 Asia/Taipei (UTC+08:00)｜P2-04前置啟動｜已建立並啟動Trellis子任務`.trellis/tasks/11-07-11-07-p2-04-preflight/`；只確認`TestChannelToken`與`TestLineUserId`鍵存在，未輸出秘密值。發現`artifacts/plugins/SpeechMessage.Dynamics.Plugins.dll`缺少，先補建net462部署產物；目前未寫入D365、未發送LINE。",
+        "2026-11-07 22:26 Asia/Taipei (UTC+08:00)｜P2-07開始｜P2-01／02依賴已解；先做Writer與資料庫唯一鍵，再做CAS與有界Worker。依repo設定由主代理inline執行，沒有外部雙模型或未實際完成的代理交付。",
         "2026-11-07 22:19 Asia/Taipei (UTC+08:00)｜P2-09a已驗收｜提交cdd6fe9c的11項乾淨守門全部通過，20份TRX共4,651個通過、0失敗、0略過；Debug tracer 7個通過，Release 23個既有警告、0錯誤。原API與原20案例保留；未做圖片或實機。",
         "2026-11-07 22:14 Asia/Taipei (UTC+08:00)｜P2-09a紅綠｜兩個個人相容行為紅燈轉綠；原20個案例保留，兩宿主各24個案例通過。無圖片、D365或LINE操作，原始證據留本機p209a-plan34。",
         "2026-11-07 22:06 Asia/Taipei (UTC+08:00)｜P2-09a接續｜已找到父工作樹的舊QR產生來源；將先鎖住四類合成黃金，補個人尾欄相容，不改現有掃碼流程。圖片b包等待P2-07；目前只有a包進行中。",
@@ -337,7 +341,9 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜P2 依賴與必要條件已建立追蹤：P2-01 先建立 Hosting 共用 owner／啟動守門；P2-02、P2-03、P2-06、P2-09 可在不連 D365／LINE 下並行。P2-04 及後續推播工作要等使用者完成安全測試 channel、本人帳號與 User Secrets 佔位驗收；任何離線／mock 結果不代替實機收訊。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜使用者要求取消外部模型；目前執行設定仍強制分析／審查。已依自癒入口呼叫 Gemini／Claude，但兩者均未完成、無可用輸出，不宣稱雙模型或單模型成功；保留失敗摘要，主會話繼續本地驗證。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
-        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。",
+        "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：User Secrets前置已解除；目前先補建核定net462 Plugin產物，再保存goodshepherdback原況，之後依序執行TLS、push plan/apply/verify、smoke及回復清理。",
+        "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：尚未對D365寫入，尚未發送LINE；產物缺少是目前技術前置，不是實機阻塞。"
       ]
     },
     {
@@ -354,8 +360,17 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "warn",
       "title": "暫存驗證複本清理受平台限制",
-      "lastUpdated": "2026-11-07T22:19:10+08:00",
-      "body": "2026-11-07 22:19 Asia/Taipei (UTC+08:00)：平台先前拒絕暫存複本刪除，未繞過。C:/smv下原五份及cdd6fe9c驗證複本仍保留；沒有存活驗證程序。本包未操作D365或LINE，不把暫存目錄加成工作包完成條件。",
+      "lastUpdated": "2026-11-07T22:26:41+08:00",
+      "body": "2026-11-07 22:26 Asia/Taipei (UTC+08:00)：先前暫存複本清理遭平台拒絕，未繞過。C:/smv下原六份與12dace71仍保留；沒有存活驗證程序，本輪未操作D365或LINE。",
+      "steps": []
+    },
+    {
+      "id": "p2-04-preflight-active",
+      "phaseId": "階段 2",
+      "level": "warn",
+      "title": "P2-04 前置受阻：缺組織加密復原材料",
+      "lastUpdated": "2026-11-08T07:04:41+08:00",
+      "body": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)：apply=1（0x8004852E），組織資料加密未啟用且讀鍵回空；需安全取得原有加密金鑰或可回復方案。本地清單已復原，遠端原況未變，trace=1，未 smoke／未發送 LINE。先做 P2-07，不盲目重試或重設金鑰。",
       "steps": []
     }
   ],
@@ -367,10 +382,10 @@ const DATA = {
       "note": "2026-11-07 21:10 Asia/Taipei (UTC+08:00) 記錄：你回覆把 3.4 放進 repo"
     },
     {
-      "when": "P2-04 前置之前",
+      "when": "2026-11-07 22:58",
       "text": "建立（或指定）測試 LINE Messaging API channel；把 TestChannelToken、TestLineUserId 放進 Deployment 的 User Secrets；手機加好友",
-      "status": "you",
-      "note": "這是目前唯一卡住推播的事；其餘清理、寫入、推播、驗證都由 Codex 做"
+      "status": "done",
+      "note": "2026-11-07 22:58 Asia/Taipei (UTC+08:00) 已確認兩個鍵存在且未輸出秘密值；手機加好友由使用者已完成，清理、寫入、推播、驗證由Codex執行"
     },
     {
       "when": "階段 3 前",
@@ -897,13 +912,13 @@ const DATA = {
       "id": "P2-07",
       "phaseId": "階段 2",
       "name": "對外待辦 Writer 與有界 Worker",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-01、P2-02",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "冪等 Upsert、RowVersion 認領、退避重試、停機 drain"
+      "note": "開始契約與TDD；三種待辦、資料庫冪等及RowVersion認領，不連實機。"
     },
     {
       "id": "P2-08",
@@ -1490,7 +1505,7 @@ const DATA = {
       "phaseId": "階段 2",
       "name": "沙箱對 LINE 的測試推播（Codex 執行）",
       "status": "you",
-      "note": "等你：測試 LINE channel 與 User Secrets（TestChannelToken、TestLineUserId）"
+      "note": "D34 主 LINE ID 清理與回復核對已完成；apply 因組織加密金鑰缺失受阻。TLS／舊流程盤點／smoke／收尾 verify=0 均未通過。"
     },
     {
       "id": "M-P2-REVIEW",
@@ -1507,43 +1522,77 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P2-07",
+      "startedAt": "2026-11-07 22:26",
+      "timebox": "1個工作天或15個提交",
+      "next": "先寫Writer兩個同名測試，確認資料庫唯一鍵防重與payload文字拒絕。",
+      "dod": [
+        [
+          "測試全部同名存在並通過",
+          "no",
+          "八個計畫同名測試待完成。"
+        ],
+        [
+          "乾淨複本守門",
+          "no",
+          "提交後執行。"
+        ],
+        [
+          "覆蓋率 ≥ 80%",
+          "na",
+          "沒有新專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "本包未要求實機；雙程序實測在P2-12。"
+        ],
+        [
+          "一頁回報與進度頁",
+          "no",
+          "已更新DATA；一頁回報待驗證。"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-07 22:19",
-      "note": "提交cdd6fe9c，C:/smv/cdd6fe9c乾淨複本實際通過。Release 23個既有警告、0個錯誤。"
+      "at": "2026-11-07 22:26",
+      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-07 22:19",
-      "note": "提交cdd6fe9c，C:/smv/cdd6fe9c乾淨複本實際通過。20份TRX，共4,651個測試全部通過；Debug tracer 7個通過。"
+      "at": "2026-11-07 22:26",
+      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。全方案4,651個測試全部通過；Debug tracer 7個通過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-07 22:19",
-      "note": "提交cdd6fe9c，C:/smv/cdd6fe9c乾淨複本實際通過。"
+      "at": "2026-11-07 22:26",
+      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-07 22:19",
-      "note": "提交cdd6fe9c，C:/smv/cdd6fe9c乾淨複本實際通過。"
+      "at": "2026-11-07 22:26",
+      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-07 22:19",
-      "note": "提交cdd6fe9c，C:/smv/cdd6fe9c乾淨複本實際通過。"
+      "at": "2026-11-07 22:26",
+      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-07 22:19",
-      "note": "提交cdd6fe9c，C:/smv/cdd6fe9c乾淨複本實際通過。"
+      "at": "2026-11-07 22:26",
+      "note": "提交12dace71，C:/smv/12dace71乾淨複本11項守門實際通過。"
     },
     {
       "item": "雲端 CI（GitHub）",
@@ -1713,6 +1762,14 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)",
+      "text": "P2-04 前置原況已核對並恢復 trace=1；部署金鑰阻塞不影響 P2-07。頁面獨立測試替身已修正為不依賴使用者欠缺 Secrets，兩套共 27 案通過。"
+    },
+    {
+      "t": "2026-11-08 06:52 Asia/Taipei (UTC+08:00)",
+      "text": "P2-04 前置接續：本地推播清單已復原；apply 失敗原因與遠端原況核對中，未發送 LINE。"
+    },
     {
       "t": "2026-11-07 22:06 Asia/Taipei (UTC+08:00)",
       "text": "P2-03最終提交已通過並推P2分支；接續P2-09a，原始證據均留本機。",

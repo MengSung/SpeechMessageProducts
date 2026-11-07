@@ -24,7 +24,9 @@
     "11-07-p2-03-channel-token",
     "11-07-p2-02-goodshepherd-core",
     "11-07-11-07-p2-09-qr-content",
-    "11-07-p2-00-plan34-transition"
+    "11-07-p2-00-plan34-transition",
+    "11-07-p2-07-outbound",
+    "11-07-11-07-p2-04-preflight"
   ],
   "parent": null,
   "relatedFiles": [],

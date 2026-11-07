@@ -122,3 +122,17 @@ configuration and connection, and queries only the exact diagnostic type, run
 time window and correlation. Old LINE data was retained under the user's explicit
 P0-only exception; do not describe it as cleared or extend that exception to later
 phases. This acceptance did not exercise LINE delivery or prove hosted CI success.
+
+## P2-04 前置失敗後的原況核對（2026-11-08）
+
+- `export.Assembly.Content` 是 Base64；必須解碼後比較 DLL 位元組數與 SHA-256。
+  字串 964608 字元與解碼後 723456 bytes 是同一份內容，不能因此誤判部分更新。
+- `apply` 回 `0x8004852E` 時先停止寫入，核對 live assembly、同一 step ID、
+  trace／secure lookup／enabled 與 pre-apply export；不盲目 rollback 或重跑。
+  Microsoft 官方名稱是 `SqlEncryptionSymmetricKeyPasswordDoesNotExistInConfigDB`。
+- 本次 goodshepherdback 唯讀 `IsDataEncryptionActive` 為 false，
+  `RetrieveDataEncryptionKey` 回空；這不是 LINE token 的格式錯誤。
+  未取得原有組織金鑰或可回復的核准方案前，不生成替代鍵、不重設加密、不讀寫正式組織。
+- 本次已核對原 DLL hash 未變、步驟仍停用／trace／無 secure，trace 2→1 並讀回。
+  D34 已清理的非測試主 LINE ID 不因部署失敗而恢復；備份保留在 repo 外 DPAPI。
+  這些結果不等於 smoke、TLS、整體 verify=0 或 P2-04 前置通過。
