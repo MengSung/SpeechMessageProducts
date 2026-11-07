@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-07 21:38 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-07T21:38:32+08:00",
+  "snapshot": "2026-11-07 21:48 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-07T21:48:52+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "d51acd2d",
-  "headline": "乾淨複本全方案 4,635 個測試全部通過；P2-01、P2-03 收尾，P2-00 全文搜尋矛盾已列提案。",
+  "head": "34f4f6bb",
+  "headline": "P2-01已驗收：共用主機103個案例通過，覆蓋率80.83%；接續P2-03收尾。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-07T21:38:32+08:00",
-      "body": "2026-11-07 21:38 Asia/Taipei (UTC+08:00)：P2 已驗收 1 包，共 12 包。提交 d51acd2d 的乾淨複本 11 項檢查全部通過，全方案 4,635 個測試零失敗；P2-01、P2-03 繼續收尾。",
+      "lastUpdated": "2026-11-07T21:48:52+08:00",
+      "body": "2026-11-07 21:48 Asia/Taipei (UTC+08:00)：P2已驗收2包，共12包。P2-01必補測試與目前覆蓋率80.83%通過；乾淨複本全方案4,635個測試零失敗。",
       "steps": [
+        "2026-11-07 21:48 Asia/Taipei (UTC+08:00)｜P2-01已驗收｜共用主機103個案例通過，覆蓋率80.83%；ICU、NLS、Invariant獨立程序全過。ChurchReport R2清零依D28移P6-07；無D365／LINE操作。證據見P2-01一頁回報。",
         "2026-11-07 21:38 Asia/Taipei (UTC+08:00)：P2-00 乾淨複本 C:/smv/d51acd2d 已完成 00 §8.1 全部命令及 3.4 契約。全方案 20 份 TRX，共 4,635 個通過、0 個失敗、0 個略過；Release 23 個既有警告、0 個錯誤，Debug tracer 7 個通過。先在沒有 Debug Plugin 產物時執行目前組態架構測試也通過，再照原計畫補建 Debug。完整編碼零問題、重複零新增、I18n、文件及新舊進度頁均通過。原始結果、逐檔 SHA-256 在 P2-00/evidence/clean-d51acd2d/summary-and-sha256.json。未推送；尚未操作實機。",
         "2026-11-07 21:29 Asia/Taipei (UTC+08:00)：P2-00 已補齊既有 QR 實作，原 19 個 NotImplementedException 紅燈轉綠，net48 與 net10.0 各 20 個測試全過。Plugin 測試已改用目前組態，專案案例通過；本地方案 Release 建置 0 個警告、0 個錯誤。31 份舊文件 git mv 前後 SHA-256 一致；七份流程 JSON 純換行正規化且 JSON 語意不變。新頁 7 個、舊頁 18 個契約測試通過；現頁除 DATA 外內容不變（Git EOL 正規化後比對）。這些不是乾淨複本守門結果。",
         "2026-11-07 21:29 Asia/Taipei (UTC+08:00)：scope-warning 已解除並保留歷史：進行中已收斂為兩包，既有 QR 紅燈仍待修復；2026-11-07 21:18 Asia/Taipei (UTC+08:00)：P2-09a 已暫停；19 個缺實作紅燈由 P2-00 修復，尚未通過乾淨複本守門。。目前兩包進行中，QR 紅燈已修復。",
@@ -809,13 +810,13 @@ const DATA = {
       "id": "P2-01",
       "phaseId": "階段 2",
       "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
-      "status": "active",
+      "status": "done",
       "deps": "—",
       "live": "無",
       "timebox": "自 3.4 生效起半天",
-      "doneAt": "",
-      "commit": "",
-      "note": "依 D28 收尾：ChurchReport R2 改棘輪；修正依賴本機 Debug 產物的測試；乾淨複本驗證"
+      "doneAt": "2026-11-07 21:48",
+      "commit": "34f4f6bb",
+      "note": "3.4五項完成定義通過；目前103個案例、覆蓋率80.83%、乾淨複本全方案4,635個測試通過。ChurchReport R2清零屬P6-07。"
     },
     {
       "id": "P2-02",
@@ -1493,39 +1494,6 @@ const DATA = {
   ],
   "active": [
     {
-      "id": "P2-01",
-      "startedAt": "2026-11-07 08:47",
-      "timebox": "自 3.4 生效（2026-11-07 21:10）起半個工作天",
-      "next": "核對目前 Hosting 覆蓋率與 3.4 完成定義，整理一頁回報後驗收。",
-      "dod": [
-        [
-          "測試全部同名存在並通過",
-          "ok",
-          "必須補的測試已有；ChurchReport 82／82"
-        ],
-        [
-          "乾淨複本守門",
-          "ok",
-          "d51acd2d 的 00 §8.1 全部命令通過；本包後續提交仍依規則再驗。"
-        ],
-        [
-          "覆蓋率 ≥ 80%",
-          "no",
-          "原先 83.29%；移入 LoggerProvider 後正在乾淨複本重查目前產品覆蓋率。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包不需要"
-        ],
-        [
-          "一頁回報與進度頁",
-          "no",
-          "回報需改為一頁格式"
-        ]
-      ]
-    },
-    {
       "id": "P2-03",
       "startedAt": "2026-11-07 12:34",
       "timebox": "自 3.4 生效（2026-11-07 21:10）起半個工作天",
@@ -1563,38 +1531,38 @@ const DATA = {
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-07 21:38",
-      "note": "提交 d51acd2d，C:/smv/d51acd2d 乾淨複本實際通過。 Release 23 個既有警告、0 個錯誤。"
+      "at": "2026-11-07 21:48",
+      "note": "提交 34f4f6bb，C:/smv/34f4f6bb 乾淨複本實際通過。 Release 23 個既有警告、0 個錯誤。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-07 21:38",
-      "note": "提交 d51acd2d，C:/smv/d51acd2d 乾淨複本實際通過。 20 份 TRX，4,635 個通過、0 個失敗、0 個略過；Debug tracer 7 個通過。"
+      "at": "2026-11-07 21:48",
+      "note": "提交 34f4f6bb，C:/smv/34f4f6bb 乾淨複本實際通過。 20 份 TRX，4,635 個通過、0 個失敗、0 個略過；Debug tracer 7 個通過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-07 21:38",
-      "note": "提交 d51acd2d，C:/smv/d51acd2d 乾淨複本實際通過。"
+      "at": "2026-11-07 21:48",
+      "note": "提交 34f4f6bb，C:/smv/34f4f6bb 乾淨複本實際通過。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-07 21:38",
-      "note": "提交 d51acd2d，C:/smv/d51acd2d 乾淨複本實際通過。"
+      "at": "2026-11-07 21:48",
+      "note": "提交 34f4f6bb，C:/smv/34f4f6bb 乾淨複本實際通過。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-07 21:38",
-      "note": "提交 d51acd2d，C:/smv/d51acd2d 乾淨複本實際通過。"
+      "at": "2026-11-07 21:48",
+      "note": "提交 34f4f6bb，C:/smv/34f4f6bb 乾淨複本實際通過。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-07 21:38",
-      "note": "提交 d51acd2d，C:/smv/d51acd2d 乾淨複本實際通過。"
+      "at": "2026-11-07 21:48",
+      "note": "提交 34f4f6bb，C:/smv/34f4f6bb 乾淨複本實際通過。"
     },
     {
       "item": "雲端 CI（GitHub）",
@@ -1764,6 +1732,11 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-07 21:48 Asia/Taipei (UTC+08:00)",
+      "text": "P2-01依3.4五項完成定義已驗收；P2-03四個同名測試已補，等待其獨立提交後乾淨複本。",
+      "cls": "info"
+    },
     {
       "t": "2026-11-07 21:38 Asia/Taipei (UTC+08:00)",
       "text": "乾淨複本全方案 4,635 個測試全部通過；P2-00 全文搜尋矛盾如實列提案，不擅改正文。",

@@ -27,8 +27,8 @@ Production 啟動守門與架構規則，讓 ChurchReport 及後續 LineWebhook 
 - [x] ChurchReport 以 Hosting registration／adapter 使用共用入口，原有
   `ExceptionOutputOptionsTests` 與既有例外測試通過。
 - [x] 啟動守門的正反例測試通過，錯誤訊息不含 token、密碼、完整 request 或個資。
-- [ ] 架構測試通過；新增／修改 `.cs` 完成繁中檔案整體說明、XML 註解與 UTF-8 無 BOM／CRLF。
-- [ ] `python tools/RepoQuality/check_file_documentation.py`、相關 `dotnet test`
+- [x] 架構測試通過；新增／修改 `.cs` 完成繁中檔案整體說明、XML 註解與 UTF-8 無 BOM／CRLF。
+- [x] `python tools/RepoQuality/check_file_documentation.py`、相關 `dotnet test`
   與 P2-01 報告均有證據。
 
 ## Notes
@@ -44,8 +44,11 @@ Production 啟動守門與架構規則，讓 ChurchReport 及後續 LineWebhook 
 唯一依據為現行 03 的 P2-01 與 00 §7.1。D28：ChurchReport R2 清冊只減不增，清零屬 P6-07，不阻擋本包；Plugin／新主機仍嚴格。既有必補測試、啟動守門及 R2／R3／R9 正反例須全過；目前組態 Plugin 產物測試不依賴另一組態。時間盒自 2026-11-07 21:10 Asia/Taipei 起半天。
 
 ## 完成定義（00 §7.1，不得加碼）
-- [ ] 1. 本 WP 段落列出的測試全部同名存在並通過（雙目標專案兩個目標都過）
-- [ ] 2. 00 §8.1 全部命令在乾淨複本（00 §8.2）通過；提交待驗證
-- [ ] 3. Hosting 覆蓋率 ≥ 80%
-- [ ] 4. 實機不適用
-- [ ] 5. 一頁回報已寫、進度頁已更新
+- [x] 1. 本 WP 段落列出的測試全部同名存在並通過（雙目標專案兩個目標都過）
+- [x] 2. 00 §8.1 全部命令在乾淨複本（00 §8.2）通過；提交34f4f6bb，全方案4,635個測試通過
+- [x] 3. Hosting目前覆蓋率80.83% ≥ 80%
+- [x] 4. 實機不適用
+- [x] 5. 一頁回報已寫、進度頁已更新
+
+## 最終狀態 2026-11-07 21:48 Asia/Taipei (UTC+08:00)
+依3.4五項完成定義已驗收；此前未完成文字為歷史切片，D28的R2清零移P6-07。
