@@ -8,11 +8,15 @@
  * - 建立並執行 Host；Debug／Release 都依 ExceptionNotifications 的啟動快照選擇例外目的地。 雙開先落檔 flush、單開只執行所選輸出。組態尚未讀取成功前，只能用固定 stderr
  * 回報初始化失敗，避免猜測開關而擅自寫檔／發送；不訂閱額外的 reload callback。 原有三種開發 Trace 仍由 DiagnosticsTrace 控制，Release 固定停用該三種 Trace。 ICU
  * 必須在共用例外 owner 建立後、Startup／CRM／HTTP 啟動前驗證；不符時同一例外告警並拒絕啟動。
+ * - 透過 Hosting 註冊同一組外部 diagnostics／adapter，DI 僅借用，不在容器停止時提前解除告警。
+ *   WebApplication Build 成功後接管組態；外層只清理未移交的 root，避免 provider 重複 Dispose。
+ *   關閉順序固定為解除綁定、diagnostics drain、sender、未移交組態；各階段失敗仍須嘗試後續清理。
  * - 建立正常 Host 管線，借用最外層管理的 Exception.log owner；錯誤 provider 在所有組態啟用。 原本三個診斷 Trace 檔仍遵守 Release 關閉契約，與正式錯誤紀錄完全獨立。
  * - 註冊只擷取安全 metadata 的正式錯誤 provider；不沿用會複製原始訊息的舊 FileLogger。
  * - 初始化 Trace Listener（僅在 Debug 組態下編譯） 確保 TextWriterTraceListener 只建立一次，並且可以在應用程式停止時正確釋放 【自動建立機制】 -
  * 若統一設定指定的診斷目錄不存在，會自動建立 - 若 Trace.log 檔案不存在，會自動建立 - 若檔案已存在，會以 Append 模式追加寫入
- * 主要操作入口包含 Main、RunApplication、ConfigureSafeLogging、InitializeTraceListener、CleanupTraceListener、
+ * 主要操作入口包含 Main、RegisterHostingDiagnostics、CleanupHostingResources、RunApplication、
+ * ConfigureSafeLogging、InitializeTraceListener、CleanupTraceListener、
  * FlushTraceListener、RegisterUnhandledExceptionTraceFlush、UnregisterUnhandledExceptionTraceFlush；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
@@ -26,6 +30,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -35,6 +40,7 @@ using System.Threading.Tasks;
 using ChurchReport.Configuration;
 using ChurchReport.Diagnostics;
 using ChurchReport.Logging;
+using SpeechMessage.Hosting;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace ChurchReport
@@ -70,9 +76,10 @@ namespace ChurchReport
         public static void Main(string[] args)
         {
             ExceptionDiagnostics diagnostics = null;
-            IDisposable registration = null;
+            ExceptionReportingAdapter registration = null;
             ChurchReport.Services.LineExceptionSender sender = null;
             Microsoft.Extensions.Configuration.ConfigurationManager configuration = null;
+            var preservePrimaryFailure = false;
             try
             {
                 var builder = WebApplication.CreateBuilder(args);
@@ -86,7 +93,7 @@ namespace ChurchReport
                     builder.Environment.ContentRootPath, builder.Environment.EnvironmentName, builder.Configuration);
                 var outputOptions = ExceptionOutputOptions.FromConfiguration(builder.Configuration);
                 diagnostics = new ExceptionDiagnostics(Path.Combine(AppContext.BaseDirectory, "Logs"), outputOptions: outputOptions);
-                registration = ExceptionReporting.Attach(diagnostics);
+                registration = RegisterHostingDiagnostics(builder.Services, diagnostics);
                 if (outputOptions.SendLine)
                 {
                     sender = new ChurchReport.Services.LineExceptionSender(builder.Configuration);
@@ -96,24 +103,92 @@ namespace ChurchReport
                 // 此時通知開關與 owner 已確定；失敗沿外層 catch 傳原 Exception，finally 排空／釋放所有資源。
                 // 尚未建立 Startup／CRM 或 Kestrel，不讀伺服器 local，也不自動改寫 NLS／Invariant 設定。
                 SpeechMessage.Localization.GlobalizationModeGuard.ValidateIcuMode();
-                RunApplication(builder, diagnostics);
+                RunApplication(builder, diagnostics, ref configuration);
             }
             catch (Exception exception)
             {
-                if (diagnostics != null) diagnostics.Report(exception, "Program.Fatal");
-                else
+                preservePrimaryFailure = true;
+                try
                 {
-                    try { Console.Error.WriteLine("[ExceptionDiagnostics] InitializationFailed"); } catch { }
+                    if (diagnostics != null) diagnostics.Report(exception, "Program.Fatal");
+                    else
+                    {
+                        try { Console.Error.WriteLine("[ExceptionDiagnostics] InitializationFailed"); } catch { }
+                    }
+                }
+                catch
+                {
+                    // 告警管道自身故障不能覆蓋正在傳播的原例外，也不可遞迴呼叫同一 notifier。
+                    try { Console.Error.WriteLine("[ExceptionDiagnostics] FatalReportingFailed"); } catch { }
                 }
                 throw;
             }
             finally
             {
-                registration?.Dispose();
+                CleanupHostingResources(registration, diagnostics, sender, configuration, preservePrimaryFailure);
+            }
+        }
+
+        /// <summary>
+        /// 在建立 Startup 或 HTTP 前綁定唯一 Hosting adapter，再把同一組外部資源借給 DI。
+        /// 註冊衝突時先解除候選 adapter，不部分發布、不關閉 caller 擁有的 diagnostics。
+        /// </summary>
+        /// <param name="services">僅由目前組合根在 Build 前修改的服務集合。</param>
+        /// <param name="diagnostics">由 Main 建立並在全部 Host logging 結束後釋放的唯一 owner。</param>
+        /// <returns>Main 必須先於 diagnostics 關閉的 adapter，DI 不接管此 instance 的 Dispose。</returns>
+        internal static ExceptionReportingAdapter RegisterHostingDiagnostics(
+            IServiceCollection services, ExceptionDiagnostics diagnostics)
+        {
+            var adapter = new ExceptionReportingAdapter(diagnostics);
+            try
+            {
+                services.AddSpeechMessageHosting(diagnostics, adapter);
+                return adapter;
+            }
+            catch
+            {
+                adapter.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 清理尚由 Main 擁有的四個停止階段；成功移交 WebApplication 的組態必須傳 null。
+        /// 不保存任何 request、憑證或跨 Host 狀態；diagnostics 的非同步 drain 必須完成，
+        /// 才能關閉 sender。逐階故障仍繼續清理，以最多四個原始 Exception 保留本次失敗；
+        /// 沒有主要例外時拋出 aggregate，否則只走固定 stderr，避免關閉故障覆蓋原始失敗。
+        /// 診斷管道本身正在停止，不能遞迴通知，也不得把 Exception.Message 或組態值輸出。
+        /// </summary>
+        /// <param name="registration">要先解除的全域綁定，尚未建立時為 null。</param>
+        /// <param name="diagnostics">要完整等待停止的唯一診斷 owner。</param>
+        /// <param name="sender">在診斷排空後才可關閉的 LINE client owner。</param>
+        /// <param name="configuration">尚未移交給成功 Build 主機的組態 root。</param>
+        /// <param name="preservePrimaryFailure">上層是否已有主要例外正在傳播。</param>
+        internal static void CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics,
+            IDisposable sender, IDisposable configuration, bool preservePrimaryFailure)
+        {
+            // 只在清理故障時配置，最多四筆且只存活於本次停止；沒有任何 static／request 保留。
+            List<Exception> failures = null;
+            Attempt(() => registration?.Dispose(), "Registration");
+            Attempt(() =>
+            {
                 if (diagnostics != null) diagnostics.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                sender?.Dispose();
-                // 即使選項解析或 Build 失敗，也釋放 builder 的組態監聽器；不跨 Host 保留設定。
-                (configuration as IDisposable)?.Dispose();
+            }, "Diagnostics");
+            Attempt(() => sender?.Dispose(), "Sender");
+            Attempt(() => configuration?.Dispose(), "Configuration");
+            if (failures != null && !preservePrimaryFailure)
+                throw new AggregateException("Hosting resource cleanup failed.", failures);
+
+            // 每個 action 完成或故障後立即離開，不建立背景重試或計時器。
+            // stage 全是本方法提供的固定常值，不接受外部文字或例外本文。
+            void Attempt(Action action, string stage)
+            {
+                try { action(); }
+                catch (Exception failure)
+                {
+                    (failures ??= new List<Exception>(4)).Add(failure);
+                    try { Console.Error.WriteLine("[ExceptionDiagnostics] CleanupFailed " + stage); } catch { }
+                }
             }
         }
 
@@ -121,11 +196,14 @@ namespace ChurchReport
         /// 建立正常 Host 管線，借用最外層管理的 Exception.log owner；錯誤 provider 在所有組態啟用。
         /// 原本三個診斷 Trace 檔仍遵守 Release 關閉契約，與正式錯誤紀錄完全獨立。
         /// </summary>
-        private static void RunApplication(WebApplicationBuilder builder, ExceptionDiagnostics diagnostics)
+        /// <param name="builder">尚未 Build 的部署組合根，不由 request 建立。</param>
+        /// <param name="diagnostics">Main 擁有的診斷 owner，僅借給 provider 與業務服務。</param>
+        /// <param name="configuration">成功 Build 後清除外層參照，將組態唯一清理責任移交 Host。</param>
+        private static void RunApplication(WebApplicationBuilder builder, ExceptionDiagnostics diagnostics,
+            ref Microsoft.Extensions.Configuration.ConfigurationManager configuration)
         {
 
             ConfigureSafeLogging(builder, diagnostics);
-            builder.Services.AddSingleton(diagnostics);
 
 #if DEBUG
             DiagnosticTraceOptions diagnosticTraceOptions;
@@ -189,6 +267,9 @@ namespace ChurchReport
             startup.ConfigureServices(builder.Services);
 
             using var app = builder.Build();
+            // 實際 WebApplication 已接管 ConfigurationManager；using app 負責正常與 Configure 失敗清理。
+            // Build 失敗則不執行此行，Main 仍清理未移交 root；兩路不可重複 Dispose provider。
+            configuration = null;
 
 #if DEBUG
             // 只有服務容器成功建立後才取得 listener owner；若組態或 DI 建置失敗，
@@ -219,7 +300,7 @@ namespace ChurchReport
             {
                 // 使用 Startup 類別設定中介層；若此處失敗，外層 finally 仍會釋放 Debug 資源。
                 startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
-                lifetime.ApplicationStopping.Register(StopDebugTraceResources);
+                using var stoppingRegistration = lifetime.ApplicationStopping.Register(StopDebugTraceResources);
                 app.Run();
             }
             finally

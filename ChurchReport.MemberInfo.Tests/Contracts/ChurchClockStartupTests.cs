@@ -7,6 +7,7 @@
  * 主要功能與流程：
  * 本檔宣告 ChurchClockStartupTests。
  * - 移除 ICU 呼叫、移到應用執行後或移出原例外 catch 都應失敗，不能只測獨立 helper。
+ *   P2-01 改由 Hosting 組合接點註冊；實際 owner／adapter 身分與回復另由 HostingCompositionTests 驗證。
  * 測試案例入口包含 Main_ValidatesIcuInsideSharedFailureBoundary_BeforeRunApplication。
  *
  * 使用邊界與維護：
@@ -32,13 +33,14 @@ public sealed class ChurchClockStartupTests
         {
             if (!File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln"))) continue;
             var source = File.ReadAllText(Path.Combine(directory.FullName, "SpeechMessageProducts.ChurchReport", "Program.cs"));
-            var owner = source.IndexOf("registration = ExceptionReporting.Attach(diagnostics);", StringComparison.Ordinal);
+            var owner = source.IndexOf("registration = RegisterHostingDiagnostics(builder.Services, diagnostics);", StringComparison.Ordinal);
             var guard = source.IndexOf("SpeechMessage.Localization.GlobalizationModeGuard.ValidateIcuMode();", StringComparison.Ordinal);
-            var run = source.IndexOf("RunApplication(builder, diagnostics);", StringComparison.Ordinal);
+            var run = source.IndexOf("RunApplication(builder, diagnostics, ref configuration);", StringComparison.Ordinal);
             var failure = source.IndexOf("catch (Exception exception)", StringComparison.Ordinal);
             Assert.True(owner >= 0 && guard > owner && run > guard && failure > run);
             Assert.Contains("diagnostics.Report(exception, \"Program.Fatal\")", source, StringComparison.Ordinal);
-            Assert.Contains("configuration as IDisposable", source, StringComparison.Ordinal);
+            Assert.Contains("CleanupHostingResources(registration, diagnostics, sender, configuration, preservePrimaryFailure);", source, StringComparison.Ordinal);
+            Assert.Contains("configuration = null;", source, StringComparison.Ordinal);
             return;
         }
         throw new InvalidOperationException("Repository root was not found for the startup source contract.");

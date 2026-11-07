@@ -113,7 +113,7 @@ catch (Exception ex)
 例外傳輸的真正實作位於 `SpeechMessage.Hosting/LineExceptionSender.cs`；
 產品 facade 不可保留第二套 HTTP／token／Development 安全政策。
 三個 diagnostics 型別已搬入 Hosting，保留舊 namespace 與 ToolUtility 型別轉送。
-此抽取不表示 Program、語系完成度生成或整包 P2-01 已驗收。
+此抽取不表示語系完成度生成或整包 P2-01 已驗收；Program 接入契約見下節。
 
 ### 2. 可執行介面
 
@@ -166,3 +166,62 @@ ExceptionOutputOptionsTests 必須 Debug、Release 皆綠，不能只靠新共�
 錯誤：在產品 facade 再 new HttpClient、重新解析 token 或複製 ValidateTestHost。
 正確：產品只傳設定與自己的後備常數給共用 sender，Development 入口只委派 StartupGuards。
 共用 sender 不自行發通知，最終失敗仍由唯一 diagnostics owner 分類與去重。
+
+## P2-01 組合根註冊與失敗清理
+
+### 1. 適用範圍與觸發
+
+ChurchReport Program 接入 Hosting，或其他 Host 借用最外層 diagnostics 時適用。
+不得只測未接入 helper；Main 的真實呼叫順序及同一資源身分都要驗證。
+
+### 2. 實際接點
+
+- `Program.RegisterHostingDiagnostics(IServiceCollection, ExceptionDiagnostics)` 建立 adapter，
+  並呼叫 `AddSpeechMessageHosting(diagnostics, adapter)`；此 Program internal 方法不提供業務 API。
+- `Program.CleanupHostingResources(IDisposable registration, IAsyncDisposable diagnostics,
+  IDisposable sender, IDisposable configuration, bool preservePrimaryFailure)`。
+- Host 啟動先通過 Development guard，再讀輸出選項、建立 owner／共用 registration、
+  optional sender，之後才驗 ICU、建立 Startup／HTTP。
+
+### 3. 所有權與錯誤契約
+
+DI 只借用外部 owner／adapter，不得再手動 AddSingleton 相同 owner 或提前 Dispose。
+註冊衝突須撤回本次 candidate adapter，外部 diagnostics 仍可使用，服務集合不部分發布。
+成功 Build 的 WebApplication 接管組態，外層清空待清理參照；Build 失敗則外層仍負責。
+此接管點由真實空白主機加計數 provider 的測試證明，不能猜測 provider 的 Dispose 都冪等。
+
+關閉依序解除 registration → 等待 diagnostics drain → sender → 未移交 configuration。
+任一階段故障都必須繼續嘗試其餘階段。沒有主要失敗時，最後 aggregate 最多四個原 Exception；
+已有主要失敗正在傳播時，不覆蓋原物件／堆疊。診斷管道自身正在停止或已不可用，
+不遞迴通知，只以 `[ExceptionDiagnostics] CleanupFailed <固定階段>` 交給獨立主機監控。
+stderr 故障亦不能阻止清理；禁止輸出原 Message、路徑、組態值或憑證。
+Debug 的 ApplicationStopping registration 另以 using 局部擁有，停止結束即解除。
+
+### 4. 驗證與錯誤矩陣
+
+| 條件 | 必須結果 |
+| --- | --- |
+| 相同外部 owner／adapter 加入 DI | 容器解析同一 instance，容器停止不提前解除外層綁定 |
+| 保留服務衝突 | 原集合不變、候選綁定解除、借用 owner 未關閉 |
+| Build 成功／失敗 | 組態分別由 Host／外層 owner 清理，provider 只有一次 Dispose |
+| 任一／多個清理故障 | 所有四階段皆嘗試，保留原故障及其順序 |
+| 主要例外已傳播 | 不被關閉故障取代，固定 stderr 不含敏感本文 |
+| 通知正在執行 | 先解除入口，排空後才 Dispose sender，最後 active 歸零 |
+
+### 5. 正常、基本與禁止案例
+
+正常：Main 建立唯一 diagnostics，registration 及 logger 都只借用它。
+基本：選項解析或 Build 失敗時只有部分資源，清理 null 安全且不額外建立資源。
+禁止：順序裸呼叫四個 Dispose、finally 以新錯誤覆蓋主要失敗、或 Host／Main 都關閉同一組態。
+
+### 6. 必跑驗證
+
+HostingCompositionTests 的實際 DI、組態探針、逐階／多重故障、固定 stderr、
+主例外身分及真實 pending consumer；ChurchClockStartupTests 的原啟動順序仍須保留。
+四種輸出、Development 與既有例外回歸須 Debug／Release 皆通過。
+
+### 7. 錯誤與正確作法
+
+錯誤：registration.Dispose 拋錯後，直接略過 diagnostics、sender 與 configuration。
+正確：每個階段獨立嘗試、真正等待 drain，最後才決定是否拋出有界 aggregate；
+已存在主要例外時保留原始傳播，停止管道的故障由固定主機監控接收，不遞迴通知。

@@ -21,9 +21,12 @@
 ## 生命週期
 
 建立順序：組態快照 → guard → exception owner → optional LINE consumer → DI／Host。
-預定接入的停止順序：先解除全域 registration，避免新呼叫進入 → owner 停止接收
-並完成有限 drain → sender/client Dispose → configuration root Dispose。
-目前 Program 仍待接入並驗證此順序；不得把設計當成既有整合證據。
+Program 已透過 RegisterHostingDiagnostics 呼叫 Hosting 註冊，DI 借用同一組外部 owner／adapter。
+停止順序為先解除全域 registration，避免新呼叫進入 → owner 停止接收並完成有限 drain
+→ sender/client Dispose → 尚未移交的 configuration root Dispose。
+成功 Build 的 WebApplication 接管組態，外層清空參照，不再重複 Dispose provider；
+Build 失敗則外層仍負責清理。逐階故障不阻止後續清理，最多保留四個原 Exception。
+具體紅綠燈、組態所有權探針及回歸證據見 research/program-hosting-integration.md。
 任何逾時後不重用不確定傳輸狀態。
 
 ## 失敗處理
@@ -36,7 +39,8 @@ Message、request body、token 或個資放入 Exception.log／LINE。正常 cal
 
 保留 `ToolUtilityNameSpace.Diagnostics` 完整型別名稱與 ChurchReport 呼叫點，實作組件
 已移至 Hosting；以 ToolUtility 的 TypeForwardedTo 保護既有二進位參照，不再留第二套
-相容實作。接下來透過 Hosting registration 接入 Program，維持單一 owner。
+相容實作。Program 透過 Hosting registration 接入並維持單一 owner；
+StartupGuards 語系完成度生成與 R2／R3／R9 尚未完成，不能宣稱整包驗收。
 回復必須一併回復三型別位置、轉送與專案參照，不可同時載入兩份 owner。
 
 ## 2026-11-07 實際抽取修正（原規劃03優先）
@@ -53,8 +57,8 @@ ToolUtility改參考Hosting，Hosting移除ToolUtility參考、改參考Tenancy�
 註冊快照先完整驗證再加入描述子；相同目錄／開關或相同外部owner／adapter重入冪等，
 不同快照、外部adapter與owner不符、已存在非本入口的保留服務均拒絕且不部分發布。
 DI僅Dispose自己建立的owner／adapter；外部instance一律借用。全域registration先解除，
-再drain診斷，最後釋放sender與configuration。此步不替代後續sender搬移、Program接入、
-CultureCompleteness生成、R2／R3／R9與完整主機驗收，P2-01保持進行中。
+再drain診斷，最後釋放sender與尚未移交的configuration。sender搬移與Program接入現已
+實作，不替代後續CultureCompleteness生成、R2／R3／R9與完整主機驗收，P2-01保持進行中。
 
 ## LINE sender 搬移與測試邊界
 

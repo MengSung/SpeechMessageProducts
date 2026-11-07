@@ -1,0 +1,71 @@
+{
+  "baseCommit": "c5dd2d9b",
+  "solutionBuildExitCode": 0,
+  "reportedWarningCount": 23,
+  "reportedErrorCount": 0,
+  "warningSourceFileCount": 12,
+  "allWarningSourcesUnchanged": true,
+  "claimBoundary": "Warning source identity checked; this is not a reconstructed baseline build or zero-warning claim.",
+  "files": [
+    {
+      "path": "ToolUtility.Dataverse.Tests/RunCServiceGraphTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "97a99096e6140bd1a864b5a9905328628ba9b7307add0547f7db9165ae47cbec"
+    },
+    {
+      "path": "ToolUtility.Dataverse.Tests/ToolUtilityClassScopedLifetimeTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "38ba5c8c6abe457cb0dbbbe7636c65f03c16dd08fd84add3d10afef8fc8d4a42"
+    },
+    {
+      "path": "ToolUtility.Dataverse.Tests/ToolUtilityFactoryAmbientGatewayTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "80e4a74f71e8e6485d0ea066863465eb18179c5d4c055b57066b35be9e4e799c"
+    },
+    {
+      "path": "ToolUtility.Tests/AttributeOperations/LookupAttributeServiceTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "bf29a7b0e825a3cfd1fb77eca3b7fadb8e650b601ff2e66781b7c87f77dd736e"
+    },
+    {
+      "path": "ToolUtility.Tests/DependencyInjection/ProductRegistrationTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "392b104bf6ae6cd068944b24340c677eef34a6d85d1eea73cf356666540c1313"
+    },
+    {
+      "path": "ToolUtility.Tests/EntityOperations/RepositoryCallerRouteTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "3bcf3b815742e58d76802991a60fa04d0fcb66526e5978c455d95c5e1680f4ac"
+    },
+    {
+      "path": "ToolUtility.Tests/ListOperations/ListServiceTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "c93d451d8609c4c9bf2318b699a5097745dbaef300ca09131f51ca0277c6ab7a"
+    },
+    {
+      "path": "ToolUtility.Tests/TestHelpers/MockLoggerFactory.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "9db06f4efc15ec12a8b4abb39f2fb243ea959bda08caaf64eb3ae5839784a5e2"
+    },
+    {
+      "path": "ToolUtility.Tests/TestHelpers/MockOrganizationServiceFactory.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "c3780021944561badee78d0bca7fd98cfdcb8e9e6245867411ab3967fbc65b73"
+    },
+    {
+      "path": "ToolUtility.Tests/TestHelpers/TestEntityFactory.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "02574be35765a9bfc93748dfb406506ebb347ddc71333885c1fc0e648ba399f2"
+    },
+    {
+      "path": "ToolUtility.Tests/Utilities/StringUtilityTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "9af834ccc52b3d68defbee6454137fa3e270f71a7a46cf3957c43714098a75f0"
+    },
+    {
+      "path": "ToolUtility.Tests/Utilities/TraceUtilityTests.cs",
+      "sourceUnchangedFromBase": true,
+      "normalizedSha256": "bec796e77e7b4e2458c228decb456213d4c8016bb33612aea22a6898a8dd9d00"
+    }
+  ]
+}
