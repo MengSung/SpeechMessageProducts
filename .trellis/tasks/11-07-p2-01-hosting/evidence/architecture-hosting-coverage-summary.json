@@ -1,0 +1,9 @@
+{
+  "rawReport": "artifacts/p2/hosting-coverage-20261107-1148/651742ad-27b7-4367-8b31-ee2f6fa3fccb/coverage.cobertura.xml",
+  "sha256": "3fd5f37b6a0134a84f5223c50201953b231a8d27ce15c74da53d569717c78f0a",
+  "module": "SpeechMessage.Hosting",
+  "lineRate": "0.5848",
+  "threshold": "0.8",
+  "gateExit": 1,
+  "realExternalServices": false
+}
