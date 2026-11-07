@@ -1,0 +1,14 @@
+{
+  "id": "p2-progress-phase-summary",
+  "title": "進度頁同階段一般資訊合併",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "frontend",
+  "currentPhase": "completed",
+  "nextAction": "此呈現調整已提交並封存；接續P2-01 Hosting，不代表P2完成",
+  "createdAt": "2026-11-07T08:55:30.7147670+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "completedAt": "2026-11-07T09:03:17+08:00",
+  "commit": "a648a451"
+}

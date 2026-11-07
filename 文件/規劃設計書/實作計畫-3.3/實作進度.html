@@ -458,7 +458,7 @@ const DATA = {
       "body": "2026-11-07 09:02 Asia/Taipei (UTC+08:00)：P2 0／12驗收、1包進行中。Hosting已加入方案；功能測試6通過／4失敗，尚未驗收。P2-04測試 channel／本人帳號與 User Secrets 前置未完成；離線／mock 不代替必要實機。",
       "steps": [
         "最新離線功能證據：Hosting 測試10項，6通過／4失敗；失敗為實作組件歸屬、重複註冊冪等、衝突設定拒絕及adapter／owner一致性，仍須修復。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/hosting-ownership-red/hosting-ownership-red.trx；先前3通過／2失敗僅為歷史基線，不代表目前結果。",
-        "版面與追蹤規則：同階段只保留一張一般資訊摘要並原地更新；方案可見不等於驗收完成。進度頁17／17通過（含先紅後綠、83包狀態、53項計畫細節、P1實機證據與警告隔離），檔案說明1257檔／0失敗。證據：.trellis/tasks/11-07-p2-progress-phase-summary/evidence/progress-red.log、progress-contract-red.log、progress-final.log、file-documentation.log。 HTML結構、CSS／renderer不變、原資訊完整保留、UTF-8無BOM／CRLF檢查通過：同目錄page-integrity.json；P2驗收仍未完成。",
+        "版面與追蹤規則：同階段只保留一張一般資訊摘要並原地更新；方案可見不等於驗收完成。進度頁17／17通過（含先紅後綠、83包狀態、53項計畫細節、P1實機證據與警告隔離），檔案說明1257檔／0失敗。證據：.trellis/tasks/archive/2026-11/11-07-p2-progress-phase-summary/evidence/progress-red.log、progress-contract-red.log、progress-final.log、file-documentation.log。 HTML結構、CSS／renderer不變、原資訊完整保留、UTF-8無BOM／CRLF檢查通過：同目錄page-integrity.json；P2驗收仍未完成。",
         "實際執行：主會話 inline 修改／檢查；本次沒有派遣子代理或平行產品實作。P2-02／03／06／09僅為依賴上可離線並行的候選；受模式限制不冒稱已並行。",
         "外部流程限制：使用者已要求不使用外部模型，但高優先執行設定仍強制兩模型呼叫；本次分析 .ccg/dual-model-runs/20261107-085531-p2-progress-phase-summary-analyzer/summary.json、審查 .ccg/dual-model-runs/20261107-090026-p2-progress-phase-summary-reviewer/summary.json 均無可用輸出，Gemini 503、Claude額度受阻，dualModelComplete=false、degradedFallback=false。不重試同一阻塞、不冒稱外審成功；主會話本地審查與驗證已執行。",
         "歷史紀錄｜P2-01 方案登錄已補齊，功能驗收仍進行中：2026-11-07 08:47 Asia/Taipei (UTC+08:00)：Hosting 與 Hosting.Tests 已加入 SpeechMessageProducts.sln，原有30專案保持不變，現為32專案；兩個新項目各一筆且有 Debug／Release 建置對應。這只完成方案登錄，不代表 P2-01 或 P2 全部完成。",
