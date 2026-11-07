@@ -41,8 +41,10 @@ net48宿主反射確認實際載入net462產品；net10同理。
 
 ## Deployment後續整合
 
-新增Channels/ChannelProvisioningCli.cs、ChannelProvisioningService.cs。
-DeploymentCli先解析新指令，不落入Plugin manifest或DLL讀取；Program借入Console.In。
+新增Channels/ChannelProvisioningCli.cs、ChannelProvisioningService.cs及ChannelSecretInput.cs。
+DeploymentCli先解析新指令，不落入Plugin manifest或DLL讀取；Program在語法及key通過後，
+延遲建立Windows重新導向stdin owner，pipe非破壞peek／30秒總deadline／16KiB嚴格UTF-8，
+CLI再守4096字元。不互動回顯秘密、不開Task.Run；有限本機檔案的同步I/O仍須drain。
 parser及組織／ID／stdin上限先驗，才建立寫鎖及唯一lease；秘密只停留單次操作，
 所有可清零的key／中間buffer在finally清零，不寫artifact。Service只用alternate key
 Upsert new_linechannel，assign-channel由new_channelid查得真實record ID後更新account，
@@ -51,6 +53,10 @@ Upsert new_linechannel，assign-channel由new_channelid查得真實record ID後�
 ## 邊界、失敗與回復
 
 Core不是最終通知邊界，驗證失敗向caller傳固定例外，不引入notifier反向依賴。
-CLI先釋放lease／寫鎖再交共用report，正常caller取消回130，秘密絕不進Message／Data。
+CLI先釋放lease／寫鎖再交共用report，正常caller取消回130；自產例外不含秘密，
+外部SDK原故障只經安全共用診斷，不輸出Message／Data。SDK與cleanup同時失敗時，
+ExceptionDispatchInfo保留原身分／堆疊，先嘗試全部清理，再以最多三個原Exception聚合。
+保留原Run八參數與RunCommand六參數唯一簽章，新注入入口使用不同名稱，
+避免舊反射契約歧義並維持CancellationToken最後參數。
 保留原P0／P1命令行為與安全輸出。回復可移除新增Security與Channels檔及路由；
 不改既有資料schema、不覆寫既有組織資料。

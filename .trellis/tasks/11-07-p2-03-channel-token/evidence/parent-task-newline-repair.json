@@ -1,0 +1,8 @@
+{
+  "path": ".trellis/tasks/11-07-integration-p2/task.json",
+  "beforeSha256": "918ceaa9969ca6f016cf2a3fa443e458bab516ad0c2f1b0ff979285236cd7c2c",
+  "afterSha256": "d4a9b2a21554e7cb95b6e47a82725f34660243481b4070090bd9f382e58ba89b",
+  "onlyAddedFinalCrlf": true,
+  "jsonSemanticEqual": true,
+  "ownership": "本次P2父任務維護資料，非原始機器證據"
+}

@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：本檔是部署工具的共同命令入口，讓P0 Plugin註冊與P1結構操作共用既有connector、
- * 組織白名單、固定artifacts邊界、寫鎖及終端例外回報，但保持兩種清單與執行流程分開。
+ * 組織白名單、固定artifacts邊界、寫鎖及終端例外回報；P2 Channel命令在清單路由前分流。
  *
  * 主要功能與流程：先解析命令／選項、拒絕非goodshepherdback與外部plan/export路徑；
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
@@ -67,10 +67,10 @@ internal static class DeploymentCli
         Func<string, string>? secretReader = null,
         TimeSpan? writeLockTimeout = null,
         CancellationToken cancellationToken = default) =>
-        Run(args, connector, output, report, null, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+        RunWithInput(args, connector, output, report, null, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
 
     /// <summary>
-    /// 借入秘密輸入的命令入口。原八參數入口保留原簽章並委派此處；取消訊號保持最後一個參數，
+    /// 借入秘密輸入的命令入口。原八參數入口保留唯一 Run 簽章並委派此處；取消訊號保持最後一個參數，
     /// 不為新 Channel 指令改變既有呼叫的參數繫結。reader 的生命週期由程序組合根持有。
     /// </summary>
     /// <param name="args">原始命令列，parser 不回顯其值。</param>
@@ -83,7 +83,7 @@ internal static class DeploymentCli
     /// <param name="writeLockTimeout">同組織寫鎖等待上限。</param>
     /// <param name="cancellationToken">呼叫端取消訊號，保持參數列末端。</param>
     /// <returns>成功 0、拒絕 2、故障 1、正常取消 130。</returns>
-    public static int Run(
+    internal static int RunWithInput(
         string[] args,
         IOrganizationConnector connector,
         TextWriter output,
@@ -104,6 +104,11 @@ internal static class DeploymentCli
             WriteUsage(output);
             return 0;
         }
+
+        // 新命令先交專屬 parser；不能把 --schema 等未知參數誤導向其他部署路由。
+        if (args[0] is "protect-token" or "assign-channel")
+            return Channels.ChannelProvisioningCli.Run(args, connector, output, report,
+                secretInput, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
 
         // P1結構命令不需要Plugin DLL；只在明確--schema或export-metadata時進新路由，舊P0語法與安全邊界保留。
         if (args[0] == "export-metadata" || Array.IndexOf(args, "--schema") >= 0)
@@ -486,6 +491,8 @@ internal static class DeploymentCli
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
         output.WriteLine("          export-metadata --org <name> | plan/verify --org <name> --schema <file>");
         output.WriteLine("          apply --org <name> --schema <file> --plan <file>");
+        output.WriteLine("          protect-token --org goodshepherdback --channel-id <id> (two secret lines from stdin)");
+        output.WriteLine("          assign-channel --org goodshepherdback --channel-id <id> --account <guid>");
     }
 
     /// <summary>只包含已驗證的命令名稱與參數；不保留其他命令列文字。</summary>

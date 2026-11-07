@@ -20,7 +20,17 @@
   "subtasks": [],
   "children": [],
   "parent": "11-07-integration-p2",
-  "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "relatedFiles": [
+    "LineMessagingProcessor.Core/Security/ChannelTokenProtector.cs",
+    "SpeechMessage.Dynamics.Deployment/Channels",
+    "SpeechMessage.Dynamics.Deployment.Tests/ChannelProvisioningTests.cs",
+    "SpeechMessage.Dynamics.Deployment.Tests/ChannelSecretInputTests.cs"
+  ],
+  "notes": "P2-03離線核心及Deployment已實作；必要實機、before／回復與權限／唯一性待驗證。父P2仍0／12。既有提交376a6172保留，無外部模型、子代理或實機操作。",
+  "meta": {
+    "executionMode": "inline",
+    "externalDualModel": "user-waived",
+    "offlineOnly": true
+  },
+  "updatedAt": "2026-11-07T12:53:53+08:00"
 }

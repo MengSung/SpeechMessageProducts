@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-11-07T12:57:04+08:00",
+  "syntheticOfflineOnly": true,
+  "runs": [
+    {
+      "target": "net462",
+      "module": "LineMessagingProcessor.Core",
+      "passed": 75,
+      "coveragePath": "artifacts/p2/channel-token-coverage-net48-20261107-1225/811d446b-792f-4476-bd47-be1f54d0a126/coverage.cobertura.xml",
+      "sha256": "19711bd47475065291d01baf42ed3467d253a7856d69f2d4221c5874783ce0c6",
+      "moduleLineRate": "0.9526",
+      "threshold": "0.8",
+      "gate": "passed",
+      "freshIndependentReport": true
+    },
+    {
+      "target": "net10.0",
+      "module": "LineMessagingProcessor.Core",
+      "passed": 116,
+      "coveragePath": "artifacts/p2/channel-token-coverage-net10-20261107-1225/1ee4fb90-1c47-4c86-8ead-dbe67576d8d6/coverage.cobertura.xml",
+      "sha256": "dbcd92e7fc3b687bfe458ea95a0cd4d38d816eab77a6537cb1af62b9b7666f23",
+      "moduleLineRate": "0.9748",
+      "threshold": "0.8",
+      "gate": "passed",
+      "freshIndependentReport": true
+    },
+    {
+      "target": "net10.0",
+      "module": "SpeechMessage.Dynamics.Deployment",
+      "passed": 193,
+      "coveragePath": "artifacts/p2/deployment-lifecycle-coverage-20261107-1255/3a7d273c-3529-46d1-9f77-11fc0d3b4f5b/coverage.cobertura.xml",
+      "sha256": "8f7b5d5cb36c79574c0f0f99e0ec430240a3093a61b5309049d06f909ca4735d",
+      "moduleLineRate": "0.893",
+      "threshold": "0.8",
+      "gate": "passed",
+      "freshIndependentReport": true
+    }
+  ]
+}

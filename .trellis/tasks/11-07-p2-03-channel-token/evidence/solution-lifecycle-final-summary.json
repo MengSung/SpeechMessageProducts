@@ -1,0 +1,496 @@
+{
+  "generatedAt": "2026-11-07T12:55:49+08:00",
+  "scope": "本機完整方案Release；非hosted CI／實機",
+  "trxCount": 18,
+  "passed": 4594,
+  "failed": 0,
+  "skipped": 0,
+  "runs": [
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0.trx",
+      "bytes": 64463,
+      "sha256": "f110b4e4359b2c1e4fb0816bbf5fb653462694ce77ad6bdbd01443450006338f",
+      "assemblies": [
+        "LineMessagingProcessor.RichMenus.Tests.dll"
+      ],
+      "counters": {
+        "total": 34,
+        "executed": 34,
+        "passed": 34,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[10].trx",
+      "bytes": 1137981,
+      "sha256": "1687c439506ee93972dd606368357de512fc3cb60a5fb3271f64c824bf82aa38",
+      "assemblies": [
+        "ChurchReport.MemberInfo.Tests.dll"
+      ],
+      "counters": {
+        "total": 638,
+        "executed": 638,
+        "passed": 638,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[11].trx",
+      "bytes": 182642,
+      "sha256": "ff8de69ed1219b2b88d10ce72289b4a647b3be5c4387387dbdfb725c4766b8ed",
+      "assemblies": [
+        "SpeechMessage.Hosting.Tests.dll"
+      ],
+      "counters": {
+        "total": 104,
+        "executed": 104,
+        "passed": 104,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[1].trx",
+      "bytes": 63879,
+      "sha256": "842b75cbc30131360ec3ed57dfc9e5a15321a0e306988caf78b97160a21ca5bb",
+      "assemblies": [
+        "LineMessagingProcessor.Workflows.Tests.dll"
+      ],
+      "counters": {
+        "total": 33,
+        "executed": 33,
+        "passed": 33,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[2].trx",
+      "bytes": 9355,
+      "sha256": "9150ded1708047a50640e74315c675fd13b4bce2c7a0eec75ff26636d3798ded",
+      "assemblies": [
+        "LineMessagingProcessor.AspNetCore.Tests.dll"
+      ],
+      "counters": {
+        "total": 4,
+        "executed": 4,
+        "passed": 4,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[3].trx",
+      "bytes": 98418,
+      "sha256": "e76327350f5ddc95b33b547e1121645f9f1c4185b327120a851ef40d47c477d2",
+      "assemblies": [
+        "SpeechMessage.Payments.Tests.dll"
+      ],
+      "counters": {
+        "total": 55,
+        "executed": 55,
+        "passed": 55,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[4].trx",
+      "bytes": 199688,
+      "sha256": "3500f092e5b0bc1e3c4be3c447bb630ec22fa638d30c333f5e73cd27bdfe43cf",
+      "assemblies": [
+        "LineMessagingProcessor.Tests.dll"
+      ],
+      "counters": {
+        "total": 116,
+        "executed": 116,
+        "passed": 116,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[5].trx",
+      "bytes": 168776,
+      "sha256": "0741f2a2a71a65bad5bab710448ab07efa9a3990621a1a2c1e16b60fcf479d2e",
+      "assemblies": [
+        "Line.Messaging.Tests.dll"
+      ],
+      "counters": {
+        "total": 101,
+        "executed": 101,
+        "passed": 101,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[6].trx",
+      "bytes": 303208,
+      "sha256": "295c789e86d17a453a0d1b34123303823587f5cab9c4b5b1e52c86f0561a1041",
+      "assemblies": [
+        "SpeechMessage.Localization.Tests.dll"
+      ],
+      "counters": {
+        "total": 184,
+        "executed": 184,
+        "passed": 184,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[7].trx",
+      "bytes": 124177,
+      "sha256": "fd0eeaa0610567276d415434bee115b8cc151cae22434b13d139af469ba5b7d3",
+      "assemblies": [
+        "SpeechMessage.Tenancy.Tests.dll"
+      ],
+      "counters": {
+        "total": 75,
+        "executed": 75,
+        "passed": 75,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[8].trx",
+      "bytes": 336386,
+      "sha256": "12aa33f4365db1e0dd32b2604c1b5a4979bf41182392d51b60e15fff0748e892",
+      "assemblies": [
+        "SpeechMessage.Dynamics.Deployment.Tests.dll"
+      ],
+      "counters": {
+        "total": 193,
+        "executed": 193,
+        "passed": 193,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[9].trx",
+      "bytes": 2303626,
+      "sha256": "d3990ce05a96721777712de14532b4fc26931a00f93f8ee8489b3ed37bd6a688",
+      "assemblies": [
+        "ToolUtility.Tests.dll"
+      ],
+      "counters": {
+        "total": 1369,
+        "executed": 1369,
+        "passed": 1369,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_58_net10.0.trx",
+      "bytes": 135259,
+      "sha256": "ad5a475fb354cb806b7c52c7a873c482544696e9d278fa059b52ca0c352444a1",
+      "assemblies": [
+        "ToolUtility.Dataverse.Tests.dll"
+      ],
+      "counters": {
+        "total": 79,
+        "executed": 79,
+        "passed": 79,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_58_net48.trx",
+      "bytes": 159348,
+      "sha256": "906f64dd13396274e2f1217091cd7d66a1d4da7e5e7479c89fdd00dd6fea0552",
+      "assemblies": [
+        "Line.Messaging.Tests.dll"
+      ],
+      "counters": {
+        "total": 96,
+        "executed": 96,
+        "passed": 96,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_59_net48.trx",
+      "bytes": 298110,
+      "sha256": "fa30d519f06a2bca3338942c953589d9fb1e9863b0ce46a9b97f5f48db7618ce",
+      "assemblies": [
+        "SpeechMessage.Localization.Tests.dll"
+      ],
+      "counters": {
+        "total": 182,
+        "executed": 182,
+        "passed": 182,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_59_net48[1].trx",
+      "bytes": 42099,
+      "sha256": "31dafa60ad0585f5ff2e6dbe9a4758ae3c8df6032f23702b898c5af3dece09a9",
+      "assemblies": [
+        "SpeechMessage.Dynamics.Plugins.Tests.dll"
+      ],
+      "counters": {
+        "total": 25,
+        "executed": 25,
+        "passed": 25,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_59_net48[2].trx",
+      "bytes": 121958,
+      "sha256": "21941fc9744a8d07b342df14aa458c184f6c3ee1ab4fd6f0af574fdb51c1141f",
+      "assemblies": [
+        "LineMessagingProcessor.Tests.dll"
+      ],
+      "counters": {
+        "total": 75,
+        "executed": 75,
+        "passed": 75,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_53_00_net48.trx",
+      "bytes": 2056511,
+      "sha256": "3720b3355efe67819fb325cc24a5c560c36ea0e90a5ca3c0e59b0a31f14d66b4",
+      "assemblies": [
+        "ToolUtility.Tests.dll"
+      ],
+      "counters": {
+        "total": 1231,
+        "executed": 1231,
+        "passed": 1231,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "actualRowsValidated": true
+    }
+  ]
+}

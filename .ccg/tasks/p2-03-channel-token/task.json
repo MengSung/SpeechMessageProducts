@@ -2,11 +2,12 @@
   "id": "p2-03-channel-token",
   "title": "P2-03 雙目標Channel Token加密與白名單寫入工具",
   "status": "in_progress",
-  "complexity": "M",
+  "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "先保存缺實作與行為紅燈，再完成雙目標加密核心；CLI與必要實機另追蹤。",
+  "currentPhase": "review",
+  "nextAction": "保存離線193案雙組態、獨立coverage、完整方案與安全審查證據並本地提交；必要實機與整包驗收仍未完成。",
   "createdAt": "2026-11-07T12:10:00+08:00",
-  "branch": "1.0.0.11.Integration.P2.Worktree"
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "updatedAt": "2026-11-07T12:53:53+08:00"
 }

@@ -1,0 +1,12 @@
+{
+  "testRowsByActualCompiledClass": {
+    "LineMessagingProcessor.Tests.dll|LineMessagingProcessor.Tests.Security.ChannelTokenProtectorTests|net10": 29,
+    "SpeechMessage.Dynamics.Deployment.Tests.dll|SpeechMessage.Dynamics.Deployment.Tests.ChannelProvisioningTests|net10": 29,
+    "SpeechMessage.Dynamics.Deployment.Tests.dll|SpeechMessage.Dynamics.Deployment.Tests.ChannelSecretInputTests|net10": 7,
+    "LineMessagingProcessor.Tests.dll|LineMessagingProcessor.Tests.Security.ChannelTokenProtectorTests|net48": 29
+  },
+  "deploymentOriginalCases": 157,
+  "deploymentNewCases": 36,
+  "deploymentFinalCases": 193,
+  "notLive": true
+}

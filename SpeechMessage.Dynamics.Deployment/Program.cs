@@ -7,6 +7,8 @@
  * 主要功能與流程：
  * 本檔宣告 Program。
  * - 建立唯一 User Secrets 組態與 Ctrl+C 取消來源，執行一個命令後先解除事件訂閱， 再 Dispose 取消來源與組態。初始化失敗只輸出固定訊息及例外型別，不輸出原始訊息。
+ * - Channel命令在語法及key通過後才建立ChannelSecretInput讀重新導向stdin，
+ *   最多三十秒／16KiB，不互動回顯秘密、不建立可遺留的背景讀取。原命令不建立此owner。
  * - 為單次命令掛載共用檔案診斷 owner，明確停用 LINE，並在命令完成時解除全域註冊後 drain／Dispose owner。日誌目錄由程序組合根提供，不接受命令列、組態或 request 決定。
  * - 組態尚未建立診斷 owner 時，只輸出固定初始化狀態與型別名稱。
  * - 以固定 stderr 代碼處理輸出 writer 失敗，不展開原始例外或組態內容。
@@ -96,6 +98,30 @@ internal static class Program
         TextWriter output,
         IConfiguration configuration,
         string logDirectory,
+        CancellationToken cancellationToken) =>
+        RunCommandWithInput(args, connector, output, configuration, logDirectory, null, null, cancellationToken);
+
+    /// <summary>
+    /// 供 Channel 命令注入有限 stdin 的組合根；真實程序延遲建立受限 stdin owner，離線測試借用自己的
+    /// reader 及鎖根。診斷 owner 由此方法建立並排空，不接管 reader、組態及 connector 所有權。
+    /// </summary>
+    /// <param name="args">原始命令列，不含秘密。</param>
+    /// <param name="connector">每命令唯一租約來源。</param>
+    /// <param name="output">呼叫端擁有的安全摘要 writer。</param>
+    /// <param name="configuration">程序擁有的 User Secrets 組態。</param>
+    /// <param name="logDirectory">程序固定診斷目錄，不由 request 或秘密組成。</param>
+    /// <param name="secretInput">測試借入的有限 stdin，由 caller 關閉；null由命令延遲建立真owner。</param>
+    /// <param name="artifactRoot">離線測試專屬鎖根；真實命令為 null。</param>
+    /// <param name="cancellationToken">正常 caller 取消訊號，始終為最後參數。</param>
+    /// <returns>CLI 結束碼；所有返回路徑都解除並排空診斷。</returns>
+    internal static int RunCommandWithInput(
+        string[] args,
+        IOrganizationConnector connector,
+        TextWriter output,
+        IConfiguration configuration,
+        string logDirectory,
+        TextReader? secretInput,
+        string? artifactRoot,
         CancellationToken cancellationToken)
     {
         ExceptionDiagnostics? diagnostics = null;
@@ -106,11 +132,13 @@ internal static class Program
                 logDirectory,
                 outputOptions: new ExceptionOutputOptions(writeExceptionLog: true, sendLine: false));
             registration = ExceptionReporting.Attach(diagnostics);
-            return DeploymentCli.Run(
+            return DeploymentCli.RunWithInput(
                 args,
                 connector,
                 output,
                 exception => ExceptionReporting.Report(exception, "SpeechMessage.Dynamics.Deployment"),
+                secretInput,
+                artifactRoot,
                 secretReader: name => configuration[
                     "Deployment:Organizations:goodshepherdback:" + name] ?? string.Empty,
                 cancellationToken: cancellationToken);

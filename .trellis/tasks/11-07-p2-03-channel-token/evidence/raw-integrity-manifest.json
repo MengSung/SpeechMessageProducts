@@ -1,0 +1,657 @@
+{
+  "generatedAt": "2026-11-07T13:00:14+08:00",
+  "rawEvidencePolicy": "原始bytes保留；只提交摘要及hash，新TRX／log／coverage不進版控。",
+  "files": [
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-behavior-red-actual/Administrator_LENOVO-LEGION_2026-11-07_12_33_45_net10.0.trx",
+      "bytes": 71843,
+      "sha256": "40a137dd1aa11dc4626b83dbe122c2e1245e67948aa646108ad571cc9cfc9aac"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-behavior-red-actual.log",
+      "bytes": 17366,
+      "sha256": "df9a3c3779f41f3cf6f08ddbd68bb2461914dabe06dd291fa1d69dacc1faf0bd"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-behavior-red.log",
+      "bytes": 2858,
+      "sha256": "1a5fdccd0c6933304884683c14e6342378a3c27666c0b11282a7bf9ecb326af6"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-cleanup-red/Administrator_LENOVO-LEGION_2026-11-07_12_45_26_net10.0.trx",
+      "bytes": 5638,
+      "sha256": "b8b6b6c52377ad2f1e9090d904cec9a6224c276c561d1703512d79d00f332b50"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-cleanup-red.log",
+      "bytes": 4363,
+      "sha256": "85b4f86b8d50707207334c27f4ec2befb2f37eee7a769e91e3b0014c31553223"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-first-implementation/Administrator_LENOVO-LEGION_2026-11-07_12_37_12_net10.0.trx",
+      "bytes": 43172,
+      "sha256": "07b90cee13c4e09b41acc5ec5a5d8e1f7827fb6fd0f96022fe8377ebcb8d8f56"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-first-implementation.log",
+      "bytes": 3368,
+      "sha256": "5d33ededcd137e2f2f748e724eb0a5b4e921e10fb2484e99fce4c3f02252da08"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/cli-missing-red.log",
+      "bytes": 7069,
+      "sha256": "c784559b8deb17e685fcf1265c51850866e650a5a94ff711ac508ed28745ca31"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-behavior-red/core-behavior-red_net10.0_20261107121722.trx",
+      "bytes": 120523,
+      "sha256": "6765772e7501c035f08a4c079eb199ae91a0f45a8029aa8d3db5baf56137acef"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-behavior-red/core-behavior-red_net48_20261107121722.trx",
+      "bytes": 96531,
+      "sha256": "0e84f8220d6408cf84301567177fc2a8302c5166c318ab538c3ae130bbb9229e"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-behavior-red.log",
+      "bytes": 60528,
+      "sha256": "f31e20edbe22113976768a0f184e51fc27e0cad2beac97fc6b88cf9f4755d7b7"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-coverage-net10-gate.log",
+      "bytes": 46,
+      "sha256": "5a8e5ff28afd376d98b443424dc3366189577a0ae7b6695e9fcb9671823c2ac9"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-coverage-net10.log",
+      "bytes": 761,
+      "sha256": "e0dfdc5ad1dd5e7d6bf432643e2c28f5a18ae03c31544dcbd2431a221d83e0d7"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-coverage-net48-gate.log",
+      "bytes": 46,
+      "sha256": "2465caee1cba26f0b95a777f54f32c95da9c7bfed7c59924b5eb7841b6454c77"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-coverage-net48.log",
+      "bytes": 755,
+      "sha256": "7b14c88d68682248cb1818d52adf99c15d6e92db3df5acba66f3240728acf579"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-first-green.log",
+      "bytes": 1899,
+      "sha256": "f75311c41ef774e93b65f0d3c1bcccc0a32158dcace47b28541fc3e575337056"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-focused-green/core-focused-green_net10.0_20261107122100.trx",
+      "bytes": 50658,
+      "sha256": "d209eebd038d644a0a23b244dd9730f02ff53cf570a5183f72ab6dfbc07f60ba"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-focused-green/core-focused-green_net48_20261107122102.trx",
+      "bytes": 50352,
+      "sha256": "82f0f34c1df21c931dfe5b0e927582b3953661807448617dc73815f5ee840ba8"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-focused-green.log",
+      "bytes": 3564,
+      "sha256": "45c4ae99f47e0fbc966c2792ba6aa5bceead3d56516d6f174459dbb0e235502d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-full-interop-debug/core-full-interop-debug_net10.0_20261107122311.trx",
+      "bytes": 199224,
+      "sha256": "8697ea12d103bbdb3c7be231111a23a38893f55ae07dd4f1ba0fdb59e04e95b6"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-full-interop-debug/core-full-interop-debug_net48_20261107122312.trx",
+      "bytes": 121658,
+      "sha256": "b1764a06d6e71832b0f80e499c9d673760860f44753f61e531f41eb22518a80c"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-full-interop-debug.log",
+      "bytes": 3562,
+      "sha256": "320424bc3684eda4b929b74722758627db330e6f7b83c06414da317789511ed7"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-full-interop-release/core-full-interop-release_net10.0_20261107122143.trx",
+      "bytes": 199688,
+      "sha256": "91be967a34960d415d24a358d12377a97ab150310c41d92414946403416c1a89"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-full-interop-release/core-full-interop-release_net48_20261107122145.trx",
+      "bytes": 121958,
+      "sha256": "54d57ba64a468dc8f8acdfc4d1153c8e4e23b7b1ddbd6af3266da69495367214"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-full-interop-release.log",
+      "bytes": 3590,
+      "sha256": "0c3c8658900c886bdd9f4c306fcdfd23830c7474e9664bf90add203241b5e167"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-missing-red.log",
+      "bytes": 2726,
+      "sha256": "66c4db81a72c10fa845a675a418e95641245980f42d82eb9a7c779e20c099444"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/core-node-independent.log",
+      "bytes": 80,
+      "sha256": "bd1e5c3a30a7435e547550950137a7ff2b13dfa201b73a608c4318541d058324"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/debug-tracer/Administrator_LENOVO-LEGION_2026-11-07_12_50_16_net10.0.trx",
+      "bytes": 13329,
+      "sha256": "2144609b15cb4fc9d480f76e39e80f554dad2dc417dbfc0f3c906c0299c014fd"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/debug-tracer.log",
+      "bytes": 5157,
+      "sha256": "0b96380144aafb280dfe10171d66656737ff1aafb502533862224be125d38e6f"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-coverage-gate.log",
+      "bytes": 52,
+      "sha256": "5490e889c46a8d8a76c8b462b834aa641e4efb4c7d97f4a95d1c34d8a497a5f3"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-coverage.log",
+      "bytes": 782,
+      "sha256": "8766d4c63c5dd4a9c99d291ec9c257b88ccc3822e43f17f0c4d4c8a41a093472"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-debug-after-cleanup/Administrator_LENOVO-LEGION_2026-11-07_12_46_39_net10.0.trx",
+      "bytes": 333869,
+      "sha256": "563eecbe34244a9e57ae1b12c620783ce1efba4ce4389e6398e83926f65130a9"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-debug-after-cleanup.log",
+      "bytes": 3349,
+      "sha256": "6b12c405ff71637b4e52e2b95b870514f33916f4b1161a01cc39c9246ef167e4"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-full-debug.log",
+      "bytes": 2557,
+      "sha256": "c69a96d289843748ab68ffb25b67e226e9690e92a701ab8daa6078042fee2698"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-full-release/Administrator_LENOVO-LEGION_2026-11-07_12_43_03_net10.0.trx",
+      "bytes": 332873,
+      "sha256": "5e04317bb792813ef15890b02c291916480428dde91565a0442278a32a370867"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-full-release.log",
+      "bytes": 3364,
+      "sha256": "884f785c19c9a618bbf843bb23f0118842e88a3d8134be7ccece7dc881dfa9a6"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-lifecycle-coverage-gate.log",
+      "bytes": 52,
+      "sha256": "5490e889c46a8d8a76c8b462b834aa641e4efb4c7d97f4a95d1c34d8a497a5f3"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-lifecycle-coverage.log",
+      "bytes": 792,
+      "sha256": "4288a2f567a84a5e54d2a21e5ac804681024665c7e8c16a230de0f4d681a557e"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-lifecycle-final-debug/Administrator_LENOVO-LEGION_2026-11-07_12_52_45_net10.0.trx",
+      "bytes": 335614,
+      "sha256": "e2a805f799e42f1e737ab8f6e0687c7384eeeed567048dc2cc89f77a5ff10d50"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-lifecycle-final-debug.log",
+      "bytes": 3351,
+      "sha256": "89f5afbec020d71b24e29890643548b2051e4968555babaeadddb69c995f9d20"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-lifecycle-final-release/Administrator_LENOVO-LEGION_2026-11-07_12_52_38_net10.0.trx",
+      "bytes": 336386,
+      "sha256": "4353275fcd536fc63ad34e2fe93c460ca0f17eec2e4b021d85d4cf20d9e415ad"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/deployment-lifecycle-final-release.log",
+      "bytes": 3375,
+      "sha256": "287f008a1c7dc8faaac9161353a831a82a2e249d8577ae20b890260f6be8f43e"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/documentation-cli.log",
+      "bytes": 46,
+      "sha256": "a131f1484146a508e28e363fcf96ce6ede3dd51a8b31ad3ff9118c09bf5f652b"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/documentation-core-start.log",
+      "bytes": 246,
+      "sha256": "80e7cf6d85e69550f3d845fdcfc22ff69219d536a204045707179c4cd303dbbb"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/documentation-final.log",
+      "bytes": 46,
+      "sha256": "a131f1484146a508e28e363fcf96ce6ede3dd51a8b31ad3ff9118c09bf5f652b"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/duplicate.log",
+      "bytes": 85,
+      "sha256": "6a8fe02818157ea36a3610e3c2450df77b3427ee11446bf7663dbdf68930465a"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/i18n-tests/Administrator_LENOVO-LEGION_2026-11-07_12_50_11_net10.0.trx",
+      "bytes": 291025,
+      "sha256": "9985da3fb30cef0199cbf812acfcfe6232a46309704b0f35364de7d3b15b1a92"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/i18n-tests.log",
+      "bytes": 1183,
+      "sha256": "3b546b18578b80bdaf2cc72cc56cfec9f2ed8f35ed17ba85fbdae10a59a11c2d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/i18n-verify.log",
+      "bytes": 68330,
+      "sha256": "58d9e16569466f04dd1a93d65d28c80bf3f4b7783cb387ffd93847bed174bcfb"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/package-versions.log",
+      "bytes": 65,
+      "sha256": "3d3a808c3bbcb682934a4b30b7f11d3b1169c49f7bf128fbafdc2f97eff5234e"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/plugin-tools-final/Administrator_LENOVO-LEGION_2026-11-07_12_50_35_net10.0.trx",
+      "bytes": 47100,
+      "sha256": "9f0fe03be1721f9bd9cdb2b8332f3489b88ad6e608b80de951e1a7ff371dcab7"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/plugin-tools-final.log",
+      "bytes": 1245,
+      "sha256": "4c3cc2009b12545c6e911a985be9a73fa4450063c9e86b9c9f9ad56d963b002f"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/plugin-tools-restore.log",
+      "bytes": 561,
+      "sha256": "e7ae4c86885869b38c0abf701800cea49ab93e7f1ca721c63bc84759a0f6f07d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/plugin-tools-tests.log",
+      "bytes": 633,
+      "sha256": "91df7583ca9aaedaf07777d8fbad300d4aa6d1e3640f35ba81d55d53b8b17540"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/progress-core-start.log",
+      "bytes": 1789,
+      "sha256": "0dcc991fddf2351b43c42572dad4337d5f259878414252c8a7ccea4fbd5e0949"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/progress-release.log",
+      "bytes": 1791,
+      "sha256": "68c7ad6f8435d6d57558d1ca03440286a0071c9cf2d0cb3bd02d13fcda0ed766"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-final-restore.log",
+      "bytes": 861,
+      "sha256": "6ba41de209860b2a2049ab75f38bd88065b79788a64063c72c5788131549110c"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0.trx",
+      "bytes": 64463,
+      "sha256": "f110b4e4359b2c1e4fb0816bbf5fb653462694ce77ad6bdbd01443450006338f"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[10].trx",
+      "bytes": 1137981,
+      "sha256": "1687c439506ee93972dd606368357de512fc3cb60a5fb3271f64c824bf82aa38"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[11].trx",
+      "bytes": 182642,
+      "sha256": "ff8de69ed1219b2b88d10ce72289b4a647b3be5c4387387dbdfb725c4766b8ed"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[1].trx",
+      "bytes": 63879,
+      "sha256": "842b75cbc30131360ec3ed57dfc9e5a15321a0e306988caf78b97160a21ca5bb"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[2].trx",
+      "bytes": 9355,
+      "sha256": "9150ded1708047a50640e74315c675fd13b4bce2c7a0eec75ff26636d3798ded"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[3].trx",
+      "bytes": 98418,
+      "sha256": "e76327350f5ddc95b33b547e1121645f9f1c4185b327120a851ef40d47c477d2"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[4].trx",
+      "bytes": 199688,
+      "sha256": "3500f092e5b0bc1e3c4be3c447bb630ec22fa638d30c333f5e73cd27bdfe43cf"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[5].trx",
+      "bytes": 168776,
+      "sha256": "0741f2a2a71a65bad5bab710448ab07efa9a3990621a1a2c1e16b60fcf479d2e"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[6].trx",
+      "bytes": 303208,
+      "sha256": "295c789e86d17a453a0d1b34123303823587f5cab9c4b5b1e52c86f0561a1041"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[7].trx",
+      "bytes": 124177,
+      "sha256": "fd0eeaa0610567276d415434bee115b8cc151cae22434b13d139af469ba5b7d3"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[8].trx",
+      "bytes": 336386,
+      "sha256": "12aa33f4365db1e0dd32b2604c1b5a4979bf41182392d51b60e15fff0748e892"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_57_net10.0[9].trx",
+      "bytes": 2303626,
+      "sha256": "d3990ce05a96721777712de14532b4fc26931a00f93f8ee8489b3ed37bd6a688"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_58_net10.0.trx",
+      "bytes": 135259,
+      "sha256": "ad5a475fb354cb806b7c52c7a873c482544696e9d278fa059b52ca0c352444a1"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_58_net48.trx",
+      "bytes": 159348,
+      "sha256": "906f64dd13396274e2f1217091cd7d66a1d4da7e5e7479c89fdd00dd6fea0552"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_59_net48.trx",
+      "bytes": 298110,
+      "sha256": "fa30d519f06a2bca3338942c953589d9fb1e9863b0ce46a9b97f5f48db7618ce"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_59_net48[1].trx",
+      "bytes": 42099,
+      "sha256": "31dafa60ad0585f5ff2e6dbe9a4758ae3c8df6032f23702b898c5af3dece09a9"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_52_59_net48[2].trx",
+      "bytes": 121958,
+      "sha256": "21941fc9744a8d07b342df14aa458c184f6c3ee1ab4fd6f0af574fdb51c1141f"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_53_00_net48.trx",
+      "bytes": 2056511,
+      "sha256": "3720b3355efe67819fb325cc24a5c560c36ea0e90a5ca3c0e59b0a31f14d66b4"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-tests.log",
+      "bytes": 14214,
+      "sha256": "0d4349d730d51cf14deeb0a983864597beb94d3555ef711f209c7c701896e474"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-build.log",
+      "bytes": 10648,
+      "sha256": "cca561e2c9420ae97bfb05139e4e715153ea28f9b19b681dcdb137bb2319ae21"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-build.log",
+      "bytes": 10648,
+      "sha256": "724cd4fbbfb744c9fbdf07f9d27144bd077ee461262fb1effc213ab6b5498f75"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0.trx",
+      "bytes": 63879,
+      "sha256": "d2cdea7282f8a44d42bee011110059cdac6dd6e9b29c2ee98ea2ddc894eba4ea"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[10].trx",
+      "bytes": 2303626,
+      "sha256": "2b713d3d0a6ab1212e2f7b4a74c0654d00b85a5147d7cbe13ffff1242d62a790"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[11].trx",
+      "bytes": 1137981,
+      "sha256": "539920606ac3aea977c5e3da62210f8b1e739ed5494ada2f79b3e6980067dc37"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[12].trx",
+      "bytes": 182642,
+      "sha256": "8712a8a977c4b46e541554da875cb2d135c602bf179edb77cb14651cd80ddb2d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[1].trx",
+      "bytes": 64463,
+      "sha256": "adcea92012848bc6037a1e26e4ec947eb7a35904a95c6996a8bc2f8b6e40df37"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[2].trx",
+      "bytes": 98418,
+      "sha256": "41d067f242799bf326e5f7bcec2e01da8383263633c383db4e35ec633c30da0b"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[3].trx",
+      "bytes": 9355,
+      "sha256": "a53126884082e935eecf7cc5ea3d5784472f7629295de5022305c7c5f31301ee"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[4].trx",
+      "bytes": 168776,
+      "sha256": "0a5838b75038888f90c958a784f2cde072688e933cd7081d5b578b0b0797c845"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[5].trx",
+      "bytes": 199688,
+      "sha256": "9c7dc885d8f5ed8057880860567a3622568d89abdb5b122ba5164e1d0474f091"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[6].trx",
+      "bytes": 303208,
+      "sha256": "43ba89ba9abea1ba45cd0026ea12868549972bb9b6f096d7c677064f37db45f6"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[7].trx",
+      "bytes": 124177,
+      "sha256": "20b099660dfe6be598418466c20a42978d20d59a7630c0c649169ef615d5b044"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[8].trx",
+      "bytes": 334637,
+      "sha256": "5a5c843e9be561efa903f512924ac6473e0eed1354fa00e66d4cd063e1841c26"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_44_net10.0[9].trx",
+      "bytes": 135259,
+      "sha256": "3e9995287141225c11394889f0e26e8b47c96293d54f816d9479219fd034b9e2"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_45_net48.trx",
+      "bytes": 298110,
+      "sha256": "0c0d0629052f67615d00524924e1b96ac4592894d1bc55360c32eeb879c4de1b"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_45_net48[1].trx",
+      "bytes": 159348,
+      "sha256": "69120407189cfebf752c499bf2a2cc48d453a2b893d21aacba801f6f40abc6ff"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_46_net48.trx",
+      "bytes": 42099,
+      "sha256": "c04a4d2eef53b2e0b1161a1a9a8c6bad75037e2ea01b1a45f87d3c5aabfa6024"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_46_net48[1].trx",
+      "bytes": 121958,
+      "sha256": "6e9b4c11eaafa6caa9e6ab5098e7e4867ca42d6a6de05ba64507208a432cc95b"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests/Administrator_LENOVO-LEGION_2026-11-07_12_47_47_net48.trx",
+      "bytes": 2056511,
+      "sha256": "08344be932a86b4106d649e696547fe645bc32ce5eae41cbd8ae37b486188557"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-final-tests.log",
+      "bytes": 14184,
+      "sha256": "9a0406cf1f941ee36bde84bd0155a6f0baf454cc4f7cbaf0ac169c4c876272b1"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_10_net10.0.trx",
+      "bytes": 332873,
+      "sha256": "dffe93ed793a4e5ac005cf0cfd8985966a18a670d7ea47817f4806409522ad18"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_12_net10.0.trx",
+      "bytes": 9355,
+      "sha256": "9aa212e069721be1d4e6b00cdf8fd3f5c255b0e8e09c4e256c6af0c054c909d0"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_12_net10.0[1].trx",
+      "bytes": 64463,
+      "sha256": "18a4e6fcc640151f92b4ef421a5de335448d454fd550ee0ec425a6b7609a1467"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_12_net10.0[2].trx",
+      "bytes": 63879,
+      "sha256": "b954ab87c75f7868654981036da0f55ba41466a3192134bdb952d4a7596cb1ff"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_12_net10.0[3].trx",
+      "bytes": 303208,
+      "sha256": "4902648bb655835acbb5fcebbc72d5a90c7e9378a9abb4ddfa78c72a8fbeda9d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_12_net10.0[4].trx",
+      "bytes": 168776,
+      "sha256": "af9af3f112780d0a9b23155d86ae5a99630be2ff6af2dbfbf1263b65548a050f"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_12_net10.0[5].trx",
+      "bytes": 199688,
+      "sha256": "dcc3a2c3f0da0f3061550647faec5529ce97deaec04a50d9a242559a645bd3f5"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_12_net10.0[6].trx",
+      "bytes": 98418,
+      "sha256": "3c768844af3f9037de334f609c942957c2ab0286eb2d5751af62a039d135a44a"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net10.0.trx",
+      "bytes": 124177,
+      "sha256": "9307f34018e17e291b8a4d761b621050c8830d80b893e2f7c08db89a0b48eab1"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net10.0[1].trx",
+      "bytes": 135259,
+      "sha256": "5156c14a2193a1de3c617967e3dd48ccf2f5102c1bf01c1b00e00c91cdb02bb2"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net10.0[2].trx",
+      "bytes": 2303626,
+      "sha256": "09d6bc4a87a4218c2bd04be8310de84f1f4997c91fc115aaa1d8467f96edf04d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net10.0[3].trx",
+      "bytes": 1137981,
+      "sha256": "0ebabd1de6f37db32f462d158d4d3144d8273939253fea1c9a216c64b9af92ec"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net10.0[4].trx",
+      "bytes": 182642,
+      "sha256": "b70262ef5f8c0d49c2b9771fc727cf538d8aa2faa838f6ad3fbca29abe7e9cba"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net48.trx",
+      "bytes": 298110,
+      "sha256": "959b7288e31874d3b9a535aabad42a4f8121420172ee752b5da26dabc8855c4d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net48[1].trx",
+      "bytes": 159348,
+      "sha256": "6a70d5283c3abb6cd3092b66b2a7baf7cd607a9aa138f07a9fb682cb234750c6"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_13_net48[2].trx",
+      "bytes": 121958,
+      "sha256": "e58cdb02dc70a3f7dbb94eeb5c9d47c0500d3ea5eac578841fbdec09afe45ced"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_14_net48.trx",
+      "bytes": 42099,
+      "sha256": "b05eeeddb9935ec03196d1044304df4fc24f0bc1e5330750a8a186733bec78fd"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests/Administrator_LENOVO-LEGION_2026-11-07_12_44_14_net48[1].trx",
+      "bytes": 2056511,
+      "sha256": "9f76f161099901b38888d6014b5d2aca205e2e0c00d4b7be27229ac8fbc9bb9f"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/solution-release-tests.log",
+      "bytes": 14071,
+      "sha256": "9c48526f73f7403d32828bbff44bf280f6c481437f8858edd9b4725e24354dbe"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/stdin-first-implementation/Administrator_LENOVO-LEGION_2026-11-07_12_41_06_net10.0.trx",
+      "bytes": 11986,
+      "sha256": "1a1b327f1cb30acced99f1a028c738d742a139dbf3d5596a533725d8c4dfa08f"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/stdin-first-implementation.log",
+      "bytes": 3369,
+      "sha256": "8d1725a656379c9f2a1b2b41884c6f4ac17a5b200d0cb664ad29e8f226815843"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/stdin-missing-red.log",
+      "bytes": 8844,
+      "sha256": "9d422f3f2af98ebdf5e0495b6e02f2977c7978ff0fcdae15bba001411aa365cd"
+    },
+    {
+      "path": "artifacts/p2/channel-token-coverage-net10-20261107-1225/1ee4fb90-1c47-4c86-8ead-dbe67576d8d6/coverage.cobertura.xml",
+      "bytes": 46964,
+      "sha256": "dbcd92e7fc3b687bfe458ea95a0cd4d38d816eab77a6537cb1af62b9b7666f23"
+    },
+    {
+      "path": "artifacts/p2/channel-token-coverage-net48-20261107-1225/811d446b-792f-4476-bd47-be1f54d0a126/coverage.cobertura.xml",
+      "bytes": 51707,
+      "sha256": "19711bd47475065291d01baf42ed3467d253a7856d69f2d4221c5874783ce0c6"
+    },
+    {
+      "path": "artifacts/p2/deployment-coverage-20261107-1250/353831ec-05d8-4bf5-9a7f-cd8c2aeb6df9/coverage.cobertura.xml",
+      "bytes": 600882,
+      "sha256": "9224138827420c329636ccce93ff8dfd037d1388a3f2631435bfa3f8f470a30b"
+    },
+    {
+      "path": "artifacts/p2/deployment-lifecycle-coverage-20261107-1255/3a7d273c-3529-46d1-9f77-11fc0d3b4f5b/coverage.cobertura.xml",
+      "bytes": 600990,
+      "sha256": "8f7b5d5cb36c79574c0f0f99e0ec430240a3093a61b5309049d06f909ca4735d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/changed-encoding-after-parent.log",
+      "bytes": 506,
+      "sha256": "0c8be0a04318abb96162f2d182711027682cf6763e24eb4a522edd3937d4a911"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/changed-encoding-checkpoint.log",
+      "bytes": 70,
+      "sha256": "3a1f637d135c923312ca7c7924c7d1b225c688f00b516d1dc87298de48a7325d"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/changed-encoding-full.log",
+      "bytes": 576,
+      "sha256": "9b1c6072a8a616084ac24a7a418db30cee61a2b90e807b14040ca36829b38487"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/progress-final.log",
+      "bytes": 1790,
+      "sha256": "35eab616cf5ffe32450f0ae4567ee3b614c2c31457c5ca605a47e96d64c7f31a"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/checkpoint-encoding-final.log",
+      "bytes": 70,
+      "sha256": "d9d8b410693968ea6de0bb4fbf06c7edece9120bd79cb630b79d826b6bdbd987"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/documentation-delivery.log",
+      "bytes": 46,
+      "sha256": "a131f1484146a508e28e363fcf96ce6ede3dd51a8b31ad3ff9118c09bf5f652b"
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-03-channel-token/evidence/progress-delivery.log",
+      "bytes": 1793,
+      "sha256": "500f4e7f2401aedd65dc1a31823ec7befe1cb510e3bdf1cf6dfbfa6588ae1a48"
+    }
+  ],
+  "previousRawFilesUnchanged": true
+}

@@ -5,7 +5,8 @@
 
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
-專案參考包含ToolUtility.csproj；不能新增反向相依或將主機狀態引入純核心。
+專案參考包含ToolUtility.csproj與LineMessagingProcessor.Core.csproj；前者提供既有診斷／連線，
+後者提供P2-03雙目標加密的net10實作。不能新增反向相依或將主機狀態引入純核心。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -22,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <ProjectReference Include="../ToolUtility/ToolUtility.csproj" />
+    <ProjectReference Include="../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
     <InternalsVisibleTo Include="SpeechMessage.Dynamics.Deployment.Tests" />
   </ItemGroup>
 </Project>
