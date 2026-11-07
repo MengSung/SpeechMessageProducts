@@ -100,6 +100,23 @@ public sealed class ArchitectureRuleTests
         Assert.Empty(ArchitectureRules.Validate(Graph(Product("SpeechMessage.Tenancy", "net10.0", "net10.0", "SpeechMessage.Localization"), Product("SpeechMessage.Localization", "net462", "net462;net10.0"), Product("SpeechMessage.Localization", "net10.0", "net462;net10.0"))));
     }
 
+    /// <summary>
+    /// P2通知owner真正抽出後，Hosting是Tenancy之上的net10基礎而非ToolUtility的消費者。
+    /// 正例允許舊工具委派Hosting，反例仍拒絕Hosting反向參考ToolUtility，防止未來形成循環。
+    /// 合成圖僅含本案例值，不載入產品或保留任何程序資源。
+    /// </summary>
+    [Fact]
+    public void Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference()
+    {
+        Assert.Empty(ArchitectureRules.Validate(Graph(
+            Product("ToolUtility", "net10.0", "net10.0", "SpeechMessage.Hosting"),
+            Product("SpeechMessage.Hosting", "net10.0", "net10.0", "SpeechMessage.Tenancy"),
+            Product("SpeechMessage.Tenancy", "net10.0", "net10.0"))));
+        Assert.Contains(ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Hosting", "net10.0", "net10.0", "ToolUtility"),
+            Product("ToolUtility", "net10.0", "net10.0"))), item => item.Rule == "LayerDirection");
+    }
+
     /// <summary>評估後每目標的參考各自檢查，net10 合法例外不能掩蓋 net462 的條件套件。</summary>
     [Fact]
     public void ConditionalReferences_AreCheckedForEachEvaluatedTarget()

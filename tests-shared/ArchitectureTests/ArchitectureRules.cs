@@ -163,9 +163,12 @@ internal static class ArchitectureRules
         "SpeechMessage.Localization" or "LineMessagingProcessor.Core" => 10,
         "ToolUtility.Core" => 20,
         "SpeechMessage.Tenancy" or "SpeechMessageProducts.GoodShepherd.Core" => 30,
+        // P2診斷owner抽取後Hosting不再依賴ToolUtility；舊net10消費者向此基礎層委派。
+        // 正反圖及實際方案共同禁止Hosting反向引用舊工具，不能讓雙目標或Plugin取得主機資源。
+        "SpeechMessage.Hosting" => 32,
         "LineMessagingProcessor" or "SpeechMessage.Payments.Workflows" => 35,
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
-        "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore" or "SpeechMessage.Hosting" => 50,
+        "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore" => 50,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook" or "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" => 100,
         "SpeechMessage.Dynamics.Deployment" => 110,
         _ => -1

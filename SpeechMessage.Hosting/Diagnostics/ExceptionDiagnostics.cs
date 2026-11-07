@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：Debug／Release 共用的錯誤輸出 owner，依啟動快照獨立啟用檔案與 LINE。 雙開先完成 JSONL 落檔及 flush 再放入最多 64 筆的 LINE 佇列；LINE-only 不寫檔。
+ * 目的與定位：此檔真正由 SpeechMessage.Hosting 組件編譯，保留 ToolUtilityNameSpace.Diagnostics 供舊來源相容；ToolUtility 僅以型別轉送指向本唯一實作。
+ * Debug／Release 共用的錯誤輸出 owner，依啟動快照獨立啟用檔案與 LINE。 雙開先完成 JSONL 落檔及 flush 再放入最多 64 筆的 LINE 佇列；LINE-only 不寫檔。
  * 不保存例外、請求、身分或驗證資料。 每個部署目錄最多保留目前檔與五份備份，單筆不超過 4 KiB；正常路徑不執行任何 I/O。
  *
  * 主要功能與流程：
@@ -18,10 +19,12 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 ToolUtility/Diagnostics/ExceptionReporting.cs 追查目前工作樹中的合作／使用位置。
+ * 可沿 SpeechMessage.Hosting/Diagnostics/ExceptionReporting.cs 追查目前工作樹中的合作／使用位置。
  */
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -46,15 +49,15 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     private readonly object _gate = new();
     private readonly string _directory;
     private readonly long _maximumFileBytes;
-    private readonly Mutex _fileMutex;
+    private readonly Mutex? _fileMutex;
     private readonly ExceptionOutputOptions _outputOptions;
     private readonly ConditionalWeakTable<Exception, object> _reported = new();
     private readonly Channel<string> _notifications = Channel.CreateBounded<string>(
         new BoundedChannelOptions(64) { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
     private readonly CancellationTokenSource _stop = new();
     private readonly AsyncLocal<bool> _sending = new();
-    private Task _consumer;
-    private Task _disposeTask;
+    private Task? _consumer;
+    private Task? _disposeTask;
     private bool _closed;
 
     /// <summary>
@@ -62,9 +65,9 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     /// 命名 mutex 讓相同目錄的多程序輪替不會互相覆寫；只在錯誤落檔期間持有。
     /// </summary>
     public ExceptionDiagnostics(string directory, long maximumFileBytes = 5 * 1024 * 1024,
-        ExceptionOutputOptions outputOptions = null)
+        ExceptionOutputOptions? outputOptions = null)
     {
-        if (maximumFileBytes < 4096) throw new ArgumentOutOfRangeException(nameof(maximumFileBytes));
+        ArgumentOutOfRangeException.ThrowIfLessThan(maximumFileBytes, 4096L);
         _directory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory));
         _maximumFileBytes = maximumFileBytes;
         _outputOptions = outputOptions ?? new ExceptionOutputOptions();
@@ -101,7 +104,11 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     /// 不讀 Message、Data、原始 StackTrace 或使用者值。true 表示已落檔，或 LINE-only 已入列，
     /// 不代表 LINE 已送達。雙開時磁碟失敗不發送 LINE；全關回傳 false，且無檔案／通知副作用。
     /// </summary>
-    public bool Report(Exception exception, string operation, CancellationToken cancellationToken = default,
+    // P1已編譯呼叫端的四參數ABI必須保持原順序；只豁免此既有簽章的排列建議，
+    // 不豁免caller cancellation、內部timeout或通知保序的行為驗證。
+    [SuppressMessage("Design", "CA1068:CancellationToken parameters must come last",
+        Justification = "Preserves the existing four-parameter ToolUtility ABI and optional defaults for forwarded callers.")]
+    public bool Report(Exception? exception, string operation, CancellationToken cancellationToken = default,
         bool notify = true)
     {
         lock (_gate)
@@ -151,7 +158,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     /// 字段僅接受開發者擁有的型別／方法符號並限制 80 字；這不是任意文字的去識別化器。
     /// 呼叫端禁止傳入 route 實值、request identifier、姓名或 log formatter 的動態內容。
     /// </summary>
-    private static string Symbol(string value)
+    private static string Symbol(string? value)
     {
         if (string.IsNullOrEmpty(value)) return "unknown";
         var output = new StringBuilder(Math.Min(value.Length, 80));
@@ -167,7 +174,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     /// 最多五層程式符號與 PDB 行號，不輸出原始路徑／參數／訊息，方便定位 Release 故障。
     /// 無 PDB 時行號為 0；不保存 StackTrace 或 MethodBase 物件。
     /// </summary>
-    private static string StackSymbols(Exception exception)
+    private static string StackSymbols(Exception? exception)
     {
         if (exception == null) return "";
         var trace = new StackTrace(exception, true);
@@ -192,7 +199,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
         var acquired = false;
         try
         {
-            try { acquired = _fileMutex.WaitOne(TimeSpan.FromSeconds(1)); }
+            try { acquired = _fileMutex!.WaitOne(TimeSpan.FromSeconds(1)); }
             catch (AbandonedMutexException) { acquired = true; }
             if (!acquired) { Emergency("ExceptionLogLockTimeout"); return false; }
             Directory.CreateDirectory(_directory);
@@ -226,7 +233,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
             return true;
         }
         catch { Emergency("ExceptionLogWriteFailed"); return false; }
-        finally { if (acquired) _fileMutex.ReleaseMutex(); }
+        finally { if (acquired) _fileMutex!.ReleaseMutex(); }
     }
 
     /// <summary>
@@ -259,7 +266,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
     }
 
     /// <summary>通知狀態按檔案開關寫本地或固定 stderr；不包含 provider 回應、不再次入列。</summary>
-    private void WriteStatus(string status, string incident)
+    private void WriteStatus(string status, string? incident)
     {
         // LINE-only 的發送失敗、滿載與關機狀態只能輸出固定 stderr，不能繞過檔案開關。
         if (_outputOptions.WriteExceptionLog)
@@ -332,7 +339,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
         {
             var remaining = 0;
             while (_notifications.Reader.TryRead(out _)) remaining++;
-            if (remaining > 0) WriteStatus("LinePendingAtShutdown", remaining.ToString());
+            if (remaining > 0) WriteStatus("LinePendingAtShutdown", remaining.ToString(CultureInfo.InvariantCulture));
             _reported.Clear();
             _consumer = null;
             _stop.Dispose();

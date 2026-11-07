@@ -5,7 +5,8 @@
 
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
-專案參考包含ToolUtility.Core.csproj、Line.Messaging.csproj、PowerPlatform.Dataverse.Client.csproj；不能新增反向相依或將主機狀態引入純核心。
+例外診斷實作已抽至SpeechMessage.Hosting，舊型別以TypeForwardedTo保持組件相容；不得讓Hosting反向參考本工具。
+專案參考包含SpeechMessage.Hosting.csproj、ToolUtility.Core.csproj、Line.Messaging.csproj、PowerPlatform.Dataverse.Client.csproj；不能新增反向相依或將主機狀態引入純核心。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -63,6 +64,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
     <ProjectReference Include="..\ToolUtility.Core\ToolUtility.Core.csproj" />
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />    
     <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj" />

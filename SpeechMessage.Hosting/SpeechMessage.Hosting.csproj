@@ -2,7 +2,7 @@
 檔案整體說明
 
 目的與定位：定義 net10 主機共用層的 MSBuild 邊界，集中啟動守門、例外診斷註冊與
-相容轉接器的編譯設定。此專案位於主機與既有共用元件之間，不能反向參考產品主機、
+唯一診斷owner與相容轉接器的編譯設定。本基礎層只向Localization／Tenancy依賴，供主機與既有ToolUtility消費，不能反向參考產品主機、
 Plugin 或金流產品。
 
 主要功能與流程：
@@ -23,6 +23,7 @@ net462／Plugin 反向取得 net10 主機能力的參考。建置與測試由方
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
@@ -38,6 +39,6 @@ net462／Plugin 反向取得 net10 主機能力的參考。建置與測試由方
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
-    <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Tenancy\SpeechMessage.Tenancy.csproj" />
   </ItemGroup>
 </Project>

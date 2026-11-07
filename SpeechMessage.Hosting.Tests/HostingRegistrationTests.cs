@@ -100,6 +100,39 @@ public sealed class HostingRegistrationTests
     }
 
     /// <summary>
+    /// 未經共用入口加入的owner不可被下一次註冊悄悄蓋過；描述子衝突須在建立資源前拒絕。
+    /// 外部owner由本案例擁有，容器不建立；finally的非同步釋放清除CTS與channel。
+    /// </summary>
+    [Fact]
+    public async Task Registration_rejects_preexisting_owner_without_partial_publication()
+    {
+        await using var owner = new ExceptionDiagnostics(Path.GetTempPath(),
+            outputOptions: new ExceptionOutputOptions(false, false));
+        var services = new ServiceCollection();
+        services.AddSingleton(owner);
+        var before = services.ToArray();
+        Assert.Throws<InvalidOperationException>(() =>
+            services.AddSpeechMessageHosting(Path.GetTempPath(), new ExceptionOutputOptions(false, false)));
+        Assert.Equal(before, services.ToArray());
+    }
+
+    /// <summary>
+    /// 不同部署目錄是不同輸出邊界，不能因開關相同就把第二組誤視為重入；失敗不發布任何描述子。
+    /// 本例不解析DI，故無檔案、mutex或consumer需要清理。
+    /// </summary>
+    [Fact]
+    public void Registration_rejects_different_directory_without_partial_publication()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "hosting-scope-" + Guid.NewGuid().ToString("N"));
+        var services = new ServiceCollection();
+        services.AddSpeechMessageHosting(Path.Combine(root, "a"), new ExceptionOutputOptions(false, false));
+        var before = services.ToArray();
+        Assert.Throws<InvalidOperationException>(() =>
+            services.AddSpeechMessageHosting(Path.Combine(root, "b"), new ExceptionOutputOptions(false, false)));
+        Assert.Equal(before, services.ToArray());
+    }
+
+    /// <summary>
     /// 外部組合根提供的 owner 不可被 DI 接管；容器只解除自己建立的 adapter。
     /// 容器釋放後同一 owner 仍能重新綁定，最後由案例 await using 完成唯一釋放。
     /// </summary>

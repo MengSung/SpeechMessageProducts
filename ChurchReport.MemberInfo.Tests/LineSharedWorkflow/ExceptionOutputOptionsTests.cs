@@ -25,6 +25,30 @@ namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
 /// <summary>以真實檔案與假 sender 驗證啟動設定的四種輸出組合，避免停用後仍有 I/O 副作用。</summary>
 public sealed class ExceptionOutputOptionsTests
 {
+    /// <summary>
+    /// 既有部署可能仍帶有ToolUtility組件限定型別名稱，搬移後須由CLR解析成Hosting唯一型別。
+    /// 以原四參數Report ABI實際呼叫停用輸出的owner，保護位置參數及預設值相容；await using
+    /// 排空合成owner，不建立檔案或HTTP連線，不把此測試當作LINE實收驗收。
+    /// </summary>
+    [Fact]
+    public async Task Forwarded_legacy_types_preserve_identity_and_report_abi()
+    {
+        foreach (var type in new[] { typeof(ExceptionDiagnostics), typeof(ExceptionOutputOptions), typeof(ExceptionReporting) })
+        {
+            var legacy = Type.GetType(type.FullName + ", ToolUtility", throwOnError: true);
+            Assert.Same(type, legacy);
+            Assert.Equal("SpeechMessage.Hosting", legacy!.Assembly.GetName().Name);
+        }
+        var report = typeof(ExceptionDiagnostics).GetMethod("Report",
+            [typeof(Exception), typeof(string), typeof(CancellationToken), typeof(bool)]);
+        Assert.NotNull(report);
+        Assert.True(report.GetParameters()[2].IsOptional);
+        Assert.True(report.GetParameters()[3].IsOptional);
+        await using var owner = new ExceptionDiagnostics(Path.GetTempPath(),
+            outputOptions: new ExceptionOutputOptions(false, false));
+        Assert.Equal(false, report.Invoke(owner, [new Exception("not-recorded"), "Test.LegacyAbi", CancellationToken.None, true]));
+    }
+
     /// <summary>經 JSON 組態解析後輸出僅限所選目的地；雙開 sender 必須看得到相同紀錄且同例外不重複。</summary>
     [Theory]
     [InlineData(true, true)]
