@@ -1,19 +1,21 @@
 /*
 檔案整體說明
 
-目的與定位：驗證 Hosting registration／adapter 對既有 ToolUtility diagnostics owner 的
+目的與定位：驗證 Hosting registration／adapter 對已抽入Hosting的唯一diagnostics owner的
 唯一綁定、DI 解析與確定性解除。測試不建立第二套 writer、queue 或 LINE client，也不
 保存 request、Session、tenant、credential 或 logger state。
 
 主要功能與流程：
-本檔使用 Microsoft DI 建立短生命容器，解析 Hosting registration，確認同一 owner
+本檔以型別組件歸屬確認真正抽取，並以Microsoft DI建立短生命容器，解析註冊，確認同一owner
 可被既有 ExceptionReporting 使用；Dispose 容器後確認 registration 解除，下一個
 獨立容器可以重新綁定。四種輸出開關的檔案／LINE 行為仍由既有 diagnostics 特性測試
 及 Hosting focused tests 共同覆蓋。
 
 使用邊界與維護：
 每個案例使用唯一暫存目錄與合成 ExceptionOutputOptions。Dispose 順序由 DI 擁有；
-案例不手動釋放容器已接管的 owner，避免 double Dispose。測試只證明離線生命週期，
+自建模式不手動釋放容器已接管的owner；外部模式由案例在容器結束後唯一釋放借入owner。
+衝突目錄、開關、既有描述子及adapter不符均注入反例，斷言拒絕且原集合未部分修改。
+測試只證明離線生命週期，
 不宣稱實際 LINE 送達。
 */
 using Microsoft.Extensions.DependencyInjection;

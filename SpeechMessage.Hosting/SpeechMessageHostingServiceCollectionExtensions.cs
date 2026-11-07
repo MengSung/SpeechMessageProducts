@@ -10,7 +10,7 @@ ExceptionReportingAdapter 的入口。相同啟動快照重入冪等，衝突在
 owner，或傳入受信任的部署目錄與啟動快照；服務容器只保存不可變 options、owner
 與 adapter。服務集合只在組合根單一寫入者、Build前使用，不支援並行修改描述子。
 adapter 解析時綁定程序級相容入口，容器關閉時先解除 registration，
-再由既有 diagnostics owner drain／Dispose queue、sender、CTS、mutex 與檔案資源。
+再由diagnostics排空queue、釋放CTS／mutex與檔案資源，最後由sender的原owner釋放client。
 
 使用邊界與維護：
 diagnosticsDirectory 只能來自部署組合根，不能由 request 或使用者輸入提供。外部

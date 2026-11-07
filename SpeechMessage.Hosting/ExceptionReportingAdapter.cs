@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 
-目的與定位：提供 SpeechMessage.Hosting 對既有 ToolUtility.Diagnostics owner 的唯一
+目的與定位：提供 SpeechMessage.Hosting 內唯一診斷owner的程序級
 相容轉接，讓 Host／middleware／legacy 呼叫端共用同一個 ExceptionDiagnostics，而不
 複製 Exception.log writer、LINE queue 或靜態事件訂閱。
 
@@ -14,8 +14,8 @@ tenant、credential、logger scope、request exception 或使用者輸入。
 使用邊界與維護：
 呼叫端必須以 Host／DI 擁有 adapter，且 adapter 的生命週期不可短於任何使用
 ExceptionReporting 的 middleware 或 logger。重複綁定會 fail closed；重複 Dispose
-不會解除其他 Host 的 owner。此檔不擁有被注入的 diagnostics，除非由同一個 DI
-container 依註冊順序負責其最終 Dispose。
+不會解除其他 Host 的 owner。此adapter永遠只借用diagnostics，不負責Dispose；
+由建立診斷owner的DI容器或外部Program在解除adapter後完成最終drain／Dispose。
 */
 using System;
 using ToolUtilityNameSpace.Diagnostics;

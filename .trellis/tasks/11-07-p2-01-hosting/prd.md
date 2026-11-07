@@ -33,7 +33,7 @@ Production 啟動守門與架構規則，讓 ChurchReport 及後續 LineWebhook 
 
 ## Notes
 
-- 既有通知 owner 位於 `ToolUtility/Diagnostics`，本子任務先以唯一實作 owner
-  與 Hosting registration 交付；若搬移 namespace 會造成下層反向依賴，保留相容
-  轉接並在設計／報告說明理由，不建立第二套實作。
+- 依正式計畫03實際搬移通知sender與options；三個diagnostics型別真正定義於Hosting。
+  保留舊namespace與CLR型別轉送以支援舊呼叫端，不把adapter／薄殼當成搬移或驗收完成。
+  跨層參考須通過正反圖及實際方案評估，Hosting不得反向依賴ToolUtility。
 - P2-01 不執行 D365 寫入、LINE 實際推播或讀取秘密；外部驗收依 P2-04 前置另行處理。
