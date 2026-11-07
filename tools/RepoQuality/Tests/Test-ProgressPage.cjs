@@ -30,7 +30,7 @@ const p1TaskCandidates = ['.ccg/tasks/integration-p1', '.ccg/tasks/archive/2026-
   .map(relative => path.join(root, relative)).filter(candidate => fs.existsSync(path.join(candidate, 'task.json')));
 assert.equal(p1TaskCandidates.length, 1, 'P1 evidence must belong to exactly one active or archived task');
 const p1EvidenceRoot = path.join(p1TaskCandidates[0], 'evidence');
-const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.3/實作進度.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.3/實作進度.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
 const dataStart = script.indexOf('const DATA = {');
 const dataEnd = script.indexOf('\n};', dataStart) + 3;

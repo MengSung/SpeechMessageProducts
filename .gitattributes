@@ -14,6 +14,8 @@
 *.xml    text eol=crlf
 *.css    text eol=crlf
 *.js     text eol=crlf
+*.cjs    text eol=crlf
+*.html   text eol=crlf
 *.ts     text eol=crlf
 *.md     text eol=crlf
 *.ps1    text eol=crlf

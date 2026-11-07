@@ -1,0 +1,30 @@
+{
+  "id": "p2-00-plan34-transition",
+  "name": "p2-00-plan34-transition",
+  "title": "P2-00 切換到實作計畫 3.4 並恢復全綠基線",
+  "description": "",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-11-07",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.11.Integration.P2.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "11-07-integration-p2",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "milestone": "P2-00",
+    "timeboxStartedAt": "2026-11-07T21:14:00+08:00",
+    "countsAsWorkPackage": false
+  }
+}

@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-07T21:10:00+08:00",
+  "snapshot": "2026-11-07 21:29 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-07T21:29:35+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "16c75932",
-  "headline": "全計畫 84 包已驗收 31 包、進行中 3 包（3.4 上限 2 包）。下一步：Codex 做 P2-00 切換；推播要等你準備測試 LINE channel。",
+  "head": "1497791b",
+  "headline": "P2-00 已修復 QR 紅燈並搬妥舊文件，正準備乾淨複本驗證；P2-01、P2-03 兩包收尾。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -260,22 +260,16 @@ const DATA = {
       ]
     },
     {
-      "id": "scope-warning",
-      "phaseId": "階段 2",
-      "level": "warn",
-      "title": "目前有 3 包同時進行，超過 3.4 的上限 2 包；最新提交含紅燈測試",
-      "lastUpdated": "2026-11-07T21:10:00+08:00",
-      "body": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：P2-01、P2-03、P2-09 同時進行（D31 上限 2）；提交 16c75932 可以建置，但 GoodShepherd.Core.Tests 有 19 個紅燈測試（P2-09 codec 只有骨架），違反 D30。兩者都由 P2-00 第 1、7 步處理。",
-      "steps": []
-    },
-    {
       "id": "phase-2-summary",
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-07T21:10:00+08:00",
-      "body": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：階段 2 為 1／12 已驗收（P2-02）、3 包進行中（P2-01、P2-03、P2-09）。依 3.4：P2-01、P2-03 只差乾淨複本守門等收尾即可驗收；P2-04 前置等你準備測試 LINE channel。",
+      "lastUpdated": "2026-11-07T21:29:35+08:00",
+      "body": "2026-11-07 21:29 Asia/Taipei (UTC+08:00)：P2 已驗收 1 包，共 12 包；P2-01、P2-03 進行中，P2-09a 暫停。QR 兩目標各 20 個測試通過，切換尚待乾淨複本守門。",
       "steps": [
+        "2026-11-07 21:29 Asia/Taipei (UTC+08:00)：P2-00 已補齊既有 QR 實作，原 19 個 NotImplementedException 紅燈轉綠，net48 與 net10.0 各 20 個測試全過。Plugin 測試已改用目前組態，專案案例通過；本地方案 Release 建置 0 個警告、0 個錯誤。31 份舊文件 git mv 前後 SHA-256 一致；七份流程 JSON 純換行正規化且 JSON 語意不變。新頁 7 個、舊頁 18 個契約測試通過；現頁除 DATA 外內容不變（Git EOL 正規化後比對）。這些不是乾淨複本守門結果。",
+        "2026-11-07 21:29 Asia/Taipei (UTC+08:00)：scope-warning 已解除並保留歷史：進行中已收斂為兩包，既有 QR 紅燈仍待修復；2026-11-07 21:18 Asia/Taipei (UTC+08:00)：P2-09a 已暫停；19 個缺實作紅燈由 P2-00 修復，尚未通過乾淨複本守門。。目前兩包進行中，QR 紅燈已修復。",
+        "2026-11-07 21:18 Asia/Taipei (UTC+08:00)：接手 1497791b，QR net10.0 實際重跑為 19 個失敗、1 個通過，均缺實作；兩個唯讀代理因額度停止並已關閉，由主代理接手。User Secrets 只查鍵是否存在，兩個測試鍵缺少；尚未操作 D365 或 LINE。",
         "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：3.4 生效。P2-01 依 D28 不再以 R2 清冊清空為完成條件（移到 P6-07）；P2-03 依 D29 不需實機；P2-09 拆 a／b。",
         "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：稽核（2026-11-07 19:29 獨立重跑）：30d2f02b 無法建置（P2-09 紅燈測試）；16c75932（20:34）已可建置但仍有 19 個紅燈測試。",
         "2026-11-07 19:23 Asia/Taipei (UTC+08:00)｜P2-09內容編解碼切片啟動：已讀四個ChurchReport掃描器與QrCodes導讀，依實際解析鎖定課程／主日／個人／小組欄位；TDD net10測試先紅，編譯失敗明確指出SpeechMessageProducts.GoodShepherd.Core.QrCodes尚不存在。原始輸出 .trellis/tasks/11-07-11-07-p2-09-qr-content/evidence/qr-codec-red-net10.log；屬預期缺實作紅燈，不是驗收通過。P2-07圖片處理器仍未解除依賴；一名唯讀代理正在盤點P2-06，主會話唯一寫入。未操作D365／LINE／金流。",
@@ -497,9 +491,9 @@ const DATA = {
       "deps": "P0-04",
       "live": "無",
       "timebox": "—",
-      "doneAt": "2026-11-03",
-      "commit": "—",
-      "note": "直接相依升至 10.0.14"
+      "doneAt": "2026-11-03 14:14",
+      "commit": "cdc09d10",
+      "note": "直接相依升至 10.0.14；原驗收事件時分未記錄，登錄時間採完成標記提交 cdc09d10 的時間，不冒充測試完成時間。"
     },
     {
       "id": "P0-04-NuGetAudit",
@@ -509,9 +503,9 @@ const DATA = {
       "deps": "P0-04",
       "live": "無",
       "timebox": "—",
-      "doneAt": "2026-11-03",
-      "commit": "—",
-      "note": "NuGetAuditMode=all；System.Text.Json 6.0.11"
+      "doneAt": "2026-11-03 14:59",
+      "commit": "9214d26b",
+      "note": "NuGetAuditMode=all；System.Text.Json 6.0.11；原驗收事件時分未記錄，登錄時間採完成標記提交 9214d26b 的時間，不冒充測試完成時間。"
     },
     {
       "id": "P0-05",
@@ -665,9 +659,9 @@ const DATA = {
       "deps": "—",
       "live": "無",
       "timebox": "—",
-      "doneAt": "2026-11-05",
-      "commit": "—",
-      "note": "51 個孤兒檔清除；ToolUtility.Tests 加入方案；smoke 輪詢改約 2 秒"
+      "doneAt": "2026-11-05 22:01",
+      "commit": "6fc9e532",
+      "note": "51 個孤兒檔清除；ToolUtility.Tests 加入方案；smoke 輪詢改約 2 秒；原驗收事件時分未記錄，登錄時間採完成標記提交 6fc9e532 的時間，不冒充測試完成時間。"
     },
     {
       "id": "P1-02",
@@ -677,9 +671,9 @@ const DATA = {
       "deps": "—",
       "live": "無",
       "timebox": "—",
-      "doneAt": "2026-11-05",
-      "commit": "—",
-      "note": "讀真實 MSBuild 逐目標評估結果"
+      "doneAt": "2026-11-05 12:25",
+      "commit": "00b210ba",
+      "note": "讀真實 MSBuild 逐目標評估結果；原驗收事件時分未記錄，登錄時間採完成標記提交 00b210ba 的時間，不冒充測試完成時間。"
     },
     {
       "id": "P1-03",
@@ -690,7 +684,7 @@ const DATA = {
       "live": "無",
       "timebox": "—",
       "doneAt": "2026-11-05 14:15",
-      "commit": "—",
+      "commit": "a7fba28f",
       "note": "六類訊息黃金檔兩目標逐字相同；LineSignature.Verify"
     },
     {
@@ -901,13 +895,13 @@ const DATA = {
       "id": "P2-09",
       "phaseId": "階段 2",
       "name": "QR 內容編碼（a）與圖片產生處理器（b）",
-      "status": "active",
+      "status": "todo",
       "deps": "a：P2-02；b：P2-07、P2-09a",
       "live": "無",
       "timebox": "a 半天；b 半天",
       "doneAt": "",
       "commit": "",
-      "note": "3.3 期間開工、未列入進度頁；目前只有 codec 骨架，20 個測試中 19 個紅燈"
+      "note": "P2-09a 暫停，由 P2-00 先修復已提交的 19 個紅燈；a／b 仍計同一包，待 P2-01、03 收尾後接續。"
     },
     {
       "id": "P2-10",
@@ -1462,8 +1456,8 @@ const DATA = {
       "id": "P2-00",
       "phaseId": "階段 2",
       "name": "切換到實作計畫 3.4（00 §14）",
-      "status": "todo",
-      "note": "Codex 下一件事：修好紅燈提交、關閉自動推送、封存 3.2／3.3、收斂進行中為 2 包"
+      "status": "active",
+      "note": "已建切換子任務；19 個 QR 紅燈已實際重現，後續修復、搬移及乾淨複本守門。"
     },
     {
       "id": "P2-04 前置",
@@ -1550,40 +1544,7 @@ const DATA = {
         [
           "一頁回報與進度頁",
           "ok",
-          ""
-        ]
-      ]
-    },
-    {
-      "id": "P2-09",
-      "startedAt": "2026-11-07 19:23",
-      "timebox": "P2-09a 半個工作天（3.4 生效後重新起算）",
-      "next": "依 D31 先暫停或併入 2 包上限；改名 P2-09a，完成 codec 讓 19 個紅燈轉綠，紅燈不再提交。",
-      "dod": [
-        [
-          "測試全部同名存在並通過",
-          "no",
-          "20 個測試中 19 個紅燈（只有骨架）"
-        ],
-        [
-          "乾淨複本守門",
-          "no",
-          "最新提交含紅燈測試"
-        ],
-        [
-          "覆蓋率 ≥ 80%",
-          "no",
-          "尚未量測"
-        ],
-        [
-          "實機",
-          "na",
-          "本包不需要"
-        ],
-        [
-          "一頁回報與進度頁",
-          "no",
-          ""
+          "既有回報已保存，收尾時改為 3.4 一頁格式。"
         ]
       ]
     }
@@ -1652,7 +1613,24 @@ const DATA = {
       "addedAt": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)"
     }
   ],
-  "proposals": [],
+  "proposals": [
+    {
+      "id": "PROP-001",
+      "problem": "00 §14-6 要求舊版本路徑全文搜尋為零，但現行 00／01／02 正文明列歷史路徑，且 §14-3 要求舊頁測試仍指向封存頁。",
+      "evidence": "唯讀搜尋仍命中現行計畫正文、必要的封存導航與保留歷史；活動依據均已更新。",
+      "proposal": "建議只對有效執行依據與失效連結做零命中檢查，排除現行計畫的歷史說明及明確封存連結；不改寫已核定正文。",
+      "impact": "P2-00 可完成遷移與路徑有效性檢查；不影響其餘 P2 工作包。",
+      "status": "待核定"
+    },
+    {
+      "id": "PROP-002",
+      "problem": "00 §8.1 註記 P2-01 修正後刪除 Debug 補建行，但 00 §12 禁止實作端改計畫。",
+      "evidence": "BuiltPlugin 測試已改用目前測試組態；本次仍執行計畫原列 Debug 建置，不直接改正文。",
+      "proposal": "建議下一版計畫移除該補建行；目前保留原命令驗證，避免擅改計畫。",
+      "impact": "不影響 P2-00／P2-01 的實作或驗收。",
+      "status": "待核定"
+    }
+  ],
   "decisions": [
     {
       "at": "2026-11-07",
@@ -1776,6 +1754,16 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-07 21:29 Asia/Taipei (UTC+08:00)",
+      "text": "P2-00 本地預檢通過：QR 雙目標各 20 個案例全過；等待提交後乾淨複本守門。",
+      "cls": "info"
+    },
+    {
+      "t": "2026-11-07 21:18 Asia/Taipei (UTC+08:00)",
+      "text": "P2-00 開始：依 3.4 接手，P2-09a 暫停，保留兩包收尾。",
+      "cls": "info"
+    },
     {
       "t": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)",
       "text": "實作計畫 3.4 與設計 v3.4 放進 repo；本頁成為現行進度頁。",

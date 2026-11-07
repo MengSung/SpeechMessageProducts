@@ -4,7 +4,7 @@
 
 依正式計畫03的P2-03及附錄A.3／A.5／C.2，建立net462與net10可互通的
 Channel Token封包，以及受白名單保護的Deployment寫入入口。P2整體目標不變；
-本WP不依賴P2-04實機推播，但不能以純核心驗證取代Deployment與實機證據。
+本 WP 依 3.4 不需要實機，寫入實測集中於 P2-04 前置與 P2-12；仍須驗證 Deployment 離線契約。
 
 ## 必要需求
 
@@ -25,8 +25,21 @@ Channel Token封包，以及受白名單保護的Deployment寫入入口。P2整�
 
 - [ ] 雙目標加密核心與相容／安全／生命週期測試通過。
 - [ ] protect-token、assign-channel離線正反例、最小欄位、Upsert身分、鎖與清理通過。
-- [ ] 實機操作範圍、備份／回復與測試資料清理確認，必要外部驗證有實際證據。
+- [x] 本包實機不適用，依 3.4 移至 P2-04 前置、P2-12。
 - [ ] 繁中文件、UTF-8無BOM／CRLF、I18n、duplicate、coverage與受影響整合通過。
 - [ ] 回報、同張P2摘要、任務紀錄與本地提交完成。
 
 沒有必要憑證或仍有既有離線限制時，明列缺口而不標整包完成；先繼續其他獨立項目。
+
+## 3.4 先寫的測試（03 P2-03）
+RoundTrip_Net462AndNet10_Compatible、Tampered_Ciphertext_Throws、Tampered_Mac_Throws、WrongKey_Throws、UnknownVersion_Throws、Exception_NeverContainsSecret、Mac_CompareIsConstantTime。兩個目標同名通過；protect-token／assign-channel 的白名單、stdin、Upsert 以假服務驗證。
+
+## 完成定義（00 §7.1，不得加碼）
+- [ ] 1. 本 WP 段落列出的測試全部同名存在並通過（雙目標專案兩個目標都過）
+- [ ] 2. 00 §8.1 全部命令在乾淨複本（00 §8.2）通過；提交待驗證
+- [x] 3. 沒有新專案，不適用；既有覆蓋率證據保留
+- [x] 4. 實機不適用
+- [ ] 5. 一頁回報已寫、進度頁已更新
+
+## 時間盒
+開始：2026-11-07 21:10 Asia/Taipei；3.4 生效起半天或 15 個提交。

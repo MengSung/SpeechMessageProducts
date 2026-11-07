@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -193,14 +194,17 @@ public sealed class ArchitectureXmlTests
 
     /// <summary>
     /// 直接檢查真正已建置 Plugin 的 AssemblyRef，補足 SDK 隱含參考不等於輸出相依的差別。
+    /// 只檢查目前測試組件的組態，產物由同一次方案建置提供，不依賴另一組態的本機殘留。
     /// 只用 PE metadata 讀取，不載入或執行 DLL；檔案與 PEReader 均由案例確定釋放。
     /// </summary>
-    /// <param name="configuration">已建置產物的組態；兩種組態都不得引用禁止組件。</param>
-    [Theory]
-    [InlineData("Debug")]
-    [InlineData("Release")]
-    public void BuiltPlugin_HasNoForbiddenAssemblyReferences(string configuration)
+    [Fact]
+    public void BuiltPlugin_HasNoForbiddenAssemblyReferences()
     {
+        var configuration = typeof(ArchitectureXmlTests).Assembly
+            .GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration;
+        Assert.NotNull(configuration);
+        Assert.True(configuration == "Debug" || configuration == "Release",
+            "The test assembly must declare its Debug or Release configuration.");
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "SpeechMessageProducts.sln")))
         {
