@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex 實作稽核報告</title>
+<meta name="description" content="依實作計畫 3.3 稽核 Codex 在 P0、P1、P2 的實作情形，並評估是否需要實作計畫 3.4。">
+<style>
+:root{
+  --page:#f4f3f0; --surface:#fcfcfb; --card:#ffffff; --border:#dddcd7;
+  --t1:#0b0b0b; --t2:#52514e; --t3:#7a7975; --grid:#e8e7e3; --axis:#bdbcb7;
+  --s1:#2a78d6; --s1l:#cde2fb; --s2:#eb6834; --s2l:#fbdccd; --s3:#1baf7a; --s3l:#c9eedf; --s5:#e87ba4; --s5l:#f8d8e4;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b; --todo:#d9d8d3; --muted:#b9b8b3;
+  --good-t:#e0f3e0; --warn-t:#fdf1d2; --serious-t:#fbe4da; --crit-t:#f8dddd; --neutral-t:#eeede9;
+  --good-ink:#0a6e0a; --warn-ink:#8a5a00; --serious-ink:#a5431c; --crit-ink:#a32626;
+  --arrow:#8a8984; --band:#f1f0ec; color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#121211; --surface:#1a1a19; --card:#222220; --border:#3a3a36;
+  --t1:#f0efec; --t2:#c3c2b7; --t3:#9a998f; --grid:#30302c; --axis:#55554f;
+  --s1:#3987e5; --s1l:#1f3a5c; --s2:#d95926; --s2l:#4a2a1c; --s3:#199e70; --s3l:#173d30; --s5:#d55181; --s5l:#4a2434;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b; --todo:#3d3d39; --muted:#5c5b56;
+  --good-t:#173317; --warn-t:#3a2e10; --serious-t:#3d2419; --crit-t:#3d1c1c; --neutral-t:#2a2a27;
+  --good-ink:#7fd67f; --warn-ink:#f2c45a; --serious-ink:#f0a07f; --crit-ink:#f08b8b;
+  --arrow:#8f8e86; --band:#1e1e1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --page:#121211; --surface:#1a1a19; --card:#222220; --border:#3a3a36;
+  --t1:#f0efec; --t2:#c3c2b7; --t3:#9a998f; --grid:#30302c; --axis:#55554f;
+  --s1:#3987e5; --s1l:#1f3a5c; --s2:#d95926; --s2l:#4a2a1c; --s3:#199e70; --s3l:#173d30; --s5:#d55181; --s5l:#4a2434;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b; --todo:#3d3d39; --muted:#5c5b56;
+  --good-t:#173317; --warn-t:#3a2e10; --serious-t:#3d2419; --crit-t:#3d1c1c; --neutral-t:#2a2a27;
+  --good-ink:#7fd67f; --warn-ink:#f2c45a; --serious-ink:#f0a07f; --crit-ink:#f08b8b;
+  --arrow:#8f8e86; --band:#1e1e1c; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--t1);font-family:"Microsoft JhengHei","Noto Sans TC","PingFang TC",system-ui,sans-serif;line-height:1.6;font-size:16px}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 80px}
+header.hero{padding:28px 0 8px}
+h1{font-size:30px;line-height:1.25;margin:0 0 6px;letter-spacing:.5px}
+.sub{color:var(--t2);margin:0 0 14px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.pill{font-size:13px;color:var(--t2);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:3px 12px}
+.verdict{background:var(--card);border:1px solid var(--border);border-left:6px solid var(--s1);border-radius:12px;padding:16px 18px;font-size:17px}
+.verdict b{color:var(--t1)}
+nav.toc{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--page) 92%,transparent);backdrop-filter:blur(6px);padding:10px 0;margin:18px 0 6px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
+nav.toc a{flex:none;font-size:14px;color:var(--t2);text-decoration:none;padding:4px 12px;border-radius:999px;border:1px solid transparent}
+nav.toc a:hover{border-color:var(--border);background:var(--card);color:var(--t1)}
+section{margin:34px 0 0;scroll-margin-top:60px}
+h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:10px}
+h2 .n{font-size:14px;color:var(--t3);font-weight:600}
+.lead{color:var(--t2);margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+.tile:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--todo)}
+.tile.good:before{background:var(--good)} .tile.critical:before{background:var(--crit)} .tile.warning:before{background:var(--warn)} .tile.neutral:before{background:var(--s1)}
+.tile .l{font-size:13px;color:var(--t2)} .tile .v{font-size:34px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums}
+.tile .u{font-size:14px;color:var(--t2);margin-left:4px;font-weight:500} .tile .s{font-size:12.5px;color:var(--t3);margin-top:4px}
+table{border-collapse:separate;border-spacing:0;width:100%}
+.score th,.score td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:14px;text-align:left;vertical-align:top}
+.score thead th{font-size:13px;color:var(--t2);font-weight:600;background:var(--surface)}
+.score tbody th{white-space:nowrap;font-weight:700}
+.st{display:block;border-radius:8px;padding:6px 9px;line-height:1.4}
+.st .lab{display:block;font-weight:800;font-size:13px;white-space:nowrap}
+.st i{font-style:normal;font-weight:800;margin-right:4px}
+.st.good{background:var(--good-t);color:var(--good-ink)} .st.warning{background:var(--warn-t);color:var(--warn-ink)}
+.st.serious{background:var(--serious-t);color:var(--serious-ink)} .st.critical{background:var(--crit-t);color:var(--crit-ink)}
+.st.neutral{background:var(--neutral-t);color:var(--t2)}
+.st span{color:var(--t1);font-size:13px;display:block}
+.score td{min-width:118px}
+.card>.viz{width:100%}
+.tiles>*,.fgrid>*,.two>*,.drift>*,.flow>*{min-width:0}
+body{overflow-wrap:anywhere}
+.scroll{overflow-x:auto}
+.cap{font-size:13.5px;color:var(--t2);margin:10px 2px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.verify td,.verify th{padding:10px;border-bottom:1px solid var(--border);font-size:14px;text-align:left;vertical-align:top}
+.verify thead th{color:var(--t2);font-size:13px;background:var(--surface)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+.filters button{font:inherit;font-size:14px;border:1px solid var(--border);background:var(--card);color:var(--t1);border-radius:999px;padding:5px 14px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--t1);color:var(--card);border-color:var(--t1)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;border-top:5px solid var(--todo)}
+.f.crit{border-top-color:var(--crit)} .f.serious{border-top-color:var(--serious)} .f.good{border-top-color:var(--good)} .f.neutral{border-top-color:var(--axis)}
+.f .hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.badge{font-size:12px;font-weight:700;border-radius:6px;padding:1px 8px}
+.badge.crit{background:var(--crit-t);color:var(--crit-ink)} .badge.serious{background:var(--serious-t);color:var(--serious-ink)}
+.badge.good{background:var(--good-t);color:var(--good-ink)} .badge.neutral{background:var(--neutral-t);color:var(--t2)}
+.f .id{font-size:12px;color:var(--t3);font-weight:700}
+.f h3{font-size:16.5px;margin:0 0 6px;line-height:1.4}
+.f p{margin:0 0 8px;color:var(--t2);font-size:14.5px}
+.f details{font-size:13.5px;color:var(--t2)} .f summary{cursor:pointer;color:var(--s1);font-weight:600}
+.f ul{margin:6px 0 0;padding-left:18px} .f li{margin:3px 0}
+.f .fix{margin-top:8px;font-size:14px;background:var(--surface);border-radius:8px;padding:7px 10px}
+.f .fix b{color:var(--t1)}
+.drift{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.dcol h3{margin:0 0 8px;font-size:15px;padding:8px 10px;border-radius:8px}
+.dcol.s1 h3{background:var(--s1l)} .dcol.s2 h3{background:var(--s2l)} .dcol.s3 h3{background:var(--s3l)} .dcol.s5 h3{background:var(--s5l)}
+.dcol div{font-size:13.5px;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--s1);border-radius:8px;padding:6px 9px;margin-bottom:6px}
+.dcol.s2 div{border-left-color:var(--s2)} .dcol.s3 div{border-left-color:var(--s3)} .dcol.s5 div{border-left-color:var(--s5)}
+.big-verdict{display:flex;gap:16px;align-items:center;background:var(--card);border:2px solid var(--s1);border-radius:16px;padding:18px 20px}
+.big-verdict .yes{font-size:40px;font-weight:900;color:var(--s1);line-height:1}
+.big-verdict .t{font-size:19px;font-weight:800}
+.flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin:14px 0}
+.flow .s{flex:1 1 180px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;font-weight:700;text-align:center}
+.flow .s small{display:block;color:var(--t3);font-weight:500}
+.flow .a{align-self:center;color:var(--t3);font-size:22px}
+ul.plain{margin:6px 0 0;padding-left:20px} ul.plain li{margin:4px 0}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks label{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:14.5px}
+.checks input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--s1)}
+.checks .no{color:var(--t3);font-weight:700;min-width:22px}
+.copybar{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.btn{font:inherit;font-size:14px;border:none;background:var(--s1);color:#fff;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:700}
+.btn.ghost{background:var(--card);color:var(--t1);border:1px solid var(--border)}
+#copied{font-size:13px;color:var(--good-ink)}
+.next{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:n}
+.next li{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;counter-increment:n}
+.next li:before{content:counter(n);flex:none;width:30px;height:30px;border-radius:50%;background:var(--s1);color:#fff;font-weight:800;display:grid;place-items:center}
+.who{font-size:12px;font-weight:800;border-radius:6px;padding:1px 8px;margin-right:6px}
+.who.you{background:var(--serious-t);color:var(--serious-ink)} .who.codex{background:var(--s1l);color:var(--t1)}
+.when{font-size:12px;color:var(--t3);margin-right:6px}
+.method li{color:var(--t2);font-size:14px;margin:5px 0}
+#tip{position:fixed;pointer-events:none;z-index:50;background:var(--t1);color:var(--card);font-size:13px;padding:6px 10px;border-radius:8px;max-width:280px;opacity:0;transition:opacity .08s}
+.viz .hit{cursor:default}
+.theme{position:absolute;right:16px;top:16px}
+.top{position:relative}
+footer{margin-top:40px;color:var(--t3);font-size:13px;text-align:center}
+@media (max-width:760px){
+  h1{font-size:24px}.tiles{grid-template-columns:1fr 1fr}.fgrid,.two{grid-template-columns:1fr}.drift{grid-template-columns:1fr 1fr}
+  .score{min-width:720px}.theme{position:static;margin-bottom:8px}
+  .card{overflow-x:auto}.card>.viz{min-width:640px}
+}
+@media (max-width:420px){.tiles{grid-template-columns:1fr}.drift{grid-template-columns:1fr}}
+@media print{nav.toc,.filters,.copybar,.theme{display:none}.f details{display:block}.f details>*{display:block}}
+
+.viz{font-family:"Microsoft JhengHei","Noto Sans TC","PingFang TC",system-ui,sans-serif;max-width:100%;height:auto;display:block}
+.viz .t1{fill:var(--t1)} .viz .t2{fill:var(--t2)} .viz .t3{fill:var(--t3)}
+.viz .grid{stroke:var(--grid);stroke-width:1} .viz .axis{stroke:var(--axis);stroke-width:1}
+.viz .f-good{fill:var(--good)} .viz .f-warn{fill:var(--warn)} .viz .f-serious{fill:var(--serious)} .viz .f-crit{fill:var(--crit)}
+.viz .f-todo{fill:var(--todo)} .viz .f-muted{fill:var(--muted)}
+.viz .f-s1{fill:var(--s1)} .viz .f-s1l{fill:var(--s1l)} .viz .f-s2{fill:var(--s2)} .viz .f-s2l{fill:var(--s2l)}
+.viz .f-s3{fill:var(--s3)} .viz .f-s3l{fill:var(--s3l)} .viz .f-s5{fill:var(--s5)} .viz .f-s5l{fill:var(--s5l)}
+.viz .st-s1{stroke:var(--s1)} .viz .st-muted{stroke:var(--t3)} .viz .ring{stroke:var(--surface);stroke-width:2}
+.viz .f-arrow{fill:var(--arrow)} .viz .st-arrow{stroke:var(--arrow)}
+.viz .band{fill:var(--band)} .viz .box{fill:var(--card);stroke:var(--border);stroke-width:1}
+.viz .box-gate{stroke:var(--serious);stroke-width:1.6;stroke-dasharray:6 4}
+.viz .chip{fill:var(--card);stroke-width:1.2} .viz .chip-s1{stroke:var(--s1)} .viz .chip-s2{stroke:var(--s2)} .viz .chip-s3{stroke:var(--s3)} .viz .chip-s5{stroke:var(--s5)}</style>
+</head>
+<body>
+<div id="tip" role="tooltip"></div>
+<div class="wrap">
+<header class="hero top" id="s-verdict">
+  <button class="btn ghost theme" id="themeBtn" type="button" aria-label="切換深淺色">◐ 深淺色</button>
+  <h1>Codex 實作稽核報告：P0／P1／P2</h1>
+  <p class="sub">依《實作計畫 3.3》與設計 v3.3 對照 · 只稽核、不修改程式</p>
+  <div class="meta"><span class="pill">快照 2026-11-07 19:24 (UTC+08:00)</span><span class="pill">提交 30d2f02b</span><span class="pill">分支 1.0.0.11.Integration.P2.Worktree</span><span class="pill">報告 v1.0・2026-11-07</span></div>
+  <div class="verdict"><b>一句話結論：</b>P0、P1 做得扎實，程式品質高；P2 剛開工就出現「最新提交無法建置」與「同時做三包」的流程問題。計畫 3.3 已被就地改了 22 次，且有 6 項會卡住進度的計畫問題——建議先出設計 v3.4＋實作計畫 3.4（整併修正版，不重做 P0／P1），再讓 Codex 繼續。</div>
+  <div class="tiles"><div class="tile neutral"><div class="l">全計畫進度</div><div class="v">31<span class="u">／83 工作包</span></div><div class="s">P0 18/18、P1 12/12、P2 1/12</div></div><div class="tile good"><div class="l">測試（我獨立重跑）</div><div class="v">4,595<span class="u">／4,596 通過</span></div><div class="s">1 個依賴本機殘留檔；2 個無法執行</div></div><div class="tile critical"><div class="l">最新提交能否建置</div><div class="v">不能<span class="u">2 個錯誤</span></div><div class="s">30d2f02b 已推到 GitHub</div></div><div class="tile warning"><div class="l">計畫 3.3 被就地修改</div><div class="v">22<span class="u">次提交</span></div><div class="s">13 檔、+2,988／−427 行</div></div></div>
+</header>
+
+<nav class="toc" aria-label="章節"><a href="#s-verdict">結論</a><a href="#s-score">紅綠燈</a><a href="#s-progress">進度</a><a href="#s-p2">P2 現況</a><a href="#s-speed">速度與測試</a><a href="#s-verify">我重跑的結果</a><a href="#s-find">發現</a><a href="#s-effort">力氣花在哪</a><a href="#s-drift">計畫偏差</a><a href="#s-v34">要不要 3.4</a><a href="#s-next">你的下一步</a><a href="#s-method">方法與限制</a></nav>
+
+<section id="s-score">
+  <h2><span class="n">01</span>紅綠燈總表</h2>
+  <p class="lead">三個階段 × 六個面向。綠＝好、黃＝尚可、橘＝要注意、紅＝有問題。</p>
+  <div class="card scroll"><table class="score"><thead><tr><th>階段</th><th>做完了沒</th><th>測試結果（我重跑）</th><th>安全與隔離</th><th>照計畫流程做</th><th>回報好不好懂</th><th>範圍與成本</th></tr></thead><tbody><tr><th scope="row">P0 準備與可行性</th><td><div class="st good"><span class="lab"><i>✓</i>好</span><span>18/18 已驗收</span></div></td><td><div class="st good"><span class="lab"><i>✓</i>好</span><span>全部通過</span></div></td><td><div class="st good"><span class="lab"><i>✓</i>好</span><span>開發環境防護到位</span></div></td><td><div class="st warning"><span class="lab"><i>▲</i>尚可</span><span>多次改計畫（多數經你核定）</span></div></td><td><div class="st serious"><span class="lab"><i>▲</i>要注意</span><span>數字密集難讀</span></div></td><td><div class="st warning"><span class="lab"><i>▲</i>尚可</span><span>審查紀錄偏多</span></div></td></tr><tr><th scope="row">P1 基礎與國際化</th><td><div class="st good"><span class="lab"><i>✓</i>好</span><span>12/12 已驗收</span></div></td><td><div class="st good"><span class="lab"><i>✓</i>好</span><span>全部通過</span></div></td><td><div class="st good"><span class="lab"><i>✓</i>好</span><span>隔離與快取設計紮實</span></div></td><td><div class="st serious"><span class="lab"><i>▲</i>要注意</span><span>改由 Codex 自主寫入 D365、進 VM</span></div></td><td><div class="st serious"><span class="lab"><i>▲</i>要注意</span><span>數字密集難讀</span></div></td><td><div class="st serious"><span class="lab"><i>▲</i>要注意</span><span>證據膨脹</span></div></td></tr><tr><th scope="row">P2 共用送訊（進行中）</th><td><div class="st neutral"><span class="lab"><i>○</i>進行中</span><span>1/12（第 1 天）</span></div></td><td><div class="st critical"><span class="lab"><i>✕</i>有問題</span><span>最新提交無法建置</span></div></td><td><div class="st good"><span class="lab"><i>✓</i>好</span><span>Token 加密完全照規格</span></div></td><td><div class="st critical"><span class="lab"><i>✕</i>有問題</span><span>三包同時做、跳號、混合提交</span></div></td><td><div class="st serious"><span class="lab"><i>▲</i>要注意</span><span>數字密集難讀</span></div></td><td><div class="st serious"><span class="lab"><i>▲</i>要注意</span><span>R2 清冊 652 筆卡住</span></div></td></tr></tbody></table></div>
+</section>
+
+<section id="s-progress">
+  <h2><span class="n">02</span>進度在哪裡</h2>
+  <p class="lead">83 個工作包裡已驗收 31 個；P2 只有 1 個驗收，另 3 個同時進行。</p>
+  <div class="card"><svg class="viz" viewBox="0 0 760 360" width="760" height="360" role="img" aria-label="九個階段的工作包進度" xmlns="http://www.w3.org/2000/svg"><rect x="196" y="10" width="12" height="12" rx="3" class="f-good"/><text x="214" y="20" class="t2" font-size="13">已驗收</text><rect x="275" y="10" width="12" height="12" rx="3" class="f-warn"/><text x="293" y="20" class="t2" font-size="13">進行中</text><rect x="354" y="10" width="12" height="12" rx="3" class="f-todo"/><text x="372" y="20" class="t2" font-size="13">未開始</text><text x="0" y="63" class="t1" font-size="14" font-weight="600">階段 0</text><text x="58" y="63" class="t2" font-size="13">準備與可行性</text><rect x="196.0" y="51" width="380.0" height="18" rx="4" class="f-good hit" data-tip="階段 0・已驗收 18 包"/><text x="590" y="64" class="t1" font-size="13">18／18 已驗收</text><text x="0" y="97" class="t1" font-size="14" font-weight="600">階段 1</text><text x="58" y="97" class="t2" font-size="13">基礎與國際化</text><rect x="196.0" y="85" width="380.0" height="18" rx="4" class="f-good hit" data-tip="階段 1・已驗收 12 包"/><text x="590" y="98" class="t1" font-size="13">12／12 已驗收</text><text x="0" y="131" class="t1" font-size="14" font-weight="600">階段 2</text><text x="58" y="131" class="t2" font-size="13">共用送訊＋待辦</text><rect x="196.0" y="119" width="29.7" height="18" rx="4" class="f-good hit" data-tip="階段 2・已驗收 1 包"/><rect x="227.7" y="119" width="93.0" height="18" rx="4" class="f-warn hit" data-tip="階段 2・進行中 3 包"/><rect x="322.7" y="119" width="253.3" height="18" rx="4" class="f-todo hit" data-tip="階段 2・未開始 8 包"/><text x="590" y="132" class="t2" font-size="13">驗收 1・進行 3／12</text><text x="0" y="165" class="t1" font-size="14" font-weight="600">階段 3</text><text x="58" y="165" class="t2" font-size="13">LINE Webhook</text><rect x="196.0" y="153" width="380.0" height="18" rx="4" class="f-todo hit" data-tip="階段 3・未開始 9 包"/><text x="590" y="166" class="t2" font-size="13">0／9 未開始</text><text x="0" y="199" class="t1" font-size="14" font-weight="600">階段 4</text><text x="58" y="199" class="t2" font-size="13">金流＋幣別</text><rect x="196.0" y="187" width="380.0" height="18" rx="4" class="f-todo hit" data-tip="階段 4・未開始 6 包"/><text x="590" y="200" class="t2" font-size="13">0／6 未開始</text><text x="0" y="233" class="t1" font-size="14" font-weight="600">階段 5</text><text x="58" y="233" class="t2" font-size="13">Plugin 重建</text><rect x="196.0" y="221" width="380.0" height="18" rx="4" class="f-todo hit" data-tip="階段 5・未開始 13 包"/><text x="590" y="234" class="t2" font-size="13">0／13 未開始</text><text x="0" y="267" class="t1" font-size="14" font-weight="600">階段 6</text><text x="58" y="267" class="t2" font-size="13">ChurchReport 改用</text><rect x="196.0" y="255" width="380.0" height="18" rx="4" class="f-todo hit" data-tip="階段 6・未開始 6 包"/><text x="590" y="268" class="t2" font-size="13">0／6 未開始</text><text x="0" y="301" class="t1" font-size="14" font-weight="600">階段 7</text><text x="58" y="301" class="t2" font-size="13">D365 切換</text><rect x="196.0" y="289" width="380.0" height="18" rx="4" class="f-todo hit" data-tip="階段 7・未開始 2 包"/><text x="590" y="302" class="t2" font-size="13">0／2 未開始</text><text x="0" y="335" class="t1" font-size="14" font-weight="600">階段 8</text><text x="58" y="335" class="t2" font-size="13">收尾與偽語系</text><rect x="196.0" y="323" width="380.0" height="18" rx="4" class="f-todo hit" data-tip="階段 8・未開始 5 包"/><text x="590" y="336" class="t2" font-size="13">0／5 未開始</text></svg></div>
+  <p class="cap">滑鼠移到色條上可看數字。P2 的「進行中」含 P2-09：它已開工，但 Codex 的進度頁沒有列出。</p>
+</section>
+
+<section id="s-p2">
+  <h2><span class="n">03</span>P2 現在長怎樣</h2>
+  <p class="lead">真正的關卡是「P2-04 前置」——要你準備測試 LINE channel、並先清理測試組織的 LINE 資料。</p>
+  <div class="card"><svg class="viz" viewBox="0 0 760 560" width="760" height="560" role="img" aria-label="階段 2 十二個工作包的狀態與相依" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-arrow"/></marker></defs><rect x="0" y="0" width="760" height="104" rx="10" class="band"/><text x="12" y="18" text-anchor="start" class="t3" font-size="12" font-weight="600">① 地基</text><rect x="0" y="112" width="760" height="82" rx="10" class="band"/><text x="12" y="130" text-anchor="start" class="t3" font-size="12" font-weight="600">② 關卡（需要你）</text><rect x="0" y="202" width="760" height="104" rx="10" class="band"/><text x="12" y="220" text-anchor="start" class="t3" font-size="12" font-weight="600">③ 推播</text><rect x="0" y="314" width="760" height="120" rx="10" class="band"/><text x="748" y="332" text-anchor="end" class="t3" font-size="12" font-weight="600">④ 對外待辦與背景（P2-08、P2-09 依賴 P2-07；P2-10 依賴 P2-01）</text><rect x="0" y="442" width="760" height="112" rx="10" class="band"/><text x="12" y="460" text-anchor="start" class="t3" font-size="12" font-weight="600">⑤ 驗收（上面全部完成後）</text><g class="hit" data-tip="P2-01 Hosting 共用通知：● 進行中｜卡在 R2（652 筆）"><rect x="14" y="28" width="232" height="66" rx="8" class="box "/><rect x="14" y="28" width="7" height="66" rx="3" class="f-warn"/><text x="30" y="49" class="t1" font-size="14" font-weight="700">P2-01</text><text x="236" y="49" text-anchor="end" class="t2" font-size="11.5">● 進行中</text><text x="30" y="68" class="t1" font-size="13">Hosting 共用通知</text><text x="30" y="85" class="t3" font-size="11.5">卡在 R2（652 筆）</text></g><g class="hit" data-tip="P2-02 GoodShepherd.Core 骨架：✓ 已驗收｜已驗收"><rect x="264" y="28" width="232" height="66" rx="8" class="box "/><rect x="264" y="28" width="7" height="66" rx="3" class="f-good"/><text x="280" y="49" class="t1" font-size="14" font-weight="700">P2-02</text><text x="486" y="49" text-anchor="end" class="t2" font-size="11.5">✓ 已驗收</text><text x="280" y="68" class="t1" font-size="13">GoodShepherd.Core 骨架</text><text x="280" y="85" class="t3" font-size="11.5">已驗收</text></g><g class="hit" data-tip="P2-03 Token 加密＋寫入工具：● 進行中｜程式完成，等實機"><rect x="514" y="28" width="232" height="66" rx="8" class="box "/><rect x="514" y="28" width="7" height="66" rx="3" class="f-warn"/><text x="530" y="49" class="t1" font-size="14" font-weight="700">P2-03</text><text x="736" y="49" text-anchor="end" class="t2" font-size="11.5">● 進行中</text><text x="530" y="68" class="t1" font-size="13">Token 加密＋寫入工具</text><text x="530" y="85" class="t3" font-size="11.5">程式完成，等實機</text></g><g class="hit" data-tip="P2-04 前置：沙箱推播測試：◆ 關卡｜需要你：測試 LINE channel＋清理"><rect x="200" y="122" width="360" height="64" rx="8" class="box box-gate"/><rect x="200" y="122" width="7" height="64" rx="3" class="f-serious"/><text x="216" y="143" class="t1" font-size="14" font-weight="700">P2-04 前置</text><text x="550" y="143" text-anchor="end" class="t2" font-size="11.5">◆ 關卡</text><text x="216" y="162" class="t1" font-size="13">沙箱推播測試</text><text x="216" y="179" class="t3" font-size="11.5">需要你：測試 LINE channel＋清理</text></g><line x1="380" y1="94" x2="380" y2="120" class="st-arrow" stroke-width="1.6" marker-end="url(#arr)"/><g class="hit" data-tip="P2-04 單人推播完整版：○ 未開始"><rect x="14" y="230" width="232" height="66" rx="8" class="box "/><rect x="14" y="230" width="7" height="66" rx="3" class="f-todo"/><text x="30" y="251" class="t1" font-size="14" font-weight="700">P2-04</text><text x="236" y="251" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="30" y="270" class="t1" font-size="13">單人推播完整版</text></g><g class="hit" data-tip="P2-05 Flex 範本＋sender：○ 未開始"><rect x="264" y="230" width="232" height="66" rx="8" class="box "/><rect x="264" y="230" width="7" height="66" rx="3" class="f-todo"/><text x="280" y="251" class="t1" font-size="14" font-weight="700">P2-05</text><text x="486" y="251" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="280" y="270" class="t1" font-size="13">Flex 範本＋sender</text></g><g class="hit" data-tip="P2-06 合併舊送訊副本：○ 未開始"><rect x="514" y="230" width="232" height="66" rx="8" class="box "/><rect x="514" y="230" width="7" height="66" rx="3" class="f-todo"/><text x="530" y="251" class="t1" font-size="14" font-weight="700">P2-06</text><text x="736" y="251" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="530" y="270" class="t1" font-size="13">合併舊送訊副本</text></g><line x1="380" y1="186" x2="140" y2="228" class="st-arrow" stroke-width="1.6" marker-end="url(#arr)"/><line x1="246" y1="263" x2="262" y2="263" class="st-arrow" stroke-width="1.6" marker-end="url(#arr)"/><line x1="496" y1="263" x2="512" y2="263" class="st-arrow" stroke-width="1.6" marker-end="url(#arr)"/><g class="hit" data-tip="P2-07 對外待辦佇列：○ 未開始"><rect x="14" y="342" width="176" height="82" rx="8" class="box "/><rect x="14" y="342" width="7" height="82" rx="3" class="f-todo"/><text x="30" y="363" class="t1" font-size="14" font-weight="700">P2-07</text><text x="180" y="363" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="30" y="382" class="t1" font-size="13">對外待辦佇列</text></g><g class="hit" data-tip="P2-08 宮格多語：○ 未開始"><rect x="202" y="342" width="176" height="82" rx="8" class="box "/><rect x="202" y="342" width="7" height="82" rx="3" class="f-todo"/><text x="218" y="363" class="t1" font-size="14" font-weight="700">P2-08</text><text x="368" y="363" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="218" y="382" class="t1" font-size="13">宮格多語</text></g><g class="hit" data-tip="P2-09 QR 內容編碼：⚠ 跳號開工｜跳號先做；紅燈測試已提交"><rect x="390" y="342" width="176" height="82" rx="8" class="box "/><rect x="390" y="342" width="7" height="82" rx="3" class="f-crit"/><text x="406" y="363" class="t1" font-size="14" font-weight="700">P2-09</text><text x="556" y="363" text-anchor="end" class="t2" font-size="11.5">⚠ 跳號開工</text><text x="406" y="382" class="t1" font-size="13">QR 內容編碼</text><text x="406" y="399" class="t3" font-size="11.5">跳號先做；紅燈測試已提交</text></g><g class="hit" data-tip="P2-10 改字輪詢：○ 未開始"><rect x="578" y="342" width="168" height="82" rx="8" class="box "/><rect x="578" y="342" width="7" height="82" rx="3" class="f-todo"/><text x="594" y="363" class="t1" font-size="14" font-weight="700">P2-10</text><text x="736" y="363" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="594" y="382" class="t1" font-size="13">改字輪詢</text></g><line x1="150" y1="296" x2="150" y2="340" class="st-arrow" stroke-width="1.6" marker-end="url(#arr)"/><line x1="190" y1="383" x2="200" y2="383" class="st-arrow" stroke-width="1.6" marker-end="url(#arr)"/><g class="hit" data-tip="P2-11 推播整條鏈：○ 未開始"><rect x="120" y="470" width="250" height="66" rx="8" class="box "/><rect x="120" y="470" width="7" height="66" rx="3" class="f-todo"/><text x="136" y="491" class="t1" font-size="14" font-weight="700">P2-11</text><text x="360" y="491" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="136" y="510" class="t1" font-size="13">推播整條鏈</text></g><g class="hit" data-tip="P2-12 你的實機驗收：○ 未開始"><rect x="420" y="470" width="250" height="66" rx="8" class="box "/><rect x="420" y="470" width="7" height="66" rx="3" class="f-todo"/><text x="436" y="491" class="t1" font-size="14" font-weight="700">P2-12</text><text x="660" y="491" text-anchor="end" class="t2" font-size="11.5">○ 未開始</text><text x="436" y="510" class="t1" font-size="13">你的實機驗收</text></g><line x1="370" y1="503" x2="418" y2="503" class="st-arrow" stroke-width="1.6" marker-end="url(#arr)"/></svg></div>
+  <p class="cap">黃＝進行中、綠＝已驗收、紅＝跳號開工、橘色虛線＝需要你動手的關卡、灰＝未開始。</p>
+</section>
+
+<section id="s-speed">
+  <h2><span class="n">04</span>速度與測試</h2>
+  <p class="lead">寫程式比計畫快很多；慢的是「需要你動手」的實機步驟。測試從 714 長到 4,596。</p>
+  <div class="card"><svg class="viz" viewBox="0 0 760 264" width="760" height="264" role="img" aria-label="各階段計畫估時與實際花費天數" xmlns="http://www.w3.org/2000/svg"><rect x="64" y="10" width="12" height="12" rx="3" class="f-s1l"/><text x="82" y="20" class="t2" font-size="13">計畫估時範圍</text><rect x="182" y="10" width="12" height="12" rx="3" class="f-s1"/><text x="200" y="20" class="t2" font-size="13">實際花費</text><line x1="64" y1="42" x2="64" y2="238" class="grid"/><text x="64" y="256" text-anchor="middle" class="t3" font-size="12">0 天</text><line x1="214" y1="42" x2="214" y2="238" class="grid"/><text x="214" y="256" text-anchor="middle" class="t3" font-size="12">4 天</text><line x1="364" y1="42" x2="364" y2="238" class="grid"/><text x="364" y="256" text-anchor="middle" class="t3" font-size="12">8 天</text><line x1="514" y1="42" x2="514" y2="238" class="grid"/><text x="514" y="256" text-anchor="middle" class="t3" font-size="12">12 天</text><line x1="664" y1="42" x2="664" y2="238" class="grid"/><text x="664" y="256" text-anchor="middle" class="t3" font-size="12">16 天</text><text x="0" y="75" class="t1" font-size="15" font-weight="700">P0</text><rect x="289" y="54" width="150" height="30" rx="4" class="f-s1l hit" data-tip="P0 計畫估時 6–10 天"/><text x="364" y="74" text-anchor="middle" class="t2" font-size="12">計畫 6–10 天</text><rect x="64" y="64" width="101.25" height="10" rx="4" class="f-s1 hit" data-tip="P0 實際：約 2.7 天完成"/><text x="173.25" y="100" class="t1" font-size="12">約 2.7 天完成</text><text x="0" y="137" class="t1" font-size="15" font-weight="700">P1</text><rect x="514" y="116" width="150" height="30" rx="4" class="f-s1l hit" data-tip="P1 計畫估時 12–16 天"/><text x="589" y="136" text-anchor="middle" class="t2" font-size="12">計畫 12–16 天</text><rect x="64" y="126" width="60" height="10" rx="4" class="f-s1 hit" data-tip="P1 實際：約 1.6 天完成"/><text x="132" y="162" class="t1" font-size="12">約 1.6 天完成</text><text x="0" y="199" class="t1" font-size="15" font-weight="700">P2</text><rect x="439" y="178" width="112.5" height="30" rx="4" class="f-s1l hit" data-tip="P2 計畫估時 10–13 天"/><text x="495.25" y="198" text-anchor="middle" class="t2" font-size="12">計畫 10–13 天</text><rect x="64" y="188" width="16.875" height="10" rx="4" class="f-s1 hit" data-tip="P2 實際：第 1 天，1/12"/><text x="88.875" y="224" class="t1" font-size="12">第 1 天，1/12</text></svg></div>
+  <div class="card" style="margin-top:12px"><svg class="viz" viewBox="0 0 760 330" width="760" height="330" role="img" aria-label="全方案測試數量成長" xmlns="http://www.w3.org/2000/svg"><line x1="62" y1="284" x2="732" y2="284" class="axis"/><text x="54" y="288" text-anchor="end" class="t3" font-size="12">0</text><line x1="62" y1="232" x2="732" y2="232" class="grid"/><text x="54" y="236" text-anchor="end" class="t3" font-size="12">1,000</text><line x1="62" y1="180" x2="732" y2="180" class="grid"/><text x="54" y="184" text-anchor="end" class="t3" font-size="12">2,000</text><line x1="62" y1="128" x2="732" y2="128" class="grid"/><text x="54" y="132" text-anchor="end" class="t3" font-size="12">3,000</text><line x1="62" y1="76" x2="732" y2="76" class="grid"/><text x="54" y="80" text-anchor="end" class="t3" font-size="12">4,000</text><line x1="62" y1="24" x2="732" y2="24" class="grid"/><text x="54" y="28" text-anchor="end" class="t3" font-size="12">5,000</text><text x="62" y="304" text-anchor="middle" class="t3" font-size="12">11/02</text><text x="173.66666666666669" y="304" text-anchor="middle" class="t3" font-size="12">11/03</text><text x="285.33333333333337" y="304" text-anchor="middle" class="t3" font-size="12">11/04</text><text x="397" y="304" text-anchor="middle" class="t3" font-size="12">11/05</text><text x="508.6666666666667" y="304" text-anchor="middle" class="t3" font-size="12">11/06</text><text x="620.3333333333334" y="304" text-anchor="middle" class="t3" font-size="12">11/07</text><text x="732" y="304" text-anchor="middle" class="t3" font-size="12">11/08</text><polyline points="130.6,246.9 263.7,231.3 434.2,225.5 494.9,165.5 564.5,80.9 607.4,54.6 701.8,45.0" fill="none" class="st-s1" stroke-width="2" stroke-linejoin="round"/><circle cx="130.62847222222223" cy="246.872" r="4.5" class="f-s1 ring"/><circle cx="130.62847222222223" cy="246.872" r="14" fill="transparent" class="hit" data-tip="開工基準 714（另 24 個原本就失敗）"/><circle cx="263.69791666666663" cy="231.324" r="4.5" class="f-s1 ring"/><circle cx="263.69791666666663" cy="231.324" r="14" fill="transparent" class="hit" data-tip="P0-12：1,013"/><circle cx="434.22222222222223" cy="225.5" r="4.5" class="f-s1 ring"/><circle cx="434.22222222222223" cy="225.5" r="14" fill="transparent" class="hit" data-tip="P0 結束：1,125"/><circle cx="494.8634259259259" cy="165.54399999999998" r="4.5" class="f-s1 ring"/><circle cx="494.8634259259259" cy="165.54399999999998" r="14" fill="transparent" class="hit" data-tip="ToolUtility.Tests 加入方案：2,278"/><circle cx="564.5" cy="80.888" r="4.5" class="f-s1 ring"/><circle cx="564.5" cy="80.888" r="14" fill="transparent" class="hit" data-tip="P1-04：3,906"/><circle cx="607.3831018518518" cy="54.57599999999999" r="4.5" class="f-s1 ring"/><circle cx="607.3831018518518" cy="54.57599999999999" r="14" fill="transparent" class="hit" data-tip="P1 結束：4,412"/><circle cx="701.7569444444445" cy="45.00800000000001" r="4.5" class="f-s1 ring"/><circle cx="701.7569444444445" cy="45.00800000000001" r="14" fill="transparent" class="hit" data-tip="Codex 自報：4,596"/><text x="134.62847222222223" y="268.872" text-anchor="start" class="t1" font-size="12">開工 714</text><text x="442.22222222222223" y="245.5" text-anchor="start" class="t1" font-size="12">P0 結束 1,125</text><text x="597.3831018518518" y="44.57599999999999" text-anchor="end" class="t1" font-size="12">P1 結束 4,412</text><text x="695.7569444444445" y="33.00800000000001" text-anchor="end" class="t1" font-size="12">現在 4,596</text><line x1="488.8634259259259" y1="157.54399999999998" x2="484.8634259259259" y2="134.4" class="st-muted" stroke-width="1"/><text x="480.8634259259259" y="112.4" text-anchor="end" class="t2" font-size="12">跳升主因：原有 ToolUtility.Tests 納入方案，</text><text x="480.8634259259259" y="128.4" text-anchor="end" class="t2" font-size="12">且同一批測試用 net48、net10 各跑一次</text></svg></div>
+</section>
+
+<section id="s-verify">
+  <h2><span class="n">05</span>我獨立重跑的結果</h2>
+  <p class="lead">我在另一份乾淨複本上照計畫 §8 執行，不碰 Codex 正在用的資料夾。</p>
+  <div class="card scroll"><table class="verify"><thead><tr><th>檢查項目</th><th>Codex 自報</th><th>我重跑</th></tr></thead><tbody><tr><td><b>Release 建置（全方案）</b></td><td>0 錯誤（17:30 工作樹，非乾淨提交）</td><td><div class="st critical"><span>❌ 2 個錯誤（提交 30d2f02b）</span></div></td></tr><tr><td><b>全方案測試</b></td><td>4,596／4,596</td><td><div class="st warning"><span>⚠ 4,595 通過、1 失敗、2 無法執行</span></div></td></tr><tr><td><b>檔案說明檢查</b></td><td>1,283／0</td><td><div class="st good"><span>✅ 1,284 檔／0 失敗</span></div></td></tr><tr><td><b>進度頁契約測試</b></td><td>18／18</td><td><div class="st good"><span>✅ 18／18</span></div></td></tr><tr><td><b>重複程式掃描</b></td><td>0 新增</td><td><div class="st good"><span>✅ 34 專案 1,059 檔，0 新增</span></div></td></tr><tr><td><b>I18nCheck verify</b></td><td>通過</td><td><div class="st good"><span>✅ 通過（en 完成度 13.33%）</span></div></td></tr><tr><td><b>文字編碼（P2 範圍）</b></td><td>自承未過（5 檔）</td><td><div class="st critical"><span>❌ 6 檔缺結尾 CRLF（流程檔）</span></div></td></tr><tr><td><b>覆蓋率 ≥ 80%</b></td><td>各包自報通過</td><td><div class="st neutral"><span>— 未重測</span></div></td></tr><tr><td><b>D365／LINE 實機</b></td><td>P0-13、P1-12 自報通過</td><td><div class="st neutral"><span>— 未連線（依規定不連）</span></div></td></tr></tbody></table></div>
+</section>
+
+<section id="s-find">
+  <h2><span class="n">06</span>發現（23 項）</h2>
+  <p class="lead">先看紅色的四項；點「證據」可展開出處。</p>
+  <div class="filters" role="group" aria-label="依嚴重度篩選">
+    <button type="button" data-f="all" aria-pressed="true">全部 23</button>
+    <button type="button" data-f="high" aria-pressed="false">✕ 高 4</button><button type="button" data-f="mid" aria-pressed="false">▲ 中 8</button><button type="button" data-f="low" aria-pressed="false">● 低 5</button><button type="button" data-f="good" aria-pressed="false">✓ 做得好 6</button>
+  </div>
+  <div class="fgrid" id="fgrid"><article class="f crit" data-sev="high">
+  <div class="hd"><span class="badge crit">✕ 高</span><span class="id">H1</span></div>
+  <h3>最新提交無法建置，而且已推到 GitHub</h3><p>Codex 19:23 的提交把 P2-09 的「先寫的測試」一起放進去，但產品程式還沒寫，整個方案編不過。</p>
+  <details><summary>證據（4）</summary><ul><li>提交 30d2f02b「完成 P2-02 驗收與 LoggerProvider 遷移」同時含 P2-01、P2-02、P2-03、P2-09 的檔案。</li><li>QrCodeContentCodecTests.cs 呼叫不存在的 QrCodeContentCodec → CS0234 ×2（net48、net10.0）。</li><li>計畫 00 §6.2：「測試與實作放在同一個提交；紅燈證據寫在 WP 回報，不必另外提交失敗狀態」。</li><li>origin 分支在 19:23:51 已更新為同一提交。</li></ul></details>
+  <div class="fix"><b>建議：</b>請 Codex 立刻補上 QrCodeContentCodec 或把測試移出；以後「乾淨複本能建置＋測試」才准提交。</div>
+</article><article class="f crit" data-sev="high">
+  <div class="hd"><span class="badge crit">✕ 高</span><span class="id">H2</span></div>
+  <h3>P2-01 的 R2 規則在現階段做不到（計畫問題）</h3><p>計畫要求主機專案只能有 Program／*Registration／*Endpoints，但 ChurchReport 是 MVC 網站，Controller、Model 必須公開。</p>
+  <details><summary>證據（3）</summary><ul><li>R2 未解清冊 652 筆（Debug 337、Release 315），分布：Services 90、Models 79、Tools 38、Controllers 28…</li><li>Codex 正確地沒有硬把型別改 internal，但 P2-01 因此「永遠無法驗收」。</li><li>搬走這些型別本來是階段 6「ChurchReport 改用共用層」的工作。</li></ul></details>
+  <div class="fix"><b>建議：</b>3.4 改寫：LineWebhook 與 Plugin 嚴格適用；ChurchReport 改成「只減不增」棘輪，階段 6 清零。</div>
+</article><article class="f crit" data-sev="high">
+  <div class="hd"><span class="badge crit">✕ 高</span><span class="id">H3</span></div>
+  <h3>對測試組織的權限分工已實質改變，需要你確認</h3><p>原定 D24：Codex 只執行唯讀指令；實際上 Codex 自主做了 D365 寫入，還進入主機做 SQL 備份與還原。</p>
+  <details><summary>證據（4）</summary><ul><li>P0-13 smoke、P1-12 apply／smoke 由 Codex 執行，紀錄寫「依使用者最新完整自主授權」。</li><li>P1-12 紀錄：經 Hyper-V「PowerShell Direct」進入 D365-9.1 與 D365DC01（網域控制站），做 COPY_ONLY 完整備份、還原到暫存 DB、DBCC，再清除。</li><li>計畫書 02 的 P1-12 段由實作端自行改寫成「此項取代歷史 D24 人工分工」。</li><li>紀錄另載「介面操作曾收到實體 Esc 並已停止」。</li></ul></details>
+  <div class="fix"><b>建議：</b>請確認這是你的本意；3.4 用一張表寫清楚「Codex 可自主／要你按確認／不可做」，網域控制站與 SQL 還原建議列為「要你確認」。</div>
+</article><article class="f crit" data-sev="high">
+  <div class="hd"><span class="badge crit">✕ 高</span><span class="id">H4</span></div>
+  <h3>推播前，測試組織的 LINE 資料清理還沒做</h3><p>goodshepherdback 是正式資料的複本；P0-13 時你同意「暫時保留」舊 LINE token 與會友真實 LINE ID，但明訂不延伸到推播階段。</p>
+  <details><summary>證據（2）</summary><ul><li>進度頁風險：「舊 LINE 資料依核定保留，不宣稱已清理」。</li><li>P2-04 前置、P2-11、P2-12 都會真的發 LINE。</li></ul></details>
+  <div class="fix"><b>建議：</b>把清理列為 P2-04 前置的第 0 步，清完再推播，避免誤發給真實會友。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M1</span></div>
+  <h3>同時做三個工作包，而且跳號</h3><p>計畫規定一次只做一個 WP；目前 P2-01、P2-03、P2-09 同時進行，P2-04～08 還沒開始就先做 P2-09。</p>
+  <details><summary>證據（2）</summary><ul><li>Trellis：p2-01-hosting、p2-03-channel-token、p2-09-qr-content 皆為 in_progress。</li><li>進度頁只列 P2-01、P2-03 為進行中。</li></ul></details>
+  <div class="fix"><b>建議：</b>3.4 明訂可平行的條件（不相依、不碰同檔、最多 2 包），否則維持一次一包。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M2</span></div>
+  <h3>提交紀律不一致</h3><p>199 個提交只有 45 個用 WP 編號開頭；有 9 個訊息是自動產生的錯誤描述。</p>
+  <details><summary>證據（2）</summary><ul><li>例：2a1d010b「無程式碼變更」、81caa552「未偵測到可分析的變更」——實際是用 git mv 搬檔。</li><li>最新提交一次混了四個工作包。</li></ul></details>
+  <div class="fix"><b>建議：</b>提交訊息固定「WP 編號＋摘要」；搬檔提交寫「搬移，不改內容」。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M3</span></div>
+  <h3>「沒有推送」的說法與實際不符</h3><p>計畫寫不推送、進度頁寫「沒有推送」，但 P0、P1、P2 分支都在 GitHub，而且每次提交約 5 秒內就推送。</p>
+  <details><summary>證據（2）</summary><ul><li>30d2f02b 提交 19:23:46、推送 19:23:51。</li><li>P1 本地分支比 GitHub 多 3 個提交。</li></ul></details>
+  <div class="fix"><b>建議：</b>確認是否你設定了自動推送；3.4 寫清楚推送規則。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M4</span></div>
+  <h3>「本機全過」依賴本機留下的檔案</h3><p>照計畫 §8（只建 Release）在乾淨複本跑，有 1 個測試失敗；它其實需要 Debug 版 Plugin 檔。</p>
+  <details><summary>證據（2）</summary><ul><li>BuiltPlugin_HasNoForbiddenAssemblyReferences(Debug)：「Build the solution before checking sandbox artifacts」。</li><li>補建 Debug 後 2／2 通過；GitHub CI 也只建 Release，雲端會失敗。</li></ul></details>
+  <div class="fix"><b>建議：</b>測試改為找不到就略過並說明，或 CI 補建 Debug。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M5</span></div>
+  <h3>編碼守門沒過，卻有工作包標「已驗收」</h3><p>計畫 §8 規定每個 WP 都要過編碼檢查；P2 範圍目前 6 個檔案沒過，P2-02 仍標已驗收。</p>
+  <details><summary>證據（1）</summary><ul><li>Test-TextEncoding -Scope Changed -Base 62b409c8：checked=175、filesWithIssues=6（task.json、.turns.json 缺結尾 CRLF）。</li></ul></details>
+  <div class="fix"><b>建議：</b>流程檔改為不納入，或一律補齊；「已驗收」必須所有守門都綠。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M6</span></div>
+  <h3>GitHub 雲端 CI 從沒成功過</h3><p>因 DevExpress 套件來源問題，雲端 CI 自 11-05 起「暫緩」；所有「通過」都只發生在這台電腦。</p>
+  <details><summary>證據（1）</summary><ul><li>進度頁：「hosted 完整 CI 恢復暫緩，未宣稱 GitHub 實跑通過」。</li></ul></details>
+  <div class="fix"><b>建議：</b>3.4 決定：解決套件來源，或正式接受「雲端只跑 23 個專案」。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M7</span></div>
+  <h3>流程紀錄膨脹、回報難讀</h3><p>每寫 1 行產品程式，約產生 12 行流程紀錄；進度頁 215 KB，回報滿是縮寫數字。</p>
+  <details><summary>證據（2）</summary><ul><li>.ccg 3,609 檔 31 MB、.trellis 11 MB 都進了版本庫（公開 repo）。</li><li>你自己的《牧人 2.0 AI Coding 研究報告》建議「薄規格＋可執行驗證」，目前方向相反。</li></ul></details>
+  <div class="fix"><b>建議：</b>原始 log／TRX 不進 repo；給你的回報一律「一張圖＋三句話」。</div>
+</article><article class="f serious" data-sev="mid">
+  <div class="hd"><span class="badge serious">▲ 中</span><span class="id">M8</span></div>
+  <h3>P2-03 的「完成」被加碼，導致卡住</h3><p>計畫的 P2-03 只要加解密、寫入工具和 7 個測試（不連 D365）；Codex 另加「實機寫入、權限、回復」才算完成。</p>
+  <details><summary>證據（2）</summary><ul><li>P2-03 回報：「既有權限／原況備份／可驗證回復…尚缺，不能宣告整包完成」。</li><li>實機本來排在 P2-12。</li></ul></details>
+  <div class="fix"><b>建議：</b>3.4 每個 WP 附一頁「完成定義」，實機只放在指定的驗收包。</div>
+</article><article class="f neutral" data-sev="low">
+  <div class="hd"><span class="badge neutral">● 低</span><span class="id">L1</span></div>
+  <h3>P2-03 有 4 個指定測試名稱不見了</h3><p>Tampered_Ciphertext_Throws 等 4 個名稱被合併成參數化測試；內容有覆蓋，但計畫規定「可增不可刪」。</p>
+  <details><summary>證據（1）</summary><ul><li>改為 Tampered_CiphertextOrIvOrMac_Throws、InvalidEnvelope_UniformFailure 等。</li></ul></details>
+  <div class="fix"><b>建議：</b>回報附「原名→新名」對照表。</div>
+</article><article class="f neutral" data-sev="low">
+  <div class="hd"><span class="badge neutral">● 低</span><span class="id">L2</span></div>
+  <h3>ToolUtility 為了型別轉送而參考 Hosting</h3><p>資料工具層多背了主機層（LINE 送訊、背景佇列）的相依。</p>
+  <details><summary>證據（1）</summary><ul><li>ToolUtility.csproj → SpeechMessage.Hosting，只用於 TypeForwardedTo。</li></ul></details>
+  <div class="fix"><b>建議：</b>階段 6 移除舊型別時一併拿掉。</div>
+</article><article class="f neutral" data-sev="low">
+  <div class="hd"><span class="badge neutral">● 低</span><span class="id">L3</span></div>
+  <h3>計畫內文數字不一致</h3><p>同一件事（設定預設值 &quot;Jesus&quot; 的複製處），P1-10 寫 9 份、P2-01 寫 17 處。</p>
+  <details><summary>證據（1）</summary><ul><li>目前程式只剩設定預設值 1 處與 LineUtilityClass 1 處。</li></ul></details>
+  <div class="fix"><b>建議：</b>3.4 統一。</div>
+</article><article class="f neutral" data-sev="low">
+  <div class="hd"><span class="badge neutral">● 低</span><span class="id">L4</span></div>
+  <h3>分支命名與計畫不同</h3><p>計畫：1.0.0.11.Integration.P1／P2；實際多了 .Worktree 後綴。</p>
+  <details><summary>證據（1）</summary><ul><li>P0 分支名正確，P1、P2 不一致。</li></ul></details>
+  <div class="fix"><b>建議：</b>3.4 以實際名稱為準。</div>
+</article><article class="f neutral" data-sev="low">
+  <div class="hd"><span class="badge neutral">● 低</span><span class="id">L5</span></div>
+  <h3>估時與實際差很多</h3><p>P0 計畫 6–10 天實際約 2.7 天；P1 計畫 12–16 天實際約 1.6 天。</p>
+  <details><summary>證據（1）</summary><ul><li>真正的瓶頸是「需要你動手的實機步驟」。</li></ul></details>
+  <div class="fix"><b>建議：</b>3.4 改以「你要動手的時間點」排程。</div>
+</article><article class="f good" data-sev="good">
+  <div class="hd"><span class="badge good">✓ 做得好</span><span class="id">G1</span></div>
+  <h3>Token 加密程式品質高</h3><p>完全照附錄 A.5：先加密再驗證、先驗 MAC 才解密、固定時間比較、用完清零、有大小上限。</p>
+  <details><summary>證據（1）</summary><ul><li>ChannelTokenProtector：AES-256-CBC＋HMAC-SHA256，net462 與 net10 共用測試向量。</li></ul></details>
+  
+</article><article class="f good" data-sev="good">
+  <div class="hd"><span class="badge good">✓ 做得好</span><span class="id">G2</span></div>
+  <h3>真的在 D365 9.1 上跑通</h3><p>P0-13 net462 Plugin 實機註冊、執行、停用、清理；P1-12 結構建立，第二次 apply 零寫入。</p>
+  <details><summary>證據（1）</summary><ul><li>唯一鍵確實擋下第二筆；測試資料清除為 0。</li></ul></details>
+  
+</article><article class="f good" data-sev="good">
+  <div class="hd"><span class="badge good">✓ 做得好</span><span class="id">G3</span></div>
+  <h3>測試大量增加且幾乎全過</h3><p>從 714（另 24 失敗）增加到 4,596；我獨立重跑 4,595 通過。</p>
+  <details><summary>證據（1）</summary><ul><li>約 2,600 個來自把原有 ToolUtility.Tests 納入方案、並以兩個框架各跑一次。</li></ul></details>
+  
+</article><article class="f good" data-sev="good">
+  <div class="hd"><span class="badge good">✓ 做得好</span><span class="id">G4</span></div>
+  <h3>守門工具齊全</h3><p>檔案說明、重複程式、中文字串棘輪、偽語系、進度頁測試都在且通過。</p>
+  <details><summary>證據（1）</summary><ul><li>我重跑：1,284／0、0 新增、verify 通過、18／18。</li></ul></details>
+  
+</article><article class="f good" data-sev="good">
+  <div class="hd"><span class="badge good">✓ 做得好</span><span class="id">G5</span></div>
+  <h3>誠實標示、遇到矛盾會停</h3><p>不把離線測試說成實機、不把沒跑的 CI 說成通過；P0-01／03／04／09 都停下來等你核定。</p>
+  <details><summary>證據（1）</summary><ul><li>各回報均有「尚缺」欄。</li></ul></details>
+  
+</article><article class="f good" data-sev="good">
+  <div class="hd"><span class="badge good">✓ 做得好</span><span class="id">G6</span></div>
+  <h3>找出並修正設計錯誤</h3><p>發現 9.1 伺服器拒絕 net48 → 改 net462（D21）；9.1 的重複鍵錯誤碼、查閱欄稽核差異都留下研究報告。</p>
+  <details><summary>證據（1）</summary><ul><li>P0-13 調查報告、P1 計畫修正報告（Word）。</li></ul></details>
+  
+</article></div>
+</section>
+
+<section id="s-effort">
+  <h2><span class="n">07</span>力氣花在哪裡</h2>
+  <p class="lead">每寫 1 行產品程式，約產生 12 行流程紀錄；而且這些紀錄都進了公開的版本庫。</p>
+  <div class="card"><svg class="viz" viewBox="0 0 760 268" width="760" height="268" role="img" aria-label="基準以來新增行數的去向" xmlns="http://www.w3.org/2000/svg"><rect x="200" y="10" width="12" height="12" rx="3" class="f-s2"/><text x="218" y="20" class="t2" font-size="13">流程紀錄與文件</text><rect x="331" y="10" width="12" height="12" rx="3" class="f-s1"/><text x="349" y="20" class="t2" font-size="13">程式與測試</text><text x="188" y="63" text-anchor="end" class="t1" font-size="13">流程與審查紀錄（.ccg）</text><rect x="200" y="50" width="420.0" height="18" rx="4" class="f-s2 hit" data-tip="流程與審查紀錄（.ccg）：+348,528 行"/><text x="628" y="64" class="t2" font-size="13">+348,528</text><text x="188" y="99" text-anchor="end" class="t1" font-size="13">任務證據（.trellis）</text><rect x="200" y="86" width="75.6" height="18" rx="4" class="f-s2 hit" data-tip="任務證據（.trellis）：+62,694 行"/><text x="283.55054400220354" y="100" class="t2" font-size="13">+62,694</text><text x="188" y="135" text-anchor="end" class="t1" font-size="13">測試程式</text><rect x="200" y="122" width="49.8" height="18" rx="4" class="f-s1 hit" data-tip="測試程式：+41,347 行"/><text x="257.8259537253822" y="136" class="t2" font-size="13">+41,347</text><text x="188" y="171" text-anchor="end" class="t1" font-size="13">產品程式（含檔頭說明）</text><rect x="200" y="158" width="41.9" height="18" rx="4" class="f-s1 hit" data-tip="產品程式（含檔頭說明）：+34,772 行"/><text x="249.90263049166782" y="172" class="t2" font-size="13">+34,772</text><text x="188" y="207" text-anchor="end" class="t1" font-size="13">計畫／進度／說明文件</text><rect x="200" y="194" width="23.6" height="18" rx="4" class="f-s2 hit" data-tip="計畫／進度／說明文件：+19,567 行"/><text x="231.57956892989947" y="208" class="t2" font-size="13">+19,567</text><text x="188" y="243" text-anchor="end" class="t1" font-size="13">品質工具（tools）</text><rect x="200" y="230" width="7.9" height="18" rx="4" class="f-s1 hit" data-tip="品質工具（tools）：+6,560 行"/><text x="215.90524721112794" y="244" class="t2" font-size="13">+6,560</text></svg></div>
+  <div class="card" style="margin-top:12px"><svg class="viz" viewBox="0 0 760 132" width="760" height="132" role="img" aria-label="199 個提交的訊息格式" xmlns="http://www.w3.org/2000/svg"><text x="10" y="22" class="t1" font-size="14" font-weight="600">199 個提交的訊息格式</text><rect x="10.0" y="40" width="165.3" height="26" rx="4" class="f-s1 hit" data-tip="WP 編號開頭：45 個"/><rect x="177.3" y="40" width="206.2" height="26" rx="4" class="f-s3 hit" data-tip="chore／docs 等格式：56 個"/><rect x="385.6" y="40" width="329.0" height="26" rx="4" class="f-muted hit" data-tip="沒有編號：89 個"/><rect x="716.5" y="40" width="33.5" height="26" rx="4" class="f-crit hit" data-tip="訊息錯誤（例：「未偵測到程式碼變更」）：9 個"/><rect x="10" y="82" width="12" height="12" rx="3" class="f-s1"/><text x="28" y="92" class="t1" font-size="13">WP 編號開頭　45</text><rect x="155.4" y="82" width="12" height="12" rx="3" class="f-s3"/><text x="173.4" y="92" class="t1" font-size="13">chore／docs 等格式　56</text><rect x="351.76" y="82" width="12" height="12" rx="3" class="f-muted"/><text x="369.76" y="92" class="t1" font-size="13">沒有編號　89</text><rect x="10" y="106" width="12" height="12" rx="3" class="f-crit"/><text x="28" y="116" class="t1" font-size="13">訊息錯誤（例：「未偵測到程式碼變更」）　9</text></svg></div>
+  <p class="cap">行數＝自開工基準 73b6e6cf 以來新增的行數。產品程式含搬移與 AGENTS.md 要求的檔頭說明，所以「真正新功能」比這更少。</p>
+</section>
+
+<section id="s-drift">
+  <h2><span class="n">08</span>計畫 3.3 偏差地圖</h2>
+  <p class="lead">3.3 在實作期間被 22 次提交就地修改；下面把所有偏差分成四類。</p>
+  <div class="drift"><div class="dcol s1"><h3>你已核定的變更（12）</h3><div>D21：net48 → net462</div><div>P0-13 精簡為 trace 驗收</div><div>推播測試移到 P2-04 前</div><div>FileVersion／回復移到階段 5</div><div>Retry Key 用單元測試代替實機重送</div><div>測試命名 CA1707 例外</div><div>Get → GetText 改名</div><div>Development 可存帳密</div><div>ImageSharp 3.2 需授權金鑰</div><div>DevExpress 不升級、雲端 CI 暫緩</div><div>smoke 輪詢改 2 秒</div><div>P1-12 改由 Codex 自主實機驗收</div></div><div class="dcol s3"><h3>D365 9.1 實測發現（4）</h3><div>net48 外掛被驗證器拒絕</div><div>新查閱欄稽核旗標不會保留</div><div>重複鍵錯誤碼是 0x80040237</div><div>解決方案根元件包含規則</div></div><div class="dcol s2"><h3>計畫 3.3 本身要修的（6）</h3><div>R2 對 MVC 主機不可行</div><div>一次一包 vs 平行需求</div><div>WP「完成定義」不清楚</div><div>9 處 vs 17 處數字矛盾</div><div>估時與實際落差</div><div>證據／回報規則過重</div></div><div class="dcol s5"><h3>設計 v3.3 待勘誤（4）</h3><div>偽語系範例 ǂǂǂ → ǂǂ</div><div>ImageSharp 授權與 2027-05-12 支援截止</div><div>全文 net48 字樣改 net462</div><div>Get → GetText、alias → richMenuAlias</div></div></div>
+  <div class="card" style="margin-top:12px"><svg class="viz" viewBox="0 0 760 218" width="760" height="218" role="img" aria-label="實作計畫 3.3 各檔案被修改次數" xmlns="http://www.w3.org/2000/svg"><text x="0" y="18" class="t1" font-size="14" font-weight="600">3.3 各檔案在實作期間被修改的次數</text><text x="138" y="50" text-anchor="end" class="t1" font-size="13">01 階段 0</text><rect x="150" y="37" width="440.0" height="17" rx="4" class="f-s1 hit" data-tip="01 階段 0：20 次"/><text x="598" y="51" class="t2" font-size="13">20 次</text><text x="138" y="80" text-anchor="end" class="t1" font-size="13">00 總覽與規則</text><rect x="150" y="67" width="132.0" height="17" rx="4" class="f-s1 hit" data-tip="00 總覽與規則：6 次"/><text x="290" y="81" class="t2" font-size="13">6 次</text><text x="138" y="110" text-anchor="end" class="t1" font-size="13">02 階段 1</text><rect x="150" y="97" width="110.0" height="17" rx="4" class="f-s1 hit" data-tip="02 階段 1：5 次"/><text x="268" y="111" class="t2" font-size="13">5 次</text><text x="138" y="140" text-anchor="end" class="t1" font-size="13">90 附錄</text><rect x="150" y="127" width="110.0" height="17" rx="4" class="f-s1 hit" data-tip="90 附錄：5 次"/><text x="268" y="141" class="t2" font-size="13">5 次</text><text x="138" y="170" text-anchor="end" class="t1" font-size="13">03 階段 2–4</text><rect x="150" y="157" width="66.0" height="17" rx="4" class="f-s1 hit" data-tip="03 階段 2–4：3 次"/><text x="224" y="171" class="t2" font-size="13">3 次</text><text x="138" y="200" text-anchor="end" class="t1" font-size="13">04 階段 5–8</text><rect x="150" y="187" width="44.0" height="17" rx="4" class="f-s1 hit" data-tip="04 階段 5–8：2 次"/><text x="202" y="201" class="t2" font-size="13">2 次</text></svg></div>
+</section>
+
+<section id="s-v34">
+  <h2><span class="n">09</span>要不要做實作計畫 3.4？</h2>
+  <div class="big-verdict"><div class="yes">要</div><div><div class="t">建議做：設計 v3.4 ＋ 實作計畫 3.4（整併修正版）</div><div style="color:var(--t2)">只整併與修正，不重做 P0／P1。</div></div></div>
+  <div class="two" style="margin-top:12px">
+    <div class="card"><b>為什麼</b><ul class="plain"><li>計畫 3.3 已被 22 次提交就地修改，規則散落在各檔「補充」段落，Codex 與你都難以掌握。</li><li>至少 6 項計畫問題會持續卡住進度（R2、完成定義、平行規則…）。</li><li>權限邊界、推送、證據政策需要你正式拍板，不該由實作端自行改寫。</li><li>設計 v3.3 本身也有 4 項勘誤等著併入。</li></ul></div>
+    <div class="card"><b>不做什麼</b><ul class="plain"><li>不重做 P0／P1：成果保留，只整併文字。</li><li>不改已定案的架構決定（A1～A4、D15～D27、I1～I10）。</li></ul></div>
+  </div>
+  <div class="flow"><div class="s"><small>第 1 步</small>設計 v3.4（Word／HTML／drawio 另存新版）</div><div class="a">→</div><div class="s"><small>第 2 步</small>實作計畫 3.4 資料夾（3.3 凍結）</div><div class="a">→</div><div class="s"><small>第 3 步</small>Codex 依 3.4 繼續 P2</div></div>
+  <div class="card">
+    <b>3.4 要改的 12 件事</b>（不同意的取消勾選，再按「複製」貼回給我）
+    <ul class="checks" style="margin-top:10px"><li><label><input type="checkbox" data-i="0" checked><span class="no">1</span><span>併入 12 項已核定變更，刪除散落的「補充」段落</span></label></li><li><label><input type="checkbox" data-i="1" checked><span class="no">2</span><span>R2 改寫：新主機與 Plugin 嚴格；ChurchReport 用「只減不增」棘輪，階段 6 清零</span></label></li><li><label><input type="checkbox" data-i="2" checked><span class="no">3</span><span>D24 權限表重寫：Codex 可自主／要你確認／不可做</span></label></li><li><label><input type="checkbox" data-i="3" checked><span class="no">4</span><span>P2-04 前置第 0 步：清除測試組織的 LINE token 與會友 LINE ID</span></label></li><li><label><input type="checkbox" data-i="4" checked><span class="no">5</span><span>每個 WP 一頁「完成定義」：3–5 項證據，實機只放在驗收包</span></label></li><li><label><input type="checkbox" data-i="5" checked><span class="no">6</span><span>提交規則：乾淨複本建置＋測試才可提交；WP 編號開頭；一提交一包；紅燈不提交</span></label></li><li><label><input type="checkbox" data-i="6" checked><span class="no">7</span><span>平行規則：不相依、不碰同檔，最多 2 包</span></label></li><li><label><input type="checkbox" data-i="7" checked><span class="no">8</span><span>推送規則：要不要自動推送寫清楚</span></label></li><li><label><input type="checkbox" data-i="8" checked><span class="no">9</span><span>證據瘦身：原始 log／TRX 不進 repo；給你的回報＝一張圖＋三句話</span></label></li><li><label><input type="checkbox" data-i="9" checked><span class="no">10</span><span>CI：補 Debug 建置或修測試；決定 DevExpress 來源或接受 23 專案範圍</span></label></li><li><label><input type="checkbox" data-i="10" checked><span class="no">11</span><span>P2 剩餘順序：P2-01 收尾 → P2-04 前置（你）→ P2-04 → 05 → 06 → 07 → 08／09 → 10 → 11 → 12</span></label></li><li><label><input type="checkbox" data-i="11" checked><span class="no">12</span><span>估時改以「你要動手的時間點」為主</span></label></li></ul>
+    <div class="copybar"><button class="btn" id="copyBtn" type="button">複製我的勾選結果</button><button class="btn ghost" id="resetBtn" type="button">全部重設</button><span id="copied" aria-live="polite"></span></div>
+  </div>
+</section>
+
+<section id="s-next">
+  <h2><span class="n">10</span>你的下一步</h2>
+  <ol class="next"><li><div><span class="who codex">Codex</span><span class="when">今天</span><div>先修好建置（補 QrCodeContentCodec 或撤回測試），在乾淨複本重跑全方案。</div></div></li><li><div><span class="who you">你</span><span class="when">今天</span><div>確認權限：Codex 進 VM／網域控制站做 SQL 備份還原、對 goodshepherdback 寫入，是否都是你同意的。</div></div></li><li><div><span class="who you">你</span><span class="when">今天</span><div>確認 GitHub 自動推送是不是你設定的。</div></div></li><li><div><span class="who you">你</span><span class="when">決定後</span><div>決定是否做設計 v3.4＋實作計畫 3.4；定案前請 Codex 只修建置與收尾，不開新工作包。</div></div></li><li><div><span class="who you">你</span><span class="when">P2-04 前</span><div>清理 goodshepherdback 的 LINE token 與會友 LINE ID，準備測試 LINE channel 與自己的測試帳號。</div></div></li></ol>
+</section>
+
+<section id="s-method">
+  <h2><span class="n">11</span>方法與限制</h2>
+  <div class="card"><ul class="method"><li>稽核快照：分支 1.0.0.11.Integration.P2.Worktree，提交 30d2f02b（2026-11-07 19:23）。稽核期間 Codex 仍在同一資料夾工作，因此我在獨立複本（git clone --shared）建置與測試，未動到 Codex 的工作樹。</li><li>讀取：實作計畫 3.3 全部 md、驗收文件、進度頁 DATA、P1 計畫修正報告、設計 v3.3 計畫書目錄、討論紀錄、牧人 2.0 研究報告；Trellis 任務、WP 回報與 git 歷史（73b6e6cf..HEAD，199 個提交）。</li><li>實測：dotnet build（Release, -warnaserror:NU1605）、dotnet test（Release）、check_file_documentation.py、Test-ProgressPage.cjs、Test-TextEncoding（Changed, Base 62b409c8）、Find-DuplicateCode、I18nCheck verify。</li><li>抽查程式：ChannelTokenProtector、DiagnosticsPingPlugin、Hosting 診斷與 R2 清冊、GoodShepherd.Core、Deployment smoke 輪詢、組織代碼字面值。</li><li>限制：未重測覆蓋率；未連 D365／LINE（依規定）；本機沒有 gh，未查 GitHub Actions 紀錄；授權是否由你口頭給予，我只能依紀錄判斷，需你確認。</li></ul></div>
+</section>
+
+<footer>本報告只讀取與在獨立複本執行驗證，未修改任何程式、計畫或 Codex 的工作樹。</footer>
+</div>
+<script>
+(function(){
+  var tip=document.getElementById('tip');
+  document.addEventListener('mousemove',function(e){
+    var t=e.target.closest&&e.target.closest('[data-tip]');
+    if(!t){tip.style.opacity=0;return;}
+    tip.textContent=t.getAttribute('data-tip');
+    var x=Math.min(e.clientX+14,window.innerWidth-tip.offsetWidth-8),y=e.clientY+16;
+    if(y+tip.offsetHeight>window.innerHeight-8)y=e.clientY-tip.offsetHeight-12;
+    tip.style.left=x+'px';tip.style.top=y+'px';tip.style.opacity=1;
+  });
+  var btns=document.querySelectorAll('.filters button');
+  btns.forEach(function(b){b.addEventListener('click',function(){
+    btns.forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+    var f=b.getAttribute('data-f');
+    document.querySelectorAll('#fgrid .f').forEach(function(c){c.style.display=(f==='all'||c.getAttribute('data-sev')===f)?'':'none';});
+  });});
+  var KEY='codex-audit-v34-checks';
+  var boxes=document.querySelectorAll('.checks input');
+  try{var saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved)boxes.forEach(function(b,i){if(typeof saved[i]==='boolean')b.checked=saved[i];});}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(Array.prototype.map.call(boxes,function(b){return b.checked;})));}catch(e){}}
+  boxes.forEach(function(b){b.addEventListener('change',save);});
+  document.getElementById('resetBtn').addEventListener('click',function(){boxes.forEach(function(b){b.checked=true;});save();});
+  document.getElementById('copyBtn').addEventListener('click',function(){
+    var lines=['實作計畫 3.4 勾選結果：'];
+    boxes.forEach(function(b,i){var t=b.closest('label').querySelectorAll('span')[1].textContent;lines.push((b.checked?'[同意] ':'[不同意] ')+(i+1)+'. '+t);});
+    var text=lines.join('\n'),msg=document.getElementById('copied');
+    function done(){msg.textContent='已複製，貼回對話即可';}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallback();});}else fallback();
+    function fallback(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){msg.textContent='無法自動複製，請手動選取';}document.body.removeChild(ta);}
+  });
+  var root=document.documentElement;
+  try{var th=localStorage.getItem('codex-audit-theme');if(th)root.setAttribute('data-theme',th);}catch(e){}
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    var nx=cur==='dark'?'light':'dark';root.setAttribute('data-theme',nx);
+    try{localStorage.setItem('codex-audit-theme',nx);}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

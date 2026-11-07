@@ -26,4 +26,3 @@
 - [ ] `SpeechMessageProducts.GoodShepherd.Core` 實際 net462／net10.0 及測試宿主 net48／net10.0 均成功建置與測試。
 - [ ] 新增／修改 C# 文件通過完整繁中檔案說明及 UTF-8 無 BOM、CRLF、最後 CRLF 位元組檢查。
 - [ ] 維持 P2-09 進行中，直到 P2-07 依賴的圖片待辦處理器與 ZXing 反解驗收完成。
-

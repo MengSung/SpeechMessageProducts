@@ -124,11 +124,11 @@ public sealed class QrCodeContentCodecTests
     [Fact(DisplayName = "主日底線格式保留動態類別分支")]
     public void Meeting_UnderscoreSeparator_PreservesLegacyBranch()
     {
-        const string expected = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee_new_meeting_qr_On";
+        const string expected = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee_1_On";
 
         var encoded = QrCodeContentCodec.EncodeMeeting(
             MeetingId,
-            "new_meeting_qr",
+            "1",
             "On",
             QrCodePayloadSeparator.Underscore);
 
@@ -139,7 +139,7 @@ public sealed class QrCodeContentCodecTests
             out var attribute,
             out var onboardType,
             out var separator));
-        Assert.Equal("new_meeting_qr", attribute);
+        Assert.Equal("1", attribute);
         Assert.Equal("On", onboardType);
         Assert.Equal(QrCodePayloadSeparator.Underscore, separator);
     }
@@ -162,7 +162,8 @@ public sealed class QrCodeContentCodecTests
     }
 
     /// <summary>
-    /// 個人掃描器只要 payload 任一處含 `@` 就優先取第一個 at 前綴，避免 `_` 前綴被錯誤授權成 GUID。
+    /// 個人掃描器只要 payload 任一處含 `@` 就優先取第一個 at 前綴，避免改變資料列解析；
+    /// 解析所得 GUID 並非授權證明，後續查詢仍須由伺服器驗證組織及使用者權限。
     /// </summary>
     [Fact(DisplayName = "個人 payload 維持 at 分隔優先序")]
     public void Personal_AtSeparator_TakesPrecedenceOverUnderscore()
@@ -267,5 +268,62 @@ public sealed class QrCodeContentCodecTests
 
         Assert.False(QrCodeContentCodec.TryDecodePersonal(oversized, out var contactId));
         Assert.Equal(Guid.Empty, contactId);
+    }
+
+    /// <summary>
+    /// 四種解碼入口遇到 null、空白、缺身分或超出預算時均須保持 false 與空輸出，
+    /// 避免只在個人入口驗證而讓其他入口把部分資料發布給後續 D365 查詢。
+    /// </summary>
+    [Theory(DisplayName = "所有解碼入口拒絕共同無效輸入且清空欄位")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("_On")]
+    [InlineData("@On")]
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    public void Decode_InvalidSharedInput_AllFormatsFailClosed(string? content)
+    {
+        Assert.False(QrCodeContentCodec.TryDecodeLesson(content, out var lessonId, out var index, out var lessonAction));
+        Assert.Equal(Guid.Empty, lessonId);
+        Assert.Equal(string.Empty, index);
+        Assert.Equal(string.Empty, lessonAction);
+        Assert.False(QrCodeContentCodec.TryDecodeMeeting(content, out var meetingId, out var category, out var meetingAction, out _));
+        Assert.Equal(Guid.Empty, meetingId);
+        Assert.Equal(string.Empty, category);
+        Assert.Equal(string.Empty, meetingAction);
+        Assert.False(QrCodeContentCodec.TryDecodeSmallGroup(content, out var reportId, out var groupAction));
+        Assert.Equal(Guid.Empty, reportId);
+        Assert.Equal(string.Empty, groupAction);
+        Assert.False(QrCodeContentCodec.TryDecodePersonal(content, out var contactId));
+        Assert.Equal(Guid.Empty, contactId);
+    }
+
+    /// <summary>
+    /// 證明內容預算允許精確邊界而不是整批拒絕長輸入；個人尾段符合舊掃描器忽略語意，
+    /// 加一字元則拒絕且清空 GUID。測試沒有建立圖片，也不聲稱此長度可塞進任意 QR 版本。
+    /// </summary>
+    [Fact(DisplayName = "個人內容精確預算可解析但超一字元拒絕")]
+    public void Personal_ExactContentLimit_AcceptsBoundaryOnly()
+    {
+        var atLimit = "01234567-89ab-cdef-0123-456789abcdef_" + new string('x', 2011);
+
+        Assert.True(QrCodeContentCodec.TryDecodePersonal(atLimit, out var contactId));
+        Assert.Equal(ContactId, contactId);
+        Assert.False(QrCodeContentCodec.TryDecodePersonal(atLimit + "x", out contactId));
+        Assert.Equal(Guid.Empty, contactId);
+    }
+
+    /// <summary>
+    /// 未定義分隔符不能默認落到某一分支，否則編碼輸出會指向錯誤的聚會欄位；
+    /// 注入非法 enum，斷言呼叫端收到固定且不含輸入內容的參數錯誤。
+    /// </summary>
+    [Fact(DisplayName = "主日編碼拒絕未定義的分隔符")]
+    public void Meeting_UndefinedSeparator_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => QrCodeContentCodec.EncodeMeeting(
+            MeetingId,
+            "1",
+            "On",
+            (QrCodePayloadSeparator)1234));
     }
 }

@@ -445,18 +445,19 @@
  * 注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07 18:50 Asia/Taipei (UTC+08:00)",
+  "snapshot": "2026-11-07 19:23 Asia/Taipei (UTC+08:00)",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "worker": "主會話負責P2-01契約、測試與唯一寫入；平行派一名唯讀代理核對R2清冊及舊型別ABI，主會話同步規範盤點；未呼叫外部模型，未操作D365／LINE／金流。",
-  "headline": "階段 2 目前 <strong>2／12 工作包進行中</strong>（P2-01、P2-03），<strong>1／12 工作包已驗收</strong>（P2-02）。P1-01～12已驗收；P2-02只完成雙目標骨架離線驗收，不代表P2-04或P2總目標完成；推播前置仍需使用者核定的實機步驟。全計畫已驗收31包，另2包進行中。",
+  "worker": "主會話負責P2-09格式盤點、測試、實作及進度頁唯一寫入；一名唯讀代理盤點P2-06送訊副本，尚在執行；未呼叫外部模型，未操作D365／LINE／金流。",
+  "headline": "階段 2 目前 <strong>3／12 工作包進行中</strong>（P2-01、P2-03、P2-09），<strong>1／12 工作包已驗收</strong>（P2-02）。P2-09目前只進行雙目標內容編解碼切片；圖片處理器仍依賴P2-07，未完成圖片驗收。P1-01～12已驗收；P2-04推播前置與P2總目標均未完成。全計畫已驗收31包，另3包進行中。",
   "notices": [
     {
       "id": "phase-2-summary",
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "body": "2026-11-07 18:50 Asia/Taipei (UTC+08:00)：階段2為1／12工作包已驗收（P2-02），P2-01與P2-03進行中。P2-01已將唯一ExceptionLoggerProvider實作移至SpeechMessage.Hosting，ChurchReport保留TypeForwardedTo舊CLR型別身分。相容與既有例外管線Debug、Release各4／4，0失敗／0略過；R2清冊一致性Debug／Release比對2／2通過。首輪架構失敗為清冊仍列已移轉型別，失敗TRX保留；按實測移除精確兩筆後清冊由654降為652（Debug337、Release315），其餘R2仍未驗收。相容測試見 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-verification-20261107-1818/；R2成功TRX見 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-r2-green-20261107-1825/r2-inventory-green.trx。文件說明1283／0、進度頁契約測試18／18通過，最終版log見 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-r2-green-20261107-1825/progress-page-final-after-metadata.log。平行工作僅一名唯讀代理核對清冊及ABI，已完成並關閉；本次主會話唯一寫入。未呼叫外部模型或操作實機。AGENTS引用的cross-user-isolation-and-performance.md在本工作樹缺失，依AGENTS本文規則執行並如實標記。P2-03目前工作樹Release重驗20份TRX共4596／4596通過，實際結果列與Counters相符；完整Release建置23警告／0錯誤。驗證快照含既有未提交P2-02／任務文件變更，不是乾淨commit HEAD；摘要及逐份SHA見 .trellis/tasks/11-07-p2-03-channel-token/evidence/current-head-rerun-20261107-1730/current-head-summary.json。完整Changed編碼守門仍有5份原始證據換行問題；Dataverse唯一性／原子Upsert、正式資料列ID、權限、備份／回復／清理及推播前置仍待核准測試環境驗收。P2總目標未完成。",
+      "body": "2026-11-07 19:23 Asia/Taipei (UTC+08:00)：階段2為1／12工作包已驗收（P2-02），P2-01、P2-03、P2-09進行中。P2-09正在建立純雙目標QR內容codec；依四個現役掃描器來源鎖定欄位，net10 TDD紅燈已重現為缺少QrCodes命名空間，尚未新增產品實作。P2-07尚未完成，因此圖片產生及ZXing反解仍待處理，不以本切片替代。P2-06一名唯讀代理正在盤點送訊副本，主會話是唯一寫入者。P2-01、P2-03的既有離線結果與證據保留於下方紀錄及各工作包；R2與完整Changed編碼仍有未驗收差距。P2-04推播前置及其他必要實機驗收尚未完成，P2總目標未完成。",
       "steps": [
+        "2026-11-07 19:23 Asia/Taipei (UTC+08:00)｜P2-09內容編解碼切片啟動：已讀四個ChurchReport掃描器與QrCodes導讀，依實際解析鎖定課程／主日／個人／小組欄位；TDD net10測試先紅，編譯失敗明確指出SpeechMessageProducts.GoodShepherd.Core.QrCodes尚不存在。原始輸出 .trellis/tasks/11-07-11-07-p2-09-qr-content/evidence/qr-codec-red-net10.log；屬預期缺實作紅燈，不是驗收通過。P2-07圖片處理器仍未解除依賴；一名唯讀代理正在盤點P2-06，主會話唯一寫入。未操作D365／LINE／金流。",
         "2026-11-07 18:50 Asia/Taipei (UTC+08:00)｜P2-01-provider移轉切片已通過：舊組件型別轉送、完整CLR名稱及constructor ABI驗證成功；借用diagnostics owner在provider.Dispose後仍可寫入。ChurchReport相容與既有例外管線Debug／Release各4／4；清冊比對2／2通過。首輪架構紅燈確認只剩已移轉型別的Debug／Release兩筆stale清冊紀錄，保留失敗TRX；移除後清冊652筆（Debug337／Release315），仍非空，R2不標完成。三個C#檔位元組均UTF-8無BOM／純CRLF／檔尾CRLF；全方案文件說明1283／0、進度頁測試18／18。證據在 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-verification-20261107-1818/ 與 provider-forwarder-r2-green-20261107-1825/。",
         "2026-11-07 18:06 Asia/Taipei (UTC+08:00)｜P2-01-TDD紅燈：`dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj --no-restore --filter FullyQualifiedName~ExceptionLoggerProviderCompatibilityTests`結果1／2，ABI測試按預期失敗於型別組件仍是SpeechMessageProducts.ChurchReport，owner生命週期測試通過，0略過。原始TRX provider-forwarder-red-20261107-1801/provider-forwarder-red.trx；不代表移轉完成。已讀既有ExceptionPipelineTests，避免重複其Error/Critical與formatter保密覆蓋。",
         "2026-11-07 17:55 Asia/Taipei (UTC+08:00)｜P2-01初始盤點：R2清冊中SpeechMessageProducts.ChurchReport/Logging/ExceptionLoggerProvider.cs於Debug與Release各有一筆R2HostPublicType，程式只有Program的Error/Critical provider註冊；候選移轉至Hosting需保留ChurchReport.Logging.ExceptionLoggerProvider的CLR完整名稱，驗證轉送、Error/Critical篩選、formatter不求值、空Exception與借用diagnostics不被provider.Dispose關閉。尚未修改程式或清冊。平行僅一名唯讀代理核對精確差異與ABI，主會話唯一寫入。未讀到AGENTS所引用的cross-user-isolation-and-performance.md（工作樹不存在），仍依AGENTS原文隔離／資源規則；未操作D365／LINE／金流。",
@@ -515,7 +516,7 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T18:50:06+08:00"
+      "lastUpdated": "2026-11-07T19:23:12+08:00"
     }
   ],
   "alert": {
@@ -628,10 +629,10 @@ const DATA = {
       "label": "全計畫進度",
       "value": "31",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18、P1 12／12已驗收；P2-02已驗收，P2-01、P2-03進行中",
+      "sub": "P0 18／18、P1 12／12已驗收；P2-02已驗收，P2-01、P2-03、P2-09進行中",
       "meter": {
         "done": 31,
-        "active": 2,
+        "active": 3,
         "total": 83
       }
     },
@@ -661,10 +662,10 @@ const DATA = {
       "label": "階段 2 進度",
       "value": "1",
       "unit": "/ 12 工作包",
-      "sub": "P2-02已驗收；P2-01、P2-03進行中，其餘依依賴與實機前置追蹤",
+      "sub": "P2-02已驗收；P2-01、P2-03、P2-09進行中，其餘依依賴與實機前置追蹤",
       "meter": {
         "done": 1,
-        "active": 2,
+        "active": 3,
         "total": 12
       }
     },
@@ -1032,10 +1033,11 @@ const DATA = {
       "phaseId": "階段 2",
       "id": "P2-09",
       "name": "QR 內容編碼與圖片產生處理器",
-      "status": "todo",
-      "scope": "QR 內容編碼放在雙目標 GoodShepherd.Core/QrCodes，供產生端及 ChurchReport 掃碼端共用；net10 待辦處理器使用 ZXing.Net＋ImageSharp 產生圖片。",
-      "verification": "對內容編碼／解碼建立黃金測試；實際產圖再以 ZXing 解碼，必須回到同一內容。",
-      "prerequisite": "圖片工作經 P2-07 QrImageGenerate 待辦執行；不把 net10 圖片依賴帶入雙目標核心。"
+      "status": "active",
+      "scope": "進行中切片：依現役 ChurchReport 掃描器的課程、主日、個人與小組 payload 欄位，在雙目標 GoodShepherd.Core/QrCodes 實作純內容編碼／解碼；尚未修改ChurchReport接線。圖片待辦處理器不在目前切片。",
+      "verification": "內容codec黃金測試與雙目標回歸待執行。2026-11-07 19:23 Asia/Taipei的net10 TDD紅燈因共用QrCodes型別尚不存在而編譯失敗，原始log在 .trellis/tasks/11-07-11-07-p2-09-qr-content/evidence/qr-codec-red-net10.log；尚無綠燈，不標驗收完成。",
+      "prerequisite": "圖片工作依賴P2-07 QrImageGenerate待辦及Worker；需後續用ZXing.Net＋ImageSharp產圖並解回相同內容；不把net10圖片依賴帶入雙目標核心。",
+      "lastUpdated": "2026-11-07T19:23:12+08:00"
     },
     {
       "phaseId": "階段 2",
@@ -1459,7 +1461,7 @@ const DATA = {
       "est": "10～13 天（國際化＋2～3 天）",
       "total": 12,
       "done": 1,
-      "active": 2,
+      "active": 3,
       "current": true
     },
     {
@@ -1650,6 +1652,11 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-07 19:23 Asia/Taipei (UTC+08:00)",
+      "text": "P2-09純內容編解碼切片啟動，依現役掃描器欄位建立黃金測試；缺少QrCodes實作的編譯紅燈已保存，尚未通過驗收。主會話唯一寫入；一名唯讀代理同步盤點P2-06送訊副本。P2-07圖片與P2-04實機依賴保持未完成；P2仍1／12驗收、3包進行中。",
+      "cls": "info"
+    },
     {
       "id": "p2-progress-phase-summary",
       "t": "2026-11-07 09:00 Asia/Taipei (UTC+08:00)",
