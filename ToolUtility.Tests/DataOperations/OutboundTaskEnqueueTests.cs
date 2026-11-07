@@ -34,6 +34,7 @@ public sealed class OutboundTaskEnqueueTests
         var command = Command();
         var rowId = Guid.NewGuid();
         var gate = new object();
+        using var entrants = new Barrier(2);
         Entity? saved = null;
         var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
         sdk.Setup(s => s.Create(It.IsAny<Entity>())).Returns((Entity row) =>
@@ -43,6 +44,8 @@ public sealed class OutboundTaskEnqueueTests
             Assert.Equal(100000000, row.GetAttributeValue<OptionSetValue>("new_taskstatus").Value);
             Assert.Equal(0, row.GetAttributeValue<int>("new_attempts"));
             Assert.Equal("account", row.GetAttributeValue<EntityReference>("new_accountid").LogicalName);
+            // 兩個產品呼叫都真正入場後才交給合成資料庫裁決，避免排程剛好串行卻冒稱併行證據。
+            Assert.True(entrants.SignalAndWait(TimeSpan.FromSeconds(10)));
             lock (gate)
             {
                 if (saved is not null) throw Fault(unchecked((int)0x80040237));
