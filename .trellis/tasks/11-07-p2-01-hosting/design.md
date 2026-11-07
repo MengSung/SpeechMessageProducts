@@ -102,7 +102,7 @@ AssemblyRef，產品自己貼 implicit 標記不能繞過。
 唯讀評估不執行 global using 產生 target，由已評估 Using 項目在記憶體組成等效語法。
 單來源16MiB、每目標64MiB、同次唯一來源總量256MiB；跨目標重用的是相同 detached
 不可變來源文字，沒有跨呼叫快取。讀取 stream 不允許並行寫入並確定 Dispose，UTF-8
-嚴格解碼；MSBuild 每條輸出最多8MiB、程序三十秒，仍採既有 drain／kill／reap契約。
+嚴格解碼；MSBuild 每條輸出最多8,388,608個UTF-16字元（不是8MiB位元組）、程序三十秒，仍採既有 drain／kill／reap契約。
 Roslyn AssemblyMetadata 由每次掃描唯一擁有，finally反向Dispose，不執行產品DLL。
 
 R2真實盤點仍有 ChurchReport Debug338／Release316筆公開型別差距。

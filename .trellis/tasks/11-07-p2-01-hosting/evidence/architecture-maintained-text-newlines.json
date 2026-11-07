@@ -1,0 +1,84 @@
+{
+  "files": [
+    {
+      "path": ".ccg/dual-model-runs/p2-01-resume-analyzer.md",
+      "beforeSha256": "95475ce804865c006adcd2d49831e5d51e59012284b6b7831facfc8f81d4b159",
+      "afterSha256": "3a01027557ac17818b778e78be5f034e38ebdb91d183e88caa9a78fb338d2fed",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".ccg/dual-model-runs/p2-architecture-continuation-analyzer.md",
+      "beforeSha256": "a76c4ee3000a05caba79563e933bd05c146d1146827bb28f351db0982df5830b",
+      "afterSha256": "4dc4375fca816510cb742039173afeaeb62b2e6120babcfd03e42313d817ee77",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".ccg/dual-model-runs/p2-hosting-solution-registration-analyzer.md",
+      "beforeSha256": "a213780a284111e148317893184508cf861c84e844c4139f312d08017ff48d3a",
+      "afterSha256": "cf0296ff4e5d10bf86e7997d6e940319b5665660b014ab3dd5e45386e89489d4",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".ccg/dual-model-runs/p2-hosting-solution-registration-reviewer.md",
+      "beforeSha256": "2daa84e254bac400c42afd1c14328261286ba8c3bb6620ea4612bb90da8b889c",
+      "afterSha256": "70b139fef66a77f4e04d8ea4d1fb259c659b8c6fea921f6bad955aa4b72aecab",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".ccg/dual-model-runs/p2-progress-phase-summary-analyzer.md",
+      "beforeSha256": "33377f8285a267d8f822f424357697635ef435331efa4bceb735d3597fbb517e",
+      "afterSha256": "45b5bf740ab163e133e202def691e9f46c642027be3a958cba8b3a21ceb9fcb9",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".ccg/dual-model-runs/p2-progress-phase-summary-reviewer.md",
+      "beforeSha256": "bf7d9aa2931cdb08b35e9aae75f6aeea5647b511fdc5a5da4845ee0521069acf",
+      "afterSha256": "cc1ca57db0bf8f1f6d048b126281e7ed8af73f4cd2b761ad093248edf81c4d4b",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".trellis/tasks/11-07-integration-p2/design.md",
+      "beforeSha256": "c3902398789a20ff1dfd4c4e6a4320f60f1785600c3f070033b0a33e24e6f566",
+      "afterSha256": "239038950d88be78e4166565dbc852b64b121b4bad0f3d94338b951b11854562",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".trellis/tasks/11-07-integration-p2/implement.md",
+      "beforeSha256": "7b04ab6bc89b1d976462faeb84982d7ccba2848b9f4622caddad7699d7f209af",
+      "afterSha256": "8100639556e90f5cb0571339d14fa482164e759e9656f9fdb50ebc067564214d",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    },
+    {
+      "path": ".trellis/tasks/11-07-integration-p2/task.json",
+      "beforeSha256": "8fc6edf7d1588e18b657b1aa6b9575f8cba9c6e0f882ecff96d7ac5a7d1c8723",
+      "afterSha256": "a9bab972e7e1bf3d0bf03ce08e51768e4d579bf3e59025c4becc17f9b7b17ef2",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": true
+    },
+    {
+      "path": ".trellis/tasks/archive/2026-11/11-07-p2-progress-phase-summary/task.json",
+      "beforeSha256": "b33c24f8e9a815b5e4d5c1e0cfab46bb90e1b8b1c4836dea9c73f1318e3406c9",
+      "afterSha256": "686299172ca27263e412dee77390d8afef3e058d0dec448e5f79d04734a18a1d",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": true
+    },
+    {
+      "path": ".trellis/workspace/codex/index.md",
+      "beforeSha256": "4e25de00051c67641323bb829ab3ed48b188c892a88815caf00fbadc399d89fc",
+      "afterSha256": "3dbc30929866b1f23bef3f204c0a25f92688a1572da32ce9a5c859b3be07c069",
+      "normalizedTextUnchanged": true,
+      "jsonSemanticsUnchanged": false
+    }
+  ],
+  "rawEvidenceModified": false,
+  "p013TraceModified": false,
+  "remainingIssues": "三份自動.turns.json與兩份原始solution JSON保持原貌；完整Changed門檻仍未通過。"
+}

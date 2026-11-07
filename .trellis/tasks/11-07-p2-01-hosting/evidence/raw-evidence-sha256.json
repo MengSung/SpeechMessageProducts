@@ -1,8 +1,8 @@
 {
   "rawEvidencePreserved": true,
-  "previousFileCount": 70,
+  "previousFileCount": 126,
   "previousHashesUnchanged": true,
-  "fileCount": 126,
+  "fileCount": 193,
   "files": [
     {
       "path": "culture-churchreport-debug/culture-churchreport-debug.trx",
@@ -759,6 +759,408 @@
       "size": 8140,
       "sha256": "ddeb8c9d4ee30cc901436cacf0b70a4301c205aed3d9d80775b86838c853ef5d",
       "indexBytesMatch": true
+    },
+    {
+      "path": "architecture-bypass-red/architecture-bypass-red.trx",
+      "size": 36770,
+      "sha256": "d3291548a8f247d388200d67c759f79d6cbc698e80d9db39d612fac965a76ea3",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-bypass-red.log",
+      "size": 9993,
+      "sha256": "3631d1186f5959cf2e8a6f67b7c4884a038045ab1f9f93d7a55b34f2b507e636",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-changed-encoding-after-maintained-repair.log",
+      "size": 506,
+      "sha256": "1e03837dcc212b0275169ea001e9980cf2c88765f65e8eff3184adb513b4ca9c",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-churchreport-exact-debug/architecture-churchreport-exact-debug.trx",
+      "size": 152547,
+      "sha256": "4659f2e477953f792fd500872d47686c4046f9423598122d46812b27f8369125",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-churchreport-exact-debug.log",
+      "size": 5157,
+      "sha256": "9f007d187edc05818b5e1f632a215acaf8de53752a1db2ebcce7b0ccc9226ea6",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-churchreport-exact-release/architecture-churchreport-exact-release.trx",
+      "size": 152865,
+      "sha256": "4a2b8d1de696c53665b60fe45d047734574252bbab98976b947e55025fd1b202",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-churchreport-exact-release.log",
+      "size": 764,
+      "sha256": "d5dc1f6d4cb9b44253b2f6bd0469eb96897d89eb288f940706272e6cb1882538",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-churchreport-owner-move-release/architecture-churchreport-owner-move-release.trx",
+      "size": 146585,
+      "sha256": "c0f8d7fb976c8fd9698d6875ed8a637f3fc82966ed3b70ef05a1ae66db879c7e",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-churchreport-owner-move-release.log",
+      "size": 5207,
+      "sha256": "a7925dadd15fdde2c472c3c4d773dc50071a57af9250176922de354cb08ac1e4",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-ci-filter-build.log",
+      "size": 9827,
+      "sha256": "3e45ad38d63fedda8e17facfffa8ba4e245478ee16d518122657004fb427812b",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-ci-green.log",
+      "size": 333,
+      "sha256": "16e45a0dc45dfda1b3056ce95c907c2a463cecf7e98ee74555795a4d673600a1",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-ci-recheck.log",
+      "size": 426,
+      "sha256": "765469b08203e4c547297759363958497cd685d2f653d6a3032d383bf7d38f09",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-ci-red.log",
+      "size": 369,
+      "sha256": "de2fbd0d461ed723d47a1fcdd3c2ac6a1076fb03fe72397fe227eea262fa7dfb",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-compile-red.log",
+      "size": 2504,
+      "sha256": "c7412aed3a6ebc0c7f4467874da9245ba6776b86e7a0b3655d0c54647cdaa428",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-debug-rebuild.log",
+      "size": 360074,
+      "sha256": "7be43f9f837593fcea28d18fd4a5cd1a24df8f216a798a8f06cb1c55ddc5d0c1",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-debug-runtime-repair/architecture-debug-runtime-repair.trx",
+      "size": 9962,
+      "sha256": "9e2c62e290a5794efc1f59247779387a7db981f7b2f8c224b5224acfb35b9af7",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-debug-runtime-repair.log",
+      "size": 741,
+      "sha256": "813d1117375416dc91abaea20e7199dcab01681dac2b902d46af2e467617ee42",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-diagnostics-owner-move-green/architecture-diagnostics-owner-move-green.trx",
+      "size": 17046,
+      "sha256": "f747434d913351080cd2b9f1006694b8cf8025b1bc5984a2498fd76dbf91669f",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-diagnostics-owner-move-green.log",
+      "size": 2045,
+      "sha256": "ddb441b0615765b590fb90ead434a8910ffacddaaeeb63099db6f14ed08be512",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-diagnostics-owner-move.log",
+      "size": 20775,
+      "sha256": "2cde95b585389c7d6e49ff03ccd2fba8ee656851d1e2b1c38a9f2db413db5fcd",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-duplicates-owner.log",
+      "size": 85,
+      "sha256": "ee21567fbd1a1a4f51e1ef59ac4b55eaebb3f8a99aed198a6c25a80d2c83112c",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-external-analysis.log",
+      "size": 9685,
+      "sha256": "1ee5900ef11c3ca65472cbaca0d158617de834f0309d0204605b33d683d50ad2",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-file-documentation-final.log",
+      "size": 46,
+      "sha256": "772b32dfaef46fd142577c29cc8bb8a0903c117077c34a004dcabebdac3590de",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-file-documentation-first.log",
+      "size": 46,
+      "sha256": "dd97b0134e3d7776f18771a3bfc4bcb819bd4fe556db7f60ff706b16d3e0bbf4",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-file-documentation-owner.log",
+      "size": 46,
+      "sha256": "772b32dfaef46fd142577c29cc8bb8a0903c117077c34a004dcabebdac3590de",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-focused-final/architecture-focused-final.trx",
+      "size": 163669,
+      "sha256": "fc932f62511c2632856db36f87fe694fb7c921e39c23c102be279d20e4c21d4d",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-focused-final.log",
+      "size": 2016,
+      "sha256": "ac3d38b19c9e2e2eb09f74e16a3f033dc3315e141a227ea1d808cb3ba12a66f3",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-full-changed-encoding.log",
+      "size": 1417,
+      "sha256": "9586d6c9834c5ecd359830f8f386a75004210b758d52a5832b0fe122452067fe",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-global-import-red/architecture-global-import-red.trx",
+      "size": 6975,
+      "sha256": "3ae8d80003d4c3e0ea084b225909aca14665556d0ef56d1481ac23e894f7fde4",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-global-import-red.log",
+      "size": 2925,
+      "sha256": "186f0b111f742ce6890aa87070f313df32c5923bc8f59c5396e6231b7f4351a8",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-coverage-after-owner-move-gate.log",
+      "size": 40,
+      "sha256": "ffcd392648b9baca263d9d68c8e6959c6e97d8253818c17fe2709cd941b4e183",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-coverage-after-owner-move.log",
+      "size": 757,
+      "sha256": "ad1d201e605a8ae0f62724d4954b1ce35e3dd5e6ad82965f8841fbf38e057810",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-coverage-gate.log",
+      "size": 28,
+      "sha256": "2375ba64b2a9dd3cf33462ccb2b00a48e702bc404e1fdaf61ae1fdd8a2878c52",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-coverage.log",
+      "size": 740,
+      "sha256": "53380f060cee21b4f2ffd1e6ee3d9c5d78b4ab3e7cb5a17b8a9e0a3ec6bf1bdf",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-owner-final-debug/architecture-hosting-owner-final-debug.trx",
+      "size": 182220,
+      "sha256": "4d2409887b705b53af61362e5d636a3a3502d55aacfc384637fbdb188519485f",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-owner-final-debug.log",
+      "size": 2032,
+      "sha256": "d3e8e2ba4d9e59638b4602eab7ae7f60a40af0945daf208d433fb9c2798ce266",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-owner-final-release/architecture-hosting-owner-final-release.trx",
+      "size": 182642,
+      "sha256": "eb9b72f395cbab9b6ff382fc235496bf4de6a3512746420a6cedc0c9da1f094e",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-owner-final-release.log",
+      "size": 775,
+      "sha256": "7e08d99874dd89ec52b3f23ee79032af8add91ee6f865f8b0a78cc48ca3d2032",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-release/architecture-hosting-release.trx",
+      "size": 129598,
+      "sha256": "893f74ea25288b5a9232c370e5ba91293c19ada43b4def34ddec09e4f786fa5d",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-release-final/architecture-hosting-release-final.trx",
+      "size": 131314,
+      "sha256": "d0394ae0c7a390e4c09db5e9df19b91f7704bdff155ed322c554358a9ddaf5de",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-validated-debug/architecture-hosting-validated-debug.trx",
+      "size": 171346,
+      "sha256": "fbbfc32b6b0bfd9f78b7f12fe48a2348bf1b0fd210d4ecce83c1037c06692f2d",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-validated-debug-final/architecture-hosting-validated-debug-final.trx",
+      "size": 166881,
+      "sha256": "3ff8ab7efa335ebf031cbdda9dd503445f5cc82b1af66aef063b1c107b400721",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-validated-debug-final.log",
+      "size": 764,
+      "sha256": "dc3791b12a64430a45ef23ba8b5c18d3927e3f340a8233f334160234438a46fa",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-validated-debug.log",
+      "size": 4115,
+      "sha256": "8c1cbc71e7964e007987aaa46d74ed0d14a842aa166f0c9bcc9c2a23128bd836",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-validated-release-final/architecture-hosting-validated-release-final.trx",
+      "size": 167265,
+      "sha256": "5e37fec2042c805cb8b78bb9eb490bc6f7347b082952dbd04ebba1a40312e3fb",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-validated-release-final.log",
+      "size": 2056,
+      "sha256": "ccf25e2636650b7a032f89d8c6059b91f43735602831cc59641dfeb68659ac17",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-hosting-validated-release.log",
+      "size": 1704,
+      "sha256": "69790145b11890d5c1264ddefec9311d47ecc06980b30c8529a7aa6294e09825",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-i18n-owner.log",
+      "size": 67934,
+      "sha256": "3f13dd781b6972922bdae9e0dadc01110f8be7c78ee31547b584a30ae60aae2f",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-localization-final/architecture-localization-final_net10.0_20261107120630.trx",
+      "size": 303208,
+      "sha256": "9108a1440ce800190a179df9e663cb16aa8d250be3875ad9cbd1af82db09d287",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-localization-final/architecture-localization-final_net48_20261107120632.trx",
+      "size": 298110,
+      "sha256": "ffc33b82ae65becda723d133548ef34b27f3fabfe49264ec8b05c1bcfa9e1855",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-localization-final.log",
+      "size": 2662,
+      "sha256": "bccec38d239cacbfb511dd8c3e334fef02c96fd8756a8a0f228b63157957d06a",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-normal-restore.log",
+      "size": 1366,
+      "sha256": "a3690aafa48066590ac7f03712402cdce442ffc71f1471edce0d0822c7f3d4eb",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-progress-check.log",
+      "size": 1791,
+      "sha256": "b13b5a8e31be2d00e0f592eef63264cbac56f06887b085def570519484858b3f",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-progress-final.log",
+      "size": 1789,
+      "sha256": "1eba3c0f8dabcde3ee3f797d9029f4354b6e79298bd4059538826ac40d5739a3",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-progress-owner.log",
+      "size": 1790,
+      "sha256": "c76b3f04b1322fc67a2c1162e33651c003927345cec5cf1b428e4cc633938a51",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-restore.log",
+      "size": 1018,
+      "sha256": "8fd57451f28f1e03830464929bf8a62c8de1532e7682bd6c30db16277adc24ef",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-roslyn-focused-green/architecture-roslyn-focused-green.trx",
+      "size": 47195,
+      "sha256": "5439db9dd7edb73e8466d6fb3c86661385e3b84b31b0c0cf1593091359481e69",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-roslyn-focused-green.log",
+      "size": 2029,
+      "sha256": "6aea7309825f01be0716a1127dff6890120d6701a78f241b38cc3bd3afb989fa",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-roslyn-focused.log",
+      "size": 1747,
+      "sha256": "a9d4b41d97f3df83ebf298637e01b1aeacd1f32629f87a1c90f73b3d05ffabb5",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-roslyn-restore.log",
+      "size": 118,
+      "sha256": "e32895dff85757c641524ab9db429721e3dbce894436fa163e50c9ba7312f98a",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-sdk-implicit-red/architecture-sdk-implicit-red.trx",
+      "size": 5778,
+      "sha256": "f6bed860343c10647c1d6cabcc33c1764f23db44b63766b1af3733ac5c24e77f",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-sdk-implicit-red.log",
+      "size": 3152,
+      "sha256": "7a887708c08f0dc044adb495c38a3782c987cde9c0975fb7cd4844a42e32b1cd",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-semantic-inventory/architecture-semantic-inventory.trx",
+      "size": 352386,
+      "sha256": "2de410c1e812cd6181b178ec6020f66bb248bee3542393634646305d259c0d09",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-semantic-inventory.log",
+      "size": 126214,
+      "sha256": "b46259099222fafe6e3dff3e869ef67c4116921eba9c4ae1748576d00503f6e7",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "architecture-solution-normal-restore.log",
+      "size": 822,
+      "sha256": "46820c59de50a1c9398d3e5dd53777a297d22587a5dcb969ded404d89e61f676",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "localization-after-architecture-move-net10/localization-net10-after-architecture-move.trx",
+      "size": 303208,
+      "sha256": "3eb7e1e26dc8bdab09bab5eea7b3eeda80746a06bdcfe68de8527ae2ad7fb90e",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
+    },
+    {
+      "path": "localization-after-architecture-move-net48/localization-net48-after-architecture-move.trx",
+      "size": 298110,
+      "sha256": "a4e53bb5cf17edb44bbdbbf7ab641b93b3d43d69531b9bc2ede19f8edef7ee68",
+      "storage": "本機原始執行證據，依CI契約不新增提交TRX／log"
     }
   ]
 }

@@ -445,7 +445,7 @@
  * 注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-07 10:45 Asia/Taipei (UTC+08:00)",
+  "snapshot": "2026-11-07 12:07 Asia/Taipei (UTC+08:00)",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "worker": "主會話inline實作／檢查；獨立Debug／Release驗證曾以no-restore及分離輸出並行，無子代理或外部模型。",
   "headline": "階段 2 目前 <strong>1／12 工作包進行中</strong>（P2-01）。P1-01～12 已驗收；P2-02／03／06／09 可在不連 D365／LINE 下並行，P2-04 推播前置仍需測試 channel／本人帳號與 secrets。全計畫已驗收30包，另1包進行中。",
@@ -455,8 +455,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "body": "2026-11-07 11:43 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01進行中。架構防繞過與生命週期focused測試94／94、CI7／7、頁面18／18；正跑整包與覆蓋率。R2舊主機仍有Debug338／Release316筆公開型別差距，精確追蹤，尚未驗收。",
+      "body": "2026-11-07 12:07 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01進行中。Hosting Debug104／104、Release覆蓋率執行104／104，獨立行率83.29%通過80%；ChurchReport雙組態各82／82。R2仍有Debug338／Release316筆差距，完整Changed編碼守門尚未通過。",
       "steps": [
+        "2026-11-07 12:07 Asia/Taipei (UTC+08:00)｜架構與診斷驗證：正常audit完整32專案還原及CI filter Release建置0警告／0錯誤；Hosting Debug完整104／104，Release覆蓋率完整104／104、83.29%。先前58.48%失敗保留，將共用ExceptionDiagnosticsTests八案由ChurchReport搬入Hosting後達門檻；ChurchReport精確回歸Debug／Release各82／82，原90案＝保留82＋搬移8。Localization net10原209＝保留184＋搬移25，24案同身分、1個R4方案案擴成Debug／Release兩案；net48原182全數保留。逐案多重集合與coverage hash見evidence/architecture-case-transfer.json、architecture-hosting-coverage-owner-summary.json；不是實機驗收。",
+        "2026-11-07 12:07 Asia/Taipei (UTC+08:00)｜品質缺口：完整Changed編碼守門相對62b409c80仍有16份歷史文字／機器證據換行問題，先依所有權做無語意修正，原始TRX／log／solution證據不改寫；未標整體通過。R2精確未通過清冊654筆仍非空；後續獨立需求繼續，P2-01不封存、不以追蹤測試綠燈取代驗收。",
         "2026-11-07 11:43 Asia/Taipei (UTC+08:00)｜P2-01架構實測：原防繞過11案先8失敗／3通過；改Roslyn後focused27／27，擴充別名／繼承／條件來源／超限UTF-8／global using／真實Plugin AssemblyRef後focused94／94。完整方案首次盤點43通過／2失敗，列出ChurchReport Debug338、Release316筆R2公開型別差距；另兩筆R9為SDK隱含System.Drawing可用參考誤報，已用專屬反例修正。精確未通過清冊SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json逐筆附理由及移除條件；清冊綠燈只代表無未追蹤差距，不能代替R2驗收。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/architecture-*。",
         "2026-11-07 11:24 Asia/Taipei (UTC+08:00)｜接續盤點：保留使用者提交f595903d／f4e5bd4d。架構搬移後CI7／7、舊Hosting75／75、Localization184／184及182／182均有離線診斷證據，但舊還原曾關閉audit，不能當正式品質通過；本輪architecture-normal-restore.log正常啟用audit已成功。最新ReadSource呼叫錯用source.Length且Regex可被別名、raw字串或相似Plugin名稱繞過；R9無來源時漏檢，正在補反例及修復，尚未通過。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/。",
         "2026-11-07 11:24 Asia/Taipei (UTC+08:00)｜執行方式更正：上一輪外部分析因雙方額度／session限制結束，沒有可用結果；summary.json位於.ccg/dual-model-runs/20261107-112017-p2-architecture-continuation-analyzer/。目前沒有高優先設定強制雙模型，遵守使用者明確豁免，後續不再啟動。主代理依inline工作流實作／審查，獨立命令可並行。Goal狀態usageLimited，僅於目前續作回合執行，不宣稱背景續跑。",
@@ -491,7 +493,7 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T11:43:04+08:00"
+      "lastUpdated": "2026-11-07T12:07:12+08:00"
     }
   ],
   "alert": {
@@ -934,10 +936,10 @@ const DATA = {
       "id": "P2-01",
       "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
       "status": "active",
-      "scope": "進行中：ExceptionDiagnostics／ExceptionOutputOptions／ExceptionReporting與LineExceptionSender真正實作已搬至SpeechMessage.Hosting，舊入口委派共用Development guard；Program單一owner／adapter及逐階清理已接入。I18nCheck已正式生成CultureCompleteness.g.cs，StartupGuards依原始完成度嚴格解析語系政策並由Program真接入；仍須R2／R3／R9完整搬移、CI接入及整包驗收。",
-      "verification": "本機離線切片通過：Hosting strict Debug／Release各70／70；ChurchReport相關各90／90；工具179／179；Localization net48宿主驗net462為182／182、net10為209／209；頁面18／18、文件1265檔0失敗、I18n與完整方案Release23警告／0錯誤。證據.trellis/tasks/11-07-p2-01-hosting/evidence/culture-*、progress-timestamps-green.log及research/culture-completeness-checkpoint.md。外部雙模型兩端無可用輸出，不稱成功。R2／R3／R9與整包驗收尚未完成。",
-      "prerequisite": "下一步同步搬移架構測試與CI filter，再補R2／R3／R9正反例與精確過渡差距，執行整包驗收；維持四輸出、先flush後LINE、取消／逾時與drain／Dispose。P2-04必要安全實機前置另行追蹤。",
-      "lastUpdated": "2026-11-07T10:06:06+08:00"
+      "scope": "進行中：ExceptionDiagnostics、ExceptionOutputOptions、ExceptionReporting及LineExceptionSender已真正搬入Hosting，Program單一owner、Development委派、StartupGuards及I18nCheck生成CultureCompleteness.g.cs已接入。架構實際搬家、Roslyn R2／R3／R9、兩組態MSBuild評估與CI覆蓋率已實作；R2既有公開型別差距尚未清空。",
+      "verification": "離線：Hosting Debug104／104、Release獨立coverage執行104／104、行率83.29%（門檻80%）；ChurchReport Debug／Release各82／82，八案真正轉移；Localization net10 184／184、net48實載net462 182／182，25案架構轉移有逐案證據。CI7／7；正常audit完整還原、CI filter Release 0警告／0錯誤。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/architecture-*；歷史culture-*及失敗報告保留。R2 Debug338／Release316筆未通過，完整Changed編碼守門16份問題，整包未驗收。",
+      "prerequisite": "下一步重跑收尾品質、文件與逐案回報，處理精確R2差距與歷史編碼所有權。四開關、先flush後LINE、取消／內部逾時及drain／Dispose契約保留。P2-04必要實機前置仍未完成；mock不能替代。",
+      "lastUpdated": "2026-11-07T12:07:12+08:00"
     },
     {
       "phaseId": "階段 2",

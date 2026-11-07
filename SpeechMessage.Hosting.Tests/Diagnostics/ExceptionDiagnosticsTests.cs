@@ -4,9 +4,11 @@
  * 目的與定位：保護正式環境錯誤落檔、通知隔離及有限生命週期。使用測試專用目錄與可取消 sender， 絕不讀取部署憑證或呼叫真實 LINE；每個測試自行釋放 owner 後才刪除目錄。
  *
  * 主要功能與流程：
- * 本檔宣告 ExceptionDiagnosticsTests。
+ * 本檔宣告 ExceptionDiagnosticsTests。原八項共用診斷特性案例由 ChurchReport 實際搬入，
+ * Hosting.Tests 是唯一編譯擁有者；原產品 ABI／HTTP 管線案例仍留在 ChurchReport.Tests。
+ * 搬入嚴格宿主後使用具體故障型別及 Ordinal 比對，保留故障注入、順序、筆數與清理斷言。
  * - 以檔案占用應為目錄的位置注入磁碟錯誤；落檔失敗時不得開始 LINE 發送。
- * - 阻塞 sender 後灌入超過容量的故障；每筆先落檔，佇列满留下狀態，關機取消後回基準。
+ * - 阻塞 sender 後灌入超過容量的故障；每筆先落檔，佇列滿留下狀態，關機取消後回基準。
  * - 注入含機密內容的例外；日誌與告警只含定位 metadata，重複通報同一實例一次。
  * - LINE 失敗只落本地且 consumer 可繼續；正常取消排除，但未取消的逾時仍記錄。
  * 測試案例入口包含 Failed_file_write_prevents_line_delivery、Saturation_keeps_all_file_records_and_shutdown_cancels_sender、
@@ -26,7 +28,7 @@ using System.Text.Json;
 using ToolUtilityNameSpace.Diagnostics;
 using Xunit;
 
-namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
+namespace SpeechMessage.Hosting.Tests.Diagnostics;
 
 /// <summary>
 /// 保護正式環境錯誤落檔、通知隔離及有限生命週期。使用測試專用目錄與可取消 sender，
@@ -45,14 +47,14 @@ public sealed class ExceptionDiagnosticsTests
             await using (var diagnostics = new ExceptionDiagnostics(path))
             {
                 diagnostics.StartNotifications((_, _) => { sent++; return Task.CompletedTask; });
-                Assert.False(diagnostics.Report(new Exception("private"), "WriteFailure"));
+                Assert.False(diagnostics.Report(new InvalidOperationException("private"), "WriteFailure"));
             }
             Assert.Equal(0, sent);
         }
         finally { File.Delete(path); }
     }
 
-    /// <summary>阻塞 sender 後灌入超過容量的故障；每筆先落檔，佇列满留下狀態，關機取消後回基準。</summary>
+    /// <summary>阻塞 sender 後灌入超過容量的故障；每筆先落檔，佇列滿留下狀態，關機取消後回基準。</summary>
     [Fact]
     public async Task Saturation_keeps_all_file_records_and_shutdown_cancels_sender()
     {
@@ -70,15 +72,15 @@ public sealed class ExceptionDiagnosticsTests
                     try { await Task.Delay(Timeout.InfiniteTimeSpan, token); }
                     finally { Interlocked.Decrement(ref active); }
                 });
-                diagnostics.Report(new Exception(), "Start");
+                diagnostics.Report(new InvalidOperationException(), "Start");
                 await started.Task.WaitAsync(TimeSpan.FromSeconds(2));
-                for (var i = 0; i < 100; i++) diagnostics.Report(new Exception("secret"), "Burst");
+                for (var i = 0; i < 100; i++) diagnostics.Report(new InvalidOperationException("secret"), "Burst");
             }
             Assert.Equal(0, active);
             var text = File.ReadAllText(Path.Combine(directory, "Exception.log"));
-            Assert.Equal(101, File.ReadLines(Path.Combine(directory, "Exception.log")).Count(l => l.Contains("IncidentId")));
-            Assert.Contains("LineQueueFull", text);
-            Assert.DoesNotContain("secret", text);
+            Assert.Equal(101, File.ReadLines(Path.Combine(directory, "Exception.log")).Count(l => l.Contains("IncidentId", StringComparison.Ordinal)));
+            Assert.Contains("LineQueueFull", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("secret", text, StringComparison.Ordinal);
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
@@ -105,10 +107,10 @@ public sealed class ExceptionDiagnosticsTests
             Assert.Single(sent);
             var lines = File.ReadAllLines(Path.Combine(directory, "Exception.log"));
             Assert.Single(lines);
-            Assert.DoesNotContain("private-user-A", lines[0]);
-            Assert.Contains("InvalidOperationException", sent.Single());
+            Assert.DoesNotContain("private-user-A", lines[0], StringComparison.Ordinal);
+            Assert.Contains("InvalidOperationException", sent.Single(), StringComparison.Ordinal);
             using var json = JsonDocument.Parse(lines[0]);
-            Assert.Contains(json.RootElement.GetProperty("IncidentId").GetString()!, sent.Single());
+            Assert.Contains(json.RootElement.GetProperty("IncidentId").GetString()!, sent.Single(), StringComparison.Ordinal);
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
@@ -135,10 +137,10 @@ public sealed class ExceptionDiagnosticsTests
             }
             Assert.Equal(1, sends);
             var log = File.ReadAllText(Path.Combine(directory, "Exception.log"));
-            Assert.Contains("TimeoutException", log);
-            Assert.Contains("LineDeliveryFailed", log);
-            Assert.DoesNotContain("secret", log);
-            Assert.DoesNotContain("Canceled", log);
+            Assert.Contains("TimeoutException", log, StringComparison.Ordinal);
+            Assert.Contains("LineDeliveryFailed", log, StringComparison.Ordinal);
+            Assert.DoesNotContain("secret", log, StringComparison.Ordinal);
+            Assert.DoesNotContain("Canceled", log, StringComparison.Ordinal);
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
@@ -181,7 +183,7 @@ public sealed class ExceptionDiagnosticsTests
                     Assert.InRange(new FileInfo(path).Length, maximumFileBytes + 1, maximumFileBytes * 2);
                     var retained = File.ReadAllLines(path);
                     Assert.Equal(accepted, retained.Length);
-                    Assert.Contains("BeforeReader", retained[0]);
+                    Assert.Contains("BeforeReader", retained[0], StringComparison.Ordinal);
                     Assert.False(diagnostics.Report(rejected, "BlockedAtCap"));
                     Assert.Equal(retained, File.ReadAllLines(path));
                 }
@@ -194,10 +196,10 @@ public sealed class ExceptionDiagnosticsTests
             var records = Directory.GetFiles(directory, "Exception*.log").SelectMany(File.ReadAllLines).ToArray();
             Assert.Equal(accepted + 1, records.Length);
             Assert.Equal(accepted + 1, sent.Count);
-            Assert.DoesNotContain(records, record => record.Contains("BlockedAtCap"));
-            Assert.DoesNotContain(sent, record => record.Contains("BlockedAtCap"));
-            Assert.Single(records, record => record.Contains("RecoveredAfterReader"));
-            Assert.Equal(records.OrderBy(record => record), sent.OrderBy(record => record));
+            Assert.DoesNotContain(records, record => record.Contains("BlockedAtCap", StringComparison.Ordinal));
+            Assert.DoesNotContain(sent, record => record.Contains("BlockedAtCap", StringComparison.Ordinal));
+            Assert.Single(records, record => record.Contains("RecoveredAfterReader", StringComparison.Ordinal));
+            Assert.Equal(records.OrderBy(record => record, StringComparer.Ordinal), sent.OrderBy(record => record, StringComparer.Ordinal));
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
@@ -232,9 +234,9 @@ public sealed class ExceptionDiagnosticsTests
             var records = File.ReadAllLines(path);
             Assert.Equal(2, records.Length);
             Assert.Equal(2, sent.Count);
-            Assert.DoesNotContain(sent, record => record.Contains("RejectedWrite"));
-            Assert.Single(sent, record => record.Contains("RecoveredWrite"));
-            Assert.Equal(records.OrderBy(record => record), sent.OrderBy(record => record));
+            Assert.DoesNotContain(sent, record => record.Contains("RejectedWrite", StringComparison.Ordinal));
+            Assert.Single(sent, record => record.Contains("RecoveredWrite", StringComparison.Ordinal));
+            Assert.Equal(records.OrderBy(record => record, StringComparer.Ordinal), sent.OrderBy(record => record, StringComparer.Ordinal));
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
@@ -262,8 +264,8 @@ public sealed class ExceptionDiagnosticsTests
             }
             var record = Assert.Single(File.ReadAllLines(Path.Combine(directory, "Exception.log")));
             Assert.Equal(record, Assert.Single(sent));
-            Assert.Contains("OperationCanceledException", record);
-            Assert.Contains("InternalTimeout", record);
+            Assert.Contains("OperationCanceledException", record, StringComparison.Ordinal);
+            Assert.Contains("InternalTimeout", record, StringComparison.Ordinal);
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
@@ -276,14 +278,14 @@ public sealed class ExceptionDiagnosticsTests
         {
             await using (var diagnostics = new ExceptionDiagnostics(directory, maximumFileBytes: 4096))
             {
-                Parallel.For(0, 200, i => diagnostics.Report(new Exception("user-" + i), "Concurrent"));
+                Parallel.For(0, 200, i => diagnostics.Report(new InvalidOperationException("user-" + i), "Concurrent"));
             }
             var files = Directory.GetFiles(directory, "Exception*.log");
             Assert.InRange(files.Length, 2, 6);
             foreach (var file in files)
             {
                 Assert.True(new FileInfo(file).Length <= 4096);
-                Assert.DoesNotContain("user-", File.ReadAllText(file));
+                Assert.DoesNotContain("user-", File.ReadAllText(file), StringComparison.Ordinal);
                 foreach (var line in File.ReadLines(file)) using (JsonDocument.Parse(line)) { }
             }
         }

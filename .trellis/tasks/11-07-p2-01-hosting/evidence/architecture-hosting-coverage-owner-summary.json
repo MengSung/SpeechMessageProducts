@@ -1,0 +1,26 @@
+{
+  "runs": [
+    {
+      "path": "artifacts/p2/hosting-coverage-20261107-1148/651742ad-27b7-4367-8b31-ee2f6fa3fccb/coverage.cobertura.xml",
+      "sha256": "3fd5f37b6a0134a84f5223c50201953b231a8d27ce15c74da53d569717c78f0a",
+      "module": "SpeechMessage.Hosting",
+      "moduleLineRate": "0.5848",
+      "threshold": "0.8",
+      "gate": "failed",
+      "rawBytesPreserved": true
+    },
+    {
+      "path": "artifacts/p2/hosting-coverage-after-owner-move-20261107-1154/3467e5dc-c9a2-4d55-960d-f9352c1c06dc/coverage.cobertura.xml",
+      "sha256": "aa238276314eda7f85024c1a720935d690f19a6a36b18f884b80c38d6358ed9e",
+      "module": "SpeechMessage.Hosting",
+      "moduleLineRate": "0.8329000000000001",
+      "threshold": "0.8",
+      "gate": "passed",
+      "rawBytesPreserved": true
+    }
+  ],
+  "ownershipChange": "共用8案由ChurchReport實際搬入Hosting.Tests；沒有重複編譯，沒有降低80%門檻。",
+  "debugCases": 104,
+  "releaseCoverageCases": 104,
+  "externalServices": false
+}

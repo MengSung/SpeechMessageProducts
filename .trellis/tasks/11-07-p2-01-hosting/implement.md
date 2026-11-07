@@ -63,3 +63,29 @@ AGENTS 引用的 backend cross-user-isolation spec 缺檔時，仍直接遵守 A
 `architecture-relocation-integrity.json` 只證明剛搬移時的本文完整性，後續四個架構檔
 有實質修復，不可引用其舊hash宣稱最終本文仍未變更。早期audit關閉的測試只保留
 作診斷；接續切片已正常啟用audit還原，正式驗證不得再使用停用選項。
+
+## Hosting獨立覆蓋率修復
+
+正常稽核還原後完整Hosting Release96／96；Debug首輪94／96，兩案因缺deps／runtimeconfig
+失敗，Rebuild重建產物後focused5／5及完整96／96通過，保留原失敗TRX。獨立coverage
+96案通過但行率58.48%低於80%，不可宣告門檻通過。主要診斷路徑的八個舊特性案例
+仍由ChurchReport編譯，故將純共用的ExceptionDiagnosticsTests實際搬入Hosting.Tests，
+原HTTP管線、型別轉送ABI與產品組合根案例留在ChurchReport，避免反向參照或重複編譯。
+Namespace有明確轉移映射；必須以新TRX逐方法確認八案轉移且未刪除，重新完整回歸與
+新鮮獨立coverage，不覆寫58.48%的失敗報告。
+
+## 2026-11-07 12:07 Asia/Taipei (UTC+08:00) 接續證據
+
+- Hosting最新Debug104／104；Release coverage完整104／104，模組行率83.29%達80%。
+  初次58.48%失敗原始XML與log完整保留，不挑報告、不降門檻。
+- ChurchReport精確回歸Debug／Release各82／82；原90案中的8個共用diagnostics案
+  真正搬到Hosting.Tests。Localization net10原209＝184保留＋25架構移轉；
+  24案身分不變，舊R4方案案擴成Debug／Release兩案，保留Assert.Empty R4斷言。
+  net48原182案逐案不變。architecture-case-transfer.json使用多重集合，
+  不依顯示名dictionary去重，保留原testId與唯一executionId及Counters核對。
+- 文件1266／0、duplicate32專案1046檔零新增／零stale、I18n verify通過；
+  最新Localization兩目標重建後184／184、182／182。
+- 11份維護文字純換行修復已核對去換行本文／JSON語意不變。三份自動trace與
+  兩份原始solution JSON保留原貌，完整Changed守門仍未通過，不擴張排除來變綠。
+- R2清冊仍Debug338／Release316筆，架構追蹤綠燈不能勾選R2及整包驗收。
+  本子任務維持in_progress，不封存；後續P2獨立需求不等待歷史差距全部解決。

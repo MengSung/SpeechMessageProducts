@@ -1,0 +1,629 @@
+{
+  "status": "passed",
+  "identity": "TestDefinitions className＋method＋display 多重集合；保留每列testId，不以顯示名dictionary去重；executionId唯一且結果列與TRX Counters一致。",
+  "hostingEvidence": ".trellis\\tasks\\11-07-p2-01-hosting\\evidence\\architecture-hosting-owner-final-debug\\architecture-hosting-owner-final-debug.trx",
+  "churchReport": [
+    {
+      "scope": "ChurchReport debug",
+      "old": ".trellis\\tasks\\11-07-p2-01-hosting\\evidence\\culture-churchreport-debug\\culture-churchreport-debug.trx",
+      "new": ".trellis\\tasks\\11-07-p2-01-hosting\\evidence\\architecture-churchreport-exact-debug\\architecture-churchreport-exact-debug.trx",
+      "beforeCount": 90,
+      "retainedCount": 82,
+      "movedCount": 8,
+      "multiplicityPreserved": true,
+      "mappedCases": [
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "testId": "b7b8014f-0c71-e22d-80c7-8a6f964b9808"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "testId": "a560fe39-1e41-aae7-d576-afd22e7286a1"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "testId": "a91c1af3-e8ce-78f5-d777-eccda820ea5c"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "testId": "7a8ee90e-eae6-49ad-0147-c7f423164e7e"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "testId": "370f7054-cecb-3daf-d4dd-a0f012640c96"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "testId": "30b4c09b-f3ac-c6e4-eef4-32d80535c28f"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Failed_file_write_prevents_line_delivery",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Failed_file_write_prevents_line_delivery",
+            "testId": "337917ff-905a-3462-d407-d0d67038be9a"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Failed_file_write_prevents_line_delivery",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Failed_file_write_prevents_line_delivery",
+            "testId": "e1c14be2-deeb-4d29-a28c-83178a3321a9"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "testId": "3510c160-f7ac-39fa-9688-4a797712262f"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "testId": "d8c7585e-20e6-a5ec-de63-ace1baea7779"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "testId": "39e80c21-2674-5726-8ccc-7ca21f448dc6"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "testId": "44dbdd3c-44ac-571d-dbc2-4f99d7d9a673"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "testId": "94f3be1e-d0de-6e88-e428-3e5de4cd2037"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "testId": "79a8f2ee-896a-f510-7684-334b33681d9b"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "testId": "5a076c50-5f92-5075-2d61-6aa5f7ad11d3"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "testId": "e03e11e3-8178-ac49-38e1-6be80417b3fc"
+          }
+        }
+      ]
+    },
+    {
+      "scope": "ChurchReport release",
+      "old": ".trellis\\tasks\\11-07-p2-01-hosting\\evidence\\culture-churchreport-release\\culture-churchreport-release.trx",
+      "new": ".trellis\\tasks\\11-07-p2-01-hosting\\evidence\\architecture-churchreport-exact-release\\architecture-churchreport-exact-release.trx",
+      "beforeCount": 90,
+      "retainedCount": 82,
+      "movedCount": 8,
+      "multiplicityPreserved": true,
+      "mappedCases": [
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Failed_file_write_prevents_line_delivery",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Failed_file_write_prevents_line_delivery",
+            "testId": "337917ff-905a-3462-d407-d0d67038be9a"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Failed_file_write_prevents_line_delivery",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Failed_file_write_prevents_line_delivery",
+            "testId": "e1c14be2-deeb-4d29-a28c-83178a3321a9"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "testId": "370f7054-cecb-3daf-d4dd-a0f012640c96"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Notification_failure_is_logged_without_recursion_and_timeout_is_actionable",
+            "testId": "30b4c09b-f3ac-c6e4-eef4-32d80535c28f"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "testId": "94f3be1e-d0de-6e88-e428-3e5de4cd2037"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Reader_blocked_write_preserves_evidence_and_retries_without_false_notification",
+            "testId": "79a8f2ee-896a-f510-7684-334b33681d9b"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "testId": "5a076c50-5f92-5075-2d61-6aa5f7ad11d3"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Concurrent_reports_rotate_with_bounded_storage_and_release_handles",
+            "testId": "e03e11e3-8178-ac49-38e1-6be80417b3fc"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "testId": "3510c160-f7ac-39fa-9688-4a797712262f"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Saturation_keeps_all_file_records_and_shutdown_cancels_sender",
+            "testId": "d8c7585e-20e6-a5ec-de63-ace1baea7779"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "testId": "b7b8014f-0c71-e22d-80c7-8a6f964b9808"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Reader_blocked_rotation_appends_with_hard_cap_and_recovers_after_release",
+            "testId": "a560fe39-1e41-aae7-d576-afd22e7286a1"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "testId": "39e80c21-2674-5726-8ccc-7ca21f448dc6"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Report_writes_file_before_notification_and_deduplicates_without_sensitive_values",
+            "testId": "44dbdd3c-44ac-571d-dbc2-4f99d7d9a673"
+          }
+        },
+        {
+          "from": {
+            "className": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests",
+            "method": "Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "display": "ChurchReport.MemberInfo.Tests.LineSharedWorkflow.ExceptionDiagnosticsTests.Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "testId": "a91c1af3-e8ce-78f5-d777-eccda820ea5c"
+          },
+          "to": {
+            "className": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests",
+            "method": "Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "display": "SpeechMessage.Hosting.Tests.Diagnostics.ExceptionDiagnosticsTests.Canceled_internal_timeout_with_active_caller_is_logged_and_notified",
+            "testId": "7a8ee90e-eae6-49ad-0147-c7f423164e7e"
+          }
+        }
+      ]
+    }
+  ],
+  "localization": {
+    "scope": "Localization net10",
+    "beforeCount": 209,
+    "retainedCount": 184,
+    "oldArchitectureCases": 25,
+    "sameCases": 24,
+    "expandedCases": 1,
+    "expandedTo": 2,
+    "mappedCases": [
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "RestoredAssets_Net48Product_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.RestoredAssets_Net48Product_IsRejected",
+          "testId": "059a36f3-a97f-0713-4d5f-06f1dfd9c750"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "RestoredAssets_Net48Product_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.RestoredAssets_Net48Product_IsRejected",
+          "testId": "0b435b36-264d-ba25-13c4-4a42a5d53976"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_HostPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.AspNetCore.Http\")",
+          "testId": "926786d4-9e4f-0dc9-b552-e2c2f5008f18"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_HostPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.AspNetCore.Http\")",
+          "testId": "01ded3c4-c9ea-1d86-a329-93795797d692"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessageProducts.ChurchReport\", targets: \"net10.0\", dependency: \"SpeechMessageProducts.LineWebhook\", dependencyTargets: \"net10.0\", rule: \"HostReference\")",
+          "testId": "a9d5acb0-760b-c6f2-518b-bdf4216ace9c"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessageProducts.ChurchReport\", targets: \"net10.0\", dependency: \"SpeechMessageProducts.LineWebhook\", dependencyTargets: \"net10.0\", rule: \"HostReference\")",
+          "testId": "d06d5f5d-a27a-02ef-0df8-3746a73483d8"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojConditionalPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.PowerPlatform.Dataverse.Client\")",
+          "testId": "4ba4d480-7f55-a483-e1b2-a322cb4cced9"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojConditionalPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.PowerPlatform.Dataverse.Client\")",
+          "testId": "021aa3fa-3dfb-07db-e1fe-84567290a0dd"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Sandbox_ReferenceToNet48Product_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Sandbox_ReferenceToNet48Product_IsRejected",
+          "testId": "15299c62-79a6-bab7-a7bb-96c6735176a8"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Sandbox_ReferenceToNet48Product_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Sandbox_ReferenceToNet48Product_IsRejected",
+          "testId": "67408d46-e193-cb0d-beec-d52ca8b42996"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojUnreferencedProductTarget_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojUnreferencedProductTarget_IsRejected",
+          "testId": "b50874cc-d98e-7c40-4fb4-6f37474187d4"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojUnreferencedProductTarget_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojUnreferencedProductTarget_IsRejected",
+          "testId": "c84296c3-ef72-707c-4a53-24b74d072d86"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "ConditionalReferences_AreCheckedForEachEvaluatedTarget",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ConditionalReferences_AreCheckedForEachEvaluatedTarget",
+          "testId": "56e677f1-70db-d224-dec7-2f225ebe07d2"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "ConditionalReferences_AreCheckedForEachEvaluatedTarget",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ConditionalReferences_AreCheckedForEachEvaluatedTarget",
+          "testId": "8e5a1e73-b024-e59d-bb8b-5fd063d23c2d"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"Line.Messaging\", targets: \"net10.0\", dependency: \"LineMessagingProcessor\", dependencyTargets: \"net10.0\", rule: \"LayerDirection\")",
+          "testId": "101d2179-0850-5d16-6298-15508d07bf41"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"Line.Messaging\", targets: \"net10.0\", dependency: \"LineMessagingProcessor\", dependencyTargets: \"net10.0\", rule: \"LayerDirection\")",
+          "testId": "18fe264e-2aa0-ece9-81c1-342361b33397"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Sandbox_HigherFramework_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Sandbox_HigherFramework_IsRejected",
+          "testId": "12ad3d96-39d1-b0cc-dc58-f2bee791cd58"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Sandbox_HigherFramework_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Sandbox_HigherFramework_IsRejected",
+          "testId": "0dbb3801-6aef-7273-9f12-1fba2e1a8ef6"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessage.Localization\", targets: \"net462;net10.0\", dependency: \"ToolUtility\", dependencyTargets: \"net10.0\", rule: \"DualTargetReference\")",
+          "testId": "6bb17efe-b812-fd8c-b9f6-68eb7d35469e"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessage.Localization\", targets: \"net462;net10.0\", dependency: \"ToolUtility\", dependencyTargets: \"net10.0\", rule: \"DualTargetReference\")",
+          "testId": "77241c81-0164-8604-4af3-fcfe22a73db7"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojSandboxTarget_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojSandboxTarget_IsRejected",
+          "testId": "d40a3ce4-ae6f-b21c-2bee-809d4214a509"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojSandboxTarget_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojSandboxTarget_IsRejected",
+          "testId": "26afa472-8f0c-efe0-47f2-1aeb400b28b7"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojConditionalPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.Extensions.Logging\")",
+          "testId": "398d029b-11a6-0b7f-2a10-bb577ba50a61"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojConditionalPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.Extensions.Logging\")",
+          "testId": "efe23a0e-6324-4253-bdf2-87d2c9e6bd05"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_HostPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.Extensions.Logging\")",
+          "testId": "c7f15007-bf8a-63b1-5b1d-7ad37f0fb4a1"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_HostPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.Extensions.Logging\")",
+          "testId": "60a5ae88-741f-43bc-2ad7-03069968803a"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Net10SharedLayer_ToDualCore_IsAllowed",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Net10SharedLayer_ToDualCore_IsAllowed",
+          "testId": "2946cc41-0edc-bdeb-4848-9e9ea91ff2ba"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Net10SharedLayer_ToDualCore_IsAllowed",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Net10SharedLayer_ToDualCore_IsAllowed",
+          "testId": "30e2f71c-adb7-e013-6d1b-c0d0224bb35d"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojConditionalPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.AspNetCore.Http\")",
+          "testId": "8f72586a-b822-a3b8-201e-118a24a03fd0"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojConditionalPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojConditionalPackage_IsRejected(package: \"Microsoft.AspNetCore.Http\")",
+          "testId": "651c8b10-3f5f-dcf8-623a-305b91f1950c"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "ReverseDependency_ToolReference_AndUnknownProject_AreRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ReverseDependency_ToolReference_AndUnknownProject_AreRejected",
+          "testId": "586b8203-5cd4-6ec8-b74f-399324fe7c8c"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "ReverseDependency_ToolReference_AndUnknownProject_AreRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ReverseDependency_ToolReference_AndUnknownProject_AreRejected",
+          "testId": "e3395d4f-d3d2-6f9f-18ac-f21af6fa0502"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "ToolCore_DataverseException_IsTargetSpecific",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ToolCore_DataverseException_IsTargetSpecific",
+          "testId": "d0a6d859-0adb-ffb1-f318-c929d98cba46"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "ToolCore_DataverseException_IsTargetSpecific",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.ToolCore_DataverseException_IsTargetSpecific",
+          "testId": "bfb976d1-2820-9135-2f26-142b084a703a"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_HostPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.PowerPlatform.Dataverse.Client\")",
+          "testId": "1a23353d-5ec0-2623-185a-b549d30a9d4d"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_HostPackage_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_HostPackage_IsRejected(package: \"Microsoft.PowerPlatform.Dataverse.Client\")",
+          "testId": "12f923e6-55f5-eb2e-19eb-66041c1683be"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Solution_AllEvaluatedTargets_ObeyR4",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Solution_AllEvaluatedTargets_ObeyR4",
+          "testId": "72a7c2b7-a520-1672-f438-150058ddc0a3"
+        },
+        "replacements": [
+          {
+            "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+            "method": "Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory",
+            "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory(configuration: \"Debug\")",
+            "testId": "748e5878-7ebc-7d6a-42ed-6704dcf1bd77"
+          },
+          {
+            "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+            "method": "Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory",
+            "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory(configuration: \"Release\")",
+            "testId": "124556cc-efe9-7d0a-caa4-5228b8580885"
+          }
+        ],
+        "reason": "保留 Assert.Empty(ArchitectureRules.Validate(projects))；同一次圖另核對來源與未通過清冊，按 Debug／Release 各執行一次。此擴充不是 R2 驗收。"
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests",
+          "method": "Run_WhenProcessExceedsDeadline_ThrowsWithinBoundedTime",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests.Run_WhenProcessExceedsDeadline_ThrowsWithinBoundedTime",
+          "testId": "683aa4c9-b2e3-af3d-8c55-cc7b9b09478a"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests",
+          "method": "Run_WhenProcessExceedsDeadline_ThrowsWithinBoundedTime",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests.Run_WhenProcessExceedsDeadline_ThrowsWithinBoundedTime",
+          "testId": "ad825785-f1ec-f54c-4f02-2d579660920e"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessage.Dynamics.Plugins\", targets: \"net462\", dependency: \"SpeechMessage.Localization\", dependencyTargets: \"net48;net10.0\", rule: \"SandboxReference\")",
+          "testId": "94026992-bd77-91cd-2781-4d86abc99573"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests",
+          "method": "InvalidCsprojReference_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureXmlTests.InvalidCsprojReference_IsRejected(source: \"SpeechMessage.Dynamics.Plugins\", targets: \"net462\", dependency: \"SpeechMessage.Localization\", dependencyTargets: \"net48;net10.0\", rule: \"SandboxReference\")",
+          "testId": "ce3d1ccd-d5e7-aa18-cafa-3cd2904f769f"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference",
+          "testId": "f44d2063-9b74-e3b8-1fe7-82de39193238"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.Hosting_foundation_allows_legacy_consumers_but_rejects_reverse_reference",
+          "testId": "cb620b00-b729-4621-93dc-2111c99a631e"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "HostToHost_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.HostToHost_IsRejected",
+          "testId": "78cbe706-f823-2afe-6f60-a14c6a464f3a"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "HostToHost_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.HostToHost_IsRejected",
+          "testId": "49987023-38f4-1217-ad60-13303dc600f4"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests",
+          "method": "Run_WhenBothOutputPipesExceedCaptureLimit_DrainsAndBoundsCapturedText",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests.Run_WhenBothOutputPipesExceedCaptureLimit_DrainsAndBoundsCapturedText",
+          "testId": "2a474b70-2b2b-2f65-8113-c84fc6a23269"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests",
+          "method": "Run_WhenBothOutputPipesExceedCaptureLimit_DrainsAndBoundsCapturedText",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureProcessRunnerTests.Run_WhenBothOutputPipesExceedCaptureLimit_DrainsAndBoundsCapturedText",
+          "testId": "adb45305-2a91-027a-5405-e4aa35579080"
+        }
+      },
+      {
+        "old": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_ReferenceToNet10Only_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_ReferenceToNet10Only_IsRejected",
+          "testId": "414bcc63-9220-f3cc-a3da-4de8e85e2602"
+        },
+        "new": {
+          "className": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests",
+          "method": "DualTarget_ReferenceToNet10Only_IsRejected",
+          "display": "SpeechMessage.Architecture.Tests.ArchitectureRuleTests.DualTarget_ReferenceToNet10Only_IsRejected",
+          "testId": "e20aac24-1039-4f4f-38f2-c5eb51f298c5"
+        }
+      }
+    ]
+  },
+  "localizationNet48": {
+    "before": 182,
+    "after": 182,
+    "caseMultisetUnchanged": true
+  },
+  "externalServices": false
+}
