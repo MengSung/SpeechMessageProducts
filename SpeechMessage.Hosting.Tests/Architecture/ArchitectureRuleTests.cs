@@ -25,6 +25,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Text.Json;
 using Xunit;
 
 namespace SpeechMessage.Architecture.Tests;
@@ -36,6 +38,10 @@ namespace SpeechMessage.Architecture.Tests;
 public sealed class ArchitectureRuleTests
 {
     private static readonly IReadOnlyList<string> SystemDrawingPackages = new[] { "System.Drawing.Common" };
+
+    /// <summary>固定清冊欄位順序，唯讀 schema 不含來源值或任何跨案例可變狀態。</summary>
+    private static readonly IReadOnlyList<string> InventoryFields =
+        Array.AsReadOnly(new[] { "rule", "project", "target", "configuration", "source", "symbol" });
 
     /// <summary>雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。</summary>
     [Fact]
@@ -139,7 +145,7 @@ public sealed class ArchitectureRuleTests
             {
                 Sources = new[]
                 {
-                    Source("Plugin.cs", "public sealed class ValidPlugin : IPlugin { }"),
+                    Source("Plugin.cs", "using Microsoft.Xrm.Sdk; public sealed class ValidPlugin : IPlugin { }"),
                     Source("Helper.cs", "public sealed class PublicPluginHelper { }")
                 }
             }));
@@ -165,7 +171,7 @@ public sealed class ArchitectureRuleTests
         var allowed = ArchitectureRules.ValidateSource(Graph(
             Product("SpeechMessage.Tenancy", "net10.0", "net10.0") with
             {
-                Sources = new[] { Source("ConfigurationLineChannelResolver.cs", "var alias = \"Jesus\";") }
+                Sources = new[] { Source("SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs", "var alias = \"Jesus\";") }
             }));
         Assert.DoesNotContain(allowed, item => item.Rule == "R3OrganizationLiteral");
     }
@@ -191,20 +197,194 @@ public sealed class ArchitectureRuleTests
     }
 
     /// <summary>
-    /// 以真實方案逐目標來源快照執行 R2／R3／R9。P2 目前只允許已知的 ChurchReport
-    /// 舊主機薄殼搬移債務出現在結果；Hosting、Plugin、Core 與相容白名單不得新增
-    /// 未記錄的違規。這是過渡期診斷，不把舊產品債務誤標為整包通過。
+    /// 組織字串以 C# 解碼後的實際值檢查；Unicode 跳脫不可繞過 R3。這些來源不執行，
+    /// 每案例只持有自己的文字與違規陣列，不建立任何產品或外部資源。
+    /// </summary>
+    /// <param name="expression">不同語法但具有相同受限制內容的字串。</param>
+    [Theory]
+    [InlineData("\"\\u004Aesus\"")]
+    [InlineData("@\"Sunny\"")]
+    [InlineData("\"\"\"Ymllc\"\"\"")]
+    [InlineData("$\"Jesus\"")]
+    public void R3_DecodedStringValues_CannotBypassRule(string expression)
+    {
+        var project = Product("SpeechMessage.Hosting", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Candidate.cs", "class Candidate { string alias = " + expression + "; }") }
+        };
+        Assert.Contains(ArchitectureRules.ValidateSource(Graph(project)), item => item.Rule == "R3OrganizationLiteral");
+    }
+
+    /// <summary>
+    /// 遷移白名單必須使用方案根的精確路徑；同名檔、子目錄或前綴拼接都不可取得相容例外。
+    /// 此反例直接保護白名單比對，沒有修改真實 resolver 或讀取設定。
+    /// </summary>
+    /// <param name="path">刻意偽裝成合法來源的不同路徑。</param>
+    [Theory]
+    [InlineData("ConfigurationLineChannelResolver.cs")]
+    [InlineData("Fake/SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs")]
+    public void R3_AllowlistRejectsPathImpersonation(string path)
+    {
+        var project = Product("SpeechMessage.Tenancy", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source(path, "class Candidate { string alias = \"Jesus\"; }") }
+        };
+        Assert.Contains(ArchitectureRules.ValidateSource(Graph(project)), item => item.Rule == "R3OrganizationLiteral");
+    }
+
+    /// <summary>Plugin 介面名稱只包含 IPlugin 並不代表真正 SDK 入口；本案例不得被字串包含判斷放行。</summary>
+    [Fact]
+    public void R2_SimilarlyNamedPluginContract_IsRejected()
+    {
+        var project = Product("SpeechMessage.Dynamics.Plugins", "net462", "net462") with
+        {
+            Sources = new[] { Source("Fake.cs", "interface IPluginPretender {} public class Fake : IPluginPretender {}") }
+        };
+        Assert.Contains(ArchitectureRules.ValidateSource(Graph(project)), item => item.Rule == "R2PluginPublicType" && item.Dependency == "Fake");
+    }
+
+    /// <summary>內部容器的 public 巢狀類型不構成對外公開 API，不能因單行正規式而誤報主機違規。</summary>
+    [Fact]
+    public void R2_InternalContainer_DoesNotExposeNestedType()
+    {
+        var project = Product("SpeechMessageProducts.LineWebhook", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Internal.cs", "internal class Container { public class Detail {} }") }
+        };
+        Assert.Empty(ArchitectureRules.ValidateSource(Graph(project)));
+    }
+
+    /// <summary>
+    /// 原始多行字串內看似公開類別或 HttpClient 的文字不是程式碼；真正外層只有合法外殼。
+    /// 語法樹必須區別字串 token，避免修復 false negative 後又產生 false positive。
     /// </summary>
     [Fact]
-    public void Solution_SourceArchitecture_ReportsOnlyDocumentedChurchReportDebt()
+    public void R2_R9_RawStringContent_IsNotExecutableCode()
     {
-        var violations = ArchitectureRules.ValidateSource(ArchitectureProjectReader.ReadSolution());
+        var project = Product("SpeechMessage.Dynamics.Plugins", "net462", "net462") with
+        {
+            Sources = new[] { Source("Text.cs", "internal class Text { string value = \"\"\"a \" public class Fake {} HttpClient \" z\"\"\"; }") }
+        };
+        Assert.Empty(ArchitectureRules.ValidateSource(Graph(project)));
+    }
 
-        Assert.NotEmpty(violations);
-        Assert.All(violations, item => Assert.Equal("SpeechMessageProducts.ChurchReport", item.Project));
-        Assert.Contains(violations, item => item.Rule == "R2HostPublicType");
-        Assert.DoesNotContain(violations, item => item.Rule is "R3OrganizationLiteral" or "R9HttpClientProject" or
-            "R9PluginPaymentsReference" or "R9PluginSystemDrawingReference");
+    /// <summary>禁止參考獨立於來源存在；移空 Compile 清單不能繞過 Plugin 的 Payments 禁令。</summary>
+    [Fact]
+    public void R9_EmptyCompileList_DoesNotHideForbiddenReference()
+    {
+        var project = Product("SpeechMessage.Dynamics.Plugins", "net462", "net462", "SpeechMessage.Payments");
+        Assert.Contains(ArchitectureRules.ValidateSource(Graph(project)), item => item.Rule == "R9PluginPaymentsReference");
+    }
+
+    /// <summary>Payments 若日後加入 Framework 目標也不得取得 HttpClient 雙目標例外，例外僅限兩個指定傳輸核心。</summary>
+    [Fact]
+    public void R9_PaymentsDualTarget_IsNotTransportException()
+    {
+        var project = Product("SpeechMessage.Payments", "net462", "net462;net10.0") with
+        {
+            Sources = new[] { Source("Client.cs", "using System.Net.Http; internal class Client { HttpClient client; }") }
+        };
+        Assert.Contains(ArchitectureRules.ValidateSource(Graph(project)), item => item.Rule == "R9HttpClientProject");
+    }
+
+    /// <summary>
+    /// 公開 Plugin 的介面別名、間接繼承及 Workflow 基底均依真正 SDK metadata 辨識。
+    /// 正反例只在 Roslyn 中編譯來源模型，不執行入口；同命名空間的偽造介面仍須拒絕。
+    /// </summary>
+    [Fact]
+    public void R2_SdkAliasesAndInheritedEntries_AreBoundToRealContracts()
+    {
+        var project = Product("SpeechMessage.Dynamics.Plugins", "net462", "net462") with
+        {
+            Sources = new[]
+            {
+                Source("Entries.cs", """
+                    using Contract = Microsoft.Xrm.Sdk.IPlugin;
+                    public abstract class BasePlugin : Contract { public abstract void Execute(System.IServiceProvider provider); }
+                    public sealed class DerivedPlugin : BasePlugin { public override void Execute(System.IServiceProvider provider) {} }
+                    public abstract class WorkflowEntry : System.Activities.CodeActivity { }
+                    """)
+            }
+        };
+        Assert.Empty(ArchitectureRules.ValidateSource(Graph(project)));
+        var fake = project with
+        {
+            Sources = new[]
+            {
+                Source("Fake.cs", "namespace Microsoft.Xrm.Sdk { public interface IPlugin {} } public class Fake : Microsoft.Xrm.Sdk.IPlugin {}")
+            }
+        };
+        Assert.Contains(ArchitectureRules.ValidateSource(Graph(fake)), item => item.Rule == "R2PluginPublicType" && item.Dependency == "Fake");
+    }
+
+    /// <summary>HttpClient 的別名及完整型別名稱不可繞過，內部同名型別則不是 framework 傳輸；測試不建立 client。</summary>
+    [Fact]
+    public void R9_HttpClientAlias_IsRejectedButLocalNamesArePreserved()
+    {
+        var project = Product("ToolUtility.Core", "net462", "net462;net10.0") with
+        {
+            Sources = new[] { Source("Alias.cs", "using Web = System.Net.Http.HttpClient; internal class Client { Web value; }") }
+        };
+        Assert.Contains(ArchitectureRules.ValidateSource(Graph(project)), item => item.Rule == "R9HttpClientProject");
+        Assert.Empty(ArchitectureRules.ValidateSource(Graph(project with
+        {
+            Sources = new[] { Source("Local.cs", "internal class HttpClient {} internal class Local { HttpClient value; }") }
+        })));
+    }
+
+    /// <summary>R9 必須沿目標相依圖檢查普通／傳遞參考，不能只看 Plugin 本身套件或來源；循環亦須有界結束。</summary>
+    [Fact]
+    public void R9_TransitiveAndAssemblyReferences_CannotBypassEmptySourceCheck()
+    {
+        var plugin = Product("SpeechMessage.Dynamics.Plugins", "net462", "net462", "ToolUtility.Core");
+        var core = Product("ToolUtility.Core", "net462", "net462;net10.0", "SpeechMessage.Dynamics.Plugins") with
+        {
+            AssemblyReferences = new[] { "System.Drawing" },
+            RestoredDependencies = new[] { "SpeechMessage.Payments" }
+        };
+        var violations = ArchitectureRules.ValidateSource(Graph(plugin, core));
+        Assert.Single(violations, item => item.Rule == "R9PluginPaymentsReference");
+        Assert.Single(violations, item => item.Rule == "R9PluginSystemDrawingReference");
+    }
+
+    /// <summary>
+    /// 逐組態／目標驗證完整 R4 圖，再核對真實來源與精確的未通過清冊。所有新增、移除、改名、移動或其他
+    /// 規則違規均須明確審查；不再允許整個 ChurchReport 任意違規。此案例只保護追蹤完整性，
+    /// 清冊非空仍表示 R2 未驗收，不能以本案例綠燈宣稱主機已經只剩外殼。
+    /// </summary>
+    /// <param name="configuration">分別驗證的實際建置組態。</param>
+    [Theory]
+    [InlineData("Debug")]
+    [InlineData("Release")]
+    public void Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory(string configuration)
+    {
+        // 同一個唯讀快照供 R4 及來源檢查使用，減少重複子程序，並讓兩種規則看到相同目標／組態。
+        var projects = ArchitectureProjectReader.ReadSolution(configuration);
+        Assert.NotEmpty(projects);
+        Assert.Empty(ArchitectureRules.Validate(projects));
+        var violations = ArchitectureRules.ValidateSource(projects);
+        var path = Path.Combine(ArchitectureProjectReader.FindRoot(),
+            "SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json");
+        using var inventory = JsonDocument.Parse(File.ReadAllText(path));
+        Assert.Equal("unresolved", inventory.RootElement.GetProperty("status").GetString());
+        var entries = inventory.RootElement.GetProperty("entries").EnumerateArray().ToArray();
+        Assert.All(entries, entry =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(entry.GetProperty("reason").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(entry.GetProperty("removalCondition").GetString()));
+        });
+        var expected = entries.Where(entry => entry.GetProperty("configuration").GetString() == configuration)
+            .Select(entry => string.Join("|", InventoryFields
+                .Select(key => entry.GetProperty(key).GetString()))).OrderBy(key => key, StringComparer.Ordinal).ToArray();
+        Assert.Equal(expected.Length, expected.Distinct(StringComparer.Ordinal).Count());
+        var actual = violations.Select(item => string.Join("|", item.Rule, item.Project, item.Target,
+            item.Configuration, item.SourcePath, item.Dependency)).OrderBy(key => key, StringComparer.Ordinal).ToArray();
+        var added = actual.Except(expected, StringComparer.Ordinal).ToArray();
+        var removed = expected.Except(actual, StringComparer.Ordinal).ToArray();
+        Assert.True(added.Length == 0 && removed.Length == 0,
+            "Untracked architecture changes; R2 inventory is unresolved, not an acceptance exemption." +
+            Environment.NewLine + string.Join(Environment.NewLine, added.Select(key => "+ " + key)
+                .Concat(removed.Select(key => "- " + key))));
     }
 
     /// <summary>
@@ -233,18 +413,13 @@ public sealed class ArchitectureRuleTests
         Assert.Contains(ArchitectureRules.Validate(Graph(valid, invalid)), x => x.Rule == "DualTargetPackage" && x.Target == "net462");
     }
 
-    /// <summary>實際方案逐 csproj 與每目標評估；新增未知產品或違規參考須讓方案測試紅燈，而非只測合成字串。</summary>
-    [Fact]
-    public void Solution_AllEvaluatedTargets_ObeyR4()
-    {
-        var projects = ArchitectureProjectReader.ReadSolution();
-        Assert.NotEmpty(projects);
-        Assert.Empty(ArchitectureRules.Validate(projects));
-    }
-
     /// <summary>建立單一不可變的合成評估節點，陣列僅屬此案例，不持有 request 或 SDK 型別。</summary>
     private static ArchitectureProject Product(string name, string target, string targets, params string[] references) =>
-        new(name, target, targets.Split(';'), references, Array.Empty<string>(), false);
+        new(name, target, targets.Split(';'), references, Array.Empty<string>(), false)
+        {
+            ContractMetadataPaths = name is "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" ?
+                ArchitectureProjectReader.ReadPluginContractMetadata() : Array.Empty<string>()
+        };
 
     /// <summary>建立不持有檔案、程序或使用者資料的合成來源快照。</summary>
     private static ArchitectureSource Source(string path, string text) => new(path, text);

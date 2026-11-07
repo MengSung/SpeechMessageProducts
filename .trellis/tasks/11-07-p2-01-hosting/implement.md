@@ -49,3 +49,17 @@ AGENTS 引用的 backend cross-user-isolation spec 缺檔時，仍直接遵守 A
 3. 執行 CI 閉包、Hosting 完整測試、Localization 雙宿主、實際只讀 R4
    及獨立 Hosting 覆蓋率；檢查案例轉移數，不以零案例或舊 DLL 當成功。
 4. 再接 R2／R3／R9；搬移和 R4 通過本身不完成三項新規則，也不完成 P2-01。
+
+## 2026-11-07 架構掃描修復切片
+
+- [x] 保留 f595903d／f4e5bd4d，重現 source.Length 編譯錯誤。
+- [x] 防繞過11案取得8失敗／3通過紅燈，改Roslyn後擴充合成與真XML反例。
+- [x] 納入官方SDK metadata、global using、Debug／Release、相依閉包與來源大小／UTF-8預算。
+- [x] 建立逐項未通過R2清冊，移除整個ChurchReport不限量豁免。
+- [ ] 完整Hosting Debug／Release、獨立coverage、Localization雙宿主與CI filter整合。
+- [ ] 真正完成R2舊主機搬移並清空未通過清冊；追蹤綠燈不能勾選本項。
+- [ ] 核對原始TRX案例集合轉移、編碼／文件／I18n／duplicate、主代理審查及本地提交。
+
+`architecture-relocation-integrity.json` 只證明剛搬移時的本文完整性，後續四個架構檔
+有實質修復，不可引用其舊hash宣稱最終本文仍未變更。早期audit關閉的測試只保留
+作診斷；接續切片已正常啟用audit還原，正式驗證不得再使用停用選項。

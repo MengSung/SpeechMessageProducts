@@ -455,8 +455,11 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "body": "2026-11-07 10:45 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01進行中。一般資訊逐筆日期時間與永久規則已補齊，頁面18／18、文件1265份0問題；Program、語系生成與啟動政策有離線切片證據。下一步架構測試搬移、CI與R2／R3／R9。",
+      "body": "2026-11-07 11:43 Asia/Taipei (UTC+08:00)：P2 0／12驗收，P2-01進行中。架構防繞過與生命週期focused測試94／94、CI7／7、頁面18／18；正跑整包與覆蓋率。R2舊主機仍有Debug338／Release316筆公開型別差距，精確追蹤，尚未驗收。",
       "steps": [
+        "2026-11-07 11:43 Asia/Taipei (UTC+08:00)｜P2-01架構實測：原防繞過11案先8失敗／3通過；改Roslyn後focused27／27，擴充別名／繼承／條件來源／超限UTF-8／global using／真實Plugin AssemblyRef後focused94／94。完整方案首次盤點43通過／2失敗，列出ChurchReport Debug338、Release316筆R2公開型別差距；另兩筆R9為SDK隱含System.Drawing可用參考誤報，已用專屬反例修正。精確未通過清冊SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json逐筆附理由及移除條件；清冊綠燈只代表無未追蹤差距，不能代替R2驗收。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/architecture-*。",
+        "2026-11-07 11:24 Asia/Taipei (UTC+08:00)｜接續盤點：保留使用者提交f595903d／f4e5bd4d。架構搬移後CI7／7、舊Hosting75／75、Localization184／184及182／182均有離線診斷證據，但舊還原曾關閉audit，不能當正式品質通過；本輪architecture-normal-restore.log正常啟用audit已成功。最新ReadSource呼叫錯用source.Length且Regex可被別名、raw字串或相似Plugin名稱繞過；R9無來源時漏檢，正在補反例及修復，尚未通過。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/。",
+        "2026-11-07 11:24 Asia/Taipei (UTC+08:00)｜執行方式更正：上一輪外部分析因雙方額度／session限制結束，沒有可用結果；summary.json位於.ccg/dual-model-runs/20261107-112017-p2-architecture-continuation-analyzer/。目前沒有高優先設定強制雙模型，遵守使用者明確豁免，後續不再啟動。主代理依inline工作流實作／審查，獨立命令可並行。Goal狀態usageLimited，僅於目前續作回合執行，不宣稱背景續跑。",
         "2026-11-07 10:45 Asia/Taipei (UTC+08:00)｜日期需求收斂：本文及每筆歷史均有可見日期、時分與台北時區，原時間不明者明標補記；單階段單卡與原有證據保留，永久規則已寫AGENTS及progress-page-contract。頁面18／18、文件1265份0問題。完整Changed對a1dcc3cb另抓到既有c20dff45的P0-13自動.turns.json缺檔尾CRLF，保留其原貌並歸屬記錄，不把本P2切片通過冒充整體守門通過。",
         "2026-11-07 10:40 Asia/Taipei (UTC+08:00)｜P2-01-CULTURE切片已驗證：完整工具179／179，Hosting strict Debug／Release各70／70，ChurchReport相關各90／90，Localization net48宿主驗net462為182／182、net10為209／209，均0失敗／0略過；全方案Release23警告／0錯誤，I18n CJK／生成／資源／CLDR及檔案說明1265檔0失敗通過。證據根目錄.trellis/tasks/11-07-p2-01-hosting/evidence/culture-*，完整對照research/culture-completeness-checkpoint.md；僅本機離線，不相加重疊案例數。",
         "2026-11-07 10:40 Asia/Taipei (UTC+08:00)｜實際分工與限制：主會話inline寫入，唯讀代理只盤點架構並已關閉；不同組態及只讀守門實際並行。較高優先CCG設定仍強制外部分析／審查，本輪兩個run均quotaBlocked=true、dualModelComplete=false、degradedFallback=false且無可用輸出，保留證據不稱外審成功。未連D365／LINE／金流、未部署／修改真實秘密；P2-04安全實機前置未完成。下一步架構測試搬移、CI filter與R2／R3／R9。",
@@ -488,7 +491,7 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
       ],
-      "lastUpdated": "2026-11-07T10:45:12+08:00"
+      "lastUpdated": "2026-11-07T11:43:04+08:00"
     }
   ],
   "alert": {

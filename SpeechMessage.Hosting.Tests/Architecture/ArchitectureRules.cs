@@ -25,7 +25,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using System.Text.RegularExpressions;
+using System.IO;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SpeechMessage.Architecture.Tests;
 
@@ -35,6 +38,24 @@ internal sealed record ArchitectureProject(string Name, string Target, IReadOnly
 {
     /// <summary>本專案此目標的 C# 來源快照；缺省為空，供純相依圖合成案例使用。</summary>
     internal IReadOnlyList<ArchitectureSource> Sources { get; init; } = Array.Empty<ArchitectureSource>();
+
+    /// <summary>本目標還原的傳遞相依身分；R9 即使沒有 Compile 來源也必須檢查。</summary>
+    internal IReadOnlyList<string> RestoredDependencies { get; init; } = Array.Empty<string>();
+
+    /// <summary>普通組件／FrameworkReference 身分，不以 PackageReference 存在與否取代檢查。</summary>
+    internal IReadOnlyList<string> AssemblyReferences { get; init; } = Array.Empty<string>();
+
+    /// <summary>MSBuild 實際 DefineConstants，讓語法樹與當次 Debug／Release 相同。</summary>
+    internal IReadOnlyList<string> PreprocessorSymbols { get; init; } = Array.Empty<string>();
+
+    /// <summary>依已評估 Using 項目組成的 global using 語法，補足未執行生成 target 的唯讀評估。</summary>
+    internal IReadOnlyList<string> GlobalUsingDirectives { get; init; } = Array.Empty<string>();
+
+    /// <summary>經本工作樹已還原資產解析的 SDK 契約中繼資料路徑；不載入或執行組件。</summary>
+    internal IReadOnlyList<string> ContractMetadataPaths { get; init; } = Array.Empty<string>();
+
+    /// <summary>本節點實際評估組態；不同組態來源及參考不能互相掩蓋。</summary>
+    internal string Configuration { get; init; } = "Release";
 }
 
 /// <summary>
@@ -47,7 +68,14 @@ internal sealed record ArchitectureSource(string Path, string Text);
 
 /// <summary>不含來源程式或秘密值的固定規則違規，供 CI 精確診斷參考邊界。</summary>
 /// <param name="Rule">穩定規則代碼。</param><param name="Project">違規專案。</param><param name="Target">當次評估目標。</param><param name="Dependency">造成違規的參考或套件。</param>
-internal sealed record ArchitectureViolation(string Rule, string Project, string Target, string Dependency);
+internal sealed record ArchitectureViolation(string Rule, string Project, string Target, string Dependency)
+{
+    /// <summary>來源違規的方案相對路徑；參考違規為空，便於完整身分追蹤及遷移清冊比對。</summary>
+    internal string SourcePath { get; init; } = string.Empty;
+
+    /// <summary>發現違規的實際組態，不能以另一組態綠燈遮蔽。</summary>
+    internal string Configuration { get; init; } = "Release";
+}
 
 /// <summary>純函式 R2／R3／R4／R9 規則；每次驗證獨立建立結果，不保存跨測試或跨目標的可變靜態圖。</summary>
 internal static class ArchitectureRules
@@ -155,80 +183,131 @@ internal static class ArchitectureRules
     {
         ArgumentNullException.ThrowIfNull(projects);
         var violations = new List<ArchitectureViolation>();
-        foreach (var project in projects)
+        // metadata 只由這次同步掃描擁有；所有 compilation 使用結束後按反向順序 Dispose。
+        var metadataOwners = new List<AssemblyMetadata>();
+        try
         {
-            if (project.IsTest)
+            var paths = PlatformContractPaths().Concat(projects.SelectMany(item => item.ContractMetadataPaths))
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            var references = new List<MetadataReference>();
+            foreach (var path in paths)
             {
-                continue;
+                var metadata = AssemblyMetadata.CreateFromFile(path);
+                metadataOwners.Add(metadata);
+                references.Add(metadata.GetReference());
             }
 
-            foreach (var source in project.Sources)
+            foreach (var project in projects.Where(item => !item.IsTest))
             {
-                var normalizedPath = source.Path.Replace('\\', '/');
-                var withoutComments = RemoveCommentsPreserveStrings(source.Text);
-                var codeOnly = RemoveCommentsAndStrings(source.Text);
-
-                if (IsHost(project.Name))
-                {
-                    foreach (Match declaration in PublicTypePattern.Matches(codeOnly))
-                    {
-                        var name = declaration.Groups["name"].Value;
-                        if (name != "Program" &&
-                            !name.EndsWith("Registration", StringComparison.Ordinal) &&
-                            !name.EndsWith("Endpoints", StringComparison.Ordinal))
-                        {
-                            Add("R2HostPublicType", project, name);
-                        }
-                    }
-                }
-
                 if (IsSandbox(project.Name))
                 {
-                    foreach (Match declaration in PublicTypePattern.Matches(codeOnly))
+                    var dependencies = ReachableDependencies(project, projects);
+                    if (dependencies.Any(item => IsAssemblyFamily(item, "SpeechMessage.Payments")))
                     {
-                        var baseList = declaration.Groups["base"].Value;
-                        if (!baseList.Contains("IPlugin", StringComparison.Ordinal) &&
-                            !baseList.Contains("CodeActivity", StringComparison.Ordinal))
+                        Add("R9PluginPaymentsReference", project, "SpeechMessage.Payments");
+                    }
+
+                    if (dependencies.Any(item => IsAssemblyFamily(item, "System.Drawing")))
+                    {
+                        Add("R9PluginSystemDrawingReference", project, "System.Drawing");
+                    }
+                }
+
+                var parseOptions = new CSharpParseOptions(LanguageVersion.Preview,
+                    preprocessorSymbols: project.PreprocessorSymbols);
+                var trees = project.Sources.Select(source => CSharpSyntaxTree.ParseText(
+                    source.Text, parseOptions, source.Path.Replace('\\', '/')))
+                    .Concat(project.GlobalUsingDirectives.Count == 0 ? Array.Empty<SyntaxTree>() :
+                        new SyntaxTree[] { CSharpSyntaxTree.ParseText(string.Join(Environment.NewLine,
+                            project.GlobalUsingDirectives), parseOptions, "<evaluated-global-usings>") }).ToArray();
+                var compilation = CSharpCompilation.Create(project.Name, trees, references,
+                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                var inspectedTypes = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+                foreach (var tree in trees)
+                {
+                    var path = tree.FilePath;
+                    if (tree.GetDiagnostics().Any(item => item.Severity == DiagnosticSeverity.Error))
+                    {
+                        Add("SourceSyntax", project, path, path);
+                        continue;
+                    }
+
+                    var root = tree.GetRoot();
+                    var model = compilation.GetSemanticModel(tree);
+                    foreach (var declaration in root.DescendantNodes().Where(node =>
+                        node is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax))
+                    {
+                        if (model.GetDeclaredSymbol(declaration) is not INamedTypeSymbol symbol ||
+                            !IsExternallyVisible(symbol) || !inspectedTypes.Add(symbol))
                         {
-                            Add("R2PluginPublicType", project, declaration.Groups["name"].Value);
+                            continue;
+                        }
+
+                        var identity = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+                        if (IsHost(project.Name) && symbol.Name != "Program" &&
+                            !symbol.Name.EndsWith("Registration", StringComparison.Ordinal) &&
+                            !symbol.Name.EndsWith("Endpoints", StringComparison.Ordinal))
+                        {
+                            Add("R2HostPublicType", project, identity, path);
+                        }
+
+                        if (IsSandbox(project.Name) && !IsPluginEntry(symbol, compilation))
+                        {
+                            Add("R2PluginPublicType", project, identity, path);
+                        }
+                    }
+
+                    // Token.ValueText 由 C# parser 處理 Unicode、verbatim、raw 與插值文字。
+                    // 不自行刪註解／字串，避免字串內的偽宣告污染公開 API 與傳輸判定。
+                    var literalValues = root.DescendantNodes().OfType<LiteralExpressionSyntax>()
+                        .Where(item => item.IsKind(SyntaxKind.StringLiteralExpression))
+                        .Select(item => item.Token.ValueText)
+                        .Concat(root.DescendantNodes().OfType<InterpolatedStringTextSyntax>()
+                            .Select(item => item.TextToken.ValueText));
+                    foreach (var value in literalValues.Where(IsOrganizationCode).Distinct(StringComparer.Ordinal))
+                    {
+                        if (!IsAllowlistedOrganizationLiteral(project.Name, path, value))
+                        {
+                            Add("R3OrganizationLiteral", project, value, path);
+                        }
+                    }
+
+                    if (!IsHttpClientProjectAllowed(project) && UsesFrameworkType(root, model,
+                        "System.Net.Http.HttpClient", "System.Net.Http"))
+                    {
+                        Add("R9HttpClientProject", project, path, path);
+                    }
+
+                    if (IsSandbox(project.Name) && root.DescendantNodes().OfType<NameSyntax>()
+                        .Any(name => IsDrawingName(name, model)))
+                    {
+                        // 同一目標的參考與來源只報一個禁止家族，避免逐來源重複診斷。
+                        if (!violations.Any(item => item.Rule == "R9PluginSystemDrawingReference" &&
+                            item.Project == project.Name && item.Target == project.Target &&
+                            item.Configuration == project.Configuration))
+                        {
+                            Add("R9PluginSystemDrawingReference", project, "System.Drawing", path);
                         }
                     }
                 }
-
-                foreach (Match literal in OrganizationLiteralPattern.Matches(withoutComments))
-                {
-                    var value = literal.Groups["value"].Value;
-                    if (!IsAllowlistedOrganizationLiteral(project.Name, normalizedPath, value))
-                    {
-                        Add("R3OrganizationLiteral", project, value);
-                    }
-                }
-
-                if (HttpClientPattern.IsMatch(codeOnly) && !IsHttpClientProjectAllowed(project))
-                {
-                    Add("R9HttpClientProject", project, normalizedPath);
-                }
-
-                if (IsSandbox(project.Name) &&
-                    (project.References.Contains("SpeechMessage.Payments", StringComparer.Ordinal) ||
-                     project.Packages.Any(package => package.StartsWith("SpeechMessage.Payments", StringComparison.Ordinal))))
-                {
-                    Add("R9PluginPaymentsReference", project, "SpeechMessage.Payments");
-                }
-
-                if (IsSandbox(project.Name) &&
-                    (project.Packages.Any(package => package.StartsWith("System.Drawing", StringComparison.Ordinal)) ||
-                     codeOnly.Contains("System.Drawing", StringComparison.Ordinal)))
-                {
-                    Add("R9PluginSystemDrawingReference", project, "System.Drawing");
-                }
+            }
+        }
+        finally
+        {
+            for (var index = metadataOwners.Count - 1; index >= 0; index--)
+            {
+                metadataOwners[index].Dispose();
             }
         }
 
         return violations.AsReadOnly();
 
-        void Add(string rule, ArchitectureProject project, string dependency) =>
-            violations.Add(new ArchitectureViolation(rule, project.Name, project.Target, dependency));
+        void Add(string rule, ArchitectureProject project, string dependency, string path = "") =>
+            violations.Add(new ArchitectureViolation(rule, project.Name, project.Target, dependency)
+            {
+                SourcePath = path,
+                Configuration = project.Configuration
+            });
     }
 
     /// <summary>檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。</summary>
@@ -250,197 +329,139 @@ internal static class ArchitectureRules
         return violations.AsReadOnly();
     }
 
-    private static readonly Regex PublicTypePattern = new(
-        @"\bpublic\s+(?:(?:sealed|abstract|static|partial|readonly)\s+)*(?<kind>class|record|interface|struct|enum|delegate)\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)(?<base>\s*:\s*[^{]+)?",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    /// <summary>僅借用目前 runtime 的六個純契約組件路徑，不載入產品 DLL 或列舉任意磁碟。</summary>
+    private static IEnumerable<string> PlatformContractPaths()
+    {
+        var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "System.Private.CoreLib.dll", "System.Runtime.dll", "System.Net.Http.dll",
+            "System.Collections.dll", "System.Linq.dll", "netstandard.dll"
+        };
+        var paths = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ??
+            throw new InvalidDataException("Runtime contract metadata is unavailable.");
+        return paths.Split(Path.PathSeparator).Where(path => allowed.Contains(Path.GetFileName(path)));
+    }
 
-    private static readonly Regex OrganizationLiteralPattern = new(
-        "\"(?<value>Jesus|JesusBack|Sunny|SunnyBack|Ymllc)\"",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    /// <summary>所有包含型別均須公開；internal 容器、私有或 protected 巢狀型別不構成直接公開 API。</summary>
+    private static bool IsExternallyVisible(INamedTypeSymbol symbol)
+    {
+        for (var current = symbol; current is not null; current = current.ContainingType)
+        {
+            if (current.DeclaredAccessibility != Accessibility.Public)
+            {
+                return false;
+            }
+        }
 
-    private static readonly Regex HttpClientPattern = new(
-        @"\bHttpClient\b",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        return true;
+    }
 
+    /// <summary>
+    /// 使用真正 SDK 組件身分及 Roslyn 的完整繼承圖辨識入口；別名與間接繼承有效，
+    /// 名稱相似或在產品來源偽造同命名空間的介面均無權冒充官方契約。
+    /// </summary>
+    private static bool IsPluginEntry(INamedTypeSymbol symbol, CSharpCompilation compilation)
+    {
+        if (symbol.TypeKind != TypeKind.Class)
+        {
+            return false;
+        }
+
+        var plugin = compilation.GetTypeByMetadataName("Microsoft.Xrm.Sdk.IPlugin");
+        if (plugin?.ContainingAssembly.Name == "Microsoft.Xrm.Sdk" &&
+            symbol.AllInterfaces.Any(item => SymbolEqualityComparer.Default.Equals(item, plugin)))
+        {
+            return true;
+        }
+
+        var activity = compilation.GetTypeByMetadataName("System.Activities.CodeActivity");
+        if (activity?.ContainingAssembly.Name == "System.Activities")
+        {
+            for (var current = symbol.BaseType; current is not null; current = current.BaseType)
+            {
+                if (SymbolEqualityComparer.Default.Equals(current, activity))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>檢查語意型別而非字串；using 別名、完整名稱與 typeof 皆依真正 framework 組件身分辨識。</summary>
+    private static bool UsesFrameworkType(SyntaxNode root, SemanticModel model, string fullName, string assemblyName) =>
+        root.DescendantNodes().OfType<NameSyntax>().Any(name =>
+        {
+            var symbol = model.GetTypeInfo(name).Type ?? model.GetSymbolInfo(name).Symbol as ITypeSymbol;
+            return symbol?.ToDisplayString() == fullName && symbol.ContainingAssembly.Name == assemblyName;
+        });
+
+    /// <summary>禁止 System.Drawing 命名空間／型別與明確 using，不把相似前綴視為同一家族。</summary>
+    private static bool IsDrawingName(NameSyntax name, SemanticModel model)
+    {
+        var text = name.ToString().Replace("global::", string.Empty, StringComparison.Ordinal);
+        var symbol = model.GetSymbolInfo(name).Symbol;
+        return IsAssemblyFamily(text, "System.Drawing") ||
+            (symbol is not null && IsAssemblyFamily(symbol.ContainingNamespace?.ToDisplayString() ??
+                symbol.ToDisplayString(), "System.Drawing"));
+    }
+
+    /// <summary>傳輸雙目標例外只有兩個正式核心，其餘僅允許已分類且所有產品目標都是 net10 的主機／共用層。</summary>
     private static bool IsHttpClientProjectAllowed(ArchitectureProject project) =>
-        project.Name is "Line.Messaging" or "LineMessagingProcessor.Core" or "SpeechMessage.Payments" ||
-        (project.Target == "net10.0" &&
-         (project.Name == "SpeechMessage.Hosting" || IsHost(project.Name)));
+        project.Name is "Line.Messaging" or "LineMessagingProcessor.Core" ||
+        (project.Target == "net10.0" && project.Targets.All(target => target == "net10.0") &&
+         Layer(project.Name) >= 0 && !IsSandbox(project.Name) && project.Name != "SpeechMessage.Dynamics.Deployment");
 
+    /// <summary>僅辨識確定的組織代碼，固定 allowlist 仍須逐精確專案／路徑／值判斷。</summary>
+    private static bool IsOrganizationCode(string value) => value is "Jesus" or "JesusBack" or "Sunny" or "SunnyBack" or "Ymllc";
+
+    /// <summary>
+    /// 遷移相容例外：Tenancy 暫保留既有缺省組織；舊 ChurchReport facade 暫保留正式／back
+    /// 別名。只限下面兩個精確檔案，移除舊入口／完成 P2-06 後須刪除對應例外，不可擴為產品豁免。
+    /// </summary>
     private static bool IsAllowlistedOrganizationLiteral(string project, string path, string value) =>
         (project == "SpeechMessage.Tenancy" &&
-         (path.Equals("ConfigurationLineChannelResolver.cs", StringComparison.Ordinal) ||
-          path.EndsWith("SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs", StringComparison.Ordinal)) &&
-         value == "Jesus") ||
+         path == "SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs" && value == "Jesus") ||
         (project == "SpeechMessageProducts.ChurchReport" &&
-         path.EndsWith("SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs", StringComparison.Ordinal) &&
-         value is "Jesus" or "JesusBack");
+         path == "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs" && value is "Jesus" or "JesusBack");
 
-    private static string RemoveCommentsPreserveStrings(string source)
+    /// <summary>完整組件家族比對，不以 PaymentsPretender 或 DrawingHelper 取得或觸發另一組件的權限。</summary>
+    private static bool IsAssemblyFamily(string name, string family) =>
+        name == family || name.StartsWith(family + ".", StringComparison.Ordinal);
+
+    /// <summary>
+    /// 在目前目標與組態的圖上走訪傳遞參考；visited 有界於輸入圖，循環不會無限遞迴。
+    /// 同時納入已還原相依、普通 Reference 與 FrameworkReference，空 Compile 不能豁免。
+    /// </summary>
+    private static HashSet<string> ReachableDependencies(ArchitectureProject project,
+        IReadOnlyList<ArchitectureProject> projects)
     {
-        var result = new char[source.Length];
-        Array.Fill(result, ' ');
-        var state = LexState.Code;
-        for (var index = 0; index < source.Length; index++)
+        var found = new HashSet<string>(StringComparer.Ordinal);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var pending = new Stack<ArchitectureProject>();
+        pending.Push(project);
+        while (pending.TryPop(out var current))
         {
-            var current = source[index];
-            var next = index + 1 < source.Length ? source[index + 1] : '\0';
-            if (state == LexState.LineComment)
+            if (!visited.Add(current.Name))
             {
-                if (current is '\r' or '\n')
-                {
-                    result[index] = current;
-                    state = LexState.Code;
-                }
-
                 continue;
             }
 
-            if (state == LexState.BlockComment)
+            foreach (var dependency in current.References.Concat(current.Packages)
+                .Concat(current.RestoredDependencies).Concat(current.AssemblyReferences))
             {
-                if (current == '*' && next == '/')
+                found.Add(dependency);
+                var next = projects.FirstOrDefault(item => item.Name == dependency &&
+                    item.Target == project.Target && item.Configuration == project.Configuration);
+                if (next is not null)
                 {
-                    index++;
-                    state = LexState.Code;
-                }
-
-                continue;
-            }
-
-            if (state == LexState.VerbatimString)
-            {
-                result[index] = current;
-                if (current == '"' && next == '"')
-                {
-                    result[++index] = next;
-                }
-                else if (current == '"')
-                {
-                    state = LexState.Code;
-                }
-
-                continue;
-            }
-
-            if (state is LexState.String or LexState.Character)
-            {
-                result[index] = current;
-                if (current == '\\')
-                {
-                    if (index + 1 < source.Length)
-                    {
-                        result[++index] = source[index];
-                    }
-                }
-                else if ((state == LexState.String && current == '"') ||
-                         (state == LexState.Character && current == '\''))
-                {
-                    state = LexState.Code;
-                }
-
-                continue;
-            }
-
-            if (current == '/' && next == '/')
-            {
-                index++;
-                state = LexState.LineComment;
-            }
-            else if (current == '/' && next == '*')
-            {
-                index++;
-                state = LexState.BlockComment;
-            }
-            else
-            {
-                result[index] = current;
-                if (current == '@' && next == '"')
-                {
-                    result[index] = ' ';
-                    result[++index] = '"';
-                    state = LexState.VerbatimString;
-                }
-                else if (current == '"')
-                {
-                    state = LexState.String;
-                }
-                else if (current == '\'')
-                {
-                    state = LexState.Character;
+                    pending.Push(next);
                 }
             }
         }
 
-        return new string(result);
-    }
-
-    private static string RemoveCommentsAndStrings(string source)
-    {
-        var withComments = RemoveCommentsPreserveStrings(source);
-        var result = withComments.ToCharArray();
-        var state = LexState.Code;
-        for (var index = 0; index < result.Length; index++)
-        {
-            var current = result[index];
-            if (state == LexState.VerbatimString)
-            {
-                result[index] = ' ';
-                if (current == '"' && index + 1 < result.Length && result[index + 1] == '"')
-                {
-                    result[++index] = ' ';
-                }
-                else if (current == '"')
-                {
-                    state = LexState.Code;
-                }
-
-                continue;
-            }
-
-            if (state is LexState.String or LexState.Character)
-            {
-                var closing = state == LexState.String ? '"' : '\'';
-                result[index] = ' ';
-                if (current == '\\' && index + 1 < result.Length)
-                {
-                    result[++index] = ' ';
-                }
-                else if (current == closing)
-                {
-                    state = LexState.Code;
-                }
-
-                continue;
-            }
-
-            if (current == '@' && index + 1 < result.Length && result[index + 1] == '"')
-            {
-                result[index++] = ' ';
-                state = LexState.VerbatimString;
-            }
-            else if (current == '"')
-            {
-                result[index] = ' ';
-                state = LexState.String;
-            }
-            else if (current == '\'')
-            {
-                result[index] = ' ';
-                state = LexState.Character;
-            }
-        }
-
-        return new string(result);
-    }
-
-    private enum LexState
-    {
-        Code,
-        LineComment,
-        BlockComment,
-        String,
-        VerbatimString,
-        Character
+        return found;
     }
 
     /// <summary>部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。</summary>

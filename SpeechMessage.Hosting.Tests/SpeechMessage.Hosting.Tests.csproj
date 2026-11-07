@@ -14,7 +14,8 @@
 使用邊界與維護：
 架構測試只讀目前工作樹的方案與明確來源，不能掃描父 worktree 或執行部署。新增
 測試時須說明故障注入、決定性斷言及 owner 清理責任；CI 透過 solution filter 執行
-Release 並單獨收集 Hosting 覆蓋率，本機另驗 Debug，不能以 mock 結果宣稱實機推播。
+Release 並單獨收集 Hosting 覆蓋率，本機另驗 Debug。Roslyn 僅供離線架構分析，SDK metadata
+由單次掃描確定Dispose；未通過R2清冊不是驗收豁免，不能以 mock 結果宣稱實機推播。
 -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -37,6 +38,7 @@ Release 並單獨收集 Hosting 覆蓋率，本機另驗 Debug，不能以 mock 
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />

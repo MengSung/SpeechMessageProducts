@@ -15,7 +15,7 @@
   設定；不持有組態 provider、不建立背景工作。
 - `ExceptionReportingAdapter`：只把 Host 已擁有的 exception owner 注入 MVC／
   middleware；不保存 HttpContext、Session、tenant 或 credential。
-- `ArchitectureRules`：沿用 `tests-shared/ArchitectureTests` 的 XML／原始碼掃描，
+- `ArchitectureRules`：真正搬移至 `Hosting.Tests/Architecture`，保留 XML 評估並以 Roslyn 語法與 SDK metadata 執行原始碼規則，
   在 Hosting.Tests 驗證主機與 Plugin 的公開邊界。
 
 ## 生命週期
@@ -87,3 +87,26 @@ Host 只在啟動時讀 Localization 區段：最多六十四個連續索引純�
 設定解析失敗發生在接管 handler 之前，仍由原 caller 清理。sender 不另建 queue 或 retry，
 Host 必須先 drain diagnostics 再關閉 sender；Dispose 冪等並清除憑證／收件人參照。
 正常取消與內部 timeout 均向上傳遞，由 diagnostics 依原 caller token 判別，sender 不通知自己。
+
+## 架構來源掃描接續設計
+
+以中央 Microsoft.CodeAnalysis.CSharp 版本取代 Regex／手寫字串狀態機。每次掃描從目前
+方案建立 detached 來源快照，逐 Debug／Release、逐目標讀 Compile、Using、DefineConstants、
+普通 Reference／FrameworkReference、直接及已還原傳遞相依。R4 與來源檢查共用同次圖，
+不重複呼叫全方案子程序。R2 使用有效公開可見性及官方 SDK 的 IPlugin／CodeActivity
+組件身分與完整繼承圖；R3 比對解碼後的字串及精確方案相對白名單；R9 比對真正
+HttpClient 語意型別與有界相依閉包。SDK BeforeCommon 的隱含 Framework 可用組件
+不等於產品明確依賴；只有真實 SDK 定義且有 implicit metadata 才忽略，產物另外讀 PE
+AssemblyRef，產品自己貼 implicit 標記不能繞過。
+
+唯讀評估不執行 global using 產生 target，由已評估 Using 項目在記憶體組成等效語法。
+單來源16MiB、每目標64MiB、同次唯一來源總量256MiB；跨目標重用的是相同 detached
+不可變來源文字，沒有跨呼叫快取。讀取 stream 不允許並行寫入並確定 Dispose，UTF-8
+嚴格解碼；MSBuild 每條輸出最多8MiB、程序三十秒，仍採既有 drain／kill／reap契約。
+Roslyn AssemblyMetadata 由每次掃描唯一擁有，finally反向Dispose，不執行產品DLL。
+
+R2真實盤點仍有 ChurchReport Debug338／Release316筆公開型別差距。
+`unresolved-r2-inventory.json` 使用完整規則／專案／目標／組態／路徑／型別身分，
+每筆理由與移除條件明列；測試精確拒絕新增、移除、移動或其他規則違規。
+此為尚未通過清冊，非驗收豁免；R2與P2-01保持未驗收，不以改internal破壞MVC或
+序列化契約，也不以清冊追蹤測試綠燈宣稱外殼遷移完成。

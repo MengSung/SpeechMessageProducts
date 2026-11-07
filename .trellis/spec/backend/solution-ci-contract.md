@@ -171,3 +171,50 @@ User approval on 2026-11-04 explicitly accepts the 23/26 transitional CI scope
 for phase 0 completion. Resolve the DevExpress package source as a priority after
 phase 1 starts; this scope decision is not evidence of a successful hosted run.
 Full-solution local section 8 checks remain mandatory.
+
+## 架構來源守門與未通過差距契約（P2-01）
+
+### 1. 範圍與觸發
+
+Hosting.Tests/Architecture 是 R2／R3／R4／R9 唯一來源。新增目標、條件參考或來源
+語法時，必須同步正反例及兩種組態，不由 Localization.Tests 重複編譯。
+
+### 2. 介面
+
+`ReadSolution(configuration)`／`ReadProjects(root, paths, verifyRestoredAssets, configuration)`
+只接受 Debug、Release。`ValidateSource(projects)` 回傳規則、專案、目標、組態、來源
+與完整型別／依賴身分；不回傳來源本文、token或設定。
+
+### 3. 契約
+
+- Roslyn 使用 DefineConstants、Compile 及已評估 Using 建立同組態語法／語意；禁止
+  以 Regex 自行模擬 C# 註解、raw string、可見性、別名或繼承。
+- Plugin 入口使用真 SDK IPlugin／CodeActivity 組件身分；相似名稱、來源假介面不合格。
+- R3 比對解碼後實際值，白名單固定完整專案／方案相對路徑／值，理由及移除條件必填。
+- R9 不依賴 Compile 非空；檢查普通Reference、FrameworkReference、已還原相依及
+  目前目標相依閉包。HttpClient雙目標例外只有Line.Messaging、LineMessagingProcessor.Core。
+- SDK隱含可用Framework組件不等於輸出AssemblyRef；忽略時須同時匹配真正SDK定義及
+  implicit metadata，並檢查Debug／Release Plugin產物的實際組件參考。
+- 單來源16MiB、每目標64MiB、同次唯一文字256MiB；嚴格UTF-8、拒跨工作樹與reparse。
+  metadata僅由單次掃描持有且finally Dispose，不執行產品DLL、不保存跨呼叫可變快照。
+
+### 4. 拒絕矩陣
+
+語法錯誤回SourceSyntax；錯誤UTF-8或來源超預算明確失敗；Plugin無Compile仍拒絕
+Payments／System.Drawing相依。global using不可漏掉HttpClient，raw文字不能冒充宣告。
+
+### 5. 正常／既有／錯誤
+
+真正SDK別名／繼承入口合法；既有ChurchReport公開型別寫精確未通過清冊；新來源、
+同名偽入口、白名單路徑拼接或任何新增R3／R9必須紅燈。清冊非空表示R2尚未驗收。
+
+### 6. 必要斷言
+
+合成語法反例、真正XML條件來源、大小／解碼故障、完整方案兩組態R4及精確未通過
+清冊比對、Plugin產物AssemblyRef與程序drain。完整方案每次同一快照同時驗R4及來源。
+
+### 7. 錯誤與正確
+
+錯誤：`Assert.All(violations, x => x.Project == ChurchReport)`使整個產品任意違規綠燈。
+正確：逐完整身分核對`unresolved-r2-inventory.json`，任何差集都失敗；每筆附理由及
+移除條件。此測試只保護追蹤完整性，報告與HTML仍明標R2未通過，不把債務當成完成。
