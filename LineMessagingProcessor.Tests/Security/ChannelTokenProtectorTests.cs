@@ -13,7 +13,7 @@
  * 資源擁有權與隔離：每案擁有crypto、barrier與Process，using後才量測／結束；
  * byte[]均為合成資料，不保存真實憑證。輸出TokenExchange僅供本任務合成跨目標向量
  * 收集，不是產品日誌。測試不建立cache、背景服務或網路；故障由xUnit原樣報告。
- * 修改協定須同時重跑兩framework與Core獨立覆蓋率，不能只以本機roundtrip作驗收。
+ * 修改協定須同時重跑兩framework；本既有專案不另設覆蓋率門檻，不能只以本機roundtrip作驗收。
  */
 using System.Diagnostics;
 using System.Reflection;
@@ -104,13 +104,46 @@ public sealed class ChannelTokenProtectorTests
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
-    public void Tampered_CiphertextOrIvOrMac_Throws(int part)
+    public void Tampered_CiphertextOrIvOrMac_Throws(int part) => AssertTamperedPartRejected(part);
+
+    /// <summary>
+    /// 對應計畫同名案例：只翻轉合成密文的一個位元，固定MAC保持原值；
+    /// 真實Unprotect必須拒絕且不能回傳未認證明文，與原三部位theory共用決定性斷言。
+    /// </summary>
+    [Fact]
+    public void Tampered_Ciphertext_Throws() => AssertTamperedPartRejected(2);
+
+    /// <summary>
+    /// 對應計畫同名案例：只翻轉合成MAC的一個位元，版本、IV及密文不動；
+    /// 必須以固定安全例外拒絕，不能因密文原本有效就略過認證。
+    /// </summary>
+    [Fact]
+    public void Tampered_Mac_Throws() => AssertTamperedPartRejected(3);
+
+    /// <summary>
+    /// 把合法合成封包的版本改為v2，其他欄位原樣保留；未知版本必須在發布明文前拒絕，
+    /// 不嘗試相容降級，也不把封包寫入例外。
+    /// </summary>
+    [Fact]
+    public void UnknownVersion_Throws()
     {
         var parts = ChannelTokenProtector.Protect(Plain, Key()).Split(':');
-        var bytes = Convert.FromBase64String(parts[part]);
-        bytes[0] ^= 1;
-        parts[part] = Convert.ToBase64String(bytes);
+        parts[0] = "v2";
         AssertSafeFailure(() => ChannelTokenProtector.Unprotect(string.Join(":", parts), Key()));
+    }
+
+    /// <summary>
+    /// 對合法合成封包注入錯誤MAC金鑰；不接受原本可解密作為成功理由。
+    /// 精確比對固定訊息、空Data及無inner，排除明文、密文、key或provider故障細節外洩。
+    /// </summary>
+    [Fact]
+    public void Exception_NeverContainsSecret()
+    {
+        var key = Key();
+        var envelope = ChannelTokenProtector.Protect(Plain, key);
+        var wrong = (byte[])key.Clone();
+        wrong[32] ^= 1;
+        AssertSafeFailure(() => ChannelTokenProtector.Unprotect(envelope, wrong));
     }
 
     /// <summary>修改AES或MAC半部key均必須拒絕，且caller擁有的原key不被清零或改寫。</summary>
@@ -280,6 +313,20 @@ public sealed class ChannelTokenProtectorTests
         Assert.InRange(GC.GetTotalMemory(forceFullCollection: true) - baselineBytes, long.MinValue, 2 * 1024 * 1024);
         process.Refresh();
         Assert.InRange(process.HandleCount - baselineHandles, int.MinValue, 16);
+    }
+
+    /// <summary>
+    /// 為原theory與計畫同名Fact建立各自的合成封包，逐案只改指定部位；
+    /// 不共享可變fixture、不改產品實作，篡改後必須由真實解密入口安全拒絕。
+    /// </summary>
+    /// <param name="part">IV、密文或MAC的base64部位索引，只由測試常數傳入。</param>
+    private static void AssertTamperedPartRejected(int part)
+    {
+        var parts = ChannelTokenProtector.Protect(Plain, Key()).Split(':');
+        var bytes = Convert.FromBase64String(parts[part]);
+        bytes[0] ^= 1;
+        parts[part] = Convert.ToBase64String(bytes);
+        AssertSafeFailure(() => ChannelTokenProtector.Unprotect(string.Join(":", parts), Key()));
     }
 
     /// <summary>產生公開合成64-byte key；每次全新陣列，caller可核對未被產品變更。</summary>

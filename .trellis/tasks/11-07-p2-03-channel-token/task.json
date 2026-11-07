@@ -26,12 +26,12 @@
     "SpeechMessage.Dynamics.Deployment.Tests/ChannelProvisioningTests.cs",
     "SpeechMessage.Dynamics.Deployment.Tests/ChannelSecretInputTests.cs"
   ],
-  "notes": "P2-03離線核心及Deployment已實作；目前工作樹完整Release驗證20份TRX共4596／4596通過、建置23警告／0錯誤，逐份摘要見evidence/current-head-rerun-20261107-1730/current-head-summary.json。必要實機、before／回復與權限／唯一性待驗證；階段2為1／12工作包已驗收（P2-02），P2-01與P2-03進行中。既有提交376a6172保留，無外部模型或實機操作。",
+  "notes": "依3.4保留原theory並補四個計畫同名Fact，七個指定名稱均於雙目標33個案例中通過。CLI白名單/stdin/最小Upsert假服務契約於34f4f6bb乾淨複本通過。本包新提交的乾淨守門待跑；沒有新專案，不另設coverage門檻；本包無實機，寫入實測移P2-04前置/P2-12。",
   "meta": {
     "executionMode": "inline",
     "externalDualModel": "user-waived",
-    "offlineOnly": true
+    "liveAcceptance": "P2-04 prerequisite and P2-12"
   },
-  "updatedAt": "2026-11-07T17:47:12+08:00",
+  "updatedAt": "2026-11-07T21:51:28+08:00",
   "lastCheckpoint": "54d78c81"
 }

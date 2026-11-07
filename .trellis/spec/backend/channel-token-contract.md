@@ -4,7 +4,8 @@
 
 P2-03 的雙目標 `LineMessagingProcessor.Core/Security` 與 net10 Deployment
 `Channels`。本契約不授權實機寫入、秘密輪替、正式發訊或金流。
-P2-04 的使用者沙箱推播前置維持原界線，不以離線測試替代。
+依實作計畫3.4，P2-03不需要實機；Codex於P2-04前置與P2-12自行完成
+已授權測試環境的實機步驟，不以離線測試替代。
 
 ## 2. 實際介面
 
@@ -96,8 +97,8 @@ Core雙宿主反射證明net462／net10實際產品目標；三份向量包含�
 CLI從真入口驗parser、stdin、key、最小SDK payload、回傳正式ID、寫鎖、
 release-before-report、caller取消／內部timeout、雙重故障與真共用日誌保密。
 真匿名pipe另驗deadline、取消、EOF、嚴格UTF-8、容量與Dispose。
-Core各目標及Deployment各自fresh coverage≥80%；完整方案Release、Deployment
-Debug／Release、文件／編碼／duplicate／I18n與進度頁守門仍必要。
+依3.4的00 §7.1，既有Core及Deployment不另設fresh coverage門檻；歷史覆蓋率保留。
+本包七個指定測試同名存在並於雙目標通過，CLI假服務契約與00 §8.1乾淨複本守門必須通過。
 原始TRX／log保留本機，提交精確摘要／SHA，不能改寫原失敗。
 
 ## 7. 回歸預防
