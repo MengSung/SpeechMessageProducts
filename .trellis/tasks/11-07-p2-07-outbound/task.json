@@ -1,0 +1,30 @@
+{
+  "id": "p2-07-outbound",
+  "name": "p2-07-outbound",
+  "title": "P2-07 對外待辦冪等Writer與有界Worker",
+  "description": "依3.4完成三種outboundtask、冪等寫入、RowVersion認領、重試、停機排空與資源基線。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-11-07",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.11.Integration.P2.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "11-07-integration-p2",
+  "relatedFiles": [],
+  "notes": "Writer 與 D365 原子入列已離線雙宿主通過：Writer 各17、store各11；其餘六個同名 Worker 測試與 RowVersion 尚未完成，未驗收、未推送。",
+  "meta": {
+    "nextAction": "RowVersion 認領與 stale reclaim，接續有界 Worker／重試／停止排空",
+    "dispatchMode": "inline",
+    "evidenceSummarySha256": "01d5fff0f75760cd25ecf1b5110f0ac0503dd754acc28ec3ffe52bdf8af4a127"
+  }
+}

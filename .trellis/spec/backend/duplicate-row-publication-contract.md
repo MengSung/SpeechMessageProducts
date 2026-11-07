@@ -171,3 +171,48 @@ For the existing jQuery Grid, return
 `coordinator.runLoad(() => originalLoad(options), $.Deferred)`, rather than
 wrapping the native result in `$.when(...)`: a late wrapper restores `.done`
 but cannot restore metadata already lost during native Promise assimilation.
+
+## P2-07 待辦入列：已實作邊界（Worker 尚未驗收）
+
+### 1. 範圍
+
+只限 `GoodShepherd.Core/Outbound/OutboundTaskWriter` 與
+`ToolUtility.Core/Outbound` 的純值命令及入列適配器，不代表 Worker 或實機驗收完成。
+
+### 2. 簽章
+
+`Enqueue(OutboundTaskType, Guid churchId, Guid? contactId, Guid sourceId,
+IReadOnlyDictionary<string, object> payload, CancellationToken)` 回正式資料庫待辦 ID。
+`D365OutboundEnqueueStore.CreateOrGet` 借入已授權 SDK；用完 Dispose 清參照，不處置外借連線。
+
+### 3. 契約
+
+- 類型只有 A.4 三種；來源必須是伺服器權威事件 ID，不可 retry 時換新。
+- 替代鍵是 `churchId:N-類型數值-sourceId:N`；每組織的資料庫唯一鍵才是跨程序保證。
+- payload 至多十六欄；程式欄位名為至多三十二個 ASCII 英文字／數字，首字為字母。
+  值僅允許非空 Guid、Int32、Int64、Decimal。欄位依 ordinal 排序，Decimal 以 G29 正規化；
+  不接受字串、null、浮點或巢狀資料，不保存 caller 字典。
+- 先原子 Create 完整新列；僅 `0x80040237` 唯一鍵衝突轉精確讀回，
+  核對教會／會友／類型／payload／替代鍵後回原 ID。這實現不覆寫的冪等 create-or-get；
+  不用會覆寫 Completed、attempts 或原 payload 的盲目 Upsert。
+
+### 4. 錯誤矩陣
+
+非法輸入在 SDK 前拒絕；衝突讀回零筆／多筆／不同內容則 fail closed；
+非唯一鍵 fault 保留原例外、不重試。Create 已確認成功時不以後到取消隱藏已寫入結果。
+
+### 5. 正常／基準／禁止
+
+同事件重送回同一 ID；不同教會或類型保留獨立列。禁止先查有無再把應用鎖當唯一性，
+禁止為通過測試改寫既有狀態，亦不得把來源 GUID 當成資料庫回傳 ID。
+
+### 6. 驗證
+
+`OutboundTaskWriterTests` 雙宿主驗型別／快照／鍵／取消；
+`OutboundTaskEnqueueTests` 用獨立 schema 與錯誤碼的 SDK 替身驗兩 store 競爭、
+完成狀態不變、內容衝突、原 fault、空 ID 與 Dispose；不得當成 D365 實機結果。
+
+### 7. 錯誤與正確
+
+錯誤：retry 的 Upsert 帶 `new_taskstatus=Pending`，把已完成列重新啟動。
+正確：Create 受資料庫替代鍵約束，明確衝突才核對讀回，全程不 Update 既有列。

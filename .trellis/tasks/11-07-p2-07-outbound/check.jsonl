@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/backend/duplicate-row-publication-contract.md", "reason": "P2-07 原子防重、單次借用與雙宿主品質契約"}
+{"file": ".trellis/spec/backend/list-and-async-sdk-contract.md", "reason": "P2-07 原子防重、單次借用與雙宿主品質契約"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "P2-07 原子防重、單次借用與雙宿主品質契約"}

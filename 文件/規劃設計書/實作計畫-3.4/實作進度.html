@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T07:04:41+08:00",
+  "snapshot": "2026-11-08 07:12 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T07:12:56+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "12dace71",
-  "headline": "P2-04 前置因測試組織加密金鑰缺失受阻，原況與追蹤已核對收尾；P2-07 入列與防重持續實作。",
+  "head": "10c36d4e",
+  "headline": "P2-07 Writer 與原子入列已通過雙目標離線測試；Worker 尚待實作，P2-04 前置仍受組織加密金鑰阻塞。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T07:04:41+08:00",
-      "body": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)：P2 已驗收 3 包，另 P2-09a 已驗收。P2-04 前置 apply 失敗，未發送 LINE；遠端 DLL 未變、步驟仍停用、追蹤已回例外狀況。P2-07 Writer 與資料庫防重適配器正在完成雙目標測試。",
+      "lastUpdated": "2026-11-08T07:12:56+08:00",
+      "body": "2026-11-08 07:12 Asia/Taipei (UTC+08:00)：P2 已驗收 3 包，另 P2-09a 已驗收。P2-07 Writer 每宿主 17 個新案例、資料庫入列適配器每宿主 11 個案例通過；Worker 未完成，不標整包驗收。P2-04 前置加密金鑰缺失，未發送 LINE。",
       "steps": [
+        "2026-11-08 07:12 Asia/Taipei (UTC+08:00)｜P2-07 入列檢查點｜Writer 穩定鍵、三型別與有界 payload、decimal 正規化已實作；SDK 唯一鍵 Create-or-get 拒覆寫既有狀態，兩 store 競爭、內容衝突、取消、fault 與 Dispose 離線通過。Writer 17 案／store 11 案兩宿主均通過，產品含 QR 回歸各 41 案通過。原始證據與 SHA-256 見 P2-07 一頁回報；CAS／Worker 六個同名測試待做，未推送。",
         "2026-11-08 07:04 Asia/Taipei (UTC+08:00)｜P2-04 前置核對收尾｜兩份備份與 live DLL 解碼 hash 一致，撤回先前以 Base64 長度誤判 DLL 改變的推論；trace 已由 2 恢復 1，固定步驟停用／trace／無 secure。錯誤碼指 Config DB 組織加密金鑰缺失，唯讀 active=false、讀鍵回空；未重跑部署。操作紀錄 SHA-256 見 P2-04-preflight 一頁報告。舊流程精確盤點及 TLS 仍未完成。",
         "2026-11-08 06:52 Asia/Taipei (UTC+08:00)｜恢復接續與補記｜前輪已完成 net462 打包、D34 備份與 16 筆非測試主 LINE ID 清理；推播 apply 失敗，未執行 smoke。備份 Base64 字串長度不能當作 DLL 位元組數，正在解碼比對，未因此誤判回滾。主代理 inline 執行，D365 寫入保持唯一程序。",
         "2026-11-07 22:58 Asia/Taipei (UTC+08:00)｜P2-04前置啟動｜已建立並啟動Trellis子任務`.trellis/tasks/11-07-11-07-p2-04-preflight/`；只確認`TestChannelToken`與`TestLineUserId`鍵存在，未輸出秘密值。發現`artifacts/plugins/SpeechMessage.Dynamics.Plugins.dll`缺少，先補建net462部署產物；目前未寫入D365、未發送LINE。",
@@ -918,7 +919,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "開始契約與TDD；三種待辦、資料庫冪等及RowVersion認領，不連實機。"
+      "note": "Writer 與原子入列已雙宿主離線通過；CAS／Worker／包驗收尚未完成。"
     },
     {
       "id": "P2-08",
@@ -1527,12 +1528,12 @@ const DATA = {
       "id": "P2-07",
       "startedAt": "2026-11-07 22:26",
       "timebox": "1個工作天或15個提交",
-      "next": "先寫Writer兩個同名測試，確認資料庫唯一鍵防重與payload文字拒絕。",
+      "next": "接續 RowVersion 認領與 stale reclaim，再做 Worker 重試、停止排空、資源回基線及保留導讀。",
       "dod": [
         [
           "測試全部同名存在並通過",
           "no",
-          "八個計畫同名測試待完成。"
+          "入列兩個同名測試及補充測試雙宿主通過；其餘六個 Worker 同名測試尚未完成。"
         ],
         [
           "乾淨複本守門",
@@ -1552,7 +1553,7 @@ const DATA = {
         [
           "一頁回報與進度頁",
           "no",
-          "已更新DATA；一頁回報待驗證。"
+          "已保存進行中一頁回報與逐份 SHA-256；未達整包完成。"
         ]
       ]
     }
@@ -1762,6 +1763,10 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-08 07:12 Asia/Taipei (UTC+08:00)",
+      "text": "P2-07 完成 Writer 與唯一鍵儲存的紅綠測試；保存獨立本地提交前檢查點，尚未驗收／推送。"
+    },
     {
       "t": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)",
       "text": "P2-04 前置原況已核對並恢復 trace=1；部署金鑰阻塞不影響 P2-07。頁面獨立測試替身已修正為不依賴使用者欠缺 Secrets，兩套共 27 案通過。"
