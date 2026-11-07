@@ -1,0 +1,12 @@
+{
+  "id": "integration-p2",
+  "title": "P2 全部必要需求、整合與驗收",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "修正 P2-01 未完成 Hosting、DI owner 與啟動守門；持續全範圍 P2 追蹤",
+  "createdAt": "2026-11-07T00:35:03.4037617+00:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree"
+}

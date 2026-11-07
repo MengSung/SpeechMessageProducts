@@ -444,11 +444,33 @@
  * 一般資訊預設收合；注意／錯誤的 title 必須寫明當前問題，詳細 body／steps 預設收合。
  */
 const DATA = {
-  "snapshot": "2026-11-06T21:20:27+08:00",
-  "branch": "1.0.0.11.Integration.P1.Worktree",
-  "worker": "主會話inline實作／驗證／自審；外審兩服務已嘗試但無可用輸出，未宣稱雙模型完成",
-  "headline": "階段 1 目前 <strong>12／12 工作包已驗收完成</strong>（P1-01～12）。P1-12真正已發布verify、四個Active key、第二輪零寫入、唯一鍵差分驗收及測試資料清理全部通過。全計畫83包，已驗收30包；階段2～8維持未開始。",
-  "notices": [],
+  "snapshot": "2026-11-07T08:47:06+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "worker": "主會話 inline 實作／驗證／審查；本輪曾啟動兩名子代理讀取／基線測試，收到 inline 限制後已停止並關閉，無平行產品實作成果。",
+  "headline": "階段 2 目前 <strong>1／12 工作包進行中</strong>（P2-01）。P1-01～12 已驗收；P2-02／03／06／09 可在不連 D365／LINE 下並行，P2-04 推播前置仍需測試 channel／本人帳號與 secrets。全計畫已驗收30包，另1包進行中。",
+  "notices": [
+    {
+      "level": "info",
+      "title": "P2-01 方案登錄已補齊，功能驗收仍進行中",
+      "body": "2026-11-07 08:47 Asia/Taipei (UTC+08:00)：Hosting 與 Hosting.Tests 已加入 SpeechMessageProducts.sln，原有30專案保持不變，現為32專案；兩個新項目各一筆且有 Debug／Release 建置對應。這只完成方案登錄，不代表 P2-01 或 P2 全部完成。",
+      "steps": [
+        "現有設定 Release 建置成功：0警告／0錯誤。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/solution-registration-build.log。",
+        "已驗證加入前缺少兩筆、加入後32筆且原集合完整保留。證據：同 evidence 目錄 solution-before.json、solution-after.json。",
+        "既有 Hosting 功能測試先前仍2失敗；進度頁測試基線12通過／3失敗，正待修正P1快照綁定。不得標示工作包驗收通過。",
+        "2026-11-07 使用者要求已寫入 AGENTS.md 與目錄規範：未來新增 .csproj 同步加入 .sln，不等功能完成。"
+      ]
+    },
+    {
+      "level": "info",
+      "title": "P2 依賴與必要條件已建立追蹤",
+      "body": "P2-01 先建立 Hosting 共用 owner／啟動守門；P2-02、P2-03、P2-06、P2-09 可在不連 D365／LINE 下並行。P2-04 及後續推播工作要等使用者完成安全測試 channel、本人帳號與 User Secrets 佔位驗收；任何離線／mock 結果不代替實機收訊。",
+      "steps": [
+        "使用者要求取消外部模型；目前執行設定仍強制分析／審查。已依自癒入口呼叫 Gemini／Claude，但兩者均未完成、無可用輸出，不宣稱雙模型或單模型成功；保留失敗摘要，主會話繼續本地驗證。",
+        "不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
+        "每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
+      ]
+    }
+  ],
   "alert": {
     "level": "info",
     "title": "P1已完成 12／12驗收並完成本地封存",
@@ -559,10 +581,10 @@ const DATA = {
       "label": "全計畫進度",
       "value": "30",
       "unit": "/ 83 工作包",
-      "sub": "P0 18／18；P1 12／12 已驗收",
+      "sub": "P0 18／18；P1 12／12 已驗收；P2-01 進行中",
       "meter": {
         "done": 30,
-        "active": 0,
+        "active": 1,
         "total": 83
       }
     },
@@ -585,6 +607,17 @@ const DATA = {
       "meter": {
         "done": 12,
         "active": 0,
+        "total": 12
+      }
+    },
+    {
+      "label": "階段 2 進度",
+      "value": "0",
+      "unit": "/ 12 工作包",
+      "sub": "P2-01 進行中；其餘依依賴與實機前置追蹤",
+      "meter": {
+        "done": 0,
+        "active": 1,
         "total": 12
       }
     },
@@ -877,10 +910,11 @@ const DATA = {
       "phaseId": "階段 2",
       "id": "P2-01",
       "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
-      "status": "todo",
-      "scope": "新增 net10 SpeechMessage.Hosting 與 Hosting.Tests；將 LineExceptionSender、ExceptionOutputOptions 搬成唯一可注入通知入口；加入 ICU、偽語系正式環境、ReleasedCultures 完成度啟動檢查；把架構測試搬入 Hosting.Tests，補 R2、R3、R9；ChurchReport 改呼叫共用入口。",
-      "verification": "先鎖既有 ExceptionOutputOptions 行為；測 WriteExceptionLog／SendLine 四種組合、先寫並 flush 才送 LINE、寫檔失敗不送、LINE 失敗不遞迴、有界佇列滿載 stderr、停止 drain／Dispose、呼叫端取消不通知、內部逾時通知；另測 ICU／正式環境偽語系與不完整語系拒絕啟動、R2/R3/R9，ChurchReport 既有測試不變。",
-      "prerequisite": "同時遵守 AGENTS 的例外輸出四種開關契約；不得保存 HttpContext、Session、credential 或建立無界佇列。"
+      "status": "active",
+      "scope": "進行中：SpeechMessage.Hosting、SpeechMessage.Hosting.Tests 已建立並即時補入 SpeechMessageProducts.sln（30→32，原項目完整保留）。仍須完成通知 sender／options 真正抽取、ChurchReport 接入、唯一 owner／DI 邊界、生成語系完成度與 R2／R3／R9 架構守門。",
+      "verification": "待驗證；2026-11-07 08:47 Asia/Taipei (UTC+08:00)：方案成員與 Debug／Release 映射檢查通過；Hosting.Tests 現有設定 Release 建置0警告／0錯誤。證據 .trellis/tasks/11-07-p2-01-hosting/evidence/solution-after.json、solution-registration-build.log。先前 Hosting 測試3通過／2失敗，進度頁測試12通過／3失敗；未完成工作不得標示完成。",
+      "prerequisite": "遵守例外輸出四組合、先 flush 後 LINE、滿載與故障保密、caller取消／內部逾時、drain／Dispose；不可保留 HttpContext、Session 或跨教會憑證。先修測試fixture與DI非同步釋放，續做實際主機整合及語系／架構驗證。",
+      "lastUpdated": "2026-11-07T08:47:06+08:00"
     },
     {
       "phaseId": "階段 2",
@@ -1368,7 +1402,7 @@ const DATA = {
       "total": 12,
       "done": 12,
       "active": 0,
-      "current": true
+      "current": false
     },
     {
       "id": "階段 2",
@@ -1376,7 +1410,8 @@ const DATA = {
       "est": "10～13 天（國際化＋2～3 天）",
       "total": 12,
       "done": 0,
-      "active": 0
+      "active": 1,
+      "current": true
     },
     {
       "id": "階段 3",
@@ -1566,6 +1601,16 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "t": "2026-11-07 08:47 Asia/Taipei (UTC+08:00)",
+      "text": "P2-01 補齊方案登錄：Hosting 與 Hosting.Tests 各一筆，原30專案完整保留、現32；Release建置0警告／0錯誤。新增即入方案規則寫入AGENTS與spec。兩個子代理因inline限制停止，僅保留進度測試紅燈證據；外部雙模型分析／審查均未完成，不虛報成功。完整P2目標不縮小，必要實機受阻仍算未完成。",
+      "cls": "info"
+    },
+    {
+      "t": "2026-11-07 08:18",
+      "text": "P2 開始：已讀取 P2 目標、正式計畫與適用規範；啟動 P2-01 Hosting 子任務。P2-02／03／06／09列為可離線並行候選，P2-04 測試 channel／本人帳號／User Secrets 前置仍未完成；尚未修改產品程式或連 D365／LINE。",
+      "cls": "info"
+    },
     {
       "t": "2026-11-06 21:13",
       "text": "P1-12實機/4412回歸/157與89.11%完成；12/12驗收、30/83總計，續本地提交及封存。",

@@ -1,0 +1,42 @@
+<!--
+檔案整體說明
+
+目的與定位：定義 SpeechMessage.Hosting 的 net10 離線契約測試宿主，驗證啟動守門、
+共用 diagnostics owner、相容 adapter、資源清理及架構規則。測試不讀取真實 secrets、
+不連 D365 或 LINE，也不把測試輸入寫入產品設定。
+
+主要功能與流程：
+本檔參考 Hosting、Localization 與 ChurchReport 所需的架構測試原始碼。測試使用
+專屬暫存目錄、合成 IConfiguration 及可控 sender；每個案例在 finally／await using
+中釋放檔案、registration、owner、task 與 cancellation source，讓資源基線可重複驗證。
+
+使用邊界與維護：
+架構測試只讀目前工作樹的方案與明確來源，不能掃描父 worktree 或執行部署。新增
+測試時須說明故障注入、決定性斷言及 owner 清理責任；Release 與 Debug 的例外契約
+由 CI 分別執行，不能以 mock 結果宣稱實機推播。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>SpeechMessage.Hosting.Tests</RootNamespace>
+    <AssemblyName>SpeechMessage.Hosting.Tests</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../tests-shared/ArchitectureTests/*.cs" Link="Architecture/%(Filename)%(Extension)" />
+    <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
+  </ItemGroup>
+</Project>

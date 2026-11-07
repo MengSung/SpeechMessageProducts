@@ -256,3 +256,11 @@ Required recovery behavior:
 - false／false：不寫 `Exception.log`、不發 LINE。
 
 此四種組合優先於上方原有雙開預設敘述；正常取消分類、資料隔離與有界生命週期規則不變。
+
+## 永久新增專案即時納入方案規則
+
+- 使用者於 2026-11-07 明確要求：未來新增 `.csproj` 時，必須在同一個工作步驟立即加入本工作樹的 `SpeechMessageProducts.sln`，不得只建立磁碟目錄或等功能、測試完成後才加入。
+- 此規則適用產品、共用程式庫、測試及工具專案；不得自行以骨架、試做或尚未整合為由留下未登錄的新專案。若另有明確核定的特殊方案邊界，須先說明衝突，不得靜默例外。
+- 加入後以 `dotnet sln .\SpeechMessageProducts.sln list` 確認專案恰好出現一次，並核對 Debug／Release 的 ActiveCfg、Build.0 對應及原有專案未遭移除。
+- 方案可見不代表功能或驗收完成；仍須在進度頁分開記錄建置、測試、整合及必要實機驗收狀態。
+- 具體命令、失敗處理與驗證契約見 `.trellis/spec/backend/directory-structure.md` 的「新增專案與方案同步契約」。
