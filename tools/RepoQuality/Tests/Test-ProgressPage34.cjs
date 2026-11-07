@@ -8,6 +8,7 @@
 主要功能與流程：讀取 HTML 的 DATA 與原始 script，每案建立專有資料副本及 DOM 替身，
 執行實際 renderer。用真實資料核對唯一 ID、狀態、最多兩包、驗收證據、逐筆時區，
 再注入混合狀態及惡意字串，確認摘要、階段列、工作包表及各文字區塊均安全且一致。
+跳脫案例自帶合成進行卡，不依賴當前是否有工作；另驗空清單不會被測試需求變造。
 
 使用邊界與維護：不修改 DATA、產品設定或歷史證據，不建置、不連網、不讀秘密。
 所有 Map、事件與 localStorage 替身屬於單次案例，無背景工作、計時器或需 Dispose
@@ -128,11 +129,22 @@ test('Plan34_RenderedTotalsAndFilters_AreDerivedFromStatuses', () => {
   assert.match(elements.get('wplist').innerHTML, /沒有符合的工作包/);
 });
 
+test('Plan34_EmptyActiveList_RendersWithoutCreatingWork', () => {
+  const { elements } = render(d => {
+    d.active = [];
+    for (const w of d.wps) if (w.status === 'active') w.status = 'todo';
+  });
+  assert.match(elements.get('active').innerHTML, /目前沒有進行中的工作包/);
+  assert.doesNotMatch(elements.get('active').innerHTML, /class="act"/);
+  assert.match(elements.get('tiles').innerHTML, /0<span class="u">包（上限 2）/);
+});
+
 test('Plan34_Renderer_EscapesAllDisplayedTextSurfaces', () => {
   const attack = '<img src=x onerror="attack">&\'';
   const { elements } = render(d => {
     d.headline = attack;
     d.notices.push({ id: 'synthetic-warning', level: 'warn', title: attack, body: attack, steps: [] });
+    d.active = [{ id: 'synthetic-active', startedAt: '', timebox: '', next: '', dod: [['', 'ok', '']] }];
     for (const w of d.wps) for (const key of ['name', 'deps', 'live', 'timebox', 'doneAt', 'commit', 'note']) w[key] = attack;
     for (const p of d.phases) for (const key of ['name', 'planned', 'actual']) p[key] = attack;
     for (const n of d.notices) { n.title = attack; n.body = attack; n.steps = [attack]; n.lastUpdated = attack; }

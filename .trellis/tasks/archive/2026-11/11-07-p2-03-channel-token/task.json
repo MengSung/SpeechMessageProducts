@@ -3,7 +3,7 @@
   "name": "p2-03-channel-token",
   "title": "P2-03 Channel Token 雙目標加密與寫入工具",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-07",
-  "completedAt": null,
+  "completedAt": "2026-11-07",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P2.Worktree",
   "worktree_path": null,
-  "commit": "54d78c81",
+  "commit": "c929adba",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -26,12 +26,12 @@
     "SpeechMessage.Dynamics.Deployment.Tests/ChannelProvisioningTests.cs",
     "SpeechMessage.Dynamics.Deployment.Tests/ChannelSecretInputTests.cs"
   ],
-  "notes": "依3.4保留原theory並補四個計畫同名Fact，七個指定名稱均於雙目標33個案例中通過。CLI白名單/stdin/最小Upsert假服務契約於34f4f6bb乾淨複本通過。本包新提交的乾淨守門待跑；沒有新專案，不另設coverage門檻；本包無實機，寫入實測移P2-04前置/P2-12。",
+  "notes": "依3.4已驗收：七個同名測試雙目標各33個加密案例通過，CLI假服務契約通過。c929adba乾淨複本11項命令全過，全方案4,643個案例零失敗；既有專案不另設coverage門檻、本包不需實機。一頁報告與DATA已更新，原始證據不提交。",
   "meta": {
     "executionMode": "inline",
     "externalDualModel": "user-waived",
     "liveAcceptance": "P2-04 prerequisite and P2-12"
   },
-  "updatedAt": "2026-11-07T21:51:28+08:00",
+  "updatedAt": "2026-11-07T21:57:29+08:00",
   "lastCheckpoint": "54d78c81"
 }
