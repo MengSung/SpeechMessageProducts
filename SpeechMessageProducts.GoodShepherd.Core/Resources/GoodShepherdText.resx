@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+檔案整體說明
+
+目的與定位：GoodShepherd 產品文字的中性資源來源，供 tools/I18nCheck 驗證並產生
+同模組的固定 C# 資料表；本 P2-02 初始資源刻意為空，不宣稱舊產品文字已搬移。
+
+主要功能與流程：ResourceCatalog 以 XML 安全讀取本檔及同名語系檔，驗證穩定鍵、
+翻譯參數及資源預算，再由 ResourceGenerator 產生 GoodShepherdText.g.cs。
+文字鍵與翻譯未核定前不得加入虛構產品文案。
+
+使用邊界與維護：本檔只保存編譯時產品文案，不含教會覆寫、使用者輸入、憑證或執行
+狀態；由 I18nCheck 唯讀載入並立即釋放 XML reader，不建立快取或背景資源。
+新增／修改文字須同步維護各語系資源並執行 generate 唯讀檢查及 verify；不要手改
+生成檔，空表也須保留正式生成流程。
+-->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <!-- P2-02 建立空資源來源；產品文字待核定工作包搬移並驗收後新增。 -->
+</root>

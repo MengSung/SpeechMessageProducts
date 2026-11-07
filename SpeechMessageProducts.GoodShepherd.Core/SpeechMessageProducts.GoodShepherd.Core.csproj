@@ -1,0 +1,45 @@
+<!--
+檔案整體說明
+
+目的與定位：定義 GoodShepherd 產品領域的雙目標純核心邊界，讓 Dynamics 365
+Plugin（net462）與 .NET 10 主機共用同一份產品規則。此專案只宣告編譯目標、
+資源生成與允許的共用參考，不保存 request、Session、credential、教會快取或
+任何長生命週期背景資源。
+
+主要功能與流程：產品程式由本專案的 Attendance、WeeklyReports、Lessons、
+Appointments、QrCodes、Care、Fees、Members、Messaging、Notifications 模組
+承載；資料查詢、語系、送訊協定與 LINE SDK 由明確的共用專案參考提供。net462
+與 net10.0 分別解析各自相容的參考組件，不能由產品核心反向取得 Hosting、
+D365 主機、ImageSharp 或其他僅 net10.0 能力。
+
+使用邊界與維護：修改 target、參考或資源處理前，必須同步核對方案架構測試、
+GoodShepherd.Core.Tests 兩目標建置及 P2/P5 工作包。Resources\GoodShepherdText.resx
+是文字來源，GoodShepherdText.g.cs 必須由 I18nCheck 產生，不得手改生成檔。
+本 MSBuild 檔不建立外部連線或擁有可清理資源；實際生命週期、隔離與失敗處理由
+各模組程式及其測試契約負責。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net462;net10.0</TargetFrameworks>
+    <RootNamespace>SpeechMessageProducts.GoodShepherd.Core</RootNamespace>
+    <AssemblyName>SpeechMessageProducts.GoodShepherd.Core</AssemblyName>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ToolUtility.Core\ToolUtility.Core.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor.Core\LineMessagingProcessor.Core.csproj" />
+    <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 文字由 I18nCheck 讀取並產生固定資料表，不嵌入衛星資源。 -->
+    <EmbeddedResource Remove="Resources\**\*.resx" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
